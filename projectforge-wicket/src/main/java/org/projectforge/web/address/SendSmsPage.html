@@ -1,0 +1,40 @@
+<html lang="en" xmlns:wicket="http://wicket.apache.org/dtds.data/wicket-xhtml1.4-strict.dtd">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+</head>
+
+<body>
+  <wicket:extend>
+    <script wicket:id="javascript" type="text/javascript">
+					function showSendQuestionDialog() {
+						return window.confirm("Send...?");
+					}
+				</script>
+    <script type="text/javascript">
+					jQuery.fn.limitMaxlength = function(options) {
+						var settings = jQuery.extend({
+							attribute : "maxlength",
+							onEdit : function() {
+							}
+						}, options);
+						// Event handler to limit the textarea
+						var onEdit = function() {
+							var textarea = jQuery(this);
+							var maxlength = parseInt(textarea
+									.attr(settings.attribute));
+							if (textarea.val().length > maxlength) {
+								textarea.val(textarea.val()
+										.substr(0, maxlength));
+							}
+							// Call the onEdit handler within the scope of the textarea
+							jQuery.proxy(settings.onEdit, this)(
+									maxlength - textarea.val().length);
+						}
+						this.each(onEdit);
+						return this.keyup(onEdit).keydown(onEdit).focus(onEdit)
+								.live('input paste', onEdit);
+					}
+				</script>
+  </wicket:extend>
+</body>
+</html>

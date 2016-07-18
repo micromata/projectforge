@@ -1,0 +1,27 @@
+<wicket:extend xmlns:wicket="http://wicket.apache.org/dtds.data/wicket-xhtml1.4-strict.dtd">
+  <form wicket:id="form" class="container" autocomplete="off">
+    <div class="row">
+      <div class="span4">
+        <div class="section">
+            <h3><wicket:message key="title" /></h3>
+            <span wicket:id="title"></span>
+            <br/><br/>
+            <h3><wicket:message key="plugins.poll.new.location" /></h3>
+            <span wicket:id="location"></span>
+            <br/><br/><br/>
+          <h5><wicket:message key="plugins.poll.event.sideTitle" /></h5>
+          <div wicket:id="entryContainer" style="max-height: 550px; overflow: auto;">
+            <div wicket:id="eventEntries">
+          </div>
+          </div>
+          <br/><br/><br/>
+          <div style="float: right;" wicket:id="continueButton"></div>
+        </div>
+      </div>
+      <div class="span8">
+        <div id="loading" style="position: absolute; left: 200px;"><wicket:message key="loading" /></div>
+        <div wicket:id="cal"></div>
+      </div>
+    </div>
+  </form>
+</wicket:extend>

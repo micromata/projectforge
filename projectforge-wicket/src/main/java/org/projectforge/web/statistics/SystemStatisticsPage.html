@@ -1,0 +1,40 @@
+<html lang="en" xmlns:wicket="http://wicket.apache.org/dtds.data/wicket-xhtml1.4-strict.dtd">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+</head>
+
+<body>
+  <wicket:extend>
+    <div class="box grid_16 round_all">
+    <h2><wicket:message key="system.statistics.title" /></h2>
+      <div class="block no_padding">
+        <table class="static" style="width: 400px;">
+          <tbody>
+            <tr>
+              <td><wicket:message key="system.statistics.totalNumberOfTimesheets" /></td>
+              <td wicket:id="totalNumberOfTimesheets" style="text-align: right;">[94.929]</td>
+            </tr>
+            <tr>
+              <td><wicket:message key="system.statistics.totalNumberOfTimesheetDurations" /> (<wicket:message
+                  key="projectmanagement.personDays.short" />)</td>
+              <td wicket:id="totalNumberOfTimesheetDurations" style="text-align: right;">[39.602]</td>
+            </tr>
+            <tr>
+              <td><wicket:message key="system.statistics.totalNumberOfUsers" /></td>
+              <td wicket:id="totalNumberOfUsers" style="text-align: right;">[94]</td>
+            </tr>
+            <tr>
+              <td><wicket:message key="system.statistics.totalNumberOfTasks" /></td>
+              <td wicket:id="totalNumberOfTasks" style="text-align: right;">[3.371]</td>
+            </tr>
+            <tr>
+              <td><wicket:message key="system.statistics.totalNumberOfHistoryEntries" /></td>
+              <td wicket:id="totalNumberOfHistoryEntries" style="text-align: right;">[310.519]</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </wicket:extend>
+</body>
+</html>

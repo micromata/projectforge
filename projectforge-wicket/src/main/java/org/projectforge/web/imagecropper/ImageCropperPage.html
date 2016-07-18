@@ -1,0 +1,186 @@
+<html lang="en" xmlns:wicket="http://wicket.apache.org/dtds.data/wicket-xhtml1.4-strict.dtd">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+
+<wicket:head>
+  <style>
+body {
+	margin: 0px;
+}
+</style>
+  <script wicket:id="javaScriptVars" type="text/javascript">
+  var serverURL = "http://localhost:8080/servletpfad/";
+
+  var flashFile =  "../imagecropper/MicromataImageCropper";
+  //--------------------------------------------------------------------------------------------------------------------------//
+//Temporärer Upload eines Bildes in ein temporäres Verzeichnis auf dem Server,
+//um über einen Download (URL) das Bild in den Client zu laden
+//Servlet Funktion:
+//Upload eines Bildes in ein temporäres Verzeichis
+//Wird benötigt um Bild vom lokalen Rechner auf Server zu laden
+var uploadImageFileTemporaryServlet = "http://localhost:8080/db4/UploadImageFileTemporary";
+//Weitere Parameter an Servlet übergeben
+//filedirectory: Verzeichnis wo temporäres Bild gespeichert wird
+//filename: Name unter dem das Bild gespeichert wird
+var uploadImageFileTemporaryServletParams = 'filedirectory=tempimages;filename=image';
+
+//Servlet Funktion:
+//Download des File
+//Wird benötigt um Bild vom Server in den Flexclient zu laden
+var downloadImageFileServlet = "http://localhost:8080/db4/DownloadImageFile";
+//Weitere Parameter an Servlet übergeben
+//filedirectory: Verzeichnis wo temporäres Bild gespeichert ist
+//filename: Name unter dem das Bild gespeichert ist
+var downloadImageFileServletParams = 'filedirectory=tempimages;filename=image';
+//--------------------------------------------------------------------------------------------------------------------------//
+
+//--------------------------------------------------------------------------------------------------------------------------//
+//Upload eines Bildes auf den Server
+//Servlet Funktion:
+//Upload eines Bides in ein bestimmtes Verzeichnis auf dem Server
+//Wird benötigt um Bild vom FlexClient auf den Server zu laden
+var uploadImageFileServlet = "http://localhost:8080/db4/UploadImageFile";
+//Weitere Parameter an Servlet übergeben
+var uploadImageFileServletParams = 'filedirectory=images;filename=image;croppedname=cropped';
+//--------------------------------------------------------------------------------------------------------------------------//
+
+//--------------------------------------------------------------------------------------------------------------------------//
+//Up-/ und Download des Bildes als ByteArray um das Bild auf dem lokalen Rechner zu speichern
+//Servlet Funktion:
+//Up-/ und Download der Daten als ByteArray
+//Wird benötigt um Bild auf lokalem Rechner zu speichern
+var upAndDownloadImageFileAsByteArrayServlet = "http://localhost:8080/db4/UpAndDownloadImageFileAsByteArray";
+//Weitere Parameter an Servlet übergeben
+var upAndDownloadImageFileAsByteArrayServletParams = 'filename=image;croppedname=cropped';
+//--------------------------------------------------------------------------------------------------------------------------//
+
+//Upload Button visibility: true or false
+var isUploadBtn = false;
+
+var sessionid = "";
+
+//Valid Ratio Examples: 1:4, 4:1, 1:2, 2:1, 1:3, 3:1, 2:3, 3:2 etc.
+var ratioList =  "1:2,2:1,1:3,3:1,1:4,4:1,1:5,5:1,1:6,6:1,1:7,7:1,1:8,8:1,1:9,9:1,1:10,10:1,2:3,3:2";
+var defaultRatio = "1:4";
+//Wird Variable leer gelassen, kann die Ratio frei gewählt werden
+//Wird Variable mit gültigem Wert befüllt, wird die Ratio auf den Konfigurierten Wert gesetzt
+
+//Valid whiteBoardFilter: true or false
+var whiteBoardFilter = true;
+//Auf true gesetzt kann WhiteBoardFilter verwendet werden
+
+//Valid language: DE, EN
+var language = "DE";
+//Wird Variable leer gelassen, ist default language = DE
+
+//Valid FileFormat: jpg, jpeg, gif, png
+var fileFormat ="png";
+//Wird Variable leer gelassen, können alle Formate ausgewählt werden
+//Wird Variable mit gültigem Wert befüllt, können Images nur im jeweligen Dateiformat erzeugt werden
+
+  </script>
+</wicket:head>
+
+</head>
+
+<body>
+  <wicket:extend>
+    <script language="JavaScript" type="text/javascript">// -----------------------------------------------------------------------------
+// Globals
+// Major version of Flash required
+var requiredMajorVersion = 9;
+// Minor version of Flash required
+var requiredMinorVersion = 0;
+// Minor version of Flash required
+var requiredRevision = 28;
+// -----------------------------------------------------------------------------
+// -->
+
+<!--
+// Version check for the Flash Player that has the ability to start Player Product Install (6.0r65)
+var hasProductInstall = DetectFlashVer(6, 0, 65);
+
+// Version check based upon the values defined in globals
+var hasRequestedVersion = DetectFlashVer(requiredMajorVersion, requiredMinorVersion, requiredRevision);
+
+if ( hasProductInstall && !hasRequestedVersion ) {
+  // DO NOT MODIFY THE FOLLOWING FOUR LINES
+  // Location visited after installation is complete if installation is required
+  var MMPlayerType = (isIE == true) ? "ActiveX" : "PlugIn";
+  var MMredirectURL = window.location;
+    document.title = document.title.slice(0, 47) + " - Flash Player Installation";
+    var MMdoctitle = document.title;
+
+  AC_FL_RunContent(
+    "src", "playerProductInstall",
+    "FlashVars", "MMredirectURL="+MMredirectURL+'&MMplayerType='+MMPlayerType+'&MMdoctitle='+MMdoctitle+"",
+    "width", "640",
+    "height", "626",
+    "align", "middle",
+    "id", "MicromataImageCropper",
+    "quality", "high",
+    "bgcolor", "#d9d9d9",
+    "name", "MicromataImageCropper",
+    "allowScriptAccess","sameDomain",
+    "type", "application/x-shockwave-flash",
+    "pluginspage", "http://www.adobe.com/go/getflashplayer"
+  );
+} else if (hasRequestedVersion) {
+  // if we've detected an acceptable version
+  // embed the Flash Content SWF when all tests are passed
+
+  AC_FL_RunContent(
+      "src", flashFile,
+      "width", "640",
+      "height", "626",
+      "align", "middle",
+      "id", "MicromataImageCropper",
+      "quality", "high",
+      "bgcolor", "#d9d9d9",
+      "name", "MicromataImageCropper",
+      "flashvars",'serverURL='+serverURL+'&uploadImageFileTemporaryServlet='+uploadImageFileTemporaryServlet+'&uploadImageFileTemporaryServletParams='+uploadImageFileTemporaryServletParams+'&downloadImageFileServlet='+downloadImageFileServlet+'&downloadImageFileServletParams='+downloadImageFileServletParams+'&uploadImageFileServlet='+uploadImageFileServlet+'&uploadImageFileServletParams='+uploadImageFileServletParams+'&upAndDownloadImageFileAsByteArrayServlet='+upAndDownloadImageFileAsByteArrayServlet+'&upAndDownloadImageFileAsByteArrayServletParams='+upAndDownloadImageFileAsByteArrayServletParams+'&sessionid='+sessionid+'&language='+language+'&fileFormat='+fileFormat+'&defaultRatio='+defaultRatio+'&ratioList='+ratioList+'&whiteBoardFilter='+whiteBoardFilter+'&isUploadBtn='+isUploadBtn,
+      "allowScriptAccess","sameDomain",
+      "type", "application/x-shockwave-flash",
+      "pluginspage", "http://www.adobe.com/go/getflashplayer"
+  );
+  } else {  // flash is too old or we can't detect the plugin
+    var alternateContent = 'Alternate HTML content should be placed here. '
+    + 'This content requires the Adobe Flash Player. '
+    + '<a href=http://www.adobe.com/go/getflash/>Get Flash</a>';
+    document.write(alternateContent);  // insert non-flash content
+  }
+</script>
+    <div class="grid_16">
+      <h1 style="padding-left: 5px;">Image Cropper</h1>
+      <p style="width: 640; padding-left: 5px;">
+        Der Image Cropper kann aktuell gut genutzt werden, um Bilder zu beschneiden, schnell zu modifizieren und insbesondere um &uuml;ber den <b>Whiteboard-Filter</b>
+        Strichgrafiken von Whiteboard-Fotos anzufertigen (bisher s/w). <br /> Er ist einfach parametrisierbar und k&ouml;nnte auch in anderen
+        Projekten leicht eingesetzt werden. <br /> Als n&auml;chstes soll er in ProjectForge eingesetzt werden, um Bilder zu Adressen/Kontakten im
+        System zu hinterlegen. <br /> <br /> <b>Der Image Cropper, eine echte Alternative, powered by Reto.</b> <br />
+      </p>
+      <h3 style="padding-left: 5px;">Features</h3>
+      <ul>
+        <li>Unterst&uuml;tzt vorgegebenes H&ouml;henbreitenverh&auml;ltnis, wenn festgelegt.</li>
+        <li>Bilingual (englisch/deutsch)</li>
+        <li>Whiteboardfilter als Filterbeispiel zum Erzeugen von Strichzeichnungen</li>
+        <li>Radiergummi bei Whiteboardfilter</li>
+        <li>Beschneiden</li>
+        <li>Skalieren</li>
+        <li>Unterst&uuml;tzte Grafikformate: png, jpg und gif.</li>
+        <li>Rotation, Farb&auml;nderungen.</li>
+        <li>Leicht erweiterbar um Filter sowie Bildbearbeitungsfunktionen</li>
+        <li>Adobe Flex basiert. Einbindung in Stripes, Struts, JSP und Wicket einfach.</li>
+      </ul>
+      <p style="width: 640; padding-left: 5px; font-size: 80%;">Datenschutz: Es werden die Bilder auf dem Server nur temporär im Rahmen der
+        Funktion von ImageCropper gespeichert.</p>
+    </div>
+    <noscript>
+      <table width="100%" height="100%">
+        <tr align="center" valign="middle">
+          <td>Please enable JavaScript in your Browser to see this content!</td>
+        </tr>
+      </table>
+    </noscript>
+  </wicket:extend>
+</body>
+</html>

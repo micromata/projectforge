@@ -1,0 +1,16 @@
+<html lang="en" xmlns:wicket="http://wicket.apache.org/dtds.data/wicket-xhtml1.4-strict.dtd">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+</head>
+
+<body>
+  <wicket:panel wicket:id="phoneNumber">
+    <a wicket:id="directCallLink" href="/phoneCall?addressId=2&phoneType=privateMobile" onmouseover="zoom('01234 56789'); return false;"
+      onmouseout="hide()"> <i wicket:id="phoneImage"></i>&nbsp;<span wicket:id="number">[phone number]</span></a>
+    <span wicket:id="phoneNumber" onmouseover="zoom('01234 56789'); return false;" onmouseout="hide()"> <i wicket:id="phoneImage"></i>&nbsp;<span
+      wicket:id="number">[phone number]</span></span>
+    <a wicket:id="sendMessageLink" rel="mytooltip-right" wicket:message="data-original-title:address.tooltip.writeSMS" href="sendSms?addressId=2&phoneType=privateMobile"> <img
+      src="images/sms.png" /></a>
+  </wicket:panel>
+</body>
+</html>

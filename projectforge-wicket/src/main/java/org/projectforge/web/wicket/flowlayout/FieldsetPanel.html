@@ -1,0 +1,20 @@
+<html lang="en" xmlns:wicket="http://wicket.apache.org/dtds.data/wicket-xhtml1.4-strict.dtd">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+</head>
+
+<body>
+  <h1>Represents a fieldset in a form.</h1>
+  <wicket:panel>
+    <div wicket:id="fieldset">
+      <label wicket:id="label" class="control-label"><span wicket:id="labeltext">[field name]</span> <wicket:container wicket:id="labelSuffix">[suffix]</wicket:container><span
+        wicket:id="labeldescription" class="help-inline">[description]</span> <wicket:container wicket:id="descriptionSuffix">[suffix]</wicket:container></label>
+      <wicket:container wicket:id="icons">[icon(s)]</wicket:container>
+      <div wicket:id="controls" class="controls">
+        <wicket:container wicket:id="fields">[field(s)]</wicket:container>
+        <span wicket:id="feedbackMessage" class="help-inline">[Feedback message]</span>
+      </div>
+    </div>
+  </wicket:panel>
+</body>
+</html>

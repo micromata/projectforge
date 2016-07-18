@@ -1,0 +1,187 @@
+<html xmlns:wicket="http://wicket.apache.org/dtds.data/wicket-xhtml1.4-strict.dtd" lang="en">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <wicket:head>
+        <style type="text/css">
+            <!--
+            div.teaser {
+                display: inline-block;
+                float: left;
+                line-height: 1.4em;
+                width: 243px;
+                height: 287px;
+                border: 0px;
+                float: left;
+                line-height: 1.4em;
+            }
+
+            div.teaser-plain {
+                background: url(../images/doc/doc-teaser-plain.png) no-repeat;
+            }
+
+            div.teaser-heading {
+                position: absolute;
+                padding-top: 35px;
+                width: 150px;
+                font-weight: bold;
+                font-size: 1.2em;
+                text-align: right;
+            }
+
+            div.teaser-content {
+                position: absolute;
+                padding-top: 140px;
+                padding-left: 23px;
+                width: 200px;
+                height: 100px;
+                overflow: hidden;
+            }
+
+            div.teaser-languages {
+                position: absolute;
+                padding-top: 245px;
+                width: 220px;
+                text-align: right;
+            }
+
+            div.teaser-formats {
+                position: absolute;
+                padding-top: 243px;
+                padding-left: 22px;
+            }
+
+            h1.doc-heading {
+                padding-left: 0.5em;
+                margin-bottom: 0.5em;
+            }
+
+            -->
+        </style>
+        <script type="text/javascript">
+            function openDoc(url) {
+                var w = window.open(url, 'doc', '');
+                w.focus();
+            }
+        </script>
+    </wicket:head>
+</head>
+
+<body>
+<wicket:extend>
+    <div class="grid_16 box no_titlebar" style="opacity: 1;">
+
+        <div class="toggle_container">
+
+
+            <h1 class="doc-heading">
+                <wicket:message key="doc.general"/>
+            </h1>
+
+            <div class="teaser teaser-plain" wicket:id="newsLink">
+                <div class="teaser-heading">Release-News</div>
+                <div class="teaser-content">
+                    <wicket:message key="doc.releaseNews.description"/>
+                </div>
+                <div class="teaser-formats">
+                    <img src="images/html.png"/>
+                </div>
+                <div class="teaser-languages">
+                    <img src="images/us_flag.png"/>
+                </div>
+            </div>
+
+            <div class="teaser teaser-plain" wicket:id="tutorialLink">
+                <div class="teaser-heading">
+                    <wicket:message key="doc.tutorial"/>
+                </div>
+                <div class="teaser-content">
+                    <wicket:message key="doc.tutorial.description"/>
+                </div>
+                <div class="teaser-formats">
+                    <img src="images/html.png"/> <img src="images/page_white_acrobat.png"/>
+                </div>
+                <div class="teaser-languages">
+                    <img src="images/us_flag.png"/>
+                </div>
+            </div>
+
+            <div class="teaser teaser-plain" wicket:id="handbookLink">
+                <div class="teaser-heading">
+                    <wicket:message key="doc.handbook"/>
+                </div>
+                <div class="teaser-content">
+                    <wicket:message key="doc.handbook.description"/>
+                </div>
+                <div class="teaser-formats">
+                    <img src="images/html.png"/> <img src="images/page_white_acrobat.png"/>
+                </div>
+                <div class="teaser-languages">
+                    <img src="images/us_flag.png"/>
+                </div>
+            </div>
+
+            <div class="teaser teaser-plain" wicket:id="faqLink">
+                <div class="teaser-heading">FAQ</div>
+                <div class="teaser-content">
+                    <wicket:message key="doc.faq.description"/>
+                </div>
+                <div class="teaser-formats">
+                    <img src="images/html.png"/>
+                </div>
+                <div class="teaser-languages">
+                    <img src="images/us_flag.png"/> <img src="images/de_flag.png"/>
+                </div>
+            </div>
+
+            <div class="teaser" style="background: url(../images/doc/doc-teaser-license.png) no-repeat;"
+                 wicket:id="licenseLink">
+                <div class="teaser-content">
+                    <wicket:message key="doc.license.description"/>
+                </div>
+                <div class="teaser-formats">
+                    <img src="images/text_align_left.png"/>
+                </div>
+                <div class="teaser-languages">
+                    <img src="images/us_flag.png"/>
+                </div>
+            </div>
+
+            <h1 class="doc-heading" style="clear: left; padding-top: 3em;">
+                <wicket:message key="doc.devadmin"/>
+            </h1>
+
+            <div class="teaser teaser-plain" wicket:id="adminGuideLink">
+                <div class="teaser-heading">
+                    <wicket:message key="doc.adminGuide"/>
+                </div>
+                <div class="teaser-content">
+                    <wicket:message key="doc.adminGuide.description"/>
+                </div>
+                <div class="teaser-formats">
+                    <img src="images/html.png"/> <img src="images/page_white_acrobat.png"/>
+                </div>
+                <div class="teaser-languages">
+                    <img src="images/us_flag.png"/>
+                </div>
+            </div>
+
+            <div class="teaser teaser-plain" wicket:id="developerGuideLink">
+                <div class="teaser-heading">
+                    <wicket:message key="doc.developerGuide"/>
+                </div>
+                <div class="teaser-content">
+                    <wicket:message key="doc.developerGuide.description"/>
+                </div>
+                <div class="teaser-formats">
+                    <img src="images/html.png"/> <img src="images/page_white_acrobat.png"/>
+                </div>
+                <div class="teaser-languages">
+                    <img src="images/us_flag.png"/>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</wicket:extend>
+</body>
+</html>

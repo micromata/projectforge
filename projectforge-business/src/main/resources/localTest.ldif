@@ -1,0 +1,254 @@
+version: 1
+
+dn: uid=fgchjghjgh,ou=users,dc=example,dc=org
+objectClass: sambaSamAccount
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: posixAccount
+cn: sdgdg dfgdf
+gidNumber: 1000
+homeDirectory: /home/fgchjghjgh
+sambaSID: S-1-5-21-1004336348-1177238915-682003330-3009
+sn: dfgdf
+uid: fgchjghjgh
+uidNumber: 1009
+description: fgjfgfhgjhgjgkgghjgh fghj hgjghj
+employeeNumber: pf-id-1
+givenName: sdgdg
+loginShell: /bin/bash
+sambaAcctFlags:: VSAgICAgICAgICA=
+sambaPasswordHistory: 000000000000000000000000000000000000000000000000000000
+ 0000000000
+sambaPrimaryGroupSID: S-1-5-21-1004336348-1177238915-682003330-3000
+sambaPwdLastSet: 1455543610
+
+dn: ou=groups,dc=example,dc=org
+objectClass: organizationalUnit
+objectClass: top
+ou: groups
+
+dn: uid=UserTst,ou=users,dc=example,dc=org
+objectClass: sambaSamAccount
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: posixAccount
+cn: Test User
+gidNumber: 1000
+homeDirectory: /home/UserTst
+sambaSID: S-1-5-21-1004336348-1177238915-682003330-3003
+sn: User
+uid: UserTst
+uidNumber: 1003
+employeeNumber: pf-id-2
+givenName: Test
+loginShell: /bin/bash
+sambaAcctFlags:: VSAgICAgICAgICA=
+sambaPasswordHistory: 000000000000000000000000000000000000000000000000000000
+ 0000000000
+sambaPrimaryGroupSID: S-1-5-21-1004336348-1177238915-682003330-3000
+sambaPwdLastSet: 1455533740
+
+dn: uid=NewTestTestUser,ou=users,dc=example,dc=org
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: posixAccount
+cn: NewTestTestUser NewTestTestUser
+gidNumber: 1000
+homeDirectory: /home/NewTestTestUser
+sn: NewTestTestUser
+uid: NewTestTestUser
+uidNumber: 1004
+employeeNumber: pf-id-3
+givenName: NewTestTestUser
+loginShell: /bin/bash
+
+dn: ou=users,dc=example,dc=org
+objectClass: organizationalUnit
+objectClass: top
+ou: users
+
+dn: uid=NewUser,ou=users,dc=example,dc=org
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: posixAccount
+cn: New User
+gidNumber: 868
+homeDirectory: /home/NewUser
+sn: User
+uid: NewUser
+uidNumber: 1000
+employeeNumber: pf-id-4
+givenName: New
+loginShell: /bin/bash
+
+dn: ou=sysusers,ou=users,dc=example,dc=org
+objectClass: organizationalUnit
+objectClass: top
+ou: sysusers
+
+dn: ou=deactivated,ou=users,dc=example,dc=org
+objectclass: organizationalUnit
+objectclass: top
+ou: deactivated
+description: ProjectForge's user base for deactivated users.
+
+dn: cn=PF_Finance,ou=groups,dc=example,dc=org
+objectClass: posixGroup
+objectClass: top
+cn: PF_Finance
+gidNumber: 2
+
+dn: uid=NewTestTestUser1,ou=users,dc=example,dc=org
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: posixAccount
+cn: NewTestTestUser1 NewTestTestUser
+gidNumber: 1000
+homeDirectory: /home/NewTestTestUser
+sn: NewTestTestUser
+uid: NewTestTestUser1
+uidNumber: 1005
+employeeNumber: pf-id-5
+givenName: NewTestTestUser1
+loginShell: /bin/bash
+
+dn: uid=dfhfgdhg,ou=users,dc=example,dc=org
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+cn: dsf dsfs
+sn: dsfs
+employeeNumber: pf-id-6
+givenName: dsf
+uid: dfhfgdhg
+
+dn: uid=FinanceUser,ou=restricted,ou=users,dc=example,dc=org
+objectClass: sambaSamAccount
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: posixAccount
+cn: fgdf sdgsgdsd
+gidNumber: 1000
+homeDirectory: /home/FinanceUser
+sambaSID: S-1-5-21-1004336348-1177238915-682003330-3006
+sn: sdgsgdsd
+uid: FinanceUser
+uidNumber: 1006
+employeeNumber: pf-id-7
+givenName: fgdf
+loginShell: /bin/bash
+sambaAcctFlags:: VSAgICAgICAgICA=
+sambaPasswordHistory: 000000000000000000000000000000000000000000000000000000
+ 0000000000
+sambaPrimaryGroupSID: S-1-5-21-1004336348-1177238915-682003330-3000
+sambaPwdLastSet: 1455541967
+
+dn: uid=iouoiuiou,ou=restricted,ou=users,dc=example,dc=org
+objectClass: sambaSamAccount
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: posixAccount
+cn: dfg udfihgiudfg
+gidNumber: 1000
+homeDirectory: /home/iouoiuiou
+sambaSID: S-1-5-21-1004336348-1177238915-682003330-3010
+sn: udfihgiudfg
+uid: iouoiuiou
+uidNumber: 1010
+description:: aGpraWxvacO2Z2hqZ2g=
+employeeNumber: pf-id-8
+givenName: dfg
+loginShell: /bin/bash
+sambaAcctFlags:: VSAgICAgICAgICA=
+sambaNTPassword: 72E2A1E58F1A45309E15DE6D4FA666B7
+sambaPasswordHistory: 000000000000000000000000000000000000000000000000000000
+ 0000000000
+sambaPrimaryGroupSID: S-1-5-21-1004336348-1177238915-682003330-3000
+sambaPwdLastSet: 1455543798
+userPassword:: e1NTSEF9SjRQVXdnSitsU1FlaXRaSldBWHdrL0xTZDdORndxVVBhVlpRZ1E9P
+ Q==
+
+dn: dc=example,dc=org
+objectclass: top
+objectclass: domain
+dc: example
+
+dn: ou=restricted,ou=users,dc=example,dc=org
+objectclass: organizationalUnit
+objectclass: top
+ou: restricted
+description: ProjectForge's user base for restricted users.
+
+dn: uid=KTestUser,ou=users,dc=example,dc=org
+objectClass: sambaSamAccount
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: posixAccount
+cn: K Q
+gidNumber: 1000
+homeDirectory: /home/KTestUser
+sambaSID: S-1-5-21-1004336348-1177238915-682003330-3008
+sn: Q
+uid: KTestUser
+uidNumber: 1008
+employeeNumber: pf-id-9
+givenName: K
+loginShell: /bin/bash
+sambaAcctFlags:: VSAgICAgICAgICA=
+sambaNTPassword: 72E2A1E58F1A45309E15DE6D4FA666B7
+sambaPasswordHistory: 000000000000000000000000000000000000000000000000000000
+ 0000000000
+sambaPrimaryGroupSID: S-1-5-21-1004336348-1177238915-682003330-3000
+sambaPwdLastSet: 1455543400
+userPassword:: e1NTSEF9d0dGb1I5dElxUWhybGNvS3pFa3hiYk1DZHprMmFDT0Y4aUJYWFE9P
+ Q==
+
+dn: uid=pfadmin,ou=sysusers,ou=users,dc=example,dc=org
+objectClass: uidObject
+objectClass: person
+objectClass: top
+cn: PF_Admin
+sn: pf_admin
+uid: pfadmin
+userPassword:: e3NoYX01ZW42RzZNZXpScm9UM1hLcWtkUE9tWS9CZlE9
+
+dn: uid=fgbvgf,ou=users,dc=example,dc=org
+objectClass: sambaSamAccount
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+objectClass: person
+objectClass: top
+objectClass: posixAccount
+cn: dfgdf sdgsfgdg
+gidNumber: 1000
+homeDirectory: /home/
+sambaSID: S-1-5-21-1004336348-1177238915-682003330-3007
+sn: sdgsfgdg
+uid: fgbvgf
+uidNumber: 1007
+employeeNumber: pf-id-10
+givenName: dfgdf
+loginShell: /bin/bash
+sambaAcctFlags:: VSAgICAgICAgICA=
+sambaPasswordHistory: 000000000000000000000000000000000000000000000000000000
+ 0000000000
+sambaPrimaryGroupSID: S-1-5-21-1004336348-1177238915-682003330-3000
+sambaPwdLastSet: 1455542204
+

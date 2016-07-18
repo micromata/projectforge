@@ -1,0 +1,82 @@
+<html>
+#INCLUDE{mail/mailHead.html}
+<body>
+#INCLUDE{mail/mailOpening.html}
+<br />
+<%= pf.getMessage("fibu.auftrag.mail.intro", pf.getString(auftrag.nummer)) %>:
+<br />
+<a href="${requestUrl}">${requestUrl}</a>
+<br />
+<br />
+<table class="form">
+  <tr>
+    <th><%= pf.getI18nString("fibu.auftrag.nummer") %></th>
+    <td><%= pf.getString(auftrag.nummer) %></td>
+    <th><%= pf.getI18nString("fibu.common.reference") %></th>
+    <td colspan="3"><%= pf.getString(auftrag.referenz) %></td>
+  </tr>
+  <tr>
+    <th><%= pf.getI18nString("fibu.auftrag.nettoSumme") %></th>
+    <td style="white-space: nowrap;"><%= pf.getCurrency(auftrag.nettoSumme) %></td>
+    <th><%= pf.getI18nString("status") %></th>
+    <td colspan="3"><%= pf.getString(auftrag.auftragsStatus) %></td>
+  </tr>
+  <tr>
+    <th><%= pf.getI18nString("fibu.auftrag.titel") %></th>
+    <td colspan="5"><%= pf.getString(auftrag.titel) %></td>
+  </tr>
+  <tr>
+    <th><%= pf.getI18nString("fibu.projekt") %></th>
+    <td colspan="5"><%= pf.getString(auftrag.projekt) %></td>
+  </tr>
+  <tr>
+    <th><%= pf.getI18nString("fibu.kunde") %></th>
+    <td colspan="5"><%= pf.getString(auftrag.kunde) %></td>
+  </tr>
+  <tr>
+    <th><%= pf.getI18nString("fibu.auftrag.datum") %></th>
+    <td><%= pf.getString(auftrag.angebotsDatum) %></td>
+    <th><%= pf.getI18nString("fibu.auftrag.bindungsFrist") %></th>
+    <td><%= pf.getString(auftrag.bindungsFrist) %></td>
+    <th><%= pf.getI18nString("fibu.auftrag.beauftragungsdatum") %></th>
+    <td><%= pf.getString(auftrag.beauftragungsDatum) %></td>
+  </tr>
+  <tr>
+    <th><%= pf.getI18nString("contactPerson") %></th>
+    <td colspan="5"><%= pf.getString(contactPerson.fullname) %></td>
+  </tr>
+  <tr>
+    <th><%= pf.getI18nString("comment") %></th>
+    <td colspan="5"><%= pf.getString(auftrag.bemerkung) %></td>
+  </tr>
+  <tr>
+    <th><%= pf.getI18nString("fibu.auftrag.statusBeschreibung") %></th>
+    <td colspan="5"><%= pf.getString(auftrag.statusBeschreibung) %></td>
+  </tr>
+  <% for (position in auftrag.positionen) { %>
+    <tr>
+      <th colspan="6">Position #<%= pf.getString(position.number) %></th>
+    </tr>
+    <tr>
+      <th><%= pf.getI18nString("title") %></th>
+      <td><%= pf.getString(position.titel) %></td>
+      <th><%= pf.getI18nString("fibu.auftrag.position.art") %></th>
+      <td><%= pf.getString(position.art) %></td>
+      <th><%= pf.getI18nString("status") %></th>
+      <td><%= pf.getString(position.status) %></td>
+    </tr>
+    <tr>
+      <th><%= pf.getI18nString("fibu.auftrag.nettoSumme") %></th>
+      <td style="white-space: nowrap;"><%= pf.getCurrency(position.nettoSumme) %></td>
+      <th><%= pf.getI18nString("comment") %></th>
+      <td colspan="3"><%= pf.getString(position.bemerkung) %></td>
+    </tr>
+    <% } %>
+</table>
+
+#INCLUDE{mail/mailHistoryTable.html}
+
+#INCLUDE{mail/mailClosing.html}
+#INCLUDE{mail/mailFooter.html}
+</body>
+</html>

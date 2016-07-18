@@ -1,0 +1,26 @@
+<html lang="en"
+	xmlns:wicket="http://wicket.apache.org/dtds.data/wicket-xhtml1.4-strict.dtd">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+</head>
+<body>
+	<wicket:extend>
+		<script>
+			function updateEvenOdd() {
+				$("tr:odd:not(.headers)").removeClass('even').addClass('odd');
+				$("tr:even:not(.headers)").removeClass('odd').addClass('even');
+			}
+		</script>
+
+		<form wicket:id="form" autocomplete="off">
+			<wicket:container wicket:id="flowform">[the form fields]</wicket:container>
+
+			<div class="button_bar">
+				<wicket:container wicket:id="actionButtons">[cancel] [search]</wicket:container>
+			</div>
+			<div wicket:id="tree">[tree]</div>
+		</form>
+		<div class="alert alert-info" wicket:id="info">[Click on row to select one skill.]</div>
+	</wicket:extend>
+</body>
+</html>

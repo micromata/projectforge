@@ -1,0 +1,42 @@
+<html lang="en" xmlns:wicket="http://wicket.apache.org/dtds.data/wicket-xhtml1.4-strict.dtd">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+</head>
+
+<body>
+  <wicket:extend>
+    <div class="tabbable">
+      <ul class="nav nav-tabs">
+        <li class="active"><a href="#setupform" data-toggle="tab"><wicket:message key="administration.setup" /></a></li>
+        <li><a href="#upload" data-toggle="tab"><wicket:message key="import" /></a></li>
+      </ul>
+    </div>
+    <div class="tab-content">
+      <div id="setupform" class="tab-pane active">
+
+        <div id="setupform" class="section">
+          <form wicket:id="setupform" autocomplete="off">
+            <div wicket:id="feedback"></div>
+            <wicket:container wicket:id="flowform">[the form fields]</wicket:container>
+            <div class="button_bar">
+              <wicket:container wicket:id="buttons">[action buttons]</wicket:container>
+            </div>
+            <input type="hidden" wicket:id="csrfToken" />
+          </form>
+        </div>
+      </div>
+
+      <div id="upload" class="tab-pane">
+        <form wicket:id="importform" autocomplete="off">
+          <div wicket:id="feedback"></div>
+          <wicket:container wicket:id="flowform">[the form fields]</wicket:container>
+          <div class="button_bar">
+            <wicket:container wicket:id="buttons">[action buttons]</wicket:container>
+          </div>
+          <input type="hidden" wicket:id="csrfToken" />
+        </form>
+      </div>
+    </div>
+  </wicket:extend>
+</body>
+</html>

@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:wicket="http://wicket.apache.org/dtds.data/wicket-xhtml1.4-strict.dtd">
+<head>
+<title>Preview of TaskTreeTablePanel</title>
+</head>
+<body>
+
+
+  <table class="dataview" cellspacing="0">
+    <wicket:fragment wicket:id="rejectSaveFragment">
+      <span wicket:id="reject">[reject]</span>
+      <span wicket:id="save">[save]</span>
+    </wicket:fragment>
+    <wicket:panel>
+      <script wicket:id="questionDialogsMethods" type="text/javascript">
+							function showSaveAsTaskQuestionDialog() {
+								return window
+										.confirm("Save this Gantt object as ProjectForge task...?");
+							}
+							function showMoveTaskQuestionDialog() {
+								return window
+										.confirm("Do you really want to move the related ProjectForge task...?");
+							}
+						</script>
+      <table class="dataview">
+        <thead wicket:id="thead">
+          <tr class="headers">
+            <th wicket:id="cols">[task]</th>
+          </tr>
+        </thead>
+        <tbody wicket:id="tbody">
+          <tr wicket:id="rows">
+            <td wicket:id="tree" style="font-size: 80%;">[Browse tree functionality]</td>
+            <!-- td wicket:id="actionIcons"><span wicket:id="copy">[copy]</span><span wicket:id="editLink">[edit]</span></td-->
+            <td wicket:id="dropDownMenu">
+              <div class="dropdown">
+                <a class="dropdown-toggle" data-toggle="dropdown" href="#"><img src="images/cog.png" wicket:id="cogImage" /><img
+                  src="images/arrow-down.png" wicket:id="arrowDownImage" /></a>
+                <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
+                  <li wicket:id="menuEntriesRepeater"><a wicket:id="menuEntry"><span wicket:id="label">[copy]</span></a></li>
+                </ul>
+              </div>
+            </td>
+            <td><input type="checkbox" wicket:id="visible" /></td>
+            <td><span wicket:id="title" /></td>
+            <td wicket:id="rejectSaveTitle">[reject/save]</td>
+            <td wicket:id="startDate">[start date]</td>
+            <td wicket:id="rejectSaveStartDate">[reject/save]</td>
+            <td><input type="text" wicket:id="duration" class="stdtext" style="width: 3em;" /></td>
+            <td wicket:id="rejectSaveDuration">[reject/save]</td>
+            <td wicket:id="endDate">[end date]</td>
+            <td wicket:id="rejectSaveEndDate">[reject/save]</td>
+            <td><input type="text" wicket:id="progress" class="stdtext" style="width: 4em;" /></td>
+            <td wicket:id="rejectSaveProgress">[reject/save]</td>
+            <td wicket:id="predecessor" style="font-size: 80%;"><span wicket:id="asString">[Release 1]</span> <span wicket:id="select">[select]</span>
+              <span wicket:id="unselect">[unselect]</span></td>
+            <td wicket:id="rejectSavePredecessor">[reject/save]</td>
+            <td><input type="text" wicket:id="predecessorOffset" class="stdtext" style="width: 3em;" /></td>
+            <td wicket:id="rejectSavePredecessorOffset">[reject/save]</td>
+            <td><select wicket:id="relationType">
+                <option>[relation type]</option>
+            </select></td>
+            <td wicket:id="rejectSaveRelationType">[reject/save]</td>
+            <td><select wicket:id="type">
+                <option>[type]</option>
+            </select></td>
+            <td wicket:id="rejectSaveType">[reject/save]</td>
+          </tr>
+        </tbody>
+      </table>
+    </wicket:panel>
+  </table>
+</body>
+</html>

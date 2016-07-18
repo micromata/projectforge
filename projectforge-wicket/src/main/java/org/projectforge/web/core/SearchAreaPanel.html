@@ -1,0 +1,34 @@
+<html lang="en" xmlns:wicket="http://wicket.apache.org/dtds.data/wicket-xhtml1.4-strict.dtd">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+</head>
+
+<body>
+  <wicket:panel>
+    <div class="span12">
+      <h2 wicket:id="areaTitle">[Time sheets]</h2>
+      <table class="dataview" wicket:id="dataTable">
+        <tbody>
+          <tr>
+            <th>[modified]</th>
+            <th>[name]</th>
+            <th>[first name]</th>
+          </tr>
+          <tr>
+            <td>2010-12-11 08:52</td>
+            <td>[Reinhard]</td>
+            <td>[Kai]</td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="button_bar">
+        <a class="hasMoreEntries" href="#" wicket:id="showMoreEntrieslink"> <wicket:message key="moreEntriesAvailable" /> |
+        </a><span class="hasMoreEntries" wicket:id="hasMoreEntries">[Is shown if hasMoreEntriesLink isn't shown because maximum size of result is
+          already chosen.]</span> <a href="#" wicket:id="listPageLink"><wicket:message key="search.toDetailedSearch" /></a> |
+        <wicket:message key="search.durationOfSearch" />: <wicket:container wicket:id="timeOfSearch">[23]</wicket:container>ms
+      
+      </div>
+    </div>
+  </wicket:panel>
+</body>
+</html>

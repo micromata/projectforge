@@ -1,0 +1,30 @@
+<html lang="en" xmlns:wicket="http://wicket.apache.org/dtds.data/wicket-xhtml1.4-strict.dtd">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+</head>
+
+<body>
+  <wicket:extend>
+    <wicket:container wicket:id="fields">[fields]</wicket:container>
+    <table class="dataview" wicket:id="table">
+      <thead>
+        <tr class="headers">
+          <th wicket:id="headcolRepeater">[cost 2, customer, project, cost 2 type]</th>
+          <th wicket:id="headcolWeekRepeater" style="white-space: nowrap;">[01.-05.]</th>
+          <th><wicket:message key="sum" /></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr wicket:id="rowRepeater">
+          <td wicket:id="cost2"><a wicket:id="link"><span wicket:id="label">[5.010.00.00]</span></a></td>
+          <td wicket:id="customer">[kunde]</td>
+          <td wicket:id="project">[projekt]</td>
+          <td wicket:id="costType"><span wicket:id="content">[kost art]</span></td>
+          <td wicket:id="colWeekRepeater" style="text-align: right;">[1.50]</td>
+          <td wicket:id="sum" style="font-weight: bold; text-align: right;">[10.75]</td>
+        </tr>
+      </tbody>
+    </table>
+  </wicket:extend>
+</body>
+</html>

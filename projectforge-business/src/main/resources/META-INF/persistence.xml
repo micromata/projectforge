@@ -1,0 +1,26 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<persistence xmlns='http://java.sun.com/xml/ns/persistence'
+	xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+	xsi:schemaLocation='http://java.sun.com/xml/ns/persistence http://java.sun.com/xml/ns/persistence/persistence_1_0.xsd'
+	version='1.0'>
+
+	<persistence-unit name="org.projectforge.webapp"
+		transaction-type="RESOURCE_LOCAL">
+		<provider>org.hibernate.ejb.HibernatePersistence</provider>
+		<class>de.micromata.genome.db.jpa.history.entities.HistoryAttrDataDO</class>
+		<class>de.micromata.genome.db.jpa.history.entities.HistoryAttrDO</class>
+		<class>de.micromata.genome.db.jpa.history.entities.HistoryAttrWithDataDO</class>
+		<class>de.micromata.genome.db.jpa.history.entities.HistoryMasterDO</class>
+		<exclude-unlisted-classes>false</exclude-unlisted-classes>
+		<properties>
+			<property name="hibernate.current_session_context_class"
+				value="org.springframework.orm.hibernate5.SpringSessionContext" />
+			<property name="hibernate.archive.scanner"
+				value="de.micromata.genome.jpa.impl.JpaWithExtLibrariesScanner" />
+			<property name="de.micromata.genome.jpa.extlibrary.urlprovider"
+				value="org.projectforge.framework.persistence.jpa.impl.JpaPfJpaPluginScannerUrlProvider" />
+			<property name="de.micromata.genome.jpa.extlibrary.urlmatcher"
+				value="-*,+/target/*,+*org.projectforge*" />
+		</properties>
+	</persistence-unit>
+</persistence>
