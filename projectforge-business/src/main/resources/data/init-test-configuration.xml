@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<list id="1">
+  <org.projectforge.framework.configuration.entities.ConfigurationDO id="2">
+    <created class="sql-timestamp" id="3">2010-04-21 00:12:07.576</created>
+    <lastUpdate class="sql-timestamp" id="4">2011-02-07 21:22:17.164</lastUpdate>
+    <deleted>false</deleted>
+    <minorChange>false</minorChange>
+    <id>383</id>
+    <global>false</global>
+    <parameter>systemAdministratorEMail</parameter>
+    <stringValue>admin@dev-null.com</stringValue>
+    <configurationType>STRING</configurationType>
+  </org.projectforge.framework.configuration.entities.ConfigurationDO>
+  <org.projectforge.framework.configuration.entities.ConfigurationDO id="5">
+    <created class="sql-timestamp" id="6">2010-04-21 00:12:07.599</created>
+    <lastUpdate class="sql-timestamp" id="7">2013-04-01 12:21:20.99</lastUpdate>
+    <deleted>false</deleted>
+    <minorChange>false</minorChange>
+    <id>384</id>
+    <global>false</global>
+    <parameter>messageOfTheDay</parameter>
+    <stringValue>Please try user &apos;&lt;span style=&quot;color:red; font-weight: bold;&quot;&gt;demo&lt;/span&gt;&apos; with password &apos;&lt;span style=&quot;color:red; font-weight: bold;&quot;&gt;demo123&lt;/span&gt;&apos;.  Have a lot of fun!</stringValue>
+    <configurationType>TEXT</configurationType>
+  </org.projectforge.framework.configuration.entities.ConfigurationDO>
+  <org.projectforge.framework.configuration.entities.ConfigurationDO id="8">
+    <created class="sql-timestamp" id="9">2010-04-21 00:12:07.601</created>
+    <lastUpdate class="sql-timestamp" id="10">2011-02-07 21:22:26.455</lastUpdate>
+    <deleted>false</deleted>
+    <minorChange>false</minorChange>
+    <id>385</id>
+    <global>false</global>
+    <parameter>feedbackEMail</parameter>
+    <stringValue>admin@dev-null.com</stringValue>
+    <configurationType>STRING</configurationType>
+  </org.projectforge.framework.configuration.entities.ConfigurationDO>
+  <org.projectforge.framework.configuration.entities.ConfigurationDO id="11">
+    <created class="sql-timestamp" id="12">2010-04-21 00:12:07.603</created>
+    <lastUpdate class="sql-timestamp" id="13">2010-04-21 22:07:27.722</lastUpdate>
+    <deleted>false</deleted>
+    <minorChange>false</minorChange>
+    <id>386</id>
+    <global>false</global>
+    <parameter>fibu.defaultVAT</parameter>
+    <floatValue>0.19</floatValue>
+    <configurationType>PERCENT</configurationType>
+  </org.projectforge.framework.configuration.entities.ConfigurationDO>
+  <org.projectforge.framework.configuration.entities.ConfigurationDO id="14">
+    <created class="sql-timestamp" id="15">2010-04-21 00:12:07.604</created>
+    <lastUpdate class="sql-timestamp" id="16">2013-04-27 15:03:42.835</lastUpdate>
+    <deleted>false</deleted>
+    <minorChange>false</minorChange>
+    <id>387</id>
+    <global>false</global>
+    <parameter>defaultTask4Addresses</parameter>
+    <intValue>239</intValue>
+    <configurationType>TASK</configurationType>
+  </org.projectforge.framework.configuration.entities.ConfigurationDO>
+  <org.projectforge.framework.configuration.entities.ConfigurationDO id="17">
+    <created class="sql-timestamp" id="18">2010-04-21 00:12:07.605</created>
+    <lastUpdate class="sql-timestamp" id="19">2013-04-27 15:03:50.135</lastUpdate>
+    <deleted>false</deleted>
+    <minorChange>false</minorChange>
+    <id>388</id>
+    <global>false</global>
+    <parameter>defaultTask4Books</parameter>
+    <intValue>239</intValue>
+    <configurationType>TASK</configurationType>
+  </org.projectforge.framework.configuration.entities.ConfigurationDO>
+  <org.projectforge.framework.configuration.entities.ConfigurationDO id="20">
+    <created class="sql-timestamp" id="21">2010-04-21 00:12:07.607</created>
+    <lastUpdate class="sql-timestamp" id="22">2010-04-21 22:07:40.197</lastUpdate>
+    <deleted>false</deleted>
+    <minorChange>false</minorChange>
+    <id>389</id>
+    <global>false</global>
+    <parameter>countryPhonePrefix</parameter>
+    <stringValue>+49</stringValue>
+    <configurationType>STRING</configurationType>
+  </org.projectforge.framework.configuration.entities.ConfigurationDO>
+  <org.projectforge.framework.configuration.entities.ConfigurationDO id="23">
+    <created class="sql-timestamp" id="24">2010-07-13 17:39:34.685</created>
+    <lastUpdate class="sql-timestamp" id="25">2010-07-13 17:39:34.685</lastUpdate>
+    <deleted>false</deleted>
+    <minorChange>false</minorChange>
+    <id>390</id>
+    <global>false</global>
+    <parameter>mebSMSReceivingPhoneNumber</parameter>
+    <configurationType>STRING</configurationType>
+  </org.projectforge.framework.configuration.entities.ConfigurationDO>
+  <org.projectforge.framework.configuration.entities.ConfigurationDO id="26">
+    <created class="sql-timestamp" id="27">2011-01-23 17:21:33.597</created>
+    <lastUpdate class="sql-timestamp" id="28">2013-04-07 15:47:58.405</lastUpdate>
+    <deleted>false</deleted>
+    <minorChange>false</minorChange>
+    <id>391</id>
+    <global>false</global>
+    <parameter>timezone</parameter>
+    <stringValue>Europe/Berlin</stringValue>
+    <configurationType>TIME_ZONE</configurationType>
+  </org.projectforge.framework.configuration.entities.ConfigurationDO>
+  <org.projectforge.framework.configuration.entities.ConfigurationDO id="29">
+    <created class="sql-timestamp" id="30">2011-03-18 06:18:53.377</created>
+    <lastUpdate class="sql-timestamp" id="31">2011-03-18 06:18:53.377</lastUpdate>
+    <deleted>false</deleted>
+    <minorChange>false</minorChange>
+    <id>392</id>
+    <global>false</global>
+    <parameter>dateFormats</parameter>
+    <stringValue>dd/MM/yyyy;MM/dd/yyyy;dd.MM.yyyy;yyyy-MM-dd</stringValue>
+    <configurationType>STRING</configurationType>
+  </org.projectforge.framework.configuration.entities.ConfigurationDO>
+  <org.projectforge.framework.configuration.entities.ConfigurationDO id="32">
+    <created class="sql-timestamp" id="33">2011-03-18 06:18:53.381</created>
+    <lastUpdate class="sql-timestamp" id="34">2011-03-18 06:18:53.381</lastUpdate>
+    <deleted>false</deleted>
+    <minorChange>false</minorChange>
+    <id>393</id>
+    <global>false</global>
+    <parameter>excelDateFormats</parameter>
+    <stringValue>DD/MM/YYYY;MM/DD/YYYY;DD.MM.YYYY</stringValue>
+    <configurationType>STRING</configurationType>
+  </org.projectforge.framework.configuration.entities.ConfigurationDO>
+  <org.projectforge.framework.configuration.entities.ConfigurationDO id="35">
+    <created class="sql-timestamp" id="36">2011-03-18 06:18:53.383</created>
+    <lastUpdate class="sql-timestamp" id="37">2011-03-18 06:19:57.347</lastUpdate>
+    <deleted>false</deleted>
+    <minorChange>false</minorChange>
+    <id>394</id>
+    <global>false</global>
+    <parameter>fibu.costConfigured</parameter>
+    <stringValue>true</stringValue>
+    <configurationType>BOOLEAN</configurationType>
+  </org.projectforge.framework.configuration.entities.ConfigurationDO>
+  <org.projectforge.framework.configuration.entities.ConfigurationDO id="38">
+    <created class="sql-timestamp" id="39">2012-05-02 22:42:13.084</created>
+    <lastUpdate class="sql-timestamp" id="40">2012-05-02 22:42:13.084</lastUpdate>
+    <deleted>false</deleted>
+    <minorChange>false</minorChange>
+    <id>395</id>
+    <global>false</global>
+    <parameter>organization</parameter>
+    <configurationType>TEXT</configurationType>
+  </org.projectforge.framework.configuration.entities.ConfigurationDO>
+  <org.projectforge.framework.configuration.entities.ConfigurationDO id="41">
+    <created class="sql-timestamp" id="42">2013-04-01 12:03:23.48</created>
+    <lastUpdate class="sql-timestamp" id="43">2013-04-27 15:02:18.298</lastUpdate>
+    <deleted>false</deleted>
+    <minorChange>false</minorChange>
+    <id>396</id>
+    <global>false</global>
+    <parameter>calendarDomain</parameter>
+    <stringValue>pf</stringValue>
+    <configurationType>STRING</configurationType>
+  </org.projectforge.framework.configuration.entities.ConfigurationDO>
+</list>

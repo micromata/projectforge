@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:wicket="http://wicket.apache.org/dtds.data/wicket-xhtml1.4-strict.dtd">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+</head>
+
+<body>
+  <wicket:panel>
+    <h1 wicket:id="storageHeading">[Import storage filename]</h1>
+    <div id="infolayer">
+      <table wicket:id="errorPropertiesTable" class="dataview">
+        <tbody>
+          <tr>
+            <th>Key</th>
+            <th>Error values</th>
+          </tr>
+          <tr wicket:id="errorProperties">
+            <td wicket:id="propertyKey">[${prop.key}]</td>
+            <td><span wicket:id="propertyItems">[forEach ${prop.value}: ${val}, ...] </span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <wicket:container wicket:id="sheetRepeater">
+      <h3 wicket:id="sheetName">[Sheet_: ${sheet.name} ...]</h3>
+      <a wicket:id="toggle"><wicket:container wicket:id="zoomInImage">[+]</wicket:container><wicket:container wicket:id="zoomOutImage">[-]</wicket:container></a>
+      <span wicket:id="statistics">[Total=...]</span>
+      <wicket:container wicket:id="actionLinkRepeater"> | <a wicket:id="actionLink"><span wicket:id="label">[reconcile,
+            commit, select all, deselect all, show error summory, show BWA]</span></a>
+      </wicket:container>
+      <table class="dataview" wicket:id="sheetTable">
+        <tbody>
+          <tr>
+            <th>&nbsp;</th>
+            <th wicket:id="headColRepeater"></th>
+          </tr>
+          <tr wicket:id="rowRepeater">
+            <td wicket:id="firstCell" style="white-space: nowrap;"><input type="checkbox" wicket:id="selectItem" /> <wicket:container wicket:id="icon">[icon]</wicket:container></td>
+            <td wicket:id="cellRepeater"><span wicket:id="value">[cells]</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </wicket:container>
+  </wicket:panel>
+</body>
+</html>

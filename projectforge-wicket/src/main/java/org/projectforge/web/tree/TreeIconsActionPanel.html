@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:wicket="http://wicket.apache.org/dtds.data/wicket-xhtml1.4-strict.dtd">
+<head>
+<title>Preview of choosing an entity in list view for editing.</title>
+</head>
+<body>
+<wicket:panel>
+  <wicket:remove><!-- Use this indent only for linked rows: --></wicket:remove>
+  <a href="#" wicket:id="select"><img src="images/spacer.gif" wicket:id="spacer" height="15" border="0" /></a>
+  <wicket:remove><!-- Use this indent only if the rows are not clickable: --></wicket:remove>
+  <img src="images/spacer.gif" wicket:id="spacer" height="15" border="0" />
+  <img wicket:id="leaf" src="images/leaf.gif" width="19" height="15" border="0" />
+  <span wicket:id="icons" onclick="javascript:preventBubble(event);"> <a href="#" wicket:id="explore"><img src="images/explosion.gif"
+    wicket:id="explore" width="19" height="15" border="0" /></a> <a href="#" class="notrlink" wicket:id="folder"><img src="images/folder.gif"
+    wicket:id="folderImage" width="19" height="15" border="0" /><img src="images/folderOpen.gif"
+    wicket:id="folderOpenImage" width="19" height="15" border="0" /></a> </span>
+  <span wicket:id="label">4711</span>
+  <span wicket:id="clickedEntry">[<a name="clickedEntry" />]</span>
+</wicket:panel>
+</body>
+</html>

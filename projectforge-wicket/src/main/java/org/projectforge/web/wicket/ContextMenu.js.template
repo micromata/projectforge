@@ -1,0 +1,16 @@
+// enable context menu
+$(function() {
+	var newTabFunction = function(row) {
+		link = $(row).find("a:first");
+		if ($(link).attr('onclick')) {
+			suppressNextRowClick();
+			$(link).click();
+		} else {
+			window.open($(link).attr("href"));
+		}
+	};
+	var menu1 = [ {'${newTab}': function(menuItem,menu) { newTabFunction(this) } },
+	              $.contextMenu.separator,
+	              {'${cancel}': function(menuItem,menu) { menu.hide(); } } ];
+	$('.withContextMenu').contextMenu(menu1); 
+});

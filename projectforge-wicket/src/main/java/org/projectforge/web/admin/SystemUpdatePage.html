@@ -1,0 +1,54 @@
+<html lang="en" xmlns:wicket="http://wicket.apache.org/dtds.data/wicket-xhtml1.4-strict.dtd">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+</head>
+
+<body>
+  <wicket:extend>
+    <form wicket:id="form" name="form" autocomplete="off">
+      <div class="grid_16">
+        <div wicket:id="feedback">[Validation errors]</div>
+      </div>
+      <div class="grid_16">
+        <h2 class="section" style="color: red;">Important notes</h2>
+        <ol style="margin-left: 3em;">
+          <li style="color: red; padding: .5em;">Please make a backup of your data base before running any of these scripts!</li>
+          <li style="padding: .5em;">Watch the ProjectForge log files for observing the results of the update scripts.</li>
+          <li style="padding: .5em;">Please click the refresh button to get the actual state of the migration </li>
+          <li style="color: red; padding: .5em;">Please redeploy/restart your ProjectForge web application after updating the data-base.</li>
+        </ol>
+        <h3 class="section">Update scripts</h3>
+        <table class="dataview">
+          <thead>
+            <tr class="headers">
+              <th>Region</th>
+              <th title="The version to update to."><i>Version</i></th>
+              <th>Date</th>
+              <th>Pre-check</th>
+              <th>Result</th>
+              <th>Description</th>
+            </tr>
+          </thead>
+          <tbody>
+            <wicket:container wicket:id="scripts">
+              <tr wicket:id="scriptRows">
+                <td wicket:id="regionId">[ProjectForge]</td>
+                <td wicket:id="version">[3.3.44]</td>
+                <td wicket:id="date">[2011-02-27]</td>
+                <td wicket:id="preCheckResult">[--]</td>
+                <td><span wicket:id="update">[run]</span><span wicket:id="imagePanel">[run]</span></td>
+                <td wicket:id="description">[...]</td>
+              </tr>
+            </wicket:container>
+          </tbody>
+        </table>
+      </div>
+      <wicket:container wicket:id="flowform">[the form fields]</wicket:container>
+      <div class="button_bar">
+        <wicket:container wicket:id="buttons">[action buttons]</wicket:container>
+      </div>
+      <input type="hidden" wicket:id="csrfToken" />
+    </form>
+  </wicket:extend>
+</body>
+</html>

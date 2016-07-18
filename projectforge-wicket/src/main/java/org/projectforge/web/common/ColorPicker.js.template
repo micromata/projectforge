@@ -1,0 +1,16 @@
+$(function() {
+	$("#${markupId}").spectrum({
+    showPalette: true,
+    showInput: true,
+    showInitial: true,
+    showButtons: false,
+    preferredFormat: "hex",
+    palette: [
+        ['white', 'grey', 'black'],
+        ['yellow', 'orange', 'red'],
+        ['lightblue', 'blue', 'darkblue'],
+        ['lightgreen', 'green', 'darkgreen'],
+        ['brown', 'gold', 'magenta']
+    ]
+});
+});

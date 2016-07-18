@@ -1,0 +1,52 @@
+<html lang="en" xmlns:wicket="http://wicket.apache.org/dtds.data/wicket-xhtml1.4-strict.dtd">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+</head>
+
+<body>
+  <wicket:extend>
+    <div class="row">
+      <div class="span12">
+        <wicket:container wicket:id="cal"></wicket:container>
+      </div>
+    </div>
+    <script>
+function setTimeline(view) {
+    var parentDiv = jQuery(".fc-agenda-slots:visible").parent();
+    var timeline = parentDiv.children(".timeline");
+    if (timeline.length == 0) { //if timeline isn't there, add it
+        timeline = jQuery("<hr>").addClass("timeline");
+        parentDiv.prepend(timeline);
+    }
+
+    var curTime = new Date();
+
+    var curCalView = jQuery("#calendar").fullCalendar('getView');
+    if (curCalView.visStart < curTime && curCalView.visEnd > curTime) {
+        timeline.show();
+    } else {
+        timeline.hide();
+        return;
+    }
+
+    var curSeconds = ((curTime.getHours() - curCalView.opt("minTime")) * 60 * 60) + (curTime.getMinutes() * 60) + curTime.getSeconds();
+    var percentOfDay = curSeconds / ((curCalView.opt("maxTime") - curCalView.opt("minTime")) * 3600); // 60 * 60 = 3600, # of seconds in a hour
+    var topLoc = Math.floor(parentDiv.height() * percentOfDay);
+
+    timeline.css("top", topLoc + "px");
+
+/*    if (curCalView.name == "agendaWeek") { //week view, don't want the timeline to go the whole way across
+        var dayCol = jQuery(".fc-today:visible");
+        var left = dayCol.position().left + 1;
+        var width = dayCol.width()-2;
+        timeline.css({
+            left: left + "px",
+            width: width + "px"
+        });
+    }*/
+
+}
+</script>
+  </wicket:extend>
+</body>
+</html>

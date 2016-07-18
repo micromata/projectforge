@@ -1,0 +1,27 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns:wicket="http://wicket.apache.org/dtds.data/wicket-xhtml1.4-strict.dtd">
+<head>
+<meta content="yes" name="apple-mobile-web-app-capable" />
+<meta content="text/html; charset=utf-8" http-equiv="Content-Type" />
+</head>
+
+<body>
+
+  <div id="topbar">
+    <div id="title">ProjectForge - Edit</div>
+  </div>
+  <wicket:extend>
+    <div id="content">
+      <form wicket:id="form" autocomplete="off">
+        <div wicket:id="feedback">[feedback]</div>
+        <wicket:container wicket:id="flowform">[the form fields]</wicket:container>
+        <wicket:child />
+        <p>
+          <a wicket:id="submitButton" rel="external" data-role="button"><wicket:container wicket:id="label">[create or update]</wicket:container></a>
+        </p>
+        <input type="hidden" wicket:id="csrfToken" />
+      </form>
+    </div>
+  </wicket:extend>
+</body>
+</html>

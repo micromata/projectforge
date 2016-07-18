@@ -1,0 +1,30 @@
+<html lang="en" xmlns:wicket="http://wicket.apache.org/dtds.data/wicket-xhtml1.4-strict.dtd">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+</head>
+
+<body>
+  <wicket:panel>
+    <table style="width: 100%;">
+      <tr>
+        <th style="width:14%;"><wicket:message key="hr.planning.unassignedHours" /></th>
+        <th style="width:14%;"><wicket:message key="calendar.shortday.monday" /></th>
+        <th style="width:14%;"><wicket:message key="calendar.shortday.tuesday" /></th>
+        <th style="width:14%;"><wicket:message key="calendar.shortday.wednesday" /></th>
+        <th style="width:14%;"><wicket:message key="calendar.shortday.thursday" /></th>
+        <th style="width:14%;"><wicket:message key="calendar.shortday.friday" /></th>
+        <th style="width:14%;"><wicket:message key="calendar.shortday.saturday" />/<wicket:message key="calendar.shortday.sunday" /></th>
+      </tr>
+      <tr>
+        <td><input type="text" class="stdtext" wicket:id="unassignedHours" style="width: 40px" /></td>
+        <td><input type="text" class="stdtext" wicket:id="mondayHours" style="width: 40px" /></td>
+        <td><input type="text" class="stdtext" wicket:id="tuesdayHours" style="width: 40px" /></td>
+        <td><input type="text" class="stdtext" wicket:id="wednesdayHours" style="width: 40px" /></td>
+        <td><input type="text" class="stdtext" wicket:id="thursdayHours" style="width: 40px" /></td>
+        <td><input type="text" class="stdtext" wicket:id="fridayHours" style="width: 40px" /></td>
+        <td><input type="text" class="stdtext" wicket:id="weekendHours" style="width: 40px" /></td>
+      </tr>
+    </table>
+  </wicket:panel>
+</body>
+</html>

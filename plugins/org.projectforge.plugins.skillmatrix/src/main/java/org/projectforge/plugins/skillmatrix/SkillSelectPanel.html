@@ -1,0 +1,22 @@
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:wicket="http://wicket.apache.org/dtds.data/wicket-xhtml1.4-strict.dtd">
+<head>
+<title>Preview of SkillSelectPanel</title>
+</head>
+<body>
+  <wicket:panel>
+    <div wicket:id="div" class="skilltree">
+      <wicket:container wicket:id="ancestorSkills">
+        <a wicket:id="ancestorSkillLink"><span wicket:id="name">[ancestor skill name]</span> <span style="font-weight: bold; color: red; font-size: 1.2em;">|</span> </a>
+      </wicket:container>
+      <a wicket:id="skillLink"><span wicket:id="name">[skill name]</span></a>
+      <i class="glyphicon glyphicon-search pf_pointer" wicket:id="searchSkillInputOpen"></i> <!-- autocomplete -->
+      <a wicket:id="select"><i wicket:id="selectHelp"></i></a>
+      <a wicket:id="unselect"><i wicket:id="unselectHelp"></i></a> 
+    </div>
+    <div wicket:id="userselectContainer">
+      <input class="pf_skillSelect" wicket:id="searchSkillInput" />
+      <i class="glyphicon glyphicon-remove pf_pointer" wicket:id="searchSkillInputClose"></i>
+    </div>
+  </wicket:panel>
+</body>
+</html>

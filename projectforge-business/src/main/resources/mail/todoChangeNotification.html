@@ -1,0 +1,52 @@
+<html>
+#INCLUDE{mail/mailHead.html}
+<body>
+#INCLUDE{mail/mailOpening.html}
+<br />
+<%= pf.getString(todo.subject) %>:
+<br />
+<a href="${requestUrl}">${requestUrl}</a>
+<br />
+<table class="form">
+  <tr>
+    <th><%= pf.getI18nString("plugins.todo.subject") %></th>
+    <td colspan="3" style="font-weight: bold;"><% pf.getString(todo.subject) %></td>
+  </tr>
+  <tr>
+    <th><%= pf.getI18nString("plugins.todo.type") %></th>
+    <td><%= pf.getString(todo.type) %></td>
+    <th><%= pf.getI18nString("priority") %></th>
+    <td><%= pf.getString(todo.priority) %></td>
+  </tr>
+  <tr>
+    <th><%= pf.getI18nString("plugins.todo.status") %></th>
+    <td><%= pf.getString(todo.status) %></td>
+    <th><%= pf.getI18nString("dueDate") %></th>
+    <td><%= pf.getString(todo.dueDate) %></td>
+  </tr>
+  <tr>
+    <th><%= pf.getI18nString("plugins.todo.assignee") %></th>
+    <td><%= pf.getString(todo.assignee) %></td>
+    <th><%= pf.getI18nString("plugins.todo.reporter") %></th>
+    <td><%= pf.getString(todo.reporter) %></td>
+  </tr>
+  <tr>
+    <th><%= pf.getI18nString("task") %></th>
+    <td colspan="3"><%= pf.getString(todo.task) %></td>
+  </tr>
+  <tr>
+    <th><%= pf.getI18nString("description") %></th>
+    <td colspan="3"><%= pf.getString(todo.description) %></td>
+  </tr>
+  <tr>
+    <th><%= pf.getI18nString("comment") %></th>
+    <td colspan="3"><%= pf.getString(todo.comment) %></td>
+  </tr>
+</table>
+
+#INCLUDE{mail/mailHistoryTable.html}
+
+#INCLUDE{mail/mailClosing.html}
+#INCLUDE{mail/mailFooter.html}
+</body>
+</html>

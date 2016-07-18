@@ -1,0 +1,43 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns:wicket="http://wicket.apache.org/dtds.data/wicket-xhtml1.4-strict.dtd">
+<head>
+<meta content="yes" name="apple-mobile-web-app-capable" />
+<meta content="text/html; charset=utf-8" http-equiv="Content-Type" />
+</head>
+
+<body>
+
+  <h1>Login page</h1>
+  <wicket:extend>
+    <div wicket:id="feedback">[feedback]</div>
+    <form wicket:id="form" class="loginform">
+
+      <table>
+        <tbody>
+          <tr>
+            <td><label for="username"><wicket:message key="username" /></label></td>
+            <td><input id="username" wicket:id="username" wicket:message="placeholder:username" type="text" /></td>
+          </tr>
+          <tr>
+            <td><label for="password"><wicket:message key="password" /></label></td>
+            <td><input id="password" wicket:id="password" wicket:message="placeholder:password" type="password" /></td>
+          </tr>
+          <tr>
+            <td colspan="2"><input type="checkbox" id="stayLoggedIn" wicket:id="stayLoggedIn" class="custom" /> <label for="stayLoggedIn"><wicket:message
+                  key="login.stayLoggedIn" /></label></td>
+          </tr>
+        </tbody>
+      </table>
+      <p>
+        <a wicket:id="login" rel="external" data-role="button"><wicket:message key="login" /></a>
+      </p>
+
+    </form>
+    <p wicket:id="messageOfTheDay">[Have a lot of fun!]</p>
+    <p style="color: grey;">
+      <wicket:message key="mobile.loginPageInfo" />
+    </p>
+    <a wicket:id="goFullWebVersion" rel="external" data-role="button"><wicket:message key="menu.mobile.fullWebVersion" /></a>
+  </wicket:extend>
+</body>
+</html>

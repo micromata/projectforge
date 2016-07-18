@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:wicket="http://wicket.apache.org/dtds.data/wicket-xhtml1.4-strict.dtd">
+<head>
+<title>Preview of ProjektSelectPanel</title>
+</head>
+<body>
+
+
+  <wicket:panel>
+    <div wicket:id="div" class="tasktree">
+      <wicket:container wicket:id="ancestorTasks">
+        <a wicket:id="ancestorTaskLink"><span wicket:id="name">[ancestor task name]</span> <span style="font-weight: bold; color: red; font-size: 1.2em;">|</span> </a>
+      </wicket:container>
+      <a wicket:id="taskLink"><span wicket:id="name">[task name]</span></a>
+      <i class="glyphicon glyphicon-search pf_pointer" wicket:id="searchTaskInputOpen"></i> <!-- autocomplete -->
+      <a wicket:id="select"><i wicket:id="selectHelp"></i></a>
+      <a wicket:id="unselect"><i wicket:id="unselectHelp"></i></a> <span wicket:id="favorites">[Show favorites]</span>
+    </div>
+    <div wicket:id="userselectContainer">
+      <input class="pf_taskSelect" wicket:id="searchTaskInput" />
+      <i class="glyphicon glyphicon-remove pf_pointer" wicket:id="searchTaskInputClose"></i>
+    </div>
+  </wicket:panel>
+</body>
+</html>

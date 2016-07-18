@@ -1,0 +1,24 @@
+<html lang="en" xmlns:wicket="http://wicket.apache.org/dtds.data/wicket-xhtml1.4-strict.dtd">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+</head>
+
+<body>
+  <wicket:extend>
+    <form wicket:id="form" name="form" autocomplete="off">
+      <div class="row" wicket:id="feedbackAndMessagesPanel">
+        <div class="span12">
+          <div wicket:id="feedback"></div>
+          <div class="alert alert-success" wicket:id="message"></div>
+        </div>
+      </div>
+      <wicket:container wicket:id="flowform">[the form fields]</wicket:container>
+      <div class="button_bar" wicket:id="buttonBar">
+        <wicket:container wicket:id="buttons">[action buttons]</wicket:container>
+      </div>
+      <input type="hidden" wicket:id="csrfToken" />
+    </form>
+    <wicket:child />
+  </wicket:extend>
+</body>
+</html>

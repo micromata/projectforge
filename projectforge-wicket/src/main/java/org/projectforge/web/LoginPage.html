@@ -1,0 +1,53 @@
+<html lang="en" xmlns:wicket="http://wicket.apache.org/dtds.data/wicket-xhtml1.4-strict.dtd">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+</head>
+
+<body>
+  <wicket:extend>
+  <span wicket:id="statusComment">[ProjectForge is alive.]</span>
+    <div class="rounded-box login-panel">
+      <div class="login-header">
+        <h3>
+          <wicket:message key="login.title" />
+        </h3>
+      </div>
+      <div wicket:id="administratorLoginNeeded">
+        <div class="alert alert-danger">
+          <i class="glyphicon glyphicon-bell glyphicon-white"></i>
+          <wicket:message key="login.adminLoginRequired" />
+        </div>
+      </div>
+      <div wicket:id="errors">
+        <div class="alert alert-danger">
+          <i class="glyphicon glyphicon-bell glyphicon-white"></i> <span wicket:id="msg">[login failed]</span>
+        </div>
+      </div>
+      <div wicket:id="messageOfTheDay">
+        <div class="alert alert-info">
+          <i class="glyphicon glyphicon-warning-sign glyphicon-white"></i> <span wicket:id="msg">[Have a lot of fun!]</span>
+        </div>
+      </div>
+      <form wicket:id="form">
+        <div wicket:id="feedback">
+          <i class="glyphicon glyphicon-bell glyphicon-white"></i>
+        </div>
+        <div>
+          <wicket:container wicket:id="username">
+                  [Username]
+                  </wicket:container>
+          <wicket:container wicket:id="password">
+                  [Password]
+                  </wicket:container>
+          <wicket:container wicket:id="stayLoggedIn">
+                  [stay logged in: yes|no]
+                  </wicket:container>
+          <div class="controls" style="margin-left: 18px; margin-top: 10px;">
+            <wicket:container wicket:id="loginButton">[login button]</wicket:container>
+          </div>
+        </div>
+      </form>
+    </div>
+  </wicket:extend>
+</body>
+</html>

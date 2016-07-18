@@ -1,0 +1,1 @@
+Hallo $name, your locale is '<%= pf.getI18nString("locale.de") %>'. #INCLUDE{scripting/template2.txt} Finished: <%= pf.getI18nString("locale.en") %>

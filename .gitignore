@@ -1,0 +1,35 @@
+target
+*.jar
+*.war
+*.ear
+*.class
+
+# intellij config
+*.iml
+.idea/
+# eclipse specific git ignore
+*.pydevproject
+.project
+.metadata
+bin/
+tmp/
+test-output
+work/
+*.tmp
+*.bak
+*.swp
+*~.nib
+local.properties
+.classpath
+.settings/
+.loadpath
+
+.springBeans
+
+# External tool builders
+.externalToolBuilders/
+
+# Locally stored "Eclipse launch configurations"
+*.launch
+
+/log4j-dev.properties

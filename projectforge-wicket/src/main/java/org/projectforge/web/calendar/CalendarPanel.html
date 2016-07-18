@@ -1,0 +1,33 @@
+<html lang="en" xmlns:wicket="http://wicket.apache.org/dtds.data/wicket-xhtml1.4-strict.dtd">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+</head>
+
+<body>
+  <wicket:panel>
+    <script>
+					var first = true;
+					function get_calendar_height() {
+						var height = $(window).height() - $("#calendar").position().top - 20;
+						if (height < 400) height = 400;
+						return height;
+					}
+					//attacht resize event to window and set fullcalendar height property
+					$(document).ready(function() {
+						$(window).resize(function(e) {
+              // skip all events which are not related to the window
+              if (e != null && e.originalEvent != null && e.originalEvent.target != window) {
+                return;
+              }
+							$('#calendar').fullCalendar('option', 'height', get_calendar_height());
+						});
+					});
+				</script>
+    <div id="loading" style="position: absolute; left: 200px;">
+      <wicket:message key="loading" />
+    </div>
+    <div wicket:id="cal"></div>
+    <wicket:child />
+  </wicket:panel>
+</body>
+</html>

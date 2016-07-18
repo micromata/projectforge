@@ -1,0 +1,232 @@
+/* tables still need 'cellspacing="0"' in the markup */
+table {
+	border-collapse: collapse;
+	border-spacing: 0;
+	font-size: 12px;
+}
+
+caption,th,td {
+	text-align: left;
+	font-weight: normal;
+}
+
+table.dataview {
+	margin: 0 0 1.6em 0;
+	border-collapse: collapse;
+	border: 1px solid #d9dfe1;
+	width: 100%;
+}
+
+table.dataview caption {
+	font-weight: bold;
+	color: #009c0e;
+	margin: 0;
+	padding: 0.5em;
+	text-align: left;
+	caption-side: top;
+}
+
+table.dataview thead tr td,table.dataview thead tr th,table.tableTree thead tr th
+	{
+	color: #444;
+	padding: 0.6em;
+	border: 4px solid #fff;
+	border-top: 1px solid #d9dfe1;
+	border-bottom: 1px solid #d9dfe1;
+	background: #D9DFE1;
+	background: -webkit-gradient(linear, left top, left bottom, color-stop(0.0, #F0F5F7),
+		color-stop(1, #D9DFE1) );
+	background: -moz-linear-gradient(top, #F0F5F7, #D9DFE1);
+	border-bottom-color: #8994A0;
+}
+
+table.dataview thead tr td:first-child,table.dataview thead tr th:first-child,table.dataview tbody tr td:first-child,table.dataview tbody tr th:first-child,table.dataview tfoot tr td:first-child,table.dataview tfoot tr th:first-child
+	{
+	border-left: none;
+}
+
+table.dataview thead tr td:last-child,table.dataview thead tr th:last-child,table.dataview tbody tr td:last-child,table.dataview tbody tr th:last-child,table.dataview tfoot tr td:last-child,table.dataview tfoot tr th:last-child
+	{
+	border-right: none;
+}
+
+table.dataview thead tr td.tableform {
+	border-bottom: 1em solid #fff;
+}
+
+table.dataview tfoot tr td,table.dataview tfoot tr th {
+	color: #444;
+	padding: 0.6em;
+	border: 4px solid #fff;
+	border-top: 1px solid #d9dfe1;
+	border-bottom: 1px solid #d9dfe1;
+	background: #F0F5F7;
+}
+
+table.dataview tfoot tr td.tableform,table.dataview tfoot tr th.tableform
+	{
+	border-top: 1em solid #fff;
+}
+
+table.dataview tbody tr td,table.dataview tbody tr th {
+	color: #444;
+	padding: 0.6em;
+	border: 4px solid #fff;
+	/*background:transparent url('../img/tab.png') repeat-x 0% 90%;*/
+}
+
+table.dataview tbody tr td div {
+	display: inline;
+}
+
+table.dataview tbody tr.even td,table.dataview tbody tr.even th {
+	border-top: none;
+	border-bottom: none;
+	background: #F0F5F7;
+}
+
+table.dataview tbody tr.odd td,table.dataview tbody tr.odd th {
+	border-top: none;
+	border-bottom: none;
+}
+/* the ruler */
+table.dataview tbody tr:hover td,table.dataview tbody tr:hover th,table.dataview tbody tr.over td,table tbody tr.over th
+	{
+	background: #d9dfe1;
+}
+/* write such color and styling rules to rule the tables ;-) */
+table.dataview tbody tr td.currency {
+	white-space: nowrap;
+	text-align: right;
+}
+
+table.dataview tbody tr td.alert {
+	font-weight: bold;
+	color: #E11D1C;
+}
+
+table.dataview tbody tr td.motivate {
+	font-weight: bold;
+	color: #009c0e;
+}
+
+table.dataview th a {
+	color: black;
+	font-weight: bold;
+}
+
+.tablelinks {
+	text-align: center;
+}
+
+#content .tablelinks a:visited,.tablelinks a {
+	text-decoration: none;
+}
+
+.tablelinks a {
+	white-space: nowrap;
+	color: #5C6970;
+	background: #F0F5F7;
+	padding: 0.1em 0.5em;
+	margin: 0 0 0 0.2em;
+	-moz-border-radius: 0.7em;
+	-webkit-border-radius: 0.7em;
+	border-radius: 0.7em;
+	border: 1px solid #D9DFE1;
+}
+
+.tablelinks a:hover {
+	color: #009c0e;
+	background: #CEE6B0;
+	border-color: #A9D887;
+	text-decoration: none;
+}
+
+.tablelinks.delete a:hover {
+	color: #E11D1C;
+	background: #FBEDED;
+	border-color: #E11D1C;
+}
+/* The Tablesorters */
+table.dataview thead th.wicket_orderNone,table.dataview thead th.wicket_orderUp,table.dataview thead th.wicket_orderDown
+	{
+	vertical-align: middle;
+	white-space: nowrap;
+	padding-right: 2em;
+	text-align: center;
+}
+
+table.dataview tr th.wicket_orderNone {
+	background: #e0e0e0 url(../../styles/images/sort.png ) no-repeat center right;
+}
+
+table.dataview tr th.wicket_orderUp {
+	background: #e0e0e0 url(../../styles/images/sort_asc.png ) no-repeat center right;
+}
+
+table.dataview tr th.wicket_orderDown {
+	background: #e0e0e0 url(../../styles/images/sort_desc.png ) no-repeat center right;
+}
+
+table.costassignment {
+	border-spacing: 10px;
+	empty-cells: show;
+}
+
+table.costassignment thead tr td,table.costassignment thead tr th {
+	font-weight: bold;
+	padding-left: 5px;
+}
+
+table.costassignment tbody td {
+	padding-left: 5px;
+}
+
+table.business-assessment {
+	
+}
+
+table.business-assessment td.indent-0 {
+	padding-left: 5px;
+	font-weight: bold;
+}
+
+table.business-assessment td.indent-1 {
+	padding-left: 20px;
+}
+
+table.business-assessment td.indent-2 {
+	padding-left: 35px;
+}
+
+table.business-assessment td.indent-3 {
+	padding-left: 50px;
+}
+
+table.business-assessment td.indent-4 {
+	padding-left: 65px;
+}
+
+table.dataview a {
+	color: blue;
+}
+
+td.highlighted {
+	background-color: #ffcccc !important;
+}
+
+td.markedAsDeleted {
+	text-decoration: line-through;
+}
+
+td.favoriteEntry, td.importantRow {
+	color: red !important;
+}
+
+td.success {
+	color: green !important;
+}
+
+td.blue, td.recent {
+	color: blue !important;
+}

@@ -1,0 +1,65 @@
+<html lang="en" xmlns:wicket="http://wicket.apache.org/dtds.data/wicket-xhtml1.4-strict.dtd">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+</head>
+
+<body>
+  <wicket:extend>
+    <script type="text/javascript">
+					function selectAll() {
+						$(".dataview input[type='checkbox']").attr('checked',
+								true);
+					}
+					function deselectAll() {
+						$(".dataview input[type='checkbox']").attr('checked',
+								false);
+					}
+					$(document)
+							.ready(
+									function() {
+										var useModificationFilter = $(
+												"#useModificationFilter").attr(
+												'value');
+										if (useModificationFilter == 'true') {
+											showExtendedFilter();
+										} else {
+											hideExtendedFilter();
+										}
+									});
+					function showExtendedFilter() {
+						$("#extendedFilter").show('fast');
+						$("#useModificationFilter").attr('value', 'true');
+						$("#showExtendedFilter").hide();
+						$("#hideExtendedFilter").show();
+					}
+					function hideExtendedFilter() {
+						$("#extendedFilter").hide('fast');
+						$("#useModificationFilter").attr('value', 'false');
+						$("#showExtendedFilter").show();
+						$("#hideExtendedFilter").hide();
+					}
+				</script>
+
+    <form wicket:id="form" autocomplete="off">
+      <div wicket:id="feedback"></div>
+
+      <wicket:container wicket:id="filter">[the filter]</wicket:container>
+
+      <wicket:child />
+      <div class="button_bar" wicket:id="buttonCell">
+        <wicket:container wicket:id="actionButtons">[cancel] [search]</wicket:container>
+      </div>
+
+      <table class="dataview" wicket:id="table">
+        <tr>
+          <td>[table]</td>
+        </tr>
+      </table>
+
+      <wicket:container wicket:id="bottomPanel">[optional outputs]</wicket:container>
+      <div class="alert alert-info" wicket:id="hintQuickSelect">[Quick select hint if in select mode.]</div>
+      <input type="hidden" wicket:id="csrfToken" />
+    </form>
+  </wicket:extend>
+</body>
+</html>

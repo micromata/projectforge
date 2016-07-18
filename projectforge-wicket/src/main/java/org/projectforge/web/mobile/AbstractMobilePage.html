@@ -1,0 +1,37 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns:wicket="http://wicket.apache.org/dtds.data/wicket-xhtml1.4-strict.dtd">
+
+<head>
+<meta content="yes" name="apple-mobile-web-app-capable" />
+<meta content="text/html; charset=utf-8" http-equiv="Content-Type" />
+<meta content="minimum-scale=1.0, width=device-width, maximum-scale=0.6667, user-scalable=no" name="viewport" />
+<link rel="apple-touch-icon" href="images/appleTouchIcon.png" />
+<title wicket:id="windowTitle">ProjectForge® 2012</title>
+</head>
+
+<body>
+
+  <div data-role="page" wicket:id="page">
+    <div data-role="header" data-position="inline" wicket:id="header">
+      <wicket:container wicket:id="topLeftButton">[invisible]</wicket:container>
+      <h1 wicket:id="topCenter">[ProjectForge]</h1>
+      <wicket:container wicket:id="topRightButton">[invisible]</wicket:container>
+    </div>
+
+    <div data-role="content">
+      <wicket:child>
+  This is the content!
+</wicket:child>
+    </div>
+    <!-- /content -->
+
+    <div data-role="footer">
+      <h4>
+        <span wicket:id="loggedInLabel">[Logged in: John Mustermann (john)]</span>
+      </h4>
+    </div>
+
+  </div>
+
+</body>
+</html>

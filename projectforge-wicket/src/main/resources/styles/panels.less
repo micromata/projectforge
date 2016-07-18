@@ -1,0 +1,48 @@
+.panel {
+	border-radius: 0;
+	min-height: 200px;
+}
+
+.panel-heading {
+	padding: 5px 5px 5px 10px;
+
+	.panel-title {
+		font-size: 14px;
+		font-weight: bold;
+		margin-top: 8px;
+	}
+
+	&.mm_containsControls {
+		button, select {
+			margin-left: 5px;
+		}
+	}
+}
+
+.panel-body {
+	&.form-inline {
+		label {
+			display: block;
+		}
+	}
+}
+
+.mm_panel {
+  -webkit-column-break-inside: avoid;
+  -moz-column-break-inside: avoid;
+  page-break-inside: avoid;
+  column-break-inside: avoid;
+  margin-bottom: 10px;
+}
+
+.mm_columnContainer {
+  -webkit-column-count: 2;
+  -webkit-column-gap: 10px;
+  -moz-column-count: 2;
+  page-column-gap: 10px;
+  column-count: 2;
+  page-column-count: 2;
+  column-gap: 10px;
+  min-height: initial;
+  margin-top: 10px;
+}

@@ -1,0 +1,30 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html xmlns:wicket="http://wicket.apache.org/dtds.data/wicket-xhtml1.4-strict.dtd">
+<head>
+</head>
+<body>
+  <wicket:extend>
+    <div class="navbar">
+      <wicket:panel wicket:id="topMenu">
+        [main menu]
+        </wicket:panel>
+    </div>
+    <div class="navActionBar">
+      <ul class="breadcrumb" wicket:id="breadcrumb">
+        <li wicket:id="li"><a href="#" wicket:id="link"><span wicket:id="label">Return to page</span></a><span class="divider">&rarr;</span></li>
+        <li class="active" wicket:id="active"></li>
+        <li><wicket:container wicket:id="menuBar">[Context dependent menu]</wicket:container></li>
+      </ul>
+    </div>
+    <div wicket:id="alertMessageContainer" class="global-alert-message">
+      <i class="glyphicon glyphicon-bell glyphicon-white"></i> <span wicket:id="alertMessage">This is an Alert!</span>
+    </div>
+    <div class="main container-fluid">
+      <wicket:child>
+        <h2>This is the content!</h2>
+      </wicket:child>
+    </div>
+    <wicket:container wicket:id="modalDialogs">[modal dialogs are placed here.]</wicket:container>
+  </wicket:extend>
+</body>
+</html>

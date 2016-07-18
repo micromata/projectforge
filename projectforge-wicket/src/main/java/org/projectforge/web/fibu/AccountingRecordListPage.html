@@ -1,0 +1,22 @@
+<html lang="en" xmlns:wicket="http://wicket.apache.org/dtds.data/wicket-xhtml1.4-strict.dtd">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+</head>
+
+<body>
+  <wicket:extend>
+    <script type="text/javascript">
+					function showBusinessAssessment() {
+						$("#businessAssessment").show('fast');
+						$("#showBusinessAssessment").hide();
+						$("#hideBusinessAssessment").show();
+					}
+					function hideBusinessAssessment() {
+						$("#businessAssessment").hide('fast');
+						$("#showBusinessAssessment").show();
+						$("#hideBusinessAssessment").hide();
+					}
+				</script>
+  </wicket:extend>
+</body>
+</html>

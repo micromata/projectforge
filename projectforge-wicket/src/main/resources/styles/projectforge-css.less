@@ -1,0 +1,583 @@
+.taskStatus_opened {
+	color: #518732;
+}
+
+.taskStatus_closed {
+	color: #386773;
+}
+
+.priority_least {
+	
+}
+
+.priority_low {
+	
+}
+
+.priority_middle {
+	
+}
+
+.priority_high {
+	color: red;
+	font-weight: bold;
+}
+
+.priority_highest {
+	background-color: red;
+	color: white;
+	font-weight: bold;
+}
+
+.tp_collision {
+	color: #EC4031;
+}
+
+div.progress {
+	margin-top: 5px;
+	margin-bottom: 0px;
+	line-height: 10px;
+	width: 50px;
+	height: 8px;
+	border-width: 1px;
+	border-style: solid;
+	border-color: #aaa;
+	display: inline-block !important;
+	width: 50px;
+  background-image: none;
+}
+
+div.progress div {
+	display: block !important;
+  border-right: 1px solid #555;
+	height: 8px;
+}
+
+div.progress-none {
+	background-color: #eeeeee;
+}
+
+div.progress-done {
+	background-color: #eeeeee;
+}
+
+div.progress-done div {
+	background-color: #099900;
+}
+
+div.progress-80 {
+	background-color: #eeeeee;
+}
+
+div.progress-80 div {
+	background-color: #ffff00;
+}
+
+div.progress-90 {
+	background-color: #eeeeee;
+}
+
+div.progress-90 div {
+	background-color: #ff8000;
+}
+
+div.progress-overbooked {
+	background-color: #ff0000;
+}
+
+div.progress-overbooked div {
+	background-color: #ff8000;
+}
+
+div.progress-overbooked-min {
+	background-color: #ff0000;
+}
+
+div.progress-overbooked-min div {
+	background-color: #eeeeee;
+}
+
+/* Zoom of phone numbers. */
+#divZoom {
+	background-color: white;
+	opacity: 0.8;
+	position: fixed;
+	z-index: 25000;
+	left: 0px;
+	top: 50px;
+	width: 100%;
+	text-align: center;
+	line-height: 1.4em;
+	font-family: arial black, arial, helvetica, sans-serif;
+	font-weight: bold;
+}
+
+.zoomText {
+	text-align: center;
+	/*background-color: #FFFFFF;*/
+	padding-left: 10px;
+	padding-right: 10px;
+}
+
+/* Autocomplete */
+.ac_results {
+	padding: 0px;
+	position: absolute;
+	border: 1px solid WindowFrame;
+	background-color: Window;
+	overflow: auto;
+	/* modal in bootstrap is 1050 */
+	z-index: 1060;
+}
+
+/* Needed for IE: */
+.ac_results iframe {
+	display: block; /*sorry for IE5*/
+	position: absolute;
+	top: 0;
+	left: 0;
+	z-index: -1;
+	filter: mask();
+	width: 3000px;
+	z-index: -1;
+}
+
+.ac_results ul {
+	width: 100%;
+	list-style-position: outside;
+	list-style: none;
+	padding: 0;
+	margin: 0;
+}
+
+.ac_results li {
+	margin: 0px;
+	padding-left: 2px;
+	padding-top: 5px;
+	cursor: pointer;
+	display: block;
+	overflow: hidden;
+}
+
+.ac_results ul li i {
+  margin-right: 10px;
+}
+
+.ac_loading {
+	background: Window url('../../styles/images/ajax-loader.gif') right center
+		no-repeat;
+}
+
+.ac_over {
+	background-color: Highlight;
+	color: HighlightText;
+}
+
+/* Tooltips */
+.tooltip {
+  z-index: 10000;
+}
+#tooltip {
+	position: absolute;
+	z-index: 11;
+	border: 1px solid #F0F5F7;
+	background-color: #F0F5F7;
+	max-width: 40em;
+	color: #8994A0;
+	padding: 5px;
+	font-size: 100%;
+	line-height: 1.8em;
+	-moz-box-shadow: 1px 1px 3px #8994A0;
+	-webkit-box-shadow: 1px 1px 3px #8994A0;
+	box-shadow: 1px 1px 3px #8994A0;
+	background: #F0F5F7;
+	background: -webkit-gradient(linear, left top, left bottom, color-stop(0.0, #fff),
+		color-stop(0.6, #F0F5F7) );
+	background: -moz-linear-gradient(top, #fff, #F0F5F7 40%);
+}
+
+#tooltip h3 {
+	margin: 0;
+	font-weight: bold;
+	font-size: 100%;
+}
+
+#tooltip div {
+	margin: 0;
+}
+
+div.contentMenus {
+	height: 35px;
+}
+
+div.contentMenu {
+	display: inline-block;
+	padding-left: 7px;
+}
+
+div.contentRightMenu {
+	display: inline-block;
+	padding-right: 4px;
+	float: right;
+}
+
+div.contentMenu .toolbarbutton,div.contentRightMenu .toolbarbutton {
+	margin: 0em;
+	font: -webkit-small-control;
+	letter-spacing: normal;
+	word-spacing: normal;
+	line-height: normal;
+	text-transform: none;
+	text-indent: 0px;
+	display: inline-block;
+	-webkit-box-align: center;
+	box-sizing: border-box;
+	cursor: pointer;
+	padding: 2px;
+	padding-right: 5px;
+	padding-left: 5px;
+	float: left;
+	margin-right: 5px;
+	margin-bottom: 5px;
+	line-height: 24px;
+	position: relative;
+	text-align: center;
+	vertical-align: middle;
+	background: #959BA2;
+	background-image: -webkit-linear-gradient(top, #959BA2, #6A737F);
+	background-image: -moz-linear-gradient(top, #959BA2, #6A737F);
+	background-image: -ms-linear-gradient(top, #959BA2, #6A737F);
+	background-image: -o-linear-gradient(top, #959BA2, #6A737F);
+	background-image: linear-gradient(top, #959BA2, #6A737F);
+	border: 1px solid #6A737F;
+	color: white;
+	text-shadow: 0 1px 0 black;
+	box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3);
+	transition: background 5000ms ease-in;
+	-webkit-border-radius: 3px;
+	-moz-border-radius: 3px;
+	border-radius: 3px;
+}
+
+#footer {
+  height: 1.3em;
+	background-color: #4c5766;
+	border-color: #313841;
+	color: #fff;
+	text-shadow: 0 1px 0 #000;
+	background-image: -webkit-gradient(linear, left top, left bottom, from(#4c5766),
+		to(#313841) ); /* Saf4+, Chrome */
+	background-image: -webkit-linear-gradient(top, #4c5766, #313841);
+	/* Chrome 10+, Saf5.1+, iOS 5+ */
+	background-image: -moz-linear-gradient(top, #4c5766, #313841);
+	/* FF3.6 */
+	background-image: -ms-linear-gradient(top, #4c5766, #313841);
+	/* IE10 */
+	background-image: -o-linear-gradient(top, #4c5766, #313841);
+	/* Opera 11.10+ */
+	background-image: linear-gradient(top, #4c5766, #313841);
+	border: 1px solid rgba(0, 0, 0, 0.5) !important;
+	position: fixed;
+	bottom: 0px;
+	background-color: white;
+	color: #aaaaaa;
+	width: 100%;
+	z-index: 10;
+	background-color: #4c5766;
+}
+
+#footer a {
+	color: #aaa;
+	font-size: 0.8em;
+}
+
+#footer a:hover {
+	color: white;
+}
+
+#footer span.divider {
+	padding-left: 3px;
+	padding-right: 3px;
+}
+
+#footer ul#pf_copyHint {
+	float: left;
+	list-style: none;
+	padding-left: 5px;
+	margin: 0;
+}
+
+#footer ul#pf_copyHint li {
+	float: left;
+}
+
+#footer #pf_footerNewsLink {
+	float: right;
+	padding-right: 5px;
+}
+
+/* Errorhandling */
+div>ul.feedbackPanel {
+	margin: 0;
+	color: #fff;
+	text-shadow: none;
+	background-color: #9e253b;
+}
+
+ul.feedbackPanel li.feedbackPanelERROR {
+	margin: 0.3em 0.5em 0.5em 3em;
+}
+
+/* Used in list pages, appended to search fields. */
+div.modifiedSearchExpressionLabel {
+	display: block;
+	color: #999;
+	line-height: 12px;
+	font-size: 10px;
+	bottom: 0px;
+}
+
+ul.top-right>li {
+	margin: 0 1px 0 0;
+	padding: 4px 10px;
+}
+
+ul.top-right ul {
+	position: absolute;
+	right: 0px;
+}
+
+/* BEGIN: Fullcalendar */
+/* Any change here should be done also in HolidayEventsProvider.java */
+.timeline {
+    position: absolute;
+    left: 59px;
+    border: none;
+    border-top: 2px solid red;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    z-index: 999;
+}
+
+td.fc-sun,td.fc-sat,td.fc-holiday {
+	background: #f9dfde;
+}
+
+.fc .fc-event {
+	text-shadow: none;
+}
+
+.fc-header-title>h2 {
+	font-weight: bold;
+	font-size: 1.1em;
+	line-height: 20px;
+}
+.fc-header td {
+	padding: 7px 6px 1px;
+}
+.fc-header .fc-button {
+	margin-bottom: 0;
+}
+/* END: Fullcalendar */
+h2.box_head .subtitle {
+	font-weight: normal;
+	font-size: .9em;
+}
+
+.pf_colorPreview {
+	width: 24px;
+	height: 24px;
+	border: 1px solid black;
+	cursor: pointer;
+}
+
+.pf_colorPickerField {
+	width: 1px;
+	border: none;
+	padding: 0;
+	margin: 0;
+	position: relative;
+	float: left;
+	color: black;
+	background-color: black;
+	z-index: 1;
+	opacity: 0;
+	/* filter: alpha(opacity =           0); */
+}
+
+.pf_teamCalDialog {
+	width: 400px;
+}
+
+.pf_teamCalDialog .teamCalTemplate {
+	height: 37px;
+}
+
+.pf_teamCalDialog .teamCalTemplate .left {
+	float: left;
+}
+
+.pf_teamCalDialog .teamCalTemplate .right {
+	float: right;
+}
+
+.pf_teamCalDialog.pf_export textarea {
+	width: 100%;
+	height: 75px;
+}
+
+/**
+ * Upload components
+ */
+.pf_uploadField {
+	overflow: hidden;
+}
+
+.pf_uploadField .label {
+	-moz-box-sizing: border-box;
+	background: none repeat scroll 0 0 rgba(0, 0, 0, 0.05);
+	border: 0 none;
+	box-shadow: 0 0 2px 0 #DDDDDD inset;
+	height: 20px;
+	line-height: 20px;
+}
+
+.pf_uploadField input[type="file"] {
+	width: 0;
+	height: 0;
+	padding: 0;
+	margin: 0;
+	visibility: hidden;
+}
+
+.pf_uploadField button[name="fileUploadProxy"] {
+	margin: 0 !important;
+	float: right;
+	width: 25%;
+	clear: none;
+	line-height: 1em;
+}
+
+.pf_uploadField input.label {
+	float: left;
+	width: 73.5%;
+	margin: 0 0 10px 0;
+}
+
+.pf_deleteLink {
+	float: right;
+	padding: 0 6 3 0;
+}
+
+.pf_teamCalDialog .pf_dialogScroll {
+	max-height: 200px;
+	overflow: auto;
+}
+
+/* Used in list pages, appended to search fields. */
+.pf_filedrag {
+	display: none;
+	text-align: center;
+	padding-left: 10px;
+	padding-right: 10px;
+	color: #555;
+	border: 1px dashed #555;
+	border-radius: 7px;
+	cursor: default;
+	width: auto;
+}
+
+.pf_dnd.disabled {
+  display: none !important;
+}
+
+.pf_filedrag.hover {
+	font-weight: bold;
+	padding-top: 5px;
+	padding-bottom: 5px;
+	padding-left: 20px;
+	padding-right: 20px;
+	color: #088a08;
+	border-color: #088a08;
+	border-style: solid;
+	border-width: 2px;
+	box-shadow: inset 0 3px 4px #888;
+}
+
+div.pf_hiddenForm {
+	display: none !important;
+}
+
+div.global-alert-message {
+	background-color: #9E253B;
+	color: #fff;
+	border-bottom-left-radius: 9px;
+	border-bottom-right-radius: 9px;
+	border-bottom-style: solid;
+	border-bottom-width: 2px;
+	border-left-style: solid;
+	border-left-width: 2px;
+	border-right-style: solid;
+	border-right-width: 2px;
+	border-top-left-radius: 9px;
+	border-top-right-radius: 9px;
+	border-top-style: solid;
+	border-top-width: 2px;
+	text-shadow: rgba(0, 0, 0, 0.246094) 0px -1px 0px;
+	margin: 0px 20px 5px 20px;
+	padding: 5px;
+	font-weight: bold;
+}
+
+/* Devel Modus */
+#pf_develHint {
+	position: absolute;
+	z-index: 10;
+	left: 0px;
+	top: 13px;
+	width: 100%;
+}
+
+#pf_develHint p {
+	text-align: center;
+	font-weight: bold;
+	color: red;
+	font-size: 30px;
+}
+
+.pf_taskSelect {
+  width: 400px !important;
+}
+
+/* SearchPage */
+.hasMoreEntries {
+	color: red;
+}
+
+.dropdown-menu.contextmenu ul.dropdown {
+	margin: 0;
+}
+
+.dropdown-menu.contextmenu li {
+	list-style-type: none;
+}
+
+.pf_left {
+	float: left;
+}
+.pf_pointer {
+	cursor: pointer;
+}
+
+ins {
+  background:#e6ffe6;
+}
+
+del {
+  background:#ffe6e6;
+}
+
+.pf_qrcode {
+  padding-top: 20px;
+}

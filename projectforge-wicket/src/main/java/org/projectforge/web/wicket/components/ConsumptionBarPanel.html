@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:wicket="http://wicket.apache.org/dtds.data/wicket-xhtml1.4-strict.dtd">
+<head>
+<title>Preview of date panel</title>
+<style>
+div.progress-none {
+	width: 50px;
+	height: 8px;
+	background-color: #eeeeee;
+	border-width: 1px;
+	border-style: solid;
+	border-color: #aaaaaa;
+}
+
+div.progress-done {
+	width: 50px;
+	height: 8px;
+	background-color: #eeeeee;
+	border-width: 1px;
+	border-style: solid;
+	border-color: black;
+}
+
+div.progress-done div {
+	height: 8px;
+	background-color: #099900;
+	border-width: 0px 1px 0px 0px;
+	border-style: solid;
+	border-color: black;
+}
+
+div.progress-overbooked {
+	width: 50px;
+	height: 8px;
+	background-color: #ff0000;
+	border-width: 1px;
+	border-style: solid;
+	border-color: black;
+}
+
+div.progress-overbooked div {
+	height: 8px;
+	background-color: #099900;
+	border-width: 0px 1px 0px 0px;
+	border-style: solid;
+	border-color: black;
+}
+
+div.progress-overbooked2 {
+	width: 50px;
+	height: 8px;
+	background-color: #ff0000;
+	border-width: 1px;
+	border-style: solid;
+	border-color: black;
+}
+
+div.progress-overbooked2 div {
+	height: 8px;
+	background-color: #eeeeee;
+	border-width: 0px 1px 0px 0px;
+	border-style: solid;
+	border-color: black;
+}
+
+div.progress-overbooked3 {
+	width: 50px;
+	height: 8px;
+	background-color: #ff0000;
+	border-width: 1px;
+	border-style: solid;
+	border-color: black;
+}
+
+div.progress-overbooked3 div {
+	height: 8px;
+	background-color: #ffff00;
+	border-width: 0px 1px 0px 0px;
+	border-style: solid;
+	border-color: black;
+	border-width: 0px 1px 0px 0px;
+}
+
+div.progress-overbooked4 {
+	width: 50px;
+	height: 8px;
+	background-color: #ff0000;
+	border-width: 1px;
+	border-style: solid;
+	border-color: black;
+}
+
+div.progress-overbooked4 div {
+	height: 8px;
+	background-color: #ff8000;
+	border-width: 0px 1px 0px 0px;
+	border-style: solid;
+	border-color: black;
+	border-width: 0px 1px 0px 0px;
+}
+</style>
+</head>
+<body>
+<br />
+<div wicket:id="label" class="progress-none" title=""></div>
+<br />
+<div wicket:id="label" class="progress-done" title="0%"></div>
+<br />
+<wicket:panel>
+  <a href="showTimesheets" wicket:id="sheets">
+  <div wicket:id="bar" class="progress-done" title="10%">
+  <div wicket:id="progress" style="width: 10%;"></div>
+  </div>
+  </a>
+</wicket:panel>
+<br />
+<div wicket:id="label" class="progress-done" title="50%">
+<div style="width: 50%;"></div>
+</div>
+<br />
+<div wicket:id="label" class="progress-done" title="90%">
+<div style="width: 90%;">&nbsp;</div>
+</div>
+<br />
+<div wicket:id="label" class="progress-done" title="100%">
+<div style="width: 100%;">&nbsp;</div>
+</div>
+<br />
+<div wicket:id="label" class="progress-overbooked" title="110%">
+<div style="width: 91%;">&nbsp;</div>
+</div>
+<br />
+<div wicket:id="label" class="progress-overbooked2" title="120%">
+<div style="width: 83%;">&nbsp;</div>
+</div>
+<br />
+<div wicket:id="label" class="progress-overbooked3" title="130%">
+<div style="width: 77%;">&nbsp;</div>
+</div>
+<br />
+<div wicket:id="label" class="progress-overbooked4" title="150%">
+<div style="width: 66%;">&nbsp;</div>
+</div>
+<br />
+<div wicket:id="label" class="progress-overbooked4" title="200%">
+<div style="width: 50%;">&nbsp;</div>
+</div>
+<br />
+<div wicket:id="label" class="progress-overbooked4" title="300%">
+<div style="width: 33%;">&nbsp;</div>
+</div>
+</body>
+</html>

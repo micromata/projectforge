@@ -1,0 +1,172 @@
+package org.projectforge.web.selenium;
+
+import org.projectforge.web.selenium.fibu.SeleniumEmployeeEditPage;
+import org.projectforge.web.selenium.fibu.SeleniumEmployeeListPage;
+import org.projectforge.web.selenium.login.SeleniumLoginPage;
+import org.testng.Assert;
+import org.testng.annotations.Test;
+
+public class MyAccountTest extends SeleniumSuiteTestBase
+{
+  @Test
+  public void testPersonalData()
+  {
+    new SeleniumLoginPage()
+        .callPage()
+        .loginAsAdmin();
+
+    SeleniumMyAccountPage seleniumMyAccountPage = new SeleniumMyAccountPage();
+    String mail = "mymail@example.com";
+    String organization = "My Company";
+    String lasName = "Administrator";
+    String firstName = "Vorname";
+    seleniumMyAccountPage
+        .callPage()
+        .setFirstName(firstName)
+        .setLastName(lasName)
+        .setEmail(mail)
+        .setOrganization(organization)
+        .update()
+        .callPage()
+        .assertTextOfElementWithIdEquals("firstName", firstName)
+        .assertTextOfElementWithIdEquals("lastName", lasName)
+        .assertTextOfElementWithIdEquals("organization", organization)
+        .assertTextOfElementWithIdEquals("email", mail)
+        .logout();
+  }
+
+  @Test
+  public void testBankingDetails()
+  {
+    SeleniumLoginPage seleniumLoginPage = new SeleniumLoginPage();
+    seleniumLoginPage
+        .callPage()
+        .loginAsAdmin();
+
+    SeleniumMyAccountPage seleniumMyAccountPage = new SeleniumMyAccountPage();
+
+    String mail = "mymail@example.com";
+    String organization = "My Company";
+    String lasName = "Administrator";
+    String firstName = "Vorname";
+    String iban = "DE12345678901234567890";
+    String accountHolder = "Vorname Nachname";
+    String bic = "12345678";
+    seleniumMyAccountPage
+        .callPage()
+        .setFirstName(firstName)
+        .setLastName(lasName)
+        .setEmail(mail)
+        .setOrganization(organization)
+        .setIban("DE1234567890123456789")
+        .setBic(bic)
+        .setAccountHolder(accountHolder)
+        .update()
+        .assertWeAreOnThisPage()
+        .setIban(iban)
+        .update()
+        .currentPageUrlStartsWith(Const.PF_URL + "wa/wicket/page");
+
+    SeleniumEmployeeListPage seleniumEmployeeListPage = new SeleniumEmployeeListPage();
+    SeleniumEmployeeEditPage employeeEditPage = seleniumEmployeeListPage
+        .callPage()
+        .clickRowWhereColumnLike("Administrator");
+    Assert.assertEquals(employeeEditPage.getIban(), iban);
+    Assert.assertEquals(employeeEditPage.getBic(), bic);
+    Assert.assertEquals(employeeEditPage.getAccountHolder(), accountHolder);
+  }
+
+  @Test
+  public void testAdress()
+  {
+    SeleniumLoginPage seleniumLoginPage = new SeleniumLoginPage();
+    seleniumLoginPage
+        .callPage()
+        .loginAsAdmin();
+
+    SeleniumMyAccountPage seleniumMyAccountPage = new SeleniumMyAccountPage();
+
+    String mail = "mymail@example.com";
+    String organization = "My Company";
+    String lasName = "Administrator";
+    String firstName = "Vorname";
+    String city = "city";
+    String country = "country";
+    String state = "state";
+    String zipcode = "123";
+    String street = "street";
+    seleniumMyAccountPage
+        .callPage()
+        .setFirstName(firstName)
+        .setLastName(lasName)
+        .setEmail(mail)
+        .setOrganization(organization)
+        .setCity(city)
+        .setCountry(country)
+        .setState(state)
+        .setZipCode(zipcode)
+        .setStreet(street)
+        .update()
+        .currentPageUrlStartsWith(Const.PF_URL + "wa/wicket/page");
+
+    SeleniumEmployeeListPage seleniumEmployeeListPage = new SeleniumEmployeeListPage();
+    SeleniumEmployeeEditPage employeeEditPage = seleniumEmployeeListPage
+        .callPage()
+        .clickRowWhereColumnLike("Administrator");
+
+    Assert.assertEquals(employeeEditPage.getCity(), city);
+    Assert.assertEquals(employeeEditPage.getCountry(), country);
+    Assert.assertEquals(employeeEditPage.getState(), state);
+    Assert.assertEquals(employeeEditPage.getStreet(), street);
+
+  }
+
+  @Test
+  public void testBirthday()
+  {
+    SeleniumLoginPage seleniumLoginPage = new SeleniumLoginPage();
+    seleniumLoginPage
+        .callPage()
+        .loginAsAdmin();
+
+    SeleniumMyAccountPage seleniumMyAccountPage = new SeleniumMyAccountPage();
+
+    String mail = "mymail@example.com";
+    String organization = "My Company";
+    String lasName = "Administrator";
+    String firstName = "Vorname";
+    String city = "city";
+    String country = "country";
+    String state = "state";
+    String zipcode = "123";
+    String street = "street";
+    String birthday = "01/02/1980";
+    seleniumMyAccountPage
+        .callPage()
+        .setFirstName(firstName)
+        .setLastName(lasName)
+        .setEmail(mail)
+        .setOrganization(organization)
+        .setCity(city)
+        .setCountry(country)
+        .setState(state)
+        .setZipCode(zipcode)
+        .setStreet(street)
+        //        .setBirthday("dfdfgfdgdfg") <-- this is not possible because the input field does not allow text
+        .assertWeAreOnThisPage()
+        .setBirthday("01/01/1200")
+        .update()
+        .assertWeAreOnThisPage()
+        .setBirthday(birthday)
+        .update()
+        .currentPageUrlStartsWith(Const.PF_URL + "wa/wicket/page");
+
+    SeleniumEmployeeListPage seleniumEmployeeListPage = new SeleniumEmployeeListPage();
+    SeleniumEmployeeEditPage employeeEditPage = seleniumEmployeeListPage
+        .callPage()
+        .clickRowWhereColumnLike("Administrator");
+
+    Assert.assertEquals(employeeEditPage.getBirthday(), birthday);
+  }
+
+}

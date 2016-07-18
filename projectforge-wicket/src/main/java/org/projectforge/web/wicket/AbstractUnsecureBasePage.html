@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html xmlns:wicket="http://wicket.apache.org" wicket:id="html">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title wicket:id="windowTitle">ProjectForge® 2016</title>
+<link rel="apple-touch-icon" href="images/appleTouchIcon.png" />
+<!--[if lt IE 9]>
+<script src="scripts/html5shiv.js"></script>
+<![endif]-->
+</head>
+<body onload="" wicket:id="body">
+  <div id="topbar" class="clearfix">
+    <div class="logo" style="border-bottom: 1px solid #D9DFE1; padding: 1em 2em; text-align: right; background-color: #ffffff;">
+      <img id="logo-left" wicket:id="logoLeftImage" src="/secure/Logo.jpg" style="border: none; float: left;" /> <img id="logo-right"
+        src="images/logo-top-right.png" style="border: none;" />
+    </div>
+  </div>
+
+  <div wicket:id="developmentSystem">
+    <p>+++ DEVELOPMENT SYSTEM +++</p>
+  </div>
+
+  <wicket:child />
+
+  <div id="footer" class="clearfix">
+    <ul id="pf_copyHint" class="clearfix">
+      <li><a href="http://www.projectforge.org" title="ProjectForge Website" target="_blank">&copy;2001-2016 by Kai Reinhard</a><span
+        class="divider">|</span></li>
+      <li><a href="http://www.micromata.com" title="Micromata GmbH" target="_blank">Micromata GmbH</a></li>
+    </ul>
+    <a href="http://www.projectforge.org/pf-en/News" title="Release-News" wicket:id="footerNewsLink" class="pf_footerNewsLink"> <span
+      wicket:id="version">[Versionsnummer]</span>
+    </a>
+  </div>
+  <div id="mm_transparentOverlay"></div>
+</body>
+</html>

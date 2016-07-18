@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:wicket="http://wicket.apache.org/dtds.data/wicket-xhtml1.4-strict.dtd">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+</head>
+
+<body>
+  <wicket:panel>
+    <!--  Report is available and load. -->
+    <h1 wicket:id="title">[${report.id} - ${report.title}: ${report.zeitraum}]</h1>
+    <h2 wicket:id="path">
+      <wicket:container wicket:id="actionLinkRepeater">
+        <a wicket:id="actionLink"><span wicket:id="label">[path]</span></a> -&gt;
+    </wicket:container>
+      <span wicket:id="reportId">[report id]</span>
+    </h2>
+    <table class="dataview">
+      <thead>
+        <tr>
+          <th>&nbsp;</th>
+          <th></th>
+          <th><span wicket:id="reportObjectiveId">[report objective id]</span> <a wicket:id="showAccountingRecordsLink"> <img
+              src="images/attach.png" /></a></th>
+          <th wicket:id="childHeadColRepeater"><a wicket:id="actionLink"><span wicket:id="label">[child.id (link to child objective)]</span></a>
+            <span wicket:id="childId">[child id]</span> <a wicket:id="showAccountingRecordsLink"> <img src="images/attach.png" /></a></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr wicket:id="rowRepeater">
+          <td wicket:id="zeileNo">[zeile[0].zeile]</td>
+          <td wicket:id="description">[description]</td>
+          <td wicket:id="cellRepeater"><span wicket:id="bwaWert">[1.123,76 €]</span> <a wicket:id="showAccountingRecordsLink"><img
+              src="images/attach.png" /></a></td>
+        </tr>
+      </tbody>
+    </table>
+  </wicket:panel>
+</body>
+</html>

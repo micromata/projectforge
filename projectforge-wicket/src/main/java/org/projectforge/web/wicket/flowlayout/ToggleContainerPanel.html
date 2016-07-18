@@ -1,0 +1,19 @@
+<html lang="en" xmlns:wicket="http://wicket.apache.org/dtds.data/wicket-xhtml1.4-strict.dtd">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+</head>
+
+<body>
+  <h1>Represents a container.</h1>
+  <wicket:panel>
+    <div wicket:id="panel" class="toggle-container">
+      <div class="collapse-header" wicket:id="heading">
+        <i class="glyphicon glyphicon-plus glyphicon-white" wicket:id="icon"></i> <span wicket:id="text">[heading text]</span>
+      </div>
+      <div class="collapse" wicket:id="toggleContainer">
+        <wicket:container wicket:id="content">[Toggle container.]</wicket:container>
+      </div>
+    </div>
+  </wicket:panel>
+</body>
+</html>

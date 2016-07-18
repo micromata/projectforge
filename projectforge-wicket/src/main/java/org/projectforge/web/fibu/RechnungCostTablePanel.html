@@ -1,0 +1,28 @@
+<html lang="en" xmlns:wicket="http://wicket.apache.org/dtds.data/wicket-xhtml1.4-strict.dtd">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+</head>
+
+<body>
+  <wicket:panel>
+    <table class="costassignment" wicket:id="costtable">
+      <thead>
+        <tr>
+          <th><wicket:message key="fibu.kost1" /></th>
+          <th><wicket:message key="fibu.kost2" /></th>
+          <th><wicket:message key="fibu.common.netto" /></th>
+          <th><wicket:message key="percent" /></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr wicket:id="listview">
+          <td wicket:id="kost1">[3.501.00.01]</td>
+          <td wicket:id="kost2">5.105.03.07]</td>
+          <td style="text-align: right;" wicket:id="netto">[1,287.00 €]</td>
+          <td wicket:id="percentage">[30%]</td>
+        </tr>
+      </tbody>
+    </table>
+  </wicket:panel>
+</body>
+</html>

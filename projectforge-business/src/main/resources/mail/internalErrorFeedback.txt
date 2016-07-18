@@ -1,0 +1,12 @@
+Sender: ${data.sender}
+Message no: ${data.messageNumber}
+Message: ${data.message}
+Root cause: ${data.rootCause}
+Description:
+${data.description}
+
+Stack trace:
+${data.stackTrace}
+
+Root cause stack trace:
+${data.rootCauseStackTrace}

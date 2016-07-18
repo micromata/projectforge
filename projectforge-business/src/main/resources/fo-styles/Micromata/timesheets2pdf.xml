@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+  <!--
+    This files contains the definition of the timesheets in a meta language (like html). It will be rendered through Groovy and afterwards via
+    timesheet-template-fo.xsl to xsl-fo.
+  -->
+<template-fo systemDate="${systemDate}" title="${title}" createdLabel="${createdLabel}" loggedInUser="${loggedInUser.fullname}">
+  <h1-color>${title}</h1-color>
+  <table width="100%">
+    <table-column column-width="25mm" />
+    <table-column column-width="45mm" />
+    <table-column column-width="proportional-column-width(1)" />
+    <table-body>
+      <tr>
+        <th color="#999999">${timePeriodLabel}</th>
+        <td>${startTime} - ${stopTime}</td>
+        <td text-align="end">
+          <groovy>if (pf.isNull(user) == false) {</groovy>
+          <span color="#999999" use-font="bold" end-indent="10mm">${userLabel}</span>
+          <workaround-space>__</workaround-space>
+          <span use-font="normal">${user}</span>
+          <groovy>}</groovy>
+          <span color="#999999" use-font="bold">
+            <workaround-space>____</workaround-space>
+            ${totalDurationLabel}
+          </span>
+          <workaround-space>__</workaround-space>
+          <span use-font="normal">
+            ${totalDuration}
+            <groovy>if (pf.isEmpty(totalHours) == false) {</groovy>
+            (${totalHours})
+            <groovy>}</groovy>
+          </span>
+        </td>
+      </tr>
+      <groovy>if (pf.isNull(task) == false) {</groovy>
+      <tr>
+        <th color="#999999">${taskLabel}</th>
+        <td number-columns-spanned="2">${task}</td>
+      </tr>
+      <groovy>}</groovy>
+      <groovy>if (pf.isEmpty(searchString) == false) {</groovy>
+      <tr>
+        <th color="#999999">${searchStringLabel}</th>
+        <td number-columns-spanned="2">${searchString}</td>
+      </tr>
+      <groovy>}</groovy>
+      <groovy>if (deleted == true) {</groovy>
+      <tr>
+        <th color="#999999">${optionsLabel}</th>
+        <td number-columns-spanned="2">
+          ${deletedLabel}
+          </td>
+      </tr>
+      <groovy>}</groovy>
+    </table-body>
+  </table>
+  <block margin-top="10pt" />
+  <table width="100%">
+    <groovy>if (pf.isNull(user) == true) {</groovy>
+    <table-column column-width="35mm" />
+    <groovy>}</groovy>
+    <table-column column-width="6cm" />
+    <table-column column-width="25mm" />
+    <table-column column-width="16mm" />
+    <table-column column-width="proportional-column-width(1)" />
+    <table-header>
+      <tr border-bottom-line="true">
+        <groovy>if (pf.isNull(user) == true) {</groovy>
+        <th>${userLabel}</th>
+        <groovy>}</groovy>
+        <th>${taskLabel}</th>
+        <th>${timePeriodLabel}</th>
+        <th>${durationLabel}</th>
+        <th>${descriptionLabel}</th>
+      </tr>
+    </table-header>
+    <table-body>
+      <groovy> for (timesheet in list) { </groovy>
+      <tr even-odd="true" use-font="tiny">
+        <groovy>if (pf.isNull(user) == true) {</groovy>
+        <td>${timesheet.cells[0]}</td>
+        <groovy>}</groovy>
+        <td>${timesheet.cells[1]}</td>
+        <td>${timesheet.cells[2]}</td>
+        <td text-align="end" space-after.optimum="5pt">${timesheet.cells[3]}</td>
+        <td>
+          ${timesheet.cells[4]}
+          <groovy>if (pf.isBlank(timesheet.cells[5]) == false) {</groovy>
+          <br />
+          ${locationLabel}: ${timesheet.cells[5]}
+          <groovy>}</groovy>
+        </td>
+      </tr>
+      <groovy>}</groovy>
+    </table-body>
+  </table>
+</template-fo>

@@ -1,0 +1,26 @@
+table.data th {
+	font-weight: normal;
+	text-align: right;
+	padding-right: .5em;
+}
+
+table.data th.strong {
+	font-weight: bold;
+}
+
+table.data th.label-value-single-col {
+	text-align: left;
+}
+
+table.data td {
+	font-weight: bold;
+}
+
+ul.feedbackPanel {
+	color: red;
+}
+
+li.moreEntriesAvailable {
+	color: red;
+	font-style: italic;
+}

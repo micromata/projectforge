@@ -1,0 +1,17 @@
+var triggerAjaxEvent = function (which) {
+    ${ORIGINAL_CALLBACK}
+};
+if(jQuery.inArray("${NO_CONTEXTMENU_INDICATOR}", event.className) < 0) {
+      $.contextMenu.create([
+      { '${MOVE_SAVE}' : function(menuItem,menu) { triggerAjaxEvent('${MOVE_SAVE_TARGET}'); } },
+      { '${MOVE_EDIT}' : function(menuItem,menu) { triggerAjaxEvent('${MOVE_EDIT_TARGET}'); } },
+      $.contextMenu.separator,
+      { '${COPY_SAVE}' : function(menuItem,menu) { triggerAjaxEvent('${COPY_SAVE_TARGET}'); } },
+      { '${COPY_EDIT}' : function(menuItem,menu) { triggerAjaxEvent('${COPY_EDIT_TARGET}'); } },
+      $.contextMenu.separator,
+      { '${CANCEL}' : function(menuItem,menu) { menu.hide(); } }],
+      {hideCallback: function () { this.menu.remove(); revertFunc(); } }
+      ).show(this, originalEvent);
+} else {
+      triggerAjaxEvent('${NONE_TARGET}');
+}

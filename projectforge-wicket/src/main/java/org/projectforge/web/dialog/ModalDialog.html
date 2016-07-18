@@ -1,0 +1,24 @@
+<wicket:panel xmlns:wicket="http://wicket.apache.org/dtds.data/wicket-xhtml1.4-strict.dtd">
+  <div class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" wicket:id="mainContainer">
+    <div class="modal-dialog" wicket:id="mainSubContainer">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+          <h3 id="myModalLabel" wicket:id="titleContainer">
+            <span wicket:id="titleText">[title]</span>
+          </h3>
+        </div>
+        <form wicket:id="form" autocomplete="off">
+          <div class="modal-body" wicket:id="gridContent">
+            <div wicket:id="formFeedback"></div>
+            <wicket:container wicket:id="flowform">[The content]</wicket:container>
+          </div>
+          <div class="modal-footer" wicket:id="buttonBar">
+            <wicket:container wicket:id="actionButtons" />
+          </div>
+          <input type="hidden" wicket:id="csrfToken" />
+        </form>
+      </div>
+    </div>
+  </div>
+</wicket:panel>

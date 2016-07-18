@@ -1,0 +1,24 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns:wicket="http://wicket.apache.org/dtds.data/wicket-xhtml1.4-strict.dtd">
+<head>
+<meta content="yes" name="apple-mobile-web-app-capable" />
+<meta content="text/html; charset=utf-8" http-equiv="Content-Type" />
+</head>
+
+<body>
+<h1>List view</h1>
+<wicket:panel>
+  <ul data-role="listview" data-inset="true">
+    <li wicket:id="itemRepeater">
+      <wicket:remove>
+        <li data-role="list-divider">Overview</li>
+        <li><a href="docs/about/intro.html">Intro to jQuery Mobile</a></li>
+        <li><a href="docs/about/features.html">Features</a></li>
+        <li><a href="docs/about/accessibility.html">Accessibility</a></li>
+        <li><a href="docs/about/platforms.html">Supported platforms</a></li>
+      </wicket:remove>
+    </li>
+  </ul>
+</wicket:panel>
+</body>
+</html>
