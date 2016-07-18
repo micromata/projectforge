@@ -63,11 +63,11 @@ public class SeleniumAddressEditPage extends EditPage<SeleniumAddressEditPage>
   }
 
   public SeleniumAddressEditPage setBirthday(String value) {
-    return setStringElementById("name",value);
+    return setStringElementById("birthday",value);
   }
 
   public SeleniumAddressEditPage setLanguage(String value) {
-    return setStringElementById("name",value);
+    return setStringElementById("language",value);
   }
 
   public SeleniumAddressEditPage setForm(String value) {
