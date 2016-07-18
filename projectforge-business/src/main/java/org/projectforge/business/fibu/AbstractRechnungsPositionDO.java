@@ -216,30 +216,12 @@ public abstract class AbstractRechnungsPositionDO extends DefaultBaseDO implemen
   }
 
   /**
-   * @return The total net sum of all assigned cost entries.
-   */
-  @Transient
-  public BigDecimal getKostZuweisungNetSum()
-  {
-    if (CollectionUtils.isEmpty(this.kostZuweisungen) == true) {
-      return BigDecimal.ZERO;
-    }
-    final BigDecimal result = BigDecimal.ZERO;
-    for (final KostZuweisungDO zuweisung : this.kostZuweisungen) {
-      if (zuweisung.getNetto() != null) {
-        result.add(zuweisung.getNetto());
-      }
-    }
-    return result;
-  }
-
-  /**
    * @return The total net sum of all assigned cost entries multiplied with the vat of this position.
    */
   @Transient
   public BigDecimal getKostZuweisungGrossSum()
   {
-    return CurrencyHelper.getGrossAmount(getKostZuweisungNetSum(), vat);
+    return CurrencyHelper.getGrossAmount(getKostZuweisungsNetSum(), vat);
   }
 
   /**

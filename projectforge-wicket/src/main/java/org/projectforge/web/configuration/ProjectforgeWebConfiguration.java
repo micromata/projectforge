@@ -13,13 +13,11 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.PropertySource;
 
 import de.micromata.genome.db.jpa.tabattr.api.TimeableService;
 import de.micromata.genome.db.jpa.tabattr.impl.TimeableServiceImpl;
 
 @Configuration
-@PropertySource("file:projectforge.properties")
 public class ProjectforgeWebConfiguration
 {
   @Value("${projectforge.base.dir}")
