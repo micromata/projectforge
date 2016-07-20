@@ -46,12 +46,14 @@ public class MaxLengthTextField extends TextField<String>
   private IConverter converter;
 
   /**
-   * Tries to get the length definition of the Hibernate configuration. If not available then a warning will be logged. Example:
+   * Tries to get the length definition of the Hibernate configuration. If not available then a warning will be logged.
+   * Example:
    * 
    * <pre>
    * &lt;label wicket:id="streetLabel"&gt;[street]&lt;/&gt;&lt;input type="text" wicket:id="street" /&gt;<br/>
    * add(new MaxLengthTextField(this, "street", "address.street", model);
    * </pre>
+   * 
    * @param id
    * @param model
    * @see org.apache.wicket.Component#Component(String, IModel)
@@ -71,6 +73,7 @@ public class MaxLengthTextField extends TextField<String>
    * &lt;label wicket:id="streetLabel"&gt;[street]&lt;/&gt;&lt;input type="text" wicket:id="street" /&gt;<br/>
    * add(new MaxLengthTextField(this, "street", "address.street", model);
    * </pre>
+   * 
    * @param parent if not null and label is not null than a label with wicket id [id]Label is added.
    * @param id
    * @param model
@@ -87,7 +90,7 @@ public class MaxLengthTextField extends TextField<String>
 
   private void init(final String id, final Integer maxLength)
   {
-    if (maxLength != null) {
+    if (maxLength != null && maxLength != -1) {
       add(StringValidator.maximumLength(maxLength));
       // add(AttributeModifier.replace("maxlength", String.valueOf(maxLength))); // Field maxlength is produced by StringValidator.
     }
@@ -109,6 +112,7 @@ public class MaxLengthTextField extends TextField<String>
 
   /**
    * Setting a converter is more convenient instead of overriding method getConverter(Class).
+   * 
    * @param converter
    * @return This for chaining.
    */
@@ -119,8 +123,9 @@ public class MaxLengthTextField extends TextField<String>
   }
 
   /**
-   * The field length (if defined by Hibernate). The entity is the target class of the PropertyModel and the field name is the expression of
-   * the given PropertyModel.
+   * The field length (if defined by Hibernate). The entity is the target class of the PropertyModel and the field name
+   * is the expression of the given PropertyModel.
+   * 
    * @param model If not from type PropertyModel then null is returned.
    * @return
    */
@@ -128,7 +133,7 @@ public class MaxLengthTextField extends TextField<String>
   {
     Integer length = null;
     if (ClassUtils.isAssignable(model.getClass(), PropertyModel.class)) {
-      final PropertyModel< ? > propertyModel = (PropertyModel< ? >) model;
+      final PropertyModel<?> propertyModel = (PropertyModel<?>) model;
       final Object entity = BeanHelper.getFieldValue(propertyModel, ChainingModel.class, "target");
       if (entity == null) {
         log.warn("Oups, can't get private field 'target' of PropertyModel!.");
@@ -145,8 +150,9 @@ public class MaxLengthTextField extends TextField<String>
   }
 
   /**
-   * The field length (if defined by Hibernate). The entity is the target class of the PropertyModel and the field name is the expression of
-   * the given PropertyModel.
+   * The field length (if defined by Hibernate). The entity is the target class of the PropertyModel and the field name
+   * is the expression of the given PropertyModel.
+   * 
    * @param model If not from type PropertyModel then null is returned.
    * @return
    */
