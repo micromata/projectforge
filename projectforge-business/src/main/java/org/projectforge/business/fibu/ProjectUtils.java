@@ -32,12 +32,10 @@ import org.projectforge.business.multitenancy.TenantRegistryMap;
 import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.framework.configuration.ApplicationContextProvider;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 
 /**
- * Some useful helper methods.
- * That are used in groovy scripts. The static methods are used here because groovy scripts call them in static context.
+ * Some useful helper methods. That are used in groovy scripts. The static methods are used here because groovy scripts
+ * call them in static context.
  * 
  * @author Kai Reinhard (k.reinhard@micromata.de)
  * 
@@ -74,8 +72,8 @@ public class ProjectUtils
   {
     final Collection<ProjektDO> result = new LinkedList<ProjektDO>();
     final ProjektFilter filter = new ProjektFilter();
-    if(projektDao == null) {
-      projektDao = (ProjektDao) ApplicationContextProvider.getApplicationContext().getBean(ProjektDao.class);
+    if (projektDao == null) {
+      projektDao = ApplicationContextProvider.getApplicationContext().getBean(ProjektDao.class);
     }
     final List<ProjektDO> projects = projektDao.getList(filter);
     if (CollectionUtils.isEmpty(projects) == true) {
