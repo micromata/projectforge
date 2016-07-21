@@ -24,8 +24,11 @@
 package org.projectforge.framework.persistence.database;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoField;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 
 import org.projectforge.business.address.AddressDO;
@@ -33,6 +36,7 @@ import org.projectforge.business.fibu.AuftragDO;
 import org.projectforge.business.fibu.AuftragsPositionDO;
 import org.projectforge.business.fibu.EingangsrechnungDO;
 import org.projectforge.business.fibu.EmployeeDO;
+import org.projectforge.business.fibu.EmployeeTimedDO;
 import org.projectforge.business.fibu.KontoDO;
 import org.projectforge.business.fibu.KundeDO;
 import org.projectforge.business.fibu.PaymentScheduleDO;
@@ -56,8 +60,10 @@ import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
 import org.projectforge.framework.persistence.user.entities.GroupDO;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.persistence.user.entities.TenantDO;
+import org.projectforge.framework.time.DateHelper;
 import org.springframework.context.ApplicationContext;
 
+import de.micromata.genome.db.jpa.tabattr.api.TimeableRow;
 import de.micromata.genome.jpa.CriteriaUpdate;
 import de.micromata.genome.jpa.metainf.EntityMetadata;
 
@@ -81,12 +87,74 @@ public class DatabaseCoreUpdates
   @SuppressWarnings("serial")
   public static List<UpdateEntry> getUpdateEntries()
   {
-    final List<UpdateEntry> list = new ArrayList<UpdateEntry>();
+    final List<UpdateEntry> list = new ArrayList<>();
+
+    ////////////////////////////////////////////////////////////////////
+    // 6.2.0
+    // /////////////////////////////////////////////////////////////////
+    list.add(new UpdateEntryImpl(CORE_REGION_ID, "6.2.0", "2016-09-15",
+        "TODO: write a nice message")
+    {
+      @Override
+      public UpdatePreCheckStatus runPreCheck()
+      {
+        log.info("Running pre-check for ProjectForge version 6.2.0");
+        final MyDatabaseUpdateService databaseUpdateDao = applicationContext.getBean(MyDatabaseUpdateService.class);
+        if (databaseUpdateDao.isTableEmpty(EmployeeTimedDO.class)) {
+          return UpdatePreCheckStatus.ALREADY_UPDATED;
+        }
+
+        final PfEmgrFactory emf = applicationContext.getBean(PfEmgrFactory.class);
+        final boolean timeFieldsOfAllEmployeeTimedDOsStartTimeAreZero = emf.runWoTrans(emgr ->
+            emgr.selectAllAttached(EmployeeTimedDO.class)
+                .stream()
+                .map(EmployeeTimedDO::getStartTime)
+                .map(DateHelper::convertDateToLocalDateTimeInUTC)
+                .map(localDateTime -> localDateTime.get(ChronoField.SECOND_OF_DAY))
+                .allMatch(seconds -> seconds == 0)
+        );
+
+        return timeFieldsOfAllEmployeeTimedDOsStartTimeAreZero ?
+            UpdatePreCheckStatus.ALREADY_UPDATED :
+            UpdatePreCheckStatus.READY_FOR_UPDATE;
+      }
+
+      @Override
+      public UpdateRunningStatus runUpdate()
+      {
+        final PfEmgrFactory emf = applicationContext.getBean(PfEmgrFactory.class);
+        return emf.runInTrans(emgr -> {
+          emgr.selectAllAttached(EmployeeTimedDO.class)
+              .forEach(this::normalizeStartTime);
+
+          return UpdateRunningStatus.DONE;
+        });
+      }
+
+      private void normalizeStartTime(TimeableRow entity)
+      {
+        final Date oldStartTime = entity.getStartTime();
+        LocalDateTime ldt = DateHelper.convertDateToLocalDateTimeInUTC(oldStartTime);
+        /*
+         * In UTC+x the UTC hour value of 00:00:00 is 24-x hours and minus 1 day if x > 0
+         * examples:
+         *   00:00:00 in UTC+1  is 23:00:00 minus 1 day in UTC
+         *   00:00:00 in UTC+12 is 12:00:00 minus 1 day in UTC
+         *   00:00:00 in UTC-1  is 01:00:00 in UTC
+         *   00:00:00 in UTC-11 is 11:00:00 in UTC
+         * therefore, to calculate the zoned time back to local time, we have to add one day if hour >= 12
+         */
+        final int daysToAdd = (ldt.getHour() >= 12) ? 1 : 0;
+        ldt = ldt.toLocalDate().plusDays(daysToAdd).atStartOfDay();
+        final Date newStartTime = DateHelper.convertLocalDateTimeToDateInUTC(ldt);
+        entity.setStartTime(newStartTime);
+      }
+    });
 
     ////////////////////////////////////////////////////////////////////
     // 6.1.0
     // /////////////////////////////////////////////////////////////////
-    list.add(new UpdateEntryImpl(CORE_REGION_ID, "6.1.0", "2016-05-02",
+    list.add(new UpdateEntryImpl(CORE_REGION_ID, "6.1.0", "2016-07-14",
         "Adds several columns to employee table.")
     {
       @Override
