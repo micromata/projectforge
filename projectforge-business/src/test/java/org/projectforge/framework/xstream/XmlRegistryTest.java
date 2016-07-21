@@ -27,6 +27,7 @@ import static org.testng.AssertJUnit.assertEquals;
 
 import java.util.Calendar;
 import java.util.Date;
+import java.util.Locale;
 
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
@@ -38,7 +39,7 @@ import org.projectforge.framework.xstream.converter.ISODateConverter;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
-@PrepareForTest({ DateHelper.class, ThreadLocalUserContext.class })
+@PrepareForTest({ ThreadLocalUserContext.class })
 public class XmlRegistryTest extends PowerMockTestCase
 {
 
@@ -47,10 +48,9 @@ public class XmlRegistryTest extends PowerMockTestCase
   {
     Calendar c = Calendar.getInstance();
     c.setTimeZone(DateHelper.EUROPE_BERLIN);
-    PowerMockito.mockStatic(DateHelper.class);
-    PowerMockito.when(DateHelper.getCalendar()).thenReturn(c);
     PowerMockito.mockStatic(ThreadLocalUserContext.class);
     PowerMockito.when(ThreadLocalUserContext.getTimeZone()).thenReturn(c.getTimeZone());
+    PowerMockito.when(ThreadLocalUserContext.getLocale()).thenReturn(Locale.ENGLISH);
   }
 
   @Test
