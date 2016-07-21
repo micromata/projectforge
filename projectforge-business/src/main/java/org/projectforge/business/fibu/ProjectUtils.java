@@ -30,27 +30,27 @@ import java.util.List;
 import org.apache.commons.collections.CollectionUtils;
 import org.projectforge.business.multitenancy.TenantRegistryMap;
 import org.projectforge.business.user.UserGroupCache;
+import org.projectforge.framework.configuration.ApplicationContextProvider;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 /**
  * Some useful helper methods.
+ * That are used in groovy scripts. The static methods are used here because groovy scripts call them in static context.
  * 
  * @author Kai Reinhard (k.reinhard@micromata.de)
  * 
  */
-@Service
 public class ProjectUtils
 {
-  @Autowired
-  ProjektDao projektDao;
+  private static ProjektDao projektDao;
 
   /**
    * @param username
    * @return List of all projects of which the given user (by login name) is member of the project manager group.
    */
-  public Collection<ProjektDO> getProjectsOfManager(final String username)
+  public static Collection<ProjektDO> getProjectsOfManager(final String username)
   {
     final PFUserDO user = TenantRegistryMap.getInstance().getTenantRegistry().getUserGroupCache().getUser(username);
     return getProjectsOfManager(user);
@@ -60,7 +60,7 @@ public class ProjectUtils
    * @param userId
    * @return List of all projects of which the given user (by user id) is member of the project manager group.
    */
-  public Collection<ProjektDO> getProjectsOfManager(final Integer userId)
+  public static Collection<ProjektDO> getProjectsOfManager(final Integer userId)
   {
     final PFUserDO user = TenantRegistryMap.getInstance().getTenantRegistry().getUserGroupCache().getUser(userId);
     return getProjectsOfManager(user);
@@ -70,10 +70,13 @@ public class ProjectUtils
    * @param user
    * @return List of all projects of which the given user is member of the project manager group.
    */
-  public Collection<ProjektDO> getProjectsOfManager(final PFUserDO user)
+  public static Collection<ProjektDO> getProjectsOfManager(final PFUserDO user)
   {
     final Collection<ProjektDO> result = new LinkedList<ProjektDO>();
     final ProjektFilter filter = new ProjektFilter();
+    if(projektDao == null) {
+      projektDao = (ProjektDao) ApplicationContextProvider.getApplicationContext().getBean(ProjektDao.class);
+    }
     final List<ProjektDO> projects = projektDao.getList(filter);
     if (CollectionUtils.isEmpty(projects) == true) {
       return result;
