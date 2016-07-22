@@ -100,6 +100,10 @@ public class DatabaseCoreUpdates
       {
         log.info("Running pre-check for ProjectForge version 6.2.0");
         final MyDatabaseUpdateService databaseUpdateDao = applicationContext.getBean(MyDatabaseUpdateService.class);
+        if (databaseUpdateDao.doEntitiesExist(EmployeeTimedDO.class) == false) {
+          return UpdatePreCheckStatus.READY_FOR_UPDATE;
+        }
+
         if (databaseUpdateDao.isTableEmpty(EmployeeTimedDO.class)) {
           return UpdatePreCheckStatus.ALREADY_UPDATED;
         }
