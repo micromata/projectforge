@@ -47,7 +47,7 @@ public class JodaDateTimeConverterTest extends AbstractTestBase
   {
     final PFUserDO user = new PFUserDO();
     user.setTimeZone(timeZone);
-    ThreadLocalUserContext.setUser(userCache, user);
+    ThreadLocalUserContext.setUser(getUserGroupCache(), user);
     final JodaDateTimeConverter converter = new JodaDateTimeConverter();
     final DateTime dateTime = (DateTime) converter.parse("1970-11-21 16:00:00");
     assertEquals(1970, dateTime.getYear());

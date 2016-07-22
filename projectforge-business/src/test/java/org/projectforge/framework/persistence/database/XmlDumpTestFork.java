@@ -23,7 +23,6 @@
 
 package org.projectforge.framework.persistence.database;
 
-import org.projectforge.business.user.UserCache;
 import org.projectforge.test.AbstractTestBase;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.testng.annotations.Test;
@@ -37,9 +36,6 @@ public class XmlDumpTestFork extends AbstractTestBase
 
   @Autowired
   private XmlDump xmlDump;
-
-  @Autowired
-  UserCache userCache;
 
   @Override
   protected void initDb()
@@ -67,4 +63,3 @@ public class XmlDumpTestFork extends AbstractTestBase
     //    log.info("****** } The previous import error from XmlDump are OK.");
   }
 }
-

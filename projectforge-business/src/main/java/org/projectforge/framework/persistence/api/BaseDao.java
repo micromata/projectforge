@@ -51,7 +51,6 @@ import org.hibernate.search.Search;
 import org.projectforge.business.multitenancy.TenantChecker;
 import org.projectforge.business.multitenancy.TenantRegistry;
 import org.projectforge.business.multitenancy.TenantRegistryMap;
-import org.projectforge.business.user.UserCache;
 import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.business.user.UserRight;
 import org.projectforge.business.user.UserRightId;
@@ -161,9 +160,6 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
 
   @Autowired
   private UserRightService userRights;
-
-  @Autowired
-  private UserCache userCache;
 
   @Autowired
   private HibernateSearchDependentObjectsReindexer hibernateSearchDependentObjectsReindexer;
@@ -599,12 +595,12 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
   public List<DisplayHistoryEntry> convert(final HistoryEntry<?> entry, final Session session)
   {
     if (entry.getDiffEntries().isEmpty() == true) {
-      final DisplayHistoryEntry se = new DisplayHistoryEntry(getUserCache(), entry);
+      final DisplayHistoryEntry se = new DisplayHistoryEntry(getUserGroupCache(), entry);
       return Collections.singletonList(se);
     }
     List<DisplayHistoryEntry> result = new ArrayList<>();
     for (DiffEntry prop : entry.getDiffEntries()) {
-      DisplayHistoryEntry se = new DisplayHistoryEntry(getUserCache(), entry, prop, session);
+      DisplayHistoryEntry se = new DisplayHistoryEntry(getUserGroupCache(), entry, prop, session);
       result.add(se);
     }
 
@@ -621,7 +617,7 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
   @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
   public List<SimpleHistoryEntry> getSimpleHistoryEntries(final O obj)
   {
-    return HistoryBaseDaoAdapter.getSimpleHistoryEntries(obj, getUserCache());
+    return HistoryBaseDaoAdapter.getSimpleHistoryEntries(obj, getUserGroupCache());
   }
 
   /**
@@ -1681,14 +1677,6 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
   public TenantRegistry getTenantRegistry()
   {
     return TenantRegistryMap.getInstance().getTenantRegistry();
-  }
-
-  /**
-   * @return the cache containing all users (independent of current tenant) without rights and group assignments.
-   */
-  public UserCache getUserCache()
-  {
-    return userCache;
   }
 
   /**

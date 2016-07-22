@@ -26,7 +26,9 @@ package org.projectforge.business.ldap;
 import java.util.Collection;
 
 import org.apache.commons.lang.ObjectUtils;
-import org.projectforge.business.user.UserCache;
+import org.projectforge.business.multitenancy.TenantRegistry;
+import org.projectforge.business.multitenancy.TenantRegistryMap;
+import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -40,10 +42,7 @@ public class LdapPosixAccountsUtils
   private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(LdapPosixAccountsUtils.class);
 
   @Autowired
-  UserCache userCache;
-
-  @Autowired
-  LdapService ldapService;
+  private LdapService ldapService;
 
   /**
    * Get all given uid numbers of all ProjectForge users including any deleted user and get the next highest and free
@@ -51,7 +50,7 @@ public class LdapPosixAccountsUtils
    */
   public int getNextFreeUidNumber()
   {
-    final Collection<PFUserDO> allUsers = userCache.getAllUsers();
+    final Collection<PFUserDO> allUsers = getUserGroupCache().getAllUsers();
     int currentMaxNumber = 999;
     for (final PFUserDO user : allUsers) {
       final LdapUserValues ldapUserValues = PFUserDOConverter.readLdapUserValues(user.getLdapValues());
@@ -75,7 +74,7 @@ public class LdapPosixAccountsUtils
    */
   public boolean isGivenNumberFree(final PFUserDO currentUser, final int uidNumber)
   {
-    final Collection<PFUserDO> allUsers = userCache.getAllUsers();
+    final Collection<PFUserDO> allUsers = getUserGroupCache().getAllUsers();
     for (final PFUserDO user : allUsers) {
       final LdapUserValues ldapUserValues = PFUserDOConverter.readLdapUserValues(user.getLdapValues());
       if (ObjectUtils.equals(user.getId(), currentUser.getId()) == true) {
@@ -110,5 +109,15 @@ public class LdapPosixAccountsUtils
     ldapUserValues.setGidNumber(ldapPosixAccountsConfig.getDefaultGidNumber());
     ldapUserValues.setHomeDirectory(ldapPosixAccountsConfig.getHomeDirectoryPrefix() + user.getUsername());
     ldapUserValues.setLoginShell(ldapPosixAccountsConfig.getDefaultLoginShell());
+  }
+
+  public TenantRegistry getTenantRegistry()
+  {
+    return TenantRegistryMap.getInstance().getTenantRegistry();
+  }
+
+  public UserGroupCache getUserGroupCache()
+  {
+    return getTenantRegistry().getUserGroupCache();
   }
 }

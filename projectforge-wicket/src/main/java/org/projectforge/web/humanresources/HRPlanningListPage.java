@@ -40,11 +40,10 @@ import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.humanresources.HRPlanningDao;
 import org.projectforge.business.humanresources.HRPlanningEntryDO;
 import org.projectforge.business.humanresources.HRPlanningEntryDao;
-import org.projectforge.business.user.UserCache;
 import org.projectforge.business.user.UserFormatter;
+import org.projectforge.business.utils.HtmlHelper;
 import org.projectforge.framework.time.DateHolder;
 import org.projectforge.jira.JiraUtils;
-import org.projectforge.business.utils.HtmlHelper;
 import org.projectforge.web.core.PriorityFormatter;
 import org.projectforge.web.fibu.ISelectCallerPage;
 import org.projectforge.web.user.UserPropertyColumn;
@@ -84,9 +83,6 @@ public class HRPlanningListPage extends AbstractListPage<HRPlanningListForm, HRP
   @SpringBean
   private UserFormatter userFormatter;
 
-  @SpringBean
-  UserCache userCache;
-
   private Boolean fullAccess;
 
   public HRPlanningListPage(final PageParameters parameters)
@@ -109,7 +105,8 @@ public class HRPlanningListPage extends AbstractListPage<HRPlanningListForm, HRP
       }
     };
     columns
-        .add(new UserPropertyColumn<HRPlanningEntryDO>(userCache, getString("timesheet.user"), "planning.user.fullname",
+        .add(new UserPropertyColumn<HRPlanningEntryDO>(getUserGroupCache(), getString("timesheet.user"),
+            "planning.user.fullname",
             "planning.user",
             cellItemListener)
         {

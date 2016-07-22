@@ -259,7 +259,6 @@ public class UserDao extends BaseDao<PFUserDO>
   protected void afterSaveOrModify(final PFUserDO obj)
   {
     if (obj.isMinorChange() == false) {
-      getUserCache().setExpired();
       getUserGroupCache().setExpired();
     }
   }
@@ -478,8 +477,10 @@ public class UserDao extends BaseDao<PFUserDO>
     final PFUserDO contextUser = ThreadLocalUserContext.getUser();
     Validate.isTrue(user.getId().equals(contextUser.getId()) == true);
     final PFUserDO dbUser = getHibernateTemplate().load(clazz, user.getId(), LockMode.PESSIMISTIC_WRITE);
-    final String[] ignoreFields = { "deleted", "password", "lastLogin", "loginFailures", "username", "stayLoggedInKey", "authenticationToken", "rights" };
-    final ModificationStatus result = HistoryBaseDaoAdapter.wrappHistoryUpdate(dbUser, () -> copyValues(user, dbUser, ignoreFields));
+    final String[] ignoreFields = { "deleted", "password", "lastLogin", "loginFailures", "username", "stayLoggedInKey",
+        "authenticationToken", "rights" };
+    final ModificationStatus result = HistoryBaseDaoAdapter.wrappHistoryUpdate(dbUser,
+        () -> copyValues(user, dbUser, ignoreFields));
     if (result != ModificationStatus.NONE) {
       dbUser.setLastUpdate();
       log.info("Object updated: " + dbUser.toString());
@@ -487,7 +488,6 @@ public class UserDao extends BaseDao<PFUserDO>
     } else {
       log.info("No modifications detected (no update needed): " + dbUser.toString());
     }
-    getUserCache().updateUser(user);
     getUserGroupCache().updateUser(user);
   }
 
