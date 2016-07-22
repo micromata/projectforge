@@ -41,13 +41,14 @@ import org.apache.commons.httpclient.HttpStatus;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.MDC;
 import org.joda.time.DateTime;
+import org.projectforge.business.multitenancy.TenantRegistry;
 import org.projectforge.business.multitenancy.TenantRegistryMap;
 import org.projectforge.business.teamcal.TeamCalConfig;
 import org.projectforge.business.timesheet.TimesheetDO;
 import org.projectforge.business.timesheet.TimesheetDao;
 import org.projectforge.business.timesheet.TimesheetFilter;
 import org.projectforge.business.user.ProjectForgeGroup;
-import org.projectforge.business.user.UserCache;
+import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.business.user.service.UserService;
 import org.projectforge.common.StringHelper;
 import org.projectforge.framework.access.AccessChecker;
@@ -102,9 +103,6 @@ public class CalendarFeed extends HttpServlet
   @Autowired
   private AccessChecker accessChecker;
 
-  @Autowired
-  private UserCache userCache;
-
   private WebApplicationContext springContext;
 
   @Autowired
@@ -153,7 +151,7 @@ public class CalendarFeed extends HttpServlet
         log.error("Bad request, user not found: " + req.getQueryString());
         return;
       }
-      ThreadLocalUserContext.setUser(userCache, user);
+      ThreadLocalUserContext.setUser(getUserGroupCache(), user);
       MDC.put("user", user.getUsername());
       final String decryptedParams = userService.decrypt(userId, encryptedParams);
       if (decryptedParams == null) {
@@ -191,7 +189,7 @@ public class CalendarFeed extends HttpServlet
       }
     } finally {
       log.info("Finished request: " + logMessage);
-      ThreadLocalUserContext.setUser(userCache, null);
+      ThreadLocalUserContext.setUser(getUserGroupCache(), null);
       MDC.remove("ip");
       MDC.remove("session");
       if (user != null) {
@@ -396,6 +394,16 @@ public class CalendarFeed extends HttpServlet
     return accessChecker.isLoggedInUserMemberOfGroup(ProjectForgeGroup.FINANCE_GROUP,
         ProjectForgeGroup.CONTROLLING_GROUP,
         ProjectForgeGroup.PROJECT_MANAGER);
+  }
+
+  private TenantRegistry getTenantRegistry()
+  {
+    return TenantRegistryMap.getInstance().getTenantRegistry();
+  }
+
+  private UserGroupCache getUserGroupCache()
+  {
+    return getTenantRegistry().getUserGroupCache();
   }
 
 }

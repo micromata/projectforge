@@ -33,7 +33,6 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.task.TaskTree;
 import org.projectforge.business.tasktree.TaskTreeHelper;
-import org.projectforge.business.user.UserCache;
 import org.projectforge.business.user.filter.UserFilter;
 import org.projectforge.framework.configuration.Configuration;
 import org.projectforge.framework.configuration.ConfigurationDao;
@@ -82,9 +81,6 @@ public class SetupPage extends AbstractUnsecureBasePage
 
   @SpringBean
   private MenuItemRegistry menuItemRegistry;
-
-  @SpringBean
-  private UserCache userCache;
 
   public SetupPage(final PageParameters parameters)
   {
@@ -156,7 +152,7 @@ public class SetupPage extends AbstractUnsecureBasePage
   private void loginAdminUser(PFUserDO adminUser)
   {
     //Login admin user
-    final UserContext userContext = new UserContext(adminUser, userCache);
+    final UserContext userContext = new UserContext(adminUser, getUserGroupCache());
     UserFilter.login(WicketUtils.getHttpServletRequest(getRequest()), userContext);
     ((MySession) getSession()).login(userContext, getRequest());
   }
@@ -209,7 +205,7 @@ public class SetupPage extends AbstractUnsecureBasePage
       Configuration.getInstance().setExpired();
       final TaskTree taskTree = TaskTreeHelper.getTaskTree();
       taskTree.setExpired();
-      userCache.setExpired();
+      getUserGroupCache().setExpired();
       new Thread()
       {
         @Override

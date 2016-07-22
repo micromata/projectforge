@@ -50,7 +50,6 @@ import org.projectforge.business.task.TaskTree;
 import org.projectforge.business.task.formatter.TaskFormatter;
 import org.projectforge.business.tasktree.TaskTreeHelper;
 import org.projectforge.business.user.ProjectForgeGroup;
-import org.projectforge.business.user.UserCache;
 import org.projectforge.business.user.UserFormatter;
 import org.projectforge.business.utils.HtmlHelper;
 import org.projectforge.common.StringHelper;
@@ -98,10 +97,7 @@ public class TaskListPage extends AbstractListPage<TaskListForm, TaskDao, TaskDO
   private PriorityFormatter priorityFormatter;
 
   @SpringBean
-  KostCache kostCache;
-
-  @SpringBean
-  UserCache userCache;
+  private KostCache kostCache;
 
   /**
    * Sibling page (if the user switches between tree and list view.
@@ -356,7 +352,7 @@ public class TaskListPage extends AbstractListPage<TaskListForm, TaskDao, TaskDO
             cellItemListener.populateItem(item, componentId, rowModel);
           }
         });
-    final UserPropertyColumn<TaskDO> userPropertyColumn = new UserPropertyColumn<TaskDO>(userCache,
+    final UserPropertyColumn<TaskDO> userPropertyColumn = new UserPropertyColumn<TaskDO>(getUserGroupCache(),
         getString("task.assignedUser"),
         getSortable(
             "responsibleUserId", sortable),

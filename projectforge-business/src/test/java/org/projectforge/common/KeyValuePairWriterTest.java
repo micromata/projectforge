@@ -29,11 +29,9 @@ import java.io.StringWriter;
 import java.util.Calendar;
 import java.util.Date;
 
-import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.time.DateHolder;
 import org.projectforge.framework.utils.KeyValuePairWriter;
 import org.projectforge.test.AbstractTestBase;
-import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 public class KeyValuePairWriterTest extends AbstractTestBase
@@ -41,12 +39,6 @@ public class KeyValuePairWriterTest extends AbstractTestBase
 
   private static transient final org.apache.log4j.Logger log = org.apache.log4j.Logger
       .getLogger(KeyValuePairWriterTest.class);
-
-  @BeforeClass
-  public void init()
-  {
-    ThreadLocalUserContext.setUser(userCache, null);
-  }
 
   @Test
   public void testWritekeyValuePairs() throws Exception

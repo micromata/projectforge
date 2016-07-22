@@ -26,8 +26,10 @@ package org.projectforge;
 import java.util.TimeZone;
 
 import org.projectforge.business.jobs.CronSetup;
+import org.projectforge.business.multitenancy.TenantRegistry;
+import org.projectforge.business.multitenancy.TenantRegistryMap;
 import org.projectforge.business.systeminfo.SystemInfoCache;
-import org.projectforge.business.user.UserCache;
+import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.business.user.UserXmlPreferencesCache;
 import org.projectforge.continuousdb.DatabaseSupport;
 import org.projectforge.continuousdb.UpdateEntry;
@@ -166,7 +168,7 @@ public class ProjectForgeApp
 
     final UserContext internalSystemAdminUserContext = UserContext
         .__internalCreateWithSpecialUser(MyDatabaseUpdateService
-            .__internalGetSystemAdminPseudoUser(), applicationContext.getBean(UserCache.class));
+            .__internalGetSystemAdminPseudoUser(), getUserGroupCache());
     final boolean missingDatabaseSchema = myDatabaseUpdater.databaseTablesWithEntriesExists();
     if (missingDatabaseSchema == true) {
       try {
@@ -209,6 +211,16 @@ public class ProjectForgeApp
 
   }
 
+  private TenantRegistry getTenantRegistry()
+  {
+    return TenantRegistryMap.getInstance().getTenantRegistry();
+  }
+
+  private UserGroupCache getUserGroupCache()
+  {
+    return getTenantRegistry().getUserGroupCache();
+  }
+
   private void internalShutdown()
   {
     log.info("Shutdown...");
@@ -219,7 +231,7 @@ public class ProjectForgeApp
     try {
       final UserContext internalSystemAdminUserContext = UserContext
           .__internalCreateWithSpecialUser(MyDatabaseUpdateService
-              .__internalGetSystemAdminPseudoUser(), applicationContext.getBean(UserCache.class));
+              .__internalGetSystemAdminPseudoUser(), getUserGroupCache());
       ThreadLocalUserContext.setUserContext(internalSystemAdminUserContext); // Logon admin user.
       myDatabaseUpdater.getDatabaseUpdateService().shutdownDatabase();
     } finally {
