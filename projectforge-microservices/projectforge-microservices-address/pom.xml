@@ -1,0 +1,34 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<artifactId>projectforge-microservices-address</artifactId>
+	<packaging>jar</packaging>
+
+	<parent>
+		<groupId>org.projectforge</groupId>
+		<artifactId>projectforge-parent</artifactId>
+		<version>6.3.0-SNAPSHOT</version>
+	</parent>
+
+	<properties>
+		<!-- Stand-alone RESTFul application for testing only -->
+		<start-class>org.projectforge.microservices.services.Main</start-class>
+	</properties>
+
+	<dependencies>
+		<dependency>
+			<groupId>org.projectforge</groupId>
+			<artifactId>projectforge-model</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>postgresql</groupId>
+			<artifactId>postgresql</artifactId>
+			<version>9.1-901-1.jdbc4</version>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-data-jpa</artifactId>
+		</dependency>
+	</dependencies>
+</project>
