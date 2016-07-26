@@ -27,17 +27,17 @@ import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Field;
 import java.util.Locale;
 
-import org.projectforge.business.user.UserCache;
+import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 
 public class TestHelper
 {
-  public static void setContextUser(UserCache userCache, final Locale locale)
+  public static void setContextUser(UserGroupCache userGroupCache, final Locale locale)
   {
     final PFUserDO user = new PFUserDO();
     user.setLocale(locale);
-    ThreadLocalUserContext.setUser(userCache, user);
+    ThreadLocalUserContext.setUser(userGroupCache, user);
   }
 
   public static void setDeclaredField(final Object obj, final String fieldName, final Object value)

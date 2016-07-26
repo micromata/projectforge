@@ -23,17 +23,15 @@
 
 package org.projectforge.business.user;
 
+import org.projectforge.business.multitenancy.TenantRegistry;
+import org.projectforge.business.multitenancy.TenantRegistryMap;
 import org.projectforge.business.utils.HtmlHelper;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
 public class UserFormatter
 {
-
-  @Autowired
-  UserCache userCache;
 
   /**
    * Does not escape characters.
@@ -59,7 +57,7 @@ public class UserFormatter
    */
   public String formatUser(final Integer userId)
   {
-    final PFUserDO u = userCache.getUser(userId);
+    final PFUserDO u = getUserGroupCache().getUser(userId);
     return u != null ? u.getFullname() : "";
   }
 
@@ -79,18 +77,31 @@ public class UserFormatter
     if (userId == null) {
       return "";
     }
-    final PFUserDO user = userCache.getUser(userId);
+    final PFUserDO user = getUserGroupCache().getUser(userId);
     return getFormattedUser(user);
   }
 
   public void appendFormattedUser(final StringBuffer buf, final Integer userId)
   {
-    final PFUserDO user = userCache.getUser(userId);
+    final PFUserDO user = getUserGroupCache().getUser(userId);
     appendFormattedUser(buf, user);
   }
 
   public void appendFormattedUser(final StringBuffer buf, final PFUserDO user)
   {
     buf.append(getFormattedUser(user));
+  }
+
+  public TenantRegistry getTenantRegistry()
+  {
+    return TenantRegistryMap.getInstance().getTenantRegistry();
+  }
+
+  /**
+   * @return the UserGroupCache with groups and rights (tenant specific).
+   */
+  public UserGroupCache getUserGroupCache()
+  {
+    return getTenantRegistry().getUserGroupCache();
   }
 }

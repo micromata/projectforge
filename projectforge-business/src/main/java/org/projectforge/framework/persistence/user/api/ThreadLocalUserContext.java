@@ -29,7 +29,7 @@ import java.util.TimeZone;
 import org.apache.commons.lang.ObjectUtils;
 import org.joda.time.DateTimeZone;
 import org.projectforge.business.user.I18nHelper;
-import org.projectforge.business.user.UserCache;
+import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.framework.configuration.ConfigXml;
 import org.projectforge.framework.configuration.Configuration;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
@@ -73,13 +73,13 @@ public class ThreadLocalUserContext
    * 
    * @param user
    */
-  public final static void setUser(UserCache userCache, final PFUserDO user)
+  public final static void setUser(UserGroupCache userGroupCache, final PFUserDO user)
   {
     if (user == null) {
       clear();
       return;
     }
-    final UserContext userContext = new UserContext(user, userCache);
+    final UserContext userContext = new UserContext(user, userGroupCache);
     setUserContext(userContext);
   }
 

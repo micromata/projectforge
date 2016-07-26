@@ -42,6 +42,7 @@ import org.joda.time.DateTime;
 import org.joda.time.DateTimeConstants;
 import org.projectforge.common.StringHelper;
 import org.projectforge.framework.configuration.ConfigXml;
+import org.projectforge.framework.configuration.Configuration;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.utils.LabelValueBean;
 

@@ -29,8 +29,8 @@ import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
-import org.projectforge.business.user.UserCache;
 import org.projectforge.business.user.UserFormatter;
+import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.common.BeanHelper;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.web.wicket.CellItemListener;
@@ -42,7 +42,7 @@ public class UserPropertyColumn<T> extends CellItemListenerPropertyColumn<T>
 
   private UserFormatter userFormatter;
 
-  private transient UserCache userCache;
+  private transient UserGroupCache userGroupCache;
 
   /**
    * @param clazz
@@ -50,12 +50,12 @@ public class UserPropertyColumn<T> extends CellItemListenerPropertyColumn<T>
    * @param propertyExpression
    * @param cellItemListener
    */
-  public UserPropertyColumn(UserCache userCache, final Class<?> clazz, final String sortProperty,
+  public UserPropertyColumn(UserGroupCache userGroupCache, final Class<?> clazz, final String sortProperty,
       final String propertyExpression,
       final CellItemListener<T> cellItemListener)
   {
     super(clazz, sortProperty, propertyExpression, cellItemListener);
-    this.userCache = userCache;
+    this.userGroupCache = userGroupCache;
   }
 
   /**
@@ -65,11 +65,12 @@ public class UserPropertyColumn<T> extends CellItemListenerPropertyColumn<T>
    * @param property Should be from type PFUserDO or Integer for user id.
    * @param cellItemListener
    */
-  public UserPropertyColumn(UserCache userCache, final String label, final String sortProperty, final String property,
+  public UserPropertyColumn(UserGroupCache userGroupCache, final String label, final String sortProperty,
+      final String property,
       final CellItemListener<T> cellItemListener)
   {
     super(new Model<String>(label), sortProperty, property, cellItemListener);
-    this.userCache = userCache;
+    this.userGroupCache = userGroupCache;
   }
 
   /**
@@ -78,9 +79,10 @@ public class UserPropertyColumn<T> extends CellItemListenerPropertyColumn<T>
    * @param sortProperty
    * @param property Should be from type PFUserDO or Integer for user id.
    */
-  public UserPropertyColumn(UserCache userCache, final String label, final String sortProperty, final String property)
+  public UserPropertyColumn(UserGroupCache userGroupCache, final String label, final String sortProperty,
+      final String property)
   {
-    this(userCache, label, sortProperty, property, null);
+    this(userGroupCache, label, sortProperty, property, null);
   }
 
   @Override
@@ -101,7 +103,7 @@ public class UserPropertyColumn<T> extends CellItemListenerPropertyColumn<T>
         user = (PFUserDO) obj;
       } else if (obj instanceof Integer) {
         final Integer userId = (Integer) obj;
-        user = getUserCache().getUser(userId);
+        user = getUserGroupCache().getUser(userId);
       } else {
         throw new IllegalStateException("Unsupported column type: " + obj);
       }
@@ -127,8 +129,8 @@ public class UserPropertyColumn<T> extends CellItemListenerPropertyColumn<T>
     return this;
   }
 
-  private UserCache getUserCache()
+  private UserGroupCache getUserGroupCache()
   {
-    return userCache;
+    return userGroupCache;
   }
 }

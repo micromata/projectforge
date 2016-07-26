@@ -45,7 +45,6 @@ import org.projectforge.business.multitenancy.TenantRegistryMap;
 import org.projectforge.business.multitenancy.TenantService;
 import org.projectforge.business.task.TaskDO;
 import org.projectforge.business.task.TaskDao;
-import org.projectforge.business.user.UserCache;
 import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.framework.access.AccessDao;
 import org.projectforge.framework.access.AccessException;
@@ -90,9 +89,6 @@ public class InitDatabaseDaoWithTestDataTestFork extends AbstractTestBase
   private TaskDao taskDao;
 
   @Autowired
-  private UserCache userCache;
-
-  @Autowired
   private TenantDao tenantDao;
 
   @Autowired
@@ -110,7 +106,6 @@ public class InitDatabaseDaoWithTestDataTestFork extends AbstractTestBase
     final UserGroupCache userGroupCache = TenantRegistryMap.getInstance().getTenantRegistry().getUserGroupCache();
     final String testPassword = "demo123";
     TenantRegistryMap.getInstance().setAllUserGroupCachesAsExpired(); // Force reload (because it's may be expired due to previous tests).
-    userCache.setExpired(); // Force reload (because it's may be expired due to previous tests).
     assertTrue(myDatabaseUpdateService.databaseTablesWithEntriesExists());
     PFUserDO admin = new PFUserDO();
     admin.setUsername("myadmin");
