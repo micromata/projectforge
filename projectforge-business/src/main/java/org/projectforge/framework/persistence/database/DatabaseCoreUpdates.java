@@ -79,10 +79,6 @@ public class DatabaseCoreUpdates
   private static final String VERSION_5_0 = "5.0";
 
   static ApplicationContext applicationContext;
-  //  
-  //  static MyDatabaseUpdateService databaseUpdateDao;
-  //
-  //  static InitDatabaseDao initDatabaseDao;
 
   @SuppressWarnings("serial")
   public static List<UpdateEntry> getUpdateEntries()
@@ -90,15 +86,14 @@ public class DatabaseCoreUpdates
     final List<UpdateEntry> list = new ArrayList<>();
 
     ////////////////////////////////////////////////////////////////////
-    // 6.2.0
+    // 6.1.1
     // /////////////////////////////////////////////////////////////////
-    list.add(new UpdateEntryImpl(CORE_REGION_ID, "6.2.0", "2016-09-15",
-        "TODO: write a nice message")
+    list.add(new UpdateEntryImpl(CORE_REGION_ID, "6.1.1", "2016-07-27", "Changed timezone of starttime of the configurable attributes.")
     {
       @Override
       public UpdatePreCheckStatus runPreCheck()
       {
-        log.info("Running pre-check for ProjectForge version 6.2.0");
+        log.info("Running pre-check for ProjectForge version 6.1.1");
         final MyDatabaseUpdateService databaseUpdateDao = applicationContext.getBean(MyDatabaseUpdateService.class);
         if (databaseUpdateDao.doEntitiesExist(EmployeeTimedDO.class) == false) {
           return UpdatePreCheckStatus.READY_FOR_UPDATE;
