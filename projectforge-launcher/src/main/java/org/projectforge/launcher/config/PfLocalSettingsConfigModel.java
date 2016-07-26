@@ -35,9 +35,10 @@ public class PfLocalSettingsConfigModel extends AbstractCompositLocalSettingsCon
   @SuppressWarnings("unused")
   private AbstractTextConfigFileConfigModel log4jConfig = new AbstractTextConfigFileConfigModel("Log4J",
       "log4j.properties", Charsets.ISO_8859_1);
+
+  // Use PfJdbcLocalSettingsConfigModel to override some mgc defaults
   @SuppressWarnings("unused")
-  private JdbcLocalSettingsConfigModel jdbcConfigModel = new JdbcLocalSettingsConfigModel("projectForgeDs",
-      "Standard JDBC for Genome");
+  private JdbcLocalSettingsConfigModel jdbcConfigModel = new PfJdbcLocalSettingsConfigModel();
   @SuppressWarnings("unused")
   private MailReceiverLocalSettingsConfigModel mailReceiverConfigModel = new MailReceiverLocalSettingsConfigModel();
   @SuppressWarnings("unused")
@@ -51,4 +52,5 @@ public class PfLocalSettingsConfigModel extends AbstractCompositLocalSettingsCon
     dsWeb.setSectionComment("For Web Transaction");
     jdbcConfigModel.getAssociatedJndi().add(dsWeb);
   }
+
 }
