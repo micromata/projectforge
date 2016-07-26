@@ -343,6 +343,7 @@ public class TimedAttributePanel<PK extends Serializable, T extends TimeableAttr
     };
     parentPage.add(modal);
     modal.init();
+    modal.setEscapeModelStringsInQuestion(false);
     return modal;
   }
 
@@ -373,6 +374,7 @@ public class TimedAttributePanel<PK extends Serializable, T extends TimeableAttr
     };
     parentPage.add(modal);
     modal.init();
+    modal.setEscapeModelStringsInQuestion(false);
     return modal;
   }
 
