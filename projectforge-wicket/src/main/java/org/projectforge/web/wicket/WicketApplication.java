@@ -58,8 +58,11 @@ import org.projectforge.business.ldap.LdapSlaveLoginHandler;
 import org.projectforge.business.login.Login;
 import org.projectforge.business.login.LoginDefaultHandler;
 import org.projectforge.business.login.LoginHandler;
+import org.projectforge.business.multitenancy.TenantRegistry;
+import org.projectforge.business.multitenancy.TenantRegistryMap;
+import org.projectforge.business.multitenancy.TenantsCache;
 import org.projectforge.business.user.I18nHelper;
-import org.projectforge.business.user.UserCache;
+import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.business.user.filter.UserFilter;
 import org.projectforge.framework.persistence.database.MyDatabaseUpdateService;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
@@ -92,27 +95,43 @@ import de.micromata.wicket.request.mapper.PageParameterAwareMountedMapper;
 public class WicketApplication extends WebApplication implements WicketApplicationInterface/* , SmartLifecycle */
 {
   public static final String RESOURCE_BUNDLE_NAME = "I18nResources";
+
   private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(WicketApplication.class);
+
   private static final Map<Class<? extends Page>, String> mountedPages = new HashMap<>();
+
   public static Class<? extends WebPage> DEFAULT_PAGE = CalendarPage.class;
+
   private static Boolean stripWicketTags;
+
   private static String alertMessage;
+
   private static Boolean developmentMode;
+
   private static Boolean testsystemMode;
+
   private static String testsystemColor;
+
   @Autowired
   private ApplicationContext applicationContext;
+
   @Autowired
   private MyDatabaseUpdateService myDatabaseUpdater;
+
   @Autowired
   private PluginAdminService pluginAdminService;
+
   @Autowired
   private LoginService loginService;
+
   @Autowired
   private ConfigurationService configurationService;
+
   private LoginHandler loginHandler;
+
   @Value("${projectforge.base.dir}")
   private String baseDir;
+
   private ProjectForgeApp projectForgeApp;
 
   /**
@@ -273,6 +292,7 @@ public class WicketApplication extends WebApplication implements WicketApplicati
     super.init();
     getComponentInstantiationListeners().add(
         new SpringComponentInjector(this, applicationContext));
+    applicationContext.getBean(TenantsCache.class);
     projectForgeApp = ProjectForgeApp.init(applicationContext, isDevelopmentSystem());
     WebRegistry.getInstance().init();
     pluginAdminService.initializeActivePlugins();
@@ -375,7 +395,7 @@ public class WicketApplication extends WebApplication implements WicketApplicati
     try {
       final UserContext internalSystemAdminUserContext = UserContext
           .__internalCreateWithSpecialUser(MyDatabaseUpdateService.__internalGetSystemAdminPseudoUser(),
-              applicationContext.getBean(UserCache.class));
+              getUserGroupCache());
       ThreadLocalUserContext.setUserContext(internalSystemAdminUserContext); // Logon admin user.
       if (myDatabaseUpdater.getSystemUpdater().isUpdated() == false) {
         // Force redirection to update page:
@@ -413,6 +433,16 @@ public class WicketApplication extends WebApplication implements WicketApplicati
 
     getPageSettings().setRecreateMountedPagesAfterExpiry(false);
     initPageStore();
+  }
+
+  private TenantRegistry getTenantRegistry()
+  {
+    return TenantRegistryMap.getInstance().getTenantRegistry();
+  }
+
+  private UserGroupCache getUserGroupCache()
+  {
+    return getTenantRegistry().getUserGroupCache();
   }
 
   /**

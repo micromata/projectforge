@@ -10,7 +10,7 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.lang.ObjectUtils;
 import org.apache.log4j.Logger;
-import org.projectforge.business.user.UserCache;
+import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.framework.configuration.ApplicationContextProvider;
 import org.projectforge.framework.persistence.api.BaseDO;
 import org.projectforge.framework.persistence.api.ExtendedBaseDO;
@@ -78,7 +78,7 @@ public class HistoryBaseDaoAdapter
     return ret;
   }
 
-  public static List<SimpleHistoryEntry> getSimpleHistoryEntries(final BaseDO<?> ob, UserCache userCache)
+  public static List<SimpleHistoryEntry> getSimpleHistoryEntries(final BaseDO<?> ob, UserGroupCache userGroupCache)
   {
     long begin = System.currentTimeMillis();
     List<SimpleHistoryEntry> ret = new ArrayList<>();
@@ -87,11 +87,11 @@ public class HistoryBaseDaoAdapter
     for (HistoryEntry he : hel) {
       List<DiffEntry> deltas = he.getDiffEntries();
       if (deltas.isEmpty() == true) {
-        SimpleHistoryEntry se = new SimpleHistoryEntry(userCache, he);
+        SimpleHistoryEntry se = new SimpleHistoryEntry(userGroupCache, he);
         ret.add(se);
       } else {
         for (DiffEntry de : deltas) {
-          final SimpleHistoryEntry se = new SimpleHistoryEntry(userCache, he, diffEntryToPropertyDelta(de));
+          final SimpleHistoryEntry se = new SimpleHistoryEntry(userGroupCache, he, diffEntryToPropertyDelta(de));
           ret.add(se);
         }
       }

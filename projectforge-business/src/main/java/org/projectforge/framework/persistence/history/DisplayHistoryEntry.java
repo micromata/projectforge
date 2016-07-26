@@ -37,7 +37,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.builder.ReflectionToStringBuilder;
 import org.hibernate.Session;
 import org.jfree.util.Log;
-import org.projectforge.business.user.UserCache;
+import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.framework.persistence.api.ShortDisplayNameCapable;
 import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
@@ -76,12 +76,12 @@ public class DisplayHistoryEntry implements Serializable
 
   private final Date timestamp;
 
-  public DisplayHistoryEntry(final UserCache userCache, final HistoryEntry entry)
+  public DisplayHistoryEntry(final UserGroupCache userGroupCache, final HistoryEntry entry)
   {
     this.timestamp = entry.getModifiedAt();
     final Integer userId = NumberHelper.parseInteger(entry.getUserName());
     if (userId != null) {
-      this.user = userCache.getUser(userId);
+      this.user = userGroupCache.getUser(userId);
     }
     // entry.getClassName();
     // entry.getComment();
@@ -89,7 +89,7 @@ public class DisplayHistoryEntry implements Serializable
     // entry.getEntityId();
   }
 
-  private PFUserDO getUser(final UserCache userCache, final String userId)
+  private PFUserDO getUser(final UserGroupCache userGroupCache, final String userId)
   {
     if (StringUtils.isBlank(userId) == true) {
       return null;
@@ -98,13 +98,13 @@ public class DisplayHistoryEntry implements Serializable
     if (id == null) {
       return null;
     }
-    return userCache.getUser(id);
+    return userGroupCache.getUser(id);
   }
 
-  public DisplayHistoryEntry(final UserCache userCache, final HistoryEntry entry, final DiffEntry prop,
+  public DisplayHistoryEntry(final UserGroupCache userGroupCache, final HistoryEntry entry, final DiffEntry prop,
       final Session session)
   {
-    this(userCache, entry);
+    this(userGroupCache, entry);
     if (prop.getNewProp() != null) {
       this.propertyType = prop.getNewProp().getType();
     }
@@ -116,11 +116,11 @@ public class DisplayHistoryEntry implements Serializable
     Object oldObjectValue = null;
     Object newObjectValue = null;
     if (PFUserDO.class.getName().equals(this.propertyType) == true) {
-      PFUserDO user = getUser(userCache, prop.getOldValue());
+      PFUserDO user = getUser(userGroupCache, prop.getOldValue());
       if (user != null) {
         oldObjectValue = user;
       }
-      user = getUser(userCache, prop.getNewValue());
+      user = getUser(userGroupCache, prop.getNewValue());
       if (user != null) {
         newObjectValue = user;
       }

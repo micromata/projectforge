@@ -45,7 +45,6 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.multitenancy.TenantChecker;
-import org.projectforge.business.user.UserCache;
 import org.projectforge.business.user.UserFormatter;
 import org.projectforge.framework.persistence.api.BaseDao;
 import org.projectforge.framework.persistence.api.ExtendedBaseDO;
@@ -95,9 +94,6 @@ public abstract class AbstractEditPage<O extends AbstractBaseDO<Integer>, F exte
 
   @SpringBean
   private TenantChecker tenantChecker;
-
-  @SpringBean
-  private UserCache userCache;
 
   protected EditPageSupport<O, D, AbstractEditPage<O, F, D>> editPageSupport;
 
@@ -168,8 +164,9 @@ public abstract class AbstractEditPage<O extends AbstractBaseDO<Integer>, F exte
     timestampColumn.setDatePattern(DateFormats.getFormatString(DateFormatType.DATE_TIME_SHORT_MINUTES));
     columns.add(timestampColumn);
     columns
-        .add(new UserPropertyColumn<DisplayHistoryEntry>(userCache, getString("user"), null, "user", cellItemListener)
-            .withUserFormatter(userFormatter));
+        .add(new UserPropertyColumn<DisplayHistoryEntry>(getUserGroupCache(), getString("user"), null, "user",
+            cellItemListener)
+                .withUserFormatter(userFormatter));
     columns
         .add(new CellItemListenerPropertyColumn<DisplayHistoryEntry>(getString("history.entryType"), null, "entryType",
             cellItemListener));

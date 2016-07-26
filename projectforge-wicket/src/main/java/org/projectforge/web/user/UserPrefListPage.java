@@ -35,8 +35,6 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
-import org.projectforge.web.wicket.WicketUtils;
-import org.projectforge.business.user.UserCache;
 import org.projectforge.business.user.UserFormatter;
 import org.projectforge.business.user.UserPrefAreaRegistry;
 import org.projectforge.business.user.UserPrefDao;
@@ -48,6 +46,7 @@ import org.projectforge.web.wicket.CellItemListener;
 import org.projectforge.web.wicket.CellItemListenerPropertyColumn;
 import org.projectforge.web.wicket.ListPage;
 import org.projectforge.web.wicket.ListSelectActionPanel;
+import org.projectforge.web.wicket.WicketUtils;
 
 @ListPage(editPage = UserPrefEditPage.class)
 public class UserPrefListPage extends AbstractListPage<UserPrefListForm, UserPrefDao, UserPrefDO>
@@ -59,9 +58,6 @@ public class UserPrefListPage extends AbstractListPage<UserPrefListForm, UserPre
 
   @SpringBean
   private UserFormatter userFormatter;
-
-  @SpringBean
-  UserCache userCache;
 
   public static BookmarkablePageLink<Void> createLink(final String id, final UserPrefArea area)
   {
@@ -123,8 +119,9 @@ public class UserPrefListPage extends AbstractListPage<UserPrefListForm, UserPre
         new CellItemListenerPropertyColumn<UserPrefDO>(new Model<String>(getString("userPref.name")), "name", "name",
             cellItemListener));
     columns
-        .add(new UserPropertyColumn<UserPrefDO>(userCache, getString("user"), "user.fullname", "user", cellItemListener)
-            .withUserFormatter(userFormatter));
+        .add(new UserPropertyColumn<UserPrefDO>(getUserGroupCache(), getString("user"), "user.fullname", "user",
+            cellItemListener)
+                .withUserFormatter(userFormatter));
     columns.add(new CellItemListenerPropertyColumn<UserPrefDO>(new Model<String>(getString("lastUpdate")), "lastUpdate",
         "lastUpdate", cellItemListener));
     dataTable = createDataTable(columns, null, SortOrder.DESCENDING);

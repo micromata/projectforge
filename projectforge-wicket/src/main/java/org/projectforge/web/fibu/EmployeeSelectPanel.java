@@ -23,6 +23,11 @@
 
 package org.projectforge.web.fibu;
 
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Locale;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.model.IModel;
@@ -32,7 +37,9 @@ import org.apache.wicket.util.convert.IConverter;
 import org.projectforge.business.fibu.EmployeeDO;
 import org.projectforge.business.fibu.EmployeeDao;
 import org.projectforge.business.fibu.KostFormatter;
-import org.projectforge.business.user.UserCache;
+import org.projectforge.business.multitenancy.TenantRegistry;
+import org.projectforge.business.multitenancy.TenantRegistryMap;
+import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.utils.RecentQueue;
@@ -40,11 +47,6 @@ import org.projectforge.web.user.UserPreferencesHelper;
 import org.projectforge.web.wicket.AbstractSelectPanel;
 import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.web.wicket.autocompletion.PFAutoCompleteTextField;
-
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Locale;
 
 /**
  * This panel shows the actual employee and buttons for select/unselect employee.
@@ -56,10 +58,10 @@ public class EmployeeSelectPanel extends AbstractSelectPanel<EmployeeDO>
   private static final long serialVersionUID = -9161889503240264619L;
 
   private static final String USER_PREF_KEY_RECENT_EMPLOYEES = "EmployeeSelectPanel:recentEmployees";
-  @SpringBean
-  UserCache userCache;
+
   @SpringBean
   private EmployeeDao employeeDao;
+
   private RecentQueue<String> recentEmployees;
 
   private PFAutoCompleteTextField<EmployeeDO> employeeTextField;
@@ -84,7 +86,7 @@ public class EmployeeSelectPanel extends AbstractSelectPanel<EmployeeDO>
   /**
    * @param id
    * @param model
-   * @param label          Only needed for validation messages (feed back).
+   * @param label Only needed for validation messages (feed back).
    * @param caller
    * @param selectProperty
    */
@@ -162,7 +164,7 @@ public class EmployeeSelectPanel extends AbstractSelectPanel<EmployeeDO>
             }
             final int ind = value.indexOf(": ");
             final String username = ind >= 0 ? value.substring(0, ind) : value;
-            final PFUserDO user = userCache.getUser(username);
+            final PFUserDO user = getUserGroupCache().getUser(username);
             if (user == null) {
               error(getString("fibu.employee.panel.error.employeeNotFound"));
               return null;
@@ -204,6 +206,16 @@ public class EmployeeSelectPanel extends AbstractSelectPanel<EmployeeDO>
       }
     });
     add(employeeTextField);
+  }
+
+  private TenantRegistry getTenantRegistry()
+  {
+    return TenantRegistryMap.getInstance().getTenantRegistry();
+  }
+
+  private UserGroupCache getUserGroupCache()
+  {
+    return getTenantRegistry().getUserGroupCache();
   }
 
   private List<EmployeeDO> getFilteredEmployeeDOs(String input)
