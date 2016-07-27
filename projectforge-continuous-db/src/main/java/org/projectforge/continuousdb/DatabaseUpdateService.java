@@ -179,6 +179,11 @@ public class DatabaseUpdateService
     return true;
   }
 
+  public boolean isTableEmpty(final Class<?> entity)
+  {
+    return isTableEmpty(new Table(entity).getName());
+  }
+
   public boolean isTableEmpty(final String table)
   {
     accessCheck(false);

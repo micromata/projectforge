@@ -30,6 +30,7 @@ import org.projectforge.web.wicket.AbstractEditForm;
 import org.projectforge.web.wicket.AbstractEditPage;
 import org.projectforge.web.wicket.bootstrap.GridBuilder;
 import org.projectforge.web.wicket.components.DatePanel;
+import org.projectforge.web.wicket.components.DatePanelSettings;
 import org.projectforge.web.wicket.converter.MyDateConverter;
 import org.projectforge.web.wicket.flowlayout.ComponentWrapperPanel;
 import org.projectforge.web.wicket.flowlayout.DivPanel;
@@ -150,7 +151,7 @@ public class TimedAttributePanel<PK extends Serializable, T extends TimeableAttr
           public Object getDisplayValue(T attrRow)
           {
             final Date startTime = attrRow.getStartTime();
-            return dateConverter.convertToString(startTime, getLocale());
+            return dateConverter.convertToString(startTime, null);
           }
 
           @Override
@@ -274,7 +275,7 @@ public class TimedAttributePanel<PK extends Serializable, T extends TimeableAttr
     final String startTimeLabel = getString(attrGroup.getI18nKeyStartTime());
     final FieldsetPanel dateFs = gridBuilder.newFieldset(startTimeLabel);
     final PropertyModel<Date> dateModel = new PropertyModel<>(attrRow, "startTime");
-    final DatePanel dp = new DatePanel(dateFs.newChildId(), dateModel, true);
+    final DatePanel dp = new DatePanel(dateFs.newChildId(), dateModel, DatePanelSettings.get().withTargetType(java.sql.Date.class));
     dp.setRequired(true);
     dp.add(this::validateDate);
     dateFs.add(dp);
@@ -342,6 +343,7 @@ public class TimedAttributePanel<PK extends Serializable, T extends TimeableAttr
     };
     parentPage.add(modal);
     modal.init();
+    modal.setEscapeModelStringsInQuestion(false);
     return modal;
   }
 
@@ -372,6 +374,7 @@ public class TimedAttributePanel<PK extends Serializable, T extends TimeableAttr
     };
     parentPage.add(modal);
     modal.init();
+    modal.setEscapeModelStringsInQuestion(false);
     return modal;
   }
 

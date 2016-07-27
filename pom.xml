@@ -4,7 +4,7 @@
 	<groupId>org.projectforge</groupId>
 	<artifactId>projectforge-parent</artifactId>
 	<packaging>pom</packaging>
-	<version>6.1.0</version>
+	<version>6.1.1</version>
 	<name>ProjectForge</name>
 	<description>
     ProjectForge is a multi user web application for collaborative team work. Organize time sheets, tasks, addresses, books etc. with project teams.
@@ -215,7 +215,7 @@
 		<cglib-nodep.version>3.2.0</cglib-nodep.version>
 		<groovy.version>2.4.4</groovy.version>
 		<poi.version>3.13</poi.version>
-		<mgc.version>2.3.0</mgc.version>
+		<mgc.version>2.3.1</mgc.version>
 		<wicket.version>6.8.0</wicket.version>
 		<wicket-select2.version>2.2</wicket-select2.version>
 

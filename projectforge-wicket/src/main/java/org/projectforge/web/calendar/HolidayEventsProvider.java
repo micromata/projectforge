@@ -23,12 +23,15 @@
 
 package org.projectforge.web.calendar;
 
-import net.ftlines.wicket.fullcalendar.Event;
+import java.util.Date;
+import java.util.TimeZone;
 
 import org.joda.time.DateMidnight;
 import org.joda.time.DateTime;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.time.DayHolder;
+
+import net.ftlines.wicket.fullcalendar.Event;
 
 /**
  * Creates holiday events for FullCalendar.
@@ -62,7 +65,9 @@ public class HolidayEventsProvider extends MyFullCalendarEventsProvider
         log.error("Paranoia counter exceeded! Dear developer, please have a look at the implementation of buildEvents.");
         break;
       }
-      final DayHolder dh = new DayHolder(day.toDate());
+      final Date date = day.toDate();
+      final TimeZone timeZone = day.getZone().toTimeZone();
+      final DayHolder dh = new DayHolder(date, timeZone, null);
       String backgroundColor, color, textColor;
       if (dh.isHoliday() == true) {
         if (dh.isWorkingDay() == true) {

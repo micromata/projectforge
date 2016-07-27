@@ -394,29 +394,14 @@ public class AuftragDao extends BaseDao<AuftragDO>
     } else {
       list = internalGetList(queryFilter);
     }
-    if (vollstaendigFakturiert != null || myFilter.getAuftragsPositionsArt() != null) {
+    if (vollstaendigFakturiert != null) {
       final Boolean invoiced = vollstaendigFakturiert;
-      final AuftragFilter fil = myFilter;
       CollectionUtils.filter(list, new Predicate()
       {
         @Override
         public boolean evaluate(final Object object)
         {
           final AuftragDO auftrag = (AuftragDO) object;
-          if (fil.getAuftragsPositionsArt() != null) {
-            boolean match = false;
-            if (CollectionUtils.isNotEmpty(auftrag.getPositionen()) == true) {
-              for (final AuftragsPositionDO position : auftrag.getPositionen()) {
-                if (fil.getAuftragsPositionsArt() == position.getArt()) {
-                  match = true;
-                  break;
-                }
-              }
-            }
-            if (match == false) {
-              return false;
-            }
-          }
           final boolean orderIsCompletelyInvoiced = auftrag.isVollstaendigFakturiert();
           if (HibernateUtils.getDialect() != DatabaseDialect.HSQL
               && myFilter.isShowAbgeschlossenNichtFakturiert() == true) {
@@ -442,6 +427,29 @@ public class AuftragDao extends BaseDao<AuftragDO>
             return false;
           }
           return orderIsCompletelyInvoiced == invoiced;
+        }
+      });
+    }
+    if (myFilter.getAuftragsPositionsArt() != null) {
+      final AuftragFilter fil = myFilter;
+      CollectionUtils.filter(list, new Predicate()
+      {
+        @Override
+        public boolean evaluate(final Object object)
+        {
+          final AuftragDO auftrag = (AuftragDO) object;
+          boolean match = false;
+          if (fil.getAuftragsPositionsArt() != null) {
+            if (CollectionUtils.isNotEmpty(auftrag.getPositionen()) == true) {
+              for (final AuftragsPositionDO position : auftrag.getPositionen()) {
+                if (fil.getAuftragsPositionsArt() == position.getArt()) {
+                  match = true;
+                  break;
+                }
+              }
+            }
+          }
+          return match;
         }
       });
     }
