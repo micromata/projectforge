@@ -16,7 +16,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
-import org.springframework.context.annotation.PropertySource;
 import org.springframework.orm.hibernate5.HibernateTemplate;
 import org.springframework.orm.hibernate5.HibernateTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
@@ -32,14 +31,12 @@ import de.micromata.mgc.jpa.spring.factories.JpaToSessionSpringBeanFactory;
 
 /**
  * Intial configuration for ORM.
- * 
- * @author Roger Rene Kommer (r.kommer.extern@micromata.de)
  *
+ * @author Roger Rene Kommer (r.kommer.extern@micromata.de)
  */
 @Configuration
 @EnableTransactionManagement
 @EnableAspectJAutoProxy(proxyTargetClass = true)
-@PropertySource("file:projectforge.properties")
 public class DatabaseOrmConfiguration
 {
   @Value("${projectforge.base.dir}")
@@ -78,7 +75,7 @@ public class DatabaseOrmConfiguration
   /**
    * has to be defined, otherwise spring creates a LocalContainerEntityManagerFactoryBean, which has no correct
    * sessionFactory.getCurrentSession();.
-   * 
+   *
    * @return
    */
   @Bean

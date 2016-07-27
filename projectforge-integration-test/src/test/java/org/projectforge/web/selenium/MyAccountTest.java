@@ -140,7 +140,7 @@ public class MyAccountTest extends SeleniumSuiteTestBase
     String state = "state";
     String zipcode = "123";
     String street = "street";
-    String birthday = "01/02/1980";
+    String birthday = "01.02.1980";
     seleniumMyAccountPage
         .callPage()
         .setFirstName(firstName)
@@ -154,7 +154,7 @@ public class MyAccountTest extends SeleniumSuiteTestBase
         .setStreet(street)
         //        .setBirthday("dfdfgfdgdfg") <-- this is not possible because the input field does not allow text
         .assertWeAreOnThisPage()
-        .setBirthday("01/01/1200")
+        .setBirthday("01.01.1200")
         .update()
         .assertWeAreOnThisPage()
         .setBirthday(birthday)

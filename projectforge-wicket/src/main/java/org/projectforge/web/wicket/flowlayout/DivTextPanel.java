@@ -132,6 +132,11 @@ public class DivTextPanel extends Panel
     return this;
   }
 
+  public void setEscapeModelStringsInLabel(boolean escapeMarkup)
+  {
+    label.setEscapeModelStrings(escapeMarkup);
+  }
+
   private void init(final Behavior... behaviors)
   {
     label.add(behaviors);

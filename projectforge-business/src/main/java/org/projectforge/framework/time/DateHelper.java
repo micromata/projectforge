@@ -28,6 +28,9 @@ import java.math.BigDecimal;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -679,5 +682,17 @@ public class DateHelper implements Serializable
       return DateTimeConstants.SUNDAY;
     }
     return calendarDayOfWeek - 1;
+  }
+
+  public static LocalDateTime convertDateToLocalDateTimeInUTC(final Date date)
+  {
+    final Instant instant = date.toInstant();
+    return LocalDateTime.ofInstant(instant, ZoneOffset.UTC);
+  }
+
+  public static Date convertLocalDateTimeToDateInUTC(final LocalDateTime ldt)
+  {
+    final Instant instant = ldt.toInstant(ZoneOffset.UTC);
+    return Date.from(instant);
   }
 }

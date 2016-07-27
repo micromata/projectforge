@@ -40,6 +40,8 @@ public class ModalQuestionDialog extends ModalDialog
 {
   private static final long serialVersionUID = -7595805701020378523L;
 
+  private DivTextPanel questionPanel;
+
   private Label questionComponent;
 
   private final IModel<String> headingModel, questionModel;
@@ -107,9 +109,14 @@ public class ModalQuestionDialog extends ModalDialog
     init(form);
     gridBuilder.newGridPanel();
     final DivPanel panel = gridBuilder.getPanel();
-    final DivTextPanel questionPanel = new DivTextPanel(panel.newChildId(), this.questionModel);
+    questionPanel = new DivTextPanel(panel.newChildId(), this.questionModel);
     this.questionComponent = questionPanel.getLabel4Ajax();
     panel.add(questionPanel);
+  }
+
+  public void setEscapeModelStringsInQuestion(boolean escapeMarkup)
+  {
+    questionPanel.setEscapeModelStringsInLabel(escapeMarkup);
   }
 
   /**

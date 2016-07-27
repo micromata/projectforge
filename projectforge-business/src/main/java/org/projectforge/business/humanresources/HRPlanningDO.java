@@ -314,7 +314,9 @@ public class HRPlanningDO extends DefaultBaseDO
       return duration;
     }
     for (final HRPlanningEntryDO entry : entries) {
-      duration = add(duration, entry.getUnassignedHours());
+      if (entry.isDeleted() == false) {
+        duration = add(duration, entry.getUnassignedHours());
+      }
     }
     return duration;
   }
@@ -331,7 +333,9 @@ public class HRPlanningDO extends DefaultBaseDO
       return duration;
     }
     for (final HRPlanningEntryDO entry : entries) {
-      duration = add(duration, entry.getMondayHours());
+      if (entry.isDeleted() == false) {
+        duration = add(duration, entry.getMondayHours());
+      }
     }
     return duration;
   }
@@ -348,7 +352,9 @@ public class HRPlanningDO extends DefaultBaseDO
       return duration;
     }
     for (final HRPlanningEntryDO entry : entries) {
-      duration = add(duration, entry.getTuesdayHours());
+      if (entry.isDeleted() == false) {
+        duration = add(duration, entry.getTuesdayHours());
+      }
     }
     return duration;
   }
@@ -365,7 +371,9 @@ public class HRPlanningDO extends DefaultBaseDO
       return duration;
     }
     for (final HRPlanningEntryDO entry : entries) {
-      duration = add(duration, entry.getWednesdayHours());
+      if (entry.isDeleted() == false) {
+        duration = add(duration, entry.getWednesdayHours());
+      }
     }
     return duration;
   }
@@ -382,7 +390,9 @@ public class HRPlanningDO extends DefaultBaseDO
       return duration;
     }
     for (final HRPlanningEntryDO entry : entries) {
-      duration = add(duration, entry.getThursdayHours());
+      if (entry.isDeleted() == false) {
+        duration = add(duration, entry.getThursdayHours());
+      }
     }
     return duration;
   }
@@ -399,7 +409,9 @@ public class HRPlanningDO extends DefaultBaseDO
       return duration;
     }
     for (final HRPlanningEntryDO entry : entries) {
-      duration = add(duration, entry.getFridayHours());
+      if (entry.isDeleted() == false) {
+        duration = add(duration, entry.getFridayHours());
+      }
     }
     return duration;
   }
@@ -416,7 +428,9 @@ public class HRPlanningDO extends DefaultBaseDO
       return duration;
     }
     for (final HRPlanningEntryDO entry : entries) {
-      duration = add(duration, entry.getWeekendHours());
+      if (entry.isDeleted() == false) {
+        duration = add(duration, entry.getWeekendHours());
+      }
     }
     return duration;
   }
