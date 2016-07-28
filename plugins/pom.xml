@@ -19,6 +19,7 @@
     <module>org.projectforge.plugins.poll</module>
     <module>org.projectforge.plugins.crm</module>
     <module>org.projectforge.plugins.ihkexport</module>
+    <module>org.projectforge.plugins.extendemployeedata</module>
   </modules>
   <build>
     <plugins>
