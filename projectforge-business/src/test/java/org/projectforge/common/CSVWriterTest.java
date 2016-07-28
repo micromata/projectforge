@@ -29,7 +29,6 @@ import java.io.StringWriter;
 import java.util.Calendar;
 import java.util.Date;
 
-import org.projectforge.framework.time.DateHolder;
 import org.projectforge.test.AbstractTestBase;
 import org.testng.annotations.Test;
 
@@ -38,7 +37,7 @@ public class CSVWriterTest extends AbstractTestBase
   @Test
   public void testWriteCSV() throws Exception
   {
-    Date date = createDate(1970, Calendar.NOVEMBER, 21, 14, 17, 57, 742);
+    Date date = createDate(1970, Calendar.NOVEMBER, 21, 13, 17, 57, 742);
     StringWriter writer = new StringWriter();
     CSVWriter csv = new CSVWriter(writer);
     csv.write("Hallo");
@@ -58,8 +57,14 @@ public class CSVWriterTest extends AbstractTestBase
 
   private Date createDate(int year, int month, int day, int hour, int minute, int second, int millisecond)
   {
-    DateHolder date = new DateHolder();
-    date.setDate(year, month, day, hour, minute, second, millisecond);
-    return date.getDate();
+    Calendar c = Calendar.getInstance();
+    c.set(Calendar.YEAR, year);
+    c.set(Calendar.MONTH, month);
+    c.set(Calendar.DAY_OF_MONTH, day);
+    c.set(Calendar.HOUR_OF_DAY, hour);
+    c.set(Calendar.MINUTE, minute);
+    c.set(Calendar.SECOND, second);
+    c.set(Calendar.MILLISECOND, millisecond);
+    return c.getTime();
   }
 }

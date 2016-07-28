@@ -4,7 +4,7 @@
 	<groupId>org.projectforge</groupId>
 	<artifactId>projectforge-parent</artifactId>
 	<packaging>pom</packaging>
-	<version>6.3.0-SNAPSHOT</version>
+	<version>6.2.0-SNAPSHOT</version>
 
 	<parent>
 		<groupId>org.springframework.cloud</groupId>
@@ -29,10 +29,6 @@
 		<system>Bamboo</system>
 		<url>http://www.projectforge.org</url>
 	</ciManagement>
-	<!-- <distributionManagement> <repository> <id>ProjectForge</id> <name>ProjectForge 
-		M2</name> <url>http://www.projectforge.org/nexus/content/repositories/ProjectForge-Snapshots</url> 
-		</repository> </distributionManagement> -->
-
 	<scm>
 		<connection>scm:svn:https://pforge.svn.sourceforge.net/svnroot/pforge</connection>
 		<developerConnection>scm:svn:https://pforge.svn.sourceforge.net/svnroot/pforge</developerConnection>
@@ -180,12 +176,13 @@
 	</licenses>
 	<modules>
 		<module>projectforge-common</module>
+		<!-- <module>projectforge-model</module> -->
 		<module>projectforge-continuous-db</module>
 		<module>projectforge-excel</module>
 		<module>projectforge-business</module>
 		<module>projectforge-jax-rs</module>
-		<module>projectforge-microservices/projectforge-microservices-address</module>
-		<module>projectforge-microservices/projectforge-microservices-server</module>
+		<!-- <module>projectforge-microservices/projectforge-microservices-address</module> -->
+		<!-- <module>projectforge-microservices/projectforge-microservices-server</module> -->
 		<module>projectforge-wicket</module>
 		<module>plugins</module>
 		<module>projectforge-application</module>
@@ -211,7 +208,7 @@
 		<java.version>1.8</java.version>
 
 		<hibernate.version>5.0.5.Final</hibernate.version>
-		<mgc.version>2.3.0</mgc.version>
+		<mgc.version>2.3.1</mgc.version>
 		<postgresql.version>9.4-1206-jdbc42</postgresql.version>
 		<hsqldb.version>1.8.0.10</hsqldb.version>
 
@@ -233,7 +230,7 @@
 		<cglib-nodep.version>3.2.0</cglib-nodep.version>
 		<groovy.version>2.4.4</groovy.version>
 		<poi.version>3.13</poi.version>
-		<mgc.version>2.3.0</mgc.version>
+		<mgc.version>2.3.1</mgc.version>
 		<wicket.version>6.8.0</wicket.version>
 		<wicket-select2.version>2.2</wicket-select2.version>
 
@@ -297,11 +294,6 @@
 					<artifactId>spring-boot-starter-logging</artifactId>
 				</exclusion>
 			</exclusions>
-		</dependency>
-
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-thymeleaf</artifactId>
 		</dependency>
 
 		<dependency>
@@ -397,7 +389,7 @@
 						</goals>
 						<configuration>
 							<!--forkMode>always</forkMode -->
-							<argLine>${argLine} -Xms512m -Xmx1024m -XX:MaxPermSize=512m</argLine>
+							<argLine>${argLine} -Xms512m -Xmx1024m</argLine>
 							<includes>
 								<include>**/*Test.java</include>
 							</includes>
@@ -411,7 +403,7 @@
 						</goals>
 						<configuration>
 							<forkMode>always</forkMode>
-							<argLine>${argLine} -Xms512m -Xmx1024m -XX:MaxPermSize=512m</argLine>
+							<argLine>${argLine} -Xms512m -Xmx1024m</argLine>
 							<includes>
 								<include>**/*TestFork.java</include>
 							</includes>
@@ -419,7 +411,7 @@
 					</execution>
 				</executions>
 				<configuration>
-					<argLine>${argLine} -Xms512m -Xmx1024m -XX:MaxPermSize=512m</argLine>
+					<argLine>${argLine} -Xms512m -Xmx1024m</argLine>
 					<includes>
 						<include>**/*Test.java</include>
 					</includes>

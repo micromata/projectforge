@@ -23,7 +23,9 @@
 
 package org.projectforge.common;
 
-import static org.testng.AssertJUnit.*;
+import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertFalse;
+import static org.testng.AssertJUnit.assertTrue;
 
 import java.text.DateFormat;
 import java.text.ParseException;
@@ -31,9 +33,10 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
+import java.util.TimeZone;
 
 import org.joda.time.DateTimeConstants;
-import org.projectforge.framework.configuration.Configuration;
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.time.DateHelper;
 import org.projectforge.framework.time.DateHolder;
 import org.projectforge.framework.time.DatePrecision;
@@ -42,6 +45,9 @@ import org.testng.annotations.Test;
 
 public class DateHelperTest extends AbstractTestBase
 {
+  private static transient final org.apache.log4j.Logger log = org.apache.log4j.Logger
+      .getLogger(KeyValuePairWriterTest.class);
+
   @Test
   public void testTimeZone() throws ParseException
   {
@@ -58,17 +64,21 @@ public class DateHelperTest extends AbstractTestBase
   @Test
   public void formatIsoDate()
   {
-    assertEquals("1970-11-21", DateHelper.formatIsoDate(createDate(1970, Calendar.NOVEMBER, 21, 16, 0, 0, 0)));
-    assertEquals("1970-11-21", DateHelper.formatIsoDate(createDate(1970, Calendar.NOVEMBER, 21, 16, 35, 27, 968)));
+    assertEquals("1970-11-21", DateHelper
+        .formatIsoDate(createDate(1970, Calendar.NOVEMBER, 21, 16, 0, 0, 0, ThreadLocalUserContext.getTimeZone())));
+    assertEquals("1970-11-21", DateHelper
+        .formatIsoDate(createDate(1970, Calendar.NOVEMBER, 21, 16, 35, 27, 968, ThreadLocalUserContext.getTimeZone())));
   }
 
   @Test
   public void formatIsoTimestamp()
   {
     assertEquals("1970-11-21 17:00:00.000",
-        DateHelper.formatIsoTimestamp(createDate(1970, Calendar.NOVEMBER, 21, 17, 0, 0, 0)));
+        DateHelper.formatIsoTimestamp(
+            createDate(1970, Calendar.NOVEMBER, 21, 17, 0, 0, 0, ThreadLocalUserContext.getTimeZone())));
     assertEquals("1970-11-21 17:05:07.123",
-        DateHelper.formatIsoTimestamp(createDate(1970, Calendar.NOVEMBER, 21, 17, 5, 7, 123)));
+        DateHelper.formatIsoTimestamp(
+            createDate(1970, Calendar.NOVEMBER, 21, 17, 5, 7, 123, ThreadLocalUserContext.getTimeZone())));
   }
 
   @Test
@@ -159,17 +169,20 @@ public class DateHelperTest extends AbstractTestBase
   @Test
   public void testIsSameMonth()
   {
-    assertTrue(DateHelper.isSameMonth(new Date(), new Date()));
-    assertTrue(DateHelper.isSameMonth(createDate(2016, 0, 1, 0, 0, 0, 0), createDate(2016, 0, 31, 23, 59, 59, 999)));
-    assertFalse(DateHelper.isSameMonth(createDate(2016, 0, 31, 23, 59, 59, 999), createDate(2016, 1, 1, 0, 0, 0, 0)));
-    assertFalse(DateHelper.isSameMonth(createDate(2015, 0, 1, 0, 0, 0, 0), createDate(2016, 0, 1, 0, 0, 0, 0)));
+    assertTrue("Dates are not in same month!", DateHelper.isSameMonth(new Date(), new Date()));
+    assertTrue("Dates are not in same month!",
+        DateHelper.isSameMonth(createDate(2016, 0, 1, 0, 0, 0, 0), createDate(2016, 0, 31, 23, 59, 59, 999)));
+    assertFalse("Dates are not in same month!",
+        DateHelper.isSameMonth(createDate(2016, 0, 31, 23, 59, 59, 999), createDate(2016, 1, 1, 0, 0, 0, 0)));
+    assertFalse("Dates are not in same month!",
+        DateHelper.isSameMonth(createDate(2015, 0, 1, 0, 0, 0, 0), createDate(2016, 0, 1, 0, 0, 0, 0)));
   }
 
   public static Date createDate(final int year, final int month, final int day, final int hour, final int minute,
       final int second,
-      final int millisecond)
+      final int millisecond, TimeZone timeZone)
   {
-    final Calendar cal = Calendar.getInstance(Configuration.getInstance().getDefaultTimeZone());
+    final Calendar cal = Calendar.getInstance(timeZone);
     cal.set(Calendar.YEAR, year);
     cal.set(Calendar.MONTH, month);
     cal.set(Calendar.DAY_OF_MONTH, day);
@@ -178,5 +191,12 @@ public class DateHelperTest extends AbstractTestBase
     cal.set(Calendar.SECOND, second);
     cal.set(Calendar.MILLISECOND, millisecond);
     return cal.getTime();
+  }
+
+  public static Date createDate(final int year, final int month, final int day, final int hour, final int minute,
+      final int second,
+      final int millisecond)
+  {
+    return createDate(year, month, day, hour, minute, second, millisecond, TimeZone.getDefault());
   }
 }

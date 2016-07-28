@@ -54,18 +54,6 @@ public class PfBasicLocalSettingsConfigModel extends AbstractLocalSettingsConfig
   @ALocalSettingsPath(key = "projectforge.support.mail", defaultValue = "")
   private String projectforgeSupportMail;
 
-  @ALocalSettingsPath(key = "spring.datasource.url", defaultValue = "jdbc:hsqldb:mem:ProjectForgeTestDB")
-  private String springDatasourceUrl;
-
-  @ALocalSettingsPath(key = "spring.datasource.username", defaultValue = "sa")
-  private String springDatasourceUsername;
-
-  @ALocalSettingsPath(key = "spring.datasource.password", defaultValue = "")
-  private String springDatasourcePassword;
-
-  @ALocalSettingsPath(key = "spring.datasource.driver-class-name", defaultValue = "org.hsqldb.jdbcDriver")
-  private String springDatasourceDriverClassName;
-
   @ALocalSettingsPath(key = "server.port", defaultValue = "8080")
   private String serverPort;
 
@@ -231,46 +219,6 @@ public class PfBasicLocalSettingsConfigModel extends AbstractLocalSettingsConfig
   public void setProjectforgeSupportMail(String projectforgeSupportMail)
   {
     this.projectforgeSupportMail = projectforgeSupportMail;
-  }
-
-  public String getSpringDatasourceUrl()
-  {
-    return springDatasourceUrl;
-  }
-
-  public void setSpringDatasourceUrl(String springDatasourceUrl)
-  {
-    this.springDatasourceUrl = springDatasourceUrl;
-  }
-
-  public String getSpringDatasourceUsername()
-  {
-    return springDatasourceUsername;
-  }
-
-  public void setSpringDatasourceUsername(String springDatasourceUsername)
-  {
-    this.springDatasourceUsername = springDatasourceUsername;
-  }
-
-  public String getSpringDatasourcePassword()
-  {
-    return springDatasourcePassword;
-  }
-
-  public void setSpringDatasourcePassword(String springDatasourcePassword)
-  {
-    this.springDatasourcePassword = springDatasourcePassword;
-  }
-
-  public String getSpringDatasourceDriverClassName()
-  {
-    return springDatasourceDriverClassName;
-  }
-
-  public void setSpringDatasourceDriverClassName(String springDatasourceDriverClassName)
-  {
-    this.springDatasourceDriverClassName = springDatasourceDriverClassName;
   }
 
   public String getServerPort()

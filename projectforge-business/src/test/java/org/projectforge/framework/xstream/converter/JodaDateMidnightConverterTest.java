@@ -47,7 +47,7 @@ public class JodaDateMidnightConverterTest extends AbstractTestBase
   {
     final PFUserDO user = new PFUserDO();
     user.setTimeZone(timeZone);
-    ThreadLocalUserContext.setUser(userCache, user);
+    ThreadLocalUserContext.setUser(getUserGroupCache(), user);
     final JodaDateMidnightConverter converter = new JodaDateMidnightConverter();
     final DateMidnight dateMidnight = (DateMidnight) converter.parse("1970-11-21");
     assertEquals(1970, dateMidnight.getYear());

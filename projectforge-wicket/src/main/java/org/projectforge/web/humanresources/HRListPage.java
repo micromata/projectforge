@@ -48,7 +48,6 @@ import org.projectforge.business.humanresources.HRPlanningEntryDO;
 import org.projectforge.business.humanresources.HRViewData;
 import org.projectforge.business.humanresources.HRViewUserData;
 import org.projectforge.business.humanresources.HRViewUserEntryData;
-import org.projectforge.business.user.UserCache;
 import org.projectforge.business.user.UserFormatter;
 import org.projectforge.framework.persistence.api.ReindexSettings;
 import org.projectforge.framework.persistence.database.DatabaseDao;
@@ -89,9 +88,6 @@ public class HRListPage extends AbstractListPage<HRListForm, HRDao, HRViewUserDa
   @SpringBean
   private UserFormatter userFormatter;
 
-  @SpringBean
-  UserCache userCache;
-
   private HRViewData hrViewData;
 
   private HRListResourceLinkPanel resourceLinkPanel;
@@ -128,7 +124,8 @@ public class HRListPage extends AbstractListPage<HRListForm, HRDao, HRViewUserDa
         appendCssClasses(item, entry.getPlanningId(), entry.isDeleted());
       }
     };
-    columns.add(new UserPropertyColumn<HRViewUserData>(userCache, getString("timesheet.user"), "user.fullname", "user",
+    columns.add(new UserPropertyColumn<HRViewUserData>(getUserGroupCache(), getString("timesheet.user"),
+        "user.fullname", "user",
         cellItemListener)
     {
       @Override
@@ -162,20 +159,20 @@ public class HRListPage extends AbstractListPage<HRListForm, HRDao, HRViewUserDa
         final HRFilter filter = form.getSearchFilter();
         addListEntry(item, componentId, userData.getPlannedDaysSum(), userData.getActualDaysSum(),
             new Link<Object>("actualDaysLink")
-        {
-          @Override
-          public void onClick()
-          {
-            // Redirect to time sheet list page and show the corresponding time sheets.
-            final PageParameters parameters = new PageParameters();
-            parameters.add(TimesheetListPage.PARAMETER_KEY_STORE_FILTER, false);
-            parameters.add(TimesheetListPage.PARAMETER_KEY_START_TIME, filter.getStartTime().getTime());
-            parameters.add(TimesheetListPage.PARAMETER_KEY_STOP_TIME, filter.getStopTime().getTime());
-            parameters.add(TimesheetListPage.PARAMETER_KEY_USER_ID, userData.getUserId());
-            final TimesheetListPage timesheetListPage = new TimesheetListPage(parameters);
-            setResponsePage(timesheetListPage);
-          }
-        });
+            {
+              @Override
+              public void onClick()
+              {
+                // Redirect to time sheet list page and show the corresponding time sheets.
+                final PageParameters parameters = new PageParameters();
+                parameters.add(TimesheetListPage.PARAMETER_KEY_STORE_FILTER, false);
+                parameters.add(TimesheetListPage.PARAMETER_KEY_START_TIME, filter.getStartTime().getTime());
+                parameters.add(TimesheetListPage.PARAMETER_KEY_STOP_TIME, filter.getStopTime().getTime());
+                parameters.add(TimesheetListPage.PARAMETER_KEY_USER_ID, userData.getUserId());
+                final TimesheetListPage timesheetListPage = new TimesheetListPage(parameters);
+                setResponsePage(timesheetListPage);
+              }
+            });
         item.add(AttributeModifier.append("style", new Model<String>("text-align: right;")));
         cellItemListener.populateItem(item, componentId, rowModel);
       }
@@ -213,21 +210,21 @@ public class HRListPage extends AbstractListPage<HRListForm, HRDao, HRViewUserDa
               final HRFilter filter = form.getSearchFilter();
               addListEntry(item, componentId, entry.getPlannedDays(), entry.getActualDays(),
                   new Link<Object>("actualDaysLink")
-              {
-                @Override
-                public void onClick()
-                {
-                  // Redirect to time sheet list page and show the corresponding time sheets.
-                  final PageParameters parameters = new PageParameters();
-                  parameters.add(TimesheetListPage.PARAMETER_KEY_STORE_FILTER, false);
-                  parameters.add(TimesheetListPage.PARAMETER_KEY_TASK_ID, project.getTaskId());
-                  parameters.add(TimesheetListPage.PARAMETER_KEY_START_TIME, filter.getStartTime().getTime());
-                  parameters.add(TimesheetListPage.PARAMETER_KEY_STOP_TIME, filter.getStopTime().getTime());
-                  parameters.add(TimesheetListPage.PARAMETER_KEY_USER_ID, userData.getUserId());
-                  final TimesheetListPage timesheetListPage = new TimesheetListPage(parameters);
-                  setResponsePage(timesheetListPage);
-                }
-              });
+                  {
+                    @Override
+                    public void onClick()
+                    {
+                      // Redirect to time sheet list page and show the corresponding time sheets.
+                      final PageParameters parameters = new PageParameters();
+                      parameters.add(TimesheetListPage.PARAMETER_KEY_STORE_FILTER, false);
+                      parameters.add(TimesheetListPage.PARAMETER_KEY_TASK_ID, project.getTaskId());
+                      parameters.add(TimesheetListPage.PARAMETER_KEY_START_TIME, filter.getStartTime().getTime());
+                      parameters.add(TimesheetListPage.PARAMETER_KEY_STOP_TIME, filter.getStopTime().getTime());
+                      parameters.add(TimesheetListPage.PARAMETER_KEY_USER_ID, userData.getUserId());
+                      final TimesheetListPage timesheetListPage = new TimesheetListPage(parameters);
+                      setResponsePage(timesheetListPage);
+                    }
+                  });
               item.add(AttributeModifier.append("style", new Model<String>("text-align: right;")));
             }
           });

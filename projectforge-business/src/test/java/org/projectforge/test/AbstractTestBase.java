@@ -37,10 +37,11 @@ import javax.sql.DataSource;
 import org.projectforge.business.configuration.ConfigurationService;
 import org.projectforge.business.login.Login;
 import org.projectforge.business.login.LoginDefaultHandler;
+import org.projectforge.business.multitenancy.TenantRegistry;
 import org.projectforge.business.multitenancy.TenantRegistryMap;
 import org.projectforge.business.task.TaskDO;
 import org.projectforge.business.user.ProjectForgeGroup;
-import org.projectforge.business.user.UserCache;
+import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.business.user.service.UserService;
 import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.access.AccessException;
@@ -159,9 +160,6 @@ public class AbstractTestBase extends AbstractTestNGSpringContextTests
   @Autowired
   private InitDatabaseDao initDatabaseDao;
 
-  @Autowired
-  protected UserCache userCache;
-
   protected int mCount = 0;
 
   @BeforeClass
@@ -211,12 +209,22 @@ public class AbstractTestBase extends AbstractTestNGSpringContextTests
     }
   }
 
+  protected TenantRegistry getTenantRegistry()
+  {
+    return TenantRegistryMap.getInstance().getTenantRegistry();
+  }
+
+  protected UserGroupCache getUserGroupCache()
+  {
+    return getTenantRegistry().getUserGroupCache();
+  }
+
   protected void clearDatabase()
   {
     log.info("clearDatabase...");
     emf.getJpaSchemaService().clearDatabase();
     TenantRegistryMap.getInstance().setAllUserGroupCachesAsExpired();
-    userCache.setExpired();
+    getUserGroupCache().setExpired();
   }
 
   public PFUserDO logon(final String username)
@@ -225,18 +233,18 @@ public class AbstractTestBase extends AbstractTestNGSpringContextTests
     if (user == null) {
       fail("User not found: " + username);
     }
-    ThreadLocalUserContext.setUser(userCache, PFUserDO.createCopyWithoutSecretFields(user));
+    ThreadLocalUserContext.setUser(getUserGroupCache(), PFUserDO.createCopyWithoutSecretFields(user));
     return user;
   }
 
   public void logon(final PFUserDO user)
   {
-    ThreadLocalUserContext.setUser(userCache, user);
+    ThreadLocalUserContext.setUser(getUserGroupCache(), user);
   }
 
   protected void logoff()
   {
-    ThreadLocalUserContext.setUser(userCache, null);
+    ThreadLocalUserContext.setUser(getUserGroupCache(), null);
   }
 
   public GroupDO getGroup(final String groupName)
