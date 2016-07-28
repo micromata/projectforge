@@ -1,4 +1,4 @@
-package org.projectforge.plugins.crm;
+package org.projectforge.plugins.eed;
 
 import org.projectforge.plugins.core.AbstractPlugin;
 import org.projectforge.plugins.core.ProjectforgePluginService;
@@ -14,7 +14,6 @@ public class ExtendEmployeeDataProjectforgePluginService implements Projectforge
   @Override
   public String getPluginId()
   {
-
     return "extendemployeedata";
   }
 
