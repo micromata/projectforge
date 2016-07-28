@@ -44,8 +44,10 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.MDC;
 import org.projectforge.Const;
 import org.projectforge.business.login.Login;
-import org.projectforge.business.user.UserCache;
+import org.projectforge.business.multitenancy.TenantRegistry;
+import org.projectforge.business.multitenancy.TenantRegistryMap;
 import org.projectforge.business.user.UserDao;
+import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.common.StringHelper;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.api.UserContext;
@@ -88,15 +90,13 @@ public class UserFilter implements Filter
   @Autowired
   private UserDao userDao;
 
-  @Autowired
-  private UserCache userCache;
-
   private static boolean updateRequiredFirst = false;
 
   @Override
   public void init(final FilterConfig filterConfig) throws ServletException
   {
-    WebApplicationContext springContext = WebApplicationContextUtils.getRequiredWebApplicationContext(filterConfig.getServletContext());
+    WebApplicationContext springContext = WebApplicationContextUtils
+        .getRequiredWebApplicationContext(filterConfig.getServletContext());
     final AutowireCapableBeanFactory beanFactory = springContext.getAutowireCapableBeanFactory();
     beanFactory.autowireBean(this);
     CONTEXT_PATH = filterConfig.getServletContext().getContextPath();
@@ -324,7 +324,7 @@ public class UserFilter implements Filter
       // update the cookie, especially the max age
       addStayLoggedInCookie(request, response, stayLoggedInCookie);
       log.info("User successfully logged in using stay-logged-in method: " + user.getUserDisplayname());
-      return new UserContext(PFUserDO.createCopyWithoutSecretFields(user), userCache);
+      return new UserContext(PFUserDO.createCopyWithoutSecretFields(user), getUserGroupCache());
     }
     return null;
   }
@@ -381,5 +381,18 @@ public class UserFilter implements Filter
       }
     }
     return false;
+  }
+
+  public TenantRegistry getTenantRegistry()
+  {
+    return TenantRegistryMap.getInstance().getTenantRegistry();
+  }
+
+  /**
+   * @return the UserGroupCache with groups and rights (tenant specific).
+   */
+  public UserGroupCache getUserGroupCache()
+  {
+    return getTenantRegistry().getUserGroupCache();
   }
 }

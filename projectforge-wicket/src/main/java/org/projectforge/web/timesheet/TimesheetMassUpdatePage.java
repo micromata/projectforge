@@ -41,7 +41,6 @@ import org.projectforge.business.task.TaskTree;
 import org.projectforge.business.tasktree.TaskTreeHelper;
 import org.projectforge.business.timesheet.TimesheetDO;
 import org.projectforge.business.timesheet.TimesheetDao;
-import org.projectforge.business.user.UserCache;
 import org.projectforge.business.user.UserFormatter;
 import org.projectforge.business.utils.HtmlDateTimeFormatter;
 import org.projectforge.framework.utils.MyBeanComparator;
@@ -63,9 +62,6 @@ public class TimesheetMassUpdatePage extends AbstractMassEditPage implements ISe
 
   @SpringBean
   private TimesheetDao timesheetDao;
-
-  @SpringBean
-  UserCache userCache;
 
   private List<TimesheetDO> timesheets;
 
@@ -92,7 +88,7 @@ public class TimesheetMassUpdatePage extends AbstractMassEditPage implements ISe
     }
     body.add(form);
     form.init();
-    final List<IColumn<TimesheetDO, String>> columns = TimesheetListPage.createColumns(userCache, this,
+    final List<IColumn<TimesheetDO, String>> columns = TimesheetListPage.createColumns(getUserGroupCache(), this,
         false, true,
         null,
         taskTree,

@@ -36,7 +36,9 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.MDC;
 import org.projectforge.business.login.LoginProtection;
-import org.projectforge.business.user.UserCache;
+import org.projectforge.business.multitenancy.TenantRegistry;
+import org.projectforge.business.multitenancy.TenantRegistryMap;
+import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.business.user.service.UserService;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
@@ -59,9 +61,6 @@ import org.springframework.web.context.support.WebApplicationContextUtils;
 public class RestUserFilter implements Filter
 {
   private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(RestUserFilter.class);
-
-  @Autowired
-  private UserCache userCache;
 
   private WebApplicationContext springContext;
 
@@ -180,7 +179,7 @@ public class RestUserFilter implements Filter
     }
     try {
       loginProtection.clearLoginTimeOffset(userString, clientIpAddress);
-      ThreadLocalUserContext.setUser(userCache, user);
+      ThreadLocalUserContext.setUser(getUserGroupCache(), user);
       final ConnectionSettings settings = getConnectionSettings(req);
       ConnectionSettings.set(settings);
       final String ip = request.getRemoteAddr();
@@ -196,7 +195,7 @@ public class RestUserFilter implements Filter
           + clientIpAddress);
       chain.doFilter(request, response);
     } finally {
-      ThreadLocalUserContext.setUser(userCache, null);
+      ThreadLocalUserContext.setUser(getUserGroupCache(), null);
       ConnectionSettings.set(null);
       MDC.remove("ip");
       MDC.remove("user");
@@ -234,21 +233,21 @@ public class RestUserFilter implements Filter
   /**
    * Only for tests
    * 
-   * @param userCache
-   */
-  public void setUserCache(UserCache userCache)
-  {
-    this.userCache = userCache;
-  }
-
-  /**
-   * Only for tests
-   * 
    * @param userService
    */
   public void setUserService(UserService userService)
   {
     this.userService = userService;
+  }
+
+  public TenantRegistry getTenantRegistry()
+  {
+    return TenantRegistryMap.getInstance().getTenantRegistry();
+  }
+
+  public UserGroupCache getUserGroupCache()
+  {
+    return getTenantRegistry().getUserGroupCache();
   }
 
 }

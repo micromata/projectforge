@@ -111,7 +111,7 @@ public class MyDateConverterTest extends AbstractTestBase
     user.setTimeZone(DateHelper.EUROPE_BERLIN);
     user.setLocale(Locale.GERMAN);
     user.setDateFormat("dd.MM.yyyy");
-    ThreadLocalUserContext.setUser(userCache, user);
+    ThreadLocalUserContext.setUser(getUserGroupCache(), user);
     user = ThreadLocalUserContext.getUser(); // ThreadLocalUserContext made a copy!
     Date testDate = createDate(1970, 10, 21, 0, 0, 0, 0, DateHelper.EUROPE_BERLIN);
     assertEquals("21.11.1970", conv.convertToString(testDate, Locale.GERMAN));
@@ -136,7 +136,7 @@ public class MyDateConverterTest extends AbstractTestBase
     final PFUserDO user = new PFUserDO();
     user.setTimeZone(timeZone);
     user.setDateFormat("dd.MM.yyyy");
-    ThreadLocalUserContext.setUser(userCache, user);
+    ThreadLocalUserContext.setUser(getUserGroupCache(), user);
     Date testDate = createDate(1970, 9, 21, 0, 0, 0, 0, timeZone);
     Date date = conv.convertToObject("21.10.1970", Locale.GERMAN);
     assertDates(testDate, date);
@@ -198,7 +198,7 @@ public class MyDateConverterTest extends AbstractTestBase
     final MyDateConverter conv = new MyDateConverter();
     final PFUserDO user = new PFUserDO();
     user.setTimeZone(timeZone);
-    ThreadLocalUserContext.setUser(userCache, user);
+    ThreadLocalUserContext.setUser(getUserGroupCache(), user);
     Date testDate = createDate(1970, 9, 21, 0, 0, 0, 0, timeZone);
     Date date = conv.convertToObject("10/21/1970", Locale.ENGLISH);
     assertDates(testDate, date);

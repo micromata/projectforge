@@ -41,6 +41,7 @@ import org.projectforge.business.fibu.kost.Kost2ArtDao;
 import org.projectforge.business.fibu.kost.Kost2DO;
 import org.projectforge.business.fibu.kost.Kost2Dao;
 import org.projectforge.business.multitenancy.TenantDao;
+import org.projectforge.business.multitenancy.TenantRegistry;
 import org.projectforge.business.multitenancy.TenantRegistryMap;
 import org.projectforge.business.multitenancy.TenantService;
 import org.projectforge.business.task.TaskDO;
@@ -48,7 +49,7 @@ import org.projectforge.business.task.TaskDao;
 import org.projectforge.business.timesheet.TimesheetDO;
 import org.projectforge.business.timesheet.TimesheetDao;
 import org.projectforge.business.user.GroupDao;
-import org.projectforge.business.user.UserCache;
+import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.business.user.UserRightId;
 import org.projectforge.business.user.UserRightValue;
 import org.projectforge.business.user.service.UserService;
@@ -106,9 +107,6 @@ public class InitTestDB
 
   @Autowired
   private Kost2ArtDao kost2ArtDao;
-
-  @Autowired
-  private UserCache userCache;
 
   @Autowired
   private EmployeeDao employeeDao;
@@ -177,8 +175,17 @@ public class InitTestDB
     groupDao.internalSave(group);
     putGroup(group);
     TenantRegistryMap.getInstance().setAllUserGroupCachesAsExpired();
-    userCache.setExpired();
     return group;
+  }
+
+  public TenantRegistry getTenantRegistry()
+  {
+    return TenantRegistryMap.getInstance().getTenantRegistry();
+  }
+
+  public UserGroupCache getUserGroupCache()
+  {
+    return getTenantRegistry().getUserGroupCache();
   }
 
   public GroupDO getGroup(final String groupName)
@@ -260,7 +267,7 @@ public class InitTestDB
     final PFUserDO initUser = new PFUserDO().setUsername("Init-database-pseudo-user");
     initUser.setId(-1);
     initUser.addRight(new UserRightDO(UserRightId.FIBU_EMPLOYEE, UserRightValue.READWRITE));
-    ThreadLocalUserContext.setUser(userCache, initUser);
+    ThreadLocalUserContext.setUser(getUserGroupCache(), initUser);
     initConfiguration();
     initUsers();
     initGroups();
@@ -268,7 +275,7 @@ public class InitTestDB
     initAccess();
     initKost2Arts();
     initEmployees();
-    ThreadLocalUserContext.setUser(userCache, origUser);
+    ThreadLocalUserContext.setUser(getUserGroupCache(), origUser);
   }
 
   private void initEmployees()

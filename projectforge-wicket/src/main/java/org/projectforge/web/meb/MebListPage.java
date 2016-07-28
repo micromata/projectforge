@@ -38,7 +38,6 @@ import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.meb.MebDao;
 import org.projectforge.business.meb.MebEntryDO;
 import org.projectforge.business.meb.MebEntryStatus;
-import org.projectforge.business.user.UserCache;
 import org.projectforge.business.user.UserFormatter;
 import org.projectforge.framework.time.DateTimeFormatter;
 import org.projectforge.web.user.UserPropertyColumn;
@@ -61,9 +60,6 @@ public class MebListPage extends AbstractListPage<MebListForm, MebDao, MebEntryD
 
   @SpringBean
   private UserFormatter userFormatter;
-
-  @SpringBean
-  UserCache userCache;
 
   public MebListPage(final PageParameters parameters)
   {
@@ -118,8 +114,9 @@ public class MebListPage extends AbstractListPage<MebListForm, MebDao, MebEntryD
       }
     });
     columns
-        .add(new UserPropertyColumn<MebEntryDO>(userCache, getString("meb.owner"), "owner", "owner", cellItemListener)
-            .withUserFormatter(userFormatter));
+        .add(new UserPropertyColumn<MebEntryDO>(getUserGroupCache(), getString("meb.owner"), "owner", "owner",
+            cellItemListener)
+                .withUserFormatter(userFormatter));
     columns.add(
         new CellItemListenerPropertyColumn<MebEntryDO>(new Model<String>(getString("meb.sender")), "sender", "sender",
             cellItemListener));

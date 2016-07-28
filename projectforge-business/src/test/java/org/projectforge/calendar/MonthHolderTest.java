@@ -48,7 +48,7 @@ public class MonthHolderTest extends AbstractTestBase
   @Test
   public void testMonthHolder()
   {
-    ThreadLocalUserContext.setUser(userCache,
+    ThreadLocalUserContext.setUser(getUserGroupCache(),
         new PFUserDO().setLocale(Locale.GERMAN).setTimeZone(DateHelper.EUROPE_BERLIN));
     final DateHolder date = new DateHolder(new Date(), DatePrecision.DAY, Locale.GERMAN);
     date.setDate(1970, Calendar.NOVEMBER, 21, 0, 0, 0);

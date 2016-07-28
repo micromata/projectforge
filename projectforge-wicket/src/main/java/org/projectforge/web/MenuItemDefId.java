@@ -89,7 +89,8 @@ public enum MenuItemDefId
   SYSTEM_UPDATE("systemUpdate"), //
   TASK_TREE("taskTree"), //
   TIMESHEET_LIST("timesheetList"), //
-  USER_LIST("userList"); //
+  USER_LIST("userList"), //
+  HR("hr");
 
   private String i18nKey;
 

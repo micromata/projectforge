@@ -26,7 +26,7 @@ package org.projectforge.framework.persistence.history;
 import java.util.Date;
 
 import org.apache.commons.lang.builder.ReflectionToStringBuilder;
-import org.projectforge.business.user.UserCache;
+import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.utils.NumberHelper;
 
@@ -56,12 +56,12 @@ public class SimpleHistoryEntry
 
   private final Date timestamp;
 
-  public SimpleHistoryEntry(final UserCache userCache, final HistoryEntry entry)
+  public SimpleHistoryEntry(final UserGroupCache userGroupCache, final HistoryEntry entry)
   {
     this.timestamp = entry.getModifiedAt();
     final Integer userId = NumberHelper.parseInteger(entry.getUserName());
     if (userId != null) {
-      this.user = userCache.getUser(userId);
+      this.user = userGroupCache.getUser(userId);
     }
     // entry.getClassName();
     // entry.getComment();
@@ -69,9 +69,9 @@ public class SimpleHistoryEntry
     // entry.getEntityId();
   }
 
-  public SimpleHistoryEntry(final UserCache userCache, final HistoryEntry entry, final PropertyDelta prop)
+  public SimpleHistoryEntry(final UserGroupCache userGroupCache, final HistoryEntry entry, final PropertyDelta prop)
   {
-    this(userCache, entry);
+    this(userGroupCache, entry);
     this.propertyType = prop.getPropertyType();
     this.oldValue = prop.getOldValue();
     this.newValue = prop.getNewValue();

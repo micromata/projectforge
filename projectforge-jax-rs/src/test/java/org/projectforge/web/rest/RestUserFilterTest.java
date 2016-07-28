@@ -59,11 +59,10 @@ public class RestUserFilterTest extends AbstractTestBase
   @BeforeClass
   public void init()
   {
-    PFUserDO user = userCache.getUser(TEST_USER);
+    PFUserDO user = getUserGroupCache().getUser(TEST_USER);
     this.userId = user.getId();
     this.userToken = userService.getAuthenticationToken(this.userId);
     this.filter.setUserService(userService);
-    this.filter.setUserCache(userCache);
   }
 
   @Test

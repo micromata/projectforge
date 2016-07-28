@@ -10,6 +10,7 @@ import org.springframework.boot.web.servlet.ServletComponentScan;
 import de.micromata.genome.util.runtime.Log4JInitializer;
 
 @SpringBootApplication(scanBasePackages = { "org.projectforge", "de.micromata.mgc.jpa.spring" })
+//@EnableDiscoveryClient
 @ServletComponentScan("org.projectforge.web")
 public class ProjectForgeApplication
 {

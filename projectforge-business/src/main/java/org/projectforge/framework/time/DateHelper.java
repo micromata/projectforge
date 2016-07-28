@@ -42,6 +42,7 @@ import org.joda.time.DateTime;
 import org.joda.time.DateTimeConstants;
 import org.projectforge.common.StringHelper;
 import org.projectforge.framework.configuration.ConfigXml;
+import org.projectforge.framework.configuration.Configuration;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.utils.LabelValueBean;
 
@@ -621,9 +622,11 @@ public class DateHelper implements Serializable
    */
   public static boolean isSameMonth(final Date d1, final Date d2)
   {
-    final DateTime dt1 = new DateTime(d1);
-    final DateTime dt2 = new DateTime(d2);
-    return dt1.getYear() == dt2.getYear() && dt1.getMonthOfYear() == dt2.getMonthOfYear();
+    Calendar c1 = Calendar.getInstance();
+    c1.setTime(d1);
+    Calendar c2 = Calendar.getInstance();
+    c2.setTime(d2);
+    return c1.get(Calendar.YEAR) == c2.get(Calendar.YEAR) && c1.get(Calendar.MONTH) == c2.get(Calendar.MONTH);
   }
 
   public static boolean dateOfYearBetween(final int month, final int dayOfMonth, final int fromMonth,
@@ -695,4 +698,5 @@ public class DateHelper implements Serializable
     final Instant instant = ldt.toInstant(ZoneOffset.UTC);
     return Date.from(instant);
   }
+
 }

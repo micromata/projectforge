@@ -26,7 +26,7 @@ package org.projectforge.framework.persistence.user.api;
 import java.io.Serializable;
 
 import org.apache.commons.lang.Validate;
-import org.projectforge.business.user.UserCache;
+import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.persistence.user.entities.TenantDO;
 
@@ -47,11 +47,11 @@ public class UserContext implements Serializable
 
   private boolean stayLoggedIn;
 
-  private UserCache userCache;
+  private UserGroupCache userGroupCache;
 
-  public UserContext(UserCache userCache)
+  public UserContext(UserGroupCache userGroupCache)
   {
-    this.userCache = userCache;
+    this.userGroupCache = userGroupCache;
   }
 
   /**
@@ -60,9 +60,9 @@ public class UserContext implements Serializable
    * @param user
    * @return The created UserContext.
    */
-  public static UserContext __internalCreateWithSpecialUser(final PFUserDO user, UserCache userCache)
+  public static UserContext __internalCreateWithSpecialUser(final PFUserDO user, UserGroupCache userGroupCache)
   {
-    final UserContext userContext = new UserContext(userCache);
+    final UserContext userContext = new UserContext(userGroupCache);
     userContext.user = user;
     return userContext;
   }
@@ -73,10 +73,10 @@ public class UserContext implements Serializable
    * 
    * @param user
    */
-  public UserContext(final PFUserDO user, UserCache userCache)
+  public UserContext(final PFUserDO user, UserGroupCache userGroupCache)
   {
     Validate.notNull(user);
-    this.userCache = userCache;
+    this.userGroupCache = userGroupCache;
     if (user.hasSecretFieldValues() == true) {
       log.warn(
           "Should instantiate UserContext with user containing secret values (makes now a copy of the given user).");
@@ -108,7 +108,7 @@ public class UserContext implements Serializable
    */
   public UserContext refreshUser()
   {
-    final PFUserDO updatedUser = userCache.getUser(user.getId());
+    final PFUserDO updatedUser = userGroupCache.getUser(user.getId());
     if (updatedUser == null) {
       log.warn("Couldn't update user from UserCache, should only occur in maintenance mode!");
       return this;
