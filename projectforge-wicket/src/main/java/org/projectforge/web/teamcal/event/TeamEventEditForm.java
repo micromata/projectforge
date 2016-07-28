@@ -235,7 +235,7 @@ public class TeamEventEditForm extends AbstractEditForm<TeamEventDO, TeamEventEd
           } else {
             setDateDropChoiceVisible(false);
           }
-          target.add(startDateField.getFieldset(), endDateField.getFieldset());
+          target.add(startDateTimePanel.getTimeContainer(), endDateTimePanel.getTimeContainer());
         }
       });
       setDateDropChoiceVisible(data.isAllDay() == false);
@@ -493,6 +493,7 @@ public class TeamEventEditForm extends AbstractEditForm<TeamEventDO, TeamEventEd
             .withRequired(true),
         DatePrecision.MINUTE_5);
     startDateTimePanel.getDateField().setOutputMarkupId(true);
+    startDateTimePanel.getTimeContainer().setOutputMarkupId(true);
 
     startDateField.add(startDateTimePanel);
     dateFieldToolTip(startDateTimePanel);
@@ -511,6 +512,7 @@ public class TeamEventEditForm extends AbstractEditForm<TeamEventDO, TeamEventEd
             .withRequired(true),
         DatePrecision.MINUTE_5);
     endDateTimePanel.getDateField().setOutputMarkupId(true);
+    endDateTimePanel.getTimeContainer().setOutputMarkupId(true);
     endDateTimePanel.getDateField().add(new AjaxFormComponentUpdatingBehavior("change")
     {
 
