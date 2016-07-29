@@ -191,8 +191,7 @@
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
-		<!-- Stand-alone RESTFul application for testing only -->
-		<start-class>org.projectforge.microservices.services.Main</start-class>
+		<start-class>org.projectforge.start.ProjectForgeApplication</start-class>
 
 		<sonar.host.url>https://team.micromata.de/sonar/</sonar.host.url>
 		<sonar.java.coveragePlugin>jacoco</sonar.java.coveragePlugin>
