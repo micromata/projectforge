@@ -41,7 +41,6 @@ import org.projectforge.business.fibu.Gender;
 import org.projectforge.business.fibu.api.EmployeeService;
 import org.projectforge.framework.persistence.attr.impl.GuiAttrSchemaService;
 import org.projectforge.web.common.BicValidator;
-import org.projectforge.web.common.IbanValidator;
 import org.projectforge.web.user.UserSelectPanel;
 import org.projectforge.web.wicket.AbstractEditForm;
 import org.projectforge.web.wicket.WicketUtils;
@@ -171,7 +170,6 @@ public class EmployeeEditForm extends AbstractEditForm<EmployeeDO, EmployeeEditP
     final MaxLengthTextFieldWithRequiredSupplier ibanTextField = new MaxLengthTextFieldWithRequiredSupplier(
         InputPanel.WICKET_ID, new PropertyModel<>(data, "iban"));
     ibanTextField.setMarkupId("iban").setOutputMarkupId(true);
-    ibanTextField.add(new IbanValidator());
     ibanFs.add(ibanTextField);
 
     // validation: if one of account holder or IBAN is set, the other one has also to be set
