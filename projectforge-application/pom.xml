@@ -18,6 +18,9 @@
 			<distribution>manual</distribution>
 		</license>
 	</licenses>
+	<properties>
+		<start-class>org.projectforge.start.ProjectForgeApplication</start-class>
+	</properties>
 	<dependencies>
 		<!-- PF -->
 		<dependency>
