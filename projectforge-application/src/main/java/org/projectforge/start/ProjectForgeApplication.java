@@ -12,8 +12,6 @@ import org.springframework.boot.web.servlet.ServletComponentScan;
 @ServletComponentScan("org.projectforge.web")
 public class ProjectForgeApplication
 {
-  private static boolean loggingInited = false;
-
   public static void main(String[] args)
   {
     TimeZone.setDefault(DateHelper.UTC);
