@@ -307,7 +307,7 @@ public class EmployeeEditForm extends AbstractEditForm<EmployeeDO, EmployeeEditP
     createBankingDetails(gridBuilder, data);
 
     // TODO CT
-    final GridBuilder gb2 = gridBuilder = tabPanel.newTab("Abrechnungsdaten", false);
+    final GridBuilder gb2 = tabPanel.newTab("Abrechnungsdaten", false);
 
     gb2.newSplitPanel(GridSize.COL100, true); // set hasSubSplitPanel to true to remove borders from this split panel
     {
