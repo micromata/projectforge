@@ -1,6 +1,7 @@
 package org.projectforge.web.selenium;
 
 import org.openqa.selenium.By;
+import org.openqa.selenium.Keys;
 import org.openqa.selenium.StaleElementReferenceException;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
@@ -193,6 +194,7 @@ public abstract class TestPageBase<T extends TestPageBase>
         Assert.fail(e.getMessage());
       }
     } while (groupsToAdd1.size() != beginSize);
+    driver.findElement(By.xpath(input)).sendKeys(Keys.ESCAPE);
     return (T) this;
   }
 

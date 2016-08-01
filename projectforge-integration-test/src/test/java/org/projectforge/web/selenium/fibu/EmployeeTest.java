@@ -3,13 +3,49 @@ package org.projectforge.web.selenium.fibu;
 import static org.testng.Assert.assertTrue;
 
 import org.openqa.selenium.InvalidSelectorException;
+import org.projectforge.web.selenium.Const;
 import org.projectforge.web.selenium.login.SeleniumLoginPage;
 import org.projectforge.web.selenium.SeleniumSuiteTestBase;
 import org.projectforge.web.selenium.TestPageBase;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 public class EmployeeTest extends SeleniumSuiteTestBase
 {
+
+  @BeforeClass
+  public void createAdminEmployee() {
+
+    new SeleniumLoginPage()
+        .callPage()
+        .loginAsAdmin();
+    boolean caughtException = false;
+    SeleniumEmployeeListPage seleniumEmployeeListPage = new SeleniumEmployeeListPage();
+
+    try {
+      seleniumEmployeeListPage
+          .callPage()
+          .clickRowWhereColumnLike("Administrator");
+    } catch (Exception e) {
+      caughtException = true;
+    }
+
+    if (caughtException == true) {
+      seleniumEmployeeListPage
+          .addEntry()
+          .callPage()
+          .setKost1("3.000.00.00")
+          .setStatus(SeleniumEmployeeEditPage.status_FEST_ANGESTELLTER)
+          .setAssociatedUsername(Const.ADMIN_USERNAME)
+          .setGender(SeleniumEmployeeEditPage.gender_MALE)
+          .setStaffNumber("1234")
+          .setPayeTaxNumber("abc")
+          .clickCreateOrUpdate();
+    }
+
+    new SeleniumLoginPage().logout();
+
+  }
 
   @Test
   public void testRequiredBankingDetails()

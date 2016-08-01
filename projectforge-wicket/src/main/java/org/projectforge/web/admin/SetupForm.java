@@ -129,8 +129,12 @@ public class SetupForm extends AbstractForm<SetupForm, SetupPage>
     {
       // User name
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("username"));
+      RequiredMaxLengthTextField usernameTextField = new RequiredMaxLengthTextField(InputPanel.WICKET_ID,
+          new PropertyModel<String>(adminUser, "username"), 100);
+      usernameTextField.setMarkupId("username");
+      usernameTextField.setOutputMarkupId(true);
       fs.add(
-          new RequiredMaxLengthTextField(InputPanel.WICKET_ID, new PropertyModel<String>(adminUser, "username"), 100));
+          usernameTextField);
     }
     final PasswordTextField passwordField = new PasswordTextField(PasswordPanel.WICKET_ID,
         new PropertyModel<String>(this, "password"))
@@ -146,6 +150,7 @@ public class SetupForm extends AbstractForm<SetupForm, SetupPage>
         }
       }
     };
+    passwordField.setMarkupId("password").setOutputMarkupId(true);
     {
       // Password
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("password"));
@@ -172,6 +177,7 @@ public class SetupForm extends AbstractForm<SetupForm, SetupPage>
         }
       };
       passwordRepeatField.setRequired(true); // No setReset(true), otherwise uploading and re-entering passwords is a real pain.
+      passwordRepeatField.setMarkupId("passwordRepeat").setOutputMarkupId(true);
       passwordRepeatField.add(new IValidator<String>()
       {
         @Override
@@ -214,6 +220,7 @@ public class SetupForm extends AbstractForm<SetupForm, SetupPage>
               "calendarDomain"),
           ConfigurationDO.PARAM_LENGTH);
       fs.add(textField);
+      textField.setMarkupId("calendarDomain").setOutputMarkupId(true);
       textField.add(new IValidator<String>()
       {
         @Override
@@ -256,6 +263,7 @@ public class SetupForm extends AbstractForm<SetupForm, SetupPage>
           parentPage.finishSetup();
         }
       };
+      finishButton.setMarkupId("finish").setOutputMarkupId(true);
       final SingleButtonPanel finishButtonPanel = new SingleButtonPanel(actionButtons.newChildId(), finishButton,
           getString("administration.setup.finish"), SingleButtonPanel.DEFAULT_SUBMIT);
       actionButtons.add(finishButtonPanel);
