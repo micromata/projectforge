@@ -6,10 +6,10 @@
 <body>
   <wicket:extend>
     <script wicket:id="showDeleteQuestionDialog" type="text/javascript">
-					function showDeleteQuestionDialog() {
-						return window.confirm("Delete...?");
-					}
-				</script>
+        function showDeleteQuestionDialog() {
+            return window.confirm("Delete...?");
+        }
+    </script>
 
     <div class="tabbable">
       <ul class="nav nav-tabs">
@@ -17,7 +17,10 @@
         <li><a href="#history" data-toggle="tab"><wicket:message key="label.historyOfChanges" /></a></li>
       </ul>
     </div>
+
     <div class="tab-content">
+
+      <!-- editform -->
       <div id="editform" class="tab-pane active">
         <form wicket:id="form" autocomplete="off">
           <div wicket:id="feedback"></div>
@@ -30,6 +33,8 @@
           <input type="hidden" wicket:id="csrfToken" />
         </form>
       </div>
+
+      <!-- history -->
       <div id="history" class="tab-pane">
         <div class="row">
           <div class="span6">
@@ -54,10 +59,9 @@
             <td>[history table]</td>
           </tr>
         </table>
-
-        <!-- history END -->
       </div>
-    </div>
+
+      </div>
   </wicket:extend>
 </body>
 </html>

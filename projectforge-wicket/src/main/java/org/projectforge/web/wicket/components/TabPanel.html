@@ -1,0 +1,17 @@
+<wicket:panel xmlns:wicket="http://wicket.apache.org">
+
+    <div class="tabbable">
+        <ul class="nav nav-tabs">
+            <li wicket:id="tabs">
+                <a data-toggle="tab" wicket:id="tabLink"></a>
+            </li>
+        </ul>
+    </div>
+
+    <div class="tab-content">
+        <div class="tab-pane" wicket:id="tabPanes">
+            <wicket:container wicket:id="tabContainer"></wicket:container>
+        </div>
+    </div>
+
+</wicket:panel>
