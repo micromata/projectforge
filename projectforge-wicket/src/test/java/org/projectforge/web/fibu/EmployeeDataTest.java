@@ -1,66 +1,73 @@
 package org.projectforge.web.fibu;
 
+import static org.testng.Assert.assertEquals;
+
 import org.apache.wicket.validation.Validatable;
 import org.projectforge.web.common.BicValidator;
 import org.projectforge.web.common.IbanValidator;
 import org.testng.annotations.Test;
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertNull;
-import static org.testng.Assert.assertTrue;
 
-public class EmployeeDataTest {
-    @Test
-    public void testBicValidator() {
-        BicValidator bicValidator = new BicValidator();
+public class EmployeeDataTest
+{
+  @Test
+  public void testBicValidator()
+  {
+    BicValidator bicValidator = new BicValidator();
 
-        Validatable<String> validatable = new Validatable<>("12345678");
-        bicValidator.validate(validatable);
+    Validatable<String> validatable = new Validatable<>("12345678");
+    bicValidator.validate(validatable);
 
-        assertEquals(validatable.getErrors().size(),0);
+    assertEquals(validatable.getErrors().size(), 0);
 
-        validatable = new Validatable<>("123456789AB");
-        bicValidator.validate(validatable);
+    validatable = new Validatable<>("123456789AB");
+    bicValidator.validate(validatable);
 
-        assertEquals(validatable.getErrors().size(),0);
+    assertEquals(validatable.getErrors().size(), 0);
 
-        validatable = new Validatable<>("12345");
-        bicValidator.validate(validatable);
+    validatable = new Validatable<>("12345");
+    bicValidator.validate(validatable);
 
-        assertEquals(validatable.getErrors().size(),1);
+    assertEquals(validatable.getErrors().size(), 1);
 
-        validatable = new Validatable<>("123456789A");
-        bicValidator.validate(validatable);
+    validatable = new Validatable<>("123456789A");
+    bicValidator.validate(validatable);
 
-        assertEquals(validatable.getErrors().size(),1);
+    assertEquals(validatable.getErrors().size(), 1);
 
-        validatable = new Validatable<>("123456789ABCDEF");
-        bicValidator.validate(validatable);
+    validatable = new Validatable<>("123456789ABCDEF");
+    bicValidator.validate(validatable);
 
-        assertEquals(validatable.getErrors().size(),1);
-    }
+    assertEquals(validatable.getErrors().size(), 1);
+  }
 
-    @Test
-    public void testIbanValidator() {
-        IbanValidator ibanValidator = new IbanValidator();
+  @Test
+  public void testIbanValidator()
+  {
+    IbanValidator ibanValidator = new IbanValidator();
 
-        Validatable<String> myiban = new Validatable<>("MYIBAN");
-        ibanValidator.validate(myiban);
+    Validatable<String> myiban = new Validatable<>("MYIBAN");
+    ibanValidator.validate(myiban);
 
-        assertEquals(myiban.getErrors().size(),0);
+    assertEquals(myiban.getErrors().size(), 0);
 
-        myiban = new Validatable<>("DEAAAAAAAAAAAAAAAAAAAA");
-        ibanValidator.validate(myiban);
+    myiban = new Validatable<>("DEAAAAAAAAAAAAAAAAAAAA");
+    ibanValidator.validate(myiban);
 
-        assertEquals(myiban.getErrors().size(),0);
+    assertEquals(myiban.getErrors().size(), 0);
 
-        myiban = new Validatable<>("DEAAAAAAAAAAAAAA");
-        ibanValidator.validate(myiban);
+    myiban = new Validatable<>("      DE 19 1234 1234 1234 1234 12");
+    ibanValidator.validate(myiban);
 
-        assertEquals(myiban.getErrors().size(),1);
+    assertEquals(myiban.getErrors().size(), 0);
 
-        myiban = new Validatable<>("DEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
-        ibanValidator.validate(myiban);
+    myiban = new Validatable<>("DEAAAAAAAAAAAAAA");
+    ibanValidator.validate(myiban);
 
-        assertEquals(myiban.getErrors().size(),1);
-    }
+    assertEquals(myiban.getErrors().size(), 1);
+
+    myiban = new Validatable<>("DEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
+    ibanValidator.validate(myiban);
+
+    assertEquals(myiban.getErrors().size(), 1);
+  }
 }
