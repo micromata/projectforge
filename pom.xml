@@ -254,7 +254,7 @@
 		<postgresql.version>9.4-1206-jdbc42</postgresql.version>
 		<hsqldb.version>1.8.0.10</hsqldb.version>
 		<jersey.version>1.19</jersey.version>
-		<codehaus-jackson.version>1.9.13</codehaus-jackson.version> 
+		<codehaus-jackson.version>1.9.13</codehaus-jackson.version>
 		<testng.versionj>6.9.9</testng.versionj>
 		<log4j.version>1.2.17</log4j.version>
 		<gson.version>2.5</gson.version>
@@ -275,7 +275,7 @@
 				</exclusion>
 			</exclusions>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-log4j</artifactId>
@@ -317,7 +317,7 @@
 			<artifactId>hibernate-entitymanager</artifactId>
 			<version>${hibernate.version}</version>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>de.micromata.mgc</groupId>
 			<artifactId>de.micromata.mgc.common</artifactId>
