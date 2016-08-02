@@ -145,6 +145,9 @@ public class ConfigurationServiceImpl implements ConfigurationService
   @Value("${pf.config.security.sqlConsoleAvailable:false}")
   private boolean sqlConsoleAvailable;
 
+  @Value("${pf.config.compileCss:true}")
+  private boolean compileCss;
+
   @PostConstruct
   public void init()
   {
@@ -572,6 +575,12 @@ public class ConfigurationServiceImpl implements ConfigurationService
   public boolean isSqlConsoleAvailable()
   {
     return sqlConsoleAvailable;
+  }
+
+  @Override
+  public boolean getCompileCss()
+  {
+    return compileCss;
   }
 
 }
