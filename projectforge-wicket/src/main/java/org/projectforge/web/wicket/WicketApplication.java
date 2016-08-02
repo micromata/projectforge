@@ -419,7 +419,7 @@ public class WicketApplication extends WebApplication implements WicketApplicati
     // initialize styles compiler
     try {
       final LessWicketApplicationInstantiator lessInstantiator = new LessWicketApplicationInstantiator(this, "styles",
-          "projectforge.less", "projectforge.css", this.baseDir);
+          "projectforge.less", "projectforge.css", this.baseDir, configurationService.getCompileCss());
       lessInstantiator.instantiate();
     } catch (final Exception e) {
       log.error("Unable to instantiate wicket less compiler", e);
