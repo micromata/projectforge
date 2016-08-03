@@ -105,12 +105,12 @@ public class BeanHelper
       fieldnameToCheck = fieldSplit[fieldSplit.length - 1];
       String[] fieldSplitWithoutLast = Arrays.copyOf(fieldSplit, fieldSplit.length - 1);
       for (String s : fieldSplitWithoutLast) {
-        Field declaredField = getDeclaredField(clazz, s);
+        Field declaredField = getDeclaredField(classToCheck, s);
         classToCheck = declaredField.getType();
       }
     }
     Field field = getDeclaredField(classToCheck, fieldnameToCheck);
-    return field.getDeclaredAnnotations();
+    return field == null ? null : field.getDeclaredAnnotations();
   }
 
   /**
