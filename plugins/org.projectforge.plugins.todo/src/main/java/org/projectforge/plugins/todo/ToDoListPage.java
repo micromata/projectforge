@@ -241,7 +241,7 @@ public class ToDoListPage extends AbstractListPage<ToDoListForm, ToDoDao, ToDoDO
   }
 
   @Override
-  protected ToDoDao getBaseDao()
+  public ToDoDao getBaseDao()
   {
     return toDoDao;
   }

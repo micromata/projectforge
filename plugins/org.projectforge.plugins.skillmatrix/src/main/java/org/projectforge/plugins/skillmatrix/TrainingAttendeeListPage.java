@@ -193,7 +193,7 @@ public class TrainingAttendeeListPage
    * @see org.projectforge.web.wicket.AbstractListPage#getBaseDao()
    */
   @Override
-  protected TrainingAttendeeDao getBaseDao()
+  public TrainingAttendeeDao getBaseDao()
   {
     return trainingAttendeeDao;
   }

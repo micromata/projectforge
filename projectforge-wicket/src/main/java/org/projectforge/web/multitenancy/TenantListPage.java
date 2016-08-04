@@ -47,7 +47,8 @@ import org.projectforge.web.wicket.ListSelectActionPanel;
 import org.projectforge.web.wicket.RowCssClass;
 
 @ListPage(editPage = TenantEditPage.class)
-public class TenantListPage extends AbstractListPage<TenantListForm, TenantDao, TenantDO> implements IListPageColumnsCreator<TenantDO>
+public class TenantListPage extends AbstractListPage<TenantListForm, TenantDao, TenantDO>
+    implements IListPageColumnsCreator<TenantDO>
 {
   private static final long serialVersionUID = 7227240465661485515L;
 
@@ -63,8 +64,10 @@ public class TenantListPage extends AbstractListPage<TenantListForm, TenantDao, 
   public List<IColumn<TenantDO, String>> createColumns(final WebPage returnToPage, final boolean sortable)
   {
     final List<IColumn<TenantDO, String>> columns = new ArrayList<IColumn<TenantDO, String>>();
-    final CellItemListener<TenantDO> cellItemListener = new CellItemListener<TenantDO>() {
-      public void populateItem(final Item<ICellPopulator<TenantDO>> item, final String componentId, final IModel<TenantDO> rowModel)
+    final CellItemListener<TenantDO> cellItemListener = new CellItemListener<TenantDO>()
+    {
+      public void populateItem(final Item<ICellPopulator<TenantDO>> item, final String componentId,
+          final IModel<TenantDO> rowModel)
       {
         final TenantDO tenant = rowModel.getObject();
         appendCssClasses(item, tenant.getId(), tenant.isDeleted());
@@ -73,33 +76,40 @@ public class TenantListPage extends AbstractListPage<TenantListForm, TenantDao, 
         }
       }
     };
-    columns.add(new CellItemListenerPropertyColumn<TenantDO>(new Model<String>(getString("created")), getSortable("created", sortable),
-        "created", cellItemListener) {
+    columns.add(new CellItemListenerPropertyColumn<TenantDO>(new Model<String>(getString("created")),
+        getSortable("created", sortable),
+        "created", cellItemListener)
+    {
       /**
        * @see org.projectforge.web.wicket.CellItemListenerPropertyColumn#populateItem(org.apache.wicket.markup.repeater.Item,
        *      java.lang.String, org.apache.wicket.model.IModel)
        */
       @Override
-      public void populateItem(final Item<ICellPopulator<TenantDO>> item, final String componentId, final IModel<TenantDO> rowModel)
+      public void populateItem(final Item<ICellPopulator<TenantDO>> item, final String componentId,
+          final IModel<TenantDO> rowModel)
       {
         final TenantDO Tenant = rowModel.getObject();
-        item.add(new ListSelectActionPanel(componentId, rowModel, TenantEditPage.class, Tenant.getId(), returnToPage, DateTimeFormatter
-            .instance().getFormattedDate(Tenant.getCreated())));
+        item.add(new ListSelectActionPanel(componentId, rowModel, TenantEditPage.class, Tenant.getId(), returnToPage,
+            DateTimeFormatter
+                .instance().getFormattedDate(Tenant.getCreated())));
         addRowClick(item);
         cellItemListener.populateItem(item, componentId, rowModel);
       }
     });
     columns.add(new CellItemListenerPropertyColumn<TenantDO>(getString("id"), getSortable("id", sortable), "id",
         cellItemListener));
-    columns.add(new CellItemListenerPropertyColumn<TenantDO>(getString("multitenancy.tenant.shortName"), getSortable("shortName", sortable), "shortName",
+    columns.add(new CellItemListenerPropertyColumn<TenantDO>(getString("multitenancy.tenant.shortName"),
+        getSortable("shortName", sortable), "shortName",
         cellItemListener));
     columns.add(new CellItemListenerPropertyColumn<TenantDO>(getString("name"), getSortable("name", sortable), "name",
         cellItemListener));
-    columns.add(new CellItemListenerPropertyColumn<TenantDO>(getString("description"), getSortable("description", sortable), "description",
+    columns.add(new CellItemListenerPropertyColumn<TenantDO>(getString("description"),
+        getSortable("description", sortable), "description",
         cellItemListener));
-    
-    columns.add(new CellItemListenerPropertyColumn<TenantDO>(getString("multitenancy.assignedUsers"), getSortable("usernames",
-        sortable), "usernames", cellItemListener));
+
+    columns.add(
+        new CellItemListenerPropertyColumn<TenantDO>(getString("multitenancy.assignedUsers"), getSortable("usernames",
+            sortable), "usernames", cellItemListener));
     return columns;
   }
 
@@ -111,13 +121,13 @@ public class TenantListPage extends AbstractListPage<TenantListForm, TenantDao, 
   }
 
   @Override
-  protected TenantListForm newListForm(final AbstractListPage< ? , ? , ? > parentPage)
+  protected TenantListForm newListForm(final AbstractListPage<?, ?, ?> parentPage)
   {
     return new TenantListForm(this);
   }
 
   @Override
-  protected TenantDao getBaseDao()
+  public TenantDao getBaseDao()
   {
     return tenantDao;
   }

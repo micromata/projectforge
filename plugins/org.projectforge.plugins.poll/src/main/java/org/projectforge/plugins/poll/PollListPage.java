@@ -123,7 +123,7 @@ public class PollListPage extends AbstractListPage<PollListForm, PollDao, PollDO
    * @see org.projectforge.web.wicket.AbstractListPage#getBaseDao()
    */
   @Override
-  protected PollDao getBaseDao()
+  public PollDao getBaseDao()
   {
     return pollDao;
   }

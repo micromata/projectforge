@@ -178,17 +178,17 @@ public class AddressListPage extends AbstractListPage<AddressListForm, AddressDa
 
         view.add(new IconLinkPanel(view.newChildId(), IconType.PRINT, new ResourceModel("printView"),
             new Link<Void>(IconLinkPanel.LINK_ID)
-        {
+            {
 
-          @Override
-          public void onClick()
-          {
-            final PageParameters params = new PageParameters();
-            params.add(AbstractEditPage.PARAMETER_KEY_ID, address.getId());
-            final AddressViewPage addressViewPage = new AddressViewPage(params);
-            setResponsePage(addressViewPage);
-          }
-        }));
+              @Override
+              public void onClick()
+              {
+                final PageParameters params = new PageParameters();
+                params.add(AbstractEditPage.PARAMETER_KEY_ID, address.getId());
+                final AddressViewPage addressViewPage = new AddressViewPage(params);
+                setResponsePage(addressViewPage);
+              }
+            }));
         addRowClick(item);
         cellItemListener.populateItem(item, componentId, rowModel);
       }
@@ -512,7 +512,7 @@ public class AddressListPage extends AbstractListPage<AddressListForm, AddressDa
   }
 
   @Override
-  protected AddressDao getBaseDao()
+  public AddressDao getBaseDao()
   {
     return addressDao;
   }

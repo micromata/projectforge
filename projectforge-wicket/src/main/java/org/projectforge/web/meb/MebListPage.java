@@ -143,7 +143,7 @@ public class MebListPage extends AbstractListPage<MebListForm, MebDao, MebEntryD
   }
 
   @Override
-  protected MebDao getBaseDao()
+  public MebDao getBaseDao()
   {
     return mebDao;
   }

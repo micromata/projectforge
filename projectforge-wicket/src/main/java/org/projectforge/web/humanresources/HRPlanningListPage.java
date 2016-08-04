@@ -279,7 +279,7 @@ public class HRPlanningListPage extends AbstractListPage<HRPlanningListForm, HRP
   }
 
   @Override
-  protected HRPlanningEntryDao getBaseDao()
+  public HRPlanningEntryDao getBaseDao()
   {
     return hrPlanningEntryDao;
   }

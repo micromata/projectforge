@@ -130,7 +130,7 @@ public class ContactListPage extends AbstractListPage<ContactListForm, ContactDa
    * @see org.projectforge.web.wicket.AbstractListPage#getBaseDao()
    */
   @Override
-  protected ContactDao getBaseDao()
+  public ContactDao getBaseDao()
   {
     return contactDao;
   }

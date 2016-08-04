@@ -45,7 +45,8 @@ import org.projectforge.web.wicket.ListPage;
 import org.projectforge.web.wicket.ListSelectActionPanel;
 
 @ListPage(editPage = ContractEditPage.class)
-public class ContractListPage extends AbstractListPage<ContractListForm, ContractDao, ContractDO> implements IListPageColumnsCreator<ContractDO>
+public class ContractListPage extends AbstractListPage<ContractListForm, ContractDao, ContractDO>
+    implements IListPageColumnsCreator<ContractDO>
 {
   private static final long serialVersionUID = 671935723386728113L;
 
@@ -58,7 +59,8 @@ public class ContractListPage extends AbstractListPage<ContractListForm, Contrac
   }
 
   /**
-   * @see org.projectforge.web.wicket.IListPageColumnsCreator#createColumns(org.apache.wicket.markup.html.WebPage, boolean)
+   * @see org.projectforge.web.wicket.IListPageColumnsCreator#createColumns(org.apache.wicket.markup.html.WebPage,
+   *      boolean)
    */
   @SuppressWarnings("serial")
   @Override
@@ -66,37 +68,48 @@ public class ContractListPage extends AbstractListPage<ContractListForm, Contrac
   {
     final List<IColumn<ContractDO, String>> columns = new ArrayList<IColumn<ContractDO, String>>();
 
-    final CellItemListener<ContractDO> cellItemListener = new CellItemListener<ContractDO>() {
-      public void populateItem(final Item<ICellPopulator<ContractDO>> item, final String componentId, final IModel<ContractDO> rowModel)
+    final CellItemListener<ContractDO> cellItemListener = new CellItemListener<ContractDO>()
+    {
+      public void populateItem(final Item<ICellPopulator<ContractDO>> item, final String componentId,
+          final IModel<ContractDO> rowModel)
       {
         final ContractDO contract = rowModel.getObject();
         appendCssClasses(item, contract.getId(), contract.isDeleted());
       }
     };
-    columns.add(new CellItemListenerPropertyColumn<ContractDO>(getString("legalAffaires.contract.number"), "number", "number",
-        cellItemListener) {
-      @SuppressWarnings({ "unchecked", "rawtypes"})
-      @Override
-      public void populateItem(final Item item, final String componentId, final IModel rowModel)
-      {
-        final ContractDO contract = (ContractDO) rowModel.getObject();
-        item.add(new ListSelectActionPanel(componentId, rowModel, ContractEditPage.class, contract.getId(), returnToPage,
-            NumberHelper.getAsString(contract.getNumber())));
-        cellItemListener.populateItem(item, componentId, rowModel);
-        addRowClick(item);
-      }
-    });
+    columns.add(
+        new CellItemListenerPropertyColumn<ContractDO>(getString("legalAffaires.contract.number"), "number", "number",
+            cellItemListener)
+        {
+          @SuppressWarnings({ "unchecked", "rawtypes" })
+          @Override
+          public void populateItem(final Item item, final String componentId, final IModel rowModel)
+          {
+            final ContractDO contract = (ContractDO) rowModel.getObject();
+            item.add(
+                new ListSelectActionPanel(componentId, rowModel, ContractEditPage.class, contract.getId(), returnToPage,
+                    NumberHelper.getAsString(contract.getNumber())));
+            cellItemListener.populateItem(item, componentId, rowModel);
+            addRowClick(item);
+          }
+        });
     columns.add(new CellItemListenerPropertyColumn<ContractDO>(getString("date"), "date", "date", cellItemListener));
-    columns.add(new CellItemListenerPropertyColumn<ContractDO>(getString("legalAffaires.contract.type"), "type", "type", cellItemListener));
-    columns.add(new CellItemListenerPropertyColumn<ContractDO>(getString("status"), "status", "status", cellItemListener));
-    columns.add(new CellItemListenerPropertyColumn<ContractDO>(getString("title"), "title", "title", cellItemListener));
-    columns.add(new CellItemListenerPropertyColumn<ContractDO>(getString("legalAffaires.contract.coContractorA"), "coContractorA",
-        "coContractorA", cellItemListener));
-    columns.add(new CellItemListenerPropertyColumn<ContractDO>(getString("legalAffaires.contract.coContractorB"), "coContractorB",
-        "coContractorB", cellItemListener));
-    columns.add(new CellItemListenerPropertyColumn<ContractDO>(getString("resubmissionOnDate"), "resubmissionOnDate", "resubmissionOnDate",
+    columns.add(new CellItemListenerPropertyColumn<ContractDO>(getString("legalAffaires.contract.type"), "type", "type",
         cellItemListener));
-    columns.add(new CellItemListenerPropertyColumn<ContractDO>(getString("dueDate"), "dueDate", "dueDate", cellItemListener));
+    columns
+        .add(new CellItemListenerPropertyColumn<ContractDO>(getString("status"), "status", "status", cellItemListener));
+    columns.add(new CellItemListenerPropertyColumn<ContractDO>(getString("title"), "title", "title", cellItemListener));
+    columns.add(new CellItemListenerPropertyColumn<ContractDO>(getString("legalAffaires.contract.coContractorA"),
+        "coContractorA",
+        "coContractorA", cellItemListener));
+    columns.add(new CellItemListenerPropertyColumn<ContractDO>(getString("legalAffaires.contract.coContractorB"),
+        "coContractorB",
+        "coContractorB", cellItemListener));
+    columns.add(new CellItemListenerPropertyColumn<ContractDO>(getString("resubmissionOnDate"), "resubmissionOnDate",
+        "resubmissionOnDate",
+        cellItemListener));
+    columns.add(
+        new CellItemListenerPropertyColumn<ContractDO>(getString("dueDate"), "dueDate", "dueDate", cellItemListener));
     return columns;
   }
 
@@ -108,13 +121,13 @@ public class ContractListPage extends AbstractListPage<ContractListForm, Contrac
   }
 
   @Override
-  protected ContractListForm newListForm(final AbstractListPage< ? , ? , ? > parentPage)
+  protected ContractListForm newListForm(final AbstractListPage<?, ?, ?> parentPage)
   {
     return new ContractListForm(this);
   }
 
   @Override
-  protected ContractDao getBaseDao()
+  public ContractDao getBaseDao()
   {
     return contractDao;
   }

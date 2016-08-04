@@ -305,7 +305,7 @@ public class AuftragListPage extends AbstractListPage<AuftragListForm, AuftragDa
   }
 
   @Override
-  protected AuftragDao getBaseDao()
+  public AuftragDao getBaseDao()
   {
     return auftragDao;
   }

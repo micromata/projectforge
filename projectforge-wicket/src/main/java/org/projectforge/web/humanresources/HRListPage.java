@@ -348,7 +348,7 @@ public class HRListPage extends AbstractListPage<HRListForm, HRDao, HRViewUserDa
   }
 
   @Override
-  protected HRDao getBaseDao()
+  public HRDao getBaseDao()
   {
     return hrDao;
   }

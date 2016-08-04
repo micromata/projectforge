@@ -177,7 +177,7 @@ public class SkillListPage extends AbstractListPage<SkillListForm, SkillDao, Ski
    * @see org.projectforge.web.wicket.AbstractListPage#getBaseDao()
    */
   @Override
-  protected SkillDao getBaseDao()
+  public SkillDao getBaseDao()
   {
     return skillDao;
   }

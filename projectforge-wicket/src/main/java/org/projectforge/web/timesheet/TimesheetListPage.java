@@ -476,7 +476,7 @@ public class TimesheetListPage extends AbstractListPage<TimesheetListForm, Times
   }
 
   @Override
-  protected TimesheetDao getBaseDao()
+  public TimesheetDao getBaseDao()
   {
     return timesheetDao;
   }

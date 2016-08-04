@@ -388,7 +388,7 @@ public class RechnungListPage extends AbstractListPage<RechnungListForm, Rechnun
   }
 
   @Override
-  protected RechnungDao getBaseDao()
+  public RechnungDao getBaseDao()
   {
     return rechnungDao;
   }

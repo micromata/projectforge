@@ -36,7 +36,6 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
-import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.business.fibu.KontoDO;
 import org.projectforge.business.fibu.KostFormatter;
 import org.projectforge.business.fibu.kost.AccountingConfig;
@@ -55,6 +54,7 @@ import org.projectforge.web.wicket.CurrencyPropertyColumn;
 import org.projectforge.web.wicket.IListPageColumnsCreator;
 import org.projectforge.web.wicket.ListPage;
 import org.projectforge.web.wicket.ListSelectActionPanel;
+import org.projectforge.web.wicket.WicketUtils;
 import org.springframework.util.CollectionUtils;
 
 @ListPage(editPage = AccountingRecordEditPage.class)
@@ -248,7 +248,7 @@ public class AccountingRecordListPage
   }
 
   @Override
-  protected BuchungssatzDao getBaseDao()
+  public BuchungssatzDao getBaseDao()
   {
     return buchungssatzDao;
   }

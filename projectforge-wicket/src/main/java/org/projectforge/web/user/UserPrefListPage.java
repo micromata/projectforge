@@ -153,7 +153,7 @@ public class UserPrefListPage extends AbstractListPage<UserPrefListForm, UserPre
   }
 
   @Override
-  protected UserPrefDao getBaseDao()
+  public UserPrefDao getBaseDao()
   {
     return userPrefDao;
   }

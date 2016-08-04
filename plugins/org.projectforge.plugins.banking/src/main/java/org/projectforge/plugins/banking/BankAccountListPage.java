@@ -109,7 +109,7 @@ public class BankAccountListPage extends AbstractListPage<BankAccountListForm, B
   }
 
   @Override
-  protected BankAccountDao getBaseDao()
+  public BankAccountDao getBaseDao()
   {
     return bankAccountDao;
   }

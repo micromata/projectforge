@@ -49,7 +49,7 @@ import org.projectforge.web.wicket.flowlayout.IconType;
 
 @ListPage(editPage = Kost2ArtEditPage.class)
 public class Kost2ArtListPage extends AbstractListPage<Kost2ArtListForm, Kost2ArtDao, Kost2ArtDO> implements
-IListPageColumnsCreator<Kost2ArtDO>
+    IListPageColumnsCreator<Kost2ArtDO>
 {
   private static final long serialVersionUID = -202443770217040251L;
 
@@ -66,35 +66,47 @@ IListPageColumnsCreator<Kost2ArtDO>
   public List<IColumn<Kost2ArtDO, String>> createColumns(final WebPage returnToPage, final boolean sortable)
   {
     final List<IColumn<Kost2ArtDO, String>> columns = new ArrayList<IColumn<Kost2ArtDO, String>>();
-    final CellItemListener<Kost2ArtDO> cellItemListener = new CellItemListener<Kost2ArtDO>() {
-      public void populateItem(final Item<ICellPopulator<Kost2ArtDO>> item, final String componentId, final IModel<Kost2ArtDO> rowModel)
+    final CellItemListener<Kost2ArtDO> cellItemListener = new CellItemListener<Kost2ArtDO>()
+    {
+      public void populateItem(final Item<ICellPopulator<Kost2ArtDO>> item, final String componentId,
+          final IModel<Kost2ArtDO> rowModel)
       {
         final Kost2ArtDO kost2Art = rowModel.getObject();
         appendCssClasses(item, kost2Art.getId(), kost2Art.isDeleted());
       }
     };
-    columns.add(new CellItemListenerPropertyColumn<Kost2ArtDO>(new Model<String>(getString("fibu.kost2art.nummer")), getSortable("id",
-        sortable), "id", cellItemListener) {
+    columns.add(new CellItemListenerPropertyColumn<Kost2ArtDO>(new Model<String>(getString("fibu.kost2art.nummer")),
+        getSortable("id",
+            sortable),
+        "id", cellItemListener)
+    {
       /**
        * @see org.projectforge.web.wicket.CellItemListenerPropertyColumn#populateItem(org.apache.wicket.markup.repeater.Item,
        *      java.lang.String, org.apache.wicket.model.IModel)
        */
       @Override
-      public void populateItem(final Item<ICellPopulator<Kost2ArtDO>> item, final String componentId, final IModel<Kost2ArtDO> rowModel)
+      public void populateItem(final Item<ICellPopulator<Kost2ArtDO>> item, final String componentId,
+          final IModel<Kost2ArtDO> rowModel)
       {
         final Kost2ArtDO kost2Art = rowModel.getObject();
-        item.add(new ListSelectActionPanel(componentId, rowModel, Kost2ArtEditPage.class, kost2Art.getId(), returnToPage, StringHelper
-            .format2DigitNumber(kost2Art.getId())));
+        item.add(new ListSelectActionPanel(componentId, rowModel, Kost2ArtEditPage.class, kost2Art.getId(),
+            returnToPage, StringHelper
+                .format2DigitNumber(kost2Art.getId())));
         cellItemListener.populateItem(item, componentId, rowModel);
         addRowClick(item);
       }
     });
-    columns.add(new CellItemListenerPropertyColumn<Kost2ArtDO>(new Model<String>(getString("name")), getSortable("name", sortable), "name",
+    columns.add(new CellItemListenerPropertyColumn<Kost2ArtDO>(new Model<String>(getString("name")),
+        getSortable("name", sortable), "name",
         cellItemListener));
-    columns.add(new CellItemListenerPropertyColumn<Kost2ArtDO>(new Model<String>(getString("fibu.fakturiert")), getSortable("fakturiert",
-        sortable), "fakturiert", cellItemListener) {
+    columns.add(new CellItemListenerPropertyColumn<Kost2ArtDO>(new Model<String>(getString("fibu.fakturiert")),
+        getSortable("fakturiert",
+            sortable),
+        "fakturiert", cellItemListener)
+    {
       @Override
-      public void populateItem(final Item<ICellPopulator<Kost2ArtDO>> item, final String componentId, final IModel<Kost2ArtDO> rowModel)
+      public void populateItem(final Item<ICellPopulator<Kost2ArtDO>> item, final String componentId,
+          final IModel<Kost2ArtDO> rowModel)
       {
         final Kost2ArtDO kost2Art = rowModel.getObject();
         if (kost2Art.isFakturiert() == true) {
@@ -105,12 +117,18 @@ IListPageColumnsCreator<Kost2ArtDO>
         cellItemListener.populateItem(item, componentId, rowModel);
       }
     });
-    columns.add(new CellItemListenerPropertyColumn<Kost2ArtDO>(new Model<String>(getString("fibu.kost2art.workFraction")), getSortable(
-        "workFraction", sortable), "workFraction", cellItemListener));
-    columns.add(new CellItemListenerPropertyColumn<Kost2ArtDO>(new Model<String>(getString("fibu.kost2art.projektStandard")), getSortable(
-        "projektStandard", sortable), "projektStandard", cellItemListener) {
+    columns.add(new CellItemListenerPropertyColumn<Kost2ArtDO>(
+        new Model<String>(getString("fibu.kost2art.workFraction")), getSortable(
+            "workFraction", sortable),
+        "workFraction", cellItemListener));
+    columns.add(new CellItemListenerPropertyColumn<Kost2ArtDO>(
+        new Model<String>(getString("fibu.kost2art.projektStandard")), getSortable(
+            "projektStandard", sortable),
+        "projektStandard", cellItemListener)
+    {
       @Override
-      public void populateItem(final Item<ICellPopulator<Kost2ArtDO>> item, final String componentId, final IModel<Kost2ArtDO> rowModel)
+      public void populateItem(final Item<ICellPopulator<Kost2ArtDO>> item, final String componentId,
+          final IModel<Kost2ArtDO> rowModel)
       {
         final Kost2ArtDO kost2Art = rowModel.getObject();
         if (kost2Art.isProjektStandard() == true) {
@@ -121,8 +139,10 @@ IListPageColumnsCreator<Kost2ArtDO>
         cellItemListener.populateItem(item, componentId, rowModel);
       }
     });
-    columns.add(new CellItemListenerPropertyColumn<Kost2ArtDO>(new Model<String>(getString("description")), getSortable("description",
-        sortable), "description", cellItemListener));
+    columns.add(new CellItemListenerPropertyColumn<Kost2ArtDO>(new Model<String>(getString("description")),
+        getSortable("description",
+            sortable),
+        "description", cellItemListener));
     return columns;
   }
 
@@ -134,13 +154,13 @@ IListPageColumnsCreator<Kost2ArtDO>
   }
 
   @Override
-  protected Kost2ArtListForm newListForm(final AbstractListPage< ? , ? , ? > parentPage)
+  protected Kost2ArtListForm newListForm(final AbstractListPage<?, ?, ?> parentPage)
   {
     return new Kost2ArtListForm(this);
   }
 
   @Override
-  protected Kost2ArtDao getBaseDao()
+  public Kost2ArtDao getBaseDao()
   {
     return kost2ArtDao;
   }

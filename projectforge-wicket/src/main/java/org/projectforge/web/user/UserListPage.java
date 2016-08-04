@@ -79,12 +79,12 @@ public class UserListPage extends AbstractListPage<UserListForm, UserDao, PFUser
 
   @SpringBean
   private LdapUserDao ldapUserDao;
-  
+
   @SpringBean
   private GroupService groupService;
-  
+
   @SpringBean
-  private TenantService tenantService;  
+  private TenantService tenantService;
 
   public UserListPage(final PageParameters parameters)
   {
@@ -260,7 +260,7 @@ public class UserListPage extends AbstractListPage<UserListForm, UserDao, PFUser
   }
 
   @Override
-  protected UserDao getBaseDao()
+  public UserDao getBaseDao()
   {
     return userDao;
   }

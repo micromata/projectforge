@@ -197,7 +197,7 @@ public class Kost1ListPage extends AbstractListPage<Kost1ListForm, Kost1Dao, Kos
   }
 
   @Override
-  protected Kost1Dao getBaseDao()
+  public Kost1Dao getBaseDao()
   {
     return kost1Dao;
   }
