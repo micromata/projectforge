@@ -57,17 +57,6 @@ public class EdibleListPanel extends Panel
     DropDownChoice<String> ddcOption = new DropDownChoice<String>("typeDropDownChoise", getDropDownOptions());
     add(ddcOption);
 
-    //DataTable
-    //    RepeatingView listItems = new RepeatingView("listItems");
-    //    for (EmployeeDO e : employeeList) {
-    //      AbstractItem row = new AbstractItem(listItems.newChildId());
-    //      row.add(new Label("staffnumber", e.getStaffNumber()));
-    //      row.add(new Label("lastname", e.getUser().getLastname()));
-    //      row.add(new Label("firstname", e.getUser().getFirstname()));
-    //      row.add(new TextField<>("inputField"));
-    //      listItems.add(row);
-    //    }
-    //    add(listItems);
     List<IColumn<EmployeeDO, String>> columns = createColumns(true);
     dataTable = createDataTable(columns, "user.lastname", SortOrder.ASCENDING);
     add(dataTable);
@@ -76,7 +65,9 @@ public class EdibleListPanel extends Panel
   private List<String> getDropDownOptions()
   {
     return Arrays
-        .asList(new String[] { "[TODO] Wochenendarbeit" });
+        .asList(new String[] { "[TODO] Abzug Mobilfunk", "[TODO] Abzug Mobilgerät", "[TODO] Abzug Reisekosten",
+            "[TODO] Auslagen", "[TODO] Überstunden", "[TODO] Prämie/Bonus", "[TODO] Sonderzahlungen",
+            "[TODO] Zielvereinbarungen", "[TODO] Abzug Shop", "[TODO] Wochenendarbeit", "[TODO] Bemerkung/Sonstiges" });
   }
 
   private List<? extends Integer> getDropDownYears()
@@ -110,11 +101,6 @@ public class EdibleListPanel extends Panel
         appendCssClasses(item, employee.getId(), employee.isDeleted());
       }
     };
-
-    columns
-        .add(new CellItemListenerPropertyColumn<EmployeeDO>(EmployeeDO.class, getSortable("staffNumber", sortable),
-            "staffNumber",
-            cellItemListener));
 
     columns.add(new CellItemListenerPropertyColumn<EmployeeDO>(new ResourceModel("name"),
         getSortable("user.lastname", sortable),
