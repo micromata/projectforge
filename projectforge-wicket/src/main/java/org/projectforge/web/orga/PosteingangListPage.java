@@ -47,7 +47,7 @@ import org.projectforge.web.wicket.ListSelectActionPanel;
 
 @ListPage(editPage = PosteingangEditPage.class)
 public class PosteingangListPage extends AbstractListPage<PosteingangListForm, PosteingangDao, PosteingangDO> implements
-IListPageColumnsCreator<PosteingangDO>
+    IListPageColumnsCreator<PosteingangDO>
 {
   private static final long serialVersionUID = 6121734373079865758L;
 
@@ -60,7 +60,8 @@ IListPageColumnsCreator<PosteingangDO>
   }
 
   /**
-   * @see org.projectforge.web.wicket.IListPageColumnsCreator#createColumns(org.apache.wicket.markup.html.WebPage, boolean)
+   * @see org.projectforge.web.wicket.IListPageColumnsCreator#createColumns(org.apache.wicket.markup.html.WebPage,
+   *      boolean)
    */
   @SuppressWarnings("serial")
   @Override
@@ -68,7 +69,8 @@ IListPageColumnsCreator<PosteingangDO>
   {
     final List<IColumn<PosteingangDO, String>> columns = new ArrayList<IColumn<PosteingangDO, String>>();
 
-    final CellItemListener<PosteingangDO> cellItemListener = new CellItemListener<PosteingangDO>() {
+    final CellItemListener<PosteingangDO> cellItemListener = new CellItemListener<PosteingangDO>()
+    {
       public void populateItem(final Item<ICellPopulator<PosteingangDO>> item, final String componentId,
           final IModel<PosteingangDO> rowModel)
       {
@@ -77,31 +79,38 @@ IListPageColumnsCreator<PosteingangDO>
       }
     };
     columns
-    .add(new CellItemListenerPropertyColumn<PosteingangDO>(new Model<String>(getString("date")), "datum", "datum", cellItemListener) {
-      /**
-       * @see org.projectforge.web.wicket.CellItemListenerPropertyColumn#populateItem(org.apache.wicket.markup.repeater.Item,
-       *      java.lang.String, org.apache.wicket.model.IModel)
-       */
-      @Override
-      public void populateItem(final Item<ICellPopulator<PosteingangDO>> item, final String componentId,
-          final IModel<PosteingangDO> rowModel)
-      {
-        final PosteingangDO posteingang = rowModel.getObject();
-        item.add(new ListSelectActionPanel(componentId, rowModel, PosteingangEditPage.class, posteingang.getId(),
-            returnToPage, DateTimeFormatter.instance().getFormattedDate(posteingang.getDatum())));
-        cellItemListener.populateItem(item, componentId, rowModel);
-        addRowClick(item);
-      }
-    });
-    columns.add(new CellItemListenerPropertyColumn<PosteingangDO>(new Model<String>(getString("orga.posteingang.absender")), "absender",
+        .add(new CellItemListenerPropertyColumn<PosteingangDO>(new Model<String>(getString("date")), "datum", "datum",
+            cellItemListener)
+        {
+          /**
+           * @see org.projectforge.web.wicket.CellItemListenerPropertyColumn#populateItem(org.apache.wicket.markup.repeater.Item,
+           *      java.lang.String, org.apache.wicket.model.IModel)
+           */
+          @Override
+          public void populateItem(final Item<ICellPopulator<PosteingangDO>> item, final String componentId,
+              final IModel<PosteingangDO> rowModel)
+          {
+            final PosteingangDO posteingang = rowModel.getObject();
+            item.add(new ListSelectActionPanel(componentId, rowModel, PosteingangEditPage.class, posteingang.getId(),
+                returnToPage, DateTimeFormatter.instance().getFormattedDate(posteingang.getDatum())));
+            cellItemListener.populateItem(item, componentId, rowModel);
+            addRowClick(item);
+          }
+        });
+    columns.add(new CellItemListenerPropertyColumn<PosteingangDO>(
+        new Model<String>(getString("orga.posteingang.absender")), "absender",
         "absender", cellItemListener));
-    columns.add(new CellItemListenerPropertyColumn<PosteingangDO>(new Model<String>(getString("orga.posteingang.person")), "person",
+    columns.add(new CellItemListenerPropertyColumn<PosteingangDO>(
+        new Model<String>(getString("orga.posteingang.person")), "person",
         "person", cellItemListener));
-    columns.add(new CellItemListenerPropertyColumn<PosteingangDO>(new Model<String>(getString("orga.post.inhalt")), "inhalt", "inhalt",
+    columns.add(new CellItemListenerPropertyColumn<PosteingangDO>(new Model<String>(getString("orga.post.inhalt")),
+        "inhalt", "inhalt",
         cellItemListener));
-    columns.add(new CellItemListenerPropertyColumn<PosteingangDO>(new Model<String>(getString("comment")), "bemerkung", "bemerkung",
+    columns.add(new CellItemListenerPropertyColumn<PosteingangDO>(new Model<String>(getString("comment")), "bemerkung",
+        "bemerkung",
         cellItemListener));
-    columns.add(new CellItemListenerPropertyColumn<PosteingangDO>(new Model<String>(getString("orga.post.type")), "type", "type",
+    columns.add(new CellItemListenerPropertyColumn<PosteingangDO>(new Model<String>(getString("orga.post.type")),
+        "type", "type",
         cellItemListener));
     return columns;
   }
@@ -114,13 +123,13 @@ IListPageColumnsCreator<PosteingangDO>
   }
 
   @Override
-  protected PosteingangListForm newListForm(final AbstractListPage< ? , ? , ? > parentPage)
+  protected PosteingangListForm newListForm(final AbstractListPage<?, ?, ?> parentPage)
   {
     return new PosteingangListForm(this);
   }
 
   @Override
-  protected PosteingangDao getBaseDao()
+  public PosteingangDao getBaseDao()
   {
     return posteingangDao;
   }

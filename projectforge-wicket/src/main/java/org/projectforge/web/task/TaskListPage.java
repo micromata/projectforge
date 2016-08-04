@@ -398,7 +398,7 @@ public class TaskListPage extends AbstractListPage<TaskListForm, TaskDao, TaskDO
   }
 
   @Override
-  protected TaskDao getBaseDao()
+  public TaskDao getBaseDao()
   {
     return taskDao;
   }

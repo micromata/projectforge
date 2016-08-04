@@ -1,4 +1,4 @@
-package org.projectforge.plugins.eed;
+package org.projectforge.plugins.eed.wicket;
 
 import java.util.Date;
 

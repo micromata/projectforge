@@ -25,6 +25,8 @@ package org.projectforge.plugins.eed;
 
 import org.projectforge.business.fibu.EmployeeDao;
 import org.projectforge.plugins.core.AbstractPlugin;
+import org.projectforge.plugins.eed.wicket.EdibleListPage;
+import org.projectforge.plugins.eed.wicket.ExportDataPage;
 import org.projectforge.web.MenuItemDef;
 import org.projectforge.web.MenuItemDefId;
 import org.projectforge.web.plugin.PluginWicketRegistrationService;
@@ -65,7 +67,7 @@ public class ExtendEmployeeDataPlugin extends AbstractPlugin
     // Register the menu entry as sub menu entry of the misc menu:
     final MenuItemDef parentMenu = pluginWicketRegistrationService.getMenuItemDef(MenuItemDefId.HR);
     pluginWicketRegistrationService
-        .registerMenuItem(new MenuItemDef(parentMenu, ID, 20, "plugins.eed.menu.listcare", ExportDataPage.class));
+        .registerMenuItem(new MenuItemDef(parentMenu, ID, 20, "plugins.eed.menu.listcare", EdibleListPage.class));
     pluginWicketRegistrationService
         .registerMenuItem(new MenuItemDef(parentMenu, ID, 21, "plugins.eed.menu.export", ExportDataPage.class));
     pluginWicketRegistrationService

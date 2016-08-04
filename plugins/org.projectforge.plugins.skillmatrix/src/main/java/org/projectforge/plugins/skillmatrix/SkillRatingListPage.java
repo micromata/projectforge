@@ -212,7 +212,7 @@ public class SkillRatingListPage extends AbstractListPage<SkillRatingListForm, S
    * @see org.projectforge.web.wicket.AbstractListPage#getBaseDao()
    */
   @Override
-  protected SkillRatingDao getBaseDao()
+  public SkillRatingDao getBaseDao()
   {
     return skillRatingDao;
   }

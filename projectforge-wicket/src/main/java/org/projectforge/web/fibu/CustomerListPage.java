@@ -177,7 +177,7 @@ public class CustomerListPage extends AbstractListPage<CustomerListForm, KundeDa
   }
 
   @Override
-  protected KundeDao getBaseDao()
+  public KundeDao getBaseDao()
   {
     return kundeDao;
   }

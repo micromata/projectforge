@@ -150,7 +150,7 @@ public class ConfigurationListPage extends AbstractListPage<ConfigurationListFor
   }
 
   @Override
-  protected ConfigurationDao getBaseDao()
+  public ConfigurationDao getBaseDao()
   {
     return configurationDao;
   }

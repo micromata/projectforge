@@ -55,7 +55,6 @@ import org.projectforge.common.StringHelper;
 import org.projectforge.framework.time.DateHelper;
 import org.projectforge.framework.time.DateTimeFormatter;
 import org.projectforge.web.wicket.AbstractListPage;
-import org.projectforge.web.wicket.AbstractListPage.SelectItemModel;
 import org.projectforge.web.wicket.CellItemListener;
 import org.projectforge.web.wicket.CellItemListenerPropertyColumn;
 import org.projectforge.web.wicket.DownloadUtils;
@@ -389,7 +388,7 @@ public class AddressCampaignValueListPage extends AbstractListPage<AddressCampai
   }
 
   @Override
-  protected AddressDao getBaseDao()
+  public AddressDao getBaseDao()
   {
     return addressDao;
   }

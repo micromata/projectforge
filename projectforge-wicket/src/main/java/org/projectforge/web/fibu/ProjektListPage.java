@@ -71,7 +71,7 @@ public class ProjektListPage extends AbstractListPage<ProjektListForm, ProjektDa
 
   @SpringBean
   private KostCache kostCache;
-  
+
   @SpringBean
   private GroupService groupService;
 
@@ -245,7 +245,7 @@ public class ProjektListPage extends AbstractListPage<ProjektListForm, ProjektDa
   }
 
   @Override
-  protected ProjektDao getBaseDao()
+  public ProjektDao getBaseDao()
   {
     return projektDao;
   }

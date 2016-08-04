@@ -121,7 +121,7 @@ public class GanttChartListPage extends AbstractListPage<GanttChartListForm, Gan
   }
 
   @Override
-  protected GanttChartDao getBaseDao()
+  public GanttChartDao getBaseDao()
   {
     return ganttChartDao;
   }
