@@ -320,18 +320,6 @@ public class TimedAttributePanel<PK extends Serializable, T extends TimeableAttr
     }
   }
 
-  public static void main(String[] args)
-  {
-    String s = null;
-    switch (s) {
-      case "Hallo":
-        System.out.println("Hallo");
-        break;
-      default:
-        System.out.println("Default");
-    }
-  }
-
   /**
    * Visits all children of type ComponentWrapperPanel, get their inner FormComponent and add a change listener which
    * sets the dirty flag.
