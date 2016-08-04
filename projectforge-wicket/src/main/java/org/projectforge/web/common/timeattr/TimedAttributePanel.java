@@ -37,6 +37,7 @@ import org.projectforge.web.wicket.flowlayout.DivPanel;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
 
 import de.micromata.genome.db.jpa.tabattr.api.AttrGroup;
+import de.micromata.genome.db.jpa.tabattr.api.AttrGroup.DayMonthGranularity;
 import de.micromata.genome.db.jpa.tabattr.api.EntityWithTimeableAttr;
 import de.micromata.genome.db.jpa.tabattr.api.TimeableAttrRow;
 import de.micromata.genome.db.jpa.tabattr.api.TimeableService;
@@ -64,7 +65,8 @@ public class TimedAttributePanel<PK extends Serializable, T extends TimeableAttr
   private final ModalQuestionDialog deleteDialog;
   private final DropDownChoice<T> dateDropDown;
 
-  public TimedAttributePanel(final String id, final AttrGroup attrGroup, final EntityWithTimeableAttr<PK, T> entity, final AbstractEditPage<?, ?, ?> parentPage,
+  public TimedAttributePanel(final String id, final AttrGroup attrGroup, final EntityWithTimeableAttr<PK, T> entity,
+      final AbstractEditPage<?, ?, ?> parentPage,
       final Function<AttrGroup, T> addNewEntryFunction)
   {
     super(id, attrGroup);
@@ -159,8 +161,7 @@ public class TimedAttributePanel<PK extends Serializable, T extends TimeableAttr
           {
             return String.valueOf(index);
           }
-        }
-    );
+        });
 
     dropDown.add(new AjaxFormComponentUpdatingBehavior("change")
     {
@@ -275,7 +276,8 @@ public class TimedAttributePanel<PK extends Serializable, T extends TimeableAttr
     final String startTimeLabel = getString(attrGroup.getI18nKeyStartTime());
     final FieldsetPanel dateFs = gridBuilder.newFieldset(startTimeLabel);
     final PropertyModel<Date> dateModel = new PropertyModel<>(attrRow, "startTime");
-    final DatePanel dp = new DatePanel(dateFs.newChildId(), dateModel, DatePanelSettings.get().withTargetType(java.sql.Date.class));
+    final DatePanel dp = new DatePanel(dateFs.newChildId(), dateModel,
+        DatePanelSettings.get().withTargetType(java.sql.Date.class));
     dp.setRequired(true);
     dp.add(this::validateDate);
     dateFs.add(dp);
@@ -289,19 +291,50 @@ public class TimedAttributePanel<PK extends Serializable, T extends TimeableAttr
     final Date dateToValidate = iValidatable.getValue();
     final T selectedAttrRow = selectedAttrRowModel.getObject();
 
-    final boolean thereIsAlreadyAnEntryWithTheSameDate = getTimeableAttrRowsOfThisGroup()
-        .stream()
-        // remove the currently selected entry from the stream, otherwise this will always be true if you don't change the date
-        .filter(row -> !row.equals(selectedAttrRow))
-        .anyMatch(row -> DateHelper.isSameDay(row.getStartTime(), dateToValidate));
+    boolean thereIsAlreadyAnEntryWithTheSameDate = false;
 
-    if (thereIsAlreadyAnEntryWithTheSameDate) {
-      iValidatable.error(new ValidationError().addKey("attr.starttime.alreadyexists"));
+    DayMonthGranularity gran = attrGroup.getDayMonthGranularity();
+    if (gran == null) {
+      gran = DayMonthGranularity.DAY;
+    }
+    switch (gran) {
+      case MONTH:
+        thereIsAlreadyAnEntryWithTheSameDate = getTimeableAttrRowsOfThisGroup()
+            .stream()
+            // remove the currently selected entry from the stream, otherwise this will always be true if you don't change the date
+            .filter(row -> !row.equals(selectedAttrRow))
+            .anyMatch(row -> DateHelper.isSameMonth(row.getStartTime(), dateToValidate));
+        if (thereIsAlreadyAnEntryWithTheSameDate) {
+          iValidatable.error(new ValidationError().addKey("attr.starttime.alreadyexists.month"));
+        }
+        break;
+      default:
+        thereIsAlreadyAnEntryWithTheSameDate = getTimeableAttrRowsOfThisGroup()
+            .stream()
+            // remove the currently selected entry from the stream, otherwise this will always be true if you don't change the date
+            .filter(row -> !row.equals(selectedAttrRow))
+            .anyMatch(row -> DateHelper.isSameDay(row.getStartTime(), dateToValidate));
+        if (thereIsAlreadyAnEntryWithTheSameDate) {
+          iValidatable.error(new ValidationError().addKey("attr.starttime.alreadyexists.day"));
+        }
+    }
+  }
+
+  public static void main(String[] args)
+  {
+    String s = null;
+    switch (s) {
+      case "Hallo":
+        System.out.println("Hallo");
+        break;
+      default:
+        System.out.println("Default");
     }
   }
 
   /**
-   * Visits all children of type ComponentWrapperPanel, get their inner FormComponent and add a change listener which sets the dirty flag.
+   * Visits all children of type ComponentWrapperPanel, get their inner FormComponent and add a change listener which
+   * sets the dirty flag.
    *
    * @param markupContainer The MarkupContainer whose children should be visited.
    */
