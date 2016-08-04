@@ -27,6 +27,7 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.markup.html.form.upload.FileUpload;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
@@ -38,6 +39,7 @@ import org.projectforge.business.fibu.kost.BusinessAssessment;
 import org.projectforge.business.user.UserRightId;
 import org.projectforge.business.user.UserRightValue;
 import org.projectforge.excel.ExcelImportException;
+import org.projectforge.framework.i18n.UserException;
 import org.projectforge.framework.persistence.utils.ImportedElement;
 import org.projectforge.framework.persistence.utils.ImportedSheet;
 import org.projectforge.web.core.importstorage.AbstractImportPage;
@@ -72,6 +74,8 @@ public class DatevImportPage extends AbstractImportPage<DatevImportForm>
       } catch (final Exception ex) {
         if (ex instanceof ExcelImportException) {
           error(translateParams((ExcelImportException)ex));
+        } else if (ex instanceof UserException) {
+          error(translateParams((UserException)ex));
         }
         log.error(ex.getMessage(), ex);
         error("An error occurred (see log files for details): " + ex.getMessage());
@@ -99,6 +103,8 @@ public class DatevImportPage extends AbstractImportPage<DatevImportForm>
       } catch (final Exception ex) {
         if (ex instanceof ExcelImportException) {
           error(translateParams((ExcelImportException)ex));
+        } else if (ex instanceof UserException) {
+          error(translateParams((UserException)ex));
         }
         log.error(ex.getMessage(), ex);
         error("An error occurred (see log files for details): " + ex.getMessage());
