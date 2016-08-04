@@ -37,6 +37,7 @@ import org.apache.wicket.RuntimeConfigurationType;
 import org.apache.wicket.Session;
 import org.apache.wicket.core.request.handler.PageProvider;
 import org.apache.wicket.core.request.handler.RenderPageRequestHandler;
+import org.apache.wicket.core.request.mapper.StalePageException;
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.pageStore.IDataStore;
 import org.apache.wicket.pageStore.IPageStore;
@@ -316,6 +317,13 @@ public class WicketApplication extends WebApplication implements WicketApplicati
         if (ex instanceof PageExpiredException) {
           return super.onException(cycle, ex);
         }
+
+        // log StalePageException but do not redirect to error page
+        if (ex instanceof StalePageException) {
+          log.warn(ex);
+          return super.onException(cycle, ex);
+        }
+
         final Throwable rootCause = ExceptionHelper.getRootCause(ex);
         // log.error(rootCause.getMessage(), ex);
         // if (rootCause instanceof ProjectForgeException == false) {
