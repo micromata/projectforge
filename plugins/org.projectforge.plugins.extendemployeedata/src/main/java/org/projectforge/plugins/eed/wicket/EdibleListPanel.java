@@ -13,6 +13,7 @@ import org.apache.wicket.extensions.markup.html.repeater.data.table.DefaultDataT
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
 import org.apache.wicket.extensions.markup.html.repeater.util.SortParam;
+import org.apache.wicket.markup.html.form.Button;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.markup.repeater.Item;
@@ -57,6 +58,12 @@ public class EdibleListPanel extends Panel
     DropDownChoice<String> ddcOption = new DropDownChoice<String>("typeDropDownChoise", getDropDownOptions());
     add(ddcOption);
 
+    //TopButtons
+    add(new Button("displayButton"));
+    add(new Button("exportButton"));
+    add(new Button("importButton"));
+
+    //List
     List<IColumn<EmployeeDO, String>> columns = createColumns(true);
     dataTable = createDataTable(columns, "user.lastname", SortOrder.ASCENDING);
     add(dataTable);
