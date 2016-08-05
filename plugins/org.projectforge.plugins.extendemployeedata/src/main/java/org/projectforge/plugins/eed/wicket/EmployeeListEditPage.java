@@ -16,6 +16,7 @@ import org.projectforge.web.wicket.AbstractListPage;
 import org.projectforge.web.wicket.CellItemListener;
 import org.projectforge.web.wicket.CellItemListenerPropertyColumn;
 import org.projectforge.web.wicket.IListPageColumnsCreator;
+import org.projectforge.web.wicket.InputCellItemListenerPropertyColumn;
 
 //@ListPage(editPage = EmployeeEditPage.class)
 public class EmployeeListEditPage extends AbstractListPage<EmployeeListEditForm, EmployeeService, EmployeeDO> implements
@@ -35,19 +36,23 @@ public class EmployeeListEditPage extends AbstractListPage<EmployeeListEditForm,
   {
     final List<IColumn<EmployeeDO, String>> columns = new ArrayList<>();
 
-    final CellItemListener<EmployeeDO> cellItemListener = (CellItemListener<EmployeeDO>) (item, componentId, rowModel) -> {
+    final CellItemListener<EmployeeDO> cellItemListener = (CellItemListener<EmployeeDO>) (item, componentId,
+        rowModel) -> {
       final EmployeeDO employee = rowModel.getObject();
       appendCssClasses(item, employee.getId(), employee.isDeleted());
     };
 
-    columns.add(
-        new CellItemListenerPropertyColumn<EmployeeDO>(new ResourceModel("name"), getSortable("user.lastname", sortable), "user.lastname", cellItemListener));
-    columns.add(
-        new CellItemListenerPropertyColumn<>(new ResourceModel("firstName"), getSortable("user.firstname", sortable), "user.firstname", cellItemListener));
-    columns.add(new CellItemListenerPropertyColumn<>(EmployeeDO.class, getSortable("staffNumber", sortable), "staffNumber", cellItemListener));
-    columns.add(
-        new CellItemListenerPropertyColumn<>(new ResourceModel("fibu.kost1"), getSortable("kost1.shortDisplayName", sortable), "kost1.shortDisplayName",
-            cellItemListener));
+    columns.add(new CellItemListenerPropertyColumn<EmployeeDO>(new ResourceModel("name"),
+        getSortable("user.lastname", sortable),
+        "user.lastname", cellItemListener));
+
+    columns.add(new CellItemListenerPropertyColumn<EmployeeDO>(new ResourceModel("firstName"),
+        getSortable("user.firstname", sortable),
+        "user.firstname", cellItemListener));
+
+    columns.add(new InputCellItemListenerPropertyColumn<EmployeeDO>(new ResourceModel("firstName"),
+        getSortable("user.firstname", sortable),
+        "user.firstname", cellItemListener));
 
     return columns;
   }
