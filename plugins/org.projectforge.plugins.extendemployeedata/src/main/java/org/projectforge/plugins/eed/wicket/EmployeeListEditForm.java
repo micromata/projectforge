@@ -6,6 +6,7 @@ import java.util.List;
 import org.apache.log4j.Logger;
 import org.apache.wicket.markup.html.form.Button;
 import org.apache.wicket.markup.html.form.DropDownChoice;
+import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.Model;
 import org.projectforge.business.fibu.EmployeeFilter;
 import org.projectforge.web.wicket.AbstractListForm;
@@ -29,8 +30,8 @@ public class EmployeeListEditForm extends AbstractListForm<EmployeeFilter, Emplo
   {
     super.init();
 
-    //Buttons
-    final Button saveButton = new Button(SingleButtonPanel.WICKET_ID, new Model<>("save"))
+    //Top Buttons
+    final Button searchButton = new Button(SingleButtonPanel.WICKET_ID, new Model<>("search"))
     {
       @Override
       public final void onSubmit()
@@ -38,12 +39,12 @@ public class EmployeeListEditForm extends AbstractListForm<EmployeeFilter, Emplo
 
       }
     };
-    WicketUtils.addTooltip(saveButton, getString("save"));
-    final SingleButtonPanel sendButtonPanel = new SingleButtonPanel(actionButtons.newChildId(), saveButton,
-        getString("save"),
-        SingleButtonPanel.DEFAULT_SUBMIT);
-    actionButtons.add(sendButtonPanel);
-    setDefaultButton(saveButton);
+    WicketUtils.addTooltip(searchButton, getString("search"));
+    final SingleButtonPanel searchButtonPanel = new SingleButtonPanel(actionButtons.newChildId(), searchButton,
+        getString("search"), SingleButtonPanel.DEFAULT_SUBMIT);
+    actionButtons.add(searchButtonPanel);
+
+    setDefaultButton(searchButton);
 
     resetButtonPanel.setVisible(false);
     searchButtonPanel.setVisible(false);
@@ -94,5 +95,22 @@ public class EmployeeListEditForm extends AbstractListForm<EmployeeFilter, Emplo
   protected Logger getLogger()
   {
     return log;
+  }
+
+  public Panel getSaveButtonPanel(String id)
+  {
+    //Bottom Buttons
+    final Button saveButton = new Button(SingleButtonPanel.WICKET_ID, new Model<>("save"))
+    {
+      @Override
+      public final void onSubmit()
+      {
+
+      }
+    };
+    WicketUtils.addTooltip(saveButton, getString("save"));
+    final SingleButtonPanel saveButtonPanel = new SingleButtonPanel(id, saveButton,
+        getString("save"), SingleButtonPanel.DEFAULT_SUBMIT);
+    return saveButtonPanel;
   }
 }
