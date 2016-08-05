@@ -44,11 +44,10 @@ import org.projectforge.framework.utils.MyBeanComparator;
 
 /**
  * Stores list of result sets (id's) for pagination and provides iterator of data-base objects on demand.
- * 
  * @author Kai Reinhard (k.reinhard@micromata.de)
  * 
  */
-public class MyListPageSortableDataProvider<T extends IdObject<?>> extends SortableDataProvider<T, String>
+public class MyListPageSortableDataProvider<T extends IdObject< ? >> extends SortableDataProvider<T, String>
 {
   private static final long serialVersionUID = 1517715565769991765L;
 
@@ -68,10 +67,10 @@ public class MyListPageSortableDataProvider<T extends IdObject<?>> extends Sorta
 
   private SortParam<String> secondSortParam;
 
-  private final IListPage<?, ?> listPage;
+  private final AbstractListPage< ? , ? , T> listPage;
 
   public MyListPageSortableDataProvider(final SortParam<String> sortParam, final SortParam<String> secondSortParam,
-      final IListPage<?, ?> listPage)
+      final AbstractListPage< ? , ? , T> listPage)
   {
     this.listPage = listPage;
     // set default sort
@@ -139,7 +138,7 @@ public class MyListPageSortableDataProvider<T extends IdObject<?>> extends Sorta
       }
       final Object baseDao = listPage.getBaseDao();
       if (baseDao instanceof BaseDao) {
-        final List<T> list = (List<T>) ((BaseDao<?>) baseDao).internalLoad(idList.subList(fromIndex, toIndex));
+        final List<T> list = (List<T>) ((BaseDao< ? >) baseDao).internalLoad(idList.subList(fromIndex, toIndex));
         sortList(list);
         return list.iterator();
       } else {
@@ -177,7 +176,7 @@ public class MyListPageSortableDataProvider<T extends IdObject<?>> extends Sorta
 
   private void reloadList()
   {
-    final List<T> list = (List<T>) listPage.getList();
+    final List<T> list = listPage.getList();
     setCompleteList(list);
   }
 

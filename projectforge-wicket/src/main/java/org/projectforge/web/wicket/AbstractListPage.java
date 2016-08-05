@@ -65,7 +65,7 @@ import org.projectforge.web.wicket.components.ContentMenuEntryPanel;
 import org.projectforge.web.wicket.flowlayout.IconType;
 
 public abstract class AbstractListPage<F extends AbstractListForm<?, ?>, D extends IDao<?>, O extends IdObject<?>>
-    extends AbstractSecuredPage implements ISelectCallerPage, IListPage
+    extends AbstractSecuredPage implements ISelectCallerPage
 {
   private static final long serialVersionUID = 622509418161777195L;
 
