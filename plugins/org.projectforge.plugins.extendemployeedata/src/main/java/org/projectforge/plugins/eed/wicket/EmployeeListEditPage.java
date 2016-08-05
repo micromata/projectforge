@@ -81,4 +81,10 @@ public class EmployeeListEditPage extends AbstractListPage<EmployeeListEditForm,
     return employeeService;
   }
 
+  @Override
+  protected void addBottomPanel(final String id)
+  {
+    form.add(form.getSaveButtonPanel(id));
+  }
+
 }
