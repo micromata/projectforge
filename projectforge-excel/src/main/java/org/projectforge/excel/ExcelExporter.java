@@ -71,7 +71,7 @@ public class ExcelExporter
 
     final Class<?> classType = list.get(0).getClass();
     final Field[] fields = PropUtils.getPropertyInfoFields(classType);
-    List<ExportColumn> cols = new LinkedList<ExportColumn>();
+    List<ExportColumn> cols = new LinkedList<>();
     for (final Field field : fields) {
       final PropertyInfo propInfo = field.getAnnotation(PropertyInfo.class);
       if (propInfo == null) {
@@ -85,8 +85,8 @@ public class ExcelExporter
     cols = onBeforeSettingColumns(sheetProvider, cols);
     // column property names
     sheet.setColumns(cols);
-    final PropertyMapping mapping = new PropertyMapping();
     for (final Object entry : list) {
+      final PropertyMapping mapping = new PropertyMapping();
       for (final Field field : fields) {
         final PropertyInfo propInfo = field.getAnnotation(PropertyInfo.class);
         if (propInfo == null) {
@@ -128,14 +128,7 @@ public class ExcelExporter
     if (names == null || names.length == 0) {
       return columns;
     }
-    final List<ExportColumn> sortedList = new LinkedList<ExportColumn>();
-    for (final String name : names) {
-      for (final ExportColumn column : columns) {
-        if (name.equals(column.getName()) == true) {
-          sortedList.add(column);
-        }
-      }
-    }
+    final List<ExportColumn> sortedList = reorderAndRemoveOtherColumns(columns, names);
     for (final ExportColumn column : columns) {
       boolean found = false;
       for (final ExportColumn el : sortedList) {
@@ -146,6 +139,23 @@ public class ExcelExporter
       }
       if (found == false) {
         sortedList.add(column);
+      }
+    }
+    return sortedList;
+  }
+
+  protected List<ExportColumn> reorderAndRemoveOtherColumns(final List<ExportColumn> columns, final String... names)
+  {
+    if (names == null || names.length == 0) {
+      return columns;
+    }
+    final List<ExportColumn> sortedList = new LinkedList<>();
+    for (final String name : names) {
+      for (final ExportColumn column : columns) {
+        if (name.equals(column.getName())) {
+          sortedList.add(column);
+          break;
+        }
       }
     }
     return sortedList;
