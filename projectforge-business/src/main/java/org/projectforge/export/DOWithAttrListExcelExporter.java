@@ -40,7 +40,7 @@ public class DOWithAttrListExcelExporter<PK extends Serializable, T extends Time
     final List<ExportColumn> exportColumns = reorderAndRemoveOtherColumns(columns, fieldsToExport);
 
     for (final AttrColumnDescription attrFieldToExport : attrFieldsToExport) {
-      exportColumns.add(new I18nExportColumn(attrFieldToExport.getCombinedName(), "fibu.employee.tabs.salary")); // TODO CT: i18n key
+      exportColumns.add(new I18nExportColumn(attrFieldToExport.getCombinedName(), "fibu.employee.tabs.salary", 20)); // TODO CT: i18n key and width
     }
 
     return exportColumns;
