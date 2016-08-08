@@ -13,6 +13,7 @@ import org.projectforge.web.wicket.AbstractListForm;
 import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.web.wicket.components.SingleButtonPanel;
 import org.projectforge.web.wicket.flowlayout.DropDownChoicePanel;
+import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
 
 public class EmployeeListEditForm extends AbstractListForm<EmployeeFilter, EmployeeListEditPage>
 {
@@ -53,17 +54,19 @@ public class EmployeeListEditForm extends AbstractListForm<EmployeeFilter, Emplo
     remove(gridBuilder.getMainContainer());
     gridBuilder = newGridBuilder(this, "filter");
     //Filter
-    DropDownChoicePanel<Integer> ddcMonth = new DropDownChoicePanel<Integer>(gridBuilder.getPanel().newChildId(),
+    final FieldsetPanel fsMonthYear = gridBuilder.newFieldset("TODO Monat/Jahr");
+    DropDownChoicePanel<Integer> ddcMonth = new DropDownChoicePanel<Integer>(fsMonthYear.newChildId(),
         new DropDownChoice<Integer>(DropDownChoicePanel.WICKET_ID, MONTH_INTEGERS));
-    gridBuilder.getPanel().add(ddcMonth);
-    DropDownChoicePanel<Integer> ddcYear = new DropDownChoicePanel<Integer>(gridBuilder.getPanel().newChildId(),
+    fsMonthYear.add(ddcMonth);
+    DropDownChoicePanel<Integer> ddcYear = new DropDownChoicePanel<Integer>(fsMonthYear.newChildId(),
         new DropDownChoice<Integer>(DropDownChoicePanel.WICKET_ID,
             getDropDownYears()));
-    gridBuilder.getPanel().add(ddcYear);
+    fsMonthYear.add(ddcYear);
+    final FieldsetPanel fsOption = gridBuilder.newFieldset("TODO Option");
     DropDownChoicePanel<String> ddcOption = new DropDownChoicePanel<String>(gridBuilder.getPanel().newChildId(),
         new DropDownChoice<String>(DropDownChoicePanel.WICKET_ID,
             getDropDownOptions()));
-    gridBuilder.getPanel().add(ddcOption);
+    fsOption.add(ddcOption);
   }
 
   private List<String> getDropDownOptions()
