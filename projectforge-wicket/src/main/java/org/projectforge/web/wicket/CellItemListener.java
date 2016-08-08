@@ -31,6 +31,7 @@ import org.apache.wicket.model.IModel;
 
 /**
  * Usable for data view objects for manipulating single cells. T is for example the do object.
+ * 
  * @see CellItemListenerPropertyColumn
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
@@ -38,6 +39,7 @@ public interface CellItemListener<T> extends Serializable
 {
   /**
    * Called by CellItemPropertyListener on every cell item.
+   * 
    * @param item
    * @param componentId
    * @param rowModel

@@ -21,7 +21,6 @@ import org.projectforge.web.wicket.AbstractListPage;
 import org.projectforge.web.wicket.CellItemListener;
 import org.projectforge.web.wicket.CellItemListenerPropertyColumn;
 import org.projectforge.web.wicket.IListPageColumnsCreator;
-import org.projectforge.web.wicket.InputCellItemListenerPropertyColumn;
 
 import de.micromata.genome.db.jpa.tabattr.api.TimeableService;
 
@@ -60,9 +59,20 @@ public class EmployeeListEditPage extends AbstractListPage<EmployeeListEditForm,
         getSortable("user.firstname", sortable),
         "user.firstname", cellItemListener));
 
-    columns.add(new InputCellItemListenerPropertyColumn<>(new ResourceModel("firstName"),
-        getSortable("user.firstname", sortable),
-        "user.firstname", cellItemListener));
+    columns.add(new AttrInputCellItemListenerPropertyColumn<>(
+        new ResourceModel("fibu.employee.weekendwork.saturday"),
+        getSortable("fibu.employee.weekendwork.saturday", sortable),
+        "weekendwork", "workinghourssaturday", cellItemListener, timeableService, employeeService));
+
+    columns.add(new AttrInputCellItemListenerPropertyColumn<>(
+        new ResourceModel("fibu.employee.weekendwork.sunday"),
+        getSortable("fibu.employee.weekendwork.sunday", sortable),
+        "weekendwork", "workinghourssunday", cellItemListener, timeableService, employeeService));
+
+    columns.add(new AttrInputCellItemListenerPropertyColumn<>(
+        new ResourceModel("fibu.employee.weekendwork.holiday"),
+        getSortable("fibu.employee.weekendwork.holiday", sortable),
+        "weekendwork", "workinghoursholiday", cellItemListener, timeableService, employeeService));
 
     return columns;
   }
@@ -76,9 +86,10 @@ public class EmployeeListEditPage extends AbstractListPage<EmployeeListEditForm,
         new AttrColumnDescription("mobilecheck", "mobilecheck"),
         new AttrColumnDescription("ebikeleasing", "ebikeleasing")
     };
-    
+
     final Date dateToSelectAttrRow = new Date(); // TODO CT: get date from web interface
-    return new DOWithAttrListExcelExporter<>(filenameIdentifier, timeableService, fieldsToExport, attrFieldsToExport, dateToSelectAttrRow);
+    return new DOWithAttrListExcelExporter<>(filenameIdentifier, timeableService, fieldsToExport, attrFieldsToExport,
+        dateToSelectAttrRow);
   }
 
   @Override
