@@ -4,12 +4,12 @@ import org.projectforge.web.selenium.fibu.SeleniumEmployeeEditPage;
 import org.projectforge.web.selenium.fibu.SeleniumEmployeeListPage;
 import org.projectforge.web.selenium.login.SeleniumLoginPage;
 import org.testng.Assert;
-import org.testng.annotations.BeforeClass;
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 public class MyAccountTest extends SeleniumSuiteTestBase
 {
-  @BeforeClass
+  @BeforeMethod
   public void createAdminEmployee()
   {
 
