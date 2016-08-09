@@ -8,7 +8,7 @@ package org.projectforge.web.selenium;
  */
 public class Const
 {
-  public static final String PF_URL = "http://localhost:55555/";
+  public static final String PF_URL = "http://localhost:12345/";
   public static final String ADMIN_USERNAME = "admin";
   public static final String ADMIN_PASSWORD = "admin1";
 }
