@@ -7,13 +7,13 @@ import org.projectforge.web.selenium.Const;
 import org.projectforge.web.selenium.login.SeleniumLoginPage;
 import org.projectforge.web.selenium.SeleniumSuiteTestBase;
 import org.projectforge.web.selenium.TestPageBase;
-import org.testng.annotations.BeforeClass;
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 public class EmployeeTest extends SeleniumSuiteTestBase
 {
 
-  @BeforeClass
+  @BeforeMethod
   public void createAdminEmployee() {
 
     new SeleniumLoginPage()
