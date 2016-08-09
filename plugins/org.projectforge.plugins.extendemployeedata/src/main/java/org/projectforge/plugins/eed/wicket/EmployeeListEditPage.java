@@ -2,6 +2,7 @@ package org.projectforge.plugins.eed.wicket;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.List;
 
 import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
@@ -13,9 +14,12 @@ import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.fibu.EmployeeDO;
 import org.projectforge.business.fibu.EmployeeTimedDO;
 import org.projectforge.business.fibu.api.EmployeeService;
+import org.projectforge.business.user.I18nHelper;
 import org.projectforge.export.AttrColumnDescription;
 import org.projectforge.export.DOListExcelExporter;
 import org.projectforge.export.DOWithAttrListExcelExporter;
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
+import org.projectforge.plugins.eed.wicket.EmployeeListEditForm.SelectOption;
 import org.projectforge.web.core.MenuBarPanel;
 import org.projectforge.web.wicket.AbstractListPage;
 import org.projectforge.web.wicket.CellItemListener;
@@ -24,10 +28,13 @@ import org.projectforge.web.wicket.IListPageColumnsCreator;
 
 import de.micromata.genome.db.jpa.tabattr.api.TimeableService;
 
-//@ListPage(editPage = EmployeeEditPage.class)
 public class EmployeeListEditPage extends AbstractListPage<EmployeeListEditForm, EmployeeService, EmployeeDO> implements
     IListPageColumnsCreator<EmployeeDO>
 {
+  private static final long serialVersionUID = -9117648731994041528L;
+
+  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(EmployeeListEditPage.class);
+
   @SpringBean
   private EmployeeService employeeService;
 
@@ -58,6 +65,25 @@ public class EmployeeListEditPage extends AbstractListPage<EmployeeListEditForm,
         getSortable("user.firstname", sortable),
         "user.firstname", cellItemListener));
 
+    SelectOption so = SelectOption.findByAttrXMLKey(form.getSelectedOption());
+    switch (so) {
+      case WEEKENDWORK:
+        createWeekendworkColumns(columns, sortable, cellItemListener);
+        break;
+      case NONE:
+        log.info("No option filter is selected!");
+        break;
+      default:
+        error(I18nHelper.getLocalizedString(ThreadLocalUserContext.getLocale(), "not.found"));
+        log.warn("Selected option not found: " + form.getSelectedOption());
+    }
+
+    return columns;
+  }
+
+  private void createWeekendworkColumns(List<IColumn<EmployeeDO, String>> columns, boolean sortable,
+      CellItemListener<EmployeeDO> cellItemListener)
+  {
     columns.add(new AttrInputCellItemListenerPropertyColumn<>(
         new ResourceModel("fibu.employee.weekendwork.saturday"),
         getSortable("fibu.employee.weekendwork.saturday", sortable),
@@ -76,7 +102,6 @@ public class EmployeeListEditPage extends AbstractListPage<EmployeeListEditForm,
         "weekendwork", "workinghoursholiday", cellItemListener, timeableService, employeeService,
         form.getSelectedMonth(), form.getSelectedYear()));
 
-    return columns;
   }
 
   @Override
@@ -89,7 +114,8 @@ public class EmployeeListEditPage extends AbstractListPage<EmployeeListEditForm,
         new AttrColumnDescription("ebikeleasing", "ebikeleasing")
     };
 
-    final Date dateToSelectAttrRow = new Date(); // TODO CT: get date from web interface
+    final Date dateToSelectAttrRow = new GregorianCalendar(form.getSelectedYear(), form.getSelectedMonth() - 1, 1, 0, 0)
+        .getTime();
     return new DOWithAttrListExcelExporter<>(filenameIdentifier, timeableService, fieldsToExport, attrFieldsToExport,
         dateToSelectAttrRow);
   }
@@ -122,6 +148,13 @@ public class EmployeeListEditPage extends AbstractListPage<EmployeeListEditForm,
   protected void addBottomPanel(final String id)
   {
     form.add(form.getSaveButtonPanel(id));
+  }
+
+  public void refreshDataTable()
+  {
+    final List<IColumn<EmployeeDO, String>> columns = createColumns(this, true);
+    dataTable = createDataTable(columns, "user.lastname", SortOrder.ASCENDING);
+    form.addOrReplace(dataTable);
   }
 
 }
