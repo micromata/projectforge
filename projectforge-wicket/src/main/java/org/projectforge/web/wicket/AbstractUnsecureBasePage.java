@@ -26,6 +26,7 @@ package org.projectforge.web.wicket;
 import java.text.MessageFormat;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Stream;
 
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.wicket.Session;
@@ -141,12 +142,8 @@ public abstract class AbstractUnsecureBasePage extends WebPage
 
     final PFUserDO user = ThreadLocalUserContext.getUser();
     AbstractLink link;
-    if (user == null) {
-      link = new ExternalLink("footerNewsLink", "http://www.projectforge.org/pf-en/News");
-      body.add(link);
-    } else {
-      link = DocumentationPage.addNewsLink(body, "footerNewsLink");
-    }
+    link = new ExternalLink("footerNewsLink", "http://www.projectforge.org/pf-en/News");
+    body.add(link);
     link.add(new Label("version", "Version " + AppVersion.VERSION.toString() + ", " + AppVersion.RELEASE_DATE)
         .setRenderBodyOnly(true));
     link.setOutputMarkupId(true);
