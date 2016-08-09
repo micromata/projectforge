@@ -40,7 +40,6 @@ public class EmployeeListEditPage extends AbstractListPage<EmployeeListEditForm,
   }
 
   @Override
-  @SuppressWarnings("serial")
   public List<IColumn<EmployeeDO, String>> createColumns(final WebPage returnToPage, final boolean sortable)
   {
     final List<IColumn<EmployeeDO, String>> columns = new ArrayList<>();
@@ -62,17 +61,20 @@ public class EmployeeListEditPage extends AbstractListPage<EmployeeListEditForm,
     columns.add(new AttrInputCellItemListenerPropertyColumn<>(
         new ResourceModel("fibu.employee.weekendwork.saturday"),
         getSortable("fibu.employee.weekendwork.saturday", sortable),
-        "weekendwork", "workinghourssaturday", cellItemListener, timeableService, employeeService));
+        "weekendwork", "workinghourssaturday", cellItemListener, timeableService, employeeService,
+        form.getSelectedMonth(), form.getSelectedYear()));
 
     columns.add(new AttrInputCellItemListenerPropertyColumn<>(
         new ResourceModel("fibu.employee.weekendwork.sunday"),
         getSortable("fibu.employee.weekendwork.sunday", sortable),
-        "weekendwork", "workinghourssunday", cellItemListener, timeableService, employeeService));
+        "weekendwork", "workinghourssunday", cellItemListener, timeableService, employeeService,
+        form.getSelectedMonth(), form.getSelectedYear()));
 
     columns.add(new AttrInputCellItemListenerPropertyColumn<>(
         new ResourceModel("fibu.employee.weekendwork.holiday"),
         getSortable("fibu.employee.weekendwork.holiday", sortable),
-        "weekendwork", "workinghoursholiday", cellItemListener, timeableService, employeeService));
+        "weekendwork", "workinghoursholiday", cellItemListener, timeableService, employeeService,
+        form.getSelectedMonth(), form.getSelectedYear()));
 
     return columns;
   }
