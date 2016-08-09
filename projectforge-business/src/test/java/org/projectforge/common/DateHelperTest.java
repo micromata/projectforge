@@ -23,9 +23,7 @@
 
 package org.projectforge.common;
 
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertFalse;
-import static org.testng.AssertJUnit.assertTrue;
+import static org.testng.AssertJUnit.*;
 
 import java.text.DateFormat;
 import java.text.ParseException;
@@ -164,18 +162,6 @@ public class DateHelperTest extends AbstractTestBase
     assertEquals(DateTimeConstants.FRIDAY, DateHelper.convertCalendarDayOfWeekToJoda(Calendar.FRIDAY));
     assertEquals(DateTimeConstants.SATURDAY, DateHelper.convertCalendarDayOfWeekToJoda(Calendar.SATURDAY));
     assertEquals(DateTimeConstants.SUNDAY, DateHelper.convertCalendarDayOfWeekToJoda(Calendar.SUNDAY));
-  }
-
-  @Test
-  public void testIsSameMonth()
-  {
-    assertTrue("Dates are not in same month!", DateHelper.isSameMonth(new Date(), new Date()));
-    assertTrue("Dates are not in same month!",
-        DateHelper.isSameMonth(createDate(2016, 0, 1, 0, 0, 0, 0), createDate(2016, 0, 31, 23, 59, 59, 999)));
-    assertFalse("Dates are not in same month!",
-        DateHelper.isSameMonth(createDate(2016, 0, 31, 23, 59, 59, 999), createDate(2016, 1, 1, 0, 0, 0, 0)));
-    assertFalse("Dates are not in same month!",
-        DateHelper.isSameMonth(createDate(2015, 0, 1, 0, 0, 0, 0), createDate(2016, 0, 1, 0, 0, 0, 0)));
   }
 
   public static Date createDate(final int year, final int month, final int day, final int hour, final int minute,

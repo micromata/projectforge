@@ -8,7 +8,6 @@ import org.projectforge.excel.ContentProvider;
 import org.projectforge.excel.ExportColumn;
 import org.projectforge.excel.I18nExportColumn;
 import org.projectforge.excel.PropertyMapping;
-import org.projectforge.framework.time.DateHelper;
 
 import de.micromata.genome.db.jpa.tabattr.api.EntityWithTimeableAttr;
 import de.micromata.genome.db.jpa.tabattr.api.TimeableAttrRow;
@@ -53,8 +52,7 @@ public class DOWithAttrListExcelExporter<PK extends Serializable, T extends Time
     final EntityWithTimeableAttr<PK, T> entity = (EntityWithTimeableAttr<PK, T>) entry;
 
     for (final AttrColumnDescription attrFieldToExport : attrFieldsToExport) {
-      final List<T> attrRowsOfGroup = timeableService.getTimeableAttrRowsForGroupName(entity, attrFieldToExport.getGroupName());
-      final T attrRow = getAttrRowForSameMonth(attrRowsOfGroup);
+      final T attrRow = timeableService.getAttrRowForSameMonth(entity, attrFieldToExport.getGroupName(), dateToSelectAttrRow);
 
       if (attrRow != null) {
         final String attributeValue = attrRow.getStringAttribute(attrFieldToExport.getPropertyName());
@@ -63,12 +61,4 @@ public class DOWithAttrListExcelExporter<PK extends Serializable, T extends Time
     }
   }
 
-  private T getAttrRowForSameMonth(final List<T> attrRows)
-  {
-    return attrRows
-        .stream()
-        .filter(row -> (row.getStartTime() != null && DateHelper.isSameMonth(row.getStartTime(), dateToSelectAttrRow)))
-        .findFirst()
-        .orElse(null);
-  }
 }

@@ -25,7 +25,6 @@ package org.projectforge.plugins.eed.wicket;
 
 import java.math.BigDecimal;
 import java.util.Date;
-import java.util.List;
 
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
@@ -35,7 +34,6 @@ import org.apache.wicket.model.IModel;
 import org.projectforge.business.fibu.EmployeeDO;
 import org.projectforge.business.fibu.EmployeeTimedDO;
 import org.projectforge.business.fibu.api.EmployeeService;
-import org.projectforge.framework.time.DateHelper;
 import org.projectforge.web.common.timeattr.AttrModel;
 import org.projectforge.web.wicket.CellItemListener;
 import org.projectforge.web.wicket.flowlayout.InputPanel;
@@ -98,9 +96,8 @@ public class AttrInputCellItemListenerPropertyColumn<T> extends PropertyColumn<T
   public void populateItem(final Item<ICellPopulator<T>> item, final String componentId, final IModel<T> rowModel)
   {
     final EmployeeDO employee = (EmployeeDO) rowModel.getObject();
-    List<EmployeeTimedDO> timedAttributes = timeableService.getTimeableAttrRowsForGroupName(employee,
-        getPropertyExpression());
-    EmployeeTimedDO row = getAttrRowForSameMonth(timedAttributes, new Date());
+
+    EmployeeTimedDO row = timeableService.getAttrRowForSameMonth(employee, getPropertyExpression(), new Date());
     if (row == null) {
       row = employeeService.addNewTimeAttributeRow(employee, getPropertyExpression());
     }
@@ -109,15 +106,5 @@ public class AttrInputCellItemListenerPropertyColumn<T> extends PropertyColumn<T
     if (cellItemListener != null) {
       cellItemListener.populateItem(item, componentId, rowModel);
     }
-  }
-
-  private EmployeeTimedDO getAttrRowForSameMonth(final List<EmployeeTimedDO> attrRows,
-      Date dateToSelectAttrRow)
-  {
-    return attrRows
-        .stream()
-        .filter(row -> (row.getStartTime() != null && DateHelper.isSameMonth(row.getStartTime(), dateToSelectAttrRow)))
-        .findFirst()
-        .orElse(null);
   }
 }

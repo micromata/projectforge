@@ -615,20 +615,6 @@ public class DateHelper implements Serializable
     return d1.getYear() == d2.getYear() && d1.getDayOfYear() == d2.getDayOfYear();
   }
 
-  /**
-   * @param d1
-   * @param d2
-   * @return True if the dates represent the same month (year, month) independent of the days, hours, minutes etc.
-   */
-  public static boolean isSameMonth(final Date d1, final Date d2)
-  {
-    Calendar c1 = Calendar.getInstance();
-    c1.setTime(d1);
-    Calendar c2 = Calendar.getInstance();
-    c2.setTime(d2);
-    return c1.get(Calendar.YEAR) == c2.get(Calendar.YEAR) && c1.get(Calendar.MONTH) == c2.get(Calendar.MONTH);
-  }
-
   public static boolean dateOfYearBetween(final int month, final int dayOfMonth, final int fromMonth,
       final int fromDayOfMonth,
       final int toMonth, final int toDayOfMonth)

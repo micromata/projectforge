@@ -5,6 +5,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Predicate;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.MarkupContainer;
@@ -41,6 +42,7 @@ import de.micromata.genome.db.jpa.tabattr.api.AttrGroup.DayMonthGranularity;
 import de.micromata.genome.db.jpa.tabattr.api.EntityWithTimeableAttr;
 import de.micromata.genome.db.jpa.tabattr.api.TimeableAttrRow;
 import de.micromata.genome.db.jpa.tabattr.api.TimeableService;
+import de.micromata.genome.util.types.DateUtils;
 
 public class TimedAttributePanel<PK extends Serializable, T extends TimeableAttrRow<PK>> extends BaseAttributePanel
 {
@@ -291,32 +293,33 @@ public class TimedAttributePanel<PK extends Serializable, T extends TimeableAttr
     final Date dateToValidate = iValidatable.getValue();
     final T selectedAttrRow = selectedAttrRowModel.getObject();
 
-    boolean thereIsAlreadyAnEntryWithTheSameDate = false;
-
     DayMonthGranularity gran = attrGroup.getDayMonthGranularity();
     if (gran == null) {
       gran = DayMonthGranularity.DAY;
     }
+
+    Predicate<T> predicate;
+    String errorKey;
+
     switch (gran) {
       case MONTH:
-        thereIsAlreadyAnEntryWithTheSameDate = getTimeableAttrRowsOfThisGroup()
-            .stream()
-            // remove the currently selected entry from the stream, otherwise this will always be true if you don't change the date
-            .filter(row -> !row.equals(selectedAttrRow))
-            .anyMatch(row -> DateHelper.isSameMonth(row.getStartTime(), dateToValidate));
-        if (thereIsAlreadyAnEntryWithTheSameDate) {
-          iValidatable.error(new ValidationError().addKey("attr.starttime.alreadyexists.month"));
-        }
+        predicate = row -> DateUtils.isSameMonth(row.getStartTime(), dateToValidate);
+        errorKey = "attr.starttime.alreadyexists.month";
         break;
+
       default:
-        thereIsAlreadyAnEntryWithTheSameDate = getTimeableAttrRowsOfThisGroup()
-            .stream()
-            // remove the currently selected entry from the stream, otherwise this will always be true if you don't change the date
-            .filter(row -> !row.equals(selectedAttrRow))
-            .anyMatch(row -> DateHelper.isSameDay(row.getStartTime(), dateToValidate));
-        if (thereIsAlreadyAnEntryWithTheSameDate) {
-          iValidatable.error(new ValidationError().addKey("attr.starttime.alreadyexists.day"));
-        }
+        predicate = row -> DateHelper.isSameDay(row.getStartTime(), dateToValidate);
+        errorKey = "attr.starttime.alreadyexists.day";
+    }
+
+    final boolean thereIsAlreadyAnEntryWithTheSameDate = getTimeableAttrRowsOfThisGroup()
+        .stream()
+        // remove the currently selected entry from the stream, otherwise this will always be true if you don't change the date
+        .filter(row -> !row.equals(selectedAttrRow))
+        .anyMatch(predicate);
+
+    if (thereIsAlreadyAnEntryWithTheSameDate) {
+      iValidatable.error(new ValidationError().addKey(errorKey));
     }
   }
 
