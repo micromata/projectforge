@@ -4,10 +4,45 @@ import org.projectforge.web.selenium.fibu.SeleniumEmployeeEditPage;
 import org.projectforge.web.selenium.fibu.SeleniumEmployeeListPage;
 import org.projectforge.web.selenium.login.SeleniumLoginPage;
 import org.testng.Assert;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 public class MyAccountTest extends SeleniumSuiteTestBase
 {
+  @BeforeClass
+  public void createAdminEmployee()
+  {
+
+    new SeleniumLoginPage()
+        .callPage()
+        .loginAsAdmin();
+    boolean caughtException = false;
+    SeleniumEmployeeListPage seleniumEmployeeListPage = new SeleniumEmployeeListPage();
+
+    try {
+      seleniumEmployeeListPage
+          .callPage()
+          .clickRowWhereColumnLike("Administrator");
+    } catch (Exception e) {
+      caughtException = true;
+    }
+
+    if (caughtException == true) {
+      seleniumEmployeeListPage
+          .addEntry()
+          .callPage()
+          .setKost1("3.000.00.00")
+          .setStatus(SeleniumEmployeeEditPage.status_FEST_ANGESTELLTER)
+          .setAssociatedUsername(Const.ADMIN_USERNAME)
+          .setGender(SeleniumEmployeeEditPage.gender_MALE)
+          .setStaffNumber("1234")
+          .setPayeTaxNumber("abc")
+          .clickCreateOrUpdate();
+    }
+
+    new SeleniumLoginPage().logout();
+  }
+
   @Test
   public void testPersonalData()
   {
