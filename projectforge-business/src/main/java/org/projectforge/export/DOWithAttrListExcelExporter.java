@@ -6,7 +6,6 @@ import java.util.List;
 
 import org.projectforge.excel.ContentProvider;
 import org.projectforge.excel.ExportColumn;
-import org.projectforge.excel.I18nExportColumn;
 import org.projectforge.excel.PropertyMapping;
 
 import de.micromata.genome.db.jpa.tabattr.api.EntityWithTimeableAttr;
@@ -39,7 +38,7 @@ public class DOWithAttrListExcelExporter<PK extends Serializable, T extends Time
     final List<ExportColumn> exportColumns = reorderAndRemoveOtherColumns(columns, fieldsToExport);
 
     for (final AttrColumnDescription attrFieldToExport : attrFieldsToExport) {
-      exportColumns.add(new I18nExportColumn(attrFieldToExport.getCombinedName(), "fibu.employee.tabs.salary", 20)); // TODO CT: i18n key and width
+      exportColumns.add(attrFieldToExport.toI18nExportColumn());
     }
 
     return exportColumns;
