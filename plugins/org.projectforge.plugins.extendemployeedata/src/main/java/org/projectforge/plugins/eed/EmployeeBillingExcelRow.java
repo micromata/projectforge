@@ -2,13 +2,20 @@ package org.projectforge.plugins.eed;
 
 import java.math.BigDecimal;
 
+/**
+ * If you change fields here, you have to change ExtendEmployeeDataConstants.ATTR_FIELDS_TO_EDIT accordingly.
+ */
 public class EmployeeBillingExcelRow
 {
   private Integer id;
 
   private String staffNumber;
 
-  private BigDecimal eBikeLeasing;
+  private BigDecimal mobilecheckmobilecheck;
+
+  private BigDecimal daycarecenterdaycarecenter;
+
+  private BigDecimal ebikeleasingebikeleasing;
 
   public Integer getId()
   {
@@ -30,13 +37,34 @@ public class EmployeeBillingExcelRow
     this.staffNumber = staffNumber;
   }
 
-  public BigDecimal geteBikeLeasing()
+  public BigDecimal getMobilecheckmobilecheck()
   {
-    return eBikeLeasing;
+    return mobilecheckmobilecheck;
   }
 
-  public void seteBikeLeasing(BigDecimal eBikeLeasing)
+  public void setMobilecheckmobilecheck(BigDecimal mobilecheckmobilecheck)
   {
-    this.eBikeLeasing = eBikeLeasing;
+    this.mobilecheckmobilecheck = mobilecheckmobilecheck;
   }
+
+  public BigDecimal getDaycarecenterdaycarecenter()
+  {
+    return daycarecenterdaycarecenter;
+  }
+
+  public void setDaycarecenterdaycarecenter(BigDecimal daycarecenterdaycarecenter)
+  {
+    this.daycarecenterdaycarecenter = daycarecenterdaycarecenter;
+  }
+
+  public BigDecimal getEbikeleasingebikeleasing()
+  {
+    return ebikeleasingebikeleasing;
+  }
+
+  public void setEbikeleasingebikeleasing(BigDecimal ebikeleasingebikeleasing)
+  {
+    this.ebikeleasingebikeleasing = ebikeleasingebikeleasing;
+  }
+
 }
