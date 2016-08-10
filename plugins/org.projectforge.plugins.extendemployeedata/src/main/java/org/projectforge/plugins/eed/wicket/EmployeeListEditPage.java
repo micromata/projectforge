@@ -16,10 +16,10 @@ import org.projectforge.business.fibu.EmployeeDO;
 import org.projectforge.business.fibu.EmployeeTimedDO;
 import org.projectforge.business.fibu.api.EmployeeService;
 import org.projectforge.business.user.I18nHelper;
-import org.projectforge.export.AttrColumnDescription;
 import org.projectforge.export.DOListExcelExporter;
 import org.projectforge.export.DOWithAttrListExcelExporter;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
+import org.projectforge.plugins.eed.ExtendEmployeeDataConstants;
 import org.projectforge.plugins.eed.wicket.EmployeeListEditForm.SelectOption;
 import org.projectforge.web.core.MenuBarPanel;
 import org.projectforge.web.wicket.AbstractListPage;
@@ -120,14 +120,9 @@ public class EmployeeListEditPage extends AbstractListPage<EmployeeListEditForm,
   {
     final String[] fieldsToExport = { "id", "user", "kost1", "staffNumber" };
 
-    final AttrColumnDescription[] attrFieldsToExport = {
-        new AttrColumnDescription("mobilecheck", "mobilecheck", "fibu.employee.mobilecheck.title"),
-        new AttrColumnDescription("ebikeleasing", "ebikeleasing", "fibu.employee.ebikeleasing.title")
-    };
-
     final Date dateToSelectAttrRow = new GregorianCalendar(form.getSelectedYear(), form.getSelectedMonth() - 1, 1, 0, 0)
         .getTime();
-    return new DOWithAttrListExcelExporter<>(filenameIdentifier, timeableService, fieldsToExport, attrFieldsToExport,
+    return new DOWithAttrListExcelExporter<>(filenameIdentifier, timeableService, fieldsToExport, ExtendEmployeeDataConstants.ATTR_FIELDS_TO_EDIT,
         dateToSelectAttrRow);
   }
 

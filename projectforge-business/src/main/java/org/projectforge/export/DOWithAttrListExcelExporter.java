@@ -18,12 +18,12 @@ public class DOWithAttrListExcelExporter<PK extends Serializable, T extends Time
 
   private final String[] fieldsToExport;
 
-  private final AttrColumnDescription[] attrFieldsToExport;
+  private final List<AttrColumnDescription> attrFieldsToExport;
 
   private final Date dateToSelectAttrRow;
 
   public DOWithAttrListExcelExporter(final String filenameIdentifier, final TimeableService<PK, T> timeableService, final String[] fieldsToExport,
-      final AttrColumnDescription[] attrFieldsToExport, final Date dateToSelectAttrRow)
+      final List<AttrColumnDescription> attrFieldsToExport, final Date dateToSelectAttrRow)
   {
     super(filenameIdentifier);
     this.timeableService = timeableService;
@@ -37,9 +37,11 @@ public class DOWithAttrListExcelExporter<PK extends Serializable, T extends Time
   {
     final List<ExportColumn> exportColumns = reorderAndRemoveOtherColumns(columns, fieldsToExport);
 
-    for (final AttrColumnDescription attrFieldToExport : attrFieldsToExport) {
-      exportColumns.add(attrFieldToExport.toI18nExportColumn());
-    }
+    // add the attr fields
+    attrFieldsToExport
+        .stream()
+        .map(AttrColumnDescription::toI18nExportColumn)
+        .forEach(exportColumns::add);
 
     return exportColumns;
   }

@@ -12,12 +12,15 @@ import org.apache.log4j.Logger;
 import org.projectforge.business.fibu.EmployeeDO;
 import org.projectforge.business.fibu.EmployeeTimedDO;
 import org.projectforge.business.fibu.api.EmployeeService;
+import org.projectforge.business.user.I18nHelper;
 import org.projectforge.excel.ExcelImport;
+import org.projectforge.export.AttrColumnDescription;
 import org.projectforge.framework.persistence.utils.ImportStorage;
 import org.projectforge.framework.persistence.utils.ImportedElement;
 import org.projectforge.framework.persistence.utils.ImportedSheet;
 
 import de.micromata.genome.db.jpa.tabattr.api.TimeableService;
+import de.micromata.genome.util.bean.PrivateBeanUtils;
 
 public class EmployeeBillingExcelImporter
 {
@@ -68,17 +71,19 @@ public class EmployeeBillingExcelImporter
     importedSheet.setName(NAME_OF_EXCEL_SHEET);
     importer.setNameRowIndex(ROW_INDEX_OF_COLUMN_NAMES);
     importer.setStartingRowIndex(ROW_INDEX_OF_COLUMN_NAMES + 1);
-    importer.setRowClass(EmployeeBillingExcelRow.class);
 
-    // TODO CT: i18n
+    // mapping from excel column name to the bean field name
     final Map<String, String> map = new HashMap<>();
     map.put("Id", "id");
     map.put("Personalnummer", "staffNumber");
-    map.put("eBike Leasing", "eBikeLeasing");
+
+    ExtendEmployeeDataConstants.ATTR_FIELDS_TO_EDIT.forEach(
+        desc -> map.put(I18nHelper.getLocalizedString(desc.getI18nKey()), desc.getCombinedName())
+    );
     importer.setColumnMapping(map);
 
-    EmployeeBillingExcelRow[] rows = importer.convertToRows(EmployeeBillingExcelRow.class);
-    for (EmployeeBillingExcelRow row : rows) {
+    final EmployeeBillingExcelRow[] rows = importer.convertToRows(EmployeeBillingExcelRow.class);
+    for (final EmployeeBillingExcelRow row : rows) {
       final ImportedElement<EmployeeDO> element = convertRowToDo(row);
       importedSheet.addElement(element);
     }
@@ -86,6 +91,9 @@ public class EmployeeBillingExcelImporter
 
   private ImportedElement<EmployeeDO> convertRowToDo(final EmployeeBillingExcelRow row)
   {
+    // TODO CT
+    final Date dateToSelectAttrRow = Date.from(LocalDateTime.of(2016, 8, 1, 0, 0).toInstant(ZoneOffset.UTC));
+
     final ImportedElement<EmployeeDO> element = new ImportedElement<>(storage.nextVal(), EmployeeDO.class, DIFF_PROPERTIES);
     EmployeeDO employee;
     if (row.getId() != null) {
@@ -99,23 +107,24 @@ public class EmployeeBillingExcelImporter
 
     employee.setStaffNumber(row.getStaffNumber());
 
-    // TODO CT
-    final Date dateToSelectAttrRow = Date.from(LocalDateTime.of(2016, 8, 1, 0, 0).toInstant(ZoneOffset.UTC));
-    EmployeeTimedDO eBikeLeasingGroup = getOrCreateAttrRow(employee, dateToSelectAttrRow, "ebikeleasing");
-    eBikeLeasingGroup.putAttribute("ebikeleasing", row.geteBikeLeasing());
+    ExtendEmployeeDataConstants.ATTR_FIELDS_TO_EDIT.forEach(
+        desc -> getOrCreateAttrRowAndPutAttribute(employee, dateToSelectAttrRow, desc, row)
+    );
 
     return element;
   }
 
-  private EmployeeTimedDO getOrCreateAttrRow(final EmployeeDO employee, final Date dateToSelectAttrRow, final String groupName)
+  private void getOrCreateAttrRowAndPutAttribute(final EmployeeDO employee, final Date dateToSelectAttrRow, final AttrColumnDescription colDesc,
+      final EmployeeBillingExcelRow row)
   {
-    EmployeeTimedDO attrRow = timeableService.getAttrRowForSameMonth(employee, groupName, dateToSelectAttrRow);
+    EmployeeTimedDO attrRow = timeableService.getAttrRowForSameMonth(employee, colDesc.getGroupName(), dateToSelectAttrRow);
 
     if (attrRow == null) {
-      attrRow = employeeService.addNewTimeAttributeRow(employee, groupName);
+      attrRow = employeeService.addNewTimeAttributeRow(employee, colDesc.getGroupName());
       attrRow.setStartTime(dateToSelectAttrRow);
     }
 
-    return attrRow;
+    final Object fieldValue = PrivateBeanUtils.readField(row, colDesc.getCombinedName());
+    attrRow.putAttribute(colDesc.getPropertyName(), fieldValue);
   }
 }
