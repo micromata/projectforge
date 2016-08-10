@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
@@ -27,6 +28,7 @@ import org.projectforge.web.wicket.CellItemListenerPropertyColumn;
 import org.projectforge.web.wicket.IListPageColumnsCreator;
 
 import de.micromata.genome.db.jpa.tabattr.api.TimeableService;
+import de.micromata.genome.db.jpa.tabattr.entities.JpaTabAttrBaseDO;
 
 public class EmployeeListEditPage extends AbstractListPage<EmployeeListEditForm, EmployeeService, EmployeeDO> implements
     IListPageColumnsCreator<EmployeeDO>
@@ -41,9 +43,17 @@ public class EmployeeListEditPage extends AbstractListPage<EmployeeListEditForm,
   @SpringBean
   private TimeableService<Integer, EmployeeTimedDO> timeableService;
 
+  private List<EmployeeDO> dataList;
+
   public EmployeeListEditPage(final PageParameters parameters)
   {
     super(parameters, "fibu.employee");
+  }
+
+  @Override
+  protected String getTitle()
+  {
+    return getString("plugins.eed.listcare.title");
   }
 
   @Override
@@ -74,7 +84,8 @@ public class EmployeeListEditPage extends AbstractListPage<EmployeeListEditForm,
         log.info("No option filter is selected!");
         break;
       default:
-        error(I18nHelper.getLocalizedString(ThreadLocalUserContext.getLocale(), "not.found"));
+        error(I18nHelper.getLocalizedString(ThreadLocalUserContext.getLocale(),
+            "plugins.eed.listcare.optionDropDown.notfound"));
         log.warn("Selected option not found: " + form.getSelectedOption());
     }
 
@@ -155,6 +166,33 @@ public class EmployeeListEditPage extends AbstractListPage<EmployeeListEditForm,
     final List<IColumn<EmployeeDO, String>> columns = createColumns(this, true);
     dataTable = createDataTable(columns, "user.lastname", SortOrder.ASCENDING);
     form.addOrReplace(dataTable);
+  }
+
+  public void saveList()
+  {
+    for (EmployeeDO e : this.dataList) {
+      List<EmployeeTimedDO> unusedTimeableAttributes = new ArrayList<>();
+      for (EmployeeTimedDO timed : e.getTimeableAttributes()) {
+        if (log.isDebugEnabled()) {
+          log.debug("Timed attributes for employee: " + e.getUser().getFullname() + " Attribute group: "
+              + timed.getGroupName() + " Start-Date: " + timed.getStartTime());
+        }
+        Map<String, JpaTabAttrBaseDO<EmployeeTimedDO, Integer>> attributes = timed.getAttributes();
+        if (attributes.size() < 1) {
+          unusedTimeableAttributes.add(timed);
+        }
+      }
+      //Remove unused timeable attribute
+      e.getTimeableAttributes().removeAll(unusedTimeableAttributes);
+      employeeService.update(e);
+    }
+  }
+
+  @Override
+  public List<EmployeeDO> getList()
+  {
+    this.dataList = super.getList();
+    return this.dataList;
   }
 
 }

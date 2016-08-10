@@ -108,6 +108,7 @@ public class AttrInputCellItemListenerPropertyColumn<T> extends PropertyColumn<T
     EmployeeTimedDO row = timeableService.getAttrRowForSameMonth(employee, getPropertyExpression(), cal.getTime());
     if (row == null) {
       row = employeeService.addNewTimeAttributeRow(employee, getPropertyExpression());
+      row.setStartTime(cal.getTime());
     }
     AttrModel<BigDecimal> attrModel = new AttrModel<>(row, groupAttribute, BigDecimal.class);
     item.add(new InputPanel(componentId, new TextField<BigDecimal>(InputPanel.WICKET_ID, attrModel)));

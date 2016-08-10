@@ -519,7 +519,7 @@ public abstract class AbstractListPage<F extends AbstractListForm<?, ?>, D exten
     addRecentSearchTerm();
   }
 
-  public final List<O> getList()
+  public List<O> getList()
   {
     if (this.refreshResultList == false && this.resultList != null) {
       return this.resultList;

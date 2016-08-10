@@ -89,7 +89,8 @@ public class EmployeeListEditForm extends AbstractListForm<EmployeeFilter, Emplo
     //Filter
     //Fieldset for Date DropDown
     final FieldsetPanel fsMonthYear = gridBuilder
-        .newFieldset(I18nHelper.getLocalizedString(ThreadLocalUserContext.getLocale(), "plugins.eed.yearmonth"));
+        .newFieldset(
+            I18nHelper.getLocalizedString(ThreadLocalUserContext.getLocale(), "plugins.eed.listcare.yearmonth"));
     //Get actual Month as preselected
     selectedMonth = Calendar.getInstance().get(Calendar.MONTH) + 1;
     //Month DropDown
@@ -123,7 +124,7 @@ public class EmployeeListEditForm extends AbstractListForm<EmployeeFilter, Emplo
 
     //Fieldset for option DropDown
     final FieldsetPanel fsOption = gridBuilder
-        .newFieldset(I18nHelper.getLocalizedString(ThreadLocalUserContext.getLocale(), "plugins.eed.option"));
+        .newFieldset(I18nHelper.getLocalizedString(ThreadLocalUserContext.getLocale(), "plugins.eed.listcare.option"));
     //Option DropDown
     DropDownChoicePanel<String> ddcOption = new DropDownChoicePanel<String>(gridBuilder.getPanel().newChildId(),
         new DropDownChoice<String>(DropDownChoicePanel.WICKET_ID, new PropertyModel<String>(this, "selectedOption"),
@@ -150,17 +151,17 @@ public class EmployeeListEditForm extends AbstractListForm<EmployeeFilter, Emplo
   public enum SelectOption
   {
 
-    MOBILECONTRACT("plugins.eed.optionDropDown.costmobilecontract", "mobilecontract"), //
-    MOBILECHECK("plugins.eed.optionDropDown.costmobiledevice", "mobilecheck"), //
-    COSTTRAVEL("plugins.eed.optionDropDown.costtravel", "costtravel"), //
-    EXPENSES("plugins.eed.optionDropDown.expenses", "expenses"), //
-    OVERTIME("plugins.eed.optionDropDown.overtime", "overtime"), //
-    BONUS("plugins.eed.optionDropDown.bonus", "bonus"), //
-    SPECIALPAYMENT("plugins.eed.optionDropDown.specialpayment", "specialpayment"), //
-    TARGETAGREEMENTS("plugins.eed.optionDropDown.targetagreements", "targetagreements"), //
-    COSTSHOP("plugins.eed.optionDropDown.costshop", "costshop"), //
-    WEEKENDWORK("plugins.eed.optionDropDown.weekendwork", "weekendwork"), //
-    OTHERS("plugins.eed.optionDropDown.others", "others"), //
+    MOBILECONTRACT("plugins.eed.listcare.optionDropDown.costmobilecontract", "mobilecontract"), //
+    MOBILECHECK("plugins.eed.listcare.optionDropDown.costmobiledevice", "mobilecheck"), //
+    COSTTRAVEL("plugins.eed.listcare.optionDropDown.costtravel", "costtravel"), //
+    EXPENSES("plugins.eed.listcare.optionDropDown.expenses", "expenses"), //
+    OVERTIME("plugins.eed.listcare.optionDropDown.overtime", "overtime"), //
+    BONUS("plugins.eed.listcare.optionDropDown.bonus", "bonus"), //
+    SPECIALPAYMENT("plugins.eed.listcare.optionDropDown.specialpayment", "specialpayment"), //
+    TARGETAGREEMENTS("plugins.eed.listcare.optionDropDown.targetagreements", "targetagreements"), //
+    COSTSHOP("plugins.eed.listcare.optionDropDown.costshop", "costshop"), //
+    WEEKENDWORK("plugins.eed.listcare.optionDropDown.weekendwork", "weekendwork"), //
+    OTHERS("plugins.eed.listcare.optionDropDown.others", "others"), //
     NONE("", ""), NOT_FOUND("", "");
 
     private String i18nKey;
@@ -219,12 +220,6 @@ public class EmployeeListEditForm extends AbstractListForm<EmployeeFilter, Emplo
   }
 
   @Override
-  protected EmployeeFilter newSearchFilterInstance()
-  {
-    return new EmployeeFilter();
-  }
-
-  @Override
   protected Logger getLogger()
   {
     return log;
@@ -235,10 +230,13 @@ public class EmployeeListEditForm extends AbstractListForm<EmployeeFilter, Emplo
     //Bottom Buttons
     final Button saveButton = new Button(SingleButtonPanel.WICKET_ID, new Model<>("save"))
     {
+      private static final long serialVersionUID = 4813886125924227595L;
+
       @Override
       public final void onSubmit()
       {
 
+        parentPage.saveList();
       }
     };
     WicketUtils.addTooltip(saveButton, getString("save"));
@@ -260,6 +258,12 @@ public class EmployeeListEditForm extends AbstractListForm<EmployeeFilter, Emplo
   public String getSelectedOption()
   {
     return selectedOption;
+  }
+
+  @Override
+  protected EmployeeFilter newSearchFilterInstance()
+  {
+    return new EmployeeFilter();
   }
 
 }
