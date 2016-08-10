@@ -107,11 +107,11 @@ public class EmployeeListEditPage extends AbstractListPage<EmployeeListEditForm,
   @Override
   protected DOListExcelExporter createExcelExporter(final String filenameIdentifier)
   {
-    final String[] fieldsToExport = { "user", "kost1" };
+    final String[] fieldsToExport = { "id", "user", "kost1", "staffNumber" };
 
     final AttrColumnDescription[] attrFieldsToExport = {
-        new AttrColumnDescription("mobilecheck", "mobilecheck"),
-        new AttrColumnDescription("ebikeleasing", "ebikeleasing")
+        new AttrColumnDescription("mobilecheck", "mobilecheck", "fibu.employee.mobilecheck.title"),
+        new AttrColumnDescription("ebikeleasing", "ebikeleasing", "fibu.employee.ebikeleasing.title")
     };
 
     final Date dateToSelectAttrRow = new GregorianCalendar(form.getSelectedYear(), form.getSelectedMonth() - 1, 1, 0, 0)

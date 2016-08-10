@@ -25,6 +25,7 @@ package org.projectforge.plugins.eed;
 
 import org.projectforge.business.fibu.EmployeeDao;
 import org.projectforge.plugins.core.AbstractPlugin;
+import org.projectforge.plugins.eed.wicket.EmployeeBillingImportPage;
 import org.projectforge.plugins.eed.wicket.EmployeeListEditPage;
 import org.projectforge.plugins.eed.wicket.ExportDataPage;
 import org.projectforge.web.MenuItemDef;
@@ -69,9 +70,11 @@ public class ExtendEmployeeDataPlugin extends AbstractPlugin
     pluginWicketRegistrationService
         .registerMenuItem(new MenuItemDef(parentMenu, ID, 21, "plugins.eed.menu.listcare", EmployeeListEditPage.class));
     pluginWicketRegistrationService
-        .registerMenuItem(new MenuItemDef(parentMenu, ID, 22, "plugins.eed.menu.export", ExportDataPage.class));
+        .registerMenuItem(new MenuItemDef(parentMenu, ID, 22, "plugins.eed.menu.listcareimport", EmployeeBillingImportPage.class));
     pluginWicketRegistrationService
-        .registerMenuItem(new MenuItemDef(parentMenu, ID, 23, "plugins.eed.menu.config", ExportDataPage.class));
+        .registerMenuItem(new MenuItemDef(parentMenu, ID, 23, "plugins.eed.menu.export", ExportDataPage.class));
+    pluginWicketRegistrationService
+        .registerMenuItem(new MenuItemDef(parentMenu, ID, 24, "plugins.eed.menu.config", ExportDataPage.class));
 
     // Define the access management:
     registerRight(new ExtendEmployeeDataRight(accessChecker));
