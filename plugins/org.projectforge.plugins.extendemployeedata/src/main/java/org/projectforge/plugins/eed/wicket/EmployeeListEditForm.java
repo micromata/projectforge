@@ -6,7 +6,6 @@ import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -48,7 +47,7 @@ public class EmployeeListEditForm extends AbstractListForm<EmployeeFilter, Emplo
           new Integer(6), new Integer(7), new Integer(8), new Integer(9), new Integer(10), new Integer(11),
           new Integer(12) });
 
-  private Set<Integer> availableYears;
+  private List<Integer> availableYears;
 
   private Integer selectedMonth;
 
@@ -211,7 +210,7 @@ public class EmployeeListEditForm extends AbstractListForm<EmployeeFilter, Emplo
         this.availableYears.add(actualYear + 1);
       }
     }
-    return new ArrayList<>(this.availableYears);
+    return this.availableYears;
   }
 
   public EmployeeListEditForm(final EmployeeListEditPage parentPage)
