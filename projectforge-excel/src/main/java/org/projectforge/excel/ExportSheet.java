@@ -27,6 +27,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.PrintSetup;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
@@ -62,20 +64,28 @@ public class ExportSheet
     this.name = name;
     this.poiSheet = poiSheet;
     this.rows = new ArrayList<ExportRow>();
+    initRowList();
+    final PrintSetup printSetup = getPrintSetup();
+    printSetup.setPaperSize(ExportConfig.getInstance().getDefaultPaperSizeId());
+  }
+
+  private void initRowList()
+  {
+    this.rows.clear();
+    this.rowCounter = 0;
     final int lastRowNum = poiSheet.getLastRowNum();
     if (lastRowNum > 0) {
       // poiSheet does already exists.
-      for (int i = poiSheet.getFirstRowNum(); i < poiSheet.getLastRowNum(); i++) {
+      for (int i = poiSheet.getFirstRowNum(); i <= poiSheet.getLastRowNum(); i++) {
         Row poiRow = poiSheet.getRow(i);
         if (poiRow == null) {
           poiRow = poiSheet.createRow(i);
         }
         final ExportRow row = new ExportRow(contentProvider, this, poiRow, i);
         rows.add(row);
+        this.rowCounter++;
       }
     }
-    final PrintSetup printSetup = getPrintSetup();
-    printSetup.setPaperSize(ExportConfig.getInstance().getDefaultPaperSizeId());
   }
 
   /**
@@ -128,6 +138,13 @@ public class ExportSheet
   public PrintSetup getPrintSetup()
   {
     return poiSheet.getPrintSetup();
+  }
+
+  public ExportRow copyRow(ExportRow targetRow)
+  {
+    final Row poiRow = copyRow(targetRow.getSheet().getPoiSheet(), targetRow.getRowNum());
+    initRowList();
+    return rows.get(poiRow.getRowNum());
   }
 
   public ExportRow addRow()
@@ -328,5 +345,90 @@ public class ExportSheet
   public void setImported(final boolean imported)
   {
     this.imported = imported;
+  }
+
+  private static Row copyRow(Sheet worksheet, int rowNum)
+  {
+    Row sourceRow = worksheet.getRow(rowNum);
+
+    //Save the text of any formula before they are altered by row shifting
+    String[] formulasArray = new String[sourceRow.getLastCellNum()];
+    for (int i = 0; i < sourceRow.getLastCellNum(); i++) {
+      if (sourceRow.getCell(i) != null && sourceRow.getCell(i).getCellType() == Cell.CELL_TYPE_FORMULA)
+        formulasArray[i] = sourceRow.getCell(i).getCellFormula();
+    }
+
+    worksheet.shiftRows(rowNum, worksheet.getLastRowNum(), 1);
+    Row newRow = sourceRow; //Now sourceRow is the empty line, so let's rename it
+    sourceRow = worksheet.getRow(rowNum + 1); //Now the source row is at rowNum+1
+
+    // Loop through source columns to add to new row
+    for (int i = 0; i < sourceRow.getLastCellNum(); i++) {
+      // Grab a copy of the old/new cell
+      Cell oldCell = sourceRow.getCell(i);
+      Cell newCell;
+
+      // If the old cell is null jump to next cell
+      if (oldCell == null) {
+        continue;
+      } else {
+        newCell = newRow.createCell(i);
+      }
+
+      // Copy style from old cell and apply to new cell
+      CellStyle newCellStyle = worksheet.getWorkbook().createCellStyle();
+      newCellStyle.cloneStyleFrom(oldCell.getCellStyle());
+      newCell.setCellStyle(newCellStyle);
+
+      // If there is a cell comment, copy
+      if (oldCell.getCellComment() != null) {
+        newCell.setCellComment(oldCell.getCellComment());
+      }
+
+      // If there is a cell hyperlink, copy
+      if (oldCell.getHyperlink() != null) {
+        newCell.setHyperlink(oldCell.getHyperlink());
+      }
+
+      // Set the cell data type
+      newCell.setCellType(oldCell.getCellType());
+
+      // Set the cell data value
+      switch (oldCell.getCellType()) {
+        case Cell.CELL_TYPE_BLANK:
+          break;
+        case Cell.CELL_TYPE_BOOLEAN:
+          newCell.setCellValue(oldCell.getBooleanCellValue());
+          break;
+        case Cell.CELL_TYPE_ERROR:
+          newCell.setCellErrorValue(oldCell.getErrorCellValue());
+          break;
+        case Cell.CELL_TYPE_FORMULA:
+          newCell.setCellFormula(formulasArray[i]);
+          break;
+        case Cell.CELL_TYPE_NUMERIC:
+          newCell.setCellValue(oldCell.getNumericCellValue());
+          break;
+        case Cell.CELL_TYPE_STRING:
+          newCell.setCellValue(oldCell.getRichStringCellValue());
+          break;
+        default:
+          break;
+      }
+    }
+
+    // If there are any merged regions in the source row, copy to new row
+    for (int i = 0; i < worksheet.getNumMergedRegions(); i++) {
+      CellRangeAddress cellRangeAddress = worksheet.getMergedRegion(i);
+      if (cellRangeAddress.getFirstRow() == sourceRow.getRowNum()) {
+        CellRangeAddress newCellRangeAddress = new CellRangeAddress(newRow.getRowNum(),
+            (newRow.getRowNum() +
+                (cellRangeAddress.getLastRow() - cellRangeAddress.getFirstRow())),
+            cellRangeAddress.getFirstColumn(),
+            cellRangeAddress.getLastColumn());
+        worksheet.addMergedRegion(newCellRangeAddress);
+      }
+    }
+    return newRow;
   }
 }

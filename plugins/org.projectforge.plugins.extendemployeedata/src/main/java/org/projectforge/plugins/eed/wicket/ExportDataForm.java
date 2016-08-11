@@ -1,34 +1,41 @@
 package org.projectforge.plugins.eed.wicket;
 
-import java.util.Date;
+import java.util.Calendar;
+import java.util.GregorianCalendar;
+import java.util.List;
 
 import org.apache.wicket.markup.html.form.Button;
-import org.apache.wicket.markup.html.form.SubmitLink;
+import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
-import org.apache.wicket.model.ResourceModel;
-import org.projectforge.framework.time.TimePeriod;
-import org.projectforge.web.CSSColor;
-import org.projectforge.web.calendar.QuickSelectWeekPanel;
+import org.apache.wicket.spring.injection.annot.SpringBean;
+import org.projectforge.business.fibu.EmployeeDao;
+import org.projectforge.business.fibu.EmployeeTimedDO;
+import org.projectforge.business.user.I18nHelper;
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.web.wicket.AbstractStandardForm;
-import org.projectforge.web.wicket.bootstrap.GridSize;
-import org.projectforge.web.wicket.components.DatePanel;
-import org.projectforge.web.wicket.components.DatePanelSettings;
+import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.web.wicket.components.SingleButtonPanel;
-import org.projectforge.web.wicket.flowlayout.DivTextPanel;
+import org.projectforge.web.wicket.flowlayout.DropDownChoicePanel;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
-import org.projectforge.web.wicket.flowlayout.IconLinkPanel;
-import org.projectforge.web.wicket.flowlayout.IconType;
+
+import de.micromata.genome.db.jpa.tabattr.api.TimeableService;
 
 public class ExportDataForm extends AbstractStandardForm<Object, ExportDataPage>
 {
   private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(ExportDataForm.class);
 
-  private TimePeriod timePeriod = new TimePeriod();
+  private Integer selectedMonth;
 
-  protected DatePanel startDate;
+  private List<Integer> availableYears;
 
-  protected DatePanel stopDate;
+  private Integer selectedYear;
+
+  @SpringBean
+  private TimeableService<Integer, EmployeeTimedDO> timeableService;
+
+  @SpringBean
+  private EmployeeDao employeeDao;
 
   public ExportDataForm(ExportDataPage parentPage)
   {
@@ -40,77 +47,66 @@ public class ExportDataForm extends AbstractStandardForm<Object, ExportDataPage>
   {
     super.init();
 
-    gridBuilder.newSplitPanel(GridSize.COL66);
-    final FieldsetPanel fs = gridBuilder.newFieldset(getString("timePeriod"));
+    //Filter
+    //Fieldset for Date DropDown
+    final FieldsetPanel fsMonthYear = gridBuilder
+        .newFieldset(
+            I18nHelper.getLocalizedString(ThreadLocalUserContext.getLocale(), "plugins.eed.listcare.yearmonth"));
+    //Get actual Month as preselected
+    selectedMonth = Calendar.getInstance().get(Calendar.MONTH) + 1;
+    //Month DropDown
+    DropDownChoicePanel<Integer> ddcMonth = new DropDownChoicePanel<Integer>(fsMonthYear.newChildId(),
+        new DropDownChoice<Integer>(DropDownChoicePanel.WICKET_ID, new PropertyModel<Integer>(this, "selectedMonth"),
+            EmployeeListEditForm.MONTH_INTEGERS));
+    fsMonthYear.add(ddcMonth);
+    //Get actual year for pre select
+    selectedYear = Calendar.getInstance().get(Calendar.YEAR);
+    //Year DropDown
+    DropDownChoicePanel<Integer> ddcYear = new DropDownChoicePanel<Integer>(fsMonthYear.newChildId(),
+        new DropDownChoice<Integer>(DropDownChoicePanel.WICKET_ID, new PropertyModel<Integer>(this, "selectedYear"),
+            getDropDownYears()));
+    fsMonthYear.add(ddcYear);
 
-    startDate = new DatePanel(fs.newChildId(), new PropertyModel<>(timePeriod, "fromDate"),
-        DatePanelSettings.get().withSelectPeriodMode(true));
-    fs.add(startDate);
-    fs.setLabelFor(startDate);
-    fs.add(new DivTextPanel(fs.newChildId(), " - "));
-    stopDate = new DatePanel(fs.newChildId(), new PropertyModel<>(timePeriod, "toDate"),
-        DatePanelSettings.get().withSelectPeriodMode(true));
-    fs.add(stopDate);
-
+    final Button exportButton = new Button(SingleButtonPanel.WICKET_ID, new Model<>("export"))
     {
-      final SubmitLink unselectPeriodLink = new SubmitLink(IconLinkPanel.LINK_ID)
-      {
-        @Override
-        public void onSubmit()
-        {
-          timePeriod.setFromDate(null);
-          timePeriod.setToDate(null);
-          clearInput();
-        }
-      };
-      unselectPeriodLink.setDefaultFormProcessing(false);
-      fs.add(new IconLinkPanel(fs.newChildId(), IconType.REMOVE_SIGN,
-          new ResourceModel("calendar.tooltip.unselectPeriod"),
-          unselectPeriodLink).setColor(CSSColor.RED));
-    }
+      private static final long serialVersionUID = -2985054827068348809L;
 
-    final QuickSelectWeekPanel quickSelectWeekPanel = new QuickSelectWeekPanel(fs.newChildId(), new Model<Date>()
-    {
       @Override
-      public Date getObject()
+      public final void onSubmit()
       {
-        startDate.getDateField().validate();
-        return startDate.getDateField().getConvertedInput();
-      }
-    }, parentPage, "quickSelect" + ".week");
-    fs.add(quickSelectWeekPanel);
-    quickSelectWeekPanel.init();
-
-    fs.add(new DivTextPanel(fs.newChildId(), new Model<String>()
-    {
-      @Override
-      public String getObject()
-      {
-        //return WicketUtils.getCalendarWeeks(IhkExportForm.this, timePeriod.getFromDate(), timePeriod.getToDate());
-        return null;
-      }
-    }));
-
-    Button downloadButton = new Button(SingleButtonPanel.WICKET_ID, new Model("download"))
-    {
-      @Override
-      public void onSubmit()
-      {
-        //parentPage.export();
+        parentPage.exportData();
       }
     };
-    fs.add(new SingleButtonPanel(fs.newChildId(), downloadButton,
-        getString("plugins.ihkexport.download"), SingleButtonPanel.DEFAULT_SUBMIT));
+    WicketUtils.addTooltip(exportButton, getString("export"));
+    final SingleButtonPanel exportButtonPanel = new SingleButtonPanel(actionButtons.newChildId(),
+        exportButton,
+        getString("export"), SingleButtonPanel.DEFAULT_SUBMIT);
+    actionButtons.add(exportButtonPanel);
   }
 
-  public TimePeriod getTimePeriod()
+  private List<Integer> getDropDownYears()
   {
-    return timePeriod;
+    if (this.availableYears == null) {
+      this.availableYears = timeableService.getAvailableStartTimeYears(employeeDao.internalLoadAll());
+      Integer actualYear = new GregorianCalendar().get(Calendar.YEAR);
+      if (this.availableYears.contains(actualYear) == false) {
+        this.availableYears.add(actualYear);
+      }
+      if (this.availableYears.contains(actualYear + 1) == false) {
+        this.availableYears.add(actualYear + 1);
+      }
+    }
+    return this.availableYears;
   }
 
-  public DatePanel getStartDate()
+  public Integer getSelectedMonth()
   {
-    return startDate;
+    return selectedMonth;
+  }
+
+  public Integer getSelectedYear()
+  {
+    return selectedYear;
   }
 
 }

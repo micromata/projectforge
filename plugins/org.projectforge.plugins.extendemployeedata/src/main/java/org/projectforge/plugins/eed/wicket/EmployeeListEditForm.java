@@ -39,7 +39,7 @@ public class EmployeeListEditForm extends AbstractListForm<EmployeeFilter, Emplo
   @SpringBean
   private EmployeeDao employeeDao;
 
-  private static final List<Integer> MONTH_INTEGERS = Arrays.asList(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12);
+  public static final List<Integer> MONTH_INTEGERS = Arrays.asList(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12);
 
   private List<Integer> availableYears;
 
@@ -189,3 +189,4 @@ public class EmployeeListEditForm extends AbstractListForm<EmployeeFilter, Emplo
   }
 
 }
+
