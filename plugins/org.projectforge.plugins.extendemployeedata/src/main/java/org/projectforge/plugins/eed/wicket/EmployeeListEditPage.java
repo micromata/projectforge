@@ -97,12 +97,12 @@ public class EmployeeListEditPage extends AbstractListPage<EmployeeListEditForm,
   protected DOListExcelExporter createExcelExporter(final String filenameIdentifier)
   {
     final String[] fieldsToExport = { "id", "user", "staffNumber" };
+    final List<AttrColumnDescription> attrFieldsToExport = ExtendedEmployeeDataEnum
+        .findByAttrXMLKey(form.getSelectedOption())
+        .getAttrColumnDescriptions();
 
-    final Date dateToSelectAttrRow = new GregorianCalendar(form.getSelectedYear(), form.getSelectedMonth() - 1, 1, 0, 0)
-        .getTime();
-    return new DOWithAttrListExcelExporter<>(filenameIdentifier, timeableService, fieldsToExport,
-        ExtendedEmployeeDataEnum.getAllAttrColumnDescriptions(),
-        dateToSelectAttrRow);
+    final Date dateToSelectAttrRow = new GregorianCalendar(form.getSelectedYear(), form.getSelectedMonth() - 1, 1, 0, 0).getTime();
+    return new DOWithAttrListExcelExporter<>(filenameIdentifier, timeableService, fieldsToExport, attrFieldsToExport, dateToSelectAttrRow);
   }
 
   @Override
