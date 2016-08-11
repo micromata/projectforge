@@ -7,9 +7,11 @@ import java.util.List;
 
 import org.projectforge.export.AttrColumnDescription;
 
+/**
+ * If you change enum entries here, you have to change EmployeeBillingExcelRow accordingly.
+ */
 public enum ExtendedEmployeeDataEnum
 {
-
   MOBILECONTRACT("plugins.eed.listcare.optionDropDown.costmobilecontract",
       Collections.singletonList(new AttrColumnDescription("mobilecontract", "mobilecontract", "fibu.employee.mobilecontract.title"))), //
   MOBILECHECK("plugins.eed.listcare.optionDropDown.costmobiledevice",
