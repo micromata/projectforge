@@ -10,6 +10,7 @@ import org.projectforge.business.fibu.EmployeeDO;
 import org.projectforge.business.fibu.EmployeeTimedDO;
 import org.projectforge.business.fibu.api.EmployeeService;
 import org.projectforge.excel.ExcelImportException;
+import org.projectforge.export.AttrColumnDescription;
 import org.projectforge.framework.i18n.UserException;
 import org.projectforge.framework.persistence.utils.ImportStatus;
 import org.projectforge.framework.persistence.utils.ImportStorage;
@@ -34,6 +35,8 @@ public class EmployeeBillingImportDao
   @Autowired
   private TimeableService<Integer, EmployeeTimedDO> timeableService;
 
+  private List<AttrColumnDescription> attrColumnsInSheet;
+
   private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(EmployeeBillingImportDao.class);
 
   public ImportStorage<EmployeeDO> importData(final InputStream is, final String filename) throws IOException
@@ -43,7 +46,7 @@ public class EmployeeBillingImportDao
     storage.setFilename(filename);
     final EmployeeBillingExcelImporter importer = new EmployeeBillingExcelImporter(employeeService, timeableService, storage);
     try {
-      importer.doImport(is);
+      attrColumnsInSheet = importer.doImport(is);
     } catch (final ExcelImportException ex) {
       throw new UserException("common.import.excel.error", ex.getMessage(), ex.getRow(), ex.getColumnname());
     }
@@ -85,6 +88,11 @@ public class EmployeeBillingImportDao
     @SuppressWarnings("unchecked")
     final int num = commit((ImportedSheet<EmployeeDO>) sheet);
     sheet.setNumberOfCommittedElements(num);
+  }
+
+  public List<AttrColumnDescription> getAttrColumnsInSheet()
+  {
+    return attrColumnsInSheet;
   }
 
   private int commit(final ImportedSheet<EmployeeDO> sheet)

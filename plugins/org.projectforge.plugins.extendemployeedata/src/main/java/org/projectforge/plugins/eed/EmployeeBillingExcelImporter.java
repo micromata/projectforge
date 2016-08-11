@@ -6,7 +6,9 @@ import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.apache.log4j.Logger;
 import org.projectforge.business.fibu.EmployeeDO;
@@ -47,7 +49,7 @@ public class EmployeeBillingExcelImporter
     this.storage = storage;
   }
 
-  public void doImport(final InputStream is) throws IOException
+  public List<AttrColumnDescription> doImport(final InputStream is) throws IOException
   {
     final ExcelImport<EmployeeBillingExcelRow> importer = new ExcelImport<>(is);
 
@@ -58,14 +60,14 @@ public class EmployeeBillingExcelImporter
       if (NAME_OF_EXCEL_SHEET.equals(name)) {
         importer.setActiveSheet(idx);
         //        final HSSFSheet sheet = importer.getWorkbook().getSheetAt(idx);
-        importEmployeeBillings(importer);
-        return;
+        return importEmployeeBillings(importer);
       }
     }
     log.error("Oups, no sheet named '" + NAME_OF_EXCEL_SHEET + "' found.");
+    return null;
   }
 
-  private void importEmployeeBillings(final ExcelImport<EmployeeBillingExcelRow> importer)
+  private List<AttrColumnDescription> importEmployeeBillings(final ExcelImport<EmployeeBillingExcelRow> importer)
   {
     final ImportedSheet<EmployeeDO> importedSheet = new ImportedSheet<>();
     storage.addSheet(importedSheet);
@@ -82,14 +84,28 @@ public class EmployeeBillingExcelImporter
         desc -> map.put(I18nHelper.getLocalizedString(desc.getI18nKey()), desc.getCombinedName()));
     importer.setColumnMapping(map);
 
+    final List<AttrColumnDescription> attrColumnsInSheet = getAttrColumnsUsedInSheet(importer);
+
     final EmployeeBillingExcelRow[] rows = importer.convertToRows(EmployeeBillingExcelRow.class);
     for (final EmployeeBillingExcelRow row : rows) {
-      final ImportedElement<EmployeeDO> element = convertRowToDo(row);
+      final ImportedElement<EmployeeDO> element = convertRowToDo(attrColumnsInSheet, row);
       importedSheet.addElement(element);
     }
+
+    return attrColumnsInSheet;
   }
 
-  private ImportedElement<EmployeeDO> convertRowToDo(final EmployeeBillingExcelRow row)
+  private List<AttrColumnDescription> getAttrColumnsUsedInSheet(ExcelImport<EmployeeBillingExcelRow> importer)
+  {
+    final List<String> columnNames = importer.getColumnNames();
+    return ExtendedEmployeeDataEnum
+        .getAllAttrColumnDescriptions()
+        .stream()
+        .filter(desc -> columnNames.contains(I18nHelper.getLocalizedString(desc.getI18nKey())))
+        .collect(Collectors.toList());
+  }
+
+  private ImportedElement<EmployeeDO> convertRowToDo(final List<AttrColumnDescription> attrColumnsInSheet, final EmployeeBillingExcelRow row)
   {
     // TODO CT
     final Date dateToSelectAttrRow = Date.from(LocalDateTime.of(2016, 8, 1, 0, 0).toInstant(ZoneOffset.UTC));
@@ -108,8 +124,9 @@ public class EmployeeBillingExcelImporter
 
     employee.setStaffNumber(row.getStaffNumber());
 
-    ExtendedEmployeeDataEnum.getAllAttrColumnDescriptions().forEach(
-        desc -> getOrCreateAttrRowAndPutAttribute(employee, dateToSelectAttrRow, desc, row));
+    attrColumnsInSheet.forEach(
+        desc -> getOrCreateAttrRowAndPutAttribute(employee, dateToSelectAttrRow, desc, row)
+    );
 
     return element;
   }

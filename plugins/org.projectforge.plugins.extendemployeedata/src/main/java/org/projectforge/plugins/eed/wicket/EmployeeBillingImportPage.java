@@ -1,11 +1,13 @@
 package org.projectforge.plugins.eed.wicket;
 
 import java.io.InputStream;
+import java.util.List;
 
 import org.apache.wicket.markup.html.form.upload.FileUpload;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.excel.ExcelImportException;
+import org.projectforge.export.AttrColumnDescription;
 import org.projectforge.framework.persistence.utils.ImportedSheet;
 import org.projectforge.plugins.eed.EmployeeBillingImportDao;
 import org.projectforge.web.core.importstorage.AbstractImportPage;
@@ -23,6 +25,11 @@ public class EmployeeBillingImportPage extends AbstractImportPage<EmployeeBillin
     form = new EmployeeBillingImportForm(this);
     body.add(form);
     form.init();
+  }
+
+  List<AttrColumnDescription> getAttrColumnsInSheet()
+  {
+    return employeeBillingImportDao.getAttrColumnsInSheet();
   }
 
   void importAccountList()
@@ -92,20 +99,6 @@ public class EmployeeBillingImportPage extends AbstractImportPage<EmployeeBillin
   }
 
   //  protected void showBusinessAssessment(final String sheetName)
-  //  {
-  //    final ImportedSheet<?> sheet = getStorage().getNamedSheet(sheetName);
-  //    Validate.notNull(sheet);
-  //    final List<BuchungssatzDO> list = new ArrayList<BuchungssatzDO>();
-  //    for (final ImportedElement<?> element : sheet.getElements()) {
-  //      final BuchungssatzDO satz = (BuchungssatzDO) element.getValue();
-  //      list.add(satz);
-  //    }
-  //    final BusinessAssessment businessAssessment = new BusinessAssessment(
-  //        AccountingConfig.getInstance().getBusinessAssessmentConfig(),
-  //        (Integer) sheet.getProperty("year"), (Integer) sheet.getProperty("month"));
-  //    form.setBusinessAssessment(businessAssessment);
-  //    businessAssessment.setAccountRecords(list);
-  //  }
 
   private void checkAccess()
   {
@@ -120,4 +113,5 @@ public class EmployeeBillingImportPage extends AbstractImportPage<EmployeeBillin
     // TODO CT
     return getString("fibu.datev.import");
   }
+
 }
