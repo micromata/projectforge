@@ -9,8 +9,6 @@ public class EmployeeBillingExcelRow
 {
   private Integer id;
 
-  private String staffNumber;
-
   private BigDecimal mobilecheckmobilecheck;
 
   private BigDecimal daycarecenterdaycarecenter;
@@ -31,16 +29,6 @@ public class EmployeeBillingExcelRow
   public void setId(Integer id)
   {
     this.id = id;
-  }
-
-  public String getStaffNumber()
-  {
-    return staffNumber;
-  }
-
-  public void setStaffNumber(String staffNumber)
-  {
-    this.staffNumber = staffNumber;
   }
 
   public BigDecimal getMobilecheckmobilecheck()

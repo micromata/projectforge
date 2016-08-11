@@ -19,6 +19,7 @@ import org.projectforge.excel.ExcelImport;
 import org.projectforge.export.AttrColumnDescription;
 import org.projectforge.framework.persistence.utils.ImportStorage;
 import org.projectforge.framework.persistence.utils.ImportedElement;
+import org.projectforge.framework.persistence.utils.ImportedElementWithAttrs;
 import org.projectforge.framework.persistence.utils.ImportedSheet;
 
 import de.micromata.genome.db.jpa.tabattr.api.TimeableService;
@@ -78,7 +79,6 @@ public class EmployeeBillingExcelImporter
     // mapping from excel column name to the bean field name
     final Map<String, String> map = new HashMap<>();
     map.put("Id", "id");
-    map.put("Personalnummer", "staffNumber");
 
     ExtendedEmployeeDataEnum.getAllAttrColumnDescriptions().forEach(
         desc -> map.put(I18nHelper.getLocalizedString(desc.getI18nKey()), desc.getCombinedName()));
@@ -110,8 +110,8 @@ public class EmployeeBillingExcelImporter
     // TODO CT
     final Date dateToSelectAttrRow = Date.from(LocalDateTime.of(2016, 8, 1, 0, 0).toInstant(ZoneOffset.UTC));
 
-    final ImportedElement<EmployeeDO> element = new ImportedElement<>(storage.nextVal(), EmployeeDO.class,
-        DIFF_PROPERTIES);
+    final ImportedElement<EmployeeDO> element = new ImportedElementWithAttrs<>(storage.nextVal(), EmployeeDO.class, DIFF_PROPERTIES, attrColumnsInSheet,
+        dateToSelectAttrRow, timeableService);
     EmployeeDO employee;
     if (row.getId() != null) {
       employee = employeeService.selectByPkDetached(row.getId());
@@ -121,8 +121,6 @@ public class EmployeeBillingExcelImporter
       element.putErrorProperty("id", row.getId());
     }
     element.setValue(employee);
-
-    employee.setStaffNumber(row.getStaffNumber());
 
     attrColumnsInSheet.forEach(
         desc -> getOrCreateAttrRowAndPutAttribute(employee, dateToSelectAttrRow, desc, row)
@@ -135,8 +133,7 @@ public class EmployeeBillingExcelImporter
       final AttrColumnDescription colDesc,
       final EmployeeBillingExcelRow row)
   {
-    EmployeeTimedDO attrRow = timeableService.getAttrRowForSameMonth(employee, colDesc.getGroupName(),
-        dateToSelectAttrRow);
+    EmployeeTimedDO attrRow = timeableService.getAttrRowForSameMonth(employee, colDesc.getGroupName(), dateToSelectAttrRow);
 
     if (attrRow == null) {
       attrRow = employeeService.addNewTimeAttributeRow(employee, colDesc.getGroupName());

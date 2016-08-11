@@ -108,7 +108,7 @@ public class EmployeeListEditPage extends AbstractListPage<EmployeeListEditForm,
   @Override
   protected DOListExcelExporter createExcelExporter(final String filenameIdentifier)
   {
-    final String[] fieldsToExport = { "id", "user", "staffNumber" };
+    final String[] fieldsToExport = { "id", "user" };
     final List<AttrColumnDescription> attrFieldsToExport = form.getSelectedOption().getAttrColumnDescriptions();
     final Date dateToSelectAttrRow = new GregorianCalendar(form.getSelectedYear(), form.getSelectedMonth() - 1, 1, 0, 0).getTime();
     return new DOWithAttrListExcelExporter<>(filenameIdentifier, timeableService, fieldsToExport, attrFieldsToExport, dateToSelectAttrRow);
