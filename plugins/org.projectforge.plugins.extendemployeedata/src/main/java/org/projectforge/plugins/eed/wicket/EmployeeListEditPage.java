@@ -16,11 +16,10 @@ import org.projectforge.business.fibu.EmployeeDO;
 import org.projectforge.business.fibu.EmployeeTimedDO;
 import org.projectforge.business.fibu.api.EmployeeService;
 import org.projectforge.business.user.I18nHelper;
+import org.projectforge.export.AttrColumnDescription;
 import org.projectforge.export.DOListExcelExporter;
 import org.projectforge.export.DOWithAttrListExcelExporter;
-import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
-import org.projectforge.plugins.eed.ExtendEmployeeDataConstants;
-import org.projectforge.plugins.eed.wicket.EmployeeListEditForm.SelectOption;
+import org.projectforge.plugins.eed.ExtendedEmployeeDataEnum;
 import org.projectforge.web.core.MenuBarPanel;
 import org.projectforge.web.wicket.AbstractListPage;
 import org.projectforge.web.wicket.CellItemListener;
@@ -75,44 +74,23 @@ public class EmployeeListEditPage extends AbstractListPage<EmployeeListEditForm,
         getSortable("user.firstname", sortable),
         "user.firstname", cellItemListener));
 
-    SelectOption so = SelectOption.findByAttrXMLKey(form.getSelectedOption());
-    switch (so) {
-      case WEEKENDWORK:
-        createWeekendworkColumns(columns, sortable, cellItemListener);
-        break;
-      case NONE:
-        log.info("No option filter is selected!");
-        break;
-      default:
-        error(I18nHelper.getLocalizedString(ThreadLocalUserContext.getLocale(),
-            "plugins.eed.listcare.optionDropDown.notfound"));
-        log.warn("Selected option not found: " + form.getSelectedOption());
-    }
+    ExtendedEmployeeDataEnum eede = ExtendedEmployeeDataEnum.findByAttrXMLKey(form.getSelectedOption());
+    createWeekendworkColumns(eede, columns, sortable, cellItemListener);
 
     return columns;
   }
 
-  private void createWeekendworkColumns(List<IColumn<EmployeeDO, String>> columns, boolean sortable,
+  private void createWeekendworkColumns(ExtendedEmployeeDataEnum eede, List<IColumn<EmployeeDO, String>> columns,
+      boolean sortable,
       CellItemListener<EmployeeDO> cellItemListener)
   {
-    columns.add(new AttrInputCellItemListenerPropertyColumn<>(
-        new ResourceModel("fibu.employee.weekendwork.saturday"),
-        getSortable("fibu.employee.weekendwork.saturday", sortable),
-        "weekendwork", "workinghourssaturday", cellItemListener, timeableService, employeeService,
-        form.getSelectedMonth(), form.getSelectedYear()));
-
-    columns.add(new AttrInputCellItemListenerPropertyColumn<>(
-        new ResourceModel("fibu.employee.weekendwork.sunday"),
-        getSortable("fibu.employee.weekendwork.sunday", sortable),
-        "weekendwork", "workinghourssunday", cellItemListener, timeableService, employeeService,
-        form.getSelectedMonth(), form.getSelectedYear()));
-
-    columns.add(new AttrInputCellItemListenerPropertyColumn<>(
-        new ResourceModel("fibu.employee.weekendwork.holiday"),
-        getSortable("fibu.employee.weekendwork.holiday", sortable),
-        "weekendwork", "workinghoursholiday", cellItemListener, timeableService, employeeService,
-        form.getSelectedMonth(), form.getSelectedYear()));
-
+    for (AttrColumnDescription desc : eede.getAttrColumnDescription()) {
+      columns.add(new AttrInputCellItemListenerPropertyColumn<>(
+          new ResourceModel(desc.getI18nKey()),
+          getSortable(desc.getI18nKey(), sortable),
+          desc.getGroupName(), desc.getPropertyName(), cellItemListener, timeableService, employeeService,
+          form.getSelectedMonth(), form.getSelectedYear()));
+    }
   }
 
   @Override
@@ -122,7 +100,8 @@ public class EmployeeListEditPage extends AbstractListPage<EmployeeListEditForm,
 
     final Date dateToSelectAttrRow = new GregorianCalendar(form.getSelectedYear(), form.getSelectedMonth() - 1, 1, 0, 0)
         .getTime();
-    return new DOWithAttrListExcelExporter<>(filenameIdentifier, timeableService, fieldsToExport, ExtendEmployeeDataConstants.ATTR_FIELDS_TO_EDIT,
+    return new DOWithAttrListExcelExporter<>(filenameIdentifier, timeableService, fieldsToExport,
+        ExtendedEmployeeDataEnum.getAllAttrColumnDescriptions(),
         dateToSelectAttrRow);
   }
 

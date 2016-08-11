@@ -7,7 +7,6 @@ import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import org.apache.log4j.Logger;
 import org.apache.wicket.markup.html.form.Button;
@@ -22,6 +21,7 @@ import org.projectforge.business.fibu.EmployeeFilter;
 import org.projectforge.business.fibu.EmployeeTimedDO;
 import org.projectforge.business.user.I18nHelper;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
+import org.projectforge.plugins.eed.ExtendedEmployeeDataEnum;
 import org.projectforge.web.wicket.AbstractListForm;
 import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.web.wicket.components.SingleButtonPanel;
@@ -107,11 +107,11 @@ public class EmployeeListEditForm extends AbstractListForm<EmployeeFilter, Emplo
     fsMonthYear.add(ddcYear);
 
     //Map for option DropDown
-    Map<String, String> keyValueMap = Stream.of(SelectOption.values())
-        .filter(so -> so.equals(SelectOption.NONE) == false && so.equals(SelectOption.NOT_FOUND) == false)
+    Map<String, String> keyValueMap = ExtendedEmployeeDataEnum.defaultValues()
+        .stream()
         .collect(Collectors.toMap(
-            SelectOption::getAttrXMLKey,
-            so -> I18nHelper.getLocalizedString(ThreadLocalUserContext.getLocale(), so.getI18nKey())));
+            ExtendedEmployeeDataEnum::getFirstAttrXMLGroupName,
+            so -> I18nHelper.getLocalizedString(ThreadLocalUserContext.getLocale(), so.getI18nKeyDropDown())));
 
     // For Java 8 newbies
     //    for (SelectOption so : SelectOption.values()) {
@@ -146,57 +146,6 @@ public class EmployeeListEditForm extends AbstractListForm<EmployeeFilter, Emplo
             }));
 
     fsOption.add(ddcOption);
-  }
-
-  public enum SelectOption
-  {
-
-    MOBILECONTRACT("plugins.eed.listcare.optionDropDown.costmobilecontract", "mobilecontract"), //
-    MOBILECHECK("plugins.eed.listcare.optionDropDown.costmobiledevice", "mobilecheck"), //
-    COSTTRAVEL("plugins.eed.listcare.optionDropDown.costtravel", "costtravel"), //
-    EXPENSES("plugins.eed.listcare.optionDropDown.expenses", "expenses"), //
-    OVERTIME("plugins.eed.listcare.optionDropDown.overtime", "overtime"), //
-    BONUS("plugins.eed.listcare.optionDropDown.bonus", "bonus"), //
-    SPECIALPAYMENT("plugins.eed.listcare.optionDropDown.specialpayment", "specialpayment"), //
-    TARGETAGREEMENTS("plugins.eed.listcare.optionDropDown.targetagreements", "targetagreements"), //
-    COSTSHOP("plugins.eed.listcare.optionDropDown.costshop", "costshop"), //
-    WEEKENDWORK("plugins.eed.listcare.optionDropDown.weekendwork", "weekendwork"), //
-    OTHERS("plugins.eed.listcare.optionDropDown.others", "others"), //
-    NONE("", ""), NOT_FOUND("", "");
-
-    private String i18nKey;
-
-    private String attrXMLKey;
-
-    SelectOption(String i18nKey, String attrXMLKey)
-    {
-      this.i18nKey = i18nKey;
-      this.attrXMLKey = attrXMLKey;
-    }
-
-    public String getI18nKey()
-    {
-      return i18nKey;
-    }
-
-    public String getAttrXMLKey()
-    {
-      return attrXMLKey;
-    }
-
-    public static SelectOption findByAttrXMLKey(String attrXMLKey)
-    {
-      if (attrXMLKey == null) {
-        return NONE;
-      }
-      for (SelectOption so : SelectOption.values()) {
-        if (so.getAttrXMLKey().equals(attrXMLKey)) {
-          return so;
-        }
-      }
-      return NOT_FOUND;
-    }
-
   }
 
   private List<Integer> getDropDownYears()

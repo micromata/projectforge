@@ -31,7 +31,7 @@ import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.fibu.EmployeeDO;
 import org.projectforge.business.fibu.EmployeeTimedDO;
 import org.projectforge.framework.persistence.utils.ImportedElement;
-import org.projectforge.plugins.eed.ExtendEmployeeDataConstants;
+import org.projectforge.plugins.eed.ExtendedEmployeeDataEnum;
 import org.projectforge.web.core.importstorage.AbstractImportStoragePanel;
 import org.projectforge.web.core.importstorage.ImportFilter;
 
@@ -44,7 +44,8 @@ public class EmployeeBillingImportStoragePanel extends AbstractImportStoragePane
   @SpringBean
   private TimeableService<Integer, EmployeeTimedDO> timeableService;
 
-  public EmployeeBillingImportStoragePanel(final String id, final EmployeeBillingImportPage parentPage, final ImportFilter filter)
+  public EmployeeBillingImportStoragePanel(final String id, final EmployeeBillingImportPage parentPage,
+      final ImportFilter filter)
   {
     super(id, parentPage, filter);
   }
@@ -75,9 +76,8 @@ public class EmployeeBillingImportStoragePanel extends AbstractImportStoragePane
     headColRepeater.add(new Label(headColRepeater.newChildId(), getString("id")));
     headColRepeater.add(new Label(headColRepeater.newChildId(), getString("fibu.employee.staffNumber")));
 
-    ExtendEmployeeDataConstants.ATTR_FIELDS_TO_EDIT.forEach(
-        desc -> headColRepeater.add(new Label(headColRepeater.newChildId(), getString(desc.getI18nKey())))
-    );
+    ExtendedEmployeeDataEnum.getAllAttrColumnDescriptions().forEach(
+        desc -> headColRepeater.add(new Label(headColRepeater.newChildId(), getString(desc.getI18nKey()))));
   }
 
   @Override
@@ -87,9 +87,8 @@ public class EmployeeBillingImportStoragePanel extends AbstractImportStoragePane
     addCell(cellRepeater, employee.getPk(), style + " white-space: nowrap; text-align: right;");
     addCell(cellRepeater, employee.getStaffNumber(), style);
 
-    ExtendEmployeeDataConstants.ATTR_FIELDS_TO_EDIT.forEach(
-        desc -> addCell(cellRepeater, getAttribute(employee, desc.getGroupName(), desc.getPropertyName()), style)
-    );
+    ExtendedEmployeeDataEnum.getAllAttrColumnDescriptions().forEach(
+        desc -> addCell(cellRepeater, getAttribute(employee, desc.getGroupName(), desc.getPropertyName()), style));
   }
 
   private String getAttribute(final EmployeeDO employee, final String groupName, final String propertyName)
