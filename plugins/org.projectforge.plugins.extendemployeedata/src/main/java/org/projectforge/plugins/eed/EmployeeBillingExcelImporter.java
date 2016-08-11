@@ -38,7 +38,8 @@ public class EmployeeBillingExcelImporter
 
   private final ImportStorage<EmployeeDO> storage;
 
-  public EmployeeBillingExcelImporter(final EmployeeService employeeService, final TimeableService<Integer, EmployeeTimedDO> timeableService,
+  public EmployeeBillingExcelImporter(final EmployeeService employeeService,
+      final TimeableService<Integer, EmployeeTimedDO> timeableService,
       final ImportStorage<EmployeeDO> storage)
   {
     this.employeeService = employeeService;
@@ -77,9 +78,8 @@ public class EmployeeBillingExcelImporter
     map.put("Id", "id");
     map.put("Personalnummer", "staffNumber");
 
-    ExtendEmployeeDataConstants.ATTR_FIELDS_TO_EDIT.forEach(
-        desc -> map.put(I18nHelper.getLocalizedString(desc.getI18nKey()), desc.getCombinedName())
-    );
+    ExtendedEmployeeDataEnum.getAllAttrColumnDescriptions().forEach(
+        desc -> map.put(I18nHelper.getLocalizedString(desc.getI18nKey()), desc.getCombinedName()));
     importer.setColumnMapping(map);
 
     final EmployeeBillingExcelRow[] rows = importer.convertToRows(EmployeeBillingExcelRow.class);
@@ -94,7 +94,8 @@ public class EmployeeBillingExcelImporter
     // TODO CT
     final Date dateToSelectAttrRow = Date.from(LocalDateTime.of(2016, 8, 1, 0, 0).toInstant(ZoneOffset.UTC));
 
-    final ImportedElement<EmployeeDO> element = new ImportedElement<>(storage.nextVal(), EmployeeDO.class, DIFF_PROPERTIES);
+    final ImportedElement<EmployeeDO> element = new ImportedElement<>(storage.nextVal(), EmployeeDO.class,
+        DIFF_PROPERTIES);
     EmployeeDO employee;
     if (row.getId() != null) {
       employee = employeeService.selectByPkDetached(row.getId());
@@ -107,17 +108,18 @@ public class EmployeeBillingExcelImporter
 
     employee.setStaffNumber(row.getStaffNumber());
 
-    ExtendEmployeeDataConstants.ATTR_FIELDS_TO_EDIT.forEach(
-        desc -> getOrCreateAttrRowAndPutAttribute(employee, dateToSelectAttrRow, desc, row)
-    );
+    ExtendedEmployeeDataEnum.getAllAttrColumnDescriptions().forEach(
+        desc -> getOrCreateAttrRowAndPutAttribute(employee, dateToSelectAttrRow, desc, row));
 
     return element;
   }
 
-  private void getOrCreateAttrRowAndPutAttribute(final EmployeeDO employee, final Date dateToSelectAttrRow, final AttrColumnDescription colDesc,
+  private void getOrCreateAttrRowAndPutAttribute(final EmployeeDO employee, final Date dateToSelectAttrRow,
+      final AttrColumnDescription colDesc,
       final EmployeeBillingExcelRow row)
   {
-    EmployeeTimedDO attrRow = timeableService.getAttrRowForSameMonth(employee, colDesc.getGroupName(), dateToSelectAttrRow);
+    EmployeeTimedDO attrRow = timeableService.getAttrRowForSameMonth(employee, colDesc.getGroupName(),
+        dateToSelectAttrRow);
 
     if (attrRow == null) {
       attrRow = employeeService.addNewTimeAttributeRow(employee, colDesc.getGroupName());
