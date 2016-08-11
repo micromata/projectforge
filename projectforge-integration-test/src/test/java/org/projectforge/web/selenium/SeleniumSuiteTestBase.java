@@ -20,6 +20,12 @@ public class SeleniumSuiteTestBase
 
   protected static WebDriverWait wait;
 
+  // waitin and timeout periods  all noted in seconds
+  private static final int WAITINGPERIODSERVERSTARTUP = (5 * 60);
+
+  private static final int WAITSLOTSERVERSTARTUP= 20;
+
+  private static final int PAGELOADTIMEOUT = 30;
 
   public SeleniumSuiteTestBase()
   {
@@ -31,8 +37,8 @@ public class SeleniumSuiteTestBase
       dCaps.setJavascriptEnabled(true);
       //driver = new PhantomJSDriver(dCaps);
       driver = new JBrowserDriver();
-      wait = new WebDriverWait(driver, 10);
-      driver.manage().timeouts().pageLoadTimeout(10, TimeUnit.SECONDS);
+      wait = new WebDriverWait(driver, PAGELOADTIMEOUT);
+      driver.manage().timeouts().pageLoadTimeout(PAGELOADTIMEOUT, TimeUnit.SECONDS);
       TestPageBase.setDriver(driver);
       TestPageBase.setWait(wait);
       TestPageBase.setBaseUrl(Const.PF_URL);
@@ -40,7 +46,7 @@ public class SeleniumSuiteTestBase
       // test server availability
         int time = 0;
         boolean available = false;
-        while (true && time < (5 * 60) && available == false) {
+        while (true && time < WAITINGPERIODSERVERSTARTUP && available == false) {
           try {
             driver.get(Const.PF_URL);
             if (driver.getCurrentUrl().contains("setup")) {
@@ -65,11 +71,11 @@ public class SeleniumSuiteTestBase
             }
           }
           try {
-            Thread.sleep(20000);
+            Thread.sleep(1000 * WAITINGPERIODSERVERSTARTUP);
           } catch (InterruptedException ignored) {
           }
 
-          time += 20;
+          time += WAITSLOTSERVERSTARTUP;
         }
     }
   }
