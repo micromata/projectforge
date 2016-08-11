@@ -84,7 +84,7 @@ public class EmployeeListEditPage extends AbstractListPage<EmployeeListEditForm,
       boolean sortable,
       CellItemListener<EmployeeDO> cellItemListener)
   {
-    for (AttrColumnDescription desc : eede.getAttrColumnDescription()) {
+    for (AttrColumnDescription desc : eede.getAttrColumnDescriptions()) {
       columns.add(new AttrInputCellItemListenerPropertyColumn<>(
           new ResourceModel(desc.getI18nKey()),
           getSortable(desc.getI18nKey(), sortable),
@@ -96,7 +96,7 @@ public class EmployeeListEditPage extends AbstractListPage<EmployeeListEditForm,
   @Override
   protected DOListExcelExporter createExcelExporter(final String filenameIdentifier)
   {
-    final String[] fieldsToExport = { "id", "user", "kost1", "staffNumber" };
+    final String[] fieldsToExport = { "id", "user", "staffNumber" };
 
     final Date dateToSelectAttrRow = new GregorianCalendar(form.getSelectedYear(), form.getSelectedMonth() - 1, 1, 0, 0)
         .getTime();

@@ -12,42 +12,42 @@ import org.projectforge.export.AttrColumnDescription;
 public enum ExtendedEmployeeDataEnum
 {
 
-  MOBILECONTRACT("plugins.eed.listcare.optionDropDown.costmobilecontract", Arrays
-      .asList(new AttrColumnDescription("mobilecontract", "mobilecontract", "fibu.employee.mobilecontract.title"))), //
+  MOBILECONTRACT("plugins.eed.listcare.optionDropDown.costmobilecontract",
+      Collections.singletonList(new AttrColumnDescription("mobilecontract", "mobilecontract", "fibu.employee.mobilecontract.title"))), //
   MOBILECHECK("plugins.eed.listcare.optionDropDown.costmobiledevice",
-      Arrays.asList(new AttrColumnDescription("mobilecheck", "mobilecheck", "fibu.employee.mobilecheck.title"))), //
+      Collections.singletonList(new AttrColumnDescription("mobilecheck", "mobilecheck", "fibu.employee.mobilecheck.title"))), //
   COSTTRAVEL("plugins.eed.listcare.optionDropDown.costtravel",
-      Arrays.asList(new AttrColumnDescription("costtravel", "costtravel", "fibu.employee.costtravel.title"))), //
+      Collections.singletonList(new AttrColumnDescription("costtravel", "costtravel", "fibu.employee.costtravel.title"))), //
   EXPENSES("plugins.eed.listcare.optionDropDown.expenses",
-      Arrays.asList(new AttrColumnDescription("expenses", "expenses", "fibu.employee.costtravel.title"))), //
+      Collections.singletonList(new AttrColumnDescription("expenses", "expenses", "fibu.employee.costtravel.title"))), //
   OVERTIME("plugins.eed.listcare.optionDropDown.overtime",
-      Arrays.asList(new AttrColumnDescription("overtime", "overtime", "fibu.employee.overtime.title"))), //
+      Collections.singletonList(new AttrColumnDescription("overtime", "overtime", "fibu.employee.overtime.title"))), //
   BONUS("plugins.eed.listcare.optionDropDown.bonus",
-      Arrays.asList(new AttrColumnDescription("bonus", "bonus", "fibu.employee.bonus.title"))), //
-  SPECIALPAYMENT("plugins.eed.listcare.optionDropDown.specialpayment", Arrays
-      .asList(new AttrColumnDescription("specialpayment", "specialpayment", "fibu.employee.specialpayment.title"))), //
-  TARGETAGREEMENTS("plugins.eed.listcare.optionDropDown.targetagreements", Arrays.asList(
+      Collections.singletonList(new AttrColumnDescription("bonus", "bonus", "fibu.employee.bonus.title"))), //
+  SPECIALPAYMENT("plugins.eed.listcare.optionDropDown.specialpayment",
+      Collections.singletonList(new AttrColumnDescription("specialpayment", "specialpayment", "fibu.employee.specialpayment.title"))), //
+  TARGETAGREEMENTS("plugins.eed.listcare.optionDropDown.targetagreements", Collections.singletonList(
       new AttrColumnDescription("targetagreements", "targetagreements", "fibu.employee.targetagreements.title"))), //
   COSTSHOP("plugins.eed.listcare.optionDropDown.costshop",
-      Arrays.asList(new AttrColumnDescription("costshop", "costshop", "fibu.employee.costshop.title"))), //
+      Collections.singletonList(new AttrColumnDescription("costshop", "costshop", "fibu.employee.costshop.title"))), //
   WEEKENDWORK("plugins.eed.listcare.optionDropDown.weekendwork",
       Arrays.asList(
           new AttrColumnDescription("weekendwork", "workinghourssaturday", "fibu.employee.weekendwork.saturday"),
           new AttrColumnDescription("weekendwork", "workinghourssunday", "fibu.employee.weekendwork.sunday"),
           new AttrColumnDescription("weekendwork", "workinghoursholiday", "fibu.employee.weekendwork.holiday"))), //
   OTHERS("plugins.eed.listcare.optionDropDown.others",
-      Arrays.asList(new AttrColumnDescription("others", "others", "fibu.employee.others.title"))), //
+      Collections.singletonList(new AttrColumnDescription("others", "others", "fibu.employee.others.title"))), //
   NONE("", Collections.emptyList()), //
   NOT_FOUND("", Collections.emptyList());
 
-  private String i18nKeyDropDown;
+  private final String i18nKeyDropDown;
 
-  private List<AttrColumnDescription> attrColumnDescription;
+  private final List<AttrColumnDescription> attrColumnDescriptions;
 
-  ExtendedEmployeeDataEnum(String i18nKeyDropDown, List<AttrColumnDescription> attrColumnDescription)
+  ExtendedEmployeeDataEnum(String i18nKeyDropDown, List<AttrColumnDescription> attrColumnDescriptions)
   {
     this.i18nKeyDropDown = i18nKeyDropDown;
-    this.attrColumnDescription = attrColumnDescription;
+    this.attrColumnDescriptions = attrColumnDescriptions;
   }
 
   public String getI18nKeyDropDown()
@@ -55,17 +55,18 @@ public enum ExtendedEmployeeDataEnum
     return i18nKeyDropDown;
   }
 
-  public List<AttrColumnDescription> getAttrColumnDescription()
+  public List<AttrColumnDescription> getAttrColumnDescriptions()
   {
-    return attrColumnDescription;
+    return attrColumnDescriptions;
   }
 
   public String getFirstAttrXMLGroupName()
   {
-    for (AttrColumnDescription acd : this.attrColumnDescription) {
-      return acd.getGroupName();
-    }
-    return null;
+    return this.attrColumnDescriptions
+        .stream()
+        .map(AttrColumnDescription::getGroupName)
+        .findFirst()
+        .orElse(null);
   }
 
   public static ExtendedEmployeeDataEnum findByAttrXMLKey(String attrXMLKey)
@@ -85,7 +86,7 @@ public enum ExtendedEmployeeDataEnum
   {
     List<AttrColumnDescription> resultList = new ArrayList<>();
     for (ExtendedEmployeeDataEnum eede : defaultValues()) {
-      resultList.addAll(eede.getAttrColumnDescription());
+      resultList.addAll(eede.getAttrColumnDescriptions());
     }
     return resultList;
   }
@@ -93,8 +94,8 @@ public enum ExtendedEmployeeDataEnum
   public static List<ExtendedEmployeeDataEnum> defaultValues()
   {
     return Stream.of(ExtendedEmployeeDataEnum.values())
-        .filter(so -> so.equals(ExtendedEmployeeDataEnum.NONE) == false
-            && so.equals(ExtendedEmployeeDataEnum.NOT_FOUND) == false)
+        .filter(so -> so.equals(NONE) == false
+            && so.equals(NOT_FOUND) == false)
         .collect(Collectors.toList());
   }
 

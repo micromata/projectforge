@@ -41,36 +41,10 @@ public class EmployeeBillingImportForm extends AbstractImportForm<ImportFilter, 
     {
       addImportFilterRadio(gridBuilder);
     }
-    //    {
-    //      // Statistics
-    //      new BusinessAssessment4Fieldset(gridBuilder)
-    //      {
-    //        /**
-    //         * @see BusinessAssessment4Fieldset#getBusinessAssessment()
-    //         */
-    //        @Override
-    //        protected BusinessAssessment getBusinessAssessment()
-    //        {
-    //          return storagePanel.businessAssessment;
-    //        }
-    //
-    //        @Override
-    //        public boolean isVisible()
-    //        {
-    //          return storagePanel.businessAssessment != null;
-    //        }
-    //
-    //        ;
-    //      };
-    //    }
+
     gridBuilder.newGridPanel();
     final DivPanel panel = gridBuilder.getPanel();
     storagePanel = new EmployeeBillingImportStoragePanel(panel.newChildId(), parentPage, importFilter);
     panel.add(storagePanel);
   }
-
-  //  void setBusinessAssessment(final BusinessAssessment businessAssessment)
-  //  {
-  //    storagePanel.businessAssessment = businessAssessment;
-  //  }
 }
