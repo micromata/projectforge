@@ -17,6 +17,12 @@ public class EmployeeBillingExcelRow
 
   private BigDecimal ebikeleasingebikeleasing;
 
+  private BigDecimal weekendworkworkinghourssaturday;
+
+  private BigDecimal weekendworkworkinghourssunday;
+
+  private BigDecimal weekendworkworkinghoursholiday;
+
   public Integer getId()
   {
     return id;
@@ -65,6 +71,36 @@ public class EmployeeBillingExcelRow
   public void setEbikeleasingebikeleasing(BigDecimal ebikeleasingebikeleasing)
   {
     this.ebikeleasingebikeleasing = ebikeleasingebikeleasing;
+  }
+
+  public BigDecimal getWeekendworkworkinghourssaturday()
+  {
+    return weekendworkworkinghourssaturday;
+  }
+
+  public void setWeekendworkworkinghourssaturday(BigDecimal weekendworkworkinghourssaturday)
+  {
+    this.weekendworkworkinghourssaturday = weekendworkworkinghourssaturday;
+  }
+
+  public BigDecimal getWeekendworkworkinghourssunday()
+  {
+    return weekendworkworkinghourssunday;
+  }
+
+  public void setWeekendworkworkinghourssunday(BigDecimal weekendworkworkinghourssunday)
+  {
+    this.weekendworkworkinghourssunday = weekendworkworkinghourssunday;
+  }
+
+  public BigDecimal getWeekendworkworkinghoursholiday()
+  {
+    return weekendworkworkinghoursholiday;
+  }
+
+  public void setWeekendworkworkinghoursholiday(BigDecimal weekendworkworkinghoursholiday)
+  {
+    this.weekendworkworkinghoursholiday = weekendworkworkinghoursholiday;
   }
 
 }
