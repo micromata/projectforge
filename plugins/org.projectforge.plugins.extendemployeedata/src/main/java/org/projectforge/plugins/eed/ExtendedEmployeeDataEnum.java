@@ -4,8 +4,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import org.projectforge.export.AttrColumnDescription;
 
@@ -36,9 +34,7 @@ public enum ExtendedEmployeeDataEnum
           new AttrColumnDescription("weekendwork", "workinghourssunday", "fibu.employee.weekendwork.sunday"),
           new AttrColumnDescription("weekendwork", "workinghoursholiday", "fibu.employee.weekendwork.holiday"))), //
   OTHERS("plugins.eed.listcare.optionDropDown.others",
-      Collections.singletonList(new AttrColumnDescription("others", "others", "fibu.employee.others.title"))), //
-  NONE("", Collections.emptyList()), //
-  NOT_FOUND("", Collections.emptyList());
+      Collections.singletonList(new AttrColumnDescription("others", "others", "fibu.employee.others.title"))); //
 
   private final String i18nKeyDropDown;
 
@@ -60,43 +56,12 @@ public enum ExtendedEmployeeDataEnum
     return attrColumnDescriptions;
   }
 
-  public String getFirstAttrXMLGroupName()
-  {
-    return this.attrColumnDescriptions
-        .stream()
-        .map(AttrColumnDescription::getGroupName)
-        .findFirst()
-        .orElse(null);
-  }
-
-  public static ExtendedEmployeeDataEnum findByAttrXMLKey(String attrXMLKey)
-  {
-    if (attrXMLKey == null) {
-      return NONE;
-    }
-    for (ExtendedEmployeeDataEnum so : ExtendedEmployeeDataEnum.defaultValues()) {
-      if (so.getFirstAttrXMLGroupName().equals(attrXMLKey)) {
-        return so;
-      }
-    }
-    return NOT_FOUND;
-  }
-
   public static List<AttrColumnDescription> getAllAttrColumnDescriptions()
   {
     List<AttrColumnDescription> resultList = new ArrayList<>();
-    for (ExtendedEmployeeDataEnum eede : defaultValues()) {
+    for (ExtendedEmployeeDataEnum eede : values()) {
       resultList.addAll(eede.getAttrColumnDescriptions());
     }
     return resultList;
   }
-
-  public static List<ExtendedEmployeeDataEnum> defaultValues()
-  {
-    return Stream.of(ExtendedEmployeeDataEnum.values())
-        .filter(so -> so.equals(NONE) == false
-            && so.equals(NOT_FOUND) == false)
-        .collect(Collectors.toList());
-  }
-
 }

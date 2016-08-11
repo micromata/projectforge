@@ -1,12 +1,9 @@
 package org.projectforge.plugins.eed.wicket;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 import org.apache.log4j.Logger;
 import org.apache.wicket.markup.html.form.Button;
@@ -42,10 +39,7 @@ public class EmployeeListEditForm extends AbstractListForm<EmployeeFilter, Emplo
   @SpringBean
   private EmployeeDao employeeDao;
 
-  private static final List<Integer> MONTH_INTEGERS = Arrays
-      .asList(new Integer[] { new Integer(1), new Integer(2), new Integer(3), new Integer(4), new Integer(5),
-          new Integer(6), new Integer(7), new Integer(8), new Integer(9), new Integer(10), new Integer(11),
-          new Integer(12) });
+  private static final List<Integer> MONTH_INTEGERS = Arrays.asList(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12);
 
   private List<Integer> availableYears;
 
@@ -53,7 +47,7 @@ public class EmployeeListEditForm extends AbstractListForm<EmployeeFilter, Emplo
 
   private Integer selectedYear;
 
-  private String selectedOption;
+  private ExtendedEmployeeDataEnum selectedOption;
 
   @Override
   protected void init()
@@ -67,8 +61,6 @@ public class EmployeeListEditForm extends AbstractListForm<EmployeeFilter, Emplo
     //Create custom search button
     final Button searchButton = new Button(SingleButtonPanel.WICKET_ID, new Model<>("search"))
     {
-      private static final long serialVersionUID = -2985054827068348809L;
-
       @Override
       public final void onSubmit()
       {
@@ -106,44 +98,28 @@ public class EmployeeListEditForm extends AbstractListForm<EmployeeFilter, Emplo
             getDropDownYears()));
     fsMonthYear.add(ddcYear);
 
-    //Map for option DropDown
-    Map<String, String> keyValueMap = ExtendedEmployeeDataEnum.defaultValues()
-        .stream()
-        .collect(Collectors.toMap(
-            ExtendedEmployeeDataEnum::getFirstAttrXMLGroupName,
-            so -> I18nHelper.getLocalizedString(ThreadLocalUserContext.getLocale(), so.getI18nKeyDropDown())));
-
-    // For Java 8 newbies
-    //    for (SelectOption so : SelectOption.values()) {
-    //      if (so.equals(SelectOption.NONE)) {
-    //        continue;
-    //      }
-    //      String i18nValue = I18nHelper.getLocalizedString(ThreadLocalUserContext.getLocale(), so.getI18nKey());
-    //      keyValueMap.put(so.getAttrXMLKey(), i18nValue);
-    //    }
-
     //Fieldset for option DropDown
     final FieldsetPanel fsOption = gridBuilder
         .newFieldset(I18nHelper.getLocalizedString(ThreadLocalUserContext.getLocale(), "plugins.eed.listcare.option"));
     //Option DropDown
-    DropDownChoicePanel<String> ddcOption = new DropDownChoicePanel<String>(gridBuilder.getPanel().newChildId(),
-        new DropDownChoice<String>(DropDownChoicePanel.WICKET_ID, new PropertyModel<String>(this, "selectedOption"),
-            new ArrayList<>(keyValueMap.keySet()), new IChoiceRenderer<String>()
+    final DropDownChoicePanel<ExtendedEmployeeDataEnum> ddcOption = new DropDownChoicePanel<>(gridBuilder.getPanel().newChildId(),
+        new DropDownChoice<>(DropDownChoicePanel.WICKET_ID, new PropertyModel<>(this, "selectedOption"),
+            Arrays.asList(ExtendedEmployeeDataEnum.values()), new IChoiceRenderer<ExtendedEmployeeDataEnum>()
             {
-              private static final long serialVersionUID = 8866606967292296625L;
-
               @Override
-              public Object getDisplayValue(String object)
+              public Object getDisplayValue(ExtendedEmployeeDataEnum eede)
               {
-                return keyValueMap.get(object);
+                return I18nHelper.getLocalizedString(eede.getI18nKeyDropDown());
               }
 
               @Override
-              public String getIdValue(String object, int index)
+              public String getIdValue(ExtendedEmployeeDataEnum eede, int index)
               {
-                return object;
+                return String.valueOf(index);
               }
-            }));
+            }
+        )
+    );
 
     fsOption.add(ddcOption);
   }
@@ -179,12 +155,9 @@ public class EmployeeListEditForm extends AbstractListForm<EmployeeFilter, Emplo
     //Bottom Buttons
     final Button saveButton = new Button(SingleButtonPanel.WICKET_ID, new Model<>("save"))
     {
-      private static final long serialVersionUID = 4813886125924227595L;
-
       @Override
       public final void onSubmit()
       {
-
         parentPage.saveList();
       }
     };
@@ -204,7 +177,7 @@ public class EmployeeListEditForm extends AbstractListForm<EmployeeFilter, Emplo
     return selectedYear;
   }
 
-  public String getSelectedOption()
+  public ExtendedEmployeeDataEnum getSelectedOption()
   {
     return selectedOption;
   }

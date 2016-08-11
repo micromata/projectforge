@@ -5,6 +5,7 @@ import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
@@ -74,22 +75,33 @@ public class EmployeeListEditPage extends AbstractListPage<EmployeeListEditForm,
         getSortable("user.firstname", sortable),
         "user.firstname", cellItemListener));
 
-    ExtendedEmployeeDataEnum eede = ExtendedEmployeeDataEnum.findByAttrXMLKey(form.getSelectedOption());
-    createWeekendworkColumns(eede, columns, sortable, cellItemListener);
+    createAttrColumns(form.getSelectedOption(), columns, sortable, cellItemListener);
 
     return columns;
   }
 
-  private void createWeekendworkColumns(ExtendedEmployeeDataEnum eede, List<IColumn<EmployeeDO, String>> columns,
+  private void createAttrColumns(ExtendedEmployeeDataEnum eede, List<IColumn<EmployeeDO, String>> columns,
       boolean sortable,
       CellItemListener<EmployeeDO> cellItemListener)
   {
-    for (AttrColumnDescription desc : eede.getAttrColumnDescriptions()) {
-      columns.add(new AttrInputCellItemListenerPropertyColumn<>(
-          new ResourceModel(desc.getI18nKey()),
-          getSortable(desc.getI18nKey(), sortable),
-          desc.getGroupName(), desc.getPropertyName(), cellItemListener, timeableService, employeeService,
-          form.getSelectedMonth(), form.getSelectedYear()));
+    if (eede != null) {
+      columns.addAll(
+          eede.getAttrColumnDescriptions()
+              .stream()
+              .map(desc -> new AttrInputCellItemListenerPropertyColumn<>(
+                      new ResourceModel(desc.getI18nKey()),
+                      getSortable(desc.getI18nKey(), sortable),
+                      desc.getGroupName(),
+                      desc.getPropertyName(),
+                      cellItemListener,
+                      timeableService,
+                      employeeService,
+                      form.getSelectedMonth(),
+                      form.getSelectedYear()
+                  )
+              )
+              .collect(Collectors.toList())
+      );
     }
   }
 
@@ -97,10 +109,7 @@ public class EmployeeListEditPage extends AbstractListPage<EmployeeListEditForm,
   protected DOListExcelExporter createExcelExporter(final String filenameIdentifier)
   {
     final String[] fieldsToExport = { "id", "user", "staffNumber" };
-    final List<AttrColumnDescription> attrFieldsToExport = ExtendedEmployeeDataEnum
-        .findByAttrXMLKey(form.getSelectedOption())
-        .getAttrColumnDescriptions();
-
+    final List<AttrColumnDescription> attrFieldsToExport = form.getSelectedOption().getAttrColumnDescriptions();
     final Date dateToSelectAttrRow = new GregorianCalendar(form.getSelectedYear(), form.getSelectedMonth() - 1, 1, 0, 0).getTime();
     return new DOWithAttrListExcelExporter<>(filenameIdentifier, timeableService, fieldsToExport, attrFieldsToExport, dateToSelectAttrRow);
   }
