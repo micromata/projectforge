@@ -27,9 +27,12 @@ import java.io.Serializable;
 import java.lang.reflect.Method;
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
@@ -52,15 +55,15 @@ public class ImportedElement<T> implements Serializable
 {
   private static final long serialVersionUID = -3405918702811291053L;
 
-  private T value;
+  protected T value;
 
-  private T oldValue;
+  protected T oldValue;
 
-  private int index;
+  private final int index;
 
-  private Class<T> clazz;
+  private final Class<T> clazz;
 
-  private String[] diffProperties;
+  private final String[] diffProperties;
 
   private List<PropertyDelta> propertyDeltas;
 
@@ -112,45 +115,70 @@ public class ImportedElement<T> implements Serializable
     if (propertyDeltas != null) {
       return propertyDeltas;
     }
-    for (String fieldname : diffProperties) {
-      Method method = BeanHelper.determineGetter(clazz, fieldname);
+
+    final List<PropertyDelta> deltas = new ArrayList<>();
+    for (final String fieldname : diffProperties) {
+      final Method method = BeanHelper.determineGetter(clazz, fieldname);
       if (method == null) {
         throw new UnsupportedOperationException("Oups, no getter for property '"
             + fieldname
             + "' found for (maybe typo in fieldname?): "
             + value);
       }
-      Object newValue = BeanHelper.invoke(value, method);
-      Object origValue = BeanHelper.invoke(oldValue, method);
-      boolean modified = false;
-      if (method.getReturnType() == BigDecimal.class) {
-        if (NumberHelper.isEqual((BigDecimal) newValue, (BigDecimal) origValue) == false) {
-          modified = true;
-        }
-      } else if (ObjectUtils.equals(newValue, origValue) == false) {
+      final Object newValue = BeanHelper.invoke(value, method);
+      final Object origValue = BeanHelper.invoke(oldValue, method);
+      final Class<?> type = method.getReturnType();
+
+      createPropertyDelta(fieldname, newValue, origValue, type)
+          .ifPresent(deltas::add);
+    }
+
+    deltas.addAll(addAdditionalPropertyDeltas());
+
+    if (deltas.size() > 0) {
+      propertyDeltas = deltas;
+    }
+
+    return propertyDeltas;
+  }
+
+  /**
+   * Can be overridden by sub class to add additional property deltas.
+   *
+   * @return Collection of additional property deltas.
+   */
+  protected Collection<? extends PropertyDelta> addAdditionalPropertyDeltas()
+  {
+    return Collections.emptyList();
+  }
+
+  protected Optional<PropertyDelta> createPropertyDelta(String fieldname, Object newValue, Object origValue, Class<?> type)
+  {
+    boolean modified = false;
+    if (type == BigDecimal.class) {
+      if (NumberHelper.isEqual((BigDecimal) newValue, (BigDecimal) origValue) == false) {
         modified = true;
       }
-      if (modified == true) {
-        if (propertyDeltas == null) {
-          propertyDeltas = new ArrayList<PropertyDelta>();
-        }
-        Object ov;
-        Object nv;
-        if (origValue instanceof ShortDisplayNameCapable) {
-          ov = ((ShortDisplayNameCapable) origValue).getShortDisplayName();
-        } else {
-          ov = origValue;
-        }
-        if (newValue instanceof ShortDisplayNameCapable) {
-          nv = ((ShortDisplayNameCapable) newValue).getShortDisplayName();
-        } else {
-          nv = newValue;
-        }
-        PropertyDelta delta = new MySimplePropertyDelta(fieldname, method.getReturnType(), ov, nv);
-        propertyDeltas.add(delta);
-      }
+    } else if (ObjectUtils.equals(newValue, origValue) == false) {
+      modified = true;
     }
-    return propertyDeltas;
+    if (modified) {
+      Object ov;
+      Object nv;
+      if (origValue instanceof ShortDisplayNameCapable) {
+        ov = ((ShortDisplayNameCapable) origValue).getShortDisplayName();
+      } else {
+        ov = origValue;
+      }
+      if (newValue instanceof ShortDisplayNameCapable) {
+        nv = ((ShortDisplayNameCapable) newValue).getShortDisplayName();
+      } else {
+        nv = newValue;
+      }
+      return Optional.of(new MySimplePropertyDelta(fieldname, type, ov, nv));
+    }
+
+    return Optional.empty();
   }
 
   private class MySimplePropertyDelta extends SimplePropertyDelta implements Serializable
@@ -246,7 +274,7 @@ public class ImportedElement<T> implements Serializable
   public void putErrorProperty(String key, Object value)
   {
     if (errorProperties == null) {
-      errorProperties = new HashMap<String, Object>();
+      errorProperties = new HashMap<>();
     }
     errorProperties.put(key, value);
   }

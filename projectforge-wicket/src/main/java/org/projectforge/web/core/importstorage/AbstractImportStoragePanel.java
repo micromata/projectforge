@@ -44,18 +44,20 @@ import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.ResourceModel;
-import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.common.StringHelper;
 import org.projectforge.framework.persistence.utils.ImportStatus;
 import org.projectforge.framework.persistence.utils.ImportStorage;
 import org.projectforge.framework.persistence.utils.ImportedElement;
 import org.projectforge.framework.persistence.utils.ImportedSheet;
 import org.projectforge.web.dialog.ModalQuestionDialog;
+import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.web.wicket.components.PlainLabel;
 import org.projectforge.web.wicket.flowlayout.DiffTextPanel;
 import org.projectforge.web.wicket.flowlayout.IconPanel;
 import org.projectforge.web.wicket.flowlayout.IconType;
 import org.springframework.util.CollectionUtils;
+
+import de.micromata.hibernate.history.delta.PropertyDelta;
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
@@ -373,12 +375,12 @@ public abstract class AbstractImportStoragePanel<P extends AbstractImportPage<?>
         final StringBuffer oldValue = new StringBuffer();
         boolean first = true;
         // TODO HISTORY
-        //        for (final PropertyDelta delta : element.getPropertyChanges()) {
-        //          StringHelper.append(buf, first, delta.getPropertyName(), "; ");
-        //          first = StringHelper.append(oldValue, first, delta.getPropertyName(), "; ");
-        //          buf.append("=").append(delta.getNewValue());
-        //          oldValue.append("=").append(delta.getOldValue());
-        //        }
+        for (final PropertyDelta delta : element.getPropertyChanges()) {
+          StringHelper.append(buf, first, delta.getPropertyName(), "; ");
+          first = StringHelper.append(oldValue, first, delta.getPropertyName(), "; ");
+          buf.append("=").append(delta.getNewValue());
+          oldValue.append("=").append(delta.getOldValue());
+        }
         final DiffTextPanel diffTextPanel = new DiffTextPanel("value", Model.of(buf.toString()),
             Model.of(oldValue.toString()));
         addCell(cellRepeater, diffTextPanel, style);
