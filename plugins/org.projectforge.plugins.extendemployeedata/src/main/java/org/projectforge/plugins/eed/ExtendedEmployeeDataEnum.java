@@ -19,7 +19,7 @@ public enum ExtendedEmployeeDataEnum
   COSTTRAVEL("plugins.eed.listcare.optionDropDown.costtravel",
       Collections.singletonList(new AttrColumnDescription("costtravel", "costtravel", "fibu.employee.costtravel.title"))), //
   EXPENSES("plugins.eed.listcare.optionDropDown.expenses",
-      Collections.singletonList(new AttrColumnDescription("expenses", "expenses", "fibu.employee.costtravel.title"))), //
+      Collections.singletonList(new AttrColumnDescription("expenses", "expenses", "fibu.employee.expenses.title"))), //
   OVERTIME("plugins.eed.listcare.optionDropDown.overtime",
       Collections.singletonList(new AttrColumnDescription("overtime", "overtime", "fibu.employee.overtime.title"))), //
   BONUS("plugins.eed.listcare.optionDropDown.bonus",
@@ -29,7 +29,7 @@ public enum ExtendedEmployeeDataEnum
   TARGETAGREEMENTS("plugins.eed.listcare.optionDropDown.targetagreements", Collections.singletonList(
       new AttrColumnDescription("targetagreements", "targetagreements", "fibu.employee.targetagreements.title"))), //
   COSTSHOP("plugins.eed.listcare.optionDropDown.costshop",
-      Collections.singletonList(new AttrColumnDescription("costshop", "costshop", "fibu.employee.costshop.title"))), //
+      Arrays.asList(new AttrColumnDescription("costshop", "costshop", "fibu.employee.costshop.title"),new AttrColumnDescription("costshop","contents","fibu.employee.costshop.contents"))), //
   WEEKENDWORK("plugins.eed.listcare.optionDropDown.weekendwork",
       Arrays.asList(
           new AttrColumnDescription("weekendwork", "workinghourssaturday", "fibu.employee.weekendwork.saturday"),
