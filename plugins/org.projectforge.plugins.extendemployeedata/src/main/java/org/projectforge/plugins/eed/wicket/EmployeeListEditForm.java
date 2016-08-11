@@ -86,15 +86,15 @@ public class EmployeeListEditForm extends AbstractListForm<EmployeeFilter, Emplo
     //Get actual Month as preselected
     selectedMonth = Calendar.getInstance().get(Calendar.MONTH) + 1;
     //Month DropDown
-    DropDownChoicePanel<Integer> ddcMonth = new DropDownChoicePanel<Integer>(fsMonthYear.newChildId(),
-        new DropDownChoice<Integer>(DropDownChoicePanel.WICKET_ID, new PropertyModel<Integer>(this, "selectedMonth"),
+    DropDownChoicePanel<Integer> ddcMonth = new DropDownChoicePanel<>(fsMonthYear.newChildId(),
+        new DropDownChoice<>(DropDownChoicePanel.WICKET_ID, new PropertyModel<>(this, "selectedMonth"),
             MONTH_INTEGERS));
     fsMonthYear.add(ddcMonth);
     //Get actual year for pre select
     selectedYear = Calendar.getInstance().get(Calendar.YEAR);
     //Year DropDown
-    DropDownChoicePanel<Integer> ddcYear = new DropDownChoicePanel<Integer>(fsMonthYear.newChildId(),
-        new DropDownChoice<Integer>(DropDownChoicePanel.WICKET_ID, new PropertyModel<Integer>(this, "selectedYear"),
+    DropDownChoicePanel<Integer> ddcYear = new DropDownChoicePanel<>(fsMonthYear.newChildId(),
+        new DropDownChoice<>(DropDownChoicePanel.WICKET_ID, new PropertyModel<>(this, "selectedYear"),
             getDropDownYears()));
     fsMonthYear.add(ddcYear);
 

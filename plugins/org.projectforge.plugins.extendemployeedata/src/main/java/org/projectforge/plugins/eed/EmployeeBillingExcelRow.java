@@ -3,7 +3,7 @@ package org.projectforge.plugins.eed;
 import java.math.BigDecimal;
 
 /**
- * If you change fields here, you have to change ExtendEmployeeDataConstants.ATTR_FIELDS_TO_EDIT accordingly.
+ * If you change fields here, you have to change ExtendedEmployeeDataEnum accordingly.
  */
 public class EmployeeBillingExcelRow
 {
