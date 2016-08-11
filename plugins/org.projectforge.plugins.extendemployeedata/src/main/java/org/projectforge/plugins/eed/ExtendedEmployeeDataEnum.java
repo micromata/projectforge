@@ -12,10 +12,11 @@ import org.projectforge.export.AttrColumnDescription;
  */
 public enum ExtendedEmployeeDataEnum
 {
+  /*
   MOBILECONTRACT("plugins.eed.listcare.optionDropDown.costmobilecontract",
       Collections.singletonList(new AttrColumnDescription("mobilecontract", "mobilecontract", "fibu.employee.mobilecontract.title"))), //
   MOBILECHECK("plugins.eed.listcare.optionDropDown.costmobiledevice",
-      Collections.singletonList(new AttrColumnDescription("mobilecheck", "mobilecheck", "fibu.employee.mobilecheck.title"))), //
+      Collections.singletonList(new AttrColumnDescription("mobilecheck", "mobilecheck", "fibu.employee.mobilecheck.title"))),*/ //
   COSTTRAVEL("plugins.eed.listcare.optionDropDown.costtravel",
       Collections.singletonList(new AttrColumnDescription("costtravel", "costtravel", "fibu.employee.costtravel.title"))), //
   EXPENSES("plugins.eed.listcare.optionDropDown.expenses",
