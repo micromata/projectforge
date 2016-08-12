@@ -2,7 +2,6 @@ package org.projectforge.plugins.eed.wicket;
 
 import java.util.Arrays;
 import java.util.Calendar;
-import java.util.GregorianCalendar;
 import java.util.List;
 
 import org.apache.log4j.Logger;
@@ -13,19 +12,16 @@ import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
-import org.projectforge.business.fibu.EmployeeDao;
 import org.projectforge.business.fibu.EmployeeFilter;
-import org.projectforge.business.fibu.EmployeeTimedDO;
 import org.projectforge.business.user.I18nHelper;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
+import org.projectforge.plugins.eed.EEDHelper;
 import org.projectforge.plugins.eed.ExtendedEmployeeDataEnum;
 import org.projectforge.web.wicket.AbstractListForm;
 import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.web.wicket.components.SingleButtonPanel;
 import org.projectforge.web.wicket.flowlayout.DropDownChoicePanel;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
-
-import de.micromata.genome.db.jpa.tabattr.api.TimeableService;
 
 public class EmployeeListEditForm extends AbstractListForm<EmployeeFilter, EmployeeListEditPage>
 {
@@ -34,10 +30,7 @@ public class EmployeeListEditForm extends AbstractListForm<EmployeeFilter, Emplo
   private static final long serialVersionUID = -5969136444233092172L;
 
   @SpringBean
-  private TimeableService<Integer, EmployeeTimedDO> timeableService;
-
-  @SpringBean
-  private EmployeeDao employeeDao;
+  private EEDHelper eedHelper;
 
   public static final List<Integer> MONTH_INTEGERS = Arrays.asList(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12);
 
@@ -95,7 +88,7 @@ public class EmployeeListEditForm extends AbstractListForm<EmployeeFilter, Emplo
     //Year DropDown
     DropDownChoicePanel<Integer> ddcYear = new DropDownChoicePanel<>(fsMonthYear.newChildId(),
         new DropDownChoice<>(DropDownChoicePanel.WICKET_ID, new PropertyModel<>(this, "selectedYear"),
-            getDropDownYears()));
+            eedHelper.getDropDownYears()));
     fsMonthYear.add(ddcYear);
 
     //Fieldset for option DropDown
@@ -124,21 +117,6 @@ public class EmployeeListEditForm extends AbstractListForm<EmployeeFilter, Emplo
     fsOption.add(ddcOption);
   }
 
-  private List<Integer> getDropDownYears()
-  {
-    if (this.availableYears == null) {
-      this.availableYears = timeableService.getAvailableStartTimeYears(employeeDao.internalLoadAll());
-      Integer actualYear = new GregorianCalendar().get(Calendar.YEAR);
-      if (this.availableYears.contains(actualYear) == false) {
-        this.availableYears.add(actualYear);
-      }
-      if (this.availableYears.contains(actualYear + 1) == false) {
-        this.availableYears.add(actualYear + 1);
-      }
-    }
-    return this.availableYears;
-  }
-
   public EmployeeListEditForm(final EmployeeListEditPage parentPage)
   {
     super(parentPage);
@@ -162,9 +140,7 @@ public class EmployeeListEditForm extends AbstractListForm<EmployeeFilter, Emplo
       }
     };
     WicketUtils.addTooltip(saveButton, getString("save"));
-    final SingleButtonPanel saveButtonPanel = new SingleButtonPanel(id, saveButton,
-        getString("save"), SingleButtonPanel.DEFAULT_SUBMIT);
-    return saveButtonPanel;
+    return new SingleButtonPanel(id, saveButton, getString("save"), SingleButtonPanel.DEFAULT_SUBMIT);
   }
 
   public Integer getSelectedMonth()
