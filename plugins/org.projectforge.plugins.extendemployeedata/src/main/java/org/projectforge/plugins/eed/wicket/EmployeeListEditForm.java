@@ -2,7 +2,6 @@ package org.projectforge.plugins.eed.wicket;
 
 import java.util.Arrays;
 import java.util.Calendar;
-import java.util.List;
 
 import org.apache.log4j.Logger;
 import org.apache.wicket.markup.html.form.Button;
@@ -31,8 +30,6 @@ public class EmployeeListEditForm extends AbstractListForm<EmployeeFilter, Emplo
 
   @SpringBean
   private EEDHelper eedHelper;
-
-  private List<Integer> availableYears;
 
   private Integer selectedMonth;
 

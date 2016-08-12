@@ -1,6 +1,7 @@
 package org.projectforge.plugins.eed.wicket;
 
 import java.io.InputStream;
+import java.util.Date;
 import java.util.List;
 
 import org.apache.wicket.markup.html.form.upload.FileUpload;
@@ -32,7 +33,7 @@ public class EmployeeBillingImportPage extends AbstractImportPage<EmployeeBillin
     return employeeBillingImportDao.getAttrColumnsInSheet();
   }
 
-  void importAccountList()
+  void importAccountList(final Date dateToSelectAttrRow)
   {
     checkAccess();
     final FileUpload fileUpload = form.fileUploadField.getFileUpload();
@@ -40,7 +41,7 @@ public class EmployeeBillingImportPage extends AbstractImportPage<EmployeeBillin
       try {
         final InputStream is = fileUpload.getInputStream();
         final String clientFileName = fileUpload.getClientFileName();
-        setStorage(employeeBillingImportDao.importData(is, clientFileName));
+        setStorage(employeeBillingImportDao.importData(is, clientFileName, dateToSelectAttrRow));
       } catch (final Exception ex) {
         if (ex instanceof ExcelImportException) {
           error(translateParams((ExcelImportException) ex));
