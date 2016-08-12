@@ -11,17 +11,29 @@ public class EmployeeBillingExcelRow
 
   private String fullName;
 
-  private BigDecimal mobilecheckmobilecheck;
+  private BigDecimal costtravelcosttravel;
 
-  private BigDecimal daycarecenterdaycarecenter;
+  private BigDecimal expensesexpenses;
 
-  private BigDecimal ebikeleasingebikeleasing;
+  private BigDecimal overtimeovertime;
+
+  private BigDecimal bonusbonus;
+
+  private BigDecimal specialpaymentspecialpayment;
+
+  private BigDecimal targetagreementstargetagreements;
+
+  private BigDecimal costshopcostshop;
+
+  private String costshopcontents;
 
   private BigDecimal weekendworkworkinghourssaturday;
 
   private BigDecimal weekendworkworkinghourssunday;
 
   private BigDecimal weekendworkworkinghoursholiday;
+
+  private String othersothers;
 
   public Integer getId()
   {
@@ -43,34 +55,84 @@ public class EmployeeBillingExcelRow
     this.fullName = fullName;
   }
 
-  public BigDecimal getMobilecheckmobilecheck()
+  public BigDecimal getCosttravelcosttravel()
   {
-    return mobilecheckmobilecheck;
+    return costtravelcosttravel;
   }
 
-  public void setMobilecheckmobilecheck(BigDecimal mobilecheckmobilecheck)
+  public void setCosttravelcosttravel(BigDecimal costtravelcosttravel)
   {
-    this.mobilecheckmobilecheck = mobilecheckmobilecheck;
+    this.costtravelcosttravel = costtravelcosttravel;
   }
 
-  public BigDecimal getDaycarecenterdaycarecenter()
+  public BigDecimal getExpensesexpenses()
   {
-    return daycarecenterdaycarecenter;
+    return expensesexpenses;
   }
 
-  public void setDaycarecenterdaycarecenter(BigDecimal daycarecenterdaycarecenter)
+  public void setExpensesexpenses(BigDecimal expensesexpenses)
   {
-    this.daycarecenterdaycarecenter = daycarecenterdaycarecenter;
+    this.expensesexpenses = expensesexpenses;
   }
 
-  public BigDecimal getEbikeleasingebikeleasing()
+  public BigDecimal getOvertimeovertime()
   {
-    return ebikeleasingebikeleasing;
+    return overtimeovertime;
   }
 
-  public void setEbikeleasingebikeleasing(BigDecimal ebikeleasingebikeleasing)
+  public void setOvertimeovertime(BigDecimal overtimeovertime)
   {
-    this.ebikeleasingebikeleasing = ebikeleasingebikeleasing;
+    this.overtimeovertime = overtimeovertime;
+  }
+
+  public BigDecimal getBonusbonus()
+  {
+    return bonusbonus;
+  }
+
+  public void setBonusbonus(BigDecimal bonusbonus)
+  {
+    this.bonusbonus = bonusbonus;
+  }
+
+  public BigDecimal getSpecialpaymentspecialpayment()
+  {
+    return specialpaymentspecialpayment;
+  }
+
+  public void setSpecialpaymentspecialpayment(BigDecimal specialpaymentspecialpayment)
+  {
+    this.specialpaymentspecialpayment = specialpaymentspecialpayment;
+  }
+
+  public BigDecimal getTargetagreementstargetagreements()
+  {
+    return targetagreementstargetagreements;
+  }
+
+  public void setTargetagreementstargetagreements(BigDecimal targetagreementstargetagreements)
+  {
+    this.targetagreementstargetagreements = targetagreementstargetagreements;
+  }
+
+  public BigDecimal getCostshopcostshop()
+  {
+    return costshopcostshop;
+  }
+
+  public void setCostshopcostshop(BigDecimal costshopcostshop)
+  {
+    this.costshopcostshop = costshopcostshop;
+  }
+
+  public String getCostshopcontents()
+  {
+    return costshopcontents;
+  }
+
+  public void setCostshopcontents(String costshopcontents)
+  {
+    this.costshopcontents = costshopcontents;
   }
 
   public BigDecimal getWeekendworkworkinghourssaturday()
@@ -103,4 +165,13 @@ public class EmployeeBillingExcelRow
     this.weekendworkworkinghoursholiday = weekendworkworkinghoursholiday;
   }
 
+  public String getOthersothers()
+  {
+    return othersothers;
+  }
+
+  public void setOthersothers(String othersothers)
+  {
+    this.othersothers = othersothers;
+  }
 }
