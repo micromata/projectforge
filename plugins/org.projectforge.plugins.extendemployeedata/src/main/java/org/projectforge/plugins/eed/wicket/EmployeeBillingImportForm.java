@@ -76,7 +76,7 @@ public class EmployeeBillingImportForm extends AbstractImportForm<ImportFilter, 
             setDateDropDownsEnabled(false);
           }
         }
-      }, getString("finance.datev.uploadAccountList"), SingleButtonPanel.NORMAL).setTooltip(getString("common.import.upload.tooltip"))); // TODO CT
+      }, getString("upload"), SingleButtonPanel.NORMAL).setTooltip(getString("common.import.upload.tooltip")));
       addClearButton(fs);
     }
 
