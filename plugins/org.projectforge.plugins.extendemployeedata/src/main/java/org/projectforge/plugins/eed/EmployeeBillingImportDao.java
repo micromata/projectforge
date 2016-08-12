@@ -2,6 +2,7 @@ package org.projectforge.plugins.eed;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -39,12 +40,12 @@ public class EmployeeBillingImportDao
 
   private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(EmployeeBillingImportDao.class);
 
-  public ImportStorage<EmployeeDO> importData(final InputStream is, final String filename) throws IOException
+  public ImportStorage<EmployeeDO> importData(final InputStream is, final String filename, final Date dateToSelectAttrRow) throws IOException
   {
     //checkLoggeinUserRight(accessChecker);
     final ImportStorage<EmployeeDO> storage = new ImportStorage<>();
     storage.setFilename(filename);
-    final EmployeeBillingExcelImporter importer = new EmployeeBillingExcelImporter(employeeService, timeableService, storage);
+    final EmployeeBillingExcelImporter importer = new EmployeeBillingExcelImporter(employeeService, timeableService, storage, dateToSelectAttrRow);
     try {
       attrColumnsInSheet = importer.doImport(is);
     } catch (final ExcelImportException ex) {

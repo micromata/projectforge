@@ -20,6 +20,8 @@ public class EmployeeBillingImportStoragePanel extends AbstractImportStoragePane
   @SpringBean
   private TimeableService<Integer, EmployeeTimedDO> timeableService;
 
+  private Date dateToSelectAttrRow;
+
   public EmployeeBillingImportStoragePanel(final String id, final EmployeeBillingImportPage parentPage,
       final ImportFilter filter)
   {
@@ -56,9 +58,13 @@ public class EmployeeBillingImportStoragePanel extends AbstractImportStoragePane
     }
   }
 
+  public void setDateToSelectAttrRow(Date dateToSelectAttrRow)
+  {
+    this.dateToSelectAttrRow = dateToSelectAttrRow;
+  }
+
   private String getAttribute(final EmployeeDO employee, final String groupName, final String propertyName)
   {
-    final Date dateToSelectAttrRow = new Date(); // TODO CT
     final EmployeeTimedDO attrRow = timeableService.getAttrRowForSameMonth(employee, groupName, dateToSelectAttrRow);
     return attrRow.getStringAttribute(propertyName);
   }

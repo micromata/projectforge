@@ -2,8 +2,6 @@ package org.projectforge.plugins.eed;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -33,7 +31,7 @@ public class EmployeeBillingExcelImporter
 
   private static final int ROW_INDEX_OF_COLUMN_NAMES = 0;
 
-  private static final String[] DIFF_PROPERTIES = { "staffNumber" }; // TODO CT
+  private static final String[] DIFF_PROPERTIES = {};
 
   private final EmployeeService employeeService;
 
@@ -41,13 +39,16 @@ public class EmployeeBillingExcelImporter
 
   private final ImportStorage<EmployeeDO> storage;
 
+  private final Date dateToSelectAttrRow;
+
   public EmployeeBillingExcelImporter(final EmployeeService employeeService,
       final TimeableService<Integer, EmployeeTimedDO> timeableService,
-      final ImportStorage<EmployeeDO> storage)
+      final ImportStorage<EmployeeDO> storage, final Date dateToSelectAttrRow)
   {
     this.employeeService = employeeService;
     this.timeableService = timeableService;
     this.storage = storage;
+    this.dateToSelectAttrRow = dateToSelectAttrRow;
   }
 
   public List<AttrColumnDescription> doImport(final InputStream is) throws IOException
@@ -107,9 +108,6 @@ public class EmployeeBillingExcelImporter
 
   private ImportedElement<EmployeeDO> convertRowToDo(final List<AttrColumnDescription> attrColumnsInSheet, final EmployeeBillingExcelRow row)
   {
-    // TODO CT
-    final Date dateToSelectAttrRow = Date.from(LocalDateTime.of(2016, 8, 1, 0, 0).toInstant(ZoneOffset.UTC));
-
     final ImportedElement<EmployeeDO> element = new ImportedElementWithAttrs<>(storage.nextVal(), EmployeeDO.class, DIFF_PROPERTIES, attrColumnsInSheet,
         dateToSelectAttrRow, timeableService);
     EmployeeDO employee;
@@ -123,15 +121,13 @@ public class EmployeeBillingExcelImporter
     element.setValue(employee);
 
     attrColumnsInSheet.forEach(
-        desc -> getOrCreateAttrRowAndPutAttribute(employee, dateToSelectAttrRow, desc, row)
+        desc -> getOrCreateAttrRowAndPutAttribute(employee, desc, row)
     );
 
     return element;
   }
 
-  private void getOrCreateAttrRowAndPutAttribute(final EmployeeDO employee, final Date dateToSelectAttrRow,
-      final AttrColumnDescription colDesc,
-      final EmployeeBillingExcelRow row)
+  private void getOrCreateAttrRowAndPutAttribute(final EmployeeDO employee, final AttrColumnDescription colDesc, final EmployeeBillingExcelRow row)
   {
     EmployeeTimedDO attrRow = timeableService.getAttrRowForSameMonth(employee, colDesc.getGroupName(), dateToSelectAttrRow);
 
