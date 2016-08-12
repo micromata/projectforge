@@ -15,14 +15,14 @@ import org.projectforge.web.core.importstorage.ImportFilter;
 
 import de.micromata.genome.db.jpa.tabattr.api.TimeableService;
 
-public class EmployeeBillingImportStoragePanel extends AbstractImportStoragePanel<EmployeeBillingImportPage>
+class EmployeeBillingImportStoragePanel extends AbstractImportStoragePanel<EmployeeBillingImportPage>
 {
   @SpringBean
   private TimeableService<Integer, EmployeeTimedDO> timeableService;
 
   private Date dateToSelectAttrRow;
 
-  public EmployeeBillingImportStoragePanel(final String id, final EmployeeBillingImportPage parentPage,
+  EmployeeBillingImportStoragePanel(final String id, final EmployeeBillingImportPage parentPage,
       final ImportFilter filter)
   {
     super(id, parentPage, filter);
@@ -32,7 +32,7 @@ public class EmployeeBillingImportStoragePanel extends AbstractImportStoragePane
   protected void addHeadColumns(final RepeatingView headColRepeater)
   {
     headColRepeater.add(new Label(headColRepeater.newChildId(), getString("id")));
-    headColRepeater.add(new Label(headColRepeater.newChildId(), getString("fibu.employee.staffNumber")));
+    headColRepeater.add(new Label(headColRepeater.newChildId(), getString("fibu.employee.user")));
 
     final List<AttrColumnDescription> attrColumnsInSheet = parentPage.getAttrColumnsInSheet();
     if (attrColumnsInSheet != null) {
@@ -45,27 +45,29 @@ public class EmployeeBillingImportStoragePanel extends AbstractImportStoragePane
   @Override
   protected void addColumns(final RepeatingView cellRepeater, final ImportedElement<?> element, final String style)
   {
-    final String styleRightAlign = style + " white-space: nowrap; text-align: right;";
+    final String s = "white-space: nowrap; text-align: right;";
+    final String styleRightAlign = (style == null) ? s : style + " " + s;
     final EmployeeDO employee = (EmployeeDO) element.getValue();
     addCell(cellRepeater, employee.getPk(), styleRightAlign);
-    addCell(cellRepeater, employee.getStaffNumber(), style);
+    final String fullname = (employee.getUser() == null) ? null : employee.getUser().getFullname();
+    addCell(cellRepeater, fullname, style);
 
     final List<AttrColumnDescription> attrColumnsInSheet = parentPage.getAttrColumnsInSheet();
     if (attrColumnsInSheet != null) {
       attrColumnsInSheet.forEach(
-          desc -> addCell(cellRepeater, getAttribute(employee, desc.getGroupName(), desc.getPropertyName()), styleRightAlign)
+          desc -> addCell(cellRepeater, getAttribute(employee, desc), styleRightAlign)
       );
     }
   }
 
-  public void setDateToSelectAttrRow(Date dateToSelectAttrRow)
+  void setDateToSelectAttrRow(Date dateToSelectAttrRow)
   {
     this.dateToSelectAttrRow = dateToSelectAttrRow;
   }
 
-  private String getAttribute(final EmployeeDO employee, final String groupName, final String propertyName)
+  private String getAttribute(final EmployeeDO employee, final AttrColumnDescription desc)
   {
-    final EmployeeTimedDO attrRow = timeableService.getAttrRowForSameMonth(employee, groupName, dateToSelectAttrRow);
-    return attrRow.getStringAttribute(propertyName);
+    final EmployeeTimedDO attrRow = timeableService.getAttrRowForSameMonth(employee, desc.getGroupName(), dateToSelectAttrRow);
+    return attrRow.getStringAttribute(desc.getPropertyName());
   }
 }

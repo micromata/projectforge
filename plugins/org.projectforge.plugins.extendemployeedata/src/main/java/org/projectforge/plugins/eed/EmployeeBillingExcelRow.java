@@ -9,6 +9,8 @@ public class EmployeeBillingExcelRow
 {
   private Integer id;
 
+  private String fullName;
+
   private BigDecimal mobilecheckmobilecheck;
 
   private BigDecimal daycarecenterdaycarecenter;
@@ -29,6 +31,16 @@ public class EmployeeBillingExcelRow
   public void setId(Integer id)
   {
     this.id = id;
+  }
+
+  public String getFullName()
+  {
+    return fullName;
+  }
+
+  public void setFullName(String fullName)
+  {
+    this.fullName = fullName;
   }
 
   public BigDecimal getMobilecheckmobilecheck()
