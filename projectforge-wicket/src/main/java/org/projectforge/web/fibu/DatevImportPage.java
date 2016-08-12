@@ -27,7 +27,6 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.markup.html.form.upload.FileUpload;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
@@ -86,8 +85,8 @@ public class DatevImportPage extends AbstractImportPage<DatevImportForm>
 
   private String translateParams(ExcelImportException ex)
   {
-    return getString("finance.datev.error1") + " " + ex.getRow() + " " +
-        getString("finance.datev.error2") + " \"" + ex.getColumnname() + "\"";
+    return getString("common.import.excel.error1") + " " + ex.getRow() + " " +
+        getString("common.import.excel.error2") + " \"" + ex.getColumnname() + "\"";
   }
 
   protected void importAccountRecords()

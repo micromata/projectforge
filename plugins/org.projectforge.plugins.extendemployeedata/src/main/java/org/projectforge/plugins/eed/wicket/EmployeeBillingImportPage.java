@@ -65,9 +65,8 @@ public class EmployeeBillingImportPage extends AbstractImportPage<EmployeeBillin
 
   private String translateParams(ExcelImportException ex)
   {
-    // TODO CT
-    return getString("finance.datev.error1") + " " + ex.getRow() + " " +
-        getString("finance.datev.error2") + " \"" + ex.getColumnname() + "\"";
+    return getString("common.import.excel.error1") + " " + ex.getRow() + " " +
+        getString("common.import.excel.error2") + " \"" + ex.getColumnname() + "\"";
   }
 
   @Override
@@ -121,8 +120,7 @@ public class EmployeeBillingImportPage extends AbstractImportPage<EmployeeBillin
   @Override
   protected String getTitle()
   {
-    // TODO CT
-    return getString("fibu.datev.import");
+    return getString("plugins.eed.import.title");
   }
 
 }
