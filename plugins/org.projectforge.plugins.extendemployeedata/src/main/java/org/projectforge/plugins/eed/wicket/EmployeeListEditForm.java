@@ -32,8 +32,6 @@ public class EmployeeListEditForm extends AbstractListForm<EmployeeFilter, Emplo
   @SpringBean
   private EEDHelper eedHelper;
 
-  public static final List<Integer> MONTH_INTEGERS = Arrays.asList(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12);
-
   private List<Integer> availableYears;
 
   private Integer selectedMonth;
@@ -81,7 +79,7 @@ public class EmployeeListEditForm extends AbstractListForm<EmployeeFilter, Emplo
     //Month DropDown
     DropDownChoicePanel<Integer> ddcMonth = new DropDownChoicePanel<>(fsMonthYear.newChildId(),
         new DropDownChoice<>(DropDownChoicePanel.WICKET_ID, new PropertyModel<>(this, "selectedMonth"),
-            MONTH_INTEGERS));
+            EEDHelper.MONTH_INTEGERS));
     fsMonthYear.add(ddcMonth);
     //Get actual year for pre select
     selectedYear = Calendar.getInstance().get(Calendar.YEAR);
