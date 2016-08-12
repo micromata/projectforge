@@ -409,7 +409,7 @@ public abstract class AbstractImportStoragePanel<P extends AbstractImportPage<?>
     cellRepeater.add(cell);
     cell.add(comp);
     if (style != null) {
-      comp.add(AttributeModifier.replace("style", style));
+      cell.add(AttributeModifier.replace("style", style));
     }
     return comp;
   }

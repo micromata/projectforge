@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.projectforge.business.fibu.EmployeeDO;
 import org.projectforge.business.fibu.EmployeeTimedDO;
@@ -80,6 +81,7 @@ public class EmployeeBillingExcelImporter
     // mapping from excel column name to the bean field name
     final Map<String, String> map = new HashMap<>();
     map.put("Id", "id");
+    map.put(I18nHelper.getLocalizedString("fibu.employee.user"), "fullName");
 
     ExtendedEmployeeDataEnum.getAllAttrColumnDescriptions().forEach(
         desc -> map.put(I18nHelper.getLocalizedString(desc.getI18nKey()), desc.getCombinedName()));
@@ -113,6 +115,10 @@ public class EmployeeBillingExcelImporter
     EmployeeDO employee;
     if (row.getId() != null) {
       employee = employeeService.selectByPkDetached(row.getId());
+      // validate ID and USER: make sure that full name has not changed
+      if (!StringUtils.equals(row.getFullName(), employee.getUser().getFullname())) {
+        element.putErrorProperty("user", row.getFullName());
+      }
     } else {
       // this employee is just created to show it in the EmployeeBillingImportStoragePanel, it will never be imported to the DB
       employee = new EmployeeDO();
