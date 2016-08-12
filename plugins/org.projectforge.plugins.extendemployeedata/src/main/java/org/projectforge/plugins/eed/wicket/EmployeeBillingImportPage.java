@@ -26,6 +26,7 @@ public class EmployeeBillingImportPage extends AbstractImportPage<EmployeeBillin
     form = new EmployeeBillingImportForm(this);
     body.add(form);
     form.init();
+    clear(); // reset state of the page, clear the import storage
   }
 
   List<AttrColumnDescription> getAttrColumnsInSheet()
@@ -33,7 +34,14 @@ public class EmployeeBillingImportPage extends AbstractImportPage<EmployeeBillin
     return employeeBillingImportDao.getAttrColumnsInSheet();
   }
 
-  void importAccountList(final Date dateToSelectAttrRow)
+  @Override
+  protected void clear()
+  {
+    super.clear();
+    form.setDateDropDownsEnabled(true);
+  }
+
+  boolean importAccountList(final Date dateToSelectAttrRow)
   {
     checkAccess();
     final FileUpload fileUpload = form.fileUploadField.getFileUpload();
@@ -42,6 +50,7 @@ public class EmployeeBillingImportPage extends AbstractImportPage<EmployeeBillin
         final InputStream is = fileUpload.getInputStream();
         final String clientFileName = fileUpload.getClientFileName();
         setStorage(employeeBillingImportDao.importData(is, clientFileName, dateToSelectAttrRow));
+        return true;
       } catch (final Exception ex) {
         if (ex instanceof ExcelImportException) {
           error(translateParams((ExcelImportException) ex));
@@ -51,6 +60,7 @@ public class EmployeeBillingImportPage extends AbstractImportPage<EmployeeBillin
         clear();
       }
     }
+    return false;
   }
 
   private String translateParams(ExcelImportException ex)

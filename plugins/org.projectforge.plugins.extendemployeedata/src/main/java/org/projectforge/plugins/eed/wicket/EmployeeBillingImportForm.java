@@ -30,6 +30,10 @@ public class EmployeeBillingImportForm extends AbstractImportForm<ImportFilter, 
 
   private int selectedYear = Calendar.getInstance().get(Calendar.YEAR);
 
+  private DropDownChoicePanel<Integer> dropDownMonth;
+
+  private DropDownChoicePanel<Integer> dropDownYear;
+
   public EmployeeBillingImportForm(final EmployeeBillingImportPage parentPage)
   {
     super(parentPage);
@@ -44,20 +48,16 @@ public class EmployeeBillingImportForm extends AbstractImportForm<ImportFilter, 
     gridBuilder.newGridPanel();
 
     // Date DropDowns
-    {
-      final FieldsetPanel fsMonthYear = gridBuilder.newFieldset(I18nHelper.getLocalizedString("plugins.eed.listcare.yearmonth"));
+    final FieldsetPanel fsMonthYear = gridBuilder.newFieldset(I18nHelper.getLocalizedString("plugins.eed.listcare.yearmonth"));
 
-      // Month DropDown
-      final DropDownChoicePanel<Integer> ddcMonth = new DropDownChoicePanel<>(fsMonthYear.newChildId(),
-          new DropDownChoice<>(DropDownChoicePanel.WICKET_ID, new PropertyModel<>(this, "selectedMonth"), EEDHelper.MONTH_INTEGERS)
-      );
-      fsMonthYear.add(ddcMonth);
+    dropDownMonth = new DropDownChoicePanel<>(fsMonthYear.newChildId(),
+        new DropDownChoice<>(DropDownChoicePanel.WICKET_ID, new PropertyModel<>(this, "selectedMonth"), EEDHelper.MONTH_INTEGERS)
+    );
+    fsMonthYear.add(dropDownMonth);
 
-      // Year DropDown
-      final DropDownChoicePanel<Integer> ddcYear = new DropDownChoicePanel<>(fsMonthYear.newChildId(),
-          new DropDownChoice<>(DropDownChoicePanel.WICKET_ID, new PropertyModel<>(this, "selectedYear"), eedHelper.getDropDownYears()));
-      fsMonthYear.add(ddcYear);
-    }
+    dropDownYear = new DropDownChoicePanel<>(fsMonthYear.newChildId(),
+        new DropDownChoice<>(DropDownChoicePanel.WICKET_ID, new PropertyModel<>(this, "selectedYear"), eedHelper.getDropDownYears()));
+    fsMonthYear.add(dropDownYear);
 
     // upload buttons
     {
@@ -71,7 +71,10 @@ public class EmployeeBillingImportForm extends AbstractImportForm<ImportFilter, 
         {
           final Date dateToSelectAttrRow = new GregorianCalendar(selectedYear, selectedMonth - 1, 1, 0, 0).getTime();
           storagePanel.setDateToSelectAttrRow(dateToSelectAttrRow);
-          parentPage.importAccountList(dateToSelectAttrRow);
+          final boolean success = parentPage.importAccountList(dateToSelectAttrRow);
+          if (success) {
+            setDateDropDownsEnabled(false);
+          }
         }
       }, getString("finance.datev.uploadAccountList"), SingleButtonPanel.NORMAL).setTooltip(getString("common.import.upload.tooltip"))); // TODO CT
       addClearButton(fs);
@@ -83,6 +86,14 @@ public class EmployeeBillingImportForm extends AbstractImportForm<ImportFilter, 
     gridBuilder.newGridPanel();
     final DivPanel panel = gridBuilder.getPanel();
     storagePanel = new EmployeeBillingImportStoragePanel(panel.newChildId(), parentPage, importFilter);
+    final Date dateToSelectAttrRow = new GregorianCalendar(selectedYear, selectedMonth - 1, 1, 0, 0).getTime();
+    storagePanel.setDateToSelectAttrRow(dateToSelectAttrRow);
     panel.add(storagePanel);
+  }
+
+  void setDateDropDownsEnabled(boolean enabled)
+  {
+    dropDownMonth.setEnabled(enabled);
+    dropDownYear.setEnabled(enabled);
   }
 }
