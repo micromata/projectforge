@@ -47,7 +47,7 @@ public class ExportDataForm extends AbstractStandardForm<Object, ExportDataPage>
     //Month DropDown
     DropDownChoicePanel<Integer> ddcMonth = new DropDownChoicePanel<>(fsMonthYear.newChildId(),
         new DropDownChoice<>(DropDownChoicePanel.WICKET_ID, new PropertyModel<>(this, "selectedMonth"),
-            EmployeeListEditForm.MONTH_INTEGERS));
+            EEDHelper.MONTH_INTEGERS));
     fsMonthYear.add(ddcMonth);
     //Get actual year for pre select
     selectedYear = Calendar.getInstance().get(Calendar.YEAR);

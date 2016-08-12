@@ -1,5 +1,6 @@
 package org.projectforge.plugins.eed;
 
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.List;
@@ -15,6 +16,8 @@ import de.micromata.genome.db.jpa.tabattr.api.TimeableService;
 @Service
 public class EEDHelper
 {
+  public static final List<Integer> MONTH_INTEGERS = Arrays.asList(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12);
+
   @Autowired
   private TimeableService<Integer, EmployeeTimedDO> timeableService;
 
