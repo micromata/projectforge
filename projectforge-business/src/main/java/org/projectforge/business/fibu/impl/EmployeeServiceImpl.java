@@ -5,6 +5,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 
 import org.projectforge.business.fibu.EmployeeDO;
@@ -88,7 +89,8 @@ public class EmployeeServiceImpl extends CorePersistenceServiceImpl<Integer, Emp
     try {
       Class<?> type = EmployeeDO.class.getDeclaredField(attributeName).getType();
       Method declaredMethod = EmployeeDO.class.getDeclaredMethod(
-          "set" + attributeName.substring(0, 1).toUpperCase() + attributeName.substring(1, attributeName.length()),type);
+          "set" + attributeName.substring(0, 1).toUpperCase() + attributeName.substring(1, attributeName.length()),
+          type);
       declaredMethod.invoke(employeeDO, type.cast(attribute));
 
     } catch (NoSuchFieldException e) {
@@ -107,8 +109,10 @@ public class EmployeeServiceImpl extends CorePersistenceServiceImpl<Integer, Emp
       attributes.add(field.getName());
     }
 
-    attributes.removeIf((s)->{ return s.equals(attributeName);});
-    return update(employeeDO, attributes.toArray(new String[]{}));
+    attributes.removeIf((s) -> {
+      return s.equals(attributeName);
+    });
+    return update(employeeDO, attributes.toArray(new String[] {}));
   }
 
   @Override
@@ -147,6 +151,7 @@ public class EmployeeServiceImpl extends CorePersistenceServiceImpl<Integer, Emp
   {
     return employeeDao.hasDeleteAccess(user, obj, dbObj, throwException);
   }
+
   @Override
   public EmployeeDO getById(Serializable id) throws AccessException
   {
@@ -176,6 +181,16 @@ public class EmployeeServiceImpl extends CorePersistenceServiceImpl<Integer, Emp
   {
     employeeDao.rebuildDatabaseIndex();
 
+  }
+
+  @Override
+  public boolean isEmployeeActive(EmployeeDO employee)
+  {
+    Calendar now = Calendar.getInstance();
+    if (employee.getAustrittsDatum() == null) {
+      return true;
+    }
+    return now.before(employee.getAustrittsDatum());
   }
 
 }
