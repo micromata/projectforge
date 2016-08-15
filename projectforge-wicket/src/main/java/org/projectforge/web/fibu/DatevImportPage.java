@@ -37,8 +37,6 @@ import org.projectforge.business.fibu.kost.BuchungssatzDO;
 import org.projectforge.business.fibu.kost.BusinessAssessment;
 import org.projectforge.business.user.UserRightId;
 import org.projectforge.business.user.UserRightValue;
-import org.projectforge.excel.ExcelImportException;
-import org.projectforge.framework.i18n.UserException;
 import org.projectforge.framework.persistence.utils.ImportedElement;
 import org.projectforge.framework.persistence.utils.ImportedSheet;
 import org.projectforge.web.core.importstorage.AbstractImportPage;
@@ -65,28 +63,14 @@ public class DatevImportPage extends AbstractImportPage<DatevImportForm>
     checkAccess();
     final FileUpload fileUpload = form.fileUploadField.getFileUpload();
     if (fileUpload != null) {
-      try {
+      doImportWithExcelExceptionHandling(() -> {
         final InputStream is = fileUpload.getInputStream();
         actionLog.reset();
         final String clientFileName = fileUpload.getClientFileName();
         setStorage(datevImportDao.importKontenplan(is, clientFileName, actionLog));
-      } catch (final Exception ex) {
-        if (ex instanceof ExcelImportException) {
-          error(translateParams((ExcelImportException)ex));
-        } else if (ex instanceof UserException) {
-          error(translateParams((UserException)ex));
-        }
-        log.error(ex.getMessage(), ex);
-        error("An error occurred (see log files for details): " + ex.getMessage());
-        clear();
-      }
+        return null;
+      });
     }
-  }
-
-  private String translateParams(ExcelImportException ex)
-  {
-    return getString("common.import.excel.error1") + " " + ex.getRow() + " " +
-        getString("common.import.excel.error2") + " \"" + ex.getColumnname() + "\"";
   }
 
   protected void importAccountRecords()
@@ -94,21 +78,13 @@ public class DatevImportPage extends AbstractImportPage<DatevImportForm>
     checkAccess();
     final FileUpload fileUpload = form.fileUploadField.getFileUpload();
     if (fileUpload != null) {
-      try {
+      doImportWithExcelExceptionHandling(() -> {
         final InputStream is = fileUpload.getInputStream();
         actionLog.reset();
         final String clientFileName = fileUpload.getClientFileName();
         setStorage(datevImportDao.importBuchungsdaten(is, clientFileName, actionLog));
-      } catch (final Exception ex) {
-        if (ex instanceof ExcelImportException) {
-          error(translateParams((ExcelImportException)ex));
-        } else if (ex instanceof UserException) {
-          error(translateParams((UserException)ex));
-        }
-        log.error(ex.getMessage(), ex);
-        error("An error occurred (see log files for details): " + ex.getMessage());
-        clear();
-      }
+        return null;
+      });
     }
   }
 
