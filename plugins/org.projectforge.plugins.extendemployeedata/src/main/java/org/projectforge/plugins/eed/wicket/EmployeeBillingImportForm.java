@@ -71,7 +71,7 @@ public class EmployeeBillingImportForm extends AbstractImportForm<ImportFilter, 
         {
           final Date dateToSelectAttrRow = new GregorianCalendar(selectedYear, selectedMonth - 1, 1, 0, 0).getTime();
           storagePanel.setDateToSelectAttrRow(dateToSelectAttrRow);
-          final boolean success = parentPage.importAccountList(dateToSelectAttrRow);
+          final boolean success = parentPage.doImport(dateToSelectAttrRow);
           if (success) {
             setDateDropDownsEnabled(false);
           }

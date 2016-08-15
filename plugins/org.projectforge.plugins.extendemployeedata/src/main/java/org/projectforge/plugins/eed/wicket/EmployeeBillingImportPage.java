@@ -7,7 +7,6 @@ import java.util.List;
 import org.apache.wicket.markup.html.form.upload.FileUpload;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
-import org.projectforge.excel.ExcelImportException;
 import org.projectforge.export.AttrColumnDescription;
 import org.projectforge.framework.persistence.utils.ImportedSheet;
 import org.projectforge.plugins.eed.EmployeeBillingImportDao;
@@ -41,32 +40,21 @@ public class EmployeeBillingImportPage extends AbstractImportPage<EmployeeBillin
     form.setDateDropDownsEnabled(true);
   }
 
-  boolean importAccountList(final Date dateToSelectAttrRow)
+  boolean doImport(final Date dateToSelectAttrRow)
   {
     checkAccess();
     final FileUpload fileUpload = form.fileUploadField.getFileUpload();
     if (fileUpload != null) {
-      try {
-        final InputStream is = fileUpload.getInputStream();
-        final String clientFileName = fileUpload.getClientFileName();
-        setStorage(employeeBillingImportDao.importData(is, clientFileName, dateToSelectAttrRow));
-        return true;
-      } catch (final Exception ex) {
-        if (ex instanceof ExcelImportException) {
-          error(translateParams((ExcelImportException) ex));
-        }
-        log.error(ex.getMessage(), ex);
-        error("An error occurred (see log files for details): " + ex.getMessage());
-        clear();
-      }
+      final Boolean success = doImportWithExcelExceptionHandling(() -> {
+            final InputStream is = fileUpload.getInputStream();
+            final String clientFileName = fileUpload.getClientFileName();
+            setStorage(employeeBillingImportDao.importData(is, clientFileName, dateToSelectAttrRow));
+            return true;
+          }
+      );
+      return Boolean.TRUE.equals(success);
     }
     return false;
-  }
-
-  private String translateParams(ExcelImportException ex)
-  {
-    return getString("common.import.excel.error1") + " " + ex.getRow() + " " +
-        getString("common.import.excel.error2") + " \"" + ex.getColumnname() + "\"";
   }
 
   @Override
