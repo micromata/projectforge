@@ -6,7 +6,7 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.fibu.EmployeeDO;
 import org.projectforge.business.fibu.EmployeeDao;
-import org.projectforge.plugins.eed.LBExporter;
+import org.projectforge.plugins.eed.service.LBExporterService;
 import org.projectforge.web.fibu.ISelectCallerPage;
 import org.projectforge.web.wicket.AbstractStandardFormPage;
 import org.projectforge.web.wicket.DownloadUtils;
@@ -21,6 +21,9 @@ public class ExportDataPage extends AbstractStandardFormPage implements ISelectC
 
   @SpringBean
   private EmployeeDao employeeDao;
+
+  @SpringBean
+  private LBExporterService exporterService;
 
   public ExportDataPage(final PageParameters parameters)
   {
@@ -61,7 +64,7 @@ public class ExportDataPage extends AbstractStandardFormPage implements ISelectC
     final String filename = "Liste-PF-"
         + form.getSelectedMonth() + "-" + form.getSelectedYear()
         + ".xls";
-    byte[] xls = LBExporter.getExcel(employeeList);
+    byte[] xls = exporterService.getExcel(employeeList);
     if (xls == null || xls.length == 0) {
       log.error("Oups, xls has zero size. Filename: " + filename);
       return;

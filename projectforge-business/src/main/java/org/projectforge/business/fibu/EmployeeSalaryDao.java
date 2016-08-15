@@ -23,6 +23,7 @@
 
 package org.projectforge.business.fibu;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.collections.CollectionUtils;
@@ -33,6 +34,7 @@ import org.projectforge.framework.i18n.UserException;
 import org.projectforge.framework.persistence.api.BaseDao;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.persistence.api.QueryFilter;
+import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
 import org.projectforge.framework.persistence.utils.SQLHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
@@ -54,6 +56,9 @@ public class EmployeeSalaryDao extends BaseDao<EmployeeSalaryDO>
     super(EmployeeSalaryDO.class);
     userRightId = USER_RIGHT_ID;
   }
+
+  @Autowired
+  private PfEmgrFactory pfEmgrFactory;
 
   @Autowired
   private EmployeeDao employeeDao;
@@ -141,5 +146,16 @@ public class EmployeeSalaryDao extends BaseDao<EmployeeSalaryDO>
   public EmployeeSalaryDO newInstance()
   {
     return new EmployeeSalaryDO();
+  }
+
+  public List<EmployeeSalaryDO> findByEmployee(EmployeeDO employee)
+  {
+    List<EmployeeSalaryDO> salaryList = new ArrayList<>();
+    salaryList = pfEmgrFactory.runRoTrans(emgr -> {
+      return emgr
+          .createQuery(EmployeeSalaryDO.class, "from EmployeeSalaryDO sal where sal.employee = :emp", "emp", employee)
+          .getResultList();
+    });
+    return salaryList;
   }
 }

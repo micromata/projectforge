@@ -1,23 +1,36 @@
-package org.projectforge.plugins.eed;
+package org.projectforge.plugins.eed.service;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.util.List;
 
 import org.jfree.util.Log;
 import org.projectforge.business.fibu.EmployeeDO;
+import org.projectforge.business.fibu.EmployeeStatus;
+import org.projectforge.business.fibu.api.EmployeeSalaryService;
+import org.projectforge.business.fibu.api.EmployeeService;
 import org.projectforge.excel.ExportRow;
 import org.projectforge.excel.ExportSheet;
 import org.projectforge.excel.ExportWorkbook;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.stereotype.Service;
 
 /**
  * @author blumenstein
  */
-public class LBExporter
+@Service
+public class LBExporterService
 {
-  private static final int START_ROW_NR = 10;
+  private static final int START_ROW_NR_FULLTIME = 10;
 
-  public static byte[] getExcel(final List<EmployeeDO> employeeList)
+  @Autowired
+  private EmployeeService employeeService;
+
+  @Autowired
+  private EmployeeSalaryService employeeSalaryService;
+
+  public byte[] getExcel(final List<EmployeeDO> employeeList)
   {
     if (employeeList.size() < 1) {
       return new byte[] {};
@@ -32,14 +45,24 @@ public class LBExporter
     }
 
     ExportSheet sheetFulltimeEmployee = workbook.getSheet(0);
-    int copyRowNr = START_ROW_NR;
-    ExportRow copyRow = sheetFulltimeEmployee.getRow(copyRowNr);
+    int copyRowNrFulltime = START_ROW_NR_FULLTIME;
+    ExportRow copyRowFulltime = sheetFulltimeEmployee.getRow(copyRowNrFulltime);
+
     for (EmployeeDO employee : employeeList) {
-      sheetFulltimeEmployee.copyRow(copyRow);
-      copyRowNr++;
-      ExportRow actualRow = sheetFulltimeEmployee.getRow(copyRowNr - 1);
-      actualRow.getCell(0).setValue(employee.getUser().getFullname());
-      copyRow = sheetFulltimeEmployee.getRow(copyRowNr);
+      if (employeeService.isEmployeeActive(employee) == true) {
+        if (isFulltimeEmployee(employee) == true) {
+          sheetFulltimeEmployee.copyRow(copyRowFulltime);
+          copyRowNrFulltime++;
+          ExportRow actualRow = sheetFulltimeEmployee.getRow(copyRowNrFulltime - 1);
+          actualRow.getCell(0).setValue(employee.getUser().getFullname());
+          actualRow.getCell(1).setValue(employee.getWeeklyWorkingHours());
+          actualRow.getCell(2).setValue(employee.getStaffNumber());
+          BigDecimal bruttoMitAgAnteil = employeeSalaryService.getLatestSalaryForEmployee(employee) != null
+              ? employeeSalaryService.getLatestSalaryForEmployee(employee).getBruttoMitAgAnteil() : null;
+          actualRow.getCell(3).setValue(bruttoMitAgAnteil);
+          copyRowFulltime = sheetFulltimeEmployee.getRow(copyRowNrFulltime);
+        }
+      }
     }
     //    Cell header = row.getCell(0);
     //    Cell sumHours = sheet.getRow(3).getCell(4).getPoiCell();
@@ -70,6 +93,18 @@ public class LBExporter
     //
     //    sumHours.setCellValue(String.valueOf(hourCounter));
     return workbook.getAsByteArray();
+  }
+
+  private void insertFullTimeRow(EmployeeDO employee)
+  {
+    // TODO Auto-generated method stub
+
+  }
+
+  private boolean isFulltimeEmployee(EmployeeDO employee)
+  {
+    return EmployeeStatus.FEST_ANGESTELLTER.equals(employee.getStatus())
+        || EmployeeStatus.BEFRISTET_ANGESTELLTER.equals(employee.getStatus());
   }
 
 }

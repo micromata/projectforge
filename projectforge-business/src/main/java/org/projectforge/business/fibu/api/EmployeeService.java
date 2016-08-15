@@ -24,4 +24,6 @@ public interface EmployeeService extends IPersistenceService<EmployeeDO>, IDao<E
 
   ModificationStatus updateAttribute(Integer userId, Object attribute, String attributeName);
 
+  boolean isEmployeeActive(EmployeeDO employee);
+
 }
