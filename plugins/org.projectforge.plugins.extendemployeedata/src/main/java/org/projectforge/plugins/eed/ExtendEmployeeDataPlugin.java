@@ -23,6 +23,8 @@
 
 package org.projectforge.plugins.eed;
 
+import static org.projectforge.business.user.UserRightServiceImpl.READONLY_READWRITE;
+
 import org.projectforge.business.fibu.EmployeeDao;
 import org.projectforge.business.user.UserRightId;
 import org.projectforge.plugins.core.AbstractPlugin;
@@ -70,14 +72,14 @@ public class ExtendEmployeeDataPlugin extends AbstractPlugin
     final MenuItemDef parentMenu = pluginWicketRegistrationService.getMenuItemDef(MenuItemDefId.HR);
     pluginWicketRegistrationService
         .registerMenuItem(new MenuItemDef(parentMenu, ID, 21, "plugins.eed.menu.listcare", EmployeeListEditPage.class,
-            UserRightId.FIBU_EMPLOYEE));
+            UserRightId.FIBU_EMPLOYEE, READONLY_READWRITE));
     pluginWicketRegistrationService
         .registerMenuItem(
             new MenuItemDef(parentMenu, ID, 22, "plugins.eed.menu.listcareimport", EmployeeBillingImportPage.class,
-                UserRightId.FIBU_EMPLOYEE));
+                UserRightId.FIBU_EMPLOYEE, READONLY_READWRITE));
     pluginWicketRegistrationService
         .registerMenuItem(new MenuItemDef(parentMenu, ID, 23, "plugins.eed.menu.export", ExportDataPage.class,
-            UserRightId.FIBU_EMPLOYEE_SALARY));
+            UserRightId.FIBU_EMPLOYEE_SALARY, READONLY_READWRITE));
     //    pluginWicketRegistrationService
     //        .registerMenuItem(new MenuItemDef(parentMenu, ID, 24, "plugins.eed.menu.config", ExportDataPage.class));
 
