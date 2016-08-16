@@ -1,12 +1,13 @@
 package org.projectforge.plugins.eed.service;
 
 import java.io.IOException;
-import java.math.BigDecimal;
+import java.util.Calendar;
 import java.util.List;
 
 import org.jfree.util.Log;
 import org.projectforge.business.fibu.EmployeeDO;
 import org.projectforge.business.fibu.EmployeeStatus;
+import org.projectforge.business.fibu.EmployeeTimedDO;
 import org.projectforge.business.fibu.api.EmployeeSalaryService;
 import org.projectforge.business.fibu.api.EmployeeService;
 import org.projectforge.excel.ExportRow;
@@ -16,21 +17,31 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 
+import de.micromata.genome.db.jpa.tabattr.api.AttrGroup;
+import de.micromata.genome.db.jpa.tabattr.api.AttrSchemaService;
+import de.micromata.genome.db.jpa.tabattr.api.TimeableService;
+
 /**
  * @author blumenstein
  */
 @Service
 public class LBExporterService
 {
-  private static final int START_ROW_NR_FULLTIME = 10;
+  private static final int START_ROW_NR_FULLTIME = 3;
 
   @Autowired
   private EmployeeService employeeService;
 
   @Autowired
+  private TimeableService<Integer, EmployeeTimedDO> timeableService;
+
+  @Autowired
   private EmployeeSalaryService employeeSalaryService;
 
-  public byte[] getExcel(final List<EmployeeDO> employeeList)
+  @Autowired
+  private AttrSchemaService attrSchemaService;
+
+  public byte[] getExcel(final List<EmployeeDO> employeeList, Calendar selectedDate)
   {
     if (employeeList.size() < 1) {
       return new byte[] {};
@@ -54,51 +65,69 @@ public class LBExporterService
           sheetFulltimeEmployee.copyRow(copyRowFulltime);
           copyRowNrFulltime++;
           ExportRow actualRow = sheetFulltimeEmployee.getRow(copyRowNrFulltime - 1);
+          //0 -> Name
           actualRow.getCell(0).setValue(employee.getUser().getFullname());
+          //1 -> Arbeitsstunden
           actualRow.getCell(1).setValue(employee.getWeeklyWorkingHours());
+          //2 -> Personalnummer
           actualRow.getCell(2).setValue(employee.getStaffNumber());
-          BigDecimal bruttoMitAgAnteil = employeeSalaryService.getLatestSalaryForEmployee(employee) != null
-              ? employeeSalaryService.getLatestSalaryForEmployee(employee).getBruttoMitAgAnteil() : null;
-          actualRow.getCell(3).setValue(bruttoMitAgAnteil);
+          //3 -> Gehalt
+          //TODO: HR -> Gehalt ist nicht das richtige
+          //          BigDecimal bruttoMitAgAnteil = employeeSalaryService.getLatestSalaryForEmployee(employee) != null
+          //              ? employeeSalaryService.getLatestSalaryForEmployee(employee).getBruttoMitAgAnteil() : null;
+          //          actualRow.getCell(3).setValue(bruttoMitAgAnteil);
+          //20 -> Kita
+          actualRow.getCell(20)
+              .setValue(getActualAttrValue(employee, "daycarecenter", "daycarecenter", selectedDate));
+          //21 -> eBike
+          actualRow.getCell(21).setValue(getAttrValueForMonth(employee, "ebikeleasing", "ebikeleasing", selectedDate));
+          //22 -> RK
+          actualRow.getCell(21).setValue(getAttrValueForMonth(employee, "costtravel", "costtravel", selectedDate));
+          //23 -> Auslagen
+          actualRow.getCell(23).setValue(getAttrValueForMonth(employee, "expenses", "expenses", selectedDate));
+          //24 Überstunden
+          actualRow.getCell(24).setValue(getAttrValueForMonth(employee, "overtime", "overtime", selectedDate));
+          //25 Prämie
+          actualRow.getCell(25).setValue(getAttrValueForMonth(employee, "bonus", "bonus", selectedDate));
+          //26 Sonderzahlung
+          actualRow.getCell(26)
+              .setValue(getAttrValueForMonth(employee, "specialpayment", "specialpayment", selectedDate));
+          //27 Zielvereinbarung
+          actualRow.getCell(27)
+              .setValue(getAttrValueForMonth(employee, "targetagreements", "targetagreements", selectedDate));
+          //28 Shop
+          actualRow.getCell(28).setValue(getAttrValueForMonth(employee, "costshop", "costshop", selectedDate));
+          //30 Samstagsarbeit
+          actualRow.getCell(30)
+              .setValue(getAttrValueForMonth(employee, "weekendwork", "workinghourssaturday", selectedDate));
+          //31 Sonntagarbeit
+          actualRow.getCell(31)
+              .setValue(getAttrValueForMonth(employee, "weekendwork", "workinghourssunday", selectedDate));
+          //32 Feiertagarbeit
+          actualRow.getCell(32)
+              .setValue(getAttrValueForMonth(employee, "weekendwork", "workinghoursholiday", selectedDate));
+          //33 Bemerkung
+          actualRow.getCell(33).setValue(getAttrValueForMonth(employee, "others", "others", selectedDate));
           copyRowFulltime = sheetFulltimeEmployee.getRow(copyRowNrFulltime);
         }
       }
     }
-    //    Cell header = row.getCell(0);
-    //    Cell sumHours = sheet.getRow(3).getCell(4).getPoiCell();
-    //
-    //    String string = header.getStringCellValue();
-    //    string = string.replace("%fullName%", getUser().getFullname());
-    //    string = string.replace("%startDate%", sdf.format(mondayDate.toDate()));
-    //    string = string.replace("%endDate%", sdf.format(sundayDate.toDate()));
-    //    header.setCellValue(string);
-    //
-    //    // first data row
-    //    double hourCounter = 0;
-    //    ExportRow firstDataRow = sheet.getRow(FIRST_DATA_ROW_NUM);
-    //    hourCounter = fillRow(hourCounter, firstDataRow.getPoiRow(), timesheets.get(0));
-    //
-    //    // other data rows
-    //    for (int i = 1; i < timesheets.size(); i++) {
-    //      final Row newRow = copyRow(firstDataRow, FIRST_DATA_ROW_NUM + i);
-    //      final TimesheetDO timesheet = timesheets.get(i);
-    //      hourCounter = fillRow(hourCounter, newRow, timesheet);
-    //
-    //      CellStyle style = workbook.createCellStyle();
-    //      style.setBorderBottom((short) 1);
-    //      style.setShrinkToFit(true);
-    //      style.setWrapText(true);
-    //      newRow.setRowStyle(style);
-    //    }
-    //
-    //    sumHours.setCellValue(String.valueOf(hourCounter));
     return workbook.getAsByteArray();
   }
 
-  private void insertFullTimeRow(EmployeeDO employee)
+  private String getActualAttrValue(EmployeeDO employee, String attrGroupString, String attrProperty,
+      Calendar selectedDate)
   {
-    // TODO Auto-generated method stub
+    AttrGroup attrGroup = attrSchemaService.getAttrGroup(employee, attrGroupString);
+    EmployeeTimedDO attribute = timeableService.getAttrRowForDate(
+        timeableService.getTimeableAttrRowsForGroup(employee, attrGroup), attrGroup, selectedDate.getTime());
+    return attribute != null ? attribute.getStringAttribute(attrProperty) : null;
+  }
 
+  private String getAttrValueForMonth(EmployeeDO employee, String attrGroup, String attrProperty, Calendar selectedDate)
+  {
+    EmployeeTimedDO attribute = timeableService.getAttrRowForSameMonth(employee, attrGroup, selectedDate.getTime());
+    return attribute != null ? attribute.getStringAttribute(attrProperty) : null;
   }
 
   private boolean isFulltimeEmployee(EmployeeDO employee)

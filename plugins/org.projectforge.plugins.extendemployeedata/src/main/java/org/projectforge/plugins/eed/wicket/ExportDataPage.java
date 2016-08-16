@@ -1,5 +1,7 @@
 package org.projectforge.plugins.eed.wicket;
 
+import java.util.Calendar;
+import java.util.GregorianCalendar;
 import java.util.List;
 
 import org.apache.wicket.request.mapper.parameter.PageParameters;
@@ -64,7 +66,8 @@ public class ExportDataPage extends AbstractStandardFormPage implements ISelectC
     final String filename = "Liste-PF-"
         + form.getSelectedMonth() + "-" + form.getSelectedYear()
         + ".xls";
-    byte[] xls = exporterService.getExcel(employeeList);
+    Calendar cal = new GregorianCalendar(form.getSelectedYear(), form.getSelectedMonth() - 1, 1);
+    byte[] xls = exporterService.getExcel(employeeList, cal);
     if (xls == null || xls.length == 0) {
       log.error("Oups, xls has zero size. Filename: " + filename);
       return;
