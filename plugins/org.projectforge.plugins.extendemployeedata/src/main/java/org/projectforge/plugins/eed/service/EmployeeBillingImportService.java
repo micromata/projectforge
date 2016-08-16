@@ -1,4 +1,4 @@
-package org.projectforge.plugins.eed;
+package org.projectforge.plugins.eed.service;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -17,18 +17,14 @@ import org.projectforge.framework.persistence.utils.ImportStatus;
 import org.projectforge.framework.persistence.utils.ImportStorage;
 import org.projectforge.framework.persistence.utils.ImportedElement;
 import org.projectforge.framework.persistence.utils.ImportedSheet;
+import org.projectforge.plugins.eed.excelimport.EmployeeBillingExcelImporter;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Isolation;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.stereotype.Service;
 
 import de.micromata.genome.db.jpa.tabattr.api.TimeableService;
 
-// TODO CT
-@Repository
-@Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
-public class EmployeeBillingImportDao
+@Service
+public class EmployeeBillingImportService
 {
   @Autowired
   private EmployeeService employeeService;
@@ -38,7 +34,7 @@ public class EmployeeBillingImportDao
 
   private List<AttrColumnDescription> attrColumnsInSheet;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(EmployeeBillingImportDao.class);
+  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(EmployeeBillingImportService.class);
 
   public ImportStorage<EmployeeDO> importData(final InputStream is, final String filename, final Date dateToSelectAttrRow) throws IOException
   {
@@ -76,7 +72,6 @@ public class EmployeeBillingImportDao
     sheet.setNumberOfCommittedElements(-1);
   }
 
-  @Transactional(readOnly = false, propagation = Propagation.REQUIRES_NEW, isolation = Isolation.REPEATABLE_READ)
   public void commit(final ImportStorage<?> storage, final String sheetName)
   {
     //    checkLoggeinUserRight(accessChecker);

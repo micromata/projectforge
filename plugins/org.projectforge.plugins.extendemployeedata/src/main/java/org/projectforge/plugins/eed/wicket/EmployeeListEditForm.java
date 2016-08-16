@@ -14,8 +14,8 @@ import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.fibu.EmployeeFilter;
 import org.projectforge.business.user.I18nHelper;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
-import org.projectforge.plugins.eed.EEDHelper;
-import org.projectforge.plugins.eed.ExtendedEmployeeDataEnum;
+import org.projectforge.plugins.eed.ExtendEmployeeDataEnum;
+import org.projectforge.plugins.eed.service.EEDHelper;
 import org.projectforge.web.wicket.AbstractListForm;
 import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.web.wicket.components.SingleButtonPanel;
@@ -35,7 +35,7 @@ public class EmployeeListEditForm extends AbstractListForm<EmployeeFilter, Emplo
 
   private Integer selectedYear;
 
-  private ExtendedEmployeeDataEnum selectedOption;
+  private ExtendEmployeeDataEnum selectedOption;
 
   @Override
   protected void init()
@@ -90,18 +90,18 @@ public class EmployeeListEditForm extends AbstractListForm<EmployeeFilter, Emplo
     final FieldsetPanel fsOption = gridBuilder
         .newFieldset(I18nHelper.getLocalizedString(ThreadLocalUserContext.getLocale(), "plugins.eed.listcare.option"));
     //Option DropDown
-    final DropDownChoicePanel<ExtendedEmployeeDataEnum> ddcOption = new DropDownChoicePanel<>(gridBuilder.getPanel().newChildId(),
+    final DropDownChoicePanel<ExtendEmployeeDataEnum> ddcOption = new DropDownChoicePanel<>(gridBuilder.getPanel().newChildId(),
         new DropDownChoice<>(DropDownChoicePanel.WICKET_ID, new PropertyModel<>(this, "selectedOption"),
-            Arrays.asList(ExtendedEmployeeDataEnum.values()), new IChoiceRenderer<ExtendedEmployeeDataEnum>()
+            Arrays.asList(ExtendEmployeeDataEnum.values()), new IChoiceRenderer<ExtendEmployeeDataEnum>()
             {
               @Override
-              public Object getDisplayValue(ExtendedEmployeeDataEnum eede)
+              public Object getDisplayValue(ExtendEmployeeDataEnum eede)
               {
                 return I18nHelper.getLocalizedString(eede.getI18nKeyDropDown());
               }
 
               @Override
-              public String getIdValue(ExtendedEmployeeDataEnum eede, int index)
+              public String getIdValue(ExtendEmployeeDataEnum eede, int index)
               {
                 return String.valueOf(index);
               }
@@ -148,7 +148,7 @@ public class EmployeeListEditForm extends AbstractListForm<EmployeeFilter, Emplo
     return selectedYear;
   }
 
-  public ExtendedEmployeeDataEnum getSelectedOption()
+  public ExtendEmployeeDataEnum getSelectedOption()
   {
     return selectedOption;
   }

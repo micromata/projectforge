@@ -9,7 +9,7 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.export.AttrColumnDescription;
 import org.projectforge.framework.persistence.utils.ImportedSheet;
-import org.projectforge.plugins.eed.EmployeeBillingImportDao;
+import org.projectforge.plugins.eed.service.EmployeeBillingImportService;
 import org.projectforge.web.core.importstorage.AbstractImportPage;
 
 public class EmployeeBillingImportPage extends AbstractImportPage<EmployeeBillingImportForm>
@@ -17,7 +17,7 @@ public class EmployeeBillingImportPage extends AbstractImportPage<EmployeeBillin
   private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(EmployeeBillingImportPage.class);
 
   @SpringBean
-  private EmployeeBillingImportDao employeeBillingImportDao;
+  private EmployeeBillingImportService employeeBillingImportService;
 
   public EmployeeBillingImportPage(final PageParameters parameters)
   {
@@ -30,7 +30,7 @@ public class EmployeeBillingImportPage extends AbstractImportPage<EmployeeBillin
 
   List<AttrColumnDescription> getAttrColumnsInSheet()
   {
-    return employeeBillingImportDao.getAttrColumnsInSheet();
+    return employeeBillingImportService.getAttrColumnsInSheet();
   }
 
   @Override
@@ -46,12 +46,11 @@ public class EmployeeBillingImportPage extends AbstractImportPage<EmployeeBillin
     final FileUpload fileUpload = form.fileUploadField.getFileUpload();
     if (fileUpload != null) {
       final Boolean success = doImportWithExcelExceptionHandling(() -> {
-            final InputStream is = fileUpload.getInputStream();
-            final String clientFileName = fileUpload.getClientFileName();
-            setStorage(employeeBillingImportDao.importData(is, clientFileName, dateToSelectAttrRow));
-            return true;
-          }
-      );
+        final InputStream is = fileUpload.getInputStream();
+        final String clientFileName = fileUpload.getClientFileName();
+        setStorage(employeeBillingImportService.importData(is, clientFileName, dateToSelectAttrRow));
+        return true;
+      });
       return Boolean.TRUE.equals(success);
     }
     return false;
@@ -62,7 +61,7 @@ public class EmployeeBillingImportPage extends AbstractImportPage<EmployeeBillin
   {
     checkAccess();
     final ImportedSheet<?> sheet = super.reconcile(sheetName);
-    employeeBillingImportDao.reconcile(getStorage(), sheetName);
+    employeeBillingImportService.reconcile(getStorage(), sheetName);
     return sheet;
   }
 
@@ -71,7 +70,7 @@ public class EmployeeBillingImportPage extends AbstractImportPage<EmployeeBillin
   {
     checkAccess();
     final ImportedSheet<?> sheet = super.commit(sheetName);
-    employeeBillingImportDao.commit(getStorage(), sheetName);
+    employeeBillingImportService.commit(getStorage(), sheetName);
     return sheet;
   }
 

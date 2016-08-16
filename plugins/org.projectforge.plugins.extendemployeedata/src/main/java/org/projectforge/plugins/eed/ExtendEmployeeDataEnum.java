@@ -10,7 +10,7 @@ import org.projectforge.export.AttrColumnDescription;
 /**
  * If you change enum entries here, you have to change EmployeeBillingExcelRow accordingly.
  */
-public enum ExtendedEmployeeDataEnum
+public enum ExtendEmployeeDataEnum
 {
   /*
   MOBILECONTRACT("plugins.eed.listcare.optionDropDown.costmobilecontract",
@@ -43,7 +43,7 @@ public enum ExtendedEmployeeDataEnum
 
   private final List<AttrColumnDescription> attrColumnDescriptions;
 
-  ExtendedEmployeeDataEnum(String i18nKeyDropDown, List<AttrColumnDescription> attrColumnDescriptions)
+  ExtendEmployeeDataEnum(String i18nKeyDropDown, List<AttrColumnDescription> attrColumnDescriptions)
   {
     this.i18nKeyDropDown = i18nKeyDropDown;
     this.attrColumnDescriptions = attrColumnDescriptions;
@@ -62,7 +62,7 @@ public enum ExtendedEmployeeDataEnum
   public static List<AttrColumnDescription> getAllAttrColumnDescriptions()
   {
     List<AttrColumnDescription> resultList = new ArrayList<>();
-    for (ExtendedEmployeeDataEnum eede : values()) {
+    for (ExtendEmployeeDataEnum eede : values()) {
       resultList.addAll(eede.getAttrColumnDescriptions());
     }
     return resultList;

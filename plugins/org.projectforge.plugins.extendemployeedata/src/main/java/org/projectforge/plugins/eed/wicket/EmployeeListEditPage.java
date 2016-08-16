@@ -20,7 +20,7 @@ import org.projectforge.business.user.I18nHelper;
 import org.projectforge.export.AttrColumnDescription;
 import org.projectforge.export.DOListExcelExporter;
 import org.projectforge.export.DOWithAttrListExcelExporter;
-import org.projectforge.plugins.eed.ExtendedEmployeeDataEnum;
+import org.projectforge.plugins.eed.ExtendEmployeeDataEnum;
 import org.projectforge.web.core.MenuBarPanel;
 import org.projectforge.web.wicket.AbstractListPage;
 import org.projectforge.web.wicket.CellItemListener;
@@ -80,7 +80,7 @@ public class EmployeeListEditPage extends AbstractListPage<EmployeeListEditForm,
     return columns;
   }
 
-  private void createAttrColumns(ExtendedEmployeeDataEnum eede, List<IColumn<EmployeeDO, String>> columns,
+  private void createAttrColumns(ExtendEmployeeDataEnum eede, List<IColumn<EmployeeDO, String>> columns,
       boolean sortable,
       CellItemListener<EmployeeDO> cellItemListener)
   {

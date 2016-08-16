@@ -10,7 +10,7 @@ import org.apache.wicket.markup.html.form.upload.FileUploadField;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.user.I18nHelper;
-import org.projectforge.plugins.eed.EEDHelper;
+import org.projectforge.plugins.eed.service.EEDHelper;
 import org.projectforge.web.core.importstorage.AbstractImportForm;
 import org.projectforge.web.core.importstorage.ImportFilter;
 import org.projectforge.web.wicket.components.SingleButtonPanel;
