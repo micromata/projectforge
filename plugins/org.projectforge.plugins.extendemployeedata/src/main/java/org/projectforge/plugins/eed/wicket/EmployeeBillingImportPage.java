@@ -7,6 +7,8 @@ import java.util.List;
 import org.apache.wicket.markup.html.form.upload.FileUpload;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
+import org.projectforge.business.user.UserRightId;
+import org.projectforge.business.user.UserRightValue;
 import org.projectforge.export.AttrColumnDescription;
 import org.projectforge.framework.persistence.utils.ImportedSheet;
 import org.projectforge.plugins.eed.service.EmployeeBillingImportService;
@@ -95,13 +97,10 @@ public class EmployeeBillingImportPage extends AbstractImportPage<EmployeeBillin
     super.deselectAll(sheetName);
   }
 
-  //  protected void showBusinessAssessment(final String sheetName)
-
   private void checkAccess()
   {
-    // TODO CT
-    //    accessChecker.checkLoggedInUserRight(UserRightId.FIBU_DATEV_IMPORT, UserRightValue.TRUE);
-    //    accessChecker.checkRestrictedOrDemoUser();
+    accessChecker.checkLoggedInUserRight(UserRightId.FIBU_EMPLOYEE, UserRightValue.READWRITE);
+    accessChecker.checkRestrictedOrDemoUser();
   }
 
   @Override
