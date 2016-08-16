@@ -359,14 +359,9 @@ public class HRPlanningEntryDO extends DefaultBaseDO implements ShortDisplayName
       HRPlanningEntryDO other = (HRPlanningEntryDO) o;
       if (this.getId() != null || other.getId() != null) {
         return ObjectUtils.equals(this.getId(), other.getId());
+      } else {
+        return false;
       }
-      if (ObjectUtils.equals(this.getPlanningId(), other.getPlanningId()) == false)
-        return false;
-      if (ObjectUtils.equals(this.getProjektId(), other.getProjektId()) == false)
-        return false;
-      if (ObjectUtils.equals(this.getStatus(), other.getStatus()) == false)
-        return false;
-      return true;
     }
     return false;
   }

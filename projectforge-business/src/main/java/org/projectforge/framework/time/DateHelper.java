@@ -42,6 +42,7 @@ import org.joda.time.DateTime;
 import org.joda.time.DateTimeConstants;
 import org.projectforge.common.StringHelper;
 import org.projectforge.framework.configuration.ConfigXml;
+import org.projectforge.framework.configuration.Configuration;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.utils.LabelValueBean;
 
@@ -614,18 +615,6 @@ public class DateHelper implements Serializable
     return d1.getYear() == d2.getYear() && d1.getDayOfYear() == d2.getDayOfYear();
   }
 
-  /**
-   * @param d1
-   * @param d2
-   * @return True if the dates represent the same month (year, month) independent of the days, hours, minutes etc.
-   */
-  public static boolean isSameMonth(final Date d1, final Date d2)
-  {
-    final DateTime dt1 = new DateTime(d1);
-    final DateTime dt2 = new DateTime(d2);
-    return dt1.getYear() == dt2.getYear() && dt1.getMonthOfYear() == dt2.getMonthOfYear();
-  }
-
   public static boolean dateOfYearBetween(final int month, final int dayOfMonth, final int fromMonth,
       final int fromDayOfMonth,
       final int toMonth, final int toDayOfMonth)
@@ -695,4 +684,5 @@ public class DateHelper implements Serializable
     final Instant instant = ldt.toInstant(ZoneOffset.UTC);
     return Date.from(instant);
   }
+
 }

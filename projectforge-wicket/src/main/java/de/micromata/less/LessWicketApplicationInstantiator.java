@@ -74,16 +74,19 @@ public class LessWicketApplicationInstantiator implements Serializable
 
   private File cssTargetFile;
 
+  private boolean compileCss = true;
+
   /**
    * 
    * @param application
    * @param folder
    * @param lessPath
    * @param cssPath
+   * @param compileCss
    */
   public LessWicketApplicationInstantiator(final WicketApplication application, final String folder,
       final String lessPath,
-      final String cssPath, final String baseDir)
+      final String cssPath, final String baseDir, boolean compileCss)
   {
     this.application = application;
     this.baseDir = baseDir;
@@ -91,6 +94,7 @@ public class LessWicketApplicationInstantiator implements Serializable
     this.lessPath = lessPath;
     this.cssPath = cssPath;
     this.relativeCssPath = folder + "/" + cssPath;
+    this.compileCss = compileCss;
     instance = this;
   }
 
@@ -135,19 +139,20 @@ public class LessWicketApplicationInstantiator implements Serializable
   public void instantiate() throws Exception
   {
     instantiateFiles();
-    final LessSource mainLessSource = compile();
+    if (compileCss) {
+      final LessSource mainLessSource = compile();
 
-    if (WebConfiguration.isDevelopmentMode() == true) {
-      // only add this fancy resource watcher in dev mode
-      final IModificationWatcher resourceWatcher = application.getResourceSettings().getResourceWatcher(true);
-      // add watchers
-      addWatcher(resourceWatcher, mainLessSource);
-      for (final LessSource importedSource : mainLessSource.getImports().values()) {
-        addWatcher(resourceWatcher, importedSource);
+      if (WebConfiguration.isDevelopmentMode() == true) {
+        // only add this fancy resource watcher in dev mode
+        final IModificationWatcher resourceWatcher = application.getResourceSettings().getResourceWatcher(true);
+        // add watchers
+        addWatcher(resourceWatcher, mainLessSource);
+        for (final LessSource importedSource : mainLessSource.getImports().values()) {
+          addWatcher(resourceWatcher, importedSource);
+        }
+
       }
-
     }
-
     // mount compiled css file
     reference = new LessResourceReference(relativeCssPath, cssTargetFile);
     application.mountResource(encodePathWithCachingStrategy(relativeCssPath), reference);

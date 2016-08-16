@@ -298,11 +298,12 @@ public class MenuItemRegistry implements Serializable
     final MenuItemDef common = reg.register(null, MenuItemDefId.COMMON, 10);
     final MenuItemDef pm = reg.register(null, MenuItemDefId.PROJECT_MANAGEMENT, 20);
     final ProjectForgeGroup[] fibuGroups = new ProjectForgeGroup[] { FINANCE_GROUP, ORGA_TEAM, CONTROLLING_GROUP };
-    final MenuItemDef fibu = reg.register(null, MenuItemDefId.FIBU, 30, fibuGroups);
-    final MenuItemDef cost = reg.register(null, MenuItemDefId.COST, 40, FINANCE_GROUP, ORGA_TEAM, CONTROLLING_GROUP);
-    final MenuItemDef reporting = reg.register(null, MenuItemDefId.REPORTING, 50, FINANCE_GROUP, CONTROLLING_GROUP);
-    final MenuItemDef orga = reg.register(null, MenuItemDefId.ORGA, 60, FINANCE_GROUP, CONTROLLING_GROUP, ORGA_TEAM);
-    final MenuItemDef admin = reg.register(null, MenuItemDefId.ADMINISTRATION, 70).setVisibleForRestrictedUsers(true);
+    final MenuItemDef hr = reg.register(null, MenuItemDefId.HR, 30, fibuGroups);
+    final MenuItemDef fibu = reg.register(null, MenuItemDefId.FIBU, 40, fibuGroups);
+    final MenuItemDef cost = reg.register(null, MenuItemDefId.COST, 50, FINANCE_GROUP, ORGA_TEAM, CONTROLLING_GROUP);
+    final MenuItemDef reporting = reg.register(null, MenuItemDefId.REPORTING, 60, FINANCE_GROUP, CONTROLLING_GROUP);
+    final MenuItemDef orga = reg.register(null, MenuItemDefId.ORGA, 70, FINANCE_GROUP, CONTROLLING_GROUP, ORGA_TEAM);
+    final MenuItemDef admin = reg.register(null, MenuItemDefId.ADMINISTRATION, 80).setVisibleForRestrictedUsers(true);
     final MenuItemDef misc = reg.register(null, MenuItemDefId.MISC, 100);
 
     // Menu entries
@@ -361,11 +362,12 @@ public class MenuItemRegistry implements Serializable
         }
       };
       reg.register(projects);
-      reg.register(fibu, MenuItemDefId.EMPLOYEE_LIST, 60, EmployeeListPage.class, EmployeeDao.USER_RIGHT_ID,
+
+      // TODO add list editing page here
+      reg.register(hr, MenuItemDefId.EMPLOYEE_LIST, 10, EmployeeListPage.class, EmployeeDao.USER_RIGHT_ID,
           READONLY_READWRITE);
-      reg.register(fibu, MenuItemDefId.EMPLOYEE_SALARY_LIST, 70, EmployeeSalaryListPage.class,
-          EmployeeSalaryDao.USER_RIGHT_ID,
-          READONLY_READWRITE);
+      reg.register(hr, MenuItemDefId.EMPLOYEE_SALARY_LIST, 11, EmployeeSalaryListPage.class,
+          EmployeeSalaryDao.USER_RIGHT_ID, READONLY_READWRITE);
     }
     final MenuItemDef orderBook = new MenuItemDef(fibu, MenuItemDefId.ORDER_LIST.getId(), 80,
         MenuItemDefId.ORDER_LIST.getI18nKey(),

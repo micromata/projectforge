@@ -36,7 +36,6 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
-import org.projectforge.business.user.UserCache;
 import org.projectforge.business.user.UserFormatter;
 import org.projectforge.excel.PropertyMapping;
 import org.projectforge.export.DOListExcelExporter;
@@ -68,9 +67,6 @@ public class SkillRatingListPage extends AbstractListPage<SkillRatingListForm, S
 
   @SpringBean
   private UserFormatter userFormatter;
-
-  @SpringBean
-  UserCache userCache;
 
   public static final String PARAM_SKILL_ID = "skillId";
 
@@ -125,7 +121,8 @@ public class SkillRatingListPage extends AbstractListPage<SkillRatingListForm, S
         getString("modified"),
         getSortable("lastUpdate", sortable), "lastUpdate", cellItemListener);
 
-    final CellItemListenerPropertyColumn<SkillRatingDO> user = new UserPropertyColumn<SkillRatingDO>(userCache,
+    final CellItemListenerPropertyColumn<SkillRatingDO> user = new UserPropertyColumn<SkillRatingDO>(
+        getUserGroupCache(),
         SkillRatingDO.class, getSortable(
             "userId", sortable),
         "user", cellItemListener).withUserFormatter(userFormatter);
@@ -215,7 +212,7 @@ public class SkillRatingListPage extends AbstractListPage<SkillRatingListForm, S
    * @see org.projectforge.web.wicket.AbstractListPage#getBaseDao()
    */
   @Override
-  protected SkillRatingDao getBaseDao()
+  public SkillRatingDao getBaseDao()
   {
     return skillRatingDao;
   }

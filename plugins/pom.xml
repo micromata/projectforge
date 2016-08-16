@@ -4,7 +4,7 @@
   <parent>
     <groupId>org.projectforge</groupId>
     <artifactId>projectforge-parent</artifactId>
-    <version>6.1.1</version>
+    <version>6.2.0</version>
   </parent>
   <artifactId>org.projectforge.plugins</artifactId>
   <packaging>pom</packaging>
@@ -19,6 +19,7 @@
     <module>org.projectforge.plugins.poll</module>
     <module>org.projectforge.plugins.crm</module>
     <module>org.projectforge.plugins.ihkexport</module>
+    <module>org.projectforge.plugins.extendemployeedata</module>
   </modules>
   <build>
     <plugins>

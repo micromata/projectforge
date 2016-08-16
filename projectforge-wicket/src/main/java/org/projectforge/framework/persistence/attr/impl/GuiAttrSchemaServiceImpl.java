@@ -31,6 +31,8 @@ import org.projectforge.web.common.timeattr.AttrWicketComponentFactory;
 import org.projectforge.web.common.timeattr.AttributePanel;
 import org.projectforge.web.common.timeattr.TimedAttributePanel;
 import org.projectforge.web.wicket.AbstractEditPage;
+import org.projectforge.web.wicket.bootstrap.GridBuilder;
+import org.projectforge.web.wicket.components.TabPanel;
 import org.projectforge.web.wicket.flowlayout.ComponentWrapperPanel;
 import org.projectforge.web.wicket.flowlayout.DivPanel;
 
@@ -73,7 +75,7 @@ public class GuiAttrSchemaServiceImpl extends AttrSchemaServiceSpringBeanImpl im
   public <PK extends Serializable, T extends TimeableAttrRow<PK>, U extends EntityWithConfigurableAttr & EntityWithTimeableAttr<PK, T> & EntityWithAttributes>
   void createAttrPanels(final DivPanel divPanel, final U entity, final AbstractEditPage<?, ?, ?> parentPage, final Function<AttrGroup, T> addNewEntryFunction)
   {
-    divPanel.getDiv().add(AttributeModifier.append("class", "mm_columnContainer"));
+    addHtmlClass(divPanel);
 
     final AttrSchema attrSchema = getAttrSchema(entity.getAttrSchemaName());
 
@@ -82,20 +84,54 @@ public class GuiAttrSchemaServiceImpl extends AttrSchemaServiceSpringBeanImpl im
     }
 
     for (AttrGroup group : attrSchema.getGroups()) {
-      switch (group.getType()) {
-        case PERIOD:
-        case INSTANT_OF_TIME:
-          divPanel.add(new TimedAttributePanel<>(divPanel.newChildId(), group, entity, parentPage, addNewEntryFunction));
-          break;
+      createAttrPanel(divPanel, entity, parentPage, addNewEntryFunction, group);
+    }
+  }
 
-        case NOT_TIMEABLE:
-          divPanel.add(new AttributePanel(divPanel.newChildId(), group, entity));
-          break;
+  @Override
+  public <PK extends Serializable, T extends TimeableAttrRow<PK>, U extends EntityWithConfigurableAttr & EntityWithTimeableAttr<PK, T> & EntityWithAttributes>
+  void createAttrPanels(final TabPanel tabPanel, final U entity, final AbstractEditPage<?, ?, ?> parentPage, final Function<AttrGroup, T> addNewEntryFunction)
+  {
+    final AttrSchema attrSchema = getAttrSchema(entity.getAttrSchemaName());
 
-        default:
-          log.error("The Type " + group.getType() + " is not supported.");
-          break;
+    if (attrSchema == null) {
+      return;
+    }
+
+    for (AttrGroup group : attrSchema.getGroups()) {
+      final GridBuilder tabContainer = tabPanel.getOrCreateTab(group.getI18nKeySubmenu());
+      final DivPanel divPanel = tabContainer.getPanel();
+
+      if (!divPanel.hasChilds()) {
+        // this panel is fresh, we have to add our css class
+        addHtmlClass(divPanel);
       }
+      createAttrPanel(divPanel, entity, parentPage, addNewEntryFunction, group);
+    }
+  }
+
+  private void addHtmlClass(DivPanel divPanel)
+  {
+    divPanel.getDiv().add(AttributeModifier.append("class", "mm_columnContainer"));
+  }
+
+  private <PK extends Serializable, T extends TimeableAttrRow<PK>, U extends EntityWithConfigurableAttr & EntityWithTimeableAttr<PK, T> & EntityWithAttributes>
+  void createAttrPanel(final DivPanel divPanel, final U entity, final AbstractEditPage<?, ?, ?> parentPage, final Function<AttrGroup, T> addNewEntryFunction,
+      final AttrGroup group)
+  {
+    switch (group.getType()) {
+      case PERIOD:
+      case INSTANT_OF_TIME:
+        divPanel.add(new TimedAttributePanel<>(divPanel.newChildId(), group, entity, parentPage, addNewEntryFunction));
+        break;
+
+      case NOT_TIMEABLE:
+        divPanel.add(new AttributePanel(divPanel.newChildId(), group, entity));
+        break;
+
+      default:
+        log.error("The Type " + group.getType() + " is not supported.");
+        break;
     }
   }
 }

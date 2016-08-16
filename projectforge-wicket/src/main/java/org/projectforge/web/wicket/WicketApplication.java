@@ -37,6 +37,7 @@ import org.apache.wicket.RuntimeConfigurationType;
 import org.apache.wicket.Session;
 import org.apache.wicket.core.request.handler.PageProvider;
 import org.apache.wicket.core.request.handler.RenderPageRequestHandler;
+import org.apache.wicket.core.request.mapper.StalePageException;
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.pageStore.IDataStore;
 import org.apache.wicket.pageStore.IPageStore;
@@ -58,8 +59,11 @@ import org.projectforge.business.ldap.LdapSlaveLoginHandler;
 import org.projectforge.business.login.Login;
 import org.projectforge.business.login.LoginDefaultHandler;
 import org.projectforge.business.login.LoginHandler;
+import org.projectforge.business.multitenancy.TenantRegistry;
+import org.projectforge.business.multitenancy.TenantRegistryMap;
+import org.projectforge.business.multitenancy.TenantsCache;
 import org.projectforge.business.user.I18nHelper;
-import org.projectforge.business.user.UserCache;
+import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.business.user.filter.UserFilter;
 import org.projectforge.framework.persistence.database.MyDatabaseUpdateService;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
@@ -92,27 +96,43 @@ import de.micromata.wicket.request.mapper.PageParameterAwareMountedMapper;
 public class WicketApplication extends WebApplication implements WicketApplicationInterface/* , SmartLifecycle */
 {
   public static final String RESOURCE_BUNDLE_NAME = "I18nResources";
+
   private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(WicketApplication.class);
+
   private static final Map<Class<? extends Page>, String> mountedPages = new HashMap<>();
+
   public static Class<? extends WebPage> DEFAULT_PAGE = CalendarPage.class;
+
   private static Boolean stripWicketTags;
+
   private static String alertMessage;
+
   private static Boolean developmentMode;
+
   private static Boolean testsystemMode;
+
   private static String testsystemColor;
+
   @Autowired
   private ApplicationContext applicationContext;
+
   @Autowired
   private MyDatabaseUpdateService myDatabaseUpdater;
+
   @Autowired
   private PluginAdminService pluginAdminService;
+
   @Autowired
   private LoginService loginService;
+
   @Autowired
   private ConfigurationService configurationService;
+
   private LoginHandler loginHandler;
+
   @Value("${projectforge.base.dir}")
   private String baseDir;
+
   private ProjectForgeApp projectForgeApp;
 
   /**
@@ -273,6 +293,7 @@ public class WicketApplication extends WebApplication implements WicketApplicati
     super.init();
     getComponentInstantiationListeners().add(
         new SpringComponentInjector(this, applicationContext));
+    applicationContext.getBean(TenantsCache.class);
     projectForgeApp = ProjectForgeApp.init(applicationContext, isDevelopmentSystem());
     WebRegistry.getInstance().init();
     pluginAdminService.initializeActivePlugins();
@@ -296,6 +317,13 @@ public class WicketApplication extends WebApplication implements WicketApplicati
         if (ex instanceof PageExpiredException) {
           return super.onException(cycle, ex);
         }
+
+        // log StalePageException but do not redirect to error page
+        if (ex instanceof StalePageException) {
+          log.warn(ex);
+          return super.onException(cycle, ex);
+        }
+
         final Throwable rootCause = ExceptionHelper.getRootCause(ex);
         // log.error(rootCause.getMessage(), ex);
         // if (rootCause instanceof ProjectForgeException == false) {
@@ -375,7 +403,7 @@ public class WicketApplication extends WebApplication implements WicketApplicati
     try {
       final UserContext internalSystemAdminUserContext = UserContext
           .__internalCreateWithSpecialUser(MyDatabaseUpdateService.__internalGetSystemAdminPseudoUser(),
-              applicationContext.getBean(UserCache.class));
+              getUserGroupCache());
       ThreadLocalUserContext.setUserContext(internalSystemAdminUserContext); // Logon admin user.
       if (myDatabaseUpdater.getSystemUpdater().isUpdated() == false) {
         // Force redirection to update page:
@@ -399,7 +427,7 @@ public class WicketApplication extends WebApplication implements WicketApplicati
     // initialize styles compiler
     try {
       final LessWicketApplicationInstantiator lessInstantiator = new LessWicketApplicationInstantiator(this, "styles",
-          "projectforge.less", "projectforge.css", this.baseDir);
+          "projectforge.less", "projectforge.css", this.baseDir, configurationService.getCompileCss());
       lessInstantiator.instantiate();
     } catch (final Exception e) {
       log.error("Unable to instantiate wicket less compiler", e);
@@ -413,6 +441,16 @@ public class WicketApplication extends WebApplication implements WicketApplicati
 
     getPageSettings().setRecreateMountedPagesAfterExpiry(false);
     initPageStore();
+  }
+
+  private TenantRegistry getTenantRegistry()
+  {
+    return TenantRegistryMap.getInstance().getTenantRegistry();
+  }
+
+  private UserGroupCache getUserGroupCache()
+  {
+    return getTenantRegistry().getUserGroupCache();
   }
 
   /**

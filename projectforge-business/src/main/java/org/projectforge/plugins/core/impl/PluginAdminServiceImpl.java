@@ -63,7 +63,6 @@ public class PluginAdminServiceImpl implements PluginAdminService
   {
 
     Set<String> activated = getActivePlugins();
-
     ServiceLoader<ProjectforgePluginService> ls = ServiceLoader.load(ProjectforgePluginService.class);
 
     List<AvailablePlugin> ret = new ArrayList<>();

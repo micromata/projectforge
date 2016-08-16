@@ -3,12 +3,12 @@
 	<modelVersion>4.0.0</modelVersion>
 	<artifactId>projectforge-application</artifactId>
 	<packaging>jar</packaging>
-	<version>6.1.1</version>
+
 
 	<parent>
-		<groupId>org.springframework.boot</groupId>
-		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>1.3.5.RELEASE</version>
+		<groupId>org.projectforge</groupId>
+		<artifactId>projectforge-parent</artifactId>
+		<version>6.2.0</version>
 	</parent>
 	<licenses>
 		<license>
@@ -19,29 +19,10 @@
 		</license>
 	</licenses>
 	<properties>
-		<projectforge.version>${project.version}</projectforge.version>
-		<hibernate.version>5.0.5.Final</hibernate.version>
-		<mgc.version>2.3.1</mgc.version>
-		<postgresql.version>9.4-1206-jdbc42</postgresql.version>
-		<hsqldb.version>1.8.0.10</hsqldb.version>
-		<java.version>1.8</java.version>
 		<start-class>org.projectforge.start.ProjectForgeApplication</start-class>
 	</properties>
 	<dependencies>
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-web</artifactId>
-			<exclusions>
-				<exclusion>
-					<groupId>org.springframework.boot</groupId>
-					<artifactId>spring-boot-starter-logging</artifactId>
-				</exclusion>
-			</exclusions>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-log4j</artifactId>
-		</dependency>
+		<!-- PF -->
 		<dependency>
 			<groupId>org.projectforge</groupId>
 			<artifactId>projectforge-wicket</artifactId>
@@ -51,26 +32,6 @@
 			<groupId>org.projectforge</groupId>
 			<artifactId>projectforge-jax-rs</artifactId>
 			<version>${projectforge.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>org.hibernate</groupId>
-			<artifactId>hibernate-entitymanager</artifactId>
-			<version>${hibernate.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>de.micromata.mgc</groupId>
-			<artifactId>de.micromata.mgc.common</artifactId>
-			<version>${mgc.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>org.postgresql</groupId>
-			<artifactId>postgresql</artifactId>
-			<version>${postgresql.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>hsqldb</groupId>
-			<artifactId>hsqldb</artifactId>
-			<version>${hsqldb.version}</version>
 		</dependency>
 	</dependencies>
 	<build>
@@ -88,42 +49,9 @@
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
 				<configuration>
-					<mainClass>${start-class}</mainClass>
-					<layout>ZIP</layout>
+					<layout>ZIP</layout> <!-- to use PropertiesLaunchar -->
 				</configuration>
 			</plugin>
 		</plugins>
 	</build>
-	<repositories>
-		<repository>
-			<id>de.micromata.nexus.public</id>
-			<name>Micromata Nexus Public</name>
-			<url>https://repo.micromata.de/nexus/content/groups/public</url>
-		</repository>
-		<repository>
-			<id>de.micromata.nexus.snapshots</id>
-			<name>Micromata Nexus Snapshots</name>
-			<url>https://repo.micromata.de/nexus/content/groups/public-snapshots</url>
-		</repository>
-		<repository>
-			<id>de.micromata.labs.projectforge</id>
-			<name>Micromata Labs PF</name>
-			<url>https://labs.micromata.de/nexus/content/repositories/ProjectForge/</url>
-		</repository>
-		<repository>
-			<id>de.micromata.labs.projectforge.snapshot</id>
-			<name>Micromata Labs PF Snapshot</name>
-			<url>https://labs.micromata.de/nexus/content/repositories/ProjectForge-snapshot/</url>
-		</repository>
-		<repository>
-			<id>MGC</id>
-			<name>Micromata Labs MGC</name>
-			<url>https://labs.micromata.de/nexus/content/repositories/MGC/</url>
-		</repository>
-		<repository>
-			<id>MGC-snapshot</id>
-			<name>Micromata Labs MGC Snapshot</name>
-			<url>https://labs.micromata.de/nexus/content/repositories/MGC-snapshot/</url>
-		</repository>
-	</repositories>
 </project>

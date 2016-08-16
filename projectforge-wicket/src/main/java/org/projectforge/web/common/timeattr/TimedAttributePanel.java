@@ -5,6 +5,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Predicate;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.MarkupContainer;
@@ -37,9 +38,11 @@ import org.projectforge.web.wicket.flowlayout.DivPanel;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
 
 import de.micromata.genome.db.jpa.tabattr.api.AttrGroup;
+import de.micromata.genome.db.jpa.tabattr.api.AttrGroup.DayMonthGranularity;
 import de.micromata.genome.db.jpa.tabattr.api.EntityWithTimeableAttr;
 import de.micromata.genome.db.jpa.tabattr.api.TimeableAttrRow;
 import de.micromata.genome.db.jpa.tabattr.api.TimeableService;
+import de.micromata.genome.util.types.DateUtils;
 
 public class TimedAttributePanel<PK extends Serializable, T extends TimeableAttrRow<PK>> extends BaseAttributePanel
 {
@@ -64,7 +67,8 @@ public class TimedAttributePanel<PK extends Serializable, T extends TimeableAttr
   private final ModalQuestionDialog deleteDialog;
   private final DropDownChoice<T> dateDropDown;
 
-  public TimedAttributePanel(final String id, final AttrGroup attrGroup, final EntityWithTimeableAttr<PK, T> entity, final AbstractEditPage<?, ?, ?> parentPage,
+  public TimedAttributePanel(final String id, final AttrGroup attrGroup, final EntityWithTimeableAttr<PK, T> entity,
+      final AbstractEditPage<?, ?, ?> parentPage,
       final Function<AttrGroup, T> addNewEntryFunction)
   {
     super(id, attrGroup);
@@ -159,8 +163,7 @@ public class TimedAttributePanel<PK extends Serializable, T extends TimeableAttr
           {
             return String.valueOf(index);
           }
-        }
-    );
+        });
 
     dropDown.add(new AjaxFormComponentUpdatingBehavior("change")
     {
@@ -275,7 +278,8 @@ public class TimedAttributePanel<PK extends Serializable, T extends TimeableAttr
     final String startTimeLabel = getString(attrGroup.getI18nKeyStartTime());
     final FieldsetPanel dateFs = gridBuilder.newFieldset(startTimeLabel);
     final PropertyModel<Date> dateModel = new PropertyModel<>(attrRow, "startTime");
-    final DatePanel dp = new DatePanel(dateFs.newChildId(), dateModel, DatePanelSettings.get().withTargetType(java.sql.Date.class));
+    final DatePanel dp = new DatePanel(dateFs.newChildId(), dateModel,
+        DatePanelSettings.get().withTargetType(java.sql.Date.class));
     dp.setRequired(true);
     dp.add(this::validateDate);
     dateFs.add(dp);
@@ -289,19 +293,39 @@ public class TimedAttributePanel<PK extends Serializable, T extends TimeableAttr
     final Date dateToValidate = iValidatable.getValue();
     final T selectedAttrRow = selectedAttrRowModel.getObject();
 
+    DayMonthGranularity gran = attrGroup.getDayMonthGranularity();
+    if (gran == null) {
+      gran = DayMonthGranularity.DAY;
+    }
+
+    Predicate<T> predicate;
+    String errorKey;
+
+    switch (gran) {
+      case MONTH:
+        predicate = row -> DateUtils.isSameMonth(row.getStartTime(), dateToValidate);
+        errorKey = "attr.starttime.alreadyexists.month";
+        break;
+
+      default:
+        predicate = row -> DateHelper.isSameDay(row.getStartTime(), dateToValidate);
+        errorKey = "attr.starttime.alreadyexists.day";
+    }
+
     final boolean thereIsAlreadyAnEntryWithTheSameDate = getTimeableAttrRowsOfThisGroup()
         .stream()
         // remove the currently selected entry from the stream, otherwise this will always be true if you don't change the date
         .filter(row -> !row.equals(selectedAttrRow))
-        .anyMatch(row -> DateHelper.isSameDay(row.getStartTime(), dateToValidate));
+        .anyMatch(predicate);
 
     if (thereIsAlreadyAnEntryWithTheSameDate) {
-      iValidatable.error(new ValidationError().addKey("attr.starttime.alreadyexists"));
+      iValidatable.error(new ValidationError().addKey(errorKey));
     }
   }
 
   /**
-   * Visits all children of type ComponentWrapperPanel, get their inner FormComponent and add a change listener which sets the dirty flag.
+   * Visits all children of type ComponentWrapperPanel, get their inner FormComponent and add a change listener which
+   * sets the dirty flag.
    *
    * @param markupContainer The MarkupContainer whose children should be visited.
    */

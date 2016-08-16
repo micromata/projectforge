@@ -47,7 +47,9 @@ import org.projectforge.business.fibu.MonthlyEmployeeReportDao;
 import org.projectforge.business.fibu.MonthlyEmployeeReportEntry;
 import org.projectforge.business.fibu.kost.Kost1DO;
 import org.projectforge.business.fibu.kost.Kost2DO;
-import org.projectforge.business.user.UserCache;
+import org.projectforge.business.multitenancy.TenantRegistry;
+import org.projectforge.business.multitenancy.TenantRegistryMap;
+import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.excel.CellFormat;
 import org.projectforge.excel.ContentProvider;
 import org.projectforge.excel.ExportCell;
@@ -80,9 +82,6 @@ public class EmployeeSalaryExportDao
   public static final int KONTO = 6000;
 
   public static final int GEGENKONTO = 3791;
-
-  @Autowired
-  UserCache userCache;
 
   private class MyContentProvider extends MyXlsContentProvider
   {
@@ -274,7 +273,7 @@ public class EmployeeSalaryExportDao
 
     for (final EmployeeSalaryDO salary : list) {
       final PropertyMapping mapping = new PropertyMapping();
-      final PFUserDO user = userCache.getUser(salary.getEmployee().getUserId());
+      final PFUserDO user = getUserGroupCache().getUser(salary.getEmployee().getUserId());
       Validate.isTrue(year == salary.getYear());
       Validate.isTrue(month == salary.getMonth());
       final MonthlyEmployeeReport report = monthlyEmployeeReportDao.getReport(year, month, user);
@@ -326,7 +325,7 @@ public class EmployeeSalaryExportDao
       addEmployeeRow(employeeSheet, salary.getEmployee(), numberOfWorkingDays, netDuration);
     }
     for (final EmployeeDO employee : missedEmployees) {
-      final PFUserDO user = userCache.getUser(employee.getUserId());
+      final PFUserDO user = getUserGroupCache().getUser(employee.getUserId());
       final PropertyMapping mapping = new PropertyMapping();
       mapping.add(ExcelColumn.MITARBEITER, user.getFullname());
       mapping.add(ExcelColumn.SUMME, "***");
@@ -351,7 +350,7 @@ public class EmployeeSalaryExportDao
   private void addEmployeeRow(final ExportSheet sheet, final EmployeeDO employee, final BigDecimal numberOfWorkingDays,
       final BigDecimal totalDuration)
   {
-    final PFUserDO user = userCache.getUser(employee.getUserId());
+    final PFUserDO user = getUserGroupCache().getUser(employee.getUserId());
     final ExportRow row = sheet.addRow();
     row.addCell(0, user.getFullname());
     // Wochenstunden
@@ -372,4 +371,13 @@ public class EmployeeSalaryExportDao
     row.addCell(4, differenz, "STUNDEN");
   }
 
+  public TenantRegistry getTenantRegistry()
+  {
+    return TenantRegistryMap.getInstance().getTenantRegistry();
+  }
+
+  public UserGroupCache getUserGroupCache()
+  {
+    return getTenantRegistry().getUserGroupCache();
+  }
 }

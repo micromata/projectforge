@@ -326,10 +326,13 @@ public class HRPlanningEditForm extends AbstractEditForm<HRPlanningDO, HRPlannin
     int idx = -1;
     dependentEntryFormComponents.clear();
     dependentEntryFormComponentsArray = null;
+    int uiId = -1;
     for (final HRPlanningEntryDO entry : data.getEntries()) {
       ++idx;
+      ++uiId;
       if (entry.isDeleted() != showDeletedOnly) {
         // Don't show deleted/undeleted entries.
+        --uiId;
         continue;
       }
       final ToggleContainerPanel positionsPanel = new ToggleContainerPanel(entriesRepeater.newChildId());
@@ -359,7 +362,7 @@ public class HRPlanningEditForm extends AbstractEditForm<HRPlanningDO, HRPlannin
         fs.add(statusChoice);
         dependentEntryFormComponents.add(statusChoice);
         final NewProjektSelectPanel projektSelectPanel = new NewProjektSelectPanel(fs.newChildId(),
-            new PropertyModel<ProjektDO>(entry, "projekt"), parentPage, "projektId:" + idx);
+            new PropertyModel<ProjektDO>(entry, "projekt"), parentPage, "projektId:" + idx + ":" + uiId);
         projektSelectPanel.setRequired(false).setEnabled(!entry.isDeleted());
         fs.add(projektSelectPanel);
         projektSelectPanel.init();

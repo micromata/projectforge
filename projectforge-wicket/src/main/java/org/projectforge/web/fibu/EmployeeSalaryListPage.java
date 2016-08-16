@@ -245,7 +245,7 @@ public class EmployeeSalaryListPage
   }
 
   @Override
-  protected EmployeeSalaryDao getBaseDao()
+  public EmployeeSalaryDao getBaseDao()
   {
     return employeeSalaryDao;
   }

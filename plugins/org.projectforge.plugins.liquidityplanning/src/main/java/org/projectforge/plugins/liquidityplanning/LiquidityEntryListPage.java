@@ -301,7 +301,7 @@ public class LiquidityEntryListPage
   }
 
   @Override
-  protected LiquidityEntryDao getBaseDao()
+  public LiquidityEntryDao getBaseDao()
   {
     return liquidityEntryDao;
   }

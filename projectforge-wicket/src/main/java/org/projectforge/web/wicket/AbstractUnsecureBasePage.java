@@ -26,6 +26,7 @@ package org.projectforge.web.wicket;
 import java.text.MessageFormat;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Stream;
 
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.wicket.Session;
@@ -48,6 +49,9 @@ import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.apache.wicket.util.template.PackageTextTemplate;
 import org.projectforge.AppVersion;
 import org.projectforge.business.configuration.ConfigurationService;
+import org.projectforge.business.multitenancy.TenantRegistry;
+import org.projectforge.business.multitenancy.TenantRegistryMap;
+import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.web.WebConfiguration;
@@ -138,12 +142,8 @@ public abstract class AbstractUnsecureBasePage extends WebPage
 
     final PFUserDO user = ThreadLocalUserContext.getUser();
     AbstractLink link;
-    if (user == null) {
-      link = new ExternalLink("footerNewsLink", "http://www.projectforge.org/pf-en/News");
-      body.add(link);
-    } else {
-      link = DocumentationPage.addNewsLink(body, "footerNewsLink");
-    }
+    link = new ExternalLink("footerNewsLink", "http://www.projectforge.org/pf-en/News");
+    body.add(link);
     link.add(new Label("version", "Version " + AppVersion.VERSION.toString() + ", " + AppVersion.RELEASE_DATE)
         .setRenderBodyOnly(true));
     link.setOutputMarkupId(true);
@@ -324,5 +324,15 @@ public abstract class AbstractUnsecureBasePage extends WebPage
       jsTemplate = new PackageTextTemplate(AbstractUnsecureBasePage.class, "ContextMenu.js.template");
     }
     return jsTemplate;
+  }
+
+  protected TenantRegistry getTenantRegistry()
+  {
+    return TenantRegistryMap.getInstance().getTenantRegistry();
+  }
+
+  protected UserGroupCache getUserGroupCache()
+  {
+    return getTenantRegistry().getUserGroupCache();
   }
 }

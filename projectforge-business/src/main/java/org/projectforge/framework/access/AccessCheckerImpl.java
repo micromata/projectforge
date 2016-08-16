@@ -5,12 +5,12 @@ import java.util.Collection;
 
 import org.apache.commons.lang.Validate;
 import org.projectforge.business.fibu.EmployeeDO;
+import org.projectforge.business.multitenancy.TenantRegistry;
 import org.projectforge.business.multitenancy.TenantRegistryMap;
 import org.projectforge.business.task.TaskNode;
 import org.projectforge.business.task.TaskTree;
 import org.projectforge.business.tasktree.TaskTreeHelper;
 import org.projectforge.business.user.ProjectForgeGroup;
-import org.projectforge.business.user.UserCache;
 import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.business.user.UserRight;
 import org.projectforge.business.user.UserRightAccessCheck;
@@ -47,10 +47,7 @@ public class AccessCheckerImpl implements AccessChecker, Serializable
   private UserRightService userRights;
 
   @Autowired
-  UserCache userCache;
-
-  @Autowired
-  FallbackBaseDaoService fallbackBaseDaoService;
+  private FallbackBaseDaoService fallbackBaseDaoService;
 
   /**
    * Tests for every group the user is assigned to, if the given permission is given.
@@ -460,8 +457,9 @@ public class AccessCheckerImpl implements AccessChecker, Serializable
       }
       return result;
     }
-    if (obj instanceof EmployeeDO && oldObj instanceof EmployeeDO && ((EmployeeDO) obj).getUser().equals(origUser) && ((EmployeeDO) oldObj).getUser()
-        .equals(origUser)) {
+    if (obj instanceof EmployeeDO && oldObj instanceof EmployeeDO && ((EmployeeDO) obj).getUser().equals(origUser)
+        && ((EmployeeDO) oldObj).getUser()
+            .equals(origUser)) {
       return true;
     }
     if (operationType == OperationType.SELECT) {
@@ -754,7 +752,7 @@ public class AccessCheckerImpl implements AccessChecker, Serializable
     Validate.notNull(right);
     if (right instanceof UserRightAccessCheck<?>) {
       Validate.notNull(origUser);
-      final PFUserDO user = userCache.getUser(origUser.getId());
+      final PFUserDO user = getUserGroupCache().getUser(origUser.getId());
       if (((UserRightAccessCheck) right).hasHistoryAccess(user, obj) == true) {
         return true;
       } else if (throwException == true) {
@@ -765,6 +763,16 @@ public class AccessCheckerImpl implements AccessChecker, Serializable
     } else {
       return hasRight(origUser, rightId, throwException, UserRightValue.READONLY, UserRightValue.READWRITE);
     }
+  }
+
+  public TenantRegistry getTenantRegistry()
+  {
+    return TenantRegistryMap.getInstance().getTenantRegistry();
+  }
+
+  public UserGroupCache getUserGroupCache()
+  {
+    return getTenantRegistry().getUserGroupCache();
   }
 
   /**
@@ -831,7 +839,7 @@ public class AccessCheckerImpl implements AccessChecker, Serializable
   @Override
   public boolean isDemoUser(final Integer userId)
   {
-    final PFUserDO user = userCache.getUser(userId);
+    final PFUserDO user = getUserGroupCache().getUser(userId);
     return AccessChecker.isDemoUser(user);
   }
 
@@ -885,7 +893,7 @@ public class AccessCheckerImpl implements AccessChecker, Serializable
 
   public boolean isRestrictedOrDemoUser(final Integer userId)
   {
-    final PFUserDO user = userCache.getUser(userId);
+    final PFUserDO user = getUserGroupCache().getUser(userId);
     return isRestrictedOrDemoUser(user);
   }
 

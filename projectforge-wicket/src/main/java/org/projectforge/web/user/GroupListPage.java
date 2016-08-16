@@ -146,7 +146,7 @@ public class GroupListPage extends AbstractListPage<GroupListForm, GroupDao, Gro
   }
 
   @Override
-  protected GroupDao getBaseDao()
+  public GroupDao getBaseDao()
   {
     return groupDao;
   }

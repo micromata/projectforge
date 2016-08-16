@@ -199,7 +199,7 @@ public class TeamEventListPage extends AbstractListPage<TeamEventListForm, TeamE
    * @see org.projectforge.web.wicket.AbstractListPage#getBaseDao()
    */
   @Override
-  protected TeamEventDao getBaseDao()
+  public TeamEventDao getBaseDao()
   {
     return teamEventDao;
   }

@@ -180,7 +180,7 @@ public class LicenseListPage extends AbstractListPage<LicenseListForm, LicenseDa
   }
 
   @Override
-  protected LicenseDao getBaseDao()
+  public LicenseDao getBaseDao()
   {
     return licenseDao;
   }

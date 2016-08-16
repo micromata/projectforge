@@ -40,8 +40,8 @@ import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.book.BookDO;
 import org.projectforge.business.book.BookDao;
 import org.projectforge.business.user.UserFormatter;
-import org.projectforge.framework.time.DateTimeFormatter;
 import org.projectforge.business.utils.HtmlHelper;
+import org.projectforge.framework.time.DateTimeFormatter;
 import org.projectforge.web.wicket.AbstractListPage;
 import org.projectforge.web.wicket.CellItemListener;
 import org.projectforge.web.wicket.CellItemListenerPropertyColumn;
@@ -163,7 +163,7 @@ public class BookListPage extends AbstractListPage<BookListForm, BookDao, BookDO
   }
 
   @Override
-  protected BookDao getBaseDao()
+  public BookDao getBaseDao()
   {
     return bookDao;
   }

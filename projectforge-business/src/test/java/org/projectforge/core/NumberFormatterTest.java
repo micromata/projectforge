@@ -38,7 +38,7 @@ public class NumberFormatterTest extends AbstractTestBase
   @Test
   public void formatPercentage()
   {
-    TestHelper.setContextUser(userCache, Locale.ENGLISH);
+    TestHelper.setContextUser(getUserGroupCache(), Locale.ENGLISH);
     assertEquals("", NumberFormatter.formatPercent(null));
     assertEquals("19%", NumberFormatter.formatPercent(new BigDecimal("0.19000")));
     assertEquals("19.2%", NumberFormatter.formatPercent(new BigDecimal("0.19200")));

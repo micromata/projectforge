@@ -31,7 +31,6 @@ import static org.testng.AssertJUnit.fail;
 import java.util.Collection;
 
 import org.projectforge.business.multitenancy.TenantRegistryMap;
-import org.projectforge.business.user.UserCache;
 import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.framework.access.AccessException;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
@@ -53,9 +52,6 @@ public class InitDatabaseDaoTestFork extends AbstractTestBase
   @Autowired
   private PfJpaXmlDumpService pfJpaXmlDumpService;
 
-  @Autowired
-  private UserCache userCache;
-
   @Override
   protected void initDb()
   {
@@ -67,13 +63,13 @@ public class InitDatabaseDaoTestFork extends AbstractTestBase
   {
     final UserGroupCache userGroupCache = TenantRegistryMap.getInstance().getTenantRegistry().getUserGroupCache();
     TenantRegistryMap.getInstance().setAllUserGroupCachesAsExpired(); // Force reload (because it's may be expired due to previous tests).
-    userCache.setExpired();
+    getUserGroupCache().setExpired();
     assertTrue(myDatabaseUpdateService.databaseTablesWithEntriesExists());
     final PFUserDO admin = new PFUserDO();
     admin.setUsername(InitDatabaseDao.DEFAULT_ADMIN_USER);
     admin.setId(1);
     userService.createEncryptedPassword(admin, DEFAULT_ADMIN_PASSWORD);
-    ThreadLocalUserContext.setUser(userCache, admin);
+    ThreadLocalUserContext.setUser(getUserGroupCache(), admin);
     pfJpaXmlDumpService.createTestDatabase();
     initDatabaseDao.updateAdminUser(admin, null);
     initDatabaseDao.afterCreatedTestDb(true);

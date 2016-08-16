@@ -226,7 +226,7 @@ public class TeamCalListPage extends AbstractListPage<TeamCalListForm, TeamCalDa
    * @see org.projectforge.web.wicket.AbstractListPage#getBaseDao()
    */
   @Override
-  protected TeamCalDao getBaseDao()
+  public TeamCalDao getBaseDao()
   {
     return teamCalDao;
   }

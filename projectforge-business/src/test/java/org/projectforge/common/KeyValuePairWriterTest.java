@@ -29,11 +29,8 @@ import java.io.StringWriter;
 import java.util.Calendar;
 import java.util.Date;
 
-import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
-import org.projectforge.framework.time.DateHolder;
 import org.projectforge.framework.utils.KeyValuePairWriter;
 import org.projectforge.test.AbstractTestBase;
-import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 public class KeyValuePairWriterTest extends AbstractTestBase
@@ -42,16 +39,10 @@ public class KeyValuePairWriterTest extends AbstractTestBase
   private static transient final org.apache.log4j.Logger log = org.apache.log4j.Logger
       .getLogger(KeyValuePairWriterTest.class);
 
-  @BeforeClass
-  public void init()
-  {
-    ThreadLocalUserContext.setUser(userCache, null);
-  }
-
   @Test
   public void testWritekeyValuePairs() throws Exception
   {
-    final Date date = createDate(1970, Calendar.NOVEMBER, 21, 14, 17, 57, 742);
+    final Date date = createDate(1970, Calendar.NOVEMBER, 21, 13, 17, 57, 742);
     log.info("Created date: " + date.toString());
     final StringWriter stringWriter = new StringWriter();
     final KeyValuePairWriter writer = new KeyValuePairWriter(stringWriter);
@@ -65,12 +56,16 @@ public class KeyValuePairWriterTest extends AbstractTestBase
     assertEquals("a1=\"Hallo\",a2=\"Hal\"\"lo\",a3=,a4=,a5=\"1970-11-21 13:17:57.742\",a6=42", stringWriter.toString());
   }
 
-  private Date createDate(final int year, final int month, final int day, final int hour, final int minute,
-      final int second,
-      final int millisecond)
+  private Date createDate(int year, int month, int day, int hour, int minute, int second, int millisecond)
   {
-    final DateHolder date = new DateHolder();
-    date.setDate(year, month, day, hour, minute, second, millisecond);
-    return date.getDate();
+    Calendar c = Calendar.getInstance();
+    c.set(Calendar.YEAR, year);
+    c.set(Calendar.MONTH, month);
+    c.set(Calendar.DAY_OF_MONTH, day);
+    c.set(Calendar.HOUR_OF_DAY, hour);
+    c.set(Calendar.MINUTE, minute);
+    c.set(Calendar.SECOND, second);
+    c.set(Calendar.MILLISECOND, millisecond);
+    return c.getTime();
   }
 }

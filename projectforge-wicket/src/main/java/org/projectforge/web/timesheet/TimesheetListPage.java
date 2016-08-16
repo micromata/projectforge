@@ -48,7 +48,6 @@ import org.apache.wicket.model.ResourceModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.hibernate.Hibernate;
-import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.business.systeminfo.SystemInfoCache;
 import org.projectforge.business.task.TaskDO;
 import org.projectforge.business.task.TaskTree;
@@ -57,9 +56,10 @@ import org.projectforge.business.timesheet.TimesheetDO;
 import org.projectforge.business.timesheet.TimesheetDao;
 import org.projectforge.business.timesheet.TimesheetExport;
 import org.projectforge.business.timesheet.TimesheetFilter;
-import org.projectforge.business.user.UserCache;
 import org.projectforge.business.user.UserFormatter;
+import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.business.utils.HtmlDateTimeFormatter;
+import org.projectforge.business.utils.HtmlHelper;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.api.UserPrefArea;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
@@ -73,7 +73,6 @@ import org.projectforge.framework.utils.MyBeanComparator;
 import org.projectforge.jira.JiraUtils;
 import org.projectforge.renderer.custom.Formatter;
 import org.projectforge.renderer.custom.FormatterFactory;
-import org.projectforge.business.utils.HtmlHelper;
 import org.projectforge.web.calendar.CalendarFeedService;
 import org.projectforge.web.task.TaskPropertyColumn;
 import org.projectforge.web.user.UserPrefListPage;
@@ -86,6 +85,7 @@ import org.projectforge.web.wicket.IListPageColumnsCreator;
 import org.projectforge.web.wicket.ListPage;
 import org.projectforge.web.wicket.ListSelectActionPanel;
 import org.projectforge.web.wicket.MyListPageSortableDataProvider;
+import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.web.wicket.components.ContentMenuEntryPanel;
 import org.projectforge.web.wicket.flowlayout.CheckBoxPanel;
 import org.springframework.util.CollectionUtils;
@@ -139,10 +139,7 @@ public class TimesheetListPage extends AbstractListPage<TimesheetListForm, Times
   private UserFormatter userFormatter;
 
   @SpringBean
-  CalendarFeedService calendarFeedService;
-
-  @SpringBean
-  UserCache userCache;
+  private CalendarFeedService calendarFeedService;
 
   private TimesheetsICSExportDialog icsExportDialog;
 
@@ -271,7 +268,7 @@ public class TimesheetListPage extends AbstractListPage<TimesheetListForm, Times
   @Override
   protected void createDataTable()
   {
-    final List<IColumn<TimesheetDO, String>> columns = createColumns(userCache, this,
+    final List<IColumn<TimesheetDO, String>> columns = createColumns(getUserGroupCache(), this,
         !isMassUpdateMode(),
         isMassUpdateMode(),
         form.getSearchFilter(),
@@ -283,7 +280,8 @@ public class TimesheetListPage extends AbstractListPage<TimesheetListForm, Times
   @Override
   public List<IColumn<TimesheetDO, String>> createColumns(final WebPage returnToPage, final boolean sortable)
   {
-    return createColumns(userCache, returnToPage, sortable, false, form.getSearchFilter(), getTaskTree(), userFormatter,
+    return createColumns(getUserGroupCache(), returnToPage, sortable, false, form.getSearchFilter(), getTaskTree(),
+        userFormatter,
         dateTimeFormatter);
   }
 
@@ -297,7 +295,7 @@ public class TimesheetListPage extends AbstractListPage<TimesheetListForm, Times
    */
   @SuppressWarnings("serial")
   protected static final List<IColumn<TimesheetDO, String>> createColumns(
-      UserCache userCache, final WebPage page,
+      UserGroupCache userGroupCache, final WebPage page,
       final boolean sortable,
       final boolean isMassUpdateMode, final TimesheetFilter timesheetFilter, final TaskTree taskTree,
       final UserFormatter userFormatter,
@@ -321,7 +319,7 @@ public class TimesheetListPage extends AbstractListPage<TimesheetListForm, Times
       }
     };
     if (page instanceof TimesheetMassUpdatePage) {
-      columns.add(new UserPropertyColumn<TimesheetDO>(userCache, page.getString("timesheet.user"),
+      columns.add(new UserPropertyColumn<TimesheetDO>(userGroupCache, page.getString("timesheet.user"),
           getSortable("user.fullname", sortable), "user",
           cellItemListener).withUserFormatter(userFormatter));
     } else {
@@ -343,11 +341,11 @@ public class TimesheetListPage extends AbstractListPage<TimesheetListForm, Times
             addRowClick(item, isMassUpdateMode);
           }
         });
-        columns.add(new UserPropertyColumn<TimesheetDO>(userCache, page.getString("timesheet.user"),
+        columns.add(new UserPropertyColumn<TimesheetDO>(userGroupCache, page.getString("timesheet.user"),
             getSortable("user.fullname", sortable), "user",
             cellItemListener).withUserFormatter(userFormatter));
       } else {
-        columns.add(new UserPropertyColumn<TimesheetDO>(userCache, page.getString("timesheet.user"),
+        columns.add(new UserPropertyColumn<TimesheetDO>(userGroupCache, page.getString("timesheet.user"),
             getSortable("user.fullname", sortable), "user",
             cellItemListener)
         {
@@ -478,7 +476,7 @@ public class TimesheetListPage extends AbstractListPage<TimesheetListForm, Times
   }
 
   @Override
-  protected TimesheetDao getBaseDao()
+  public TimesheetDao getBaseDao()
   {
     return timesheetDao;
   }
