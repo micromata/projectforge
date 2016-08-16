@@ -24,6 +24,7 @@
 package org.projectforge.plugins.eed;
 
 import org.projectforge.business.fibu.EmployeeDao;
+import org.projectforge.business.user.UserRightId;
 import org.projectforge.plugins.core.AbstractPlugin;
 import org.projectforge.plugins.eed.wicket.EmployeeBillingImportPage;
 import org.projectforge.plugins.eed.wicket.EmployeeListEditPage;
@@ -68,13 +69,17 @@ public class ExtendEmployeeDataPlugin extends AbstractPlugin
     // Register the menu entry as sub menu entry of the misc menu:
     final MenuItemDef parentMenu = pluginWicketRegistrationService.getMenuItemDef(MenuItemDefId.HR);
     pluginWicketRegistrationService
-        .registerMenuItem(new MenuItemDef(parentMenu, ID, 21, "plugins.eed.menu.listcare", EmployeeListEditPage.class));
+        .registerMenuItem(new MenuItemDef(parentMenu, ID, 21, "plugins.eed.menu.listcare", EmployeeListEditPage.class,
+            UserRightId.FIBU_EMPLOYEE));
     pluginWicketRegistrationService
-        .registerMenuItem(new MenuItemDef(parentMenu, ID, 22, "plugins.eed.menu.listcareimport", EmployeeBillingImportPage.class));
+        .registerMenuItem(
+            new MenuItemDef(parentMenu, ID, 22, "plugins.eed.menu.listcareimport", EmployeeBillingImportPage.class,
+                UserRightId.FIBU_EMPLOYEE));
     pluginWicketRegistrationService
-        .registerMenuItem(new MenuItemDef(parentMenu, ID, 23, "plugins.eed.menu.export", ExportDataPage.class));
-    pluginWicketRegistrationService
-        .registerMenuItem(new MenuItemDef(parentMenu, ID, 24, "plugins.eed.menu.config", ExportDataPage.class));
+        .registerMenuItem(new MenuItemDef(parentMenu, ID, 23, "plugins.eed.menu.export", ExportDataPage.class,
+            UserRightId.FIBU_EMPLOYEE_SALARY));
+    //    pluginWicketRegistrationService
+    //        .registerMenuItem(new MenuItemDef(parentMenu, ID, 24, "plugins.eed.menu.config", ExportDataPage.class));
 
     // Define the access management:
     registerRight(new ExtendEmployeeDataRight(accessChecker));
