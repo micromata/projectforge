@@ -1,4 +1,4 @@
-package org.projectforge.plugins.eed;
+package org.projectforge.plugins.eed.service;
 
 import java.util.Arrays;
 import java.util.Calendar;

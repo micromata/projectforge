@@ -1,9 +1,9 @@
-package org.projectforge.plugins.eed;
+package org.projectforge.plugins.eed.excelimport;
 
 import java.math.BigDecimal;
 
 /**
- * If you change fields here, you have to change ExtendedEmployeeDataEnum accordingly.
+ * If you change fields here, you have to change ExtendEmployeeDataEnum accordingly.
  */
 public class EmployeeBillingExcelRow
 {

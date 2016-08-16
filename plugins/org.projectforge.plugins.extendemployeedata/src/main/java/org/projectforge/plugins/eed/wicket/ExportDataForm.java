@@ -9,7 +9,7 @@ import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.user.I18nHelper;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
-import org.projectforge.plugins.eed.EEDHelper;
+import org.projectforge.plugins.eed.service.EEDHelper;
 import org.projectforge.web.wicket.AbstractStandardForm;
 import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.web.wicket.components.SingleButtonPanel;

@@ -1,4 +1,4 @@
-package org.projectforge.plugins.eed;
+package org.projectforge.plugins.eed.excelimport;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -20,6 +20,7 @@ import org.projectforge.framework.persistence.utils.ImportStorage;
 import org.projectforge.framework.persistence.utils.ImportedElement;
 import org.projectforge.framework.persistence.utils.ImportedElementWithAttrs;
 import org.projectforge.framework.persistence.utils.ImportedSheet;
+import org.projectforge.plugins.eed.ExtendEmployeeDataEnum;
 
 import de.micromata.genome.db.jpa.tabattr.api.TimeableService;
 import de.micromata.genome.util.bean.PrivateBeanUtils;
@@ -83,7 +84,7 @@ public class EmployeeBillingExcelImporter
     map.put("Id", "id");
     map.put(I18nHelper.getLocalizedString("fibu.employee.user"), "fullName");
 
-    ExtendedEmployeeDataEnum.getAllAttrColumnDescriptions().forEach(
+    ExtendEmployeeDataEnum.getAllAttrColumnDescriptions().forEach(
         desc -> map.put(I18nHelper.getLocalizedString(desc.getI18nKey()), desc.getCombinedName()));
     importer.setColumnMapping(map);
 
@@ -101,7 +102,7 @@ public class EmployeeBillingExcelImporter
   private List<AttrColumnDescription> getAttrColumnsUsedInSheet(ExcelImport<EmployeeBillingExcelRow> importer)
   {
     final List<String> columnNames = importer.getColumnNames();
-    return ExtendedEmployeeDataEnum
+    return ExtendEmployeeDataEnum
         .getAllAttrColumnDescriptions()
         .stream()
         .filter(desc -> columnNames.contains(I18nHelper.getLocalizedString(desc.getI18nKey())))
