@@ -47,7 +47,6 @@ import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.common.StringHelper;
 import org.projectforge.common.anots.PropertyInfo;
 import org.projectforge.excel.ExportSheet;
@@ -429,7 +428,7 @@ public abstract class AbstractListPage<F extends AbstractListForm<?, ?>, D exten
     return editPage;
   }
 
-  protected abstract D getBaseDao();
+  public abstract D getBaseDao();
 
   /**
    * @return true, if response page is set for redirect (e. g. for successful quick selection), otherwise false.
@@ -520,7 +519,7 @@ public abstract class AbstractListPage<F extends AbstractListForm<?, ?>, D exten
     addRecentSearchTerm();
   }
 
-  public final List<O> getList()
+  public List<O> getList()
   {
     if (this.refreshResultList == false && this.resultList != null) {
       return this.resultList;

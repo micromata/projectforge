@@ -29,6 +29,7 @@ import java.util.Date;
 import org.apache.commons.lang.ClassUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.datetime.markup.html.form.DateTextField;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.form.FormComponentPanel;
@@ -95,6 +96,8 @@ public class DateTimePanel extends FormComponentPanel<Date> implements Component
 
   private final DatePanel datePanel;
 
+  private final WebMarkupContainer timeContainer = new WebMarkupContainer("time");
+
   private final DropDownChoice<Integer> hourOfDayDropDownChoice;
 
   private final DropDownChoice<Integer> minuteDropDownChoice;
@@ -148,12 +151,13 @@ public class DateTimePanel extends FormComponentPanel<Date> implements Component
         getHourOfDayRenderer().getValues(), getHourOfDayRenderer());
     hourOfDayDropDownChoice.setNullValid(!settings.required);
     hourOfDayDropDownChoice.setRequired(settings.required);
-    add(hourOfDayDropDownChoice);
+    timeContainer.add(hourOfDayDropDownChoice);
     minuteDropDownChoice = new DropDownChoice<Integer>("minute", new PropertyModel<Integer>(this, "minute"), getMinutesRenderer(
         dateHolder.getPrecision()).getValues(), getMinutesRenderer(dateHolder.getPrecision()));
     minuteDropDownChoice.setNullValid(!settings.required);
     minuteDropDownChoice.setRequired(settings.required);
-    add(minuteDropDownChoice);
+    timeContainer.add(minuteDropDownChoice);
+    add(timeContainer);
     if (settings.tabIndex != null) {
       datePanel.dateField.add(AttributeModifier.replace("tabindex", String.valueOf(settings.tabIndex)));
       hourOfDayDropDownChoice.add(AttributeModifier.replace("tabindex", String.valueOf(settings.tabIndex + 1)));
@@ -337,6 +341,11 @@ public class DateTimePanel extends FormComponentPanel<Date> implements Component
   public String getComponentOutputId()
   {
     return datePanel.getComponentOutputId();
+  }
+
+  public WebMarkupContainer getTimeContainer()
+  {
+    return timeContainer;
   }
 
   /**

@@ -192,6 +192,16 @@ public class ExportRow
     this.contentProvider = contentProvider;
   }
 
+  public ContentProvider getContentProvider()
+  {
+    return contentProvider;
+  }
+
+  public ExportSheet getSheet()
+  {
+    return sheet;
+  }
+
   public void setValues(final Object... values)
   {
     setValuesFrom(0, values);
@@ -217,8 +227,8 @@ public class ExportRow
 
   /**
    * Sets the columns of this row beginning with the given col no. Each value will be capitalized first. <br/>
-   * Example: setCapitalizedValues("name", "street", "business phone") results in setValues("Name", "Street",
-   * "Business phone")
+   * Example: setCapitalizedValues("name", "street", "business phone") results in setValues("Name", "Street", "Business
+   * phone")
    * 
    * @param fromCol
    * @param values

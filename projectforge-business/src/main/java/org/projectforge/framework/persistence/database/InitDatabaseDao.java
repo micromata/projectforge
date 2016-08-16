@@ -34,6 +34,7 @@ import javax.persistence.Persistence;
 import javax.sql.DataSource;
 
 import org.projectforge.business.multitenancy.TenantDao;
+import org.projectforge.business.multitenancy.TenantRegistry;
 import org.projectforge.business.multitenancy.TenantRegistryMap;
 import org.projectforge.business.multitenancy.TenantService;
 import org.projectforge.business.task.TaskDO;
@@ -41,7 +42,6 @@ import org.projectforge.business.task.TaskTree;
 import org.projectforge.business.tasktree.TaskTreeHelper;
 import org.projectforge.business.user.GroupDao;
 import org.projectforge.business.user.ProjectForgeGroup;
-import org.projectforge.business.user.UserCache;
 import org.projectforge.business.user.UserDao;
 import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.business.user.UserRightId;
@@ -94,9 +94,6 @@ public class InitDatabaseDao
 
   @Autowired
   private JdbcTemplate jdbcTemplate;
-
-  @Autowired
-  private UserCache userCache;
 
   @Autowired
   private TenantService tenantService;
@@ -156,7 +153,7 @@ public class InitDatabaseDao
     adminUser.addRight(new UserRightDO(UserRightId.PM_HR_PLANNING, UserRightValue.READWRITE));
     userDao.internalSave(adminUser);
 
-    ThreadLocalUserContext.setUser(userCache, adminUser); // Need to login the admin user for avoiding following access exceptions.
+    ThreadLocalUserContext.setUser(getUserGroupCache(), adminUser); // Need to login the admin user for avoiding following access exceptions.
     TenantRegistryMap.getInstance().clear();
     TenantRegistryMap.getInstance().getTenantRegistry();
 
@@ -168,10 +165,20 @@ public class InitDatabaseDao
     internalCreateProjectForgeGroups(defaultTenant, adminUser);
 
     TaskTreeHelper.getTaskTree().setExpired();
-    userCache.setExpired();
+    getUserGroupCache().setExpired();
     TenantRegistryMap.getInstance().setAllUserGroupCachesAsExpired();
 
     log.info("Default data successfully initialized in database.");
+  }
+
+  public TenantRegistry getTenantRegistry()
+  {
+    return TenantRegistryMap.getInstance().getTenantRegistry();
+  }
+
+  public UserGroupCache getUserGroupCache()
+  {
+    return getTenantRegistry().getUserGroupCache();
   }
 
   public TenantDO insertDefaultTenant()
@@ -246,8 +253,7 @@ public class InitDatabaseDao
     adminUser.setTenant(tenantService.getDefaultTenant());
     adminUser.setSuperAdmin(true);
     userDao.internalUpdate(adminUser);
-    userCache.forceReload();
-    ThreadLocalUserContext.setUser(userCache, adminUser);
+    ThreadLocalUserContext.setUser(getUserGroupCache(), adminUser);
     TenantRegistryMap.getInstance().clear();
     UserGroupCache userGroupCache = TenantRegistryMap.getInstance().getTenantRegistry().getUserGroupCache();
     userGroupCache.forceReload();
@@ -275,7 +281,6 @@ public class InitDatabaseDao
     final TaskTree taskTree = TaskTreeHelper.getTaskTree();
     taskTree.setExpired();
     TenantRegistryMap.getInstance().setAllUserGroupCachesAsExpired();
-    userCache.setExpired();
     log.info("Database successfully initialized with test data.");
   }
 

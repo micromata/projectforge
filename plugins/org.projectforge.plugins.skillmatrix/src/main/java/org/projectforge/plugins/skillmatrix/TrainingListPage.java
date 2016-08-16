@@ -142,7 +142,7 @@ public class TrainingListPage extends AbstractListPage<TrainingListForm, Trainin
    * @see org.projectforge.web.wicket.AbstractListPage#getBaseDao()
    */
   @Override
-  protected TrainingDao getBaseDao()
+  public TrainingDao getBaseDao()
   {
     return trainingDao;
   }

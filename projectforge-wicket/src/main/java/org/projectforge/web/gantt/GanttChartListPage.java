@@ -38,7 +38,6 @@ import org.projectforge.business.gantt.GanttChartDO;
 import org.projectforge.business.gantt.GanttChartDao;
 import org.projectforge.business.task.TaskTree;
 import org.projectforge.business.tasktree.TaskTreeHelper;
-import org.projectforge.business.user.UserCache;
 import org.projectforge.business.user.UserFormatter;
 import org.projectforge.web.task.TaskPropertyColumn;
 import org.projectforge.web.user.UserPropertyColumn;
@@ -58,9 +57,6 @@ public class GanttChartListPage extends AbstractListPage<GanttChartListForm, Gan
 
   @SpringBean
   private UserFormatter userFormatter;
-
-  @SpringBean
-  UserCache userCache;
 
   public GanttChartListPage(final PageParameters parameters)
   {
@@ -107,7 +103,8 @@ public class GanttChartListPage extends AbstractListPage<GanttChartListForm, Gan
         new CellItemListenerPropertyColumn<GanttChartDO>(new Model<String>(getString("created")), "created", "created",
             cellItemListener));
     columns
-        .add(new UserPropertyColumn<GanttChartDO>(userCache, getString("gantt.owner"), "user.fullname", "owner",
+        .add(new UserPropertyColumn<GanttChartDO>(getUserGroupCache(), getString("gantt.owner"), "user.fullname",
+            "owner",
             cellItemListener)
                 .withUserFormatter(userFormatter));
     columns.add(
@@ -124,7 +121,7 @@ public class GanttChartListPage extends AbstractListPage<GanttChartListForm, Gan
   }
 
   @Override
-  protected GanttChartDao getBaseDao()
+  public GanttChartDao getBaseDao()
   {
     return ganttChartDao;
   }

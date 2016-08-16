@@ -340,7 +340,7 @@ public class EingangsrechnungListPage
   }
 
   @Override
-  protected EingangsrechnungDao getBaseDao()
+  public EingangsrechnungDao getBaseDao()
   {
     return eingangsrechnungDao;
   }

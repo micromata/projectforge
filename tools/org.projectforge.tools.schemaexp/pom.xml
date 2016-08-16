@@ -4,7 +4,7 @@
   <parent>
     <groupId>org.projectforge</groupId>
     <artifactId>org.projectforge.tools</artifactId>
-    <version>6.1.1</version>
+    <version>6.2.0</version>
   </parent>
   <artifactId>org.projectforge.tools.schemaexp</artifactId>
   <packaging>jar</packaging>
@@ -27,12 +27,6 @@
       <version>${projectforge.version}</version>
       <scope>test</scope>
       <type>test-jar</type>
-    </dependency>
-    <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-nop</artifactId>
-      <version>${slf4j.version}</version>
-      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>de.micromata.mgc</groupId>

@@ -128,7 +128,7 @@ public class AddressCampaignListPage
   }
 
   @Override
-  protected AddressCampaignDao getBaseDao()
+  public AddressCampaignDao getBaseDao()
   {
     return addressCampaignDao;
   }

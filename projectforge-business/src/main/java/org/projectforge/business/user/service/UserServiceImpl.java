@@ -15,7 +15,6 @@ import org.projectforge.business.configuration.ConfigurationService;
 import org.projectforge.business.login.Login;
 import org.projectforge.business.login.PasswordCheckResult;
 import org.projectforge.business.multitenancy.TenantRegistryMap;
-import org.projectforge.business.user.UserCache;
 import org.projectforge.business.user.UserDao;
 import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.business.user.UsersComparator;
@@ -51,13 +50,9 @@ public class UserServiceImpl implements UserService
   private UserDao userDao;
 
   @Autowired
-  private UserCache userCache;
-
-  @Autowired
   private AccessChecker accessChecker;
 
   private final UsersComparator usersComparator = new UsersComparator();
-
 
   /**
    * @param userIds
@@ -168,7 +163,7 @@ public class UserServiceImpl implements UserService
   @Override
   public String getCachedAuthenticationToken(final Integer userId)
   {
-    final PFUserDO user = userCache.getUser(userId);
+    final PFUserDO user = getUserGroupCache().getUser(userId);
     final String authenticationToken = user.getAuthenticationToken();
     if (StringUtils.isBlank(authenticationToken) == false && authenticationToken.trim().length() >= 10) {
       return authenticationToken;
@@ -220,13 +215,13 @@ public class UserServiceImpl implements UserService
   @Override
   public PFUserDO getUser(Integer userId)
   {
-    return userCache.getUser(userId);
+    return getUserGroupCache().getUser(userId);
   }
 
   @Override
   public Collection<Integer> getAssignedTenants(final PFUserDO user)
   {
-    final PFUserDO u = userCache.getUser(user.getId());
+    final PFUserDO u = getUserGroupCache().getUser(user.getId());
     return userDao.getAssignedTenants(u);
   }
 
@@ -599,4 +594,5 @@ public class UserServiceImpl implements UserService
   {
     return userDao.getUserByAuthenticationToken(userId, authKey);
   }
+
 }

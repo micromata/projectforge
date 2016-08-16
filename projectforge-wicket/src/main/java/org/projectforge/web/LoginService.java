@@ -13,7 +13,9 @@ import org.projectforge.business.login.LoginHandler;
 import org.projectforge.business.login.LoginProtection;
 import org.projectforge.business.login.LoginResult;
 import org.projectforge.business.login.LoginResultStatus;
-import org.projectforge.business.user.UserCache;
+import org.projectforge.business.multitenancy.TenantRegistry;
+import org.projectforge.business.multitenancy.TenantRegistryMap;
+import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.business.user.filter.UserFilter;
 import org.projectforge.business.user.service.UserService;
 import org.projectforge.framework.persistence.user.api.UserContext;
@@ -61,9 +63,19 @@ public class LoginService
   private void internalLogin(final WebPage page, final PFUserDO user)
   {
     final UserContext userContext = new UserContext(PFUserDO.createCopyWithoutSecretFields(user),
-        applicationContext.getBean(UserCache.class));
+        getUserGroupCache());
     ((MySession) page.getSession()).login(userContext, page.getRequest());
     UserFilter.login(WicketUtils.getHttpServletRequest(page.getRequest()), userContext);
+  }
+
+  public TenantRegistry getTenantRegistry()
+  {
+    return TenantRegistryMap.getInstance().getTenantRegistry();
+  }
+
+  public UserGroupCache getUserGroupCache()
+  {
+    return getTenantRegistry().getUserGroupCache();
   }
 
   /**

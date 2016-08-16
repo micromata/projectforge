@@ -80,4 +80,6 @@ public interface ConfigurationService
   boolean isSqlConsoleAvailable();
 
   String getApplicationHomeDir();
+
+  boolean getCompileCss();
 }

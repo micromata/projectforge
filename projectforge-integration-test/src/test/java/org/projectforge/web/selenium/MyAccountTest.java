@@ -4,10 +4,45 @@ import org.projectforge.web.selenium.fibu.SeleniumEmployeeEditPage;
 import org.projectforge.web.selenium.fibu.SeleniumEmployeeListPage;
 import org.projectforge.web.selenium.login.SeleniumLoginPage;
 import org.testng.Assert;
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 public class MyAccountTest extends SeleniumSuiteTestBase
 {
+  @BeforeMethod
+  public void createAdminEmployee()
+  {
+
+    new SeleniumLoginPage()
+        .callPage()
+        .loginAsAdmin();
+    boolean caughtException = false;
+    SeleniumEmployeeListPage seleniumEmployeeListPage = new SeleniumEmployeeListPage();
+
+    try {
+      seleniumEmployeeListPage
+          .callPage()
+          .clickRowWhereColumnLike("Administrator");
+    } catch (Exception e) {
+      caughtException = true;
+    }
+
+    if (caughtException == true) {
+      seleniumEmployeeListPage
+          .addEntry()
+          .callPage()
+          .setKost1("3.000.00.00")
+          .setStatus(SeleniumEmployeeEditPage.status_FEST_ANGESTELLTER)
+          .setAssociatedUsername(Const.ADMIN_USERNAME)
+          .setGender(SeleniumEmployeeEditPage.gender_MALE)
+          .setStaffNumber("1234")
+          .setPayeTaxNumber("abc")
+          .clickCreateOrUpdate();
+    }
+
+    new SeleniumLoginPage().logout();
+  }
+
   @Test
   public void testPersonalData()
   {
@@ -140,7 +175,7 @@ public class MyAccountTest extends SeleniumSuiteTestBase
     String state = "state";
     String zipcode = "123";
     String street = "street";
-    String birthday = "01.02.1980";
+    String birthday = "01/02/1980";
     seleniumMyAccountPage
         .callPage()
         .setFirstName(firstName)
@@ -154,7 +189,7 @@ public class MyAccountTest extends SeleniumSuiteTestBase
         .setStreet(street)
         //        .setBirthday("dfdfgfdgdfg") <-- this is not possible because the input field does not allow text
         .assertWeAreOnThisPage()
-        .setBirthday("01.01.1200")
+        .setBirthday("01/01/1200")
         .update()
         .assertWeAreOnThisPage()
         .setBirthday(birthday)

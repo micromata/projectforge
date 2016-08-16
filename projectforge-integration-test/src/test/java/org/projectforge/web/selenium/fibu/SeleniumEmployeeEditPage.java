@@ -5,6 +5,7 @@ import static org.testng.Assert.assertTrue;
 import org.openqa.selenium.By;
 import org.openqa.selenium.support.ui.Select;
 import org.projectforge.web.selenium.EditPage;
+import org.projectforge.web.selenium.TestPageBase;
 
 public class SeleniumEmployeeEditPage extends AddressAndBankingEditingPage<SeleniumEmployeeEditPage>
 {
@@ -77,6 +78,8 @@ public class SeleniumEmployeeEditPage extends AddressAndBankingEditingPage<Selen
     return this;
   }
 
+
+
   public SeleniumEmployeeEditPage setStaffNumber(String staffNumber)
   {
     return setStringElementById("staffNumber", staffNumber);
@@ -92,5 +95,10 @@ public class SeleniumEmployeeEditPage extends AddressAndBankingEditingPage<Selen
   {
     assertTrue(driver.getCurrentUrl().startsWith(prefix.split("\\?")[0]));
     return this;
+  }
+
+  public SeleniumEmployeeEditPage setPayeTaxNumber(String payeTaxNumber)
+  {
+    return setStringElementById("payetaxnumber-payetaxnumber", payeTaxNumber);
   }
 }

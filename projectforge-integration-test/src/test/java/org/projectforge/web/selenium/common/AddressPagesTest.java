@@ -26,7 +26,7 @@ public class AddressPagesTest extends SeleniumSuiteTestBase
         .setPosition("Sixth")
         .setPrivateEmail("Seventh")
         .setWebsite("Eighth")
-        .setBirthday("01.02.2003")
+        .setBirthday("01/02/2003")
         .setFingerprint("tenth")
         .setPublicKey("eleventh")
         .setAddressStatus(SeleniumAddressEditPage.STATE_UPTODATE)

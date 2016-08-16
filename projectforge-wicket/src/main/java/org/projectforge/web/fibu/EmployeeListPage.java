@@ -115,8 +115,9 @@ public class EmployeeListPage extends AbstractListPage<EmployeeListForm, Employe
         .add(new CellItemListenerPropertyColumn<EmployeeDO>(EmployeeDO.class, getSortable("status", sortable), "status",
             cellItemListener));
     columns
-    .add(new CellItemListenerPropertyColumn<EmployeeDO>(EmployeeDO.class, getSortable("staffNumber", sortable), "staffNumber",
-        cellItemListener));
+        .add(new CellItemListenerPropertyColumn<EmployeeDO>(EmployeeDO.class, getSortable("staffNumber", sortable),
+            "staffNumber",
+            cellItemListener));
     columns.add(new CellItemListenerPropertyColumn<EmployeeDO>(new ResourceModel("fibu.kost1"),
         getSortable("kost1.shortDisplayName",
             sortable),
@@ -173,7 +174,7 @@ public class EmployeeListPage extends AbstractListPage<EmployeeListForm, Employe
   }
 
   @Override
-  protected EmployeeService getBaseDao()
+  public EmployeeService getBaseDao()
   {
     return employeeService;
   }

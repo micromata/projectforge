@@ -54,7 +54,6 @@ import org.projectforge.business.fibu.OrderExport;
 import org.projectforge.business.fibu.RechnungCache;
 import org.projectforge.business.fibu.RechnungsPositionVO;
 import org.projectforge.business.task.formatter.TaskFormatter;
-import org.projectforge.business.user.UserCache;
 import org.projectforge.business.user.UserFormatter;
 import org.projectforge.business.utils.CurrencyFormatter;
 import org.projectforge.framework.time.DateHelper;
@@ -93,10 +92,7 @@ public class AuftragListPage extends AbstractListPage<AuftragListForm, AuftragDa
   private UserFormatter userFormatter;
 
   @SpringBean
-  RechnungCache rechnungCache;
-
-  @SpringBean
-  UserCache userCache;
+  private RechnungCache rechnungCache;
 
   public AuftragListPage(final PageParameters parameters)
   {
@@ -217,10 +213,11 @@ public class AuftragListPage extends AbstractListPage<AuftragListForm, AuftragDa
     columns
         .add(new CellItemListenerPropertyColumn<AuftragDO>(getString("fibu.common.reference"), "referenz", "referenz",
             cellItemListener));
-    columns.add(new UserPropertyColumn<AuftragDO>(userCache, getString("contactPerson"), "contactPerson.fullname",
-        "contactPerson",
-        cellItemListener)
-            .withUserFormatter(userFormatter));
+    columns.add(
+        new UserPropertyColumn<AuftragDO>(getUserGroupCache(), getString("contactPerson"), "contactPerson.fullname",
+            "contactPerson",
+            cellItemListener)
+                .withUserFormatter(userFormatter));
     columns.add(new CellItemListenerPropertyColumn<AuftragDO>(getString("date"), "angebotsDatum", "angebotsDatum",
         cellItemListener));
     // columns
@@ -308,7 +305,7 @@ public class AuftragListPage extends AbstractListPage<AuftragListForm, AuftragDa
   }
 
   @Override
-  protected AuftragDao getBaseDao()
+  public AuftragDao getBaseDao()
   {
     return auftragDao;
   }

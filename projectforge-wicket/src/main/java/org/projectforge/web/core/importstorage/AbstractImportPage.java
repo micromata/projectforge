@@ -25,6 +25,9 @@ package org.projectforge.web.core.importstorage;
 
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.projectforge.business.common.SupplierWithException;
+import org.projectforge.excel.ExcelImportException;
+import org.projectforge.framework.i18n.UserException;
 import org.projectforge.framework.persistence.utils.ImportStorage;
 import org.projectforge.framework.persistence.utils.ImportedSheet;
 import org.projectforge.framework.utils.ActionLog;
@@ -126,5 +129,29 @@ public abstract class AbstractImportPage<F extends AbstractImportForm< ? , ? , ?
   protected ImportStorage< ? > getStorage()
   {
     return form.getStorage();
+  }
+
+  protected String translateParams(ExcelImportException ex)
+  {
+    return getString("common.import.excel.error1") + " " + ex.getRow() + " " +
+        getString("common.import.excel.error2") + " \"" + ex.getColumnname() + "\"";
+  }
+
+  protected <T, E extends Exception> T doImportWithExcelExceptionHandling(final SupplierWithException<T, E> importFunction)
+  {
+    try {
+      return importFunction.get();
+    } catch (final Exception ex) {
+      if (ex instanceof ExcelImportException) {
+        error(translateParams((ExcelImportException) ex));
+      } else if (ex instanceof UserException) {
+        error(translateParams((UserException) ex));
+      } else {
+        error("An error occurred (see log files for details): " + ex.getMessage());
+      }
+      log.error(ex.getMessage(), ex);
+      clear();
+    }
+    return null;
   }
 }

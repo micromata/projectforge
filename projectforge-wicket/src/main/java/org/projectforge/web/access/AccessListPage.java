@@ -230,7 +230,7 @@ public class AccessListPage extends AbstractListPage<AccessListForm, AccessDao, 
   }
 
   @Override
-  protected AccessDao getBaseDao()
+  public AccessDao getBaseDao()
   {
     return accessDao;
   }

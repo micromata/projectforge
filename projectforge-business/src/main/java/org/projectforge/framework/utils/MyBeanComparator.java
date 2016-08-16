@@ -93,8 +93,7 @@ public class MyBeanComparator<T> implements Comparator<T>
       if (value1 instanceof String && value2 instanceof String) {
         if (checkAnnotation(BeanHelper.getDeclaredAnnotations(o1.getClass(), prop), StringAlphanumericSort.class)
             && checkAnnotation(BeanHelper.getDeclaredAnnotations(o2.getClass(), prop), StringAlphanumericSort.class)) {
-          AlphanumericComparator alphanumericComparator = new AlphanumericComparator(
-              ThreadLocalUserContext.getLocale());
+          AlphanumericComparator alphanumericComparator = new AlphanumericComparator(ThreadLocalUserContext.getLocale());
           if (asc) {
             return alphanumericComparator.compare((String) value2, (String) value1);
           } else {
@@ -127,6 +126,9 @@ public class MyBeanComparator<T> implements Comparator<T>
 
   private boolean checkAnnotation(Annotation[] declaredAnnotations, Class<?> annotation)
   {
+    if (declaredAnnotations == null) {
+      return false;
+    }
     for (Annotation a : declaredAnnotations) {
       if (annotation.isInstance(a)) {
         return true;

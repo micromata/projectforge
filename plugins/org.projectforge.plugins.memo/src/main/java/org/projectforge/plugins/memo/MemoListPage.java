@@ -133,7 +133,7 @@ public class MemoListPage extends AbstractListPage<MemoListForm, MemoDao, MemoDO
   }
 
   @Override
-  protected MemoDao getBaseDao()
+  public MemoDao getBaseDao()
   {
     return memoDao;
   }

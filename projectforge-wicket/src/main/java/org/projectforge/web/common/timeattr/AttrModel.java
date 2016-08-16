@@ -21,6 +21,8 @@ import de.micromata.genome.db.jpa.tabattr.api.EntityWithAttributes;
  */
 public class AttrModel<T> implements IObjectClassAwareModel<T>
 {
+  private static final long serialVersionUID = -3315148127877191137L;
+
   private final EntityWithAttributes entity;
 
   private final String propertyName;
@@ -70,6 +72,11 @@ public class AttrModel<T> implements IObjectClassAwareModel<T>
   public Class<T> getObjectClass()
   {
     return type;
+  }
+
+  public EntityWithAttributes getEntity()
+  {
+    return entity;
   }
 
 }

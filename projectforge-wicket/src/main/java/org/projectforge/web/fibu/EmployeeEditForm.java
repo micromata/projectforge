@@ -54,8 +54,8 @@ import org.projectforge.web.wicket.components.MaxLengthTextArea;
 import org.projectforge.web.wicket.components.MaxLengthTextField;
 import org.projectforge.web.wicket.components.MaxLengthTextFieldWithRequiredSupplier;
 import org.projectforge.web.wicket.components.MinMaxNumberField;
+import org.projectforge.web.wicket.components.TabPanel;
 import org.projectforge.web.wicket.flowlayout.AbstractFieldsetPanel;
-import org.projectforge.web.wicket.flowlayout.DivPanel;
 import org.projectforge.web.wicket.flowlayout.FieldProperties;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
 import org.projectforge.web.wicket.flowlayout.HtmlCommentPanel;
@@ -191,6 +191,11 @@ public class EmployeeEditForm extends AbstractEditForm<EmployeeDO, EmployeeEditP
   {
     super.init();
 
+    // replace the GridBuilder from superclass by our TabPanel
+    final TabPanel tabPanel = new TabPanel("flowform");
+    replace(tabPanel);
+    gridBuilder = tabPanel.getOrCreateTab("fibu.employee.coredata", true); // create the default tab
+
     gridBuilder.newSplitPanel(GridSize.COL50, true).newSubSplitPanel(GridSize.COL100);
     {
       // User
@@ -278,9 +283,7 @@ public class EmployeeEditForm extends AbstractEditForm<EmployeeDO, EmployeeEditP
     generateCountryStateFields(gridBuilder, data);
 
     gridBuilder.newSplitPanel(GridSize.COL25, true).newSubSplitPanel(GridSize.COL100);
-    {
-      createBirthdayPanel(gridBuilder, data);
-    }
+    createBirthdayPanel(gridBuilder, data);
 
     {
       // DropDownChoice gender
@@ -302,9 +305,8 @@ public class EmployeeEditForm extends AbstractEditForm<EmployeeDO, EmployeeEditP
     gridBuilder.newSplitPanel(GridSize.COL100, true); // set hasSubSplitPanel to true to remove borders from this split panel
     {
       // AttrPanels
-      final DivPanel divPanel = gridBuilder.getPanel();
-      Function<AttrGroup, EmployeeTimedDO> addNewEntryFunction = group -> employeeService.addNewTimeAttributeRow(data, group.getName());
-      attrSchemaService.createAttrPanels(divPanel, data, parentPage, addNewEntryFunction);
+      final Function<AttrGroup, EmployeeTimedDO> addNewEntryFunction = group -> employeeService.addNewTimeAttributeRow(data, group.getName());
+      attrSchemaService.createAttrPanels(tabPanel, data, parentPage, addNewEntryFunction);
     }
 
     gridBuilder.newSplitPanel(GridSize.COL100, true).newSubSplitPanel(GridSize.COL100);

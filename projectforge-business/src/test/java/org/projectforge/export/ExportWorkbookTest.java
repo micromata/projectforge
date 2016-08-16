@@ -31,7 +31,6 @@ import java.sql.Timestamp;
 import java.util.Date;
 import java.util.Locale;
 
-import org.projectforge.business.user.UserCache;
 import org.projectforge.excel.ContentProvider;
 import org.projectforge.excel.ExportConfig;
 import org.projectforge.excel.ExportSheet;
@@ -45,16 +44,12 @@ import org.projectforge.framework.time.DatePrecision;
 import org.projectforge.framework.time.DayHolder;
 import org.projectforge.test.AbstractTestBase;
 import org.projectforge.test.WorkFileHelper;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 public class ExportWorkbookTest extends AbstractTestBase
 {
   private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(ExportWorkbookTest.class);
-
-  @Autowired
-  private UserCache userCache;
 
   @BeforeClass
   public void setUp()
@@ -81,7 +76,7 @@ public class ExportWorkbookTest extends AbstractTestBase
     user.setLocale(locale);
     user.setExcelDateFormat(excelDateFormat);
     try {
-      ThreadLocalUserContext.setUser(userCache, user);
+      ThreadLocalUserContext.setUser(getUserGroupCache(), user);
 
       ExportConfig.setInstance(new ExportConfig()
       {
@@ -112,7 +107,7 @@ public class ExportWorkbookTest extends AbstractTestBase
       log.info("Writing Excel test sheet to work directory: " + file.getAbsolutePath());
       workbook.write(new FileOutputStream(file));
     } finally {
-      ThreadLocalUserContext.setUser(userCache, null);
+      ThreadLocalUserContext.setUser(getUserGroupCache(), null);
     }
   }
 

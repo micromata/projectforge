@@ -41,7 +41,6 @@ import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.group.service.GroupService;
 import org.projectforge.business.task.TaskTree;
 import org.projectforge.business.tasktree.TaskTreeHelper;
-import org.projectforge.business.user.UserCache;
 import org.projectforge.business.user.UserFormatter;
 import org.projectforge.framework.persistence.user.entities.GroupDO;
 import org.projectforge.framework.time.DateTimeFormatter;
@@ -72,9 +71,6 @@ public class ToDoListPage extends AbstractListPage<ToDoListForm, ToDoDao, ToDoDO
 
   @SpringBean
   private UserFormatter userFormatter;
-
-  @SpringBean
-  private UserCache userCache;
 
   @SpringBean
   private GroupService groupService;
@@ -127,11 +123,13 @@ public class ToDoListPage extends AbstractListPage<ToDoListForm, ToDoDao, ToDoDO
     columns.add(new CellItemListenerPropertyColumn<ToDoDO>(ToDoDO.class, getSortable("subject", sortable), "subject",
         cellItemListener));
     columns.add(
-        new UserPropertyColumn<ToDoDO>(userCache, ToDoDO.class, getSortable("assigneeId", sortable), "assignee",
+        new UserPropertyColumn<ToDoDO>(getUserGroupCache(), ToDoDO.class, getSortable("assigneeId", sortable),
+            "assignee",
             cellItemListener)
                 .withUserFormatter(userFormatter));
     columns.add(
-        new UserPropertyColumn<ToDoDO>(userCache, ToDoDO.class, getSortable("reporterId", sortable), "reporter",
+        new UserPropertyColumn<ToDoDO>(getUserGroupCache(), ToDoDO.class, getSortable("reporterId", sortable),
+            "reporter",
             cellItemListener)
                 .withUserFormatter(userFormatter));
     columns.add(new CellItemListenerPropertyColumn<ToDoDO>(ToDoDO.class, getSortable("dueDate", sortable), "dueDate",
@@ -243,7 +241,7 @@ public class ToDoListPage extends AbstractListPage<ToDoListForm, ToDoDao, ToDoDO
   }
 
   @Override
-  protected ToDoDao getBaseDao()
+  public ToDoDao getBaseDao()
   {
     return toDoDao;
   }

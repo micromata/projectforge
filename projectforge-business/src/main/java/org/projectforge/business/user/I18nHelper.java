@@ -23,14 +23,15 @@
 
 package org.projectforge.business.user;
 
-import org.projectforge.web.i18n.I18NService;
-
 import java.text.MessageFormat;
 import java.util.HashSet;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.ResourceBundle;
 import java.util.Set;
+
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
+import org.projectforge.web.i18n.I18NService;
 
 /**
  * ThreadLocal context.
@@ -88,6 +89,11 @@ public class I18nHelper
       log.warn("Resource key '" + key + "' not found for locale '" + locale + "'");
     }
     return null;
+  }
+
+  public static String getLocalizedString(final String key)
+  {
+    return getLocalizedString(ThreadLocalUserContext.getLocale(), key);
   }
 
   public static String getLocalizedString(final Locale locale, final String key)

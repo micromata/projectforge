@@ -96,7 +96,7 @@ public class JodaDateConverterTest extends AbstractTestBase
     user.setTimeZone(DateHelper.EUROPE_BERLIN);
     user.setLocale(Locale.GERMAN);
     user.setDateFormat("dd.MM.yyyy");
-    ThreadLocalUserContext.setUser(userCache, user);
+    ThreadLocalUserContext.setUser(getUserGroupCache(), user);
     user = ThreadLocalUserContext.getUser(); // ThreadLocalUserContext made a copy!
     JodaDateConverter conv = new JodaDateConverter();
     DateMidnight testDate = createDate(1970, DateTimeConstants.NOVEMBER, 21, EUROPE_BERLIN);
@@ -122,7 +122,7 @@ public class JodaDateConverterTest extends AbstractTestBase
     final PFUserDO user = new PFUserDO();
     user.setTimeZone(timeZone.getID());
     user.setDateFormat("dd.MM.yyyy");
-    ThreadLocalUserContext.setUser(userCache, user);
+    ThreadLocalUserContext.setUser(getUserGroupCache(), user);
     final JodaDateConverter conv = new JodaDateConverter();
     assertNull(conv.convertToObject("", Locale.GERMAN));
     DateMidnight testDate = createDate(1970, DateTimeConstants.OCTOBER, 21, timeZone);
@@ -172,7 +172,7 @@ public class JodaDateConverterTest extends AbstractTestBase
   {
     final PFUserDO user = new PFUserDO();
     user.setTimeZone(timeZone.getID());
-    ThreadLocalUserContext.setUser(userCache, user);
+    ThreadLocalUserContext.setUser(getUserGroupCache(), user);
     final JodaDateConverter conv = new JodaDateConverter();
     DateMidnight testDate = createDate(1970, DateTimeConstants.OCTOBER, 21, timeZone);
     DateMidnight date = conv.convertToObject("10/21/1970", Locale.ENGLISH);

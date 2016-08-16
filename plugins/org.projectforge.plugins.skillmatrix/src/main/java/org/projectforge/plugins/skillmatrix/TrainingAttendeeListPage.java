@@ -35,7 +35,6 @@ import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
-import org.projectforge.business.user.UserCache;
 import org.projectforge.business.user.UserFormatter;
 import org.projectforge.excel.PropertyMapping;
 import org.projectforge.export.DOListExcelExporter;
@@ -67,9 +66,6 @@ public class TrainingAttendeeListPage
 
   @SpringBean
   private TrainingAttendeeDao trainingAttendeeDao;
-
-  @SpringBean
-  UserCache userCache;
 
   @SpringBean
   private UserFormatter userFormatter;
@@ -120,7 +116,7 @@ public class TrainingAttendeeListPage
             getSortable("training.endDate", sortable), "training.endDate",
             cellItemListener));
 
-    columns.add(new UserPropertyColumn<TrainingAttendeeDO>(userCache, TrainingAttendeeDO.class,
+    columns.add(new UserPropertyColumn<TrainingAttendeeDO>(getUserGroupCache(), TrainingAttendeeDO.class,
         getSortable("attendeeId", sortable), "attendee",
         cellItemListener).withUserFormatter(userFormatter));
     columns.add(new CellItemListenerPropertyColumn<TrainingAttendeeDO>(TrainingAttendeeDO.class,
@@ -197,7 +193,7 @@ public class TrainingAttendeeListPage
    * @see org.projectforge.web.wicket.AbstractListPage#getBaseDao()
    */
   @Override
-  protected TrainingAttendeeDao getBaseDao()
+  public TrainingAttendeeDao getBaseDao()
   {
     return trainingAttendeeDao;
   }
