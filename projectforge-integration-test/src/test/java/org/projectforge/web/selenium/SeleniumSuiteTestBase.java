@@ -9,6 +9,7 @@ import org.projectforge.web.selenium.common.SetupPage;
 import org.testng.annotations.AfterSuite;
 import org.testng.annotations.BeforeMethod;
 
+import java.util.Date;
 import java.util.concurrent.TimeUnit;
 
 import com.machinepublishers.jbrowserdriver.JBrowserDriver;
@@ -30,12 +31,6 @@ public class SeleniumSuiteTestBase
   public SeleniumSuiteTestBase()
   {
     if (driver == null) {
-      DesiredCapabilities dCaps = new DesiredCapabilities();
-      dCaps.setJavascriptEnabled(true);
-      /*dCaps.setCapability(
-          PhantomJSDriverService.PHANTOMJS_CLI_ARGS, new String[]{"--web-security=no", "--ignore-ssl-errors=yes"});*/
-      dCaps.setJavascriptEnabled(true);
-      //driver = new PhantomJSDriver(dCaps);
       driver = new JBrowserDriver();
       wait = new WebDriverWait(driver, PAGELOADTIMEOUT);
       driver.manage().timeouts().pageLoadTimeout(PAGELOADTIMEOUT, TimeUnit.SECONDS);
@@ -46,7 +41,7 @@ public class SeleniumSuiteTestBase
       // test server availability
         int time = 0;
         boolean available = false;
-        while (true && time < WAITINGPERIODSERVERSTARTUP && available == false) {
+        while (time < WAITINGPERIODSERVERSTARTUP && available == false) {
           try {
             driver.get(Const.PF_URL);
             if (driver.getCurrentUrl().contains("setup")) {
@@ -70,12 +65,17 @@ public class SeleniumSuiteTestBase
               // if not continue waiting
             }
           }
+          System.out.print("Before-Time : " + time + " ### ");
+          System.out.print(new Date(System.currentTimeMillis()));
+
           try {
-            Thread.sleep(1000 * WAITINGPERIODSERVERSTARTUP);
+            Thread.sleep(1000 * WAITSLOTSERVERSTARTUP);
           } catch (InterruptedException ignored) {
           }
 
           time += WAITSLOTSERVERSTARTUP;
+          System.out.print("After-Time : " + time + " ### ");
+          System.out.print(new Date(System.currentTimeMillis()));
         }
     }
   }
