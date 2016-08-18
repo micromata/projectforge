@@ -20,6 +20,7 @@ import org.projectforge.business.user.I18nHelper;
 import org.projectforge.export.AttrColumnDescription;
 import org.projectforge.export.DOListExcelExporter;
 import org.projectforge.export.DOWithAttrListExcelExporter;
+import org.projectforge.framework.persistence.attr.impl.GuiAttrSchemaService;
 import org.projectforge.plugins.eed.ExtendEmployeeDataEnum;
 import org.projectforge.web.core.MenuBarPanel;
 import org.projectforge.web.wicket.AbstractListPage;
@@ -42,6 +43,9 @@ public class EmployeeListEditPage extends AbstractListPage<EmployeeListEditForm,
 
   @SpringBean
   private TimeableService<Integer, EmployeeTimedDO> timeableService;
+
+  @SpringBean
+  private GuiAttrSchemaService guiAttrSchemaService;
 
   private List<EmployeeDO> dataList;
 
@@ -89,19 +93,17 @@ public class EmployeeListEditPage extends AbstractListPage<EmployeeListEditForm,
           eede.getAttrColumnDescriptions()
               .stream()
               .map(desc -> new AttrInputCellItemListenerPropertyColumn<>(
-                      new ResourceModel(desc.getI18nKey()),
-                      getSortable(desc.getI18nKey(), sortable),
-                      desc.getGroupName(),
-                      desc.getPropertyName(),
-                      cellItemListener,
-                      timeableService,
-                      employeeService,
-                      form.getSelectedMonth(),
-                      form.getSelectedYear()
-                  )
-              )
-              .collect(Collectors.toList())
-      );
+                  new ResourceModel(desc.getI18nKey()),
+                  getSortable(desc.getI18nKey(), sortable),
+                  desc.getGroupName(),
+                  desc.getPropertyName(),
+                  cellItemListener,
+                  timeableService,
+                  employeeService,
+                  guiAttrSchemaService,
+                  form.getSelectedMonth(),
+                  form.getSelectedYear()))
+              .collect(Collectors.toList()));
     }
   }
 
@@ -114,8 +116,10 @@ public class EmployeeListEditPage extends AbstractListPage<EmployeeListEditForm,
     }
     final String[] fieldsToExport = { "id", "user" };
     final List<AttrColumnDescription> attrFieldsToExport = selectedOption.getAttrColumnDescriptions();
-    final Date dateToSelectAttrRow = new GregorianCalendar(form.getSelectedYear(), form.getSelectedMonth() - 1, 1, 0, 0).getTime();
-    return new DOWithAttrListExcelExporter<>(filenameIdentifier, timeableService, fieldsToExport, attrFieldsToExport, dateToSelectAttrRow);
+    final Date dateToSelectAttrRow = new GregorianCalendar(form.getSelectedYear(), form.getSelectedMonth() - 1, 1, 0, 0)
+        .getTime();
+    return new DOWithAttrListExcelExporter<>(filenameIdentifier, timeableService, fieldsToExport, attrFieldsToExport,
+        dateToSelectAttrRow);
   }
 
   @Override
