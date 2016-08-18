@@ -12,32 +12,44 @@ import org.projectforge.export.AttrColumnDescription;
  */
 public enum ExtendEmployeeDataEnum
 {
-  /*
-  MOBILECONTRACT("plugins.eed.listcare.optionDropDown.costmobilecontract",
-      Collections.singletonList(new AttrColumnDescription("mobilecontract", "mobilecontract", "fibu.employee.mobilecontract.title"))), //
-  MOBILECHECK("plugins.eed.listcare.optionDropDown.costmobiledevice",
-      Collections.singletonList(new AttrColumnDescription("mobilecheck", "mobilecheck", "fibu.employee.mobilecheck.title"))),*/ //
-  COSTTRAVEL("plugins.eed.listcare.optionDropDown.costtravel",
-      Collections.singletonList(new AttrColumnDescription("costtravel", "costtravel", "fibu.employee.costtravel.title"))), //
-  EXPENSES("plugins.eed.listcare.optionDropDown.expenses",
-      Collections.singletonList(new AttrColumnDescription("expenses", "expenses", "fibu.employee.expenses.title"))), //
-  OVERTIME("plugins.eed.listcare.optionDropDown.overtime",
-      Collections.singletonList(new AttrColumnDescription("overtime", "overtime", "fibu.employee.overtime.title"))), //
-  BONUS("plugins.eed.listcare.optionDropDown.bonus",
-      Collections.singletonList(new AttrColumnDescription("bonus", "bonus", "fibu.employee.bonus.title"))), //
-  SPECIALPAYMENT("plugins.eed.listcare.optionDropDown.specialpayment",
-      Collections.singletonList(new AttrColumnDescription("specialpayment", "specialpayment", "fibu.employee.specialpayment.title"))), //
-  TARGETAGREEMENTS("plugins.eed.listcare.optionDropDown.targetagreements", Collections.singletonList(
-      new AttrColumnDescription("targetagreements", "targetagreements", "fibu.employee.targetagreements.title"))), //
-  COSTSHOP("plugins.eed.listcare.optionDropDown.costshop",
-      Arrays.asList(new AttrColumnDescription("costshop", "costshop", "fibu.employee.costshop.title"),new AttrColumnDescription("costshop","contents","fibu.employee.costshop.contents"))), //
-  WEEKENDWORK("plugins.eed.listcare.optionDropDown.weekendwork",
+
+  //  MOBILECONTRACT("fibu.employee.mobilecontract.title",
+  //      Collections.singletonList(new AttrColumnDescription("mobilecontract", "mobilecontract", "fibu.employee.mobilecontract.title"))),
+  //
+  //  MOBILECHECK("fibu.employee.mobilecheck.title",
+  //      Collections.singletonList(new AttrColumnDescription("mobilecheck", "mobilecheck", "fibu.employee.mobilecheck.title"))),
+
+  COSTTRAVEL("fibu.employee.costtravel.title",
+      Collections.singletonList(new AttrColumnDescription("costtravel", "costtravel", "fibu.employee.costtravel.amount"))),
+
+  EXPENSES("fibu.employee.expenses.title",
+      Collections.singletonList(new AttrColumnDescription("expenses", "expenses", "fibu.employee.expenses.amount"))),
+
+  OVERTIME("fibu.employee.overtime.title",
+      Collections.singletonList(new AttrColumnDescription("overtime", "overtime", "fibu.employee.overtime.amount"))),
+
+  BONUS("fibu.employee.bonus.title",
+      Collections.singletonList(new AttrColumnDescription("bonus", "bonus", "fibu.employee.bonus.amount"))),
+
+  SPECIALPAYMENT("fibu.employee.specialpayment.title",
+      Collections.singletonList(new AttrColumnDescription("specialpayment", "specialpayment", "fibu.employee.specialpayment.amount"))),
+
+  TARGETAGREEMENTS("fibu.employee.targetagreements.title",
+      Collections.singletonList(new AttrColumnDescription("targetagreements", "targetagreements", "fibu.employee.targetagreements.amount"))),
+
+  COSTSHOP("fibu.employee.costshop.title",
+      Arrays.asList(
+          new AttrColumnDescription("costshop", "costshop", "fibu.employee.costshop.amount"),
+          new AttrColumnDescription("costshop", "contents", "fibu.employee.costshop.contents"))),
+
+  WEEKENDWORK("fibu.employee.weekendwork.title",
       Arrays.asList(
           new AttrColumnDescription("weekendwork", "workinghourssaturday", "fibu.employee.weekendwork.saturday"),
           new AttrColumnDescription("weekendwork", "workinghourssunday", "fibu.employee.weekendwork.sunday"),
-          new AttrColumnDescription("weekendwork", "workinghoursholiday", "fibu.employee.weekendwork.holiday"))), //
-  OTHERS("plugins.eed.listcare.optionDropDown.others",
-      Collections.singletonList(new AttrColumnDescription("others", "others", "fibu.employee.others.title"))); //
+          new AttrColumnDescription("weekendwork", "workinghoursholiday", "fibu.employee.weekendwork.holiday"))),
+
+  OTHERS("fibu.employee.others.title",
+      Collections.singletonList(new AttrColumnDescription("others", "others", "fibu.employee.others.remarks")));
 
   private final String i18nKeyDropDown;
 
