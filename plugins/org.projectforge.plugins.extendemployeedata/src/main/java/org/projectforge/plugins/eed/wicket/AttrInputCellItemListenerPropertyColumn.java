@@ -23,22 +23,22 @@
 
 package org.projectforge.plugins.eed.wicket;
 
-import java.math.BigDecimal;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 
+import org.apache.wicket.Component;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
-import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.projectforge.business.fibu.EmployeeDO;
 import org.projectforge.business.fibu.EmployeeTimedDO;
 import org.projectforge.business.fibu.api.EmployeeService;
-import org.projectforge.web.common.timeattr.AttrModel;
+import org.projectforge.framework.persistence.attr.impl.GuiAttrSchemaService;
 import org.projectforge.web.wicket.CellItemListener;
-import org.projectforge.web.wicket.flowlayout.InputPanel;
 
+import de.micromata.genome.db.jpa.tabattr.api.AttrDescription;
+import de.micromata.genome.db.jpa.tabattr.api.AttrGroup;
 import de.micromata.genome.db.jpa.tabattr.api.TimeableService;
 
 /**
@@ -54,6 +54,8 @@ public class AttrInputCellItemListenerPropertyColumn<T> extends PropertyColumn<T
   protected CellItemListener<T> cellItemListener;
 
   private TimeableService<Integer, EmployeeTimedDO> timeableService;
+
+  private GuiAttrSchemaService guiAttrSchemaService;
 
   private EmployeeService employeeService;
 
@@ -72,13 +74,15 @@ public class AttrInputCellItemListenerPropertyColumn<T> extends PropertyColumn<T
   public AttrInputCellItemListenerPropertyColumn(final IModel<String> displayModel, final String sortProperty,
       final String propertyExpression, final String groupAttribute,
       final CellItemListener<T> cellItemListener, TimeableService<Integer, EmployeeTimedDO> timeableService,
-      EmployeeService employeeService, Integer selectedMonth, Integer selectedYear)
+      EmployeeService employeeService, GuiAttrSchemaService guiAttrSchemaService, Integer selectedMonth,
+      Integer selectedYear)
   {
     super(displayModel, sortProperty, propertyExpression);
     this.cellItemListener = cellItemListener;
     this.groupAttribute = groupAttribute;
     this.timeableService = timeableService;
     this.employeeService = employeeService;
+    this.guiAttrSchemaService = guiAttrSchemaService;
     this.selectedMonth = selectedMonth;
     this.selectedYear = selectedYear;
   }
@@ -110,8 +114,10 @@ public class AttrInputCellItemListenerPropertyColumn<T> extends PropertyColumn<T
       row = employeeService.addNewTimeAttributeRow(employee, getPropertyExpression());
       row.setStartTime(cal.getTime());
     }
-    AttrModel<BigDecimal> attrModel = new AttrModel<>(row, groupAttribute, BigDecimal.class);
-    item.add(new InputPanel(componentId, new TextField<BigDecimal>(InputPanel.WICKET_ID, attrModel)));
+    AttrGroup attrGroup = guiAttrSchemaService.getAttrGroup(employee, getPropertyExpression());
+    AttrDescription attrDescription = attrGroup.getDescriptions().stream()
+        .filter(attrDesc -> attrDesc.getPropertyName().equals(groupAttribute)).findFirst().orElse(null);
+    item.add((Component) guiAttrSchemaService.createWicketComponent(componentId, attrGroup, attrDescription, row));
     if (cellItemListener != null) {
       cellItemListener.populateItem(item, componentId, rowModel);
     }
