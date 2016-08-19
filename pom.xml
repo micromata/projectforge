@@ -477,17 +477,6 @@
 			<url>https://repo.micromata.de/nexus/content/groups/public-snapshots</url>
 		</repository>
 		<repository>
-			<id>de.micromata.labs.projectforge</id>
-			<name>Micromata 
-			Labs PF</name>
-			<url>https://labs.micromata.de/nexus/content/repositories/ProjectForge/</url>
-		</repository>
-		<repository>
-			<id>de.micromata.labs.projectforge.snapshot</id>
-			<name>Micromata Labs PF Snapshot</name>
-			<url>https://labs.micromata.de/nexus/content/repositories/ProjectForge-snapshot/</url>
-		</repository>
-		<repository>
 			<id>MGC</id>
 			<name>Micromata Labs MGC</name>
 			<url>https://labs.micromata.de/nexus/content/repositories/MGC/</url>
