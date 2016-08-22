@@ -92,11 +92,19 @@ public abstract class TestPageBase<T extends TestPageBase>
     clickAndWaitForFullPageReload(driver.findElement(By.id(id)));
   }
 
+
+
   public void clickAndWaitForFullPageReload(WebElement id)
   {
     final WebElement header = driver.findElement(By.id("topbar"));
     id.click();
     waitForPageReload(header);
+  }
+
+  public T clickOnElement(String id)
+  {
+    driver.findElement(By.id(id)).click();
+    return (T) this;
   }
 
   public abstract String getUrlPostfix();
