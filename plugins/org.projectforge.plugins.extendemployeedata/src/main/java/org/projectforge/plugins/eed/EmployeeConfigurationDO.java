@@ -27,7 +27,7 @@ public class EmployeeConfigurationDO extends DefaultBaseDO
   @Field(index = Index.YES /* TOKENIZED */, store = Store.NO)
   private String value;
 
-  @Column(name = "key", length = 255, nullable = false)
+  @Column(name = "key", length = 255)
   public String getKey()
   {
     return key;
@@ -43,7 +43,7 @@ public class EmployeeConfigurationDO extends DefaultBaseDO
     this.value = value;
   }
 
-  @Column(name = "value", length = 255, nullable = false)
+  @Column(name = "value", length = 255)
   public String getValue()
   {
     return value;
