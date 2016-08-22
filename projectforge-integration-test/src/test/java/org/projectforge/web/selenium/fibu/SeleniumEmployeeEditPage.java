@@ -21,6 +21,9 @@ public class SeleniumEmployeeEditPage extends AddressAndBankingEditingPage<Selen
   public static final String gender_MALE = "MALE";
   public static final String gender_FEMALE = "FEMALE";
   public static final String gender_NOT_APPLICABLE = "NOT_APPLICABLE";
+  public static final String nutrition_omnivorous = "fibu.employee.nutrition.omnivorous";
+  public static final String nutrition_vegetarian = "fibu.employee.nutrition.vegetarian";
+  public static final String nutrition_vegan = "fibu.employee.nutrition.vegan";
 
   public SeleniumEmployeeEditPage()
   {
@@ -78,6 +81,27 @@ public class SeleniumEmployeeEditPage extends AddressAndBankingEditingPage<Selen
     return this;
   }
 
+  /**
+   * Set the nutrition with the defined nutrition_* constants in this class
+   *
+   * @param nutrition
+   */
+  public SeleniumEmployeeEditPage setNutrition(String nutrition)
+  {
+    Select nutritionSelect = new Select(driver.findElement(By.id("nutrition-nutrition")));
+    nutritionSelect.selectByValue(nutrition);
+    return this;
+  }
+
+  public SeleniumEmployeeEditPage setProbation(String probation)
+  {
+    return setStringElementById("probation-probation", probation);
+  }
+
+  public String getProbation()
+  {
+    return getStringElementById("probation-probation");
+  }
 
 
   public SeleniumEmployeeEditPage setStaffNumber(String staffNumber)
