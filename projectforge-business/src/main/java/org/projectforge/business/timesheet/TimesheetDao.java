@@ -346,9 +346,14 @@ public class TimesheetDao extends BaseDao<TimesheetDO>
           break;
         }
       }
-      Validate.isTrue(kost2IdFound, "Kost2Id of time sheet is not available in the task's kost2 list!");
+
+      if (kost2IdFound == false) {
+        throw new NoKost2IdException();
+      }
     } else {
-      Validate.isTrue(kost2Id == null, "Kost2Id can't be given for task without any kost2 entries!");
+      if (kost2Id == null) {
+        throw new NoKost2IdException();
+      }
     }
   }
 

@@ -37,6 +37,7 @@ import org.projectforge.Const;
 import org.projectforge.business.address.AddressDao;
 import org.projectforge.business.humanresources.HRPlanningDao;
 import org.projectforge.business.teamcal.filter.ICalendarFilter;
+import org.projectforge.business.timesheet.NoKost2IdException;
 import org.projectforge.business.timesheet.TimesheetDO;
 import org.projectforge.business.timesheet.TimesheetDao;
 import org.projectforge.business.user.ProjectForgeGroup;
@@ -458,9 +459,17 @@ public class CalendarPanel extends Panel
       if (CalendarDropMode.COPY_SAVE.equals(dropMode) == true) {
         if (timesheetDao.hasInsertAccess(loggedInUser, timesheet, false) == false) {
           // User has no insert access, therefore ignore this request...
+          this.error(getString("timesheet.error.taskNotBookable.taskClosedForBooking"));
           return;
         }
-        timesheetDao.save(timesheet);
+        try {
+          timesheetDao.save(timesheet);
+        } catch(NoKost2IdException ex) {
+          TimesheetEditPage timesheetEditPage = new TimesheetEditPage(timesheet);
+          timesheetEditPage.error(getString("timesheet.error.copyNoMatchingKost2"));
+          setResponsePage(timesheetEditPage.setReturnToPage((WebPage) getPage()));
+          return;
+        }
         setResponsePage(getPage());
         return;
       } else if (CalendarDropMode.COPY_EDIT.equals(dropMode) == true) {

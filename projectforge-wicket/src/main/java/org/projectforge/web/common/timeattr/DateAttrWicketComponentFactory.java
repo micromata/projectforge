@@ -32,10 +32,13 @@ public class DateAttrWicketComponentFactory implements AttrWicketComponentFactor
   public ComponentWrapperPanel createComponents(final String id, final AttrGroup group, final AttrDescription desc,
       final EntityWithAttributes entity)
   {
-    final DatePanel dp = new DatePanel(id, new AttrModel<>(entity, desc.getPropertyName(), Date.class),
-        DatePanelSettings.get().withTargetType(java.sql.Date.class));
+    final DatePanel dp = new DatePanel(
+        id,
+        new AttrModel<>(entity, desc.getPropertyName(), Date.class),
+        DatePanelSettings.get().withTargetType(java.sql.Date.class)
+    );
     dp.setRequired(desc.isRequired());
-    setAndOutputMarkupId(dp, group, desc);
+    setAndOutputMarkupId(dp.getFormComponent(), group, desc);
     return dp;
   }
 
