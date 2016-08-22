@@ -23,9 +23,9 @@
 
 package org.projectforge.web.teamcal.event;
 
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
-import java.util.Set;
 
 import org.apache.log4j.Logger;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -42,8 +42,10 @@ import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.teamcal.admin.TeamCalDao;
 import org.projectforge.business.teamcal.admin.model.TeamCalDO;
+import org.projectforge.business.teamcal.event.AttendeeComparator;
 import org.projectforge.business.teamcal.event.TeamEventDao;
 import org.projectforge.business.teamcal.event.TeamEventRecurrenceData;
+import org.projectforge.business.teamcal.event.TeamEventService;
 import org.projectforge.business.teamcal.event.TeamEventUtils;
 import org.projectforge.business.teamcal.event.model.TeamEventAttendeeDO;
 import org.projectforge.business.teamcal.event.model.TeamEventDO;
@@ -55,7 +57,8 @@ import org.projectforge.framework.time.DateHelper;
 import org.projectforge.framework.time.DateHolder;
 import org.projectforge.framework.time.DatePrecision;
 import org.projectforge.framework.time.RecurrenceFrequency;
-import org.projectforge.web.WebConfiguration;
+import org.projectforge.web.common.MultiChoiceListHelper;
+import org.projectforge.web.user.AttendeeWicketProvider;
 import org.projectforge.web.wicket.AbstractEditForm;
 import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.web.wicket.autocompletion.PFAutoCompleteMaxLengthTextField;
@@ -76,6 +79,8 @@ import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
 import org.projectforge.web.wicket.flowlayout.HtmlCommentPanel;
 import org.projectforge.web.wicket.flowlayout.InputPanel;
 import org.projectforge.web.wicket.flowlayout.ToggleContainerPanel;
+
+import com.vaynberg.wicket.select2.Select2MultiChoice;
 
 import net.fortuna.ical4j.model.Recur;
 
@@ -99,7 +104,10 @@ public class TeamEventEditForm extends AbstractEditForm<TeamEventDO, TeamEventEd
   private transient TeamEventDao teamEventDao;
 
   @SpringBean
-  transient AccessChecker accessChecker;
+  private transient AccessChecker accessChecker;
+
+  @SpringBean
+  private transient TeamEventService teamEventService;
 
   private DateTimePanel startDateTimePanel;
 
@@ -111,7 +119,7 @@ public class TeamEventEditForm extends AbstractEditForm<TeamEventDO, TeamEventEd
 
   private FieldsetPanel startDateField;
 
-  TeamEventRecurrenceData recurrenceData;
+  protected TeamEventRecurrenceData recurrenceData;
 
   private DivPanel customizedCheckBoxButton;
 
@@ -120,9 +128,7 @@ public class TeamEventEditForm extends AbstractEditForm<TeamEventDO, TeamEventEd
   private FieldsetPanel recurrenceFieldset, recurrenceUntilDateFieldset, recurrenceIntervalFieldset,
       recurrenceExDateFieldset;
 
-  final transient TeamEventRight right;
-
-  private Set<TeamEventAttendeeDO> attendees;
+  private final transient TeamEventRight right;
 
   private final FormComponent<?>[] dependentFormComponents = new FormComponent[6];
 
@@ -130,6 +136,8 @@ public class TeamEventEditForm extends AbstractEditForm<TeamEventDO, TeamEventEd
   private TeamCalDO[] calendarsWithFullAccess;
 
   protected FileUploadField fileUploadField;
+
+  protected MultiChoiceListHelper<TeamEventAttendeeDO> assignAttendeesListHelper;
 
   /**
    * @param parentPage
@@ -203,6 +211,32 @@ public class TeamEventEditForm extends AbstractEditForm<TeamEventDO, TeamEventEd
       };
       locationTextField.withMatchContains(true).withMinChars(3);
       fieldSet.add(locationTextField);
+      if (access == false)
+        fieldSet.setEnabled(false);
+    }
+    {
+      // ATTENDEE
+      final FieldsetPanel fieldSet = gridBuilder.newFieldset(getString("plugins.teamcal.attendees"));
+
+      final Collection<Integer> set = teamEventService.getAssignedAttendeeIds(data);
+      assignAttendeesListHelper = new MultiChoiceListHelper<TeamEventAttendeeDO>()
+          .setComparator(new AttendeeComparator()).setFullList(
+              teamEventService.getSortedAddressesAsAttendee());
+      if (set != null) {
+        for (final Integer attendeeId : set) {
+          final TeamEventAttendeeDO attendee = teamEventService.getAttendee(attendeeId);
+          if (attendee != null) {
+            assignAttendeesListHelper.addOriginalAssignedItem(attendee).assignItem(attendee);
+          }
+        }
+      }
+
+      final Select2MultiChoice<TeamEventAttendeeDO> attendees = new Select2MultiChoice<TeamEventAttendeeDO>(
+          fieldSet.getSelect2MultiChoiceId(),
+          new PropertyModel<Collection<TeamEventAttendeeDO>>(this.assignAttendeesListHelper, "assignedItems"),
+          new AttendeeWicketProvider(data, teamEventService));
+      attendees.setMarkupId("attendees").setOutputMarkupId(true);
+      fieldSet.add(attendees);
       if (access == false)
         fieldSet.setEnabled(false);
     }
@@ -348,13 +382,13 @@ public class TeamEventEditForm extends AbstractEditForm<TeamEventDO, TeamEventEd
       // customized yearly: month of year and see day of month.
     }
 
-    if (WebConfiguration.isDevelopmentMode() == true) {
-      gridBuilder.newSplitPanel(GridSize.COL50);
-      final FieldsetPanel fs = gridBuilder.newFieldset(getString("plugins.teamcal.attendees"))
-          .suppressLabelForWarning();
-      attendees = getData().ensureAttendees();
-      fs.add(new TeamAttendeesPanel(fs.newChildId(), attendees));
-    }
+    //    if (WebConfiguration.isDevelopmentMode() == true) {
+    //      gridBuilder.newSplitPanel(GridSize.COL50);
+    //      final FieldsetPanel fs = gridBuilder.newFieldset(getString("plugins.teamcal.attendees"))
+    //          .suppressLabelForWarning();
+    //      attendees = getData().ensureAttendees();
+    //      fs.add(new TeamAttendeesPanel(fs.newChildId(), attendees));
+    //    }
 
     //    {
     //      final FieldsetPanel fs = gridBuilder.newFieldset(getString("file"), "*.*");

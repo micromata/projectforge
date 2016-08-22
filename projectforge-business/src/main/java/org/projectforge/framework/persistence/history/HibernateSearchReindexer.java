@@ -87,7 +87,7 @@ public class HibernateSearchReindexer
       if (StringUtils.isNotBlank(recipients) == true) {
         log.info("Try to inform administrator about re-indexing error.");
         final Mail msg = new Mail();
-        msg.setTo(recipients);
+        msg.addTo(recipients);
         msg.setProjectForgeSubject("Error while re-indexing ProjectForge data-base.");
         msg.setContent(ERROR_MSG + "\n\nResult:\n" + result);
         msg.setContentType(Mail.CONTENTTYPE_TEXT);
