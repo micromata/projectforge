@@ -23,10 +23,7 @@
 
 package org.projectforge.web;
 
-import static org.projectforge.business.user.ProjectForgeGroup.ADMIN_GROUP;
-import static org.projectforge.business.user.ProjectForgeGroup.CONTROLLING_GROUP;
-import static org.projectforge.business.user.ProjectForgeGroup.FINANCE_GROUP;
-import static org.projectforge.business.user.ProjectForgeGroup.ORGA_TEAM;
+import static org.projectforge.business.user.ProjectForgeGroup.*;
 import static org.projectforge.business.user.UserRightServiceImpl.READONLY_PARTLYREADWRITE_READWRITE;
 import static org.projectforge.business.user.UserRightServiceImpl.READONLY_READWRITE;
 

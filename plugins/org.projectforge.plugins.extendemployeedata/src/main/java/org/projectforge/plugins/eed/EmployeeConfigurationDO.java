@@ -1,26 +1,25 @@
 package org.projectforge.plugins.eed;
 
-import de.micromata.genome.db.jpa.history.api.WithHistory;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.Table;
+import javax.persistence.UniqueConstraint;
+
 import org.hibernate.search.annotations.Field;
 import org.hibernate.search.annotations.Index;
 import org.hibernate.search.annotations.Indexed;
 import org.hibernate.search.annotations.Store;
 import org.projectforge.framework.persistence.entities.DefaultBaseDO;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Table;
-import javax.persistence.UniqueConstraint;
+import de.micromata.genome.db.jpa.history.api.WithHistory;
 
 @Entity
 @Indexed
-@Table(name = "T_PLUGIN_EMPLOYEE_GENERAL_VALUE",
+@Table(name = "T_PLUGIN_EMPLOYEE_CONFIGURATION",
     uniqueConstraints = { @UniqueConstraint(columnNames = {"key", "tenant_id" }) })
 @WithHistory
-public class EmployeeGeneralValueDO extends DefaultBaseDO
+public class EmployeeConfigurationDO extends DefaultBaseDO
 {
-
-  private static final long serialVersionUID = -2146312748316341791L;
 
   @Field(index = Index.YES /* TOKENIZED */, store = Store.NO)
   private String key;
