@@ -7,17 +7,17 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Repository
 @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
-public class EmployeeGeneralValueDao extends BaseDao<EmployeeGeneralValueDO>
+public class EmployeeConfigurationDao extends BaseDao<EmployeeConfigurationDO>
 {
-
-  protected EmployeeGeneralValueDao()
+  protected EmployeeConfigurationDao()
   {
-    super(EmployeeGeneralValueDO.class);
+    super(EmployeeConfigurationDO.class);
     userRightId = ExtendEmployeeDataPluginUserRightId.PLUGIN_EXTENDEMPLOYEEDATA;
   }
 
-  @Override public EmployeeGeneralValueDO newInstance()
+  @Override
+  public EmployeeConfigurationDO newInstance()
   {
-    return new EmployeeGeneralValueDO();
+    return new EmployeeConfigurationDO();
   }
 }

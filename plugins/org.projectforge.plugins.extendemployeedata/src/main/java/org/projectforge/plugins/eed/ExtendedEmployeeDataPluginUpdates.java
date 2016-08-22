@@ -7,9 +7,6 @@ import org.projectforge.continuousdb.UpdatePreCheckStatus;
 import org.projectforge.continuousdb.UpdateRunningStatus;
 import org.projectforge.framework.persistence.database.MyDatabaseUpdateService;
 
-import java.util.ArrayList;
-import java.util.List;
-
 public class ExtendedEmployeeDataPluginUpdates
 {
   static MyDatabaseUpdateService dao;
@@ -17,26 +14,27 @@ public class ExtendedEmployeeDataPluginUpdates
   @SuppressWarnings("serial")
   public static UpdateEntry getInitializationUpdateEntry()
   {
-    return new UpdateEntryImpl(ExtendEmployeeDataPlugin.ID, "6.3", "2016-08-16", "Adds T_PLUGIN_EMPLOYEE_GENERAL_VALUE") {
-
-    @Override
-    public UpdatePreCheckStatus runPreCheck()
+    return new UpdateEntryImpl(ExtendEmployeeDataPlugin.ID, "6.3", "2016-08-16", "Adds T_PLUGIN_EMPLOYEE_CONFIGURATION")
     {
-      // Does the data-base table already exist?
-      if (dao.doEntitiesExist(EmployeeGeneralValueDO.class)) {
-        return UpdatePreCheckStatus.ALREADY_UPDATED;
-      } else {
-        return UpdatePreCheckStatus.READY_FOR_UPDATE;
+
+      @Override
+      public UpdatePreCheckStatus runPreCheck()
+      {
+        // Does the data-base table already exist?
+        if (dao.doEntitiesExist(EmployeeConfigurationDO.class)) {
+          return UpdatePreCheckStatus.ALREADY_UPDATED;
+        } else {
+          return UpdatePreCheckStatus.READY_FOR_UPDATE;
+        }
       }
-    }
 
-    @Override
-    public UpdateRunningStatus runUpdate()
-    {
-      new SchemaGenerator(dao).add(EmployeeGeneralValueDO.class).createSchema();
-      dao.createMissingIndices();
-      return UpdateRunningStatus.DONE;
-    }
-  };
+      @Override
+      public UpdateRunningStatus runUpdate()
+      {
+        new SchemaGenerator(dao).add(EmployeeConfigurationDO.class).createSchema();
+        dao.createMissingIndices();
+        return UpdateRunningStatus.DONE;
+      }
+    };
   }
 }

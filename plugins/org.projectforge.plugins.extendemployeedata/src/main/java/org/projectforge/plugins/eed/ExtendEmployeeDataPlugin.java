@@ -30,15 +30,13 @@ import org.projectforge.business.user.UserRightId;
 import org.projectforge.continuousdb.UpdateEntry;
 import org.projectforge.plugins.core.AbstractPlugin;
 import org.projectforge.plugins.eed.wicket.EmployeeBillingImportPage;
-import org.projectforge.plugins.eed.wicket.EmployeeGeneralValueConfigurationPage;
+import org.projectforge.plugins.eed.wicket.EmployeeConfigurationPage;
 import org.projectforge.plugins.eed.wicket.EmployeeListEditPage;
 import org.projectforge.plugins.eed.wicket.ExportDataPage;
 import org.projectforge.web.MenuItemDef;
 import org.projectforge.web.MenuItemDefId;
 import org.projectforge.web.plugin.PluginWicketRegistrationService;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import java.util.List;
 
 /**
  * @author Florian Blumenstein
@@ -86,7 +84,7 @@ public class ExtendEmployeeDataPlugin extends AbstractPlugin
     pluginWicketRegistrationService
         .registerMenuItem(new MenuItemDef(parentMenu, ID, 23, "plugins.eed.menu.export", ExportDataPage.class));
     pluginWicketRegistrationService
-        .registerMenuItem(new MenuItemDef(parentMenu, ID, 24, "plugins.eed.menu.config", EmployeeGeneralValueConfigurationPage.class));
+        .registerMenuItem(new MenuItemDef(parentMenu, ID, 24, "plugins.eed.menu.config", EmployeeConfigurationPage.class));
 
     // Define the access management:
     registerRight(new ExtendEmployeeDataRight(accessChecker));
