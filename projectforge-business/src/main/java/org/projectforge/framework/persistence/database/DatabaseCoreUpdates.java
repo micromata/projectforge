@@ -86,9 +86,38 @@ public class DatabaseCoreUpdates
     final List<UpdateEntry> list = new ArrayList<>();
 
     ////////////////////////////////////////////////////////////////////
+    // 6.3.0
+    // /////////////////////////////////////////////////////////////////
+    list.add(new UpdateEntryImpl(CORE_REGION_ID, "6.3.0", "2016-08-31", "Add column to attendee data table.")
+    {
+      @Override
+      public UpdatePreCheckStatus runPreCheck()
+      {
+        log.info("Running pre-check for ProjectForge version 6.3.0");
+        final MyDatabaseUpdateService databaseUpdateDao = applicationContext.getBean(MyDatabaseUpdateService.class);
+        if (databaseUpdateDao.doesTableAttributeExist("T_PLUGIN_CALENDAR_EVENT_ATTENDEE", "address_id") == false) {
+          return UpdatePreCheckStatus.READY_FOR_UPDATE;
+        } else {
+          return UpdatePreCheckStatus.ALREADY_UPDATED;
+        }
+      }
+
+      @Override
+      public UpdateRunningStatus runUpdate()
+      {
+        InitDatabaseDao initDatabaseDao = applicationContext.getBean(InitDatabaseDao.class);
+        //Updating the schema
+        initDatabaseDao.updateSchema();
+        return UpdateRunningStatus.DONE;
+      }
+
+    });
+
+    ////////////////////////////////////////////////////////////////////
     // 6.1.1
     // /////////////////////////////////////////////////////////////////
-    list.add(new UpdateEntryImpl(CORE_REGION_ID, "6.1.1", "2016-07-27", "Changed timezone of starttime of the configurable attributes.")
+    list.add(new UpdateEntryImpl(CORE_REGION_ID, "6.1.1", "2016-07-27",
+        "Changed timezone of starttime of the configurable attributes.")
     {
       @Override
       public UpdatePreCheckStatus runPreCheck()
@@ -104,18 +133,16 @@ public class DatabaseCoreUpdates
         }
 
         final PfEmgrFactory emf = applicationContext.getBean(PfEmgrFactory.class);
-        final boolean timeFieldsOfAllEmployeeTimedDOsStartTimeAreZero = emf.runWoTrans(emgr ->
-            emgr.selectAllAttached(EmployeeTimedDO.class)
+        final boolean timeFieldsOfAllEmployeeTimedDOsStartTimeAreZero = emf
+            .runWoTrans(emgr -> emgr.selectAllAttached(EmployeeTimedDO.class)
                 .stream()
                 .map(EmployeeTimedDO::getStartTime)
                 .map(DateHelper::convertDateToLocalDateTimeInUTC)
                 .map(localDateTime -> localDateTime.get(ChronoField.SECOND_OF_DAY))
-                .allMatch(seconds -> seconds == 0)
-        );
+                .allMatch(seconds -> seconds == 0));
 
-        return timeFieldsOfAllEmployeeTimedDOsStartTimeAreZero ?
-            UpdatePreCheckStatus.ALREADY_UPDATED :
-            UpdatePreCheckStatus.READY_FOR_UPDATE;
+        return timeFieldsOfAllEmployeeTimedDOsStartTimeAreZero ? UpdatePreCheckStatus.ALREADY_UPDATED
+            : UpdatePreCheckStatus.READY_FOR_UPDATE;
       }
 
       @Override
@@ -135,13 +162,10 @@ public class DatabaseCoreUpdates
         final Date oldStartTime = entity.getStartTime();
         LocalDateTime ldt = DateHelper.convertDateToLocalDateTimeInUTC(oldStartTime);
         /*
-         * In UTC+x the UTC hour value of 00:00:00 is 24-x hours and minus 1 day if x > 0
-         * examples:
-         *   00:00:00 in UTC+1  is 23:00:00 minus 1 day in UTC
-         *   00:00:00 in UTC+12 is 12:00:00 minus 1 day in UTC
-         *   00:00:00 in UTC-1  is 01:00:00 in UTC
-         *   00:00:00 in UTC-11 is 11:00:00 in UTC
-         * therefore, to calculate the zoned time back to local time, we have to add one day if hour >= 12
+         * In UTC+x the UTC hour value of 00:00:00 is 24-x hours and minus 1 day if x > 0 examples: 00:00:00 in UTC+1 is
+         * 23:00:00 minus 1 day in UTC 00:00:00 in UTC+12 is 12:00:00 minus 1 day in UTC 00:00:00 in UTC-1 is 01:00:00
+         * in UTC 00:00:00 in UTC-11 is 11:00:00 in UTC therefore, to calculate the zoned time back to local time, we
+         * have to add one day if hour >= 12
          */
         final int daysToAdd = (ldt.getHour() >= 12) ? 1 : 0;
         ldt = ldt.toLocalDate().plusDays(daysToAdd).atStartOfDay();
