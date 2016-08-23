@@ -7,15 +7,14 @@ import javax.persistence.UniqueConstraint;
 
 import org.hibernate.search.annotations.Field;
 import org.hibernate.search.annotations.Index;
-import org.hibernate.search.annotations.Indexed;
 import org.hibernate.search.annotations.Store;
 import org.projectforge.framework.persistence.entities.DefaultBaseDO;
 
 import de.micromata.genome.db.jpa.history.api.WithHistory;
 
 @Entity
-@Indexed
 @Table(name = "T_PLUGIN_EMPLOYEE_CONFIGURATION",
+    // TODO CT: remove key, replace with something else?
     uniqueConstraints = { @UniqueConstraint(columnNames = {"key", "tenant_id" }) })
 @WithHistory
 public class EmployeeConfigurationDO extends DefaultBaseDO

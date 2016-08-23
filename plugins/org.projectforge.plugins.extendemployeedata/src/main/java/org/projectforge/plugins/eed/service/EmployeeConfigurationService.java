@@ -26,4 +26,9 @@ public class EmployeeConfigurationService
     return employeeConfigurationDOs.get(0);
   }
 
+  public EmployeeConfigurationDao getDao()
+  {
+    return employeeConfigurationDao;
+  }
+
 }
