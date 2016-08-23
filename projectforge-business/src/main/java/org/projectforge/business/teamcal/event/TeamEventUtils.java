@@ -52,6 +52,7 @@ import net.fortuna.ical4j.model.component.CalendarComponent;
 import net.fortuna.ical4j.model.component.VAlarm;
 import net.fortuna.ical4j.model.component.VEvent;
 import net.fortuna.ical4j.model.parameter.Value;
+import net.fortuna.ical4j.model.property.DtEnd;
 import net.fortuna.ical4j.model.property.DtStart;
 import net.fortuna.ical4j.model.property.ExDate;
 import net.fortuna.ical4j.model.property.RRule;
@@ -219,9 +220,12 @@ public class TeamEventUtils
     final TeamEventDO teamEvent = new TeamEventDO();
     teamEvent.setTimeZone(timeZone);
     final DtStart dtStart = event.getStartDate();
-    final String value = dtStart.toString();
-    if (value.indexOf("VALUE=DATE") >= 0) {
-      teamEvent.setAllDay(true);
+    final DtEnd dtEnd = event.getEndDate();
+    if (dtStart != null && dtEnd == null) {
+      if (dtStart.getValue().contains("VALUE=DATE") == true
+          && dtStart.getValue().contains("VALUE=DATE-TIME") == false) {
+        teamEvent.setAllDay(true);
+      }
     }
     Timestamp timestamp = ICal4JUtils.getSqlTimestamp(dtStart.getDate());
     teamEvent.setStartDate(timestamp);
