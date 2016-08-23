@@ -10,7 +10,7 @@ public interface TeamEventService
 {
   List<Integer> getAssignedAttendeeIds(TeamEventDO data);
 
-  List<TeamEventAttendeeDO> getSortedAddressesAsAttendee();
+  List<TeamEventAttendeeDO> getAddressesAndUserAsAttendee();
 
   TeamEventAttendeeDO getAttendee(Integer attendeeId);
 

@@ -31,6 +31,7 @@ import java.util.Set;
 import org.projectforge.business.teamcal.event.TeamEventService;
 import org.projectforge.business.teamcal.event.model.TeamEventAttendeeDO;
 import org.projectforge.business.teamcal.event.model.TeamEventDO;
+import org.projectforge.business.user.I18nHelper;
 import org.projectforge.framework.utils.NumberHelper;
 
 import com.vaynberg.wicket.select2.Response;
@@ -76,7 +77,14 @@ public class AttendeeWicketProvider extends TextChoiceProvider<TeamEventAttendee
   @Override
   protected String getDisplayText(final TeamEventAttendeeDO choice)
   {
-    String name = choice.getAddress() != null ? choice.getAddress().getFullName() : "";
+    String name = "";
+    if (choice.getAddress() != null) {
+      if (choice.getUser() != null) {
+        name = "[" + I18nHelper.getLocalizedString("user") + "] " + choice.getAddress().getFullName();
+      } else {
+        name = "[" + I18nHelper.getLocalizedString("address.addressText") + "] " + choice.getAddress().getFullName();
+      }
+    }
     String mail = choice.getAddress() != null ? choice.getAddress().getEmail() : choice.getUrl();
     if (mail == null) {
       mail = "";
@@ -100,7 +108,7 @@ public class AttendeeWicketProvider extends TextChoiceProvider<TeamEventAttendee
   public void query(String term, final int page, final Response<TeamEventAttendeeDO> response)
   {
     if (sortedAttendees == null) {
-      sortedAttendees = teamEventService.getSortedAddressesAsAttendee();
+      sortedAttendees = teamEventService.getAddressesAndUserAsAttendee();
       Set<TeamEventAttendeeDO> assignedAttendees = event.getAttendees();
       List<TeamEventAttendeeDO> removeAddressAttendeeList = new ArrayList<>();
       if (assignedAttendees != null) {

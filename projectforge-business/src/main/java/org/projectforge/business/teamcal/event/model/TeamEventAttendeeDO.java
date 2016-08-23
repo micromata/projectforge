@@ -42,6 +42,7 @@ import org.apache.commons.lang.builder.HashCodeBuilder;
 import org.hibernate.search.annotations.Indexed;
 import org.projectforge.business.address.AddressDO;
 import org.projectforge.framework.persistence.entities.DefaultBaseDO;
+import org.projectforge.framework.persistence.user.entities.PFUserDO;
 
 import de.micromata.genome.db.jpa.history.api.WithHistory;
 
@@ -56,6 +57,7 @@ import de.micromata.genome.db.jpa.history.api.WithHistory;
             columnList = "team_event_fk"),
         @javax.persistence.Index(name = "idx_fk_t_plugin_calendar_event_attendee_address_id",
             columnList = "address_id"),
+        @javax.persistence.Index(name = "idx_fk_t_plugin_calendar_event_attendee_user_id", columnList = "user_id"),
         @javax.persistence.Index(name = "idx_fk_t_plugin_calendar_event_attendee_tenant_id", columnList = "tenant_id")
     })
 @WithHistory(noHistoryProperties = "loginToken")
@@ -68,6 +70,8 @@ public class TeamEventAttendeeDO extends DefaultBaseDO implements Comparable<Tea
   private String url;
 
   private AddressDO address;
+
+  private PFUserDO user;
 
   private String loginToken;
 
@@ -115,6 +119,37 @@ public class TeamEventAttendeeDO extends DefaultBaseDO implements Comparable<Tea
       return null;
     }
     return address.getId();
+  }
+
+  /**
+   * Is set if the attendee is a ProjectForge user.
+   * 
+   * @return the userId
+   */
+  @ManyToOne(fetch = FetchType.EAGER)
+  @JoinColumn(name = "user_id")
+  public PFUserDO getUser()
+  {
+    return user;
+  }
+
+  /**
+   * @param user the user to set
+   * @return this for chaining.
+   */
+  public TeamEventAttendeeDO setUser(final PFUserDO user)
+  {
+    this.user = user;
+    return this;
+  }
+
+  @Transient
+  public Integer getUserId()
+  {
+    if (this.user == null) {
+      return null;
+    }
+    return user.getId();
   }
 
   /**
@@ -259,6 +294,7 @@ public class TeamEventAttendeeDO extends DefaultBaseDO implements Comparable<Tea
     if (this.getId() != null) {
       return hcb.toHashCode();
     }
+    hcb.append(this.getUserId());
     hcb.append(this.getAddressId());
     hcb.append(this.url);
     return hcb.toHashCode();
@@ -276,6 +312,9 @@ public class TeamEventAttendeeDO extends DefaultBaseDO implements Comparable<Tea
     final TeamEventAttendeeDO other = (TeamEventAttendeeDO) o;
     if (this.getId() != null && other.getId() != null && ObjectUtils.equals(this.getId(), other.getId()) == true) {
       return true;
+    }
+    if (ObjectUtils.equals(this.getUserId(), other.getUserId()) == false) {
+      return false;
     }
     if (this.getAddress() != null && other.getAddress() != null
         && ObjectUtils.equals(this.getAddressId(), other.getAddressId()) == false) {
