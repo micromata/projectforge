@@ -16,9 +16,6 @@ public class EmployeeConfigurationPage
   private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(EmployeeConfigurationPage.class);
 
   @SpringBean
-  private EmployeeConfigurationDao employeeConfigurationDao;
-
-  @SpringBean
   private EmployeeConfigurationService employeeConfigurationService;
 
   private List<EmployeeConfigurationDO> dataList;
@@ -45,6 +42,6 @@ public class EmployeeConfigurationPage
   @Override
   public EmployeeConfigurationDao getBaseDao()
   {
-    return employeeConfigurationDao;
+    return employeeConfigurationService.getDao();
   }
 }

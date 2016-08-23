@@ -15,7 +15,7 @@ public class ExtendedEmployeeDataPluginUpdates
   @SuppressWarnings("serial")
   public static UpdateEntry getInitializationUpdateEntry()
   {
-    return new UpdateEntryImpl(ExtendEmployeeDataPlugin.ID, "6.3", "2016-08-16", "Adds T_PLUGIN_EMPLOYEE_CONFIGURATION")
+    return new UpdateEntryImpl(ExtendEmployeeDataPlugin.ID, "6.3", "2016-08-16", "Adds T_PLUGIN_EMPLOYEE_CONFIGURATION* Tables")
     {
 
       @Override
