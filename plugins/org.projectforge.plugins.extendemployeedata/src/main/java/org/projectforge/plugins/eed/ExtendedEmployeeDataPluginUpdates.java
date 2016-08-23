@@ -1,10 +1,11 @@
 package org.projectforge.plugins.eed;
 
-import org.projectforge.continuousdb.SchemaGenerator;
 import org.projectforge.continuousdb.UpdateEntry;
 import org.projectforge.continuousdb.UpdateEntryImpl;
 import org.projectforge.continuousdb.UpdatePreCheckStatus;
 import org.projectforge.continuousdb.UpdateRunningStatus;
+import org.projectforge.framework.configuration.ApplicationContextProvider;
+import org.projectforge.framework.persistence.database.InitDatabaseDao;
 import org.projectforge.framework.persistence.database.MyDatabaseUpdateService;
 
 public class ExtendedEmployeeDataPluginUpdates
@@ -31,8 +32,9 @@ public class ExtendedEmployeeDataPluginUpdates
       @Override
       public UpdateRunningStatus runUpdate()
       {
-        new SchemaGenerator(dao).add(EmployeeConfigurationDO.class).createSchema();
-        dao.createMissingIndices();
+        InitDatabaseDao initDatabaseDao = ApplicationContextProvider.getApplicationContext().getBean(InitDatabaseDao.class);
+        // Updating the schema
+        initDatabaseDao.updateSchema();
         return UpdateRunningStatus.DONE;
       }
     };
