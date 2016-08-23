@@ -16,6 +16,8 @@ import org.projectforge.business.teamcal.event.model.TeamEventAttendeeDO;
 import org.projectforge.business.teamcal.event.model.TeamEventAttendeeDao;
 import org.projectforge.business.teamcal.event.model.TeamEventDO;
 import org.projectforge.business.user.I18nHelper;
+import org.projectforge.business.user.service.UserService;
+import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.mail.Mail;
 import org.projectforge.mail.SendMail;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,6 +43,9 @@ public class TeamEventServiceImpl implements TeamEventService
   @Autowired
   private ICSGenerator icsGenerator;
 
+  @Autowired
+  private UserService userService;
+
   @Override
   public List<Integer> getAssignedAttendeeIds(TeamEventDO data)
   {
@@ -52,7 +57,7 @@ public class TeamEventServiceImpl implements TeamEventService
   }
 
   @Override
-  public List<TeamEventAttendeeDO> getSortedAddressesAsAttendee()
+  public List<TeamEventAttendeeDO> getAddressesAndUserAsAttendee()
   {
     List<TeamEventAttendeeDO> resultList = new ArrayList<>();
     List<AddressDO> allAddressList = addressDao.internalLoadAll().stream()
@@ -62,6 +67,10 @@ public class TeamEventServiceImpl implements TeamEventService
       if (StringUtils.isBlank(singleAddress.getEmail()) == false) {
         TeamEventAttendeeDO attendee = new TeamEventAttendeeDO();
         attendee.setAddress(singleAddress);
+        List<PFUserDO> userWithSameMail = userService.findUserByMail(singleAddress.getEmail());
+        if (userWithSameMail.size() > 0) {
+          attendee.setUser(userWithSameMail.get(0));
+        }
         resultList.add(attendee);
       }
     }
@@ -109,7 +118,7 @@ public class TeamEventServiceImpl implements TeamEventService
       }
     }
     msg.setProjectForgeSubject(I18nHelper.getLocalizedString("plugins.teamcal.attendee.email.subject"));
-    msg.setContent("plugins.teamcal.attendee.email.content");
+    msg.setContent(I18nHelper.getLocalizedString("plugins.teamcal.attendee.email.content"));
     msg.setContentType(Mail.CONTENTTYPE_HTML);
     ByteArrayOutputStream icsFile = icsGenerator.getIcsFile(data);
     boolean result = false;

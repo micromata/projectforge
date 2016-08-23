@@ -221,7 +221,7 @@ public class TeamEventEditForm extends AbstractEditForm<TeamEventDO, TeamEventEd
       final Collection<Integer> set = teamEventService.getAssignedAttendeeIds(data);
       assignAttendeesListHelper = new MultiChoiceListHelper<TeamEventAttendeeDO>()
           .setComparator(new AttendeeComparator()).setFullList(
-              teamEventService.getSortedAddressesAsAttendee());
+              teamEventService.getAddressesAndUserAsAttendee());
       if (set != null) {
         for (final Integer attendeeId : set) {
           final TeamEventAttendeeDO attendee = teamEventService.getAttendee(attendeeId);

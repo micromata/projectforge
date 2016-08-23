@@ -595,4 +595,16 @@ public class UserServiceImpl implements UserService
     return userDao.getUserByAuthenticationToken(userId, authKey);
   }
 
+  @Override
+  public List<PFUserDO> findUserByMail(String email)
+  {
+    List<PFUserDO> userList = new ArrayList<>();
+    for (PFUserDO user : getUserGroupCache().getAllUsers()) {
+      if (user.getEmail() != null && user.getEmail().toLowerCase().equals(email.toLowerCase())) {
+        userList.add(user);
+      }
+    }
+    return userList;
+  }
+
 }
