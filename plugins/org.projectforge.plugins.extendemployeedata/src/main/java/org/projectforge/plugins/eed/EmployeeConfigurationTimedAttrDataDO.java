@@ -14,6 +14,17 @@ import de.micromata.genome.db.jpa.tabattr.entities.JpaTabAttrDataBaseDO;
 @Table(name = "T_PLUGIN_EMPLOYEE_CONFIGURATION_TIMEDATTRDATA")
 public class EmployeeConfigurationTimedAttrDataDO extends JpaTabAttrDataBaseDO<EmployeeConfigurationTimedAttrDO, Integer>
 {
+  // this constructor is necessary for JPA
+  public EmployeeConfigurationTimedAttrDataDO()
+  {
+    super();
+  }
+
+  public EmployeeConfigurationTimedAttrDataDO(EmployeeConfigurationTimedAttrDO parent)
+  {
+    super(parent);
+  }
+
   public EmployeeConfigurationTimedAttrDataDO(final EmployeeConfigurationTimedAttrDO parent, final String data)
   {
     super(parent, data);

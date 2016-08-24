@@ -23,7 +23,8 @@ public class EmployeeConfigurationPage
   public EmployeeConfigurationPage(PageParameters parameters)
   {
     super(parameters, "plugins.eed.config");
-    EmployeeConfigurationDO valueDO = employeeConfigurationService.getTheDO();
+
+    final EmployeeConfigurationDO valueDO = employeeConfigurationService.getTheDO();
     init(valueDO);
   }
 

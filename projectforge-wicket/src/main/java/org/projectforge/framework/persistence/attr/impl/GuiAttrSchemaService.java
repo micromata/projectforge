@@ -80,4 +80,17 @@ public interface GuiAttrSchemaService extends AttrSchemaService
    */
   <PK extends Serializable, T extends TimeableAttrRow<PK>, U extends EntityWithConfigurableAttr & EntityWithTimeableAttr<PK, T> & EntityWithAttributes>
   void createAttrPanels(final TabPanel tabPanel, final U entity, final AbstractEditPage<?, ?, ?> parentPage, final Function<AttrGroup, T> addNewEntryFunction);
+
+  /**
+   * Creates TimedAttributePanels only depending on the AttrSchema of the given entity and adds them to the given divPanel.
+   *
+   * @param divPanel            The divPanel to add the (Timed-)AttributePanels.
+   * @param entity              The entity with configurable and timeable attributes.
+   * @param parentPage          The parentPage to add the modal dialogs of the TimedAttributePanels.
+   * @param addNewEntryFunction This function is used to add a new timeableAttrRow from within the TimedAttributePanels.
+   */
+  <PK extends Serializable, T extends TimeableAttrRow<PK>, U extends EntityWithConfigurableAttr & EntityWithTimeableAttr<PK, T>>
+  void createTimedAttrPanels(final DivPanel divPanel, final U entity, final AbstractEditPage<?, ?, ?> parentPage,
+      final Function<AttrGroup, T> addNewEntryFunction);
+
 }

@@ -1,19 +1,45 @@
 package org.projectforge.plugins.eed.wicket;
 
+import java.util.function.Function;
+
 import org.apache.log4j.Logger;
+import org.apache.wicket.spring.injection.annot.SpringBean;
+import org.projectforge.framework.persistence.attr.impl.GuiAttrSchemaService;
 import org.projectforge.plugins.eed.EmployeeConfigurationDO;
+import org.projectforge.plugins.eed.EmployeeConfigurationTimedDO;
+import org.projectforge.plugins.eed.service.EmployeeConfigurationService;
 import org.projectforge.web.wicket.AbstractEditForm;
+import org.projectforge.web.wicket.bootstrap.GridSize;
+import org.projectforge.web.wicket.flowlayout.DivPanel;
 
-public class EmployeeConfigurationForm
-    extends AbstractEditForm<EmployeeConfigurationDO, EmployeeConfigurationPage>
+import de.micromata.genome.db.jpa.tabattr.api.AttrGroup;
+
+public class EmployeeConfigurationForm extends AbstractEditForm<EmployeeConfigurationDO, EmployeeConfigurationPage>
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger
-      .getLogger(EmployeeConfigurationForm.class);
+  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(EmployeeConfigurationForm.class);
 
-  public EmployeeConfigurationForm(EmployeeConfigurationPage parentPage,
-      EmployeeConfigurationDO data)
+  @SpringBean
+  private GuiAttrSchemaService attrSchemaService;
+
+  @SpringBean
+  private EmployeeConfigurationService employeeConfigurationService;
+
+  public EmployeeConfigurationForm(EmployeeConfigurationPage parentPage, EmployeeConfigurationDO data)
   {
     super(parentPage, data);
+  }
+
+  @Override
+  protected void init()
+  {
+    super.init();
+
+    // AttrPanels
+    gridBuilder.newSplitPanel(GridSize.COL100, true); // set hasSubSplitPanel to true to remove borders from this split panel
+    final DivPanel divPanel = gridBuilder.getPanel();
+    final Function<AttrGroup, EmployeeConfigurationTimedDO> addNewEntryFunction =
+        group -> employeeConfigurationService.addNewTimeAttributeRow(data, group.getName());
+    attrSchemaService.createTimedAttrPanels(divPanel, data, parentPage, addNewEntryFunction);
   }
 
   @Override
