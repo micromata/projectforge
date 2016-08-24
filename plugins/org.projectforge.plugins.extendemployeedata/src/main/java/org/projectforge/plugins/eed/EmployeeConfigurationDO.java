@@ -1,52 +1,73 @@
 package org.projectforge.plugins.eed;
 
-import javax.persistence.Column;
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.persistence.CascadeType;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.OneToMany;
 import javax.persistence.Table;
+import javax.persistence.Transient;
 import javax.persistence.UniqueConstraint;
 
-import org.hibernate.search.annotations.Field;
-import org.hibernate.search.annotations.Index;
-import org.hibernate.search.annotations.Store;
+import org.hibernate.annotations.Fetch;
+import org.hibernate.annotations.FetchMode;
 import org.projectforge.framework.persistence.entities.DefaultBaseDO;
 
+import de.micromata.genome.db.jpa.history.api.HistoryProperty;
 import de.micromata.genome.db.jpa.history.api.WithHistory;
+import de.micromata.genome.db.jpa.history.impl.TimependingHistoryPropertyConverter;
+import de.micromata.genome.db.jpa.tabattr.api.EntityWithConfigurableAttr;
+import de.micromata.genome.db.jpa.tabattr.api.EntityWithTimeableAttr;
+import de.micromata.genome.jpa.ComplexEntity;
+import de.micromata.genome.jpa.ComplexEntityVisitor;
 
 @Entity
 @Table(name = "T_PLUGIN_EMPLOYEE_CONFIGURATION",
-    // TODO CT: remove key, replace with something else?
-    uniqueConstraints = { @UniqueConstraint(columnNames = {"key", "tenant_id" }) })
+    uniqueConstraints = { @UniqueConstraint(columnNames = { "tenant_id" } /* only one entity per tenant allowed */) }
+)
 @WithHistory
-public class EmployeeConfigurationDO extends DefaultBaseDO
+public class EmployeeConfigurationDO extends DefaultBaseDO implements EntityWithTimeableAttr<Integer, EmployeeConfigurationTimedDO>, EntityWithConfigurableAttr,
+    ComplexEntity
 {
+  private List<EmployeeConfigurationTimedDO> timeableAttributes = new ArrayList<>();
 
-  @Field(index = Index.YES /* TOKENIZED */, store = Store.NO)
-  private String key;
-
-  @Field(index = Index.YES /* TOKENIZED */, store = Store.NO)
-  private String value;
-
-  @Column(name = "key", length = 255)
-  public String getKey()
+  @Override
+  @Transient
+  public String getAttrSchemaName()
   {
-    return key;
+    return "employeeConfiguration";
   }
 
-  public void setKey(final String key)
+  @Override
+  public void addTimeableAttribute(final EmployeeConfigurationTimedDO row)
   {
-    this.key = key;
+    row.setEmployeeConfiguration(this);
+    timeableAttributes.add(row);
   }
 
-  public void setValue(final String value)
+  @Override
+  @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval = true, mappedBy = "employeeConfiguration")
+  // fetch mode, only returns one
+  @Fetch(FetchMode.SELECT)
+  // unfortunatelly this does work. Date is not valid for order (only integral types)
+  //  @OrderColumn(name = "startTime")
+  @HistoryProperty(converter = TimependingHistoryPropertyConverter.class)
+  public List<EmployeeConfigurationTimedDO> getTimeableAttributes()
   {
-    this.value = value;
+    return timeableAttributes;
   }
 
-  @Column(name = "value", length = 255)
-  public String getValue()
+  public void setTimeableAttributes(final List<EmployeeConfigurationTimedDO> timeableAttributes)
   {
-    return value;
+    this.timeableAttributes = timeableAttributes;
   }
 
-
+  // this is necessary to set createdAt etc. in EmployeeConfigurationTimedDO
+  @Override
+  public void visit(final ComplexEntityVisitor visitor)
+  {
+    timeableAttributes.forEach(row -> row.visit(visitor));
+  }
 }

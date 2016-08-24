@@ -25,6 +25,17 @@ import de.micromata.genome.db.jpa.tabattr.entities.JpaTabAttrBaseDO;
 @DiscriminatorValue("0")
 public class EmployeeConfigurationTimedAttrDO extends JpaTabAttrBaseDO<EmployeeConfigurationTimedDO, Integer>
 {
+  // this constructor is necessary for JPA
+  public EmployeeConfigurationTimedAttrDO()
+  {
+    super();
+  }
+
+  public EmployeeConfigurationTimedAttrDO(EmployeeConfigurationTimedDO parent)
+  {
+    super(parent);
+  }
+
   public EmployeeConfigurationTimedAttrDO(final EmployeeConfigurationTimedDO parent, final String key, final char type,
       final String value)
   {
