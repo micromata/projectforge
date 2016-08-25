@@ -17,6 +17,8 @@ import org.projectforge.business.fibu.EmployeeDO;
 import org.projectforge.business.fibu.EmployeeTimedDO;
 import org.projectforge.business.fibu.api.EmployeeService;
 import org.projectforge.business.user.I18nHelper;
+import org.projectforge.business.user.UserRightId;
+import org.projectforge.business.user.UserRightValue;
 import org.projectforge.export.AttrColumnDescription;
 import org.projectforge.export.DOListExcelExporter;
 import org.projectforge.export.DOWithAttrListExcelExporter;
@@ -149,6 +151,7 @@ public class EmployeeListEditPage extends AbstractListPage<EmployeeListEditForm,
   @Override
   protected void addBottomPanel(final String id)
   {
+    checkAccess();
     form.add(form.getSaveButtonPanel(id));
   }
 
@@ -161,6 +164,7 @@ public class EmployeeListEditPage extends AbstractListPage<EmployeeListEditForm,
 
   public void saveList()
   {
+    checkAccess();
     for (EmployeeDO e : this.dataList) {
       List<EmployeeTimedDO> unusedTimeableAttributes = new ArrayList<>();
       for (EmployeeTimedDO timed : e.getTimeableAttributes()) {
@@ -185,6 +189,12 @@ public class EmployeeListEditPage extends AbstractListPage<EmployeeListEditForm,
   {
     this.dataList = super.getList();
     return this.dataList;
+  }
+
+  private void checkAccess()
+  {
+    accessChecker.checkLoggedInUserRight(UserRightId.FIBU_EMPLOYEE, UserRightValue.READWRITE);
+    accessChecker.checkRestrictedOrDemoUser();
   }
 
 }
