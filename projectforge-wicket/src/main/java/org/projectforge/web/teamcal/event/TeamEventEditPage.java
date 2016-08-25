@@ -307,7 +307,11 @@ public class TeamEventEditPage extends AbstractEditPage<TeamEventDO, TeamEventEd
   {
     super.onSaveOrUpdate();
 
-    this.modificationStatus = TeamEventDO.copyValues(teamEventDao.getById(getData().getId()), getData());
+    if (getData() != null && getData().getId() != null) {
+      this.modificationStatus = TeamEventDO.copyValues(teamEventDao.getById(getData().getId()), getData());
+    } else {
+      this.modificationStatus = ModificationStatus.MAJOR;
+    }
 
     getData().setRecurrence(form.recurrenceData);
     if (recurrencyChangeType == null || recurrencyChangeType == RecurrencyChangeType.ALL) {
@@ -378,8 +382,9 @@ public class TeamEventEditPage extends AbstractEditPage<TeamEventDO, TeamEventEd
     super.afterSaveOrUpdate();
     teamEventService.assignAttendees(getData(), form.assignAttendeesListHelper.getItemsToAssign(),
         form.assignAttendeesListHelper.getItemsToUnassign());
-    if (hasChanges()
-        || form.assignAttendeesListHelper.getItemsToAssign().size() > 0) {
+    if ((hasChanges()
+        || form.assignAttendeesListHelper.getItemsToAssign().size() > 0)
+        && (getData().getAttendees() != null && getData().getAttendees().size() > 0)) {
       teamEventService.sendTeamEventToAttendees(getData(), isNew(), hasChanges(),
           form.assignAttendeesListHelper.getItemsToAssign());
     }

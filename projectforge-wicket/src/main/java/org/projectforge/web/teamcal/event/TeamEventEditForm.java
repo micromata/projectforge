@@ -236,6 +236,7 @@ public class TeamEventEditForm extends AbstractEditForm<TeamEventDO, TeamEventEd
           new PropertyModel<Collection<TeamEventAttendeeDO>>(this.assignAttendeesListHelper, "assignedItems"),
           new AttendeeWicketProvider(data, teamEventService));
       attendees.setMarkupId("attendees").setOutputMarkupId(true);
+      attendees.add(new TeamEventAttendeeValidator());
       fieldSet.add(attendees);
       if (access == false)
         fieldSet.setEnabled(false);

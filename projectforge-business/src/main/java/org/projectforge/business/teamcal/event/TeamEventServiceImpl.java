@@ -4,6 +4,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -50,8 +51,10 @@ public class TeamEventServiceImpl implements TeamEventService
   public List<Integer> getAssignedAttendeeIds(TeamEventDO data)
   {
     List<Integer> assignedAttendees = new ArrayList<>();
-    for (TeamEventAttendeeDO attendee : data.getAttendees()) {
-      assignedAttendees.add(attendee.getId());
+    if (data != null && data.getAttendees() != null) {
+      for (TeamEventAttendeeDO attendee : data.getAttendees()) {
+        assignedAttendees.add(attendee.getId());
+      }
     }
     return assignedAttendees;
   }
@@ -91,16 +94,20 @@ public class TeamEventServiceImpl implements TeamEventService
       if (assignAttendee.getId() < 0) {
         assignAttendee.setId(null);
         teamEventAttendeeDao.internalSave(assignAttendee);
+        if (data.getAttendees() == null) {
+          data.setAttendees(new HashSet<>());
+        }
         data.getAttendees().add(assignAttendee);
       }
     }
 
-    data.getAttendees().removeAll(itemsToUnassign);
-    teamEventDao.update(data);
-
-    for (TeamEventAttendeeDO deleteAttendee : itemsToUnassign) {
-      teamEventAttendeeDao.internalMarkAsDeleted(deleteAttendee);
+    if (data.getAttendees() != null && itemsToUnassign.size() > 0) {
+      data.getAttendees().removeAll(itemsToUnassign);
+      for (TeamEventAttendeeDO deleteAttendee : itemsToUnassign) {
+        teamEventAttendeeDao.internalMarkAsDeleted(deleteAttendee);
+      }
     }
+    teamEventDao.update(data);
   }
 
   @Override
