@@ -1,5 +1,7 @@
 package org.projectforge.plugins.eed;
 
+import org.projectforge.business.fibu.EmployeeTimedAttrDataDO;
+import org.projectforge.business.fibu.EmployeeTimedAttrWithDataDO;
 import org.projectforge.continuousdb.UpdateEntry;
 import org.projectforge.continuousdb.UpdateEntryImpl;
 import org.projectforge.continuousdb.UpdatePreCheckStatus;
@@ -22,7 +24,8 @@ public class ExtendedEmployeeDataPluginUpdates
       public UpdatePreCheckStatus runPreCheck()
       {
         // Does the data-base table already exist?
-        if (dao.doEntitiesExist(EmployeeConfigurationDO.class)) {
+        if (dao.doEntitiesExist(EmployeeConfigurationDO.class, EmployeeConfigurationTimedAttrDO.class,
+            EmployeeConfigurationTimedDO.class, EmployeeTimedAttrWithDataDO.class, EmployeeTimedAttrDataDO.class)) {
           return UpdatePreCheckStatus.ALREADY_UPDATED;
         } else {
           return UpdatePreCheckStatus.READY_FOR_UPDATE;

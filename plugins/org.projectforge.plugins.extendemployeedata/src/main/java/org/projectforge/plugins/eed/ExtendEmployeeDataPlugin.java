@@ -82,7 +82,8 @@ public class ExtendEmployeeDataPlugin extends AbstractPlugin
             new MenuItemDef(parentMenu, ID, 22, "plugins.eed.menu.listcareimport", EmployeeBillingImportPage.class,
                 UserRightId.FIBU_EMPLOYEE, READONLY_READWRITE));
     pluginWicketRegistrationService
-        .registerMenuItem(new MenuItemDef(parentMenu, ID, 23, "plugins.eed.menu.export", ExportDataPage.class));
+        .registerMenuItem(new MenuItemDef(parentMenu, ID, 23, "plugins.eed.menu.export", ExportDataPage.class,
+            UserRightId.FIBU_EMPLOYEE_SALARY, READONLY_READWRITE));
     pluginWicketRegistrationService
         .registerMenuItem(new MenuItemDef(parentMenu, ID, 24, "plugins.eed.menu.config", EmployeeConfigurationPage.class));
 
