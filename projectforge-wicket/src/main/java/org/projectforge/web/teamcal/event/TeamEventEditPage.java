@@ -308,7 +308,8 @@ public class TeamEventEditPage extends AbstractEditPage<TeamEventDO, TeamEventEd
     super.onSaveOrUpdate();
 
     if (getData() != null && getData().getId() != null) {
-      this.modificationStatus = TeamEventDO.copyValues(teamEventDao.getById(getData().getId()), getData());
+      TeamEventDO tempCopyEvent = getData().clone();
+      this.modificationStatus = TeamEventDO.copyValues(teamEventDao.getById(getData().getId()), tempCopyEvent);
     } else {
       this.modificationStatus = ModificationStatus.MAJOR;
     }
