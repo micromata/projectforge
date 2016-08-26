@@ -975,7 +975,7 @@ public class PFUserDO extends DefaultBaseDO implements ShortDisplayNameCapable
   /**
    * @return the sshPublicKey
    */
-  @Column(name = "ssh_public_key", length = 1000)
+  @Column(name = "ssh_public_key", length = 4096)
   public String getSshPublicKey()
   {
     return sshPublicKey;
