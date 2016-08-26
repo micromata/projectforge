@@ -115,17 +115,31 @@ public class TeamEventServiceImpl implements TeamEventService
       Set<TeamEventAttendeeDO> addedAttendees)
   {
     final Mail msg = new Mail();
+    String subject = "";
+    String content = "";
+
+    if (isNew) {
+      subject = I18nHelper.getLocalizedString("plugins.teamcal.attendee.email.subject.new");
+      content = I18nHelper.getLocalizedString("plugins.teamcal.attendee.email.content.new");
+    } else {
+      subject = I18nHelper.getLocalizedString("plugins.teamcal.attendee.email.subject.update");
+      content = I18nHelper.getLocalizedString("plugins.teamcal.attendee.email.content.update");
+    }
+
     if (isNew == false && hasChanges == false && addedAttendees.size() > 0) {
       for (TeamEventAttendeeDO attendee : addedAttendees) {
         addAttendeeToMail(attendee, msg);
+        subject = I18nHelper.getLocalizedString("plugins.teamcal.attendee.email.subject.new");
+        content = I18nHelper.getLocalizedString("plugins.teamcal.attendee.email.content.new");
       }
     } else {
       for (TeamEventAttendeeDO attendee : data.getAttendees()) {
         addAttendeeToMail(attendee, msg);
       }
     }
-    msg.setProjectForgeSubject(I18nHelper.getLocalizedString("plugins.teamcal.attendee.email.subject"));
-    msg.setContent(I18nHelper.getLocalizedString("plugins.teamcal.attendee.email.content"));
+
+    msg.setProjectForgeSubject(subject);
+    msg.setContent(content);
     msg.setContentType(Mail.CONTENTTYPE_HTML);
     ByteArrayOutputStream icsFile = icsGenerator.getIcsFile(data);
     boolean result = false;
