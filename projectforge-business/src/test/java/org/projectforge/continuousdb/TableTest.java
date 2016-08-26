@@ -25,10 +25,10 @@ package org.projectforge.continuousdb;
 
 import static org.testng.AssertJUnit.assertEquals;
 
-import org.projectforge.continuousdb.demo.entities.GroupTaskAccessDO;
-import org.projectforge.continuousdb.demo.entities.TaskDO;
-import org.projectforge.continuousdb.demo.entities.UserDO;
-import org.projectforge.continuousdb.demo.entities.UserRightDO;
+import org.projectforge.business.task.TaskDO;
+import org.projectforge.framework.access.GroupTaskAccessDO;
+import org.projectforge.framework.persistence.user.entities.PFUserDO;
+import org.projectforge.framework.persistence.user.entities.UserRightDO;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
@@ -37,7 +37,7 @@ public class TableTest
   @Test
   public void createTables()
   {
-    assertEquals("T_USER", new Table(UserDO.class).getName());
+    assertEquals("T_USER", new Table(PFUserDO.class).getName());
     assertEquals("T_TASK", new Table(TaskDO.class).getName());
     assertEquals("T_GROUP_TASK_ACCESS", new Table(GroupTaskAccessDO.class).getName());
 
@@ -53,7 +53,7 @@ public class TableTest
   @Test
   public void autoAddAttributes()
   {
-    Table table = new Table(UserDO.class);
+    Table table = new Table(PFUserDO.class);
     table.autoAddAttributes();
     assertAttribute(table, "username");
     assertAttribute(table, "created");
