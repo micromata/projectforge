@@ -90,6 +90,8 @@ public class TeamEventEditPage extends AbstractEditPage<TeamEventDO, TeamEventEd
 
   private ModificationStatus modificationStatus;
 
+  private boolean isNew;
+
   /**
    * @param parameters
    */
@@ -310,8 +312,10 @@ public class TeamEventEditPage extends AbstractEditPage<TeamEventDO, TeamEventEd
     if (getData() != null && getData().getId() != null) {
       TeamEventDO tempCopyEvent = getData().clone();
       this.modificationStatus = TeamEventDO.copyValues(teamEventDao.getById(getData().getId()), tempCopyEvent);
+      this.isNew = false;
     } else {
       this.modificationStatus = ModificationStatus.MAJOR;
+      this.isNew = true;
     }
 
     getData().setRecurrence(form.recurrenceData);
@@ -386,7 +390,7 @@ public class TeamEventEditPage extends AbstractEditPage<TeamEventDO, TeamEventEd
     if ((hasChanges()
         || form.assignAttendeesListHelper.getItemsToAssign().size() > 0)
         && (getData().getAttendees() != null && getData().getAttendees().size() > 0)) {
-      teamEventService.sendTeamEventToAttendees(getData(), isNew(), hasChanges(),
+      teamEventService.sendTeamEventToAttendees(getData(), this.isNew, hasChanges(),
           form.assignAttendeesListHelper.getItemsToAssign());
     }
     return null;
