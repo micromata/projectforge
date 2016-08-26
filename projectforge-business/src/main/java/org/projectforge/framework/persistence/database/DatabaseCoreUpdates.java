@@ -86,6 +86,37 @@ public class DatabaseCoreUpdates
     final List<UpdateEntry> list = new ArrayList<>();
 
     ////////////////////////////////////////////////////////////////////
+    // 6.3.0
+    // /////////////////////////////////////////////////////////////////
+    list.add(new UpdateEntryImpl(CORE_REGION_ID, "6.3.0", "2016-08-26", "Alter table column for ssh-key.")
+    {
+      @Override
+      public UpdatePreCheckStatus runPreCheck()
+      {
+        log.info("Running pre-check for ProjectForge version 6.3.0");
+        final MyDatabaseUpdateService databaseUpdateDao = applicationContext.getBean(MyDatabaseUpdateService.class);
+        if (databaseUpdateDao.getDatabaseTableColumnLenght(PFUserDO.class, "ssh_public_key") < 4096) {
+          return UpdatePreCheckStatus.READY_FOR_UPDATE;
+        }
+        else
+        {
+          return UpdatePreCheckStatus.ALREADY_UPDATED;
+        }
+      }
+
+      @Override
+      public UpdateRunningStatus runUpdate()
+      {
+        final MyDatabaseUpdateService databaseUpdateDao = applicationContext.getBean(MyDatabaseUpdateService.class);
+
+        final Table userTable = new Table(PFUserDO.class);
+        databaseUpdateDao.alterTableColumnVarCharLength(userTable.getName(), "ssh_public_key", 4096);
+
+        return UpdateRunningStatus.DONE;
+      }
+    });
+
+    ////////////////////////////////////////////////////////////////////
     // 6.1.1
     // /////////////////////////////////////////////////////////////////
     list.add(new UpdateEntryImpl(CORE_REGION_ID, "6.1.1", "2016-07-27", "Changed timezone of starttime of the configurable attributes.")
@@ -324,6 +355,8 @@ public class DatabaseCoreUpdates
           // No length check available so assume enlargement if ldapValues doesn't yet exist:
           final Table addressTable = new Table(AddressDO.class);
           databaseUpdateDao.alterTableColumnVarCharLength(addressTable.getName(), "public_key", 20000);
+
+
 
           // TODO HIBERNATE5 no longer supported
           //          final Table propertyDeltaTable = new Table(PropertyDelta.class);
