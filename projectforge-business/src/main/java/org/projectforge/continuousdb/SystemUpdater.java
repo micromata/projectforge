@@ -31,6 +31,9 @@ import java.util.TreeSet;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
+import org.projectforge.framework.persistence.user.api.UserContext;
+
 /**
  * Checks whether the database is up-to-date or not.
  * 
@@ -153,9 +156,11 @@ public class SystemUpdater
    */
   public void update(final UpdateEntry updateEntry)
   {
+    UserContext uc = ThreadLocalUserContext.getUserContext();
     exService.submit(() -> {
       setUpdating(true);
       try {
+        ThreadLocalUserContext.setUserContext(uc);
         updateEntry.setRunningStatus(updateEntry.runUpdate());
         getDatabaseUpdateDao().writeUpdateEntryLog(updateEntry);
         updateEntry.setPreCheckStatus(updateEntry.runPreCheck());

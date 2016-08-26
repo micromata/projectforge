@@ -177,7 +177,6 @@
 	<modules>
 		<module>projectforge-common</module>
 		<!-- <module>projectforge-model</module> -->
-		<module>projectforge-continuous-db</module>
 		<module>projectforge-excel</module>
 		<module>projectforge-business</module>
 		<module>projectforge-jax-rs</module>
