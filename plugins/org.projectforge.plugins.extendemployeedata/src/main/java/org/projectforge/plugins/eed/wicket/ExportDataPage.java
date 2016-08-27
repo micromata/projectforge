@@ -8,6 +8,8 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.fibu.EmployeeDO;
 import org.projectforge.business.fibu.EmployeeDao;
+import org.projectforge.business.user.UserRightId;
+import org.projectforge.business.user.UserRightValue;
 import org.projectforge.plugins.eed.service.LBExporterService;
 import org.projectforge.web.fibu.ISelectCallerPage;
 import org.projectforge.web.wicket.AbstractStandardFormPage;
@@ -61,6 +63,7 @@ public class ExportDataPage extends AbstractStandardFormPage implements ISelectC
 
   public void exportData()
   {
+    checkAccess();
     log.info("Export data for LB");
     List<EmployeeDO> employeeList = employeeDao.internalLoadAll();
     final String filename = "Liste-PF-"
@@ -73,6 +76,12 @@ public class ExportDataPage extends AbstractStandardFormPage implements ISelectC
       return;
     }
     DownloadUtils.setDownloadTarget(xls, filename);
+  }
+
+  private void checkAccess()
+  {
+    accessChecker.checkLoggedInUserRight(UserRightId.FIBU_EMPLOYEE_SALARY, UserRightValue.READWRITE);
+    accessChecker.checkRestrictedOrDemoUser();
   }
 
 }
