@@ -37,7 +37,7 @@ public class TableTest
   @Test
   public void createTables()
   {
-    assertEquals("T_USER", new Table(PFUserDO.class).getName());
+    assertEquals("T_PF_USER", new Table(PFUserDO.class).getName());
     assertEquals("T_TASK", new Table(TaskDO.class).getName());
     assertEquals("T_GROUP_TASK_ACCESS", new Table(GroupTaskAccessDO.class).getName());
 

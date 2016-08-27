@@ -47,9 +47,9 @@ public class TableAttributeTest
     assertEquals(2, attr.getScale());
     assertEquals(10, attr.getPrecision());
     attr = assertAttribute(TaskDO.class, "title", "title", TableAttributeType.VARCHAR, false, false);
-    assertEquals(100, attr.getLength());
+    assertEquals(40, attr.getLength());
     attr = assertAttribute(TaskDO.class, "description", "description", TableAttributeType.VARCHAR, false, true);
-    assertEquals(1000, attr.getLength());
+    assertEquals(4000, attr.getLength());
     attr = assertAttribute(TaskDO.class, "maxHours", "max_hours", TableAttributeType.INT, false, true);
     attr = assertAttribute(TaskDO.class, "parentTask", "parent_task_id", TableAttributeType.INT, false, true);
     assertEquals("T_TASK", attr.getForeignTable());
@@ -57,7 +57,7 @@ public class TableAttributeTest
 
     attr = assertAttribute(PFUserDO.class, "deleted", "deleted", TableAttributeType.BOOLEAN, false, false);
     attr = assertAttribute(TaskDO.class, "responsibleUser", "responsible_user_id", TableAttributeType.INT, false, true);
-    assertEquals("T_USER", attr.getForeignTable());
+    assertEquals("T_PF_USER", attr.getForeignTable());
     assertEquals("pk", attr.getForeignAttribute());
     attr = assertAttribute(UserRightDO.class, "value", "value", TableAttributeType.VARCHAR, false, true);
     assertEquals(40, attr.getLength());
