@@ -1,5 +1,6 @@
 package org.projectforge.plugins.eed;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -13,7 +14,11 @@ import javax.persistence.UniqueConstraint;
 
 import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
+import org.projectforge.framework.persistence.api.AUserRightId;
+import org.projectforge.framework.persistence.api.BaseDO;
+import org.projectforge.framework.persistence.api.ModificationStatus;
 import org.projectforge.framework.persistence.entities.DefaultBaseDO;
+import org.projectforge.framework.persistence.jpa.impl.BaseDaoJpaAdapter;
 
 import de.micromata.genome.db.jpa.history.api.HistoryProperty;
 import de.micromata.genome.db.jpa.history.api.WithHistory;
@@ -25,12 +30,15 @@ import de.micromata.genome.jpa.ComplexEntityVisitor;
 
 @Entity
 @Table(name = "T_PLUGIN_EMPLOYEE_CONFIGURATION",
-    uniqueConstraints = { @UniqueConstraint(columnNames = { "tenant_id" } /* only one entity per tenant allowed */) }
-)
+    uniqueConstraints = { @UniqueConstraint(columnNames = { "tenant_id" } /* only one entity per tenant allowed */) })
 @WithHistory
-public class EmployeeConfigurationDO extends DefaultBaseDO implements EntityWithTimeableAttr<Integer, EmployeeConfigurationTimedDO>, EntityWithConfigurableAttr,
+@AUserRightId("PLUGIN_EXTENDEMPLOYEEDATA")
+public class EmployeeConfigurationDO extends DefaultBaseDO
+    implements EntityWithTimeableAttr<Integer, EmployeeConfigurationTimedDO>, EntityWithConfigurableAttr,
     ComplexEntity
 {
+  private static final long serialVersionUID = -996267280801986212L;
+
   private List<EmployeeConfigurationTimedDO> timeableAttributes = new ArrayList<>();
 
   @Override
@@ -48,7 +56,8 @@ public class EmployeeConfigurationDO extends DefaultBaseDO implements EntityWith
   }
 
   @Override
-  @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval = true, mappedBy = "employeeConfiguration")
+  @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval = true,
+      mappedBy = "employeeConfiguration")
   // fetch mode, only returns one
   @Fetch(FetchMode.SELECT)
   // unfortunatelly this does work. Date is not valid for order (only integral types)
@@ -70,4 +79,15 @@ public class EmployeeConfigurationDO extends DefaultBaseDO implements EntityWith
   {
     timeableAttributes.forEach(row -> row.visit(visitor));
   }
+
+  @Override
+  public ModificationStatus copyValuesFrom(final BaseDO<? extends Serializable> source, final String... ignoreFields)
+  {
+    ModificationStatus modificationStatus = super.copyValuesFrom(source, "timeableAttributes");
+    final EmployeeConfigurationDO src = (EmployeeConfigurationDO) source;
+    modificationStatus = modificationStatus
+        .combine(BaseDaoJpaAdapter.copyTimeableAttribute(this, src));
+    return modificationStatus;
+  }
+
 }
