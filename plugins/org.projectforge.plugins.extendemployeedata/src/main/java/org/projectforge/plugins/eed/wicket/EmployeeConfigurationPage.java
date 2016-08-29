@@ -6,12 +6,12 @@ import org.apache.log4j.Logger;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.plugins.eed.EmployeeConfigurationDO;
-import org.projectforge.plugins.eed.EmployeeConfigurationDao;
 import org.projectforge.plugins.eed.service.EmployeeConfigurationService;
 import org.projectforge.web.wicket.AbstractEditPage;
+import org.projectforge.web.wicket.AbstractSecuredBasePage;
 
 public class EmployeeConfigurationPage
-    extends AbstractEditPage<EmployeeConfigurationDO, EmployeeConfigurationForm, EmployeeConfigurationDao>
+    extends AbstractEditPage<EmployeeConfigurationDO, EmployeeConfigurationForm, EmployeeConfigurationService>
 {
   private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(EmployeeConfigurationPage.class);
 
@@ -23,9 +23,10 @@ public class EmployeeConfigurationPage
   public EmployeeConfigurationPage(PageParameters parameters)
   {
     super(parameters, "plugins.eed.config");
-
-    final EmployeeConfigurationDO valueDO = employeeConfigurationService.getTheDO();
-    init(valueDO);
+    if (parameters != null && parameters.get(PARAMETER_KEY_ID).isEmpty() == true) {
+      parameters.add(PARAMETER_KEY_ID, employeeConfigurationService.getSingleEmployeeConfigurationDOId());
+    }
+    init();
   }
 
   @Override
@@ -41,8 +42,14 @@ public class EmployeeConfigurationPage
   }
 
   @Override
-  public EmployeeConfigurationDao getBaseDao()
+  public EmployeeConfigurationService getBaseDao()
   {
-    return employeeConfigurationService.getDao();
+    return employeeConfigurationService;
+  }
+
+  @Override
+  public AbstractSecuredBasePage afterSaveOrUpdate()
+  {
+    return new EmployeeConfigurationPage(getPageParameters());
   }
 }
