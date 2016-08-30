@@ -91,9 +91,24 @@ public class I18nHelper
     return null;
   }
 
+  /**
+   * USE getLocalizedMessage(final String key, final Object... params) instead
+   * 
+   * @param key
+   * @return
+   */
+  @Deprecated
   public static String getLocalizedString(final String key)
   {
     return getLocalizedString(ThreadLocalUserContext.getLocale(), key);
+  }
+
+  public static String getLocalizedMessage(final String key, final Object... params)
+  {
+    if (params == null || params.length == 0) {
+      return getLocalizedString(key);
+    }
+    return MessageFormat.format(getLocalizedString(key), params);
   }
 
   public static String getLocalizedString(final Locale locale, final String key)
