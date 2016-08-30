@@ -752,4 +752,13 @@ public class DatabaseUpdateService
     log.info("Executing database shutdown statement: " + statement);
     execute(statement);
   }
+
+  public int getDatabaseTableColumnLenght (final Class<?> entityClass, final String attributeNames)
+  {
+    String jdbcQuery = "select character_maximum_length from information_schema.columns where table_name = '"+ new Table(entityClass).getName().toLowerCase()+"' And column_name = '" + attributeNames + "'";
+    final DatabaseExecutor jdbc = getDatabaseExecutor();
+    log.info(jdbcQuery);
+    return jdbc.queryForInt(jdbcQuery);
+  }
+
 }

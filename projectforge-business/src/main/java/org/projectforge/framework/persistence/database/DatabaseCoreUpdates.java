@@ -88,7 +88,8 @@ public class DatabaseCoreUpdates
     ////////////////////////////////////////////////////////////////////
     // 6.3.0
     // /////////////////////////////////////////////////////////////////
-    list.add(new UpdateEntryImpl(CORE_REGION_ID, "6.3.0", "2016-08-31", "Add column to attendee data table.")
+    list.add(new UpdateEntryImpl(CORE_REGION_ID, "6.3.0", "2016-08-31",
+        "Add column to attendee data table. Alter table column for ssh-key.")
     {
       @Override
       public UpdatePreCheckStatus runPreCheck()
@@ -96,6 +97,8 @@ public class DatabaseCoreUpdates
         log.info("Running pre-check for ProjectForge version 6.3.0");
         final MyDatabaseUpdateService databaseUpdateDao = applicationContext.getBean(MyDatabaseUpdateService.class);
         if (databaseUpdateDao.doesTableAttributeExist("T_PLUGIN_CALENDAR_EVENT_ATTENDEE", "address_id") == false) {
+          return UpdatePreCheckStatus.READY_FOR_UPDATE;
+        } else if (databaseUpdateDao.getDatabaseTableColumnLenght(PFUserDO.class, "ssh_public_key") < 4096) {
           return UpdatePreCheckStatus.READY_FOR_UPDATE;
         } else {
           return UpdatePreCheckStatus.ALREADY_UPDATED;
@@ -105,9 +108,16 @@ public class DatabaseCoreUpdates
       @Override
       public UpdateRunningStatus runUpdate()
       {
-        InitDatabaseDao initDatabaseDao = applicationContext.getBean(InitDatabaseDao.class);
-        //Updating the schema
-        initDatabaseDao.updateSchema();
+        final InitDatabaseDao initDatabaseDao = applicationContext.getBean(InitDatabaseDao.class);
+        final MyDatabaseUpdateService databaseUpdateDao = applicationContext.getBean(MyDatabaseUpdateService.class);
+        if (databaseUpdateDao.doesTableAttributeExist("T_PLUGIN_CALENDAR_EVENT_ATTENDEE", "address_id") == false) {
+          //Updating the schema
+          initDatabaseDao.updateSchema();
+        }
+        if (databaseUpdateDao.getDatabaseTableColumnLenght(PFUserDO.class, "ssh_public_key") < 4096) {
+          final Table userTable = new Table(PFUserDO.class);
+          databaseUpdateDao.alterTableColumnVarCharLength(userTable.getName(), "ssh_public_key", 4096);
+        }
         return UpdateRunningStatus.DONE;
       }
 
