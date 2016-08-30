@@ -9,6 +9,9 @@ import org.projectforge.continuousdb.UpdateRunningStatus;
 import org.projectforge.framework.configuration.ApplicationContextProvider;
 import org.projectforge.framework.persistence.database.InitDatabaseDao;
 import org.projectforge.framework.persistence.database.MyDatabaseUpdateService;
+import org.projectforge.plugins.eed.model.EmployeeConfigurationDO;
+import org.projectforge.plugins.eed.model.EmployeeConfigurationTimedAttrDO;
+import org.projectforge.plugins.eed.model.EmployeeConfigurationTimedDO;
 
 public class ExtendedEmployeeDataPluginUpdates
 {

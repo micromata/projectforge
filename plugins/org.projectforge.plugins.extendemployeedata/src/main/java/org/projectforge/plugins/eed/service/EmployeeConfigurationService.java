@@ -2,8 +2,8 @@ package org.projectforge.plugins.eed.service;
 
 import org.projectforge.framework.persistence.api.IDao;
 import org.projectforge.framework.persistence.api.IPersistenceService;
-import org.projectforge.plugins.eed.EmployeeConfigurationDO;
-import org.projectforge.plugins.eed.EmployeeConfigurationTimedDO;
+import org.projectforge.plugins.eed.model.EmployeeConfigurationDO;
+import org.projectforge.plugins.eed.model.EmployeeConfigurationTimedDO;
 
 public interface EmployeeConfigurationService
     extends IPersistenceService<EmployeeConfigurationDO>, IDao<EmployeeConfigurationDO>

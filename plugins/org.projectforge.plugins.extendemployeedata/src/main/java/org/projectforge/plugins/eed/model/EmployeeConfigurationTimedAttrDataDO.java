@@ -1,4 +1,4 @@
-package org.projectforge.plugins.eed;
+package org.projectforge.plugins.eed.model;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
