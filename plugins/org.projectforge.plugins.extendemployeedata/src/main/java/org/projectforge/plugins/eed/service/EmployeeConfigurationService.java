@@ -12,4 +12,6 @@ public interface EmployeeConfigurationService
       final String groupName);
 
   Integer getSingleEmployeeConfigurationDOId();
+
+  EmployeeConfigurationDO getSingleEmployeeConfigurationDO();
 }

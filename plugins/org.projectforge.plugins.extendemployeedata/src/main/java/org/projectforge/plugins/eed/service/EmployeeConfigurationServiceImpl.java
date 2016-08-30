@@ -26,17 +26,23 @@ public class EmployeeConfigurationServiceImpl extends CorePersistenceServiceImpl
   @Override
   public Integer getSingleEmployeeConfigurationDOId()
   {
+    return getSingleEmployeeConfigurationDO().getPk();
+  }
+
+  @Override
+  public EmployeeConfigurationDO getSingleEmployeeConfigurationDO()
+  {
     // TODO CT: check rights?
     final List<EmployeeConfigurationDO> employeeConfigurationDOs = employeeConfigurationDao.internalLoadAll();
     if (employeeConfigurationDOs.isEmpty()) {
       final EmployeeConfigurationDO employeeConfigurationDO = employeeConfigurationDao.newInstance();
       employeeConfigurationDao.save(employeeConfigurationDO);
-      return employeeConfigurationDO.getPk();
+      return employeeConfigurationDO;
     } else if (employeeConfigurationDOs.size() != 1) {
       throw new RuntimeException("Expected One employeeConfigurationDO, but found " + employeeConfigurationDOs.size());
     }
 
-    return employeeConfigurationDOs.get(0).getPk();
+    return employeeConfigurationDOs.get(0);
   }
 
   public EmployeeConfigurationTimedDO addNewTimeAttributeRow(final EmployeeConfigurationDO employeeConfiguration,
