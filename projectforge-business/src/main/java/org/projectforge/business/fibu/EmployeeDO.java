@@ -303,11 +303,9 @@ public class EmployeeDO extends DefaultBaseWithAttrDO<EmployeeDO>
     return user.getId();
   }
 
-  @Deprecated
   @Column
   public Integer getUrlaubstage()
   {
-    //    return timeableService.getAttrValue(this, "hollidays", Integer.class);
     return urlaubstage;
   }
 
@@ -554,7 +552,8 @@ public class EmployeeDO extends DefaultBaseWithAttrDO<EmployeeDO>
   }
 
   @Override
-  @OneToMany(cascade = CascadeType.ALL, mappedBy = "parent", targetEntity = EmployeeAttrDO.class, orphanRemoval = true, fetch = FetchType.EAGER)
+  @OneToMany(cascade = CascadeType.ALL, mappedBy = "parent", targetEntity = EmployeeAttrDO.class, orphanRemoval = true,
+      fetch = FetchType.EAGER)
   @MapKey(name = "propertyName")
   @HistoryProperty(converter = TabAttrHistoryPropertyConverter.class)
   public Map<String, JpaTabAttrBaseDO<EmployeeDO, Integer>> getAttrs()
