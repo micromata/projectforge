@@ -1,6 +1,8 @@
-package org.projectforge.plugins.eed;
+package org.projectforge.plugins.eed.service;
 
 import org.projectforge.framework.persistence.api.BaseDao;
+import org.projectforge.plugins.eed.ExtendEmployeeDataPluginUserRightId;
+import org.projectforge.plugins.eed.model.EmployeeConfigurationDO;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;

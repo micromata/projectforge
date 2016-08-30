@@ -151,7 +151,6 @@ public class EmployeeListEditPage extends AbstractListPage<EmployeeListEditForm,
   @Override
   protected void addBottomPanel(final String id)
   {
-    checkAccess();
     form.add(form.getSaveButtonPanel(id));
   }
 
@@ -191,7 +190,7 @@ public class EmployeeListEditPage extends AbstractListPage<EmployeeListEditForm,
     return this.dataList;
   }
 
-  private void checkAccess()
+  protected void checkAccess()
   {
     accessChecker.checkLoggedInUserRight(UserRightId.FIBU_EMPLOYEE, UserRightValue.READWRITE);
     accessChecker.checkRestrictedOrDemoUser();

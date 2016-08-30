@@ -5,7 +5,7 @@ import java.util.List;
 import org.apache.log4j.Logger;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
-import org.projectforge.plugins.eed.EmployeeConfigurationDO;
+import org.projectforge.plugins.eed.model.EmployeeConfigurationDO;
 import org.projectforge.plugins.eed.service.EmployeeConfigurationService;
 import org.projectforge.web.wicket.AbstractEditPage;
 import org.projectforge.web.wicket.AbstractSecuredBasePage;
@@ -52,4 +52,5 @@ public class EmployeeConfigurationPage
   {
     return new EmployeeConfigurationPage(getPageParameters());
   }
+
 }

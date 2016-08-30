@@ -4,9 +4,12 @@ import java.util.function.Function;
 
 import org.apache.log4j.Logger;
 import org.apache.wicket.spring.injection.annot.SpringBean;
+import org.projectforge.business.user.UserRightId;
+import org.projectforge.business.user.UserRightValue;
+import org.projectforge.framework.access.AccessException;
 import org.projectforge.framework.persistence.attr.impl.GuiAttrSchemaService;
-import org.projectforge.plugins.eed.EmployeeConfigurationDO;
-import org.projectforge.plugins.eed.EmployeeConfigurationTimedDO;
+import org.projectforge.plugins.eed.model.EmployeeConfigurationDO;
+import org.projectforge.plugins.eed.model.EmployeeConfigurationTimedDO;
 import org.projectforge.plugins.eed.service.EmployeeConfigurationServiceImpl;
 import org.projectforge.web.wicket.AbstractEditForm;
 import org.projectforge.web.wicket.bootstrap.GridSize;
@@ -49,12 +52,24 @@ public class EmployeeConfigurationForm extends AbstractEditForm<EmployeeConfigur
     markAsDeletedButtonPanel.setVisible(false);
     undeleteButtonPanel.setVisible(false);
     updateAndNextButtonPanel.setVisible(false);
-    updateButton.setVisible(true);
+    try {
+      checkAccess();
+      updateButton.setVisible(true);
+    } catch (AccessException ex) {
+      log.info("No right for data update. " + ex.getMessage());
+      updateButton.setVisible(false);
+    }
   }
 
   @Override
   protected Logger getLogger()
   {
     return log;
+  }
+
+  protected void checkAccess()
+  {
+    parentPage.getAccessChecker().checkLoggedInUserRight(UserRightId.FIBU_EMPLOYEE, UserRightValue.READWRITE);
+    parentPage.getAccessChecker().checkRestrictedOrDemoUser();
   }
 }

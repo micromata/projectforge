@@ -5,9 +5,8 @@ import java.util.List;
 import org.projectforge.framework.persistence.history.DisplayHistoryEntry;
 import org.projectforge.framework.persistence.jpa.impl.CorePersistenceServiceImpl;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
-import org.projectforge.plugins.eed.EmployeeConfigurationDO;
-import org.projectforge.plugins.eed.EmployeeConfigurationDao;
-import org.projectforge.plugins.eed.EmployeeConfigurationTimedDO;
+import org.projectforge.plugins.eed.model.EmployeeConfigurationDO;
+import org.projectforge.plugins.eed.model.EmployeeConfigurationTimedDO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

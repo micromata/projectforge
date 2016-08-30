@@ -6,6 +6,7 @@ import org.projectforge.business.user.UserRightValue;
 import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.access.OperationType;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
+import org.projectforge.plugins.eed.model.EmployeeConfigurationDO;
 
 public class ExtendEmployeeDataRight extends UserRightAccessCheck<EmployeeConfigurationDO>
 {
