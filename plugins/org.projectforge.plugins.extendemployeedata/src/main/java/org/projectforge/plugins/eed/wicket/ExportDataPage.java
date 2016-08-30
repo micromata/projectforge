@@ -80,7 +80,8 @@ public class ExportDataPage extends AbstractStandardFormPage implements ISelectC
 
   private void checkAccess()
   {
-    accessChecker.checkLoggedInUserRight(UserRightId.FIBU_EMPLOYEE_SALARY, UserRightValue.READWRITE);
+    accessChecker.checkLoggedInUserRight(UserRightId.FIBU_EMPLOYEE_SALARY, UserRightValue.READONLY,
+        UserRightValue.READWRITE);
     accessChecker.checkRestrictedOrDemoUser();
   }
 

@@ -101,7 +101,9 @@ public class LBExporterService
           String hasFuelVoucher = getActualAttrValue(employee, "fuelvoucher", "fuelvoucher", selectedDate);
           if (StringUtils.isEmpty(hasFuelVoucher) == false && Boolean.valueOf(hasFuelVoucher)) {
             actualRow.getCell(15)
-                .setValue(getAttrValueForMonth(singleEmployeeConfigurationDO, "refuel", "voucher", selectedDate));
+                .setValue(Float
+                    .parseFloat(
+                        getAttrValueForMonth(singleEmployeeConfigurationDO, "refuel", "voucher", selectedDate)));
           }
           //21 -> Kita
           actualRow.getCell(21)
