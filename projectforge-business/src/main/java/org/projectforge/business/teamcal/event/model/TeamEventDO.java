@@ -1048,15 +1048,25 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
     if (this.attendees != null && this.attendees.isEmpty() == false) {
       clone.attendees = clone.ensureAttendees();
       for (final TeamEventAttendeeDO attendee : this.getAttendees()) {
-        attendee.setId(null);
-        clone.addAttendee(attendee);
+        TeamEventAttendeeDO cloneAttendee = new TeamEventAttendeeDO();
+        cloneAttendee.setAddress(attendee.getAddress());
+        cloneAttendee.setComment(attendee.getComment());
+        cloneAttendee.setCommentOfAttendee(attendee.getCommentOfAttendee());
+        cloneAttendee.setLoginToken(attendee.getLoginToken());
+        cloneAttendee.setNumber(attendee.getNumber());
+        cloneAttendee.setStatus(attendee.getStatus());
+        cloneAttendee.setUrl(attendee.getUrl());
+        cloneAttendee.setUser(attendee.getUser());
+        clone.addAttendee(cloneAttendee);
       }
     }
     if (this.attachments != null && this.attachments.isEmpty() == false) {
       clone.attachments = clone.ensureAttachments();
       for (final TeamEventAttachmentDO attachment : this.getAttachments()) {
-        attachment.setId(null);
-        clone.addAttachment(attachment);
+        TeamEventAttachmentDO cloneAttachment = new TeamEventAttachmentDO();
+        cloneAttachment.setFilename(attachment.getFilename());
+        cloneAttachment.setContent(attachment.getContent());
+        clone.addAttachment(cloneAttachment);
       }
     }
     return clone;

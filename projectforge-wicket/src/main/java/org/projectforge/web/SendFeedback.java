@@ -52,7 +52,7 @@ public class SendFeedback
     }
     params.put("data", data);
     final Mail msg = new Mail();
-    msg.setTo(data.getReceiver());
+    msg.addTo(data.getReceiver());
     msg.setProjectForgeSubject(data.getSubject());
     params.put("subject", data.getSubject());
     final String content = sendMail.renderGroovyTemplate(msg, "mail/feedback.txt", params,

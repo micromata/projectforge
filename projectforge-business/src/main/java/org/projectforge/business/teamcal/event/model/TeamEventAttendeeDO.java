@@ -40,9 +40,9 @@ import org.apache.commons.lang.ObjectUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.builder.HashCodeBuilder;
 import org.hibernate.search.annotations.Indexed;
+import org.projectforge.business.address.AddressDO;
 import org.projectforge.framework.persistence.entities.DefaultBaseDO;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
-import org.projectforge.framework.persistence.user.entities.TenantDO;
 
 import de.micromata.genome.db.jpa.history.api.WithHistory;
 
@@ -55,6 +55,8 @@ import de.micromata.genome.db.jpa.history.api.WithHistory;
     indexes = {
         @javax.persistence.Index(name = "idx_fk_t_plugin_calendar_event_attendee_team_event_fk",
             columnList = "team_event_fk"),
+        @javax.persistence.Index(name = "idx_fk_t_plugin_calendar_event_attendee_address_id",
+            columnList = "address_id"),
         @javax.persistence.Index(name = "idx_fk_t_plugin_calendar_event_attendee_user_id", columnList = "user_id"),
         @javax.persistence.Index(name = "idx_fk_t_plugin_calendar_event_attendee_tenant_id", columnList = "tenant_id")
     })
@@ -63,11 +65,11 @@ public class TeamEventAttendeeDO extends DefaultBaseDO implements Comparable<Tea
 {
   private static final long serialVersionUID = -3293247578185393730L;
 
-  private TenantDO tenant;
-
   private Short number;
 
   private String url;
+
+  private AddressDO address;
 
   private PFUserDO user;
 
@@ -86,6 +88,37 @@ public class TeamEventAttendeeDO extends DefaultBaseDO implements Comparable<Tea
   static {
     NON_HISTORIZABLE_ATTRIBUTES = new HashSet<String>();
     NON_HISTORIZABLE_ATTRIBUTES.add("loginToken");
+  }
+
+  /**
+   * Is set if the attendee is a ProjectForge user.
+   * 
+   * @return the userId
+   */
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "address_id")
+  public AddressDO getAddress()
+  {
+    return address;
+  }
+
+  /**
+   * @param address the address to set
+   * @return this for chaining.
+   */
+  public TeamEventAttendeeDO setAddress(final AddressDO address)
+  {
+    this.address = address;
+    return this;
+  }
+
+  @Transient
+  public Integer getAddressId()
+  {
+    if (this.address == null) {
+      return null;
+    }
+    return address.getId();
   }
 
   /**
@@ -262,6 +295,7 @@ public class TeamEventAttendeeDO extends DefaultBaseDO implements Comparable<Tea
       return hcb.toHashCode();
     }
     hcb.append(this.getUserId());
+    hcb.append(this.getAddressId());
     hcb.append(this.url);
     return hcb.toHashCode();
   }
@@ -276,15 +310,31 @@ public class TeamEventAttendeeDO extends DefaultBaseDO implements Comparable<Tea
       return false;
     }
     final TeamEventAttendeeDO other = (TeamEventAttendeeDO) o;
-    if (this.getId() != null && ObjectUtils.equals(this.getId(), other.getId()) == true) {
+    if (this.getId() != null && other.getId() != null && ObjectUtils.equals(this.getId(), other.getId()) == true) {
       return true;
     }
     if (ObjectUtils.equals(this.getUserId(), other.getUserId()) == false) {
+      return false;
+    }
+    if (this.getAddress() != null && other.getAddress() != null
+        && ObjectUtils.equals(this.getAddressId(), other.getAddressId()) == false) {
       return false;
     }
     if (StringUtils.equals(this.getUrl(), other.getUrl()) == false) {
       return false;
     }
     return true;
+  }
+
+  @Override
+  public String toString()
+  {
+    if (this.getAddress() != null) {
+      return this.getAddress().getFullName() + " (" + this.getAddress().getEmail() + ")";
+    }
+    if (this.getUrl() != null) {
+      return this.getUrl();
+    }
+    return super.toString();
   }
 }

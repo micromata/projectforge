@@ -28,6 +28,7 @@ import net.fortuna.ical4j.model.property.Location;
 import net.fortuna.ical4j.model.property.ProdId;
 import net.fortuna.ical4j.model.property.RRule;
 import net.fortuna.ical4j.model.property.Repeat;
+import net.fortuna.ical4j.model.property.Uid;
 import net.fortuna.ical4j.model.property.Version;
 
 @Service
@@ -68,6 +69,9 @@ public class ICSGenerator
         RRule rule = data.getRecurrenceRuleObject();
         event.getProperties().add(rule);
       }
+
+      Uid uid = new Uid(data.getUid());
+      event.getProperties().add(uid);
 
       cal.getComponents().add(event);
 
