@@ -88,6 +88,23 @@ public class GuiAttrSchemaServiceImpl extends AttrSchemaServiceSpringBeanImpl im
     }
   }
 
+  public <PK extends Serializable, T extends TimeableAttrRow<PK>, U extends EntityWithConfigurableAttr & EntityWithTimeableAttr<PK, T>>
+  void createTimedAttrPanels(final DivPanel divPanel, final U entity, final AbstractEditPage<?, ?, ?> parentPage,
+      final Function<AttrGroup, T> addNewEntryFunction)
+  {
+    addHtmlClass(divPanel);
+
+    final AttrSchema attrSchema = getAttrSchema(entity.getAttrSchemaName());
+
+    if (attrSchema == null) {
+      return;
+    }
+
+    for (AttrGroup group : attrSchema.getGroups()) {
+      createTimedAttrPanel(divPanel, entity, parentPage, addNewEntryFunction, group);
+    }
+  }
+
   @Override
   public <PK extends Serializable, T extends TimeableAttrRow<PK>, U extends EntityWithConfigurableAttr & EntityWithTimeableAttr<PK, T> & EntityWithAttributes>
   void createAttrPanels(final TabPanel tabPanel, final U entity, final AbstractEditPage<?, ?, ?> parentPage, final Function<AttrGroup, T> addNewEntryFunction)
@@ -127,6 +144,22 @@ public class GuiAttrSchemaServiceImpl extends AttrSchemaServiceSpringBeanImpl im
 
       case NOT_TIMEABLE:
         divPanel.add(new AttributePanel(divPanel.newChildId(), group, entity));
+        break;
+
+      default:
+        log.error("The Type " + group.getType() + " is not supported.");
+        break;
+    }
+  }
+
+  private <PK extends Serializable, T extends TimeableAttrRow<PK>, U extends EntityWithConfigurableAttr & EntityWithTimeableAttr<PK, T>>
+  void createTimedAttrPanel(final DivPanel divPanel, final U entity, final AbstractEditPage<?, ?, ?> parentPage,
+      final Function<AttrGroup, T> addNewEntryFunction, final AttrGroup group)
+  {
+    switch (group.getType()) {
+      case PERIOD:
+      case INSTANT_OF_TIME:
+        divPanel.add(new TimedAttributePanel<>(divPanel.newChildId(), group, entity, parentPage, addNewEntryFunction));
         break;
 
       default:

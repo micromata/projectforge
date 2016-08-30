@@ -25,6 +25,7 @@ package org.projectforge.web.wicket;
 
 import org.apache.log4j.Logger;
 import org.apache.wicket.AttributeModifier;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.form.Button;
 import org.apache.wicket.markup.html.panel.FeedbackPanel;
 import org.apache.wicket.model.Model;
@@ -67,6 +68,8 @@ public abstract class AbstractEditForm<O extends AbstractBaseDO<Integer>, P exte
 
   protected SingleButtonPanel markAsDeletedButtonPanel;
 
+  protected SingleButtonPanel updateAndStayButtonPanel;
+
   protected Button undeleteButton;
 
   protected SingleButtonPanel undeleteButtonPanel;
@@ -76,11 +79,11 @@ public abstract class AbstractEditForm<O extends AbstractBaseDO<Integer>, P exte
   protected GridBuilder gridBuilder;
 
   private O origData;
-
   /**
    * If set and supported by the edit page, the user is able to accept or discard changes.
    */
   protected O oldData;
+  private AttributeAppender updateAndStayButtonClassHiddenAttributeAppender;
 
   public AbstractEditForm(final P parentPage, final O data)
   {
@@ -224,7 +227,10 @@ public abstract class AbstractEditForm<O extends AbstractBaseDO<Integer>, P exte
       updateAndStayButton.setMarkupId(UPDATE_AND_STAY_BUTTON_MARKUP_ID).setOutputMarkupId(true);
 
       // This button does not need a name since it is not visible to the user.
-      actionButtons.add(new SingleButtonPanel(actionButtons.newChildId(), updateAndStayButton, "", "hidden"));
+      updateAndStayButtonPanel = new SingleButtonPanel(actionButtons.newChildId(), updateAndStayButton, getString("save"));
+      updateAndStayButtonClassHiddenAttributeAppender = AttributeModifier.append("class", "hidden");
+      updateAndStayButtonPanel.getButton().add(updateAndStayButtonClassHiddenAttributeAppender);
+      actionButtons.add(updateAndStayButtonPanel);
     }
 
     {
@@ -283,6 +289,11 @@ public abstract class AbstractEditForm<O extends AbstractBaseDO<Integer>, P exte
     }
     markDefaultButtons();
     updateButtonVisibility();
+  }
+
+  public void showUpdateAndStayButton()
+  {
+    updateAndStayButtonPanel.getButton().remove(updateAndStayButtonClassHiddenAttributeAppender);
   }
 
   @Override
@@ -412,6 +423,7 @@ public abstract class AbstractEditForm<O extends AbstractBaseDO<Integer>, P exte
     updateButtonPanel.setClassnames(SingleButtonPanel.DEFAULT_SUBMIT);
     updateAndNextButtonPanel.setClassnames(SingleButtonPanel.DEFAULT_SUBMIT);
     undeleteButtonPanel.setClassnames(SingleButtonPanel.DEFAULT_SUBMIT);
+    updateAndStayButtonPanel.setClassnames(SingleButtonPanel.DEFAULT_SUBMIT);
   }
 
   /**
