@@ -4,7 +4,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -18,6 +17,7 @@ import org.projectforge.business.teamcal.event.model.TeamEventAttendeeDao;
 import org.projectforge.business.teamcal.event.model.TeamEventDO;
 import org.projectforge.business.user.I18nHelper;
 import org.projectforge.business.user.service.UserService;
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.mail.Mail;
 import org.projectforge.mail.SendMail;
@@ -94,10 +94,7 @@ public class TeamEventServiceImpl implements TeamEventService
       if (assignAttendee.getId() < 0) {
         assignAttendee.setId(null);
         teamEventAttendeeDao.internalSave(assignAttendee);
-        if (data.getAttendees() == null) {
-          data.setAttendees(new HashSet<>());
-        }
-        data.getAttendees().add(assignAttendee);
+        data.addAttendee(assignAttendee);
       }
     }
 
@@ -115,23 +112,35 @@ public class TeamEventServiceImpl implements TeamEventService
       Set<TeamEventAttendeeDO> addedAttendees)
   {
     final Mail msg = new Mail();
+    PFUserDO user = ThreadLocalUserContext.getUser();
+    if (user != null) {
+      msg.setFrom(user.getEmail());
+      msg.setFromRealname(user.getFullname());
+    }
     String subject = "";
     String content = "";
+    String attendeesString = "";
+    for (TeamEventAttendeeDO attendee : data.getAttendees()) {
+      attendeesString = attendeesString + attendee.toString() + " <br>";
+    }
 
     if (isNew) {
-      subject = I18nHelper.getLocalizedString("plugins.teamcal.attendee.email.subject.new");
-      content = I18nHelper.getLocalizedString("plugins.teamcal.attendee.email.content.new");
+      subject = I18nHelper.getLocalizedMessage("plugins.teamcal.attendee.email.subject.new");
+      content = I18nHelper.getLocalizedMessage("plugins.teamcal.attendee.email.content.new", data.getSubject(),
+          data.getStartDate(), data.getLocation(), attendeesString, data.getNote());
     } else {
-      subject = I18nHelper.getLocalizedString("plugins.teamcal.attendee.email.subject.update");
-      content = I18nHelper.getLocalizedString("plugins.teamcal.attendee.email.content.update");
+      subject = I18nHelper.getLocalizedMessage("plugins.teamcal.attendee.email.subject.update");
+      content = I18nHelper.getLocalizedMessage("plugins.teamcal.attendee.email.content.update", data.getSubject(),
+          data.getStartDate(), data.getLocation(), attendeesString, data.getNote());
     }
 
     if (isNew == false && hasChanges == false && addedAttendees.size() > 0) {
       for (TeamEventAttendeeDO attendee : addedAttendees) {
         addAttendeeToMail(attendee, msg);
-        subject = I18nHelper.getLocalizedString("plugins.teamcal.attendee.email.subject.new");
-        content = I18nHelper.getLocalizedString("plugins.teamcal.attendee.email.content.new");
       }
+      subject = I18nHelper.getLocalizedMessage("plugins.teamcal.attendee.email.subject.new");
+      content = I18nHelper.getLocalizedMessage("plugins.teamcal.attendee.email.content.new", data.getSubject(),
+          data.getStartDate(), data.getLocation(), attendeesString, data.getNote());
     } else {
       for (TeamEventAttendeeDO attendee : data.getAttendees()) {
         addAttendeeToMail(attendee, msg);

@@ -325,4 +325,16 @@ public class TeamEventAttendeeDO extends DefaultBaseDO implements Comparable<Tea
     }
     return true;
   }
+
+  @Override
+  public String toString()
+  {
+    if (this.getAddress() != null) {
+      return this.getAddress().getFullName() + " (" + this.getAddress().getEmail() + ")";
+    }
+    if (this.getUrl() != null) {
+      return this.getUrl();
+    }
+    return super.toString();
+  }
 }
