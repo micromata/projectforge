@@ -31,6 +31,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.PredicateUtils;
@@ -249,11 +250,17 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
   }
 
   @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
+  public List<O> internalLoadAllNotDeleted()
+  {
+    return internalLoadAll().stream().filter(o -> o.isDeleted() == false).collect(Collectors.toList());
+  }
+
+  @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
   public List<O> internalLoadAll()
   {
     @SuppressWarnings("unchecked")
     final List<O> list = (List<O>) hibernateTemplate.find("from " + clazz.getSimpleName() + " t");
-    return list;
+    return list.stream().filter(o -> o.isDeleted() == false).collect(Collectors.toList());
   }
 
   @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)

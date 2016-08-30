@@ -4,6 +4,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -63,7 +64,8 @@ public class TeamEventServiceImpl implements TeamEventService
   public List<TeamEventAttendeeDO> getAddressesAndUserAsAttendee()
   {
     List<TeamEventAttendeeDO> resultList = new ArrayList<>();
-    List<AddressDO> allAddressList = addressDao.internalLoadAll().stream()
+    Set<Integer> addedUserIds = new HashSet<>();
+    List<AddressDO> allAddressList = addressDao.internalLoadAllNotDeleted().stream()
         .sorted((address1, address2) -> address2.getFullName().compareTo(address1.getFullName()))
         .collect(Collectors.toList());
     for (AddressDO singleAddress : allAddressList) {
@@ -71,8 +73,10 @@ public class TeamEventServiceImpl implements TeamEventService
         TeamEventAttendeeDO attendee = new TeamEventAttendeeDO();
         attendee.setAddress(singleAddress);
         List<PFUserDO> userWithSameMail = userService.findUserByMail(singleAddress.getEmail());
-        if (userWithSameMail.size() > 0) {
-          attendee.setUser(userWithSameMail.get(0));
+        if (userWithSameMail.size() > 0 && addedUserIds.contains(userWithSameMail.get(0).getId()) == false) {
+          PFUserDO user = userWithSameMail.get(0);
+          attendee.setUser(user);
+          addedUserIds.add(user.getId());
         }
         resultList.add(attendee);
       }
