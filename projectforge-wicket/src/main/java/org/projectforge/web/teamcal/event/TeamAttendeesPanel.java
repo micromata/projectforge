@@ -111,10 +111,10 @@ public class TeamAttendeesPanel extends Panel
             return TeamAttendeesPanel.this.getString("plugins.teamcal.event.addNewAttendee");
           }
           final TeamEventAttendeeDO attendee = attendeeModel.getObject();
-          if (attendee.getUserId() != null) {
+          if (attendee.getAddressId() != null) {
             final UserGroupCache userGroupCache = TenantRegistryMap.getInstance().getTenantRegistry()
                 .getUserGroupCache();
-            final PFUserDO user = userGroupCache.getUser(attendee.getUserId());
+            final PFUserDO user = userGroupCache.getUser(attendee.getAddressId());
             return user != null ? user.getFullname() : attendee.getUrl();
           }
           return attendee.getUrl();
@@ -129,18 +129,18 @@ public class TeamAttendeesPanel extends Panel
           final TeamEventAttendeeDO attendee = attendeeModel.getObject();
           if (StringUtils.isBlank(object) == true) {
             attendee.setUrl(null);
-            attendee.setUser(null);
+            attendee.setAddress(null);
             return;
           }
           final UserGroupCache userGroupCache = TenantRegistryMap.getInstance().getTenantRegistry().getUserGroupCache();
-          final PFUserDO user = userGroupCache.getUserByFullname(object);
-          if (user != null) {
-            attendee.setUser(user);
-            attendee.setUrl(null);
-          } else {
-            attendee.setUrl(object);
-            attendee.setUser(null);
-          }
+          //          final AddressDO address = userGroupCache.getUserByFullname(object);
+          //          if (user != null) {
+          //            attendee.setAddress(address);
+          //            attendee.setUrl(null);
+          //          } else {
+          //            attendee.setUrl(object);
+          //            attendee.setUser(null);
+          //          }
         }
       }, TeamEventAttendeeDO.URL_MAX_LENGTH);
       this.attendeeModel = attendeeModel;
@@ -174,11 +174,11 @@ public class TeamAttendeesPanel extends Panel
       final TeamEventAttendeeDO attendee = attendeeModel.getObject();
       if (lastEntry == true) {
         final TeamEventAttendeeDO clone = new TeamEventAttendeeDO();
-        clone.setUrl(attendee.getUrl()).setUser(attendee.getUser());
+        clone.setUrl(attendee.getUrl()).setAddress(attendee.getAddress());
         addAttendee(clone);
         rebuildAttendees();
         target.add(mainContainer);
-      } else if (attendee.getUserId() == null && StringUtils.isBlank(attendee.getUrl()) == true) {
+      } else if (attendee.getAddressId() == null && StringUtils.isBlank(attendee.getUrl()) == true) {
         final Iterator<TeamEventAttendeeDO> it = attendees.iterator();
         while (it.hasNext() == true) {
           if (it.next() == attendeeModel.getObject()) {

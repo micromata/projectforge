@@ -76,4 +76,6 @@ public interface UserService
 
   PFUserDO getUserByAuthenticationToken(Integer userId, String authKey);
 
+  List<PFUserDO> findUserByMail(String email);
+
 }
