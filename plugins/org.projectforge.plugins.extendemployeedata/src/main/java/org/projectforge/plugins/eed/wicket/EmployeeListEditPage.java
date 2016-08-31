@@ -192,7 +192,7 @@ public class EmployeeListEditPage extends AbstractListPage<EmployeeListEditForm,
 
   protected void checkAccess()
   {
-    accessChecker.checkLoggedInUserRight(UserRightId.FIBU_EMPLOYEE, UserRightValue.READWRITE);
+    accessChecker.checkLoggedInUserRight(UserRightId.HR_EMPLOYEE, UserRightValue.READWRITE);
     accessChecker.checkRestrictedOrDemoUser();
   }
 

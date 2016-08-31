@@ -24,27 +24,26 @@
 package org.projectforge.business.user;
 
 /**
- * Special ProjectForge user groups, such as Administrators and Finance. Some system functionality is only available for user's which are
- * member of the required group.
+ * Special ProjectForge user groups, such as Administrators and Finance. Some system functionality is only available for
+ * user's which are member of the required group.
+ * 
  * @author Kai Reinhard (k.reinhard@micromata.de)
  * 
  */
 public enum ProjectForgeGroup
 {
   /**
-   * IT system administrators of ProjectForge. They do not see all functionalities (such as finances, order book or the project manager's
-   * view).
+   * IT system administrators of ProjectForge. They do not see all functionalities (such as finances, order book or the
+   * project manager's view).
    */
-  ADMIN_GROUP("PF_Admin"), /** Users for having read access to the companies finances. */
-  CONTROLLING_GROUP("PF_Controlling"), /** Users for having full access to the companies finances. */
-  FINANCE_GROUP("PF_Finance"), /** Marketing users can download all addresses in excel format. */
-  MARKETING_GROUP("PF_Marketing"), /** Orgateam users have access to Posteingang and Postausgang. */
-  ORGA_TEAM("PF_Organization"), /** Users having access to the order book (for assigned orders). */
-  PROJECT_ASSISTANT("PF_ProjectAssistant"), /**
-   * Users having access to all time sheets (without details) and order book (for assigned
-   * orders).
-   */
-  PROJECT_MANAGER("PF_ProjectManager");
+  ADMIN_GROUP("PF_Admin"), // 
+  CONTROLLING_GROUP("PF_Controlling"), //
+  FINANCE_GROUP("PF_Finance"), // Users for having full access to the companies finances. 
+  HR_GROUP("PF_HR"), //Users for having full access to the companies employees and salaries. 
+  MARKETING_GROUP("PF_Marketing"), // Marketing users can download all addresses in excel format. 
+  ORGA_TEAM("PF_Organization"), // Orgateam users have access to Posteingang and Postausgang. 
+  PROJECT_ASSISTANT("PF_ProjectAssistant"), // Users having access to the order book (for assigned orders). 
+  PROJECT_MANAGER("PF_ProjectManager"); //Users having access to all time sheets (without details) and order book (for assigned orders).
 
   private String key;
 
@@ -68,6 +67,7 @@ public enum ProjectForgeGroup
 
   /**
    * The key will be used e. g. for i18n.
+   * 
    * @return
    */
   @Override
