@@ -266,7 +266,7 @@ public class InitTestDB
     final PFUserDO origUser = ThreadLocalUserContext.getUser();
     final PFUserDO initUser = new PFUserDO().setUsername("Init-database-pseudo-user");
     initUser.setId(-1);
-    initUser.addRight(new UserRightDO(UserRightId.FIBU_EMPLOYEE, UserRightValue.READWRITE));
+    initUser.addRight(new UserRightDO(UserRightId.HR_EMPLOYEE, UserRightValue.READWRITE));
     ThreadLocalUserContext.setUser(getUserGroupCache(), initUser);
     initConfiguration();
     initUsers();
@@ -303,8 +303,6 @@ public class InitTestDB
     user//
         .addRight(new UserRightDO(UserRightId.FIBU_AUSGANGSRECHNUNGEN, UserRightValue.READWRITE)) //
         .addRight(new UserRightDO(UserRightId.FIBU_EINGANGSRECHNUNGEN, UserRightValue.READWRITE)) //
-        .addRight(new UserRightDO(UserRightId.FIBU_EMPLOYEE, UserRightValue.READWRITE)) //
-        .addRight(new UserRightDO(UserRightId.FIBU_EMPLOYEE_SALARY, UserRightValue.READWRITE)) //
         .addRight(new UserRightDO(UserRightId.FIBU_ACCOUNTS, UserRightValue.READWRITE)) //
         .addRight(new UserRightDO(UserRightId.FIBU_COST_UNIT, UserRightValue.READWRITE)) //
         .addRight(new UserRightDO(UserRightId.PM_ORDER_BOOK, UserRightValue.READWRITE)) //
@@ -312,12 +310,18 @@ public class InitTestDB
         .addRight(new UserRightDO(UserRightId.PM_HR_PLANNING, UserRightValue.READWRITE)); //
     addUser(user);
     user = new PFUserDO();
+    user.setUsername(AbstractTestBase.TEST_HR_USER);
+    user//
+        .addRight(new UserRightDO(UserRightId.HR_EMPLOYEE, UserRightValue.READWRITE)) //
+        .addRight(new UserRightDO(UserRightId.HR_EMPLOYEE_SALARY, UserRightValue.READWRITE)); //
+    addUser(user);
+    user = new PFUserDO();
     user.setUsername(AbstractTestBase.TEST_FULL_ACCESS_USER);
     user//
         .addRight(new UserRightDO(UserRightId.FIBU_AUSGANGSRECHNUNGEN, UserRightValue.READWRITE)) //
         .addRight(new UserRightDO(UserRightId.FIBU_EINGANGSRECHNUNGEN, UserRightValue.READWRITE)) //
-        .addRight(new UserRightDO(UserRightId.FIBU_EMPLOYEE, UserRightValue.READWRITE)) //
-        .addRight(new UserRightDO(UserRightId.FIBU_EMPLOYEE_SALARY, UserRightValue.READWRITE)) //
+        .addRight(new UserRightDO(UserRightId.HR_EMPLOYEE, UserRightValue.READWRITE)) //
+        .addRight(new UserRightDO(UserRightId.HR_EMPLOYEE_SALARY, UserRightValue.READWRITE)) //
         .addRight(new UserRightDO(UserRightId.FIBU_ACCOUNTS, UserRightValue.READWRITE)) //
         .addRight(new UserRightDO(UserRightId.FIBU_COST_UNIT, UserRightValue.READWRITE)) //
         .addRight(new UserRightDO(UserRightId.PM_ORDER_BOOK, UserRightValue.READWRITE)) //

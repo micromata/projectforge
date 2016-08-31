@@ -93,6 +93,8 @@ public class AbstractTestBase extends AbstractTestNGSpringContextTests
 
   public static final String TEST_FINANCE_USER = "testFinanceUser";
 
+  public static final String TEST_HR_USER = "testHRUser";
+
   public static final String TEST_FULL_ACCESS_USER = "testFullAccessUser";
 
   public static final String TEST_FULL_ACCESS_USER_PASSWORD = "testFullAccessUser42";

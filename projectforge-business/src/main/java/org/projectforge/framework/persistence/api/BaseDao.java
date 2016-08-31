@@ -354,7 +354,8 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
     list = extractEntriesWithSelectAccess(list);
     List<O> result = sort(list);
     long end = System.currentTimeMillis();
-    log.info("BaseDao.getList took: " + (end - begin) + " ms.");
+    log.info(
+        "BaseDao.getList for entity class: " + getEntityClass().getSimpleName() + " took: " + (end - begin) + " ms.");
     return result;
   }
 
