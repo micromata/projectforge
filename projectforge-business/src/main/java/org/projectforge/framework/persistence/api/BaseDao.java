@@ -255,12 +255,11 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
     return internalLoadAll().stream().filter(o -> o.isDeleted() == false).collect(Collectors.toList());
   }
 
+  @SuppressWarnings("unchecked")
   @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
   public List<O> internalLoadAll()
   {
-    @SuppressWarnings("unchecked")
-    final List<O> list = (List<O>) hibernateTemplate.find("from " + clazz.getSimpleName() + " t");
-    return list.stream().filter(o -> o.isDeleted() == false).collect(Collectors.toList());
+    return (List<O>) hibernateTemplate.find("from " + clazz.getSimpleName() + " t");
   }
 
   @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
