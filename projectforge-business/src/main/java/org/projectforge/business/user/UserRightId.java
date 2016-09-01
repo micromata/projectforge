@@ -48,6 +48,9 @@ public enum UserRightId implements IUserRightId
   ADMIN_TENANT("ADMIN_TENANT", "admin",
       "access.right.admin.multitenancy"),
 
+  ADMIN_CORE("ADMIN_CORE", "admin",
+      "access.right.admin.core"),
+
   FIBU_EINGANGSRECHNUNGEN("FIBU_EINGANGSRECHNUNGEN", "fibu1",
       "access.right.fibu.eingangsrechnungen"),
 

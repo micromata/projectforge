@@ -113,7 +113,7 @@ public class InitDatabaseDao
   public void initializeDefaultData(final PFUserDO adminUser, final TimeZone adminUserTimezone)
   {
     log.info("Init admin user and root task.");
-    MyDatabaseUpdateService ser = applicationContext.getBean(MyDatabaseUpdateService.class);
+    DatabaseUpdateService ser = applicationContext.getBean(DatabaseUpdateService.class);
     if (ser.databaseTablesWithEntriesExists() == false) {
       databaseNotEmpty();
     }

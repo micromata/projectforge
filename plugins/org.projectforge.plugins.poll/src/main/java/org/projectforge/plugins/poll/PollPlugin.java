@@ -83,7 +83,7 @@ public class PollPlugin extends AbstractPlugin
   protected void initialize()
   {
     // DatabaseUpdateDao is needed by the updater:
-    PollPluginUpdates.dao = myDatabaseUpdater.getDatabaseUpdateService();
+    PollPluginUpdates.dao = myDatabaseUpdater;
     final RegistryEntry entry = new RegistryEntry(ID, PollDao.class, pollDao, "plugins.poll");
     final RegistryEntry eventEntry = new RegistryEntry("pollEvent", PollEventDao.class,
         pollEventDao, "plugins.poll");
@@ -110,7 +110,7 @@ public class PollPlugin extends AbstractPlugin
     final MenuItemDef parentMenu = pluginWicketRegistrationService.getMenuItemDef(MenuItemDefId.MISC);
     pluginWicketRegistrationService
         .registerMenuItem(new MenuItemDef(parentMenu, ID, 30, "plugins.poll.menu", PollListPage.class));
-        // registerMenuItem(new MenuItemDef(parentMenu, ID + "List", 8, "plugins.teamcal.title.list", TeamCalListPage.class));
+    // registerMenuItem(new MenuItemDef(parentMenu, ID + "List", 8, "plugins.teamcal.title.list", TeamCalListPage.class));
 
     // Define the access management:
     registerRight(new PollRight(accessChecker));

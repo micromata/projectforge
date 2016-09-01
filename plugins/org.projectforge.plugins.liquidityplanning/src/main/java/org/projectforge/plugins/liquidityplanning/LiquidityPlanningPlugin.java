@@ -67,7 +67,7 @@ public class LiquidityPlanningPlugin extends AbstractPlugin
   protected void initialize()
   {
     // DatabaseUpdateDao is needed by the updater:
-    LiquidityPlanningPluginUpdates.dao = myDatabaseUpdater.getDatabaseUpdateService();
+    LiquidityPlanningPluginUpdates.dao = myDatabaseUpdater;
     final RegistryEntry entry = new RegistryEntry(ID, LiquidityEntryDao.class, liquidityEntryDao,
         "plugins.liquidityplanning");
     register(entry);

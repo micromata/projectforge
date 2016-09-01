@@ -353,10 +353,14 @@ public class InitTestDB
         new String[] { AbstractTestBase.TEST_FINANCE_USER, AbstractTestBase.TEST_FULL_ACCESS_USER });
     addGroup(AbstractTestBase.CONTROLLING_GROUP,
         new String[] { AbstractTestBase.TEST_CONTROLLING_USER, AbstractTestBase.TEST_FULL_ACCESS_USER });
-    addGroup(AbstractTestBase.ORGA_GROUP);
-    addGroup(AbstractTestBase.PROJECT_MANAGER, new String[] { AbstractTestBase.TEST_PROJECT_MANAGER_USER });
-    addGroup(AbstractTestBase.PROJECT_ASSISTANT, new String[] { AbstractTestBase.TEST_PROJECT_ASSISTANT_USER });
-    addGroup(AbstractTestBase.MARKETING_GROUP, new String[] { AbstractTestBase.TEST_MARKETING_USER });
+    addGroup(AbstractTestBase.HR_GROUP, new String[] { AbstractTestBase.TEST_FULL_ACCESS_USER });
+    addGroup(AbstractTestBase.ORGA_GROUP, new String[] { AbstractTestBase.TEST_FULL_ACCESS_USER });
+    addGroup(AbstractTestBase.PROJECT_MANAGER,
+        new String[] { AbstractTestBase.TEST_PROJECT_MANAGER_USER, AbstractTestBase.TEST_FULL_ACCESS_USER });
+    addGroup(AbstractTestBase.PROJECT_ASSISTANT,
+        new String[] { AbstractTestBase.TEST_PROJECT_ASSISTANT_USER, AbstractTestBase.TEST_FULL_ACCESS_USER });
+    addGroup(AbstractTestBase.MARKETING_GROUP,
+        new String[] { AbstractTestBase.TEST_MARKETING_USER, AbstractTestBase.TEST_FULL_ACCESS_USER });
     addGroup(AbstractTestBase.TEST_GROUP, new String[] { AbstractTestBase.TEST_USER });
     addGroup("group1", new String[] { "user1", "user2" });
     addGroup("group2", new String[] { "user1" });

@@ -133,6 +133,8 @@ public class AbstractTestBase extends AbstractTestNGSpringContextTests
 
   public static final String ORGA_GROUP = ProjectForgeGroup.ORGA_TEAM.toString();
 
+  public static final String HR_GROUP = ProjectForgeGroup.HR_GROUP.toString();
+
   @Autowired
   protected ApplicationContext applicationContext;
 

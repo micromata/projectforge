@@ -23,7 +23,7 @@
 
 package org.projectforge.plugins.eed;
 
-import static org.projectforge.business.user.UserRightServiceImpl.READONLY_READWRITE;
+import static org.projectforge.framework.persistence.api.UserRightService.READONLY_READWRITE;
 
 import org.projectforge.business.fibu.EmployeeDao;
 import org.projectforge.business.user.UserRightId;
@@ -65,7 +65,7 @@ public class ExtendEmployeeDataPlugin extends AbstractPlugin
   protected void initialize()
   {
 
-    ExtendedEmployeeDataPluginUpdates.dao = myDatabaseUpdater.getDatabaseUpdateService();
+    ExtendedEmployeeDataPluginUpdates.dao = myDatabaseUpdater;
     // Register it:
     register(ID, EmployeeDao.class, employeeDao, "plugins.extendemployeedata");
 

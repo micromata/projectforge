@@ -23,20 +23,18 @@
 
 package org.projectforge.continuousdb;
 
-import org.testng.Assert;
-import org.testng.annotations.Test;
-
 import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertTrue;
+
+import org.testng.Assert;
+import org.testng.annotations.Test;
 
 public class SystemUpdaterTest
 {
   @Test
   public void updateTest()
   {
-    UpdaterConfiguration config = new UpdaterConfiguration();
-    config.setDatabaseUpdateDao(new DatabaseUpdateService());
-    SystemUpdater updater = new SystemUpdater(config);
+    SystemUpdater updater = new SystemUpdater();
     updater.testRegister(createEntry("a", "1.0.0", "2011-02-01", UpdatePreCheckStatus.READY_FOR_UPDATE));
     assertFalse("Version is expected to be ready for update.", updater.isUpdated());
     updater.testRegister(createEntry("a", "1.1.0", "2011-02-05", UpdatePreCheckStatus.ALREADY_UPDATED));
@@ -52,7 +50,7 @@ public class SystemUpdaterTest
     Assert.assertFalse(updater.isUpdated());
     updater.runAllPreChecks();
 
-    updater = new SystemUpdater(config)
+    updater = new SystemUpdater()
     {
       @Override
       public void runAllPreChecks()

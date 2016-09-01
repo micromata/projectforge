@@ -28,26 +28,28 @@ import org.projectforge.continuousdb.UpdateEntry;
 import org.projectforge.continuousdb.UpdateEntryImpl;
 import org.projectforge.continuousdb.UpdatePreCheckStatus;
 import org.projectforge.continuousdb.UpdateRunningStatus;
-import org.projectforge.framework.persistence.database.MyDatabaseUpdateService;
+import org.projectforge.framework.persistence.database.DatabaseUpdateService;
 
 /**
- * Contains the initial data-base set-up script and later all update scripts if any data-base schema updates are required by any later
- * release of this to-do plugin. <br/>
- * This is a part of the convenient auto update functionality of ProjectForge. You only have to insert update methods here for any further
- * release (with e. g. required data-base modifications). ProjectForge will do the rest.
+ * Contains the initial data-base set-up script and later all update scripts if any data-base schema updates are
+ * required by any later release of this to-do plugin. <br/>
+ * This is a part of the convenient auto update functionality of ProjectForge. You only have to insert update methods
+ * here for any further release (with e. g. required data-base modifications). ProjectForge will do the rest.
+ * 
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 public class BankingPluginUpdates
 {
-  static MyDatabaseUpdateService dao;
+  static DatabaseUpdateService dao;
 
-  final static Class< ? >[] doClasses = new Class< ? >[] { //
-    BankAccountDO.class, BankAccountBalanceDO.class, BankAccountRecordDO.class};
+  final static Class<?>[] doClasses = new Class<?>[] { //
+      BankAccountDO.class, BankAccountBalanceDO.class, BankAccountRecordDO.class };
 
   @SuppressWarnings("serial")
   public static UpdateEntry getInitializationUpdateEntry()
   {
-    return new UpdateEntryImpl(BankingPlugin.BANK_ACCOUNT_ID, "2012-01-21", "Adds tables T_PLUGIN_BANK_ACCOUNT_*.") {
+    return new UpdateEntryImpl(BankingPlugin.BANK_ACCOUNT_ID, "2012-01-21", "Adds tables T_PLUGIN_BANK_ACCOUNT_*.")
+    {
       @Override
       public UpdatePreCheckStatus runPreCheck()
       {
