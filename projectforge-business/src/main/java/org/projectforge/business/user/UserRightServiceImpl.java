@@ -141,6 +141,8 @@ public class UserRightServiceImpl implements UserRightService, Serializable
     addRight(new HRPlanningRight(accessChecker));
     addRight(new TeamCalRight(accessChecker));
     addRight(new TeamEventRight(accessChecker));
+
+    addRight(UserRightCategory.ADMIN, UserRightId.ADMIN_CORE, FALSE_READONLY_READWRITE, ProjectForgeGroup.ADMIN_GROUP);
   }
 
   private void initUserRightIds()

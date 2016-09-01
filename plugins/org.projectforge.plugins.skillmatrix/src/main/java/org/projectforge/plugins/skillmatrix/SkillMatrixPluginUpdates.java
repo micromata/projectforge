@@ -28,24 +28,27 @@ import org.projectforge.continuousdb.UpdateEntry;
 import org.projectforge.continuousdb.UpdateEntryImpl;
 import org.projectforge.continuousdb.UpdatePreCheckStatus;
 import org.projectforge.continuousdb.UpdateRunningStatus;
-import org.projectforge.framework.persistence.database.MyDatabaseUpdateService;
+import org.projectforge.framework.persistence.database.DatabaseUpdateService;
 
 /**
- * Contains the initial data-base set-up script and later all update scripts if any data-base schema updates are required by any later
- * release of this skillmatrix plugin.
+ * Contains the initial data-base set-up script and later all update scripts if any data-base schema updates are
+ * required by any later release of this skillmatrix plugin.
+ * 
  * @author Billy Duong (b.duong@micromata.de)
  */
 public class SkillMatrixPluginUpdates
 {
-  static MyDatabaseUpdateService dao;
+  static DatabaseUpdateService dao;
 
-  final static Class< ? >[] doClasses = new Class< ? >[] { SkillDO.class, SkillRatingDO.class, TrainingDO.class, TrainingAttendeeDO.class};
+  final static Class<?>[] doClasses = new Class<?>[] { SkillDO.class, SkillRatingDO.class, TrainingDO.class,
+      TrainingAttendeeDO.class };
 
   @SuppressWarnings("serial")
   public static UpdateEntry getInitializationUpdateEntry()
   {
     return new UpdateEntryImpl(SkillMatrixPlugin.ID_SKILL_RATING, "2014-03-05",
-        "Adds tables T_PLUGIN_SKILL and T_PLUGIN_SKILL_RATING and T_PLUGIN_SKILL_TRAINING and T_PLUGIN_SKILL_ATTENDEE.") {
+        "Adds tables T_PLUGIN_SKILL and T_PLUGIN_SKILL_RATING and T_PLUGIN_SKILL_TRAINING and T_PLUGIN_SKILL_ATTENDEE.")
+    {
       @Override
       public UpdatePreCheckStatus runPreCheck()
       {

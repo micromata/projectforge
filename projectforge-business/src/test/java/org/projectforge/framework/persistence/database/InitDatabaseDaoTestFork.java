@@ -44,7 +44,7 @@ public class InitDatabaseDaoTestFork extends AbstractTestBase
   static final String DEFAULT_ADMIN_PASSWORD = "manage";
 
   @Autowired
-  private MyDatabaseUpdateService myDatabaseUpdateService;
+  private DatabaseUpdateService myDatabaseUpdateService;
 
   @Autowired
   private InitDatabaseDao initDatabaseDao;

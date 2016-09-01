@@ -23,20 +23,6 @@
 
 package org.projectforge.framework.persistence.user.entities;
 
-import org.apache.commons.lang.ObjectUtils;
-import org.apache.commons.lang.builder.HashCodeBuilder;
-import org.apache.commons.lang.builder.ToStringBuilder;
-import org.hibernate.Hibernate;
-import org.hibernate.search.annotations.ContainedIn;
-import org.hibernate.search.annotations.Field;
-import org.hibernate.search.annotations.Index;
-import org.hibernate.search.annotations.Indexed;
-import org.hibernate.search.annotations.IndexedEmbedded;
-import org.hibernate.search.annotations.Store;
-import org.projectforge.common.StringHelper;
-import org.projectforge.framework.persistence.api.ShortDisplayNameCapable;
-import org.projectforge.framework.persistence.entities.DefaultBaseDO;
-
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -53,6 +39,21 @@ import javax.persistence.Table;
 import javax.persistence.Transient;
 import javax.persistence.UniqueConstraint;
 
+import org.apache.commons.lang.ObjectUtils;
+import org.apache.commons.lang.builder.HashCodeBuilder;
+import org.apache.commons.lang.builder.ToStringBuilder;
+import org.hibernate.Hibernate;
+import org.hibernate.search.annotations.ContainedIn;
+import org.hibernate.search.annotations.Field;
+import org.hibernate.search.annotations.Index;
+import org.hibernate.search.annotations.Indexed;
+import org.hibernate.search.annotations.IndexedEmbedded;
+import org.hibernate.search.annotations.Store;
+import org.projectforge.common.StringHelper;
+import org.projectforge.framework.persistence.api.AUserRightId;
+import org.projectforge.framework.persistence.api.ShortDisplayNameCapable;
+import org.projectforge.framework.persistence.entities.DefaultBaseDO;
+
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
@@ -62,6 +63,7 @@ import javax.persistence.UniqueConstraint;
     indexes = {
         @javax.persistence.Index(name = "idx_fk_t_group_tenant_id", columnList = "tenant_id")
     })
+@AUserRightId("ADMIN_CORE")
 public class GroupDO extends DefaultBaseDO implements ShortDisplayNameCapable
 {
   // private static final Logger log = Logger.getLogger(GroupDO.class);

@@ -65,7 +65,7 @@ public class InitDatabaseDaoWithTestDataTestFork extends AbstractTestBase
   // old format.
 
   @Autowired
-  private MyDatabaseUpdateService myDatabaseUpdateService;
+  private DatabaseUpdateService myDatabaseUpdateService;
 
   @Autowired
   private InitDatabaseDao initDatabaseDao;

@@ -33,6 +33,7 @@ import javax.persistence.OneToMany;
 import javax.persistence.OrderColumn;
 
 import org.apache.commons.collections.CollectionUtils;
+import org.projectforge.framework.persistence.database.DatabaseUpdateService;
 
 /**
  * 
