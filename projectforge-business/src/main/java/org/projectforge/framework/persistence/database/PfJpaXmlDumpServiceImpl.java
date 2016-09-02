@@ -8,6 +8,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.zip.GZIPInputStream;
 
@@ -24,6 +25,7 @@ import org.projectforge.business.teamcal.filter.TeamCalCalendarFilter;
 import org.projectforge.business.teamcal.filter.TemplateCalendarProperties;
 import org.projectforge.business.teamcal.filter.TemplateEntry;
 import org.projectforge.business.user.GroupDao;
+import org.projectforge.business.user.UserDao;
 import org.projectforge.business.user.UserXmlPreferencesDO;
 import org.projectforge.business.user.UserXmlPreferencesDao;
 import org.projectforge.framework.configuration.ConfigurationDao;
@@ -86,6 +88,9 @@ public class PfJpaXmlDumpServiceImpl extends JpaXmlDumpServiceImpl implements In
 
   @Autowired
   private ApplicationContext applicationContext;
+
+  @Autowired
+  private UserDao userDao;
 
   @Autowired
   private GroupDao groupDao;
@@ -195,9 +200,100 @@ public class PfJpaXmlDumpServiceImpl extends JpaXmlDumpServiceImpl implements In
     ret = restoreDb(emfac, is, RestoreMode.InsertAll);
     IOUtils.closeQuietly(is);
     GlobalConfiguration.getInstance().forceReload();
+    assignUserToGroups();
     correctTeamCalIds();
     correctAdressAndBookTaskId();
     return ret;
+  }
+
+  private void assignUserToGroups()
+  {
+    Map<String, PFUserDO> userNameToUserMap = userDao.internalLoadAll().stream()
+        .collect(Collectors.toMap(PFUserDO::getUsername,
+            Function.identity()));
+    groupDao.setDoHistoryUpdate(false);
+    for (GroupDO group : groupDao.internalLoadAll()) {
+      switch (group.getName()) {
+        case "Yellow web portal-managers":
+          group.addUser(userNameToUserMap.get("ann"));
+          break;
+        case "ProjectForge Projectmanagers":
+          group.addUser(userNameToUserMap.get("kai"));
+          break;
+        case "ACME Projectmanagers":
+          group.addUser(userNameToUserMap.get("kai"));
+          break;
+        case "PF_Admin":
+          group.addUser(userNameToUserMap.get("admin"));
+          group.addUser(userNameToUserMap.get("kai"));
+          group.addUser(userNameToUserMap.get("demo"));
+          break;
+        case "PF_Finance":
+          group.addUser(userNameToUserMap.get("admin"));
+          group.addUser(userNameToUserMap.get("kai"));
+          group.addUser(userNameToUserMap.get("demo"));
+          break;
+        case "PF_Controlling":
+          group.addUser(userNameToUserMap.get("admin"));
+          break;
+        case "PF_HR":
+          group.addUser(userNameToUserMap.get("admin"));
+          break;
+        case "PF_Marketing":
+          group.addUser(userNameToUserMap.get("admin"));
+          break;
+        case "PF_ProjectManager":
+          group.addUser(userNameToUserMap.get("admin"));
+          group.addUser(userNameToUserMap.get("ann"));
+          group.addUser(userNameToUserMap.get("alex"));
+          break;
+        case "ACME Developers":
+          group.addUser(userNameToUserMap.get("kai"));
+          group.addUser(userNameToUserMap.get("demo"));
+          break;
+        case "ProjectForge Developers":
+          group.addUser(userNameToUserMap.get("kai"));
+          break;
+        case "My Company":
+          group.addUser(userNameToUserMap.get("ann"));
+          group.addUser(userNameToUserMap.get("michael"));
+          group.addUser(userNameToUserMap.get("joe"));
+          group.addUser(userNameToUserMap.get("kai"));
+          group.addUser(userNameToUserMap.get("alex"));
+          group.addUser(userNameToUserMap.get("chris"));
+          group.addUser(userNameToUserMap.get("max"));
+          group.addUser(userNameToUserMap.get("julia"));
+          group.addUser(userNameToUserMap.get("mona"));
+          group.addUser(userNameToUserMap.get("demo"));
+          break;
+        case "ProjectForge":
+          group.addUser(userNameToUserMap.get("joe"));
+          group.addUser(userNameToUserMap.get("kai"));
+          group.addUser(userNameToUserMap.get("max"));
+          break;
+        case "ProjectForge-managers":
+          group.addUser(userNameToUserMap.get("joe"));
+          group.addUser(userNameToUserMap.get("kai"));
+          break;
+        case "Yellow web portal":
+          group.addUser(userNameToUserMap.get("ann"));
+          group.addUser(userNameToUserMap.get("joe"));
+          group.addUser(userNameToUserMap.get("kai"));
+          group.addUser(userNameToUserMap.get("max"));
+          group.addUser(userNameToUserMap.get("julia"));
+          break;
+        case "Yellow track & trace":
+          group.addUser(userNameToUserMap.get("ann"));
+          group.addUser(userNameToUserMap.get("michael"));
+          group.addUser(userNameToUserMap.get("alex"));
+          break;
+        case "Yellow track & trace-managers":
+          group.addUser(userNameToUserMap.get("ann"));
+          break;
+      }
+      groupDao.internalUpdate(group, false);
+    }
+    groupDao.setDoHistoryUpdate(true);
   }
 
   private void correctAdressAndBookTaskId()

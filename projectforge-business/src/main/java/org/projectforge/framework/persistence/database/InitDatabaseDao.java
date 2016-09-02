@@ -217,6 +217,9 @@ public class InitDatabaseDao
     addGroup(ProjectForgeGroup.ORGA_TEAM, "The organization team has access to post in- and outbound, contracts etc..",
         tenant,
         adminUsersForNewTenants);
+    addGroup(ProjectForgeGroup.HR_GROUP, "Users for having full access to the companies hr.",
+        tenant,
+        adminUsersForNewTenants);
     addGroup(ProjectForgeGroup.PROJECT_MANAGER,
         "Project managers have access to assigned orders and resource planning.", tenant, null);
     addGroup(ProjectForgeGroup.PROJECT_ASSISTANT, "Project assistants have access to assigned orders.", tenant, null);
