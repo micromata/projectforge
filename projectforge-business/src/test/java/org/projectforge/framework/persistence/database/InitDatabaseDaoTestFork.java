@@ -77,7 +77,7 @@ public class InitDatabaseDaoTestFork extends AbstractTestBase
     assertNotNull(user);
     assertEquals(InitDatabaseDao.DEFAULT_ADMIN_USER, user.getUsername());
     final Collection<Integer> col = userGroupCache.getUserGroups(user);
-    assertEquals(5, col.size());
+    assertEquals(6, col.size());
     assertTrue(userGroupCache.isUserMemberOfAdminGroup(user.getId()));
     assertTrue(userGroupCache.isUserMemberOfFinanceGroup(user.getId()));
 
