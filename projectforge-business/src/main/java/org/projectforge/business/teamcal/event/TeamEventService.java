@@ -20,4 +20,13 @@ public interface TeamEventService
   boolean sendTeamEventToAttendees(TeamEventDO data, boolean isNew, boolean hasChanges,
       Set<TeamEventAttendeeDO> addedAttendees);
 
+  TeamEventDO findByUid(String reqEventUid);
+
+  TeamEventAttendeeDO findByAttendeeId(Integer attendeeId, boolean checkAccess);
+
+  TeamEventAttendeeDO findByAttendeeId(Integer attendeeId);
+
+  void update(TeamEventDO event);
+
+  void update(TeamEventDO event, boolean checkAccess);
 }

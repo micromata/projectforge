@@ -13,6 +13,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.projectforge.business.address.AddressDO;
 import org.projectforge.business.address.AddressDao;
 import org.projectforge.business.teamcal.ICSGenerator;
+import org.projectforge.business.teamcal.event.model.TeamEventAttendeeStatus;
 import org.projectforge.business.teamcal.event.model.TeamEventAttendeeDO;
 import org.projectforge.business.teamcal.event.model.TeamEventAttendeeDao;
 import org.projectforge.business.teamcal.event.model.TeamEventDO;
@@ -71,6 +72,7 @@ public class TeamEventServiceImpl implements TeamEventService
     for (AddressDO singleAddress : allAddressList) {
       if (StringUtils.isBlank(singleAddress.getEmail()) == false) {
         TeamEventAttendeeDO attendee = new TeamEventAttendeeDO();
+        attendee.setStatus(TeamEventAttendeeStatus.NEW);
         attendee.setAddress(singleAddress);
         List<PFUserDO> userWithSameMail = userService.findUserByMail(singleAddress.getEmail());
         if (userWithSameMail.size() > 0 && addedUserIds.contains(userWithSameMail.get(0).getId()) == false) {
@@ -97,6 +99,7 @@ public class TeamEventServiceImpl implements TeamEventService
     for (TeamEventAttendeeDO assignAttendee : itemsToAssign) {
       if (assignAttendee.getId() < 0) {
         assignAttendee.setId(null);
+        assignAttendee.setStatus(TeamEventAttendeeStatus.IN_PROCESS);
         teamEventAttendeeDao.internalSave(assignAttendee);
         data.addAttendee(assignAttendee);
       }
@@ -172,6 +175,42 @@ public class TeamEventServiceImpl implements TeamEventService
     if (StringUtils.isNotBlank(attendee.getUrl())) {
       msg.addTo(attendee.getUrl());
     }
+  }
+
+  @Override
+  public TeamEventDO findByUid(String reqEventUid)
+  {
+    return teamEventDao.getByUid(reqEventUid);
+  }
+
+  @Override
+  public TeamEventAttendeeDO findByAttendeeId(Integer attendeeId, boolean checkAccess)
+  {
+    TeamEventAttendeeDO result = null;
+    if (checkAccess) {
+      result = teamEventAttendeeDao.getById(attendeeId);
+    } else {
+      result = teamEventAttendeeDao.internalGetById(attendeeId);
+    }
+    return result;
+  }
+
+  @Override
+  public TeamEventAttendeeDO findByAttendeeId(Integer attendeeId)
+  {
+    return findByAttendeeId(attendeeId, true);
+  }
+
+  @Override
+  public void update(TeamEventDO event)
+  {
+    update(event, true);
+  }
+
+  @Override
+  public void update(TeamEventDO event, boolean checkAccess)
+  {
+    teamEventDao.internalUpdate(event, checkAccess);
   }
 
 }

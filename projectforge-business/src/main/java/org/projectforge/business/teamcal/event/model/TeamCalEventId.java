@@ -21,7 +21,7 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.web.teamcal.event;
+package org.projectforge.business.teamcal.event.model;
 
 import java.text.DateFormat;
 import java.text.ParseException;
@@ -30,8 +30,6 @@ import java.util.Date;
 import java.util.TimeZone;
 
 import org.projectforge.business.teamcal.event.TeamRecurrenceEvent;
-import org.projectforge.business.teamcal.event.model.TeamEvent;
-import org.projectforge.business.teamcal.event.model.TeamEventDO;
 import org.projectforge.framework.time.DateFormats;
 import org.projectforge.framework.utils.NumberHelper;
 
