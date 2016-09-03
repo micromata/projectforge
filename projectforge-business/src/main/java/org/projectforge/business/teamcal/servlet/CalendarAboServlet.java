@@ -21,11 +21,10 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.web.calendar;
+package org.projectforge.business.teamcal.servlet;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -41,9 +40,14 @@ import org.apache.commons.httpclient.HttpStatus;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.MDC;
 import org.joda.time.DateTime;
+import org.projectforge.ProjectForgeApp;
 import org.projectforge.business.multitenancy.TenantRegistry;
 import org.projectforge.business.multitenancy.TenantRegistryMap;
 import org.projectforge.business.teamcal.TeamCalConfig;
+import org.projectforge.business.teamcal.common.CalendarHelper;
+import org.projectforge.business.teamcal.model.CalendarFeedConst;
+import org.projectforge.business.teamcal.service.TeamCalCalendarFeedHook;
+import org.projectforge.business.teamcal.service.TeamCalService;
 import org.projectforge.business.timesheet.TimesheetDO;
 import org.projectforge.business.timesheet.TimesheetDao;
 import org.projectforge.business.timesheet.TimesheetFilter;
@@ -58,9 +62,6 @@ import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.time.DayHolder;
 import org.projectforge.framework.utils.NumberHelper;
-import org.projectforge.web.WebConfiguration;
-import org.projectforge.web.teamcal.integration.TeamCalCalendarFeedHook;
-import org.projectforge.web.timesheet.TimesheetEventsProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.web.context.WebApplicationContext;
@@ -76,7 +77,6 @@ import net.fortuna.ical4j.model.property.Description;
 import net.fortuna.ical4j.model.property.Location;
 import net.fortuna.ical4j.model.property.ProdId;
 import net.fortuna.ical4j.model.property.Version;
-import net.ftlines.wicket.fullcalendar.Event;
 
 /**
  * Feed Servlet, which generates a 'text/calendar' output of the last four mounts. Currently relevant informations are
@@ -86,9 +86,9 @@ import net.ftlines.wicket.fullcalendar.Event;
  * 
  */
 @WebServlet("/export/ProjectForge.ics")
-public class CalendarFeed extends HttpServlet
+public class CalendarAboServlet extends HttpServlet
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(CalendarFeed.class);
+  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(CalendarAboServlet.class);
 
   private static final long serialVersionUID = 1480433876190009435L;
 
@@ -109,6 +109,9 @@ public class CalendarFeed extends HttpServlet
   private UserService userService;
 
   @Autowired
+  private TeamCalService teamCalService;
+
+  @Autowired
   private TeamCalCalendarFeedHook teamCalCalendarFeedHook;
 
   @Override
@@ -124,7 +127,7 @@ public class CalendarFeed extends HttpServlet
   protected void doGet(final HttpServletRequest req, final HttpServletResponse resp)
       throws ServletException, IOException
   {
-    if (WebConfiguration.isUpAndRunning() == false) {
+    if (ProjectForgeApp.getInstance().isUpAndRunning() == false) {
       log.error(
           "System isn't up and running, CalendarFeed call denied. The system is may-be in start-up phase or in maintenance mode.");
       resp.sendError(HttpServletResponse.SC_SERVICE_UNAVAILABLE);
@@ -299,9 +302,9 @@ public class CalendarFeed extends HttpServlet
         final String uid = TeamCalConfig.get().createTimesheetUid(timesheet.getId());
         String summary;
         if (eventsExist == true) {
-          summary = TimesheetEventsProvider.getTitle(timesheet) + " (ts)";
+          summary = CalendarHelper.getTitle(timesheet) + " (ts)";
         } else {
-          summary = TimesheetEventsProvider.getTitle(timesheet);
+          summary = CalendarHelper.getTitle(timesheet);
         }
         final VEvent vEvent = ICal4JUtils.createVEvent(timesheet.getStartTime(), timesheet.getStopTime(), uid, summary);
         if (StringUtils.isNotBlank(timesheet.getDescription()) == true) {
@@ -315,17 +318,10 @@ public class CalendarFeed extends HttpServlet
     }
     final String holidays = params.get(CalendarFeedConst.PARAM_NAME_HOLIDAYS);
     if ("true".equals(holidays) == true) {
-      final HolidayEventsProvider holidaysEventsProvider = new HolidayEventsProvider();
       DateTime holidaysFrom = new DateTime(ThreadLocalUserContext.getDateTimeZone());
       holidaysFrom = holidaysFrom.dayOfYear().withMinimumValue().millisOfDay().withMinimumValue().minusYears(2);
       final DateTime holidayTo = holidaysFrom.plusYears(6);
-      for (final Event event : holidaysEventsProvider.getEvents(holidaysFrom, holidayTo)) {
-        final Date fromDate = event.getStart().toDate();
-        final Date toDate = event.getEnd() != null ? event.getEnd().toDate() : fromDate;
-        final VEvent vEvent = ICal4JUtils.createVEvent(fromDate, toDate, "pf-holiday" + event.getId(), event.getTitle(),
-            true);
-        events.add(vEvent);
-      }
+      events.addAll(teamCalService.getConfiguredHolidaysAsVEvent(holidaysFrom, holidayTo));
     }
     final String weeksOfYear = params.get(CalendarFeedConst.PARAM_NAME_WEEK_OF_YEARS);
     if ("true".equals(weeksOfYear) == true) {

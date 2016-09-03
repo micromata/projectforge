@@ -21,7 +21,7 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.web.calendar;
+package org.projectforge.business.teamcal.service;
 
 import java.util.List;
 import java.util.Map;

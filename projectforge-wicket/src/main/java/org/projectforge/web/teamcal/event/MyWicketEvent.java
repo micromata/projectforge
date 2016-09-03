@@ -21,7 +21,7 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.web.calendar;
+package org.projectforge.web.teamcal.event;
 
 import net.ftlines.wicket.fullcalendar.Event;
 
@@ -31,7 +31,7 @@ import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.business.utils.HtmlHelper;
 import org.projectforge.web.WebConfiguration;
 
-public class MyEvent extends Event
+public class MyWicketEvent extends Event
 {
   private static final long serialVersionUID = 4820590313641751522L;
 
@@ -53,7 +53,7 @@ public class MyEvent extends Event
    * @param tooltipTitle the tooltipTitle to set
    * @return this for chaining.
    */
-  public MyEvent setTooltipTitle(final String tooltipTitle)
+  public MyWicketEvent setTooltipTitle(final String tooltipTitle)
   {
     this.tooltipTitle = tooltipTitle;
     return this;
@@ -71,7 +71,7 @@ public class MyEvent extends Event
    * @param tooltipContent the tooltipContent to set
    * @return this for chaining.
    */
-  public MyEvent setTooltipContent(final String tooltipContent)
+  public MyWicketEvent setTooltipContent(final String tooltipContent)
   {
     this.tooltipContent = tooltipContent;
     return this;
@@ -83,7 +83,7 @@ public class MyEvent extends Event
    * @param labelValues {{"text without label"}{"value", "label"}, ...}
    * @return
    */
-  public MyEvent setTooltip(final String title, final String[][] labelValues)
+  public MyWicketEvent setTooltip(final String title, final String[][] labelValues)
   {
     this.tooltipTitle = title;
     final StringBuffer buf = new StringBuffer();

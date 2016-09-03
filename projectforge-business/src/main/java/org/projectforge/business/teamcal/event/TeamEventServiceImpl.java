@@ -12,11 +12,13 @@ import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.projectforge.business.address.AddressDO;
 import org.projectforge.business.address.AddressDao;
+import org.projectforge.business.configuration.ConfigurationService;
 import org.projectforge.business.teamcal.ICSGenerator;
-import org.projectforge.business.teamcal.event.model.TeamEventAttendeeStatus;
 import org.projectforge.business.teamcal.event.model.TeamEventAttendeeDO;
 import org.projectforge.business.teamcal.event.model.TeamEventAttendeeDao;
+import org.projectforge.business.teamcal.event.model.TeamEventAttendeeStatus;
 import org.projectforge.business.teamcal.event.model.TeamEventDO;
+import org.projectforge.business.teamcal.service.CryptService;
 import org.projectforge.business.user.I18nHelper;
 import org.projectforge.business.user.service.UserService;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
@@ -48,6 +50,12 @@ public class TeamEventServiceImpl implements TeamEventService
 
   @Autowired
   private UserService userService;
+
+  @Autowired
+  private CryptService cryptService;
+
+  @Autowired
+  private ConfigurationService configService;
 
   @Override
   public List<Integer> getAssignedAttendeeIds(TeamEventDO data)
@@ -118,42 +126,48 @@ public class TeamEventServiceImpl implements TeamEventService
   public boolean sendTeamEventToAttendees(TeamEventDO data, boolean isNew, boolean hasChanges,
       Set<TeamEventAttendeeDO> addedAttendees)
   {
+    boolean result = false;
+    if (isNew) {
+      for (TeamEventAttendeeDO attendee : data.getAttendees()) {
+        result = sendMail(data, attendee, "new");
+      }
+    } else {
+      Set<TeamEventAttendeeDO> sendToList = new HashSet<>();
+      if (hasChanges == false && addedAttendees.size() > 0) {
+        sendToList = addedAttendees;
+      } else {
+        sendToList = data.getAttendees();
+      }
+      for (TeamEventAttendeeDO attendee : sendToList) {
+        result = sendMail(data, attendee, "update");
+      }
+    }
+    return result;
+  }
+
+  private Mail createMail()
+  {
     final Mail msg = new Mail();
     PFUserDO user = ThreadLocalUserContext.getUser();
     if (user != null) {
       msg.setFrom(user.getEmail());
       msg.setFromRealname(user.getFullname());
     }
-    String subject = "";
-    String content = "";
+    return msg;
+  }
+
+  private boolean sendMail(TeamEventDO data, TeamEventAttendeeDO attendee, String mode)
+  {
+    final Mail msg = createMail();
+    addAttendeeToMail(attendee, msg);
+    String subject = I18nHelper.getLocalizedMessage("plugins.teamcal.attendee.email.subject." + mode);
     String attendeesString = "";
-    for (TeamEventAttendeeDO attendee : data.getAttendees()) {
-      attendeesString = attendeesString + attendee.toString() + " <br>";
+    for (TeamEventAttendeeDO attendeeForString : data.getAttendees()) {
+      attendeesString = attendeesString + attendeeForString.toString() + " <br>";
     }
-
-    if (isNew) {
-      subject = I18nHelper.getLocalizedMessage("plugins.teamcal.attendee.email.subject.new");
-      content = I18nHelper.getLocalizedMessage("plugins.teamcal.attendee.email.content.new", data.getSubject(),
-          data.getStartDate(), data.getLocation(), attendeesString, data.getNote());
-    } else {
-      subject = I18nHelper.getLocalizedMessage("plugins.teamcal.attendee.email.subject.update");
-      content = I18nHelper.getLocalizedMessage("plugins.teamcal.attendee.email.content.update", data.getSubject(),
-          data.getStartDate(), data.getLocation(), attendeesString, data.getNote());
-    }
-
-    if (isNew == false && hasChanges == false && addedAttendees.size() > 0) {
-      for (TeamEventAttendeeDO attendee : addedAttendees) {
-        addAttendeeToMail(attendee, msg);
-      }
-      subject = I18nHelper.getLocalizedMessage("plugins.teamcal.attendee.email.subject.new");
-      content = I18nHelper.getLocalizedMessage("plugins.teamcal.attendee.email.content.new", data.getSubject(),
-          data.getStartDate(), data.getLocation(), attendeesString, data.getNote());
-    } else {
-      for (TeamEventAttendeeDO attendee : data.getAttendees()) {
-        addAttendeeToMail(attendee, msg);
-      }
-    }
-
+    String content = I18nHelper.getLocalizedMessage("plugins.teamcal.attendee.email.content." + mode,
+        data.getSubject(), data.getStartDate(), data.getLocation(), attendeesString, data.getNote(),
+        getResponseLinks(data, attendee));
     msg.setProjectForgeSubject(subject);
     msg.setContent(content);
     msg.setContentType(Mail.CONTENTTYPE_HTML);
@@ -164,6 +178,17 @@ public class TeamEventServiceImpl implements TeamEventService
     } catch (UnsupportedEncodingException e) {
       log.error("Something went wrong sending team event to attendee", e);
     }
+    return result;
+  }
+
+  private String getResponseLinks(TeamEventDO event, TeamEventAttendeeDO attendee)
+  {
+    String messageParamBegin = "uid=" + event.getUid() + "&attendee=" + attendee.getId();
+    String acceptParams = cryptService.encryptParameterMessage(messageParamBegin + "&status=ACCEPTED");
+    String declinedParams = cryptService.encryptParameterMessage(messageParamBegin + "&status=DECLINED");
+    String result = "<a href=\"" + configService.getDomain() + "/cal?" + acceptParams + "\">"
+        + TeamEventAttendeeStatus.ACCEPTED.getI18nValue() + "</a><br><a href=\"" + configService.getDomain() + "/cal?"
+        + declinedParams + "\">" + TeamEventAttendeeStatus.DECLINED.getI18nValue() + "</a><br>";
     return result;
   }
 
