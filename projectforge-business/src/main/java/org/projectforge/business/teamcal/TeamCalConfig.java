@@ -26,7 +26,6 @@ package org.projectforge.business.teamcal;
 import org.projectforge.framework.configuration.ConfigXml;
 import org.projectforge.framework.configuration.Configuration;
 import org.projectforge.framework.configuration.ConfigurationData;
-import org.projectforge.framework.utils.NumberHelper;
 
 public class TeamCalConfig implements ConfigurationData
 {
@@ -76,20 +75,6 @@ public class TeamCalConfig implements ConfigurationData
   public String createUid(final String prefix, final String id)
   {
     return prefix + "-" + id + "@" + getDomain();
-  }
-
-  public Integer extractEventId(final String uid)
-  {
-    if (uid == null) {
-      return null;
-    }
-    final String prefix = EVENT_UID_PREFIX + "-";
-    final String suffix = "@" + getDomain();
-    if (uid.endsWith(suffix) == false || uid.startsWith(prefix) == false) {
-      return null;
-    }
-    final String idString = uid.substring(prefix.length(), uid.length() - suffix.length());
-    return NumberHelper.parseInteger(idString);
   }
 
   /**

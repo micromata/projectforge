@@ -100,6 +100,8 @@ public class DatabaseCoreUpdates
           return UpdatePreCheckStatus.READY_FOR_UPDATE;
         } else if (databaseUpdateDao.getDatabaseTableColumnLenght(PFUserDO.class, "ssh_public_key") < 4096) {
           return UpdatePreCheckStatus.READY_FOR_UPDATE;
+        } else if (databaseUpdateDao.doesTableAttributeExist("T_PLUGIN_CALENDAR_EVENT", "uid") == false) {
+          return UpdatePreCheckStatus.READY_FOR_UPDATE;
         } else {
           return UpdatePreCheckStatus.ALREADY_UPDATED;
         }
@@ -110,7 +112,8 @@ public class DatabaseCoreUpdates
       {
         final InitDatabaseDao initDatabaseDao = applicationContext.getBean(InitDatabaseDao.class);
         final MyDatabaseUpdateService databaseUpdateDao = applicationContext.getBean(MyDatabaseUpdateService.class);
-        if (databaseUpdateDao.doesTableAttributeExist("T_PLUGIN_CALENDAR_EVENT_ATTENDEE", "address_id") == false) {
+        if (databaseUpdateDao.doesTableAttributeExist("T_PLUGIN_CALENDAR_EVENT_ATTENDEE", "address_id") == false
+            || databaseUpdateDao.doesTableAttributeExist("T_PLUGIN_CALENDAR_EVENT", "uid") == false) {
           //Updating the schema
           initDatabaseDao.updateSchema();
         }
@@ -127,7 +130,7 @@ public class DatabaseCoreUpdates
     // 6.1.1
     // /////////////////////////////////////////////////////////////////
     list.add(new UpdateEntryImpl(CORE_REGION_ID, "6.1.1", "2016-07-27",
-        "Changed timezone of starttime of the configurable attributes.")
+        "Changed timezone of starttime of the configurable attributes. Add uid to attendee.")
     {
       @Override
       public UpdatePreCheckStatus runPreCheck()
