@@ -1,5 +1,6 @@
-package org.projectforge.web.calendar;
+package org.projectforge.business.teamcal.service;
 
+import org.projectforge.business.teamcal.model.CalendarFeedConst;
 import org.projectforge.business.user.UserDao;
 import org.projectforge.business.user.service.UserService;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
@@ -11,7 +12,7 @@ import org.springframework.stereotype.Service;
 public class CalendarFeedService
 {
   @Autowired
-  UserDao userDao;
+  private UserDao userDao;
 
   @Autowired
   private UserService userService;

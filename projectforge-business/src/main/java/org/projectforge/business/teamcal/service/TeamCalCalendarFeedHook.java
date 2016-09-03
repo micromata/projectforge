@@ -21,7 +21,7 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.web.teamcal.integration;
+package org.projectforge.business.teamcal.service;
 
 import java.util.Date;
 import java.util.LinkedList;
@@ -38,8 +38,6 @@ import org.projectforge.business.teamcal.event.model.TeamEvent;
 import org.projectforge.business.teamcal.event.model.TeamEventDO;
 import org.projectforge.framework.calendar.CalendarUtils;
 import org.projectforge.framework.calendar.ICal4JUtils;
-import org.projectforge.web.calendar.CalendarFeedHook;
-import org.projectforge.web.calendar.CalendarFeedService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
@@ -93,7 +91,7 @@ public class TeamCalCalendarFeedHook implements CalendarFeedHook
   }
 
   /**
-   * @see org.projectforge.web.calendar.CalendarFeedHook#getEvents(net.fortuna.ical4j.model.TimeZone,
+   * @see org.projectforge.business.teamcal.service.calendar.CalendarFeedHook#getEvents(net.fortuna.ical4j.model.TimeZone,
    *      java.util.Calendar)
    */
   @Override

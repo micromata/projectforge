@@ -3,8 +3,11 @@ package org.projectforge.business.teamcal.service;
 import java.util.Collection;
 import java.util.List;
 
+import org.joda.time.DateTime;
 import org.projectforge.business.teamcal.admin.TeamCalCache;
 import org.projectforge.business.teamcal.admin.model.TeamCalDO;
+
+import net.fortuna.ical4j.model.component.VEvent;
 
 public interface TeamCalService
 {
@@ -20,5 +23,7 @@ public interface TeamCalService
   String getCalendarIds(Collection<TeamCalDO> calendars);
 
   Collection<TeamCalDO> getSortedCalenders();
+
+  Collection<VEvent> getConfiguredHolidaysAsVEvent(DateTime holidaysFrom, DateTime holidayTo);
 
 }

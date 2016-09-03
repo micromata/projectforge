@@ -51,7 +51,6 @@ import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.time.RecurrenceFrequency;
 import org.projectforge.framework.utils.NumberHelper;
-import org.projectforge.web.calendar.MyEvent;
 import org.projectforge.web.calendar.MyFullCalendarEventsProvider;
 
 import net.fortuna.ical4j.model.Recur;
@@ -151,7 +150,7 @@ public class TeamCalEventProvider extends MyFullCalendarEventsProvider
           eventDO = ((TeamRecurrenceEvent) teamEvent).getMaster();
         }
         teamEventMap.put(id.toString(), teamEvent);
-        final MyEvent event = new MyEvent();
+        final MyWicketEvent event = new MyWicketEvent();
         event.setClassName(EVENT_CLASS_NAME + " " + EventDroppedCallbackScriptGenerator.NO_CONTEXTMENU_INDICATOR);
         event.setId("" + id);
         event.setColor(activeTemplateEntry.getColorCode(eventDO.getCalendarId()));
