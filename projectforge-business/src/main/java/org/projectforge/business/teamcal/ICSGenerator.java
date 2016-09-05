@@ -2,6 +2,7 @@ package org.projectforge.business.teamcal;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.net.URI;
 
 import org.projectforge.business.configuration.ConfigurationService;
 import org.projectforge.business.teamcal.event.model.ReminderActionType;
@@ -19,8 +20,11 @@ import net.fortuna.ical4j.model.TimeZoneRegistryFactory;
 import net.fortuna.ical4j.model.ValidationException;
 import net.fortuna.ical4j.model.component.VAlarm;
 import net.fortuna.ical4j.model.component.VEvent;
+import net.fortuna.ical4j.model.parameter.Role;
+import net.fortuna.ical4j.model.parameter.Rsvp;
 import net.fortuna.ical4j.model.parameter.Value;
 import net.fortuna.ical4j.model.property.Action;
+import net.fortuna.ical4j.model.property.Attendee;
 import net.fortuna.ical4j.model.property.CalScale;
 import net.fortuna.ical4j.model.property.Description;
 import net.fortuna.ical4j.model.property.Duration;
@@ -105,6 +109,22 @@ public class ICSGenerator
           alarm.getProperties().add(new Duration(dur));
           event.getAlarms().add(alarm);
         }
+
+        if (data.getAttendees() != null) {
+          data.getAttendees().stream().forEach(attendeeFromData -> {
+            String email = "mailto:";
+            if (attendeeFromData.getAddress() != null) {
+              email = email + attendeeFromData.getAddress().getEmail();
+            } else {
+              email = email + attendeeFromData.getUrl();
+            }
+            Attendee attendee = new Attendee(URI.create(email));
+            attendee.getParameters().add(Role.REQ_PARTICIPANT);//required participants.
+            attendee.getParameters().add(Rsvp.FALSE);//to get the status request from the attendees
+            event.getProperties().add(attendee);
+          });
+        }
+
       }
 
       CalendarOutputter outputter = new CalendarOutputter();
