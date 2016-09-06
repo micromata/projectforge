@@ -20,6 +20,7 @@
     <module>org.projectforge.plugins.crm</module>
     <module>org.projectforge.plugins.ihkexport</module>
     <module>org.projectforge.plugins.extendemployeedata</module>
+    <module>org.projectforge.plugins.financialfairplay</module>
   </modules>
   <build>
     <plugins>
