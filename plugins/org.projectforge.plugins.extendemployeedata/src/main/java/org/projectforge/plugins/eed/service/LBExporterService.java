@@ -79,10 +79,13 @@ public class LBExporterService
           //2 -> Personalnummer
           actualRow.getCell(2).setValue(employee.getStaffNumber());
           //3 -> Gehalt
-          //TODO: HR -> Gehalt ist nicht das richtige
-          //          BigDecimal bruttoMitAgAnteil = employeeSalaryService.getLatestSalaryForEmployee(employee) != null
-          //              ? employeeSalaryService.getLatestSalaryForEmployee(employee).getBruttoMitAgAnteil() : null;
-          //          actualRow.getCell(3).setValue(bruttoMitAgAnteil);
+          String salary = getActualAttrValue(employee, "annuity", "annuity", selectedDate);
+          if (StringUtils.isBlank(salary) == false) {
+            Float salaryFloat = employeeService.getMonthlySalary(employee, selectedDate);
+            if (salaryFloat != null) {
+              actualRow.getCell(3).setValue(salaryFloat);
+            }
+          }
           //13 / 14 Essen
           String hasFood = getActualAttrValue(employee, "food", "food", selectedDate);
           if (StringUtils.isEmpty(hasFood) == false && Boolean.valueOf(hasFood)) {
