@@ -23,29 +23,30 @@
 
 package org.projectforge.plugins.ffp.wicket;
 
-import org.apache.log4j.Logger;
-import org.projectforge.web.wicket.AbstractListForm;
+import java.io.Serializable;
 
-public class FFPEventListForm extends AbstractListForm<FFPEventFilter, FFPEventListPage>
+import org.projectforge.framework.persistence.api.BaseSearchFilter;
+
+import com.thoughtworks.xstream.annotations.XStreamAlias;
+
+/**
+ * 
+ * @author Florian Blumenstein
+ * 
+ */
+@XStreamAlias("FFPEventFilter")
+public class FFPEventFilter extends BaseSearchFilter implements Serializable
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(FFPEventListForm.class);
+  private static final long serialVersionUID = 8567780910637887786L;
 
-  private static final long serialVersionUID = -5969136444233092172L;
+  private boolean showOnlyActiveEntries;
 
-  public FFPEventListForm(final FFPEventListPage parentPage)
+  public FFPEventFilter()
   {
-    super(parentPage);
   }
 
-  @Override
-  protected Logger getLogger()
+  public FFPEventFilter(final BaseSearchFilter filter)
   {
-    return log;
-  }
-
-  @Override
-  protected FFPEventFilter newSearchFilterInstance()
-  {
-    return new FFPEventFilter();
+    super(filter);
   }
 }
