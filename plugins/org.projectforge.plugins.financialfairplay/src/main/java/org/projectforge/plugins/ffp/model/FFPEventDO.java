@@ -1,12 +1,22 @@
 package org.projectforge.plugins.ffp.model;
 
-import java.sql.Date;
+import java.util.Date;
 import java.util.List;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.JoinColumn;
+import javax.persistence.JoinTable;
+import javax.persistence.ManyToMany;
+import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
+import org.hibernate.search.annotations.DateBridge;
+import org.hibernate.search.annotations.EncodingType;
+import org.hibernate.search.annotations.Resolution;
 import org.projectforge.business.fibu.EmployeeDO;
+import org.projectforge.common.anots.PropertyInfo;
 import org.projectforge.framework.persistence.entities.DefaultBaseDO;
 
 import de.micromata.genome.db.jpa.history.api.WithHistory;
@@ -16,14 +26,20 @@ import de.micromata.genome.db.jpa.history.api.WithHistory;
 @WithHistory
 public class FFPEventDO extends DefaultBaseDO
 {
+  private static final long serialVersionUID = 1579119768006685087L;
+
+  @PropertyInfo(i18nKey = "plugin.ffp.title")
   private String title;
 
+  @PropertyInfo(i18nKey = "plugin.ffp.date")
+  @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
   private Date eventDate;
 
   private List<EmployeeDO> attendeeList;
 
   private List<FFPAccountingDO> accountingList;
 
+  @Column(length = 100)
   public String getTitle()
   {
     return title;
@@ -34,6 +50,7 @@ public class FFPEventDO extends DefaultBaseDO
     this.title = title;
   }
 
+  @Column
   public Date getEventDate()
   {
     return eventDate;
@@ -44,6 +61,11 @@ public class FFPEventDO extends DefaultBaseDO
     this.eventDate = eventDate;
   }
 
+  @ManyToMany
+  @JoinTable(
+      name = "T_PLUGIN_FINANCIALFAIRPLAY_EVENT_ATTENDEE",
+      joinColumns = @JoinColumn(name = "ATTENDEE_PK", referencedColumnName = "PK"),
+      inverseJoinColumns = @JoinColumn(name = "EVENT_PK", referencedColumnName = "PK"))
   public List<EmployeeDO> getAttendeeList()
   {
     return attendeeList;
@@ -54,6 +76,7 @@ public class FFPEventDO extends DefaultBaseDO
     this.attendeeList = attendeeList;
   }
 
+  @OneToMany(fetch = FetchType.EAGER, mappedBy = "event")
   public List<FFPAccountingDO> getAccountingList()
   {
     return accountingList;
