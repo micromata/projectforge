@@ -72,7 +72,7 @@ public class FinancialFairPlayPlugin extends AbstractPlugin
         .registerMenuItem(
             new MenuItemDef(parentMenu, ID, 101, "plugins.ffp.menu.financialfairplay", FFPEventListPage.class));
     // Define the access management:
-    //    registerRight(new ExtendEmployeeDataRight(accessChecker));
+    registerRight(new FinancialFairPlayRight(accessChecker));
 
     // All the i18n stuff:
     addResourceBundle(RESOURCE_BUNDLE_NAME);
