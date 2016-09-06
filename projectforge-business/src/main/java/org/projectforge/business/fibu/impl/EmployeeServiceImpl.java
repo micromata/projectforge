@@ -4,6 +4,7 @@ import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
@@ -25,6 +26,10 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import de.micromata.genome.db.jpa.tabattr.api.AttrGroup;
+import de.micromata.genome.db.jpa.tabattr.api.AttrSchemaService;
+import de.micromata.genome.db.jpa.tabattr.api.TimeableService;
+
 /**
  * Standard implementation of the Employee service interface.
  * 
@@ -35,13 +40,22 @@ import org.springframework.stereotype.Service;
 public class EmployeeServiceImpl extends CorePersistenceServiceImpl<Integer, EmployeeDO>
     implements EmployeeService
 {
+  private static final int FULL_TIME_WEEKLY_WORKING_HOURS = 40;
+
   @Autowired
   private UserDao userDao;
 
   @Autowired
   private Kost1Dao kost1Dao;
+
   @Autowired
-  EmployeeDao employeeDao;
+  private EmployeeDao employeeDao;
+
+  @Autowired
+  private AttrSchemaService attrSchemaService;
+
+  @Autowired
+  private TimeableService<Integer, EmployeeTimedDO> timeableEmployeeService;
 
   @Override
   public ModificationStatus update(EmployeeDO obj) throws AccessException
@@ -191,6 +205,22 @@ public class EmployeeServiceImpl extends CorePersistenceServiceImpl<Integer, Emp
       return true;
     }
     return now.before(employee.getAustrittsDatum());
+  }
+
+  @Override
+  public Float getMonthlySalary(EmployeeDO employee, Calendar selectedDate)
+  {
+    Float result = null;
+    AttrGroup attrGroup = attrSchemaService.getAttrGroup(employee, "annuity");
+    EmployeeTimedDO attribute = timeableEmployeeService.getAttrRowForDate(
+        timeableEmployeeService.getTimeableAttrRowsForGroup(employee, attrGroup), attrGroup, selectedDate.getTime());
+    Float annualSalary = attribute != null ? Float.parseFloat(attribute.getStringAttribute("annuity")) : null;
+    BigDecimal weeklyWorkingHours = employee.getWeeklyWorkingHours();
+    if (annualSalary != null && weeklyWorkingHours != null
+        && BigDecimal.ZERO.compareTo(weeklyWorkingHours) > 0) {
+      result = (annualSalary / 12) * (weeklyWorkingHours.floatValue() / FULL_TIME_WEEKLY_WORKING_HOURS);
+    }
+    return result;
   }
 
 }
