@@ -24,7 +24,9 @@ import org.springframework.transaction.support.TransactionTemplate;
 import de.micromata.genome.db.jpa.history.api.HistoryServiceManager;
 import de.micromata.genome.db.jpa.history.entities.HistoryMasterBaseDO;
 import de.micromata.genome.db.jpa.history.impl.HistoryServiceImpl;
+import de.micromata.genome.db.jpa.tabattr.api.TimeableService;
 import de.micromata.genome.db.jpa.tabattr.impl.AttrSchemaServiceSpringBeanImpl;
+import de.micromata.genome.db.jpa.tabattr.impl.TimeableServiceImpl;
 import de.micromata.mgc.jpa.spring.SpringEmgrFilterBean;
 import de.micromata.mgc.jpa.spring.factories.JpaToSessionFactorySpringBeanFactory;
 import de.micromata.mgc.jpa.spring.factories.JpaToSessionSpringBeanFactory;
@@ -117,6 +119,12 @@ public class DatabaseOrmConfiguration
     AttrSchemaServiceSpringBeanImpl ret = AttrSchemaServiceSpringBeanImpl.get();
     ret.setApplicationDir(applicationDir);
     return ret;
+  }
+
+  @Bean
+  public TimeableService timeableService()
+  {
+    return new TimeableServiceImpl();
   }
 
   @PostConstruct
