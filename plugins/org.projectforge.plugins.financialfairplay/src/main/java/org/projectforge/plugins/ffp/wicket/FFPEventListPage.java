@@ -26,16 +26,24 @@ package org.projectforge.plugins.ffp.wicket;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.markup.html.WebPage;
+import org.apache.wicket.markup.repeater.Item;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.ResourceModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
-import org.projectforge.plugins.ffp.dao.FFPEventDao;
 import org.projectforge.plugins.ffp.model.FFPEventDO;
+import org.projectforge.plugins.ffp.repository.FFPEventDao;
+import org.projectforge.web.fibu.EmployeeEditPage;
 import org.projectforge.web.wicket.AbstractListPage;
+import org.projectforge.web.wicket.CellItemListener;
+import org.projectforge.web.wicket.CellItemListenerPropertyColumn;
 import org.projectforge.web.wicket.IListPageColumnsCreator;
 import org.projectforge.web.wicket.ListPage;
+import org.projectforge.web.wicket.ListSelectActionPanel;
 
 @ListPage(editPage = FFPEventEditPage.class)
 public class FFPEventListPage extends AbstractListPage<FFPEventListForm, FFPEventDao, FFPEventDO> implements
@@ -48,7 +56,7 @@ public class FFPEventListPage extends AbstractListPage<FFPEventListForm, FFPEven
 
   public FFPEventListPage(final PageParameters parameters)
   {
-    super(parameters, "fibu.employee");
+    super(parameters, "plugin.ffp");
   }
 
   @Override
@@ -57,89 +65,45 @@ public class FFPEventListPage extends AbstractListPage<FFPEventListForm, FFPEven
   {
     final List<IColumn<FFPEventDO, String>> columns = new ArrayList<>();
 
-    //    final CellItemListener<EmployeeDO> cellItemListener = new CellItemListener<EmployeeDO>()
-    //    {
-    //      @Override
-    //      public void populateItem(final Item<ICellPopulator<EmployeeDO>> item, final String componentId,
-    //          final IModel<EmployeeDO> rowModel)
-    //      {
-    //        final EmployeeDO employee = rowModel.getObject();
-    //        appendCssClasses(item, employee.getId(), employee.isDeleted());
-    //      }
-    //    };
-    //    columns.add(new CellItemListenerPropertyColumn<EmployeeDO>(new ResourceModel("name"),
-    //        getSortable("user.lastname", sortable),
-    //        "user.lastname", cellItemListener)
-    //    {
-    //      /**
-    //       * @see org.projectforge.web.wicket.CellItemListenerPropertyColumn#populateItem(org.apache.wicket.markup.repeater.Item,
-    //       *      java.lang.String, org.apache.wicket.model.IModel)
-    //       */
-    //      @Override
-    //      public void populateItem(final Item<ICellPopulator<EmployeeDO>> item, final String componentId,
-    //          final IModel<EmployeeDO> rowModel)
-    //      {
-    //        final EmployeeDO employee = rowModel.getObject();
-    //        final PFUserDO user = employee.getUser();
-    //        final String lastname = user != null ? user.getLastname() : null;
-    //        if (isSelectMode() == false) {
-    //          item.add(new ListSelectActionPanel(componentId, rowModel, EmployeeEditPage.class, employee.getId(),
-    //              returnToPage, lastname));
-    //        } else {
-    //          item.add(
-    //              new ListSelectActionPanel(componentId, rowModel, caller, selectProperty, employee.getId(), lastname));
-    //        }
-    //        cellItemListener.populateItem(item, componentId, rowModel);
-    //        addRowClick(item);
-    //      }
-    //    });
-    //    columns.add(new CellItemListenerPropertyColumn<EmployeeDO>(new ResourceModel("firstName"),
-    //        getSortable("user.firstname", sortable),
-    //        "user.firstname", cellItemListener));
-    //    columns
-    //        .add(new CellItemListenerPropertyColumn<EmployeeDO>(EmployeeDO.class, getSortable("status", sortable), "status",
-    //            cellItemListener));
-    //    columns
-    //        .add(new CellItemListenerPropertyColumn<EmployeeDO>(EmployeeDO.class, getSortable("staffNumber", sortable),
-    //            "staffNumber",
-    //            cellItemListener));
-    //    columns.add(new CellItemListenerPropertyColumn<EmployeeDO>(new ResourceModel("fibu.kost1"),
-    //        getSortable("kost1.shortDisplayName",
-    //            sortable),
-    //        "kost1.shortDisplayName", cellItemListener));
-    //    columns.add(
-    //        new CellItemListenerPropertyColumn<EmployeeDO>(EmployeeDO.class, getSortable("position", sortable), "position",
-    //            cellItemListener));
-    //    columns.add(new CellItemListenerPropertyColumn<EmployeeDO>(EmployeeDO.class, getSortable("abteilung", sortable),
-    //        "abteilung",
-    //        cellItemListener));
-    //    columns.add(new CellItemListenerPropertyColumn<EmployeeDO>(EmployeeDO.class,
-    //        getSortable("eintrittsDatum", sortable), "eintrittsDatum",
-    //        cellItemListener)
-    //    {
-    //      @Override
-    //      public void populateItem(final Item<ICellPopulator<EmployeeDO>> item, final String componentId,
-    //          final IModel<EmployeeDO> rowModel)
-    //      {
-    //        final EmployeeDO employee = rowModel.getObject();
-    //        item.add(new Label(componentId, DateTimeFormatter.instance().getFormattedDate(employee.getEintrittsDatum())));
-    //      }
-    //    });
-    //    columns.add(new CellItemListenerPropertyColumn<EmployeeDO>(EmployeeDO.class,
-    //        getSortable("austrittsDatum", sortable), "austrittsDatum",
-    //        cellItemListener)
-    //    {
-    //      @Override
-    //      public void populateItem(final Item<ICellPopulator<EmployeeDO>> item, final String componentId,
-    //          final IModel<EmployeeDO> rowModel)
-    //      {
-    //        final EmployeeDO employee = rowModel.getObject();
-    //        item.add(new Label(componentId, DateTimeFormatter.instance().getFormattedDate(employee.getAustrittsDatum())));
-    //      }
-    //    });
-    //    columns.add(
-    //        new CellItemListenerPropertyColumn<EmployeeDO>(EmployeeDO.class, getSortable("comment", sortable), "comment",
-    //            cellItemListener));
+    final CellItemListener<FFPEventDO> cellItemListener = new CellItemListener<FFPEventDO>()
+    {
+      @Override
+      public void populateItem(final Item<ICellPopulator<FFPEventDO>> item, final String componentId,
+          final IModel<FFPEventDO> rowModel)
+      {
+        final FFPEventDO event = rowModel.getObject();
+        appendCssClasses(item, event.getId(), event.isDeleted());
+      }
+    };
+
+    columns.add(new CellItemListenerPropertyColumn<FFPEventDO>(new ResourceModel("title"),
+        getSortable("event.title", sortable),
+        "event.title", cellItemListener)
+    {
+      /**
+       * @see org.projectforge.web.wicket.CellItemListenerPropertyColumn#populateItem(org.apache.wicket.markup.repeater.Item,
+       *      java.lang.String, org.apache.wicket.model.IModel)
+       */
+      @Override
+      public void populateItem(final Item<ICellPopulator<FFPEventDO>> item, final String componentId,
+          final IModel<FFPEventDO> rowModel)
+      {
+        final FFPEventDO event = rowModel.getObject();
+        if (isSelectMode() == false) {
+          item.add(new ListSelectActionPanel(componentId, rowModel, EmployeeEditPage.class, event.getId(),
+              returnToPage, event.getTitle()));
+        } else {
+          item.add(
+              new ListSelectActionPanel(componentId, rowModel, caller, selectProperty, event.getId(),
+                  event.getTitle()));
+        }
+        cellItemListener.populateItem(item, componentId, rowModel);
+        addRowClick(item);
+      }
+    });
+    columns.add(new CellItemListenerPropertyColumn<FFPEventDO>(new ResourceModel("date"),
+        getSortable("date", sortable),
+        "event.eventDate", cellItemListener));
     return columns;
   }
 
@@ -147,9 +111,8 @@ public class FFPEventListPage extends AbstractListPage<FFPEventListForm, FFPEven
   protected void init()
   {
     final List<IColumn<FFPEventDO, String>> columns = createColumns(this, true);
-    dataTable = createDataTable(columns, "user.lastname", SortOrder.ASCENDING);
+    dataTable = createDataTable(columns, "title", SortOrder.ASCENDING);
     form.add(dataTable);
-    addExcelExport(getString("fibu.employee.title.heading"), "employees");
   }
 
   @Override

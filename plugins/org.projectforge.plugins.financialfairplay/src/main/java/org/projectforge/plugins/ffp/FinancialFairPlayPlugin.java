@@ -23,9 +23,10 @@
 
 package org.projectforge.plugins.ffp;
 
-import org.projectforge.business.fibu.EmployeeDao;
 import org.projectforge.continuousdb.UpdateEntry;
 import org.projectforge.plugins.core.AbstractPlugin;
+import org.projectforge.plugins.ffp.repository.FFPEventDao;
+import org.projectforge.plugins.ffp.wicket.FFPEventListPage;
 import org.projectforge.web.MenuItemDef;
 import org.projectforge.web.MenuItemDefId;
 import org.projectforge.web.plugin.PluginWicketRegistrationService;
@@ -36,9 +37,9 @@ import org.springframework.beans.factory.annotation.Autowired;
  */
 public class FinancialFairPlayPlugin extends AbstractPlugin
 {
-  public static final String ID = "extendemployeedata";
+  public static final String ID = "financialfairplay";
 
-  public static final String RESOURCE_BUNDLE_NAME = "ExtendEmployeeDataI18nResources";
+  public static final String RESOURCE_BUNDLE_NAME = "FinancialFairPlayI18nResources";
 
   // The order of the entities is important for xml dump and imports as well as for test cases (order for deleting objects at the end of
   // each test).
@@ -49,7 +50,7 @@ public class FinancialFairPlayPlugin extends AbstractPlugin
   private PluginWicketRegistrationService pluginWicketRegistrationService;
 
   @Autowired
-  private EmployeeDao employeeDao;
+  private FFPEventDao eventDao;
 
   /**
    * @see org.projectforge.plugins.core.AbstractPlugin#initialize()
@@ -60,7 +61,7 @@ public class FinancialFairPlayPlugin extends AbstractPlugin
 
     FinancialFairPlayPluginUpdates.dao = myDatabaseUpdater.getDatabaseUpdateService();
     // Register it:
-    register(ID, EmployeeDao.class, employeeDao, "plugins.extendemployeedata");
+    register(ID, FFPEventDao.class, eventDao, "plugins.financialfairplay");
 
     // Register the web part:
     pluginWicketRegistrationService.registerWeb(ID);
@@ -68,7 +69,8 @@ public class FinancialFairPlayPlugin extends AbstractPlugin
     // Register the menu entry as sub menu entry of the misc menu:
     final MenuItemDef parentMenu = pluginWicketRegistrationService.getMenuItemDef(MenuItemDefId.MISC);
     pluginWicketRegistrationService
-        .registerMenuItem(new MenuItemDef(parentMenu, ID, 21, "plugins.ffp.menu.financialfairplay", null));
+        .registerMenuItem(
+            new MenuItemDef(parentMenu, ID, 101, "plugins.ffp.menu.financialfairplay", FFPEventListPage.class));
     // Define the access management:
     //    registerRight(new ExtendEmployeeDataRight(accessChecker));
 

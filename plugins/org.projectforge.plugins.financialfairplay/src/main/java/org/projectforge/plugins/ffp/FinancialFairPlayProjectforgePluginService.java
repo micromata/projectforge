@@ -5,7 +5,7 @@ import org.projectforge.plugins.core.ProjectforgePluginService;
 
 /**
  * 
- * @author Roger Rene Kommer (r.kommer.extern@micromata.de)
+ * @author Florian Blumenstein
  *
  */
 public class FinancialFairPlayProjectforgePluginService implements ProjectforgePluginService
@@ -14,19 +14,19 @@ public class FinancialFairPlayProjectforgePluginService implements ProjectforgeP
   @Override
   public String getPluginId()
   {
-    return "extendemployeedata";
+    return "financialfairplay";
   }
 
   @Override
   public String getPluginName()
   {
-    return "ExtendEmployeeData";
+    return "FinancialFairPlay";
   }
 
   @Override
   public String getPluginDescription()
   {
-    return "PlugIn for extended employee data";
+    return "PlugIn for organize financial fairplay";
   }
 
   @Override
