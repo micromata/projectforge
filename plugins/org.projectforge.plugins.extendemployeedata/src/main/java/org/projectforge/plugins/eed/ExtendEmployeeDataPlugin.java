@@ -86,7 +86,8 @@ public class ExtendEmployeeDataPlugin extends AbstractPlugin
             UserRightId.HR_EMPLOYEE_SALARY, READONLY_READWRITE));
     pluginWicketRegistrationService
         .registerMenuItem(
-            new MenuItemDef(parentMenu, ID, 24, "plugins.eed.menu.config", EmployeeConfigurationPage.class));
+            new MenuItemDef(parentMenu, ID, 24, "plugins.eed.menu.config", EmployeeConfigurationPage.class,
+                UserRightId.HR_EMPLOYEE_SALARY, READONLY_READWRITE));
 
     // Define the access management:
     registerRight(new ExtendEmployeeDataRight(accessChecker));
