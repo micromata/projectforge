@@ -17,7 +17,7 @@ public interface TeamEventService
   void assignAttendees(TeamEventDO data, Set<TeamEventAttendeeDO> itemsToAssign,
       Set<TeamEventAttendeeDO> itemsToUnassign);
 
-  boolean sendTeamEventToAttendees(TeamEventDO data, boolean isNew, boolean hasChanges,
+  boolean sendTeamEventToAttendees(TeamEventDO data, boolean isNew, boolean hasChanges, boolean isDeleted,
       Set<TeamEventAttendeeDO> addedAttendees);
 
   TeamEventDO findByUid(String reqEventUid);

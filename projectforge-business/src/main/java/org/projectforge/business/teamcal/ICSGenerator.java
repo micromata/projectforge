@@ -6,14 +6,15 @@ import java.net.URI;
 
 import org.projectforge.business.configuration.ConfigurationService;
 import org.projectforge.business.teamcal.event.model.ReminderActionType;
+import org.projectforge.business.teamcal.event.model.TeamEventAttendeeDO;
 import org.projectforge.business.teamcal.event.model.TeamEventDO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import net.fortuna.ical4j.data.CalendarOutputter;
+import net.fortuna.ical4j.model.Date;
 import net.fortuna.ical4j.model.DateTime;
 import net.fortuna.ical4j.model.Dur;
-import net.fortuna.ical4j.model.Property;
 import net.fortuna.ical4j.model.TimeZone;
 import net.fortuna.ical4j.model.TimeZoneRegistry;
 import net.fortuna.ical4j.model.TimeZoneRegistryFactory;
@@ -22,7 +23,6 @@ import net.fortuna.ical4j.model.component.VAlarm;
 import net.fortuna.ical4j.model.component.VEvent;
 import net.fortuna.ical4j.model.parameter.Role;
 import net.fortuna.ical4j.model.parameter.Rsvp;
-import net.fortuna.ical4j.model.parameter.Value;
 import net.fortuna.ical4j.model.property.Action;
 import net.fortuna.ical4j.model.property.Attendee;
 import net.fortuna.ical4j.model.property.CalScale;
@@ -58,17 +58,24 @@ public class ICSGenerator
       TimeZoneRegistry registry = TimeZoneRegistryFactory.getInstance().createRegistry();
       TimeZone timezone = registry.getTimeZone(configService.getTimezone().getID());
 
-      DateTime start = new net.fortuna.ical4j.model.DateTime(data.getStartDate().getTime());
-      start.setTimeZone(timezone);
-      DateTime stop = new net.fortuna.ical4j.model.DateTime(data.getEndDate().getTime());
-      stop.setTimeZone(timezone);
+      VEvent event = null;
+      if (data.isAllDay() == false) {
+        DateTime start = new net.fortuna.ical4j.model.DateTime(data.getStartDate().getTime());
+        start.setTimeZone(timezone);
+        DateTime stop = new net.fortuna.ical4j.model.DateTime(data.getEndDate().getTime());
+        stop.setTimeZone(timezone);
+        event = new VEvent(start, stop, data.getSubject());
+      } else {
+        Date start = new net.fortuna.ical4j.model.Date(data.getStartDate().getTime());
+        Date stop = new net.fortuna.ical4j.model.Date(data.getEndDate().getTime());
+        event = new VEvent(start, stop, data.getSubject());
+        //        event.getProperties().getProperty(Property.DTSTART).getParameters().add(Value.DATE);
+        //        event.getProperties().getProperty(Property.DTEND).getParameters().add(Value.DATE);
+      }
 
-      VEvent event = new VEvent(start, stop, data.getSubject());
       event.getProperties().add(new Description(data.getNote()));
       event.getProperties().add(new Location(data.getLocation()));
-      if (data.isAllDay()) {
-        event.getProperties().getProperty(Property.DTSTART).getParameters().add(Value.DATE);
-      }
+
       if (data.getRecurrenceRuleObject() != null) {
         RRule rule = data.getRecurrenceRuleObject();
         event.getProperties().add(rule);
@@ -84,15 +91,15 @@ public class ICSGenerator
         Dur dur = null;
         switch (data.getReminderDurationUnit()) {
           case DAYS:
-            dur = new Dur(data.getReminderDuration(), 0, 0, 0);
+            dur = new Dur(data.getReminderDuration() * -1, 0, 0, 0);
             alarm = new VAlarm(dur);
             break;
           case HOURS:
-            dur = new Dur(0, data.getReminderDuration(), 0, 0);
+            dur = new Dur(0, data.getReminderDuration() * -1, 0, 0);
             alarm = new VAlarm(dur);
             break;
           case MINUTES:
-            dur = new Dur(0, 0, data.getReminderDuration(), 0);
+            dur = new Dur(0, 0, data.getReminderDuration() * -1, 0);
             alarm = new VAlarm(dur);
             break;
           default:
@@ -111,18 +118,18 @@ public class ICSGenerator
         }
 
         if (data.getAttendees() != null) {
-          data.getAttendees().stream().forEach(attendeeFromData -> {
+          for (TeamEventAttendeeDO a : data.getAttendees()) {
             String email = "mailto:";
-            if (attendeeFromData.getAddress() != null) {
-              email = email + attendeeFromData.getAddress().getEmail();
+            if (a.getAddress() != null) {
+              email = email + a.getAddress().getEmail();
             } else {
-              email = email + attendeeFromData.getUrl();
+              email = email + a.getUrl();
             }
             Attendee attendee = new Attendee(URI.create(email));
             attendee.getParameters().add(Role.REQ_PARTICIPANT);//required participants.
             attendee.getParameters().add(Rsvp.FALSE);//to get the status request from the attendees
             event.getProperties().add(attendee);
-          });
+          }
         }
 
       }

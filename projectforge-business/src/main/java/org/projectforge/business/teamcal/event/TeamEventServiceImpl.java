@@ -3,6 +3,7 @@ package org.projectforge.business.teamcal.event;
 import java.io.ByteArrayOutputStream;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
+import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -123,10 +124,16 @@ public class TeamEventServiceImpl implements TeamEventService
   }
 
   @Override
-  public boolean sendTeamEventToAttendees(TeamEventDO data, boolean isNew, boolean hasChanges,
+  public boolean sendTeamEventToAttendees(TeamEventDO data, boolean isNew, boolean hasChanges, boolean isDeleted,
       Set<TeamEventAttendeeDO> addedAttendees)
   {
     boolean result = false;
+    if (isDeleted) {
+      for (TeamEventAttendeeDO attendee : data.getAttendees()) {
+        result = sendMail(data, attendee, "deleted");
+      }
+      return result;
+    }
     if (isNew) {
       for (TeamEventAttendeeDO attendee : data.getAttendees()) {
         result = sendMail(data, attendee, "new");
@@ -145,7 +152,7 @@ public class TeamEventServiceImpl implements TeamEventService
     return result;
   }
 
-  private Mail createMail()
+  private Mail createMail(String mode)
   {
     final Mail msg = new Mail();
     PFUserDO user = ThreadLocalUserContext.getUser();
@@ -153,24 +160,41 @@ public class TeamEventServiceImpl implements TeamEventService
       msg.setFrom(user.getEmail());
       msg.setFromRealname(user.getFullname());
     }
+    msg.setContentType(Mail.CONTENTTYPE_HTML);
+    msg.setProjectForgeSubject(SendMail
+        .getProjectForgeSubject(I18nHelper.getLocalizedMessage("plugins.teamcal.attendee.email.subject." + mode)));
     return msg;
   }
 
+  //TODO FB: Should be refactored ;-)
   private boolean sendMail(TeamEventDO data, TeamEventAttendeeDO attendee, String mode)
   {
-    final Mail msg = createMail();
+    final Mail msg = createMail(mode);
     addAttendeeToMail(attendee, msg);
-    String subject = I18nHelper.getLocalizedMessage("plugins.teamcal.attendee.email.subject." + mode);
+    DateFormat formatter = DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT);
+    formatter.setTimeZone(ThreadLocalUserContext.getUser().getTimeZoneObject());
     String attendeesString = "";
     for (TeamEventAttendeeDO attendeeForString : data.getAttendees()) {
       attendeesString = attendeesString + attendeeForString.toString() + " <br>";
     }
+    if ("deleted".equals(mode)) {
+      String content = I18nHelper.getLocalizedMessage("plugins.teamcal.attendee.email.content." + mode,
+          data.getSubject(),
+          formatter.format(data.getStartDate()),
+          data.getLocation() != null ? data.getLocation() : "",
+          attendeesString,
+          data.getNote() != null ? data.getNote() : "");
+      msg.setContent(content);
+      return sendMail.send(msg, null, null);
+    }
     String content = I18nHelper.getLocalizedMessage("plugins.teamcal.attendee.email.content." + mode,
-        data.getSubject(), data.getStartDate(), data.getLocation(), attendeesString, data.getNote(),
+        data.getSubject(),
+        formatter.format(data.getStartDate()),
+        data.getLocation() != null ? data.getLocation() : "",
+        attendeesString,
+        data.getNote() != null ? data.getNote() : "",
         getResponseLinks(data, attendee));
-    msg.setProjectForgeSubject(subject);
     msg.setContent(content);
-    msg.setContentType(Mail.CONTENTTYPE_HTML);
     ByteArrayOutputStream icsFile = icsGenerator.getIcsFile(data);
     boolean result = false;
     try {
