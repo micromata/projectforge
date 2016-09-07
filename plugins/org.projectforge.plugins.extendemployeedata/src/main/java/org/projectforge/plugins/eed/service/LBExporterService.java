@@ -1,6 +1,7 @@
 package org.projectforge.plugins.eed.service;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.util.Calendar;
 import java.util.List;
 
@@ -31,6 +32,8 @@ public class LBExporterService
 {
   private static final int START_ROW_NR_FULLTIME = 3;
 
+  private static final BigDecimal FOOD_VOUCHER_DAYS_PER_MONTH = new BigDecimal(15);
+
   @Autowired
   private EmployeeService employeeService;
 
@@ -49,7 +52,7 @@ public class LBExporterService
   public byte[] getExcel(final List<EmployeeDO> employeeList, Calendar selectedDate)
   {
     if (employeeList.size() < 1) {
-      return new byte[] {};
+      return new byte[0];
     }
     ExportWorkbook workbook;
     ClassPathResource classPathResource = new ClassPathResource("LBExportTemplate.xls");
@@ -57,21 +60,20 @@ public class LBExporterService
       workbook = new ExportWorkbook(classPathResource.getInputStream());
     } catch (IOException e) {
       Log.error("Something went wrong when loading xls template", e);
-      return new byte[] {};
+      return new byte[0];
     }
 
     ExportSheet sheetFulltimeEmployee = workbook.getSheet(0);
     int copyRowNrFulltime = START_ROW_NR_FULLTIME;
     ExportRow copyRowFulltime = sheetFulltimeEmployee.getRow(copyRowNrFulltime);
-    EmployeeConfigurationDO singleEmployeeConfigurationDO = employeeConfigurationService
-        .getSingleEmployeeConfigurationDO();
+    final EmployeeConfigurationDO singleEmployeeConfigurationDO = employeeConfigurationService.getSingleEmployeeConfigurationDO();
 
     for (EmployeeDO employee : employeeList) {
       if (employeeService.isEmployeeActive(employee) == true) {
         if (isFulltimeEmployee(employee) == true) {
           sheetFulltimeEmployee.copyRow(copyRowFulltime);
           copyRowNrFulltime++;
-          ExportRow actualRow = sheetFulltimeEmployee.getRow(copyRowNrFulltime - 1);
+          final ExportRow actualRow = sheetFulltimeEmployee.getRow(copyRowNrFulltime - 1);
           //0 -> Name
           actualRow.getCell(0).setValue(employee.getUser().getFullname());
           //1 -> Arbeitsstunden
@@ -79,67 +81,59 @@ public class LBExporterService
           //2 -> Personalnummer
           actualRow.getCell(2).setValue(employee.getStaffNumber());
           //3 -> Gehalt
-          String salary = getActualAttrValue(employee, "annuity", "annuity", selectedDate);
-          if (StringUtils.isBlank(salary) == false) {
-            Float salaryFloat = employeeService.getMonthlySalary(employee, selectedDate);
-            if (salaryFloat != null) {
-              actualRow.getCell(3).setValue(salaryFloat);
+          actualRow.getCell(3).setValue(employeeService.getMonthlySalary(employee, selectedDate));
+          //13 / 14 Essen
+          final String hasFood = getActualAttrValue(employee, "food", "food", selectedDate);
+          if (StringUtils.isNotEmpty(hasFood) && Boolean.parseBoolean(hasFood)) {
+            BigDecimal oneDayValue = getAttrValueForMonthAsBigDecimal(singleEmployeeConfigurationDO, "food", "referencevalue", selectedDate);
+            if (oneDayValue != null) {
+              final BigDecimal fullValue = oneDayValue.multiply(FOOD_VOUCHER_DAYS_PER_MONTH);
+              actualRow.getCell(13).setValue(fullValue);
+            }
+
+            oneDayValue = getAttrValueForMonthAsBigDecimal(singleEmployeeConfigurationDO, "food", "contribution", selectedDate);
+            if (oneDayValue != null) {
+              final BigDecimal fullValue = oneDayValue.multiply(FOOD_VOUCHER_DAYS_PER_MONTH);
+              actualRow.getCell(14).setValue(fullValue);
             }
           }
-          //13 / 14 Essen
-          String hasFood = getActualAttrValue(employee, "food", "food", selectedDate);
-          if (StringUtils.isEmpty(hasFood) == false && Boolean.valueOf(hasFood)) {
-            Float oneDayValue = Float.parseFloat(
-                getAttrValueForMonth(singleEmployeeConfigurationDO, "food", "referencevalue", selectedDate));
-            Float fullValue = oneDayValue * 15;
-            actualRow.getCell(13)
-                .setValue(fullValue);
-            oneDayValue = Float
-                .parseFloat(getAttrValueForMonth(singleEmployeeConfigurationDO, "food", "contribution", selectedDate));
-            fullValue = oneDayValue * 15;
-            actualRow.getCell(14)
-                .setValue(fullValue);
-          }
           //15 Tankgutschein
-          String hasFuelVoucher = getActualAttrValue(employee, "fuelvoucher", "fuelvoucher", selectedDate);
-          if (StringUtils.isEmpty(hasFuelVoucher) == false && Boolean.valueOf(hasFuelVoucher)) {
-            actualRow.getCell(15)
-                .setValue(Float
-                    .parseFloat(
-                        getAttrValueForMonth(singleEmployeeConfigurationDO, "refuel", "voucher", selectedDate)));
+          final String hasFuelVoucher = getActualAttrValue(employee, "fuelvoucher", "fuelvoucher", selectedDate);
+          if (StringUtils.isNotEmpty(hasFuelVoucher) && Boolean.parseBoolean(hasFuelVoucher)) {
+            actualRow.getCell(15).setValue(getAttrValueForMonthAsBigDecimal(singleEmployeeConfigurationDO, "refuel", "voucher", selectedDate));
           }
           //21 -> Kita
           actualRow.getCell(21)
               .setValue(getActualAttrValue(employee, "daycarecenter", "daycarecenter", selectedDate));
           //22 -> eBike
-          actualRow.getCell(22).setValue(getAttrValueForMonth(employee, "ebikeleasing", "ebikeleasing", selectedDate));
+          actualRow.getCell(22).setValue(getAttrValueForMonthAsString(employee, "ebikeleasing", "ebikeleasing", selectedDate));
           //23 -> RK
-          actualRow.getCell(23).setValue(getAttrValueForMonth(employee, "costtravel", "costtravel", selectedDate));
+          actualRow.getCell(23).setValue(getAttrValueForMonthAsString(employee, "costtravel", "costtravel", selectedDate));
           //24 -> Auslagen
-          actualRow.getCell(24).setValue(getAttrValueForMonth(employee, "expenses", "expenses", selectedDate));
+          actualRow.getCell(24).setValue(getAttrValueForMonthAsString(employee, "expenses", "expenses", selectedDate));
           //25 Überstunden
-          actualRow.getCell(25).setValue(getAttrValueForMonth(employee, "overtime", "overtime", selectedDate));
+          actualRow.getCell(25).setValue(getAttrValueForMonthAsString(employee, "overtime", "overtime", selectedDate));
           //26 Prämie
-          actualRow.getCell(26).setValue(getAttrValueForMonth(employee, "bonus", "bonus", selectedDate));
+          actualRow.getCell(26).setValue(getAttrValueForMonthAsString(employee, "bonus", "bonus", selectedDate));
           //27 Sonderzahlung
           actualRow.getCell(27)
-              .setValue(getAttrValueForMonth(employee, "specialpayment", "specialpayment", selectedDate));
+              .setValue(getAttrValueForMonthAsString(employee, "specialpayment", "specialpayment", selectedDate));
           //28 Zielvereinbarung
           actualRow.getCell(28)
-              .setValue(getAttrValueForMonth(employee, "targetagreements", "targetagreements", selectedDate));
+              .setValue(getAttrValueForMonthAsString(employee, "targetagreements", "targetagreements", selectedDate));
           //29 Shop
-          actualRow.getCell(29).setValue(getAttrValueForMonth(employee, "costshop", "costshop", selectedDate));
+          actualRow.getCell(29).setValue(getAttrValueForMonthAsString(employee, "costshop", "costshop", selectedDate));
           //31 Samstagsarbeit
           actualRow.getCell(31)
-              .setValue(getAttrValueForMonth(employee, "weekendwork", "workinghourssaturday", selectedDate));
+              .setValue(getAttrValueForMonthAsString(employee, "weekendwork", "workinghourssaturday", selectedDate));
           //32 Sonntagarbeit
           actualRow.getCell(32)
-              .setValue(getAttrValueForMonth(employee, "weekendwork", "workinghourssunday", selectedDate));
+              .setValue(getAttrValueForMonthAsString(employee, "weekendwork", "workinghourssunday", selectedDate));
           //33 Feiertagarbeit
           actualRow.getCell(33)
-              .setValue(getAttrValueForMonth(employee, "weekendwork", "workinghoursholiday", selectedDate));
+              .setValue(getAttrValueForMonthAsString(employee, "weekendwork", "workinghoursholiday", selectedDate));
           //34 Bemerkung
-          actualRow.getCell(34).setValue(getAttrValueForMonth(employee, "others", "others", selectedDate));
+          actualRow.getCell(34).setValue(getAttrValueForMonthAsString(employee, "others", "others", selectedDate));
           copyRowFulltime = sheetFulltimeEmployee.getRow(copyRowNrFulltime);
         }
       }
@@ -156,20 +150,29 @@ public class LBExporterService
     return attribute != null ? attribute.getStringAttribute(attrProperty) : null;
   }
 
-  private String getAttrValueForMonth(EmployeeDO employee, String attrGroup, String attrProperty, Calendar selectedDate)
+  private String getAttrValueForMonthAsString(EmployeeDO employee, String attrGroup, String attrProperty, Calendar selectedDate)
   {
     EmployeeTimedDO attribute = timeableEmployeeService.getAttrRowForSameMonth(employee, attrGroup,
         selectedDate.getTime());
     return attribute != null ? attribute.getStringAttribute(attrProperty) : null;
   }
 
-  private String getAttrValueForMonth(EmployeeConfigurationDO configuration, String attrGroup, String attrProperty,
+  private String getAttrValueForMonthAsString(EmployeeConfigurationDO configuration, String attrGroup, String attrProperty,
       Calendar selectedDate)
   {
     EmployeeConfigurationTimedDO attribute = timeableEmployeeConfigurationService.getAttrRowForSameMonth(configuration,
         attrGroup,
         selectedDate.getTime());
     return attribute != null ? attribute.getStringAttribute(attrProperty) : null;
+  }
+
+  private BigDecimal getAttrValueForMonthAsBigDecimal(EmployeeConfigurationDO configuration, String attrGroup, String attrProperty,
+      Calendar selectedDate)
+  {
+    EmployeeConfigurationTimedDO attribute = timeableEmployeeConfigurationService.getAttrRowForSameMonth(configuration,
+        attrGroup,
+        selectedDate.getTime());
+    return attribute != null ? attribute.getAttribute(attrProperty, BigDecimal.class) : null;
   }
 
   private boolean isFulltimeEmployee(EmployeeDO employee)
