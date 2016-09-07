@@ -22,6 +22,7 @@ import org.projectforge.business.user.UserRightValue;
 import org.projectforge.export.AttrColumnDescription;
 import org.projectforge.export.DOListExcelExporter;
 import org.projectforge.export.DOWithAttrListExcelExporter;
+import org.projectforge.framework.access.AccessException;
 import org.projectforge.framework.persistence.attr.impl.GuiAttrSchemaService;
 import org.projectforge.plugins.eed.ExtendEmployeeDataEnum;
 import org.projectforge.web.core.MenuBarPanel;
@@ -151,7 +152,13 @@ public class EmployeeListEditPage extends AbstractListPage<EmployeeListEditForm,
   @Override
   protected void addBottomPanel(final String id)
   {
-    form.add(form.getSaveButtonPanel(id));
+    // add the save button only if the user has write access
+    try {
+      checkAccess();
+      form.add(form.getSaveButtonPanel(id));
+    } catch (AccessException e) {
+      super.addBottomPanel(id);
+    }
   }
 
   public void refreshDataTable()
