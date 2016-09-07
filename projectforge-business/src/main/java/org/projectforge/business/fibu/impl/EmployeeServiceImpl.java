@@ -40,7 +40,9 @@ import de.micromata.genome.db.jpa.tabattr.api.TimeableService;
 public class EmployeeServiceImpl extends CorePersistenceServiceImpl<Integer, EmployeeDO>
     implements EmployeeService
 {
-  private static final int FULL_TIME_WEEKLY_WORKING_HOURS = 40;
+  private static final BigDecimal FULL_TIME_WEEKLY_WORKING_HOURS = new BigDecimal(40);
+
+  private static final BigDecimal MONTHS_PER_YEAR = new BigDecimal(12);
 
   @Autowired
   private UserDao userDao;
@@ -208,19 +210,22 @@ public class EmployeeServiceImpl extends CorePersistenceServiceImpl<Integer, Emp
   }
 
   @Override
-  public Float getMonthlySalary(EmployeeDO employee, Calendar selectedDate)
+  public BigDecimal getMonthlySalary(EmployeeDO employee, Calendar selectedDate)
   {
-    Float result = null;
-    AttrGroup attrGroup = attrSchemaService.getAttrGroup(employee, "annuity");
-    EmployeeTimedDO attribute = timeableEmployeeService.getAttrRowForDate(
+    final AttrGroup attrGroup = attrSchemaService.getAttrGroup(employee, "annuity");
+    final EmployeeTimedDO attribute = timeableEmployeeService.getAttrRowForDate(
         timeableEmployeeService.getTimeableAttrRowsForGroup(employee, attrGroup), attrGroup, selectedDate.getTime());
-    Float annualSalary = attribute != null ? Float.parseFloat(attribute.getStringAttribute("annuity")) : null;
-    BigDecimal weeklyWorkingHours = employee.getWeeklyWorkingHours();
-    if (annualSalary != null && weeklyWorkingHours != null
-        && BigDecimal.ZERO.compareTo(weeklyWorkingHours) > 0) {
-      result = (annualSalary / 12) * (weeklyWorkingHours.floatValue() / FULL_TIME_WEEKLY_WORKING_HOURS);
+    final BigDecimal annualSalary = attribute != null ? attribute.getAttribute("annuity", BigDecimal.class) : null;
+    final BigDecimal weeklyWorkingHours = employee.getWeeklyWorkingHours();
+    if (annualSalary != null && weeklyWorkingHours != null && BigDecimal.ZERO.compareTo(weeklyWorkingHours) < 0) {
+      // do the multiplication before the division to minimize rounding problems
+      // we need a rounding mode to avoid ArithmeticExceptions when the exact result cannot be represented in the result
+      return annualSalary
+          .multiply(weeklyWorkingHours)
+          .divide(MONTHS_PER_YEAR, BigDecimal.ROUND_HALF_UP)
+          .divide(FULL_TIME_WEEKLY_WORKING_HOURS, BigDecimal.ROUND_HALF_UP);
     }
-    return result;
+    return null;
   }
 
 }
