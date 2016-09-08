@@ -49,7 +49,6 @@ import org.projectforge.business.multitenancy.TenantService;
 import org.projectforge.business.scripting.ScriptDO;
 import org.projectforge.business.task.TaskDO;
 import org.projectforge.business.user.ProjectForgeGroup;
-import org.projectforge.business.user.UserRightValue;
 import org.projectforge.business.user.UserXmlPreferencesDO;
 import org.projectforge.continuousdb.DatabaseResultRow;
 import org.projectforge.continuousdb.SchemaGenerator;
@@ -122,10 +121,12 @@ public class DatabaseCoreUpdates
           //Updating the schema
           initDatabaseDao.updateSchema();
         }
+
         if (databaseUpdateService.getDatabaseTableColumnLenght(PFUserDO.class, "ssh_public_key") < 4096) {
           final Table userTable = new Table(PFUserDO.class);
           databaseUpdateService.alterTableColumnVarCharLength(userTable.getName(), "ssh_public_key", 4096);
         }
+
         if (databaseUpdateService.doesGroupExists(ProjectForgeGroup.HR_GROUP) == false) {
           final PfEmgrFactory emf = applicationContext.getBean(PfEmgrFactory.class);
           emf.runInTrans(emgr -> {
@@ -135,45 +136,35 @@ public class DatabaseCoreUpdates
             hrGroup.setCreated();
             hrGroup.setTenant(applicationContext.getBean(TenantService.class).getDefaultTenant());
 
-            Set<PFUserDO> fullRights = new HashSet<>();
-            Set<PFUserDO> notFullRights = new HashSet<>();
-            List<UserRightDO> employeeRights = emgr.selectAttached(UserRightDO.class,
+            final Set<PFUserDO> usersToAddToHrGroup = new HashSet<>();
+
+            final List<UserRightDO> employeeRights = emgr.selectAttached(UserRightDO.class,
                 "SELECT r FROM UserRightDO r WHERE r.rightIdString = :rightId",
                 "rightId",
                 "FIBU_EMPLOYEE");
-            employeeRights.stream().forEach(sr -> {
+            employeeRights.forEach(sr -> {
               sr.setRightIdString("HR_EMPLOYEE");
-              if (UserRightValue.READWRITE.equals(sr.getValue())) {
-                fullRights.add(sr.getUser());
-              } else {
-                notFullRights.add(sr.getUser());
-              }
+              usersToAddToHrGroup.add(sr.getUser());
               emgr.update(sr);
             });
-            List<UserRightDO> salaryRights = emgr.selectAttached(UserRightDO.class,
-                "SELECT r FROM UserRightDO r WHERE r.rightIdString = :rightId", "rightId",
+
+            final List<UserRightDO> salaryRights = emgr.selectAttached(UserRightDO.class,
+                "SELECT r FROM UserRightDO r WHERE r.rightIdString = :rightId",
+                "rightId",
                 "FIBU_EMPLOYEE_SALARY");
-            salaryRights.stream().forEach(sr -> {
+            salaryRights.forEach(sr -> {
               sr.setRightIdString("HR_EMPLOYEE_SALARY");
-              if (UserRightValue.READWRITE.equals(sr.getValue())) {
-                fullRights.add(sr.getUser());
-              } else {
-                notFullRights.add(sr.getUser());
-              }
+              usersToAddToHrGroup.add(sr.getUser());
               emgr.update(sr);
             });
 
-            //TODO: Klären, ob wir da unterscheiden???
-            fullRights.addAll(notFullRights);
-
-            fullRights.stream().forEach(user -> {
-              hrGroup.addUser(user);
-            });
+            usersToAddToHrGroup.forEach(hrGroup::addUser);
 
             emgr.insert(hrGroup);
             return hrGroup;
           });
         }
+
         return UpdateRunningStatus.DONE;
       }
 
