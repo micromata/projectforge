@@ -38,8 +38,8 @@ import org.projectforge.framework.configuration.Configuration;
 import org.projectforge.framework.configuration.ConfigurationDao;
 import org.projectforge.framework.configuration.ConfigurationParam;
 import org.projectforge.framework.configuration.entities.ConfigurationDO;
+import org.projectforge.framework.persistence.database.DatabaseUpdateService;
 import org.projectforge.framework.persistence.database.InitDatabaseDao;
-import org.projectforge.framework.persistence.database.MyDatabaseUpdateService;
 import org.projectforge.framework.persistence.database.PfJpaXmlDumpService;
 import org.projectforge.framework.persistence.history.HibernateSearchReindexer;
 import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
@@ -70,7 +70,7 @@ public class SetupPage extends AbstractUnsecureBasePage
   private HibernateSearchReindexer hibernateSearchReindexer;
 
   @SpringBean
-  private MyDatabaseUpdateService myDatabaseUpdater;
+  private DatabaseUpdateService myDatabaseUpdater;
 
   @SpringBean
   private PfJpaXmlDumpService jpaXmlDumpService;

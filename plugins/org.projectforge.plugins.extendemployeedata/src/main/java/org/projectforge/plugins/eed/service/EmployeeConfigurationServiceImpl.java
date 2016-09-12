@@ -1,7 +1,9 @@
 package org.projectforge.plugins.eed.service;
 
+import java.io.Serializable;
 import java.util.List;
 
+import org.projectforge.framework.access.AccessException;
 import org.projectforge.framework.persistence.history.DisplayHistoryEntry;
 import org.projectforge.framework.persistence.jpa.impl.CorePersistenceServiceImpl;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
@@ -31,7 +33,7 @@ public class EmployeeConfigurationServiceImpl extends CorePersistenceServiceImpl
   @Override
   public EmployeeConfigurationDO getSingleEmployeeConfigurationDO()
   {
-    // TODO CT: check rights?
+    employeeConfigurationDao.checkLoggedInUserSelectAccess();
     final List<EmployeeConfigurationDO> employeeConfigurationDOs = employeeConfigurationDao.internalLoadAll();
     if (employeeConfigurationDOs.isEmpty()) {
       final EmployeeConfigurationDO employeeConfigurationDO = employeeConfigurationDao.newInstance();
@@ -111,4 +113,10 @@ public class EmployeeConfigurationServiceImpl extends CorePersistenceServiceImpl
     employeeConfigurationDao.rebuildDatabaseIndex();
   }
 
+  @Override
+  public EmployeeConfigurationDO getById(Serializable id) throws AccessException
+  {
+    // use the method from the DAO to have the access check
+    return employeeConfigurationDao.getById(id);
+  }
 }

@@ -65,7 +65,7 @@ import org.projectforge.business.multitenancy.TenantsCache;
 import org.projectforge.business.user.I18nHelper;
 import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.business.user.filter.UserFilter;
-import org.projectforge.framework.persistence.database.MyDatabaseUpdateService;
+import org.projectforge.framework.persistence.database.DatabaseUpdateService;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.api.UserContext;
 import org.projectforge.framework.utils.ExceptionHelper;
@@ -117,7 +117,7 @@ public class WicketApplication extends WebApplication implements WicketApplicati
   private ApplicationContext applicationContext;
 
   @Autowired
-  private MyDatabaseUpdateService myDatabaseUpdater;
+  private DatabaseUpdateService databaseUpdater;
 
   @Autowired
   private PluginAdminService pluginAdminService;
@@ -402,10 +402,10 @@ public class WicketApplication extends WebApplication implements WicketApplicati
     }
     try {
       final UserContext internalSystemAdminUserContext = UserContext
-          .__internalCreateWithSpecialUser(MyDatabaseUpdateService.__internalGetSystemAdminPseudoUser(),
+          .__internalCreateWithSpecialUser(DatabaseUpdateService.__internalGetSystemAdminPseudoUser(),
               getUserGroupCache());
       ThreadLocalUserContext.setUserContext(internalSystemAdminUserContext); // Logon admin user.
-      if (myDatabaseUpdater.getSystemUpdater().isUpdated() == false) {
+      if (databaseUpdater.getSystemUpdater().isUpdated() == false) {
         // Force redirection to update page:
         UserFilter.setUpdateRequiredFirst(true);
       }

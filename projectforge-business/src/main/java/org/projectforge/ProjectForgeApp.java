@@ -36,7 +36,7 @@ import org.projectforge.continuousdb.UpdateEntry;
 import org.projectforge.export.MyXlsExportContext;
 import org.projectforge.framework.persistence.api.HibernateUtils;
 import org.projectforge.framework.persistence.database.DatabaseCoreInitial;
-import org.projectforge.framework.persistence.database.MyDatabaseUpdateService;
+import org.projectforge.framework.persistence.database.DatabaseUpdateService;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.api.UserContext;
 import org.projectforge.registry.Registry;
@@ -67,7 +67,7 @@ public class ProjectForgeApp
 
   private CronSetup cronSetup;
 
-  private MyDatabaseUpdateService myDatabaseUpdater;
+  private DatabaseUpdateService databaseUpdater;
 
   private UserXmlPreferencesCache userXmlPreferencesCache;
 
@@ -138,7 +138,7 @@ public class ProjectForgeApp
     log.info("Initializing...");
     this.applicationContext = applicationContext;
     this.cronSetup = applicationContext.getBean(CronSetup.class);
-    this.myDatabaseUpdater = applicationContext.getBean(MyDatabaseUpdateService.class);
+    this.databaseUpdater = applicationContext.getBean(DatabaseUpdateService.class);
     this.userXmlPreferencesCache = applicationContext.getBean(UserXmlPreferencesCache.class);
     this.systemInfoCache = applicationContext.getBean(SystemInfoCache.class);
 
@@ -167,13 +167,13 @@ public class ProjectForgeApp
     }
 
     final UserContext internalSystemAdminUserContext = UserContext
-        .__internalCreateWithSpecialUser(MyDatabaseUpdateService
+        .__internalCreateWithSpecialUser(DatabaseUpdateService
             .__internalGetSystemAdminPseudoUser(), getUserGroupCache());
-    final boolean missingDatabaseSchema = myDatabaseUpdater.databaseTablesWithEntriesExists();
+    final boolean missingDatabaseSchema = databaseUpdater.databaseTablesWithEntriesExists();
     if (missingDatabaseSchema == true) {
       try {
         ThreadLocalUserContext.setUserContext(internalSystemAdminUserContext); // Logon admin user.
-        final UpdateEntry updateEntry = DatabaseCoreInitial.getInitializationUpdateEntry(myDatabaseUpdater);
+        final UpdateEntry updateEntry = DatabaseCoreInitial.getInitializationUpdateEntry(databaseUpdater);
         updateEntry.runUpdate();
       } finally {
         ThreadLocalUserContext.clear();
@@ -230,10 +230,10 @@ public class ProjectForgeApp
     cronSetup.shutdown();
     try {
       final UserContext internalSystemAdminUserContext = UserContext
-          .__internalCreateWithSpecialUser(MyDatabaseUpdateService
+          .__internalCreateWithSpecialUser(DatabaseUpdateService
               .__internalGetSystemAdminPseudoUser(), getUserGroupCache());
       ThreadLocalUserContext.setUserContext(internalSystemAdminUserContext); // Logon admin user.
-      myDatabaseUpdater.getDatabaseUpdateService().shutdownDatabase();
+      databaseUpdater.shutdownDatabase();
     } finally {
       ThreadLocalUserContext.clear();
     }
