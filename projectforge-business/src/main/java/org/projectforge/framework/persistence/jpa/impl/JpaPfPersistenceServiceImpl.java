@@ -8,7 +8,6 @@ import org.apache.log4j.Logger;
 import org.projectforge.framework.access.AccessException;
 import org.projectforge.framework.persistence.api.AUserRightId;
 import org.projectforge.framework.persistence.api.BaseDO;
-import org.projectforge.framework.persistence.api.FallbackBaseDaoService;
 import org.projectforge.framework.persistence.api.IUserRightId;
 import org.projectforge.framework.persistence.api.JpaPfGenericPersistenceService;
 import org.projectforge.framework.persistence.api.ModificationStatus;
@@ -38,9 +37,6 @@ public class JpaPfPersistenceServiceImpl implements JpaPfGenericPersistenceServi
   @Autowired
   private UserRightService userRights;
 
-  @Autowired
-  private FallbackBaseDaoService fallbackBaseDaoService;
-
   @Override
   public Serializable insert(DbRecord<?> obj) throws AccessException
   {
@@ -53,6 +49,7 @@ public class JpaPfPersistenceServiceImpl implements JpaPfGenericPersistenceServi
     Validate.notNull(obj);
     emf.runInTrans((emgr) -> {
       emgr.insert(obj);
+      LOG.info("New object added (" + obj.getPk() + "): " + obj.toString());
       return obj.getPk();
     });
 
@@ -63,7 +60,9 @@ public class JpaPfPersistenceServiceImpl implements JpaPfGenericPersistenceServi
   public ModificationStatus update(final DbRecord<?> obj) throws AccessException
   {
     EntityCopyStatus status = emf.runInTrans((emgr) -> {
-      return emgr.update(obj.getClass(), obj.getClass(), obj, true);
+      EntityCopyStatus s = emgr.update(obj.getClass(), obj.getClass(), obj, true);
+      LOG.info("Object updated: " + obj.toString());
+      return s;
     });
     return ModificationStatus.fromEntityCopyStatus(status);
   }
@@ -73,6 +72,7 @@ public class JpaPfPersistenceServiceImpl implements JpaPfGenericPersistenceServi
   {
     List<AUserRightId> annots = ClassUtils.findClassAnnotations(baseDo.getClass(), AUserRightId.class);
     if (annots.isEmpty() == true) {
+      LOG.warn("Cannot find anot UserRightAnot on " + baseDo.getClass().getName());
       throw new IllegalArgumentException("Cannot find anot UserRightAnot on " + baseDo.getClass().getName());
     }
     String id = annots.get(0).value();

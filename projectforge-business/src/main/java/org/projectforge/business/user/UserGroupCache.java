@@ -91,6 +91,8 @@ public class UserGroupCache extends AbstractCache
 
   private Set<Integer> orgaUsers;
 
+  private Set<Integer> hrUsers;
+
   private HibernateTemplate hibernateTemplate;
 
   private TenantChecker tenantChecker;
@@ -345,6 +347,12 @@ public class UserGroupCache extends AbstractCache
     return orgaUsers != null ? orgaUsers.contains(userId) : false;
   }
 
+  public boolean isUserMemberOfHRGroup(final Integer userId)
+  {
+    checkRefresh();
+    return hrUsers != null ? hrUsers.contains(userId) : false;
+  }
+
   /**
    * Checks if the given user is at least member of one of the given groups.
    * 
@@ -373,6 +381,8 @@ public class UserGroupCache extends AbstractCache
         result = isUserMemberOfMarketingGroup(user.getId());
       } else if (group == ProjectForgeGroup.ORGA_TEAM) {
         result = isUserMemberOfOrgaGroup(user.getId());
+      } else if (group == ProjectForgeGroup.HR_GROUP) {
+        result = isUserMemberOfHRGroup(user.getId());
       } else {
         throw new UnsupportedOperationException("Group not yet supported: " + group);
       }
@@ -513,6 +523,7 @@ public class UserGroupCache extends AbstractCache
     final Set<Integer> nProjectAssistants = new HashSet<Integer>();
     final Set<Integer> nMarketingUsers = new HashSet<Integer>();
     final Set<Integer> nOrgaUsers = new HashSet<Integer>();
+    final Set<Integer> nhrUsers = new HashSet<Integer>();
     for (final GroupDO group : groups) {
       if (tenant != null) {
         if (tenantChecker.isPartOfTenant(tenant.getId(), group) == false) {
@@ -547,6 +558,9 @@ public class UserGroupCache extends AbstractCache
             } else if (ProjectForgeGroup.ORGA_TEAM.equals(group.getName()) == true) {
               log.debug("Adding user '" + user.getUsername() + "' as orga user.");
               nOrgaUsers.add(user.getId());
+            } else if (ProjectForgeGroup.HR_GROUP.equals(group.getName()) == true) {
+              log.debug("Adding user '" + user.getUsername() + "' as hr user.");
+              nhrUsers.add(user.getId());
             }
           }
         }
@@ -561,6 +575,7 @@ public class UserGroupCache extends AbstractCache
     this.projectAssistants = nProjectAssistants;
     this.marketingUsers = nMarketingUsers;
     this.orgaUsers = nOrgaUsers;
+    this.hrUsers = nhrUsers;
     this.userGroupIdMap = ugIdMap;
     this.employeeMap = new HashMap<Integer, EmployeeDO>();
     final Map<Integer, List<UserRightDO>> rMap = new HashMap<Integer, List<UserRightDO>>();

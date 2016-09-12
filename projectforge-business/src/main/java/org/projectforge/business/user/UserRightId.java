@@ -48,17 +48,14 @@ public enum UserRightId implements IUserRightId
   ADMIN_TENANT("ADMIN_TENANT", "admin",
       "access.right.admin.multitenancy"),
 
+  ADMIN_CORE("ADMIN_CORE", "admin",
+      "access.right.admin.core"),
+
   FIBU_EINGANGSRECHNUNGEN("FIBU_EINGANGSRECHNUNGEN", "fibu1",
       "access.right.fibu.eingangsrechnungen"),
 
   FIBU_AUSGANGSRECHNUNGEN("FIBU_AUSGANGSRECHNUNGEN", "fibu2",
       "access.right.fibu.ausgangsrechnungen"),
-
-  FIBU_EMPLOYEE("FIBU_EMPLOYEE", "fibu3",
-      "access.right.fibu.employee"),
-
-  FIBU_EMPLOYEE_SALARY("FIBU_EMPLOYEE_SALARY", "fibu4",
-      "access.right.fibu.employeeSalaries"),
 
   FIBU_DATEV_IMPORT("FIBU_DATEV_IMPORT", "fibu5",
       "access.right.fibu.datevImport"),
@@ -88,6 +85,12 @@ public enum UserRightId implements IUserRightId
 
   ORGA_OUTGOING_MAIL("ORGA_OUTGOING_MAIL", "orga3",
       "access.right.orga.outgoingmail"),
+
+  HR_EMPLOYEE("HR_EMPLOYEE", "hr1",
+      "access.right.hr.employee"),
+
+  HR_EMPLOYEE_SALARY("HR_EMPLOYEE_SALARY", "hr2",
+      "access.right.hr.employeeSalaries"),
 
   PLUGIN_CALENDAR("PLUGIN_CALENDAR", "plugin15",
       "plugins.teamcal.calendar"),

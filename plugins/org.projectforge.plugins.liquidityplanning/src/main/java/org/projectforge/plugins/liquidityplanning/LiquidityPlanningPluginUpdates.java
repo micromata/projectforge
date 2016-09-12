@@ -28,21 +28,23 @@ import org.projectforge.continuousdb.UpdateEntry;
 import org.projectforge.continuousdb.UpdateEntryImpl;
 import org.projectforge.continuousdb.UpdatePreCheckStatus;
 import org.projectforge.continuousdb.UpdateRunningStatus;
-import org.projectforge.framework.persistence.database.MyDatabaseUpdateService;
+import org.projectforge.framework.persistence.database.DatabaseUpdateService;
 
 /**
- * Contains the initial data-base set-up script and later all update scripts if any data-base schema updates are required by any later
- * release of this plugin.
+ * Contains the initial data-base set-up script and later all update scripts if any data-base schema updates are
+ * required by any later release of this plugin.
+ * 
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 public class LiquidityPlanningPluginUpdates
 {
-  static MyDatabaseUpdateService dao;
+  static DatabaseUpdateService dao;
 
   @SuppressWarnings("serial")
   public static UpdateEntry getInitializationUpdateEntry()
   {
-    return new UpdateEntryImpl(LiquidityPlanningPlugin.ID, "2013-06-08", "Adds table T_PLUGIN_LIQUI_ENTRY.") {
+    return new UpdateEntryImpl(LiquidityPlanningPlugin.ID, "2013-06-08", "Adds table T_PLUGIN_LIQUI_ENTRY.")
+    {
       @Override
       public UpdatePreCheckStatus runPreCheck()
       {

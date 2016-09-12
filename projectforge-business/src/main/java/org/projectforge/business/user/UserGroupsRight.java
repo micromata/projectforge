@@ -32,6 +32,7 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO;
 
 /**
  * Right depending on the member-ship of at least one group.
+ * 
  * @author Kai Reinhard (k.reinhard@micromata.de)
  * 
  */
@@ -72,10 +73,11 @@ public class UserGroupsRight extends UserRight implements Serializable
   }
 
   /**
-   * Checks first {@link #isAvailable(UserGroupCache, PFUserDO)}. Checks then if the right value is available for one of the user groups. If
-   * no right value found for all of the user's groups then return false.
-   * @see org.projectforge.business.user.UserRight#isAvailable(org.projectforge.business.user.UserGroupCache, org.projectforge.framework.persistence.user.entities.PFUserDO,
-   *      org.projectforge.business.user.UserRightValue)
+   * Checks first {@link #isAvailable(UserGroupCache, PFUserDO)}. Checks then if the right value is available for one of
+   * the user groups. If no right value found for all of the user's groups then return false.
+   * 
+   * @see org.projectforge.business.user.UserRight#isAvailable(org.projectforge.business.user.UserGroupCache,
+   *      org.projectforge.framework.persistence.user.entities.PFUserDO, org.projectforge.business.user.UserRightValue)
    */
   @Override
   public boolean isAvailable(final UserGroupCache userGroupCache, final PFUserDO user, final UserRightValue value)
@@ -107,11 +109,12 @@ public class UserGroupsRight extends UserRight implements Serializable
   }
 
   /**
-   * If the user is a member of one group for which only one value is available and this single value matches the given value then true is
-   * returned. This is use-full if the user is member of a group for which all members should have access automatically independent on the
-   * user's setting.
-   * @see org.projectforge.business.user.UserRight#matches(org.projectforge.business.user.UserGroupCache, org.projectforge.framework.persistence.user.entities.PFUserDO,
-   *      org.projectforge.business.user.UserRightValue)
+   * If the user is a member of one group for which only one value is available and this single value matches the given
+   * value then true is returned. This is use-full if the user is member of a group for which all members should have
+   * access automatically independent on the user's setting.
+   * 
+   * @see org.projectforge.business.user.UserRight#matches(org.projectforge.business.user.UserGroupCache,
+   *      org.projectforge.framework.persistence.user.entities.PFUserDO, org.projectforge.business.user.UserRightValue)
    */
   @Override
   public boolean matches(final UserGroupCache userGroupCache, final PFUserDO user, final UserRightValue value)
@@ -146,6 +149,7 @@ public class UserGroupsRight extends UserRight implements Serializable
 
   /**
    * Convenience method for allowing only READONLY right value for the ProjectForgeGroup.CONTROLLING_GROUP.
+   * 
    * @return
    */
   public UserGroupsRight setReadOnlyForControlling()
@@ -155,7 +159,9 @@ public class UserGroupsRight extends UserRight implements Serializable
   }
 
   /**
-   * Use this for reducing the availability of right values for groups. If not set for one group then all right values are available.
+   * Use this for reducing the availability of right values for groups. If not set for one group then all right values
+   * are available.
+   * 
    * @param group The group for setting the available right values.
    * @param values The available right values.
    * @return

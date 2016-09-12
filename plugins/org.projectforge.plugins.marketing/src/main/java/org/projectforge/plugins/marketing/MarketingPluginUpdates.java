@@ -32,21 +32,22 @@ import org.projectforge.continuousdb.UpdateEntry;
 import org.projectforge.continuousdb.UpdateEntryImpl;
 import org.projectforge.continuousdb.UpdatePreCheckStatus;
 import org.projectforge.continuousdb.UpdateRunningStatus;
-import org.projectforge.framework.persistence.database.MyDatabaseUpdateService;
+import org.projectforge.framework.persistence.database.DatabaseUpdateService;
 
 /**
- * Contains the initial data-base set-up script and later all update scripts if any data-base schema updates are required by any later
- * release of this to-do plugin. <br/>
- * This is a part of the convenient auto update functionality of ProjectForge. You only have to insert update methods here for any further
- * release (with e. g. required data-base modifications). ProjectForge will do the rest.
+ * Contains the initial data-base set-up script and later all update scripts if any data-base schema updates are
+ * required by any later release of this to-do plugin. <br/>
+ * This is a part of the convenient auto update functionality of ProjectForge. You only have to insert update methods
+ * here for any further release (with e. g. required data-base modifications). ProjectForge will do the rest.
+ * 
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 public class MarketingPluginUpdates
 {
-  static MyDatabaseUpdateService dao;
+  static DatabaseUpdateService dao;
 
-  final static Class< ? >[] doClasses = new Class< ? >[] { //
-    AddressCampaignDO.class, AddressCampaignValueDO.class};
+  final static Class<?>[] doClasses = new Class<?>[] { //
+      AddressCampaignDO.class, AddressCampaignValueDO.class };
 
   @SuppressWarnings("serial")
   public static List<UpdateEntry> getUpdateEntries()
@@ -59,7 +60,8 @@ public class MarketingPluginUpdates
         MarketingPlugin.ADDRESS_CAMPAIGN_ID,
         "5.2",
         "2013-05-13",
-        "Renames T_PLUGIN_MARKETING_ADDRESS_CAMPAIGN_VALUE.values to s_values.") {
+        "Renames T_PLUGIN_MARKETING_ADDRESS_CAMPAIGN_VALUE.values to s_values.")
+    {
 
       @Override
       public UpdatePreCheckStatus runPreCheck()
@@ -87,7 +89,8 @@ public class MarketingPluginUpdates
   @SuppressWarnings("serial")
   public static UpdateEntry getInitializationUpdateEntry()
   {
-    return new UpdateEntryImpl(MarketingPlugin.ADDRESS_CAMPAIGN_ID, "2011-11-24", "Adds tables T_PLUGIN_MARKETING_*.") {
+    return new UpdateEntryImpl(MarketingPlugin.ADDRESS_CAMPAIGN_ID, "2011-11-24", "Adds tables T_PLUGIN_MARKETING_*.")
+    {
 
       @Override
       public UpdatePreCheckStatus runPreCheck()

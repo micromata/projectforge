@@ -416,7 +416,7 @@
         <deleted>false</deleted>
         <minorChange>false</minorChange>
         <id>183</id>
-        <rightIdString>FIBU_EMPLOYEE_SALARY</rightIdString>
+        <rightIdString>HR_EMPLOYEE_SALARY</rightIdString>
         <value>READONLY</value>
         <user reference="73"/>
       </org.projectforge.framework.persistence.user.entities.UserRightDO>
@@ -479,7 +479,7 @@
         <deleted>false</deleted>
         <minorChange>false</minorChange>
         <id>197</id>
-        <rightIdString>FIBU_EMPLOYEE_SALARY</rightIdString>
+        <rightIdString>HR_EMPLOYEE_SALARY</rightIdString>
         <value>READWRITE</value>
         <user reference="115"/>
       </org.projectforge.framework.persistence.user.entities.UserRightDO>
@@ -579,7 +579,7 @@
         <deleted>false</deleted>
         <minorChange>false</minorChange>
         <id>194</id>
-        <rightIdString>FIBU_EMPLOYEE</rightIdString>
+        <rightIdString>HR_EMPLOYEE</rightIdString>
         <value>READWRITE</value>
         <user reference="115"/>
       </org.projectforge.framework.persistence.user.entities.UserRightDO>
@@ -2753,9 +2753,6 @@
     <localGroup>false</localGroup>
     <organization>My company</organization>
     <description>project managers</description>
-    <assignedUsers class="java.util.HashSet" id="560">
-      <org.projectforge.framework.persistence.user.entities.PFUserDO reference="44"/>
-    </assignedUsers>
   </org.projectforge.framework.persistence.user.entities.GroupDO>
   <org.projectforge.framework.persistence.user.entities.GroupDO id="561">
     <created class="sql-timestamp" id="562">2010-04-21 22:05:39.677</created>
@@ -2765,9 +2762,6 @@
     <id>208</id>
     <name>ProjectForge Projectmanagers</name>
     <localGroup>false</localGroup>
-    <assignedUsers class="java.util.HashSet" id="564">
-      <org.projectforge.framework.persistence.user.entities.PFUserDO reference="52"/>
-    </assignedUsers>
   </org.projectforge.framework.persistence.user.entities.GroupDO>
   <org.projectforge.framework.persistence.user.entities.GroupDO id="565">
     <created class="sql-timestamp" id="566">2010-04-21 22:05:26.558</created>
@@ -2777,9 +2771,6 @@
     <id>209</id>
     <name>ACME Projectmanagers</name>
     <localGroup>false</localGroup>
-    <assignedUsers class="java.util.HashSet" id="568">
-      <org.projectforge.framework.persistence.user.entities.PFUserDO reference="52"/>
-    </assignedUsers>
   </org.projectforge.framework.persistence.user.entities.GroupDO>
   <org.projectforge.framework.persistence.user.entities.GroupDO id="569">
     <created class="sql-timestamp" id="570">2008-01-10 08:26:19.863</created>
@@ -2790,11 +2781,6 @@
     <name>PF_Admin</name>
     <localGroup>false</localGroup>
     <description>Administrators of ProjectForge</description>
-    <assignedUsers class="java.util.HashSet" id="572">
-      <org.projectforge.framework.persistence.user.entities.PFUserDO reference="52"/>
-      <org.projectforge.framework.persistence.user.entities.PFUserDO reference="115"/>
-      <org.projectforge.framework.persistence.user.entities.PFUserDO reference="73"/>
-    </assignedUsers>
   </org.projectforge.framework.persistence.user.entities.GroupDO>
   <org.projectforge.framework.persistence.user.entities.GroupDO id="573">
     <created class="sql-timestamp" id="574">2008-01-10 08:26:19.863</created>
@@ -2805,11 +2791,6 @@
     <name>PF_Finance</name>
     <localGroup>false</localGroup>
     <description>Users for having full access to the companies finances.</description>
-    <assignedUsers class="java.util.HashSet" id="576">
-      <org.projectforge.framework.persistence.user.entities.PFUserDO reference="52"/>
-      <org.projectforge.framework.persistence.user.entities.PFUserDO reference="115"/>
-      <org.projectforge.framework.persistence.user.entities.PFUserDO reference="73"/>
-    </assignedUsers>
   </org.projectforge.framework.persistence.user.entities.GroupDO>
   <org.projectforge.framework.persistence.user.entities.GroupDO id="577">
     <created class="sql-timestamp" id="578">2009-01-05 22:59:34.047</created>
@@ -2820,9 +2801,16 @@
     <name>PF_Controlling</name>
     <localGroup>false</localGroup>
     <description>Users for having read access to the companies finances.</description>
-    <assignedUsers class="java.util.HashSet" id="580">
-      <org.projectforge.framework.persistence.user.entities.PFUserDO reference="115"/>
-    </assignedUsers>
+  </org.projectforge.framework.persistence.user.entities.GroupDO>
+  <org.projectforge.framework.persistence.user.entities.GroupDO id="577">
+    <created class="sql-timestamp" id="578">2016-09-01 22:59:34.047</created>
+    <lastUpdate class="sql-timestamp" id="579">2016-09-01 22:59:34.047</lastUpdate>
+    <deleted>false</deleted>
+    <minorChange>false</minorChange>
+    <id>212</id>
+    <name>PF_HR</name>
+    <localGroup>false</localGroup>
+    <description>Users for having full access to the companies hr.</description>
   </org.projectforge.framework.persistence.user.entities.GroupDO>
   <org.projectforge.framework.persistence.user.entities.GroupDO id="581">
     <created class="sql-timestamp" id="582">2009-01-05 23:00:17.99</created>
@@ -2833,9 +2821,6 @@
     <name>PF_Marketing</name>
     <localGroup>false</localGroup>
     <description>Marketing users can download all addresses in excel format.</description>
-    <assignedUsers class="java.util.HashSet" id="584">
-      <org.projectforge.framework.persistence.user.entities.PFUserDO reference="115"/>
-    </assignedUsers>
   </org.projectforge.framework.persistence.user.entities.GroupDO>
   <org.projectforge.framework.persistence.user.entities.GroupDO id="585">
     <created class="sql-timestamp" id="586">2009-01-05 23:00:42.43</created>
@@ -2845,11 +2830,6 @@
     <id>214</id>
     <name>PF_ProjectManager</name>
     <localGroup>false</localGroup>
-    <assignedUsers class="java.util.HashSet" id="588">
-      <org.projectforge.framework.persistence.user.entities.PFUserDO reference="44"/>
-      <org.projectforge.framework.persistence.user.entities.PFUserDO reference="157"/>
-      <org.projectforge.framework.persistence.user.entities.PFUserDO reference="115"/>
-    </assignedUsers>
   </org.projectforge.framework.persistence.user.entities.GroupDO>
   <org.projectforge.framework.persistence.user.entities.GroupDO id="589">
     <created class="sql-timestamp" id="590">2010-04-21 22:04:50.192</created>
@@ -2859,10 +2839,6 @@
     <id>215</id>
     <name>ACME Developers</name>
     <localGroup>false</localGroup>
-    <assignedUsers class="java.util.HashSet" id="592">
-      <org.projectforge.framework.persistence.user.entities.PFUserDO reference="52"/>
-      <org.projectforge.framework.persistence.user.entities.PFUserDO reference="73"/>
-    </assignedUsers>
   </org.projectforge.framework.persistence.user.entities.GroupDO>
   <org.projectforge.framework.persistence.user.entities.GroupDO id="593">
     <created class="sql-timestamp" id="594">2010-04-21 22:05:07.731</created>
@@ -2872,9 +2848,6 @@
     <id>216</id>
     <name>ProjectForge Developers</name>
     <localGroup>false</localGroup>
-    <assignedUsers class="java.util.HashSet" id="596">
-      <org.projectforge.framework.persistence.user.entities.PFUserDO reference="52"/>
-    </assignedUsers>
   </org.projectforge.framework.persistence.user.entities.GroupDO>
   <org.projectforge.framework.persistence.user.entities.GroupDO id="597">
     <created class="sql-timestamp" id="598">2013-04-07 16:03:16.897</created>
@@ -2886,18 +2859,6 @@
     <localGroup>false</localGroup>
     <organization>My company</organization>
     <description>All employees</description>
-    <assignedUsers class="java.util.HashSet" id="600">
-      <org.projectforge.framework.persistence.user.entities.PFUserDO reference="44"/>
-      <org.projectforge.framework.persistence.user.entities.PFUserDO reference="177"/>
-      <org.projectforge.framework.persistence.user.entities.PFUserDO reference="162"/>
-      <org.projectforge.framework.persistence.user.entities.PFUserDO reference="52"/>
-      <org.projectforge.framework.persistence.user.entities.PFUserDO reference="157"/>
-      <org.projectforge.framework.persistence.user.entities.PFUserDO reference="187"/>
-      <org.projectforge.framework.persistence.user.entities.PFUserDO reference="167"/>
-      <org.projectforge.framework.persistence.user.entities.PFUserDO reference="172"/>
-      <org.projectforge.framework.persistence.user.entities.PFUserDO reference="182"/>
-      <org.projectforge.framework.persistence.user.entities.PFUserDO reference="73"/>
-    </assignedUsers>
   </org.projectforge.framework.persistence.user.entities.GroupDO>
   <org.projectforge.framework.persistence.user.entities.GroupDO id="601">
     <created class="sql-timestamp" id="602">2013-04-07 16:07:22.843</created>
@@ -2909,11 +2870,6 @@
     <localGroup>false</localGroup>
     <organization>www.projectforge.org</organization>
     <description>ProjectForge team members</description>
-    <assignedUsers class="java.util.HashSet" id="604">
-      <org.projectforge.framework.persistence.user.entities.PFUserDO reference="162"/>
-      <org.projectforge.framework.persistence.user.entities.PFUserDO reference="52"/>
-      <org.projectforge.framework.persistence.user.entities.PFUserDO reference="167"/>
-    </assignedUsers>
   </org.projectforge.framework.persistence.user.entities.GroupDO>
   <org.projectforge.framework.persistence.user.entities.GroupDO id="605">
     <created class="sql-timestamp" id="606">2013-04-07 16:07:47.451</created>
@@ -2925,10 +2881,6 @@
     <localGroup>false</localGroup>
     <organization>www.projectforge.org</organization>
     <description>ProjectForge project leaders</description>
-    <assignedUsers class="java.util.HashSet" id="608">
-      <org.projectforge.framework.persistence.user.entities.PFUserDO reference="162"/>
-      <org.projectforge.framework.persistence.user.entities.PFUserDO reference="52"/>
-    </assignedUsers>
   </org.projectforge.framework.persistence.user.entities.GroupDO>
   <org.projectforge.framework.persistence.user.entities.GroupDO id="609">
     <created class="sql-timestamp" id="610">2013-04-07 16:09:37.721</created>
@@ -2940,13 +2892,6 @@
     <localGroup>false</localGroup>
     <organization>My company</organization>
     <description>project team</description>
-    <assignedUsers class="java.util.HashSet" id="612">
-      <org.projectforge.framework.persistence.user.entities.PFUserDO reference="44"/>
-      <org.projectforge.framework.persistence.user.entities.PFUserDO reference="162"/>
-      <org.projectforge.framework.persistence.user.entities.PFUserDO reference="52"/>
-      <org.projectforge.framework.persistence.user.entities.PFUserDO reference="167"/>
-      <org.projectforge.framework.persistence.user.entities.PFUserDO reference="172"/>
-    </assignedUsers>
   </org.projectforge.framework.persistence.user.entities.GroupDO>
   <org.projectforge.framework.persistence.user.entities.GroupDO id="613">
     <created class="sql-timestamp" id="614">2013-04-07 16:10:21.364</created>
@@ -2958,11 +2903,6 @@
     <localGroup>false</localGroup>
     <organization>My company</organization>
     <description>project team</description>
-    <assignedUsers class="java.util.HashSet" id="616">
-      <org.projectforge.framework.persistence.user.entities.PFUserDO reference="44"/>
-      <org.projectforge.framework.persistence.user.entities.PFUserDO reference="177"/>
-      <org.projectforge.framework.persistence.user.entities.PFUserDO reference="157"/>
-    </assignedUsers>
   </org.projectforge.framework.persistence.user.entities.GroupDO>
   <org.projectforge.framework.persistence.user.entities.GroupDO id="617">
     <created class="sql-timestamp" id="618">2013-04-07 16:10:58.345</created>
@@ -2974,9 +2914,6 @@
     <localGroup>false</localGroup>
     <organization>My company</organization>
     <description>project managers</description>
-    <assignedUsers class="java.util.HashSet" id="620">
-      <org.projectforge.framework.persistence.user.entities.PFUserDO reference="44"/>
-    </assignedUsers>
   </org.projectforge.framework.persistence.user.entities.GroupDO>
   <org.projectforge.business.fibu.kost.Kost1DO id="621">
     <created class="sql-timestamp" id="622">2010-04-22 07:58:19.39</created>
