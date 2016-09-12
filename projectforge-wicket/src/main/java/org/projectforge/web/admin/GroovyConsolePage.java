@@ -34,7 +34,7 @@ import org.projectforge.business.configuration.ConfigurationService;
 import org.projectforge.business.utils.HtmlHelper;
 import org.projectforge.framework.access.AccessException;
 import org.projectforge.framework.configuration.SecurityConfig;
-import org.projectforge.framework.persistence.database.MyDatabaseUpdateService;
+import org.projectforge.framework.persistence.database.DatabaseUpdateService;
 import org.projectforge.framework.utils.ExceptionHelper;
 import org.projectforge.web.WebConfiguration;
 import org.projectforge.web.wicket.AbstractStandardFormPage;
@@ -48,7 +48,7 @@ public class GroovyConsolePage extends AbstractStandardFormPage
   private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(GroovyConsolePage.class);
 
   @SpringBean
-  private MyDatabaseUpdateService myDatabaseUpdater;
+  private DatabaseUpdateService myDatabaseUpdater;
 
   @SpringBean
   private ConfigurationService configurationService;

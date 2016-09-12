@@ -23,9 +23,12 @@
 
 package org.projectforge.web;
 
-import static org.projectforge.business.user.ProjectForgeGroup.*;
-import static org.projectforge.business.user.UserRightServiceImpl.READONLY_PARTLYREADWRITE_READWRITE;
-import static org.projectforge.business.user.UserRightServiceImpl.READONLY_READWRITE;
+import static org.projectforge.business.user.ProjectForgeGroup.ADMIN_GROUP;
+import static org.projectforge.business.user.ProjectForgeGroup.CONTROLLING_GROUP;
+import static org.projectforge.business.user.ProjectForgeGroup.FINANCE_GROUP;
+import static org.projectforge.business.user.ProjectForgeGroup.HR_GROUP;
+import static org.projectforge.framework.persistence.api.UserRightService.READONLY_PARTLYREADWRITE_READWRITE;
+import static org.projectforge.framework.persistence.api.UserRightService.READONLY_READWRITE;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -57,6 +60,7 @@ import org.projectforge.business.user.UserRightId;
 import org.projectforge.business.user.UserRightValue;
 import org.projectforge.framework.configuration.Configuration;
 import org.projectforge.framework.configuration.SecurityConfig;
+import org.projectforge.framework.persistence.api.UserRightService;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.web.access.AccessListPage;
 import org.projectforge.web.address.AddressListPage;
@@ -294,12 +298,12 @@ public class MenuItemRegistry implements Serializable
     // Super menus
     final MenuItemDef common = reg.register(null, MenuItemDefId.COMMON, 10);
     final MenuItemDef pm = reg.register(null, MenuItemDefId.PROJECT_MANAGEMENT, 20);
-    final ProjectForgeGroup[] fibuGroups = new ProjectForgeGroup[] { FINANCE_GROUP, ORGA_TEAM, CONTROLLING_GROUP };
-    final MenuItemDef hr = reg.register(null, MenuItemDefId.HR, 30, fibuGroups);
-    final MenuItemDef fibu = reg.register(null, MenuItemDefId.FIBU, 40, fibuGroups);
-    final MenuItemDef cost = reg.register(null, MenuItemDefId.COST, 50, FINANCE_GROUP, ORGA_TEAM, CONTROLLING_GROUP);
-    final MenuItemDef reporting = reg.register(null, MenuItemDefId.REPORTING, 60, FINANCE_GROUP, CONTROLLING_GROUP);
-    final MenuItemDef orga = reg.register(null, MenuItemDefId.ORGA, 70, FINANCE_GROUP, CONTROLLING_GROUP, ORGA_TEAM);
+    final MenuItemDef hr = reg.register(null, MenuItemDefId.HR, 30, HR_GROUP);
+    final MenuItemDef fibu = reg.register(null, MenuItemDefId.FIBU, 40, UserRightService.FIBU_ORGA_HR_GROUPS);
+    final MenuItemDef cost = reg.register(null, MenuItemDefId.COST, 50, UserRightService.FIBU_ORGA_HR_GROUPS);
+    final MenuItemDef reporting = reg.register(null, MenuItemDefId.REPORTING, 60, FINANCE_GROUP, CONTROLLING_GROUP,
+        HR_GROUP);
+    final MenuItemDef orga = reg.register(null, MenuItemDefId.ORGA, 70, UserRightService.FIBU_ORGA_HR_GROUPS);
     final MenuItemDef admin = reg.register(null, MenuItemDefId.ADMINISTRATION, 80).setVisibleForRestrictedUsers(true);
     final MenuItemDef misc = reg.register(null, MenuItemDefId.MISC, 100);
 
@@ -352,7 +356,8 @@ public class MenuItemRegistry implements Serializable
         @Override
         protected void afterMenuEntryCreation(final MenuEntry createdMenuEntry, final MenuBuilderContext context)
         {
-          if (context.getAccessChecker().isLoggedInUserMemberOfGroup(fibuGroups) == false) {
+          if (context.getAccessChecker()
+              .isLoggedInUserMemberOfGroup(UserRightService.FIBU_ORGA_HR_GROUPS) == false) {
             // Setting project management as parent because fibu isn't visible for this user:
             createdMenuEntry.setParent(context.getMenu(), pm.getId());
           }
@@ -360,7 +365,6 @@ public class MenuItemRegistry implements Serializable
       };
       reg.register(projects);
 
-      // TODO add list editing page here
       reg.register(hr, MenuItemDefId.EMPLOYEE_LIST, 10, EmployeeListPage.class, EmployeeDao.USER_RIGHT_ID,
           READONLY_READWRITE);
       reg.register(hr, MenuItemDefId.EMPLOYEE_SALARY_LIST, 11, EmployeeSalaryListPage.class,
@@ -373,7 +377,7 @@ public class MenuItemRegistry implements Serializable
       @Override
       protected void afterMenuEntryCreation(final MenuEntry createdMenuEntry, final MenuBuilderContext context)
       {
-        if (context.getAccessChecker().isLoggedInUserMemberOfGroup(fibuGroups) == true) {
+        if (context.getAccessChecker().isLoggedInUserMemberOfGroup(UserRightService.FIBU_ORGA_HR_GROUPS) == true) {
           createdMenuEntry.setNewCounterModel(new MenuNewCounterOrder());
           createdMenuEntry.setNewCounterTooltip("menu.fibu.orderbook.htmlSuffixTooltip");
         } else {

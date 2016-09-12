@@ -58,6 +58,5 @@ public class AccessCheckUpdateCopyFilterListener implements EmgrEventHandler<Emg
     tenantChecker.checkPartOfCurrentTenant(dbObject);
     IUserRightId rightId = genericPersistenceService.getUserRight(dbObject);
     accessChecker.hasLoggedInUserAccess(rightId, newObj, dbObject, opType, true);
-
   }
 }

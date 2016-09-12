@@ -7,20 +7,21 @@ import org.projectforge.continuousdb.UpdateEntryImpl;
 import org.projectforge.continuousdb.UpdatePreCheckStatus;
 import org.projectforge.continuousdb.UpdateRunningStatus;
 import org.projectforge.framework.configuration.ApplicationContextProvider;
+import org.projectforge.framework.persistence.database.DatabaseUpdateService;
 import org.projectforge.framework.persistence.database.InitDatabaseDao;
-import org.projectforge.framework.persistence.database.MyDatabaseUpdateService;
 import org.projectforge.plugins.eed.model.EmployeeConfigurationDO;
 import org.projectforge.plugins.eed.model.EmployeeConfigurationTimedAttrDO;
 import org.projectforge.plugins.eed.model.EmployeeConfigurationTimedDO;
 
 public class ExtendedEmployeeDataPluginUpdates
 {
-  static MyDatabaseUpdateService dao;
+  static DatabaseUpdateService dao;
 
   @SuppressWarnings("serial")
   public static UpdateEntry getInitializationUpdateEntry()
   {
-    return new UpdateEntryImpl(ExtendEmployeeDataPlugin.ID, "6.3", "2016-08-16", "Adds T_PLUGIN_EMPLOYEE_CONFIGURATION* Tables")
+    return new UpdateEntryImpl(ExtendEmployeeDataPlugin.ID, "6.3", "2016-08-16",
+        "Adds T_PLUGIN_EMPLOYEE_CONFIGURATION* Tables")
     {
 
       @Override
@@ -38,7 +39,8 @@ public class ExtendedEmployeeDataPluginUpdates
       @Override
       public UpdateRunningStatus runUpdate()
       {
-        InitDatabaseDao initDatabaseDao = ApplicationContextProvider.getApplicationContext().getBean(InitDatabaseDao.class);
+        InitDatabaseDao initDatabaseDao = ApplicationContextProvider.getApplicationContext()
+            .getBean(InitDatabaseDao.class);
         // Updating the schema
         initDatabaseDao.updateSchema();
         return UpdateRunningStatus.DONE;

@@ -67,12 +67,24 @@ public class GroupDao extends BaseDao<GroupDO>
   @Autowired
   private UserDao userDao;
 
+  private boolean doHistoryUpdate = true;
+
   // private final GroupsProvider groupsProvider = new GroupsProvider();
 
   public GroupDao()
   {
     super(GroupDO.class);
     this.supportAfterUpdate = true;
+  }
+
+  /**
+   * ONLY FOR GENERATING TEST DATA
+   * 
+   * @param supportAfterUpdate
+   */
+  public void setDoHistoryUpdate(boolean historyUpdate)
+  {
+    this.doHistoryUpdate = historyUpdate;
   }
 
   public QueryFilter getDefaultFilter()
@@ -215,29 +227,31 @@ public class GroupDao extends BaseDao<GroupDO>
   @Override
   protected void afterUpdate(final GroupDO group, final GroupDO dbGroup)
   {
-    final Set<PFUserDO> origAssignedUsers = dbGroup.getAssignedUsers();
-    final Set<PFUserDO> assignedUsers = group.getAssignedUsers();
-    final Collection<PFUserDO> assignedList = new ArrayList<PFUserDO>(); // List of new assigned users.
-    final Collection<PFUserDO> unassignedList = new ArrayList<PFUserDO>(); // List of unassigned users.
-    for (final PFUserDO user : group.getAssignedUsers()) {
-      if (origAssignedUsers.contains(user) == false) {
-        assignedList.add(user);
+    if (doHistoryUpdate) {
+      final Set<PFUserDO> origAssignedUsers = dbGroup.getAssignedUsers();
+      final Set<PFUserDO> assignedUsers = group.getAssignedUsers();
+      final Collection<PFUserDO> assignedList = new ArrayList<PFUserDO>(); // List of new assigned users.
+      final Collection<PFUserDO> unassignedList = new ArrayList<PFUserDO>(); // List of unassigned users.
+      for (final PFUserDO user : group.getAssignedUsers()) {
+        if (origAssignedUsers.contains(user) == false) {
+          assignedList.add(user);
+        }
       }
-    }
-    for (final PFUserDO user : dbGroup.getAssignedUsers()) {
-      if (assignedUsers.contains(user) == false) {
-        unassignedList.add(user);
+      for (final PFUserDO user : dbGroup.getAssignedUsers()) {
+        if (assignedUsers.contains(user) == false) {
+          unassignedList.add(user);
+        }
       }
-    }
-    final Collection<GroupDO> groupList = new ArrayList<GroupDO>();
-    groupList.add(group);
-    // Create history entry of PFUserDO for all new assigned users:
-    for (final PFUserDO user : assignedList) {
-      createHistoryEntry(user, null, groupList);
-    }
-    // Create history entry of PFUserDO for all unassigned users:
-    for (final PFUserDO user : unassignedList) {
-      createHistoryEntry(user, groupList, null);
+      final Collection<GroupDO> groupList = new ArrayList<GroupDO>();
+      groupList.add(group);
+      // Create history entry of PFUserDO for all new assigned users:
+      for (final PFUserDO user : assignedList) {
+        createHistoryEntry(user, null, groupList);
+      }
+      // Create history entry of PFUserDO for all unassigned users:
+      for (final PFUserDO user : unassignedList) {
+        createHistoryEntry(user, groupList, null);
+      }
     }
   }
 

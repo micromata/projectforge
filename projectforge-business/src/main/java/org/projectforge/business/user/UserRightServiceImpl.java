@@ -63,48 +63,6 @@ public class UserRightServiceImpl implements UserRightService, Serializable
   @Autowired
   TenantChecker tenantChecker;
 
-  /**
-   * FALSE, TRUE;
-   */
-  public static final UserRightValue[] FALSE_TRUE = new UserRightValue[] { UserRightValue.FALSE, UserRightValue.TRUE };
-
-  /**
-   * FALSE, READONLY, READWRITE;
-   */
-  public static final UserRightValue[] FALSE_READONLY_READWRITE = new UserRightValue[] { UserRightValue.FALSE,
-      UserRightValue.READONLY,
-      UserRightValue.READWRITE };
-
-  /**
-   * FALSE, READONLY, PARTLY_READWRITE, READWRITE;
-   */
-  public static final UserRightValue[] FALSE_READONLY_PARTLYREADWRITE_READWRITE = new UserRightValue[] {
-      UserRightValue.FALSE,
-      UserRightValue.READONLY, UserRightValue.PARTLYREADWRITE, UserRightValue.READWRITE };
-
-  /**
-   * READONLY, READWRITE;
-   */
-  public static final UserRightValue[] READONLY_READWRITE = new UserRightValue[] { UserRightValue.READONLY,
-      UserRightValue.READWRITE };
-
-  /**
-   * READONLY, PARTY_READWRITE, READWRITE;
-   */
-  public static final UserRightValue[] READONLY_PARTLYREADWRITE_READWRITE = new UserRightValue[] {
-      UserRightValue.READONLY, UserRightValue.PARTLYREADWRITE, UserRightValue.READWRITE };
-
-  public static final ProjectForgeGroup[] FIBU_GROUPS = { ProjectForgeGroup.FINANCE_GROUP,
-      ProjectForgeGroup.CONTROLLING_GROUP };
-
-  public static final ProjectForgeGroup[] FIBU_ORGA_GROUPS = { ProjectForgeGroup.FINANCE_GROUP,
-      ProjectForgeGroup.ORGA_TEAM,
-      ProjectForgeGroup.CONTROLLING_GROUP };
-
-  public static final ProjectForgeGroup[] FIBU_ORGA_PM_GROUPS = { ProjectForgeGroup.FINANCE_GROUP,
-      ProjectForgeGroup.ORGA_TEAM,
-      ProjectForgeGroup.CONTROLLING_GROUP, ProjectForgeGroup.PROJECT_MANAGER, ProjectForgeGroup.PROJECT_ASSISTANT };
-
   private final Map<IUserRightId, UserRight> rights = new HashMap<IUserRightId, UserRight>();
 
   private final Map<String, IUserRightId> rightIds = new HashMap<String, IUserRightId>();
@@ -157,11 +115,9 @@ public class UserRightServiceImpl implements UserRightService, Serializable
   public void init()
   {
     initUserRightIds();
-    addRight(UserRightCategory.FIBU, UserRightId.FIBU_EMPLOYEE, FALSE_READONLY_READWRITE, FIBU_ORGA_GROUPS)
-        .setReadOnlyForControlling();
-    addRight(UserRightCategory.FIBU, UserRightId.FIBU_EMPLOYEE_SALARY, FALSE_READONLY_READWRITE, FIBU_GROUPS)
-        .setAvailableGroupRightValues(
-            ProjectForgeGroup.CONTROLLING_GROUP, UserRightValue.FALSE, UserRightValue.READONLY);
+    addRight(UserRightCategory.HR, UserRightId.HR_EMPLOYEE, FALSE_READONLY_READWRITE, ProjectForgeGroup.HR_GROUP);
+    addRight(UserRightCategory.HR, UserRightId.HR_EMPLOYEE_SALARY, FALSE_READONLY_READWRITE,
+        ProjectForgeGroup.HR_GROUP);
     addRight(UserRightCategory.FIBU, UserRightId.FIBU_AUSGANGSRECHNUNGEN, FALSE_READONLY_READWRITE, FIBU_ORGA_GROUPS)
         .setReadOnlyForControlling();
     addRight(UserRightCategory.FIBU, UserRightId.FIBU_EINGANGSRECHNUNGEN, FALSE_READONLY_READWRITE, FIBU_ORGA_GROUPS)
@@ -185,6 +141,8 @@ public class UserRightServiceImpl implements UserRightService, Serializable
     addRight(new HRPlanningRight(accessChecker));
     addRight(new TeamCalRight(accessChecker));
     addRight(new TeamEventRight(accessChecker));
+
+    addRight(UserRightCategory.ADMIN, UserRightId.ADMIN_CORE, FALSE_READONLY_READWRITE, ProjectForgeGroup.ADMIN_GROUP);
   }
 
   private void initUserRightIds()
