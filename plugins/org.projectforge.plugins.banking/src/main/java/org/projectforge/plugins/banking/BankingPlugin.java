@@ -66,7 +66,7 @@ public class BankingPlugin extends AbstractPlugin
   protected void initialize()
   {
     // DatabaseUpdateDao is needed by the updater:
-    BankingPluginUpdates.dao = myDatabaseUpdater.getDatabaseUpdateService();
+    BankingPluginUpdates.dao = myDatabaseUpdater;
     // Register it:
     register(BANK_ACCOUNT_ID, BankAccountDao.class, bankAccountDao, "plugins.banking.account").setNestedDOClasses(
         BankAccountRecordDO.class, BankAccountBalanceDO.class).setSearchable(false);
@@ -81,8 +81,8 @@ public class BankingPlugin extends AbstractPlugin
     pluginWicketRegistrationService.registerMenuItem(
         new MenuItemDef(parentMenu, BANK_ACCOUNT_ID, 100, "plugins.banking.account.menu", BankAccountListPage.class,
             BankingPluginUserRightsId.PLUGIN_BANK_ACCOUNT));
-            // registerMenuItem(new MenuItemDef(parentMenu, BANK_ACCOUNT_BALANCE_ID, 30, "plugins.banking.bankAccountBalance.menu",
-            // BankAccountBalanceListPage.class));
+    // registerMenuItem(new MenuItemDef(parentMenu, BANK_ACCOUNT_BALANCE_ID, 30, "plugins.banking.bankAccountBalance.menu",
+    // BankAccountBalanceListPage.class));
 
     // Define the access management:
     // registerRight(new BankAccountRight());

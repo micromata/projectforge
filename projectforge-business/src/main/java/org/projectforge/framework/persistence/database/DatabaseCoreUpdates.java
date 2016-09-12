@@ -29,7 +29,9 @@ import java.time.temporal.ChronoField;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.projectforge.business.address.AddressDO;
 import org.projectforge.business.fibu.AuftragDO;
@@ -43,8 +45,10 @@ import org.projectforge.business.fibu.PaymentScheduleDO;
 import org.projectforge.business.fibu.ProjektDO;
 import org.projectforge.business.fibu.RechnungDO;
 import org.projectforge.business.multitenancy.TenantRegistryMap;
+import org.projectforge.business.multitenancy.TenantService;
 import org.projectforge.business.scripting.ScriptDO;
 import org.projectforge.business.task.TaskDO;
+import org.projectforge.business.user.ProjectForgeGroup;
 import org.projectforge.business.user.UserXmlPreferencesDO;
 import org.projectforge.continuousdb.DatabaseResultRow;
 import org.projectforge.continuousdb.SchemaGenerator;
@@ -60,6 +64,7 @@ import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
 import org.projectforge.framework.persistence.user.entities.GroupDO;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.persistence.user.entities.TenantDO;
+import org.projectforge.framework.persistence.user.entities.UserRightDO;
 import org.projectforge.framework.time.DateHelper;
 import org.springframework.context.ApplicationContext;
 
@@ -78,7 +83,7 @@ public class DatabaseCoreUpdates
 
   private static final String VERSION_5_0 = "5.0";
 
-  static ApplicationContext applicationContext;
+  protected static ApplicationContext applicationContext;
 
   @SuppressWarnings("serial")
   public static List<UpdateEntry> getUpdateEntries()
@@ -89,16 +94,18 @@ public class DatabaseCoreUpdates
     // 6.3.0
     // /////////////////////////////////////////////////////////////////
     list.add(new UpdateEntryImpl(CORE_REGION_ID, "6.3.0", "2016-08-31",
-        "Add column to attendee data table. Alter table column for ssh-key.")
+        "Add column to attendee data table. Alter table column for ssh-key. Add HR group.")
     {
       @Override
       public UpdatePreCheckStatus runPreCheck()
       {
         log.info("Running pre-check for ProjectForge version 6.3.0");
-        final MyDatabaseUpdateService databaseUpdateDao = applicationContext.getBean(MyDatabaseUpdateService.class);
-        if (databaseUpdateDao.doesTableAttributeExist("T_PLUGIN_CALENDAR_EVENT_ATTENDEE", "address_id") == false) {
+        final DatabaseUpdateService databaseUpdateService = applicationContext.getBean(DatabaseUpdateService.class);
+        if (databaseUpdateService.doesTableAttributeExist("T_PLUGIN_CALENDAR_EVENT_ATTENDEE", "address_id") == false) {
           return UpdatePreCheckStatus.READY_FOR_UPDATE;
-        } else if (databaseUpdateDao.getDatabaseTableColumnLenght(PFUserDO.class, "ssh_public_key") < 4096) {
+        } else if (databaseUpdateService.getDatabaseTableColumnLenght(PFUserDO.class, "ssh_public_key") < 4096) {
+          return UpdatePreCheckStatus.READY_FOR_UPDATE;
+        } else if (databaseUpdateService.doesGroupExists(ProjectForgeGroup.HR_GROUP) == false) {
           return UpdatePreCheckStatus.READY_FOR_UPDATE;
         } else {
           return UpdatePreCheckStatus.ALREADY_UPDATED;
@@ -109,15 +116,55 @@ public class DatabaseCoreUpdates
       public UpdateRunningStatus runUpdate()
       {
         final InitDatabaseDao initDatabaseDao = applicationContext.getBean(InitDatabaseDao.class);
-        final MyDatabaseUpdateService databaseUpdateDao = applicationContext.getBean(MyDatabaseUpdateService.class);
-        if (databaseUpdateDao.doesTableAttributeExist("T_PLUGIN_CALENDAR_EVENT_ATTENDEE", "address_id") == false) {
+        final DatabaseUpdateService databaseUpdateService = applicationContext.getBean(DatabaseUpdateService.class);
+        if (databaseUpdateService.doesTableAttributeExist("T_PLUGIN_CALENDAR_EVENT_ATTENDEE", "address_id") == false) {
           //Updating the schema
           initDatabaseDao.updateSchema();
         }
-        if (databaseUpdateDao.getDatabaseTableColumnLenght(PFUserDO.class, "ssh_public_key") < 4096) {
+
+        if (databaseUpdateService.getDatabaseTableColumnLenght(PFUserDO.class, "ssh_public_key") < 4096) {
           final Table userTable = new Table(PFUserDO.class);
-          databaseUpdateDao.alterTableColumnVarCharLength(userTable.getName(), "ssh_public_key", 4096);
+          databaseUpdateService.alterTableColumnVarCharLength(userTable.getName(), "ssh_public_key", 4096);
         }
+
+        if (databaseUpdateService.doesGroupExists(ProjectForgeGroup.HR_GROUP) == false) {
+          final PfEmgrFactory emf = applicationContext.getBean(PfEmgrFactory.class);
+          emf.runInTrans(emgr -> {
+            GroupDO hrGroup = new GroupDO();
+            hrGroup.setName("PF_HR");
+            hrGroup.setDescription("Users for having full access to the companies hr.");
+            hrGroup.setCreated();
+            hrGroup.setTenant(applicationContext.getBean(TenantService.class).getDefaultTenant());
+
+            final Set<PFUserDO> usersToAddToHrGroup = new HashSet<>();
+
+            final List<UserRightDO> employeeRights = emgr.selectAttached(UserRightDO.class,
+                "SELECT r FROM UserRightDO r WHERE r.rightIdString = :rightId",
+                "rightId",
+                "FIBU_EMPLOYEE");
+            employeeRights.forEach(sr -> {
+              sr.setRightIdString("HR_EMPLOYEE");
+              usersToAddToHrGroup.add(sr.getUser());
+              emgr.update(sr);
+            });
+
+            final List<UserRightDO> salaryRights = emgr.selectAttached(UserRightDO.class,
+                "SELECT r FROM UserRightDO r WHERE r.rightIdString = :rightId",
+                "rightId",
+                "FIBU_EMPLOYEE_SALARY");
+            salaryRights.forEach(sr -> {
+              sr.setRightIdString("HR_EMPLOYEE_SALARY");
+              usersToAddToHrGroup.add(sr.getUser());
+              emgr.update(sr);
+            });
+
+            usersToAddToHrGroup.forEach(hrGroup::addUser);
+
+            emgr.insert(hrGroup);
+            return hrGroup;
+          });
+        }
+
         return UpdateRunningStatus.DONE;
       }
 
@@ -133,7 +180,7 @@ public class DatabaseCoreUpdates
       public UpdatePreCheckStatus runPreCheck()
       {
         log.info("Running pre-check for ProjectForge version 6.1.1");
-        final MyDatabaseUpdateService databaseUpdateDao = applicationContext.getBean(MyDatabaseUpdateService.class);
+        final DatabaseUpdateService databaseUpdateDao = applicationContext.getBean(DatabaseUpdateService.class);
         if (databaseUpdateDao.doEntitiesExist(EmployeeTimedDO.class) == false) {
           return UpdatePreCheckStatus.READY_FOR_UPDATE;
         }
@@ -194,7 +241,7 @@ public class DatabaseCoreUpdates
       public UpdatePreCheckStatus runPreCheck()
       {
         log.info("Running pre-check for ProjectForge version 6.1.0");
-        MyDatabaseUpdateService databaseUpdateDao = applicationContext.getBean(MyDatabaseUpdateService.class);
+        DatabaseUpdateService databaseUpdateDao = applicationContext.getBean(DatabaseUpdateService.class);
         if (databaseUpdateDao.doTableAttributesExist(EmployeeDO.class, "staffNumber") == false) {
           return UpdatePreCheckStatus.READY_FOR_UPDATE;
         }
@@ -221,7 +268,7 @@ public class DatabaseCoreUpdates
       public UpdatePreCheckStatus runPreCheck()
       {
         log.info("Running pre-check for ProjectForge version 6.0.0");
-        MyDatabaseUpdateService databaseUpdateDao = applicationContext.getBean(MyDatabaseUpdateService.class);
+        DatabaseUpdateService databaseUpdateDao = applicationContext.getBean(DatabaseUpdateService.class);
         if (databaseUpdateDao.doEntitiesExist(TenantDO.class) == false
             || databaseUpdateDao.internalIsTableEmpty("t_tenant") == true ||
             databaseUpdateDao.doTableAttributesExist(ConfigurationDO.class, "global") == false ||
@@ -329,7 +376,7 @@ public class DatabaseCoreUpdates
       @Override
       public UpdatePreCheckStatus runPreCheck()
       {
-        MyDatabaseUpdateService databaseUpdateDao = applicationContext.getBean(MyDatabaseUpdateService.class);
+        DatabaseUpdateService databaseUpdateDao = applicationContext.getBean(DatabaseUpdateService.class);
         if (databaseUpdateDao.doTableAttributesExist(EmployeeDO.class, "weeklyWorkingHours") == false) {
           return UpdatePreCheckStatus.READY_FOR_UPDATE;
         }
@@ -353,7 +400,7 @@ public class DatabaseCoreUpdates
       @Override
       public UpdateRunningStatus runUpdate()
       {
-        MyDatabaseUpdateService databaseUpdateDao = applicationContext.getBean(MyDatabaseUpdateService.class);
+        DatabaseUpdateService databaseUpdateDao = applicationContext.getBean(DatabaseUpdateService.class);
         if (databaseUpdateDao.doTableAttributesExist(EmployeeDO.class, "weeklyWorkingHours") == false) {
           // No length check available so assume enlargement if ldapValues doesn't yet exist:
           final Table addressTable = new Table(AddressDO.class);
@@ -411,7 +458,7 @@ public class DatabaseCoreUpdates
       @Override
       public UpdatePreCheckStatus runPreCheck()
       {
-        MyDatabaseUpdateService databaseUpdateDao = applicationContext.getBean(MyDatabaseUpdateService.class);
+        DatabaseUpdateService databaseUpdateDao = applicationContext.getBean(DatabaseUpdateService.class);
         if (databaseUpdateDao.doTableAttributesExist(PFUserDO.class, "lastPasswordChange", "passwordSalt") == false) {
           return UpdatePreCheckStatus.READY_FOR_UPDATE;
         }
@@ -421,7 +468,7 @@ public class DatabaseCoreUpdates
       @Override
       public UpdateRunningStatus runUpdate()
       {
-        MyDatabaseUpdateService databaseUpdateDao = applicationContext.getBean(MyDatabaseUpdateService.class);
+        DatabaseUpdateService databaseUpdateDao = applicationContext.getBean(DatabaseUpdateService.class);
         if (databaseUpdateDao.doTableAttributesExist(PFUserDO.class, "lastPasswordChange", "passwordSalt") == false) {
           databaseUpdateDao.addTableAttributes(PFUserDO.class, "lastPasswordChange", "passwordSalt");
         }
@@ -441,7 +488,7 @@ public class DatabaseCoreUpdates
       @Override
       public UpdatePreCheckStatus runPreCheck()
       {
-        MyDatabaseUpdateService databaseUpdateDao = applicationContext.getBean(MyDatabaseUpdateService.class);
+        DatabaseUpdateService databaseUpdateDao = applicationContext.getBean(DatabaseUpdateService.class);
         if (databaseUpdateDao.doTableAttributesExist(ScriptDO.class, "file", "filename") == true
             && databaseUpdateDao.doTableAttributesExist(AuftragsPositionDO.class, "periodOfPerformanceBegin",
                 "periodOfPerformanceEnd") == true) {
@@ -453,7 +500,7 @@ public class DatabaseCoreUpdates
       @Override
       public UpdateRunningStatus runUpdate()
       {
-        MyDatabaseUpdateService databaseUpdateDao = applicationContext.getBean(MyDatabaseUpdateService.class);
+        DatabaseUpdateService databaseUpdateDao = applicationContext.getBean(DatabaseUpdateService.class);
         if (databaseUpdateDao.doTableAttributesExist(ScriptDO.class, "file", "filename") == false) {
           databaseUpdateDao.addTableAttributes(ScriptDO.class, "file", "filename");
           final Table scriptTable = new Table(ScriptDO.class);
@@ -497,7 +544,7 @@ public class DatabaseCoreUpdates
       @Override
       public UpdatePreCheckStatus runPreCheck()
       {
-        MyDatabaseUpdateService databaseUpdateDao = applicationContext.getBean(MyDatabaseUpdateService.class);
+        DatabaseUpdateService databaseUpdateDao = applicationContext.getBean(DatabaseUpdateService.class);
         int entriesToMigrate = 0;
         if (databaseUpdateDao.isVersionUpdated(CORE_REGION_ID, VERSION_5_0) == false) {
           entriesToMigrate = databaseUpdateDao.queryForInt("select count(*) from t_contract where status='IN_PROGRES'");
@@ -511,7 +558,7 @@ public class DatabaseCoreUpdates
       @Override
       public UpdateRunningStatus runUpdate()
       {
-        MyDatabaseUpdateService databaseUpdateDao = applicationContext.getBean(MyDatabaseUpdateService.class);
+        DatabaseUpdateService databaseUpdateDao = applicationContext.getBean(DatabaseUpdateService.class);
         if (databaseUpdateDao.doTableAttributesExist(rechnungTable, "konto") == false) {
           databaseUpdateDao.addTableAttributes(rechnungTable, new TableAttribute(RechnungDO.class, "konto"));
         }
@@ -537,7 +584,7 @@ public class DatabaseCoreUpdates
       @Override
       public UpdatePreCheckStatus runPreCheck()
       {
-        MyDatabaseUpdateService databaseUpdateDao = applicationContext.getBean(MyDatabaseUpdateService.class);
+        DatabaseUpdateService databaseUpdateDao = applicationContext.getBean(DatabaseUpdateService.class);
         return databaseUpdateDao.doTableAttributesExist(projektTable, "konto") == true //
             ? UpdatePreCheckStatus.ALREADY_UPDATED
             : UpdatePreCheckStatus.READY_FOR_UPDATE;
@@ -546,7 +593,7 @@ public class DatabaseCoreUpdates
       @Override
       public UpdateRunningStatus runUpdate()
       {
-        MyDatabaseUpdateService databaseUpdateDao = applicationContext.getBean(MyDatabaseUpdateService.class);
+        DatabaseUpdateService databaseUpdateDao = applicationContext.getBean(DatabaseUpdateService.class);
         if (databaseUpdateDao.doTableAttributesExist(projektTable, "konto") == false) {
           databaseUpdateDao.addTableAttributes(projektTable, new TableAttribute(ProjektDO.class, "konto"));
         }
@@ -576,7 +623,7 @@ public class DatabaseCoreUpdates
       @Override
       public UpdatePreCheckStatus runPreCheck()
       {
-        MyDatabaseUpdateService databaseUpdateDao = applicationContext.getBean(MyDatabaseUpdateService.class);
+        DatabaseUpdateService databaseUpdateDao = applicationContext.getBean(DatabaseUpdateService.class);
         return databaseUpdateDao.doTableAttributesExist(userTable, "authenticationToken", "localUser", "restrictedUser",
             "deactivated", "ldapValues") == true //
             && databaseUpdateDao.doTableAttributesExist(groupTable, "localGroup") == true
@@ -590,7 +637,7 @@ public class DatabaseCoreUpdates
       @Override
       public UpdateRunningStatus runUpdate()
       {
-        MyDatabaseUpdateService databaseUpdateDao = applicationContext.getBean(MyDatabaseUpdateService.class);
+        DatabaseUpdateService databaseUpdateDao = applicationContext.getBean(DatabaseUpdateService.class);
         if (databaseUpdateDao.doTableAttributesExist(userTable, "authenticationToken") == false) {
           databaseUpdateDao.addTableAttributes(userTable, new TableAttribute(PFUserDO.class, "authenticationToken"));
         }
@@ -645,7 +692,7 @@ public class DatabaseCoreUpdates
       @Override
       public UpdatePreCheckStatus runPreCheck()
       {
-        MyDatabaseUpdateService databaseUpdateDao = applicationContext.getBean(MyDatabaseUpdateService.class);
+        DatabaseUpdateService databaseUpdateDao = applicationContext.getBean(DatabaseUpdateService.class);
         return databaseUpdateDao.doTableAttributesExist(userTable, "firstDayOfWeek", "hrPlanning") == true //
             ? UpdatePreCheckStatus.ALREADY_UPDATED
             : UpdatePreCheckStatus.READY_FOR_UPDATE;
@@ -654,7 +701,7 @@ public class DatabaseCoreUpdates
       @Override
       public UpdateRunningStatus runUpdate()
       {
-        MyDatabaseUpdateService databaseUpdateDao = applicationContext.getBean(MyDatabaseUpdateService.class);
+        DatabaseUpdateService databaseUpdateDao = applicationContext.getBean(DatabaseUpdateService.class);
         if (databaseUpdateDao.doTableAttributesExist(userTable, "firstDayOfWeek") == false) {
           databaseUpdateDao.addTableAttributes(userTable, new TableAttribute(PFUserDO.class, "firstDayOfWeek"));
         }
@@ -679,7 +726,7 @@ public class DatabaseCoreUpdates
       @Override
       public UpdatePreCheckStatus runPreCheck()
       {
-        MyDatabaseUpdateService databaseUpdateDao = applicationContext.getBean(MyDatabaseUpdateService.class);
+        DatabaseUpdateService databaseUpdateDao = applicationContext.getBean(DatabaseUpdateService.class);
         return databaseUpdateDao.doTableAttributesExist(scriptTable, "parameter6Name", "parameter6Type") == true //
             && databaseUpdateDao.doTableAttributesExist(eingangsrechnungTable, "paymentType") == true //
                 ? UpdatePreCheckStatus.ALREADY_UPDATED : UpdatePreCheckStatus.READY_FOR_UPDATE;
@@ -688,7 +735,7 @@ public class DatabaseCoreUpdates
       @Override
       public UpdateRunningStatus runUpdate()
       {
-        MyDatabaseUpdateService databaseUpdateDao = applicationContext.getBean(MyDatabaseUpdateService.class);
+        DatabaseUpdateService databaseUpdateDao = applicationContext.getBean(DatabaseUpdateService.class);
         if (databaseUpdateDao.doTableAttributesExist(scriptTable, "parameter6Name") == false) {
           databaseUpdateDao.addTableAttributes(scriptTable, new TableAttribute(ScriptDO.class, "parameter6Name"));
         }
@@ -715,7 +762,7 @@ public class DatabaseCoreUpdates
       @Override
       public UpdatePreCheckStatus runPreCheck()
       {
-        MyDatabaseUpdateService databaseUpdateDao = applicationContext.getBean(MyDatabaseUpdateService.class);
+        DatabaseUpdateService databaseUpdateDao = applicationContext.getBean(DatabaseUpdateService.class);
         final Table kundeTable = new Table(KundeDO.class);
         final Table eingangsrechnungTable = new Table(EingangsrechnungDO.class);
         final Table kontoTable = new Table(KontoDO.class);
@@ -732,7 +779,7 @@ public class DatabaseCoreUpdates
       @Override
       public UpdateRunningStatus runUpdate()
       {
-        MyDatabaseUpdateService databaseUpdateDao = applicationContext.getBean(MyDatabaseUpdateService.class);
+        DatabaseUpdateService databaseUpdateDao = applicationContext.getBean(DatabaseUpdateService.class);
         final Table kundeTable = new Table(KundeDO.class);
         if (databaseUpdateDao.doTableAttributesExist(kundeTable, "konto") == false) {
           databaseUpdateDao.addTableAttributes(kundeTable, new TableAttribute(KundeDO.class, "konto"));
@@ -770,7 +817,7 @@ public class DatabaseCoreUpdates
       @Override
       public UpdatePreCheckStatus runPreCheck()
       {
-        MyDatabaseUpdateService databaseUpdateDao = applicationContext.getBean(MyDatabaseUpdateService.class);
+        DatabaseUpdateService databaseUpdateDao = applicationContext.getBean(DatabaseUpdateService.class);
         final Table dbUpdateTable = new Table(DatabaseUpdateDO.class);
         final Table userTable = new Table(PFUserDO.class);
         return databaseUpdateDao.doExist(dbUpdateTable) == true
@@ -782,7 +829,7 @@ public class DatabaseCoreUpdates
       @Override
       public UpdateRunningStatus runUpdate()
       {
-        MyDatabaseUpdateService databaseUpdateDao = applicationContext.getBean(MyDatabaseUpdateService.class);
+        DatabaseUpdateService databaseUpdateDao = applicationContext.getBean(DatabaseUpdateService.class);
         final Table dbUpdateTable = new Table(DatabaseUpdateDO.class);
         final Table userTable = new Table(PFUserDO.class);
         dbUpdateTable.addAttributes("updateDate", "regionId", "versionString", "executionResult", "executedBy",

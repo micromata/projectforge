@@ -46,7 +46,7 @@ import org.springframework.stereotype.Repository;
 @Repository
 public class EmployeeSalaryDao extends BaseDao<EmployeeSalaryDO>
 {
-  public static final UserRightId USER_RIGHT_ID = UserRightId.FIBU_EMPLOYEE_SALARY;
+  public static final UserRightId USER_RIGHT_ID = UserRightId.HR_EMPLOYEE_SALARY;
 
   private static final String[] ADDITIONAL_SEARCH_FIELDS = new String[] { "employee.user.lastname",
       "employee.user.firstname" };

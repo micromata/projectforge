@@ -32,7 +32,7 @@ import de.micromata.genome.jpa.ComplexEntityVisitor;
 @Table(name = "T_PLUGIN_EMPLOYEE_CONFIGURATION",
     uniqueConstraints = { @UniqueConstraint(columnNames = { "tenant_id" } /* only one entity per tenant allowed */) })
 @WithHistory
-@AUserRightId("PLUGIN_EXTENDEMPLOYEEDATA")
+@AUserRightId("HR_EMPLOYEE_SALARY") // this is used for right check from CorePersistenceServiceImpl::update
 public class EmployeeConfigurationDO extends DefaultBaseDO
     implements EntityWithTimeableAttr<Integer, EmployeeConfigurationTimedDO>, EntityWithConfigurableAttr,
     ComplexEntity

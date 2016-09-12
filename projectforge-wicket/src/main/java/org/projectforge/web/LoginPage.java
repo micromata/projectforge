@@ -44,8 +44,8 @@ import org.projectforge.business.user.filter.UserFilter;
 import org.projectforge.business.utils.HtmlHelper;
 import org.projectforge.framework.configuration.ConfigurationParam;
 import org.projectforge.framework.configuration.GlobalConfiguration;
+import org.projectforge.framework.persistence.database.DatabaseUpdateService;
 import org.projectforge.framework.persistence.database.InitDatabaseDao;
-import org.projectforge.framework.persistence.database.MyDatabaseUpdateService;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.web.admin.SetupPage;
 import org.projectforge.web.admin.SystemUpdatePage;
@@ -66,7 +66,7 @@ public class LoginPage extends AbstractUnsecureBasePage
   private static final String PARAMETER_KEY_FORCE_NON_MOBILE = "forceNonMobile";
 
   @SpringBean
-  private MyDatabaseUpdateService myDatabaseUpdateService;
+  private DatabaseUpdateService myDatabaseUpdateService;
 
   @SpringBean
   private UserDao userDao;

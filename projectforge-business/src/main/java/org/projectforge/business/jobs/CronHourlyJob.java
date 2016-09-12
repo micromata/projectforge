@@ -27,7 +27,7 @@ import java.util.Calendar;
 
 import org.projectforge.business.teamcal.externalsubscription.TeamCalSubscriptionJob;
 import org.projectforge.framework.persistence.api.ReindexSettings;
-import org.projectforge.framework.persistence.database.MyDatabaseUpdateService;
+import org.projectforge.framework.persistence.database.DatabaseUpdateService;
 import org.projectforge.framework.persistence.history.HibernateSearchReindexer;
 import org.projectforge.framework.persistence.history.entities.PfHistoryMasterDO;
 import org.projectforge.framework.time.DateHelper;
@@ -44,7 +44,7 @@ public class CronHourlyJob extends AbstractCronJob
 {
   private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(CronHourlyJob.class);
 
-  private MyDatabaseUpdateService databaseUpdateDao;
+  private DatabaseUpdateService databaseUpdateDao;
 
   private HibernateSearchReindexer hibernateSearchReindexer;
 
@@ -83,7 +83,7 @@ public class CronHourlyJob extends AbstractCronJob
   @Override
   protected void wire(final JobExecutionContext context)
   {
-    databaseUpdateDao = (MyDatabaseUpdateService) wire(context, "databaseUpdateDao");
+    databaseUpdateDao = (DatabaseUpdateService) wire(context, "databaseUpdateDao");
     hibernateSearchReindexer = (HibernateSearchReindexer) wire(context, "hibernateSearchReindexer");
     teamCalSubscriptionJob = (TeamCalSubscriptionJob) wire(context, "teamCalSubscriptionJob");
   }

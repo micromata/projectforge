@@ -28,21 +28,23 @@ import org.projectforge.continuousdb.UpdateEntry;
 import org.projectforge.continuousdb.UpdateEntryImpl;
 import org.projectforge.continuousdb.UpdatePreCheckStatus;
 import org.projectforge.continuousdb.UpdateRunningStatus;
-import org.projectforge.framework.persistence.database.MyDatabaseUpdateService;
+import org.projectforge.framework.persistence.database.DatabaseUpdateService;
 
 /**
- * Contains the initial data-base set-up script and later all update scripts if any data-base schema updates are required by any later
- * release of this to-do plugin.
+ * Contains the initial data-base set-up script and later all update scripts if any data-base schema updates are
+ * required by any later release of this to-do plugin.
+ * 
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 public class ToDoPluginUpdates
 {
-  static MyDatabaseUpdateService dao;
+  static DatabaseUpdateService dao;
 
   @SuppressWarnings("serial")
   public static UpdateEntry getInitializationUpdateEntry()
   {
-    return new UpdateEntryImpl(ToDoPlugin.ID, "2011-03-08", "Adds table T_PLUGIN_TODO.") {
+    return new UpdateEntryImpl(ToDoPlugin.ID, "2011-03-08", "Adds table T_PLUGIN_TODO.")
+    {
       @Override
       public UpdatePreCheckStatus runPreCheck()
       {
