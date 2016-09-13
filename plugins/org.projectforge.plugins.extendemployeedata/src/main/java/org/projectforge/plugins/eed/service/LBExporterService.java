@@ -5,7 +5,6 @@ import java.math.BigDecimal;
 import java.util.Calendar;
 import java.util.List;
 
-import org.apache.commons.lang3.StringUtils;
 import org.jfree.util.Log;
 import org.projectforge.business.fibu.EmployeeDO;
 import org.projectforge.business.fibu.EmployeeStatus;
@@ -20,7 +19,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 
-import de.micromata.genome.db.jpa.tabattr.api.AttrGroup;
 import de.micromata.genome.db.jpa.tabattr.api.AttrSchemaService;
 import de.micromata.genome.db.jpa.tabattr.api.TimeableService;
 
@@ -74,76 +72,65 @@ public class LBExporterService
         if (isFulltimeEmployee(employee) == true) {
           sheetFulltimeEmployee.copyRow(copyRowFulltime);
           copyRowNrFulltime++;
-          final ExportRow actualRow = sheetFulltimeEmployee.getRow(copyRowNrFulltime - 1);
+          final ExportRow currentRow = sheetFulltimeEmployee.getRow(copyRowNrFulltime - 1);
           //0 -> Name
-          actualRow.getCell(0).setValue(employee.getUser().getFullname());
+          currentRow.getCell(0).setValue(employee.getUser().getFullname());
           //1 -> Arbeitsstunden
-          actualRow.getCell(1).setValue(employee.getWeeklyWorkingHours());
+          currentRow.getCell(1).setValue(employee.getWeeklyWorkingHours());
           //2 -> Personalnummer
-          actualRow.getCell(2).setValue(employee.getStaffNumber());
+          currentRow.getCell(2).setValue(employee.getStaffNumber());
           //3 -> Gehalt
-          actualRow.getCell(3).setValue(employeeService.getMonthlySalary(employee, selectedDate));
+          currentRow.getCell(3).setValue(round(employeeService.getMonthlySalary(employee, selectedDate)));
           //13 / 14 Essen
-          final String hasFood = getAttrValueForDateAsString(employee, "food", "food", selectedDate);
-          if (StringUtils.isNotEmpty(hasFood) && Boolean.parseBoolean(hasFood)) {
+          final boolean hasFood = getAttrValueForMonthAsBoolean(employee, "food", "food", selectedDate);
+          if (hasFood) {
             BigDecimal oneDayValue = getAttrValueForMonthAsBigDecimal(singleEmployeeConfigurationDO, "food",
                 "referencevalue", selectedDate);
             if (oneDayValue != null) {
               final BigDecimal fullValue = oneDayValue.multiply(FOOD_VOUCHER_DAYS_PER_MONTH);
-              actualRow.getCell(13).setValue(fullValue);
+              currentRow.getCell(13).setValue(round(fullValue));
             }
 
             oneDayValue = getAttrValueForMonthAsBigDecimal(singleEmployeeConfigurationDO, "food", "contribution",
                 selectedDate);
             if (oneDayValue != null) {
               final BigDecimal fullValue = oneDayValue.multiply(FOOD_VOUCHER_DAYS_PER_MONTH);
-              actualRow.getCell(14).setValue(fullValue);
+              currentRow.getCell(14).setValue(round(fullValue));
             }
           }
           //15 Tankgutschein
-          final String hasFuelVoucher = getAttrValueForDateAsString(employee, "fuelvoucher", "fuelvoucher",
+          final boolean hasFuelVoucher = getAttrValueForMonthAsBoolean(employee, "fuelvoucher", "fuelvoucher",
               selectedDate);
-          if (StringUtils.isNotEmpty(hasFuelVoucher) && Boolean.parseBoolean(hasFuelVoucher)) {
-            actualRow.getCell(15).setValue(
-                getAttrValueForMonthAsBigDecimal(singleEmployeeConfigurationDO, "refuel", "voucher", selectedDate));
+          if (hasFuelVoucher) {
+            currentRow.getCell(15).setValue(round(
+                getAttrValueForMonthAsBigDecimal(singleEmployeeConfigurationDO, "refuel", "voucher", selectedDate)));
           }
           //21 -> Kita
-          actualRow.getCell(21)
-              .setValue(getAttrValueForDateAsBigDecimal(employee, "daycarecenter", "daycarecenter", selectedDate));
+          currentRow.getCell(21).setValue(round(getAttrValueForMonthAsBigDecimal(employee, "daycarecenter", "daycarecenter", selectedDate)));
           //22 -> eBike
-          actualRow.getCell(22)
-              .setValue(getAttrValueForDateAsBigDecimal(employee, "ebikeleasing", "ebikeleasing", selectedDate));
+          currentRow.getCell(22).setValue(round(getAttrValueForMonthAsBigDecimal(employee, "ebikeleasing", "ebikeleasing", selectedDate)));
           //23 -> RK
-          actualRow.getCell(23)
-              .setValue(getAttrValueForDateAsBigDecimal(employee, "costtravel", "costtravel", selectedDate));
+          currentRow.getCell(23).setValue(round(getAttrValueForMonthAsBigDecimal(employee, "costtravel", "costtravel", selectedDate)));
           //24 -> Auslagen
-          actualRow.getCell(24)
-              .setValue(getAttrValueForDateAsBigDecimal(employee, "expenses", "expenses", selectedDate));
+          currentRow.getCell(24).setValue(round(getAttrValueForMonthAsBigDecimal(employee, "expenses", "expenses", selectedDate)));
           //25 Überstunden
-          actualRow.getCell(25)
-              .setValue(getAttrValueForDateAsBigDecimal(employee, "overtime", "overtime", selectedDate));
+          currentRow.getCell(25).setValue(getAttrValueForMonthAsBigDecimal(employee, "overtime", "overtime", selectedDate));
           //26 Prämie
-          actualRow.getCell(26).setValue(getAttrValueForDateAsBigDecimal(employee, "bonus", "bonus", selectedDate));
+          currentRow.getCell(26).setValue(round(getAttrValueForMonthAsBigDecimal(employee, "bonus", "bonus", selectedDate)));
           //27 Sonderzahlung
-          actualRow.getCell(27)
-              .setValue(getAttrValueForDateAsBigDecimal(employee, "specialpayment", "specialpayment", selectedDate));
+          currentRow.getCell(27).setValue(round(getAttrValueForMonthAsBigDecimal(employee, "specialpayment", "specialpayment", selectedDate)));
           //28 Zielvereinbarung
-          actualRow.getCell(28)
-              .setValue(getAttrValueForDateAsBigDecimal(employee, "targetagreements", "targetagreements", selectedDate));
+          currentRow.getCell(28).setValue(round(getAttrValueForMonthAsBigDecimal(employee, "targetagreements", "targetagreements", selectedDate)));
           //29 Shop
-          actualRow.getCell(29)
-              .setValue(getAttrValueForDateAsBigDecimal(employee, "costshop", "costshop", selectedDate));
-          //31 Samstagsarbeit
-          actualRow.getCell(31)
-              .setValue(getAttrValueForDateAsBigDecimal(employee, "weekendwork", "workinghourssaturday", selectedDate));
-          //32 Sonntagarbeit
-          actualRow.getCell(32)
-              .setValue(getAttrValueForDateAsBigDecimal(employee, "weekendwork", "workinghourssunday", selectedDate));
-          //33 Feiertagarbeit
-          actualRow.getCell(33)
-              .setValue(getAttrValueForDateAsBigDecimal(employee, "weekendwork", "workinghoursholiday", selectedDate));
+          currentRow.getCell(29).setValue(round(getAttrValueForMonthAsBigDecimal(employee, "costshop", "costshop", selectedDate)));
+          //31 Samstagsarbeit TODO: convert hours to money and don't forget to call round()
+          currentRow.getCell(31).setValue(getAttrValueForMonthAsBigDecimal(employee, "weekendwork", "workinghourssaturday", selectedDate));
+          //32 Sonntagarbeit TODO: convert hours to money and don't forget to call round()
+          currentRow.getCell(32).setValue(getAttrValueForMonthAsBigDecimal(employee, "weekendwork", "workinghourssunday", selectedDate));
+          //33 Feiertagarbeit TODO: convert hours to money and don't forget to call round()
+          currentRow.getCell(33).setValue(getAttrValueForMonthAsBigDecimal(employee, "weekendwork", "workinghoursholiday", selectedDate));
           //34 Bemerkung
-          actualRow.getCell(34).setValue(getAttrValueForMonthAsString(employee, "others", "others", selectedDate));
+          currentRow.getCell(34).setValue(getAttrValueForMonthAsString(employee, "others", "others", selectedDate));
           copyRowFulltime = sheetFulltimeEmployee.getRow(copyRowNrFulltime);
         }
       }
@@ -151,32 +138,31 @@ public class LBExporterService
     return workbook.getAsByteArray();
   }
 
-  private String getAttrValueForDateAsString(EmployeeDO employee, String attrGroupString, String attrProperty,
-      Calendar selectedDate)
-  {
-    final AttrGroup attrGroup = attrSchemaService.getAttrGroup(employee, attrGroupString);
-    final List<EmployeeTimedDO> attrRows = timeableEmployeeService.getTimeableAttrRowsForGroup(employee, attrGroup);
-    final List<EmployeeTimedDO> attrRowsSorted = timeableEmployeeService.sortTimeableAttrRowsByDateDescending(attrRows);
-    final EmployeeTimedDO attribute = timeableEmployeeService.getAttrRowForDate(attrRowsSorted, attrGroup, selectedDate.getTime());
-    return attribute != null ? attribute.getStringAttribute(attrProperty) : null;
-  }
-
-  private BigDecimal getAttrValueForDateAsBigDecimal(EmployeeDO employee, String attrGroupString, String attrProperty,
-      Calendar selectedDate)
-  {
-    final AttrGroup attrGroup = attrSchemaService.getAttrGroup(employee, attrGroupString);
-    final List<EmployeeTimedDO> attrRows = timeableEmployeeService.getTimeableAttrRowsForGroup(employee, attrGroup);
-    final List<EmployeeTimedDO> attrRowsSorted = timeableEmployeeService.sortTimeableAttrRowsByDateDescending(attrRows);
-    final EmployeeTimedDO attribute = timeableEmployeeService.getAttrRowForDate(attrRowsSorted, attrGroup, selectedDate.getTime());
-    return attribute != null ? attribute.getAttribute(attrProperty, BigDecimal.class) : null;
-  }
-
   private String getAttrValueForMonthAsString(EmployeeDO employee, String attrGroup, String attrProperty,
       Calendar selectedDate)
   {
-    EmployeeTimedDO attribute = timeableEmployeeService.getAttrRowForSameMonth(employee, attrGroup,
-        selectedDate.getTime());
+    final EmployeeTimedDO attribute = timeableEmployeeService.getAttrRowForSameMonth(employee, attrGroup, selectedDate.getTime());
     return attribute != null ? attribute.getStringAttribute(attrProperty) : null;
+  }
+
+  private boolean getAttrValueForMonthAsBoolean(EmployeeDO employee, String attrGroup, String attrProperty,
+      Calendar selectedDate)
+  {
+    final EmployeeTimedDO attribute = timeableEmployeeService.getAttrRowForSameMonth(employee, attrGroup, selectedDate.getTime());
+
+    if (attribute == null) {
+      return false;
+    }
+
+    final Boolean value = attribute.getAttribute(attrProperty, Boolean.class);
+    return Boolean.TRUE.equals(value);
+  }
+
+  private BigDecimal getAttrValueForMonthAsBigDecimal(EmployeeDO employee, String attrGroupString, String attrProperty,
+      Calendar selectedDate)
+  {
+    final EmployeeTimedDO attribute = timeableEmployeeService.getAttrRowForSameMonth(employee, attrGroupString, selectedDate.getTime());
+    return attribute != null ? attribute.getAttribute(attrProperty, BigDecimal.class) : null;
   }
 
   private BigDecimal getAttrValueForMonthAsBigDecimal(EmployeeConfigurationDO configuration, String attrGroup,
@@ -187,6 +173,15 @@ public class LBExporterService
         attrGroup,
         selectedDate.getTime());
     return attribute != null ? attribute.getAttribute(attrProperty, BigDecimal.class) : null;
+  }
+
+  private BigDecimal round(final BigDecimal value)
+  {
+    if (value == null) {
+      return null;
+    }
+
+    return value.setScale(2, BigDecimal.ROUND_HALF_UP); // round to two decimal places
   }
 
   private boolean isFulltimeEmployee(EmployeeDO employee)
