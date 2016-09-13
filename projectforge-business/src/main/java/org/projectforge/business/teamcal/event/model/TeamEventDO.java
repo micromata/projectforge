@@ -1057,7 +1057,7 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
     clone.recurrenceUntil = this.recurrenceUntil;
     clone.organizer = this.organizer;
     clone.note = this.note;
-    clone.externalUid = this.externalUid;
+    clone.externalUid = null;
     clone.lastEmail = this.lastEmail;
     clone.sequence = this.sequence;
     // clone.status = this.status;
