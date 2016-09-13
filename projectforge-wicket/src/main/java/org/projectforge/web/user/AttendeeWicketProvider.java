@@ -30,6 +30,7 @@ import java.util.Set;
 
 import org.projectforge.business.teamcal.event.TeamEventService;
 import org.projectforge.business.teamcal.event.model.TeamEventAttendeeDO;
+import org.projectforge.business.teamcal.event.model.TeamEventAttendeeStatus;
 import org.projectforge.business.teamcal.event.model.TeamEventDO;
 import org.projectforge.business.user.I18nHelper;
 import org.projectforge.framework.utils.NumberHelper;
@@ -80,16 +81,17 @@ public class AttendeeWicketProvider extends TextChoiceProvider<TeamEventAttendee
     String name = "";
     if (choice.getAddress() != null) {
       if (choice.getUser() != null) {
-        name = "[" + I18nHelper.getLocalizedString("user") + "] " + choice.getAddress().getFullName();
+        name = "[" + I18nHelper.getLocalizedMessage("user") + "] " + choice.getAddress().getFullName();
       } else {
-        name = "[" + I18nHelper.getLocalizedString("address.addressText") + "] " + choice.getAddress().getFullName();
+        name = "[" + I18nHelper.getLocalizedMessage("address.addressText") + "] " + choice.getAddress().getFullName();
       }
     }
     String mail = choice.getAddress() != null ? choice.getAddress().getEmail() : choice.getUrl();
     if (mail == null) {
       mail = "";
     }
-    return name + " (" + mail + ")";
+    String status = choice.getStatus() != null ? "[" + choice.getStatus().getI18nValue() + "]" : "";
+    return name + " (" + mail + ")" + status;
   }
 
   /**
@@ -150,6 +152,7 @@ public class AttendeeWicketProvider extends TextChoiceProvider<TeamEventAttendee
 
     if (result.size() == 0) {
       TeamEventAttendeeDO newAttendee = new TeamEventAttendeeDO().setUrl(term);
+      newAttendee.setStatus(TeamEventAttendeeStatus.NEW);
       newAttendee.setId(internalNewAttendeeSequence);
       internalNewAttendeeSequence--;
       customAttendees.add(newAttendee);

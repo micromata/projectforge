@@ -28,11 +28,14 @@ import org.projectforge.common.i18n.I18nEnum;
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-public enum TeamAttendeeStatus implements I18nEnum
+public enum TeamEventStatus implements I18nEnum
 {
-  //UNKNOWN("unknown"), COMMITTED("committed"), DECLINED("declined"), PERHAPS("perhaps");
-  ACCEPTED("accepted"), COMPLETED("completed"), DECLINED("declined"), DELEGATED("delegated"), //
-  IN_PROCESS("in_process"), NEEDS_ACTION("needs_action"), TENTATIVE("tentative");
+  UNKNOWN("unknown"), COMMITTED("committed"), DECLINED("declined"), PERHAPS("perhaps");
+
+  /**
+   * List of all available values.
+   */
+  public static final TeamEventStatus[] LIST = new TeamEventStatus[] { UNKNOWN, COMMITTED, DECLINED, PERHAPS };
 
   private String key;
 
@@ -49,17 +52,17 @@ public enum TeamAttendeeStatus implements I18nEnum
    */
   public String getI18nKey()
   {
-    return "plugins.teamcal.attendee.status." + key;
+    return "plugins.teamcal.event.status." + key;
   }
 
-  TeamAttendeeStatus(final String key)
+  TeamEventStatus(final String key)
   {
     this.key = key;
   }
 
-  public boolean isIn(final TeamAttendeeStatus... status)
+  public boolean isIn(final TeamEventStatus... status)
   {
-    for (final TeamAttendeeStatus st : status) {
+    for (final TeamEventStatus st : status) {
       if (this == st) {
         return true;
       }
