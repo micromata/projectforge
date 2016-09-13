@@ -33,7 +33,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TimeZone;
 
-import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
@@ -804,7 +803,7 @@ public class PFUserDO extends DefaultBaseDO implements ShortDisplayNameCapable
     this.loginFailures = loginFailures;
   }
 
-  @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval = true, mappedBy = "user")
+  @OneToMany(fetch = FetchType.EAGER, orphanRemoval = true, mappedBy = "user")
   public Set<UserRightDO> getRights()
   {
     return this.rights;
