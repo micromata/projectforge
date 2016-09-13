@@ -26,7 +26,6 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import de.micromata.genome.db.jpa.tabattr.api.AttrGroup;
 import de.micromata.genome.db.jpa.tabattr.api.AttrSchemaService;
 import de.micromata.genome.db.jpa.tabattr.api.TimeableService;
 
@@ -212,12 +211,10 @@ public class EmployeeServiceImpl extends CorePersistenceServiceImpl<Integer, Emp
   @Override
   public BigDecimal getMonthlySalary(EmployeeDO employee, Calendar selectedDate)
   {
-    final AttrGroup attrGroup = attrSchemaService.getAttrGroup(employee, "annuity");
-    final List<EmployeeTimedDO> attrRows = timeableEmployeeService.getTimeableAttrRowsForGroup(employee, attrGroup);
-    final List<EmployeeTimedDO> attrRowsSorted = timeableEmployeeService.sortTimeableAttrRowsByDateDescending(attrRows);
-    final EmployeeTimedDO attribute = timeableEmployeeService.getAttrRowForDate(attrRowsSorted, attrGroup, selectedDate.getTime());
+    final EmployeeTimedDO attribute = timeableEmployeeService.getAttrRowForSameMonth(employee, "annuity", selectedDate.getTime());
     final BigDecimal annualSalary = attribute != null ? attribute.getAttribute("annuity", BigDecimal.class) : null;
     final BigDecimal weeklyWorkingHours = employee.getWeeklyWorkingHours();
+
     if (annualSalary != null && weeklyWorkingHours != null && BigDecimal.ZERO.compareTo(weeklyWorkingHours) < 0) {
       // do the multiplication before the division to minimize rounding problems
       // we need a rounding mode to avoid ArithmeticExceptions when the exact result cannot be represented in the result
@@ -226,6 +223,7 @@ public class EmployeeServiceImpl extends CorePersistenceServiceImpl<Integer, Emp
           .divide(MONTHS_PER_YEAR, BigDecimal.ROUND_HALF_UP)
           .divide(FULL_TIME_WEEKLY_WORKING_HOURS, BigDecimal.ROUND_HALF_UP);
     }
+
     return null;
   }
 
