@@ -213,8 +213,9 @@ public class EmployeeServiceImpl extends CorePersistenceServiceImpl<Integer, Emp
   public BigDecimal getMonthlySalary(EmployeeDO employee, Calendar selectedDate)
   {
     final AttrGroup attrGroup = attrSchemaService.getAttrGroup(employee, "annuity");
-    final EmployeeTimedDO attribute = timeableEmployeeService.getAttrRowForDate(
-        timeableEmployeeService.getTimeableAttrRowsForGroup(employee, attrGroup), attrGroup, selectedDate.getTime());
+    final List<EmployeeTimedDO> attrRows = timeableEmployeeService.getTimeableAttrRowsForGroup(employee, attrGroup);
+    final List<EmployeeTimedDO> attrRowsSorted = timeableEmployeeService.sortTimeableAttrRowsByDateDescending(attrRows);
+    final EmployeeTimedDO attribute = timeableEmployeeService.getAttrRowForDate(attrRowsSorted, attrGroup, selectedDate.getTime());
     final BigDecimal annualSalary = attribute != null ? attribute.getAttribute("annuity", BigDecimal.class) : null;
     final BigDecimal weeklyWorkingHours = employee.getWeeklyWorkingHours();
     if (annualSalary != null && weeklyWorkingHours != null && BigDecimal.ZERO.compareTo(weeklyWorkingHours) < 0) {

@@ -84,7 +84,7 @@ public class LBExporterService
           //3 -> Gehalt
           actualRow.getCell(3).setValue(employeeService.getMonthlySalary(employee, selectedDate));
           //13 / 14 Essen
-          final String hasFood = getActualAttrValueAsString(employee, "food", "food", selectedDate);
+          final String hasFood = getAttrValueForDateAsString(employee, "food", "food", selectedDate);
           if (StringUtils.isNotEmpty(hasFood) && Boolean.parseBoolean(hasFood)) {
             BigDecimal oneDayValue = getAttrValueForMonthAsBigDecimal(singleEmployeeConfigurationDO, "food",
                 "referencevalue", selectedDate);
@@ -101,7 +101,7 @@ public class LBExporterService
             }
           }
           //15 Tankgutschein
-          final String hasFuelVoucher = getActualAttrValueAsString(employee, "fuelvoucher", "fuelvoucher",
+          final String hasFuelVoucher = getAttrValueForDateAsString(employee, "fuelvoucher", "fuelvoucher",
               selectedDate);
           if (StringUtils.isNotEmpty(hasFuelVoucher) && Boolean.parseBoolean(hasFuelVoucher)) {
             actualRow.getCell(15).setValue(
@@ -109,39 +109,39 @@ public class LBExporterService
           }
           //21 -> Kita
           actualRow.getCell(21)
-              .setValue(getActualAttrValueAsBigDecimal(employee, "daycarecenter", "daycarecenter", selectedDate));
+              .setValue(getAttrValueForDateAsBigDecimal(employee, "daycarecenter", "daycarecenter", selectedDate));
           //22 -> eBike
           actualRow.getCell(22)
-              .setValue(getActualAttrValueAsBigDecimal(employee, "ebikeleasing", "ebikeleasing", selectedDate));
+              .setValue(getAttrValueForDateAsBigDecimal(employee, "ebikeleasing", "ebikeleasing", selectedDate));
           //23 -> RK
           actualRow.getCell(23)
-              .setValue(getActualAttrValueAsBigDecimal(employee, "costtravel", "costtravel", selectedDate));
+              .setValue(getAttrValueForDateAsBigDecimal(employee, "costtravel", "costtravel", selectedDate));
           //24 -> Auslagen
           actualRow.getCell(24)
-              .setValue(getActualAttrValueAsBigDecimal(employee, "expenses", "expenses", selectedDate));
+              .setValue(getAttrValueForDateAsBigDecimal(employee, "expenses", "expenses", selectedDate));
           //25 Überstunden
           actualRow.getCell(25)
-              .setValue(getActualAttrValueAsBigDecimal(employee, "overtime", "overtime", selectedDate));
+              .setValue(getAttrValueForDateAsBigDecimal(employee, "overtime", "overtime", selectedDate));
           //26 Prämie
-          actualRow.getCell(26).setValue(getActualAttrValueAsBigDecimal(employee, "bonus", "bonus", selectedDate));
+          actualRow.getCell(26).setValue(getAttrValueForDateAsBigDecimal(employee, "bonus", "bonus", selectedDate));
           //27 Sonderzahlung
           actualRow.getCell(27)
-              .setValue(getActualAttrValueAsBigDecimal(employee, "specialpayment", "specialpayment", selectedDate));
+              .setValue(getAttrValueForDateAsBigDecimal(employee, "specialpayment", "specialpayment", selectedDate));
           //28 Zielvereinbarung
           actualRow.getCell(28)
-              .setValue(getActualAttrValueAsBigDecimal(employee, "targetagreements", "targetagreements", selectedDate));
+              .setValue(getAttrValueForDateAsBigDecimal(employee, "targetagreements", "targetagreements", selectedDate));
           //29 Shop
           actualRow.getCell(29)
-              .setValue(getActualAttrValueAsBigDecimal(employee, "costshop", "costshop", selectedDate));
+              .setValue(getAttrValueForDateAsBigDecimal(employee, "costshop", "costshop", selectedDate));
           //31 Samstagsarbeit
           actualRow.getCell(31)
-              .setValue(getActualAttrValueAsBigDecimal(employee, "weekendwork", "workinghourssaturday", selectedDate));
+              .setValue(getAttrValueForDateAsBigDecimal(employee, "weekendwork", "workinghourssaturday", selectedDate));
           //32 Sonntagarbeit
           actualRow.getCell(32)
-              .setValue(getActualAttrValueAsBigDecimal(employee, "weekendwork", "workinghourssunday", selectedDate));
+              .setValue(getAttrValueForDateAsBigDecimal(employee, "weekendwork", "workinghourssunday", selectedDate));
           //33 Feiertagarbeit
           actualRow.getCell(33)
-              .setValue(getActualAttrValueAsBigDecimal(employee, "weekendwork", "workinghoursholiday", selectedDate));
+              .setValue(getAttrValueForDateAsBigDecimal(employee, "weekendwork", "workinghoursholiday", selectedDate));
           //34 Bemerkung
           actualRow.getCell(34).setValue(getAttrValueForMonthAsString(employee, "others", "others", selectedDate));
           copyRowFulltime = sheetFulltimeEmployee.getRow(copyRowNrFulltime);
@@ -151,21 +151,23 @@ public class LBExporterService
     return workbook.getAsByteArray();
   }
 
-  private String getActualAttrValueAsString(EmployeeDO employee, String attrGroupString, String attrProperty,
+  private String getAttrValueForDateAsString(EmployeeDO employee, String attrGroupString, String attrProperty,
       Calendar selectedDate)
   {
-    AttrGroup attrGroup = attrSchemaService.getAttrGroup(employee, attrGroupString);
-    EmployeeTimedDO attribute = timeableEmployeeService.getAttrRowForDate(
-        timeableEmployeeService.getTimeableAttrRowsForGroup(employee, attrGroup), attrGroup, selectedDate.getTime());
+    final AttrGroup attrGroup = attrSchemaService.getAttrGroup(employee, attrGroupString);
+    final List<EmployeeTimedDO> attrRows = timeableEmployeeService.getTimeableAttrRowsForGroup(employee, attrGroup);
+    final List<EmployeeTimedDO> attrRowsSorted = timeableEmployeeService.sortTimeableAttrRowsByDateDescending(attrRows);
+    final EmployeeTimedDO attribute = timeableEmployeeService.getAttrRowForDate(attrRowsSorted, attrGroup, selectedDate.getTime());
     return attribute != null ? attribute.getStringAttribute(attrProperty) : null;
   }
 
-  private BigDecimal getActualAttrValueAsBigDecimal(EmployeeDO employee, String attrGroupString, String attrProperty,
+  private BigDecimal getAttrValueForDateAsBigDecimal(EmployeeDO employee, String attrGroupString, String attrProperty,
       Calendar selectedDate)
   {
-    AttrGroup attrGroup = attrSchemaService.getAttrGroup(employee, attrGroupString);
-    EmployeeTimedDO attribute = timeableEmployeeService.getAttrRowForDate(
-        timeableEmployeeService.getTimeableAttrRowsForGroup(employee, attrGroup), attrGroup, selectedDate.getTime());
+    final AttrGroup attrGroup = attrSchemaService.getAttrGroup(employee, attrGroupString);
+    final List<EmployeeTimedDO> attrRows = timeableEmployeeService.getTimeableAttrRowsForGroup(employee, attrGroup);
+    final List<EmployeeTimedDO> attrRowsSorted = timeableEmployeeService.sortTimeableAttrRowsByDateDescending(attrRows);
+    final EmployeeTimedDO attribute = timeableEmployeeService.getAttrRowForDate(attrRowsSorted, attrGroup, selectedDate.getTime());
     return attribute != null ? attribute.getAttribute(attrProperty, BigDecimal.class) : null;
   }
 
