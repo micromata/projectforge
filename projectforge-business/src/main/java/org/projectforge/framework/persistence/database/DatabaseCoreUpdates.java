@@ -107,7 +107,7 @@ public class DatabaseCoreUpdates
           return UpdatePreCheckStatus.READY_FOR_UPDATE;
         } else if (databaseUpdateService.doesGroupExists(ProjectForgeGroup.HR_GROUP) == false) {
           return UpdatePreCheckStatus.READY_FOR_UPDATE;
-        } else if (databaseUpdateDao.doesTableAttributeExist("T_PLUGIN_CALENDAR_EVENT", "uid") == false) {
+        } else if (databaseUpdateService.doesTableAttributeExist("T_PLUGIN_CALENDAR_EVENT", "uid") == false) {
           return UpdatePreCheckStatus.READY_FOR_UPDATE;
         } else {
           return UpdatePreCheckStatus.ALREADY_UPDATED;
@@ -119,8 +119,8 @@ public class DatabaseCoreUpdates
       {
         final InitDatabaseDao initDatabaseDao = applicationContext.getBean(InitDatabaseDao.class);
         final DatabaseUpdateService databaseUpdateService = applicationContext.getBean(DatabaseUpdateService.class);
-        if (databaseUpdateService.doesTableAttributeExist("T_PLUGIN_CALENDAR_EVENT_ATTENDEE", "address_id") == false) {
-            || databaseUpdateDao.doesTableAttributeExist("T_PLUGIN_CALENDAR_EVENT", "uid") == false) {
+        if (databaseUpdateService.doesTableAttributeExist("T_PLUGIN_CALENDAR_EVENT_ATTENDEE", "address_id") == false
+            || databaseUpdateService.doesTableAttributeExist("T_PLUGIN_CALENDAR_EVENT", "uid") == false) {
           //Updating the schema
           initDatabaseDao.updateSchema();
         }
