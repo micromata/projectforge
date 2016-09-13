@@ -49,8 +49,7 @@ public class EmployeeTest extends SeleniumSuiteTestBase
   }
 
   @Test
-  public void testRequiredBankingDetails()
-  {
+  public void testRequiredBankingDetails() {
     new SeleniumLoginPage()
         .callPage()
         .loginAsAdmin();
@@ -98,8 +97,7 @@ public class EmployeeTest extends SeleniumSuiteTestBase
   }
 
   @Test
-  public void testStaffNumber()
-  {
+  public void testStaffNumber() {
     new SeleniumLoginPage()
         .callPage()
         .loginAsAdmin();
@@ -180,7 +178,6 @@ public class EmployeeTest extends SeleniumSuiteTestBase
     Assert.assertEquals("12/12/1999", seleniumEmployeeEditPage.callPage().getProbation());
   }
 
-
   @Test
   public void testNutrition() {
     new SeleniumLoginPage()
@@ -240,7 +237,15 @@ public class EmployeeTest extends SeleniumSuiteTestBase
 
     seleniumEmployeeEditPage
             .callPage()
-            .clickOnElement("healthinsurance-addButton");
+            .clickOnElement("healthinsurance-addButton")
+            .setHealthinsurance("","","")
+            .clickCreateOrUpdate()
+            .assertWeAreOnThisPage()
+
+            .setHealthinsurance("asd123","asd123","12/12/1999")
+            .clickCreateOrUpdate();
+
+    new SeleniumEmployeeListPage().assertWeAreOnThisPage();
 
   }
 
