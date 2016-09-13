@@ -176,15 +176,6 @@ public class WicketApplication extends WebApplication implements WicketApplicati
   }
 
   /**
-   * @return true if the application is running and is full available, false e. g. if ProjectForge runs in maintenance
-   *         mode or is in start-up phase.
-   */
-  public static boolean isUpAndRunning()
-  {
-    return ProjectForgeApp.getInstance().isUpAndRunning();
-  }
-
-  /**
    * This method should only be called in test cases!
    *
    * @param upAndRunning the upAndRunning to set

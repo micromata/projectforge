@@ -40,6 +40,7 @@ import org.projectforge.business.teamcal.event.TeamEventDao;
 import org.projectforge.business.teamcal.event.TeamEventFilter;
 import org.projectforge.business.teamcal.event.TeamEventRecurrenceData;
 import org.projectforge.business.teamcal.event.TeamRecurrenceEvent;
+import org.projectforge.business.teamcal.event.model.TeamCalEventId;
 import org.projectforge.business.teamcal.event.model.TeamEvent;
 import org.projectforge.business.teamcal.event.model.TeamEventDO;
 import org.projectforge.business.teamcal.event.right.TeamEventRight;
@@ -50,7 +51,6 @@ import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.time.RecurrenceFrequency;
 import org.projectforge.framework.utils.NumberHelper;
-import org.projectforge.web.calendar.MyEvent;
 import org.projectforge.web.calendar.MyFullCalendarEventsProvider;
 
 import net.fortuna.ical4j.model.Recur;
@@ -150,7 +150,7 @@ public class TeamCalEventProvider extends MyFullCalendarEventsProvider
           eventDO = ((TeamRecurrenceEvent) teamEvent).getMaster();
         }
         teamEventMap.put(id.toString(), teamEvent);
-        final MyEvent event = new MyEvent();
+        final MyWicketEvent event = new MyWicketEvent();
         event.setClassName(EVENT_CLASS_NAME + " " + EventDroppedCallbackScriptGenerator.NO_CONTEXTMENU_INDICATOR);
         event.setId("" + id);
         event.setColor(activeTemplateEntry.getColorCode(eventDO.getCalendarId()));

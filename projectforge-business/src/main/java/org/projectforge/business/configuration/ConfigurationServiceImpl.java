@@ -145,6 +145,9 @@ public class ConfigurationServiceImpl implements ConfigurationService
   @Value("${pf.config.security.sqlConsoleAvailable:false}")
   private boolean sqlConsoleAvailable;
 
+  @Value("${pf.config.security.teamCalCryptPassword}")
+  private String teamCalCryptPassword;
+
   @Value("${pf.config.compileCss:true}")
   private boolean compileCss;
 
@@ -581,6 +584,12 @@ public class ConfigurationServiceImpl implements ConfigurationService
   public boolean getCompileCss()
   {
     return compileCss;
+  }
+
+  @Override
+  public String getTeamCalCryptPassword()
+  {
+    return teamCalCryptPassword;
   }
 
 }

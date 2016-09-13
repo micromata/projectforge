@@ -21,21 +21,18 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.web.teamcal.event;
+package org.projectforge.business.teamcal.event.model;
 
+import org.projectforge.business.user.I18nHelper;
 import org.projectforge.common.i18n.I18nEnum;
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-public enum TeamEventStatus implements I18nEnum
+public enum TeamEventAttendeeStatus implements I18nEnum
 {
-  UNKNOWN("unknown"), COMMITTED("committed"), DECLINED("declined"), PERHAPS("perhaps");
-
-  /**
-   * List of all available values.
-   */
-  public static final TeamEventStatus[] LIST = new TeamEventStatus[] { UNKNOWN, COMMITTED, DECLINED, PERHAPS };
+  ACCEPTED("accepted"), COMPLETED("completed"), DECLINED("declined"), DELEGATED("delegated"), //
+  IN_PROCESS("in_process"), NEEDS_ACTION("needs_action"), TENTATIVE("tentative"), NEW("new");
 
   private String key;
 
@@ -52,17 +49,25 @@ public enum TeamEventStatus implements I18nEnum
    */
   public String getI18nKey()
   {
-    return "plugins.teamcal.event.status." + key;
+    return "plugins.teamcal.attendee.status." + key;
   }
 
-  TeamEventStatus(final String key)
+  /**
+   * @return The i18n localized value.
+   */
+  public String getI18nValue()
+  {
+    return I18nHelper.getLocalizedMessage(getI18nKey());
+  }
+
+  TeamEventAttendeeStatus(final String key)
   {
     this.key = key;
   }
 
-  public boolean isIn(final TeamEventStatus... status)
+  public boolean isIn(final TeamEventAttendeeStatus... status)
   {
-    for (final TeamEventStatus st : status) {
+    for (final TeamEventAttendeeStatus st : status) {
       if (this == st) {
         return true;
       }
