@@ -49,7 +49,6 @@ import org.projectforge.web.address.AddressViewPage;
 import org.projectforge.web.address.BirthdayEventsProvider;
 import org.projectforge.web.humanresources.HRPlanningEventsProvider;
 import org.projectforge.web.timesheet.TimesheetEditPage;
-import org.projectforge.web.timesheet.TimesheetEventsProvider;
 import org.projectforge.web.wicket.AbstractEditPage;
 import org.projectforge.web.wicket.components.DatePickerUtils;
 import org.projectforge.web.wicket.components.JodaDatePanel;

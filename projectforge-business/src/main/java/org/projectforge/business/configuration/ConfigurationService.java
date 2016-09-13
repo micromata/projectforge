@@ -82,4 +82,6 @@ public interface ConfigurationService
   String getApplicationHomeDir();
 
   boolean getCompileCss();
+
+  String getTeamCalCryptPassword();
 }
