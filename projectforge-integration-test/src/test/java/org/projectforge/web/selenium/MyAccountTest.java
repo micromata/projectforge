@@ -12,22 +12,28 @@ public class MyAccountTest extends SeleniumSuiteTestBase
   @BeforeMethod
   public void createAdminEmployee()
   {
-
+    System.out.println("createAdminEmployee()");
+    System.out.println("  - new SeleniumLoginPage");
     new SeleniumLoginPage()
         .callPage()
         .loginAsAdmin();
     boolean caughtException = false;
+    System.out.println("  - new SeleniumEmployeeListPage");
     SeleniumEmployeeListPage seleniumEmployeeListPage = new SeleniumEmployeeListPage();
 
+
     try {
+      System.out.println("  - try seleniumEmployeeListPage");
       seleniumEmployeeListPage
           .callPage()
           .clickRowWhereColumnLike("Administrator");
     } catch (Exception e) {
+      System.out.println("  - catch Exception");
       caughtException = true;
     }
 
     if (caughtException == true) {
+      System.out.println("  - new seleniumEmployeeListPage");
       seleniumEmployeeListPage
           .addEntry()
           .callPage()

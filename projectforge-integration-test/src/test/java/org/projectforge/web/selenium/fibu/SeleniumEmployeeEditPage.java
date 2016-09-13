@@ -93,6 +93,18 @@ public class SeleniumEmployeeEditPage extends AddressAndBankingEditingPage<Selen
     return this;
   }
 
+  public SeleniumEmployeeEditPage setHealthinsurance(String number, String name, String Date)
+  {
+    Select HealthinsuranceSelect = new Select(driver.findElement(By.id("healthinsurance-startTime")));
+    HealthinsuranceSelect.selectByValue(Date);
+    HealthinsuranceSelect = new Select(driver.findElement(By.id("healthinsurance-name")));
+    HealthinsuranceSelect.selectByValue(name);
+    HealthinsuranceSelect = new Select(driver.findElement(By.id("healthinsurance-number")));
+    HealthinsuranceSelect.selectByValue(number);
+    return this;
+  }
+
+
   public SeleniumEmployeeEditPage setProbation(String probation)
   {
     return setStringElementById("probation-probation", probation);
