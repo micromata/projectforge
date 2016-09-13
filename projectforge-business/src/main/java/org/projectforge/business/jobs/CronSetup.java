@@ -30,7 +30,6 @@ import org.apache.commons.lang.Validate;
 import org.projectforge.business.configuration.ConfigurationService;
 import org.projectforge.business.meb.MebJobExecutor;
 import org.projectforge.business.meb.MebPollingJob;
-import org.projectforge.business.teamcal.externalsubscription.TeamCalSubscriptionJob;
 import org.projectforge.framework.configuration.ConfigXml;
 import org.projectforge.framework.persistence.database.DatabaseUpdateService;
 import org.projectforge.framework.persistence.history.HibernateSearchReindexer;
@@ -69,9 +68,6 @@ public class CronSetup
   @Autowired
   private ConfigurationService configurationService;
 
-  @Autowired
-  private TeamCalSubscriptionJob teamCalSubscriptionJob;
-
   /**
    * Should be called at the start-up time of the application.<br/>
    * Initializes and starts the scheduler.
@@ -97,8 +93,7 @@ public class CronSetup
       }
       // run every hour at *:00: 0 0 * * * ?
       createCron("hourlyJob", CronHourlyJob.class, "0 0 * * * ?", cfg.getCronExpressionHourlyJob(), "databaseUpdateDao",
-          myDatabaseUpdater,
-          "hibernateSearchReindexer", hibernateSearchReindexer, "teamCalSubscriptionJob", teamCalSubscriptionJob);
+          myDatabaseUpdater, "hibernateSearchReindexer", hibernateSearchReindexer);
       // run every morning at 2:30 AM (UTC): 0 30 2 * * ?
       createCron("nightlyJob", CronNightlyJob.class, "0 30 2 * * ?", cfg.getCronExpressionNightlyJob(),
           "hibernateSearchReindexer",

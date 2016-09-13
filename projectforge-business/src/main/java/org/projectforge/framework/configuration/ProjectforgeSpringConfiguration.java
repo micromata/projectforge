@@ -19,6 +19,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import org.springframework.orm.hibernate5.HibernateTemplate;
 import org.springframework.orm.hibernate5.HibernateTransactionManager;
+import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.transaction.support.TransactionTemplate;
 
@@ -32,14 +33,15 @@ import de.micromata.mgc.jpa.spring.factories.JpaToSessionFactorySpringBeanFactor
 import de.micromata.mgc.jpa.spring.factories.JpaToSessionSpringBeanFactory;
 
 /**
- * Intial configuration for ORM.
+ * Intial spring configuration for projectforge.
  *
- * @author Roger Rene Kommer (r.kommer.extern@micromata.de)
+ * @author Florian Blumenstein, Roger Rene Kommer (r.kommer.extern@micromata.de)
  */
 @Configuration
 @EnableTransactionManagement
 @EnableAspectJAutoProxy(proxyTargetClass = true)
-public class DatabaseOrmConfiguration
+@EnableScheduling
+public class ProjectforgeSpringConfiguration
 {
   @Value("${projectforge.base.dir}")
   private String applicationDir;
