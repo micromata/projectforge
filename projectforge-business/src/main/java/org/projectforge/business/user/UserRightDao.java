@@ -69,6 +69,8 @@ public class UserRightDao extends BaseDao<UserRightDO>
   public void updateUserRights(final PFUserDO user, final List<UserRightVO> list)
   {
     final List<UserRightDO> dbList = getList(user);
+    // evict all entities from the session cache to avoid that the update is already done in the copy method
+    dbList.forEach(getHibernateTemplate()::evict);
     final UserGroupCache userGroupCache = getUserGroupCache();
     for (final UserRightVO rightVO : list) {
       UserRightDO rightDO = null;
