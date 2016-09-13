@@ -404,8 +404,8 @@ public class TeamEventEditPage extends AbstractEditPage<TeamEventDO, TeamEventEd
   @Override
   protected void cloneData()
   {
-    super.cloneData();
-    getData().setExternalUid(null); // Avoid multiple usage of external uid.
+    log.info("Clone of data chosen: " + getData());
+    this.form.setData(getData().clone());
   }
 
   /**
