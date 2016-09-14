@@ -27,6 +27,7 @@ import static org.testng.AssertJUnit.*;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Locale;
 import java.util.TimeZone;
@@ -120,6 +121,7 @@ public class HRPlanningTest extends AbstractTestBase
     logon(AbstractTestBase.TEST_ADMIN_USER);
     user1.addRight(new UserRightDO(user1, UserRightId.PM_HR_PLANNING, UserRightValue.READONLY));
     userService.update(user1);
+    userRightDao.save(new ArrayList<>(user1.getRights()));
     logon(user1);
     assertTrue(hrPlanningDao.hasLoggedInUserAccess(planning, null, OperationType.SELECT, false));
     assertTrue(accessChecker.hasLoggedInUserSelectAccess(UserRightId.PM_HR_PLANNING, planning, false));
