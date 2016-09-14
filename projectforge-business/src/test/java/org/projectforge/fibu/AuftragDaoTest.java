@@ -23,9 +23,11 @@
 
 package org.projectforge.fibu;
 
-import static org.testng.AssertJUnit.*;
+import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.fail;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Random;
 
@@ -246,6 +248,7 @@ public class AuftragDaoTest extends AbstractTestBase
     logon(TEST_ADMIN_USER);
     user.addRight(new UserRightDO(UserRightId.PM_ORDER_BOOK, UserRightValue.PARTLYREADWRITE)); //
     userService.update(user);
+    userRightDao.save(new ArrayList<>(user.getRights()));
     user = userService.getById(user.getId());
     logon(user);
     try {
