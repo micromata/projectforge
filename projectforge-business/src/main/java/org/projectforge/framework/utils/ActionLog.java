@@ -32,7 +32,7 @@ import java.io.Serializable;
  */
 public class ActionLog implements Serializable
 {
-  private static final long serialVersionUID = -4557854574067360656L;
+  private static final long serialVersionUID = -455785457406.4.0-SNAPSHOT656L;
 
   private int counterSuccess = 0;
 

@@ -49,7 +49,7 @@ import org.projectforge.web.wicket.components.PlainLabel;
 
 public class ReportObjectivesPanel extends Panel
 {
-  private static final long serialVersionUID = -7790833633402066719L;
+  private static final long serialVersionUID = -77908336.4.0-SNAPSHOT2066719L;
 
   protected Priority priority = Priority.HIGH;
 

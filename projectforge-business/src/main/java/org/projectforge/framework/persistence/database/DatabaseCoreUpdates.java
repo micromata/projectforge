@@ -91,15 +91,15 @@ public class DatabaseCoreUpdates
     final List<UpdateEntry> list = new ArrayList<>();
 
     ////////////////////////////////////////////////////////////////////
-    // 6.3.0
+    // 6.4.0-SNAPSHOT
     // /////////////////////////////////////////////////////////////////
-    list.add(new UpdateEntryImpl(CORE_REGION_ID, "6.3.0", "2016-08-31",
+    list.add(new UpdateEntryImpl(CORE_REGION_ID, "6.4.0-SNAPSHOT", "2016-08-31",
         "Add column to attendee data table. Alter table column for ssh-key. Add HR group.")
     {
       @Override
       public UpdatePreCheckStatus runPreCheck()
       {
-        log.info("Running pre-check for ProjectForge version 6.3.0");
+        log.info("Running pre-check for ProjectForge version 6.4.0-SNAPSHOT");
         final DatabaseUpdateService databaseUpdateService = applicationContext.getBean(DatabaseUpdateService.class);
         if (databaseUpdateService.doesTableAttributeExist("T_PLUGIN_CALENDAR_EVENT_ATTENDEE", "address_id") == false) {
           return UpdatePreCheckStatus.READY_FOR_UPDATE;
