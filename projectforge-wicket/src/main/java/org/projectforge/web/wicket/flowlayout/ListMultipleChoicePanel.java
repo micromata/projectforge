@@ -36,7 +36,7 @@ import org.apache.wicket.model.IModel;
  */
 public class ListMultipleChoicePanel<T> extends Panel implements ComponentWrapperPanel
 {
-  private static final long serialVersionUID = 4895728826.4.0-SNAPSHOT69512L;
+  private static final long serialVersionUID = 4895728826834069512L;
 
   public static final String WICKET_ID = "multipleListChoice";
 

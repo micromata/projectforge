@@ -33,7 +33,7 @@ import org.projectforge.web.tree.TreeTableNode;
  */
 public class SkillTreeTableNode extends TreeTableNode
 {
-  private static final long serialVersionUID = 6.4.0-SNAPSHOT21236494684413L;
+  private static final long serialVersionUID = 6436021236494684413L;
 
   private final SkillNode skillNode;
 

@@ -46,7 +46,7 @@ import org.projectforge.web.wicket.flowlayout.Heading3Panel;
 
 public class TaskWizardForm extends AbstractStandardForm<TaskWizardForm, TaskWizardPage>
 {
-  private static final long serialVersionUID = -24506.4.0-SNAPSHOT1083584299L;
+  private static final long serialVersionUID = -2450673501083584299L;
 
   private transient TaskTree taskTree;
 

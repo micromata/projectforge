@@ -50,7 +50,7 @@ import org.projectforge.web.wicket.flowlayout.TextAreaPanel;
 
 public class AdminForm extends AbstractStandardForm<AdminForm, AdminPage>
 {
-  private static final long serialVersionUID = -24506.4.0-SNAPSHOT1083584299L;
+  private static final long serialVersionUID = -2450673501083584299L;
 
   protected Integer reindexNewestNEntries = 1000;
 

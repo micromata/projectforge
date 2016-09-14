@@ -48,7 +48,7 @@ import org.projectforge.web.wicket.AbstractStandardFormPage;
 
 public class SendSmsPage extends AbstractStandardFormPage
 {
-  private static final long serialVersionUID = -16778596.4.0-SNAPSHOT1866297L;
+  private static final long serialVersionUID = -1677859643101866297L;
 
   public final static String PARAMETER_KEY_ADDRESS_ID = "addressId";
 
