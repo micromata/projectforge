@@ -36,26 +36,56 @@
 			<groupId>de.micromata.mgc</groupId>
 			<artifactId>de.micromata.mgc.jpa.tabattr</artifactId>
 			<version>${mgc.version}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>log4j</groupId>
+					<artifactId>log4j</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>de.micromata.mgc</groupId>
 			<artifactId>de.micromata.mgc.jpa.hibernatesearch</artifactId>
 			<version>${mgc.version}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>log4j</groupId>
+					<artifactId>log4j</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>de.micromata.mgc</groupId>
 			<artifactId>de.micromata.mgc.jpa.xmldump</artifactId>
 			<version>${mgc.version}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>log4j</groupId>
+					<artifactId>log4j</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>de.micromata.mgc</groupId>
 			<artifactId>de.micromata.mgc.jpa.spring</artifactId>
 			<version>${mgc.version}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>log4j</groupId>
+					<artifactId>log4j</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>de.micromata.mgc</groupId>
 			<artifactId>de.micromata.mgc.email</artifactId>
 			<version>${mgc.version}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>log4j</groupId>
+					<artifactId>log4j</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>javax.servlet</groupId>
@@ -235,6 +265,10 @@
 				<exclusion>
 					<artifactId>commons-codec</artifactId>
 					<groupId>commons-codec</groupId>
+				</exclusion>
+				<exclusion>
+					<groupId>log4j</groupId>
+					<artifactId>log4j</artifactId>
 				</exclusion>
 			</exclusions>
 			<scope>test</scope>
