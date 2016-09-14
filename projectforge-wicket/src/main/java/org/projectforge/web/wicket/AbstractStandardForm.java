@@ -33,7 +33,7 @@ import org.projectforge.web.wicket.flowlayout.MyComponentsRepeater;
 
 public class AbstractStandardForm<F, P extends AbstractStandardFormPage> extends AbstractForm<F, P>
 {
-  private static final long serialVersionUID = -24506.4.0-SNAPSHOT1083584299L;
+  private static final long serialVersionUID = -2450673501083584299L;
 
   protected GridBuilder gridBuilder;
 
