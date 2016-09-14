@@ -337,4 +337,23 @@ public class TeamEventAttendeeDO extends DefaultBaseDO implements Comparable<Tea
     }
     return super.toString();
   }
+
+  /**
+   * @see java.lang.Object#clone()
+   */
+  @Override
+  public TeamEventAttendeeDO clone()
+  {
+    TeamEventAttendeeDO cloneAttendee = new TeamEventAttendeeDO();
+    cloneAttendee.setAddress(this.getAddress());
+    cloneAttendee.setComment(this.getComment());
+    cloneAttendee.setCommentOfAttendee(this.getCommentOfAttendee());
+    cloneAttendee.setLoginToken(this.getLoginToken());
+    cloneAttendee.setNumber(this.getNumber());
+    cloneAttendee.setStatus(this.getStatus());
+    cloneAttendee.setUrl(this.getUrl());
+    cloneAttendee.setUser(this.getUser());
+
+    return cloneAttendee;
+  }
 }
