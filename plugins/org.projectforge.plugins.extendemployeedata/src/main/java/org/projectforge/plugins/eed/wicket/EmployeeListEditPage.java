@@ -14,6 +14,7 @@ import org.apache.wicket.model.ResourceModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.fibu.EmployeeDO;
+import org.projectforge.business.fibu.EmployeeFilter;
 import org.projectforge.business.fibu.EmployeeTimedDO;
 import org.projectforge.business.fibu.api.EmployeeService;
 import org.projectforge.business.user.I18nHelper;
@@ -82,7 +83,7 @@ public class EmployeeListEditPage extends AbstractListPage<EmployeeListEditForm,
         getSortable("user.firstname", sortable),
         "user.firstname", cellItemListener));
 
-    createAttrColumns(form.getSelectedOption(), columns, sortable, cellItemListener);
+    createAttrColumns(form.selectedOption, columns, sortable, cellItemListener);
 
     return columns;
   }
@@ -104,8 +105,8 @@ public class EmployeeListEditPage extends AbstractListPage<EmployeeListEditForm,
                   timeableService,
                   employeeService,
                   guiAttrSchemaService,
-                  form.getSelectedMonth(),
-                  form.getSelectedYear()))
+                  form.selectedMonth,
+                  form.selectedYear))
               .collect(Collectors.toList()));
     }
   }
@@ -113,13 +114,13 @@ public class EmployeeListEditPage extends AbstractListPage<EmployeeListEditForm,
   @Override
   protected DOListExcelExporter createExcelExporter(final String filenameIdentifier)
   {
-    final ExtendEmployeeDataEnum selectedOption = form.getSelectedOption();
+    final ExtendEmployeeDataEnum selectedOption = form.selectedOption;
     if (selectedOption == null) {
       return null;
     }
     final String[] fieldsToExport = { "id", "user" };
     final List<AttrColumnDescription> attrFieldsToExport = selectedOption.getAttrColumnDescriptions();
-    final Date dateToSelectAttrRow = new GregorianCalendar(form.getSelectedYear(), form.getSelectedMonth() - 1, 1, 0, 0)
+    final Date dateToSelectAttrRow = new GregorianCalendar(form.selectedYear, form.selectedMonth - 1, 1, 0, 0)
         .getTime();
     return new DOWithAttrListExcelExporter<>(filenameIdentifier, timeableService, fieldsToExport, attrFieldsToExport,
         dateToSelectAttrRow);
@@ -193,6 +194,8 @@ public class EmployeeListEditPage extends AbstractListPage<EmployeeListEditForm,
   @Override
   public List<EmployeeDO> getList()
   {
+    EmployeeFilter searchFilter = form.getSearchFilter();
+    searchFilter.setShowOnlyActiveEntries(form.showOnlyActiveEntries);
     this.dataList = super.getList();
     return this.dataList;
   }

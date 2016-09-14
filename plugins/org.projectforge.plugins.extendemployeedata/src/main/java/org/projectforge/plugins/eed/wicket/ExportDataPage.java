@@ -65,11 +65,11 @@ public class ExportDataPage extends AbstractStandardFormPage implements ISelectC
   {
     checkAccess();
     log.info("Export data for LB");
-    List<EmployeeDO> employeeList = employeeDao.internalLoadAll();
+    List<EmployeeDO> employeeList = employeeDao.internalLoadAllNotDeleted();
     final String filename = "Liste-PF-"
-        + form.getSelectedMonth() + "-" + form.getSelectedYear()
+        + form.selectedMonth + "-" + form.selectedYear
         + ".xls";
-    Calendar cal = new GregorianCalendar(form.getSelectedYear(), form.getSelectedMonth() - 1, 1);
+    Calendar cal = new GregorianCalendar(form.selectedYear, form.selectedMonth - 1, 1);
     byte[] xls = exporterService.getExcel(employeeList, cal);
     if (xls == null || xls.length == 0) {
       log.error("Oups, xls has zero size. Filename: " + filename);
