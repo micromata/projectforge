@@ -50,6 +50,7 @@ import org.projectforge.business.timesheet.TimesheetDO;
 import org.projectforge.business.timesheet.TimesheetDao;
 import org.projectforge.business.user.GroupDao;
 import org.projectforge.business.user.UserGroupCache;
+import org.projectforge.business.user.UserRightDao;
 import org.projectforge.business.user.UserRightId;
 import org.projectforge.business.user.UserRightValue;
 import org.projectforge.business.user.service.UserService;
@@ -111,6 +112,9 @@ public class InitTestDB
   @Autowired
   private EmployeeDao employeeDao;
 
+  @Autowired
+  private UserRightDao userRightDao;
+
   private final Map<String, GroupDO> groupMap = new HashMap<String, GroupDO>();
 
   private final Map<String, PFUserDO> userMap = new HashMap<String, PFUserDO>();
@@ -140,7 +144,10 @@ public class InitTestDB
   public PFUserDO addUser(final PFUserDO user)
   {
     user.setTenant(tenantService.getDefaultTenant());
+    Set<UserRightDO> userRights = new HashSet<>(user.getRights());
+    user.getRights().clear();
     userService.save(user);
+    userRights.forEach(right -> userRightDao.internalSave(right));
     Set<TenantDO> tenantsToAssign = new HashSet<>();
     tenantsToAssign.add(tenantService.getDefaultTenant());
     tenantDao.internalAssignTenants(user, tenantsToAssign, null, false, false);
