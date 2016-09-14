@@ -7,6 +7,7 @@ import org.projectforge.web.selenium.Const;
 import org.projectforge.web.selenium.login.SeleniumLoginPage;
 import org.projectforge.web.selenium.SeleniumSuiteTestBase;
 import org.projectforge.web.selenium.TestPageBase;
+import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
@@ -48,8 +49,7 @@ public class EmployeeTest extends SeleniumSuiteTestBase
   }
 
   @Test
-  public void testRequiredBankingDetails()
-  {
+  public void testRequiredBankingDetails() {
     new SeleniumLoginPage()
         .callPage()
         .loginAsAdmin();
@@ -97,8 +97,7 @@ public class EmployeeTest extends SeleniumSuiteTestBase
   }
 
   @Test
-  public void testStaffNumber()
-  {
+  public void testStaffNumber() {
     new SeleniumLoginPage()
         .callPage()
         .loginAsAdmin();
@@ -137,4 +136,117 @@ public class EmployeeTest extends SeleniumSuiteTestBase
 
   }
 
-}
+  @Test
+  public void testProbation() {
+    new SeleniumLoginPage()
+            .callPage()
+            .loginAsAdmin();
+
+    new SeleniumEmployeeListPage()
+            .callPage()
+            .clickRowWhereColumnLike("Administrator");
+
+    String currentUrl = TestPageBase.getDriver().getCurrentUrl();
+    assertTrue(currentUrl.contains("employeeEdit"));
+    String employeeId = currentUrl.split("id=")[1];
+
+    SeleniumEmployeeEditPage seleniumEmployeeEditPage = new SeleniumEmployeeEditPage(Integer.parseInt(employeeId));
+
+    seleniumEmployeeEditPage
+            .callPage()
+
+            // wrong input, we should stay on this page
+            .setProbation("asd")
+            .clickCreateOrUpdate();
+
+    new SeleniumEmployeeListPage().assertWeAreOnThisPage();
+
+    seleniumEmployeeEditPage
+            .callPage()
+
+            // wrong input, we should stay on this page
+            .setProbation("1234")
+            .clickCreateOrUpdate()
+            .assertWeAreOnThisPage()
+
+            // correct input, we should go to list page
+            .setProbation("12/12/1999")
+            .clickCreateOrUpdate();
+
+    new SeleniumEmployeeListPage().assertWeAreOnThisPage();
+
+    Assert.assertEquals("12/12/1999", seleniumEmployeeEditPage.callPage().getProbation());
+  }
+
+  @Test
+  public void testNutrition() {
+    new SeleniumLoginPage()
+            .callPage()
+            .loginAsAdmin();
+
+    new SeleniumEmployeeListPage()
+            .callPage()
+            .clickRowWhereColumnLike("Administrator");
+
+    String currentUrl = TestPageBase.getDriver().getCurrentUrl();
+    assertTrue(currentUrl.contains("employeeEdit"));
+    String employeeId = currentUrl.split("id=")[1];
+
+    SeleniumEmployeeEditPage seleniumEmployeeEditPage = new SeleniumEmployeeEditPage(Integer.parseInt(employeeId));
+
+    seleniumEmployeeEditPage
+            .callPage()
+
+            .setNutrition(SeleniumEmployeeEditPage.nutrition_omnivorous)
+            .clickCreateOrUpdate();
+
+    new SeleniumEmployeeListPage().assertWeAreOnThisPage();
+
+    seleniumEmployeeEditPage
+            .callPage()
+
+            .setNutrition(SeleniumEmployeeEditPage.nutrition_vegan)
+            .clickCreateOrUpdate();
+
+    new SeleniumEmployeeListPage().assertWeAreOnThisPage();
+
+    seleniumEmployeeEditPage
+            .callPage()
+
+            .setNutrition(SeleniumEmployeeEditPage.nutrition_vegetarian)
+            .clickCreateOrUpdate();
+
+    new SeleniumEmployeeListPage().assertWeAreOnThisPage();
+  }
+
+  @Test
+  public void testHealthinsurance() {
+    new SeleniumLoginPage()
+            .callPage()
+            .loginAsAdmin();
+
+    new SeleniumEmployeeListPage()
+            .callPage()
+            .clickRowWhereColumnLike("Administrator");
+
+    String currentUrl = TestPageBase.getDriver().getCurrentUrl();
+    assertTrue(currentUrl.contains("employeeEdit"));
+    String employeeId = currentUrl.split("id=")[1];
+
+    SeleniumEmployeeEditPage seleniumEmployeeEditPage = new SeleniumEmployeeEditPage(Integer.parseInt(employeeId));
+
+    seleniumEmployeeEditPage
+            .callPage()
+            .clickOnElement("healthinsurance-addButton")
+            .setHealthinsurance("","","")
+            .clickCreateOrUpdate()
+            .assertWeAreOnThisPage()
+
+            .setHealthinsurance("asd123","asd123","12/12/1999")
+            .clickCreateOrUpdate();
+
+    new SeleniumEmployeeListPage().assertWeAreOnThisPage();
+
+  }
+
+  }

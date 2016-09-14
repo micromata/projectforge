@@ -276,7 +276,7 @@ public class MailAccount
         buf.append(addr[j].toString());
       }
     }
-    mail.setTo(buf.toString());
+    mail.addTo(buf.toString());
 
     // SUBJECT
     mail.setSubject(message.getSubject());

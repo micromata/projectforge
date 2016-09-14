@@ -28,7 +28,7 @@ import org.projectforge.continuousdb.UpdateEntry;
 import org.projectforge.continuousdb.UpdateEntryImpl;
 import org.projectforge.continuousdb.UpdatePreCheckStatus;
 import org.projectforge.continuousdb.UpdateRunningStatus;
-import org.projectforge.framework.persistence.database.MyDatabaseUpdateService;
+import org.projectforge.framework.persistence.database.DatabaseUpdateService;
 import org.projectforge.plugins.poll.attendee.PollAttendeeDO;
 import org.projectforge.plugins.poll.event.PollEventDO;
 import org.projectforge.plugins.poll.result.PollResultDO;
@@ -39,15 +39,16 @@ import org.projectforge.plugins.poll.result.PollResultDO;
  */
 public class PollPluginUpdates
 {
-  static MyDatabaseUpdateService dao;
+  static DatabaseUpdateService dao;
 
-  final static Class< ? >[] doClasses = new Class< ? >[] { //
-    PollDO.class, PollEventDO.class, PollAttendeeDO.class, PollResultDO.class};
+  final static Class<?>[] doClasses = new Class<?>[] { //
+      PollDO.class, PollEventDO.class, PollAttendeeDO.class, PollResultDO.class };
 
   @SuppressWarnings("serial")
   public static UpdateEntry getInitializationUpdateEntry()
   {
-    return new UpdateEntryImpl(PollPlugin.ID, "2013-01-13", "Adds tables T_PLUGIN_POLL_*.") {
+    return new UpdateEntryImpl(PollPlugin.ID, "2013-01-13", "Adds tables T_PLUGIN_POLL_*.")
+    {
 
       @Override
       public UpdatePreCheckStatus runPreCheck()

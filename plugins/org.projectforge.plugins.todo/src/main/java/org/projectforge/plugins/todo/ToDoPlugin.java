@@ -65,7 +65,7 @@ public class ToDoPlugin extends AbstractPlugin
   protected void initialize()
   {
     // DatabaseUpdateDao is needed by the updater:
-    ToDoPluginUpdates.dao = myDatabaseUpdater.getDatabaseUpdateService();
+    ToDoPluginUpdates.dao = myDatabaseUpdater;
     toDoDao = (ToDoDao) applicationContext.getBean("toDoDao");
     final RegistryEntry entry = new RegistryEntry(ID, ToDoDao.class, toDoDao, "plugins.todo");
     // The ToDoDao is automatically available by the scripting engine!

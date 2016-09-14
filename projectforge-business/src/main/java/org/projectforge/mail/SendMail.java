@@ -25,12 +25,14 @@ package org.projectforge.mail;
 
 import java.util.Collection;
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
 import javax.activation.DataHandler;
 import javax.activation.DataSource;
 import javax.activation.MimetypesFileTypeMap;
+import javax.mail.Address;
 import javax.mail.Message;
 import javax.mail.MessagingException;
 import javax.mail.Session;
@@ -91,8 +93,8 @@ public class SendMail
   public boolean send(final Mail composedMessage, final String icalContent,
       final Collection<? extends MailAttachment> attachments)
   {
-    final String to = composedMessage.getTo();
-    if (to == null || to.trim().length() == 0) {
+    final List<InternetAddress> to = composedMessage.getTo();
+    if (to == null || to.size() == 0) {
       log.error("No to address given. Sending of mail cancelled: " + composedMessage.toString());
       throw new UserException("mail.error.missingToAddress");
     }
@@ -139,7 +141,8 @@ public class SendMail
       } else {
         message.setFrom();
       }
-      message.setRecipients(Message.RecipientType.TO, composedMessage.getTo());
+      message.setRecipients(Message.RecipientType.TO,
+          composedMessage.getTo().toArray(new Address[composedMessage.getTo().size()]));
       final String subject = composedMessage.getSubject();
       final SendMailConfig sendMailConfig = configurationService.getSendMailConfiguration();
       message.setSubject(subject, sendMailConfig.getCharset());

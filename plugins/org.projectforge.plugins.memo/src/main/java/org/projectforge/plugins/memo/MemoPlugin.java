@@ -58,7 +58,7 @@ public class MemoPlugin extends AbstractPlugin
   protected void initialize()
   {
     // DatabaseUpdateDao is needed by the updater:
-    MemoPluginUpdates.dao = myDatabaseUpdater.getDatabaseUpdateService();
+    MemoPluginUpdates.dao = myDatabaseUpdater;
     memoDao = (MemoDao) applicationContext.getBean("memoDao");
     // Register it:
     register(ID, MemoDao.class, memoDao, "plugins.memo");

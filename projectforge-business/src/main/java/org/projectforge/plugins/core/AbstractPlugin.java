@@ -40,7 +40,7 @@ import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.persistence.api.BaseDO;
 import org.projectforge.framework.persistence.api.BaseDao;
 import org.projectforge.framework.persistence.api.UserRightService;
-import org.projectforge.framework.persistence.database.MyDatabaseUpdateService;
+import org.projectforge.framework.persistence.database.DatabaseUpdateService;
 import org.projectforge.framework.persistence.user.api.UserPrefArea;
 import org.projectforge.framework.persistence.xstream.XStreamSavingConverter;
 import org.projectforge.registry.Registry;
@@ -59,7 +59,7 @@ public abstract class AbstractPlugin
   protected ApplicationContext applicationContext;
 
   @Autowired
-  protected MyDatabaseUpdateService myDatabaseUpdater;
+  protected DatabaseUpdateService myDatabaseUpdater;
 
   @Autowired
   protected UserXmlPreferencesDao userXmlPreferencesDao;

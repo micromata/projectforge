@@ -146,6 +146,8 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
 
   private String externalUid;
 
+  private String uid;
+
   private Integer reminderDuration;
 
   private ReminderDurationUnit reminderDurationType;
@@ -181,6 +183,7 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
     if (attachments != null) {
       attachments.clear();
     }
+    uid = null;
     // status = null;
     return this;
   }
@@ -190,11 +193,27 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
 
   }
 
+  /**
+   * Loads or creates the team event uid. Its very important that the uid is always the same in every ics file, which is
+   * created. So only one time creation.
+   * 
+   */
   @Override
-  @Transient
+  @Column
   public String getUid()
   {
-    return TeamCalConfig.get().createEventUid(getId());
+    if (StringUtils.isBlank(uid)) {
+      uid = TeamCalConfig.get().createEventUid(getId());
+    }
+    return uid;
+  }
+
+  /**
+   * @param uid
+   */
+  public void setUid(final String uid)
+  {
+    this.uid = uid;
   }
 
   @Override
@@ -1038,7 +1057,7 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
     clone.recurrenceUntil = this.recurrenceUntil;
     clone.organizer = this.organizer;
     clone.note = this.note;
-    clone.externalUid = this.externalUid;
+    clone.externalUid = null;
     clone.lastEmail = this.lastEmail;
     clone.sequence = this.sequence;
     // clone.status = this.status;
@@ -1048,15 +1067,25 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
     if (this.attendees != null && this.attendees.isEmpty() == false) {
       clone.attendees = clone.ensureAttendees();
       for (final TeamEventAttendeeDO attendee : this.getAttendees()) {
-        attendee.setId(null);
-        clone.addAttendee(attendee);
+        TeamEventAttendeeDO cloneAttendee = new TeamEventAttendeeDO();
+        cloneAttendee.setAddress(attendee.getAddress());
+        cloneAttendee.setComment(attendee.getComment());
+        cloneAttendee.setCommentOfAttendee(attendee.getCommentOfAttendee());
+        cloneAttendee.setLoginToken(attendee.getLoginToken());
+        cloneAttendee.setNumber(attendee.getNumber());
+        cloneAttendee.setStatus(attendee.getStatus());
+        cloneAttendee.setUrl(attendee.getUrl());
+        cloneAttendee.setUser(attendee.getUser());
+        clone.addAttendee(cloneAttendee);
       }
     }
     if (this.attachments != null && this.attachments.isEmpty() == false) {
       clone.attachments = clone.ensureAttachments();
       for (final TeamEventAttachmentDO attachment : this.getAttachments()) {
-        attachment.setId(null);
-        clone.addAttachment(attachment);
+        TeamEventAttachmentDO cloneAttachment = new TeamEventAttachmentDO();
+        cloneAttachment.setFilename(attachment.getFilename());
+        cloneAttachment.setContent(attachment.getContent());
+        clone.addAttachment(cloneAttachment);
       }
     }
     return clone;
@@ -1065,7 +1094,6 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
   public TeamEventDO createMinimalCopy()
   {
     final TeamEventDO result = new TeamEventDO();
-    result.externalUid = this.externalUid;
     result.setId(this.getId());
     result.setCalendar(this.getCalendar());
     result.startDate = this.startDate;

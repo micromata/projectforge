@@ -1,10 +1,10 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
     <groupId>org.projectforge</groupId>
     <artifactId>org.projectforge.tools</artifactId>
-    <version>6.2.0</version>
+    <version>6.3.0</version>
   </parent>
   <artifactId>org.projectforge.tools.schemaexp</artifactId>
   <packaging>jar</packaging>
@@ -14,7 +14,7 @@
       <artifactId>projectforge-wicket</artifactId>
       <version>${projectforge.version}</version>
     </dependency>
-   
+
     <dependency>
       <groupId>javax.servlet</groupId>
       <artifactId>javax.servlet-api</artifactId>
@@ -45,6 +45,11 @@
       <artifactId>hsqldb</artifactId>
       <version>${hsqldb.version}</version>
       <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.projectforge</groupId>
+      <artifactId>projectforge-business</artifactId>
+      <version>6.3.0</version>
     </dependency>
   </dependencies>
 </project>

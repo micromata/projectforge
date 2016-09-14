@@ -36,6 +36,7 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.teamcal.ICSGenerator;
 import org.projectforge.business.teamcal.event.TeamEventDao;
+import org.projectforge.business.teamcal.event.TeamEventService;
 import org.projectforge.business.teamcal.event.TeamRecurrenceEvent;
 import org.projectforge.business.teamcal.event.model.TeamEvent;
 import org.projectforge.business.teamcal.event.model.TeamEventDO;
@@ -72,6 +73,9 @@ public class TeamEventEditPage extends AbstractEditPage<TeamEventDO, TeamEventEd
   @SpringBean
   private ICSGenerator icsGenerator;
 
+  @SpringBean
+  private TeamEventService teamEventService;
+
   private RecurrencyChangeType recurrencyChangeType;
 
   /**
@@ -83,6 +87,10 @@ public class TeamEventEditPage extends AbstractEditPage<TeamEventDO, TeamEventEd
    * Used for recurrence events in {@link #onSaveOrUpdate()} and {@link #afterSaveOrUpdate()}
    */
   private TeamEventDO newEvent;
+
+  private ModificationStatus modificationStatus;
+
+  private boolean isNew;
 
   /**
    * @param parameters
@@ -270,12 +278,9 @@ public class TeamEventEditPage extends AbstractEditPage<TeamEventDO, TeamEventEd
   public AbstractSecuredBasePage onDelete()
   {
     super.onDelete();
-    // if (getData().getAttendees() != null && getData().getAttendees().isEmpty() == false) {
-    // final TeamEventMailer mailer = TeamEventMailer.getInstance();
-    // final TeamEventMailValue value = new TeamEventMailValue(getData().getId(), TeamEventMailType.REJECTION, null);
-    // mailer.getQueue().offer(value);
-    // mailer.send();
-    // }
+    if (getData().getAttendees() != null && getData().getAttendees().size() > 0) {
+      teamEventService.sendTeamEventToAttendees(getData(), false, false, true, null);
+    }
     if (recurrencyChangeType == null || recurrencyChangeType == RecurrencyChangeType.ALL) {
       return null;
     }
@@ -300,31 +305,16 @@ public class TeamEventEditPage extends AbstractEditPage<TeamEventDO, TeamEventEd
   public AbstractSecuredBasePage onSaveOrUpdate()
   {
     super.onSaveOrUpdate();
-    // if (isNew()) {
-    // wasNew = true;
-    // if (getData().getAttendees() != null && getData().getAttendees().isEmpty() == false) {
-    // final TeamEventAttendeeDO attendee = new TeamEventAttendeeDO();
-    // attendee.setUser(PFUserContext.getUser()).setStatus(TeamAttendeeStatus.ACCEPTED);
-    // getData().addAttendee(attendee);
-    // }
-    // final List<FileUpload> fileUploads = form.fileUploadField.getFileUploads();
-    // if (fileUploads != null) {
-    // for (final FileUpload fileUpload: fileUploads) {
-    // final TeamEventAttachmentDO attachment = new TeamEventAttachmentDO();
-    // attachment.setFilename(fileUpload.getClientFileName());
-    // attachment.setContent(fileUpload.getBytes());
-    // getData().addAttachment(attachment);
-    // }
-    // } else {
-    // getData().getAttachments().clear();
-    // }
-    // } else {
-    // final TeamEventDO oldData = teamEventDao.getById(getData().getId());
-    // if (getData().mustIncSequence(oldData) == true) {
-    // getData().incSequence();
-    // }
-    //
-    // }
+
+    if (getData() != null && getData().getId() != null) {
+      TeamEventDO tempCopyEvent = getData().clone();
+      this.modificationStatus = TeamEventDO.copyValues(teamEventDao.getById(getData().getId()), tempCopyEvent);
+      this.isNew = false;
+    } else {
+      this.modificationStatus = ModificationStatus.MAJOR;
+      this.isNew = true;
+    }
+
     getData().setRecurrence(form.recurrenceData);
     if (recurrencyChangeType == null || recurrencyChangeType == RecurrencyChangeType.ALL) {
       return null;
@@ -381,12 +371,6 @@ public class TeamEventEditPage extends AbstractEditPage<TeamEventDO, TeamEventEd
       newEvent.setExternalUid(null); // Avoid multiple usage of external uids.
       newEvent.setSequence(0);
       teamEventDao.save(newEvent);
-      // if (newEvent.getAttendees() != null && newEvent.getAttendees().isEmpty() == false) {
-      // final TeamEventMailer mailer = TeamEventMailer.getInstance();
-      // final TeamEventMailValue value = new TeamEventMailValue(newEvent.getId(), TeamEventMailType.UPDATE, getData().getId());
-      // mailer.getQueue().offer(value);
-      // mailer.send();
-      // }
     }
     return null;
   }
@@ -398,20 +382,20 @@ public class TeamEventEditPage extends AbstractEditPage<TeamEventDO, TeamEventEd
   public AbstractSecuredBasePage afterSaveOrUpdate()
   {
     super.afterSaveOrUpdate();
-    // if (newEvent == null) {
-    // if (getData().getAttendees() != null && getData().getAttendees().isEmpty() == false) {
-    // final TeamEventMailer mailer = TeamEventMailer.getInstance();
-    // TeamEventMailValue value = null;
-    // if (wasNew == true) {
-    // value = new TeamEventMailValue(getData().getId(), TeamEventMailType.INVITATION, null);
-    // } else {
-    // value = new TeamEventMailValue(getData().getId(), TeamEventMailType.UPDATE, null);
-    // }
-    // mailer.getQueue().offer(value);
-    // mailer.send();
-    // }
-    // }
+    teamEventService.assignAttendees(getData(), form.assignAttendeesListHelper.getItemsToAssign(),
+        form.assignAttendeesListHelper.getItemsToUnassign());
+    if ((hasChanges()
+        || form.assignAttendeesListHelper.getItemsToAssign().size() > 0)
+        && (getData().getAttendees() != null && getData().getAttendees().size() > 0)) {
+      teamEventService.sendTeamEventToAttendees(getData(), this.isNew, hasChanges(), false,
+          form.assignAttendeesListHelper.getItemsToAssign());
+    }
     return null;
+  }
+
+  private boolean hasChanges()
+  {
+    return ModificationStatus.NONE.equals(this.modificationStatus) == false;
   }
 
   /**
@@ -420,8 +404,8 @@ public class TeamEventEditPage extends AbstractEditPage<TeamEventDO, TeamEventEd
   @Override
   protected void cloneData()
   {
-    super.cloneData();
-    getData().setExternalUid(null); // Avoid multiple usage of external uid.
+    log.info("Clone of data chosen: " + getData());
+    this.form.setData(getData().clone());
   }
 
   /**
