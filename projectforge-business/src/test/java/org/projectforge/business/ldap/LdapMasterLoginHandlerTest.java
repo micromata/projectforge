@@ -37,8 +37,6 @@ import org.apache.directory.server.ldap.LdapServer;
 import org.apache.directory.shared.ldap.exception.LdapInvalidDnException;
 import org.apache.directory.shared.ldap.name.DN;
 import org.apache.directory.shared.ldap.schema.SchemaManager;
-import org.junit.runner.JUnitCore;
-import org.junit.runner.Result;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 import org.projectforge.business.login.Login;
@@ -53,9 +51,6 @@ import org.projectforge.test.JUnitLDAPTestWrapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.CollectionUtils;
 import org.testng.Assert;
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
 
 // Create
 // ~/ProjectForge/testldapConfig.xml
@@ -100,7 +95,7 @@ public class LdapMasterLoginHandlerTest extends AbstractTestBase
     return ldapRealTestHelper.getUserPath();
   }
 
-  @BeforeClass
+  //@BeforeClass
   public void setUp()
   {
     super.setUp();
@@ -113,17 +108,17 @@ public class LdapMasterLoginHandlerTest extends AbstractTestBase
     //    } catch (IllegalAccessException e) {
     //      e.printStackTrace();
     //    }
-    Thread thread = new Thread(() -> {
-      Result result = JUnitCore.runClasses(JUnitLDAPTestWrapper.class);
-      if (result.wasSuccessful() == false) {
-        Assert.fail();
-      }
-    });
+    //    Thread thread = new Thread(() -> {
+    //      Result result = JUnitCore.runClasses(JUnitLDAPTestWrapper.class);
+    //      if (result.wasSuccessful() == false) {
+    //        Assert.fail();
+    //      }
+    //    });
 
-    thread.run();
+    //    thread.run();
   }
 
-  @BeforeMethod
+  //@BeforeMethod
   public void setup()
   {
     // TODO repair init
@@ -191,7 +186,7 @@ public class LdapMasterLoginHandlerTest extends AbstractTestBase
 
   }
 
-  @Test
+  //@Test
   public void testSearchAllAttrs() throws Exception
   {
     //LdapContext ctx = (LdapContext) getWiredContext( JUnitLDAPTestWrapper.ldapServerWrap , null ).lookup( "ou=system" );
@@ -211,7 +206,7 @@ public class LdapMasterLoginHandlerTest extends AbstractTestBase
     //    }
   }
 
-  @Test
+  //@Test
   public void loginAndCreateLdapUser()
   {
     final String userBase = "ou=pf-mock-test-users";
@@ -237,7 +232,7 @@ public class LdapMasterLoginHandlerTest extends AbstractTestBase
     logoff();
   }
 
-  @Test
+  //@Test
   public void realTest()
   {
 
