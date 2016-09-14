@@ -38,7 +38,7 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO;
  */
 public class UserGroupsRight extends UserRight implements Serializable
 {
-  private static final long serialVersionUID = 5686379506.4.0-SNAPSHOT06417L;
+  private static final long serialVersionUID = 5686379506538006417L;
 
   protected ProjectForgeGroup[] dependsOnGroups;
 
