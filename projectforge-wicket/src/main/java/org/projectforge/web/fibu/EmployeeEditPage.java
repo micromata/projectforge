@@ -119,6 +119,10 @@ public class EmployeeEditPage extends AbstractEditPage<EmployeeDO, EmployeeEditF
   @Override
   protected String getTitle()
   {
-    return getString(getTitleKey(i18nPrefix, isNew())) + " → " + getData().getUser().getFullname();
+    String employeeName = "";
+    if (getData() != null && getData().getUser() != null) {
+      employeeName = " → " + getData().getUser().getFullname();
+    }
+    return getString(getTitleKey(i18nPrefix, isNew())) + employeeName;
   }
 }
