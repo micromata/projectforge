@@ -37,6 +37,7 @@ import org.apache.wicket.request.http.WebRequest;
 import org.apache.wicket.request.http.WebResponse;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
+import org.projectforge.ProjectForgeApp;
 import org.projectforge.business.login.LoginResultStatus;
 import org.projectforge.business.user.UserDao;
 import org.projectforge.business.user.UserXmlPreferencesCache;
@@ -44,8 +45,8 @@ import org.projectforge.business.user.filter.UserFilter;
 import org.projectforge.business.utils.HtmlHelper;
 import org.projectforge.framework.configuration.ConfigurationParam;
 import org.projectforge.framework.configuration.GlobalConfiguration;
+import org.projectforge.framework.persistence.database.DatabaseUpdateService;
 import org.projectforge.framework.persistence.database.InitDatabaseDao;
-import org.projectforge.framework.persistence.database.MyDatabaseUpdateService;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.web.admin.SetupPage;
 import org.projectforge.web.admin.SystemUpdatePage;
@@ -66,7 +67,7 @@ public class LoginPage extends AbstractUnsecureBasePage
   private static final String PARAMETER_KEY_FORCE_NON_MOBILE = "forceNonMobile";
 
   @SpringBean
-  private MyDatabaseUpdateService myDatabaseUpdateService;
+  private DatabaseUpdateService myDatabaseUpdateService;
 
   @SpringBean
   private UserDao userDao;
@@ -175,7 +176,7 @@ public class LoginPage extends AbstractUnsecureBasePage
     body.add(form);
     form.init();
     // Use the following message to check a ProjectForge installation with your monitoring tool (such as Nagios):
-    final String message = WebConfiguration.isUpAndRunning() ? "ProjectForge is alive."
+    final String message = ProjectForgeApp.getInstance().isUpAndRunning() ? "ProjectForge is alive."
         : "ProjectForge is not full available (perhaps in maintenance mode or in start-up phase).";
     body.add(new Label("statusComment", "<!-- " + HtmlHelper.escapeHtml(message, false) + " -->")
         .setEscapeModelStrings(false)

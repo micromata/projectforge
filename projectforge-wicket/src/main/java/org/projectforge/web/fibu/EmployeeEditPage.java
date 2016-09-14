@@ -24,6 +24,7 @@
 package org.projectforge.web.fibu;
 
 import org.apache.log4j.Logger;
+import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.fibu.EmployeeDO;
@@ -47,6 +48,8 @@ public class EmployeeEditPage extends AbstractEditPage<EmployeeDO, EmployeeEditF
   {
     super(parameters, "fibu.employee");
     init();
+    body.remove("tabTitle");
+    body.add(new Label("tabTitle", getString(getTitleKey(i18nPrefix, isNew()))).setRenderBodyOnly(true));
   }
 
   /**
@@ -111,5 +114,15 @@ public class EmployeeEditPage extends AbstractEditPage<EmployeeDO, EmployeeEditF
   protected Logger getLogger()
   {
     return log;
+  }
+
+  @Override
+  protected String getTitle()
+  {
+    String employeeName = "";
+    if (getData() != null && getData().getUser() != null) {
+      employeeName = " → " + getData().getUser().getFullname();
+    }
+    return getString(getTitleKey(i18nPrefix, isNew())) + employeeName;
   }
 }

@@ -33,7 +33,7 @@ import org.projectforge.continuousdb.DatabaseResultRow;
 import org.projectforge.continuousdb.DatabaseResultRowEntry;
 import org.projectforge.framework.access.AccessException;
 import org.projectforge.framework.configuration.SecurityConfig;
-import org.projectforge.framework.persistence.database.MyDatabaseUpdateService;
+import org.projectforge.framework.persistence.database.DatabaseUpdateService;
 import org.projectforge.framework.utils.ExceptionHelper;
 import org.projectforge.web.WebConfiguration;
 import org.projectforge.web.wicket.AbstractStandardFormPage;
@@ -45,7 +45,7 @@ public class SqlConsolePage extends AbstractStandardFormPage
   private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(SqlConsolePage.class);
 
   @SpringBean
-  private MyDatabaseUpdateService myDatabaseUpdater;
+  private DatabaseUpdateService myDatabaseUpdater;
 
   @SpringBean
   private ConfigurationService configurationService;
@@ -77,7 +77,7 @@ public class SqlConsolePage extends AbstractStandardFormPage
     try {
       final StringBuilder sb = new StringBuilder();
       if (sql.trim().toLowerCase().startsWith("select") == true) {
-        final List<DatabaseResultRow> result = myDatabaseUpdater.getDatabaseUpdateService().query(sql);
+        final List<DatabaseResultRow> result = myDatabaseUpdater.query(sql);
         if (result != null && result.size() > 0) {
           final DatabaseResultRow firstRow = result.get(0);
           final List<DatabaseResultRowEntry> entries = firstRow.getEntries();
@@ -100,7 +100,7 @@ public class SqlConsolePage extends AbstractStandardFormPage
         }
         form.setResultString(sb.toString());
       } else {
-        myDatabaseUpdater.getDatabaseUpdateService().execute(sql);
+        myDatabaseUpdater.execute(sql);
         form.setResultString("Statement executed. See log files for further information.");
       }
     } catch (final Exception ex) {

@@ -30,9 +30,8 @@ import org.apache.commons.lang.Validate;
 import org.projectforge.business.configuration.ConfigurationService;
 import org.projectforge.business.meb.MebJobExecutor;
 import org.projectforge.business.meb.MebPollingJob;
-import org.projectforge.business.teamcal.externalsubscription.TeamCalSubscriptionJob;
 import org.projectforge.framework.configuration.ConfigXml;
-import org.projectforge.framework.persistence.database.MyDatabaseUpdateService;
+import org.projectforge.framework.persistence.database.DatabaseUpdateService;
 import org.projectforge.framework.persistence.history.HibernateSearchReindexer;
 import org.quartz.CronTrigger;
 import org.quartz.Job;
@@ -58,7 +57,7 @@ public class CronSetup
   private Scheduler scheduler;
 
   @Autowired
-  private MyDatabaseUpdateService myDatabaseUpdater;
+  private DatabaseUpdateService myDatabaseUpdater;
 
   @Autowired
   private HibernateSearchReindexer hibernateSearchReindexer;
@@ -68,9 +67,6 @@ public class CronSetup
 
   @Autowired
   private ConfigurationService configurationService;
-
-  @Autowired
-  private TeamCalSubscriptionJob teamCalSubscriptionJob;
 
   /**
    * Should be called at the start-up time of the application.<br/>
@@ -95,11 +91,9 @@ public class CronSetup
       if (configurationService.isMebMailAccountConfigured() == false) {
         mebJobExecutor = null; // MEB is not configured.
       }
-      final MyDatabaseUpdateService databaseUpdateDao = myDatabaseUpdater.getDatabaseUpdateService();
       // run every hour at *:00: 0 0 * * * ?
       createCron("hourlyJob", CronHourlyJob.class, "0 0 * * * ?", cfg.getCronExpressionHourlyJob(), "databaseUpdateDao",
-          databaseUpdateDao,
-          "hibernateSearchReindexer", hibernateSearchReindexer, "teamCalSubscriptionJob", teamCalSubscriptionJob);
+          myDatabaseUpdater, "hibernateSearchReindexer", hibernateSearchReindexer);
       // run every morning at 2:30 AM (UTC): 0 30 2 * * ?
       createCron("nightlyJob", CronNightlyJob.class, "0 30 2 * * ?", cfg.getCronExpressionNightlyJob(),
           "hibernateSearchReindexer",

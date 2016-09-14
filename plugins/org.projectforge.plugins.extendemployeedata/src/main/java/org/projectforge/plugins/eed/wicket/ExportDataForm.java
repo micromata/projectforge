@@ -23,9 +23,9 @@ public class ExportDataForm extends AbstractStandardForm<Object, ExportDataPage>
   @SpringBean
   private EEDHelper eedHelper;
 
-  private Integer selectedMonth;
+  protected Integer selectedMonth;
 
-  private Integer selectedYear;
+  protected Integer selectedYear;
 
   public ExportDataForm(ExportDataPage parentPage)
   {
@@ -72,17 +72,6 @@ public class ExportDataForm extends AbstractStandardForm<Object, ExportDataPage>
         exportButton,
         getString("export"), SingleButtonPanel.DEFAULT_SUBMIT);
     actionButtons.add(exportButtonPanel);
-  }
-
-
-  public Integer getSelectedMonth()
-  {
-    return selectedMonth;
-  }
-
-  public Integer getSelectedYear()
-  {
-    return selectedYear;
   }
 
 }

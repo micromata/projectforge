@@ -52,7 +52,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Repository
 public class EmployeeDao extends BaseDao<EmployeeDO>
 {
-  public static final UserRightId USER_RIGHT_ID = UserRightId.FIBU_EMPLOYEE;
+  public static final UserRightId USER_RIGHT_ID = UserRightId.HR_EMPLOYEE;
 
   private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(EmployeeDao.class);
 

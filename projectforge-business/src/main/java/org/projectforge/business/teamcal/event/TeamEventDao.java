@@ -23,6 +23,16 @@
 
 package org.projectforge.business.teamcal.event;
 
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.List;
+import java.util.Set;
+import java.util.TimeZone;
+
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
@@ -31,7 +41,6 @@ import org.apache.log4j.Logger;
 import org.hibernate.Query;
 import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Restrictions;
-import org.projectforge.business.teamcal.TeamCalConfig;
 import org.projectforge.business.teamcal.admin.TeamCalCache;
 import org.projectforge.business.teamcal.admin.TeamCalDao;
 import org.projectforge.business.teamcal.admin.model.TeamCalDO;
@@ -47,6 +56,7 @@ import org.projectforge.framework.persistence.api.BaseDao;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.persistence.api.QueryFilter;
 import org.projectforge.framework.persistence.history.DisplayHistoryEntry;
+import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.time.DateHelper;
 import org.projectforge.framework.time.DateHolder;
@@ -54,16 +64,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Date;
-import java.util.List;
-import java.util.Set;
-import java.util.TimeZone;
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
@@ -99,6 +99,9 @@ public class TeamEventDao extends BaseDao<TeamEventDO>
   @Autowired
   private TeamCalService teamCalService;
 
+  @Autowired
+  private PfEmgrFactory emgrFac;
+
   public TeamEventDao()
   {
     super(TeamEventDO.class);
@@ -124,43 +127,16 @@ public class TeamEventDao extends BaseDao<TeamEventDO>
 
   public TeamEventDO getByUid(final String uid)
   {
-    return getByUid(uid, null);
-  }
-
-  @SuppressWarnings("unchecked")
-  public TeamEventDO getByUid(final String uid, final Integer teamCalId)
-  {
     if (uid == null) {
       return null;
     }
-    List<TeamEventDO> list;
-    final Integer id = TeamCalConfig.get().extractEventId(uid);
-    if (teamCalId != null) {
-      if (id != null) {
-        // The uid refers an own event, therefore search for the extracted id.
-        list = (List<TeamEventDO>) getHibernateTemplate()
-            .find("from TeamEventDO e where e.id=? and e.calendar.id=? and e.deleted=false", id, teamCalId);
-      } else {
-        // It's an external event:
-        list = (List<TeamEventDO>) getHibernateTemplate().find(
-            "from TeamEventDO e where e.externalUid=? and e.calendar.id=? and e.deleted=false", uid,
-            teamCalId);
-      }
-    } else {
-      if (id != null) {
-        // The uid refers an own event, therefore search for the extracted id.
-        list = (List<TeamEventDO>) getHibernateTemplate().find("from TeamEventDO e where e.id=? and e.deleted=false",
-            id);
-      } else {
-        // It's an external event:
-        list = (List<TeamEventDO>) getHibernateTemplate()
-            .find("from TeamEventDO e where e.externalUid=? and e.deleted=false", uid);
-      }
-    }
-    if (list != null && list.isEmpty() == false && list.get(0) != null) {
-      return list.get(0);
-    }
-    return null;
+    TeamEventDO result = null;
+    result = emgrFac.runRoTrans(
+        emgr -> {
+          return emgr.selectSingleAttached(TeamEventDO.class, "select e from TeamEventDO e where e.uid = :uid", "uid",
+              uid);
+        });
+    return result;
   }
 
   /**
@@ -197,8 +173,8 @@ public class TeamEventDao extends BaseDao<TeamEventDO>
    * @param filter
    * @param calculateRecurrenceEvents If true, recurrence events inside the given time-period are calculated.
    * @return list of team events (same as {@link #getList(BaseSearchFilter)} but with all calculated and matching
-   * recurrence events (if calculateRecurrenceEvents is true). Origin events are of type {@link TeamEventDO},
-   * calculated events of type {@link TeamEvent}.
+   *         recurrence events (if calculateRecurrenceEvents is true). Origin events are of type {@link TeamEventDO},
+   *         calculated events of type {@link TeamEvent}.
    */
   public List<TeamEvent> getEventList(final TeamEventFilter filter, final boolean calculateRecurrenceEvents)
   {
@@ -503,7 +479,7 @@ public class TeamEventDao extends BaseDao<TeamEventDO>
    * Returns also true, if idSet contains the id of any attendee.
    *
    * @see org.projectforge.framework.persistence.api.BaseDao#contains(java.util.Set,
-   * org.projectforge.core.ExtendedBaseDO)
+   *      org.projectforge.core.ExtendedBaseDO)
    */
   @Override
   protected boolean contains(final Set<Integer> idSet, final TeamEventDO entry)

@@ -23,20 +23,27 @@
 
 package org.projectforge.mail;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 import javax.mail.Message;
+import javax.mail.internet.AddressException;
+import javax.mail.internet.InternetAddress;
 
 import org.apache.commons.lang.builder.ToStringBuilder;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 
 /**
  * Represents a mail. Mails can be received from a MailAccount or can be sent via SendMail.
+ * 
  * @author Kai Reinhard (k.reinhard@micromata.de)
  * 
  */
 public class Mail implements Comparable<Mail>
 {
+  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(Mail.class);
+
   public static final String CONTENTTYPE_HTML = "html";
 
   public static final String CONTENTTYPE_TEXT = "plain";
@@ -57,7 +64,7 @@ public class Mail implements Comparable<Mail>
 
   private String fromRealname;
 
-  private String to;
+  private List<InternetAddress> to = new ArrayList<>();
 
   private String toRealname;
 
@@ -171,19 +178,23 @@ public class Mail implements Comparable<Mail>
     this.fromRealname = fromRealname;
   }
 
-  public String getTo()
+  public void addTo(String to)
+  {
+    try {
+      this.to.add(new InternetAddress(to));
+    } catch (AddressException e) {
+      log.warn("Could not create InternetAddress from mail: " + to);
+    }
+  }
+
+  public List<InternetAddress> getTo()
   {
     return to;
   }
 
-  public void setTo(String to)
-  {
-    this.to = to;
-  }
-
   public void setTo(PFUserDO user)
   {
-    setTo(user.getEmail());
+    addTo(user.getEmail());
     setToRealname(user.getFullname());
   }
 
@@ -209,6 +220,7 @@ public class Mail implements Comparable<Mail>
 
   /**
    * For your convenience. Sets the subject and prepends the ProjectForge standard: "[ProjectForge] "
+   * 
    * @param subject
    */
   public void setProjectForgeSubject(String subject)
@@ -228,6 +240,7 @@ public class Mail implements Comparable<Mail>
 
   /**
    * If given, then the content type of the message will be set (e. g. "text/html").
+   * 
    * @return
    */
   public String getContentType()

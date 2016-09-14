@@ -25,9 +25,8 @@ package org.projectforge.business.jobs;
 
 import java.util.Calendar;
 
-import org.projectforge.business.teamcal.externalsubscription.TeamCalSubscriptionJob;
 import org.projectforge.framework.persistence.api.ReindexSettings;
-import org.projectforge.framework.persistence.database.MyDatabaseUpdateService;
+import org.projectforge.framework.persistence.database.DatabaseUpdateService;
 import org.projectforge.framework.persistence.history.HibernateSearchReindexer;
 import org.projectforge.framework.persistence.history.entities.PfHistoryMasterDO;
 import org.projectforge.framework.time.DateHelper;
@@ -44,11 +43,9 @@ public class CronHourlyJob extends AbstractCronJob
 {
   private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(CronHourlyJob.class);
 
-  private MyDatabaseUpdateService databaseUpdateDao;
+  private DatabaseUpdateService databaseUpdateDao;
 
   private HibernateSearchReindexer hibernateSearchReindexer;
-
-  private TeamCalSubscriptionJob teamCalSubscriptionJob;
 
   @Override
   public void execute(final JobExecutionContext context) throws JobExecutionException
@@ -70,21 +67,13 @@ public class CronHourlyJob extends AbstractCronJob
     } catch (final Throwable ex) {
       log.error("While executing fix job for data base history entries: " + ex.getMessage(), ex);
     }
-    try {
-      log.info("Starting update of external team calendar subscription.");
-      teamCalSubscriptionJob.execute(context);
-    } catch (final Throwable ex) {
-      log.error("Exception while executing TeamCalSubscriptionJob: " + ex.getMessage(), ex);
-    }
-
     log.info("Hourly job job finished.");
   }
 
   @Override
   protected void wire(final JobExecutionContext context)
   {
-    databaseUpdateDao = (MyDatabaseUpdateService) wire(context, "databaseUpdateDao");
+    databaseUpdateDao = (DatabaseUpdateService) wire(context, "databaseUpdateDao");
     hibernateSearchReindexer = (HibernateSearchReindexer) wire(context, "hibernateSearchReindexer");
-    teamCalSubscriptionJob = (TeamCalSubscriptionJob) wire(context, "teamCalSubscriptionJob");
   }
 }

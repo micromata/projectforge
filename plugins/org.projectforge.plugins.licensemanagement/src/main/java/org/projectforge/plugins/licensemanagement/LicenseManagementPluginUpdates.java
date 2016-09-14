@@ -31,16 +31,17 @@ import org.projectforge.continuousdb.UpdateEntry;
 import org.projectforge.continuousdb.UpdateEntryImpl;
 import org.projectforge.continuousdb.UpdatePreCheckStatus;
 import org.projectforge.continuousdb.UpdateRunningStatus;
-import org.projectforge.framework.persistence.database.MyDatabaseUpdateService;
+import org.projectforge.framework.persistence.database.DatabaseUpdateService;
 
 /**
- * Contains the initial data-base set-up script and later all update scripts if any data-base schema updates are required by any later
- * release of this to-do plugin.
+ * Contains the initial data-base set-up script and later all update scripts if any data-base schema updates are
+ * required by any later release of this to-do plugin.
+ * 
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 public class LicenseManagementPluginUpdates
 {
-  static MyDatabaseUpdateService dao;
+  static DatabaseUpdateService dao;
 
   @SuppressWarnings("serial")
   public static List<UpdateEntry> getUpdateEntries()
@@ -49,8 +50,10 @@ public class LicenseManagementPluginUpdates
     // /////////////////////////////////////////////////////////////////
     // 5.1
     // /////////////////////////////////////////////////////////////////
-    list.add(new UpdateEntryImpl(LicenseManagementPlugin.ID, "5.2", "2013-05-19", "Adds T_PLUGIN_LM_LICENSE.file{name}{1,2}.") {
-      String[] newAttributes = { "file1", "filename1", "file2", "filename2"};
+    list.add(new UpdateEntryImpl(LicenseManagementPlugin.ID, "5.2", "2013-05-19",
+        "Adds T_PLUGIN_LM_LICENSE.file{name}{1,2}.")
+    {
+      String[] newAttributes = { "file1", "filename1", "file2", "filename2" };
 
       @Override
       public UpdatePreCheckStatus runPreCheck()
@@ -78,7 +81,8 @@ public class LicenseManagementPluginUpdates
   @SuppressWarnings("serial")
   public static UpdateEntry getInitializationUpdateEntry()
   {
-    return new UpdateEntryImpl(LicenseManagementPlugin.ID, "2012-10-23", "Adds table T_PLUGIN_LM_LICENSE.") {
+    return new UpdateEntryImpl(LicenseManagementPlugin.ID, "2012-10-23", "Adds table T_PLUGIN_LM_LICENSE.")
+    {
       @Override
       public UpdatePreCheckStatus runPreCheck()
       {

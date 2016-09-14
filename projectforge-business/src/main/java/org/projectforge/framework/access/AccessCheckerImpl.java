@@ -457,6 +457,9 @@ public class AccessCheckerImpl implements AccessChecker, Serializable
       }
       return result;
     }
+    if (UserRightId.ADMIN_CORE.equals(right.getId())) {
+      return isUserMemberOfGroup(ThreadLocalUserContext.getUser(), ProjectForgeGroup.ADMIN_GROUP);
+    }
     if (obj instanceof EmployeeDO && oldObj instanceof EmployeeDO && ((EmployeeDO) obj).getUser().equals(origUser)
         && ((EmployeeDO) oldObj).getUser()
             .equals(origUser)) {

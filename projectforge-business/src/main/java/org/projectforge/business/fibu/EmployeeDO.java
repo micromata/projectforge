@@ -101,7 +101,7 @@ import de.micromata.mgc.jpa.hibernatesearch.bridges.TimeableListFieldBridge;
         @javax.persistence.Index(name = "idx_fk_t_fibu_employee_user_id", columnList = "user_id"),
         @javax.persistence.Index(name = "idx_fk_t_fibu_employee_tenant_id", columnList = "tenant_id")
     })
-@AUserRightId("FIBU_EMPLOYEE")
+@AUserRightId("HR_EMPLOYEE")
 public class EmployeeDO extends DefaultBaseWithAttrDO<EmployeeDO>
     implements EntityWithTimeableAttr<Integer, EmployeeTimedDO>, ComplexEntity, EntityWithConfigurableAttr
 {
@@ -303,11 +303,9 @@ public class EmployeeDO extends DefaultBaseWithAttrDO<EmployeeDO>
     return user.getId();
   }
 
-  @Deprecated
   @Column
   public Integer getUrlaubstage()
   {
-    //    return timeableService.getAttrValue(this, "hollidays", Integer.class);
     return urlaubstage;
   }
 
@@ -554,7 +552,8 @@ public class EmployeeDO extends DefaultBaseWithAttrDO<EmployeeDO>
   }
 
   @Override
-  @OneToMany(cascade = CascadeType.ALL, mappedBy = "parent", targetEntity = EmployeeAttrDO.class, orphanRemoval = true, fetch = FetchType.EAGER)
+  @OneToMany(cascade = CascadeType.ALL, mappedBy = "parent", targetEntity = EmployeeAttrDO.class, orphanRemoval = true,
+      fetch = FetchType.EAGER)
   @MapKey(name = "propertyName")
   @HistoryProperty(converter = TabAttrHistoryPropertyConverter.class)
   public Map<String, JpaTabAttrBaseDO<EmployeeDO, Integer>> getAttrs()

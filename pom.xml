@@ -4,7 +4,7 @@
 	<groupId>org.projectforge</groupId>
 	<artifactId>projectforge-parent</artifactId>
 	<packaging>pom</packaging>
-	<version>6.2.0</version>
+	<version>6.3.0</version>
 
 	<parent>
 		<groupId>org.springframework.cloud</groupId>
@@ -177,7 +177,6 @@
 	<modules>
 		<module>projectforge-common</module>
 		<!-- <module>projectforge-model</module> -->
-		<module>projectforge-continuous-db</module>
 		<module>projectforge-excel</module>
 		<module>projectforge-business</module>
 		<module>projectforge-jax-rs</module>
@@ -205,7 +204,7 @@
 		<java.version>1.8</java.version>
 
 		<hibernate.version>5.0.5.Final</hibernate.version>
-		<mgc.version>2.4.0</mgc.version>
+		<mgc.version>2.4.1</mgc.version>
 		<postgresql.version>9.4-1206-jdbc42</postgresql.version>
 		<hsqldb.version>1.8.0.10</hsqldb.version>
 
@@ -267,29 +266,12 @@
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-web</artifactId>
-			<exclusions>
-				<exclusion>
-					<groupId>org.springframework.boot</groupId>
-					<artifactId>spring-boot-starter-logging</artifactId>
-				</exclusion>
-			</exclusions>
-		</dependency>
-
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-log4j</artifactId>
 		</dependency>
 
 		<dependency>
 			<!-- Setup Spring Boot -->
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter</artifactId>
-			<exclusions>
-				<exclusion>
-					<groupId>org.springframework.boot</groupId>
-					<artifactId>spring-boot-starter-logging</artifactId>
-				</exclusion>
-			</exclusions>
 		</dependency>
 
 		<dependency>
@@ -475,17 +457,6 @@
 			<name>Micromata 
 			Nexus Snapshots</name>
 			<url>https://repo.micromata.de/nexus/content/groups/public-snapshots</url>
-		</repository>
-		<repository>
-			<id>de.micromata.labs.projectforge</id>
-			<name>Micromata 
-			Labs PF</name>
-			<url>https://labs.micromata.de/nexus/content/repositories/ProjectForge/</url>
-		</repository>
-		<repository>
-			<id>de.micromata.labs.projectforge.snapshot</id>
-			<name>Micromata Labs PF Snapshot</name>
-			<url>https://labs.micromata.de/nexus/content/repositories/ProjectForge-snapshot/</url>
 		</repository>
 		<repository>
 			<id>MGC</id>

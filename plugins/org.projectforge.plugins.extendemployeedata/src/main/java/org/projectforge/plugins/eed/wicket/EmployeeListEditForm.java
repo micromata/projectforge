@@ -18,7 +18,9 @@ import org.projectforge.plugins.eed.ExtendEmployeeDataEnum;
 import org.projectforge.plugins.eed.service.EEDHelper;
 import org.projectforge.web.wicket.AbstractListForm;
 import org.projectforge.web.wicket.WicketUtils;
+import org.projectforge.web.wicket.bootstrap.GridSize;
 import org.projectforge.web.wicket.components.SingleButtonPanel;
+import org.projectforge.web.wicket.flowlayout.DivPanel;
 import org.projectforge.web.wicket.flowlayout.DropDownChoicePanel;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
 
@@ -31,11 +33,13 @@ public class EmployeeListEditForm extends AbstractListForm<EmployeeFilter, Emplo
   @SpringBean
   private EEDHelper eedHelper;
 
-  private Integer selectedMonth;
+  protected Integer selectedMonth;
 
-  private Integer selectedYear;
+  protected Integer selectedYear;
 
-  private ExtendEmployeeDataEnum selectedOption;
+  protected ExtendEmployeeDataEnum selectedOption;
+
+  protected boolean showOnlyActiveEntries = true;
 
   @Override
   protected void init()
@@ -90,7 +94,8 @@ public class EmployeeListEditForm extends AbstractListForm<EmployeeFilter, Emplo
     final FieldsetPanel fsOption = gridBuilder
         .newFieldset(I18nHelper.getLocalizedString(ThreadLocalUserContext.getLocale(), "plugins.eed.listcare.option"));
     //Option DropDown
-    final DropDownChoicePanel<ExtendEmployeeDataEnum> ddcOption = new DropDownChoicePanel<>(gridBuilder.getPanel().newChildId(),
+    final DropDownChoicePanel<ExtendEmployeeDataEnum> ddcOption = new DropDownChoicePanel<>(
+        gridBuilder.getPanel().newChildId(),
         new DropDownChoice<>(DropDownChoicePanel.WICKET_ID, new PropertyModel<>(this, "selectedOption"),
             Arrays.asList(ExtendEmployeeDataEnum.values()), new IChoiceRenderer<ExtendEmployeeDataEnum>()
             {
@@ -105,11 +110,15 @@ public class EmployeeListEditForm extends AbstractListForm<EmployeeFilter, Emplo
               {
                 return String.valueOf(index);
               }
-            }
-        )
-    );
-
+            }));
     fsOption.add(ddcOption);
+
+    //Filter for active employees
+    gridBuilder.newSplitPanel(GridSize.COL66);
+    FieldsetPanel optionsFieldsetPanel = gridBuilder.newFieldset(getOptionsLabel()).suppressLabelForWarning();
+    final DivPanel optionsCheckBoxesPanel = optionsFieldsetPanel.addNewCheckBoxButtonDiv();
+    optionsCheckBoxesPanel.add(createAutoRefreshCheckBoxButton(optionsCheckBoxesPanel.newChildId(),
+        new PropertyModel<Boolean>(this, "showOnlyActiveEntries"), getString("label.onlyActiveEntries")));
   }
 
   public EmployeeListEditForm(final EmployeeListEditPage parentPage)
@@ -138,21 +147,6 @@ public class EmployeeListEditForm extends AbstractListForm<EmployeeFilter, Emplo
     return new SingleButtonPanel(id, saveButton, getString("save"), SingleButtonPanel.DEFAULT_SUBMIT);
   }
 
-  public Integer getSelectedMonth()
-  {
-    return selectedMonth;
-  }
-
-  public Integer getSelectedYear()
-  {
-    return selectedYear;
-  }
-
-  public ExtendEmployeeDataEnum getSelectedOption()
-  {
-    return selectedOption;
-  }
-
   @Override
   protected EmployeeFilter newSearchFilterInstance()
   {
@@ -160,4 +154,3 @@ public class EmployeeListEditForm extends AbstractListForm<EmployeeFilter, Emplo
   }
 
 }
-

@@ -39,7 +39,7 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.projectforge.business.multitenancy.TenantRegistryMap;
-import org.projectforge.business.teamcal.event.model.TeamAttendeeStatus;
+import org.projectforge.business.teamcal.event.model.TeamEventAttendeeStatus;
 import org.projectforge.business.teamcal.event.model.TeamEventAttendeeDO;
 import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
@@ -59,7 +59,7 @@ public class TeamAttendeesPanel extends Panel
 
   private WebMarkupContainer mainContainer;
 
-  private LabelValueChoiceRenderer<TeamAttendeeStatus> statusChoiceRenderer;
+  private LabelValueChoiceRenderer<TeamEventAttendeeStatus> statusChoiceRenderer;
 
   /**
    * @param id
@@ -77,7 +77,7 @@ public class TeamAttendeesPanel extends Panel
   protected void onInitialize()
   {
     super.onInitialize();
-    statusChoiceRenderer = new LabelValueChoiceRenderer<TeamAttendeeStatus>(this, TeamAttendeeStatus.values());
+    statusChoiceRenderer = new LabelValueChoiceRenderer<TeamEventAttendeeStatus>(this, TeamEventAttendeeStatus.values());
     mainContainer = new WebMarkupContainer("main");
     add(mainContainer.setOutputMarkupId(true));
     attendeesRepeater = new RepeatingView("liRepeater");
@@ -111,10 +111,10 @@ public class TeamAttendeesPanel extends Panel
             return TeamAttendeesPanel.this.getString("plugins.teamcal.event.addNewAttendee");
           }
           final TeamEventAttendeeDO attendee = attendeeModel.getObject();
-          if (attendee.getUserId() != null) {
+          if (attendee.getAddressId() != null) {
             final UserGroupCache userGroupCache = TenantRegistryMap.getInstance().getTenantRegistry()
                 .getUserGroupCache();
-            final PFUserDO user = userGroupCache.getUser(attendee.getUserId());
+            final PFUserDO user = userGroupCache.getUser(attendee.getAddressId());
             return user != null ? user.getFullname() : attendee.getUrl();
           }
           return attendee.getUrl();
@@ -129,18 +129,18 @@ public class TeamAttendeesPanel extends Panel
           final TeamEventAttendeeDO attendee = attendeeModel.getObject();
           if (StringUtils.isBlank(object) == true) {
             attendee.setUrl(null);
-            attendee.setUser(null);
+            attendee.setAddress(null);
             return;
           }
           final UserGroupCache userGroupCache = TenantRegistryMap.getInstance().getTenantRegistry().getUserGroupCache();
-          final PFUserDO user = userGroupCache.getUserByFullname(object);
-          if (user != null) {
-            attendee.setUser(user);
-            attendee.setUrl(null);
-          } else {
-            attendee.setUrl(object);
-            attendee.setUser(null);
-          }
+          //          final AddressDO address = userGroupCache.getUserByFullname(object);
+          //          if (user != null) {
+          //            attendee.setAddress(address);
+          //            attendee.setUrl(null);
+          //          } else {
+          //            attendee.setUrl(object);
+          //            attendee.setUser(null);
+          //          }
         }
       }, TeamEventAttendeeDO.URL_MAX_LENGTH);
       this.attendeeModel = attendeeModel;
@@ -174,11 +174,11 @@ public class TeamAttendeesPanel extends Panel
       final TeamEventAttendeeDO attendee = attendeeModel.getObject();
       if (lastEntry == true) {
         final TeamEventAttendeeDO clone = new TeamEventAttendeeDO();
-        clone.setUrl(attendee.getUrl()).setUser(attendee.getUser());
+        clone.setUrl(attendee.getUrl()).setAddress(attendee.getAddress());
         addAttendee(clone);
         rebuildAttendees();
         target.add(mainContainer);
-      } else if (attendee.getUserId() == null && StringUtils.isBlank(attendee.getUrl()) == true) {
+      } else if (attendee.getAddressId() == null && StringUtils.isBlank(attendee.getUrl()) == true) {
         final Iterator<TeamEventAttendeeDO> it = attendees.iterator();
         while (it.hasNext() == true) {
           if (it.next() == attendeeModel.getObject()) {
@@ -207,8 +207,8 @@ public class TeamAttendeesPanel extends Panel
       final WebMarkupContainer item = new WebMarkupContainer(attendeesRepeater.newChildId());
       attendeesRepeater.add(item);
       item.add(new AttendeeEditableLabel("editableLabel", Model.of(attendee), false));
-      final DropDownChoice<TeamAttendeeStatus> statusChoice = new DropDownChoice<TeamAttendeeStatus>("status",
-          new PropertyModel<TeamAttendeeStatus>(attendee, "status"), statusChoiceRenderer.getValues(),
+      final DropDownChoice<TeamEventAttendeeStatus> statusChoice = new DropDownChoice<TeamEventAttendeeStatus>("status",
+          new PropertyModel<TeamEventAttendeeStatus>(attendee, "status"), statusChoiceRenderer.getValues(),
           statusChoiceRenderer);
       statusChoice.setEnabled(false);
       item.add(statusChoice);
