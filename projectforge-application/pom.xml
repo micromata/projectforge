@@ -1,57 +1,57 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
-	<modelVersion>4.0.0</modelVersion>
-	<artifactId>projectforge-application</artifactId>
-	<packaging>jar</packaging>
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <artifactId>projectforge-application</artifactId>
+  <packaging>jar</packaging>
 
 
-	<parent>
-		<groupId>org.projectforge</groupId>
-		<artifactId>projectforge-parent</artifactId>
-		<version>6.3.0</version>
-	</parent>
-	<licenses>
-		<license>
-			<name>Dual license</name>
-			<url>/LICENSE.txt</url>
-			<comments>All rights reserved.</comments>
-			<distribution>manual</distribution>
-		</license>
-	</licenses>
-	<properties>
-		<start-class>org.projectforge.start.ProjectForgeApplication</start-class>
-	</properties>
-	<dependencies>
-		<!-- PF -->
-		<dependency>
-			<groupId>org.projectforge</groupId>
-			<artifactId>projectforge-wicket</artifactId>
-			<version>${projectforge.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>org.projectforge</groupId>
-			<artifactId>projectforge-jax-rs</artifactId>
-			<version>${projectforge.version}</version>
-		</dependency>
-	</dependencies>
-	<build>
-		<sourceDirectory>src/main/java</sourceDirectory>
-		<resources>
-			<resource>
-				<directory>src/main/java</directory>
-			</resource>
-			<resource>
-				<directory>src/main/resources</directory>
-			</resource>
-		</resources>
-		<plugins>
-			<plugin>
-				<groupId>org.springframework.boot</groupId>
-				<artifactId>spring-boot-maven-plugin</artifactId>
-				<configuration>
-					<layout>ZIP</layout> <!-- to use PropertiesLaunchar -->
-				</configuration>
-			</plugin>
-		</plugins>
-	</build>
+  <parent>
+    <groupId>org.projectforge</groupId>
+    <artifactId>projectforge-parent</artifactId>
+    <version>6.4.0-SNAPSHOT</version>
+  </parent>
+  <licenses>
+    <license>
+      <name>Dual license</name>
+      <url>/LICENSE.txt</url>
+      <comments>All rights reserved.</comments>
+      <distribution>manual</distribution>
+    </license>
+  </licenses>
+  <properties>
+    <start-class>org.projectforge.start.ProjectForgeApplication</start-class>
+  </properties>
+  <dependencies>
+    <!-- PF -->
+    <dependency>
+      <groupId>org.projectforge</groupId>
+      <artifactId>projectforge-wicket</artifactId>
+      <version>${projectforge.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.projectforge</groupId>
+      <artifactId>projectforge-jax-rs</artifactId>
+      <version>${projectforge.version}</version>
+    </dependency>
+  </dependencies>
+  <build>
+    <sourceDirectory>src/main/java</sourceDirectory>
+    <resources>
+      <resource>
+        <directory>src/main/java</directory>
+      </resource>
+      <resource>
+        <directory>src/main/resources</directory>
+      </resource>
+    </resources>
+    <plugins>
+      <plugin>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-maven-plugin</artifactId>
+        <configuration>
+          <layout>ZIP</layout> <!-- to use PropertiesLaunchar -->
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
 </project>
