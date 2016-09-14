@@ -23,12 +23,11 @@
 
 package org.projectforge.business.user;
 
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertFalse;
-import static org.testng.AssertJUnit.assertTrue;
-import static org.testng.AssertJUnit.fail;
+import static org.testng.AssertJUnit.*;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import org.projectforge.business.multitenancy.TenantDao;
@@ -57,6 +56,9 @@ public class UserRightTest extends AbstractTestBase
   private UserRightService userRights;
 
   @Autowired
+  private UserRightDao userRightDao;
+
+  @Autowired
   private TenantDao tenantDao;
 
   @Test
@@ -69,7 +71,12 @@ public class UserRightTest extends AbstractTestBase
         .addRight(new UserRightDO(UserRightId.FIBU_AUSGANGSRECHNUNGEN, UserRightValue.TRUE)) // Invalid setting / value!
         .addRight(new UserRightDO(UserRightId.FIBU_EINGANGSRECHNUNGEN, UserRightValue.READONLY)) //
         .addRight(new UserRightDO(UserRightId.FIBU_DATEV_IMPORT, UserRightValue.FALSE));
+
+    final List<UserRightDO> userRights = new ArrayList<>(user.getRights());
+    user.getRights().clear();
     user = userService.getById(userService.save(user));
+    userRightDao.save(userRights);
+
     assignToDefaultTenant(user);
     Set<UserRightDO> rights = user.getRights();
     assertEquals("3 rights added to user", 3, rights.size());
@@ -131,7 +138,12 @@ public class UserRightTest extends AbstractTestBase
         .addRight(new UserRightDO(UserRightId.FIBU_AUSGANGSRECHNUNGEN, UserRightValue.READONLY)) //
         .addRight(new UserRightDO(UserRightId.FIBU_EINGANGSRECHNUNGEN, UserRightValue.READWRITE)) // Not available
         .addRight(new UserRightDO(UserRightId.FIBU_DATEV_IMPORT, UserRightValue.TRUE));
+
+    final List<UserRightDO> userRights = new ArrayList<>(user.getRights());
+    user.getRights().clear();
     user = userService.getById(userService.save(user));
+    userRightDao.save(userRights);
+
     assignToDefaultTenant(user);
     final GroupDO group = getGroup(ProjectForgeGroup.CONTROLLING_GROUP.toString());
     group.getAssignedUsers().add(user);
