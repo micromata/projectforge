@@ -43,7 +43,6 @@ import de.micromata.genome.db.jpa.tabattr.api.EntityWithAttributes;
 import de.micromata.genome.db.jpa.tabattr.api.EntityWithConfigurableAttr;
 import de.micromata.genome.db.jpa.tabattr.api.EntityWithTimeableAttr;
 import de.micromata.genome.db.jpa.tabattr.api.TimeableAttrRow;
-import de.micromata.genome.db.jpa.tabattr.impl.AttrSchemaServiceSpringBeanImpl;
 
 /**
  * Interface to handle with Attrs.
