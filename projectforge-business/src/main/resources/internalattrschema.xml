@@ -24,6 +24,7 @@
                         <property name="propertyName" value="status"/>
                         <property name="i18nkey" value="status"/>
                         <property name="type" value="java.lang.String"/>
+                        <property name="required" value="true"/>
                         <property name="wicketComponentFactoryClass">
                           <bean class="org.projectforge.web.common.timeattr.DropDownAttrWicketComponentFactory">
                             <property name="i18nKeyList">
