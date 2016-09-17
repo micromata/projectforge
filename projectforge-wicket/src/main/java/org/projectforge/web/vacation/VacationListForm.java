@@ -24,28 +24,14 @@
 package org.projectforge.web.vacation;
 
 import org.apache.log4j.Logger;
-import org.apache.wicket.model.PropertyModel;
 import org.projectforge.business.vacation.VacationFilter;
 import org.projectforge.web.wicket.AbstractListForm;
-import org.projectforge.web.wicket.flowlayout.DivPanel;
-import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
 
 public class VacationListForm extends AbstractListForm<VacationFilter, VacationListPage>
 {
   private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(VacationListForm.class);
 
   private static final long serialVersionUID = -5969136444233092172L;
-
-  /**
-   * @see org.projectforge.web.wicket.AbstractListForm#onOptionsPanelCreate(org.projectforge.web.wicket.flowlayout.FieldsetPanel,
-   *      org.projectforge.web.wicket.flowlayout.DivPanel)
-   */
-  @Override
-  protected void onOptionsPanelCreate(final FieldsetPanel optionsFieldsetPanel, final DivPanel optionsCheckBoxesPanel)
-  {
-    optionsCheckBoxesPanel.add(createAutoRefreshCheckBoxButton(optionsCheckBoxesPanel.newChildId(),
-        new PropertyModel<Boolean>(getSearchFilter(), "showOnlyActiveEntries"), getString("label.onlyActiveEntries")));
-  }
 
   public VacationListForm(final VacationListPage parentPage)
   {

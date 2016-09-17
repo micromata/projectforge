@@ -113,6 +113,7 @@ import org.projectforge.web.user.GroupListPage;
 import org.projectforge.web.user.MyAccountEditPage;
 import org.projectforge.web.user.UserListPage;
 import org.projectforge.web.user.UserPrefListPage;
+import org.projectforge.web.vacation.VacationListPage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -327,6 +328,7 @@ public class MenuItemRegistry implements Serializable
       }
     };
     reg.register(meb);
+    reg.register(common, MenuItemDefId.VACATION, 110, VacationListPage.class);
     reg.register(common, MenuItemDefId.SEARCH, 100, SearchPage.class);
 
     // PROJECT_MANAGEMENT

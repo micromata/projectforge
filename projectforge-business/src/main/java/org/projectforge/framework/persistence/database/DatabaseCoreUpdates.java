@@ -91,6 +91,39 @@ public class DatabaseCoreUpdates
     final List<UpdateEntry> list = new ArrayList<>();
 
     ////////////////////////////////////////////////////////////////////
+    // 6.4.0
+    // /////////////////////////////////////////////////////////////////
+    list.add(new UpdateEntryImpl(CORE_REGION_ID, "6.4.0", "2016-10-12",
+        "Add table for vacation.")
+    {
+      @Override
+      public UpdatePreCheckStatus runPreCheck()
+      {
+        log.info("Running pre-check for ProjectForge version 6.4.0");
+        final DatabaseUpdateService databaseUpdateService = applicationContext.getBean(DatabaseUpdateService.class);
+        if (databaseUpdateService.doesTableExist("T_VACATION") == false) {
+          return UpdatePreCheckStatus.READY_FOR_UPDATE;
+        } else {
+          return UpdatePreCheckStatus.ALREADY_UPDATED;
+        }
+      }
+
+      @Override
+      public UpdateRunningStatus runUpdate()
+      {
+        final InitDatabaseDao initDatabaseDao = applicationContext.getBean(InitDatabaseDao.class);
+        final DatabaseUpdateService databaseUpdateService = applicationContext.getBean(DatabaseUpdateService.class);
+        if (databaseUpdateService.doesTableExist("T_VACATION") == false) {
+          //Updating the schema
+          initDatabaseDao.updateSchema();
+        }
+
+        return UpdateRunningStatus.DONE;
+      }
+
+    });
+
+    ////////////////////////////////////////////////////////////////////
     // 6.3.0
     // /////////////////////////////////////////////////////////////////
     list.add(new UpdateEntryImpl(CORE_REGION_ID, "6.3.0", "2016-08-31",

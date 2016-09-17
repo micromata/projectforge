@@ -38,7 +38,6 @@ import javax.persistence.UniqueConstraint;
 import org.hibernate.search.annotations.Indexed;
 import org.projectforge.business.fibu.EmployeeDO;
 import org.projectforge.common.anots.PropertyInfo;
-import org.projectforge.framework.persistence.api.AUserRightId;
 import org.projectforge.framework.persistence.attr.impl.HibernateSearchAttrSchemaFieldInfoProvider;
 import org.projectforge.framework.persistence.entities.DefaultBaseDO;
 
@@ -61,7 +60,6 @@ import de.micromata.mgc.jpa.hibernatesearch.api.HibernateSearchInfo;
         @javax.persistence.Index(name = "idx_fk_t_vacation_employee_id", columnList = "employee_id"),
         @javax.persistence.Index(name = "idx_fk_t_vacation_tenant_id", columnList = "tenant_id")
     })
-@AUserRightId("VACATION")
 public class VacationDO extends DefaultBaseDO
 {
   private static final long serialVersionUID = -1208597049212394757L;

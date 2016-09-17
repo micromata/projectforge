@@ -90,7 +90,8 @@ public enum MenuItemDefId
   TASK_TREE("taskTree"), //
   TIMESHEET_LIST("timesheetList"), //
   USER_LIST("userList"), //
-  HR("hr");
+  HR("hr"), //
+  VACATION("vacation");
 
   private String i18nKey;
 
