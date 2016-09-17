@@ -1,6 +1,5 @@
 /////////////////////////////////////////////////////////////////////////////
 //
-
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
@@ -22,28 +21,29 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.business.teamcal.event;
+package org.projectforge.business.vacation.model;
 
-import java.io.Serializable;
-import java.util.Comparator;
+import org.projectforge.framework.persistence.api.BaseDao;
+import org.springframework.stereotype.Repository;
 
-import org.projectforge.business.teamcal.event.model.TeamEventAttendeeDO;
-
-public class AttendeeComparator implements Comparator<TeamEventAttendeeDO>, Serializable
+/**
+ * DAO für Urlaubsanträge.
+ *
+ * @author Florian Blumenstein
+ *
+ */
+@Repository
+public class VacationDao extends BaseDao<VacationDO>
 {
-  private static final long serialVersionUID = -8760753482884481226L;
-
-  /**
-   * @see java.util.Comparator#compare(java.lang.Object, java.lang.Object)
-   */
-  @Override
-  public int compare(final TeamEventAttendeeDO g1, final TeamEventAttendeeDO g2)
+  public VacationDao()
   {
-    if (g1 != null && g2 != null && g1.getAddress() != null && g2.getAddress() != null) {
-      return g1.getAddress().getFullName().compareTo(g2.getAddress().getFullName());
-    }
-    final String n1 = g1 != null && g1.getUrl() != null ? g1.getUrl().toLowerCase() : "";
-    final String n2 = g2 != null && g2.getUrl() != null ? g2.getUrl().toLowerCase() : "";
-    return n1.compareTo(n2);
+    super(VacationDO.class);
   }
+
+  @Override
+  public VacationDO newInstance()
+  {
+    return new VacationDO();
+  }
+
 }

@@ -133,6 +133,7 @@ public class UserRightServiceImpl implements UserRightService, Serializable
         .setReadOnlyForControlling();
     addRight(UserRightCategory.ORGA, UserRightId.ORGA_OUTGOING_MAIL, FALSE_READONLY_READWRITE, FIBU_ORGA_GROUPS)
         .setReadOnlyForControlling();
+    addRight(UserRightCategory.HR, UserRightId.HR_EMPLOYEE, FALSE_READONLY_READWRITE, ProjectForgeGroup.HR_GROUP);
     addRight(new TenantRight(accessChecker, tenantChecker));
     addRight(new ProjektRight(accessChecker));
     addRight(new AuftragRight(accessChecker));

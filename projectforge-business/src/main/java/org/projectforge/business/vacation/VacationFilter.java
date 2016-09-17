@@ -39,8 +39,6 @@ public class VacationFilter extends BaseSearchFilter implements Serializable
 {
   private static final long serialVersionUID = 8567780910637887786L;
 
-  private boolean showOnlyActiveEntries;
-
   public VacationFilter()
   {
   }
@@ -50,13 +48,4 @@ public class VacationFilter extends BaseSearchFilter implements Serializable
     super(filter);
   }
 
-  public boolean isShowOnlyActiveEntries()
-  {
-    return showOnlyActiveEntries;
-  }
-
-  public void setShowOnlyActiveEntries(boolean showOnlyActiveEntries)
-  {
-    this.showOnlyActiveEntries = showOnlyActiveEntries;
-  }
 }

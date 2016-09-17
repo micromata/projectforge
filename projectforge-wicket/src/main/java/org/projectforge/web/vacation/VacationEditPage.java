@@ -24,12 +24,10 @@
 package org.projectforge.web.vacation;
 
 import org.apache.log4j.Logger;
-import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.vacation.model.VacationDO;
 import org.projectforge.business.vacation.service.VacationService;
-import org.projectforge.framework.utils.NumberHelper;
 import org.projectforge.web.fibu.ISelectCallerPage;
 import org.projectforge.web.wicket.AbstractEditPage;
 import org.projectforge.web.wicket.EditPage;
@@ -47,10 +45,8 @@ public class VacationEditPage extends AbstractEditPage<VacationDO, VacationEditF
 
   public VacationEditPage(final PageParameters parameters)
   {
-    super(parameters, "fibu.Vacation");
+    super(parameters, "vacation");
     init();
-    body.remove("tabTitle");
-    body.add(new Label("tabTitle", getString(getTitleKey(i18nPrefix, isNew()))).setRenderBodyOnly(true));
   }
 
   /**
@@ -59,26 +55,6 @@ public class VacationEditPage extends AbstractEditPage<VacationDO, VacationEditF
   @Override
   public void select(final String property, final Object selectedValue)
   {
-    // TODO PF6 never been called?!
-    if ("userId".equals(property) == true) {
-      final Integer id;
-      if (selectedValue instanceof String) {
-        id = NumberHelper.parseInteger((String) selectedValue);
-      } else {
-        id = (Integer) selectedValue;
-      }
-      VacationService.setPfUser(getData(), id);
-    } else if ("kost1Id".equals(property) == true) {
-      final Integer id;
-      if (selectedValue instanceof String) {
-        id = NumberHelper.parseInteger((String) selectedValue);
-      } else {
-        id = (Integer) selectedValue;
-      }
-      getBaseDao().setKost1(getData(), id);
-    } else {
-      log.error("Property '" + property + "' not supported for selection.");
-    }
   }
 
   /**
@@ -87,7 +63,6 @@ public class VacationEditPage extends AbstractEditPage<VacationDO, VacationEditF
   @Override
   public void unselect(final String property)
   {
-    log.error("Property '" + property + "' not supported for selection.");
   }
 
   /**

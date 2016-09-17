@@ -7,7 +7,10 @@ import java.lang.reflect.Method;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collection;
+import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.projectforge.business.fibu.EmployeeDO;
 import org.projectforge.business.fibu.EmployeeDao;
@@ -211,7 +214,8 @@ public class EmployeeServiceImpl extends CorePersistenceServiceImpl<Integer, Emp
   @Override
   public BigDecimal getMonthlySalary(EmployeeDO employee, Calendar selectedDate)
   {
-    final EmployeeTimedDO attribute = timeableEmployeeService.getAttrRowForSameMonth(employee, "annuity", selectedDate.getTime());
+    final EmployeeTimedDO attribute = timeableEmployeeService.getAttrRowForSameMonth(employee, "annuity",
+        selectedDate.getTime());
     final BigDecimal annualSalary = attribute != null ? attribute.getAttribute("annuity", BigDecimal.class) : null;
     final BigDecimal weeklyWorkingHours = employee.getWeeklyWorkingHours();
 
@@ -225,6 +229,15 @@ public class EmployeeServiceImpl extends CorePersistenceServiceImpl<Integer, Emp
     }
 
     return null;
+  }
+
+  @Override
+  public List<EmployeeDO> findAllActive()
+  {
+    Collection<EmployeeDO> employeeList = employeeDao.internalLoadAll();
+    return employeeList.stream()
+        .filter(emp -> emp.getAustrittsDatum() == null || emp.getAustrittsDatum().before(new Date()))
+        .collect(Collectors.toList());
   }
 
 }

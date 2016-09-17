@@ -30,16 +30,14 @@ import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulato
 import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.markup.html.WebPage;
-import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.ResourceModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
+import org.projectforge.business.fibu.EmployeeDO;
 import org.projectforge.business.vacation.model.VacationDO;
 import org.projectforge.business.vacation.service.VacationService;
-import org.projectforge.framework.persistence.user.entities.PFUserDO;
-import org.projectforge.framework.time.DateTimeFormatter;
 import org.projectforge.web.fibu.EmployeeEditPage;
 import org.projectforge.web.fibu.ISelectCallerPage;
 import org.projectforge.web.wicket.AbstractListPage;
@@ -84,9 +82,9 @@ public class VacationListPage extends AbstractListPage<VacationListForm, Vacatio
         appendCssClasses(item, vacation.getId(), vacation.isDeleted());
       }
     };
-    columns.add(new CellItemListenerPropertyColumn<VacationDO>(new ResourceModel("name"),
-        getSortable("user.lastname", sortable),
-        "user.lastname", cellItemListener)
+    columns.add(new CellItemListenerPropertyColumn<VacationDO>(new ResourceModel("vacation.employee"),
+        getSortable("vacation.employee", sortable),
+        "vacation.employee", cellItemListener)
     {
       /**
        * @see org.projectforge.web.wicket.CellItemListenerPropertyColumn#populateItem(org.apache.wicket.markup.repeater.Item,
@@ -96,67 +94,30 @@ public class VacationListPage extends AbstractListPage<VacationListForm, Vacatio
       public void populateItem(final Item<ICellPopulator<VacationDO>> item, final String componentId,
           final IModel<VacationDO> rowModel)
       {
-        final VacationDO employee = rowModel.getObject();
-        final PFUserDO user = employee.getUser();
-        final String lastname = user != null ? user.getLastname() : null;
+        final VacationDO vacation = rowModel.getObject();
+        final EmployeeDO employee = vacation.getEmployee();
+        final String fullname = employee != null && employee.getUser() != null ? employee.getUser().getFullname()
+            : null;
         if (isSelectMode() == false) {
-          item.add(new ListSelectActionPanel(componentId, rowModel, EmployeeEditPage.class, employee.getId(),
-              returnToPage, lastname));
+          item.add(new ListSelectActionPanel(componentId, rowModel, EmployeeEditPage.class, vacation.getId(),
+              returnToPage, fullname));
         } else {
           item.add(
-              new ListSelectActionPanel(componentId, rowModel, caller, selectProperty, employee.getId(), lastname));
+              new ListSelectActionPanel(componentId, rowModel, caller, selectProperty, vacation.getId(), fullname));
         }
         cellItemListener.populateItem(item, componentId, rowModel);
         addRowClick(item);
       }
     });
-    columns.add(new CellItemListenerPropertyColumn<VacationDO>(new ResourceModel("firstName"),
-        getSortable("user.firstname", sortable),
-        "user.firstname", cellItemListener));
     columns
-        .add(new CellItemListenerPropertyColumn<VacationDO>(VacationDO.class, getSortable("status", sortable), "status",
+        .add(new CellItemListenerPropertyColumn<VacationDO>(VacationDO.class, getSortable("startDate", sortable),
+            "startDate",
             cellItemListener));
     columns
-        .add(new CellItemListenerPropertyColumn<VacationDO>(VacationDO.class, getSortable("staffNumber", sortable),
-            "staffNumber",
+        .add(new CellItemListenerPropertyColumn<VacationDO>(VacationDO.class, getSortable("endDate", sortable),
+            "endDate",
             cellItemListener));
-    columns.add(new CellItemListenerPropertyColumn<VacationDO>(new ResourceModel("fibu.kost1"),
-        getSortable("kost1.shortDisplayName",
-            sortable),
-        "kost1.shortDisplayName", cellItemListener));
-    columns.add(
-        new CellItemListenerPropertyColumn<VacationDO>(VacationDO.class, getSortable("position", sortable), "position",
-            cellItemListener));
-    columns.add(new CellItemListenerPropertyColumn<VacationDO>(VacationDO.class, getSortable("abteilung", sortable),
-        "abteilung",
-        cellItemListener));
-    columns.add(new CellItemListenerPropertyColumn<VacationDO>(VacationDO.class,
-        getSortable("eintrittsDatum", sortable), "eintrittsDatum",
-        cellItemListener)
-    {
-      @Override
-      public void populateItem(final Item<ICellPopulator<VacationDO>> item, final String componentId,
-          final IModel<VacationDO> rowModel)
-      {
-        final VacationDO employee = rowModel.getObject();
-        item.add(new Label(componentId, DateTimeFormatter.instance().getFormattedDate(employee.getEintrittsDatum())));
-      }
-    });
-    columns.add(new CellItemListenerPropertyColumn<VacationDO>(VacationDO.class,
-        getSortable("austrittsDatum", sortable), "austrittsDatum",
-        cellItemListener)
-    {
-      @Override
-      public void populateItem(final Item<ICellPopulator<VacationDO>> item, final String componentId,
-          final IModel<VacationDO> rowModel)
-      {
-        final VacationDO employee = rowModel.getObject();
-        item.add(new Label(componentId, DateTimeFormatter.instance().getFormattedDate(employee.getAustrittsDatum())));
-      }
-    });
-    columns.add(
-        new CellItemListenerPropertyColumn<VacationDO>(VacationDO.class, getSortable("comment", sortable), "comment",
-            cellItemListener));
+
     return columns;
   }
 
@@ -164,9 +125,9 @@ public class VacationListPage extends AbstractListPage<VacationListForm, Vacatio
   protected void init()
   {
     final List<IColumn<VacationDO, String>> columns = createColumns(this, true);
-    dataTable = createDataTable(columns, "user.lastname", SortOrder.ASCENDING);
+    dataTable = createDataTable(columns, "vacation.employee", SortOrder.ASCENDING);
     form.add(dataTable);
-    addExcelExport(getString("fibu.employee.title.heading"), "employees");
+    addExcelExport(getString("vacation.title.heading"), "vacation");
   }
 
   @Override
