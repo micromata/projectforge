@@ -44,6 +44,7 @@ import org.projectforge.business.user.GroupDao;
 import org.projectforge.business.user.ProjectForgeGroup;
 import org.projectforge.business.user.UserDao;
 import org.projectforge.business.user.UserGroupCache;
+import org.projectforge.business.user.UserRightDao;
 import org.projectforge.business.user.UserRightId;
 import org.projectforge.business.user.UserRightValue;
 import org.projectforge.common.task.TaskStatus;
@@ -88,6 +89,9 @@ public class InitDatabaseDao
 
   @Autowired
   private UserDao userDao;
+
+  @Autowired
+  private UserRightDao userRightDao;
 
   @Autowired
   private HibernateTemplate hibernateTemplate;
@@ -138,6 +142,7 @@ public class InitDatabaseDao
     adminUser.setTimeZone(adminUserTimezone);
     adminUser.setTenant(defaultTenant);
     adminUser.setSuperAdmin(true);
+    userDao.internalSave(adminUser);
     adminUser.addRight(new UserRightDO(UserRightId.FIBU_AUSGANGSRECHNUNGEN, UserRightValue.READWRITE));
     adminUser.addRight(new UserRightDO(UserRightId.FIBU_COST_UNIT, UserRightValue.READWRITE));
     adminUser.addRight(new UserRightDO(UserRightId.FIBU_EINGANGSRECHNUNGEN, UserRightValue.READWRITE));
@@ -151,7 +156,7 @@ public class InitDatabaseDao
     adminUser.addRight(new UserRightDO(UserRightId.PM_PROJECT, UserRightValue.READWRITE));
     adminUser.addRight(new UserRightDO(UserRightId.PM_ORDER_BOOK, UserRightValue.READWRITE));
     adminUser.addRight(new UserRightDO(UserRightId.PM_HR_PLANNING, UserRightValue.READWRITE));
-    userDao.internalSave(adminUser);
+    adminUser.getRights().forEach(userRightDao::internalSave);
 
     ThreadLocalUserContext.setUser(getUserGroupCache(), adminUser); // Need to login the admin user for avoiding following access exceptions.
     TenantRegistryMap.getInstance().clear();
