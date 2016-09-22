@@ -54,7 +54,8 @@ public class GuiAttrSchemaServiceImpl extends AttrSchemaServiceSpringBeanImpl im
   private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(TimedAttributePanel.class);
 
   @Override
-  public ComponentWrapperPanel createWicketComponent(final String id, final AttrGroup group, final AttrDescription desc, final EntityWithAttributes entity)
+  public ComponentWrapperPanel createWicketComponent(final String id, final AttrGroup group, final AttrDescription desc,
+      final EntityWithAttributes entity)
   {
     // TODO RK cachen der factory
     Object factoryObject = desc.getWicketComponentFactoryClass();
@@ -71,8 +72,9 @@ public class GuiAttrSchemaServiceImpl extends AttrSchemaServiceSpringBeanImpl im
   }
 
   @Override
-  public <PK extends Serializable, T extends TimeableAttrRow<PK>, U extends EntityWithConfigurableAttr & EntityWithTimeableAttr<PK, T> & EntityWithAttributes>
-  void createAttrPanels(final DivPanel divPanel, final U entity, final AbstractEditPage<?, ?, ?> parentPage, final Function<AttrGroup, T> addNewEntryFunction)
+  public <PK extends Serializable, T extends TimeableAttrRow<PK>, U extends EntityWithConfigurableAttr & EntityWithTimeableAttr<PK, T> & EntityWithAttributes> void createAttrPanels(
+      final DivPanel divPanel, final U entity, final AbstractEditPage<?, ?, ?> parentPage,
+      final Function<AttrGroup, T> addNewEntryFunction)
   {
     addHtmlClass(divPanel);
 
@@ -87,8 +89,8 @@ public class GuiAttrSchemaServiceImpl extends AttrSchemaServiceSpringBeanImpl im
     }
   }
 
-  public <PK extends Serializable, T extends TimeableAttrRow<PK>, U extends EntityWithConfigurableAttr & EntityWithTimeableAttr<PK, T>>
-  void createTimedAttrPanels(final DivPanel divPanel, final U entity, final AbstractEditPage<?, ?, ?> parentPage,
+  public <PK extends Serializable, T extends TimeableAttrRow<PK>, U extends EntityWithConfigurableAttr & EntityWithTimeableAttr<PK, T>> void createTimedAttrPanels(
+      final DivPanel divPanel, final U entity, final AbstractEditPage<?, ?, ?> parentPage,
       final Function<AttrGroup, T> addNewEntryFunction)
   {
     addHtmlClass(divPanel);
@@ -105,8 +107,9 @@ public class GuiAttrSchemaServiceImpl extends AttrSchemaServiceSpringBeanImpl im
   }
 
   @Override
-  public <PK extends Serializable, T extends TimeableAttrRow<PK>, U extends EntityWithConfigurableAttr & EntityWithTimeableAttr<PK, T> & EntityWithAttributes>
-  void createAttrPanels(final TabPanel tabPanel, final U entity, final AbstractEditPage<?, ?, ?> parentPage, final Function<AttrGroup, T> addNewEntryFunction)
+  public <PK extends Serializable, T extends TimeableAttrRow<PK>, U extends EntityWithConfigurableAttr & EntityWithTimeableAttr<PK, T> & EntityWithAttributes> void createAttrPanels(
+      final TabPanel tabPanel, final U entity, final AbstractEditPage<?, ?, ?> parentPage,
+      final Function<AttrGroup, T> addNewEntryFunction)
   {
     final AttrSchema attrSchema = getAttrSchema(entity.getAttrSchemaName());
 
@@ -131,8 +134,9 @@ public class GuiAttrSchemaServiceImpl extends AttrSchemaServiceSpringBeanImpl im
     divPanel.getDiv().add(AttributeModifier.append("class", "mm_columnContainer"));
   }
 
-  private <PK extends Serializable, T extends TimeableAttrRow<PK>, U extends EntityWithConfigurableAttr & EntityWithTimeableAttr<PK, T> & EntityWithAttributes>
-  void createAttrPanel(final DivPanel divPanel, final U entity, final AbstractEditPage<?, ?, ?> parentPage, final Function<AttrGroup, T> addNewEntryFunction,
+  private <PK extends Serializable, T extends TimeableAttrRow<PK>, U extends EntityWithConfigurableAttr & EntityWithTimeableAttr<PK, T> & EntityWithAttributes> void createAttrPanel(
+      final DivPanel divPanel, final U entity, final AbstractEditPage<?, ?, ?> parentPage,
+      final Function<AttrGroup, T> addNewEntryFunction,
       final AttrGroup group)
   {
     switch (group.getType()) {
@@ -151,8 +155,8 @@ public class GuiAttrSchemaServiceImpl extends AttrSchemaServiceSpringBeanImpl im
     }
   }
 
-  private <PK extends Serializable, T extends TimeableAttrRow<PK>, U extends EntityWithConfigurableAttr & EntityWithTimeableAttr<PK, T>>
-  void createTimedAttrPanel(final DivPanel divPanel, final U entity, final AbstractEditPage<?, ?, ?> parentPage,
+  private <PK extends Serializable, T extends TimeableAttrRow<PK>, U extends EntityWithConfigurableAttr & EntityWithTimeableAttr<PK, T>> void createTimedAttrPanel(
+      final DivPanel divPanel, final U entity, final AbstractEditPage<?, ?, ?> parentPage,
       final Function<AttrGroup, T> addNewEntryFunction, final AttrGroup group)
   {
     switch (group.getType()) {
