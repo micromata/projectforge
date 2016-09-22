@@ -58,6 +58,7 @@ import org.projectforge.continuousdb.UpdateEntry;
 import org.projectforge.continuousdb.UpdateEntryImpl;
 import org.projectforge.continuousdb.UpdatePreCheckStatus;
 import org.projectforge.continuousdb.UpdateRunningStatus;
+import org.projectforge.framework.configuration.ConfigurationType;
 import org.projectforge.framework.configuration.entities.ConfigurationDO;
 import org.projectforge.framework.persistence.entities.AbstractBaseDO;
 import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
@@ -101,7 +102,9 @@ public class DatabaseCoreUpdates
       {
         log.info("Running pre-check for ProjectForge version 6.4.0");
         final DatabaseUpdateService databaseUpdateService = applicationContext.getBean(DatabaseUpdateService.class);
-        if (databaseUpdateService.doesTableExist("T_VACATION") == false) {
+        if (databaseUpdateService.doesTableExist("T_EMPLOYEE_VACATION") == false
+            || databaseUpdateService.doesTableRowExists("T_CONFIGURATION", "PARAMETER", "hr.emailaddress",
+                true) == false) {
           return UpdatePreCheckStatus.READY_FOR_UPDATE;
         } else {
           return UpdatePreCheckStatus.ALREADY_UPDATED;
@@ -113,11 +116,23 @@ public class DatabaseCoreUpdates
       {
         final InitDatabaseDao initDatabaseDao = applicationContext.getBean(InitDatabaseDao.class);
         final DatabaseUpdateService databaseUpdateService = applicationContext.getBean(DatabaseUpdateService.class);
-        if (databaseUpdateService.doesTableExist("T_VACATION") == false) {
+        if (databaseUpdateService.doesTableExist("T_EMPLOYEE_VACATION") == false) {
           //Updating the schema
           initDatabaseDao.updateSchema();
         }
-
+        if (databaseUpdateService.doesTableRowExists("T_CONFIGURATION", "PARAMETER", "hr.emailaddress",
+            true) == false) {
+          final PfEmgrFactory emf = applicationContext.getBean(PfEmgrFactory.class);
+          emf.runInTrans(emgr -> {
+            ConfigurationDO confEntry = new ConfigurationDO();
+            confEntry.setConfigurationType(ConfigurationType.STRING);
+            confEntry.setGlobal(false);
+            confEntry.setParameter("hr.emailaddress");
+            confEntry.setStringValue("hr@management.de");
+            emgr.insert(confEntry);
+            return UpdateRunningStatus.DONE;
+          });
+        }
         return UpdateRunningStatus.DONE;
       }
 

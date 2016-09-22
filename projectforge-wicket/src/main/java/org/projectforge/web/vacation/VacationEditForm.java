@@ -23,18 +23,29 @@
 
 package org.projectforge.web.vacation;
 
+import java.util.List;
+
 import org.apache.log4j.Logger;
+import org.apache.wicket.markup.html.form.DropDownChoice;
+import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.markup.html.form.FormComponent;
+import org.apache.wicket.markup.html.form.validation.IFormValidator;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.fibu.EmployeeDO;
 import org.projectforge.business.fibu.api.EmployeeService;
+import org.projectforge.business.multitenancy.TenantService;
+import org.projectforge.business.user.I18nHelper;
 import org.projectforge.business.vacation.model.VacationDO;
+import org.projectforge.business.vacation.model.VacationStatus;
 import org.projectforge.business.vacation.service.VacationService;
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.web.employee.EmployeeWicketProvider;
 import org.projectforge.web.wicket.AbstractEditForm;
 import org.projectforge.web.wicket.bootstrap.GridSize;
 import org.projectforge.web.wicket.components.DatePanel;
 import org.projectforge.web.wicket.components.DatePanelSettings;
+import org.projectforge.web.wicket.components.LabelValueChoiceRenderer;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
 import org.projectforge.web.wicket.flowlayout.Select2SingleChoicePanel;
 
@@ -52,9 +63,16 @@ public class VacationEditForm extends AbstractEditForm<VacationDO, VacationEditP
   @SpringBean
   private EmployeeService employeeService;
 
+  @SpringBean
+  private TenantService tenantService;
+
+  // Components for form validation.
+  private final FormComponent<?>[] dependentFormComponents = new FormComponent[2];
+
   public VacationEditForm(final VacationEditPage parentPage, final VacationDO data)
   {
     super(parentPage, data);
+    data.setEmployee(employeeService.getEmployeeByUserId(ThreadLocalUserContext.getUserId()));
   }
 
   @Override
@@ -67,7 +85,8 @@ public class VacationEditForm extends AbstractEditForm<VacationDO, VacationEditP
       final FieldsetPanel fs = gridBuilder.newFieldset(VacationDO.class, "startDate");
       DatePanel startDatePanel = new DatePanel(fs.newChildId(), new PropertyModel<>(data, "startDate"),
           new DatePanelSettings());
-      startDatePanel.setRequired(true).setMarkupId("vacation.startdate").setOutputMarkupId(true);
+      startDatePanel.setRequired(true).setMarkupId("vacation-startdate").setOutputMarkupId(true);
+      dependentFormComponents[0] = startDatePanel;
       fs.add(startDatePanel);
     }
 
@@ -76,146 +95,75 @@ public class VacationEditForm extends AbstractEditForm<VacationDO, VacationEditP
       final FieldsetPanel fs = gridBuilder.newFieldset(VacationDO.class, "endDate");
       DatePanel endDatePanel = new DatePanel(fs.newChildId(), new PropertyModel<>(data, "endDate"),
           new DatePanelSettings());
-      endDatePanel.setRequired(true).setMarkupId("vacation.enddate").setOutputMarkupId(true);
+      endDatePanel.setRequired(true).setMarkupId("vacation-enddate").setOutputMarkupId(true);
+      dependentFormComponents[1] = endDatePanel;
       fs.add(endDatePanel);
     }
+
+    add(new IFormValidator()
+    {
+      private static final long serialVersionUID = -8478416045860851983L;
+
+      @Override
+      public void validate(final Form<?> form)
+      {
+        final DatePanel startDatePanel = (DatePanel) dependentFormComponents[0];
+        final DatePanel endDatePanel = (DatePanel) dependentFormComponents[1];
+
+        List<VacationDO> vacationListForPeriod = vacationService.getVacationForDate(data.getEmployee(),
+            startDatePanel.getConvertedInput(), endDatePanel.getConvertedInput());
+        if (vacationListForPeriod != null && vacationListForPeriod.size() > 0) {
+          error(I18nHelper.getLocalizedMessage("vacation.validate.notValidDate"));
+        }
+      }
+
+      @Override
+      public FormComponent<?>[] getDependentFormComponents()
+      {
+        return dependentFormComponents;
+      }
+    });
 
     {
       // Manager
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("vacation.manager"));
-      final Select2Choice<EmployeeDO> managerSelect = new Select2Choice<EmployeeDO>(
+      final Select2Choice<EmployeeDO> managerSelect = new Select2Choice<>(
           Select2SingleChoicePanel.WICKET_ID,
-          new PropertyModel<EmployeeDO>(data, "manager"),
-          new EmployeeWicketProvider(data.getManager(), employeeService));
-      managerSelect.setMarkupId("vacation.manager").setOutputMarkupId(true);
+          new PropertyModel<>(data, "manager"),
+          new EmployeeWicketProvider(employeeService));
+      managerSelect.setRequired(true).setMarkupId("vacation-manager").setOutputMarkupId(true);
       fs.add(new Select2SingleChoicePanel<EmployeeDO>(fs.newChildId(), managerSelect));
     }
 
-    // replace the GridBuilder from superclass by our TabPanel
-    //    final TabPanel tabPanel = new TabPanel("flowform");
-    //    replace(tabPanel);
-    //    gridBuilder = tabPanel.getOrCreateTab("fibu.Vacation.coredata", true); // create the default tab
-    //
-    //    gridBuilder.newSplitPanel(GridSize.COL50, true).newSubSplitPanel(GridSize.COL100);
-    //    {
-    //      // User
-    //      final FieldsetPanel fs = gridBuilder.newFieldset(VacationDO.class, "user");
-    //      final UserSelectPanel userSelectPanel = new UserSelectPanel(fs.newChildId(),
-    //          new PropertyModel<>(data, "user"), parentPage,
-    //          "userId");
-    //      userSelectPanel.getWrappedComponent().setMarkupId("user").setOutputMarkupId(true);
-    //      userSelectPanel.setShowSelectMeButton(false).setRequired(true);
-    //      fs.add(userSelectPanel);
-    //      userSelectPanel.init();
-    //    }
-    //    {
-    //      // cost 1
-    //      final FieldsetPanel fs = gridBuilder.newFieldset(VacationDO.class, "kost1");
-    //      Kost1FormComponent kost1 = new Kost1FormComponent(InputPanel.WICKET_ID, new PropertyModel<>(data, "kost1"), true);
-    //      kost1.setMarkupId("kost1").setOutputMarkupId(true);
-    //      fs.add(kost1);
-    //    }
-    //    {
-    //      // DropDownChoice status
-    //      final FieldsetPanel fs = gridBuilder.newFieldset(VacationDO.class, "status");
-    //      final LabelValueChoiceRenderer<VacationStatus> statusChoiceRenderer = new LabelValueChoiceRenderer<>(
-    //          this,
-    //          VacationStatus.values());
-    //      final DropDownChoice<VacationStatus> statusChoice = new DropDownChoice<>(fs.getDropDownChoiceId(),
-    //          new PropertyModel<>(data, "status"), statusChoiceRenderer.getValues(), statusChoiceRenderer);
-    //      statusChoice.setNullValid(false).setRequired(true);
-    //      statusChoice.setMarkupId("status").setOutputMarkupId(true);
-    //      fs.add(statusChoice);
-    //    }
-    //    {
-    //      // Division
-    //      final FieldsetPanel fs = gridBuilder.newFieldset(VacationDO.class, "abteilung");
-    //      MaxLengthTextField abteilung = new MaxLengthTextField(InputPanel.WICKET_ID,
-    //          new PropertyModel<>(data, "abteilung"));
-    //      abteilung.setMarkupId("abteilung").setOutputMarkupId(true);
-    //      fs.add(abteilung);
-    //    }
-    //    {
-    //      // Position
-    //      final FieldsetPanel fs = gridBuilder.newFieldset(VacationDO.class, "position");
-    //      MaxLengthTextField position = new MaxLengthTextField(InputPanel.WICKET_ID, new PropertyModel<>(data, "position"));
-    //      position.setMarkupId("position").setOutputMarkupId(true);
-    //      fs.add(position);
-    //    }
-    //
-    //    gridBuilder.newSplitPanel(GridSize.COL50, true).newSubSplitPanel(GridSize.COL100);
-    //    {
-    //      // Staff number
-    //      final FieldsetPanel fs = gridBuilder.newFieldset(VacationDO.class, "staffNumber");
-    //      MaxLengthTextField position = new MaxLengthTextField(InputPanel.WICKET_ID,
-    //          new PropertyModel<>(data, "staffNumber"));
-    //      position.setMarkupId("staffNumber").setOutputMarkupId(true);
-    //      position.add(new PatternValidator("[a-zA-Z0-9]*"));
-    //      fs.add(position);
-    //    }
-    //    {
-    //      // Weekly hours
-    //      final FieldsetPanel fs = gridBuilder.newFieldset(VacationDO.class, "weeklyWorkingHours");
-    //      fs.add(new MinMaxNumberField<>(InputPanel.WICKET_ID,
-    //          new PropertyModel<>(data, "weeklyWorkingHours"), BigDecimal.ZERO, NUMBER_OF_WEEK_HOURS));
-    //    }
-    //    {
-    //      // Holidays
-    //      final FieldsetPanel fs = gridBuilder.newFieldset(VacationDO.class, "urlaubstage");
-    //      fs.add(new MinMaxNumberField<>(InputPanel.WICKET_ID, new PropertyModel<>(data, "urlaubstage"), 0, 366));
-    //    }
-    //    {
-    //      // Start date
-    //      final FieldsetPanel fs = gridBuilder.newFieldset(VacationDO.class, "eintrittsDatum");
-    //      fs.add(new DatePanel(fs.newChildId(), new PropertyModel<>(data, "eintrittsDatum"), new DatePanelSettings()));
-    //    }
-    //    {
-    //      // End date
-    //      final FieldsetPanel fs = gridBuilder.newFieldset(VacationDO.class, "austrittsDatum");
-    //      fs.add(new DatePanel(fs.newChildId(), new PropertyModel<>(data, "austrittsDatum"), new DatePanelSettings()));
-    //    }
-    //
-    //    gridBuilder.newSplitPanel(GridSize.COL50, true);
-    //    gridBuilder.newSubSplitPanel(GridSize.COL50);
-    //    generateStreetZipCityFields(gridBuilder, data);
-    //
-    //    gridBuilder.newSubSplitPanel(GridSize.COL50);
-    //    generateCountryStateFields(gridBuilder, data);
-    //
-    //    gridBuilder.newSplitPanel(GridSize.COL25, true).newSubSplitPanel(GridSize.COL100);
-    //    createBirthdayPanel(gridBuilder, data);
-    //
-    //    {
-    //      // DropDownChoice gender
-    //      final FieldsetPanel fs = gridBuilder.newFieldset(VacationDO.class, "gender");
-    //      final LabelValueChoiceRenderer<Gender> genderChoiceRenderer = new LabelValueChoiceRenderer<>(this,
-    //          Gender.values());
-    //      final DropDownChoice<Gender> statusChoice = new DropDownChoice<>(
-    //          fs.getDropDownChoiceId(),
-    //          new PropertyModel<>(data, "gender"),
-    //          genderChoiceRenderer.getValues(),
-    //          genderChoiceRenderer);
-    //      statusChoice.setNullValid(false).setRequired(true);
-    //      statusChoice.setMarkupId("gender").setOutputMarkupId(true);
-    //      fs.add(statusChoice);
-    //    }
-    //    gridBuilder.newSplitPanel(GridSize.COL25, true).newSubSplitPanel(GridSize.COL100);
-    //    createBankingDetails(gridBuilder, data);
-    //
-    //    gridBuilder.newSplitPanel(GridSize.COL100, true); // set hasSubSplitPanel to true to remove borders from this split panel
-    //    {
-    //      // AttrPanels
-    //      final Function<AttrGroup, VacationTimedDO> addNewEntryFunction = group -> VacationService
-    //          .addNewTimeAttributeRow(data, group.getName());
-    //      attrSchemaService.createAttrPanels(tabPanel, data, parentPage, addNewEntryFunction);
-    //    }
-    //
-    //    gridBuilder.newSplitPanel(GridSize.COL100, true).newSubSplitPanel(GridSize.COL100);
-    //    {
-    //      // Comment
-    //      final FieldsetPanel fs = gridBuilder.newFieldset(VacationDO.class, "comment");
-    //      fs.add(new MaxLengthTextArea(TextAreaPanel.WICKET_ID, new PropertyModel<>(data, "comment")), true);
-    //    }
+    {
+      // Substitution
+      final FieldsetPanel fs = gridBuilder.newFieldset(getString("vacation.substitution"));
+      final Select2Choice<EmployeeDO> substitutionSelect = new Select2Choice<>(
+          Select2SingleChoicePanel.WICKET_ID,
+          new PropertyModel<>(data, "substitution"),
+          new EmployeeWicketProvider(employeeService));
+      substitutionSelect.setRequired(true).setMarkupId("vacation-substitution").setOutputMarkupId(true);
+      fs.add(new Select2SingleChoicePanel<EmployeeDO>(fs.newChildId(), substitutionSelect));
+    }
+
+    {
+      // DropDownChoice status
+      final FieldsetPanel fs = gridBuilder.newFieldset(EmployeeDO.class, "status");
+      final LabelValueChoiceRenderer<VacationStatus> statusChoiceRenderer = new LabelValueChoiceRenderer<>(
+          this,
+          VacationStatus.values());
+      final DropDownChoice<VacationStatus> statusChoice = new DropDownChoice<>(fs.getDropDownChoiceId(),
+          new PropertyModel<>(data, "status"), statusChoiceRenderer.getValues(), statusChoiceRenderer);
+      statusChoice.setNullValid(false).setRequired(true);
+      statusChoice.setMarkupId("vacation-status").setOutputMarkupId(true);
+      statusChoice.setEnabled(hasUserEditStatusRight());
+      fs.add(statusChoice);
+    }
+  }
+
+  private boolean hasUserEditStatusRight()
+  {
+    return false;
   }
 
   @Override
@@ -223,4 +171,5 @@ public class VacationEditForm extends AbstractEditForm<VacationDO, VacationEditP
   {
     return log;
   }
+
 }

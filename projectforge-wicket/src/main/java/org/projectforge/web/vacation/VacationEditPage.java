@@ -26,8 +26,11 @@ package org.projectforge.web.vacation;
 import org.apache.log4j.Logger;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
+import org.projectforge.business.fibu.api.EmployeeService;
 import org.projectforge.business.vacation.model.VacationDO;
 import org.projectforge.business.vacation.service.VacationService;
+import org.projectforge.framework.access.AccessException;
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.web.fibu.ISelectCallerPage;
 import org.projectforge.web.wicket.AbstractEditPage;
 import org.projectforge.web.wicket.EditPage;
@@ -43,10 +46,22 @@ public class VacationEditPage extends AbstractEditPage<VacationDO, VacationEditF
   @SpringBean
   private VacationService vacationService;
 
+  @SpringBean
+  private EmployeeService employeeService;
+
   public VacationEditPage(final PageParameters parameters)
   {
     super(parameters, "vacation");
     init();
+  }
+
+  @Override
+  protected void init()
+  {
+    if (employeeService.getEmployeeByUserId(ThreadLocalUserContext.getUser().getPk()) == null) {
+      throw new AccessException("access.exception.noEmployeeToUser");
+    }
+    super.init();
   }
 
   /**

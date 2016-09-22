@@ -312,6 +312,7 @@ public class MenuItemRegistry implements Serializable
     // COMMON
     reg.register(common, MenuItemDefId.CALENDAR, 10, TeamCalCalendarPage.class); // Visible for all.
     reg.register(common, MenuItemDefId.TEAMCALENDAR, 20, TeamCalListPage.class); //
+    reg.register(common, MenuItemDefId.VACATION, 21, VacationListPage.class); //
     reg.register(common, MenuItemDefId.BOOK_LIST, 30, BookListPage.class); // Visible for all.
     reg.register(common, MenuItemDefId.ADDRESS_LIST, 40, AddressListPage.class)
         .setMobileMenu(AddressMobileListPage.class, 100); // Visible
@@ -328,7 +329,6 @@ public class MenuItemRegistry implements Serializable
       }
     };
     reg.register(meb);
-    reg.register(common, MenuItemDefId.VACATION, 110, VacationListPage.class);
     reg.register(common, MenuItemDefId.SEARCH, 100, SearchPage.class);
 
     // PROJECT_MANAGEMENT

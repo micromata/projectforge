@@ -907,4 +907,20 @@ public class DatabaseUpdateService
     });
   }
 
+  public boolean doesTableRowExists(String tablename, String columnname, String columnvalue, boolean useQuotationMarks)
+  {
+    String quotationMark = useQuotationMarks ? "'" : "";
+    String sql = "SELECT * FROM " + tablename + " WHERE " + columnname + " = " + quotationMark + columnvalue
+        + quotationMark;
+    try {
+      List<DatabaseResultRow> query = query(sql);
+      if (query != null && query.size() > 0) {
+        return true;
+      }
+    } catch (Exception e) {
+      return false;
+    }
+    return false;
+  }
+
 }

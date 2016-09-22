@@ -24,7 +24,10 @@
 package org.projectforge.web.vacation;
 
 import org.apache.log4j.Logger;
+import org.apache.wicket.spring.injection.annot.SpringBean;
+import org.projectforge.business.fibu.api.EmployeeService;
 import org.projectforge.business.vacation.VacationFilter;
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.web.wicket.AbstractListForm;
 
 public class VacationListForm extends AbstractListForm<VacationFilter, VacationListPage>
@@ -32,6 +35,9 @@ public class VacationListForm extends AbstractListForm<VacationFilter, VacationL
   private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(VacationListForm.class);
 
   private static final long serialVersionUID = -5969136444233092172L;
+
+  @SpringBean
+  private EmployeeService employeeService;
 
   public VacationListForm(final VacationListPage parentPage)
   {
@@ -41,7 +47,7 @@ public class VacationListForm extends AbstractListForm<VacationFilter, VacationL
   @Override
   protected VacationFilter newSearchFilterInstance()
   {
-    return new VacationFilter();
+    return new VacationFilter(employeeService.getEmployeeByUserId(ThreadLocalUserContext.getUserId()));
   }
 
   @Override
@@ -49,4 +55,5 @@ public class VacationListForm extends AbstractListForm<VacationFilter, VacationL
   {
     return log;
   }
+
 }

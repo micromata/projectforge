@@ -13,6 +13,9 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
 public @interface AUserRightId {
+
   String value();
+
+  boolean checkAccess() default true;
 
 }

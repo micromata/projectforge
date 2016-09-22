@@ -3,6 +3,7 @@ package org.projectforge.framework.persistence.jpa.listener;
 import org.projectforge.business.multitenancy.TenantChecker;
 import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.access.OperationType;
+import org.projectforge.framework.persistence.api.AUserRightId;
 import org.projectforge.framework.persistence.api.BaseDO;
 import org.projectforge.framework.persistence.api.IUserRightId;
 import org.projectforge.framework.persistence.api.JpaPfGenericPersistenceService;
@@ -53,6 +54,10 @@ public class BeforeModifyEventHandler implements EmgrEventHandler<EmgrInitForMod
       return;
     }
     BaseDO baseDo = (BaseDO) rec;
+    AUserRightId aUserRightId = rec.getClass().getAnnotation(AUserRightId.class);
+    if (aUserRightId != null && aUserRightId.checkAccess() == false) {
+      return;
+    }
     OperationType operationType;
     if (event instanceof EmgrInitForInsertEvent) {
       operationType = OperationType.INSERT;

@@ -32,13 +32,14 @@ import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.ResourceModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.fibu.EmployeeDO;
+import org.projectforge.business.fibu.api.EmployeeService;
 import org.projectforge.business.vacation.model.VacationDO;
 import org.projectforge.business.vacation.service.VacationService;
-import org.projectforge.web.fibu.EmployeeEditPage;
+import org.projectforge.framework.access.AccessException;
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.web.fibu.ISelectCallerPage;
 import org.projectforge.web.wicket.AbstractListPage;
 import org.projectforge.web.wicket.CellItemListener;
@@ -55,6 +56,9 @@ public class VacationListPage extends AbstractListPage<VacationListForm, Vacatio
 
   @SpringBean
   private VacationService vacationService;
+
+  @SpringBean
+  private EmployeeService employeeService;
 
   public VacationListPage(final PageParameters parameters)
   {
@@ -82,9 +86,9 @@ public class VacationListPage extends AbstractListPage<VacationListForm, Vacatio
         appendCssClasses(item, vacation.getId(), vacation.isDeleted());
       }
     };
-    columns.add(new CellItemListenerPropertyColumn<VacationDO>(new ResourceModel("vacation.employee"),
-        getSortable("vacation.employee", sortable),
-        "vacation.employee", cellItemListener)
+    columns.add(new CellItemListenerPropertyColumn<VacationDO>(VacationDO.class,
+        getSortable("employee", sortable),
+        "employee", cellItemListener)
     {
       /**
        * @see org.projectforge.web.wicket.CellItemListenerPropertyColumn#populateItem(org.apache.wicket.markup.repeater.Item,
@@ -99,7 +103,7 @@ public class VacationListPage extends AbstractListPage<VacationListForm, Vacatio
         final String fullname = employee != null && employee.getUser() != null ? employee.getUser().getFullname()
             : null;
         if (isSelectMode() == false) {
-          item.add(new ListSelectActionPanel(componentId, rowModel, EmployeeEditPage.class, vacation.getId(),
+          item.add(new ListSelectActionPanel(componentId, rowModel, VacationEditPage.class, vacation.getId(),
               returnToPage, fullname));
         } else {
           item.add(
@@ -118,14 +122,22 @@ public class VacationListPage extends AbstractListPage<VacationListForm, Vacatio
             "endDate",
             cellItemListener));
 
+    columns
+        .add(new CellItemListenerPropertyColumn<VacationDO>(VacationDO.class, getSortable("status", sortable),
+            "status",
+            cellItemListener));
+
     return columns;
   }
 
   @Override
   protected void init()
   {
+    if (employeeService.getEmployeeByUserId(ThreadLocalUserContext.getUser().getPk()) == null) {
+      throw new AccessException("access.exception.noEmployeeToUser");
+    }
     final List<IColumn<VacationDO, String>> columns = createColumns(this, true);
-    dataTable = createDataTable(columns, "vacation.employee", SortOrder.ASCENDING);
+    dataTable = createDataTable(columns, "startDate", SortOrder.DESCENDING);
     form.add(dataTable);
     addExcelExport(getString("vacation.title.heading"), "vacation");
   }
@@ -146,4 +158,5 @@ public class VacationListPage extends AbstractListPage<VacationListForm, Vacatio
   {
     return vacationService;
   }
+
 }

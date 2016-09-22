@@ -27,17 +27,19 @@ import java.util.Date;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.FetchType;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
-import javax.persistence.UniqueConstraint;
 
 import org.hibernate.search.annotations.Indexed;
 import org.projectforge.business.fibu.EmployeeDO;
 import org.projectforge.common.anots.PropertyInfo;
+import org.projectforge.framework.persistence.api.AUserRightId;
 import org.projectforge.framework.persistence.attr.impl.HibernateSearchAttrSchemaFieldInfoProvider;
 import org.projectforge.framework.persistence.entities.DefaultBaseDO;
 
@@ -52,14 +54,14 @@ import de.micromata.mgc.jpa.hibernatesearch.api.HibernateSearchInfo;
 @Entity
 @Indexed
 @HibernateSearchInfo(fieldInfoProvider = HibernateSearchAttrSchemaFieldInfoProvider.class, param = "vacation")
-@Table(name = "t_vacation",
-    uniqueConstraints = {
-        @UniqueConstraint(columnNames = { "employee_id", "tenant_id" })
-    },
+@Table(name = "t_employee_vacation",
     indexes = {
         @javax.persistence.Index(name = "idx_fk_t_vacation_employee_id", columnList = "employee_id"),
+        @javax.persistence.Index(name = "idx_fk_t_vacation_substitution_id", columnList = "substitution_id"),
+        @javax.persistence.Index(name = "idx_fk_t_vacation_manager_id", columnList = "manager_id"),
         @javax.persistence.Index(name = "idx_fk_t_vacation_tenant_id", columnList = "tenant_id")
     })
+@AUserRightId(value = "EMPLOYEE_VACATION", checkAccess = false)
 public class VacationDO extends DefaultBaseDO
 {
   private static final long serialVersionUID = -1208597049212394757L;
@@ -78,6 +80,9 @@ public class VacationDO extends DefaultBaseDO
 
   @PropertyInfo(i18nKey = "vacation.manager")
   private EmployeeDO manager;
+
+  @PropertyInfo(i18nKey = "vacation.status")
+  private VacationStatus status;
 
   /**
    * The employee.
@@ -140,7 +145,7 @@ public class VacationDO extends DefaultBaseDO
   }
 
   @Temporal(TemporalType.DATE)
-  @Column(name = "start_date")
+  @Column(name = "start_date", nullable = false)
   public Date getStartDate()
   {
     return startDate;
@@ -152,7 +157,7 @@ public class VacationDO extends DefaultBaseDO
   }
 
   @Temporal(TemporalType.DATE)
-  @Column(name = "end_date")
+  @Column(name = "end_date", nullable = false)
   public Date getEndDate()
   {
     return endDate;
@@ -163,4 +168,18 @@ public class VacationDO extends DefaultBaseDO
     this.endDate = endDate;
   }
 
+  @Enumerated(EnumType.STRING)
+  @Column(name = "vacation_status", length = 30, nullable = false)
+  public VacationStatus getStatus()
+  {
+    if (status == null) {
+      return VacationStatus.IN_PROGRESS;
+    }
+    return status;
+  }
+
+  public void setStatus(final VacationStatus status)
+  {
+    this.status = status;
+  }
 }
