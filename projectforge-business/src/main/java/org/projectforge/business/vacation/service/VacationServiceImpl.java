@@ -1,9 +1,12 @@
 package org.projectforge.business.vacation.service;
 
+import java.util.Date;
 import java.util.List;
 
+import org.projectforge.business.fibu.EmployeeDO;
 import org.projectforge.business.vacation.model.VacationDO;
-import org.projectforge.business.vacation.model.VacationDao;
+import org.projectforge.business.vacation.repository.VacationDao;
+import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.persistence.history.DisplayHistoryEntry;
 import org.projectforge.framework.persistence.jpa.impl.CorePersistenceServiceImpl;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
@@ -22,6 +25,24 @@ public class VacationServiceImpl extends CorePersistenceServiceImpl<Integer, Vac
 {
   @Autowired
   private VacationDao vacationDao;
+
+  @Override
+  public List<VacationDO> getList(BaseSearchFilter filter)
+  {
+    return vacationDao.getList(filter);
+  }
+
+  @Override
+  public List<VacationDO> getVacationForDate(EmployeeDO employee, Date startDate, Date endDate)
+  {
+    return vacationDao.getVacationForPeriod(employee, startDate, endDate);
+  }
+
+  @Override
+  public boolean hasInsertAccess(PFUserDO user)
+  {
+    return true;
+  }
 
   @Override
   public boolean hasLoggedInUserInsertAccess()
@@ -75,12 +96,6 @@ public class VacationServiceImpl extends CorePersistenceServiceImpl<Integer, Vac
   public void rebuildDatabaseIndex()
   {
     vacationDao.rebuildDatabaseIndex();
-  }
-
-  @Override
-  public boolean hasInsertAccess(PFUserDO user)
-  {
-    return true;
   }
 
 }

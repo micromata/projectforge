@@ -14,6 +14,7 @@ import java.util.stream.Collectors;
 
 import org.projectforge.business.fibu.EmployeeDO;
 import org.projectforge.business.fibu.EmployeeDao;
+import org.projectforge.business.fibu.EmployeeFilter;
 import org.projectforge.business.fibu.EmployeeTimedDO;
 import org.projectforge.business.fibu.api.EmployeeService;
 import org.projectforge.business.fibu.kost.Kost1DO;
@@ -29,7 +30,6 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import de.micromata.genome.db.jpa.tabattr.api.AttrSchemaService;
 import de.micromata.genome.db.jpa.tabattr.api.TimeableService;
 
 /**
@@ -54,9 +54,6 @@ public class EmployeeServiceImpl extends CorePersistenceServiceImpl<Integer, Emp
 
   @Autowired
   private EmployeeDao employeeDao;
-
-  @Autowired
-  private AttrSchemaService attrSchemaService;
 
   @Autowired
   private TimeableService<Integer, EmployeeTimedDO> timeableEmployeeService;
@@ -232,11 +229,16 @@ public class EmployeeServiceImpl extends CorePersistenceServiceImpl<Integer, Emp
   }
 
   @Override
-  public List<EmployeeDO> findAllActive()
+  public List<EmployeeDO> findAllActive(boolean checkAccess)
   {
-    Collection<EmployeeDO> employeeList = employeeDao.internalLoadAll();
+    Collection<EmployeeDO> employeeList = new ArrayList<>();
+    if (checkAccess) {
+      employeeList = employeeDao.getList(new EmployeeFilter());
+    } else {
+      employeeList = employeeDao.internalLoadAll();
+    }
     return employeeList.stream()
-        .filter(emp -> emp.getAustrittsDatum() == null || emp.getAustrittsDatum().before(new Date()))
+        .filter(emp -> emp.getAustrittsDatum() == null || emp.getAustrittsDatum().after(new Date()))
         .collect(Collectors.toList());
   }
 

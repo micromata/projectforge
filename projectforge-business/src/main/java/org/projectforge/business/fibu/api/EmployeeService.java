@@ -32,6 +32,6 @@ public interface EmployeeService extends IPersistenceService<EmployeeDO>, IDao<E
 
   BigDecimal getMonthlySalary(EmployeeDO employee, Calendar selectedDate);
 
-  Collection<EmployeeDO> findAllActive();
+  Collection<EmployeeDO> findAllActive(boolean checkAccess);
 
 }

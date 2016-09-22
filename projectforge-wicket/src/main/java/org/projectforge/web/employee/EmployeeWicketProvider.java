@@ -26,11 +26,12 @@ package org.projectforge.web.employee;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 import org.projectforge.business.fibu.EmployeeDO;
 import org.projectforge.business.fibu.api.EmployeeService;
-import org.projectforge.business.teamcal.event.model.TeamEventAttendeeDO;
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.utils.NumberHelper;
 
 import com.vaynberg.wicket.select2.Response;
@@ -42,21 +43,12 @@ public class EmployeeWicketProvider extends TextChoiceProvider<EmployeeDO>
 
   private static final long serialVersionUID = 6228672123966093257L;
 
-  final private EmployeeDO employee;
-
-  private List<TeamEventAttendeeDO> sortedAttendees;
-
-  private List<TeamEventAttendeeDO> customAttendees = new ArrayList<>();
-
   private transient EmployeeService employeeService;
 
   private int pageSize = 20;
 
-  private Integer internalNewAttendeeSequence = -1;
-
-  public EmployeeWicketProvider(EmployeeDO employee, EmployeeService employeeService)
+  public EmployeeWicketProvider(EmployeeService employeeService)
   {
-    this.employee = employee;
     this.employeeService = employeeService;
   }
 
@@ -96,7 +88,10 @@ public class EmployeeWicketProvider extends TextChoiceProvider<EmployeeDO>
   {
     boolean hasMore = false;
     Collection<EmployeeDO> result = new ArrayList<>();
-    for (EmployeeDO emp : employeeService.findAllActive()) {
+    List<EmployeeDO> employeesWithoutLoginedUser = employeeService.findAllActive(false).stream()
+        .filter(emp -> emp.getUser().getPk().equals(ThreadLocalUserContext.getUserId()) == false)
+        .collect(Collectors.toList());
+    for (EmployeeDO emp : employeesWithoutLoginedUser) {
       if (StringUtils.isBlank(term) == false) {
         if (emp.getUser().getFullname().toLowerCase().contains(term.toLowerCase())) {
           result.add(emp);

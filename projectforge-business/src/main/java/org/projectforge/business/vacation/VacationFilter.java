@@ -25,6 +25,7 @@ package org.projectforge.business.vacation;
 
 import java.io.Serializable;
 
+import org.projectforge.business.fibu.EmployeeDO;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 
 import com.thoughtworks.xstream.annotations.XStreamAlias;
@@ -39,13 +40,21 @@ public class VacationFilter extends BaseSearchFilter implements Serializable
 {
   private static final long serialVersionUID = 8567780910637887786L;
 
-  public VacationFilter()
+  private EmployeeDO employee;
+
+  public VacationFilter(EmployeeDO employee)
   {
+    this.employee = employee;
   }
 
   public VacationFilter(final BaseSearchFilter filter)
   {
     super(filter);
+  }
+
+  public Object getEmployeeForUser()
+  {
+    return employee;
   }
 
 }
