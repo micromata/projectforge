@@ -110,10 +110,15 @@ public class VacationEditForm extends AbstractEditForm<VacationDO, VacationEditP
         final DatePanel startDatePanel = (DatePanel) dependentFormComponents[0];
         final DatePanel endDatePanel = (DatePanel) dependentFormComponents[1];
 
+        if (endDatePanel.getConvertedInput().before(startDatePanel.getConvertedInput())) {
+          error(I18nHelper.getLocalizedMessage("vacation.validate.endbeforestart"));
+          return;
+        }
+
         List<VacationDO> vacationListForPeriod = vacationService.getVacationForDate(data.getEmployee(),
             startDatePanel.getConvertedInput(), endDatePanel.getConvertedInput());
         if (vacationListForPeriod != null && vacationListForPeriod.size() > 0) {
-          error(I18nHelper.getLocalizedMessage("vacation.validate.notValidDate"));
+          error(I18nHelper.getLocalizedMessage("vacation.validate.leaveapplicationexists"));
         }
       }
 
