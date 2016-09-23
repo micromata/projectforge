@@ -43,18 +43,11 @@ public class SystemUpdater
 {
   private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(SystemUpdater.class);
 
-  private final UpdaterConfiguration configuration;
-
   private SortedSet<UpdateEntry> updateEntries;
 
   private final ExecutorService exService = Executors.newSingleThreadExecutor();
 
   private boolean isUpdating = false;
-
-  public SystemUpdater(final UpdaterConfiguration configuration)
-  {
-    this.configuration = configuration;
-  }
 
   public void register(final UpdateEntry... updateEntries)
   {
@@ -162,7 +155,7 @@ public class SystemUpdater
       try {
         ThreadLocalUserContext.setUserContext(uc);
         updateEntry.setRunningStatus(updateEntry.runUpdate());
-        getDatabaseUpdateDao().writeUpdateEntryLog(updateEntry);
+        //getDatabaseUpdateDao().writeUpdateEntryLog(updateEntry);
         updateEntry.setPreCheckStatus(updateEntry.runPreCheck());
         runAllPreChecks();
       } catch (Error e) {
@@ -182,11 +175,6 @@ public class SystemUpdater
   private void setUpdating(boolean isUpdating)
   {
     this.isUpdating = isUpdating;
-  }
-
-  private DatabaseUpdateService getDatabaseUpdateDao()
-  {
-    return this.configuration.getDatabaseUpdateDao();
   }
 
   private static final String[] DATA_BASE_UPDATES_REQUIRED = { //

@@ -307,6 +307,14 @@ public class HibernateUtils
     return instance.databaseDialect;
   }
 
+  /**
+   * FOR TESTS ONLY!!!
+   */
+  public static void setDialect(DatabaseDialect dialect)
+  {
+    instance.databaseDialect = dialect;
+  }
+
   private boolean internalIsEntity(final Class<?> entity)
   {
     return PfEmgrFactory.get().getMetadataRepository().isKnownEntity(entity);

@@ -278,12 +278,9 @@ public class TeamEventEditPage extends AbstractEditPage<TeamEventDO, TeamEventEd
   public AbstractSecuredBasePage onDelete()
   {
     super.onDelete();
-    // if (getData().getAttendees() != null && getData().getAttendees().isEmpty() == false) {
-    // final TeamEventMailer mailer = TeamEventMailer.getInstance();
-    // final TeamEventMailValue value = new TeamEventMailValue(getData().getId(), TeamEventMailType.REJECTION, null);
-    // mailer.getQueue().offer(value);
-    // mailer.send();
-    // }
+    if (getData().getAttendees() != null && getData().getAttendees().size() > 0) {
+      teamEventService.sendTeamEventToAttendees(getData(), false, false, true, null);
+    }
     if (recurrencyChangeType == null || recurrencyChangeType == RecurrencyChangeType.ALL) {
       return null;
     }
@@ -390,7 +387,7 @@ public class TeamEventEditPage extends AbstractEditPage<TeamEventDO, TeamEventEd
     if ((hasChanges()
         || form.assignAttendeesListHelper.getItemsToAssign().size() > 0)
         && (getData().getAttendees() != null && getData().getAttendees().size() > 0)) {
-      teamEventService.sendTeamEventToAttendees(getData(), this.isNew, hasChanges(),
+      teamEventService.sendTeamEventToAttendees(getData(), this.isNew, hasChanges(), false,
           form.assignAttendeesListHelper.getItemsToAssign());
     }
     return null;
@@ -407,8 +404,8 @@ public class TeamEventEditPage extends AbstractEditPage<TeamEventDO, TeamEventEd
   @Override
   protected void cloneData()
   {
-    super.cloneData();
-    getData().setExternalUid(null); // Avoid multiple usage of external uid.
+    log.info("Clone of data chosen: " + getData());
+    this.form.setData(getData().clone());
   }
 
   /**

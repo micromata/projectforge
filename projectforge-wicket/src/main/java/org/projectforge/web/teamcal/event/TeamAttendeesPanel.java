@@ -39,7 +39,7 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.projectforge.business.multitenancy.TenantRegistryMap;
-import org.projectforge.business.teamcal.event.model.TeamAttendeeStatus;
+import org.projectforge.business.teamcal.event.model.TeamEventAttendeeStatus;
 import org.projectforge.business.teamcal.event.model.TeamEventAttendeeDO;
 import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
@@ -59,7 +59,7 @@ public class TeamAttendeesPanel extends Panel
 
   private WebMarkupContainer mainContainer;
 
-  private LabelValueChoiceRenderer<TeamAttendeeStatus> statusChoiceRenderer;
+  private LabelValueChoiceRenderer<TeamEventAttendeeStatus> statusChoiceRenderer;
 
   /**
    * @param id
@@ -77,7 +77,7 @@ public class TeamAttendeesPanel extends Panel
   protected void onInitialize()
   {
     super.onInitialize();
-    statusChoiceRenderer = new LabelValueChoiceRenderer<TeamAttendeeStatus>(this, TeamAttendeeStatus.values());
+    statusChoiceRenderer = new LabelValueChoiceRenderer<TeamEventAttendeeStatus>(this, TeamEventAttendeeStatus.values());
     mainContainer = new WebMarkupContainer("main");
     add(mainContainer.setOutputMarkupId(true));
     attendeesRepeater = new RepeatingView("liRepeater");
@@ -207,8 +207,8 @@ public class TeamAttendeesPanel extends Panel
       final WebMarkupContainer item = new WebMarkupContainer(attendeesRepeater.newChildId());
       attendeesRepeater.add(item);
       item.add(new AttendeeEditableLabel("editableLabel", Model.of(attendee), false));
-      final DropDownChoice<TeamAttendeeStatus> statusChoice = new DropDownChoice<TeamAttendeeStatus>("status",
-          new PropertyModel<TeamAttendeeStatus>(attendee, "status"), statusChoiceRenderer.getValues(),
+      final DropDownChoice<TeamEventAttendeeStatus> statusChoice = new DropDownChoice<TeamEventAttendeeStatus>("status",
+          new PropertyModel<TeamEventAttendeeStatus>(attendee, "status"), statusChoiceRenderer.getValues(),
           statusChoiceRenderer);
       statusChoice.setEnabled(false);
       item.add(statusChoice);

@@ -24,9 +24,9 @@
 package org.projectforge.web.timesheet;
 
 import org.apache.wicket.model.IModel;
+import org.projectforge.business.teamcal.service.CalendarFeedService;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.web.calendar.AbstractICSExportDialog;
-import org.projectforge.web.calendar.CalendarFeedService;
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)

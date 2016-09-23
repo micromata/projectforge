@@ -14,9 +14,6 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import de.micromata.genome.db.jpa.tabattr.api.TimeableService;
-import de.micromata.genome.db.jpa.tabattr.impl.TimeableServiceImpl;
-
 @Configuration
 public class ProjectforgeWebConfiguration
 {
@@ -32,12 +29,6 @@ public class ProjectforgeWebConfiguration
     GuiAttrSchemaServiceImpl ret = new GuiAttrSchemaServiceImpl();
     ret.setApplicationDir(applicationDir);
     return ret;
-  }
-
-  @Bean
-  public TimeableService timeableService()
-  {
-    return new TimeableServiceImpl();
   }
 
   @Bean

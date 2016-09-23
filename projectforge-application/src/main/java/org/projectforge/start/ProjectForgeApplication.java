@@ -9,7 +9,7 @@ import org.springframework.boot.web.servlet.ServletComponentScan;
 
 @SpringBootApplication(scanBasePackages = { "org.projectforge", "de.micromata.mgc.jpa.spring" })
 //@EnableDiscoveryClient
-@ServletComponentScan("org.projectforge.web")
+@ServletComponentScan({ "org.projectforge.web", "org.projectforge.business.teamcal.servlet" })
 public class ProjectForgeApplication
 {
   public static void main(String[] args)

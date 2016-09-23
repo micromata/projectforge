@@ -55,7 +55,7 @@ import org.projectforge.framework.configuration.ConfigXml;
 import org.projectforge.framework.configuration.Configuration;
 import org.projectforge.framework.configuration.ConfigurationParam;
 import org.projectforge.framework.persistence.api.ReindexSettings;
-import org.projectforge.framework.persistence.database.MyDatabaseUpdateService;
+import org.projectforge.framework.persistence.database.DatabaseUpdateService;
 import org.projectforge.framework.persistence.history.HibernateSearchReindexer;
 import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
 import org.projectforge.framework.time.DateHelper;
@@ -93,7 +93,7 @@ public class AdminPage extends AbstractStandardFormPage implements ISelectCaller
   private SystemDao systemDao;
 
   @SpringBean
-  private MyDatabaseUpdateService myDatabaseUpdater;
+  private DatabaseUpdateService myDatabaseUpdater;
 
   @SpringBean
   private HibernateSearchReindexer hibernateSearchReindexer;
@@ -626,7 +626,7 @@ public class AdminPage extends AbstractStandardFormPage implements ISelectCaller
   {
     log.info("Administration: create missing data base indices.");
     accessChecker.checkRestrictedOrDemoUser();
-    final int counter = myDatabaseUpdater.getDatabaseUpdateService().createMissingIndices();
+    final int counter = myDatabaseUpdater.createMissingIndices();
     setResponsePage(new MessagePage("administration.missingDatabaseIndicesCreated", String.valueOf(counter)));
   }
 
@@ -645,7 +645,7 @@ public class AdminPage extends AbstractStandardFormPage implements ISelectCaller
         .getTaskById(Configuration.getInstance().getTaskIdValue(ConfigurationParam.DEFAULT_TASK_ID_4_BOOKS));
     final List<BookDO> list = new ArrayList<BookDO>();
     int number = 1;
-    while (myDatabaseUpdater.getDatabaseUpdateService()
+    while (myDatabaseUpdater
         .queryForInt("select count(*) from t_book where title like 'title." + number + ".%'") > 0) {
       number++;
     }

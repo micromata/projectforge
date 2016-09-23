@@ -70,7 +70,7 @@ public class MarketingPlugin extends AbstractPlugin
   protected void initialize()
   {
     // DatabaseUpdateDao is needed by the updater:
-    MarketingPluginUpdates.dao = myDatabaseUpdater.getDatabaseUpdateService();
+    MarketingPluginUpdates.dao = myDatabaseUpdater;
     // Register it:
     register(ADDRESS_CAMPAIGN_ID, AddressCampaignDao.class, addressCampaignDao, "plugins.marketing.addressCampaign");
     register(ADDRESS_CAMPAIGN_VALUE_ID, AddressCampaignValueDao.class, addressCampaignValueDao,
