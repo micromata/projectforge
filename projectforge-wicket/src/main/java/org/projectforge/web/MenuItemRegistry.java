@@ -114,6 +114,7 @@ import org.projectforge.web.user.MyAccountEditPage;
 import org.projectforge.web.user.UserListPage;
 import org.projectforge.web.user.UserPrefListPage;
 import org.projectforge.web.vacation.VacationListPage;
+import org.projectforge.web.vacation.VacationViewPage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -426,6 +427,7 @@ public class MenuItemRegistry implements Serializable
 
     // ADMINISTRATION
     reg.register(admin, MenuItemDefId.MY_ACCOUNT, 10, MyAccountEditPage.class);
+    reg.register(admin, MenuItemDefId.VACATION_VIEW, 10, VacationViewPage.class);
     reg.register(admin, MenuItemDefId.MY_PREFERENCES, 20, UserPrefListPage.class);
     reg.register(
         new MenuItemDef(admin, MenuItemDefId.CHANGE_PASSWORD.getId(), 30, MenuItemDefId.CHANGE_PASSWORD.getI18nKey(),

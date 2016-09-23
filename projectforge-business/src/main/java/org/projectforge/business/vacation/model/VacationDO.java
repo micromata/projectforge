@@ -23,6 +23,7 @@
 
 package org.projectforge.business.vacation.model;
 
+import java.math.BigDecimal;
 import java.util.Date;
 
 import javax.persistence.Column;
@@ -35,6 +36,7 @@ import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
+import javax.persistence.Transient;
 
 import org.hibernate.search.annotations.Indexed;
 import org.projectforge.business.fibu.EmployeeDO;
@@ -42,6 +44,7 @@ import org.projectforge.common.anots.PropertyInfo;
 import org.projectforge.framework.persistence.api.AUserRightId;
 import org.projectforge.framework.persistence.attr.impl.HibernateSearchAttrSchemaFieldInfoProvider;
 import org.projectforge.framework.persistence.entities.DefaultBaseDO;
+import org.projectforge.framework.time.DayHolder;
 
 import de.micromata.mgc.jpa.hibernatesearch.api.HibernateSearchInfo;
 
@@ -83,6 +86,9 @@ public class VacationDO extends DefaultBaseDO
 
   @PropertyInfo(i18nKey = "vacation.status")
   private VacationStatus status;
+
+  @PropertyInfo(i18nKey = "vacation.workingdays")
+  private BigDecimal workingdays;
 
   /**
    * The employee.
@@ -181,5 +187,14 @@ public class VacationDO extends DefaultBaseDO
   public void setStatus(final VacationStatus status)
   {
     this.status = status;
+  }
+
+  @Transient
+  public BigDecimal getWorkingdays()
+  {
+    if (this.workingdays == null) {
+      this.workingdays = DayHolder.getNumberOfWorkingDays(startDate, endDate);
+    }
+    return this.workingdays;
   }
 }

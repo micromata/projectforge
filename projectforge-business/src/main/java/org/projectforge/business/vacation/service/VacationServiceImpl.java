@@ -1,5 +1,6 @@
 package org.projectforge.business.vacation.service;
 
+import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
 
@@ -27,9 +28,21 @@ public class VacationServiceImpl extends CorePersistenceServiceImpl<Integer, Vac
   private VacationDao vacationDao;
 
   @Override
+  public List<VacationDO> getActiveVacationForCurrentYear(EmployeeDO employee)
+  {
+    return vacationDao.getActiveVacationForCurrentYear(employee);
+  }
+
+  @Override
   public List<VacationDO> getList(BaseSearchFilter filter)
   {
     return vacationDao.getList(filter);
+  }
+
+  @Override
+  public List<VacationDO> getVacation(List<Serializable> idList)
+  {
+    return vacationDao.internalLoad(idList);
   }
 
   @Override
