@@ -198,13 +198,4 @@ public class VacationDO extends DefaultBaseDO
     return this.workingdays;
   }
 
-  @Transient
-  public BigDecimal getWorkingdays()
-  {
-    if (this.workingdays == null) {
-      this.workingdays = DayHolder.getNumberOfWorkingDays(startDate, endDate);
-    }
-    return this.workingdays;
-  }
-
 }
