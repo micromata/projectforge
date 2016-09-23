@@ -50,7 +50,12 @@ public class FFPEventEditForm extends AbstractEditForm<FFPEventDO, FFPEventEditP
   {
     super.init();
 
-    gridBuilder.newSplitPanel(GridSize.COL50, true).newSubSplitPanel(GridSize.COL100);
+    gridBuilder.newSplitPanel(GridSize.COL25, true).newSubSplitPanel(GridSize.COL100);
+    {
+      // Event date
+      final FieldsetPanel fs = gridBuilder.newFieldset(FFPEventDO.class, "eventDate");
+      fs.add(new DatePanel(fs.newChildId(), new PropertyModel<>(data, "eventDate"), new DatePanelSettings()));
+    }
     {
       // Division
       final FieldsetPanel fs = gridBuilder.newFieldset(FFPEventDO.class, "title");
@@ -59,12 +64,6 @@ public class FFPEventEditForm extends AbstractEditForm<FFPEventDO, FFPEventEditP
       titel.setMarkupId("titel").setOutputMarkupId(true);
       fs.add(titel);
     }
-    {
-      // Event date
-      final FieldsetPanel fs = gridBuilder.newFieldset(FFPEventDO.class, "eventDate");
-      fs.add(new DatePanel(fs.newChildId(), new PropertyModel<>(data, "eventDate"), new DatePanelSettings()));
-    }
-
   }
 
   @Override
