@@ -127,6 +127,10 @@ public class VacationListPage extends AbstractListPage<VacationListForm, Vacatio
             "status",
             cellItemListener));
 
+    columns
+        .add(new CellItemListenerPropertyColumn<VacationDO>(VacationDO.class, "workingdays", "workingdays",
+            cellItemListener));
+
     return columns;
   }
 
