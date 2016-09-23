@@ -26,6 +26,7 @@ package org.projectforge.plugins.ffp.wicket;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
@@ -37,7 +38,6 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.plugins.ffp.model.FFPEventDO;
 import org.projectforge.plugins.ffp.repository.FFPEventDao;
-import org.projectforge.web.fibu.EmployeeEditPage;
 import org.projectforge.web.wicket.AbstractListPage;
 import org.projectforge.web.wicket.CellItemListener;
 import org.projectforge.web.wicket.CellItemListenerPropertyColumn;
@@ -56,7 +56,7 @@ public class FFPEventListPage extends AbstractListPage<FFPEventListForm, FFPEven
 
   public FFPEventListPage(final PageParameters parameters)
   {
-    super(parameters, "plugin.ffp");
+    super(parameters, "plugins.ffp");
   }
 
   @Override
@@ -76,6 +76,10 @@ public class FFPEventListPage extends AbstractListPage<FFPEventListForm, FFPEven
       }
     };
 
+    columns.add(new CellItemListenerPropertyColumn<FFPEventDO>(new ResourceModel("plugins.ffp.eventDate"),
+        getSortable("eventDate", sortable),
+        "eventDate", cellItemListener));
+
     columns.add(new CellItemListenerPropertyColumn<FFPEventDO>(new ResourceModel("title"),
         getSortable("title", sortable),
         "title", cellItemListener)
@@ -90,7 +94,7 @@ public class FFPEventListPage extends AbstractListPage<FFPEventListForm, FFPEven
       {
         final FFPEventDO event = rowModel.getObject();
         if (isSelectMode() == false) {
-          item.add(new ListSelectActionPanel(componentId, rowModel, EmployeeEditPage.class, event.getId(),
+          item.add(new ListSelectActionPanel(componentId, rowModel, FFPEventEditPage.class, event.getId(),
               returnToPage, event.getTitle()));
         } else {
           item.add(
@@ -98,12 +102,11 @@ public class FFPEventListPage extends AbstractListPage<FFPEventListForm, FFPEven
                   event.getTitle()));
         }
         cellItemListener.populateItem(item, componentId, rowModel);
+        item.add(AttributeModifier.replace("style", "width: 90%"));
         addRowClick(item);
       }
     });
-    columns.add(new CellItemListenerPropertyColumn<FFPEventDO>(new ResourceModel("eventDate"),
-        getSortable("eventDate", sortable),
-        "eventDate", cellItemListener));
+
     return columns;
   }
 

@@ -11,6 +11,8 @@ import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
 
 import org.hibernate.search.annotations.DateBridge;
 import org.hibernate.search.annotations.EncodingType;
@@ -28,10 +30,10 @@ public class FFPEventDO extends DefaultBaseDO
 {
   private static final long serialVersionUID = 1579119768006685087L;
 
-  @PropertyInfo(i18nKey = "plugin.ffp.title")
+  @PropertyInfo(i18nKey = "plugins.ffp.title")
   private String title;
 
-  @PropertyInfo(i18nKey = "plugin.ffp.date")
+  @PropertyInfo(i18nKey = "plugins.ffp.eventDate")
   @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
   private Date eventDate;
 
@@ -39,7 +41,7 @@ public class FFPEventDO extends DefaultBaseDO
 
   private List<FFPAccountingDO> accountingList;
 
-  @Column(length = 100)
+  @Column(nullable = false, length = 1000)
   public String getTitle()
   {
     return title;
@@ -50,7 +52,8 @@ public class FFPEventDO extends DefaultBaseDO
     this.title = title;
   }
 
-  @Column
+  @Temporal(TemporalType.DATE)
+  @Column(nullable = false)
   public Date getEventDate()
   {
     return eventDate;
