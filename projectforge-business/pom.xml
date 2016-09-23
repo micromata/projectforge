@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>org.projectforge</groupId>
 		<artifactId>projectforge-parent</artifactId>
-		<version>6.3.0-SNAPSHOT</version>
+		<version>6.3.0</version>
 	</parent>
 	<licenses>
 		<license>
@@ -36,26 +36,56 @@
 			<groupId>de.micromata.mgc</groupId>
 			<artifactId>de.micromata.mgc.jpa.tabattr</artifactId>
 			<version>${mgc.version}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>log4j</groupId>
+					<artifactId>log4j</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>de.micromata.mgc</groupId>
 			<artifactId>de.micromata.mgc.jpa.hibernatesearch</artifactId>
 			<version>${mgc.version}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>log4j</groupId>
+					<artifactId>log4j</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>de.micromata.mgc</groupId>
 			<artifactId>de.micromata.mgc.jpa.xmldump</artifactId>
 			<version>${mgc.version}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>log4j</groupId>
+					<artifactId>log4j</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>de.micromata.mgc</groupId>
 			<artifactId>de.micromata.mgc.jpa.spring</artifactId>
 			<version>${mgc.version}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>log4j</groupId>
+					<artifactId>log4j</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>de.micromata.mgc</groupId>
 			<artifactId>de.micromata.mgc.email</artifactId>
 			<version>${mgc.version}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>log4j</groupId>
+					<artifactId>log4j</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>javax.servlet</groupId>
@@ -73,26 +103,6 @@
 			<groupId>org.aspectj</groupId>
 			<artifactId>aspectjtools</artifactId>
 			<version>${aspectjtools.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework</groupId>
-			<artifactId>spring-tx</artifactId>
-			<version>${spring.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework</groupId>
-			<artifactId>spring-orm</artifactId>
-			<version>${spring.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework</groupId>
-			<artifactId>spring-context</artifactId>
-			<version>${spring.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework</groupId>
-			<artifactId>spring-web</artifactId>
-			<version>${spring.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.hibernate</groupId>
@@ -255,6 +265,10 @@
 				<exclusion>
 					<artifactId>commons-codec</artifactId>
 					<groupId>commons-codec</groupId>
+				</exclusion>
+				<exclusion>
+					<groupId>log4j</groupId>
+					<artifactId>log4j</artifactId>
 				</exclusion>
 			</exclusions>
 			<scope>test</scope>

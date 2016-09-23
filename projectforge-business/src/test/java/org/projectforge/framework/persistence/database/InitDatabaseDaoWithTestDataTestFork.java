@@ -65,7 +65,7 @@ public class InitDatabaseDaoWithTestDataTestFork extends AbstractTestBase
   // old format.
 
   @Autowired
-  private MyDatabaseUpdateService myDatabaseUpdateService;
+  private DatabaseUpdateService myDatabaseUpdateService;
 
   @Autowired
   private InitDatabaseDao initDatabaseDao;
@@ -120,7 +120,7 @@ public class InitDatabaseDaoWithTestDataTestFork extends AbstractTestBase
     assertNotNull(initialAdminUser);
     assertEquals("myadmin", initialAdminUser.getUsername());
     final Collection<Integer> col = userGroupCache.getUserGroups(initialAdminUser);
-    assertEquals(5, col.size());
+    assertEquals(6, col.size());
     assertTrue(userGroupCache.isUserMemberOfAdminGroup(initialAdminUser.getId()));
     assertTrue(userGroupCache.isUserMemberOfFinanceGroup(initialAdminUser.getId()));
 

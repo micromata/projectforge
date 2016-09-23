@@ -37,7 +37,7 @@ import org.projectforge.excel.ExportWorkbook;
 import org.projectforge.framework.access.AccessCheckerImpl;
 import org.projectforge.framework.access.AccessException;
 import org.projectforge.framework.persistence.database.DatabaseUpdateDO;
-import org.projectforge.framework.persistence.database.MyDatabaseUpdateService;
+import org.projectforge.framework.persistence.database.DatabaseUpdateService;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.time.DateHelper;
 import org.projectforge.web.wicket.AbstractSecuredPage;
@@ -49,7 +49,7 @@ public class SystemUpdatePage extends AbstractSecuredPage
   private static final long serialVersionUID = -7624191773850329338L;
 
   @SpringBean
-  protected MyDatabaseUpdateService myDatabaseUpdater;
+  protected DatabaseUpdateService myDatabaseUpdater;
 
   private final SystemUpdateForm form;
 
@@ -68,8 +68,7 @@ public class SystemUpdatePage extends AbstractSecuredPage
           public void onClick()
           {
             checkAdminUser();
-            final MyDatabaseUpdateService databaseUpdateDao = myDatabaseUpdater.getDatabaseUpdateService();
-            final List<DatabaseUpdateDO> updateEntries = databaseUpdateDao.getUpdateHistory();
+            final List<DatabaseUpdateDO> updateEntries = myDatabaseUpdater.getUpdateHistory();
             final ExportWorkbook workbook = new ExportWorkbook();
             final ExportSheet sheet = workbook.addSheet("Update history");
             sheet.getContentProvider().setColWidths(new int[] { 20, 10, 20, 15, 50, 20 });

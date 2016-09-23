@@ -2,16 +2,25 @@ package org.projectforge.business.teamcal.service;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
+import java.util.TimeZone;
 import java.util.TreeSet;
 
 import org.apache.commons.lang.StringUtils;
+import org.joda.time.DateMidnight;
+import org.joda.time.DateTime;
 import org.projectforge.business.teamcal.admin.TeamCalCache;
 import org.projectforge.business.teamcal.admin.TeamCalsComparator;
 import org.projectforge.business.teamcal.admin.model.TeamCalDO;
 import org.projectforge.common.StringHelper;
+import org.projectforge.framework.calendar.ICal4JUtils;
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
+import org.projectforge.framework.time.DayHolder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import net.fortuna.ical4j.model.component.VEvent;
 
 @Service
 public class TeamCalServiceImpl implements TeamCalService
@@ -127,6 +136,45 @@ public class TeamCalServiceImpl implements TeamCalService
       }
     }
     return sortedCals;
+  }
+
+  @Override
+  public Collection<VEvent> getConfiguredHolidaysAsVEvent(DateTime holidaysFrom, DateTime holidayTo)
+  {
+    final List<VEvent> events = new ArrayList<VEvent>();
+    DateMidnight day = new DateMidnight(holidaysFrom);
+    int idCounter = 0;
+    int paranoiaCounter = 0;
+    do {
+      if (++paranoiaCounter > 4000) {
+        log.error(
+            "Paranoia counter exceeded! Dear developer, please have a look at the implementation of buildEvents.");
+        break;
+      }
+      final Date date = day.toDate();
+      final TimeZone timeZone = day.getZone().toTimeZone();
+      final DayHolder dh = new DayHolder(date, timeZone, null);
+      if (dh.isHoliday() == false) {
+        day = day.plusDays(1);
+        continue;
+      }
+
+      String title;
+      final String holidayInfo = dh.getHolidayInfo();
+      if (holidayInfo != null && holidayInfo.startsWith("calendar.holiday.") == true) {
+        title = ThreadLocalUserContext.getLocalizedString(holidayInfo);
+      } else {
+        title = holidayInfo;
+      }
+      final VEvent vEvent = ICal4JUtils.createVEvent(holidaysFrom.toDate(), holidayTo.toDate(),
+          "pf-holiday" + (++idCounter), title, true);
+      //      event.setBackgroundColor(backgroundColor);
+      //      event.setColor(color);
+      //      event.setTextColor(textColor);
+      events.add(vEvent);
+      day = day.plusDays(1);
+    } while (day.isAfter(holidayTo) == false);
+    return events;
   }
 
 }

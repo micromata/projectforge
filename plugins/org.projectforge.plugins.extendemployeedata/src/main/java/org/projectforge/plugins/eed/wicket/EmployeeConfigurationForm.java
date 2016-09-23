@@ -67,9 +67,9 @@ public class EmployeeConfigurationForm extends AbstractEditForm<EmployeeConfigur
     return log;
   }
 
-  protected void checkAccess()
+  private void checkAccess()
   {
-    parentPage.getAccessChecker().checkLoggedInUserRight(UserRightId.FIBU_EMPLOYEE, UserRightValue.READWRITE);
+    parentPage.getAccessChecker().checkLoggedInUserRight(UserRightId.HR_EMPLOYEE_SALARY, UserRightValue.READWRITE);
     parentPage.getAccessChecker().checkRestrictedOrDemoUser();
   }
 }

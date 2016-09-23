@@ -101,7 +101,7 @@ import de.micromata.mgc.jpa.hibernatesearch.bridges.TimeableListFieldBridge;
         @javax.persistence.Index(name = "idx_fk_t_fibu_employee_user_id", columnList = "user_id"),
         @javax.persistence.Index(name = "idx_fk_t_fibu_employee_tenant_id", columnList = "tenant_id")
     })
-@AUserRightId("FIBU_EMPLOYEE")
+@AUserRightId("HR_EMPLOYEE")
 public class EmployeeDO extends DefaultBaseWithAttrDO<EmployeeDO>
     implements EntityWithTimeableAttr<Integer, EmployeeTimedDO>, ComplexEntity, EntityWithConfigurableAttr
 {

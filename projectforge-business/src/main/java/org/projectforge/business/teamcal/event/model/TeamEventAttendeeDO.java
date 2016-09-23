@@ -75,7 +75,7 @@ public class TeamEventAttendeeDO extends DefaultBaseDO implements Comparable<Tea
 
   private String loginToken;
 
-  private TeamAttendeeStatus status = TeamAttendeeStatus.NEEDS_ACTION;
+  private TeamEventAttendeeStatus status = TeamEventAttendeeStatus.NEEDS_ACTION;
 
   private String comment;
 
@@ -199,7 +199,7 @@ public class TeamEventAttendeeDO extends DefaultBaseDO implements Comparable<Tea
    */
   @Enumerated(EnumType.STRING)
   @Column(length = 100)
-  public TeamAttendeeStatus getStatus()
+  public TeamEventAttendeeStatus getStatus()
   {
     return status;
   }
@@ -208,7 +208,7 @@ public class TeamEventAttendeeDO extends DefaultBaseDO implements Comparable<Tea
    * @param status the status to set
    * @return this for chaining.
    */
-  public TeamEventAttendeeDO setStatus(final TeamAttendeeStatus status)
+  public TeamEventAttendeeDO setStatus(final TeamEventAttendeeStatus status)
   {
     this.status = status;
     return this;
@@ -336,5 +336,24 @@ public class TeamEventAttendeeDO extends DefaultBaseDO implements Comparable<Tea
       return this.getUrl();
     }
     return super.toString();
+  }
+
+  /**
+   * @see java.lang.Object#clone()
+   */
+  @Override
+  public TeamEventAttendeeDO clone()
+  {
+    TeamEventAttendeeDO cloneAttendee = new TeamEventAttendeeDO();
+    cloneAttendee.setAddress(this.getAddress());
+    cloneAttendee.setComment(this.getComment());
+    cloneAttendee.setCommentOfAttendee(this.getCommentOfAttendee());
+    cloneAttendee.setLoginToken(this.getLoginToken());
+    cloneAttendee.setNumber(this.getNumber());
+    cloneAttendee.setStatus(this.getStatus());
+    cloneAttendee.setUrl(this.getUrl());
+    cloneAttendee.setUser(this.getUser());
+
+    return cloneAttendee;
   }
 }

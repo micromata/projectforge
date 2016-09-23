@@ -27,12 +27,13 @@ import org.projectforge.common.i18n.I18nEnum;
 
 /**
  * The category is only used for sorting the user rights for editing in the gui.
+ * 
  * @author Kai Reinhard (k.reinhard@micromata.de)
  * 
  */
 public enum UserRightCategory implements I18nEnum
 {
-  ADMIN("admin"), FIBU("fibu"), MISC("misc"), ORGA("orga"),
+  ADMIN("admin"), FIBU("fibu"), MISC("misc"), ORGA("orga"), HR("hr"),
   /** Project management */
   PM("pm"), PLUGINS("plugins");
 
@@ -40,6 +41,7 @@ public enum UserRightCategory implements I18nEnum
 
   /**
    * The key will be used e. g. for i18n.
+   * 
    * @return
    */
   public String getKey()

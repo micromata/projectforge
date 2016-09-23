@@ -132,7 +132,7 @@ public class TeamCalImportDao
     for (final ImportedElement<TeamEventDO> el : sheet.getElements()) {
       final TeamEventDO event = el.getValue();
       teamEventDao.setCalendar(event, teamCalId);
-      final TeamEventDO dbEvent = teamEventDao.getByUid(event.getExternalUid(), teamCalId);
+      final TeamEventDO dbEvent = teamEventDao.getByUid(event.getExternalUid());
       el.setOldValue(dbEvent);
     }
     sheet.setStatus(ImportStatus.RECONCILED);
@@ -149,7 +149,7 @@ public class TeamCalImportDao
           "organizer") == true) {
         log.info("Properties of the event were shortened: " + event);
       }
-      final TeamEventDO dbEvent = teamEventDao.getByUid(event.getExternalUid(), teamCalId);
+      final TeamEventDO dbEvent = teamEventDao.getByUid(event.getExternalUid());
       if (dbEvent != null) {
         event.setId(dbEvent.getId());
         if (el.isSelected() == true) {

@@ -49,7 +49,6 @@ import org.projectforge.web.address.AddressViewPage;
 import org.projectforge.web.address.BirthdayEventsProvider;
 import org.projectforge.web.humanresources.HRPlanningEventsProvider;
 import org.projectforge.web.timesheet.TimesheetEditPage;
-import org.projectforge.web.timesheet.TimesheetEventsProvider;
 import org.projectforge.web.wicket.AbstractEditPage;
 import org.projectforge.web.wicket.components.DatePickerUtils;
 import org.projectforge.web.wicket.components.JodaDatePanel;
@@ -444,8 +443,20 @@ public class CalendarPanel extends Panel
           return;
         }
         if (CalendarDropMode.MOVE_SAVE.equals(dropMode) == true) {
-          timesheetDao.update(timesheet);
-          setResponsePage(getPage());
+          try {
+            timesheetDao.update(timesheet);
+            setResponsePage(getPage());
+          } catch (IllegalArgumentException ex) {
+            if (ex.getMessage().equals("Kost2Id of time sheet is not available in the task's kost2 list!")
+                || ex.getMessage().equals("Kost2Id can't be given for task without any kost2 entries!")) {
+              TimesheetEditPage timesheetEditPage = new TimesheetEditPage(timesheet);
+              timesheetEditPage.error(getString("timesheet.error.copyNoMatchingKost2"));
+              setResponsePage(timesheetEditPage.setReturnToPage((WebPage) getPage()));
+              return;
+            } else {
+              throw ex;
+            }
+          }
         } else {
           setResponsePage(new TimesheetEditPage(timesheet).setReturnToPage((WebPage) getPage()));
         }

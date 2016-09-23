@@ -8,6 +8,7 @@ import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.projectforge.continuousdb.DatabaseSupport;
 import org.projectforge.framework.persistence.api.HibernateUtils;
+import org.projectforge.framework.persistence.attr.impl.AttrSchemaServiceSpringBeanImpl;
 import org.projectforge.framework.persistence.history.entities.PfHistoryMasterDO;
 import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
 import org.springframework.beans.factory.FactoryBean;
@@ -18,26 +19,29 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import org.springframework.orm.hibernate5.HibernateTemplate;
 import org.springframework.orm.hibernate5.HibernateTransactionManager;
+import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.transaction.support.TransactionTemplate;
 
 import de.micromata.genome.db.jpa.history.api.HistoryServiceManager;
 import de.micromata.genome.db.jpa.history.entities.HistoryMasterBaseDO;
 import de.micromata.genome.db.jpa.history.impl.HistoryServiceImpl;
-import de.micromata.genome.db.jpa.tabattr.impl.AttrSchemaServiceSpringBeanImpl;
+import de.micromata.genome.db.jpa.tabattr.api.TimeableService;
+import de.micromata.genome.db.jpa.tabattr.impl.TimeableServiceImpl;
 import de.micromata.mgc.jpa.spring.SpringEmgrFilterBean;
 import de.micromata.mgc.jpa.spring.factories.JpaToSessionFactorySpringBeanFactory;
 import de.micromata.mgc.jpa.spring.factories.JpaToSessionSpringBeanFactory;
 
 /**
- * Intial configuration for ORM.
+ * Intial spring configuration for projectforge.
  *
- * @author Roger Rene Kommer (r.kommer.extern@micromata.de)
+ * @author Florian Blumenstein, Roger Rene Kommer (r.kommer.extern@micromata.de)
  */
 @Configuration
 @EnableTransactionManagement
 @EnableAspectJAutoProxy(proxyTargetClass = true)
-public class DatabaseOrmConfiguration
+@EnableScheduling
+public class ProjectforgeSpringConfiguration
 {
   @Value("${projectforge.base.dir}")
   private String applicationDir;
@@ -117,6 +121,12 @@ public class DatabaseOrmConfiguration
     AttrSchemaServiceSpringBeanImpl ret = AttrSchemaServiceSpringBeanImpl.get();
     ret.setApplicationDir(applicationDir);
     return ret;
+  }
+
+  @Bean
+  public TimeableService timeableService()
+  {
+    return new TimeableServiceImpl();
   }
 
   @PostConstruct

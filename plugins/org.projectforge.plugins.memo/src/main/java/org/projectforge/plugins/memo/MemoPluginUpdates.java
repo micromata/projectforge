@@ -28,23 +28,25 @@ import org.projectforge.continuousdb.UpdateEntry;
 import org.projectforge.continuousdb.UpdateEntryImpl;
 import org.projectforge.continuousdb.UpdatePreCheckStatus;
 import org.projectforge.continuousdb.UpdateRunningStatus;
-import org.projectforge.framework.persistence.database.MyDatabaseUpdateService;
+import org.projectforge.framework.persistence.database.DatabaseUpdateService;
 
 /**
- * Contains the initial data-base set-up script and later all update scripts if any data-base schema updates are required by any later
- * release of this to-do plugin. <br/>
- * This is a part of the convenient auto update functionality of ProjectForge. You only have to insert update methods here for any further
- * release (with e. g. required data-base modifications). ProjectForge will do the rest.
+ * Contains the initial data-base set-up script and later all update scripts if any data-base schema updates are
+ * required by any later release of this to-do plugin. <br/>
+ * This is a part of the convenient auto update functionality of ProjectForge. You only have to insert update methods
+ * here for any further release (with e. g. required data-base modifications). ProjectForge will do the rest.
+ * 
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 public class MemoPluginUpdates
 {
-  static MyDatabaseUpdateService dao;
+  static DatabaseUpdateService dao;
 
   @SuppressWarnings("serial")
   public static UpdateEntry getInitializationUpdateEntry()
   {
-    return new UpdateEntryImpl(MemoPlugin.ID, "2011-03-08", "Adds table T_PLUGIN_MEMO.") {
+    return new UpdateEntryImpl(MemoPlugin.ID, "2011-03-08", "Adds table T_PLUGIN_MEMO.")
+    {
       @Override
       public UpdatePreCheckStatus runPreCheck()
       {

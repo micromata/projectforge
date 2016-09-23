@@ -55,7 +55,6 @@ import org.projectforge.business.task.TaskDO;
 import org.projectforge.business.timesheet.TimesheetDO;
 import org.projectforge.business.user.UserXmlPreferencesDO;
 import org.projectforge.common.DatabaseDialect;
-import org.projectforge.continuousdb.DatabaseUpdateService;
 import org.projectforge.continuousdb.Table;
 import org.projectforge.continuousdb.UpdateEntry;
 import org.projectforge.continuousdb.UpdateEntryImpl;
@@ -80,10 +79,8 @@ public class DatabaseCoreInitial
   public static final String CORE_REGION_ID = "ProjectForge";
 
   @SuppressWarnings("serial")
-  public static UpdateEntry getInitializationUpdateEntry(final MyDatabaseUpdateService databaseUpdater)
+  public static UpdateEntry getInitializationUpdateEntry(final DatabaseUpdateService dao)
   {
-    final DatabaseUpdateService dao = databaseUpdater.getDatabaseUpdateService();
-
     final Class<?>[] doClasses = new Class<?>[] { //
         // First needed data-base objects:
         TenantDO.class, //

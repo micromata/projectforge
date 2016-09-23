@@ -21,7 +21,7 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.web.timesheet;
+package org.projectforge.web.calendar;
 
 import java.util.Calendar;
 import java.util.HashMap;
@@ -35,22 +35,19 @@ import org.joda.time.Days;
 import org.projectforge.Const;
 import org.projectforge.business.common.OutputType;
 import org.projectforge.business.fibu.KostFormatter;
-import org.projectforge.business.fibu.ProjektDO;
-import org.projectforge.business.fibu.kost.Kost2DO;
 import org.projectforge.business.task.TaskDO;
 import org.projectforge.business.task.formatter.TaskFormatter;
+import org.projectforge.business.teamcal.common.CalendarHelper;
 import org.projectforge.business.teamcal.filter.ICalendarFilter;
 import org.projectforge.business.timesheet.OrderDirection;
 import org.projectforge.business.timesheet.TimesheetDO;
 import org.projectforge.business.timesheet.TimesheetDao;
 import org.projectforge.business.timesheet.TimesheetFilter;
-import org.projectforge.business.utils.HtmlHelper;
 import org.projectforge.common.StringHelper;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.time.DateHelper;
 import org.projectforge.framework.time.TimePeriod;
-import org.projectforge.web.calendar.MyEvent;
-import org.projectforge.web.calendar.MyFullCalendarEventsProvider;
+import org.projectforge.web.teamcal.event.MyWicketEvent;
 
 import net.ftlines.wicket.fullcalendar.Event;
 
@@ -166,13 +163,13 @@ public class TimesheetEventsProvider extends MyFullCalendarEventsProvider
           lastStopTime = stopTime;
         }
         final long duration = timesheet.getDuration();
-        final MyEvent event = new MyEvent();
+        final MyWicketEvent event = new MyWicketEvent();
         final String id = "" + timesheet.getId();
         event.setClassName(Const.EVENT_CLASS_NAME);
         event.setId(id);
         event.setStart(startTime);
         event.setEnd(stopTime);
-        final String title = getTitle(timesheet);
+        final String title = CalendarHelper.getTitle(timesheet);
         if (longFormat == true) {
           // Week or day view:
           event.setTitle(title + "\n" + getToolTip(timesheet) + "\n" + formatDuration(duration, false));
@@ -298,38 +295,6 @@ public class TimesheetEventsProvider extends MyFullCalendarEventsProvider
     if (showTimePeriod == true) {
       buf.append(" (").append(ThreadLocalUserContext.getLocalizedString("calendar.month")).append(")");
     }
-    return buf.toString();
-  }
-
-  public static String getTitle(final TimesheetDO timesheet)
-  {
-    final Kost2DO kost2 = timesheet.getKost2();
-    final TaskDO task = timesheet.getTask();
-    if (kost2 == null) {
-      return (task != null && task.getTitle() != null) ? HtmlHelper.escapeXml(task.getTitle()) : "";
-    }
-    final StringBuffer buf = new StringBuffer();
-    final StringBuffer b2 = new StringBuffer();
-    final ProjektDO projekt = kost2.getProjekt();
-    if (projekt != null) {
-      // final KundeDO kunde = projekt.getKunde();
-      // if (kunde != null) {
-      // if (StringUtils.isNotBlank(kunde.getIdentifier()) == true) {
-      // b2.append(kunde.getIdentifier());
-      // } else {
-      // b2.append(kunde.getName());
-      // }
-      // b2.append(" - ");
-      // }
-      if (StringUtils.isNotBlank(projekt.getIdentifier()) == true) {
-        b2.append(projekt.getIdentifier());
-      } else {
-        b2.append(projekt.getName());
-      }
-    } else {
-      b2.append(kost2.getDescription());
-    }
-    buf.append(StringUtils.abbreviate(b2.toString(), 30));
     return buf.toString();
   }
 

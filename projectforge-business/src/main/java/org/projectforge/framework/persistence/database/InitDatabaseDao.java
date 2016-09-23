@@ -113,7 +113,7 @@ public class InitDatabaseDao
   public void initializeDefaultData(final PFUserDO adminUser, final TimeZone adminUserTimezone)
   {
     log.info("Init admin user and root task.");
-    MyDatabaseUpdateService ser = applicationContext.getBean(MyDatabaseUpdateService.class);
+    DatabaseUpdateService ser = applicationContext.getBean(DatabaseUpdateService.class);
     if (ser.databaseTablesWithEntriesExists() == false) {
       databaseNotEmpty();
     }
@@ -142,8 +142,8 @@ public class InitDatabaseDao
     adminUser.addRight(new UserRightDO(UserRightId.FIBU_COST_UNIT, UserRightValue.READWRITE));
     adminUser.addRight(new UserRightDO(UserRightId.FIBU_EINGANGSRECHNUNGEN, UserRightValue.READWRITE));
     adminUser.addRight(new UserRightDO(UserRightId.FIBU_DATEV_IMPORT, UserRightValue.TRUE));
-    adminUser.addRight(new UserRightDO(UserRightId.FIBU_EMPLOYEE, UserRightValue.READWRITE));
-    adminUser.addRight(new UserRightDO(UserRightId.FIBU_EMPLOYEE_SALARY, UserRightValue.READWRITE));
+    adminUser.addRight(new UserRightDO(UserRightId.HR_EMPLOYEE, UserRightValue.READWRITE));
+    adminUser.addRight(new UserRightDO(UserRightId.HR_EMPLOYEE_SALARY, UserRightValue.READWRITE));
     adminUser.addRight(new UserRightDO(UserRightId.FIBU_ACCOUNTS, UserRightValue.READWRITE));
     adminUser.addRight(new UserRightDO(UserRightId.ORGA_CONTRACTS, UserRightValue.READWRITE));
     adminUser.addRight(new UserRightDO(UserRightId.ORGA_INCOMING_MAIL, UserRightValue.READWRITE));
@@ -215,6 +215,9 @@ public class InitDatabaseDao
     addGroup(ProjectForgeGroup.MARKETING_GROUP, "Marketing users can download all addresses in excel format.", tenant,
         null);
     addGroup(ProjectForgeGroup.ORGA_TEAM, "The organization team has access to post in- and outbound, contracts etc..",
+        tenant,
+        adminUsersForNewTenants);
+    addGroup(ProjectForgeGroup.HR_GROUP, "Users for having full access to the companies hr.",
         tenant,
         adminUsersForNewTenants);
     addGroup(ProjectForgeGroup.PROJECT_MANAGER,

@@ -21,23 +21,56 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.continuousdb;
+package org.projectforge.framework.persistence.database;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
+import javax.annotation.PostConstruct;
 import javax.persistence.Column;
 import javax.persistence.UniqueConstraint;
 import javax.sql.DataSource;
 
 import org.apache.commons.lang.StringUtils;
+import org.projectforge.business.login.Login;
+import org.projectforge.business.multitenancy.TenantRegistryMap;
+import org.projectforge.business.user.ProjectForgeGroup;
 import org.projectforge.common.DatabaseDialect;
 import org.projectforge.common.StringHelper;
+import org.projectforge.continuousdb.DatabaseExecutor;
+import org.projectforge.continuousdb.DatabaseResultRow;
+import org.projectforge.continuousdb.DatabaseResultRowEntry;
+import org.projectforge.continuousdb.DatabaseSupport;
+import org.projectforge.continuousdb.SystemUpdater;
+import org.projectforge.continuousdb.Table;
+import org.projectforge.continuousdb.TableAttribute;
+import org.projectforge.continuousdb.TableAttributeType;
+import org.projectforge.continuousdb.UpdateEntry;
+import org.projectforge.continuousdb.hibernate.TableAttributeHookImpl;
+import org.projectforge.continuousdb.jdbc.DatabaseExecutorImpl;
+import org.projectforge.framework.access.AccessChecker;
+import org.projectforge.framework.access.AccessCheckerImpl;
+import org.projectforge.framework.access.AccessException;
+import org.projectforge.framework.persistence.api.HibernateUtils;
+import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
+import org.projectforge.framework.persistence.user.entities.GroupDO;
+import org.projectforge.framework.persistence.user.entities.PFUserDO;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * For manipulating the database (patching data etc.)
@@ -45,35 +78,68 @@ import org.projectforge.common.StringHelper;
  * @author Kai Reinhard (k.reinhard@micromata.de)
  * 
  */
+@Service
 public class DatabaseUpdateService
 {
   private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(DatabaseUpdateService.class);
 
-  private UpdaterConfiguration configuration;
+  private static PFUserDO SYSTEM_ADMIN_PSEUDO_USER = new PFUserDO()
+      .setUsername("System admin user only for internal usage");
+
+  private DatabaseSupport databaseSupport;
+
+  private DatabaseExecutor databaseExecutor;
+
+  private SystemUpdater systemUpdater;
+
+  @Autowired
+  private AccessChecker accessChecker;
+
+  @Autowired
+  private DataSource dataSource;
+
+  @Autowired
+  private ApplicationContext applicationContext;
+
+  @Autowired
+  private PfEmgrFactory emf;
+
+  @PostConstruct
+  public void initialize()
+  {
+    TableAttribute.register(new TableAttributeHookImpl());
+
+    final SortedSet<UpdateEntry> updateEntries = new TreeSet<UpdateEntry>();
+    DatabaseCoreUpdates.applicationContext = this.applicationContext;
+    updateEntries.addAll(DatabaseCoreUpdates.getUpdateEntries());
+    getSystemUpdater().setUpdateEntries(updateEntries);
+  }
 
   public DatabaseDialect getDialect()
   {
-    return this.configuration.getDialect();
+    return HibernateUtils.getDialect();
   }
 
   private DatabaseSupport getDatabaseSupport()
   {
-    return configuration.getDatabaseSupport();
+    if (databaseSupport == null) {
+      databaseSupport = new DatabaseSupport(getDialect());
+    }
+    return databaseSupport;
   }
 
   private DatabaseExecutor getDatabaseExecutor()
   {
-    return configuration.getDatabaseExecutor();
+    if (databaseExecutor == null) {
+      databaseExecutor = new DatabaseExecutorImpl();
+      databaseExecutor.setDataSource(dataSource);
+    }
+    return databaseExecutor;
   }
 
   protected DataSource getDataSource()
   {
-    return configuration.getDatabaseExecutor().getDataSource();
-  }
-
-  public void setConfiguration(final UpdaterConfiguration configuration)
-  {
-    this.configuration = configuration;
+    return dataSource;
   }
 
   /**
@@ -84,7 +150,15 @@ public class DatabaseUpdateService
    */
   protected void accessCheck(final boolean writeaccess)
   {
-    return;
+    if (ThreadLocalUserContext.getUser() == SYSTEM_ADMIN_PSEUDO_USER) {
+      // No access check for the system admin pseudo user.
+      return;
+    }
+    if (Login.getInstance().isAdminUser(ThreadLocalUserContext.getUser()) == false) {
+      throw new AccessException(AccessCheckerImpl.I18N_KEY_VIOLATION_USER_NOT_MEMBER_OF,
+          ProjectForgeGroup.ADMIN_GROUP.getKey());
+    }
+    accessChecker.checkRestrictedOrDemoUser();
   }
 
   public boolean doesTableExist(final String table)
@@ -753,12 +827,84 @@ public class DatabaseUpdateService
     execute(statement);
   }
 
-  public int getDatabaseTableColumnLenght (final Class<?> entityClass, final String attributeNames)
+  public int getDatabaseTableColumnLenght(final Class<?> entityClass, final String attributeNames)
   {
-    String jdbcQuery = "select character_maximum_length from information_schema.columns where table_name = '"+ new Table(entityClass).getName().toLowerCase()+"' And column_name = '" + attributeNames + "'";
+    String jdbcQuery = "select character_maximum_length from information_schema.columns where table_name = '"
+        + new Table(entityClass).getName().toLowerCase() + "' And column_name = '" + attributeNames + "'";
     final DatabaseExecutor jdbc = getDatabaseExecutor();
     log.info(jdbcQuery);
     return jdbc.queryForInt(jdbcQuery);
+  }
+
+  public static PFUserDO __internalGetSystemAdminPseudoUser()
+  {
+    return SYSTEM_ADMIN_PSEUDO_USER;
+  }
+
+  public SystemUpdater getSystemUpdater()
+  {
+    if (systemUpdater == null) {
+      systemUpdater = new SystemUpdater();
+    }
+    return systemUpdater;
+  }
+
+  /**
+   */
+  public List<DatabaseUpdateDO> getUpdateHistory()
+  {
+    accessCheck(false);
+    final JdbcTemplate jdbc = new JdbcTemplate(getDataSource());
+    final List<Map<String, Object>> dbResult = jdbc
+        .queryForList("select * from t_database_update order by update_date desc");
+    final List<DatabaseUpdateDO> result = new ArrayList<DatabaseUpdateDO>();
+    for (final Map<String, Object> map : dbResult) {
+      final DatabaseUpdateDO entry = new DatabaseUpdateDO();
+      entry.setUpdateDate((Date) map.get("update_date"));
+      entry.setRegionId((String) map.get("region_id"));
+      entry.setVersionString((String) map.get("version"));
+      entry.setExecutionResult((String) map.get("execution_result"));
+      final PFUserDO executedByUser = TenantRegistryMap.getInstance().getTenantRegistry().getUserGroupCache()
+          .getUser((Integer) map.get("executed_by_user_fk"));
+      entry.setExecutedBy(executedByUser);
+      entry.setDescription((String) map.get("description"));
+      result.add(entry);
+    }
+    return result;
+  }
+
+  @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
+  public boolean databaseTablesExists()
+  {
+    try {
+      final Table userTable = new Table(PFUserDO.class);
+      return internalDoesTableExist(userTable.getName()) == false;
+    } catch (final Exception ex) {
+      log.error("Error while checking existing of user table.", ex);
+    }
+    return false;
+  }
+
+  @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
+  public boolean databaseTablesWithEntriesExists()
+  {
+    try {
+      final Table userTable = new Table(PFUserDO.class);
+      return internalDoesTableExist(userTable.getName()) == false
+          || internalIsTableEmpty(userTable.getName()) == true;
+    } catch (final Exception ex) {
+      log.error("Error while checking existing of user table with entries.", ex);
+    }
+    return false;
+  }
+
+  public boolean doesGroupExists(ProjectForgeGroup group)
+  {
+    return emf.runRoTrans(emgr -> {
+      List<GroupDO> selectedGroups = emgr.select(GroupDO.class, "SELECT g FROM GroupDO g WHERE g.name = :name", "name",
+          group.getName());
+      return selectedGroups != null && selectedGroups.size() > 0;
+    });
   }
 
 }
