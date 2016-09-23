@@ -20,7 +20,6 @@ import org.projectforge.business.fibu.EmployeeDO;
 import org.projectforge.business.user.I18nHelper;
 import org.projectforge.business.vacation.model.VacationDO;
 import org.projectforge.business.vacation.service.VacationService;
-import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.web.vacation.VacationViewPageSortableDataProvider;
 import org.projectforge.web.wicket.CellItemListener;
 import org.projectforge.web.wicket.CellItemListenerPropertyColumn;
@@ -29,7 +28,6 @@ import org.projectforge.web.wicket.flowlayout.DivPanel;
 import org.projectforge.web.wicket.flowlayout.DivTextPanel;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
 import org.projectforge.web.wicket.flowlayout.Heading1Panel;
-import org.projectforge.web.wicket.flowlayout.Heading2Panel;
 import org.projectforge.web.wicket.flowlayout.Heading3Panel;
 import org.projectforge.web.wicket.flowlayout.TablePanel;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,21 +41,25 @@ public class VacationViewHelper
 
   public void createVacationView(GridBuilder gridBuilder, EmployeeDO currentEmployee)
   {
-    PFUserDO currentUser = currentEmployee.getUser();
     final Calendar now = new GregorianCalendar();
     DivPanel section = gridBuilder.getPanel();
     section.add(new Heading1Panel(section.newChildId(), I18nHelper.getLocalizedMessage("menu.vacation.leaveaccount")));
-    section.add(new Heading2Panel(section.newChildId(), currentUser.getFullname()));
     appendFieldset(gridBuilder, "vacation.annualleave",
         currentEmployee.getUrlaubstage() != null ? currentEmployee.getUrlaubstage().toString() : "0");
     appendFieldset(gridBuilder, "vacation.previousyearleave",
         currentEmployee.getAttribute("previousyearleave", BigDecimal.class) != null
             ? currentEmployee.getAttribute("previousyearleave", BigDecimal.class).toString() : "0");
+    appendFieldset(gridBuilder, "vacation.usedvacation",
+        vacationService.getUsedVacationdays(currentEmployee).toString());
+    appendFieldset(gridBuilder, "vacation.planedvacation",
+        vacationService.getPlanedVacationdays(currentEmployee).toString());
+    appendFieldset(gridBuilder, "vacation.availablevacation",
+        vacationService.getAvailableVacationdays(currentEmployee).toString());
     section.add(new Heading3Panel(section.newChildId(),
         I18nHelper.getLocalizedMessage("vacation.title.list") + " " + now.get(Calendar.YEAR)));
     TablePanel tablePanel = new TablePanel(section.newChildId());
     section.add(tablePanel);
-    final DataTable<VacationDO, String> dataTable = createDataTable(createColumns(), "startDate", SortOrder.DESCENDING,
+    final DataTable<VacationDO, String> dataTable = createDataTable(createColumns(), "startDate", SortOrder.ASCENDING,
         currentEmployee);
     tablePanel.add(dataTable);
   }

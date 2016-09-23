@@ -1,7 +1,10 @@
 package org.projectforge.business.vacation.service;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
+import java.util.Calendar;
 import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.List;
 
 import org.projectforge.business.fibu.EmployeeDO;
@@ -11,6 +14,7 @@ import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.persistence.history.DisplayHistoryEntry;
 import org.projectforge.framework.persistence.jpa.impl.CorePersistenceServiceImpl;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
+import org.projectforge.framework.time.DayHolder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -26,6 +30,51 @@ public class VacationServiceImpl extends CorePersistenceServiceImpl<Integer, Vac
 {
   @Autowired
   private VacationDao vacationDao;
+
+  @Override
+  public BigDecimal getUsedVacationdays(EmployeeDO employee)
+  {
+    BigDecimal usedDays = BigDecimal.ZERO;
+    Calendar now = new GregorianCalendar();
+    for (VacationDO vac : getActiveVacationForCurrentYear(employee)) {
+      if (vac.getStartDate().before(now.getTime()) == true && vac.getEndDate().before(now.getTime()) == true) {
+        usedDays = usedDays.add(vac.getWorkingdays());
+      } else {
+        if (vac.getStartDate().before(now.getTime()) == true && vac.getEndDate().before(now.getTime()) == false) {
+          usedDays = usedDays.add(DayHolder.getNumberOfWorkingDays(vac.getStartDate(), now.getTime()));
+        }
+      }
+    }
+    return usedDays;
+  }
+
+  @Override
+  public BigDecimal getPlanedVacationdays(EmployeeDO employee)
+  {
+    BigDecimal usedDays = BigDecimal.ZERO;
+    Calendar now = new GregorianCalendar();
+    for (VacationDO vac : getActiveVacationForCurrentYear(employee)) {
+      if (vac.getStartDate().after(now.getTime()) == true && vac.getEndDate().after(now.getTime()) == true) {
+        usedDays = usedDays.add(vac.getWorkingdays());
+      } else {
+        if (vac.getStartDate().after(now.getTime()) == true && vac.getEndDate().after(now.getTime()) == false) {
+          usedDays = usedDays.add(DayHolder.getNumberOfWorkingDays(now.getTime(), vac.getEndDate()));
+        }
+      }
+    }
+    return usedDays;
+  }
+
+  @Override
+  public BigDecimal getAvailableVacationdays(EmployeeDO employee)
+  {
+    BigDecimal vacationDays = new BigDecimal(employee.getUrlaubstage());
+    BigDecimal vacationFromPreviousYear = employee.getAttribute("previousyearleave", BigDecimal.class) != null
+        ? employee.getAttribute("previousyearleave", BigDecimal.class) : BigDecimal.ZERO;
+    BigDecimal usedVacation = getUsedVacationdays(employee);
+    BigDecimal planedVacation = getPlanedVacationdays(employee);
+    return vacationDays.add(vacationFromPreviousYear).subtract(usedVacation).subtract(planedVacation);
+  }
 
   @Override
   public List<VacationDO> getActiveVacationForCurrentYear(EmployeeDO employee)
