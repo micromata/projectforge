@@ -1,5 +1,6 @@
 package org.projectforge.plugins.ffp.model;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -13,6 +14,7 @@ import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
+import javax.persistence.Transient;
 
 import org.hibernate.search.annotations.DateBridge;
 import org.hibernate.search.annotations.EncodingType;
@@ -88,6 +90,15 @@ public class FFPEventDO extends DefaultBaseDO
   public void setAccountingList(List<FFPAccountingDO> accountingList)
   {
     this.accountingList = accountingList;
+  }
+
+  @Transient
+  public void addAttendee(EmployeeDO employee)
+  {
+    if (attendeeList == null) {
+      attendeeList = new ArrayList<>();
+    }
+    attendeeList.add(employee);
   }
 
 }

@@ -5,14 +5,14 @@ import org.projectforge.continuousdb.UpdateEntryImpl;
 import org.projectforge.continuousdb.UpdatePreCheckStatus;
 import org.projectforge.continuousdb.UpdateRunningStatus;
 import org.projectforge.framework.configuration.ApplicationContextProvider;
+import org.projectforge.framework.persistence.database.DatabaseUpdateService;
 import org.projectforge.framework.persistence.database.InitDatabaseDao;
-import org.projectforge.framework.persistence.database.MyDatabaseUpdateService;
 import org.projectforge.plugins.ffp.model.FFPAccountingDO;
 import org.projectforge.plugins.ffp.model.FFPEventDO;
 
 public class FinancialFairPlayPluginUpdates
 {
-  static MyDatabaseUpdateService dao;
+  static DatabaseUpdateService dao;
 
   @SuppressWarnings("serial")
   public static UpdateEntry getInitializationUpdateEntry()
