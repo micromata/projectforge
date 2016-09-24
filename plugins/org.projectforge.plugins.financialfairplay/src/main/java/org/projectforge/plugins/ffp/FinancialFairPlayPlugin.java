@@ -59,7 +59,7 @@ public class FinancialFairPlayPlugin extends AbstractPlugin
   protected void initialize()
   {
 
-    FinancialFairPlayPluginUpdates.dao = myDatabaseUpdater.getDatabaseUpdateService();
+    FinancialFairPlayPluginUpdates.dao = myDatabaseUpdater;
     // Register it:
     register(ID, FFPEventDao.class, eventDao, "plugins.financialfairplay");
 

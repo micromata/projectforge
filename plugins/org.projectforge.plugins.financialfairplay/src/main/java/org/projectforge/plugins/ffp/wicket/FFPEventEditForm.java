@@ -25,7 +25,11 @@ package org.projectforge.plugins.ffp.wicket;
 
 import org.apache.log4j.Logger;
 import org.apache.wicket.model.PropertyModel;
+import org.apache.wicket.spring.injection.annot.SpringBean;
+import org.projectforge.business.fibu.api.EmployeeService;
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.plugins.ffp.model.FFPEventDO;
+import org.projectforge.plugins.ffp.repository.FFPEventService;
 import org.projectforge.web.wicket.AbstractEditForm;
 import org.projectforge.web.wicket.bootstrap.GridSize;
 import org.projectforge.web.wicket.components.DatePanel;
@@ -40,9 +44,18 @@ public class FFPEventEditForm extends AbstractEditForm<FFPEventDO, FFPEventEditP
 
   private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(FFPEventEditForm.class);
 
+  @SpringBean
+  private EmployeeService employeeService;
+
+  @SpringBean
+  private FFPEventService eventService;
+
   public FFPEventEditForm(final FFPEventEditPage parentPage, final FFPEventDO data)
   {
     super(parentPage, data);
+    if (isNew()) {
+      data.addAttendee(employeeService.getEmployeeByUserId(ThreadLocalUserContext.getUserId()));
+    }
   }
 
   @Override
@@ -63,6 +76,12 @@ public class FFPEventEditForm extends AbstractEditForm<FFPEventDO, FFPEventEditP
           new PropertyModel<>(data, "title"));
       titel.setMarkupId("titel").setOutputMarkupId(true);
       fs.add(titel);
+    }
+    {
+      //Attendees
+      final EmployeeListViewPanel listViewPanel = new EmployeeListViewPanel(gridBuilder.newGridPanelId(),
+          employeeService, eventService, data);
+      gridBuilder.getPanel().add(listViewPanel);
     }
   }
 

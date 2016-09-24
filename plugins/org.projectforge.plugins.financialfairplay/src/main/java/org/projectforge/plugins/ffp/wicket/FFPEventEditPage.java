@@ -45,7 +45,7 @@ public class FFPEventEditPage extends AbstractEditPage<FFPEventDO, FFPEventEditF
 
   public FFPEventEditPage(final PageParameters parameters)
   {
-    super(parameters, "plugin.ffp");
+    super(parameters, "plugins.ffp");
     init();
   }
 

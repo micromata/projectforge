@@ -7,10 +7,14 @@ import java.lang.reflect.Method;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collection;
+import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.projectforge.business.fibu.EmployeeDO;
 import org.projectforge.business.fibu.EmployeeDao;
+import org.projectforge.business.fibu.EmployeeFilter;
 import org.projectforge.business.fibu.EmployeeTimedDO;
 import org.projectforge.business.fibu.api.EmployeeService;
 import org.projectforge.business.fibu.kost.Kost1DO;
@@ -211,7 +215,8 @@ public class EmployeeServiceImpl extends CorePersistenceServiceImpl<Integer, Emp
   @Override
   public BigDecimal getMonthlySalary(EmployeeDO employee, Calendar selectedDate)
   {
-    final EmployeeTimedDO attribute = timeableEmployeeService.getAttrRowForSameMonth(employee, "annuity", selectedDate.getTime());
+    final EmployeeTimedDO attribute = timeableEmployeeService.getAttrRowForSameMonth(employee, "annuity",
+        selectedDate.getTime());
     final BigDecimal annualSalary = attribute != null ? attribute.getAttribute("annuity", BigDecimal.class) : null;
     final BigDecimal weeklyWorkingHours = employee.getWeeklyWorkingHours();
 
@@ -225,6 +230,20 @@ public class EmployeeServiceImpl extends CorePersistenceServiceImpl<Integer, Emp
     }
 
     return null;
+  }
+
+  @Override
+  public List<EmployeeDO> findAllActive(boolean checkAccess)
+  {
+    Collection<EmployeeDO> employeeList = new ArrayList<>();
+    if (checkAccess) {
+      employeeList = employeeDao.getList(new EmployeeFilter());
+    } else {
+      employeeList = employeeDao.internalLoadAll();
+    }
+    return employeeList.stream()
+        .filter(emp -> emp.getAustrittsDatum() == null || emp.getAustrittsDatum().after(new Date()))
+        .collect(Collectors.toList());
   }
 
 }
