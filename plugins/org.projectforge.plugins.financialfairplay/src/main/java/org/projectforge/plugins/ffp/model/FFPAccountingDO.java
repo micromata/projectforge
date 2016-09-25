@@ -26,7 +26,7 @@ public class FFPAccountingDO extends DefaultBaseDO
 
   private EmployeeDO attendee;
 
-  @PropertyInfo(i18nKey = "plugin.ffp.value")
+  @PropertyInfo(i18nKey = "plugins.ffp.value")
   private BigDecimal value;
 
   @ManyToOne(fetch = FetchType.EAGER)

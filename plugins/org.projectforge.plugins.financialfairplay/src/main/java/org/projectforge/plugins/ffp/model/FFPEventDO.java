@@ -73,6 +73,9 @@ public class FFPEventDO extends DefaultBaseDO
       inverseJoinColumns = @JoinColumn(name = "EVENT_PK", referencedColumnName = "PK"))
   public List<EmployeeDO> getAttendeeList()
   {
+    if (attendeeList == null) {
+      attendeeList = new ArrayList<>();
+    }
     return attendeeList;
   }
 
@@ -84,6 +87,9 @@ public class FFPEventDO extends DefaultBaseDO
   @OneToMany(fetch = FetchType.EAGER, mappedBy = "event")
   public List<FFPAccountingDO> getAccountingList()
   {
+    if (accountingList == null) {
+      accountingList = new ArrayList<>();
+    }
     return accountingList;
   }
 
@@ -95,10 +101,7 @@ public class FFPEventDO extends DefaultBaseDO
   @Transient
   public void addAttendee(EmployeeDO employee)
   {
-    if (attendeeList == null) {
-      attendeeList = new ArrayList<>();
-    }
-    attendeeList.add(employee);
+    getAttendeeList().add(employee);
   }
 
 }

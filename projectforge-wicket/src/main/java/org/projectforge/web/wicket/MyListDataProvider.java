@@ -38,20 +38,22 @@ public abstract class MyListDataProvider<T extends Serializable> implements IDat
   /** reference to the list used as dataprovider for the dataview */
   protected List<T> list;
 
-  public MyListDataProvider()
+  @Override
+  public Iterator<? extends T> iterator(long first, long count)
   {
+    int toIndex = Math.toIntExact(first + count);
+    if (toIndex > getList().size()) {
+      toIndex = list.size();
+    }
+    return list.subList(Math.toIntExact(first), toIndex).listIterator();
   }
 
   /**
    * @see IDataProvider#iterator(int, int)
    */
-  public Iterator< ? extends T> iterator(final int first, final int count)
+  public Iterator<? extends T> iterator(final int first, final int count)
   {
-    int toIndex = first + count;
-    if (toIndex > getList().size()) {
-      toIndex = list.size();
-    }
-    return list.subList(first, toIndex).listIterator();
+    return iterator(new Long(first), new Long(count));
   }
 
   /**
