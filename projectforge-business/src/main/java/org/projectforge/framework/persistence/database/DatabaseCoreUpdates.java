@@ -64,6 +64,7 @@ import org.projectforge.continuousdb.UpdatePreCheckStatus;
 import org.projectforge.continuousdb.UpdateRunningStatus;
 import org.projectforge.framework.configuration.Configuration;
 import org.projectforge.framework.configuration.entities.ConfigurationDO;
+import org.projectforge.framework.persistence.attr.impl.InternalAttrSchemaConstants;
 import org.projectforge.framework.persistence.entities.AbstractBaseDO;
 import org.projectforge.framework.persistence.history.HistoryBaseDaoAdapter;
 import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
@@ -107,15 +108,13 @@ public class DatabaseCoreUpdates
     list.add(new UpdateEntryImpl(CORE_REGION_ID, "6.4.0", "2016-10-12",
         "Move employee status to new timeable attribute.")
     {
-      private static final String EMPLOYEE_STATUS_GROUP_NAME = "employeestatus";
-      private static final String EMPLOYEE_STATUS_DESC_NAME = "status";
-
       @Override
       public UpdatePreCheckStatus runPreCheck()
       {
         log.info("Running pre-check for ProjectForge version 6.4.0");
         final boolean doEmployeesExist = databaseUpdateService.doEntitiesExist(EmployeeDO.class);
-        final int employeeStatusGroupEntriesCount = databaseUpdateService.countTimeableAttrGroupEntries(EmployeeTimedDO.class, EMPLOYEE_STATUS_GROUP_NAME);
+        final int employeeStatusGroupEntriesCount = databaseUpdateService
+            .countTimeableAttrGroupEntries(EmployeeTimedDO.class, InternalAttrSchemaConstants.EMPLOYEE_STATUS_GROUP_NAME);
         if (doEmployeesExist && employeeStatusGroupEntriesCount <= 0) {
           return UpdatePreCheckStatus.READY_FOR_UPDATE;
         } else {
@@ -132,9 +131,9 @@ public class DatabaseCoreUpdates
         employees.forEach(employee -> {
           final EmployeeStatus status = employee.getStatus();
           if (status != null) {
-            final EmployeeTimedDO newAttrRow = employeeService.addNewTimeAttributeRow(employee, EMPLOYEE_STATUS_GROUP_NAME);
+            final EmployeeTimedDO newAttrRow = employeeService.addNewTimeAttributeRow(employee, InternalAttrSchemaConstants.EMPLOYEE_STATUS_GROUP_NAME);
             newAttrRow.setStartTime(getDateForStatus(employee));
-            newAttrRow.putAttribute(EMPLOYEE_STATUS_DESC_NAME, status.getI18nKey());
+            newAttrRow.putAttribute(InternalAttrSchemaConstants.EMPLOYEE_STATUS_DESC_NAME, status.getI18nKey());
             employeeService.update(employee);
           }
         });
