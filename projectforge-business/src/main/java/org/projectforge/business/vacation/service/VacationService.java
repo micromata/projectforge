@@ -1,5 +1,7 @@
 package org.projectforge.business.vacation.service;
 
+import java.io.Serializable;
+import java.math.BigDecimal;
 import java.util.Date;
 import java.util.List;
 
@@ -26,5 +28,45 @@ public interface VacationService extends IPersistenceService<VacationDO>, IDao<V
    * @return List of vacations
    */
   List<VacationDO> getVacationForDate(EmployeeDO employee, Date startDate, Date endDate);
+
+  /**
+   * Getting all not deleted vacations for given employee of the current year.
+   * 
+   * @param employee
+   * @return List of vacations
+   */
+  List<VacationDO> getActiveVacationForCurrentYear(EmployeeDO employee);
+
+  /**
+   * Getting vacation for given ids.
+   * 
+   * @param idList
+   * @return List of vacations
+   */
+  List<VacationDO> getVacation(List<Serializable> idList);
+
+  /**
+   * Returns the number of available vacation
+   * 
+   * @param employee
+   * @return number of available vacation
+   */
+  BigDecimal getAvailableVacationdays(EmployeeDO employee);
+
+  /**
+   * Returns the number of used vacation days
+   * 
+   * @param employee
+   * @return number of used vacation days
+   */
+  BigDecimal getUsedVacationdays(EmployeeDO employee);
+
+  /**
+   * Returns the number of planed vacation days
+   * 
+   * @param employee
+   * @return number of used vacation days
+   */
+  BigDecimal getPlanedVacationdays(EmployeeDO currentEmployee);
 
 }
