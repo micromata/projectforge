@@ -13,6 +13,7 @@ import org.projectforge.business.fibu.api.EmployeeService;
 import org.projectforge.excel.ExportRow;
 import org.projectforge.excel.ExportSheet;
 import org.projectforge.excel.ExportWorkbook;
+import org.projectforge.framework.persistence.attr.impl.InternalAttrSchemaConstants;
 import org.projectforge.plugins.eed.model.EmployeeConfigurationDO;
 import org.projectforge.plugins.eed.model.EmployeeConfigurationTimedDO;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -66,7 +67,7 @@ public class LBExporterService
 
     for (EmployeeDO employee : employeeList) {
       if (employeeService.isEmployeeActive(employee) == true) {
-        if (isFulltimeEmployee(employee) == true) {
+        if (isFulltimeEmployee(employee, selectedDate) == true) {
           sheetFulltimeEmployee.copyRow(copyRowFulltime);
           copyRowNrFulltime++;
           final ExportRow currentRow = sheetFulltimeEmployee.getRow(copyRowNrFulltime - 1);
@@ -177,10 +178,20 @@ public class LBExporterService
     return value.setScale(2, BigDecimal.ROUND_HALF_UP); // round to two decimal places
   }
 
-  private boolean isFulltimeEmployee(EmployeeDO employee)
+  private boolean isFulltimeEmployee(final EmployeeDO employee, final Calendar selectedDate)
   {
-    return EmployeeStatus.FEST_ANGESTELLTER.equals(employee.getStatus())
-        || EmployeeStatus.BEFRISTET_ANGESTELLTER.equals(employee.getStatus());
+    final EmployeeTimedDO row = timeableService.getAttrRowForDate(employee, InternalAttrSchemaConstants.EMPLOYEE_STATUS_GROUP_NAME, selectedDate.getTime());
+    if (row == null) {
+      return false;
+    }
+
+    final String employeeStatusI18nKey = row.getStringAttribute(InternalAttrSchemaConstants.EMPLOYEE_STATUS_DESC_NAME);
+    if (employeeStatusI18nKey == null) {
+      return false;
+    }
+
+    return EmployeeStatus.FEST_ANGESTELLTER.getI18nKey().equals(employeeStatusI18nKey)
+        || EmployeeStatus.BEFRISTET_ANGESTELLTER.getI18nKey().equals(employeeStatusI18nKey);
   }
 
 }

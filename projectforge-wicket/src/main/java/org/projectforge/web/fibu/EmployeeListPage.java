@@ -39,6 +39,7 @@ import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.fibu.EmployeeDO;
 import org.projectforge.business.fibu.api.EmployeeService;
 import org.projectforge.framework.persistence.attr.impl.GuiAttrSchemaService;
+import org.projectforge.framework.persistence.attr.impl.InternalAttrSchemaConstants;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.time.DateTimeFormatter;
 import org.projectforge.web.wicket.AbstractListPage;
@@ -117,7 +118,8 @@ public class EmployeeListPage extends AbstractListPage<EmployeeListForm, Employe
         getSortable("user.firstname", sortable),
         "user.firstname", cellItemListener));
 
-    columns.add(new TimedAttrColumn<>(guiAttrSchemaService, "employeestatus", "status", cellItemListener));
+    columns.add(new TimedAttrColumn<>(guiAttrSchemaService, InternalAttrSchemaConstants.EMPLOYEE_STATUS_GROUP_NAME,
+        InternalAttrSchemaConstants.EMPLOYEE_STATUS_DESC_NAME, cellItemListener));
     columns
         .add(new CellItemListenerPropertyColumn<EmployeeDO>(EmployeeDO.class, getSortable("staffNumber", sortable),
             "staffNumber",
