@@ -23,19 +23,13 @@
 
 package org.projectforge.web.vacation;
 
-import java.util.List;
-
 import org.apache.log4j.Logger;
 import org.apache.wicket.markup.html.form.DropDownChoice;
-import org.apache.wicket.markup.html.form.Form;
-import org.apache.wicket.markup.html.form.FormComponent;
-import org.apache.wicket.markup.html.form.validation.IFormValidator;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.fibu.EmployeeDO;
 import org.projectforge.business.fibu.api.EmployeeService;
 import org.projectforge.business.multitenancy.TenantService;
-import org.projectforge.business.user.I18nHelper;
 import org.projectforge.business.vacation.model.VacationDO;
 import org.projectforge.business.vacation.model.VacationStatus;
 import org.projectforge.business.vacation.service.VacationService;
@@ -66,9 +60,6 @@ public class VacationEditForm extends AbstractEditForm<VacationDO, VacationEditP
   @SpringBean
   private TenantService tenantService;
 
-  // Components for form validation.
-  private final FormComponent<?>[] dependentFormComponents = new FormComponent[2];
-
   public VacationEditForm(final VacationEditPage parentPage, final VacationDO data)
   {
     super(parentPage, data);
@@ -79,6 +70,9 @@ public class VacationEditForm extends AbstractEditForm<VacationDO, VacationEditP
   protected void init()
   {
     super.init();
+    VacationFormValidator formValidator = new VacationFormValidator(vacationService, data);
+    add(formValidator);
+
     gridBuilder.newSplitPanel(GridSize.COL50);
     {
       // Start date
@@ -86,7 +80,7 @@ public class VacationEditForm extends AbstractEditForm<VacationDO, VacationEditP
       DatePanel startDatePanel = new DatePanel(fs.newChildId(), new PropertyModel<>(data, "startDate"),
           new DatePanelSettings());
       startDatePanel.setRequired(true).setMarkupId("vacation-startdate").setOutputMarkupId(true);
-      dependentFormComponents[0] = startDatePanel;
+      formValidator.getDependentFormComponents()[0] = startDatePanel;
       fs.add(startDatePanel);
     }
 
@@ -96,38 +90,9 @@ public class VacationEditForm extends AbstractEditForm<VacationDO, VacationEditP
       DatePanel endDatePanel = new DatePanel(fs.newChildId(), new PropertyModel<>(data, "endDate"),
           new DatePanelSettings());
       endDatePanel.setRequired(true).setMarkupId("vacation-enddate").setOutputMarkupId(true);
-      dependentFormComponents[1] = endDatePanel;
+      formValidator.getDependentFormComponents()[1] = endDatePanel;
       fs.add(endDatePanel);
     }
-
-    add(new IFormValidator()
-    {
-      private static final long serialVersionUID = -8478416045860851983L;
-
-      @Override
-      public void validate(final Form<?> form)
-      {
-        final DatePanel startDatePanel = (DatePanel) dependentFormComponents[0];
-        final DatePanel endDatePanel = (DatePanel) dependentFormComponents[1];
-
-        if (endDatePanel.getConvertedInput().before(startDatePanel.getConvertedInput())) {
-          error(I18nHelper.getLocalizedMessage("vacation.validate.endbeforestart"));
-          return;
-        }
-
-        List<VacationDO> vacationListForPeriod = vacationService.getVacationForDate(data.getEmployee(),
-            startDatePanel.getConvertedInput(), endDatePanel.getConvertedInput());
-        if (vacationListForPeriod != null && vacationListForPeriod.size() > 0) {
-          error(I18nHelper.getLocalizedMessage("vacation.validate.leaveapplicationexists"));
-        }
-      }
-
-      @Override
-      public FormComponent<?>[] getDependentFormComponents()
-      {
-        return dependentFormComponents;
-      }
-    });
 
     {
       // Manager

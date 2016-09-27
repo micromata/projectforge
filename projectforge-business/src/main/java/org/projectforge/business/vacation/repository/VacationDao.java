@@ -24,7 +24,9 @@
 package org.projectforge.business.vacation.repository;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.List;
 
 import org.hibernate.criterion.Order;
@@ -103,6 +105,22 @@ public class VacationDao extends BaseDao<VacationDO>
         Restrictions.eq("manager", myFilter.getEmployeeForUser())));
     queryFilter.addOrder(Order.asc("startDate"));
     return getList(queryFilter);
+  }
+
+  public List<VacationDO> getActiveVacationForCurrentYear(EmployeeDO employee)
+  {
+    List<VacationDO> result = new ArrayList<>();
+    Calendar today = new GregorianCalendar();
+    Calendar startYear = new GregorianCalendar(today.get(Calendar.YEAR), Calendar.JANUARY, 1);
+    Calendar endYear = new GregorianCalendar(today.get(Calendar.YEAR), Calendar.DECEMBER, 31);
+    result = emgrFactory.runRoTrans(emgr -> {
+      String baseSQL = "SELECT v FROM VacationDO v WHERE v.employee = :employee AND v.startDate >= :startDate AND v.endDate <= :endDate";
+      List<VacationDO> dbResultList = emgr.selectDetached(VacationDO.class, baseSQL + META_SQL, "employee", employee,
+          "startDate", startYear.getTime(), "endDate", endYear.getTime(),
+          "deleted", false, "tenant", ThreadLocalUserContext.getUser().getTenant());
+      return dbResultList;
+    });
+    return result;
   }
 
 }
