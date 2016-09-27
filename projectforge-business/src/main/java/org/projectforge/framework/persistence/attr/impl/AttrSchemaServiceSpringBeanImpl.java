@@ -30,6 +30,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.context.support.FileSystemXmlApplicationContext;
 
+import de.micromata.genome.db.jpa.tabattr.api.AttrDescription;
 import de.micromata.genome.db.jpa.tabattr.api.AttrGroup;
 import de.micromata.genome.db.jpa.tabattr.api.AttrSchema;
 import de.micromata.genome.db.jpa.tabattr.api.EntityWithConfigurableAttr;
@@ -136,14 +137,36 @@ public class AttrSchemaServiceSpringBeanImpl extends AttrSchemaServiceBaseImpl
   }
 
   @Override
-  public AttrGroup getAttrGroup(EntityWithConfigurableAttr entity, String groupName)
+  public AttrGroup getAttrGroup(final EntityWithConfigurableAttr entity, final String groupName)
   {
     if (attrSchemata == null) {
       loadAttrSchema();
     }
-    AttrSchema entitySchema = attrSchemata.get(entity.getAttrSchemaName());
-    return entitySchema.getGroups().stream().filter(group -> group.getName().equals(groupName)).findFirst()
+    final AttrSchema entitySchema = attrSchemata.get(entity.getAttrSchemaName());
+    return entitySchema
+        .getGroups()
+        .stream()
+        .filter(group -> group.getName().equals(groupName))
+        .findFirst()
         .orElse(null);
   }
 
+  @Override
+  public AttrDescription getAttrDescription(final EntityWithConfigurableAttr entity, final String groupName, final String descriptionName)
+  {
+    final AttrGroup attrGroup = getAttrGroup(entity, groupName);
+    return getAttrDescription(attrGroup, descriptionName);
+  }
+
+  @Override
+  public AttrDescription getAttrDescription(final AttrGroup attrGroup, final String descriptionName)
+  {
+    return (attrGroup == null) ? null :
+        attrGroup
+            .getDescriptions()
+            .stream()
+            .filter(desc -> desc.getPropertyName().equals(descriptionName))
+            .findFirst()
+            .orElse(null);
+  }
 }

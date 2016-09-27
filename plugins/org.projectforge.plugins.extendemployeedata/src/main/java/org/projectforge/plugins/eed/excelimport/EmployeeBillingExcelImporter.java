@@ -37,14 +37,14 @@ public class EmployeeBillingExcelImporter
 
   private final EmployeeService employeeService;
 
-  private final TimeableService<Integer, EmployeeTimedDO> timeableService;
+  private final TimeableService timeableService;
 
   private final ImportStorage<EmployeeDO> storage;
 
   private final Date dateToSelectAttrRow;
 
   public EmployeeBillingExcelImporter(final EmployeeService employeeService,
-      final TimeableService<Integer, EmployeeTimedDO> timeableService,
+      final TimeableService timeableService,
       final ImportStorage<EmployeeDO> storage, final Date dateToSelectAttrRow)
   {
     this.employeeService = employeeService;

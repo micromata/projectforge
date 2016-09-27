@@ -36,10 +36,7 @@ public class LBExporterService
   private EmployeeService employeeService;
 
   @Autowired
-  private TimeableService<Integer, EmployeeTimedDO> timeableEmployeeService;
-
-  @Autowired
-  private TimeableService<Integer, EmployeeConfigurationTimedDO> timeableEmployeeConfigurationService;
+  private TimeableService timeableService;
 
   @Autowired
   private AttrSchemaService attrSchemaService;
@@ -141,14 +138,14 @@ public class LBExporterService
   private String getAttrValueForMonthAsString(EmployeeDO employee, String attrGroup, String attrProperty,
       Calendar selectedDate)
   {
-    final EmployeeTimedDO attribute = timeableEmployeeService.getAttrRowForSameMonth(employee, attrGroup, selectedDate.getTime());
+    final EmployeeTimedDO attribute = timeableService.getAttrRowForSameMonth(employee, attrGroup, selectedDate.getTime());
     return attribute != null ? attribute.getStringAttribute(attrProperty) : null;
   }
 
   private boolean getAttrValueForMonthAsBoolean(EmployeeDO employee, String attrGroup, String attrProperty,
       Calendar selectedDate)
   {
-    final EmployeeTimedDO attribute = timeableEmployeeService.getAttrRowForSameMonth(employee, attrGroup, selectedDate.getTime());
+    final EmployeeTimedDO attribute = timeableService.getAttrRowForSameMonth(employee, attrGroup, selectedDate.getTime());
 
     if (attribute == null) {
       return false;
@@ -161,17 +158,13 @@ public class LBExporterService
   private BigDecimal getAttrValueForMonthAsBigDecimal(EmployeeDO employee, String attrGroupString, String attrProperty,
       Calendar selectedDate)
   {
-    final EmployeeTimedDO attribute = timeableEmployeeService.getAttrRowForSameMonth(employee, attrGroupString, selectedDate.getTime());
+    final EmployeeTimedDO attribute = timeableService.getAttrRowForSameMonth(employee, attrGroupString, selectedDate.getTime());
     return attribute != null ? attribute.getAttribute(attrProperty, BigDecimal.class) : null;
   }
 
-  private BigDecimal getAttrValueForMonthAsBigDecimal(EmployeeConfigurationDO configuration, String attrGroup,
-      String attrProperty,
-      Calendar selectedDate)
+  private BigDecimal getAttrValueForMonthAsBigDecimal(EmployeeConfigurationDO configuration, String attrGroup, String attrProperty, Calendar selectedDate)
   {
-    EmployeeConfigurationTimedDO attribute = timeableEmployeeConfigurationService.getAttrRowForSameMonth(configuration,
-        attrGroup,
-        selectedDate.getTime());
+    EmployeeConfigurationTimedDO attribute = timeableService.getAttrRowForSameMonth(configuration, attrGroup, selectedDate.getTime());
     return attribute != null ? attribute.getAttribute(attrProperty, BigDecimal.class) : null;
   }
 

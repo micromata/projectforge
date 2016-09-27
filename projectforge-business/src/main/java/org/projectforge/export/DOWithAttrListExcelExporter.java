@@ -14,7 +14,7 @@ import de.micromata.genome.db.jpa.tabattr.api.TimeableService;
 
 public class DOWithAttrListExcelExporter<PK extends Serializable, T extends TimeableAttrRow<PK>> extends DOListExcelExporter
 {
-  private final TimeableService<PK, T> timeableService;
+  private final TimeableService timeableService;
 
   private final String[] fieldsToExport;
 
@@ -22,7 +22,7 @@ public class DOWithAttrListExcelExporter<PK extends Serializable, T extends Time
 
   private final Date dateToSelectAttrRow;
 
-  public DOWithAttrListExcelExporter(final String filenameIdentifier, final TimeableService<PK, T> timeableService, final String[] fieldsToExport,
+  public DOWithAttrListExcelExporter(final String filenameIdentifier, final TimeableService timeableService, final String[] fieldsToExport,
       final List<AttrColumnDescription> attrFieldsToExport, final Date dateToSelectAttrRow)
   {
     super(filenameIdentifier);

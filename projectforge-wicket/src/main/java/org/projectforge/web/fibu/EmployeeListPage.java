@@ -38,6 +38,7 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.fibu.EmployeeDO;
 import org.projectforge.business.fibu.api.EmployeeService;
+import org.projectforge.framework.persistence.attr.impl.GuiAttrSchemaService;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.time.DateTimeFormatter;
 import org.projectforge.web.wicket.AbstractListPage;
@@ -46,6 +47,7 @@ import org.projectforge.web.wicket.CellItemListenerPropertyColumn;
 import org.projectforge.web.wicket.IListPageColumnsCreator;
 import org.projectforge.web.wicket.ListPage;
 import org.projectforge.web.wicket.ListSelectActionPanel;
+import org.projectforge.web.wicket.TimedAttrColumn;
 
 @ListPage(editPage = EmployeeEditPage.class)
 public class EmployeeListPage extends AbstractListPage<EmployeeListForm, EmployeeService, EmployeeDO> implements
@@ -55,6 +57,9 @@ public class EmployeeListPage extends AbstractListPage<EmployeeListForm, Employe
 
   @SpringBean
   private EmployeeService employeeService;
+
+  @SpringBean
+  private GuiAttrSchemaService guiAttrSchemaService;
 
   public EmployeeListPage(final PageParameters parameters)
   {
@@ -70,7 +75,7 @@ public class EmployeeListPage extends AbstractListPage<EmployeeListForm, Employe
   @SuppressWarnings("serial")
   public List<IColumn<EmployeeDO, String>> createColumns(final WebPage returnToPage, final boolean sortable)
   {
-    final List<IColumn<EmployeeDO, String>> columns = new ArrayList<IColumn<EmployeeDO, String>>();
+    final List<IColumn<EmployeeDO, String>> columns = new ArrayList<>();
 
     final CellItemListener<EmployeeDO> cellItemListener = new CellItemListener<EmployeeDO>()
     {
@@ -111,9 +116,8 @@ public class EmployeeListPage extends AbstractListPage<EmployeeListForm, Employe
     columns.add(new CellItemListenerPropertyColumn<EmployeeDO>(new ResourceModel("firstName"),
         getSortable("user.firstname", sortable),
         "user.firstname", cellItemListener));
-    columns
-        .add(new CellItemListenerPropertyColumn<EmployeeDO>(EmployeeDO.class, getSortable("status", sortable), "status",
-            cellItemListener));
+
+    columns.add(new TimedAttrColumn<>(guiAttrSchemaService, "employeestatus", "status", cellItemListener));
     columns
         .add(new CellItemListenerPropertyColumn<EmployeeDO>(EmployeeDO.class, getSortable("staffNumber", sortable),
             "staffNumber",

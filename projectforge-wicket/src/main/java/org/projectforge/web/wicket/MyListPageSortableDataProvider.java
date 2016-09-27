@@ -41,6 +41,7 @@ import org.apache.wicket.model.Model;
 import org.projectforge.framework.persistence.api.BaseDao;
 import org.projectforge.framework.persistence.api.IdObject;
 import org.projectforge.framework.utils.MyBeanComparator;
+import org.projectforge.web.common.timeattr.AttrComperator;
 
 /**
  * Stores list of result sets (id's) for pagination and provides iterator of data-base objects on demand.
@@ -157,6 +158,11 @@ public class MyListPageSortableDataProvider<T extends IdObject< ? >> extends Sor
   {
     final String sortProperty = sortParam != null ? sortParam.getProperty() : null;
     final boolean ascending = sortParam != null ? sortParam.isAscending() : true;
+
+    if (sortProperty != null && sortProperty.startsWith("attr:")) {
+      return (Comparator<T>) new AttrComperator(sortProperty, ascending);
+    }
+
     final String secondSortProperty = secondSortParam != null ? secondSortParam.getProperty() : null;
     final boolean secondAscending = secondSortParam != null ? secondSortParam.isAscending() : true;
     return new MyBeanComparator<T>(sortProperty, ascending, secondSortProperty, secondAscending);
