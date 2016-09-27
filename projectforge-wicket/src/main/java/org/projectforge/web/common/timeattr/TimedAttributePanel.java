@@ -51,7 +51,7 @@ public class TimedAttributePanel<PK extends Serializable, T extends TimeableAttr
   private static final MyDateConverter dateConverter = new MyDateConverter("M-"); // same style as the date panel
 
   @SpringBean
-  private TimeableService<PK, T> timeableService;
+  private TimeableService timeableService;
 
   private final EntityWithTimeableAttr<PK, T> entity;
   private final Function<AttrGroup, T> addNewEntryFunction;
