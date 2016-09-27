@@ -18,6 +18,7 @@ import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.projectforge.business.fibu.EmployeeDO;
 import org.projectforge.business.user.I18nHelper;
+import org.projectforge.business.vacation.model.VacationAttrProperty;
 import org.projectforge.business.vacation.model.VacationDO;
 import org.projectforge.business.vacation.service.VacationService;
 import org.projectforge.web.vacation.VacationViewPageSortableDataProvider;
@@ -47,8 +48,15 @@ public class VacationViewHelper
     appendFieldset(gridBuilder, "vacation.annualleave",
         currentEmployee.getUrlaubstage() != null ? currentEmployee.getUrlaubstage().toString() : "0");
     appendFieldset(gridBuilder, "vacation.previousyearleave",
-        currentEmployee.getAttribute("previousyearleave", BigDecimal.class) != null
-            ? currentEmployee.getAttribute("previousyearleave", BigDecimal.class).toString() : "0");
+        currentEmployee.getAttribute(VacationAttrProperty.PREVIOUSYEARLEAVE.getPropertyName(), BigDecimal.class) != null
+            ? currentEmployee.getAttribute(VacationAttrProperty.PREVIOUSYEARLEAVE.getPropertyName(), BigDecimal.class)
+                .toString()
+            : "0");
+    appendFieldset(gridBuilder, "vacation.previousyearleaveused",
+        currentEmployee.getAttribute(VacationAttrProperty.PREVIOUSYEARLEAVEUSED.getPropertyName(),
+            BigDecimal.class) != null ? currentEmployee
+                .getAttribute(VacationAttrProperty.PREVIOUSYEARLEAVEUSED.getPropertyName(), BigDecimal.class).toString()
+                : "0");
     appendFieldset(gridBuilder, "vacation.usedvacation",
         vacationService.getUsedVacationdays(currentEmployee).toString());
     appendFieldset(gridBuilder, "vacation.planedvacation",
