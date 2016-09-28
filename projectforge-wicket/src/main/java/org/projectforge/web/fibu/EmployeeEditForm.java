@@ -43,6 +43,7 @@ import org.projectforge.framework.persistence.attr.impl.GuiAttrSchemaService;
 import org.projectforge.web.common.BicValidator;
 import org.projectforge.web.common.IbanValidator;
 import org.projectforge.web.user.UserSelectPanel;
+import org.projectforge.web.vacation.helper.VacationViewHelper;
 import org.projectforge.web.wicket.AbstractEditForm;
 import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.web.wicket.bootstrap.GridBuilder;
@@ -77,6 +78,9 @@ public class EmployeeEditForm extends AbstractEditForm<EmployeeDO, EmployeeEditP
 
   @SpringBean
   private GuiAttrSchemaService attrSchemaService;
+
+  @SpringBean
+  private VacationViewHelper vacationViewHelper;
 
   public EmployeeEditForm(final EmployeeEditPage parentPage, final EmployeeDO data)
   {
@@ -305,7 +309,8 @@ public class EmployeeEditForm extends AbstractEditForm<EmployeeDO, EmployeeEditP
     gridBuilder.newSplitPanel(GridSize.COL100, true); // set hasSubSplitPanel to true to remove borders from this split panel
     {
       // AttrPanels
-      final Function<AttrGroup, EmployeeTimedDO> addNewEntryFunction = group -> employeeService.addNewTimeAttributeRow(data, group.getName());
+      final Function<AttrGroup, EmployeeTimedDO> addNewEntryFunction = group -> employeeService
+          .addNewTimeAttributeRow(data, group.getName());
       attrSchemaService.createAttrPanels(tabPanel, data, parentPage, addNewEntryFunction);
     }
 
@@ -315,6 +320,10 @@ public class EmployeeEditForm extends AbstractEditForm<EmployeeDO, EmployeeEditP
       final FieldsetPanel fs = gridBuilder.newFieldset(EmployeeDO.class, "comment");
       fs.add(new MaxLengthTextArea(TextAreaPanel.WICKET_ID, new PropertyModel<>(data, "comment")), true);
     }
+
+    GridBuilder vacationGridBuilder = tabPanel.getOrCreateTab("vacation"); // create the default tab
+    vacationViewHelper.createVacationView(vacationGridBuilder, data);
+
   }
 
   @Override
