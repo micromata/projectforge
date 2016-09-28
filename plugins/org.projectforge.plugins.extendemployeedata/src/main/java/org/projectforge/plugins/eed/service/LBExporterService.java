@@ -3,7 +3,9 @@ package org.projectforge.plugins.eed.service;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 
 import org.jfree.util.Log;
 import org.projectforge.business.fibu.EmployeeDO;
@@ -178,20 +180,35 @@ public class LBExporterService
     return value.setScale(2, BigDecimal.ROUND_HALF_UP); // round to two decimal places
   }
 
+  /**
+   * Checks if the employee was full time some day at the beginning of the month or within the month.
+   *
+   * @param employee     The employee.
+   * @param selectedDate The first day of the month to check.
+   * @return The result.
+   */
   private boolean isFulltimeEmployee(final EmployeeDO employee, final Calendar selectedDate)
   {
-    final EmployeeTimedDO row = timeableService.getAttrRowForDate(employee, InternalAttrSchemaConstants.EMPLOYEE_STATUS_GROUP_NAME, selectedDate.getTime());
-    if (row == null) {
-      return false;
+    final Calendar date = (Calendar) selectedDate.clone(); // create a clone to avoid changing the original object
+    final Date startOfMonth = date.getTime();
+    date.add(Calendar.MONTH, 1);
+    date.add(Calendar.DATE, -1);
+    final Date endOfMonth = date.getTime();
+
+    final List<EmployeeTimedDO> attrRows = timeableService
+        .getAttrRowsWithinDateRange(employee, InternalAttrSchemaConstants.EMPLOYEE_STATUS_GROUP_NAME, startOfMonth, endOfMonth);
+
+    final EmployeeTimedDO rowValidAtBeginOfMonth = timeableService
+        .getAttrRowValidAtDate(employee, InternalAttrSchemaConstants.EMPLOYEE_STATUS_GROUP_NAME, selectedDate.getTime());
+
+    if (rowValidAtBeginOfMonth != null) {
+      attrRows.add(rowValidAtBeginOfMonth);
     }
 
-    final String employeeStatusI18nKey = row.getStringAttribute(InternalAttrSchemaConstants.EMPLOYEE_STATUS_DESC_NAME);
-    if (employeeStatusI18nKey == null) {
-      return false;
-    }
-
-    return EmployeeStatus.FEST_ANGESTELLTER.getI18nKey().equals(employeeStatusI18nKey)
-        || EmployeeStatus.BEFRISTET_ANGESTELLTER.getI18nKey().equals(employeeStatusI18nKey);
+    return attrRows
+        .stream()
+        .map(row -> row.getStringAttribute(InternalAttrSchemaConstants.EMPLOYEE_STATUS_DESC_NAME))
+        .filter(Objects::nonNull)
+        .anyMatch(s -> EmployeeStatus.FEST_ANGESTELLTER.getI18nKey().equals(s) || EmployeeStatus.BEFRISTET_ANGESTELLTER.getI18nKey().equals(s));
   }
-
 }

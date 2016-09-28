@@ -85,7 +85,7 @@ public class GuiAttrSchemaServiceImpl extends AttrSchemaServiceSpringBeanImpl im
   public <PK extends Serializable, T extends TimeableAttrRow<PK>, U extends EntityWithTimeableAttr<PK, T> & EntityWithConfigurableAttr>
   Optional<IModel<String>> getStringAttribute(final U entity, final Date date, final String groupName, final String descName)
   {
-    final T attrRowForCurrentDate = timeableService.getAttrRowForDate(entity, groupName, date);
+    final T attrRowForCurrentDate = timeableService.getAttrRowValidAtDate(entity, groupName, date);
     if (attrRowForCurrentDate == null) {
       return Optional.empty();
     }
