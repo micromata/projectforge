@@ -199,7 +199,7 @@ public class TimedAttributePanel<PK extends Serializable, T extends TimeableAttr
 
   private T getAttrRowForCurrentDate(final List<T> attrRows)
   {
-    return timeableService.getAttrRowForDate(attrRows, attrGroup, new Date());
+    return timeableService.getAttrRowValidAtDate(attrRows, attrGroup, new Date());
   }
 
   private Button createAddButton()
