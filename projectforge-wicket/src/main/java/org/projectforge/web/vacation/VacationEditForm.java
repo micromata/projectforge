@@ -30,9 +30,13 @@ import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.fibu.EmployeeDO;
 import org.projectforge.business.fibu.api.EmployeeService;
 import org.projectforge.business.multitenancy.TenantService;
+import org.projectforge.business.user.UserRightId;
+import org.projectforge.business.user.UserRightValue;
 import org.projectforge.business.vacation.model.VacationDO;
 import org.projectforge.business.vacation.model.VacationStatus;
 import org.projectforge.business.vacation.service.VacationService;
+import org.projectforge.framework.access.AccessChecker;
+import org.projectforge.framework.access.AccessException;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.web.employee.EmployeeWicketProvider;
 import org.projectforge.web.wicket.AbstractEditForm;
@@ -60,6 +64,9 @@ public class VacationEditForm extends AbstractEditForm<VacationDO, VacationEditP
   @SpringBean
   private TenantService tenantService;
 
+  @SpringBean
+  private AccessChecker accessChecker;
+
   public VacationEditForm(final VacationEditPage parentPage, final VacationDO data)
   {
     super(parentPage, data);
@@ -69,6 +76,14 @@ public class VacationEditForm extends AbstractEditForm<VacationDO, VacationEditP
   @Override
   protected void init()
   {
+    if (checkReadAccess() == false) {
+      throw new AccessException("access.exception.userHasNotRight");
+    }
+    if (isNew() == false && checkWriteAccess() == false) {
+      markAsDeletedButtonPanel.setVisible(false);
+      deleteButtonPanel.setVisible(false);
+      updateButtonPanel.setVisible(false);
+    }
     super.init();
     VacationFormValidator formValidator = new VacationFormValidator(vacationService, data);
     add(formValidator);
@@ -140,6 +155,33 @@ public class VacationEditForm extends AbstractEditForm<VacationDO, VacationEditP
   protected Logger getLogger()
   {
     return log;
+  }
+
+  private boolean checkWriteAccess()
+  {
+    if (data.getEmployee().getUser().getPk().equals(ThreadLocalUserContext.getUserId()) == true
+        || (data.getManager() != null
+            && data.getManager().getUser().getPk().equals(ThreadLocalUserContext.getUserId())) == true) {
+      return true;
+    }
+    if (accessChecker.hasLoggedInUserRight(UserRightId.HR_VACATION, false, UserRightValue.READWRITE)) {
+      return true;
+    }
+    return false;
+  }
+
+  private boolean checkReadAccess()
+  {
+    if (data.getEmployee().getUser().getPk().equals(ThreadLocalUserContext.getUserId()) == true
+        || (data.getManager() != null
+            && data.getManager().getUser().getPk().equals(ThreadLocalUserContext.getUserId())) == true) {
+      return true;
+    }
+    if (accessChecker.hasLoggedInUserRight(UserRightId.HR_VACATION, false, UserRightValue.READONLY,
+        UserRightValue.READWRITE)) {
+      return true;
+    }
+    return false;
   }
 
 }

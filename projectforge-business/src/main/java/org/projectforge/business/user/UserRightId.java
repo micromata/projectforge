@@ -92,6 +92,9 @@ public enum UserRightId implements IUserRightId
   HR_EMPLOYEE_SALARY("HR_EMPLOYEE_SALARY", "hr2",
       "access.right.hr.employeeSalaries"),
 
+  HR_VACATION("HR_VACATION", "hr3",
+      "access.right.hr.vacation"),
+
   PLUGIN_CALENDAR("PLUGIN_CALENDAR", "plugin15",
       "plugins.teamcal.calendar"),
 
