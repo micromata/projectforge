@@ -64,6 +64,7 @@ import org.projectforge.web.mobile.MenuMobilePage;
 import org.projectforge.web.session.MySession;
 import org.projectforge.web.user.ChangePasswordPage;
 import org.projectforge.web.user.MyAccountEditPage;
+import org.projectforge.web.vacation.VacationViewPage;
 import org.projectforge.web.wicket.AbstractSecuredPage;
 import org.projectforge.web.wicket.CsrfTokenHandler;
 import org.projectforge.web.wicket.FeedbackPage;
@@ -96,7 +97,7 @@ public class NavTopPanel extends NavAbstractPanel
 
   @SpringBean
   private UserRightService userRights;
-  
+
   @SpringBean
   private TenantService tenantService;
 
@@ -216,6 +217,9 @@ public class NavTopPanel extends NavAbstractPanel
         final BookmarkablePageLink<Void> myAccountLink = new BookmarkablePageLink<Void>("myAccountLink",
             MyAccountEditPage.class);
         add(myAccountLink);
+        final BookmarkablePageLink<Void> vacationViewLink = new BookmarkablePageLink<Void>("vacationViewLink",
+            VacationViewPage.class);
+        add(vacationViewLink);
       }
       final BookmarkablePageLink<Void> documentationLink = new BookmarkablePageLink<Void>("documentationLink",
           DocumentationPage.class);
