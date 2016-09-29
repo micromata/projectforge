@@ -67,6 +67,7 @@ public enum MenuItemDefId
   MONTHLY_EMPLOYEE_REPORT("monthlyEmployeeReport"), //
   TENANT_LIST("multiTenancy"), //
   MY_ACCOUNT("myAccount"), //
+  VACATION_VIEW("vacation.leaveaccount"), //
   MY_PREFERENCES("myPreferences"), //
   REPORT_OBJECTIVES("fibu.reporting.reportObjectives"), //
   ORDER_LIST("fibu.orderbook"), //
