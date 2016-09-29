@@ -169,7 +169,7 @@ public class DatabaseUpdateService
     return internalDoesTableExist(table);
   }
 
-  public boolean doEntitiesExist(final Class<?>... entities)
+  public boolean doTablesExist(final Class<?>... entities)
   {
     accessCheck(false);
     for (final Class<?> entity : entities) {

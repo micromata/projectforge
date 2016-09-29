@@ -40,6 +40,7 @@ import org.projectforge.business.fibu.AuftragDO;
 import org.projectforge.business.fibu.AuftragsPositionDO;
 import org.projectforge.business.fibu.EingangsrechnungDO;
 import org.projectforge.business.fibu.EmployeeDO;
+import org.projectforge.business.fibu.EmployeeDao;
 import org.projectforge.business.fibu.EmployeeStatus;
 import org.projectforge.business.fibu.EmployeeTimedDO;
 import org.projectforge.business.fibu.KontoDO;
@@ -112,10 +113,18 @@ public class DatabaseCoreUpdates
       public UpdatePreCheckStatus runPreCheck()
       {
         log.info("Running pre-check for ProjectForge version 6.4.0");
-        final boolean doEmployeesExist = databaseUpdateService.doEntitiesExist(EmployeeDO.class);
+        final EmployeeDao employeeDao = applicationContext.getBean(EmployeeDao.class);
+        final boolean anyEmployeeWithAnOldStatusExists = databaseUpdateService.doTablesExist(EmployeeDO.class) &&
+            employeeDao
+                .internalLoadAll()
+                .stream()
+                .filter(e -> !e.isDeleted())
+                .anyMatch(e -> e.getStatus() != null);
+
         final int employeeStatusGroupEntriesCount = databaseUpdateService
             .countTimeableAttrGroupEntries(EmployeeTimedDO.class, InternalAttrSchemaConstants.EMPLOYEE_STATUS_GROUP_NAME);
-        if (doEmployeesExist && employeeStatusGroupEntriesCount <= 0) {
+
+        if (anyEmployeeWithAnOldStatusExists && employeeStatusGroupEntriesCount <= 0) {
           return UpdatePreCheckStatus.READY_FOR_UPDATE;
         } else {
           return UpdatePreCheckStatus.ALREADY_UPDATED;
@@ -125,61 +134,12 @@ public class DatabaseCoreUpdates
       @Override
       public UpdateRunningStatus runUpdate()
       {
-        final EmployeeService employeeService = applicationContext.getBean(EmployeeService.class);
-
-        final List<EmployeeDO> employees = employeeService.getList(null);
-        employees.forEach(employee -> {
-          final EmployeeStatus status = employee.getStatus();
-          if (status != null) {
-            final EmployeeTimedDO newAttrRow = employeeService.addNewTimeAttributeRow(employee, InternalAttrSchemaConstants.EMPLOYEE_STATUS_GROUP_NAME);
-            newAttrRow.setStartTime(getDateForStatus(employee));
-            newAttrRow.putAttribute(InternalAttrSchemaConstants.EMPLOYEE_STATUS_DESC_NAME, status.getI18nKey());
-            employeeService.update(employee);
-          }
-        });
+        migrateEmployeeStatusToAttr();
 
         return UpdateRunningStatus.DONE;
       }
 
-      private Date getDateForStatus(final EmployeeDO employee)
-      {
-        // At first try to find the last change of the employee status in the history ...
-        final Optional<Date> lastChange = findLastChangeOfEmployeeStatusInHistory(employee);
-        if (lastChange.isPresent()) {
-          // convert date from UTC to current zone date
-          final TimeZone utc = TimeZone.getTimeZone("UTC");
-          final TimeZone currentTimeZone = Configuration.getInstance().getDefaultTimeZone();
-          final Date dateInCurrentTimezone = DateHelper.convertDateIntoOtherTimezone(lastChange.get(), utc, currentTimeZone);
-          return DateHelper.resetTimePartOfDate(dateInCurrentTimezone);
-        }
 
-        // ... if there is nothing in the history, then use the entrittsdatum ...
-        final Date eintrittsDatum = employee.getEintrittsDatum();
-        if (eintrittsDatum != null) {
-          return DateHelper.convertMidnightDateToUTC(eintrittsDatum);
-        }
-
-        // ... if there is no eintrittsdatum, use the current date.
-        return DateHelper.todayAtMidnight();
-      }
-
-      private Optional<Date> findLastChangeOfEmployeeStatusInHistory(final EmployeeDO employee)
-      {
-        final Predicate<HistoryEntry> hasStatusChangeHistoryEntries = historyEntry ->
-            ((HistoryEntry<?>) historyEntry)
-                .getDiffEntries()
-                .stream()
-                .anyMatch(
-                    diffEntry -> diffEntry.getPropertyName().startsWith("status")
-                );
-
-        return HistoryBaseDaoAdapter
-            .getHistoryEntries(employee)
-            .stream()
-            .filter(hasStatusChangeHistoryEntries)
-            .map(HistoryEntry::getModifiedAt)
-            .findFirst(); // the history entries are already sorted by date
-      }
     });
 
     ////////////////////////////////////////////////////////////////////
@@ -271,7 +231,7 @@ public class DatabaseCoreUpdates
       public UpdatePreCheckStatus runPreCheck()
       {
         log.info("Running pre-check for ProjectForge version 6.1.1");
-        if (databaseUpdateService.doEntitiesExist(EmployeeTimedDO.class) == false) {
+        if (databaseUpdateService.doTablesExist(EmployeeTimedDO.class) == false) {
           return UpdatePreCheckStatus.READY_FOR_UPDATE;
         }
 
@@ -346,7 +306,7 @@ public class DatabaseCoreUpdates
       public UpdatePreCheckStatus runPreCheck()
       {
         log.info("Running pre-check for ProjectForge version 6.0.0");
-        if (databaseUpdateService.doEntitiesExist(TenantDO.class) == false
+        if (databaseUpdateService.doTablesExist(TenantDO.class) == false
             || databaseUpdateService.internalIsTableEmpty("t_tenant") == true ||
             databaseUpdateService.doTableAttributesExist(ConfigurationDO.class, "global") == false ||
             databaseUpdateService.doTableAttributesExist(PFUserDO.class, "superAdmin") == false) {
@@ -465,7 +425,7 @@ public class DatabaseCoreUpdates
             "periodOfPerformanceEnd") == false) {
           return UpdatePreCheckStatus.READY_FOR_UPDATE;
         }
-        if (databaseUpdateService.doEntitiesExist(PaymentScheduleDO.class) == false) {
+        if (databaseUpdateService.doTablesExist(PaymentScheduleDO.class) == false) {
           return UpdatePreCheckStatus.READY_FOR_UPDATE;
         }
         return UpdatePreCheckStatus.ALREADY_UPDATED;
@@ -513,7 +473,7 @@ public class DatabaseCoreUpdates
             "periodOfPerformanceEnd") == false) {
           databaseUpdateService.addTableAttributes(AuftragDO.class, "periodOfPerformanceBegin", "periodOfPerformanceEnd");
         }
-        if (databaseUpdateService.doEntitiesExist(PaymentScheduleDO.class) == false) {
+        if (databaseUpdateService.doTablesExist(PaymentScheduleDO.class) == false) {
           new SchemaGenerator(databaseUpdateService).add(PaymentScheduleDO.class).createSchema();
           databaseUpdateService.createMissingIndices();
         }
@@ -901,5 +861,61 @@ public class DatabaseCoreUpdates
       }
     });
     return list;
+  }
+
+  public static void migrateEmployeeStatusToAttr()
+  {
+    final EmployeeService employeeService = applicationContext.getBean(EmployeeService.class);
+
+    final List<EmployeeDO> employees = employeeService.getList(null);
+    employees.forEach(employee -> {
+      final EmployeeStatus status = employee.getStatus();
+      if (status != null) {
+        final EmployeeTimedDO newAttrRow = employeeService.addNewTimeAttributeRow(employee, InternalAttrSchemaConstants.EMPLOYEE_STATUS_GROUP_NAME);
+        newAttrRow.setStartTime(getDateForStatus(employee));
+        newAttrRow.putAttribute(InternalAttrSchemaConstants.EMPLOYEE_STATUS_DESC_NAME, status.getI18nKey());
+        employeeService.update(employee);
+      }
+    });
+  }
+
+  private static Date getDateForStatus(final EmployeeDO employee)
+  {
+    // At first try to find the last change of the employee status in the history ...
+    final Optional<Date> lastChange = findLastChangeOfEmployeeStatusInHistory(employee);
+    if (lastChange.isPresent()) {
+      // convert date from UTC to current zone date
+      final TimeZone utc = TimeZone.getTimeZone("UTC");
+      final TimeZone currentTimeZone = Configuration.getInstance().getDefaultTimeZone();
+      final Date dateInCurrentTimezone = DateHelper.convertDateIntoOtherTimezone(lastChange.get(), utc, currentTimeZone);
+      return DateHelper.resetTimePartOfDate(dateInCurrentTimezone);
+    }
+
+    // ... if there is nothing in the history, then use the entrittsdatum ...
+    final Date eintrittsDatum = employee.getEintrittsDatum();
+    if (eintrittsDatum != null) {
+      return DateHelper.convertMidnightDateToUTC(eintrittsDatum);
+    }
+
+    // ... if there is no eintrittsdatum, use the current date.
+    return DateHelper.todayAtMidnight();
+  }
+
+  private static Optional<Date> findLastChangeOfEmployeeStatusInHistory(final EmployeeDO employee)
+  {
+    final Predicate<HistoryEntry> hasStatusChangeHistoryEntries = historyEntry ->
+        ((HistoryEntry<?>) historyEntry)
+            .getDiffEntries()
+            .stream()
+            .anyMatch(
+                diffEntry -> diffEntry.getPropertyName().startsWith("status")
+            );
+
+    return HistoryBaseDaoAdapter
+        .getHistoryEntries(employee)
+        .stream()
+        .filter(hasStatusChangeHistoryEntries)
+        .map(HistoryEntry::getModifiedAt)
+        .findFirst(); // the history entries are already sorted by date
   }
 }
