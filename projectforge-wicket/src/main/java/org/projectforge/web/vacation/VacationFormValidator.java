@@ -13,6 +13,7 @@ import org.projectforge.business.user.I18nHelper;
 import org.projectforge.business.vacation.model.VacationAttrProperty;
 import org.projectforge.business.vacation.model.VacationDO;
 import org.projectforge.business.vacation.service.VacationService;
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.time.DayHolder;
 import org.projectforge.web.wicket.components.DatePanel;
 
@@ -55,7 +56,7 @@ public class VacationFormValidator implements IFormValidator
     }
 
     boolean enoughDaysLeft = true;
-    Calendar marchEnd = new GregorianCalendar();
+    Calendar marchEnd = new GregorianCalendar(ThreadLocalUserContext.getTimeZone());
     marchEnd.set(Calendar.MONTH, Calendar.MARCH);
     marchEnd.set(Calendar.DAY_OF_MONTH, 31);
 
@@ -68,7 +69,7 @@ public class VacationFormValidator implements IFormValidator
             BigDecimal.class) : BigDecimal.ZERO;
 
     //Negative
-    BigDecimal usedVacationDaysWholeYear = vacationService.getUsedVacationdays(data.getEmployee());
+    BigDecimal usedVacationDaysWholeYear = vacationService.getUsedAndPlanedVacationdays(data.getEmployee());
     BigDecimal usedVacationDaysFromLastYear = data.getEmployee().getAttribute(
         VacationAttrProperty.PREVIOUSYEARLEAVEUSED.getPropertyName(),
         BigDecimal.class) != null ? data.getEmployee().getAttribute(
@@ -86,6 +87,12 @@ public class VacationFormValidator implements IFormValidator
         endDatePanel.getConvertedInput());
     BigDecimal neededVacationDaysBeforeMarch = DayHolder.getNumberOfWorkingDays(startDatePanel.getConvertedInput(),
         marchEnd.getTime());
+
+    //Add the old data working days to available days
+    if (data.getPk() != null) {
+      BigDecimal oldDataWorkingDays = DayHolder.getNumberOfWorkingDays(data.getStartDate(), data.getEndDate());
+      availableVacationDays = availableVacationDays.add(oldDataWorkingDays);
+    }
 
     //Vacation after March
     if (startDatePanel.getConvertedInput().after(marchEnd.getTime())) {

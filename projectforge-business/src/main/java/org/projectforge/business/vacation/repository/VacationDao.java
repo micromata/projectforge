@@ -32,8 +32,11 @@ import java.util.List;
 import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Restrictions;
 import org.projectforge.business.fibu.EmployeeDO;
+import org.projectforge.business.user.UserRightId;
+import org.projectforge.business.user.UserRightValue;
 import org.projectforge.business.vacation.VacationFilter;
 import org.projectforge.business.vacation.model.VacationDO;
+import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.access.OperationType;
 import org.projectforge.framework.persistence.api.BaseDao;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
@@ -54,6 +57,9 @@ import org.springframework.stereotype.Repository;
 public class VacationDao extends BaseDao<VacationDO>
 {
   private final static String META_SQL = " AND v.deleted = :deleted AND v.tenant = :tenant";
+
+  @Autowired
+  private AccessChecker accessChecker;
 
   @Autowired
   private PfEmgrFactory emgrFactory;
@@ -100,9 +106,12 @@ public class VacationDao extends BaseDao<VacationDO>
       myFilter = new VacationFilter(filter);
     }
     final QueryFilter queryFilter = createQueryFilter(myFilter);
-    queryFilter.add(Restrictions.or(
-        Restrictions.eq("employee", myFilter.getEmployeeForUser()),
-        Restrictions.eq("manager", myFilter.getEmployeeForUser())));
+    if (accessChecker.hasLoggedInUserRight(UserRightId.HR_VACATION, false, UserRightValue.READONLY,
+        UserRightValue.READWRITE) == false) {
+      queryFilter.add(Restrictions.or(
+          Restrictions.eq("employee", myFilter.getEmployeeForUser()),
+          Restrictions.eq("manager", myFilter.getEmployeeForUser())));
+    }
     queryFilter.addOrder(Order.asc("startDate"));
     return getList(queryFilter);
   }
@@ -110,11 +119,11 @@ public class VacationDao extends BaseDao<VacationDO>
   public List<VacationDO> getActiveVacationForCurrentYear(EmployeeDO employee)
   {
     List<VacationDO> result = new ArrayList<>();
-    Calendar today = new GregorianCalendar();
+    Calendar today = new GregorianCalendar(ThreadLocalUserContext.getTimeZone());
     Calendar startYear = new GregorianCalendar(today.get(Calendar.YEAR), Calendar.JANUARY, 1);
     Calendar endYear = new GregorianCalendar(today.get(Calendar.YEAR), Calendar.DECEMBER, 31);
     result = emgrFactory.runRoTrans(emgr -> {
-      String baseSQL = "SELECT v FROM VacationDO v WHERE v.employee = :employee AND v.startDate >= :startDate AND v.endDate <= :endDate";
+      String baseSQL = "SELECT v FROM VacationDO v WHERE v.employee = :employee AND v.startDate >= :startDate AND v.startDate <= :endDate";
       List<VacationDO> dbResultList = emgr.selectDetached(VacationDO.class, baseSQL + META_SQL, "employee", employee,
           "startDate", startYear.getTime(), "endDate", endYear.getTime(),
           "deleted", false, "tenant", ThreadLocalUserContext.getUser().getTenant());

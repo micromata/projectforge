@@ -21,6 +21,7 @@ import org.projectforge.business.user.I18nHelper;
 import org.projectforge.business.vacation.model.VacationAttrProperty;
 import org.projectforge.business.vacation.model.VacationDO;
 import org.projectforge.business.vacation.service.VacationService;
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.web.vacation.VacationViewPageSortableDataProvider;
 import org.projectforge.web.wicket.CellItemListener;
 import org.projectforge.web.wicket.CellItemListenerPropertyColumn;
@@ -42,7 +43,7 @@ public class VacationViewHelper
 
   public void createVacationView(GridBuilder gridBuilder, EmployeeDO currentEmployee)
   {
-    final Calendar now = new GregorianCalendar();
+    final Calendar now = new GregorianCalendar(ThreadLocalUserContext.getTimeZone());
     DivPanel section = gridBuilder.getPanel();
     section.add(new Heading1Panel(section.newChildId(), I18nHelper.getLocalizedMessage("menu.vacation.leaveaccount")));
     appendFieldset(gridBuilder, "vacation.annualleave",

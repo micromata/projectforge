@@ -8,6 +8,7 @@ import java.util.stream.Collectors;
 
 import org.projectforge.business.fibu.EmployeeDao;
 import org.projectforge.business.fibu.EmployeeTimedDO;
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -28,7 +29,7 @@ public class EEDHelper
   {
     // do not cache the years because this is a long lasting service and the years could change in the meantime
     final List<Integer> years = timeableService.getAvailableStartTimeYears(employeeDao.internalLoadAll());
-    final Integer actualYear = new GregorianCalendar().get(Calendar.YEAR);
+    final Integer actualYear = new GregorianCalendar(ThreadLocalUserContext.getTimeZone()).get(Calendar.YEAR);
     if (years.contains(actualYear) == false) {
       years.add(actualYear);
     }

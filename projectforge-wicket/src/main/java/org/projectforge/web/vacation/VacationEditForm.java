@@ -83,7 +83,9 @@ public class VacationEditForm extends AbstractEditForm<VacationDO, VacationEditP
   public VacationEditForm(final VacationEditPage parentPage, final VacationDO data)
   {
     super(parentPage, data);
-    data.setEmployee(employeeService.getEmployeeByUserId(ThreadLocalUserContext.getUserId()));
+    if (data.getEmployee() == null) {
+      data.setEmployee(employeeService.getEmployeeByUserId(ThreadLocalUserContext.getUserId()));
+    }
   }
 
   @Override
