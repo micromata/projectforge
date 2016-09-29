@@ -108,7 +108,7 @@ public class VacationEditForm extends AbstractEditForm<VacationDO, VacationEditP
       // Start date
       final FieldsetPanel fs = gridBuilder.newFieldset(VacationDO.class, "startDate");
       DatePanel startDatePanel = new DatePanel(fs.newChildId(), new PropertyModel<>(data, "startDate"),
-          new DatePanelSettings(), true);
+          DatePanelSettings.get().withTargetType(java.sql.Date.class), true);
       startDatePanel.getDateField().add(new AjaxFormComponentUpdatingBehavior("onchange")
       {
         private static final long serialVersionUID = 2462233190993745889L;
@@ -132,7 +132,7 @@ public class VacationEditForm extends AbstractEditForm<VacationDO, VacationEditP
       // End date
       final FieldsetPanel fs = gridBuilder.newFieldset(VacationDO.class, "endDate");
       DatePanel endDatePanel = new DatePanel(fs.newChildId(), new PropertyModel<>(data, "endDate"),
-          new DatePanelSettings(), true);
+          DatePanelSettings.get().withTargetType(java.sql.Date.class), true);
       endDatePanel.getDateField().add(new AjaxFormComponentUpdatingBehavior("onchange")
       {
         private static final long serialVersionUID = 2462233112393745889L;
