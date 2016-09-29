@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.FormComponent;
@@ -45,6 +46,10 @@ public class VacationFormValidator implements IFormValidator
 
     List<VacationDO> vacationListForPeriod = vacationService.getVacationForDate(data.getEmployee(),
         startDatePanel.getConvertedInput(), endDatePanel.getConvertedInput());
+    if (vacationListForPeriod != null && data.getPk() != null) {
+      vacationListForPeriod = vacationListForPeriod.stream().filter(vac -> vac.getPk().equals(data.getPk()) == false)
+          .collect(Collectors.toList());
+    }
     if (vacationListForPeriod != null && vacationListForPeriod.size() > 0) {
       form.error(I18nHelper.getLocalizedMessage("vacation.validate.leaveapplicationexists"));
     }
@@ -58,13 +63,17 @@ public class VacationFormValidator implements IFormValidator
     BigDecimal vacationDays = new BigDecimal(data.getEmployee().getUrlaubstage());
     BigDecimal vacationDaysFromLastYear = data.getEmployee().getAttribute(
         VacationAttrProperty.PREVIOUSYEARLEAVE.getPropertyName(),
-        BigDecimal.class);
+        BigDecimal.class) != null ? data.getEmployee().getAttribute(
+            VacationAttrProperty.PREVIOUSYEARLEAVE.getPropertyName(),
+            BigDecimal.class) : BigDecimal.ZERO;
 
     //Negative
     BigDecimal usedVacationDaysWholeYear = vacationService.getUsedVacationdays(data.getEmployee());
     BigDecimal usedVacationDaysFromLastYear = data.getEmployee().getAttribute(
         VacationAttrProperty.PREVIOUSYEARLEAVEUSED.getPropertyName(),
-        BigDecimal.class);
+        BigDecimal.class) != null ? data.getEmployee().getAttribute(
+            VacationAttrProperty.PREVIOUSYEARLEAVEUSED.getPropertyName(),
+            BigDecimal.class) : BigDecimal.ZERO;
     BigDecimal usedVacationDaysWithoutDaysFromLastYear = usedVacationDaysWholeYear
         .subtract(usedVacationDaysFromLastYear);
 

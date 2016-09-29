@@ -26,9 +26,11 @@ package org.projectforge.web.wicket.flowlayout;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.panel.Panel;
+import org.apache.wicket.model.IModel;
 
 /**
  * Represents an icon.
+ * 
  * @author Kai Reinhard (k.reinhard@micromata.de)
  * 
  */
@@ -44,6 +46,12 @@ public class LabelPanel extends Panel
   {
     super(id);
     add(label = new Label(WICKET_ID, labelText));
+  }
+
+  public LabelPanel(final String id, final IModel<?> labelModel)
+  {
+    super(id);
+    add(label = new Label(WICKET_ID, labelModel));
   }
 
   /**

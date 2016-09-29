@@ -8,6 +8,7 @@ import java.util.GregorianCalendar;
 import java.util.List;
 
 import org.projectforge.business.fibu.EmployeeDO;
+import org.projectforge.business.vacation.model.VacationAttrProperty;
 import org.projectforge.business.vacation.model.VacationDO;
 import org.projectforge.business.vacation.repository.VacationDao;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
@@ -69,10 +70,24 @@ public class VacationServiceImpl extends CorePersistenceServiceImpl<Integer, Vac
   public BigDecimal getAvailableVacationdays(EmployeeDO employee)
   {
     BigDecimal vacationDays = new BigDecimal(employee.getUrlaubstage());
-    BigDecimal vacationFromPreviousYear = employee.getAttribute("previousyearleave", BigDecimal.class) != null
-        ? employee.getAttribute("previousyearleave", BigDecimal.class) : BigDecimal.ZERO;
+    BigDecimal vacationFromPreviousYear = employee
+        .getAttribute(VacationAttrProperty.PREVIOUSYEARLEAVE.getPropertyName(), BigDecimal.class) != null
+            ? employee.getAttribute(VacationAttrProperty.PREVIOUSYEARLEAVE.getPropertyName(), BigDecimal.class)
+            : BigDecimal.ZERO;
+    BigDecimal vacationFromPreviousYearUsed = employee
+        .getAttribute(VacationAttrProperty.PREVIOUSYEARLEAVEUSED.getPropertyName(), BigDecimal.class) != null
+            ? employee.getAttribute(VacationAttrProperty.PREVIOUSYEARLEAVEUSED.getPropertyName(), BigDecimal.class)
+            : BigDecimal.ZERO;
     BigDecimal usedVacation = getUsedVacationdays(employee);
     BigDecimal planedVacation = getPlanedVacationdays(employee);
+    Calendar endOfMarch = new GregorianCalendar();
+    endOfMarch.set(Calendar.MONTH, Calendar.MARCH);
+    endOfMarch.set(Calendar.DAY_OF_MONTH, 31);
+    Calendar now = new GregorianCalendar();
+    if (now.after(endOfMarch)) {
+      usedVacation = getUsedVacationdays(employee).subtract(vacationFromPreviousYearUsed);
+      return vacationDays.subtract(usedVacation).subtract(planedVacation);
+    }
     return vacationDays.add(vacationFromPreviousYear).subtract(usedVacation).subtract(planedVacation);
   }
 
