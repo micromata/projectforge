@@ -68,7 +68,7 @@ public class VacationFormValidatorTest extends PowerMockTestCase
     this.startDate.set(Calendar.DAY_OF_MONTH, 3);
     this.endDate.set(Calendar.MONTH, Calendar.APRIL);
     this.endDate.set(Calendar.DAY_OF_MONTH, 13);
-    when(this.vacationService.getUsedVacationdays(this.employee)).thenReturn(new BigDecimal(10));
+    when(this.vacationService.getUsedAndPlanedVacationdays(this.employee)).thenReturn(new BigDecimal(10));
     when(this.employee.getAttribute(VacationAttrProperty.PREVIOUSYEARLEAVE.getPropertyName(), BigDecimal.class))
         .thenReturn(new BigDecimal(5));
     when(this.employee.getAttribute(VacationAttrProperty.PREVIOUSYEARLEAVEUSED.getPropertyName(), BigDecimal.class))
@@ -86,7 +86,7 @@ public class VacationFormValidatorTest extends PowerMockTestCase
     this.startDate.set(Calendar.DAY_OF_MONTH, 3);
     this.endDate.set(Calendar.MONTH, Calendar.APRIL);
     this.endDate.set(Calendar.DAY_OF_MONTH, 13);
-    when(this.vacationService.getUsedVacationdays(this.employee)).thenReturn(new BigDecimal(30));
+    when(this.vacationService.getUsedAndPlanedVacationdays(this.employee)).thenReturn(new BigDecimal(30));
     when(this.employee.getAttribute(VacationAttrProperty.PREVIOUSYEARLEAVE.getPropertyName(), BigDecimal.class))
         .thenReturn(new BigDecimal(5));
     when(this.employee.getAttribute(VacationAttrProperty.PREVIOUSYEARLEAVEUSED.getPropertyName(), BigDecimal.class))
@@ -104,7 +104,7 @@ public class VacationFormValidatorTest extends PowerMockTestCase
     this.startDate.set(Calendar.DAY_OF_MONTH, 3);
     this.endDate.set(Calendar.MONTH, Calendar.MARCH);
     this.endDate.set(Calendar.DAY_OF_MONTH, 13);
-    when(this.vacationService.getUsedVacationdays(this.employee)).thenReturn(new BigDecimal(10));
+    when(this.vacationService.getUsedAndPlanedVacationdays(this.employee)).thenReturn(new BigDecimal(10));
     when(this.employee.getAttribute(VacationAttrProperty.PREVIOUSYEARLEAVE.getPropertyName(), BigDecimal.class))
         .thenReturn(new BigDecimal(5));
     when(this.employee.getAttribute(VacationAttrProperty.PREVIOUSYEARLEAVEUSED.getPropertyName(), BigDecimal.class))
@@ -122,7 +122,7 @@ public class VacationFormValidatorTest extends PowerMockTestCase
     this.startDate.set(Calendar.DAY_OF_MONTH, 3);
     this.endDate.set(Calendar.MONTH, Calendar.MARCH);
     this.endDate.set(Calendar.DAY_OF_MONTH, 13);
-    when(this.vacationService.getUsedVacationdays(this.employee)).thenReturn(new BigDecimal(10));
+    when(this.vacationService.getUsedAndPlanedVacationdays(this.employee)).thenReturn(new BigDecimal(10));
     when(this.employee.getAttribute(VacationAttrProperty.PREVIOUSYEARLEAVE.getPropertyName(), BigDecimal.class))
         .thenReturn(new BigDecimal(5));
     when(this.employee.getAttribute(VacationAttrProperty.PREVIOUSYEARLEAVEUSED.getPropertyName(), BigDecimal.class))
@@ -140,7 +140,7 @@ public class VacationFormValidatorTest extends PowerMockTestCase
     this.startDate.set(Calendar.DAY_OF_MONTH, 3);
     this.endDate.set(Calendar.MONTH, Calendar.MARCH);
     this.endDate.set(Calendar.DAY_OF_MONTH, 13);
-    when(this.vacationService.getUsedVacationdays(this.employee)).thenReturn(new BigDecimal(10));
+    when(this.vacationService.getUsedAndPlanedVacationdays(this.employee)).thenReturn(new BigDecimal(10));
     when(this.employee.getAttribute(VacationAttrProperty.PREVIOUSYEARLEAVE.getPropertyName(), BigDecimal.class))
         .thenReturn(new BigDecimal(5));
     when(this.employee.getAttribute(VacationAttrProperty.PREVIOUSYEARLEAVEUSED.getPropertyName(), BigDecimal.class))
@@ -158,7 +158,7 @@ public class VacationFormValidatorTest extends PowerMockTestCase
     this.startDate.set(Calendar.DAY_OF_MONTH, 3);
     this.endDate.set(Calendar.MONTH, Calendar.MARCH);
     this.endDate.set(Calendar.DAY_OF_MONTH, 13);
-    when(this.vacationService.getUsedVacationdays(this.employee)).thenReturn(new BigDecimal(30));
+    when(this.vacationService.getUsedAndPlanedVacationdays(this.employee)).thenReturn(new BigDecimal(30));
     when(this.employee.getAttribute(VacationAttrProperty.PREVIOUSYEARLEAVE.getPropertyName(), BigDecimal.class))
         .thenReturn(new BigDecimal(5));
     when(this.employee.getAttribute(VacationAttrProperty.PREVIOUSYEARLEAVEUSED.getPropertyName(), BigDecimal.class))
@@ -176,7 +176,7 @@ public class VacationFormValidatorTest extends PowerMockTestCase
     this.startDate.set(Calendar.DAY_OF_MONTH, 30);
     this.endDate.set(Calendar.MONTH, Calendar.APRIL);
     this.endDate.set(Calendar.DAY_OF_MONTH, 10);
-    when(this.vacationService.getUsedVacationdays(this.employee)).thenReturn(new BigDecimal(10));
+    when(this.vacationService.getUsedAndPlanedVacationdays(this.employee)).thenReturn(new BigDecimal(10));
     when(this.employee.getAttribute(VacationAttrProperty.PREVIOUSYEARLEAVE.getPropertyName(), BigDecimal.class))
         .thenReturn(new BigDecimal(5));
     when(this.employee.getAttribute(VacationAttrProperty.PREVIOUSYEARLEAVEUSED.getPropertyName(), BigDecimal.class))

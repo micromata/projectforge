@@ -69,4 +69,12 @@ public interface VacationService extends IPersistenceService<VacationDO>, IDao<V
    */
   BigDecimal getPlanedVacationdays(EmployeeDO currentEmployee);
 
+  /**
+   * Getting the number of used and planned vacation days
+   * 
+   * @param employee
+   * @return number of used vacation days
+   */
+  BigDecimal getUsedAndPlanedVacationdays(EmployeeDO employee);
+
 }

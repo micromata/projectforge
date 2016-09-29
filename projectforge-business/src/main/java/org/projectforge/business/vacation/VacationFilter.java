@@ -52,7 +52,7 @@ public class VacationFilter extends BaseSearchFilter implements Serializable
     super(filter);
   }
 
-  public Object getEmployeeForUser()
+  public EmployeeDO getEmployeeForUser()
   {
     return employee;
   }

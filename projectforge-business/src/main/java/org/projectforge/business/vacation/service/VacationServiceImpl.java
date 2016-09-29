@@ -14,6 +14,7 @@ import org.projectforge.business.vacation.repository.VacationDao;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.persistence.history.DisplayHistoryEntry;
 import org.projectforge.framework.persistence.jpa.impl.CorePersistenceServiceImpl;
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.time.DayHolder;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,10 +34,18 @@ public class VacationServiceImpl extends CorePersistenceServiceImpl<Integer, Vac
   private VacationDao vacationDao;
 
   @Override
+  public BigDecimal getUsedAndPlanedVacationdays(EmployeeDO employee)
+  {
+    BigDecimal usedVacationdays = getUsedVacationdays(employee);
+    BigDecimal planedVacationdays = getPlanedVacationdays(employee);
+    return usedVacationdays.add(planedVacationdays);
+  }
+
+  @Override
   public BigDecimal getUsedVacationdays(EmployeeDO employee)
   {
     BigDecimal usedDays = BigDecimal.ZERO;
-    Calendar now = new GregorianCalendar();
+    Calendar now = new GregorianCalendar(ThreadLocalUserContext.getTimeZone());
     for (VacationDO vac : getActiveVacationForCurrentYear(employee)) {
       if (vac.getStartDate().before(now.getTime()) == true && vac.getEndDate().before(now.getTime()) == true) {
         usedDays = usedDays.add(vac.getWorkingdays());
@@ -53,7 +62,7 @@ public class VacationServiceImpl extends CorePersistenceServiceImpl<Integer, Vac
   public BigDecimal getPlanedVacationdays(EmployeeDO employee)
   {
     BigDecimal usedDays = BigDecimal.ZERO;
-    Calendar now = new GregorianCalendar();
+    Calendar now = new GregorianCalendar(ThreadLocalUserContext.getTimeZone());
     for (VacationDO vac : getActiveVacationForCurrentYear(employee)) {
       if (vac.getStartDate().after(now.getTime()) == true && vac.getEndDate().after(now.getTime()) == true) {
         usedDays = usedDays.add(vac.getWorkingdays());
@@ -80,10 +89,10 @@ public class VacationServiceImpl extends CorePersistenceServiceImpl<Integer, Vac
             : BigDecimal.ZERO;
     BigDecimal usedVacation = getUsedVacationdays(employee);
     BigDecimal planedVacation = getPlanedVacationdays(employee);
-    Calendar endOfMarch = new GregorianCalendar();
+    Calendar endOfMarch = new GregorianCalendar(ThreadLocalUserContext.getTimeZone());
     endOfMarch.set(Calendar.MONTH, Calendar.MARCH);
     endOfMarch.set(Calendar.DAY_OF_MONTH, 31);
-    Calendar now = new GregorianCalendar();
+    Calendar now = new GregorianCalendar(ThreadLocalUserContext.getTimeZone());
     if (now.after(endOfMarch)) {
       usedVacation = getUsedVacationdays(employee).subtract(vacationFromPreviousYearUsed);
       return vacationDays.subtract(usedVacation).subtract(planedVacation);
