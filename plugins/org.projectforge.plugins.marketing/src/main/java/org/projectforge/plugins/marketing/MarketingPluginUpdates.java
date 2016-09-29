@@ -97,7 +97,7 @@ public class MarketingPluginUpdates
       {
         // Does the data-base table already exist?
         // Check only the oldest table.
-        if (dao.doEntitiesExist(AddressCampaignDO.class) == true) {
+        if (dao.doTablesExist(AddressCampaignDO.class) == true) {
           return UpdatePreCheckStatus.ALREADY_UPDATED;
         } else {
           // The oldest table doesn't exist, therefore the plug-in has to initialized completely.
