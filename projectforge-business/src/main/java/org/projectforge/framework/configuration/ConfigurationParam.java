@@ -47,7 +47,9 @@ public enum ConfigurationParam implements IConfigurationParam
   DEFAULT_TASK_ID_4_BOOKS("defaultTask4Books", ConfigurationType.TASK, false), //
   DEFAULT_COUNTRY_PHONE_PREFIX("countryPhonePrefix", ConfigurationType.STRING, false, "+49"), //
   MEB_SMS_RECEIVING_PHONE_NUMBER("mebSMSReceivingPhoneNumber", ConfigurationType.STRING, false), //
-  PLUGIN_ACTIVATED("pluginsActivated", ConfigurationType.STRING, true);
+  PLUGIN_ACTIVATED("pluginsActivated", ConfigurationType.STRING, true), //
+  HR_MAILADDRESS("hr.emailaddress", ConfigurationType.STRING, true);
+
   private String key;
 
   private ConfigurationType type;
