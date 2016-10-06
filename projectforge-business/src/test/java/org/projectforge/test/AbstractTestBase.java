@@ -23,9 +23,7 @@
 
 package org.projectforge.test;
 
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertTrue;
-import static org.testng.AssertJUnit.fail;
+import static org.testng.AssertJUnit.*;
 
 import java.math.BigDecimal;
 import java.util.Calendar;
@@ -169,6 +167,7 @@ public class AbstractTestBase extends AbstractTestNGSpringContextTests
   @BeforeClass
   public void setUp()
   {
+    System.setProperty("user.timezone", "UTC");
     TimeZone.setDefault(DateHelper.UTC);
     log.info("user.timezone is: " + System.getProperty("user.timezone"));
     final JdbcTemplate jdbc = new JdbcTemplate(dataSource);
