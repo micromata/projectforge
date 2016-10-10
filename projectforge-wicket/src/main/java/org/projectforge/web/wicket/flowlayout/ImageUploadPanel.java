@@ -28,8 +28,10 @@ import java.util.List;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.wicket.AttributeModifier;
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.form.Button;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.form.upload.FileUpload;
@@ -44,12 +46,14 @@ import org.apache.wicket.validation.IValidatable;
 import org.apache.wicket.validation.IValidator;
 import org.projectforge.framework.utils.FileHelper;
 import org.projectforge.web.dialog.ModalQuestionDialog;
+import org.projectforge.web.wicket.AbstractEditForm;
 import org.projectforge.web.wicket.AbstractSecuredPage;
+import org.projectforge.web.wicket.components.SingleButtonPanel;
+import org.wicketstuff.html5.fileapi.FileFieldSizeCheckBehavior;
+import org.wicketstuff.html5.fileapi.FileList;
 
 /**
- *
  * @author Florian Blumenstein
- *
  */
 public class ImageUploadPanel extends Panel implements ComponentWrapperPanel
 {
@@ -72,13 +76,14 @@ public class ImageUploadPanel extends Panel implements ComponentWrapperPanel
   private NonCachingImage image;
 
   /**
-   * @param id Component id
-   * @param fs Optional FieldsetPanel for creation of filename with download link and upload button.
+   * @param id                 Component id
+   * @param fs                 Optional FieldsetPanel for creation of filename with download link and upload button.
    * @param createFilenameLink If true (and fs is given) the filename is displayed with link for download.
    * @param
    */
   @SuppressWarnings("serial")
-  public ImageUploadPanel(final String id, final FieldsetPanel fs, final Form<?> form, final IModel<byte[]> file)
+  public ImageUploadPanel(final String id, final FieldsetPanel fs, final AbstractEditForm<?, ?> form,
+      final IModel<byte[]> file, String buttonMarkupId, int maxImageSize)
   {
     super(id);
     this.file = file;
@@ -136,6 +141,29 @@ public class ImageUploadPanel extends Panel implements ComponentWrapperPanel
         }
 
         upload(fileUpload);
+      }
+    });
+
+    this.fileUploadField.add(new FileFieldSizeCheckBehavior()
+    {
+      private static final long serialVersionUID = 7228537141239670625L;
+
+      @Override
+      protected void onSubmit(AjaxRequestTarget target, FileList fileList)
+      {
+        if (fileList.get(0).getSize() > maxImageSize) {
+          target.appendJavaScript("document.getElementById('" + buttonMarkupId + "').disabled=true;");
+          form.addError("common.imageuploadpanel.filetolarge", maxImageSize);
+        } else {
+          target.appendJavaScript("document.getElementById('" + buttonMarkupId + "').disabled=false;");
+        }
+        target.add(form.getFeedbackPanel());
+      }
+
+      @Override
+      protected void onError(AjaxRequestTarget target, FileList fileList)
+      {
+
       }
     });
 
@@ -215,13 +243,14 @@ public class ImageUploadPanel extends Panel implements ComponentWrapperPanel
       final String clientFileName = FileHelper.createSafeFilename(fileUpload.getClientFileName(), 255);
       log.info("Upload file '" + clientFileName + "'.");
       final byte[] bytes = fileUpload.getBytes();
+
       file.setObject(bytes);
     }
   }
 
   /**
    * Calls {@link Form#setMultiPart(boolean)} with value true.
-   * 
+   *
    * @see org.apache.wicket.Component#onBeforeRender()
    */
   @Override
