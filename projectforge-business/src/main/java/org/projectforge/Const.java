@@ -37,4 +37,6 @@ public class Const
   public static final String BREAK_EVENT_CLASS_NAME = "ts-break";
 
   public static final Integer TIMESHEET_CALENDAR_ID = -1;
+
+  public static final int ADDRESS_EDITPAGE_MAX_IMAGE_UPLOAD_SIZE = 5*1024*1024;
 }

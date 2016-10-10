@@ -26,6 +26,7 @@ package org.projectforge.web.address;
 import org.apache.log4j.Logger;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
+import org.projectforge.Const;
 import org.projectforge.business.address.AddressDO;
 import org.projectforge.business.address.AddressDao;
 import org.projectforge.business.address.PersonalAddressDao;
@@ -120,7 +121,7 @@ public class AddressEditForm extends AbstractEditForm<AddressDO, AddressEditPage
 
     gridBuilder.newSplitPanel(GridSize.COL50, true).newSubSplitPanel(GridSize.COL100);
     final FieldsetPanel fs1 = gridBuilder.newFieldset(gridBuilder.getString("address.image"));
-    new ImageUploadPanel(fs1.newChildId(), fs1, this, new AttrModel<byte[]>(data, "profileImageData", byte[].class));
+    new ImageUploadPanel(fs1.newChildId(), fs1, this, new AttrModel<byte[]>(data, "profileImageData", byte[].class), this.updateButton.getMarkupId(), Const.ADDRESS_EDITPAGE_MAX_IMAGE_UPLOAD_SIZE);
 
     gridBuilder.newGridPanel();
     addressEditSupport.addComment();
