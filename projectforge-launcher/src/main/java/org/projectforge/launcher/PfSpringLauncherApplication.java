@@ -50,6 +50,7 @@ public class PfSpringLauncherApplication extends SpringBootApplication<PfLocalSe
   @Override
   public MgcApplicationStartStopStatus startImpl(String[] args)
   {
+    System.setProperty("user.timezone", "UTC");
     TimeZone.setDefault(DateHelper.UTC);
     return super.startImpl(args);
 
