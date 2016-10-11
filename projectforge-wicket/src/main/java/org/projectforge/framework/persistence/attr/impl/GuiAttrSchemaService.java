@@ -24,8 +24,11 @@
 package org.projectforge.framework.persistence.attr.impl;
 
 import java.io.Serializable;
+import java.util.Date;
+import java.util.Optional;
 import java.util.function.Function;
 
+import org.apache.wicket.model.IModel;
 import org.projectforge.web.wicket.AbstractEditPage;
 import org.projectforge.web.wicket.components.TabPanel;
 import org.projectforge.web.wicket.flowlayout.ComponentWrapperPanel;
@@ -57,6 +60,9 @@ public interface GuiAttrSchemaService extends AttrSchemaService
    * @return the component
    */
   ComponentWrapperPanel createWicketComponent(String id, AttrGroup group, AttrDescription desc, EntityWithAttributes entity);
+
+  <PK extends Serializable, T extends TimeableAttrRow<PK>, U extends EntityWithTimeableAttr<PK, T> & EntityWithConfigurableAttr>
+  Optional<IModel<String>> getStringAttribute(final U entity, final Date date, final String groupName, final String descName);
 
   /**
    * Creates TimedAttributePanels and AttributePanels depending on the AttrSchema of the given entity and adds them to the given divPanel.

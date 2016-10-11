@@ -117,6 +117,8 @@ public class EmployeeDO extends DefaultBaseWithAttrDO<EmployeeDO>
   @IndexedEmbedded(depth = 1)
   private Kost1DO kost1;
 
+  // don't use the status field anymore, this is replaced by the status within the internalattrschema.xml
+  @Deprecated
   @PropertyInfo(i18nKey = "status")
   @Field(index = Index.YES /* TOKENIZED */, store = Store.NO)
   private EmployeeStatus status;
@@ -238,6 +240,7 @@ public class EmployeeDO extends DefaultBaseWithAttrDO<EmployeeDO>
     timeableAttributes.add(row);
   }
 
+  @Deprecated
   @Enumerated(EnumType.STRING)
   @Column(name = "employee_status", length = 30)
   public EmployeeStatus getStatus()
@@ -245,6 +248,7 @@ public class EmployeeDO extends DefaultBaseWithAttrDO<EmployeeDO>
     return status;
   }
 
+  @Deprecated
   public void setStatus(final EmployeeStatus status)
   {
     this.status = status;
