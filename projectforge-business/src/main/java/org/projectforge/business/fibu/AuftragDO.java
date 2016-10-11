@@ -83,7 +83,7 @@ import de.micromata.genome.db.jpa.history.api.WithHistory;
         @javax.persistence.Index(name = "idx_fk_t_fibu_auftrag_projekt_fk", columnList = "projekt_fk"),
         @javax.persistence.Index(name = "idx_fk_t_fibu_auftrag_tenant_id", columnList = "tenant_id")
     })
-@WithHistory(noHistoryProperties = { "lastUpdate", "created" }, nestedEntities = { AuftragsPositionDO.class })
+@WithHistory(noHistoryProperties = { "lastUpdate", "created" }, nestedEntities = { AuftragsPositionDO.class, PaymentScheduleDO.class })
 public class AuftragDO extends DefaultBaseDO
 {
   private static final long serialVersionUID = -3114903689890703366L;
