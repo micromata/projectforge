@@ -28,7 +28,7 @@ public class ExtendedEmployeeDataPluginUpdates
       public UpdatePreCheckStatus runPreCheck()
       {
         // Does the data-base table already exist?
-        if (dao.doEntitiesExist(EmployeeConfigurationDO.class, EmployeeConfigurationTimedAttrDO.class,
+        if (dao.doTablesExist(EmployeeConfigurationDO.class, EmployeeConfigurationTimedAttrDO.class,
             EmployeeConfigurationTimedDO.class, EmployeeTimedAttrWithDataDO.class, EmployeeTimedAttrDataDO.class)) {
           return UpdatePreCheckStatus.ALREADY_UPDATED;
         } else {

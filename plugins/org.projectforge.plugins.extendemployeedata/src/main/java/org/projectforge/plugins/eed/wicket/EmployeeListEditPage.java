@@ -46,7 +46,7 @@ public class EmployeeListEditPage extends AbstractListPage<EmployeeListEditForm,
   private EmployeeService employeeService;
 
   @SpringBean
-  private TimeableService<Integer, EmployeeTimedDO> timeableService;
+  private TimeableService timeableService;
 
   @SpringBean
   private GuiAttrSchemaService guiAttrSchemaService;
