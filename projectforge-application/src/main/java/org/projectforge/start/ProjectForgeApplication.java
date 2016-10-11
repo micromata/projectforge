@@ -14,6 +14,7 @@ public class ProjectForgeApplication
 {
   public static void main(String[] args)
   {
+    System.setProperty("user.timezone", "UTC");
     TimeZone.setDefault(DateHelper.UTC);
     new SpringApplicationBuilder()
         .sources(ProjectForgeApplication.class)
