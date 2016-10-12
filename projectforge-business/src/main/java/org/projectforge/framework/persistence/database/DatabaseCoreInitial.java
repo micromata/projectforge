@@ -127,8 +127,8 @@ public class DatabaseCoreInitial
       public UpdatePreCheckStatus runPreCheck()
       {
         //        // Does the data-base tables already exist?
-        //        if (dao.doEntitiesExist(HibernateEntities.CORE_ENTITIES) == false
-        //            || dao.doEntitiesExist(HibernateEntities.HISTORY_ENTITIES) == false) {
+        //        if (dao.doTablesExist(HibernateEntities.CORE_ENTITIES) == false
+        //            || dao.doTablesExist(HibernateEntities.HISTORY_ENTITIES) == false) {
         //          return UpdatePreCheckStatus.READY_FOR_UPDATE;
         //        }
         return UpdatePreCheckStatus.ALREADY_UPDATED;
