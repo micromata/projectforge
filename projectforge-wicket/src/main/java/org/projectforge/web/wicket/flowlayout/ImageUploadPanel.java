@@ -28,10 +28,8 @@ import java.util.List;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.wicket.AttributeModifier;
-import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.form.Button;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.form.upload.FileUpload;
@@ -42,13 +40,11 @@ import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.ResourceModel;
 import org.apache.wicket.request.resource.DynamicImageResource;
-import org.apache.wicket.validation.IValidatable;
 import org.apache.wicket.validation.IValidator;
 import org.projectforge.framework.utils.FileHelper;
 import org.projectforge.web.dialog.ModalQuestionDialog;
 import org.projectforge.web.wicket.AbstractEditForm;
 import org.projectforge.web.wicket.AbstractSecuredPage;
-import org.projectforge.web.wicket.components.SingleButtonPanel;
 import org.wicketstuff.html5.fileapi.FileFieldSizeCheckBehavior;
 import org.wicketstuff.html5.fileapi.FileList;
 
@@ -58,8 +54,6 @@ import org.wicketstuff.html5.fileapi.FileList;
 public class ImageUploadPanel extends Panel implements ComponentWrapperPanel
 {
   private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(ImageUploadPanel.class);
-
-  public static final String WICKET_ID = "input";
 
   private static final long serialVersionUID = -4126462093466172226L;
 
@@ -71,8 +65,6 @@ public class ImageUploadPanel extends Panel implements ComponentWrapperPanel
 
   private AjaxIconButtonPanel deleteFileButton;
 
-  private WebMarkupContainer main;
-
   private NonCachingImage image;
 
   /**
@@ -83,15 +75,17 @@ public class ImageUploadPanel extends Panel implements ComponentWrapperPanel
    */
   @SuppressWarnings("serial")
   public ImageUploadPanel(final String id, final FieldsetPanel fs, final AbstractEditForm<?, ?> form,
-      final IModel<byte[]> file, String buttonMarkupId, int maxImageSize)
+      final IModel<byte[]> file, final int maxImageSize)
   {
     super(id);
     this.file = file;
-    add(main = new WebMarkupContainer("main"));
+    final WebMarkupContainer main = new WebMarkupContainer("main");
+    add(main);
     main.setOutputMarkupId(true);
+
+    // DELETE BUTTON
     if (this.file.getObject() != null) {
       if (fs != null) {
-        // DELETE BUTTON
         deleteFileButton = new AjaxIconButtonPanel(fs.newChildId(), IconType.TRASH, fs.getString("delete"))
         {
           /**
@@ -116,60 +110,60 @@ public class ImageUploadPanel extends Panel implements ComponentWrapperPanel
         fs.add(deleteFileButton);
       }
     }
-    main.add(this.fileUploadField = new FileUploadField(ImageUploadPanel.WICKET_ID));
-    this.fileUploadField.add(new IValidator<List<FileUpload>>()
-    {
-      @Override
-      public void validate(final IValidatable<List<FileUpload>> validatable)
-      {
-        if (validatable == null) {
-          return;
-        }
-        final List<FileUpload> list = validatable.getValue();
-        if (list == null || list.size() == 0) {
-          return;
-        }
-        if (list.size() > 1) {
-          log.error("Multiple file uploads not yet supported. Uploading only first file.");
-        }
 
-        FileUpload fileUpload = list.get(0);
-        String type = fileUpload.getContentType().split("/")[0];
-        if (!type.equals("image")) {
-          log.info("Uploaded file is no image. File type is " + type);
-          return;
-        }
-
-        upload(fileUpload);
+    // input element
+    main.add(this.fileUploadField = new FileUploadField("input"));
+    this.fileUploadField.add((IValidator<List<FileUpload>>) validatable -> {
+      if (validatable == null) {
+        return;
       }
+      final List<FileUpload> list = validatable.getValue();
+      if (list == null || list.size() == 0) {
+        return;
+      }
+      if (list.size() > 1) {
+        log.error("Multiple file uploads not yet supported. Uploading only first file.");
+      }
+
+      FileUpload fileUpload = list.get(0);
+      String type = fileUpload.getContentType().split("/")[0];
+      if (!type.equals("image")) {
+        log.info("Uploaded file is no image. File type is " + type);
+        return;
+      }
+
+      upload(fileUpload);
     });
 
     this.fileUploadField.add(new FileFieldSizeCheckBehavior()
     {
-      private static final long serialVersionUID = 7228537141239670625L;
-
       @Override
-      protected void onSubmit(AjaxRequestTarget target, FileList fileList)
+      protected void onSubmit(final AjaxRequestTarget target, final FileList fileList)
       {
-        if (fileList.get(0).getSize() > maxImageSize) {
-          target.appendJavaScript("document.getElementById('" + buttonMarkupId + "').disabled=true;");
+        if (fileList.getSize() > maxImageSize) {
+          // add error message
           form.addError("common.imageuploadpanel.filetolarge", maxImageSize);
-        } else {
-          target.appendJavaScript("document.getElementById('" + buttonMarkupId + "').disabled=false;");
+
+          // clear input field to avoid uploading the image
+          fileUploadField.clearInput();
+          target.add(main);
         }
+        // always add the feedback panel to clear the error message
         target.add(form.getFeedbackPanel());
       }
 
       @Override
-      protected void onError(AjaxRequestTarget target, FileList fileList)
+      protected void onError(final AjaxRequestTarget target, final FileList fileList)
       {
-
+        // nothing to do
       }
     });
 
+    // image
     this.image = createImage();
     main.add(image);
 
+    // delete dialog
     if (fs != null) {
       fs.add(this);
       final AbstractSecuredPage parentPage = (AbstractSecuredPage) getPage();
@@ -197,9 +191,6 @@ public class ImageUploadPanel extends Panel implements ComponentWrapperPanel
     }
   }
 
-  /**
-   * @return
-   */
   private NonCachingImage createImage()
   {
     NonCachingImage img = new NonCachingImage("image", new AbstractReadOnlyModel<DynamicImageResource>()
@@ -215,12 +206,10 @@ public class ImageUploadPanel extends Panel implements ComponentWrapperPanel
             byte[] result = file.getObject();
             if (result == null || result.length < 1) {
               try {
-                result = IOUtils
-                    .toByteArray(getClass().getClassLoader().getResource("images/noImage.png").openStream());
+                result = IOUtils.toByteArray(getClass().getClassLoader().getResource("images/noImage.png").openStream());
               } catch (final IOException ex) {
                 log.error("Exception encountered " + ex, ex);
               }
-
             }
             return result;
           }
@@ -243,7 +232,6 @@ public class ImageUploadPanel extends Panel implements ComponentWrapperPanel
       final String clientFileName = FileHelper.createSafeFilename(fileUpload.getClientFileName(), 255);
       log.info("Upload file '" + clientFileName + "'.");
       final byte[] bytes = fileUpload.getBytes();
-
       file.setObject(bytes);
     }
   }

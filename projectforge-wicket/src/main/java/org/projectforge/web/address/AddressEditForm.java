@@ -121,7 +121,7 @@ public class AddressEditForm extends AbstractEditForm<AddressDO, AddressEditPage
 
     gridBuilder.newSplitPanel(GridSize.COL50, true).newSubSplitPanel(GridSize.COL100);
     final FieldsetPanel fs1 = gridBuilder.newFieldset(gridBuilder.getString("address.image"));
-    new ImageUploadPanel(fs1.newChildId(), fs1, this, new AttrModel<byte[]>(data, "profileImageData", byte[].class), this.updateButton.getMarkupId(), Const.ADDRESS_EDITPAGE_MAX_IMAGE_UPLOAD_SIZE);
+    new ImageUploadPanel(fs1.newChildId(), fs1, this, new AttrModel<>(data, "profileImageData", byte[].class), Const.ADDRESS_EDITPAGE_MAX_IMAGE_UPLOAD_SIZE);
 
     gridBuilder.newGridPanel();
     addressEditSupport.addComment();
@@ -158,7 +158,8 @@ public class AddressEditForm extends AbstractEditForm<AddressDO, AddressEditPage
     return log;
   }
 
-  @Override public boolean isNew()
+  @Override
+  public boolean isNew()
   {
     return super.isNew() || this.getParentPage().getCloneFlag();
   }
