@@ -72,6 +72,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import de.micromata.genome.db.jpa.tabattr.api.TimeableAttrRow;
+
 /**
  * For manipulating the database (patching data etc.)
  * 
@@ -167,7 +169,7 @@ public class DatabaseUpdateService
     return internalDoesTableExist(table);
   }
 
-  public boolean doEntitiesExist(final Class<?>... entities)
+  public boolean doTablesExist(final Class<?>... entities)
   {
     accessCheck(false);
     for (final Class<?> entity : entities) {
@@ -905,6 +907,20 @@ public class DatabaseUpdateService
           group.getName());
       return selectedGroups != null && selectedGroups.size() > 0;
     });
+  }
+
+  public int countTimeableAttrGroupEntries(final Class<? extends TimeableAttrRow<?>> entityClass, final String groupName)
+  {
+    accessCheck(false);
+    final Table table = new Table(entityClass);
+    final TableAttribute attr = TableAttribute.createTableAttribute(table.getEntityClass(), "groupName");
+
+    final DatabaseExecutor jdbc = getDatabaseExecutor();
+    try {
+      return jdbc.queryForInt("SELECT COUNT(*) FROM " + table.getName() + " WHERE " + attr.getName() + "=?", groupName);
+    } catch (final Exception ex) {
+      return -1;
+    }
   }
 
 }

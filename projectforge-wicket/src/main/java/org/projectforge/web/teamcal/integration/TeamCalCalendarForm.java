@@ -251,7 +251,7 @@ public class TeamCalCalendarForm extends CalendarForm
         final VEvent event = events.get(0);
         final Uid uid = event.getUid();
         // 1. Check id/external id. If not yet given, create new entry and ask for calendar to add: Redirect to TeamEventEditPage.
-        final TeamEventDO dbEvent = teamEventDao.getByUid(uid.getValue());
+        final TeamEventDO dbEvent = (uid == null) ? null : teamEventDao.getByUid(uid.getValue());
         if (dbEvent != null) {
           // Can't modify existing entry, redirect to import page:
           redirectToImportPage(events, activeModel.getObject());

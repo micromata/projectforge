@@ -29,6 +29,7 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
@@ -683,6 +684,41 @@ public class DateHelper implements Serializable
   {
     final Instant instant = ldt.toInstant(ZoneOffset.UTC);
     return Date.from(instant);
+  }
+
+  public static Date convertMidnightDateToUTC(final Date date)
+  {
+    LocalDateTime ldt = DateHelper.convertDateToLocalDateTimeInUTC(date);
+    /*
+     * In UTC+x the UTC hour value of 00:00:00 is 24-x hours and minus 1 day if x > 0 examples: 00:00:00 in UTC+1 is
+     * 23:00:00 minus 1 day in UTC 00:00:00 in UTC+12 is 12:00:00 minus 1 day in UTC 00:00:00 in UTC-1 is 01:00:00
+     * in UTC 00:00:00 in UTC-11 is 11:00:00 in UTC therefore, to calculate the zoned time back to local time, we
+     * have to add one day if hour >= 12
+     */
+    final int daysToAdd = (ldt.getHour() >= 12) ? 1 : 0;
+    ldt = ldt.toLocalDate().plusDays(daysToAdd).atStartOfDay();
+    return DateHelper.convertLocalDateTimeToDateInUTC(ldt);
+  }
+
+  public static Date todayAtMidnight()
+  {
+    final LocalDateTime todayAtMidnight = LocalDate.now().atStartOfDay();
+    return convertLocalDateTimeToDateInUTC(todayAtMidnight);
+  }
+
+  public static Date resetTimePartOfDate(final Date date)
+  {
+    final LocalDateTime ldt = convertDateToLocalDateTimeInUTC(date);
+    final LocalDateTime dateAtStartOfDay = ldt.toLocalDate().atStartOfDay();
+    return convertLocalDateTimeToDateInUTC(dateAtStartOfDay);
+  }
+
+  public static Date convertDateIntoOtherTimezone(final Date date, final TimeZone from, final TimeZone to)
+  {
+    final Instant instant = date.toInstant();
+    final LocalDateTime localDateTime = LocalDateTime.ofInstant(instant, to.toZoneId());
+    final Instant instant2 = localDateTime.toInstant(from.toZoneId().getRules().getOffset(instant));
+    return Date.from(instant2);
   }
 
 }

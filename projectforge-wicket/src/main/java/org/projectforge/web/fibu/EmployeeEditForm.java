@@ -35,7 +35,6 @@ import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.apache.wicket.validation.validator.PatternValidator;
 import org.projectforge.business.fibu.EmployeeDO;
-import org.projectforge.business.fibu.EmployeeStatus;
 import org.projectforge.business.fibu.EmployeeTimedDO;
 import org.projectforge.business.fibu.Gender;
 import org.projectforge.business.fibu.api.EmployeeService;
@@ -214,18 +213,6 @@ public class EmployeeEditForm extends AbstractEditForm<EmployeeDO, EmployeeEditP
       Kost1FormComponent kost1 = new Kost1FormComponent(InputPanel.WICKET_ID, new PropertyModel<>(data, "kost1"), true);
       kost1.setMarkupId("kost1").setOutputMarkupId(true);
       fs.add(kost1);
-    }
-    {
-      // DropDownChoice status
-      final FieldsetPanel fs = gridBuilder.newFieldset(EmployeeDO.class, "status");
-      final LabelValueChoiceRenderer<EmployeeStatus> statusChoiceRenderer = new LabelValueChoiceRenderer<>(
-          this,
-          EmployeeStatus.values());
-      final DropDownChoice<EmployeeStatus> statusChoice = new DropDownChoice<>(fs.getDropDownChoiceId(),
-          new PropertyModel<>(data, "status"), statusChoiceRenderer.getValues(), statusChoiceRenderer);
-      statusChoice.setNullValid(false).setRequired(true);
-      statusChoice.setMarkupId("status").setOutputMarkupId(true);
-      fs.add(statusChoice);
     }
     {
       // Division
