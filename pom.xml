@@ -1,473 +1,470 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
-	<modelVersion>4.0.0</modelVersion>
-	<groupId>org.projectforge</groupId>
-	<artifactId>projectforge-parent</artifactId>
-	<packaging>pom</packaging>
-	<version>6.3.0</version>
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>org.projectforge</groupId>
+  <artifactId>projectforge-parent</artifactId>
+  <packaging>pom</packaging>
+  <version>6.4.0</version>
 
-	<parent>
-		<groupId>org.springframework.cloud</groupId>
-		<artifactId>spring-cloud-starter-parent</artifactId>
-		<version>Brixton.SR2</version>
-	</parent>
+  <parent>
+    <groupId>org.springframework.cloud</groupId>
+    <artifactId>spring-cloud-starter-parent</artifactId>
+    <version>Brixton.SR2</version>
+  </parent>
 
-	<name>ProjectForge</name>
-	<description>
+  <name>ProjectForge</name>
+  <description>
     ProjectForge is a multi user web application for collaborative team work. Organize time sheets, tasks, addresses, books etc. with project teams.
-  	</description>
-	<url>http://www.projectforge.org</url>
-	<organization>
-		<name>Kai Reinhard</name>
-		<url>http://www.projectforge.org</url>
-	</organization>
-	<issueManagement>
-		<system>JIRA</system>
-		<url>https://www.projectforge.org/jira</url>
-	</issueManagement>
-	<ciManagement>
-		<system>Bamboo</system>
-		<url>http://www.projectforge.org</url>
-	</ciManagement>
-	<scm>
-		<connection>scm:svn:https://pforge.svn.sourceforge.net/svnroot/pforge</connection>
-		<developerConnection>scm:svn:https://pforge.svn.sourceforge.net/svnroot/pforge</developerConnection>
-		<url>https://pforge.svn.sourceforge.net/svnroot/pforge</url>
-	</scm>
-	<developers>
-		<developer>
-			<id>kai</id>
-			<name>Kai Reinhard</name>
-			<email>k.reinhard at micromata.de</email>
-			<organization>Micromata GmbH</organization>
-			<organizationUrl>http://www.micromata.com</organizationUrl>
-			<roles>
-				<role>architect</role>
-				<role>developer</role>
-				<role>CEO</role>
-			</roles>
-			<timezone>-1</timezone>
-		</developer>
-		<developer>
-			<id>wolle</id>
-			<name>Wolfgang Jung</name>
-			<email>w.jung at micromata.de</email>
-			<organization>Micromata GmbH</organization>
-			<organizationUrl>http://www.micromata.com</organizationUrl>
-			<roles>
-				<role>architect</role>
-				<role>developer</role>
-			</roles>
-			<timezone>-1</timezone>
-		</developer>
-		<developer>
-			<id>cclaus</id>
-			<name>Christian Claus</name>
-			<email>c.claus at micromata.de</email>
-			<organization>Micromata GmbH</organization>
-			<organizationUrl>http://www.micromata.com</organizationUrl>
-			<roles>
-				<role>developer</role>
-			</roles>
-			<timezone>-1</timezone>
-		</developer>
-		<developer>
-			<id>daniel</id>
-			<name>Daniel Ludwig</name>
-			<email>d.ludwig at micromata.de</email>
-			<organization>Micromata GmbH</organization>
-			<organizationUrl>http://www.micromata.com</organizationUrl>
-			<roles>
-				<role>developer</role>
-			</roles>
-			<timezone>-1</timezone>
-		</developer>
-		<developer>
-			<id>junterstein</id>
-			<name>Johannes Unterstein</name>
-			<email>j.unterstein at micromata.de</email>
-			<organization>Micromata GmbH</organization>
-			<organizationUrl>http://www.micromata.com</organizationUrl>
-			<roles>
-				<role>developer</role>
-			</roles>
-			<timezone>-1</timezone>
-		</developer>
-		<developer>
-			<id>mlauterbach</id>
-			<name>Maximilian Lauterbach</name>
-			<email>m.lauterbach at micromata.de</email>
-			<organization>Micromata GmbH</organization>
-			<organizationUrl>http://www.micromata.com</organizationUrl>
-			<roles>
-				<role>developer</role>
-			</roles>
-			<timezone>-1</timezone>
-		</developer>
-		<developer>
-			<id>kommer</id>
-			<name>Roger Kommer</name>
-			<email>r.kommer.extern at micromata.de</email>
-			<organization>Micromata GmbH</organization>
-			<organizationUrl>http://www.micromata.com</organizationUrl>
-			<roles>
-				<role>developer</role>
-			</roles>
-			<timezone>-1</timezone>
-		</developer>
-		<developer>
-			<id>fblumenstein</id>
-			<name>Florian Blumenstein</name>
-			<email>f.blumenstein at micromata.de</email>
-			<organization>Micromata GmbH</organization>
-			<organizationUrl>http://www.micromata.com</organizationUrl>
-			<roles>
-				<role>developer</role>
-			</roles>
-			<timezone>-1</timezone>
-		</developer>
-		<developer>
-			<id>mhesse</id>
-			<name>Marcel Hesse</name>
-			<email>m.hesse at micromata.de</email>
-			<organization>Micromata GmbH</organization>
-			<organizationUrl>http://www.micromata.com</organizationUrl>
-			<roles>
-				<role>developer</role>
-			</roles>
-			<timezone>-1</timezone>
-		</developer>
-		<developer>
-			<id>ctausendfreund</id>
-			<name>Christian Tausendfreund</name>
-			<email>c.tausendfreund at micromata.de</email>
-			<organization>Micromata GmbH</organization>
-			<organizationUrl>http://www.micromata.com</organizationUrl>
-			<roles>
-				<role>developer</role>
-			</roles>
-			<timezone>-1</timezone>
-		</developer>
-	</developers>
-	<contributors>
-		<contributor>
-			<name>Oisin Lavery</name>
-			<organization>Tricycle Interactive</organization>
-			<organizationUrl>http://www.tricycle.ie/</organizationUrl>
-			<roles>
-				<role>Contributor of Adminica, the web site template used by ProjectForge.</role>
-			</roles>
-			<timezone>-1</timezone>
-		</contributor>
-	</contributors>
-	<licenses>
-		<license>
-			<name>Dual license</name>
-			<url>/LICENSE.txt</url>
-			<comments>All rights reserved.</comments>
-			<distribution>manual</distribution>
-		</license>
-		<license>
-			<name>All rights reserved.</name>
-			<url>---</url>
-			<comments>All rights reserved.</comments>
-			<distribution>manual</distribution>
-		</license>
-	</licenses>
-	<modules>
-		<module>projectforge-common</module>
-		<!-- <module>projectforge-model</module> -->
-		<module>projectforge-excel</module>
-		<module>projectforge-business</module>
-		<module>projectforge-jax-rs</module>
-		<!-- <module>projectforge-microservices/projectforge-microservices-address</module> -->
-		<!-- <module>projectforge-microservices/projectforge-microservices-server</module> -->
-		<module>projectforge-wicket</module>
-		<module>plugins</module>
-		<module>projectforge-application</module>
-		<module>projectforge-launcher</module>
-	</modules>
-	<properties>
-		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+  </description>
+  <url>http://www.projectforge.org</url>
+  <organization>
+    <name>Kai Reinhard</name>
+    <url>http://www.projectforge.org</url>
+  </organization>
+  <issueManagement>
+    <system>JIRA</system>
+    <url>https://www.projectforge.org/jira</url>
+  </issueManagement>
+  <ciManagement>
+    <system>Bamboo</system>
+    <url>http://www.projectforge.org</url>
+  </ciManagement>
+  <scm>
+    <connection>scm:svn:https://pforge.svn.sourceforge.net/svnroot/pforge</connection>
+    <developerConnection>scm:svn:https://pforge.svn.sourceforge.net/svnroot/pforge</developerConnection>
+    <url>https://pforge.svn.sourceforge.net/svnroot/pforge</url>
+  </scm>
+  <developers>
+    <developer>
+      <id>kai</id>
+      <name>Kai Reinhard</name>
+      <email>k.reinhard at micromata.de</email>
+      <organization>Micromata GmbH</organization>
+      <organizationUrl>http://www.micromata.com</organizationUrl>
+      <roles>
+        <role>architect</role>
+        <role>developer</role>
+        <role>CEO</role>
+      </roles>
+      <timezone>-1</timezone>
+    </developer>
+    <developer>
+      <id>wolle</id>
+      <name>Wolfgang Jung</name>
+      <email>w.jung at micromata.de</email>
+      <organization>Micromata GmbH</organization>
+      <organizationUrl>http://www.micromata.com</organizationUrl>
+      <roles>
+        <role>architect</role>
+        <role>developer</role>
+      </roles>
+      <timezone>-1</timezone>
+    </developer>
+    <developer>
+      <id>cclaus</id>
+      <name>Christian Claus</name>
+      <email>c.claus at micromata.de</email>
+      <organization>Micromata GmbH</organization>
+      <organizationUrl>http://www.micromata.com</organizationUrl>
+      <roles>
+        <role>developer</role>
+      </roles>
+      <timezone>-1</timezone>
+    </developer>
+    <developer>
+      <id>daniel</id>
+      <name>Daniel Ludwig</name>
+      <email>d.ludwig at micromata.de</email>
+      <organization>Micromata GmbH</organization>
+      <organizationUrl>http://www.micromata.com</organizationUrl>
+      <roles>
+        <role>developer</role>
+      </roles>
+      <timezone>-1</timezone>
+    </developer>
+    <developer>
+      <id>junterstein</id>
+      <name>Johannes Unterstein</name>
+      <email>j.unterstein at micromata.de</email>
+      <organization>Micromata GmbH</organization>
+      <organizationUrl>http://www.micromata.com</organizationUrl>
+      <roles>
+        <role>developer</role>
+      </roles>
+      <timezone>-1</timezone>
+    </developer>
+    <developer>
+      <id>mlauterbach</id>
+      <name>Maximilian Lauterbach</name>
+      <email>m.lauterbach at micromata.de</email>
+      <organization>Micromata GmbH</organization>
+      <organizationUrl>http://www.micromata.com</organizationUrl>
+      <roles>
+        <role>developer</role>
+      </roles>
+      <timezone>-1</timezone>
+    </developer>
+    <developer>
+      <id>kommer</id>
+      <name>Roger Kommer</name>
+      <email>r.kommer.extern at micromata.de</email>
+      <organization>Micromata GmbH</organization>
+      <organizationUrl>http://www.micromata.com</organizationUrl>
+      <roles>
+        <role>developer</role>
+      </roles>
+      <timezone>-1</timezone>
+    </developer>
+    <developer>
+      <id>fblumenstein</id>
+      <name>Florian Blumenstein</name>
+      <email>f.blumenstein at micromata.de</email>
+      <organization>Micromata GmbH</organization>
+      <organizationUrl>http://www.micromata.com</organizationUrl>
+      <roles>
+        <role>developer</role>
+      </roles>
+      <timezone>-1</timezone>
+    </developer>
+    <developer>
+      <id>mhesse</id>
+      <name>Marcel Hesse</name>
+      <email>m.hesse at micromata.de</email>
+      <organization>Micromata GmbH</organization>
+      <organizationUrl>http://www.micromata.com</organizationUrl>
+      <roles>
+        <role>developer</role>
+      </roles>
+      <timezone>-1</timezone>
+    </developer>
+    <developer>
+      <id>ctausendfreund</id>
+      <name>Christian Tausendfreund</name>
+      <email>c.tausendfreund at micromata.de</email>
+      <organization>Micromata GmbH</organization>
+      <organizationUrl>http://www.micromata.com</organizationUrl>
+      <roles>
+        <role>developer</role>
+      </roles>
+      <timezone>-1</timezone>
+    </developer>
+  </developers>
+  <contributors>
+    <contributor>
+      <name>Oisin Lavery</name>
+      <organization>Tricycle Interactive</organization>
+      <organizationUrl>http://www.tricycle.ie/</organizationUrl>
+      <roles>
+        <role>Contributor of Adminica, the web site template used by ProjectForge.</role>
+      </roles>
+      <timezone>-1</timezone>
+    </contributor>
+  </contributors>
+  <licenses>
+    <license>
+      <name>Dual license</name>
+      <url>/LICENSE.txt</url>
+      <comments>All rights reserved.</comments>
+      <distribution>manual</distribution>
+    </license>
+    <license>
+      <name>All rights reserved.</name>
+      <url>---</url>
+      <comments>All rights reserved.</comments>
+      <distribution>manual</distribution>
+    </license>
+  </licenses>
+  <modules>
+    <module>projectforge-common</module>
+    <!-- <module>projectforge-model</module> -->
+    <module>projectforge-excel</module>
+    <module>projectforge-business</module>
+    <module>projectforge-jax-rs</module>
+    <!-- <module>projectforge-microservices/projectforge-microservices-address</module> -->
+    <!-- <module>projectforge-microservices/projectforge-microservices-server</module> -->
+    <module>projectforge-wicket</module>
+    <module>plugins</module>
+    <module>projectforge-application</module>
+    <module>projectforge-launcher</module>
+  </modules>
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
-		<sonar.host.url>https://team.micromata.de/sonar/</sonar.host.url>
-		<sonar.java.coveragePlugin>jacoco</sonar.java.coveragePlugin>
-		<sonar.dynamicAnalysis>reuseReports</sonar.dynamicAnalysis>
-		<sonar.jacoco.reportPath>${project.basedir}/../target/jacoco.exec</sonar.jacoco.reportPath>
-		<sonar.jacoco.plugin.reportPath>${project.basedir}/../../target/jacoco.exec</sonar.jacoco.plugin.reportPath>
+    <sonar.host.url>https://team.micromata.de/sonar/</sonar.host.url>
+    <sonar.java.coveragePlugin>jacoco</sonar.java.coveragePlugin>
+    <sonar.dynamicAnalysis>reuseReports</sonar.dynamicAnalysis>
+    <sonar.jacoco.reportPath>${project.basedir}/../target/jacoco.exec</sonar.jacoco.reportPath>
+    <sonar.jacoco.plugin.reportPath>${project.basedir}/../../target/jacoco.exec</sonar.jacoco.plugin.reportPath>
 
-		<downloadSources>true</downloadSources>
+    <downloadSources>true</downloadSources>
 
-		<projectforge.version>${project.version}</projectforge.version>
+    <projectforge.version>${project.version}</projectforge.version>
 
-		<maven-compile-plugin-version>3.3</maven-compile-plugin-version>
-		<java.version>1.8</java.version>
+    <maven-compile-plugin-version>3.3</maven-compile-plugin-version>
+    <java.version>1.8</java.version>
 
-		<hibernate.version>5.0.5.Final</hibernate.version>
-		<mgc.version>2.4.1</mgc.version>
-		<postgresql.version>9.4-1206-jdbc42</postgresql.version>
-		<hsqldb.version>1.8.0.10</hsqldb.version>
+    <hibernate.version>5.0.5.Final</hibernate.version>
+    <mgc.version>2.5.1</mgc.version>
+    <postgresql.version>9.4-1206-jdbc42</postgresql.version>
+    <hsqldb.version>1.8.0.10</hsqldb.version>
 
-		<spring.version>4.2.3.RELEASE</spring.version>
-		<commons-lang.version>2.6</commons-lang.version>
-		<commons-fileupload.version>1.3.1</commons-fileupload.version>
-		<commons-httpclient.version>3.1</commons-httpclient.version>
-		<commons-logging.version>1.2</commons-logging.version>
-		<commons-collections.version>3.2.2</commons-collections.version>
-		<commons-dbcp.version>1.4</commons-dbcp.version>
-		<commons-beanutils.version>1.9.2</commons-beanutils.version>
-		<hibernate-core.version>3.6.10.Final</hibernate-core.version>
-		<org.hibernate.hibernate-entitymanager.version>5.0.7.Final</org.hibernate.hibernate-entitymanager.version>
-		<hibernate-jpa-2.0-api.version>1.0.1.Final</hibernate-jpa-2.0-api.version>
-		<!-- <hibernate-search.version>3.4.2.Final</hibernate-search.version> -->
-		<hibernate-search.version>5.5.2.Final</hibernate-search.version>
-		<hibernate-history.version>3.4.13</hibernate-history.version>
-		<aspectjtools.version>1.8.7</aspectjtools.version>
-		<cglib-nodep.version>3.2.0</cglib-nodep.version>
-		<groovy.version>2.4.4</groovy.version>
-		<poi.version>3.13</poi.version>
-		<wicket.version>6.8.0</wicket.version>
-		<wicket-select2.version>2.2</wicket-select2.version>
+    <spring.version>4.2.3.RELEASE</spring.version>
+    <commons-lang.version>2.6</commons-lang.version>
+    <commons-fileupload.version>1.3.1</commons-fileupload.version>
+    <commons-httpclient.version>3.1</commons-httpclient.version>
+    <commons-logging.version>1.2</commons-logging.version>
+    <commons-collections.version>3.2.2</commons-collections.version>
+    <commons-dbcp.version>1.4</commons-dbcp.version>
+    <commons-beanutils.version>1.9.2</commons-beanutils.version>
+    <hibernate-core.version>3.6.10.Final</hibernate-core.version>
+    <org.hibernate.hibernate-entitymanager.version>5.0.7.Final</org.hibernate.hibernate-entitymanager.version>
+    <hibernate-jpa-2.0-api.version>1.0.1.Final</hibernate-jpa-2.0-api.version>
+    <!-- <hibernate-search.version>3.4.2.Final</hibernate-search.version> -->
+    <hibernate-search.version>5.5.2.Final</hibernate-search.version>
+    <hibernate-history.version>3.4.13</hibernate-history.version>
+    <aspectjtools.version>1.8.7</aspectjtools.version>
+    <cglib-nodep.version>3.2.0</cglib-nodep.version>
+    <groovy.version>2.4.4</groovy.version>
+    <poi.version>3.13</poi.version>
+    <wicket.version>6.8.0</wicket.version>
+    <wicket-select2.version>2.2</wicket-select2.version>
 
-		<javax.jsp-api.version>2.3.1</javax.jsp-api.version>
-		<javax.servlet-api.version>3.1.0</javax.servlet-api.version>
-		<javax.mail.version>1.4.7</javax.mail.version>
+    <javax.jsp-api.version>2.3.1</javax.jsp-api.version>
+    <javax.servlet-api.version>3.1.0</javax.servlet-api.version>
+    <javax.mail.version>1.4.7</javax.mail.version>
 
-		<el-api.version>3.0.0</el-api.version>
-		<ical4j.version>2.0-beta1</ical4j.version>
-		<ical4j-vcard.version>0.9.6.2</ical4j-vcard.version>
-		<mockito-all.version>1.10.19</mockito-all.version>
-		<powermock.version>1.6.5</powermock.version>
-		<xstream.version>1.4.8</xstream.version>
-		<xerces.version>2.11.0</xerces.version>
-		<itext.version>2.1.7</itext.version>
-		<jfreechart.version>1.0.19</jfreechart.version>
-		<rhino.version>1.7.7</rhino.version>
-		<quartz.version>1.8.6</quartz.version>
-		<mpxj.version>4.3.0</mpxj.version>
-		<fop.version>1.0</fop.version>
-		<xmlgraphics-commons.version>1.5</xmlgraphics-commons.version>
-		<!-- HIBERNATE5 -->
-		<ehcache-core.version>2.6.11</ehcache-core.version>
-		<postgresql.version>9.4-1206-jdbc42</postgresql.version>
-		<hsqldb.version>1.8.0.10</hsqldb.version>
-		<jersey.version>1.19</jersey.version>
-		<codehaus-jackson.version>1.9.13</codehaus-jackson.version>
-		<testng.versionj>6.9.9</testng.versionj>
-		<log4j.version>1.2.17</log4j.version>
-		<gson.version>2.5</gson.version>
-		<slf4j.version>1.7.13</slf4j.version>
-		<joda-time.version>2.0</joda-time.version>
-		<commons-cli.version>1.3.1</commons-cli.version>
-		<apacheds.version>1.5.7</apacheds.version>
-	</properties>
-	<dependencies>
+    <el-api.version>3.0.0</el-api.version>
+    <ical4j.version>2.0-beta1</ical4j.version>
+    <ical4j-vcard.version>0.9.6.2</ical4j-vcard.version>
+    <mockito-all.version>1.10.19</mockito-all.version>
+    <powermock.version>1.6.5</powermock.version>
+    <xstream.version>1.4.8</xstream.version>
+    <xerces.version>2.11.0</xerces.version>
+    <itext.version>2.1.7</itext.version>
+    <jfreechart.version>1.0.19</jfreechart.version>
+    <rhino.version>1.7.7</rhino.version>
+    <quartz.version>1.8.6</quartz.version>
+    <mpxj.version>4.3.0</mpxj.version>
+    <fop.version>1.0</fop.version>
+    <xmlgraphics-commons.version>1.5</xmlgraphics-commons.version>
+    <!-- HIBERNATE5 -->
+    <ehcache-core.version>2.6.11</ehcache-core.version>
+    <postgresql.version>9.4-1206-jdbc42</postgresql.version>
+    <hsqldb.version>1.8.0.10</hsqldb.version>
+    <jersey.version>1.19</jersey.version>
+    <codehaus-jackson.version>1.9.13</codehaus-jackson.version>
+    <testng.versionj>6.9.9</testng.versionj>
+    <log4j.version>1.2.17</log4j.version>
+    <gson.version>2.5</gson.version>
+    <slf4j.version>1.7.13</slf4j.version>
+    <joda-time.version>2.0</joda-time.version>
+    <commons-cli.version>1.3.1</commons-cli.version>
+    <apacheds.version>1.5.7</apacheds.version>
+  </properties>
+  <dependencies>
 
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-web</artifactId>
-		</dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-web</artifactId>
+    </dependency>
 
-		<dependency>
-			<!-- Setup Spring Boot -->
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter</artifactId>
-		</dependency>
+    <dependency>
+      <!-- Setup Spring Boot -->
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter</artifactId>
+    </dependency>
 
-		<dependency>
-			<!-- Testing starter -->
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-test</artifactId>
-			<scope>test</scope>
-		</dependency>
+    <dependency>
+      <!-- Testing starter -->
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-test</artifactId>
+      <scope>test</scope>
+    </dependency>
 
-		<dependency>
-			<!-- Spring Cloud starter -->
-			<groupId>org.springframework.cloud</groupId>
-			<artifactId>spring-cloud-starter</artifactId>
-		</dependency>
+    <dependency>
+      <!-- Spring Cloud starter -->
+      <groupId>org.springframework.cloud</groupId>
+      <artifactId>spring-cloud-starter</artifactId>
+    </dependency>
 
-		<dependency>
-			<!-- Eureka service registration -->
-			<groupId>org.springframework.cloud</groupId>
-			<artifactId>spring-cloud-starter-eureka-server</artifactId>
-		</dependency>
+    <dependency>
+      <!-- Eureka service registration -->
+      <groupId>org.springframework.cloud</groupId>
+      <artifactId>spring-cloud-starter-eureka-server</artifactId>
+    </dependency>
 
-		<dependency>
-			<groupId>org.hibernate</groupId>
-			<artifactId>hibernate-entitymanager</artifactId>
-			<version>${hibernate.version}</version>
-		</dependency>
+    <dependency>
+      <groupId>org.hibernate</groupId>
+      <artifactId>hibernate-entitymanager</artifactId>
+      <version>${hibernate.version}</version>
+    </dependency>
 
-		<dependency>
-			<groupId>de.micromata.mgc</groupId>
-			<artifactId>de.micromata.mgc.common</artifactId>
-			<version>${mgc.version}</version>
-		</dependency>
+    <dependency>
+      <groupId>de.micromata.mgc</groupId>
+      <artifactId>de.micromata.mgc.common</artifactId>
+      <version>${mgc.version}</version>
+    </dependency>
 
-		<!-- DB -->
-		<dependency>
-			<groupId>org.postgresql</groupId>
-			<artifactId>postgresql</artifactId>
-			<version>${postgresql.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>hsqldb</groupId>
-			<artifactId>hsqldb</artifactId>
-			<version>${hsqldb.version}</version>
-		</dependency>
+    <!-- DB -->
+    <dependency>
+      <groupId>org.postgresql</groupId>
+      <artifactId>postgresql</artifactId>
+      <version>${postgresql.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>hsqldb</groupId>
+      <artifactId>hsqldb</artifactId>
+      <version>${hsqldb.version}</version>
+    </dependency>
 
-		<!-- TEST -->
-		<dependency>
-			<groupId>org.testng</groupId>
-			<artifactId>testng</artifactId>
-			<version>${testng.versionj}</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.powermock</groupId>
-			<artifactId>powermock-api-mockito</artifactId>
-			<version>${powermock.version}</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.powermock</groupId>
-			<artifactId>powermock-module-testng</artifactId>
-			<version>1.6.5</version>
-			<scope>test</scope>
-		</dependency>
-	</dependencies>
-	<build>
-		<sourceDirectory>src/main/java</sourceDirectory>
-		<plugins>
-			<plugin>
-				<groupId>org.jacoco</groupId>
-				<artifactId>jacoco-maven-plugin</artifactId>
-			</plugin>
-			<plugin>
-				<artifactId>maven-surefire-plugin</artifactId>
-				<version>2.19.1</version>
-				<executions>
-					<execution>
-						<id>normal</id>
-						<phase>test</phase>
-						<goals>
-							<goal>test</goal>
-						</goals>
-						<configuration>
-							<!--forkMode>always</forkMode -->
-							<argLine>${argLine} -Xms512m -Xmx1024m</argLine>
-							<includes>
-								<include>**/*Test.java</include>
-							</includes>
-						</configuration>
-					</execution>
-					<execution>
-						<id>plugins</id>
-						<phase>test</phase>
-						<goals>
-							<goal>test</goal>
-						</goals>
-						<configuration>
-							<forkMode>always</forkMode>
-							<argLine>${argLine} -Xms512m -Xmx1024m</argLine>
-							<includes>
-								<include>**/*TestFork.java</include>
-							</includes>
-						</configuration>
-					</execution>
-				</executions>
-				<configuration>
-					<argLine>${argLine} -Xms512m -Xmx1024m</argLine>
-					<includes>
-						<include>**/*Test.java</include>
-					</includes>
-					<properties>
-						<property>
-							<name>configfailurepolicy</name>
-							<value>continue</value>
-						</property>
-					</properties>
-				</configuration>
-			</plugin>
-		</plugins>
-		<pluginManagement>
-			<plugins>
-				<plugin>
-					<groupId>org.jacoco</groupId>
-					<artifactId>jacoco-maven-plugin</artifactId>
-					<version>0.7.5.201505241946</version>
-					<configuration>
-						<destFile>${sonar.jacoco.reportPath}</destFile>
-						<append>true</append>
-						<dataFile>${basedir}/target/coverage-reports/jacoco-unit.exec</dataFile>
-					</configuration>
-					<executions>
-						<execution>
-							<id>jacoco-initialize</id>
-							<goals>
-								<goal>prepare-agent</goal>
-							</goals>
-						</execution>
-						<execution>
-							<id>jacoco-site</id>
-							<phase>package</phase>
-							<goals>
-								<goal>report</goal>
-							</goals>
-						</execution>
-					</executions>
-				</plugin>
-			</plugins>
-		</pluginManagement>
-	</build>
-	<reporting>
-		<plugins>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-surefire-report-plugin</artifactId>
-				<version>2.19.1</version>
-			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-javadoc-plugin</artifactId>
-				<version>2.9</version>
-				<configuration>
-					<additionalparam>-Xdoclint:none</additionalparam>
-					<encoding>utf-8</encoding>
-					<charset>utf-8</charset>
-				</configuration>
-			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-project-info-reports-plugin</artifactId>
-				<version>2.7</version>
-			</plugin>
-		</plugins>
-	</reporting>
-	<repositories>
-		<repository>
-			<id>de.micromata.nexus.public</id>
-			<name>Micromata Nexus 
-			Public</name>
-			<url>https://repo.micromata.de/nexus/content/groups/public</url>
-		</repository>
-		<repository>
-			<id>de.micromata.nexus.snapshots</id>
-			<name>Micromata 
-			Nexus Snapshots</name>
-			<url>https://repo.micromata.de/nexus/content/groups/public-snapshots</url>
-		</repository>
-		<repository>
-			<id>MGC</id>
-			<name>Micromata Labs MGC</name>
-			<url>https://labs.micromata.de/nexus/content/repositories/MGC/</url>
-		</repository>
-		<repository>
-			<id>MGC-snapshot</id>
-			<name>Micromata Labs MGC 
-			Snapshot</name>
-			<url>https://labs.micromata.de/nexus/content/repositories/MGC-snapshot/</url>
-		</repository>
-	</repositories>
+    <!-- TEST -->
+    <dependency>
+      <groupId>org.testng</groupId>
+      <artifactId>testng</artifactId>
+      <version>${testng.versionj}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.powermock</groupId>
+      <artifactId>powermock-api-mockito</artifactId>
+      <version>${powermock.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.powermock</groupId>
+      <artifactId>powermock-module-testng</artifactId>
+      <version>1.6.5</version>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+  <build>
+    <sourceDirectory>src/main/java</sourceDirectory>
+    <plugins>
+      <plugin>
+        <groupId>org.jacoco</groupId>
+        <artifactId>jacoco-maven-plugin</artifactId>
+      </plugin>
+      <plugin>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <version>2.19.1</version>
+        <executions>
+          <execution>
+            <id>normal</id>
+            <phase>test</phase>
+            <goals>
+              <goal>test</goal>
+            </goals>
+            <configuration>
+              <!--forkMode>always</forkMode -->
+              <argLine>${argLine} -Xms512m -Xmx1024m</argLine>
+              <includes>
+                <include>**/*Test.java</include>
+              </includes>
+            </configuration>
+          </execution>
+          <execution>
+            <id>plugins</id>
+            <phase>test</phase>
+            <goals>
+              <goal>test</goal>
+            </goals>
+            <configuration>
+              <forkMode>always</forkMode>
+              <argLine>${argLine} -Xms512m -Xmx1024m</argLine>
+              <includes>
+                <include>**/*TestFork.java</include>
+              </includes>
+            </configuration>
+          </execution>
+        </executions>
+        <configuration>
+          <argLine>${argLine} -Xms512m -Xmx1024m</argLine>
+          <includes>
+            <include>**/*Test.java</include>
+          </includes>
+          <properties>
+            <property>
+              <name>configfailurepolicy</name>
+              <value>continue</value>
+            </property>
+          </properties>
+        </configuration>
+      </plugin>
+    </plugins>
+    <pluginManagement>
+      <plugins>
+        <plugin>
+          <groupId>org.jacoco</groupId>
+          <artifactId>jacoco-maven-plugin</artifactId>
+          <version>0.7.5.201505241946</version>
+          <configuration>
+            <destFile>${sonar.jacoco.reportPath}</destFile>
+            <append>true</append>
+            <dataFile>${basedir}/target/coverage-reports/jacoco-unit.exec</dataFile>
+          </configuration>
+          <executions>
+            <execution>
+              <id>jacoco-initialize</id>
+              <goals>
+                <goal>prepare-agent</goal>
+              </goals>
+            </execution>
+            <execution>
+              <id>jacoco-site</id>
+              <phase>package</phase>
+              <goals>
+                <goal>report</goal>
+              </goals>
+            </execution>
+          </executions>
+        </plugin>
+      </plugins>
+    </pluginManagement>
+  </build>
+  <reporting>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-report-plugin</artifactId>
+        <version>2.19.1</version>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-javadoc-plugin</artifactId>
+        <version>2.9</version>
+        <configuration>
+          <additionalparam>-Xdoclint:none</additionalparam>
+          <encoding>utf-8</encoding>
+          <charset>utf-8</charset>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-project-info-reports-plugin</artifactId>
+        <version>2.7</version>
+      </plugin>
+    </plugins>
+  </reporting>
+  <repositories>
+    <repository>
+      <id>de.micromata.nexus.public</id>
+      <name>Micromata Nexus Public</name>
+      <url>https://repo.micromata.de/nexus/content/groups/public</url>
+    </repository>
+    <repository>
+      <id>de.micromata.nexus.snapshots</id>
+      <name>Micromata Nexus Snapshots</name>
+      <url>https://repo.micromata.de/nexus/content/groups/public-snapshots</url>
+    </repository>
+    <repository>
+      <id>MGC</id>
+      <name>Micromata Labs MGC</name>
+      <url>https://labs.micromata.de/nexus/content/repositories/MGC/</url>
+    </repository>
+    <repository>
+      <id>MGC-snapshot</id>
+      <name>Micromata Labs MGC Snapshot</name>
+      <url>https://labs.micromata.de/nexus/content/repositories/MGC-snapshot/</url>
+    </repository>
+  </repositories>
 </project>

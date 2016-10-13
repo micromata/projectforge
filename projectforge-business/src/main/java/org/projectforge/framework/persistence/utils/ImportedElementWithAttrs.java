@@ -20,10 +20,10 @@ public class ImportedElementWithAttrs<PK extends Serializable, T extends Timeabl
 {
   private final List<AttrColumnDescription> attrDiffProperties;
   private final Date dateToSelectAttrRow;
-  private final TimeableService<PK, T> timeableService;
+  private final TimeableService timeableService;
 
   public ImportedElementWithAttrs(final int index, final Class<E> clazz, final String[] diffProperties, final List<AttrColumnDescription> attrDiffProperties,
-      final Date dateToSelectAttrRow, final TimeableService<PK, T> timeableService)
+      final Date dateToSelectAttrRow, final TimeableService timeableService)
   {
     super(index, clazz, diffProperties);
     this.attrDiffProperties = attrDiffProperties;
