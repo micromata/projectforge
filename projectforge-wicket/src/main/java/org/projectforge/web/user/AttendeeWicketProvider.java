@@ -27,6 +27,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Stream;
 
 import org.projectforge.business.teamcal.event.TeamEventService;
 import org.projectforge.business.teamcal.event.model.TeamEventAttendeeDO;
@@ -127,6 +128,7 @@ public class AttendeeWicketProvider extends TextChoiceProvider<TeamEventAttendee
     }
     final List<TeamEventAttendeeDO> result = new ArrayList<>();
     term = term.toLowerCase();
+    String[] splitTerm = term.split(" ");
 
     final int offset = page * pageSize;
 
@@ -141,7 +143,9 @@ public class AttendeeWicketProvider extends TextChoiceProvider<TeamEventAttendee
         hasMore = true;
         break;
       }
-      if ((attendee.getAddress() != null && attendee.getAddress().getFullName().toLowerCase().contains(term) == true)
+      if ((attendee.getAddress() != null
+          && Stream.of(splitTerm)
+              .allMatch(streamTerm -> attendee.getAddress().getFullName().toLowerCase().contains(streamTerm)))
           || (attendee.getUrl() != null && attendee.getUrl().toLowerCase().contains(term) == true)) {
         matched++;
         if (matched > offset) {

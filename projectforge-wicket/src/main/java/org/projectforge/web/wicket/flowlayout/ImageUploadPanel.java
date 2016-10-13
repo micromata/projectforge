@@ -40,22 +40,20 @@ import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.ResourceModel;
 import org.apache.wicket.request.resource.DynamicImageResource;
-import org.apache.wicket.validation.IValidatable;
 import org.apache.wicket.validation.IValidator;
 import org.projectforge.framework.utils.FileHelper;
 import org.projectforge.web.dialog.ModalQuestionDialog;
+import org.projectforge.web.wicket.AbstractEditForm;
 import org.projectforge.web.wicket.AbstractSecuredPage;
+import org.wicketstuff.html5.fileapi.FileFieldSizeCheckBehavior;
+import org.wicketstuff.html5.fileapi.FileList;
 
 /**
- *
  * @author Florian Blumenstein
- *
  */
 public class ImageUploadPanel extends Panel implements ComponentWrapperPanel
 {
   private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(ImageUploadPanel.class);
-
-  public static final String WICKET_ID = "input";
 
   private static final long serialVersionUID = -4126462093466172226L;
 
@@ -67,26 +65,27 @@ public class ImageUploadPanel extends Panel implements ComponentWrapperPanel
 
   private AjaxIconButtonPanel deleteFileButton;
 
-  private WebMarkupContainer main;
-
   private NonCachingImage image;
 
   /**
-   * @param id Component id
-   * @param fs Optional FieldsetPanel for creation of filename with download link and upload button.
+   * @param id                 Component id
+   * @param fs                 Optional FieldsetPanel for creation of filename with download link and upload button.
    * @param createFilenameLink If true (and fs is given) the filename is displayed with link for download.
    * @param
    */
   @SuppressWarnings("serial")
-  public ImageUploadPanel(final String id, final FieldsetPanel fs, final Form<?> form, final IModel<byte[]> file)
+  public ImageUploadPanel(final String id, final FieldsetPanel fs, final AbstractEditForm<?, ?> form,
+      final IModel<byte[]> file, final int maxImageSize)
   {
     super(id);
     this.file = file;
-    add(main = new WebMarkupContainer("main"));
+    final WebMarkupContainer main = new WebMarkupContainer("main");
+    add(main);
     main.setOutputMarkupId(true);
+
+    // DELETE BUTTON
     if (this.file.getObject() != null) {
       if (fs != null) {
-        // DELETE BUTTON
         deleteFileButton = new AjaxIconButtonPanel(fs.newChildId(), IconType.TRASH, fs.getString("delete"))
         {
           /**
@@ -111,37 +110,60 @@ public class ImageUploadPanel extends Panel implements ComponentWrapperPanel
         fs.add(deleteFileButton);
       }
     }
-    main.add(this.fileUploadField = new FileUploadField(ImageUploadPanel.WICKET_ID));
-    this.fileUploadField.add(new IValidator<List<FileUpload>>()
+
+    // input element
+    main.add(this.fileUploadField = new FileUploadField("input"));
+    this.fileUploadField.add((IValidator<List<FileUpload>>) validatable -> {
+      if (validatable == null) {
+        return;
+      }
+      final List<FileUpload> list = validatable.getValue();
+      if (list == null || list.size() == 0) {
+        return;
+      }
+      if (list.size() > 1) {
+        log.error("Multiple file uploads not yet supported. Uploading only first file.");
+      }
+
+      FileUpload fileUpload = list.get(0);
+      String type = fileUpload.getContentType().split("/")[0];
+      if (!type.equals("image")) {
+        log.info("Uploaded file is no image. File type is " + type);
+        return;
+      }
+
+      upload(fileUpload);
+    });
+
+    this.fileUploadField.add(new FileFieldSizeCheckBehavior()
     {
       @Override
-      public void validate(final IValidatable<List<FileUpload>> validatable)
+      protected void onSubmit(final AjaxRequestTarget target, final FileList fileList)
       {
-        if (validatable == null) {
-          return;
-        }
-        final List<FileUpload> list = validatable.getValue();
-        if (list == null || list.size() == 0) {
-          return;
-        }
-        if (list.size() > 1) {
-          log.error("Multiple file uploads not yet supported. Uploading only first file.");
-        }
+        if (fileList.getSize() > maxImageSize) {
+          // add error message
+          form.addError("common.imageuploadpanel.filetolarge", maxImageSize);
 
-        FileUpload fileUpload = list.get(0);
-        String type = fileUpload.getContentType().split("/")[0];
-        if (!type.equals("image")) {
-          log.info("Uploaded file is no image. File type is " + type);
-          return;
+          // clear input field to avoid uploading the image
+          fileUploadField.clearInput();
+          target.add(main);
         }
+        // always add the feedback panel to clear the error message
+        target.add(form.getFeedbackPanel());
+      }
 
-        upload(fileUpload);
+      @Override
+      protected void onError(final AjaxRequestTarget target, final FileList fileList)
+      {
+        // nothing to do
       }
     });
 
+    // image
     this.image = createImage();
     main.add(image);
 
+    // delete dialog
     if (fs != null) {
       fs.add(this);
       final AbstractSecuredPage parentPage = (AbstractSecuredPage) getPage();
@@ -169,9 +191,6 @@ public class ImageUploadPanel extends Panel implements ComponentWrapperPanel
     }
   }
 
-  /**
-   * @return
-   */
   private NonCachingImage createImage()
   {
     NonCachingImage img = new NonCachingImage("image", new AbstractReadOnlyModel<DynamicImageResource>()
@@ -187,12 +206,10 @@ public class ImageUploadPanel extends Panel implements ComponentWrapperPanel
             byte[] result = file.getObject();
             if (result == null || result.length < 1) {
               try {
-                result = IOUtils
-                    .toByteArray(getClass().getClassLoader().getResource("images/noImage.png").openStream());
+                result = IOUtils.toByteArray(getClass().getClassLoader().getResource("images/noImage.png").openStream());
               } catch (final IOException ex) {
                 log.error("Exception encountered " + ex, ex);
               }
-
             }
             return result;
           }
@@ -221,7 +238,7 @@ public class ImageUploadPanel extends Panel implements ComponentWrapperPanel
 
   /**
    * Calls {@link Form#setMultiPart(boolean)} with value true.
-   * 
+   *
    * @see org.apache.wicket.Component#onBeforeRender()
    */
   @Override

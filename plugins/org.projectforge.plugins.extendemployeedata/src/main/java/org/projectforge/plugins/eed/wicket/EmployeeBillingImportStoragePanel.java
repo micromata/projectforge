@@ -18,7 +18,7 @@ import de.micromata.genome.db.jpa.tabattr.api.TimeableService;
 class EmployeeBillingImportStoragePanel extends AbstractImportStoragePanel<EmployeeBillingImportPage>
 {
   @SpringBean
-  private TimeableService<Integer, EmployeeTimedDO> timeableService;
+  private TimeableService timeableService;
 
   private Date dateToSelectAttrRow;
 

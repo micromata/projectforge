@@ -38,6 +38,7 @@ import org.projectforge.framework.configuration.Configuration;
 import org.projectforge.framework.configuration.ConfigurationDao;
 import org.projectforge.framework.configuration.ConfigurationParam;
 import org.projectforge.framework.configuration.entities.ConfigurationDO;
+import org.projectforge.framework.persistence.database.DatabaseCoreUpdates;
 import org.projectforge.framework.persistence.database.DatabaseUpdateService;
 import org.projectforge.framework.persistence.database.InitDatabaseDao;
 import org.projectforge.framework.persistence.database.PfJpaXmlDumpService;
@@ -129,6 +130,11 @@ public class SetupPage extends AbstractUnsecureBasePage
     }
 
     loginAdminUser(adminUser);
+
+    if (setupForm.getSetupMode() == SetupTarget.TEST_DATA) {
+      // migrate old employee status to new attr employee status
+      DatabaseCoreUpdates.migrateEmployeeStatusToAttr();
+    }
 
     configurationDao.checkAndUpdateDatabaseEntries();
     if (setupForm.getTimeZone() != null) {

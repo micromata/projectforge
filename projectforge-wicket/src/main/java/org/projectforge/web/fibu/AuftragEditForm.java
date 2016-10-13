@@ -50,7 +50,6 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.apache.wicket.util.convert.IConverter;
-import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.business.fibu.AuftragDO;
 import org.projectforge.business.fibu.AuftragsPositionDO;
 import org.projectforge.business.fibu.AuftragsPositionsArt;
@@ -75,6 +74,7 @@ import org.projectforge.web.task.TaskSelectPanel;
 import org.projectforge.web.user.UserSelectPanel;
 import org.projectforge.web.wicket.AbstractEditForm;
 import org.projectforge.web.wicket.AbstractUnsecureBasePage;
+import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.web.wicket.bootstrap.GridBuilder;
 import org.projectforge.web.wicket.bootstrap.GridSize;
 import org.projectforge.web.wicket.components.DatePanel;
@@ -334,7 +334,6 @@ public class AuftragEditForm extends AbstractEditForm<AuftragDO, AuftragEditPage
           setHeading(getPaymentScheduleHeading(data.getPaymentSchedules(), this));
         }
       };
-      schedulesPanel.setClosed();
       schedulesPanel.setHeading(getPaymentScheduleHeading(data.getPaymentSchedules(), schedulesPanel));
       gridBuilder.getPanel().add(schedulesPanel);
       final GridBuilder innerGridBuilder = schedulesPanel.createGridBuilder();
