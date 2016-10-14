@@ -139,7 +139,6 @@ public class DatabaseCoreUpdates
         return UpdateRunningStatus.DONE;
       }
 
-
     });
 
     ////////////////////////////////////////////////////////////////////
@@ -520,8 +519,7 @@ public class DatabaseCoreUpdates
       public UpdatePreCheckStatus runPreCheck()
       {
         if (databaseUpdateService.doTableAttributesExist(ScriptDO.class, "file", "filename") == true
-            && databaseUpdateService.doTableAttributesExist(AuftragsPositionDO.class, "periodOfPerformanceBegin",
-                "periodOfPerformanceEnd") == true) {
+            && databaseUpdateService.doTableAttributesExist(AuftragsPositionDO.class, "periodOfPerformanceBegin", "periodOfPerformanceEnd") == true) {
           return UpdatePreCheckStatus.ALREADY_UPDATED;
         }
         return UpdatePreCheckStatus.READY_FOR_UPDATE;
@@ -577,10 +575,10 @@ public class DatabaseCoreUpdates
         if (databaseUpdateService.isVersionUpdated(CORE_REGION_ID, VERSION_5_0) == false) {
           entriesToMigrate = databaseUpdateService.queryForInt("select count(*) from t_contract where status='IN_PROGRES'");
         }
-        return databaseUpdateService.doTableAttributesExist(rechnungTable, "konto") == true //
-            && databaseUpdateService.doTableAttributesExist(userTable, "sshPublicKey") //
-            && entriesToMigrate == 0 //
-                ? UpdatePreCheckStatus.ALREADY_UPDATED : UpdatePreCheckStatus.READY_FOR_UPDATE;
+        return (databaseUpdateService.doTableAttributesExist(rechnungTable, "konto")
+            && databaseUpdateService.doTableAttributesExist(userTable, "sshPublicKey")
+            && entriesToMigrate == 0)
+            ? UpdatePreCheckStatus.ALREADY_UPDATED : UpdatePreCheckStatus.READY_FOR_UPDATE;
       }
 
       @Override
@@ -651,11 +649,11 @@ public class DatabaseCoreUpdates
         return databaseUpdateService.doTableAttributesExist(userTable, "authenticationToken", "localUser", "restrictedUser",
             "deactivated", "ldapValues") == true //
             && databaseUpdateService.doTableAttributesExist(groupTable, "localGroup") == true
-        // , "nestedGroupsAllowed", "nestedGroupIds") == true //
+            // , "nestedGroupsAllowed", "nestedGroupIds") == true //
             && databaseUpdateService.doTableAttributesExist(outgoingInvoiceTable, "uiStatusAsXml") == true //
             && databaseUpdateService.doTableAttributesExist(incomingInvoiceTable, "uiStatusAsXml") == true //
             && databaseUpdateService.doTableAttributesExist(orderTable, "uiStatusAsXml") == true //
-                ? UpdatePreCheckStatus.ALREADY_UPDATED : UpdatePreCheckStatus.READY_FOR_UPDATE;
+            ? UpdatePreCheckStatus.ALREADY_UPDATED : UpdatePreCheckStatus.READY_FOR_UPDATE;
       }
 
       @Override
@@ -749,7 +747,7 @@ public class DatabaseCoreUpdates
       {
         return databaseUpdateService.doTableAttributesExist(scriptTable, "parameter6Name", "parameter6Type") == true //
             && databaseUpdateService.doTableAttributesExist(eingangsrechnungTable, "paymentType") == true //
-                ? UpdatePreCheckStatus.ALREADY_UPDATED : UpdatePreCheckStatus.READY_FOR_UPDATE;
+            ? UpdatePreCheckStatus.ALREADY_UPDATED : UpdatePreCheckStatus.READY_FOR_UPDATE;
       }
 
       @Override
@@ -791,7 +789,7 @@ public class DatabaseCoreUpdates
             && databaseUpdateService.doTableAttributesExist(kontoTable, "status") == true //
             && databaseUpdateService.doTableAttributesExist(addressTable, "communicationLanguage") == true //
             && databaseUpdateService.doTableAttributesExist(taskTable, "protectionOfPrivacy") //
-                ? UpdatePreCheckStatus.ALREADY_UPDATED : UpdatePreCheckStatus.READY_FOR_UPDATE;
+            ? UpdatePreCheckStatus.ALREADY_UPDATED : UpdatePreCheckStatus.READY_FOR_UPDATE;
       }
 
       @Override
@@ -838,8 +836,8 @@ public class DatabaseCoreUpdates
         final Table userTable = new Table(PFUserDO.class);
         return databaseUpdateService.doExist(dbUpdateTable) == true
             && databaseUpdateService.doTableAttributesExist(userTable, "dateFormat", "excelDateFormat",
-                "timeNotation") == true //
-                    ? UpdatePreCheckStatus.ALREADY_UPDATED : UpdatePreCheckStatus.READY_FOR_UPDATE;
+            "timeNotation") == true //
+            ? UpdatePreCheckStatus.ALREADY_UPDATED : UpdatePreCheckStatus.READY_FOR_UPDATE;
       }
 
       @Override
@@ -866,15 +864,16 @@ public class DatabaseCoreUpdates
   public static void migrateEmployeeStatusToAttr()
   {
     final EmployeeService employeeService = applicationContext.getBean(EmployeeService.class);
+    final EmployeeDao employeeDao = applicationContext.getBean(EmployeeDao.class);
 
-    final List<EmployeeDO> employees = employeeService.getList(null);
+    final List<EmployeeDO> employees = employeeDao.internalLoadAll();
     employees.forEach(employee -> {
       final EmployeeStatus status = employee.getStatus();
       if (status != null) {
         final EmployeeTimedDO newAttrRow = employeeService.addNewTimeAttributeRow(employee, InternalAttrSchemaConstants.EMPLOYEE_STATUS_GROUP_NAME);
         newAttrRow.setStartTime(getDateForStatus(employee));
         newAttrRow.putAttribute(InternalAttrSchemaConstants.EMPLOYEE_STATUS_DESC_NAME, status.getI18nKey());
-        employeeService.update(employee);
+        employeeDao.internalUpdate(employee);
       }
     });
   }
