@@ -4,9 +4,8 @@ import java.util.Locale;
 
 /**
  * Holds the consts for the PF Application.
- * 
- * @author blumenstein
  *
+ * @author blumenstein
  */
 
 public class Const
@@ -28,7 +27,7 @@ public class Const
    * locale.en=English<br/>
    * locale.zh=Chinese
    */
-  public static final String[] LOCALIZATIONS = { "en", "de"};
+  public static final String[] LOCALIZATIONS = { "en", "de" };
   /**
    * the name of the event class.
    */
@@ -37,4 +36,6 @@ public class Const
   public static final String BREAK_EVENT_CLASS_NAME = "ts-break";
 
   public static final Integer TIMESHEET_CALENDAR_ID = -1;
+
+  public static final int ADDRESS_EDITPAGE_MAX_IMAGE_UPLOAD_SIZE = 1024 * 1024; // if you change this, check the multipart.maxFileSize value in the properties file
 }

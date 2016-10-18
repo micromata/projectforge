@@ -7,10 +7,12 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeConstants;
+import org.joda.time.DateTimeZone;
 import org.projectforge.business.timesheet.OrderDirection;
 import org.projectforge.business.timesheet.TimesheetDO;
 import org.projectforge.business.timesheet.TimesheetDao;
 import org.projectforge.business.timesheet.TimesheetFilter;
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.time.DateHelper;
 import org.projectforge.framework.time.DateHolder;
 import org.projectforge.web.fibu.ISelectCallerPage;
@@ -92,8 +94,9 @@ public class IhkExportPage extends AbstractStandardFormPage implements ISelectCa
 
   private List<TimesheetDO> findTimesheets()
   {
+    final DateTimeZone usersTimeZone = ThreadLocalUserContext.getDateTimeZone();
     final Date fromDate = form.getTimePeriod().getFromDate();
-    final DateTime startDate = new DateTime(fromDate).withDayOfWeek(DateTimeConstants.MONDAY);
+    final DateTime startDate = new DateTime(fromDate, usersTimeZone).withDayOfWeek(DateTimeConstants.MONDAY);
     final TimesheetFilter tf = new TimesheetFilter();
     //ASC = Montag bis Sonntag
     tf.setOrderType(OrderDirection.ASC);

@@ -88,7 +88,7 @@ public class LicenseManagementPluginUpdates
       {
         // Does the data-base table already exist?
         // Check only the oldest table.
-        if (dao.doEntitiesExist(LicenseDO.class) == true) {
+        if (dao.doTablesExist(LicenseDO.class) == true) {
           return UpdatePreCheckStatus.ALREADY_UPDATED;
         } else {
           // The oldest table doesn't exist, therefore the plugin has to initialized completely.

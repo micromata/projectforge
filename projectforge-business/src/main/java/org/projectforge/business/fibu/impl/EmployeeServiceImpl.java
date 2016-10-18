@@ -30,13 +30,13 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import de.micromata.genome.db.jpa.tabattr.api.AttrSchemaService;
 import de.micromata.genome.db.jpa.tabattr.api.TimeableService;
 
 /**
  * Standard implementation of the Employee service interface.
- * 
- * @author Roger Rene Kommer (r.kommer.extern@micromata.de)
  *
+ * @author Roger Rene Kommer (r.kommer.extern@micromata.de)
  */
 @Service
 public class EmployeeServiceImpl extends CorePersistenceServiceImpl<Integer, EmployeeDO>
@@ -56,7 +56,10 @@ public class EmployeeServiceImpl extends CorePersistenceServiceImpl<Integer, Emp
   private EmployeeDao employeeDao;
 
   @Autowired
-  private TimeableService<Integer, EmployeeTimedDO> timeableEmployeeService;
+  private AttrSchemaService attrSchemaService;
+
+  @Autowired
+  private TimeableService timeableService;
 
   @Override
   public ModificationStatus update(EmployeeDO obj) throws AccessException
@@ -211,8 +214,7 @@ public class EmployeeServiceImpl extends CorePersistenceServiceImpl<Integer, Emp
   @Override
   public BigDecimal getMonthlySalary(EmployeeDO employee, Calendar selectedDate)
   {
-    final EmployeeTimedDO attribute = timeableEmployeeService.getAttrRowForSameMonth(employee, "annuity",
-        selectedDate.getTime());
+    final EmployeeTimedDO attribute = timeableService.getAttrRowForSameMonth(employee, "annuity", selectedDate.getTime());
     final BigDecimal annualSalary = attribute != null ? attribute.getAttribute("annuity", BigDecimal.class) : null;
     final BigDecimal weeklyWorkingHours = employee.getWeeklyWorkingHours();
 

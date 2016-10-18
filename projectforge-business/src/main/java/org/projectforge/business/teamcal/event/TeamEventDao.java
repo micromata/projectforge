@@ -33,6 +33,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.TimeZone;
 
+import javax.persistence.NoResultException;
+
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
@@ -130,13 +132,11 @@ public class TeamEventDao extends BaseDao<TeamEventDO>
     if (uid == null) {
       return null;
     }
-    TeamEventDO result = null;
-    result = emgrFac.runRoTrans(
-        emgr -> {
-          return emgr.selectSingleAttached(TeamEventDO.class, "select e from TeamEventDO e where e.uid = :uid", "uid",
-              uid);
-        });
-    return result;
+    try {
+      return emgrFac.runRoTrans(emgr -> emgr.selectSingleAttached(TeamEventDO.class, "select e from TeamEventDO e where e.uid = :uid", "uid", uid));
+    } catch (NoResultException e) {
+      return null;
+    }
   }
 
   /**
@@ -173,8 +173,8 @@ public class TeamEventDao extends BaseDao<TeamEventDO>
    * @param filter
    * @param calculateRecurrenceEvents If true, recurrence events inside the given time-period are calculated.
    * @return list of team events (same as {@link #getList(BaseSearchFilter)} but with all calculated and matching
-   *         recurrence events (if calculateRecurrenceEvents is true). Origin events are of type {@link TeamEventDO},
-   *         calculated events of type {@link TeamEvent}.
+   * recurrence events (if calculateRecurrenceEvents is true). Origin events are of type {@link TeamEventDO},
+   * calculated events of type {@link TeamEvent}.
    */
   public List<TeamEvent> getEventList(final TeamEventFilter filter, final boolean calculateRecurrenceEvents)
   {
@@ -479,7 +479,7 @@ public class TeamEventDao extends BaseDao<TeamEventDO>
    * Returns also true, if idSet contains the id of any attendee.
    *
    * @see org.projectforge.framework.persistence.api.BaseDao#contains(java.util.Set,
-   *      org.projectforge.core.ExtendedBaseDO)
+   * org.projectforge.core.ExtendedBaseDO)
    */
   @Override
   protected boolean contains(final Set<Integer> idSet, final TeamEventDO entry)

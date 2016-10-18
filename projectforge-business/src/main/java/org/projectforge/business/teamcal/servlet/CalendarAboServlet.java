@@ -81,9 +81,8 @@ import net.fortuna.ical4j.model.property.Version;
 /**
  * Feed Servlet, which generates a 'text/calendar' output of the last four mounts. Currently relevant informations are
  * date, start- and stop time and last but not least the location of an event.
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
  */
 @WebServlet("/export/ProjectForge.ics")
 public class CalendarAboServlet extends HttpServlet
@@ -136,8 +135,8 @@ public class CalendarAboServlet extends HttpServlet
     PFUserDO user = null;
     String logMessage = null;
     try {
-      MDC.put("ip", req.getRemoteAddr());
-      MDC.put("session", req.getSession().getId());
+      MDC.put("ip", (Object) req.getRemoteAddr());
+      MDC.put("session", (Object) req.getSession().getId());
       if (StringUtils.isBlank(req.getParameter("user")) || StringUtils.isBlank(req.getParameter("q"))) {
         resp.sendError(HttpStatus.SC_BAD_REQUEST);
         log.error("Bad request, parameters user and q not given. Query string is: " + req.getQueryString());
@@ -155,7 +154,7 @@ public class CalendarAboServlet extends HttpServlet
         return;
       }
       ThreadLocalUserContext.setUser(getUserGroupCache(), user);
-      MDC.put("user", user.getUsername());
+      MDC.put("user", (Object) user.getUsername());
       final String decryptedParams = userService.decrypt(userId, encryptedParams);
       if (decryptedParams == null) {
         log.error("Bad request, can't decrypt parameter q (may-be the user's authentication token was changed): "
@@ -203,9 +202,8 @@ public class CalendarAboServlet extends HttpServlet
 
   /**
    * creates a calendar for the user, identified by his name and authentication key.
-   * 
+   *
    * @param params
-   * 
    * @param userName
    * @param userKey
    * @return a calendar, null if authentication fails
@@ -254,7 +252,7 @@ public class CalendarAboServlet extends HttpServlet
 
   /**
    * builds the list of events
-   * 
+   *
    * @return
    */
   private List<VEvent> getEvents(final Map<String, String> params, PFUserDO timesheetUser)
@@ -333,9 +331,9 @@ public class CalendarAboServlet extends HttpServlet
       int paranoiaCounter = 0;
       do {
         final VEvent vEvent = ICal4JUtils.createVEvent(current.getDate(), current.getDate(), "pf-weekOfYear"
-            + current.getYear()
-            + "-"
-            + paranoiaCounter,
+                + current.getYear()
+                + "-"
+                + paranoiaCounter,
             ThreadLocalUserContext.getLocalizedString("calendar.weekOfYearShortLabel") + " " + current.getWeekOfYear(),
             true);
         events.add(vEvent);
@@ -373,7 +371,7 @@ public class CalendarAboServlet extends HttpServlet
    * sets the calendar to a special date. Used to calculate the year offset of an negative time period. When the time
    * period is set to 4 month and the current month is at the begin of a year, the year-number must be decremented by
    * one
-   * 
+   *
    * @param cal
    * @param year
    * @param mounth
