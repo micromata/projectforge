@@ -24,17 +24,24 @@
 package org.projectforge.framework.persistence.attr.impl;
 
 import java.io.Serializable;
+import java.util.Date;
+import java.util.Optional;
 import java.util.function.Function;
 
 import org.apache.wicket.AttributeModifier;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
+import org.apache.wicket.model.ResourceModel;
 import org.projectforge.web.common.timeattr.AttrWicketComponentFactory;
 import org.projectforge.web.common.timeattr.AttributePanel;
+import org.projectforge.web.common.timeattr.DropDownAttrWicketComponentFactory;
 import org.projectforge.web.common.timeattr.TimedAttributePanel;
 import org.projectforge.web.wicket.AbstractEditPage;
 import org.projectforge.web.wicket.bootstrap.GridBuilder;
 import org.projectforge.web.wicket.components.TabPanel;
 import org.projectforge.web.wicket.flowlayout.ComponentWrapperPanel;
 import org.projectforge.web.wicket.flowlayout.DivPanel;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import de.micromata.genome.db.jpa.tabattr.api.AttrDescription;
 import de.micromata.genome.db.jpa.tabattr.api.AttrGroup;
@@ -43,6 +50,7 @@ import de.micromata.genome.db.jpa.tabattr.api.EntityWithAttributes;
 import de.micromata.genome.db.jpa.tabattr.api.EntityWithConfigurableAttr;
 import de.micromata.genome.db.jpa.tabattr.api.EntityWithTimeableAttr;
 import de.micromata.genome.db.jpa.tabattr.api.TimeableAttrRow;
+import de.micromata.genome.db.jpa.tabattr.api.TimeableService;
 
 /**
  * Interface to handle with Attrs.
@@ -52,6 +60,9 @@ import de.micromata.genome.db.jpa.tabattr.api.TimeableAttrRow;
 public class GuiAttrSchemaServiceImpl extends AttrSchemaServiceSpringBeanImpl implements GuiAttrSchemaService
 {
   private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(TimedAttributePanel.class);
+
+  @Autowired
+  private TimeableService timeableService;
 
   @Override
   public ComponentWrapperPanel createWicketComponent(final String id, final AttrGroup group, final AttrDescription desc,
@@ -69,6 +80,27 @@ public class GuiAttrSchemaServiceImpl extends AttrSchemaServiceSpringBeanImpl im
     }
 
     return factory.createComponents(id, group, desc, entity);
+  }
+
+  public <PK extends Serializable, T extends TimeableAttrRow<PK>, U extends EntityWithTimeableAttr<PK, T> & EntityWithConfigurableAttr>
+  Optional<IModel<String>> getStringAttribute(final U entity, final Date date, final String groupName, final String descName)
+  {
+    final T attrRowForCurrentDate = timeableService.getAttrRowValidAtDate(entity, groupName, date);
+    if (attrRowForCurrentDate == null) {
+      return Optional.empty();
+    }
+
+    final String attribute = attrRowForCurrentDate.getStringAttribute(descName);
+    if (attribute == null) {
+      return Optional.empty();
+    }
+
+    final AttrDescription attrDescription = getAttrDescription(entity, groupName, descName);
+    final IModel<String> valueModel = (attrDescription.getWicketComponentFactoryClass() instanceof DropDownAttrWicketComponentFactory) ?
+        new ResourceModel(attribute) : // DropDownAttrWicketComponentFactory -> it's a list of i18nkeys, so we need a ResourceModel for the translation
+        new Model<>(attribute);
+
+    return Optional.of(valueModel);
   }
 
   @Override

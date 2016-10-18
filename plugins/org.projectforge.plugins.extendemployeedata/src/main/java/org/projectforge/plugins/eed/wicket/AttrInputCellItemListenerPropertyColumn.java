@@ -53,7 +53,7 @@ public class AttrInputCellItemListenerPropertyColumn<T> extends PropertyColumn<T
 
   protected CellItemListener<T> cellItemListener;
 
-  private TimeableService<Integer, EmployeeTimedDO> timeableService;
+  private TimeableService timeableService;
 
   private GuiAttrSchemaService guiAttrSchemaService;
 
@@ -73,7 +73,7 @@ public class AttrInputCellItemListenerPropertyColumn<T> extends PropertyColumn<T
    */
   public AttrInputCellItemListenerPropertyColumn(final IModel<String> displayModel, final String sortProperty,
       final String propertyExpression, final String groupAttribute,
-      final CellItemListener<T> cellItemListener, TimeableService<Integer, EmployeeTimedDO> timeableService,
+      final CellItemListener<T> cellItemListener, TimeableService timeableService,
       EmployeeService employeeService, GuiAttrSchemaService guiAttrSchemaService, Integer selectedMonth,
       Integer selectedYear)
   {
@@ -108,15 +108,14 @@ public class AttrInputCellItemListenerPropertyColumn<T> extends PropertyColumn<T
   public void populateItem(final Item<ICellPopulator<T>> item, final String componentId, final IModel<T> rowModel)
   {
     final EmployeeDO employee = (EmployeeDO) rowModel.getObject();
-    Calendar cal = new GregorianCalendar(selectedYear, selectedMonth - 1, 1, 0, 0);
+    final Calendar cal = new GregorianCalendar(selectedYear, selectedMonth - 1, 1, 0, 0);
     EmployeeTimedDO row = timeableService.getAttrRowForSameMonth(employee, getPropertyExpression(), cal.getTime());
     if (row == null) {
       row = employeeService.addNewTimeAttributeRow(employee, getPropertyExpression());
       row.setStartTime(cal.getTime());
     }
-    AttrGroup attrGroup = guiAttrSchemaService.getAttrGroup(employee, getPropertyExpression());
-    AttrDescription attrDescription = attrGroup.getDescriptions().stream()
-        .filter(attrDesc -> attrDesc.getPropertyName().equals(groupAttribute)).findFirst().orElse(null);
+    final AttrGroup attrGroup = guiAttrSchemaService.getAttrGroup(employee, getPropertyExpression());
+    final AttrDescription attrDescription = guiAttrSchemaService.getAttrDescription(attrGroup, groupAttribute);
     item.add((Component) guiAttrSchemaService.createWicketComponent(componentId, attrGroup, attrDescription, row));
     if (cellItemListener != null) {
       cellItemListener.populateItem(item, componentId, rowModel);
