@@ -113,6 +113,11 @@ public class DatabaseCoreUpdates
       public UpdatePreCheckStatus runPreCheck()
       {
         log.info("Running pre-check for ProjectForge version 6.4.0");
+        // ensure that the tenant exists, otherwise the following statements will fail with an SQL exception
+        if (!databaseUpdateService.doTablesExist(TenantDO.class)) {
+          return UpdatePreCheckStatus.READY_FOR_UPDATE;
+        }
+
         final EmployeeDao employeeDao = applicationContext.getBean(EmployeeDao.class);
         final boolean anyEmployeeWithAnOldStatusExists = databaseUpdateService.doTablesExist(EmployeeDO.class) &&
             employeeDao
