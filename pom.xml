@@ -205,8 +205,6 @@
 
     <hibernate.version>5.0.5.Final</hibernate.version>
     <mgc.version>2.5.1</mgc.version>
-    <postgresql.version>9.4-1206-jdbc42</postgresql.version>
-    <hsqldb.version>1.8.0.10</hsqldb.version>
 
     <spring.version>4.2.3.RELEASE</spring.version>
     <commons-lang.version>2.6</commons-lang.version>
@@ -312,7 +310,7 @@
       <version>${postgresql.version}</version>
     </dependency>
     <dependency>
-      <groupId>hsqldb</groupId>
+      <groupId>org.hsqldb</groupId>
       <artifactId>hsqldb</artifactId>
       <version>${hsqldb.version}</version>
     </dependency>
