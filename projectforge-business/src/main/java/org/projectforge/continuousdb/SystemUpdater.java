@@ -36,7 +36,7 @@ import org.projectforge.framework.persistence.user.api.UserContext;
 
 /**
  * Checks whether the database is up-to-date or not.
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 public class SystemUpdater
@@ -63,7 +63,7 @@ public class SystemUpdater
 
   /**
    * Only for test case (avoids reading of the update-scripts.xml).
-   * 
+   *
    * @param updateEntries
    */
   void testRegister(final UpdateEntry updateEntry)
@@ -84,7 +84,7 @@ public class SystemUpdater
 
   /**
    * Runs the pre-check test of the first update entry in the list.
-   * 
+   *
    * @return true if ALREADY_UPDATED, otherwise false.
    */
   public boolean isUpdated()
@@ -97,7 +97,7 @@ public class SystemUpdater
         continue;
       }
       checkedRegions.add(updateEntry.getRegionId());
-      updateEntry.setPreCheckStatus(updateEntry.runPreCheck());
+      updateEntry.setPreCheckStatus(updateEntry.runPreCheckSafely());
       if (updateEntry.getPreCheckStatus() != UpdatePreCheckStatus.ALREADY_UPDATED) {
         log.warn(
             "*** Please note: The database perhaps has to be updated first before running the ProjectForge web app. Please login as administrator. Status '"
@@ -125,7 +125,7 @@ public class SystemUpdater
   public void runAllPreChecks()
   {
     for (final UpdateEntry updateEntry : getUpdateEntries()) {
-      updateEntry.setPreCheckStatus(updateEntry.runPreCheck());
+      updateEntry.setPreCheckStatus(updateEntry.runPreCheckSafely());
     }
   }
 
@@ -144,7 +144,7 @@ public class SystemUpdater
 
   /**
    * Runs the update method of the given update entry.
-   * 
+   *
    * @param updateScript
    */
   public void update(final UpdateEntry updateEntry)
@@ -156,7 +156,7 @@ public class SystemUpdater
         ThreadLocalUserContext.setUserContext(uc);
         updateEntry.setRunningStatus(updateEntry.runUpdate());
         //getDatabaseUpdateDao().writeUpdateEntryLog(updateEntry);
-        updateEntry.setPreCheckStatus(updateEntry.runPreCheck());
+        updateEntry.setPreCheckStatus(updateEntry.runPreCheckSafely());
         runAllPreChecks();
       } catch (Error e) {
         log.error("Error while updating entry: " + updateEntry.getVersion(), e);
