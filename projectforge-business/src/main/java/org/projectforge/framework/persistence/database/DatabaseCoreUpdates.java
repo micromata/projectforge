@@ -153,175 +153,169 @@ public class DatabaseCoreUpdates
     ////////////////////////////////////////////////////////////////////
     // 6.4.0
     // /////////////////////////////////////////////////////////////////
-    list.add(new
+    list.add(new UpdateEntryImpl(CORE_REGION_ID, "6.4.0", "2016-10-12",
+        "Move employee status to new timeable attribute.")
+    {
+      @Override
+      public UpdatePreCheckStatus runPreCheck()
+      {
+        log.info("Running pre-check for ProjectForge version 6.4.0");
+        final EmployeeDao employeeDao = applicationContext.getBean(EmployeeDao.class);
+        final boolean anyEmployeeWithAnOldStatusExists = databaseUpdateService.doTablesExist(EmployeeDO.class) &&
+            employeeDao
+                .internalLoadAll()
+                .stream()
+                .filter(e -> !e.isDeleted())
+                .anyMatch(e -> e.getStatus() != null);
 
-                 UpdateEntryImpl(CORE_REGION_ID, "6.4.0", "2016-10-12",
-                     "Move employee status to new timeable attribute.")
-                 {
-                   @Override
-                   public UpdatePreCheckStatus runPreCheck()
-                   {
-                     log.info("Running pre-check for ProjectForge version 6.4.0");
-                     final EmployeeDao employeeDao = applicationContext.getBean(EmployeeDao.class);
-                     final boolean anyEmployeeWithAnOldStatusExists = databaseUpdateService.doTablesExist(EmployeeDO.class) &&
-                         employeeDao
-                             .internalLoadAll()
-                             .stream()
-                             .filter(e -> !e.isDeleted())
-                             .anyMatch(e -> e.getStatus() != null);
+        final int employeeStatusGroupEntriesCount = databaseUpdateService
+            .countTimeableAttrGroupEntries(EmployeeTimedDO.class, InternalAttrSchemaConstants.EMPLOYEE_STATUS_GROUP_NAME);
 
-                     final int employeeStatusGroupEntriesCount = databaseUpdateService
-                         .countTimeableAttrGroupEntries(EmployeeTimedDO.class, InternalAttrSchemaConstants.EMPLOYEE_STATUS_GROUP_NAME);
+        if (anyEmployeeWithAnOldStatusExists && employeeStatusGroupEntriesCount <= 0) {
+          return UpdatePreCheckStatus.READY_FOR_UPDATE;
+        } else {
+          return UpdatePreCheckStatus.ALREADY_UPDATED;
+        }
+      }
 
-                     if (anyEmployeeWithAnOldStatusExists && employeeStatusGroupEntriesCount <= 0) {
-                       return UpdatePreCheckStatus.READY_FOR_UPDATE;
-                     } else {
-                       return UpdatePreCheckStatus.ALREADY_UPDATED;
-                     }
-                   }
+      @Override
+      public UpdateRunningStatus runUpdate()
+      {
+        migrateEmployeeStatusToAttr();
 
-                   @Override
-                   public UpdateRunningStatus runUpdate()
-                   {
-                     migrateEmployeeStatusToAttr();
+        return UpdateRunningStatus.DONE;
+      }
 
-                     return UpdateRunningStatus.DONE;
-                   }
-
-                 });
+    });
 
     ////////////////////////////////////////////////////////////////////
     // 6.3.0
     // /////////////////////////////////////////////////////////////////
-    list.add(new
+    list.add(new UpdateEntryImpl(CORE_REGION_ID, "6.3.0", "2016-08-31",
+        "Add column to attendee data table. Alter table column for ssh-key. Add HR group.")
+    {
+      @Override
+      public UpdatePreCheckStatus runPreCheck()
+      {
+        log.info("Running pre-check for ProjectForge version 6.3.0");
+        if (databaseUpdateService.doesTableAttributeExist("T_PLUGIN_CALENDAR_EVENT_ATTENDEE", "address_id") == false) {
+          return UpdatePreCheckStatus.READY_FOR_UPDATE;
+        } else if (databaseUpdateService.getDatabaseTableColumnLenght(PFUserDO.class, "ssh_public_key") < 4096) {
+          return UpdatePreCheckStatus.READY_FOR_UPDATE;
+        } else if (databaseUpdateService.doesGroupExists(ProjectForgeGroup.HR_GROUP) == false) {
+          return UpdatePreCheckStatus.READY_FOR_UPDATE;
+        } else if (databaseUpdateService.doesTableAttributeExist("T_PLUGIN_CALENDAR_EVENT", "uid") == false) {
+          return UpdatePreCheckStatus.READY_FOR_UPDATE;
+        } else {
+          return UpdatePreCheckStatus.ALREADY_UPDATED;
+        }
+      }
 
-                 UpdateEntryImpl(CORE_REGION_ID, "6.3.0", "2016-08-31",
-                     "Add column to attendee data table. Alter table column for ssh-key. Add HR group.")
-                 {
-                   @Override
-                   public UpdatePreCheckStatus runPreCheck()
-                   {
-                     log.info("Running pre-check for ProjectForge version 6.3.0");
-                     if (databaseUpdateService.doesTableAttributeExist("T_PLUGIN_CALENDAR_EVENT_ATTENDEE", "address_id") == false) {
-                       return UpdatePreCheckStatus.READY_FOR_UPDATE;
-                     } else if (databaseUpdateService.getDatabaseTableColumnLenght(PFUserDO.class, "ssh_public_key") < 4096) {
-                       return UpdatePreCheckStatus.READY_FOR_UPDATE;
-                     } else if (databaseUpdateService.doesGroupExists(ProjectForgeGroup.HR_GROUP) == false) {
-                       return UpdatePreCheckStatus.READY_FOR_UPDATE;
-                     } else if (databaseUpdateService.doesTableAttributeExist("T_PLUGIN_CALENDAR_EVENT", "uid") == false) {
-                       return UpdatePreCheckStatus.READY_FOR_UPDATE;
-                     } else {
-                       return UpdatePreCheckStatus.ALREADY_UPDATED;
-                     }
-                   }
+      @Override
+      public UpdateRunningStatus runUpdate()
+      {
+        if (databaseUpdateService.doesTableAttributeExist("T_PLUGIN_CALENDAR_EVENT_ATTENDEE", "address_id") == false
+            || databaseUpdateService.doesTableAttributeExist("T_PLUGIN_CALENDAR_EVENT", "uid") == false) {
+          //Updating the schema
+          initDatabaseDao.updateSchema();
+        }
 
-                   @Override
-                   public UpdateRunningStatus runUpdate()
-                   {
-                     if (databaseUpdateService.doesTableAttributeExist("T_PLUGIN_CALENDAR_EVENT_ATTENDEE", "address_id") == false
-                         || databaseUpdateService.doesTableAttributeExist("T_PLUGIN_CALENDAR_EVENT", "uid") == false) {
-                       //Updating the schema
-                       initDatabaseDao.updateSchema();
-                     }
+        if (databaseUpdateService.getDatabaseTableColumnLenght(PFUserDO.class, "ssh_public_key") < 4096) {
+          final Table userTable = new Table(PFUserDO.class);
+          databaseUpdateService.alterTableColumnVarCharLength(userTable.getName(), "ssh_public_key", 4096);
+        }
 
-                     if (databaseUpdateService.getDatabaseTableColumnLenght(PFUserDO.class, "ssh_public_key") < 4096) {
-                       final Table userTable = new Table(PFUserDO.class);
-                       databaseUpdateService.alterTableColumnVarCharLength(userTable.getName(), "ssh_public_key", 4096);
-                     }
+        if (databaseUpdateService.doesGroupExists(ProjectForgeGroup.HR_GROUP) == false) {
+          emf.runInTrans(emgr -> {
+            GroupDO hrGroup = new GroupDO();
+            hrGroup.setName("PF_HR");
+            hrGroup.setDescription("Users for having full access to the companies hr.");
+            hrGroup.setCreated();
+            hrGroup.setTenant(applicationContext.getBean(TenantService.class).getDefaultTenant());
 
-                     if (databaseUpdateService.doesGroupExists(ProjectForgeGroup.HR_GROUP) == false) {
-                       emf.runInTrans(emgr -> {
-                         GroupDO hrGroup = new GroupDO();
-                         hrGroup.setName("PF_HR");
-                         hrGroup.setDescription("Users for having full access to the companies hr.");
-                         hrGroup.setCreated();
-                         hrGroup.setTenant(applicationContext.getBean(TenantService.class).getDefaultTenant());
+            final Set<PFUserDO> usersToAddToHrGroup = new HashSet<>();
 
-                         final Set<PFUserDO> usersToAddToHrGroup = new HashSet<>();
+            final List<UserRightDO> employeeRights = emgr.selectAttached(UserRightDO.class,
+                "SELECT r FROM UserRightDO r WHERE r.rightIdString = :rightId",
+                "rightId",
+                "FIBU_EMPLOYEE");
+            employeeRights.forEach(sr -> {
+              sr.setRightIdString("HR_EMPLOYEE");
+              usersToAddToHrGroup.add(sr.getUser());
+              emgr.update(sr);
+            });
 
-                         final List<UserRightDO> employeeRights = emgr.selectAttached(UserRightDO.class,
-                             "SELECT r FROM UserRightDO r WHERE r.rightIdString = :rightId",
-                             "rightId",
-                             "FIBU_EMPLOYEE");
-                         employeeRights.forEach(sr -> {
-                           sr.setRightIdString("HR_EMPLOYEE");
-                           usersToAddToHrGroup.add(sr.getUser());
-                           emgr.update(sr);
-                         });
+            final List<UserRightDO> salaryRights = emgr.selectAttached(UserRightDO.class,
+                "SELECT r FROM UserRightDO r WHERE r.rightIdString = :rightId",
+                "rightId",
+                "FIBU_EMPLOYEE_SALARY");
+            salaryRights.forEach(sr -> {
+              sr.setRightIdString("HR_EMPLOYEE_SALARY");
+              usersToAddToHrGroup.add(sr.getUser());
+              emgr.update(sr);
+            });
 
-                         final List<UserRightDO> salaryRights = emgr.selectAttached(UserRightDO.class,
-                             "SELECT r FROM UserRightDO r WHERE r.rightIdString = :rightId",
-                             "rightId",
-                             "FIBU_EMPLOYEE_SALARY");
-                         salaryRights.forEach(sr -> {
-                           sr.setRightIdString("HR_EMPLOYEE_SALARY");
-                           usersToAddToHrGroup.add(sr.getUser());
-                           emgr.update(sr);
-                         });
+            usersToAddToHrGroup.forEach(hrGroup::addUser);
 
-                         usersToAddToHrGroup.forEach(hrGroup::addUser);
+            emgr.insert(hrGroup);
+            return hrGroup;
+          });
+        }
 
-                         emgr.insert(hrGroup);
-                         return hrGroup;
-                       });
-                     }
+        return UpdateRunningStatus.DONE;
+      }
 
-                     return UpdateRunningStatus.DONE;
-                   }
-
-                 });
+    });
 
     ////////////////////////////////////////////////////////////////////
     // 6.1.1
     // /////////////////////////////////////////////////////////////////
-    list.add(new
+    list.add(new UpdateEntryImpl(CORE_REGION_ID, "6.1.1", "2016-07-27",
+        "Changed timezone of starttime of the configurable attributes. Add uid to attendee.")
+    {
+      @Override
+      public UpdatePreCheckStatus runPreCheck()
+      {
+        log.info("Running pre-check for ProjectForge version 6.1.1");
+        if (databaseUpdateService.doTablesExist(EmployeeTimedDO.class) == false) {
+          return UpdatePreCheckStatus.READY_FOR_UPDATE;
+        }
 
-                 UpdateEntryImpl(CORE_REGION_ID, "6.1.1", "2016-07-27",
-                     "Changed timezone of starttime of the configurable attributes. Add uid to attendee.")
-                 {
-                   @Override
-                   public UpdatePreCheckStatus runPreCheck()
-                   {
-                     log.info("Running pre-check for ProjectForge version 6.1.1");
-                     if (databaseUpdateService.doTablesExist(EmployeeTimedDO.class) == false) {
-                       return UpdatePreCheckStatus.READY_FOR_UPDATE;
-                     }
+        if (databaseUpdateService.isTableEmpty(EmployeeTimedDO.class)) {
+          return UpdatePreCheckStatus.ALREADY_UPDATED;
+        }
 
-                     if (databaseUpdateService.isTableEmpty(EmployeeTimedDO.class)) {
-                       return UpdatePreCheckStatus.ALREADY_UPDATED;
-                     }
+        final boolean timeFieldsOfAllEmployeeTimedDOsStartTimeAreZero = emf
+            .runWoTrans(emgr -> emgr.selectAllAttached(EmployeeTimedDO.class)
+                .stream()
+                .map(EmployeeTimedDO::getStartTime)
+                .map(DateHelper::convertDateToLocalDateTimeInUTC)
+                .map(localDateTime -> localDateTime.get(ChronoField.SECOND_OF_DAY))
+                .allMatch(seconds -> seconds == 0));
 
-                     final boolean timeFieldsOfAllEmployeeTimedDOsStartTimeAreZero = emf
-                         .runWoTrans(emgr -> emgr.selectAllAttached(EmployeeTimedDO.class)
-                             .stream()
-                             .map(EmployeeTimedDO::getStartTime)
-                             .map(DateHelper::convertDateToLocalDateTimeInUTC)
-                             .map(localDateTime -> localDateTime.get(ChronoField.SECOND_OF_DAY))
-                             .allMatch(seconds -> seconds == 0));
+        return timeFieldsOfAllEmployeeTimedDOsStartTimeAreZero ? UpdatePreCheckStatus.ALREADY_UPDATED
+            : UpdatePreCheckStatus.READY_FOR_UPDATE;
+      }
 
-                     return timeFieldsOfAllEmployeeTimedDOsStartTimeAreZero ? UpdatePreCheckStatus.ALREADY_UPDATED
-                         : UpdatePreCheckStatus.READY_FOR_UPDATE;
-                   }
+      @Override
+      public UpdateRunningStatus runUpdate()
+      {
+        return emf.runInTrans(emgr -> {
+          emgr.selectAllAttached(EmployeeTimedDO.class)
+              .forEach(this::normalizeStartTime);
 
-                   @Override
-                   public UpdateRunningStatus runUpdate()
-                   {
-                     return emf.runInTrans(emgr -> {
-                       emgr.selectAllAttached(EmployeeTimedDO.class)
-                           .forEach(this::normalizeStartTime);
+          return UpdateRunningStatus.DONE;
+        });
+      }
 
-                       return UpdateRunningStatus.DONE;
-                     });
-                   }
+      private void normalizeStartTime(final TimeableRow entity)
+      {
+        final Date oldStartTime = entity.getStartTime();
+        final Date newStartTime = DateHelper.convertMidnightDateToUTC(oldStartTime);
+        entity.setStartTime(newStartTime);
+      }
 
-                   private void normalizeStartTime(final TimeableRow entity)
-                   {
-                     final Date oldStartTime = entity.getStartTime();
-                     final Date newStartTime = DateHelper.convertMidnightDateToUTC(oldStartTime);
-                     entity.setStartTime(newStartTime);
-                   }
-
-                 });
+    });
 
     ////////////////////////////////////////////////////////////////////
     // 6.1.0
