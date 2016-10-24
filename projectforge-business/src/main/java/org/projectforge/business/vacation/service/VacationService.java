@@ -12,16 +12,15 @@ import org.projectforge.framework.persistence.api.IPersistenceService;
 
 /**
  * Access to vacation.
- * 
- * @author Florian Blumenstein
  *
+ * @author Florian Blumenstein
  */
 public interface VacationService extends IPersistenceService<VacationDO>, IDao<VacationDO>
 {
 
   /**
    * Getting all vacations for given employee and a time period.
-   * 
+   *
    * @param employee
    * @param startDate
    * @param endDate
@@ -31,7 +30,7 @@ public interface VacationService extends IPersistenceService<VacationDO>, IDao<V
 
   /**
    * Getting all not deleted vacations for given employee of the current year.
-   * 
+   *
    * @param employee
    * @return List of vacations
    */
@@ -39,7 +38,7 @@ public interface VacationService extends IPersistenceService<VacationDO>, IDao<V
 
   /**
    * Getting vacation for given ids.
-   * 
+   *
    * @param idList
    * @return List of vacations
    */
@@ -47,7 +46,7 @@ public interface VacationService extends IPersistenceService<VacationDO>, IDao<V
 
   /**
    * Returns the number of available vacation
-   * 
+   *
    * @param employee
    * @return number of available vacation
    */
@@ -55,7 +54,7 @@ public interface VacationService extends IPersistenceService<VacationDO>, IDao<V
 
   /**
    * Returns the number of used vacation days
-   * 
+   *
    * @param employee
    * @return number of used vacation days
    */
@@ -63,18 +62,34 @@ public interface VacationService extends IPersistenceService<VacationDO>, IDao<V
 
   /**
    * Returns the number of planed vacation days
-   * 
-   * @param employee
+   *
+   * @param currentEmployee
    * @return number of used vacation days
    */
   BigDecimal getPlanedVacationdays(EmployeeDO currentEmployee);
 
   /**
    * Getting the number of used and planned vacation days
-   * 
+   *
    * @param employee
    * @return number of used vacation days
    */
   BigDecimal getUsedAndPlanedVacationdays(EmployeeDO employee);
+
+  /**
+   * Sends an information mail to the vacation data users involved
+   *
+   * @param vacationData data
+   * @param isNew        flag for new vacation request
+   */
+  void sendMailToVacationInvolved(VacationDO vacationData, boolean isNew);
+
+  /**
+   * Sends an information to employee and HR, that vacation request is approved.
+   *
+   * @param vacationData data
+   * @param approved     is application approved
+   */
+  void sendMailToEmployeeAndHR(VacationDO vacationData, boolean approved);
 
 }
