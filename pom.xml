@@ -247,7 +247,7 @@
     <xmlgraphics-commons.version>1.5</xmlgraphics-commons.version>
     <!-- HIBERNATE5 -->
     <ehcache-core.version>2.6.11</ehcache-core.version>
-    <postgresql.version>9.4-1206-jdbc42</postgresql.version>
+    <postgresql.version>9.4.1211</postgresql.version>
     <hsqldb.version>1.8.0.10</hsqldb.version>
     <jersey.version>1.19</jersey.version>
     <codehaus-jackson.version>1.9.13</codehaus-jackson.version>
