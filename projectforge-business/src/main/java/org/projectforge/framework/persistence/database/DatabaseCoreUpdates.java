@@ -352,14 +352,13 @@ public class DatabaseCoreUpdates
           }
           if (UserXmlPreferencesDO.class.isAssignableFrom(entityClass.getJavaType())) {
             try {
-              emf
-                  .runInTrans(emgr -> {
-                    log.info("Set tenant id for entities of type: " + UserXmlPreferencesDO.class.getClass());
-                    CriteriaUpdate<UserXmlPreferencesDO> cu = CriteriaUpdate.createUpdate(UserXmlPreferencesDO.class);
-                    cu.set("tenant", defaultTenant);
-                    emgr.update(cu);
-                    return null;
-                  });
+              emf.runInTrans(emgr -> {
+                log.info("Set tenant id for entities of type: " + UserXmlPreferencesDO.class.getClass());
+                CriteriaUpdate<UserXmlPreferencesDO> cu = CriteriaUpdate.createUpdate(UserXmlPreferencesDO.class);
+                cu.set("tenant", defaultTenant);
+                emgr.update(cu);
+                return null;
+              });
             } catch (Exception e) {
               log.error("Failed to update default tenant for user xml prefs.");
             }
