@@ -2,6 +2,7 @@ package org.projectforge.business.vacation.service;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
@@ -92,4 +93,10 @@ public interface VacationService extends IPersistenceService<VacationDO>, IDao<V
    */
   void sendMailToEmployeeAndHR(VacationDO vacationData, boolean approved);
 
+  /**
+   * Returns the date for ending usage of vacation from last year
+   *
+   * @return
+   */
+  Calendar getEndDateVacationFromLastYear();
 }
