@@ -8,6 +8,7 @@ import java.util.GregorianCalendar;
 import java.util.List;
 
 import org.projectforge.business.fibu.EmployeeDO;
+import org.projectforge.business.user.I18nHelper;
 import org.projectforge.business.vacation.model.VacationAttrProperty;
 import org.projectforge.business.vacation.model.VacationDO;
 import org.projectforge.business.vacation.repository.VacationDao;
@@ -17,14 +18,15 @@ import org.projectforge.framework.persistence.jpa.impl.CorePersistenceServiceImp
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.time.DayHolder;
+import org.projectforge.mail.Mail;
+import org.projectforge.mail.SendMail;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 /**
  * Standard implementation of the vacation service interface.
- * 
- * @author Florian Blumenstein
  *
+ * @author Florian Blumenstein
  */
 @Service
 public class VacationServiceImpl extends CorePersistenceServiceImpl<Integer, VacationDO>
@@ -33,12 +35,63 @@ public class VacationServiceImpl extends CorePersistenceServiceImpl<Integer, Vac
   @Autowired
   private VacationDao vacationDao;
 
+  @Autowired
+  private SendMail sendMailService;
+
   @Override
   public BigDecimal getUsedAndPlanedVacationdays(EmployeeDO employee)
   {
     BigDecimal usedVacationdays = getUsedVacationdays(employee);
     BigDecimal planedVacationdays = getPlanedVacationdays(employee);
     return usedVacationdays.add(planedVacationdays);
+  }
+
+  @Override
+  public void sendMailToVacationInvolved(VacationDO vacationData, boolean isNew)
+  {
+    if (isNew) {
+      //Send mail to manager (employee in copy)
+      Mail mail = new Mail();
+      mail.setContent(I18nHelper.getLocalizedMessage("vacation.mail.pm.application", vacationData.getManager().getUser().getFirstname(),
+          vacationData.getEmployee().getUser().getFullname(), vacationData.getStartDate().toString(), vacationData.getEndDate().toString()));
+      sendMailService.send(mail, null, null);
+      mail.setTo(vacationData.getManager().getUser());
+      mail.setTo(vacationData.getEmployee().getUser());
+
+      //Send mail to substitution (employee in copy)
+      mail = new Mail();
+      mail.setContent(I18nHelper.getLocalizedMessage("vacation.mail.sub.application", vacationData.getSubstitution().getUser().getFirstname(),
+          vacationData.getEmployee().getUser().getFullname(), vacationData.getStartDate().toString(), vacationData.getEndDate().toString(),
+          vacationData.getManager().getUser().getFullname()));
+      mail.setTo(vacationData.getSubstitution().getUser());
+      mail.setTo(vacationData.getEmployee().getUser());
+      sendMailService.send(mail, null, null);
+    }
+  }
+
+  @Override
+  public void sendMailToEmployeeAndHR(VacationDO vacationData, boolean approved)
+  {
+    Mail mail = new Mail();
+    if (approved) {
+      //Send mail to HR (employee in copy)
+      mail.setContent(I18nHelper.getLocalizedMessage("vacation.mail.hr.approved", vacationData.getEmployee().getUser().getFullname(),
+          vacationData.getStartDate().toString(), vacationData.getEndDate().toString(), vacationData.getSubstitution().getUser().getFullname(),
+          vacationData.getManager().getUser().getFullname()));
+      sendMailService.send(mail, null, null);
+      mail.setTo(vacationData.getManager().getUser());
+      mail.setTo(vacationData.getEmployee().getUser());
+    }
+
+    //Send mail to substitution (employee in copy)
+    String decision = approved ? "approved" : "declined";
+    mail = new Mail();
+    mail.setContent(I18nHelper.getLocalizedMessage("vacation.mail.employee." + decision, vacationData.getEmployee().getUser().getFirstname(),
+        vacationData.getSubstitution().getUser().getFirstname(),
+        vacationData.getStartDate().toString(), vacationData.getEndDate().toString()));
+    mail.setTo(vacationData.getSubstitution().getUser());
+    mail.setTo(vacationData.getEmployee().getUser());
+    sendMailService.send(mail, null, null);
   }
 
   @Override
@@ -81,12 +134,12 @@ public class VacationServiceImpl extends CorePersistenceServiceImpl<Integer, Vac
     BigDecimal vacationDays = new BigDecimal(employee.getUrlaubstage());
     BigDecimal vacationFromPreviousYear = employee
         .getAttribute(VacationAttrProperty.PREVIOUSYEARLEAVE.getPropertyName(), BigDecimal.class) != null
-            ? employee.getAttribute(VacationAttrProperty.PREVIOUSYEARLEAVE.getPropertyName(), BigDecimal.class)
-            : BigDecimal.ZERO;
+        ? employee.getAttribute(VacationAttrProperty.PREVIOUSYEARLEAVE.getPropertyName(), BigDecimal.class)
+        : BigDecimal.ZERO;
     BigDecimal vacationFromPreviousYearUsed = employee
         .getAttribute(VacationAttrProperty.PREVIOUSYEARLEAVEUSED.getPropertyName(), BigDecimal.class) != null
-            ? employee.getAttribute(VacationAttrProperty.PREVIOUSYEARLEAVEUSED.getPropertyName(), BigDecimal.class)
-            : BigDecimal.ZERO;
+        ? employee.getAttribute(VacationAttrProperty.PREVIOUSYEARLEAVEUSED.getPropertyName(), BigDecimal.class)
+        : BigDecimal.ZERO;
     BigDecimal usedVacation = getUsedVacationdays(employee);
     BigDecimal planedVacation = getPlanedVacationdays(employee);
     Calendar endOfMarch = new GregorianCalendar(ThreadLocalUserContext.getTimeZone());

@@ -28,10 +28,12 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.fibu.api.EmployeeService;
 import org.projectforge.business.vacation.model.VacationDO;
+import org.projectforge.business.vacation.model.VacationStatus;
 import org.projectforge.business.vacation.service.VacationService;
 import org.projectforge.framework.access.AccessException;
 import org.projectforge.web.fibu.ISelectCallerPage;
 import org.projectforge.web.wicket.AbstractEditPage;
+import org.projectforge.web.wicket.AbstractSecuredBasePage;
 import org.projectforge.web.wicket.EditPage;
 
 @EditPage(defaultReturnPage = VacationListPage.class)
@@ -107,6 +109,20 @@ public class VacationEditPage extends AbstractEditPage<VacationDO, VacationEditF
   protected Logger getLogger()
   {
     return log;
+  }
+
+  @Override
+  public AbstractSecuredBasePage afterSaveOrUpdate()
+  {
+    if (isNew()) {
+      vacationService.sendMailToVacationInvolved(form.getData(), true);
+    }
+    if (form.getStatusBeforeModification() != null) {
+      if (form.getStatusBeforeModification().equals(VacationStatus.IN_PROGRESS) && VacationStatus.APPROVED.equals(form.getData().getStatus())) {
+        vacationService.sendMailToEmployeeAndHR(form.getData(), true);
+      }
+    }
+    return null;
   }
 
 }

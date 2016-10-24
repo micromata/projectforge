@@ -80,11 +80,16 @@ public class VacationEditForm extends AbstractEditForm<VacationDO, VacationEditP
 
   private Model<String> neededVacationDaysModel;
 
+  private VacationStatus statusBeforeModification;
+
   public VacationEditForm(final VacationEditPage parentPage, final VacationDO data)
   {
     super(parentPage, data);
     if (data.getEmployee() == null) {
       data.setEmployee(employeeService.getEmployeeByUserId(ThreadLocalUserContext.getUserId()));
+    }
+    if (isNew() == false) {
+      statusBeforeModification = data.getStatus();
     }
   }
 
@@ -216,6 +221,13 @@ public class VacationEditForm extends AbstractEditForm<VacationDO, VacationEditP
 
   private boolean hasUserEditStatusRight()
   {
+    if (checkWriteAccess()) {
+      if (data.getEmployee().getUser().getPk().equals(ThreadLocalUserContext.getUserId()) == true) {
+        return false;
+      } else {
+        return true;
+      }
+    }
     return false;
   }
 
@@ -229,7 +241,7 @@ public class VacationEditForm extends AbstractEditForm<VacationDO, VacationEditP
   {
     if (data.getEmployee().getUser().getPk().equals(ThreadLocalUserContext.getUserId()) == true
         || (data.getManager() != null
-            && data.getManager().getUser().getPk().equals(ThreadLocalUserContext.getUserId())) == true) {
+        && data.getManager().getUser().getPk().equals(ThreadLocalUserContext.getUserId())) == true) {
       return true;
     }
     if (accessChecker.hasLoggedInUserRight(UserRightId.HR_VACATION, false, UserRightValue.READWRITE)) {
@@ -242,7 +254,7 @@ public class VacationEditForm extends AbstractEditForm<VacationDO, VacationEditP
   {
     if (data.getEmployee().getUser().getPk().equals(ThreadLocalUserContext.getUserId()) == true
         || (data.getManager() != null
-            && data.getManager().getUser().getPk().equals(ThreadLocalUserContext.getUserId())) == true) {
+        && data.getManager().getUser().getPk().equals(ThreadLocalUserContext.getUserId())) == true) {
       return true;
     }
     if (accessChecker.hasLoggedInUserRight(UserRightId.HR_VACATION, false, UserRightValue.READONLY,
@@ -250,6 +262,11 @@ public class VacationEditForm extends AbstractEditForm<VacationDO, VacationEditP
       return true;
     }
     return false;
+  }
+
+  public VacationStatus getStatusBeforeModification()
+  {
+    return statusBeforeModification;
   }
 
 }
