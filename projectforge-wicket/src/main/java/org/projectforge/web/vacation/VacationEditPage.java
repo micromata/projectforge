@@ -50,6 +50,8 @@ public class VacationEditPage extends AbstractEditPage<VacationDO, VacationEditF
   @SpringBean
   private EmployeeService employeeService;
 
+  private boolean wasNew = false;
+
   public VacationEditPage(final PageParameters parameters)
   {
     super(parameters, "vacation");
@@ -65,6 +67,9 @@ public class VacationEditPage extends AbstractEditPage<VacationDO, VacationEditF
     }
     if (form.getData().getEmployee().getUrlaubstage() == null) {
       throw new AccessException("access.exception.employeeHasNoVacationDays");
+    }
+    if (isNew()) {
+      wasNew = true;
     }
   }
 
@@ -112,10 +117,23 @@ public class VacationEditPage extends AbstractEditPage<VacationDO, VacationEditF
   }
 
   @Override
+  public AbstractSecuredBasePage onSaveOrUpdate()
+  {
+    if (isNew() == false && VacationStatus.REJECTED.equals(form.getStatusBeforeModification()) == false) {
+      form.getData().setStatus(VacationStatus.IN_PROGRESS);
+    }
+    return null;
+  }
+
+  @Override
   public AbstractSecuredBasePage afterSaveOrUpdate()
   {
-    if (isNew()) {
+    if (wasNew) {
       vacationService.sendMailToVacationInvolved(form.getData(), true);
+    } else {
+      if (VacationStatus.IN_PROGRESS.equals(form.getData().getStatus())) {
+        vacationService.sendMailToVacationInvolved(form.getData(), false);
+      }
     }
     if (form.getStatusBeforeModification() != null) {
       if (form.getStatusBeforeModification().equals(VacationStatus.IN_PROGRESS) && VacationStatus.APPROVED.equals(form.getData().getStatus())) {
