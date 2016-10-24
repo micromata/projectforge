@@ -53,24 +53,23 @@ public class VacationServiceImpl extends CorePersistenceServiceImpl<Integer, Vac
   @Override
   public void sendMailToVacationInvolved(VacationDO vacationData, boolean isNew)
   {
-    if (isNew) {
-      //Send mail to manager (employee in copy)
-      Mail mail = new Mail();
-      mail.setContent(I18nHelper.getLocalizedMessage("vacation.mail.pm.application", vacationData.getManager().getUser().getFirstname(),
-          vacationData.getEmployee().getUser().getFullname(), vacationData.getStartDate().toString(), vacationData.getEndDate().toString()));
-      sendMailService.send(mail, null, null);
-      mail.setTo(vacationData.getManager().getUser());
-      mail.setTo(vacationData.getEmployee().getUser());
+    //Send mail to manager (employee in copy)
+    Mail mail = new Mail();
+    mail.setContent(I18nHelper.getLocalizedMessage("vacation.mail.pm.application" + (isNew ? "" : ".edit"), vacationData.getManager().getUser().getFirstname(),
+        vacationData.getEmployee().getUser().getFullname(), vacationData.getStartDate().toString(), vacationData.getEndDate().toString()));
+    sendMailService.send(mail, null, null);
+    mail.setTo(vacationData.getManager().getUser());
+    mail.setTo(vacationData.getEmployee().getUser());
 
-      //Send mail to substitution (employee in copy)
-      mail = new Mail();
-      mail.setContent(I18nHelper.getLocalizedMessage("vacation.mail.sub.application", vacationData.getSubstitution().getUser().getFirstname(),
-          vacationData.getEmployee().getUser().getFullname(), vacationData.getStartDate().toString(), vacationData.getEndDate().toString(),
-          vacationData.getManager().getUser().getFullname()));
-      mail.setTo(vacationData.getSubstitution().getUser());
-      mail.setTo(vacationData.getEmployee().getUser());
-      sendMailService.send(mail, null, null);
-    }
+    //Send mail to substitution (employee in copy)
+    mail = new Mail();
+    mail.setContent(
+        I18nHelper.getLocalizedMessage("vacation.mail.sub.application" + (isNew ? "" : ".edit"), vacationData.getSubstitution().getUser().getFirstname(),
+            vacationData.getEmployee().getUser().getFullname(), vacationData.getStartDate().toString(), vacationData.getEndDate().toString(),
+            vacationData.getManager().getUser().getFullname()));
+    mail.setTo(vacationData.getSubstitution().getUser());
+    mail.setTo(vacationData.getEmployee().getUser());
+    sendMailService.send(mail, null, null);
   }
 
   @Override
