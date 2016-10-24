@@ -308,7 +308,7 @@ public class EmployeeEditForm extends AbstractEditForm<EmployeeDO, EmployeeEditP
       fs.add(new MaxLengthTextArea(TextAreaPanel.WICKET_ID, new PropertyModel<>(data, "comment")), true);
     }
 
-    if (isNew() == false) {
+    if (isNew() == false && data.getUrlaubstage() != null) {
       GridBuilder vacationGridBuilder = tabPanel.getOrCreateTab("vacation"); // create the default tab
       vacationViewHelper.createVacationView(vacationGridBuilder, data);
     }
