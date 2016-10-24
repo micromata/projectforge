@@ -129,6 +129,7 @@ public class VacationEditForm extends AbstractEditForm<VacationDO, VacationEditP
         }
       });
       startDatePanel.setRequired(true).setMarkupId("vacation-startdate").setOutputMarkupId(true);
+      startDatePanel.setEnabled(isNotApproved());
       formValidator.getDependentFormComponents()[0] = startDatePanel;
       fs.add(startDatePanel);
     }
@@ -153,6 +154,7 @@ public class VacationEditForm extends AbstractEditForm<VacationDO, VacationEditP
         }
       });
       endDatePanel.setRequired(true).setMarkupId("vacation-enddate").setOutputMarkupId(true);
+      endDatePanel.setEnabled(isNotApproved());
       formValidator.getDependentFormComponents()[1] = endDatePanel;
       fs.add(endDatePanel);
     }
@@ -190,6 +192,7 @@ public class VacationEditForm extends AbstractEditForm<VacationDO, VacationEditP
           new PropertyModel<>(data, "manager"),
           new EmployeeWicketProvider(employeeService));
       managerSelect.setRequired(true).setMarkupId("vacation-manager").setOutputMarkupId(true);
+      managerSelect.setEnabled(isNotApproved());
       fs.add(new Select2SingleChoicePanel<EmployeeDO>(fs.newChildId(), managerSelect));
     }
 
@@ -201,6 +204,7 @@ public class VacationEditForm extends AbstractEditForm<VacationDO, VacationEditP
           new PropertyModel<>(data, "substitution"),
           new EmployeeWicketProvider(employeeService));
       substitutionSelect.setRequired(true).setMarkupId("vacation-substitution").setOutputMarkupId(true);
+      substitutionSelect.setEnabled(isNotApproved());
       fs.add(new Select2SingleChoicePanel<EmployeeDO>(fs.newChildId(), substitutionSelect));
     }
 
@@ -217,6 +221,14 @@ public class VacationEditForm extends AbstractEditForm<VacationDO, VacationEditP
       statusChoice.setEnabled(hasUserEditStatusRight());
       fs.add(statusChoice);
     }
+  }
+
+  private boolean isNotApproved()
+  {
+    if (data != null) {
+      return VacationStatus.APPROVED.equals(data.getStatus()) == false;
+    }
+    return true;
   }
 
   private boolean hasUserEditStatusRight()
