@@ -3,9 +3,7 @@ package org.projectforge.web.vacation;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.powermock.api.mockito.PowerMockito.mock;
-import static org.powermock.api.mockito.PowerMockito.mockStatic;
-import static org.powermock.api.mockito.PowerMockito.when;
+import static org.powermock.api.mockito.PowerMockito.*;
 
 import java.math.BigDecimal;
 import java.util.Calendar;
@@ -59,6 +57,10 @@ public class VacationFormValidatorTest extends PowerMockTestCase
     when(ThreadLocalUserContext.getLocale()).thenReturn(locale);
     when(ThreadLocalUserContext.getTimeZone()).thenReturn(timeZone);
     when(ConfigXml.getInstance()).thenReturn(configXml);
+    Calendar vacationEndDate = new GregorianCalendar();
+    vacationEndDate.set(Calendar.MONTH, Calendar.MARCH);
+    vacationEndDate.set(Calendar.DAY_OF_MONTH, 31);
+    when(this.vacationService.getEndDateVacationFromLastYear()).thenReturn(vacationEndDate);
   }
 
   @Test
