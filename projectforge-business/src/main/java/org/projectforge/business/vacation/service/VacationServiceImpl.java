@@ -7,6 +7,7 @@ import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.List;
 
+import org.projectforge.business.configuration.ConfigurationService;
 import org.projectforge.business.fibu.EmployeeDO;
 import org.projectforge.business.user.I18nHelper;
 import org.projectforge.business.vacation.model.VacationAttrProperty;
@@ -37,6 +38,9 @@ public class VacationServiceImpl extends CorePersistenceServiceImpl<Integer, Vac
 
   @Autowired
   private SendMail sendMailService;
+
+  @Autowired
+  private ConfigurationService configService;
 
   @Override
   public BigDecimal getUsedAndPlanedVacationdays(EmployeeDO employee)
@@ -95,6 +99,12 @@ public class VacationServiceImpl extends CorePersistenceServiceImpl<Integer, Vac
   }
 
   @Override
+  public Calendar getEndDateVacationFromLastYear()
+  {
+    return configService.getEndDateVacationFromLastYear();
+  }
+
+  @Override
   public BigDecimal getUsedVacationdays(EmployeeDO employee)
   {
     BigDecimal usedDays = BigDecimal.ZERO;
@@ -142,11 +152,9 @@ public class VacationServiceImpl extends CorePersistenceServiceImpl<Integer, Vac
         : BigDecimal.ZERO;
     BigDecimal usedVacation = getUsedVacationdays(employee);
     BigDecimal planedVacation = getPlanedVacationdays(employee);
-    Calendar endOfMarch = new GregorianCalendar(ThreadLocalUserContext.getTimeZone());
-    endOfMarch.set(Calendar.MONTH, Calendar.MARCH);
-    endOfMarch.set(Calendar.DAY_OF_MONTH, 31);
+    Calendar endDateVacationFromLastYear = configService.getEndDateVacationFromLastYear();
     Calendar now = new GregorianCalendar(ThreadLocalUserContext.getTimeZone());
-    if (now.after(endOfMarch)) {
+    if (now.after(endDateVacationFromLastYear)) {
       usedVacation = getUsedVacationdays(employee).subtract(vacationFromPreviousYearUsed);
       return vacationDays.subtract(usedVacation).subtract(planedVacation);
     }

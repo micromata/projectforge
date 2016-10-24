@@ -7,6 +7,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.security.KeyStore;
+import java.util.Calendar;
+import java.util.GregorianCalendar;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -174,7 +176,7 @@ public class ConfigurationServiceImpl implements ConfigurationService
   /**
    * Tries to get the given filename from the application's resource dir (file system). If not exist, the content will
    * be taken as resource input stream. Calls getInputStream(filename) and converts input stream to String.
-   * 
+   *
    * @param filename Filename (can include relative path settings): "test.xsl", "fo-styles/doit.xsl".
    * @return Object[2]: First value is the content as string and second value is the url in external form.
    * @see #getResourceAsInputStream(String)
@@ -200,7 +202,7 @@ public class ConfigurationServiceImpl implements ConfigurationService
    * PLEASE NOTE: Don't forget to close the returned InputStream for avoiding leaked resources!!!<br>
    * Tries to get the given filename from the application's resource dir (file system). If not exist, the input stream
    * will be taken as resource input stream.
-   * 
+   *
    * @param filename Filename (can include relative path settings): "test.xsl", "fo-styles/doit.xsl".
    * @return Object[2]: First value is the InputStream and second value is the url in external form.
    */
@@ -272,7 +274,7 @@ public class ConfigurationServiceImpl implements ConfigurationService
 
   /**
    * Default value: "resources/fonts" (absolute path).
-   * 
+   *
    * @return the fontsDirectory
    */
   @Override
@@ -334,9 +336,9 @@ public class ConfigurationServiceImpl implements ConfigurationService
 
   /**
    * If configured then this logo file is used for displaying at the top of the navigation menu.
-   * 
+   *
    * @return The path of the configured logo (relative to the image dir of the application's resource path, at default:
-   *         '&lt;app-home&gt;/resources/images').
+   * '&lt;app-home&gt;/resources/images').
    */
   @Override
   public String getLogoFile()
@@ -348,7 +350,7 @@ public class ConfigurationServiceImpl implements ConfigurationService
    * Only given, if the administrator have configured this domain. Otherwise e. g. the ImageCropper uses
    * req.getHttpServletRequest().getScheme() + "://" + req.getHttpServletRequest().getLocalName() + ":" +
    * req.getHttpServletRequest().getLocalPort()
-   * 
+   *
    * @return domain (host) in form https://www.acme.de:8443/
    */
   @Override
@@ -405,7 +407,7 @@ public class ConfigurationServiceImpl implements ConfigurationService
   /**
    * The reverse phone lookup service verifies the key given as parameter to the servlet call against this key. The key
    * should be an alpha numeric random value with at least 6 characters for security reasons.
-   * 
+   *
    * @return the receivePhoneLookupKey
    */
   @Override
@@ -590,6 +592,28 @@ public class ConfigurationServiceImpl implements ConfigurationService
   public String getTeamCalCryptPassword()
   {
     return teamCalCryptPassword;
+  }
+
+  @Override
+  public Calendar getEndDateVacationFromLastYear()
+  {
+    int day = 31;
+    int month = 2;
+    ConfigurationDO configDO = configDao.getEntry(ConfigurationParam.END_DATE_VACATION_LASTR_YEAR);
+    if (configDO != null) {
+      String dayMonthString = configDO.getStringValue();
+      String[] dayMonthParts = dayMonthString.split("\\.");
+      try {
+        month = Integer.parseInt(dayMonthParts[1]) - 1;
+        day = Integer.parseInt(dayMonthParts[0]);
+      } catch (NumberFormatException e) {
+        log.error("Error while parsing ConfigurationParam.END_DATE_VACATION_LASTR_YEAR: " + dayMonthString);
+        day = 31;
+        month = 2;
+      }
+    }
+    Calendar now = new GregorianCalendar();
+    return new GregorianCalendar(now.get(Calendar.YEAR), month, day);
   }
 
 }

@@ -2,7 +2,6 @@ package org.projectforge.web.vacation;
 
 import java.math.BigDecimal;
 import java.util.Calendar;
-import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -13,7 +12,6 @@ import org.projectforge.business.user.I18nHelper;
 import org.projectforge.business.vacation.model.VacationAttrProperty;
 import org.projectforge.business.vacation.model.VacationDO;
 import org.projectforge.business.vacation.service.VacationService;
-import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.time.DayHolder;
 import org.projectforge.web.wicket.components.DatePanel;
 
@@ -56,25 +54,23 @@ public class VacationFormValidator implements IFormValidator
     }
 
     boolean enoughDaysLeft = true;
-    Calendar marchEnd = new GregorianCalendar(ThreadLocalUserContext.getTimeZone());
-    marchEnd.set(Calendar.MONTH, Calendar.MARCH);
-    marchEnd.set(Calendar.DAY_OF_MONTH, 31);
+    Calendar endDateVacationFromLastYear = vacationService.getEndDateVacationFromLastYear();
 
     //Positiv
     BigDecimal vacationDays = new BigDecimal(data.getEmployee().getUrlaubstage());
     BigDecimal vacationDaysFromLastYear = data.getEmployee().getAttribute(
         VacationAttrProperty.PREVIOUSYEARLEAVE.getPropertyName(),
         BigDecimal.class) != null ? data.getEmployee().getAttribute(
-            VacationAttrProperty.PREVIOUSYEARLEAVE.getPropertyName(),
-            BigDecimal.class) : BigDecimal.ZERO;
+        VacationAttrProperty.PREVIOUSYEARLEAVE.getPropertyName(),
+        BigDecimal.class) : BigDecimal.ZERO;
 
     //Negative
     BigDecimal usedVacationDaysWholeYear = vacationService.getUsedAndPlanedVacationdays(data.getEmployee());
     BigDecimal usedVacationDaysFromLastYear = data.getEmployee().getAttribute(
         VacationAttrProperty.PREVIOUSYEARLEAVEUSED.getPropertyName(),
         BigDecimal.class) != null ? data.getEmployee().getAttribute(
-            VacationAttrProperty.PREVIOUSYEARLEAVEUSED.getPropertyName(),
-            BigDecimal.class) : BigDecimal.ZERO;
+        VacationAttrProperty.PREVIOUSYEARLEAVEUSED.getPropertyName(),
+        BigDecimal.class) : BigDecimal.ZERO;
     BigDecimal usedVacationDaysWithoutDaysFromLastYear = usedVacationDaysWholeYear
         .subtract(usedVacationDaysFromLastYear);
 
@@ -85,8 +81,8 @@ public class VacationFormValidator implements IFormValidator
     //Need
     BigDecimal neededVacationDays = DayHolder.getNumberOfWorkingDays(startDatePanel.getConvertedInput(),
         endDatePanel.getConvertedInput());
-    BigDecimal neededVacationDaysBeforeMarch = DayHolder.getNumberOfWorkingDays(startDatePanel.getConvertedInput(),
-        marchEnd.getTime());
+    BigDecimal neededVacationDaysBeforeEndFromLastYear = DayHolder.getNumberOfWorkingDays(startDatePanel.getConvertedInput(),
+        endDateVacationFromLastYear.getTime());
 
     //Add the old data working days to available days
     if (data.getPk() != null) {
@@ -94,25 +90,25 @@ public class VacationFormValidator implements IFormValidator
       availableVacationDays = availableVacationDays.add(oldDataWorkingDays);
     }
 
-    //Vacation after March
-    if (startDatePanel.getConvertedInput().after(marchEnd.getTime())) {
+    //Vacation after end days from last year
+    if (startDatePanel.getConvertedInput().after(endDateVacationFromLastYear.getTime())) {
       if (availableVacationDays.subtract(neededVacationDays).compareTo(BigDecimal.ZERO) < 0) {
         enoughDaysLeft = false;
       }
     }
-    //Vacation before March
-    if (endDatePanel.getConvertedInput().before(marchEnd.getTime())
-        || endDatePanel.getConvertedInput().equals(marchEnd.getTime())) {
+    //Vacation before end days from last year
+    if (endDatePanel.getConvertedInput().before(endDateVacationFromLastYear.getTime())
+        || endDatePanel.getConvertedInput().equals(endDateVacationFromLastYear.getTime())) {
       if (availableVacationDays.add(availableVacationDaysFromLastYear).subtract(neededVacationDays)
           .compareTo(BigDecimal.ZERO) < 0) {
         enoughDaysLeft = false;
       }
     }
-    //Vacation over March April
-    if ((startDatePanel.getConvertedInput().before(marchEnd.getTime())
-        || startDatePanel.getConvertedInput().equals(marchEnd.getTime()))
-        && endDatePanel.getConvertedInput().after(marchEnd.getTime())) {
-      BigDecimal restFromLastYear = availableVacationDaysFromLastYear.subtract(neededVacationDaysBeforeMarch);
+    //Vacation over end days from last year
+    if ((startDatePanel.getConvertedInput().before(endDateVacationFromLastYear.getTime())
+        || startDatePanel.getConvertedInput().equals(endDateVacationFromLastYear.getTime()))
+        && endDatePanel.getConvertedInput().after(endDateVacationFromLastYear.getTime())) {
+      BigDecimal restFromLastYear = availableVacationDaysFromLastYear.subtract(neededVacationDaysBeforeEndFromLastYear);
       if (restFromLastYear.compareTo(BigDecimal.ZERO) <= 0) {
         if (availableVacationDays.subtract(neededVacationDays).compareTo(BigDecimal.ZERO) < 0) {
           enoughDaysLeft = false;
