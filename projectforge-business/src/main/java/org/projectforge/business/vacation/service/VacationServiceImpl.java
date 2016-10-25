@@ -57,9 +57,9 @@ public class VacationServiceImpl extends CorePersistenceServiceImpl<Integer, Vac
     Mail mail = new Mail();
     mail.setContent(I18nHelper.getLocalizedMessage("vacation.mail.pm.application" + (isNew ? "" : ".edit"), vacationData.getManager().getUser().getFirstname(),
         vacationData.getEmployee().getUser().getFullname(), vacationData.getStartDate().toString(), vacationData.getEndDate().toString()));
-    sendMailService.send(mail, null, null);
     mail.setTo(vacationData.getManager().getUser());
     mail.setTo(vacationData.getEmployee().getUser());
+    sendMailService.send(mail, null, null);
 
     //Send mail to substitution (employee in copy)
     mail = new Mail();
@@ -81,9 +81,9 @@ public class VacationServiceImpl extends CorePersistenceServiceImpl<Integer, Vac
       mail.setContent(I18nHelper.getLocalizedMessage("vacation.mail.hr.approved", vacationData.getEmployee().getUser().getFullname(),
           vacationData.getStartDate().toString(), vacationData.getEndDate().toString(), vacationData.getSubstitution().getUser().getFullname(),
           vacationData.getManager().getUser().getFullname()));
-      sendMailService.send(mail, null, null);
       mail.setTo(vacationData.getManager().getUser());
       mail.setTo(vacationData.getEmployee().getUser());
+      sendMailService.send(mail, null, null);
     }
 
     //Send mail to substitution (employee in copy)
