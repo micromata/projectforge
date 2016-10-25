@@ -30,7 +30,6 @@ import org.projectforge.business.fibu.api.EmployeeService;
 import org.projectforge.business.vacation.model.VacationDO;
 import org.projectforge.business.vacation.model.VacationStatus;
 import org.projectforge.business.vacation.service.VacationService;
-import org.projectforge.framework.access.AccessException;
 import org.projectforge.web.fibu.ISelectCallerPage;
 import org.projectforge.web.wicket.AbstractEditPage;
 import org.projectforge.web.wicket.AbstractSecuredBasePage;
@@ -62,12 +61,6 @@ public class VacationEditPage extends AbstractEditPage<VacationDO, VacationEditF
   protected void init()
   {
     super.init();
-    if (form.getData().getEmployee() == null) {
-      throw new AccessException("access.exception.noEmployeeToUser");
-    }
-    if (form.getData().getEmployee().getUrlaubstage() == null) {
-      throw new AccessException("access.exception.employeeHasNoVacationDays");
-    }
     if (isNew()) {
       wasNew = true;
     }
