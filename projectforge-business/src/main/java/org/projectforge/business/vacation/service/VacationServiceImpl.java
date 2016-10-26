@@ -57,6 +57,8 @@ public class VacationServiceImpl extends CorePersistenceServiceImpl<Integer, Vac
     Mail mail = new Mail();
     mail.setContent(I18nHelper.getLocalizedMessage("vacation.mail.pm.application" + (isNew ? "" : ".edit"), vacationData.getManager().getUser().getFirstname(),
         vacationData.getEmployee().getUser().getFullname(), vacationData.getStartDate().toString(), vacationData.getEndDate().toString()));
+    mail.setSubject(I18nHelper.getLocalizedMessage("vacation.mail.subject" + (isNew ? "" : ".edit"), vacationData.getEmployee().getUser().getFullname()));
+    mail.setContentType(Mail.CONTENTTYPE_HTML);
     mail.setTo(vacationData.getManager().getUser());
     mail.setTo(vacationData.getEmployee().getUser());
     sendMailService.send(mail, null, null);
@@ -67,6 +69,8 @@ public class VacationServiceImpl extends CorePersistenceServiceImpl<Integer, Vac
         I18nHelper.getLocalizedMessage("vacation.mail.sub.application" + (isNew ? "" : ".edit"), vacationData.getSubstitution().getUser().getFirstname(),
             vacationData.getEmployee().getUser().getFullname(), vacationData.getStartDate().toString(), vacationData.getEndDate().toString(),
             vacationData.getManager().getUser().getFullname()));
+    mail.setSubject(I18nHelper.getLocalizedMessage("vacation.mail.subject" + (isNew ? "" : ".edit"), vacationData.getEmployee().getUser().getFullname()));
+    mail.setContentType(Mail.CONTENTTYPE_HTML);
     mail.setTo(vacationData.getSubstitution().getUser());
     mail.setTo(vacationData.getEmployee().getUser());
     sendMailService.send(mail, null, null);
@@ -81,6 +85,8 @@ public class VacationServiceImpl extends CorePersistenceServiceImpl<Integer, Vac
       mail.setContent(I18nHelper.getLocalizedMessage("vacation.mail.hr.approved", vacationData.getEmployee().getUser().getFullname(),
           vacationData.getStartDate().toString(), vacationData.getEndDate().toString(), vacationData.getSubstitution().getUser().getFullname(),
           vacationData.getManager().getUser().getFullname()));
+      mail.setSubject(I18nHelper.getLocalizedMessage("vacation.mail.subject", vacationData.getEmployee().getUser().getFullname()));
+      mail.setContentType(Mail.CONTENTTYPE_HTML);
       mail.setTo(vacationData.getManager().getUser());
       mail.setTo(vacationData.getEmployee().getUser());
       sendMailService.send(mail, null, null);
@@ -90,8 +96,10 @@ public class VacationServiceImpl extends CorePersistenceServiceImpl<Integer, Vac
     String decision = approved ? "approved" : "declined";
     mail = new Mail();
     mail.setContent(I18nHelper.getLocalizedMessage("vacation.mail.employee." + decision, vacationData.getEmployee().getUser().getFirstname(),
-        vacationData.getSubstitution().getUser().getFirstname(),
-        vacationData.getStartDate().toString(), vacationData.getEndDate().toString()));
+        vacationData.getSubstitution().getUser().getFirstname(), vacationData.getEmployee().getUser().getFullname(),
+        vacationData.getStartDate().toString(), vacationData.getEndDate().toString(), vacationData.getSubstitution().getUser().getFullname()));
+    mail.setSubject(I18nHelper.getLocalizedMessage("vacation.mail.subject.edit", vacationData.getEmployee().getUser().getFullname()));
+    mail.setContentType(Mail.CONTENTTYPE_HTML);
     mail.setTo(vacationData.getSubstitution().getUser());
     mail.setTo(vacationData.getEmployee().getUser());
     sendMailService.send(mail, null, null);

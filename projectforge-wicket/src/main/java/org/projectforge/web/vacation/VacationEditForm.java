@@ -100,17 +100,26 @@ public class VacationEditForm extends AbstractEditForm<VacationDO, VacationEditP
   }
 
   @Override
-  protected void init()
+  public void onBeforeRender()
   {
-    if (checkReadAccess() == false) {
-      throw new AccessException("access.exception.userHasNotRight");
-    }
-    if (isNew() == false && checkWriteAccess() == false) {
+    super.onBeforeRender();
+    //Check write access
+    //If status is approved only HR can make changes
+    if ((isNew() == false && checkWriteAccess() == false) || (VacationStatus.APPROVED.equals(data.getStatus())
+        && accessChecker.hasLoggedInUserRight(UserRightId.HR_VACATION, false, UserRightValue.READWRITE) == false)) {
       markAsDeletedButtonPanel.setVisible(false);
       deleteButtonPanel.setVisible(false);
       updateButtonPanel.setVisible(false);
     }
+  }
+
+  @Override
+  protected void init()
+  {
     super.init();
+    if (checkReadAccess() == false) {
+      throw new AccessException("access.exception.userHasNotRight");
+    }
     VacationFormValidator formValidator = new VacationFormValidator(vacationService, data);
     add(formValidator);
 
@@ -135,7 +144,7 @@ public class VacationEditForm extends AbstractEditForm<VacationDO, VacationEditP
         }
       });
       startDatePanel.setRequired(true).setMarkupId("vacation-startdate").setOutputMarkupId(true);
-      startDatePanel.setEnabled(isNotApproved());
+      startDatePanel.setEnabled(isNotApprovedOrHRWritePermission());
       formValidator.getDependentFormComponents()[0] = startDatePanel;
       fs.add(startDatePanel);
     }
@@ -160,7 +169,7 @@ public class VacationEditForm extends AbstractEditForm<VacationDO, VacationEditP
         }
       });
       endDatePanel.setRequired(true).setMarkupId("vacation-enddate").setOutputMarkupId(true);
-      endDatePanel.setEnabled(isNotApproved());
+      endDatePanel.setEnabled(isNotApprovedOrHRWritePermission());
       formValidator.getDependentFormComponents()[1] = endDatePanel;
       fs.add(endDatePanel);
     }
@@ -198,7 +207,7 @@ public class VacationEditForm extends AbstractEditForm<VacationDO, VacationEditP
           new PropertyModel<>(data, "manager"),
           new EmployeeWicketProvider(employeeService));
       managerSelect.setRequired(true).setMarkupId("vacation-manager").setOutputMarkupId(true);
-      managerSelect.setEnabled(isNotApproved());
+      managerSelect.setEnabled(isNotApprovedOrHRWritePermission());
       fs.add(new Select2SingleChoicePanel<EmployeeDO>(fs.newChildId(), managerSelect));
     }
 
@@ -210,7 +219,7 @@ public class VacationEditForm extends AbstractEditForm<VacationDO, VacationEditP
           new PropertyModel<>(data, "substitution"),
           new EmployeeWicketProvider(employeeService));
       substitutionSelect.setRequired(true).setMarkupId("vacation-substitution").setOutputMarkupId(true);
-      substitutionSelect.setEnabled(isNotApproved());
+      substitutionSelect.setEnabled(isNotApprovedOrHRWritePermission());
       fs.add(new Select2SingleChoicePanel<EmployeeDO>(fs.newChildId(), substitutionSelect));
     }
 
@@ -229,16 +238,32 @@ public class VacationEditForm extends AbstractEditForm<VacationDO, VacationEditP
     }
   }
 
-  private boolean isNotApproved()
+  private boolean isNotApprovedOrHRWritePermission()
   {
+    boolean result = true;
     if (data != null) {
-      return VacationStatus.APPROVED.equals(data.getStatus()) == false;
+      result = VacationStatus.APPROVED.equals(data.getStatus()) == false;
+      if (accessChecker.hasLoggedInUserRight(UserRightId.HR_VACATION, false, UserRightValue.READWRITE) == true) {
+        result = true;
+      }
     }
-    return true;
+    return result;
   }
 
   private boolean hasUserEditStatusRight()
   {
+    if (VacationStatus.APPROVED.equals(data.getStatus())) {
+      //Only HR can change approved applications
+      if (checkWriteAccess()) {
+        if (data.getEmployee().getUser().getPk().equals(ThreadLocalUserContext.getUserId()) == true
+            || data.getManager().getUser().getPk().equals(ThreadLocalUserContext.getUserId()) == true) {
+          return false;
+        } else {
+          return true;
+        }
+      }
+    }
+    //Only HR and manager can edit status when in progress
     if (checkWriteAccess()) {
       if (data.getEmployee().getUser().getPk().equals(ThreadLocalUserContext.getUserId()) == true) {
         return false;
