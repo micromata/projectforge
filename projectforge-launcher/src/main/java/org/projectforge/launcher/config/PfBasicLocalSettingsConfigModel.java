@@ -8,15 +8,15 @@ import de.micromata.genome.util.runtime.config.LocalSettingsWriter;
 import de.micromata.genome.util.validation.ValContext;
 
 /**
- * 
  * @author Roger Rene Kommer (r.kommer.extern@micromata.de)
- *
  */
 public class PfBasicLocalSettingsConfigModel extends AbstractLocalSettingsConfigModel
 {
 
-  @ALocalSettingsPath(key = "projectforge.base.dir", comment = "where to store internal data",
-      defaultValue = "pfconfig")
+  @ALocalSettingsPath(key = "spring.application.name", comment = "SPRING PROPERTIES", defaultValue = "projectforge-application")
+  private String applicationName;
+
+  @ALocalSettingsPath(key = "projectforge.base.dir", comment = "PROJECTFORGE PROPERTIES", defaultValue = "pfconfig")
   private String baseDir;
 
   @ALocalSettingsPath(key = "projectforge.domain", defaultValue = "https://projectforge.micromata.de")
@@ -57,7 +57,7 @@ public class PfBasicLocalSettingsConfigModel extends AbstractLocalSettingsConfig
   @ALocalSettingsPath(key = "server.port", defaultValue = "8080")
   private String serverPort;
 
-  @ALocalSettingsPath(key = "server.address", defaultValue = "localhost")
+  @ALocalSettingsPath(key = "server.address", defaultValue = "")
   private String serverAddress;
 
   @Override
@@ -78,15 +78,22 @@ public class PfBasicLocalSettingsConfigModel extends AbstractLocalSettingsConfig
   public LocalSettingsWriter toProperties(LocalSettingsWriter writer)
   {
     super.toProperties(writer);
-    LocalSettingsWriter sw = writer.newSection("Hack, has to be reworked latter");
+    LocalSettingsWriter sw = writer.newSection(" \"HttpOnly\" flag for the session cookie.");
+    sw.put("server.session.cookie.http-only", "true");
+    sw.put("server.session.tracking-modes", "cookie", " this avoids session fixation via jsessionid in URL");
+    sw.put("server.session.timeout", "3600", " Session timeout in seconds.");
+    sw.put("multipart.maxFileSize", "1024Kb");
+
+    sw.put("pf.config.security.teamCalCryptPassword", "enter-a-password-here",
+        " password to encrypt the links which are sent by email for event invitations, max 32 characters");
+
     sw.put("projectforge.servletContextPath", "${genome.jetty.contextpath}");
     sw.put("projectforge.security.passwordPepper", "*******SECRET********");
     sw.put("projectforge.security.sqlConsoleAvailable", "false");
 
-    sw.put("projectforge.telephoneSystemUrl", "http://asterisk/originatecall.php?source=#source&target=#target");
-
-    sw.put("projectforge.telephoneSystemNumber", "0561316793");
-    sw.put("projectforge.smsUrl", "http://asterisk/sms.php?number=#number&message=#message");
+    sw.put("projectforge.telephoneSystemUrl", "http://asterisk.yourserver.org/originatecall.php?source=#source&target=#target");
+    sw.put("projectforge.telephoneSystemNumber", "0123456789");
+    sw.put("projectforge.smsUrl", "http://asterisk.yourserver.org/sms.php?number=#number&message=#message");
     sw.put("projectforge.receiveSmsKey", "*******SECRET********");
     sw.put("projectforge.phoneLookupKey", "*******SECRET********");
     sw.put("projectforge.keystoreFile", "jssecacerts");
