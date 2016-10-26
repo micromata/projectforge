@@ -112,7 +112,7 @@ public class VacationEditPage extends AbstractEditPage<VacationDO, VacationEditF
   @Override
   public AbstractSecuredBasePage onSaveOrUpdate()
   {
-    if (isNew() == false && VacationStatus.REJECTED.equals(form.getStatusBeforeModification()) == false) {
+    if (isNew() == false && VacationStatus.REJECTED.equals(form.getStatusBeforeModification()) == true) {
       form.getData().setStatus(VacationStatus.IN_PROGRESS);
     }
     return null;
