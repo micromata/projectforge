@@ -9,6 +9,7 @@ import java.util.List;
 
 import org.projectforge.business.configuration.ConfigurationService;
 import org.projectforge.business.fibu.EmployeeDO;
+import org.projectforge.business.fibu.EmployeeDao;
 import org.projectforge.business.user.I18nHelper;
 import org.projectforge.business.vacation.model.VacationAttrProperty;
 import org.projectforge.business.vacation.model.VacationDO;
@@ -41,6 +42,9 @@ public class VacationServiceImpl extends CorePersistenceServiceImpl<Integer, Vac
 
   @Autowired
   private ConfigurationService configService;
+
+  @Autowired
+  private EmployeeDao employeeDao;
 
   @Override
   public BigDecimal getUsedAndPlanedVacationdays(EmployeeDO employee)
@@ -109,6 +113,43 @@ public class VacationServiceImpl extends CorePersistenceServiceImpl<Integer, Vac
   public Calendar getEndDateVacationFromLastYear()
   {
     return configService.getEndDateVacationFromLastYear();
+  }
+
+  @Override
+  public BigDecimal updateUsedVacationDaysFromLastYear(VacationDO vacationData)
+  {
+    if (vacationData == null || vacationData.getEmployee() == null || vacationData.getStartDate() == null || vacationData.getEndDate() == null) {
+      return BigDecimal.ZERO;
+    }
+    Calendar endDateVacationFromLastYear = getEndDateVacationFromLastYear();
+    endDateVacationFromLastYear.add(Calendar.DAY_OF_MONTH, 1);
+    if (vacationData.getStartDate().before(endDateVacationFromLastYear.getTime()) == false) {
+      return BigDecimal.ZERO;
+    }
+    endDateVacationFromLastYear.add(Calendar.DAY_OF_MONTH, -1);
+    BigDecimal neededDaysForVacationFromLastYear = null;
+    if (vacationData.getEndDate().after(endDateVacationFromLastYear.getTime())) {
+      neededDaysForVacationFromLastYear = DayHolder.getNumberOfWorkingDays(vacationData.getStartDate(), endDateVacationFromLastYear.getTime());
+    } else {
+      neededDaysForVacationFromLastYear = DayHolder.getNumberOfWorkingDays(vacationData.getStartDate(), vacationData.getEndDate());
+    }
+    EmployeeDO employee = vacationData.getEmployee();
+    BigDecimal actualUsedDaysOfLastYear = employee
+        .getAttribute(VacationAttrProperty.PREVIOUSYEARLEAVEUSED.getPropertyName(), BigDecimal.class) != null
+        ? employee.getAttribute(VacationAttrProperty.PREVIOUSYEARLEAVEUSED.getPropertyName(), BigDecimal.class)
+        : BigDecimal.ZERO;
+    BigDecimal vacationFromPreviousYear = employee
+        .getAttribute(VacationAttrProperty.PREVIOUSYEARLEAVE.getPropertyName(), BigDecimal.class) != null
+        ? employee.getAttribute(VacationAttrProperty.PREVIOUSYEARLEAVE.getPropertyName(), BigDecimal.class)
+        : BigDecimal.ZERO;
+    BigDecimal freeDaysFromLastYear = vacationFromPreviousYear.subtract(actualUsedDaysOfLastYear);
+    BigDecimal remainValue = freeDaysFromLastYear.subtract(neededDaysForVacationFromLastYear).compareTo(BigDecimal.ZERO) < 0 ?
+        BigDecimal.ZERO :
+        freeDaysFromLastYear.subtract(neededDaysForVacationFromLastYear);
+    BigDecimal newValue = vacationFromPreviousYear.subtract(remainValue);
+    employee.putAttribute(VacationAttrProperty.PREVIOUSYEARLEAVEUSED.getPropertyName(), newValue);
+    employeeDao.internalSave(employee);
+    return newValue;
   }
 
   @Override
