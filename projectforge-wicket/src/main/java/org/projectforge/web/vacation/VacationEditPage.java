@@ -131,6 +131,7 @@ public class VacationEditPage extends AbstractEditPage<VacationDO, VacationEditF
     if (form.getStatusBeforeModification() != null) {
       if (form.getStatusBeforeModification().equals(VacationStatus.IN_PROGRESS) && VacationStatus.APPROVED.equals(form.getData().getStatus())) {
         vacationService.sendMailToEmployeeAndHR(form.getData(), true);
+        vacationService.updateUsedVacationDaysFromLastYear(form.getData());
       }
     }
     return null;

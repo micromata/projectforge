@@ -99,4 +99,13 @@ public interface VacationService extends IPersistenceService<VacationDO>, IDao<V
    * @return
    */
   Calendar getEndDateVacationFromLastYear();
+
+  /**
+   * Updates the used days from last year
+   *
+   * @param vacationData
+   * @return new value for used days
+   */
+  BigDecimal updateUsedVacationDaysFromLastYear(VacationDO vacationData);
+
 }
