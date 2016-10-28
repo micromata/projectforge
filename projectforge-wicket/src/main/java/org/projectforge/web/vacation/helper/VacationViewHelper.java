@@ -51,19 +51,19 @@ public class VacationViewHelper
     appendFieldset(gridBuilder, "vacation.previousyearleave",
         currentEmployee.getAttribute(VacationAttrProperty.PREVIOUSYEARLEAVE.getPropertyName(), BigDecimal.class) != null
             ? currentEmployee.getAttribute(VacationAttrProperty.PREVIOUSYEARLEAVE.getPropertyName(), BigDecimal.class)
-                .toString()
+            .toString()
             : "0");
     appendFieldset(gridBuilder, "vacation.previousyearleaveused",
         currentEmployee.getAttribute(VacationAttrProperty.PREVIOUSYEARLEAVEUSED.getPropertyName(),
             BigDecimal.class) != null ? currentEmployee
-                .getAttribute(VacationAttrProperty.PREVIOUSYEARLEAVEUSED.getPropertyName(), BigDecimal.class).toString()
-                : "0");
+            .getAttribute(VacationAttrProperty.PREVIOUSYEARLEAVEUSED.getPropertyName(), BigDecimal.class).toString()
+            : "0");
     appendFieldset(gridBuilder, "vacation.usedvacation",
         vacationService.getUsedVacationdays(currentEmployee).toString());
     appendFieldset(gridBuilder, "vacation.planedvacation",
         vacationService.getPlanedVacationdays(currentEmployee).toString());
     appendFieldset(gridBuilder, "vacation.availablevacation",
-        vacationService.getAvailableVacationdays(currentEmployee).toString());
+        vacationService.getAvailableVacationdays(currentEmployee, true).toString());
     section.add(new Heading3Panel(section.newChildId(),
         I18nHelper.getLocalizedMessage("vacation.title.list") + " " + now.get(Calendar.YEAR)));
     TablePanel tablePanel = new TablePanel(section.newChildId());

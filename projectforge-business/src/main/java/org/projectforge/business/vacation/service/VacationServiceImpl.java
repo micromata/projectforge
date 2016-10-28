@@ -153,6 +153,15 @@ public class VacationServiceImpl extends CorePersistenceServiceImpl<Integer, Vac
   }
 
   @Override
+  public void updateUsedNewVacationDaysFromLastYear(EmployeeDO employee)
+  {
+    BigDecimal availableVacationdays = getAvailableVacationdays(employee, false);
+    employee.putAttribute(VacationAttrProperty.PREVIOUSYEARLEAVE.getPropertyName(), availableVacationdays);
+    employee.putAttribute(VacationAttrProperty.PREVIOUSYEARLEAVEUSED.getPropertyName(), BigDecimal.ZERO);
+    employeeDao.internalSave(employee);
+  }
+
+  @Override
   public BigDecimal getUsedVacationdays(EmployeeDO employee)
   {
     BigDecimal usedDays = BigDecimal.ZERO;
@@ -187,8 +196,11 @@ public class VacationServiceImpl extends CorePersistenceServiceImpl<Integer, Vac
   }
 
   @Override
-  public BigDecimal getAvailableVacationdays(EmployeeDO employee)
+  public BigDecimal getAvailableVacationdays(EmployeeDO employee, boolean checkLastYear)
   {
+    if (employee == null) {
+      return BigDecimal.ZERO;
+    }
     BigDecimal vacationDays = new BigDecimal(employee.getUrlaubstage());
     BigDecimal vacationFromPreviousYear = employee
         .getAttribute(VacationAttrProperty.PREVIOUSYEARLEAVE.getPropertyName(), BigDecimal.class) != null
@@ -202,7 +214,7 @@ public class VacationServiceImpl extends CorePersistenceServiceImpl<Integer, Vac
     BigDecimal planedVacation = getPlanedVacationdays(employee);
     Calendar endDateVacationFromLastYear = configService.getEndDateVacationFromLastYear();
     Calendar now = new GregorianCalendar(ThreadLocalUserContext.getTimeZone());
-    if (now.after(endDateVacationFromLastYear)) {
+    if (now.after(endDateVacationFromLastYear) || checkLastYear == false) {
       usedVacation = getUsedVacationdays(employee).subtract(vacationFromPreviousYearUsed);
       return vacationDays.subtract(usedVacation).subtract(planedVacation);
     }
