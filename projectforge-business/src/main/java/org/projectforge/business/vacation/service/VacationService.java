@@ -49,9 +49,10 @@ public interface VacationService extends IPersistenceService<VacationDO>, IDao<V
    * Returns the number of available vacation
    *
    * @param employee
+   * @param checkLastYear
    * @return number of available vacation
    */
-  BigDecimal getAvailableVacationdays(EmployeeDO employee);
+  BigDecimal getAvailableVacationdays(EmployeeDO employee, boolean checkLastYear);
 
   /**
    * Returns the number of used vacation days
@@ -108,4 +109,10 @@ public interface VacationService extends IPersistenceService<VacationDO>, IDao<V
    */
   BigDecimal updateUsedVacationDaysFromLastYear(VacationDO vacationData);
 
+  /**
+   * Calculates the vacationsdays from last year and updates it.
+   *
+   * @param emp
+   */
+  void updateUsedNewVacationDaysFromLastYear(EmployeeDO emp);
 }

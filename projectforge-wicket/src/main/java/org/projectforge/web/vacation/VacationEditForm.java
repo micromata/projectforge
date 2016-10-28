@@ -177,7 +177,7 @@ public class VacationEditForm extends AbstractEditForm<VacationDO, VacationEditP
     {
       // Available vacation days
       final FieldsetPanel fs = gridBuilder.newFieldset(I18nHelper.getLocalizedMessage("vacation.availabledays"));
-      BigDecimal availableVacationDays = vacationService.getAvailableVacationdays(data.getEmployee());
+      BigDecimal availableVacationDays = vacationService.getAvailableVacationdays(data.getEmployee(), true);
       LabelPanel availablePanel = new LabelPanel(fs.newChildId(), availableVacationDays.toString());
       availablePanel.setMarkupId("vacation-availableDays").setOutputMarkupId(true);
       fs.add(availablePanel);

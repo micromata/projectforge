@@ -5,8 +5,10 @@ import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.testng.Assert.assertEquals;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 import java.util.TimeZone;
 
@@ -21,6 +23,7 @@ import org.projectforge.business.fibu.EmployeeDO;
 import org.projectforge.business.fibu.EmployeeDao;
 import org.projectforge.business.vacation.model.VacationAttrProperty;
 import org.projectforge.business.vacation.model.VacationDO;
+import org.projectforge.business.vacation.repository.VacationDao;
 import org.projectforge.framework.configuration.ConfigXml;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.time.DayHolder;
@@ -41,6 +44,9 @@ public class VacationServiceTest extends PowerMockTestCase
 
   @Mock
   private EmployeeDao employeeDao;
+
+  @Mock
+  private VacationDao vacationDao;
 
   @Mock
   private EmployeeDO employee;
@@ -176,7 +182,7 @@ public class VacationServiceTest extends PowerMockTestCase
     vacationData.setEndDate(endDate.getTime());
     BigDecimal numberOfDays = DayHolder.getNumberOfWorkingDays(vacationData.getStartDate(), vacationData.getEndDate());
     BigDecimal newValue = this.vacationService.updateUsedVacationDaysFromLastYear(vacationData);
-    assertEquals(newValue, new BigDecimal(1).add(numberOfDays));
+    assertEquals(newValue, BigDecimal.ONE.add(numberOfDays));
   }
 
   @Test
@@ -196,7 +202,45 @@ public class VacationServiceTest extends PowerMockTestCase
     vacationData.setEndDate(endDate.getTime());
     BigDecimal numberOfDays = DayHolder.getNumberOfWorkingDays(vacationData.getStartDate(), endLastYear.getTime());
     BigDecimal newValue = this.vacationService.updateUsedVacationDaysFromLastYear(vacationData);
-    assertEquals(newValue, new BigDecimal(1).add(numberOfDays));
+    assertEquals(newValue, BigDecimal.ONE.add(numberOfDays));
+  }
+
+  @Test
+  public void testGetAvailableVacationdaysNull()
+  {
+    BigDecimal availableVacationdays = vacationService.getAvailableVacationdays(null, false);
+    assertEquals(availableVacationdays, BigDecimal.ZERO);
+  }
+
+  @Test
+  public void testGetAvailableVacationdaysNoDaysUsed()
+  {
+    List<VacationDO> vacationList = new ArrayList<>();
+    when(vacationDao.getActiveVacationForCurrentYear(employee)).thenReturn(vacationList);
+    when(employee.getUrlaubstage()).thenReturn(30);
+    BigDecimal availableVacationdays = vacationService.getAvailableVacationdays(employee, false);
+    assertEquals(availableVacationdays, new BigDecimal(30));
+  }
+
+  @Test
+  public void testGetAvailableVacationdaysDaysUsed()
+  {
+    List<VacationDO> vacationList = new ArrayList<>();
+    VacationDO vacation = new VacationDO();
+    Calendar startDate = Calendar.getInstance();
+    startDate.set(Calendar.MONTH, Calendar.MARCH);
+    startDate.set(Calendar.DAY_OF_MONTH, 25);
+    vacation.setStartDate(startDate.getTime());
+    Calendar endDate = Calendar.getInstance();
+    endDate.set(Calendar.MONTH, Calendar.APRIL);
+    endDate.set(Calendar.DAY_OF_MONTH, 5);
+    vacation.setEndDate(endDate.getTime());
+    vacationList.add(vacation);
+    BigDecimal numberOfDays = DayHolder.getNumberOfWorkingDays(vacation.getStartDate(), vacation.getEndDate());
+    when(vacationDao.getActiveVacationForCurrentYear(employee)).thenReturn(vacationList);
+    when(employee.getUrlaubstage()).thenReturn(30);
+    BigDecimal availableVacationdays = vacationService.getAvailableVacationdays(employee, false);
+    assertEquals(availableVacationdays, new BigDecimal(30).subtract(numberOfDays));
   }
 
 }
