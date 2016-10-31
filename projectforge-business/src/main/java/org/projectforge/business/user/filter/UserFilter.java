@@ -280,7 +280,15 @@ public class UserFilter implements Filter
         MDC.remove("user");
       }
       if (log.isDebugEnabled() == true) {
-        log.debug("doFilter finished for " + request.getRequestURI() + ": " + request.getSession().getId());
+        StringBuffer sb = new StringBuffer();
+        sb.append("doFilter finished for ");
+        sb.append(request.getRequestURI());
+        if (request.getSession(false) != null) {
+          sb.append(request.getSession(false).getId());
+        } else {
+          sb.append("No active session available.");
+        }
+        log.debug(sb.toString());
       }
     }
   }
