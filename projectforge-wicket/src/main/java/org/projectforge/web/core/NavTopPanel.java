@@ -48,6 +48,7 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.multitenancy.TenantService;
 import org.projectforge.business.user.UserXmlPreferencesCache;
+import org.projectforge.business.vacation.service.VacationService;
 import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.persistence.api.UserRightService;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
@@ -73,7 +74,7 @@ import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
 
 /**
  * Displays the favorite menu.
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 public class NavTopPanel extends NavAbstractPanel
@@ -100,6 +101,9 @@ public class NavTopPanel extends NavAbstractPanel
 
   @SpringBean
   private TenantService tenantService;
+
+  @SpringBean
+  private VacationService vacationService;
 
   /**
    * Cross site request forgery token.
@@ -184,7 +188,9 @@ public class NavTopPanel extends NavAbstractPanel
           {
             final TenantDO currentTenant = userContext.getCurrentTenant();
             return currentTenant != null ? currentTenant.getShortName() : "???";
-          };
+          }
+
+          ;
         }).setRenderBodyOnly(true));
         final RepeatingView tenantsRepeater = new RepeatingView("tenantsRepeater");
         tenantMenu.add(tenantsRepeater);
@@ -198,7 +204,9 @@ public class NavTopPanel extends NavAbstractPanel
             {
               userContext.setCurrentTenant(tenant);
               throw new RestartResponseAtInterceptPageException(getPage().getPageClass());
-            };
+            }
+
+            ;
           };
           li.add(changeTenantLink);
           changeTenantLink.add(new Label("label", tenant.getName()));
@@ -213,13 +221,12 @@ public class NavTopPanel extends NavAbstractPanel
         final BookmarkablePageLink<Void> changePasswordLink = new BookmarkablePageLink<Void>("myAccountLink",
             ChangePasswordPage.class);
         add(changePasswordLink);
+        addVacationViewLink();
       } else {
         final BookmarkablePageLink<Void> myAccountLink = new BookmarkablePageLink<Void>("myAccountLink",
             MyAccountEditPage.class);
         add(myAccountLink);
-        final BookmarkablePageLink<Void> vacationViewLink = new BookmarkablePageLink<Void>("vacationViewLink",
-            VacationViewPage.class);
-        add(vacationViewLink);
+        addVacationViewLink();
       }
       final BookmarkablePageLink<Void> documentationLink = new BookmarkablePageLink<Void>("documentationLink",
           DocumentationPage.class);
@@ -232,13 +239,29 @@ public class NavTopPanel extends NavAbstractPanel
           LoginPage.logout((MySession) getSession(), (WebRequest) getRequest(), (WebResponse) getResponse(),
               userXmlPreferencesCache, menuBuilder);
           setResponsePage(LoginPage.class);
-        };
+        }
+
+        ;
       };
       logoutLink.setMarkupId("logout").setOutputMarkupId(true);
       add(logoutLink);
     }
     addCompleteMenu();
     addFavoriteMenu();
+  }
+
+  private void addVacationViewLink()
+  {
+    final BookmarkablePageLink<Void> vacationViewLink = new BookmarkablePageLink<Void>("vacationViewLink",
+        VacationViewPage.class)
+    {
+      @Override
+      public boolean isVisible()
+      {
+        return vacationService.couldUserUseVacationService(ThreadLocalUserContext.getUser(), false);
+      }
+    };
+    add(vacationViewLink);
   }
 
   @SuppressWarnings("serial")
@@ -260,7 +283,9 @@ public class NavTopPanel extends NavAbstractPanel
           }
         }
         return counter;
-      };
+      }
+
+      ;
     });
     add(totalMenuSuffixLabel);
 

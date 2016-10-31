@@ -27,7 +27,7 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.fibu.EmployeeDO;
 import org.projectforge.business.fibu.api.EmployeeService;
-import org.projectforge.framework.access.AccessException;
+import org.projectforge.business.vacation.service.VacationService;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.web.vacation.helper.VacationViewHelper;
@@ -44,6 +44,9 @@ public class VacationViewPage extends AbstractSecuredPage
   @SpringBean
   private VacationViewHelper vacationViewHelper;
 
+  @SpringBean
+  private VacationService vacationService;
+
   private GridBuilder gridBuilder;
 
   public VacationViewPage(final PageParameters parameters)
@@ -55,16 +58,10 @@ public class VacationViewPage extends AbstractSecuredPage
   {
     super(parameters);
     final PFUserDO currentUser = ThreadLocalUserContext.getUser();
+    vacationService.couldUserUseVacationService(currentUser, true);
     final EmployeeDO currentEmployee = employeeService.getEmployeeByUserId(currentUser.getPk());
-    if (currentEmployee == null) {
-      throw new AccessException("access.exception.noEmployeeToUser");
-    }
-    if (currentEmployee.getUrlaubstage() == null) {
-      throw new AccessException("access.exception.employeeHasNoVacationDays");
-    }
     gridBuilder = new GridBuilder(body, "flowform", true);
     vacationViewHelper.createVacationView(gridBuilder, currentEmployee);
-
   }
 
   @Override

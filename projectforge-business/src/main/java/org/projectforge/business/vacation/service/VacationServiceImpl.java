@@ -10,10 +10,12 @@ import java.util.List;
 import org.projectforge.business.configuration.ConfigurationService;
 import org.projectforge.business.fibu.EmployeeDO;
 import org.projectforge.business.fibu.EmployeeDao;
+import org.projectforge.business.fibu.api.EmployeeService;
 import org.projectforge.business.user.I18nHelper;
 import org.projectforge.business.vacation.model.VacationAttrProperty;
 import org.projectforge.business.vacation.model.VacationDO;
 import org.projectforge.business.vacation.repository.VacationDao;
+import org.projectforge.framework.access.AccessException;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.persistence.history.DisplayHistoryEntry;
 import org.projectforge.framework.persistence.jpa.impl.CorePersistenceServiceImpl;
@@ -45,6 +47,9 @@ public class VacationServiceImpl extends CorePersistenceServiceImpl<Integer, Vac
 
   @Autowired
   private EmployeeDao employeeDao;
+
+  @Autowired
+  private EmployeeService employeeService;
 
   @Override
   public BigDecimal getUsedAndPlanedVacationdays(EmployeeDO employee)
@@ -159,6 +164,28 @@ public class VacationServiceImpl extends CorePersistenceServiceImpl<Integer, Vac
     employee.putAttribute(VacationAttrProperty.PREVIOUSYEARLEAVE.getPropertyName(), availableVacationdays);
     employee.putAttribute(VacationAttrProperty.PREVIOUSYEARLEAVEUSED.getPropertyName(), BigDecimal.ZERO);
     employeeDao.internalSave(employee);
+  }
+
+  @Override
+  public boolean couldUserUseVacationService(PFUserDO user, boolean throwException)
+  {
+    boolean result = true;
+    if (user == null || user.getId() == null) {
+      return false;
+    }
+    EmployeeDO employee = employeeService.getEmployeeByUserId(user.getId());
+    if (employee == null) {
+      if (throwException) {
+        throw new AccessException("access.exception.noEmployeeToUser");
+      }
+      result = false;
+    } else if (employee.getUrlaubstage() == null) {
+      if (throwException) {
+        throw new AccessException("access.exception.employeeHasNoVacationDays");
+      }
+      result = false;
+    }
+    return result;
   }
 
   @Override
