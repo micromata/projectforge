@@ -21,7 +21,7 @@ public class UpdateVacationFromLastYearJob
   @Autowired
   private EmployeeService employeeService;
 
-  @Scheduled(cron = "0 1 1 1 * *")
+  @Scheduled(cron = "0 0 23 31 12 *")
   public void updateNewVacationDaysFromLastYear()
   {
     log.info("Update vacation days from last year");

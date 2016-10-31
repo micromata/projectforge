@@ -144,7 +144,7 @@ public class VacationEditForm extends AbstractEditForm<VacationDO, VacationEditP
         }
       });
       startDatePanel.setRequired(true).setMarkupId("vacation-startdate").setOutputMarkupId(true);
-      startDatePanel.setEnabled(isNotApprovedOrHRWritePermission());
+      startDatePanel.setEnabled(checkEnableInputField());
       formValidator.getDependentFormComponents()[0] = startDatePanel;
       fs.add(startDatePanel);
     }
@@ -169,7 +169,7 @@ public class VacationEditForm extends AbstractEditForm<VacationDO, VacationEditP
         }
       });
       endDatePanel.setRequired(true).setMarkupId("vacation-enddate").setOutputMarkupId(true);
-      endDatePanel.setEnabled(isNotApprovedOrHRWritePermission());
+      endDatePanel.setEnabled(checkEnableInputField());
       formValidator.getDependentFormComponents()[1] = endDatePanel;
       fs.add(endDatePanel);
     }
@@ -207,7 +207,7 @@ public class VacationEditForm extends AbstractEditForm<VacationDO, VacationEditP
           new PropertyModel<>(data, "manager"),
           new EmployeeWicketProvider(employeeService));
       managerSelect.setRequired(true).setMarkupId("vacation-manager").setOutputMarkupId(true);
-      managerSelect.setEnabled(isNotApprovedOrHRWritePermission());
+      managerSelect.setEnabled(checkEnableInputField());
       fs.add(new Select2SingleChoicePanel<EmployeeDO>(fs.newChildId(), managerSelect));
     }
 
@@ -219,7 +219,7 @@ public class VacationEditForm extends AbstractEditForm<VacationDO, VacationEditP
           new PropertyModel<>(data, "substitution"),
           new EmployeeWicketProvider(employeeService));
       substitutionSelect.setRequired(true).setMarkupId("vacation-substitution").setOutputMarkupId(true);
-      substitutionSelect.setEnabled(isNotApprovedOrHRWritePermission());
+      substitutionSelect.setEnabled(checkEnableInputField());
       fs.add(new Select2SingleChoicePanel<EmployeeDO>(fs.newChildId(), substitutionSelect));
     }
 
@@ -238,13 +238,19 @@ public class VacationEditForm extends AbstractEditForm<VacationDO, VacationEditP
     }
   }
 
-  private boolean isNotApprovedOrHRWritePermission()
+  private boolean checkEnableInputField()
   {
-    boolean result = true;
+    boolean result = false;
     if (data != null) {
-      result = VacationStatus.APPROVED.equals(data.getStatus()) == false;
-      if (accessChecker.hasLoggedInUserRight(UserRightId.HR_VACATION, false, UserRightValue.READWRITE) == true) {
-        result = true;
+      if (VacationStatus.APPROVED.equals(data.getStatus()) == true) {
+        if (accessChecker.hasLoggedInUserRight(UserRightId.HR_VACATION, false, UserRightValue.READWRITE) == true) {
+          result = true;
+        }
+      } else {
+        if (data.getEmployee().getUser().getPk().equals(ThreadLocalUserContext.getUserId()) || accessChecker
+            .hasLoggedInUserRight(UserRightId.HR_VACATION, false, UserRightValue.READWRITE)) {
+          result = true;
+        }
       }
     }
     return result;
