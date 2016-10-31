@@ -56,8 +56,11 @@ public class VacationViewPage extends AbstractSecuredPage
     super(parameters);
     final PFUserDO currentUser = ThreadLocalUserContext.getUser();
     final EmployeeDO currentEmployee = employeeService.getEmployeeByUserId(currentUser.getPk());
-    if (employeeService.getEmployeeByUserId(currentUser.getPk()) == null) {
+    if (currentEmployee == null) {
       throw new AccessException("access.exception.noEmployeeToUser");
+    }
+    if (currentEmployee.getUrlaubstage() == null) {
+      throw new AccessException("access.exception.employeeHasNoVacationDays");
     }
     gridBuilder = new GridBuilder(body, "flowform", true);
     vacationViewHelper.createVacationView(gridBuilder, currentEmployee);
