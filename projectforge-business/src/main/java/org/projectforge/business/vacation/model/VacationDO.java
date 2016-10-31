@@ -90,6 +90,9 @@ public class VacationDO extends DefaultBaseDO
   @PropertyInfo(i18nKey = "vacation.workingdays")
   private BigDecimal workingdays;
 
+  @PropertyInfo(i18nKey = "vacation.isSpecial")
+  private boolean isSpecial;
+
   /**
    * The employee.
    *
@@ -198,4 +201,14 @@ public class VacationDO extends DefaultBaseDO
     return this.workingdays;
   }
 
+  @Column(name = "is_special")
+  public boolean isSpecial()
+  {
+    return isSpecial;
+  }
+
+  public void setSpecial(boolean special)
+  {
+    isSpecial = special;
+  }
 }

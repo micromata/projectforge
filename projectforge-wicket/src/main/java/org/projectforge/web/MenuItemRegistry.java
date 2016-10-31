@@ -23,10 +23,7 @@
 
 package org.projectforge.web;
 
-import static org.projectforge.business.user.ProjectForgeGroup.ADMIN_GROUP;
-import static org.projectforge.business.user.ProjectForgeGroup.CONTROLLING_GROUP;
-import static org.projectforge.business.user.ProjectForgeGroup.FINANCE_GROUP;
-import static org.projectforge.business.user.ProjectForgeGroup.HR_GROUP;
+import static org.projectforge.business.user.ProjectForgeGroup.*;
 import static org.projectforge.framework.persistence.api.UserRightService.READONLY_PARTLYREADWRITE_READWRITE;
 import static org.projectforge.framework.persistence.api.UserRightService.READONLY_READWRITE;
 
@@ -58,9 +55,11 @@ import org.projectforge.business.orga.PosteingangDao;
 import org.projectforge.business.user.ProjectForgeGroup;
 import org.projectforge.business.user.UserRightId;
 import org.projectforge.business.user.UserRightValue;
+import org.projectforge.business.vacation.service.VacationService;
 import org.projectforge.framework.configuration.Configuration;
 import org.projectforge.framework.configuration.SecurityConfig;
 import org.projectforge.framework.persistence.api.UserRightService;
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.web.access.AccessListPage;
 import org.projectforge.web.address.AddressListPage;
@@ -123,9 +122,8 @@ import org.springframework.stereotype.Component;
  * by the order number of the menu item definitions. <br/>
  * This menu item registry is the central instance for handling the order and common visibility of menu items. It
  * doesn't represent the individual user's menu (the individual user's menu is generated out of this registry).
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
  */
 @Component
 public class MenuItemRegistry implements Serializable
@@ -139,6 +137,9 @@ public class MenuItemRegistry implements Serializable
 
   @Autowired
   private ConfigurationService configurationService;
+
+  @Autowired
+  private VacationService vacationService;
 
   @PostConstruct
   public void init()
@@ -169,7 +170,7 @@ public class MenuItemRegistry implements Serializable
   /**
    * Registers menu entry definition. It's important that a parent menu entry item definition is registered before its
    * sub menu entry items.
-   * 
+   *
    * @param menuItemDef
    * @return
    */
@@ -427,7 +428,17 @@ public class MenuItemRegistry implements Serializable
 
     // ADMINISTRATION
     reg.register(admin, MenuItemDefId.MY_ACCOUNT, 10, MyAccountEditPage.class);
-    reg.register(admin, MenuItemDefId.VACATION_VIEW, 10, VacationViewPage.class);
+    reg.register(
+        new MenuItemDef(admin, MenuItemDefId.VACATION_VIEW.getId(), 11, MenuItemDefId.VACATION_VIEW.getI18nKey(),
+            VacationViewPage.class)
+        {
+          @Override
+          protected boolean isVisible(final MenuBuilderContext context)
+          {
+            return vacationService.couldUserUseVacationService(ThreadLocalUserContext.getUser(), false);
+          }
+        }
+    );
     reg.register(admin, MenuItemDefId.MY_PREFERENCES, 20, UserPrefListPage.class);
     reg.register(
         new MenuItemDef(admin, MenuItemDefId.CHANGE_PASSWORD.getId(), 30, MenuItemDefId.CHANGE_PASSWORD.getI18nKey(),

@@ -10,6 +10,7 @@ import org.projectforge.business.fibu.EmployeeDO;
 import org.projectforge.business.vacation.model.VacationDO;
 import org.projectforge.framework.persistence.api.IDao;
 import org.projectforge.framework.persistence.api.IPersistenceService;
+import org.projectforge.framework.persistence.user.entities.PFUserDO;
 
 /**
  * Access to vacation.
@@ -115,4 +116,13 @@ public interface VacationService extends IPersistenceService<VacationDO>, IDao<V
    * @param emp
    */
   void updateUsedNewVacationDaysFromLastYear(EmployeeDO emp);
+
+  /**
+   * Check, if user is able to use vacation services.
+   *
+   * @param user
+   * @param throwException
+   * @return
+   */
+  boolean couldUserUseVacationService(PFUserDO user, boolean throwException);
 }

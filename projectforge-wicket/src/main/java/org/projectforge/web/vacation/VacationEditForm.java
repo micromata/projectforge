@@ -85,14 +85,9 @@ public class VacationEditForm extends AbstractEditForm<VacationDO, VacationEditP
   public VacationEditForm(final VacationEditPage parentPage, final VacationDO data)
   {
     super(parentPage, data);
+    vacationService.couldUserUseVacationService(ThreadLocalUserContext.getUser(), true);
     if (data.getEmployee() == null) {
       data.setEmployee(employeeService.getEmployeeByUserId(ThreadLocalUserContext.getUserId()));
-    }
-    if (data.getEmployee() == null) {
-      throw new AccessException("access.exception.noEmployeeToUser");
-    }
-    if (data.getEmployee().getUrlaubstage() == null) {
-      throw new AccessException("access.exception.employeeHasNoVacationDays");
     }
     if (isNew() == false) {
       statusBeforeModification = data.getStatus();
