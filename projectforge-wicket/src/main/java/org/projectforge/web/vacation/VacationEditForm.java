@@ -24,6 +24,7 @@
 package org.projectforge.web.vacation;
 
 import java.math.BigDecimal;
+import java.util.Calendar;
 
 import org.apache.log4j.Logger;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -172,7 +173,13 @@ public class VacationEditForm extends AbstractEditForm<VacationDO, VacationEditP
     {
       // Available vacation days
       final FieldsetPanel fs = gridBuilder.newFieldset(I18nHelper.getLocalizedMessage("vacation.availabledays"));
-      BigDecimal availableVacationDays = vacationService.getAvailableVacationdays(data.getEmployee(), true);
+      BigDecimal availableVacationDays = null;
+      if (data.getStartDate() != null) {
+        availableVacationDays = vacationService.getAvailableVacationdaysForYear(data.getEmployee(), data.getStartDate().getYear(), true);
+      } else {
+        Calendar now = Calendar.getInstance(ThreadLocalUserContext.getTimeZone());
+        availableVacationDays = vacationService.getAvailableVacationdaysForYear(data.getEmployee(), now.get(Calendar.YEAR), true);
+      }
       LabelPanel availablePanel = new LabelPanel(fs.newChildId(), availableVacationDays.toString());
       availablePanel.setMarkupId("vacation-availableDays").setOutputMarkupId(true);
       fs.add(availablePanel);
@@ -229,6 +236,7 @@ public class VacationEditForm extends AbstractEditForm<VacationDO, VacationEditP
       statusChoice.setNullValid(false).setRequired(true);
       statusChoice.setMarkupId("vacation-status").setOutputMarkupId(true);
       statusChoice.setEnabled(hasUserEditStatusRight());
+      formValidator.getDependentFormComponents()[2] = statusChoice;
       fs.add(statusChoice);
     }
   }

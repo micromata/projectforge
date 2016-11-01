@@ -34,9 +34,10 @@ public interface VacationService extends IPersistenceService<VacationDO>, IDao<V
    * Getting all not deleted vacations for given employee of the current year.
    *
    * @param employee
+   * @param year
    * @return List of vacations
    */
-  List<VacationDO> getActiveVacationForCurrentYear(EmployeeDO employee);
+  List<VacationDO> getActiveVacationForYear(EmployeeDO employee, int year);
 
   /**
    * Getting vacation for given ids.
@@ -50,34 +51,38 @@ public interface VacationService extends IPersistenceService<VacationDO>, IDao<V
    * Returns the number of available vacation
    *
    * @param employee
+   * @param year
    * @param checkLastYear
    * @return number of available vacation
    */
-  BigDecimal getAvailableVacationdays(EmployeeDO employee, boolean checkLastYear);
+  BigDecimal getAvailableVacationdaysForYear(EmployeeDO employee, int year, boolean checkLastYear);
 
   /**
    * Returns the number of used vacation days
    *
    * @param employee
+   * @param year
    * @return number of used vacation days
    */
-  BigDecimal getUsedVacationdays(EmployeeDO employee);
+  BigDecimal getUsedVacationdaysForYear(EmployeeDO employee, int year);
 
   /**
    * Returns the number of planed vacation days
    *
    * @param currentEmployee
+   * @param year
    * @return number of used vacation days
    */
-  BigDecimal getPlanedVacationdays(EmployeeDO currentEmployee);
+  BigDecimal getPlanedVacationdaysForYear(EmployeeDO currentEmployee, int year);
 
   /**
    * Getting the number of used and planned vacation days
    *
    * @param employee
+   * @param year
    * @return number of used vacation days
    */
-  BigDecimal getUsedAndPlanedVacationdays(EmployeeDO employee);
+  BigDecimal getUsedAndPlanedVacationdaysForYear(EmployeeDO employee, int year);
 
   /**
    * Sends an information mail to the vacation data users involved
@@ -114,8 +119,9 @@ public interface VacationService extends IPersistenceService<VacationDO>, IDao<V
    * Calculates the vacationsdays from last year and updates it.
    *
    * @param emp
+   * @param year
    */
-  void updateUsedNewVacationDaysFromLastYear(EmployeeDO emp);
+  void updateUsedNewVacationDaysFromLastYear(EmployeeDO emp, int year);
 
   /**
    * Check, if user is able to use vacation services.
@@ -125,4 +131,12 @@ public interface VacationService extends IPersistenceService<VacationDO>, IDao<V
    * @return
    */
   boolean couldUserUseVacationService(PFUserDO user, boolean throwException);
+
+  /**
+   * Load all active vacations (not marked as deleted)
+   *
+   * @param employee
+   * @return
+   */
+  List<VacationDO> getAllActiveVacation(EmployeeDO employee);
 }

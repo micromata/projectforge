@@ -5,13 +5,16 @@ import java.util.Calendar;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.form.validation.IFormValidator;
 import org.projectforge.business.user.I18nHelper;
 import org.projectforge.business.vacation.model.VacationAttrProperty;
 import org.projectforge.business.vacation.model.VacationDO;
+import org.projectforge.business.vacation.model.VacationStatus;
 import org.projectforge.business.vacation.service.VacationService;
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.time.DayHolder;
 import org.projectforge.web.wicket.components.DatePanel;
 
@@ -20,7 +23,7 @@ public class VacationFormValidator implements IFormValidator
   private static final long serialVersionUID = -8478416045860851983L;
 
   // Components for form validation.
-  private final FormComponent<?>[] dependentFormComponents = new FormComponent[2];
+  private final FormComponent<?>[] dependentFormComponents = new FormComponent[3];
 
   private VacationService vacationService;
 
@@ -37,9 +40,24 @@ public class VacationFormValidator implements IFormValidator
   {
     final DatePanel startDatePanel = (DatePanel) dependentFormComponents[0];
     final DatePanel endDatePanel = (DatePanel) dependentFormComponents[1];
+    final DropDownChoice<VacationStatus> statusChoice = (DropDownChoice<VacationStatus>) dependentFormComponents[2];
+
+    if (VacationStatus.APPROVED.equals(statusChoice.getConvertedInput())) {
+      return;
+    }
+
+    Calendar startDate = Calendar.getInstance(ThreadLocalUserContext.getTimeZone());
+    startDate.setTime(data.getStartDate());
+    Calendar endDate = Calendar.getInstance(ThreadLocalUserContext.getTimeZone());
+    endDate.setTime(data.getEndDate());
 
     if (endDatePanel.getConvertedInput().before(startDatePanel.getConvertedInput())) {
       form.error(I18nHelper.getLocalizedMessage("vacation.validate.endbeforestart"));
+      return;
+    }
+
+    if (endDate.get(Calendar.YEAR) > startDate.get(Calendar.YEAR)) {
+      form.error(I18nHelper.getLocalizedMessage("vacation.validate.vacationIn2Years"));
       return;
     }
 
@@ -65,7 +83,7 @@ public class VacationFormValidator implements IFormValidator
         BigDecimal.class) : BigDecimal.ZERO;
 
     //Negative
-    BigDecimal usedVacationDaysWholeYear = vacationService.getUsedAndPlanedVacationdays(data.getEmployee());
+    BigDecimal usedVacationDaysWholeYear = vacationService.getUsedAndPlanedVacationdaysForYear(data.getEmployee(), startDate.get(Calendar.YEAR));
     BigDecimal usedVacationDaysFromLastYear = data.getEmployee().getAttribute(
         VacationAttrProperty.PREVIOUSYEARLEAVEUSED.getPropertyName(),
         BigDecimal.class) != null ? data.getEmployee().getAttribute(
