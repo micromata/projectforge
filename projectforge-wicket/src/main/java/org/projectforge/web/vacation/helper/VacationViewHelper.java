@@ -59,11 +59,11 @@ public class VacationViewHelper
             .getAttribute(VacationAttrProperty.PREVIOUSYEARLEAVEUSED.getPropertyName(), BigDecimal.class).toString()
             : "0");
     appendFieldset(gridBuilder, "vacation.usedvacation",
-        vacationService.getUsedVacationdays(currentEmployee).toString());
+        vacationService.getUsedVacationdaysForYear(currentEmployee, now.get(Calendar.YEAR)).toString());
     appendFieldset(gridBuilder, "vacation.planedvacation",
-        vacationService.getPlanedVacationdays(currentEmployee).toString());
+        vacationService.getPlanedVacationdaysForYear(currentEmployee, now.get(Calendar.YEAR)).toString());
     appendFieldset(gridBuilder, "vacation.availablevacation",
-        vacationService.getAvailableVacationdays(currentEmployee, true).toString());
+        vacationService.getAvailableVacationdaysForYear(currentEmployee, now.get(Calendar.YEAR), true).toString());
     section.add(new Heading3Panel(section.newChildId(),
         I18nHelper.getLocalizedMessage("vacation.title.list") + " " + now.get(Calendar.YEAR)));
     TablePanel tablePanel = new TablePanel(section.newChildId());

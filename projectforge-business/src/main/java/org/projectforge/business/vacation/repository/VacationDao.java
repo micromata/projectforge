@@ -51,7 +51,6 @@ import org.springframework.stereotype.Repository;
  * DAO für Urlaubsanträge.
  *
  * @author Florian Blumenstein
- *
  */
 @Repository
 public class VacationDao extends BaseDao<VacationDO>
@@ -116,17 +115,28 @@ public class VacationDao extends BaseDao<VacationDO>
     return getList(queryFilter);
   }
 
-  public List<VacationDO> getActiveVacationForCurrentYear(EmployeeDO employee)
+  public List<VacationDO> getActiveVacationForYear(EmployeeDO employee, int year)
   {
     List<VacationDO> result = new ArrayList<>();
-    Calendar today = new GregorianCalendar(ThreadLocalUserContext.getTimeZone());
-    Calendar startYear = new GregorianCalendar(today.get(Calendar.YEAR), Calendar.JANUARY, 1);
-    Calendar endYear = new GregorianCalendar(today.get(Calendar.YEAR), Calendar.DECEMBER, 31);
+    Calendar startYear = new GregorianCalendar(year, Calendar.JANUARY, 1);
+    Calendar endYear = new GregorianCalendar(year, Calendar.DECEMBER, 31);
     result = emgrFactory.runRoTrans(emgr -> {
       String baseSQL = "SELECT v FROM VacationDO v WHERE v.employee = :employee AND v.startDate >= :startDate AND v.startDate <= :endDate";
       List<VacationDO> dbResultList = emgr.selectDetached(VacationDO.class, baseSQL + META_SQL, "employee", employee,
           "startDate", startYear.getTime(), "endDate", endYear.getTime(),
           "deleted", false, "tenant", ThreadLocalUserContext.getUser().getTenant());
+      return dbResultList;
+    });
+    return result;
+  }
+
+  public List<VacationDO> getAllActiveVacation(EmployeeDO employee)
+  {
+    List<VacationDO> result = new ArrayList<>();
+    result = emgrFactory.runRoTrans(emgr -> {
+      String baseSQL = "SELECT v FROM VacationDO v WHERE v.employee = :employee";
+      List<VacationDO> dbResultList = emgr
+          .selectDetached(VacationDO.class, baseSQL + META_SQL, "employee", employee, "deleted", false, "tenant", ThreadLocalUserContext.getUser().getTenant());
       return dbResultList;
     });
     return result;

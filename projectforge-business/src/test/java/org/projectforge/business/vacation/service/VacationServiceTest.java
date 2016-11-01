@@ -51,6 +51,8 @@ public class VacationServiceTest extends PowerMockTestCase
   @Mock
   private EmployeeDO employee;
 
+  private Calendar now = Calendar.getInstance();
+
   Calendar endLastYear = Calendar.getInstance();
 
   @BeforeMethod
@@ -208,7 +210,7 @@ public class VacationServiceTest extends PowerMockTestCase
   @Test
   public void testGetAvailableVacationdaysNull()
   {
-    BigDecimal availableVacationdays = vacationService.getAvailableVacationdays(null, false);
+    BigDecimal availableVacationdays = vacationService.getAvailableVacationdaysForYear(null, 0, false);
     assertEquals(availableVacationdays, BigDecimal.ZERO);
   }
 
@@ -216,9 +218,9 @@ public class VacationServiceTest extends PowerMockTestCase
   public void testGetAvailableVacationdaysNoDaysUsed()
   {
     List<VacationDO> vacationList = new ArrayList<>();
-    when(vacationDao.getActiveVacationForCurrentYear(employee)).thenReturn(vacationList);
+    when(vacationDao.getActiveVacationForYear(employee, now.get(Calendar.YEAR))).thenReturn(vacationList);
     when(employee.getUrlaubstage()).thenReturn(30);
-    BigDecimal availableVacationdays = vacationService.getAvailableVacationdays(employee, false);
+    BigDecimal availableVacationdays = vacationService.getAvailableVacationdaysForYear(employee, now.get(Calendar.YEAR), false);
     assertEquals(availableVacationdays, new BigDecimal(30));
   }
 
@@ -237,9 +239,9 @@ public class VacationServiceTest extends PowerMockTestCase
     vacation.setEndDate(endDate.getTime());
     vacationList.add(vacation);
     BigDecimal numberOfDays = DayHolder.getNumberOfWorkingDays(vacation.getStartDate(), vacation.getEndDate());
-    when(vacationDao.getActiveVacationForCurrentYear(employee)).thenReturn(vacationList);
+    when(vacationDao.getActiveVacationForYear(employee, now.get(Calendar.YEAR))).thenReturn(vacationList);
     when(employee.getUrlaubstage()).thenReturn(30);
-    BigDecimal availableVacationdays = vacationService.getAvailableVacationdays(employee, false);
+    BigDecimal availableVacationdays = vacationService.getAvailableVacationdaysForYear(employee, now.get(Calendar.YEAR), false);
     assertEquals(availableVacationdays, new BigDecimal(30).subtract(numberOfDays));
   }
 

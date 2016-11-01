@@ -46,9 +46,8 @@ import org.projectforge.framework.utils.MyBeanComparator;
 
 /**
  * Stores list of result sets (id's) for pagination and provides iterator of data-base objects on demand.
- * 
+ *
  * @author Florian Blumenstein
- * 
  */
 public class VacationViewPageSortableDataProvider<T extends IdObject<?>>
     extends SortableDataProvider<VacationDO, String>
@@ -170,7 +169,7 @@ public class VacationViewPageSortableDataProvider<T extends IdObject<?>>
 
   private void reloadList()
   {
-    final List<VacationDO> list = vacationService.getActiveVacationForCurrentYear(employee);
+    final List<VacationDO> list = vacationService.getAllActiveVacation(employee);
     setCompleteList(list);
   }
 

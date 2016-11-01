@@ -751,7 +751,7 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
    * This method will be called after updating. Does nothing at default. PLEASE NOTE: If you overload this method don't
    * forget to set {@link #supportAfterUpdate} to true, otherwise you won't get the origin data base object!
    *
-   * @param obj The modified object
+   * @param obj   The modified object
    * @param dbObj The object from data base before modification.
    */
   protected void afterUpdate(final O obj, final O dbObj)
@@ -762,8 +762,8 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
    * This method will be called after updating. Does nothing at default. PLEASE NOTE: If you overload this method don't
    * forget to set {@link #supportAfterUpdate} to true, otherwise you won't get the origin data base object!
    *
-   * @param obj The modified object
-   * @param dbObj The object from data base before modification.
+   * @param obj        The modified object
+   * @param dbObj      The object from data base before modification.
    * @param isModified is true if the object was changed, false if the object wasn't modified.
    */
   protected void afterUpdate(final O obj, final O dbObj, final boolean isModified)
@@ -774,7 +774,7 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
    * This method will be called before updating the data object. Will also called if in internalUpdate no modification
    * was detected. Please note: Do not modify the object oldVersion! Does nothing at default.
    *
-   * @param obj The changed object.
+   * @param obj   The changed object.
    * @param dbObj The current data base version of this object.
    */
   protected void onChange(final O obj, final O dbObj)
@@ -997,8 +997,8 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
 
   /**
    * @return If true (default if not minor Change) all dependent data-base objects will be re-indexed. For e. g.
-   *         PFUserDO all time-sheets etc. of this user will be re-indexed. It's called after internalUpdate. Refer
-   *         UserDao to see more.
+   * PFUserDO all time-sheets etc. of this user will be re-indexed. It's called after internalUpdate. Refer
+   * UserDao to see more.
    * @see BaseDO#isMinorChange()
    */
   protected boolean wantsReindexAllDependentObjects(final O obj, final O dbObj)
@@ -1275,8 +1275,8 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
    * is called and returned. If not given a UnsupportedOperationException is thrown. Checks the user's access to the
    * given object.
    *
-   * @param obj The object.
-   * @param obj The old version of the object (is only given for operationType {@link OperationType#UPDATE}).
+   * @param obj           The object.
+   * @param obj           The old version of the object (is only given for operationType {@link OperationType#UPDATE}).
    * @param operationType The operation type (select, insert, update or delete)
    * @return true, if the user has the access right for the given operation type and object.
    */
@@ -1291,9 +1291,9 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
    * is called and returned. If not given a UnsupportedOperationException is thrown. Checks the user's access to the
    * given object.
    *
-   * @param user Check the access for the given user instead of the logged-in user.
-   * @param obj The object.
-   * @param obj The old version of the object (is only given for operationType {@link OperationType#UPDATE}).
+   * @param user          Check the access for the given user instead of the logged-in user.
+   * @param obj           The object.
+   * @param obj           The old version of the object (is only given for operationType {@link OperationType#UPDATE}).
    * @param operationType The operation type (select, insert, update or delete)
    * @return true, if the user has the access right for the given operation type and object.
    */
@@ -1319,8 +1319,8 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
 
   /**
    * @param user Check the access for the given user instead of the logged-in user. Checks select access right by
-   *          calling hasAccess(obj, OperationType.SELECT).
-   * @param obj Check access to this object.
+   *             calling hasAccess(obj, OperationType.SELECT).
+   * @param obj  Check access to this object.
    * @return
    * @see #hasAccess(user, Object, Object, OperationType, boolean)
    */
@@ -1438,7 +1438,7 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
    * Checks update access right by calling hasAccess(obj, OperationType.UPDATE).
    *
    * @param dbObj The original object (stored in the database)
-   * @param obj Check access to this object.
+   * @param obj   Check access to this object.
    * @return
    * @see #hasAccess(Object, OperationType)
    */
@@ -1452,7 +1452,7 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
    * Checks update access right by calling hasAccess(obj, OperationType.UPDATE).
    *
    * @param dbObj The original object (stored in the database)
-   * @param obj Check access to this object.
+   * @param obj   Check access to this object.
    * @return
    * @see #hasAccess(Object, OperationType)
    */
@@ -1464,7 +1464,7 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
   /**
    * Checks delete access right by calling hasAccess(obj, OperationType.DELETE).
    *
-   * @param obj Check access to this object.
+   * @param obj   Check access to this object.
    * @param dbObj current version of this object in the data base.
    * @return
    * @see #hasAccess(Object, OperationType)
@@ -1478,7 +1478,7 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
   /**
    * Checks delete access right by calling hasAccess(obj, OperationType.DELETE).
    *
-   * @param obj Check access to this object.
+   * @param obj   Check access to this object.
    * @param dbObj current version of this object in the data base.
    * @return
    * @see #hasAccess(Object, OperationType)
@@ -1528,7 +1528,7 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
   /**
    * Only generic check access will be done. The matching entries will not be checked!
    *
-   * @param property Property of the data base entity.
+   * @param property     Property of the data base entity.
    * @param searchString String the user has typed in.
    * @return All matching entries (like search) for the given property modified or updated in the last 2 years.
    */
@@ -1630,7 +1630,7 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
    *
    * @param entry
    * @param master
-   * @param store Object created with prepareMassUpdateStore if needed. Null at default.
+   * @param store  Object created with prepareMassUpdateStore if needed. Null at default.
    * @return true, if entry is ready for update otherwise false (no update will be done for this entry).
    */
   protected boolean massUpdateEntry(final O entry, final O master, final Object store)
@@ -1749,5 +1749,4 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
     // TODO RK not detached here
     return getById(pk);
   }
-
 }
