@@ -11,12 +11,14 @@ import java.util.GregorianCalendar;
 import java.util.Locale;
 import java.util.TimeZone;
 
+import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.Form;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.testng.PowerMockTestCase;
 import org.projectforge.business.fibu.EmployeeDO;
 import org.projectforge.business.vacation.model.VacationAttrProperty;
 import org.projectforge.business.vacation.model.VacationDO;
+import org.projectforge.business.vacation.model.VacationStatus;
 import org.projectforge.business.vacation.service.VacationService;
 import org.projectforge.framework.configuration.ConfigXml;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
@@ -39,6 +41,8 @@ public class VacationFormValidatorTest extends PowerMockTestCase
 
   private DatePanel endDatePanel;
 
+  private DropDownChoice<VacationStatus> statusChoice;
+
   @BeforeMethod
   public void setUp()
   {
@@ -49,6 +53,7 @@ public class VacationFormValidatorTest extends PowerMockTestCase
     this.endDate = new GregorianCalendar();
     this.startDatePanel = mock(DatePanel.class);
     this.endDatePanel = mock(DatePanel.class);
+    this.statusChoice = mock(DropDownChoice.class);
     mockStatic(ThreadLocalUserContext.class);
     mockStatic(ConfigXml.class);
     Locale locale = Locale.getDefault();
@@ -199,8 +204,10 @@ public class VacationFormValidatorTest extends PowerMockTestCase
     VacationFormValidator validator = new VacationFormValidator(vacationService, newVacationData);
     when(startDatePanel.getConvertedInput()).thenReturn(startDate.getTime());
     when(endDatePanel.getConvertedInput()).thenReturn(endDate.getTime());
+    when(statusChoice.getConvertedInput()).thenReturn(VacationStatus.IN_PROGRESS);
     validator.getDependentFormComponents()[0] = startDatePanel;
     validator.getDependentFormComponents()[1] = endDatePanel;
+    validator.getDependentFormComponents()[2] = statusChoice;
     return validator;
   }
 

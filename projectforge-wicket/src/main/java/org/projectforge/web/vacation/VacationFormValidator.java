@@ -42,7 +42,8 @@ public class VacationFormValidator implements IFormValidator
     final DatePanel endDatePanel = (DatePanel) dependentFormComponents[1];
     final DropDownChoice<VacationStatus> statusChoice = (DropDownChoice<VacationStatus>) dependentFormComponents[2];
 
-    if (VacationStatus.APPROVED.equals(statusChoice.getConvertedInput())) {
+    if (VacationStatus.IN_PROGRESS.equals(data.getStatus()) && (VacationStatus.APPROVED.equals(statusChoice.getConvertedInput()) || VacationStatus.REJECTED
+        .equals(statusChoice.getConvertedInput()))) {
       return;
     }
 
