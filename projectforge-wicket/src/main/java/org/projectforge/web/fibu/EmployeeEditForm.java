@@ -260,16 +260,22 @@ public class EmployeeEditForm extends AbstractEditForm<EmployeeDO, EmployeeEditP
       fs.add(new MinMaxNumberField<>(InputPanel.WICKET_ID, new PropertyModel<>(data, "urlaubstage"), 0, 366));
     }
     {
+      EmployeeVacationFormValidator validator = new EmployeeVacationFormValidator();
       // Holidays from previous year
-      final FieldsetPanel fs = gridBuilder.newFieldset(I18nHelper.getLocalizedMessage("vacation.previousyearleave"));
-      IModel<BigDecimal> model = new AttrModel<>(data, VacationAttrProperty.PREVIOUSYEARLEAVE.getPropertyName(), BigDecimal.class);
-      fs.add(new MinMaxNumberField<>(InputPanel.WICKET_ID, model, BigDecimal.ZERO, new BigDecimal(366)));
-    }
-    {
+      final FieldsetPanel fsPreviousYear = gridBuilder.newFieldset(I18nHelper.getLocalizedMessage("vacation.previousyearleave"));
+      IModel<BigDecimal> modelPreviousYear = new AttrModel<>(data, VacationAttrProperty.PREVIOUSYEARLEAVE.getPropertyName(), BigDecimal.class);
+      MinMaxNumberField<BigDecimal> fieldPreviousYear = new MinMaxNumberField<>(InputPanel.WICKET_ID, modelPreviousYear, BigDecimal.ZERO, new BigDecimal(366));
+      validator.getDependentFormComponents()[0] = fieldPreviousYear;
+      fsPreviousYear.add(fieldPreviousYear);
+
       // Holidays from previous year used
-      final FieldsetPanel fs = gridBuilder.newFieldset(I18nHelper.getLocalizedMessage("vacation.previousyearleaveused"));
-      IModel<BigDecimal> model = new AttrModel<>(data, VacationAttrProperty.PREVIOUSYEARLEAVEUSED.getPropertyName(), BigDecimal.class);
-      fs.add(new MinMaxNumberField<>(InputPanel.WICKET_ID, model, BigDecimal.ZERO, new BigDecimal(366)));
+      final FieldsetPanel fsPreviousYearUsed = gridBuilder.newFieldset(I18nHelper.getLocalizedMessage("vacation.previousyearleaveused"));
+      IModel<BigDecimal> modelPreviousYearUsed = new AttrModel<>(data, VacationAttrProperty.PREVIOUSYEARLEAVEUSED.getPropertyName(), BigDecimal.class);
+      MinMaxNumberField<BigDecimal> fieldPreviousYearUsed = new MinMaxNumberField<>(InputPanel.WICKET_ID, modelPreviousYearUsed, BigDecimal.ZERO,
+          new BigDecimal(366));
+      validator.getDependentFormComponents()[1] = fieldPreviousYearUsed;
+      fsPreviousYearUsed.add(fieldPreviousYearUsed);
+      add(validator);
     }
     {
       // Start date
