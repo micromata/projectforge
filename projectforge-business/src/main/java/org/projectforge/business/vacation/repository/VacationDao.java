@@ -55,7 +55,7 @@ import org.springframework.stereotype.Repository;
 @Repository
 public class VacationDao extends BaseDao<VacationDO>
 {
-  private final static String META_SQL = " AND v.deleted = :deleted AND v.tenant = :tenant";
+  private final static String META_SQL = " AND v.isSpecial = false AND v.deleted = :deleted AND v.tenant = :tenant";
 
   @Autowired
   private AccessChecker accessChecker;
