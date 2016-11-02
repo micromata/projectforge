@@ -261,7 +261,7 @@ public class AuftragEditForm extends AbstractEditForm<AuftragDO, AuftragEditPage
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("fibu.auftrag.datum"));
       final DatePanel angebotsDatumPanel = new DatePanel(fs.newChildId(),
           new PropertyModel<Date>(data, "angebotsDatum"), DatePanelSettings
-              .get().withTargetType(java.sql.Date.class));
+          .get().withTargetType(java.sql.Date.class));
       angebotsDatumPanel.setRequired(true);
       fs.add(angebotsDatumPanel);
     }
@@ -271,7 +271,7 @@ public class AuftragEditForm extends AbstractEditForm<AuftragDO, AuftragEditPage
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("fibu.auftrag.bindungsFrist"));
       final DatePanel bindungsFristPanel = new DatePanel(fs.newChildId(),
           new PropertyModel<Date>(data, "bindungsFrist"), DatePanelSettings
-              .get().withTargetType(java.sql.Date.class));
+          .get().withTargetType(java.sql.Date.class));
       fs.add(bindungsFristPanel);
     }
     gridBuilder.newSplitPanel(GridSize.COL50);
@@ -302,11 +302,13 @@ public class AuftragEditForm extends AbstractEditForm<AuftragDO, AuftragEditPage
       fromDatePanel = new DatePanel(fs.newChildId(), new PropertyModel<Date>(data, "periodOfPerformanceBegin"),
           DatePanelSettings.get()
               .withTargetType(java.sql.Date.class));
+      fromDatePanel.setRequired(true);
       fs.add(fromDatePanel);
       fs.add(new DivTextPanel(fs.newChildId(), "-"));
       endDatePanel = new DatePanel(fs.newChildId(), new PropertyModel<Date>(data, "periodOfPerformanceEnd"),
           DatePanelSettings.get()
               .withTargetType(java.sql.Date.class));
+      endDatePanel.setRequired(true);
       fs.add(endDatePanel);
     }
 
@@ -517,7 +519,7 @@ public class AuftragEditForm extends AbstractEditForm<AuftragDO, AuftragEditPage
       {
         // Net sum
         final FieldsetPanel fs = posGridBuilder.newFieldset(getString("fibu.auftrag.nettoSumme"));
-        fs.add(new TextField<String>(InputPanel.WICKET_ID, new PropertyModel<String>(position, "nettoSumme"))
+        final TextField<String> nettoSumme = new TextField<String>(InputPanel.WICKET_ID, new PropertyModel<>(position, "nettoSumme"))
         {
           @SuppressWarnings({ "rawtypes", "unchecked" })
           @Override
@@ -525,7 +527,9 @@ public class AuftragEditForm extends AbstractEditForm<AuftragDO, AuftragEditPage
           {
             return new CurrencyConverter();
           }
-        });
+        };
+        nettoSumme.setRequired(true);
+        fs.add(nettoSumme);
         if (abgeschlossenUndNichtFakturiert == true) {
           fs.setWarningBackground();
         }
@@ -585,7 +589,7 @@ public class AuftragEditForm extends AbstractEditForm<AuftragDO, AuftragEditPage
         final FieldsetPanel fs = posGridBuilder.newFieldset(getString("task"));
         final TaskSelectPanel taskSelectPanel = new TaskSelectPanel(fs, new PropertyModel<TaskDO>(position, "task"),
             parentPage, "taskId:"
-                + position.getNumber())
+            + position.getNumber())
         {
           @Override
           protected void selectTask(final TaskDO task)
@@ -743,10 +747,10 @@ public class AuftragEditForm extends AbstractEditForm<AuftragDO, AuftragEditPage
   {
     return ((getData().getPosition(number).getPeriodOfPerformanceBegin() != null
         && StringUtils.isBlank(getData().getPosition(number)
-            .getPeriodOfPerformanceBegin().toString()) == false)
+        .getPeriodOfPerformanceBegin().toString()) == false)
         || (getData().getPosition(number).getPeriodOfPerformanceEnd() != null
-            && StringUtils.isBlank(getData().getPosition(number)
-                .getPeriodOfPerformanceEnd().toString()) == false)
+        && StringUtils.isBlank(getData().getPosition(number)
+        .getPeriodOfPerformanceEnd().toString()) == false)
         || getData().getPosition(number).getPeriodOfPerformanceType() == PeriodOfPerformanceType.OWN);
   }
 
