@@ -36,6 +36,7 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.fibu.EmployeeDO;
 import org.projectforge.business.fibu.api.EmployeeService;
+import org.projectforge.business.user.I18nHelper;
 import org.projectforge.business.vacation.model.VacationDO;
 import org.projectforge.business.vacation.service.VacationService;
 import org.projectforge.framework.access.AccessException;
@@ -47,6 +48,7 @@ import org.projectforge.web.wicket.CellItemListenerPropertyColumn;
 import org.projectforge.web.wicket.IListPageColumnsCreator;
 import org.projectforge.web.wicket.ListPage;
 import org.projectforge.web.wicket.ListSelectActionPanel;
+import org.projectforge.web.wicket.flowlayout.TextPanel;
 
 @ListPage(editPage = VacationEditPage.class)
 public class VacationListPage extends AbstractListPage<VacationListForm, VacationService, VacationDO> implements
@@ -130,6 +132,24 @@ public class VacationListPage extends AbstractListPage<VacationListForm, Vacatio
     columns
         .add(new CellItemListenerPropertyColumn<VacationDO>(VacationDO.class, "workingdays", "workingdays",
             cellItemListener));
+
+    columns
+        .add(new CellItemListenerPropertyColumn<VacationDO>(VacationDO.class, "isSpecial", "isSpecial",
+            cellItemListener)
+        {
+          @Override
+          public void populateItem(final Item<ICellPopulator<VacationDO>> item, final String componentId,
+              final IModel<VacationDO> rowModel)
+          {
+            final VacationDO vacation = rowModel.getObject();
+            if (vacation.getIsSpecial() != null && vacation.getIsSpecial() == Boolean.TRUE) {
+              item.add(new TextPanel(componentId, I18nHelper.getLocalizedMessage("yes")));
+            } else {
+              item.add(new TextPanel(componentId, I18nHelper.getLocalizedMessage("no")));
+            }
+            cellItemListener.populateItem(item, componentId, rowModel);
+          }
+        });
 
     return columns;
   }

@@ -53,6 +53,7 @@ import org.projectforge.web.wicket.bootstrap.GridSize;
 import org.projectforge.web.wicket.components.DatePanel;
 import org.projectforge.web.wicket.components.DatePanelSettings;
 import org.projectforge.web.wicket.components.LabelValueChoiceRenderer;
+import org.projectforge.web.wicket.flowlayout.CheckBoxPanel;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
 import org.projectforge.web.wicket.flowlayout.LabelPanel;
 import org.projectforge.web.wicket.flowlayout.Select2SingleChoicePanel;
@@ -168,6 +169,14 @@ public class VacationEditForm extends AbstractEditForm<VacationDO, VacationEditP
       endDatePanel.setEnabled(checkEnableInputField());
       formValidator.getDependentFormComponents()[1] = endDatePanel;
       fs.add(endDatePanel);
+    }
+
+    {
+      // Special holiday
+      final FieldsetPanel fs = gridBuilder.newFieldset(VacationDO.class, "isSpecial");
+      CheckBoxPanel checkboxPanel = new CheckBoxPanel(fs.newChildId(), new PropertyModel<>(data, "isSpecial"), "");
+      checkboxPanel.setMarkupId("vacation-isSpecial").setOutputMarkupId(true);
+      fs.add(checkboxPanel);
     }
 
     {

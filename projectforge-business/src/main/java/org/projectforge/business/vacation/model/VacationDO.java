@@ -201,13 +201,13 @@ public class VacationDO extends DefaultBaseDO
     return this.workingdays;
   }
 
-  @Column(name = "is_special")
-  public Boolean isSpecial()
+  @Column(name = "is_special", nullable = false)
+  public Boolean getIsSpecial()
   {
     return isSpecial;
   }
 
-  public void setSpecial(Boolean special)
+  public void setIsSpecial(Boolean special)
   {
     isSpecial = special;
   }
