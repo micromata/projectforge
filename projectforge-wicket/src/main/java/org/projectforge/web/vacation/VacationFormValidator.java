@@ -17,6 +17,7 @@ import org.projectforge.business.vacation.service.VacationService;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.time.DayHolder;
 import org.projectforge.web.wicket.components.DatePanel;
+import org.projectforge.web.wicket.flowlayout.CheckBoxPanel;
 
 public class VacationFormValidator implements IFormValidator
 {
@@ -28,6 +29,8 @@ public class VacationFormValidator implements IFormValidator
   private VacationService vacationService;
 
   private VacationDO data;
+
+  private CheckBoxPanel isSpecialCheckbox;
 
   public VacationFormValidator(VacationService vacationService, VacationDO data)
   {
@@ -59,6 +62,10 @@ public class VacationFormValidator implements IFormValidator
 
     if (endDate.get(Calendar.YEAR) > startDate.get(Calendar.YEAR)) {
       form.error(I18nHelper.getLocalizedMessage("vacation.validate.vacationIn2Years"));
+      return;
+    }
+
+    if (isSpecialCheckbox != null && isSpecialCheckbox.getCheckBox().getValue() != null && isSpecialCheckbox.getCheckBox().getValue().equals("on")) {
       return;
     }
 
@@ -149,5 +156,10 @@ public class VacationFormValidator implements IFormValidator
   public FormComponent<?>[] getDependentFormComponents()
   {
     return dependentFormComponents;
+  }
+
+  public void setIsSpecialCheckbox(CheckBoxPanel isSpecialCheckbox)
+  {
+    this.isSpecialCheckbox = isSpecialCheckbox;
   }
 }
