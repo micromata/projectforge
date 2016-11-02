@@ -113,6 +113,11 @@ public class DatabaseCoreUpdates
       public UpdatePreCheckStatus runPreCheck()
       {
         log.info("Running pre-check for ProjectForge version 6.4.0");
+        // ensure that the tenant exists, otherwise the following statements will fail with an SQL exception
+        if (!databaseUpdateService.doTablesExist(TenantDO.class)) {
+          return UpdatePreCheckStatus.READY_FOR_UPDATE;
+        }
+
         final EmployeeDao employeeDao = applicationContext.getBean(EmployeeDao.class);
         final boolean anyEmployeeWithAnOldStatusExists = databaseUpdateService.doTablesExist(EmployeeDO.class) &&
             employeeDao
@@ -347,14 +352,13 @@ public class DatabaseCoreUpdates
           }
           if (UserXmlPreferencesDO.class.isAssignableFrom(entityClass.getJavaType())) {
             try {
-              emf
-                  .runInTrans(emgr -> {
-                    log.info("Set tenant id for entities of type: " + UserXmlPreferencesDO.class.getClass());
-                    CriteriaUpdate<UserXmlPreferencesDO> cu = CriteriaUpdate.createUpdate(UserXmlPreferencesDO.class);
-                    cu.set("tenant", defaultTenant);
-                    emgr.update(cu);
-                    return null;
-                  });
+              emf.runInTrans(emgr -> {
+                log.info("Set tenant id for entities of type: " + UserXmlPreferencesDO.class.getClass());
+                CriteriaUpdate<UserXmlPreferencesDO> cu = CriteriaUpdate.createUpdate(UserXmlPreferencesDO.class);
+                cu.set("tenant", defaultTenant);
+                emgr.update(cu);
+                return null;
+              });
             } catch (Exception e) {
               log.error("Failed to update default tenant for user xml prefs.");
             }

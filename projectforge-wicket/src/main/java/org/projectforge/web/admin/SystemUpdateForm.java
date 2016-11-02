@@ -24,10 +24,9 @@
 package org.projectforge.web.admin;
 
 import java.io.IOException;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.SortedSet;
-import java.util.TreeSet;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
@@ -62,11 +61,11 @@ public class SystemUpdateForm extends AbstractForm<SystemUpdateForm, SystemUpdat
   private static final long serialVersionUID = 2492737003121592489L;
 
   private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(SystemUpdateForm.class);
-  
+
   private static final String IS_RUNNING = "isRunning";
-  
+
   private static final String HAS_TO_WAIT = "hasToWait";
-  
+
   protected WebMarkupContainer scripts;
 
   public boolean showOldUpdateScripts;
@@ -98,7 +97,8 @@ public class SystemUpdateForm extends AbstractForm<SystemUpdateForm, SystemUpdat
     gridBuilder.newGridPanel();
     {
       final FieldsetPanel fs = gridBuilder.newFieldset("Show all");
-      fs.add(new CheckBoxPanel(fs.newChildId(), new PropertyModel<Boolean>(this, "showOldUpdateScripts"), null, true) {
+      fs.add(new CheckBoxPanel(fs.newChildId(), new PropertyModel<Boolean>(this, "showOldUpdateScripts"), null, true)
+      {
         /**
          * @see org.projectforge.web.wicket.flowlayout.CheckBoxPanel#onSelectionChanged(java.lang.Boolean)
          */
@@ -116,19 +116,20 @@ public class SystemUpdateForm extends AbstractForm<SystemUpdateForm, SystemUpdat
     actionButtons = new MyComponentsRepeater<SingleButtonPanel>("buttons");
     add(actionButtons.getRepeatingView());
     {
-      final Button refreshButton = new Button(SingleButtonPanel.WICKET_ID, new Model<String>("refresh")) {
+      final Button refreshButton = new Button(SingleButtonPanel.WICKET_ID, new Model<String>("refresh"))
+      {
         @Override
         public final void onSubmit()
         {
           parentPage.refresh();
         }
       };
-//      refreshButton.add(new AbstractAjaxTimerBehavior(Duration.seconds(10)) {
-//        @Override
-//        protected void onTimer(AjaxRequestTarget target) {
-//            parentPage.refresh();
-//        }
-//      });
+      //      refreshButton.add(new AbstractAjaxTimerBehavior(Duration.seconds(10)) {
+      //        @Override
+      //        protected void onTimer(AjaxRequestTarget target) {
+      //            parentPage.refresh();
+      //        }
+      //      });
       final SingleButtonPanel refreshButtonPanel = new SingleButtonPanel(actionButtons.newChildId(), refreshButton, "refresh",
           SingleButtonPanel.DEFAULT_SUBMIT);
       actionButtons.add(refreshButtonPanel);
@@ -150,7 +151,7 @@ public class SystemUpdateForm extends AbstractForm<SystemUpdateForm, SystemUpdat
       return;
     }
     boolean odd = true;
-    Set<WebMarkupContainer> updatebleItems = new HashSet<>();
+    final List<WebMarkupContainer> updatebleItems = new ArrayList<>();
     UpdateEntry entryToUpdate = null;
     for (final UpdateEntry updateEntry : updateEntries) {
       if (showOldUpdateScripts == false && updateEntry.getPreCheckStatus() == UpdatePreCheckStatus.ALREADY_UPDATED) {
@@ -188,8 +189,9 @@ public class SystemUpdateForm extends AbstractForm<SystemUpdateForm, SystemUpdat
     }
     int countEntriesToUpdate = updatebleItems.size();
     int counter = 1;
-    for(WebMarkupContainer updateItem : updatebleItems) {
-      if(counter == countEntriesToUpdate) {
+    for (WebMarkupContainer updateItem : updatebleItems) {
+      if (counter == countEntriesToUpdate) {
+        // add update button only to last entry (lowest version)
         addButtonToItem(updateItem, entryToUpdate);
       } else {
         updateItem.add(new Label("update", HtmlHelper.escapeHtml("", true)));
@@ -203,9 +205,11 @@ public class SystemUpdateForm extends AbstractForm<SystemUpdateForm, SystemUpdat
   private void addButtonToItem(WebMarkupContainer item, UpdateEntry updateEntry)
   {
     ImagePanel waitingImagePanel = createWaitingImagePanel(IS_RUNNING);
-    final AjaxButton updateButton = new AjaxButton("button", new Model<String>("update"), this) {
+    final AjaxButton updateButton = new AjaxButton("button", new Model<String>("update"), this)
+    {
       @Override
-      protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
+      protected void onSubmit(AjaxRequestTarget target, Form<?> form)
+      {
         parentPage.update(updateEntry);
         this.setVisible(false);
         waitingImagePanel.setVisible(true);
@@ -229,18 +233,18 @@ public class SystemUpdateForm extends AbstractForm<SystemUpdateForm, SystemUpdat
           @Override
           protected byte[] getImageData(final Attributes attributes)
           {
-                try {
-                  if (IS_RUNNING.equals(type)) {
-                  return IOUtils
-                      .toByteArray(getClass().getClassLoader().getResource("images/gif/hourglass.gif").openStream());
-                  } else {
-                    return IOUtils
-                        .toByteArray(getClass().getClassLoader().getResource("images/clock.png").openStream());
-                  }
-                } catch (IOException e) {
-                  log.error("Error while getting Image.");
-                  return null;
-                }
+            try {
+              if (IS_RUNNING.equals(type)) {
+                return IOUtils
+                    .toByteArray(getClass().getClassLoader().getResource("images/gif/hourglass.gif").openStream());
+              } else {
+                return IOUtils
+                    .toByteArray(getClass().getClassLoader().getResource("images/clock.png").openStream());
+              }
+            } catch (IOException e) {
+              log.error("Error while getting Image.");
+              return null;
+            }
           }
         };
         if (IS_RUNNING.equals(type)) {
