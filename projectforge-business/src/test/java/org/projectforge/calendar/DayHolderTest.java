@@ -97,6 +97,17 @@ public class DayHolderTest extends PowerMockTestCase
     assertBigDecimal(1, DayHolder.getNumberOfWorkingDays(fromDay, toDay));
   }
 
+  //Test fertigstellen für Weihnachten/Silvester (config.xml)
+  @Test(enabled = false)
+  public void testGetNumberOfWorkingDaysChristmas()
+  {
+    final DayHolder fromDay = new DayHolder();
+    fromDay.setDate(2009, Calendar.DECEMBER, 24, 0, 0, 0);
+    final DayHolder toDay = new DayHolder();
+    toDay.setDate(2009, Calendar.DECEMBER, 24, 0, 0, 0);
+    assertBigDecimal(1.5, DayHolder.getNumberOfWorkingDays(fromDay, toDay));
+  }
+
   @Test
   public void testAdd()
   {
