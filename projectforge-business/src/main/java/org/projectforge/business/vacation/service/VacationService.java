@@ -89,8 +89,9 @@ public interface VacationService extends IPersistenceService<VacationDO>, IDao<V
    *
    * @param vacationData data
    * @param isNew        flag for new vacation request
+   * @param isDeleted
    */
-  void sendMailToVacationInvolved(VacationDO vacationData, boolean isNew);
+  void sendMailToVacationInvolved(VacationDO vacationData, boolean isNew, boolean isDeleted);
 
   /**
    * Sends an information to employee and HR, that vacation request is approved.

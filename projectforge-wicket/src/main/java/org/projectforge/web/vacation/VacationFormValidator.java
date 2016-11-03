@@ -65,10 +65,6 @@ public class VacationFormValidator implements IFormValidator
       return;
     }
 
-    if (isSpecialCheckbox != null && isSpecialCheckbox.getCheckBox().getValue() != null && isSpecialCheckbox.getCheckBox().getValue().equals("on")) {
-      return;
-    }
-
     List<VacationDO> vacationListForPeriod = vacationService.getVacationForDate(data.getEmployee(),
         startDatePanel.getConvertedInput(), endDatePanel.getConvertedInput());
     if (vacationListForPeriod != null && data.getPk() != null) {
@@ -77,6 +73,10 @@ public class VacationFormValidator implements IFormValidator
     }
     if (vacationListForPeriod != null && vacationListForPeriod.size() > 0) {
       form.error(I18nHelper.getLocalizedMessage("vacation.validate.leaveapplicationexists"));
+    }
+
+    if (isSpecialCheckbox != null && isSpecialCheckbox.getCheckBox().getValue() != null && isSpecialCheckbox.getCheckBox().getValue().equals("on")) {
+      return;
     }
 
     boolean enoughDaysLeft = true;
