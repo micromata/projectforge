@@ -111,7 +111,8 @@ public class VacationDao extends BaseDao<VacationDO>
         UserRightValue.READWRITE) == false) {
       queryFilter.add(Restrictions.or(
           Restrictions.eq("employee", myFilter.getEmployeeForUser()),
-          Restrictions.eq("manager", myFilter.getEmployeeForUser())));
+          Restrictions.eq("manager", myFilter.getEmployeeForUser()),
+          Restrictions.eq("substitution", myFilter.getEmployeeForUser())));
     }
     queryFilter.addOrder(Order.asc("startDate"));
     return getList(queryFilter);
