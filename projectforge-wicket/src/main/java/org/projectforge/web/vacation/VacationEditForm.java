@@ -302,8 +302,7 @@ public class VacationEditForm extends AbstractEditForm<VacationDO, VacationEditP
 
   private boolean checkWriteAccess()
   {
-    if (data.getEmployee().getUser().getPk().equals(ThreadLocalUserContext.getUserId()) == true
-        || (data.getManager() != null
+    if (data.getEmployee().getUser().getPk().equals(ThreadLocalUserContext.getUserId()) == true || (data.getManager() != null
         && data.getManager().getUser().getPk().equals(ThreadLocalUserContext.getUserId())) == true) {
       return true;
     }
@@ -315,9 +314,9 @@ public class VacationEditForm extends AbstractEditForm<VacationDO, VacationEditP
 
   private boolean checkReadAccess()
   {
-    if (data.getEmployee().getUser().getPk().equals(ThreadLocalUserContext.getUserId()) == true
-        || (data.getManager() != null
-        && data.getManager().getUser().getPk().equals(ThreadLocalUserContext.getUserId())) == true) {
+    if (data.getEmployee().getUser().getPk().equals(ThreadLocalUserContext.getUserId()) == true || (data.getManager() != null
+        && data.getManager().getUser().getPk().equals(ThreadLocalUserContext.getUserId())) == true || (data.getSubstitution() != null
+        && data.getSubstitution().getUser().getPk().equals(ThreadLocalUserContext.getUserId())) == true) {
       return true;
     }
     if (accessChecker.hasLoggedInUserRight(UserRightId.HR_VACATION, false, UserRightValue.READONLY,
