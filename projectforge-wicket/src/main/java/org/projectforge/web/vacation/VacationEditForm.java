@@ -176,6 +176,7 @@ public class VacationEditForm extends AbstractEditForm<VacationDO, VacationEditP
       final FieldsetPanel fs = gridBuilder.newFieldset(VacationDO.class, "isSpecial");
       CheckBoxPanel checkboxPanel = new CheckBoxPanel(fs.newChildId(), new PropertyModel<>(data, "isSpecial"), "");
       checkboxPanel.setMarkupId("vacation-isSpecial").setOutputMarkupId(true);
+      checkboxPanel.setEnabled(checkEnableInputField());
       formValidator.setIsSpecialCheckbox(checkboxPanel);
       fs.add(checkboxPanel);
     }

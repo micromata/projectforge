@@ -32,6 +32,7 @@ import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
 import org.projectforge.web.wicket.flowlayout.Heading1Panel;
 import org.projectforge.web.wicket.flowlayout.Heading3Panel;
 import org.projectforge.web.wicket.flowlayout.TablePanel;
+import org.projectforge.web.wicket.flowlayout.TextPanel;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -111,6 +112,23 @@ public class VacationViewHelper
     columns
         .add(new CellItemListenerPropertyColumn<VacationDO>(VacationDO.class, "workingdays", "workingdays",
             cellItemListener));
+    columns
+        .add(new CellItemListenerPropertyColumn<VacationDO>(VacationDO.class, "isSpecial", "isSpecial",
+            cellItemListener)
+        {
+          @Override
+          public void populateItem(final Item<ICellPopulator<VacationDO>> item, final String componentId,
+              final IModel<VacationDO> rowModel)
+          {
+            final VacationDO vacation = rowModel.getObject();
+            if (vacation.getIsSpecial() != null && vacation.getIsSpecial() == Boolean.TRUE) {
+              item.add(new TextPanel(componentId, I18nHelper.getLocalizedMessage("yes")));
+            } else {
+              item.add(new TextPanel(componentId, I18nHelper.getLocalizedMessage("no")));
+            }
+            cellItemListener.populateItem(item, componentId, rowModel);
+          }
+        });
     return columns;
   }
 

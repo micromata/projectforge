@@ -60,13 +60,40 @@ public class VacationServiceImpl extends CorePersistenceServiceImpl<Integer, Vac
   }
 
   @Override
-  public void sendMailToVacationInvolved(VacationDO vacationData, boolean isNew)
+  public void sendMailToVacationInvolved(VacationDO vacationData, boolean isNew, boolean isDeleted)
   {
     //Send mail to manager (employee in copy)
     Mail mail = new Mail();
-    mail.setContent(I18nHelper.getLocalizedMessage("vacation.mail.pm.application" + (isNew ? "" : ".edit"), vacationData.getManager().getUser().getFirstname(),
-        vacationData.getEmployee().getUser().getFullname(), vacationData.getStartDate().toString(), vacationData.getEndDate().toString()));
-    mail.setSubject(I18nHelper.getLocalizedMessage("vacation.mail.subject" + (isNew ? "" : ".edit"), vacationData.getEmployee().getUser().getFullname()));
+    String i18nPMContent = "";
+    String i18nPMSubject = "";
+    String i18nSubContent = "";
+    String i18nSubSubject = "";
+    if (isNew == true && isDeleted == false) {
+      i18nPMContent = I18nHelper.getLocalizedMessage("vacation.mail.pm.application", vacationData.getManager().getUser().getFirstname(),
+          vacationData.getEmployee().getUser().getFullname(), vacationData.getStartDate().toString(), vacationData.getEndDate().toString());
+      i18nPMSubject = I18nHelper.getLocalizedMessage("vacation.mail.subject", vacationData.getEmployee().getUser().getFullname());
+      i18nSubContent = I18nHelper.getLocalizedMessage("vacation.mail.sub.application", vacationData.getSubstitution().getUser().getFirstname(),
+          vacationData.getEmployee().getUser().getFullname(), vacationData.getStartDate().toString(), vacationData.getEndDate().toString());
+      i18nSubSubject = I18nHelper.getLocalizedMessage("vacation.mail.subject", vacationData.getEmployee().getUser().getFullname());
+    }
+    if (isNew == false && isDeleted == false) {
+      i18nPMContent = I18nHelper.getLocalizedMessage("vacation.mail.pm.application.edit", vacationData.getManager().getUser().getFirstname(),
+          vacationData.getEmployee().getUser().getFullname(), vacationData.getStartDate().toString(), vacationData.getEndDate().toString());
+      i18nPMSubject = I18nHelper.getLocalizedMessage("vacation.mail.subject.edit", vacationData.getEmployee().getUser().getFullname());
+      i18nSubContent = I18nHelper.getLocalizedMessage("vacation.mail.sub.application.edit", vacationData.getSubstitution().getUser().getFirstname(),
+          vacationData.getEmployee().getUser().getFullname(), vacationData.getStartDate().toString(), vacationData.getEndDate().toString());
+      i18nSubSubject = I18nHelper.getLocalizedMessage("vacation.mail.subject.edit", vacationData.getEmployee().getUser().getFullname());
+    }
+    if (isDeleted) {
+      i18nPMContent = I18nHelper.getLocalizedMessage("vacation.mail.application.deleted", vacationData.getManager().getUser().getFirstname(),
+          vacationData.getEmployee().getUser().getFullname(), vacationData.getStartDate().toString(), vacationData.getEndDate().toString());
+      i18nPMSubject = I18nHelper.getLocalizedMessage("vacation.mail.subject.deleted", vacationData.getEmployee().getUser().getFullname());
+      i18nSubContent = I18nHelper.getLocalizedMessage("vacation.mail.application.deleted", vacationData.getSubstitution().getUser().getFirstname(),
+          vacationData.getEmployee().getUser().getFullname(), vacationData.getStartDate().toString(), vacationData.getEndDate().toString());
+      i18nSubSubject = I18nHelper.getLocalizedMessage("vacation.mail.subject.deleted", vacationData.getEmployee().getUser().getFullname());
+    }
+    mail.setContent(i18nPMContent);
+    mail.setSubject(i18nPMSubject);
     mail.setContentType(Mail.CONTENTTYPE_HTML);
     mail.setTo(vacationData.getManager().getUser());
     mail.setTo(vacationData.getEmployee().getUser());
@@ -74,11 +101,8 @@ public class VacationServiceImpl extends CorePersistenceServiceImpl<Integer, Vac
 
     //Send mail to substitution (employee in copy)
     mail = new Mail();
-    mail.setContent(
-        I18nHelper.getLocalizedMessage("vacation.mail.sub.application" + (isNew ? "" : ".edit"), vacationData.getSubstitution().getUser().getFirstname(),
-            vacationData.getEmployee().getUser().getFullname(), vacationData.getStartDate().toString(), vacationData.getEndDate().toString(),
-            vacationData.getManager().getUser().getFullname()));
-    mail.setSubject(I18nHelper.getLocalizedMessage("vacation.mail.subject" + (isNew ? "" : ".edit"), vacationData.getEmployee().getUser().getFullname()));
+    mail.setContent(i18nSubContent);
+    mail.setSubject(i18nSubSubject);
     mail.setContentType(Mail.CONTENTTYPE_HTML);
     mail.setTo(vacationData.getSubstitution().getUser());
     mail.setTo(vacationData.getEmployee().getUser());

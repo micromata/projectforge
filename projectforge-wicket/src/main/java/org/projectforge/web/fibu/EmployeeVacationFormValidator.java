@@ -21,6 +21,10 @@ public class EmployeeVacationFormValidator implements IFormValidator
     final MinMaxNumberField<BigDecimal> fieldPreviousYear = (MinMaxNumberField<BigDecimal>) dependentFormComponents[0];
     final MinMaxNumberField<BigDecimal> fieldPreviousYearUsed = (MinMaxNumberField<BigDecimal>) dependentFormComponents[1];
 
+    if (fieldPreviousYearUsed.getConvertedInput() == null && fieldPreviousYear.getConvertedInput() == null) {
+      return;
+    }
+
     if (fieldPreviousYearUsed.getConvertedInput() != null && fieldPreviousYear.getConvertedInput() == null) {
       form.error(I18nHelper.getLocalizedMessage("vacation.validate.usedButNoPreviousYear"));
       return;
