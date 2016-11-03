@@ -82,7 +82,12 @@ public class DayHolder extends DateHolder
     if (from.isSameDay(to) == true) {
       final DayHolder day = new DayHolder(from);
       if (day.isWorkingDay() == true) {
-        return BigDecimal.ONE;
+        final BigDecimal workFraction = day.getWorkFraction();
+        if (workFraction != null) {
+          return day.getWorkFraction();
+        } else {
+          return BigDecimal.ONE;
+        }
       } else {
         return BigDecimal.ZERO;
       }
@@ -269,7 +274,8 @@ public class DayHolder extends DateHolder
   /**
    * For storing additional objects to a day. This is used by the date selector for showing the user's timesheets at this day.
    *
-   * @param obj
+   * @param key
+   * @param value
    */
   public DayHolder addObject(final String key, final Object value)
   {
