@@ -57,6 +57,8 @@ public class VacationDao extends BaseDao<VacationDO>
 {
   private final static String META_SQL = " AND v.isSpecial = false AND v.deleted = :deleted AND v.tenant = :tenant";
 
+  private final static String META_SQL_WITH_SPECIAL = " AND v.deleted = :deleted AND v.tenant = :tenant";
+
   @Autowired
   private AccessChecker accessChecker;
 
@@ -136,7 +138,8 @@ public class VacationDao extends BaseDao<VacationDO>
     result = emgrFactory.runRoTrans(emgr -> {
       String baseSQL = "SELECT v FROM VacationDO v WHERE v.employee = :employee";
       List<VacationDO> dbResultList = emgr
-          .selectDetached(VacationDO.class, baseSQL + META_SQL, "employee", employee, "deleted", false, "tenant", ThreadLocalUserContext.getUser().getTenant());
+          .selectDetached(VacationDO.class, baseSQL + META_SQL_WITH_SPECIAL, "employee", employee, "deleted", false, "tenant",
+              ThreadLocalUserContext.getUser().getTenant());
       return dbResultList;
     });
     return result;
