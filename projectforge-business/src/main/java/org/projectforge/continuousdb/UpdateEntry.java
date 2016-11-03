@@ -29,12 +29,14 @@ import org.projectforge.Version;
 
 /**
  * Represents a update entry (Groovy or Java).
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 public abstract class UpdateEntry implements Serializable, Comparable<UpdateEntry>
 {
   private static final long serialVersionUID = -8205244215928531249L;
+
+  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(UpdateEntry.class);
 
   protected transient UpdatePreCheckStatus preCheckStatus = UpdatePreCheckStatus.UNKNOWN;
 
@@ -83,7 +85,17 @@ public abstract class UpdateEntry implements Serializable, Comparable<UpdateEntr
 
   public abstract void setDescription(final String description);
 
-  public abstract UpdatePreCheckStatus runPreCheck();
+  protected abstract UpdatePreCheckStatus runPreCheck();
+
+  public UpdatePreCheckStatus runPreCheckSafely()
+  {
+    try {
+      return runPreCheck();
+    } catch (RuntimeException e) {
+      log.error("Exception while running preCheck: " + e.getMessage(), e);
+      return UpdatePreCheckStatus.FAILED;
+    }
+  }
 
   public abstract UpdateRunningStatus runUpdate();
 
@@ -129,7 +141,7 @@ public abstract class UpdateEntry implements Serializable, Comparable<UpdateEntr
   /**
    * Compares the dates of the both entries in descending order. For equal dates, the region id and the version is
    * compared.
-   * 
+   *
    * @param o
    */
   @Override

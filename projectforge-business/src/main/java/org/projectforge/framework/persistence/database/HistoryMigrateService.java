@@ -78,8 +78,8 @@ public class HistoryMigrateService
 
   private Void run()
   {
-    long printcountEach = 100;
-    Holder<Long> counter = new Holder<>(0L);
+    final long printcountEach = 100;
+    final Holder<Long> counter = new Holder<>(0L);
     txTemplate.execute((status) -> {
 
       final JdbcTemplate jdbc = new JdbcTemplate(dataSource);
@@ -104,8 +104,7 @@ public class HistoryMigrateService
             hm.setCreatedAt(new Date(date.getTime()));
             hm.setModifiedAt(new Date(date.getTime()));
             hm.setEntityOpType(opType);
-            String entityName = emfac.getMetadataRepository().getEntityMetaDataBySimpleClassName(className)
-                .getJavaType().getName();
+            String entityName = emfac.getMetadataRepository().getEntityMetaDataBySimpleClassName(className).getJavaType().getName();
             hm.setEntityName(entityName);
             hm.setEntityId((long) entPk);
             hm.setUserComment(comment);
@@ -140,19 +139,19 @@ public class HistoryMigrateService
             }
             insertHistory(emgr, hm);
             counter.set(counter.get() + 1);
-            if (counter.get().longValue() % printcountEach == 0) {
-              System.out.println("History converted: " + counter.get());
+            if (counter.get() % printcountEach == 0) {
+              LOG.info("History converted: " + counter.get());
             }
-            return null;
-          } catch (SQLException ex) {
-            throw new RuntimeException(ex);
+          } catch (SQLException | RuntimeException ex) {
+            LOG.error(ex.getMessage(), ex);
+            ++notMigratedCount;
           }
+          return null;
         });
       });
       return null;
     });
-    LOG.info("Migrated histories: " + migratedCount + "; skipped migrated: " + notMigratedCount + "; found existant: "
-        + foundExistantCount);
+    LOG.info("Migrated histories: " + migratedCount + "; skipped migrated: " + notMigratedCount + "; found existant: " + foundExistantCount);
     return null;
   }
 
