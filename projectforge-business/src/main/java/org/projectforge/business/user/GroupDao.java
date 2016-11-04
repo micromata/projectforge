@@ -263,8 +263,7 @@ public class GroupDao extends BaseDao<GroupDO>
    * @throws AccessException
    */
   @Transactional(readOnly = false, propagation = Propagation.REQUIRES_NEW, isolation = Isolation.REPEATABLE_READ)
-  public void assignGroups(final PFUserDO user, final Set<GroupDO> groupsToAssign, final Set<GroupDO> groupsToUnassign)
-      throws AccessException
+  public void assignGroups(final PFUserDO user, final Set<GroupDO> groupsToAssign, final Set<GroupDO> groupsToUnassign, final boolean updateUserGroupCache)
   {
     getHibernateTemplate().refresh(user, LockMode.READ);
 
@@ -309,10 +308,19 @@ public class GroupDao extends BaseDao<GroupDO>
         });
       }
     }
-    
+
     flushSession();
     createHistoryEntry(user, unassignedGroups, assignedGroups);
-    getUserGroupCache().setExpired();
+    if (updateUserGroupCache) {
+      getUserGroupCache().setExpired();
+    }
+  }
+
+  @Transactional(readOnly = false, propagation = Propagation.REQUIRES_NEW, isolation = Isolation.REPEATABLE_READ)
+  public void assignGroups(final PFUserDO user, final Set<GroupDO> groupsToAssign, final Set<GroupDO> groupsToUnassign)
+      throws AccessException
+  {
+    assignGroups(user, groupsToAssign, groupsToUnassign, true);
   }
 
   private void createHistoryEntry(final PFUserDO user, Collection<GroupDO> unassignedList,
