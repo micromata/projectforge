@@ -30,6 +30,10 @@ public class EmployeeVacationFormValidator implements IFormValidator
       return;
     }
 
+    if (fieldPreviousYearUsed.getConvertedInput() == null && fieldPreviousYear.getConvertedInput() != null) {
+      return;
+    }
+
     if (fieldPreviousYear.getConvertedInput().compareTo(fieldPreviousYearUsed.getConvertedInput()) < 0) {
       form.error(I18nHelper.getLocalizedMessage("vacation.validate.usedBiggerThanPreviousYear"));
       return;

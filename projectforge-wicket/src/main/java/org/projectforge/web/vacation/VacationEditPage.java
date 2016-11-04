@@ -28,6 +28,7 @@ import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.fibu.api.EmployeeService;
+import org.projectforge.business.user.I18nHelper;
 import org.projectforge.business.vacation.model.VacationDO;
 import org.projectforge.business.vacation.model.VacationStatus;
 import org.projectforge.business.vacation.service.VacationService;
@@ -122,18 +123,22 @@ public class VacationEditPage extends AbstractEditPage<VacationDO, VacationEditF
   @Override
   public AbstractSecuredBasePage afterSaveOrUpdate()
   {
-    if (wasNew) {
-      vacationService.sendMailToVacationInvolved(form.getData(), true, false);
-    } else {
-      if (VacationStatus.IN_PROGRESS.equals(form.getData().getStatus())) {
-        vacationService.sendMailToVacationInvolved(form.getData(), false, false);
+    try {
+      if (wasNew) {
+        vacationService.sendMailToVacationInvolved(form.getData(), true, false);
+      } else {
+        if (VacationStatus.IN_PROGRESS.equals(form.getData().getStatus())) {
+          vacationService.sendMailToVacationInvolved(form.getData(), false, false);
+        }
       }
-    }
-    if (form.getStatusBeforeModification() != null) {
-      if (form.getStatusBeforeModification().equals(VacationStatus.IN_PROGRESS) && VacationStatus.APPROVED.equals(form.getData().getStatus())) {
-        vacationService.sendMailToEmployeeAndHR(form.getData(), true);
-        vacationService.updateUsedVacationDaysFromLastYear(form.getData());
+      if (form.getStatusBeforeModification() != null) {
+        if (form.getStatusBeforeModification().equals(VacationStatus.IN_PROGRESS) && VacationStatus.APPROVED.equals(form.getData().getStatus())) {
+          vacationService.sendMailToEmployeeAndHR(form.getData(), true);
+          vacationService.updateUsedVacationDaysFromLastYear(form.getData());
+        }
       }
+    } catch (final Exception e) {
+      error(I18nHelper.getLocalizedMessage("vacation.error.sendmail"));
     }
     return null;
   }
@@ -141,7 +146,11 @@ public class VacationEditPage extends AbstractEditPage<VacationDO, VacationEditF
   @Override
   public WebPage afterDelete()
   {
-    vacationService.sendMailToVacationInvolved(form.getData(), false, true);
+    try {
+      vacationService.sendMailToVacationInvolved(form.getData(), false, true);
+    } catch (final Exception e) {
+      error(I18nHelper.getLocalizedMessage("vacation.error.sendmail"));
+    }
     return null;
   }
 
