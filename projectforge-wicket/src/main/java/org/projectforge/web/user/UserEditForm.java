@@ -33,6 +33,7 @@ import java.util.TimeZone;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.form.AjaxButton;
 import org.apache.wicket.markup.ComponentTag;
@@ -83,7 +84,6 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.persistence.user.entities.TenantDO;
 import org.projectforge.framework.time.DateTimeFormatter;
 import org.projectforge.framework.time.TimeNotation;
-import org.projectforge.web.I18nCore;
 import org.projectforge.web.common.MultiChoiceListHelper;
 import org.projectforge.web.multitenancy.TenantsProvider;
 import org.projectforge.web.wicket.AbstractEditForm;
@@ -264,9 +264,11 @@ public class UserEditForm extends AbstractEditForm<PFUserDO, UserEditPage>
   {
     // JIRA user name
     final FieldsetPanel fs = gridBuilder.newFieldset(gridBuilder.getString("user.jiraUsername"));
-    MaxLengthTextField jiraUsername = new MaxLengthTextField(fs.getTextFieldId(),
-        new PropertyModel<String>(user, "jiraUsername"));
-    jiraUsername.setMarkupId("jiraUsername").setOutputMarkupId(true);
+    final MaxLengthTextField jiraUsername = new MaxLengthTextField(fs.getTextFieldId(), new PropertyModel<>(user, "jiraUsername"));
+    jiraUsername
+        .setMarkupId("jiraUser")
+        .setOutputMarkupId(true)
+        .add(AttributeModifier.append("autocomplete", "off"));
     fs.add(jiraUsername);
     fs.addHelpIcon(gridBuilder.getString("user.jiraUsername.tooltip"));
   }
@@ -376,7 +378,7 @@ public class UserEditForm extends AbstractEditForm<PFUserDO, UserEditPage>
 
   /**
    * If no telephone system url is set in config.xml nothing will be done.
-   * 
+   *
    * @param gridBuilder
    * @param user
    */
@@ -397,7 +399,7 @@ public class UserEditForm extends AbstractEditForm<PFUserDO, UserEditPage>
 
   /**
    * If no MEB is configured in config.xml nothing will be done.
-   * 
+   *
    * @param gridBuilder
    * @param user
    */
@@ -494,13 +496,17 @@ public class UserEditForm extends AbstractEditForm<PFUserDO, UserEditPage>
         public Boolean getObject()
         {
           return data.isDeactivated() == false;
-        };
+        }
+
+        ;
 
         @Override
         public void setObject(final Boolean activated)
         {
           data.setDeactivated(!activated);
-        };
+        }
+
+        ;
       }, null).setTooltip(getString("user.activated.tooltip"));
       addPassswordFields();
     }
