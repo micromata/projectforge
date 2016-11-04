@@ -90,6 +90,7 @@ public class EmployeeWicketProvider extends TextChoiceProvider<EmployeeDO>
     Collection<EmployeeDO> result = new ArrayList<>();
     List<EmployeeDO> employeesWithoutLoginedUser = employeeService.findAllActive(false).stream()
         .filter(emp -> emp.getUser().getPk().equals(ThreadLocalUserContext.getUserId()) == false)
+        .filter(emp -> emp.getUser().getEmail() != null && emp.getUser().getEmail().length() > 0)
         .collect(Collectors.toList());
     for (EmployeeDO emp : employeesWithoutLoginedUser) {
       if (StringUtils.isBlank(term) == false) {
