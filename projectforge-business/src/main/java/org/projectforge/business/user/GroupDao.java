@@ -42,6 +42,7 @@ import org.projectforge.framework.access.OperationType;
 import org.projectforge.framework.persistence.api.BaseDao;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.persistence.api.QueryFilter;
+import org.projectforge.framework.persistence.history.HistoryBaseDaoAdapter;
 import org.projectforge.framework.persistence.user.entities.GroupDO;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -51,9 +52,7 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- *
  */
 @Repository
 public class GroupDao extends BaseDao<GroupDO>
@@ -79,7 +78,7 @@ public class GroupDao extends BaseDao<GroupDO>
 
   /**
    * ONLY FOR GENERATING TEST DATA
-   * 
+   *
    * @param supportAfterUpdate
    */
   public void setDoHistoryUpdate(boolean historyUpdate)
@@ -116,7 +115,7 @@ public class GroupDao extends BaseDao<GroupDO>
 
   /**
    * Does a group with the given name already exists? Works also for existing users (if group name was modified).
-   * 
+   *
    * @param username
    * @return
    */
@@ -141,7 +140,7 @@ public class GroupDao extends BaseDao<GroupDO>
 
   /**
    * Please note: Any existing assigned user in group object is ignored!
-   * 
+   *
    * @param group
    * @param assignedUsers Full list of all users which have to assigned to this group.
    * @return
@@ -200,7 +199,7 @@ public class GroupDao extends BaseDao<GroupDO>
 
   /**
    * Creates for every user an history entry if the user is part of this new group.
-   * 
+   *
    * @param group
    * @see org.projectforge.framework.persistence.api.BaseDao#afterSave(org.projectforge.core.ExtendedBaseDO)
    */
@@ -219,7 +218,7 @@ public class GroupDao extends BaseDao<GroupDO>
 
   /**
    * Creates for every user an history if the user is assigned or unassigned from this updated group.
-   * 
+   *
    * @param group
    * @param dbGroup
    * @see org.projectforge.framework.persistence.api.BaseDao#afterUpdate(GroupDO, GroupDO)
@@ -257,9 +256,9 @@ public class GroupDao extends BaseDao<GroupDO>
 
   /**
    * Assigns groups to and unassigns groups from given user.
-   * 
+   *
    * @param user
-   * @param groupsToAssign Groups to assign (nullable).
+   * @param groupsToAssign   Groups to assign (nullable).
    * @param groupsToUnassign Groups to unassign (nullable).
    * @throws AccessException
    */
@@ -268,41 +267,49 @@ public class GroupDao extends BaseDao<GroupDO>
       throws AccessException
   {
     getHibernateTemplate().refresh(user, LockMode.READ);
-    final List<GroupDO> assignedGroups = new ArrayList<GroupDO>();
+
+    final List<GroupDO> assignedGroups = new ArrayList<>();
     if (groupsToAssign != null) {
       for (final GroupDO group : groupsToAssign) {
         final GroupDO dbGroup = getHibernateTemplate().get(clazz, group.getId(), LockMode.PESSIMISTIC_WRITE);
-        Set<PFUserDO> assignedUsers = dbGroup.getAssignedUsers();
-        if (assignedUsers == null) {
-          assignedUsers = new HashSet<PFUserDO>();
-          dbGroup.setAssignedUsers(assignedUsers);
-        }
-        if (assignedUsers.contains(user) == false) {
-          log.info("Assigning user '" + user.getUsername() + "' to group '" + dbGroup.getName() + "'.");
-          assignedUsers.add(user);
-          assignedGroups.add(dbGroup);
-          dbGroup.setLastUpdate(); // Needed, otherwise GroupDO is not detected for hibernate history!
-        } else {
-          log.info("User '" + user.getUsername() + "' already assigned to group '" + dbGroup.getName() + "'.");
-        }
+        HistoryBaseDaoAdapter.wrappHistoryUpdate(dbGroup, () -> {
+          Set<PFUserDO> assignedUsers = dbGroup.getAssignedUsers();
+          if (assignedUsers == null) {
+            assignedUsers = new HashSet<>();
+            dbGroup.setAssignedUsers(assignedUsers);
+          }
+          if (assignedUsers.contains(user) == false) {
+            log.info("Assigning user '" + user.getUsername() + "' to group '" + dbGroup.getName() + "'.");
+            assignedUsers.add(user);
+            assignedGroups.add(dbGroup);
+            dbGroup.setLastUpdate(); // Needed, otherwise GroupDO is not detected for hibernate history!
+          } else {
+            log.info("User '" + user.getUsername() + "' already assigned to group '" + dbGroup.getName() + "'.");
+          }
+          return null;
+        });
       }
     }
-    final List<GroupDO> unassignedGroups = new ArrayList<GroupDO>();
+
+    final List<GroupDO> unassignedGroups = new ArrayList<>();
     if (groupsToUnassign != null) {
       for (final GroupDO group : groupsToUnassign) {
         final GroupDO dbGroup = getHibernateTemplate().get(clazz, group.getId(), LockMode.PESSIMISTIC_WRITE);
-        final Set<PFUserDO> assignedUsers = dbGroup.getAssignedUsers();
-        if (assignedUsers != null && assignedUsers.contains(user) == true) {
-          log.info("Unassigning user '" + user.getUsername() + "' from group '" + dbGroup.getName() + "'.");
-          assignedUsers.remove(user);
-          unassignedGroups.add(dbGroup);
-          dbGroup.setLastUpdate(); // Needed, otherwise GroupDO is not detected for hibernate history!
-        } else {
-          log.info("User '" + user.getUsername() + "' is not assigned to group '" + dbGroup.getName()
-              + "' (can't unassign).");
-        }
+        HistoryBaseDaoAdapter.wrappHistoryUpdate(dbGroup, () -> {
+          final Set<PFUserDO> assignedUsers = dbGroup.getAssignedUsers();
+          if (assignedUsers != null && assignedUsers.contains(user) == true) {
+            log.info("Unassigning user '" + user.getUsername() + "' from group '" + dbGroup.getName() + "'.");
+            assignedUsers.remove(user);
+            unassignedGroups.add(dbGroup);
+            dbGroup.setLastUpdate(); // Needed, otherwise GroupDO is not detected for hibernate history!
+          } else {
+            log.info("User '" + user.getUsername() + "' is not assigned to group '" + dbGroup.getName() + "' (can't unassign).");
+          }
+          return null;
+        });
       }
     }
+    
     flushSession();
     createHistoryEntry(user, unassignedGroups, assignedGroups);
     getUserGroupCache().setExpired();
@@ -325,7 +332,7 @@ public class GroupDao extends BaseDao<GroupDO>
 
   /**
    * Internal load of all tasks without checking any access.
-   * 
+   *
    * @return
    */
   @SuppressWarnings("unchecked")
@@ -338,9 +345,9 @@ public class GroupDao extends BaseDao<GroupDO>
 
   /**
    * Prevents changing the group name for ProjectForge groups.
-   * 
+   *
    * @see org.projectforge.framework.persistence.api.BaseDao#onChange(org.projectforge.core.ExtendedBaseDO,
-   *      org.projectforge.core.ExtendedBaseDO)
+   * org.projectforge.core.ExtendedBaseDO)
    */
   @Override
   protected void onChange(final GroupDO obj, final GroupDO dbObj)
@@ -382,7 +389,7 @@ public class GroupDao extends BaseDao<GroupDO>
 
   /**
    * return Always true, no generic select access needed for group objects.
-   * 
+   *
    * @see org.projectforge.framework.persistence.api.BaseDao#hasSelectAccess()
    */
   @Override
@@ -393,7 +400,7 @@ public class GroupDao extends BaseDao<GroupDO>
 
   /**
    * @return false, if no admin user and the context user is not member of the group. Also deleted groups are only
-   *         visible for admin users.
+   * visible for admin users.
    * @see org.projectforge.framework.persistence.api.BaseDao#hasSelectAccess(org.projectforge.core.BaseDO, boolean)
    */
   @Override
