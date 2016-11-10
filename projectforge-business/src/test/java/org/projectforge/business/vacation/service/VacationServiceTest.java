@@ -218,7 +218,7 @@ public class VacationServiceTest extends PowerMockTestCase
   public void testGetAvailableVacationdaysNoDaysUsed()
   {
     List<VacationDO> vacationList = new ArrayList<>();
-    when(vacationDao.getActiveVacationForYear(employee, now.get(Calendar.YEAR))).thenReturn(vacationList);
+    when(vacationDao.getActiveVacationForYear(employee, now.get(Calendar.YEAR), false)).thenReturn(vacationList);
     when(employee.getUrlaubstage()).thenReturn(30);
     BigDecimal availableVacationdays = vacationService.getAvailableVacationdaysForYear(employee, now.get(Calendar.YEAR), false);
     assertEquals(availableVacationdays, new BigDecimal(30));
@@ -239,7 +239,7 @@ public class VacationServiceTest extends PowerMockTestCase
     vacation.setEndDate(endDate.getTime());
     vacationList.add(vacation);
     BigDecimal numberOfDays = DayHolder.getNumberOfWorkingDays(vacation.getStartDate(), vacation.getEndDate());
-    when(vacationDao.getActiveVacationForYear(employee, now.get(Calendar.YEAR))).thenReturn(vacationList);
+    when(vacationDao.getActiveVacationForYear(employee, now.get(Calendar.YEAR), false)).thenReturn(vacationList);
     when(employee.getUrlaubstage()).thenReturn(30);
     BigDecimal availableVacationdays = vacationService.getAvailableVacationdaysForYear(employee, now.get(Calendar.YEAR), false);
     assertEquals(availableVacationdays, new BigDecimal(30).subtract(numberOfDays));

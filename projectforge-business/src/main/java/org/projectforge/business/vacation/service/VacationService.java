@@ -35,9 +35,10 @@ public interface VacationService extends IPersistenceService<VacationDO>, IDao<V
    *
    * @param employee
    * @param year
+   * @param withSpecial
    * @return List of vacations
    */
-  List<VacationDO> getActiveVacationForYear(EmployeeDO employee, int year);
+  List<VacationDO> getActiveVacationForYear(EmployeeDO employee, int year, boolean withSpecial);
 
   /**
    * Getting vacation for given ids.
@@ -137,7 +138,8 @@ public interface VacationService extends IPersistenceService<VacationDO>, IDao<V
    * Load all active vacations (not marked as deleted)
    *
    * @param employee
+   * @param withSpecial
    * @return
    */
-  List<VacationDO> getAllActiveVacation(EmployeeDO employee);
+  List<VacationDO> getAllActiveVacation(EmployeeDO employee, boolean withSpecial);
 }

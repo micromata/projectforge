@@ -24,6 +24,7 @@
 package org.projectforge.web.vacation;
 
 import java.io.Serializable;
+import java.util.Calendar;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Iterator;
@@ -42,6 +43,7 @@ import org.projectforge.business.fibu.EmployeeDO;
 import org.projectforge.business.vacation.model.VacationDO;
 import org.projectforge.business.vacation.service.VacationService;
 import org.projectforge.framework.persistence.api.IdObject;
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.utils.MyBeanComparator;
 
 /**
@@ -169,7 +171,8 @@ public class VacationViewPageSortableDataProvider<T extends IdObject<?>>
 
   private void reloadList()
   {
-    final List<VacationDO> list = vacationService.getAllActiveVacation(employee);
+    Calendar now = Calendar.getInstance(ThreadLocalUserContext.getTimeZone());
+    final List<VacationDO> list = vacationService.getActiveVacationForYear(employee, now.get(Calendar.YEAR), true);
     setCompleteList(list);
   }
 
