@@ -118,14 +118,14 @@ public class VacationDao extends BaseDao<VacationDO>
     return getList(queryFilter);
   }
 
-  public List<VacationDO> getActiveVacationForYear(EmployeeDO employee, int year)
+  public List<VacationDO> getActiveVacationForYear(EmployeeDO employee, int year, boolean withSpecial)
   {
     List<VacationDO> result = new ArrayList<>();
     Calendar startYear = new GregorianCalendar(year, Calendar.JANUARY, 1);
     Calendar endYear = new GregorianCalendar(year, Calendar.DECEMBER, 31);
     result = emgrFactory.runRoTrans(emgr -> {
       String baseSQL = "SELECT v FROM VacationDO v WHERE v.employee = :employee AND v.startDate >= :startDate AND v.startDate <= :endDate";
-      List<VacationDO> dbResultList = emgr.selectDetached(VacationDO.class, baseSQL + META_SQL, "employee", employee,
+      List<VacationDO> dbResultList = emgr.selectDetached(VacationDO.class, baseSQL + (withSpecial ? META_SQL_WITH_SPECIAL : META_SQL), "employee", employee,
           "startDate", startYear.getTime(), "endDate", endYear.getTime(),
           "deleted", false, "tenant", ThreadLocalUserContext.getUser().getTenant());
       return dbResultList;
@@ -133,13 +133,13 @@ public class VacationDao extends BaseDao<VacationDO>
     return result;
   }
 
-  public List<VacationDO> getAllActiveVacation(EmployeeDO employee)
+  public List<VacationDO> getAllActiveVacation(EmployeeDO employee, boolean withSpecial)
   {
     List<VacationDO> result = new ArrayList<>();
     result = emgrFactory.runRoTrans(emgr -> {
       String baseSQL = "SELECT v FROM VacationDO v WHERE v.employee = :employee";
       List<VacationDO> dbResultList = emgr
-          .selectDetached(VacationDO.class, baseSQL + META_SQL_WITH_SPECIAL, "employee", employee, "deleted", false, "tenant",
+          .selectDetached(VacationDO.class, baseSQL + (withSpecial ? META_SQL_WITH_SPECIAL : META_SQL), "employee", employee, "deleted", false, "tenant",
               ThreadLocalUserContext.getUser().getTenant());
       return dbResultList;
     });
