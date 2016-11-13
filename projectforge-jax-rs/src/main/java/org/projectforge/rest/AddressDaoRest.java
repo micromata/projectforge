@@ -47,16 +47,16 @@ import org.projectforge.business.address.PersonalAddressDao;
 import org.projectforge.business.user.ProjectForgeGroup;
 import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
+import org.projectforge.model.rest.AddressObject;
+import org.projectforge.model.rest.RestPaths;
 import org.projectforge.rest.converter.AddressDOConverter;
-import org.projectforge.rest.objects.AddressObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 
 /**
  * REST-Schnittstelle für {@link AddressDao}
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
  */
 @Controller
 @Path(RestPaths.ADDRESS)
@@ -81,12 +81,12 @@ public class AddressDaoRest
    * <li>the address was added to the user's personal address book after the given modifiedSince date, or</li>
    * <li>the address was removed from the user's personal address book after the given modifiedSince date.</li>
    * </ol>
-   * 
+   *
    * @param searchTerm
    * @param modifiedSince milliseconds since 1970 (UTC)
-   * @param all If true and the user is member of the ProjectForge's group {@link ProjectForgeGroup#FINANCE_GROUP} or
-   *          {@link ProjectForgeGroup#MARKETING_GROUP} the export contains all addresses instead of only favorite
-   *          addresses.
+   * @param all           If true and the user is member of the ProjectForge's group {@link ProjectForgeGroup#FINANCE_GROUP} or
+   *                      {@link ProjectForgeGroup#MARKETING_GROUP} the export contains all addresses instead of only favorite
+   *                      addresses.
    */
   @GET
   @Path(RestPaths.LIST)
@@ -107,7 +107,7 @@ public class AddressDaoRest
     boolean exportAll = false;
     if (BooleanUtils.isTrue(all) == true
         && accessChecker.isLoggedInUserMemberOfGroup(ProjectForgeGroup.FINANCE_GROUP,
-            ProjectForgeGroup.MARKETING_GROUP) == true) {
+        ProjectForgeGroup.MARKETING_GROUP) == true) {
       exportAll = true;
     }
 

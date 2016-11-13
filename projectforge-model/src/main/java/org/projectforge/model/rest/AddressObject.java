@@ -21,19 +21,17 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.rest.objects;
+package org.projectforge.model.rest;
 
 import java.sql.Date;
 import java.util.Locale;
 
 import org.projectforge.common.StringHelper;
-import org.projectforge.rest.AbstractBaseObject;
 
 /**
  * For documentation please refer the ProjectForge-API: AddressDO object. AddressObject object for REST,
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
  */
 public class AddressObject extends AbstractBaseObject
 {

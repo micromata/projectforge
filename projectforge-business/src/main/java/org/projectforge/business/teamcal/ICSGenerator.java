@@ -3,9 +3,11 @@ package org.projectforge.business.teamcal;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.net.URI;
+import java.sql.Timestamp;
 
 import org.projectforge.business.configuration.ConfigurationService;
 import org.projectforge.business.teamcal.event.model.ReminderActionType;
+import org.projectforge.business.teamcal.event.model.TeamEvent;
 import org.projectforge.business.teamcal.event.model.TeamEventAttendeeDO;
 import org.projectforge.business.teamcal.event.model.TeamEventDO;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -142,6 +144,19 @@ public class ICSGenerator
       return null;
     }
     return baos;
+  }
+
+  public ByteArrayOutputStream getIcsFileForTeamEvent(TeamEvent data)
+  {
+    TeamEventDO eventDO = new TeamEventDO();
+    eventDO.setEndDate(new Timestamp(data.getEndDate().getTime()));
+    eventDO.setLocation(data.getLocation());
+    eventDO.setNote(data.getNote());
+    eventDO.setStartDate(new Timestamp(data.getStartDate().getTime()));
+    eventDO.setSubject(data.getSubject());
+    eventDO.setUid(data.getUid());
+    eventDO.setAllDay(data.isAllDay());
+    return getIcsFile(eventDO);
   }
 
 }

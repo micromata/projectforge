@@ -118,7 +118,7 @@ public class TeamEventUtils
     final java.util.TimeZone timeZone4Calc = timeZone;
     final String eventStartDateString = event.isAllDay() == true
         ? DateHelper.formatIsoDate(event.getStartDate(), timeZone) : DateHelper
-            .formatIsoTimestamp(event.getStartDate(), DateHelper.UTC);
+        .formatIsoTimestamp(event.getStartDate(), DateHelper.UTC);
     Date eventStartDate = event.getStartDate();
     if (event.isAllDay() == true) {
       // eventStartDate should be midnight in user's time zone.
@@ -128,7 +128,13 @@ public class TeamEventUtils
       log.debug("---------- startDate=" + DateHelper.formatIsoTimestamp(eventStartDate, timeZone) + ", timeZone="
           + timeZone.getID());
     }
-    final TimeZone ical4jTimeZone = ICal4JUtils.getTimeZone(timeZone4Calc);
+    TimeZone ical4jTimeZone = null;
+    try {
+      ical4jTimeZone = ICal4JUtils.getTimeZone(timeZone4Calc);
+    } catch (final Exception e) {
+      log.error("Error getting timezone from ical4j.");
+      ical4jTimeZone = ICal4JUtils.getUserTimeZone();
+    }
     final net.fortuna.ical4j.model.DateTime ical4jStartDate = new net.fortuna.ical4j.model.DateTime(startDate);
     ical4jStartDate.setTimeZone(ical4jTimeZone);
     final net.fortuna.ical4j.model.DateTime ical4jEndDate = new net.fortuna.ical4j.model.DateTime(endDate);
@@ -152,11 +158,12 @@ public class TeamEventUtils
     final DateList dateList = recur.getDates(seedDate, ical4jStartDate, ical4jEndDate, Value.DATE_TIME);
     final Collection<TeamEvent> col = new ArrayList<TeamEvent>();
     if (dateList != null) {
-      OuterLoop: for (final Object obj : dateList) {
+      OuterLoop:
+      for (final Object obj : dateList) {
         final net.fortuna.ical4j.model.DateTime dateTime = (net.fortuna.ical4j.model.DateTime) obj;
         final String isoDateString = event.isAllDay() == true ? DateHelper.formatIsoDate(dateTime, timeZone)
             : DateHelper
-                .formatIsoTimestamp(dateTime, DateHelper.UTC);
+            .formatIsoTimestamp(dateTime, DateHelper.UTC);
         if (exDates != null && exDates.size() > 0) {
           for (final net.fortuna.ical4j.model.Date exDate : exDates) {
             if (event.isAllDay() == false) {
@@ -343,7 +350,9 @@ public class TeamEventUtils
           return -1;
         }
         return startDate1.compareTo(startDate2);
-      };
+      }
+
+      ;
     });
     return events;
   }

@@ -21,77 +21,82 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.rest.objects;
+package org.projectforge.model.rest;
+
+import java.lang.reflect.Field;
 
 import org.apache.commons.lang.builder.ReflectionToStringBuilder;
 
-
 /**
- * REST object for system info for initial contact.
+ * For documentation please refer the ProjectForge-API: Kost2DO object.
+ * REST object cost2.
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
  */
-public class ServerInfo
+public class Cost2Object extends AbstractBaseObject
 {
-  public static final String STATUS_OK = "OK";
+  private String number;
 
-  public static final String STATUS_CLIENT_TO_OLD = "CLIENT_TO_OLD";
+  private String type;
 
-  public static final String STATUS_CLIENT_NEWER_THAN_SERVER = "STATUS_CLIENT_NEWER_THAN_SERVER";
+  private String project;
 
-  public static final String STATUS_UNKNOWN = "STATUS_UNKOWN";
+  private String customer;
 
-  private String version;
-
-  private UserObject user;
-
-  private String status;
-
-  public ServerInfo()
+  public Cost2Object()
   {
   }
 
-  public ServerInfo(final String version)
+  public String getNumber()
   {
-    this.version = version;
+    return number;
   }
 
-  public String getVersion()
+  public void setNumber(final String number)
   {
-    return version;
+    this.number = number;
   }
 
-  public void setVersion(final String version)
+  public String getType()
   {
-    this.version = version;
+    return type;
   }
 
-  public UserObject getUser()
+  public void setType(final String type)
   {
-    return user;
+    this.type = type;
   }
 
-  public void setUser(final UserObject user)
+  public String getProject()
   {
-    this.user = user;
+    return project;
   }
 
-  /**
-   * @return the status of the client server connection.
-   */
-  public String getStatus()
+  public void setProject(final String project)
   {
-    return status;
+    this.project = project;
   }
 
-  public void setStatus(final String status)
+  public String getCustomer()
   {
-    this.status = status;
+    return customer;
+  }
+
+  public void setCustomer(final String customer)
+  {
+    this.customer = customer;
   }
 
   @Override
   public String toString()
   {
-    return new ReflectionToStringBuilder(this).toString();
+    return new ReflectionToStringBuilder(this)
+    {
+      @Override
+      protected boolean accept(final Field f)
+      {
+        return super.accept(f) && !f.getName().equals("authenticationToken");
+      }
+    }.toString();
   }
 }

@@ -26,15 +26,14 @@ package org.projectforge.web.rest.converter;
 import org.hibernate.Hibernate;
 import org.projectforge.business.task.TaskDO;
 import org.projectforge.business.tasktree.TaskTreeHelper;
+import org.projectforge.model.rest.TaskObject;
 import org.projectforge.rest.converter.DOConverter;
-import org.projectforge.rest.objects.TaskObject;
 import org.springframework.stereotype.Service;
 
 /**
  * For conversion of TaskDO to task object.
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
  */
 @Service
 public class TaskDOConverter
