@@ -23,38 +23,48 @@
 
 package org.projectforge.web.teamcal.rest;
 
+import java.io.ByteArrayInputStream;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 
+import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
+import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang.StringUtils;
 import org.projectforge.business.teamcal.admin.TeamCalCache;
 import org.projectforge.business.teamcal.admin.model.TeamCalDO;
 import org.projectforge.business.teamcal.event.TeamEventDao;
 import org.projectforge.business.teamcal.event.TeamEventFilter;
+import org.projectforge.business.teamcal.event.TeamEventUtils;
 import org.projectforge.business.teamcal.event.model.TeamEvent;
+import org.projectforge.business.teamcal.event.model.TeamEventDO;
 import org.projectforge.common.StringHelper;
 import org.projectforge.framework.time.DayHolder;
+import org.projectforge.model.rest.CalendarEventObject;
+import org.projectforge.model.rest.RestPaths;
 import org.projectforge.rest.JsonUtils;
-import org.projectforge.rest.RestPaths;
-import org.projectforge.rest.objects.CalendarEventObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 
+import net.fortuna.ical4j.data.CalendarBuilder;
+import net.fortuna.ical4j.model.Component;
+import net.fortuna.ical4j.model.TimeZone;
+import net.fortuna.ical4j.model.component.VEvent;
+
 /**
  * REST interface for {@link TeamEventDao}
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
  */
 @Controller
 @Path(RestPaths.TEAMEVENTS)
@@ -66,13 +76,16 @@ public class TeamEventDaoRest
   private TeamEventDao teamEventDao;
 
   @Autowired
-  TeamCalCache teamCalCache;
+  private TeamCalCache teamCalCache;
+
+  @Autowired
+  private TeamEventDOConverter teamEventDOConverter;
 
   /**
    * Rest call for {@link TeamEventDao#getEventList(TeamEventFilter, boolean)}
-   * 
-   * @param calendarIds The id's of the calendars to search for events (comma separated). If not given, all calendars
-   *          owned by the context user are assumed.
+   *
+   * @param calendarIds  The id's of the calendars to search for events (comma separated). If not given, all calendars
+   *                     owned by the context user are assumed.
    * @param daysInFuture Get events from today until daysInFuture (default is 30). Maximum allowed value is 90.
    */
   @GET
@@ -114,7 +127,7 @@ public class TeamEventDaoRest
       if (list != null && list.size() > 0) {
         for (final TeamEvent event : list) {
           if (event.getStartDate().after(now) == true) {
-            result.add(TeamEventDOConverter.getEventObject(event));
+            result.add(teamEventDOConverter.getEventObject(event, true));
           } else {
             log.info("Start date not in future:" + event.getStartDate() + ", " + event.getSubject());
           }
@@ -126,4 +139,37 @@ public class TeamEventDaoRest
     final String json = JsonUtils.toJson(result);
     return Response.ok(json).build();
   }
+
+  @POST
+  @Consumes(MediaType.APPLICATION_JSON)
+  @Produces(MediaType.APPLICATION_JSON)
+  @Path(RestPaths.CREATE)
+  public Response createTeamEvent(final CalendarEventObject calendarEvent)
+  {
+    CalendarEventObject result = null;
+    try {
+      TeamCalDO teamCalDO = teamCalCache.getCalendar(calendarEvent.getCalendarId());
+      final CalendarBuilder builder = new CalendarBuilder();
+      final net.fortuna.ical4j.model.Calendar calendar = builder.build(new ByteArrayInputStream(Base64.decodeBase64(calendarEvent.getIcsData())));
+      final VEvent event = (VEvent) calendar.getComponent(Component.VEVENT);
+      final TeamEventDO teamEvent = TeamEventUtils.createTeamEventDO(event,
+          TimeZone.getTimeZone(teamCalDO.getOwner().getTimeZone()));
+      teamEvent.setCalendar(teamCalDO);
+      teamEvent.setUid(event.getUid().getValue());
+      teamEventDao.saveOrUpdate(teamEvent);
+      result = teamEventDOConverter.getEventObject(teamEvent, true);
+      log.info("New team event: " + teamEvent.getSubject() + " for calendar #" + teamCalDO.getId() + " successfully created.");
+    } catch (Exception e) {
+      log.error("Exception while creating team event", e);
+      return Response.serverError().build();
+    }
+    if (result != null) {
+      final String json = JsonUtils.toJson(result);
+      return Response.ok(json).build();
+    } else {
+      log.error("Something went wrong while creating team event");
+      return Response.serverError().build();
+    }
+  }
+
 }

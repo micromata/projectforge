@@ -151,6 +151,9 @@ public class ConfigurationServiceImpl implements ConfigurationService
   @Value("${pf.config.compileCss:true}")
   private boolean compileCss;
 
+  @Value("${projectforge.login.handlerClass}")
+  private String loginHandlerClass;
+
   @PostConstruct
   public void init()
   {
@@ -586,7 +589,13 @@ public class ConfigurationServiceImpl implements ConfigurationService
     return compileCss;
   }
 
-  @Override
+   @Override
+  public String getLoginHandlerClass()
+  {
+    return loginHandlerClass;
+  }
+  
+    @Override
   public String getTeamCalCryptPassword()
   {
     return teamCalCryptPassword;

@@ -21,18 +21,17 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.rest.objects;
+package org.projectforge.model.rest;
 
 import java.lang.reflect.Field;
 
 import org.apache.commons.lang.builder.ReflectionToStringBuilder;
-import org.projectforge.rest.AbstractBaseObject;
 
 /**
  * For documentation please refer the ProjectForge-API: PFUserDO object.
  * REST object user.
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
  */
 public class UserObject extends AbstractBaseObject
 {
@@ -135,7 +134,8 @@ public class UserObject extends AbstractBaseObject
   @Override
   public String toString()
   {
-    return new ReflectionToStringBuilder(this) {
+    return new ReflectionToStringBuilder(this)
+    {
       @Override
       protected boolean accept(final Field f)
       {

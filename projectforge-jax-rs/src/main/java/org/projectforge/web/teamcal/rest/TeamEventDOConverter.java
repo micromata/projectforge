@@ -25,25 +25,32 @@ package org.projectforge.web.teamcal.rest;
 
 import java.util.Calendar;
 
+import org.apache.commons.codec.binary.Base64;
+import org.projectforge.business.teamcal.ICSGenerator;
 import org.projectforge.business.teamcal.event.TeamRecurrenceEvent;
 import org.projectforge.business.teamcal.event.model.ReminderDurationUnit;
 import org.projectforge.business.teamcal.event.model.TeamEvent;
 import org.projectforge.business.teamcal.event.model.TeamEventDO;
 import org.projectforge.framework.time.DateHolder;
+import org.projectforge.model.rest.CalendarEventObject;
 import org.projectforge.rest.converter.DOConverter;
-import org.projectforge.rest.objects.CalendarEventObject;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 /**
  * For conversion of TeamEvent to CalendarEventObject.
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
  */
+@Service
 public class TeamEventDOConverter
 {
   private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(TeamEventDOConverter.class);
 
-  public static CalendarEventObject getEventObject(final TeamEvent src)
+  @Autowired
+  private ICSGenerator icsGenerator;
+
+  public CalendarEventObject getEventObject(final TeamEvent src, boolean generateICS)
   {
     if (src == null) {
       return null;
@@ -63,10 +70,13 @@ public class TeamEventDOConverter
         copyFields(event, master);
       }
     }
+    if (generateICS) {
+      event.setIcsData(Base64.encodeBase64String(icsGenerator.getIcsFileForTeamEvent(src).toByteArray()));
+    }
     return event;
   }
 
-  public static CalendarEventObject getEventObject(final TeamEventDO src)
+  public CalendarEventObject getEventObject(final TeamEventDO src, boolean generateICS)
   {
     if (src == null) {
       return null;
@@ -79,10 +89,13 @@ public class TeamEventDOConverter
     event.setNote(src.getNote());
     event.setSubject(src.getSubject());
     copyFields(event, src);
+    if (generateICS) {
+      event.setIcsData(Base64.encodeBase64String(icsGenerator.getIcsFile(src).toByteArray()));
+    }
     return event;
   }
 
-  private static void copyFields(final CalendarEventObject event, final TeamEventDO src)
+  private void copyFields(final CalendarEventObject event, final TeamEventDO src)
   {
     event.setCalendarId(src.getCalendarId());
     event.setRecurrenceRule(src.getRecurrenceRule());

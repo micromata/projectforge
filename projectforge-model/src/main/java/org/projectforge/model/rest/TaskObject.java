@@ -21,7 +21,7 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.rest.objects;
+package org.projectforge.model.rest;
 
 import java.util.Collection;
 import java.util.TreeSet;
@@ -30,27 +30,26 @@ import org.apache.commons.lang.builder.ReflectionToStringBuilder;
 import org.projectforge.common.i18n.Priority;
 import org.projectforge.common.task.TaskStatus;
 import org.projectforge.common.task.TimesheetBookingStatus;
-import org.projectforge.rest.AbstractBaseObject;
 
 /**
  * For documentation please refer the ProjectForge-API: TaskDO object.
  * TaskDO object for REST,
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
  */
 public class TaskObject extends AbstractBaseObject implements Comparable<TaskObject>
 {
   private Collection<TaskObject> children;
 
-  private  Integer parentTaskId;
+  private Integer parentTaskId;
 
-  private  String description, title, shortDescription, reference;
+  private String description, title, shortDescription, reference;
 
-  private  Integer maxHours;
+  private Integer maxHours;
 
-  private  Priority priority;
+  private Priority priority;
 
-  private  TaskStatus status;
+  private TaskStatus status;
 
   private TimesheetBookingStatus timesheetBookingStatus;
 
@@ -187,7 +186,7 @@ public class TaskObject extends AbstractBaseObject implements Comparable<TaskObj
   }
 
   /**
-   * @see java.lang.Object#hashCode()
+   * @see Object#hashCode()
    */
   @Override
   public int hashCode()
@@ -196,7 +195,7 @@ public class TaskObject extends AbstractBaseObject implements Comparable<TaskObj
   }
 
   /**
-   * @see java.lang.Object#equals(java.lang.Object)
+   * @see Object#equals(Object)
    */
   @Override
   public boolean equals(final Object obj)
@@ -208,7 +207,7 @@ public class TaskObject extends AbstractBaseObject implements Comparable<TaskObj
   }
 
   /**
-   * @see java.lang.Object#toString()
+   * @see Object#toString()
    */
   @Override
   public String toString()
@@ -217,7 +216,7 @@ public class TaskObject extends AbstractBaseObject implements Comparable<TaskObj
   }
 
   /**
-   * @see java.lang.Comparable#compareTo(java.lang.Object)
+   * @see Comparable#compareTo(Object)
    */
   @Override
   public int compareTo(final TaskObject o)

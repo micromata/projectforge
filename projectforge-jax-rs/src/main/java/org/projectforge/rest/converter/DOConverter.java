@@ -24,12 +24,12 @@
 package org.projectforge.rest.converter;
 
 import org.projectforge.framework.persistence.entities.DefaultBaseDO;
-import org.projectforge.rest.AbstractBaseObject;
+import org.projectforge.model.rest.AbstractBaseObject;
 
 /**
  * For conversion of DefaultBaseDO to base object.
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
  */
 public class DOConverter
 {

@@ -24,13 +24,12 @@
 package org.projectforge.rest.converter;
 
 import org.projectforge.business.address.AddressDO;
-import org.projectforge.rest.objects.AddressObject;
+import org.projectforge.model.rest.AddressObject;
 
 /**
  * For conversion of TaskDO to task object.
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
  */
 public class AddressDOConverter
 {

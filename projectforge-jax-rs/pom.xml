@@ -22,6 +22,11 @@
   <dependencies>
     <dependency>
       <groupId>org.projectforge</groupId>
+      <artifactId>projectforge-model</artifactId>
+      <version>${projectforge.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.projectforge</groupId>
       <artifactId>projectforge-business</artifactId>
       <version>${projectforge.version}</version>
     </dependency>
@@ -31,11 +36,6 @@
       <version>${projectforge.version}</version>
       <scope>test</scope>
       <type>test-jar</type>
-    </dependency>
-    <dependency>
-      <groupId>com.google.code.gson</groupId>
-      <artifactId>gson</artifactId>
-      <version>${gson.version}</version>
     </dependency>
     <dependency>
       <groupId>javax.servlet</groupId>
@@ -56,6 +56,11 @@
     <dependency>
       <groupId>com.sun.jersey</groupId>
       <artifactId>jersey-servlet</artifactId>
+      <version>${jersey.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.sun.jersey</groupId>
+      <artifactId>jersey-json</artifactId>
       <version>${jersey.version}</version>
     </dependency>
     <dependency>

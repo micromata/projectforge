@@ -29,14 +29,13 @@ import org.projectforge.business.teamcal.admin.right.TeamCalRight;
 import org.projectforge.business.user.UserRightId;
 import org.projectforge.framework.persistence.api.UserRightService;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
+import org.projectforge.model.rest.CalendarObject;
 import org.projectforge.rest.converter.DOConverter;
-import org.projectforge.rest.objects.CalendarObject;
 
 /**
  * For conversion of TeamCalDO to CalendarObject.
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
  */
 public class TeamCalDOConverter
 {

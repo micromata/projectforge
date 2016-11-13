@@ -21,26 +21,32 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.rest.objects;
+package org.projectforge.model.rest;
 
 import java.lang.reflect.Field;
 import java.util.Date;
 
+import javax.xml.bind.annotation.XmlRootElement;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.builder.ReflectionToStringBuilder;
-import org.projectforge.rest.AbstractBaseObject;
+
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
 /**
  * For documentation please refer the ProjectForge-API: TeamEventDO object.
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
  */
+@XmlRootElement
 public class CalendarEventObject extends AbstractBaseObject
 {
   private Integer calendarId;
 
+  @JsonDeserialize(using = CustomerDateAndTimeDeserialize.class)
   private Date startDate;
 
+  @JsonDeserialize(using = CustomerDateAndTimeDeserialize.class)
   private Date endDate;
 
   private String uid;
@@ -51,6 +57,7 @@ public class CalendarEventObject extends AbstractBaseObject
 
   private String note;
 
+  @JsonDeserialize(using = CustomerDateAndTimeDeserialize.class)
   private Date reminder;
 
   private String reminderType, reminderUnit;
@@ -59,7 +66,10 @@ public class CalendarEventObject extends AbstractBaseObject
 
   private String recurrenceRule, recurrenceExDate;
 
+  @JsonDeserialize(using = CustomerDateAndTimeDeserialize.class)
   private Date recurrenceUntil;
+
+  private String icsData;
 
   public Integer getCalendarId()
   {
@@ -140,6 +150,7 @@ public class CalendarEventObject extends AbstractBaseObject
 
   /**
    * Calculated out of reminderDuration and reminderUnit for the developer's convenience.
+   *
    * @return The date (UTC) at which the reminder should be fired.
    */
   public Date getReminder()
@@ -186,6 +197,16 @@ public class CalendarEventObject extends AbstractBaseObject
   public String getReminderUnit()
   {
     return reminderUnit;
+  }
+
+  public String getIcsData()
+  {
+    return icsData;
+  }
+
+  public void setIcsData(String icsData)
+  {
+    this.icsData = icsData;
   }
 
   public CalendarEventObject setReminderUnit(final String reminderUnit)
@@ -247,7 +268,8 @@ public class CalendarEventObject extends AbstractBaseObject
   @Override
   public String toString()
   {
-    return new ReflectionToStringBuilder(this) {
+    return new ReflectionToStringBuilder(this)
+    {
       @Override
       protected boolean accept(final Field f)
       {
