@@ -37,6 +37,7 @@ import org.projectforge.business.user.UserRightId;
 import org.projectforge.framework.persistence.api.BaseDao;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.persistence.api.QueryFilter;
+import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
@@ -47,7 +48,6 @@ import org.springframework.transaction.annotation.Transactional;
  * Ein Mitarbeiter ist einem ProjectForge-Benutzer zugeordnet und trägt einige buchhalterische Angaben.
  *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- *
  */
 @Repository
 public class EmployeeDao extends BaseDao<EmployeeDO>
@@ -60,11 +60,17 @@ public class EmployeeDao extends BaseDao<EmployeeDO>
       "user.description",
       "user.organization" };
 
+  //private final static String META_SQL = " AND e.deleted = :deleted AND e.tenant = :tenant";
+  private final static String META_SQL = " AND e.deleted = :deleted";
+
   @Autowired
   private UserDao userDao;
 
   @Autowired
   private Kost1Dao kost1Dao;
+
+  @Autowired
+  private PfEmgrFactory emgrFactory;
 
   public EmployeeDao()
   {
@@ -118,7 +124,7 @@ public class EmployeeDao extends BaseDao<EmployeeDO>
 
   /**
    * @param employee
-   * @param userId If null, then user will be set to null;
+   * @param userId   If null, then user will be set to null;
    * @see BaseDao#getOrLoad(Integer)
    */
   @Deprecated
@@ -130,7 +136,7 @@ public class EmployeeDao extends BaseDao<EmployeeDO>
 
   /**
    * @param employee
-   * @param kost1Id If null, then kost1 will be set to null;
+   * @param kost1Id  If null, then kost1 will be set to null;
    * @see BaseDao#getOrLoad(Integer)
    */
   @Deprecated
@@ -190,5 +196,16 @@ public class EmployeeDao extends BaseDao<EmployeeDO>
     nw.setEmployee(employee);
     employee.getTimeableAttributes().add(nw);
     return nw;
+  }
+
+  public EmployeeDO getEmployeeByStaffnumber(String staffnumber)
+  {
+    return emgrFactory.runRoTrans(emgr -> {
+      String baseSQL = "SELECT e FROM EmployeeDO e WHERE e.staffNumber = :staffNumber";
+      return emgr
+          //          .selectSingleDetached(EmployeeDO.class, baseSQL + META_SQL, "staffNumber", staffnumber, "deleted", false, "tenant",
+          //              ThreadLocalUserContext.getUser().getTenant());
+          .selectSingleDetached(EmployeeDO.class, baseSQL + META_SQL, "staffNumber", staffnumber, "deleted", false);
+    });
   }
 }
