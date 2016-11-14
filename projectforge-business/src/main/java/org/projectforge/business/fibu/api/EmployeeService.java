@@ -11,9 +11,8 @@ import org.projectforge.framework.persistence.api.ModificationStatus;
 
 /**
  * Access to employee.
- * 
- * @author Roger Rene Kommer (r.kommer.extern@micromata.de)
  *
+ * @author Roger Rene Kommer (r.kommer.extern@micromata.de)
  */
 public interface EmployeeService extends IPersistenceService<EmployeeDO>, IDao<EmployeeDO>
 {
@@ -31,4 +30,5 @@ public interface EmployeeService extends IPersistenceService<EmployeeDO>, IDao<E
 
   BigDecimal getMonthlySalary(EmployeeDO employee, Calendar selectedDate);
 
+  EmployeeDO getEmployeeByStaffnumber(String staffnumber);
 }

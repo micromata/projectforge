@@ -31,9 +31,8 @@ import de.micromata.genome.db.jpa.tabattr.api.TimeableService;
 
 /**
  * Standard implementation of the Employee service interface.
- * 
- * @author Roger Rene Kommer (r.kommer.extern@micromata.de)
  *
+ * @author Roger Rene Kommer (r.kommer.extern@micromata.de)
  */
 @Service
 public class EmployeeServiceImpl extends CorePersistenceServiceImpl<Integer, EmployeeDO>
@@ -225,6 +224,12 @@ public class EmployeeServiceImpl extends CorePersistenceServiceImpl<Integer, Emp
     }
 
     return null;
+  }
+
+  @Override
+  public EmployeeDO getEmployeeByStaffnumber(String staffnumber)
+  {
+    return employeeDao.getEmployeeByStaffnumber(staffnumber);
   }
 
 }

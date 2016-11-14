@@ -1,34 +1,71 @@
 package org.projectforge.plugins.eed;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.projectforge.business.fibu.EmployeeTimedAttrDataDO;
 import org.projectforge.business.fibu.EmployeeTimedAttrWithDataDO;
 import org.projectforge.continuousdb.UpdateEntry;
 import org.projectforge.continuousdb.UpdateEntryImpl;
 import org.projectforge.continuousdb.UpdatePreCheckStatus;
 import org.projectforge.continuousdb.UpdateRunningStatus;
-import org.projectforge.framework.configuration.ApplicationContextProvider;
 import org.projectforge.framework.persistence.database.DatabaseUpdateService;
 import org.projectforge.framework.persistence.database.InitDatabaseDao;
+import org.projectforge.plugins.eed.model.EmployeeConfigurationAttrDO;
+import org.projectforge.plugins.eed.model.EmployeeConfigurationAttrDataDO;
 import org.projectforge.plugins.eed.model.EmployeeConfigurationDO;
 import org.projectforge.plugins.eed.model.EmployeeConfigurationTimedAttrDO;
+import org.projectforge.plugins.eed.model.EmployeeConfigurationTimedAttrWithDataDO;
 import org.projectforge.plugins.eed.model.EmployeeConfigurationTimedDO;
 
 public class ExtendedEmployeeDataPluginUpdates
 {
-  static DatabaseUpdateService dao;
+  static DatabaseUpdateService databaseUpdateService;
+  static InitDatabaseDao initDatabaseDao;
 
   @SuppressWarnings("serial")
-  public static UpdateEntry getInitializationUpdateEntry()
+  public static List<UpdateEntry> getUpdateEntries()
   {
-    return new UpdateEntryImpl(ExtendEmployeeDataPlugin.ID, "6.3", "2016-08-16",
-        "Adds T_PLUGIN_EMPLOYEE_CONFIGURATION* Tables")
+    final List<UpdateEntry> list = new ArrayList<UpdateEntry>();
+    list.add(new UpdateEntryImpl(ExtendEmployeeDataPlugin.ID, "6.5", "2016-11-15",
+        "Adds attribute tables for employee configuration page")
     {
-
       @Override
       public UpdatePreCheckStatus runPreCheck()
       {
         // Does the data-base table already exist?
-        if (dao.doTablesExist(EmployeeConfigurationDO.class, EmployeeConfigurationTimedAttrDO.class,
+        if (databaseUpdateService
+            .doTablesExist(EmployeeConfigurationAttrDO.class, EmployeeConfigurationAttrDataDO.class, EmployeeConfigurationTimedAttrWithDataDO.class) == true) {
+          return UpdatePreCheckStatus.ALREADY_UPDATED;
+        } else {
+          return UpdatePreCheckStatus.READY_FOR_UPDATE;
+        }
+      }
+
+      @Override
+      public UpdateRunningStatus runUpdate()
+      {
+        if (databaseUpdateService
+            .doTablesExist(EmployeeConfigurationAttrDO.class, EmployeeConfigurationAttrDataDO.class, EmployeeConfigurationTimedAttrWithDataDO.class) == false) {
+          initDatabaseDao.updateSchema();
+        }
+        return UpdateRunningStatus.DONE;
+      }
+    });
+    return list;
+  }
+
+  @SuppressWarnings("serial")
+  public static UpdateEntry getInitializationUpdateEntry()
+  {
+    return new UpdateEntryImpl(ExtendEmployeeDataPlugin.ID, "2016-08-16",
+        "Adds T_PLUGIN_EMPLOYEE_CONFIGURATION* Tables")
+    {
+      @Override
+      public UpdatePreCheckStatus runPreCheck()
+      {
+        // Does the data-base table already exist?
+        if (databaseUpdateService.doTablesExist(EmployeeConfigurationDO.class, EmployeeConfigurationTimedAttrDO.class,
             EmployeeConfigurationTimedDO.class, EmployeeTimedAttrWithDataDO.class, EmployeeTimedAttrDataDO.class)) {
           return UpdatePreCheckStatus.ALREADY_UPDATED;
         } else {
@@ -39,8 +76,6 @@ public class ExtendedEmployeeDataPluginUpdates
       @Override
       public UpdateRunningStatus runUpdate()
       {
-        InitDatabaseDao initDatabaseDao = ApplicationContextProvider.getApplicationContext()
-            .getBean(InitDatabaseDao.class);
         // Updating the schema
         initDatabaseDao.updateSchema();
         return UpdateRunningStatus.DONE;
