@@ -56,7 +56,6 @@ import org.projectforge.web.wicket.components.ContentMenuEntryPanel;
 /**
  * @author M. Lauterbach (m.lauterbach@micromata.de)
  * @author K. Reinhard (k.reinhard@micromata.de)
- * 
  */
 public class TeamEventEditPage extends AbstractEditPage<TeamEventDO, TeamEventEditForm, TeamEventDao>
 {
@@ -199,7 +198,9 @@ public class TeamEventEditPage extends AbstractEditPage<TeamEventDO, TeamEventEd
               final TimesheetEditPage timesheetEditPage = new TimesheetEditPage(timesheet);
               timesheetEditPage.setReturnToPage(getReturnToPage());
               setResponsePage(timesheetEditPage);
-            };
+            }
+
+            ;
           }, getString("plugins.teamcal.event.convert2Timesheet"));
       addContentMenuEntry(menu);
     }
@@ -221,7 +222,9 @@ public class TeamEventEditPage extends AbstractEditPage<TeamEventDO, TeamEventEd
             returnToPage = new TeamCalCalendarPage(new PageParameters());
           }
           setResponsePage(new TimesheetEditPage(timesheet).setReturnToPage(returnToPage));
-        };
+        }
+
+        ;
       }.setDefaultFormProcessing(false), getString("plugins.teamcal.switchToTimesheetButton"));
       addContentMenuEntry(menu);
     } else {
@@ -238,7 +241,9 @@ public class TeamEventEditPage extends AbstractEditPage<TeamEventDO, TeamEventEd
           if (baos != null) {
             DownloadUtils.setDownloadTarget(baos.toByteArray(), event.getSubject().replace(" ", "") + ".ics");
           }
-        };
+        }
+
+        ;
       }.setDefaultFormProcessing(false), getString("plugins.teamcal.exportIcsButton"));
       addContentMenuEntry(menu);
     }
@@ -405,7 +410,9 @@ public class TeamEventEditPage extends AbstractEditPage<TeamEventDO, TeamEventEd
   protected void cloneData()
   {
     log.info("Clone of data chosen: " + getData());
-    this.form.setData(getData().clone());
+    this.form = newEditForm(this, getData().clone());
+    body.addOrReplace(this.form);
+    this.form.init();
   }
 
   /**
@@ -428,7 +435,7 @@ public class TeamEventEditPage extends AbstractEditPage<TeamEventDO, TeamEventEd
 
   /**
    * @see org.projectforge.web.wicket.AbstractEditPage#newEditForm(org.projectforge.web.wicket.AbstractEditPage,
-   *      org.projectforge.core.AbstractBaseDO)
+   * org.projectforge.core.AbstractBaseDO)
    */
   @Override
   protected TeamEventEditForm newEditForm(final AbstractEditPage<?, ?, ?> parentPage, final TeamEventDO data)
