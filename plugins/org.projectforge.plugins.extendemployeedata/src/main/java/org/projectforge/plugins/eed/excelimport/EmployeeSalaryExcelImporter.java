@@ -107,8 +107,10 @@ public class EmployeeSalaryExcelImporter
 
     final EmployeeSalaryExcelRow[] rows = importer.convertToRows(EmployeeSalaryExcelRow.class);
     for (final EmployeeSalaryExcelRow row : rows) {
-      final ImportedElement<EmployeeSalaryDO> element = convertRowToDo(row);
-      importedSheet.addElement(element);
+      if (row.getStaffnumber() != null) {
+        final ImportedElement<EmployeeSalaryDO> element = convertRowToDo(row);
+        importedSheet.addElement(element);
+      }
     }
   }
 
