@@ -66,7 +66,7 @@ public class UserRightDao extends BaseDao<UserRightDO>
   }
 
   @Transactional(readOnly = false, propagation = Propagation.REQUIRES_NEW)
-  public void updateUserRights(final PFUserDO user, final List<UserRightVO> list)
+  public void updateUserRights(final PFUserDO user, final List<UserRightVO> list, final boolean updateUserGroupCache)
   {
     final List<UserRightDO> dbList = getList(user);
     // evict all entities from the session cache to avoid that the update is already done in the copy method
@@ -112,7 +112,15 @@ public class UserRightDao extends BaseDao<UserRightDO>
         update(rightDO);
       }
     }
-    userGroupCache.setExpired();
+    if (updateUserGroupCache) {
+      userGroupCache.setExpired();
+    }
+  }
+
+  @Transactional(readOnly = false, propagation = Propagation.REQUIRES_NEW)
+  public void updateUserRights(final PFUserDO user, final List<UserRightVO> list)
+  {
+    updateUserRights(user, list, true);
   }
 
   /**
@@ -183,7 +191,7 @@ public class UserRightDao extends BaseDao<UserRightDO>
 
   /**
    * User must member of group finance or controlling.
-   * 
+   *
    * @see org.projectforge.framework.persistence.api.BaseDao#hasSelectAccess()
    */
   @Override
@@ -194,7 +202,7 @@ public class UserRightDao extends BaseDao<UserRightDO>
 
   /**
    * @see org.projectforge.framework.persistence.api.BaseDao#hasSelectAccess(PFUserDO,
-   *      org.projectforge.core.ExtendedBaseDO, boolean)
+   * org.projectforge.core.ExtendedBaseDO, boolean)
    * @see #hasSelectAccess(PFUserDO, boolean)
    */
   @Override
@@ -205,7 +213,7 @@ public class UserRightDao extends BaseDao<UserRightDO>
 
   /**
    * User must member of group admin.
-   * 
+   *
    * @see org.projectforge.framework.persistence.api.BaseDao#hasAccess(Object, OperationType)
    */
   @Override
