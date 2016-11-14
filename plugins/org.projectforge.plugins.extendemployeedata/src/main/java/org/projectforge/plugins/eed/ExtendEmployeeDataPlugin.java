@@ -25,13 +25,18 @@ package org.projectforge.plugins.eed;
 
 import static org.projectforge.framework.persistence.api.UserRightService.READONLY_READWRITE;
 
+import java.util.List;
+
 import org.projectforge.business.fibu.EmployeeDao;
 import org.projectforge.business.user.UserRightId;
+import org.projectforge.business.user.UserRightValue;
 import org.projectforge.continuousdb.UpdateEntry;
+import org.projectforge.framework.persistence.database.InitDatabaseDao;
 import org.projectforge.plugins.core.AbstractPlugin;
 import org.projectforge.plugins.eed.wicket.EmployeeBillingImportPage;
 import org.projectforge.plugins.eed.wicket.EmployeeConfigurationPage;
 import org.projectforge.plugins.eed.wicket.EmployeeListEditPage;
+import org.projectforge.plugins.eed.wicket.EmployeeSalaryImportPage;
 import org.projectforge.plugins.eed.wicket.ExportDataPage;
 import org.projectforge.web.MenuItemDef;
 import org.projectforge.web.MenuItemDefId;
@@ -58,14 +63,17 @@ public class ExtendEmployeeDataPlugin extends AbstractPlugin
   @Autowired
   private EmployeeDao employeeDao;
 
+  @Autowired
+  private InitDatabaseDao initDatabaseDao;
+
   /**
    * @see org.projectforge.plugins.core.AbstractPlugin#initialize()
    */
   @Override
   protected void initialize()
   {
-
-    ExtendedEmployeeDataPluginUpdates.dao = myDatabaseUpdater;
+    ExtendedEmployeeDataPluginUpdates.databaseUpdateService = myDatabaseUpdater;
+    ExtendedEmployeeDataPluginUpdates.initDatabaseDao = initDatabaseDao;
     // Register it:
     register(ID, EmployeeDao.class, employeeDao, "plugins.extendemployeedata");
 
@@ -85,6 +93,9 @@ public class ExtendEmployeeDataPlugin extends AbstractPlugin
         .registerMenuItem(new MenuItemDef(parentMenu, ID, 23, "plugins.eed.menu.export", ExportDataPage.class,
             UserRightId.HR_EMPLOYEE_SALARY, READONLY_READWRITE));
     pluginWicketRegistrationService
+        .registerMenuItem(new MenuItemDef(parentMenu, ID, 23, "plugins.eed.menu.import", EmployeeSalaryImportPage.class,
+            UserRightId.HR_EMPLOYEE_SALARY, UserRightValue.READWRITE));
+    pluginWicketRegistrationService
         .registerMenuItem(
             new MenuItemDef(parentMenu, ID, 24, "plugins.eed.menu.config", EmployeeConfigurationPage.class,
                 UserRightId.HR_EMPLOYEE_SALARY, READONLY_READWRITE));
@@ -103,6 +114,15 @@ public class ExtendEmployeeDataPlugin extends AbstractPlugin
   public UpdateEntry getInitializationUpdateEntry()
   {
     return ExtendedEmployeeDataPluginUpdates.getInitializationUpdateEntry();
+  }
+
+  /**
+   * @see org.projectforge.plugins.core.AbstractPlugin#getUpdateEntries()
+   */
+  @Override
+  public List<UpdateEntry> getUpdateEntries()
+  {
+    return ExtendedEmployeeDataPluginUpdates.getUpdateEntries();
   }
 
 }

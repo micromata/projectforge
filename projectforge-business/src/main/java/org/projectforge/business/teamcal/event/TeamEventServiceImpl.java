@@ -207,13 +207,14 @@ public class TeamEventServiceImpl implements TeamEventService
 
   private String getResponseLinks(TeamEventDO event, TeamEventAttendeeDO attendee)
   {
-    String messageParamBegin = "uid=" + event.getUid() + "&attendee=" + attendee.getId();
-    String acceptParams = cryptService.encryptParameterMessage(messageParamBegin + "&status=ACCEPTED");
-    String declinedParams = cryptService.encryptParameterMessage(messageParamBegin + "&status=DECLINED");
-    String result = "<a href=\"" + configService.getDomain() + "/cal?" + acceptParams + "\">"
-        + TeamEventAttendeeStatus.ACCEPTED.getI18nValue() + "</a><br><a href=\"" + configService.getDomain() + "/cal?"
-        + declinedParams + "\">" + TeamEventAttendeeStatus.DECLINED.getI18nValue() + "</a><br>";
-    return result;
+    final String messageParamBegin = "uid=" + event.getUid() + "&attendee=" + attendee.getId();
+    final String acceptParams = cryptService.encryptParameterMessage(messageParamBegin + "&status=ACCEPTED");
+    final String declineParams = cryptService.encryptParameterMessage(messageParamBegin + "&status=DECLINED");
+    final String acceptText = I18nHelper.getLocalizedMessage("plugins.teamcal.attendee.email.accept");
+    final String declineText = I18nHelper.getLocalizedMessage("plugins.teamcal.attendee.email.decline");
+
+    return "<a href=\"" + configService.getDomain() + "/cal?" + acceptParams + "\">" + acceptText + "</a><br>" +
+        "<a href=\"" + configService.getDomain() + "/cal?" + declineParams + "\">" + declineText + "</a><br>";
   }
 
   private void addAttendeeToMail(TeamEventAttendeeDO attendee, Mail msg)

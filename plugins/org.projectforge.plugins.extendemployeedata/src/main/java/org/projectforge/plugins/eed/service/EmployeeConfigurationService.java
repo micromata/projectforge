@@ -8,7 +8,15 @@ import org.projectforge.plugins.eed.model.EmployeeConfigurationTimedDO;
 public interface EmployeeConfigurationService
     extends IPersistenceService<EmployeeConfigurationDO>, IDao<EmployeeConfigurationDO>
 {
-  EmployeeConfigurationTimedDO addNewTimeAttributeRow(final EmployeeConfigurationDO employeeConfiguration,
+  public static final String STAFFNR_COLUMN_NAME_ATTR = "staffnrcolumnname";
+
+  public static final String SALARY_COLUMN_NAME_ATTR = "salarycolumnname";
+
+  public static final String REMARK_COLUMN_NAME_ATTR = "remarkcolumnname";
+
+  EmployeeConfigurationTimedDO
+
+  addNewTimeAttributeRow(final EmployeeConfigurationDO employeeConfiguration,
       final String groupName);
 
   Integer getSingleEmployeeConfigurationDOId();
