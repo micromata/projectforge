@@ -105,14 +105,14 @@ public class DatabaseCoreUpdates
     final List<UpdateEntry> list = new ArrayList<>();
 
     ////////////////////////////////////////////////////////////////////
-    // 6.5.0
+    // 6.6.0
     // /////////////////////////////////////////////////////////////////
-    list.add(new UpdateEntryImpl(CORE_REGION_ID, "6.5.0", "2016-10-26", "Add table for vacation.")
+    list.add(new UpdateEntryImpl(CORE_REGION_ID, "6.6.0", "2016-10-26", "Add table for vacation.")
     {
       @Override
       public UpdatePreCheckStatus runPreCheck()
       {
-        log.info("Running pre-check for ProjectForge version 6.5.0");
+        log.info("Running pre-check for ProjectForge version 6.6.0");
         final DatabaseUpdateService databaseUpdateService = applicationContext.getBean(DatabaseUpdateService.class);
         if (databaseUpdateService.doesTableExist("T_EMPLOYEE_VACATION") == false
             || databaseUpdateService.doesTableRowExists("T_CONFIGURATION", "PARAMETER", "hr.emailaddress",
