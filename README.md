@@ -8,8 +8,8 @@ Please visit: https://www.projectforge.org/pf-en/New_Developer_Guide
 
 ## Quickstart from command line
 
-> Please note: You only need this package for developing ProjectForge.
-> The other modules projectforge-* are automatically available by maven.
+> Please note: You only need the following steps for developing ProjectForge.
+> If you just want to run it, please download it from https://sourceforge.net/projects/pforge/
 
 1. Checkout:  
    https://github.com/micromata/projectforge.git
@@ -17,23 +17,19 @@ Please visit: https://www.projectforge.org/pf-en/New_Developer_Guide
 2. Build ProjectForge:  
    ```mvn clean install -DskipTests=true```
    
-3. Build ProjectForge-Application:  
-   ```cd projectforge-application```
-   ```mvn clean install -DskipTests=true```
+3. Change Directory:  
+    ```cd projectforge-application```
 
-4. Switch to compiled Jar file
-   ```cd projectforge-application/target```
+4. Run ProjectForge:  
+   ```java -jar target/projectforge-application-X.X.X.jar```
 
-5. Run ProjectForge:  
-   ```java -jar projectforge-application-X.X.X.jar```
-
-6. Open your browser:  
+5. Open your browser:  
    http://localhost:8080
    
 ## Quickstart with launcher
 
-> Please note: You only need this package for developing ProjectForge.
-> The other modules projectforge-* are automatically available by maven.
+> Please note: You only need the following steps for developing ProjectForge.
+> If you just want to run it, please download it from https://sourceforge.net/projects/pforge/
 
 1. Checkout:  
    https://github.com/micromata/projectforge.git
@@ -41,11 +37,10 @@ Please visit: https://www.projectforge.org/pf-en/New_Developer_Guide
 2. Build ProjectForge:  
    ```mvn clean install -DskipTests=true```
 
-3. Switch to compiled Jar file
-   ```cd projectforge-launcher/target```
+3. Open the directory of the compiled jar file: ```projectforge-launcher/target```
 
 4. Run ProjectForge:  
-   ```double click projectforge-launcher-X.X.X.jar```
+   double click on ```projectforge-launcher-X.X.X.jar```
 
 5. Open your browser:  
    ```Start Server. Open Browser```
@@ -64,8 +59,8 @@ Please visit: https://www.projectforge.org/pf-en/New_Developer_Guide
 
 Please note the detailed documentations for administrators, developers as well as for users.
 
-Java version 8 is required since ProjectForge 6.0
-Please note, that the Java version 8 is needed for the development and the running of ProjectForge. There is no delivery for Java 1.5 planned because some third party libraries are only available for Java 1.6.
+Java version 8 is required since ProjectForge 6.0.
+Please note, that Java version 8 is needed for developing and running ProjectForge.
 
 ## Adding your own plugins
 ProjectForge support plugins. The existing menu can be modified and own entities and functionalities can be added.
