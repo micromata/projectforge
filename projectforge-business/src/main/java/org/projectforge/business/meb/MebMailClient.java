@@ -36,6 +36,7 @@ import org.projectforge.mail.MailAccount;
 import org.projectforge.mail.MailFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Controller;
 
 import de.micromata.genome.logging.GLog;
@@ -53,6 +54,11 @@ import de.micromata.mgc.email.MailReceiverLocalSettingsConfigModel;
 public class MebMailClient
 {
   private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(MebMailClient.class);
+
+  @Autowired
+  private ApplicationContext applicationContext;
+
+  private MebDao mebDao;
 
   @Value("${genome.email.receive.enabled}")
   private boolean enabled;
@@ -95,9 +101,6 @@ public class MebMailClient
 
   @Value("${genome.email.receive.debug}")
   private boolean debug;
-
-  @Autowired
-  private MebDao mebDao;
 
   private boolean mgcMailAccountDisabled = false;
 
@@ -152,7 +155,7 @@ public class MebMailClient
 
   /**
    * @param onlyRecentMails If true then only unseen mail will be got from the mail server and afterwards they will be
-   *          set as seen.
+   *                        set as seen.
    * @return Number of new imported messages.
    */
   public synchronized int getNewMessages(final boolean onlyRecentMails, final boolean markRecentMailsAsSeen)
@@ -243,5 +246,13 @@ public class MebMailClient
       return res;
     }
     return 0;
+  }
+
+  private MebDao getMebDao()
+  {
+    if (mebDao == null) {
+      mebDao = applicationContext.getBean(MebDao.class);
+    }
+    return mebDao;
   }
 }
