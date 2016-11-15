@@ -12,6 +12,6 @@ import org.springframework.context.annotation.PropertySource;
 @SpringBootApplication(scanBasePackages = { "org.projectforge", "de.micromata.mgc.jpa.spring", "de.micromata.mgc.springbootapp" })
 @ServletComponentScan("org.projectforge.web")
 @PropertySource("file:projectforge.properties")
-public class ProjectForgeApplication
+public class ProjectForgeLauncher
 {
 }
