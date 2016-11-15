@@ -59,10 +59,12 @@ public class EmployeeSalaryImportService
 
     for (final ImportedElement<EmployeeSalaryDO> el : sheet.getElements()) {
       final EmployeeSalaryDO employeeSalary = el.getValue();
-      final Integer id = employeeSalary.getId();
-      final EmployeeSalaryDO dbEmployeeSalary = (id != null) ? employeeSalaryService.selectByPk(id) : null;
-      if (dbEmployeeSalary != null) {
-        el.setOldValue(dbEmployeeSalary);
+      if (employeeSalary != null) {
+        final Integer id = employeeSalary.getId();
+        final EmployeeSalaryDO dbEmployeeSalary = (id != null) ? employeeSalaryService.selectByPk(id) : null;
+        if (dbEmployeeSalary != null) {
+          el.setOldValue(dbEmployeeSalary);
+        }
       }
     }
     sheet.setStatus(ImportStatus.RECONCILED);
