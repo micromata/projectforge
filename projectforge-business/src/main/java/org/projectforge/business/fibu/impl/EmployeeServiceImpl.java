@@ -229,7 +229,7 @@ public class EmployeeServiceImpl extends CorePersistenceServiceImpl<Integer, Emp
 
     return null;
   }
-
+  
   @Override
   public List<EmployeeDO> findAllActive(boolean checkAccess)
   {
@@ -242,6 +242,12 @@ public class EmployeeServiceImpl extends CorePersistenceServiceImpl<Integer, Emp
     return employeeList.stream()
         .filter(emp -> emp.getAustrittsDatum() == null || emp.getAustrittsDatum().after(new Date()))
         .collect(Collectors.toList());
+  }
+  
+    @Override
+  public EmployeeDO getEmployeeByStaffnumber(String staffnumber)
+  {
+    return employeeDao.getEmployeeByStaffnumber(staffnumber);
   }
 
 }
