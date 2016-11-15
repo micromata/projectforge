@@ -93,7 +93,6 @@ import org.projectforge.web.fibu.ReportObjectivesPage;
 import org.projectforge.web.gantt.GanttChartListPage;
 import org.projectforge.web.humanresources.HRListPage;
 import org.projectforge.web.humanresources.HRPlanningListPage;
-import org.projectforge.web.imagecropper.ImageCropperPage;
 import org.projectforge.web.meb.MebListPage;
 import org.projectforge.web.multitenancy.TenantListPage;
 import org.projectforge.web.orga.ContractListPage;
@@ -483,12 +482,6 @@ public class MenuItemRegistry implements Serializable
     reg.register(admin, MenuItemDefId.CONFIGURATION, 100, ConfigurationListPage.class, ADMIN_GROUP);
     reg.register(admin, MenuItemDefId.PLUGIN_ADMIN, 110, PluginListPage.class, ADMIN_GROUP);
 
-    // MISC
-    // invisible at default (because it's only functioning with valid ssl certificate).
-    reg.register(misc, MenuItemDefId.IMAGE_CROPPER, 100, ImageCropperPage.class,
-        new String[] { ImageCropperPage.PARAM_SHOW_UPLOAD_BUTTON,
-            "false", ImageCropperPage.PARAM_ENABLE_WHITEBOARD_FILTER, "true" },
-        false);
     reg.refresh();
   }
 

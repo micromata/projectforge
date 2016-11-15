@@ -13,9 +13,8 @@ import de.micromata.genome.jpa.events.EmgrInitForInsertEvent;
 
 /**
  * Bookkeeping of created and lastupdate fields.
- * 
- * @author Roger Rene Kommer (r.kommer.extern@micromata.de)
  *
+ * @author Roger Rene Kommer (r.kommer.extern@micromata.de)
  */
 @Component
 public class InitForInsertEventListener implements EmgrEventHandler<EmgrInitForInsertEvent>
