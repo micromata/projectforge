@@ -43,13 +43,14 @@ class EmployeeSalaryImportStoragePanel extends AbstractImportStoragePanel<Employ
     final String s = "white-space: nowrap; text-align: right;";
     final String styleRightAlign = (style == null) ? s : style + " " + s;
     final EmployeeSalaryDO employeeSalary = (EmployeeSalaryDO) element.getValue();
-    final EmployeeDO employee = employeeSalary.getEmployee();
+    final EmployeeDO employee = employeeSalary != null ? employeeSalary.getEmployee() : null;
     addCell(cellRepeater, employee != null ? employee.getStaffNumber() : "", styleRightAlign);
     addCell(cellRepeater, employee != null ? employee.getUser().getFullname() : "", styleRightAlign);
-    addCell(cellRepeater, employeeSalary.getYear(), styleRightAlign);
-    addCell(cellRepeater, employeeSalary.getMonth(), styleRightAlign);
-    addCell(cellRepeater, employeeSalary.getBruttoMitAgAnteil() != null ? employeeSalary.getBruttoMitAgAnteil().toString() : "", styleRightAlign);
-    addCell(cellRepeater, employeeSalary.getComment(), styleRightAlign);
+    addCell(cellRepeater, employeeSalary != null ? employeeSalary.getYear() : null, styleRightAlign);
+    addCell(cellRepeater, employeeSalary != null ? employeeSalary.getMonth() : null, styleRightAlign);
+    addCell(cellRepeater, employeeSalary != null && employeeSalary.getBruttoMitAgAnteil() != null ? employeeSalary.getBruttoMitAgAnteil().toString() : "",
+        styleRightAlign);
+    addCell(cellRepeater, employeeSalary != null ? employeeSalary.getComment() : "", styleRightAlign);
   }
 
   void setDateToSelectAttrRow(Date dateToSelectAttrRow)
