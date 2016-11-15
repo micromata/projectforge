@@ -16,6 +16,7 @@ import org.projectforge.business.fibu.EmployeeSalaryDO;
 import org.projectforge.business.fibu.EmployeeSalaryType;
 import org.projectforge.business.fibu.api.EmployeeSalaryService;
 import org.projectforge.business.fibu.api.EmployeeService;
+import org.projectforge.business.user.I18nHelper;
 import org.projectforge.excel.ExcelImport;
 import org.projectforge.framework.i18n.UserException;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
@@ -125,7 +126,7 @@ public class EmployeeSalaryExcelImporter
       employee = employeeService.getEmployeeByStaffnumber(row.getStaffnumber());
       // validate ID and USER: make sure that full name has not changed
       if (employee == null) {
-        element.putErrorProperty("user", row.getStaffnumber());
+        element.putErrorProperty(I18nHelper.getLocalizedMessage("fibu.employee.staffNumber"), row.getStaffnumber());
       } else {
         employeeSalary = employeeSalaryService.getEmployeeSalaryByDate(employee, selectedDateCalendar);
         if (employeeSalary == null) {
@@ -147,7 +148,7 @@ public class EmployeeSalaryExcelImporter
     } else {
       // this employee salaery is just created to show it in the EmployeeSalaryImportStoragePanel, it will never be imported to the DB
       employeeSalary = new EmployeeSalaryDO();
-      element.putErrorProperty("user", row.getStaffnumber());
+      element.putErrorProperty(I18nHelper.getLocalizedMessage("fibu.employee.staffNumber"), row.getStaffnumber());
     }
     element.setValue(employeeSalary);
     return element;
