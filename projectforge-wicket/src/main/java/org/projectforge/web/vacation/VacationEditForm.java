@@ -186,7 +186,9 @@ public class VacationEditForm extends AbstractEditForm<VacationDO, VacationEditP
       final FieldsetPanel fs = gridBuilder.newFieldset(I18nHelper.getLocalizedMessage("vacation.availabledays"));
       BigDecimal availableVacationDays = null;
       if (data.getStartDate() != null) {
-        availableVacationDays = vacationService.getAvailableVacationdaysForYear(data.getEmployee(), data.getStartDate().getYear(), true);
+        Calendar startDateCalendar = Calendar.getInstance(ThreadLocalUserContext.getTimeZone());
+        startDateCalendar.setTime(data.getStartDate());
+        availableVacationDays = vacationService.getAvailableVacationdaysForYear(data.getEmployee(), startDateCalendar.get(Calendar.YEAR), true);
       } else {
         Calendar now = Calendar.getInstance(ThreadLocalUserContext.getTimeZone());
         availableVacationDays = vacationService.getAvailableVacationdaysForYear(data.getEmployee(), now.get(Calendar.YEAR), true);
