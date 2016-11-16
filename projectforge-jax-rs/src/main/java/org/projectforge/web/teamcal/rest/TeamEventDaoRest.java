@@ -143,8 +143,8 @@ public class TeamEventDaoRest
   @POST
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
-  @Path(RestPaths.CREATE)
-  public Response createTeamEvent(final CalendarEventObject calendarEvent)
+  @Path(RestPaths.SAVE_OR_UDATE)
+  public Response saveOrUpdateTeamEvent(final CalendarEventObject calendarEvent)
   {
     CalendarEventObject result = null;
     try {
@@ -154,6 +154,17 @@ public class TeamEventDaoRest
       final VEvent event = (VEvent) calendar.getComponent(Component.VEVENT);
       final TeamEventDO teamEvent = TeamEventUtils.createTeamEventDO(event,
           TimeZone.getTimeZone(teamCalDO.getOwner().getTimeZone()));
+      if (calendarEvent.getId() != null) {
+        TeamEventDO teamEventOrigin = teamEventDao.getById(calendarEvent.getId());
+        if (teamEventOrigin != null) {
+          teamEvent.setId(teamEventOrigin.getPk());
+          teamEvent.setCreated(teamEventOrigin.getCreated());
+          teamEvent.setTenant(teamEventOrigin.getTenant());
+        } else {
+          log.error("Team event with id: " + calendarEvent.getId() + " not found");
+          return Response.serverError().build();
+        }
+      }
       teamEvent.setCalendar(teamCalDO);
       teamEvent.setUid(event.getUid().getValue());
       teamEventDao.saveOrUpdate(teamEvent);
@@ -170,6 +181,32 @@ public class TeamEventDaoRest
       log.error("Something went wrong while creating team event");
       return Response.serverError().build();
     }
+  }
+
+  @POST
+  @Consumes(MediaType.APPLICATION_JSON)
+  @Path(RestPaths.DELETE)
+  public Response deleteTeamEvent(final CalendarEventObject calendarEvent)
+  {
+    try {
+      if (calendarEvent.getId() != null) {
+        TeamEventDO teamEventOrigin = teamEventDao.getById(calendarEvent.getId());
+        if (teamEventOrigin != null) {
+          teamEventDao.markAsDeleted(teamEventOrigin);
+          log.info("Team event with the id: " + calendarEvent.getId() + " for calendar #" + calendarEvent.getCalendarId() + " successfully marked as deleted.");
+        } else {
+          log.warn("Team event with id: " + calendarEvent.getId() + " not found");
+          return Response.serverError().build();
+        }
+      } else {
+        log.warn("Team event id not given");
+        return Response.serverError().build();
+      }
+    } catch (Exception e) {
+      log.error("Exception while deleting team event", e);
+      return Response.serverError().build();
+    }
+    return Response.ok().build();
   }
 
 }
