@@ -27,6 +27,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.StringTokenizer;
 
+import javax.persistence.NoResultException;
+
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.Predicate;
 import org.apache.commons.lang.Validate;
@@ -200,12 +202,18 @@ public class EmployeeDao extends BaseDao<EmployeeDO>
 
   public EmployeeDO getEmployeeByStaffnumber(String staffnumber)
   {
-    return emgrFactory.runRoTrans(emgr -> {
-      String baseSQL = "SELECT e FROM EmployeeDO e WHERE e.staffNumber = :staffNumber";
-      return emgr
-          //          .selectSingleDetached(EmployeeDO.class, baseSQL + META_SQL, "staffNumber", staffnumber, "deleted", false, "tenant",
-          //              ThreadLocalUserContext.getUser().getTenant());
-          .selectSingleDetached(EmployeeDO.class, baseSQL + META_SQL, "staffNumber", staffnumber, "deleted", false);
-    });
+    EmployeeDO result = null;
+    try {
+      result = emgrFactory.runRoTrans(emgr -> {
+        String baseSQL = "SELECT e FROM EmployeeDO e WHERE e.staffNumber = :staffNumber";
+        return emgr
+            //          .selectSingleDetached(EmployeeDO.class, baseSQL + META_SQL, "staffNumber", staffnumber, "deleted", false, "tenant",
+            //              ThreadLocalUserContext.getUser().getTenant());
+            .selectSingleDetached(EmployeeDO.class, baseSQL + META_SQL, "staffNumber", staffnumber, "deleted", false);
+      });
+    } catch (NoResultException ex) {
+      log.warn("No employee found for staffnumber: " + staffnumber);
+    }
+    return result;
   }
 }
