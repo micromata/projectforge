@@ -180,7 +180,8 @@ public class EmployeeDO extends DefaultBaseWithAttrDO<EmployeeDO>
 
   @PropertyInfo(i18nKey = "gender")
   @Field(index = Index.YES /* TOKENIZED */, store = Store.NO)
-  @Convert(converter = GenderConverter.class) // use the GenderConverter instead of @Enumerated to persist the correct ISO/IEC 5218 integer representation of the gender
+  @Convert(converter = GenderConverter.class)
+  // use the GenderConverter instead of @Enumerated to persist the correct ISO/IEC 5218 integer representation of the gender
   private Gender gender;
 
   @PropertyInfo(i18nKey = "fibu.employee.street")
@@ -565,4 +566,25 @@ public class EmployeeDO extends DefaultBaseWithAttrDO<EmployeeDO>
     return super.getAttrs();
   }
 
+  @Override
+  public boolean equals(Object o)
+  {
+    if (o == null || o instanceof EmployeeDO == false) {
+      return false;
+    }
+    EmployeeDO other = (EmployeeDO) o;
+    if (other.getPk() == null) {
+      return false;
+    }
+    if (this.getPk().equals(other.getPk())) {
+      return true;
+    }
+    return super.equals(o);
+  }
+
+  @Override
+  public int hashCode()
+  {
+    return getPk() != null ? 31 * getPk().hashCode() : super.hashCode();
+  }
 }
