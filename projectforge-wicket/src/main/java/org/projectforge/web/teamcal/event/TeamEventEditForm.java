@@ -86,10 +86,9 @@ import net.fortuna.ical4j.model.Recur;
 
 /**
  * Form to edit team events.
- * 
+ *
  * @author M. Lauterbach (m.lauterbach@micromata.de)
  * @author K. Reinhard (K.Reinhard@micromata.de)
- * 
  */
 public class TeamEventEditForm extends AbstractEditForm<TeamEventDO, TeamEventEditPage>
 {
@@ -138,6 +137,8 @@ public class TeamEventEditForm extends AbstractEditForm<TeamEventDO, TeamEventEd
   protected FileUploadField fileUploadField;
 
   protected MultiChoiceListHelper<TeamEventAttendeeDO> assignAttendeesListHelper;
+
+  protected AttendeeWicketProvider attendeeWicketProvider;
 
   /**
    * @param parentPage
@@ -230,11 +231,11 @@ public class TeamEventEditForm extends AbstractEditForm<TeamEventDO, TeamEventEd
           }
         }
       }
-
+      attendeeWicketProvider = new AttendeeWicketProvider(data, teamEventService);
       final Select2MultiChoice<TeamEventAttendeeDO> attendees = new Select2MultiChoice<TeamEventAttendeeDO>(
           fieldSet.getSelect2MultiChoiceId(),
           new PropertyModel<Collection<TeamEventAttendeeDO>>(this.assignAttendeesListHelper, "assignedItems"),
-          new AttendeeWicketProvider(data, teamEventService));
+          attendeeWicketProvider);
       attendees.setMarkupId("attendees").setOutputMarkupId(true);
       attendees.add(new TeamEventAttendeeValidator());
       fieldSet.add(attendees);
@@ -484,7 +485,7 @@ public class TeamEventEditForm extends AbstractEditForm<TeamEventDO, TeamEventEd
 
   /**
    * if has access: create drop down with teamCals else create label
-   * 
+   *
    * @param fieldSet
    */
   private void initTeamCalPicker(final FieldsetPanel fieldSet)
@@ -512,7 +513,7 @@ public class TeamEventEditForm extends AbstractEditForm<TeamEventDO, TeamEventEd
 
   /**
    * create date panel
-   * 
+   *
    * @param dateFieldSet
    */
   private void initDatePanel()
