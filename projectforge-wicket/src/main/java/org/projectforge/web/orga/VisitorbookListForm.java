@@ -23,17 +23,120 @@
 
 package org.projectforge.web.orga;
 
+import java.util.Date;
+
 import org.apache.log4j.Logger;
+import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.markup.html.form.FormComponent;
+import org.apache.wicket.markup.html.form.SubmitLink;
+import org.apache.wicket.markup.html.form.validation.IFormValidator;
+import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
+import org.apache.wicket.model.ResourceModel;
+import org.projectforge.business.orga.VisitorbookFilter;
+import org.projectforge.web.CSSColor;
+import org.projectforge.web.calendar.QuickSelectPanel;
 import org.projectforge.web.wicket.AbstractListForm;
+import org.projectforge.web.wicket.WicketUtils;
+import org.projectforge.web.wicket.bootstrap.GridSize;
+import org.projectforge.web.wicket.components.DatePanel;
+import org.projectforge.web.wicket.components.DatePanelSettings;
 import org.projectforge.web.wicket.flowlayout.DivPanel;
+import org.projectforge.web.wicket.flowlayout.DivTextPanel;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
+import org.projectforge.web.wicket.flowlayout.HtmlCommentPanel;
+import org.projectforge.web.wicket.flowlayout.IconLinkPanel;
+import org.projectforge.web.wicket.flowlayout.IconType;
 
 public class VisitorbookListForm extends AbstractListForm<VisitorbookFilter, VisitorbookListPage>
 {
   private static final Logger log = Logger.getLogger(VisitorbookListForm.class);
 
   private static final long serialVersionUID = -5969136444233092172L;
+
+  protected DatePanel startDate;
+
+  protected DatePanel stopDate;
+
+  // Components for form validation.
+  private final FormComponent<?>[] dependentFormComponents = new FormComponent<?>[2];
+
+  @Override
+  protected void init()
+  {
+    super.init();
+    final VisitorbookFilter filter = getSearchFilter();
+    add(new IFormValidator()
+    {
+      @Override
+      public FormComponent<?>[] getDependentFormComponents()
+      {
+        return dependentFormComponents;
+      }
+
+      @Override
+      public void validate(final Form<?> form)
+      {
+        final VisitorbookFilter filter = getSearchFilter();
+        final Date from = startDate.getConvertedInput();
+        final Date to = stopDate.getConvertedInput();
+        if (from != null && to != null && from.after(to) == true) {
+          error(getString("timesheet.error.startTimeAfterStopTime"));
+        }
+      }
+    });
+    {
+      gridBuilder.newSplitPanel(GridSize.COL66);
+      final FieldsetPanel fs = gridBuilder.newFieldset(getString("timePeriod"));
+      startDate = new DatePanel(fs.newChildId(), new PropertyModel<Date>(filter, "startTime"), DatePanelSettings.get()
+          .withSelectPeriodMode(true), true);
+      fs.add(dependentFormComponents[0] = startDate);
+      fs.setLabelFor(startDate);
+      fs.add(new DivTextPanel(fs.newChildId(), " - "));
+      stopDate = new DatePanel(fs.newChildId(), new PropertyModel<Date>(filter, "stopTime"),
+          DatePanelSettings.get().withSelectPeriodMode(true), true);
+      fs.add(dependentFormComponents[1] = stopDate);
+      {
+        final SubmitLink unselectPeriodLink = new SubmitLink(IconLinkPanel.LINK_ID)
+        {
+          @Override
+          public void onSubmit()
+          {
+            getSearchFilter().setStartTime(null);
+            getSearchFilter().setStopTime(null);
+            clearInput();
+            parentPage.refresh();
+          }
+
+          ;
+        };
+        unselectPeriodLink.setDefaultFormProcessing(false);
+        fs.add(new IconLinkPanel(fs.newChildId(), IconType.REMOVE_SIGN,
+            new ResourceModel("calendar.tooltip.unselectPeriod"),
+            unselectPeriodLink).setColor(CSSColor.RED));
+      }
+      final QuickSelectPanel quickSelectPanel = new QuickSelectPanel(fs.newChildId(), parentPage, "quickSelect",
+          startDate);
+      fs.add(quickSelectPanel);
+      quickSelectPanel.init();
+      fs.add(new DivTextPanel(fs.newChildId(), new Model<String>()
+      {
+        @Override
+        public String getObject()
+        {
+          return WicketUtils.getCalendarWeeks(VisitorbookListForm.this, filter.getStartTime(), filter.getStopTime());
+        }
+      }));
+      fs.add(new HtmlCommentPanel(fs.newChildId(), new Model<String>()
+      {
+        @Override
+        public String getObject()
+        {
+          return WicketUtils.getUTCDates(filter.getStartTime(), filter.getStopTime());
+        }
+      }));
+    }
+  }
 
   /**
    * @see AbstractListForm#onOptionsPanelCreate(FieldsetPanel, DivPanel)
