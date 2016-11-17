@@ -1,8 +1,10 @@
 package org.projectforge.web.orga;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
+import org.apache.log4j.Logger;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
@@ -15,6 +17,7 @@ import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.orga.VisitorbookDO;
 import org.projectforge.business.orga.VisitorbookService;
 import org.projectforge.framework.persistence.attr.impl.GuiAttrSchemaService;
+import org.projectforge.framework.time.DateHolder;
 import org.projectforge.web.fibu.ISelectCallerPage;
 import org.projectforge.web.wicket.AbstractListPage;
 import org.projectforge.web.wicket.CellItemListener;
@@ -30,6 +33,8 @@ import org.projectforge.web.wicket.ListSelectActionPanel;
 public class VisitorbookListPage extends AbstractListPage<VisitorbookListForm, VisitorbookService, VisitorbookDO> implements
     IListPageColumnsCreator<VisitorbookDO>
 {
+  private static final Logger log = Logger.getLogger(VisitorbookListPage.class);
+
   private static final long serialVersionUID = -8406451234003792763L;
 
   @SpringBean
@@ -123,6 +128,32 @@ public class VisitorbookListPage extends AbstractListPage<VisitorbookListForm, V
   public VisitorbookService getBaseDao()
   {
     return visitorbookService;
+  }
+
+  /**
+   * @see org.projectforge.web.wicket.AbstractListPage#select(java.lang.String, java.lang.Object)
+   */
+  @Override
+  public void select(final String property, final Object selectedValue)
+  {
+    if (property.startsWith("quickSelect.") == true) { // month".equals(property) == true) {
+      final Date date = (Date) selectedValue;
+      form.getSearchFilter().setStartTime(date);
+      final DateHolder dateHolder = new DateHolder(date);
+      if (property.endsWith(".month") == true) {
+        dateHolder.setEndOfMonth();
+      } else if (property.endsWith(".week") == true) {
+        dateHolder.setEndOfWeek();
+      } else {
+        log.error("Property '" + property + "' not supported for selection.");
+      }
+      form.getSearchFilter().setStopTime(dateHolder.getDate());
+      form.startDate.markModelAsChanged();
+      form.stopDate.markModelAsChanged();
+      refresh();
+    } else {
+      super.select(property, selectedValue);
+    }
   }
 
 }
