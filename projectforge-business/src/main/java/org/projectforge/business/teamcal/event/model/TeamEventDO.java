@@ -86,10 +86,9 @@ import net.fortuna.ical4j.model.property.RRule;
  * <li><b>RRULE</b> - Rule of recurrence: RRULE:FREQ=DAILY;UNTIL=19971224T000000Z</li>
  * <li><b>UID</b>: UID:19960401T080045Z-4000F192713-0052@example.com
  * </ul>
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  * @author M. Lauterbach (m.lauterbach@micromata.de)
- * 
  */
 @Entity
 @Indexed
@@ -196,7 +195,6 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
   /**
    * Loads or creates the team event uid. Its very important that the uid is always the same in every ics file, which is
    * created. So only one time creation.
-   * 
    */
   @Override
   @Column
@@ -400,7 +398,7 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
 
   /**
    * Creates a {@link TreeSet}.
-   * 
+   *
    * @return this for chaining.
    */
   public Set<TeamEventAttendeeDO> ensureAttendees()
@@ -447,7 +445,7 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
 
   /**
    * If the event is imported from another system, the uid of the external event is stored here.
-   * 
+   *
    * @return the externalUid
    */
   @Column(name = "external_uid")
@@ -468,7 +466,7 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
 
   /**
    * RRULE (rfc5545)
-   * 
+   *
    * @return the recurrence
    */
   @Column(name = "recurrence_rule", length = 4000)
@@ -503,7 +501,7 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
 
   /**
    * Will be renewed if {@link #setRecurrenceRule(String)} is called.
-   * 
+   *
    * @return the recurrenceRuleObject
    */
   @Transient
@@ -532,7 +530,7 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
 
   /**
    * The recurrenceUntil date is calculated by the recurrenceRule string if given, otherwise the date is set to null.
-   * 
+   *
    * @see org.projectforge.framework.persistence.entities.AbstractBaseDO#recalculate()
    */
   @Override
@@ -549,7 +547,7 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
 
   /**
    * Will be renewed if {@link #setRecurrenceRule(String)} is called.
-   * 
+   *
    * @return the recurrenceRuleObject
    */
   @Transient
@@ -561,7 +559,7 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
 
   /**
    * EXDATE (rfc5545) Ex dates are time stamps of deleted events out of the recurrence events.
-   * 
+   *
    * @return the recurrenceExDate
    */
   @Column(name = "recurrence_ex_date", length = 4000)
@@ -623,7 +621,7 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
 
   /**
    * This field is RECURRENCE_ID. Isn't yet used (ex-date is always used instead in master event).
-   * 
+   *
    * @return the recurrenceId
    */
   @Column(name = "recurrence_date")
@@ -644,7 +642,7 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
 
   /**
    * Isn't yet used (ex-date is always used instead in master event).
-   * 
+   *
    * @return the recurrenceReferenceId
    */
   @Column(name = "recurrence_reference_id", length = 255)
@@ -675,7 +673,7 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
 
   /**
    * If not given the recurrence will never ends.
-   * 
+   *
    * @return the recurrenceEndDate
    */
   @Column(name = "recurrence_until")
@@ -688,7 +686,7 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
    * Please note: Do not set this property manually! It's set automatically by the recurrence rule! Otherwise the
    * display of calendar events may be incorrect. <br/>
    * This field exist only for data-base query purposes.
-   * 
+   *
    * @param recurrenceUntil the recurrenceEndDate to set
    * @return this for chaining.
    */
@@ -715,7 +713,7 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
 
   /**
    * Get reminder duration.
-   * 
+   *
    * @return
    */
   @Column(name = "reminder_duration")
@@ -726,7 +724,7 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
 
   /**
    * Get type of reminder duration minute, hour, day
-   * 
+   *
    * @return the reminderDurationType
    */
   @Column(name = "reminder_duration_unit")
@@ -756,7 +754,7 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
 
   /**
    * Gets type of event action. AUDIO or DISPLAY
-   * 
+   *
    * @return the reminderType
    */
   @Enumerated(EnumType.STRING)
@@ -768,7 +766,7 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
 
   /**
    * Set type of event action.
-   * 
+   *
    * @param reminderActionType the reminderType to set
    * @return this for chaining.
    */
@@ -823,7 +821,7 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
 
   /**
    * Creates a {@link TreeSet}.
-   * 
+   *
    * @return this for chaining.
    */
   public Set<TeamEventAttachmentDO> ensureAttachments()
@@ -1073,7 +1071,7 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
         cloneAttendee.setCommentOfAttendee(attendee.getCommentOfAttendee());
         cloneAttendee.setLoginToken(attendee.getLoginToken());
         cloneAttendee.setNumber(attendee.getNumber());
-        cloneAttendee.setStatus(attendee.getStatus());
+        cloneAttendee.setStatus(TeamEventAttendeeStatus.NEW);
         cloneAttendee.setUrl(attendee.getUrl());
         cloneAttendee.setUser(attendee.getUser());
         clone.addAttendee(cloneAttendee);
