@@ -97,6 +97,17 @@ public class DatePanel extends FormComponentPanel<Date> implements ComponentWrap
    * @param id
    * @param model
    * @param settings         with target type etc.
+   * @param useModelDirectly use the given model directly in the internal dateField
+   */
+  public DatePanel(final String id, final IModel<Date> model, final DatePanelSettings settings, final boolean useModelDirectly)
+  {
+    this(id, model, settings, useModelDirectly, null);
+  }
+
+  /**
+   * @param id
+   * @param model
+   * @param settings         with target type etc.
    * @param requiredSupplier a callback which supplies the return value for the isRequired method of the date field.
    */
   public DatePanel(final String id, final IModel<Date> model, final DatePanelSettings settings, final BooleanSupplier requiredSupplier)
