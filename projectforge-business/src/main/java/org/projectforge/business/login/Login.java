@@ -31,9 +31,7 @@ import org.projectforge.framework.persistence.user.entities.GroupDO;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 
 /**
- * 
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
  */
 public class Login
 {
@@ -88,6 +86,18 @@ public class Login
       return;
     }
     loginHandler.passwordChanged(user, newPassword);
+  }
+
+  public void wlanPasswordChanged(final PFUserDO user, final String newPassword)
+  {
+    if (loginHandler == null) {
+      log.warn("No login handler is defined yet, so can't handle WLAN password-changed request.");
+      return;
+    }
+    if (user == null) {
+      return;
+    }
+    loginHandler.wlanPasswordChanged(user, newPassword);
   }
 
   public boolean isPasswordChangeSupported(final PFUserDO user)

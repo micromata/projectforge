@@ -63,9 +63,8 @@ import arlut.csd.crypto.SmbEncrypt;
  * <h1>New users</h1> New users (created with ProjectForge's UserEditPage) will be created first without password in the
  * LDAP system directly. Such users need to log-in first at ProjectForge, otherwise their LDAP passwords aren't set (no
  * log-in at any other system connecting to the LDAP is possible until the first log-in at ProjectForge).
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
  */
 @Service
 public class LdapMasterLoginHandler extends LdapLoginHandler
@@ -170,7 +169,7 @@ public class LdapMasterLoginHandler extends LdapLoginHandler
 
   /**
    * Refreshes the LDAP.
-   * 
+   *
    * @see org.projectforge.business.login.LoginHandler#afterUserGroupCacheRefresh(java.util.List, java.util.List)
    */
   @Override
@@ -377,7 +376,7 @@ public class LdapMasterLoginHandler extends LdapLoginHandler
 
   /**
    * Calls {@link LoginDefaultHandler#checkStayLoggedIn(PFUserDO)}.
-   * 
+   *
    * @see org.projectforge.business.login.LoginHandler#checkStayLoggedIn(org.projectforge.framework.persistence.user.entities.PFUserDO)
    */
   @Override
@@ -395,7 +394,7 @@ public class LdapMasterLoginHandler extends LdapLoginHandler
 
   /**
    * @see org.projectforge.business.login.LoginHandler#passwordChanged(org.projectforge.framework.persistence.user.entities.PFUserDO,
-   *      java.lang.String)
+   * java.lang.String)
    */
   @Override
   public void passwordChanged(final PFUserDO user, final String newPassword)
@@ -411,6 +410,22 @@ public class LdapMasterLoginHandler extends LdapLoginHandler
       log.info("Password changed successfully for : " + authenticatedUser);
     } else {
       log.error("Can't change LDAP password for user '" + user.getUsername() + "'! Not such user found in LDAP!.");
+    }
+  }
+
+  @Override
+  public void wlanPasswordChanged(PFUserDO user, String newPassword)
+  {
+    final LdapUser ldapUser = ldapUserDao.findById(user.getId());
+    if (user.isDeleted() == true || user.isLocalUser() == true) {
+      // Don't change passwords of such users.
+      return;
+    }
+    if (ldapUser != null) {
+      ldapUserDao.changeWlanPassword(ldapUser, newPassword);
+      log.info("WLAN Password changed successfully for : " + ldapUser);
+    } else {
+      log.error("Can't change LDAP WLAN password for user '" + user.getUsername() + "'! Not such user found in LDAP!.");
     }
   }
 
