@@ -884,7 +884,7 @@ public class UserEditForm extends AbstractEditForm<PFUserDO, UserEditPage>
   private void addWlanPasswordFields()
   {
     // wlan password
-    final FieldsetPanel fs = gridBuilder.newFieldset(getString("password"), getString("passwordRepeat")); // TODO CT: i18n
+    final FieldsetPanel fs = gridBuilder.newFieldset(getString("ldap.wlanSambaPassword"), getString("passwordRepeat"));
     final PasswordTextField passwordField = new PasswordTextField(fs.getTextFieldId(), new PropertyModel<>(this, "wlanPassword"))
     {
       @Override
