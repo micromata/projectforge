@@ -32,9 +32,8 @@ import org.springframework.stereotype.Service;
 
 /**
  * Different implementations of login handling are supported.
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
  */
 @Service
 public interface LoginHandler
@@ -55,7 +54,7 @@ public interface LoginHandler
    * The simplest implementation is: UserRights.getAccessChecker().isUserMemberOfAdminGroup(user). The default login
    * handler has an own implementation to check an user if the data-base was changed and the Hibernate objects may not
    * be valid (plain jdbc is used then).
-   * 
+   *
    * @param user
    * @return true if the user is an admin user of ProjectForge, otherwise false.
    */
@@ -64,10 +63,10 @@ public interface LoginHandler
   /**
    * ProjectForge has checked the cookie of the user successfully. The login handler should deny the request if the user
    * e. g. is deleted.
-   * 
+   *
    * @param user
    * @return true if the stay logged in process should be accepted, otherwise false (the user has to be redirected to
-   *         the login page).
+   * the login page).
    */
   public boolean checkStayLoggedIn(PFUserDO user);
 
@@ -83,7 +82,7 @@ public interface LoginHandler
 
   /**
    * Will be called directly after updating the user group cache. The assigned users of the groups should be fetched.
-   * 
+   *
    * @param users
    * @param groups
    */
@@ -91,25 +90,33 @@ public interface LoginHandler
 
   /**
    * @return true, if the login handler supports an external user management system. This flag is used by
-   *         {User|Group}EditForm for displaying/hiding field localUser|loclaGroup.
+   * {User|Group}EditForm for displaying/hiding field localUser|loclaGroup.
    */
   public boolean hasExternalUsermanagementSystem();
 
   /**
    * Will be called while changing the user's password. The access and password quality is already checked.
-   * 
+   *
    * @param user
    * @param newPassword
    */
   public void passwordChanged(PFUserDO user, String newPassword);
 
   /**
+   * Will be called while changing the user's WLAN password. The access and password quality is already checked.
+   *
+   * @param user
+   * @param newPassword
+   */
+  void wlanPasswordChanged(PFUserDO user, String newPassword);
+
+  /**
    * If the functionality of changing passwords isn't supported for a given user then the password change functionality
    * isn't visible for the user (no such menu item is displayed).
-   * 
+   *
    * @param user
    * @return true if the functionality of changing password is supported by this login handler for the given user,
-   *         otherwise false.
+   * otherwise false.
    */
   public boolean isPasswordChangeSupported(PFUserDO user);
 }

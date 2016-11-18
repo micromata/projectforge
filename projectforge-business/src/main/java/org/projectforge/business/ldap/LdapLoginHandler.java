@@ -95,7 +95,7 @@ public abstract class LdapLoginHandler implements LoginHandler
 
   /**
    * Calls {@link LoginDefaultHandler#checkStayLoggedIn(PFUserDO)}.
-   * 
+   *
    * @see org.projectforge.business.login.LoginHandler#checkStayLoggedIn(org.projectforge.framework.persistence.user.entities.PFUserDO)
    */
   @Override
@@ -106,12 +106,17 @@ public abstract class LdapLoginHandler implements LoginHandler
 
   /**
    * Does nothing at default.
-   * 
+   *
    * @see org.projectforge.business.login.LoginHandler#passwordChanged(org.projectforge.framework.persistence.user.entities.PFUserDO,
-   *      java.lang.String)
+   * java.lang.String)
    */
   @Override
   public void passwordChanged(final PFUserDO user, final String newPassword)
+  {
+  }
+
+  @Override
+  public void wlanPasswordChanged(PFUserDO user, String newPassword)
   {
   }
 
