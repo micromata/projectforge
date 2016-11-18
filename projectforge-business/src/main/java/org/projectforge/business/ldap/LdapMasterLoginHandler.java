@@ -439,6 +439,12 @@ public class LdapMasterLoginHandler extends LdapLoginHandler
     return true;
   }
 
+  @Override
+  public boolean isWlanPasswordChangeSupported(PFUserDO user)
+  {
+    return true;
+  }
+
   /**
    * @param updatedLdapGroup
    * @param assignedUsers
