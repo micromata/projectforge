@@ -316,4 +316,10 @@ public class LoginDefaultHandler implements LoginHandler
   {
     return true;
   }
+
+  @Override
+  public boolean isWlanPasswordChangeSupported(PFUserDO user)
+  {
+    return false;
+  }
 }

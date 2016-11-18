@@ -112,6 +112,18 @@ public class Login
     return loginHandler.isPasswordChangeSupported(user);
   }
 
+  public boolean isWlanPasswordChangeSupported(final PFUserDO user)
+  {
+    if (loginHandler == null) {
+      log.warn("No login handler is defined yet, so can't check support of WLAN password-change functionality.");
+      return false;
+    }
+    if (user == null) {
+      return false;
+    }
+    return loginHandler.isWlanPasswordChangeSupported(user);
+  }
+
   /**
    * @see LoginHandler#getAllUsers()
    */
