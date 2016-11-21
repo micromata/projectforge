@@ -25,6 +25,7 @@ package org.projectforge.business.orga;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -142,6 +143,9 @@ public class VisitorbookDO extends DefaultBaseDO implements EntityWithTimeableAt
       })
   public Set<EmployeeDO> getContactPersons()
   {
+    if (contactPersons == null) {
+      contactPersons = new HashSet<>();
+    }
     return contactPersons;
   }
 
