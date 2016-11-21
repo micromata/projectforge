@@ -33,7 +33,7 @@ public class InitForInsertEventListener implements EmgrEventHandler<EmgrInitForI
     extb.setCreated();
     extb.setLastUpdate();
     if (extb.getTenant() == null) {
-      //TODO FB: IS this the correct tenant?
+      //TODO FB: Is this the correct tenant?
       TenantDO tenant = ThreadLocalUserContext.getUser().getTenant();
       if (tenant == null) {
         tenant = tenantService.getDefaultTenant();
