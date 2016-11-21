@@ -1,5 +1,6 @@
 package org.projectforge.web.orga;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -14,8 +15,10 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.ResourceModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
+import org.projectforge.business.fibu.EmployeeDO;
 import org.projectforge.business.orga.VisitorbookDO;
 import org.projectforge.business.orga.VisitorbookService;
+import org.projectforge.business.orga.VisitorbookTimedDO;
 import org.projectforge.framework.persistence.attr.impl.GuiAttrSchemaService;
 import org.projectforge.framework.time.DateHolder;
 import org.projectforge.web.fibu.ISelectCallerPage;
@@ -25,6 +28,9 @@ import org.projectforge.web.wicket.CellItemListenerPropertyColumn;
 import org.projectforge.web.wicket.IListPageColumnsCreator;
 import org.projectforge.web.wicket.ListPage;
 import org.projectforge.web.wicket.ListSelectActionPanel;
+import org.projectforge.web.wicket.flowlayout.TextPanel;
+
+import de.micromata.genome.db.jpa.tabattr.api.TimeableService;
 
 /**
  * Created by blumenstein on 17.11.16.
@@ -42,6 +48,9 @@ public class VisitorbookListPage extends AbstractListPage<VisitorbookListForm, V
 
   @SpringBean
   private GuiAttrSchemaService guiAttrSchemaService;
+
+  @SpringBean
+  private TimeableService timeableService;
 
   public VisitorbookListPage(final PageParameters parameters)
   {
@@ -70,9 +79,9 @@ public class VisitorbookListPage extends AbstractListPage<VisitorbookListForm, V
       }
     };
 
-    columns.add(new CellItemListenerPropertyColumn<VisitorbookDO>(new ResourceModel("orga.visitorbook.lastname"),
-        getSortable("lastname", sortable),
-        "lastname", cellItemListener)
+    columns.add(new CellItemListenerPropertyColumn<VisitorbookDO>(new ResourceModel("orga.visitorbook.number"),
+        getSortable("id", sortable),
+        "id", cellItemListener)
     {
       /**
        * @see org.projectforge.web.wicket.CellItemListenerPropertyColumn#populateItem(org.apache.wicket.markup.repeater.Item,
@@ -85,15 +94,20 @@ public class VisitorbookListPage extends AbstractListPage<VisitorbookListForm, V
         final VisitorbookDO visitor = rowModel.getObject();
         if (isSelectMode() == false) {
           item.add(new ListSelectActionPanel(componentId, rowModel, VisitorbookEditPage.class, visitor.getId(),
-              returnToPage, visitor.getLastname()));
+              returnToPage, visitor.getPk().toString()));
         } else {
           item.add(
-              new ListSelectActionPanel(componentId, rowModel, caller, selectProperty, visitor.getId(), visitor.getLastname()));
+              new ListSelectActionPanel(componentId, rowModel, caller, selectProperty, visitor.getId(), visitor.getPk().toString()));
         }
         cellItemListener.populateItem(item, componentId, rowModel);
         addRowClick(item);
       }
     });
+
+    columns.add(new CellItemListenerPropertyColumn<VisitorbookDO>(new ResourceModel("orga.visitorbook.lastname"),
+        getSortable("lastname", sortable),
+        "lastname", cellItemListener));
+
     columns.add(new CellItemListenerPropertyColumn<VisitorbookDO>(new ResourceModel("orga.visitorbook.firstname"),
         getSortable("firstname", sortable),
         "firstname", cellItemListener));
@@ -106,6 +120,86 @@ public class VisitorbookListPage extends AbstractListPage<VisitorbookListForm, V
         getSortable("visitortype", sortable),
         "visitortype", cellItemListener));
 
+    columns.add(new CellItemListenerPropertyColumn<VisitorbookDO>(new ResourceModel("orga.visitorbook.arrive"),
+        getSortable("arrive", false),
+        "arrive", cellItemListener)
+    {
+      /**
+       * @see org.projectforge.web.wicket.CellItemListenerPropertyColumn#populateItem(org.apache.wicket.markup.repeater.Item,
+       *      java.lang.String, org.apache.wicket.model.IModel)
+       */
+      @Override
+      public void populateItem(final Item<ICellPopulator<VisitorbookDO>> item, final String componentId,
+          final IModel<VisitorbookDO> rowModel)
+      {
+        final VisitorbookDO visitor = rowModel.getObject();
+        String value = "";
+        List<VisitorbookTimedDO> timeableAttributes = timeableService.getTimeableAttrRowsForGroupName(visitor, "timeofvisit");
+        if (timeableAttributes != null && timeableAttributes.size() > 0) {
+          List<VisitorbookTimedDO> sortedList = timeableService.sortTimeableAttrRowsByDateDescending(timeableAttributes);
+          VisitorbookTimedDO newestEntry = sortedList.get(0);
+          SimpleDateFormat sdfParser = new SimpleDateFormat("dd.MM.yyyy");
+          String date = sdfParser.format(newestEntry.getStartTime());
+          String time = newestEntry.getAttribute("arrive") != null ? newestEntry.getAttribute("arrive", String.class) : "";
+          value = date + " " + time;
+        }
+        item.add(new TextPanel(componentId, value));
+        cellItemListener.populateItem(item, componentId, rowModel);
+      }
+    });
+
+    columns.add(new CellItemListenerPropertyColumn<VisitorbookDO>(new ResourceModel("orga.visitorbook.depart"),
+        getSortable("depart", false),
+        "depart", cellItemListener)
+    {
+      /**
+       * @see org.projectforge.web.wicket.CellItemListenerPropertyColumn#populateItem(org.apache.wicket.markup.repeater.Item,
+       *      java.lang.String, org.apache.wicket.model.IModel)
+       */
+      @Override
+      public void populateItem(final Item<ICellPopulator<VisitorbookDO>> item, final String componentId,
+          final IModel<VisitorbookDO> rowModel)
+      {
+        final VisitorbookDO visitor = rowModel.getObject();
+        String value = "";
+        List<VisitorbookTimedDO> timeableAttributes = timeableService.getTimeableAttrRowsForGroupName(visitor, "timeofvisit");
+        if (timeableAttributes != null && timeableAttributes.size() > 0) {
+          List<VisitorbookTimedDO> sortedList = timeableService.sortTimeableAttrRowsByDateDescending(timeableAttributes);
+          VisitorbookTimedDO newestEntry = sortedList.get(0);
+          SimpleDateFormat sdfParser = new SimpleDateFormat("dd.MM.yyyy");
+          String date = sdfParser.format(newestEntry.getStartTime());
+          String time = newestEntry.getAttribute("depart") != null ? newestEntry.getAttribute("depart", String.class) : "";
+          value = date + " " + time;
+        }
+        item.add(new TextPanel(componentId, value));
+        cellItemListener.populateItem(item, componentId, rowModel);
+      }
+    });
+
+    columns.add(new CellItemListenerPropertyColumn<VisitorbookDO>(new ResourceModel("orga.visitorbook.contactPerson"),
+        getSortable("contactPerson", false),
+        "contactPerson", cellItemListener)
+    {
+      /**
+       * @see org.projectforge.web.wicket.CellItemListenerPropertyColumn#populateItem(org.apache.wicket.markup.repeater.Item,
+       *      java.lang.String, org.apache.wicket.model.IModel)
+       */
+      @Override
+      public void populateItem(final Item<ICellPopulator<VisitorbookDO>> item, final String componentId,
+          final IModel<VisitorbookDO> rowModel)
+      {
+        final VisitorbookDO visitor = rowModel.getObject();
+        String value = "";
+        if (visitor.getContactPersons() != null && visitor.getContactPersons().size() > 0) {
+          for (EmployeeDO contact : visitor.getContactPersons()) {
+            value = value + contact.getUser().getFullname() + "; ";
+          }
+        }
+        item.add(new TextPanel(componentId, value));
+        cellItemListener.populateItem(item, componentId, rowModel);
+      }
+    });
+
     return columns;
   }
 
@@ -113,9 +207,9 @@ public class VisitorbookListPage extends AbstractListPage<VisitorbookListForm, V
   protected void init()
   {
     final List<IColumn<VisitorbookDO, String>> columns = createColumns(this, true);
-    dataTable = createDataTable(columns, "orga.visitorbook.lastname", SortOrder.ASCENDING);
+    dataTable = createDataTable(columns, "lastname", SortOrder.ASCENDING);
     form.add(dataTable);
-    addExcelExport(getString("orga.visitorbook.title.heading"), "visitors");
+    //addExcelExport(getString("orga.visitorbook.title.heading"), "visitors");
   }
 
   @Override
