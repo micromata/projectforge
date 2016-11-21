@@ -60,13 +60,13 @@
                 <bean class="de.micromata.genome.db.jpa.tabattr.api.AttrGroup">
                   <property name="type" value="INSTANT_OF_TIME"/>
                   <property name="name" value="timeofvisit"/>
-                  <property name="i18nKey" value="orga.visiterbook.timeofvisit"/>
+                  <property name="i18nKey" value="orga.visitorbook.timeofvisit"/>
                   <property name="i18nKeyStartTime" value="attr.validFrom"/>
                   <property name="descriptions">
                     <list>
                       <bean class="de.micromata.genome.db.jpa.tabattr.api.AttrDescription">
                         <property name="propertyName" value="arrive"/>
-                        <property name="i18nkey" value="orga.visiterbook.timeofvisit.arrive"/>
+                        <property name="i18nkey" value="orga.visitorbook.timeofvisit.arrive"/>
                         <property name="type" value="java.lang.String"/>
                         <property name="wicketComponentFactoryClass">
                           <bean class="org.projectforge.web.common.timeattr.StringAttrWicketComponentFactory"/>
@@ -74,7 +74,7 @@
                       </bean>
                       <bean class="de.micromata.genome.db.jpa.tabattr.api.AttrDescription">
                         <property name="propertyName" value="depart"/>
-                        <property name="i18nkey" value="orga.visiterbook.timeofvisit.depart"/>
+                        <property name="i18nkey" value="orga.visitorbook.timeofvisit.depart"/>
                         <property name="type" value="java.lang.String"/>
                         <property name="wicketComponentFactoryClass">
                           <bean class="org.projectforge.web.common.timeattr.StringAttrWicketComponentFactory"/>
