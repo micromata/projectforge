@@ -84,23 +84,25 @@ public class VisitorbookEditForm extends AbstractEditForm<VisitorbookDO, Visitor
     {
       // Firstname
       final FieldsetPanel fs = gridBuilder.newFieldset(VisitorbookDO.class, "firstname");
-      MaxLengthTextField position = new MaxLengthTextField(InputPanel.WICKET_ID, new PropertyModel<>(data, "firstname"));
-      position.setMarkupId("firstname").setOutputMarkupId(true);
-      fs.add(position);
+      MaxLengthTextField firstname = new MaxLengthTextField(InputPanel.WICKET_ID, new PropertyModel<>(data, "firstname"));
+      firstname.setMarkupId("firstname").setOutputMarkupId(true);
+      firstname.setRequired(true);
+      fs.add(firstname);
     }
     {
       // Lastname
       final FieldsetPanel fs = gridBuilder.newFieldset(VisitorbookDO.class, "lastname");
-      MaxLengthTextField position = new MaxLengthTextField(InputPanel.WICKET_ID, new PropertyModel<>(data, "lastname"));
-      position.setMarkupId("lastname").setOutputMarkupId(true);
-      fs.add(position);
+      MaxLengthTextField lastname = new MaxLengthTextField(InputPanel.WICKET_ID, new PropertyModel<>(data, "lastname"));
+      lastname.setMarkupId("lastname").setOutputMarkupId(true);
+      lastname.setRequired(true);
+      fs.add(lastname);
     }
     {
       // Company
       final FieldsetPanel fs = gridBuilder.newFieldset(VisitorbookDO.class, "company");
-      MaxLengthTextField position = new MaxLengthTextField(InputPanel.WICKET_ID, new PropertyModel<>(data, "company"));
-      position.setMarkupId("company").setOutputMarkupId(true);
-      fs.add(position);
+      MaxLengthTextField company = new MaxLengthTextField(InputPanel.WICKET_ID, new PropertyModel<>(data, "company"));
+      company.setMarkupId("company").setOutputMarkupId(true);
+      fs.add(company);
     }
     {
       // ATTENDEE
