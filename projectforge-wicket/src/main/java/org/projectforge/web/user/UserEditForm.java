@@ -514,7 +514,9 @@ public class UserEditForm extends AbstractEditForm<PFUserDO, UserEditPage>
         ;
       }, null).setTooltip(getString("user.activated.tooltip"));
       addPasswordFields();
-      addWlanPasswordFields(); // TODO CT: only if we are LDAP master
+      if (Login.getInstance().isWlanPasswordChangeSupported(data)) {
+        addWlanPasswordFields();
+      }
     }
 
     gridBuilder.newSplitPanel(GridSize.COL50);

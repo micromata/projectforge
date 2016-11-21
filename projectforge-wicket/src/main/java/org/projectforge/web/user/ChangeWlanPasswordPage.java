@@ -44,7 +44,7 @@ public class ChangeWlanPasswordPage extends AbstractStandardFormPage
   public ChangeWlanPasswordPage(final PageParameters parameters)
   {
     super(parameters);
-    if (Login.getInstance().isPasswordChangeSupported(getUser()) == false) {
+    if (Login.getInstance().isWlanPasswordChangeSupported(getUser()) == false) {
       throw new RestartResponseException(new MessagePage("user.changePassword.notSupported"));
     }
     form = new ChangeWlanPasswordForm(this);
