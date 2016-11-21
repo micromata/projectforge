@@ -503,15 +503,11 @@ public class UserEditForm extends AbstractEditForm<PFUserDO, UserEditPage>
           return data.isDeactivated() == false;
         }
 
-        ;
-
         @Override
         public void setObject(final Boolean activated)
         {
           data.setDeactivated(!activated);
         }
-
-        ;
       }, null).setTooltip(getString("user.activated.tooltip"));
       addPasswordFields();
       if (Login.getInstance().isWlanPasswordChangeSupported(data)) {

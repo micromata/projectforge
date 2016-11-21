@@ -105,6 +105,7 @@ import org.projectforge.web.teamcal.admin.TeamCalListPage;
 import org.projectforge.web.teamcal.integration.TeamCalCalendarPage;
 import org.projectforge.web.timesheet.TimesheetListPage;
 import org.projectforge.web.user.ChangePasswordPage;
+import org.projectforge.web.user.ChangeWlanPasswordPage;
 import org.projectforge.web.user.GroupListPage;
 import org.projectforge.web.user.MyAccountEditPage;
 import org.projectforge.web.user.UserListPage;
@@ -433,6 +434,19 @@ public class MenuItemRegistry implements Serializable
             // The visibility of this menu entry is evaluated by the login handler implementation.
             final PFUserDO user = context.getLoggedInUser();
             return Login.getInstance().isPasswordChangeSupported(user);
+          }
+        });
+
+    reg.register(
+        new MenuItemDef(admin, MenuItemDefId.CHANGE_WLAN_PASSWORD.getId(), 32, MenuItemDefId.CHANGE_WLAN_PASSWORD.getI18nKey(),
+            ChangeWlanPasswordPage.class)
+        {
+          @Override
+          protected boolean isVisible(final MenuBuilderContext context)
+          {
+            // The visibility of this menu entry is evaluated by the login handler implementation.
+            final PFUserDO user = context.getLoggedInUser();
+            return Login.getInstance().isWlanPasswordChangeSupported(user);
           }
         });
 
