@@ -46,7 +46,7 @@ import org.apache.wicket.model.Model;
 import org.projectforge.business.common.OutputType;
 import org.projectforge.business.task.TaskDO;
 import org.projectforge.business.task.TaskTree;
-import org.projectforge.business.task.formatter.TaskFormatter;
+import org.projectforge.business.task.formatter.WicketTaskFormatter;
 import org.projectforge.business.timesheet.TimesheetDO;
 import org.projectforge.business.timesheet.TimesheetDao;
 import org.projectforge.business.user.UserFormatter;
@@ -189,7 +189,7 @@ public class TimesheetEditSelectRecentDialogPanel extends ModalDialog
               final ListSelectActionPanel actionPanel = new ListSelectActionPanel(componentId,
                   createRecentTimeSheetSelectionLink(timesheet),
                   label);
-              WicketUtils.addTooltip(label, TaskFormatter.getTaskPath(task.getId(), false, OutputType.HTML));
+              WicketUtils.addTooltip(label, WicketTaskFormatter.getTaskPath(task.getId(), false, OutputType.HTML));
               item.add(actionPanel);
               final Item<?> row = item.findParent(Item.class);
               WicketUtils.addRowClick(row);
@@ -225,7 +225,7 @@ public class TimesheetEditSelectRecentDialogPanel extends ModalDialog
 
   /**
    * Submit link is needed to submit former changed input fields on selection.
-   * 
+   *
    * @param timesheet
    * @return
    */
@@ -266,9 +266,9 @@ public class TimesheetEditSelectRecentDialogPanel extends ModalDialog
   {
     super.renderHead(response);
     final String initJS = // Mache alle Zeilen von recentSheets klickbar\n"
-    "  $(\".dataview td\").click( function() {\n" //
-        + "    $(this).parent().find(\"a:first\").click();\n"
-        + "  });\n";
+        "  $(\".dataview td\").click( function() {\n" //
+            + "    $(this).parent().find(\"a:first\").click();\n"
+            + "  });\n";
     response.render(OnDomReadyHeaderItem.forScript(initJS));
   }
 }
