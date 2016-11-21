@@ -46,6 +46,8 @@ public interface UserService
 
   String changePassword(PFUserDO user, String oldPassword, String newPassword);
 
+  String changeWlanPassword(PFUserDO user, String loginPassword, String newWlanPassword);
+
   Integer save(PFUserDO user);
 
   void markAsDeleted(PFUserDO user);
