@@ -69,15 +69,15 @@ public class RestServicesTest extends AbstractTestBase
     addressDO.setTask(getTask("1.1"));
     addressDao.save(addressDO);
 
-    Response response = addressDaoRest.getList("Marcel", 0l, true, true);
+    Response response = addressDaoRest.getList("Marcel", 0l, true, true, true);
     Assert.assertTrue(((String) response.getEntity()).contains("\"firstName\":\"Marcel\""));
     Assert.assertTrue(response.getStatus() == SUCCESS_STATUS);
 
-    response = addressDaoRest.getList("Marcel", 0l, false, true);
+    response = addressDaoRest.getList("Marcel", 0l, false, true, true);
     Assert.assertFalse(((String) response.getEntity()).contains("\"firstName\":\"Marcel\""));
     Assert.assertTrue(response.getStatus() == SUCCESS_STATUS);
 
-    response = addressDaoRest.getList("Marcel", 0l, true, false);
+    response = addressDaoRest.getList("Marcel", 0l, true, false, true);
     Assert.assertTrue(((String) response.getEntity()).contains("\"firstName\":\"Marcel\""));
     Assert.assertTrue(((String) response.getEntity()).contains("\"image\":[0,1,3]"));
     Assert.assertTrue(response.getStatus() == SUCCESS_STATUS);

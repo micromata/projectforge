@@ -93,7 +93,9 @@ public class AddressDaoRest
   @Produces(MediaType.APPLICATION_JSON)
   public Response getList(@QueryParam("search") final String searchTerm,
       @QueryParam("modifiedSince") final Long modifiedSince,
-      @QueryParam("all") final Boolean all, @QueryParam("disableImageData") final Boolean disableImageData)
+      @QueryParam("all") final Boolean all,
+      @QueryParam("disableImageData") final Boolean disableImageData,
+      @QueryParam("disableVCardData") final Boolean disableVCardData)
   {
     final AddressFilter filter = new AddressFilter(new BaseSearchFilter());
     Date modifiedSinceDate = null;
@@ -132,8 +134,8 @@ public class AddressDaoRest
           // Export only personal favorites due to data-protection.
           continue;
         }
-        final AddressObject address = AddressDOConverter.getAddressObject(addressDO,
-            BooleanUtils.isTrue(disableImageData));
+        final AddressObject address = AddressDOConverter.getAddressObject(addressDao, addressDO,
+            BooleanUtils.isTrue(disableImageData), BooleanUtils.isTrue(disableVCardData));
         result.add(address);
         alreadyExported.add(address.getId());
       }
@@ -147,8 +149,8 @@ public class AddressDaoRest
         if (personalAddress.getLastUpdate() != null
             && personalAddress.getLastUpdate().before(modifiedSinceDate) == false) {
           final AddressDO addressDO = addressDao.getById(personalAddress.getAddressId());
-          final AddressObject address = AddressDOConverter.getAddressObject(addressDO,
-              BooleanUtils.isTrue(disableImageData));
+          final AddressObject address = AddressDOConverter.getAddressObject(addressDao, addressDO,
+              BooleanUtils.isTrue(disableImageData), BooleanUtils.isTrue(disableVCardData));
           if (personalAddress.isFavorite() == false) {
             // This address was may-be removed by the user from the personal address book, so add this address as deleted to the result
             // list.
