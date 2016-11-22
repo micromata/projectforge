@@ -207,7 +207,7 @@ public class VisitorbookListPage extends AbstractListPage<VisitorbookListForm, V
   protected void init()
   {
     final List<IColumn<VisitorbookDO, String>> columns = createColumns(this, true);
-    dataTable = createDataTable(columns, "lastname", SortOrder.ASCENDING);
+    dataTable = createDataTable(columns, "id", SortOrder.DESCENDING);
     form.add(dataTable);
     //addExcelExport(getString("orga.visitorbook.title.heading"), "visitors");
   }
