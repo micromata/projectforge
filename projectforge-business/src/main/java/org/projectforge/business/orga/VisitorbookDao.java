@@ -23,21 +23,28 @@
 
 package org.projectforge.business.orga;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 import org.projectforge.business.user.UserRightId;
 import org.projectforge.framework.persistence.api.BaseDao;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.persistence.api.QueryFilter;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+
+import de.micromata.genome.db.jpa.tabattr.api.TimeableService;
 
 @Repository
 @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
 public class VisitorbookDao extends BaseDao<VisitorbookDO>
 {
+  @Autowired
+  private TimeableService timeableService;
+
   public static final UserRightId USER_RIGHT_ID = UserRightId.ORGA_VISITORBOOK;
 
   protected VisitorbookDao()
@@ -55,38 +62,40 @@ public class VisitorbookDao extends BaseDao<VisitorbookDO>
     } else {
       myFilter = new VisitorbookFilter(filter);
     }
-    final List<VisitorbookDO> result = new ArrayList<>();
+
     final QueryFilter queryFilter = createQueryFilter(myFilter);
-    List<VisitorbookDO> resultList = getList(queryFilter);
-    resultList.forEach(vb -> {
-      if (myFilter.getStartTime() != null && myFilter.getStopTime() == null) {
-        vb.getTimeableAttributes().forEach(ta -> {
-          if (myFilter.getStartTime().before(ta.getStartTime()) || myFilter.getStartTime().equals(ta.getStartTime())) {
-            result.add(vb);
-          }
-        });
-        return;
-      }
-      if (myFilter.getStartTime() == null && myFilter.getStopTime() != null) {
-        vb.getTimeableAttributes().forEach(ta -> {
-          if (myFilter.getStopTime().after(ta.getStartTime()) || myFilter.getStopTime().equals(ta.getStartTime())) {
-            result.add(vb);
-          }
-        });
-        return;
-      }
-      if (myFilter.getStartTime() != null && myFilter.getStopTime() != null) {
-        vb.getTimeableAttributes().forEach(ta -> {
-          if (myFilter.getStartTime().before(ta.getStartTime()) || myFilter.getStartTime().equals(ta.getStartTime())
-              && myFilter.getStopTime().after(ta.getStartTime()) || myFilter.getStopTime().equals(ta.getStartTime())) {
-            result.add(vb);
-          }
-        });
-        return;
-      }
-      result.add(vb);
-    });
-    return result;
+    final List<VisitorbookDO> resultList = getList(queryFilter);
+
+    final Predicate<VisitorbookDO> afterStartTimeOrSameDay = visitor -> timeableService.getTimeableAttrRowsForGroupName(visitor, "timeofvisit").stream()
+        .anyMatch(timeAttr -> timeAttr.getStartTime().before(myFilter.getStartTime()) == false); // before() == false -> after or same day
+
+    final Predicate<VisitorbookDO> beforeStopTimeOrSameDay = visitor -> timeableService.getTimeableAttrRowsForGroupName(visitor, "timeofvisit").stream()
+        .anyMatch(timeAttr -> timeAttr.getStartTime().after(myFilter.getStopTime()) == false); // after() == false -> before or same day
+
+    if (myFilter.getStartTime() != null && myFilter.getStopTime() == null) {
+      return resultList
+          .stream()
+          .filter(afterStartTimeOrSameDay)
+          .collect(Collectors.toList());
+    }
+
+    if (myFilter.getStartTime() == null && myFilter.getStopTime() != null) {
+      return resultList
+          .stream()
+          .filter(beforeStopTimeOrSameDay)
+          .collect(Collectors.toList());
+    }
+
+    if (myFilter.getStartTime() != null && myFilter.getStopTime() != null) {
+      return resultList
+          .stream()
+          .filter(afterStartTimeOrSameDay)
+          .filter(beforeStopTimeOrSameDay)
+          .collect(Collectors.toList());
+    }
+
+    // no time filter set
+    return resultList;
   }
 
   @Override
