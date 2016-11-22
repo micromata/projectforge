@@ -122,6 +122,19 @@ public class VacationEditForm extends AbstractEditForm<VacationDO, VacationEditP
 
     gridBuilder.newSplitPanel(GridSize.COL50);
     {
+      // Employee
+      final FieldsetPanel fs = gridBuilder.newFieldset(getString("vacation.employee"));
+      final Select2Choice<EmployeeDO> employeeSelect = new Select2Choice<>(
+          Select2SingleChoicePanel.WICKET_ID,
+          new PropertyModel<>(data, "employee"),
+          new EmployeeWicketProvider(employeeService, true));
+      employeeSelect.setRequired(true).setMarkupId("vacation-employee").setOutputMarkupId(true);
+      employeeSelect.setEnabled(checkHRWriteRight());
+      formValidator.getDependentFormComponents()[3] = employeeSelect;
+      fs.add(new Select2SingleChoicePanel<EmployeeDO>(fs.newChildId(), employeeSelect));
+    }
+
+    {
       // Start date
       final FieldsetPanel fs = gridBuilder.newFieldset(VacationDO.class, "startDate");
       DatePanel startDatePanel = new DatePanel(fs.newChildId(), new PropertyModel<>(data, "startDate"),
@@ -220,7 +233,7 @@ public class VacationEditForm extends AbstractEditForm<VacationDO, VacationEditP
       final Select2Choice<EmployeeDO> managerSelect = new Select2Choice<>(
           Select2SingleChoicePanel.WICKET_ID,
           new PropertyModel<>(data, "manager"),
-          new EmployeeWicketProvider(employeeService));
+          new EmployeeWicketProvider(employeeService, checkHRWriteRight()));
       managerSelect.setRequired(true).setMarkupId("vacation-manager").setOutputMarkupId(true);
       managerSelect.setEnabled(checkEnableInputField());
       fs.add(new Select2SingleChoicePanel<EmployeeDO>(fs.newChildId(), managerSelect));
@@ -232,7 +245,7 @@ public class VacationEditForm extends AbstractEditForm<VacationDO, VacationEditP
       final Select2Choice<EmployeeDO> substitutionSelect = new Select2Choice<>(
           Select2SingleChoicePanel.WICKET_ID,
           new PropertyModel<>(data, "substitution"),
-          new EmployeeWicketProvider(employeeService));
+          new EmployeeWicketProvider(employeeService, checkHRWriteRight()));
       substitutionSelect.setRequired(true).setMarkupId("vacation-substitution").setOutputMarkupId(true);
       substitutionSelect.setEnabled(checkEnableInputField());
       fs.add(new Select2SingleChoicePanel<EmployeeDO>(fs.newChildId(), substitutionSelect));
@@ -302,13 +315,21 @@ public class VacationEditForm extends AbstractEditForm<VacationDO, VacationEditP
     return log;
   }
 
+  private boolean checkHRWriteRight()
+  {
+    if (accessChecker.hasLoggedInUserRight(UserRightId.HR_VACATION, false, UserRightValue.READWRITE)) {
+      return true;
+    }
+    return false;
+  }
+
   private boolean checkWriteAccess()
   {
     if (data.getEmployee().getUser().getPk().equals(ThreadLocalUserContext.getUserId()) == true || (data.getManager() != null
         && data.getManager().getUser().getPk().equals(ThreadLocalUserContext.getUserId())) == true) {
       return true;
     }
-    if (accessChecker.hasLoggedInUserRight(UserRightId.HR_VACATION, false, UserRightValue.READWRITE)) {
+    if (checkHRWriteRight()) {
       return true;
     }
     return false;
