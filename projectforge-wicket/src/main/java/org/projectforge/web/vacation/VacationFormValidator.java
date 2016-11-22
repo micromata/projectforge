@@ -9,6 +9,7 @@ import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.form.validation.IFormValidator;
+import org.projectforge.business.fibu.EmployeeDO;
 import org.projectforge.business.user.I18nHelper;
 import org.projectforge.business.vacation.model.VacationAttrProperty;
 import org.projectforge.business.vacation.model.VacationDO;
@@ -19,12 +20,14 @@ import org.projectforge.framework.time.DayHolder;
 import org.projectforge.web.wicket.components.DatePanel;
 import org.projectforge.web.wicket.flowlayout.CheckBoxPanel;
 
+import com.vaynberg.wicket.select2.Select2Choice;
+
 public class VacationFormValidator implements IFormValidator
 {
   private static final long serialVersionUID = -8478416045860851983L;
 
   // Components for form validation.
-  private final FormComponent<?>[] dependentFormComponents = new FormComponent[3];
+  private final FormComponent<?>[] dependentFormComponents = new FormComponent[4];
 
   private VacationService vacationService;
 
@@ -44,6 +47,9 @@ public class VacationFormValidator implements IFormValidator
     final DatePanel startDatePanel = (DatePanel) dependentFormComponents[0];
     final DatePanel endDatePanel = (DatePanel) dependentFormComponents[1];
     final DropDownChoice<VacationStatus> statusChoice = (DropDownChoice<VacationStatus>) dependentFormComponents[2];
+    final Select2Choice<EmployeeDO> employeeSelect = (Select2Choice<EmployeeDO>) dependentFormComponents[3];
+
+    EmployeeDO employee = employeeSelect.getConvertedInput();
 
     if (VacationStatus.IN_PROGRESS.equals(data.getStatus()) && (VacationStatus.APPROVED.equals(statusChoice.getConvertedInput()) || VacationStatus.REJECTED
         .equals(statusChoice.getConvertedInput()))) {
@@ -65,7 +71,7 @@ public class VacationFormValidator implements IFormValidator
       return;
     }
 
-    List<VacationDO> vacationListForPeriod = vacationService.getVacationForDate(data.getEmployee(),
+    List<VacationDO> vacationListForPeriod = vacationService.getVacationForDate(employee,
         startDatePanel.getConvertedInput(), endDatePanel.getConvertedInput());
     if (vacationListForPeriod != null && data.getPk() != null) {
       vacationListForPeriod = vacationListForPeriod.stream().filter(vac -> vac.getPk().equals(data.getPk()) == false)
@@ -83,18 +89,18 @@ public class VacationFormValidator implements IFormValidator
     Calendar endDateVacationFromLastYear = vacationService.getEndDateVacationFromLastYear();
 
     //Positiv
-    BigDecimal vacationDays = new BigDecimal(data.getEmployee().getUrlaubstage());
-    BigDecimal vacationDaysFromLastYear = data.getEmployee().getAttribute(
+    BigDecimal vacationDays = new BigDecimal(employee.getUrlaubstage());
+    BigDecimal vacationDaysFromLastYear = employee.getAttribute(
         VacationAttrProperty.PREVIOUSYEARLEAVE.getPropertyName(),
-        BigDecimal.class) != null ? data.getEmployee().getAttribute(
+        BigDecimal.class) != null ? employee.getAttribute(
         VacationAttrProperty.PREVIOUSYEARLEAVE.getPropertyName(),
         BigDecimal.class) : BigDecimal.ZERO;
 
     //Negative
-    BigDecimal usedVacationDaysWholeYear = vacationService.getUsedAndPlanedVacationdaysForYear(data.getEmployee(), startDate.get(Calendar.YEAR));
-    BigDecimal usedVacationDaysFromLastYear = data.getEmployee().getAttribute(
+    BigDecimal usedVacationDaysWholeYear = vacationService.getUsedAndPlanedVacationdaysForYear(employee, startDate.get(Calendar.YEAR));
+    BigDecimal usedVacationDaysFromLastYear = employee.getAttribute(
         VacationAttrProperty.PREVIOUSYEARLEAVEUSED.getPropertyName(),
-        BigDecimal.class) != null ? data.getEmployee().getAttribute(
+        BigDecimal.class) != null ? employee.getAttribute(
         VacationAttrProperty.PREVIOUSYEARLEAVEUSED.getPropertyName(),
         BigDecimal.class) : BigDecimal.ZERO;
     BigDecimal usedVacationDaysWithoutDaysFromLastYear = usedVacationDaysWholeYear

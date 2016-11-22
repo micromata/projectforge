@@ -47,9 +47,12 @@ public class EmployeeWicketProvider extends TextChoiceProvider<EmployeeDO>
 
   private int pageSize = 20;
 
-  public EmployeeWicketProvider(EmployeeService employeeService)
+  private boolean withMyself;
+
+  public EmployeeWicketProvider(EmployeeService employeeService, boolean withMyself)
   {
     this.employeeService = employeeService;
+    this.withMyself = withMyself;
   }
 
   /**
@@ -89,7 +92,7 @@ public class EmployeeWicketProvider extends TextChoiceProvider<EmployeeDO>
     boolean hasMore = false;
     Collection<EmployeeDO> result = new ArrayList<>();
     List<EmployeeDO> employeesWithoutLoginedUser = employeeService.findAllActive(false).stream()
-        .filter(emp -> emp.getUser().getPk().equals(ThreadLocalUserContext.getUserId()) == false)
+        .filter(emp -> this.withMyself || emp.getUser().getPk().equals(ThreadLocalUserContext.getUserId()) == false)
         .filter(emp -> emp.getUser().getEmail() != null && emp.getUser().getEmail().length() > 0)
         .collect(Collectors.toList());
     for (EmployeeDO emp : employeesWithoutLoginedUser) {
