@@ -236,13 +236,7 @@ public class EmployeeServiceImpl extends CorePersistenceServiceImpl<Integer, Emp
   @Override
   public List<EmployeeDO> getAll(boolean checkAccess)
   {
-    List<EmployeeDO> result = new ArrayList<>();
-    if (checkAccess) {
-      result = employeeDao.getList(new EmployeeFilter());
-    } else {
-      result = employeeDao.internalLoadAll();
-    }
-    return result;
+    return checkAccess ? employeeDao.getList(new EmployeeFilter()) : employeeDao.internalLoadAll();
   }
 
 }
