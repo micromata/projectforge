@@ -54,7 +54,7 @@ import org.projectforge.business.fibu.kost.Kost1Dao;
 import org.projectforge.business.fibu.kost.Kost2ArtDO;
 import org.projectforge.business.fibu.kost.Kost2DO;
 import org.projectforge.business.task.TaskDO;
-import org.projectforge.business.task.formatter.TaskFormatter;
+import org.projectforge.business.task.formatter.WicketTaskFormatter;
 import org.projectforge.business.user.UserDao;
 import org.projectforge.framework.configuration.Configuration;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
@@ -130,7 +130,7 @@ public class MonthlyEmployeeReportPage extends AbstractStandardFormPage implemen
             public void onSubmit()
             {
               exportAsPdf();
-            };
+            }
           }, getString("exportAsPdf"));
       addContentMenuEntry(exportAsPdf);
     }
@@ -180,7 +180,7 @@ public class MonthlyEmployeeReportPage extends AbstractStandardFormPage implemen
         public String getObject()
         {
           return report != null ? String.valueOf(report.getNumberOfWorkingDays()) : "";
-        };
+        }
       }));
     }
     gridBuilder.newGridPanel();
@@ -304,7 +304,7 @@ public class MonthlyEmployeeReportPage extends AbstractStandardFormPage implemen
       }
       addLabelCols(row, null, null, null, report.getUser(), report.getFromDate().getTime(),
           report.getToDate().getTime()).add(
-              AttributeModifier.replace("style", "text-align: right;"));
+          AttributeModifier.replace("style", "text-align: right;"));
       final RepeatingView colWeekRepeater = new RepeatingView("colWeekRepeater");
       row.add(colWeekRepeater);
       for (final MonthlyEmployeeReportWeek week : report.getWeeks()) {
@@ -386,7 +386,7 @@ public class MonthlyEmployeeReportPage extends AbstractStandardFormPage implemen
     } else {
       if (task != null) {
         // Entries for one task (not cost2).
-        link.add(new Label("label", TaskFormatter.getTaskPath(task.getId(), true, OutputType.PLAIN)));
+        link.add(new Label("label", WicketTaskFormatter.getTaskPath(task.getId(), true, OutputType.PLAIN)));
       } else {
         link.add(new Label("label", getString("sum")));
       }
