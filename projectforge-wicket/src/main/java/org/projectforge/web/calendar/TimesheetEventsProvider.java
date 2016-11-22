@@ -36,7 +36,7 @@ import org.projectforge.Const;
 import org.projectforge.business.common.OutputType;
 import org.projectforge.business.fibu.KostFormatter;
 import org.projectforge.business.task.TaskDO;
-import org.projectforge.business.task.formatter.TaskFormatter;
+import org.projectforge.business.task.formatter.WicketTaskFormatter;
 import org.projectforge.business.teamcal.common.CalendarHelper;
 import org.projectforge.business.teamcal.filter.ICalendarFilter;
 import org.projectforge.business.timesheet.OrderDirection;
@@ -53,9 +53,8 @@ import net.ftlines.wicket.fullcalendar.Event;
 
 /**
  * Creates events for FullCalendar.
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
  */
 public class TimesheetEventsProvider extends MyFullCalendarEventsProvider
 {
@@ -96,7 +95,7 @@ public class TimesheetEventsProvider extends MyFullCalendarEventsProvider
 
   /**
    * @see org.projectforge.web.calendar.MyFullCalendarEventsProvider#buildEvents(org.joda.time.DateTime,
-   *      org.joda.time.DateTime)
+   * org.joda.time.DateTime)
    */
   @Override
   protected void buildEvents(final DateTime start, final DateTime end)
@@ -194,7 +193,7 @@ public class TimesheetEventsProvider extends MyFullCalendarEventsProvider
                 { title },
                 { timesheet.getLocation(), getString("timesheet.location") },
                 { KostFormatter.formatLong(timesheet.getKost2()), getString("fibu.kost2") },
-                { TaskFormatter.getTaskPath(timesheet.getTaskId(), true, OutputType.PLAIN),
+                { WicketTaskFormatter.getTaskPath(timesheet.getTaskId(), true, OutputType.PLAIN),
                     getString("task") },
                 { timesheet.getDescription(), getString("description") } });
       }
