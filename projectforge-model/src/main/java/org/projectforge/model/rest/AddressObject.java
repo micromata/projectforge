@@ -109,7 +109,9 @@ public class AddressObject extends AbstractBaseObject
 
   private Date birthday;
 
-  private byte[] image;
+  private String image;
+
+  private String vCardData;
 
   public String getContactStatus()
   {
@@ -502,14 +504,33 @@ public class AddressObject extends AbstractBaseObject
     return this;
   }
 
-  public byte[] getImage()
+  /**
+   * Base64 data String
+   *
+   * @return
+   */
+  public String getImage()
   {
     return image;
   }
 
-  public void setImage(byte[] image)
+  public void setImage(String image)
   {
     this.image = image;
   }
 
+  /**
+   * Base64 data String
+   *
+   * @return
+   */
+  public String getVCardData()
+  {
+    return vCardData;
+  }
+
+  public void setVCardData(String vCardData)
+  {
+    this.vCardData = vCardData;
+  }
 }
