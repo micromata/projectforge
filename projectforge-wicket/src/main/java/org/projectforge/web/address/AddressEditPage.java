@@ -86,8 +86,6 @@ public class AddressEditPage extends AbstractEditPage<AddressDO, AddressEditForm
               final AddressViewPage addressViewPage = new AddressViewPage(params);
               setResponsePage(addressViewPage);
             }
-
-          ;
           }, getString("printView"));
       addContentMenuEntry(menu);
 
@@ -105,8 +103,6 @@ public class AddressEditPage extends AbstractEditPage<AddressDO, AddressEditForm
               DownloadUtils.setUTF8CharacterEncoding(getResponse());
               DownloadUtils.setDownloadTarget(writer.toString().getBytes(), filename);
             }
-
-          ;
           }, getString("address.book.vCardSingleExport"));
       addContentMenuEntry(singleIcalExport);
 
@@ -121,8 +117,6 @@ public class AddressEditPage extends AbstractEditPage<AddressDO, AddressEditForm
             params.add(PhoneCallPage.PARAMETER_KEY_ADDRESS_ID, addressId);
             setResponsePage(new PhoneCallPage(params));
           }
-
-          ;
         }, getString("address.directCall.call"));
         addContentMenuEntry(menu);
       }
@@ -130,8 +124,9 @@ public class AddressEditPage extends AbstractEditPage<AddressDO, AddressEditForm
   }
 
   @Override
-  public void create() {
-    if(cloneFlag == true) {
+  public void create()
+  {
+    if (cloneFlag == true) {
       super.updateAndNext();
       cloneFlag = false;
     } else {
@@ -139,7 +134,8 @@ public class AddressEditPage extends AbstractEditPage<AddressDO, AddressEditForm
     }
   }
 
-  public boolean getCloneFlag() {
+  public boolean getCloneFlag()
+  {
     return cloneFlag;
   }
 
@@ -171,6 +167,8 @@ public class AddressEditPage extends AbstractEditPage<AddressDO, AddressEditForm
       clonedAddress.copyValuesFrom(getData());
       final PersonalAddressDO personalAddress = new PersonalAddressDO();
       personalAddress.copyValuesFrom(form.addressEditSupport.personalAddress);
+      personalAddress.setCreated(null);
+      personalAddress.setLastUpdate(null);
       personalAddress.setDeleted(false);
       personalAddress.setId(null);
       personalAddress.setAddress(clonedAddress);
@@ -181,8 +179,7 @@ public class AddressEditPage extends AbstractEditPage<AddressDO, AddressEditForm
         clonedAddress.putAttribute(entry.getKey(), entry.getValue().getStringData());
       }
       addressDao.update(clonedAddress);
-      personalAddressDao.saveOrUpdate(personalAddress);
-      //AddressDO orLoad = addressDao.getOrLoad(getData().getId());
+      form.addressEditSupport.personalAddress = personalAddress;
       Field data = null;
       try {
         data = AbstractEditForm.class.getDeclaredField("data");
