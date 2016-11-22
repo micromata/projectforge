@@ -77,17 +77,24 @@ public class VisitorbookFilter extends BaseSearchFilter implements Serializable
   {
     Date recalculatedDate = null;
     if (startTime != null) {
-      SimpleDateFormat sdfParser = new SimpleDateFormat("yyyy-MM-dd");
-      SimpleDateFormat sdfUserTimeZone = new SimpleDateFormat("yyyy-MM-dd");
-      sdfUserTimeZone.setTimeZone(ThreadLocalUserContext.getTimeZone());
-      String startDateUserTimeZone = sdfUserTimeZone.format(startTime);
-      try {
-        recalculatedDate = sdfParser.parse(startDateUserTimeZone);
-      } catch (ParseException e) {
-        recalculatedDate = startTime;
-      }
+      recalculatedDate = getDateInUserTimezone(startTime);
     }
     getTimePeriod().setFromDate(recalculatedDate);
+  }
+
+  private Date getDateInUserTimezone(Date startTime)
+  {
+    Date recalculatedDate;
+    SimpleDateFormat sdfParser = new SimpleDateFormat("yyyy-MM-dd");
+    SimpleDateFormat sdfUserTimeZone = new SimpleDateFormat("yyyy-MM-dd");
+    sdfUserTimeZone.setTimeZone(ThreadLocalUserContext.getTimeZone());
+    String startDateUserTimeZone = sdfUserTimeZone.format(startTime);
+    try {
+      recalculatedDate = sdfParser.parse(startDateUserTimeZone);
+    } catch (ParseException e) {
+      recalculatedDate = startTime;
+    }
+    return recalculatedDate;
   }
 
   /**
@@ -105,15 +112,7 @@ public class VisitorbookFilter extends BaseSearchFilter implements Serializable
   {
     Date recalculatedDate = null;
     if (stopTime != null) {
-      SimpleDateFormat sdfParser = new SimpleDateFormat("yyyy-MM-dd");
-      SimpleDateFormat sdfUserTimeZone = new SimpleDateFormat("yyyy-MM-dd");
-      sdfUserTimeZone.setTimeZone(ThreadLocalUserContext.getTimeZone());
-      String stopDateUserTimeZone = sdfUserTimeZone.format(stopTime);
-      try {
-        recalculatedDate = sdfParser.parse(stopDateUserTimeZone);
-      } catch (ParseException e) {
-        recalculatedDate = stopTime;
-      }
+      recalculatedDate = getDateInUserTimezone(stopTime);
     }
     getTimePeriod().setToDate(recalculatedDate);
   }
