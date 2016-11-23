@@ -125,6 +125,11 @@ public class VacationListPage extends AbstractListPage<VacationListForm, Vacatio
             cellItemListener));
 
     columns
+        .add(new CellItemListenerPropertyColumn<VacationDO>(VacationDO.class, getSortable("vacationmode", sortable),
+            "vacationmode",
+            cellItemListener));
+
+    columns
         .add(new CellItemListenerPropertyColumn<VacationDO>(VacationDO.class, getSortable("status", sortable),
             "status",
             cellItemListener));

@@ -44,6 +44,7 @@ import org.projectforge.common.anots.PropertyInfo;
 import org.projectforge.framework.persistence.api.AUserRightId;
 import org.projectforge.framework.persistence.attr.impl.HibernateSearchAttrSchemaFieldInfoProvider;
 import org.projectforge.framework.persistence.entities.DefaultBaseDO;
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.time.DayHolder;
 
 import de.micromata.mgc.jpa.hibernatesearch.api.HibernateSearchInfo;
@@ -89,6 +90,11 @@ public class VacationDO extends DefaultBaseDO
 
   @PropertyInfo(i18nKey = "vacation.workingdays")
   private BigDecimal workingdays;
+
+  //TODO FB: Wird leider nur über dem Feld ausgewertewt und nicht an der Methode.
+  //Feld wird eigentlich nicht benötigt
+  @PropertyInfo(i18nKey = "vacation.vacationmode")
+  private VacationMode vacationmode;
 
   @PropertyInfo(i18nKey = "vacation.isSpecial")
   private Boolean isSpecial;
@@ -199,6 +205,21 @@ public class VacationDO extends DefaultBaseDO
       this.workingdays = DayHolder.getNumberOfWorkingDays(startDate, endDate);
     }
     return this.workingdays;
+  }
+
+  @Transient
+  public VacationMode getVacationmode()
+  {
+    if (ThreadLocalUserContext.getUser().getPk().equals(employee.getUser().getPk())) {
+      return VacationMode.OWN;
+    }
+    if (ThreadLocalUserContext.getUser().getPk().equals(manager.getUser().getPk())) {
+      return VacationMode.MANAGER;
+    }
+    if (ThreadLocalUserContext.getUser().getPk().equals(substitution.getUser().getPk())) {
+      return VacationMode.SUBSTITUTION;
+    }
+    return VacationMode.OTHER;
   }
 
   @Column(name = "is_special", nullable = false)
