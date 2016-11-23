@@ -82,6 +82,10 @@ public class VacationEditForm extends AbstractEditForm<VacationDO, VacationEditP
 
   private Model<String> neededVacationDaysModel;
 
+  private Label availableVacationDaysLabel;
+
+  private Model<String> availableVacationDaysModel;
+
   private VacationStatus statusBeforeModification;
 
   public VacationEditForm(final VacationEditPage parentPage, final VacationDO data)
@@ -130,6 +134,18 @@ public class VacationEditForm extends AbstractEditForm<VacationDO, VacationEditP
           new EmployeeWicketProvider(employeeService, true));
       employeeSelect.setRequired(true).setMarkupId("vacation-employee").setOutputMarkupId(true);
       employeeSelect.setEnabled(checkHRWriteRight());
+      employeeSelect.add(new AjaxFormComponentUpdatingBehavior("onchange")
+      {
+        private static final long serialVersionUID = 2462231234993745889L;
+
+        @Override
+        protected void onUpdate(final AjaxRequestTarget target)
+        {
+          BigDecimal availableVacationDays = getAvailableVacationDays(data);
+          availableVacationDaysModel.setObject(availableVacationDays.toString());
+          target.add(availableVacationDaysLabel);
+        }
+      });
       formValidator.getDependentFormComponents()[3] = employeeSelect;
       fs.add(new Select2SingleChoicePanel<EmployeeDO>(fs.newChildId(), employeeSelect));
     }
@@ -197,17 +213,12 @@ public class VacationEditForm extends AbstractEditForm<VacationDO, VacationEditP
     {
       // Available vacation days
       final FieldsetPanel fs = gridBuilder.newFieldset(I18nHelper.getLocalizedMessage("vacation.availabledays"));
-      BigDecimal availableVacationDays = null;
-      if (data.getStartDate() != null) {
-        Calendar startDateCalendar = Calendar.getInstance(ThreadLocalUserContext.getTimeZone());
-        startDateCalendar.setTime(data.getStartDate());
-        availableVacationDays = vacationService.getAvailableVacationdaysForYear(data.getEmployee(), startDateCalendar.get(Calendar.YEAR), true);
-      } else {
-        Calendar now = Calendar.getInstance(ThreadLocalUserContext.getTimeZone());
-        availableVacationDays = vacationService.getAvailableVacationdaysForYear(data.getEmployee(), now.get(Calendar.YEAR), true);
-      }
-      LabelPanel availablePanel = new LabelPanel(fs.newChildId(), availableVacationDays.toString());
+      BigDecimal availableVacationDays = getAvailableVacationDays(data);
+      this.availableVacationDaysModel = new Model<>(availableVacationDays.toString());
+      LabelPanel availablePanel = new LabelPanel(fs.newChildId(), availableVacationDaysModel);
       availablePanel.setMarkupId("vacation-availableDays").setOutputMarkupId(true);
+      this.availableVacationDaysLabel = availablePanel.getLabel();
+      this.availableVacationDaysLabel.setOutputMarkupId(true);
       fs.add(availablePanel);
     }
 
@@ -221,7 +232,7 @@ public class VacationEditForm extends AbstractEditForm<VacationDO, VacationEditP
       }
       this.neededVacationDaysModel = new Model<>(value);
       LabelPanel neededVacationDaysPanel = new LabelPanel(neededVacationDaysFs.newChildId(), neededVacationDaysModel);
-      neededVacationDaysPanel.setMarkupId("vacation-availableDays").setOutputMarkupId(true);
+      neededVacationDaysPanel.setMarkupId("vacation-neededVacationDays").setOutputMarkupId(true);
       this.neededVacationDaysLabel = neededVacationDaysPanel.getLabel();
       this.neededVacationDaysLabel.setOutputMarkupId(true);
       neededVacationDaysFs.add(neededVacationDaysPanel);
@@ -265,6 +276,21 @@ public class VacationEditForm extends AbstractEditForm<VacationDO, VacationEditP
       formValidator.getDependentFormComponents()[2] = statusChoice;
       fs.add(statusChoice);
     }
+
+  }
+
+  private BigDecimal getAvailableVacationDays(VacationDO vacationData)
+  {
+    BigDecimal availableVacationDays;
+    if (vacationData.getStartDate() != null) {
+      Calendar startDateCalendar = Calendar.getInstance(ThreadLocalUserContext.getTimeZone());
+      startDateCalendar.setTime(vacationData.getStartDate());
+      availableVacationDays = vacationService.getAvailableVacationdaysForYear(vacationData.getEmployee(), startDateCalendar.get(Calendar.YEAR), true);
+    } else {
+      Calendar now = Calendar.getInstance(ThreadLocalUserContext.getTimeZone());
+      availableVacationDays = vacationService.getAvailableVacationdaysForYear(vacationData.getEmployee(), now.get(Calendar.YEAR), true);
+    }
+    return availableVacationDays;
   }
 
   private boolean checkEnableInputField()

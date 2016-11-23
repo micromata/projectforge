@@ -50,6 +50,9 @@ public class VacationFormValidator implements IFormValidator
     final Select2Choice<EmployeeDO> employeeSelect = (Select2Choice<EmployeeDO>) dependentFormComponents[3];
 
     EmployeeDO employee = employeeSelect.getConvertedInput();
+    if (employee == null) {
+      employee = data.getEmployee();
+    }
 
     if (VacationStatus.IN_PROGRESS.equals(data.getStatus()) && (VacationStatus.APPROVED.equals(statusChoice.getConvertedInput()) || VacationStatus.REJECTED
         .equals(statusChoice.getConvertedInput()))) {
