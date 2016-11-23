@@ -68,7 +68,7 @@ import org.projectforge.business.gantt.Task2GanttTaskConverter;
 import org.projectforge.business.task.TaskDO;
 import org.projectforge.business.task.TaskDao;
 import org.projectforge.business.task.TaskTree;
-import org.projectforge.business.task.formatter.TaskFormatter;
+import org.projectforge.business.task.formatter.WicketTaskFormatter;
 import org.projectforge.framework.i18n.UserException;
 import org.projectforge.framework.persistence.api.HibernateUtils;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
@@ -174,7 +174,7 @@ public class GanttChartEditTreeTablePanel extends DefaultTreeTablePanel<GanttTre
 
   /**
    * Adds a column head for reject-save icons (only visible if modified elements exist).
-   * 
+   *
    * @param rejectSaveIndex
    * @param i18nKey
    */
@@ -422,7 +422,7 @@ public class GanttChartEditTreeTablePanel extends DefaultTreeTablePanel<GanttTre
             } else {
               return "*" + ganttObject.getTitle() + "*";
             }
-          };
+          }
         })
         {
           @Override
@@ -466,7 +466,7 @@ public class GanttChartEditTreeTablePanel extends DefaultTreeTablePanel<GanttTre
               } else {
                 clipboard = node.getGanttObject();
               }
-            };
+            }
           });
           menuRepeater.add(new ContextMenuEntry(menuRepeater.newChildId(), "gantt.predecessor.paste")
           {
@@ -480,7 +480,7 @@ public class GanttChartEditTreeTablePanel extends DefaultTreeTablePanel<GanttTre
             void onSubmit()
             {
               ganttObject.setPredecessor(clipboard);
-            };
+            }
           }.addTooltip(new Model<String>()
           {
             @Override
@@ -502,7 +502,7 @@ public class GanttChartEditTreeTablePanel extends DefaultTreeTablePanel<GanttTre
               refreshTreeTable();
               setOpenNodes(openNodes);
               form.getParentPage().refresh();
-            };
+            }
           });
           menuRepeater.add(new ContextMenuEntry(menuRepeater.newChildId(), new Model<String>()
           {
@@ -514,7 +514,7 @@ public class GanttChartEditTreeTablePanel extends DefaultTreeTablePanel<GanttTre
               } else {
                 return ThreadLocalUserContext.getLocalizedString("gantt.action.move");
               }
-            };
+            }
           })
           {
             @Override
@@ -563,7 +563,7 @@ public class GanttChartEditTreeTablePanel extends DefaultTreeTablePanel<GanttTre
               refreshTreeTable();
               setOpenNodes(openNodes);
               form.getParentPage().refresh();
-            };
+            }
 
             @Override
             protected void onBeforeRender()
@@ -596,7 +596,7 @@ public class GanttChartEditTreeTablePanel extends DefaultTreeTablePanel<GanttTre
               refreshTreeTable();
               setOpenNodes(openNodes);
               form.getParentPage().refresh();
-            };
+            }
           }.setOnClick("if (!showDeleteQuestionDialog()) return;"));
           menuRepeater.add(new ContextMenuEntry(menuRepeater.newChildId(), "gantt.contextMenu.saveAsTask")
           {
@@ -637,7 +637,7 @@ public class GanttChartEditTreeTablePanel extends DefaultTreeTablePanel<GanttTre
               refreshTreeTable();
               setOpenNodes(openNodes);
               form.getParentPage().refresh();
-            };
+            }
           }.setOnClick("if (!showSaveAsTaskQuestionDialog()) return;"));
           menuRepeater.add(new ContextMenuEntry(menuRepeater.newChildId(), "task.title.edit")
           {
@@ -655,7 +655,7 @@ public class GanttChartEditTreeTablePanel extends DefaultTreeTablePanel<GanttTre
               final TaskEditPage editPage = new TaskEditPage(pageParams);
               editPage.setReturnToPage((AbstractSecuredPage) getPage());
               setResponsePage(editPage);
-            };
+            }
           });
           menuRepeater.add(new ContextMenuEntry(menuRepeater.newChildId(), "gantt.contextMenu.setInvisible")
           {
@@ -666,7 +666,7 @@ public class GanttChartEditTreeTablePanel extends DefaultTreeTablePanel<GanttTre
               for (final CheckBox visibleCheckBox : visibleCheckboxMap.values()) {
                 visibleCheckBox.modelChanged();
               }
-            };
+            }
           });
           menuRepeater.add(new ContextMenuEntry(menuRepeater.newChildId(), "gantt.contextMenu.setSubTasksVisible")
           {
@@ -682,12 +682,12 @@ public class GanttChartEditTreeTablePanel extends DefaultTreeTablePanel<GanttTre
               for (final CheckBox visibleCheckBox : visibleCheckboxMap.values()) {
                 visibleCheckBox.modelChanged();
               }
-            };
+            }
           });
         }
         final CheckBox visibleCheckBox = (CheckBox) new CheckBox("visible",
             new PropertyModel<Boolean>(ganttObject, "visible"))
-                .setRenderBodyOnly(false);
+            .setRenderBodyOnly(false);
         visibleCheckboxMap.put(ganttObject.getId(), visibleCheckBox);
         addColumn(item, visibleCheckBox, "width: 16px;");
         addTitleColumns(item, node, ganttObject, task);
@@ -752,7 +752,7 @@ public class GanttChartEditTreeTablePanel extends DefaultTreeTablePanel<GanttTre
       link.add(AttributeModifier.prepend("onclick", value));
       return this;
     }
-  };
+  }
 
   private void addColumn(final Item<GanttTreeTableNode> item, final Component component, final String cssStyle)
   {
@@ -932,7 +932,7 @@ public class GanttChartEditTreeTablePanel extends DefaultTreeTablePanel<GanttTre
       {
         final GanttTask predecessor = ganttObject.getPredecessor();
         return predecessor != null ? predecessor.getTitle() : "";
-      };
+      }
     });
     panel.add(asStringLabel);
     final String taskSelectProperty = "predecessorId:" + ganttObject.getId();
@@ -972,7 +972,7 @@ public class GanttChartEditTreeTablePanel extends DefaultTreeTablePanel<GanttTre
     panel.add(unselectSubmitLink);
 
     new RejectSaveLinksFragment("rejectSavePredecessor", item, panel, task,
-        task != null ? TaskFormatter.getTaskPath(getRequestCycle(),
+        task != null ? WicketTaskFormatter.getTaskPath(getRequestCycle(),
             task.getGanttPredecessorId()) : "")
     {
       @Override
@@ -1095,7 +1095,7 @@ public class GanttChartEditTreeTablePanel extends DefaultTreeTablePanel<GanttTre
 
   /**
    * Creates an empty label with style="width: <size>px;" for reject-save-column heads and
-   * 
+   *
    * @return
    */
   private Component createEmtpyColumnHead(final int size)
@@ -1182,7 +1182,7 @@ public class GanttChartEditTreeTablePanel extends DefaultTreeTablePanel<GanttTre
 
   public void unselect(final String property)
   {
-  };
+  }
 
   private GanttTask findById(final Serializable id)
   {

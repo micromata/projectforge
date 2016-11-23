@@ -38,7 +38,7 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.task.TaskDO;
-import org.projectforge.business.task.formatter.TaskFormatter;
+import org.projectforge.business.task.formatter.WicketTaskFormatter;
 import org.projectforge.framework.access.AccessDao;
 import org.projectforge.framework.access.AccessEntryDO;
 import org.projectforge.framework.access.GroupTaskAccessDO;
@@ -105,7 +105,7 @@ public class AccessListPage extends AbstractListPage<AccessListForm, AccessDao, 
         final GroupTaskAccessDO access = rowModel.getObject();
         final TaskDO task = access.getTask();
         final StringBuffer buf = new StringBuffer();
-        TaskFormatter.appendFormattedTask(getRequestCycle(), buf, task, true, false);
+        WicketTaskFormatter.appendFormattedTask(getRequestCycle(), buf, task, true, false);
         final Label formattedTaskLabel = new Label(ListSelectActionPanel.LABEL_ID, buf.toString());
         formattedTaskLabel.setEscapeModelStrings(false);
         item.add(new ListSelectActionPanel(componentId, rowModel, AccessEditPage.class, access.getId(), returnToPage,
@@ -202,7 +202,6 @@ public class AccessListPage extends AbstractListPage<AccessListForm, AccessDao, 
   }
 
   /**
-   * 
    * @see org.projectforge.web.fibu.ISelectCallerPage#unselect(java.lang.String)
    */
   @Override

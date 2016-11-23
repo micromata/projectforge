@@ -40,6 +40,7 @@ import org.projectforge.framework.persistence.api.BaseDao;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.persistence.api.QueryFilter;
 import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
@@ -62,8 +63,7 @@ public class EmployeeDao extends BaseDao<EmployeeDO>
       "user.description",
       "user.organization" };
 
-  //private final static String META_SQL = " AND e.deleted = :deleted AND e.tenant = :tenant";
-  private final static String META_SQL = " AND e.deleted = :deleted";
+  private final static String META_SQL = " AND e.deleted = :deleted AND e.tenant = :tenant";
 
   @Autowired
   private UserDao userDao;
@@ -206,10 +206,8 @@ public class EmployeeDao extends BaseDao<EmployeeDO>
     try {
       result = emgrFactory.runRoTrans(emgr -> {
         String baseSQL = "SELECT e FROM EmployeeDO e WHERE e.staffNumber = :staffNumber";
-        return emgr
-            //          .selectSingleDetached(EmployeeDO.class, baseSQL + META_SQL, "staffNumber", staffnumber, "deleted", false, "tenant",
-            //              ThreadLocalUserContext.getUser().getTenant());
-            .selectSingleDetached(EmployeeDO.class, baseSQL + META_SQL, "staffNumber", staffnumber, "deleted", false);
+        return emgr.selectSingleDetached(EmployeeDO.class, baseSQL + META_SQL, "staffNumber", staffnumber, "deleted", false, "tenant",
+            ThreadLocalUserContext.getUser().getTenant());
       });
     } catch (NoResultException ex) {
       log.warn("No employee found for staffnumber: " + staffnumber);
