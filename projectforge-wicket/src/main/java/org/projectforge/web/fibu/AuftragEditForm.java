@@ -29,6 +29,7 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
+import java.util.function.BooleanSupplier;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
@@ -112,7 +113,7 @@ public class AuftragEditForm extends AbstractEditForm<AuftragDO, AuftragEditPage
 
   protected NewCustomerSelectPanel kundeSelectPanel;
 
-  private final List<Component> ajaxUpdateComponents = new ArrayList<Component>();
+  private final List<DropDownChoice<PeriodOfPerformanceType>> performanceChoices = new ArrayList<>();
 
   private final List<Component> ajaxPosTargets = new ArrayList<Component>();
 
@@ -179,7 +180,6 @@ public class AuftragEditForm extends AbstractEditForm<AuftragDO, AuftragEditPage
         }
       }, TextStyle.FORM_TEXT);
       fs.add(netPanel);
-      ajaxUpdateComponents.add(netPanel.getLabel4Ajax());
       fs.add(new DivTextPanel(fs.newChildId(), ", " + getString("fibu.auftrag.commissioned") + ": "));
       final DivTextPanel orderedPanel = new DivTextPanel(fs.newChildId(), new Model<String>()
       {
@@ -190,7 +190,6 @@ public class AuftragEditForm extends AbstractEditForm<AuftragDO, AuftragEditPage
         }
       }, TextStyle.FORM_TEXT);
       fs.add(orderedPanel);
-      ajaxUpdateComponents.add(orderedPanel.getLabel4Ajax());
     }
     gridBuilder.newGridPanel();
     {
@@ -299,16 +298,19 @@ public class AuftragEditForm extends AbstractEditForm<AuftragDO, AuftragEditPage
     {
       // Period of performance
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("fibu.periodOfPerformance"));
-      fromDatePanel = new DatePanel(fs.newChildId(), new PropertyModel<Date>(data, "periodOfPerformanceBegin"),
-          DatePanelSettings.get()
-              .withTargetType(java.sql.Date.class));
-      fromDatePanel.setRequired(true);
+      final BooleanSupplier isAnyPerformanceTypeSeeAboveSelected = () -> performanceChoices
+          .stream()
+          .map(FormComponent::getRawInput) // had to use getRawInput here instead of getModelObject, because it did not work well
+          .anyMatch(PeriodOfPerformanceType.SEEABOVE.name()::equals);
+
+      fromDatePanel = new DatePanel(fs.newChildId(), new PropertyModel<>(data, "periodOfPerformanceBegin"),
+          DatePanelSettings.get().withTargetType(java.sql.Date.class), isAnyPerformanceTypeSeeAboveSelected);
       fs.add(fromDatePanel);
+
       fs.add(new DivTextPanel(fs.newChildId(), "-"));
-      endDatePanel = new DatePanel(fs.newChildId(), new PropertyModel<Date>(data, "periodOfPerformanceEnd"),
-          DatePanelSettings.get()
-              .withTargetType(java.sql.Date.class));
-      endDatePanel.setRequired(true);
+
+      endDatePanel = new DatePanel(fs.newChildId(), new PropertyModel<>(data, "periodOfPerformanceEnd"),
+          DatePanelSettings.get().withTargetType(java.sql.Date.class), isAnyPerformanceTypeSeeAboveSelected);
       fs.add(endDatePanel);
     }
 
@@ -439,6 +441,7 @@ public class AuftragEditForm extends AbstractEditForm<AuftragDO, AuftragEditPage
   void refresh()
   {
     positionsRepeater.removeAll();
+    performanceChoices.clear();
     this.ajaxPosTargets.clear();
 
     final Collection<FormComponent<?>> dependentComponents = new ArrayList<FormComponent<?>>();
@@ -625,6 +628,7 @@ public class AuftragEditForm extends AbstractEditForm<AuftragDO, AuftragEditPage
             }
           }
         };
+
         performanceChoice.add(new AjaxFormComponentUpdatingBehavior("onchange")
         {
           @Override
@@ -642,10 +646,12 @@ public class AuftragEditForm extends AbstractEditForm<AuftragDO, AuftragEditPage
         });
         performanceChoice.setOutputMarkupPlaceholderTag(true);
         fs.add(performanceChoice);
+        performanceChoices.add(performanceChoice);
 
-        final DatePanel fromDatePanel = new DatePanel(fs.newChildId(),
-            new PropertyModel<Date>(position, "periodOfPerformanceBegin"),
-            DatePanelSettings.get().withTargetType(java.sql.Date.class));
+        final BooleanSupplier isPerformanceTypeOwnSelected = () -> PeriodOfPerformanceType.OWN.equals(performanceChoice.getModelObject());
+
+        final DatePanel fromDatePanel = new DatePanel(fs.newChildId(), new PropertyModel<>(position, "periodOfPerformanceBegin"),
+            DatePanelSettings.get().withTargetType(java.sql.Date.class), isPerformanceTypeOwnSelected);
         fromDatePanel.getDateField().setOutputMarkupPlaceholderTag(true);
         fs.add(fromDatePanel);
         ajaxPosTargets.add(fromDatePanel.getDateField());
@@ -656,9 +662,8 @@ public class AuftragEditForm extends AbstractEditForm<AuftragDO, AuftragEditPage
         fs.add(divPanel);
         ajaxPosTargets.add(divPanel.getLabel4Ajax());
 
-        final DatePanel endDatePanel = new DatePanel(fs.newChildId(),
-            new PropertyModel<Date>(position, "periodOfPerformanceEnd"),
-            DatePanelSettings.get().withTargetType(java.sql.Date.class));
+        final DatePanel endDatePanel = new DatePanel(fs.newChildId(), new PropertyModel<>(position, "periodOfPerformanceEnd"),
+            DatePanelSettings.get().withTargetType(java.sql.Date.class), isPerformanceTypeOwnSelected);
         endDatePanel.getDateField().setOutputMarkupPlaceholderTag(true);
         fs.add(endDatePanel);
         ajaxPosTargets.add(endDatePanel.getDateField());
