@@ -133,11 +133,12 @@ public class VacationEditPage extends AbstractEditPage<VacationDO, VacationEditF
       }
       if (form.getStatusBeforeModification() != null) {
         if (form.getStatusBeforeModification().equals(VacationStatus.IN_PROGRESS) && VacationStatus.APPROVED.equals(form.getData().getStatus())) {
-          vacationService.sendMailToEmployeeAndHR(form.getData(), true);
           vacationService.updateUsedVacationDaysFromLastYear(form.getData());
+          vacationService.sendMailToEmployeeAndHR(form.getData(), true);
         }
       }
     } catch (final Exception e) {
+      log.error("There is a exception in afterSaveOrUpdate: " + e.getMessage(), e);
       error(I18nHelper.getLocalizedMessage("vacation.error.sendmail"));
     }
     return null;
@@ -147,16 +148,24 @@ public class VacationEditPage extends AbstractEditPage<VacationDO, VacationEditF
   public WebPage afterDelete()
   {
     try {
-      vacationService.sendMailToVacationInvolved(form.getData(), false, true);
       vacationService.deleteUsedVacationDaysFromLastYear(form.getData());
+      vacationService.sendMailToVacationInvolved(form.getData(), false, true);
     } catch (final Exception e) {
+      log.error("There is a exception in afterDelete: " + e.getMessage(), e);
       error(I18nHelper.getLocalizedMessage("vacation.error.sendmail"));
     }
     return null;
   }
 
-  public WebPage afterUndelete() {
-    vacationService.updateUsedVacationDaysFromLastYear(form.getData());
+  public WebPage afterUndelete()
+  {
+    try {
+      vacationService.updateUsedVacationDaysFromLastYear(form.getData());
+      vacationService.sendMailToVacationInvolved(form.getData(), false, false);
+    } catch (final Exception e) {
+      log.error("There is a exception in afterUndelete: " + e.getMessage(), e);
+      error(I18nHelper.getLocalizedMessage("vacation.error.sendmail"));
+    }
     return null;
   }
 
