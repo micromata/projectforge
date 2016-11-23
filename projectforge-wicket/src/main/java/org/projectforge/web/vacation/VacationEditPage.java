@@ -148,9 +148,15 @@ public class VacationEditPage extends AbstractEditPage<VacationDO, VacationEditF
   {
     try {
       vacationService.sendMailToVacationInvolved(form.getData(), false, true);
+      vacationService.deleteUsedVacationDaysFromLastYear(form.getData());
     } catch (final Exception e) {
       error(I18nHelper.getLocalizedMessage("vacation.error.sendmail"));
     }
+    return null;
+  }
+
+  public WebPage afterUndelete() {
+    vacationService.updateUsedVacationDaysFromLastYear(form.getData());
     return null;
   }
 
