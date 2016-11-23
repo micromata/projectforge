@@ -11,6 +11,7 @@ import java.util.List;
 
 import org.projectforge.business.fibu.EmployeeDO;
 import org.projectforge.business.fibu.EmployeeDao;
+import org.projectforge.business.fibu.EmployeeFilter;
 import org.projectforge.business.fibu.EmployeeTimedDO;
 import org.projectforge.business.fibu.api.EmployeeService;
 import org.projectforge.business.fibu.kost.Kost1DO;
@@ -230,6 +231,12 @@ public class EmployeeServiceImpl extends CorePersistenceServiceImpl<Integer, Emp
   public EmployeeDO getEmployeeByStaffnumber(String staffnumber)
   {
     return employeeDao.getEmployeeByStaffnumber(staffnumber);
+  }
+
+  @Override
+  public List<EmployeeDO> getAll(boolean checkAccess)
+  {
+    return checkAccess ? employeeDao.getList(new EmployeeFilter()) : employeeDao.internalLoadAll();
   }
 
 }

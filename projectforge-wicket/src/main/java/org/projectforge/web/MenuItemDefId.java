@@ -62,6 +62,7 @@ public enum MenuItemDefId
   HR_VIEW("hrList"), //
   IMAGE_CROPPER("imageCropper"), //
   INBOX_LIST("orga.posteingang"), //
+  VISITORBOOK("orga.visitorbook"), //
   INCOMING_INVOICE_LIST("fibu.eingangsrechnungen"), //
   MEB("meb"), //
   MONTHLY_EMPLOYEE_REPORT("monthlyEmployeeReport"), //
