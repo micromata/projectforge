@@ -26,6 +26,8 @@ import org.projectforge.web.wicket.components.DatePanel;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import com.vaynberg.wicket.select2.Select2Choice;
+
 @PrepareForTest({ DatePanel.class, Form.class, ThreadLocalUserContext.class, ConfigXml.class })
 public class VacationFormValidatorTest extends PowerMockTestCase
 {
@@ -43,6 +45,8 @@ public class VacationFormValidatorTest extends PowerMockTestCase
 
   private DropDownChoice<VacationStatus> statusChoice;
 
+  private Select2Choice<EmployeeDO> employeeSelect;
+
   @BeforeMethod
   public void setUp()
   {
@@ -54,6 +58,7 @@ public class VacationFormValidatorTest extends PowerMockTestCase
     this.startDatePanel = mock(DatePanel.class);
     this.endDatePanel = mock(DatePanel.class);
     this.statusChoice = mock(DropDownChoice.class);
+    this.employeeSelect = mock(Select2Choice.class);
     mockStatic(ThreadLocalUserContext.class);
     mockStatic(ConfigXml.class);
     Locale locale = Locale.getDefault();
@@ -205,9 +210,11 @@ public class VacationFormValidatorTest extends PowerMockTestCase
     when(startDatePanel.getConvertedInput()).thenReturn(startDate.getTime());
     when(endDatePanel.getConvertedInput()).thenReturn(endDate.getTime());
     when(statusChoice.getConvertedInput()).thenReturn(VacationStatus.IN_PROGRESS);
+    when(employeeSelect.getConvertedInput()).thenReturn(this.employee);
     validator.getDependentFormComponents()[0] = startDatePanel;
     validator.getDependentFormComponents()[1] = endDatePanel;
     validator.getDependentFormComponents()[2] = statusChoice;
+    validator.getDependentFormComponents()[3] = employeeSelect;
     return validator;
   }
 
