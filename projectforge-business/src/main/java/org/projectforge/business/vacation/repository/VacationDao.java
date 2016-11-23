@@ -109,10 +109,11 @@ public class VacationDao extends BaseDao<VacationDO>
     final QueryFilter queryFilter = createQueryFilter(myFilter);
     if (accessChecker.hasLoggedInUserRight(UserRightId.HR_VACATION, false, UserRightValue.READONLY,
         UserRightValue.READWRITE) == false) {
+      EmployeeDO employeeFromFilter = emgrFactory.runRoTrans(emgr -> emgr.selectByPk(EmployeeDO.class, myFilter.getEmployeeId()));
       queryFilter.add(Restrictions.or(
-          Restrictions.eq("employee", myFilter.getEmployeeForUser()),
-          Restrictions.eq("manager", myFilter.getEmployeeForUser()),
-          Restrictions.eq("substitution", myFilter.getEmployeeForUser())));
+          Restrictions.eq("employee", employeeFromFilter),
+          Restrictions.eq("manager", employeeFromFilter),
+          Restrictions.eq("substitution", employeeFromFilter)));
     }
     queryFilter.addOrder(Order.asc("startDate"));
     return getList(queryFilter);

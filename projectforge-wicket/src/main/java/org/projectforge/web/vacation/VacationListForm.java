@@ -25,8 +25,10 @@ package org.projectforge.web.vacation;
 
 import org.apache.log4j.Logger;
 import org.apache.wicket.spring.injection.annot.SpringBean;
+import org.projectforge.business.fibu.EmployeeDO;
 import org.projectforge.business.fibu.api.EmployeeService;
 import org.projectforge.business.vacation.VacationFilter;
+import org.projectforge.framework.access.AccessException;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.web.wicket.AbstractListForm;
 
@@ -47,7 +49,26 @@ public class VacationListForm extends AbstractListForm<VacationFilter, VacationL
   @Override
   protected VacationFilter newSearchFilterInstance()
   {
-    return new VacationFilter(employeeService.getEmployeeByUserId(ThreadLocalUserContext.getUserId()));
+    EmployeeDO employee = employeeService.getEmployeeByUserId(ThreadLocalUserContext.getUserId());
+    if (employee == null) {
+      throw new AccessException("access.exception.noEmployeeToUser");
+    }
+    return new VacationFilter(employee.getPk());
+  }
+
+  @Override
+  public VacationFilter getSearchFilter()
+  {
+    super.getSearchFilter();
+    if (this.searchFilter == null || this.searchFilter.getEmployeeId() == null) {
+      VacationFilter vf = newSearchFilterInstance();
+      if (this.searchFilter != null) {
+        this.searchFilter.setEmployeeId(vf.getEmployeeId());
+      } else {
+        this.searchFilter = vf;
+      }
+    }
+    return this.searchFilter;
   }
 
   @Override
