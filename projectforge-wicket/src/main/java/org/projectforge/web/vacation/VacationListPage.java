@@ -39,6 +39,7 @@ import org.projectforge.business.fibu.api.EmployeeService;
 import org.projectforge.business.user.I18nHelper;
 import org.projectforge.business.vacation.model.VacationDO;
 import org.projectforge.business.vacation.service.VacationService;
+import org.projectforge.export.DOGetterListExcelExporter;
 import org.projectforge.framework.access.AccessException;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.web.fibu.ISelectCallerPage;
@@ -169,6 +170,12 @@ public class VacationListPage extends AbstractListPage<VacationListForm, Vacatio
     dataTable = createDataTable(columns, "startDate", SortOrder.DESCENDING);
     form.add(dataTable);
     addExcelExport(getString("vacation.title.heading"), "vacation");
+  }
+
+  @Override
+  protected DOGetterListExcelExporter createExcelExporter(final String filenameIdentifier)
+  {
+    return new DOGetterListExcelExporter(filenameIdentifier);
   }
 
   @Override
