@@ -49,7 +49,7 @@
     <dependency>
       <groupId>org.projectforge</groupId>
       <artifactId>projectforge-business</artifactId>
-      <version>6.5.0-SNAPSHOT</version>
+      <version>${projectforge.version}</version>
     </dependency>
   </dependencies>
 </project>

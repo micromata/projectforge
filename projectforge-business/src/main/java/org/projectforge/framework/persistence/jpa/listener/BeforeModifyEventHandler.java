@@ -1,6 +1,7 @@
 package org.projectforge.framework.persistence.jpa.listener;
 
 import org.projectforge.business.multitenancy.TenantChecker;
+import org.projectforge.business.multitenancy.TenantService;
 import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.access.OperationType;
 import org.projectforge.framework.persistence.api.AUserRightId;
@@ -8,6 +9,8 @@ import org.projectforge.framework.persistence.api.BaseDO;
 import org.projectforge.framework.persistence.api.IUserRightId;
 import org.projectforge.framework.persistence.api.JpaPfGenericPersistenceService;
 import org.projectforge.framework.persistence.jpa.PfEmgr;
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
+import org.projectforge.framework.persistence.user.entities.TenantDO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -36,11 +39,13 @@ public class BeforeModifyEventHandler implements EmgrEventHandler<EmgrInitForMod
   private JpaPfGenericPersistenceService genericPersistenceService;
 
   @Autowired
-  TenantChecker tenantChecker;
+  private TenantChecker tenantChecker;
+
+  @Autowired
+  private TenantService tenantService;
 
   /**
    * {@inheritDoc}
-   *
    */
   @Override
   public void onEvent(EmgrInitForModEvent event)
@@ -54,6 +59,14 @@ public class BeforeModifyEventHandler implements EmgrEventHandler<EmgrInitForMod
       return;
     }
     BaseDO baseDo = (BaseDO) rec;
+    if (baseDo.getTenant() == null) {
+      //TODO FB: IS this the correct tenant?
+      TenantDO tenant = ThreadLocalUserContext.getUser().getTenant();
+      if (tenant == null) {
+        tenant = tenantService.getDefaultTenant();
+      }
+      baseDo.setTenant(tenant);
+    }
     AUserRightId aUserRightId = rec.getClass().getAnnotation(AUserRightId.class);
     if (aUserRightId != null && aUserRightId.checkAccess() == false) {
       return;

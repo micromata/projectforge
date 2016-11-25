@@ -25,6 +25,7 @@ package org.projectforge.web.wicket.components;
 
 import java.util.Calendar;
 import java.util.Date;
+import java.util.function.BooleanSupplier;
 
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.datetime.markup.html.form.DateTextField;
@@ -44,8 +45,8 @@ import org.projectforge.web.wicket.flowlayout.ComponentWrapperPanel;
 /**
  * Panel for date selection. Works for java.util.Date and java.sql.Date. For java.sql.Date don't forget to call the constructor with
  * targetType java.sql.Date.
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
  */
 public class DatePanel extends FormComponentPanel<Date> implements ComponentWrapperPanel
 {
@@ -79,7 +80,7 @@ public class DatePanel extends FormComponentPanel<Date> implements ComponentWrap
    */
   public DatePanel(final String id, final IModel<Date> model, final boolean useModelDirectly)
   {
-    this(id, model, new DatePanelSettings(), useModelDirectly);
+    this(id, model, new DatePanelSettings(), useModelDirectly, null);
   }
 
   /**
@@ -89,17 +90,41 @@ public class DatePanel extends FormComponentPanel<Date> implements ComponentWrap
    */
   public DatePanel(final String id, final IModel<Date> model, final DatePanelSettings settings)
   {
-    this(id, model, settings, false);
+    this(id, model, settings, false, null);
   }
 
   /**
    * @param id
    * @param model
-   * @param settings with target type etc.
+   * @param settings         with target type etc.
    * @param useModelDirectly use the given model directly in the internal dateField
    */
-  @SuppressWarnings("serial")
   public DatePanel(final String id, final IModel<Date> model, final DatePanelSettings settings, final boolean useModelDirectly)
+  {
+    this(id, model, settings, useModelDirectly, null);
+  }
+
+  /**
+   * @param id
+   * @param model
+   * @param settings         with target type etc.
+   * @param requiredSupplier a callback which supplies the return value for the isRequired method of the date field.
+   */
+  public DatePanel(final String id, final IModel<Date> model, final DatePanelSettings settings, final BooleanSupplier requiredSupplier)
+  {
+    this(id, model, settings, false, requiredSupplier);
+  }
+
+  /**
+   * @param id
+   * @param model
+   * @param settings         with target type etc.
+   * @param useModelDirectly use the given model directly in the internal dateField
+   * @param requiredSupplier a callback which supplies the return value for the isRequired method of the date field.
+   */
+  @SuppressWarnings("serial")
+  public DatePanel(final String id, final IModel<Date> model, final DatePanelSettings settings, final boolean useModelDirectly,
+      final BooleanSupplier requiredSupplier)
   {
     super(id, model);
     setType(settings.targetType);
@@ -117,6 +142,12 @@ public class DatePanel extends FormComponentPanel<Date> implements ComponentWrap
         WicketRenderHeadUtils.renderMainJavaScriptIncludes(response);
         DatePickerUtils.renderHead(response, getLocale(), dateField.getMarkupId(), autosubmit);
       }
+
+      @Override
+      public boolean isRequired()
+      {
+        return (requiredSupplier != null) ? requiredSupplier.getAsBoolean() : super.isRequired();
+      }
     };
     dateField.add(AttributeModifier.replace("size", "10"));
     dateField.setOutputMarkupId(true);
@@ -127,7 +158,8 @@ public class DatePanel extends FormComponentPanel<Date> implements ComponentWrap
     if (settings.tabIndex != null) {
       dateField.add(AttributeModifier.replace("tabindex", String.valueOf(settings.tabIndex)));
     }
-    dateField.add(new IValidator<Date>() {
+    dateField.add(new IValidator<Date>()
+    {
 
       @Override
       public void validate(final IValidatable<Date> validatable)
@@ -155,6 +187,7 @@ public class DatePanel extends FormComponentPanel<Date> implements ComponentWrap
 
   /**
    * Minimum year for validation (default is 1900).
+   *
    * @param minYear the minYear to set
    * @return this for chaining.
    */
@@ -166,6 +199,7 @@ public class DatePanel extends FormComponentPanel<Date> implements ComponentWrap
 
   /**
    * Maximum year for validation (default is 2100).
+   *
    * @param maxYear the maxYear to set
    * @return this for chaining.
    */
@@ -174,7 +208,6 @@ public class DatePanel extends FormComponentPanel<Date> implements ComponentWrap
     this.maxYear = maxYear;
     return this;
   }
-
 
   /**
    * @see org.apache.wicket.markup.html.form.FormComponent#setLabel(org.apache.wicket.model.IModel)
@@ -195,6 +228,7 @@ public class DatePanel extends FormComponentPanel<Date> implements ComponentWrap
 
   /**
    * If true then the parent form of this field will be submitted (no Ajax submit!).
+   *
    * @param autosubmit the autosubmit to set
    * @return this for chaining.
    */
@@ -273,7 +307,7 @@ public class DatePanel extends FormComponentPanel<Date> implements ComponentWrap
    * @see org.projectforge.web.wicket.flowlayout.ComponentWrapperPanel#getFormComponent()
    */
   @Override
-  public FormComponent< ? > getFormComponent()
+  public FormComponent<?> getFormComponent()
   {
     return dateField;
   }
