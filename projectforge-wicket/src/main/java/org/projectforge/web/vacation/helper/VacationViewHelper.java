@@ -16,16 +16,19 @@ import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDat
 import org.apache.wicket.extensions.markup.html.repeater.util.SortParam;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.projectforge.business.fibu.EmployeeDO;
 import org.projectforge.business.user.I18nHelper;
 import org.projectforge.business.vacation.model.VacationAttrProperty;
 import org.projectforge.business.vacation.model.VacationDO;
 import org.projectforge.business.vacation.service.VacationService;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
+import org.projectforge.web.vacation.VacationEditPage;
 import org.projectforge.web.vacation.VacationViewPageSortableDataProvider;
 import org.projectforge.web.wicket.CellItemListener;
 import org.projectforge.web.wicket.CellItemListenerPropertyColumn;
 import org.projectforge.web.wicket.bootstrap.GridBuilder;
+import org.projectforge.web.wicket.components.LabelBookmarkablePageLinkPanel;
 import org.projectforge.web.wicket.flowlayout.DivPanel;
 import org.projectforge.web.wicket.flowlayout.DivTextPanel;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
@@ -42,7 +45,7 @@ public class VacationViewHelper
   @Autowired
   private VacationService vacationService;
 
-  public void createVacationView(GridBuilder gridBuilder, EmployeeDO currentEmployee)
+  public void createVacationView(GridBuilder gridBuilder, EmployeeDO currentEmployee, boolean showAddLink)
   {
     final Calendar now = new GregorianCalendar(ThreadLocalUserContext.getTimeZone());
     DivPanel section = gridBuilder.getPanel();
@@ -67,6 +70,10 @@ public class VacationViewHelper
         vacationService.getAvailableVacationdaysForYear(currentEmployee, now.get(Calendar.YEAR), true).toString());
     section.add(new Heading3Panel(section.newChildId(),
         I18nHelper.getLocalizedMessage("vacation.title.list") + " " + now.get(Calendar.YEAR)));
+    if (showAddLink) {
+      section.add(new LabelBookmarkablePageLinkPanel(section.newChildId(), VacationEditPage.class, I18nHelper.getLocalizedMessage("add"), new PageParameters())
+          .addLinkAttribute("class", "btn btn-sm btn-success").addLinkAttribute("style", "margin-bottom: 5px"));
+    }
     TablePanel tablePanel = new TablePanel(section.newChildId());
     section.add(tablePanel);
     final DataTable<VacationDO, String> dataTable = createDataTable(createColumns(), "startDate", SortOrder.ASCENDING,
