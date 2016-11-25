@@ -43,6 +43,7 @@ import org.apache.log4j.Logger;
 import org.hibernate.Query;
 import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Restrictions;
+import org.projectforge.business.teamcal.TeamCalConfig;
 import org.projectforge.business.teamcal.admin.TeamCalCache;
 import org.projectforge.business.teamcal.admin.TeamCalDao;
 import org.projectforge.business.teamcal.admin.model.TeamCalDO;
@@ -162,6 +163,15 @@ public class TeamEventDao extends BaseDao<TeamEventDO>
     // Update recurrenceUntil date (for database queries):
     final Date recurrenceUntil = ICal4JUtils.calculateRecurrenceUntil(event.getRecurrenceRule(), event.getTimeZone());
     event.setRecurrenceUntil(recurrenceUntil);
+  }
+
+  @Override
+  protected void afterSaveOrModify(final TeamEventDO event)
+  {
+    if (StringUtils.isBlank(event.getUid())) {
+      event.setUid(TeamCalConfig.get().createEventUid(event.getPk()));
+      getHibernateTemplate().merge(event);
+    }
   }
 
   /**
