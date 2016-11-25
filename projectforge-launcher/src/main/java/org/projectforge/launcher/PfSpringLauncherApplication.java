@@ -18,9 +18,7 @@ import de.micromata.mgc.application.MgcApplicationStartStopStatus;
 import de.micromata.mgc.springbootapp.SpringBootApplication;
 
 /**
- * 
  * @author Roger Rene Kommer (r.kommer.extern@micromata.de)
- *
  */
 public class PfSpringLauncherApplication extends SpringBootApplication<PfLocalSettingsConfigModel>
 {
