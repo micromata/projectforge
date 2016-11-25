@@ -147,4 +147,10 @@ public class VacationDao extends BaseDao<VacationDO>
     return result;
   }
 
+  public Integer getOpenLeaveApplicationsForEmployee(EmployeeDO employee)
+  {
+    Integer result = 0;
+    //TODO FB: Hier muss noch Code rein ;-)
+    return result;
+  }
 }

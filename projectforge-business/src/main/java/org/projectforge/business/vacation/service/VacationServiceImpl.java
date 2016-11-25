@@ -359,6 +359,16 @@ public class VacationServiceImpl extends CorePersistenceServiceImpl<Integer, Vac
   }
 
   @Override
+  public Integer getOpenLeaveApplicationsForUser(PFUserDO user)
+  {
+    EmployeeDO employee = employeeService.getEmployeeByUserId(user.getId());
+    if (employee == null) {
+      return 0;
+    }
+    return vacationDao.getOpenLeaveApplicationsForEmployee(employee);
+  }
+
+  @Override
   public boolean hasInsertAccess(PFUserDO user)
   {
     return true;

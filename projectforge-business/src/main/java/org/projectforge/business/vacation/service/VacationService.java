@@ -1,16 +1,16 @@
 package org.projectforge.business.vacation.service;
 
-import org.projectforge.business.fibu.EmployeeDO;
-import org.projectforge.business.vacation.model.VacationDO;
-import org.projectforge.framework.persistence.api.IDao;
-import org.projectforge.framework.persistence.api.IPersistenceService;
-import org.projectforge.framework.persistence.user.entities.PFUserDO;
-
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+
+import org.projectforge.business.fibu.EmployeeDO;
+import org.projectforge.business.vacation.model.VacationDO;
+import org.projectforge.framework.persistence.api.IDao;
+import org.projectforge.framework.persistence.api.IPersistenceService;
+import org.projectforge.framework.persistence.user.entities.PFUserDO;
 
 /**
  * Access to vacation.
@@ -150,4 +150,12 @@ public interface VacationService extends IPersistenceService<VacationDO>, IDao<V
    * @return
    */
   List<VacationDO> getAllActiveVacation(EmployeeDO employee, boolean withSpecial);
+
+  /**
+   * Returns number of open applications for leave for users employee
+   *
+   * @param user
+   * @return
+   */
+  Integer getOpenLeaveApplicationsForUser(PFUserDO user);
 }
