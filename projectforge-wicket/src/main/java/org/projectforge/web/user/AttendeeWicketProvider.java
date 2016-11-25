@@ -73,43 +73,6 @@ public class AttendeeWicketProvider extends TextChoiceProvider<TeamEventAttendee
     return this;
   }
 
-  public int getAndDecreaseInternalNewAttendeeSequence()
-  {
-    int result = internalNewAttendeeSequence;
-    internalNewAttendeeSequence--;
-    return result;
-  }
-
-  public void initSortedAttendees()
-  {
-    if (sortedAttendees == null) {
-      sortedAttendees = teamEventService.getAddressesAndUserAsAttendee();
-      Set<TeamEventAttendeeDO> assignedAttendees = event.getAttendees();
-      List<TeamEventAttendeeDO> removeAddressAttendeeList = new ArrayList<>();
-      if (assignedAttendees != null) {
-        for (TeamEventAttendeeDO addressAttendee : sortedAttendees) {
-          for (TeamEventAttendeeDO alreadyAssignedAttendee : assignedAttendees) {
-            if (addressAttendee.equals(alreadyAssignedAttendee)) {
-              removeAddressAttendeeList.add(addressAttendee);
-            }
-          }
-        }
-        sortedAttendees.removeAll(removeAddressAttendeeList);
-        sortedAttendees.addAll(assignedAttendees);
-      }
-    }
-  }
-
-  public List<TeamEventAttendeeDO> getSortedAttendees()
-  {
-    return sortedAttendees;
-  }
-
-  public List<TeamEventAttendeeDO> getCustomAttendees()
-  {
-    return customAttendees;
-  }
-
   /**
    * @see com.vaynberg.wicket.select2.TextChoiceProvider#getDisplayText(java.lang.Object)
    */
@@ -147,7 +110,22 @@ public class AttendeeWicketProvider extends TextChoiceProvider<TeamEventAttendee
   @Override
   public void query(String term, final int page, final Response<TeamEventAttendeeDO> response)
   {
-    initSortedAttendees();
+    if (sortedAttendees == null) {
+      sortedAttendees = teamEventService.getAddressesAndUserAsAttendee();
+      Set<TeamEventAttendeeDO> assignedAttendees = event.getAttendees();
+      List<TeamEventAttendeeDO> removeAddressAttendeeList = new ArrayList<>();
+      if (assignedAttendees != null) {
+        for (TeamEventAttendeeDO addressAttendee : sortedAttendees) {
+          for (TeamEventAttendeeDO alreadyAssignedAttendee : assignedAttendees) {
+            if (addressAttendee.equals(alreadyAssignedAttendee)) {
+              removeAddressAttendeeList.add(addressAttendee);
+            }
+          }
+        }
+        sortedAttendees.removeAll(removeAddressAttendeeList);
+        sortedAttendees.addAll(assignedAttendees);
+      }
+    }
     final List<TeamEventAttendeeDO> result = new ArrayList<>();
     term = term.toLowerCase();
     String[] splitTerm = term.split(" ");
@@ -158,7 +136,8 @@ public class AttendeeWicketProvider extends TextChoiceProvider<TeamEventAttendee
     boolean hasMore = false;
     for (final TeamEventAttendeeDO attendee : sortedAttendees) {
       if (attendee.getId() == null) {
-        attendee.setId(getAndDecreaseInternalNewAttendeeSequence());
+        attendee.setId(internalNewAttendeeSequence);
+        internalNewAttendeeSequence--;
       }
       if (result.size() == pageSize) {
         hasMore = true;
@@ -166,7 +145,7 @@ public class AttendeeWicketProvider extends TextChoiceProvider<TeamEventAttendee
       }
       if ((attendee.getAddress() != null
           && Stream.of(splitTerm)
-          .allMatch(streamTerm -> attendee.getAddress().getFullName().toLowerCase().contains(streamTerm)))
+              .allMatch(streamTerm -> attendee.getAddress().getFullName().toLowerCase().contains(streamTerm)))
           || (attendee.getUrl() != null && attendee.getUrl().toLowerCase().contains(term) == true)) {
         matched++;
         if (matched > offset) {
@@ -178,7 +157,8 @@ public class AttendeeWicketProvider extends TextChoiceProvider<TeamEventAttendee
     if (result.size() == 0) {
       TeamEventAttendeeDO newAttendee = new TeamEventAttendeeDO().setUrl(term);
       newAttendee.setStatus(TeamEventAttendeeStatus.NEW);
-      newAttendee.setId(getAndDecreaseInternalNewAttendeeSequence());
+      newAttendee.setId(internalNewAttendeeSequence);
+      internalNewAttendeeSequence--;
       customAttendees.add(newAttendee);
       result.add(newAttendee);
     }

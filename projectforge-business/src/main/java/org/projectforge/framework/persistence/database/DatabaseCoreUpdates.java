@@ -119,7 +119,6 @@ public class DatabaseCoreUpdates
       public UpdatePreCheckStatus runPreCheck()
       {
         log.info("Running pre-check for ProjectForge version 6.6.0");
-        // ensure that the tenant exists, otherwise the following statements will fail with an SQL exception
         if (databaseUpdateService.doTableAttributesExist(PFUserDO.class, "lastWlanPasswordChange") == false) {
           return UpdatePreCheckStatus.READY_FOR_UPDATE;
         } else if (
@@ -147,6 +146,34 @@ public class DatabaseCoreUpdates
           groupDao.internalSave(orgaGroup);
         }
 
+        return UpdateRunningStatus.DONE;
+      }
+
+    });
+
+    ////////////////////////////////////////////////////////////////////
+    // 6.5.2
+    // /////////////////////////////////////////////////////////////////
+    list.add(new UpdateEntryImpl(CORE_REGION_ID, "6.5.2", "2016-11-24",
+        "Add creator to team event.")
+    {
+      @Override
+      public UpdatePreCheckStatus runPreCheck()
+      {
+        log.info("Running pre-check for ProjectForge version 6.5.2");
+        if (databaseUpdateService.doesTableAttributeExist("T_PLUGIN_CALENDAR_EVENT", "team_event_fk_creator") == false) {
+          return UpdatePreCheckStatus.READY_FOR_UPDATE;
+        }
+        return UpdatePreCheckStatus.ALREADY_UPDATED;
+      }
+
+      @Override
+      public UpdateRunningStatus runUpdate()
+      {
+        if (databaseUpdateService.doesTableAttributeExist("T_PLUGIN_CALENDAR_EVENT", "team_event_fk_creator") == false) {
+          //Updating the schema
+          initDatabaseDao.updateSchema();
+        }
         return UpdateRunningStatus.DONE;
       }
 
