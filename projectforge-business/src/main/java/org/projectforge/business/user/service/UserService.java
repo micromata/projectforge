@@ -66,6 +66,8 @@ public interface UserService
 
   void onPasswordChange(final PFUserDO user, final boolean createHistoryEntry);
 
+  void onWlanPasswordChange(final PFUserDO user, final boolean createHistoryEntry);
+
   String getNormalizedPersonalPhoneIdentifiers(PFUserDO data);
 
   UserDao getUserDao();

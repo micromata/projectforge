@@ -120,8 +120,11 @@ public class DatabaseCoreUpdates
       {
         log.info("Running pre-check for ProjectForge version 6.6.0");
         // ensure that the tenant exists, otherwise the following statements will fail with an SQL exception
-        if (databaseUpdateService.doTablesExist(VisitorbookDO.class, VisitorbookTimedDO.class, VisitorbookTimedAttrDO.class, VisitorbookTimedAttrDataDO.class,
-            VisitorbookTimedAttrWithDataDO.class) == false || databaseUpdateService.doesGroupExists(ProjectForgeGroup.ORGA_TEAM) == false) {
+        if (databaseUpdateService.doTableAttributesExist(PFUserDO.class, "lastWlanPasswordChange") == false) {
+          return UpdatePreCheckStatus.READY_FOR_UPDATE;
+        } else if (
+            databaseUpdateService.doTablesExist(VisitorbookDO.class, VisitorbookTimedDO.class, VisitorbookTimedAttrDO.class, VisitorbookTimedAttrDataDO.class,
+                VisitorbookTimedAttrWithDataDO.class) == false || databaseUpdateService.doesGroupExists(ProjectForgeGroup.ORGA_TEAM) == false) {
           return UpdatePreCheckStatus.READY_FOR_UPDATE;
         } else {
           return UpdatePreCheckStatus.ALREADY_UPDATED;
@@ -131,16 +134,19 @@ public class DatabaseCoreUpdates
       @Override
       public UpdateRunningStatus runUpdate()
       {
-        if (databaseUpdateService.doTablesExist(VisitorbookDO.class, VisitorbookTimedDO.class, VisitorbookTimedAttrDO.class, VisitorbookTimedAttrDataDO.class,
-            VisitorbookTimedAttrWithDataDO.class) == false) {
+        if (databaseUpdateService.doTableAttributesExist(PFUserDO.class, "lastWlanPasswordChange") == false ||
+            databaseUpdateService.doTablesExist(VisitorbookDO.class, VisitorbookTimedDO.class, VisitorbookTimedAttrDO.class, VisitorbookTimedAttrDataDO.class,
+                VisitorbookTimedAttrWithDataDO.class) == false) {
           initDatabaseDao.updateSchema();
         }
+
         if (databaseUpdateService.doesGroupExists(ProjectForgeGroup.ORGA_TEAM) == false) {
           GroupDao groupDao = applicationContext.getBean(GroupDao.class);
           GroupDO orgaGroup = new GroupDO();
           orgaGroup.setName(ProjectForgeGroup.ORGA_TEAM.getName());
           groupDao.internalSave(orgaGroup);
         }
+
         return UpdateRunningStatus.DONE;
       }
 

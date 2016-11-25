@@ -414,7 +414,7 @@ public class LdapMasterLoginHandler extends LdapLoginHandler
   }
 
   @Override
-  public void wlanPasswordChanged(PFUserDO user, String newPassword)
+  public void wlanPasswordChanged(final PFUserDO user, final String newPassword)
   {
     final LdapUser ldapUser = ldapUserDao.findById(user.getId());
     if (user.isDeleted() == true || user.isLocalUser() == true) {
