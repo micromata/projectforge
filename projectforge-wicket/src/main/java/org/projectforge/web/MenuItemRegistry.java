@@ -113,6 +113,7 @@ import org.projectforge.web.user.GroupListPage;
 import org.projectforge.web.user.MyAccountEditPage;
 import org.projectforge.web.user.UserListPage;
 import org.projectforge.web.user.UserPrefListPage;
+import org.projectforge.web.vacation.MenuNewCounterVacation;
 import org.projectforge.web.vacation.VacationListPage;
 import org.projectforge.web.vacation.VacationViewPage;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -315,7 +316,15 @@ public class MenuItemRegistry implements Serializable
     // COMMON
     reg.register(common, MenuItemDefId.CALENDAR, 10, TeamCalCalendarPage.class); // Visible for all.
     reg.register(common, MenuItemDefId.TEAMCALENDAR, 20, TeamCalListPage.class); //
-    reg.register(common, MenuItemDefId.VACATION, 21, VacationListPage.class); //
+    final MenuItemDef vacation = new MenuItemDef(common, MenuItemDefId.VACATION.getId(), 21, MenuItemDefId.VACATION.getI18nKey(), VacationListPage.class)
+    {
+      @Override
+      protected void afterMenuEntryCreation(final MenuEntry createdMenuEntry, final MenuBuilderContext context)
+      {
+        createdMenuEntry.setNewCounterModel(new MenuNewCounterVacation());
+      }
+    };
+    reg.register(vacation);
     reg.register(common, MenuItemDefId.BOOK_LIST, 30, BookListPage.class); // Visible for all.
     reg.register(common, MenuItemDefId.ADDRESS_LIST, 40, AddressListPage.class)
         .setMobileMenu(AddressMobileListPage.class, 100); // Visible
