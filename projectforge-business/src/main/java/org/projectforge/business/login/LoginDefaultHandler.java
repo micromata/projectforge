@@ -302,9 +302,9 @@ public class LoginDefaultHandler implements LoginHandler
   }
 
   @Override
-  public void wlanPasswordChanged(PFUserDO user, String newPassword)
+  public void wlanPasswordChanged(final PFUserDO user, final String newPassword)
   {
-    // Do nothing.
+    // Do nothing. The wlan password input field is not visible if this handler is used.
   }
 
   /**

@@ -285,7 +285,8 @@ public class UserServiceImpl implements UserService
    * @param newWlanPassword
    * @return Error message key if any check failed or null, if successfully changed.
    */
-  public String changeWlanPassword(final PFUserDO user, final String loginPassword, final String newWlanPassword)
+  @Transactional(readOnly = false, propagation = Propagation.REQUIRED)
+  public String changeWlanPassword(PFUserDO user, final String loginPassword, final String newWlanPassword)
   {
     Validate.notNull(user);
     Validate.notNull(loginPassword);
@@ -297,11 +298,13 @@ public class UserServiceImpl implements UserService
     }
 
     accessChecker.checkRestrictedOrDemoUser();
-    if (getUser(user.getUsername(), loginPassword, false) == null) {
+    user = getUser(user.getUsername(), loginPassword, false); // get user from DB to persist the change of the wlan password time
+    if (user == null) {
       return MESSAGE_KEY_LOGIN_PASSWORD_WRONG;
     }
 
-    Login.getInstance().wlanPasswordChanged(user, newWlanPassword);
+    onWlanPasswordChange(user, true); // set last change time and creaty history entry
+    Login.getInstance().wlanPasswordChanged(user, newWlanPassword); // change the wlan password
     log.info("WLAN Password changed for user: " + user.getId() + " - " + user.getUsername());
     return null;
   }
@@ -351,6 +354,19 @@ public class UserServiceImpl implements UserService
     } else {
       throw new IllegalArgumentException(
           "Given password seems to be not encrypted! Aborting due to security reasons (for avoiding storage of clear password in the database).");
+    }
+  }
+
+  @Override
+  public void onWlanPasswordChange(final PFUserDO user, final boolean createHistoryEntry)
+  {
+    if (createHistoryEntry) {
+      HistoryBaseDaoAdapter.wrappHistoryUpdate(user, () -> {
+        user.setLastWlanPasswordChange(new Date());
+        return ModificationStatus.MAJOR;
+      });
+    } else {
+      user.setLastWlanPasswordChange(new Date());
     }
   }
 

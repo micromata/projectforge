@@ -113,6 +113,11 @@ public class UserEditPage extends AbstractEditPage<PFUserDO, UserEditForm, UserD
       final String xml = PFUserDOConverter.getLdapValuesAsXml(form.ldapUserValues);
       getData().setLdapValues(xml);
     }
+
+    if (StringUtils.isNotEmpty(form.getWlanPassword())) {
+      userService.onWlanPasswordChange(getData(), false); // persist new time, history is created by caller
+    }
+
     return super.onSaveOrUpdate();
   }
 
