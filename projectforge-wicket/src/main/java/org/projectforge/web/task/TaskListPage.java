@@ -47,7 +47,7 @@ import org.projectforge.business.task.TaskDO;
 import org.projectforge.business.task.TaskDao;
 import org.projectforge.business.task.TaskNode;
 import org.projectforge.business.task.TaskTree;
-import org.projectforge.business.task.formatter.TaskFormatter;
+import org.projectforge.business.task.formatter.WicketTaskFormatter;
 import org.projectforge.business.tasktree.TaskTreeHelper;
 import org.projectforge.business.user.ProjectForgeGroup;
 import org.projectforge.business.user.UserFormatter;
@@ -75,7 +75,7 @@ import org.projectforge.web.wicket.components.ContentMenuEntryPanel;
 
 /**
  * This page is shown when the user searches in the task tree. The task will be displayed as list.
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 @ListPage(editPage = TaskEditPage.class)
@@ -110,7 +110,6 @@ public class TaskListPage extends AbstractListPage<TaskListForm, TaskDao, TaskDO
   }
 
   /**
-   * 
    * @param parentComponent Needed for call parentComponent.getString(String) for i18n.
    * @param componentId
    * @param taskTree
@@ -137,7 +136,7 @@ public class TaskListPage extends AbstractListPage<TaskListForm, TaskDao, TaskDO
     }
     BigDecimal usage = (node != null)
         ? new BigDecimal(node.getDuration(taskTree, true)).divide(DateHelper.SECONDS_PER_WORKING_DAY, 2,
-            BigDecimal.ROUND_HALF_UP)
+        BigDecimal.ROUND_HALF_UP)
         : BigDecimal.ZERO;
     usage = NumberHelper.setDefaultScale(usage);
     final ConsumptionBarPanel panel = new ConsumptionBarPanel(componentId, usage, maxDays, taskId, finished,
@@ -193,7 +192,7 @@ public class TaskListPage extends AbstractListPage<TaskListForm, TaskDao, TaskDO
 
   static Label getStatusLabel(final String componentId, final TaskDO task)
   {
-    final String formattedStatus = TaskFormatter.getFormattedTaskStatus(task.getStatus());
+    final String formattedStatus = WicketTaskFormatter.getFormattedTaskStatus(task.getStatus());
     final Label label = new Label(componentId, formattedStatus);
     label.setEscapeModelStrings(false);
     return label;
@@ -206,7 +205,7 @@ public class TaskListPage extends AbstractListPage<TaskListForm, TaskDao, TaskDO
 
   /**
    * Called if the user clicks on button "list view".
-   * 
+   *
    * @param taskTreePage
    * @param parameters
    */
@@ -239,7 +238,7 @@ public class TaskListPage extends AbstractListPage<TaskListForm, TaskDao, TaskDO
       {
         final TaskDO task = rowModel.getObject();
         final StringBuffer buf = new StringBuffer();
-        TaskFormatter.appendFormattedTask(getRequestCycle(), buf, task, true, false);
+        WicketTaskFormatter.appendFormattedTask(getRequestCycle(), buf, task, true, false);
         final Label formattedTaskLabel = new Label(ListSelectActionPanel.LABEL_ID, buf.toString());
         formattedTaskLabel.setEscapeModelStrings(false);
         if (isSelectMode() == false) {
@@ -282,8 +281,8 @@ public class TaskListPage extends AbstractListPage<TaskListForm, TaskDao, TaskDO
     }
     if (taskTree.hasOrderPositionsEntries() == true
         && accessChecker.isLoggedInUserMemberOfGroup(ProjectForgeGroup.FINANCE_GROUP,
-            ProjectForgeGroup.CONTROLLING_GROUP,
-            ProjectForgeGroup.PROJECT_ASSISTANT, ProjectForgeGroup.PROJECT_MANAGER) == true) {
+        ProjectForgeGroup.CONTROLLING_GROUP,
+        ProjectForgeGroup.PROJECT_ASSISTANT, ProjectForgeGroup.PROJECT_MANAGER) == true) {
       columns.add(
           new CellItemListenerPropertyColumn<TaskDO>(getString("fibu.auftrag.auftraege"), null, null, cellItemListener)
           {
@@ -306,7 +305,7 @@ public class TaskListPage extends AbstractListPage<TaskListForm, TaskDao, TaskDO
                     // Lazy initialization because getString(...) of OrderPositionsPanel fails if panel.init(orderPositions) is called directly
                     // after instantiation.
                     init(orderPositions);
-                  };
+                  }
                 };
                 item.add(orderPositionsPanel);
               }

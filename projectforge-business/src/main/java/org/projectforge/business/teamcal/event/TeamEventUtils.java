@@ -219,13 +219,19 @@ public class TeamEventUtils
 
   public static TeamEventDO createTeamEventDO(final VEvent event)
   {
-    return createTeamEventDO(event, ThreadLocalUserContext.getTimeZone());
+    return createTeamEventDO(event, ThreadLocalUserContext.getTimeZone(), true);
   }
 
   public static TeamEventDO createTeamEventDO(final VEvent event, java.util.TimeZone timeZone)
   {
+    return createTeamEventDO(event, timeZone, true);
+  }
+
+  public static TeamEventDO createTeamEventDO(final VEvent event, java.util.TimeZone timeZone, boolean withUid)
+  {
     final TeamEventDO teamEvent = new TeamEventDO();
     teamEvent.setTimeZone(timeZone);
+    teamEvent.setCreator(ThreadLocalUserContext.getUser());
     final DtStart dtStart = event.getStartDate();
     final DtEnd dtEnd = event.getEndDate();
     if (dtStart != null && dtEnd == null) {
@@ -245,8 +251,8 @@ public class TeamEventUtils
       timestamp = ICal4JUtils.getSqlTimestamp(event.getEndDate().getDate());
     }
     teamEvent.setEndDate(timestamp);
-    if (event.getUid() != null) {
-      teamEvent.setExternalUid(event.getUid().getValue());
+    if (withUid && event.getUid() != null) {
+      teamEvent.setUid(event.getUid().getValue());
     }
     if (event.getLocation() != null) {
       teamEvent.setLocation(event.getLocation().getValue());

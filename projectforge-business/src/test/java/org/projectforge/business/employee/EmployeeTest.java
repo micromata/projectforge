@@ -151,7 +151,7 @@ public class EmployeeTest extends AbstractTestBase
 
     final DisplayHistoryEntry genderHistoryEntry = historyEntriesAfter.get(0);
     assertEquals(genderHistoryEntry.getPropertyName(), "gender");
-    assertEquals(genderHistoryEntry.getNewValue(), Gender.NOT_APPLICABLE.toString());
+    assertEquals(genderHistoryEntry.getNewValue(), "[" + Gender.NOT_APPLICABLE.toString() + "]");
   }
 
   @Test
