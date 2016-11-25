@@ -53,7 +53,7 @@ import org.projectforge.business.fibu.AuftragsStatus;
 import org.projectforge.business.fibu.OrderExport;
 import org.projectforge.business.fibu.RechnungCache;
 import org.projectforge.business.fibu.RechnungsPositionVO;
-import org.projectforge.business.task.formatter.TaskFormatter;
+import org.projectforge.business.task.formatter.WicketTaskFormatter;
 import org.projectforge.business.user.UserFormatter;
 import org.projectforge.business.utils.CurrencyFormatter;
 import org.projectforge.framework.time.DateHelper;
@@ -178,7 +178,7 @@ public class AuftragListPage extends AbstractListPage<AuftragListForm, AuftragDa
               buf.append(": ");
             }
             if (pos.getTaskId() != null) {
-              buf.append(TaskFormatter.getTaskPath(pos.getTaskId(), false, OutputType.HTML));
+              buf.append(WicketTaskFormatter.getTaskPath(pos.getTaskId(), false, OutputType.HTML));
             } else {
               buf.append(getString("fibu.auftrag.position.noTaskGiven"));
             }
@@ -217,7 +217,7 @@ public class AuftragListPage extends AbstractListPage<AuftragListForm, AuftragDa
         new UserPropertyColumn<AuftragDO>(getUserGroupCache(), getString("contactPerson"), "contactPerson.fullname",
             "contactPerson",
             cellItemListener)
-                .withUserFormatter(userFormatter));
+            .withUserFormatter(userFormatter));
     columns.add(new CellItemListenerPropertyColumn<AuftragDO>(getString("date"), "angebotsDatum", "angebotsDatum",
         cellItemListener));
     // columns
@@ -229,7 +229,7 @@ public class AuftragListPage extends AbstractListPage<AuftragListForm, AuftragDa
         "beauftragtNettoSumme", cellItemListener));
     columns.add(new CurrencyPropertyColumn<AuftragDO>(getString("fibu.fakturiert"), "fakturiertSum", "fakturiertSum",
         cellItemListener)
-            .setSuppressZeroValues(true));
+        .setSuppressZeroValues(true));
     columns
         .add(new CellItemListenerPropertyColumn<AuftragDO>(new Model<String>(getString("fibu.rechnungen")), null, null,
             cellItemListener)
@@ -251,7 +251,7 @@ public class AuftragListPage extends AbstractListPage<AuftragListForm, AuftragDa
                 {
                   super.onBeforeRender();
                   init(invoicePositionsByOrderPositionId);
-                };
+                }
               };
               item.add(panel);
             }
@@ -285,7 +285,7 @@ public class AuftragListPage extends AbstractListPage<AuftragListForm, AuftragDa
             final String filename = "ProjectForge-OrderExport_" + DateHelper.getDateAsFilenameSuffix(new Date())
                 + ".xls";
             DownloadUtils.setDownloadTarget(xls, filename);
-          };
+          }
         }, getString("exportAsXls")).setTooltip(getString("tooltip.export.excel"));
     addContentMenuEntry(exportExcelButton);
 

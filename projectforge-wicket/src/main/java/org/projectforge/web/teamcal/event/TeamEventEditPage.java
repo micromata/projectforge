@@ -310,7 +310,9 @@ public class TeamEventEditPage extends AbstractEditPage<TeamEventDO, TeamEventEd
   public AbstractSecuredBasePage onSaveOrUpdate()
   {
     super.onSaveOrUpdate();
-
+    if (getData().getCreator() == null) {
+      getData().setCreator(ThreadLocalUserContext.getUser());
+    }
     if (getData() != null && getData().getId() != null) {
       TeamEventDO tempCopyEvent = getData().clone();
       this.modificationStatus = TeamEventDO.copyValues(teamEventDao.getById(getData().getId()), tempCopyEvent);
@@ -373,7 +375,6 @@ public class TeamEventEditPage extends AbstractEditPage<TeamEventDO, TeamEventEd
   public AbstractSecuredBasePage afterUpdate(final ModificationStatus modificationStatus)
   {
     if (newEvent != null) {
-      newEvent.setExternalUid(null); // Avoid multiple usage of external uids.
       newEvent.setSequence(0);
       teamEventDao.save(newEvent);
     }

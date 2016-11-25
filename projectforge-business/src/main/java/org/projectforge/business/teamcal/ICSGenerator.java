@@ -88,7 +88,7 @@ public class ICSGenerator
 
       cal.getComponents().add(event);
 
-      if (data.getReminderActionType() != null) {
+      if (data.getReminderActionType() != null && data.getReminderDurationUnit() != null) {
         VAlarm alarm = null;
         Dur dur = null;
         switch (data.getReminderDurationUnit()) {
