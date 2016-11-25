@@ -332,7 +332,7 @@ public class EmployeeEditForm extends AbstractEditForm<EmployeeDO, EmployeeEditP
 
     if (isNew() == false && data.getUrlaubstage() != null) {
       GridBuilder vacationGridBuilder = tabPanel.getOrCreateTab("vacation"); // create the default tab
-      vacationViewHelper.createVacationView(vacationGridBuilder, data);
+      vacationViewHelper.createVacationView(vacationGridBuilder, data, false);
     }
 
   }

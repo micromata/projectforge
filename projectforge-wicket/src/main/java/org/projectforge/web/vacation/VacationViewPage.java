@@ -61,7 +61,7 @@ public class VacationViewPage extends AbstractSecuredPage
     vacationService.couldUserUseVacationService(currentUser, true);
     final EmployeeDO currentEmployee = employeeService.getEmployeeByUserId(currentUser.getPk());
     gridBuilder = new GridBuilder(body, "flowform", true);
-    vacationViewHelper.createVacationView(gridBuilder, currentEmployee);
+    vacationViewHelper.createVacationView(gridBuilder, currentEmployee, true);
   }
 
   @Override
