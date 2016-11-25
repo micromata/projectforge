@@ -42,6 +42,7 @@ import org.projectforge.business.teamcal.filter.TeamCalCalendarFilter;
 import org.projectforge.business.teamcal.filter.TemplateEntry;
 import org.projectforge.common.StringHelper;
 import org.projectforge.framework.access.AccessChecker;
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.web.calendar.CalendarForm;
 import org.projectforge.web.calendar.CalendarPage;
 import org.projectforge.web.calendar.CalendarPageSupport;
@@ -252,12 +253,17 @@ public class TeamCalCalendarForm extends CalendarForm
         final Uid uid = event.getUid();
         // 1. Check id/external id. If not yet given, create new entry and ask for calendar to add: Redirect to TeamEventEditPage.
         final TeamEventDO dbEvent = (uid == null) ? null : teamEventDao.getByUid(uid.getValue());
-        if (dbEvent != null) {
+        if (dbEvent != null && ThreadLocalUserContext.getUserId().equals(dbEvent.getCreator().getPk())) {
           // Can't modify existing entry, redirect to import page:
           redirectToImportPage(events, activeModel.getObject());
           return;
         }
-        final TeamEventDO teamEvent = TeamEventUtils.createTeamEventDO(event);
+        TeamEventDO teamEvent = null;
+        if (dbEvent != null) {
+          teamEvent = TeamEventUtils.createTeamEventDO(event, ThreadLocalUserContext.getTimeZone(), false);
+        } else {
+          teamEvent = TeamEventUtils.createTeamEventDO(event, ThreadLocalUserContext.getTimeZone(), true);
+        }
         final TemplateEntry activeTemplateEntry = ((TeamCalCalendarFilter) filter).getActiveTemplateEntry();
         if (activeTemplateEntry != null && activeTemplateEntry.getDefaultCalendarId() != null) {
           teamEventDao.setCalendar(teamEvent, activeTemplateEntry.getDefaultCalendarId());

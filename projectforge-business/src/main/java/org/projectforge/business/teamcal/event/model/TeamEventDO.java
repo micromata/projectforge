@@ -53,7 +53,6 @@ import org.hibernate.search.annotations.Indexed;
 import org.hibernate.search.annotations.IndexedEmbedded;
 import org.hibernate.search.annotations.Resolution;
 import org.hibernate.search.annotations.Store;
-import org.projectforge.business.teamcal.TeamCalConfig;
 import org.projectforge.business.teamcal.admin.model.TeamCalDO;
 import org.projectforge.business.teamcal.event.TeamEventRecurrenceData;
 import org.projectforge.business.teamcal.event.TeamEventUtils;
@@ -62,6 +61,7 @@ import org.projectforge.framework.persistence.api.Constants;
 import org.projectforge.framework.persistence.api.PFPersistancyBehavior;
 import org.projectforge.framework.persistence.entities.DefaultBaseDO;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
+import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.time.DateFormats;
 import org.projectforge.framework.time.TimePeriod;
 
@@ -143,8 +143,6 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
 
   private String organizer;
 
-  private String externalUid;
-
   private String uid;
 
   private Integer reminderDuration;
@@ -163,6 +161,8 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
   private Set<TeamEventAttachmentDO> attachments;
 
   private TimeZone timeZone;
+
+  private PFUserDO creator;
 
   /**
    * Clear fields for viewers with minimal access. If you add new fields don't forget to clear these fields here.
@@ -200,9 +200,6 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
   @Column
   public String getUid()
   {
-    if (StringUtils.isBlank(uid)) {
-      uid = TeamCalConfig.get().createEventUid(getId());
-    }
     return uid;
   }
 
@@ -440,27 +437,6 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
   public TeamEventDO setOrganizer(final String organizer)
   {
     this.organizer = organizer;
-    return this;
-  }
-
-  /**
-   * If the event is imported from another system, the uid of the external event is stored here.
-   *
-   * @return the externalUid
-   */
-  @Column(name = "external_uid")
-  public String getExternalUid()
-  {
-    return externalUid;
-  }
-
-  /**
-   * @param externalUid the externalUid to set
-   * @return this for chaining.
-   */
-  public TeamEventDO setExternalUid(final String externalUid)
-  {
-    this.externalUid = externalUid;
     return this;
   }
 
@@ -839,6 +815,21 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
     return this;
   }
 
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "team_event_fk_creator")
+  public PFUserDO getCreator()
+  {
+    if (this.getPk() != null && this.creator == null) {
+      this.creator = this.calendar.getOwner();
+    }
+    return this.creator;
+  }
+
+  public void setCreator(PFUserDO creator)
+  {
+    this.creator = creator;
+  }
+
   // /**
   // * @return the status
   // */
@@ -871,7 +862,6 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
     result = prime * result + ((attendees == null) ? 0 : attendees.hashCode());
     result = prime * result + ((calendar == null) ? 0 : calendar.hashCode());
     result = prime * result + ((endDate == null) ? 0 : endDate.hashCode());
-    result = prime * result + ((externalUid == null) ? 0 : externalUid.hashCode());
     result = prime * result + ((location == null) ? 0 : location.hashCode());
     result = prime * result + ((note == null) ? 0 : note.hashCode());
     result = prime * result + ((recurrenceExDate == null) ? 0 : recurrenceExDate.hashCode());
@@ -920,13 +910,6 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
         return false;
       }
     } else if (endDate.equals(other.endDate) == false) {
-      return false;
-    }
-    if (externalUid == null) {
-      if (other.externalUid != null) {
-        return false;
-      }
-    } else if (externalUid.equals(other.externalUid) == false) {
       return false;
     }
     if (location == null) {
@@ -1043,6 +1026,7 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
   {
     final TeamEventDO clone = new TeamEventDO();
     clone.setCalendar(this.getCalendar());
+    clone.setCreator(this.getCreator());
     clone.startDate = this.startDate;
     clone.endDate = this.endDate;
     clone.allDay = this.allDay;
@@ -1055,7 +1039,6 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
     clone.recurrenceUntil = this.recurrenceUntil;
     clone.organizer = this.organizer;
     clone.note = this.note;
-    clone.externalUid = null;
     clone.lastEmail = this.lastEmail;
     clone.sequence = this.sequence;
     // clone.status = this.status;
@@ -1071,7 +1054,7 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
         cloneAttendee.setCommentOfAttendee(attendee.getCommentOfAttendee());
         cloneAttendee.setLoginToken(attendee.getLoginToken());
         cloneAttendee.setNumber(attendee.getNumber());
-        cloneAttendee.setStatus(TeamEventAttendeeStatus.NEW);
+        cloneAttendee.setStatus(attendee.getStatus());
         cloneAttendee.setUrl(attendee.getUrl());
         cloneAttendee.setUser(attendee.getUser());
         clone.addAttendee(cloneAttendee);
@@ -1102,7 +1085,6 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
     result.recurrenceReferenceDate = this.recurrenceReferenceDate;
     result.recurrenceReferenceId = this.recurrenceReferenceId;
     result.recurrenceUntil = this.recurrenceUntil;
-    result.externalUid = this.externalUid;
     result.sequence = this.sequence;
     return result;
   }
