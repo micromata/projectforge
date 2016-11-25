@@ -51,8 +51,14 @@ import org.projectforge.business.fibu.RechnungDO;
 import org.projectforge.business.fibu.api.EmployeeService;
 import org.projectforge.business.multitenancy.TenantRegistryMap;
 import org.projectforge.business.multitenancy.TenantService;
+import org.projectforge.business.orga.VisitorbookDO;
+import org.projectforge.business.orga.VisitorbookTimedAttrDO;
+import org.projectforge.business.orga.VisitorbookTimedAttrDataDO;
+import org.projectforge.business.orga.VisitorbookTimedAttrWithDataDO;
+import org.projectforge.business.orga.VisitorbookTimedDO;
 import org.projectforge.business.scripting.ScriptDO;
 import org.projectforge.business.task.TaskDO;
+import org.projectforge.business.user.GroupDao;
 import org.projectforge.business.user.ProjectForgeGroup;
 import org.projectforge.business.user.UserXmlPreferencesDO;
 import org.projectforge.continuousdb.DatabaseResultRow;
@@ -107,7 +113,7 @@ public class DatabaseCoreUpdates
     ////////////////////////////////////////////////////////////////////
     // 6.6.0
     // /////////////////////////////////////////////////////////////////
-    list.add(new UpdateEntryImpl(CORE_REGION_ID, "6.6.0", "2016-10-26", "Add table for vacation.")
+    list.add(new UpdateEntryImpl(CORE_REGION_ID, "6.6.0", "2016-12-14", "Add new visitorbook tables. Add table for vacation.")
     {
       @Override
       public UpdatePreCheckStatus runPreCheck()
@@ -118,9 +124,12 @@ public class DatabaseCoreUpdates
             || databaseUpdateService.doesTableRowExists("T_CONFIGURATION", "PARAMETER", "hr.emailaddress",
             true) == false) {
           return UpdatePreCheckStatus.READY_FOR_UPDATE;
-        } else {
-          return UpdatePreCheckStatus.ALREADY_UPDATED;
         }
+        if (databaseUpdateService.doTablesExist(VisitorbookDO.class, VisitorbookTimedDO.class, VisitorbookTimedAttrDO.class, VisitorbookTimedAttrDataDO.class,
+            VisitorbookTimedAttrWithDataDO.class) == false || databaseUpdateService.doesGroupExists(ProjectForgeGroup.ORGA_TEAM) == false) {
+          return UpdatePreCheckStatus.READY_FOR_UPDATE;
+        }
+        return UpdatePreCheckStatus.ALREADY_UPDATED;
       }
 
       @Override
@@ -128,7 +137,9 @@ public class DatabaseCoreUpdates
       {
         final InitDatabaseDao initDatabaseDao = applicationContext.getBean(InitDatabaseDao.class);
         final DatabaseUpdateService databaseUpdateService = applicationContext.getBean(DatabaseUpdateService.class);
-        if (databaseUpdateService.doesTableExist("T_EMPLOYEE_VACATION") == false) {
+        if ((databaseUpdateService.doesTableExist("T_EMPLOYEE_VACATION") == false) || (
+            databaseUpdateService.doTablesExist(VisitorbookDO.class, VisitorbookTimedDO.class, VisitorbookTimedAttrDO.class, VisitorbookTimedAttrDataDO.class,
+                VisitorbookTimedAttrWithDataDO.class) == false)) {
           //Updating the schema
           initDatabaseDao.updateSchema();
         }
@@ -144,6 +155,41 @@ public class DatabaseCoreUpdates
             emgr.insert(confEntry);
             return UpdateRunningStatus.DONE;
           });
+        }
+        if (databaseUpdateService.doesGroupExists(ProjectForgeGroup.ORGA_TEAM) == false) {
+          GroupDao groupDao = applicationContext.getBean(GroupDao.class);
+          GroupDO orgaGroup = new GroupDO();
+          orgaGroup.setName(ProjectForgeGroup.ORGA_TEAM.getName());
+          groupDao.internalSave(orgaGroup);
+        }
+        return UpdateRunningStatus.DONE;
+      }
+
+    });
+
+    ////////////////////////////////////////////////////////////////////
+    // 6.5.2
+    // /////////////////////////////////////////////////////////////////
+    list.add(new UpdateEntryImpl(CORE_REGION_ID, "6.5.2", "2016-11-24",
+        "Add creator to team event.")
+    {
+      @Override
+      public UpdatePreCheckStatus runPreCheck()
+      {
+        log.info("Running pre-check for ProjectForge version 6.5.2");
+        if (databaseUpdateService.doesTableAttributeExist("T_PLUGIN_CALENDAR_EVENT", "team_event_fk_creator") == false) {
+          return UpdatePreCheckStatus.READY_FOR_UPDATE;
+        }
+        return UpdatePreCheckStatus.ALREADY_UPDATED;
+      }
+
+      @Override
+      public UpdateRunningStatus runUpdate()
+      {
+        if (databaseUpdateService.doesTableAttributeExist("T_PLUGIN_CALENDAR_EVENT", "team_event_fk_creator") == false) {
+          //Updating the schema
+          initDatabaseDao.updateSchema();
+>>>>>>>develop
         }
         return UpdateRunningStatus.DONE;
       }

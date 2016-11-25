@@ -52,6 +52,7 @@ import org.projectforge.business.multitenancy.TenantChecker;
 import org.projectforge.business.orga.ContractDao;
 import org.projectforge.business.orga.PostausgangDao;
 import org.projectforge.business.orga.PosteingangDao;
+import org.projectforge.business.orga.VisitorbookDao;
 import org.projectforge.business.user.ProjectForgeGroup;
 import org.projectforge.business.user.UserRightId;
 import org.projectforge.business.user.UserRightValue;
@@ -98,6 +99,7 @@ import org.projectforge.web.multitenancy.TenantListPage;
 import org.projectforge.web.orga.ContractListPage;
 import org.projectforge.web.orga.PostausgangListPage;
 import org.projectforge.web.orga.PosteingangListPage;
+import org.projectforge.web.orga.VisitorbookListPage;
 import org.projectforge.web.scripting.ScriptListPage;
 import org.projectforge.web.scripting.ScriptingPage;
 import org.projectforge.web.statistics.PersonalStatisticsPage;
@@ -423,6 +425,8 @@ public class MenuItemRegistry implements Serializable
     reg.register(orga, MenuItemDefId.INBOX_LIST, 20, PosteingangListPage.class, PosteingangDao.USER_RIGHT_ID,
         READONLY_READWRITE);
     reg.register(orga, MenuItemDefId.CONTRACTS, 30, ContractListPage.class, ContractDao.USER_RIGHT_ID,
+        READONLY_READWRITE);
+    reg.register(orga, MenuItemDefId.VISITORBOOK, 30, VisitorbookListPage.class, VisitorbookDao.USER_RIGHT_ID,
         READONLY_READWRITE);
 
     // ADMINISTRATION

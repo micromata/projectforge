@@ -44,7 +44,7 @@ public class PfSpringLauncherApplication extends SpringBootApplication<PfLocalSe
   @Override
   protected Class<?> getSpringBootApplicationClass()
   {
-    return ProjectForgeLauncher.class;
+    return ProjectForgeApplication.class;
   }
 
   @Override

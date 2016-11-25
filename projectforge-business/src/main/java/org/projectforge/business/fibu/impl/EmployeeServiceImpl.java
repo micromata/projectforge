@@ -250,4 +250,10 @@ public class EmployeeServiceImpl extends CorePersistenceServiceImpl<Integer, Emp
     return employeeDao.getEmployeeByStaffnumber(staffnumber);
   }
 
+  @Override
+  public List<EmployeeDO> getAll(boolean checkAccess)
+  {
+    return checkAccess ? employeeDao.getList(new EmployeeFilter()) : employeeDao.internalLoadAll();
+  }
+
 }

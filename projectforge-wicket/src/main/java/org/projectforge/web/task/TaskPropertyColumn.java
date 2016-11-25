@@ -33,7 +33,7 @@ import org.projectforge.business.common.OutputType;
 import org.projectforge.business.multitenancy.TenantRegistryMap;
 import org.projectforge.business.task.TaskDO;
 import org.projectforge.business.task.TaskTree;
-import org.projectforge.business.task.formatter.TaskFormatter;
+import org.projectforge.business.task.formatter.WicketTaskFormatter;
 import org.projectforge.common.BeanHelper;
 import org.projectforge.framework.persistence.user.entities.TenantDO;
 import org.projectforge.web.wicket.CellItemListener;
@@ -65,7 +65,7 @@ public class TaskPropertyColumn<T> extends CellItemListenerPropertyColumn<T>
    * @param taskFormatter
    * @param label
    * @param sortProperty
-   * @param property Should be from type TaskDO or Integer for task id.
+   * @param property         Should be from type TaskDO or Integer for task id.
    * @param cellItemListener
    */
   public TaskPropertyColumn(final String label, final String sortProperty,
@@ -78,7 +78,7 @@ public class TaskPropertyColumn<T> extends CellItemListenerPropertyColumn<T>
   /**
    * @param label
    * @param sortProperty
-   * @param property Should be from type TaskDO or Integer for task id.
+   * @param property     Should be from type TaskDO or Integer for task id.
    */
   public TaskPropertyColumn(final String label, final String sortProperty,
       final String property)
@@ -94,7 +94,7 @@ public class TaskPropertyColumn<T> extends CellItemListenerPropertyColumn<T>
       item.add(new Label(componentId, ""));
     } else {
       final Label label = new Label(componentId, task.getTitle());
-      final String taskPath = TaskFormatter.getTaskPath(task.getId(), false, OutputType.PLAIN);
+      final String taskPath = WicketTaskFormatter.getTaskPath(task.getId(), false, OutputType.PLAIN);
       WicketUtils.addTooltip(label, taskPath);
       label.setEscapeModelStrings(false);
       item.add(label);
@@ -126,7 +126,7 @@ public class TaskPropertyColumn<T> extends CellItemListenerPropertyColumn<T>
 
   /**
    * Fluent pattern
-   * 
+   *
    * @param taskTree
    */
   public TaskPropertyColumn<T> withTaskTree(final TaskTree taskTree)
