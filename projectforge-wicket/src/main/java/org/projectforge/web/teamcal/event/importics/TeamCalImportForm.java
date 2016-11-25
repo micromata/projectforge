@@ -49,6 +49,8 @@ public class TeamCalImportForm extends AbstractImportForm<ImportFilter, TeamCalI
 
   protected TeamCalDO calendar;
 
+  //  private ModalDialog modalDialog;
+
   @SpringBean
   private TeamCalDao teamCalDao;
 
@@ -62,6 +64,9 @@ public class TeamCalImportForm extends AbstractImportForm<ImportFilter, TeamCalI
   protected void init()
   {
     super.init();
+
+    //    createModalDialog(parentPage);
+
     gridBuilder.newGridPanel();
     {
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("plugins.teamcal.event.teamCal"));
@@ -93,6 +98,14 @@ public class TeamCalImportForm extends AbstractImportForm<ImportFilter, TeamCalI
       };
       calDropDownChoice.setNullValid(false);
       calDropDownChoice.setRequired(true);
+      //      calDropDownChoice.add(new AjaxEventBehavior("onChange")
+      //      {
+      //        @Override
+      //        protected void onEvent(AjaxRequestTarget target)
+      //        {
+      //          modalDialog.open(target);
+      //        }
+      //      });
       fs.add(calDropDownChoice);
     }
     {
@@ -123,4 +136,24 @@ public class TeamCalImportForm extends AbstractImportForm<ImportFilter, TeamCalI
   {
     return calendar != null ? calendar.getId() : null;
   }
+
+  //  private void createModalDialog(final TeamCalImportPage parentPage)
+  //  {
+  //    this.modalDialog = new ModalDialog(parentPage.newModalDialogId())
+  //    {
+  //      @Override
+  //      public void init()
+  //      {
+  //        setTitle(getString("plugins.todo.closeDialog.heading"));
+  //        init(new Form<String>(getFormId()));
+  //        {
+  //          DivPanel mainPanel = gridBuilder.getPanel();
+  //          LabelPanel labelPanel = new LabelPanel(mainPanel.newChildId(), "ABC");
+  //          mainPanel.add(labelPanel);
+  //        }
+  //      }
+  //    };
+  //    parentPage.add(this.modalDialog);
+  //    this.modalDialog.setCloseButtonLabel(getString("plugins.todo.button.close")).init();
+  //  }
 }
