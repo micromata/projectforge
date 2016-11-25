@@ -189,7 +189,6 @@ public class DatabaseCoreUpdates
         if (databaseUpdateService.doesTableAttributeExist("T_PLUGIN_CALENDAR_EVENT", "team_event_fk_creator") == false) {
           //Updating the schema
           initDatabaseDao.updateSchema();
->>>>>>>develop
         }
         return UpdateRunningStatus.DONE;
       }
