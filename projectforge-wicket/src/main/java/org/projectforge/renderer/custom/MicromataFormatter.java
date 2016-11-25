@@ -38,7 +38,7 @@ import org.projectforge.business.fibu.KostFormatter;
 import org.projectforge.business.fibu.kost.Kost2DO;
 import org.projectforge.business.fibu.kost.KostCache;
 import org.projectforge.business.scripting.NullObject;
-import org.projectforge.business.task.formatter.TaskFormatter;
+import org.projectforge.business.task.formatter.WicketTaskFormatter;
 import org.projectforge.business.timesheet.TimesheetDO;
 import org.projectforge.business.timesheet.TimesheetFilter;
 import org.projectforge.business.user.UserFormatter;
@@ -52,7 +52,6 @@ import org.springframework.stereotype.Service;
 
 /**
  * @author Sebastian Hardt (s.hardt@micromata.de)
- * 
  */
 @Service
 public class MicromataFormatter extends Formatter
@@ -94,7 +93,7 @@ public class MicromataFormatter extends Formatter
       } else {
         row.addCell(new CellHolder(userFormatter.getFormattedUser(timesheet.getUser())));
       }
-      final String taskPath = TaskFormatter.getTaskPath(timesheet.getTaskId(), taskId, true, OutputType.PLAIN);
+      final String taskPath = WicketTaskFormatter.getTaskPath(timesheet.getTaskId(), taskId, true, OutputType.PLAIN);
       row.addCell(new CellHolder(HtmlHelper.formatXSLFOText(taskPath, true)));
       row.addCell(
           new CellHolder(
@@ -127,7 +126,7 @@ public class MicromataFormatter extends Formatter
     data.put("taskLabel", getLocalizedString("task"));
 
     if (taskId != null) {
-      data.put("task", TaskFormatter.getTaskPath(taskId, true, OutputType.PLAIN));
+      data.put("task", WicketTaskFormatter.getTaskPath(taskId, true, OutputType.PLAIN));
     } else {
       data.put("task", NullObject.instance);
     }
