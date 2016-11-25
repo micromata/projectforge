@@ -118,7 +118,7 @@ public class TeamEventUtils
     final java.util.TimeZone timeZone4Calc = timeZone;
     final String eventStartDateString = event.isAllDay() == true
         ? DateHelper.formatIsoDate(event.getStartDate(), timeZone) : DateHelper
-            .formatIsoTimestamp(event.getStartDate(), DateHelper.UTC);
+        .formatIsoTimestamp(event.getStartDate(), DateHelper.UTC);
     Date eventStartDate = event.getStartDate();
     if (event.isAllDay() == true) {
       // eventStartDate should be midnight in user's time zone.
@@ -152,11 +152,12 @@ public class TeamEventUtils
     final DateList dateList = recur.getDates(seedDate, ical4jStartDate, ical4jEndDate, Value.DATE_TIME);
     final Collection<TeamEvent> col = new ArrayList<TeamEvent>();
     if (dateList != null) {
-      OuterLoop: for (final Object obj : dateList) {
+      OuterLoop:
+      for (final Object obj : dateList) {
         final net.fortuna.ical4j.model.DateTime dateTime = (net.fortuna.ical4j.model.DateTime) obj;
         final String isoDateString = event.isAllDay() == true ? DateHelper.formatIsoDate(dateTime, timeZone)
             : DateHelper
-                .formatIsoTimestamp(dateTime, DateHelper.UTC);
+            .formatIsoTimestamp(dateTime, DateHelper.UTC);
         if (exDates != null && exDates.size() > 0) {
           for (final net.fortuna.ical4j.model.Date exDate : exDates) {
             if (event.isAllDay() == false) {
@@ -212,13 +213,19 @@ public class TeamEventUtils
 
   public static TeamEventDO createTeamEventDO(final VEvent event)
   {
-    return createTeamEventDO(event, ThreadLocalUserContext.getTimeZone());
+    return createTeamEventDO(event, ThreadLocalUserContext.getTimeZone(), true);
   }
 
   public static TeamEventDO createTeamEventDO(final VEvent event, java.util.TimeZone timeZone)
   {
+    return createTeamEventDO(event, timeZone, true);
+  }
+
+  public static TeamEventDO createTeamEventDO(final VEvent event, java.util.TimeZone timeZone, boolean withUid)
+  {
     final TeamEventDO teamEvent = new TeamEventDO();
     teamEvent.setTimeZone(timeZone);
+    teamEvent.setCreator(ThreadLocalUserContext.getUser());
     final DtStart dtStart = event.getStartDate();
     final DtEnd dtEnd = event.getEndDate();
     if (dtStart != null && dtEnd == null) {
@@ -238,8 +245,8 @@ public class TeamEventUtils
       timestamp = ICal4JUtils.getSqlTimestamp(event.getEndDate().getDate());
     }
     teamEvent.setEndDate(timestamp);
-    if (event.getUid() != null) {
-      teamEvent.setExternalUid(event.getUid().getValue());
+    if (withUid && event.getUid() != null) {
+      teamEvent.setUid(event.getUid().getValue());
     }
     if (event.getLocation() != null) {
       teamEvent.setLocation(event.getLocation().getValue());
@@ -343,7 +350,9 @@ public class TeamEventUtils
           return -1;
         }
         return startDate1.compareTo(startDate2);
-      };
+      }
+
+      ;
     });
     return events;
   }
