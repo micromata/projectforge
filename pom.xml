@@ -192,9 +192,6 @@
     <module>projectforge-excel</module>
     <module>projectforge-business</module>
     <module>projectforge-jax-rs</module>
-    <!-- <module>projectforge-microservices/projectforge-microservices-address</module> -->
-    <!-- <module>projectforge-microservice/projectforge-microservices-address</module> -->
-    <!-- <module>projectforge-microservices/projectforge-microservices-calendar</module> -->
     <!-- <module>projectforge-microservices/projectforge-microservices-server</module> -->
     <module>projectforge-wicket</module>
     <module>plugins</module>
