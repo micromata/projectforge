@@ -24,13 +24,21 @@
 package org.projectforge.web.vacation;
 
 import org.apache.log4j.Logger;
+import org.apache.wicket.markup.html.form.DropDownChoice;
+import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.fibu.EmployeeDO;
 import org.projectforge.business.fibu.api.EmployeeService;
 import org.projectforge.business.vacation.VacationFilter;
+import org.projectforge.business.vacation.model.VacationDO;
+import org.projectforge.business.vacation.model.VacationMode;
+import org.projectforge.business.vacation.model.VacationStatus;
 import org.projectforge.framework.access.AccessException;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.web.wicket.AbstractListForm;
+import org.projectforge.web.wicket.bootstrap.GridSize;
+import org.projectforge.web.wicket.components.LabelValueChoiceRenderer;
+import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
 
 public class VacationListForm extends AbstractListForm<VacationFilter, VacationListPage>
 {
@@ -44,6 +52,42 @@ public class VacationListForm extends AbstractListForm<VacationFilter, VacationL
   public VacationListForm(final VacationListPage parentPage)
   {
     super(parentPage);
+  }
+
+  @Override
+  protected void init()
+  {
+    super.init();
+    final VacationFilter filter = getSearchFilter();
+    {
+      gridBuilder.newSplitPanel(GridSize.COL66);
+      {
+        // DropDownChoice visitor type
+        final FieldsetPanel fs = gridBuilder.newFieldset(VacationDO.class, "status");
+        final LabelValueChoiceRenderer<VacationStatus> vacationstatusChoiceRenderer = new LabelValueChoiceRenderer<>(parentPage,
+            VacationStatus.values());
+        final DropDownChoice<VacationStatus> statusChoice = new DropDownChoice<>(
+            fs.getDropDownChoiceId(),
+            new PropertyModel<>(filter, "vacationstatus"),
+            vacationstatusChoiceRenderer.getValues(),
+            vacationstatusChoiceRenderer);
+        statusChoice.setMarkupId("filter_vacationstatus").setOutputMarkupId(true);
+        fs.add(statusChoice);
+      }
+      {
+        // DropDownChoice visitor type
+        final FieldsetPanel fs = gridBuilder.newFieldset(VacationDO.class, "vacationmode");
+        final LabelValueChoiceRenderer<VacationMode> vacationmodeChoiceRenderer = new LabelValueChoiceRenderer<>(parentPage,
+            VacationMode.values());
+        final DropDownChoice<VacationMode> modeChoice = new DropDownChoice<>(
+            fs.getDropDownChoiceId(),
+            new PropertyModel<>(filter, "vacationmode"),
+            vacationmodeChoiceRenderer.getValues(),
+            vacationmodeChoiceRenderer);
+        modeChoice.setMarkupId("filter_vacationmode").setOutputMarkupId(true);
+        fs.add(modeChoice);
+      }
+    }
   }
 
   @Override

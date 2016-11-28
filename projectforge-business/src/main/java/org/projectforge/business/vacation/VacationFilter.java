@@ -25,6 +25,8 @@ package org.projectforge.business.vacation;
 
 import java.io.Serializable;
 
+import org.projectforge.business.vacation.model.VacationMode;
+import org.projectforge.business.vacation.model.VacationStatus;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 
 import com.thoughtworks.xstream.annotations.XStreamAlias;
@@ -38,6 +40,10 @@ public class VacationFilter extends BaseSearchFilter implements Serializable
   private static final long serialVersionUID = 8567712340637887786L;
 
   private Integer employeeId;
+
+  private VacationStatus vacationstatus;
+
+  private VacationMode vacationmode;
 
   public VacationFilter(Integer employeeId)
   {
@@ -57,5 +63,34 @@ public class VacationFilter extends BaseSearchFilter implements Serializable
   public void setEmployeeId(Integer employeeId)
   {
     this.employeeId = employeeId;
+  }
+
+  public VacationStatus getVacationstatus()
+  {
+    return vacationstatus;
+  }
+
+  public void setVacationstatus(VacationStatus vacationstatus)
+  {
+    this.vacationstatus = vacationstatus;
+  }
+
+  public VacationMode getVacationmode()
+  {
+    return vacationmode;
+  }
+
+  public void setVacationmode(VacationMode vacationmode)
+  {
+    this.vacationmode = vacationmode;
+  }
+
+  @Override
+  public BaseSearchFilter reset()
+  {
+    super.reset();
+    this.vacationstatus = null;
+    this.vacationmode = null;
+    return this;
   }
 }
