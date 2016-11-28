@@ -5,6 +5,7 @@ import java.util.Locale;
 
 import javax.ws.rs.core.Response;
 
+import org.apache.commons.codec.binary.Base64;
 import org.projectforge.business.address.AddressDO;
 import org.projectforge.business.address.AddressDao;
 import org.projectforge.business.address.AddressStatus;
@@ -79,7 +80,8 @@ public class RestServicesTest extends AbstractTestBase
 
     response = addressDaoRest.getList("Marcel", 0l, true, false, true);
     Assert.assertTrue(((String) response.getEntity()).contains("\"firstName\":\"Marcel\""));
-    Assert.assertTrue(((String) response.getEntity()).contains("\"image\":[0,1,3]"));
+    String base64ImageData = Base64.encodeBase64String(new byte[] { 0, 1, 3 });
+    Assert.assertTrue(((String) response.getEntity()).contains("\"image\":\"" + base64ImageData + "\""));
     Assert.assertTrue(response.getStatus() == SUCCESS_STATUS);
   }
 
