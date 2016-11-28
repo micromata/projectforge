@@ -36,6 +36,7 @@ import org.projectforge.business.user.UserRightId;
 import org.projectforge.business.user.UserRightValue;
 import org.projectforge.business.vacation.VacationFilter;
 import org.projectforge.business.vacation.model.VacationDO;
+import org.projectforge.business.vacation.model.VacationStatus;
 import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.access.OperationType;
 import org.projectforge.framework.persistence.api.BaseDao;
@@ -150,7 +151,16 @@ public class VacationDao extends BaseDao<VacationDO>
   public Integer getOpenLeaveApplicationsForEmployee(EmployeeDO employee)
   {
     Integer result = 0;
-    //TODO FB: Hier muss noch Code rein ;-)
+    List<VacationDO> resultList = emgrFactory.runRoTrans(emgr -> {
+      String baseSQL = "SELECT v FROM VacationDO v WHERE v.manager = :employee AND v.status = :status";
+      List<VacationDO> dbResultList = emgr
+          .selectDetached(VacationDO.class, baseSQL + META_SQL_WITH_SPECIAL, "employee", employee, "status", VacationStatus.IN_PROGRESS, "deleted", false,
+              "tenant", ThreadLocalUserContext.getUser().getTenant());
+      return dbResultList;
+    });
+    if (resultList != null) {
+      result = resultList.size();
+    }
     return result;
   }
 }
