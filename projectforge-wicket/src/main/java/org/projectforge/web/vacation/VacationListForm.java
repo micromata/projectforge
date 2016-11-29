@@ -33,6 +33,7 @@ import org.projectforge.business.vacation.VacationFilter;
 import org.projectforge.business.vacation.model.VacationDO;
 import org.projectforge.business.vacation.model.VacationMode;
 import org.projectforge.business.vacation.model.VacationStatus;
+import org.projectforge.business.vacation.service.VacationService;
 import org.projectforge.framework.access.AccessException;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.web.wicket.AbstractListForm;
@@ -49,6 +50,9 @@ public class VacationListForm extends AbstractListForm<VacationFilter, VacationL
   @SpringBean
   private EmployeeService employeeService;
 
+  @SpringBean
+  private VacationService vacationService;
+
   public VacationListForm(final VacationListPage parentPage)
   {
     super(parentPage);
@@ -58,6 +62,7 @@ public class VacationListForm extends AbstractListForm<VacationFilter, VacationL
   protected void init()
   {
     super.init();
+    vacationService.couldUserUseVacationService(ThreadLocalUserContext.getUser(), true);
     final VacationFilter filter = getSearchFilter();
     {
       gridBuilder.newSplitPanel(GridSize.COL66);
