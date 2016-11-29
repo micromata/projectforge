@@ -28,6 +28,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Restrictions;
@@ -116,8 +117,15 @@ public class VacationDao extends BaseDao<VacationDO>
           Restrictions.eq("manager", employeeFromFilter),
           Restrictions.eq("substitution", employeeFromFilter)));
     }
+    if (myFilter.getVacationstatus() != null) {
+      queryFilter.add(Restrictions.eq("status", myFilter.getVacationstatus()));
+    }
     queryFilter.addOrder(Order.asc("startDate"));
-    return getList(queryFilter);
+    List<VacationDO> resultList = getList(queryFilter);
+    if (myFilter.getVacationmode() != null) {
+      resultList = resultList.stream().filter(vac -> vac.getVacationmode().equals(myFilter.getVacationmode())).collect(Collectors.toList());
+    }
+    return resultList;
   }
 
   public List<VacationDO> getActiveVacationForYear(EmployeeDO employee, int year, boolean withSpecial)
