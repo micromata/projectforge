@@ -45,7 +45,7 @@ public class VacationViewHelper
   @Autowired
   private VacationService vacationService;
 
-  public void createVacationView(GridBuilder gridBuilder, EmployeeDO currentEmployee, boolean showAddLink)
+  public void createVacationView(GridBuilder gridBuilder, EmployeeDO currentEmployee, boolean showAddButton)
   {
     final Calendar now = new GregorianCalendar(ThreadLocalUserContext.getTimeZone());
     DivPanel section = gridBuilder.getPanel();
@@ -70,8 +70,10 @@ public class VacationViewHelper
         vacationService.getAvailableVacationdaysForYear(currentEmployee, now.get(Calendar.YEAR), true).toString());
     section.add(new Heading3Panel(section.newChildId(),
         I18nHelper.getLocalizedMessage("vacation.title.list") + " " + now.get(Calendar.YEAR)));
-    if (showAddLink) {
-      section.add(new LabelBookmarkablePageLinkPanel(section.newChildId(), VacationEditPage.class, I18nHelper.getLocalizedMessage("add"), new PageParameters())
+    if (showAddButton) {
+      PageParameters pageParameters = new PageParameters();
+      pageParameters.add("employeeId", currentEmployee.getId());
+      section.add(new LabelBookmarkablePageLinkPanel(section.newChildId(), VacationEditPage.class, I18nHelper.getLocalizedMessage("add"), pageParameters)
           .addLinkAttribute("class", "btn btn-sm btn-success").addLinkAttribute("style", "margin-bottom: 5px"));
     }
     TablePanel tablePanel = new TablePanel(section.newChildId());

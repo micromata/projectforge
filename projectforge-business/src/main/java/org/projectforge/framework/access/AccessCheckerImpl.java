@@ -34,7 +34,6 @@ import org.springframework.stereotype.Service;
  * Implementation of AccessChecker.
  *
  * @author Roger Rene Kommer (r.kommer.extern@micromata.de)
- *
  */
 @Service
 public class AccessCheckerImpl implements AccessChecker, Serializable
@@ -407,7 +406,7 @@ public class AccessCheckerImpl implements AccessChecker, Serializable
   }
 
   /**
-   * @param origUser Check the access for the given user instead of the logged-in user.
+   * @param origUser       Check the access for the given user instead of the logged-in user.
    * @param rightId
    * @param obj
    * @param oldObj
@@ -462,7 +461,7 @@ public class AccessCheckerImpl implements AccessChecker, Serializable
     }
     if (obj instanceof EmployeeDO && oldObj instanceof EmployeeDO && ((EmployeeDO) obj).getUser().equals(origUser)
         && ((EmployeeDO) oldObj).getUser()
-            .equals(origUser)) {
+        .equals(origUser)) {
       return true;
     }
     if (operationType == OperationType.SELECT) {
@@ -508,7 +507,7 @@ public class AccessCheckerImpl implements AccessChecker, Serializable
    * Calls {@link #hasAccess(IUserRightId, Object, Object, OperationType, boolean)} with {@link OperationType#SELECT}
    * and both Objects as null.
    *
-   * @param user Check the access for the given user instead of the logged-in user.
+   * @param user           Check the access for the given user instead of the logged-in user.
    * @param rightId
    * @param obj
    * @param throwException
@@ -609,8 +608,8 @@ public class AccessCheckerImpl implements AccessChecker, Serializable
   /**
    * Throws now exception if the right check fails.
    *
-   * @see #hasRight(IUserRightId, boolean, UserRightValue...)
    * @deprec
+   * @see #hasRight(IUserRightId, boolean, UserRightValue...)
    */
   public boolean hasLoggedInUserRight(final IUserRightId rightId, final UserRightValue... values)
   {
@@ -633,7 +632,7 @@ public class AccessCheckerImpl implements AccessChecker, Serializable
    * on required constraints, e. g. if assigned groups required.
    *
    * @param rightId
-   * @param values At least one of the values should match.
+   * @param values         At least one of the values should match.
    * @param throwException
    */
   @Override
@@ -647,9 +646,9 @@ public class AccessCheckerImpl implements AccessChecker, Serializable
    * Checks the availability and the demanded value of the right for the context user. The right will be checked itself
    * on required constraints, e. g. if assigned groups required.
    *
-   * @param user Check the access for the given user instead of the logged-in user.
+   * @param user           Check the access for the given user instead of the logged-in user.
    * @param rightId
-   * @param values At least one of the values should match.
+   * @param values         At least one of the values should match.
    * @param throwException
    * @return
    */
@@ -703,6 +702,12 @@ public class AccessCheckerImpl implements AccessChecker, Serializable
   public boolean hasReadAccess(final PFUserDO user, final IUserRightId rightId, final boolean throwException)
   {
     return hasRight(user, rightId, throwException, UserRightValue.READONLY, UserRightValue.READWRITE);
+  }
+
+  @Override
+  public boolean hasWriteAccess(final PFUserDO user, final IUserRightId rightId, final boolean throwException)
+  {
+    return hasRight(user, rightId, throwException, UserRightValue.READWRITE);
   }
 
   /**
@@ -924,8 +929,8 @@ public class AccessCheckerImpl implements AccessChecker, Serializable
 
   /**
    * @return true if logged-in-user is member of {@link ProjectForgeGroup#FINANCE_GROUP},
-   *         {@link ProjectForgeGroup#CONTROLLING_GROUP} or {@link ProjectForgeGroup#PROJECT_MANAGER}. Returns also true
-   *         if user is member of {@link ProjectForgeGroup#ORGA_TEAM} and has the
+   * {@link ProjectForgeGroup#CONTROLLING_GROUP} or {@link ProjectForgeGroup#PROJECT_MANAGER}. Returns also true
+   * if user is member of {@link ProjectForgeGroup#ORGA_TEAM} and has the
    */
   @Override
   public boolean hasLoggedInUserAccessToTimesheetsOfOtherUsers()
@@ -946,7 +951,7 @@ public class AccessCheckerImpl implements AccessChecker, Serializable
   /**
    * @param user
    * @return The user from the UserGroupCache instead of e. g. Session for getting the newest access right values of the
-   *         user.
+   * user.
    */
   private PFUserDO getUser(final PFUserDO user)
   {

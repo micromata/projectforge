@@ -51,11 +51,16 @@ public class VacationEditPage extends AbstractEditPage<VacationDO, VacationEditF
   @SpringBean
   private EmployeeService employeeService;
 
+  Integer employeeIdFromPageParameters;
+
   private boolean wasNew = false;
 
   public VacationEditPage(final PageParameters parameters)
   {
     super(parameters, "vacation");
+    if (parameters.get("employeeId") != null && parameters.get("employeeId").toString() != null) {
+      this.employeeIdFromPageParameters = parameters.get("employeeId").toInt();
+    }
     init();
   }
 

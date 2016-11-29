@@ -93,7 +93,11 @@ public class VacationEditForm extends AbstractEditForm<VacationDO, VacationEditP
     super(parentPage, data);
     vacationService.couldUserUseVacationService(ThreadLocalUserContext.getUser(), true);
     if (data.getEmployee() == null) {
-      data.setEmployee(employeeService.getEmployeeByUserId(ThreadLocalUserContext.getUserId()));
+      if (parentPage.employeeIdFromPageParameters != null) {
+        data.setEmployee(employeeService.selectByPkDetached(parentPage.employeeIdFromPageParameters));
+      } else {
+        data.setEmployee(employeeService.getEmployeeByUserId(ThreadLocalUserContext.getUserId()));
+      }
     }
     if (isNew() == false) {
       statusBeforeModification = data.getStatus();
