@@ -319,6 +319,12 @@ public class MenuItemRegistry implements Serializable
     final MenuItemDef vacation = new MenuItemDef(common, MenuItemDefId.VACATION.getId(), 21, MenuItemDefId.VACATION.getI18nKey(), VacationListPage.class)
     {
       @Override
+      protected boolean isVisible(final MenuBuilderContext context)
+      {
+        return vacationService.couldUserUseVacationService(ThreadLocalUserContext.getUser(), false);
+      }
+
+      @Override
       protected void afterMenuEntryCreation(final MenuEntry createdMenuEntry, final MenuBuilderContext context)
       {
         createdMenuEntry.setNewCounterModel(new MenuNewCounterVacation());
