@@ -616,4 +616,14 @@ public class ConfigurationServiceImpl implements ConfigurationService
     return new GregorianCalendar(now.get(Calendar.YEAR), month, day);
   }
 
+  @Override
+  public String getHREmailadress()
+  {
+    ConfigurationDO hrMailaddress = configDao.getEntry(ConfigurationParam.HR_MAILADDRESS);
+    if (hrMailaddress != null) {
+      return hrMailaddress.getStringValue();
+    }
+    return null;
+  }
+
 }

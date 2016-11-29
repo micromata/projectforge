@@ -87,4 +87,6 @@ public interface ConfigurationService
   String getTeamCalCryptPassword();
 
   Calendar getEndDateVacationFromLastYear();
+
+  String getHREmailadress();
 }
