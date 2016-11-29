@@ -16,6 +16,7 @@ import org.projectforge.business.vacation.model.VacationAttrProperty;
 import org.projectforge.business.vacation.model.VacationDO;
 import org.projectforge.business.vacation.repository.VacationDao;
 import org.projectforge.framework.access.AccessException;
+import org.projectforge.framework.i18n.UserException;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.persistence.history.DisplayHistoryEntry;
 import org.projectforge.framework.persistence.jpa.impl.CorePersistenceServiceImpl;
@@ -120,6 +121,10 @@ public class VacationServiceImpl extends CorePersistenceServiceImpl<Integer, Vac
           vacationData.getManager().getUser().getFullname()));
       mail.setSubject(I18nHelper.getLocalizedMessage("vacation.mail.subject", vacationData.getEmployee().getUser().getFullname()));
       mail.setContentType(Mail.CONTENTTYPE_HTML);
+      if (configService.getHREmailadress() == null) {
+        throw new UserException("HR email address not configured!");
+      }
+      mail.setTo(configService.getHREmailadress(), "HR-MANAGEMENT");
       mail.setTo(vacationData.getManager().getUser());
       mail.setTo(vacationData.getEmployee().getUser());
       sendMailService.send(mail, null, null);
