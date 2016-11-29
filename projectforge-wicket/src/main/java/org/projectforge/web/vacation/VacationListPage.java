@@ -35,13 +35,10 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.fibu.EmployeeDO;
-import org.projectforge.business.fibu.api.EmployeeService;
 import org.projectforge.business.user.I18nHelper;
 import org.projectforge.business.vacation.model.VacationDO;
 import org.projectforge.business.vacation.service.VacationService;
 import org.projectforge.export.DOGetterListExcelExporter;
-import org.projectforge.framework.access.AccessException;
-import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.web.fibu.ISelectCallerPage;
 import org.projectforge.web.wicket.AbstractListPage;
 import org.projectforge.web.wicket.CellItemListener;
@@ -59,9 +56,6 @@ public class VacationListPage extends AbstractListPage<VacationListForm, Vacatio
 
   @SpringBean
   private VacationService vacationService;
-
-  @SpringBean
-  private EmployeeService employeeService;
 
   public VacationListPage(final PageParameters parameters)
   {
@@ -163,9 +157,6 @@ public class VacationListPage extends AbstractListPage<VacationListForm, Vacatio
   @Override
   protected void init()
   {
-    if (employeeService.getEmployeeByUserId(ThreadLocalUserContext.getUser().getPk()) == null) {
-      throw new AccessException("access.exception.noEmployeeToUser");
-    }
     final List<IColumn<VacationDO, String>> columns = createColumns(this, true);
     dataTable = createDataTable(columns, "startDate", SortOrder.DESCENDING);
     form.add(dataTable);
