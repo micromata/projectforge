@@ -8,6 +8,7 @@ import java.util.List;
 
 import org.projectforge.business.fibu.EmployeeDO;
 import org.projectforge.business.vacation.model.VacationDO;
+import org.projectforge.business.vacation.model.VacationStatus;
 import org.projectforge.framework.persistence.api.IDao;
 import org.projectforge.framework.persistence.api.IPersistenceService;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
@@ -59,22 +60,40 @@ public interface VacationService extends IPersistenceService<VacationDO>, IDao<V
   BigDecimal getAvailableVacationdaysForYear(EmployeeDO employee, int year, boolean checkLastYear);
 
   /**
-   * Returns the number of used vacation days
+   * Returns the number of approved vacation days
+   *
+   * @param employee
+   * @param year
+   * @return
+   */
+  BigDecimal getApprovedVacationdaysForYear(EmployeeDO employee, int year);
+
+  /**
+   * Returns the number of planed vacation days
+   *
+   * @param employee
+   * @param year
+   * @return
+   */
+  BigDecimal getPlanedVacationdaysForYear(EmployeeDO employee, int year);
+
+  /**
+   * Returns the number of used vacation days until now
    *
    * @param employee
    * @param year
    * @return number of used vacation days
    */
-  BigDecimal getUsedVacationdaysForYear(EmployeeDO employee, int year);
+  BigDecimal getUsedVacationdaysForYearUntilNow(EmployeeDO employee, int year);
 
   /**
-   * Returns the number of planed vacation days
+   * Returns the number of planed vacation days until now
    *
    * @param currentEmployee
    * @param year
    * @return number of used vacation days
    */
-  BigDecimal getPlanedVacationdaysForYear(EmployeeDO currentEmployee, int year);
+  BigDecimal getPlanedVacationdaysForYearUntilNow(EmployeeDO currentEmployee, int year);
 
   /**
    * Getting the number of used and planned vacation days
@@ -157,5 +176,15 @@ public interface VacationService extends IPersistenceService<VacationDO>, IDao<V
    * @param user
    * @return
    */
-  Integer getOpenLeaveApplicationsForUser(PFUserDO user);
+  BigDecimal getOpenLeaveApplicationsForUser(PFUserDO user);
+
+  /**
+   * Returns number of special vacations for an employee
+   *
+   * @param employee
+   * @param year
+   * @param status
+   * @return
+   */
+  BigDecimal getSpezialVacationCount(EmployeeDO employee, int year, VacationStatus status);
 }

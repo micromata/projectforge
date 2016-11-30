@@ -7,6 +7,8 @@ import java.util.GregorianCalendar;
 import java.util.List;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.wicket.AttributeModifier;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
@@ -14,13 +16,16 @@ import org.apache.wicket.extensions.markup.html.repeater.data.table.DefaultDataT
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
 import org.apache.wicket.extensions.markup.html.repeater.util.SortParam;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.projectforge.business.configuration.ConfigurationService;
 import org.projectforge.business.fibu.EmployeeDO;
 import org.projectforge.business.user.I18nHelper;
 import org.projectforge.business.vacation.model.VacationAttrProperty;
 import org.projectforge.business.vacation.model.VacationDO;
+import org.projectforge.business.vacation.model.VacationStatus;
 import org.projectforge.business.vacation.service.VacationService;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.web.vacation.VacationEditPage;
@@ -45,29 +50,47 @@ public class VacationViewHelper
   @Autowired
   private VacationService vacationService;
 
+  @Autowired
+  private ConfigurationService configService;
+
   public void createVacationView(GridBuilder gridBuilder, EmployeeDO currentEmployee, boolean showAddButton)
   {
     final Calendar now = new GregorianCalendar(ThreadLocalUserContext.getTimeZone());
     DivPanel section = gridBuilder.getPanel();
     section.add(new Heading1Panel(section.newChildId(), I18nHelper.getLocalizedMessage("menu.vacation.leaveaccount")));
-    appendFieldset(gridBuilder, "vacation.annualleave",
-        currentEmployee.getUrlaubstage() != null ? currentEmployee.getUrlaubstage().toString() : "0");
-    appendFieldset(gridBuilder, "vacation.previousyearleave",
-        currentEmployee.getAttribute(VacationAttrProperty.PREVIOUSYEARLEAVE.getPropertyName(), BigDecimal.class) != null
-            ? currentEmployee.getAttribute(VacationAttrProperty.PREVIOUSYEARLEAVE.getPropertyName(), BigDecimal.class)
-            .toString()
-            : "0");
-    appendFieldset(gridBuilder, "vacation.previousyearleaveused",
-        currentEmployee.getAttribute(VacationAttrProperty.PREVIOUSYEARLEAVEUSED.getPropertyName(),
-            BigDecimal.class) != null ? currentEmployee
-            .getAttribute(VacationAttrProperty.PREVIOUSYEARLEAVEUSED.getPropertyName(), BigDecimal.class).toString()
-            : "0");
-    appendFieldset(gridBuilder, "vacation.usedvacation",
-        vacationService.getUsedVacationdaysForYear(currentEmployee, now.get(Calendar.YEAR)).toString());
-    appendFieldset(gridBuilder, "vacation.planedvacation",
-        vacationService.getPlanedVacationdaysForYear(currentEmployee, now.get(Calendar.YEAR)).toString());
-    appendFieldset(gridBuilder, "vacation.availablevacation",
-        vacationService.getAvailableVacationdaysForYear(currentEmployee, now.get(Calendar.YEAR), true).toString());
+
+    BigDecimal vacationdays = currentEmployee.getUrlaubstage() != null ? new BigDecimal(currentEmployee.getUrlaubstage()) : BigDecimal.ZERO;
+    appendFieldset(gridBuilder, "vacation.annualleave", vacationdays.toString());
+    BigDecimal vacationdaysPreviousYear = currentEmployee.getAttribute(VacationAttrProperty.PREVIOUSYEARLEAVE.getPropertyName(), BigDecimal.class) != null
+        ? currentEmployee.getAttribute(VacationAttrProperty.PREVIOUSYEARLEAVE.getPropertyName(), BigDecimal.class) : BigDecimal.ZERO;
+    appendFieldset(gridBuilder, "vacation.previousyearleave", vacationdaysPreviousYear.toString());
+    BigDecimal subtotal1 = vacationdays.add(vacationdaysPreviousYear);
+    appendFieldset(gridBuilder, "vacation.subtotal", subtotal1.toString());
+
+    BigDecimal vacationdaysPreviousYearUsed =
+        currentEmployee.getAttribute(VacationAttrProperty.PREVIOUSYEARLEAVEUSED.getPropertyName(), BigDecimal.class) != null ?
+            currentEmployee.getAttribute(VacationAttrProperty.PREVIOUSYEARLEAVEUSED.getPropertyName(), BigDecimal.class) : BigDecimal.ZERO;
+    BigDecimal vacationdaysPreviousYearUnused = vacationdaysPreviousYear.subtract(vacationdaysPreviousYearUsed);
+    Calendar endDatePreviousYearVacation = configService.getEndDateVacationFromLastYear();
+    String endDatePreviousYearVacationString =
+        endDatePreviousYearVacation.get(Calendar.DAY_OF_MONTH) + "." + (endDatePreviousYearVacation.get(Calendar.MONTH) + 1) + ".";
+    appendFieldset(gridBuilder, "vacation.previousyearleaveunused", vacationdaysPreviousYearUnused.toString(),
+        endDatePreviousYearVacationString);
+    BigDecimal approvedVacationdays = vacationService.getApprovedVacationdaysForYear(currentEmployee, now.get(Calendar.YEAR));
+    appendFieldset(gridBuilder, "vacation.approvedvacation", approvedVacationdays.toString());
+    BigDecimal subtotal2 = subtotal1.subtract(vacationdaysPreviousYearUnused).subtract(approvedVacationdays);
+    appendFieldset(gridBuilder, "vacation.subtotal", subtotal2.toString());
+
+    BigDecimal planedVacation = vacationService.getPlanedVacationdaysForYear(currentEmployee, now.get(Calendar.YEAR));
+    appendFieldset(gridBuilder, "vacation.planedvacation", planedVacation.toString());
+    BigDecimal subtotal3 = subtotal2.subtract(planedVacation);
+    appendFieldset(gridBuilder, "vacation.availablevacation", subtotal2.toString());
+
+    appendFieldset(gridBuilder, "vacation.isSpecialPlaned",
+        vacationService.getSpezialVacationCount(currentEmployee, now.get(Calendar.YEAR), VacationStatus.IN_PROGRESS).toString());
+    appendFieldset(gridBuilder, "vacation.isSpecialApproved",
+        vacationService.getSpezialVacationCount(currentEmployee, now.get(Calendar.YEAR), VacationStatus.APPROVED).toString());
+
     section.add(new Heading3Panel(section.newChildId(),
         I18nHelper.getLocalizedMessage("vacation.title.list") + " " + now.get(Calendar.YEAR)));
     if (showAddButton) {
@@ -141,13 +164,22 @@ public class VacationViewHelper
     return columns;
   }
 
-  private boolean appendFieldset(GridBuilder gridBuilder, final String label, final String value)
+  private boolean appendFieldset(GridBuilder gridBuilder, final String label, final String value, final String... labelParameters)
   {
     if (StringUtils.isBlank(value) == true) {
       return false;
     }
-    final FieldsetPanel fs = gridBuilder.newFieldset(I18nHelper.getLocalizedMessage(label)).suppressLabelForWarning();
-    fs.add(new DivTextPanel(fs.newChildId(), value));
+    final FieldsetPanel fs = gridBuilder.newFieldset(I18nHelper.getLocalizedMessage(label, labelParameters)).suppressLabelForWarning();
+    DivTextPanel divTextPanel = new DivTextPanel(fs.newChildId(), value);
+    WebMarkupContainer fieldset = fs.getFieldset();
+    fieldset.add(AttributeAppender.append("class", "vacationPanel"));
+    if (label.contains("vacation.subtotal") || label.contains("vacation.availablevacation")) {
+      WebMarkupContainer fieldsetLabel = (WebMarkupContainer) fieldset.get("label");
+      WebMarkupContainer fieldsetControls = (WebMarkupContainer) fieldset.get("controls");
+      fieldsetLabel.add(AttributeModifier.replace("class", "control-label-bold"));
+      fieldsetControls.add(AttributeModifier.replace("class", "controls-bold"));
+    }
+    fs.add(divTextPanel);
     return true;
   }
 

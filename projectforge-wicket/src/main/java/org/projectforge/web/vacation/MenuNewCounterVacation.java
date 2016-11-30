@@ -47,6 +47,6 @@ public class MenuNewCounterVacation extends Model<Integer>
     if (vacationService == null) {
       Injector.get().inject(this);
     }
-    return vacationService.getOpenLeaveApplicationsForUser(ThreadLocalUserContext.getUser());
+    return vacationService.getOpenLeaveApplicationsForUser(ThreadLocalUserContext.getUser()).intValue();
   }
 }
