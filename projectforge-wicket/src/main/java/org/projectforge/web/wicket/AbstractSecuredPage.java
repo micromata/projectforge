@@ -33,13 +33,17 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.Const;
 import org.projectforge.business.configuration.ConfigurationService;
+import org.projectforge.business.user.filter.UserFilter;
 import org.projectforge.web.core.MenuBarPanel;
 import org.projectforge.web.core.NavTopPanel;
 import org.projectforge.web.dialog.ModalDialog;
 import org.projectforge.web.fibu.ISelectCallerPage;
 import org.projectforge.web.wicket.components.ContentMenuEntryPanel;
+import org.projectforge.web.wicket.flowlayout.DivPanel;
 
-/** All pages with required login should be derived from this page. */
+/**
+ * All pages with required login should be derived from this page.
+ */
 public abstract class AbstractSecuredPage extends AbstractSecuredBasePage
 {
   @SpringBean
@@ -62,9 +66,14 @@ public abstract class AbstractSecuredPage extends AbstractSecuredBasePage
     super(parameters);
     modalDialogs = new RepeatingView("modalDialogs");
     body.add(modalDialogs);
-    final NavTopPanel topMenuPanel = new NavTopPanel("topMenu");
-    body.add(topMenuPanel);
-    topMenuPanel.init(this);
+    if (UserFilter.isUpdateRequiredFirst() == false) {
+      final NavTopPanel topMenuPanel = new NavTopPanel("topMenu");
+      body.add(topMenuPanel);
+      topMenuPanel.init(this);
+    } else {
+      final DivPanel emptyDivPanel = new DivPanel("topMenu");
+      body.add(emptyDivPanel);
+    }
     contentMenuBarPanel = new MenuBarPanel("menuBar");
     final Model<String> alertMessageModel = new Model<String>()
     {
@@ -140,7 +149,7 @@ public abstract class AbstractSecuredPage extends AbstractSecuredBasePage
   /**
    * If set then return after save, update or cancel to this page. If not given then return to given list page. As an
    * alternative you can set the returnToPage as a page parameter (if supported by the derived page).
-   * 
+   *
    * @param returnToPage
    */
   public AbstractSecuredPage setReturnToPage(final WebPage returnToPage)
@@ -194,7 +203,7 @@ public abstract class AbstractSecuredPage extends AbstractSecuredBasePage
 
   /**
    * Evaluates the page parameters and sets the properties, if parameters are given.
-   * 
+   *
    * @param parameters
    * @see WicketUtils#evaluatePageParameters(Object, PageParameters, String, String[])
    */
@@ -209,7 +218,7 @@ public abstract class AbstractSecuredPage extends AbstractSecuredBasePage
   /**
    * Adds additional page parameter. Used by NavTopPanel to show direct page links including the page parameters
    * returned by {@link #getBookmarkableInitialProperties()}.
-   * 
+   *
    * @see org.projectforge.web.wicket.AbstractUnsecurePage#getBookmarkableInitialParameters()
    */
   public PageParameters getBookmarkableInitialParameters()
@@ -222,7 +231,7 @@ public abstract class AbstractSecuredPage extends AbstractSecuredBasePage
 
   /**
    * The title of the page link shown with initial parameters (overridden by e. g. AbstractEditPage).
-   * 
+   *
    * @return
    */
   public String getTitleKey4BookmarkableInitialParameters()
@@ -241,7 +250,7 @@ public abstract class AbstractSecuredPage extends AbstractSecuredBasePage
 
   /**
    * Overwritten by e. g. {@link AbstractEditPage}.
-   * 
+   *
    * @return this at default (works if the page holds the data directly).
    */
   protected Object getDataObjectForInitialParameters()
@@ -251,7 +260,7 @@ public abstract class AbstractSecuredPage extends AbstractSecuredBasePage
 
   /**
    * Overwritten by e. g. {@link AbstractListPage}.
-   * 
+   *
    * @return this at default (works if the page holds the data directly).
    */
   protected Object getFilterObjectForInitialParameters()
