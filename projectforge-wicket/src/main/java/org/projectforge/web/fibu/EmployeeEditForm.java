@@ -262,7 +262,7 @@ public class EmployeeEditForm extends AbstractEditForm<EmployeeDO, EmployeeEditP
     {
       // Holidays
       final FieldsetPanel fs = gridBuilder.newFieldset(EmployeeDO.class, "urlaubstage");
-      fs.add(new MinMaxNumberField<>(InputPanel.WICKET_ID, new PropertyModel<>(data, "urlaubstage"), 0, 366));
+      fs.add(new MinMaxNumberField<>(InputPanel.WICKET_ID, new PropertyModel<>(data, "urlaubstage"), 0, 366).setRequired(true));
     }
     {
       EmployeeVacationFormValidator validator = new EmployeeVacationFormValidator();
