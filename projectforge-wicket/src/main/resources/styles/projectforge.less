@@ -1,11 +1,8 @@
 // Attention for bootstrap updates:
 // search for "Kai" and check the modifications in bootstrap.less and variables.less. Otherwise
 // e. g. FontAwesome doesn't work.
-
 @import "bootstrap/bootstrap";
 // @import "bootstrap/responsive";
-
-
 @import "table-css";
 @import "projectforge-main-css";
 @import "projectforge-bootstrap-css";
@@ -20,111 +17,126 @@
 @import "forms";
 @import "panels";
 
-
 table.dataview tbody tr.even td,
 table.dataview thead tr.even th,
 table tbody tr.even td,
 table tbody tr.even th {
-	border-top: none;
-	border-bottom: none;
-	background: #F0F0F0;
+  border-top: none;
+  border-bottom: none;
+  background: #F0F0F0;
 }
+
 table.dataview tbody tr.even:hover td,
-table.dataview tbody tr.even:hover th{
-	background:#d9dfe1;
+table.dataview tbody tr.even:hover th {
+  background: #d9dfe1;
 }
 
 table tbody tr.odd td,
 table tbody tr.odd th {
-	border-top: none;
-	border-bottom: none;
-	background: #FFFFFF;
+  border-top: none;
+  border-bottom: none;
+  background: #FFFFFF;
 }
-tr.withContextMenu{
-  cursor:pointer;
+
+tr.withContextMenu {
+  cursor: pointer;
 }
+
 div.controls input, div.controls textarea {
-	padding-left: 4px;
-	padding-right: 4px;
+  padding-left: 4px;
+  padding-right: 4px;
 }
+
 label {
-	// margin-top: 4px;
+  // margin-top: 4px;
 }
+
 .dropdown-menu li > a {
-	padding: 3px 24px 3px 10px;
+  padding: 3px 24px 3px 10px;
 }
+
 /* Adressen Eingabefelder rutschen bei bei schmalem Bildschirm untereinander. */
 label.control-label {
-	position: relative;
-	float: left;
+  position: relative;
+  float: left;
 }
+
 div.controls {
-	display:inline-block;
-	margin-left:0;
+  display: inline-block;
+  margin-left: 0;
 }
 
 div.control-group {
-	clear:left;
-	padding-left: 10px;
+  clear: left;
+  padding-left: 10px;
   padding-bottom: 14px;
 }
 
-form input.phone{
-	width: 68% !important;
+form input.phone {
+  width: 68% !important;
 }
+
 /* *************** */
 /* bug tooltip springt*/
 .btn-group > .btn + .btn {
-	margin-left: 0;
+  margin-left: 0;
 }
-.pf_dnd{
-	display:inline-block!important;
+
+.pf_dnd {
+  display: inline-block !important;
 }
+
 div.main {
-	margin: 0 6px 30px 6px;
+  margin: 0 6px 30px 6px;
 }
+
 .main > form > .container-fluid {
-	padding-left: 0px;
-	padding-right: 0px;
+  padding-left: 0px;
+  padding-right: 0px;
 }
 
 // PILLS
 // -----
 .nav-pills .dropdown-toggle .caret {
-border-top-color: @navbarText;
-border-bottom-color: @navbarText;
-margin-top: 6px;
+  border-top-color: @navbarText;
+  border-bottom-color: @navbarText;
+  margin-top: 6px;
 }
+
 .nav-pills .dropdown-toggle:hover .caret {
-border-top-color: @grayDark;
-border-bottom-color: @grayDark;
-margin-top: 6px;
+  border-top-color: @grayDark;
+  border-bottom-color: @grayDark;
+  margin-top: 6px;
 }
 
 // Links rendered as pills
-ul.nav-pills{
-	margin-left:6px;
-	margin-bottom:4px;
+ul.nav-pills {
+  margin-left: 6px;
+  margin-bottom: 4px;
 }
-ul.nav-pills > li{
-	margin-right:4px;
+
+ul.nav-pills > li {
+  margin-right: 4px;
 }
+
 ul.nav-pills > li > a {
   padding-top: 2px;
   padding-bottom: 3px;
   margin-top: 2px;
   margin-bottom: 2px;
   // .border-radius(5px);
-  color:@navbarText;
-  background:#f0f0f0;
+  color: @navbarText;
+  background: #f0f0f0;
   border: 1px solid @navbarBorder;
   // .border-radius(@baseBorderRadius);
-  .box-shadow(0 1px 4px rgba(0,0,0,.065));
+  .box-shadow(0 1px 4px rgba(0, 0, 0, .065));
 
 }
+
 ul.nav-pills > li > a:hover {
-	color: @grayDark;
+  color: @grayDark;
 }
+
 // Active state
 ul.nav-pills > .active > a,
 ul.nav-pills > .active > a:hover {
@@ -134,152 +146,180 @@ ul.nav-pills > .active > a:hover {
 
 /* Submenu nach unten ausklappen*/
 @media (max-width: 879px) {
-// @media (max-width: 767px) {
-  #pf_sortablecontainer{
-    width: auto!important;
+  // @media (max-width: 767px) {
+  #pf_sortablecontainer {
+    width: auto !important;
   }
+
   .navbar-search.pull-left,
   .navbar-nav.pull-right {
-    float: none!important
+    float: none !important
   }
-  .navbar-collapse {
-    max-height: none!important;
-  }
-	// Sub menus
-	// ---------------------------
-	ul.dropdown-menu li.dropdown-submenu ul.dropdown-menu {
-		position: static;
-		height:0px;
-		visibility: hidden;
-		display:none;
-		margin-top: 0;
-		margin:0;
-	}
-	ul.dropdown-menu li.dropdown-submenu:hover ul.dropdown-menu {
-		/*
-		display:block;
-		visibility:visible;
-		height:auto;
-		*/
-		display:none;
-		visibility:hidden;
-		height:0;
-	}
-	ul.dropdown-menu li.dropdown-submenu:hover > a{
-		color:#fff;
-	}
-	// Caret to indicate there is a submenu
-	.dropdown-submenu > a:after {
-		display:none;
-	}
-	.dropdown-submenu > a > span{
-		padding-right:4px;
-	}
-	.dropdown-submenu > a > span:after {
-		display: inline-block;
-		width: 0;
-		height: 0;
-		vertical-align: middle;
-		border-top:   4px solid #777;
-		border-right: 4px solid transparent;
-		border-left:  4px solid transparent;
-		content: "";
-		margin-left:4px;
-	}
-	.dropdown-submenu:hover > a > span:after {
-		border-left-color: #fff;
-		border-top:   4px solid #fff;
-		border-right: 4px solid transparent;
-		border-left:  4px solid transparent;
-		content: "";
-	}
-	ul.nav > li > a {
-		padding-left: 5px;
-		padding-right: 5px;
-		padding-bottom: 5px;
-	}
-	.navbar-collapse .dropdown-menu {
-		margin:0;
-		height:0;
-	}
-	.navbar-collapse li:hover .dropdown-menu {
-		/*height:auto;*/
-		height:0;
-		display:none;
-		visibility:hidden;
-	}
-	.navbar-collapse li.mm_open:hover > .dropdown-menu,
-	.navbar-collapse li.mm_open > .dropdown-menu,
-	.navbar-collapse li.open:hover > .dropdown-menu,
-	.navbar-collapse li.open > .dropdown-menu {
-		height:auto;
-		display:block;
-		visibility:visible;
-	}
-	ul.dropdown-menu li.dropdown-submenu.mm_open_sub ul.dropdown-menu {
-		height: auto;
-		display: block;
-		visibility: visible;
-	}
-	.navbar-collapse .nav > li > a, .navbar-collapse .dropdown-menu a {
-		padding: 2px 15px;
-	}
-	.navbar-collapse ul.dropdown-menu > .dropdown-submenu > a {
-		padding: 2px 15px;
-	}
-	.navbar-collapse ul.dropdown-menu ul.dropdown-menu a {
-		padding: 2px 25px;
-	}
-  .navbar .nav.pf_menueconfig,
-  #pf_newentry{
-      display:none;
-    }
 
-// COLLAPSIBLE NAVBAR
-// ------------------
-// Nav collapse clears brand
+  .navbar-collapse {
+    max-height: none !important;
+  }
+
+  // Sub menus
+  // ---------------------------
+  ul.dropdown-menu li.dropdown-submenu ul.dropdown-menu {
+    position: static;
+    height: 0px;
+    visibility: hidden;
+    display: none;
+    margin-top: 0;
+    margin: 0;
+  }
+
+  ul.dropdown-menu li.dropdown-submenu:hover ul.dropdown-menu {
+    /*
+    display:block;
+    visibility:visible;
+    height:auto;
+    */
+    display: none;
+    visibility: hidden;
+    height: 0;
+  }
+
+  ul.dropdown-menu li.dropdown-submenu:hover > a {
+    color: #fff;
+  }
+
+  // Caret to indicate there is a submenu
+  .dropdown-submenu > a:after {
+    display: none;
+  }
+
+  .dropdown-submenu > a > span {
+    padding-right: 4px;
+  }
+
+  .dropdown-submenu > a > span:after {
+    display: inline-block;
+    width: 0;
+    height: 0;
+    vertical-align: middle;
+    border-top: 4px solid #777;
+    border-right: 4px solid transparent;
+    border-left: 4px solid transparent;
+    content: "";
+    margin-left: 4px;
+  }
+
+  .dropdown-submenu:hover > a > span:after {
+    border-left-color: #fff;
+    border-top: 4px solid #fff;
+    border-right: 4px solid transparent;
+    border-left: 4px solid transparent;
+    content: "";
+  }
+
+  ul.nav > li > a {
+    padding-left: 5px;
+    padding-right: 5px;
+    padding-bottom: 5px;
+  }
+
+  .navbar-collapse .dropdown-menu {
+    margin: 0;
+    height: 0;
+  }
+
+  .navbar-collapse li:hover .dropdown-menu {
+    /*height:auto;*/
+    height: 0;
+    display: none;
+    visibility: hidden;
+  }
+
+  .navbar-collapse li.mm_open:hover > .dropdown-menu,
+  .navbar-collapse li.mm_open > .dropdown-menu,
+  .navbar-collapse li.open:hover > .dropdown-menu,
+  .navbar-collapse li.open > .dropdown-menu {
+    height: auto;
+    display: block;
+    visibility: visible;
+  }
+
+  ul.dropdown-menu li.dropdown-submenu.mm_open_sub ul.dropdown-menu {
+    height: auto;
+    display: block;
+    visibility: visible;
+  }
+
+  .navbar-collapse .nav > li > a, .navbar-collapse .dropdown-menu a {
+    padding: 2px 15px;
+  }
+
+  .navbar-collapse ul.dropdown-menu > .dropdown-submenu > a {
+    padding: 2px 15px;
+  }
+
+  .navbar-collapse ul.dropdown-menu ul.dropdown-menu a {
+    padding: 2px 25px;
+  }
+
+  .navbar .nav.pf_menueconfig,
+  #pf_newentry {
+    display: none;
+  }
+
+  // COLLAPSIBLE NAVBAR
+  // ------------------
+  // Nav collapse clears brand
   .navbar-collapse {
     clear: both;
   }
-// Block-level the nav
+
+  // Block-level the nav
   .navbar-collapse .nav {
     float: none;
     // margin: 0 0 (@baseLineHeight / 2);
   }
+
   .navbar-collapse .nav > li {
     float: none;
   }
+
   .navbar-collapse .nav > li > a {
     margin-bottom: 2px;
   }
+
   .navbar-collapse .nav > .divider-vertical {
     display: none;
   }
+
   .navbar-collapse .nav .nav-header {
     color: @navbarText;
     text-shadow: none;
   }
-// Nav and dropdown links in navbar
+
+  // Nav and dropdown links in navbar
   .navbar-collapse .nav > li > a,
   .navbar-collapse .dropdown-menu a {
     padding: 9px 15px;
     font-weight: bold;
     // color: @navbarLinkColor;
   }
-// Buttons
+
+  // Buttons
   .navbar-collapse .btn {
     padding: 4px 10px 4px;
     font-weight: normal;
   }
+
   .navbar-collapse .dropdown-menu li + li a {
     margin-bottom: 2px;
   }
-// Buttons in the navbar
+
+  // Buttons in the navbar
   .navbar-collapse.in .btn-group {
     margin-top: 5px;
     padding: 0;
   }
-// Dropdowns in the navbar
+
+  // Dropdowns in the navbar
   .navbar-collapse .dropdown-menu {
     position: static;
     top: auto;
@@ -293,6 +333,7 @@ ul.nav-pills > .active > a:hover {
     border: none;
     .box-shadow(none);
   }
+
   .navbar-collapse .open > .dropdown-menu {
     display: block;
   }
@@ -301,44 +342,51 @@ ul.nav-pills > .active > a:hover {
   .navbar-collapse .dropdown-menu:after {
     display: none;
   }
+
   .navbar-collapse .dropdown-menu .divider {
     display: none;
   }
+
   .navbar-collapse .nav > li > .dropdown-menu {
     &:before,
     &:after {
       display: none;
     }
   }
-// Forms in navbar
+
+  // Forms in navbar
   .navbar-collapse .navbar-form,
   .navbar-collapse .navbar-search {
     float: none;
     .box-shadow(~"inset 0 1px 0 rgba(255,255,255,.1), 0 1px 0 rgba(255,255,255,.1)");
   }
-// Pull right (secondary) nav content
+
+  // Pull right (secondary) nav content
   .navbar .navbar-collapse .nav.pull-right {
     float: none;
     margin-left: 0;
   }
-// Hide everything in the navbar save .brand and toggle button */
+
+  // Hide everything in the navbar save .brand and toggle button */
   .navbar-collapse,
   .navbar-collapse.collapse {
     overflow: hidden;
     height: 0;
   }
-// Navbar button
+
+  // Navbar button
   .navbar .btn-navbar {
     display: block;
   }
 
-// STATIC NAVBAR
-// -------------
+  // STATIC NAVBAR
+  // -------------
   .navbar-static .navbar-inner {
-    padding-left:  10px;
+    padding-left: 10px;
     padding-right: 10px;
   }
 }
+
 // Bootstrap3 Update
 
 // Navbar search
@@ -350,34 +398,41 @@ ul.nav-pills > .active > a:hover {
   .search-query {
     margin-bottom: 0;
     padding: 4px 14px;
-    border-radius:15px;
-    border-width:1px;
+    border-radius: 15px;
+    border-width: 1px;
     margin-top: 12px;
   }
 }
+
 .container-fluid .row {
-  margin-left:0;
-  margin-right:0;
+  margin-left: 0;
+  margin-right: 0;
 }
+
 .breadcrumb > li + li:before {
   content: "";
   padding: 0;
   color: transparent;
 }
+
 .breadcrumb > li {
   vertical-align: top;
   line-height: 26px;
 }
+
 .dropdown-menu {
   font-size: 12px;
 }
+
 .dropdown-menu > li > a {
   color: #777;
 }
+
 .navbar-collapse .dropdown-menu a {
   padding: 4px 10px;
   line-height: 20px;
 }
+
 .navActionBar {
   padding: 0;
   list-style: none;
@@ -385,13 +440,16 @@ ul.nav-pills > .active > a:hover {
   border-radius: 4px;
   margin: 0 7px 10px;
 }
+
 .navbar-default .navbar-nav > .open > a, .navbar-default .navbar-nav > .open > a:hover, .navbar-default .navbar-nav > .open > a:focus,
 .nav .open > a, .nav .open > a:hover, .nav .open > a:focus {
   background: transparent;
 }
+
 .navbar-nav .open .dropdown-menu > li > a, .navbar-nav .open .dropdown-menu .dropdown-header {
   padding: 4px 10px;
 }
+
 //Buttons
 [data-toggle='buttons'] .btn-primary {
   font-weight: normal;
@@ -404,12 +462,14 @@ ul.nav-pills > .active > a:hover {
   font-weight: normal;
   padding: 3px 4px 4px;
 }
+
 [data-toggle='buttons'] .btn-primary.active {
   border-spacing: 2px;
   border-color: gray;
   color: #fff;
   background: #4C5766;
 }
+
 [data-toggle='buttons'] .btn-primary.active.warning {
   border-spacing: 2px;
   border-color: gray;
@@ -418,13 +478,46 @@ ul.nav-pills > .active > a:hover {
 }
 
 // Custom CSS for Vacation view
-.showvacation .dl-horizontal dt{
-  width:350px;
-  text-align: left;
-  line-height: 25px;
-  font-weight:normal;
-}
-.showvacation .dl-horizontal dd{
-   line-height: 25px;
+.vacationPanel div.control-group {
+  padding-bottom: 0;
 }
 
+.vacationPanel label.control-label {
+  width: 230px;
+  text-align: left;
+  line-height: 25px;
+  font-weight: normal;
+}
+
+.vacationPanel label.control-label-bold {
+  width: 230px;
+  text-align: left;
+  line-height: 25px;
+}
+
+.vacationPanel .controls {
+  width: 50px !important;
+}
+
+.vacationPanel .controls-bold {
+  width: 50px !important;
+  font-weight: bold;
+  display: inline-block;
+  margin-left: 0;
+}
+
+.vacationPanel div span {
+  line-height: 25px;
+}
+
+//.vacationPanel:nth-child(4) {
+//  font-weight: bold;
+//}
+//
+//.vacationPanel:nth-child(7) {
+//  font-weight: bold;
+//}
+//
+//.vacationPanel:nth-child(9) {
+//  font-weight: bold;
+//}

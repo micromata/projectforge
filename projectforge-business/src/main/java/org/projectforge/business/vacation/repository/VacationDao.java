@@ -23,6 +23,7 @@
 
 package org.projectforge.business.vacation.repository;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -156,9 +157,9 @@ public class VacationDao extends BaseDao<VacationDO>
     return result;
   }
 
-  public Integer getOpenLeaveApplicationsForEmployee(EmployeeDO employee)
+  public BigDecimal getOpenLeaveApplicationsForEmployee(EmployeeDO employee)
   {
-    Integer result = 0;
+    BigDecimal result = BigDecimal.ZERO;
     List<VacationDO> resultList = emgrFactory.runRoTrans(emgr -> {
       String baseSQL = "SELECT v FROM VacationDO v WHERE v.manager = :employee AND v.status = :status";
       List<VacationDO> dbResultList = emgr
@@ -167,7 +168,25 @@ public class VacationDao extends BaseDao<VacationDO>
       return dbResultList;
     });
     if (resultList != null) {
-      result = resultList.size();
+      result = new BigDecimal(resultList.size());
+    }
+    return result;
+  }
+
+  public BigDecimal getSpecialVacationCount(EmployeeDO employee, int year, VacationStatus status)
+  {
+    BigDecimal result = BigDecimal.ZERO;
+    Calendar startYear = new GregorianCalendar(year, Calendar.JANUARY, 1);
+    Calendar endYear = new GregorianCalendar(year, Calendar.DECEMBER, 31);
+    List<VacationDO> resultList = emgrFactory.runRoTrans(emgr -> {
+      String baseSQL = "SELECT v FROM VacationDO v WHERE v.employee = :employee AND v.startDate >= :startDate AND v.startDate <= :endDate AND v.status = :status";
+      List<VacationDO> dbResultList = emgr
+          .selectDetached(VacationDO.class, baseSQL + META_SQL_WITH_SPECIAL, "employee", employee, "startDate", startYear.getTime(), "endDate",
+              endYear.getTime(), "status", status, "deleted", false, "tenant", ThreadLocalUserContext.getUser().getTenant());
+      return dbResultList;
+    });
+    if (resultList != null) {
+      result = new BigDecimal(resultList.size());
     }
     return result;
   }

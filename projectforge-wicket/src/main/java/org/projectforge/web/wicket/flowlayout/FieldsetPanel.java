@@ -34,15 +34,15 @@ import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.ResourceModel;
-import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.web.CSSColor;
+import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.web.wicket.bootstrap.GridPanel;
 import org.projectforge.web.wicket.components.JiraIssuesPanel;
 
 /**
  * Represents a entry of a group panel. This can be a label, text field or other form components.
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
  */
 public class FieldsetPanel extends AbstractFieldsetPanel<FieldsetPanel>
 {
@@ -70,10 +70,11 @@ public class FieldsetPanel extends AbstractFieldsetPanel<FieldsetPanel>
 
   /**
    * Adds this FieldsetPanel to the parent panel.
+   *
    * @param parent
    * @param label
    */
-  public FieldsetPanel(final DivPanel parent, final FieldProperties< ? > fieldProperties)
+  public FieldsetPanel(final DivPanel parent, final FieldProperties<?> fieldProperties)
   {
     this(parent, getString(parent, fieldProperties.getLabel()), //
         getString(parent, fieldProperties.getLabelDescription(), fieldProperties.isTranslateLabelDecsription()));
@@ -94,6 +95,7 @@ public class FieldsetPanel extends AbstractFieldsetPanel<FieldsetPanel>
 
   /**
    * Adds this FieldsetPanel to the parent panel.
+   *
    * @param parent
    * @param label
    */
@@ -104,6 +106,7 @@ public class FieldsetPanel extends AbstractFieldsetPanel<FieldsetPanel>
 
   /**
    * Adds this FieldsetPanel to the parent panel.
+   *
    * @param parent
    * @param label
    * @param description Description below or beside the label of the field-set.
@@ -116,6 +119,7 @@ public class FieldsetPanel extends AbstractFieldsetPanel<FieldsetPanel>
 
   /**
    * Adds this FieldsetPanel to the parent panel.
+   *
    * @param parent
    * @param label
    * @param description Description below or beside the label of the field-set.
@@ -135,7 +139,7 @@ public class FieldsetPanel extends AbstractFieldsetPanel<FieldsetPanel>
 
   /**
    * @param id
-   * @param labeltext If null, then the label field is invisible.
+   * @param labeltext   If null, then the label field is invisible.
    * @param description
    */
   @SuppressWarnings("serial")
@@ -148,12 +152,15 @@ public class FieldsetPanel extends AbstractFieldsetPanel<FieldsetPanel>
     fieldset.add(AttributeModifier.append("class", FIELD_SET_CLASS));
     fieldset.add((label = new WebMarkupContainer("label")));
     if (labelText != null) {
-      label.add(new Label("labeltext", new Model<String>() {
+      label.add(new Label("labeltext", new Model<String>()
+      {
         @Override
         public String getObject()
         {
           return labelText;
-        };
+        }
+
+        ;
       }).setRenderBodyOnly(true));
       if (description != null) {
         label.add(new Label("labeldescription", description));
@@ -164,7 +171,8 @@ public class FieldsetPanel extends AbstractFieldsetPanel<FieldsetPanel>
       label.setVisible(false);
     }
     fieldset.add(controls = new WebMarkupContainer("controls"));
-    controls.add(feedbackMessageLabel = new Label("feedbackMessage", new Model<String>() {
+    controls.add(feedbackMessageLabel = new Label("feedbackMessage", new Model<String>()
+    {
       /**
        * @see org.apache.wicket.model.Model#getObject()
        */
@@ -173,7 +181,8 @@ public class FieldsetPanel extends AbstractFieldsetPanel<FieldsetPanel>
       {
         return feedbackMessage;
       }
-    }) {
+    })
+    {
       /**
        * @see org.apache.wicket.Component#isVisible()
        */
@@ -190,6 +199,7 @@ public class FieldsetPanel extends AbstractFieldsetPanel<FieldsetPanel>
   /**
    * Please note: only labelSide=false is supported and shouldn't be called twice. The label is placed above the input fields. Default is
    * labelSide = true.
+   *
    * @param labelSide
    */
   public FieldsetPanel setLabelSide(final boolean labelSide)
@@ -224,6 +234,7 @@ public class FieldsetPanel extends AbstractFieldsetPanel<FieldsetPanel>
 
   /**
    * No wrap of the multiple children.
+   *
    * @return this for chaining.
    */
   public FieldsetPanel setNowrap()
@@ -298,6 +309,7 @@ public class FieldsetPanel extends AbstractFieldsetPanel<FieldsetPanel>
 
   /**
    * Adds an alert icon at the top left corner of the field set label.
+   *
    * @param tooltip
    * @return this for chaining.
    */
@@ -310,6 +322,7 @@ public class FieldsetPanel extends AbstractFieldsetPanel<FieldsetPanel>
 
   /**
    * Adds a help icon at the top right corner of the field set.
+   *
    * @param title
    * @param tooltip
    * @return The created IconPanel.
@@ -321,6 +334,7 @@ public class FieldsetPanel extends AbstractFieldsetPanel<FieldsetPanel>
 
   /**
    * Adds a help icon at the top right corner of the field set.
+   *
    * @param title
    * @param tooltip
    * @param iconPosition
@@ -335,6 +349,7 @@ public class FieldsetPanel extends AbstractFieldsetPanel<FieldsetPanel>
 
   /**
    * Adds a help icon at the top right corner of the field set.
+   *
    * @param tooltip
    * @return The created IconPanel.
    */
@@ -345,6 +360,7 @@ public class FieldsetPanel extends AbstractFieldsetPanel<FieldsetPanel>
 
   /**
    * Adds a help icon at the top right corner of the field set.
+   *
    * @param tooltip
    * @return The created IconPanel.
    */
@@ -357,6 +373,7 @@ public class FieldsetPanel extends AbstractFieldsetPanel<FieldsetPanel>
 
   /**
    * Adds a help icon at the top right corner of the field set.
+   *
    * @param tooltip
    * @return The created IconPanel.
    */
@@ -369,6 +386,7 @@ public class FieldsetPanel extends AbstractFieldsetPanel<FieldsetPanel>
 
   /**
    * Adds a keyboard icon at the bottom right corner of the field set.
+   *
    * @param tooltip
    * @return this for chaining.
    */
@@ -379,6 +397,7 @@ public class FieldsetPanel extends AbstractFieldsetPanel<FieldsetPanel>
 
   /**
    * Adds a keyboard icon at the bottom right corner of the field set.
+   *
    * @param tooltip
    * @return this for chaining.
    */
@@ -391,6 +410,7 @@ public class FieldsetPanel extends AbstractFieldsetPanel<FieldsetPanel>
   /**
    * Adds a JIRA icon at the bottom right corner of the field set (only if JIRA is configured, otherwise this method does nothing). This
    * method is automatically called by {@link #addJIRAField()}.
+   *
    * @param tooltip
    * @return this for chaining.
    */
@@ -406,6 +426,7 @@ public class FieldsetPanel extends AbstractFieldsetPanel<FieldsetPanel>
 
   /**
    * Adds a JIRA icon at the bottom right corner of the field set (only if JIRA is configured, otherwise this method does nothing).
+   *
    * @param tooltip
    * @return this for chaining.
    */
@@ -457,6 +478,7 @@ public class FieldsetPanel extends AbstractFieldsetPanel<FieldsetPanel>
 
   /**
    * Creates and add a new RepeatingView as div-child if not already exist.
+   *
    * @see RepeatingView#newChildId()
    */
   @Override
@@ -543,5 +565,10 @@ public class FieldsetPanel extends AbstractFieldsetPanel<FieldsetPanel>
   public boolean hasChilds()
   {
     return childCounter > 0;
+  }
+
+  public WebMarkupContainer getFieldsetComponent()
+  {
+    return this.fieldset;
   }
 }

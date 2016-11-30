@@ -14,6 +14,7 @@ import org.projectforge.business.fibu.api.EmployeeService;
 import org.projectforge.business.user.I18nHelper;
 import org.projectforge.business.vacation.model.VacationAttrProperty;
 import org.projectforge.business.vacation.model.VacationDO;
+import org.projectforge.business.vacation.model.VacationStatus;
 import org.projectforge.business.vacation.repository.VacationDao;
 import org.projectforge.framework.access.AccessException;
 import org.projectforge.framework.i18n.UserException;
@@ -55,8 +56,8 @@ public class VacationServiceImpl extends CorePersistenceServiceImpl<Integer, Vac
   @Override
   public BigDecimal getUsedAndPlanedVacationdaysForYear(EmployeeDO employee, int year)
   {
-    BigDecimal usedVacationdays = getUsedVacationdaysForYear(employee, year);
-    BigDecimal planedVacationdays = getPlanedVacationdaysForYear(employee, year);
+    BigDecimal usedVacationdays = getUsedVacationdaysForYearUntilNow(employee, year);
+    BigDecimal planedVacationdays = getPlanedVacationdaysForYearUntilNow(employee, year);
     return usedVacationdays.add(planedVacationdays);
   }
 
@@ -270,7 +271,31 @@ public class VacationServiceImpl extends CorePersistenceServiceImpl<Integer, Vac
   }
 
   @Override
-  public BigDecimal getUsedVacationdaysForYear(EmployeeDO employee, int year)
+  public BigDecimal getApprovedVacationdaysForYear(EmployeeDO employee, int year)
+  {
+    BigDecimal usedDays = BigDecimal.ZERO;
+    for (VacationDO vac : getActiveVacationForYear(employee, year, false)) {
+      if (VacationStatus.APPROVED.equals(vac.getStatus())) {
+        usedDays = usedDays.add(vac.getWorkingdays());
+      }
+    }
+    return usedDays;
+  }
+
+  @Override
+  public BigDecimal getPlanedVacationdaysForYear(EmployeeDO employee, int year)
+  {
+    BigDecimal usedDays = BigDecimal.ZERO;
+    for (VacationDO vac : getActiveVacationForYear(employee, year, false)) {
+      if (VacationStatus.IN_PROGRESS.equals(vac.getStatus())) {
+        usedDays = usedDays.add(vac.getWorkingdays());
+      }
+    }
+    return usedDays;
+  }
+
+  @Override
+  public BigDecimal getUsedVacationdaysForYearUntilNow(EmployeeDO employee, int year)
   {
     BigDecimal usedDays = BigDecimal.ZERO;
     Calendar now = Calendar.getInstance(ThreadLocalUserContext.getTimeZone());
@@ -287,7 +312,7 @@ public class VacationServiceImpl extends CorePersistenceServiceImpl<Integer, Vac
   }
 
   @Override
-  public BigDecimal getPlanedVacationdaysForYear(EmployeeDO employee, int year)
+  public BigDecimal getPlanedVacationdaysForYearUntilNow(EmployeeDO employee, int year)
   {
     BigDecimal usedDays = BigDecimal.ZERO;
     Calendar now = new GregorianCalendar(ThreadLocalUserContext.getTimeZone());
@@ -323,11 +348,11 @@ public class VacationServiceImpl extends CorePersistenceServiceImpl<Integer, Vac
       vacationFromPreviousYear = BigDecimal.ZERO;
       vacationFromPreviousYearUsed = BigDecimal.ZERO;
     }
-    BigDecimal usedVacation = getUsedVacationdaysForYear(employee, year);
-    BigDecimal planedVacation = getPlanedVacationdaysForYear(employee, year);
+    BigDecimal usedVacation = getUsedVacationdaysForYearUntilNow(employee, year);
+    BigDecimal planedVacation = getPlanedVacationdaysForYearUntilNow(employee, year);
     Calendar endDateVacationFromLastYear = configService.getEndDateVacationFromLastYear();
     if (now.after(endDateVacationFromLastYear) || checkLastYear == false) {
-      usedVacation = getUsedVacationdaysForYear(employee, year).subtract(vacationFromPreviousYearUsed);
+      usedVacation = getUsedVacationdaysForYearUntilNow(employee, year).subtract(vacationFromPreviousYearUsed);
       return vacationDays.subtract(usedVacation).subtract(planedVacation);
     }
     return vacationDays.add(vacationFromPreviousYear).subtract(usedVacation).subtract(planedVacation);
@@ -364,13 +389,19 @@ public class VacationServiceImpl extends CorePersistenceServiceImpl<Integer, Vac
   }
 
   @Override
-  public Integer getOpenLeaveApplicationsForUser(PFUserDO user)
+  public BigDecimal getOpenLeaveApplicationsForUser(PFUserDO user)
   {
     EmployeeDO employee = employeeService.getEmployeeByUserId(user.getId());
     if (employee == null) {
-      return 0;
+      return BigDecimal.ZERO;
     }
     return vacationDao.getOpenLeaveApplicationsForEmployee(employee);
+  }
+
+  @Override
+  public BigDecimal getSpezialVacationCount(EmployeeDO employee, int year, VacationStatus status)
+  {
+    return vacationDao.getSpecialVacationCount(employee, year, status);
   }
 
   @Override
