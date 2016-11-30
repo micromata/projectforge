@@ -26,6 +26,7 @@ package org.projectforge.web.wicket;
 import org.apache.wicket.Component;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.Button;
+import org.apache.wicket.markup.html.form.IFormSubmitter;
 import org.apache.wicket.markup.html.panel.FeedbackPanel;
 import org.projectforge.web.wicket.bootstrap.GridBuilder;
 import org.projectforge.web.wicket.components.SingleButtonPanel;
@@ -61,7 +62,8 @@ public class AbstractStandardForm<F, P extends AbstractStandardFormPage> extends
   protected void init()
   {
     super.init();
-    feedbackAndMessagesPanel = new WebMarkupContainer("feedbackAndMessagesPanel") {
+    feedbackAndMessagesPanel = new WebMarkupContainer("feedbackAndMessagesPanel")
+    {
       /**
        * @see org.apache.wicket.Component#isVisible()
        */
@@ -78,7 +80,8 @@ public class AbstractStandardForm<F, P extends AbstractStandardFormPage> extends
     feedbackAndMessagesPanel.add(messagesComponent);
     gridBuilder = newGridBuilder(this, "flowform");
     actionButtons = new MyComponentsRepeater<SingleButtonPanel>("buttons");
-    final WebMarkupContainer buttonBar = new WebMarkupContainer("buttonBar") {
+    final WebMarkupContainer buttonBar = new WebMarkupContainer("buttonBar")
+    {
       /**
        * @see org.apache.wicket.Component#isVisible()
        */
@@ -128,12 +131,12 @@ public class AbstractStandardForm<F, P extends AbstractStandardFormPage> extends
   }
 
   /**
-   * @see org.apache.wicket.markup.html.form.Form#onSubmit()
+   * Check the CSRF token right before the onSubmit methods are called, otherwise it may be too late.
    */
   @Override
-  protected void onSubmit()
+  protected void delegateSubmit(IFormSubmitter submittingComponent)
   {
-    super.onSubmit();
     csrfTokenHandler.onSubmit();
+    super.delegateSubmit(submittingComponent);
   }
 }

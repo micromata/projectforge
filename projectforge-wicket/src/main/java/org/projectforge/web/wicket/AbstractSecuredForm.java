@@ -24,6 +24,7 @@
 package org.projectforge.web.wicket;
 
 import org.apache.wicket.markup.html.WebPage;
+import org.apache.wicket.markup.html.form.IFormSubmitter;
 
 public abstract class AbstractSecuredForm<F, P extends AbstractSecuredBasePage> extends AbstractForm<F, P>
 {
@@ -34,22 +35,20 @@ public abstract class AbstractSecuredForm<F, P extends AbstractSecuredBasePage> 
    */
   private final CsrfTokenHandler csrfTokenHandler;
 
-
   public AbstractSecuredForm(final P parentPage)
   {
     super(parentPage);
     csrfTokenHandler = new CsrfTokenHandler(this);
   }
 
-
   /**
-   * @see org.apache.wicket.markup.html.form.Form#onSubmit()
+   * Check the CSRF token right before the onSubmit methods are called, otherwise it may be too late.
    */
   @Override
-  protected void onSubmit()
+  protected void delegateSubmit(IFormSubmitter submittingComponent)
   {
-    super.onSubmit();
     csrfTokenHandler.onSubmit();
+    super.delegateSubmit(submittingComponent);
   }
 
   /**
@@ -66,7 +65,7 @@ public abstract class AbstractSecuredForm<F, P extends AbstractSecuredBasePage> 
    * @param key
    * @see AbstractSecuredPage#getUserPrefEntry(Class, String)
    */
-  public Object getUserPrefEntry(final Class< ? > expectedType, final String key)
+  public Object getUserPrefEntry(final Class<?> expectedType, final String key)
   {
     return parentPage.getUserPrefEntry(expectedType, key);
   }

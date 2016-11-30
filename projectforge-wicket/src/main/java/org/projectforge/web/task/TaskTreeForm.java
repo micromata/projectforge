@@ -29,11 +29,10 @@ import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
-import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.business.task.TaskFilter;
-import org.projectforge.web.wicket.AbstractForm;
-import org.projectforge.web.wicket.CsrfTokenHandler;
+import org.projectforge.web.wicket.AbstractSecuredForm;
 import org.projectforge.web.wicket.WebConstants;
+import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.web.wicket.bootstrap.GridBuilder;
 import org.projectforge.web.wicket.bootstrap.GridSize;
 import org.projectforge.web.wicket.components.SingleButtonPanel;
@@ -46,7 +45,7 @@ import org.projectforge.web.wicket.flowlayout.IconType;
 import org.projectforge.web.wicket.flowlayout.InputPanel;
 import org.projectforge.web.wicket.flowlayout.MyComponentsRepeater;
 
-public class TaskTreeForm extends AbstractForm<TaskFilter, TaskTreePage>
+public class TaskTreeForm extends AbstractSecuredForm<TaskFilter, TaskTreePage>
 {
   private static final long serialVersionUID = -203572415793301622L;
 
@@ -65,11 +64,6 @@ public class TaskTreeForm extends AbstractForm<TaskFilter, TaskTreePage>
   private SingleButtonPanel searchButtonPanel;
 
   protected GridBuilder gridBuilder;
-
-  /**
-   * Cross site request forgery token.
-   */
-  private final CsrfTokenHandler csrfTokenHandler;
 
   @Override
   @SuppressWarnings("serial")
@@ -172,7 +166,6 @@ public class TaskTreeForm extends AbstractForm<TaskFilter, TaskTreePage>
   public TaskTreeForm(final TaskTreePage parentPage)
   {
     super(parentPage);
-    csrfTokenHandler = new CsrfTokenHandler(this);
   }
 
   @Override
@@ -218,7 +211,6 @@ public class TaskTreeForm extends AbstractForm<TaskFilter, TaskTreePage>
   protected void onSubmit()
   {
     super.onSubmit();
-    csrfTokenHandler.onSubmit();
     parentPage.refresh();
   }
 
