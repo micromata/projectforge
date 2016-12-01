@@ -33,6 +33,11 @@
       </exclusions>
     </dependency>
     <dependency>
+      <groupId>org.projectforge</groupId>
+      <artifactId>projectforge-model</artifactId>
+      <version>${projectforge.version}</version>
+    </dependency>
+    <dependency>
       <groupId>de.micromata.mgc</groupId>
       <artifactId>de.micromata.mgc.jpa.tabattr</artifactId>
       <version>${mgc.version}</version>

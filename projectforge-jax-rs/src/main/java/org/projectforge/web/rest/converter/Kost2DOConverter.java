@@ -24,12 +24,12 @@
 package org.projectforge.web.rest.converter;
 
 import org.hibernate.Hibernate;
+import org.projectforge.business.converter.DOConverter;
 import org.projectforge.business.fibu.KundeDO;
 import org.projectforge.business.fibu.ProjektDO;
 import org.projectforge.business.fibu.kost.Kost2DO;
 import org.projectforge.business.fibu.kost.Kost2Dao;
 import org.projectforge.model.rest.Cost2Object;
-import org.projectforge.rest.converter.DOConverter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

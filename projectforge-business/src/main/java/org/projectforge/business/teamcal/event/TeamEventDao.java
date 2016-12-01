@@ -222,7 +222,7 @@ public class TeamEventDao extends BaseDao<TeamEventDO>
           result.add(eventDO);
           continue;
         }
-        final Collection<TeamEvent> events = TeamEventUtils.getRecurrenceEvents(teamEventFilter.getStartDate(),
+        final Collection<TeamEvent> events = TeamEventConverter.getRecurrenceEvents(teamEventFilter.getStartDate(),
             teamEventFilter.getEndDate(), eventDO, timeZone);
         if (events == null) {
           continue;

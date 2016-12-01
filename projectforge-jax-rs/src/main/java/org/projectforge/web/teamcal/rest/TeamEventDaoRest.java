@@ -43,9 +43,9 @@ import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang.StringUtils;
 import org.projectforge.business.teamcal.admin.TeamCalCache;
 import org.projectforge.business.teamcal.admin.model.TeamCalDO;
+import org.projectforge.business.teamcal.event.TeamEventConverter;
 import org.projectforge.business.teamcal.event.TeamEventDao;
 import org.projectforge.business.teamcal.event.TeamEventFilter;
-import org.projectforge.business.teamcal.event.TeamEventUtils;
 import org.projectforge.business.teamcal.event.model.TeamEvent;
 import org.projectforge.business.teamcal.event.model.TeamEventDO;
 import org.projectforge.common.StringHelper;
@@ -79,7 +79,7 @@ public class TeamEventDaoRest
   private TeamCalCache teamCalCache;
 
   @Autowired
-  private TeamEventDOConverter teamEventDOConverter;
+  private TeamEventConverter teamEventConverter;
 
   /**
    * Rest call for {@link TeamEventDao#getEventList(TeamEventFilter, boolean)}
@@ -127,7 +127,7 @@ public class TeamEventDaoRest
       if (list != null && list.size() > 0) {
         for (final TeamEvent event : list) {
           if (event.getStartDate().after(now) == true) {
-            result.add(teamEventDOConverter.getEventObject(event, true));
+            result.add(teamEventConverter.getEventObject(event, true));
           } else {
             log.info("Start date not in future:" + event.getStartDate() + ", " + event.getSubject());
           }
@@ -152,7 +152,7 @@ public class TeamEventDaoRest
       final CalendarBuilder builder = new CalendarBuilder();
       final net.fortuna.ical4j.model.Calendar calendar = builder.build(new ByteArrayInputStream(Base64.decodeBase64(calendarEvent.getIcsData())));
       final VEvent event = (VEvent) calendar.getComponent(Component.VEVENT);
-      final TeamEventDO teamEvent = TeamEventUtils.createTeamEventDO(event,
+      final TeamEventDO teamEvent = teamEventConverter.createTeamEventDO(event,
           TimeZone.getTimeZone(teamCalDO.getOwner().getTimeZone()));
       if (calendarEvent.getId() != null) {
         TeamEventDO teamEventOrigin = teamEventDao.getById(calendarEvent.getId());
@@ -168,7 +168,7 @@ public class TeamEventDaoRest
       teamEvent.setCalendar(teamCalDO);
       teamEvent.setUid(event.getUid().getValue());
       teamEventDao.saveOrUpdate(teamEvent);
-      result = teamEventDOConverter.getEventObject(teamEvent, true);
+      result = teamEventConverter.getEventObject(teamEvent, true);
       log.info("New team event: " + teamEvent.getSubject() + " for calendar #" + teamCalDO.getId() + " successfully created.");
     } catch (Exception e) {
       log.error("Exception while creating team event", e);

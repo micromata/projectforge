@@ -32,7 +32,7 @@ import org.projectforge.framework.configuration.ConfigXml;
 import org.projectforge.framework.configuration.Configuration;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.model.rest.UserObject;
-import org.projectforge.rest.converter.DOConverter;
+import org.projectforge.business.converter.DOConverter;
 
 /**
  * For conversion of PFUserDO to user object.

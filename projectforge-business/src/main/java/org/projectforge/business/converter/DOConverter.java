@@ -21,7 +21,7 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.rest.converter;
+package org.projectforge.business.converter;
 
 import org.projectforge.framework.persistence.entities.DefaultBaseDO;
 import org.projectforge.model.rest.AbstractBaseObject;
