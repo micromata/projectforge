@@ -60,6 +60,16 @@ public interface VacationService extends IPersistenceService<VacationDO>, IDao<V
   BigDecimal getAvailableVacationdaysForYear(EmployeeDO employee, int year, boolean checkLastYear);
 
   /**
+   * Returns the number of available vacation for user object. If user has no employee, it returns 0.
+   *
+   * @param user
+   * @param year
+   * @param checkLastYear
+   * @return number of available vacation
+   */
+  BigDecimal getAvailableVacationdaysForYear(PFUserDO user, int year, boolean checkLastYear);
+
+  /**
    * Returns the number of approved vacation days
    *
    * @param employee

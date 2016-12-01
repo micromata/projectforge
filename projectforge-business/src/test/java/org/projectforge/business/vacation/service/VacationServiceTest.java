@@ -26,6 +26,7 @@ import org.projectforge.business.vacation.model.VacationDO;
 import org.projectforge.business.vacation.repository.VacationDao;
 import org.projectforge.framework.configuration.ConfigXml;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
+import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.time.DayHolder;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -208,9 +209,16 @@ public class VacationServiceTest extends PowerMockTestCase
   }
 
   @Test
-  public void testGetAvailableVacationdaysNull()
+  public void testGetAvailableVacationdaysEmployeeNull()
   {
-    BigDecimal availableVacationdays = vacationService.getAvailableVacationdaysForYear(null, 0, false);
+    BigDecimal availableVacationdays = vacationService.getAvailableVacationdaysForYear((EmployeeDO) null, 0, false);
+    assertEquals(availableVacationdays, BigDecimal.ZERO);
+  }
+
+  @Test
+  public void testGetAvailableVacationdaysPFUserNull()
+  {
+    BigDecimal availableVacationdays = vacationService.getAvailableVacationdaysForYear((PFUserDO) null, 0, false);
     assertEquals(availableVacationdays, BigDecimal.ZERO);
   }
 
