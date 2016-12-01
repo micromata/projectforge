@@ -84,7 +84,7 @@ public class VacationViewHelper
     BigDecimal planedVacation = vacationService.getPlanedVacationdaysForYear(currentEmployee, now.get(Calendar.YEAR));
     appendFieldset(gridBuilder, "vacation.planedvacation", planedVacation.toString());
     BigDecimal subtotal3 = subtotal2.subtract(planedVacation);
-    appendFieldset(gridBuilder, "vacation.availablevacation", subtotal2.toString());
+    appendFieldset(gridBuilder, "vacation.availablevacation", subtotal3.toString());
 
     appendFieldset(gridBuilder, "vacation.isSpecialPlaned",
         vacationService.getSpezialVacationCount(currentEmployee, now.get(Calendar.YEAR), VacationStatus.IN_PROGRESS).toString());
