@@ -465,8 +465,14 @@ public class TeamEventConverter
 
     final List<VAlarm> alarms = event.getAlarms();
     if (alarms != null && alarms.size() >= 1) {
-      final Dur dur = alarms.get(0).getTrigger().getDuration();
-      if (dur != null) { // Might be null.
+      final VAlarm alarm = alarms.get(0);
+      final Dur dur = alarm.getTrigger().getDuration();
+      if (alarm.getAction() != null && dur != null) {
+        if (Action.AUDIO.equals(alarm.getAction())) {
+          teamEvent.setReminderActionType(ReminderActionType.MESSAGE_SOUND);
+        } else {
+          teamEvent.setReminderActionType(ReminderActionType.MESSAGE);
+        }
         // consider weeks
         int weeksToDays = 0;
         if (dur.getWeeks() != 0) {
@@ -481,15 +487,24 @@ public class TeamEventConverter
         } else if (dur.getMinutes() != 0) {
           teamEvent.setReminderDuration(dur.getMinutes());
           teamEvent.setReminderDurationUnit(ReminderDurationUnit.MINUTES);
+        } else {
+          teamEvent.setReminderDuration(15);
+          teamEvent.setReminderDurationUnit(ReminderDurationUnit.MINUTES);
         }
       }
     }
+
     final RRule rule = (RRule) event.getProperty(Property.RRULE);
-    if (rule != null) {
+    if (rule != null)
+
+    {
       teamEvent.setRecurrenceRule(rule.getValue());
     }
+
     final ExDate exDate = (ExDate) event.getProperty(Property.EXDATE);
-    if (exDate != null) {
+    if (exDate != null)
+
+    {
       teamEvent.setRecurrenceExDate(exDate.getValue());
     }
     return teamEvent;
