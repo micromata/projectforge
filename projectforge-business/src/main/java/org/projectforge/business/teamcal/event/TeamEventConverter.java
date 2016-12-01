@@ -23,46 +23,81 @@
 
 package org.projectforge.business.teamcal.event;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.net.URI;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.Date;
 import java.util.List;
 
+import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang.StringUtils;
+import org.projectforge.business.configuration.ConfigurationService;
+import org.projectforge.business.converter.DOConverter;
 import org.projectforge.business.teamcal.TeamCalConfig;
+import org.projectforge.business.teamcal.event.model.ReminderActionType;
 import org.projectforge.business.teamcal.event.model.ReminderDurationUnit;
 import org.projectforge.business.teamcal.event.model.TeamEvent;
+import org.projectforge.business.teamcal.event.model.TeamEventAttendeeDO;
 import org.projectforge.business.teamcal.event.model.TeamEventDO;
 import org.projectforge.framework.calendar.ICal4JUtils;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.time.DateHelper;
+import org.projectforge.framework.time.DateHolder;
 import org.projectforge.framework.time.RecurrenceFrequency;
+import org.projectforge.model.rest.CalendarEventObject;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
+import net.fortuna.ical4j.data.CalendarOutputter;
 import net.fortuna.ical4j.model.Component;
+import net.fortuna.ical4j.model.Date;
 import net.fortuna.ical4j.model.DateList;
+import net.fortuna.ical4j.model.DateTime;
 import net.fortuna.ical4j.model.Dur;
 import net.fortuna.ical4j.model.Property;
 import net.fortuna.ical4j.model.Recur;
 import net.fortuna.ical4j.model.TimeZone;
+import net.fortuna.ical4j.model.TimeZoneRegistry;
+import net.fortuna.ical4j.model.TimeZoneRegistryFactory;
+import net.fortuna.ical4j.model.ValidationException;
 import net.fortuna.ical4j.model.component.CalendarComponent;
 import net.fortuna.ical4j.model.component.VAlarm;
 import net.fortuna.ical4j.model.component.VEvent;
+import net.fortuna.ical4j.model.parameter.Role;
+import net.fortuna.ical4j.model.parameter.Rsvp;
 import net.fortuna.ical4j.model.parameter.Value;
+import net.fortuna.ical4j.model.property.Action;
+import net.fortuna.ical4j.model.property.Attendee;
+import net.fortuna.ical4j.model.property.CalScale;
+import net.fortuna.ical4j.model.property.Description;
 import net.fortuna.ical4j.model.property.DtEnd;
 import net.fortuna.ical4j.model.property.DtStart;
+import net.fortuna.ical4j.model.property.Duration;
 import net.fortuna.ical4j.model.property.ExDate;
+import net.fortuna.ical4j.model.property.Location;
+import net.fortuna.ical4j.model.property.ProdId;
 import net.fortuna.ical4j.model.property.RRule;
+import net.fortuna.ical4j.model.property.Repeat;
+import net.fortuna.ical4j.model.property.Uid;
+import net.fortuna.ical4j.model.property.Version;
 
 /**
+ * For conversion of TeamEvent to CalendarEventObject.
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-public class TeamEventUtils
+@Service
+public class TeamEventConverter
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(TeamEventUtils.class);
+  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(TeamEventConverter.class);
+
+  @Autowired
+  private ConfigurationService configService;
 
   private static final RecurrenceFrequency[] SUPPORTED_FREQUENCIES = new RecurrenceFrequency[] {
       RecurrenceFrequency.NONE,
@@ -70,6 +105,165 @@ public class TeamEventUtils
 
   // needed to convert weeks into days
   private static final int DURATION_OF_WEEK = 7;
+
+  public CalendarEventObject getEventObject(final TeamEvent src, boolean generateICS)
+  {
+    if (src == null) {
+      return null;
+    }
+    final CalendarEventObject event = new CalendarEventObject();
+    event.setUid(src.getUid());
+    event.setStartDate(src.getStartDate());
+    event.setEndDate(src.getEndDate());
+    event.setLocation(src.getLocation());
+    event.setNote(src.getNote());
+    event.setSubject(src.getSubject());
+    if (src instanceof TeamEventDO) {
+      copyFields(event, (TeamEventDO) src);
+    } else if (src instanceof TeamRecurrenceEvent) {
+      final TeamEventDO master = ((TeamRecurrenceEvent) src).getMaster();
+      if (master != null) {
+        copyFields(event, master);
+      }
+    }
+    if (generateICS) {
+      event.setIcsData(Base64.encodeBase64String(getIcsFileForTeamEvent(src).toByteArray()));
+    }
+    return event;
+  }
+
+  public CalendarEventObject getEventObject(final TeamEventDO src, boolean generateICS)
+  {
+    if (src == null) {
+      return null;
+    }
+    final CalendarEventObject event = new CalendarEventObject();
+    event.setUid(src.getUid());
+    event.setStartDate(src.getStartDate());
+    event.setEndDate(src.getEndDate());
+    event.setLocation(src.getLocation());
+    event.setNote(src.getNote());
+    event.setSubject(src.getSubject());
+    copyFields(event, src);
+    if (generateICS) {
+      event.setIcsData(Base64.encodeBase64String(getIcsFile(src).toByteArray()));
+    }
+    return event;
+  }
+
+  public ByteArrayOutputStream getIcsFile(TeamEventDO data)
+  {
+    ByteArrayOutputStream baos = null;
+
+    try {
+      baos = new ByteArrayOutputStream();
+
+      net.fortuna.ical4j.model.Calendar cal = new net.fortuna.ical4j.model.Calendar();
+      cal.getProperties().add(new ProdId("-//ProjectForge//iCal4j 1.0//EN"));
+      cal.getProperties().add(Version.VERSION_2_0);
+      cal.getProperties().add(CalScale.GREGORIAN);
+
+      TimeZoneRegistry registry = TimeZoneRegistryFactory.getInstance().createRegistry();
+      TimeZone timezone = registry.getTimeZone(configService.getTimezone().getID());
+
+      VEvent event = null;
+      if (data.isAllDay() == false) {
+        DateTime start = new net.fortuna.ical4j.model.DateTime(data.getStartDate().getTime());
+        start.setTimeZone(timezone);
+        DateTime stop = new net.fortuna.ical4j.model.DateTime(data.getEndDate().getTime());
+        stop.setTimeZone(timezone);
+        event = new VEvent(start, stop, data.getSubject());
+      } else {
+        Date start = new net.fortuna.ical4j.model.Date(data.getStartDate().getTime());
+        Date stop = new net.fortuna.ical4j.model.Date(data.getEndDate().getTime());
+        event = new VEvent(start, stop, data.getSubject());
+        //        event.getProperties().getProperty(Property.DTSTART).getParameters().add(Value.DATE);
+        //        event.getProperties().getProperty(Property.DTEND).getParameters().add(Value.DATE);
+      }
+
+      event.getProperties().add(new Description(data.getNote()));
+      event.getProperties().add(new Location(data.getLocation()));
+
+      if (data.getRecurrenceRuleObject() != null) {
+        RRule rule = data.getRecurrenceRuleObject();
+        event.getProperties().add(rule);
+      }
+
+      Uid uid = new Uid(data.getUid());
+      event.getProperties().add(uid);
+
+      cal.getComponents().add(event);
+
+      if (data.getReminderActionType() != null && data.getReminderDurationUnit() != null) {
+        VAlarm alarm = null;
+        Dur dur = null;
+        switch (data.getReminderDurationUnit()) {
+          case DAYS:
+            dur = new Dur(data.getReminderDuration() * -1, 0, 0, 0);
+            alarm = new VAlarm(dur);
+            break;
+          case HOURS:
+            dur = new Dur(0, data.getReminderDuration() * -1, 0, 0);
+            alarm = new VAlarm(dur);
+            break;
+          case MINUTES:
+            dur = new Dur(0, 0, data.getReminderDuration() * -1, 0);
+            alarm = new VAlarm(dur);
+            break;
+          default:
+            log.info("No valid reminder duration unit.");
+
+        }
+        if (alarm != null) {
+          if (data.getReminderActionType().equals(ReminderActionType.MESSAGE)) {
+            alarm.getProperties().add(Action.DISPLAY);
+          } else if (data.getReminderActionType().equals(ReminderActionType.MESSAGE_SOUND)) {
+            alarm.getProperties().add(Action.AUDIO);
+          }
+          alarm.getProperties().add(new Repeat(1));
+          alarm.getProperties().add(new Duration(dur));
+          event.getAlarms().add(alarm);
+        }
+
+        if (data.getAttendees() != null) {
+          for (TeamEventAttendeeDO a : data.getAttendees()) {
+            String email = "mailto:";
+            if (a.getAddress() != null) {
+              email = email + a.getAddress().getEmail();
+            } else {
+              email = email + a.getUrl();
+            }
+            Attendee attendee = new Attendee(URI.create(email));
+            attendee.getParameters().add(Role.REQ_PARTICIPANT);//required participants.
+            attendee.getParameters().add(Rsvp.FALSE);//to get the status request from the attendees
+            event.getProperties().add(attendee);
+          }
+        }
+
+      }
+
+      CalendarOutputter outputter = new CalendarOutputter();
+      //      outputter.setValidating(false);
+      outputter.output(cal, baos);
+    } catch (IOException | ValidationException e) {
+      log.error("Error while exporting calendar event. " + e.getMessage());
+      return null;
+    }
+    return baos;
+  }
+
+  public ByteArrayOutputStream getIcsFileForTeamEvent(TeamEvent data)
+  {
+    TeamEventDO eventDO = new TeamEventDO();
+    eventDO.setEndDate(new Timestamp(data.getEndDate().getTime()));
+    eventDO.setLocation(data.getLocation());
+    eventDO.setNote(data.getNote());
+    eventDO.setStartDate(new Timestamp(data.getStartDate().getTime()));
+    eventDO.setSubject(data.getSubject());
+    eventDO.setUid(data.getUid());
+    eventDO.setAllDay(data.isAllDay());
+    return getIcsFile(eventDO);
+  }
 
   public static VEvent createVEvent(final TeamEventDO eventDO, final TimeZone timezone)
   {
@@ -103,7 +297,7 @@ public class TeamEventUtils
     return rrule.getValue();
   }
 
-  public static Collection<TeamEvent> getRecurrenceEvents(final Date startDate, final Date endDate,
+  public static Collection<TeamEvent> getRecurrenceEvents(final java.util.Date startDate, final java.util.Date endDate,
       final TeamEventDO event,
       final java.util.TimeZone timeZone)
   {
@@ -119,7 +313,7 @@ public class TeamEventUtils
     final String eventStartDateString = event.isAllDay() == true
         ? DateHelper.formatIsoDate(event.getStartDate(), timeZone) : DateHelper
         .formatIsoTimestamp(event.getStartDate(), DateHelper.UTC);
-    Date eventStartDate = event.getStartDate();
+    java.util.Date eventStartDate = event.getStartDate();
     if (event.isAllDay() == true) {
       // eventStartDate should be midnight in user's time zone.
       eventStartDate = DateHelper.parseIsoDate(eventStartDateString, timeZone);
@@ -152,7 +346,7 @@ public class TeamEventUtils
           + seedDate);
       return null;
     }
-    final List<net.fortuna.ical4j.model.Date> exDates = ICal4JUtils.parseISODateStringsAsICal4jDates(
+    final List<Date> exDates = ICal4JUtils.parseISODateStringsAsICal4jDates(
         event.getRecurrenceExDate(),
         ical4jTimeZone);
     final DateList dateList = recur.getDates(seedDate, ical4jStartDate, ical4jEndDate, Value.DATE_TIME);
@@ -268,7 +462,7 @@ public class TeamEventUtils
     if (event.getOrganizer() != null) {
       teamEvent.setOrganizer(event.getOrganizer().getValue());
     }
-    @SuppressWarnings("unchecked")
+
     final List<VAlarm> alarms = event.getAlarms();
     if (alarms != null && alarms.size() >= 1) {
       final Dur dur = alarms.get(0).getTrigger().getDuration();
@@ -347,8 +541,8 @@ public class TeamEventUtils
     {
       public int compare(final TeamEventDO o1, final TeamEventDO o2)
       {
-        final Date startDate1 = o1.getStartDate();
-        final Date startDate2 = o2.getStartDate();
+        final java.util.Date startDate1 = o1.getStartDate();
+        final java.util.Date startDate2 = o2.getStartDate();
         if (startDate1 == null) {
           if (startDate2 == null) {
             return 0;
@@ -361,5 +555,34 @@ public class TeamEventUtils
       ;
     });
     return events;
+  }
+
+  private void copyFields(final CalendarEventObject event, final TeamEventDO src)
+  {
+    event.setCalendarId(src.getCalendarId());
+    event.setRecurrenceRule(src.getRecurrenceRule());
+    event.setRecurrenceExDate(src.getRecurrenceExDate());
+    event.setRecurrenceUntil(src.getRecurrenceUntil());
+    DOConverter.copyFields(event, src);
+    if (src.getReminderActionType() != null && src.getReminderDuration() != null
+        && src.getReminderDurationUnit() != null) {
+      event.setReminderType(src.getReminderActionType().toString());
+      event.setReminderDuration(src.getReminderDuration());
+      final ReminderDurationUnit unit = src.getReminderDurationUnit();
+      event.setReminderUnit(unit.toString());
+      final DateHolder date = new DateHolder(src.getStartDate());
+      if (unit == ReminderDurationUnit.MINUTES) {
+        date.add(Calendar.MINUTE, -src.getReminderDuration());
+        event.setReminder(date.getDate());
+      } else if (unit == ReminderDurationUnit.HOURS) {
+        date.add(Calendar.HOUR, -src.getReminderDuration());
+        event.setReminder(date.getDate());
+      } else if (unit == ReminderDurationUnit.DAYS) {
+        date.add(Calendar.DAY_OF_YEAR, -src.getReminderDuration());
+        event.setReminder(date.getDate());
+      } else {
+        log.warn("ReminderDurationUnit '" + src.getReminderDurationUnit() + "' not yet implemented.");
+      }
+    }
   }
 }

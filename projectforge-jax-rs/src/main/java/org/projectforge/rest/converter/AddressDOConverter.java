@@ -29,6 +29,7 @@ import java.io.StringWriter;
 import org.apache.commons.codec.binary.Base64;
 import org.projectforge.business.address.AddressDO;
 import org.projectforge.business.address.AddressDao;
+import org.projectforge.business.converter.DOConverter;
 import org.projectforge.model.rest.AddressObject;
 
 /**

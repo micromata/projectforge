@@ -24,10 +24,10 @@
 package org.projectforge.web.rest.converter;
 
 import org.hibernate.Hibernate;
+import org.projectforge.business.converter.DOConverter;
 import org.projectforge.business.task.TaskDO;
 import org.projectforge.business.tasktree.TaskTreeHelper;
 import org.projectforge.model.rest.TaskObject;
-import org.projectforge.rest.converter.DOConverter;
 import org.springframework.stereotype.Service;
 
 /**

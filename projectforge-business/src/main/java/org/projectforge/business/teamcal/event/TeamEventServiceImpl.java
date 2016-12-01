@@ -14,7 +14,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.projectforge.business.address.AddressDO;
 import org.projectforge.business.address.AddressDao;
 import org.projectforge.business.configuration.ConfigurationService;
-import org.projectforge.business.teamcal.ICSGenerator;
 import org.projectforge.business.teamcal.event.model.TeamEventAttendeeDO;
 import org.projectforge.business.teamcal.event.model.TeamEventAttendeeDao;
 import org.projectforge.business.teamcal.event.model.TeamEventAttendeeStatus;
@@ -47,7 +46,7 @@ public class TeamEventServiceImpl implements TeamEventService
   private SendMail sendMail;
 
   @Autowired
-  private ICSGenerator icsGenerator;
+  private TeamEventConverter teamEventConverter;
 
   @Autowired
   private UserService userService;
@@ -195,7 +194,7 @@ public class TeamEventServiceImpl implements TeamEventService
         data.getNote() != null ? data.getNote() : "",
         getResponseLinks(data, attendee));
     msg.setContent(content);
-    ByteArrayOutputStream icsFile = icsGenerator.getIcsFile(data);
+    ByteArrayOutputStream icsFile = teamEventConverter.getIcsFile(data);
     boolean result = false;
     try {
       result = sendMail.send(msg, icsFile.toString(StandardCharsets.UTF_8.name()), null);

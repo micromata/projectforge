@@ -28,8 +28,8 @@ import java.util.Collection;
 import java.util.List;
 
 import org.apache.commons.lang.Validate;
+import org.projectforge.business.teamcal.event.TeamEventConverter;
 import org.projectforge.business.teamcal.event.TeamEventDao;
-import org.projectforge.business.teamcal.event.TeamEventUtils;
 import org.projectforge.business.teamcal.event.model.TeamEventDO;
 import org.projectforge.framework.persistence.api.HibernateUtils;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
@@ -69,13 +69,13 @@ public class TeamCalImportDao
   public ImportStorage<TeamEventDO> importEvents(final Calendar calendar, final String filename,
       final ActionLog actionLog)
   {
-    final List<TeamEventDO> events = TeamEventUtils.getTeamEvents(calendar);
+    final List<TeamEventDO> events = TeamEventConverter.getTeamEvents(calendar);
     return importEvents(events, filename, actionLog);
   }
 
   public ImportStorage<TeamEventDO> importEvents(final List<VEvent> vEvents, final ActionLog actionLog)
   {
-    final List<TeamEventDO> events = TeamEventUtils.convert(vEvents);
+    final List<TeamEventDO> events = TeamEventConverter.convert(vEvents);
     return importEvents(events, "none", actionLog);
   }
 

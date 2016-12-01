@@ -23,12 +23,12 @@
 
 package org.projectforge.web.rest.converter;
 
+import org.projectforge.business.converter.DOConverter;
 import org.projectforge.business.timesheet.TimesheetDO;
 import org.projectforge.model.rest.Cost2Object;
 import org.projectforge.model.rest.TaskObject;
 import org.projectforge.model.rest.TimesheetObject;
 import org.projectforge.model.rest.UserObject;
-import org.projectforge.rest.converter.DOConverter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
