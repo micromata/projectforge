@@ -214,7 +214,7 @@ public class EmployeeServiceImpl extends CorePersistenceServiceImpl<Integer, Emp
   @Override
   public BigDecimal getMonthlySalary(EmployeeDO employee, Calendar selectedDate)
   {
-    final EmployeeTimedDO attribute = timeableService.getAttrRowForSameMonth(employee, "annuity", selectedDate.getTime());
+    final EmployeeTimedDO attribute = timeableService.getAttrRowValidAtDate(employee, "annuity", selectedDate.getTime());
     final BigDecimal annualSalary = attribute != null ? attribute.getAttribute("annuity", BigDecimal.class) : null;
     final BigDecimal weeklyWorkingHours = employee.getWeeklyWorkingHours();
 

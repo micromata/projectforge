@@ -1062,12 +1062,17 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
     onDelete(obj);
     final O dbObj = hibernateTemplate.load(clazz, obj.getId(), LockMode.PESSIMISTIC_WRITE);
     onSaveOrModify(obj);
-    BaseDaoJpaAdapter.beforeUpdateCopyMarkDelete(dbObj, obj);
-    copyValues(obj, dbObj, "deleted"); // If user has made additional changes.
-    dbObj.setDeleted(true);
-    dbObj.setLastUpdate();
-    flushSession();
-    flushSearchSession();
+
+    HistoryBaseDaoAdapter.wrappHistoryUpdate(dbObj, () -> {
+      BaseDaoJpaAdapter.beforeUpdateCopyMarkDelete(dbObj, obj);
+      copyValues(obj, dbObj, "deleted"); // If user has made additional changes.
+      dbObj.setDeleted(true);
+      dbObj.setLastUpdate();
+      flushSession();
+      flushSearchSession();
+      return null;
+    });
+
     afterSaveOrModify(obj);
     afterDelete(obj);
     flushSession();
@@ -1148,19 +1153,23 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
   public void internalUndelete(final O obj)
   {
     final O dbObj = hibernateTemplate.load(clazz, obj.getId(), LockMode.PESSIMISTIC_WRITE);
-
     onSaveOrModify(obj);
-    BaseDaoJpaAdapter.beforeUpdateCopyMarkUnDelete(dbObj, obj);
-    copyValues(obj, dbObj, "deleted"); // If user has made additional changes.
-    dbObj.setDeleted(false);
-    obj.setDeleted(false);
-    dbObj.setLastUpdate();
-    obj.setLastUpdate(dbObj.getLastUpdate());
-    log.info("Object undeleted: " + dbObj.toString());
-    flushSession();
-    flushSearchSession();
+
+    HistoryBaseDaoAdapter.wrappHistoryUpdate(dbObj, () -> {
+      BaseDaoJpaAdapter.beforeUpdateCopyMarkUnDelete(dbObj, obj);
+      copyValues(obj, dbObj, "deleted"); // If user has made additional changes.
+      dbObj.setDeleted(false);
+      obj.setDeleted(false);
+      dbObj.setLastUpdate();
+      obj.setLastUpdate(dbObj.getLastUpdate());
+      flushSession();
+      flushSearchSession();
+      return null;
+    });
+
     afterSaveOrModify(obj);
     afterUndelete(obj);
+    log.info("Object undeleted: " + dbObj.toString());
   }
 
   protected void checkPartOfCurrentTenant(final O obj, final OperationType operationType)
