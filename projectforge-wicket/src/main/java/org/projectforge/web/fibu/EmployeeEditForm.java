@@ -262,7 +262,10 @@ public class EmployeeEditForm extends AbstractEditForm<EmployeeDO, EmployeeEditP
     {
       // Holidays
       final FieldsetPanel fs = gridBuilder.newFieldset(EmployeeDO.class, "urlaubstage");
-      fs.add(new MinMaxNumberField<>(InputPanel.WICKET_ID, new PropertyModel<>(data, "urlaubstage"), 0, 366).setRequired(true));
+      MinMaxNumberField<Integer> fieldHolidays = new MinMaxNumberField<>(InputPanel.WICKET_ID, new PropertyModel<>(data, "urlaubstage"), 0, 366);
+      fieldHolidays.setRequired(true);
+      fieldHolidays.setMarkupId("urlaubstage").setOutputMarkupId(true);
+      fs.add(fieldHolidays);
     }
     {
       EmployeeVacationFormValidator validator = new EmployeeVacationFormValidator();
@@ -337,7 +340,7 @@ public class EmployeeEditForm extends AbstractEditForm<EmployeeDO, EmployeeEditP
 
     if (isNew() == false && data.getUrlaubstage() != null && accessChecker
         .hasLoggedInUserReadAccess(UserRightId.HR_VACATION, false)) {
-      GridBuilder vacationGridBuilder = tabPanel.getOrCreateTab("vacation"); // create the default tab
+      GridBuilder vacationGridBuilder = tabPanel.getOrCreateTab("vacation");
       vacationViewHelper.createVacationView(vacationGridBuilder, data, accessChecker
           .hasLoggedInUserWriteAccess(UserRightId.HR_VACATION, false));
     }
