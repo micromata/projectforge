@@ -82,7 +82,7 @@ public class AttendeeWicketProvider extends TextChoiceProvider<TeamEventAttendee
     String name = "";
     if (choice.getAddress() != null) {
       if (choice.getUser() != null) {
-        name = "[" + I18nHelper.getLocalizedMessage("user") + "] " + choice.getAddress().getFullName();
+        name = "[" + I18nHelper.getLocalizedMessage("user") + "] " + choice.getUser().getFullname();
       } else {
         name = "[" + I18nHelper.getLocalizedMessage("address.addressText") + "] " + choice.getAddress().getFullName();
       }
@@ -145,7 +145,7 @@ public class AttendeeWicketProvider extends TextChoiceProvider<TeamEventAttendee
       }
       if ((attendee.getAddress() != null
           && Stream.of(splitTerm)
-              .allMatch(streamTerm -> attendee.getAddress().getFullName().toLowerCase().contains(streamTerm)))
+          .allMatch(streamTerm -> attendee.getAddress().getFullName().toLowerCase().contains(streamTerm)))
           || (attendee.getUrl() != null && attendee.getUrl().toLowerCase().contains(term) == true)) {
         matched++;
         if (matched > offset) {

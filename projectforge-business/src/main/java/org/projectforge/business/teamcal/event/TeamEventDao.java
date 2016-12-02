@@ -51,7 +51,6 @@ import org.projectforge.business.teamcal.event.model.TeamEvent;
 import org.projectforge.business.teamcal.event.model.TeamEventAttendeeDO;
 import org.projectforge.business.teamcal.event.model.TeamEventDO;
 import org.projectforge.business.teamcal.externalsubscription.TeamEventExternalSubscriptionCache;
-import org.projectforge.business.teamcal.service.TeamCalService;
 import org.projectforge.business.user.UserRightId;
 import org.projectforge.framework.calendar.CalendarUtils;
 import org.projectforge.framework.calendar.ICal4JUtils;
@@ -100,15 +99,23 @@ public class TeamEventDao extends BaseDao<TeamEventDO>
   private TeamEventExternalSubscriptionCache teamEventExternalSubscriptionCache;
 
   @Autowired
-  private TeamCalService teamCalService;
-
-  @Autowired
   private PfEmgrFactory emgrFac;
 
   public TeamEventDao()
   {
     super(TeamEventDO.class);
     userRightId = UserRightId.PLUGIN_CALENDAR_EVENT;
+  }
+
+  public List<Integer> getCalIdList(final Collection<TeamCalDO> teamCals)
+  {
+    final List<Integer> list = new ArrayList<>();
+    if (teamCals != null) {
+      for (final TeamCalDO cal : teamCals) {
+        list.add(cal.getId());
+      }
+    }
+    return list;
   }
 
   @Override
@@ -250,7 +257,7 @@ public class TeamEventDao extends BaseDao<TeamEventDO>
       // No calendars accessible, nothing to search.
       return new ArrayList<TeamEventDO>();
     }
-    teamEventFilter.setTeamCals(teamCalService.getCalIdList(allAccessibleCalendars));
+    teamEventFilter.setTeamCals(getCalIdList(allAccessibleCalendars));
     return getList(teamEventFilter);
   }
 
