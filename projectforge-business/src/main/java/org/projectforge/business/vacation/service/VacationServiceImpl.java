@@ -412,9 +412,14 @@ public class VacationServiceImpl extends CorePersistenceServiceImpl<Integer, Vac
   }
 
   @Override
-  public BigDecimal getSpezialVacationCount(EmployeeDO employee, int year, VacationStatus status)
+  public int getSpecialVacationCount(EmployeeDO employee, int year, VacationStatus status)
   {
-    return vacationDao.getSpecialVacationCount(employee, year, status);
+    return vacationDao
+        .getSpecialVacation(employee, year, status)
+        .stream()
+        .map(VacationDO::getWorkingdays)
+        .mapToInt(BigDecimal::intValue)
+        .sum();
   }
 
   @Override

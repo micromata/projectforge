@@ -26,6 +26,7 @@ package org.projectforge.business.vacation.repository;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.List;
@@ -173,21 +174,16 @@ public class VacationDao extends BaseDao<VacationDO>
     return result;
   }
 
-  public BigDecimal getSpecialVacationCount(EmployeeDO employee, int year, VacationStatus status)
+  public List<VacationDO> getSpecialVacation(EmployeeDO employee, int year, VacationStatus status)
   {
-    BigDecimal result = BigDecimal.ZERO;
-    Calendar startYear = new GregorianCalendar(year, Calendar.JANUARY, 1);
-    Calendar endYear = new GregorianCalendar(year, Calendar.DECEMBER, 31);
-    List<VacationDO> resultList = emgrFactory.runRoTrans(emgr -> {
-      String baseSQL = "SELECT v FROM VacationDO v WHERE v.employee = :employee AND v.startDate >= :startDate AND v.startDate <= :endDate AND v.status = :status";
-      List<VacationDO> dbResultList = emgr
+    final Calendar startYear = new GregorianCalendar(year, Calendar.JANUARY, 1);
+    final Calendar endYear = new GregorianCalendar(year, Calendar.DECEMBER, 31);
+    final List<VacationDO> resultList = emgrFactory.runRoTrans(emgr -> {
+      final String baseSQL = "SELECT v FROM VacationDO v WHERE v.employee = :employee AND v.startDate >= :startDate AND v.startDate <= :endDate AND v.status = :status AND v.isSpecial = :isSpecial";
+      return emgr
           .selectDetached(VacationDO.class, baseSQL + META_SQL_WITH_SPECIAL, "employee", employee, "startDate", startYear.getTime(), "endDate",
-              endYear.getTime(), "status", status, "deleted", false, "tenant", ThreadLocalUserContext.getUser().getTenant());
-      return dbResultList;
+              endYear.getTime(), "status", status, "isSpecial", true, "deleted", false, "tenant", ThreadLocalUserContext.getUser().getTenant());
     });
-    if (resultList != null) {
-      result = new BigDecimal(resultList.size());
-    }
-    return result;
+    return resultList != null ? resultList : Collections.emptyList();
   }
 }

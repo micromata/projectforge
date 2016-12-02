@@ -8,7 +8,6 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
-import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -198,16 +197,15 @@ public class EmployeeServiceImpl extends CorePersistenceServiceImpl<Integer, Emp
   public void rebuildDatabaseIndex()
   {
     employeeDao.rebuildDatabaseIndex();
-
   }
 
   @Override
-  public boolean isEmployeeActive(EmployeeDO employee)
+  public boolean isEmployeeActive(final EmployeeDO employee)
   {
-    Calendar now = Calendar.getInstance();
     if (employee.getAustrittsDatum() == null) {
       return true;
     }
+    final Calendar now = Calendar.getInstance();
     return now.before(employee.getAustrittsDatum());
   }
 
@@ -229,22 +227,22 @@ public class EmployeeServiceImpl extends CorePersistenceServiceImpl<Integer, Emp
 
     return null;
   }
-  
+
   @Override
-  public List<EmployeeDO> findAllActive(boolean checkAccess)
+  public List<EmployeeDO> findAllActive(final boolean checkAccess)
   {
-    Collection<EmployeeDO> employeeList = new ArrayList<>();
+    final Collection<EmployeeDO> employeeList;
     if (checkAccess) {
       employeeList = employeeDao.getList(new EmployeeFilter());
     } else {
       employeeList = employeeDao.internalLoadAll();
     }
     return employeeList.stream()
-        .filter(emp -> emp.getAustrittsDatum() == null || emp.getAustrittsDatum().after(new Date()))
+        .filter(this::isEmployeeActive)
         .collect(Collectors.toList());
   }
-  
-    @Override
+
+  @Override
   public EmployeeDO getEmployeeByStaffnumber(String staffnumber)
   {
     return employeeDao.getEmployeeByStaffnumber(staffnumber);

@@ -196,5 +196,5 @@ public interface VacationService extends IPersistenceService<VacationDO>, IDao<V
    * @param status
    * @return
    */
-  BigDecimal getSpezialVacationCount(EmployeeDO employee, int year, VacationStatus status);
+  int getSpecialVacationCount(EmployeeDO employee, int year, VacationStatus status);
 }

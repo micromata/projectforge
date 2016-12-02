@@ -57,7 +57,7 @@ public class VacationViewHelper
   public void createVacationView(GridBuilder gridBuilder, EmployeeDO currentEmployee, boolean showAddButton)
   {
     final Calendar now = new GregorianCalendar(ThreadLocalUserContext.getTimeZone());
-    GridBuilder sectionLeftGridBuilder = gridBuilder.newSplitPanel(GridSize.COL25);
+    GridBuilder sectionLeftGridBuilder = gridBuilder.newSplitPanel(GridSize.COL33);
     DivPanel sectionLeft = sectionLeftGridBuilder.getPanel();
     sectionLeft.add(new Heading1Panel(sectionLeft.newChildId(), I18nHelper.getLocalizedMessage("menu.vacation.leaveaccount")));
 
@@ -88,13 +88,13 @@ public class VacationViewHelper
     BigDecimal subtotal3 = subtotal2.subtract(planedVacation);
     appendFieldset(sectionLeftGridBuilder, "vacation.availablevacation", subtotal3.toString());
 
-    GridBuilder sectionRightGridBuilder = gridBuilder.newSplitPanel(GridSize.COL25);
+    GridBuilder sectionRightGridBuilder = gridBuilder.newSplitPanel(GridSize.COL33);
     DivPanel sectionRight = sectionRightGridBuilder.getPanel();
     sectionRight.add(new Heading1Panel(sectionRight.newChildId(), I18nHelper.getLocalizedMessage("vacation.isSpecial")));
     appendFieldset(sectionRightGridBuilder, "vacation.isSpecialPlaned",
-        vacationService.getSpezialVacationCount(currentEmployee, now.get(Calendar.YEAR), VacationStatus.IN_PROGRESS).toString());
+        String.valueOf(vacationService.getSpecialVacationCount(currentEmployee, now.get(Calendar.YEAR), VacationStatus.IN_PROGRESS)));
     appendFieldset(sectionRightGridBuilder, "vacation.isSpecialApproved",
-        vacationService.getSpezialVacationCount(currentEmployee, now.get(Calendar.YEAR), VacationStatus.APPROVED).toString());
+        String.valueOf(vacationService.getSpecialVacationCount(currentEmployee, now.get(Calendar.YEAR), VacationStatus.APPROVED)));
 
     GridBuilder sectionBottomGridBuilder = gridBuilder.newSplitPanel(GridSize.COL100);
     DivPanel sectionBottom = sectionBottomGridBuilder.getPanel();
