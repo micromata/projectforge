@@ -218,16 +218,20 @@ public class TeamEventEditForm extends AbstractEditForm<TeamEventDO, TeamEventEd
       // ATTENDEE
       final FieldsetPanel fieldSet = gridBuilder.newFieldset(getString("plugins.teamcal.attendees"));
 
-      final Collection<Integer> set = teamEventService.getAssignedAttendeeIds(data);
-      assignAttendeesListHelper = new MultiChoiceListHelper<TeamEventAttendeeDO>()
-          .setComparator(new AttendeeComparator()).setFullList(
-              teamEventService.getAddressesAndUserAsAttendee());
-      if (set != null) {
-        for (final Integer attendeeId : set) {
-          final TeamEventAttendeeDO attendee = teamEventService.getAttendee(attendeeId);
-          if (attendee != null) {
-            assignAttendeesListHelper.addOriginalAssignedItem(attendee).assignItem(attendee);
+      List<TeamEventAttendeeDO> fullAttendeeList = teamEventService.getAddressesAndUserAsAttendee();
+      if (data.getAttendees() != null && data.getAttendees().size() > 0) {
+        for (TeamEventAttendeeDO dataAttendee : data.getAttendees()) {
+          //Attendee come over ics import / caldav interface
+          if (dataAttendee.getId() <= -10000) {
+            fullAttendeeList.add(dataAttendee);
           }
+        }
+      }
+      assignAttendeesListHelper = new MultiChoiceListHelper<TeamEventAttendeeDO>()
+          .setComparator(new AttendeeComparator()).setFullList(fullAttendeeList);
+      if (data.getAttendees() != null) {
+        for (final TeamEventAttendeeDO attendee : data.getAttendees()) {
+          assignAttendeesListHelper.addOriginalAssignedItem(attendee).assignItem(attendee);
         }
       }
 

@@ -501,6 +501,7 @@ public class TeamEventConverter
 
     final PropertyList eventAttendees = event.getProperties(Attendee.ATTENDEE);
     if (eventAttendees != null && eventAttendees.size() > 0) {
+      Integer internalNewAttendeeSequence = -10000;
       List<TeamEventAttendeeDO> attendeesFromDbList = teamEventService.getAddressesAndUserAsAttendee();
       for (int i = 0; i < eventAttendees.size(); i++) {
         Attendee attendee = (Attendee) eventAttendees.get(0);
@@ -513,11 +514,15 @@ public class TeamEventConverter
           for (TeamEventAttendeeDO dBAttendee : attendeesFromDbList) {
             if (dBAttendee.getAddress().getEmail().equals(email)) {
               foundAttendee = dBAttendee;
+              foundAttendee.setId(internalNewAttendeeSequence);
+              internalNewAttendeeSequence--;
             }
           }
           if (foundAttendee == null) {
             foundAttendee = new TeamEventAttendeeDO().setUrl(email);
             foundAttendee.setStatus(TeamEventAttendeeStatus.NEW);
+            foundAttendee.setId(internalNewAttendeeSequence);
+            internalNewAttendeeSequence--;
           }
           teamEvent.addAttendee(foundAttendee);
         }

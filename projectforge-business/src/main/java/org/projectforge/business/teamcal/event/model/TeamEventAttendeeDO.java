@@ -92,7 +92,7 @@ public class TeamEventAttendeeDO extends DefaultBaseDO implements Comparable<Tea
 
   /**
    * Is set if the attendee is a ProjectForge user.
-   * 
+   *
    * @return the userId
    */
   @ManyToOne(fetch = FetchType.LAZY)
@@ -123,7 +123,7 @@ public class TeamEventAttendeeDO extends DefaultBaseDO implements Comparable<Tea
 
   /**
    * Is set if the attendee is a ProjectForge user.
-   * 
+   *
    * @return the userId
    */
   @ManyToOne(fetch = FetchType.EAGER)
@@ -154,7 +154,7 @@ public class TeamEventAttendeeDO extends DefaultBaseDO implements Comparable<Tea
 
   /**
    * Is used if the attendee isn't a ProjectForge user for authentication.
-   * 
+   *
    * @return the loginToken
    */
   @Column(name = "login_token", length = 255)
@@ -175,7 +175,7 @@ public class TeamEventAttendeeDO extends DefaultBaseDO implements Comparable<Tea
 
   /**
    * The url (mail) of the attendee. Isn't used if the attendee is a ProjectForge user.
-   * 
+   *
    * @return the url
    */
   @Column(length = URL_MAX_LENGTH)
@@ -329,6 +329,9 @@ public class TeamEventAttendeeDO extends DefaultBaseDO implements Comparable<Tea
   @Override
   public String toString()
   {
+    if (this.getUser() != null) {
+      return this.getUser().getFullname() + " (" + this.getUser().getEmail() + ")";
+    }
     if (this.getAddress() != null) {
       return this.getAddress().getFullName() + " (" + this.getAddress().getEmail() + ")";
     }
