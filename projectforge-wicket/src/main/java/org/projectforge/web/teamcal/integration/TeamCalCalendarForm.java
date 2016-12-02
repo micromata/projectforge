@@ -85,6 +85,9 @@ public class TeamCalCalendarForm extends CalendarForm
   @SpringBean
   transient AccessChecker accessChecker;
 
+  @SpringBean
+  transient TeamEventConverter teamEventConverter;
+
   @SuppressWarnings("unused")
   private TemplateEntry activeTemplate;
 
@@ -260,9 +263,9 @@ public class TeamCalCalendarForm extends CalendarForm
         }
         TeamEventDO teamEvent = null;
         if (dbEvent != null) {
-          teamEvent = TeamEventConverter.createTeamEventDO(event, ThreadLocalUserContext.getTimeZone(), false);
+          teamEvent = teamEventConverter.createTeamEventDO(event, ThreadLocalUserContext.getTimeZone(), false);
         } else {
-          teamEvent = TeamEventConverter.createTeamEventDO(event, ThreadLocalUserContext.getTimeZone(), true);
+          teamEvent = teamEventConverter.createTeamEventDO(event, ThreadLocalUserContext.getTimeZone(), true);
         }
         final TemplateEntry activeTemplateEntry = ((TeamCalCalendarFilter) filter).getActiveTemplateEntry();
         if (activeTemplateEntry != null && activeTemplateEntry.getDefaultCalendarId() != null) {

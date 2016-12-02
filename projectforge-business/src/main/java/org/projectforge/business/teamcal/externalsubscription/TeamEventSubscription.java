@@ -111,7 +111,7 @@ public class TeamEventSubscription implements Serializable
    * We update the cache softly, therefore we create a new instance and replace the old instance in the cached map then
    * creation and update is therefore the same two lines of code, but semantically different things.
    */
-  public void update(final TeamCalDao teamCalDao, final TeamCalDO teamCalDO)
+  public void update(final TeamCalDao teamCalDao, final TeamCalDO teamCalDO, final TeamEventConverter teamEventConverter)
   {
     this.teamCalId = teamCalDO.getId();
     currentInitializedHash = null;
@@ -206,7 +206,7 @@ public class TeamEventSubscription implements Serializable
       // the event id must (!) be negative and decrementing (different on each event)
       Integer startId = -1;
       for (final VEvent event : vEvents) {
-        final TeamEventDO teamEvent = TeamEventConverter.createTeamEventDO(event,
+        final TeamEventDO teamEvent = teamEventConverter.createTeamEventDO(event,
             TimeZone.getTimeZone(teamCalDO.getOwner().getTimeZone()));
         teamEvent.setId(startId);
         teamEvent.setCalendar(teamCalDO);

@@ -43,6 +43,7 @@ import org.projectforge.business.teamcal.event.model.ReminderActionType;
 import org.projectforge.business.teamcal.event.model.ReminderDurationUnit;
 import org.projectforge.business.teamcal.event.model.TeamEvent;
 import org.projectforge.business.teamcal.event.model.TeamEventAttendeeDO;
+import org.projectforge.business.teamcal.event.model.TeamEventAttendeeStatus;
 import org.projectforge.business.teamcal.event.model.TeamEventDO;
 import org.projectforge.framework.calendar.ICal4JUtils;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
@@ -60,6 +61,7 @@ import net.fortuna.ical4j.model.DateList;
 import net.fortuna.ical4j.model.DateTime;
 import net.fortuna.ical4j.model.Dur;
 import net.fortuna.ical4j.model.Property;
+import net.fortuna.ical4j.model.PropertyList;
 import net.fortuna.ical4j.model.Recur;
 import net.fortuna.ical4j.model.TimeZone;
 import net.fortuna.ical4j.model.TimeZoneRegistry;
@@ -98,6 +100,9 @@ public class TeamEventConverter
 
   @Autowired
   private ConfigurationService configService;
+
+  @Autowired
+  private TeamEventService teamEventService;
 
   private static final RecurrenceFrequency[] SUPPORTED_FREQUENCIES = new RecurrenceFrequency[] {
       RecurrenceFrequency.NONE,
@@ -411,17 +416,17 @@ public class TeamEventConverter
     return col;
   }
 
-  public static TeamEventDO createTeamEventDO(final VEvent event)
+  public TeamEventDO createTeamEventDO(final VEvent event)
   {
     return createTeamEventDO(event, ThreadLocalUserContext.getTimeZone(), true);
   }
 
-  public static TeamEventDO createTeamEventDO(final VEvent event, java.util.TimeZone timeZone)
+  public TeamEventDO createTeamEventDO(final VEvent event, java.util.TimeZone timeZone)
   {
     return createTeamEventDO(event, timeZone, true);
   }
 
-  public static TeamEventDO createTeamEventDO(final VEvent event, java.util.TimeZone timeZone, boolean withUid)
+  public TeamEventDO createTeamEventDO(final VEvent event, java.util.TimeZone timeZone, boolean withUid)
   {
     final TeamEventDO teamEvent = new TeamEventDO();
     teamEvent.setTimeZone(timeZone);
@@ -494,6 +499,31 @@ public class TeamEventConverter
       }
     }
 
+    final PropertyList eventAttendees = event.getProperties(Attendee.ATTENDEE);
+    if (eventAttendees != null && eventAttendees.size() > 0) {
+      List<TeamEventAttendeeDO> attendeesFromDbList = teamEventService.getAddressesAndUserAsAttendee();
+      for (int i = 0; i < eventAttendees.size(); i++) {
+        Attendee attendee = (Attendee) eventAttendees.get(0);
+        String email = null;
+        if (attendee.getParameter("EMAIL") != null) {
+          email = attendee.getParameter("EMAIL").getValue();
+        }
+        if (email != null) {
+          TeamEventAttendeeDO foundAttendee = null;
+          for (TeamEventAttendeeDO dBAttendee : attendeesFromDbList) {
+            if (dBAttendee.getAddress().getEmail().equals(email)) {
+              foundAttendee = dBAttendee;
+            }
+          }
+          if (foundAttendee == null) {
+            foundAttendee = new TeamEventAttendeeDO().setUrl(email);
+            foundAttendee.setStatus(TeamEventAttendeeStatus.NEW);
+          }
+          teamEvent.addAttendee(foundAttendee);
+        }
+      }
+    }
+
     final RRule rule = (RRule) event.getProperty(Property.RRULE);
     if (rule != null)
 
@@ -536,14 +566,14 @@ public class TeamEventConverter
     return events;
   }
 
-  public static List<TeamEventDO> getTeamEvents(final net.fortuna.ical4j.model.Calendar calendar)
+  public List<TeamEventDO> getTeamEvents(final net.fortuna.ical4j.model.Calendar calendar)
   {
     final List<VEvent> list = getVEvents(calendar);
     final List<TeamEventDO> events = convert(list);
     return events;
   }
 
-  public static List<TeamEventDO> convert(final List<VEvent> list)
+  public List<TeamEventDO> convert(final List<VEvent> list)
   {
     final List<TeamEventDO> events = new ArrayList<TeamEventDO>();
     if (list == null || list.size() == 0) {
