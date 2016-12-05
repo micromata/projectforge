@@ -26,6 +26,8 @@ package org.projectforge.web.teamcal.event;
 import java.io.ByteArrayOutputStream;
 import java.sql.Timestamp;
 import java.util.Date;
+import java.util.HashSet;
+import java.util.Set;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
@@ -39,6 +41,7 @@ import org.projectforge.business.teamcal.event.TeamEventDao;
 import org.projectforge.business.teamcal.event.TeamEventService;
 import org.projectforge.business.teamcal.event.TeamRecurrenceEvent;
 import org.projectforge.business.teamcal.event.model.TeamEvent;
+import org.projectforge.business.teamcal.event.model.TeamEventAttendeeDO;
 import org.projectforge.business.teamcal.event.model.TeamEventDO;
 import org.projectforge.business.timesheet.TimesheetDO;
 import org.projectforge.business.timesheet.TimesheetDao;
@@ -411,9 +414,30 @@ public class TeamEventEditPage extends AbstractEditPage<TeamEventDO, TeamEventEd
   protected void cloneData()
   {
     log.info("Clone of data chosen: " + getData());
-    this.form = newEditForm(this, getData().clone());
+    TeamEventDO teamEventClone = getData().clone();
+    Set<TeamEventAttendeeDO> originAssignedAttendees = new HashSet<>();
+    teamEventClone.getAttendees().forEach(attendee -> {
+      originAssignedAttendees.add(attendee);
+    });
+    teamEventClone.setAttendees(new HashSet<>());
+    this.form = newEditForm(this, teamEventClone);
     body.addOrReplace(this.form);
     this.form.init();
+    originAssignedAttendees.forEach(attendee -> {
+      if (attendee.getAddress() != null) {
+        this.form.attendeeWicketProvider.initSortedAttendees();
+        this.form.attendeeWicketProvider.getSortedAttendees().forEach(sortedAttendee -> {
+          if (sortedAttendee.getAddress() != null && sortedAttendee.getAddress().getPk().equals(attendee.getAddress().getPk())) {
+            sortedAttendee.setId(this.form.attendeeWicketProvider.getAndDecreaseInternalNewAttendeeSequence());
+            this.form.assignAttendeesListHelper.assignItem(sortedAttendee);
+          }
+        });
+      } else {
+        attendee.setId(this.form.attendeeWicketProvider.getAndDecreaseInternalNewAttendeeSequence());
+        this.form.attendeeWicketProvider.getCustomAttendees().add(attendee);
+        this.form.assignAttendeesListHelper.assignItem(attendee);
+      }
+    });
   }
 
   /**

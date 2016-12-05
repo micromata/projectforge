@@ -32,10 +32,13 @@ import java.util.Calendar;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.validator.routines.EmailValidator;
 import org.projectforge.business.configuration.ConfigurationService;
 import org.projectforge.business.converter.DOConverter;
 import org.projectforge.business.teamcal.TeamCalConfig;
@@ -70,8 +73,10 @@ import net.fortuna.ical4j.model.ValidationException;
 import net.fortuna.ical4j.model.component.CalendarComponent;
 import net.fortuna.ical4j.model.component.VAlarm;
 import net.fortuna.ical4j.model.component.VEvent;
+import net.fortuna.ical4j.model.parameter.Cn;
+import net.fortuna.ical4j.model.parameter.CuType;
+import net.fortuna.ical4j.model.parameter.PartStat;
 import net.fortuna.ical4j.model.parameter.Role;
-import net.fortuna.ical4j.model.parameter.Rsvp;
 import net.fortuna.ical4j.model.parameter.Value;
 import net.fortuna.ical4j.model.property.Action;
 import net.fortuna.ical4j.model.property.Attendee;
@@ -143,6 +148,7 @@ public class TeamEventConverter
       return null;
     }
     final CalendarEventObject event = new CalendarEventObject();
+    event.setId(src.getPk());
     event.setUid(src.getUid());
     event.setStartDate(src.getStartDate());
     event.setEndDate(src.getEndDate());
@@ -180,10 +186,9 @@ public class TeamEventConverter
         event = new VEvent(start, stop, data.getSubject());
       } else {
         Date start = new net.fortuna.ical4j.model.Date(data.getStartDate().getTime());
-        Date stop = new net.fortuna.ical4j.model.Date(data.getEndDate().getTime());
+        final org.joda.time.DateTime jodaTime = new org.joda.time.DateTime(data.getEndDate().getTime());
+        final Date stop = new Date(jodaTime.plusDays(+1).toDate());
         event = new VEvent(start, stop, data.getSubject());
-        //        event.getProperties().getProperty(Property.DTSTART).getParameters().add(Value.DATE);
-        //        event.getProperties().getProperty(Property.DTEND).getParameters().add(Value.DATE);
       }
 
       event.getProperties().add(new Description(data.getNote()));
@@ -229,22 +234,35 @@ public class TeamEventConverter
           alarm.getProperties().add(new Duration(dur));
           event.getAlarms().add(alarm);
         }
+      }
 
-        if (data.getAttendees() != null) {
-          for (TeamEventAttendeeDO a : data.getAttendees()) {
-            String email = "mailto:";
-            if (a.getAddress() != null) {
-              email = email + a.getAddress().getEmail();
-            } else {
-              email = email + a.getUrl();
-            }
-            Attendee attendee = new Attendee(URI.create(email));
-            attendee.getParameters().add(Role.REQ_PARTICIPANT);//required participants.
-            attendee.getParameters().add(Rsvp.FALSE);//to get the status request from the attendees
-            event.getProperties().add(attendee);
+      if (data.getAttendees() != null) {
+        for (TeamEventAttendeeDO a : data.getAttendees()) {
+          String email = "mailto:";
+          if (a.getAddress() != null) {
+            email = email + a.getAddress().getEmail();
+          } else {
+            email = email + a.getUrl();
           }
+          Attendee attendee = new Attendee(URI.create(email));
+          String cnValue = a.getAddress() != null ? a.getAddress().getFullName() : a.getUrl();
+          attendee.getParameters().add(new Cn(cnValue));
+          attendee.getParameters().add(CuType.INDIVIDUAL);
+          attendee.getParameters().add(Role.CHAIR);
+          switch (a.getStatus()) {
+            case ACCEPTED:
+              attendee.getParameters().add(PartStat.ACCEPTED);
+              break;
+            case DECLINED:
+              attendee.getParameters().add(PartStat.DECLINED);
+              break;
+            case IN_PROCESS:
+            default:
+              attendee.getParameters().add(PartStat.IN_PROCESS);
+              break;
+          }
+          event.getProperties().add(attendee);
         }
-
       }
 
       CalendarOutputter outputter = new CalendarOutputter();
@@ -433,11 +451,9 @@ public class TeamEventConverter
     teamEvent.setCreator(ThreadLocalUserContext.getUser());
     final DtStart dtStart = event.getStartDate();
     final DtEnd dtEnd = event.getEndDate();
-    if (dtStart != null && dtEnd == null) {
-      if (dtStart.getValue().contains("VALUE=DATE") == true
-          && dtStart.getValue().contains("VALUE=DATE-TIME") == false) {
-        teamEvent.setAllDay(true);
-      }
+    if (dtStart != null && dtStart.getParameter("VALUE") != null && dtStart.getParameter("VALUE").getValue().contains("DATE") == true
+        && dtStart.getParameter("VALUE").getValue().contains("DATE-TIME") == false) {
+      teamEvent.setAllDay(true);
     }
     Timestamp timestamp = ICal4JUtils.getSqlTimestamp(dtStart.getDate());
     teamEvent.setStartDate(timestamp);
@@ -501,13 +517,20 @@ public class TeamEventConverter
 
     final PropertyList eventAttendees = event.getProperties(Attendee.ATTENDEE);
     if (eventAttendees != null && eventAttendees.size() > 0) {
+      Set<String> foundAttendeeEmails = new HashSet<>();
       Integer internalNewAttendeeSequence = -10000;
       List<TeamEventAttendeeDO> attendeesFromDbList = teamEventService.getAddressesAndUserAsAttendee();
       for (int i = 0; i < eventAttendees.size(); i++) {
-        Attendee attendee = (Attendee) eventAttendees.get(0);
+        Attendee attendee = (Attendee) eventAttendees.get(i);
         String email = null;
-        if (attendee.getParameter("EMAIL") != null) {
-          email = attendee.getParameter("EMAIL").getValue();
+        if (attendee.getParameter("EMAIL") != null && EmailValidator.getInstance().isValid(attendee.getParameter("EMAIL").getValue())) {
+          if (attendee.getParameter("ROLE") == null || (attendee.getParameter("ROLE") != null
+              && attendee.getParameter("ROLE").getValue().equals("CHAIR") == false)) {
+            if (foundAttendeeEmails.contains(attendee.getParameter("EMAIL").getValue()) == false) {
+              email = attendee.getParameter("EMAIL").getValue();
+              foundAttendeeEmails.add(email);
+            }
+          }
         }
         if (email != null) {
           TeamEventAttendeeDO foundAttendee = null;
