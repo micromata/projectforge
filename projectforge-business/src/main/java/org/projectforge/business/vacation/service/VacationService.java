@@ -85,25 +85,7 @@ public interface VacationService extends IPersistenceService<VacationDO>, IDao<V
    * @param year
    * @return
    */
-  BigDecimal getPlanedVacationdaysForYear(EmployeeDO employee, int year);
-
-  /**
-   * Returns the number of used vacation days until now
-   *
-   * @param employee
-   * @param year
-   * @return number of used vacation days
-   */
-  BigDecimal getUsedVacationdaysForYearUntilNow(EmployeeDO employee, int year);
-
-  /**
-   * Returns the number of planed vacation days until now
-   *
-   * @param currentEmployee
-   * @param year
-   * @return number of used vacation days
-   */
-  BigDecimal getPlanedVacationdaysForYearUntilNow(EmployeeDO currentEmployee, int year);
+  BigDecimal getPlannedVacationdaysForYear(EmployeeDO employee, int year);
 
   /**
    * Getting the number of used and planned vacation days
@@ -112,7 +94,7 @@ public interface VacationService extends IPersistenceService<VacationDO>, IDao<V
    * @param year
    * @return number of used vacation days
    */
-  BigDecimal getUsedAndPlanedVacationdaysForYear(EmployeeDO employee, int year);
+  BigDecimal getApprovedAndPlanedVacationdaysForYear(EmployeeDO employee, int year);
 
   /**
    * Sends an information mail to the vacation data users involved
@@ -196,5 +178,5 @@ public interface VacationService extends IPersistenceService<VacationDO>, IDao<V
    * @param status
    * @return
    */
-  int getSpecialVacationCount(EmployeeDO employee, int year, VacationStatus status);
+  BigDecimal getSpecialVacationCount(EmployeeDO employee, int year, VacationStatus status);
 }
