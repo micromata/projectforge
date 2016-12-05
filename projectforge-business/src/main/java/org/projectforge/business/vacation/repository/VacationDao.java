@@ -24,7 +24,6 @@
 package org.projectforge.business.vacation.repository;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
@@ -90,8 +89,7 @@ public class VacationDao extends BaseDao<VacationDO>
 
   public List<VacationDO> getVacationForPeriod(EmployeeDO employee, Date startVacationDate, Date endVacationDate)
   {
-    List<VacationDO> result = new ArrayList<>();
-    result = emgrFactory.runRoTrans(emgr -> {
+    List<VacationDO> result = emgrFactory.runRoTrans(emgr -> {
       String baseSQL = "SELECT v FROM VacationDO v WHERE v.employee = :employee AND v.endDate >= :startDate AND v.startDate <= :endDate";
       List<VacationDO> dbResultList = emgr.selectDetached(VacationDO.class, baseSQL + META_SQL, "employee", employee,
           "startDate", startVacationDate, "endDate", endVacationDate, "deleted", false, "tenant",
@@ -132,10 +130,9 @@ public class VacationDao extends BaseDao<VacationDO>
 
   public List<VacationDO> getActiveVacationForYear(EmployeeDO employee, int year, boolean withSpecial)
   {
-    List<VacationDO> result = new ArrayList<>();
     Calendar startYear = new GregorianCalendar(year, Calendar.JANUARY, 1);
     Calendar endYear = new GregorianCalendar(year, Calendar.DECEMBER, 31);
-    result = emgrFactory.runRoTrans(emgr -> {
+    final List<VacationDO> result = emgrFactory.runRoTrans(emgr -> {
       String baseSQL = "SELECT v FROM VacationDO v WHERE v.employee = :employee AND v.startDate >= :startDate AND v.startDate <= :endDate";
       List<VacationDO> dbResultList = emgr.selectDetached(VacationDO.class, baseSQL + (withSpecial ? META_SQL_WITH_SPECIAL : META_SQL), "employee", employee,
           "startDate", startYear.getTime(), "endDate", endYear.getTime(),
@@ -147,8 +144,7 @@ public class VacationDao extends BaseDao<VacationDO>
 
   public List<VacationDO> getAllActiveVacation(EmployeeDO employee, boolean withSpecial)
   {
-    List<VacationDO> result = new ArrayList<>();
-    result = emgrFactory.runRoTrans(emgr -> {
+    final List<VacationDO> result = emgrFactory.runRoTrans(emgr -> {
       String baseSQL = "SELECT v FROM VacationDO v WHERE v.employee = :employee";
       List<VacationDO> dbResultList = emgr
           .selectDetached(VacationDO.class, baseSQL + (withSpecial ? META_SQL_WITH_SPECIAL : META_SQL), "employee", employee, "deleted", false, "tenant",
@@ -161,7 +157,7 @@ public class VacationDao extends BaseDao<VacationDO>
   public BigDecimal getOpenLeaveApplicationsForEmployee(EmployeeDO employee)
   {
     BigDecimal result = BigDecimal.ZERO;
-    List<VacationDO> resultList = emgrFactory.runRoTrans(emgr -> {
+    final List<VacationDO> resultList = emgrFactory.runRoTrans(emgr -> {
       String baseSQL = "SELECT v FROM VacationDO v WHERE v.manager = :employee AND v.status = :status";
       List<VacationDO> dbResultList = emgr
           .selectDetached(VacationDO.class, baseSQL + META_SQL_WITH_SPECIAL, "employee", employee, "status", VacationStatus.IN_PROGRESS, "deleted", false,

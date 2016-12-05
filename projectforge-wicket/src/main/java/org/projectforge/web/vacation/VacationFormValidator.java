@@ -100,7 +100,7 @@ public class VacationFormValidator implements IFormValidator
         BigDecimal.class) : BigDecimal.ZERO;
 
     //Negative
-    BigDecimal usedVacationDaysWholeYear = vacationService.getUsedAndPlanedVacationdaysForYear(employee, startDate.get(Calendar.YEAR));
+    BigDecimal usedVacationDaysWholeYear = vacationService.getApprovedAndPlanedVacationdaysForYear(employee, startDate.get(Calendar.YEAR));
     BigDecimal usedVacationDaysFromLastYear = employee.getAttribute(
         VacationAttrProperty.PREVIOUSYEARLEAVEUSED.getPropertyName(),
         BigDecimal.class) != null ? employee.getAttribute(
