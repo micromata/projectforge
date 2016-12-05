@@ -136,6 +136,11 @@
       </exclusions>
     </dependency>
     <dependency>
+      <groupId>commons-validator</groupId>
+      <artifactId>commons-validator</artifactId>
+      <version>1.5.1</version>
+    </dependency>
+    <dependency>
       <groupId>javax.el</groupId>
       <artifactId>javax.el-api</artifactId>
       <version>${el-api.version}</version>

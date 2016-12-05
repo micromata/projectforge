@@ -310,20 +310,20 @@ public class TeamEventAttendeeDO extends DefaultBaseDO implements Comparable<Tea
       return false;
     }
     final TeamEventAttendeeDO other = (TeamEventAttendeeDO) o;
-    if (this.getId() != null && other.getId() != null && ObjectUtils.equals(this.getId(), other.getId()) == true) {
+    if (this.getId() != null && other.getId() != null && ObjectUtils.equals(this.getId(), other.getId())) {
       return true;
     }
-    if (ObjectUtils.equals(this.getUserId(), other.getUserId()) == false) {
-      return false;
+    if (ObjectUtils.equals(this.getUserId(), other.getUserId())) {
+      return true;
     }
     if (this.getAddress() != null && other.getAddress() != null
-        && ObjectUtils.equals(this.getAddressId(), other.getAddressId()) == false) {
-      return false;
+        && ObjectUtils.equals(this.getAddressId(), other.getAddressId())) {
+      return true;
     }
-    if (StringUtils.equals(this.getUrl(), other.getUrl()) == false) {
-      return false;
+    if (this.getUrl() != null && other.getUrl() != null && StringUtils.equals(this.getUrl(), other.getUrl())) {
+      return true;
     }
-    return true;
+    return false;
   }
 
   @Override

@@ -139,6 +139,8 @@ public class TeamEventEditForm extends AbstractEditForm<TeamEventDO, TeamEventEd
 
   protected MultiChoiceListHelper<TeamEventAttendeeDO> assignAttendeesListHelper;
 
+  protected AttendeeWicketProvider attendeeWicketProvider;
+
   /**
    * @param parentPage
    * @param data
@@ -234,11 +236,11 @@ public class TeamEventEditForm extends AbstractEditForm<TeamEventDO, TeamEventEd
           assignAttendeesListHelper.addOriginalAssignedItem(attendee).assignItem(attendee);
         }
       }
+      attendeeWicketProvider = new AttendeeWicketProvider(data, teamEventService);
 
       final Select2MultiChoice<TeamEventAttendeeDO> attendees = new Select2MultiChoice<TeamEventAttendeeDO>(
           fieldSet.getSelect2MultiChoiceId(),
-          new PropertyModel<Collection<TeamEventAttendeeDO>>(this.assignAttendeesListHelper, "assignedItems"),
-          new AttendeeWicketProvider(data, teamEventService));
+          new PropertyModel<Collection<TeamEventAttendeeDO>>(this.assignAttendeesListHelper, "assignedItems"), attendeeWicketProvider);
       attendees.setMarkupId("attendees").setOutputMarkupId(true);
       attendees.add(new TeamEventAttendeeValidator());
       fieldSet.add(attendees);

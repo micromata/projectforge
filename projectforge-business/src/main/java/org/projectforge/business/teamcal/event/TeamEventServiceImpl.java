@@ -5,8 +5,10 @@ import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 import java.text.DateFormat;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -14,6 +16,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.projectforge.business.address.AddressDO;
 import org.projectforge.business.address.AddressDao;
 import org.projectforge.business.configuration.ConfigurationService;
+import org.projectforge.business.teamcal.event.model.TeamEvent;
 import org.projectforge.business.teamcal.event.model.TeamEventAttendeeDO;
 import org.projectforge.business.teamcal.event.model.TeamEventAttendeeDao;
 import org.projectforge.business.teamcal.event.model.TeamEventAttendeeStatus;
@@ -105,7 +108,7 @@ public class TeamEventServiceImpl implements TeamEventService
       Set<TeamEventAttendeeDO> itemsToUnassign)
   {
     for (TeamEventAttendeeDO assignAttendee : itemsToAssign) {
-      if (assignAttendee.getId() < 0) {
+      if (assignAttendee.getId() == null || assignAttendee.getId() < 0) {
         assignAttendee.setId(null);
         assignAttendee.setStatus(TeamEventAttendeeStatus.IN_PROCESS);
         teamEventAttendeeDao.internalSave(assignAttendee);
@@ -186,13 +189,8 @@ public class TeamEventServiceImpl implements TeamEventService
       msg.setContent(content);
       return sendMail.send(msg, null, null);
     }
-    String content = I18nHelper.getLocalizedMessage("plugins.teamcal.attendee.email.content." + mode,
-        data.getSubject(),
-        formatter.format(data.getStartDate()),
-        data.getLocation() != null ? data.getLocation() : "",
-        attendeesString,
-        data.getNote() != null ? data.getNote() : "",
-        getResponseLinks(data, attendee));
+    final Map<String, Object> emailDataMap = new HashMap<>();
+    final String content = sendMail.renderGroovyTemplate(msg, "mail/teamEventEmail.html", emailDataMap, ThreadLocalUserContext.getUser());
     msg.setContent(content);
     ByteArrayOutputStream icsFile = teamEventConverter.getIcsFile(data);
     boolean result = false;
@@ -260,6 +258,36 @@ public class TeamEventServiceImpl implements TeamEventService
   public void update(TeamEventDO event, boolean checkAccess)
   {
     teamEventDao.internalUpdate(event, checkAccess);
+  }
+
+  @Override
+  public List<TeamEvent> getEventList(TeamEventFilter filter, boolean calculateRecurrenceEvents)
+  {
+    return teamEventDao.getEventList(filter, calculateRecurrenceEvents);
+  }
+
+  @Override
+  public List<TeamEventDO> getTeamEventDOList(TeamEventFilter filter)
+  {
+    return teamEventDao.getList(filter);
+  }
+
+  @Override
+  public TeamEventDO getById(Integer teamEventId)
+  {
+    return teamEventDao.getById(teamEventId);
+  }
+
+  @Override
+  public void saveOrUpdate(TeamEventDO teamEvent)
+  {
+    teamEventDao.saveOrUpdate(teamEvent);
+  }
+
+  @Override
+  public void markAsDeleted(TeamEventDO teamEvent)
+  {
+    teamEventDao.markAsDeleted(teamEvent);
   }
 
 }

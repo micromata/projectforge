@@ -89,6 +89,8 @@ public class TeamEventDao extends BaseDao<TeamEventDO>
       "calendar.title", "note",
       "attendees" };
 
+  private final static String META_SQL_WITH_SPECIAL = " AND e.deleted = :deleted AND e.tenant = :tenant";
+
   @Autowired
   private TeamCalDao teamCalDao;
 
@@ -141,7 +143,11 @@ public class TeamEventDao extends BaseDao<TeamEventDO>
       return null;
     }
     try {
-      return emgrFac.runRoTrans(emgr -> emgr.selectSingleAttached(TeamEventDO.class, "select e from TeamEventDO e where e.uid = :uid", "uid", uid));
+      return emgrFac.runRoTrans(emgr -> {
+        String baseSQL = "select e from TeamEventDO e where e.uid = :uid";
+        return emgr.selectSingleAttached(TeamEventDO.class, baseSQL + META_SQL_WITH_SPECIAL, "uid", uid, "deleted", false,
+            "tenant", ThreadLocalUserContext.getUser().getTenant());
+      });
     } catch (NoResultException e) {
       return null;
     }

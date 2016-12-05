@@ -82,11 +82,6 @@
       <version>${gson.version}</version>
     </dependency>
     <dependency>
-      <groupId>commons-validator</groupId>
-      <artifactId>commons-validator</artifactId>
-      <version>1.5.1</version>
-    </dependency>
-    <dependency>
       <groupId>org.wicketstuff</groupId>
       <artifactId>wicketstuff-html5</artifactId>
       <version>6.8.0</version>

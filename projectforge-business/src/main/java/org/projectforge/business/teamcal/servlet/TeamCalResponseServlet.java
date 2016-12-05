@@ -47,9 +47,8 @@ import org.springframework.web.context.support.WebApplicationContextUtils;
 
 /**
  * Response servlet for team calendar events.
- * 
+ *
  * @author Florian Blumenstein
- * 
  */
 @WebServlet("/cal")
 public class TeamCalResponseServlet extends HttpServlet
@@ -151,6 +150,7 @@ public class TeamCalResponseServlet extends HttpServlet
       return;
     }
 
+    resp.setContentType("text/html;charset=UTF-8");
     resp.getOutputStream().print("SUCCESSFULLY RESPONDED: " + status);
   }
 
