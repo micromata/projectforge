@@ -163,8 +163,7 @@ public class TeamEventServiceImpl implements TeamEventService
       msg.setFromRealname(user.getFullname());
     }
     msg.setContentType(Mail.CONTENTTYPE_HTML);
-    msg.setProjectForgeSubject(SendMail
-        .getProjectForgeSubject(I18nHelper.getLocalizedMessage("plugins.teamcal.attendee.email.subject." + mode)));
+    msg.setProjectForgeSubject(I18nHelper.getLocalizedMessage("plugins.teamcal.attendee.email.subject." + mode));
     return msg;
   }
 
