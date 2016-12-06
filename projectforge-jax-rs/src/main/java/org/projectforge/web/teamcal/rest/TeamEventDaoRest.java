@@ -27,9 +27,11 @@ import java.io.ByteArrayInputStream;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import javax.ws.rs.Consumes;
@@ -278,14 +280,14 @@ public class TeamEventDaoRest
     if (originTeamEvent == null || originTeamEvent.getAttendees() == null || originTeamEvent.getAttendees().size() < 1) {
       return result;
     } else {
+      Set<String> newEmailAdresses = new HashSet<>();
+      newTeamEvent.getAttendees().forEach(att -> newEmailAdresses.add(att.getAddress() != null ? att.getAddress().getEmail() : att.getUrl()));
+      Map<String, TeamEventAttendeeDO> originEmailAttendeeMap = new HashMap<>();
+      originTeamEvent.getAttendees().forEach(att -> originEmailAttendeeMap.put(att.getAddress() != null ? att.getAddress().getEmail() : att.getUrl(), att));
       Set<TeamEventAttendeeDO> attendeesToUnassign = new HashSet<>();
-      for (TeamEventAttendeeDO originAttendee : originTeamEvent.getAttendees()) {
-        int originPk = originAttendee.getPk();
-        originAttendee.setPk(null);
-        newTeamEvent.getAttendees().forEach(att -> att.setPk(null));
-        if (newTeamEvent.getAttendees().contains(originAttendee) == false) {
-          originAttendee.setPk(originPk);
-          result.add(originAttendee);
+      for (String originAttendeeEmail : originEmailAttendeeMap.keySet()) {
+        if (newEmailAdresses.contains(originAttendeeEmail) == false) {
+          result.add(originEmailAttendeeMap.get(originAttendeeEmail));
         }
       }
     }
@@ -302,17 +304,16 @@ public class TeamEventDaoRest
       }
       return result;
     } else {
-      Set<TeamEventAttendeeDO> attendeesToAssign = new HashSet<>();
-      for (TeamEventAttendeeDO newAttendee : newTeamEvent.getAttendees()) {
-        newAttendee.setPk(null);
-        boolean hasToBeAssigned = false;
-        for (TeamEventAttendeeDO originAttendee : originTeamEvent.getAttendees()) {
-          if (originAttendee.equals(newAttendee) == false) {
-            hasToBeAssigned = true;
-          }
-        }
-        if (hasToBeAssigned) {
-          result.add(newAttendee);
+      Set<String> originEmailAdresses = new HashSet<>();
+      originTeamEvent.getAttendees().forEach(att -> originEmailAdresses.add(att.getAddress() != null ? att.getAddress().getEmail() : att.getUrl()));
+      Map<String, TeamEventAttendeeDO> newEmailAttendeeMap = new HashMap<>();
+      newTeamEvent.getAttendees().forEach(att -> newEmailAttendeeMap.put(att.getAddress() != null ? att.getAddress().getEmail() : att.getUrl(), att));
+      Set<TeamEventAttendeeDO> attendeesToUnassign = new HashSet<>();
+      for (String newAttendeeEmail : newEmailAttendeeMap.keySet()) {
+        if (originEmailAdresses.contains(newAttendeeEmail) == false) {
+          TeamEventAttendeeDO newTeamEventAttendeeDO = newEmailAttendeeMap.get(newAttendeeEmail);
+          newTeamEventAttendeeDO.setPk(null);
+          result.add(newTeamEventAttendeeDO);
         }
       }
       return result;
