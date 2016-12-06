@@ -523,14 +523,16 @@ public class TeamEventConverter
       for (int i = 0; i < eventAttendees.size(); i++) {
         Attendee attendee = (Attendee) eventAttendees.get(i);
         String email = null;
-        if (attendee.getParameter("EMAIL") != null && EmailValidator.getInstance().isValid(attendee.getParameter("EMAIL").getValue())) {
-          if (attendee.getParameter("ROLE") == null || (attendee.getParameter("ROLE") != null
-              && attendee.getParameter("ROLE").getValue().equals("CHAIR") == false)) {
-            if (foundAttendeeEmails.contains(attendee.getParameter("EMAIL").getValue()) == false) {
-              email = attendee.getParameter("EMAIL").getValue();
-              foundAttendeeEmails.add(email);
-            }
+        URI attendeeEMailAddressUri = attendee.getCalAddress();
+        if (attendeeEMailAddressUri != null) {
+          email = attendeeEMailAddressUri.getSchemeSpecificPart();
+        }
+        if (email != null && EmailValidator.getInstance().isValid(email)) {
+          if (foundAttendeeEmails.contains(email) == false) {
+            foundAttendeeEmails.add(email);
           }
+        } else {
+          email = null;
         }
         if (email != null) {
           TeamEventAttendeeDO foundAttendee = null;

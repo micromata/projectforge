@@ -168,7 +168,6 @@ public class TeamEventServiceImpl implements TeamEventService
     return msg;
   }
 
-  //TODO FB: Should be refactored ;-)
   private boolean sendMail(TeamEventDO data, TeamEventAttendeeDO attendee, String mode)
   {
     final Mail msg = createMail(mode);
@@ -190,6 +189,17 @@ public class TeamEventServiceImpl implements TeamEventService
       return sendMail.send(msg, null, null);
     }
     final Map<String, Object> emailDataMap = new HashMap<>();
+    emailDataMap.put("dayOfWeek", "Freitag");
+    emailDataMap.put("fromToHeader", "2. September 9.15 - 9.45 Uhr");
+    emailDataMap.put("invitationText", "Julian Mengel hat sie zu „Abstimmung QS Monitor“ eingeladen.");
+    emailDataMap.put("beginText", "Ganztägig, Donnerstag, 2.September 2016, 9:15 - 09.45");
+    emailDataMap.put("endText", "Ganztägig, Freitag, 3.September 2016");
+    List<String> attendeeList = new ArrayList<>();
+    attendeeList.add("j.mengel@micromata.de");
+    attendeeList.add("t.marx@micromata.de");
+    emailDataMap.put("attendeeList", attendeeList);
+    emailDataMap.put("location", "Großer Besprechungsraum 3. OG");
+    emailDataMap.put("note", "Absprache der Entwürfe und Besprechung des weiteren Vorgehens");
     final String content = sendMail.renderGroovyTemplate(msg, "mail/teamEventEmail.html", emailDataMap, ThreadLocalUserContext.getUser());
     msg.setContent(content);
     ByteArrayOutputStream icsFile = teamEventConverter.getIcsFile(data);

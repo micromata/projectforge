@@ -38,7 +38,6 @@ import javax.persistence.Transient;
 
 import org.apache.commons.lang.ObjectUtils;
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.builder.HashCodeBuilder;
 import org.hibernate.search.annotations.Indexed;
 import org.projectforge.business.address.AddressDO;
 import org.projectforge.framework.persistence.entities.DefaultBaseDO;
@@ -283,21 +282,14 @@ public class TeamEventAttendeeDO extends DefaultBaseDO implements Comparable<Tea
     return this.toString().toLowerCase().compareTo(arg0.toString().toLowerCase());
   }
 
-  /**
-   * @see java.lang.Object#hashCode()
-   */
   @Override
   public int hashCode()
   {
-    final HashCodeBuilder hcb = new HashCodeBuilder();
-    hcb.append(this.getId());
-    if (this.getId() != null) {
-      return hcb.toHashCode();
-    }
-    hcb.append(this.getUserId());
-    hcb.append(this.getAddressId());
-    hcb.append(this.url);
-    return hcb.toHashCode();
+    int result = getPk() != null ? getPk().hashCode() : 0;
+    result = 31 * result + (address != null ? address.hashCode() : 0);
+    result = 31 * result + (user != null ? user.hashCode() : 0);
+    result = 31 * result + (url != null ? url.hashCode() : 0);
+    return result;
   }
 
   /**
