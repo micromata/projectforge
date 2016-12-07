@@ -1,10 +1,27 @@
 package org.projectforge.business.teamcal.event;
 
+import java.io.ByteArrayOutputStream;
+import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
+import java.text.DateFormat;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 import org.apache.commons.lang3.StringUtils;
 import org.projectforge.business.address.AddressDO;
 import org.projectforge.business.address.AddressDao;
 import org.projectforge.business.configuration.ConfigurationService;
-import org.projectforge.business.teamcal.event.model.*;
+import org.projectforge.business.teamcal.event.model.TeamEvent;
+import org.projectforge.business.teamcal.event.model.TeamEventAttendeeDO;
+import org.projectforge.business.teamcal.event.model.TeamEventAttendeeDao;
+import org.projectforge.business.teamcal.event.model.TeamEventAttendeeStatus;
+import org.projectforge.business.teamcal.event.model.TeamEventDO;
 import org.projectforge.business.teamcal.service.CryptService;
 import org.projectforge.business.user.I18nHelper;
 import org.projectforge.business.user.service.UserService;
@@ -16,13 +33,6 @@ import org.projectforge.mail.Mail;
 import org.projectforge.mail.SendMail;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-import java.io.ByteArrayOutputStream;
-import java.io.UnsupportedEncodingException;
-import java.nio.charset.StandardCharsets;
-import java.text.DateFormat;
-import java.util.*;
-import java.util.stream.Collectors;
 
 @Service
 public class TeamEventServiceImpl implements TeamEventService
@@ -104,8 +114,8 @@ public class TeamEventServiceImpl implements TeamEventService
       if (assignAttendee.getId() == null || assignAttendee.getId() < 0) {
         assignAttendee.setId(null);
         assignAttendee.setStatus(TeamEventAttendeeStatus.IN_PROCESS);
-        teamEventAttendeeDao.internalSave(assignAttendee);
         data.addAttendee(assignAttendee);
+        teamEventAttendeeDao.internalSave(assignAttendee);
       }
     }
 
@@ -123,25 +133,30 @@ public class TeamEventServiceImpl implements TeamEventService
       Set<TeamEventAttendeeDO> addedAttendees)
   {
     boolean result = false;
+    String mode = "";
     if (isDeleted) {
+      mode = "deleted";
       for (TeamEventAttendeeDO attendee : data.getAttendees()) {
-        result = sendMail(data, attendee, "deleted");
+        result = sendMail(data, attendee, mode);
       }
       return result;
     }
     if (isNew) {
+      mode = "new";
       for (TeamEventAttendeeDO attendee : data.getAttendees()) {
-        result = sendMail(data, attendee, "new");
+        result = sendMail(data, attendee, mode);
       }
     } else {
       Set<TeamEventAttendeeDO> sendToList = new HashSet<>();
       if (hasChanges == false && addedAttendees.size() > 0) {
+        mode = "new";
         sendToList = addedAttendees;
       } else {
+        mode = "update";
         sendToList = data.getAttendees();
       }
       for (TeamEventAttendeeDO attendee : sendToList) {
-        result = sendMail(data, attendee, "update");
+        result = sendMail(data, attendee, mode);
       }
     }
     return result;
@@ -200,24 +215,41 @@ public class TeamEventServiceImpl implements TeamEventService
 
     startDay = I18nHelper.getLocalizedMessage("calendar.day." + DayHolder.getDayKey(startDate.get(Calendar.DAY_OF_WEEK)));
     endDay = I18nHelper.getLocalizedMessage("calendar.day." + DayHolder.getDayKey(endDate.get(Calendar.DAY_OF_WEEK)));
-    beginTime = startDate.get(Calendar.DAY_OF_MONTH) + ". " + I18nHelper.getLocalizedMessage("calendar.month." + MonthHolder.MONTH_KEYS[startDate.get(Calendar.MONTH)]) + " " + (startDate.get(Calendar.HOUR_OF_DAY) < 10 ? ("0" + startDate.get(Calendar.HOUR_OF_DAY)) : startDate.get(Calendar.HOUR_OF_DAY)) + ":" + (startDate.get(Calendar.MINUTE) < 10 ? ("0" + startDate.get(Calendar.MINUTE)) : startDate.get(Calendar.MINUTE));
-    endTime = endDate.get(Calendar.DAY_OF_MONTH) + ". " + I18nHelper.getLocalizedMessage("calendar.month." + MonthHolder.MONTH_KEYS[endDate.get(Calendar.MONTH)]) + " " + (endDate.get(Calendar.HOUR_OF_DAY) < 10 ? ("0" + endDate.get(Calendar.HOUR_OF_DAY)) : endDate.get(Calendar.HOUR_OF_DAY)) + ":" + (endDate.get(Calendar.MINUTE) < 10 ? ("0" + endDate.get(Calendar.MINUTE)) : endDate.get(Calendar.MINUTE));
-    invitationText = I18nHelper.getLocalizedMessage("plugins.teamcal.attendee.email.content.new", data.getCreator().getFullname(), data.getSubject().toString());
+    beginTime =
+        startDate.get(Calendar.DAY_OF_MONTH) + ". " + I18nHelper.getLocalizedMessage("calendar.month." + MonthHolder.MONTH_KEYS[startDate.get(Calendar.MONTH)])
+            + " " + (startDate.get(Calendar.HOUR_OF_DAY) < 10 ? ("0" + startDate.get(Calendar.HOUR_OF_DAY)) : startDate.get(Calendar.HOUR_OF_DAY)) + ":" + (
+            startDate.get(Calendar.MINUTE) < 10 ?
+                ("0" + startDate.get(Calendar.MINUTE)) :
+                startDate.get(Calendar.MINUTE));
+    endTime =
+        endDate.get(Calendar.DAY_OF_MONTH) + ". " + I18nHelper.getLocalizedMessage("calendar.month." + MonthHolder.MONTH_KEYS[endDate.get(Calendar.MONTH)])
+            + " " + (endDate.get(Calendar.HOUR_OF_DAY) < 10 ? ("0" + endDate.get(Calendar.HOUR_OF_DAY)) : endDate.get(Calendar.HOUR_OF_DAY)) + ":" + (
+            endDate.get(Calendar.MINUTE) < 10 ? ("0" + endDate.get(Calendar.MINUTE)) : endDate.get(Calendar.MINUTE));
+    invitationText = I18nHelper
+        .getLocalizedMessage("plugins.teamcal.attendee.email.content.new", data.getCreator().getFullname(), data.getSubject().toString());
     beginText = startDay + ", " + beginTime;
     endText = endDay + ", " + endTime;
     dayOfWeek = startDay;
 
     if (startDate.get(Calendar.DATE) == endDate.get(Calendar.DATE)) //Einen Tag
     {
-      fromToHeader = beginTime + " - " + (endDate.get(Calendar.HOUR_OF_DAY) < 10 ? ("0" + endDate.get(Calendar.HOUR_OF_DAY)) : endDate.get(Calendar.HOUR_OF_DAY)) + ":" + (endDate.get(Calendar.MINUTE) < 10 ? ("0" + endDate.get(Calendar.MINUTE)) : endDate.get(Calendar.MINUTE)) + " Uhr.";
+      fromToHeader =
+          beginTime + " - " + (endDate.get(Calendar.HOUR_OF_DAY) < 10 ? ("0" + endDate.get(Calendar.HOUR_OF_DAY)) : endDate.get(Calendar.HOUR_OF_DAY)) + ":" + (
+              endDate.get(Calendar.MINUTE) < 10 ?
+                  ("0" + endDate.get(Calendar.MINUTE)) :
+                  endDate.get(Calendar.MINUTE)) + " Uhr.";
     } else    //Mehrere Tage
     {
       fromToHeader = beginTime;
     }
     if (data.isAllDay()) {
-      fromToHeader = startDate.get(Calendar.DAY_OF_MONTH) + ". " + I18nHelper.getLocalizedMessage("calendar.month." + MonthHolder.MONTH_KEYS[startDate.get(Calendar.MONTH)]);
-      beginText = I18nHelper.getLocalizedMessage("plugins.teamcal.event.allDay") + ", " + startDay + ", " + startDate.get(Calendar.DAY_OF_MONTH) + ". " + I18nHelper.getLocalizedMessage("calendar.month." + MonthHolder.MONTH_KEYS[startDate.get(Calendar.MONTH)]);
-      endText = I18nHelper.getLocalizedMessage("plugins.teamcal.event.allDay") + ", " + endDay + ", " + endDate.get(Calendar.DAY_OF_MONTH) + ". " + I18nHelper.getLocalizedMessage("calendar.month." + MonthHolder.MONTH_KEYS[endDate.get(Calendar.MONTH)]);
+      fromToHeader = startDate.get(Calendar.DAY_OF_MONTH) + ". " + I18nHelper
+          .getLocalizedMessage("calendar.month." + MonthHolder.MONTH_KEYS[startDate.get(Calendar.MONTH)]);
+      beginText =
+          I18nHelper.getLocalizedMessage("plugins.teamcal.event.allDay") + ", " + startDay + ", " + startDate.get(Calendar.DAY_OF_MONTH) + ". " + I18nHelper
+              .getLocalizedMessage("calendar.month." + MonthHolder.MONTH_KEYS[startDate.get(Calendar.MONTH)]);
+      endText = I18nHelper.getLocalizedMessage("plugins.teamcal.event.allDay") + ", " + endDay + ", " + endDate.get(Calendar.DAY_OF_MONTH) + ". " + I18nHelper
+          .getLocalizedMessage("calendar.month." + MonthHolder.MONTH_KEYS[endDate.get(Calendar.MONTH)]);
     }
 
     emailDataMap.put("dayOfWeek", dayOfWeek);
@@ -332,6 +364,18 @@ public class TeamEventServiceImpl implements TeamEventService
   public void markAsDeleted(TeamEventDO teamEvent)
   {
     teamEventDao.markAsDeleted(teamEvent);
+  }
+
+  @Override
+  public void save(TeamEventDO newEvent)
+  {
+    teamEventDao.save(newEvent);
+  }
+
+  @Override
+  public TeamEventDao getTeamEventDao()
+  {
+    return teamEventDao;
   }
 
 }

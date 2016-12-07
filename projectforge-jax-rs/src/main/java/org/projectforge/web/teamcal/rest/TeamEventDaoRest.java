@@ -56,6 +56,7 @@ import org.projectforge.business.teamcal.event.model.TeamEvent;
 import org.projectforge.business.teamcal.event.model.TeamEventAttendeeDO;
 import org.projectforge.business.teamcal.event.model.TeamEventDO;
 import org.projectforge.common.StringHelper;
+import org.projectforge.framework.persistence.api.ModificationStatus;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.time.DayHolder;
 import org.projectforge.model.rest.CalendarEventObject;
@@ -80,6 +81,8 @@ import net.fortuna.ical4j.model.property.Uid;
 public class TeamEventDaoRest
 {
   private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(TeamEventDaoRest.class);
+  private static final String CREATED = "created";
+  private static final String UPDATED = "updated";
 
   @Autowired
   private TeamEventService teamEventService;
@@ -181,7 +184,7 @@ public class TeamEventDaoRest
   {
     CalendarEventObject result = null;
     try {
-      String createUpdate = "created";
+      String createUpdate = CREATED;
       TeamCalDO teamCalDO = teamCalCache.getCalendar(calendarEvent.getCalendarId());
       final CalendarBuilder builder = new CalendarBuilder();
       final net.fortuna.ical4j.model.Calendar calendar = builder.build(new ByteArrayInputStream(Base64.decodeBase64(calendarEvent.getIcsData())));
@@ -192,7 +195,7 @@ public class TeamEventDaoRest
       TeamEventDO teamEventOrigin = teamEventService.findByUid(eventUid.getValue());
       Set<TeamEventAttendeeDO> originAttendees = new HashSet<>();
       if (teamEventOrigin != null) {
-        createUpdate = "updated";
+        createUpdate = UPDATED;
         teamEvent.setId(teamEventOrigin.getPk());
         teamEvent.setCreated(teamEventOrigin.getCreated());
         teamEvent.setTenant(teamEventOrigin.getTenant());
@@ -208,12 +211,24 @@ public class TeamEventDaoRest
         teamEvent.setAttendees(originAttendees);
       }
       teamEventService.saveOrUpdate(teamEvent);
-      teamEventService.assignAttendees(teamEvent, attendeesToAssignMap, attendeesToUnassignMap);
-      if (attendeesToAssignMap != null && attendeesToAssignMap.size() > 0) {
-        teamEventService.sendTeamEventToAttendees(teamEvent, teamEvent.getPk() == null, teamEvent.getPk() != null, false, attendeesToAssignMap);
+
+      TeamEventDO teamEventAfterSaveOrUpdate = teamEventService.getById(teamEvent.getPk());
+      ModificationStatus modificationStatus = ModificationStatus.NONE;
+      if (createUpdate.equals(UPDATED)) {
+        modificationStatus = TeamEventDO.copyValues(teamEventOrigin, teamEventAfterSaveOrUpdate, "attendees");
       }
-      result = teamEventConverter.getEventObject(teamEvent, true);
-      log.info("Team event: " + teamEvent.getSubject() + " for calendar #" + teamCalDO.getId() + " successfully " + createUpdate + ".");
+      TeamEventDO teamEventAfterModificationTest = teamEventService.getById(teamEvent.getPk());
+
+      teamEventService.assignAttendees(teamEventAfterModificationTest, attendeesToAssignMap, attendeesToUnassignMap);
+
+      TeamEventDO teamEventAfterAssignAttendees = teamEventService.getById(teamEventAfterSaveOrUpdate.getPk());
+      if ((attendeesToAssignMap != null && attendeesToAssignMap.size() > 0) || (modificationStatus != null && modificationStatus != ModificationStatus.NONE)) {
+        teamEventService.sendTeamEventToAttendees(teamEventAfterAssignAttendees, createUpdate.equals(CREATED),
+            createUpdate.equals(UPDATED) && modificationStatus != ModificationStatus.NONE, false, attendeesToAssignMap);
+      }
+
+      result = teamEventConverter.getEventObject(teamEventAfterAssignAttendees, true);
+      log.info("Team event: " + teamEventAfterAssignAttendees.getSubject() + " for calendar #" + teamCalDO.getId() + " successfully " + createUpdate + ".");
     } catch (Exception e) {
       log.error("Exception while creating/updating team event", e);
       return Response.serverError().build();
