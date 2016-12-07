@@ -199,6 +199,8 @@ public class TeamEventServiceImpl implements TeamEventService
     emailDataMap.put("attendeeList", attendeeList);
     emailDataMap.put("location", "Großer Besprechungsraum 3. OG");
     emailDataMap.put("note", "Absprache der Entwürfe und Besprechung des weiteren Vorgehens");
+    emailDataMap.put("acceptLink", getResponseLink(data, attendee, TeamEventAttendeeStatus.ACCEPTED));
+    emailDataMap.put("declineLink", getResponseLink(data, attendee, TeamEventAttendeeStatus.DECLINED));
     final String content = sendMail.renderGroovyTemplate(msg, "mail/teamEventEmail.html", emailDataMap, ThreadLocalUserContext.getUser());
     msg.setContent(content);
     ByteArrayOutputStream icsFile = teamEventConverter.getIcsFile(data);
@@ -211,16 +213,11 @@ public class TeamEventServiceImpl implements TeamEventService
     return result;
   }
 
-  private String getResponseLinks(TeamEventDO event, TeamEventAttendeeDO attendee)
+  private String getResponseLink(TeamEventDO event, TeamEventAttendeeDO attendee, TeamEventAttendeeStatus status)
   {
     final String messageParamBegin = "uid=" + event.getUid() + "&attendee=" + attendee.getId();
-    final String acceptParams = cryptService.encryptParameterMessage(messageParamBegin + "&status=ACCEPTED");
-    final String declineParams = cryptService.encryptParameterMessage(messageParamBegin + "&status=DECLINED");
-    final String acceptText = I18nHelper.getLocalizedMessage("plugins.teamcal.attendee.email.accept");
-    final String declineText = I18nHelper.getLocalizedMessage("plugins.teamcal.attendee.email.decline");
-
-    return "<a href=\"" + configService.getDomain() + "/cal?" + acceptParams + "\">" + acceptText + "</a><br>" +
-        "<a href=\"" + configService.getDomain() + "/cal?" + declineParams + "\">" + declineText + "</a><br>";
+    final String acceptParams = cryptService.encryptParameterMessage(messageParamBegin + "&status=" + status.name());
+    return configService.getDomain() + "/cal?" + acceptParams;
   }
 
   private void addAttendeeToMail(TeamEventAttendeeDO attendee, Mail msg)
