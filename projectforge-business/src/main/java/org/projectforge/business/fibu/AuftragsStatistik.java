@@ -23,11 +23,11 @@
 
 package org.projectforge.business.fibu;
 
+import org.projectforge.framework.utils.NumberHelper;
+
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-
-import org.projectforge.framework.utils.NumberHelper;
 
 public class AuftragsStatistik implements Serializable
 {
@@ -103,6 +103,11 @@ public class AuftragsStatistik implements Serializable
   public BigDecimal getFakturiertSum()
   {
     return fakturiertSum;
+  }
+
+  public BigDecimal getNotInvoicedSum()
+  {
+    return nettoSum.subtract(fakturiertSum);
   }
 
   public BigDecimal getZuFakturierenSum()
