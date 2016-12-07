@@ -209,7 +209,7 @@ public class VacationServiceImpl extends CorePersistenceServiceImpl<Integer, Vac
     Calendar firstOfJanOfStartYearCalender = Calendar.getInstance(ThreadLocalUserContext.getTimeZone());
     firstOfJanOfStartYearCalender.set(startDateCalender.get(Calendar.YEAR), Calendar.JANUARY, 1);
     Calendar endDateCalender = configService.getEndDateVacationFromLastYear();
-    List<VacationDO> vacationList = getVacationForDate(vacationData.getEmployee(), startDateCalender.getTime(), endDateCalender.getTime());
+    List<VacationDO> vacationList = getVacationForDate(vacationData.getEmployee(), startDateCalender.getTime(), endDateCalender.getTime(), false);
 
     BigDecimal dayCount = BigDecimal.ZERO;
     for (VacationDO v : vacationList) {
@@ -361,9 +361,9 @@ public class VacationServiceImpl extends CorePersistenceServiceImpl<Integer, Vac
   }
 
   @Override
-  public List<VacationDO> getVacationForDate(EmployeeDO employee, Date startDate, Date endDate)
+  public List<VacationDO> getVacationForDate(EmployeeDO employee, Date startDate, Date endDate, boolean withSpecial)
   {
-    return vacationDao.getVacationForPeriod(employee, startDate, endDate);
+    return vacationDao.getVacationForPeriod(employee, startDate, endDate, withSpecial);
   }
 
   @Override

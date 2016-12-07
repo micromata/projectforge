@@ -74,10 +74,12 @@ public class VacationFormValidator implements IFormValidator
       return;
     }
 
-    List<VacationDO> vacationListForPeriod = vacationService.getVacationForDate(employee,
-        startDatePanel.getConvertedInput(), endDatePanel.getConvertedInput());
+    List<VacationDO> vacationListForPeriod = vacationService
+        .getVacationForDate(employee, startDatePanel.getConvertedInput(), endDatePanel.getConvertedInput(), true);
     if (vacationListForPeriod != null && data.getPk() != null) {
-      vacationListForPeriod = vacationListForPeriod.stream().filter(vac -> vac.getPk().equals(data.getPk()) == false)
+      vacationListForPeriod = vacationListForPeriod
+          .stream()
+          .filter(vac -> vac.getPk().equals(data.getPk()) == false) // remove current vacation from list in case this is an update
           .collect(Collectors.toList());
     }
     if (vacationListForPeriod != null && vacationListForPeriod.size() > 0) {
