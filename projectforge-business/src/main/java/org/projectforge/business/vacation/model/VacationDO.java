@@ -39,15 +39,13 @@ import javax.persistence.TemporalType;
 import javax.persistence.Transient;
 
 import org.hibernate.search.annotations.Indexed;
+import org.hibernate.search.annotations.IndexedEmbedded;
 import org.projectforge.business.fibu.EmployeeDO;
 import org.projectforge.common.anots.PropertyInfo;
 import org.projectforge.framework.persistence.api.AUserRightId;
-import org.projectforge.framework.persistence.attr.impl.HibernateSearchAttrSchemaFieldInfoProvider;
 import org.projectforge.framework.persistence.entities.DefaultBaseDO;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.time.DayHolder;
-
-import de.micromata.mgc.jpa.hibernatesearch.api.HibernateSearchInfo;
 
 /**
  * Repräsentiert einen Urlaub. Ein Urlaub ist einem ProjectForge-Mitarbeiter zugeordnet und enthält buchhalterische
@@ -57,7 +55,6 @@ import de.micromata.mgc.jpa.hibernatesearch.api.HibernateSearchInfo;
  */
 @Entity
 @Indexed
-@HibernateSearchInfo(fieldInfoProvider = HibernateSearchAttrSchemaFieldInfoProvider.class, param = "vacation")
 @Table(name = "t_employee_vacation",
     indexes = {
         @javax.persistence.Index(name = "idx_fk_t_vacation_employee_id", columnList = "employee_id"),
@@ -71,6 +68,7 @@ public class VacationDO extends DefaultBaseDO
   private static final long serialVersionUID = -1208597049212394757L;
 
   @PropertyInfo(i18nKey = "vacation.employee")
+  @IndexedEmbedded(includePaths = { "user.firstname", "user.lastname" })
   private EmployeeDO employee;
 
   @PropertyInfo(i18nKey = "vacation.startdate")
