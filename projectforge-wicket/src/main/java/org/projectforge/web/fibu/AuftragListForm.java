@@ -23,8 +23,6 @@
 
 package org.projectforge.web.fibu;
 
-import java.math.BigDecimal;
-
 import org.apache.log4j.Logger;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.model.Model;
@@ -43,6 +41,8 @@ import org.projectforge.web.wicket.flowlayout.DivPanel;
 import org.projectforge.web.wicket.flowlayout.DivTextPanel;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
 import org.projectforge.web.wicket.flowlayout.TextStyle;
+
+import java.math.BigDecimal;
 
 public class AuftragListForm extends AbstractListForm<AuftragListFilter, AuftragListPage>
 {
@@ -116,6 +116,23 @@ public class AuftragListForm extends AbstractListForm<AuftragListFilter, Auftrag
         {
           return WebConstants.HTML_TEXT_DIVIDER
               + getStatisticsValue("fibu.fakturiert", getAuftragsStatistik().getFakturiertSum(),
+                  getAuftragsStatistik().getCounterFakturiert());
+        }
+      })
+      {
+        @Override
+        public boolean isVisible()
+        {
+          return (getAuftragsStatistik().getCounterFakturiert() > 0);
+        }
+      });
+      fs.add(new DivTextPanel(fs.newChildId(), new Model<String>()
+      {
+        @Override
+        public String getObject()
+        {
+          return WebConstants.HTML_TEXT_DIVIDER
+              + getStatisticsValue("fibu.fakturiert.not", getAuftragsStatistik().getNotInvoicedSum(),
                   getAuftragsStatistik().getCounterFakturiert());
         }
       })
