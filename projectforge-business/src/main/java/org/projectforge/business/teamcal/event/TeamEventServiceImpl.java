@@ -1,35 +1,28 @@
 package org.projectforge.business.teamcal.event;
 
-import java.io.ByteArrayOutputStream;
-import java.io.UnsupportedEncodingException;
-import java.nio.charset.StandardCharsets;
-import java.text.DateFormat;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
-
 import org.apache.commons.lang3.StringUtils;
 import org.projectforge.business.address.AddressDO;
 import org.projectforge.business.address.AddressDao;
 import org.projectforge.business.configuration.ConfigurationService;
-import org.projectforge.business.teamcal.event.model.TeamEvent;
-import org.projectforge.business.teamcal.event.model.TeamEventAttendeeDO;
-import org.projectforge.business.teamcal.event.model.TeamEventAttendeeDao;
-import org.projectforge.business.teamcal.event.model.TeamEventAttendeeStatus;
-import org.projectforge.business.teamcal.event.model.TeamEventDO;
+import org.projectforge.business.teamcal.event.model.*;
 import org.projectforge.business.teamcal.service.CryptService;
 import org.projectforge.business.user.I18nHelper;
 import org.projectforge.business.user.service.UserService;
+import org.projectforge.framework.calendar.MonthHolder;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
+import org.projectforge.framework.time.DayHolder;
 import org.projectforge.mail.Mail;
 import org.projectforge.mail.SendMail;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.io.ByteArrayOutputStream;
+import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
+import java.text.DateFormat;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class TeamEventServiceImpl implements TeamEventService
@@ -188,17 +181,62 @@ public class TeamEventServiceImpl implements TeamEventService
       return sendMail.send(msg, null, null);
     }
     final Map<String, Object> emailDataMap = new HashMap<>();
-    emailDataMap.put("dayOfWeek", "Freitag");
-    emailDataMap.put("fromToHeader", "2. September 9.15 - 9.45 Uhr");
-    emailDataMap.put("invitationText", "Julian Mengel hat sie zu „Abstimmung QS Monitor“ eingeladen.");
-    emailDataMap.put("beginText", "Ganztägig, Donnerstag, 2.September 2016, 9:15 - 09.45");
-    emailDataMap.put("endText", "Ganztägig, Freitag, 3.September 2016");
+    Calendar startDate = Calendar.getInstance(ThreadLocalUserContext.getTimeZone());
+    startDate.setTime(data.getStartDate());
+    Calendar endDate = Calendar.getInstance(ThreadLocalUserContext.getTimeZone());
+    endDate.setTime(data.getEndDate());
+    String beginTime;
+    String endTime;
+    String startDay;
+    String endDay;
+
+    String dayOfWeek;
+    String fromToHeader;
+    String invitationText;
+    String beginText;
+    String endText;
+    String location = data.getLocation() != null ? data.getLocation() : "";
+    String note = data.getNote() != null ? data.getNote() : "";
+
+    startDay = I18nHelper.getLocalizedMessage("calendar.day." + DayHolder.getDayKey(startDate.get(Calendar.DAY_OF_WEEK)));
+    endDay = I18nHelper.getLocalizedMessage("calendar.day." + DayHolder.getDayKey(endDate.get(Calendar.DAY_OF_WEEK)));
+    beginTime = startDate.get(Calendar.DAY_OF_MONTH) + ". " + I18nHelper.getLocalizedMessage("calendar.month." + MonthHolder.MONTH_KEYS[startDate.get(Calendar.MONTH)]) + " " + (startDate.get(Calendar.HOUR_OF_DAY) < 10 ? ("0" + startDate.get(Calendar.HOUR_OF_DAY)) : startDate.get(Calendar.HOUR_OF_DAY)) + ":" + (startDate.get(Calendar.MINUTE) < 10 ? ("0" + startDate.get(Calendar.MINUTE)) : startDate.get(Calendar.MINUTE));
+    endTime = endDate.get(Calendar.DAY_OF_MONTH) + ". " + I18nHelper.getLocalizedMessage("calendar.month." + MonthHolder.MONTH_KEYS[endDate.get(Calendar.MONTH)]) + " " + (endDate.get(Calendar.HOUR_OF_DAY) < 10 ? ("0" + endDate.get(Calendar.HOUR_OF_DAY)) : endDate.get(Calendar.HOUR_OF_DAY)) + ":" + (endDate.get(Calendar.MINUTE) < 10 ? ("0" + endDate.get(Calendar.MINUTE)) : endDate.get(Calendar.MINUTE));
+    invitationText = I18nHelper.getLocalizedMessage("plugins.teamcal.attendee.email.content.new", data.getCreator().getFullname(), data.getSubject().toString());
+    beginText = startDay + ", " + beginTime;
+    endText = endDay + ", " + endTime;
+    dayOfWeek = startDay;
+
+    if (startDate.get(Calendar.DATE) == endDate.get(Calendar.DATE)) //Einen Tag
+    {
+      fromToHeader = beginTime + " - " + (endDate.get(Calendar.HOUR_OF_DAY) < 10 ? ("0" + endDate.get(Calendar.HOUR_OF_DAY)) : endDate.get(Calendar.HOUR_OF_DAY)) + ":" + (endDate.get(Calendar.MINUTE) < 10 ? ("0" + endDate.get(Calendar.MINUTE)) : endDate.get(Calendar.MINUTE)) + " Uhr.";
+    } else    //Mehrere Tage
+    {
+      fromToHeader = beginTime;
+    }
+    if (data.isAllDay()) {
+      fromToHeader = startDate.get(Calendar.DAY_OF_MONTH) + ". " + I18nHelper.getLocalizedMessage("calendar.month." + MonthHolder.MONTH_KEYS[startDate.get(Calendar.MONTH)]);
+      beginText = I18nHelper.getLocalizedMessage("plugins.teamcal.event.allDay") + ", " + startDay + ", " + startDate.get(Calendar.DAY_OF_MONTH) + ". " + I18nHelper.getLocalizedMessage("calendar.month." + MonthHolder.MONTH_KEYS[startDate.get(Calendar.MONTH)]);
+      endText = I18nHelper.getLocalizedMessage("plugins.teamcal.event.allDay") + ", " + endDay + ", " + endDate.get(Calendar.DAY_OF_MONTH) + ". " + I18nHelper.getLocalizedMessage("calendar.month." + MonthHolder.MONTH_KEYS[endDate.get(Calendar.MONTH)]);
+    }
+
+    emailDataMap.put("dayOfWeek", dayOfWeek);
+    emailDataMap.put("fromToHeader", fromToHeader);
+    emailDataMap.put("invitationText", invitationText);
+    emailDataMap.put("beginText", beginText);
+    emailDataMap.put("endText", endText);
+
     List<String> attendeeList = new ArrayList<>();
-    attendeeList.add("j.mengel@micromata.de");
-    attendeeList.add("t.marx@micromata.de");
+    for (TeamEventAttendeeDO attendees : data.getAttendees()) {
+      if (attendees.getAddress() != null) {
+        attendeeList.add(attendees.getAddress().getEmail());
+      } else {
+        attendeeList.add(attendees.getUrl());
+      }
+    }
     emailDataMap.put("attendeeList", attendeeList);
-    emailDataMap.put("location", "Großer Besprechungsraum 3. OG");
-    emailDataMap.put("note", "Absprache der Entwürfe und Besprechung des weiteren Vorgehens");
+    emailDataMap.put("location", location);
+    emailDataMap.put("note", note);
     emailDataMap.put("acceptLink", getResponseLink(data, attendee, TeamEventAttendeeStatus.ACCEPTED));
     emailDataMap.put("declineLink", getResponseLink(data, attendee, TeamEventAttendeeStatus.DECLINED));
     final String content = sendMail.renderGroovyTemplate(msg, "mail/teamEventEmail.html", emailDataMap, ThreadLocalUserContext.getUser());
