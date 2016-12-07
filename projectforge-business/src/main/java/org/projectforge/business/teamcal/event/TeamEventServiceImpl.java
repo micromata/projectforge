@@ -4,6 +4,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
@@ -25,10 +26,8 @@ import org.projectforge.business.teamcal.event.model.TeamEventDO;
 import org.projectforge.business.teamcal.service.CryptService;
 import org.projectforge.business.user.I18nHelper;
 import org.projectforge.business.user.service.UserService;
-import org.projectforge.framework.calendar.MonthHolder;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
-import org.projectforge.framework.time.DayHolder;
 import org.projectforge.mail.Mail;
 import org.projectforge.mail.SendMail;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -200,56 +199,45 @@ public class TeamEventServiceImpl implements TeamEventService
     startDate.setTime(data.getStartDate());
     Calendar endDate = Calendar.getInstance(ThreadLocalUserContext.getTimeZone());
     endDate.setTime(data.getEndDate());
-    String beginTime;
-    String endTime;
-    String startDay;
-    String endDay;
 
-    String dayOfWeek;
-    String fromToHeader;
-    String invitationText;
-    String beginText;
-    String endText;
     String location = data.getLocation() != null ? data.getLocation() : "";
     String note = data.getNote() != null ? data.getNote() : "";
+    formatter = new SimpleDateFormat("EEEE", ThreadLocalUserContext.getLocale());
+    formatter.setTimeZone(ThreadLocalUserContext.getUser().getTimeZoneObject());
+    String startDay = formatter.format(startDate.getTime());
+    String endDay = formatter.format(endDate.getTime());
 
-    startDay = I18nHelper.getLocalizedMessage("calendar.day." + DayHolder.getDayKey(startDate.get(Calendar.DAY_OF_WEEK)));
-    endDay = I18nHelper.getLocalizedMessage("calendar.day." + DayHolder.getDayKey(endDate.get(Calendar.DAY_OF_WEEK)));
-    beginTime =
-        startDate.get(Calendar.DAY_OF_MONTH) + ". " + I18nHelper.getLocalizedMessage("calendar.month." + MonthHolder.MONTH_KEYS[startDate.get(Calendar.MONTH)])
-            + " " + (startDate.get(Calendar.HOUR_OF_DAY) < 10 ? ("0" + startDate.get(Calendar.HOUR_OF_DAY)) : startDate.get(Calendar.HOUR_OF_DAY)) + ":" + (
-            startDate.get(Calendar.MINUTE) < 10 ?
-                ("0" + startDate.get(Calendar.MINUTE)) :
-                startDate.get(Calendar.MINUTE));
-    endTime =
-        endDate.get(Calendar.DAY_OF_MONTH) + ". " + I18nHelper.getLocalizedMessage("calendar.month." + MonthHolder.MONTH_KEYS[endDate.get(Calendar.MONTH)])
-            + " " + (endDate.get(Calendar.HOUR_OF_DAY) < 10 ? ("0" + endDate.get(Calendar.HOUR_OF_DAY)) : endDate.get(Calendar.HOUR_OF_DAY)) + ":" + (
-            endDate.get(Calendar.MINUTE) < 10 ? ("0" + endDate.get(Calendar.MINUTE)) : endDate.get(Calendar.MINUTE));
-    invitationText = I18nHelper
+    formatter = new SimpleDateFormat("dd. MMMMM HH:mm", ThreadLocalUserContext.getLocale());
+    formatter.setTimeZone(ThreadLocalUserContext.getUser().getTimeZoneObject());
+    String beginDateTime = formatter.format(startDate.getTime());
+    String endDateTime = formatter.format(endDate.getTime());
+    String invitationText = I18nHelper
         .getLocalizedMessage("plugins.teamcal.attendee.email.content.new", data.getCreator().getFullname(), data.getSubject().toString());
-    beginText = startDay + ", " + beginTime;
-    endText = endDay + ", " + endTime;
-    dayOfWeek = startDay;
+    String beginText = startDay + ", " + beginDateTime;
+    String endText = endDay + ", " + endDateTime;
+    String dayOfWeek = startDay;
 
+    String fromToHeader;
     if (startDate.get(Calendar.DATE) == endDate.get(Calendar.DATE)) //Einen Tag
     {
+      formatter = new SimpleDateFormat("HH:mm", ThreadLocalUserContext.getLocale());
+      formatter.setTimeZone(ThreadLocalUserContext.getUser().getTimeZoneObject());
+      String endTime = formatter.format(endDate.getTime());
       fromToHeader =
-          beginTime + " - " + (endDate.get(Calendar.HOUR_OF_DAY) < 10 ? ("0" + endDate.get(Calendar.HOUR_OF_DAY)) : endDate.get(Calendar.HOUR_OF_DAY)) + ":" + (
-              endDate.get(Calendar.MINUTE) < 10 ?
-                  ("0" + endDate.get(Calendar.MINUTE)) :
-                  endDate.get(Calendar.MINUTE)) + " Uhr.";
+          beginDateTime + " - " + endTime + " " + I18nHelper.getLocalizedMessage("oclock") + ".";
     } else    //Mehrere Tage
     {
-      fromToHeader = beginTime;
+      fromToHeader = beginDateTime;
     }
     if (data.isAllDay()) {
-      fromToHeader = startDate.get(Calendar.DAY_OF_MONTH) + ". " + I18nHelper
-          .getLocalizedMessage("calendar.month." + MonthHolder.MONTH_KEYS[startDate.get(Calendar.MONTH)]);
+      formatter = new SimpleDateFormat("dd. MMMMM", ThreadLocalUserContext.getLocale());
+      formatter.setTimeZone(ThreadLocalUserContext.getUser().getTimeZoneObject());
+      fromToHeader = formatter.format(startDate.getTime());
+      formatter = new SimpleDateFormat("EEEE, dd. MMMMM", ThreadLocalUserContext.getLocale());
+      formatter.setTimeZone(ThreadLocalUserContext.getUser().getTimeZoneObject());
       beginText =
-          I18nHelper.getLocalizedMessage("plugins.teamcal.event.allDay") + ", " + startDay + ", " + startDate.get(Calendar.DAY_OF_MONTH) + ". " + I18nHelper
-              .getLocalizedMessage("calendar.month." + MonthHolder.MONTH_KEYS[startDate.get(Calendar.MONTH)]);
-      endText = I18nHelper.getLocalizedMessage("plugins.teamcal.event.allDay") + ", " + endDay + ", " + endDate.get(Calendar.DAY_OF_MONTH) + ". " + I18nHelper
-          .getLocalizedMessage("calendar.month." + MonthHolder.MONTH_KEYS[endDate.get(Calendar.MONTH)]);
+          I18nHelper.getLocalizedMessage("plugins.teamcal.event.allDay") + ", " + formatter.format(startDate.getTime());
+      endText = I18nHelper.getLocalizedMessage("plugins.teamcal.event.allDay") + ", " + formatter.format(endDate.getTime());
     }
 
     emailDataMap.put("dayOfWeek", dayOfWeek);
