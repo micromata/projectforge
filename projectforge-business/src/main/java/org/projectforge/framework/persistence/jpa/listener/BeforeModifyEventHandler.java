@@ -69,7 +69,7 @@ public class BeforeModifyEventHandler implements EmgrEventHandler<EmgrInitForMod
     }
     AUserRightId aUserRightId = rec.getClass().getAnnotation(AUserRightId.class);
     if (aUserRightId != null && aUserRightId.checkAccess() == false) {
-      return;
+      return; // skip right check
     }
     OperationType operationType;
     if (event instanceof EmgrInitForInsertEvent) {
