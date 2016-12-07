@@ -727,6 +727,7 @@ public class AccessCheckerImpl implements AccessChecker, Serializable
    * @param throwException
    * @see #hasRight(IUserRightId, boolean, UserRightValue...)
    */
+  @Override
   public boolean hasLoggedInUserWriteAccess(final IUserRightId rightId, final boolean throwException)
   {
     return hasLoggedInUserRight(rightId, throwException, UserRightValue.READWRITE);
