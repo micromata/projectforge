@@ -40,4 +40,8 @@ public interface TeamEventService
   void saveOrUpdate(TeamEventDO teamEvent);
 
   void markAsDeleted(TeamEventDO teamEvent);
+
+  void save(TeamEventDO newEvent);
+
+  TeamEventDao getTeamEventDao();
 }

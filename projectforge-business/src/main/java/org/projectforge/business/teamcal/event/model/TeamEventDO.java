@@ -23,13 +23,36 @@
 
 package org.projectforge.business.teamcal.event.model;
 
-import de.micromata.genome.db.jpa.history.api.NoHistory;
-import de.micromata.genome.db.jpa.history.api.WithHistory;
-import net.fortuna.ical4j.model.Recur;
-import net.fortuna.ical4j.model.property.RRule;
+import java.sql.Timestamp;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Set;
+import java.util.TimeZone;
+import java.util.TreeSet;
+
+import javax.persistence.CascadeType;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
+import javax.persistence.FetchType;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
+import javax.persistence.Table;
+import javax.persistence.Transient;
+
 import org.apache.commons.lang.StringUtils;
-import org.hibernate.search.annotations.*;
+import org.hibernate.search.annotations.Analyze;
+import org.hibernate.search.annotations.DateBridge;
+import org.hibernate.search.annotations.EncodingType;
+import org.hibernate.search.annotations.Field;
 import org.hibernate.search.annotations.Index;
+import org.hibernate.search.annotations.Indexed;
+import org.hibernate.search.annotations.IndexedEmbedded;
+import org.hibernate.search.annotations.Resolution;
+import org.hibernate.search.annotations.Store;
 import org.projectforge.business.teamcal.admin.model.TeamCalDO;
 import org.projectforge.business.teamcal.event.TeamEventConverter;
 import org.projectforge.business.teamcal.event.TeamEventRecurrenceData;
@@ -42,14 +65,10 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.time.DateFormats;
 import org.projectforge.framework.time.TimePeriod;
 
-import javax.persistence.*;
-import java.sql.Timestamp;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.Set;
-import java.util.TimeZone;
-import java.util.TreeSet;
+import de.micromata.genome.db.jpa.history.api.NoHistory;
+import de.micromata.genome.db.jpa.history.api.WithHistory;
+import net.fortuna.ical4j.model.Recur;
+import net.fortuna.ical4j.model.property.RRule;
 
 /**
  * Overview of used (and may-be planned) fields:
@@ -357,7 +376,7 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
   /**
    * @return the attendees
    */
-  @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+  @OneToMany(fetch = FetchType.EAGER)
   @JoinColumn(name = "team_event_fk")
   public Set<TeamEventAttendeeDO> getAttendees()
   {
@@ -487,7 +506,8 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
 
   /**
    * The recurrenceUntil date is calculated by the recurrenceRule string if given, otherwise the date is set to null.
-   *get
+   * get
+   *
    * @see org.projectforge.framework.persistence.entities.AbstractBaseDO#recalculate()
    */
   @Override
