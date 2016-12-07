@@ -29,7 +29,7 @@ public interface VacationService extends IPersistenceService<VacationDO>, IDao<V
    * @param endDate
    * @return List of vacations
    */
-  List<VacationDO> getVacationForDate(EmployeeDO employee, Date startDate, Date endDate);
+  List<VacationDO> getVacationForDate(EmployeeDO employee, Date startDate, Date endDate, boolean withSpecial);
 
   /**
    * Getting all not deleted vacations for given employee of the current year.

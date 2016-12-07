@@ -87,11 +87,11 @@ public class VacationDao extends BaseDao<VacationDO>
     return true;
   }
 
-  public List<VacationDO> getVacationForPeriod(EmployeeDO employee, Date startVacationDate, Date endVacationDate)
+  public List<VacationDO> getVacationForPeriod(EmployeeDO employee, Date startVacationDate, Date endVacationDate, boolean withSpecial)
   {
     List<VacationDO> result = emgrFactory.runRoTrans(emgr -> {
       String baseSQL = "SELECT v FROM VacationDO v WHERE v.employee = :employee AND v.endDate >= :startDate AND v.startDate <= :endDate";
-      List<VacationDO> dbResultList = emgr.selectDetached(VacationDO.class, baseSQL + META_SQL, "employee", employee,
+      List<VacationDO> dbResultList = emgr.selectDetached(VacationDO.class, baseSQL + (withSpecial ? META_SQL_WITH_SPECIAL : META_SQL), "employee", employee,
           "startDate", startVacationDate, "endDate", endVacationDate, "deleted", false, "tenant",
           ThreadLocalUserContext.getUser().getTenant());
       return dbResultList;
