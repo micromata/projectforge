@@ -166,11 +166,11 @@ public class VacationEditForm extends AbstractEditForm<VacationDO, VacationEditP
         @Override
         protected void onUpdate(final AjaxRequestTarget target)
         {
-          if (getData().getStartDate() != null && getData().getEndDate() != null) {
-            BigDecimal availableVacationDays = getAvailableVacationDays(data);
-            availableVacationDaysModel.setObject(availableVacationDays.toString());
-            target.add(availableVacationDaysLabel);
+          BigDecimal availableVacationDays = getAvailableVacationDays(data);
+          availableVacationDaysModel.setObject(availableVacationDays.toString());
+          target.add(availableVacationDaysLabel);
 
+          if (getData().getStartDate() != null && getData().getEndDate() != null) {
             String value = DayHolder.getNumberOfWorkingDays(data.getStartDate(), data.getEndDate()).toString();
             neededVacationDaysModel.setObject(value);
             target.add(neededVacationDaysLabel);
