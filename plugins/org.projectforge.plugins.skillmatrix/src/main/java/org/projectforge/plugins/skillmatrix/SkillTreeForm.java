@@ -29,7 +29,7 @@ import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
-import org.projectforge.web.wicket.AbstractForm;
+import org.projectforge.web.wicket.AbstractSecuredForm;
 import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.web.wicket.bootstrap.GridBuilder;
 import org.projectforge.web.wicket.bootstrap.GridSize;
@@ -42,9 +42,8 @@ import org.projectforge.web.wicket.flowlayout.MyComponentsRepeater;
 
 /**
  * @author Billy Duong (b.duong@micromata.de)
- * 
  */
-public class SkillTreeForm extends AbstractForm<SkillFilter, SkillTreePage>
+public class SkillTreeForm extends AbstractSecuredForm<SkillFilter, SkillTreePage>
 {
 
   private static final long serialVersionUID = 1227686732149287124L;
