@@ -65,6 +65,7 @@ import org.projectforge.business.fibu.RechnungCache;
 import org.projectforge.business.fibu.RechnungDao;
 import org.projectforge.business.fibu.RechnungsPositionVO;
 import org.projectforge.business.task.TaskDO;
+import org.projectforge.business.user.I18nHelper;
 import org.projectforge.business.user.UserRightValue;
 import org.projectforge.business.utils.CurrencyFormatter;
 import org.projectforge.common.StringHelper;
@@ -183,6 +184,9 @@ public class AuftragEditForm extends AbstractEditForm<AuftragDO, AuftragEditPage
         }
       }, TextStyle.FORM_TEXT);
       fs.add(orderedPanel);
+
+      String orderInvoiceInfo = I18nHelper.getLocalizedMessage("fibu.auftrag.invoice.info", CurrencyFormatter.format(data.getFakturiertSum()), CurrencyFormatter.format(data.getZuFakturierenSum()));
+      fs.add(new DivTextPanel(fs.newChildId(), orderInvoiceInfo)); ;
     }
     gridBuilder.newGridPanel();
     {
