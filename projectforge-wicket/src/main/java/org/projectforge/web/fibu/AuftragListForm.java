@@ -132,23 +132,6 @@ public class AuftragListForm extends AbstractListForm<AuftragListFilter, Auftrag
         public String getObject()
         {
           return WebConstants.HTML_TEXT_DIVIDER
-              + getStatisticsValue("fibu.fakturiert.not", getAuftragsStatistik().getNotInvoicedSum(),
-                  getAuftragsStatistik().getCounterFakturiert());
-        }
-      })
-      {
-        @Override
-        public boolean isVisible()
-        {
-          return (getAuftragsStatistik().getCounterFakturiert() > 0);
-        }
-      });
-      fs.add(new DivTextPanel(fs.newChildId(), new Model<String>()
-      {
-        @Override
-        public String getObject()
-        {
-          return WebConstants.HTML_TEXT_DIVIDER
               + getStatisticsValue("fibu.auftrag.filter.type.abgeschlossenNichtFakturiert",
                   getAuftragsStatistik().getZuFakturierenSum(),
                   getAuftragsStatistik().getCounterZuFakturieren());
