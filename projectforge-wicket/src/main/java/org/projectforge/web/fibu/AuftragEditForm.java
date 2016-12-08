@@ -87,14 +87,7 @@ import org.projectforge.web.wicket.components.MinMaxNumberField;
 import org.projectforge.web.wicket.components.RequiredMaxLengthTextField;
 import org.projectforge.web.wicket.components.SingleButtonPanel;
 import org.projectforge.web.wicket.converter.CurrencyConverter;
-import org.projectforge.web.wicket.flowlayout.CheckBoxButton;
-import org.projectforge.web.wicket.flowlayout.DivPanel;
-import org.projectforge.web.wicket.flowlayout.DivTextPanel;
-import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
-import org.projectforge.web.wicket.flowlayout.InputPanel;
-import org.projectforge.web.wicket.flowlayout.TextAreaPanel;
-import org.projectforge.web.wicket.flowlayout.TextStyle;
-import org.projectforge.web.wicket.flowlayout.ToggleContainerPanel;
+import org.projectforge.web.wicket.flowlayout.*;
 import org.projectforge.web.wicket.flowlayout.ToggleContainerPanel.ToggleStatus;
 
 public class AuftragEditForm extends AbstractEditForm<AuftragDO, AuftragEditPage>
@@ -465,8 +458,7 @@ public class AuftragEditForm extends AbstractEditForm<AuftragDO, AuftragEditPage
         }
 
         /**
-         * @see org.projectforge.web.wicket.flowlayout.ToggleContainerPanel#onToggleStatusChanged(org.apache.wicket.ajax.AjaxRequestTarget,
-         *      boolean)
+         * @see org.projectforge.web.wicket.flowlayout.ToggleContainerPanel#onToggleStatusChanged(AjaxRequestTarget, ToggleStatus)
          */
         @Override
         protected void onToggleStatusChanged(final AjaxRequestTarget target, final ToggleStatus toggleStatus)
@@ -537,7 +529,7 @@ public class AuftragEditForm extends AbstractEditForm<AuftragDO, AuftragEditPage
           fs.setWarningBackground();
         }
       }
-      posGridBuilder.newSplitPanel(GridSize.COL33);
+      posGridBuilder.newSplitPanel(GridSize.COL25);
       final Set<RechnungsPositionVO> invoicePositionsByOrderPositionId = rechnungCache
           .getRechnungsPositionVOSetByAuftragsPositionId(position.getId());
       final boolean showInvoices = CollectionUtils.isNotEmpty(invoicePositionsByOrderPositionId);
@@ -552,10 +544,10 @@ public class AuftragEditForm extends AbstractEditForm<AuftragDO, AuftragEditPage
           fs.add(AbstractUnsecureBasePage.createInvisibleDummyComponent(fs.newChildId()));
         }
       }
-      posGridBuilder.newSplitPanel(GridSize.COL33);
+      posGridBuilder.newSplitPanel(GridSize.COL25);
       {
         // invoiced
-        final FieldsetPanel fs = posGridBuilder.newFieldset(getString("fibu.fakturiert")).suppressLabelForWarning();
+        final FieldsetPanel fs = posGridBuilder.newFieldset(getString("fibu.title.fakturiert")).suppressLabelForWarning();
         if (showInvoices == true) {
           fs.add(new DivTextPanel(fs.newChildId(),
               CurrencyFormatter.format(RechnungDao.getNettoSumme(invoicePositionsByOrderPositionId))));
@@ -569,7 +561,18 @@ public class AuftragEditForm extends AbstractEditForm<AuftragDO, AuftragEditPage
               getString("fibu.auftrag.vollstaendigFakturiert")));
         }
       }
-      posGridBuilder.newSplitPanel(GridSize.COL33);
+      posGridBuilder.newSplitPanel(GridSize.COL25);
+      {
+        // invoiced
+        final FieldsetPanel fs = posGridBuilder.newFieldset(getString("fibu.title.fakturiert.not")).suppressLabelForWarning();
+        if (showInvoices == true) {
+          BigDecimal invoicedSumForPosition = RechnungDao.getNettoSumme(invoicePositionsByOrderPositionId);
+          BigDecimal notInvoicedSumForPosition = position.getNettoSumme().subtract(invoicedSumForPosition);
+          fs.add(new DivTextPanel(fs.newChildId(),
+                  CurrencyFormatter.format(notInvoicedSumForPosition)));
+        }
+      }
+      posGridBuilder.newSplitPanel(GridSize.COL25);
       {
         // DropDownChoice status
         final FieldsetPanel fs = posGridBuilder.newFieldset(getString("status"));

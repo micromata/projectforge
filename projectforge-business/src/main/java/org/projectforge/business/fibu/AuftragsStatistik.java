@@ -105,11 +105,6 @@ public class AuftragsStatistik implements Serializable
     return fakturiertSum;
   }
 
-  public BigDecimal getNotInvoicedSum()
-  {
-    return nettoSum.subtract(fakturiertSum);
-  }
-
   public BigDecimal getZuFakturierenSum()
   {
     return zuFakturierenSum;
