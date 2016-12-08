@@ -23,9 +23,6 @@
 
 package org.projectforge.framework.persistence.user.api;
 
-import java.util.Locale;
-import java.util.TimeZone;
-
 import org.apache.commons.lang.ObjectUtils;
 import org.joda.time.DateTimeZone;
 import org.projectforge.business.user.I18nHelper;
@@ -34,6 +31,9 @@ import org.projectforge.framework.configuration.ConfigXml;
 import org.projectforge.framework.configuration.Configuration;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.time.DateHelper;
+
+import java.util.Locale;
+import java.util.TimeZone;
 
 /**
  * ThreadLocal context.
@@ -116,7 +116,8 @@ public class ThreadLocalUserContext
    */
   public final static Locale getLocale()
   {
-    return getLocale(null);
+    final PFUserDO user = getUser();
+    return user == null ? getLocale(null) : user.getLocale();
   }
 
   /**
