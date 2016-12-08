@@ -160,6 +160,7 @@
                 pf.getString(note) %>
             </td>
         </tr>
+        <% if (pf.getString(deleted).equals("false")) { %>
         <tr>
             <td colspan="2">&nbsp;</td>
         </tr>
@@ -183,6 +184,7 @@
 
             </td>
         </tr>
+        <% } %>
     </table>
 </div>
 </body>
