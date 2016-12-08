@@ -176,6 +176,7 @@ public class TeamEventServiceImpl implements TeamEventService
 
   private boolean sendMail(TeamEventDO data, TeamEventAttendeeDO attendee, String mode)
   {
+    boolean deleted = "deleted".equals(mode);
     final Mail msg = createMail(mode);
     addAttendeeToMail(attendee, msg);
     DateFormat formatter = DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT);
@@ -184,16 +185,7 @@ public class TeamEventServiceImpl implements TeamEventService
     for (TeamEventAttendeeDO attendeeForString : data.getAttendees()) {
       attendeesString = attendeesString + attendeeForString.toString() + " <br>";
     }
-    if ("deleted".equals(mode)) {
-      String content = I18nHelper.getLocalizedMessage("plugins.teamcal.attendee.email.content." + mode,
-          data.getSubject(),
-          formatter.format(data.getStartDate()),
-          data.getLocation() != null ? data.getLocation() : "",
-          attendeesString,
-          data.getNote() != null ? data.getNote() : "");
-      msg.setContent(content);
-      return sendMail.send(msg, null, null);
-    }
+
     final Map<String, Object> emailDataMap = new HashMap<>();
     Calendar startDate = Calendar.getInstance(ThreadLocalUserContext.getTimeZone());
     startDate.setTime(data.getStartDate());
@@ -211,8 +203,14 @@ public class TeamEventServiceImpl implements TeamEventService
     formatter.setTimeZone(ThreadLocalUserContext.getUser().getTimeZoneObject());
     String beginDateTime = formatter.format(startDate.getTime());
     String endDateTime = formatter.format(endDate.getTime());
-    String invitationText = I18nHelper
-        .getLocalizedMessage("plugins.teamcal.attendee.email.content.new", data.getCreator().getFullname(), data.getSubject().toString());
+    String invitationText;
+    if (deleted) {
+      invitationText = I18nHelper
+          .getLocalizedMessage("plugins.teamcal.attendee.email.content.deleted", data.getCreator().getFullname());
+    } else {
+      invitationText = I18nHelper
+          .getLocalizedMessage("plugins.teamcal.attendee.email.content.new", data.getCreator().getFullname(), data.getSubject());
+    }
     String beginText = startDay + ", " + beginDateTime;
     String endText = endDay + ", " + endDateTime;
     String dayOfWeek = startDay;
@@ -259,12 +257,17 @@ public class TeamEventServiceImpl implements TeamEventService
     emailDataMap.put("note", note);
     emailDataMap.put("acceptLink", getResponseLink(data, attendee, TeamEventAttendeeStatus.ACCEPTED));
     emailDataMap.put("declineLink", getResponseLink(data, attendee, TeamEventAttendeeStatus.DECLINED));
+    emailDataMap.put("deleted", deleted ? "true" : "false");
     final String content = sendMail.renderGroovyTemplate(msg, "mail/teamEventEmail.html", emailDataMap, ThreadLocalUserContext.getUser());
     msg.setContent(content);
-    ByteArrayOutputStream icsFile = teamEventConverter.getIcsFile(data);
     boolean result = false;
     try {
-      result = sendMail.send(msg, icsFile.toString(StandardCharsets.UTF_8.name()), null);
+      if (deleted) {
+        result = sendMail.send(msg, null, null);
+      } else {
+        ByteArrayOutputStream icsFile = teamEventConverter.getIcsFile(data);
+        result = sendMail.send(msg, icsFile.toString(StandardCharsets.UTF_8.name()), null);
+      }
     } catch (UnsupportedEncodingException e) {
       log.error("Something went wrong sending team event to attendee", e);
     }

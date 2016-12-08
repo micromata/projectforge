@@ -254,6 +254,7 @@ public class TeamEventDaoRest
       TeamEventDO teamEventOrigin = teamEventService.findByUid(eventUid.getValue());
       if (teamEventOrigin != null) {
         teamEventService.markAsDeleted(teamEventOrigin);
+        teamEventService.sendTeamEventToAttendees(teamEventOrigin, false, false, true, null);
         log.info("Team event with the id: " + eventUid.getValue() + " for calendar #" + calendarEvent.getCalendarId() + " successfully marked as deleted.");
       } else {
         log.warn("Team event with uid: " + eventUid.getValue() + " not found");
