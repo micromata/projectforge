@@ -278,7 +278,7 @@ public class TeamEventServiceImpl implements TeamEventService
   {
     final String messageParamBegin = "uid=" + event.getUid() + "&attendee=" + attendee.getId();
     final String acceptParams = cryptService.encryptParameterMessage(messageParamBegin + "&status=" + status.name());
-    return configService.getDomain() + "/cal?" + acceptParams;
+    return configService.getDomain() + "/pfcalendar?" + acceptParams;
   }
 
   private void addAttendeeToMail(TeamEventAttendeeDO attendee, Mail msg)
