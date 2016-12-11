@@ -81,7 +81,6 @@ public enum MenuItemDefId
   SCRIPT_LIST("scriptList"), //
   SCRIPTING("scripting"), //
   SEARCH("search"), //
-  PACMAN("pacman"), //
   SPACE_LIST("spaceList"), //
   SQL_CONSOLE("sqlConsole"), //
   GROOVY_CONSOLE("groovyConsole"), // 
