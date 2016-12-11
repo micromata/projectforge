@@ -98,7 +98,6 @@ import org.projectforge.web.orga.ContractListPage;
 import org.projectforge.web.orga.PostausgangListPage;
 import org.projectforge.web.orga.PosteingangListPage;
 import org.projectforge.web.orga.VisitorbookListPage;
-import org.projectforge.web.pacman.PacmanViewPage;
 import org.projectforge.web.scripting.ScriptListPage;
 import org.projectforge.web.scripting.ScriptingPage;
 import org.projectforge.web.statistics.PersonalStatisticsPage;
@@ -481,8 +480,6 @@ public class MenuItemRegistry implements Serializable
     reg.register(admin, MenuItemDefId.SYSTEM_STATISTICS, 90, SystemStatisticsPage.class);
     reg.register(admin, MenuItemDefId.CONFIGURATION, 100, ConfigurationListPage.class, ADMIN_GROUP);
     reg.register(admin, MenuItemDefId.PLUGIN_ADMIN, 110, PluginListPage.class, ADMIN_GROUP);
-
-    reg.register(misc, MenuItemDefId.PACMAN, 900, PacmanViewPage.class);
 
     reg.refresh();
   }
