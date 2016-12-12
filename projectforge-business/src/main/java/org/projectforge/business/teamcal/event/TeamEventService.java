@@ -44,4 +44,6 @@ public interface TeamEventService
   void save(TeamEventDO newEvent);
 
   TeamEventDao getTeamEventDao();
+
+  void updateAttendee(TeamEventAttendeeDO attendee, boolean accessCheck);
 }
