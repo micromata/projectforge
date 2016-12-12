@@ -286,8 +286,8 @@ public class TeamEventAttendeeDO extends DefaultBaseDO implements Comparable<Tea
   public int hashCode()
   {
     int result = getPk() != null ? getPk().hashCode() : 0;
-    result = 31 * result + (address != null ? address.hashCode() : 0);
-    result = 31 * result + (user != null ? user.hashCode() : 0);
+    result = 31 * result + (address != null ? address.getPk().hashCode() : 0);
+    result = 31 * result + (user != null ? user.getPk().hashCode() : 0);
     result = 31 * result + (url != null ? url.hashCode() : 0);
     return result;
   }
