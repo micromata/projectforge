@@ -369,4 +369,14 @@ public class TeamEventServiceImpl implements TeamEventService
     return teamEventDao;
   }
 
+  @Override
+  public void updateAttendee(TeamEventAttendeeDO attendee, boolean accesscheck)
+  {
+    if (accesscheck) {
+      teamEventAttendeeDao.update(attendee);
+    } else {
+      teamEventAttendeeDao.internalUpdate(attendee);
+    }
+  }
+
 }

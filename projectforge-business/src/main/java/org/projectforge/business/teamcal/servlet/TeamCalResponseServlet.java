@@ -139,13 +139,9 @@ public class TeamCalResponseServlet extends HttpServlet
     }
     final TeamEventAttendeeDO eventAttendee = teamEventService.findByAttendeeId(attendeeId, false);
     if (eventAttendee != null) {
-      event.getAttendees().stream().forEach(attendee -> {
-        if (attendee.equals(eventAttendee) == true) {
-          attendee.setStatus(statusFinal);
-        }
-      });
       try {
-        teamEventService.update(event, false);
+        eventAttendee.setStatus(statusFinal);
+        teamEventService.updateAttendee(eventAttendee, false);
       } catch (Exception e) {
         log.error("Bad request, exception while updating event: " + e.getMessage());
         resp.sendError(HttpStatus.SC_BAD_REQUEST);
