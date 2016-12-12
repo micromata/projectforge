@@ -168,6 +168,7 @@ public class AuftragEditPage extends AbstractEditPage<AuftragDO, AuftragEditForm
       if (getData().getAngebotsDatum() == null) {
         final DayHolder today = new DayHolder();
         getData().setAngebotsDatum(new java.sql.Date(today.getTimeInMillis()));
+        getData().setErfassungsDatum(new java.sql.Date(today.getTimeInMillis()));
       }
       if (getData().getContactPersonId() == null
           && accessChecker.isLoggedInUserMemberOfGroup(ProjectForgeGroup.PROJECT_MANAGER) == true) {
