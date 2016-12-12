@@ -132,7 +132,8 @@ public class OrderExport
     return new ExportColumn[] { //
         new I18nExportColumn(PosCol.NUMBER, "fibu.auftrag.nummer.short", MyXlsContentProvider.LENGTH_ID),
         new I18nExportColumn(PosCol.POS_NUMBER, "fibu.auftrag.position", 5),
-        new I18nExportColumn(PosCol.DATE, "fibu.auftrag.datum", MyXlsContentProvider.LENGTH_DATE),
+        new I18nExportColumn(PosCol.DATE_OF_OFFER, "fibu.auftrag.angebot.datum", MyXlsContentProvider.LENGTH_DATE),
+        new I18nExportColumn(PosCol.DATE_OF_ENTRY, "fibu.auftrag.erfassung.datum", MyXlsContentProvider.LENGTH_DATE),
         new I18nExportColumn(PosCol.PROJECT, "fibu.projekt", MyXlsContentProvider.LENGTH_STD),
         new I18nExportColumn(PosCol.ORDER_TITLE, "fibu.auftrag.titel", MyXlsContentProvider.LENGTH_STD),
         new I18nExportColumn(PosCol.TITLE, "fibu.auftrag.titel", MyXlsContentProvider.LENGTH_STD),
@@ -155,7 +156,8 @@ public class OrderExport
   {
     mapping.add(PosCol.NUMBER, order.getNummer());
     mapping.add(PosCol.POS_NUMBER, "#" + pos.getNumber());
-    mapping.add(PosCol.DATE, order.getAngebotsDatum());
+    mapping.add(PosCol.DATE_OF_OFFER, order.getAngebotsDatum());
+    mapping.add(PosCol.DATE_OF_ENTRY, order.getErfassungsDatum());
     mapping.add(PosCol.PROJECT, order.getProjektAsString());
     mapping.add(PosCol.ORDER_TITLE, order.getTitel());
     mapping.add(PosCol.TITLE, pos.getTitel());
@@ -259,7 +261,7 @@ public class OrderExport
     sheetProvider = sheet.getContentProvider();
     sheetProvider.putFormat(MyXlsContentProvider.FORMAT_CURRENCY, PosCol.NETSUM, PosCol.INVOICED,
         PosCol.TO_BE_INVOICED);
-    sheetProvider.putFormat(DateFormats.getExcelFormatString(DateFormatType.DATE), PosCol.DATE,
+    sheetProvider.putFormat(DateFormats.getExcelFormatString(DateFormatType.DATE), PosCol.DATE_OF_OFFER, PosCol.DATE_OF_ENTRY,
         PosCol.PERIOD_OF_PERFORMANCE_BEGIN,
         PosCol.PERIOD_OF_PERFORMANCE_END);
     sheet.createFreezePane(1, 1);
@@ -332,7 +334,7 @@ public class OrderExport
 
   private enum PosCol
   {
-    NUMBER, POS_NUMBER, DATE, PROJECT, ORDER_TITLE, TITLE, TYPE, STATUS, PERSON_DAYS, NETSUM, INVOICED, TO_BE_INVOICED, COMPLETELY_INVOICED, INVOICES, PERIOD_OF_PERFORMANCE_BEGIN, PERIOD_OF_PERFORMANCE_END, TASK, COMMENT;
+    NUMBER, POS_NUMBER, DATE_OF_OFFER, DATE_OF_ENTRY, PROJECT, ORDER_TITLE, TITLE, TYPE, STATUS, PERSON_DAYS, NETSUM, INVOICED, TO_BE_INVOICED, COMPLETELY_INVOICED, INVOICES, PERIOD_OF_PERFORMANCE_BEGIN, PERIOD_OF_PERFORMANCE_END, TASK, COMMENT;
   }
 
   private enum PaymentsCol
