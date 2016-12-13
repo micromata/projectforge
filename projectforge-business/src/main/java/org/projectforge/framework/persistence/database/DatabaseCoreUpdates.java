@@ -83,14 +83,17 @@ public class DatabaseCoreUpdates
     // 6.6.0
     // /////////////////////////////////////////////////////////////////
     list.add(new UpdateEntryImpl(CORE_REGION_ID, "6.6.0", "2016-12-14",
-        "Add new visitorbook tables.")
+        "Add new visitorbook tables. " +
+                "Add new column in user table [lastWlanPasswordChange]. " +
+                "Add new columns in order table [erfassungsDatum, entscheidungsDatum].")
     {
       @Override
       public UpdatePreCheckStatus runPreCheck()
       {
         log.info("Running pre-check for ProjectForge version 6.6.0");
         if (databaseUpdateService.doTableAttributesExist(PFUserDO.class, "lastWlanPasswordChange") == false
-                || databaseUpdateService.doTableAttributesExist(AuftragDO.class, "erfassungsDatum") == false) {
+                || databaseUpdateService.doTableAttributesExist(AuftragDO.class, "erfassungsDatum") == false
+                || databaseUpdateService.doTableAttributesExist(AuftragDO.class, "entscheidungsDatum") == false) {
           return UpdatePreCheckStatus.READY_FOR_UPDATE;
         } else if (
             databaseUpdateService.doTablesExist(VisitorbookDO.class, VisitorbookTimedDO.class, VisitorbookTimedAttrDO.class, VisitorbookTimedAttrDataDO.class,
@@ -106,6 +109,7 @@ public class DatabaseCoreUpdates
       {
         if (databaseUpdateService.doTableAttributesExist(PFUserDO.class, "lastWlanPasswordChange") == false
                 || databaseUpdateService.doTableAttributesExist(AuftragDO.class, "erfassungsDatum") == false
+                || databaseUpdateService.doTableAttributesExist(AuftragDO.class, "entscheidungsDatum") == false
                 || databaseUpdateService.doTablesExist(VisitorbookDO.class, VisitorbookTimedDO.class, VisitorbookTimedAttrDO.class, VisitorbookTimedAttrDataDO.class,
                 VisitorbookTimedAttrWithDataDO.class) == false) {
           initDatabaseDao.updateSchema();
