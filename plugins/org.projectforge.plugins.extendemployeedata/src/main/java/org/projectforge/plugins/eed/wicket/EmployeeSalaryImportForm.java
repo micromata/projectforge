@@ -10,6 +10,7 @@ import org.apache.wicket.markup.html.form.upload.FileUploadField;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.user.I18nHelper;
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.plugins.eed.service.EEDHelper;
 import org.projectforge.web.core.importstorage.AbstractImportForm;
 import org.projectforge.web.core.importstorage.ImportFilter;
@@ -26,9 +27,9 @@ public class EmployeeSalaryImportForm extends AbstractImportForm<ImportFilter, E
 
   FileUploadField fileUploadField;
 
-  private int selectedMonth = Calendar.getInstance().get(Calendar.MONTH) + 1;
+  private Integer selectedMonth;
 
-  private int selectedYear = Calendar.getInstance().get(Calendar.YEAR);
+  private Integer selectedYear = Calendar.getInstance(ThreadLocalUserContext.getTimeZone()).get(Calendar.YEAR);
 
   private DropDownChoicePanel<Integer> dropDownMonth;
 
@@ -53,10 +54,12 @@ public class EmployeeSalaryImportForm extends AbstractImportForm<ImportFilter, E
     dropDownMonth = new DropDownChoicePanel<>(fsMonthYear.newChildId(),
         new DropDownChoice<>(DropDownChoicePanel.WICKET_ID, new PropertyModel<>(this, "selectedMonth"), EEDHelper.MONTH_INTEGERS)
     );
+    dropDownMonth.setRequired(true);
     fsMonthYear.add(dropDownMonth);
 
     dropDownYear = new DropDownChoicePanel<>(fsMonthYear.newChildId(),
         new DropDownChoice<>(DropDownChoicePanel.WICKET_ID, new PropertyModel<>(this, "selectedYear"), eedHelper.getDropDownYears()));
+    dropDownYear.setRequired(true);
     fsMonthYear.add(dropDownYear);
 
     // upload buttons
@@ -86,7 +89,8 @@ public class EmployeeSalaryImportForm extends AbstractImportForm<ImportFilter, E
     gridBuilder.newGridPanel();
     final DivPanel panel = gridBuilder.getPanel();
     storagePanel = new EmployeeSalaryImportStoragePanel(panel.newChildId(), parentPage, importFilter);
-    final Date dateToSelectAttrRow = new GregorianCalendar(selectedYear, selectedMonth - 1, 1, 0, 0).getTime();
+    final Date dateToSelectAttrRow = new GregorianCalendar(selectedYear,
+        (selectedMonth != null ? selectedMonth : Calendar.getInstance(ThreadLocalUserContext.getTimeZone()).get(Calendar.MONTH)) - 1, 1, 0, 0).getTime();
     storagePanel.setDateToSelectAttrRow(dateToSelectAttrRow);
     panel.add(storagePanel);
   }

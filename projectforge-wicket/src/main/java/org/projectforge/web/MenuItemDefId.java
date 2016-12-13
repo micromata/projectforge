@@ -45,6 +45,7 @@ public enum MenuItemDefId
   CALENDAR("calendar"), //
   TEAMCALENDAR("plugins.teamcal"), //
   CHANGE_PASSWORD("changePassword"), //
+  CHANGE_WLAN_PASSWORD("changeWlanPassword"), //
   CONFIGURATION("configuration"), //
   CONTACT_LIST("contactList"), //
   CONTRACTS("contracts"), //

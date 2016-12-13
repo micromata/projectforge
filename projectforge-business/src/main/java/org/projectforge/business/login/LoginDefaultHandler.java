@@ -119,7 +119,7 @@ public class LoginDefaultHandler implements LoginHandler
   /**
    * Only administrator login is allowed. The login is checked without Hibernate because the data-base schema may be
    * out-dated thus Hibernate isn't functioning.
-   * 
+   *
    * @param jdbc
    * @param username
    * @param password
@@ -220,7 +220,7 @@ public class LoginDefaultHandler implements LoginHandler
 
   /**
    * The assigned users are fetched.
-   * 
+   *
    * @see org.projectforge.business.login.LoginHandler#getAllGroups()
    */
   @SuppressWarnings("unchecked")
@@ -263,7 +263,7 @@ public class LoginDefaultHandler implements LoginHandler
 
   /**
    * Do nothing.
-   * 
+   *
    * @see org.projectforge.business.login.LoginHandler#afterUserGroupCacheRefresh(java.util.List, java.util.List)
    */
   @Override
@@ -279,7 +279,7 @@ public class LoginDefaultHandler implements LoginHandler
 
   /**
    * This login handler doesn't support an external user management system.
-   * 
+   *
    * @return false.
    * @see org.projectforge.business.login.LoginHandler#hasExternalUsermanagementSystem()
    */
@@ -291,9 +291,9 @@ public class LoginDefaultHandler implements LoginHandler
 
   /**
    * Do nothing.
-   * 
+   *
    * @see org.projectforge.business.login.LoginHandler#passwordChanged(org.projectforge.framework.persistence.user.entities.PFUserDO,
-   *      java.lang.String)
+   * java.lang.String)
    */
   @Override
   public void passwordChanged(final PFUserDO user, final String newPassword)
@@ -301,13 +301,25 @@ public class LoginDefaultHandler implements LoginHandler
     // Do nothing.
   }
 
+  @Override
+  public void wlanPasswordChanged(final PFUserDO user, final String newPassword)
+  {
+    // Do nothing. The wlan password input field is not visible if this handler is used.
+  }
+
   /**
-   * @see org.projectforge.business.login.LoginHandler#isPasswordChangeSupported(org.projectforge.framework.persistence.user.entities.PFUserDO)
    * @return always true.
+   * @see org.projectforge.business.login.LoginHandler#isPasswordChangeSupported(org.projectforge.framework.persistence.user.entities.PFUserDO)
    */
   @Override
   public boolean isPasswordChangeSupported(final PFUserDO user)
   {
     return true;
+  }
+
+  @Override
+  public boolean isWlanPasswordChangeSupported(PFUserDO user)
+  {
+    return false;
   }
 }

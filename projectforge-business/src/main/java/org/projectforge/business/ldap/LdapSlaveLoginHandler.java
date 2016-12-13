@@ -63,9 +63,8 @@ import org.springframework.stereotype.Service;
  * <li>All known ldap user fields of the users are synchronized (given name, surname, e-mail etc.).</li>
  * </ul>
  * <h4>Users-groups mode</h4> Not yet supported. No groups will be synchronized.
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
  */
 @Service
 public class LdapSlaveLoginHandler extends LdapLoginHandler
@@ -78,7 +77,7 @@ public class LdapSlaveLoginHandler extends LdapLoginHandler
   enum Mode
   {
     SIMPLE, USERS, USER_GROUPS
-  };
+  }
 
   private Mode mode;
 
@@ -86,7 +85,7 @@ public class LdapSlaveLoginHandler extends LdapLoginHandler
 
   /**
    * Only for test cases.
-   * 
+   *
    * @param mode
    */
   void setMode(final Mode mode)
@@ -128,7 +127,7 @@ public class LdapSlaveLoginHandler extends LdapLoginHandler
    * {@link LoginResultStatus#FAILED} is returned. If successful then {@link LoginResultStatus#SUCCESS} is returned with
    * the user settings of ProjectForge database. If the user doesn't yet exist in ProjectForge's data-base, it will be
    * created after and then returned.
-   * 
+   *
    * @see org.projectforge.business.login.LoginHandler#checkLogin(java.lang.String, java.lang.String, boolean)
    */
   @Override
@@ -178,7 +177,7 @@ public class LdapSlaveLoginHandler extends LdapLoginHandler
   /**
    * Currently return all ProjectForge groups (done by loginDefaultHandler). Not yet implemented: Updates also any (in
    * LDAP) modified group in ProjectForge's data-base.
-   * 
+   *
    * @see org.projectforge.business.login.LoginHandler#getAllGroups()
    */
   @Override
@@ -191,7 +190,7 @@ public class LdapSlaveLoginHandler extends LdapLoginHandler
   /**
    * Updates also any (in LDAP) modified user in ProjectForge's data-base. New users will be created and ProjectForge
    * users which are not available in ProjectForge's data-base will be created.
-   * 
+   *
    * @see org.projectforge.business.login.LoginHandler#getAllUsers()
    */
   @Override
@@ -215,8 +214,8 @@ public class LdapSlaveLoginHandler extends LdapLoginHandler
   }
 
   /**
-   * @see org.projectforge.business.login.LoginHandler#isPasswordChangeSupported(org.projectforge.framework.persistence.user.entities.PFUserDO)
    * @return true for local users only, false for ldap users.
+   * @see org.projectforge.business.login.LoginHandler#isPasswordChangeSupported(org.projectforge.framework.persistence.user.entities.PFUserDO)
    */
   @Override
   public boolean isPasswordChangeSupported(final PFUserDO user)
@@ -224,9 +223,15 @@ public class LdapSlaveLoginHandler extends LdapLoginHandler
     return user.isLocalUser();
   }
 
+  @Override
+  public boolean isWlanPasswordChangeSupported(PFUserDO user)
+  {
+    return false;
+  }
+
   /**
    * Refreshes the LDAP.
-   * 
+   *
    * @see org.projectforge.business.login.LoginHandler#afterUserGroupCacheRefresh(java.util.List, java.util.List)
    */
   @Override

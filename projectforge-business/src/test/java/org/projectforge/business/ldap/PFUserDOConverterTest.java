@@ -23,16 +23,10 @@
 
 package org.projectforge.business.ldap;
 
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertFalse;
-import static org.testng.AssertJUnit.assertNull;
-import static org.testng.AssertJUnit.assertTrue;
+import static org.testng.AssertJUnit.*;
 
-import org.projectforge.business.ldap.LdapConfig;
-import org.projectforge.business.ldap.LdapPosixAccountsConfig;
-import org.projectforge.business.ldap.LdapServiceImpl;
-import org.projectforge.business.ldap.LdapUser;
-import org.projectforge.business.ldap.PFUserDOConverter;
+import java.util.Date;
+
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.test.AbstractTestBase;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -59,9 +53,12 @@ public class PFUserDOConverterTest extends AbstractTestBase
   @Test
   public void convert()
   {
+    final Date now = new Date();
     PFUserDO user = new PFUserDO().setUsername("k.reinhard").setFirstname("Kai").setLastname("Reinhard")
         .setEmail("k.reinhard@micromata.de").setDescription("Developer").setOrganization("Micromata GmbH");
     user.setId(42);
+    user.setLastWlanPasswordChange(now);
+
     LdapUser ldapUser = pfUserDOConverter.convert(user);
     assertEquals("k.reinhard", ldapUser.getUid());
     assertEquals("k.reinhard", ldapUser.getId());
@@ -73,6 +70,7 @@ public class PFUserDOConverterTest extends AbstractTestBase
     assertEquals("Micromata GmbH", ldapUser.getOrganization());
     assertEquals(1, ldapUser.getMail().length);
     assertEquals("k.reinhard@micromata.de", ldapUser.getMail()[0]);
+    assertEquals(now, ldapUser.getSambaPwdLastSet());
 
     user = pfUserDOConverter.convert(ldapUser);
     assertEquals("k.reinhard", user.getUsername());
@@ -82,6 +80,7 @@ public class PFUserDOConverterTest extends AbstractTestBase
     assertEquals("Reinhard", user.getLastname());
     assertEquals("Micromata GmbH", user.getOrganization());
     assertEquals("k.reinhard@micromata.de", user.getEmail());
+    assertEquals(now, user.getLastWlanPasswordChange());
 
     user = new PFUserDO();
     ldapUser = pfUserDOConverter.convert(user);
