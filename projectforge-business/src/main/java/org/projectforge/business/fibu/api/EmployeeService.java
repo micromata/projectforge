@@ -2,6 +2,7 @@ package org.projectforge.business.fibu.api;
 
 import java.math.BigDecimal;
 import java.util.Calendar;
+import java.util.Collection;
 import java.util.List;
 
 import org.projectforge.business.fibu.EmployeeDO;
@@ -30,6 +31,8 @@ public interface EmployeeService extends IPersistenceService<EmployeeDO>, IDao<E
   boolean isEmployeeActive(EmployeeDO employee);
 
   BigDecimal getMonthlySalary(EmployeeDO employee, Calendar selectedDate);
+
+  Collection<EmployeeDO> findAllActive(boolean checkAccess);
 
   EmployeeDO getEmployeeByStaffnumber(String staffnumber);
 

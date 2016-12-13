@@ -35,23 +35,25 @@ import org.apache.commons.lang.Validate;
 import org.projectforge.framework.calendar.Holidays;
 import org.projectforge.framework.i18n.UserException;
 
-
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
  */
 public class DayHolder extends DateHolder
 {
   private static final long serialVersionUID = 2646871164508930568L;
 
-  /** I18n keys of the day names (e. g. needed for I18n). */
-  public static final String DAY_KEYS[] = new String[] { "sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"};
+  /**
+   * I18n keys of the day names (e. g. needed for I18n).
+   */
+  public static final String DAY_KEYS[] = new String[] { "sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday" };
 
   private transient Holidays holidays = Holidays.getInstance();
 
   private Map<String, Object> objects;
 
-  /** Only set, if day is holiday. */
+  /**
+   * Only set, if day is holiday.
+   */
   private String holidayInfo = null;
 
   private boolean marker = false;
@@ -76,6 +78,19 @@ public class DayHolder extends DateHolder
     Validate.notNull(to);
     if (to.before(from) == true) {
       return BigDecimal.ZERO;
+    }
+    if (from.isSameDay(to) == true) {
+      final DayHolder day = new DayHolder(from);
+      if (day.isWorkingDay() == true) {
+        final BigDecimal workFraction = day.getWorkFraction();
+        if (workFraction != null) {
+          return day.getWorkFraction();
+        } else {
+          return BigDecimal.ONE;
+        }
+      } else {
+        return BigDecimal.ZERO;
+      }
     }
     final DayHolder day = new DayHolder(from);
     BigDecimal numberOfWorkingDays = BigDecimal.ZERO;
@@ -124,7 +139,8 @@ public class DayHolder extends DateHolder
     super(date, DatePrecision.DAY);
   }
 
-  public DayHolder(final Date date, final TimeZone timeZone, final Locale locale) {
+  public DayHolder(final Date date, final TimeZone timeZone, final Locale locale)
+  {
     super(date, DatePrecision.DAY, timeZone, locale);
   }
 
@@ -136,6 +152,7 @@ public class DayHolder extends DateHolder
 
   /**
    * Multipurpose marker, e. g. used by select date for marking days as days not from the current month.
+   *
    * @return
    */
   public boolean isMarker()
@@ -209,7 +226,9 @@ public class DayHolder extends DateHolder
     return this;
   }
 
-  /** Does not set end of day as DateHolder. */
+  /**
+   * Does not set end of day as DateHolder.
+   */
   @Override
   public DayHolder setEndOfWeek()
   {
@@ -217,7 +236,9 @@ public class DayHolder extends DateHolder
     return this;
   }
 
-  /** Does not set end of day as DateHolder. */
+  /**
+   * Does not set end of day as DateHolder.
+   */
   @Override
   public DayHolder setEndOfMonth()
   {
@@ -252,7 +273,9 @@ public class DayHolder extends DateHolder
 
   /**
    * For storing additional objects to a day. This is used by the date selector for showing the user's timesheets at this day.
-   * @param obj
+   *
+   * @param key
+   * @param value
    */
   public DayHolder addObject(final String key, final Object value)
   {
@@ -265,6 +288,7 @@ public class DayHolder extends DateHolder
 
   /**
    * Used for getting e. g. the user time sheets at this day for showing the calendar in ical like format.
+   *
    * @return the stored objects to this day or null, if not exist.
    */
   public Object getObject(final String key)
