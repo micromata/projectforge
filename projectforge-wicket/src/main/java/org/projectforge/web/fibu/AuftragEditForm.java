@@ -254,7 +254,7 @@ public class AuftragEditForm extends AbstractEditForm<AuftragDO, AuftragEditPage
       kundeSelectPanel.init();
       fs.addHelpIcon(getString("fibu.auftrag.hint.kannVonProjektKundenAbweichen"));
     }
-    gridBuilder.newSplitPanel(GridSize.COL25);
+    gridBuilder.newSplitPanel(GridSize.SPAN2);
     {
       // order date
       final FieldsetPanel fsEntryDate = gridBuilder.newFieldset(getString("fibu.auftrag.erfassung.datum"));
@@ -265,12 +265,22 @@ public class AuftragEditForm extends AbstractEditForm<AuftragDO, AuftragEditPage
       erfassungsDatumPanel.setEnabled(false);
       fsEntryDate.add(erfassungsDatumPanel);
     }
-    gridBuilder.newSplitPanel(GridSize.COL25);
+    gridBuilder.newSplitPanel(GridSize.SPAN2);
     {
       // entry date
       final FieldsetPanel fsOrderDate = gridBuilder.newFieldset(getString("fibu.auftrag.angebot.datum"));
       final DatePanel angebotsDatumPanel = new DatePanel(fsOrderDate.newChildId(),
               new PropertyModel<Date>(data, "angebotsDatum"), DatePanelSettings
+              .get().withTargetType(java.sql.Date.class));
+      angebotsDatumPanel.setRequired(true);
+      fsOrderDate.add(angebotsDatumPanel);
+    }
+    gridBuilder.newSplitPanel(GridSize.SPAN2);
+    {
+      // entry date
+      final FieldsetPanel fsOrderDate = gridBuilder.newFieldset(getString("fibu.auftrag.entscheidung.datum"));
+      final DatePanel angebotsDatumPanel = new DatePanel(fsOrderDate.newChildId(),
+              new PropertyModel<Date>(data, "erfassungsDatum"), DatePanelSettings
               .get().withTargetType(java.sql.Date.class));
       angebotsDatumPanel.setRequired(true);
       fsOrderDate.add(angebotsDatumPanel);

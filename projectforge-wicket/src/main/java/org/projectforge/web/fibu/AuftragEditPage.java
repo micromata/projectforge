@@ -78,7 +78,7 @@ public class AuftragEditPage extends AbstractEditPage<AuftragDO, AuftragEditForm
   }
 
   /**
-   * @see org.projectforge.web.fibu.ISelectCallerPage#select(java.lang.String, java.lang.Integer)
+   * @see org.projectforge.web.fibu.ISelectCallerPage#select(String, Object)
    */
   public void select(final String property, final Object selectedValue)
   {
@@ -169,6 +169,7 @@ public class AuftragEditPage extends AbstractEditPage<AuftragDO, AuftragEditForm
         final DayHolder today = new DayHolder();
         getData().setAngebotsDatum(new java.sql.Date(today.getTimeInMillis()));
         getData().setErfassungsDatum(new java.sql.Date(today.getTimeInMillis()));
+        getData().setEntscheidungsDatum(new java.sql.Date(today.getTimeInMillis()));
       }
       if (getData().getContactPersonId() == null
           && accessChecker.isLoggedInUserMemberOfGroup(ProjectForgeGroup.PROJECT_MANAGER) == true) {
