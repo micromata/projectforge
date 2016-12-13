@@ -117,7 +117,7 @@ public class ThreadLocalUserContext
   public final static Locale getLocale()
   {
     final PFUserDO user = getUser();
-    return user == null ? getLocale(null) : user.getLocale();
+    return user != null && user.getLocale() != null ? user.getLocale() : getLocale(null);
   }
 
   /**
