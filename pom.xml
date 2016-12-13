@@ -248,7 +248,6 @@
     <mockito-all.version>1.10.19</mockito-all.version>
     <powermock.version>1.6.5</powermock.version>
     <xstream.version>1.4.8</xstream.version>
-    <xerces.version>2.11.0</xerces.version>
     <itext.version>2.1.7</itext.version>
     <jfreechart.version>1.0.19</jfreechart.version>
     <rhino.version>1.7.7</rhino.version>
