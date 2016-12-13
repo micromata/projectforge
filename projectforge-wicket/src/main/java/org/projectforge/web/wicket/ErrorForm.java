@@ -38,19 +38,16 @@ import org.projectforge.web.wicket.flowlayout.TextPanel;
 
 /**
  * Standard error page should be shown in production mode.
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
  */
-public class ErrorForm extends AbstractForm<ErrorPageData, ErrorPage>
+public class ErrorForm extends AbstractSecuredForm<ErrorPageData, ErrorPage>
 {
   private static final long serialVersionUID = -637809894879133209L;
 
   public static final String ONLY4NAMESPACE = "org.projectforge";
 
   final ErrorPageData data = new ErrorPageData();
-
-  private GridBuilder gridBuilder;
 
   /**
    * List to create content menu in the desired order before creating the RepeatingView.
@@ -78,7 +75,7 @@ public class ErrorForm extends AbstractForm<ErrorPageData, ErrorPage>
         return parentPage.errorMessage;
       }
     }));
-    gridBuilder = newGridBuilder(this, "flowform");
+    final GridBuilder gridBuilder = newGridBuilder(this, "flowform");
     gridBuilder.newGridPanel();
     {
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("feedback.receiver")).suppressLabelForWarning();

@@ -26,15 +26,11 @@ package org.projectforge.business.ldap;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import javax.naming.NameNotFoundException;
-
 import org.apache.commons.lang.StringUtils;
-import org.projectforge.business.login.LoginDefaultHandler;
 import org.projectforge.business.login.LoginResult;
 import org.projectforge.business.login.LoginResultStatus;
 import org.projectforge.business.multitenancy.TenantRegistryMap;
@@ -42,8 +38,6 @@ import org.projectforge.framework.persistence.user.entities.GroupDO;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-import arlut.csd.crypto.SmbEncrypt;
 
 /**
  * TODO: nested groups.<br/>
@@ -63,23 +57,13 @@ import arlut.csd.crypto.SmbEncrypt;
  * <h1>New users</h1> New users (created with ProjectForge's UserEditPage) will be created first without password in the
  * LDAP system directly. Such users need to log-in first at ProjectForge, otherwise their LDAP passwords aren't set (no
  * log-in at any other system connecting to the LDAP is possible until the first log-in at ProjectForge).
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
  */
 @Service
 public class LdapMasterLoginHandler extends LdapLoginHandler
 {
   private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(LdapMasterLoginHandler.class);
-
-  /**
-   * For users of this list, the stay-logged-in mechanism interrupts, the user has to re-login via LoginForm to update
-   * the correct password in the LDAP system.
-   */
-  private Set<Integer> usersWithoutLdapPasswords = new HashSet<Integer>();
-
-  // Caches all Samba NT password of the LDAP users by user id.
-  private Map<Integer, String> sambaNTPasswords = new HashMap<Integer, String>();
 
   private boolean refreshInProgress;
 
@@ -119,31 +103,16 @@ public class LdapMasterLoginHandler extends LdapLoginHandler
     try {
       // User is now logged-in successfully.
       final LdapUser authLdapUser = ldapUserDao.authenticate(username, password, userBase);
-      final PFUserDO user = loginResult.getUser();
-      final LdapUser ldapUser = pfUserDOConverter.convert(user);
-      ldapUser.setOrganizationalUnit(userBase);
       if (authLdapUser == null) {
+        final PFUserDO user = loginResult.getUser();
+        final LdapUser ldapUser = pfUserDOConverter.convert(user);
+        ldapUser.setOrganizationalUnit(userBase);
         log.info("User's credentials in LDAP not up-to-date: " + username + ". Updating LDAP entry...");
         ldapUserDao.createOrUpdate(userBase, ldapUser);
-        ldapUserDao.changePassword(ldapUser, null, password);
-      } else {
-        final String sambaNTPassword = sambaNTPasswords.get(loginResult.getUser().getId());
-        if (sambaNTPassword != null) {
-          if ("".equals(sambaNTPassword) == true) {
-            // sambaNTPassword needed to be set (isn't yet set):
-            ldapUserDao.changePassword(ldapUser, null, password);
-          } else {
-            if (sambaNTPassword.equals(SmbEncrypt.NTUNICODEHash(password)) == false) {
-              // sambaNTPassword needed to be updated:
-              ldapUserDao.changePassword(ldapUser, null, password);
-            }
-          }
-        }
+        ldapUserDao.changePassword(ldapUser, null, password); // update the userPassword but not the (WLAN)sambaNTPassword
       }
     } catch (final Exception ex) {
-      log.error(
-          "An exception occured while checking login against LDAP system (ignoring this error): " + ex.getMessage(),
-          ex);
+      log.error("An exception occured while checking login against LDAP system (ignoring this error): " + ex.getMessage(), ex);
     }
     return loginResult;
   }
@@ -170,7 +139,7 @@ public class LdapMasterLoginHandler extends LdapLoginHandler
 
   /**
    * Refreshes the LDAP.
-   * 
+   *
    * @see org.projectforge.business.login.LoginHandler#afterUserGroupCacheRefresh(java.util.List, java.util.List)
    */
   @Override
@@ -206,15 +175,13 @@ public class LdapMasterLoginHandler extends LdapLoginHandler
     new LdapTemplate(ldapConnector)
     {
       @Override
-      protected Object call() throws NameNotFoundException, Exception
+      protected Object call() throws Exception
       {
         log.info("Updating LDAP...");
         // First, get set of all ldap entries:
         final List<LdapUser> ldapUsers = getAllLdapUsers(ctx);
-        final List<LdapUser> updatedLdapUsers = new ArrayList<LdapUser>();
+        final List<LdapUser> updatedLdapUsers = new ArrayList<>();
         int error = 0, unmodified = 0, created = 0, updated = 0, deleted = 0, renamed = 0;
-        final Set<Integer> shadowUsersWithoutLdapPasswords = new HashSet<Integer>();
-        final Map<Integer, String> shadowSambaNTPasswords = new HashMap<Integer, String>();
         final boolean sambaConfigured = ldapConfig.getSambaAccountsConfig() != null;
         for (final PFUserDO user : users) {
           final LdapUser updatedLdapUser = pfUserDOConverter.convert(user);
@@ -228,7 +195,6 @@ public class LdapMasterLoginHandler extends LdapLoginHandler
                 // updatedLdapUser.addObjectClass(LdapUserDao.OBJECT_CLASS_POSIX_ACCOUNT);
                 // }
                 ldapUserDao.create(ctx, userBase, updatedLdapUser);
-                shadowUsersWithoutLdapPasswords.add(user.getId()); // User can't be valid for created users.
                 created++;
               }
             } else {
@@ -240,7 +206,6 @@ public class LdapMasterLoginHandler extends LdapLoginHandler
               if (user.isDeleted() == true || user.isLocalUser() == true) {
                 // Deleted and local users shouldn't be synchronized with LDAP:
                 ldapUserDao.delete(ctx, updatedLdapUser);
-                shadowUsersWithoutLdapPasswords.add(user.getId()); // Paranoia code, stay-logged-in shouldn't work with deleted users.
                 deleted++;
               } else {
                 final boolean modified = pfUserDOConverter.copyUserFields(updatedLdapUser, ldapUser);
@@ -265,24 +230,11 @@ public class LdapMasterLoginHandler extends LdapLoginHandler
                     passwordsGiven = true;
                   }
                 }
-                if (passwordsGiven == true) {
+                // It's ok if there is no SambaNTPassword. The user has to set it manually.
+                if (passwordsGiven) {
                   if (updatedLdapUser.isDeactivated()) {
                     log.warn("User password for deactivated user is set: " + ldapUser);
                     ldapUserDao.deactivateUser(ctx, updatedLdapUser);
-                    shadowUsersWithoutLdapPasswords.add(user.getId()); // Paranoia code, stay-logged-in shouldn't work with deleted or
-                    // deactivated users.
-                  } else {
-                    shadowUsersWithoutLdapPasswords.remove(user.getId()); // Remove if exists because password is given.
-                  }
-                } else {
-                  shadowUsersWithoutLdapPasswords.add(user.getId()); // Password isn't given for the current user.
-                  if (ldapUser.getSambaSIDNumber() != null) {
-                    final String sambaNTPassword = ldapUser.getSambaNTPassword();
-                    if (StringUtils.isNotBlank(sambaNTPassword) == true) {
-                      shadowSambaNTPasswords.put(user.getId(), sambaNTPassword);
-                    } else {
-                      shadowSambaNTPasswords.put(user.getId(), ""); // Empty password
-                    }
                   }
                 }
               }
@@ -296,11 +248,7 @@ public class LdapMasterLoginHandler extends LdapLoginHandler
             error++;
           }
         }
-        usersWithoutLdapPasswords = shadowUsersWithoutLdapPasswords;
-        sambaNTPasswords = shadowSambaNTPasswords;
-        log.info(""
-            + shadowUsersWithoutLdapPasswords.size()
-            + " users without password in the LDAP system (login required for these users for updating the LDAP password).");
+
         log.info("Update of LDAP users: "
             + (error > 0 ? "*** " + error + " errors ***, " : "")
             + unmodified
@@ -376,26 +324,8 @@ public class LdapMasterLoginHandler extends LdapLoginHandler
   }
 
   /**
-   * Calls {@link LoginDefaultHandler#checkStayLoggedIn(PFUserDO)}.
-   * 
-   * @see org.projectforge.business.login.LoginHandler#checkStayLoggedIn(org.projectforge.framework.persistence.user.entities.PFUserDO)
-   */
-  @Override
-  public boolean checkStayLoggedIn(final PFUserDO user)
-  {
-    final boolean result = loginDefaultHandler.checkStayLoggedIn(user);
-    if (result == true && usersWithoutLdapPasswords.contains(user.getId()) == true) {
-      log.info(
-          "User's stay-logged-in mechanism is temporarily disabled until the user re-logins via LoginForm to update his LDAP password (which isn't yet available): "
-              + user.getUserDisplayname());
-      return false;
-    }
-    return result;
-  }
-
-  /**
    * @see org.projectforge.business.login.LoginHandler#passwordChanged(org.projectforge.framework.persistence.user.entities.PFUserDO,
-   *      java.lang.String)
+   * java.lang.String)
    */
   @Override
   public void passwordChanged(final PFUserDO user, final String newPassword)
@@ -414,12 +344,34 @@ public class LdapMasterLoginHandler extends LdapLoginHandler
     }
   }
 
+  @Override
+  public void wlanPasswordChanged(final PFUserDO user, final String newPassword)
+  {
+    final LdapUser ldapUser = ldapUserDao.findById(user.getId());
+    if (user.isDeleted() == true || user.isLocalUser() == true) {
+      // Don't change passwords of such users.
+      return;
+    }
+    if (ldapUser != null) {
+      ldapUserDao.changeWlanPassword(ldapUser, newPassword);
+      log.info("WLAN Password changed successfully for : " + ldapUser);
+    } else {
+      log.error("Can't change LDAP WLAN password for user '" + user.getUsername() + "'! Not such user found in LDAP!.");
+    }
+  }
+
   /**
    * @return always true because the change of passwords is supported for every user.
    * @see org.projectforge.business.login.LoginHandler#isPasswordChangeSupported(org.projectforge.framework.persistence.user.entities.PFUserDO)
    */
   @Override
   public boolean isPasswordChangeSupported(final PFUserDO user)
+  {
+    return true;
+  }
+
+  @Override
+  public boolean isWlanPasswordChangeSupported(PFUserDO user)
   {
     return true;
   }
@@ -460,7 +412,7 @@ public class LdapMasterLoginHandler extends LdapLoginHandler
 
   private Map<Integer, LdapUser> getUserMap(final Collection<LdapUser> users)
   {
-    final Map<Integer, LdapUser> map = new HashMap<Integer, LdapUser>();
+    final Map<Integer, LdapUser> map = new HashMap<>();
     if (users == null) {
       return map;
     }

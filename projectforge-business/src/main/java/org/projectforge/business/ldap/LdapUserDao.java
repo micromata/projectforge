@@ -24,6 +24,7 @@
 package org.projectforge.business.ldap;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
@@ -99,14 +100,14 @@ public class LdapUserDao extends LdapDao<String, LdapUser>
   {
     return user.isDeactivated()
         || user.getOrganizationalUnit() != null
-            && LdapUtils.getOu(user.getOrganizationalUnit()).contains(DEACTIVATED_SUB_CONTEXT) == true;
+        && LdapUtils.getOu(user.getOrganizationalUnit()).contains(DEACTIVATED_SUB_CONTEXT) == true;
   }
 
   public boolean isRestrictedUser(final LdapUser user)
   {
     return user.isRestrictedUser()
         || user.getOrganizationalUnit() != null
-            && LdapUtils.getOu(user.getOrganizationalUnit()).contains(RESTRICTED_USER_SUB_CONTEXT) == true;
+        && LdapUtils.getOu(user.getOrganizationalUnit()).contains(RESTRICTED_USER_SUB_CONTEXT) == true;
   }
 
   public boolean isPosixAccountsConfigured()
@@ -305,7 +306,7 @@ public class LdapUserDao extends LdapDao<String, LdapUser>
   /**
    * Moves the user only from the "deactivated" sub-context to the parent context. If the user isn't in the context name
    * "deactivated" nothing will be done.
-   * 
+   *
    * @param user
    */
   public void reactivateUser(final LdapUser user)
@@ -410,9 +411,9 @@ public class LdapUserDao extends LdapDao<String, LdapUser>
   /**
    * Calls super method and {@link #deactivateUser(DirContext, LdapUser)} if the given user is deactivated. If the given
    * user is deleted, nothing will be done.
-   * 
+   *
    * @see org.projectforge.business.ldap.LdapDao#create(javax.naming.directory.DirContext, org.projectforge.business.ldap.LdapObject,
-   *      java.lang.Object[])
+   * java.lang.Object[])
    */
   @Override
   public void create(final DirContext ctx, final String ouBase, final LdapUser user, final Object... args)
@@ -434,7 +435,7 @@ public class LdapUserDao extends LdapDao<String, LdapUser>
 
   /**
    * @see org.projectforge.business.ldap.LdapDao#update(javax.naming.directory.DirContext, org.projectforge.business.ldap.LdapObject,
-   *      java.lang.Object[])
+   * java.lang.Object[])
    */
   @Override
   public void update(final DirContext ctx, final String ouBase, final LdapUser user, final Object... objs)
@@ -452,24 +453,41 @@ public class LdapUserDao extends LdapDao<String, LdapUser>
 
   public void changePassword(final LdapUser user, final String oldPassword, final String newPassword)
   {
-    log.info("Change password for " + getObjectClass() + ": " + buildDn(null, user));
-    final List<ModificationItem> modificationItems = new ArrayList<ModificationItem>();
+    final String userPasswordId = "userPassword";
+    log.info("Change attribute " + userPasswordId + " for " + getObjectClass() + ": " + buildDn(null, user));
+    final List<ModificationItem> modificationItems = new ArrayList<>();
     if (oldPassword != null) {
       modificationItems
-          .add(new ModificationItem(DirContext.REMOVE_ATTRIBUTE, new BasicAttribute("userPassword", oldPassword)));
+          .add(new ModificationItem(DirContext.REMOVE_ATTRIBUTE, new BasicAttribute(userPasswordId, oldPassword)));
       modificationItems
-          .add(new ModificationItem(DirContext.ADD_ATTRIBUTE, new BasicAttribute("userPassword", newPassword)));
+          .add(new ModificationItem(DirContext.ADD_ATTRIBUTE, new BasicAttribute(userPasswordId, newPassword)));
     } else {
       modificationItems
-          .add(new ModificationItem(DirContext.REPLACE_ATTRIBUTE, new BasicAttribute("userPassword", newPassword)));
-    }
-    if (isSambaAccountsConfigured() == true && user.getSambaSIDNumber() != null) {
-      final String sambaNTPassword = SmbEncrypt.NTUNICODEHash(newPassword);
-      modificationItems.add(
-          new ModificationItem(DirContext.REPLACE_ATTRIBUTE, new BasicAttribute("sambaNTPassword", sambaNTPassword)));
+          .add(new ModificationItem(DirContext.REPLACE_ATTRIBUTE, new BasicAttribute(userPasswordId, newPassword)));
     }
     // Perform the update
     modify(user, modificationItems);
+  }
+
+  public void changeWlanPassword(final LdapUser user, final String newPassword)
+  {
+    final String sambaPasswordAttributeId = "sambaNTPassword";
+
+    if (isSambaAccountsConfigured() == false) {
+      log.error("Could not change attribute " + sambaPasswordAttributeId + " because the samba accounts are not configured.");
+      return;
+    }
+
+    if (user.getSambaSIDNumber() == null) {
+      log.error("Could not change attribute " + sambaPasswordAttributeId + " because the sambaSID is null.");
+      return;
+    }
+
+    log.info("Change attribute " + sambaPasswordAttributeId + " for " + getObjectClass() + ": " + buildDn(null, user));
+    final String sambaNTPassword = SmbEncrypt.NTUNICODEHash(newPassword);
+    final ModificationItem modItem = new ModificationItem(DirContext.REPLACE_ATTRIBUTE, new BasicAttribute(sambaPasswordAttributeId, sambaNTPassword));
+    // Perform the update
+    modify(user, Collections.singletonList(modItem));
   }
 
   public LdapUser findByUsername(final Object username, final String... organizationalUnits)
@@ -526,7 +544,7 @@ public class LdapUserDao extends LdapDao<String, LdapUser>
 
   /**
    * @see org.projectforge.business.ldap.LdapDao#createAndAddModificationItems(java.util.List, java.lang.String,
-   *      java.lang.String[])
+   * java.lang.String[])
    */
   @Override
   protected void createAndAddModificationItems(final List<ModificationItem> list, final String attrId,

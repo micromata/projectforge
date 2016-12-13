@@ -245,7 +245,6 @@
     <ical4j.version>2.0-beta1</ical4j.version>
     <ical4j-vcard.version>0.9.6.2</ical4j-vcard.version>
     <xstream.version>1.4.8</xstream.version>
-    <xerces.version>2.11.0</xerces.version>
     <itext.version>2.1.7</itext.version>
     <jfreechart.version>1.0.19</jfreechart.version>
     <rhino.version>1.7.7</rhino.version>

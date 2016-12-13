@@ -41,6 +41,8 @@ public class UserServiceImpl implements UserService
 
   private static final String MESSAGE_KEY_OLD_PASSWORD_WRONG = "user.changePassword.error.oldPasswordWrong";
 
+  private static final String MESSAGE_KEY_LOGIN_PASSWORD_WRONG = "user.changeWlanPassword.error.loginPasswordWrong";
+
   private UserGroupCache userGroupCache;
 
   @Autowired
@@ -93,7 +95,6 @@ public class UserServiceImpl implements UserService
   }
 
   /**
-   * 
    * @param userIds
    * @return
    */
@@ -156,7 +157,7 @@ public class UserServiceImpl implements UserService
 
   /**
    * for faster access (due to permanent usage e. g. by subscription of calendars
-   * 
+   *
    * @param userId
    * @return
    */
@@ -188,7 +189,7 @@ public class UserServiceImpl implements UserService
   /**
    * Encrypts the given str with AES. The key is the current authenticationToken of the given user (by id) (first 16
    * bytes of it).
-   * 
+   *
    * @param userId
    * @param data
    * @return The base64 encoded result (url safe).
@@ -202,7 +203,7 @@ public class UserServiceImpl implements UserService
 
   /**
    * Uses the context user.
-   * 
+   *
    * @param data
    * @return
    * @see #encrypt(Integer, String)
@@ -227,8 +228,8 @@ public class UserServiceImpl implements UserService
 
   /**
    * Encrypts the password with a new generated salt string and the pepper string if configured any.
-   * 
-   * @param user The user to user.
+   *
+   * @param user     The user to user.
    * @param password as clear text.
    * @see Crypt#digest(String)
    */
@@ -248,7 +249,7 @@ public class UserServiceImpl implements UserService
   /**
    * Changes the user's password. Checks the password quality and the correct authentication for the old password
    * before. Also the stay-logged-in-key will be renewed, so any existing stay-logged-in cookie will be invalid.
-   * 
+   *
    * @param user
    * @param oldPassword
    * @param newPassword
@@ -277,9 +278,41 @@ public class UserServiceImpl implements UserService
   }
 
   /**
+   * Changes the user's WLAN password. Checks the password quality and the correct authentication for the login password before.
+   *
+   * @param user
+   * @param loginPassword
+   * @param newWlanPassword
+   * @return Error message key if any check failed or null, if successfully changed.
+   */
+  @Transactional(readOnly = false, propagation = Propagation.REQUIRED)
+  public String changeWlanPassword(PFUserDO user, final String loginPassword, final String newWlanPassword)
+  {
+    Validate.notNull(user);
+    Validate.notNull(loginPassword);
+    Validate.notNull(newWlanPassword);
+
+    final String errorMsgKey = checkPasswordQuality(newWlanPassword);
+    if (errorMsgKey != null) {
+      return errorMsgKey;
+    }
+
+    accessChecker.checkRestrictedOrDemoUser();
+    user = getUser(user.getUsername(), loginPassword, false); // get user from DB to persist the change of the wlan password time
+    if (user == null) {
+      return MESSAGE_KEY_LOGIN_PASSWORD_WRONG;
+    }
+
+    onWlanPasswordChange(user, true); // set last change time and creaty history entry
+    Login.getInstance().wlanPasswordChanged(user, newWlanPassword); // change the wlan password
+    log.info("WLAN Password changed for user: " + user.getId() + " - " + user.getUsername());
+    return null;
+  }
+
+  /**
    * Checks the password quality of a new password. Password must have at least 6 characters and at minimum one letter
    * and one non-letter character.
-   * 
+   *
    * @param newPassword
    * @return null if password quality is OK, otherwise the i18n message key of the password check failure.
    */
@@ -324,6 +357,19 @@ public class UserServiceImpl implements UserService
     }
   }
 
+  @Override
+  public void onWlanPasswordChange(final PFUserDO user, final boolean createHistoryEntry)
+  {
+    if (createHistoryEntry) {
+      HistoryBaseDaoAdapter.wrappHistoryUpdate(user, () -> {
+        user.setLastWlanPasswordChange(new Date());
+        return ModificationStatus.MAJOR;
+      });
+    } else {
+      user.setLastWlanPasswordChange(new Date());
+    }
+  }
+
   private String createStayLoggedInKey()
   {
     return NumberHelper.getSecureRandomUrlSaveString(STAY_LOGGED_IN_KEY_LENGTH);
@@ -352,7 +398,7 @@ public class UserServiceImpl implements UserService
   /**
    * Checks the given password by comparing it with the stored user password. For backward compatibility the password is
    * encrypted with and without pepper (if configured). The salt string of the given user is used.
-   * 
+   *
    * @param user
    * @param password as clear text.
    * @return true if the password matches the user's password.
@@ -402,7 +448,7 @@ public class UserServiceImpl implements UserService
   /**
    * Returns the user's stay-logged-in key if exists (must be not blank with a size >= 10). If not, a new stay-logged-in
    * key will be generated.
-   * 
+   *
    * @param userId
    * @return
    */
@@ -435,7 +481,7 @@ public class UserServiceImpl implements UserService
 
   /**
    * Ohne Zugangsbegrenzung. Wird bei Anmeldung benötigt.
-   * 
+   *
    * @param username
    * @param encryptedPassword
    * @return
