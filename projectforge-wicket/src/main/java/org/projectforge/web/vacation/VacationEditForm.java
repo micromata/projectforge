@@ -47,7 +47,7 @@ import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.access.AccessException;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.time.DayHolder;
-import org.projectforge.web.employee.EmployeeWicketProvider;
+import org.projectforge.web.employee.DefaultEmployeeWicketProvider;
 import org.projectforge.web.wicket.AbstractEditForm;
 import org.projectforge.web.wicket.bootstrap.GridSize;
 import org.projectforge.web.wicket.components.DatePanel;
@@ -135,7 +135,7 @@ public class VacationEditForm extends AbstractEditForm<VacationDO, VacationEditP
       final Select2Choice<EmployeeDO> employeeSelect = new Select2Choice<>(
           Select2SingleChoicePanel.WICKET_ID,
           new PropertyModel<>(data, "employee"),
-          new EmployeeWicketProvider(employeeService, true));
+          new DefaultEmployeeWicketProvider(employeeService, true));
       employeeSelect.setRequired(true).setMarkupId("vacation-employee").setOutputMarkupId(true);
       employeeSelect.setEnabled(checkHRWriteRight());
       employeeSelect.add(new AjaxFormComponentUpdatingBehavior("onchange")
@@ -252,7 +252,7 @@ public class VacationEditForm extends AbstractEditForm<VacationDO, VacationEditP
       final Select2Choice<EmployeeDO> managerSelect = new Select2Choice<>(
           Select2SingleChoicePanel.WICKET_ID,
           new PropertyModel<>(data, "manager"),
-          new EmployeeWicketProvider(employeeService, checkHRWriteRight()));
+          new DefaultEmployeeWicketProvider(employeeService, checkHRWriteRight()));
       managerSelect.setRequired(true).setMarkupId("vacation-manager").setOutputMarkupId(true);
       managerSelect.setEnabled(checkEnableInputField());
       fs.add(new Select2SingleChoicePanel<EmployeeDO>(fs.newChildId(), managerSelect));
@@ -264,7 +264,7 @@ public class VacationEditForm extends AbstractEditForm<VacationDO, VacationEditP
       final Select2Choice<EmployeeDO> substitutionSelect = new Select2Choice<>(
           Select2SingleChoicePanel.WICKET_ID,
           new PropertyModel<>(data, "substitution"),
-          new EmployeeWicketProvider(employeeService, checkHRWriteRight()));
+          new DefaultEmployeeWicketProvider(employeeService, checkHRWriteRight()));
       substitutionSelect.setRequired(true).setMarkupId("vacation-substitution").setOutputMarkupId(true);
       substitutionSelect.setEnabled(checkEnableInputField());
       fs.add(new Select2SingleChoicePanel<EmployeeDO>(fs.newChildId(), substitutionSelect));

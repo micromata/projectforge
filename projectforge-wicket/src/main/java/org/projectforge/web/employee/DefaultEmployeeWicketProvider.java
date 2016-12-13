@@ -32,55 +32,22 @@ import org.apache.commons.lang3.StringUtils;
 import org.projectforge.business.fibu.EmployeeDO;
 import org.projectforge.business.fibu.api.EmployeeService;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
-import org.projectforge.framework.utils.NumberHelper;
+import org.projectforge.web.AbstractEmployeeWicketProvider;
 
 import com.vaynberg.wicket.select2.Response;
-import com.vaynberg.wicket.select2.TextChoiceProvider;
 
-public class EmployeeWicketProvider extends TextChoiceProvider<EmployeeDO>
+public class DefaultEmployeeWicketProvider extends AbstractEmployeeWicketProvider
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(EmployeeWicketProvider.class);
+  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(DefaultEmployeeWicketProvider.class);
 
   private static final long serialVersionUID = 6228672123966093257L;
 
-  private transient EmployeeService employeeService;
-
-  private int pageSize = 20;
-
   private boolean withMyself;
 
-  public EmployeeWicketProvider(EmployeeService employeeService, boolean withMyself)
+  public DefaultEmployeeWicketProvider(EmployeeService employeeService, boolean withMyself)
   {
-    this.employeeService = employeeService;
+    super(employeeService);
     this.withMyself = withMyself;
-  }
-
-  /**
-   * @param pageSize the pageSize to set
-   * @return this for chaining.
-   */
-  public EmployeeWicketProvider setPageSize(final int pageSize)
-  {
-    this.pageSize = pageSize;
-    return this;
-  }
-
-  /**
-   * @see com.vaynberg.wicket.select2.TextChoiceProvider#getDisplayText(java.lang.Object)
-   */
-  @Override
-  protected String getDisplayText(final EmployeeDO choice)
-  {
-    return choice.getUser().getFullname();
-  }
-
-  /**
-   * @see com.vaynberg.wicket.select2.TextChoiceProvider#getId(java.lang.Object)
-   */
-  @Override
-  protected Object getId(final EmployeeDO choice)
-  {
-    return choice.getId();
   }
 
   /**
@@ -110,29 +77,6 @@ public class EmployeeWicketProvider extends TextChoiceProvider<EmployeeDO>
     }
     response.addAll(result);
     response.setHasMore(hasMore);
-  }
-
-  /**
-   * @see com.vaynberg.wicket.select2.ChoiceProvider#toChoices(java.util.Collection)
-   */
-  @Override
-  public Collection<EmployeeDO> toChoices(final Collection<String> ids)
-  {
-    final List<EmployeeDO> list = new ArrayList<>();
-    if (ids == null) {
-      return list;
-    }
-    for (final String str : ids) {
-      final Integer employeedId = NumberHelper.parseInteger(str);
-      if (employeedId == null) {
-        continue;
-      }
-      EmployeeDO employee = employeeService.selectByPkDetached(employeedId);
-      if (employee != null) {
-        list.add(employee);
-      }
-    }
-    return list;
   }
 
 }

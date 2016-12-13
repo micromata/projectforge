@@ -54,28 +54,51 @@ public class VacationFormValidator implements IFormValidator
       employee = data.getEmployee();
     }
 
-    if (VacationStatus.IN_PROGRESS.equals(data.getStatus()) && (VacationStatus.APPROVED.equals(statusChoice.getConvertedInput()) || VacationStatus.REJECTED
-        .equals(statusChoice.getConvertedInput()))) {
-      return;
+    //Check, if is only a status change
+    if (statusChoice != null && statusChoice.getConvertedInput() != null && data.getStatus() != null) {
+      if (
+        //Changes from IN_PROGRESS to APPROVED or REJECTED
+          (VacationStatus.IN_PROGRESS.equals(data.getStatus()) && (VacationStatus.APPROVED.equals(statusChoice.getConvertedInput()) || VacationStatus.REJECTED
+              .equals(statusChoice.getConvertedInput())))
+              ||
+              //Changes from REJECTED to APPROVED or IN_PROGRESS
+              (VacationStatus.REJECTED.equals(data.getStatus()) && (VacationStatus.APPROVED.equals(statusChoice.getConvertedInput())
+                  || VacationStatus.IN_PROGRESS.equals(statusChoice.getConvertedInput())))
+          ) {
+        return;
+      }
     }
 
+    //Getting start date from form component or direct from data
     Calendar startDate = Calendar.getInstance(ThreadLocalUserContext.getTimeZone());
-    startDate.setTime(data.getStartDate());
-    Calendar endDate = Calendar.getInstance(ThreadLocalUserContext.getTimeZone());
-    endDate.setTime(data.getEndDate());
+    if (startDatePanel != null && startDatePanel.getConvertedInput() != null) {
+      startDate.setTime(startDatePanel.getConvertedInput());
+    } else {
+      startDate.setTime(data.getStartDate());
+    }
 
-    if (endDatePanel.getConvertedInput().before(startDatePanel.getConvertedInput())) {
+    //Getting end date from form component or direct from data
+    Calendar endDate = Calendar.getInstance(ThreadLocalUserContext.getTimeZone());
+    if (endDatePanel != null && endDatePanel.getConvertedInput() != null) {
+      startDate.setTime(endDatePanel.getConvertedInput());
+    } else {
+      endDate.setTime(data.getEndDate());
+    }
+
+    //Check, if start date is before end date
+    if (endDate.before(startDate)) {
       form.error(I18nHelper.getLocalizedMessage("vacation.validate.endbeforestart"));
       return;
     }
 
+    //Check, if both dates are in same year
     if (endDate.get(Calendar.YEAR) > startDate.get(Calendar.YEAR)) {
       form.error(I18nHelper.getLocalizedMessage("vacation.validate.vacationIn2Years"));
       return;
     }
 
     List<VacationDO> vacationListForPeriod = vacationService
-        .getVacationForDate(employee, startDatePanel.getConvertedInput(), endDatePanel.getConvertedInput(), true);
+        .getVacationForDate(employee, startDate.getTime(), endDate.getTime(), true);
     if (vacationListForPeriod != null && data.getPk() != null) {
       vacationListForPeriod = vacationListForPeriod
           .stream()
