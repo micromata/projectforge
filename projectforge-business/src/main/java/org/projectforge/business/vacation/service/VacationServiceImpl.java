@@ -1,11 +1,5 @@
 package org.projectforge.business.vacation.service;
 
-import java.io.Serializable;
-import java.math.BigDecimal;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.List;
-
 import org.projectforge.business.configuration.ConfigurationService;
 import org.projectforge.business.fibu.EmployeeDO;
 import org.projectforge.business.fibu.EmployeeDao;
@@ -27,6 +21,12 @@ import org.projectforge.mail.Mail;
 import org.projectforge.mail.SendMail;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.io.Serializable;
+import java.math.BigDecimal;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.List;
 
 /**
  * Standard implementation of the vacation service interface.
@@ -226,6 +226,9 @@ public class VacationServiceImpl extends CorePersistenceServiceImpl<Integer, Vac
         newDays = actualUsedDaysOfLastYear.subtract(vacationData.getWorkingdays());
       } else {
         newDays = actualUsedDaysOfLastYear.subtract(DayHolder.getNumberOfWorkingDays(vacationData.getStartDate(), endDateCalender.getTime()));
+      }
+      if (newDays.compareTo(BigDecimal.ZERO) < 0) {
+        newDays = BigDecimal.ZERO;
       }
     }
 
