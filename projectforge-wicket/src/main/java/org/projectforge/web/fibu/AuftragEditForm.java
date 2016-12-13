@@ -203,7 +203,7 @@ public class AuftragEditForm extends AbstractEditForm<AuftragDO, AuftragEditPage
     gridBuilder.newSplitPanel(GridSize.COL50);
     {
       // reference
-      final FieldsetPanel fs = gridBuilder.newFieldset(getString("fibu.common.reference"));
+      final FieldsetPanel fs = gridBuilder.newFieldset(getString("fibu.common.customer.reference"));
       fs.add(new MaxLengthTextField(InputPanel.WICKET_ID, new PropertyModel<String>(data, "referenz")));
     }
     gridBuilder.newSplitPanel(GridSize.COL50);
