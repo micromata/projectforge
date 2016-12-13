@@ -24,9 +24,9 @@
 package org.projectforge.framework.xstream.converter;
 
 import java.io.IOException;
+import java.util.Base64;
 
 import org.apache.commons.lang.StringUtils;
-import org.apache.xerces.impl.dv.util.Base64;
 import org.projectforge.framework.utils.Base64Helper;
 import org.projectforge.framework.xstream.XmlConstants;
 
@@ -61,7 +61,7 @@ public class ByteArrayConverter implements IConverter<byte[]>
     if (obj == null || obj instanceof byte[] == false) {
       return null;
     }
-    final String result = Base64.encode((byte[]) obj);
+    final String result = Base64.getEncoder().encodeToString((byte[]) obj);
     return result;
   }
 }
