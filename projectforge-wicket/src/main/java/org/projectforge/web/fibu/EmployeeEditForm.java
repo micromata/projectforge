@@ -30,6 +30,7 @@ import java.util.function.Function;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.apache.wicket.markup.html.form.DropDownChoice;
+import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
@@ -38,10 +39,16 @@ import org.projectforge.business.fibu.EmployeeDO;
 import org.projectforge.business.fibu.EmployeeTimedDO;
 import org.projectforge.business.fibu.Gender;
 import org.projectforge.business.fibu.api.EmployeeService;
+import org.projectforge.business.user.I18nHelper;
+import org.projectforge.business.user.UserRightId;
+import org.projectforge.business.vacation.model.VacationAttrProperty;
+import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.persistence.attr.impl.GuiAttrSchemaService;
 import org.projectforge.web.common.BicValidator;
 import org.projectforge.web.common.IbanValidator;
+import org.projectforge.web.common.timeattr.AttrModel;
 import org.projectforge.web.user.UserSelectPanel;
+import org.projectforge.web.vacation.helper.VacationViewHelper;
 import org.projectforge.web.wicket.AbstractEditForm;
 import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.web.wicket.bootstrap.GridBuilder;
@@ -76,6 +83,12 @@ public class EmployeeEditForm extends AbstractEditForm<EmployeeDO, EmployeeEditP
 
   @SpringBean
   private GuiAttrSchemaService attrSchemaService;
+
+  @SpringBean
+  private VacationViewHelper vacationViewHelper;
+
+  @SpringBean
+  private AccessChecker accessChecker;
 
   public EmployeeEditForm(final EmployeeEditPage parentPage, final EmployeeDO data)
   {
@@ -249,7 +262,28 @@ public class EmployeeEditForm extends AbstractEditForm<EmployeeDO, EmployeeEditP
     {
       // Holidays
       final FieldsetPanel fs = gridBuilder.newFieldset(EmployeeDO.class, "urlaubstage");
-      fs.add(new MinMaxNumberField<>(InputPanel.WICKET_ID, new PropertyModel<>(data, "urlaubstage"), 0, 366));
+      MinMaxNumberField<Integer> fieldHolidays = new MinMaxNumberField<>(InputPanel.WICKET_ID, new PropertyModel<>(data, "urlaubstage"), 0, 366);
+      fieldHolidays.setRequired(true);
+      fieldHolidays.setMarkupId("urlaubstage").setOutputMarkupId(true);
+      fs.add(fieldHolidays);
+    }
+    {
+      EmployeeVacationFormValidator validator = new EmployeeVacationFormValidator();
+      // Holidays from previous year
+      final FieldsetPanel fsPreviousYear = gridBuilder.newFieldset(I18nHelper.getLocalizedMessage("vacation.previousyearleave"));
+      IModel<BigDecimal> modelPreviousYear = new AttrModel<>(data, VacationAttrProperty.PREVIOUSYEARLEAVE.getPropertyName(), BigDecimal.class);
+      MinMaxNumberField<BigDecimal> fieldPreviousYear = new MinMaxNumberField<>(InputPanel.WICKET_ID, modelPreviousYear, BigDecimal.ZERO, new BigDecimal(366));
+      validator.getDependentFormComponents()[0] = fieldPreviousYear;
+      fsPreviousYear.add(fieldPreviousYear);
+
+      // Holidays from previous year used
+      final FieldsetPanel fsPreviousYearUsed = gridBuilder.newFieldset(I18nHelper.getLocalizedMessage("vacation.previousyearleaveused"));
+      IModel<BigDecimal> modelPreviousYearUsed = new AttrModel<>(data, VacationAttrProperty.PREVIOUSYEARLEAVEUSED.getPropertyName(), BigDecimal.class);
+      MinMaxNumberField<BigDecimal> fieldPreviousYearUsed = new MinMaxNumberField<>(InputPanel.WICKET_ID, modelPreviousYearUsed, BigDecimal.ZERO,
+          new BigDecimal(366));
+      validator.getDependentFormComponents()[1] = fieldPreviousYearUsed;
+      fsPreviousYearUsed.add(fieldPreviousYearUsed);
+      add(validator);
     }
     {
       // Start date
@@ -292,7 +326,8 @@ public class EmployeeEditForm extends AbstractEditForm<EmployeeDO, EmployeeEditP
     gridBuilder.newSplitPanel(GridSize.COL100, true); // set hasSubSplitPanel to true to remove borders from this split panel
     {
       // AttrPanels
-      final Function<AttrGroup, EmployeeTimedDO> addNewEntryFunction = group -> employeeService.addNewTimeAttributeRow(data, group.getName());
+      final Function<AttrGroup, EmployeeTimedDO> addNewEntryFunction = group -> employeeService
+          .addNewTimeAttributeRow(data, group.getName());
       attrSchemaService.createAttrPanels(tabPanel, data, parentPage, addNewEntryFunction);
     }
 
@@ -302,6 +337,14 @@ public class EmployeeEditForm extends AbstractEditForm<EmployeeDO, EmployeeEditP
       final FieldsetPanel fs = gridBuilder.newFieldset(EmployeeDO.class, "comment");
       fs.add(new MaxLengthTextArea(TextAreaPanel.WICKET_ID, new PropertyModel<>(data, "comment")), true);
     }
+
+    if (isNew() == false && data.getUrlaubstage() != null && accessChecker
+        .hasLoggedInUserReadAccess(UserRightId.HR_VACATION, false)) {
+      GridBuilder vacationGridBuilder = tabPanel.getOrCreateTab("vacation");
+      vacationViewHelper.createVacationView(vacationGridBuilder, data, accessChecker
+          .hasLoggedInUserWriteAccess(UserRightId.HR_VACATION, false));
+    }
+
   }
 
   @Override

@@ -23,15 +23,6 @@
 
 package org.projectforge.framework.configuration.entities;
 
-import de.micromata.genome.db.jpa.xmldump.api.JpaXmlPersist;
-import org.hibernate.search.annotations.Field;
-import org.hibernate.search.annotations.Index;
-import org.hibernate.search.annotations.Indexed;
-import org.hibernate.search.annotations.Store;
-import org.projectforge.framework.configuration.Configuration;
-import org.projectforge.framework.configuration.ConfigurationType;
-import org.projectforge.framework.persistence.entities.DefaultBaseDO;
-
 import java.math.BigDecimal;
 import java.util.Date;
 import java.util.TimeZone;
@@ -44,6 +35,17 @@ import javax.persistence.Table;
 import javax.persistence.Transient;
 import javax.persistence.UniqueConstraint;
 
+import org.hibernate.search.annotations.Field;
+import org.hibernate.search.annotations.Index;
+import org.hibernate.search.annotations.Indexed;
+import org.hibernate.search.annotations.Store;
+import org.projectforge.framework.configuration.Configuration;
+import org.projectforge.framework.configuration.ConfigurationType;
+import org.projectforge.framework.persistence.api.AUserRightId;
+import org.projectforge.framework.persistence.entities.DefaultBaseDO;
+
+import de.micromata.genome.db.jpa.xmldump.api.JpaXmlPersist;
+
 /**
  * For configuration entries persisted in the data base. Please access the configuration parameters via
  * {@link Configuration}
@@ -54,9 +56,10 @@ import javax.persistence.UniqueConstraint;
 @Indexed
 @Table(name = "T_CONFIGURATION", uniqueConstraints = {
     @UniqueConstraint(columnNames = { "parameter", "tenant_id" }) }, indexes = {
-    @javax.persistence.Index(name = "idx_fk_t_configuration_tenant_id", columnList = "tenant_id")
-})
+        @javax.persistence.Index(name = "idx_fk_t_configuration_tenant_id", columnList = "tenant_id")
+    })
 @JpaXmlPersist(beforePersistListener = ConfigurationXmlBeforePersistListener.class)
+@AUserRightId("ADMIN_CORE")
 public class ConfigurationDO extends DefaultBaseDO
 {
   public static final int PARAM_LENGTH = 4000;
@@ -138,7 +141,7 @@ public class ConfigurationDO extends DefaultBaseDO
 
   /**
    * @return The full i18n key including the i18n prefix "administration.configuration.param." and the suffix
-   * ".description".
+   *         ".description".
    */
   @Transient
   public String getDescriptionI18nKey()
@@ -348,7 +351,7 @@ public class ConfigurationDO extends DefaultBaseDO
         return;
       } else if (type == ConfigurationType.STRING
           && this.configurationType.isIn(ConfigurationType.TEXT, ConfigurationType.BOOLEAN,
-          ConfigurationType.TIME_ZONE) == true) {
+              ConfigurationType.TIME_ZONE) == true) {
         return;
       } else if (type == ConfigurationType.INTEGER && this.configurationType == ConfigurationType.TASK) {
         return;
@@ -371,7 +374,7 @@ public class ConfigurationDO extends DefaultBaseDO
       // Do nothing.
     } else if (type == ConfigurationType.STRING
         && this.configurationType.isIn(ConfigurationType.TEXT, ConfigurationType.BOOLEAN,
-        ConfigurationType.TIME_ZONE) == true) {
+            ConfigurationType.TIME_ZONE) == true) {
       // Do nothing.
     } else if (type == ConfigurationType.INTEGER && this.configurationType == ConfigurationType.TASK) {
       // Do nothing.
