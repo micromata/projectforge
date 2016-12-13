@@ -135,6 +135,10 @@ public class AuftragDO extends DefaultBaseDO
 
   @Field(index = Index.YES, analyze = Analyze.NO /* UN_TOKENIZED */)
   @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
+  private Date entscheidungsDatum;
+
+  @Field(index = Index.YES, analyze = Analyze.NO /* UN_TOKENIZED */)
+  @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
   private Date bindungsFrist;
 
   private String beauftragungsBeschreibung;
@@ -191,6 +195,23 @@ public class AuftragDO extends DefaultBaseDO
   public AuftragDO setErfassungsDatum(final Date erfassungsDatum)
   {
     this.erfassungsDatum = erfassungsDatum;
+    return this;
+  }
+
+  /**
+   * Datum der Entscheidung / Beauftragung des Kunden.
+   *
+   * @return
+   */
+  @Column(name = "entscheidungs_datum")
+  public Date getEntscheidungsDatum()
+  {
+    return entscheidungsDatum;
+  }
+
+  public AuftragDO setEntscheidungsDatum(final Date entscheidungsDatum)
+  {
+    this.entscheidungsDatum = entscheidungsDatum;
     return this;
   }
 
