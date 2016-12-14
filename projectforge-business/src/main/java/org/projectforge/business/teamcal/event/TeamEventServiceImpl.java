@@ -24,6 +24,7 @@ import org.projectforge.business.teamcal.event.model.TeamEventAttendeeDao;
 import org.projectforge.business.teamcal.event.model.TeamEventAttendeeStatus;
 import org.projectforge.business.teamcal.event.model.TeamEventDO;
 import org.projectforge.business.teamcal.service.CryptService;
+import org.projectforge.business.teamcal.servlet.TeamCalResponseServlet;
 import org.projectforge.business.user.I18nHelper;
 import org.projectforge.business.user.service.UserService;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
@@ -278,7 +279,7 @@ public class TeamEventServiceImpl implements TeamEventService
   {
     final String messageParamBegin = "uid=" + event.getUid() + "&attendee=" + attendee.getId();
     final String acceptParams = cryptService.encryptParameterMessage(messageParamBegin + "&status=" + status.name());
-    return configService.getDomain() + "/pfcalendar?" + acceptParams;
+    return configService.getDomain() + TeamCalResponseServlet.PFCALENDAR + "?" + acceptParams;
   }
 
   private void addAttendeeToMail(TeamEventAttendeeDO attendee, Mail msg)

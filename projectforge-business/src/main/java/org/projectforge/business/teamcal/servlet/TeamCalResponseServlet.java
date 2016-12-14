@@ -54,9 +54,12 @@ import org.springframework.web.context.support.WebApplicationContextUtils;
  *
  * @author Florian Blumenstein
  */
-@WebServlet("/pfcalendar")
+//TODO Remove old Pattern in PF version 6.7
+@WebServlet({ "/cal", TeamCalResponseServlet.PFCALENDAR })
 public class TeamCalResponseServlet extends HttpServlet
 {
+  public static final String PFCALENDAR = "/pfcalendar";
+
   private static final long serialVersionUID = 8042634572943344080L;
 
   private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(TeamCalResponseServlet.class);
