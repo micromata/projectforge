@@ -113,7 +113,10 @@ public class DatabaseCoreUpdates
     ////////////////////////////////////////////////////////////////////
     // 6.6.0
     // /////////////////////////////////////////////////////////////////
-    list.add(new UpdateEntryImpl(CORE_REGION_ID, "6.6.0", "2016-12-14", "Add new visitorbook tables. Add table for vacation.")
+    list.add(new UpdateEntryImpl(CORE_REGION_ID, "6.6.0", "2016-12-14",
+        "Add new visitorbook tables. Add table for vacation." +
+                "Add new column in user table [lastWlanPasswordChange]. " +
+                "Add new columns in order table [erfassungsDatum, entscheidungsDatum].")
     {
       @Override
       public UpdatePreCheckStatus runPreCheck()
@@ -128,7 +131,8 @@ public class DatabaseCoreUpdates
             databaseUpdateService.doTablesExist(VisitorbookDO.class, VisitorbookTimedDO.class, VisitorbookTimedAttrDO.class, VisitorbookTimedAttrDataDO.class,
                 VisitorbookTimedAttrWithDataDO.class) == false || databaseUpdateService.doesGroupExists(ProjectForgeGroup.ORGA_TEAM) == false) {
           return UpdatePreCheckStatus.READY_FOR_UPDATE;
-        } else if (databaseUpdateService.doTableAttributesExist(PFUserDO.class, "lastWlanPasswordChange") == false) {
+        } else if (databaseUpdateService.doTableAttributesExist(PFUserDO.class, "lastWlanPasswordChange") == false
+            || databaseUpdateService.doTableAttributesExist(AuftragDO.class, "erfassungsDatum", "entscheidungsDatum") == false) {
           return UpdatePreCheckStatus.READY_FOR_UPDATE;
         }
         return UpdatePreCheckStatus.ALREADY_UPDATED;
@@ -142,7 +146,8 @@ public class DatabaseCoreUpdates
         if ((databaseUpdateService.doesTableExist("T_EMPLOYEE_VACATION") == false) || (databaseUpdateService
             .doTablesExist(VisitorbookDO.class, VisitorbookTimedDO.class, VisitorbookTimedAttrDO.class, VisitorbookTimedAttrDataDO.class,
                 VisitorbookTimedAttrWithDataDO.class) == false)
-            || databaseUpdateService.doTableAttributesExist(PFUserDO.class, "lastWlanPasswordChange") == false) {
+            || databaseUpdateService.doTableAttributesExist(PFUserDO.class, "lastWlanPasswordChange") == false
+            ||  databaseUpdateService.doTableAttributesExist(AuftragDO.class, "erfassungsDatum", "entscheidungsDatum") == false) {
           //Updating the schema
           initDatabaseDao.updateSchema();
         }
@@ -165,6 +170,7 @@ public class DatabaseCoreUpdates
           orgaGroup.setName(ProjectForgeGroup.ORGA_TEAM.getName());
           groupDao.internalSave(orgaGroup);
         }
+
         return UpdateRunningStatus.DONE;
       }
 
