@@ -24,13 +24,14 @@
 package org.projectforge.web.mobile;
 
 import org.apache.wicket.AttributeModifier;
+import org.apache.wicket.markup.html.form.IFormSubmitter;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.model.PropertyModel;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.web.wicket.CsrfTokenHandler;
 
-public abstract class AbstractMobileListForm<F extends BaseSearchFilter, P extends AbstractMobileListPage< ? , ? , ? >> extends
-AbstractMobileForm<AbstractMobileListForm< ? , ? >, AbstractMobileListPage< ? , ? , ? >>
+public abstract class AbstractMobileListForm<F extends BaseSearchFilter, P extends AbstractMobileListPage<?, ?, ?>> extends
+    AbstractMobileForm<AbstractMobileListForm<?, ?>, AbstractMobileListPage<?, ?, ?>>
 {
   private static final long serialVersionUID = -2521426347126048630L;
 
@@ -44,7 +45,7 @@ AbstractMobileForm<AbstractMobileListForm< ? , ? >, AbstractMobileListPage< ? , 
   private final CsrfTokenHandler csrfTokenHandler;
 
   @SuppressWarnings("unchecked")
-  public AbstractMobileListForm(final AbstractMobileListPage< ? , ? , ? > parentPage)
+  public AbstractMobileListForm(final AbstractMobileListPage<?, ?, ?> parentPage)
   {
     super(parentPage);
     final String userPrefFilterKey = this.getClass().getSimpleName() + ".filter";
@@ -60,11 +61,14 @@ AbstractMobileForm<AbstractMobileListForm< ? , ? >, AbstractMobileListPage< ? , 
     csrfTokenHandler = new CsrfTokenHandler(this);
   }
 
+  /**
+   * Check the CSRF token right before the onSubmit methods are called, otherwise it may be too late.
+   */
   @Override
-  protected void onSubmit()
+  protected void delegateSubmit(IFormSubmitter submittingComponent)
   {
-    super.onSubmit();
     csrfTokenHandler.onSubmit();
+    super.delegateSubmit(submittingComponent);
   }
 
   protected void init()

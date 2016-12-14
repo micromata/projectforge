@@ -118,6 +118,8 @@ public class UserRightServiceImpl implements UserRightService, Serializable
     addRight(UserRightCategory.HR, UserRightId.HR_EMPLOYEE, FALSE_READONLY_READWRITE, ProjectForgeGroup.HR_GROUP);
     addRight(UserRightCategory.HR, UserRightId.HR_EMPLOYEE_SALARY, FALSE_READONLY_READWRITE,
         ProjectForgeGroup.HR_GROUP);
+    addRight(UserRightCategory.HR, UserRightId.HR_VACATION, FALSE_READONLY_READWRITE,
+        ProjectForgeGroup.HR_GROUP);
     addRight(UserRightCategory.FIBU, UserRightId.FIBU_AUSGANGSRECHNUNGEN, FALSE_READONLY_READWRITE, FIBU_ORGA_GROUPS)
         .setReadOnlyForControlling();
     addRight(UserRightCategory.FIBU, UserRightId.FIBU_EINGANGSRECHNUNGEN, FALSE_READONLY_READWRITE, FIBU_ORGA_GROUPS)
