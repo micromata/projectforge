@@ -1758,5 +1758,4 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
     // TODO RK not detached here
     return getById(pk);
   }
-
 }

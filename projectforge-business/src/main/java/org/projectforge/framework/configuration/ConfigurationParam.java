@@ -47,7 +47,10 @@ public enum ConfigurationParam implements IConfigurationParam
   DEFAULT_TASK_ID_4_BOOKS("defaultTask4Books", ConfigurationType.TASK, false), //
   DEFAULT_COUNTRY_PHONE_PREFIX("countryPhonePrefix", ConfigurationType.STRING, false, "+49"), //
   MEB_SMS_RECEIVING_PHONE_NUMBER("mebSMSReceivingPhoneNumber", ConfigurationType.STRING, false), //
-  PLUGIN_ACTIVATED("pluginsActivated", ConfigurationType.STRING, true);
+  PLUGIN_ACTIVATED("pluginsActivated", ConfigurationType.STRING, true), //
+  HR_MAILADDRESS("hr.emailaddress", ConfigurationType.STRING, true),//
+  END_DATE_VACATION_LASTR_YEAR("vacation.lastyear.enddate", ConfigurationType.STRING, true, "31.03.");
+
   private String key;
 
   private ConfigurationType type;
@@ -58,7 +61,7 @@ public enum ConfigurationParam implements IConfigurationParam
 
   /**
    * The key will be used e. g. for i18n.
-   * 
+   *
    * @return
    */
   @Override
@@ -90,7 +93,7 @@ public enum ConfigurationParam implements IConfigurationParam
 
   /**
    * @return The full i18n key including the i18n prefix "administration.configuration.param." and the suffix
-   *         ".description".
+   * ".description".
    */
   @Override
   public String getDescriptionI18nKey()
