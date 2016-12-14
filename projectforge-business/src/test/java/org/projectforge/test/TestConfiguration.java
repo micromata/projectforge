@@ -41,7 +41,7 @@ import de.micromata.mgc.jpa.spring.factories.JpaToSessionSpringBeanFactory;
 @Configuration
 @ComponentScan(value = { "org.projectforge", "de.micromata.mgc.jpa.spring" },
     excludeFilters = { @ComponentScan.Filter(type = FilterType.ASPECTJ,
-        pattern = "org.projectforge.framework.configuration.DatabaseOrmConfiguration"),
+        pattern = "org.projectforge.framework.configuration.ProjectforgeSpringConfiguration"),
         @ComponentScan.Filter(type = FilterType.ASPECTJ,
             pattern = "org.projectforge.web.configuration.ProjectforgeWebConfiguration") })
 @PropertySource("projectforgeTest.properties")

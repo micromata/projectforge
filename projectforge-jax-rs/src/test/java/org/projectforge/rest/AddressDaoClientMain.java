@@ -26,9 +26,10 @@ package org.projectforge.rest;
 import java.util.Calendar;
 import java.util.Collection;
 
+import org.projectforge.model.rest.AddressObject;
+import org.projectforge.model.rest.RestPaths;
+import org.projectforge.model.rest.UserObject;
 import org.projectforge.rest.converter.DateTimeFormat;
-import org.projectforge.rest.objects.AddressObject;
-import org.projectforge.rest.objects.UserObject;
 
 import com.google.gson.reflect.TypeToken;
 import com.sun.jersey.api.client.Client;

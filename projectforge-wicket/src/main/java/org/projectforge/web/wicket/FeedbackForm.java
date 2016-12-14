@@ -26,7 +26,6 @@ package org.projectforge.web.wicket;
 import org.apache.wicket.markup.html.form.Button;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
-import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.web.SendFeedbackData;
 import org.projectforge.web.wicket.components.MaxLengthTextArea;
 import org.projectforge.web.wicket.components.SingleButtonPanel;
@@ -35,9 +34,8 @@ import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
 
 /**
  * Standard error page should be shown in production mode.
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
  */
 public class FeedbackForm extends AbstractStandardForm<SendFeedbackData, FeedbackPage>
 {
@@ -73,7 +71,8 @@ public class FeedbackForm extends AbstractStandardForm<SendFeedbackData, Feedbac
       fs.add(description, true);
     }
     {
-      addCancelButton(new Button(SingleButtonPanel.WICKET_ID, new Model<String>("cancel")) {
+      addCancelButton(new Button(SingleButtonPanel.WICKET_ID, new Model<String>("cancel"))
+      {
         @Override
         public final void onSubmit()
         {
@@ -82,7 +81,22 @@ public class FeedbackForm extends AbstractStandardForm<SendFeedbackData, Feedbac
       });
     }
     {
-      final Button sendButton = new Button(SingleButtonPanel.WICKET_ID, new Model<String>("send")) {
+      final Button pacmanButton = new Button(SingleButtonPanel.WICKET_ID, new Model<String>("menu.pacman"))
+      {
+        @Override
+        public final void onSubmit()
+        {
+          parentPage.playPacman();
+        }
+      };
+      WicketUtils.addTooltip(pacmanButton, getString("menu.pacman"));
+      final SingleButtonPanel sendButtonPanel = new SingleButtonPanel(actionButtons.newChildId(), pacmanButton, getString("menu.pacman"),
+          SingleButtonPanel.WARNING);
+      actionButtons.add(sendButtonPanel);
+    }
+    {
+      final Button sendButton = new Button(SingleButtonPanel.WICKET_ID, new Model<String>("send"))
+      {
         @Override
         public final void onSubmit()
         {

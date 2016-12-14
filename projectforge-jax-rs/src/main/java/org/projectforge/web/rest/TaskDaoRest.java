@@ -41,19 +41,18 @@ import org.projectforge.business.task.TaskFilter;
 import org.projectforge.business.task.TaskNode;
 import org.projectforge.business.task.TaskTree;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
+import org.projectforge.model.rest.RestPaths;
+import org.projectforge.model.rest.TaskObject;
 import org.projectforge.rest.JsonUtils;
-import org.projectforge.rest.RestPaths;
-import org.projectforge.rest.objects.TaskObject;
 import org.projectforge.web.rest.converter.TaskDOConverter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 
 /**
  * REST-Schnittstelle für {@link TaskDao}
- * 
+ *
  * @author Daniel Ludwig (d.ludwig@micromata.de)
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
  */
 @Controller
 @Path(RestPaths.TASK)
@@ -69,7 +68,7 @@ public class TaskDaoRest
 
   /**
    * Rest-Call für: {@link TaskDao#getList(org.projectforge.core.BaseSearchFilter)}
-   * 
+   *
    * @param searchTerm
    */
   @GET
@@ -95,7 +94,7 @@ public class TaskDaoRest
 
   /**
    * Rest-Call für: {@link TaskDao#getList(org.projectforge.core.BaseSearchFilter)}
-   * 
+   *
    * @param searchTerm
    */
   @GET
@@ -138,7 +137,7 @@ public class TaskDaoRest
 
   /**
    * Builds task tree.
-   * 
+   *
    * @param tasks
    * @return
    */

@@ -38,9 +38,11 @@ import org.projectforge.business.teamcal.admin.TeamCalDao;
 import org.projectforge.business.teamcal.admin.model.TeamCalAccessType;
 import org.projectforge.business.teamcal.admin.model.TeamCalDO;
 import org.projectforge.business.teamcal.admin.right.TeamCalRight;
+import org.projectforge.business.teamcal.event.TeamEventConverter;
 import org.projectforge.business.teamcal.event.TeamEventFilter;
 import org.projectforge.business.teamcal.event.model.TeamEventDO;
 import org.projectforge.business.user.UserRightId;
+import org.projectforge.framework.configuration.ApplicationContextProvider;
 import org.projectforge.framework.persistence.api.QueryFilter;
 import org.projectforge.framework.persistence.api.UserRightService;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
@@ -73,6 +75,8 @@ public class TeamEventExternalSubscriptionCache
 
   @Autowired
   private UserRightService userRights;
+
+  private TeamEventConverter teamEventConverter;
 
   public void updateCache()
   {
@@ -121,7 +125,7 @@ public class TeamEventExternalSubscriptionCache
   /**
    * @param teamCalDao
    * @param calendar
-   * @param force If true then update is forced (independent of last update time and refresh interval).
+   * @param force      If true then update is forced (independent of last update time and refresh interval).
    */
   public void updateCache(final TeamCalDO calendar, final boolean force)
   {
@@ -134,12 +138,12 @@ public class TeamEventExternalSubscriptionCache
     final Long now = System.currentTimeMillis();
     final Long addedTime = calendar.getExternalSubscriptionUpdateInterval() == null ? SUBSCRIPTION_UPDATE_TIME
         : 1000L * calendar
-            .getExternalSubscriptionUpdateInterval();
+        .getExternalSubscriptionUpdateInterval();
     if (teamEventSubscription == null) {
       // First update of subscribed calendar:
       teamEventSubscription = new TeamEventSubscription();
       subscriptions.put(calendar.getId(), teamEventSubscription);
-      teamEventSubscription.update(teamCalDao, calendar);
+      teamEventSubscription.update(teamCalDao, calendar, getTeamEventConverter());
     } else if (force == true || teamEventSubscription.getLastUpdated() == null
         || teamEventSubscription.getLastUpdated() + addedTime <= now) {
       if (force == false && teamEventSubscription.getNumberOfFailedUpdates() > 0) {
@@ -149,7 +153,7 @@ public class TeamEventExternalSubscriptionCache
           lastRun = teamEventSubscription.getLastFailedUpdate();
         }
         if (lastRun == null || lastRun + teamEventSubscription.getNumberOfFailedUpdates() * addedTime <= now) {
-          teamEventSubscription.update(teamCalDao, calendar);
+          teamEventSubscription.update(teamCalDao, calendar, getTeamEventConverter());
         } else if (lastRun + MAX_WAIT_MS_AFTER_FAILED_UPDATE > now) {
           log.info("Try to update subscribed calendar after "
               + (MAX_WAIT_MS_AFTER_FAILED_UPDATE / 1000 / 60 / 60)
@@ -157,13 +161,13 @@ public class TeamEventExternalSubscriptionCache
               + teamEventSubscription.getNumberOfFailedUpdates()
               + ", time of last successful update (UTC): "
               + (teamEventSubscription.getLastUpdated() != null
-                  ? DateHelper.formatAsUTC(new Date(teamEventSubscription.getLastUpdated()))
-                  : "-"));
-          teamEventSubscription.update(teamCalDao, calendar);
+              ? DateHelper.formatAsUTC(new Date(teamEventSubscription.getLastUpdated()))
+              : "-"));
+          teamEventSubscription.update(teamCalDao, calendar, getTeamEventConverter());
         }
       } else {
         // update the calendar
-        teamEventSubscription.update(teamCalDao, calendar);
+        teamEventSubscription.update(teamCalDao, calendar, getTeamEventConverter());
       }
     }
   }
@@ -253,5 +257,13 @@ public class TeamEventExternalSubscriptionCache
       teamCalRight = (TeamCalRight) userRights.getRight(UserRightId.PLUGIN_CALENDAR);
     }
     return teamCalRight;
+  }
+
+  private TeamEventConverter getTeamEventConverter()
+  {
+    if (teamEventConverter == null) {
+      teamEventConverter = ApplicationContextProvider.getApplicationContext().getBean(TeamEventConverter.class);
+    }
+    return teamEventConverter;
   }
 }
