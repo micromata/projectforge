@@ -280,9 +280,8 @@ public class AuftragEditForm extends AbstractEditForm<AuftragDO, AuftragEditPage
       // entry date
       final FieldsetPanel fsOrderDate = gridBuilder.newFieldset(getString("fibu.auftrag.entscheidung.datum"));
       final DatePanel angebotsDatumPanel = new DatePanel(fsOrderDate.newChildId(),
-              new PropertyModel<Date>(data, "erfassungsDatum"), DatePanelSettings
+              new PropertyModel<Date>(data, "entscheidungsDatum"), DatePanelSettings
               .get().withTargetType(java.sql.Date.class));
-      angebotsDatumPanel.setRequired(true);
       fsOrderDate.add(angebotsDatumPanel);
     }
     gridBuilder.newSplitPanel(GridSize.COL50);
