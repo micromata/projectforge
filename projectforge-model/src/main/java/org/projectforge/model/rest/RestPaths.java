@@ -21,12 +21,10 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.rest;
-
+package org.projectforge.model.rest;
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
  */
 public class RestPaths
 {
@@ -36,20 +34,24 @@ public class RestPaths
       return "";
     }
     final StringBuilder sb = new StringBuilder();
-    sb.append("/rest");
+    sb.append("/" + REST);
     for (final String pathElement : pathElements) {
       sb.append("/").append(pathElement);
     }
     return sb.toString();
   }
 
-  public static final String buildListPath(final String path) {
-    return "/rest/" + path + "/" + LIST;
+  public static final String buildListPath(final String path)
+  {
+    return "/" + REST + "/" + path + "/" + LIST;
   }
 
-  public static final String buildTreePath(final String path) {
-    return "/rest/" + path + "/" + TREE;
+  public static final String buildTreePath(final String path)
+  {
+    return "/" + REST + "/" + path + "/" + TREE;
   }
+
+  public static final String REST = "rest";
 
   public static final String ADDRESS = "address";
 
@@ -71,9 +73,18 @@ public class RestPaths
 
   public static final String LIST = "list";
 
+  public static final String SAVE = "save";
+
+  public static final String UPDATE = "update";
+
+  public static final String SAVE_OR_UDATE = SAVE + "or" + UPDATE;
+
+  public static final String DELETE = "delete";
+
   public static final String TREE = "tree";
 
   public static final String TEAMCAL = "teamcal";
 
   public static final String TEAMEVENTS = "teamevents";
+
 }

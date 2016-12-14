@@ -38,7 +38,6 @@ import javax.persistence.Transient;
 
 import org.apache.commons.lang.ObjectUtils;
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.builder.HashCodeBuilder;
 import org.hibernate.search.annotations.Indexed;
 import org.projectforge.business.address.AddressDO;
 import org.projectforge.framework.persistence.entities.DefaultBaseDO;
@@ -92,7 +91,7 @@ public class TeamEventAttendeeDO extends DefaultBaseDO implements Comparable<Tea
 
   /**
    * Is set if the attendee is a ProjectForge user.
-   * 
+   *
    * @return the userId
    */
   @ManyToOne(fetch = FetchType.LAZY)
@@ -123,7 +122,7 @@ public class TeamEventAttendeeDO extends DefaultBaseDO implements Comparable<Tea
 
   /**
    * Is set if the attendee is a ProjectForge user.
-   * 
+   *
    * @return the userId
    */
   @ManyToOne(fetch = FetchType.EAGER)
@@ -154,7 +153,7 @@ public class TeamEventAttendeeDO extends DefaultBaseDO implements Comparable<Tea
 
   /**
    * Is used if the attendee isn't a ProjectForge user for authentication.
-   * 
+   *
    * @return the loginToken
    */
   @Column(name = "login_token", length = 255)
@@ -175,7 +174,7 @@ public class TeamEventAttendeeDO extends DefaultBaseDO implements Comparable<Tea
 
   /**
    * The url (mail) of the attendee. Isn't used if the attendee is a ProjectForge user.
-   * 
+   *
    * @return the url
    */
   @Column(length = URL_MAX_LENGTH)
@@ -283,21 +282,14 @@ public class TeamEventAttendeeDO extends DefaultBaseDO implements Comparable<Tea
     return this.toString().toLowerCase().compareTo(arg0.toString().toLowerCase());
   }
 
-  /**
-   * @see java.lang.Object#hashCode()
-   */
   @Override
   public int hashCode()
   {
-    final HashCodeBuilder hcb = new HashCodeBuilder();
-    hcb.append(this.getId());
-    if (this.getId() != null) {
-      return hcb.toHashCode();
-    }
-    hcb.append(this.getUserId());
-    hcb.append(this.getAddressId());
-    hcb.append(this.url);
-    return hcb.toHashCode();
+    int result = getPk() != null ? getPk().hashCode() : 0;
+    result = 31 * result + (address != null ? address.getPk().hashCode() : 0);
+    result = 31 * result + (user != null ? user.getPk().hashCode() : 0);
+    result = 31 * result + (url != null ? url.hashCode() : 0);
+    return result;
   }
 
   /**
@@ -310,25 +302,28 @@ public class TeamEventAttendeeDO extends DefaultBaseDO implements Comparable<Tea
       return false;
     }
     final TeamEventAttendeeDO other = (TeamEventAttendeeDO) o;
-    if (this.getId() != null && other.getId() != null && ObjectUtils.equals(this.getId(), other.getId()) == true) {
+    if (this.getId() != null && other.getId() != null && ObjectUtils.equals(this.getId(), other.getId())) {
       return true;
     }
-    if (ObjectUtils.equals(this.getUserId(), other.getUserId()) == false) {
-      return false;
+    if (ObjectUtils.equals(this.getUserId(), other.getUserId())) {
+      return true;
     }
     if (this.getAddress() != null && other.getAddress() != null
-        && ObjectUtils.equals(this.getAddressId(), other.getAddressId()) == false) {
-      return false;
+        && ObjectUtils.equals(this.getAddressId(), other.getAddressId())) {
+      return true;
     }
-    if (StringUtils.equals(this.getUrl(), other.getUrl()) == false) {
-      return false;
+    if (this.getUrl() != null && other.getUrl() != null && StringUtils.equals(this.getUrl(), other.getUrl())) {
+      return true;
     }
-    return true;
+    return false;
   }
 
   @Override
   public String toString()
   {
+    if (this.getUser() != null) {
+      return this.getUser().getFullname() + " (" + this.getUser().getEmail() + ")";
+    }
     if (this.getAddress() != null) {
       return this.getAddress().getFullName() + " (" + this.getAddress().getEmail() + ")";
     }

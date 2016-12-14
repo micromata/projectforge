@@ -21,15 +21,17 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.rest;
+package org.projectforge.model.rest;
 
 import java.util.Date;
+
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
 /**
  * For documentation please refer the ProjectForge-API: DefaultBaseDO object.
  * Base fields (like DefaultBaseDO of ProjectForge webapp package).
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
  */
 public abstract class AbstractBaseObject
 {
@@ -37,6 +39,7 @@ public abstract class AbstractBaseObject
 
   private boolean deleted;
 
+  @JsonDeserialize(using = CustomerDateAndTimeDeserialize.class)
   private Date created, lastUpdate;
 
   public AbstractBaseObject()

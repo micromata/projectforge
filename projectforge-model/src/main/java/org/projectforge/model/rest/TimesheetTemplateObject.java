@@ -21,7 +21,7 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.rest.objects;
+package org.projectforge.model.rest;
 
 import java.lang.reflect.Field;
 
@@ -30,8 +30,8 @@ import org.apache.commons.lang.builder.ReflectionToStringBuilder;
 /**
  * This object stores a user preference of ProjectForge used for adding new time-sheets. The user may choose this templates for pre-filling
  * fields.
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
  */
 public class TimesheetTemplateObject
 {
@@ -114,7 +114,8 @@ public class TimesheetTemplateObject
   @Override
   public String toString()
   {
-    return new ReflectionToStringBuilder(this) {
+    return new ReflectionToStringBuilder(this)
+    {
       @Override
       protected boolean accept(final Field f)
       {

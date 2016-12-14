@@ -21,17 +21,16 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.rest.objects;
+package org.projectforge.model.rest;
 
 import java.lang.reflect.Field;
 
 import org.apache.commons.lang.builder.ReflectionToStringBuilder;
-import org.projectforge.rest.AbstractBaseObject;
 
 /**
  * For documentation please refer the ProjectForge-API: TeamCalDO object.
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
  */
 public class CalendarObject extends AbstractBaseObject
 {
@@ -123,7 +122,8 @@ public class CalendarObject extends AbstractBaseObject
   @Override
   public String toString()
   {
-    return new ReflectionToStringBuilder(this) {
+    return new ReflectionToStringBuilder(this)
+    {
       @Override
       protected boolean accept(final Field f)
       {

@@ -21,19 +21,17 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.rest.objects;
+package org.projectforge.model.rest;
 
 import java.sql.Date;
 import java.util.Locale;
 
 import org.projectforge.common.StringHelper;
-import org.projectforge.rest.AbstractBaseObject;
 
 /**
  * For documentation please refer the ProjectForge-API: AddressDO object. AddressObject object for REST,
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
  */
 public class AddressObject extends AbstractBaseObject
 {
@@ -111,7 +109,9 @@ public class AddressObject extends AbstractBaseObject
 
   private Date birthday;
 
-  private byte[] image;
+  private String image;
+
+  private String vCardData;
 
   public String getContactStatus()
   {
@@ -504,14 +504,33 @@ public class AddressObject extends AbstractBaseObject
     return this;
   }
 
-  public byte[] getImage()
+  /**
+   * Base64 data String
+   *
+   * @return
+   */
+  public String getImage()
   {
     return image;
   }
 
-  public void setImage(byte[] image)
+  public void setImage(String image)
   {
     this.image = image;
   }
 
+  /**
+   * Base64 data String
+   *
+   * @return
+   */
+  public String getVCardData()
+  {
+    return vCardData;
+  }
+
+  public void setVCardData(String vCardData)
+  {
+    this.vCardData = vCardData;
+  }
 }
