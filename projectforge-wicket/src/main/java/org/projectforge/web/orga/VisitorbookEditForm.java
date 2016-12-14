@@ -39,7 +39,6 @@ import org.projectforge.business.orga.VisitorbookService;
 import org.projectforge.business.orga.VisitorbookTimedDO;
 import org.projectforge.framework.persistence.attr.impl.GuiAttrSchemaService;
 import org.projectforge.web.common.MultiChoiceListHelper;
-import org.projectforge.web.fibu.EmployeeWicketProvider;
 import org.projectforge.web.wicket.AbstractEditForm;
 import org.projectforge.web.wicket.bootstrap.GridSize;
 import org.projectforge.web.wicket.components.LabelValueChoiceRenderer;
@@ -68,7 +67,7 @@ public class VisitorbookEditForm extends AbstractEditForm<VisitorbookDO, Visitor
 
   protected MultiChoiceListHelper<EmployeeDO> assignContactPersonsListHelper;
 
-  protected EmployeeWicketProvider employeeWicketProvider;
+  protected VisitorbookEmployeeWicketProvider employeeWicketProvider;
 
   public VisitorbookEditForm(final VisitorbookEditPage parentPage, final VisitorbookDO data)
   {
@@ -120,7 +119,7 @@ public class VisitorbookEditForm extends AbstractEditForm<VisitorbookDO, Visitor
           }
         }
       }
-      employeeWicketProvider = new EmployeeWicketProvider(data, employeeService);
+      employeeWicketProvider = new VisitorbookEmployeeWicketProvider(data, employeeService);
       final Select2MultiChoice<EmployeeDO> employees = new Select2MultiChoice<EmployeeDO>(
           fieldSet.getSelect2MultiChoiceId(),
           new PropertyModel<Collection<EmployeeDO>>(this.assignContactPersonsListHelper, "assignedItems"),
