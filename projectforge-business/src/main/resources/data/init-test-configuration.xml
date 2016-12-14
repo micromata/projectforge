@@ -152,4 +152,15 @@
     <stringValue>pf</stringValue>
     <configurationType>STRING</configurationType>
   </org.projectforge.framework.configuration.entities.ConfigurationDO>
+  <org.projectforge.framework.configuration.entities.ConfigurationDO id="44">
+    <created class="sql-timestamp" id="45">2016-09-30 12:03:23.48</created>
+    <lastUpdate class="sql-timestamp" id="46">2016-09-30 15:02:18.298</lastUpdate>
+    <deleted>false</deleted>
+    <minorChange>false</minorChange>
+    <id>397</id>
+    <global>false</global>
+    <parameter>hr.emailaddress</parameter>
+    <stringValue>hr@management.de</stringValue>
+    <configurationType>STRING</configurationType>
+  </org.projectforge.framework.configuration.entities.ConfigurationDO>
 </list>

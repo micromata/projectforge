@@ -3,6 +3,7 @@ package org.projectforge.framework.persistence.jpa.listener;
 import org.projectforge.business.multitenancy.TenantChecker;
 import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.access.OperationType;
+import org.projectforge.framework.persistence.api.AUserRightId;
 import org.projectforge.framework.persistence.api.BaseDO;
 import org.projectforge.framework.persistence.api.IUserRightId;
 import org.projectforge.framework.persistence.api.JpaPfGenericPersistenceService;
@@ -56,6 +57,10 @@ public class AccessCheckUpdateCopyFilterListener implements EmgrEventHandler<Emg
   {
     accessChecker.checkRestrictedOrDemoUser();
     tenantChecker.checkPartOfCurrentTenant(dbObject);
+    AUserRightId aUserRightId = dbObject.getClass().getAnnotation(AUserRightId.class);
+    if (aUserRightId != null && aUserRightId.checkAccess() == false) {
+      return;
+    }
     IUserRightId rightId = genericPersistenceService.getUserRight(dbObject);
     accessChecker.hasLoggedInUserAccess(rightId, newObj, dbObject, opType, true);
   }
