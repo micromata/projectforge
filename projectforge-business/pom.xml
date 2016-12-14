@@ -5,7 +5,7 @@
   <parent>
     <groupId>org.projectforge</groupId>
     <artifactId>projectforge-parent</artifactId>
-    <version>6.5.2</version>
+    <version>6.6.0</version>
   </parent>
   <licenses>
     <license>
@@ -31,6 +31,11 @@
           <groupId>commons-codec</groupId>
         </exclusion>
       </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.projectforge</groupId>
+      <artifactId>projectforge-model</artifactId>
+      <version>${projectforge.version}</version>
     </dependency>
     <dependency>
       <groupId>de.micromata.mgc</groupId>
@@ -131,6 +136,11 @@
       </exclusions>
     </dependency>
     <dependency>
+      <groupId>commons-validator</groupId>
+      <artifactId>commons-validator</artifactId>
+      <version>1.5.1</version>
+    </dependency>
+    <dependency>
       <groupId>javax.el</groupId>
       <artifactId>javax.el-api</artifactId>
       <version>${el-api.version}</version>
@@ -166,11 +176,6 @@
       <groupId>com.thoughtworks.xstream</groupId>
       <artifactId>xstream</artifactId>
       <version>${xstream.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>xerces</groupId>
-      <artifactId>xercesImpl</artifactId>
-      <version>${xerces.version}</version>
     </dependency>
     <dependency>
       <groupId>com.lowagie</groupId>

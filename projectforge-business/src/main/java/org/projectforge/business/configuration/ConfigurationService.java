@@ -1,5 +1,6 @@
 package org.projectforge.business.configuration;
 
+import java.util.Calendar;
 import java.util.List;
 import java.util.TimeZone;
 
@@ -83,5 +84,11 @@ public interface ConfigurationService
 
   boolean getCompileCss();
 
-  String getTeamCalCryptPassword();
+    String getLoginHandlerClass();
+    
+    String getTeamCalCryptPassword();
+
+  Calendar getEndDateVacationFromLastYear();
+
+  String getHREmailadress();
 }

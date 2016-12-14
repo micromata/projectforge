@@ -23,6 +23,8 @@
 
 package org.projectforge.web.user;
 
+import javax.servlet.http.HttpServletRequest;
+
 import org.apache.log4j.Logger;
 import org.apache.wicket.markup.html.link.BookmarkablePageLink;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
@@ -42,8 +44,6 @@ import org.projectforge.web.wicket.MessagePage;
 import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.web.wicket.components.ContentMenuEntryPanel;
 
-import javax.servlet.http.HttpServletRequest;
-
 public class MyAccountEditPage extends AbstractEditPage<PFUserDO, MyAccountEditForm, UserDao>
 {
   private static final long serialVersionUID = 4636922408954211544L;
@@ -59,13 +59,19 @@ public class MyAccountEditPage extends AbstractEditPage<PFUserDO, MyAccountEditF
   public MyAccountEditPage(final PageParameters parameters)
   {
     super(parameters, "user.myAccount");
-    if (Login.getInstance().isPasswordChangeSupported(getUser()) == true) {
-      final BookmarkablePageLink<Void> showChangePasswordLink = new BookmarkablePageLink<Void>("link",
-          ChangePasswordPage.class);
-      final ContentMenuEntryPanel menu = new ContentMenuEntryPanel(getNewContentMenuChildId(), showChangePasswordLink,
-          getString("menu.changePassword"));
-      addContentMenuEntry(menu);
+
+    if (Login.getInstance().isPasswordChangeSupported(getUser())) {
+      final BookmarkablePageLink<Void> changePwLink = new BookmarkablePageLink<>("link", ChangePasswordPage.class);
+      final ContentMenuEntryPanel entry = new ContentMenuEntryPanel(getNewContentMenuChildId(), changePwLink, getString("menu.changePassword"));
+      addContentMenuEntry(entry);
     }
+
+    if (Login.getInstance().isWlanPasswordChangeSupported(getUser())) {
+      final BookmarkablePageLink<Void> changeWlanPwLink = new BookmarkablePageLink<>("link", ChangeWlanPasswordPage.class);
+      final ContentMenuEntryPanel entry = new ContentMenuEntryPanel(getNewContentMenuChildId(), changeWlanPwLink, getString("menu.changeWlanPassword"));
+      addContentMenuEntry(entry);
+    }
+
     final PFUserDO loggedInUser = userService.getById(ThreadLocalUserContext.getUserId());
     super.init(loggedInUser);
     this.showHistory = false;
@@ -100,7 +106,7 @@ public class MyAccountEditPage extends AbstractEditPage<PFUserDO, MyAccountEditF
     }
     getData().setPersonalPhoneIdentifiers(userService.getNormalizedPersonalPhoneIdentifiers(getData()));
     userService.updateMyAccount(getData());
-    EmployeeDO employeeData = ((MyAccountEditForm) form).getEmployeeData();
+    final EmployeeDO employeeData = form.getEmployeeData();
     if (employeeData != null) {
       employeeService.updateAttribute(getData().getId(), employeeData.getIban(), "iban");
       employeeService.updateAttribute(getData().getId(), employeeData.getBic(), "bic");

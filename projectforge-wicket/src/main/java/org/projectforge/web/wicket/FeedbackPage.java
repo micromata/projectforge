@@ -25,15 +25,14 @@ package org.projectforge.web.wicket;
 
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
-import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.framework.configuration.Configuration;
 import org.projectforge.framework.configuration.ConfigurationParam;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.web.SendFeedback;
+import org.projectforge.web.pacman.PacmanViewPage;
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
  */
 @SuppressWarnings("serial")
 public class FeedbackPage extends AbstractStandardFormPage
@@ -89,6 +88,11 @@ public class FeedbackPage extends AbstractStandardFormPage
       messagePage.setWarning(true);
     }
     setResponsePage(messagePage);
+  }
+
+  void playPacman()
+  {
+    setResponsePage(new PacmanViewPage(new PageParameters()));
   }
 
   @Override

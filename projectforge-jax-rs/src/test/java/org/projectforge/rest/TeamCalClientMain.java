@@ -25,9 +25,10 @@ package org.projectforge.rest;
 
 import java.util.Collection;
 
-import org.projectforge.rest.objects.CalendarEventObject;
-import org.projectforge.rest.objects.CalendarObject;
-import org.projectforge.rest.objects.UserObject;
+import org.projectforge.model.rest.CalendarEventObject;
+import org.projectforge.model.rest.CalendarObject;
+import org.projectforge.model.rest.RestPaths;
+import org.projectforge.model.rest.UserObject;
 
 import com.google.gson.reflect.TypeToken;
 import com.sun.jersey.api.client.Client;

@@ -118,6 +118,8 @@ public class UserRightServiceImpl implements UserRightService, Serializable
     addRight(UserRightCategory.HR, UserRightId.HR_EMPLOYEE, FALSE_READONLY_READWRITE, ProjectForgeGroup.HR_GROUP);
     addRight(UserRightCategory.HR, UserRightId.HR_EMPLOYEE_SALARY, FALSE_READONLY_READWRITE,
         ProjectForgeGroup.HR_GROUP);
+    addRight(UserRightCategory.HR, UserRightId.HR_VACATION, FALSE_READONLY_READWRITE,
+        ProjectForgeGroup.HR_GROUP);
     addRight(UserRightCategory.FIBU, UserRightId.FIBU_AUSGANGSRECHNUNGEN, FALSE_READONLY_READWRITE, FIBU_ORGA_GROUPS)
         .setReadOnlyForControlling();
     addRight(UserRightCategory.FIBU, UserRightId.FIBU_EINGANGSRECHNUNGEN, FALSE_READONLY_READWRITE, FIBU_ORGA_GROUPS)
@@ -133,6 +135,7 @@ public class UserRightServiceImpl implements UserRightService, Serializable
         .setReadOnlyForControlling();
     addRight(UserRightCategory.ORGA, UserRightId.ORGA_OUTGOING_MAIL, FALSE_READONLY_READWRITE, FIBU_ORGA_GROUPS)
         .setReadOnlyForControlling();
+    addRight(UserRightCategory.ORGA, UserRightId.ORGA_VISITORBOOK, FALSE_READONLY_READWRITE, ProjectForgeGroup.ORGA_TEAM);
     addRight(new TenantRight(accessChecker, tenantChecker));
     addRight(new ProjektRight(accessChecker));
     addRight(new AuftragRight(accessChecker));

@@ -467,7 +467,9 @@
     <superAdmin>false</superAdmin>
     <firstname>Admin</firstname>
     <lastname>ProjectForge Administrator</lastname>
-    <description>IT system administrators of ProjectForge. They have only access to finances, order book or the project manager&apos;s view, if the groups are assigned.</description>
+    <description>IT system administrators of ProjectForge. They have only access to finances, order book or the project manager&apos;s view, if the groups are
+      assigned.
+    </description>
     <passwordSalt>yRigw0/nKomvGQ==</passwordSalt>
     <lastLogin id="118">2014-09-02 12:34:47.785</lastLogin>
     <loginFailures>0</loginFailures>
@@ -1118,13 +1120,13 @@
     <id>397</id>
     <user reference="52"/>
     <serializedSettings>&lt;org.projectforge.framework.persistence.api.BaseSearchFilter&gt;
-  &lt;searchString&gt;&lt;/searchString&gt;
-  &lt;deleted&gt;false&lt;/deleted&gt;
-  &lt;ignoreDeleted&gt;false&lt;/ignoreDeleted&gt;
-  &lt;maxRows&gt;-1&lt;/maxRows&gt;
-  &lt;useModificationFilter&gt;false&lt;/useModificationFilter&gt;
-  &lt;searchHistory&gt;false&lt;/searchHistory&gt;
-&lt;/org.projectforge.framework.persistence.api.BaseSearchFilter&gt;</serializedSettings>
+      &lt;searchString&gt;&lt;/searchString&gt;
+      &lt;deleted&gt;false&lt;/deleted&gt;
+      &lt;ignoreDeleted&gt;false&lt;/ignoreDeleted&gt;
+      &lt;maxRows&gt;-1&lt;/maxRows&gt;
+      &lt;useModificationFilter&gt;false&lt;/useModificationFilter&gt;
+      &lt;searchHistory&gt;false&lt;/searchHistory&gt;
+      &lt;/org.projectforge.framework.persistence.api.BaseSearchFilter&gt;</serializedSettings>
     <key>org.projectforge.web.admin.ConfigurationListForm:Filter</key>
     <created class="sql-timestamp" id="249">2010-04-21 00:13:19.651</created>
     <lastUpdate class="sql-timestamp" id="250">2013-04-07 18:14:25.515</lastUpdate>
@@ -1134,12 +1136,12 @@
     <id>398</id>
     <user reference="52"/>
     <serializedSettings>&lt;org.projectforge.web.calendar.CalendarFilter&gt;
-  &lt;startDate&gt;2013-04-07&lt;/startDate&gt;
-  &lt;firstHour&gt;8&lt;/firstHour&gt;
-  &lt;selectedCalendar&gt;timesheet&lt;/selectedCalendar&gt;
-  &lt;timesheetUserId&gt;1&lt;/timesheetUserId&gt;
-  &lt;showBreaks&gt;true&lt;/showBreaks&gt;
-&lt;/org.projectforge.web.calendar.CalendarFilter&gt;</serializedSettings>
+      &lt;startDate&gt;2013-04-07&lt;/startDate&gt;
+      &lt;firstHour&gt;8&lt;/firstHour&gt;
+      &lt;selectedCalendar&gt;timesheet&lt;/selectedCalendar&gt;
+      &lt;timesheetUserId&gt;1&lt;/timesheetUserId&gt;
+      &lt;showBreaks&gt;true&lt;/showBreaks&gt;
+      &lt;/org.projectforge.web.calendar.CalendarFilter&gt;</serializedSettings>
     <key>CalendarPage.userPrefs</key>
     <created class="sql-timestamp" id="252">2010-04-21 00:13:19.653</created>
     <lastUpdate class="sql-timestamp" id="253">2013-04-07 18:14:25.506</lastUpdate>
@@ -1149,13 +1151,13 @@
     <id>399</id>
     <user reference="52"/>
     <serializedSettings>&lt;org.projectforge.framework.persistence.api.BaseSearchFilter&gt;
-  &lt;searchString&gt;&lt;/searchString&gt;
-  &lt;deleted&gt;false&lt;/deleted&gt;
-  &lt;ignoreDeleted&gt;false&lt;/ignoreDeleted&gt;
-  &lt;maxRows&gt;-1&lt;/maxRows&gt;
-  &lt;useModificationFilter&gt;false&lt;/useModificationFilter&gt;
-  &lt;searchHistory&gt;false&lt;/searchHistory&gt;
-&lt;/org.projectforge.framework.persistence.api.BaseSearchFilter&gt;</serializedSettings>
+      &lt;searchString&gt;&lt;/searchString&gt;
+      &lt;deleted&gt;false&lt;/deleted&gt;
+      &lt;ignoreDeleted&gt;false&lt;/ignoreDeleted&gt;
+      &lt;maxRows&gt;-1&lt;/maxRows&gt;
+      &lt;useModificationFilter&gt;false&lt;/useModificationFilter&gt;
+      &lt;searchHistory&gt;false&lt;/searchHistory&gt;
+      &lt;/org.projectforge.framework.persistence.api.BaseSearchFilter&gt;</serializedSettings>
     <key>org.projectforge.web.fibu.KundeListAction:Filter</key>
     <created class="sql-timestamp" id="255">2010-04-20 22:24:43.644</created>
     <lastUpdate class="sql-timestamp" id="256">2013-04-07 18:14:25.493</lastUpdate>
@@ -1165,11 +1167,11 @@
     <id>400</id>
     <user reference="52"/>
     <serializedSettings>&lt;TaskFilter notOpened=&quot;true&quot; opened=&quot;true&quot; closed=&quot;false&quot; deleted=&quot;false&quot;&gt;
-  &lt;ignoreDeleted&gt;false&lt;/ignoreDeleted&gt;
-  &lt;maxRows&gt;-1&lt;/maxRows&gt;
-  &lt;useModificationFilter&gt;false&lt;/useModificationFilter&gt;
-  &lt;searchHistory&gt;false&lt;/searchHistory&gt;
-&lt;/TaskFilter&gt;</serializedSettings>
+      &lt;ignoreDeleted&gt;false&lt;/ignoreDeleted&gt;
+      &lt;maxRows&gt;-1&lt;/maxRows&gt;
+      &lt;useModificationFilter&gt;false&lt;/useModificationFilter&gt;
+      &lt;searchHistory&gt;false&lt;/searchHistory&gt;
+      &lt;/TaskFilter&gt;</serializedSettings>
     <key>org.projectforge.web.task.TaskListForm:Filter</key>
     <created class="sql-timestamp" id="258">2010-04-20 22:24:43.647</created>
     <lastUpdate class="sql-timestamp" id="259">2013-04-07 18:14:25.502</lastUpdate>
@@ -1179,17 +1181,17 @@
     <id>401</id>
     <user reference="52"/>
     <serializedSettings>&lt;set&gt;
-  &lt;int&gt;225&lt;/int&gt;
-  &lt;int&gt;229&lt;/int&gt;
-  &lt;int&gt;230&lt;/int&gt;
-  &lt;int&gt;231&lt;/int&gt;
-  &lt;int&gt;232&lt;/int&gt;
-  &lt;int&gt;233&lt;/int&gt;
-  &lt;int&gt;234&lt;/int&gt;
-  &lt;int&gt;235&lt;/int&gt;
-  &lt;int&gt;236&lt;/int&gt;
-  &lt;int&gt;237&lt;/int&gt;
-&lt;/set&gt;</serializedSettings>
+      &lt;int&gt;225&lt;/int&gt;
+      &lt;int&gt;229&lt;/int&gt;
+      &lt;int&gt;230&lt;/int&gt;
+      &lt;int&gt;231&lt;/int&gt;
+      &lt;int&gt;232&lt;/int&gt;
+      &lt;int&gt;233&lt;/int&gt;
+      &lt;int&gt;234&lt;/int&gt;
+      &lt;int&gt;235&lt;/int&gt;
+      &lt;int&gt;236&lt;/int&gt;
+      &lt;int&gt;237&lt;/int&gt;
+      &lt;/set&gt;</serializedSettings>
     <key>openTasks</key>
     <created class="sql-timestamp" id="261">2010-04-20 22:24:43.648</created>
     <lastUpdate class="sql-timestamp" id="262">2013-04-07 18:14:25.521</lastUpdate>
@@ -1199,12 +1201,12 @@
     <id>402</id>
     <user reference="52"/>
     <serializedSettings>&lt;set&gt;
-  &lt;short&gt;3&lt;/short&gt;
-  &lt;short&gt;38&lt;/short&gt;
-  &lt;short&gt;20&lt;/short&gt;
-  &lt;short&gt;29&lt;/short&gt;
-  &lt;short&gt;28&lt;/short&gt;
-&lt;/set&gt;</serializedSettings>
+      &lt;short&gt;3&lt;/short&gt;
+      &lt;short&gt;38&lt;/short&gt;
+      &lt;short&gt;20&lt;/short&gt;
+      &lt;short&gt;29&lt;/short&gt;
+      &lt;short&gt;28&lt;/short&gt;
+      &lt;/set&gt;</serializedSettings>
     <key>menu.openedNodes</key>
     <created class="sql-timestamp" id="264">2010-04-20 22:24:43.649</created>
     <lastUpdate class="sql-timestamp" id="265">2013-04-07 18:14:25.526</lastUpdate>
@@ -1214,14 +1216,14 @@
     <id>403</id>
     <user reference="52"/>
     <serializedSettings>&lt;org.projectforge.web.fibu.ProjektListFilter&gt;
-  &lt;searchString&gt;&lt;/searchString&gt;
-  &lt;deleted&gt;false&lt;/deleted&gt;
-  &lt;ignoreDeleted&gt;false&lt;/ignoreDeleted&gt;
-  &lt;maxRows&gt;-1&lt;/maxRows&gt;
-  &lt;useModificationFilter&gt;false&lt;/useModificationFilter&gt;
-  &lt;searchHistory&gt;false&lt;/searchHistory&gt;
-  &lt;listType&gt;notEnded&lt;/listType&gt;
-&lt;/org.projectforge.web.fibu.ProjektListFilter&gt;</serializedSettings>
+      &lt;searchString&gt;&lt;/searchString&gt;
+      &lt;deleted&gt;false&lt;/deleted&gt;
+      &lt;ignoreDeleted&gt;false&lt;/ignoreDeleted&gt;
+      &lt;maxRows&gt;-1&lt;/maxRows&gt;
+      &lt;useModificationFilter&gt;false&lt;/useModificationFilter&gt;
+      &lt;searchHistory&gt;false&lt;/searchHistory&gt;
+      &lt;listType&gt;notEnded&lt;/listType&gt;
+      &lt;/org.projectforge.web.fibu.ProjektListFilter&gt;</serializedSettings>
     <key>org.projectforge.web.fibu.ProjektListForm:Filter</key>
     <created class="sql-timestamp" id="267">2010-04-20 22:24:43.651</created>
     <lastUpdate class="sql-timestamp" id="268">2013-04-07 18:14:25.528</lastUpdate>
@@ -1231,13 +1233,13 @@
     <id>404</id>
     <user reference="52"/>
     <serializedSettings>&lt;org.projectforge.framework.persistence.api.BaseSearchFilter&gt;
-  &lt;searchString&gt;&lt;/searchString&gt;
-  &lt;deleted&gt;false&lt;/deleted&gt;
-  &lt;ignoreDeleted&gt;false&lt;/ignoreDeleted&gt;
-  &lt;maxRows&gt;-1&lt;/maxRows&gt;
-  &lt;useModificationFilter&gt;false&lt;/useModificationFilter&gt;
-  &lt;searchHistory&gt;false&lt;/searchHistory&gt;
-&lt;/org.projectforge.framework.persistence.api.BaseSearchFilter&gt;</serializedSettings>
+      &lt;searchString&gt;&lt;/searchString&gt;
+      &lt;deleted&gt;false&lt;/deleted&gt;
+      &lt;ignoreDeleted&gt;false&lt;/ignoreDeleted&gt;
+      &lt;maxRows&gt;-1&lt;/maxRows&gt;
+      &lt;useModificationFilter&gt;false&lt;/useModificationFilter&gt;
+      &lt;searchHistory&gt;false&lt;/searchHistory&gt;
+      &lt;/org.projectforge.framework.persistence.api.BaseSearchFilter&gt;</serializedSettings>
     <key>org.projectforge.web.user.UserListAction:Filter</key>
     <created class="sql-timestamp" id="270">2010-04-20 22:30:01.107</created>
     <lastUpdate class="sql-timestamp" id="271">2013-04-07 18:14:25.503</lastUpdate>
@@ -1247,17 +1249,17 @@
     <id>405</id>
     <user reference="115"/>
     <serializedSettings>&lt;org.projectforge.web.fibu.RechnungListFilter&gt;
-  &lt;searchString&gt;&lt;/searchString&gt;
-  &lt;deleted&gt;false&lt;/deleted&gt;
-  &lt;ignoreDeleted&gt;false&lt;/ignoreDeleted&gt;
-  &lt;maxRows&gt;-1&lt;/maxRows&gt;
-  &lt;useModificationFilter&gt;false&lt;/useModificationFilter&gt;
-  &lt;searchHistory&gt;false&lt;/searchHistory&gt;
-  &lt;year&gt;-1&lt;/year&gt;
-  &lt;month&gt;-1&lt;/month&gt;
-  &lt;listType&gt;all&lt;/listType&gt;
-  &lt;showKostZuweisungStatus&gt;false&lt;/showKostZuweisungStatus&gt;
-&lt;/org.projectforge.web.fibu.RechnungListFilter&gt;</serializedSettings>
+      &lt;searchString&gt;&lt;/searchString&gt;
+      &lt;deleted&gt;false&lt;/deleted&gt;
+      &lt;ignoreDeleted&gt;false&lt;/ignoreDeleted&gt;
+      &lt;maxRows&gt;-1&lt;/maxRows&gt;
+      &lt;useModificationFilter&gt;false&lt;/useModificationFilter&gt;
+      &lt;searchHistory&gt;false&lt;/searchHistory&gt;
+      &lt;year&gt;-1&lt;/year&gt;
+      &lt;month&gt;-1&lt;/month&gt;
+      &lt;listType&gt;all&lt;/listType&gt;
+      &lt;showKostZuweisungStatus&gt;false&lt;/showKostZuweisungStatus&gt;
+      &lt;/org.projectforge.web.fibu.RechnungListFilter&gt;</serializedSettings>
     <key>org.projectforge.web.fibu.RechnungListForm:Filter</key>
     <created class="sql-timestamp" id="273">2010-04-21 22:11:35.574</created>
     <lastUpdate class="sql-timestamp" id="274">2014-09-02 12:34:48.32</lastUpdate>
@@ -1267,13 +1269,13 @@
     <id>406</id>
     <user reference="115"/>
     <serializedSettings>&lt;org.projectforge.framework.persistence.api.BaseSearchFilter&gt;
-  &lt;searchString&gt;&lt;/searchString&gt;
-  &lt;deleted&gt;false&lt;/deleted&gt;
-  &lt;ignoreDeleted&gt;false&lt;/ignoreDeleted&gt;
-  &lt;maxRows&gt;-1&lt;/maxRows&gt;
-  &lt;useModificationFilter&gt;false&lt;/useModificationFilter&gt;
-  &lt;searchHistory&gt;false&lt;/searchHistory&gt;
-&lt;/org.projectforge.framework.persistence.api.BaseSearchFilter&gt;</serializedSettings>
+      &lt;searchString&gt;&lt;/searchString&gt;
+      &lt;deleted&gt;false&lt;/deleted&gt;
+      &lt;ignoreDeleted&gt;false&lt;/ignoreDeleted&gt;
+      &lt;maxRows&gt;-1&lt;/maxRows&gt;
+      &lt;useModificationFilter&gt;false&lt;/useModificationFilter&gt;
+      &lt;searchHistory&gt;false&lt;/searchHistory&gt;
+      &lt;/org.projectforge.framework.persistence.api.BaseSearchFilter&gt;</serializedSettings>
     <key>org.projectforge.web.fibu.KundeListAction:Filter</key>
     <created class="sql-timestamp" id="276">2010-04-21 22:11:35.575</created>
     <lastUpdate class="sql-timestamp" id="277">2014-09-02 12:34:48.326</lastUpdate>
@@ -1283,13 +1285,13 @@
     <id>407</id>
     <user reference="115"/>
     <serializedSettings>&lt;org.projectforge.framework.persistence.api.BaseSearchFilter&gt;
-  &lt;searchString&gt;&lt;/searchString&gt;
-  &lt;deleted&gt;false&lt;/deleted&gt;
-  &lt;ignoreDeleted&gt;false&lt;/ignoreDeleted&gt;
-  &lt;maxRows&gt;-1&lt;/maxRows&gt;
-  &lt;useModificationFilter&gt;false&lt;/useModificationFilter&gt;
-  &lt;searchHistory&gt;false&lt;/searchHistory&gt;
-&lt;/org.projectforge.framework.persistence.api.BaseSearchFilter&gt;</serializedSettings>
+      &lt;searchString&gt;&lt;/searchString&gt;
+      &lt;deleted&gt;false&lt;/deleted&gt;
+      &lt;ignoreDeleted&gt;false&lt;/ignoreDeleted&gt;
+      &lt;maxRows&gt;-1&lt;/maxRows&gt;
+      &lt;useModificationFilter&gt;false&lt;/useModificationFilter&gt;
+      &lt;searchHistory&gt;false&lt;/searchHistory&gt;
+      &lt;/org.projectforge.framework.persistence.api.BaseSearchFilter&gt;</serializedSettings>
     <key>org.projectforge.web.access.AccessListAction:Filter</key>
     <created class="sql-timestamp" id="279">2010-04-21 22:11:35.576</created>
     <lastUpdate class="sql-timestamp" id="280">2014-09-02 12:34:48.354</lastUpdate>
@@ -1299,15 +1301,15 @@
     <id>408</id>
     <user reference="115"/>
     <serializedSettings>&lt;org.projectforge.web.book.BookListFilter&gt;
-  &lt;deleted&gt;false&lt;/deleted&gt;
-  &lt;ignoreDeleted&gt;false&lt;/ignoreDeleted&gt;
-  &lt;maxRows&gt;-1&lt;/maxRows&gt;
-  &lt;useModificationFilter&gt;false&lt;/useModificationFilter&gt;
-  &lt;searchHistory&gt;false&lt;/searchHistory&gt;
-  &lt;present&gt;true&lt;/present&gt;
-  &lt;missed&gt;false&lt;/missed&gt;
-  &lt;disposed&gt;false&lt;/disposed&gt;
-&lt;/org.projectforge.web.book.BookListFilter&gt;</serializedSettings>
+      &lt;deleted&gt;false&lt;/deleted&gt;
+      &lt;ignoreDeleted&gt;false&lt;/ignoreDeleted&gt;
+      &lt;maxRows&gt;-1&lt;/maxRows&gt;
+      &lt;useModificationFilter&gt;false&lt;/useModificationFilter&gt;
+      &lt;searchHistory&gt;false&lt;/searchHistory&gt;
+      &lt;present&gt;true&lt;/present&gt;
+      &lt;missed&gt;false&lt;/missed&gt;
+      &lt;disposed&gt;false&lt;/disposed&gt;
+      &lt;/org.projectforge.web.book.BookListFilter&gt;</serializedSettings>
     <key>org.projectforge.web.book.BookListAction:Filter</key>
     <created class="sql-timestamp" id="282">2010-04-21 22:11:35.577</created>
     <lastUpdate class="sql-timestamp" id="283">2014-09-02 12:34:48.254</lastUpdate>
@@ -1326,13 +1328,13 @@
     <id>410</id>
     <user reference="115"/>
     <serializedSettings>&lt;org.projectforge.framework.persistence.api.BaseSearchFilter&gt;
-  &lt;searchString&gt;&lt;/searchString&gt;
-  &lt;deleted&gt;false&lt;/deleted&gt;
-  &lt;ignoreDeleted&gt;false&lt;/ignoreDeleted&gt;
-  &lt;maxRows&gt;-1&lt;/maxRows&gt;
-  &lt;useModificationFilter&gt;false&lt;/useModificationFilter&gt;
-  &lt;searchHistory&gt;false&lt;/searchHistory&gt;
-&lt;/org.projectforge.framework.persistence.api.BaseSearchFilter&gt;</serializedSettings>
+      &lt;searchString&gt;&lt;/searchString&gt;
+      &lt;deleted&gt;false&lt;/deleted&gt;
+      &lt;ignoreDeleted&gt;false&lt;/ignoreDeleted&gt;
+      &lt;maxRows&gt;-1&lt;/maxRows&gt;
+      &lt;useModificationFilter&gt;false&lt;/useModificationFilter&gt;
+      &lt;searchHistory&gt;false&lt;/searchHistory&gt;
+      &lt;/org.projectforge.framework.persistence.api.BaseSearchFilter&gt;</serializedSettings>
     <key>org.projectforge.web.admin.ConfigurationListForm:Filter</key>
     <created class="sql-timestamp" id="288">2010-04-21 22:11:35.578</created>
     <lastUpdate class="sql-timestamp" id="289">2014-09-02 12:34:48.306</lastUpdate>
@@ -1342,21 +1344,21 @@
     <id>411</id>
     <user reference="115"/>
     <serializedSettings>&lt;org.projectforge.web.address.AddressListFilter&gt;
-  &lt;deleted&gt;false&lt;/deleted&gt;
-  &lt;ignoreDeleted&gt;false&lt;/ignoreDeleted&gt;
-  &lt;maxRows&gt;50&lt;/maxRows&gt;
-  &lt;useModificationFilter&gt;false&lt;/useModificationFilter&gt;
-  &lt;searchHistory&gt;false&lt;/searchHistory&gt;
-  &lt;uptodate&gt;true&lt;/uptodate&gt;
-  &lt;outdated&gt;false&lt;/outdated&gt;
-  &lt;leaved&gt;false&lt;/leaved&gt;
-  &lt;active&gt;true&lt;/active&gt;
-  &lt;nonActive&gt;false&lt;/nonActive&gt;
-  &lt;uninteresting&gt;false&lt;/uninteresting&gt;
-  &lt;personaIngrata&gt;false&lt;/personaIngrata&gt;
-  &lt;departed&gt;false&lt;/departed&gt;
-  &lt;listType&gt;newest&lt;/listType&gt;
-&lt;/org.projectforge.web.address.AddressListFilter&gt;</serializedSettings>
+      &lt;deleted&gt;false&lt;/deleted&gt;
+      &lt;ignoreDeleted&gt;false&lt;/ignoreDeleted&gt;
+      &lt;maxRows&gt;50&lt;/maxRows&gt;
+      &lt;useModificationFilter&gt;false&lt;/useModificationFilter&gt;
+      &lt;searchHistory&gt;false&lt;/searchHistory&gt;
+      &lt;uptodate&gt;true&lt;/uptodate&gt;
+      &lt;outdated&gt;false&lt;/outdated&gt;
+      &lt;leaved&gt;false&lt;/leaved&gt;
+      &lt;active&gt;true&lt;/active&gt;
+      &lt;nonActive&gt;false&lt;/nonActive&gt;
+      &lt;uninteresting&gt;false&lt;/uninteresting&gt;
+      &lt;personaIngrata&gt;false&lt;/personaIngrata&gt;
+      &lt;departed&gt;false&lt;/departed&gt;
+      &lt;listType&gt;newest&lt;/listType&gt;
+      &lt;/org.projectforge.web.address.AddressListFilter&gt;</serializedSettings>
     <key>org.projectforge.web.address.AddressListAction:Filter</key>
     <created class="sql-timestamp" id="291">2010-04-21 22:11:35.581</created>
     <lastUpdate class="sql-timestamp" id="292">2014-09-02 12:34:48.335</lastUpdate>
@@ -1366,20 +1368,20 @@
     <id>412</id>
     <user reference="115"/>
     <serializedSettings>&lt;org.projectforge.web.timesheet.TimesheetListFilter&gt;
-  &lt;deleted&gt;false&lt;/deleted&gt;
-  &lt;ignoreDeleted&gt;false&lt;/ignoreDeleted&gt;
-  &lt;maxRows&gt;-1&lt;/maxRows&gt;
-  &lt;useModificationFilter&gt;false&lt;/useModificationFilter&gt;
-  &lt;searchHistory&gt;false&lt;/searchHistory&gt;
-  &lt;timePeriod&gt;
-    &lt;fromDate&gt;2009-12-31 23:00:00.0 UTC&lt;/fromDate&gt;
-    &lt;marker&gt;false&lt;/marker&gt;
-  &lt;/timePeriod&gt;
-  &lt;marked&gt;false&lt;/marked&gt;
-  &lt;longFormat&gt;false&lt;/longFormat&gt;
-  &lt;recursive&gt;true&lt;/recursive&gt;
-  &lt;orderType&gt;DESC&lt;/orderType&gt;
-&lt;/org.projectforge.web.timesheet.TimesheetListFilter&gt;</serializedSettings>
+      &lt;deleted&gt;false&lt;/deleted&gt;
+      &lt;ignoreDeleted&gt;false&lt;/ignoreDeleted&gt;
+      &lt;maxRows&gt;-1&lt;/maxRows&gt;
+      &lt;useModificationFilter&gt;false&lt;/useModificationFilter&gt;
+      &lt;searchHistory&gt;false&lt;/searchHistory&gt;
+      &lt;timePeriod&gt;
+      &lt;fromDate&gt;2009-12-31 23:00:00.0 UTC&lt;/fromDate&gt;
+      &lt;marker&gt;false&lt;/marker&gt;
+      &lt;/timePeriod&gt;
+      &lt;marked&gt;false&lt;/marked&gt;
+      &lt;longFormat&gt;false&lt;/longFormat&gt;
+      &lt;recursive&gt;true&lt;/recursive&gt;
+      &lt;orderType&gt;DESC&lt;/orderType&gt;
+      &lt;/org.projectforge.web.timesheet.TimesheetListFilter&gt;</serializedSettings>
     <key>org.projectforge.web.timesheet.TimesheetListForm:Filter</key>
     <created class="sql-timestamp" id="294">2010-04-21 22:11:35.583</created>
     <lastUpdate class="sql-timestamp" id="295">2014-09-02 12:34:48.308</lastUpdate>
@@ -1389,11 +1391,11 @@
     <id>413</id>
     <user reference="115"/>
     <serializedSettings>&lt;TaskFilter notOpened=&quot;true&quot; opened=&quot;true&quot; closed=&quot;false&quot; deleted=&quot;false&quot;&gt;
-  &lt;ignoreDeleted&gt;false&lt;/ignoreDeleted&gt;
-  &lt;maxRows&gt;-1&lt;/maxRows&gt;
-  &lt;useModificationFilter&gt;false&lt;/useModificationFilter&gt;
-  &lt;searchHistory&gt;false&lt;/searchHistory&gt;
-&lt;/TaskFilter&gt;</serializedSettings>
+      &lt;ignoreDeleted&gt;false&lt;/ignoreDeleted&gt;
+      &lt;maxRows&gt;-1&lt;/maxRows&gt;
+      &lt;useModificationFilter&gt;false&lt;/useModificationFilter&gt;
+      &lt;searchHistory&gt;false&lt;/searchHistory&gt;
+      &lt;/TaskFilter&gt;</serializedSettings>
     <key>org.projectforge.web.task.TaskListForm:Filter</key>
     <created class="sql-timestamp" id="297">2010-04-21 22:11:35.584</created>
     <lastUpdate class="sql-timestamp" id="298">2014-09-02 12:34:48.265</lastUpdate>
@@ -1412,16 +1414,16 @@
     <id>415</id>
     <user reference="115"/>
     <serializedSettings>&lt;set&gt;
-  &lt;int&gt;224&lt;/int&gt;
-  &lt;int&gt;225&lt;/int&gt;
-  &lt;int&gt;226&lt;/int&gt;
-  &lt;int&gt;229&lt;/int&gt;
-  &lt;int&gt;230&lt;/int&gt;
-  &lt;int&gt;231&lt;/int&gt;
-  &lt;int&gt;235&lt;/int&gt;
-  &lt;int&gt;239&lt;/int&gt;
-  &lt;int&gt;223&lt;/int&gt;
-&lt;/set&gt;</serializedSettings>
+      &lt;int&gt;224&lt;/int&gt;
+      &lt;int&gt;225&lt;/int&gt;
+      &lt;int&gt;226&lt;/int&gt;
+      &lt;int&gt;229&lt;/int&gt;
+      &lt;int&gt;230&lt;/int&gt;
+      &lt;int&gt;231&lt;/int&gt;
+      &lt;int&gt;235&lt;/int&gt;
+      &lt;int&gt;239&lt;/int&gt;
+      &lt;int&gt;223&lt;/int&gt;
+      &lt;/set&gt;</serializedSettings>
     <key>openTasks</key>
     <created class="sql-timestamp" id="303">2010-04-21 22:11:35.586</created>
     <lastUpdate class="sql-timestamp" id="304">2014-09-02 12:34:48.314</lastUpdate>
@@ -1431,12 +1433,12 @@
     <id>416</id>
     <user reference="115"/>
     <serializedSettings>&lt;org.projectforge.framework.persistence.api.BaseSearchFilter&gt;
-  &lt;deleted&gt;false&lt;/deleted&gt;
-  &lt;ignoreDeleted&gt;false&lt;/ignoreDeleted&gt;
-  &lt;maxRows&gt;-1&lt;/maxRows&gt;
-  &lt;useModificationFilter&gt;false&lt;/useModificationFilter&gt;
-  &lt;searchHistory&gt;false&lt;/searchHistory&gt;
-&lt;/org.projectforge.framework.persistence.api.BaseSearchFilter&gt;</serializedSettings>
+      &lt;deleted&gt;false&lt;/deleted&gt;
+      &lt;ignoreDeleted&gt;false&lt;/ignoreDeleted&gt;
+      &lt;maxRows&gt;-1&lt;/maxRows&gt;
+      &lt;useModificationFilter&gt;false&lt;/useModificationFilter&gt;
+      &lt;searchHistory&gt;false&lt;/searchHistory&gt;
+      &lt;/org.projectforge.framework.persistence.api.BaseSearchFilter&gt;</serializedSettings>
     <key>org.projectforge.web.user.GroupListAction:Filter</key>
     <created class="sql-timestamp" id="306">2010-04-21 22:11:35.589</created>
     <lastUpdate class="sql-timestamp" id="307">2014-09-02 12:34:48.277</lastUpdate>
@@ -1446,8 +1448,8 @@
     <id>417</id>
     <user reference="115"/>
     <serializedSettings>&lt;org.projectforge.framework.utils.RecentQueue&gt;
-  &lt;maxSize&gt;25&lt;/maxSize&gt;
-&lt;/org.projectforge.framework.utils.RecentQueue&gt;</serializedSettings>
+      &lt;maxSize&gt;25&lt;/maxSize&gt;
+      &lt;/org.projectforge.framework.utils.RecentQueue&gt;</serializedSettings>
     <key>org.projectforge.web.address.AddressListAction:recentSearchTerms</key>
     <created class="sql-timestamp" id="309">2010-04-21 22:11:35.59</created>
     <lastUpdate class="sql-timestamp" id="310">2014-09-02 12:34:48.38</lastUpdate>
@@ -1457,11 +1459,11 @@
     <id>418</id>
     <user reference="115"/>
     <serializedSettings>&lt;TaskFilter notOpened=&quot;true&quot; opened=&quot;true&quot; closed=&quot;false&quot; deleted=&quot;false&quot;&gt;
-  &lt;ignoreDeleted&gt;false&lt;/ignoreDeleted&gt;
-  &lt;maxRows&gt;-1&lt;/maxRows&gt;
-  &lt;useModificationFilter&gt;false&lt;/useModificationFilter&gt;
-  &lt;searchHistory&gt;false&lt;/searchHistory&gt;
-&lt;/TaskFilter&gt;</serializedSettings>
+      &lt;ignoreDeleted&gt;false&lt;/ignoreDeleted&gt;
+      &lt;maxRows&gt;-1&lt;/maxRows&gt;
+      &lt;useModificationFilter&gt;false&lt;/useModificationFilter&gt;
+      &lt;searchHistory&gt;false&lt;/searchHistory&gt;
+      &lt;/TaskFilter&gt;</serializedSettings>
     <key>org.projectforge.web.task.TaskTreeAction:Filter</key>
     <created class="sql-timestamp" id="312">2010-04-21 22:11:35.591</created>
     <lastUpdate class="sql-timestamp" id="313">2014-09-02 12:34:48.283</lastUpdate>
@@ -1471,15 +1473,15 @@
     <id>419</id>
     <user reference="115"/>
     <serializedSettings>&lt;org.projectforge.web.fibu.AuftragListFilter&gt;
-  &lt;searchString&gt;&lt;/searchString&gt;
-  &lt;deleted&gt;false&lt;/deleted&gt;
-  &lt;ignoreDeleted&gt;false&lt;/ignoreDeleted&gt;
-  &lt;maxRows&gt;-1&lt;/maxRows&gt;
-  &lt;useModificationFilter&gt;false&lt;/useModificationFilter&gt;
-  &lt;searchHistory&gt;false&lt;/searchHistory&gt;
-  &lt;year&gt;-1&lt;/year&gt;
-  &lt;listType&gt;all&lt;/listType&gt;
-&lt;/org.projectforge.web.fibu.AuftragListFilter&gt;</serializedSettings>
+      &lt;searchString&gt;&lt;/searchString&gt;
+      &lt;deleted&gt;false&lt;/deleted&gt;
+      &lt;ignoreDeleted&gt;false&lt;/ignoreDeleted&gt;
+      &lt;maxRows&gt;-1&lt;/maxRows&gt;
+      &lt;useModificationFilter&gt;false&lt;/useModificationFilter&gt;
+      &lt;searchHistory&gt;false&lt;/searchHistory&gt;
+      &lt;year&gt;-1&lt;/year&gt;
+      &lt;listType&gt;all&lt;/listType&gt;
+      &lt;/org.projectforge.web.fibu.AuftragListFilter&gt;</serializedSettings>
     <key>org.projectforge.web.fibu.AuftragListForm:Filter</key>
     <created class="sql-timestamp" id="315">2010-04-21 22:11:35.593</created>
     <lastUpdate class="sql-timestamp" id="316">2014-09-02 12:34:48.347</lastUpdate>
@@ -1489,12 +1491,12 @@
     <id>420</id>
     <user reference="115"/>
     <serializedSettings>&lt;set&gt;
-  &lt;short&gt;38&lt;/short&gt;
-  &lt;short&gt;6&lt;/short&gt;
-  &lt;short&gt;26&lt;/short&gt;
-  &lt;short&gt;29&lt;/short&gt;
-  &lt;short&gt;15&lt;/short&gt;
-&lt;/set&gt;</serializedSettings>
+      &lt;short&gt;38&lt;/short&gt;
+      &lt;short&gt;6&lt;/short&gt;
+      &lt;short&gt;26&lt;/short&gt;
+      &lt;short&gt;29&lt;/short&gt;
+      &lt;short&gt;15&lt;/short&gt;
+      &lt;/set&gt;</serializedSettings>
     <key>menu.openedNodes</key>
     <created class="sql-timestamp" id="318">2010-04-21 22:11:35.593</created>
     <lastUpdate class="sql-timestamp" id="319">2014-09-02 12:34:48.315</lastUpdate>
@@ -1504,14 +1506,14 @@
     <id>421</id>
     <user reference="115"/>
     <serializedSettings>&lt;org.projectforge.web.fibu.ProjektListFilter&gt;
-  &lt;searchString&gt;&lt;/searchString&gt;
-  &lt;deleted&gt;false&lt;/deleted&gt;
-  &lt;ignoreDeleted&gt;false&lt;/ignoreDeleted&gt;
-  &lt;maxRows&gt;-1&lt;/maxRows&gt;
-  &lt;useModificationFilter&gt;false&lt;/useModificationFilter&gt;
-  &lt;searchHistory&gt;false&lt;/searchHistory&gt;
-  &lt;listType&gt;notEnded&lt;/listType&gt;
-&lt;/org.projectforge.web.fibu.ProjektListFilter&gt;</serializedSettings>
+      &lt;searchString&gt;&lt;/searchString&gt;
+      &lt;deleted&gt;false&lt;/deleted&gt;
+      &lt;ignoreDeleted&gt;false&lt;/ignoreDeleted&gt;
+      &lt;maxRows&gt;-1&lt;/maxRows&gt;
+      &lt;useModificationFilter&gt;false&lt;/useModificationFilter&gt;
+      &lt;searchHistory&gt;false&lt;/searchHistory&gt;
+      &lt;listType&gt;notEnded&lt;/listType&gt;
+      &lt;/org.projectforge.web.fibu.ProjektListFilter&gt;</serializedSettings>
     <key>org.projectforge.web.fibu.ProjektListForm:Filter</key>
     <created class="sql-timestamp" id="321">2010-04-21 22:11:35.595</created>
     <lastUpdate class="sql-timestamp" id="322">2014-09-02 12:34:48.317</lastUpdate>
@@ -1521,13 +1523,13 @@
     <id>422</id>
     <user reference="115"/>
     <serializedSettings>&lt;org.projectforge.web.calendar.CalendarFilter&gt;
-  &lt;startDate&gt;2013-04-01&lt;/startDate&gt;
-  &lt;firstHour&gt;8&lt;/firstHour&gt;
-  &lt;viewType&gt;AGENDA_WEEK&lt;/viewType&gt;
-  &lt;selectedCalendar&gt;timesheet&lt;/selectedCalendar&gt;
-  &lt;timesheetUserId&gt;3&lt;/timesheetUserId&gt;
-  &lt;showBreaks&gt;true&lt;/showBreaks&gt;
-&lt;/org.projectforge.web.calendar.CalendarFilter&gt;</serializedSettings>
+      &lt;startDate&gt;2013-04-01&lt;/startDate&gt;
+      &lt;firstHour&gt;8&lt;/firstHour&gt;
+      &lt;viewType&gt;AGENDA_WEEK&lt;/viewType&gt;
+      &lt;selectedCalendar&gt;timesheet&lt;/selectedCalendar&gt;
+      &lt;timesheetUserId&gt;3&lt;/timesheetUserId&gt;
+      &lt;showBreaks&gt;true&lt;/showBreaks&gt;
+      &lt;/org.projectforge.web.calendar.CalendarFilter&gt;</serializedSettings>
     <key>CalendarPage.userPrefs</key>
     <created class="sql-timestamp" id="324">2010-04-21 22:11:35.596</created>
     <lastUpdate class="sql-timestamp" id="325">2014-09-02 12:34:48.289</lastUpdate>
@@ -1537,13 +1539,13 @@
     <id>423</id>
     <user reference="115"/>
     <serializedSettings>&lt;org.projectforge.framework.persistence.api.BaseSearchFilter&gt;
-  &lt;searchString&gt;&lt;/searchString&gt;
-  &lt;deleted&gt;false&lt;/deleted&gt;
-  &lt;ignoreDeleted&gt;false&lt;/ignoreDeleted&gt;
-  &lt;maxRows&gt;-1&lt;/maxRows&gt;
-  &lt;useModificationFilter&gt;false&lt;/useModificationFilter&gt;
-  &lt;searchHistory&gt;false&lt;/searchHistory&gt;
-&lt;/org.projectforge.framework.persistence.api.BaseSearchFilter&gt;</serializedSettings>
+      &lt;searchString&gt;&lt;/searchString&gt;
+      &lt;deleted&gt;false&lt;/deleted&gt;
+      &lt;ignoreDeleted&gt;false&lt;/ignoreDeleted&gt;
+      &lt;maxRows&gt;-1&lt;/maxRows&gt;
+      &lt;useModificationFilter&gt;false&lt;/useModificationFilter&gt;
+      &lt;searchHistory&gt;false&lt;/searchHistory&gt;
+      &lt;/org.projectforge.framework.persistence.api.BaseSearchFilter&gt;</serializedSettings>
     <key>org.projectforge.web.fibu.KundeListForm:Filter</key>
     <created class="sql-timestamp" id="327">2010-04-21 22:22:26.378</created>
     <lastUpdate class="sql-timestamp" id="328">2014-09-02 12:34:48.262</lastUpdate>
@@ -1553,13 +1555,13 @@
     <id>424</id>
     <user reference="115"/>
     <serializedSettings>&lt;org.projectforge.business.user.GroupFilter&gt;
-  &lt;searchString&gt;&lt;/searchString&gt;
-  &lt;deleted&gt;false&lt;/deleted&gt;
-  &lt;ignoreDeleted&gt;false&lt;/ignoreDeleted&gt;
-  &lt;maxRows&gt;-1&lt;/maxRows&gt;
-  &lt;useModificationFilter&gt;false&lt;/useModificationFilter&gt;
-  &lt;searchHistory&gt;false&lt;/searchHistory&gt;
-&lt;/org.projectforge.business.user.GroupFilter&gt;</serializedSettings>
+      &lt;searchString&gt;&lt;/searchString&gt;
+      &lt;deleted&gt;false&lt;/deleted&gt;
+      &lt;ignoreDeleted&gt;false&lt;/ignoreDeleted&gt;
+      &lt;maxRows&gt;-1&lt;/maxRows&gt;
+      &lt;useModificationFilter&gt;false&lt;/useModificationFilter&gt;
+      &lt;searchHistory&gt;false&lt;/searchHistory&gt;
+      &lt;/org.projectforge.business.user.GroupFilter&gt;</serializedSettings>
     <key>org.projectforge.web.user.GroupListForm:Filter</key>
     <created class="sql-timestamp" id="330">2010-04-21 22:22:26.383</created>
     <lastUpdate class="sql-timestamp" id="331">2014-09-02 12:34:48.344</lastUpdate>
@@ -1569,13 +1571,13 @@
     <id>425</id>
     <user reference="115"/>
     <serializedSettings>&lt;org.projectforge.web.fibu.Kost2ArtListFilter&gt;
-  &lt;searchString&gt;&lt;/searchString&gt;
-  &lt;deleted&gt;false&lt;/deleted&gt;
-  &lt;ignoreDeleted&gt;false&lt;/ignoreDeleted&gt;
-  &lt;maxRows&gt;-1&lt;/maxRows&gt;
-  &lt;useModificationFilter&gt;false&lt;/useModificationFilter&gt;
-  &lt;searchHistory&gt;false&lt;/searchHistory&gt;
-&lt;/org.projectforge.web.fibu.Kost2ArtListFilter&gt;</serializedSettings>
+      &lt;searchString&gt;&lt;/searchString&gt;
+      &lt;deleted&gt;false&lt;/deleted&gt;
+      &lt;ignoreDeleted&gt;false&lt;/ignoreDeleted&gt;
+      &lt;maxRows&gt;-1&lt;/maxRows&gt;
+      &lt;useModificationFilter&gt;false&lt;/useModificationFilter&gt;
+      &lt;searchHistory&gt;false&lt;/searchHistory&gt;
+      &lt;/org.projectforge.web.fibu.Kost2ArtListFilter&gt;</serializedSettings>
     <key>org.projectforge.web.fibu.Kost2ArtListForm:Filter</key>
     <created class="sql-timestamp" id="333">2010-04-21 22:22:26.385</created>
     <lastUpdate class="sql-timestamp" id="334">2014-09-02 12:34:48.285</lastUpdate>
@@ -1585,12 +1587,12 @@
     <id>426</id>
     <user reference="115"/>
     <serializedSettings>&lt;org.projectforge.framework.persistence.api.BaseSearchFilter&gt;
-  &lt;deleted&gt;false&lt;/deleted&gt;
-  &lt;ignoreDeleted&gt;false&lt;/ignoreDeleted&gt;
-  &lt;maxRows&gt;-1&lt;/maxRows&gt;
-  &lt;useModificationFilter&gt;false&lt;/useModificationFilter&gt;
-  &lt;searchHistory&gt;false&lt;/searchHistory&gt;
-&lt;/org.projectforge.framework.persistence.api.BaseSearchFilter&gt;</serializedSettings>
+      &lt;deleted&gt;false&lt;/deleted&gt;
+      &lt;ignoreDeleted&gt;false&lt;/ignoreDeleted&gt;
+      &lt;maxRows&gt;-1&lt;/maxRows&gt;
+      &lt;useModificationFilter&gt;false&lt;/useModificationFilter&gt;
+      &lt;searchHistory&gt;false&lt;/searchHistory&gt;
+      &lt;/org.projectforge.framework.persistence.api.BaseSearchFilter&gt;</serializedSettings>
     <key>org.projectforge.web.user.UserListAction:Filter</key>
     <created class="sql-timestamp" id="336">2010-04-21 23:11:22.362</created>
     <lastUpdate class="sql-timestamp" id="337">2014-09-02 12:34:48.269</lastUpdate>
@@ -1600,23 +1602,23 @@
     <id>427</id>
     <user reference="115"/>
     <serializedSettings>&lt;org.projectforge.business.humanresources.HRFilter&gt;
-  &lt;searchString&gt;&lt;/searchString&gt;
-  &lt;deleted&gt;false&lt;/deleted&gt;
-  &lt;ignoreDeleted&gt;false&lt;/ignoreDeleted&gt;
-  &lt;maxRows&gt;-1&lt;/maxRows&gt;
-  &lt;useModificationFilter&gt;false&lt;/useModificationFilter&gt;
-  &lt;searchHistory&gt;false&lt;/searchHistory&gt;
-  &lt;timePeriod&gt;
-    &lt;fromDate&gt;2010-04-18 22:00:00.0 UTC&lt;/fromDate&gt;
-    &lt;toDate&gt;2010-04-24 22:00:00.0 UTC&lt;/toDate&gt;
-    &lt;marker&gt;false&lt;/marker&gt;
-  &lt;/timePeriod&gt;
-  &lt;onlyMyProjects&gt;false&lt;/onlyMyProjects&gt;
-  &lt;otherProjectsGroupedByCustomer&gt;false&lt;/otherProjectsGroupedByCustomer&gt;
-  &lt;allProjectsGroupedByCustomer&gt;false&lt;/allProjectsGroupedByCustomer&gt;
-  &lt;showPlanning&gt;true&lt;/showPlanning&gt;
-  &lt;showBookedTimesheets&gt;false&lt;/showBookedTimesheets&gt;
-&lt;/org.projectforge.business.humanresources.HRFilter&gt;</serializedSettings>
+      &lt;searchString&gt;&lt;/searchString&gt;
+      &lt;deleted&gt;false&lt;/deleted&gt;
+      &lt;ignoreDeleted&gt;false&lt;/ignoreDeleted&gt;
+      &lt;maxRows&gt;-1&lt;/maxRows&gt;
+      &lt;useModificationFilter&gt;false&lt;/useModificationFilter&gt;
+      &lt;searchHistory&gt;false&lt;/searchHistory&gt;
+      &lt;timePeriod&gt;
+      &lt;fromDate&gt;2010-04-18 22:00:00.0 UTC&lt;/fromDate&gt;
+      &lt;toDate&gt;2010-04-24 22:00:00.0 UTC&lt;/toDate&gt;
+      &lt;marker&gt;false&lt;/marker&gt;
+      &lt;/timePeriod&gt;
+      &lt;onlyMyProjects&gt;false&lt;/onlyMyProjects&gt;
+      &lt;otherProjectsGroupedByCustomer&gt;false&lt;/otherProjectsGroupedByCustomer&gt;
+      &lt;allProjectsGroupedByCustomer&gt;false&lt;/allProjectsGroupedByCustomer&gt;
+      &lt;showPlanning&gt;true&lt;/showPlanning&gt;
+      &lt;showBookedTimesheets&gt;false&lt;/showBookedTimesheets&gt;
+      &lt;/org.projectforge.business.humanresources.HRFilter&gt;</serializedSettings>
     <key>org.projectforge.web.humanresources.HRListForm:Filter</key>
     <created class="sql-timestamp" id="339">2010-04-21 23:11:22.364</created>
     <lastUpdate class="sql-timestamp" id="340">2014-09-02 12:34:48.275</lastUpdate>
@@ -1626,13 +1628,13 @@
     <id>428</id>
     <user reference="115"/>
     <serializedSettings>&lt;org.projectforge.business.user.PFUserFilter&gt;
-  &lt;searchString&gt;&lt;/searchString&gt;
-  &lt;deleted&gt;false&lt;/deleted&gt;
-  &lt;ignoreDeleted&gt;false&lt;/ignoreDeleted&gt;
-  &lt;maxRows&gt;-1&lt;/maxRows&gt;
-  &lt;useModificationFilter&gt;false&lt;/useModificationFilter&gt;
-  &lt;searchHistory&gt;false&lt;/searchHistory&gt;
-&lt;/org.projectforge.business.user.PFUserFilter&gt;</serializedSettings>
+      &lt;searchString&gt;&lt;/searchString&gt;
+      &lt;deleted&gt;false&lt;/deleted&gt;
+      &lt;ignoreDeleted&gt;false&lt;/ignoreDeleted&gt;
+      &lt;maxRows&gt;-1&lt;/maxRows&gt;
+      &lt;useModificationFilter&gt;false&lt;/useModificationFilter&gt;
+      &lt;searchHistory&gt;false&lt;/searchHistory&gt;
+      &lt;/org.projectforge.business.user.PFUserFilter&gt;</serializedSettings>
     <key>org.projectforge.web.user.UserListForm:Filter</key>
     <created class="sql-timestamp" id="342">2010-04-21 23:11:22.366</created>
     <lastUpdate class="sql-timestamp" id="343">2014-09-02 12:34:48.357</lastUpdate>
@@ -1641,7 +1643,9 @@
   <org.projectforge.business.user.UserXmlPreferencesDO id="344">
     <id>429</id>
     <user reference="115"/>
-    <serializedSettings>!rO0ABXVyAAJbQqzzF/gGCFTgAgAAeHAAAAG5H4sIAAAAAAAAAM2VS0+DQBDH736KCQdPUkRrjIpNfNT4TIw2mngxK522awtLZob4+PQuBRtQSCQ2xhMzy3/nNzs7DIHoCHmCKNeEo94KQEAYYiyc2daL1Outfsfe1nrgfdr5m4rO+pVI/VjoDUTx9Gy47/i+AykjZfamA1PDslHYMxMq0Sbed650SCZSohzvRzG79TG75ZgXihln4K6OZQ9OVfSU0tiBIXJIOsklD+kYPBiQ0vESwQWrIOdp/DB8u1pVD3NvaKrjMZgYzvXNgXvGnCLvwsHRVf/xvn/o+v72v0hjc3ut7O38QVIZzq3A3Xbwhnv3y/D31LaZVdmWUgITE+GXLG5QDbPSyASBEwz1SOd7GcxovhqmLHYfLTGrppIca7Y0ntNftExAUEVrkJB5xlAgmam40+n8QSI2XKJoLsrKkBCynS1zf4n07M4bpsB1e+JvevHO0IshsV1yYgitOfyEBl5prlad3B5YfvvhrGPp+X7gZc/KWre0Vste8IqYl8Xh2ufAQrbze4uaBF6x8kVQN7SbtHVztkn7/dtsUpYbpaqpLVGpJIFX/aF+AKOgNStgBwAA</serializedSettings>
+    <serializedSettings>
+      !rO0ABXVyAAJbQqzzF/gGCFTgAgAAeHAAAAG5H4sIAAAAAAAAAM2VS0+DQBDH736KCQdPUkRrjIpNfNT4TIw2mngxK522awtLZob4+PQuBRtQSCQ2xhMzy3/nNzs7DIHoCHmCKNeEo94KQEAYYiyc2daL1Outfsfe1nrgfdr5m4rO+pVI/VjoDUTx9Gy47/i+AykjZfamA1PDslHYMxMq0Sbed650SCZSohzvRzG79TG75ZgXihln4K6OZQ9OVfSU0tiBIXJIOsklD+kYPBiQ0vESwQWrIOdp/DB8u1pVD3NvaKrjMZgYzvXNgXvGnCLvwsHRVf/xvn/o+v72v0hjc3ut7O38QVIZzq3A3Xbwhnv3y/D31LaZVdmWUgITE+GXLG5QDbPSyASBEwz1SOd7GcxovhqmLHYfLTGrppIca7Y0ntNftExAUEVrkJB5xlAgmam40+n8QSI2XKJoLsrKkBCynS1zf4n07M4bpsB1e+JvevHO0IshsV1yYgitOfyEBl5prlad3B5YfvvhrGPp+X7gZc/KWre0Vste8IqYl8Xh2ufAQrbze4uaBF6x8kVQN7SbtHVztkn7/dtsUpYbpaqpLVGpJIFX/aF+AKOgNStgBwAA
+    </serializedSettings>
     <key>org.projectforge.web.timesheet.TimesheetEditPage</key>
     <created class="sql-timestamp" id="345">2010-04-21 23:11:22.37</created>
     <lastUpdate class="sql-timestamp" id="346">2014-09-02 12:34:48.387</lastUpdate>
@@ -1651,14 +1655,14 @@
     <id>430</id>
     <user reference="115"/>
     <serializedSettings>&lt;org.projectforge.business.fibu.EmployeeFilter&gt;
-  &lt;searchString&gt;&lt;/searchString&gt;
-  &lt;deleted&gt;false&lt;/deleted&gt;
-  &lt;ignoreDeleted&gt;false&lt;/ignoreDeleted&gt;
-  &lt;maxRows&gt;-1&lt;/maxRows&gt;
-  &lt;useModificationFilter&gt;false&lt;/useModificationFilter&gt;
-  &lt;searchHistory&gt;false&lt;/searchHistory&gt;
-  &lt;showOnlyActiveEntries&gt;false&lt;/showOnlyActiveEntries&gt;
-&lt;/org.projectforge.business.fibu.EmployeeFilter&gt;</serializedSettings>
+      &lt;searchString&gt;&lt;/searchString&gt;
+      &lt;deleted&gt;false&lt;/deleted&gt;
+      &lt;ignoreDeleted&gt;false&lt;/ignoreDeleted&gt;
+      &lt;maxRows&gt;-1&lt;/maxRows&gt;
+      &lt;useModificationFilter&gt;false&lt;/useModificationFilter&gt;
+      &lt;searchHistory&gt;false&lt;/searchHistory&gt;
+      &lt;showOnlyActiveEntries&gt;false&lt;/showOnlyActiveEntries&gt;
+      &lt;/org.projectforge.business.fibu.EmployeeFilter&gt;</serializedSettings>
     <key>org.projectforge.web.fibu.EmployeeListAction:Filter</key>
     <created class="sql-timestamp" id="348">2010-04-22 07:58:05.949</created>
     <lastUpdate class="sql-timestamp" id="349">2014-09-02 12:34:48.349</lastUpdate>
@@ -1668,13 +1672,13 @@
     <id>431</id>
     <user reference="115"/>
     <serializedSettings>&lt;org.projectforge.web.fibu.Kost1ListFilter&gt;
-  &lt;deleted&gt;false&lt;/deleted&gt;
-  &lt;ignoreDeleted&gt;false&lt;/ignoreDeleted&gt;
-  &lt;maxRows&gt;-1&lt;/maxRows&gt;
-  &lt;useModificationFilter&gt;false&lt;/useModificationFilter&gt;
-  &lt;searchHistory&gt;false&lt;/searchHistory&gt;
-  &lt;listType&gt;notEnded&lt;/listType&gt;
-&lt;/org.projectforge.web.fibu.Kost1ListFilter&gt;</serializedSettings>
+      &lt;deleted&gt;false&lt;/deleted&gt;
+      &lt;ignoreDeleted&gt;false&lt;/ignoreDeleted&gt;
+      &lt;maxRows&gt;-1&lt;/maxRows&gt;
+      &lt;useModificationFilter&gt;false&lt;/useModificationFilter&gt;
+      &lt;searchHistory&gt;false&lt;/searchHistory&gt;
+      &lt;listType&gt;notEnded&lt;/listType&gt;
+      &lt;/org.projectforge.web.fibu.Kost1ListFilter&gt;</serializedSettings>
     <key>org.projectforge.web.fibu.Kost1ListAction:Filter</key>
     <created class="sql-timestamp" id="351">2010-04-22 08:01:38.344</created>
     <lastUpdate class="sql-timestamp" id="352">2014-09-02 12:34:48.267</lastUpdate>
@@ -1684,14 +1688,14 @@
     <id>432</id>
     <user reference="115"/>
     <serializedSettings>&lt;org.projectforge.web.fibu.Kost1ListFilter&gt;
-  &lt;searchString&gt;&lt;/searchString&gt;
-  &lt;deleted&gt;false&lt;/deleted&gt;
-  &lt;ignoreDeleted&gt;false&lt;/ignoreDeleted&gt;
-  &lt;maxRows&gt;-1&lt;/maxRows&gt;
-  &lt;useModificationFilter&gt;false&lt;/useModificationFilter&gt;
-  &lt;searchHistory&gt;false&lt;/searchHistory&gt;
-  &lt;listType&gt;notEnded&lt;/listType&gt;
-&lt;/org.projectforge.web.fibu.Kost1ListFilter&gt;</serializedSettings>
+      &lt;searchString&gt;&lt;/searchString&gt;
+      &lt;deleted&gt;false&lt;/deleted&gt;
+      &lt;ignoreDeleted&gt;false&lt;/ignoreDeleted&gt;
+      &lt;maxRows&gt;-1&lt;/maxRows&gt;
+      &lt;useModificationFilter&gt;false&lt;/useModificationFilter&gt;
+      &lt;searchHistory&gt;false&lt;/searchHistory&gt;
+      &lt;listType&gt;notEnded&lt;/listType&gt;
+      &lt;/org.projectforge.web.fibu.Kost1ListFilter&gt;</serializedSettings>
     <key>org.projectforge.web.fibu.Kost1ListForm:Filter</key>
     <created class="sql-timestamp" id="354">2010-04-22 08:01:38.349</created>
     <lastUpdate class="sql-timestamp" id="355">2014-09-02 12:34:48.382</lastUpdate>
@@ -1701,17 +1705,17 @@
     <id>433</id>
     <user reference="73"/>
     <serializedSettings>&lt;org.projectforge.web.fibu.RechnungListFilter&gt;
-  &lt;searchString&gt;&lt;/searchString&gt;
-  &lt;deleted&gt;false&lt;/deleted&gt;
-  &lt;ignoreDeleted&gt;false&lt;/ignoreDeleted&gt;
-  &lt;maxRows&gt;-1&lt;/maxRows&gt;
-  &lt;useModificationFilter&gt;false&lt;/useModificationFilter&gt;
-  &lt;searchHistory&gt;false&lt;/searchHistory&gt;
-  &lt;year&gt;-1&lt;/year&gt;
-  &lt;month&gt;-1&lt;/month&gt;
-  &lt;listType&gt;all&lt;/listType&gt;
-  &lt;showKostZuweisungStatus&gt;false&lt;/showKostZuweisungStatus&gt;
-&lt;/org.projectforge.web.fibu.RechnungListFilter&gt;</serializedSettings>
+      &lt;searchString&gt;&lt;/searchString&gt;
+      &lt;deleted&gt;false&lt;/deleted&gt;
+      &lt;ignoreDeleted&gt;false&lt;/ignoreDeleted&gt;
+      &lt;maxRows&gt;-1&lt;/maxRows&gt;
+      &lt;useModificationFilter&gt;false&lt;/useModificationFilter&gt;
+      &lt;searchHistory&gt;false&lt;/searchHistory&gt;
+      &lt;year&gt;-1&lt;/year&gt;
+      &lt;month&gt;-1&lt;/month&gt;
+      &lt;listType&gt;all&lt;/listType&gt;
+      &lt;showKostZuweisungStatus&gt;false&lt;/showKostZuweisungStatus&gt;
+      &lt;/org.projectforge.web.fibu.RechnungListFilter&gt;</serializedSettings>
     <key>org.projectforge.web.fibu.RechnungListForm:Filter</key>
     <created class="sql-timestamp" id="357">2010-04-22 21:45:34.786</created>
     <lastUpdate class="sql-timestamp" id="358">2013-04-12 03:48:24.571</lastUpdate>
@@ -1721,21 +1725,21 @@
     <id>434</id>
     <user reference="73"/>
     <serializedSettings>&lt;org.projectforge.web.timesheet.TimesheetListFilter&gt;
-  &lt;deleted&gt;false&lt;/deleted&gt;
-  &lt;ignoreDeleted&gt;false&lt;/ignoreDeleted&gt;
-  &lt;maxRows&gt;-1&lt;/maxRows&gt;
-  &lt;useModificationFilter&gt;false&lt;/useModificationFilter&gt;
-  &lt;searchHistory&gt;false&lt;/searchHistory&gt;
-  &lt;timePeriod&gt;
-    &lt;fromDate&gt;2009-12-31 23:00:00.0 UTC&lt;/fromDate&gt;
-    &lt;toDate&gt;2010-04-25 21:59:59.999 UTC&lt;/toDate&gt;
-    &lt;marker&gt;false&lt;/marker&gt;
-  &lt;/timePeriod&gt;
-  &lt;marked&gt;false&lt;/marked&gt;
-  &lt;longFormat&gt;false&lt;/longFormat&gt;
-  &lt;recursive&gt;true&lt;/recursive&gt;
-  &lt;orderType&gt;DESC&lt;/orderType&gt;
-&lt;/org.projectforge.web.timesheet.TimesheetListFilter&gt;</serializedSettings>
+      &lt;deleted&gt;false&lt;/deleted&gt;
+      &lt;ignoreDeleted&gt;false&lt;/ignoreDeleted&gt;
+      &lt;maxRows&gt;-1&lt;/maxRows&gt;
+      &lt;useModificationFilter&gt;false&lt;/useModificationFilter&gt;
+      &lt;searchHistory&gt;false&lt;/searchHistory&gt;
+      &lt;timePeriod&gt;
+      &lt;fromDate&gt;2009-12-31 23:00:00.0 UTC&lt;/fromDate&gt;
+      &lt;toDate&gt;2010-04-25 21:59:59.999 UTC&lt;/toDate&gt;
+      &lt;marker&gt;false&lt;/marker&gt;
+      &lt;/timePeriod&gt;
+      &lt;marked&gt;false&lt;/marked&gt;
+      &lt;longFormat&gt;false&lt;/longFormat&gt;
+      &lt;recursive&gt;true&lt;/recursive&gt;
+      &lt;orderType&gt;DESC&lt;/orderType&gt;
+      &lt;/org.projectforge.web.timesheet.TimesheetListFilter&gt;</serializedSettings>
     <key>org.projectforge.web.timesheet.TimesheetListForm:Filter</key>
     <created class="sql-timestamp" id="360">2010-04-22 21:45:34.788</created>
     <lastUpdate class="sql-timestamp" id="361">2013-04-12 03:48:24.587</lastUpdate>
@@ -1745,11 +1749,11 @@
     <id>435</id>
     <user reference="73"/>
     <serializedSettings>&lt;TaskFilter notOpened=&quot;true&quot; opened=&quot;true&quot; closed=&quot;false&quot; deleted=&quot;false&quot;&gt;
-  &lt;ignoreDeleted&gt;false&lt;/ignoreDeleted&gt;
-  &lt;maxRows&gt;-1&lt;/maxRows&gt;
-  &lt;useModificationFilter&gt;false&lt;/useModificationFilter&gt;
-  &lt;searchHistory&gt;false&lt;/searchHistory&gt;
-&lt;/TaskFilter&gt;</serializedSettings>
+      &lt;ignoreDeleted&gt;false&lt;/ignoreDeleted&gt;
+      &lt;maxRows&gt;-1&lt;/maxRows&gt;
+      &lt;useModificationFilter&gt;false&lt;/useModificationFilter&gt;
+      &lt;searchHistory&gt;false&lt;/searchHistory&gt;
+      &lt;/TaskFilter&gt;</serializedSettings>
     <key>org.projectforge.web.task.TaskListForm:Filter</key>
     <created class="sql-timestamp" id="363">2010-04-22 21:45:34.789</created>
     <lastUpdate class="sql-timestamp" id="364">2013-04-12 03:48:24.589</lastUpdate>
@@ -1768,15 +1772,15 @@
     <id>437</id>
     <user reference="73"/>
     <serializedSettings>&lt;org.projectforge.web.book.BookListFilter&gt;
-  &lt;deleted&gt;false&lt;/deleted&gt;
-  &lt;ignoreDeleted&gt;false&lt;/ignoreDeleted&gt;
-  &lt;maxRows&gt;-1&lt;/maxRows&gt;
-  &lt;useModificationFilter&gt;false&lt;/useModificationFilter&gt;
-  &lt;searchHistory&gt;false&lt;/searchHistory&gt;
-  &lt;present&gt;true&lt;/present&gt;
-  &lt;missed&gt;false&lt;/missed&gt;
-  &lt;disposed&gt;false&lt;/disposed&gt;
-&lt;/org.projectforge.web.book.BookListFilter&gt;</serializedSettings>
+      &lt;deleted&gt;false&lt;/deleted&gt;
+      &lt;ignoreDeleted&gt;false&lt;/ignoreDeleted&gt;
+      &lt;maxRows&gt;-1&lt;/maxRows&gt;
+      &lt;useModificationFilter&gt;false&lt;/useModificationFilter&gt;
+      &lt;searchHistory&gt;false&lt;/searchHistory&gt;
+      &lt;present&gt;true&lt;/present&gt;
+      &lt;missed&gt;false&lt;/missed&gt;
+      &lt;disposed&gt;false&lt;/disposed&gt;
+      &lt;/org.projectforge.web.book.BookListFilter&gt;</serializedSettings>
     <key>org.projectforge.web.book.BookListAction:Filter</key>
     <created class="sql-timestamp" id="369">2010-04-22 21:45:34.792</created>
     <lastUpdate class="sql-timestamp" id="370">2013-04-12 03:48:24.578</lastUpdate>
@@ -1786,13 +1790,13 @@
     <id>438</id>
     <user reference="73"/>
     <serializedSettings>&lt;set&gt;
-  &lt;int&gt;224&lt;/int&gt;
-  &lt;int&gt;225&lt;/int&gt;
-  &lt;int&gt;226&lt;/int&gt;
-  &lt;int&gt;229&lt;/int&gt;
-  &lt;int&gt;230&lt;/int&gt;
-  &lt;int&gt;231&lt;/int&gt;
-&lt;/set&gt;</serializedSettings>
+      &lt;int&gt;224&lt;/int&gt;
+      &lt;int&gt;225&lt;/int&gt;
+      &lt;int&gt;226&lt;/int&gt;
+      &lt;int&gt;229&lt;/int&gt;
+      &lt;int&gt;230&lt;/int&gt;
+      &lt;int&gt;231&lt;/int&gt;
+      &lt;/set&gt;</serializedSettings>
     <key>openTasks</key>
     <created class="sql-timestamp" id="372">2010-04-22 21:45:34.792</created>
     <lastUpdate class="sql-timestamp" id="373">2013-04-12 03:48:24.592</lastUpdate>
@@ -1802,13 +1806,13 @@
     <id>439</id>
     <user reference="73"/>
     <serializedSettings>&lt;org.projectforge.framework.persistence.api.BaseSearchFilter&gt;
-  &lt;searchString&gt;&lt;/searchString&gt;
-  &lt;deleted&gt;false&lt;/deleted&gt;
-  &lt;ignoreDeleted&gt;false&lt;/ignoreDeleted&gt;
-  &lt;maxRows&gt;-1&lt;/maxRows&gt;
-  &lt;useModificationFilter&gt;false&lt;/useModificationFilter&gt;
-  &lt;searchHistory&gt;false&lt;/searchHistory&gt;
-&lt;/org.projectforge.framework.persistence.api.BaseSearchFilter&gt;</serializedSettings>
+      &lt;searchString&gt;&lt;/searchString&gt;
+      &lt;deleted&gt;false&lt;/deleted&gt;
+      &lt;ignoreDeleted&gt;false&lt;/ignoreDeleted&gt;
+      &lt;maxRows&gt;-1&lt;/maxRows&gt;
+      &lt;useModificationFilter&gt;false&lt;/useModificationFilter&gt;
+      &lt;searchHistory&gt;false&lt;/searchHistory&gt;
+      &lt;/org.projectforge.framework.persistence.api.BaseSearchFilter&gt;</serializedSettings>
     <key>org.projectforge.web.user.UserListForm:Filter</key>
     <created class="sql-timestamp" id="375">2010-04-22 21:45:34.793</created>
     <lastUpdate class="sql-timestamp" id="376">2013-04-12 03:48:24.58</lastUpdate>
@@ -1818,8 +1822,8 @@
     <id>440</id>
     <user reference="73"/>
     <serializedSettings>&lt;org.projectforge.framework.utils.RecentQueue&gt;
-  &lt;maxSize&gt;25&lt;/maxSize&gt;
-&lt;/org.projectforge.framework.utils.RecentQueue&gt;</serializedSettings>
+      &lt;maxSize&gt;25&lt;/maxSize&gt;
+      &lt;/org.projectforge.framework.utils.RecentQueue&gt;</serializedSettings>
     <key>org.projectforge.web.address.AddressListAction:recentSearchTerms</key>
     <created class="sql-timestamp" id="378">2010-04-22 21:45:34.794</created>
     <lastUpdate class="sql-timestamp" id="379">2013-04-12 03:48:24.594</lastUpdate>
@@ -1829,21 +1833,21 @@
     <id>441</id>
     <user reference="73"/>
     <serializedSettings>&lt;org.projectforge.web.address.AddressListFilter&gt;
-  &lt;deleted&gt;false&lt;/deleted&gt;
-  &lt;ignoreDeleted&gt;false&lt;/ignoreDeleted&gt;
-  &lt;maxRows&gt;50&lt;/maxRows&gt;
-  &lt;useModificationFilter&gt;false&lt;/useModificationFilter&gt;
-  &lt;searchHistory&gt;false&lt;/searchHistory&gt;
-  &lt;uptodate&gt;true&lt;/uptodate&gt;
-  &lt;outdated&gt;false&lt;/outdated&gt;
-  &lt;leaved&gt;false&lt;/leaved&gt;
-  &lt;active&gt;true&lt;/active&gt;
-  &lt;nonActive&gt;false&lt;/nonActive&gt;
-  &lt;uninteresting&gt;false&lt;/uninteresting&gt;
-  &lt;personaIngrata&gt;false&lt;/personaIngrata&gt;
-  &lt;departed&gt;false&lt;/departed&gt;
-  &lt;listType&gt;newest&lt;/listType&gt;
-&lt;/org.projectforge.web.address.AddressListFilter&gt;</serializedSettings>
+      &lt;deleted&gt;false&lt;/deleted&gt;
+      &lt;ignoreDeleted&gt;false&lt;/ignoreDeleted&gt;
+      &lt;maxRows&gt;50&lt;/maxRows&gt;
+      &lt;useModificationFilter&gt;false&lt;/useModificationFilter&gt;
+      &lt;searchHistory&gt;false&lt;/searchHistory&gt;
+      &lt;uptodate&gt;true&lt;/uptodate&gt;
+      &lt;outdated&gt;false&lt;/outdated&gt;
+      &lt;leaved&gt;false&lt;/leaved&gt;
+      &lt;active&gt;true&lt;/active&gt;
+      &lt;nonActive&gt;false&lt;/nonActive&gt;
+      &lt;uninteresting&gt;false&lt;/uninteresting&gt;
+      &lt;personaIngrata&gt;false&lt;/personaIngrata&gt;
+      &lt;departed&gt;false&lt;/departed&gt;
+      &lt;listType&gt;newest&lt;/listType&gt;
+      &lt;/org.projectforge.web.address.AddressListFilter&gt;</serializedSettings>
     <key>org.projectforge.web.address.AddressListAction:Filter</key>
     <created class="sql-timestamp" id="381">2010-04-22 21:45:34.796</created>
     <lastUpdate class="sql-timestamp" id="382">2013-04-12 03:48:24.585</lastUpdate>
@@ -1861,7 +1865,9 @@
   <org.projectforge.business.user.UserXmlPreferencesDO id="386">
     <id>443</id>
     <user reference="73"/>
-    <serializedSettings>!rO0ABXVyAAJbQqzzF/gGCFTgAgAAeHAAAAGhH4sIAAAAAAAAALWU207CQBCG732KSS+8oqmFUhItJAgoB0mIknhpljK0G9ou7m7x8DI+jC9mawtpmyVC1KudU/b/ZtpZR9IQhY8oZxxXnTMAh6OLkRSpnXgheX2g79hpXjjGzs4ypbrEL900iCR/A0nEerRsa7YGsUCemnUN1kzIemq3NAiYSyRlUVsbIlnCc0y4RK7BEoXL6SZL9XGLAduEiRywFaxIyGIBQ7pAHhGJ0AuIECguYXajm/VGLT3tVlMz/oqtK8FnIVawbjn7/Eh4qYcwJluiT745IvCSKp9TXGB0HINpqiEaRYgpdTkLiSQVjDG97+ojIeJ0At3edPD0OLjWTcuuFb3WkSSWmsQqkkzSNgPQzz15BUMSLmLuVaDmnNBjmz9GMlfJNTOAf5ZUdvmr601FR5UmpsmFNPLghUof+mSLO0XHKOxb2cnseSJ++tLSSHZsx0iPYsg0FTGrEFPi7BFymbu82dOxhOTJFDrFN8Ex8mClJt/NQ+n91hwqUH3mQ7Wqv/CH2nJaObbCmByj/B5/AUD89kmfBQAA</serializedSettings>
+    <serializedSettings>
+      !rO0ABXVyAAJbQqzzF/gGCFTgAgAAeHAAAAGhH4sIAAAAAAAAALWU207CQBCG732KSS+8oqmFUhItJAgoB0mIknhpljK0G9ou7m7x8DI+jC9mawtpmyVC1KudU/b/ZtpZR9IQhY8oZxxXnTMAh6OLkRSpnXgheX2g79hpXjjGzs4ypbrEL900iCR/A0nEerRsa7YGsUCemnUN1kzIemq3NAiYSyRlUVsbIlnCc0y4RK7BEoXL6SZL9XGLAduEiRywFaxIyGIBQ7pAHhGJ0AuIECguYXajm/VGLT3tVlMz/oqtK8FnIVawbjn7/Eh4qYcwJluiT745IvCSKp9TXGB0HINpqiEaRYgpdTkLiSQVjDG97+ojIeJ0At3edPD0OLjWTcuuFb3WkSSWmsQqkkzSNgPQzz15BUMSLmLuVaDmnNBjmz9GMlfJNTOAf5ZUdvmr601FR5UmpsmFNPLghUof+mSLO0XHKOxb2cnseSJ++tLSSHZsx0iPYsg0FTGrEFPi7BFymbu82dOxhOTJFDrFN8Ex8mClJt/NQ+n91hwqUH3mQ7Wqv/CH2nJaObbCmByj/B5/AUD89kmfBQAA
+    </serializedSettings>
     <key>org.projectforge.web.timesheet.TimesheetEditPage</key>
     <created class="sql-timestamp" id="387">2010-04-22 21:45:34.799</created>
     <lastUpdate class="sql-timestamp" id="388">2013-04-12 03:48:24.596</lastUpdate>
@@ -1871,13 +1877,13 @@
     <id>444</id>
     <user reference="73"/>
     <serializedSettings>&lt;org.projectforge.web.calendar.CalendarFilter&gt;
-  &lt;startDate&gt;2013-04-12&lt;/startDate&gt;
-  &lt;firstHour&gt;8&lt;/firstHour&gt;
-  &lt;selectedCalendar&gt;timesheet&lt;/selectedCalendar&gt;
-  &lt;showBirthdays&gt;true&lt;/showBirthdays&gt;
-  &lt;timesheetUserId&gt;3&lt;/timesheetUserId&gt;
-  &lt;showBreaks&gt;true&lt;/showBreaks&gt;
-&lt;/org.projectforge.web.calendar.CalendarFilter&gt;</serializedSettings>
+      &lt;startDate&gt;2013-04-12&lt;/startDate&gt;
+      &lt;firstHour&gt;8&lt;/firstHour&gt;
+      &lt;selectedCalendar&gt;timesheet&lt;/selectedCalendar&gt;
+      &lt;showBirthdays&gt;true&lt;/showBirthdays&gt;
+      &lt;timesheetUserId&gt;3&lt;/timesheetUserId&gt;
+      &lt;showBreaks&gt;true&lt;/showBreaks&gt;
+      &lt;/org.projectforge.web.calendar.CalendarFilter&gt;</serializedSettings>
     <key>CalendarPage.userPrefs</key>
     <created class="sql-timestamp" id="390">2010-04-22 21:45:34.801</created>
     <lastUpdate class="sql-timestamp" id="391">2013-04-12 03:48:24.601</lastUpdate>
@@ -1887,18 +1893,18 @@
     <id>445</id>
     <user reference="115"/>
     <serializedSettings>&lt;org.projectforge.web.fibu.EingangsrechnungListFilter&gt;
-  &lt;searchString&gt;&lt;/searchString&gt;
-  &lt;deleted&gt;false&lt;/deleted&gt;
-  &lt;ignoreDeleted&gt;false&lt;/ignoreDeleted&gt;
-  &lt;maxRows&gt;-1&lt;/maxRows&gt;
-  &lt;useModificationFilter&gt;false&lt;/useModificationFilter&gt;
-  &lt;searchHistory&gt;false&lt;/searchHistory&gt;
-  &lt;year&gt;-1&lt;/year&gt;
-  &lt;month&gt;-1&lt;/month&gt;
-  &lt;listType&gt;all&lt;/listType&gt;
-  &lt;showKostZuweisungStatus defined-in=&quot;org.projectforge.business.fibu.RechnungFilter&quot;&gt;false&lt;/showKostZuweisungStatus&gt;
-  &lt;showKostZuweisungStatus&gt;false&lt;/showKostZuweisungStatus&gt;
-&lt;/org.projectforge.web.fibu.EingangsrechnungListFilter&gt;</serializedSettings>
+      &lt;searchString&gt;&lt;/searchString&gt;
+      &lt;deleted&gt;false&lt;/deleted&gt;
+      &lt;ignoreDeleted&gt;false&lt;/ignoreDeleted&gt;
+      &lt;maxRows&gt;-1&lt;/maxRows&gt;
+      &lt;useModificationFilter&gt;false&lt;/useModificationFilter&gt;
+      &lt;searchHistory&gt;false&lt;/searchHistory&gt;
+      &lt;year&gt;-1&lt;/year&gt;
+      &lt;month&gt;-1&lt;/month&gt;
+      &lt;listType&gt;all&lt;/listType&gt;
+      &lt;showKostZuweisungStatus defined-in=&quot;org.projectforge.business.fibu.RechnungFilter&quot;&gt;false&lt;/showKostZuweisungStatus&gt;
+      &lt;showKostZuweisungStatus&gt;false&lt;/showKostZuweisungStatus&gt;
+      &lt;/org.projectforge.web.fibu.EingangsrechnungListFilter&gt;</serializedSettings>
     <key>org.projectforge.web.fibu.EingangsrechnungListForm:Filter</key>
     <created class="sql-timestamp" id="393">2010-04-23 21:13:12.756</created>
     <lastUpdate class="sql-timestamp" id="394">2014-09-02 12:34:48.258</lastUpdate>
@@ -1908,14 +1914,14 @@
     <id>446</id>
     <user reference="115"/>
     <serializedSettings>&lt;org.projectforge.web.fibu.Kost2ListFilter&gt;
-  &lt;searchString&gt;&lt;/searchString&gt;
-  &lt;deleted&gt;false&lt;/deleted&gt;
-  &lt;ignoreDeleted&gt;false&lt;/ignoreDeleted&gt;
-  &lt;maxRows&gt;-1&lt;/maxRows&gt;
-  &lt;useModificationFilter&gt;false&lt;/useModificationFilter&gt;
-  &lt;searchHistory&gt;false&lt;/searchHistory&gt;
-  &lt;listType&gt;notEnded&lt;/listType&gt;
-&lt;/org.projectforge.web.fibu.Kost2ListFilter&gt;</serializedSettings>
+      &lt;searchString&gt;&lt;/searchString&gt;
+      &lt;deleted&gt;false&lt;/deleted&gt;
+      &lt;ignoreDeleted&gt;false&lt;/ignoreDeleted&gt;
+      &lt;maxRows&gt;-1&lt;/maxRows&gt;
+      &lt;useModificationFilter&gt;false&lt;/useModificationFilter&gt;
+      &lt;searchHistory&gt;false&lt;/searchHistory&gt;
+      &lt;listType&gt;notEnded&lt;/listType&gt;
+      &lt;/org.projectforge.web.fibu.Kost2ListFilter&gt;</serializedSettings>
     <key>org.projectforge.web.fibu.Kost2ListForm:Filter</key>
     <created class="sql-timestamp" id="396">2010-04-23 21:13:12.76</created>
     <lastUpdate class="sql-timestamp" id="397">2014-09-02 12:34:48.385</lastUpdate>
@@ -1925,15 +1931,15 @@
     <id>447</id>
     <user reference="115"/>
     <serializedSettings>&lt;org.projectforge.web.orga.PostausgangListFilter&gt;
-  &lt;searchString&gt;&lt;/searchString&gt;
-  &lt;deleted&gt;false&lt;/deleted&gt;
-  &lt;ignoreDeleted&gt;false&lt;/ignoreDeleted&gt;
-  &lt;maxRows&gt;-1&lt;/maxRows&gt;
-  &lt;useModificationFilter&gt;false&lt;/useModificationFilter&gt;
-  &lt;searchHistory&gt;false&lt;/searchHistory&gt;
-  &lt;year&gt;-1&lt;/year&gt;
-  &lt;month&gt;-1&lt;/month&gt;
-&lt;/org.projectforge.web.orga.PostausgangListFilter&gt;</serializedSettings>
+      &lt;searchString&gt;&lt;/searchString&gt;
+      &lt;deleted&gt;false&lt;/deleted&gt;
+      &lt;ignoreDeleted&gt;false&lt;/ignoreDeleted&gt;
+      &lt;maxRows&gt;-1&lt;/maxRows&gt;
+      &lt;useModificationFilter&gt;false&lt;/useModificationFilter&gt;
+      &lt;searchHistory&gt;false&lt;/searchHistory&gt;
+      &lt;year&gt;-1&lt;/year&gt;
+      &lt;month&gt;-1&lt;/month&gt;
+      &lt;/org.projectforge.web.orga.PostausgangListFilter&gt;</serializedSettings>
     <key>org.projectforge.web.orga.PostausgangListForm:Filter</key>
     <created class="sql-timestamp" id="399">2010-04-24 06:01:19.467</created>
     <lastUpdate class="sql-timestamp" id="400">2014-09-02 12:34:48.341</lastUpdate>
@@ -1943,13 +1949,13 @@
     <id>448</id>
     <user reference="115"/>
     <serializedSettings>&lt;org.projectforge.framework.persistence.api.BaseSearchFilter&gt;
-  &lt;searchString&gt;&lt;/searchString&gt;
-  &lt;deleted&gt;false&lt;/deleted&gt;
-  &lt;ignoreDeleted&gt;false&lt;/ignoreDeleted&gt;
-  &lt;maxRows&gt;-1&lt;/maxRows&gt;
-  &lt;useModificationFilter&gt;false&lt;/useModificationFilter&gt;
-  &lt;searchHistory&gt;false&lt;/searchHistory&gt;
-&lt;/org.projectforge.framework.persistence.api.BaseSearchFilter&gt;</serializedSettings>
+      &lt;searchString&gt;&lt;/searchString&gt;
+      &lt;deleted&gt;false&lt;/deleted&gt;
+      &lt;ignoreDeleted&gt;false&lt;/ignoreDeleted&gt;
+      &lt;maxRows&gt;-1&lt;/maxRows&gt;
+      &lt;useModificationFilter&gt;false&lt;/useModificationFilter&gt;
+      &lt;searchHistory&gt;false&lt;/searchHistory&gt;
+      &lt;/org.projectforge.framework.persistence.api.BaseSearchFilter&gt;</serializedSettings>
     <key>org.projectforge.web.fibu.KontoListAction:Filter</key>
     <created class="sql-timestamp" id="402">2010-04-24 06:01:19.47</created>
     <lastUpdate class="sql-timestamp" id="403">2014-09-02 12:34:48.352</lastUpdate>
@@ -1959,15 +1965,15 @@
     <id>449</id>
     <user reference="115"/>
     <serializedSettings>&lt;org.projectforge.web.orga.PosteingangListFilter&gt;
-  &lt;searchString&gt;&lt;/searchString&gt;
-  &lt;deleted&gt;false&lt;/deleted&gt;
-  &lt;ignoreDeleted&gt;false&lt;/ignoreDeleted&gt;
-  &lt;maxRows&gt;-1&lt;/maxRows&gt;
-  &lt;useModificationFilter&gt;false&lt;/useModificationFilter&gt;
-  &lt;searchHistory&gt;false&lt;/searchHistory&gt;
-  &lt;year&gt;-1&lt;/year&gt;
-  &lt;month&gt;-1&lt;/month&gt;
-&lt;/org.projectforge.web.orga.PosteingangListFilter&gt;</serializedSettings>
+      &lt;searchString&gt;&lt;/searchString&gt;
+      &lt;deleted&gt;false&lt;/deleted&gt;
+      &lt;ignoreDeleted&gt;false&lt;/ignoreDeleted&gt;
+      &lt;maxRows&gt;-1&lt;/maxRows&gt;
+      &lt;useModificationFilter&gt;false&lt;/useModificationFilter&gt;
+      &lt;searchHistory&gt;false&lt;/searchHistory&gt;
+      &lt;year&gt;-1&lt;/year&gt;
+      &lt;month&gt;-1&lt;/month&gt;
+      &lt;/org.projectforge.web.orga.PosteingangListFilter&gt;</serializedSettings>
     <key>org.projectforge.web.orga.PosteingangListForm:Filter</key>
     <created class="sql-timestamp" id="405">2010-04-24 06:01:19.471</created>
     <lastUpdate class="sql-timestamp" id="406">2014-09-02 12:34:48.362</lastUpdate>
@@ -1977,15 +1983,15 @@
     <id>450</id>
     <user reference="115"/>
     <serializedSettings>&lt;org.projectforge.web.fibu.EmployeeSalaryListFilter&gt;
-  &lt;searchString&gt;&lt;/searchString&gt;
-  &lt;deleted&gt;false&lt;/deleted&gt;
-  &lt;ignoreDeleted&gt;false&lt;/ignoreDeleted&gt;
-  &lt;maxRows&gt;-1&lt;/maxRows&gt;
-  &lt;useModificationFilter&gt;false&lt;/useModificationFilter&gt;
-  &lt;searchHistory&gt;false&lt;/searchHistory&gt;
-  &lt;year&gt;-1&lt;/year&gt;
-  &lt;month&gt;-1&lt;/month&gt;
-&lt;/org.projectforge.web.fibu.EmployeeSalaryListFilter&gt;</serializedSettings>
+      &lt;searchString&gt;&lt;/searchString&gt;
+      &lt;deleted&gt;false&lt;/deleted&gt;
+      &lt;ignoreDeleted&gt;false&lt;/ignoreDeleted&gt;
+      &lt;maxRows&gt;-1&lt;/maxRows&gt;
+      &lt;useModificationFilter&gt;false&lt;/useModificationFilter&gt;
+      &lt;searchHistory&gt;false&lt;/searchHistory&gt;
+      &lt;year&gt;-1&lt;/year&gt;
+      &lt;month&gt;-1&lt;/month&gt;
+      &lt;/org.projectforge.web.fibu.EmployeeSalaryListFilter&gt;</serializedSettings>
     <key>org.projectforge.web.fibu.EmployeeSalaryListAction:Filter</key>
     <created class="sql-timestamp" id="408">2010-04-24 06:01:19.472</created>
     <lastUpdate class="sql-timestamp" id="409">2014-09-02 12:34:48.36</lastUpdate>
@@ -1995,8 +2001,8 @@
     <id>451</id>
     <user reference="115"/>
     <serializedSettings>&lt;org.projectforge.framework.utils.RecentQueue&gt;
-  &lt;maxSize&gt;25&lt;/maxSize&gt;
-&lt;/org.projectforge.framework.utils.RecentQueue&gt;</serializedSettings>
+      &lt;maxSize&gt;25&lt;/maxSize&gt;
+      &lt;/org.projectforge.framework.utils.RecentQueue&gt;</serializedSettings>
     <key>org.projectforge.web.address.SendSmsForm:recentSearchTerms</key>
     <created class="sql-timestamp" id="411">2010-04-25 09:57:02.439</created>
     <lastUpdate class="sql-timestamp" id="412">2014-09-02 12:34:48.297</lastUpdate>
@@ -2015,8 +2021,8 @@
     <id>453</id>
     <user reference="52"/>
     <serializedSettings>&lt;org.projectforge.framework.utils.RecentQueue&gt;
-  &lt;maxSize&gt;25&lt;/maxSize&gt;
-&lt;/org.projectforge.framework.utils.RecentQueue&gt;</serializedSettings>
+      &lt;maxSize&gt;25&lt;/maxSize&gt;
+      &lt;/org.projectforge.framework.utils.RecentQueue&gt;</serializedSettings>
     <key>org.projectforge.web.address.AddressListAction:recentSearchTerms</key>
     <created class="sql-timestamp" id="417">2010-05-03 22:54:06.286</created>
     <lastUpdate class="sql-timestamp" id="418">2013-04-07 18:14:25.523</lastUpdate>
@@ -2026,21 +2032,21 @@
     <id>454</id>
     <user reference="52"/>
     <serializedSettings>&lt;org.projectforge.web.address.AddressListFilter&gt;
-  &lt;deleted&gt;false&lt;/deleted&gt;
-  &lt;ignoreDeleted&gt;false&lt;/ignoreDeleted&gt;
-  &lt;maxRows&gt;50&lt;/maxRows&gt;
-  &lt;useModificationFilter&gt;false&lt;/useModificationFilter&gt;
-  &lt;searchHistory&gt;false&lt;/searchHistory&gt;
-  &lt;uptodate&gt;true&lt;/uptodate&gt;
-  &lt;outdated&gt;false&lt;/outdated&gt;
-  &lt;leaved&gt;false&lt;/leaved&gt;
-  &lt;active&gt;true&lt;/active&gt;
-  &lt;nonActive&gt;false&lt;/nonActive&gt;
-  &lt;uninteresting&gt;false&lt;/uninteresting&gt;
-  &lt;personaIngrata&gt;false&lt;/personaIngrata&gt;
-  &lt;departed&gt;false&lt;/departed&gt;
-  &lt;listType&gt;newest&lt;/listType&gt;
-&lt;/org.projectforge.web.address.AddressListFilter&gt;</serializedSettings>
+      &lt;deleted&gt;false&lt;/deleted&gt;
+      &lt;ignoreDeleted&gt;false&lt;/ignoreDeleted&gt;
+      &lt;maxRows&gt;50&lt;/maxRows&gt;
+      &lt;useModificationFilter&gt;false&lt;/useModificationFilter&gt;
+      &lt;searchHistory&gt;false&lt;/searchHistory&gt;
+      &lt;uptodate&gt;true&lt;/uptodate&gt;
+      &lt;outdated&gt;false&lt;/outdated&gt;
+      &lt;leaved&gt;false&lt;/leaved&gt;
+      &lt;active&gt;true&lt;/active&gt;
+      &lt;nonActive&gt;false&lt;/nonActive&gt;
+      &lt;uninteresting&gt;false&lt;/uninteresting&gt;
+      &lt;personaIngrata&gt;false&lt;/personaIngrata&gt;
+      &lt;departed&gt;false&lt;/departed&gt;
+      &lt;listType&gt;newest&lt;/listType&gt;
+      &lt;/org.projectforge.web.address.AddressListFilter&gt;</serializedSettings>
     <key>org.projectforge.web.address.AddressListAction:Filter</key>
     <created class="sql-timestamp" id="420">2010-05-03 22:54:06.288</created>
     <lastUpdate class="sql-timestamp" id="421">2013-04-07 18:14:25.501</lastUpdate>
@@ -2059,13 +2065,13 @@
     <id>456</id>
     <user reference="52"/>
     <serializedSettings>&lt;org.projectforge.framework.persistence.api.BaseSearchFilter&gt;
-  &lt;searchString&gt;&lt;/searchString&gt;
-  &lt;deleted&gt;false&lt;/deleted&gt;
-  &lt;ignoreDeleted&gt;false&lt;/ignoreDeleted&gt;
-  &lt;maxRows&gt;-1&lt;/maxRows&gt;
-  &lt;useModificationFilter&gt;false&lt;/useModificationFilter&gt;
-  &lt;searchHistory&gt;false&lt;/searchHistory&gt;
-&lt;/org.projectforge.framework.persistence.api.BaseSearchFilter&gt;</serializedSettings>
+      &lt;searchString&gt;&lt;/searchString&gt;
+      &lt;deleted&gt;false&lt;/deleted&gt;
+      &lt;ignoreDeleted&gt;false&lt;/ignoreDeleted&gt;
+      &lt;maxRows&gt;-1&lt;/maxRows&gt;
+      &lt;useModificationFilter&gt;false&lt;/useModificationFilter&gt;
+      &lt;searchHistory&gt;false&lt;/searchHistory&gt;
+      &lt;/org.projectforge.framework.persistence.api.BaseSearchFilter&gt;</serializedSettings>
     <key>org.projectforge.web.scripting.ScriptListForm:Filter</key>
     <created class="sql-timestamp" id="426">2010-05-03 23:04:47.657</created>
     <lastUpdate class="sql-timestamp" id="427">2013-04-07 18:14:25.518</lastUpdate>
@@ -2075,17 +2081,17 @@
     <id>457</id>
     <user reference="52"/>
     <serializedSettings>&lt;org.projectforge.web.fibu.RechnungListFilter&gt;
-  &lt;searchString&gt;&lt;/searchString&gt;
-  &lt;deleted&gt;false&lt;/deleted&gt;
-  &lt;ignoreDeleted&gt;false&lt;/ignoreDeleted&gt;
-  &lt;maxRows&gt;-1&lt;/maxRows&gt;
-  &lt;useModificationFilter&gt;false&lt;/useModificationFilter&gt;
-  &lt;searchHistory&gt;false&lt;/searchHistory&gt;
-  &lt;year&gt;-1&lt;/year&gt;
-  &lt;month&gt;-1&lt;/month&gt;
-  &lt;listType&gt;all&lt;/listType&gt;
-  &lt;showKostZuweisungStatus&gt;false&lt;/showKostZuweisungStatus&gt;
-&lt;/org.projectforge.web.fibu.RechnungListFilter&gt;</serializedSettings>
+      &lt;searchString&gt;&lt;/searchString&gt;
+      &lt;deleted&gt;false&lt;/deleted&gt;
+      &lt;ignoreDeleted&gt;false&lt;/ignoreDeleted&gt;
+      &lt;maxRows&gt;-1&lt;/maxRows&gt;
+      &lt;useModificationFilter&gt;false&lt;/useModificationFilter&gt;
+      &lt;searchHistory&gt;false&lt;/searchHistory&gt;
+      &lt;year&gt;-1&lt;/year&gt;
+      &lt;month&gt;-1&lt;/month&gt;
+      &lt;listType&gt;all&lt;/listType&gt;
+      &lt;showKostZuweisungStatus&gt;false&lt;/showKostZuweisungStatus&gt;
+      &lt;/org.projectforge.web.fibu.RechnungListFilter&gt;</serializedSettings>
     <key>org.projectforge.web.fibu.RechnungListForm:Filter</key>
     <created class="sql-timestamp" id="429">2010-05-03 23:26:30.573</created>
     <lastUpdate class="sql-timestamp" id="430">2013-04-07 18:14:25.491</lastUpdate>
@@ -2095,13 +2101,13 @@
     <id>458</id>
     <user reference="52"/>
     <serializedSettings>&lt;org.projectforge.framework.persistence.api.BaseSearchFilter&gt;
-  &lt;searchString&gt;&lt;/searchString&gt;
-  &lt;deleted&gt;false&lt;/deleted&gt;
-  &lt;ignoreDeleted&gt;false&lt;/ignoreDeleted&gt;
-  &lt;maxRows&gt;-1&lt;/maxRows&gt;
-  &lt;useModificationFilter&gt;false&lt;/useModificationFilter&gt;
-  &lt;searchHistory&gt;false&lt;/searchHistory&gt;
-&lt;/org.projectforge.framework.persistence.api.BaseSearchFilter&gt;</serializedSettings>
+      &lt;searchString&gt;&lt;/searchString&gt;
+      &lt;deleted&gt;false&lt;/deleted&gt;
+      &lt;ignoreDeleted&gt;false&lt;/ignoreDeleted&gt;
+      &lt;maxRows&gt;-1&lt;/maxRows&gt;
+      &lt;useModificationFilter&gt;false&lt;/useModificationFilter&gt;
+      &lt;searchHistory&gt;false&lt;/searchHistory&gt;
+      &lt;/org.projectforge.framework.persistence.api.BaseSearchFilter&gt;</serializedSettings>
     <key>org.projectforge.web.user.UserListForm:Filter</key>
     <created class="sql-timestamp" id="432">2010-05-03 23:26:30.579</created>
     <lastUpdate class="sql-timestamp" id="433">2013-04-07 18:14:25.514</lastUpdate>
@@ -2111,18 +2117,18 @@
     <id>459</id>
     <user reference="52"/>
     <serializedSettings>&lt;org.projectforge.web.fibu.EingangsrechnungListFilter&gt;
-  &lt;searchString&gt;&lt;/searchString&gt;
-  &lt;deleted&gt;false&lt;/deleted&gt;
-  &lt;ignoreDeleted&gt;false&lt;/ignoreDeleted&gt;
-  &lt;maxRows&gt;-1&lt;/maxRows&gt;
-  &lt;useModificationFilter&gt;false&lt;/useModificationFilter&gt;
-  &lt;searchHistory&gt;false&lt;/searchHistory&gt;
-  &lt;year&gt;-1&lt;/year&gt;
-  &lt;month&gt;-1&lt;/month&gt;
-  &lt;listType&gt;all&lt;/listType&gt;
-  &lt;showKostZuweisungStatus defined-in=&quot;org.projectforge.business.fibu.RechnungFilter&quot;&gt;false&lt;/showKostZuweisungStatus&gt;
-  &lt;showKostZuweisungStatus&gt;false&lt;/showKostZuweisungStatus&gt;
-&lt;/org.projectforge.web.fibu.EingangsrechnungListFilter&gt;</serializedSettings>
+      &lt;searchString&gt;&lt;/searchString&gt;
+      &lt;deleted&gt;false&lt;/deleted&gt;
+      &lt;ignoreDeleted&gt;false&lt;/ignoreDeleted&gt;
+      &lt;maxRows&gt;-1&lt;/maxRows&gt;
+      &lt;useModificationFilter&gt;false&lt;/useModificationFilter&gt;
+      &lt;searchHistory&gt;false&lt;/searchHistory&gt;
+      &lt;year&gt;-1&lt;/year&gt;
+      &lt;month&gt;-1&lt;/month&gt;
+      &lt;listType&gt;all&lt;/listType&gt;
+      &lt;showKostZuweisungStatus defined-in=&quot;org.projectforge.business.fibu.RechnungFilter&quot;&gt;false&lt;/showKostZuweisungStatus&gt;
+      &lt;showKostZuweisungStatus&gt;false&lt;/showKostZuweisungStatus&gt;
+      &lt;/org.projectforge.web.fibu.EingangsrechnungListFilter&gt;</serializedSettings>
     <key>org.projectforge.web.fibu.EingangsrechnungListForm:Filter</key>
     <created class="sql-timestamp" id="435">2010-05-03 23:26:30.58</created>
     <lastUpdate class="sql-timestamp" id="436">2013-04-07 18:14:25.499</lastUpdate>
@@ -2132,27 +2138,28 @@
     <id>460</id>
     <user reference="52"/>
     <serializedSettings>&lt;timesheetPref&gt;
-  &lt;recents&gt;
-    &lt;maxSize&gt;50&lt;/maxSize&gt;
-    &lt;recents&gt;
+      &lt;recents&gt;
+      &lt;maxSize&gt;50&lt;/maxSize&gt;
+      &lt;recents&gt;
       &lt;timesheetPrefEntry taskId=&quot;17&quot; userId=&quot;2&quot; kost2Id=&quot;10&quot;/&gt;
-      &lt;timesheetPrefEntry taskId=&quot;11&quot; userId=&quot;2&quot; kost2Id=&quot;3&quot; location=&quot;Head quarter&quot; description=&quot;Requirement-Engineering: ACME_WEB-186, ACME_WEB-1876&quot;/&gt;
-    &lt;/recents&gt;
-  &lt;/recents&gt;
-  &lt;recentTasks&gt;
-    &lt;maxSize&gt;50&lt;/maxSize&gt;
-    &lt;recents&gt;
+      &lt;timesheetPrefEntry taskId=&quot;11&quot; userId=&quot;2&quot; kost2Id=&quot;3&quot; location=&quot;Head quarter&quot; description=&quot;Requirement-Engineering:
+      ACME_WEB-186, ACME_WEB-1876&quot;/&gt;
+      &lt;/recents&gt;
+      &lt;/recents&gt;
+      &lt;recentTasks&gt;
+      &lt;maxSize&gt;50&lt;/maxSize&gt;
+      &lt;recents&gt;
       &lt;int&gt;17&lt;/int&gt;
       &lt;int&gt;11&lt;/int&gt;
-    &lt;/recents&gt;
-  &lt;/recentTasks&gt;
-  &lt;recentLocations&gt;
-    &lt;maxSize&gt;50&lt;/maxSize&gt;
-    &lt;recents&gt;
+      &lt;/recents&gt;
+      &lt;/recentTasks&gt;
+      &lt;recentLocations&gt;
+      &lt;maxSize&gt;50&lt;/maxSize&gt;
+      &lt;recents&gt;
       &lt;string&gt;Head quarter&lt;/string&gt;
-    &lt;/recents&gt;
-  &lt;/recentLocations&gt;
-&lt;/timesheetPref&gt;</serializedSettings>
+      &lt;/recents&gt;
+      &lt;/recentLocations&gt;
+      &lt;/timesheetPref&gt;</serializedSettings>
     <key>org.projectforge.web.timesheet.TimesheetEditPage</key>
     <created class="sql-timestamp" id="438">2010-05-03 23:26:30.587</created>
     <lastUpdate class="sql-timestamp" id="439">2013-04-07 18:14:25.527</lastUpdate>
@@ -2162,13 +2169,13 @@
     <id>461</id>
     <user reference="52"/>
     <serializedSettings>&lt;org.projectforge.framework.persistence.api.BaseSearchFilter&gt;
-  &lt;searchString&gt;&lt;/searchString&gt;
-  &lt;deleted&gt;false&lt;/deleted&gt;
-  &lt;ignoreDeleted&gt;false&lt;/ignoreDeleted&gt;
-  &lt;maxRows&gt;-1&lt;/maxRows&gt;
-  &lt;useModificationFilter&gt;false&lt;/useModificationFilter&gt;
-  &lt;searchHistory&gt;false&lt;/searchHistory&gt;
-&lt;/org.projectforge.framework.persistence.api.BaseSearchFilter&gt;</serializedSettings>
+      &lt;searchString&gt;&lt;/searchString&gt;
+      &lt;deleted&gt;false&lt;/deleted&gt;
+      &lt;ignoreDeleted&gt;false&lt;/ignoreDeleted&gt;
+      &lt;maxRows&gt;-1&lt;/maxRows&gt;
+      &lt;useModificationFilter&gt;false&lt;/useModificationFilter&gt;
+      &lt;searchHistory&gt;false&lt;/searchHistory&gt;
+      &lt;/org.projectforge.framework.persistence.api.BaseSearchFilter&gt;</serializedSettings>
     <key>org.projectforge.web.access.AccessListAction:Filter</key>
     <created class="sql-timestamp" id="441">2010-05-20 01:06:08.982</created>
     <lastUpdate class="sql-timestamp" id="442">2013-04-07 18:14:25.513</lastUpdate>
@@ -2187,14 +2194,14 @@
     <id>463</id>
     <user reference="52"/>
     <serializedSettings>&lt;org.projectforge.business.fibu.EmployeeFilter&gt;
-  &lt;searchString&gt;&lt;/searchString&gt;
-  &lt;deleted&gt;false&lt;/deleted&gt;
-  &lt;ignoreDeleted&gt;false&lt;/ignoreDeleted&gt;
-  &lt;maxRows&gt;-1&lt;/maxRows&gt;
-  &lt;useModificationFilter&gt;false&lt;/useModificationFilter&gt;
-  &lt;searchHistory&gt;false&lt;/searchHistory&gt;
-  &lt;showOnlyActiveEntries&gt;false&lt;/showOnlyActiveEntries&gt;
-&lt;/org.projectforge.business.fibu.EmployeeFilter&gt;</serializedSettings>
+      &lt;searchString&gt;&lt;/searchString&gt;
+      &lt;deleted&gt;false&lt;/deleted&gt;
+      &lt;ignoreDeleted&gt;false&lt;/ignoreDeleted&gt;
+      &lt;maxRows&gt;-1&lt;/maxRows&gt;
+      &lt;useModificationFilter&gt;false&lt;/useModificationFilter&gt;
+      &lt;searchHistory&gt;false&lt;/searchHistory&gt;
+      &lt;showOnlyActiveEntries&gt;false&lt;/showOnlyActiveEntries&gt;
+      &lt;/org.projectforge.business.fibu.EmployeeFilter&gt;</serializedSettings>
     <key>org.projectforge.web.fibu.EmployeeListAction:Filter</key>
     <created class="sql-timestamp" id="447">2010-07-13 17:37:52.71</created>
     <lastUpdate class="sql-timestamp" id="448">2013-04-07 18:14:25.509</lastUpdate>
@@ -2204,20 +2211,20 @@
     <id>464</id>
     <user reference="52"/>
     <serializedSettings>&lt;org.projectforge.web.timesheet.TimesheetListFilter&gt;
-  &lt;deleted&gt;false&lt;/deleted&gt;
-  &lt;ignoreDeleted&gt;false&lt;/ignoreDeleted&gt;
-  &lt;maxRows&gt;-1&lt;/maxRows&gt;
-  &lt;useModificationFilter&gt;false&lt;/useModificationFilter&gt;
-  &lt;searchHistory&gt;false&lt;/searchHistory&gt;
-  &lt;timePeriod&gt;
-    &lt;fromDate&gt;2008-12-31 23:00:00.0 UTC&lt;/fromDate&gt;
-    &lt;marker&gt;false&lt;/marker&gt;
-  &lt;/timePeriod&gt;
-  &lt;marked&gt;false&lt;/marked&gt;
-  &lt;longFormat&gt;false&lt;/longFormat&gt;
-  &lt;recursive&gt;true&lt;/recursive&gt;
-  &lt;orderType&gt;DESC&lt;/orderType&gt;
-&lt;/org.projectforge.web.timesheet.TimesheetListFilter&gt;</serializedSettings>
+      &lt;deleted&gt;false&lt;/deleted&gt;
+      &lt;ignoreDeleted&gt;false&lt;/ignoreDeleted&gt;
+      &lt;maxRows&gt;-1&lt;/maxRows&gt;
+      &lt;useModificationFilter&gt;false&lt;/useModificationFilter&gt;
+      &lt;searchHistory&gt;false&lt;/searchHistory&gt;
+      &lt;timePeriod&gt;
+      &lt;fromDate&gt;2008-12-31 23:00:00.0 UTC&lt;/fromDate&gt;
+      &lt;marker&gt;false&lt;/marker&gt;
+      &lt;/timePeriod&gt;
+      &lt;marked&gt;false&lt;/marked&gt;
+      &lt;longFormat&gt;false&lt;/longFormat&gt;
+      &lt;recursive&gt;true&lt;/recursive&gt;
+      &lt;orderType&gt;DESC&lt;/orderType&gt;
+      &lt;/org.projectforge.web.timesheet.TimesheetListFilter&gt;</serializedSettings>
     <key>org.projectforge.web.timesheet.TimesheetListForm:Filter</key>
     <created class="sql-timestamp" id="450">2010-07-13 17:37:52.72</created>
     <lastUpdate class="sql-timestamp" id="451">2013-04-07 18:14:25.519</lastUpdate>
@@ -2227,15 +2234,15 @@
     <id>465</id>
     <user reference="52"/>
     <serializedSettings>&lt;org.projectforge.web.book.BookListFilter&gt;
-  &lt;deleted&gt;false&lt;/deleted&gt;
-  &lt;ignoreDeleted&gt;false&lt;/ignoreDeleted&gt;
-  &lt;maxRows&gt;-1&lt;/maxRows&gt;
-  &lt;useModificationFilter&gt;false&lt;/useModificationFilter&gt;
-  &lt;searchHistory&gt;false&lt;/searchHistory&gt;
-  &lt;present&gt;true&lt;/present&gt;
-  &lt;missed&gt;false&lt;/missed&gt;
-  &lt;disposed&gt;false&lt;/disposed&gt;
-&lt;/org.projectforge.web.book.BookListFilter&gt;</serializedSettings>
+      &lt;deleted&gt;false&lt;/deleted&gt;
+      &lt;ignoreDeleted&gt;false&lt;/ignoreDeleted&gt;
+      &lt;maxRows&gt;-1&lt;/maxRows&gt;
+      &lt;useModificationFilter&gt;false&lt;/useModificationFilter&gt;
+      &lt;searchHistory&gt;false&lt;/searchHistory&gt;
+      &lt;present&gt;true&lt;/present&gt;
+      &lt;missed&gt;false&lt;/missed&gt;
+      &lt;disposed&gt;false&lt;/disposed&gt;
+      &lt;/org.projectforge.web.book.BookListFilter&gt;</serializedSettings>
     <key>org.projectforge.web.book.BookListAction:Filter</key>
     <created class="sql-timestamp" id="453">2010-07-13 17:42:36.212</created>
     <lastUpdate class="sql-timestamp" id="454">2013-04-07 18:14:25.495</lastUpdate>
@@ -2245,13 +2252,13 @@
     <id>466</id>
     <user reference="52"/>
     <serializedSettings>&lt;org.projectforge.web.user.UserPrefListFilter&gt;
-  &lt;searchString&gt;&lt;/searchString&gt;
-  &lt;deleted&gt;false&lt;/deleted&gt;
-  &lt;ignoreDeleted&gt;false&lt;/ignoreDeleted&gt;
-  &lt;maxRows&gt;-1&lt;/maxRows&gt;
-  &lt;useModificationFilter&gt;false&lt;/useModificationFilter&gt;
-  &lt;searchHistory&gt;false&lt;/searchHistory&gt;
-&lt;/org.projectforge.web.user.UserPrefListFilter&gt;</serializedSettings>
+      &lt;searchString&gt;&lt;/searchString&gt;
+      &lt;deleted&gt;false&lt;/deleted&gt;
+      &lt;ignoreDeleted&gt;false&lt;/ignoreDeleted&gt;
+      &lt;maxRows&gt;-1&lt;/maxRows&gt;
+      &lt;useModificationFilter&gt;false&lt;/useModificationFilter&gt;
+      &lt;searchHistory&gt;false&lt;/searchHistory&gt;
+      &lt;/org.projectforge.web.user.UserPrefListFilter&gt;</serializedSettings>
     <key>org.projectforge.web.user.UserPrefListForm:Filter</key>
     <created class="sql-timestamp" id="456">2010-07-13 17:42:36.217</created>
     <lastUpdate class="sql-timestamp" id="457">2013-04-07 18:14:25.522</lastUpdate>
@@ -2261,14 +2268,14 @@
     <id>467</id>
     <user reference="52"/>
     <serializedSettings>&lt;org.projectforge.web.gantt.GanttChartListFilter&gt;
-  &lt;searchString&gt;&lt;/searchString&gt;
-  &lt;deleted&gt;false&lt;/deleted&gt;
-  &lt;ignoreDeleted&gt;false&lt;/ignoreDeleted&gt;
-  &lt;maxRows&gt;-1&lt;/maxRows&gt;
-  &lt;useModificationFilter&gt;false&lt;/useModificationFilter&gt;
-  &lt;searchHistory&gt;false&lt;/searchHistory&gt;
-  &lt;year&gt;0&lt;/year&gt;
-&lt;/org.projectforge.web.gantt.GanttChartListFilter&gt;</serializedSettings>
+      &lt;searchString&gt;&lt;/searchString&gt;
+      &lt;deleted&gt;false&lt;/deleted&gt;
+      &lt;ignoreDeleted&gt;false&lt;/ignoreDeleted&gt;
+      &lt;maxRows&gt;-1&lt;/maxRows&gt;
+      &lt;useModificationFilter&gt;false&lt;/useModificationFilter&gt;
+      &lt;searchHistory&gt;false&lt;/searchHistory&gt;
+      &lt;year&gt;0&lt;/year&gt;
+      &lt;/org.projectforge.web.gantt.GanttChartListFilter&gt;</serializedSettings>
     <key>org.projectforge.web.gantt.GanttChartListForm:Filter</key>
     <created class="sql-timestamp" id="459">2010-08-27 07:52:17.632</created>
     <lastUpdate class="sql-timestamp" id="460">2013-04-07 18:14:25.52</lastUpdate>
@@ -2296,14 +2303,14 @@
     <id>470</id>
     <user reference="52"/>
     <serializedSettings>&lt;org.projectforge.web.orga.PosteingangListFilter&gt;
-  &lt;deleted&gt;false&lt;/deleted&gt;
-  &lt;ignoreDeleted&gt;false&lt;/ignoreDeleted&gt;
-  &lt;maxRows&gt;-1&lt;/maxRows&gt;
-  &lt;useModificationFilter&gt;false&lt;/useModificationFilter&gt;
-  &lt;searchHistory&gt;false&lt;/searchHistory&gt;
-  &lt;year&gt;2010&lt;/year&gt;
-  &lt;month&gt;-1&lt;/month&gt;
-&lt;/org.projectforge.web.orga.PosteingangListFilter&gt;</serializedSettings>
+      &lt;deleted&gt;false&lt;/deleted&gt;
+      &lt;ignoreDeleted&gt;false&lt;/ignoreDeleted&gt;
+      &lt;maxRows&gt;-1&lt;/maxRows&gt;
+      &lt;useModificationFilter&gt;false&lt;/useModificationFilter&gt;
+      &lt;searchHistory&gt;false&lt;/searchHistory&gt;
+      &lt;year&gt;2010&lt;/year&gt;
+      &lt;month&gt;-1&lt;/month&gt;
+      &lt;/org.projectforge.web.orga.PosteingangListFilter&gt;</serializedSettings>
     <key>org.projectforge.web.orga.PosteingangListForm:Filter</key>
     <created class="sql-timestamp" id="468">2010-09-15 15:26:58.667</created>
     <lastUpdate class="sql-timestamp" id="469">2013-04-07 18:14:25.517</lastUpdate>
@@ -2322,8 +2329,8 @@
     <id>472</id>
     <user reference="52"/>
     <serializedSettings>&lt;org.projectforge.framework.utils.RecentQueue&gt;
-  &lt;maxSize&gt;25&lt;/maxSize&gt;
-&lt;/org.projectforge.framework.utils.RecentQueue&gt;</serializedSettings>
+      &lt;maxSize&gt;25&lt;/maxSize&gt;
+      &lt;/org.projectforge.framework.utils.RecentQueue&gt;</serializedSettings>
     <key>UserSelectPanel:recentUsers</key>
     <created class="sql-timestamp" id="474">2011-01-23 17:22:16.591</created>
     <lastUpdate class="sql-timestamp" id="475">2013-04-07 18:16:46.491</lastUpdate>
@@ -2333,16 +2340,16 @@
     <id>473</id>
     <user reference="52"/>
     <serializedSettings>&lt;org.projectforge.web.book.BookListFilter&gt;
-  &lt;searchString&gt;&lt;/searchString&gt;
-  &lt;deleted&gt;false&lt;/deleted&gt;
-  &lt;ignoreDeleted&gt;false&lt;/ignoreDeleted&gt;
-  &lt;maxRows&gt;-1&lt;/maxRows&gt;
-  &lt;useModificationFilter&gt;false&lt;/useModificationFilter&gt;
-  &lt;searchHistory&gt;false&lt;/searchHistory&gt;
-  &lt;present&gt;true&lt;/present&gt;
-  &lt;missed&gt;false&lt;/missed&gt;
-  &lt;disposed&gt;false&lt;/disposed&gt;
-&lt;/org.projectforge.web.book.BookListFilter&gt;</serializedSettings>
+      &lt;searchString&gt;&lt;/searchString&gt;
+      &lt;deleted&gt;false&lt;/deleted&gt;
+      &lt;ignoreDeleted&gt;false&lt;/ignoreDeleted&gt;
+      &lt;maxRows&gt;-1&lt;/maxRows&gt;
+      &lt;useModificationFilter&gt;false&lt;/useModificationFilter&gt;
+      &lt;searchHistory&gt;false&lt;/searchHistory&gt;
+      &lt;present&gt;true&lt;/present&gt;
+      &lt;missed&gt;false&lt;/missed&gt;
+      &lt;disposed&gt;false&lt;/disposed&gt;
+      &lt;/org.projectforge.web.book.BookListFilter&gt;</serializedSettings>
     <key>org.projectforge.web.book.BookListForm:Filter</key>
     <created class="sql-timestamp" id="477">2011-01-23 17:38:06.594</created>
     <lastUpdate class="sql-timestamp" id="478">2013-04-07 18:14:25.494</lastUpdate>
@@ -2352,8 +2359,8 @@
     <id>474</id>
     <user reference="52"/>
     <serializedSettings>&lt;org.projectforge.framework.utils.RecentQueue&gt;
-  &lt;maxSize&gt;25&lt;/maxSize&gt;
-&lt;/org.projectforge.framework.utils.RecentQueue&gt;</serializedSettings>
+      &lt;maxSize&gt;25&lt;/maxSize&gt;
+      &lt;/org.projectforge.framework.utils.RecentQueue&gt;</serializedSettings>
     <key>bookSearchTerms</key>
     <created class="sql-timestamp" id="480">2011-01-23 17:38:06.597</created>
     <lastUpdate class="sql-timestamp" id="481">2013-04-07 18:14:25.508</lastUpdate>
@@ -2363,8 +2370,8 @@
     <id>475</id>
     <user reference="115"/>
     <serializedSettings>&lt;org.projectforge.framework.utils.RecentQueue&gt;
-  &lt;maxSize&gt;25&lt;/maxSize&gt;
-&lt;/org.projectforge.framework.utils.RecentQueue&gt;</serializedSettings>
+      &lt;maxSize&gt;25&lt;/maxSize&gt;
+      &lt;/org.projectforge.framework.utils.RecentQueue&gt;</serializedSettings>
     <key>PhoneCall:recentCalls</key>
     <created class="sql-timestamp" id="483">2011-03-18 06:20:05.98</created>
     <lastUpdate class="sql-timestamp" id="484">2014-09-02 12:34:48.328</lastUpdate>
@@ -2374,16 +2381,16 @@
     <id>476</id>
     <user reference="115"/>
     <serializedSettings>&lt;org.projectforge.web.book.BookListFilter&gt;
-  &lt;searchString&gt;&lt;/searchString&gt;
-  &lt;deleted&gt;false&lt;/deleted&gt;
-  &lt;ignoreDeleted&gt;false&lt;/ignoreDeleted&gt;
-  &lt;maxRows&gt;-1&lt;/maxRows&gt;
-  &lt;useModificationFilter&gt;false&lt;/useModificationFilter&gt;
-  &lt;searchHistory&gt;false&lt;/searchHistory&gt;
-  &lt;present&gt;true&lt;/present&gt;
-  &lt;missed&gt;false&lt;/missed&gt;
-  &lt;disposed&gt;false&lt;/disposed&gt;
-&lt;/org.projectforge.web.book.BookListFilter&gt;</serializedSettings>
+      &lt;searchString&gt;&lt;/searchString&gt;
+      &lt;deleted&gt;false&lt;/deleted&gt;
+      &lt;ignoreDeleted&gt;false&lt;/ignoreDeleted&gt;
+      &lt;maxRows&gt;-1&lt;/maxRows&gt;
+      &lt;useModificationFilter&gt;false&lt;/useModificationFilter&gt;
+      &lt;searchHistory&gt;false&lt;/searchHistory&gt;
+      &lt;present&gt;true&lt;/present&gt;
+      &lt;missed&gt;false&lt;/missed&gt;
+      &lt;disposed&gt;false&lt;/disposed&gt;
+      &lt;/org.projectforge.web.book.BookListFilter&gt;</serializedSettings>
     <key>org.projectforge.web.book.BookListForm:Filter</key>
     <created class="sql-timestamp" id="486">2011-03-18 06:20:05.982</created>
     <lastUpdate class="sql-timestamp" id="487">2014-09-02 12:34:48.243</lastUpdate>
@@ -2393,14 +2400,14 @@
     <id>477</id>
     <user reference="115"/>
     <serializedSettings>&lt;org.projectforge.framework.utils.RecentQueue&gt;
-  &lt;maxSize&gt;25&lt;/maxSize&gt;
-  &lt;recents&gt;
-    &lt;string&gt;kai (Kai Reinhard, devnull@devnull.com)&lt;/string&gt;
-    &lt;string&gt;ann (Ann Ville, a.ville@my-company.com)&lt;/string&gt;
-    &lt;string&gt;admin (Admin ProjectForge Administrator, null)&lt;/string&gt;
-    &lt;string&gt;demo (Demo User, devnull@devnull.com)&lt;/string&gt;
-  &lt;/recents&gt;
-&lt;/org.projectforge.framework.utils.RecentQueue&gt;</serializedSettings>
+      &lt;maxSize&gt;25&lt;/maxSize&gt;
+      &lt;recents&gt;
+      &lt;string&gt;kai (Kai Reinhard, devnull@devnull.com)&lt;/string&gt;
+      &lt;string&gt;ann (Ann Ville, a.ville@my-company.com)&lt;/string&gt;
+      &lt;string&gt;admin (Admin ProjectForge Administrator, null)&lt;/string&gt;
+      &lt;string&gt;demo (Demo User, devnull@devnull.com)&lt;/string&gt;
+      &lt;/recents&gt;
+      &lt;/org.projectforge.framework.utils.RecentQueue&gt;</serializedSettings>
     <key>UserSelectPanel:recentUsers</key>
     <created class="sql-timestamp" id="489">2011-03-18 06:20:05.984</created>
     <lastUpdate class="sql-timestamp" id="490">2014-09-02 12:34:48.256</lastUpdate>
@@ -2410,8 +2417,8 @@
     <id>478</id>
     <user reference="115"/>
     <serializedSettings>&lt;org.projectforge.framework.utils.RecentQueue&gt;
-  &lt;maxSize&gt;25&lt;/maxSize&gt;
-&lt;/org.projectforge.framework.utils.RecentQueue&gt;</serializedSettings>
+      &lt;maxSize&gt;25&lt;/maxSize&gt;
+      &lt;/org.projectforge.framework.utils.RecentQueue&gt;</serializedSettings>
     <key>addressSearchTerms</key>
     <created class="sql-timestamp" id="492">2011-03-18 06:20:05.989</created>
     <lastUpdate class="sql-timestamp" id="493">2014-09-02 12:34:48.339</lastUpdate>
@@ -2421,22 +2428,22 @@
     <id>479</id>
     <user reference="115"/>
     <serializedSettings>&lt;org.projectforge.web.address.AddressListFilter&gt;
-  &lt;searchString&gt;&lt;/searchString&gt;
-  &lt;deleted&gt;false&lt;/deleted&gt;
-  &lt;ignoreDeleted&gt;false&lt;/ignoreDeleted&gt;
-  &lt;maxRows&gt;-1&lt;/maxRows&gt;
-  &lt;useModificationFilter&gt;false&lt;/useModificationFilter&gt;
-  &lt;searchHistory&gt;false&lt;/searchHistory&gt;
-  &lt;uptodate&gt;true&lt;/uptodate&gt;
-  &lt;outdated&gt;false&lt;/outdated&gt;
-  &lt;leaved&gt;false&lt;/leaved&gt;
-  &lt;active&gt;true&lt;/active&gt;
-  &lt;nonActive&gt;false&lt;/nonActive&gt;
-  &lt;uninteresting&gt;false&lt;/uninteresting&gt;
-  &lt;personaIngrata&gt;false&lt;/personaIngrata&gt;
-  &lt;departed&gt;false&lt;/departed&gt;
-  &lt;listType&gt;filter&lt;/listType&gt;
-&lt;/org.projectforge.web.address.AddressListFilter&gt;</serializedSettings>
+      &lt;searchString&gt;&lt;/searchString&gt;
+      &lt;deleted&gt;false&lt;/deleted&gt;
+      &lt;ignoreDeleted&gt;false&lt;/ignoreDeleted&gt;
+      &lt;maxRows&gt;-1&lt;/maxRows&gt;
+      &lt;useModificationFilter&gt;false&lt;/useModificationFilter&gt;
+      &lt;searchHistory&gt;false&lt;/searchHistory&gt;
+      &lt;uptodate&gt;true&lt;/uptodate&gt;
+      &lt;outdated&gt;false&lt;/outdated&gt;
+      &lt;leaved&gt;false&lt;/leaved&gt;
+      &lt;active&gt;true&lt;/active&gt;
+      &lt;nonActive&gt;false&lt;/nonActive&gt;
+      &lt;uninteresting&gt;false&lt;/uninteresting&gt;
+      &lt;personaIngrata&gt;false&lt;/personaIngrata&gt;
+      &lt;departed&gt;false&lt;/departed&gt;
+      &lt;listType&gt;filter&lt;/listType&gt;
+      &lt;/org.projectforge.web.address.AddressListFilter&gt;</serializedSettings>
     <key>org.projectforge.web.address.AddressListForm:Filter</key>
     <created class="sql-timestamp" id="495">2011-03-18 06:20:05.994</created>
     <lastUpdate class="sql-timestamp" id="496">2014-09-02 12:34:48.27</lastUpdate>
@@ -2455,8 +2462,8 @@
     <id>481</id>
     <user reference="115"/>
     <serializedSettings>&lt;org.projectforge.framework.utils.RecentQueue&gt;
-  &lt;maxSize&gt;25&lt;/maxSize&gt;
-&lt;/org.projectforge.framework.utils.RecentQueue&gt;</serializedSettings>
+      &lt;maxSize&gt;25&lt;/maxSize&gt;
+      &lt;/org.projectforge.framework.utils.RecentQueue&gt;</serializedSettings>
     <key>bookSearchTerms</key>
     <created class="sql-timestamp" id="501">2011-03-18 06:20:06.01</created>
     <lastUpdate class="sql-timestamp" id="502">2014-09-02 12:34:48.295</lastUpdate>
@@ -2475,19 +2482,19 @@
     <id>483</id>
     <user reference="115"/>
     <serializedSettings>&lt;org.projectforge.plugins.todo.ToDoFilter&gt;
-  &lt;searchString&gt;&lt;/searchString&gt;
-  &lt;deleted&gt;false&lt;/deleted&gt;
-  &lt;ignoreDeleted&gt;false&lt;/ignoreDeleted&gt;
-  &lt;maxRows&gt;-1&lt;/maxRows&gt;
-  &lt;useModificationFilter&gt;false&lt;/useModificationFilter&gt;
-  &lt;searchHistory&gt;false&lt;/searchHistory&gt;
-  &lt;opened&gt;false&lt;/opened&gt;
-  &lt;reopened&gt;false&lt;/reopened&gt;
-  &lt;inprogress&gt;false&lt;/inprogress&gt;
-  &lt;closed&gt;false&lt;/closed&gt;
-  &lt;postponed&gt;false&lt;/postponed&gt;
-  &lt;onlyRecent&gt;false&lt;/onlyRecent&gt;
-&lt;/org.projectforge.plugins.todo.ToDoFilter&gt;</serializedSettings>
+      &lt;searchString&gt;&lt;/searchString&gt;
+      &lt;deleted&gt;false&lt;/deleted&gt;
+      &lt;ignoreDeleted&gt;false&lt;/ignoreDeleted&gt;
+      &lt;maxRows&gt;-1&lt;/maxRows&gt;
+      &lt;useModificationFilter&gt;false&lt;/useModificationFilter&gt;
+      &lt;searchHistory&gt;false&lt;/searchHistory&gt;
+      &lt;opened&gt;false&lt;/opened&gt;
+      &lt;reopened&gt;false&lt;/reopened&gt;
+      &lt;inprogress&gt;false&lt;/inprogress&gt;
+      &lt;closed&gt;false&lt;/closed&gt;
+      &lt;postponed&gt;false&lt;/postponed&gt;
+      &lt;onlyRecent&gt;false&lt;/onlyRecent&gt;
+      &lt;/org.projectforge.plugins.todo.ToDoFilter&gt;</serializedSettings>
     <key>org.projectforge.plugins.todo.ToDoListForm:Filter</key>
     <created class="sql-timestamp" id="507">2012-05-02 22:45:47.331</created>
     <lastUpdate class="sql-timestamp" id="508">2014-09-02 12:34:48.311</lastUpdate>
@@ -2496,7 +2503,9 @@
   <org.projectforge.business.user.UserXmlPreferencesDO id="509">
     <id>484</id>
     <user reference="115"/>
-    <serializedSettings>!rO0ABXVyAAJbQqzzF/gGCFTgAgAAeHAAAAJEH4sIAAAAAAAAAO2XXW+bMBSG7/srok7aXYIhhFCNIWX52KpOW6V12uXkwSHx5tjIPkmXfz8TQoCGLP1QuiqaFCn4PS/Hxw9wDIFU006q5E+IMDHH0En5YsqE7iDQeUR5hwmEqaLIpOjcGG1IufmBiKmaMI6gwrNWK9BIFY4oQugQu9smbpvYgVWqmSdhSuMHuVChH1jlIAstGdzerFIIB+/Hn0aD79/G46vA2qqZBWGecpNqLFAx0Jlm1AeWX6ZY5QlMimizmmslU1BocrciTrV+e66lQojbGvDc2tqXTLMfHAoGl7EuY4LOIRxBQhccA2s9KkJ6Jm/fMYWzmK50iGoBBk9Nqzq/oKlYI4uq1opYeJHNQc8A8KsGU0po+/3AuivWSlBAf9Xmz4Wq55pTIZiYVlxbKaduPRX7s123wv3YKYc7k5QZ8xoy6oGVH9RCkks1lDGErxJCjGM7rro2d9MGdTGqOuaMc6Y/Jx+pxuGMiimEdtfr9bu+SxzbcwOrwVGu+nGX6m/LPiLI7gGQhPjkWCx7Buczs1yvdl9s3T2uKHtNU6nfmHt7Y9V3GstOC/D8e7WAhHLd0AP+P9sv49l2e57TP6Vn2zkEMjkSSM8n3imB/IdN0vXJhX1KLN0DLCeDwcTxjsPywrH9l7Th7L7YViox82StMPuri06T2G0S3Zq45dUwX773DTjfu+lp4AYJxMXJWfId7d7vvU/d88x+u/txEtAI2RJq5ksRw+8M2d7Y2YNrafoi+wOIsXxt1g0AAA==</serializedSettings>
+    <serializedSettings>
+      !rO0ABXVyAAJbQqzzF/gGCFTgAgAAeHAAAAJEH4sIAAAAAAAAAO2XXW+bMBSG7/srok7aXYIhhFCNIWX52KpOW6V12uXkwSHx5tjIPkmXfz8TQoCGLP1QuiqaFCn4PS/Hxw9wDIFU006q5E+IMDHH0En5YsqE7iDQeUR5hwmEqaLIpOjcGG1IufmBiKmaMI6gwrNWK9BIFY4oQugQu9smbpvYgVWqmSdhSuMHuVChH1jlIAstGdzerFIIB+/Hn0aD79/G46vA2qqZBWGecpNqLFAx0Jlm1AeWX6ZY5QlMimizmmslU1BocrciTrV+e66lQojbGvDc2tqXTLMfHAoGl7EuY4LOIRxBQhccA2s9KkJ6Jm/fMYWzmK50iGoBBk9Nqzq/oKlYI4uq1opYeJHNQc8A8KsGU0po+/3AuivWSlBAf9Xmz4Wq55pTIZiYVlxbKaduPRX7s123wv3YKYc7k5QZ8xoy6oGVH9RCkks1lDGErxJCjGM7rro2d9MGdTGqOuaMc6Y/Jx+pxuGMiimEdtfr9bu+SxzbcwOrwVGu+nGX6m/LPiLI7gGQhPjkWCx7Buczs1yvdl9s3T2uKHtNU6nfmHt7Y9V3GstOC/D8e7WAhHLd0AP+P9sv49l2e57TP6Vn2zkEMjkSSM8n3imB/IdN0vXJhX1KLN0DLCeDwcTxjsPywrH9l7Th7L7YViox82StMPuri06T2G0S3Zq45dUwX773DTjfu+lp4AYJxMXJWfId7d7vvU/d88x+u/txEtAI2RJq5ksRw+8M2d7Y2YNrafoi+wOIsXxt1g0AAA==
+    </serializedSettings>
     <key>TeamCalendarPage.userPrefs</key>
     <created class="sql-timestamp" id="510">2013-04-07 15:58:58.943</created>
     <lastUpdate class="sql-timestamp" id="511">2014-09-02 12:34:48.299</lastUpdate>
@@ -2506,16 +2515,16 @@
     <id>485</id>
     <user reference="115"/>
     <serializedSettings>&lt;org.projectforge.framework.access.AccessFilter&gt;
-  &lt;searchString&gt;&lt;/searchString&gt;
-  &lt;deleted&gt;false&lt;/deleted&gt;
-  &lt;ignoreDeleted&gt;false&lt;/ignoreDeleted&gt;
-  &lt;maxRows&gt;-1&lt;/maxRows&gt;
-  &lt;useModificationFilter&gt;false&lt;/useModificationFilter&gt;
-  &lt;searchHistory&gt;false&lt;/searchHistory&gt;
-  &lt;includeAncestorTasks&gt;false&lt;/includeAncestorTasks&gt;
-  &lt;includeDescendentTasks&gt;false&lt;/includeDescendentTasks&gt;
-  &lt;inherit&gt;false&lt;/inherit&gt;
-&lt;/org.projectforge.framework.access.AccessFilter&gt;</serializedSettings>
+      &lt;searchString&gt;&lt;/searchString&gt;
+      &lt;deleted&gt;false&lt;/deleted&gt;
+      &lt;ignoreDeleted&gt;false&lt;/ignoreDeleted&gt;
+      &lt;maxRows&gt;-1&lt;/maxRows&gt;
+      &lt;useModificationFilter&gt;false&lt;/useModificationFilter&gt;
+      &lt;searchHistory&gt;false&lt;/searchHistory&gt;
+      &lt;includeAncestorTasks&gt;false&lt;/includeAncestorTasks&gt;
+      &lt;includeDescendentTasks&gt;false&lt;/includeDescendentTasks&gt;
+      &lt;inherit&gt;false&lt;/inherit&gt;
+      &lt;/org.projectforge.framework.access.AccessFilter&gt;</serializedSettings>
     <key>org.projectforge.web.access.AccessListForm:Filter</key>
     <created class="sql-timestamp" id="513">2013-04-07 16:09:02.762</created>
     <lastUpdate class="sql-timestamp" id="514">2014-09-02 12:34:48.332</lastUpdate>
@@ -2525,17 +2534,17 @@
     <id>486</id>
     <user reference="115"/>
     <serializedSettings>&lt;org.projectforge.plugins.teamcal.admin.TeamCalFilter&gt;
-  &lt;searchString&gt;&lt;/searchString&gt;
-  &lt;deleted&gt;false&lt;/deleted&gt;
-  &lt;ignoreDeleted&gt;false&lt;/ignoreDeleted&gt;
-  &lt;maxRows&gt;-1&lt;/maxRows&gt;
-  &lt;useModificationFilter&gt;false&lt;/useModificationFilter&gt;
-  &lt;searchHistory&gt;false&lt;/searchHistory&gt;
-  &lt;fullAccess&gt;true&lt;/fullAccess&gt;
-  &lt;readonlyAccess&gt;true&lt;/readonlyAccess&gt;
-  &lt;minimalAccess&gt;true&lt;/minimalAccess&gt;
-  &lt;calOwner&gt;ALL&lt;/calOwner&gt;
-&lt;/org.projectforge.plugins.teamcal.admin.TeamCalFilter&gt;</serializedSettings>
+      &lt;searchString&gt;&lt;/searchString&gt;
+      &lt;deleted&gt;false&lt;/deleted&gt;
+      &lt;ignoreDeleted&gt;false&lt;/ignoreDeleted&gt;
+      &lt;maxRows&gt;-1&lt;/maxRows&gt;
+      &lt;useModificationFilter&gt;false&lt;/useModificationFilter&gt;
+      &lt;searchHistory&gt;false&lt;/searchHistory&gt;
+      &lt;fullAccess&gt;true&lt;/fullAccess&gt;
+      &lt;readonlyAccess&gt;true&lt;/readonlyAccess&gt;
+      &lt;minimalAccess&gt;true&lt;/minimalAccess&gt;
+      &lt;calOwner&gt;ALL&lt;/calOwner&gt;
+      &lt;/org.projectforge.plugins.teamcal.admin.TeamCalFilter&gt;</serializedSettings>
     <key>org.projectforge.plugins.teamcal.admin.TeamCalListForm:Filter</key>
     <created class="sql-timestamp" id="516">2013-04-07 16:23:09.864</created>
     <lastUpdate class="sql-timestamp" id="517">2014-09-02 12:34:48.323</lastUpdate>
@@ -2545,17 +2554,17 @@
     <id>487</id>
     <user reference="52"/>
     <serializedSettings>&lt;org.projectforge.plugins.teamcal.admin.TeamCalFilter&gt;
-  &lt;searchString&gt;&lt;/searchString&gt;
-  &lt;deleted&gt;false&lt;/deleted&gt;
-  &lt;ignoreDeleted&gt;false&lt;/ignoreDeleted&gt;
-  &lt;maxRows&gt;-1&lt;/maxRows&gt;
-  &lt;useModificationFilter&gt;false&lt;/useModificationFilter&gt;
-  &lt;searchHistory&gt;false&lt;/searchHistory&gt;
-  &lt;fullAccess&gt;true&lt;/fullAccess&gt;
-  &lt;readonlyAccess&gt;true&lt;/readonlyAccess&gt;
-  &lt;minimalAccess&gt;true&lt;/minimalAccess&gt;
-  &lt;calOwner&gt;ALL&lt;/calOwner&gt;
-&lt;/org.projectforge.plugins.teamcal.admin.TeamCalFilter&gt;</serializedSettings>
+      &lt;searchString&gt;&lt;/searchString&gt;
+      &lt;deleted&gt;false&lt;/deleted&gt;
+      &lt;ignoreDeleted&gt;false&lt;/ignoreDeleted&gt;
+      &lt;maxRows&gt;-1&lt;/maxRows&gt;
+      &lt;useModificationFilter&gt;false&lt;/useModificationFilter&gt;
+      &lt;searchHistory&gt;false&lt;/searchHistory&gt;
+      &lt;fullAccess&gt;true&lt;/fullAccess&gt;
+      &lt;readonlyAccess&gt;true&lt;/readonlyAccess&gt;
+      &lt;minimalAccess&gt;true&lt;/minimalAccess&gt;
+      &lt;calOwner&gt;ALL&lt;/calOwner&gt;
+      &lt;/org.projectforge.plugins.teamcal.admin.TeamCalFilter&gt;</serializedSettings>
     <key>org.projectforge.plugins.teamcal.admin.TeamCalListForm:Filter</key>
     <created class="sql-timestamp" id="519">2013-04-07 18:14:25.492</created>
     <lastUpdate class="sql-timestamp" id="520">2013-04-07 18:14:25.492</lastUpdate>
@@ -2564,7 +2573,9 @@
   <org.projectforge.business.user.UserXmlPreferencesDO id="521">
     <id>488</id>
     <user reference="52"/>
-    <serializedSettings>!rO0ABXVyAAJbQqzzF/gGCFTgAgAAeHAAAAIMH4sIAAAAAAAAAN2WXW/aMBSG7/kVqLsmnxBAyiIxChvatFVap11WXnISvDl2ZB/o+PezC/kqaVm30otKkRK/583xOY+j2KGQmVVI8RNiTPUzWAXbZJQrC4HkMWEW5QiZJEgFt661NidMX8ATIpeUIcio1++HConES4IQeY7rD5zhwHFDu1aNJ6VS4QexkdEktOuBCW0p3F7vCohm7xefL2c33xeLj6FdqcaCkBdMp1pwlBSU0bT6xPLrFLt9Ap0iPnRzJUUBEnXufsyIUm8vlJAIyUABXpTuf51yfjRJnXFfwyqJNLH9QyskmJBzkUD0JnUc7ajGTdeWKvqDQYRyAwbcftR05JQxqr6kn4jC+ZrwDCLXD0b+aOJMxoEbhHaHo+7afva2zwjSOwUyPQ/IqTsdjV8TSP8EyOVstvSCs7Ac++7UeU0shydYOk56no9y5Dn+C4O8a/Wh2KH+8u1V0uSv5zH/QXNri16X6HeJw5ZY8eqYL+Qk13sOY/2yXBXad1ppUMA0EkjKl03yI60yr8XtOwnklzqsVEPo/Qfnxn71Yhue/chy2W1+X5GYQHIfnWmeSlwnZNcCUmlNp06CVCGNm9aGWHqR5qDWAPhNgTR7ZqAPE/fFv16Qg+eKEc4pzxquSnqWhdMlHh9fQhIj3ULLvOIJ/I70f+/BWO/JtXSd2f4AepuLf/gJAAA=</serializedSettings>
+    <serializedSettings>
+      !rO0ABXVyAAJbQqzzF/gGCFTgAgAAeHAAAAIMH4sIAAAAAAAAAN2WXW/aMBSG7/kVqLsmnxBAyiIxChvatFVap11WXnISvDl2ZB/o+PezC/kqaVm30otKkRK/583xOY+j2KGQmVVI8RNiTPUzWAXbZJQrC4HkMWEW5QiZJEgFt661NidMX8ATIpeUIcio1++HConES4IQeY7rD5zhwHFDu1aNJ6VS4QexkdEktOuBCW0p3F7vCohm7xefL2c33xeLj6FdqcaCkBdMp1pwlBSU0bT6xPLrFLt9Ap0iPnRzJUUBEnXufsyIUm8vlJAIyUABXpTuf51yfjRJnXFfwyqJNLH9QyskmJBzkUD0JnUc7ajGTdeWKvqDQYRyAwbcftR05JQxqr6kn4jC+ZrwDCLXD0b+aOJMxoEbhHaHo+7afva2zwjSOwUyPQ/IqTsdjV8TSP8EyOVstvSCs7Ac++7UeU0shydYOk56no9y5Dn+C4O8a/Wh2KH+8u1V0uSv5zH/QXNri16X6HeJw5ZY8eqYL+Qk13sOY/2yXBXad1ppUMA0EkjKl03yI60yr8XtOwnklzqsVEPo/Qfnxn71Yhue/chy2W1+X5GYQHIfnWmeSlwnZNcCUmlNp06CVCGNm9aGWHqR5qDWAPhNgTR7ZqAPE/fFv16Qg+eKEc4pzxquSnqWhdMlHh9fQhIj3ULLvOIJ/I70f+/BWO/JtXSd2f4AepuLf/gJAAA=
+    </serializedSettings>
     <key>TeamCalendarPage.userPrefs</key>
     <created class="sql-timestamp" id="522">2013-04-07 18:14:25.512</created>
     <lastUpdate class="sql-timestamp" id="523">2013-04-07 18:16:46.494</lastUpdate>
@@ -2574,8 +2585,8 @@
     <id>489</id>
     <user reference="52"/>
     <serializedSettings>&lt;org.projectforge.web.timesheet.TimesheetEditFilter&gt;
-  &lt;ignoredLocations class=&quot;linked-list&quot;/&gt;
-&lt;/org.projectforge.web.timesheet.TimesheetEditFilter&gt;</serializedSettings>
+      &lt;ignoredLocations class=&quot;linked-list&quot;/&gt;
+      &lt;/org.projectforge.web.timesheet.TimesheetEditFilter&gt;</serializedSettings>
     <key>TimesheetEditForm.userPrefs</key>
     <created class="sql-timestamp" id="525">2013-04-07 18:14:25.525</created>
     <lastUpdate class="sql-timestamp" id="526">2013-04-07 18:14:25.525</lastUpdate>
@@ -2584,7 +2595,9 @@
   <org.projectforge.business.user.UserXmlPreferencesDO id="527">
     <id>490</id>
     <user reference="73"/>
-    <serializedSettings>!rO0ABXVyAAJbQqzzF/gGCFTgAgAAeHAAAAJCH4sIAAAAAAAAAO1XXW/aMBR951egTtobJJAPiJZFYhQ21GmrtE57nLzkBryZOLIvtPz72YUEp6RjHdBJbBIS8fHJ/Tg3OVZCLqbtXPDvEGOqrqGds8WUZrKNQOYxYW2aIUwFQcqz9o3ChoSpH2QJEWPKEETUaDZDiUTgJUGIunbHadluy+6E1hbVnJQKie/4QkT90Nou9NaSwu3NKodo8Hb04XLw9ctodBVaJaopCPOcqVCjDAUFqTGFPrH8bYjVOoAKEW+6uRY8B4EqdjNmRMrXF5ILhKQlAS8K9p+mHO4k2UZc1zBJIqXY+qKyxRkXQ55A9CK1bcUo1yZrSSX9xiBCsQAt3HplMuaUMSo/pu+JxOGMZFOIOo7vOb4b9Dq+1w2tGsa2a+vobZ9QyO4+IdPTCOk7jueek5DOHiFtu2+f6KH0A8/1z0lLd4+W48Fg3PVPoqXXs4PgmbW87/axvU39xd2TxByByqOtUP9VwW4d6NSBbgUs9arJF2Zkro4dxppFuTK07rGCIIEpSSApbta17WAlecZv3wggP2SUEibVqAykcYDQxpn1/9A7/J3wlG05ffuc/OUvenXQ94Pn9urD/OUornFF6EuSc/lK/r55uP+KeVi/GIZV1fETEr2RPNRON08FzhKykpsHs4qZTBUEqUQam1QDLLhI5yBnAPhZgtD+01MjeQjWTMTIbwxkw7lmJMtoNjVYJXSUwakSd79/QhIjXUKFPMkSuIvUa/7oXuPJtdR99P0EjkMR3zkOAAA=</serializedSettings>
+    <serializedSettings>
+      !rO0ABXVyAAJbQqzzF/gGCFTgAgAAeHAAAAJCH4sIAAAAAAAAAO1XXW/aMBR951egTtobJJAPiJZFYhQ21GmrtE57nLzkBryZOLIvtPz72YUEp6RjHdBJbBIS8fHJ/Tg3OVZCLqbtXPDvEGOqrqGds8WUZrKNQOYxYW2aIUwFQcqz9o3ChoSpH2QJEWPKEETUaDZDiUTgJUGIunbHadluy+6E1hbVnJQKie/4QkT90Nou9NaSwu3NKodo8Hb04XLw9ctodBVaJaopCPOcqVCjDAUFqTGFPrH8bYjVOoAKEW+6uRY8B4EqdjNmRMrXF5ILhKQlAS8K9p+mHO4k2UZc1zBJIqXY+qKyxRkXQ55A9CK1bcUo1yZrSSX9xiBCsQAt3HplMuaUMSo/pu+JxOGMZFOIOo7vOb4b9Dq+1w2tGsa2a+vobZ9QyO4+IdPTCOk7jueek5DOHiFtu2+f6KH0A8/1z0lLd4+W48Fg3PVPoqXXs4PgmbW87/axvU39xd2TxByByqOtUP9VwW4d6NSBbgUs9arJF2Zkro4dxppFuTK07rGCIIEpSSApbta17WAlecZv3wggP2SUEibVqAykcYDQxpn1/9A7/J3wlG05ffuc/OUvenXQ94Pn9urD/OUornFF6EuSc/lK/r55uP+KeVi/GIZV1fETEr2RPNRON08FzhKykpsHs4qZTBUEqUQam1QDLLhI5yBnAPhZgtD+01MjeQjWTMTIbwxkw7lmJMtoNjVYJXSUwakSd79/QhIjXUKFPMkSuIvUa/7oXuPJtdR99P0EjkMR3zkOAAA=
+    </serializedSettings>
     <key>TeamCalendarPage.userPrefs</key>
     <created class="sql-timestamp" id="528">2013-04-07 20:03:38.985</created>
     <lastUpdate class="sql-timestamp" id="529">2013-04-12 03:48:24.573</lastUpdate>
@@ -2594,8 +2607,8 @@
     <id>491</id>
     <user reference="73"/>
     <serializedSettings>&lt;org.projectforge.framework.utils.RecentQueue&gt;
-  &lt;maxSize&gt;25&lt;/maxSize&gt;
-&lt;/org.projectforge.framework.utils.RecentQueue&gt;</serializedSettings>
+      &lt;maxSize&gt;25&lt;/maxSize&gt;
+      &lt;/org.projectforge.framework.utils.RecentQueue&gt;</serializedSettings>
     <key>UserSelectPanel:recentUsers</key>
     <created class="sql-timestamp" id="531">2013-04-07 20:03:38.987</created>
     <lastUpdate class="sql-timestamp" id="532">2013-04-12 03:48:24.582</lastUpdate>
@@ -2605,14 +2618,14 @@
     <id>492</id>
     <user reference="115"/>
     <serializedSettings>&lt;org.projectforge.business.fibu.EmployeeFilter&gt;
-  &lt;searchString&gt;&lt;/searchString&gt;
-  &lt;deleted&gt;false&lt;/deleted&gt;
-  &lt;ignoreDeleted&gt;false&lt;/ignoreDeleted&gt;
-  &lt;maxRows&gt;-1&lt;/maxRows&gt;
-  &lt;useModificationFilter&gt;false&lt;/useModificationFilter&gt;
-  &lt;searchHistory&gt;false&lt;/searchHistory&gt;
-  &lt;showOnlyActiveEntries&gt;false&lt;/showOnlyActiveEntries&gt;
-&lt;/org.projectforge.business.fibu.EmployeeFilter&gt;</serializedSettings>
+      &lt;searchString&gt;&lt;/searchString&gt;
+      &lt;deleted&gt;false&lt;/deleted&gt;
+      &lt;ignoreDeleted&gt;false&lt;/ignoreDeleted&gt;
+      &lt;maxRows&gt;-1&lt;/maxRows&gt;
+      &lt;useModificationFilter&gt;false&lt;/useModificationFilter&gt;
+      &lt;searchHistory&gt;false&lt;/searchHistory&gt;
+      &lt;showOnlyActiveEntries&gt;false&lt;/showOnlyActiveEntries&gt;
+      &lt;/org.projectforge.business.fibu.EmployeeFilter&gt;</serializedSettings>
     <key>org.projectforge.web.fibu.EmployeeListForm:Filter</key>
     <created class="sql-timestamp" id="534">2013-04-27 15:10:41.144</created>
     <lastUpdate class="sql-timestamp" id="535">2014-09-02 12:34:48.26</lastUpdate>
@@ -2622,13 +2635,13 @@
     <id>493</id>
     <user reference="115"/>
     <serializedSettings>&lt;org.projectforge.framework.persistence.api.BaseSearchFilter&gt;
-  &lt;searchString&gt;&lt;/searchString&gt;
-  &lt;deleted&gt;false&lt;/deleted&gt;
-  &lt;ignoreDeleted&gt;false&lt;/ignoreDeleted&gt;
-  &lt;maxRows&gt;-1&lt;/maxRows&gt;
-  &lt;useModificationFilter&gt;false&lt;/useModificationFilter&gt;
-  &lt;searchHistory&gt;false&lt;/searchHistory&gt;
-&lt;/org.projectforge.framework.persistence.api.BaseSearchFilter&gt;</serializedSettings>
+      &lt;searchString&gt;&lt;/searchString&gt;
+      &lt;deleted&gt;false&lt;/deleted&gt;
+      &lt;ignoreDeleted&gt;false&lt;/ignoreDeleted&gt;
+      &lt;maxRows&gt;-1&lt;/maxRows&gt;
+      &lt;useModificationFilter&gt;false&lt;/useModificationFilter&gt;
+      &lt;searchHistory&gt;false&lt;/searchHistory&gt;
+      &lt;/org.projectforge.framework.persistence.api.BaseSearchFilter&gt;</serializedSettings>
     <key>org.projectforge.web.fibu.CustomerListForm:Filter</key>
     <created class="sql-timestamp" id="537">2013-04-27 15:10:41.149</created>
     <lastUpdate class="sql-timestamp" id="538">2014-09-02 12:34:48.281</lastUpdate>
@@ -2638,24 +2651,24 @@
     <id>494</id>
     <user reference="115"/>
     <serializedSettings>&lt;RecentScriptCalls&gt;
-  &lt;recentQueue&gt;
-    &lt;maxSize&gt;25&lt;/maxSize&gt;
-    &lt;recents&gt;
+      &lt;recentQueue&gt;
+      &lt;maxSize&gt;25&lt;/maxSize&gt;
+      &lt;recents&gt;
       &lt;ScriptCall scriptName=&quot;JFreeChart&quot;/&gt;
       &lt;ScriptCall scriptName=&quot;Excel export of all user&amp;apos;s&quot;/&gt;
       &lt;ScriptCall scriptName=&quot;Booked person days per day&quot;&gt;
-        &lt;parameter type=&quot;TASK&quot; parameterName=&quot;task&quot; intValue=&quot;2&quot;/&gt;
-        &lt;parameter type=&quot;TIME_PERIOD&quot; parameterName=&quot;timeperiod&quot;&gt;
-          &lt;timePeriodValue&gt;
-            &lt;fromDate&gt;2000-08-31 22:00:00.0 UTC&lt;/fromDate&gt;
-            &lt;toDate&gt;2015-09-01 22:00:00.0 UTC&lt;/toDate&gt;
-            &lt;marker&gt;false&lt;/marker&gt;
-          &lt;/timePeriodValue&gt;
-        &lt;/parameter&gt;
+      &lt;parameter type=&quot;TASK&quot; parameterName=&quot;task&quot; intValue=&quot;2&quot;/&gt;
+      &lt;parameter type=&quot;TIME_PERIOD&quot; parameterName=&quot;timeperiod&quot;&gt;
+      &lt;timePeriodValue&gt;
+      &lt;fromDate&gt;2000-08-31 22:00:00.0 UTC&lt;/fromDate&gt;
+      &lt;toDate&gt;2015-09-01 22:00:00.0 UTC&lt;/toDate&gt;
+      &lt;marker&gt;false&lt;/marker&gt;
+      &lt;/timePeriodValue&gt;
+      &lt;/parameter&gt;
       &lt;/ScriptCall&gt;
-    &lt;/recents&gt;
-  &lt;/recentQueue&gt;
-&lt;/RecentScriptCalls&gt;</serializedSettings>
+      &lt;/recents&gt;
+      &lt;/recentQueue&gt;
+      &lt;/RecentScriptCalls&gt;</serializedSettings>
     <key>org.projectforge.web.scripting.ScriptExecutePage</key>
     <created class="sql-timestamp" id="540">2013-04-27 15:10:41.152</created>
     <lastUpdate class="sql-timestamp" id="541">2014-09-02 12:34:48.292</lastUpdate>
@@ -2665,13 +2678,13 @@
     <id>495</id>
     <user reference="115"/>
     <serializedSettings>&lt;org.projectforge.framework.persistence.api.BaseSearchFilter&gt;
-  &lt;searchString&gt;&lt;/searchString&gt;
-  &lt;deleted&gt;false&lt;/deleted&gt;
-  &lt;ignoreDeleted&gt;false&lt;/ignoreDeleted&gt;
-  &lt;maxRows&gt;-1&lt;/maxRows&gt;
-  &lt;useModificationFilter&gt;false&lt;/useModificationFilter&gt;
-  &lt;searchHistory&gt;false&lt;/searchHistory&gt;
-&lt;/org.projectforge.framework.persistence.api.BaseSearchFilter&gt;</serializedSettings>
+      &lt;searchString&gt;&lt;/searchString&gt;
+      &lt;deleted&gt;false&lt;/deleted&gt;
+      &lt;ignoreDeleted&gt;false&lt;/ignoreDeleted&gt;
+      &lt;maxRows&gt;-1&lt;/maxRows&gt;
+      &lt;useModificationFilter&gt;false&lt;/useModificationFilter&gt;
+      &lt;searchHistory&gt;false&lt;/searchHistory&gt;
+      &lt;/org.projectforge.framework.persistence.api.BaseSearchFilter&gt;</serializedSettings>
     <key>org.projectforge.web.scripting.ScriptListForm:Filter</key>
     <created class="sql-timestamp" id="543">2013-04-27 15:10:41.17</created>
     <lastUpdate class="sql-timestamp" id="544">2014-09-02 12:34:48.365</lastUpdate>
@@ -2681,13 +2694,13 @@
     <id>496</id>
     <user reference="115"/>
     <serializedSettings>&lt;org.projectforge.framework.persistence.api.BaseSearchFilter&gt;
-  &lt;searchString&gt;&lt;/searchString&gt;
-  &lt;deleted&gt;false&lt;/deleted&gt;
-  &lt;ignoreDeleted&gt;false&lt;/ignoreDeleted&gt;
-  &lt;maxRows&gt;-1&lt;/maxRows&gt;
-  &lt;useModificationFilter&gt;false&lt;/useModificationFilter&gt;
-  &lt;searchHistory&gt;false&lt;/searchHistory&gt;
-&lt;/org.projectforge.framework.persistence.api.BaseSearchFilter&gt;</serializedSettings>
+      &lt;searchString&gt;&lt;/searchString&gt;
+      &lt;deleted&gt;false&lt;/deleted&gt;
+      &lt;ignoreDeleted&gt;false&lt;/ignoreDeleted&gt;
+      &lt;maxRows&gt;-1&lt;/maxRows&gt;
+      &lt;useModificationFilter&gt;false&lt;/useModificationFilter&gt;
+      &lt;searchHistory&gt;false&lt;/searchHistory&gt;
+      &lt;/org.projectforge.framework.persistence.api.BaseSearchFilter&gt;</serializedSettings>
     <key>org.projectforge.web.fibu.KontoListForm:Filter</key>
     <created class="sql-timestamp" id="546">2013-04-27 15:10:41.172</created>
     <lastUpdate class="sql-timestamp" id="547">2014-09-02 12:34:48.367</lastUpdate>
@@ -2697,15 +2710,15 @@
     <id>497</id>
     <user reference="115"/>
     <serializedSettings>&lt;org.projectforge.business.fibu.EmployeeSalaryFilter&gt;
-  &lt;searchString&gt;&lt;/searchString&gt;
-  &lt;deleted&gt;false&lt;/deleted&gt;
-  &lt;ignoreDeleted&gt;false&lt;/ignoreDeleted&gt;
-  &lt;maxRows&gt;-1&lt;/maxRows&gt;
-  &lt;useModificationFilter&gt;false&lt;/useModificationFilter&gt;
-  &lt;searchHistory&gt;false&lt;/searchHistory&gt;
-  &lt;year&gt;0&lt;/year&gt;
-  &lt;month&gt;0&lt;/month&gt;
-&lt;/org.projectforge.business.fibu.EmployeeSalaryFilter&gt;</serializedSettings>
+      &lt;searchString&gt;&lt;/searchString&gt;
+      &lt;deleted&gt;false&lt;/deleted&gt;
+      &lt;ignoreDeleted&gt;false&lt;/ignoreDeleted&gt;
+      &lt;maxRows&gt;-1&lt;/maxRows&gt;
+      &lt;useModificationFilter&gt;false&lt;/useModificationFilter&gt;
+      &lt;searchHistory&gt;false&lt;/searchHistory&gt;
+      &lt;year&gt;0&lt;/year&gt;
+      &lt;month&gt;0&lt;/month&gt;
+      &lt;/org.projectforge.business.fibu.EmployeeSalaryFilter&gt;</serializedSettings>
     <key>org.projectforge.web.fibu.EmployeeSalaryListForm:Filter</key>
     <created class="sql-timestamp" id="549">2013-04-27 15:10:41.173</created>
     <lastUpdate class="sql-timestamp" id="550">2014-09-02 12:34:48.37</lastUpdate>
@@ -2715,17 +2728,17 @@
     <id>498</id>
     <user reference="115"/>
     <serializedSettings>&lt;org.projectforge.web.fibu.AccountingRecordListFilter&gt;
-  &lt;searchString&gt;&lt;/searchString&gt;
-  &lt;deleted&gt;false&lt;/deleted&gt;
-  &lt;ignoreDeleted&gt;false&lt;/ignoreDeleted&gt;
-  &lt;maxRows&gt;-1&lt;/maxRows&gt;
-  &lt;useModificationFilter&gt;false&lt;/useModificationFilter&gt;
-  &lt;searchHistory&gt;false&lt;/searchHistory&gt;
-  &lt;fromYear&gt;0&lt;/fromYear&gt;
-  &lt;toYear&gt;0&lt;/toYear&gt;
-  &lt;fromMonth&gt;0&lt;/fromMonth&gt;
-  &lt;toMonth&gt;0&lt;/toMonth&gt;
-&lt;/org.projectforge.web.fibu.AccountingRecordListFilter&gt;</serializedSettings>
+      &lt;searchString&gt;&lt;/searchString&gt;
+      &lt;deleted&gt;false&lt;/deleted&gt;
+      &lt;ignoreDeleted&gt;false&lt;/ignoreDeleted&gt;
+      &lt;maxRows&gt;-1&lt;/maxRows&gt;
+      &lt;useModificationFilter&gt;false&lt;/useModificationFilter&gt;
+      &lt;searchHistory&gt;false&lt;/searchHistory&gt;
+      &lt;fromYear&gt;0&lt;/fromYear&gt;
+      &lt;toYear&gt;0&lt;/toYear&gt;
+      &lt;fromMonth&gt;0&lt;/fromMonth&gt;
+      &lt;toMonth&gt;0&lt;/toMonth&gt;
+      &lt;/org.projectforge.web.fibu.AccountingRecordListFilter&gt;</serializedSettings>
     <key>org.projectforge.web.fibu.AccountingRecordListForm:Filter</key>
     <created class="sql-timestamp" id="552">2013-04-27 15:10:41.175</created>
     <lastUpdate class="sql-timestamp" id="553">2014-09-02 12:34:48.373</lastUpdate>
@@ -2735,9 +2748,9 @@
     <id>499</id>
     <user reference="115"/>
     <serializedSettings>&lt;org.projectforge.web.fibu.ReportObjectivesFilter&gt;
-  &lt;from&gt;2012-12-31 23:00:00.0 UTC&lt;/from&gt;
-  &lt;to&gt;2013-12-31 22:59:59.999 UTC&lt;/to&gt;
-&lt;/org.projectforge.web.fibu.ReportObjectivesFilter&gt;</serializedSettings>
+      &lt;from&gt;2012-12-31 23:00:00.0 UTC&lt;/from&gt;
+      &lt;to&gt;2013-12-31 22:59:59.999 UTC&lt;/to&gt;
+      &lt;/org.projectforge.web.fibu.ReportObjectivesFilter&gt;</serializedSettings>
     <key>ReportObjectivesForm:filter</key>
     <created class="sql-timestamp" id="555">2013-04-27 15:10:41.177</created>
     <lastUpdate class="sql-timestamp" id="556">2014-09-02 12:34:48.377</lastUpdate>
@@ -2829,6 +2842,15 @@
     <minorChange>false</minorChange>
     <id>214</id>
     <name>PF_ProjectManager</name>
+    <localGroup>false</localGroup>
+  </org.projectforge.framework.persistence.user.entities.GroupDO>
+  <org.projectforge.framework.persistence.user.entities.GroupDO id="1172">
+    <created class="sql-timestamp" id="1173">2016-11-14 23:00:42.43</created>
+    <lastUpdate class="sql-timestamp" id="1174">2016-11-14 23:00:42.43</lastUpdate>
+    <deleted>false</deleted>
+    <minorChange>false</minorChange>
+    <id>223</id>
+    <name>PF_Organization</name>
     <localGroup>false</localGroup>
   </org.projectforge.framework.persistence.user.entities.GroupDO>
   <org.projectforge.framework.persistence.user.entities.GroupDO id="589">
@@ -3316,30 +3338,31 @@
     <city>Kassel</city>
     <website>www.micromata.com</website>
     <publicKey>-----BEGIN PGP PUBLIC KEY BLOCK-----&#xd;
-Version: GnuPG v1.0.6 (GNU/Linux)&#xd;
-Comment: For info see http://www.gnupg.org&#xd;
-&#xd;
-mQGiBD1FLN4RBACUUKGce2+Q1jhzzHCZbR3S2JdKNJQfFSeC2zBrxVQh8MQOF/9U&#xd;
-P6q4js6ai0u6kAI9pErFQcZxV7VQ5hTjcZ9JxFYiNgF5g1fkfJ/QbS4m4fdmZc3h&#xd;
-tG+BVUqqg0XRL4KMI4uNkUdvBmqNCM55i2iLMqNb2xfrSyzbCSNNo3GPVwCgzrll&#xd;
-Zw3sMwq6NYuYL08LVO7hWI0D/R/Qz1FSeftwW2YguJXwcgvT1U7wauOFrfyjLeAd&#xd;
-lU7yNIxMIKnD/+o0yJylJIor5tqcOYavEBKiriwre0EwUBzjLGQmtju5nuneMRH6&#xd;
-heRQBbQswhF4qt0ARVX16iqhYrCsmei/ihmtHRveZDGtzn3EW9HWFFu7DPnKwLuh&#xd;
-DGCSA/998QLoLr2p59m7wn1KwSX+gOk2FFZZC9DLfUZLKnFgsn5F8IhxDsMG8nxo&#xd;
-xvTG6UX46zHlcEWb246bg/RG1K6by3yQc8Jji4ZFauNg45KpnxaKrfh+ALPScTdi&#xd;
-ZQ9dT3B8MvzVCHmXHF/229Xmn7dktf3pFcXdCD7FmT7s0ADPZ7QmS2FpIFJlaW5o&#xd;
-YXJkIDxLLlJlaW5oYXJkQG1pY3JvbWF0YS5kZT6IVwQTEQIAFwUCPUUs3gULBwoD&#xd;
-BAMVAwIDFgIBAheAAAoJEHUsb/ZREuGHx0cAn1WQMivZn2J4u43NnQZWvIMFray3&#xd;
-AJsE2TyrLB4dFAdXD98SDuAeR521KbkBDQQ9RSzgEAQA8aSMv06/waBOU2qCzxzW&#xd;
-hDt09fXkZzxIUh2EWmwlVnv3hnTwHIX1boJfNwMgNmb3wX+//PLvRAmCapUy6jAk&#xd;
-Vdcm8nYZPGAd3HS4u27n1xEYcv139neYAlU80NPyHBrbXQ8x6ApvLDyi9noLCJop&#xd;
-biP3643d8Ld8IEdR85jeipMAAwUD/iuS5z3i95A4N2CcTnIBUJguCjvOexg/HmOK&#xd;
-SdQTCel3xByv1PlHi9jiaLeSwXQLbX7e+1axftWVOaG0geKnVb9fJqcCf1gerTni&#xd;
-2lP+aAJnznKEFi3fni7XhqCo2MAzMHJDR/8ipzd+OTt0MEo35U6e4avGFC2zeMmX&#xd;
-NI1CYOUGiEYEGBECAAYFAj1FLOAACgkQdSxv9lES4YcF/QCcCHbLlQ67J42ApCYc&#xd;
-+vP8r2jysJkAoMX8fcms5VFPNEhV2I1owv+OR0at&#xd;
-=SmDX&#xd;
------END PGP PUBLIC KEY BLOCK-----</publicKey>
+      Version: GnuPG v1.0.6 (GNU/Linux)&#xd;
+      Comment: For info see http://www.gnupg.org&#xd;
+      &#xd;
+      mQGiBD1FLN4RBACUUKGce2+Q1jhzzHCZbR3S2JdKNJQfFSeC2zBrxVQh8MQOF/9U&#xd;
+      P6q4js6ai0u6kAI9pErFQcZxV7VQ5hTjcZ9JxFYiNgF5g1fkfJ/QbS4m4fdmZc3h&#xd;
+      tG+BVUqqg0XRL4KMI4uNkUdvBmqNCM55i2iLMqNb2xfrSyzbCSNNo3GPVwCgzrll&#xd;
+      Zw3sMwq6NYuYL08LVO7hWI0D/R/Qz1FSeftwW2YguJXwcgvT1U7wauOFrfyjLeAd&#xd;
+      lU7yNIxMIKnD/+o0yJylJIor5tqcOYavEBKiriwre0EwUBzjLGQmtju5nuneMRH6&#xd;
+      heRQBbQswhF4qt0ARVX16iqhYrCsmei/ihmtHRveZDGtzn3EW9HWFFu7DPnKwLuh&#xd;
+      DGCSA/998QLoLr2p59m7wn1KwSX+gOk2FFZZC9DLfUZLKnFgsn5F8IhxDsMG8nxo&#xd;
+      xvTG6UX46zHlcEWb246bg/RG1K6by3yQc8Jji4ZFauNg45KpnxaKrfh+ALPScTdi&#xd;
+      ZQ9dT3B8MvzVCHmXHF/229Xmn7dktf3pFcXdCD7FmT7s0ADPZ7QmS2FpIFJlaW5o&#xd;
+      YXJkIDxLLlJlaW5oYXJkQG1pY3JvbWF0YS5kZT6IVwQTEQIAFwUCPUUs3gULBwoD&#xd;
+      BAMVAwIDFgIBAheAAAoJEHUsb/ZREuGHx0cAn1WQMivZn2J4u43NnQZWvIMFray3&#xd;
+      AJsE2TyrLB4dFAdXD98SDuAeR521KbkBDQQ9RSzgEAQA8aSMv06/waBOU2qCzxzW&#xd;
+      hDt09fXkZzxIUh2EWmwlVnv3hnTwHIX1boJfNwMgNmb3wX+//PLvRAmCapUy6jAk&#xd;
+      Vdcm8nYZPGAd3HS4u27n1xEYcv139neYAlU80NPyHBrbXQ8x6ApvLDyi9noLCJop&#xd;
+      biP3643d8Ld8IEdR85jeipMAAwUD/iuS5z3i95A4N2CcTnIBUJguCjvOexg/HmOK&#xd;
+      SdQTCel3xByv1PlHi9jiaLeSwXQLbX7e+1axftWVOaG0geKnVb9fJqcCf1gerTni&#xd;
+      2lP+aAJnznKEFi3fni7XhqCo2MAzMHJDR/8ipzd+OTt0MEo35U6e4avGFC2zeMmX&#xd;
+      NI1CYOUGiEYEGBECAAYFAj1FLOAACgkQdSxv9lES4YcF/QCcCHbLlQ67J42ApCYc&#xd;
+      +vP8r2jysJkAoMX8fcms5VFPNEhV2I1owv+OR0at&#xd;
+      =SmDX&#xd;
+      -----END PGP PUBLIC KEY BLOCK-----
+    </publicKey>
   </org.projectforge.business.address.AddressDO>
   <org.projectforge.business.address.AddressDO id="710">
     <created class="sql-timestamp" id="711">2010-04-21 22:09:18.543</created>
@@ -3373,7 +3396,10 @@ NI1CYOUGiEYEGBECAAYFAj1FLOAACgkQdSxv9lES4YcF/QCcCHbLlQ67J42ApCYc&#xd;
     <task reference="646"/>
     <styleAsXml>&lt;ganttChartStyle totalLabelWidth=&quot;240.0&quot; xTicks=&quot;AUTO&quot; width=&quot;1000&quot;/&gt;</styleAsXml>
     <settingsAsXml>&lt;ganttChartSettings&gt;&lt;openNodes/&gt;&lt;/ganttChartSettings&gt;</settingsAsXml>
-    <ganttObjectsAsXml>&lt;ganttObject id=&quot;3&quot;&gt;&lt;children&gt;&lt;ganttObject id=&quot;4&quot; visible=&quot;true&quot;&gt;&lt;children&gt;&lt;ganttObject id=&quot;5&quot; visible=&quot;true&quot;/&gt;&lt;ganttObject id=&quot;6&quot; visible=&quot;true&quot;/&gt;&lt;ganttObject id=&quot;7&quot; visible=&quot;true&quot;/&gt;&lt;ganttObject id=&quot;8&quot; visible=&quot;true&quot;/&gt;&lt;ganttObject id=&quot;9&quot; visible=&quot;true&quot;/&gt;&lt;ganttObject id=&quot;10&quot; visible=&quot;true&quot;/&gt;&lt;ganttObject id=&quot;20&quot; visible=&quot;true&quot;/&gt;&lt;/children&gt;&lt;/ganttObject&gt;&lt;ganttObject id=&quot;12&quot; visible=&quot;true&quot;/&gt;&lt;/children&gt;&lt;/ganttObject&gt;</ganttObjectsAsXml>
+    <ganttObjectsAsXml>&lt;ganttObject id=&quot;3&quot;&gt;&lt;children&gt;&lt;ganttObject id=&quot;4&quot; visible=&quot;true&quot;&gt;&lt;children&gt;&lt;ganttObject
+      id=&quot;5&quot; visible=&quot;true&quot;/&gt;&lt;ganttObject id=&quot;6&quot; visible=&quot;true&quot;/&gt;&lt;ganttObject id=&quot;7&quot; visible=&quot;true&quot;/&gt;&lt;ganttObject
+      id=&quot;8&quot; visible=&quot;true&quot;/&gt;&lt;ganttObject id=&quot;9&quot; visible=&quot;true&quot;/&gt;&lt;ganttObject id=&quot;10&quot; visible=&quot;true&quot;/&gt;&lt;ganttObject
+      id=&quot;20&quot; visible=&quot;true&quot;/&gt;&lt;/children&gt;&lt;/ganttObject&gt;&lt;ganttObject id=&quot;12&quot; visible=&quot;true&quot;/&gt;&lt;/children&gt;&lt;/ganttObject&gt;</ganttObjectsAsXml>
     <readAccess>ALL</readAccess>
     <writeAccess>OWNER</writeAccess>
     <owner reference="115"/>
@@ -4956,40 +4982,42 @@ NI1CYOUGiEYEGBECAAYFAj1FLOAACgkQdSxv9lES4YcF/QCcCHbLlQ67J42ApCYc&#xd;
     <id>526</id>
     <name>Booked person days per day</name>
     <description>Return an Excel sheet containing all (sub) tasks with the booked days per day for the given time period.&#xd;
-Use Yellow Logistics as task and 01/01/10 to 05/31/10 as time period for getting some test data.</description>
+      Use Yellow Logistics as task and 01/01/10 to 05/31/10 as time period for getting some test data.
+    </description>
     <script id="1073">aW1wb3J0IG9yZy5wcm9qZWN0Zm9yZ2UuZXhwb3J0LioNCmltcG9ydCBvcmcucHJvamVjdGZvcmdl
-LmZpYnUuKg0KaW1wb3J0IG9yZy5wcm9qZWN0Zm9yZ2UudGFzay4qDQppbXBvcnQgb3JnLnByb2pl
-Y3Rmb3JnZS5jb21tb24uKg0KaW1wb3J0IG9yZy5wcm9qZWN0Zm9yZ2UudGltZXNoZWV0LioNCmlt
-cG9ydCBqYXZhLmxhbmcucmVmbGVjdC4qDQppbXBvcnQgb3JnLnByb2plY3Rmb3JnZS5jYWxlbmRh
-ci4qDQoNCi8vVW1yZWNobnVuZyBTZWt1bmRlbiBpbiBTdHVuZGVuDQpmaW5hbCBCaWdEZWNpbWFs
-IGNvZWZmID0gMS8oNjAqNjAqMTAwMCkNCg0KVGltZXNoZWV0RmlsdGVyIHRmID0gbmV3IFRpbWVz
-aGVldEZpbHRlcigpDQp0Zi5zZXRTdGFydFRpbWUodGltZXBlcmlvZC5mcm9tRGF0ZSkNCnRmLnNl
-dFN0b3BUaW1lKHRpbWVwZXJpb2QudG9EYXRlKQ0KdGYuc2V0VGFza0lkKHRhc2suaWQpDQp0Zi5z
-ZXRSZWN1cnNpdmUodHJ1ZSkNCg0KLy8gw5xiZXJmw7xocnVuZyBpbiBIYXNoTWFwcyBtaXQgcmVs
-ZXZhbnRlbiBBdHRyaWJ1dGVuDQpsb20gPSB0aW1lc2hlZXREYW8uZ2V0TGlzdCh0ZikuY29sbGVj
-dHt0cyAtPiAJDQoNCgkJCQkJCQlkZWYgbWFwID0gbmV3IEhhc2hNYXAoKQ0KCQkJCQkJCQ0KCQkJ
-CQkJCURhdGVIb2xkZXIgZGF0ZSA9IG5ldyBEYXRlSG9sZGVyKCkNCgkJCQkJCQlkYXRlLnNldERh
-dGUodHM/LnN0YXJ0VGltZSkNCgkJCQkJCQltYXBbJ2RhdGUnXSA9IGRhdGUNCgkJCQkJCQkNCgkJ
-CQkJCQltYXBbJ2RheSddID0gZGF0ZS5kYXlPZk1vbnRoDQoJCQkJCQkJbWFwWydtb250aCddID0g
-ZGF0ZS5tb250aA0KCQkJCQkJCW1hcFsneWVhciddID0gZGF0ZS55ZWFyDQoJCQkJCQkJDQoJCQkJ
-CQkJQ2FsZW5kYXIgY2FsID0gZGF0ZS5jYWxlbmRhcg0KCQkJCQkJCVdlZWtIb2xkZXIgd2VlayA9
-IG5ldyBXZWVrSG9sZGVyKGNhbCkNCgkJCQkJCQltYXBbJ3dlZWsnXSA9IHdlZWsud2Vla09mWWVh
-cg0KCQkJCQkJCQ0KCQkJCQkJCW1hcFsncGQnXSA9ICB0cz8uZHVyYXRpb24gKiBjb2VmZg0KCQkJ
-CQkJCQkJCQkNCgkJCQkJCQlyZXR1cm4gbWFwDQoJCQkJCX0gDQoNCkNsb3N1cmUgZXF1aXYgPSB7
-eCx5IC0+IHJldHVybiB4LmRhdGUuaXNTYW1lRGF5KHkuZGF0ZSl9DQoNCkNsb3N1cmUgYWdnID0g
-e3gsYSAtPiAJYS5sdCArPSB4Lmx0DQoJCQkJCQlyZXR1cm4gYX0NCg0KLy8gR2VuZXJpZXJlIEVy
-Z2VibmlzbGlzdGUNCnJlc3VsdCA9IEdlbmVyYWxBZ2dyZWdhdGlvbi5hZ2dyZWdhdGUobG9tLGVx
-dWl2LHt4IC0+IHh9LGFnZyx7eCAtPiB4fSkNCg0KLy8gRXhwb3J0DQpFeHBvcnRXb3JrYm9vayB3
-b3JrYm9vayA9IG5ldyBFeHBvcnRXb3JrYm9vaygpOw0KRXhwb3J0U2hlZXQgc2hlZXQgPSB3b3Jr
-Ym9vay5hZGRTaGVldCgiV29ya2luZyB0aW1lcyIpDQpzaGVldC5jb250ZW50UHJvdmlkZXIuY29s
-V2lkdGhzID0gWzEwLCAxMCwgMTAsMTAsIDMwLCAzMCwgMTBdDQpzaGVldC5hZGRSb3coKS5zZXRW
-YWx1ZXMoIkRhdGUiLCJZZWFyIiwiTW9udGgiLCJXZWVrIiwiRGF5IiwiUGVyc29uIGRheXMiKQ0K
-c2hlZXQuY29udGVudFByb3ZpZGVyLnB1dEZvcm1hdCgiZGF0ZSIsIllZWVktTU0tREQiKQ0Kc2hl
-ZXQuY29udGVudFByb3ZpZGVyLnB1dEZvcm1hdCgicGQiLCIwLjAiKQ0Kc2hlZXQuY29udGVudFBy
-b3ZpZGVyLnB1dEZvcm1hdCgieWVhciIsIjAiKQ0Kc2hlZXQuY29udGVudFByb3ZpZGVyLnB1dEZv
-cm1hdCgibW9udGgiLCIwIikNCnNoZWV0LmNvbnRlbnRQcm92aWRlci5wdXRGb3JtYXQoImRheSIs
-IjAiKQ0Kc2hlZXQucHJvcGVydHlOYW1lcyA9IFsiZGF0ZSIsInllYXIiLCJtb250aCIsIndlZWsi
-LCJkYXkiLCJwZCJdDQpzaGVldC5hZGRSb3dzKHJlc3VsdCkNCg0KcmV0dXJuIHdvcmtib29r</script>
+      LmZpYnUuKg0KaW1wb3J0IG9yZy5wcm9qZWN0Zm9yZ2UudGFzay4qDQppbXBvcnQgb3JnLnByb2pl
+      Y3Rmb3JnZS5jb21tb24uKg0KaW1wb3J0IG9yZy5wcm9qZWN0Zm9yZ2UudGltZXNoZWV0LioNCmlt
+      cG9ydCBqYXZhLmxhbmcucmVmbGVjdC4qDQppbXBvcnQgb3JnLnByb2plY3Rmb3JnZS5jYWxlbmRh
+      ci4qDQoNCi8vVW1yZWNobnVuZyBTZWt1bmRlbiBpbiBTdHVuZGVuDQpmaW5hbCBCaWdEZWNpbWFs
+      IGNvZWZmID0gMS8oNjAqNjAqMTAwMCkNCg0KVGltZXNoZWV0RmlsdGVyIHRmID0gbmV3IFRpbWVz
+      aGVldEZpbHRlcigpDQp0Zi5zZXRTdGFydFRpbWUodGltZXBlcmlvZC5mcm9tRGF0ZSkNCnRmLnNl
+      dFN0b3BUaW1lKHRpbWVwZXJpb2QudG9EYXRlKQ0KdGYuc2V0VGFza0lkKHRhc2suaWQpDQp0Zi5z
+      ZXRSZWN1cnNpdmUodHJ1ZSkNCg0KLy8gw5xiZXJmw7xocnVuZyBpbiBIYXNoTWFwcyBtaXQgcmVs
+      ZXZhbnRlbiBBdHRyaWJ1dGVuDQpsb20gPSB0aW1lc2hlZXREYW8uZ2V0TGlzdCh0ZikuY29sbGVj
+      dHt0cyAtPiAJDQoNCgkJCQkJCQlkZWYgbWFwID0gbmV3IEhhc2hNYXAoKQ0KCQkJCQkJCQ0KCQkJ
+      CQkJCURhdGVIb2xkZXIgZGF0ZSA9IG5ldyBEYXRlSG9sZGVyKCkNCgkJCQkJCQlkYXRlLnNldERh
+      dGUodHM/LnN0YXJ0VGltZSkNCgkJCQkJCQltYXBbJ2RhdGUnXSA9IGRhdGUNCgkJCQkJCQkNCgkJ
+      CQkJCQltYXBbJ2RheSddID0gZGF0ZS5kYXlPZk1vbnRoDQoJCQkJCQkJbWFwWydtb250aCddID0g
+      ZGF0ZS5tb250aA0KCQkJCQkJCW1hcFsneWVhciddID0gZGF0ZS55ZWFyDQoJCQkJCQkJDQoJCQkJ
+      CQkJQ2FsZW5kYXIgY2FsID0gZGF0ZS5jYWxlbmRhcg0KCQkJCQkJCVdlZWtIb2xkZXIgd2VlayA9
+      IG5ldyBXZWVrSG9sZGVyKGNhbCkNCgkJCQkJCQltYXBbJ3dlZWsnXSA9IHdlZWsud2Vla09mWWVh
+      cg0KCQkJCQkJCQ0KCQkJCQkJCW1hcFsncGQnXSA9ICB0cz8uZHVyYXRpb24gKiBjb2VmZg0KCQkJ
+      CQkJCQkJCQkNCgkJCQkJCQlyZXR1cm4gbWFwDQoJCQkJCX0gDQoNCkNsb3N1cmUgZXF1aXYgPSB7
+      eCx5IC0+IHJldHVybiB4LmRhdGUuaXNTYW1lRGF5KHkuZGF0ZSl9DQoNCkNsb3N1cmUgYWdnID0g
+      e3gsYSAtPiAJYS5sdCArPSB4Lmx0DQoJCQkJCQlyZXR1cm4gYX0NCg0KLy8gR2VuZXJpZXJlIEVy
+      Z2VibmlzbGlzdGUNCnJlc3VsdCA9IEdlbmVyYWxBZ2dyZWdhdGlvbi5hZ2dyZWdhdGUobG9tLGVx
+      dWl2LHt4IC0+IHh9LGFnZyx7eCAtPiB4fSkNCg0KLy8gRXhwb3J0DQpFeHBvcnRXb3JrYm9vayB3
+      b3JrYm9vayA9IG5ldyBFeHBvcnRXb3JrYm9vaygpOw0KRXhwb3J0U2hlZXQgc2hlZXQgPSB3b3Jr
+      Ym9vay5hZGRTaGVldCgiV29ya2luZyB0aW1lcyIpDQpzaGVldC5jb250ZW50UHJvdmlkZXIuY29s
+      V2lkdGhzID0gWzEwLCAxMCwgMTAsMTAsIDMwLCAzMCwgMTBdDQpzaGVldC5hZGRSb3coKS5zZXRW
+      YWx1ZXMoIkRhdGUiLCJZZWFyIiwiTW9udGgiLCJXZWVrIiwiRGF5IiwiUGVyc29uIGRheXMiKQ0K
+      c2hlZXQuY29udGVudFByb3ZpZGVyLnB1dEZvcm1hdCgiZGF0ZSIsIllZWVktTU0tREQiKQ0Kc2hl
+      ZXQuY29udGVudFByb3ZpZGVyLnB1dEZvcm1hdCgicGQiLCIwLjAiKQ0Kc2hlZXQuY29udGVudFBy
+      b3ZpZGVyLnB1dEZvcm1hdCgieWVhciIsIjAiKQ0Kc2hlZXQuY29udGVudFByb3ZpZGVyLnB1dEZv
+      cm1hdCgibW9udGgiLCIwIikNCnNoZWV0LmNvbnRlbnRQcm92aWRlci5wdXRGb3JtYXQoImRheSIs
+      IjAiKQ0Kc2hlZXQucHJvcGVydHlOYW1lcyA9IFsiZGF0ZSIsInllYXIiLCJtb250aCIsIndlZWsi
+      LCJkYXkiLCJwZCJdDQpzaGVldC5hZGRSb3dzKHJlc3VsdCkNCg0KcmV0dXJuIHdvcmtib29r
+    </script>
     <parameter1Name>task</parameter1Name>
     <parameter1Type>TASK</parameter1Type>
     <parameter2Name>timeperiod</parameter2Name>
@@ -5004,21 +5032,23 @@ LCJkYXkiLCJwZCJdDQpzaGVldC5hZGRSb3dzKHJlc3VsdCkNCg0KcmV0dXJuIHdvcmtib29r</script
     <name>JFreeChart</name>
     <description>Demo for creating a simple JFreeChart diagram</description>
     <script id="1077">aW1wb3J0IG9yZy5qZnJlZS5jaGFydC4qDQppbXBvcnQgb3JnLmpmcmVlLmNoYXJ0LnBsb3QuKg0K
-aW1wb3J0IG9yZy5qZnJlZS5kYXRhLmdlbmVyYWwuKg0KaW1wb3J0IG9yZy5qZnJlZS51dGlsLioN
-CmltcG9ydCBvcmcucHJvamVjdGZvcmdlLmV4cG9ydC4qDQoNCkRlZmF1bHRQaWVEYXRhc2V0IGRh
-dGFzZXQgPSBuZXcgRGVmYXVsdFBpZURhdGFzZXQoKQ0KZGF0YXNldC5zZXRWYWx1ZSgiTGludXgi
-LCAxNSkNCmRhdGFzZXQuc2V0VmFsdWUoIk1hYyIsIDgpDQpkYXRhc2V0LnNldFZhbHVlKCJXaW5k
-b3dzIiwgNzApDQpkYXRhc2V0LnNldFZhbHVlKCJPdGhlcnMiLCA3KQ0KSkZyZWVDaGFydCBjaGFy
-dCA9IENoYXJ0RmFjdG9yeS5jcmVhdGVQaWVDaGFydDNEKCJVc2VycyBvbiB3d3cuaGVpc2UuZGUi
-LCBkYXRhc2V0LCB0cnVlLCB0cnVlLCBmYWxzZSkNClBpZVBsb3QzRCBwbG90ID0gKFBpZVBsb3Qz
-RCkgY2hhcnQuZ2V0UGxvdCgpDQoNCkV4cG9ydEpGcmVlQ2hhcnQgZXhwb3J0ID0gbmV3IEV4cG9y
-dEpGcmVlQ2hhcnQoY2hhcnQsIDgwMCwgNjAwKQ0KcmV0dXJuIGV4cG9ydA==</script>
+      aW1wb3J0IG9yZy5qZnJlZS5kYXRhLmdlbmVyYWwuKg0KaW1wb3J0IG9yZy5qZnJlZS51dGlsLioN
+      CmltcG9ydCBvcmcucHJvamVjdGZvcmdlLmV4cG9ydC4qDQoNCkRlZmF1bHRQaWVEYXRhc2V0IGRh
+      dGFzZXQgPSBuZXcgRGVmYXVsdFBpZURhdGFzZXQoKQ0KZGF0YXNldC5zZXRWYWx1ZSgiTGludXgi
+      LCAxNSkNCmRhdGFzZXQuc2V0VmFsdWUoIk1hYyIsIDgpDQpkYXRhc2V0LnNldFZhbHVlKCJXaW5k
+      b3dzIiwgNzApDQpkYXRhc2V0LnNldFZhbHVlKCJPdGhlcnMiLCA3KQ0KSkZyZWVDaGFydCBjaGFy
+      dCA9IENoYXJ0RmFjdG9yeS5jcmVhdGVQaWVDaGFydDNEKCJVc2VycyBvbiB3d3cuaGVpc2UuZGUi
+      LCBkYXRhc2V0LCB0cnVlLCB0cnVlLCBmYWxzZSkNClBpZVBsb3QzRCBwbG90ID0gKFBpZVBsb3Qz
+      RCkgY2hhcnQuZ2V0UGxvdCgpDQoNCkV4cG9ydEpGcmVlQ2hhcnQgZXhwb3J0ID0gbmV3IEV4cG9y
+      dEpGcmVlQ2hhcnQoY2hhcnQsIDgwMCwgNjAwKQ0KcmV0dXJuIGV4cG9ydA==
+    </script>
     <scriptBackup id="1078">importorgjfreechartimportorgjfreechartplotimportorgjfreedatageneralimportorg
-jfreeutilimportorgprojectforgeexportDefaultPieDatasetdataset/newDefaultPieDa
-tasetdatasetsetValueLinux15datasetsetValueMac8datasetsetValueWindows70datase
-tsetValueOthers7JFreeChartcharsKFqu0Vpy2ivJyt5q14+J4KFqu3cNSx6uyifDDCF6Kx515
-1q1qx622u562u559qWx4+J4+Wi3cOmWiz4nj5aLdw3IWq7YHrT5aLRMaaK7SRa3ngoWq7XsaaK7n
-ewExportJFreeChartchart800600returnexpor</scriptBackup>
+      jfreeutilimportorgprojectforgeexportDefaultPieDatasetdataset/newDefaultPieDa
+      tasetdatasetsetValueLinux15datasetsetValueMac8datasetsetValueWindows70datase
+      tsetValueOthers7JFreeChartcharsKFqu0Vpy2ivJyt5q14+J4KFqu3cNSx6uyifDDCF6Kx515
+      1q1qx622u562u559qWx4+J4+Wi3cOmWiz4nj5aLdw3IWq7YHrT5aLRMaaK7SRa3ngoWq7XsaaK7n
+      ewExportJFreeChartchart800600returnexpor
+    </scriptBackup>
   </org.projectforge.business.scripting.ScriptDO>
   <org.projectforge.business.scripting.ScriptDO id="1079">
     <created class="sql-timestamp" id="1080">2010-05-03 23:14:00.595</created>
@@ -5029,27 +5059,29 @@ ewExportJFreeChartchart800600returnexpor</scriptBackup>
     <name>Excel export of all user&apos;s</name>
     <description>This short demo shows how easy it is to filter and export data.</description>
     <script id="1082">aW1wb3J0IG9yZy5oaWJlcm5hdGUuY3JpdGVyaW9uLioNCmltcG9ydCBvcmcucHJvamVjdGZvcmdl
-LmNvcmUuKg0KaW1wb3J0IG9yZy5wcm9qZWN0Zm9yZ2UuZXhwb3J0LioNCg0KUXVlcnlGaWx0ZXIg
-ZmlsdGVyID0gbmV3IFF1ZXJ5RmlsdGVyKCkgICAgICAgICAvLyBEZWZpbmVzIG5ldyBxdWVyeQ0K
-ZmlsdGVyLmFkZE9yZGVyKE9yZGVyLmFzYygidXNlcm5hbWUiKSkgICAgICAgICAvLyBTb3J0DQpM
-aXN0IHVzZXJMaXN0ID0gdXNlckRhby5nZXRMaXN0KGZpbHRlcikgICAgICAgIC8vIEdldHMgdGhl
-IHVzZXIgbGlzdA0KDQpFeHBvcnRXb3JrYm9vayB3b3JrYm9vayA9IG5ldyBFeHBvcnRXb3JrYm9v
-aygpOy8vIENyZWF0ZXMgYSBuZXcgd29yayBib29rDQpFeHBvcnRTaGVldCBzaGVldCA9IHdvcmti
-b29rLmFkZFNoZWV0KCJVc2VycyIpIC8vIENyZWF0ZXMgc2hlZXQNCnNoZWV0LmNvbnRlbnRQcm92
-aWRlci5jb2xXaWR0aHMgPSBbMTAsIDIwXSAgICAgLy8gU2V0cyB3aWR0aCBvZiBjb2x1bW5zLg0K
-c2hlZXQucHJvcGVydHlOYW1lcyA9IFsidXNlcm5hbWUiLCAibGFzdG5hbWUiXSAvLyBEZWZpbmVz
-IHByb3BlcnRpZXMNCnNoZWV0LmFkZFJvdygpLnNldENhcGl0YWxpemVkVmFsdWVzKHNoZWV0LnBy
-b3BlcnR5TmFtZXMpICAvLyBBZGRzIGNvbHVtbiBoZWFkcw0Kc2hlZXQuYWRkUm93cyh1c2VyTGlz
-dCkgICAgICAgICAgICAgICAgICAgICAgICAvLyBGaWxscyB0aGUgcm93cyBmcm9tIHRoZSBiZWFu
-cw0KDQpyZXR1cm4gd29ya2Jvb2s=</script>
+      LmNvcmUuKg0KaW1wb3J0IG9yZy5wcm9qZWN0Zm9yZ2UuZXhwb3J0LioNCg0KUXVlcnlGaWx0ZXIg
+      ZmlsdGVyID0gbmV3IFF1ZXJ5RmlsdGVyKCkgICAgICAgICAvLyBEZWZpbmVzIG5ldyBxdWVyeQ0K
+      ZmlsdGVyLmFkZE9yZGVyKE9yZGVyLmFzYygidXNlcm5hbWUiKSkgICAgICAgICAvLyBTb3J0DQpM
+      aXN0IHVzZXJMaXN0ID0gdXNlckRhby5nZXRMaXN0KGZpbHRlcikgICAgICAgIC8vIEdldHMgdGhl
+      IHVzZXIgbGlzdA0KDQpFeHBvcnRXb3JrYm9vayB3b3JrYm9vayA9IG5ldyBFeHBvcnRXb3JrYm9v
+      aygpOy8vIENyZWF0ZXMgYSBuZXcgd29yayBib29rDQpFeHBvcnRTaGVldCBzaGVldCA9IHdvcmti
+      b29rLmFkZFNoZWV0KCJVc2VycyIpIC8vIENyZWF0ZXMgc2hlZXQNCnNoZWV0LmNvbnRlbnRQcm92
+      aWRlci5jb2xXaWR0aHMgPSBbMTAsIDIwXSAgICAgLy8gU2V0cyB3aWR0aCBvZiBjb2x1bW5zLg0K
+      c2hlZXQucHJvcGVydHlOYW1lcyA9IFsidXNlcm5hbWUiLCAibGFzdG5hbWUiXSAvLyBEZWZpbmVz
+      IHByb3BlcnRpZXMNCnNoZWV0LmFkZFJvdygpLnNldENhcGl0YWxpemVkVmFsdWVzKHNoZWV0LnBy
+      b3BlcnR5TmFtZXMpICAvLyBBZGRzIGNvbHVtbiBoZWFkcw0Kc2hlZXQuYWRkUm93cyh1c2VyTGlz
+      dCkgICAgICAgICAgICAgICAgICAgICAgICAvLyBGaWxscyB0aGUgcm93cyBmcm9tIHRoZSBiZWFu
+      cw0KDQpyZXR1cm4gd29ya2Jvb2s=
+    </script>
     <scriptBackup id="1083">importorghibernatecriterionimportorgprojectforgecoreimportorgprojectforgeexp
-ortQueryFilterfilter/newQueryFilter//DefinesnewqueryfilteraddOrderOrderascus
-ername//SortListuserList/userDaogetListfilter//GetstheuserlistExportWorkbook
-workbook/newExportWorkbook//CreatesanewworkbookExportSheetsheevCiuRuiiRp11KF
-561Sx6uz/8Kt5q16yyF562yF561yie16e0+ui+J16tyiVaJ22Gz/XTbT/9J62zCJ22Gh9yiW6aey
-yF562muil6u3I1qZ67rHq52pnpWrLZ2pnv/w3n4p3rKa6KXq7YnrLIXnrWnXUaMLHrQmqYrWpYs3
-nVWpbnrLIXnraa6KXq7cjWpnrP/wHXbHKJbpp4XmnbLIXnrWnXUaMLLrHqy4rLf/xYpZbLYXq6ML
-H66JrYXm3mp7K3rbq58KK5G6KA==</scriptBackup>
+      ortQueryFilterfilter/newQueryFilter//DefinesnewqueryfilteraddOrderOrderascus
+      ername//SortListuserList/userDaogetListfilter//GetstheuserlistExportWorkbook
+      workbook/newExportWorkbook//CreatesanewworkbookExportSheetsheevCiuRuiiRp11KF
+      561Sx6uz/8Kt5q16yyF562yF561yie16e0+ui+J16tyiVaJ22Gz/XTbT/9J62zCJ22Gh9yiW6aey
+      yF562muil6u3I1qZ67rHq52pnpWrLZ2pnv/w3n4p3rKa6KXq7YnrLIXnrWnXUaMLHrQmqYrWpYs3
+      nVWpbnrLIXnraa6KXq7cjWpnrP/wHXbHKJbpp4XmnbLIXnrWnXUaMLLrHqy4rLf/xYpZbLYXq6ML
+      H66JrYXm3mp7K3rbq58KK5G6KA==
+    </scriptBackup>
   </org.projectforge.business.scripting.ScriptDO>
   <org.projectforge.business.book.BookDO id="1084">
     <created class="sql-timestamp" id="1085">2008-01-10 08:27:53.675</created>

@@ -91,10 +91,15 @@ public class GroovyEngine
     this.configurationService = configurationService;
   }
 
+  public GroovyEngine(ConfigurationService configurationService, final Map<String, Object> variables)
+  {
+    this(configurationService, variables, null, null);
+  }
+
   /**
    * For achieving well-formed XML files you can replace '&lt;% ... %&gt;' by '&lt;groovy&gt; ... &lt;/groovy&gt;' and
    * '&lt;%= ... %&gt;' by '&lt;groovy-out&gt; ... &lt;/groovy-out&gt;'
-   * 
+   *
    * @param template
    * @return
    */
@@ -164,7 +169,6 @@ public class GroovyEngine
   }
 
   /**
-   * 
    * @param path
    * @return
    * @see ConfigXml#getResourceContentAsString(String)
@@ -183,7 +187,7 @@ public class GroovyEngine
 
   /**
    * Gets i18n message.
-   * 
+   *
    * @param messageKey
    * @param params
    * @see I18nHelper#getLocalizedMessage(Locale, String, Object...)
@@ -195,7 +199,7 @@ public class GroovyEngine
 
   /**
    * Gets i18n string.
-   * 
+   *
    * @param key
    * @see I18nHelper#getLocalizedString(Locale, String)
    */
@@ -309,7 +313,7 @@ public class GroovyEngine
 
   /**
    * Gets i18n string.
-   * 
+   *
    * @param i18nEnum
    * @see I18nHelper#getLocalizedString(Locale, String)
    * @see I18nEnum#getI18nKey()
@@ -324,7 +328,7 @@ public class GroovyEngine
 
   /**
    * Gets the customer's name.
-   * 
+   *
    * @param customer
    * @see KostFormatter#formatKunde(KundeDO)
    */
@@ -338,7 +342,7 @@ public class GroovyEngine
 
   /**
    * Gets the project's name.
-   * 
+   *
    * @param project
    * @see KostFormatter#formatProjekt(ProjektDO)
    */
@@ -352,7 +356,7 @@ public class GroovyEngine
 
   /**
    * Gets the user's name (full name).
-   * 
+   *
    * @param user
    * @see PFUserDO#getFullname()
    */
@@ -366,7 +370,7 @@ public class GroovyEngine
 
   /**
    * Gets the user's name (full name).
-   * 
+   *
    * @param user
    * @see PFUserDO#getFullname()
    */
@@ -380,7 +384,7 @@ public class GroovyEngine
 
   /**
    * Gets the user's name (full name).
-   * 
+   *
    * @param user
    * @see PFUserDO#getFullname()
    */

@@ -26,16 +26,15 @@ package org.projectforge.web.rest.converter;
 import org.projectforge.business.timesheet.TimesheetDO;
 import org.projectforge.business.user.UserPrefDao;
 import org.projectforge.framework.persistence.user.entities.UserPrefDO;
-import org.projectforge.rest.objects.Cost2Object;
-import org.projectforge.rest.objects.TaskObject;
-import org.projectforge.rest.objects.TimesheetTemplateObject;
-import org.projectforge.rest.objects.UserObject;
+import org.projectforge.model.rest.Cost2Object;
+import org.projectforge.model.rest.TaskObject;
+import org.projectforge.model.rest.TimesheetTemplateObject;
+import org.projectforge.model.rest.UserObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
  */
 @Service
 public class TimesheetTemplateConverter
