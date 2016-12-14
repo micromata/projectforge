@@ -24,6 +24,7 @@
 package org.projectforge.business.teamcal.servlet;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.Map;
 
 import javax.servlet.ServletConfig;
@@ -35,11 +36,14 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.httpclient.HttpStatus;
 import org.apache.commons.lang.StringUtils;
+import org.projectforge.business.configuration.ConfigurationService;
+import org.projectforge.business.scripting.GroovyEngine;
 import org.projectforge.business.teamcal.event.TeamEventService;
 import org.projectforge.business.teamcal.event.model.TeamEventAttendeeDO;
 import org.projectforge.business.teamcal.event.model.TeamEventAttendeeStatus;
 import org.projectforge.business.teamcal.event.model.TeamEventDO;
 import org.projectforge.business.teamcal.service.CryptService;
+import org.projectforge.business.user.I18nHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.web.context.WebApplicationContext;
@@ -47,13 +51,15 @@ import org.springframework.web.context.support.WebApplicationContextUtils;
 
 /**
  * Response servlet for team calendar events.
- * 
+ *
  * @author Florian Blumenstein
- * 
  */
-@WebServlet("/cal")
+//TODO Remove old Pattern in PF version 6.7
+@WebServlet({ "/cal", TeamCalResponseServlet.PFCALENDAR })
 public class TeamCalResponseServlet extends HttpServlet
 {
+  public static final String PFCALENDAR = "/pfcalendar";
+
   private static final long serialVersionUID = 8042634572943344080L;
 
   private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(TeamCalResponseServlet.class);
@@ -65,6 +71,9 @@ public class TeamCalResponseServlet extends HttpServlet
 
   @Autowired
   private CryptService cryptService;
+
+  @Autowired
+  private ConfigurationService configurationService;
 
   @Override
   public void init(final ServletConfig config) throws ServletException
@@ -97,7 +106,7 @@ public class TeamCalResponseServlet extends HttpServlet
       status = TeamEventAttendeeStatus.valueOf(reqStatus.toUpperCase());
     } catch (IllegalArgumentException e) {
       log.warn("Bad request, request parameter 'status' not valid: " + reqStatus);
-      resp.sendError(HttpStatus.SC_BAD_REQUEST);
+      sendNotValidData(resp);
       return;
     }
     final TeamEventAttendeeStatus statusFinal = status;
@@ -112,7 +121,7 @@ public class TeamCalResponseServlet extends HttpServlet
     TeamEventDO event = teamEventService.findByUid(reqEventUid);
     if (event == null) {
       log.warn("Bad request, request parameter 'uid' not valid: " + reqEventUid);
-      resp.sendError(HttpStatus.SC_BAD_REQUEST);
+      sendNotValidData(resp);
       return;
     }
 
@@ -128,18 +137,14 @@ public class TeamCalResponseServlet extends HttpServlet
       attendeeId = Integer.parseInt(reqEventAttendee);
     } catch (NumberFormatException e) {
       log.warn("Bad request, request parameter 'attendee' not valid: " + reqEventAttendee);
-      resp.sendError(HttpStatus.SC_BAD_REQUEST);
+      sendNotValidData(resp);
       return;
     }
     final TeamEventAttendeeDO eventAttendee = teamEventService.findByAttendeeId(attendeeId, false);
     if (eventAttendee != null) {
-      event.getAttendees().stream().forEach(attendee -> {
-        if (attendee.equals(eventAttendee) == true) {
-          attendee.setStatus(statusFinal);
-        }
-      });
       try {
-        teamEventService.update(event, false);
+        eventAttendee.setStatus(statusFinal);
+        teamEventService.updateAttendee(eventAttendee, false);
       } catch (Exception e) {
         log.error("Bad request, exception while updating event: " + e.getMessage());
         resp.sendError(HttpStatus.SC_BAD_REQUEST);
@@ -147,11 +152,32 @@ public class TeamCalResponseServlet extends HttpServlet
       }
     } else {
       log.warn("Bad request, request parameter 'attendee' not valid: " + reqEventAttendee);
-      resp.sendError(HttpStatus.SC_BAD_REQUEST);
+      sendNotValidData(resp);
       return;
     }
 
-    resp.getOutputStream().print("SUCCESSFULLY RESPONDED: " + status);
+    resp.setContentType("text/html;charset=UTF-8");
+    final Map<String, Object> templateData = new HashMap<>();
+    templateData.put("reponse", I18nHelper.getLocalizedMessage("plugins.teamcal.attendee.response." + statusFinal.getKey()));
+    final String content = renderGroovyTemplate("htmlTemplates/teamEventResponse.html", templateData);
+
+    resp.getOutputStream().print(content);
+  }
+
+  private void sendNotValidData(HttpServletResponse resp) throws IOException
+  {
+    resp.setContentType("text/html;charset=UTF-8");
+    final Map<String, Object> templateData = new HashMap<>();
+    templateData.put("reponse", I18nHelper.getLocalizedMessage("plugins.teamcal.attendee.response.error"));
+    final String content = renderGroovyTemplate("htmlTemplates/teamEventResponse.html", templateData);
+    resp.getOutputStream().print(content);
+  }
+
+  private String renderGroovyTemplate(final String groovyTemplate, final Map<String, Object> data)
+  {
+    log.debug("groovyTemplate=" + groovyTemplate);
+    final GroovyEngine engine = new GroovyEngine(configurationService, data);
+    return engine.executeTemplateFile(groovyTemplate);
   }
 
 }

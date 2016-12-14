@@ -23,23 +23,54 @@
 
 package org.projectforge.framework.persistence.database;
 
-import de.micromata.genome.db.jpa.history.api.HistoryEntry;
-import de.micromata.genome.db.jpa.tabattr.api.TimeableRow;
-import de.micromata.genome.jpa.CriteriaUpdate;
-import de.micromata.genome.jpa.metainf.EntityMetadata;
+import java.math.BigDecimal;
+import java.time.temporal.ChronoField;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.TimeZone;
+import java.util.function.Predicate;
+
 import org.projectforge.business.address.AddressDO;
-import org.projectforge.business.fibu.*;
+import org.projectforge.business.fibu.AuftragDO;
+import org.projectforge.business.fibu.AuftragsPositionDO;
+import org.projectforge.business.fibu.EingangsrechnungDO;
+import org.projectforge.business.fibu.EmployeeDO;
+import org.projectforge.business.fibu.EmployeeDao;
+import org.projectforge.business.fibu.EmployeeStatus;
+import org.projectforge.business.fibu.EmployeeTimedDO;
+import org.projectforge.business.fibu.KontoDO;
+import org.projectforge.business.fibu.KundeDO;
+import org.projectforge.business.fibu.PaymentScheduleDO;
+import org.projectforge.business.fibu.ProjektDO;
+import org.projectforge.business.fibu.RechnungDO;
 import org.projectforge.business.fibu.api.EmployeeService;
 import org.projectforge.business.multitenancy.TenantRegistryMap;
 import org.projectforge.business.multitenancy.TenantService;
-import org.projectforge.business.orga.*;
+import org.projectforge.business.orga.VisitorbookDO;
+import org.projectforge.business.orga.VisitorbookTimedAttrDO;
+import org.projectforge.business.orga.VisitorbookTimedAttrDataDO;
+import org.projectforge.business.orga.VisitorbookTimedAttrWithDataDO;
+import org.projectforge.business.orga.VisitorbookTimedDO;
 import org.projectforge.business.scripting.ScriptDO;
 import org.projectforge.business.task.TaskDO;
 import org.projectforge.business.user.GroupDao;
 import org.projectforge.business.user.ProjectForgeGroup;
 import org.projectforge.business.user.UserXmlPreferencesDO;
-import org.projectforge.continuousdb.*;
+import org.projectforge.continuousdb.DatabaseResultRow;
+import org.projectforge.continuousdb.SchemaGenerator;
+import org.projectforge.continuousdb.Table;
+import org.projectforge.continuousdb.TableAttribute;
+import org.projectforge.continuousdb.UpdateEntry;
+import org.projectforge.continuousdb.UpdateEntryImpl;
+import org.projectforge.continuousdb.UpdatePreCheckStatus;
+import org.projectforge.continuousdb.UpdateRunningStatus;
 import org.projectforge.framework.configuration.Configuration;
+import org.projectforge.framework.configuration.ConfigurationType;
 import org.projectforge.framework.configuration.entities.ConfigurationDO;
 import org.projectforge.framework.persistence.attr.impl.InternalAttrSchemaConstants;
 import org.projectforge.framework.persistence.entities.AbstractBaseDO;
@@ -52,10 +83,10 @@ import org.projectforge.framework.persistence.user.entities.UserRightDO;
 import org.projectforge.framework.time.DateHelper;
 import org.springframework.context.ApplicationContext;
 
-import java.math.BigDecimal;
-import java.time.temporal.ChronoField;
-import java.util.*;
-import java.util.function.Predicate;
+import de.micromata.genome.db.jpa.history.api.HistoryEntry;
+import de.micromata.genome.db.jpa.tabattr.api.TimeableRow;
+import de.micromata.genome.jpa.CriteriaUpdate;
+import de.micromata.genome.jpa.metainf.EntityMetadata;
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
@@ -83,7 +114,7 @@ public class DatabaseCoreUpdates
     // 6.6.0
     // /////////////////////////////////////////////////////////////////
     list.add(new UpdateEntryImpl(CORE_REGION_ID, "6.6.0", "2016-12-14",
-        "Add new visitorbook tables. " +
+        "Add new visitorbook tables. Add table for vacation." +
                 "Add new column in user table [lastWlanPasswordChange]. " +
                 "Add new columns in order table [erfassungsDatum, entscheidungsDatum].")
     {
@@ -91,30 +122,48 @@ public class DatabaseCoreUpdates
       public UpdatePreCheckStatus runPreCheck()
       {
         log.info("Running pre-check for ProjectForge version 6.6.0");
-        if (databaseUpdateService.doTableAttributesExist(PFUserDO.class, "lastWlanPasswordChange") == false
-                || databaseUpdateService.doTableAttributesExist(AuftragDO.class, "erfassungsDatum") == false
-                || databaseUpdateService.doTableAttributesExist(AuftragDO.class, "entscheidungsDatum") == false) {
+        final DatabaseUpdateService databaseUpdateService = applicationContext.getBean(DatabaseUpdateService.class);
+        if (databaseUpdateService.doesTableExist("T_EMPLOYEE_VACATION") == false
+            || databaseUpdateService.doesTableRowExists("T_CONFIGURATION", "PARAMETER", "hr.emailaddress",
+            true) == false) {
           return UpdatePreCheckStatus.READY_FOR_UPDATE;
         } else if (
             databaseUpdateService.doTablesExist(VisitorbookDO.class, VisitorbookTimedDO.class, VisitorbookTimedAttrDO.class, VisitorbookTimedAttrDataDO.class,
                 VisitorbookTimedAttrWithDataDO.class) == false || databaseUpdateService.doesGroupExists(ProjectForgeGroup.ORGA_TEAM) == false) {
           return UpdatePreCheckStatus.READY_FOR_UPDATE;
-        } else {
-          return UpdatePreCheckStatus.ALREADY_UPDATED;
+        } else if (databaseUpdateService.doTableAttributesExist(PFUserDO.class, "lastWlanPasswordChange") == false
+            || databaseUpdateService.doTableAttributesExist(AuftragDO.class, "erfassungsDatum", "entscheidungsDatum") == false) {
+          return UpdatePreCheckStatus.READY_FOR_UPDATE;
         }
+        return UpdatePreCheckStatus.ALREADY_UPDATED;
       }
 
       @Override
       public UpdateRunningStatus runUpdate()
       {
-        if (databaseUpdateService.doTableAttributesExist(PFUserDO.class, "lastWlanPasswordChange") == false
-                || databaseUpdateService.doTableAttributesExist(AuftragDO.class, "erfassungsDatum") == false
-                || databaseUpdateService.doTableAttributesExist(AuftragDO.class, "entscheidungsDatum") == false
-                || databaseUpdateService.doTablesExist(VisitorbookDO.class, VisitorbookTimedDO.class, VisitorbookTimedAttrDO.class, VisitorbookTimedAttrDataDO.class,
-                VisitorbookTimedAttrWithDataDO.class) == false) {
+        final InitDatabaseDao initDatabaseDao = applicationContext.getBean(InitDatabaseDao.class);
+        final DatabaseUpdateService databaseUpdateService = applicationContext.getBean(DatabaseUpdateService.class);
+        if ((databaseUpdateService.doesTableExist("T_EMPLOYEE_VACATION") == false) || (databaseUpdateService
+            .doTablesExist(VisitorbookDO.class, VisitorbookTimedDO.class, VisitorbookTimedAttrDO.class, VisitorbookTimedAttrDataDO.class,
+                VisitorbookTimedAttrWithDataDO.class) == false)
+            || databaseUpdateService.doTableAttributesExist(PFUserDO.class, "lastWlanPasswordChange") == false
+            ||  databaseUpdateService.doTableAttributesExist(AuftragDO.class, "erfassungsDatum", "entscheidungsDatum") == false) {
+          //Updating the schema
           initDatabaseDao.updateSchema();
         }
-
+        if (databaseUpdateService.doesTableRowExists("T_CONFIGURATION", "PARAMETER", "hr.emailaddress",
+            true) == false) {
+          final PfEmgrFactory emf = applicationContext.getBean(PfEmgrFactory.class);
+          emf.runInTrans(emgr -> {
+            ConfigurationDO confEntry = new ConfigurationDO();
+            confEntry.setConfigurationType(ConfigurationType.STRING);
+            confEntry.setGlobal(false);
+            confEntry.setParameter("hr.emailaddress");
+            confEntry.setStringValue("hr@management.de");
+            emgr.insert(confEntry);
+            return UpdateRunningStatus.DONE;
+          });
+        }
         if (databaseUpdateService.doesGroupExists(ProjectForgeGroup.ORGA_TEAM) == false) {
           GroupDao groupDao = applicationContext.getBean(GroupDao.class);
           GroupDO orgaGroup = new GroupDO();

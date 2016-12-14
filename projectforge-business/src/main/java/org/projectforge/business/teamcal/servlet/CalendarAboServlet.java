@@ -46,8 +46,7 @@ import org.projectforge.business.multitenancy.TenantRegistryMap;
 import org.projectforge.business.teamcal.TeamCalConfig;
 import org.projectforge.business.teamcal.common.CalendarHelper;
 import org.projectforge.business.teamcal.model.CalendarFeedConst;
-import org.projectforge.business.teamcal.service.TeamCalCalendarFeedHook;
-import org.projectforge.business.teamcal.service.TeamCalService;
+import org.projectforge.business.teamcal.service.TeamCalServiceImpl;
 import org.projectforge.business.timesheet.TimesheetDO;
 import org.projectforge.business.timesheet.TimesheetDao;
 import org.projectforge.business.timesheet.TimesheetFilter;
@@ -108,10 +107,7 @@ public class CalendarAboServlet extends HttpServlet
   private UserService userService;
 
   @Autowired
-  private TeamCalService teamCalService;
-
-  @Autowired
-  private TeamCalCalendarFeedHook teamCalCalendarFeedHook;
+  private TeamCalServiceImpl teamCalService;
 
   @Override
   public void init(final ServletConfig config) throws ServletException
@@ -266,7 +262,7 @@ public class CalendarAboServlet extends HttpServlet
     final java.util.Calendar cal = java.util.Calendar.getInstance(ThreadLocalUserContext.getTimeZone());
 
     boolean eventsExist = false;
-    final List<VEvent> list = teamCalCalendarFeedHook.getEvents(params, timezone);
+    final List<VEvent> list = teamCalService.getEvents(params, timezone);
     if (list != null && list.size() > 0) {
       events.addAll(list);
       eventsExist = true;

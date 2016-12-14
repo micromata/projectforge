@@ -1,0 +1,34 @@
+<html lang="en"
+      xmlns:wicket="http://wicket.apache.org/dtds.data/wicket-xhtml1.4-strict.dtd">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <style type="text/css">
+        #pacman {
+            height: 450px;
+            width: 342px;
+            margin: 20px auto;
+        }
+    </style>
+</head>
+<body>
+<wicket:extend>
+    <div id="pacman"></div>
+    <script src="scripts/pacman/pacman.js"></script>
+    <script src="scripts/pacman/modernizr-1.5.min.js"></script>
+
+    <script>
+        var el = document.getElementById("pacman");
+
+        if (Modernizr.canvas && Modernizr.localstorage &&
+            Modernizr.audio && (Modernizr.audio.ogg || Modernizr.audio.mp3)) {
+            window.setTimeout(function () {
+                PACMAN.init(el, "../../../scripts/pacman/");
+            }, 0);
+        } else {
+            el.innerHTML = "Sorry, needs a decent browser<br /><small>" +
+                "(firefox 3.6+, Chrome 4+, Opera 10+ and Safari 4+)</small>";
+        }
+    </script>
+</wicket:extend>
+</body>
+</html>
