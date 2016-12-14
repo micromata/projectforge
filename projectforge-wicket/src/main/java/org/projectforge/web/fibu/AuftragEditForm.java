@@ -23,14 +23,6 @@
 
 package org.projectforge.web.fibu;
 
-import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Date;
-import java.util.List;
-import java.util.Set;
-import java.util.function.BooleanSupplier;
-
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
@@ -38,12 +30,7 @@ import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
-import org.apache.wicket.markup.html.form.Button;
-import org.apache.wicket.markup.html.form.CheckBox;
-import org.apache.wicket.markup.html.form.DropDownChoice;
-import org.apache.wicket.markup.html.form.Form;
-import org.apache.wicket.markup.html.form.FormComponent;
-import org.apache.wicket.markup.html.form.TextField;
+import org.apache.wicket.markup.html.form.*;
 import org.apache.wicket.markup.html.form.validation.IFormValidator;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.CompoundPropertyModel;
@@ -51,20 +38,9 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.apache.wicket.util.convert.IConverter;
-import org.projectforge.business.fibu.AuftragDO;
-import org.projectforge.business.fibu.AuftragsPositionDO;
-import org.projectforge.business.fibu.AuftragsPositionsArt;
-import org.projectforge.business.fibu.AuftragsPositionsStatus;
-import org.projectforge.business.fibu.AuftragsStatus;
-import org.projectforge.business.fibu.KundeDO;
-import org.projectforge.business.fibu.ModeOfPaymentType;
-import org.projectforge.business.fibu.PaymentScheduleDO;
-import org.projectforge.business.fibu.PeriodOfPerformanceType;
-import org.projectforge.business.fibu.ProjektDO;
-import org.projectforge.business.fibu.RechnungCache;
-import org.projectforge.business.fibu.RechnungDao;
-import org.projectforge.business.fibu.RechnungsPositionVO;
+import org.projectforge.business.fibu.*;
 import org.projectforge.business.task.TaskDO;
+import org.projectforge.business.user.I18nHelper;
 import org.projectforge.business.user.UserRightValue;
 import org.projectforge.business.utils.CurrencyFormatter;
 import org.projectforge.common.StringHelper;
@@ -78,24 +54,14 @@ import org.projectforge.web.wicket.AbstractUnsecureBasePage;
 import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.web.wicket.bootstrap.GridBuilder;
 import org.projectforge.web.wicket.bootstrap.GridSize;
-import org.projectforge.web.wicket.components.DatePanel;
-import org.projectforge.web.wicket.components.DatePanelSettings;
-import org.projectforge.web.wicket.components.LabelValueChoiceRenderer;
-import org.projectforge.web.wicket.components.MaxLengthTextArea;
-import org.projectforge.web.wicket.components.MaxLengthTextField;
-import org.projectforge.web.wicket.components.MinMaxNumberField;
-import org.projectforge.web.wicket.components.RequiredMaxLengthTextField;
-import org.projectforge.web.wicket.components.SingleButtonPanel;
+import org.projectforge.web.wicket.components.*;
 import org.projectforge.web.wicket.converter.CurrencyConverter;
-import org.projectforge.web.wicket.flowlayout.CheckBoxButton;
-import org.projectforge.web.wicket.flowlayout.DivPanel;
-import org.projectforge.web.wicket.flowlayout.DivTextPanel;
-import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
-import org.projectforge.web.wicket.flowlayout.InputPanel;
-import org.projectforge.web.wicket.flowlayout.TextAreaPanel;
-import org.projectforge.web.wicket.flowlayout.TextStyle;
-import org.projectforge.web.wicket.flowlayout.ToggleContainerPanel;
+import org.projectforge.web.wicket.flowlayout.*;
 import org.projectforge.web.wicket.flowlayout.ToggleContainerPanel.ToggleStatus;
+
+import java.math.BigDecimal;
+import java.util.*;
+import java.util.function.BooleanSupplier;
 
 public class AuftragEditForm extends AbstractEditForm<AuftragDO, AuftragEditPage>
 {
@@ -131,6 +97,9 @@ public class AuftragEditForm extends AbstractEditForm<AuftragDO, AuftragEditPage
   @SpringBean
   RechnungCache rechnungCache;
 
+  @SpringBean
+  private AuftragDao auftragDao;
+
   public AuftragEditForm(final AuftragEditPage parentPage, final AuftragDO data)
   {
     super(parentPage, data);
@@ -151,6 +120,8 @@ public class AuftragEditForm extends AbstractEditForm<AuftragDO, AuftragEditPage
   protected void init()
   {
     super.init();
+
+    auftragDao.calculateInvoicedSum(data);
 
     /* GRID8 - BLOCK */
     gridBuilder.newSplitPanel(GridSize.COL50);
@@ -190,6 +161,9 @@ public class AuftragEditForm extends AbstractEditForm<AuftragDO, AuftragEditPage
         }
       }, TextStyle.FORM_TEXT);
       fs.add(orderedPanel);
+
+      String orderInvoiceInfo = I18nHelper.getLocalizedMessage("fibu.auftrag.invoice.info", CurrencyFormatter.format(data.getFakturiertSum()), CurrencyFormatter.format(data.getZuFakturierenSum()));
+      fs.add(new DivTextPanel(fs.newChildId(), orderInvoiceInfo)); ;
     }
     gridBuilder.newGridPanel();
     {
@@ -329,8 +303,8 @@ public class AuftragEditForm extends AbstractEditForm<AuftragDO, AuftragEditPage
         }
 
         /**
-         * @see org.projectforge.web.wicket.flowlayout.ToggleContainerPanel#onToggleStatusChanged(org.apache.wicket.ajax.AjaxRequestTarget,
-         *      boolean)
+         * @see org.projectforge.web.wicket.flowlayout.ToggleContainerPanel#onToggleStatusChanged(AjaxRequestTarget, ToggleStatus)
+         *
          */
         @Override
         protected void onToggleStatusChanged(final AjaxRequestTarget target, final ToggleStatus toggleStatus)
@@ -465,8 +439,7 @@ public class AuftragEditForm extends AbstractEditForm<AuftragDO, AuftragEditPage
         }
 
         /**
-         * @see org.projectforge.web.wicket.flowlayout.ToggleContainerPanel#onToggleStatusChanged(org.apache.wicket.ajax.AjaxRequestTarget,
-         *      boolean)
+         * @see org.projectforge.web.wicket.flowlayout.ToggleContainerPanel#onToggleStatusChanged(AjaxRequestTarget, ToggleStatus)
          */
         @Override
         protected void onToggleStatusChanged(final AjaxRequestTarget target, final ToggleStatus toggleStatus)
@@ -537,7 +510,7 @@ public class AuftragEditForm extends AbstractEditForm<AuftragDO, AuftragEditPage
           fs.setWarningBackground();
         }
       }
-      posGridBuilder.newSplitPanel(GridSize.COL33);
+      posGridBuilder.newSplitPanel(GridSize.COL25);
       final Set<RechnungsPositionVO> invoicePositionsByOrderPositionId = rechnungCache
           .getRechnungsPositionVOSetByAuftragsPositionId(position.getId());
       final boolean showInvoices = CollectionUtils.isNotEmpty(invoicePositionsByOrderPositionId);
@@ -552,10 +525,10 @@ public class AuftragEditForm extends AbstractEditForm<AuftragDO, AuftragEditPage
           fs.add(AbstractUnsecureBasePage.createInvisibleDummyComponent(fs.newChildId()));
         }
       }
-      posGridBuilder.newSplitPanel(GridSize.COL33);
+      posGridBuilder.newSplitPanel(GridSize.COL25);
       {
         // invoiced
-        final FieldsetPanel fs = posGridBuilder.newFieldset(getString("fibu.fakturiert")).suppressLabelForWarning();
+        final FieldsetPanel fs = posGridBuilder.newFieldset(getString("fibu.title.fakturiert")).suppressLabelForWarning();
         if (showInvoices == true) {
           fs.add(new DivTextPanel(fs.newChildId(),
               CurrencyFormatter.format(RechnungDao.getNettoSumme(invoicePositionsByOrderPositionId))));
@@ -569,7 +542,18 @@ public class AuftragEditForm extends AbstractEditForm<AuftragDO, AuftragEditPage
               getString("fibu.auftrag.vollstaendigFakturiert")));
         }
       }
-      posGridBuilder.newSplitPanel(GridSize.COL33);
+      posGridBuilder.newSplitPanel(GridSize.COL25);
+      {
+        // not invoiced
+        final FieldsetPanel fs = posGridBuilder.newFieldset(getString("fibu.title.fakturiert.not")).suppressLabelForWarning();
+        if (showInvoices == true) {
+          BigDecimal invoicedSumForPosition = RechnungDao.getNettoSumme(invoicePositionsByOrderPositionId);
+          BigDecimal notInvoicedSumForPosition = position.getNettoSumme().subtract(invoicedSumForPosition);
+          fs.add(new DivTextPanel(fs.newChildId(),
+                  CurrencyFormatter.format(notInvoicedSumForPosition)));
+        }
+      }
+      posGridBuilder.newSplitPanel(GridSize.COL25);
       {
         // DropDownChoice status
         final FieldsetPanel fs = posGridBuilder.newFieldset(getString("status"));
