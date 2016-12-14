@@ -23,18 +23,23 @@
 
 package org.projectforge.rest.converter;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
+
+import org.apache.commons.codec.binary.Base64;
 import org.projectforge.business.address.AddressDO;
-import org.projectforge.rest.objects.AddressObject;
+import org.projectforge.business.address.AddressDao;
+import org.projectforge.business.converter.DOConverter;
+import org.projectforge.model.rest.AddressObject;
 
 /**
  * For conversion of TaskDO to task object.
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
  */
 public class AddressDOConverter
 {
-  public static AddressObject getAddressObject(final AddressDO addressDO, boolean disableImageData)
+  public static AddressObject getAddressObject(final AddressDao addressDao, final AddressDO addressDO, boolean disableImageData, boolean disableVCard)
   {
     if (addressDO == null) {
       return null;
@@ -79,7 +84,12 @@ public class AddressDOConverter
     address.setWebsite(addressDO.getWebsite());
     address.setZipCode(addressDO.getZipCode());
     if (disableImageData == false) {
-      address.setImage(addressDO.getAttribute("profileImageData", byte[].class));
+      address.setImage(Base64.encodeBase64String(addressDO.getAttribute("profileImageData", byte[].class)));
+    }
+    if (disableVCard == false) {
+      final StringWriter writer = new StringWriter();
+      addressDao.exportVCard(new PrintWriter(writer), addressDO);
+      address.setVCardData(Base64.encodeBase64String(writer.toString().getBytes()));
     }
     return address;
   }

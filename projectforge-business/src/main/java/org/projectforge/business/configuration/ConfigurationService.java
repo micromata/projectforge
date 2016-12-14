@@ -84,7 +84,9 @@ public interface ConfigurationService
 
   boolean getCompileCss();
 
-  String getTeamCalCryptPassword();
+    String getLoginHandlerClass();
+    
+    String getTeamCalCryptPassword();
 
   Calendar getEndDateVacationFromLastYear();
 

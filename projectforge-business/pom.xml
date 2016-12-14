@@ -33,6 +33,11 @@
       </exclusions>
     </dependency>
     <dependency>
+      <groupId>org.projectforge</groupId>
+      <artifactId>projectforge-model</artifactId>
+      <version>${projectforge.version}</version>
+    </dependency>
+    <dependency>
       <groupId>de.micromata.mgc</groupId>
       <artifactId>de.micromata.mgc.jpa.tabattr</artifactId>
       <version>${mgc.version}</version>
@@ -129,6 +134,11 @@
           <groupId>commons-codec</groupId>
         </exclusion>
       </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>commons-validator</groupId>
+      <artifactId>commons-validator</artifactId>
+      <version>1.5.1</version>
     </dependency>
     <dependency>
       <groupId>javax.el</groupId>
