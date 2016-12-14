@@ -76,9 +76,8 @@ import de.micromata.genome.db.jpa.tabattr.api.TimeableAttrRow;
 
 /**
  * For manipulating the database (patching data etc.)
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
  */
 @Service
 public class DatabaseUpdateService
@@ -147,7 +146,7 @@ public class DatabaseUpdateService
   /**
    * Does nothing at default. Override this method for checking the access of the user, e. g. only admin user's should
    * be able to manipulate the database.
-   * 
+   *
    * @param writeaccess
    */
   protected void accessCheck(final boolean writeaccess)
@@ -193,7 +192,7 @@ public class DatabaseUpdateService
 
   /**
    * Without check access.
-   * 
+   *
    * @param table
    * @return
    */
@@ -222,7 +221,6 @@ public class DatabaseUpdateService
   }
 
   /**
-   * 
    * @param entityClass
    * @param properties
    * @return false if at least one property of the given entity doesn't exist in the database, otherwise true.
@@ -583,7 +581,7 @@ public class DatabaseUpdateService
 
   /**
    * Max length is 30 (may-be for Oracle compatibility).
-   * 
+   *
    * @param table
    * @param columnNames
    * @param existingConstraintNames
@@ -651,7 +649,7 @@ public class DatabaseUpdateService
 
   /**
    * Creates missing database indices of tables starting with 't_'.
-   * 
+   *
    * @return Number of successful created database indices.
    */
   public int createMissingIndices()
@@ -680,7 +678,7 @@ public class DatabaseUpdateService
 
   /**
    * You may implement this method to write update entries e. g. in a database table.
-   * 
+   *
    * @param updateEntry
    */
   protected void writeUpdateEntryLog(final UpdateEntry updateEntry)
@@ -729,7 +727,7 @@ public class DatabaseUpdateService
 
   /**
    * Creates the given database index if not already exists.
-   * 
+   *
    * @param name
    * @param table
    * @param attributes
@@ -777,7 +775,7 @@ public class DatabaseUpdateService
 
   /**
    * Executes the given String
-   * 
+   *
    * @param jdbcString
    * @param ignoreErrors If true (default) then errors will be caught and logged.
    * @return true if no error occurred (no exception was caught), otherwise false.
@@ -816,7 +814,7 @@ public class DatabaseUpdateService
 
   /**
    * Will be called on shutdown.
-   * 
+   *
    * @see DatabaseSupport#getShutdownDatabaseStatement()
    */
   public void shutdownDatabase()
@@ -907,6 +905,22 @@ public class DatabaseUpdateService
           group.getName());
       return selectedGroups != null && selectedGroups.size() > 0;
     });
+  }
+
+  public boolean doesTableRowExists(String tablename, String columnname, String columnvalue, boolean useQuotationMarks)
+  {
+    String quotationMark = useQuotationMarks ? "'" : "";
+    String sql = "SELECT * FROM " + tablename + " WHERE " + columnname + " = " + quotationMark + columnvalue
+        + quotationMark;
+    try {
+      List<DatabaseResultRow> query = query(sql);
+      if (query != null && query.size() > 0) {
+        return true;
+      }
+    } catch (Exception e) {
+      return false;
+    }
+    return false;
   }
 
   public int countTimeableAttrGroupEntries(final Class<? extends TimeableAttrRow<?>> entityClass, final String groupName)

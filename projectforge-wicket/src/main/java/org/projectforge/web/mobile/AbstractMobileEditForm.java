@@ -24,6 +24,7 @@
 package org.projectforge.web.mobile;
 
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.form.IFormSubmitter;
 import org.apache.wicket.markup.html.form.SubmitLink;
 import org.apache.wicket.markup.html.panel.FeedbackPanel;
 import org.apache.wicket.markup.repeater.RepeatingView;
@@ -31,8 +32,8 @@ import org.projectforge.framework.persistence.entities.AbstractBaseDO;
 import org.projectforge.web.wicket.CsrfTokenHandler;
 import org.projectforge.web.wicket.mobileflowlayout.MobileGridBuilder;
 
-public abstract class AbstractMobileEditForm<O extends AbstractBaseDO< ? >, P extends AbstractMobileEditPage< ? , ? , ? >> extends
-AbstractMobileForm<O, P>
+public abstract class AbstractMobileEditForm<O extends AbstractBaseDO<?>, P extends AbstractMobileEditPage<?, ?, ?>> extends
+    AbstractMobileForm<O, P>
 {
   private static final long serialVersionUID = 1836099012618517190L;
 
@@ -52,11 +53,14 @@ AbstractMobileForm<O, P>
     csrfTokenHandler = new CsrfTokenHandler(this);
   }
 
+  /**
+   * Check the CSRF token right before the onSubmit methods are called, otherwise it may be too late.
+   */
   @Override
-  protected void onSubmit()
+  protected void delegateSubmit(IFormSubmitter submittingComponent)
   {
-    super.onSubmit();
     csrfTokenHandler.onSubmit();
+    super.delegateSubmit(submittingComponent);
   }
 
   public O getData()
@@ -78,7 +82,8 @@ AbstractMobileForm<O, P>
   protected void init()
   {
     add(new FeedbackPanel("feedback").setOutputMarkupId(true));
-    final SubmitLink submitButton = new SubmitLink("submitButton") {
+    final SubmitLink submitButton = new SubmitLink("submitButton")
+    {
       @Override
       public final void onSubmit()
       {
