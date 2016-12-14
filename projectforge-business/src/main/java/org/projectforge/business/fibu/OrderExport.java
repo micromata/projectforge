@@ -23,20 +23,11 @@
 
 package org.projectforge.business.fibu;
 
-import java.math.BigDecimal;
-import java.util.List;
-import java.util.Set;
-
 import org.apache.commons.collections.CollectionUtils;
 import org.projectforge.business.multitenancy.TenantRegistry;
 import org.projectforge.business.multitenancy.TenantRegistryMap;
 import org.projectforge.business.task.TaskNode;
-import org.projectforge.excel.ContentProvider;
-import org.projectforge.excel.ExportColumn;
-import org.projectforge.excel.ExportSheet;
-import org.projectforge.excel.ExportWorkbook;
-import org.projectforge.excel.I18nExportColumn;
-import org.projectforge.excel.PropertyMapping;
+import org.projectforge.excel.*;
 import org.projectforge.export.MyXlsContentProvider;
 import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
@@ -46,6 +37,10 @@ import org.projectforge.framework.time.DateFormats;
 import org.projectforge.framework.utils.NumberHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.math.BigDecimal;
+import java.util.List;
+import java.util.Set;
 
 /**
  * For excel export.
@@ -71,7 +66,9 @@ public class OrderExport
     return new ExportColumn[] { //
         new I18nExportColumn(OrderCol.NUMMER, "fibu.auftrag.nummer.short", MyXlsContentProvider.LENGTH_ID),
         new I18nExportColumn(OrderCol.NUMBER_OF_POSITIONS, "fibu.auftrag.positions", MyXlsContentProvider.LENGTH_ID),
-        new I18nExportColumn(OrderCol.DATE, "fibu.auftrag.datum", MyXlsContentProvider.LENGTH_DATE),
+        new I18nExportColumn(OrderCol.DATE_OF_OFFER, "fibu.auftrag.angebot.datum", MyXlsContentProvider.LENGTH_DATE),
+        new I18nExportColumn(OrderCol.DATE_OF_ENTRY, "fibu.auftrag.erfassung.datum", MyXlsContentProvider.LENGTH_DATE),
+        new I18nExportColumn(OrderCol.DATE_OF_DESICION, "fibu.auftrag.entscheidung.datum", MyXlsContentProvider.LENGTH_DATE),
         new I18nExportColumn(OrderCol.ORDER_DATE, "fibu.auftrag.beauftragungsdatum", MyXlsContentProvider.LENGTH_DATE),
         new I18nExportColumn(OrderCol.STATUS, "status", 10),
         new I18nExportColumn(OrderCol.STATUS_COMMENT, "fibu.auftrag.statusBeschreibung", 10),
@@ -99,7 +96,9 @@ public class OrderExport
     mapping.add(OrderCol.NUMMER, order.getNummer());
     mapping.add(OrderCol.NUMBER_OF_POSITIONS,
         "#" + (order.getPositionen() != null ? order.getPositionen().size() : "0"));
-    mapping.add(OrderCol.DATE, order.getAngebotsDatum());
+    mapping.add(OrderCol.DATE_OF_ENTRY, order.getErfassungsDatum());
+    mapping.add(OrderCol.DATE_OF_OFFER, order.getAngebotsDatum());
+    mapping.add(OrderCol.DATE_OF_DESICION, order.getEntscheidungsDatum());
     mapping.add(OrderCol.ORDER_DATE, order.getBeauftragungsDatum());
     mapping.add(OrderCol.STATUS,
         order.getAuftragsStatus() != null
@@ -135,7 +134,9 @@ public class OrderExport
     return new ExportColumn[] { //
         new I18nExportColumn(PosCol.NUMBER, "fibu.auftrag.nummer.short", MyXlsContentProvider.LENGTH_ID),
         new I18nExportColumn(PosCol.POS_NUMBER, "fibu.auftrag.position", 5),
-        new I18nExportColumn(PosCol.DATE, "fibu.auftrag.datum", MyXlsContentProvider.LENGTH_DATE),
+        new I18nExportColumn(PosCol.DATE_OF_OFFER, "fibu.auftrag.angebot.datum", MyXlsContentProvider.LENGTH_DATE),
+        new I18nExportColumn(PosCol.DATE_OF_ENTRY, "fibu.auftrag.erfassung.datum", MyXlsContentProvider.LENGTH_DATE),
+        new I18nExportColumn(PosCol.DATE_OF_DESICION, "fibu.auftrag.entscheidung.datum", MyXlsContentProvider.LENGTH_DATE),
         new I18nExportColumn(PosCol.PROJECT, "fibu.projekt", MyXlsContentProvider.LENGTH_STD),
         new I18nExportColumn(PosCol.ORDER_TITLE, "fibu.auftrag.titel", MyXlsContentProvider.LENGTH_STD),
         new I18nExportColumn(PosCol.TITLE, "fibu.auftrag.titel", MyXlsContentProvider.LENGTH_STD),
@@ -158,7 +159,9 @@ public class OrderExport
   {
     mapping.add(PosCol.NUMBER, order.getNummer());
     mapping.add(PosCol.POS_NUMBER, "#" + pos.getNumber());
-    mapping.add(PosCol.DATE, order.getAngebotsDatum());
+    mapping.add(PosCol.DATE_OF_OFFER, order.getAngebotsDatum());
+    mapping.add(PosCol.DATE_OF_ENTRY, order.getErfassungsDatum());
+    mapping.add(PosCol.DATE_OF_DESICION, order.getEntscheidungsDatum());
     mapping.add(PosCol.PROJECT, order.getProjektAsString());
     mapping.add(PosCol.ORDER_TITLE, order.getTitel());
     mapping.add(PosCol.TITLE, pos.getTitel());
@@ -247,7 +250,7 @@ public class OrderExport
     ContentProvider sheetProvider = sheet.getContentProvider();
     sheetProvider.putFormat(MyXlsContentProvider.FORMAT_CURRENCY, OrderCol.NETSUM, OrderCol.INVOICED,
         OrderCol.TO_BE_INVOICED);
-    sheetProvider.putFormat(DateFormats.getExcelFormatString(DateFormatType.DATE), OrderCol.DATE, OrderCol.ORDER_DATE);
+    sheetProvider.putFormat(DateFormats.getExcelFormatString(DateFormatType.DATE), OrderCol.DATE_OF_ENTRY, OrderCol.DATE_OF_OFFER, OrderCol.ORDER_DATE);
     sheet.createFreezePane(1, 1);
     sheet.setColumns(columns);
     for (final AuftragDO order : list) {
@@ -262,7 +265,7 @@ public class OrderExport
     sheetProvider = sheet.getContentProvider();
     sheetProvider.putFormat(MyXlsContentProvider.FORMAT_CURRENCY, PosCol.NETSUM, PosCol.INVOICED,
         PosCol.TO_BE_INVOICED);
-    sheetProvider.putFormat(DateFormats.getExcelFormatString(DateFormatType.DATE), PosCol.DATE,
+    sheetProvider.putFormat(DateFormats.getExcelFormatString(DateFormatType.DATE), PosCol.DATE_OF_OFFER, PosCol.DATE_OF_ENTRY,
         PosCol.PERIOD_OF_PERFORMANCE_BEGIN,
         PosCol.PERIOD_OF_PERFORMANCE_END);
     sheet.createFreezePane(1, 1);
@@ -330,12 +333,12 @@ public class OrderExport
 
   private enum OrderCol
   {
-    NUMMER, NUMBER_OF_POSITIONS, DATE, ORDER_DATE, STATUS, STATUS_COMMENT, PROJECT, PROJECT_CUSTOMER, TITLE, NETSUM, INVOICED, TO_BE_INVOICED, COMPLETELY_INVOICED, INVOICES, PERIOD_OF_PERFORMANCE_BEGIN, PERIOD_OF_PERFORMANCE_END, CONTACT_PERSON, REFERENCE, COMMENT;
+    NUMMER, NUMBER_OF_POSITIONS, DATE_OF_OFFER, DATE_OF_ENTRY, DATE_OF_DESICION, ORDER_DATE, STATUS, STATUS_COMMENT, PROJECT, PROJECT_CUSTOMER, TITLE, NETSUM, INVOICED, TO_BE_INVOICED, COMPLETELY_INVOICED, INVOICES, PERIOD_OF_PERFORMANCE_BEGIN, PERIOD_OF_PERFORMANCE_END, CONTACT_PERSON, REFERENCE, COMMENT;
   }
 
   private enum PosCol
   {
-    NUMBER, POS_NUMBER, DATE, PROJECT, ORDER_TITLE, TITLE, TYPE, STATUS, PERSON_DAYS, NETSUM, INVOICED, TO_BE_INVOICED, COMPLETELY_INVOICED, INVOICES, PERIOD_OF_PERFORMANCE_BEGIN, PERIOD_OF_PERFORMANCE_END, TASK, COMMENT;
+    NUMBER, POS_NUMBER, DATE_OF_OFFER, DATE_OF_ENTRY, DATE_OF_DESICION, PROJECT, ORDER_TITLE, TITLE, TYPE, STATUS, PERSON_DAYS, NETSUM, INVOICED, TO_BE_INVOICED, COMPLETELY_INVOICED, INVOICES, PERIOD_OF_PERFORMANCE_BEGIN, PERIOD_OF_PERFORMANCE_END, TASK, COMMENT;
   }
 
   private enum PaymentsCol
