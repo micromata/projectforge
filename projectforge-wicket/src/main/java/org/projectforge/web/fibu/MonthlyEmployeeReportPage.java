@@ -56,6 +56,7 @@ import org.projectforge.business.fibu.kost.Kost2DO;
 import org.projectforge.business.task.TaskDO;
 import org.projectforge.business.task.formatter.WicketTaskFormatter;
 import org.projectforge.business.user.UserDao;
+import org.projectforge.business.vacation.service.VacationService;
 import org.projectforge.framework.configuration.Configuration;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.renderer.PdfRenderer;
@@ -100,6 +101,9 @@ public class MonthlyEmployeeReportPage extends AbstractStandardFormPage implemen
 
   @SpringBean
   private DateTimeFormatter dateTimeFormatter;
+
+  @SpringBean
+  private VacationService vacationService;
 
   private final GridBuilder gridBuilder;
 
@@ -183,7 +187,7 @@ public class MonthlyEmployeeReportPage extends AbstractStandardFormPage implemen
         }
       }));
     }
-    gridBuilder.newGridPanel();
+    gridBuilder.newSplitPanel(GridSize.COL66);
     {
       final FieldsetPanel fs = new FieldsetPanel(gridBuilder.getPanel(), getString("fibu.common.workingDays"),
           getString("fibu.monthlyEmployeeReport.withoutTimesheets"))
@@ -208,6 +212,31 @@ public class MonthlyEmployeeReportPage extends AbstractStandardFormPage implemen
           return report.getFormattedUnbookedDays();
         }
       }, TextStyle.RED));
+    }
+    gridBuilder.newSplitPanel(GridSize.COL33);
+    {
+      final FieldsetPanel fs = new FieldsetPanel(gridBuilder.getPanel(), getString("vacation.annualleave"))
+      {
+        /**
+         * @see org.apache.wicket.Component#isVisible()
+         */
+        @Override
+        public boolean isVisible()
+        {
+          return report != null && StringUtils.isNotBlank(report.getFormattedVacationCount());
+        }
+      }.suppressLabelForWarning();
+      fs.add(new DivTextPanel(fs.newChildId(), new Model<String>()
+      {
+        /**
+         * @see org.apache.wicket.model.Model#getObject()
+         */
+        @Override
+        public String getObject()
+        {
+          return report.getFormattedVacationCount();
+        }
+      }));
     }
   }
 
@@ -449,6 +478,7 @@ public class MonthlyEmployeeReportPage extends AbstractStandardFormPage implemen
     data.put("sumLabel", getString("sum"));
     data.put("netSumLabel", getString("sum"));
     data.put("totalSumLabel", getString("fibu.monthlyEmployeeReport.totalSum"));
+    data.put("vacationCountLabel", getString("vacation.annualleave"));
     data.put("report", report);
     data.put("signatureEmployeeLabel", getString("timesheet.signatureEmployee") + ": " + employee.getFullname());
     data.put("signatureProjectLeaderLabel", getString("timesheet.signatureProjectLeader"));

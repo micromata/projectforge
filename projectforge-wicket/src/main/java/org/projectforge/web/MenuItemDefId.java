@@ -45,6 +45,7 @@ public enum MenuItemDefId
   CALENDAR("calendar"), //
   TEAMCALENDAR("plugins.teamcal"), //
   CHANGE_PASSWORD("changePassword"), //
+  CHANGE_WLAN_PASSWORD("changeWlanPassword"), //
   CONFIGURATION("configuration"), //
   CONTACT_LIST("contactList"), //
   CONTRACTS("contracts"), //
@@ -68,6 +69,7 @@ public enum MenuItemDefId
   MONTHLY_EMPLOYEE_REPORT("monthlyEmployeeReport"), //
   TENANT_LIST("multiTenancy"), //
   MY_ACCOUNT("myAccount"), //
+  VACATION_VIEW("vacation.leaveaccount"), //
   MY_PREFERENCES("myPreferences"), //
   REPORT_OBJECTIVES("fibu.reporting.reportObjectives"), //
   ORDER_LIST("fibu.orderbook"), //
@@ -91,7 +93,8 @@ public enum MenuItemDefId
   TASK_TREE("taskTree"), //
   TIMESHEET_LIST("timesheetList"), //
   USER_LIST("userList"), //
-  HR("hr");
+  HR("hr"), //
+  VACATION("vacation");
 
   private String i18nKey;
 

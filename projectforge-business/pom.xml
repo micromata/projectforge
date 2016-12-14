@@ -168,11 +168,6 @@
       <version>${xstream.version}</version>
     </dependency>
     <dependency>
-      <groupId>xerces</groupId>
-      <artifactId>xercesImpl</artifactId>
-      <version>${xerces.version}</version>
-    </dependency>
-    <dependency>
       <groupId>com.lowagie</groupId>
       <artifactId>itext</artifactId>
       <version>${itext.version}</version>

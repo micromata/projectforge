@@ -27,6 +27,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
@@ -112,6 +113,11 @@ public class UserEditPage extends AbstractEditPage<PFUserDO, UserEditForm, UserD
       final String xml = PFUserDOConverter.getLdapValuesAsXml(form.ldapUserValues);
       getData().setLdapValues(xml);
     }
+
+    if (StringUtils.isNotEmpty(form.getWlanPassword())) {
+      userService.onWlanPasswordChange(getData(), false); // persist new time, history is created by caller
+    }
+
     return super.onSaveOrUpdate();
   }
 
@@ -159,6 +165,15 @@ public class UserEditPage extends AbstractEditPage<PFUserDO, UserEditForm, UserD
       end = System.currentTimeMillis();
       log.info("Finish password change. Took: " + (end - start) / 1000 + " sec.");
     }
+
+    if (StringUtils.isNotEmpty(form.getWlanPassword())) {
+      log.info("Start WLAN password change");
+      start = System.currentTimeMillis();
+      Login.getInstance().wlanPasswordChanged(getData(), form.getWlanPassword());
+      end = System.currentTimeMillis();
+      log.info("Finish WLAN password change. Took: " + (end - start) / 1000 + " sec.");
+    }
+
     //Only one time reload user group cache
     log.info("Start force reload user group cache.");
     start = System.currentTimeMillis();
