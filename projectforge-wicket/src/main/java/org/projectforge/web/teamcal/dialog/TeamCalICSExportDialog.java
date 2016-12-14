@@ -35,7 +35,7 @@ import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.multitenancy.TenantRegistryMap;
 import org.projectforge.business.teamcal.admin.model.TeamCalDO;
-import org.projectforge.business.teamcal.service.TeamCalCalendarFeedHook;
+import org.projectforge.business.teamcal.service.TeamCalServiceImpl;
 import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
@@ -49,7 +49,6 @@ import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
 
 /**
  * @author M. Lauterbach (m.lauterbach@micromata.de)
- * 
  */
 public class TeamCalICSExportDialog extends AbstractICSExportDialog
 {
@@ -58,7 +57,7 @@ public class TeamCalICSExportDialog extends AbstractICSExportDialog
   private TeamCalDO teamCal;
 
   @SpringBean
-  private TeamCalCalendarFeedHook teamCalCalendarFeedHook;
+  private TeamCalServiceImpl teamCalService;
 
   private boolean exportReminders;
 
@@ -124,7 +123,7 @@ public class TeamCalICSExportDialog extends AbstractICSExportDialog
       });
       checkBoxesPanel.add(new CheckBoxButton(checkBoxesPanel.newChildId(), checkBox,
           getString("plugins.teamcal.export.reminder.checkbox"))
-              .setTooltip(getString("plugins.teamcal.export.reminder.checkbox.tooltip")));
+          .setTooltip(getString("plugins.teamcal.export.reminder.checkbox.tooltip")));
     }
   }
 
@@ -171,8 +170,8 @@ public class TeamCalICSExportDialog extends AbstractICSExportDialog
   @Override
   protected String getUrl()
   {
-    return teamCalCalendarFeedHook.getUrl(teamCal.getId(),
-        "&" + TeamCalCalendarFeedHook.PARAM_EXPORT_REMINDER + "=" + exportReminders);
+    return teamCalService.getUrl(teamCal.getId(),
+        "&" + teamCalService.PARAM_EXPORT_REMINDER + "=" + exportReminders);
   }
 
 }

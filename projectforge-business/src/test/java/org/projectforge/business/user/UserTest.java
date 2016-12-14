@@ -23,10 +23,7 @@
 
 package org.projectforge.business.user;
 
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertFalse;
-import static org.testng.AssertJUnit.assertNull;
-import static org.testng.AssertJUnit.assertTrue;
+import static org.testng.AssertJUnit.*;
 
 import java.io.Serializable;
 
@@ -101,16 +98,19 @@ public class UserTest extends AbstractTestBase
     assertEquals("UserTest", user.getUsername());
     assertNull(user.getPassword()); // Not SHA, should be ignored.
     assertEquals("Description", user.getDescription());
+    assertEquals(new Integer(1), user.getTenant() != null ? user.getTenant().getPk() : new Integer(-1));
     user.setDescription("Description\ntest");
     user.setPassword("secret");
     userService.update(user);
     user = userService.getById(id);
     assertEquals("Description\ntest", user.getDescription());
+    assertEquals(new Integer(1), user.getTenant() != null ? user.getTenant().getPk() : new Integer(-1));
     assertNull(user.getPassword()); // Not SHA, should be ignored.
     user.setPassword("SHA{...}");
     userService.update(user);
     user = userService.getById(id);
     assertEquals("SHA{...}", user.getPassword());
+    assertEquals(new Integer(1), user.getTenant() != null ? user.getTenant().getPk() : new Integer(-1));
   }
 
   @Test
@@ -339,9 +339,9 @@ public class UserTest extends AbstractTestBase
   /**
    * Convert expectedGroupNames in list of expected group ids: {2,4,7} Asserts that all group ids in groupssString are
    * expected and vice versa.
-   * 
+   *
    * @param expectedGroupNames
-   * @param groupsString csv of groups, e. g. {2,4,7}
+   * @param groupsString       csv of groups, e. g. {2,4,7}
    */
   void assertGroupIds(final String[] expectedGroupNames, final String groupsString)
   {
@@ -358,9 +358,9 @@ public class UserTest extends AbstractTestBase
   /**
    * Convert expectedUserNames in list of expected users ids: {2,4,7} Asserts that all user ids in usersString are
    * expected and vice versa.
-   * 
+   *
    * @param expectedUserNames
-   * @param groupsString csv of groups, e. g. {2,4,7}
+   * @param groupsString      csv of groups, e. g. {2,4,7}
    */
   void assertUserIds(final String[] expectedUserNames, final String usersString)
   {

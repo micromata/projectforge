@@ -34,8 +34,8 @@ import org.apache.wicket.model.ResourceModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.teamcal.admin.TeamCalCache;
+import org.projectforge.business.teamcal.event.TeamEventConverter;
 import org.projectforge.business.teamcal.event.TeamEventDao;
-import org.projectforge.business.teamcal.event.TeamEventUtils;
 import org.projectforge.business.teamcal.event.model.TeamEventDO;
 import org.projectforge.business.teamcal.filter.ICalendarFilter;
 import org.projectforge.business.teamcal.filter.TeamCalCalendarFilter;
@@ -84,6 +84,9 @@ public class TeamCalCalendarForm extends CalendarForm
 
   @SpringBean
   transient AccessChecker accessChecker;
+
+  @SpringBean
+  transient TeamEventConverter teamEventConverter;
 
   @SuppressWarnings("unused")
   private TemplateEntry activeTemplate;
@@ -239,7 +242,7 @@ public class TeamCalCalendarForm extends CalendarForm
       @Override
       protected void onIcsImport(final AjaxRequestTarget target, final Calendar calendar)
       {
-        final List<VEvent> events = TeamEventUtils.getVEvents(calendar);
+        final List<VEvent> events = TeamEventConverter.getVEvents(calendar);
         if (events == null || events.size() == 0) {
           errorDialog.setMessage(getString("plugins.teamcal.import.ics.noEventsGiven")).open(target);
           return;
@@ -260,9 +263,9 @@ public class TeamCalCalendarForm extends CalendarForm
         }
         TeamEventDO teamEvent = null;
         if (dbEvent != null) {
-          teamEvent = TeamEventUtils.createTeamEventDO(event, ThreadLocalUserContext.getTimeZone(), false);
+          teamEvent = teamEventConverter.createTeamEventDO(event, ThreadLocalUserContext.getTimeZone(), false);
         } else {
-          teamEvent = TeamEventUtils.createTeamEventDO(event, ThreadLocalUserContext.getTimeZone(), true);
+          teamEvent = teamEventConverter.createTeamEventDO(event, ThreadLocalUserContext.getTimeZone(), true);
         }
         final TemplateEntry activeTemplateEntry = ((TeamCalCalendarFilter) filter).getActiveTemplateEntry();
         if (activeTemplateEntry != null && activeTemplateEntry.getDefaultCalendarId() != null) {

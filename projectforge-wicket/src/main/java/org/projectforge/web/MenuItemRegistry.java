@@ -52,12 +52,15 @@ import org.projectforge.business.multitenancy.TenantChecker;
 import org.projectforge.business.orga.ContractDao;
 import org.projectforge.business.orga.PostausgangDao;
 import org.projectforge.business.orga.PosteingangDao;
+import org.projectforge.business.orga.VisitorbookDao;
 import org.projectforge.business.user.ProjectForgeGroup;
 import org.projectforge.business.user.UserRightId;
 import org.projectforge.business.user.UserRightValue;
+import org.projectforge.business.vacation.service.VacationService;
 import org.projectforge.framework.configuration.Configuration;
 import org.projectforge.framework.configuration.SecurityConfig;
 import org.projectforge.framework.persistence.api.UserRightService;
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.web.access.AccessListPage;
 import org.projectforge.web.address.AddressListPage;
@@ -96,6 +99,7 @@ import org.projectforge.web.multitenancy.TenantListPage;
 import org.projectforge.web.orga.ContractListPage;
 import org.projectforge.web.orga.PostausgangListPage;
 import org.projectforge.web.orga.PosteingangListPage;
+import org.projectforge.web.orga.VisitorbookListPage;
 import org.projectforge.web.scripting.ScriptListPage;
 import org.projectforge.web.scripting.ScriptingPage;
 import org.projectforge.web.statistics.PersonalStatisticsPage;
@@ -105,10 +109,14 @@ import org.projectforge.web.teamcal.admin.TeamCalListPage;
 import org.projectforge.web.teamcal.integration.TeamCalCalendarPage;
 import org.projectforge.web.timesheet.TimesheetListPage;
 import org.projectforge.web.user.ChangePasswordPage;
+import org.projectforge.web.user.ChangeWlanPasswordPage;
 import org.projectforge.web.user.GroupListPage;
 import org.projectforge.web.user.MyAccountEditPage;
 import org.projectforge.web.user.UserListPage;
 import org.projectforge.web.user.UserPrefListPage;
+import org.projectforge.web.vacation.MenuNewCounterVacation;
+import org.projectforge.web.vacation.VacationListPage;
+import org.projectforge.web.vacation.VacationViewPage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -132,6 +140,9 @@ public class MenuItemRegistry implements Serializable
 
   @Autowired
   private ConfigurationService configurationService;
+
+  @Autowired
+  private VacationService vacationService;
 
   @PostConstruct
   public void init()
@@ -306,6 +317,21 @@ public class MenuItemRegistry implements Serializable
     // COMMON
     reg.register(common, MenuItemDefId.CALENDAR, 10, TeamCalCalendarPage.class); // Visible for all.
     reg.register(common, MenuItemDefId.TEAMCALENDAR, 20, TeamCalListPage.class); //
+    final MenuItemDef vacation = new MenuItemDef(common, MenuItemDefId.VACATION.getId(), 21, MenuItemDefId.VACATION.getI18nKey(), VacationListPage.class)
+    {
+      @Override
+      protected boolean isVisible(final MenuBuilderContext context)
+      {
+        return vacationService.couldUserUseVacationService(ThreadLocalUserContext.getUser(), false);
+      }
+
+      @Override
+      protected void afterMenuEntryCreation(final MenuEntry createdMenuEntry, final MenuBuilderContext context)
+      {
+        createdMenuEntry.setNewCounterModel(new MenuNewCounterVacation());
+      }
+    };
+    reg.register(vacation);
     reg.register(common, MenuItemDefId.BOOK_LIST, 30, BookListPage.class); // Visible for all.
     reg.register(common, MenuItemDefId.ADDRESS_LIST, 40, AddressListPage.class)
         .setMobileMenu(AddressMobileListPage.class, 100); // Visible
@@ -416,9 +442,22 @@ public class MenuItemRegistry implements Serializable
         READONLY_READWRITE);
     reg.register(orga, MenuItemDefId.CONTRACTS, 30, ContractListPage.class, ContractDao.USER_RIGHT_ID,
         READONLY_READWRITE);
+    reg.register(orga, MenuItemDefId.VISITORBOOK, 30, VisitorbookListPage.class, VisitorbookDao.USER_RIGHT_ID,
+        READONLY_READWRITE);
 
     // ADMINISTRATION
     reg.register(admin, MenuItemDefId.MY_ACCOUNT, 10, MyAccountEditPage.class);
+    reg.register(
+        new MenuItemDef(admin, MenuItemDefId.VACATION_VIEW.getId(), 11, MenuItemDefId.VACATION_VIEW.getI18nKey(),
+            VacationViewPage.class)
+        {
+          @Override
+          protected boolean isVisible(final MenuBuilderContext context)
+          {
+            return vacationService.couldUserUseVacationService(ThreadLocalUserContext.getUser(), false);
+          }
+        }
+    );
     reg.register(admin, MenuItemDefId.MY_PREFERENCES, 20, UserPrefListPage.class);
     reg.register(
         new MenuItemDef(admin, MenuItemDefId.CHANGE_PASSWORD.getId(), 30, MenuItemDefId.CHANGE_PASSWORD.getI18nKey(),
@@ -433,6 +472,19 @@ public class MenuItemRegistry implements Serializable
             // The visibility of this menu entry is evaluated by the login handler implementation.
             final PFUserDO user = context.getLoggedInUser();
             return Login.getInstance().isPasswordChangeSupported(user);
+          }
+        });
+
+    reg.register(
+        new MenuItemDef(admin, MenuItemDefId.CHANGE_WLAN_PASSWORD.getId(), 32, MenuItemDefId.CHANGE_WLAN_PASSWORD.getI18nKey(),
+            ChangeWlanPasswordPage.class)
+        {
+          @Override
+          protected boolean isVisible(final MenuBuilderContext context)
+          {
+            // The visibility of this menu entry is evaluated by the login handler implementation.
+            final PFUserDO user = context.getLoggedInUser();
+            return Login.getInstance().isWlanPasswordChangeSupported(user);
           }
         });
 

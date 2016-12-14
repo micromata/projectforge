@@ -40,7 +40,7 @@ import org.apache.commons.lang.StringUtils;
 import org.projectforge.business.teamcal.TeamCalConfig;
 import org.projectforge.business.teamcal.admin.TeamCalDao;
 import org.projectforge.business.teamcal.admin.model.TeamCalDO;
-import org.projectforge.business.teamcal.event.TeamEventUtils;
+import org.projectforge.business.teamcal.event.TeamEventConverter;
 import org.projectforge.business.teamcal.event.model.TeamEventDO;
 import org.projectforge.framework.time.DateHelper;
 
@@ -54,7 +54,7 @@ import net.fortuna.ical4j.model.component.VEvent;
 
 /**
  * Holds and updates events of a subscribed calendar.
- * 
+ *
  * @author Johannes Unterstein (j.unterstein@micromata.de)
  */
 public class TeamEventSubscription implements Serializable
@@ -111,7 +111,7 @@ public class TeamEventSubscription implements Serializable
    * We update the cache softly, therefore we create a new instance and replace the old instance in the cached map then
    * creation and update is therefore the same two lines of code, but semantically different things.
    */
-  public void update(final TeamCalDao teamCalDao, final TeamCalDO teamCalDO)
+  public void update(final TeamCalDao teamCalDao, final TeamCalDO teamCalDO, final TeamEventConverter teamEventConverter)
   {
     this.teamCalId = teamCalDO.getId();
     currentInitializedHash = null;
@@ -168,7 +168,7 @@ public class TeamEventSubscription implements Serializable
     }
     if (bytes == null) {
       error("Unable to use database subscription calendar #" + teamCalDO.getId() + " information, quit from url '"
-          + displayUrl + "'.",
+              + displayUrl + "'.",
           null);
       return;
     }
@@ -206,7 +206,7 @@ public class TeamEventSubscription implements Serializable
       // the event id must (!) be negative and decrementing (different on each event)
       Integer startId = -1;
       for (final VEvent event : vEvents) {
-        final TeamEventDO teamEvent = TeamEventUtils.createTeamEventDO(event,
+        final TeamEventDO teamEvent = teamEventConverter.createTeamEventDO(event,
             TimeZone.getTimeZone(teamCalDO.getOwner().getTimeZone()));
         teamEvent.setId(startId);
         teamEvent.setCalendar(teamCalDO);
@@ -264,7 +264,7 @@ public class TeamEventSubscription implements Serializable
 
   /**
    * calculates hexadecimal representation of
-   * 
+   *
    * @param md5
    * @return
    */

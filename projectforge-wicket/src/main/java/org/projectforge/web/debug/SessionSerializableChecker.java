@@ -74,6 +74,7 @@ public class SessionSerializableChecker implements HttpSessionAttributeListener
   public void attributeReplaced(final HttpSessionBindingEvent evt)
   {
     if (WebConfiguration.isDevelopmentMode() == true) {
+      // TODO VF if true then UnsupportedOperationExceptions, can't serialize classes (more in class InMemoryPageStore.prepareForSerialization)
       check(evt.getSession(), evt.getName(), evt.getValue());
     }
   }

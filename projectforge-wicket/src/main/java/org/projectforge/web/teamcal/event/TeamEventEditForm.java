@@ -43,10 +43,10 @@ import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.teamcal.admin.TeamCalDao;
 import org.projectforge.business.teamcal.admin.model.TeamCalDO;
 import org.projectforge.business.teamcal.event.AttendeeComparator;
+import org.projectforge.business.teamcal.event.TeamEventConverter;
 import org.projectforge.business.teamcal.event.TeamEventDao;
 import org.projectforge.business.teamcal.event.TeamEventRecurrenceData;
 import org.projectforge.business.teamcal.event.TeamEventService;
-import org.projectforge.business.teamcal.event.TeamEventUtils;
 import org.projectforge.business.teamcal.event.model.TeamEventAttendeeDO;
 import org.projectforge.business.teamcal.event.model.TeamEventDO;
 import org.projectforge.business.teamcal.event.right.TeamEventRight;
@@ -139,6 +139,8 @@ public class TeamEventEditForm extends AbstractEditForm<TeamEventDO, TeamEventEd
 
   protected MultiChoiceListHelper<TeamEventAttendeeDO> assignAttendeesListHelper;
 
+  protected AttendeeWicketProvider attendeeWicketProvider;
+
   /**
    * @param parentPage
    * @param data
@@ -218,23 +220,27 @@ public class TeamEventEditForm extends AbstractEditForm<TeamEventDO, TeamEventEd
       // ATTENDEE
       final FieldsetPanel fieldSet = gridBuilder.newFieldset(getString("plugins.teamcal.attendees"));
 
-      final Collection<Integer> set = teamEventService.getAssignedAttendeeIds(data);
-      assignAttendeesListHelper = new MultiChoiceListHelper<TeamEventAttendeeDO>()
-          .setComparator(new AttendeeComparator()).setFullList(
-              teamEventService.getAddressesAndUserAsAttendee());
-      if (set != null) {
-        for (final Integer attendeeId : set) {
-          final TeamEventAttendeeDO attendee = teamEventService.getAttendee(attendeeId);
-          if (attendee != null) {
-            assignAttendeesListHelper.addOriginalAssignedItem(attendee).assignItem(attendee);
+      List<TeamEventAttendeeDO> fullAttendeeList = teamEventService.getAddressesAndUserAsAttendee();
+      if (data.getAttendees() != null && data.getAttendees().size() > 0) {
+        for (TeamEventAttendeeDO dataAttendee : data.getAttendees()) {
+          //Attendee come over ics import / caldav interface
+          if (dataAttendee.getId() <= -10000) {
+            fullAttendeeList.add(dataAttendee);
           }
         }
       }
+      assignAttendeesListHelper = new MultiChoiceListHelper<TeamEventAttendeeDO>()
+          .setComparator(new AttendeeComparator()).setFullList(fullAttendeeList);
+      if (data.getAttendees() != null) {
+        for (final TeamEventAttendeeDO attendee : data.getAttendees()) {
+          assignAttendeesListHelper.addOriginalAssignedItem(attendee).assignItem(attendee);
+        }
+      }
+      attendeeWicketProvider = new AttendeeWicketProvider(data, teamEventService);
 
       final Select2MultiChoice<TeamEventAttendeeDO> attendees = new Select2MultiChoice<TeamEventAttendeeDO>(
           fieldSet.getSelect2MultiChoiceId(),
-          new PropertyModel<Collection<TeamEventAttendeeDO>>(this.assignAttendeesListHelper, "assignedItems"),
-          new AttendeeWicketProvider(data, teamEventService));
+          new PropertyModel<Collection<TeamEventAttendeeDO>>(this.assignAttendeesListHelper, "assignedItems"), attendeeWicketProvider);
       attendees.setMarkupId("attendees").setOutputMarkupId(true);
       attendees.add(new TeamEventAttendeeValidator());
       fieldSet.add(attendees);
@@ -297,7 +303,7 @@ public class TeamEventEditForm extends AbstractEditForm<TeamEventDO, TeamEventEd
       recurrenceFieldset = gridBuilder.newFieldset(getString("plugins.teamcal.event.recurrence"));
       recurrencePanel = gridBuilder.getPanel().getDiv();
       recurrencePanel.setOutputMarkupId(true);
-      final RecurrenceFrequency[] supportedFrequencies = TeamEventUtils.getSupportedRecurrenceFrequencies();
+      final RecurrenceFrequency[] supportedFrequencies = TeamEventConverter.getSupportedRecurrenceFrequencies();
       final LabelValueChoiceRenderer<RecurrenceFrequency> frequencyChoiceRenderer = new LabelValueChoiceRenderer<RecurrenceFrequency>(
           recurrenceFieldset, supportedFrequencies);
       final DropDownChoice<RecurrenceFrequency> frequencyChoice = new DropDownChoice<RecurrenceFrequency>(

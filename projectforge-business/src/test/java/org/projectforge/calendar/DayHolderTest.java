@@ -24,25 +24,39 @@
 
 package org.projectforge.calendar;
 
+import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertTrue;
 
 import java.math.BigDecimal;
 import java.util.Calendar;
+import java.util.Locale;
+import java.util.TimeZone;
 
-import org.projectforge.framework.configuration.ConfigXmlTest;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.testng.PowerMockTestCase;
+import org.projectforge.framework.configuration.ConfigXml;
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.time.DateHolder;
 import org.projectforge.framework.time.DayHolder;
-import org.testng.annotations.BeforeClass;
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-public class DayHolderTest
+@PrepareForTest({ ThreadLocalUserContext.class, ConfigXml.class })
+public class DayHolderTest extends PowerMockTestCase
 {
-  @BeforeClass
-  public static void setUp()
+  @BeforeMethod
+  public void setUp()
   {
-    // Needed if this tests runs before the ConfigurationTest.
-    ConfigXmlTest.createTestConfiguration();
+    mockStatic(ThreadLocalUserContext.class);
+    mockStatic(ConfigXml.class);
+    Locale locale = Locale.getDefault();
+    TimeZone timeZone = TimeZone.getDefault();
+    ConfigXml configXml = new ConfigXml("./target/Projectforge");
+    PowerMockito.when(ThreadLocalUserContext.getLocale()).thenReturn(locale);
+    PowerMockito.when(ThreadLocalUserContext.getTimeZone()).thenReturn(timeZone);
+    PowerMockito.when(ConfigXml.getInstance()).thenReturn(configXml);
   }
 
   @Test
@@ -71,6 +85,27 @@ public class DayHolderTest
     assertBigDecimal(21, DayHolder.getNumberOfWorkingDays(fromDay, toDay));
     toDay.setDate(2009, Calendar.FEBRUARY, 28, 0, 0, 0);
     assertBigDecimal(41, DayHolder.getNumberOfWorkingDays(fromDay, toDay));
+  }
+
+  @Test
+  public void testGetNumberOfWorkingDaysOneDay()
+  {
+    final DayHolder fromDay = new DayHolder();
+    fromDay.setDate(2009, Calendar.JANUARY, 5, 0, 0, 0);
+    final DayHolder toDay = new DayHolder();
+    toDay.setDate(2009, Calendar.JANUARY, 5, 0, 0, 0);
+    assertBigDecimal(1, DayHolder.getNumberOfWorkingDays(fromDay, toDay));
+  }
+
+  //Test fertigstellen für Weihnachten/Silvester (config.xml)
+  @Test(enabled = false)
+  public void testGetNumberOfWorkingDaysChristmas()
+  {
+    final DayHolder fromDay = new DayHolder();
+    fromDay.setDate(2009, Calendar.DECEMBER, 24, 0, 0, 0);
+    final DayHolder toDay = new DayHolder();
+    toDay.setDate(2009, Calendar.DECEMBER, 24, 0, 0, 0);
+    assertBigDecimal(1.5, DayHolder.getNumberOfWorkingDays(fromDay, toDay));
   }
 
   @Test

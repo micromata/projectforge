@@ -54,8 +54,8 @@ import org.hibernate.search.annotations.IndexedEmbedded;
 import org.hibernate.search.annotations.Resolution;
 import org.hibernate.search.annotations.Store;
 import org.projectforge.business.teamcal.admin.model.TeamCalDO;
+import org.projectforge.business.teamcal.event.TeamEventConverter;
 import org.projectforge.business.teamcal.event.TeamEventRecurrenceData;
-import org.projectforge.business.teamcal.event.TeamEventUtils;
 import org.projectforge.framework.calendar.ICal4JUtils;
 import org.projectforge.framework.persistence.api.Constants;
 import org.projectforge.framework.persistence.api.PFPersistancyBehavior;
@@ -376,7 +376,7 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
   /**
    * @return the attendees
    */
-  @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+  @OneToMany(fetch = FetchType.EAGER)
   @JoinColumn(name = "team_event_fk")
   public Set<TeamEventAttendeeDO> getAttendees()
   {
@@ -470,7 +470,7 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
   @Transient
   public TeamEventDO setRecurrence(final TeamEventRecurrenceData recurData)
   {
-    final String rruleString = TeamEventUtils.calculateRRule(recurData);
+    final String rruleString = TeamEventConverter.calculateRRule(recurData);
     setRecurrenceRule(rruleString);
     return this;
   }
@@ -506,6 +506,7 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
 
   /**
    * The recurrenceUntil date is calculated by the recurrenceRule string if given, otherwise the date is set to null.
+   * get
    *
    * @see org.projectforge.framework.persistence.entities.AbstractBaseDO#recalculate()
    */
