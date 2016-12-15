@@ -18,8 +18,13 @@
         <td>${employee}</td>
         <th color="#999999">${monthLabel}</th>
         <td>${year}-${month}</td>
+        <groovy>if (vacationAvailabel) {</groovy>
         <th color="#999999">${vacationCountLabel}</th>
         <td>${report.formattedVacationCount}</td>
+        <groovy>} else {</groovy>
+        <th color="#999999"></th>
+        <td></td>
+        <groovy>}</groovy>
       </tr>
       <groovy>if (report.formattedUnbookedDays != null) {</groovy>
       <tr>
