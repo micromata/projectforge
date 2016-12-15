@@ -116,7 +116,6 @@ public class ICal4JUtils
   }
 
   /**
-   * 
    * @param rruleString
    * @param timeZone
    * @return null if rruleString is empty, otherwise new RRule object.
@@ -283,7 +282,7 @@ public class ICal4JUtils
 
   /**
    * Format is '20130327T090000'
-   * 
+   *
    * @param dateString
    * @param timeZone
    * @return

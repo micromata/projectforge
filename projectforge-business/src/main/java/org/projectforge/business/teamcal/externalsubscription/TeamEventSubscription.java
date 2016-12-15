@@ -40,8 +40,8 @@ import org.apache.commons.lang.StringUtils;
 import org.projectforge.business.teamcal.TeamCalConfig;
 import org.projectforge.business.teamcal.admin.TeamCalDao;
 import org.projectforge.business.teamcal.admin.model.TeamCalDO;
-import org.projectforge.business.teamcal.event.TeamEventConverter;
 import org.projectforge.business.teamcal.event.model.TeamEventDO;
+import org.projectforge.business.teamcal.service.TeamCalServiceImpl;
 import org.projectforge.framework.time.DateHelper;
 
 import net.fortuna.ical4j.data.CalendarBuilder;
@@ -111,7 +111,7 @@ public class TeamEventSubscription implements Serializable
    * We update the cache softly, therefore we create a new instance and replace the old instance in the cached map then
    * creation and update is therefore the same two lines of code, but semantically different things.
    */
-  public void update(final TeamCalDao teamCalDao, final TeamCalDO teamCalDO, final TeamEventConverter teamEventConverter)
+  public void update(final TeamCalDao teamCalDao, final TeamCalDO teamCalDO, final TeamCalServiceImpl teamEventConverter)
   {
     this.teamCalId = teamCalDO.getId();
     currentInitializedHash = null;

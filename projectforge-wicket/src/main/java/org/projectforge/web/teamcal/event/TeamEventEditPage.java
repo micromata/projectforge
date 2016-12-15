@@ -36,13 +36,13 @@ import org.apache.wicket.markup.html.form.SubmitLink;
 import org.apache.wicket.markup.html.link.Link;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
-import org.projectforge.business.teamcal.event.TeamEventConverter;
 import org.projectforge.business.teamcal.event.TeamEventDao;
 import org.projectforge.business.teamcal.event.TeamEventService;
 import org.projectforge.business.teamcal.event.TeamRecurrenceEvent;
 import org.projectforge.business.teamcal.event.model.TeamEvent;
 import org.projectforge.business.teamcal.event.model.TeamEventAttendeeDO;
 import org.projectforge.business.teamcal.event.model.TeamEventDO;
+import org.projectforge.business.teamcal.service.TeamCalServiceImpl;
 import org.projectforge.business.timesheet.TimesheetDO;
 import org.projectforge.business.timesheet.TimesheetDao;
 import org.projectforge.framework.persistence.api.ModificationStatus;
@@ -70,7 +70,7 @@ public class TeamEventEditPage extends AbstractEditPage<TeamEventDO, TeamEventEd
   private TimesheetDao timesheetDao;
 
   @SpringBean
-  private TeamEventConverter teamEventConverter;
+  private TeamCalServiceImpl teamEventConverter;
 
   @SpringBean
   private TeamEventService teamEventService;

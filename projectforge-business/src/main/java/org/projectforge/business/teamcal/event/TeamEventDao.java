@@ -23,6 +23,18 @@
 
 package org.projectforge.business.teamcal.event;
 
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.List;
+import java.util.Set;
+import java.util.TimeZone;
+
+import javax.persistence.NoResultException;
+
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
@@ -40,6 +52,7 @@ import org.projectforge.business.teamcal.event.model.TeamEvent;
 import org.projectforge.business.teamcal.event.model.TeamEventAttendeeDO;
 import org.projectforge.business.teamcal.event.model.TeamEventDO;
 import org.projectforge.business.teamcal.externalsubscription.TeamEventExternalSubscriptionCache;
+import org.projectforge.business.teamcal.service.TeamCalServiceImpl;
 import org.projectforge.business.user.UserRightId;
 import org.projectforge.framework.calendar.CalendarUtils;
 import org.projectforge.framework.calendar.ICal4JUtils;
@@ -55,9 +68,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-
-import javax.persistence.NoResultException;
-import java.util.*;
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
@@ -141,7 +151,7 @@ public class TeamEventDao extends BaseDao<TeamEventDO>
       return emgrFac.runRoTrans(emgr -> {
         String baseSQL = "select e from TeamEventDO e where e.uid = :uid";
         return emgr.selectSingleAttached(TeamEventDO.class, baseSQL + META_SQL_WITH_SPECIAL, "uid", uid, "deleted", false,
-                "tenant", ThreadLocalUserContext.getUser() != null ? ThreadLocalUserContext.getUser().getTenant() : tenantService.getDefaultTenant());
+            "tenant", ThreadLocalUserContext.getUser() != null ? ThreadLocalUserContext.getUser().getTenant() : tenantService.getDefaultTenant());
       });
     } catch (NoResultException e) {
       return null;
@@ -230,7 +240,7 @@ public class TeamEventDao extends BaseDao<TeamEventDO>
           result.add(eventDO);
           continue;
         }
-        final Collection<TeamEvent> events = TeamEventConverter.getRecurrenceEvents(teamEventFilter.getStartDate(),
+        final Collection<TeamEvent> events = TeamCalServiceImpl.getRecurrenceEvents(teamEventFilter.getStartDate(),
             teamEventFilter.getEndDate(), eventDO, timeZone);
         if (events == null) {
           continue;

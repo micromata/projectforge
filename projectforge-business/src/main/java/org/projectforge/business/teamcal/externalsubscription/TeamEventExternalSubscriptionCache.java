@@ -38,9 +38,9 @@ import org.projectforge.business.teamcal.admin.TeamCalDao;
 import org.projectforge.business.teamcal.admin.model.TeamCalAccessType;
 import org.projectforge.business.teamcal.admin.model.TeamCalDO;
 import org.projectforge.business.teamcal.admin.right.TeamCalRight;
-import org.projectforge.business.teamcal.event.TeamEventConverter;
 import org.projectforge.business.teamcal.event.TeamEventFilter;
 import org.projectforge.business.teamcal.event.model.TeamEventDO;
+import org.projectforge.business.teamcal.service.TeamCalServiceImpl;
 import org.projectforge.business.user.UserRightId;
 import org.projectforge.framework.configuration.ApplicationContextProvider;
 import org.projectforge.framework.persistence.api.QueryFilter;
@@ -76,7 +76,7 @@ public class TeamEventExternalSubscriptionCache
   @Autowired
   private UserRightService userRights;
 
-  private TeamEventConverter teamEventConverter;
+  private TeamCalServiceImpl teamEventConverter;
 
   public void updateCache()
   {
@@ -259,10 +259,10 @@ public class TeamEventExternalSubscriptionCache
     return teamCalRight;
   }
 
-  private TeamEventConverter getTeamEventConverter()
+  private TeamCalServiceImpl getTeamEventConverter()
   {
     if (teamEventConverter == null) {
-      teamEventConverter = ApplicationContextProvider.getApplicationContext().getBean(TeamEventConverter.class);
+      teamEventConverter = ApplicationContextProvider.getApplicationContext().getBean(TeamCalServiceImpl.class);
     }
     return teamEventConverter;
   }

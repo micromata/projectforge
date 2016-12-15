@@ -34,12 +34,12 @@ import org.apache.wicket.model.ResourceModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.teamcal.admin.TeamCalCache;
-import org.projectforge.business.teamcal.event.TeamEventConverter;
 import org.projectforge.business.teamcal.event.TeamEventDao;
 import org.projectforge.business.teamcal.event.model.TeamEventDO;
 import org.projectforge.business.teamcal.filter.ICalendarFilter;
 import org.projectforge.business.teamcal.filter.TeamCalCalendarFilter;
 import org.projectforge.business.teamcal.filter.TemplateEntry;
+import org.projectforge.business.teamcal.service.TeamCalServiceImpl;
 import org.projectforge.common.StringHelper;
 import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
@@ -86,7 +86,7 @@ public class TeamCalCalendarForm extends CalendarForm
   transient AccessChecker accessChecker;
 
   @SpringBean
-  transient TeamEventConverter teamEventConverter;
+  transient TeamCalServiceImpl teamEventConverter;
 
   @SuppressWarnings("unused")
   private TemplateEntry activeTemplate;
@@ -242,7 +242,7 @@ public class TeamCalCalendarForm extends CalendarForm
       @Override
       protected void onIcsImport(final AjaxRequestTarget target, final Calendar calendar)
       {
-        final List<VEvent> events = TeamEventConverter.getVEvents(calendar);
+        final List<VEvent> events = TeamCalServiceImpl.getVEvents(calendar);
         if (events == null || events.size() == 0) {
           errorDialog.setMessage(getString("plugins.teamcal.import.ics.noEventsGiven")).open(target);
           return;
