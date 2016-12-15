@@ -28,9 +28,9 @@ import java.util.Collection;
 import java.util.List;
 
 import org.apache.commons.lang.Validate;
-import org.projectforge.business.teamcal.event.TeamEventConverter;
 import org.projectforge.business.teamcal.event.TeamEventDao;
 import org.projectforge.business.teamcal.event.model.TeamEventDO;
+import org.projectforge.business.teamcal.service.TeamCalServiceImpl;
 import org.projectforge.framework.persistence.api.HibernateUtils;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.utils.ImportStatus;
@@ -52,7 +52,7 @@ import net.fortuna.ical4j.model.component.VEvent;
 public class TeamCalImportDao
 {
   @Autowired
-  private TeamEventConverter teamEventConverter;
+  private TeamCalServiceImpl teamEventConverter;
 
   /**
    * Size of bulk inserts. If this value is too large, exceptions are expected and as more small the value is so as more

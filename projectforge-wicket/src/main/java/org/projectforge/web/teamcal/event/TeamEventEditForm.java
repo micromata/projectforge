@@ -43,13 +43,13 @@ import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.teamcal.admin.TeamCalDao;
 import org.projectforge.business.teamcal.admin.model.TeamCalDO;
 import org.projectforge.business.teamcal.event.AttendeeComparator;
-import org.projectforge.business.teamcal.event.TeamEventConverter;
 import org.projectforge.business.teamcal.event.TeamEventDao;
 import org.projectforge.business.teamcal.event.TeamEventRecurrenceData;
 import org.projectforge.business.teamcal.event.TeamEventService;
 import org.projectforge.business.teamcal.event.model.TeamEventAttendeeDO;
 import org.projectforge.business.teamcal.event.model.TeamEventDO;
 import org.projectforge.business.teamcal.event.right.TeamEventRight;
+import org.projectforge.business.teamcal.service.TeamCalServiceImpl;
 import org.projectforge.business.utils.HtmlHelper;
 import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
@@ -303,7 +303,7 @@ public class TeamEventEditForm extends AbstractEditForm<TeamEventDO, TeamEventEd
       recurrenceFieldset = gridBuilder.newFieldset(getString("plugins.teamcal.event.recurrence"));
       recurrencePanel = gridBuilder.getPanel().getDiv();
       recurrencePanel.setOutputMarkupId(true);
-      final RecurrenceFrequency[] supportedFrequencies = TeamEventConverter.getSupportedRecurrenceFrequencies();
+      final RecurrenceFrequency[] supportedFrequencies = TeamCalServiceImpl.getSupportedRecurrenceFrequencies();
       final LabelValueChoiceRenderer<RecurrenceFrequency> frequencyChoiceRenderer = new LabelValueChoiceRenderer<RecurrenceFrequency>(
           recurrenceFieldset, supportedFrequencies);
       final DropDownChoice<RecurrenceFrequency> frequencyChoice = new DropDownChoice<RecurrenceFrequency>(
