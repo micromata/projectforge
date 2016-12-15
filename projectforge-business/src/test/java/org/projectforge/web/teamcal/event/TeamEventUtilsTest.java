@@ -33,11 +33,11 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.TimeZone;
 
-import org.projectforge.business.teamcal.event.TeamEventConverter;
 import org.projectforge.business.teamcal.event.TeamEventRecurrenceData;
 import org.projectforge.business.teamcal.event.TeamRecurrenceEvent;
 import org.projectforge.business.teamcal.event.model.TeamEvent;
 import org.projectforge.business.teamcal.event.model.TeamEventDO;
+import org.projectforge.business.teamcal.service.TeamCalServiceImpl;
 import org.projectforge.framework.calendar.ICal4JUtils;
 import org.projectforge.framework.configuration.Configuration;
 import org.projectforge.framework.configuration.ConfigurationParam;
@@ -77,7 +77,7 @@ public class TeamEventUtilsTest extends AbstractTestBase
     {
       final TeamEventDO event = createEvent(timeZone, "2011-06-06 11:00", "2011-06-06 12:00",
           RecurrenceFrequency.WEEKLY, 1, "2013-12-31");
-      final Collection<TeamEvent> col = TeamEventConverter.getRecurrenceEvents(getDate("2013-10-20", timeZone),
+      final Collection<TeamEvent> col = TeamCalServiceImpl.getRecurrenceEvents(getDate("2013-10-20", timeZone),
           getDate("2013-10-29", timeZone), event, timeZone);
       assertEquals(2, col.size());
       final Iterator<TeamEvent> it = col.iterator();
@@ -90,7 +90,7 @@ public class TeamEventUtilsTest extends AbstractTestBase
       final TeamEventDO event = createEvent(timeZone, "2011-03-03 00:00", "2011-03-03 00:00",
           RecurrenceFrequency.WEEKLY, 2, "2011-04-30")
           .setAllDay(true);
-      final Collection<TeamEvent> col = TeamEventConverter.getRecurrenceEvents(getDate("2011-03-01", timeZone),
+      final Collection<TeamEvent> col = TeamCalServiceImpl.getRecurrenceEvents(getDate("2011-03-01", timeZone),
           getDate("2011-03-31", timeZone), event, timeZone);
       assertEquals(2, col.size());
       final Iterator<TeamEvent> it = col.iterator();
@@ -115,7 +115,7 @@ public class TeamEventUtilsTest extends AbstractTestBase
       final TeamEventDO event = createEvent(timeZone, "2013-03-21 20:00", "2013-03-21 21:30",
           RecurrenceFrequency.WEEKLY, 1, null);
       event.addRecurrenceExDate(parseDateTime("2013-03-28 20:00", timeZone), timeZone);
-      final Collection<TeamEvent> col = TeamEventConverter.getRecurrenceEvents(getDate("2013-03-01", timeZone),
+      final Collection<TeamEvent> col = TeamCalServiceImpl.getRecurrenceEvents(getDate("2013-03-01", timeZone),
           getDate("2013-04-05", timeZone), event, timeZone);
       assertEquals(2, col.size());
       final Iterator<TeamEvent> it = col.iterator();
@@ -129,7 +129,7 @@ public class TeamEventUtilsTest extends AbstractTestBase
           RecurrenceFrequency.WEEKLY, 1, null)
           .setAllDay(true);
       event.addRecurrenceExDate(parseDate("2013-03-28", timeZone), timeZone);
-      final Collection<TeamEvent> col = TeamEventConverter.getRecurrenceEvents(getDate("2013-03-01", timeZone),
+      final Collection<TeamEvent> col = TeamCalServiceImpl.getRecurrenceEvents(getDate("2013-03-01", timeZone),
           getDate("2013-04-05", timeZone), event, timeZone);
       assertEquals(2, col.size());
       final Iterator<TeamEvent> it = col.iterator();
@@ -211,7 +211,7 @@ public class TeamEventUtilsTest extends AbstractTestBase
   {
     final java.util.Date startDate = DateHelper.parseIsoDate(startDateString, timeZone);
     final java.util.Date endDate = DateHelper.parseIsoDate(endDateString, timeZone);
-    return TeamEventConverter.getRecurrenceEvents(startDate, endDate, event, timeZone);
+    return TeamCalServiceImpl.getRecurrenceEvents(startDate, endDate, event, timeZone);
   }
 
   private java.util.Date parseDateTime(final String dateString, final TimeZone timeZone)

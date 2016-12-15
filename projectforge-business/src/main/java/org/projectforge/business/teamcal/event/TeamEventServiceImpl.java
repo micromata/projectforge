@@ -7,6 +7,7 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -18,12 +19,14 @@ import org.apache.commons.lang3.StringUtils;
 import org.projectforge.business.address.AddressDO;
 import org.projectforge.business.address.AddressDao;
 import org.projectforge.business.configuration.ConfigurationService;
+import org.projectforge.business.teamcal.admin.model.TeamCalDO;
 import org.projectforge.business.teamcal.event.model.TeamEvent;
 import org.projectforge.business.teamcal.event.model.TeamEventAttendeeDO;
 import org.projectforge.business.teamcal.event.model.TeamEventAttendeeDao;
 import org.projectforge.business.teamcal.event.model.TeamEventAttendeeStatus;
 import org.projectforge.business.teamcal.event.model.TeamEventDO;
 import org.projectforge.business.teamcal.service.CryptService;
+import org.projectforge.business.teamcal.service.TeamCalServiceImpl;
 import org.projectforge.business.teamcal.servlet.TeamCalResponseServlet;
 import org.projectforge.business.user.I18nHelper;
 import org.projectforge.business.user.service.UserService;
@@ -52,7 +55,7 @@ public class TeamEventServiceImpl implements TeamEventService
   private SendMail sendMail;
 
   @Autowired
-  private TeamEventConverter teamEventConverter;
+  private TeamCalServiceImpl teamEventConverter;
 
   @Autowired
   private UserService userService;
@@ -378,6 +381,12 @@ public class TeamEventServiceImpl implements TeamEventService
     } else {
       teamEventAttendeeDao.internalUpdate(attendee);
     }
+  }
+
+  @Override
+  public List<Integer> getCalIdList(Collection<TeamCalDO> teamCals)
+  {
+    return teamEventDao.getCalIdList(teamCals);
   }
 
 }

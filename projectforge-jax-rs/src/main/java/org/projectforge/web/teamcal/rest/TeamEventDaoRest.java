@@ -48,13 +48,13 @@ import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang.StringUtils;
 import org.projectforge.business.teamcal.admin.TeamCalCache;
 import org.projectforge.business.teamcal.admin.model.TeamCalDO;
-import org.projectforge.business.teamcal.event.TeamEventConverter;
 import org.projectforge.business.teamcal.event.TeamEventDao;
 import org.projectforge.business.teamcal.event.TeamEventFilter;
 import org.projectforge.business.teamcal.event.TeamEventService;
 import org.projectforge.business.teamcal.event.model.TeamEvent;
 import org.projectforge.business.teamcal.event.model.TeamEventAttendeeDO;
 import org.projectforge.business.teamcal.event.model.TeamEventDO;
+import org.projectforge.business.teamcal.service.TeamCalServiceImpl;
 import org.projectforge.common.StringHelper;
 import org.projectforge.framework.persistence.api.ModificationStatus;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
@@ -85,13 +85,13 @@ public class TeamEventDaoRest
   private static final String UPDATED = "updated";
 
   @Autowired
+  private TeamCalServiceImpl teamCalService;
+
+  @Autowired
   private TeamEventService teamEventService;
 
   @Autowired
   private TeamCalCache teamCalCache;
-
-  @Autowired
-  private TeamEventConverter teamEventConverter;
 
   /**
    * @param calendarIds  The id's of the calendars to search for events (comma separated). If not given, all calendars
@@ -126,7 +126,7 @@ public class TeamEventDaoRest
       }
       final List<TeamEventDO> list = teamEventService.getTeamEventDOList(filter);
       if (list != null && list.size() > 0) {
-        list.forEach(event -> result.add(teamEventConverter.getEventObject(event, true)));
+        list.forEach(event -> result.add(teamCalService.getEventObject(event, true)));
       }
     } else {
       log.warn("No calendar ids are given, so can't find any events.");
@@ -164,7 +164,7 @@ public class TeamEventDaoRest
       if (list != null && list.size() > 0) {
         for (final TeamEvent event : list) {
           if (event.getStartDate().after(now) == true) {
-            result.add(teamEventConverter.getEventObject(event, true));
+            result.add(teamCalService.getEventObject(event, true));
           } else {
             log.info("Start date not in future:" + event.getStartDate() + ", " + event.getSubject());
           }
@@ -190,7 +190,7 @@ public class TeamEventDaoRest
       final net.fortuna.ical4j.model.Calendar calendar = builder.build(new ByteArrayInputStream(Base64.decodeBase64(calendarEvent.getIcsData())));
       final VEvent event = (VEvent) calendar.getComponent(Component.VEVENT);
       Uid eventUid = event.getUid();
-      final TeamEventDO teamEvent = teamEventConverter.createTeamEventDO(event,
+      final TeamEventDO teamEvent = teamCalService.createTeamEventDO(event,
           TimeZone.getTimeZone(teamCalDO.getOwner().getTimeZone()));
       TeamEventDO teamEventOrigin = teamEventService.findByUid(eventUid.getValue());
       Set<TeamEventAttendeeDO> originAttendees = new HashSet<>();
@@ -227,7 +227,7 @@ public class TeamEventDaoRest
             createUpdate.equals(UPDATED) && modificationStatus != ModificationStatus.NONE, false, attendeesToAssignMap);
       }
 
-      result = teamEventConverter.getEventObject(teamEventAfterAssignAttendees, true);
+      result = teamCalService.getEventObject(teamEventAfterAssignAttendees, true);
       log.info("Team event: " + teamEventAfterAssignAttendees.getSubject() + " for calendar #" + teamCalDO.getId() + " successfully " + createUpdate + ".");
     } catch (Exception e) {
       log.error("Exception while creating/updating team event", e);
