@@ -69,6 +69,8 @@ public class TeamCalDaoRest
     final TeamCalFilter filter = new TeamCalFilter();
     if (fullAccess == true) {
       filter.setFullAccess(true);
+      filter.setMinimalAccess(false);
+      filter.setReadonlyAccess(false);
     }
     final List<TeamCalDO> list = teamCalDao.getList(filter);
     final List<CalendarObject> result = new LinkedList<CalendarObject>();
