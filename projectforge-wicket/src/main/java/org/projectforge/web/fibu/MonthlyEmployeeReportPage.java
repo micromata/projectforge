@@ -58,6 +58,7 @@ import org.projectforge.business.task.formatter.WicketTaskFormatter;
 import org.projectforge.business.user.UserDao;
 import org.projectforge.business.vacation.service.VacationService;
 import org.projectforge.framework.configuration.Configuration;
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.renderer.PdfRenderer;
 import org.projectforge.framework.time.DateTimeFormatter;
@@ -223,7 +224,8 @@ public class MonthlyEmployeeReportPage extends AbstractStandardFormPage implemen
         @Override
         public boolean isVisible()
         {
-          return report != null && StringUtils.isNotBlank(report.getFormattedVacationCount());
+          return report != null && StringUtils.isNotBlank(report.getFormattedVacationCount()) && vacationService.couldUserUseVacationService(
+              ThreadLocalUserContext.getUser(), false);
         }
       }.suppressLabelForWarning();
       fs.add(new DivTextPanel(fs.newChildId(), new Model<String>()
@@ -478,6 +480,7 @@ public class MonthlyEmployeeReportPage extends AbstractStandardFormPage implemen
     data.put("sumLabel", getString("sum"));
     data.put("netSumLabel", getString("sum"));
     data.put("totalSumLabel", getString("fibu.monthlyEmployeeReport.totalSum"));
+    data.put("vacationAvailabel", vacationService.couldUserUseVacationService(form.filter.getUser(), false));
     data.put("vacationCountLabel", getString("vacation.annualleave"));
     data.put("report", report);
     data.put("signatureEmployeeLabel", getString("timesheet.signatureEmployee") + ": " + employee.getFullname());
