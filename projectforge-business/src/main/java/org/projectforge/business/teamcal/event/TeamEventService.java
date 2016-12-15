@@ -1,8 +1,10 @@
 package org.projectforge.business.teamcal.event;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
+import org.projectforge.business.teamcal.admin.model.TeamCalDO;
 import org.projectforge.business.teamcal.event.model.TeamEvent;
 import org.projectforge.business.teamcal.event.model.TeamEventAttendeeDO;
 import org.projectforge.business.teamcal.event.model.TeamEventDO;
@@ -46,4 +48,6 @@ public interface TeamEventService
   TeamEventDao getTeamEventDao();
 
   void updateAttendee(TeamEventAttendeeDO attendee, boolean accessCheck);
+
+  List<Integer> getCalIdList(Collection<TeamCalDO> teamCals);
 }

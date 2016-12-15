@@ -54,8 +54,8 @@ import org.hibernate.search.annotations.IndexedEmbedded;
 import org.hibernate.search.annotations.Resolution;
 import org.hibernate.search.annotations.Store;
 import org.projectforge.business.teamcal.admin.model.TeamCalDO;
-import org.projectforge.business.teamcal.event.TeamEventConverter;
 import org.projectforge.business.teamcal.event.TeamEventRecurrenceData;
+import org.projectforge.business.teamcal.service.TeamCalServiceImpl;
 import org.projectforge.framework.calendar.ICal4JUtils;
 import org.projectforge.framework.persistence.api.Constants;
 import org.projectforge.framework.persistence.api.PFPersistancyBehavior;
@@ -470,7 +470,7 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
   @Transient
   public TeamEventDO setRecurrence(final TeamEventRecurrenceData recurData)
   {
-    final String rruleString = TeamEventConverter.calculateRRule(recurData);
+    final String rruleString = TeamCalServiceImpl.calculateRRule(recurData);
     setRecurrenceRule(rruleString);
     return this;
   }
