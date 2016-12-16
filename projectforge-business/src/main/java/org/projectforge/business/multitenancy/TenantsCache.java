@@ -46,7 +46,7 @@ import org.springframework.stereotype.Component;
 
 /**
  * Caches the tenants.
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 @Component
@@ -171,11 +171,10 @@ public class TenantsCache extends AbstractCache
   }
 
   /**
-   *
    * @param tenant
    * @param userId
    * @return true if tenant is not null and not deleted and the given user is assigned to the given tenant. Otherwise
-   *         false.
+   * false.
    */
   public boolean isUserAssignedToTenant(final TenantDO tenant, final Integer userId)
   {
@@ -193,24 +192,6 @@ public class TenantsCache extends AbstractCache
       }
     }
     return false;
-  }
-
-  /**
-   * @param list
-   * @return csv list of tenants.
-   */
-  public String getTenantShortNames(final Collection<TenantDO> list)
-  {
-    if (list == null || list.size() == 0) {
-      return "";
-    }
-    final StringBuilder sb = new StringBuilder();
-    String separator = "";
-    for (final TenantDO tenant : list) {
-      sb.append(separator).append(tenant.getShortName());
-      separator = ", ";
-    }
-    return sb.toString();
   }
 
   /**
