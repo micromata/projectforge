@@ -114,7 +114,7 @@ public class TeamCalEditPage extends AbstractEditPage<TeamCalDO, TeamCalEditForm
     TeamCalDO data = form.getData();
     if (data.isExternalSubscription() == false) {
       data.setExternalSubscriptionUrl("");
-      data.setExternalSubscriptionUpdateInterval(0);
+      data.setExternalSubscriptionUpdateInterval(null);
     }
     return super.onSaveOrUpdate();
   }
