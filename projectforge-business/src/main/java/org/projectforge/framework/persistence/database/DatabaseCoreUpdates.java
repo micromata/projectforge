@@ -111,18 +111,44 @@ public class DatabaseCoreUpdates
     final List<UpdateEntry> list = new ArrayList<>();
 
     ////////////////////////////////////////////////////////////////////
+    // 6.6.1
+    // /////////////////////////////////////////////////////////////////
+    list.add(new UpdateEntryImpl(CORE_REGION_ID, "6.6.1", "2016-12-23", "Add probability of occurrence to order book.")
+    {
+      @Override
+      public UpdatePreCheckStatus runPreCheck()
+      {
+        log.info("Running pre-check for ProjectForge version 6.6.1");
+        if (databaseUpdateService.doesTableAttributeExist("t_fibu_auftrag", "probability_of_occurrence") == false) {
+          return UpdatePreCheckStatus.READY_FOR_UPDATE;
+        }
+        return UpdatePreCheckStatus.ALREADY_UPDATED;
+      }
+
+      @Override
+      public UpdateRunningStatus runUpdate()
+      {
+        if (databaseUpdateService.doesTableAttributeExist("t_fibu_auftrag", "probability_of_occurrence") == false) {
+          //Updating the schema
+          initDatabaseDao.updateSchema();
+        }
+        return UpdateRunningStatus.DONE;
+      }
+
+    });
+
+    ////////////////////////////////////////////////////////////////////
     // 6.6.0
     // /////////////////////////////////////////////////////////////////
     list.add(new UpdateEntryImpl(CORE_REGION_ID, "6.6.0", "2016-12-14",
         "Add new visitorbook tables. Add table for vacation." +
-                "Add new column in user table [lastWlanPasswordChange]. " +
-                "Add new columns in order table [erfassungsDatum, entscheidungsDatum].")
+            "Add new column in user table [lastWlanPasswordChange]. " +
+            "Add new columns in order table [erfassungsDatum, entscheidungsDatum].")
     {
       @Override
       public UpdatePreCheckStatus runPreCheck()
       {
         log.info("Running pre-check for ProjectForge version 6.6.0");
-        final DatabaseUpdateService databaseUpdateService = applicationContext.getBean(DatabaseUpdateService.class);
         if (databaseUpdateService.doesTableExist("T_EMPLOYEE_VACATION") == false
             || databaseUpdateService.doesTableRowExists("T_CONFIGURATION", "PARAMETER", "hr.emailaddress",
             true) == false) {
@@ -141,13 +167,11 @@ public class DatabaseCoreUpdates
       @Override
       public UpdateRunningStatus runUpdate()
       {
-        final InitDatabaseDao initDatabaseDao = applicationContext.getBean(InitDatabaseDao.class);
-        final DatabaseUpdateService databaseUpdateService = applicationContext.getBean(DatabaseUpdateService.class);
         if ((databaseUpdateService.doesTableExist("T_EMPLOYEE_VACATION") == false) || (databaseUpdateService
             .doTablesExist(VisitorbookDO.class, VisitorbookTimedDO.class, VisitorbookTimedAttrDO.class, VisitorbookTimedAttrDataDO.class,
                 VisitorbookTimedAttrWithDataDO.class) == false)
             || databaseUpdateService.doTableAttributesExist(PFUserDO.class, "lastWlanPasswordChange") == false
-            ||  databaseUpdateService.doTableAttributesExist(AuftragDO.class, "erfassungsDatum", "entscheidungsDatum") == false) {
+            || databaseUpdateService.doTableAttributesExist(AuftragDO.class, "erfassungsDatum", "entscheidungsDatum") == false) {
           //Updating the schema
           initDatabaseDao.updateSchema();
         }
