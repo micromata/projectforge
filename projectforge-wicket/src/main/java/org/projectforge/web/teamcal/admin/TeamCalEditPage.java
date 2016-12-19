@@ -111,6 +111,11 @@ public class TeamCalEditPage extends AbstractEditPage<TeamCalDO, TeamCalEditForm
     teamCalDao.setFullAccessGroups(getData(), form.fullAccessGroupsListHelper.getAssignedItems());
     teamCalDao.setReadonlyAccessGroups(getData(), form.readonlyAccessGroupsListHelper.getAssignedItems());
     teamCalDao.setMinimalAccessGroups(getData(), form.minimalAccessGroupsListHelper.getAssignedItems());
+    TeamCalDO data = form.getData();
+    if (data.isExternalSubscription() == false) {
+      data.setExternalSubscriptionUrl("");
+      data.setExternalSubscriptionUpdateInterval(0);
+    }
     return super.onSaveOrUpdate();
   }
 
