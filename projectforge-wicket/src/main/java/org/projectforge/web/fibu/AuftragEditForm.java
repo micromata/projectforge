@@ -348,7 +348,10 @@ public class AuftragEditForm extends AbstractEditForm<AuftragDO, AuftragEditPage
     {
       // Probability of occurrence
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("fibu.probabilityOfOccurrence"));
-      fs.add(new MinMaxNumberField<>(InputPanel.WICKET_ID, new PropertyModel<>(data, "probabilityOfOccurrence"), 0, 100));
+      final MinMaxNumberField<Integer> probabilityOfOccurrence = new MinMaxNumberField<>(InputPanel.WICKET_ID,
+          new PropertyModel<>(data, "probabilityOfOccurrence"), 0, 100);
+      probabilityOfOccurrence.add(AttributeModifier.append("style", "width: 6em;"));
+      fs.add(probabilityOfOccurrence);
     }
 
     gridBuilder.newSplitPanel(GridSize.COL50);
