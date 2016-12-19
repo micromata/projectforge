@@ -36,9 +36,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 /**
- * 
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
  */
 @Service
 public class TenantChecker implements Serializable
@@ -85,7 +83,7 @@ public class TenantChecker implements Serializable
    * user's current tenant is the same tenant the given object is assigned to, or the current tenant is the default
    * tenant and the given object is not assigned to a tenant.<br/>
    * If no multi-tenancy is configured, always true is returned.
-   * 
+   *
    * @param obj
    * @return
    */
@@ -115,7 +113,7 @@ public class TenantChecker implements Serializable
    * Sets the current tenant (of the logged-in user) for the given object. If no current tenant found, the default
    * tenant of the system is used (if exist). If no such tenant exist, null is set as the object's tenant. <br/>
    * If no multi-tenancy is configured, nothing is done.
-   * 
+   *
    * @param obj
    */
   public void setCurrentTenant(final BaseDO<?> obj)
@@ -151,31 +149,16 @@ public class TenantChecker implements Serializable
 
   public boolean isPartOfTenant(final TenantDO tenant, final PFUserDO user)
   {
-    if (tenant == null) {
+    if (tenant == null || user == null || tenant.getAssignedUsers() == null) {
       return false;
     }
-    return isPartOfTenant(tenant.getId(), user);
-  }
-
-  public boolean isPartOfTenant(final Integer tenantId, final PFUserDO user)
-  {
-    // if (isPartOfTenant(tenantId, (AbstractBaseDO< ? >) user) == true) {
-    // Ignore this setting (because it's neither displayed nor modifiable!
-    // return true;
-    // }
-    if (user == null) {
-      return false;
-    }
-    if (tenantService.isUserAssignedToTenant(tenantId, user.getId()) == true) {
-      return true;
-    }
-    return false;
+    return tenant.getAssignedUsers().contains(user);
   }
 
   /**
    * @param user
    * @return true in multi-tenancy environments if the given user (may be initialized by Hibernate or not) has the
-   *         read-write right of {@link TenantDao#USER_RIGHT_ID}.
+   * read-write right of {@link TenantDao#USER_RIGHT_ID}.
    */
   public static boolean isSuperAdmin(final PFUserDO user)
   {
