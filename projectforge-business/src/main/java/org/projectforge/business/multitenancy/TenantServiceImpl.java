@@ -139,7 +139,7 @@ public class TenantServiceImpl implements TenantService
   @Override
   public boolean isUserAssignedToTenant(final TenantDO tenant, final Integer userId)
   {
-    if (tenant == null || tenant.isDeleted()) {
+    if (tenant == null || tenant.isDeleted() || tenant.getAssignedUsers() == null) {
       return false;
     }
 

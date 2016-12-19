@@ -149,7 +149,7 @@ public class TenantChecker implements Serializable
 
   public boolean isPartOfTenant(final TenantDO tenant, final PFUserDO user)
   {
-    if (tenant == null || user == null) {
+    if (tenant == null || user == null || tenant.getAssignedUsers() == null) {
       return false;
     }
     return tenant.getAssignedUsers().contains(user);
