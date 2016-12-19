@@ -23,6 +23,14 @@
 
 package org.projectforge.web.fibu;
 
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
+import java.util.List;
+import java.util.Set;
+import java.util.function.BooleanSupplier;
+
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
@@ -30,7 +38,12 @@ import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
-import org.apache.wicket.markup.html.form.*;
+import org.apache.wicket.markup.html.form.Button;
+import org.apache.wicket.markup.html.form.CheckBox;
+import org.apache.wicket.markup.html.form.DropDownChoice;
+import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.markup.html.form.FormComponent;
+import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.html.form.validation.IFormValidator;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.CompoundPropertyModel;
@@ -38,7 +51,20 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.apache.wicket.util.convert.IConverter;
-import org.projectforge.business.fibu.*;
+import org.projectforge.business.fibu.AuftragDO;
+import org.projectforge.business.fibu.AuftragDao;
+import org.projectforge.business.fibu.AuftragsPositionDO;
+import org.projectforge.business.fibu.AuftragsPositionsArt;
+import org.projectforge.business.fibu.AuftragsPositionsStatus;
+import org.projectforge.business.fibu.AuftragsStatus;
+import org.projectforge.business.fibu.KundeDO;
+import org.projectforge.business.fibu.ModeOfPaymentType;
+import org.projectforge.business.fibu.PaymentScheduleDO;
+import org.projectforge.business.fibu.PeriodOfPerformanceType;
+import org.projectforge.business.fibu.ProjektDO;
+import org.projectforge.business.fibu.RechnungCache;
+import org.projectforge.business.fibu.RechnungDao;
+import org.projectforge.business.fibu.RechnungsPositionVO;
 import org.projectforge.business.task.TaskDO;
 import org.projectforge.business.user.I18nHelper;
 import org.projectforge.business.user.UserRightValue;
@@ -54,14 +80,24 @@ import org.projectforge.web.wicket.AbstractUnsecureBasePage;
 import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.web.wicket.bootstrap.GridBuilder;
 import org.projectforge.web.wicket.bootstrap.GridSize;
-import org.projectforge.web.wicket.components.*;
+import org.projectforge.web.wicket.components.DatePanel;
+import org.projectforge.web.wicket.components.DatePanelSettings;
+import org.projectforge.web.wicket.components.LabelValueChoiceRenderer;
+import org.projectforge.web.wicket.components.MaxLengthTextArea;
+import org.projectforge.web.wicket.components.MaxLengthTextField;
+import org.projectforge.web.wicket.components.MinMaxNumberField;
+import org.projectforge.web.wicket.components.RequiredMaxLengthTextField;
+import org.projectforge.web.wicket.components.SingleButtonPanel;
 import org.projectforge.web.wicket.converter.CurrencyConverter;
-import org.projectforge.web.wicket.flowlayout.*;
+import org.projectforge.web.wicket.flowlayout.CheckBoxButton;
+import org.projectforge.web.wicket.flowlayout.DivPanel;
+import org.projectforge.web.wicket.flowlayout.DivTextPanel;
+import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
+import org.projectforge.web.wicket.flowlayout.InputPanel;
+import org.projectforge.web.wicket.flowlayout.TextAreaPanel;
+import org.projectforge.web.wicket.flowlayout.TextStyle;
+import org.projectforge.web.wicket.flowlayout.ToggleContainerPanel;
 import org.projectforge.web.wicket.flowlayout.ToggleContainerPanel.ToggleStatus;
-
-import java.math.BigDecimal;
-import java.util.*;
-import java.util.function.BooleanSupplier;
 
 public class AuftragEditForm extends AbstractEditForm<AuftragDO, AuftragEditPage>
 {
@@ -162,8 +198,10 @@ public class AuftragEditForm extends AbstractEditForm<AuftragDO, AuftragEditPage
       }, TextStyle.FORM_TEXT);
       fs.add(orderedPanel);
 
-      String orderInvoiceInfo = I18nHelper.getLocalizedMessage("fibu.auftrag.invoice.info", CurrencyFormatter.format(data.getFakturiertSum()), CurrencyFormatter.format(data.getZuFakturierenSum()));
-      fs.add(new DivTextPanel(fs.newChildId(), orderInvoiceInfo)); ;
+      String orderInvoiceInfo = I18nHelper.getLocalizedMessage("fibu.auftrag.invoice.info", CurrencyFormatter.format(data.getFakturiertSum()),
+          CurrencyFormatter.format(data.getZuFakturierenSum()));
+      fs.add(new DivTextPanel(fs.newChildId(), orderInvoiceInfo));
+      ;
     }
     gridBuilder.newGridPanel();
     {
@@ -244,8 +282,8 @@ public class AuftragEditForm extends AbstractEditForm<AuftragDO, AuftragEditPage
       // entry date
       final FieldsetPanel fsOrderDate = gridBuilder.newFieldset(getString("fibu.auftrag.angebot.datum"));
       final DatePanel angebotsDatumPanel = new DatePanel(fsOrderDate.newChildId(),
-              new PropertyModel<Date>(data, "angebotsDatum"), DatePanelSettings
-              .get().withTargetType(java.sql.Date.class));
+          new PropertyModel<Date>(data, "angebotsDatum"), DatePanelSettings
+          .get().withTargetType(java.sql.Date.class));
       angebotsDatumPanel.setRequired(true);
       fsOrderDate.add(angebotsDatumPanel);
     }
@@ -254,8 +292,8 @@ public class AuftragEditForm extends AbstractEditForm<AuftragDO, AuftragEditPage
       // entry date
       final FieldsetPanel fsOrderDate = gridBuilder.newFieldset(getString("fibu.auftrag.entscheidung.datum"));
       final DatePanel angebotsDatumPanel = new DatePanel(fsOrderDate.newChildId(),
-              new PropertyModel<Date>(data, "entscheidungsDatum"), DatePanelSettings
-              .get().withTargetType(java.sql.Date.class));
+          new PropertyModel<Date>(data, "entscheidungsDatum"), DatePanelSettings
+          .get().withTargetType(java.sql.Date.class));
       fsOrderDate.add(angebotsDatumPanel);
     }
     gridBuilder.newSplitPanel(GridSize.COL50);
@@ -306,6 +344,16 @@ public class AuftragEditForm extends AbstractEditForm<AuftragDO, AuftragEditPage
       endDatePanel = new DatePanel(fs.newChildId(), new PropertyModel<>(data, "periodOfPerformanceEnd"),
           DatePanelSettings.get().withTargetType(java.sql.Date.class), isAnyPerformanceTypeSeeAboveSelected);
       fs.add(endDatePanel);
+    }
+    {
+      // Probability of occurrence
+      final FieldsetPanel fs = gridBuilder.newFieldset(getString("fibu.probabilityOfOccurrence"));
+
+      //      InputPanel panel = new InputPanel()
+      MinMaxNumberField<Integer> percentField = new MinMaxNumberField<>(InputPanel.WICKET_ID, new PropertyModel<>(data, "probabilityOfOccurrence"), 0, 100);
+      fs.add(percentField);
+
+      fs.add(new DivTextPanel(fs.newChildId(), "%"));
     }
 
     gridBuilder.newSplitPanel(GridSize.COL50);
@@ -570,7 +618,7 @@ public class AuftragEditForm extends AbstractEditForm<AuftragDO, AuftragEditPage
           BigDecimal invoicedSumForPosition = RechnungDao.getNettoSumme(invoicePositionsByOrderPositionId);
           BigDecimal notInvoicedSumForPosition = position.getNettoSumme().subtract(invoicedSumForPosition);
           fs.add(new DivTextPanel(fs.newChildId(),
-                  CurrencyFormatter.format(notInvoicedSumForPosition)));
+              CurrencyFormatter.format(notInvoicedSumForPosition)));
         }
       }
       posGridBuilder.newSplitPanel(GridSize.COL25);
