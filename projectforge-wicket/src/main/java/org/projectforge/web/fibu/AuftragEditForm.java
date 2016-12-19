@@ -352,8 +352,6 @@ public class AuftragEditForm extends AbstractEditForm<AuftragDO, AuftragEditPage
       //      InputPanel panel = new InputPanel()
       MinMaxNumberField<Integer> percentField = new MinMaxNumberField<>(InputPanel.WICKET_ID, new PropertyModel<>(data, "probabilityOfOccurrence"), 0, 100);
       fs.add(percentField);
-
-      fs.add(new DivTextPanel(fs.newChildId(), "%"));
     }
 
     gridBuilder.newSplitPanel(GridSize.COL50);
