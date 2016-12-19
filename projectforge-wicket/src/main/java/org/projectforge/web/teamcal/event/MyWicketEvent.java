@@ -24,11 +24,11 @@
 package org.projectforge.web.teamcal.event;
 
 import net.ftlines.wicket.fullcalendar.Event;
-
 import org.apache.commons.lang.StringUtils;
+import org.joda.time.Duration;
 import org.joda.time.Period;
-import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.business.utils.HtmlHelper;
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.web.WebConfiguration;
 
 public class MyWicketEvent extends Event
@@ -126,14 +126,15 @@ public class MyWicketEvent extends Event
     if (duration != null) {
       return duration;
     }
+    final StringBuffer buf = new StringBuffer();
+    final Duration duration1 = new Duration(this.getStart(), this.getEnd());
+    int days = duration1.toStandardDays().getDays();
     final Period period = new Period(this.getStart(), this.getEnd());
-    int days = period.getDays();
+    final int hours = period.getHours();
+    final int minutes = period.getMinutes();
     if (isAllDay() == true) {
       ++days;
     }
-    final int hours = period.getHours();
-    final int minutes = period.getMinutes();
-    final StringBuffer buf = new StringBuffer();
     if (days > 0) { // days
       buf.append(days).append(ThreadLocalUserContext.getLocalizedString("calendar.unit.day")).append(" ");
     }
