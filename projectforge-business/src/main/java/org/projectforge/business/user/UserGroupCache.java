@@ -52,7 +52,7 @@ import org.springframework.orm.hibernate5.HibernateTemplate;
 
 /**
  * The group user relations will be cached with this class.
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 public class UserGroupCache extends AbstractCache
@@ -63,7 +63,9 @@ public class UserGroupCache extends AbstractCache
 
   private final TenantDO tenant;
 
-  /** The key is the user id and the value is a list of assigned groups. */
+  /**
+   * The key is the user id and the value is a list of assigned groups.
+   */
   private Map<Integer, Set<Integer>> userGroupIdMap;
 
   private Map<Integer, GroupDO> groupMap;
@@ -200,7 +202,7 @@ public class UserGroupCache extends AbstractCache
 
   /**
    * Check for current logged in user.
-   * 
+   *
    * @param groupId
    * @return
    */
@@ -355,7 +357,7 @@ public class UserGroupCache extends AbstractCache
 
   /**
    * Checks if the given user is at least member of one of the given groups.
-   * 
+   *
    * @param user
    * @param groups
    */
@@ -420,7 +422,7 @@ public class UserGroupCache extends AbstractCache
 
   /**
    * Returns a collection of group id's to which the user is assigned to.
-   * 
+   *
    * @param user
    * @return collection if found, otherwise null.
    */
@@ -448,7 +450,7 @@ public class UserGroupCache extends AbstractCache
 
   /**
    * Removes given employee from map, so refresh for next access is forced.
-   * 
+   *
    * @param userId
    */
   public void refreshEmployee(final Integer userId)
@@ -472,7 +474,7 @@ public class UserGroupCache extends AbstractCache
 
   /**
    * Should be called after user modifications.
-   * 
+   *
    * @param user
    */
   void updateUser(final PFUserDO user)
@@ -505,7 +507,7 @@ public class UserGroupCache extends AbstractCache
     final List<PFUserDO> users = Login.getInstance().getAllUsers();
     for (final PFUserDO user : users) {
       if (tenant != null) {
-        if (tenantChecker.isPartOfTenant(tenant.getId(), user) == false) {
+        if (tenantChecker.isPartOfTenant(tenant, user) == false) {
           // Ignore users not assigned to current tenant.
           continue;
         }
