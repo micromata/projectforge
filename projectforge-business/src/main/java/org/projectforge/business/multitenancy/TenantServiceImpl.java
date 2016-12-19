@@ -131,28 +131,22 @@ public class TenantServiceImpl implements TenantService
   }
 
   /**
-   *
    * @param tenant
    * @param userId
    * @return true if tenant is not null and not deleted and the given user is assigned to the given tenant. Otherwise
-   *         false.
+   * false.
    */
   @Override
   public boolean isUserAssignedToTenant(final TenantDO tenant, final Integer userId)
   {
-    if (tenant == null || tenant.getId() == null) {
+    if (tenant == null || tenant.isDeleted() || tenant.getAssignedUsers() == null) {
       return false;
     }
-    final Collection<TenantDO> assignedTenants = getTenantsOfUser(userId);
-    if (assignedTenants == null) {
-      return false;
-    }
-    for (final TenantDO assignedTenant : assignedTenants) {
-      if (tenant.getId().equals(assignedTenant.getId()) == true) {
-        return true;
-      }
-    }
-    return false;
+
+    return tenant
+        .getAssignedUsers()
+        .stream()
+        .anyMatch(user -> user.getId().equals(userId));
   }
 
   @Override
