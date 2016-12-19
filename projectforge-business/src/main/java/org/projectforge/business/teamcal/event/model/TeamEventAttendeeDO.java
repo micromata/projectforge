@@ -282,18 +282,34 @@ public class TeamEventAttendeeDO extends DefaultBaseDO implements Comparable<Tea
     return this.toString().toLowerCase().compareTo(arg0.toString().toLowerCase());
   }
 
+  /**
+   * Equals / HashCode contract is broken because of technical requirements
+   *
+   * @return
+   */
   @Override
   public int hashCode()
   {
-    int result = getPk() != null ? getPk().hashCode() : 0;
-    result = 31 * result + (address != null ? address.getPk().hashCode() : 0);
-    result = 31 * result + (user != null ? user.getPk().hashCode() : 0);
-    result = 31 * result + (url != null ? url.hashCode() : 0);
+    int result = 0;
+    if (url != null) {
+      return 31 * url.hashCode();
+    }
+    if (address != null && address.getPk() != null) {
+      return 31 * address.getPk().hashCode();
+    }
+    if (user != null && user.getPk() != null) {
+      return 31 * user.getPk().hashCode();
+    }
+    if (getPk() != null) {
+      return 31 * getPk().hashCode();
+    }
     return result;
   }
 
   /**
-   * @see java.lang.Object#equals(java.lang.Object)
+   * Equals / HashCode contract is broken because of technical requirements
+   *
+   * @return
    */
   @Override
   public boolean equals(final Object o)
@@ -302,17 +318,20 @@ public class TeamEventAttendeeDO extends DefaultBaseDO implements Comparable<Tea
       return false;
     }
     final TeamEventAttendeeDO other = (TeamEventAttendeeDO) o;
-    if (this.getId() != null && other.getId() != null && ObjectUtils.equals(this.getId(), other.getId())) {
-      return true;
-    }
-    if (ObjectUtils.equals(this.getUserId(), other.getUserId())) {
-      return true;
-    }
-    if (this.getAddress() != null && other.getAddress() != null
-        && ObjectUtils.equals(this.getAddressId(), other.getAddressId())) {
-      return true;
-    }
     if (this.getUrl() != null && other.getUrl() != null && StringUtils.equals(this.getUrl(), other.getUrl())) {
+      return true;
+    }
+    if (this.getAddressId() != null && other.getAddressId() != null && ObjectUtils.equals(this.getAddressId(), other.getAddressId())) {
+      return true;
+    }
+    if (this.getUserId() != null && other.getUserId() != null && ObjectUtils.equals(this.getUserId(), other.getUserId())) {
+      return true;
+    }
+    if (this.getPk() != null && other.getPk() != null && ObjectUtils.equals(this.getPk(), other.getPk())) {
+      return true;
+    }
+    if (this.getUrl() == null && other.getUrl() == null && this.getAddressId() == null && other.getAddressId() == null && this.getUserId() == null
+        && other.getUserId() == null && this.getPk() == null && other.getPk() == null) {
       return true;
     }
     return false;
