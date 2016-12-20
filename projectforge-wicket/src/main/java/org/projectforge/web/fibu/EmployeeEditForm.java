@@ -23,10 +23,7 @@
 
 package org.projectforge.web.fibu;
 
-import java.math.BigDecimal;
-import java.util.Date;
-import java.util.function.Function;
-
+import de.micromata.genome.db.jpa.tabattr.api.AttrGroup;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.apache.wicket.markup.html.form.DropDownChoice;
@@ -53,22 +50,12 @@ import org.projectforge.web.wicket.AbstractEditForm;
 import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.web.wicket.bootstrap.GridBuilder;
 import org.projectforge.web.wicket.bootstrap.GridSize;
-import org.projectforge.web.wicket.components.DatePanel;
-import org.projectforge.web.wicket.components.DatePanelSettings;
-import org.projectforge.web.wicket.components.LabelValueChoiceRenderer;
-import org.projectforge.web.wicket.components.MaxLengthTextArea;
-import org.projectforge.web.wicket.components.MaxLengthTextField;
-import org.projectforge.web.wicket.components.MaxLengthTextFieldWithRequiredSupplier;
-import org.projectforge.web.wicket.components.MinMaxNumberField;
-import org.projectforge.web.wicket.components.TabPanel;
-import org.projectforge.web.wicket.flowlayout.AbstractFieldsetPanel;
-import org.projectforge.web.wicket.flowlayout.FieldProperties;
-import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
-import org.projectforge.web.wicket.flowlayout.HtmlCommentPanel;
-import org.projectforge.web.wicket.flowlayout.InputPanel;
-import org.projectforge.web.wicket.flowlayout.TextAreaPanel;
+import org.projectforge.web.wicket.components.*;
+import org.projectforge.web.wicket.flowlayout.*;
 
-import de.micromata.genome.db.jpa.tabattr.api.AttrGroup;
+import java.math.BigDecimal;
+import java.util.Date;
+import java.util.function.Function;
 
 public class EmployeeEditForm extends AbstractEditForm<EmployeeDO, EmployeeEditPage>
 {
@@ -341,7 +328,7 @@ public class EmployeeEditForm extends AbstractEditForm<EmployeeDO, EmployeeEditP
         .hasLoggedInUserReadAccess(UserRightId.HR_VACATION, false)) {
       GridBuilder vacationGridBuilder = tabPanel.getOrCreateTab("vacation");
       vacationViewHelper.createVacationView(vacationGridBuilder, data, accessChecker
-          .hasLoggedInUserWriteAccess(UserRightId.HR_VACATION, false));
+              .hasLoggedInUserWriteAccess(UserRightId.HR_VACATION, false), this.getReturnToPage());
     }
 
   }
