@@ -47,6 +47,8 @@ public class XlsContentProvider implements ContentProvider
 
   public static final int LENGTH_BOOLEAN = 5;
 
+  public static final int LENGTH_PERCENT = 5;
+
   public static final int LENGTH_COMMENT = 30;
 
   public static final int LENGTH_CURRENCY = 11;
@@ -114,7 +116,7 @@ public class XlsContentProvider implements ContentProvider
     defaultFormatMap.put(Integer.class, new CellFormat("#,##0", CellStyle.ALIGN_RIGHT));
     defaultFormatMap.put(Number.class, new CellFormat("#,###.######", CellStyle.ALIGN_RIGHT));
     defaultFormatMap
-    .put(Date.class, new CellFormat(ExcelDateFormats.getExcelFormatString(exportContext, DateFormatType.DATE_TIME_MINUTES)));
+        .put(Date.class, new CellFormat(ExcelDateFormats.getExcelFormatString(exportContext, DateFormatType.DATE_TIME_MINUTES)));
     defaultFormatMap.put(java.sql.Date.class, new CellFormat(ExcelDateFormats.getExcelFormatString(exportContext, DateFormatType.DATE)));
     defaultFormatMap.put(java.sql.Timestamp.class,
         new CellFormat(ExcelDateFormats.getExcelFormatString(exportContext, DateFormatType.DATE_TIME_MILLIS)));
@@ -132,6 +134,7 @@ public class XlsContentProvider implements ContentProvider
 
   /**
    * If true then first row and even/odd rows will be formatted with bordered cells.
+   *
    * @param autoFormatCells
    */
   public void setAutoFormatCells(final boolean autoFormatCells)
@@ -141,6 +144,7 @@ public class XlsContentProvider implements ContentProvider
 
   /**
    * Highlights even and odd rows and sets first column bold if even and odd rows are configured.
+   *
    * @see org.projectforge.excel.ContentProvider#updateRowStyle(org.projectforge.excel.ExportRow)
    */
   @Override
@@ -207,6 +211,7 @@ public class XlsContentProvider implements ContentProvider
   /**
    * Override this method if you need to convert complex data types, e. g. value is a DateHolder object you may return value.getDate().
    * Please note, that only some object types are supported by {@link Cell} and by this implementation.
+   *
    * @param value
    * @return null at default.
    */
@@ -216,7 +221,7 @@ public class XlsContentProvider implements ContentProvider
   }
 
   /**
-   * 
+   *
    */
   @Override
   public XlsContentProvider setValue(final ExportCell cell, final Object value, final String property)
@@ -282,7 +287,7 @@ public class XlsContentProvider implements ContentProvider
       }
     }
     if (format == null) {
-      Class< ? > clazz = value == null ? null : value.getClass();
+      Class<?> clazz = value == null ? null : value.getClass();
       while (format == null && clazz != null) {
         format = map.get(clazz);
         clazz = clazz.getSuperclass();
@@ -300,6 +305,7 @@ public class XlsContentProvider implements ContentProvider
 
   /**
    * Override this method for creating own cell formats.
+   *
    * @param format May-be null if no mapping was found for the given value.
    * @param value
    * @return null at default.
@@ -317,7 +323,7 @@ public class XlsContentProvider implements ContentProvider
   }
 
   @Override
-  public XlsContentProvider putFormat(final Enum< ? > col, final CellFormat cellFormat)
+  public XlsContentProvider putFormat(final Enum<?> col, final CellFormat cellFormat)
   {
     putFormat(col.name(), cellFormat);
     return this;
@@ -331,7 +337,7 @@ public class XlsContentProvider implements ContentProvider
   }
 
   @Override
-  public XlsContentProvider putFormat(final Enum< ? > col, final String dataFormat)
+  public XlsContentProvider putFormat(final Enum<?> col, final String dataFormat)
   {
     putFormat(col.name(), dataFormat);
     return this;
@@ -346,9 +352,9 @@ public class XlsContentProvider implements ContentProvider
   }
 
   @Override
-  public XlsContentProvider putFormat(final String dataFormat, final Enum< ? >... cols)
+  public XlsContentProvider putFormat(final String dataFormat, final Enum<?>... cols)
   {
-    for (final Enum< ? > col : cols) {
+    for (final Enum<?> col : cols) {
       putFormat(col, dataFormat);
     }
     return this;
