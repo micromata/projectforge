@@ -752,17 +752,16 @@ public class TeamCalServiceImpl
     }
 
     final RRule rule = (RRule) event.getProperty(Property.RRULE);
-    if (rule != null)
-
-    {
+    if (rule != null) {
       teamEvent.setRecurrenceRule(rule.getValue());
     }
-
-    final ExDate exDate = (ExDate) event.getProperty(Property.EXDATE);
-    if (exDate != null)
-
-    {
-      teamEvent.setRecurrenceExDate(exDate.getValue());
+    PropertyList exDateProperties = event.getProperties(Property.EXDATE);
+    if (exDateProperties != null) {
+      List<String> exDateList = new ArrayList<>();
+      exDateProperties.forEach(exDateProp -> {
+        exDateList.add(exDateProp.getValue());
+      });
+      teamEvent.setRecurrenceExDate(String.join(",", exDateList));
     }
     return teamEvent;
   }
