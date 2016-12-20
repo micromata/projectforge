@@ -31,7 +31,6 @@ import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.framework.utils.ReflectionHelper;
 import org.projectforge.web.fibu.ISelectCallerPage;
 import org.projectforge.web.wicket.components.PlainLabel;
@@ -136,6 +135,29 @@ public class ListSelectActionPanel extends Panel
         setResponsePage(editPage);
       };
     };
+    add(link);
+    add(label);
+  }
+
+  public ListSelectActionPanel(final String id, final Class<? extends WebPage> editPageClass,
+                               final WebPage returnToPage, final Label label) {
+    super(id);
+    setRenderBodyOnly(true);
+    final Link<?> link = new Link<Void>(LINK_ID) {
+      @Override
+      public void onClick() {
+        final PageParameters pageParams = returnToPage.getPageParameters();
+        final AbstractSecuredPage editPage = (AbstractSecuredPage) ReflectionHelper.newInstance(editPageClass, PageParameters.class,
+                pageParams);
+        if (editPage instanceof AbstractEditPage) {
+          ((AbstractEditPage<?, ?, ?>) editPage).setReturnToPage(returnToPage);
+        }
+        setResponsePage(editPage);
+      }
+
+      ;
+    };
+
     add(link);
     add(label);
   }
