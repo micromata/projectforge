@@ -89,7 +89,7 @@ public class OrderExport
         new I18nExportColumn(OrderCol.INVOICES, "fibu.rechnungen", MyXlsContentProvider.LENGTH_STD),
         new I18nExportColumn(OrderCol.PERIOD_OF_PERFORMANCE_BEGIN, "fibu.periodOfPerformance.from", MyXlsContentProvider.LENGTH_DATE),
         new I18nExportColumn(OrderCol.PERIOD_OF_PERFORMANCE_END, "fibu.periodOfPerformance.to", MyXlsContentProvider.LENGTH_DATE),
-        new I18nExportColumn(OrderCol.PROBABILITY_OF_OCCURRENCE, "fibu.probabilityOfOccurrence", MyXlsContentProvider.LENGTH_BOOLEAN),
+        new I18nExportColumn(OrderCol.PROBABILITY_OF_OCCURRENCE, "fibu.probabilityOfOccurrence", MyXlsContentProvider.LENGTH_PERCENT),
         new I18nExportColumn(OrderCol.CONTACT_PERSON, "contactPerson", MyXlsContentProvider.LENGTH_STD),
         new I18nExportColumn(OrderCol.REFERENCE, "fibu.common.reference", MyXlsContentProvider.LENGTH_STD),
         new I18nExportColumn(OrderCol.COMMENT, "comment", MyXlsContentProvider.LENGTH_COMMENT)
