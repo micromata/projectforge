@@ -138,7 +138,6 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
   @Field(index = Index.YES /* TOKENIZED */, store = Store.NO)
   private String note;
 
-  @PFPersistancyBehavior(autoUpdateCollectionEntries = true)
   private Set<TeamEventAttendeeDO> attendees;
 
   private String organizer;
