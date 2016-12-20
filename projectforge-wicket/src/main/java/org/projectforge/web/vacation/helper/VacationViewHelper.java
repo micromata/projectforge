@@ -1,5 +1,11 @@
 package org.projectforge.web.vacation.helper;
 
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.GregorianCalendar;
+import java.util.List;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -12,10 +18,8 @@ import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDat
 import org.apache.wicket.extensions.markup.html.repeater.util.SortParam;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.WebPage;
-import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.projectforge.business.configuration.ConfigurationService;
 import org.projectforge.business.fibu.EmployeeDO;
 import org.projectforge.business.user.I18nHelper;
@@ -28,18 +32,18 @@ import org.projectforge.web.vacation.VacationEditPage;
 import org.projectforge.web.vacation.VacationViewPageSortableDataProvider;
 import org.projectforge.web.wicket.CellItemListener;
 import org.projectforge.web.wicket.CellItemListenerPropertyColumn;
-import org.projectforge.web.wicket.ListSelectActionPanel;
 import org.projectforge.web.wicket.bootstrap.GridBuilder;
 import org.projectforge.web.wicket.bootstrap.GridSize;
-import org.projectforge.web.wicket.flowlayout.*;
+import org.projectforge.web.wicket.flowlayout.DivPanel;
+import org.projectforge.web.wicket.flowlayout.DivTextPanel;
+import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
+import org.projectforge.web.wicket.flowlayout.Heading1Panel;
+import org.projectforge.web.wicket.flowlayout.Heading3Panel;
+import org.projectforge.web.wicket.flowlayout.LinkPanel;
+import org.projectforge.web.wicket.flowlayout.TablePanel;
+import org.projectforge.web.wicket.flowlayout.TextPanel;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.GregorianCalendar;
-import java.util.List;
 
 @Component
 public class VacationViewHelper {
@@ -105,12 +109,10 @@ public class VacationViewHelper {
         sectionBottom.add(new Heading3Panel(sectionBottom.newChildId(),
                 I18nHelper.getLocalizedMessage("vacation.title.list") + " " + now.get(Calendar.YEAR)));
         if (showAddButton) {
-            PageParameters pageParameters = new PageParameters();
-            pageParameters.add("employeeId", currentEmployee.getId());
-            sectionBottom.add(new ListSelectActionPanel(sectionBottom.newChildId(), VacationEditPage.class, returnToPage,
-                    new Label(ListSelectActionPanel.LABEL_ID, I18nHelper.getLocalizedMessage("add")))
-                    .add(AttributeModifier.replace("class", "btn btn-sm btn-success")).add(AttributeModifier.replace("style", "margin-bottom: 5px")));
-
+            LinkPanel addLink = new LinkPanel(sectionBottom.newChildId(), I18nHelper.getLocalizedMessage("add"), VacationEditPage.class, returnToPage);
+            addLink.addLinkAttribute("class","btn btn-sm btn-success");
+            addLink.addLinkAttribute("style","margin-bottom: 5px");
+            sectionBottom.add(addLink);
         }
         TablePanel tablePanel = new TablePanel(sectionBottom.newChildId());
         sectionBottom.add(tablePanel);

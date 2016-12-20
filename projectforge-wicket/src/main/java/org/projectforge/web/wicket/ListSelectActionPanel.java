@@ -139,29 +139,6 @@ public class ListSelectActionPanel extends Panel
     add(label);
   }
 
-  public ListSelectActionPanel(final String id, final Class<? extends WebPage> editPageClass,
-                               final WebPage returnToPage, final Label label) {
-    super(id);
-    setRenderBodyOnly(true);
-    final Link<?> link = new Link<Void>(LINK_ID) {
-      @Override
-      public void onClick() {
-        final PageParameters pageParams = returnToPage.getPageParameters();
-        final AbstractSecuredPage editPage = (AbstractSecuredPage) ReflectionHelper.newInstance(editPageClass, PageParameters.class,
-                pageParams);
-        if (editPage instanceof AbstractEditPage) {
-          ((AbstractEditPage<?, ?, ?>) editPage).setReturnToPage(returnToPage);
-        }
-        setResponsePage(editPage);
-      }
-
-      ;
-    };
-
-    add(link);
-    add(label);
-  }
-
   public ListSelectActionPanel(final String id, final AbstractLink link, final Model<String> label)
   {
     this(id, link, new Label(LABEL_ID, label));
