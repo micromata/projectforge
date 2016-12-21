@@ -180,6 +180,10 @@ public class Mail implements Comparable<Mail>
 
   public void addTo(String to)
   {
+    if(to == null) {
+      log.warn("Could not create InternetAddress from mail. Mail address is null");
+      return;
+    }
     try {
       this.to.add(new InternetAddress(to));
     } catch (AddressException e) {
