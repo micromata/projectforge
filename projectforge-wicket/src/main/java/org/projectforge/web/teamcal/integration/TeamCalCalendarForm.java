@@ -23,6 +23,7 @@
 
 package org.projectforge.web.teamcal.integration;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -35,6 +36,7 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.teamcal.admin.TeamCalCache;
 import org.projectforge.business.teamcal.event.TeamEventDao;
+import org.projectforge.business.teamcal.event.model.TeamEventAttendeeDO;
 import org.projectforge.business.teamcal.event.model.TeamEventDO;
 import org.projectforge.business.teamcal.filter.ICalendarFilter;
 import org.projectforge.business.teamcal.filter.TeamCalCalendarFilter;
@@ -49,6 +51,7 @@ import org.projectforge.web.calendar.CalendarPageSupport;
 import org.projectforge.web.dialog.ModalMessageDialog;
 import org.projectforge.web.teamcal.admin.TeamCalListPage;
 import org.projectforge.web.teamcal.dialog.TeamCalFilterDialog;
+import org.projectforge.web.teamcal.event.TeamEventEditForm;
 import org.projectforge.web.teamcal.event.TeamEventEditPage;
 import org.projectforge.web.teamcal.event.TeamEventListPage;
 import org.projectforge.web.teamcal.event.importics.DropIcsPanel;
@@ -271,7 +274,30 @@ public class TeamCalCalendarForm extends CalendarForm
         if (activeTemplateEntry != null && activeTemplateEntry.getDefaultCalendarId() != null) {
           teamEventDao.setCalendar(teamEvent, activeTemplateEntry.getDefaultCalendarId());
         }
+
+        Set<TeamEventAttendeeDO> originAssignedAttendees = new HashSet<>();
+        teamEvent.getAttendees().forEach(attendee -> {
+          attendee.setPk(null);
+          originAssignedAttendees.add(attendee);
+        });
+        teamEvent.setAttendees(new HashSet<>());
         final TeamEventEditPage editPage = new TeamEventEditPage(new PageParameters(), teamEvent);
+        final TeamEventEditForm form = editPage.getForm();
+        originAssignedAttendees.forEach(attendee -> {
+          if (attendee.getAddress() != null) {
+            form.getAttendeeWicketProvider().initSortedAttendees();
+            form.getAttendeeWicketProvider().getSortedAttendees().forEach(sortedAttendee -> {
+              if (sortedAttendee.getAddress() != null && sortedAttendee.getAddress().getPk().equals(attendee.getAddress().getPk())) {
+                sortedAttendee.setId(form.getAttendeeWicketProvider().getAndDecreaseInternalNewAttendeeSequence());
+                form.getAssignAttendeesListHelper().assignItem(sortedAttendee);
+              }
+            });
+          } else {
+            attendee.setId(form.getAttendeeWicketProvider().getAndDecreaseInternalNewAttendeeSequence());
+            form.getAttendeeWicketProvider().getCustomAttendees().add(attendee);
+            form.getAssignAttendeesListHelper().assignItem(attendee);
+          }
+        });
         setResponsePage(editPage);
       }
     }.setTooltip(getString("plugins.teamcal.dropIcsPanel.tooltip")));
