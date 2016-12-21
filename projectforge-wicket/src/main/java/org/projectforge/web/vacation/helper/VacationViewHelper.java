@@ -110,8 +110,7 @@ public class VacationViewHelper {
                 I18nHelper.getLocalizedMessage("vacation.title.list") + " " + now.get(Calendar.YEAR)));
         if (showAddButton) {
             LinkPanel addLink = new LinkPanel(sectionBottom.newChildId(), I18nHelper.getLocalizedMessage("add"), VacationEditPage.class, returnToPage);
-            addLink.addLinkAttribute("class","btn btn-sm btn-success");
-            addLink.addLinkAttribute("style","margin-bottom: 5px");
+            addLink.addLinkAttribute("class","btn btn-sm btn-success bottom-xs-gap");
             sectionBottom.add(addLink);
         }
         TablePanel tablePanel = new TablePanel(sectionBottom.newChildId());
