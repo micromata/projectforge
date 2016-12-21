@@ -26,12 +26,12 @@ package org.projectforge.business.fibu;
 import org.projectforge.common.i18n.I18nEnum;
 
 /**
- * @author Kai Reinhard (k.reinhard@micromata.de), Florian Blumenstein
+ * @author Florian Blumenstein
  */
-public enum AuftragsPositionsArt implements I18nEnum
+public enum AuftragsPositionsPaymentType implements I18nEnum
 {
-  FESTPREISPAKET("festpreispaket"), CHANGE_REQUEST("change_request"), HOT_FIX("hot_fix"), DAUERNDE_LEISTUNG("dauernde_leistung"), WARTUNG(
-    "wartung"), TIME_AND_MATERIALS("time_and_materials"), NEUENTWICKLUNG("neuentwicklung");
+
+  FESTPREISPAKET("festpreispaket"), TIME_AND_MATERIALS("time_and_materials"), PAUSCHALE("pauschale");
 
   private String key;
 
@@ -45,15 +45,15 @@ public enum AuftragsPositionsArt implements I18nEnum
     return key;
   }
 
-  AuftragsPositionsArt(String key)
+  AuftragsPositionsPaymentType(String key)
   {
     this.key = key;
   }
 
-  public boolean isIn(AuftragsPositionsArt... auftragsPositionsArt)
+  public boolean isIn(AuftragsPositionsPaymentType... auftragsPositionsPaymentType)
   {
-    for (AuftragsPositionsArt art : auftragsPositionsArt) {
-      if (this == art) {
+    for (AuftragsPositionsPaymentType paymentType : auftragsPositionsPaymentType) {
+      if (this == paymentType) {
         return true;
       }
     }
@@ -62,16 +62,6 @@ public enum AuftragsPositionsArt implements I18nEnum
 
   public String getI18nKey()
   {
-    return "fibu.auftrag.position.art." + key;
-  }
-
-  /**
-   * Should be called instead of values(), because old entries are not included.
-   *
-   * @return
-   */
-  public static AuftragsPositionsArt[] newValues()
-  {
-    return new AuftragsPositionsArt[] { NEUENTWICKLUNG, CHANGE_REQUEST, DAUERNDE_LEISTUNG, WARTUNG };
+    return "fibu.auftrag.position.paymenttype." + key;
   }
 }

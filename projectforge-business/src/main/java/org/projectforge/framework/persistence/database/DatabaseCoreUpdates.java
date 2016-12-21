@@ -38,6 +38,8 @@ import java.util.function.Predicate;
 import org.projectforge.business.address.AddressDO;
 import org.projectforge.business.fibu.AuftragDO;
 import org.projectforge.business.fibu.AuftragsPositionDO;
+import org.projectforge.business.fibu.AuftragsPositionsArt;
+import org.projectforge.business.fibu.AuftragsPositionsPaymentType;
 import org.projectforge.business.fibu.EingangsrechnungDO;
 import org.projectforge.business.fibu.EmployeeDO;
 import org.projectforge.business.fibu.EmployeeDao;
@@ -109,6 +111,52 @@ public class DatabaseCoreUpdates
     final InitDatabaseDao initDatabaseDao = applicationContext.getBean(InitDatabaseDao.class);
 
     final List<UpdateEntry> list = new ArrayList<>();
+
+    ////////////////////////////////////////////////////////////////////
+    // 6.7.0
+    // /////////////////////////////////////////////////////////////////
+    list.add(new UpdateEntryImpl(CORE_REGION_ID, "6.7.0", "2017-01-13", "Add payment type for order book position.")
+    {
+      @Override
+      public UpdatePreCheckStatus runPreCheck()
+      {
+        log.info("Running pre-check for ProjectForge version 6.7.0");
+        if (databaseUpdateService.doesTableAttributeExist("t_fibu_auftrag_position", "paymentType") == false) {
+          return UpdatePreCheckStatus.READY_FOR_UPDATE;
+        }
+        return UpdatePreCheckStatus.ALREADY_UPDATED;
+      }
+
+      @Override
+      public UpdateRunningStatus runUpdate()
+      {
+        if (databaseUpdateService.doesTableAttributeExist("t_fibu_auftrag_position", "paymentType") == false) {
+          //Updating the schema
+          initDatabaseDao.updateSchema();
+          emf.runInTrans(emgr -> {
+            List<AuftragsPositionDO> positions = emgr.selectAllAttached(AuftragsPositionDO.class);
+            positions.forEach(pos -> {
+              switch (pos.getArt()) {
+                case FESTPREISPAKET:
+                  pos.setPaymentType(AuftragsPositionsPaymentType.FESTPREISPAKET);
+                  break;
+                case TIME_AND_MATERIALS:
+                  pos.setPaymentType(AuftragsPositionsPaymentType.TIME_AND_MATERIALS);
+                  break;
+                case HOT_FIX:
+                  pos.setArt(AuftragsPositionsArt.WARTUNG);
+                  pos.setBemerkung(pos.getBemerkung() + "; HotFix -> Wartung");
+                  break;
+              }
+              emgr.update(pos);
+            });
+            return null;
+          });
+        }
+        return UpdateRunningStatus.DONE;
+      }
+
+    });
 
     ////////////////////////////////////////////////////////////////////
     // 6.6.1

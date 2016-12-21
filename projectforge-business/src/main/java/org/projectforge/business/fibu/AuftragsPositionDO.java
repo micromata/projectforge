@@ -55,7 +55,7 @@ import org.projectforge.framework.persistence.entities.DefaultBaseDO;
 
 /**
  * Repräsentiert eine Position innerhalb eines Auftrags oder eines Angebots.
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 @Entity
@@ -82,6 +82,8 @@ public class AuftragsPositionDO extends DefaultBaseDO implements ShortDisplayNam
   private TaskDO task;
 
   private AuftragsPositionsArt art;
+
+  private AuftragsPositionsPaymentType paymentType;
 
   private AuftragsPositionsStatus status;
 
@@ -186,6 +188,19 @@ public class AuftragsPositionDO extends DefaultBaseDO implements ShortDisplayNam
     return this;
   }
 
+  @Enumerated(EnumType.STRING)
+  @Column(name = "paymentType", length = 30)
+  public AuftragsPositionsPaymentType getPaymentType()
+  {
+    return paymentType;
+  }
+
+  public AuftragsPositionDO setPaymentType(final AuftragsPositionsPaymentType paymentType)
+  {
+    this.paymentType = paymentType;
+    return this;
+  }
+
   @Column(name = "titel", length = 255)
   public String getTitel()
   {
@@ -281,7 +296,7 @@ public class AuftragsPositionDO extends DefaultBaseDO implements ShortDisplayNam
 
   /**
    * Must be set in all positions before usage. The value is not calculated automatically!
-   * 
+   *
    * @see AuftragDao#calculateInvoicedSum(java.util.Collection)
    */
   @Transient
