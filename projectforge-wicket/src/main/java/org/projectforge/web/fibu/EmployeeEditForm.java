@@ -23,7 +23,10 @@
 
 package org.projectforge.web.fibu;
 
-import de.micromata.genome.db.jpa.tabattr.api.AttrGroup;
+import java.math.BigDecimal;
+import java.util.Date;
+import java.util.function.Function;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.apache.wicket.markup.html.form.DropDownChoice;
@@ -39,6 +42,7 @@ import org.projectforge.business.fibu.api.EmployeeService;
 import org.projectforge.business.user.I18nHelper;
 import org.projectforge.business.user.UserRightId;
 import org.projectforge.business.vacation.model.VacationAttrProperty;
+import org.projectforge.business.vacation.service.VacationService;
 import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.persistence.attr.impl.GuiAttrSchemaService;
 import org.projectforge.web.common.BicValidator;
@@ -50,12 +54,22 @@ import org.projectforge.web.wicket.AbstractEditForm;
 import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.web.wicket.bootstrap.GridBuilder;
 import org.projectforge.web.wicket.bootstrap.GridSize;
-import org.projectforge.web.wicket.components.*;
-import org.projectforge.web.wicket.flowlayout.*;
+import org.projectforge.web.wicket.components.DatePanel;
+import org.projectforge.web.wicket.components.DatePanelSettings;
+import org.projectforge.web.wicket.components.LabelValueChoiceRenderer;
+import org.projectforge.web.wicket.components.MaxLengthTextArea;
+import org.projectforge.web.wicket.components.MaxLengthTextField;
+import org.projectforge.web.wicket.components.MaxLengthTextFieldWithRequiredSupplier;
+import org.projectforge.web.wicket.components.MinMaxNumberField;
+import org.projectforge.web.wicket.components.TabPanel;
+import org.projectforge.web.wicket.flowlayout.AbstractFieldsetPanel;
+import org.projectforge.web.wicket.flowlayout.FieldProperties;
+import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
+import org.projectforge.web.wicket.flowlayout.HtmlCommentPanel;
+import org.projectforge.web.wicket.flowlayout.InputPanel;
+import org.projectforge.web.wicket.flowlayout.TextAreaPanel;
 
-import java.math.BigDecimal;
-import java.util.Date;
-import java.util.function.Function;
+import de.micromata.genome.db.jpa.tabattr.api.AttrGroup;
 
 public class EmployeeEditForm extends AbstractEditForm<EmployeeDO, EmployeeEditPage>
 {
@@ -73,6 +87,9 @@ public class EmployeeEditForm extends AbstractEditForm<EmployeeDO, EmployeeEditP
 
   @SpringBean
   private VacationViewHelper vacationViewHelper;
+
+  @SpringBean
+  private VacationService vacationService;
 
   @SpringBean
   private AccessChecker accessChecker;
@@ -324,11 +341,10 @@ public class EmployeeEditForm extends AbstractEditForm<EmployeeDO, EmployeeEditP
       fs.add(new MaxLengthTextArea(TextAreaPanel.WICKET_ID, new PropertyModel<>(data, "comment")), true);
     }
 
-    if (isNew() == false && data.getUrlaubstage() != null && accessChecker
-        .hasLoggedInUserReadAccess(UserRightId.HR_VACATION, false)) {
+    if (isNew() == false && vacationService.couldUserUseVacationService(data.getUser(), false)) {
       GridBuilder vacationGridBuilder = tabPanel.getOrCreateTab("vacation");
       vacationViewHelper.createVacationView(vacationGridBuilder, data, accessChecker
-              .hasLoggedInUserWriteAccess(UserRightId.HR_VACATION, false), this.getReturnToPage());
+          .hasLoggedInUserWriteAccess(UserRightId.HR_VACATION, false), this.getReturnToPage());
     }
 
   }
