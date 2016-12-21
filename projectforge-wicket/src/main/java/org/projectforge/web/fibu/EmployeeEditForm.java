@@ -42,6 +42,7 @@ import org.projectforge.business.fibu.api.EmployeeService;
 import org.projectforge.business.user.I18nHelper;
 import org.projectforge.business.user.UserRightId;
 import org.projectforge.business.vacation.model.VacationAttrProperty;
+import org.projectforge.business.vacation.service.VacationService;
 import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.persistence.attr.impl.GuiAttrSchemaService;
 import org.projectforge.web.common.BicValidator;
@@ -86,6 +87,9 @@ public class EmployeeEditForm extends AbstractEditForm<EmployeeDO, EmployeeEditP
 
   @SpringBean
   private VacationViewHelper vacationViewHelper;
+
+  @SpringBean
+  private VacationService vacationService;
 
   @SpringBean
   private AccessChecker accessChecker;
@@ -337,11 +341,10 @@ public class EmployeeEditForm extends AbstractEditForm<EmployeeDO, EmployeeEditP
       fs.add(new MaxLengthTextArea(TextAreaPanel.WICKET_ID, new PropertyModel<>(data, "comment")), true);
     }
 
-    if (isNew() == false && data.getUrlaubstage() != null && accessChecker
-        .hasLoggedInUserReadAccess(UserRightId.HR_VACATION, false)) {
+    if (isNew() == false && vacationService.couldUserUseVacationService(data.getUser(), false)) {
       GridBuilder vacationGridBuilder = tabPanel.getOrCreateTab("vacation");
       vacationViewHelper.createVacationView(vacationGridBuilder, data, accessChecker
-          .hasLoggedInUserWriteAccess(UserRightId.HR_VACATION, false));
+          .hasLoggedInUserWriteAccess(UserRightId.HR_VACATION, false), this.getReturnToPage());
     }
 
   }
