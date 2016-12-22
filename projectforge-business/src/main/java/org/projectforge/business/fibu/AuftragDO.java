@@ -68,7 +68,7 @@ import de.micromata.genome.db.jpa.history.api.WithHistory;
  * also nicht zum tatsächlichen Auftrag werden. Wichtig ist: Alle Felder sind historisiert, so dass Änderungen wertvolle
  * Informationen enthalten, wie beispielsweise die Beauftragungshistorie: LOI am 05.03.08 durch Herrn Müller und
  * schriftlich am 04.04.08 durch Beschaffung.
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 @Entity
@@ -83,7 +83,7 @@ import de.micromata.genome.db.jpa.history.api.WithHistory;
         @javax.persistence.Index(name = "idx_fk_t_fibu_auftrag_projekt_fk", columnList = "projekt_fk"),
         @javax.persistence.Index(name = "idx_fk_t_fibu_auftrag_tenant_id", columnList = "tenant_id")
     })
-@WithHistory(noHistoryProperties = { "lastUpdate", "created" }, nestedEntities = { AuftragsPositionDO.class })
+@WithHistory(noHistoryProperties = { "lastUpdate", "created" }, nestedEntities = { AuftragsPositionDO.class, PaymentScheduleDO.class })
 public class AuftragDO extends DefaultBaseDO
 {
   private static final long serialVersionUID = -3114903689890703366L;
@@ -92,7 +92,9 @@ public class AuftragDO extends DefaultBaseDO
 
   private Integer nummer;
 
-  /** Dies sind die alten Auftragsnummern oder Kundenreferenzen. */
+  /**
+   * Dies sind die alten Auftragsnummern oder Kundenreferenzen.
+   */
   @Fields({ @Field(index = Index.YES /* TOKENIZED */, name = "referenz_tokenized", store = Store.NO),
       @Field(index = Index.YES, analyze = Analyze.NO /* UN_TOKENIZED */, store = Store.NO) })
   private String referenz;
@@ -131,6 +133,14 @@ public class AuftragDO extends DefaultBaseDO
 
   @Field(index = Index.YES, analyze = Analyze.NO /* UN_TOKENIZED */)
   @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
+  private Date erfassungsDatum;
+
+  @Field(index = Index.YES, analyze = Analyze.NO /* UN_TOKENIZED */)
+  @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
+  private Date entscheidungsDatum;
+
+  @Field(index = Index.YES, analyze = Analyze.NO /* UN_TOKENIZED */)
+  @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
   private Date bindungsFrist;
 
   private String beauftragungsBeschreibung;
@@ -156,9 +166,11 @@ public class AuftragDO extends DefaultBaseDO
   @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
   private Date periodOfPerformanceEnd;
 
+  private Integer probabilityOfOccurrence;
+
   /**
    * Datum der Angebotslegung.
-   * 
+   *
    * @return
    */
   @Column(name = "angebots_datum")
@@ -170,6 +182,40 @@ public class AuftragDO extends DefaultBaseDO
   public AuftragDO setAngebotsDatum(final Date angebotsDatum)
   {
     this.angebotsDatum = angebotsDatum;
+    return this;
+  }
+
+  /**
+   * Datum der Erfassungslegung.
+   *
+   * @return
+   */
+  @Column(name = "erfassungs_datum")
+  public Date getErfassungsDatum()
+  {
+    return erfassungsDatum;
+  }
+
+  public AuftragDO setErfassungsDatum(final Date erfassungsDatum)
+  {
+    this.erfassungsDatum = erfassungsDatum;
+    return this;
+  }
+
+  /**
+   * Datum der Entscheidung / Beauftragung des Kunden.
+   *
+   * @return
+   */
+  @Column(name = "entscheidungs_datum")
+  public Date getEntscheidungsDatum()
+  {
+    return entscheidungsDatum;
+  }
+
+  public AuftragDO setEntscheidungsDatum(final Date entscheidungsDatum)
+  {
+    this.entscheidungsDatum = entscheidungsDatum;
     return this;
   }
 
@@ -235,7 +281,7 @@ public class AuftragDO extends DefaultBaseDO
       if (nettoSumme != null
           && position.getStatus() != null
           && position.getStatus().isIn(AuftragsPositionsStatus.ABGESCHLOSSEN, AuftragsPositionsStatus.BEAUFTRAGT,
-              AuftragsPositionsStatus.BEAUFTRAGTE_OPTION) == true) {
+          AuftragsPositionsStatus.BEAUFTRAGTE_OPTION) == true) {
         sum = sum.add(nettoSumme);
       }
     }
@@ -297,7 +343,7 @@ public class AuftragDO extends DefaultBaseDO
 
   /**
    * Wer hat wann und wie beauftragt? Z. B. Beauftragung per E-Mail durch Herrn Müller.
-   * 
+   *
    * @return
    */
   @Column(name = "beauftragungs_beschreibung", length = 4000)
@@ -486,7 +532,7 @@ public class AuftragDO extends DefaultBaseDO
     for (final AuftragsPositionDO position : positionen) {
       if (position.isVollstaendigFakturiert() == false
           && (position.getStatus() == null
-              || position.getStatus().isIn(AuftragsPositionsStatus.NICHT_BEAUFTRAGT) == false)) {
+          || position.getStatus().isIn(AuftragsPositionsStatus.NICHT_BEAUFTRAGT) == false)) {
         return false;
       }
     }
@@ -533,7 +579,7 @@ public class AuftragDO extends DefaultBaseDO
   /**
    * @param number
    * @return AuftragsPositionDO with given position number or null (iterates through the list of positions and compares
-   *         the number), if not exist.
+   * the number), if not exist.
    */
   public AuftragsPositionDO getPosition(final short number)
   {
@@ -597,7 +643,7 @@ public class AuftragDO extends DefaultBaseDO
 
   /**
    * Sums all positions. Must be set in all positions before usage. The value is not calculated automatically!
-   * 
+   *
    * @see AuftragDao#calculateInvoicedSum(java.util.Collection)
    */
   @Transient
@@ -647,7 +693,7 @@ public class AuftragDO extends DefaultBaseDO
 
   /**
    * The user interface status of an order. The {@link AuftragUIStatus} is stored as XML.
-   * 
+   *
    * @return the XML representation of the uiStatus.
    * @see AuftragUIStatus
    */
@@ -702,7 +748,7 @@ public class AuftragDO extends DefaultBaseDO
   /**
    * @param number
    * @return PaymentScheduleDO with given position number or null (iterates through the list of payment schedules and
-   *         compares the number), if not exist.
+   * compares the number), if not exist.
    */
   public PaymentScheduleDO getPaymentSchedule(final short number)
   {
@@ -796,5 +842,16 @@ public class AuftragDO extends DefaultBaseDO
   {
     this.periodOfPerformanceEnd = periodOfPerformanceEnd;
     return this;
+  }
+
+  @Column(name = "probability_of_occurrence")
+  public Integer getProbabilityOfOccurrence()
+  {
+    return probabilityOfOccurrence;
+  }
+
+  public void setProbabilityOfOccurrence(final Integer probabilityOfOccurrence)
+  {
+    this.probabilityOfOccurrence = probabilityOfOccurrence;
   }
 }

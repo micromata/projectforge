@@ -27,6 +27,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Stream;
 
 import org.projectforge.business.teamcal.event.TeamEventService;
 import org.projectforge.business.teamcal.event.model.TeamEventAttendeeDO;
@@ -72,6 +73,48 @@ public class AttendeeWicketProvider extends TextChoiceProvider<TeamEventAttendee
     return this;
   }
 
+  public int getAndDecreaseInternalNewAttendeeSequence()
+  {
+    int result = internalNewAttendeeSequence;
+    internalNewAttendeeSequence--;
+    return result;
+  }
+
+  public void initSortedAttendees()
+  {
+    if (sortedAttendees == null) {
+      sortedAttendees = teamEventService.getAddressesAndUserAsAttendee();
+      sortedAttendees.forEach(att -> {
+        if (att.getId() == null) {
+          att.setId(getAndDecreaseInternalNewAttendeeSequence());
+        }
+      });
+      Set<TeamEventAttendeeDO> assignedAttendees = event.getAttendees();
+      List<TeamEventAttendeeDO> removeAddressAttendeeList = new ArrayList<>();
+      if (assignedAttendees != null) {
+        for (TeamEventAttendeeDO addressAttendee : sortedAttendees) {
+          for (TeamEventAttendeeDO alreadyAssignedAttendee : assignedAttendees) {
+            if (addressAttendee.equals(alreadyAssignedAttendee)) {
+              removeAddressAttendeeList.add(addressAttendee);
+            }
+          }
+        }
+        sortedAttendees.removeAll(removeAddressAttendeeList);
+        sortedAttendees.addAll(assignedAttendees);
+      }
+    }
+  }
+
+  public List<TeamEventAttendeeDO> getSortedAttendees()
+  {
+    return sortedAttendees;
+  }
+
+  public List<TeamEventAttendeeDO> getCustomAttendees()
+  {
+    return customAttendees;
+  }
+
   /**
    * @see com.vaynberg.wicket.select2.TextChoiceProvider#getDisplayText(java.lang.Object)
    */
@@ -81,7 +124,7 @@ public class AttendeeWicketProvider extends TextChoiceProvider<TeamEventAttendee
     String name = "";
     if (choice.getAddress() != null) {
       if (choice.getUser() != null) {
-        name = "[" + I18nHelper.getLocalizedMessage("user") + "] " + choice.getAddress().getFullName();
+        name = "[" + I18nHelper.getLocalizedMessage("user") + "] " + choice.getUser().getFullname();
       } else {
         name = "[" + I18nHelper.getLocalizedMessage("address.addressText") + "] " + choice.getAddress().getFullName();
       }
@@ -109,39 +152,24 @@ public class AttendeeWicketProvider extends TextChoiceProvider<TeamEventAttendee
   @Override
   public void query(String term, final int page, final Response<TeamEventAttendeeDO> response)
   {
-    if (sortedAttendees == null) {
-      sortedAttendees = teamEventService.getAddressesAndUserAsAttendee();
-      Set<TeamEventAttendeeDO> assignedAttendees = event.getAttendees();
-      List<TeamEventAttendeeDO> removeAddressAttendeeList = new ArrayList<>();
-      if (assignedAttendees != null) {
-        for (TeamEventAttendeeDO addressAttendee : sortedAttendees) {
-          for (TeamEventAttendeeDO alreadyAssignedAttendee : assignedAttendees) {
-            if (addressAttendee.equals(alreadyAssignedAttendee)) {
-              removeAddressAttendeeList.add(addressAttendee);
-            }
-          }
-        }
-        sortedAttendees.removeAll(removeAddressAttendeeList);
-        sortedAttendees.addAll(assignedAttendees);
-      }
-    }
+    initSortedAttendees();
     final List<TeamEventAttendeeDO> result = new ArrayList<>();
     term = term.toLowerCase();
+    String[] splitTerm = term.split(" ");
 
     final int offset = page * pageSize;
 
     int matched = 0;
     boolean hasMore = false;
     for (final TeamEventAttendeeDO attendee : sortedAttendees) {
-      if (attendee.getId() == null) {
-        attendee.setId(internalNewAttendeeSequence);
-        internalNewAttendeeSequence--;
-      }
       if (result.size() == pageSize) {
         hasMore = true;
         break;
       }
-      if ((attendee.getAddress() != null && attendee.getAddress().getFullName().toLowerCase().contains(term) == true)
+      if ((attendee.getUser() != null && Stream.of(splitTerm)
+          .allMatch(streamTerm -> attendee.getUser().getFullname().toLowerCase().contains(streamTerm)))
+          || (attendee.getAddress() != null && Stream.of(splitTerm)
+          .allMatch(streamTerm -> attendee.getAddress().getFullName().toLowerCase().contains(streamTerm)))
           || (attendee.getUrl() != null && attendee.getUrl().toLowerCase().contains(term) == true)) {
         matched++;
         if (matched > offset) {
@@ -153,8 +181,7 @@ public class AttendeeWicketProvider extends TextChoiceProvider<TeamEventAttendee
     if (result.size() == 0) {
       TeamEventAttendeeDO newAttendee = new TeamEventAttendeeDO().setUrl(term);
       newAttendee.setStatus(TeamEventAttendeeStatus.NEW);
-      newAttendee.setId(internalNewAttendeeSequence);
-      internalNewAttendeeSequence--;
+      newAttendee.setId(getAndDecreaseInternalNewAttendeeSequence());
       customAttendees.add(newAttendee);
       result.add(newAttendee);
     }
@@ -180,6 +207,7 @@ public class AttendeeWicketProvider extends TextChoiceProvider<TeamEventAttendee
       }
       TeamEventAttendeeDO attendee = null;
       if (attendeeId < 0) {
+        initSortedAttendees();
         attendee = sortedAttendees
             .stream()
             .filter(att -> att.getId().equals(attendeeId))

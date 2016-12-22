@@ -33,6 +33,7 @@ import java.util.TimeZone;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.form.AjaxButton;
 import org.apache.wicket.markup.ComponentTag;
@@ -47,6 +48,7 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.ResourceModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
+import org.apache.wicket.validation.INullAcceptingValidator;
 import org.apache.wicket.validation.IValidatable;
 import org.apache.wicket.validation.ValidationError;
 import org.apache.wicket.validation.validator.AbstractValidator;
@@ -83,7 +85,6 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.persistence.user.entities.TenantDO;
 import org.projectforge.framework.time.DateTimeFormatter;
 import org.projectforge.framework.time.TimeNotation;
-import org.projectforge.web.I18nCore;
 import org.projectforge.web.common.MultiChoiceListHelper;
 import org.projectforge.web.multitenancy.TenantsProvider;
 import org.projectforge.web.wicket.AbstractEditForm;
@@ -108,8 +109,6 @@ public class UserEditForm extends AbstractEditForm<PFUserDO, UserEditPage>
   private static final long serialVersionUID = 7872294377838461659L;
 
   private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(UserEditForm.class);
-
-  private static final String MAGIC_PASSWORD = "******";
 
   @SpringBean
   private AccessChecker accessChecker;
@@ -151,7 +150,13 @@ public class UserEditForm extends AbstractEditForm<PFUserDO, UserEditPage>
   @SuppressWarnings("unused")
   private String passwordRepeat;
 
+  private String wlanPassword;
+
+  private String wlanPasswordRepeat;
+
   private PFUserDO passwordUser;
+
+  private boolean wlanPasswordValid = false;
 
   boolean invalidateAllStayLoggedInSessions;
 
@@ -219,6 +224,7 @@ public class UserEditForm extends AbstractEditForm<PFUserDO, UserEditPage>
     final FieldsetPanel fs = gridBuilder.newFieldset(gridBuilder.getString("email"));
     MaxLengthTextField email = new MaxLengthTextField(fs.getTextFieldId(), new PropertyModel<String>(user, "email"));
     email.setMarkupId("email").setOutputMarkupId(true);
+    email.setRequired(true);
     fs.add(email);
   }
 
@@ -264,9 +270,11 @@ public class UserEditForm extends AbstractEditForm<PFUserDO, UserEditPage>
   {
     // JIRA user name
     final FieldsetPanel fs = gridBuilder.newFieldset(gridBuilder.getString("user.jiraUsername"));
-    MaxLengthTextField jiraUsername = new MaxLengthTextField(fs.getTextFieldId(),
-        new PropertyModel<String>(user, "jiraUsername"));
-    jiraUsername.setMarkupId("jiraUsername").setOutputMarkupId(true);
+    final MaxLengthTextField jiraUsername = new MaxLengthTextField(fs.getTextFieldId(), new PropertyModel<>(user, "jiraUsername"));
+    jiraUsername
+        .setMarkupId("jiraUser")
+        .setOutputMarkupId(true)
+        .add(AttributeModifier.append("autocomplete", "off"));
     fs.add(jiraUsername);
     fs.addHelpIcon(gridBuilder.getString("user.jiraUsername.tooltip"));
   }
@@ -376,7 +384,7 @@ public class UserEditForm extends AbstractEditForm<PFUserDO, UserEditPage>
 
   /**
    * If no telephone system url is set in config.xml nothing will be done.
-   * 
+   *
    * @param gridBuilder
    * @param user
    */
@@ -397,7 +405,7 @@ public class UserEditForm extends AbstractEditForm<PFUserDO, UserEditPage>
 
   /**
    * If no MEB is configured in config.xml nothing will be done.
-   * 
+   *
    * @param gridBuilder
    * @param user
    */
@@ -494,15 +502,18 @@ public class UserEditForm extends AbstractEditForm<PFUserDO, UserEditPage>
         public Boolean getObject()
         {
           return data.isDeactivated() == false;
-        };
+        }
 
         @Override
         public void setObject(final Boolean activated)
         {
           data.setDeactivated(!activated);
-        };
+        }
       }, null).setTooltip(getString("user.activated.tooltip"));
-      addPassswordFields();
+      addPasswordFields();
+      if (Login.getInstance().isWlanPasswordChangeSupported(data)) {
+        addWlanPasswordFields();
+      }
     }
 
     gridBuilder.newSplitPanel(GridSize.COL50);
@@ -804,12 +815,11 @@ public class UserEditForm extends AbstractEditForm<PFUserDO, UserEditPage>
   }
 
   @SuppressWarnings("serial")
-  private void addPassswordFields()
+  private void addPasswordFields()
   {
     // Password
     final FieldsetPanel fs = gridBuilder.newFieldset(getString("password"), getString("passwordRepeat"));
-    final PasswordTextField passwordField = new PasswordTextField(fs.getTextFieldId(),
-        new PropertyModel<String>(this, "password"))
+    final PasswordTextField passwordField = new PasswordTextField(fs.getTextFieldId(), new PropertyModel<>(this, "password"))
     {
       @Override
       protected void onComponentTag(final ComponentTag tag)
@@ -817,16 +827,14 @@ public class UserEditForm extends AbstractEditForm<PFUserDO, UserEditPage>
         super.onComponentTag(tag);
         if (passwordUser == null) {
           tag.put("value", "");
-        } else if (StringUtils.isEmpty(getConvertedInput()) == false) {
-          tag.put("value", MAGIC_PASSWORD);
         }
       }
     };
     passwordField.setMarkupId("password").setOutputMarkupId(true);
     passwordField.setResetPassword(false).setRequired(isNew());
-    final PasswordTextField passwordRepeatField = new PasswordTextField(fs.getTextFieldId(),
-        new PropertyModel<String>(this,
-            "passwordRepeat"))
+
+    // Password repeat
+    final PasswordTextField passwordRepeatField = new PasswordTextField(fs.getTextFieldId(), new PropertyModel<>(this, "passwordRepeat"))
     {
       @Override
       protected void onComponentTag(final ComponentTag tag)
@@ -834,51 +842,101 @@ public class UserEditForm extends AbstractEditForm<PFUserDO, UserEditPage>
         super.onComponentTag(tag);
         if (passwordUser == null) {
           tag.put("value", "");
-        } else if (StringUtils.isEmpty(getConvertedInput()) == false) {
-          tag.put("value", MAGIC_PASSWORD);
         }
       }
     };
     passwordRepeatField.setMarkupId("passwordRepeat").setOutputMarkupId(true);
     passwordRepeatField.setResetPassword(false).setRequired(false);
-    passwordRepeatField.add(new AbstractValidator<String>()
-    {
-      @Override
-      protected void onValidate(final IValidatable<String> validatable)
-      {
-        final String passwordRepeatInput = validatable.getValue();
-        passwordField.validate();
-        final String passwordInput = passwordField.getConvertedInput();
-        if (StringUtils.isEmpty(passwordInput) == true && StringUtils.isEmpty(passwordRepeatInput) == true) {
-          return;
-        }
-        if (StringUtils.equals(passwordInput, passwordRepeatInput) == false) {
-          passwordUser = null;
-          validatable.error(new ValidationError().addMessageKey("user.error.passwordAndRepeatDoesNotMatch"));
-          return;
-        }
-        if (MAGIC_PASSWORD.equals(passwordInput) == false || passwordUser == null) {
-          final String errorMsgKey = userService.checkPasswordQuality(passwordInput);
-          if (errorMsgKey != null) {
-            passwordUser = null;
-            validatable.error(new ValidationError().addMessageKey(errorMsgKey));
-          } else {
-            passwordUser = new PFUserDO();
-            userService.createEncryptedPassword(passwordUser, passwordInput);
-          }
-        }
-      }
 
-      /**
-       * @see org.apache.wicket.validation.validator.AbstractValidator#validateOnNullValue()
-       */
-      @Override
-      public boolean validateOnNullValue()
-      {
-        // Should be validated (e. g. if password field is given but password repeat field not).
-        return true;
+    // validation
+    passwordRepeatField.add((INullAcceptingValidator<String>) validatable -> {
+      final String passwordRepeatInput = validatable.getValue();
+      passwordField.validate();
+      final String passwordInput = passwordField.getConvertedInput();
+      if (StringUtils.isEmpty(passwordInput) == true && StringUtils.isEmpty(passwordRepeatInput) == true) {
+        passwordUser = null;
+        return;
+      }
+      if (StringUtils.equals(passwordInput, passwordRepeatInput) == false) {
+        passwordUser = null;
+        validatable.error(new ValidationError().addKey("user.error.passwordAndRepeatDoesNotMatch"));
+        return;
+      }
+      if (passwordUser == null) {
+        final String errorMsgKey = userService.checkPasswordQuality(passwordInput);
+        if (errorMsgKey != null) {
+          validatable.error(new ValidationError().addKey(errorMsgKey));
+        } else {
+          passwordUser = new PFUserDO();
+          userService.createEncryptedPassword(passwordUser, passwordInput);
+        }
       }
     });
+
+    WicketUtils.setPercentSize(passwordField, 50);
+    WicketUtils.setPercentSize(passwordRepeatField, 50);
+    fs.add(passwordField);
+    fs.add(passwordRepeatField);
+    fs.addHelpIcon(getString(Const.MESSAGE_KEY_PASSWORD_QUALITY_CHECK));
+  }
+
+  private void addWlanPasswordFields()
+  {
+    // wlan password
+    final FieldsetPanel fs = gridBuilder.newFieldset(getString("ldap.wlanSambaPassword"), getString("passwordRepeat"));
+    final PasswordTextField passwordField = new PasswordTextField(fs.getTextFieldId(), new PropertyModel<>(this, "wlanPassword"))
+    {
+      @Override
+      protected void onComponentTag(final ComponentTag tag)
+      {
+        super.onComponentTag(tag);
+        if (wlanPasswordValid == false) {
+          tag.put("value", "");
+        }
+      }
+    };
+    passwordField.setMarkupId("wlanPassword").setOutputMarkupId(true);
+    passwordField.setResetPassword(false).setRequired(isNew());
+
+    // wlan password repeat
+    final PasswordTextField passwordRepeatField = new PasswordTextField(fs.getTextFieldId(), new PropertyModel<>(this, "wlanPasswordRepeat"))
+    {
+      @Override
+      protected void onComponentTag(final ComponentTag tag)
+      {
+        super.onComponentTag(tag);
+        if (wlanPasswordValid == false) {
+          tag.put("value", "");
+        }
+      }
+    };
+    passwordRepeatField.setMarkupId("wlanPasswordRepeat").setOutputMarkupId(true);
+    passwordRepeatField.setResetPassword(false).setRequired(false);
+
+    // validation
+    passwordRepeatField.add((INullAcceptingValidator<String>) validatable -> {
+      wlanPasswordValid = false;
+      final String passwordRepeatInput = validatable.getValue();
+      passwordField.validate();
+      final String passwordInput = passwordField.getConvertedInput();
+
+      if (StringUtils.isEmpty(passwordInput) && StringUtils.isEmpty(passwordRepeatInput)) {
+        return;
+      }
+
+      if (StringUtils.equals(passwordInput, passwordRepeatInput) == false) {
+        validatable.error(new ValidationError().addKey("user.error.passwordAndRepeatDoesNotMatch"));
+        return;
+      }
+
+      final String errorMsgKey = userService.checkPasswordQuality(passwordInput);
+      if (errorMsgKey != null) {
+        validatable.error(new ValidationError().addKey(errorMsgKey));
+      } else {
+        wlanPasswordValid = true;
+      }
+    });
+
     WicketUtils.setPercentSize(passwordField, 50);
     WicketUtils.setPercentSize(passwordRepeatField, 50);
     fs.add(passwordField);
@@ -1006,6 +1064,14 @@ public class UserEditForm extends AbstractEditForm<PFUserDO, UserEditPage>
   String getPassword()
   {
     return password;
+  }
+
+  /**
+   * @return The clear text wlan password if given and valid.
+   */
+  String getWlanPassword()
+  {
+    return wlanPassword;
   }
 
   @Override

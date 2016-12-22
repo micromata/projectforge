@@ -23,6 +23,7 @@
 
 package org.projectforge.web.teamcal.integration;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -35,19 +36,22 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.teamcal.admin.TeamCalCache;
 import org.projectforge.business.teamcal.event.TeamEventDao;
-import org.projectforge.business.teamcal.event.TeamEventUtils;
+import org.projectforge.business.teamcal.event.model.TeamEventAttendeeDO;
 import org.projectforge.business.teamcal.event.model.TeamEventDO;
 import org.projectforge.business.teamcal.filter.ICalendarFilter;
 import org.projectforge.business.teamcal.filter.TeamCalCalendarFilter;
 import org.projectforge.business.teamcal.filter.TemplateEntry;
+import org.projectforge.business.teamcal.service.TeamCalServiceImpl;
 import org.projectforge.common.StringHelper;
 import org.projectforge.framework.access.AccessChecker;
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.web.calendar.CalendarForm;
 import org.projectforge.web.calendar.CalendarPage;
 import org.projectforge.web.calendar.CalendarPageSupport;
 import org.projectforge.web.dialog.ModalMessageDialog;
 import org.projectforge.web.teamcal.admin.TeamCalListPage;
 import org.projectforge.web.teamcal.dialog.TeamCalFilterDialog;
+import org.projectforge.web.teamcal.event.TeamEventEditForm;
 import org.projectforge.web.teamcal.event.TeamEventEditPage;
 import org.projectforge.web.teamcal.event.TeamEventListPage;
 import org.projectforge.web.teamcal.event.importics.DropIcsPanel;
@@ -83,6 +87,9 @@ public class TeamCalCalendarForm extends CalendarForm
 
   @SpringBean
   transient AccessChecker accessChecker;
+
+  @SpringBean
+  transient TeamCalServiceImpl teamEventConverter;
 
   @SuppressWarnings("unused")
   private TemplateEntry activeTemplate;
@@ -238,7 +245,7 @@ public class TeamCalCalendarForm extends CalendarForm
       @Override
       protected void onIcsImport(final AjaxRequestTarget target, final Calendar calendar)
       {
-        final List<VEvent> events = TeamEventUtils.getVEvents(calendar);
+        final List<VEvent> events = TeamCalServiceImpl.getVEvents(calendar);
         if (events == null || events.size() == 0) {
           errorDialog.setMessage(getString("plugins.teamcal.import.ics.noEventsGiven")).open(target);
           return;
@@ -251,18 +258,46 @@ public class TeamCalCalendarForm extends CalendarForm
         final VEvent event = events.get(0);
         final Uid uid = event.getUid();
         // 1. Check id/external id. If not yet given, create new entry and ask for calendar to add: Redirect to TeamEventEditPage.
-        final TeamEventDO dbEvent = teamEventDao.getByUid(uid.getValue());
-        if (dbEvent != null) {
+        final TeamEventDO dbEvent = (uid == null) ? null : teamEventDao.getByUid(uid.getValue());
+        if (dbEvent != null && ThreadLocalUserContext.getUserId().equals(dbEvent.getCreator().getPk())) {
           // Can't modify existing entry, redirect to import page:
           redirectToImportPage(events, activeModel.getObject());
           return;
         }
-        final TeamEventDO teamEvent = TeamEventUtils.createTeamEventDO(event);
+        TeamEventDO teamEvent = null;
+        if (dbEvent != null) {
+          teamEvent = teamEventConverter.createTeamEventDO(event, ThreadLocalUserContext.getTimeZone(), false);
+        } else {
+          teamEvent = teamEventConverter.createTeamEventDO(event, ThreadLocalUserContext.getTimeZone(), true);
+        }
         final TemplateEntry activeTemplateEntry = ((TeamCalCalendarFilter) filter).getActiveTemplateEntry();
         if (activeTemplateEntry != null && activeTemplateEntry.getDefaultCalendarId() != null) {
           teamEventDao.setCalendar(teamEvent, activeTemplateEntry.getDefaultCalendarId());
         }
+
+        Set<TeamEventAttendeeDO> originAssignedAttendees = new HashSet<>();
+        teamEvent.getAttendees().forEach(attendee -> {
+          attendee.setPk(null);
+          originAssignedAttendees.add(attendee);
+        });
+        teamEvent.setAttendees(new HashSet<>());
         final TeamEventEditPage editPage = new TeamEventEditPage(new PageParameters(), teamEvent);
+        final TeamEventEditForm form = editPage.getForm();
+        originAssignedAttendees.forEach(attendee -> {
+          if (attendee.getAddress() != null) {
+            form.getAttendeeWicketProvider().initSortedAttendees();
+            form.getAttendeeWicketProvider().getSortedAttendees().forEach(sortedAttendee -> {
+              if (sortedAttendee.getAddress() != null && sortedAttendee.getAddress().getPk().equals(attendee.getAddress().getPk())) {
+                sortedAttendee.setId(form.getAttendeeWicketProvider().getAndDecreaseInternalNewAttendeeSequence());
+                form.getAssignAttendeesListHelper().assignItem(sortedAttendee);
+              }
+            });
+          } else {
+            attendee.setId(form.getAttendeeWicketProvider().getAndDecreaseInternalNewAttendeeSequence());
+            form.getAttendeeWicketProvider().getCustomAttendees().add(attendee);
+            form.getAssignAttendeesListHelper().assignItem(attendee);
+          }
+        });
         setResponsePage(editPage);
       }
     }.setTooltip(getString("plugins.teamcal.dropIcsPanel.tooltip")));

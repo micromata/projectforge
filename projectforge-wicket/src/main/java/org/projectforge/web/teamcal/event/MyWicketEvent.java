@@ -23,13 +23,14 @@
 
 package org.projectforge.web.teamcal.event;
 
-import net.ftlines.wicket.fullcalendar.Event;
-
 import org.apache.commons.lang.StringUtils;
+import org.joda.time.Duration;
 import org.joda.time.Period;
-import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.business.utils.HtmlHelper;
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.web.WebConfiguration;
+
+import net.ftlines.wicket.fullcalendar.Event;
 
 public class MyWicketEvent extends Event
 {
@@ -78,7 +79,6 @@ public class MyWicketEvent extends Event
   }
 
   /**
-   * 
    * @param title
    * @param labelValues {{"text without label"}{"value", "label"}, ...}
    * @return
@@ -126,25 +126,34 @@ public class MyWicketEvent extends Event
     if (duration != null) {
       return duration;
     }
-    final Period period = new Period(this.getStart(), this.getEnd());
-    int days = period.getDays();
-    if (isAllDay() == true) {
+
+    final StringBuilder buffer = new StringBuilder();
+    final Duration dur = new Duration(this.getStart(), this.getEnd());
+    long days = dur.getStandardDays();
+
+    if (isAllDay()) {
       ++days;
     }
-    final int hours = period.getHours();
-    final int minutes = period.getMinutes();
-    final StringBuffer buf = new StringBuffer();
+
     if (days > 0) { // days
-      buf.append(days).append(ThreadLocalUserContext.getLocalizedString("calendar.unit.day")).append(" ");
+      buffer
+          .append(days)
+          .append(ThreadLocalUserContext.getLocalizedString("calendar.unit.day"))
+          .append(" ");
     }
+
     if (isAllDay() == false) {
-      buf.append(hours).append(":"); // hours
+      final Period period = new Period(this.getStart(), this.getEnd());
+      final int hours = period.getHours();
+      final int minutes = period.getMinutes();
+      buffer.append(hours).append(":"); // hours
       if (minutes < 10) {
-        buf.append("0");
+        buffer.append("0");
       }
-      buf.append(minutes);
+      buffer.append(minutes);
     }
-    duration = buf.toString();
+
+    duration = buffer.toString();
     return duration;
   }
 }

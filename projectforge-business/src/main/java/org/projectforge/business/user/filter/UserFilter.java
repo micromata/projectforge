@@ -138,7 +138,7 @@ public class UserFilter implements Filter
 
   /**
    * Adds or refresh the given cookie.
-   * 
+   *
    * @param request
    * @param response
    * @param stayLoggedInCookie
@@ -224,8 +224,8 @@ public class UserFilter implements Filter
     final HttpServletResponse response = (HttpServletResponse) resp;
     UserContext userContext = null;
     try {
-      MDC.put("ip", request.getRemoteAddr());
-      MDC.put("session", request.getSession().getId());
+      MDC.put("ip", (Object) request.getRemoteAddr());
+      MDC.put("session", (Object) request.getSession().getId());
       if (ignoreFilterFor(request) == true) {
         // Ignore the filter for this request:
         if (log.isDebugEnabled() == true) {
@@ -257,7 +257,7 @@ public class UserFilter implements Filter
         }
         final PFUserDO user = userContext != null ? userContext.getUser() : null;
         if (user != null) {
-          MDC.put("user", user.getUsername());
+          MDC.put("user", (Object) user.getUsername());
           ThreadLocalUserContext.setUserContext(userContext);
           request = decorateWithLocale(request);
           chain.doFilter(request, response);
@@ -280,14 +280,22 @@ public class UserFilter implements Filter
         MDC.remove("user");
       }
       if (log.isDebugEnabled() == true) {
-        log.debug("doFilter finished for " + request.getRequestURI() + ": " + request.getSession().getId());
+        StringBuffer sb = new StringBuffer();
+        sb.append("doFilter finished for ");
+        sb.append(request.getRequestURI());
+        if (request.getSession(false) != null) {
+          sb.append(request.getSession(false).getId());
+        } else {
+          sb.append("No active session available.");
+        }
+        log.debug(sb.toString());
       }
     }
   }
 
   /**
    * User is not logged. Checks a stay-logged-in-cookie.
-   * 
+   *
    * @return user if valid cookie found, otherwise null.
    */
   private UserContext checkStayLoggedIn(final HttpServletRequest request, final HttpServletResponse response)
@@ -355,7 +363,7 @@ public class UserFilter implements Filter
 
   /**
    * Will be called by doFilter.
-   * 
+   *
    * @param req from do Filter.
    * @return true, if the filter should ignore this request, otherwise false.
    */

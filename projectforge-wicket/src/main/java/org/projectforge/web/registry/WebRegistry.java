@@ -23,6 +23,11 @@
 
 package org.projectforge.web.registry;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.markup.html.WebPage;
 import org.projectforge.framework.persistence.DaoConst;
@@ -81,7 +86,6 @@ import org.projectforge.web.gantt.GanttChartListPage;
 import org.projectforge.web.humanresources.HRListPage;
 import org.projectforge.web.humanresources.HRPlanningEditPage;
 import org.projectforge.web.humanresources.HRPlanningListPage;
-import org.projectforge.web.imagecropper.ImageCropperPage;
 import org.projectforge.web.meb.MebEditPage;
 import org.projectforge.web.meb.MebListPage;
 import org.projectforge.web.mobile.LoginMobilePage;
@@ -119,11 +123,6 @@ import org.projectforge.web.user.UserPrefListPage;
 import org.projectforge.web.wicket.ErrorPage;
 import org.projectforge.web.wicket.FeedbackPage;
 import org.projectforge.web.wicket.IListPageColumnsCreator;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 /**
  * Registry for dao's. Here you can register additional daos and plugins (extensions of ProjectForge). This registry is
@@ -370,7 +369,6 @@ public class WebRegistry
     addMountPages(DaoConst.USER_PREF, UserPrefListPage.class, UserPrefEditPage.class);
 
     addMountPage("admin", AdminPage.class);
-    addMountPage("imageCropper", ImageCropperPage.class);
     addMountPage("calendar", CalendarPage.class);
     addMountPage("changePassword", ChangePasswordPage.class);
     addMountPage("configuration", ConfigurationListPage.class);

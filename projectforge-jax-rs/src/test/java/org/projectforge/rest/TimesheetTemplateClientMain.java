@@ -25,8 +25,9 @@ package org.projectforge.rest;
 
 import java.util.Collection;
 
-import org.projectforge.rest.objects.TimesheetTemplateObject;
-import org.projectforge.rest.objects.UserObject;
+import org.projectforge.model.rest.RestPaths;
+import org.projectforge.model.rest.TimesheetTemplateObject;
+import org.projectforge.model.rest.UserObject;
 
 import com.google.gson.reflect.TypeToken;
 import com.sun.jersey.api.client.Client;

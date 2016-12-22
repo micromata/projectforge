@@ -35,17 +35,17 @@ import org.projectforge.Version;
 import org.projectforge.business.user.UserDao;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
+import org.projectforge.model.rest.RestPaths;
+import org.projectforge.model.rest.ServerInfo;
+import org.projectforge.model.rest.UserObject;
 import org.projectforge.rest.JsonUtils;
-import org.projectforge.rest.RestPaths;
-import org.projectforge.rest.objects.ServerInfo;
-import org.projectforge.rest.objects.UserObject;
 import org.projectforge.web.rest.converter.PFUserDOConverter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 
 /**
  * REST interface for authentication (tests) and getting the authentication token on initial contact.
- * 
+ * <p>
  * <h2>Concept</h2> It's recommended to avoid storing the user's username and password on the client (e. g. on the
  * mobile phone) due to security reasons. Please store the user's id and authentication-token instead:
  * <ol>
@@ -59,9 +59,8 @@ import org.springframework.stereotype.Controller;
  * <li>Every further rest call is done by authentication via user-id and authentication-token. The user-id is required
  * for logging purposes e. g. for failed logins or brute-force attacks.</li>
  * </ol>
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
  */
 @Controller
 @Path(RestPaths.AUTHENTICATE)
@@ -77,7 +76,7 @@ public class AuthenticationRest
    * For getting the user's authentication token. This token can be stored in the client (e. g. mobile app). The user's
    * password shouldn't be stored in the client for security reasons. The authentication token is renewable through the
    * ProjectForge's web app (my account).
-   * 
+   *
    * @return {@link UserObject}
    */
   @GET
@@ -99,7 +98,7 @@ public class AuthenticationRest
 
   /**
    * Authentication via http header authenticationUserId and authenticationToken.
-   * 
+   *
    * @param clientVersionString
    * @return {@link ServerInfo}
    */

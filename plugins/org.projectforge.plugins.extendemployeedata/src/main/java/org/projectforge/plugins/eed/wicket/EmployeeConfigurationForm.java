@@ -10,7 +10,7 @@ import org.projectforge.framework.access.AccessException;
 import org.projectforge.framework.persistence.attr.impl.GuiAttrSchemaService;
 import org.projectforge.plugins.eed.model.EmployeeConfigurationDO;
 import org.projectforge.plugins.eed.model.EmployeeConfigurationTimedDO;
-import org.projectforge.plugins.eed.service.EmployeeConfigurationServiceImpl;
+import org.projectforge.plugins.eed.service.EmployeeConfigurationService;
 import org.projectforge.web.wicket.AbstractEditForm;
 import org.projectforge.web.wicket.bootstrap.GridSize;
 import org.projectforge.web.wicket.flowlayout.DivPanel;
@@ -25,7 +25,7 @@ public class EmployeeConfigurationForm extends AbstractEditForm<EmployeeConfigur
   private GuiAttrSchemaService attrSchemaService;
 
   @SpringBean
-  private EmployeeConfigurationServiceImpl employeeConfigurationService;
+  private EmployeeConfigurationService employeeConfigurationService;
 
   public EmployeeConfigurationForm(EmployeeConfigurationPage parentPage, EmployeeConfigurationDO data)
   {
@@ -41,7 +41,7 @@ public class EmployeeConfigurationForm extends AbstractEditForm<EmployeeConfigur
     final DivPanel divPanel = gridBuilder.getPanel();
     final Function<AttrGroup, EmployeeConfigurationTimedDO> addNewEntryFunction = group -> employeeConfigurationService
         .addNewTimeAttributeRow(data, group.getName());
-    attrSchemaService.createTimedAttrPanels(divPanel, data, parentPage, addNewEntryFunction);
+    attrSchemaService.createAttrPanels(divPanel, data, parentPage, addNewEntryFunction);
   }
 
   @Override

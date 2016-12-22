@@ -7,7 +7,6 @@ import de.micromata.genome.db.jpa.tabattr.api.AttrDescription;
 import de.micromata.genome.db.jpa.tabattr.api.AttrGroup;
 import de.micromata.genome.db.jpa.tabattr.api.AttrSchema;
 import de.micromata.genome.db.jpa.tabattr.api.AttrSchemaService;
-import de.micromata.genome.db.jpa.tabattr.impl.AttrSchemaServiceSpringBeanImpl;
 import de.micromata.genome.jpa.metainf.ColumnMetadata;
 import de.micromata.genome.jpa.metainf.ColumnMetadataBean;
 import de.micromata.genome.jpa.metainf.EntityMetadata;

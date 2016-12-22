@@ -29,8 +29,8 @@ import java.util.List;
 
 import org.apache.commons.lang.Validate;
 import org.projectforge.business.teamcal.event.TeamEventDao;
-import org.projectforge.business.teamcal.event.TeamEventUtils;
 import org.projectforge.business.teamcal.event.model.TeamEventDO;
+import org.projectforge.business.teamcal.service.TeamCalServiceImpl;
 import org.projectforge.framework.persistence.api.HibernateUtils;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.utils.ImportStatus;
@@ -51,6 +51,9 @@ import net.fortuna.ical4j.model.component.VEvent;
 @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
 public class TeamCalImportDao
 {
+  @Autowired
+  private TeamCalServiceImpl teamEventConverter;
+
   /**
    * Size of bulk inserts. If this value is too large, exceptions are expected and as more small the value is so as more
    * slowly is the insert process.
@@ -69,13 +72,13 @@ public class TeamCalImportDao
   public ImportStorage<TeamEventDO> importEvents(final Calendar calendar, final String filename,
       final ActionLog actionLog)
   {
-    final List<TeamEventDO> events = TeamEventUtils.getTeamEvents(calendar);
+    final List<TeamEventDO> events = teamEventConverter.getTeamEvents(calendar);
     return importEvents(events, filename, actionLog);
   }
 
   public ImportStorage<TeamEventDO> importEvents(final List<VEvent> vEvents, final ActionLog actionLog)
   {
-    final List<TeamEventDO> events = TeamEventUtils.convert(vEvents);
+    final List<TeamEventDO> events = teamEventConverter.convert(vEvents);
     return importEvents(events, "none", actionLog);
   }
 
@@ -132,7 +135,7 @@ public class TeamCalImportDao
     for (final ImportedElement<TeamEventDO> el : sheet.getElements()) {
       final TeamEventDO event = el.getValue();
       teamEventDao.setCalendar(event, teamCalId);
-      final TeamEventDO dbEvent = teamEventDao.getByUid(event.getExternalUid());
+      final TeamEventDO dbEvent = teamEventDao.getByUid(event.getUid());
       el.setOldValue(dbEvent);
     }
     sheet.setStatus(ImportStatus.RECONCILED);
@@ -145,11 +148,10 @@ public class TeamCalImportDao
     final Collection<TeamEventDO> col = new ArrayList<TeamEventDO>();
     for (final ImportedElement<TeamEventDO> el : sheet.getElements()) {
       final TeamEventDO event = el.getValue();
-      if (HibernateUtils.shortenProperties(TeamEventDO.class, event, "note", "location", "subject", "externalUid",
-          "organizer") == true) {
+      if (HibernateUtils.shortenProperties(TeamEventDO.class, event, "note", "location", "subject", "organizer") == true) {
         log.info("Properties of the event were shortened: " + event);
       }
-      final TeamEventDO dbEvent = teamEventDao.getByUid(event.getExternalUid());
+      final TeamEventDO dbEvent = teamEventDao.getByUid(event.getUid());
       if (dbEvent != null) {
         event.setId(dbEvent.getId());
         if (el.isSelected() == true) {

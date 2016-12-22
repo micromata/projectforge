@@ -8,7 +8,6 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.lang.Validate;
 import org.projectforge.business.fibu.EmployeeDO;
-import org.projectforge.business.fibu.EmployeeTimedDO;
 import org.projectforge.business.fibu.api.EmployeeService;
 import org.projectforge.excel.ExcelImportException;
 import org.projectforge.export.AttrColumnDescription;
@@ -30,7 +29,7 @@ public class EmployeeBillingImportService
   private EmployeeService employeeService;
 
   @Autowired
-  private TimeableService<Integer, EmployeeTimedDO> timeableService;
+  private TimeableService timeableService;
 
   private List<AttrColumnDescription> attrColumnsInSheet;
 

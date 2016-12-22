@@ -25,7 +25,7 @@ public class FinancialFairPlayPluginUpdates
       public UpdatePreCheckStatus runPreCheck()
       {
         // Does the data-base table already exist?
-        if (dao.doEntitiesExist(FFPEventDO.class, FFPAccountingDO.class)) {
+        if (dao.doTablesExist(FFPEventDO.class, FFPAccountingDO.class)) {
           return UpdatePreCheckStatus.ALREADY_UPDATED;
         } else {
           return UpdatePreCheckStatus.READY_FOR_UPDATE;

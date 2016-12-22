@@ -18,9 +18,7 @@ import de.micromata.mgc.application.MgcApplicationStartStopStatus;
 import de.micromata.mgc.springbootapp.SpringBootApplication;
 
 /**
- * 
  * @author Roger Rene Kommer (r.kommer.extern@micromata.de)
- *
  */
 public class PfSpringLauncherApplication extends SpringBootApplication<PfLocalSettingsConfigModel>
 {
@@ -44,12 +42,13 @@ public class PfSpringLauncherApplication extends SpringBootApplication<PfLocalSe
   @Override
   protected Class<?> getSpringBootApplicationClass()
   {
-    return ProjectForgeApplication.class;
+    return ProjectForgeLauncher.class;
   }
 
   @Override
   public MgcApplicationStartStopStatus startImpl(String[] args)
   {
+    System.setProperty("user.timezone", "UTC");
     TimeZone.setDefault(DateHelper.UTC);
     return super.startImpl(args);
 

@@ -35,7 +35,6 @@ import org.projectforge.framework.persistence.api.RightRightIdProviderService;
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
  */
 @Indexed
 @ClassBridge(index = Index.YES /* TOKENIZED */, store = Store.NO, impl = HibernateSearchUserRightIdBridge.class)
@@ -86,11 +85,17 @@ public enum UserRightId implements IUserRightId
   ORGA_OUTGOING_MAIL("ORGA_OUTGOING_MAIL", "orga3",
       "access.right.orga.outgoingmail"),
 
+  ORGA_VISITORBOOK("ORGA_VISITORBOOK", "orga4",
+      "access.right.orga.visitorbook"),
+
   HR_EMPLOYEE("HR_EMPLOYEE", "hr1",
       "access.right.hr.employee"),
 
   HR_EMPLOYEE_SALARY("HR_EMPLOYEE_SALARY", "hr2",
       "access.right.hr.employeeSalaries"),
+
+  HR_VACATION("HR_VACATION", "hr3",
+      "access.right.hr.vacation"),
 
   PLUGIN_CALENDAR("PLUGIN_CALENDAR", "plugin15",
       "plugins.teamcal.calendar"),
@@ -114,7 +119,7 @@ public enum UserRightId implements IUserRightId
   private final String i18nKey;
 
   /**
-   * @param id Must be unique (including all plugins).
+   * @param id          Must be unique (including all plugins).
    * @param orderString For displaying the rights in e. g. UserEditPage in the correct order.
    * @param i18nKey
    */

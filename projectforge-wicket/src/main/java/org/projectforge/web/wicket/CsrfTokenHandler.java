@@ -35,9 +35,8 @@ import org.projectforge.web.session.MySession;
 
 /**
  * Every form should use this handler for preventing cross site request forgery attacks.
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
  */
 public class CsrfTokenHandler implements Serializable
 {
@@ -45,11 +44,11 @@ public class CsrfTokenHandler implements Serializable
 
   private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(CsrfTokenHandler.class);
 
-  private final String csrfToken;
+  private String csrfToken;
 
   /**
    * The given form should contain a hidden field named 'csrfToken'.
-   * 
+   *
    * @param form
    */
   public CsrfTokenHandler(final Form<?> form)
@@ -61,7 +60,7 @@ public class CsrfTokenHandler implements Serializable
   /**
    * This parameter should be set as hidden field in every formular and should be tested on every submit action for
    * preventing CSRF attacks.
-   * 
+   *
    * @return the randomized cross site request forgery token.
    */
   private String getCsrfSessionToken()
@@ -73,7 +72,7 @@ public class CsrfTokenHandler implements Serializable
   /**
    * Checks the cross site request forgery token (as posted hidden field) and if it doesn't match an exception is
    * thrown.
-   * 
+   *
    * @see org.apache.wicket.markup.html.form.Form#onSubmit()
    */
   public void onSubmit()

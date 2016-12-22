@@ -27,6 +27,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
@@ -71,7 +72,7 @@ public class UserEditPage extends AbstractEditPage<PFUserDO, UserEditForm, UserD
 
   /**
    * Used by the TutorialPage.
-   * 
+   *
    * @param tutorialUser
    * @param tutorialGroupsToAdd
    */
@@ -112,34 +113,78 @@ public class UserEditPage extends AbstractEditPage<PFUserDO, UserEditForm, UserD
       final String xml = PFUserDOConverter.getLdapValuesAsXml(form.ldapUserValues);
       getData().setLdapValues(xml);
     }
+
+    if (StringUtils.isNotEmpty(form.getWlanPassword())) {
+      userService.onWlanPasswordChange(getData(), false); // persist new time, history is created by caller
+    }
+
     return super.onSaveOrUpdate();
   }
 
   @Override
   public AbstractSecuredBasePage afterSaveOrUpdate()
   {
+    long startAll = System.currentTimeMillis();
+    log.info("Start afterSaveOrUpdate() in UserEditPage");
+    log.info("Start assign groups");
+    long start = System.currentTimeMillis();
     groupDao.assignGroups(getData(), form.assignGroupsListHelper.getItemsToAssign(),
-        form.assignGroupsListHelper.getItemsToUnassign());
+        form.assignGroupsListHelper.getItemsToUnassign(), false);
+    long end = System.currentTimeMillis();
+    log.info("Finish assign groups. Took: " + (end - start) / 1000 + " sec.");
     if (accessChecker.isLoggedInUserMemberOfAdminGroup() == true) {
+      log.info("Start assign tenants (user member of admin group)");
+      start = System.currentTimeMillis();
       tenantDao
           .assignTenants(getData(), form.assignTenantsListHelper.getItemsToAssign(),
               form.assignTenantsListHelper.getItemsToUnassign());
+      end = System.currentTimeMillis();
+      log.info("Finish assign tenants (user member of admin group). Took: " + (end - start) / 1000 + " sec.");
       if (tenantDao.hasAssignedTenants(getData()) == false) {
+        log.info("Start assign tenants");
+        start = System.currentTimeMillis();
         Set<TenantDO> tenantsToAssign = new HashSet<>();
         tenantsToAssign.add(tenantDao.getDefaultTenant());
         tenantDao.internalAssignTenants(getData(), tenantsToAssign, null, false, true);
+        end = System.currentTimeMillis();
+        log.info("Finish assign tenants. Took: " + (end - start) / 1000 + " sec.");
       }
     }
     if (form.rightsData != null) {
+      log.info("Start updating user rights");
+      start = System.currentTimeMillis();
       final List<UserRightVO> list = form.rightsData.getRights();
-      userRightDao.updateUserRights(getData(), list);
+      userRightDao.updateUserRights(getData(), list, false);
+      end = System.currentTimeMillis();
+      log.info("Finish updating user rights. Took: " + (end - start) / 1000 + " sec.");
     }
     if (form.getPasswordUser() != null) {
+      log.info("Start password change");
+      start = System.currentTimeMillis();
       Login.getInstance().passwordChanged(getData(), form.getPassword());
+      end = System.currentTimeMillis();
+      log.info("Finish password change. Took: " + (end - start) / 1000 + " sec.");
     }
+
+    if (StringUtils.isNotEmpty(form.getWlanPassword())) {
+      log.info("Start WLAN password change");
+      start = System.currentTimeMillis();
+      Login.getInstance().wlanPasswordChanged(getData(), form.getWlanPassword());
+      end = System.currentTimeMillis();
+      log.info("Finish WLAN password change. Took: " + (end - start) / 1000 + " sec.");
+    }
+
+    //Only one time reload user group cache
+    log.info("Start force reload user group cache.");
+    start = System.currentTimeMillis();
     TenantRegistryMap.getInstance().getTenantRegistry().getUserGroupCache().forceReload();
-    return new UserListPage(new PageParameters()); // Force to reload Menu directly (if the admin user modified himself), otherwise menu is
+    end = System.currentTimeMillis();
+    log.info("Finish force reload user group cache. Took: " + (end - start) / 1000 + " sec.");
+    // Force to reload Menu directly (if the admin user modified himself), otherwise menu is
     // reloaded after next page call.
+    end = System.currentTimeMillis();
+    log.info("Finish afterSaveOrUpdate() in UserEditPage. Took: " + (end - startAll) / 1000 + " sec.");
+    return new UserListPage(new PageParameters());
   }
 
   @Override
