@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -84,7 +85,7 @@ public class FFPEventDO extends DefaultBaseDO
     this.attendeeList = attendeeList;
   }
 
-  @OneToMany(fetch = FetchType.EAGER, mappedBy = "event")
+  @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER, mappedBy = "event", orphanRemoval = true)
   public List<FFPAccountingDO> getAccountingList()
   {
     if (accountingList == null) {

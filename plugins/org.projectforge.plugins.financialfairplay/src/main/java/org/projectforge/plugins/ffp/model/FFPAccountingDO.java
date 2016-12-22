@@ -29,6 +29,9 @@ public class FFPAccountingDO extends DefaultBaseDO
   @PropertyInfo(i18nKey = "plugins.ffp.value")
   private BigDecimal value;
 
+  @PropertyInfo(i18nKey = "plugins.ffp.weighting")
+  private BigDecimal weighting;
+
   @ManyToOne(fetch = FetchType.EAGER)
   @JoinColumn(name = "EVENT_ID")
   public FFPEventDO getEvent()
@@ -64,4 +67,40 @@ public class FFPAccountingDO extends DefaultBaseDO
     this.value = value;
   }
 
+  @Column
+  public BigDecimal getWeighting()
+  {
+    return weighting;
+  }
+
+  public void setWeighting(BigDecimal weighting)
+  {
+    this.weighting = weighting;
+  }
+
+  @Override
+  public boolean equals(Object o)
+  {
+    if (o instanceof FFPAccountingDO == false) {
+      return false;
+    }
+    FFPAccountingDO other = (FFPAccountingDO) o;
+    if (this.getPk() != null && other.getPk() != null) {
+      return this.getPk().equals(other.getPk());
+    }
+    if (this.getEvent() != null && this.getEvent().getPk() != null && other.getEvent() != null && other.getEvent().getPk() != null
+        && this.getAttendee() != null && other.getAttendee() != null) {
+      return this.getEvent().getPk().equals(other.getEvent().getPk())
+          && this.getAttendee().getPk().equals(other.getAttendee().getPk());
+    }
+    return false;
+  }
+
+  @Override
+  public int hashCode()
+  {
+    int result = 31 * (event != null ? event.getPk().hashCode() : 0);
+    result = 31 * result + (attendee != null ? attendee.getPk().hashCode() : 0);
+    return result;
+  }
 }
