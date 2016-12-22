@@ -11,9 +11,8 @@ import org.springframework.stereotype.Service;
 
 /**
  * Standard implementation of the ffp event service interface.
- * 
- * @author Florian Blumenstein
  *
+ * @author Florian Blumenstein
  */
 @Service
 public class FFPEventServiceImpl extends CorePersistenceServiceImpl<Integer, FFPEventDO>
@@ -74,6 +73,12 @@ public class FFPEventServiceImpl extends CorePersistenceServiceImpl<Integer, FFP
   public void rebuildDatabaseIndex()
   {
     eventDao.rebuildDatabaseIndex();
+  }
+
+  @Override
+  public FFPEventDao getDao()
+  {
+    return eventDao;
   }
 
 }

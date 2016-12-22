@@ -23,13 +23,17 @@
 
 package org.projectforge.plugins.ffp.wicket;
 
+import java.util.ArrayList;
+
 import org.apache.log4j.Logger;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.plugins.ffp.model.FFPEventDO;
 import org.projectforge.plugins.ffp.repository.FFPEventDao;
+import org.projectforge.plugins.ffp.repository.FFPEventService;
 import org.projectforge.web.fibu.ISelectCallerPage;
 import org.projectforge.web.wicket.AbstractEditPage;
+import org.projectforge.web.wicket.AbstractSecuredBasePage;
 import org.projectforge.web.wicket.EditPage;
 
 @EditPage(defaultReturnPage = FFPEventListPage.class)
@@ -41,7 +45,7 @@ public class FFPEventEditPage extends AbstractEditPage<FFPEventDO, FFPEventEditF
   private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(FFPEventEditPage.class);
 
   @SpringBean
-  private FFPEventDao eventDao;
+  private FFPEventService eventService;
 
   public FFPEventEditPage(final PageParameters parameters)
   {
@@ -74,10 +78,27 @@ public class FFPEventEditPage extends AbstractEditPage<FFPEventDO, FFPEventEditF
     // Do nothing.
   }
 
+  /**
+   * @see org.projectforge.web.wicket.AbstractEditPage#afterSaveOrUpdate()
+   */
+  @Override
+  public AbstractSecuredBasePage onSaveOrUpdate()
+  {
+    super.afterSaveOrUpdate();
+    getData().setAccountingList(new ArrayList<>(form.accountingList));
+    form.assignAttendeesListHelper.getItemsToAssign().forEach(emp -> {
+      getData().addAttendee(emp);
+    });
+    form.assignAttendeesListHelper.getItemsToUnassign().forEach(emp -> {
+      getData().getAttendeeList().remove(emp);
+    });
+    return null;
+  }
+
   @Override
   protected FFPEventDao getBaseDao()
   {
-    return eventDao;
+    return eventService.getDao();
   }
 
   @Override

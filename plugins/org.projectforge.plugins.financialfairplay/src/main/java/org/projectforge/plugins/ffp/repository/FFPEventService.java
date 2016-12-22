@@ -6,11 +6,10 @@ import org.projectforge.plugins.ffp.model.FFPEventDO;
 
 /**
  * Access to ffp event.
- * 
- * @author Florian Blumenstein
  *
+ * @author Florian Blumenstein
  */
 public interface FFPEventService extends IPersistenceService<FFPEventDO>, IDao<FFPEventDO>
 {
-
+  FFPEventDao getDao();
 }
