@@ -147,10 +147,10 @@ public class FFPEventServiceImpl extends CorePersistenceServiceImpl<Integer, FFP
 		return result;
 	}
 
-	private BigDecimal calculateAverage(List<FFPAccountingDO> attendees) {
+	BigDecimal calculateAverage(List<FFPAccountingDO> accountingDOs) {
 		BigDecimal sumValue = BigDecimal.ZERO;
 		BigDecimal sumWighting = BigDecimal.ZERO;
-		for (FFPAccountingDO attendee : attendees) {
+		for (FFPAccountingDO attendee : accountingDOs) {
 			sumValue = sumValue.add(attendee.getValue());
 			sumWighting = sumWighting.add(attendee.getWeighting());
 		}
