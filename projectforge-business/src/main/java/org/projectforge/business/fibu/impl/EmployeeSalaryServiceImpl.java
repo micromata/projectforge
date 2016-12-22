@@ -33,4 +33,28 @@ public class EmployeeSalaryServiceImpl implements EmployeeSalaryService
         .orElse(null);
   }
 
+  @Override
+  public EmployeeSalaryDO getEmployeeSalaryByDate(EmployeeDO employee, Calendar selectedDate)
+  {
+    List<EmployeeSalaryDO> findByEmployee = employeeSalaryDao.findByEmployee(employee);
+    for (EmployeeSalaryDO sal : findByEmployee) {
+      if (sal.getYear().equals(selectedDate.get(Calendar.YEAR)) && sal.getMonth().equals(selectedDate.get(Calendar.MONTH))) {
+        return sal;
+      }
+    }
+    return null;
+  }
+
+  @Override
+  public void saveOrUpdate(EmployeeSalaryDO employeeSalaryDO)
+  {
+    employeeSalaryDao.saveOrUpdate(employeeSalaryDO);
+  }
+
+  @Override
+  public EmployeeSalaryDO selectByPk(Integer id)
+  {
+    return employeeSalaryDao.getById(id);
+  }
+
 }

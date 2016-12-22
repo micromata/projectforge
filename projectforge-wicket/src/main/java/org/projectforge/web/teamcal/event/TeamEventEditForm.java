@@ -46,10 +46,10 @@ import org.projectforge.business.teamcal.event.AttendeeComparator;
 import org.projectforge.business.teamcal.event.TeamEventDao;
 import org.projectforge.business.teamcal.event.TeamEventRecurrenceData;
 import org.projectforge.business.teamcal.event.TeamEventService;
-import org.projectforge.business.teamcal.event.TeamEventUtils;
 import org.projectforge.business.teamcal.event.model.TeamEventAttendeeDO;
 import org.projectforge.business.teamcal.event.model.TeamEventDO;
 import org.projectforge.business.teamcal.event.right.TeamEventRight;
+import org.projectforge.business.teamcal.service.TeamCalServiceImpl;
 import org.projectforge.business.utils.HtmlHelper;
 import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
@@ -78,6 +78,7 @@ import org.projectforge.web.wicket.flowlayout.DivTextPanel;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
 import org.projectforge.web.wicket.flowlayout.HtmlCommentPanel;
 import org.projectforge.web.wicket.flowlayout.InputPanel;
+import org.projectforge.web.wicket.flowlayout.LabelPanel;
 import org.projectforge.web.wicket.flowlayout.ToggleContainerPanel;
 
 import com.vaynberg.wicket.select2.Select2MultiChoice;
@@ -86,10 +87,9 @@ import net.fortuna.ical4j.model.Recur;
 
 /**
  * Form to edit team events.
- * 
+ *
  * @author M. Lauterbach (m.lauterbach@micromata.de)
  * @author K. Reinhard (K.Reinhard@micromata.de)
- * 
  */
 public class TeamEventEditForm extends AbstractEditForm<TeamEventDO, TeamEventEditPage>
 {
@@ -138,6 +138,8 @@ public class TeamEventEditForm extends AbstractEditForm<TeamEventDO, TeamEventEd
   protected FileUploadField fileUploadField;
 
   protected MultiChoiceListHelper<TeamEventAttendeeDO> assignAttendeesListHelper;
+
+  protected AttendeeWicketProvider attendeeWicketProvider;
 
   /**
    * @param parentPage
@@ -217,24 +219,19 @@ public class TeamEventEditForm extends AbstractEditForm<TeamEventDO, TeamEventEd
     {
       // ATTENDEE
       final FieldsetPanel fieldSet = gridBuilder.newFieldset(getString("plugins.teamcal.attendees"));
-
-      final Collection<Integer> set = teamEventService.getAssignedAttendeeIds(data);
+      List<TeamEventAttendeeDO> fullAttendeeList = teamEventService.getAddressesAndUserAsAttendee();
       assignAttendeesListHelper = new MultiChoiceListHelper<TeamEventAttendeeDO>()
-          .setComparator(new AttendeeComparator()).setFullList(
-              teamEventService.getAddressesAndUserAsAttendee());
-      if (set != null) {
-        for (final Integer attendeeId : set) {
-          final TeamEventAttendeeDO attendee = teamEventService.getAttendee(attendeeId);
-          if (attendee != null) {
-            assignAttendeesListHelper.addOriginalAssignedItem(attendee).assignItem(attendee);
-          }
+          .setComparator(new AttendeeComparator()).setFullList(fullAttendeeList);
+      if (data.getAttendees() != null) {
+        for (final TeamEventAttendeeDO attendee : data.getAttendees()) {
+          assignAttendeesListHelper.addOriginalAssignedItem(attendee).assignItem(attendee);
         }
       }
+      attendeeWicketProvider = new AttendeeWicketProvider(data, teamEventService);
 
       final Select2MultiChoice<TeamEventAttendeeDO> attendees = new Select2MultiChoice<TeamEventAttendeeDO>(
           fieldSet.getSelect2MultiChoiceId(),
-          new PropertyModel<Collection<TeamEventAttendeeDO>>(this.assignAttendeesListHelper, "assignedItems"),
-          new AttendeeWicketProvider(data, teamEventService));
+          new PropertyModel<Collection<TeamEventAttendeeDO>>(this.assignAttendeesListHelper, "assignedItems"), attendeeWicketProvider);
       attendees.setMarkupId("attendees").setOutputMarkupId(true);
       attendees.add(new TeamEventAttendeeValidator());
       fieldSet.add(attendees);
@@ -297,7 +294,7 @@ public class TeamEventEditForm extends AbstractEditForm<TeamEventDO, TeamEventEd
       recurrenceFieldset = gridBuilder.newFieldset(getString("plugins.teamcal.event.recurrence"));
       recurrencePanel = gridBuilder.getPanel().getDiv();
       recurrencePanel.setOutputMarkupId(true);
-      final RecurrenceFrequency[] supportedFrequencies = TeamEventUtils.getSupportedRecurrenceFrequencies();
+      final RecurrenceFrequency[] supportedFrequencies = TeamCalServiceImpl.getSupportedRecurrenceFrequencies();
       final LabelValueChoiceRenderer<RecurrenceFrequency> frequencyChoiceRenderer = new LabelValueChoiceRenderer<RecurrenceFrequency>(
           recurrenceFieldset, supportedFrequencies);
       final DropDownChoice<RecurrenceFrequency> frequencyChoice = new DropDownChoice<RecurrenceFrequency>(
@@ -373,30 +370,6 @@ public class TeamEventEditForm extends AbstractEditForm<TeamEventDO, TeamEventEd
         }
       }));
     }
-    {
-      // customized weekly: day of week
-    }
-    {
-      // customized monthly: day of month (1-31, at 1st, 2nd, ..., last week day)
-    }
-    {
-      // customized yearly: month of year and see day of month.
-    }
-
-    //    if (WebConfiguration.isDevelopmentMode() == true) {
-    //      gridBuilder.newSplitPanel(GridSize.COL50);
-    //      final FieldsetPanel fs = gridBuilder.newFieldset(getString("plugins.teamcal.attendees"))
-    //          .suppressLabelForWarning();
-    //      attendees = getData().ensureAttendees();
-    //      fs.add(new TeamAttendeesPanel(fs.newChildId(), attendees));
-    //    }
-
-    //    {
-    //      final FieldsetPanel fs = gridBuilder.newFieldset(getString("file"), "*.*");
-    //      fileUploadField = new FileUploadField(FileUploadPanel.WICKET_ID);
-    //      final FileUploadPanel fileUploadPanel;
-    //      fs.add(fileUploadPanel = new FileUploadPanel(fs.newChildId(), fileUploadField));
-    //    }
 
     gridBuilder.newGridPanel();
     {
@@ -415,9 +388,10 @@ public class TeamEventEditForm extends AbstractEditForm<TeamEventDO, TeamEventEd
         recurrenceExDateFieldset.addHelpIcon(getString("plugins.teamcal.event.recurrence.exDate.tooltip"));
       }
       {
-        final FieldsetPanel fs = innerGridBuilder.newFieldset(getString("plugins.teamcal.event.externalUid"));
-        fs.add(new MaxLengthTextField(fs.getTextFieldId(), new PropertyModel<String>(data, "externalUid")));
+        final FieldsetPanel fs = innerGridBuilder.newFieldset(getString("plugins.teamcal.event.uid"));
+        fs.add(new LabelPanel(fs.getTextFieldId(), new PropertyModel<String>(data, "uid")));
       }
+
     }
 
     gridBuilder.newGridPanel();
@@ -484,7 +458,7 @@ public class TeamEventEditForm extends AbstractEditForm<TeamEventDO, TeamEventEd
 
   /**
    * if has access: create drop down with teamCals else create label
-   * 
+   *
    * @param fieldSet
    */
   private void initTeamCalPicker(final FieldsetPanel fieldSet)
@@ -512,7 +486,7 @@ public class TeamEventEditForm extends AbstractEditForm<TeamEventDO, TeamEventEd
 
   /**
    * create date panel
-   * 
+   *
    * @param dateFieldSet
    */
   private void initDatePanel()
@@ -630,5 +604,15 @@ public class TeamEventEditForm extends AbstractEditForm<TeamEventDO, TeamEventEd
   void setData(final TeamEventDO data)
   {
     this.data = data;
+  }
+
+  public MultiChoiceListHelper<TeamEventAttendeeDO> getAssignAttendeesListHelper()
+  {
+    return assignAttendeesListHelper;
+  }
+
+  public AttendeeWicketProvider getAttendeeWicketProvider()
+  {
+    return attendeeWicketProvider;
   }
 }

@@ -27,12 +27,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
-import org.projectforge.web.wicket.WicketUtils;
-import org.projectforge.business.fibu.AuftragDO;
-import org.projectforge.business.fibu.AuftragDao;
-import org.projectforge.business.fibu.AuftragsPositionDO;
-import org.projectforge.business.fibu.ProjektDO;
-import org.projectforge.business.fibu.ProjektDao;
+import org.projectforge.business.fibu.*;
 import org.projectforge.business.user.ProjectForgeGroup;
 import org.projectforge.framework.access.OperationType;
 import org.projectforge.framework.persistence.api.ModificationStatus;
@@ -41,6 +36,9 @@ import org.projectforge.framework.utils.NumberHelper;
 import org.projectforge.web.wicket.AbstractEditPage;
 import org.projectforge.web.wicket.AbstractSecuredBasePage;
 import org.projectforge.web.wicket.EditPage;
+import org.projectforge.web.wicket.WicketUtils;
+
+import java.util.Date;
 
 @EditPage(defaultReturnPage = AuftragListPage.class)
 public class AuftragEditPage extends AbstractEditPage<AuftragDO, AuftragEditForm, AuftragDao>
@@ -78,7 +76,7 @@ public class AuftragEditPage extends AbstractEditPage<AuftragDO, AuftragEditForm
   }
 
   /**
-   * @see org.projectforge.web.fibu.ISelectCallerPage#select(java.lang.String, java.lang.Integer)
+   * @see org.projectforge.web.fibu.ISelectCallerPage#select(String, Object)
    */
   public void select(final String property, final Object selectedValue)
   {
@@ -168,11 +166,23 @@ public class AuftragEditPage extends AbstractEditPage<AuftragDO, AuftragEditForm
       if (getData().getAngebotsDatum() == null) {
         final DayHolder today = new DayHolder();
         getData().setAngebotsDatum(new java.sql.Date(today.getTimeInMillis()));
+        getData().setErfassungsDatum(new java.sql.Date(today.getTimeInMillis()));
+        getData().setEntscheidungsDatum(new java.sql.Date(today.getTimeInMillis()));
       }
       if (getData().getContactPersonId() == null
           && accessChecker.isLoggedInUserMemberOfGroup(ProjectForgeGroup.PROJECT_MANAGER) == true) {
         auftragDao.setContactPerson(getData(), getUser().getId());
         form.setSendEMailNotification(false);
+      }
+    } else if (getData().getErfassungsDatum() == null) {
+      if (getData().getCreated() == null) {
+        if (getData().getAngebotsDatum() == null) {
+          getData().setErfassungsDatum(new java.sql.Date(new Date().getTime()));
+        } else {
+          getData().setErfassungsDatum(new java.sql.Date(getData().getAngebotsDatum().getTime()));
+        }
+      } else {
+        getData().setErfassungsDatum(new java.sql.Date(getData().getCreated().getTime()));
       }
     } else {
       setSendEMailNotification();

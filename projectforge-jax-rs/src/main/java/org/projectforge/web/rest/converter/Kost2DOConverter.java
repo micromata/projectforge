@@ -24,20 +24,19 @@
 package org.projectforge.web.rest.converter;
 
 import org.hibernate.Hibernate;
+import org.projectforge.business.converter.DOConverter;
 import org.projectforge.business.fibu.KundeDO;
 import org.projectforge.business.fibu.ProjektDO;
 import org.projectforge.business.fibu.kost.Kost2DO;
 import org.projectforge.business.fibu.kost.Kost2Dao;
-import org.projectforge.rest.converter.DOConverter;
-import org.projectforge.rest.objects.Cost2Object;
+import org.projectforge.model.rest.Cost2Object;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 /**
  * For conversion of Kost2DO to cost2 object.
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
  */
 @Service
 public class Kost2DOConverter

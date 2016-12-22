@@ -34,9 +34,8 @@ import com.vaynberg.wicket.select2.Select2Choice;
  * Panel containing only one drop down choice box. <br/>
  * This component calls setRenderBodyOnly(true). If the outer html element is needed, please call
  * setRenderBodyOnly(false).
- * 
+ *
  * @author Florian Blumenstein
- * 
  */
 @SuppressWarnings("serial")
 public class Select2SingleChoicePanel<T> extends Panel implements ComponentWrapperPanel
@@ -47,7 +46,7 @@ public class Select2SingleChoicePanel<T> extends Panel implements ComponentWrapp
 
   /**
    * @param id
-   * @param label see {@link FormComponent#setLabel(IModel)}
+   * @param label          see {@link FormComponent#setLabel(IModel)}
    * @param dropDownChoice
    */
   public Select2SingleChoicePanel(final String id, final Select2Choice<T> select2Choice)
@@ -77,7 +76,7 @@ public class Select2SingleChoicePanel<T> extends Panel implements ComponentWrapp
 
   /**
    * Sets tool-tip for the label.
-   * 
+   *
    * @param tooltip
    * @return this for chaining.
    */

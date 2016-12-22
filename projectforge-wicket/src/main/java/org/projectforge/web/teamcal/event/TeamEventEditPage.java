@@ -26,6 +26,8 @@ package org.projectforge.web.teamcal.event;
 import java.io.ByteArrayOutputStream;
 import java.sql.Timestamp;
 import java.util.Date;
+import java.util.HashSet;
+import java.util.Set;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
@@ -34,12 +36,13 @@ import org.apache.wicket.markup.html.form.SubmitLink;
 import org.apache.wicket.markup.html.link.Link;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
-import org.projectforge.business.teamcal.ICSGenerator;
 import org.projectforge.business.teamcal.event.TeamEventDao;
 import org.projectforge.business.teamcal.event.TeamEventService;
 import org.projectforge.business.teamcal.event.TeamRecurrenceEvent;
 import org.projectforge.business.teamcal.event.model.TeamEvent;
+import org.projectforge.business.teamcal.event.model.TeamEventAttendeeDO;
 import org.projectforge.business.teamcal.event.model.TeamEventDO;
+import org.projectforge.business.teamcal.service.TeamCalServiceImpl;
 import org.projectforge.business.timesheet.TimesheetDO;
 import org.projectforge.business.timesheet.TimesheetDao;
 import org.projectforge.framework.persistence.api.ModificationStatus;
@@ -56,7 +59,6 @@ import org.projectforge.web.wicket.components.ContentMenuEntryPanel;
 /**
  * @author M. Lauterbach (m.lauterbach@micromata.de)
  * @author K. Reinhard (k.reinhard@micromata.de)
- * 
  */
 public class TeamEventEditPage extends AbstractEditPage<TeamEventDO, TeamEventEditForm, TeamEventDao>
 {
@@ -65,13 +67,10 @@ public class TeamEventEditPage extends AbstractEditPage<TeamEventDO, TeamEventEd
   private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(TeamEventEditPage.class);
 
   @SpringBean
-  private TeamEventDao teamEventDao;
-
-  @SpringBean
   private TimesheetDao timesheetDao;
 
   @SpringBean
-  private ICSGenerator icsGenerator;
+  private TeamCalServiceImpl teamEventConverter;
 
   @SpringBean
   private TeamEventService teamEventService;
@@ -88,7 +87,7 @@ public class TeamEventEditPage extends AbstractEditPage<TeamEventDO, TeamEventEd
    */
   private TeamEventDO newEvent;
 
-  private ModificationStatus modificationStatus;
+  private TeamEventDO teamEventBeforeSaveOrUpdate;
 
   private boolean isNew;
 
@@ -139,7 +138,7 @@ public class TeamEventEditPage extends AbstractEditPage<TeamEventDO, TeamEventEd
     } else {
       id = ((TeamRecurrenceEvent) event).getMaster().getId();
     }
-    final TeamEventDO teamEventDO = teamEventDao.getById(id);
+    final TeamEventDO teamEventDO = teamEventService.getById(id);
     if (recurrencyChangeType == RecurrencyChangeType.ALL) {
       // The user wants to edit all events, so check if the user changes start and/or end date. If so, move the date of the original event.
       if (newStartDate != null) {
@@ -199,7 +198,9 @@ public class TeamEventEditPage extends AbstractEditPage<TeamEventDO, TeamEventEd
               final TimesheetEditPage timesheetEditPage = new TimesheetEditPage(timesheet);
               timesheetEditPage.setReturnToPage(getReturnToPage());
               setResponsePage(timesheetEditPage);
-            };
+            }
+
+            ;
           }, getString("plugins.teamcal.event.convert2Timesheet"));
       addContentMenuEntry(menu);
     }
@@ -221,7 +222,9 @@ public class TeamEventEditPage extends AbstractEditPage<TeamEventDO, TeamEventEd
             returnToPage = new TeamCalCalendarPage(new PageParameters());
           }
           setResponsePage(new TimesheetEditPage(timesheet).setReturnToPage(returnToPage));
-        };
+        }
+
+        ;
       }.setDefaultFormProcessing(false), getString("plugins.teamcal.switchToTimesheetButton"));
       addContentMenuEntry(menu);
     } else {
@@ -234,11 +237,13 @@ public class TeamEventEditPage extends AbstractEditPage<TeamEventDO, TeamEventEd
         {
           final TeamEventDO event = getData();
           log.info("Export ics for: " + event.getSubject());
-          ByteArrayOutputStream baos = icsGenerator.getIcsFile(event);
+          ByteArrayOutputStream baos = teamEventConverter.getIcsFile(event);
           if (baos != null) {
             DownloadUtils.setDownloadTarget(baos.toByteArray(), event.getSubject().replace(" ", "") + ".ics");
           }
-        };
+        }
+
+        ;
       }.setDefaultFormProcessing(false), getString("plugins.teamcal.exportIcsButton"));
       addContentMenuEntry(menu);
     }
@@ -285,7 +290,7 @@ public class TeamEventEditPage extends AbstractEditPage<TeamEventDO, TeamEventEd
       return null;
     }
     final Integer masterId = getData().getId(); // Store the id of the master entry.
-    final TeamEventDO masterEvent = teamEventDao.getById(masterId);
+    final TeamEventDO masterEvent = teamEventService.getById(masterId);
     if (recurrencyChangeType == RecurrencyChangeType.ALL_FUTURE) {
       final Date recurrenceUntil = new Date(eventOfCaller.getStartDate().getTime() - 24 * 3600 * 1000);
       form.recurrenceData.setUntil(recurrenceUntil); // Minus 24 hour.
@@ -305,13 +310,13 @@ public class TeamEventEditPage extends AbstractEditPage<TeamEventDO, TeamEventEd
   public AbstractSecuredBasePage onSaveOrUpdate()
   {
     super.onSaveOrUpdate();
-
+    if (getData().getCreator() == null) {
+      getData().setCreator(ThreadLocalUserContext.getUser());
+    }
     if (getData() != null && getData().getId() != null) {
-      TeamEventDO tempCopyEvent = getData().clone();
-      this.modificationStatus = TeamEventDO.copyValues(teamEventDao.getById(getData().getId()), tempCopyEvent);
+      this.teamEventBeforeSaveOrUpdate = teamEventService.getById(getData().getPk());
       this.isNew = false;
     } else {
-      this.modificationStatus = ModificationStatus.MAJOR;
       this.isNew = true;
     }
 
@@ -322,7 +327,7 @@ public class TeamEventEditPage extends AbstractEditPage<TeamEventDO, TeamEventEd
     final Integer masterId = getData().getId(); // Store the id of the master entry.
     getData().setId(null); // Clone object.
     final TeamEventDO oldDataObject = getData();
-    final TeamEventDO masterEvent = teamEventDao.getById(masterId);
+    final TeamEventDO masterEvent = teamEventService.getById(masterId);
     if (masterEvent == null) {
       log.error("masterEvent is null?! Do nothing more after saving team event.");
       return null;
@@ -368,9 +373,8 @@ public class TeamEventEditPage extends AbstractEditPage<TeamEventDO, TeamEventEd
   public AbstractSecuredBasePage afterUpdate(final ModificationStatus modificationStatus)
   {
     if (newEvent != null) {
-      newEvent.setExternalUid(null); // Avoid multiple usage of external uids.
       newEvent.setSequence(0);
-      teamEventDao.save(newEvent);
+      teamEventService.save(newEvent);
     }
     return null;
   }
@@ -382,20 +386,23 @@ public class TeamEventEditPage extends AbstractEditPage<TeamEventDO, TeamEventEd
   public AbstractSecuredBasePage afterSaveOrUpdate()
   {
     super.afterSaveOrUpdate();
-    teamEventService.assignAttendees(getData(), form.assignAttendeesListHelper.getItemsToAssign(),
+    TeamEventDO teamEventAfterSaveOrUpdate = teamEventService.getById(getData().getPk());
+    ModificationStatus modificationStatus = ModificationStatus.NONE;
+    if (this.isNew == false) {
+      modificationStatus = TeamEventDO.copyValues(this.teamEventBeforeSaveOrUpdate, teamEventAfterSaveOrUpdate, "attendees");
+    }
+
+    TeamEventDO teamEventBeforeAssignAttendees = teamEventService.getById(teamEventAfterSaveOrUpdate.getPk());
+    teamEventService.assignAttendees(teamEventBeforeAssignAttendees, form.assignAttendeesListHelper.getItemsToAssign(),
         form.assignAttendeesListHelper.getItemsToUnassign());
-    if ((hasChanges()
-        || form.assignAttendeesListHelper.getItemsToAssign().size() > 0)
-        && (getData().getAttendees() != null && getData().getAttendees().size() > 0)) {
-      teamEventService.sendTeamEventToAttendees(getData(), this.isNew, hasChanges(), false,
+    TeamEventDO teamEventAfterAssignAttendees = teamEventService.getById(teamEventBeforeAssignAttendees.getPk());
+
+    if ((form.assignAttendeesListHelper.getItemsToAssign() != null && form.assignAttendeesListHelper.getItemsToAssign().size() > 0) || (
+        modificationStatus != null && modificationStatus != ModificationStatus.NONE)) {
+      teamEventService.sendTeamEventToAttendees(teamEventAfterAssignAttendees, this.isNew, ModificationStatus.NONE.equals(modificationStatus) == false, false,
           form.assignAttendeesListHelper.getItemsToAssign());
     }
     return null;
-  }
-
-  private boolean hasChanges()
-  {
-    return ModificationStatus.NONE.equals(this.modificationStatus) == false;
   }
 
   /**
@@ -405,7 +412,30 @@ public class TeamEventEditPage extends AbstractEditPage<TeamEventDO, TeamEventEd
   protected void cloneData()
   {
     log.info("Clone of data chosen: " + getData());
-    this.form.setData(getData().clone());
+    TeamEventDO teamEventClone = getData().clone();
+    Set<TeamEventAttendeeDO> originAssignedAttendees = new HashSet<>();
+    teamEventClone.getAttendees().forEach(attendee -> {
+      originAssignedAttendees.add(attendee);
+    });
+    teamEventClone.setAttendees(new HashSet<>());
+    this.form = newEditForm(this, teamEventClone);
+    body.addOrReplace(this.form);
+    this.form.init();
+    originAssignedAttendees.forEach(attendee -> {
+      if (attendee.getAddress() != null) {
+        this.form.attendeeWicketProvider.initSortedAttendees();
+        this.form.attendeeWicketProvider.getSortedAttendees().forEach(sortedAttendee -> {
+          if (sortedAttendee.getAddress() != null && sortedAttendee.getAddress().getPk().equals(attendee.getAddress().getPk())) {
+            sortedAttendee.setId(this.form.attendeeWicketProvider.getAndDecreaseInternalNewAttendeeSequence());
+            this.form.assignAttendeesListHelper.assignItem(sortedAttendee);
+          }
+        });
+      } else {
+        attendee.setId(this.form.attendeeWicketProvider.getAndDecreaseInternalNewAttendeeSequence());
+        this.form.attendeeWicketProvider.getCustomAttendees().add(attendee);
+        this.form.assignAttendeesListHelper.assignItem(attendee);
+      }
+    });
   }
 
   /**
@@ -414,7 +444,7 @@ public class TeamEventEditPage extends AbstractEditPage<TeamEventDO, TeamEventEd
   @Override
   protected TeamEventDao getBaseDao()
   {
-    return teamEventDao;
+    return teamEventService.getTeamEventDao();
   }
 
   /**
@@ -428,7 +458,7 @@ public class TeamEventEditPage extends AbstractEditPage<TeamEventDO, TeamEventEd
 
   /**
    * @see org.projectforge.web.wicket.AbstractEditPage#newEditForm(org.projectforge.web.wicket.AbstractEditPage,
-   *      org.projectforge.core.AbstractBaseDO)
+   * org.projectforge.core.AbstractBaseDO)
    */
   @Override
   protected TeamEventEditForm newEditForm(final AbstractEditPage<?, ?, ?> parentPage, final TeamEventDO data)

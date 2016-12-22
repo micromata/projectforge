@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+  <bean id="internalAttrSchemataMap" class="java.util.HashMap">
+    <constructor-arg>
+      <map>
+
+        <entry key="employee">
+          <bean class="de.micromata.genome.db.jpa.tabattr.api.AttrSchema">
+            <constructor-arg>
+              <list>
+
+                <!-- Status -->
+                <bean class="de.micromata.genome.db.jpa.tabattr.api.AttrGroup">
+                  <property name="type" value="PERIOD"/>
+                  <property name="name" value="employeestatus"/>
+                  <property name="i18nKey" value="fibu.employee.status"/>
+                  <property name="i18nKeyStartTime" value="attr.validFrom"/>
+                  <property name="descriptions">
+                    <list>
+                      <bean class="de.micromata.genome.db.jpa.tabattr.api.AttrDescription">
+                        <property name="propertyName" value="status"/>
+                        <property name="i18nkey" value="status"/>
+                        <property name="type" value="java.lang.String"/>
+                        <property name="required" value="true"/>
+                        <property name="wicketComponentFactoryClass">
+                          <bean class="org.projectforge.web.common.timeattr.DropDownAttrWicketComponentFactory">
+                            <property name="i18nKeyList">
+                              <list>
+                                <value>fibu.employee.status.festAngestellter</value>
+                                <value>fibu.employee.status.befristetAngestellter</value>
+                                <value>fibu.employee.status.freelancer</value>
+                                <value>fibu.employee.status.aushilfe</value>
+                                <value>fibu.employee.status.studentischeHilfskraft</value>
+                                <value>fibu.employee.status.studentischeAbschlussarbeit</value>
+                                <value>fibu.employee.status.praktikant</value>
+                                <value>fibu.employee.status.azubi</value>
+                              </list>
+                            </property>
+                          </bean>
+                        </property>
+                      </bean>
+                    </list>
+                  </property>
+                </bean>
+
+              </list>
+            </constructor-arg>
+          </bean>
+        </entry>
+
+        <entry key="visitorbook">
+          <bean class="de.micromata.genome.db.jpa.tabattr.api.AttrSchema">
+            <constructor-arg>
+              <list>
+
+                <!-- Time of visit -->
+                <bean class="de.micromata.genome.db.jpa.tabattr.api.AttrGroup">
+                  <property name="type" value="INSTANT_OF_TIME"/>
+                  <property name="name" value="timeofvisit"/>
+                  <property name="i18nKey" value="orga.visitorbook.timeofvisit"/>
+                  <property name="i18nKeyStartTime" value="attr.validFrom"/>
+                  <property name="descriptions">
+                    <list>
+                      <bean class="de.micromata.genome.db.jpa.tabattr.api.AttrDescription">
+                        <property name="propertyName" value="arrive"/>
+                        <property name="i18nkey" value="orga.visitorbook.timeofvisit.arrive"/>
+                        <property name="type" value="java.lang.String"/>
+                        <property name="wicketComponentFactoryClass">
+                          <bean class="org.projectforge.web.common.timeattr.StringAttrWicketComponentFactory"/>
+                        </property>
+                      </bean>
+                      <bean class="de.micromata.genome.db.jpa.tabattr.api.AttrDescription">
+                        <property name="propertyName" value="depart"/>
+                        <property name="i18nkey" value="orga.visitorbook.timeofvisit.depart"/>
+                        <property name="type" value="java.lang.String"/>
+                        <property name="wicketComponentFactoryClass">
+                          <bean class="org.projectforge.web.common.timeattr.StringAttrWicketComponentFactory"/>
+                        </property>
+                      </bean>
+                    </list>
+                  </property>
+                </bean>
+              </list>
+            </constructor-arg>
+          </bean>
+        </entry>
+
+      </map>
+    </constructor-arg>
+  </bean>
+</beans>

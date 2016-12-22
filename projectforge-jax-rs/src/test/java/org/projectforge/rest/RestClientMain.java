@@ -31,8 +31,9 @@ import java.util.Properties;
 import javax.ws.rs.core.MediaType;
 
 import org.projectforge.ProjectForgeVersion;
-import org.projectforge.rest.objects.ServerInfo;
-import org.projectforge.rest.objects.UserObject;
+import org.projectforge.model.rest.RestPaths;
+import org.projectforge.model.rest.ServerInfo;
+import org.projectforge.model.rest.UserObject;
 
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientResponse;
@@ -53,7 +54,7 @@ public class RestClientMain
 
   /**
    * Adds authentication and media type json.
-   * 
+   *
    * @param webResource
    * @param user
    * @return ClientResponse

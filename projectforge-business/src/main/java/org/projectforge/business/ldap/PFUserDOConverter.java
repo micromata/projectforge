@@ -70,7 +70,7 @@ public class PFUserDOConverter
     user.setId(getId(ldapUser));
     user.setOrganization(ldapUser.getOrganization());
     user.setDescription(ldapUser.getDescription());
-    user.setLastPasswordChange(ldapUser.getSambaPwdLastSet());
+    user.setLastWlanPasswordChange(ldapUser.getSambaPwdLastSet());
     final String[] mails = ldapUser.getMail();
     if (mails != null) {
       for (final String mail : mails) {
@@ -114,8 +114,7 @@ public class PFUserDOConverter
     }
     ldapUser.setRestrictedUser(user.isRestrictedUser());
     setLdapValues(ldapUser, user.getLdapValues());
-    ldapUser
-        .setSambaPwdLastSet(user.getLastPasswordChange() != null ? user.getLastPasswordChange() : user.getCreated());
+    ldapUser.setSambaPwdLastSet(user.getLastWlanPasswordChange() != null ? user.getLastWlanPasswordChange() : user.getCreated());
     return ldapUser;
   }
 
@@ -134,7 +133,7 @@ public class PFUserDOConverter
 
   /**
    * Sets the LDAP values such as posix account properties of the given ldapUser configured in the given xml string.
-   * 
+   *
    * @param ldapUser
    * @param ldapValuesAsXml Posix account values as xml.
    */
@@ -198,7 +197,7 @@ public class PFUserDOConverter
 
   /**
    * Exports the LDAP values such as posix account properties of the given ldapUser as xml string.
-   * 
+   *
    * @param ldapUser
    */
   public String getLdapValuesAsXml(final LdapUser ldapUser)
@@ -234,7 +233,7 @@ public class PFUserDOConverter
 
   /**
    * Exports the LDAP values such as posix account properties of the given ldapUser as xml string.
-   * 
+   *
    * @param ldapUser
    */
   public static String getLdapValuesAsXml(final LdapUserValues values)
@@ -252,7 +251,7 @@ public class PFUserDOConverter
 
   /**
    * Copies the fields shared with ldap.
-   * 
+   *
    * @param src
    * @param dest
    * @return true if any modification is detected, otherwise false.
@@ -268,7 +267,7 @@ public class PFUserDOConverter
   /**
    * Copies the fields. The field commonName is also copied because the dn is built from the uid, ou and dc. The cn
    * isn't part of the dn.
-   * 
+   *
    * @param src
    * @param dest
    * @return true if any modification is detected, otherwise false.

@@ -33,6 +33,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.TimeZone;
 
+import javax.persistence.NoResultException;
+
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
@@ -41,6 +43,8 @@ import org.apache.log4j.Logger;
 import org.hibernate.Query;
 import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Restrictions;
+import org.projectforge.business.multitenancy.TenantService;
+import org.projectforge.business.teamcal.TeamCalConfig;
 import org.projectforge.business.teamcal.admin.TeamCalCache;
 import org.projectforge.business.teamcal.admin.TeamCalDao;
 import org.projectforge.business.teamcal.admin.model.TeamCalDO;
@@ -48,7 +52,7 @@ import org.projectforge.business.teamcal.event.model.TeamEvent;
 import org.projectforge.business.teamcal.event.model.TeamEventAttendeeDO;
 import org.projectforge.business.teamcal.event.model.TeamEventDO;
 import org.projectforge.business.teamcal.externalsubscription.TeamEventExternalSubscriptionCache;
-import org.projectforge.business.teamcal.service.TeamCalService;
+import org.projectforge.business.teamcal.service.TeamCalServiceImpl;
 import org.projectforge.business.user.UserRightId;
 import org.projectforge.framework.calendar.CalendarUtils;
 import org.projectforge.framework.calendar.ICal4JUtils;
@@ -87,6 +91,8 @@ public class TeamEventDao extends BaseDao<TeamEventDO>
       "calendar.title", "note",
       "attendees" };
 
+  private final static String META_SQL_WITH_SPECIAL = " AND e.deleted = :deleted AND e.tenant = :tenant";
+
   @Autowired
   private TeamCalDao teamCalDao;
 
@@ -97,15 +103,26 @@ public class TeamEventDao extends BaseDao<TeamEventDO>
   private TeamEventExternalSubscriptionCache teamEventExternalSubscriptionCache;
 
   @Autowired
-  private TeamCalService teamCalService;
+  private PfEmgrFactory emgrFac;
 
   @Autowired
-  private PfEmgrFactory emgrFac;
+  private TenantService tenantService;
 
   public TeamEventDao()
   {
     super(TeamEventDO.class);
     userRightId = UserRightId.PLUGIN_CALENDAR_EVENT;
+  }
+
+  public List<Integer> getCalIdList(final Collection<TeamCalDO> teamCals)
+  {
+    final List<Integer> list = new ArrayList<>();
+    if (teamCals != null) {
+      for (final TeamCalDO cal : teamCals) {
+        list.add(cal.getId());
+      }
+    }
+    return list;
   }
 
   @Override
@@ -130,13 +147,15 @@ public class TeamEventDao extends BaseDao<TeamEventDO>
     if (uid == null) {
       return null;
     }
-    TeamEventDO result = null;
-    result = emgrFac.runRoTrans(
-        emgr -> {
-          return emgr.selectSingleAttached(TeamEventDO.class, "select e from TeamEventDO e where e.uid = :uid", "uid",
-              uid);
-        });
-    return result;
+    try {
+      return emgrFac.runRoTrans(emgr -> {
+        String baseSQL = "select e from TeamEventDO e where e.uid = :uid";
+        return emgr.selectSingleAttached(TeamEventDO.class, baseSQL + META_SQL_WITH_SPECIAL, "uid", uid, "deleted", false,
+            "tenant", ThreadLocalUserContext.getUser() != null ? ThreadLocalUserContext.getUser().getTenant() : tenantService.getDefaultTenant());
+      });
+    } catch (NoResultException e) {
+      return null;
+    }
   }
 
   /**
@@ -164,6 +183,15 @@ public class TeamEventDao extends BaseDao<TeamEventDO>
     event.setRecurrenceUntil(recurrenceUntil);
   }
 
+  @Override
+  protected void afterSaveOrModify(final TeamEventDO event)
+  {
+    if (StringUtils.isBlank(event.getUid())) {
+      event.setUid(TeamCalConfig.get().createEventUid(event.getPk()));
+      getHibernateTemplate().merge(event);
+    }
+  }
+
   /**
    * This method also returns recurrence events outside the time period of the given filter but affecting the
    * time-period (e. g. older recurrence events without end date or end date inside or after the given time period). If
@@ -173,8 +201,8 @@ public class TeamEventDao extends BaseDao<TeamEventDO>
    * @param filter
    * @param calculateRecurrenceEvents If true, recurrence events inside the given time-period are calculated.
    * @return list of team events (same as {@link #getList(BaseSearchFilter)} but with all calculated and matching
-   *         recurrence events (if calculateRecurrenceEvents is true). Origin events are of type {@link TeamEventDO},
-   *         calculated events of type {@link TeamEvent}.
+   * recurrence events (if calculateRecurrenceEvents is true). Origin events are of type {@link TeamEventDO},
+   * calculated events of type {@link TeamEvent}.
    */
   public List<TeamEvent> getEventList(final TeamEventFilter filter, final boolean calculateRecurrenceEvents)
   {
@@ -212,7 +240,7 @@ public class TeamEventDao extends BaseDao<TeamEventDO>
           result.add(eventDO);
           continue;
         }
-        final Collection<TeamEvent> events = TeamEventUtils.getRecurrenceEvents(teamEventFilter.getStartDate(),
+        final Collection<TeamEvent> events = TeamCalServiceImpl.getRecurrenceEvents(teamEventFilter.getStartDate(),
             teamEventFilter.getEndDate(), eventDO, timeZone);
         if (events == null) {
           continue;
@@ -240,7 +268,7 @@ public class TeamEventDao extends BaseDao<TeamEventDO>
       // No calendars accessible, nothing to search.
       return new ArrayList<TeamEventDO>();
     }
-    teamEventFilter.setTeamCals(teamCalService.getCalIdList(allAccessibleCalendars));
+    teamEventFilter.setTeamCals(getCalIdList(allAccessibleCalendars));
     return getList(teamEventFilter);
   }
 
@@ -479,7 +507,7 @@ public class TeamEventDao extends BaseDao<TeamEventDO>
    * Returns also true, if idSet contains the id of any attendee.
    *
    * @see org.projectforge.framework.persistence.api.BaseDao#contains(java.util.Set,
-   *      org.projectforge.core.ExtendedBaseDO)
+   * org.projectforge.core.ExtendedBaseDO)
    */
   @Override
   protected boolean contains(final Set<Integer> idSet, final TeamEventDO entry)

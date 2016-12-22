@@ -8,7 +8,6 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
-import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -35,9 +34,8 @@ import de.micromata.genome.db.jpa.tabattr.api.TimeableService;
 
 /**
  * Standard implementation of the Employee service interface.
- * 
- * @author Roger Rene Kommer (r.kommer.extern@micromata.de)
  *
+ * @author Roger Rene Kommer (r.kommer.extern@micromata.de)
  */
 @Service
 public class EmployeeServiceImpl extends CorePersistenceServiceImpl<Integer, EmployeeDO>
@@ -60,7 +58,7 @@ public class EmployeeServiceImpl extends CorePersistenceServiceImpl<Integer, Emp
   private AttrSchemaService attrSchemaService;
 
   @Autowired
-  private TimeableService<Integer, EmployeeTimedDO> timeableEmployeeService;
+  private TimeableService timeableService;
 
   @Override
   public ModificationStatus update(EmployeeDO obj) throws AccessException
@@ -199,24 +197,22 @@ public class EmployeeServiceImpl extends CorePersistenceServiceImpl<Integer, Emp
   public void rebuildDatabaseIndex()
   {
     employeeDao.rebuildDatabaseIndex();
-
   }
 
   @Override
-  public boolean isEmployeeActive(EmployeeDO employee)
+  public boolean isEmployeeActive(final EmployeeDO employee)
   {
-    Calendar now = Calendar.getInstance();
     if (employee.getAustrittsDatum() == null) {
       return true;
     }
+    final Calendar now = Calendar.getInstance();
     return now.before(employee.getAustrittsDatum());
   }
 
   @Override
   public BigDecimal getMonthlySalary(EmployeeDO employee, Calendar selectedDate)
   {
-    final EmployeeTimedDO attribute = timeableEmployeeService.getAttrRowForSameMonth(employee, "annuity",
-        selectedDate.getTime());
+    final EmployeeTimedDO attribute = timeableService.getAttrRowValidAtDate(employee, "annuity", selectedDate.getTime());
     final BigDecimal annualSalary = attribute != null ? attribute.getAttribute("annuity", BigDecimal.class) : null;
     final BigDecimal weeklyWorkingHours = employee.getWeeklyWorkingHours();
 
@@ -233,17 +229,29 @@ public class EmployeeServiceImpl extends CorePersistenceServiceImpl<Integer, Emp
   }
 
   @Override
-  public List<EmployeeDO> findAllActive(boolean checkAccess)
+  public List<EmployeeDO> findAllActive(final boolean checkAccess)
   {
-    Collection<EmployeeDO> employeeList = new ArrayList<>();
+    final Collection<EmployeeDO> employeeList;
     if (checkAccess) {
       employeeList = employeeDao.getList(new EmployeeFilter());
     } else {
       employeeList = employeeDao.internalLoadAll();
     }
     return employeeList.stream()
-        .filter(emp -> emp.getAustrittsDatum() == null || emp.getAustrittsDatum().after(new Date()))
+        .filter(this::isEmployeeActive)
         .collect(Collectors.toList());
+  }
+
+  @Override
+  public EmployeeDO getEmployeeByStaffnumber(String staffnumber)
+  {
+    return employeeDao.getEmployeeByStaffnumber(staffnumber);
+  }
+
+  @Override
+  public List<EmployeeDO> getAll(boolean checkAccess)
+  {
+    return checkAccess ? employeeDao.getList(new EmployeeFilter()) : employeeDao.internalLoadAll();
   }
 
 }

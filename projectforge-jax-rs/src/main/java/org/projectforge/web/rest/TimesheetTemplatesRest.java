@@ -36,18 +36,17 @@ import org.projectforge.business.task.TaskDao;
 import org.projectforge.business.user.UserPrefDao;
 import org.projectforge.framework.persistence.user.api.UserPrefArea;
 import org.projectforge.framework.persistence.user.entities.UserPrefDO;
+import org.projectforge.model.rest.RestPaths;
+import org.projectforge.model.rest.TimesheetTemplateObject;
 import org.projectforge.rest.JsonUtils;
-import org.projectforge.rest.RestPaths;
-import org.projectforge.rest.objects.TimesheetTemplateObject;
 import org.projectforge.web.rest.converter.TimesheetTemplateConverter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 
 /**
  * REST-Schnittstelle für {@link TaskDao}
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
  */
 @Controller
 @Path(RestPaths.TIMESHEET_TEMPLATE)

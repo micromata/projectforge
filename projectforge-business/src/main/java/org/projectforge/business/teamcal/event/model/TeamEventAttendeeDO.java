@@ -38,7 +38,6 @@ import javax.persistence.Transient;
 
 import org.apache.commons.lang.ObjectUtils;
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.builder.HashCodeBuilder;
 import org.hibernate.search.annotations.Indexed;
 import org.projectforge.business.address.AddressDO;
 import org.projectforge.framework.persistence.entities.DefaultBaseDO;
@@ -92,7 +91,7 @@ public class TeamEventAttendeeDO extends DefaultBaseDO implements Comparable<Tea
 
   /**
    * Is set if the attendee is a ProjectForge user.
-   * 
+   *
    * @return the userId
    */
   @ManyToOne(fetch = FetchType.LAZY)
@@ -123,7 +122,7 @@ public class TeamEventAttendeeDO extends DefaultBaseDO implements Comparable<Tea
 
   /**
    * Is set if the attendee is a ProjectForge user.
-   * 
+   *
    * @return the userId
    */
   @ManyToOne(fetch = FetchType.EAGER)
@@ -154,7 +153,7 @@ public class TeamEventAttendeeDO extends DefaultBaseDO implements Comparable<Tea
 
   /**
    * Is used if the attendee isn't a ProjectForge user for authentication.
-   * 
+   *
    * @return the loginToken
    */
   @Column(name = "login_token", length = 255)
@@ -175,7 +174,7 @@ public class TeamEventAttendeeDO extends DefaultBaseDO implements Comparable<Tea
 
   /**
    * The url (mail) of the attendee. Isn't used if the attendee is a ProjectForge user.
-   * 
+   *
    * @return the url
    */
   @Column(length = URL_MAX_LENGTH)
@@ -284,24 +283,33 @@ public class TeamEventAttendeeDO extends DefaultBaseDO implements Comparable<Tea
   }
 
   /**
-   * @see java.lang.Object#hashCode()
+   * Equals / HashCode contract is broken because of technical requirements
+   *
+   * @return
    */
   @Override
   public int hashCode()
   {
-    final HashCodeBuilder hcb = new HashCodeBuilder();
-    hcb.append(this.getId());
-    if (this.getId() != null) {
-      return hcb.toHashCode();
+    int result = 0;
+    if (url != null) {
+      return 31 * url.hashCode();
     }
-    hcb.append(this.getUserId());
-    hcb.append(this.getAddressId());
-    hcb.append(this.url);
-    return hcb.toHashCode();
+    if (address != null && address.getPk() != null) {
+      return 31 * address.getPk().hashCode();
+    }
+    if (user != null && user.getPk() != null) {
+      return 31 * user.getPk().hashCode();
+    }
+    if (getPk() != null) {
+      return 31 * getPk().hashCode();
+    }
+    return result;
   }
 
   /**
-   * @see java.lang.Object#equals(java.lang.Object)
+   * Equals / HashCode contract is broken because of technical requirements
+   *
+   * @return
    */
   @Override
   public boolean equals(final Object o)
@@ -310,25 +318,31 @@ public class TeamEventAttendeeDO extends DefaultBaseDO implements Comparable<Tea
       return false;
     }
     final TeamEventAttendeeDO other = (TeamEventAttendeeDO) o;
-    if (this.getId() != null && other.getId() != null && ObjectUtils.equals(this.getId(), other.getId()) == true) {
+    if (this.getUrl() != null && other.getUrl() != null && StringUtils.equals(this.getUrl(), other.getUrl())) {
       return true;
     }
-    if (ObjectUtils.equals(this.getUserId(), other.getUserId()) == false) {
-      return false;
+    if (this.getAddressId() != null && other.getAddressId() != null && ObjectUtils.equals(this.getAddressId(), other.getAddressId())) {
+      return true;
     }
-    if (this.getAddress() != null && other.getAddress() != null
-        && ObjectUtils.equals(this.getAddressId(), other.getAddressId()) == false) {
-      return false;
+    if (this.getUserId() != null && other.getUserId() != null && ObjectUtils.equals(this.getUserId(), other.getUserId())) {
+      return true;
     }
-    if (StringUtils.equals(this.getUrl(), other.getUrl()) == false) {
-      return false;
+    if (this.getPk() != null && other.getPk() != null && ObjectUtils.equals(this.getPk(), other.getPk())) {
+      return true;
     }
-    return true;
+    if (this.getUrl() == null && other.getUrl() == null && this.getAddressId() == null && other.getAddressId() == null && this.getUserId() == null
+        && other.getUserId() == null && this.getPk() == null && other.getPk() == null) {
+      return true;
+    }
+    return false;
   }
 
   @Override
   public String toString()
   {
+    if (this.getUser() != null) {
+      return this.getUser().getFullname() + " (" + this.getUser().getEmail() + ")";
+    }
     if (this.getAddress() != null) {
       return this.getAddress().getFullName() + " (" + this.getAddress().getEmail() + ")";
     }

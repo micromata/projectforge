@@ -43,9 +43,12 @@ import org.projectforge.business.fibu.kost.Kost2DO;
 import org.projectforge.business.task.TaskDO;
 import org.projectforge.business.task.formatter.TaskFormatter;
 import org.projectforge.business.timesheet.TimesheetDO;
+import org.projectforge.business.user.I18nHelper;
+import org.projectforge.business.vacation.service.VacationService;
 import org.projectforge.common.StringHelper;
 import org.projectforge.framework.calendar.MonthHolder;
 import org.projectforge.framework.calendar.WeekHolder;
+import org.projectforge.framework.configuration.ApplicationContextProvider;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.time.DateHolder;
 import org.projectforge.framework.time.DayHolder;
@@ -53,7 +56,7 @@ import org.projectforge.framework.utils.NumberHelper;
 
 /**
  * Repräsentiert einen Monatsbericht eines Mitarbeiters.
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 public class MonthlyEmployeeReport implements Serializable
@@ -133,18 +136,22 @@ public class MonthlyEmployeeReport implements Serializable
 
   private BigDecimal numberOfWorkingDays;
 
-  /** Employee can be null, if not found. As fall back, store user. */
+  /**
+   * Employee can be null, if not found. As fall back, store user.
+   */
   private PFUserDO user;
 
   private EmployeeDO employee;
 
-  private long totalGrossDuration = 0, totalNetDuration = 0;
+  private long totalGrossDuration = 0, totalNetDuration = 0, vacationCount = 0;
 
   private Integer kost1Id;
 
   private List<MonthlyEmployeeReportWeek> weeks;
 
-  /** Days with time sheets. */
+  /**
+   * Days with time sheets.
+   */
   private final Set<Integer> bookedDays = new HashSet<Integer>();
 
   private final List<Integer> unbookedDays = new ArrayList<Integer>();
@@ -159,11 +166,17 @@ public class MonthlyEmployeeReport implements Serializable
    */
   private Map<Integer, MonthlyEmployeeReportEntry> taskDurations;
 
-  /** String is formatted Kost2-String for sorting. */
+  /**
+   * String is formatted Kost2-String for sorting.
+   */
   private Map<String, Kost2Row> kost2Rows;
 
-  /** String is formatted Task path string for sorting. */
+  /**
+   * String is formatted Task path string for sorting.
+   */
   private Map<String, TaskDO> taskEntries;
+
+  private VacationService vacationService;
 
   public static final String getFormattedDuration(final long duration)
   {
@@ -177,7 +190,7 @@ public class MonthlyEmployeeReport implements Serializable
 
   /**
    * Dont't forget to initialize: setFormatter and setUser or setEmployee.
-   * 
+   *
    * @param year
    * @param month
    */
@@ -189,7 +202,7 @@ public class MonthlyEmployeeReport implements Serializable
 
   /**
    * Use only as fallback, if employee is not available.
-   * 
+   *
    * @param user
    */
   public void setUser(final PFUserDO user)
@@ -199,7 +212,7 @@ public class MonthlyEmployeeReport implements Serializable
 
   /**
    * User will be set automatically from given employee.
-   * 
+   *
    * @param employee
    */
   public void setEmployee(final EmployeeDO employee)
@@ -232,6 +245,7 @@ public class MonthlyEmployeeReport implements Serializable
         throw new RuntimeException("Endless loop protection: Please contact developer!");
       }
     } while (dh.getDate().before(toDate));
+    this.vacationService = ApplicationContextProvider.getApplicationContext().getBean(VacationService.class);
   }
 
   public void addTimesheet(final TimesheetDO sheet)
@@ -305,6 +319,9 @@ public class MonthlyEmployeeReport implements Serializable
           unbookedDays.add(day.getDayOfMonth());
         }
       }
+    }
+    if (vacationService.couldUserUseVacationService(employee.getUser(), false)) {
+      this.vacationCount = vacationService.getAvailableVacationdaysForYear(employee, year, false).longValue();
     }
   }
 
@@ -425,7 +442,7 @@ public class MonthlyEmployeeReport implements Serializable
   /**
    * The net duration may differ from total duration (e. g. for travelling times if a fraction is defined for used cost
    * 2 types).
-   * 
+   *
    * @return the netDuration in ms.
    */
   public long getTotalNetDuration()
@@ -436,6 +453,11 @@ public class MonthlyEmployeeReport implements Serializable
   public String getFormattedTotalGrossDuration()
   {
     return MonthlyEmployeeReport.getFormattedDuration(totalGrossDuration);
+  }
+
+  public String getFormattedVacationCount()
+  {
+    return vacationCount + " " + I18nHelper.getLocalizedMessage("day");
   }
 
   public String getFormattedTotalNetDuration()

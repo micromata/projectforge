@@ -45,6 +45,7 @@ public enum MenuItemDefId
   CALENDAR("calendar"), //
   TEAMCALENDAR("plugins.teamcal"), //
   CHANGE_PASSWORD("changePassword"), //
+  CHANGE_WLAN_PASSWORD("changeWlanPassword"), //
   CONFIGURATION("configuration"), //
   CONTACT_LIST("contactList"), //
   CONTRACTS("contracts"), //
@@ -62,11 +63,13 @@ public enum MenuItemDefId
   HR_VIEW("hrList"), //
   IMAGE_CROPPER("imageCropper"), //
   INBOX_LIST("orga.posteingang"), //
+  VISITORBOOK("orga.visitorbook"), //
   INCOMING_INVOICE_LIST("fibu.eingangsrechnungen"), //
   MEB("meb"), //
   MONTHLY_EMPLOYEE_REPORT("monthlyEmployeeReport"), //
   TENANT_LIST("multiTenancy"), //
   MY_ACCOUNT("myAccount"), //
+  VACATION_VIEW("vacation.leaveaccount"), //
   MY_PREFERENCES("myPreferences"), //
   REPORT_OBJECTIVES("fibu.reporting.reportObjectives"), //
   ORDER_LIST("fibu.orderbook"), //
@@ -90,7 +93,8 @@ public enum MenuItemDefId
   TASK_TREE("taskTree"), //
   TIMESHEET_LIST("timesheetList"), //
   USER_LIST("userList"), //
-  HR("hr");
+  HR("hr"), //
+  VACATION("vacation");
 
   private String i18nKey;
 

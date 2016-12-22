@@ -1,10 +1,16 @@
 package org.projectforge.framework.persistence.history;
 
 import java.io.Serializable;
+import java.lang.reflect.AccessibleObject;
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Queue;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -15,6 +21,7 @@ import org.projectforge.framework.configuration.ApplicationContextProvider;
 import org.projectforge.framework.persistence.api.BaseDO;
 import org.projectforge.framework.persistence.api.ExtendedBaseDO;
 import org.projectforge.framework.persistence.api.ModificationStatus;
+import org.projectforge.framework.persistence.api.PFPersistancyBehavior;
 import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
 
 import de.micromata.genome.db.jpa.history.api.DiffEntry;
@@ -29,14 +36,14 @@ import de.micromata.genome.db.jpa.history.impl.HistoryUpdateCopyFilterEventListe
 import de.micromata.genome.jpa.DbRecord;
 import de.micromata.genome.jpa.events.EmgrAfterInsertedEvent;
 import de.micromata.genome.jpa.events.EmgrUpdateCopyFilterEvent;
+import de.micromata.genome.util.runtime.ClassUtils;
 import de.micromata.hibernate.history.delta.PropertyDelta;
 import de.micromata.hibernate.history.delta.SimplePropertyDelta;
 
 /**
  * Utility to provide compat with BaseDao.
- * 
- * @author Roger Rene Kommer (r.kommer.extern@micromata.de)
  *
+ * @author Roger Rene Kommer (r.kommer.extern@micromata.de)
  */
 public class HistoryBaseDaoAdapter
 {
@@ -181,30 +188,119 @@ public class HistoryBaseDaoAdapter
   public static ModificationStatus wrappHistoryUpdate(BaseDO<?> dbo, Supplier<ModificationStatus> callback)
   {
     long begin = System.currentTimeMillis();
-    HistoryService historyService = HistoryServiceManager.get().getHistoryService();
-    List<WithHistory> whanots = historyService.internalFindWithHistoryEntity(dbo);
+    final HistoryService historyService = HistoryServiceManager.get().getHistoryService();
+    final List<WithHistory> whanots = historyService.internalFindWithHistoryEntity(dbo);
     if (whanots.isEmpty() == true) {
       return callback.get();
-
     }
-    Serializable entPk = dbo.getPk();
 
-    Class<?> entClass = dbo.getClass();
-    PfEmgrFactory emf = ApplicationContextProvider.getApplicationContext().getBean(PfEmgrFactory.class);
-    ModificationStatus result = emf.runInTrans((emgr) -> {
+    final List<BaseDO<?>> entitiesToHistoricize = getSubEntitiesToHistoricizeDeep(dbo);
+    final PfEmgrFactory emf = ApplicationContextProvider.getApplicationContext().getBean(PfEmgrFactory.class);
+    final ModificationStatus result = emf.runInTrans((emgr) -> {
+      final Map<Serializable, HistoryProperties> props = new HashMap<>();
 
-      Map<String, HistProp> oprops = historyService.internalGetPropertiesForHistory(emgr, whanots, dbo);
+      // get the (old) history properties before the modification
+      entitiesToHistoricize.forEach(
+          entity -> {
+            final HistoryProperties p = getOrCreateHistoryProperties(props, entity);
+            p.oldProps = historyService.internalGetPropertiesForHistory(emgr, whanots, entity);
+          }
+      );
 
-      ModificationStatus ret = callback.get();
+      // do the modification
+      final ModificationStatus ret = callback.get();
 
-      Map<String, HistProp> nprops = historyService.internalGetPropertiesForHistory(emgr, whanots,
-          dbo);
-      historyService.internalOnUpdate(emgr, entClass.getName(), entPk, oprops, nprops);
+      // get the (new) history properties after the modification
+      entitiesToHistoricize.forEach(
+          entity -> {
+            final HistoryProperties p = getOrCreateHistoryProperties(props, entity);
+            p.newProps = historyService.internalGetPropertiesForHistory(emgr, whanots, entity);
+          }
+      );
+
+      // create history entries with the diff resulting from the old and new history properties
+      props.forEach(
+          (pk, p) -> {
+            if (p.oldProps != null && p.newProps != null) {
+              historyService.internalOnUpdate(emgr, p.entClassName, pk, p.oldProps, p.newProps);
+            }
+          }
+      );
       return ret;
     });
+
     long end = System.currentTimeMillis();
     log.info("HistoryBaseDaoAdapter.wrappHistoryUpdate took: " + (end - begin) + " ms.");
     return result;
+  }
+
+  /**
+   * Nested class just to hold some temporary history data.
+   */
+  private static final class HistoryProperties
+  {
+    private String entClassName;
+    private Map<String, HistProp> oldProps;
+    private Map<String, HistProp> newProps;
+  }
+
+  private static HistoryProperties getOrCreateHistoryProperties(final Map<Serializable, HistoryProperties> props, final DbRecord<?> entity)
+  {
+    final Serializable pk = entity.getPk();
+    if (props.containsKey(pk)) {
+      return props.get(pk);
+    } else {
+      final HistoryProperties hp = new HistoryProperties();
+      props.put(pk, hp);
+      hp.entClassName = entity.getClass().getName();
+      return hp;
+    }
+  }
+
+  private static List<BaseDO<?>> getSubEntitiesToHistoricizeDeep(final BaseDO<?> entity)
+  {
+    final List<BaseDO<?>> result = new ArrayList<>();
+    final Queue<BaseDO<?>> queue = new LinkedList<>();
+    queue.add(entity);
+
+    // do a breadth first search through the tree
+    while (!queue.isEmpty()) {
+      final BaseDO<?> head = queue.poll();
+      result.add(head);
+      final List<BaseDO<?>> subEntries = getSubEntitiesToHistoricize(head);
+      queue.addAll(subEntries);
+    }
+
+    return result;
+  }
+
+  /**
+   * Takes a DO and returns a list of DOs. This list contains all entries of the collections of the DOs where the class fields have this annotation:
+   * "@PFPersistancyBehavior(autoUpdateCollectionEntries = true)".
+   *
+   * @param entity The DO.
+   * @return The List of DOs.
+   */
+  private static List<BaseDO<?>> getSubEntitiesToHistoricize(final BaseDO<?> entity)
+  {
+    final Collection<Field> fields = ClassUtils.getAllFields(entity.getClass()).values();
+    AccessibleObject.setAccessible(fields.toArray(new Field[0]), true);
+
+    return fields
+        .stream()
+        .filter(field -> {
+          final PFPersistancyBehavior behavior = field.getAnnotation(PFPersistancyBehavior.class);
+          return behavior != null && behavior.autoUpdateCollectionEntries();
+        })
+        .map(field -> {
+          try {
+            return (Collection<BaseDO<?>>) field.get(entity);
+          } catch (IllegalAccessException | ClassCastException e) {
+            return (Collection<BaseDO<?>>) Collections.EMPTY_LIST;
+          }
+        })
+        .flatMap(Collection::stream)
+        .collect(Collectors.toList());
   }
 
   public static void updated(BaseDO<?> oldo, BaseDO<?> newo)

@@ -66,9 +66,7 @@ import de.micromata.genome.db.jpa.history.api.NoHistory;
 import de.micromata.genome.jpa.metainf.EntityDependencies;
 
 /**
- * 
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
  */
 @Entity
 @Indexed
@@ -99,6 +97,8 @@ public class PFUserDO extends DefaultBaseDO implements ShortDisplayNameCapable
   private String password;
 
   private Date lastPasswordChange;
+
+  private Date lastWlanPasswordChange;
 
   private boolean localUser;
 
@@ -271,7 +271,7 @@ public class PFUserDO extends DefaultBaseDO implements ShortDisplayNameCapable
    * <li>dd/MM/yyyy: 21/02/2011, British and French format (day of month first)</li>
    * <li>MM/dd/yyyy: 02/21/2011, American format (month first)</li>
    * </ul>
-   * 
+   *
    * @return
    */
   @Column(name = "date_format", length = 20)
@@ -292,7 +292,7 @@ public class PFUserDO extends DefaultBaseDO implements ShortDisplayNameCapable
    * <li>DD/MM/YYYY: 21/02/2011, British and French format (day of month first)</li>
    * <li>MM/DD/YYYY: 02/21/2011, American format (month first)</li>
    * </ul>
-   * 
+   *
    * @return
    */
   @Column(name = "excel_date_format", length = 20)
@@ -315,7 +315,7 @@ public class PFUserDO extends DefaultBaseDO implements ShortDisplayNameCapable
 
   /**
    * 0 - sunday, 1 - monday etc.
-   * 
+   *
    * @return the firstDayOfWeek
    */
   @Column(name = "first_day_of_week")
@@ -372,7 +372,7 @@ public class PFUserDO extends DefaultBaseDO implements ShortDisplayNameCapable
 
   /**
    * Returns string containing all fields (except the password) of given user object (via ReflectionToStringBuilder).
-   * 
+   *
    * @param user
    * @return
    */
@@ -441,7 +441,7 @@ public class PFUserDO extends DefaultBaseDO implements ShortDisplayNameCapable
 
   /**
    * If password is not given as "SHA{..." then it will be set to null due to security reasons.
-   * 
+   * <p>
    * TODO DESIGNBUG
    */
   public void checkAndFixPassword()
@@ -458,7 +458,7 @@ public class PFUserDO extends DefaultBaseDO implements ShortDisplayNameCapable
    * The locale given from the client (e. g. from the browser by the http request). This locale is needed by
    * ThreadLocalUserContext for getting the browser locale if the user's locale is null and the request's locale is not
    * available.
-   * 
+   *
    * @return
    */
   @Transient
@@ -475,7 +475,7 @@ public class PFUserDO extends DefaultBaseDO implements ShortDisplayNameCapable
 
   /**
    * Do nothing.
-   * 
+   *
    * @see org.projectforge.framework.persistence.api.ExtendedBaseDO#recalculate()
    */
   @Override
@@ -532,7 +532,7 @@ public class PFUserDO extends DefaultBaseDO implements ShortDisplayNameCapable
 
   /**
    * Die E-Mail Adresse des Benutzers, falls vorhanden.
-   * 
+   *
    * @return Returns the email.
    */
   @Column(length = 255)
@@ -588,7 +588,7 @@ public class PFUserDO extends DefaultBaseDO implements ShortDisplayNameCapable
   /**
    * The authentication token is usable for download links of the user (without further login). This is used e. g. for
    * ics download links of the team calendars.
-   * 
+   *
    * @return the authenticationToken
    */
   @Column(name = "authentication_token", length = 100)
@@ -609,7 +609,7 @@ public class PFUserDO extends DefaultBaseDO implements ShortDisplayNameCapable
 
   /**
    * Der Vorname des Benutzer.
-   * 
+   *
    * @return Returns the firstname.
    */
   @Column(length = 255)
@@ -631,7 +631,7 @@ public class PFUserDO extends DefaultBaseDO implements ShortDisplayNameCapable
 
   /**
    * Gibt den Vor- und Nachnamen zurück, falls gegeben. Vor- und Nachname sind durch ein Leerzeichen getrennt.
-   * 
+   *
    * @return String
    */
   @Transient
@@ -651,7 +651,7 @@ public class PFUserDO extends DefaultBaseDO implements ShortDisplayNameCapable
 
   /**
    * Zeitstempel des letzten erfolgreichen Logins.
-   * 
+   *
    * @return Returns the lastLogin.
    */
   @Column
@@ -691,7 +691,7 @@ public class PFUserDO extends DefaultBaseDO implements ShortDisplayNameCapable
 
   /**
    * Die Anzahl der erfolglosen Logins. Dieser Wert wird bei dem nächsten erfolgreichen Login auf 0 zurück gesetzt.
-   * 
+   *
    * @return Returns the loginFailures.
    */
   @Column
@@ -716,7 +716,7 @@ public class PFUserDO extends DefaultBaseDO implements ShortDisplayNameCapable
 
   /**
    * @return The JIRA user name or if not given the user name (assuming that the JIRA user name is same as ProjectForge
-   *         user name).
+   * user name).
    */
   @Transient
   public String getJiraUsernameOrUsername()
@@ -730,7 +730,7 @@ public class PFUserDO extends DefaultBaseDO implements ShortDisplayNameCapable
 
   /**
    * Encoded password of the user (SHA-1).
-   * 
+   *
    * @return Returns the password.
    */
   @Column(length = 50)
@@ -775,6 +775,17 @@ public class PFUserDO extends DefaultBaseDO implements ShortDisplayNameCapable
   {
     this.lastPasswordChange = lastPasswordChange;
     return this;
+  }
+
+  @Column(name = "last_wlan_password_change")
+  public Date getLastWlanPasswordChange()
+  {
+    return lastWlanPasswordChange;
+  }
+
+  public void setLastWlanPasswordChange(final Date lastWlanPasswordChange)
+  {
+    this.lastWlanPasswordChange = lastWlanPasswordChange;
   }
 
   /**
@@ -841,7 +852,7 @@ public class PFUserDO extends DefaultBaseDO implements ShortDisplayNameCapable
   /**
    * If true (default) then the user is highlighted in the human resource planning page if not planned for the actual
    * week.
-   * 
+   *
    * @return the hrPlanning
    */
   @Column(name = "hr_planning", nullable = false)
@@ -862,7 +873,7 @@ public class PFUserDO extends DefaultBaseDO implements ShortDisplayNameCapable
 
   /**
    * A local user will not be synchronized with any external user management system.
-   * 
+   *
    * @return the localUser
    */
   @Column(name = "local_user", nullable = false)
@@ -885,7 +896,7 @@ public class PFUserDO extends DefaultBaseDO implements ShortDisplayNameCapable
    * A restricted user has only the ability to log-in and to change his password. This is useful if ProjectForge runs in
    * master mode for managing an external LDAP system. Then this user is a LDAP user but has no other functionality than
    * change password in the ProjectForge system itself.
-   * 
+   *
    * @return the restrictedUser
    */
   @Column(name = "restricted_user", nullable = false)
@@ -906,7 +917,7 @@ public class PFUserDO extends DefaultBaseDO implements ShortDisplayNameCapable
 
   /**
    * A deactivated user has no more system access.
-   * 
+   *
    * @return the deactivated
    */
   @Column(nullable = false)
@@ -938,7 +949,7 @@ public class PFUserDO extends DefaultBaseDO implements ShortDisplayNameCapable
    * A super admin is able to administer tenants. For tenants the user must be assigned to PF_Admin if he should be an
    * administrator of the tenant's objects. This flag is therefore independent of the right to administer objects of
    * tenants itself.
-   * 
+   *
    * @param superAdmin the superAdmin to set
    * @return this for chaining.
    */
@@ -952,7 +963,7 @@ public class PFUserDO extends DefaultBaseDO implements ShortDisplayNameCapable
    * LDAP values as key-value-pairs, e. g. gidNumber=1000,uidNumber=1001,homeDirectory="/home/kai",shell="/bin/bash".
    * For handling of string values see {@link org.apache.commons.csv.writer.CSVWriter}. This field is handled by the
    * ldap package and has no further effect in ProjectForge's core package.
-   * 
+   *
    * @return the ldapValues
    */
   @Column(name = "ldap_values", length = 4000)
@@ -1016,13 +1027,13 @@ public class PFUserDO extends DefaultBaseDO implements ShortDisplayNameCapable
 
   /**
    * @return A copy of the given user without copying the secret fields (password, passwordSalt, stayLoggedInKey or
-   *         authenticationToken).
+   * authenticationToken).
    */
   public static PFUserDO createCopyWithoutSecretFields(final PFUserDO srcUser)
   {
     final PFUserDO user = new PFUserDO();
     user.copyValuesFrom(srcUser, "password", "passwordSalt", "stayLoggedInKey", "authenticationToken");
-    // password is already ignored. 
+    // password is already ignored.
     // WRONG
     user.setPassword(null);
 

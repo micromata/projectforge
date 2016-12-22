@@ -117,6 +117,8 @@ public class EmployeeDO extends DefaultBaseWithAttrDO<EmployeeDO>
   @IndexedEmbedded(depth = 1)
   private Kost1DO kost1;
 
+  // don't use the status field anymore, this is replaced by the status within the internalattrschema.xml
+  @Deprecated
   @PropertyInfo(i18nKey = "status")
   @Field(index = Index.YES /* TOKENIZED */, store = Store.NO)
   private EmployeeStatus status;
@@ -178,7 +180,8 @@ public class EmployeeDO extends DefaultBaseWithAttrDO<EmployeeDO>
 
   @PropertyInfo(i18nKey = "gender")
   @Field(index = Index.YES /* TOKENIZED */, store = Store.NO)
-  @Convert(converter = GenderConverter.class) // use the GenderConverter instead of @Enumerated to persist the correct ISO/IEC 5218 integer representation of the gender
+  @Convert(converter = GenderConverter.class)
+  // use the GenderConverter instead of @Enumerated to persist the correct ISO/IEC 5218 integer representation of the gender
   private Gender gender;
 
   @PropertyInfo(i18nKey = "fibu.employee.street")
@@ -238,6 +241,7 @@ public class EmployeeDO extends DefaultBaseWithAttrDO<EmployeeDO>
     timeableAttributes.add(row);
   }
 
+  @Deprecated
   @Enumerated(EnumType.STRING)
   @Column(name = "employee_status", length = 30)
   public EmployeeStatus getStatus()
@@ -245,6 +249,7 @@ public class EmployeeDO extends DefaultBaseWithAttrDO<EmployeeDO>
     return status;
   }
 
+  @Deprecated
   public void setStatus(final EmployeeStatus status)
   {
     this.status = status;
@@ -561,4 +566,25 @@ public class EmployeeDO extends DefaultBaseWithAttrDO<EmployeeDO>
     return super.getAttrs();
   }
 
+  @Override
+  public boolean equals(Object o)
+  {
+    if (o == null || o instanceof EmployeeDO == false) {
+      return false;
+    }
+    EmployeeDO other = (EmployeeDO) o;
+    if (other.getPk() == null) {
+      return false;
+    }
+    if (this.getPk().equals(other.getPk())) {
+      return true;
+    }
+    return super.equals(o);
+  }
+
+  @Override
+  public int hashCode()
+  {
+    return getPk() != null ? 31 * getPk().hashCode() : super.hashCode();
+  }
 }

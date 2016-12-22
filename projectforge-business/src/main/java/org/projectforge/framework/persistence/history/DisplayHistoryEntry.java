@@ -37,6 +37,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.builder.ReflectionToStringBuilder;
 import org.hibernate.Session;
 import org.jfree.util.Log;
+import org.projectforge.business.fibu.EmployeeDO;
 import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.framework.persistence.api.ShortDisplayNameCapable;
 import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
@@ -52,9 +53,8 @@ import de.micromata.genome.jpa.metainf.EntityMetadata;
 
 /**
  * For storing the hibernate history entries in flat format.
- * 
- * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
+ *
+ * @author Kai Reinhard (k.reinhard@micromata.de), Roger Kommer, Florian Blumenstein
  */
 public class DisplayHistoryEntry implements Serializable
 {
@@ -115,43 +115,31 @@ public class DisplayHistoryEntry implements Serializable
     this.oldValue = prop.getOldValue();
     Object oldObjectValue = null;
     Object newObjectValue = null;
-    if (PFUserDO.class.getName().equals(this.propertyType) == true) {
-      PFUserDO user = getUser(userGroupCache, prop.getOldValue());
-      if (user != null) {
-        oldObjectValue = user;
-      }
-      user = getUser(userGroupCache, prop.getNewValue());
-      if (user != null) {
-        newObjectValue = user;
-      }
+
+    try {
+      oldObjectValue = getObjectValue(userGroupCache, session, prop.getOldProp());
+    } catch (final Exception ex) {
+      oldObjectValue = "???";
+      log.warn("Error while try to parse old object value '"
+          + prop.getOldValue()
+          + "' of prop-type '"
+          + prop.getClass().getName()
+          + "': "
+          + ex.getMessage(), ex);
     }
 
-    if (oldObjectValue == null) {
-      try {
-        oldObjectValue = getObjectValue(session, prop.getOldProp());
-      } catch (final Exception ex) {
-        oldObjectValue = "???";
-        log.warn("Error while try to parse old object value '"
-            + prop.getOldValue()
-            + "' of prop-type '"
-            + prop.getClass().getName()
-            + "': "
-            + ex.getMessage(), ex);
-      }
+    try {
+      newObjectValue = getObjectValue(userGroupCache, session, prop.getNewProp());
+    } catch (final Exception ex) {
+      newObjectValue = "???";
+      log.warn("Error while try to parse new object value '"
+          + prop.getNewValue()
+          + "' of prop-type '"
+          + prop.getClass().getName()
+          + "': "
+          + ex.getMessage(), ex);
     }
-    if (newObjectValue == null) {
-      try {
-        newObjectValue = getObjectValue(session, prop.getNewProp());
-      } catch (final Exception ex) {
-        newObjectValue = "???";
-        log.warn("Error while try to parse new object value '"
-            + prop.getNewValue()
-            + "' of prop-type '"
-            + prop.getClass().getName()
-            + "': "
-            + ex.getMessage(), ex);
-      }
-    }
+
     if (oldObjectValue != null) {
       this.oldValue = objectValueToDisplay(oldObjectValue);
     }
@@ -171,7 +159,7 @@ public class DisplayHistoryEntry implements Serializable
     return String.valueOf(toShortNameOfList(value));
   }
 
-  private Object getObjectValue(Session session, HistProp prop)
+  private Object getObjectValue(UserGroupCache userGroupCache, Session session, HistProp prop)
   {
     if (prop == null) {
       return null;
@@ -183,19 +171,39 @@ public class DisplayHistoryEntry implements Serializable
     if (String.class.getName().equals(type) == true) {
       return prop.getValue();
     }
-    if (Date.class.getName().equals(type) == true) {
-      // TODO RK implement parsing
+    if (PFUserDO.class.getName().equals(type) == true) {
+      PFUserDO user = getUser(userGroupCache, prop.getValue());
+      if (user != null) {
+        return user;
+      }
+    }
+    if (EmployeeDO.class.getName().equals(type) == true) {
+      StringBuffer sb = new StringBuffer();
+      getDBObjects(session, prop).forEach(emp -> {
+        if (emp instanceof EmployeeDO) {
+          EmployeeDO employee = (EmployeeDO) emp;
+          sb.append(employee.getUser().getFullname() + ";");
+        }
+      });
+      sb.deleteCharAt(sb.length() - 1);
+      return sb.toString();
     }
 
+    return getDBObjects(session, prop);
+  }
+
+  private List<Object> getDBObjects(Session session, HistProp prop)
+  {
+    List<Object> ret = new ArrayList<>();
     EntityMetadata emd = PfEmgrFactory.get().getMetadataRepository().findEntityMetadata(prop.getType());
     if (emd == null) {
-      return prop.getValue();
+      ret.add(prop.getValue());
+      return ret;
     }
     String[] sa = StringUtils.split(prop.getValue(), ", ");
     if (sa == null || sa.length == 0) {
       return Collections.emptyList();
     }
-    List<Object> ret = new ArrayList<>();
     for (String pks : sa) {
       try {
         int pk = Integer.parseInt(pks);
@@ -298,7 +306,7 @@ public class DisplayHistoryEntry implements Serializable
   /**
    * Use-full for prepending id of childs (e. g. entries in a collection displayed in the history table of the parent
    * object). Example: AuftragDO -> AuftragsPositionDO.
-   * 
+   *
    * @param propertyName
    */
   public void setPropertyName(final String propertyName)
@@ -326,7 +334,7 @@ public class DisplayHistoryEntry implements Serializable
 
   /**
    * Returns string containing all fields (except the password, via ReflectionToStringBuilder).
-   * 
+   *
    * @return
    */
   @Override

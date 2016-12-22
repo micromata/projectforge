@@ -9,6 +9,7 @@ import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.projectforge.continuousdb.DatabaseSupport;
 import org.projectforge.framework.persistence.api.HibernateUtils;
+import org.projectforge.framework.persistence.attr.impl.AttrSchemaServiceSpringBeanImpl;
 import org.projectforge.framework.persistence.history.entities.PfHistoryMasterDO;
 import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
 import org.projectforge.web.servlet.SMSReceiverServlet;
@@ -32,7 +33,6 @@ import de.micromata.genome.db.jpa.history.api.HistoryServiceManager;
 import de.micromata.genome.db.jpa.history.entities.HistoryMasterBaseDO;
 import de.micromata.genome.db.jpa.history.impl.HistoryServiceImpl;
 import de.micromata.genome.db.jpa.tabattr.api.TimeableService;
-import de.micromata.genome.db.jpa.tabattr.impl.AttrSchemaServiceSpringBeanImpl;
 import de.micromata.genome.db.jpa.tabattr.impl.TimeableServiceImpl;
 import de.micromata.mgc.jpa.spring.SpringEmgrFilterBean;
 import de.micromata.mgc.jpa.spring.factories.JpaToSessionFactorySpringBeanFactory;
@@ -41,7 +41,7 @@ import de.micromata.mgc.jpa.spring.factories.JpaToSessionSpringBeanFactory;
 @Configuration
 @ComponentScan(value = { "org.projectforge", "de.micromata.mgc.jpa.spring" },
     excludeFilters = { @ComponentScan.Filter(type = FilterType.ASPECTJ,
-        pattern = "org.projectforge.framework.configuration.DatabaseOrmConfiguration"),
+        pattern = "org.projectforge.framework.configuration.ProjectforgeSpringConfiguration"),
         @ComponentScan.Filter(type = FilterType.ASPECTJ,
             pattern = "org.projectforge.web.configuration.ProjectforgeWebConfiguration") })
 @PropertySource("projectforgeTest.properties")
