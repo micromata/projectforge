@@ -67,6 +67,7 @@ import org.projectforge.plugins.ffp.repository.FFPEventService;
 import org.projectforge.web.common.MultiChoiceListHelper;
 import org.projectforge.web.employee.EmployeeWicketProvider;
 import org.projectforge.web.wicket.AbstractEditForm;
+import org.projectforge.web.wicket.CellItemListenerPropertyColumn;
 import org.projectforge.web.wicket.bootstrap.GridBuilder;
 import org.projectforge.web.wicket.bootstrap.GridSize;
 import org.projectforge.web.wicket.components.DatePanel;
@@ -182,7 +183,7 @@ public class FFPEventEditForm extends AbstractEditForm<FFPEventDO, FFPEventEditP
       fieldSet.add(attendees);
     }
     //Transactions
-    createOrRefreshDataTable(gridBuilder);
+    createDataTable(gridBuilder);
   }
 
   private void refreshDataTable()
@@ -196,7 +197,7 @@ public class FFPEventEditForm extends AbstractEditForm<FFPEventDO, FFPEventEditP
     return log;
   }
 
-  public void createOrRefreshDataTable(GridBuilder gridBuilder)
+  public void createDataTable(GridBuilder gridBuilder)
   {
     DivPanel section = gridBuilder.getPanel();
     this.tablePanel = new TablePanel(section.newChildId());
@@ -241,6 +242,8 @@ public class FFPEventEditForm extends AbstractEditForm<FFPEventDO, FFPEventEditP
         FFPAccountingDO accounting = new FFPAccountingDO();
         accounting.setEvent(getData());
         accounting.setAttendee(emp);
+        accounting.setValue(BigDecimal.ZERO);
+        accounting.setWeighting(BigDecimal.ONE);
         this.accountingList.add(accounting);
       });
     }
@@ -263,7 +266,7 @@ public class FFPEventEditForm extends AbstractEditForm<FFPEventDO, FFPEventEditP
   {
     final List<IColumn<FFPAccountingDO, String>> columns = new ArrayList<>();
     columns.add(new PropertyColumn<FFPAccountingDO, String>(new ResourceModel("name"), "attendee.user.fullname"));
-    columns.add(new PropertyColumn<FFPAccountingDO, String>(new ResourceModel("plugins.ffp.value"), "value")
+    columns.add(new CellItemListenerPropertyColumn<FFPAccountingDO>(FFPAccountingDO.class, "plugins.ffp.value", "value", null)
     {
       private static final long serialVersionUID = 3672950740712610620L;
 
@@ -272,12 +275,13 @@ public class FFPEventEditForm extends AbstractEditForm<FFPEventDO, FFPEventEditP
           IModel<FFPAccountingDO> rowModel)
       {
         item.add(new InputPanel(componentId,
-            new MinMaxNumberField<BigDecimal>(InputPanel.WICKET_ID, new PropertyModel<>(rowModel.getObject(), "value"),
+            new MinMaxNumberField<BigDecimal>(InputPanel.WICKET_ID,
+                new PropertyModel<>(rowModel.getObject(), "value"),
                 new BigDecimal(Integer.MIN_VALUE), new BigDecimal(Integer.MAX_VALUE))));
       }
 
     });
-    columns.add(new PropertyColumn<FFPAccountingDO, String>(new ResourceModel("plugins.ffp.weighting"), "weighting")
+    columns.add(new CellItemListenerPropertyColumn<FFPAccountingDO>(FFPAccountingDO.class, "plugins.ffp.weighting", "weighting", null)
     {
       private static final long serialVersionUID = 367295074123610620L;
 
@@ -286,7 +290,8 @@ public class FFPEventEditForm extends AbstractEditForm<FFPEventDO, FFPEventEditP
           IModel<FFPAccountingDO> rowModel)
       {
         item.add(new InputPanel(componentId,
-            new MinMaxNumberField<BigDecimal>(InputPanel.WICKET_ID, new PropertyModel<>(rowModel.getObject(), "weighting"),
+            new MinMaxNumberField<BigDecimal>(InputPanel.WICKET_ID,
+                new PropertyModel<>(rowModel.getObject(), "weighting"),
                 new BigDecimal(Integer.MIN_VALUE), new BigDecimal(Integer.MAX_VALUE))));
       }
 
