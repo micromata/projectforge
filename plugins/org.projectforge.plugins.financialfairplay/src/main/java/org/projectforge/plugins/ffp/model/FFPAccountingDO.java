@@ -85,13 +85,17 @@ public class FFPAccountingDO extends DefaultBaseDO
       return false;
     }
     FFPAccountingDO other = (FFPAccountingDO) o;
-    if (this.getPk() != null && other.getPk() != null) {
-      return this.getPk().equals(other.getPk());
+    if (this.getId() != null && other.getId() != null) {
+      return this.getId().equals(other.getId());
     }
-    if (this.getEvent() != null && this.getEvent().getPk() != null && other.getEvent() != null && other.getEvent().getPk() != null
+    if (this.getEvent() != null && this.getEvent().getId() != null && other.getEvent() != null && other.getEvent().getId() != null
         && this.getAttendee() != null && other.getAttendee() != null) {
-      return this.getEvent().getPk().equals(other.getEvent().getPk())
-          && this.getAttendee().getPk().equals(other.getAttendee().getPk());
+      return this.getEvent().getId().equals(other.getEvent().getId())
+          && this.getAttendee().getId().equals(other.getAttendee().getId());
+    }
+    //Case new event
+    if (this.getAttendee() != null && other.getAttendee() != null) {
+      return this.getAttendee().getId().equals(other.getAttendee().getId());
     }
     return false;
   }
@@ -99,8 +103,9 @@ public class FFPAccountingDO extends DefaultBaseDO
   @Override
   public int hashCode()
   {
-    int result = 31 * (event != null ? event.getPk().hashCode() : 0);
-    result = 31 * result + (attendee != null ? attendee.getPk().hashCode() : 0);
+    int result = (getId() != null) ? getId().hashCode() : 0;
+    result = 31 * result + (event != null && event.getId() != null ? event.getId().hashCode() : 0);
+    result = 31 * result + (attendee != null ? attendee.getId().hashCode() : 0);
     return result;
   }
 }
