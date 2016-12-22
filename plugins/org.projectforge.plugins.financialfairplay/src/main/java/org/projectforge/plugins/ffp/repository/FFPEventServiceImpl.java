@@ -1,10 +1,17 @@
 package org.projectforge.plugins.ffp.repository;
 
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import org.projectforge.framework.persistence.history.DisplayHistoryEntry;
 import org.projectforge.framework.persistence.jpa.impl.CorePersistenceServiceImpl;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
+import org.projectforge.plugins.ffp.model.FFPAccountingDO;
+import org.projectforge.plugins.ffp.model.FFPDebtDO;
 import org.projectforge.plugins.ffp.model.FFPEventDO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -81,4 +88,72 @@ public class FFPEventServiceImpl extends CorePersistenceServiceImpl<Integer, FFP
     return eventDao;
   }
 
+	public List<FFPDebtDO> calculateDebt(List<FFPAccountingDO> accountingDOs, FFPEventDO event) {
+		final BigDecimal averageCosts = calculateAverage(accountingDOs);
+
+		Map<FFPAccountingDO, BigDecimal> paidToMuch = new HashMap<>();
+		Map<FFPAccountingDO, BigDecimal> paidToLess = new HashMap<>();
+		for (FFPAccountingDO accountingDO : accountingDOs) {
+			BigDecimal hasToPayValue = averageCosts.multiply(accountingDO.getWeighting());
+
+			if (accountingDO.getValue().compareTo(hasToPayValue) > 0) {
+				paidToMuch.put(accountingDO, accountingDO.getValue().subtract(hasToPayValue));
+			} else if (accountingDO.getValue().compareTo(hasToPayValue) == 0) {
+				// attendee paid as much the average was. So we dont need to
+				// mind this one
+			} else {
+				paidToLess.put(accountingDO, hasToPayValue.subtract(accountingDO.getValue()));
+			}
+		}
+		List<FFPDebtDO> result = new ArrayList<>();
+		for (Entry<FFPAccountingDO, BigDecimal> deptorEntry : paidToLess.entrySet()) {
+			BigDecimal deptorValue = deptorEntry.getValue();
+			for (Entry<FFPAccountingDO, BigDecimal> creditorEntry : paidToMuch.entrySet()) {
+				BigDecimal creditorValue = creditorEntry.getValue();
+				if (creditorValue.compareTo(BigDecimal.ZERO) == 0) {
+					// This creditor has all his money back
+					continue;
+				}
+				FFPDebtDO ffpDebtDO = new FFPDebtDO();
+				ffpDebtDO.setFrom(deptorEntry.getKey().getAttendee());
+				ffpDebtDO.setTo(creditorEntry.getKey().getAttendee());
+				ffpDebtDO.setEvent(event);
+				if (creditorValue.compareTo(deptorValue) > 0) {
+					// creditor paid more than this debtor needs to pay
+					creditorValue = creditorValue.subtract(deptorValue);
+					ffpDebtDO.setValue(deptorValue);
+					paidToMuch.put(creditorEntry.getKey(), creditorValue);
+					result.add(ffpDebtDO);
+					break;
+				} else if (creditorValue.compareTo(deptorValue) == 0) {
+					// creditor paid the same amount as this debtor needs to pay
+					creditorValue = BigDecimal.ZERO;
+					ffpDebtDO.setValue(deptorValue);
+					paidToMuch.put(creditorEntry.getKey(), creditorValue);
+					result.add(ffpDebtDO);
+					break;
+				} else {
+					// creditor paid less than this debtor needs to pay
+					// we need to get the next creditor
+					deptorValue = deptorValue.subtract(creditorValue);
+					ffpDebtDO.setValue(creditorValue);
+					// clean
+					creditorValue = BigDecimal.ZERO;
+					paidToMuch.put(creditorEntry.getKey(), creditorValue);
+					result.add(ffpDebtDO);
+				}
+			}
+		}
+		return result;
+	}
+
+	private BigDecimal calculateAverage(List<FFPAccountingDO> attendees) {
+		BigDecimal sumValue = BigDecimal.ZERO;
+		BigDecimal sumWighting = BigDecimal.ZERO;
+		for (FFPAccountingDO attendee : attendees) {
+			sumValue = sumValue.add(attendee.getValue());
+			sumWighting = sumWighting.add(attendee.getWeighting());
+		}
+		return sumValue.divide(sumWighting, 2, BigDecimal.ROUND_HALF_UP);
+	}
 }
