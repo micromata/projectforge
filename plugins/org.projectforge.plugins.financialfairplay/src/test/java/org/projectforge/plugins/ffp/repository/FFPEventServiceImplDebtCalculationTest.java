@@ -104,8 +104,26 @@ public class FFPEventServiceImplDebtCalculationTest {
 		TestPredicate pre1 = new TestPredicate(2, 4, 1D);
 		Assert.assertTrue("calculated wrong debt", calculateDebt.stream().anyMatch(pre1));
 	}
+
 	@Test
 	public void testDebtCalculation7() throws Exception {
+		List<FFPAccountingDO> accountingDOs = new ArrayList<>();
+		accountingDOs.add(createFfpAccounting(1, 1D, 1D));
+		accountingDOs.add(createFfpAccounting(2, 0D, 1D));
+		accountingDOs.add(createFfpAccounting(3, 1D, 1D));
+		accountingDOs.add(createFfpAccounting(4, 0D, 1D));
+
+		List<FFPDebtDO> calculateDebt = ffpEventServiceImpl.calculateDebt(accountingDOs, null);
+		Assert.assertNotNull("ffpEventServiceImpl.calculateDebt returned null object", calculateDebt);
+		Assert.assertEquals("wrong count of debts", 2, calculateDebt.size());
+		TestPredicate pre = new TestPredicate(2, 1, 0.5D);
+		Assert.assertTrue("calculated wrong debt", calculateDebt.stream().anyMatch(pre));
+		TestPredicate pre1 = new TestPredicate(4, 3, 0.5D);
+		Assert.assertTrue("calculated wrong debt", calculateDebt.stream().anyMatch(pre1));
+	}
+	
+	@Test
+	public void testDebtCalculation8() throws Exception {
 		List<FFPAccountingDO> accountingDOs = new ArrayList<>();
 		accountingDOs.add(createFfpAccounting(1, 1D, 1D));
 		accountingDOs.add(createFfpAccounting(2, 0D, 1D));
