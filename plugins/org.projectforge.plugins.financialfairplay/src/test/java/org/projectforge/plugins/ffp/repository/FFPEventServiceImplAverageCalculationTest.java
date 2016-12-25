@@ -9,7 +9,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.projectforge.plugins.ffp.model.FFPAccountingDO;
 
-public class FFPEventServiceImplTest {
+public class FFPEventServiceImplAverageCalculationTest {
 
 	private static FFPEventServiceImpl ffpEventServiceImpl;
 
@@ -26,8 +26,7 @@ public class FFPEventServiceImplTest {
 		accountingDOs.add(createFfpAccounting(1D, 1D));
 		accountingDOs.add(createFfpAccounting(2D, 2D));
 		BigDecimal calculatedAverage = ffpEventServiceImpl.calculateAverage(accountingDOs);
-		Assert.assertEquals("calculated wrong average",
-				BigDecimal.ONE.divide(BigDecimal.ONE, 2, BigDecimal.ROUND_HALF_UP), calculatedAverage);
+		Assert.assertEquals("calculated wrong average", BigDecimal.ONE.setScale(10, BigDecimal.ROUND_HALF_UP), calculatedAverage);
 	}
 
 	@Test
@@ -38,8 +37,7 @@ public class FFPEventServiceImplTest {
 		accountingDOs.add(createFfpAccounting(2.68D, 2D));
 
 		BigDecimal calculatedAverage = ffpEventServiceImpl.calculateAverage(accountingDOs);
-		Assert.assertEquals("calculated wrong average",
-				new BigDecimal(0.92D).divide(BigDecimal.ONE, 2, BigDecimal.ROUND_HALF_UP), calculatedAverage);
+		Assert.assertEquals("calculated wrong average", new BigDecimal(3.89D/4.25D).setScale(10, BigDecimal.ROUND_HALF_UP), calculatedAverage);
 	}
 
 	@Test
@@ -49,8 +47,7 @@ public class FFPEventServiceImplTest {
 		accountingDOs.add(createFfpAccounting(123.45D, 5.67D));
 		accountingDOs.add(createFfpAccounting(567.89D, 55.5D));
 		BigDecimal calculatedAverage = ffpEventServiceImpl.calculateAverage(accountingDOs);
-		Assert.assertEquals("calculated wrong average",
-				new BigDecimal(18.40D).divide(BigDecimal.ONE, 2, BigDecimal.ROUND_HALF_UP), calculatedAverage);
+		Assert.assertEquals("calculated wrong average", new BigDecimal(1148.24D/62.4D).setScale(10, BigDecimal.ROUND_HALF_UP), calculatedAverage);
 	}
 
 	@Test(expected = ArithmeticException.class)
@@ -59,9 +56,7 @@ public class FFPEventServiceImplTest {
 		accountingDOs.add(createFfpAccounting(0D, 0D));
 		accountingDOs.add(createFfpAccounting(0D, 0D));
 		accountingDOs.add(createFfpAccounting(0D, 0D));
-		BigDecimal calculatedAverage = ffpEventServiceImpl.calculateAverage(accountingDOs);
-		Assert.assertEquals("calculated wrong average",
-				new BigDecimal(18.40D).divide(BigDecimal.ONE, 2, BigDecimal.ROUND_HALF_UP), calculatedAverage);
+		ffpEventServiceImpl.calculateAverage(accountingDOs);
 	}
 
 	private FFPAccountingDO createFfpAccounting(double value, double weighting) {
