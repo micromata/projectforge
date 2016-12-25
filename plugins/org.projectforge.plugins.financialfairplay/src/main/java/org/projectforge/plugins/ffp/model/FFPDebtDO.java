@@ -63,7 +63,7 @@ public class FFPDebtDO extends DefaultBaseDO {
 		this.to = to;
 	}
 
-	@Column
+	@Column(nullable = false)
 	public BigDecimal getValue() {
 		return value;
 	}
@@ -72,6 +72,7 @@ public class FFPDebtDO extends DefaultBaseDO {
 		this.value = value;
 	}
 
+	@Column(nullable = false)
 	public boolean isApprovedByFrom() {
 		return approvedByFrom;
 	}
@@ -80,6 +81,7 @@ public class FFPDebtDO extends DefaultBaseDO {
 		this.approvedByFrom = approvedByFrom;
 	}
 
+	@Column(nullable = false)
 	public boolean isApprovedByTo() {
 		return approvedByTo;
 	}

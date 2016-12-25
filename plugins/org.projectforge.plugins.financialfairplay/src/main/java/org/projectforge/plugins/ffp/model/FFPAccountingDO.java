@@ -56,7 +56,7 @@ public class FFPAccountingDO extends DefaultBaseDO
     this.attendee = attendee;
   }
 
-  @Column
+  @Column(nullable = false)
   public BigDecimal getValue()
   {
     return value;
@@ -67,7 +67,7 @@ public class FFPAccountingDO extends DefaultBaseDO
     this.value = value;
   }
 
-  @Column
+  @Column(nullable = false)
   public BigDecimal getWeighting()
   {
     return weighting;

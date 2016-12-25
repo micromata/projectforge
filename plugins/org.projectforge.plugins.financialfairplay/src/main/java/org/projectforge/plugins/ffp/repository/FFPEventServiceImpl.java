@@ -121,14 +121,14 @@ public class FFPEventServiceImpl extends CorePersistenceServiceImpl<Integer, FFP
 				if (creditorValue.compareTo(deptorValue) > 0) {
 					// creditor paid more than this debtor needs to pay
 					creditorValue = creditorValue.subtract(deptorValue);
-					ffpDebtDO.setValue(deptorValue);
+					ffpDebtDO.setValue(deptorValue.setScale(2, BigDecimal.ROUND_HALF_UP));
 					paidToMuch.put(creditorEntry.getKey(), creditorValue);
 					result.add(ffpDebtDO);
 					break;
 				} else if (creditorValue.compareTo(deptorValue) == 0) {
 					// creditor paid the same amount as this debtor needs to pay
 					creditorValue = BigDecimal.ZERO;
-					ffpDebtDO.setValue(deptorValue);
+					ffpDebtDO.setValue(deptorValue.setScale(2, BigDecimal.ROUND_HALF_UP));
 					paidToMuch.put(creditorEntry.getKey(), creditorValue);
 					result.add(ffpDebtDO);
 					break;
@@ -136,7 +136,7 @@ public class FFPEventServiceImpl extends CorePersistenceServiceImpl<Integer, FFP
 					// creditor paid less than this debtor needs to pay
 					// we need to get the next creditor
 					deptorValue = deptorValue.subtract(creditorValue);
-					ffpDebtDO.setValue(creditorValue);
+					ffpDebtDO.setValue(creditorValue.setScale(2, BigDecimal.ROUND_HALF_UP));
 					// clean
 					creditorValue = BigDecimal.ZERO;
 					paidToMuch.put(creditorEntry.getKey(), creditorValue);
@@ -154,6 +154,6 @@ public class FFPEventServiceImpl extends CorePersistenceServiceImpl<Integer, FFP
 			sumValue = sumValue.add(attendee.getValue());
 			sumWighting = sumWighting.add(attendee.getWeighting());
 		}
-		return sumValue.divide(sumWighting, 2, BigDecimal.ROUND_HALF_UP);
+		return sumValue.divide(sumWighting, 10, BigDecimal.ROUND_HALF_UP);
 	}
 }

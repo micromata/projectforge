@@ -14,7 +14,7 @@ public class FinancialFairPlayProjectforgePluginService implements ProjectforgeP
   @Override
   public String getPluginId()
   {
-    return "financialfairplay";
+    return FinancialFairPlayPlugin.ID;
   }
 
   @Override
