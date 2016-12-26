@@ -10,6 +10,7 @@ import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
 import org.projectforge.business.fibu.EmployeeDO;
+import org.projectforge.common.anots.PropertyInfo;
 import org.projectforge.framework.persistence.entities.DefaultBaseDO;
 
 import de.micromata.genome.db.jpa.history.api.WithHistory;
@@ -17,77 +18,93 @@ import de.micromata.genome.db.jpa.history.api.WithHistory;
 @Entity
 @Table(name = "T_PLUGIN_FINANCIALFAIRPLAY_DEBT")
 @WithHistory
-public class FFPDebtDO extends DefaultBaseDO {
+public class FFPDebtDO extends DefaultBaseDO
+{
 
-	private static final long serialVersionUID = 661129943149832435L;
+  private static final long serialVersionUID = 661129943149832435L;
 
-	private FFPEventDO event;
+  private FFPEventDO event;
 
-	private EmployeeDO from;
+  private EmployeeDO from;
 
-	private EmployeeDO to;
+  private EmployeeDO to;
 
-	private BigDecimal value;
+  @PropertyInfo(i18nKey = "plugins.ffp.value")
+  private BigDecimal value;
 
-	private boolean approvedByFrom;
+  @PropertyInfo(i18nKey = "plugins.ffp.approvedByFrom")
+  private boolean approvedByFrom;
 
-	private boolean approvedByTo;
+  @PropertyInfo(i18nKey = "plugins.ffp.approvedByTo")
+  private boolean approvedByTo;
 
-	@ManyToOne(fetch = FetchType.EAGER)
-	@JoinColumn(name = "EVENT_ID")
-	public FFPEventDO getEvent() {
-		return event;
-	}
+  @ManyToOne(fetch = FetchType.EAGER)
+  @JoinColumn(name = "EVENT_ID")
+  public FFPEventDO getEvent()
+  {
+    return event;
+  }
 
-	public void setEvent(FFPEventDO event) {
-		this.event = event;
-	}
+  public void setEvent(FFPEventDO event)
+  {
+    this.event = event;
+  }
 
-	@ManyToOne(fetch = FetchType.EAGER)
-	@JoinColumn(name = "ATTENDEE_ID")
-	public EmployeeDO getFrom() {
-		return from;
-	}
+  @ManyToOne(fetch = FetchType.EAGER)
+  @JoinColumn(name = "ATTENDEE_ID_FROM")
+  public EmployeeDO getFrom()
+  {
+    return from;
+  }
 
-	public void setFrom(EmployeeDO from) {
-		this.from = from;
-	}
+  public void setFrom(EmployeeDO from)
+  {
+    this.from = from;
+  }
 
-	@ManyToOne(fetch = FetchType.EAGER)
-	@JoinColumn(name = "ATTENDEE_ID")
-	public EmployeeDO getTo() {
-		return to;
-	}
+  @ManyToOne(fetch = FetchType.EAGER)
+  @JoinColumn(name = "ATTENDEE_ID_TO")
+  public EmployeeDO getTo()
+  {
+    return to;
+  }
 
-	public void setTo(EmployeeDO to) {
-		this.to = to;
-	}
+  public void setTo(EmployeeDO to)
+  {
+    this.to = to;
+  }
 
-	@Column(nullable = false)
-	public BigDecimal getValue() {
-		return value;
-	}
+  @Column(nullable = false)
+  public BigDecimal getValue()
+  {
+    return value;
+  }
 
-	public void setValue(BigDecimal value) {
-		this.value = value;
-	}
+  public void setValue(BigDecimal value)
+  {
+    this.value = value;
+  }
 
-	@Column(nullable = false)
-	public boolean isApprovedByFrom() {
-		return approvedByFrom;
-	}
+  @Column(nullable = false)
+  public boolean isApprovedByFrom()
+  {
+    return approvedByFrom;
+  }
 
-	public void setApprovedByFrom(boolean approvedByFrom) {
-		this.approvedByFrom = approvedByFrom;
-	}
+  public void setApprovedByFrom(boolean approvedByFrom)
+  {
+    this.approvedByFrom = approvedByFrom;
+  }
 
-	@Column(nullable = false)
-	public boolean isApprovedByTo() {
-		return approvedByTo;
-	}
+  @Column(nullable = false)
+  public boolean isApprovedByTo()
+  {
+    return approvedByTo;
+  }
 
-	public void setApprovedByTo(boolean approvedByTo) {
-		this.approvedByTo = approvedByTo;
-	}
+  public void setApprovedByTo(boolean approvedByTo)
+  {
+    this.approvedByTo = approvedByTo;
+  }
 
 }

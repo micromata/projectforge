@@ -26,6 +26,7 @@ package org.projectforge.plugins.ffp;
 import org.projectforge.continuousdb.UpdateEntry;
 import org.projectforge.plugins.core.AbstractPlugin;
 import org.projectforge.plugins.ffp.repository.FFPEventDao;
+import org.projectforge.plugins.ffp.wicket.FFPDeptViewPage;
 import org.projectforge.plugins.ffp.wicket.FFPEventListPage;
 import org.projectforge.web.MenuItemDef;
 import org.projectforge.web.MenuItemDefId;
@@ -71,6 +72,9 @@ public class FinancialFairPlayPlugin extends AbstractPlugin
     pluginWicketRegistrationService
         .registerMenuItem(
             new MenuItemDef(parentMenu, ID, 101, "plugins.ffp.menu.financialfairplay", FFPEventListPage.class));
+    pluginWicketRegistrationService
+        .registerMenuItem(
+            new MenuItemDef(parentMenu, ID, 102, "plugins.ffp.menu.financialfairplay.dept", FFPDeptViewPage.class));
     // Define the access management:
     registerRight(new FinancialFairPlayRight(accessChecker));
 

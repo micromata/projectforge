@@ -8,6 +8,7 @@ import org.projectforge.framework.configuration.ApplicationContextProvider;
 import org.projectforge.framework.persistence.database.DatabaseUpdateService;
 import org.projectforge.framework.persistence.database.InitDatabaseDao;
 import org.projectforge.plugins.ffp.model.FFPAccountingDO;
+import org.projectforge.plugins.ffp.model.FFPDebtDO;
 import org.projectforge.plugins.ffp.model.FFPEventDO;
 
 public class FinancialFairPlayPluginUpdates
@@ -25,7 +26,7 @@ public class FinancialFairPlayPluginUpdates
       public UpdatePreCheckStatus runPreCheck()
       {
         // Does the data-base table already exist?
-        if (dao.doTablesExist(FFPEventDO.class, FFPAccountingDO.class)) {
+        if (dao.doTablesExist(FFPEventDO.class, FFPAccountingDO.class, FFPDebtDO.class)) {
           return UpdatePreCheckStatus.ALREADY_UPDATED;
         } else {
           return UpdatePreCheckStatus.READY_FOR_UPDATE;
