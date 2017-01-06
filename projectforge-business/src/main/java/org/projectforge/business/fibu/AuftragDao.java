@@ -114,7 +114,7 @@ public class AuftragDao extends BaseDao<AuftragDO>
 
   /**
    * Could not use injection by spring, because TaskTree is already injected in AuftragDao.
-   * 
+   *
    * @param taskTree
    */
   public void registerTaskTree(final TaskTree taskTree)
@@ -136,7 +136,7 @@ public class AuftragDao extends BaseDao<AuftragDO>
 
   /**
    * List of all years with invoices: select min(datum), max(datum) from t_fibu_rechnung.
-   * 
+   *
    * @return
    */
   @SuppressWarnings("unchecked")
@@ -191,7 +191,7 @@ public class AuftragDao extends BaseDao<AuftragDO>
 
   /**
    * Get all invoices and set the field fakturiertSum for every order of the given col.
-   * 
+   *
    * @param col
    * @see RechnungCache#getRechnungsPositionVOSetByAuftragsPositionId(Integer)
    */
@@ -207,7 +207,7 @@ public class AuftragDao extends BaseDao<AuftragDO>
 
   /**
    * Get all invoices and set the field fakturiertSum for the given order.
-   * 
+   *
    * @param order
    * @see RechnungCache#getRechnungsPositionVOSetByAuftragsPositionId(Integer)
    */
@@ -453,6 +453,29 @@ public class AuftragDao extends BaseDao<AuftragDO>
         }
       });
     }
+    if (myFilter.getAuftragsPositionsPaymentType() != null) {
+      final AuftragFilter fil = myFilter;
+      CollectionUtils.filter(list, new Predicate()
+      {
+        @Override
+        public boolean evaluate(final Object object)
+        {
+          final AuftragDO auftrag = (AuftragDO) object;
+          boolean match = false;
+          if (fil.getAuftragsPositionsPaymentType() != null) {
+            if (CollectionUtils.isNotEmpty(auftrag.getPositionen()) == true) {
+              for (final AuftragsPositionDO position : auftrag.getPositionen()) {
+                if (fil.getAuftragsPositionsPaymentType() == position.getPaymentType()) {
+                  match = true;
+                  break;
+                }
+              }
+            }
+          }
+          return match;
+        }
+      });
+    }
     return list;
   }
 
@@ -540,7 +563,7 @@ public class AuftragDao extends BaseDao<AuftragDO>
 
   /**
    * @see org.projectforge.framework.persistence.api.BaseDao#prepareHibernateSearch(org.projectforge.core.ExtendedBaseDO,
-   *      org.projectforge.framework.access.OperationType)
+   * org.projectforge.framework.access.OperationType)
    */
   @Override
   protected void prepareHibernateSearch(final AuftragDO obj, final OperationType operationType)
@@ -550,7 +573,7 @@ public class AuftragDao extends BaseDao<AuftragDO>
 
   /**
    * Sends an e-mail to the projekt manager if exists and is not equals to the logged in user.
-   * 
+   *
    * @param auftrag
    * @param operationType
    * @return
@@ -602,10 +625,10 @@ public class AuftragDao extends BaseDao<AuftragDO>
 
   /**
    * Gets the highest Auftragsnummer.
-   * 
+   *
    * @param auftrag wird benötigt, damit geschaut werden kann, ob dieser Auftrag ggf. schon existiert. Wenn er schon
-   *          eine Nummer hatte, so kann verhindert werden, dass er eine nächst höhere Nummer bekommt. Ein solcher
-   *          Auftrag bekommt die alte Nummer wieder zugeordnet.
+   *                eine Nummer hatte, so kann verhindert werden, dass er eine nächst höhere Nummer bekommt. Ein solcher
+   *                Auftrag bekommt die alte Nummer wieder zugeordnet.
    */
   @SuppressWarnings("unchecked")
   @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
@@ -630,7 +653,7 @@ public class AuftragDao extends BaseDao<AuftragDO>
 
   /**
    * Gets history entries of super and adds all history entries of the AuftragsPositionDO childs.
-   * 
+   *
    * @see org.projectforge.framework.persistence.api.BaseDao#getDisplayHistoryEntries(org.projectforge.core.ExtendedBaseDO)
    */
   @Override
@@ -687,9 +710,9 @@ public class AuftragDao extends BaseDao<AuftragDO>
 
   /**
    * Returns also true, if idSet contains the id of any order position.
-   * 
+   *
    * @see org.projectforge.framework.persistence.api.BaseDao#contains(java.util.Set,
-   *      org.projectforge.core.ExtendedBaseDO)
+   * org.projectforge.core.ExtendedBaseDO)
    */
   @Override
   protected boolean contains(final Set<Integer> idSet, final AuftragDO entry)
