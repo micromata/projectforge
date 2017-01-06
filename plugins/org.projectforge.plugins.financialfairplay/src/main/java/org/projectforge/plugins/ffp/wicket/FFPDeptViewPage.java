@@ -120,9 +120,12 @@ public class FFPDeptViewPage extends AbstractViewPage
   private List<IColumn<FFPDebtDO, String>> createColumns()
   {
     final List<IColumn<FFPDebtDO, String>> columns = new ArrayList<>();
+    columns.add(new PropertyColumn<FFPDebtDO, String>(new ResourceModel("plugins.ffp.eventDate"), "event.eventDate"));
+    columns.add(new PropertyColumn<FFPDebtDO, String>(new ResourceModel("plugins.ffp.title"), "event.title"));
     columns.add(new PropertyColumn<FFPDebtDO, String>(new ResourceModel("plugins.ffp.from"), "from.user.fullname"));
     columns.add(new PropertyColumn<FFPDebtDO, String>(new ResourceModel("plugins.ffp.to"), "to.user.fullname"));
-    columns.add(new PropertyColumn<FFPDebtDO, String>(new ResourceModel("plugins.ffp.value"), "value"));
+    columns.add(new CellItemListenerPropertyColumn<FFPDebtDO>(FFPDebtDO.class, "plugins.ffp.value", "value", null));
+
     columns.add(new CellItemListenerPropertyColumn<FFPDebtDO>(FFPDebtDO.class, "plugins.ffp.approvedByFrom", "approvedByFrom", null)
     {
       private static final long serialVersionUID = 3672950740712610620L;
