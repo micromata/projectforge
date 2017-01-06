@@ -23,6 +23,8 @@
 
 package org.projectforge.web.fibu;
 
+import java.math.BigDecimal;
+
 import org.apache.log4j.Logger;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.model.Model;
@@ -33,6 +35,8 @@ import org.projectforge.business.fibu.AuftragFilter;
 import org.projectforge.business.fibu.AuftragsPositionsArt;
 import org.projectforge.business.fibu.AuftragsStatistik;
 import org.projectforge.business.utils.CurrencyFormatter;
+import org.projectforge.framework.persistence.user.entities.PFUserDO;
+import org.projectforge.web.user.UserSelectPanel;
 import org.projectforge.web.wicket.AbstractListForm;
 import org.projectforge.web.wicket.WebConstants;
 import org.projectforge.web.wicket.components.LabelValueChoiceRenderer;
@@ -41,8 +45,6 @@ import org.projectforge.web.wicket.flowlayout.DivPanel;
 import org.projectforge.web.wicket.flowlayout.DivTextPanel;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
 import org.projectforge.web.wicket.flowlayout.TextStyle;
-
-import java.math.BigDecimal;
 
 public class AuftragListForm extends AbstractListForm<AuftragListFilter, AuftragListPage>
 {
@@ -80,7 +82,7 @@ public class AuftragListForm extends AbstractListForm<AuftragListFilter, Auftrag
         {
           return WebConstants.HTML_TEXT_DIVIDER
               + getStatisticsValue("akquise", getAuftragsStatistik().getAkquiseSum(),
-                  getAuftragsStatistik().getCounterAkquise());
+              getAuftragsStatistik().getCounterAkquise());
         }
 
       })
@@ -98,8 +100,8 @@ public class AuftragListForm extends AbstractListForm<AuftragListFilter, Auftrag
         {
           return WebConstants.HTML_TEXT_DIVIDER
               + getStatisticsValue("fibu.auftrag.status.beauftragt", getAuftragsStatistik().getBeauftragtSum(),
-                  getAuftragsStatistik()
-                      .getCounterBeauftragt());
+              getAuftragsStatistik()
+                  .getCounterBeauftragt());
         }
       }, TextStyle.BLUE)
       {
@@ -116,7 +118,7 @@ public class AuftragListForm extends AbstractListForm<AuftragListFilter, Auftrag
         {
           return WebConstants.HTML_TEXT_DIVIDER
               + getStatisticsValue("fibu.fakturiert", getAuftragsStatistik().getFakturiertSum(),
-                  getAuftragsStatistik().getCounterFakturiert());
+              getAuftragsStatistik().getCounterFakturiert());
         }
       })
       {
@@ -133,8 +135,8 @@ public class AuftragListForm extends AbstractListForm<AuftragListFilter, Auftrag
         {
           return WebConstants.HTML_TEXT_DIVIDER
               + getStatisticsValue("fibu.auftrag.filter.type.abgeschlossenNichtFakturiert",
-                  getAuftragsStatistik().getZuFakturierenSum(),
-                  getAuftragsStatistik().getCounterZuFakturieren());
+              getAuftragsStatistik().getZuFakturierenSum(),
+              getAuftragsStatistik().getCounterZuFakturieren());
         }
       }, TextStyle.RED)
       {
@@ -149,7 +151,7 @@ public class AuftragListForm extends AbstractListForm<AuftragListFilter, Auftrag
 
   /**
    * @see org.projectforge.web.wicket.AbstractListForm#onOptionsPanelCreate(org.projectforge.web.wicket.flowlayout.FieldsetPanel,
-   *      org.projectforge.web.wicket.flowlayout.DivPanel)
+   * org.projectforge.web.wicket.flowlayout.DivPanel)
    */
   @SuppressWarnings("serial")
   @Override
@@ -227,11 +229,27 @@ public class AuftragListForm extends AbstractListForm<AuftragListFilter, Auftrag
     };
     auftragsPositionsArtChoice.setNullValid(false);
     optionsFieldsetPanel.add(auftragsPositionsArtChoice);
+
+    final UserSelectPanel userSelectPanel = new UserSelectPanel(optionsFieldsetPanel.newChildId(),
+        new PropertyModel<PFUserDO>(this, "user"),
+        parentPage, "user");
+    optionsFieldsetPanel.add(userSelectPanel);
+    userSelectPanel.init();
   }
 
   protected void refresh()
   {
     this.auftragsStatistik = null;
+  }
+
+  public PFUserDO getUser()
+  {
+    return getSearchFilter().getUser();
+  }
+
+  public void setUser(final PFUserDO user)
+  {
+    getSearchFilter().setUser(user);
   }
 
   public Integer getYear()

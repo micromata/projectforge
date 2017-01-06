@@ -26,12 +26,10 @@ package org.projectforge.business.fibu;
 import java.io.Serializable;
 
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
-
+import org.projectforge.framework.persistence.user.entities.PFUserDO;
 
 /**
- * 
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
  */
 public class AuftragFilter extends BaseSearchFilter implements Serializable
 {
@@ -57,12 +55,15 @@ public class AuftragFilter extends BaseSearchFilter implements Serializable
 
   protected int year;
 
+  protected PFUserDO user;
+
   protected String listType = FILTER_ALL;
 
   protected AuftragsPositionsArt auftragsPositionsArt;
 
-  public static final String[] LIST = { FILTER_ALL, FILTER_AKQUISE, FILTER_BEAUFTRAGT, FILTER_NOCH_NICHT_VOLLSTAENDIG_FAKTURIERT, FILTER_BEAUFTRAGT_NOCH_NICHT_VOLLSTAENDIG_FAKTURIERT ,
-    FILTER_ABGESCHLOSSEN_NF, FILTER_VOLLSTAENDIG_FAKTURIERT, FILTER_ABGELEHNT, FILTER_ERSETZT};
+  public static final String[] LIST = { FILTER_ALL, FILTER_AKQUISE, FILTER_BEAUFTRAGT, FILTER_NOCH_NICHT_VOLLSTAENDIG_FAKTURIERT,
+      FILTER_BEAUFTRAGT_NOCH_NICHT_VOLLSTAENDIG_FAKTURIERT,
+      FILTER_ABGESCHLOSSEN_NF, FILTER_VOLLSTAENDIG_FAKTURIERT, FILTER_ABGELEHNT, FILTER_ERSETZT };
 
   public AuftragFilter()
   {
@@ -72,7 +73,6 @@ public class AuftragFilter extends BaseSearchFilter implements Serializable
   {
     super(filter);
   }
-
 
   public boolean isShowAll()
   {
@@ -135,6 +135,7 @@ public class AuftragFilter extends BaseSearchFilter implements Serializable
 
   /**
    * Year of invoices to filter. "<= 0" means showing all years.
+   *
    * @return
    */
   public int getYear()
@@ -147,8 +148,19 @@ public class AuftragFilter extends BaseSearchFilter implements Serializable
     this.year = year;
   }
 
+  public PFUserDO getUser()
+  {
+    return user;
+  }
+
+  public void setUser(final PFUserDO user)
+  {
+    this.user = user;
+  }
+
   /**
    * null represents all.
+   *
    * @return
    */
   public AuftragsPositionsArt getAuftragsPositionsArt()
