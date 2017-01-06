@@ -546,8 +546,8 @@ public class AuftragEditForm extends AbstractEditForm<AuftragDO, AuftragEditPage
         final DropDownChoice<AuftragsPositionsArt> artChoice = new DropDownChoice<>(
             fsType.getDropDownChoiceId(),
             new PropertyModel<AuftragsPositionsArt>(position, "art"), artChoiceRenderer.getValues(), artChoiceRenderer);
-        artChoice.setNullValid(false);
-        artChoice.setRequired(true);
+        //artChoice.setNullValid(false);
+        //artChoice.setRequired(true);
         fsType.add(artChoice);
 
         // DropDownChoice payment type
@@ -558,8 +558,8 @@ public class AuftragEditForm extends AbstractEditForm<AuftragDO, AuftragEditPage
         final DropDownChoice<AuftragsPositionsPaymentType> paymentTypeChoice = new DropDownChoice<>(
             fsPaymentType.getDropDownChoiceId(),
             new PropertyModel<AuftragsPositionsPaymentType>(position, "paymentType"), paymentTypeChoiceRenderer.getValues(), paymentTypeChoiceRenderer);
-        paymentTypeChoice.setNullValid(false);
-        paymentTypeChoice.setRequired(true);
+        //paymentTypeChoice.setNullValid(false);
+        //paymentTypeChoice.setRequired(true);
         fsPaymentType.add(paymentTypeChoice);
       }
       posGridBuilder.newSplitPanel(GridSize.COL33);

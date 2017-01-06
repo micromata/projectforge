@@ -139,9 +139,11 @@ public class DatabaseCoreUpdates
               switch (pos.getArt()) {
                 case FESTPREISPAKET:
                   pos.setPaymentType(AuftragsPositionsPaymentType.FESTPREISPAKET);
+                  pos.setArt(null);
                   break;
                 case TIME_AND_MATERIALS:
                   pos.setPaymentType(AuftragsPositionsPaymentType.TIME_AND_MATERIALS);
+                  pos.setArt(null);
                   break;
                 case HOT_FIX:
                   pos.setArt(AuftragsPositionsArt.WARTUNG);
