@@ -55,7 +55,7 @@ import org.projectforge.framework.persistence.entities.DefaultBaseDO;
 
 /**
  * Repräsentiert eine Position innerhalb eines Auftrags oder eines Angebots.
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 @Entity
@@ -110,11 +110,10 @@ public class AuftragsPositionDO extends DefaultBaseDO implements ShortDisplayNam
   @Transient
   public boolean isAbgeschlossenUndNichtVollstaendigFakturiert()
   {
-    if (getStatus() == AuftragsPositionsStatus.NICHT_BEAUFTRAGT) {
+    if (getStatus() != null && getStatus().isIn(AuftragsPositionsStatus.ABGELEHNT, AuftragsPositionsStatus.ERSETZT)) {
       return false;
     }
-    if (auftrag.getAuftragsStatus() == AuftragsStatus.ABGESCHLOSSEN) {
-    } else if (getStatus() != AuftragsPositionsStatus.ABGESCHLOSSEN) {
+    if (auftrag.getAuftragsStatus() != AuftragsStatus.ABGESCHLOSSEN && getStatus() != AuftragsPositionsStatus.ABGESCHLOSSEN) {
       return false;
     }
     return !isVollstaendigFakturiert();
@@ -281,7 +280,7 @@ public class AuftragsPositionDO extends DefaultBaseDO implements ShortDisplayNam
 
   /**
    * Must be set in all positions before usage. The value is not calculated automatically!
-   * 
+   *
    * @see AuftragDao#calculateInvoicedSum(java.util.Collection)
    */
   @Transient
