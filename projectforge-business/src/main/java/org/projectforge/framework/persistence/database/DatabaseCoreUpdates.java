@@ -38,8 +38,6 @@ import java.util.function.Predicate;
 import org.projectforge.business.address.AddressDO;
 import org.projectforge.business.fibu.AuftragDO;
 import org.projectforge.business.fibu.AuftragsPositionDO;
-import org.projectforge.business.fibu.AuftragsPositionsArt;
-import org.projectforge.business.fibu.AuftragsPositionsPaymentType;
 import org.projectforge.business.fibu.EingangsrechnungDO;
 import org.projectforge.business.fibu.EmployeeDO;
 import org.projectforge.business.fibu.EmployeeDao;
@@ -133,27 +131,9 @@ public class DatabaseCoreUpdates
         if (databaseUpdateService.doesTableAttributeExist("t_fibu_auftrag_position", "paymentType") == false) {
           //Updating the schema
           initDatabaseDao.updateSchema();
-          emf.runInTrans(emgr -> {
-            List<AuftragsPositionDO> positions = emgr.selectAllAttached(AuftragsPositionDO.class);
-            positions.forEach(pos -> {
-              switch (pos.getArt()) {
-                case FESTPREISPAKET:
-                  pos.setPaymentType(AuftragsPositionsPaymentType.FESTPREISPAKET);
-                  pos.setArt(null);
-                  break;
-                case TIME_AND_MATERIALS:
-                  pos.setPaymentType(AuftragsPositionsPaymentType.TIME_AND_MATERIALS);
-                  pos.setArt(null);
-                  break;
-                case HOT_FIX:
-                  pos.setArt(AuftragsPositionsArt.WARTUNG);
-                  pos.setBemerkung(pos.getBemerkung() + "; HotFix -> Wartung");
-                  break;
-              }
-              emgr.update(pos);
-            });
-            return null;
-          });
+          databaseUpdateService.execute("UPDATE t_fibu_auftrag_position SET paymentType = 'FESTPREISPAKET', art = NULL WHERE art = 'FESTPREISPAKET'");
+          databaseUpdateService.execute("UPDATE t_fibu_auftrag_position SET paymentType = 'TIME_AND_MATERIALS', art = NULL WHERE art = 'TIME_AND_MATERIALS'");
+          databaseUpdateService.execute("UPDATE t_fibu_auftrag_position SET art = 'WARTUNG' WHERE art = 'HOT_FIX'");
         }
         return UpdateRunningStatus.DONE;
       }

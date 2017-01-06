@@ -542,7 +542,7 @@ public class AuftragEditForm extends AbstractEditForm<AuftragDO, AuftragEditPage
         final FieldsetPanel fsType = posGridBuilder.newFieldset(getString("fibu.auftrag.position.art"));
         final LabelValueChoiceRenderer<AuftragsPositionsArt> artChoiceRenderer = new LabelValueChoiceRenderer<>(
             fsType,
-            AuftragsPositionsArt.newValues());
+            AuftragsPositionsArt.values());
         final DropDownChoice<AuftragsPositionsArt> artChoice = new DropDownChoice<>(
             fsType.getDropDownChoiceId(),
             new PropertyModel<AuftragsPositionsArt>(position, "art"), artChoiceRenderer.getValues(), artChoiceRenderer);

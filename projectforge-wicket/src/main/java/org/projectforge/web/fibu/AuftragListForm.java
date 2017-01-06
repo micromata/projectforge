@@ -206,7 +206,7 @@ public class AuftragListForm extends AbstractListForm<AuftragListFilter, Auftrag
     // DropDownChoice AuftragsPositionsArt
     final LabelValueChoiceRenderer<Integer> auftragsPositionsArtChoiceRenderer = new LabelValueChoiceRenderer<Integer>();
     auftragsPositionsArtChoiceRenderer.addValue(-1, getString("filter.all"));
-    for (final AuftragsPositionsArt art : AuftragsPositionsArt.newValues()) {
+    for (final AuftragsPositionsArt art : AuftragsPositionsArt.values()) {
       auftragsPositionsArtChoiceRenderer.addValue(art.ordinal(), getString(art.getI18nKey()));
     }
     final DropDownChoice<Integer> auftragsPositionsArtChoice = new DropDownChoice<Integer>(

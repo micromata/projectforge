@@ -30,8 +30,7 @@ import org.projectforge.common.i18n.I18nEnum;
  */
 public enum AuftragsPositionsArt implements I18nEnum
 {
-  FESTPREISPAKET("festpreispaket"), CHANGE_REQUEST("change_request"), HOT_FIX("hot_fix"), DAUERNDE_LEISTUNG("dauernde_leistung"), WARTUNG(
-    "wartung"), TIME_AND_MATERIALS("time_and_materials"), NEUENTWICKLUNG("neuentwicklung");
+  CHANGE_REQUEST("change_request"), DAUERNDE_LEISTUNG("dauernde_leistung"), WARTUNG("wartung"), NEUENTWICKLUNG("neuentwicklung");
 
   private String key;
 
@@ -65,13 +64,4 @@ public enum AuftragsPositionsArt implements I18nEnum
     return "fibu.auftrag.position.art." + key;
   }
 
-  /**
-   * Should be called instead of values(), because old entries are not included.
-   *
-   * @return
-   */
-  public static AuftragsPositionsArt[] newValues()
-  {
-    return new AuftragsPositionsArt[] { NEUENTWICKLUNG, CHANGE_REQUEST, DAUERNDE_LEISTUNG, WARTUNG };
-  }
 }
