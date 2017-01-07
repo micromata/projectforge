@@ -5,6 +5,7 @@ import java.util.List;
 import org.projectforge.business.fibu.EmployeeDO;
 import org.projectforge.framework.persistence.api.IDao;
 import org.projectforge.framework.persistence.api.IPersistenceService;
+import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.plugins.ffp.model.FFPDebtDO;
 import org.projectforge.plugins.ffp.model.FFPEventDO;
 
@@ -15,9 +16,17 @@ import org.projectforge.plugins.ffp.model.FFPEventDO;
  */
 public interface FFPEventService extends IPersistenceService<FFPEventDO>, IDao<FFPEventDO>
 {
-  FFPEventDao getDao();
+  FFPEventDao getEventDao();
 
   List<FFPDebtDO> calculateDebt(FFPEventDO event);
 
   List<FFPDebtDO> getDeptList(EmployeeDO currentEmployee);
+
+  void updateDept(FFPEventDO event);
+
+  void updateDebtFrom(FFPDebtDO debt);
+
+  void updateDebtTo(FFPDebtDO debt);
+
+  Integer getOpenFromDebts(PFUserDO user);
 }

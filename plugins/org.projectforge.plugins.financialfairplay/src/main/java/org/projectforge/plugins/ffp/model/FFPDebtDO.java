@@ -8,6 +8,7 @@ import javax.persistence.FetchType;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
+import javax.persistence.UniqueConstraint;
 
 import org.projectforge.business.fibu.EmployeeDO;
 import org.projectforge.common.anots.PropertyInfo;
@@ -16,7 +17,15 @@ import org.projectforge.framework.persistence.entities.DefaultBaseDO;
 import de.micromata.genome.db.jpa.history.api.WithHistory;
 
 @Entity
-@Table(name = "T_PLUGIN_FINANCIALFAIRPLAY_DEBT")
+@Table(name = "T_PLUGIN_FINANCIALFAIRPLAY_DEBT",
+    uniqueConstraints = {
+        @UniqueConstraint(columnNames = { "EVENT_ID", "ATTENDEE_ID_FROM", "ATTENDEE_ID_TO" })
+    },
+    indexes = {
+        @javax.persistence.Index(name = "idx_fk_T_PLUGIN_FINANCIALFAIRPLAY_DEBT_event_id", columnList = "EVENT_ID"),
+        @javax.persistence.Index(name = "idx_fk_T_PLUGIN_FINANCIALFAIRPLAY_DEBT_from_id", columnList = "ATTENDEE_ID_FROM"),
+        @javax.persistence.Index(name = "idx_fk_T_PLUGIN_FINANCIALFAIRPLAY_DEBT_to_id", columnList = "ATTENDEE_ID_TO")
+    })
 @WithHistory
 public class FFPDebtDO extends DefaultBaseDO
 {

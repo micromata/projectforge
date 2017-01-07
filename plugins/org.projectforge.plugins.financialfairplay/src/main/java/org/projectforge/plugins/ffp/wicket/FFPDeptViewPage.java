@@ -33,6 +33,10 @@ import java.util.List;
 
 import org.apache.commons.lang.ObjectUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
+import org.apache.wicket.AttributeModifier;
+import org.apache.wicket.ajax.AjaxEventBehavior;
+import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
@@ -42,13 +46,15 @@ import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDat
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
 import org.apache.wicket.extensions.markup.html.repeater.util.SortParam;
 import org.apache.wicket.extensions.markup.html.repeater.util.SortableDataProvider;
+import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.form.Button;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
-import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.ResourceModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
+import org.projectforge.business.user.I18nHelper;
 import org.projectforge.framework.persistence.api.IdObject;
 import org.projectforge.framework.utils.MyBeanComparator;
 import org.projectforge.plugins.ffp.model.FFPDebtDO;
@@ -56,13 +62,16 @@ import org.projectforge.plugins.ffp.repository.FFPEventService;
 import org.projectforge.web.wicket.AbstractViewPage;
 import org.projectforge.web.wicket.CellItemListenerPropertyColumn;
 import org.projectforge.web.wicket.bootstrap.GridBuilder;
+import org.projectforge.web.wicket.flowlayout.ButtonPanel;
+import org.projectforge.web.wicket.flowlayout.ButtonType;
 import org.projectforge.web.wicket.flowlayout.DivPanel;
-import org.projectforge.web.wicket.flowlayout.LabelPanel;
 import org.projectforge.web.wicket.flowlayout.TablePanel;
 
 public class FFPDeptViewPage extends AbstractViewPage
 {
   private static final long serialVersionUID = 6317381238012316284L;
+
+  private static final Logger log = Logger.getLogger(FFPDeptViewPage.class);
 
   @SpringBean
   private FFPEventService eventService;
@@ -134,11 +143,34 @@ public class FFPDeptViewPage extends AbstractViewPage
       public void populateItem(Item<ICellPopulator<FFPDebtDO>> item, String componentId,
           IModel<FFPDebtDO> rowModel)
       {
-        item.add(new LabelPanel(LabelPanel.WICKET_ID, new PropertyModel<>(rowModel.getObject(), "approvedByFrom")));
+        FFPDebtDO debt = rowModel.getObject();
+        Button button = new Button(ButtonPanel.BUTTON_ID);
+        if (debt.getFrom().equals(currentEmployee)) {
+          button.setOutputMarkupId(true);
+          button.add(new AjaxEventBehavior("click")
+          {
+            @Override
+            protected void onEvent(AjaxRequestTarget target)
+            {
+              if (debt.isApprovedByFrom() == false) {
+                eventService.updateDebtFrom(debt);
+                button.add(AttributeModifier.append("class", ButtonType.GREEN.getClassAttrValue()));
+                button.addOrReplace(new Label("title", I18nHelper.getLocalizedMessage("plugins.ffp.approved")));
+                target.add(button);
+              }
+            }
+          });
+        }
+        String label = debt.isApprovedByFrom() ?
+            I18nHelper.getLocalizedMessage("plugins.ffp.approved") :
+            I18nHelper.getLocalizedMessage("plugins.ffp.notApproved");
+        ButtonType bt = debt.isApprovedByFrom() ? ButtonType.GREEN : ButtonType.RED;
+        ButtonPanel buttonPanel = new ButtonPanel(componentId, label, button, bt);
+        item.add(buttonPanel);
       }
 
     });
-    columns.add(new CellItemListenerPropertyColumn<FFPDebtDO>(FFPDebtDO.class, "plugins.ffp.approvedByTo", "approvedByTo", null)
+    columns.add(new CellItemListenerPropertyColumn<FFPDebtDO>(FFPDebtDO.class, I18nHelper.getLocalizedMessage("plugins.ffp.approvedByTo"), "approvedByTo", null)
     {
       private static final long serialVersionUID = 367295074123610620L;
 
@@ -146,7 +178,30 @@ public class FFPDeptViewPage extends AbstractViewPage
       public void populateItem(Item<ICellPopulator<FFPDebtDO>> item, String componentId,
           IModel<FFPDebtDO> rowModel)
       {
-        item.add(new LabelPanel(LabelPanel.WICKET_ID, new PropertyModel<>(rowModel.getObject(), "approvedByTo")));
+        FFPDebtDO debt = rowModel.getObject();
+        Button button = new Button(ButtonPanel.BUTTON_ID);
+        if (debt.isApprovedByFrom() && debt.getTo().equals(currentEmployee)) {
+          button.setOutputMarkupId(true);
+          button.add(new AjaxEventBehavior("click")
+          {
+            @Override
+            protected void onEvent(AjaxRequestTarget target)
+            {
+              if (debt.isApprovedByTo() == false) {
+                eventService.updateDebtTo(debt);
+                button.add(AttributeModifier.append("class", ButtonType.GREEN.getClassAttrValue()));
+                button.addOrReplace(new Label("title", I18nHelper.getLocalizedMessage("plugins.ffp.approved")));
+                target.add(button);
+              }
+            }
+          });
+        }
+        String label = debt.isApprovedByTo() ?
+            I18nHelper.getLocalizedMessage("plugins.ffp.approved") :
+            I18nHelper.getLocalizedMessage("plugins.ffp.notApproved");
+        ButtonType bt = debt.isApprovedByTo() ? ButtonType.GREEN : ButtonType.RED;
+        ButtonPanel buttonPanel = new ButtonPanel(componentId, label, button, bt);
+        item.add(buttonPanel);
       }
 
     });
@@ -271,7 +326,8 @@ public class FFPDeptViewPage extends AbstractViewPage
 
     private void reloadList()
     {
-      setCompleteList(this.completeList);
+      final List<FFPDebtDO> list = eventService.getDeptList(currentEmployee);
+      setCompleteList(list);
     }
 
     private void sortList(final List<FFPDebtDO> list)
