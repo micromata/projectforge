@@ -23,11 +23,16 @@
 
 package org.projectforge.plugins.ffp;
 
+import org.apache.wicket.model.Model;
 import org.projectforge.continuousdb.UpdateEntry;
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.plugins.core.AbstractPlugin;
 import org.projectforge.plugins.ffp.repository.FFPEventDao;
+import org.projectforge.plugins.ffp.repository.FFPEventService;
 import org.projectforge.plugins.ffp.wicket.FFPDeptViewPage;
 import org.projectforge.plugins.ffp.wicket.FFPEventListPage;
+import org.projectforge.web.MenuBuilderContext;
+import org.projectforge.web.MenuEntry;
 import org.projectforge.web.MenuItemDef;
 import org.projectforge.web.MenuItemDefId;
 import org.projectforge.web.plugin.PluginWicketRegistrationService;
@@ -51,7 +56,7 @@ public class FinancialFairPlayPlugin extends AbstractPlugin
   private PluginWicketRegistrationService pluginWicketRegistrationService;
 
   @Autowired
-  private FFPEventDao eventDao;
+  private FFPEventService eventService;
 
   /**
    * @see org.projectforge.plugins.core.AbstractPlugin#initialize()
@@ -62,7 +67,7 @@ public class FinancialFairPlayPlugin extends AbstractPlugin
 
     FinancialFairPlayPluginUpdates.dao = myDatabaseUpdater;
     // Register it:
-    register(ID, FFPEventDao.class, eventDao, "plugins.financialfairplay");
+    register(ID, FFPEventDao.class, eventService.getEventDao(), "plugins.financialfairplay");
 
     // Register the web part:
     pluginWicketRegistrationService.registerWeb(ID);
@@ -72,9 +77,23 @@ public class FinancialFairPlayPlugin extends AbstractPlugin
     pluginWicketRegistrationService
         .registerMenuItem(
             new MenuItemDef(parentMenu, ID, 101, "plugins.ffp.menu.financialfairplay", FFPEventListPage.class));
-    pluginWicketRegistrationService
-        .registerMenuItem(
-            new MenuItemDef(parentMenu, ID, 102, "plugins.ffp.menu.financialfairplay.dept", FFPDeptViewPage.class));
+    final MenuItemDef debtViewPage = new MenuItemDef(parentMenu, ID, 102, "plugins.ffp.menu.financialfairplay.dept", FFPDeptViewPage.class)
+    {
+      @Override
+      protected void afterMenuEntryCreation(final MenuEntry createdMenuEntry, final MenuBuilderContext context)
+      {
+        createdMenuEntry.setNewCounterModel(new Model<Integer>()
+        {
+          @Override
+          public Integer getObject()
+          {
+            return eventService.getOpenFromDebts(ThreadLocalUserContext.getUser());
+          }
+        });
+      }
+    };
+    pluginWicketRegistrationService.registerMenuItem(debtViewPage);
+
     // Define the access management:
     registerRight(new FinancialFairPlayRight(accessChecker));
 

@@ -96,9 +96,16 @@ public class FFPEventEditPage extends AbstractEditPage<FFPEventDO, FFPEventEditF
   }
 
   @Override
+  public AbstractSecuredBasePage afterSaveOrUpdate()
+  {
+    eventService.updateDept(getData());
+    return null;
+  }
+
+  @Override
   protected FFPEventDao getBaseDao()
   {
-    return eventService.getDao();
+    return eventService.getEventDao();
   }
 
   @Override

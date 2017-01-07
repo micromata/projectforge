@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import org.projectforge.business.fibu.EmployeeDO;
+import org.projectforge.business.fibu.EmployeeDao;
 import org.projectforge.framework.persistence.history.DisplayHistoryEntry;
 import org.projectforge.framework.persistence.jpa.impl.CorePersistenceServiceImpl;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
@@ -28,6 +29,12 @@ public class FFPEventServiceImpl extends CorePersistenceServiceImpl<Integer, FFP
 {
   @Autowired
   private FFPEventDao eventDao;
+
+  @Autowired
+  private FFPDebtDao debtDao;
+
+  @Autowired
+  private EmployeeDao employeeDao;
 
   @Override
   public boolean hasLoggedInUserInsertAccess()
@@ -84,7 +91,7 @@ public class FFPEventServiceImpl extends CorePersistenceServiceImpl<Integer, FFP
   }
 
   @Override
-  public FFPEventDao getDao()
+  public FFPEventDao getEventDao()
   {
     return eventDao;
   }
@@ -153,7 +160,39 @@ public class FFPEventServiceImpl extends CorePersistenceServiceImpl<Integer, FFP
   @Override
   public List<FFPDebtDO> getDeptList(EmployeeDO employee)
   {
-    return eventDao.getDeptList(employee);
+    return debtDao.getDebtList(employee);
+  }
+
+  @Override
+  public void updateDept(FFPEventDO event)
+  {
+    List<FFPDebtDO> debtList = calculateDebt(event);
+    //Check if new or update
+    //TODO: Has to be done!
+    //New
+    debtDao.internalSaveOrUpdate(debtList);
+    //Update
+    //TODO: Has to be done!
+  }
+
+  @Override
+  public void updateDebtFrom(FFPDebtDO debt)
+  {
+    debt.setApprovedByFrom(true);
+    debtDao.internalUpdate(debt);
+  }
+
+  @Override
+  public void updateDebtTo(FFPDebtDO debt)
+  {
+    debt.setApprovedByTo(true);
+    debtDao.internalUpdate(debt);
+  }
+
+  @Override
+  public Integer getOpenFromDebts(PFUserDO user)
+  {
+    return debtDao.getOpenFromDebts(employeeDao.findByUserId(user.getId()));
   }
 
   BigDecimal calculateAverage(List<FFPAccountingDO> accountingDOs)
