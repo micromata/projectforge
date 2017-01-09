@@ -418,7 +418,6 @@ public class AuftragEditForm extends AbstractEditForm<AuftragDO, AuftragEditPage
     // positions
     gridBuilder.newGridPanel();
     positionsRepeater = gridBuilder.newRepeatingView();
-    positionsRepeater.getParent().setOutputMarkupId(true);
     refresh();
     if (getBaseDao().hasInsertAccess(getUser()) == true) {
       final DivPanel panel = gridBuilder.newGridPanel().getPanel();
