@@ -255,7 +255,7 @@ public class ProjektEditForm extends AbstractEditForm<ProjektDO, ProjektEditPage
         NewCustomerSelectPanel customer = (NewCustomerSelectPanel) dependentFormComponents[1];
         Integer numberValue = number != null ? number.getConvertedInput() : null;
         KundeDO customerValue = customer != null ? customer.getConvertedInput() : null;
-        if (numberValue != null && customerValue != null) {
+        if (numberValue != null && customerValue != null && numberValue.equals(new Integer(data.getNummer())) == false) {
           if (projectService.isNumberFreeForCustomer(numberValue, customerValue) == false) {
             form.error(I18nHelper.getLocalizedMessage("fibu.projekt.validation.numbernotfreeforcustomer"));
           }
