@@ -923,4 +923,23 @@ public class AuftragDO extends DefaultBaseDO
     this.salesManager = salesManager;
     return this;
   }
+
+  @Transient
+  public String getAssignedPersons()
+  {
+    List<String> result = new ArrayList<>();
+    if (projectManager != null) {
+      result.add(projectManager.getFullname());
+    }
+    if (headOfBusinessManager != null) {
+      result.add(headOfBusinessManager.getFullname());
+    }
+    if (salesManager != null) {
+      result.add(salesManager.getFullname());
+    }
+    if (contactPerson != null) {
+      result.add(contactPerson.getFullname());
+    }
+    return String.join("; ", result);
+  }
 }
