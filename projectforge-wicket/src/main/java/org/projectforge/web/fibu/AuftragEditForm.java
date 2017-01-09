@@ -36,7 +36,6 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
-import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.markup.html.form.Button;
@@ -90,7 +89,6 @@ import org.projectforge.web.wicket.components.MinMaxNumberField;
 import org.projectforge.web.wicket.components.RequiredMaxLengthTextField;
 import org.projectforge.web.wicket.components.SingleButtonPanel;
 import org.projectforge.web.wicket.converter.CurrencyConverter;
-import org.projectforge.web.wicket.flowlayout.ButtonPanel;
 import org.projectforge.web.wicket.flowlayout.ButtonType;
 import org.projectforge.web.wicket.flowlayout.CheckBoxButton;
 import org.projectforge.web.wicket.flowlayout.DivPanel;
@@ -420,6 +418,7 @@ public class AuftragEditForm extends AbstractEditForm<AuftragDO, AuftragEditPage
     // positions
     gridBuilder.newGridPanel();
     positionsRepeater = gridBuilder.newRepeatingView();
+    positionsRepeater.getParent().setOutputMarkupId(true);
     refresh();
     if (getBaseDao().hasInsertAccess(getUser()) == true) {
       final DivPanel panel = gridBuilder.newGridPanel().getPanel();
@@ -745,20 +744,19 @@ public class AuftragEditForm extends AbstractEditForm<AuftragDO, AuftragEditPage
       {
         // Remove Position
         DivPanel divPanel = removeButtonGridBuilder.getPanel();
-        Button removeButton = new Button(ButtonPanel.BUTTON_ID);
-        removeButton.add(new AjaxEventBehavior("click")
+        final Button removePositionButton = new Button(SingleButtonPanel.WICKET_ID)
         {
           @Override
-          protected void onEvent(AjaxRequestTarget target)
+          public final void onSubmit()
           {
             position.setDeleted(true);
-            auftragDao.saveOrUpdate(data);
             refresh();
-            setResponsePage(getPage());
           }
-        });
-        ButtonPanel buttonPanel = new ButtonPanel(divPanel.newChildId(), I18nHelper.getLocalizedMessage("delete"), removeButton, ButtonType.DELETE);
-        divPanel.add(buttonPanel);
+        };
+        removePositionButton.add(AttributeModifier.append("class", ButtonType.DELETE.getClassAttrValue()));
+        final SingleButtonPanel removePositionButtonPanel = new SingleButtonPanel(divPanel.newChildId(), removePositionButton,
+            getString("delete"));
+        divPanel.add(removePositionButtonPanel);
       }
       setPosPeriodOfPerformanceVisible(position.getNumber(), posHasOwnPeriodOfPerformance(position.getNumber()));
     }
