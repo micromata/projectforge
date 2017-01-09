@@ -493,9 +493,6 @@ public class AuftragEditForm extends AbstractEditForm<AuftragDO, AuftragEditPage
     }
 
     for (final AuftragsPositionDO position : data.getPositionen()) {
-      if (position.isDeleted()) {
-        continue;
-      }
       final boolean abgeschlossenUndNichtFakturiert = position.isAbgeschlossenUndNichtVollstaendigFakturiert();
       final ToggleContainerPanel positionsPanel = new ToggleContainerPanel(positionsRepeater.newChildId())
       {
@@ -757,6 +754,9 @@ public class AuftragEditForm extends AbstractEditForm<AuftragDO, AuftragEditPage
         final SingleButtonPanel removePositionButtonPanel = new SingleButtonPanel(divPanel.newChildId(), removePositionButton,
             getString("delete"));
         divPanel.add(removePositionButtonPanel);
+      }
+      if (position.isDeleted()) {
+        positionsPanel.setVisible(false);
       }
       setPosPeriodOfPerformanceVisible(position.getNumber(), posHasOwnPeriodOfPerformance(position.getNumber()));
     }
