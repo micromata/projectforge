@@ -36,9 +36,9 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
+import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
-import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Button;
 import org.apache.wicket.markup.html.form.CheckBox;
 import org.apache.wicket.markup.html.form.DropDownChoice;
@@ -494,7 +494,9 @@ public class AuftragEditForm extends AbstractEditForm<AuftragDO, AuftragEditPage
     }
 
     for (final AuftragsPositionDO position : data.getPositionen()) {
-
+      if (position.isDeleted()) {
+        continue;
+      }
       final boolean abgeschlossenUndNichtFakturiert = position.isAbgeschlossenUndNichtVollstaendigFakturiert();
       final ToggleContainerPanel positionsPanel = new ToggleContainerPanel(positionsRepeater.newChildId())
       {
@@ -739,13 +741,24 @@ public class AuftragEditForm extends AbstractEditForm<AuftragDO, AuftragEditPage
         final FieldsetPanel fs = posGridBuilder.newFieldset(getString("comment"));
         fs.add(new MaxLengthTextArea(TextAreaPanel.WICKET_ID, new PropertyModel<String>(position, "bemerkung")));
       }
-      GridBuilder removeButtonPanle = posGridBuilder.newGridPanel();
+      GridBuilder removeButtonGridBuilder = posGridBuilder.newGridPanel();
       {
         // Remove Position
+        DivPanel divPanel = removeButtonGridBuilder.getPanel();
         Button removeButton = new Button(ButtonPanel.BUTTON_ID);
-        removeButton.add(new Label("title", I18nHelper.getLocalizedMessage("delete")));
-        removeButton.add(AttributeModifier.append("class", ButtonType.DELETE.getClassAttrValue()));
-        removeButtonPanle.getPanel().add(removeButton);
+        removeButton.add(new AjaxEventBehavior("click")
+        {
+          @Override
+          protected void onEvent(AjaxRequestTarget target)
+          {
+            position.setDeleted(true);
+            auftragDao.saveOrUpdate(data);
+            refresh();
+            setResponsePage(getPage());
+          }
+        });
+        ButtonPanel buttonPanel = new ButtonPanel(divPanel.newChildId(), I18nHelper.getLocalizedMessage("delete"), removeButton, ButtonType.DELETE);
+        divPanel.add(buttonPanel);
       }
       setPosPeriodOfPerformanceVisible(position.getNumber(), posHasOwnPeriodOfPerformance(position.getNumber()));
     }
