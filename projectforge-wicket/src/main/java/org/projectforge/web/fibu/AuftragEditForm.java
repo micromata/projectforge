@@ -38,6 +38,7 @@ import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
+import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Button;
 import org.apache.wicket.markup.html.form.CheckBox;
 import org.apache.wicket.markup.html.form.DropDownChoice;
@@ -89,6 +90,8 @@ import org.projectforge.web.wicket.components.MinMaxNumberField;
 import org.projectforge.web.wicket.components.RequiredMaxLengthTextField;
 import org.projectforge.web.wicket.components.SingleButtonPanel;
 import org.projectforge.web.wicket.converter.CurrencyConverter;
+import org.projectforge.web.wicket.flowlayout.ButtonPanel;
+import org.projectforge.web.wicket.flowlayout.ButtonType;
 import org.projectforge.web.wicket.flowlayout.CheckBoxButton;
 import org.projectforge.web.wicket.flowlayout.DivPanel;
 import org.projectforge.web.wicket.flowlayout.DivTextPanel;
@@ -736,9 +739,18 @@ public class AuftragEditForm extends AbstractEditForm<AuftragDO, AuftragEditPage
         final FieldsetPanel fs = posGridBuilder.newFieldset(getString("comment"));
         fs.add(new MaxLengthTextArea(TextAreaPanel.WICKET_ID, new PropertyModel<String>(position, "bemerkung")));
       }
+      GridBuilder removeButtonPanle = posGridBuilder.newGridPanel();
+      {
+        // Remove Position
+        Button removeButton = new Button(ButtonPanel.BUTTON_ID);
+        removeButton.add(new Label("title", I18nHelper.getLocalizedMessage("delete")));
+        removeButton.add(AttributeModifier.append("class", ButtonType.DELETE.getClassAttrValue()));
+        removeButtonPanle.getPanel().add(removeButton);
+      }
       setPosPeriodOfPerformanceVisible(position.getNumber(), posHasOwnPeriodOfPerformance(position.getNumber()));
     }
     positionsDependentFormComponents = dependentComponents.toArray(new FormComponent[0]);
+
   }
 
   protected String getPositionHeading(final AuftragsPositionDO position, final ToggleContainerPanel positionsPanel)
