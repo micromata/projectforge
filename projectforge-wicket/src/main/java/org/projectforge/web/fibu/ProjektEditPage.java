@@ -35,7 +35,6 @@ import org.projectforge.web.wicket.AbstractEditPage;
 import org.projectforge.web.wicket.AbstractSecuredBasePage;
 import org.projectforge.web.wicket.EditPage;
 
-
 @EditPage(defaultReturnPage = ProjektListPage.class)
 public class ProjektEditPage extends AbstractEditPage<ProjektDO, ProjektEditForm, ProjektDao> implements ISelectCallerPage
 {
@@ -62,7 +61,7 @@ public class ProjektEditPage extends AbstractEditPage<ProjektDO, ProjektEditForm
   }
 
   @Override
-  protected ProjektEditForm newEditForm(final AbstractEditPage< ? , ? , ? > parentPage, final ProjektDO data)
+  protected ProjektEditForm newEditForm(final AbstractEditPage<?, ?, ?> parentPage, final ProjektDO data)
   {
     return new ProjektEditForm(this, data);
   }
@@ -98,7 +97,8 @@ public class ProjektEditPage extends AbstractEditPage<ProjektDO, ProjektEditForm
   {
     if ("kundeId".equals(property) == true) {
       projektDao.setKunde(getData(), (Integer) selectedValue);
-      form.kundeSelectPanel.getTextField().modelChanged();;
+      form.kundeSelectPanel.getTextField().modelChanged();
+      ;
     } else if ("taskId".equals(property) == true) {
       projektDao.setTask(getData(), (Integer) selectedValue);
     } else if ("projektManagerGroupId".equals(property) == true) {
@@ -123,4 +123,5 @@ public class ProjektEditPage extends AbstractEditPage<ProjektDO, ProjektEditForm
       log.error("Property '" + property + "' not supported for unselection.");
     }
   }
+
 }

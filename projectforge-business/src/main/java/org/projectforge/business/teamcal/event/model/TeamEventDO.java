@@ -27,6 +27,7 @@ import java.sql.Timestamp;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.TimeZone;
 import java.util.TreeSet;
@@ -138,7 +139,6 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
   @Field(index = Index.YES /* TOKENIZED */, store = Store.NO)
   private String note;
 
-  @PFPersistancyBehavior(autoUpdateCollectionEntries = true)
   private Set<TeamEventAttendeeDO> attendees;
 
   private String organizer;
@@ -380,6 +380,7 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
   @JoinColumn(name = "team_event_fk")
   public Set<TeamEventAttendeeDO> getAttendees()
   {
+    ensureAttendees();
     return attendees;
   }
 
@@ -401,7 +402,7 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
   public Set<TeamEventAttendeeDO> ensureAttendees()
   {
     if (this.attendees == null) {
-      this.attendees = new TreeSet<TeamEventAttendeeDO>();
+      this.attendees = new HashSet<TeamEventAttendeeDO>();
     }
     return this.attendees;
   }

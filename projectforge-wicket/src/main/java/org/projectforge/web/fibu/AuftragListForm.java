@@ -36,6 +36,8 @@ import org.projectforge.business.fibu.AuftragsPositionsArt;
 import org.projectforge.business.fibu.AuftragsPositionsPaymentType;
 import org.projectforge.business.fibu.AuftragsStatistik;
 import org.projectforge.business.utils.CurrencyFormatter;
+import org.projectforge.framework.persistence.user.entities.PFUserDO;
+import org.projectforge.web.user.UserSelectPanel;
 import org.projectforge.web.wicket.AbstractListForm;
 import org.projectforge.web.wicket.WebConstants;
 import org.projectforge.web.wicket.components.LabelValueChoiceRenderer;
@@ -254,11 +256,27 @@ public class AuftragListForm extends AbstractListForm<AuftragListFilter, Auftrag
     };
     auftragsPositionsPaymentTypeChoice.setNullValid(false);
     optionsFieldsetPanel.add(auftragsPositionsPaymentTypeChoice);
+
+    final UserSelectPanel userSelectPanel = new UserSelectPanel(optionsFieldsetPanel.newChildId(),
+        new PropertyModel<PFUserDO>(this, "user"),
+        parentPage, "user");
+    optionsFieldsetPanel.add(userSelectPanel);
+    userSelectPanel.init();
   }
 
   protected void refresh()
   {
     this.auftragsStatistik = null;
+  }
+
+  public PFUserDO getUser()
+  {
+    return getSearchFilter().getUser();
+  }
+
+  public void setUser(final PFUserDO user)
+  {
+    getSearchFilter().setUser(user);
   }
 
   public Integer getYear()

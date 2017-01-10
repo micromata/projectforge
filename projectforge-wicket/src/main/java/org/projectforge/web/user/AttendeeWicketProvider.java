@@ -207,6 +207,7 @@ public class AttendeeWicketProvider extends TextChoiceProvider<TeamEventAttendee
       }
       TeamEventAttendeeDO attendee = null;
       if (attendeeId < 0) {
+        initSortedAttendees();
         attendee = sortedAttendees
             .stream()
             .filter(att -> att.getId().equals(attendeeId))

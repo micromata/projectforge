@@ -26,9 +26,11 @@ package org.projectforge.business.fibu;
 import java.util.List;
 
 import org.apache.commons.collections.CollectionUtils;
+import org.projectforge.business.fibu.api.EmployeeService;
 import org.projectforge.business.timesheet.TimesheetDO;
 import org.projectforge.business.timesheet.TimesheetDao;
 import org.projectforge.business.timesheet.TimesheetFilter;
+import org.projectforge.business.vacation.service.VacationService;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
@@ -46,7 +48,10 @@ public class MonthlyEmployeeReportDao
   private TimesheetDao timesheetDao;
 
   @Autowired
-  private EmployeeDao employeeDao;
+  private EmployeeService employeeService;
+
+  @Autowired
+  private VacationService vacationService;
 
   @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
   public MonthlyEmployeeReport getReport(int year, int month, PFUserDO user)
@@ -54,13 +59,7 @@ public class MonthlyEmployeeReportDao
     if (user == null || year <= 0) {
       return null;
     }
-    MonthlyEmployeeReport report = new MonthlyEmployeeReport(year, month);
-    EmployeeDO employee = employeeDao.findByUserId(user.getId());
-    if (employee != null) {
-      report.setEmployee(employee);
-    } else {
-      report.setUser(user);
-    }
+    MonthlyEmployeeReport report = new MonthlyEmployeeReport(employeeService, vacationService, user, year, month);
     report.init();
     TimesheetFilter filter = new TimesheetFilter();
     filter.setDeleted(false);

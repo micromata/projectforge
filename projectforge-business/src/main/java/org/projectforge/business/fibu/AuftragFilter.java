@@ -26,6 +26,7 @@ package org.projectforge.business.fibu;
 import java.io.Serializable;
 
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
+import org.projectforge.framework.persistence.user.entities.PFUserDO;
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
@@ -53,6 +54,8 @@ public class AuftragFilter extends BaseSearchFilter implements Serializable
   public static final String FILTER_ERSETZT = "ersetzt";
 
   protected int year;
+
+  protected PFUserDO user;
 
   protected String listType = FILTER_ALL;
 
@@ -145,6 +148,16 @@ public class AuftragFilter extends BaseSearchFilter implements Serializable
   public void setYear(final int year)
   {
     this.year = year;
+  }
+
+  public PFUserDO getUser()
+  {
+    return user;
+  }
+
+  public void setUser(final PFUserDO user)
+  {
+    this.user = user;
   }
 
   /**
