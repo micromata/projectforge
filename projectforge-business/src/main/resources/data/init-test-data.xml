@@ -4411,7 +4411,7 @@
         <vollstaendigFakturiert>false</vollstaendigFakturiert>
       </org.projectforge.business.fibu.AuftragsPositionDO>
     </positionen>
-    <auftragsStatus>GROB_KALKULATION</auftragsStatus>
+    <auftragsStatus>POTENZIAL</auftragsStatus>
     <contactPerson reference="52"/>
     <kundeText>Micromata</kundeText>
     <titel>Micromata Webportal</titel>
