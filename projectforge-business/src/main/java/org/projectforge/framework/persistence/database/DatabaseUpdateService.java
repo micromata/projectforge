@@ -907,6 +907,11 @@ public class DatabaseUpdateService
     });
   }
 
+  public boolean doesTableRowExists(final Class<?> entity, final String columnName, final String cellValue, final boolean useQuotationMarks)
+  {
+    return doesTableRowExists(new Table(entity).getName(), columnName, cellValue, useQuotationMarks);
+  }
+
   public boolean doesTableRowExists(String tablename, String columnname, String columnvalue, boolean useQuotationMarks)
   {
     String quotationMark = useQuotationMarks ? "'" : "";
@@ -935,6 +940,12 @@ public class DatabaseUpdateService
     } catch (final Exception ex) {
       return -1;
     }
+  }
+
+  public int replaceTableCellStrings(final Class<?> entity, final String columnName, final String oldCellValue, final String newCellValue)
+  {
+    final String tableName = new Table(entity).getName();
+    return update("UPDATE " + tableName + " SET " + columnName + " = ? WHERE status = ?", newCellValue, oldCellValue);
   }
 
 }

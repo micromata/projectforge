@@ -274,7 +274,7 @@ public class AuftragDO extends DefaultBaseDO
         continue;
       }
       final BigDecimal nettoSumme = position.getNettoSumme();
-      if (nettoSumme != null && position.getStatus() != AuftragsPositionsStatus.NICHT_BEAUFTRAGT) {
+      if (nettoSumme != null && position.getStatus() != AuftragsPositionsStatus.ABGELEHNT && position.getStatus() != AuftragsPositionsStatus.ERSETZT) {
         sum = sum.add(nettoSumme);
       }
     }
@@ -298,8 +298,7 @@ public class AuftragDO extends DefaultBaseDO
       final BigDecimal nettoSumme = position.getNettoSumme();
       if (nettoSumme != null
           && position.getStatus() != null
-          && position.getStatus().isIn(AuftragsPositionsStatus.ABGESCHLOSSEN, AuftragsPositionsStatus.BEAUFTRAGT,
-          AuftragsPositionsStatus.BEAUFTRAGTE_OPTION) == true) {
+          && position.getStatus().isIn(AuftragsPositionsStatus.ABGESCHLOSSEN, AuftragsPositionsStatus.BEAUFTRAGT)) {
         sum = sum.add(nettoSumme);
       }
     }
@@ -552,8 +551,7 @@ public class AuftragDO extends DefaultBaseDO
         continue;
       }
       if (position.isVollstaendigFakturiert() == false
-          && (position.getStatus() == null
-          || position.getStatus().isIn(AuftragsPositionsStatus.NICHT_BEAUFTRAGT) == false)) {
+          && (position.getStatus() == null || position.getStatus().isIn(AuftragsPositionsStatus.ABGELEHNT, AuftragsPositionsStatus.ERSETZT) == false)) {
         return false;
       }
     }

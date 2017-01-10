@@ -112,11 +112,10 @@ public class AuftragsPositionDO extends DefaultBaseDO implements ShortDisplayNam
   @Transient
   public boolean isAbgeschlossenUndNichtVollstaendigFakturiert()
   {
-    if (getStatus() == AuftragsPositionsStatus.NICHT_BEAUFTRAGT) {
+    if (getStatus() != null && getStatus().isIn(AuftragsPositionsStatus.ABGELEHNT, AuftragsPositionsStatus.ERSETZT)) {
       return false;
     }
-    if (auftrag.getAuftragsStatus() == AuftragsStatus.ABGESCHLOSSEN) {
-    } else if (getStatus() != AuftragsPositionsStatus.ABGESCHLOSSEN) {
+    if (auftrag.getAuftragsStatus() != AuftragsStatus.ABGESCHLOSSEN && getStatus() != AuftragsPositionsStatus.ABGESCHLOSSEN) {
       return false;
     }
     return !isVollstaendigFakturiert();

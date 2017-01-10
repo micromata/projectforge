@@ -23,11 +23,11 @@
 
 package org.projectforge.business.fibu;
 
-import org.projectforge.framework.utils.NumberHelper;
-
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+
+import org.projectforge.framework.utils.NumberHelper;
 
 public class AuftragsStatistik implements Serializable
 {
@@ -63,7 +63,7 @@ public class AuftragsStatistik implements Serializable
   {
     final BigDecimal netto = auftrag.getNettoSumme();
     if (auftrag.getAuftragsStatus() != null) {
-      if (auftrag.getAuftragsStatus().isIn(AuftragsStatus.GROB_KALKULATION, AuftragsStatus.IN_ERSTELLUNG, AuftragsStatus.GELEGT) == true) {
+      if (auftrag.getAuftragsStatus().isIn(AuftragsStatus.POTENZIAL, AuftragsStatus.IN_ERSTELLUNG, AuftragsStatus.GELEGT) == true) {
         akquiseSum = add(akquiseSum, netto);
         counterAkquise++;
       } else if (auftrag.getAuftragsStatus().isIn(AuftragsStatus.LOI, AuftragsStatus.BEAUFTRAGT, AuftragsStatus.ESKALATION) == true) {

@@ -114,11 +114,7 @@ public class ProjectForgeApp
    */
   public void finalizeInitialization()
   {
-    log.info("system cronJobs are initialized.");
-    //    TODO RK may be already in PluginAdminService pluginsRegistry.registerCronJobs(cronSetup);
-    log.info("plugin cronJobs are initialized.");
     log.info(AppVersion.APP_ID + " " + AppVersion.NUMBER + " (" + AppVersion.RELEASE_TIMESTAMP + ") initialized.");
-
     // initialize ical4j to be more "relaxed"
     CompatibilityHints.setHintEnabled(CompatibilityHints.KEY_RELAXED_PARSING, true);
     CompatibilityHints.setHintEnabled(CompatibilityHints.KEY_RELAXED_UNFOLDING, true);

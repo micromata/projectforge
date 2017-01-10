@@ -29,14 +29,20 @@ import org.projectforge.common.i18n.I18nEnum;
  * ERSETZT: Angebot wurde durch ein überarbeitetes oder neues Angebot ersetzt. LOI: Es liegt eine Absichtserklärung vor (reicht nur bei
  * langjährigen Kunden, um mit den Arbeiten zu beginnen). GROB_KALKULATION: Es wird lediglich eine Schätzung oder eine Grobkalkulation dem
  * Kunden kommuniziert.
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
  */
 public enum AuftragsStatus implements I18nEnum
 {
-  GROB_KALKULATION("grob_kalkulation"), IN_ERSTELLUNG("in_erstellung"), GELEGT("gelegt"), LOI("loi"), BEAUFTRAGT("beauftragt"), ESKALATION(
-      "eskalation"), ABGESCHLOSSEN("abgeschlossen"), ABGELEHNT("abgelehnt"), ERSETZT("ersetzt");
+  IN_ERSTELLUNG("in_erstellung"),
+  POTENZIAL("potenzial"),
+  GELEGT("gelegt"),
+  LOI("loi"),
+  BEAUFTRAGT("beauftragt"),
+  ABGESCHLOSSEN("abgeschlossen"),
+  ABGELEHNT("abgelehnt"),
+  ERSETZT("ersetzt"),
+  ESKALATION("eskalation");
 
   private String key;
 
@@ -60,8 +66,9 @@ public enum AuftragsStatus implements I18nEnum
   {
     this.key = key;
   }
-  
-  public boolean isIn(AuftragsStatus... status) {
+
+  public boolean isIn(AuftragsStatus... status)
+  {
     for (AuftragsStatus st : status) {
       if (this == st) {
         return true;
