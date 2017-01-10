@@ -27,15 +27,19 @@ import org.projectforge.common.i18n.I18nEnum;
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
  */
 public enum AuftragsPositionsStatus implements I18nEnum
 {
-  BEAUFTRAGT("beauftragt"), /** optionaler Punkt. */
-  OPTIONAL("optional"), /** Bauftragte Option des Auftrags. */
-  BEAUFTRAGTE_OPTION("beauftragteOption"), /** Auftragsposition nicht beauftragt. */
-  NICHT_BEAUFTRAGT("nichtBeauftragt"), /** Auftragsposition abgeschlossen / Leistung erbracht. */
-  ABGESCHLOSSEN("abgeschlossen");
+  IN_ERSTELLUNG("in_erstellung"),
+  POTENZIAL("potenzial"),
+  GELEGT("gelegt"),
+  LOI("loi"),
+  BEAUFTRAGT("beauftragt"),
+  ABGESCHLOSSEN("abgeschlossen"),
+  ABGELEHNT("abgelehnt"),
+  ERSETZT("ersetzt"),
+  ESKALATION("eskalation"),
+  OPTIONAL("optional");
 
   private String key;
 

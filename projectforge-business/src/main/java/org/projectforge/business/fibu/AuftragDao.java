@@ -342,7 +342,7 @@ public class AuftragDao extends BaseDao<AuftragDO>
     if (myFilter.isShowBeauftragtNochNichtVollstaendigFakturiert() == true) {
       queryFilter
           .add(Restrictions.not(Restrictions.in("auftragsStatus", new AuftragsStatus[] { AuftragsStatus.ABGELEHNT,
-              AuftragsStatus.ERSETZT, AuftragsStatus.GELEGT, AuftragsStatus.GROB_KALKULATION,
+              AuftragsStatus.ERSETZT, AuftragsStatus.GELEGT, AuftragsStatus.POTENZIAL,
               AuftragsStatus.IN_ERSTELLUNG })));
       vollstaendigFakturiert = false;
     } else if (myFilter.isShowNochNichtVollstaendigFakturiert() == true) {
@@ -367,7 +367,7 @@ public class AuftragDao extends BaseDao<AuftragDO>
     } else if (myFilter.isShowAkquise() == true) {
       queryFilter.add(
           Restrictions.in("auftragsStatus", new AuftragsStatus[] { AuftragsStatus.GELEGT, AuftragsStatus.IN_ERSTELLUNG,
-              AuftragsStatus.GROB_KALKULATION }));
+              AuftragsStatus.POTENZIAL }));
     } else if (myFilter.isShowBeauftragt() == true) {
       queryFilter
           .add(Restrictions.in("auftragsStatus", new AuftragsStatus[] { AuftragsStatus.BEAUFTRAGT, AuftragsStatus.LOI,
