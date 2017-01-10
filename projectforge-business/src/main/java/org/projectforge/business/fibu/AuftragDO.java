@@ -269,6 +269,9 @@ public class AuftragDO extends DefaultBaseDO
     }
     BigDecimal sum = BigDecimal.ZERO;
     for (final AuftragsPositionDO position : positionen) {
+      if (position.isDeleted()) {
+        continue;
+      }
       final BigDecimal nettoSumme = position.getNettoSumme();
       if (nettoSumme != null && position.getStatus() != AuftragsPositionsStatus.ABGELEHNT && position.getStatus() != AuftragsPositionsStatus.ERSETZT) {
         sum = sum.add(nettoSumme);
@@ -288,6 +291,9 @@ public class AuftragDO extends DefaultBaseDO
     }
     BigDecimal sum = BigDecimal.ZERO;
     for (final AuftragsPositionDO position : positionen) {
+      if (position.isDeleted()) {
+        continue;
+      }
       final BigDecimal nettoSumme = position.getNettoSumme();
       if (nettoSumme != null
           && position.getStatus() != null
@@ -540,6 +546,9 @@ public class AuftragDO extends DefaultBaseDO
       return false;
     }
     for (final AuftragsPositionDO position : positionen) {
+      if (position.isDeleted()) {
+        continue;
+      }
       if (position.isVollstaendigFakturiert() == false
           && (position.getStatus() == null || position.getStatus().isIn(AuftragsPositionsStatus.ABGELEHNT, AuftragsPositionsStatus.ERSETZT) == false)) {
         return false;
@@ -556,6 +565,9 @@ public class AuftragDO extends DefaultBaseDO
     }
     if (getPositionen() != null) {
       for (final AuftragsPositionDO pos : getPositionen()) {
+        if (pos.isDeleted()) {
+          continue;
+        }
         if (pos.getStatus() == AuftragsPositionsStatus.ABGESCHLOSSEN && pos.isVollstaendigFakturiert() == false) {
           return true;
         }
@@ -642,6 +654,9 @@ public class AuftragDO extends DefaultBaseDO
     BigDecimal result = BigDecimal.ZERO;
     if (this.positionen != null) {
       for (final AuftragsPositionDO pos : this.positionen) {
+        if (pos.isDeleted()) {
+          continue;
+        }
         if (pos.getPersonDays() != null) {
           result = result.add(pos.getPersonDays());
         }
@@ -662,6 +677,9 @@ public class AuftragDO extends DefaultBaseDO
       this.fakturiertSum = BigDecimal.ZERO;
       if (positionen != null) {
         for (final AuftragsPositionDO pos : positionen) {
+          if (pos.isDeleted()) {
+            continue;
+          }
           if (NumberHelper.isNotZero(pos.getFakturiertSum()) == true) {
             this.fakturiertSum = this.fakturiertSum.add(pos.getFakturiertSum());
           }
@@ -683,6 +701,9 @@ public class AuftragDO extends DefaultBaseDO
     BigDecimal val = BigDecimal.ZERO;
     if (positionen != null) {
       for (final AuftragsPositionDO pos : positionen) {
+        if (pos.isDeleted()) {
+          continue;
+        }
         if (pos.getStatus() == null || pos.getStatus().isIn(AuftragsPositionsStatus.ABGESCHLOSSEN) == false) {
           continue;
         }
