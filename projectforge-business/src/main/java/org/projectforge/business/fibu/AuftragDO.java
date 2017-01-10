@@ -79,6 +79,9 @@ import de.micromata.genome.db.jpa.history.api.WithHistory;
     },
     indexes = {
         @javax.persistence.Index(name = "idx_fk_t_fibu_auftrag_contact_person_fk", columnList = "contact_person_fk"),
+        @javax.persistence.Index(name = "idx_fk_t_fibu_auftrag_projectManager_fk", columnList = "projectmanager_fk"),
+        @javax.persistence.Index(name = "idx_fk_t_fibu_auftrag_headofbusinessmanager_fk", columnList = "headofbusinessmanager_fk"),
+        @javax.persistence.Index(name = "idx_fk_t_fibu_auftrag_salesmanager_fk", columnList = "salesmanager_fk"),
         @javax.persistence.Index(name = "idx_fk_t_fibu_auftrag_kunde_fk", columnList = "kunde_fk"),
         @javax.persistence.Index(name = "idx_fk_t_fibu_auftrag_projekt_fk", columnList = "projekt_fk"),
         @javax.persistence.Index(name = "idx_fk_t_fibu_auftrag_tenant_id", columnList = "tenant_id")
@@ -167,6 +170,15 @@ public class AuftragDO extends DefaultBaseDO
   private Date periodOfPerformanceEnd;
 
   private Integer probabilityOfOccurrence;
+
+  @IndexedEmbedded(depth = 1)
+  private PFUserDO projectManager;
+
+  @IndexedEmbedded(depth = 1)
+  private PFUserDO headOfBusinessManager;
+
+  @IndexedEmbedded(depth = 1)
+  private PFUserDO salesManager;
 
   /**
    * Datum der Angebotslegung.
@@ -874,5 +886,81 @@ public class AuftragDO extends DefaultBaseDO
   public void setProbabilityOfOccurrence(final Integer probabilityOfOccurrence)
   {
     this.probabilityOfOccurrence = probabilityOfOccurrence;
+  }
+
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "projectmanager_fk")
+  public PFUserDO getProjectManager()
+  {
+    return projectManager;
+  }
+
+  @Transient
+  public Integer getProjectManagerId()
+  {
+    return projectManager != null ? projectManager.getId() : null;
+  }
+
+  public AuftragDO setProjectManager(final PFUserDO projectManager)
+  {
+    this.projectManager = projectManager;
+    return this;
+  }
+
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "headofbusinessmanager_fk")
+  public PFUserDO getHeadOfBusinessManager()
+  {
+    return headOfBusinessManager;
+  }
+
+  @Transient
+  public Integer getHeadOfBusinessManagerId()
+  {
+    return headOfBusinessManager != null ? headOfBusinessManager.getId() : null;
+  }
+
+  public AuftragDO setHeadOfBusinessManager(final PFUserDO headOfBusinessManager)
+  {
+    this.headOfBusinessManager = headOfBusinessManager;
+    return this;
+  }
+
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "salesmanager_fk")
+  public PFUserDO getSalesManager()
+  {
+    return salesManager;
+  }
+
+  @Transient
+  public Integer getSalesManagerId()
+  {
+    return salesManager != null ? salesManager.getId() : null;
+  }
+
+  public AuftragDO setSalesManager(final PFUserDO salesManager)
+  {
+    this.salesManager = salesManager;
+    return this;
+  }
+
+  @Transient
+  public String getAssignedPersons()
+  {
+    List<String> result = new ArrayList<>();
+    if (projectManager != null) {
+      result.add(projectManager.getFullname());
+    }
+    if (headOfBusinessManager != null) {
+      result.add(headOfBusinessManager.getFullname());
+    }
+    if (salesManager != null) {
+      result.add(salesManager.getFullname());
+    }
+    if (contactPerson != null) {
+      result.add(contactPerson.getFullname());
+    }
+    return String.join("; ", result);
   }
 }

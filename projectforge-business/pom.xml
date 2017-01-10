@@ -206,11 +206,6 @@
       <version>${rhino.version}</version>
     </dependency>
     <dependency>
-      <groupId>org.quartz-scheduler</groupId>
-      <artifactId>quartz</artifactId>
-      <version>${quartz.version}</version>
-    </dependency>
-    <dependency>
       <groupId>net.sourceforge</groupId>
       <artifactId>mpxj</artifactId>
       <version>${mpxj.version}</version>
