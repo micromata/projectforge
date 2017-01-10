@@ -26,18 +26,17 @@ package org.projectforge.business.fibu;
 import org.projectforge.common.i18n.I18nEnum;
 
 /**
- * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @author Kai Reinhard (k.reinhard@micromata.de), Florian Blumenstein
  */
 public enum AuftragsPositionsArt implements I18nEnum
 {
-  /** Festpreispaket. */
-  FESTPREISPAKET("festpreispaket"), CHANGE_REQUEST("change_request"), HOT_FIX("hot_fix"), DAUERNDE_LEISTUNG("dauernde_leistung"), WARTUNG(
-      "wartung"), TIME_AND_MATERIALS("time_and_materials");
+  CHANGE_REQUEST("change_request"), DAUERNDE_LEISTUNG("dauernde_leistung"), WARTUNG("wartung"), NEUENTWICKLUNG("neuentwicklung");
 
   private String key;
 
   /**
    * The key will be used e. g. for i18n.
+   *
    * @return
    */
   public String getKey()
@@ -64,4 +63,5 @@ public enum AuftragsPositionsArt implements I18nEnum
   {
     return "fibu.auftrag.position.art." + key;
   }
+
 }

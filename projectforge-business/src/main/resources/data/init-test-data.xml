@@ -4313,7 +4313,7 @@
         <number>1</number>
         <auftrag reference="883"/>
         <task reference="656"/>
-        <art>FESTPREISPAKET</art>
+        <paymentType>FESTPREISPAKET</paymentType>
         <status>BEAUFTRAGT</status>
         <titel>Pflichtenheft / System Requirements Specification</titel>
         <nettoSumme>40000.00</nettoSumme>
@@ -4327,7 +4327,7 @@
         <number>2</number>
         <auftrag reference="883"/>
         <task reference="659"/>
-        <art>FESTPREISPAKET</art>
+        <paymentType>FESTPREISPAKET</paymentType>
         <status>BEAUFTRAGT</status>
         <titel>Realisierung / Realization</titel>
         <nettoSumme>250000.00</nettoSumme>
@@ -4341,7 +4341,7 @@
         <number>3</number>
         <auftrag reference="883"/>
         <task reference="668"/>
-        <art>TIME_AND_MATERIALS</art>
+        <paymentType>TIME_AND_MATERIALS</paymentType>
         <status>BEAUFTRAGT</status>
         <titel>Installation</titel>
         <nettoSumme>10000</nettoSumme>
@@ -4375,7 +4375,7 @@
         <number>1</number>
         <auftrag reference="894"/>
         <task reference="674"/>
-        <art>FESTPREISPAKET</art>
+        <paymentType>FESTPREISPAKET</paymentType>
         <titel>Release 1.1</titel>
         <nettoSumme>120000</nettoSumme>
         <personDays>120</personDays>
@@ -4405,7 +4405,7 @@
         <id>266</id>
         <number>1</number>
         <auftrag reference="901"/>
-        <art>TIME_AND_MATERIALS</art>
+        <paymentType>TIME_AND_MATERIALS</paymentType>
         <nettoSumme>15000</nettoSumme>
         <personDays>15</personDays>
         <vollstaendigFakturiert>false</vollstaendigFakturiert>
