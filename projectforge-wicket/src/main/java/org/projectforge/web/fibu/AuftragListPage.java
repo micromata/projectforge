@@ -181,7 +181,9 @@ public class AuftragListPage extends AbstractListPage<AuftragListForm, AuftragDa
             }
             buf.append("\n");
           });
-          buf.delete(buf.length() - 1, buf.length());
+          if (buf.length() > 1 && (buf.lastIndexOf("\n") == buf.length() - 1)) {
+            buf.delete(buf.length() - 1, buf.length());
+          }
           WicketUtils.addTooltip(label, NumberFormatter.format(auftrag.getPersonDays())
               + " "
               + getString("projectmanagement.personDays.short"), buf.toString());
