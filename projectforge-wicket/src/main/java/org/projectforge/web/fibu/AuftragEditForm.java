@@ -90,6 +90,7 @@ import org.projectforge.web.wicket.components.MinMaxNumberField;
 import org.projectforge.web.wicket.components.RequiredMaxLengthTextField;
 import org.projectforge.web.wicket.components.SingleButtonPanel;
 import org.projectforge.web.wicket.converter.CurrencyConverter;
+import org.projectforge.web.wicket.flowlayout.ButtonType;
 import org.projectforge.web.wicket.flowlayout.CheckBoxButton;
 import org.projectforge.web.wicket.flowlayout.DivPanel;
 import org.projectforge.web.wicket.flowlayout.DivTextPanel;
@@ -533,7 +534,6 @@ public class AuftragEditForm extends AbstractEditForm<AuftragDO, AuftragEditPage
     }
 
     for (final AuftragsPositionDO position : data.getPositionen()) {
-
       final boolean abgeschlossenUndNichtFakturiert = position.isAbgeschlossenUndNichtVollstaendigFakturiert();
       final ToggleContainerPanel positionsPanel = new ToggleContainerPanel(positionsRepeater.newChildId())
       {
@@ -790,9 +790,31 @@ public class AuftragEditForm extends AbstractEditForm<AuftragDO, AuftragEditPage
         final FieldsetPanel fs = posGridBuilder.newFieldset(getString("comment"));
         fs.add(new MaxLengthTextArea(TextAreaPanel.WICKET_ID, new PropertyModel<String>(position, "bemerkung")));
       }
+      GridBuilder removeButtonGridBuilder = posGridBuilder.newGridPanel();
+      {
+        // Remove Position
+        DivPanel divPanel = removeButtonGridBuilder.getPanel();
+        final Button removePositionButton = new Button(SingleButtonPanel.WICKET_ID)
+        {
+          @Override
+          public final void onSubmit()
+          {
+            position.setDeleted(true);
+            refresh();
+          }
+        };
+        removePositionButton.add(AttributeModifier.append("class", ButtonType.DELETE.getClassAttrValue()));
+        final SingleButtonPanel removePositionButtonPanel = new SingleButtonPanel(divPanel.newChildId(), removePositionButton,
+            getString("delete"));
+        divPanel.add(removePositionButtonPanel);
+      }
+      if (position.isDeleted()) {
+        positionsPanel.setVisible(false);
+      }
       setPosPeriodOfPerformanceVisible(position.getNumber(), posHasOwnPeriodOfPerformance(position.getNumber()));
     }
     positionsDependentFormComponents = dependentComponents.toArray(new FormComponent[0]);
+
   }
 
   protected String getPositionHeading(final AuftragsPositionDO position, final ToggleContainerPanel positionsPanel)

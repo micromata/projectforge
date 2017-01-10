@@ -294,6 +294,9 @@ public class OrderExport
         continue;
       }
       for (final AuftragsPositionDO pos : order.getPositionen()) {
+        if (pos.isDeleted()) {
+          continue;
+        }
         final PropertyMapping mapping = new PropertyMapping();
         addPosMapping(mapping, order, pos);
         sheet.addRow(mapping.getMapping(), 0);
