@@ -61,6 +61,8 @@ public class AuftragFilter extends BaseSearchFilter implements Serializable
 
   protected AuftragsPositionsArt auftragsPositionsArt;
 
+  protected AuftragsPositionsPaymentType auftragsPositionsPaymentType;
+
   public static final String[] LIST = { FILTER_ALL, FILTER_AKQUISE, FILTER_BEAUFTRAGT, FILTER_NOCH_NICHT_VOLLSTAENDIG_FAKTURIERT,
       FILTER_BEAUFTRAGT_NOCH_NICHT_VOLLSTAENDIG_FAKTURIERT,
       FILTER_ABGESCHLOSSEN_NF, FILTER_VOLLSTAENDIG_FAKTURIERT, FILTER_ABGELEHNT, FILTER_ERSETZT };
@@ -171,5 +173,20 @@ public class AuftragFilter extends BaseSearchFilter implements Serializable
   public void setAuftragsPositionsArt(final AuftragsPositionsArt auftragsPositionsArt)
   {
     this.auftragsPositionsArt = auftragsPositionsArt;
+  }
+
+  /**
+   * null represents all.
+   *
+   * @return
+   */
+  public AuftragsPositionsPaymentType getAuftragsPositionsPaymentType()
+  {
+    return auftragsPositionsPaymentType;
+  }
+
+  public void setAuftragsPositionsPaymentType(final AuftragsPositionsPaymentType auftragsPositionsPaymentType)
+  {
+    this.auftragsPositionsPaymentType = auftragsPositionsPaymentType;
   }
 }

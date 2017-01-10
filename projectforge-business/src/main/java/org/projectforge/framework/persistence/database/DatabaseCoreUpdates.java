@@ -113,13 +113,14 @@ public class DatabaseCoreUpdates
     ////////////////////////////////////////////////////////////////////
     // 6.7.0
     // /////////////////////////////////////////////////////////////////
-    list.add(new UpdateEntryImpl(CORE_REGION_ID, "6.7.0", "2017-01-13", "Add users to project and order.")
+    list.add(new UpdateEntryImpl(CORE_REGION_ID, "6.7.0", "2017-01-13", "Add payment type for order book position. Add users to project and order.")
     {
       @Override
       public UpdatePreCheckStatus runPreCheck()
       {
         log.info("Running pre-check for ProjectForge version 6.7.0");
-        if (databaseUpdateService.doesTableAttributeExist("T_FIBU_PROJEKT", "projectmanager_fk") == false
+        if (databaseUpdateService.doesTableAttributeExist("t_fibu_auftrag_position", "paymentType") == false
+            || databaseUpdateService.doesTableAttributeExist("T_FIBU_PROJEKT", "projectmanager_fk") == false
             || databaseUpdateService.doesTableAttributeExist("T_FIBU_PROJEKT", "headofbusinessmanager_fk") == false
             || databaseUpdateService.doesTableAttributeExist("T_FIBU_PROJEKT", "salesmanager_fk") == false
             || databaseUpdateService.doesTableAttributeExist("t_fibu_auftrag", "projectmanager_fk") == false
@@ -133,6 +134,13 @@ public class DatabaseCoreUpdates
       @Override
       public UpdateRunningStatus runUpdate()
       {
+        if (databaseUpdateService.doesTableAttributeExist("t_fibu_auftrag_position", "paymentType") == false) {
+          //Updating the schema
+          initDatabaseDao.updateSchema();
+          databaseUpdateService.execute("UPDATE t_fibu_auftrag_position SET paymentType = 'FESTPREISPAKET', art = NULL WHERE art = 'FESTPREISPAKET'");
+          databaseUpdateService.execute("UPDATE t_fibu_auftrag_position SET paymentType = 'TIME_AND_MATERIALS', art = NULL WHERE art = 'TIME_AND_MATERIALS'");
+          databaseUpdateService.execute("UPDATE t_fibu_auftrag_position SET art = 'WARTUNG' WHERE art = 'HOT_FIX'");
+        }
         if (databaseUpdateService.doesTableAttributeExist("T_FIBU_PROJEKT", "projectmanager_fk") == false
             || databaseUpdateService.doesTableAttributeExist("T_FIBU_PROJEKT", "headofbusinessmanager_fk") == false
             || databaseUpdateService.doesTableAttributeExist("T_FIBU_PROJEKT", "salesmanager_fk") == false

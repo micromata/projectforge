@@ -33,6 +33,7 @@ import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.fibu.AuftragDao;
 import org.projectforge.business.fibu.AuftragFilter;
 import org.projectforge.business.fibu.AuftragsPositionsArt;
+import org.projectforge.business.fibu.AuftragsPositionsPaymentType;
 import org.projectforge.business.fibu.AuftragsStatistik;
 import org.projectforge.business.utils.CurrencyFormatter;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
@@ -204,7 +205,7 @@ public class AuftragListForm extends AbstractListForm<AuftragListFilter, Auftrag
     typeChoice.setNullValid(false);
     optionsFieldsetPanel.add(typeChoice);
 
-    // DropDownChoice Auftragsart
+    // DropDownChoice AuftragsPositionsArt
     final LabelValueChoiceRenderer<Integer> auftragsPositionsArtChoiceRenderer = new LabelValueChoiceRenderer<Integer>();
     auftragsPositionsArtChoiceRenderer.addValue(-1, getString("filter.all"));
     for (final AuftragsPositionsArt art : AuftragsPositionsArt.values()) {
@@ -229,6 +230,32 @@ public class AuftragListForm extends AbstractListForm<AuftragListFilter, Auftrag
     };
     auftragsPositionsArtChoice.setNullValid(false);
     optionsFieldsetPanel.add(auftragsPositionsArtChoice);
+
+    // DropDownChoice AuftragsPositionsPaymentType
+    final LabelValueChoiceRenderer<Integer> auftragsPositionsPaymentTypeChoiceRenderer = new LabelValueChoiceRenderer<Integer>();
+    auftragsPositionsPaymentTypeChoiceRenderer.addValue(-1, getString("filter.all"));
+    for (final AuftragsPositionsPaymentType paymentType : AuftragsPositionsPaymentType.values()) {
+      auftragsPositionsPaymentTypeChoiceRenderer.addValue(paymentType.ordinal(), getString(paymentType.getI18nKey()));
+    }
+    final DropDownChoice<Integer> auftragsPositionsPaymentTypeChoice = new DropDownChoice<Integer>(
+        optionsFieldsetPanel.getDropDownChoiceId(),
+        new PropertyModel<Integer>(this, "auftragsPositionsPaymentType"), auftragsPositionsPaymentTypeChoiceRenderer.getValues(),
+        auftragsPositionsPaymentTypeChoiceRenderer)
+    {
+      @Override
+      protected boolean wantOnSelectionChangedNotifications()
+      {
+        return true;
+      }
+
+      @Override
+      protected void onSelectionChanged(final Integer newSelection)
+      {
+        parentPage.refresh();
+      }
+    };
+    auftragsPositionsPaymentTypeChoice.setNullValid(false);
+    optionsFieldsetPanel.add(auftragsPositionsPaymentTypeChoice);
 
     final UserSelectPanel userSelectPanel = new UserSelectPanel(optionsFieldsetPanel.newChildId(),
         new PropertyModel<PFUserDO>(this, "user"),
@@ -281,6 +308,24 @@ public class AuftragListForm extends AbstractListForm<AuftragListFilter, Auftrag
       getSearchFilter().setAuftragsPositionsArt(null);
     } else {
       getSearchFilter().setAuftragsPositionsArt(AuftragsPositionsArt.values()[auftragsPositionsArt]);
+    }
+  }
+
+  public Integer getAuftragsPositionsPaymentType()
+  {
+    if (getSearchFilter().getAuftragsPositionsPaymentType() != null) {
+      return getSearchFilter().getAuftragsPositionsPaymentType().ordinal();
+    } else {
+      return -1;
+    }
+  }
+
+  public void setAuftragsPositionsPaymentType(final Integer auftragsPositionsPaymentType)
+  {
+    if (auftragsPositionsPaymentType == null || auftragsPositionsPaymentType == -1) {
+      getSearchFilter().setAuftragsPositionsPaymentType(null);
+    } else {
+      getSearchFilter().setAuftragsPositionsPaymentType(AuftragsPositionsPaymentType.values()[auftragsPositionsPaymentType]);
     }
   }
 
