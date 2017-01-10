@@ -46,15 +46,15 @@ import org.projectforge.business.task.TaskDO;
 import org.projectforge.framework.persistence.api.ShortDisplayNameCapable;
 import org.projectforge.framework.persistence.entities.DefaultBaseDO;
 import org.projectforge.framework.persistence.user.entities.GroupDO;
+import org.projectforge.framework.persistence.user.entities.PFUserDO;
 
 import de.micromata.genome.db.jpa.history.api.WithHistory;
 
 /**
  * Projekte sind Kunden zugeordnet und haben eine zweistellige Nummer. Sie sind Bestandteile von KOST2 (5. und 6.
  * Ziffer).
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
  */
 @Entity
 @Indexed
@@ -70,6 +70,9 @@ import de.micromata.genome.db.jpa.history.api.WithHistory;
         @javax.persistence.Index(name = "idx_fk_t_fibu_projekt_kunde_id", columnList = "kunde_id"),
         @javax.persistence.Index(name = "idx_fk_t_fibu_projekt_projektmanager_group_fk",
             columnList = "projektmanager_group_fk"),
+        @javax.persistence.Index(name = "idx_fk_t_fibu_projekt_projectManager_fk", columnList = "projectmanager_fk"),
+        @javax.persistence.Index(name = "idx_fk_t_fibu_projekt_headofbusinessmanager_fk", columnList = "headofbusinessmanager_fk"),
+        @javax.persistence.Index(name = "idx_fk_t_fibu_projekt_salesmanager_fk", columnList = "salesmanager_fk"),
         @javax.persistence.Index(name = "idx_fk_t_fibu_projekt_task_fk", columnList = "task_fk"),
         @javax.persistence.Index(name = "idx_fk_t_fibu_projekt_tenant_id", columnList = "tenant_id")
     })
@@ -102,6 +105,15 @@ public class ProjektDO extends DefaultBaseDO implements ShortDisplayNameCapable
   @IndexedEmbedded(depth = 1)
   private GroupDO projektManagerGroup;
 
+  @IndexedEmbedded(depth = 1)
+  private PFUserDO projectManager;
+
+  @IndexedEmbedded(depth = 1)
+  private PFUserDO headOfBusinessManager;
+
+  @IndexedEmbedded(depth = 1)
+  private PFUserDO salesManager;
+
   private TaskDO task;
 
   private KontoDO konto;
@@ -112,7 +124,9 @@ public class ProjektDO extends DefaultBaseDO implements ShortDisplayNameCapable
     return KostFormatter.format(this);
   }
 
-  /** 1. Ziffer des Kostenträgers: Ist 4 für interne Projekte (kunde nicht gegeben) ansonsten 5. */
+  /**
+   * 1. Ziffer des Kostenträgers: Ist 4 für interne Projekte (kunde nicht gegeben) ansonsten 5.
+   */
   @Transient
   public int getNummernkreis()
   {
@@ -167,7 +181,7 @@ public class ProjektDO extends DefaultBaseDO implements ShortDisplayNameCapable
 
   /**
    * The member of this group have access to orders assigned to this project.
-   * 
+   *
    * @return
    */
   @ManyToOne(fetch = FetchType.LAZY)
@@ -189,6 +203,63 @@ public class ProjektDO extends DefaultBaseDO implements ShortDisplayNameCapable
     return this;
   }
 
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "projectmanager_fk")
+  public PFUserDO getProjectManager()
+  {
+    return projectManager;
+  }
+
+  @Transient
+  public Integer getProjectManagerId()
+  {
+    return projectManager != null ? projectManager.getId() : null;
+  }
+
+  public ProjektDO setProjectManager(final PFUserDO projectManager)
+  {
+    this.projectManager = projectManager;
+    return this;
+  }
+
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "headofbusinessmanager_fk")
+  public PFUserDO getHeadOfBusinessManager()
+  {
+    return headOfBusinessManager;
+  }
+
+  @Transient
+  public Integer getHeadOfBusinessManagerId()
+  {
+    return headOfBusinessManager != null ? headOfBusinessManager.getId() : null;
+  }
+
+  public ProjektDO setHeadOfBusinessManager(final PFUserDO headOfBusinessManager)
+  {
+    this.headOfBusinessManager = headOfBusinessManager;
+    return this;
+  }
+
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "salesmanager_fk")
+  public PFUserDO getSalesManager()
+  {
+    return salesManager;
+  }
+
+  @Transient
+  public Integer getSalesManagerId()
+  {
+    return salesManager != null ? salesManager.getId() : null;
+  }
+
+  public ProjektDO setSalesManager(final PFUserDO salesManager)
+  {
+    this.salesManager = salesManager;
+    return this;
+  }
+
   @Column(length = 255, nullable = false)
   public String getName()
   {
@@ -203,7 +274,7 @@ public class ProjektDO extends DefaultBaseDO implements ShortDisplayNameCapable
 
   /**
    * The identifier is used e. g. for display the project as short name in human resources planning tables.
-   * 
+   *
    * @return
    */
   @Column(length = 20)
@@ -301,7 +372,7 @@ public class ProjektDO extends DefaultBaseDO implements ShortDisplayNameCapable
   /**
    * This Datev account number is used for the exports of invoices. If not given then the account number assigned to the
    * KundeDO is used instead (default).
-   * 
+   *
    * @return
    */
   @ManyToOne(fetch = FetchType.LAZY)

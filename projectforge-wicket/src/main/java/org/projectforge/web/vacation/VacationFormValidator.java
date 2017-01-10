@@ -80,7 +80,7 @@ public class VacationFormValidator implements IFormValidator
     //Getting end date from form component or direct from data
     Calendar endDate = Calendar.getInstance(ThreadLocalUserContext.getTimeZone());
     if (endDatePanel != null && endDatePanel.getConvertedInput() != null) {
-      startDate.setTime(endDatePanel.getConvertedInput());
+      endDate.setTime(endDatePanel.getConvertedInput());
     } else {
       endDate.setTime(data.getEndDate());
     }

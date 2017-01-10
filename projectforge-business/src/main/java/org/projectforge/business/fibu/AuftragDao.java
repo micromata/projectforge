@@ -374,6 +374,15 @@ public class AuftragDao extends BaseDao<AuftragDO>
               AuftragsStatus.ESKALATION }));
     } else if (myFilter.isShowErsetzt() == true) {
       queryFilter.add(Restrictions.eq("auftragsStatus", AuftragsStatus.ERSETZT));
+    } else if (myFilter.getUser() != null) {
+      queryFilter.add(
+          Restrictions.or(
+              Restrictions.eq("contactPerson", myFilter.getUser()),
+              Restrictions.eq("projectManager", myFilter.getUser()),
+              Restrictions.eq("headOfBusinessManager", myFilter.getUser()),
+              Restrictions.eq("salesManager", myFilter.getUser())
+          )
+      );
     }
     if (myFilter.getYear() > 1900) {
       final Calendar cal = DateHelper.getUTCCalendar();

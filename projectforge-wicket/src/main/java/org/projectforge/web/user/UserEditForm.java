@@ -224,6 +224,7 @@ public class UserEditForm extends AbstractEditForm<PFUserDO, UserEditPage>
     final FieldsetPanel fs = gridBuilder.newFieldset(gridBuilder.getString("email"));
     MaxLengthTextField email = new MaxLengthTextField(fs.getTextFieldId(), new PropertyModel<String>(user, "email"));
     email.setMarkupId("email").setOutputMarkupId(true);
+    email.setRequired(true);
     fs.add(email);
   }
 

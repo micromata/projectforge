@@ -23,6 +23,7 @@
 
 package org.projectforge.web.vacation;
 
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.fibu.EmployeeDO;
@@ -48,20 +49,35 @@ public class VacationViewPage extends AbstractSecuredPage
   private VacationService vacationService;
 
   private GridBuilder gridBuilder;
+  private EmployeeDO currentEmployee;
+
+  private WebMarkupContainer container;
 
   public VacationViewPage(final PageParameters parameters)
   {
-    this(parameters, null);
+    super(parameters);
   }
 
-  public VacationViewPage(final PageParameters parameters, final AbstractSecuredPage returnToPage)
+  @Override
+  protected void onInitialize()
   {
-    super(parameters);
+    super.onInitialize();
+
     final PFUserDO currentUser = ThreadLocalUserContext.getUser();
-    vacationService.couldUserUseVacationService(currentUser, true);
-    final EmployeeDO currentEmployee = employeeService.getEmployeeByUserId(currentUser.getPk());
-    gridBuilder = new GridBuilder(body, "flowform", true);
-    vacationViewHelper.createVacationView(gridBuilder, currentEmployee, true);
+    vacationService.couldUserUseVacationService(currentUser, true); // throw runtime exception if not allowed
+    currentEmployee = employeeService.getEmployeeByUserId(currentUser.getPk());
+
+  }
+
+  @Override
+  protected void onConfigure()
+  {
+    super.onConfigure();
+
+    container = new WebMarkupContainer("container");
+    body.addOrReplace(container);
+    gridBuilder = new GridBuilder(container, "flowform", true);
+    vacationViewHelper.createVacationView(gridBuilder, currentEmployee, true, this);
   }
 
   @Override

@@ -128,6 +128,8 @@ public class AuftragEditForm extends AbstractEditForm<AuftragDO, AuftragEditPage
 
   protected NewProjektSelectPanel projektSelectPanel;
 
+  private UserSelectPanel projectManagerSelectPanel, headOfBusinessManagerSelectPanel, salesManagerSelectPanel;
+
   @SpringBean
   AccessChecker accessChecker;
 
@@ -246,8 +248,14 @@ public class AuftragEditForm extends AbstractEditForm<AuftragDO, AuftragEditPage
         {
           if (getData().getKundeId() == null && StringUtils.isBlank(getData().getKundeText()) == true) {
             getData().setKunde(projektSelectPanel.getModelObject().getKunde());
+            getData().setProjectManager(projektSelectPanel.getModelObject().getProjectManager());
+            getData().setHeadOfBusinessManager(projektSelectPanel.getModelObject().getHeadOfBusinessManager());
+            getData().setSalesManager(projektSelectPanel.getModelObject().getSalesManager());
           }
           target.add(kundeSelectPanel.getTextField());
+          target.add(projectManagerSelectPanel.getFormComponent());
+          target.add(headOfBusinessManagerSelectPanel.getFormComponent());
+          target.add(salesManagerSelectPanel.getFormComponent());
         }
       });
       // ajaxUpdateComponents.add(projektSelectPanel.getTextField());
@@ -266,6 +274,39 @@ public class AuftragEditForm extends AbstractEditForm<AuftragDO, AuftragEditPage
       fs.add(kundeSelectPanel);
       kundeSelectPanel.init();
       fs.addHelpIcon(getString("fibu.auftrag.hint.kannVonProjektKundenAbweichen"));
+    }
+    gridBuilder.newSplitPanel(GridSize.COL33);
+    {
+      // project manager
+      final FieldsetPanel fs = gridBuilder.newFieldset(getString("fibu.projectManager"));
+      projectManagerSelectPanel = new UserSelectPanel(fs.newChildId(),
+          new PropertyModel<PFUserDO>(data, "projectManager"),
+          parentPage, "projectManagerId");
+      projectManagerSelectPanel.getComponentOutputId();
+      fs.add(projectManagerSelectPanel);
+      projectManagerSelectPanel.init();
+    }
+    gridBuilder.newSplitPanel(GridSize.COL33);
+    {
+      // head of business manager
+      final FieldsetPanel fs = gridBuilder.newFieldset(getString("fibu.headOfBusinessManager"));
+      headOfBusinessManagerSelectPanel = new UserSelectPanel(fs.newChildId(),
+          new PropertyModel<PFUserDO>(data, "headOfBusinessManager"),
+          parentPage, "headOfBusinessManagerId");
+      headOfBusinessManagerSelectPanel.getComponentOutputId();
+      fs.add(headOfBusinessManagerSelectPanel);
+      headOfBusinessManagerSelectPanel.init();
+    }
+    gridBuilder.newSplitPanel(GridSize.COL33);
+    {
+      //sales manager
+      final FieldsetPanel fs = gridBuilder.newFieldset(getString("fibu.salesManager"));
+      salesManagerSelectPanel = new UserSelectPanel(fs.newChildId(),
+          new PropertyModel<PFUserDO>(data, "salesManager"),
+          parentPage, "salesManagerId");
+      salesManagerSelectPanel.getComponentOutputId();
+      fs.add(salesManagerSelectPanel);
+      salesManagerSelectPanel.init();
     }
     gridBuilder.newSplitPanel(GridSize.SPAN2);
     {
