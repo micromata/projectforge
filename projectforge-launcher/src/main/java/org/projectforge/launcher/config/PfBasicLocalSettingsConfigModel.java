@@ -115,6 +115,11 @@ public class PfBasicLocalSettingsConfigModel extends AbstractLocalSettingsConfig
     sw.put("projectforge.ldap.posixAccountsDefaultGidNumber", "");
     sw.put("projectforge.ldap.sambaAccountsSIDPrefix", "");
     sw.put("projectforge.ldap.sambaAccountsPrimaryGroupSID", "");
+    sw.put("projectforge.cron.hourly", "0 0 * * * *");
+    sw.put("projectforge.cron.nightly", "0 30 2 * * *");
+    sw.put("projectforge.cron.mebPolling", "0 */10 * * * *");
+    sw.put("projectforge.cron.externalCalendar", "0 */15 * * * *");
+    sw.put("projectforge.cron.updateVacationLastYear", "0 0 23 31 12 *");
     return writer;
   }
 
