@@ -374,6 +374,15 @@ public class AuftragDao extends BaseDao<AuftragDO>
               AuftragsStatus.ESKALATION }));
     } else if (myFilter.isShowErsetzt() == true) {
       queryFilter.add(Restrictions.eq("auftragsStatus", AuftragsStatus.ERSETZT));
+    } else if (myFilter.getUser() != null) {
+      queryFilter.add(
+          Restrictions.or(
+              Restrictions.eq("contactPerson", myFilter.getUser()),
+              Restrictions.eq("projectManager", myFilter.getUser()),
+              Restrictions.eq("headOfBusinessManager", myFilter.getUser()),
+              Restrictions.eq("salesManager", myFilter.getUser())
+          )
+      );
     }
     if (myFilter.getYear() > 1900) {
       final Calendar cal = DateHelper.getUTCCalendar();
@@ -443,6 +452,29 @@ public class AuftragDao extends BaseDao<AuftragDO>
             if (CollectionUtils.isNotEmpty(auftrag.getPositionen()) == true) {
               for (final AuftragsPositionDO position : auftrag.getPositionen()) {
                 if (fil.getAuftragsPositionsArt() == position.getArt()) {
+                  match = true;
+                  break;
+                }
+              }
+            }
+          }
+          return match;
+        }
+      });
+    }
+    if (myFilter.getAuftragsPositionsPaymentType() != null) {
+      final AuftragFilter fil = myFilter;
+      CollectionUtils.filter(list, new Predicate()
+      {
+        @Override
+        public boolean evaluate(final Object object)
+        {
+          final AuftragDO auftrag = (AuftragDO) object;
+          boolean match = false;
+          if (fil.getAuftragsPositionsPaymentType() != null) {
+            if (CollectionUtils.isNotEmpty(auftrag.getPositionen()) == true) {
+              for (final AuftragsPositionDO position : auftrag.getPositionen()) {
+                if (fil.getAuftragsPositionsPaymentType() == position.getPaymentType()) {
                   match = true;
                   break;
                 }

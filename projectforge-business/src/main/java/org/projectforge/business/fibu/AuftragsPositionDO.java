@@ -83,6 +83,8 @@ public class AuftragsPositionDO extends DefaultBaseDO implements ShortDisplayNam
 
   private AuftragsPositionsArt art;
 
+  private AuftragsPositionsPaymentType paymentType;
+
   private AuftragsPositionsStatus status;
 
   private String titel;
@@ -182,6 +184,19 @@ public class AuftragsPositionDO extends DefaultBaseDO implements ShortDisplayNam
   public AuftragsPositionDO setArt(final AuftragsPositionsArt art)
   {
     this.art = art;
+    return this;
+  }
+
+  @Enumerated(EnumType.STRING)
+  @Column(name = "paymentType", length = 30)
+  public AuftragsPositionsPaymentType getPaymentType()
+  {
+    return paymentType;
+  }
+
+  public AuftragsPositionDO setPaymentType(final AuftragsPositionsPaymentType paymentType)
+  {
+    this.paymentType = paymentType;
     return this;
   }
 

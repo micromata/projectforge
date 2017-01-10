@@ -62,9 +62,8 @@ import org.projectforge.storage.StorageConfig;
 /**
  * Configure ProjectForge via config.xml in the application's base dir.<br/>
  * The config.xml will never re-read automatically. Please call the web admin page to force a re-read.
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
  */
 @XmlObject(alias = "config")
 public class ConfigXml
@@ -112,12 +111,6 @@ public class ConfigXml
   private String workingDirectory;
 
   private String tempDirectory;
-
-  private String cronExpressionHourlyJob;
-
-  private String cronExpressionNightlyJob;
-
-  private String cronExpressionMebPollingJob;
 
   private List<ContractType> contractTypes;
 
@@ -167,9 +160,6 @@ public class ConfigXml
     loggingDirectory = "logs";
     workingDirectory = "work";
     tempDirectory = "tmp";
-    cronExpressionHourlyJob = null;
-    cronExpressionNightlyJob = null;
-    cronExpressionMebPollingJob = null;
     accountingConfig = new AccountingConfig();
     accountingConfig.reset();
     contractTypes = null;
@@ -327,7 +317,7 @@ public class ConfigXml
 
   /**
    * For test cases.
-   * 
+   *
    * @param config
    */
   static void internalSetInstance(final String config)
@@ -402,7 +392,7 @@ public class ConfigXml
    * <li>Ignore static fields
    * <li>Ignore inner class fields</li>
    * </ul>
-   * 
+   *
    * @param field The Field to test.
    * @return Whether or not to consider the given <code>Field</code>.
    */
@@ -438,7 +428,7 @@ public class ConfigXml
 
   /**
    * FOR INTERNAL USE ONLY (tests). Please configure this value via config.xml.
-   * 
+   *
    * @param jiraBrowseBaseUrl
    */
   public void setJiraBrowseBaseUrl(final String jiraBrowseBaseUrl)
@@ -485,7 +475,7 @@ public class ConfigXml
   /**
    * The currency symbol of ProjectForge. ProjectForge supports currently one currency for the whole application. <br/>
    * Please note: The deprecated stripes action only works with "€".
-   * 
+   *
    * @return the application wide currency symbol, e. g. "€".
    */
   public String getCurrencySymbol()
@@ -512,7 +502,7 @@ public class ConfigXml
 
   /**
    * The default first day of week (1 - Sunday, 2 - Monday, ...)
-   * 
+   *
    * @return the firstDayOfWeek
    */
   public int getFirstDayOfWeek()
@@ -526,7 +516,9 @@ public class ConfigXml
     ExportConfig.getInstance().setDefaultPaperSize(excelDefaultPaperSize);
   }
 
-  /** ProjectForges home dir (for resources, images, configuration etc.). */
+  /**
+   * ProjectForges home dir (for resources, images, configuration etc.).
+   */
   public String getApplicationHomeDir()
   {
     return applicationHomeDir;
@@ -569,7 +561,7 @@ public class ConfigXml
   /**
    * This directory is used for e. g. storing uploaded files. The absolute path will be returned. <br/>
    * Default value: "work"
-   * 
+   *
    * @see #setWorkingDirectory(String)
    */
   public String getWorkingDirectory()
@@ -579,7 +571,7 @@ public class ConfigXml
 
   /**
    * Sets the working dir as relative sub directory of the application's home dir or the absolute path if given.
-   * 
+   *
    * @param workingDirectory
    */
   public void setWorkingDirectory(final String workingDirectory)
@@ -590,7 +582,7 @@ public class ConfigXml
   /**
    * This directory is used e. g. by the ImageCropper. The absolute path will be returned. <br/>
    * Default value: "tmp"
-   * 
+   *
    * @see #setWorkingDirectory(String)
    */
   public String getTempDirectory()
@@ -601,7 +593,7 @@ public class ConfigXml
   /**
    * Sets the temporary dir as relative sub directory of the application's home dir or the absolute path if given. This
    * directory is used by ProjectForge to save temporary files such as images from the ImageCropper.
-   * 
+   *
    * @param tempDirectory
    */
   public void setTempDirectory(final String tempDirectory)
@@ -622,7 +614,7 @@ public class ConfigXml
   /**
    * Here you can define a list of main classes of type AbstractPlugin. These classes will be initialized on startup.
    * Multiple entries should be separated by white chars and/or ','.
-   * 
+   *
    * @return
    */
   public String[] getPluginMainClasses()
@@ -632,7 +624,7 @@ public class ConfigXml
 
   /**
    * If no such plugin config exist, a new instance is created and returned.
-   * 
+   *
    * @return the pluginConfigs
    */
   public ConfigurationData getPluginConfig(final Class<? extends ConfigurationData> configClass)
@@ -652,40 +644,13 @@ public class ConfigXml
   }
 
   /**
-   * For overwriting the default settings.<br/>
-   * Format for hourly *:00 is (see Quartz documentation for further information) "0 0 * * * ?"
-   */
-  public String getCronExpressionHourlyJob()
-  {
-    return cronExpressionHourlyJob;
-  }
-
-  /**
-   * For overwriting the default settings.<br/>
-   * Format for nightly at 2:30 AM (UTC) is (see Quartz documentation for further information) "0 30 2 * * ?"
-   */
-  public String getCronExpressionNightlyJob()
-  {
-    return cronExpressionNightlyJob;
-  }
-
-  /**
-   * For overwriting the settings of applicationContext-web.xml.<br/>
-   * Format for every 10 minutes (5, 15, 25, ...) is (see Quartz documentation for further information) "0 5/10 * * * ?"
-   */
-  public String getCronExpressionMebPollingJob()
-  {
-    return cronExpressionMebPollingJob;
-  }
-
-  /**
    * Here you can add menu entries to be hidden or can build your own menu tree or just modify the existing one. If you
    * don't configure this element, you will receive the standard ProjectForge menu containing all menu entries which are
    * available for the system and the user. <br/>
    * Please note: ProjectForge assures, that only such menu entries are visible, to which the user has the access to
    * (independant from your definitions here)! <br/>
    * If you want to make a menu entry invisible, you can add this to this root element like this:<br/>
-   * 
+   *
    * <pre>
    * &lt;menu-entry id="DEVELOPER_DOC" visible="false"/&gt; <br/>
    * See all the predefined id's here: {@link MenuItemDef} <br/>
@@ -723,7 +688,7 @@ public class ConfigXml
 
   /**
    * Replaces field values with annotation {@link ConfigXmlSecretField} by "******".
-   * 
+   *
    * @param configObject
    * @return String representation of the given object.
    * @see ReflectionToStringBuilder#ReflectionToStringBuilder(Object)
@@ -739,7 +704,9 @@ public class ConfigXml
           return SECRET_PROPERTY_STRING;
         }
         return super.getValue(field);
-      };
+      }
+
+      ;
     }.toString();
   }
 }

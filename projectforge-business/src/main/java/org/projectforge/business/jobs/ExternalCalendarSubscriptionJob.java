@@ -14,15 +14,17 @@ public class ExternalCalendarSubscriptionJob
   @Autowired
   private TeamEventExternalSubscriptionCache teamEventExternalSubscriptionCache;
 
-  @Scheduled(cron = "0 */15 * * * *")
-  public void doSomething()
+  //@Scheduled(cron = "0 */15 * * * *")
+  @Scheduled(cron = "${projectforge.cron.externalCalendar}")
+  public void execute()
   {
-    log.info("Update external calendar subscriptions");
+    log.info("External calendar subscriptions job started.");
     try {
       teamEventExternalSubscriptionCache.updateCache();
     } catch (final Throwable ex) {
       log.error("Exception while executing ExternalCalendarSubscriptionJob: " + ex.getMessage(), ex);
     }
+    log.info("External calendar subscriptions job finished.");
   }
 
 }
