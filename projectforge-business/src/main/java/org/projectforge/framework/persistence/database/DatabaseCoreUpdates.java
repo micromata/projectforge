@@ -111,6 +111,43 @@ public class DatabaseCoreUpdates
     final List<UpdateEntry> list = new ArrayList<>();
 
     ////////////////////////////////////////////////////////////////////
+    // 6.7.0
+    // /////////////////////////////////////////////////////////////////
+    list.add(new UpdateEntryImpl(CORE_REGION_ID, "6.7.0", "2017-01-13", "Add users to project and order.")
+    {
+      @Override
+      public UpdatePreCheckStatus runPreCheck()
+      {
+        log.info("Running pre-check for ProjectForge version 6.7.0");
+        if (databaseUpdateService.doesTableAttributeExist("T_FIBU_PROJEKT", "projectmanager_fk") == false
+            || databaseUpdateService.doesTableAttributeExist("T_FIBU_PROJEKT", "headofbusinessmanager_fk") == false
+            || databaseUpdateService.doesTableAttributeExist("T_FIBU_PROJEKT", "salesmanager_fk") == false
+            || databaseUpdateService.doesTableAttributeExist("t_fibu_auftrag", "projectmanager_fk") == false
+            || databaseUpdateService.doesTableAttributeExist("t_fibu_auftrag", "headofbusinessmanager_fk") == false
+            || databaseUpdateService.doesTableAttributeExist("t_fibu_auftrag", "salesmanager_fk") == false) {
+          return UpdatePreCheckStatus.READY_FOR_UPDATE;
+        }
+        return UpdatePreCheckStatus.ALREADY_UPDATED;
+      }
+
+      @Override
+      public UpdateRunningStatus runUpdate()
+      {
+        if (databaseUpdateService.doesTableAttributeExist("T_FIBU_PROJEKT", "projectmanager_fk") == false
+            || databaseUpdateService.doesTableAttributeExist("T_FIBU_PROJEKT", "headofbusinessmanager_fk") == false
+            || databaseUpdateService.doesTableAttributeExist("T_FIBU_PROJEKT", "salesmanager_fk") == false
+            || databaseUpdateService.doesTableAttributeExist("t_fibu_auftrag", "projectmanager_fk") == false
+            || databaseUpdateService.doesTableAttributeExist("t_fibu_auftrag", "headofbusinessmanager_fk") == false
+            || databaseUpdateService.doesTableAttributeExist("t_fibu_auftrag", "salesmanager_fk") == false) {
+          //Updating the schema
+          initDatabaseDao.updateSchema();
+        }
+        return UpdateRunningStatus.DONE;
+      }
+
+    });
+
+    ////////////////////////////////////////////////////////////////////
     // 6.6.1
     // /////////////////////////////////////////////////////////////////
     list.add(new UpdateEntryImpl(CORE_REGION_ID, "6.6.1", "2016-12-23", "Add probability of occurrence to order book.")
