@@ -1,4 +1,4 @@
-package org.projectforge.business.vacation.job;
+package org.projectforge.business.jobs;
 
 import java.util.Calendar;
 import java.util.Collection;
@@ -23,13 +23,14 @@ public class UpdateVacationFromLastYearJob
   private EmployeeService employeeService;
 
   @Scheduled(cron = "0 0 23 31 12 *")
+  @Scheduled(cron = "${projectforge.cron.updateVacationLastYear}")
   public void updateNewVacationDaysFromLastYear()
   {
-    log.info("Update vacation days from last year");
+    log.info("Update vacation days from last year job started.");
     Calendar now = Calendar.getInstance();
     Collection<EmployeeDO> activeEmployees = employeeService.findAllActive(false);
     activeEmployees.forEach(emp -> vacationService.updateUsedNewVacationDaysFromLastYear(emp, now.get(Calendar.YEAR)));
-    log.info("Update vacation days from last year DONE");
+    log.info("Update vacation days from last year job finished.");
   }
 
 }

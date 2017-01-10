@@ -21,39 +21,43 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.business.meb;
+package org.projectforge.business.jobs;
 
-import org.projectforge.business.jobs.AbstractCronJob;
-import org.quartz.JobExecutionContext;
-import org.quartz.JobExecutionException;
+import org.projectforge.business.configuration.ConfigurationService;
+import org.projectforge.business.meb.MebJobExecutor;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Component;
 
 /**
  * Job should be scheduled every 10 minutes.
- * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
+ *
+ * @author Florian Blumenstein
  */
-public class MebPollingJob extends AbstractCronJob
+@Component
+public class MebPollingJob
 {
   private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(MebPollingJob.class);
 
+  @Autowired
   private MebJobExecutor mebJobExecutor;
 
-  public void execute(final JobExecutionContext context) throws JobExecutionException
+  @Autowired
+  private ConfigurationService configurationService;
+
+  //@Scheduled(cron = "0 */10 * * * *")
+  @Scheduled(cron = "${projectforge.cron.mebPolling}")
+  public void execute()
   {
-    // log.info("MEB polling job started.");
-    if (mebJobExecutor == null) {
-      wire(context);
+    if (configurationService.isMebMailAccountConfigured()) {
+      log.info("MEB polling job started.");
+      try {
+        mebJobExecutor.execute(false);
+      } catch (final Throwable ex) {
+        log.error("While executing hibernate search re-index job: " + ex.getMessage(), ex);
+      }
+      log.info("MEB polling job finished.");
     }
-    try {
-      mebJobExecutor.execute(false);
-    } catch (final Throwable ex) {
-      log.error("While executing hibernate search re-index job: " + ex.getMessage(), ex);
-    }
-    // log.info("MEB polling job finished.");
   }
 
-  protected void wire(final JobExecutionContext context)
-  {
-    mebJobExecutor = (MebJobExecutor) wire(context, "mebJobExecutor");
-  }
 }
