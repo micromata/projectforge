@@ -55,6 +55,7 @@ import org.projectforge.business.fibu.AuftragDO;
 import org.projectforge.business.fibu.AuftragDao;
 import org.projectforge.business.fibu.AuftragsPositionDO;
 import org.projectforge.business.fibu.AuftragsPositionsArt;
+import org.projectforge.business.fibu.AuftragsPositionsPaymentType;
 import org.projectforge.business.fibu.AuftragsPositionsStatus;
 import org.projectforge.business.fibu.AuftragsStatus;
 import org.projectforge.business.fibu.KundeDO;
@@ -579,16 +580,28 @@ public class AuftragEditForm extends AbstractEditForm<AuftragDO, AuftragEditPage
       posGridBuilder.newSplitPanel(GridSize.COL33);
       {
         // DropDownChoice type
-        final FieldsetPanel fs = posGridBuilder.newFieldset(getString("fibu.auftrag.position.art"));
-        final LabelValueChoiceRenderer<AuftragsPositionsArt> artChoiceRenderer = new LabelValueChoiceRenderer<AuftragsPositionsArt>(
-            fs,
+        final FieldsetPanel fsType = posGridBuilder.newFieldset(getString("fibu.auftrag.position.art"));
+        final LabelValueChoiceRenderer<AuftragsPositionsArt> artChoiceRenderer = new LabelValueChoiceRenderer<>(
+            fsType,
             AuftragsPositionsArt.values());
-        final DropDownChoice<AuftragsPositionsArt> artChoice = new DropDownChoice<AuftragsPositionsArt>(
-            fs.getDropDownChoiceId(),
+        final DropDownChoice<AuftragsPositionsArt> artChoice = new DropDownChoice<>(
+            fsType.getDropDownChoiceId(),
             new PropertyModel<AuftragsPositionsArt>(position, "art"), artChoiceRenderer.getValues(), artChoiceRenderer);
-        artChoice.setNullValid(false);
-        artChoice.setRequired(true);
-        fs.add(artChoice);
+        //artChoice.setNullValid(false);
+        //artChoice.setRequired(true);
+        fsType.add(artChoice);
+
+        // DropDownChoice payment type
+        final FieldsetPanel fsPaymentType = posGridBuilder.newFieldset(getString("fibu.auftrag.position.paymenttype"));
+        final LabelValueChoiceRenderer<AuftragsPositionsPaymentType> paymentTypeChoiceRenderer = new LabelValueChoiceRenderer<>(
+            fsPaymentType,
+            AuftragsPositionsPaymentType.values());
+        final DropDownChoice<AuftragsPositionsPaymentType> paymentTypeChoice = new DropDownChoice<>(
+            fsPaymentType.getDropDownChoiceId(),
+            new PropertyModel<AuftragsPositionsPaymentType>(position, "paymentType"), paymentTypeChoiceRenderer.getValues(), paymentTypeChoiceRenderer);
+        //paymentTypeChoice.setNullValid(false);
+        //paymentTypeChoice.setRequired(true);
+        fsPaymentType.add(paymentTypeChoice);
       }
       posGridBuilder.newSplitPanel(GridSize.COL33);
       {

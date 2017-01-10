@@ -462,6 +462,29 @@ public class AuftragDao extends BaseDao<AuftragDO>
         }
       });
     }
+    if (myFilter.getAuftragsPositionsPaymentType() != null) {
+      final AuftragFilter fil = myFilter;
+      CollectionUtils.filter(list, new Predicate()
+      {
+        @Override
+        public boolean evaluate(final Object object)
+        {
+          final AuftragDO auftrag = (AuftragDO) object;
+          boolean match = false;
+          if (fil.getAuftragsPositionsPaymentType() != null) {
+            if (CollectionUtils.isNotEmpty(auftrag.getPositionen()) == true) {
+              for (final AuftragsPositionDO position : auftrag.getPositionen()) {
+                if (fil.getAuftragsPositionsPaymentType() == position.getPaymentType()) {
+                  match = true;
+                  break;
+                }
+              }
+            }
+          }
+          return match;
+        }
+      });
+    }
     return list;
   }
 

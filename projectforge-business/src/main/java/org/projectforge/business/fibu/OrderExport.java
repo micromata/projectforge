@@ -154,6 +154,7 @@ public class OrderExport
         new I18nExportColumn(PosCol.ORDER_TITLE, "fibu.auftrag.titel", MyXlsContentProvider.LENGTH_STD),
         new I18nExportColumn(PosCol.TITLE, "fibu.auftrag.titel", MyXlsContentProvider.LENGTH_STD),
         new I18nExportColumn(PosCol.TYPE, "fibu.auftrag.position.art", 10),
+        new I18nExportColumn(PosCol.PAYMENTTYPE, "fibu.auftrag.position.paymenttype", 20),
         new I18nExportColumn(PosCol.STATUS, "status", 10),
         new I18nExportColumn(PosCol.PERSON_DAYS, "projectmanagement.personDays.short", 8),
         new I18nExportColumn(PosCol.NETSUM, "fibu.auftrag.nettoSumme", MyXlsContentProvider.LENGTH_CURRENCY), //
@@ -180,6 +181,8 @@ public class OrderExport
     mapping.add(PosCol.TITLE, pos.getTitel());
     mapping.add(PosCol.TYPE,
         pos.getArt() != null ? ThreadLocalUserContext.getLocalizedString(pos.getArt().getI18nKey()) : "");
+    mapping.add(PosCol.PAYMENTTYPE,
+        pos.getPaymentType() != null ? ThreadLocalUserContext.getLocalizedString(pos.getPaymentType().getI18nKey()) : "");
     mapping.add(PosCol.STATUS,
         pos.getStatus() != null ? ThreadLocalUserContext.getLocalizedString(pos.getStatus().getI18nKey()) : "");
     mapping.add(PosCol.PERSON_DAYS, pos.getPersonDays());
@@ -351,7 +354,7 @@ public class OrderExport
 
   private enum PosCol
   {
-    NUMBER, POS_NUMBER, DATE_OF_OFFER, DATE_OF_ENTRY, DATE_OF_DESICION, PROJECT, ORDER_TITLE, TITLE, TYPE, STATUS, PERSON_DAYS, NETSUM, INVOICED, TO_BE_INVOICED, COMPLETELY_INVOICED, INVOICES, PERIOD_OF_PERFORMANCE_BEGIN, PERIOD_OF_PERFORMANCE_END, TASK, COMMENT;
+    NUMBER, POS_NUMBER, DATE_OF_OFFER, DATE_OF_ENTRY, DATE_OF_DESICION, PROJECT, ORDER_TITLE, TITLE, TYPE, PAYMENTTYPE, STATUS, PERSON_DAYS, NETSUM, INVOICED, TO_BE_INVOICED, COMPLETELY_INVOICED, INVOICES, PERIOD_OF_PERFORMANCE_BEGIN, PERIOD_OF_PERFORMANCE_END, TASK, COMMENT;
   }
 
   private enum PaymentsCol
