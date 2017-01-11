@@ -25,28 +25,31 @@ package org.projectforge.business.jobs;
 
 import org.projectforge.business.meb.MebJobExecutor;
 import org.projectforge.framework.persistence.history.HibernateSearchReindexer;
-import org.quartz.JobExecutionContext;
-import org.quartz.JobExecutionException;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Component;
 
 /**
  * Job should be scheduled nightly.
- * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
+ *
+ * @author Florian Blumenstein
  */
-public class CronNightlyJob extends AbstractCronJob
+@Component
+public class CronNightlyJob
 {
   private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(CronNightlyJob.class);
 
+  @Autowired
   private HibernateSearchReindexer hibernateSearchReindexer;
 
+  @Autowired
   private MebJobExecutor mebJobExecutor;
 
-  public void execute(final JobExecutionContext context) throws JobExecutionException
+  //@Scheduled(cron = "0 30 2 * * *")
+  @Scheduled(cron = "${projectforge.cron.nightly}")
+  public void execute()
   {
     log.info("Nightly job started.");
-    if (hibernateSearchReindexer == null) {
-      wire(context);
-    }
     try {
       hibernateSearchReindexer.execute();
     } catch (final Throwable ex) {
@@ -62,10 +65,4 @@ public class CronNightlyJob extends AbstractCronJob
     log.info("Nightly job job finished.");
   }
 
-  @Override
-  protected void wire(final JobExecutionContext context)
-  {
-    hibernateSearchReindexer = (HibernateSearchReindexer) wire(context, "hibernateSearchReindexer");
-    mebJobExecutor = (MebJobExecutor) wire(context, "mebJobExecutor");
-  }
 }

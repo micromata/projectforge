@@ -30,34 +30,31 @@ import org.projectforge.framework.persistence.database.DatabaseUpdateService;
 import org.projectforge.framework.persistence.history.HibernateSearchReindexer;
 import org.projectforge.framework.persistence.history.entities.PfHistoryMasterDO;
 import org.projectforge.framework.time.DateHelper;
-import org.quartz.JobExecutionContext;
-import org.quartz.JobExecutionException;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Component;
 
 /**
  * Job should be scheduled hourly.
- * 
- * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
+ *
+ * @author Florian Blumenstein
  */
-public class CronHourlyJob extends AbstractCronJob
+@Component
+public class CronHourlyJob
 {
   private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(CronHourlyJob.class);
 
+  @Autowired
   private DatabaseUpdateService databaseUpdateDao;
 
+  @Autowired
   private HibernateSearchReindexer hibernateSearchReindexer;
 
-  @Override
-  public void execute(final JobExecutionContext context) throws JobExecutionException
+  //@Scheduled(cron = "0 0 * * * *")
+  @Scheduled(cron = "${projectforge.cron.hourly}")
+  public void execute()
   {
     log.info("Hourly job started.");
-    if (databaseUpdateDao == null) {
-      wire(context);
-    }
-    if (databaseUpdateDao == null) {
-      log.fatal("Job not configured, aborting.");
-      return;
-    }
     try {
       log.info("Starting (re-)indexing of history entries of the last 24 hours.");
       final Calendar cal = Calendar.getInstance(DateHelper.UTC);
@@ -70,10 +67,4 @@ public class CronHourlyJob extends AbstractCronJob
     log.info("Hourly job job finished.");
   }
 
-  @Override
-  protected void wire(final JobExecutionContext context)
-  {
-    databaseUpdateDao = (DatabaseUpdateService) wire(context, "databaseUpdateDao");
-    hibernateSearchReindexer = (HibernateSearchReindexer) wire(context, "hibernateSearchReindexer");
-  }
 }
