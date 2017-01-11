@@ -25,6 +25,8 @@ package org.projectforge.business.fibu;
 
 import java.util.List;
 
+import javax.persistence.NoResultException;
+
 import org.apache.commons.collections.CollectionUtils;
 import org.hibernate.Hibernate;
 import org.hibernate.criterion.Order;
@@ -36,6 +38,7 @@ import org.projectforge.business.user.UserRightId;
 import org.projectforge.framework.persistence.api.BaseDao;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.persistence.api.QueryFilter;
+import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
 import org.projectforge.framework.persistence.user.entities.GroupDO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
@@ -58,6 +61,9 @@ public class ProjektDao extends BaseDao<ProjektDO>
 
   @Autowired
   private TaskDao taskDao;
+
+  @Autowired
+  private PfEmgrFactory emgrFactory;
 
   public ProjektDao()
   {
@@ -89,7 +95,7 @@ public class ProjektDao extends BaseDao<ProjektDO>
 
   /**
    * @param projekt
-   * @param tadkId If null, then task will be set to null;
+   * @param tadkId  If null, then task will be set to null;
    * @see BaseDao#getOrLoad(Integer)
    */
   public void setTask(final ProjektDO projekt, final Integer taskId)
@@ -114,7 +120,7 @@ public class ProjektDao extends BaseDao<ProjektDO>
 
   /**
    * Initializes the projekt (projektManagerGroup), so any LazyInitializationException are avoided.
-   * 
+   *
    * @param projekt Null safe.
    */
   public void initializeProjektManagerGroup(final ProjektDO projekt)
@@ -136,13 +142,14 @@ public class ProjektDao extends BaseDao<ProjektDO>
   @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
   public ProjektDO getProjekt(final KundeDO kunde, final int nummer)
   {
-    final List<ProjektDO> list = (List<ProjektDO>) getHibernateTemplate().find(
-        "from ProjektDO p where p.kunde.id=? and p.nummer=?",
-        new Object[] { kunde.getId(), nummer });
-    if (CollectionUtils.isEmpty(list) == true) {
-      return null;
-    }
-    return list.get(0);
+    return emgrFactory.runRoTrans(emgr -> {
+      try {
+        return emgr
+            .selectSingleAttached(ProjektDO.class, "SELECT p FROM ProjektDO p WHERE p.kunde = :kunde and p.nummer = :nummer", "kunde", kunde, "nummer", nummer);
+      } catch (NoResultException e) {
+        return null;
+      }
+    });
   }
 
   @SuppressWarnings("unchecked")
@@ -227,4 +234,5 @@ public class ProjektDao extends BaseDao<ProjektDO>
   {
     return new ProjektDO();
   }
+
 }
