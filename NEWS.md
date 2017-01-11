@@ -1,7 +1,3 @@
-Release 6.6.1
-* Add application for leave functionality
+Release 6.7.0
 * Extend order book
-* Extend Rest interfaces
-* Add visitorbook
-* Redesign team event invitation e-mail
-* Some major bugfixes
+* Some bugfixes
