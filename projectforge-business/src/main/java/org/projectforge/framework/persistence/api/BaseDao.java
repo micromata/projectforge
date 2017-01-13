@@ -66,6 +66,7 @@ import org.projectforge.framework.persistence.history.HibernateSearchDependentOb
 import org.projectforge.framework.persistence.history.HistoryBaseDaoAdapter;
 import org.projectforge.framework.persistence.history.SimpleHistoryEntry;
 import org.projectforge.framework.persistence.history.entities.PfHistoryMasterDO;
+import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
 import org.projectforge.framework.persistence.jpa.impl.BaseDaoJpaAdapter;
 import org.projectforge.framework.persistence.jpa.impl.HibernateSearchFilterUtils;
 import org.projectforge.framework.persistence.search.BaseDaoReindexRegistry;
@@ -152,6 +153,9 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
    * base entry in this method.
    */
   protected boolean supportAfterUpdate = false;
+
+  @Autowired
+  private PfEmgrFactory emgrFactory;
 
   @Autowired
   private HibernateTemplate hibernateTemplate;
@@ -259,29 +263,41 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
   @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
   public List<O> internalLoadAll()
   {
-    return (List<O>) hibernateTemplate.find("from " + clazz.getSimpleName() + " t");
+    return emgrFactory.runRoTrans(emgr -> {
+      return emgr.select(clazz, "SELECT t FROM " + clazz.getSimpleName() + " t");
+    });
+    //    return (List<O>) hibernateTemplate.find("from " + clazz.getSimpleName() + " t");
   }
 
   @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
   public List<O> internalLoadAll(final TenantDO tenant)
   {
     if (tenant == null) {
-      @SuppressWarnings("unchecked")
-      final List<O> list = (List<O>) hibernateTemplate
-          .find("from " + clazz.getSimpleName() + " t where tenant_id is null");
-      return list;
+      return emgrFactory.runRoTrans(emgr -> {
+        return emgr.select(clazz, "SELECT t FROM " + clazz.getSimpleName() + " t WHERE t.tenant IS NULL");
+      });
+      //      @SuppressWarnings("unchecked")
+      //      final List<O> list = (List<O>) hibernateTemplate
+      //          .find("from " + clazz.getSimpleName() + " t where tenant_id is null");
+      //      return list;
     }
     if (tenant.isDefault() == true) {
-      @SuppressWarnings("unchecked")
-      final List<O> list = (List<O>) hibernateTemplate.find(
-          "from " + clazz.getSimpleName() + " t where tenant_id = ? or tenant_id is null",
-          tenant.getId());
-      return list;
+      return emgrFactory.runRoTrans(emgr -> {
+        return emgr.select(clazz, "SELECT t FROM " + clazz.getSimpleName() + " t WHERE t.tenant = :tenant OR t.tenant IS NULL", "tenant", tenant);
+      });
+      //      @SuppressWarnings("unchecked")
+      //      final List<O> list = (List<O>) hibernateTemplate.find(
+      //          "from " + clazz.getSimpleName() + " t where tenant_id = ? or tenant_id is null",
+      //          tenant.getId());
+      //      return list;
     } else {
-      @SuppressWarnings("unchecked")
-      final List<O> list = (List<O>) hibernateTemplate
-          .find("from " + clazz.getSimpleName() + " t where tenant_id = ?", tenant.getId());
-      return list;
+      return emgrFactory.runRoTrans(emgr -> {
+        return emgr.select(clazz, "SELECT t FROM " + clazz.getSimpleName() + " t WHERE t.tenant = :tenant", "tenant", tenant);
+      });
+      //      @SuppressWarnings("unchecked")
+      //      final List<O> list = (List<O>) hibernateTemplate
+      //          .find("from " + clazz.getSimpleName() + " t where tenant_id = ?", tenant.getId());
+      //      return list;
     }
   }
 
