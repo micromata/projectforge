@@ -61,9 +61,8 @@ import de.micromata.genome.jpa.StdRecord;
 
 /**
  * Creates index creation script and re-indexes data-base.
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
  */
 @Repository
 @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
@@ -80,7 +79,7 @@ public class DatabaseDao
 
   /**
    * Since yesterday and 1,000 newest entries at maximimum.
-   * 
+   *
    * @return
    */
   public static ReindexSettings createReindexSettings(final boolean onlyNewest)
@@ -127,7 +126,6 @@ public class DatabaseDao
   }
 
   /**
-   * 
    * @param clazz
    */
   private long reindex(final Class<?> clazz, final ReindexSettings settings)
@@ -206,7 +204,6 @@ public class DatabaseDao
   }
 
   /**
-   * 
    * @param clazz
    */
   private long reindexMassIndexer(final Class<?> clazz)
