@@ -33,6 +33,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import javax.persistence.NoResultException;
+
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.PredicateUtils;
 import org.apache.commons.lang.StringUtils;
@@ -266,7 +268,6 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
     return emgrFactory.runRoTrans(emgr -> {
       return emgr.select(clazz, "SELECT t FROM " + clazz.getSimpleName() + " t");
     });
-    //    return (List<O>) hibernateTemplate.find("from " + clazz.getSimpleName() + " t");
   }
 
   @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
@@ -276,28 +277,15 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
       return emgrFactory.runRoTrans(emgr -> {
         return emgr.select(clazz, "SELECT t FROM " + clazz.getSimpleName() + " t WHERE t.tenant IS NULL");
       });
-      //      @SuppressWarnings("unchecked")
-      //      final List<O> list = (List<O>) hibernateTemplate
-      //          .find("from " + clazz.getSimpleName() + " t where tenant_id is null");
-      //      return list;
     }
     if (tenant.isDefault() == true) {
       return emgrFactory.runRoTrans(emgr -> {
         return emgr.select(clazz, "SELECT t FROM " + clazz.getSimpleName() + " t WHERE t.tenant = :tenant OR t.tenant IS NULL", "tenant", tenant);
       });
-      //      @SuppressWarnings("unchecked")
-      //      final List<O> list = (List<O>) hibernateTemplate.find(
-      //          "from " + clazz.getSimpleName() + " t where tenant_id = ? or tenant_id is null",
-      //          tenant.getId());
-      //      return list;
     } else {
       return emgrFactory.runRoTrans(emgr -> {
         return emgr.select(clazz, "SELECT t FROM " + clazz.getSimpleName() + " t WHERE t.tenant = :tenant", "tenant", tenant);
       });
-      //      @SuppressWarnings("unchecked")
-      //      final List<O> list = (List<O>) hibernateTemplate
-      //          .find("from " + clazz.getSimpleName() + " t where tenant_id = ?", tenant.getId());
-      //      return list;
     }
   }
 
@@ -538,7 +526,14 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
     if (id == null) {
       return null;
     }
-    final O obj = hibernateTemplate.get(clazz, id, LockMode.READ);
+    final O obj = emgrFactory.runRoTrans(emgr -> {
+      try {
+        return emgr.selectByPkDetached(clazz, id);
+      } catch (NoResultException e) {
+        log.warn("No result fund for entity " + clazz.getSimpleName() + " and id: " + id);
+        return null;
+      }
+    });
     afterLoad(obj);
     return obj;
   }
@@ -862,7 +857,14 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
 
   private TenantDO getDefaultTenant()
   {
-    return hibernateTemplate.get(TenantDO.class, 1);
+    return emgrFactory.runRoTrans(emgr -> {
+      try {
+        return emgr.selectByPkDetached(TenantDO.class, 1);
+      } catch (NoResultException e) {
+        log.warn("Default tenant with id 1 not found!");
+        return null;
+      }
+    });
   }
 
   @Transactional(readOnly = false, propagation = Propagation.REQUIRED, isolation = Isolation.REPEATABLE_READ)
@@ -1771,7 +1773,6 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
   @Override
   public O selectByPkDetached(Integer pk) throws AccessException
   {
-    // TODO RK not detached here
     return getById(pk);
   }
 }
