@@ -21,25 +21,33 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.web.vacation;
+package org.projectforge.web.wicket;
 
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
-import org.projectforge.business.vacation.service.VacationService;
-import org.projectforge.web.vacation.helper.VacationViewHelper;
-import org.projectforge.web.wicket.AbstractViewPage;
+import org.projectforge.business.fibu.EmployeeDO;
+import org.projectforge.business.fibu.api.EmployeeService;
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
+import org.projectforge.framework.persistence.user.entities.PFUserDO;
+import org.projectforge.web.wicket.bootstrap.GridBuilder;
 
-public class VacationViewPage extends AbstractViewPage
+public abstract class AbstractViewPage extends AbstractSecuredPage
 {
-  private static final long serialVersionUID = 6317381238012316284L;
+  private static final long serialVersionUID = 6317381238021216284L;
 
   @SpringBean
-  private VacationViewHelper vacationViewHelper;
+  protected EmployeeService employeeService;
 
-  @SpringBean
-  private VacationService vacationService;
+  protected GridBuilder gridBuilder;
 
-  public VacationViewPage(final PageParameters parameters)
+  protected PFUserDO currentUser;
+
+  protected EmployeeDO currentEmployee;
+
+  protected WebMarkupContainer container;
+
+  public AbstractViewPage(final PageParameters parameters)
   {
     super(parameters);
   }
@@ -48,20 +56,17 @@ public class VacationViewPage extends AbstractViewPage
   protected void onInitialize()
   {
     super.onInitialize();
-    vacationService.couldUserUseVacationService(currentUser, true); // throw runtime exception if not allowed
+    currentUser = ThreadLocalUserContext.getUser();
+    currentEmployee = employeeService.getEmployeeByUserId(currentUser.getPk());
   }
 
   @Override
   protected void onConfigure()
   {
     super.onConfigure();
-    vacationViewHelper.createVacationView(gridBuilder, currentEmployee, true, this);
-  }
-
-  @Override
-  protected String getTitle()
-  {
-    return getString("vacation.leaveaccount.title");
+    container = new WebMarkupContainer("container");
+    body.addOrReplace(container);
+    gridBuilder = new GridBuilder(container, "flowform", true);
   }
 
 }
