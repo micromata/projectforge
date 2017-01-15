@@ -1,8 +1,8 @@
 package org.projectforge.plugins.ffp.model;
 
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -41,10 +41,10 @@ public class FFPEventDO extends DefaultBaseDO
   @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
   private Date eventDate;
 
-  private List<EmployeeDO> attendeeList;
+  private Set<EmployeeDO> attendeeList;
 
   @PFPersistancyBehavior(autoUpdateCollectionEntries = true)
-  private List<FFPAccountingDO> accountingList;
+  private Set<FFPAccountingDO> accountingList;
 
   private boolean finished;
 
@@ -76,29 +76,29 @@ public class FFPEventDO extends DefaultBaseDO
       name = "T_PLUGIN_FINANCIALFAIRPLAY_EVENT_ATTENDEE",
       joinColumns = @JoinColumn(name = "EVENT_PK", referencedColumnName = "PK"),
       inverseJoinColumns = @JoinColumn(name = "ATTENDEE_PK", referencedColumnName = "PK"))
-  public List<EmployeeDO> getAttendeeList()
+  public Set<EmployeeDO> getAttendeeList()
   {
     if (attendeeList == null) {
-      attendeeList = new ArrayList<>();
+      attendeeList = new HashSet<>();
     }
     return attendeeList;
   }
 
-  public void setAttendeeList(List<EmployeeDO> attendeeList)
+  public void setAttendeeList(Set<EmployeeDO> attendeeList)
   {
     this.attendeeList = attendeeList;
   }
 
   @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER, mappedBy = "event", orphanRemoval = true)
-  public List<FFPAccountingDO> getAccountingList()
+  public Set<FFPAccountingDO> getAccountingList()
   {
     if (accountingList == null) {
-      accountingList = new ArrayList<>();
+      accountingList = new HashSet<>();
     }
     return accountingList;
   }
 
-  public void setAccountingList(List<FFPAccountingDO> accountingList)
+  public void setAccountingList(Set<FFPAccountingDO> accountingList)
   {
     this.accountingList = accountingList;
   }
