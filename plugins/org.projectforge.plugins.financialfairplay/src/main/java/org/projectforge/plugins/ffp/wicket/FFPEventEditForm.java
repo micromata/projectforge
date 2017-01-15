@@ -51,7 +51,9 @@ import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColu
 import org.apache.wicket.extensions.markup.html.repeater.util.SortParam;
 import org.apache.wicket.extensions.markup.html.repeater.util.SortableDataProvider;
 import org.apache.wicket.markup.html.form.Button;
+import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.FormComponent;
+import org.apache.wicket.markup.html.form.validation.IFormValidator;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -60,6 +62,7 @@ import org.apache.wicket.model.ResourceModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.fibu.EmployeeDO;
 import org.projectforge.business.fibu.api.EmployeeService;
+import org.projectforge.business.user.I18nHelper;
 import org.projectforge.framework.i18n.UserException;
 import org.projectforge.framework.persistence.api.IdObject;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
@@ -122,6 +125,31 @@ public class FFPEventEditForm extends AbstractEditForm<FFPEventDO, FFPEventEditP
         this.accountingList.add(getNewFfpAccountingDO(userEmployee));
       }
     }
+
+    IFormValidator formValidator = new IFormValidator()
+    {
+
+      // Components for form validation.
+      private final FormComponent<?>[] dependentFormComponents = new FormComponent[1];
+
+      @Override
+      public FormComponent<?>[] getDependentFormComponents()
+      {
+        return dependentFormComponents;
+      }
+
+      @Override
+      public void validate(Form<?> form)
+      {
+        Select2MultiChoice<EmployeeDO> attendeesSelect2 = (Select2MultiChoice<EmployeeDO>) dependentFormComponents[0];
+        Collection<EmployeeDO> attendeeList = attendeesSelect2.getConvertedInput();
+        if (attendeeList != null && attendeeList.size() < 2) {
+          error(I18nHelper.getLocalizedMessage("plugins.ffp.validate.minAttendees"));
+        }
+      }
+    };
+
+    add(formValidator);
 
     gridBuilder.newSplitPanel(GridSize.COL50, true).newSubSplitPanel(GridSize.COL100);
     {
@@ -204,6 +232,7 @@ public class FFPEventEditForm extends AbstractEditForm<FFPEventDO, FFPEventEditP
         }
       });
       attendees.setEnabled(getData().getFinished() == false);
+      formValidator.getDependentFormComponents()[0] = attendees;
       fieldSet.add(attendees);
     }
 
@@ -218,7 +247,6 @@ public class FFPEventEditForm extends AbstractEditForm<FFPEventDO, FFPEventEditP
         {
           try {
             getData().setFinished(true);
-            eventService.createDept(getData());
             parentPage.createOrUpdate();
           } catch (final UserException ex) {
             error(parentPage.translateParams(ex));
@@ -353,7 +381,7 @@ public class FFPEventEditForm extends AbstractEditForm<FFPEventDO, FFPEventEditP
         InputPanel input = new InputPanel(componentId,
             new MinMaxNumberField<BigDecimal>(InputPanel.WICKET_ID,
                 new PropertyModel<>(rowModel.getObject(), "value"),
-                new BigDecimal(Integer.MIN_VALUE), new BigDecimal(Integer.MAX_VALUE)));
+                new BigDecimal(0), new BigDecimal(Integer.MAX_VALUE)));
         input.setEnabled(rowModel.getObject().getEvent().getFinished() == false);
         item.add(input);
       }
@@ -370,7 +398,7 @@ public class FFPEventEditForm extends AbstractEditForm<FFPEventDO, FFPEventEditP
         InputPanel input = new InputPanel(componentId,
             new MinMaxNumberField<BigDecimal>(InputPanel.WICKET_ID,
                 new PropertyModel<>(rowModel.getObject(), "weighting"),
-                new BigDecimal(Integer.MIN_VALUE), new BigDecimal(Integer.MAX_VALUE)));
+                new BigDecimal(0), new BigDecimal(Integer.MAX_VALUE)));
         input.setEnabled(rowModel.getObject().getEvent().getFinished() == false);
         item.add(input);
       }
