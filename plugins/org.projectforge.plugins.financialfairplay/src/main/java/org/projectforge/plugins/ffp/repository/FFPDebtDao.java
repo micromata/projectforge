@@ -7,6 +7,7 @@ import org.projectforge.framework.persistence.api.BaseDao;
 import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
 import org.projectforge.plugins.ffp.FinancialFairPlayPluginUserRightId;
 import org.projectforge.plugins.ffp.model.FFPDebtDO;
+import org.projectforge.plugins.ffp.model.FFPEventDO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
@@ -50,5 +51,12 @@ public class FFPDebtDao extends BaseDao<FFPDebtDO>
       }
     }
     return result;
+  }
+
+  public List<FFPDebtDO> getDebts(FFPEventDO event)
+  {
+    return emgrFactory.runRoTrans(emgr -> {
+      return emgr.select(FFPDebtDO.class, "SELECT d FROM FFPDebtDO d WHERE d.event = :event", "event", event);
+    });
   }
 }

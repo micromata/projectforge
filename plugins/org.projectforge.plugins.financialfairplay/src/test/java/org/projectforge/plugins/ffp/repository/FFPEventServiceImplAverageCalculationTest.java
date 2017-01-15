@@ -3,8 +3,8 @@ package org.projectforge.plugins.ffp.repository;
 import static org.testng.AssertJUnit.assertEquals;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 import org.projectforge.plugins.ffp.model.FFPAccountingDO;
 import org.testng.annotations.BeforeMethod;
@@ -25,7 +25,7 @@ public class FFPEventServiceImplAverageCalculationTest
   @Test
   public void testAverageCalculation() throws Exception
   {
-    List<FFPAccountingDO> accountingDOs = new ArrayList<>();
+    Set<FFPAccountingDO> accountingDOs = new HashSet<>();
     accountingDOs.add(createFfpAccounting(0D, 0D));
     accountingDOs.add(createFfpAccounting(1D, 1D));
     accountingDOs.add(createFfpAccounting(2D, 2D));
@@ -36,7 +36,7 @@ public class FFPEventServiceImplAverageCalculationTest
   @Test
   public void testAverageCalculation1() throws Exception
   {
-    List<FFPAccountingDO> accountingDOs = new ArrayList<>();
+    Set<FFPAccountingDO> accountingDOs = new HashSet<>();
     accountingDOs.add(createFfpAccounting(0D, 0.75D));
     accountingDOs.add(createFfpAccounting(1.21D, 1.5D));
     accountingDOs.add(createFfpAccounting(2.68D, 2D));
@@ -48,7 +48,7 @@ public class FFPEventServiceImplAverageCalculationTest
   @Test
   public void testAverageCalculation2() throws Exception
   {
-    List<FFPAccountingDO> accountingDOs = new ArrayList<>();
+    Set<FFPAccountingDO> accountingDOs = new HashSet<>();
     accountingDOs.add(createFfpAccounting(456.90D, 1.23D));
     accountingDOs.add(createFfpAccounting(123.45D, 5.67D));
     accountingDOs.add(createFfpAccounting(567.89D, 55.5D));
@@ -59,7 +59,7 @@ public class FFPEventServiceImplAverageCalculationTest
   @Test(expectedExceptions = ArithmeticException.class)
   public void testAverageCalculation3() throws Exception
   {
-    List<FFPAccountingDO> accountingDOs = new ArrayList<>();
+    Set<FFPAccountingDO> accountingDOs = new HashSet<>();
     accountingDOs.add(createFfpAccounting(0D, 0D));
     accountingDOs.add(createFfpAccounting(0D, 0D));
     accountingDOs.add(createFfpAccounting(0D, 0D));
