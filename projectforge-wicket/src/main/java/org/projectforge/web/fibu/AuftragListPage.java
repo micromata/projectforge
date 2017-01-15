@@ -26,11 +26,9 @@ package org.projectforge.web.fibu;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Set;
+import java.util.stream.Collectors;
 
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
@@ -52,15 +50,12 @@ import org.projectforge.business.fibu.AuftragsPositionDO;
 import org.projectforge.business.fibu.AuftragsStatus;
 import org.projectforge.business.fibu.OrderExport;
 import org.projectforge.business.fibu.RechnungCache;
-import org.projectforge.business.fibu.RechnungsPositionVO;
 import org.projectforge.business.task.formatter.WicketTaskFormatter;
 import org.projectforge.business.user.UserFormatter;
 import org.projectforge.business.utils.CurrencyFormatter;
 import org.projectforge.framework.time.DateHelper;
 import org.projectforge.framework.utils.NumberFormatter;
-import org.projectforge.web.user.UserPropertyColumn;
 import org.projectforge.web.wicket.AbstractListPage;
-import org.projectforge.web.wicket.AbstractUnsecureBasePage;
 import org.projectforge.web.wicket.CellItemListener;
 import org.projectforge.web.wicket.CellItemListenerPropertyColumn;
 import org.projectforge.web.wicket.CurrencyPropertyColumn;
@@ -158,13 +153,12 @@ public class AuftragListPage extends AbstractListPage<AuftragListForm, AuftragDa
       {
         final AuftragDO auftrag = rowModel.getObject();
         auftragDao.calculateInvoicedSum(auftrag);
-        final List<AuftragsPositionDO> list = auftrag.getPositionen();
+        final List<AuftragsPositionDO> fullList = auftrag.getPositionen();
+        final List<AuftragsPositionDO> list = fullList.stream().filter(pos -> pos.isDeleted() == false).collect(Collectors.toList());
         final Label label = new Label(componentId, new Model<String>("#" + list.size()));
         if (list != null) {
           final StringBuffer buf = new StringBuffer();
-          final Iterator<AuftragsPositionDO> it = list.iterator();
-          while (it.hasNext() == true) {
-            final AuftragsPositionDO pos = it.next();
+          list.forEach(pos -> {
             buf.append("#").append(pos.getNumber()).append(": ");
             if (pos.getPersonDays() != null && pos.getPersonDays().compareTo(BigDecimal.ZERO) != 0) {
               buf.append("(").append(NumberFormatter.format(pos.getPersonDays())).append(" ")
@@ -185,9 +179,10 @@ public class AuftragListPage extends AbstractListPage<AuftragListForm, AuftragDa
             if (pos.getStatus() != null) {
               buf.append(", ").append(getString(pos.getStatus().getI18nKey()));
             }
-            if (it.hasNext() == true) {
-              buf.append("\n");
-            }
+            buf.append("\n");
+          });
+          if (buf.length() > 1 && (buf.lastIndexOf("\n") == buf.length() - 1)) {
+            buf.delete(buf.length() - 1, buf.length());
           }
           WicketUtils.addTooltip(label, NumberFormatter.format(auftrag.getPersonDays())
               + " "
@@ -197,9 +192,12 @@ public class AuftragListPage extends AbstractListPage<AuftragListForm, AuftragDa
         cellItemListener.populateItem(cellItem, componentId, rowModel);
       }
     });
-    columns.add(new CellItemListenerPropertyColumn<AuftragDO>(getString("projectmanagement.personDays.short"),
+    columns.add(new CellItemListenerPropertyColumn<AuftragDO>(
+
+        getString("projectmanagement.personDays.short"),
         "personDays", "personDays",
         cellItemListener)
+
     {
       @Override
       public void populateItem(final Item<ICellPopulator<AuftragDO>> item, final String componentId,
@@ -211,55 +209,39 @@ public class AuftragListPage extends AbstractListPage<AuftragListForm, AuftragDa
       }
     });
     columns
-        .add(new CellItemListenerPropertyColumn<AuftragDO>(getString("fibu.common.reference"), "referenz", "referenz",
+        .add(new CellItemListenerPropertyColumn<AuftragDO>(getString("fibu.common.customer.reference"), "referenz", "referenz",
             cellItemListener));
-    columns.add(
-        new UserPropertyColumn<AuftragDO>(getUserGroupCache(), getString("contactPerson"), "contactPerson.fullname",
-            "contactPerson",
-            cellItemListener)
-            .withUserFormatter(userFormatter));
-    columns.add(new CellItemListenerPropertyColumn<AuftragDO>(getString("date"), "angebotsDatum", "angebotsDatum",
+    columns
+        .add(new CellItemListenerPropertyColumn<AuftragDO>(getString("fibu.common.assignedPersons"), "assignedPersons", "assignedPersons",
+            cellItemListener));
+    columns.add(new CellItemListenerPropertyColumn<AuftragDO>(getString("fibu.auftrag.datum"), "angebotsDatum", "angebotsDatum",
         cellItemListener));
-    // columns
-    // .add(new CellItemListenerPropertyColumn<AuftragDO>(new Model<String>(getString("fibu.auftrag.bindungsFrist")), "bindungsFrist",
-    // "bindungsFrist", cellItemListener));
+    columns.add(new CellItemListenerPropertyColumn<AuftragDO>(getString("fibu.auftrag.entscheidung.datum"), "entscheidungsDatum", "entscheidungsDatum",
+        cellItemListener));
     columns.add(new CurrencyPropertyColumn<AuftragDO>(getString("fibu.auftrag.nettoSumme"), "nettoSumme", "nettoSumme",
         cellItemListener));
-    columns.add(new CurrencyPropertyColumn<AuftragDO>(getString("fibu.auftrag.commissioned"), "beauftragtNettoSumme",
+    columns.add(new CurrencyPropertyColumn<AuftragDO>(
+
+        getString("fibu.auftrag.commissioned"), "beauftragtNettoSumme",
         "beauftragtNettoSumme", cellItemListener));
-    columns.add(new CurrencyPropertyColumn<AuftragDO>(getString("fibu.fakturiert"), "fakturiertSum", "fakturiertSum",
+    columns.add(new CurrencyPropertyColumn<AuftragDO>(
+
+        getString("fibu.fakturiert"), "fakturiertSum", "fakturiertSum",
+        cellItemListener).setSuppressZeroValues(true));
+    columns.add(new CurrencyPropertyColumn<AuftragDO>(getString("fibu.tobeinvoiced"), "zuFakturierenSum", "zuFakturierenSum",
         cellItemListener)
         .setSuppressZeroValues(true));
     columns
-        .add(new CellItemListenerPropertyColumn<AuftragDO>(new Model<String>(getString("fibu.rechnungen")), null, null,
-            cellItemListener)
-        {
-          @Override
-          public void populateItem(final Item<ICellPopulator<AuftragDO>> item, final String componentId,
-              final IModel<AuftragDO> rowModel)
-          {
-            final AuftragDO auftrag = rowModel.getObject();
-            final Set<RechnungsPositionVO> invoicePositionsByOrderPositionId = rechnungCache
-                .getRechnungsPositionVOSetByAuftragId(auftrag.getId());
-            if (CollectionUtils.isEmpty(invoicePositionsByOrderPositionId) == true) {
-              item.add(AbstractUnsecureBasePage.createInvisibleDummyComponent(componentId));
-            } else {
-              final InvoicePositionsPanel panel = new InvoicePositionsPanel(componentId)
-              {
-                @Override
-                protected void onBeforeRender()
-                {
-                  super.onBeforeRender();
-                  init(invoicePositionsByOrderPositionId);
-                }
-              };
-              item.add(panel);
-            }
-            cellItemListener.populateItem(item, componentId, rowModel);
-          }
-        });
+        .add(new CellItemListenerPropertyColumn<AuftragDO>(getString("fibu.periodOfPerformance.from"), "periodOfPerformanceBegin", "periodOfPerformanceBegin",
+            cellItemListener));
+    columns.add(new CellItemListenerPropertyColumn<AuftragDO>(getString("fibu.periodOfPerformance.to"), "periodOfPerformanceEnd", "periodOfPerformanceEnd",
+        cellItemListener));
+    columns.add(new CellItemListenerPropertyColumn<AuftragDO>(getString("fibu.probabilityOfOccurrence"), "probabilityOfOccurrence", "probabilityOfOccurrence",
+        cellItemListener));
     columns.add(
-        new CellItemListenerPropertyColumn<AuftragDO>(new Model<String>(getString("status")), "auftragsStatusAsString",
+        new CellItemListenerPropertyColumn<AuftragDO>(new Model<String>(
+
+            getString("status")), "auftragsStatusAsString",
             "auftragsStatusAsString", cellItemListener));
     return columns;
   }

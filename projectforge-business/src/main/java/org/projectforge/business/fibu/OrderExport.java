@@ -82,6 +82,9 @@ public class OrderExport
         new I18nExportColumn(OrderCol.PROJECT, "fibu.projekt", MyXlsContentProvider.LENGTH_STD),
         new I18nExportColumn(OrderCol.PROJECT_CUSTOMER, "fibu.kunde", MyXlsContentProvider.LENGTH_STD),
         new I18nExportColumn(OrderCol.TITLE, "fibu.auftrag.titel", MyXlsContentProvider.LENGTH_STD),
+        new I18nExportColumn(OrderCol.PROJECTMANAGER, "fibu.projectmanager", 20),
+        new I18nExportColumn(OrderCol.HEADOFBUSINESSMANAGER, "fibu.headofbusinessmanager", 20),
+        new I18nExportColumn(OrderCol.SALESMANAGER, "fibu.salesmanager", 20),
         new I18nExportColumn(OrderCol.NETSUM, "fibu.auftrag.nettoSumme", MyXlsContentProvider.LENGTH_CURRENCY),
         new I18nExportColumn(OrderCol.INVOICED, "fibu.fakturiert", MyXlsContentProvider.LENGTH_CURRENCY),
         new I18nExportColumn(OrderCol.TO_BE_INVOICED, "fibu.tobeinvoiced", MyXlsContentProvider.LENGTH_CURRENCY),
@@ -116,6 +119,9 @@ public class OrderExport
         order.getKundeText());
     mapping.add(OrderCol.PROJECT_CUSTOMER, projectCustomer);
     mapping.add(OrderCol.TITLE, order.getTitel());
+    mapping.add(OrderCol.PROJECTMANAGER, order.getProjectManager() != null ? order.getProjectManager().getFullname() : "");
+    mapping.add(OrderCol.HEADOFBUSINESSMANAGER, order.getHeadOfBusinessManager() != null ? order.getHeadOfBusinessManager().getFullname() : "");
+    mapping.add(OrderCol.SALESMANAGER, order.getSalesManager() != null ? order.getSalesManager().getFullname() : "");
     final BigDecimal netSum = order.getNettoSumme() != null ? order.getNettoSumme() : BigDecimal.ZERO;
     final BigDecimal invoicedSum = order.getFakturiertSum() != null ? order.getFakturiertSum() : BigDecimal.ZERO;
     final BigDecimal toBeInvoicedSum = netSum.subtract(invoicedSum);
@@ -148,6 +154,7 @@ public class OrderExport
         new I18nExportColumn(PosCol.ORDER_TITLE, "fibu.auftrag.titel", MyXlsContentProvider.LENGTH_STD),
         new I18nExportColumn(PosCol.TITLE, "fibu.auftrag.titel", MyXlsContentProvider.LENGTH_STD),
         new I18nExportColumn(PosCol.TYPE, "fibu.auftrag.position.art", 10),
+        new I18nExportColumn(PosCol.PAYMENTTYPE, "fibu.auftrag.position.paymenttype", 20),
         new I18nExportColumn(PosCol.STATUS, "status", 10),
         new I18nExportColumn(PosCol.PERSON_DAYS, "projectmanagement.personDays.short", 8),
         new I18nExportColumn(PosCol.NETSUM, "fibu.auftrag.nettoSumme", MyXlsContentProvider.LENGTH_CURRENCY), //
@@ -174,6 +181,8 @@ public class OrderExport
     mapping.add(PosCol.TITLE, pos.getTitel());
     mapping.add(PosCol.TYPE,
         pos.getArt() != null ? ThreadLocalUserContext.getLocalizedString(pos.getArt().getI18nKey()) : "");
+    mapping.add(PosCol.PAYMENTTYPE,
+        pos.getPaymentType() != null ? ThreadLocalUserContext.getLocalizedString(pos.getPaymentType().getI18nKey()) : "");
     mapping.add(PosCol.STATUS,
         pos.getStatus() != null ? ThreadLocalUserContext.getLocalizedString(pos.getStatus().getI18nKey()) : "");
     mapping.add(PosCol.PERSON_DAYS, pos.getPersonDays());
@@ -285,6 +294,9 @@ public class OrderExport
         continue;
       }
       for (final AuftragsPositionDO pos : order.getPositionen()) {
+        if (pos.isDeleted()) {
+          continue;
+        }
         final PropertyMapping mapping = new PropertyMapping();
         addPosMapping(mapping, order, pos);
         sheet.addRow(mapping.getMapping(), 0);
@@ -340,12 +352,12 @@ public class OrderExport
 
   private enum OrderCol
   {
-    NUMMER, NUMBER_OF_POSITIONS, DATE_OF_OFFER, DATE_OF_ENTRY, DATE_OF_DESICION, ORDER_DATE, STATUS, STATUS_COMMENT, PROJECT, PROJECT_CUSTOMER, TITLE, NETSUM, INVOICED, TO_BE_INVOICED, COMPLETELY_INVOICED, INVOICES, PERIOD_OF_PERFORMANCE_BEGIN, PERIOD_OF_PERFORMANCE_END, PROBABILITY_OF_OCCURRENCE, CONTACT_PERSON, REFERENCE, COMMENT;
+    NUMMER, NUMBER_OF_POSITIONS, DATE_OF_OFFER, DATE_OF_ENTRY, DATE_OF_DESICION, ORDER_DATE, STATUS, STATUS_COMMENT, PROJECT, PROJECT_CUSTOMER, TITLE, PROJECTMANAGER, HEADOFBUSINESSMANAGER, SALESMANAGER, NETSUM, INVOICED, TO_BE_INVOICED, COMPLETELY_INVOICED, INVOICES, PERIOD_OF_PERFORMANCE_BEGIN, PERIOD_OF_PERFORMANCE_END, PROBABILITY_OF_OCCURRENCE, CONTACT_PERSON, REFERENCE, COMMENT;
   }
 
   private enum PosCol
   {
-    NUMBER, POS_NUMBER, DATE_OF_OFFER, DATE_OF_ENTRY, DATE_OF_DESICION, PROJECT, ORDER_TITLE, TITLE, TYPE, STATUS, PERSON_DAYS, NETSUM, INVOICED, TO_BE_INVOICED, COMPLETELY_INVOICED, INVOICES, PERIOD_OF_PERFORMANCE_BEGIN, PERIOD_OF_PERFORMANCE_END, TASK, COMMENT;
+    NUMBER, POS_NUMBER, DATE_OF_OFFER, DATE_OF_ENTRY, DATE_OF_DESICION, PROJECT, ORDER_TITLE, TITLE, TYPE, PAYMENTTYPE, STATUS, PERSON_DAYS, NETSUM, INVOICED, TO_BE_INVOICED, COMPLETELY_INVOICED, INVOICES, PERIOD_OF_PERFORMANCE_BEGIN, PERIOD_OF_PERFORMANCE_END, TASK, COMMENT;
   }
 
   private enum PaymentsCol

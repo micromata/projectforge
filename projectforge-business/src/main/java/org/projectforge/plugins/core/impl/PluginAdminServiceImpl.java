@@ -9,7 +9,6 @@ import java.util.TreeSet;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
-import org.projectforge.business.jobs.CronSetup;
 import org.projectforge.continuousdb.SystemUpdater;
 import org.projectforge.continuousdb.UpdateEntry;
 import org.projectforge.framework.configuration.ConfigurationDao;
@@ -45,9 +44,6 @@ public class PluginAdminServiceImpl implements PluginAdminService
 
   @Autowired
   private DatabaseUpdateService myDatabaseUpdater;
-
-  @Autowired
-  private CronSetup cronSetup;
 
   private List<PluginCallback> afterCreatedActivePluginsCallback = new ArrayList<>();
 
@@ -103,7 +99,6 @@ public class PluginAdminServiceImpl implements PluginAdminService
 
   protected void initializeActivePlugins(boolean onlyConfiguredActive)
   {
-    cronSetup.initialize();
     List<AvailablePlugin> plugins = getAvailablePlugins();
     for (AvailablePlugin plugin : plugins) {
       if (onlyConfiguredActive != false && plugin.isActivated() == false && plugin.isBuildIn() == false) {
@@ -126,8 +121,6 @@ public class PluginAdminServiceImpl implements PluginAdminService
       callback.call(plugin);
     }
     plugin.init();
-    plugin.registerCronJob(cronSetup);
-
     LOG.info("Plugin activated: " + projectForgePluginService.getPluginId());
   }
 

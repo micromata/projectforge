@@ -27,10 +27,12 @@ import java.util.List;
 
 import org.apache.log4j.Logger;
 import org.apache.wicket.markup.html.form.DropDownChoice;
+import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.markup.html.form.FormComponent;
+import org.apache.wicket.markup.html.form.validation.IFormValidator;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.apache.wicket.util.convert.IConverter;
-import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.business.fibu.KontoCache;
 import org.projectforge.business.fibu.KontoDO;
 import org.projectforge.business.fibu.KundeDO;
@@ -39,11 +41,15 @@ import org.projectforge.business.fibu.ProjektStatus;
 import org.projectforge.business.fibu.kost.AccountingConfig;
 import org.projectforge.business.fibu.kost.KostCache;
 import org.projectforge.business.task.TaskDO;
+import org.projectforge.business.user.I18nHelper;
 import org.projectforge.framework.persistence.user.entities.GroupDO;
+import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.reporting.Kost2Art;
 import org.projectforge.web.task.TaskSelectPanel;
 import org.projectforge.web.user.NewGroupSelectPanel;
+import org.projectforge.web.user.UserSelectPanel;
 import org.projectforge.web.wicket.AbstractEditForm;
+import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.web.wicket.components.LabelValueChoiceRenderer;
 import org.projectforge.web.wicket.components.MaxLengthTextArea;
 import org.projectforge.web.wicket.components.MaxLengthTextField;
@@ -72,6 +78,12 @@ public class ProjektEditForm extends AbstractEditForm<ProjektDO, ProjektEditPage
   @SpringBean
   KostCache kostCache;
 
+  @SpringBean
+  private ProjectServiceImpl projectService;
+
+  // Components for form validation.
+  private final FormComponent<?>[] dependentFormComponents = new FormComponent[2];
+
   public ProjektEditForm(final ProjektEditPage parentPage, final ProjektDO data)
   {
     super(parentPage, data);
@@ -99,6 +111,7 @@ public class ProjektEditForm extends AbstractEditForm<ProjektDO, ProjektEditPage
         }
       };
       WicketUtils.setSize(field, 2);
+      dependentFormComponents[0] = field;
       fs.add(field);
     }
     {
@@ -106,6 +119,7 @@ public class ProjektEditForm extends AbstractEditForm<ProjektDO, ProjektEditPage
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("fibu.kunde")).suppressLabelForWarning();
       kundeSelectPanel = new NewCustomerSelectPanel(fs.newChildId(),
           new PropertyModel<KundeDO>(data, "kunde"), null, parentPage, "kundeId");
+      dependentFormComponents[1] = kundeSelectPanel;
       fs.add(kundeSelectPanel);
       kundeSelectPanel.init();
     }
@@ -182,6 +196,33 @@ public class ProjektEditForm extends AbstractEditForm<ProjektDO, ProjektEditPage
       groupSelectPanel.init();
     }
     {
+      // project manager
+      final FieldsetPanel fs = gridBuilder.newFieldset(getString("fibu.projectManager"));
+      final UserSelectPanel projectManagerSelectPanel = new UserSelectPanel(fs.newChildId(),
+          new PropertyModel<PFUserDO>(data, "projectManager"),
+          parentPage, "projectManagerId");
+      fs.add(projectManagerSelectPanel);
+      projectManagerSelectPanel.init();
+    }
+    {
+      // head of business manager
+      final FieldsetPanel fs = gridBuilder.newFieldset(getString("fibu.headOfBusinessManager"));
+      final UserSelectPanel headOfBusinessManagerSelectPanel = new UserSelectPanel(fs.newChildId(),
+          new PropertyModel<PFUserDO>(data, "headOfBusinessManager"),
+          parentPage, "headOfBusinessManagerId");
+      fs.add(headOfBusinessManagerSelectPanel);
+      headOfBusinessManagerSelectPanel.init();
+    }
+    {
+      //sales manager
+      final FieldsetPanel fs = gridBuilder.newFieldset(getString("fibu.salesManager"));
+      final UserSelectPanel salesManagerSelectPanel = new UserSelectPanel(fs.newChildId(),
+          new PropertyModel<PFUserDO>(data, "salesManager"),
+          parentPage, "salesManagerId");
+      fs.add(salesManagerSelectPanel);
+      salesManagerSelectPanel.init();
+    }
+    {
       // description
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("description"));
       fs.add(new MaxLengthTextArea(TextAreaPanel.WICKET_ID, new PropertyModel<String>(data, "description")));
@@ -198,6 +239,29 @@ public class ProjektEditForm extends AbstractEditForm<ProjektDO, ProjektEditPage
       fs.add(table);
       table.init(kost2Arts);
     }
+    add(new IFormValidator()
+    {
+
+      @Override
+      public FormComponent<?>[] getDependentFormComponents()
+      {
+        return dependentFormComponents;
+      }
+
+      @Override
+      public void validate(Form<?> form)
+      {
+        MinMaxNumberField<Integer> number = (MinMaxNumberField<Integer>) dependentFormComponents[0];
+        NewCustomerSelectPanel customer = (NewCustomerSelectPanel) dependentFormComponents[1];
+        Integer numberValue = number != null ? number.getConvertedInput() : null;
+        KundeDO customerValue = customer != null ? customer.getConvertedInput() : null;
+        if (numberValue != null && customerValue != null && numberValue.equals(new Integer(data.getNummer())) == false) {
+          if (projectService.isNumberFreeForCustomer(numberValue, customerValue) == false) {
+            form.error(I18nHelper.getLocalizedMessage("fibu.projekt.validation.numbernotfreeforcustomer"));
+          }
+        }
+      }
+    });
   }
 
   @Override

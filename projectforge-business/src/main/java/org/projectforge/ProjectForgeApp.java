@@ -25,7 +25,6 @@ package org.projectforge;
 
 import java.util.TimeZone;
 
-import org.projectforge.business.jobs.CronSetup;
 import org.projectforge.business.multitenancy.TenantRegistry;
 import org.projectforge.business.multitenancy.TenantRegistryMap;
 import org.projectforge.business.systeminfo.SystemInfoCache;
@@ -46,11 +45,10 @@ import net.fortuna.ical4j.util.CompatibilityHints;
 
 /**
  * Doing some initialization stuff and stuff on shutdown (planned). Most stuff is yet done by WicketApplication.
- * 
+ * <p>
  * TODO * DESIGNBUG enkoppeln.
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
  */
 
 public class ProjectForgeApp
@@ -64,8 +62,6 @@ public class ProjectForgeApp
   private final long startTime = System.currentTimeMillis();
 
   private ApplicationContext applicationContext;
-
-  private CronSetup cronSetup;
 
   private DatabaseUpdateService databaseUpdater;
 
@@ -118,12 +114,7 @@ public class ProjectForgeApp
    */
   public void finalizeInitialization()
   {
-    cronSetup.initialize();
-    log.info("system cronJobs are initialized.");
-    //    TODO RK may be already in PluginAdminService pluginsRegistry.registerCronJobs(cronSetup);
-    log.info("plugin cronJobs are initialized.");
     log.info(AppVersion.APP_ID + " " + AppVersion.NUMBER + " (" + AppVersion.RELEASE_TIMESTAMP + ") initialized.");
-
     // initialize ical4j to be more "relaxed"
     CompatibilityHints.setHintEnabled(CompatibilityHints.KEY_RELAXED_PARSING, true);
     CompatibilityHints.setHintEnabled(CompatibilityHints.KEY_RELAXED_UNFOLDING, true);
@@ -137,7 +128,6 @@ public class ProjectForgeApp
   {
     log.info("Initializing...");
     this.applicationContext = applicationContext;
-    this.cronSetup = applicationContext.getBean(CronSetup.class);
     this.databaseUpdater = applicationContext.getBean(DatabaseUpdateService.class);
     this.userXmlPreferencesCache = applicationContext.getBean(UserXmlPreferencesCache.class);
     this.systemInfoCache = applicationContext.getBean(SystemInfoCache.class);
@@ -227,7 +217,6 @@ public class ProjectForgeApp
     upAndRunning = false;
     log.info("Syncing all user preferences to database.");
     userXmlPreferencesCache.forceReload();
-    cronSetup.shutdown();
     try {
       final UserContext internalSystemAdminUserContext = UserContext
           .__internalCreateWithSpecialUser(DatabaseUpdateService
@@ -258,7 +247,7 @@ public class ProjectForgeApp
 
   /**
    * This method should only be called in test cases!
-   * 
+   *
    * @param upAndRunning the upAndRunning to set
    */
   public void internalSetUpAndRunning(final boolean upAndRunning)

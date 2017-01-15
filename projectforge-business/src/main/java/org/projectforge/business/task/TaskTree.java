@@ -67,7 +67,7 @@ import org.projectforge.framework.utils.StackTraceHolder;
 /**
  * Holds the complete task list in a tree. It will be initialized by the values read from the database. Any changes will
  * be written to this tree and to the database.
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 public class TaskTree extends AbstractCache implements Serializable
@@ -92,16 +92,24 @@ public class TaskTree extends AbstractCache implements Serializable
 
   private static final List<TaskNode> EMPTY_LIST = new ArrayList<TaskNode>();
 
-  /** For log messages. */
+  /**
+   * For log messages.
+   */
   private static final Logger log = Logger.getLogger(TaskTree.class);
 
-  /** Time of last modification in milliseconds from 1970-01-01. */
+  /**
+   * Time of last modification in milliseconds from 1970-01-01.
+   */
   private long timeOfLastModification = 0;
 
-  /** For faster searching of entries. */
+  /**
+   * For faster searching of entries.
+   */
   private Map<Integer, TaskNode> taskMap;
 
-  /** The root node of all tasks. The only node with parent null. */
+  /**
+   * The root node of all tasks. The only node with parent null.
+   */
   private TaskNode root = null;
 
   private Map<Integer, Set<AuftragsPositionVO>> orderPositionReferences;
@@ -114,7 +122,9 @@ public class TaskTree extends AbstractCache implements Serializable
     return this.root;
   }
 
-  /** Adds the given node as child of the given parent. */
+  /**
+   * Adds the given node as child of the given parent.
+   */
   private synchronized TaskNode addTaskNode(final TaskNode node, final TaskNode parent)
   {
     checkRefresh();
@@ -173,7 +183,7 @@ public class TaskTree extends AbstractCache implements Serializable
 
   /**
    * Returns the path to the root node in an ArrayList.
-   * 
+   *
    * @see #getPath(Integer, Integer)
    */
   public List<TaskNode> getPathToRoot(final Integer taskId)
@@ -181,14 +191,19 @@ public class TaskTree extends AbstractCache implements Serializable
     return getPath(taskId, null);
   }
 
-  /** All task nodes are stored in an HashMap for faster searching. */
+  /**
+   * All task nodes are stored in an HashMap for faster searching.
+   */
   public TaskNode getTaskNodeById(final Integer id)
   {
     if (id == null) {
       return null;
     }
     checkRefresh();
-    return taskMap.get(id);
+    if (taskMap != null) {
+      return taskMap.get(id);
+    }
+    return null;
   }
 
   public TaskDO getTaskById(final Integer id)
@@ -203,7 +218,7 @@ public class TaskTree extends AbstractCache implements Serializable
 
   /**
    * Gets the project, which is assigned to the task or if not found to the parent task or grand parent task etc.
-   * 
+   *
    * @param taskId
    * @return null, if now project is assigned to this task or ancestor tasks.
    */
@@ -231,7 +246,7 @@ public class TaskTree extends AbstractCache implements Serializable
 
   /**
    * recursive = true.
-   * 
+   *
    * @param taskId
    * @return
    * @see #getKost2List(Integer, boolean)
@@ -247,7 +262,7 @@ public class TaskTree extends AbstractCache implements Serializable
    * available. Kost2 are defined over assigned projects and kost2s. If project or Kost2DO not assigned for a task, then
    * the project or task of the parent task will be assumed. If the parent task has no project or task the grand parent
    * task will be taken and so on (recursive until root task).
-   * 
+   *
    * @param taskId
    * @param recursive If true then search the ancestor task for cost definitions if current task haven't.
    * @return Available Kost2DOs or null, if no Kost2DO found.
@@ -259,9 +274,8 @@ public class TaskTree extends AbstractCache implements Serializable
   }
 
   /**
-   * 
-   * @param projekt If not initialized then the project is get from the data base.
-   * @param task Only needed for output if an entry (Kost2) of the blackWhiteList cannot be found.
+   * @param projekt          If not initialized then the project is get from the data base.
+   * @param task             Only needed for output if an entry (Kost2) of the blackWhiteList cannot be found.
    * @param blackWhiteList
    * @param kost2IsBlackList
    * @return
@@ -350,7 +364,7 @@ public class TaskTree extends AbstractCache implements Serializable
 
   /**
    * Should be called after modification of a time sheet assigned to the given task id.
-   * 
+   *
    * @param taskId
    */
   public void resetTotalDuration(final Integer taskId)
@@ -365,7 +379,7 @@ public class TaskTree extends AbstractCache implements Serializable
 
   /**
    * After changing a task this method will be called by TaskDao for updating the task and the task tree.
-   * 
+   *
    * @param task Updating the existing task in the taskTree. If not exist, a new task will be added.
    */
   TaskNode addOrUpdateTaskNode(final TaskDO task)
@@ -396,7 +410,7 @@ public class TaskTree extends AbstractCache implements Serializable
   /**
    * Sets an explicit task group access for the given task (stored in the given groupTaskAccess). This method will be
    * called by AccessDao after inserting or updating GroupTaskAccess to the database.
-   * 
+   *
    * @see GroupTaskAccess
    */
   public void setGroupTaskAccess(final GroupTaskAccessDO groupTaskAccess)
@@ -410,7 +424,7 @@ public class TaskTree extends AbstractCache implements Serializable
   /**
    * Removes an explicit task group access for the given task (stored in the given groupTaskAccess). This method will be
    * called by AccessDao after deleting GroupTaskAccess from the database.
-   * 
+   *
    * @see GroupTaskAccess
    */
   public void removeGroupTaskAccess(final GroupTaskAccessDO groupTaskAccess)
@@ -513,7 +527,7 @@ public class TaskTree extends AbstractCache implements Serializable
 
   /**
    * Has the current logged in user select access to the given task?
-   * 
+   *
    * @param node
    * @return
    */
@@ -620,7 +634,6 @@ public class TaskTree extends AbstractCache implements Serializable
   }
 
   /**
-   * @return Set of all order positions assigned to the given task and any of the ancestor tasks.
    * @param taskId
    * @return
    */
@@ -698,7 +711,7 @@ public class TaskTree extends AbstractCache implements Serializable
   /**
    * @param node
    * @return The ordered person days or if not found the defined max hours. If both not found, the get the sum of all
-   *         diect or null if both not found.
+   * diect or null if both not found.
    * @see #getOrderedPersonDays(TaskNode)
    * @see TaskNode#getMaxHours()
    */
@@ -733,7 +746,7 @@ public class TaskTree extends AbstractCache implements Serializable
 
   /**
    * @return The sum of all ordered person days. This method checks the given node and all sub-nodes for assigned order
-   *         positions.
+   * positions.
    */
   public BigDecimal getOrderedPersonDaysSum(final TaskNode node)
   {
@@ -819,7 +832,7 @@ public class TaskTree extends AbstractCache implements Serializable
    * read from database and will be cached in this tree (implicit access' will be created too).<br/>
    * The generation of the task tree will be done manually, not by hibernate because the task hierarchy is very
    * sensible. Manipulations of the task tree should be done carefully for single task nodes.
-   * 
+   *
    * @see org.projectforge.framework.cache.AbstractCache#refresh()
    */
   @Override
