@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import org.projectforge.business.fibu.EmployeeDO;
 import org.projectforge.business.fibu.EmployeeDao;
@@ -98,7 +99,7 @@ public class FFPEventServiceImpl extends CorePersistenceServiceImpl<Integer, FFP
 
   public List<FFPDebtDO> calculateDebt(FFPEventDO event)
   {
-    List<FFPAccountingDO> accountingDOs = event.getAccountingList();
+    Set<FFPAccountingDO> accountingDOs = event.getAccountingList();
     final BigDecimal averageCosts = calculateAverage(accountingDOs);
 
     Map<FFPAccountingDO, BigDecimal> paidToMuch = new HashMap<>();
@@ -189,7 +190,14 @@ public class FFPEventServiceImpl extends CorePersistenceServiceImpl<Integer, FFP
     return debtDao.getOpenFromDebts(employeeDao.findByUserId(user.getId()));
   }
 
-  BigDecimal calculateAverage(List<FFPAccountingDO> accountingDOs)
+  @Override
+  public boolean debtExists(FFPEventDO event)
+  {
+    List<FFPDebtDO> debtList = debtDao.getDebts(event);
+    return debtList != null && debtList.size() > 0;
+  }
+
+  BigDecimal calculateAverage(Set<FFPAccountingDO> accountingDOs)
   {
     BigDecimal sumValue = BigDecimal.ZERO;
     BigDecimal sumWighting = BigDecimal.ZERO;

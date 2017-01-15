@@ -23,7 +23,7 @@
 
 package org.projectforge.plugins.ffp.wicket;
 
-import java.util.ArrayList;
+import java.util.HashSet;
 
 import org.apache.log4j.Logger;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
@@ -85,13 +85,22 @@ public class FFPEventEditPage extends AbstractEditPage<FFPEventDO, FFPEventEditF
   public AbstractSecuredBasePage onSaveOrUpdate()
   {
     super.afterSaveOrUpdate();
-    getData().setAccountingList(new ArrayList<>(form.accountingList));
+    getData().setAccountingList(new HashSet<>(form.accountingList));
     form.assignAttendeesListHelper.getItemsToAssign().forEach(emp -> {
       getData().addAttendee(emp);
     });
     form.assignAttendeesListHelper.getItemsToUnassign().forEach(emp -> {
       getData().getAttendeeList().remove(emp);
     });
+    return null;
+  }
+
+  @Override
+  public AbstractSecuredBasePage afterSaveOrUpdate()
+  {
+    if (getData().getFinished() == true && eventService.debtExists(getData()) == false) {
+      eventService.createDept(getData());
+    }
     return null;
   }
 
