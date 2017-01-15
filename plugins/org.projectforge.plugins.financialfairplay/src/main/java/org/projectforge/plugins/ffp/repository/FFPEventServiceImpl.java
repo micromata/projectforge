@@ -164,15 +164,9 @@ public class FFPEventServiceImpl extends CorePersistenceServiceImpl<Integer, FFP
   }
 
   @Override
-  public void updateDept(FFPEventDO event)
+  public void createDept(FFPEventDO event)
   {
-    List<FFPDebtDO> debtList = calculateDebt(event);
-    //Check if new or update
-    //TODO: Has to be done!
-    //New
-    debtDao.internalSaveOrUpdate(debtList);
-    //Update
-    //TODO: Has to be done!
+    debtDao.internalSaveOrUpdate(calculateDebt(event));
   }
 
   @Override

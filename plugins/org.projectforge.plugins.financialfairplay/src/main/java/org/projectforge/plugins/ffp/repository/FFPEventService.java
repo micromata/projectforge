@@ -22,7 +22,7 @@ public interface FFPEventService extends IPersistenceService<FFPEventDO>, IDao<F
 
   List<FFPDebtDO> getDeptList(EmployeeDO currentEmployee);
 
-  void updateDept(FFPEventDO event);
+  void createDept(FFPEventDO event);
 
   void updateDebtFrom(FFPDebtDO debt);
 

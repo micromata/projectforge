@@ -22,6 +22,7 @@ import org.hibernate.search.annotations.EncodingType;
 import org.hibernate.search.annotations.Resolution;
 import org.projectforge.business.fibu.EmployeeDO;
 import org.projectforge.common.anots.PropertyInfo;
+import org.projectforge.framework.persistence.api.PFPersistancyBehavior;
 import org.projectforge.framework.persistence.entities.DefaultBaseDO;
 
 import de.micromata.genome.db.jpa.history.api.WithHistory;
@@ -42,7 +43,10 @@ public class FFPEventDO extends DefaultBaseDO
 
   private List<EmployeeDO> attendeeList;
 
+  @PFPersistancyBehavior(autoUpdateCollectionEntries = true)
   private List<FFPAccountingDO> accountingList;
+
+  private boolean finished;
 
   @Column(nullable = false, length = 1000)
   public String getTitle()
@@ -70,8 +74,8 @@ public class FFPEventDO extends DefaultBaseDO
   @ManyToMany
   @JoinTable(
       name = "T_PLUGIN_FINANCIALFAIRPLAY_EVENT_ATTENDEE",
-      joinColumns = @JoinColumn(name = "ATTENDEE_PK", referencedColumnName = "PK"),
-      inverseJoinColumns = @JoinColumn(name = "EVENT_PK", referencedColumnName = "PK"))
+      joinColumns = @JoinColumn(name = "EVENT_PK", referencedColumnName = "PK"),
+      inverseJoinColumns = @JoinColumn(name = "ATTENDEE_PK", referencedColumnName = "PK"))
   public List<EmployeeDO> getAttendeeList()
   {
     if (attendeeList == null) {
@@ -105,4 +109,14 @@ public class FFPEventDO extends DefaultBaseDO
     getAttendeeList().add(employee);
   }
 
+  @Column
+  public boolean getFinished()
+  {
+    return finished;
+  }
+
+  public void setFinished(boolean finished)
+  {
+    this.finished = finished;
+  }
 }
