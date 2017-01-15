@@ -39,6 +39,7 @@ import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang.Validate;
 import org.projectforge.business.common.OutputType;
+import org.projectforge.business.fibu.api.EmployeeService;
 import org.projectforge.business.fibu.kost.Kost2DO;
 import org.projectforge.business.task.TaskDO;
 import org.projectforge.business.task.formatter.TaskFormatter;
@@ -48,7 +49,6 @@ import org.projectforge.business.vacation.service.VacationService;
 import org.projectforge.common.StringHelper;
 import org.projectforge.framework.calendar.MonthHolder;
 import org.projectforge.framework.calendar.WeekHolder;
-import org.projectforge.framework.configuration.ApplicationContextProvider;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.time.DateHolder;
 import org.projectforge.framework.time.DayHolder;
@@ -178,6 +178,8 @@ public class MonthlyEmployeeReport implements Serializable
 
   private VacationService vacationService;
 
+  private EmployeeService employeeService;
+
   public static final String getFormattedDuration(final long duration)
   {
     if (duration == 0) {
@@ -194,10 +196,14 @@ public class MonthlyEmployeeReport implements Serializable
    * @param year
    * @param month
    */
-  public MonthlyEmployeeReport(final int year, final int month)
+  public MonthlyEmployeeReport(final EmployeeService employeeService, final VacationService vacationService, final PFUserDO user, final int year,
+      final int month)
   {
     this.year = year;
     this.month = month;
+    this.user = user;
+    this.employeeService = employeeService;
+    this.vacationService = vacationService;
   }
 
   /**
@@ -226,6 +232,9 @@ public class MonthlyEmployeeReport implements Serializable
 
   public void init()
   {
+    if (this.user != null) {
+      this.employee = employeeService.getEmployeeByUserId(this.user.getId());
+    }
     // Create the weeks:
     this.weeks = new ArrayList<MonthlyEmployeeReportWeek>();
     final DateHolder dh = new DateHolder();
@@ -245,7 +254,6 @@ public class MonthlyEmployeeReport implements Serializable
         throw new RuntimeException("Endless loop protection: Please contact developer!");
       }
     } while (dh.getDate().before(toDate));
-    this.vacationService = ApplicationContextProvider.getApplicationContext().getBean(VacationService.class);
   }
 
   public void addTimesheet(final TimesheetDO sheet)
@@ -320,8 +328,11 @@ public class MonthlyEmployeeReport implements Serializable
         }
       }
     }
-    if (vacationService.couldUserUseVacationService(employee.getUser(), false)) {
-      this.vacationCount = vacationService.getAvailableVacationdaysForYear(employee, year, false).longValue();
+    if (vacationService != null && this.employee != null && this.employee.getUser() != null) {
+      if (vacationService.couldUserUseVacationService(this.employee.getUser(), false)) {
+        this.vacationCount = vacationService.getAvailableVacationdaysForYear(this.employee
+            , this.year, false).longValue();
+      }
     }
   }
 

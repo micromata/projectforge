@@ -38,6 +38,8 @@ import java.util.function.Predicate;
 import org.projectforge.business.address.AddressDO;
 import org.projectforge.business.fibu.AuftragDO;
 import org.projectforge.business.fibu.AuftragsPositionDO;
+import org.projectforge.business.fibu.AuftragsPositionsStatus;
+import org.projectforge.business.fibu.AuftragsStatus;
 import org.projectforge.business.fibu.EingangsrechnungDO;
 import org.projectforge.business.fibu.EmployeeDO;
 import org.projectforge.business.fibu.EmployeeDao;
@@ -109,6 +111,96 @@ public class DatabaseCoreUpdates
     final InitDatabaseDao initDatabaseDao = applicationContext.getBean(InitDatabaseDao.class);
 
     final List<UpdateEntry> list = new ArrayList<>();
+
+    ////////////////////////////////////////////////////////////////////
+    // 6.7.0
+    // /////////////////////////////////////////////////////////////////
+    list.add(new UpdateEntryImpl(CORE_REGION_ID, "6.7.0", "2017-01-11",
+        "Add payment type for order book position. Add users to project and order. Extend order position status.")
+    {
+      private final String AUFTRAG_TABLE_COL_NAME = "status";
+      private final String AUFTRAG_OLD_STATUS_POTENZIAL = "GROB_KALKULATION";
+      private final String AUFTRAG_NEW_STATUS_POTENZIAL = AuftragsStatus.POTENZIAL.name();
+
+      private final String AUFTRAG_POS_TABLE_COL_NAME = "status";
+      private final String AUFTRAG_POS_OLD_STATUS_BEAUFTRAGT = "BEAUFTRAGTE_OPTION";
+      private final String AUFTRAG_POS_NEW_STATUS_BEAUFTRAGT = AuftragsPositionsStatus.BEAUFTRAGT.name();
+      private final String AUFTRAG_POS_OLD_STATUS_ABGELEHNT = "NICHT_BEAUFTRAGT";
+      private final String AUFTRAG_POS_NEW_STATUS_ABGELEHNT = AuftragsPositionsStatus.ABGELEHNT.name();
+
+      private boolean doesAuftragPotenzialNeedsUpdate()
+      {
+        return databaseUpdateService.doesTableRowExists(AuftragDO.class, AUFTRAG_TABLE_COL_NAME, AUFTRAG_OLD_STATUS_POTENZIAL, true);
+      }
+
+      private boolean doesAuftragPosBeauftragtNeedsUpdate()
+      {
+        return databaseUpdateService.doesTableRowExists(AuftragsPositionDO.class, AUFTRAG_POS_TABLE_COL_NAME, AUFTRAG_POS_OLD_STATUS_BEAUFTRAGT, true);
+      }
+
+      private boolean doesAuftragPosAbgelehntNeedsUpdate()
+      {
+        return databaseUpdateService.doesTableRowExists(AuftragsPositionDO.class, AUFTRAG_POS_TABLE_COL_NAME, AUFTRAG_POS_OLD_STATUS_ABGELEHNT, true);
+      }
+
+      @Override
+      public UpdatePreCheckStatus runPreCheck()
+      {
+        log.info("Running pre-check for ProjectForge version 6.7.0");
+        if (databaseUpdateService.doesTableAttributeExist("t_fibu_auftrag_position", "paymentType") == false
+            || databaseUpdateService.doesTableAttributeExist("T_FIBU_PROJEKT", "projectmanager_fk") == false
+            || databaseUpdateService.doesTableAttributeExist("T_FIBU_PROJEKT", "headofbusinessmanager_fk") == false
+            || databaseUpdateService.doesTableAttributeExist("T_FIBU_PROJEKT", "salesmanager_fk") == false
+            || databaseUpdateService.doesTableAttributeExist("t_fibu_auftrag", "projectmanager_fk") == false
+            || databaseUpdateService.doesTableAttributeExist("t_fibu_auftrag", "headofbusinessmanager_fk") == false
+            || databaseUpdateService.doesTableAttributeExist("t_fibu_auftrag", "salesmanager_fk") == false) {
+          return UpdatePreCheckStatus.READY_FOR_UPDATE;
+        }
+
+        if (doesAuftragPotenzialNeedsUpdate() || doesAuftragPosBeauftragtNeedsUpdate() || doesAuftragPosAbgelehntNeedsUpdate()) {
+          return UpdatePreCheckStatus.READY_FOR_UPDATE;
+        }
+
+        return UpdatePreCheckStatus.ALREADY_UPDATED;
+      }
+
+      @Override
+      public UpdateRunningStatus runUpdate()
+      {
+        if (databaseUpdateService.doesTableAttributeExist("t_fibu_auftrag_position", "paymentType") == false) {
+          //Updating the schema
+          initDatabaseDao.updateSchema();
+          databaseUpdateService.execute("UPDATE t_fibu_auftrag_position SET paymentType = 'FESTPREISPAKET', art = NULL WHERE art = 'FESTPREISPAKET'");
+          databaseUpdateService.execute("UPDATE t_fibu_auftrag_position SET paymentType = 'TIME_AND_MATERIALS', art = NULL WHERE art = 'TIME_AND_MATERIALS'");
+          databaseUpdateService.execute("UPDATE t_fibu_auftrag_position SET art = 'WARTUNG' WHERE art = 'HOT_FIX'");
+        }
+        if (databaseUpdateService.doesTableAttributeExist("T_FIBU_PROJEKT", "projectmanager_fk") == false
+            || databaseUpdateService.doesTableAttributeExist("T_FIBU_PROJEKT", "headofbusinessmanager_fk") == false
+            || databaseUpdateService.doesTableAttributeExist("T_FIBU_PROJEKT", "salesmanager_fk") == false
+            || databaseUpdateService.doesTableAttributeExist("t_fibu_auftrag", "projectmanager_fk") == false
+            || databaseUpdateService.doesTableAttributeExist("t_fibu_auftrag", "headofbusinessmanager_fk") == false
+            || databaseUpdateService.doesTableAttributeExist("t_fibu_auftrag", "salesmanager_fk") == false) {
+          //Updating the schema
+          initDatabaseDao.updateSchema();
+        }
+
+        if (doesAuftragPotenzialNeedsUpdate()) {
+          databaseUpdateService.replaceTableCellStrings(AuftragDO.class, AUFTRAG_TABLE_COL_NAME, AUFTRAG_OLD_STATUS_POTENZIAL, AUFTRAG_NEW_STATUS_POTENZIAL);
+        }
+        if (doesAuftragPosBeauftragtNeedsUpdate()) {
+          databaseUpdateService.replaceTableCellStrings(AuftragsPositionDO.class, AUFTRAG_POS_TABLE_COL_NAME, AUFTRAG_POS_OLD_STATUS_BEAUFTRAGT,
+              AUFTRAG_POS_NEW_STATUS_BEAUFTRAGT);
+        }
+        if (doesAuftragPosAbgelehntNeedsUpdate()) {
+          databaseUpdateService
+              .replaceTableCellStrings(AuftragsPositionDO.class, AUFTRAG_POS_TABLE_COL_NAME, AUFTRAG_POS_OLD_STATUS_ABGELEHNT,
+                  AUFTRAG_POS_NEW_STATUS_ABGELEHNT);
+        }
+
+        return UpdateRunningStatus.DONE;
+      }
+
+    });
 
     ////////////////////////////////////////////////////////////////////
     // 6.6.1

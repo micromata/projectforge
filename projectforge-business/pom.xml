@@ -5,7 +5,7 @@
   <parent>
     <groupId>org.projectforge</groupId>
     <artifactId>projectforge-parent</artifactId>
-    <version>6.7.0-SNAPSHOT</version>
+    <version>6.8.0-SNAPSHOT</version>
   </parent>
   <licenses>
     <license>
@@ -204,11 +204,6 @@
       <groupId>org.mozilla</groupId>
       <artifactId>rhino</artifactId>
       <version>${rhino.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.quartz-scheduler</groupId>
-      <artifactId>quartz</artifactId>
-      <version>${quartz.version}</version>
     </dependency>
     <dependency>
       <groupId>net.sourceforge</groupId>

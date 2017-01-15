@@ -30,7 +30,6 @@ import java.util.List;
 import java.util.Set;
 
 import org.apache.commons.lang.Validate;
-import org.projectforge.business.jobs.CronSetup;
 import org.projectforge.business.user.UserPrefAreaRegistry;
 import org.projectforge.business.user.UserRight;
 import org.projectforge.business.user.UserXmlPreferencesBaseDOSingleValueConverter;
@@ -118,7 +117,6 @@ public abstract class AbstractPlugin
   }
 
   /**
-   * 
    * @param resourceBundleName
    * @return this for chaining.
    */
@@ -129,10 +127,10 @@ public abstract class AbstractPlugin
   }
 
   /**
-   * @param id The unique plugin id.
+   * @param id           The unique plugin id.
    * @param daoClassType The dao object type.
-   * @param baseDao The dao itself.
-   * @param i18nPrefix The prefix for i18n keys.
+   * @param baseDao      The dao itself.
+   * @param i18nPrefix   The prefix for i18n keys.
    * @return New RegistryEntry.
    */
   protected RegistryEntry register(final String id, final Class<? extends BaseDao<?>> daoClassType,
@@ -151,7 +149,7 @@ public abstract class AbstractPlugin
 
   /**
    * Registers the given entry.
-   * 
+   *
    * @param entry
    * @return The registered registry entry for chaining.
    * @see Registry#register(RegistryEntry)
@@ -165,7 +163,7 @@ public abstract class AbstractPlugin
 
   /**
    * Registers a right which is responsible for the access management.
-   * 
+   *
    * @param right
    * @return this for chaining.
    */
@@ -177,7 +175,7 @@ public abstract class AbstractPlugin
 
   /**
    * Registers a new user preferences areas (shown in the list of 'own settings' of each user).
-   * 
+   *
    * @param areaId
    * @param cls
    * @param i18nSuffix
@@ -194,7 +192,7 @@ public abstract class AbstractPlugin
   /**
    * The annotations of the given classes will be processed by xstream which is used for marshalling and unmarshalling
    * user xml preferences.
-   * 
+   *
    * @param classes
    * @return this for chaining.
    * @see UserXmlPreferencesDao#processAnnotations(Class...)
@@ -207,9 +205,9 @@ public abstract class AbstractPlugin
 
   /**
    * Register converters before marshaling and unmarshaling by XStream.
-   * 
+   *
    * @param daoClass Class of the dao.
-   * @param doClass Class of the DO which will be converted.
+   * @param doClass  Class of the DO which will be converted.
    * @see UserXmlPreferencesBaseDOSingleValueConverter#UserXmlPreferencesBaseDOSingleValueConverter(Class, Class)
    */
   public void registerUserXmlPreferencesConverter(final Class<? extends BaseDao<?>> daoClass,
@@ -220,9 +218,9 @@ public abstract class AbstractPlugin
 
   /**
    * Register converters before marshaling and unmarshaling by XStream.
-   * 
+   *
    * @param daoClass Class of the dao.
-   * @param doClass Class of the DO which will be converted.
+   * @param doClass  Class of the DO which will be converted.
    * @param priority The priority needed by xtream for using converters in the demanded order.
    * @see UserXmlPreferencesBaseDOSingleValueConverter#UserXmlPreferencesBaseDOSingleValueConverter(Class, Class)
    */
@@ -235,7 +233,7 @@ public abstract class AbstractPlugin
   /**
    * Override this method if an update entry for initialization does exist. This will be called, if the plugin runs the
    * first time.
-   * 
+   *
    * @return null at default.
    * @see ToDoPlugin
    */
@@ -246,21 +244,12 @@ public abstract class AbstractPlugin
 
   /**
    * Override this method if update entries does exist for this plugin.
-   * 
+   *
    * @return null at default.
    */
   public List<UpdateEntry> getUpdateEntries()
   {
     return null;
-  }
-
-  /**
-   * This method is called in the lifecycle, when the plugin is able to register cron jobs.<br/>
-   * <b>Do not register cron jobs before this method was called.</b>
-   */
-  public void registerCronJob(final CronSetup cronSetup)
-  {
-
   }
 
   @Deprecated

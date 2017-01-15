@@ -454,7 +454,7 @@ public class ConfigurationServiceImpl implements ConfigurationService
           keystoreFile = new File(applicationHomeDir, getKeystoreFile());
         }
         if (keystoreFile.canRead() == false) {
-          log.error("Can't read keystore file: " + getKeystoreFile());
+          log.warn("Can't read keystore file: " + getKeystoreFile());
           return;
         }
         final InputStream is = new FileInputStream(keystoreFile);
@@ -591,13 +591,13 @@ public class ConfigurationServiceImpl implements ConfigurationService
     return compileCss;
   }
 
-   @Override
+  @Override
   public String getLoginHandlerClass()
   {
     return loginHandlerClass;
   }
-  
-    @Override
+
+  @Override
   public String getTeamCalCryptPassword()
   {
     return teamCalCryptPassword;

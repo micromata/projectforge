@@ -21,27 +21,47 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.business.jobs;
+package org.projectforge.business.fibu;
 
-import org.quartz.Job;
-import org.quartz.JobExecutionContext;
+import org.projectforge.common.i18n.I18nEnum;
 
 /**
- * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
+ * @author Florian Blumenstein
  */
-public abstract class AbstractCronJob implements Job
+public enum AuftragsPositionsPaymentType implements I18nEnum
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(AbstractCronJob.class);
 
-  protected abstract void wire(final JobExecutionContext context);
+  FESTPREISPAKET("festpreispaket"), TIME_AND_MATERIALS("time_and_materials"), PAUSCHALE("pauschale");
 
-  protected Object wire(final JobExecutionContext context, final String key)
+  private String key;
+
+  /**
+   * The key will be used e. g. for i18n.
+   *
+   * @return
+   */
+  public String getKey()
   {
-    final Object result = context.getMergedJobDataMap().get(key);
-    if (result == null) {
-      log.fatal("Mis-configuration of scheduler in applicationContext-web.xml: '" + key + "' is not availabe.");
+    return key;
+  }
+
+  AuftragsPositionsPaymentType(String key)
+  {
+    this.key = key;
+  }
+
+  public boolean isIn(AuftragsPositionsPaymentType... auftragsPositionsPaymentType)
+  {
+    for (AuftragsPositionsPaymentType paymentType : auftragsPositionsPaymentType) {
+      if (this == paymentType) {
+        return true;
+      }
     }
-    return result;
+    return false;
+  }
+
+  public String getI18nKey()
+  {
+    return "fibu.auftrag.position.paymenttype." + key;
   }
 }
