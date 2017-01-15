@@ -34,11 +34,11 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import org.apache.commons.lang.ObjectUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
+import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
@@ -50,6 +50,8 @@ import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDat
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
 import org.apache.wicket.extensions.markup.html.repeater.util.SortParam;
 import org.apache.wicket.extensions.markup.html.repeater.util.SortableDataProvider;
+import org.apache.wicket.markup.html.form.Button;
+import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -58,6 +60,7 @@ import org.apache.wicket.model.ResourceModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.fibu.EmployeeDO;
 import org.projectforge.business.fibu.api.EmployeeService;
+import org.projectforge.framework.i18n.UserException;
 import org.projectforge.framework.persistence.api.IdObject;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.utils.MyBeanComparator;
@@ -74,6 +77,7 @@ import org.projectforge.web.wicket.components.DatePanel;
 import org.projectforge.web.wicket.components.DatePanelSettings;
 import org.projectforge.web.wicket.components.MaxLengthTextField;
 import org.projectforge.web.wicket.components.MinMaxNumberField;
+import org.projectforge.web.wicket.components.SingleButtonPanel;
 import org.projectforge.web.wicket.flowlayout.DivPanel;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
 import org.projectforge.web.wicket.flowlayout.InputPanel;
@@ -104,7 +108,9 @@ public class FFPEventEditForm extends AbstractEditForm<FFPEventDO, FFPEventEditP
 
   private DataTable<FFPAccountingDO, String> dataTable;
 
-  protected Set<FFPAccountingDO> accountingList;
+  protected Set<FFPAccountingDO> accountingList = new HashSet<>();
+
+  private SingleButtonPanel finishButtonPanel;
 
   @Override
   protected void init()
@@ -113,17 +119,18 @@ public class FFPEventEditForm extends AbstractEditForm<FFPEventDO, FFPEventEditP
     if (isNew()) {
       EmployeeDO userEmployee = employeeService.getEmployeeByUserId(ThreadLocalUserContext.getUserId());
       if (userEmployee != null) {
-        data.addAttendee(userEmployee);
+        this.accountingList.add(getNewFfpAccountingDO(userEmployee));
       }
     }
 
-    gridBuilder.newSplitPanel(GridSize.COL25, true).newSubSplitPanel(GridSize.COL100);
+    gridBuilder.newSplitPanel(GridSize.COL50, true).newSubSplitPanel(GridSize.COL100);
     {
       // Event date
       final FieldsetPanel fs = gridBuilder.newFieldset(FFPEventDO.class, "eventDate");
       DatePanel eventDate = new DatePanel(fs.newChildId(), new PropertyModel<>(data, "eventDate"), new DatePanelSettings());
       eventDate.setRequired(true);
       eventDate.setMarkupId("eventDate").setOutputMarkupId(true);
+      eventDate.setEnabled(getData().getFinished() == false);
       fs.add(eventDate);
     }
     {
@@ -133,17 +140,12 @@ public class FFPEventEditForm extends AbstractEditForm<FFPEventDO, FFPEventEditP
           new PropertyModel<>(data, "title"));
       titel.setRequired(true);
       titel.setMarkupId("eventTitel").setOutputMarkupId(true);
+      titel.setEnabled(getData().getFinished() == false);
       fs.add(titel);
     }
     {
       // ATTENDEES
       final FieldsetPanel fieldSet = gridBuilder.newFieldset(getString("plugins.ffp.attendees"));
-
-      Set<Integer> set = null;
-      if (getData().getAttendeeList().size() > 0) {
-        set = getData().getAttendeeList().stream().map(EmployeeDO::getPk)
-            .collect(Collectors.toCollection(HashSet::new));
-      }
       assignAttendeesListHelper = new MultiChoiceListHelper<EmployeeDO>()
           .setComparator(new Comparator<EmployeeDO>()
           {
@@ -156,12 +158,14 @@ public class FFPEventEditForm extends AbstractEditForm<FFPEventDO, FFPEventEditP
 
           }).setFullList(employeeService.findAllActive(false));
 
-      if (set != null) {
-        for (final Integer attendeeId : set) {
-          final EmployeeDO attendee = employeeService.selectByPkDetached(attendeeId);
-          if (attendee != null) {
-            assignAttendeesListHelper.addOriginalAssignedItem(attendee).assignItem(attendee);
-          }
+      if (this.data.getAttendeeList() != null && this.data.getAttendeeList().size() > 0) {
+        for (final EmployeeDO attendee : this.data.getAttendeeList()) {
+          assignAttendeesListHelper.addOriginalAssignedItem(attendee).assignItem(attendee);
+        }
+      }
+      if (this.accountingList != null && this.accountingList.size() > 0) {
+        for (final FFPAccountingDO accounting : this.accountingList) {
+          assignAttendeesListHelper.assignItem(accounting.getAttendee());
         }
       }
 
@@ -170,25 +174,80 @@ public class FFPEventEditForm extends AbstractEditForm<FFPEventDO, FFPEventEditP
           new PropertyModel<Collection<EmployeeDO>>(this.assignAttendeesListHelper, "assignedItems"),
           new EmployeeWicketProvider(employeeService, true));
       attendees.setRequired(true).setMarkupId("attendees").setOutputMarkupId(true);
-      attendees.add(new OnChangeAjaxBehavior()
+      attendees.add(new AjaxEventBehavior(OnChangeAjaxBehavior.EVENT_NAME)
       {
-        @Override
-        protected void onUpdate(AjaxRequestTarget target)
+        protected final FormComponent<?> getFormComponent()
         {
-          dataTable = createDataTable(createColumns(), "attendee.user.fullname", SortOrder.ASCENDING, getData());
-          tablePanel.addOrReplace(dataTable);
-          target.add(dataTable);
+          return (FormComponent<?>) getComponent();
+        }
+
+        protected void onEvent(AjaxRequestTarget target)
+        {
+          final FormComponent<?> formComponent = getFormComponent();
+          try {
+            formComponent.inputChanged();
+            formComponent.validate();
+            if (formComponent.hasErrorMessage()) {
+              formComponent.invalid();
+              accountingList.clear();
+              assignAttendeesListHelper.getAssignedItems().clear();
+            } else {
+              formComponent.valid();
+              formComponent.updateModel();
+            }
+            dataTable = createDataTable(createColumns(), "attendee.user.fullname", SortOrder.ASCENDING, getData());
+            tablePanel.addOrReplace(dataTable);
+            target.add(dataTable);
+          } catch (RuntimeException e) {
+            throw e;
+          }
         }
       });
+      attendees.setEnabled(getData().getFinished() == false);
       fieldSet.add(attendees);
     }
+
     //Transactions
     createDataTable(gridBuilder);
+
+    {
+      Button finishButton = new Button("button", new Model<String>("plugins.ffp.finishEvent"))
+      {
+        @Override
+        public final void onSubmit()
+        {
+          try {
+            getData().setFinished(true);
+            eventService.createDept(getData());
+            parentPage.createOrUpdate();
+          } catch (final UserException ex) {
+            error(parentPage.translateParams(ex));
+          }
+        }
+      };
+      finishButton.setMarkupId("finishEvent").setOutputMarkupId(true);
+      finishButtonPanel = new SingleButtonPanel(actionButtons.newChildId(), finishButton, getString("plugins.ffp.finishEvent"),
+          SingleButtonPanel.SUCCESS);
+      actionButtons.add(finishButtonPanel);
+    }
   }
 
-  private void refreshDataTable()
+  @Override
+  protected void updateButtonVisibility()
   {
-
+    super.updateButtonVisibility();
+    if (getData().getFinished()) {
+      markAsDeletedButtonPanel.setVisible(false);
+      deleteButtonPanel.setVisible(false);
+      updateButtonPanel.setVisible(false);
+      updateAndStayButtonPanel.setVisible(false);
+      updateAndNextButtonPanel.setVisible(false);
+      createButtonPanel.setVisible(false);
+      undeleteButtonPanel.setVisible(false);
+      if (finishButtonPanel != null) {
+        finishButtonPanel.setVisible(false);
+      }
+    }
   }
 
   @Override
@@ -227,9 +286,6 @@ public class FFPEventEditForm extends AbstractEditForm<FFPEventDO, FFPEventEditP
 
   public Set<FFPAccountingDO> getAccountings()
   {
-    if (this.accountingList == null) {
-      this.accountingList = new HashSet<>();
-    }
     //Existing attendee data
     if (getData().getAccountingList() != null && getData().getAccountingList().size() > 0) {
       getData().getAccountingList().forEach(acc -> {
@@ -239,12 +295,7 @@ public class FFPEventEditForm extends AbstractEditForm<FFPEventDO, FFPEventEditP
     //New added attendee data
     if (assignAttendeesListHelper != null && assignAttendeesListHelper.getItemsToAssign() != null) {
       assignAttendeesListHelper.getItemsToAssign().forEach(emp -> {
-        FFPAccountingDO accounting = new FFPAccountingDO();
-        accounting.setEvent(getData());
-        accounting.setAttendee(emp);
-        accounting.setValue(BigDecimal.ZERO);
-        accounting.setWeighting(BigDecimal.ONE);
-        this.accountingList.add(accounting);
+        this.accountingList.add(getNewFfpAccountingDO(emp));
       });
     }
     //Removed attendee data
@@ -259,7 +310,32 @@ public class FFPEventEditForm extends AbstractEditForm<FFPEventDO, FFPEventEditP
         this.accountingList.removeAll(toRemove);
       });
     }
+    if (assignAttendeesListHelper != null && assignAttendeesListHelper.getAssignedItems() != null) {
+      Set<FFPAccountingDO> toRemove = new HashSet<>();
+      this.accountingList.forEach(acc -> {
+        boolean found = false;
+        for (EmployeeDO emp : assignAttendeesListHelper.getAssignedItems()) {
+          if (emp.getId().equals(acc.getAttendee().getId())) {
+            found = true;
+          }
+        }
+        if (found == false) {
+          toRemove.add(acc);
+        }
+      });
+      this.accountingList.removeAll(toRemove);
+    }
     return this.accountingList;
+  }
+
+  private FFPAccountingDO getNewFfpAccountingDO(EmployeeDO emp)
+  {
+    FFPAccountingDO accounting = new FFPAccountingDO();
+    accounting.setEvent(getData());
+    accounting.setAttendee(emp);
+    accounting.setValue(BigDecimal.ZERO);
+    accounting.setWeighting(BigDecimal.ONE);
+    return accounting;
   }
 
   private List<IColumn<FFPAccountingDO, String>> createColumns()
@@ -274,10 +350,12 @@ public class FFPEventEditForm extends AbstractEditForm<FFPEventDO, FFPEventEditP
       public void populateItem(Item<ICellPopulator<FFPAccountingDO>> item, String componentId,
           IModel<FFPAccountingDO> rowModel)
       {
-        item.add(new InputPanel(componentId,
+        InputPanel input = new InputPanel(componentId,
             new MinMaxNumberField<BigDecimal>(InputPanel.WICKET_ID,
                 new PropertyModel<>(rowModel.getObject(), "value"),
-                new BigDecimal(Integer.MIN_VALUE), new BigDecimal(Integer.MAX_VALUE))));
+                new BigDecimal(Integer.MIN_VALUE), new BigDecimal(Integer.MAX_VALUE)));
+        input.setEnabled(rowModel.getObject().getEvent().getFinished() == false);
+        item.add(input);
       }
 
     });
@@ -289,10 +367,12 @@ public class FFPEventEditForm extends AbstractEditForm<FFPEventDO, FFPEventEditP
       public void populateItem(Item<ICellPopulator<FFPAccountingDO>> item, String componentId,
           IModel<FFPAccountingDO> rowModel)
       {
-        item.add(new InputPanel(componentId,
+        InputPanel input = new InputPanel(componentId,
             new MinMaxNumberField<BigDecimal>(InputPanel.WICKET_ID,
                 new PropertyModel<>(rowModel.getObject(), "weighting"),
-                new BigDecimal(Integer.MIN_VALUE), new BigDecimal(Integer.MAX_VALUE))));
+                new BigDecimal(Integer.MIN_VALUE), new BigDecimal(Integer.MAX_VALUE)));
+        input.setEnabled(rowModel.getObject().getEvent().getFinished() == false);
+        item.add(input);
       }
 
     });
