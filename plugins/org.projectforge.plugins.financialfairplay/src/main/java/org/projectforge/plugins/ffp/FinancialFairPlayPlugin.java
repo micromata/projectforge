@@ -76,7 +76,7 @@ public class FinancialFairPlayPlugin extends AbstractPlugin
 
     pluginWicketRegistrationService
         .registerMenuItem(
-            new MenuItemDef(parentMenu, ID, 121, "plugins.ffp.submenu.financialfairplay", FFPEventListPage.class));
+            new MenuItemDef(parentMenu, ID, 121, "plugins.ffp.submenu.financialfairplay.eventlist", FFPEventListPage.class));
     final MenuItemDef debtViewPage = new MenuItemDef(parentMenu, ID, 122, "plugins.ffp.submenu.financialfairplay.dept", FFPDeptViewPage.class)
     {
       @Override
