@@ -82,6 +82,7 @@ import org.projectforge.web.wicket.components.MaxLengthTextField;
 import org.projectforge.web.wicket.components.MinMaxNumberField;
 import org.projectforge.web.wicket.components.SingleButtonPanel;
 import org.projectforge.web.wicket.flowlayout.DivPanel;
+import org.projectforge.web.wicket.flowlayout.DivTextPanel;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
 import org.projectforge.web.wicket.flowlayout.InputPanel;
 import org.projectforge.web.wicket.flowlayout.TablePanel;
@@ -115,14 +116,25 @@ public class FFPEventEditForm extends AbstractEditForm<FFPEventDO, FFPEventEditP
 
   private SingleButtonPanel finishButtonPanel;
 
+  private EmployeeDO currentUserEmployee;
+
   @Override
   protected void init()
   {
     super.init();
+    currentUserEmployee = employeeService.getEmployeeByUserId(ThreadLocalUserContext.getUser().getId());
+    if (data.getOrganizer() == null) {
+      if (currentUserEmployee == null) {
+        error(I18nHelper.getLocalizedMessage("plugins.ffp.validate.noEmployeeToUser"));
+        return;
+      } else {
+        data.setOrganizer(currentUserEmployee);
+      }
+    }
+
     if (isNew()) {
-      EmployeeDO userEmployee = employeeService.getEmployeeByUserId(ThreadLocalUserContext.getUserId());
-      if (userEmployee != null) {
-        this.accountingList.add(getNewFfpAccountingDO(userEmployee));
+      if (currentUserEmployee != null) {
+        this.accountingList.add(getNewFfpAccountingDO(currentUserEmployee));
       }
     }
 
@@ -152,6 +164,11 @@ public class FFPEventEditForm extends AbstractEditForm<FFPEventDO, FFPEventEditP
     add(formValidator);
 
     gridBuilder.newSplitPanel(GridSize.COL50, true).newSubSplitPanel(GridSize.COL100);
+    {
+      // Organizer
+      final FieldsetPanel fs = gridBuilder.newFieldset(FFPEventDO.class, "organizer");
+      fs.add(new DivTextPanel(fs.newChildId(), data.getOrganizer().getUser().getFullname()));
+    }
     {
       // Event date
       final FieldsetPanel fs = gridBuilder.newFieldset(FFPEventDO.class, "eventDate");
@@ -256,6 +273,7 @@ public class FFPEventEditForm extends AbstractEditForm<FFPEventDO, FFPEventEditP
       finishButton.setMarkupId("finishEvent").setOutputMarkupId(true);
       finishButtonPanel = new SingleButtonPanel(actionButtons.newChildId(), finishButton, getString("plugins.ffp.finishEvent"),
           SingleButtonPanel.SUCCESS);
+      finishButtonPanel.setVisible(false);
       actionButtons.add(finishButtonPanel);
     }
   }
@@ -264,7 +282,7 @@ public class FFPEventEditForm extends AbstractEditForm<FFPEventDO, FFPEventEditP
   protected void updateButtonVisibility()
   {
     super.updateButtonVisibility();
-    if (getData().getFinished()) {
+    if (getData().getFinished() || getData().getOrganizer() == null) {
       markAsDeletedButtonPanel.setVisible(false);
       deleteButtonPanel.setVisible(false);
       updateButtonPanel.setVisible(false);
@@ -275,6 +293,10 @@ public class FFPEventEditForm extends AbstractEditForm<FFPEventDO, FFPEventEditP
       if (finishButtonPanel != null) {
         finishButtonPanel.setVisible(false);
       }
+    }
+    if (getData().getFinished() == false && getData().getOrganizer() != null && currentUserEmployee != null
+        && getData().getOrganizer().getId().equals(currentUserEmployee.getId())) {
+      finishButtonPanel.setVisible(true);
     }
   }
 

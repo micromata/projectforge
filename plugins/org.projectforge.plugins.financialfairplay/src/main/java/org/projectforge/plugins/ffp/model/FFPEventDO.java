@@ -11,6 +11,7 @@ import javax.persistence.FetchType;
 import javax.persistence.JoinColumn;
 import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
+import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
@@ -19,6 +20,7 @@ import javax.persistence.Transient;
 
 import org.hibernate.search.annotations.DateBridge;
 import org.hibernate.search.annotations.EncodingType;
+import org.hibernate.search.annotations.IndexedEmbedded;
 import org.hibernate.search.annotations.Resolution;
 import org.projectforge.business.fibu.EmployeeDO;
 import org.projectforge.common.anots.PropertyInfo;
@@ -34,6 +36,10 @@ public class FFPEventDO extends DefaultBaseDO
 {
   private static final long serialVersionUID = 1579119768006685087L;
 
+  @PropertyInfo(i18nKey = "plugins.ffp.organizer")
+  @IndexedEmbedded(includePaths = { "user.firstname", "user.lastname" })
+  private EmployeeDO organizer;
+
   @PropertyInfo(i18nKey = "plugins.ffp.title")
   private String title;
 
@@ -47,6 +53,26 @@ public class FFPEventDO extends DefaultBaseDO
   private Set<FFPAccountingDO> accountingList;
 
   private boolean finished;
+
+  /**
+   * The organizer.
+   *
+   * @return the user
+   */
+  @ManyToOne(fetch = FetchType.EAGER)
+  @JoinColumn(name = "organizer_id", nullable = false)
+  public EmployeeDO getOrganizer()
+  {
+    return organizer;
+  }
+
+  /**
+   * @param organizer the organizer to set
+   */
+  public void setOrganizer(final EmployeeDO organizer)
+  {
+    this.organizer = organizer;
+  }
 
   @Column(nullable = false, length = 1000)
   public String getTitle()
