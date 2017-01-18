@@ -1,5 +1,11 @@
 package org.projectforge.business.vacation.service;
 
+import java.io.Serializable;
+import java.math.BigDecimal;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.List;
+
 import org.projectforge.business.configuration.ConfigurationService;
 import org.projectforge.business.fibu.EmployeeDO;
 import org.projectforge.business.fibu.EmployeeDao;
@@ -21,12 +27,6 @@ import org.projectforge.mail.Mail;
 import org.projectforge.mail.SendMail;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-import java.io.Serializable;
-import java.math.BigDecimal;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.List;
 
 /**
  * Standard implementation of the vacation service interface.
@@ -52,6 +52,8 @@ public class VacationServiceImpl extends CorePersistenceServiceImpl<Integer, Vac
   @Autowired
   private EmployeeService employeeService;
 
+  private final String vacationEditPagePath = "/wa/wicket/bookmarkable/org.projectforge.web.vacation.VacationEditPage";
+
   @Override
   public BigDecimal getApprovedAndPlanedVacationdaysForYear(EmployeeDO employee, int year)
   {
@@ -71,26 +73,32 @@ public class VacationServiceImpl extends CorePersistenceServiceImpl<Integer, Vac
     String i18nSubSubject = "";
     if (isNew == true && isDeleted == false) {
       i18nPMContent = I18nHelper.getLocalizedMessage("vacation.mail.pm.application", vacationData.getManager().getUser().getFirstname(),
-          vacationData.getEmployee().getUser().getFullname(), vacationData.getStartDate().toString(), vacationData.getEndDate().toString());
+          vacationData.getEmployee().getUser().getFullname(), vacationData.getStartDate().toString(), vacationData.getEndDate().toString(),
+          configService.getDomain() + vacationEditPagePath + "?id=" + vacationData.getId());
       i18nPMSubject = I18nHelper.getLocalizedMessage("vacation.mail.subject", vacationData.getEmployee().getUser().getFullname());
       i18nSubContent = I18nHelper.getLocalizedMessage("vacation.mail.sub.application", vacationData.getSubstitution().getUser().getFirstname(),
-          vacationData.getEmployee().getUser().getFullname(), vacationData.getStartDate().toString(), vacationData.getEndDate().toString());
+          vacationData.getEmployee().getUser().getFullname(), vacationData.getStartDate().toString(), vacationData.getEndDate().toString(),
+          configService.getDomain() + vacationEditPagePath + "?id=" + vacationData.getId());
       i18nSubSubject = I18nHelper.getLocalizedMessage("vacation.mail.subject", vacationData.getEmployee().getUser().getFullname());
     }
     if (isNew == false && isDeleted == false) {
       i18nPMContent = I18nHelper.getLocalizedMessage("vacation.mail.pm.application.edit", vacationData.getManager().getUser().getFirstname(),
-          vacationData.getEmployee().getUser().getFullname(), vacationData.getStartDate().toString(), vacationData.getEndDate().toString());
+          vacationData.getEmployee().getUser().getFullname(), vacationData.getStartDate().toString(), vacationData.getEndDate().toString(),
+          configService.getDomain() + vacationEditPagePath + "?id=" + vacationData.getId());
       i18nPMSubject = I18nHelper.getLocalizedMessage("vacation.mail.subject.edit", vacationData.getEmployee().getUser().getFullname());
       i18nSubContent = I18nHelper.getLocalizedMessage("vacation.mail.sub.application.edit", vacationData.getSubstitution().getUser().getFirstname(),
-          vacationData.getEmployee().getUser().getFullname(), vacationData.getStartDate().toString(), vacationData.getEndDate().toString());
+          vacationData.getEmployee().getUser().getFullname(), vacationData.getStartDate().toString(), vacationData.getEndDate().toString(),
+          configService.getDomain() + vacationEditPagePath + "?id=" + vacationData.getId());
       i18nSubSubject = I18nHelper.getLocalizedMessage("vacation.mail.subject.edit", vacationData.getEmployee().getUser().getFullname());
     }
     if (isDeleted) {
       i18nPMContent = I18nHelper.getLocalizedMessage("vacation.mail.application.deleted", vacationData.getManager().getUser().getFirstname(),
-          vacationData.getEmployee().getUser().getFullname(), vacationData.getStartDate().toString(), vacationData.getEndDate().toString());
+          vacationData.getEmployee().getUser().getFullname(), vacationData.getStartDate().toString(), vacationData.getEndDate().toString(),
+          configService.getDomain() + vacationEditPagePath + "?id=" + vacationData.getId());
       i18nPMSubject = I18nHelper.getLocalizedMessage("vacation.mail.subject.deleted", vacationData.getEmployee().getUser().getFullname());
       i18nSubContent = I18nHelper.getLocalizedMessage("vacation.mail.application.deleted", vacationData.getSubstitution().getUser().getFirstname(),
-          vacationData.getEmployee().getUser().getFullname(), vacationData.getStartDate().toString(), vacationData.getEndDate().toString());
+          vacationData.getEmployee().getUser().getFullname(), vacationData.getStartDate().toString(), vacationData.getEndDate().toString(),
+          configService.getDomain() + vacationEditPagePath + "?id=" + vacationData.getId());
       i18nSubSubject = I18nHelper.getLocalizedMessage("vacation.mail.subject.deleted", vacationData.getEmployee().getUser().getFullname());
     }
     mail.setContent(i18nPMContent);
@@ -118,7 +126,8 @@ public class VacationServiceImpl extends CorePersistenceServiceImpl<Integer, Vac
       //Send mail to HR (employee in copy)
       mail.setContent(I18nHelper.getLocalizedMessage("vacation.mail.hr.approved", vacationData.getEmployee().getUser().getFullname(),
           vacationData.getStartDate().toString(), vacationData.getEndDate().toString(), vacationData.getSubstitution().getUser().getFullname(),
-          vacationData.getManager().getUser().getFullname()));
+          vacationData.getManager().getUser().getFullname(),
+          configService.getDomain() + vacationEditPagePath + "?id=" + vacationData.getId()));
       mail.setSubject(I18nHelper.getLocalizedMessage("vacation.mail.subject", vacationData.getEmployee().getUser().getFullname()));
       mail.setContentType(Mail.CONTENTTYPE_HTML);
       if (configService.getHREmailadress() == null) {
@@ -135,7 +144,8 @@ public class VacationServiceImpl extends CorePersistenceServiceImpl<Integer, Vac
     mail = new Mail();
     mail.setContent(I18nHelper.getLocalizedMessage("vacation.mail.employee." + decision, vacationData.getEmployee().getUser().getFirstname(),
         vacationData.getSubstitution().getUser().getFirstname(), vacationData.getEmployee().getUser().getFullname(),
-        vacationData.getStartDate().toString(), vacationData.getEndDate().toString(), vacationData.getSubstitution().getUser().getFullname()));
+        vacationData.getStartDate().toString(), vacationData.getEndDate().toString(), vacationData.getSubstitution().getUser().getFullname(),
+        configService.getDomain() + vacationEditPagePath + "?id=" + vacationData.getId()));
     mail.setSubject(I18nHelper.getLocalizedMessage("vacation.mail.subject.edit", vacationData.getEmployee().getUser().getFullname()));
     mail.setContentType(Mail.CONTENTTYPE_HTML);
     mail.setTo(vacationData.getSubstitution().getUser());
