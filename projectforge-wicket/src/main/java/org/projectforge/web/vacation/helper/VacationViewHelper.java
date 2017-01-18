@@ -90,8 +90,15 @@ public class VacationViewHelper {
         BigDecimal plannedVacation = vacationService.getPlannedVacationdaysForYear(currentEmployee, now.get(Calendar.YEAR));
         appendFieldset(sectionLeftGridBuilder, "vacation.plannedvacation", plannedVacation.toString());
 
-        BigDecimal subtotal3 = subtotal2.subtract(plannedVacation);
-        appendFieldset(sectionLeftGridBuilder, "vacation.availablevacation", subtotal3.toString());
+        Calendar calendar = configService.getEndDateVacationFromLastYear();
+        if (now.after(calendar)) {
+            BigDecimal subtotal3 = subtotal2.add(vacationdaysPreviousYearUnused).subtract(plannedVacation).subtract(approvedVacationdays);
+            appendFieldset(sectionLeftGridBuilder, "vacation.availablevacation", subtotal3.toString());
+        } else {
+            BigDecimal subtotal3 = subtotal2.subtract(plannedVacation);
+            appendFieldset(sectionLeftGridBuilder, "vacation.availablevacation", subtotal3.toString());
+        }
+
 
         // special leave
         GridBuilder sectionRightGridBuilder = gridBuilder.newSplitPanel(GridSize.COL33);
@@ -145,17 +152,12 @@ public class VacationViewHelper {
                 //Nothing to do here
             }
         };
-        columns.add(
-                new CellItemListenerPropertyColumn<VacationDO>(VacationDO.class, "startDate", "startDate", cellItemListener));
-        columns
-                .add(new CellItemListenerPropertyColumn<VacationDO>(VacationDO.class, "endDate", "endDate", cellItemListener));
+        columns.add(new CellItemListenerPropertyColumn<VacationDO>(VacationDO.class, "startDate", "startDate", cellItemListener));
+        columns.add(new CellItemListenerPropertyColumn<VacationDO>(VacationDO.class, "endDate", "endDate", cellItemListener));
         columns.add(new CellItemListenerPropertyColumn<VacationDO>(VacationDO.class, "status", "status", cellItemListener));
-        columns
-                .add(new CellItemListenerPropertyColumn<VacationDO>(VacationDO.class, "workingdays", "workingdays",
-                        cellItemListener));
-        columns
-                .add(new CellItemListenerPropertyColumn<VacationDO>(VacationDO.class, "isSpecial", "isSpecial",
-                        cellItemListener) {
+        columns.add(new CellItemListenerPropertyColumn<VacationDO>(VacationDO.class, "workingdays", "workingdays", cellItemListener));
+        columns.add(new CellItemListenerPropertyColumn<VacationDO>(VacationDO.class, "isSpecial", "isSpecial", cellItemListener)
+        {
                     @Override
                     public void populateItem(final Item<ICellPopulator<VacationDO>> item, final String componentId,
                                              final IModel<VacationDO> rowModel) {
