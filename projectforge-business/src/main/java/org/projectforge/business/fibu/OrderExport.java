@@ -24,6 +24,7 @@
 package org.projectforge.business.fibu;
 
 import java.math.BigDecimal;
+import java.util.Date;
 import java.util.List;
 import java.util.Set;
 
@@ -82,9 +83,9 @@ public class OrderExport
         new I18nExportColumn(OrderCol.PROJECT, "fibu.projekt", MyXlsContentProvider.LENGTH_STD),
         new I18nExportColumn(OrderCol.PROJECT_CUSTOMER, "fibu.kunde", MyXlsContentProvider.LENGTH_STD),
         new I18nExportColumn(OrderCol.TITLE, "fibu.auftrag.titel", MyXlsContentProvider.LENGTH_STD),
-        new I18nExportColumn(OrderCol.PROJECTMANAGER, "fibu.projectmanager", 20),
-        new I18nExportColumn(OrderCol.HEADOFBUSINESSMANAGER, "fibu.headofbusinessmanager", 20),
-        new I18nExportColumn(OrderCol.SALESMANAGER, "fibu.salesmanager", 20),
+        new I18nExportColumn(OrderCol.PROJECTMANAGER, "fibu.projectManager", 30),
+        new I18nExportColumn(OrderCol.HEADOFBUSINESSMANAGER, "fibu.headOfBusinessManager", 30),
+        new I18nExportColumn(OrderCol.SALESMANAGER, "fibu.salesManager", 30),
         new I18nExportColumn(OrderCol.NETSUM, "fibu.auftrag.nettoSumme", MyXlsContentProvider.LENGTH_CURRENCY),
         new I18nExportColumn(OrderCol.INVOICED, "fibu.fakturiert", MyXlsContentProvider.LENGTH_CURRENCY),
         new I18nExportColumn(OrderCol.TO_BE_INVOICED, "fibu.tobeinvoiced", MyXlsContentProvider.LENGTH_CURRENCY),
@@ -165,6 +166,8 @@ public class OrderExport
         new I18nExportColumn(PosCol.INVOICES, "fibu.rechnungen", MyXlsContentProvider.LENGTH_STD),
         new I18nExportColumn(PosCol.PERIOD_OF_PERFORMANCE_BEGIN, null, MyXlsContentProvider.LENGTH_DATE),
         new I18nExportColumn(PosCol.PERIOD_OF_PERFORMANCE_END, null, MyXlsContentProvider.LENGTH_DATE),
+        new I18nExportColumn(OrderCol.PROBABILITY_OF_OCCURRENCE, "fibu.probabilityOfOccurrence", MyXlsContentProvider.LENGTH_PERCENT),
+        new I18nExportColumn(OrderCol.CONTACT_PERSON, "contactPerson", 30),
         new I18nExportColumn(PosCol.TASK, "task", MyXlsContentProvider.LENGTH_STD),
         new I18nExportColumn(PosCol.COMMENT, "comment", MyXlsContentProvider.LENGTH_COMMENT) };
   }
@@ -175,7 +178,7 @@ public class OrderExport
     mapping.add(PosCol.POS_NUMBER, "#" + pos.getNumber());
     mapping.add(PosCol.DATE_OF_OFFER, order.getAngebotsDatum());
     mapping.add(PosCol.DATE_OF_ENTRY, order.getErfassungsDatum());
-    mapping.add(PosCol.DATE_OF_DESICION, order.getEntscheidungsDatum());
+    mapping.add(PosCol.DATE_OF_DESICION, ensureErfassungsDatum(order));
     mapping.add(PosCol.PROJECT, order.getProjektAsString());
     mapping.add(PosCol.ORDER_TITLE, order.getTitel());
     mapping.add(PosCol.TITLE, pos.getTitel());
@@ -184,7 +187,8 @@ public class OrderExport
     mapping.add(PosCol.PAYMENTTYPE,
         pos.getPaymentType() != null ? ThreadLocalUserContext.getLocalizedString(pos.getPaymentType().getI18nKey()) : "");
     mapping.add(PosCol.STATUS,
-        pos.getStatus() != null ? ThreadLocalUserContext.getLocalizedString(pos.getStatus().getI18nKey()) : "");
+        pos.getStatus() != null ? ThreadLocalUserContext.getLocalizedString(pos.getStatus().getI18nKey()) :
+            (order.getAuftragsStatus() != null ? ThreadLocalUserContext.getLocalizedString(order.getAuftragsStatus().getI18nKey()) : ""));
     mapping.add(PosCol.PERSON_DAYS, pos.getPersonDays());
     final BigDecimal netSum = pos.getNettoSumme() != null ? pos.getNettoSumme() : BigDecimal.ZERO;
     final BigDecimal invoicedSum = pos.getFakturiertSum() != null ? pos.getFakturiertSum() : BigDecimal.ZERO;
@@ -205,9 +209,27 @@ public class OrderExport
       mapping.add(PosCol.PERIOD_OF_PERFORMANCE_BEGIN, order.getPeriodOfPerformanceBegin());
       mapping.add(PosCol.PERIOD_OF_PERFORMANCE_END, order.getPeriodOfPerformanceEnd());
     }
+    mapping.add(OrderCol.PROBABILITY_OF_OCCURRENCE, order.getProbabilityOfOccurrence());
+    mapping.add(OrderCol.CONTACT_PERSON, order.getContactPerson() != null ? order.getContactPerson().getFullname() : "");
     final TaskNode node = getTenantRegistry().getTaskTree().getTaskNodeById(pos.getTaskId());
     mapping.add(PosCol.TASK, node != null ? node.getTask().getTitle() : "");
     mapping.add(PosCol.COMMENT, pos.getBemerkung());
+  }
+
+  private Object ensureErfassungsDatum(AuftragDO order)
+  {
+    if (order.getErfassungsDatum() == null) {
+      if (order.getCreated() == null) {
+        if (order.getAngebotsDatum() == null) {
+          order.setErfassungsDatum(new java.sql.Date(new Date().getTime()));
+        } else {
+          order.setErfassungsDatum(new java.sql.Date(order.getAngebotsDatum().getTime()));
+        }
+      } else {
+        order.setErfassungsDatum(new java.sql.Date(order.getCreated().getTime()));
+      }
+    }
+    return order.getErfassungsDatum();
   }
 
   private void addPaymentsMapping(final PropertyMapping mapping, final AuftragDO order,
