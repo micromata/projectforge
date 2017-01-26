@@ -8,7 +8,7 @@
   <parent>
     <groupId>org.projectforge</groupId>
     <artifactId>projectforge-parent</artifactId>
-    <version>6.8.0-SNAPSHOT</version>
+    <version>6.7.1</version>
   </parent>
   <licenses>
     <license>
@@ -48,9 +48,6 @@
       <plugin>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-maven-plugin</artifactId>
-        <configuration>
-          <layout>ZIP</layout> <!-- to use PropertiesLaunchar -->
-        </configuration>
       </plugin>
     </plugins>
   </build>
