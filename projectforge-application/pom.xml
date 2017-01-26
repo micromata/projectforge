@@ -48,6 +48,10 @@
       <plugin>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-maven-plugin</artifactId>
+        <configuration>
+          <!-- to use Needed for intern application.properties -->
+          <layout>ZIP</layout>
+        </configuration>
       </plugin>
     </plugins>
   </build>
