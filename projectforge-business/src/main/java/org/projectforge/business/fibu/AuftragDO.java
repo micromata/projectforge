@@ -704,9 +704,6 @@ public class AuftragDO extends DefaultBaseDO
         if (pos.isDeleted()) {
           continue;
         }
-        if (pos.getStatus() == null || pos.getStatus().isIn(AuftragsPositionsStatus.ABGESCHLOSSEN) == false) {
-          continue;
-        }
         BigDecimal net = pos.getNettoSumme();
         if (net == null) {
           net = BigDecimal.ZERO;

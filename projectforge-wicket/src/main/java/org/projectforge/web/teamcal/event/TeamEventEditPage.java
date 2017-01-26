@@ -237,7 +237,7 @@ public class TeamEventEditPage extends AbstractEditPage<TeamEventDO, TeamEventEd
         {
           final TeamEventDO event = getData();
           log.info("Export ics for: " + event.getSubject());
-          ByteArrayOutputStream baos = teamEventConverter.getIcsFile(event);
+          ByteArrayOutputStream baos = teamEventConverter.getIcsFile(event, false);
           if (baos != null) {
             DownloadUtils.setDownloadTarget(baos.toByteArray(), event.getSubject().replace(" ", "") + ".ics");
           }
@@ -374,7 +374,13 @@ public class TeamEventEditPage extends AbstractEditPage<TeamEventDO, TeamEventEd
   {
     if (newEvent != null) {
       newEvent.setSequence(0);
+      Set<TeamEventAttendeeDO> existingAttendees = new HashSet<>();
+      newEvent.getAttendees().forEach(att -> {
+        existingAttendees.add(att.clone());
+      });
+      newEvent.getAttendees().clear();
       teamEventService.save(newEvent);
+      teamEventService.assignAttendees(newEvent, existingAttendees, null);
     }
     return null;
   }

@@ -158,6 +158,7 @@ public class CalendarAboServlet extends HttpServlet
         return;
       }
       final Map<String, String> params = StringHelper.getKeyValues(decryptedParams, "&");
+      params.put(TeamCalServiceImpl.PARAM_EXPORT_ATTENDEES, "true");
       final Calendar calendar = createCal(params, userId, params.get("token"),
           params.get(CalendarFeedConst.PARAM_NAME_TIMESHEET_USER));
       final StringBuffer buf = new StringBuffer();
