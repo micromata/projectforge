@@ -269,7 +269,7 @@ public class TeamEventServiceImpl implements TeamEventService
       if (deleted) {
         result = sendMail.send(msg, null, null);
       } else {
-        ByteArrayOutputStream icsFile = teamEventConverter.getIcsFile(data);
+        ByteArrayOutputStream icsFile = teamEventConverter.getIcsFile(data, false);
         result = sendMail.send(msg, icsFile.toString(StandardCharsets.UTF_8.name()), null);
       }
     } catch (UnsupportedEncodingException e) {

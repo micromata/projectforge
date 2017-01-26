@@ -237,7 +237,7 @@ public class TeamEventEditPage extends AbstractEditPage<TeamEventDO, TeamEventEd
         {
           final TeamEventDO event = getData();
           log.info("Export ics for: " + event.getSubject());
-          ByteArrayOutputStream baos = teamEventConverter.getIcsFile(event);
+          ByteArrayOutputStream baos = teamEventConverter.getIcsFile(event, false);
           if (baos != null) {
             DownloadUtils.setDownloadTarget(baos.toByteArray(), event.getSubject().replace(" ", "") + ".ics");
           }
