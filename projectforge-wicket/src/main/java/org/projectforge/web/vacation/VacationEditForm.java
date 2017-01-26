@@ -388,4 +388,14 @@ public class VacationEditForm extends AbstractEditForm<VacationDO, VacationEditP
     return statusBeforeModification;
   }
 
+  @Override
+  protected void updateButtonVisibility()
+  {
+    super.updateButtonVisibility();
+    //Set delete button only for employee or hr write right
+    markAsDeletedButtonPanel.setVisible(false);
+    if (data.getEmployee().getUser().getPk().equals(ThreadLocalUserContext.getUserId()) || checkHRWriteRight()) {
+      markAsDeletedButtonPanel.setVisible(true);
+    }
+  }
 }

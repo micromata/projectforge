@@ -90,6 +90,8 @@ public class TeamCalServiceImpl
 
   public static final String PARAM_EXPORT_REMINDER = "exportReminders";
 
+  public static final String PARAM_EXPORT_ATTENDEES = "exportAttendees";
+
   private final TeamCalsComparator calsComparator = new TeamCalsComparator();
 
   private Collection<TeamCalDO> sortedCals;
@@ -277,6 +279,7 @@ public class TeamCalServiceImpl
     final Date eventDateLimit = now.minusYears(1).toDate();
     eventFilter.setStartDate(eventDateLimit);
     final boolean exportReminders = "true".equals(params.get(PARAM_EXPORT_REMINDER)) == true;
+    final boolean exportAttendees = "true".equals(params.get(PARAM_EXPORT_ATTENDEES)) == true;
     for (int i = 0; i < teamCalIds.length; i++) {
       final Integer id = Integer.valueOf(teamCalIds[i]);
       eventFilter.setTeamCalId(id);
@@ -290,7 +293,7 @@ public class TeamCalServiceImpl
           }
           final TeamEventDO teamEvent = (TeamEventDO) teamEventObject;
           final String uid = TeamCalConfig.get().createEventUid(teamEvent.getId());
-          final VEvent vEvent = getVEvent(teamEvent, teamCalIds, uid, exportReminders, timeZone);
+          final VEvent vEvent = getVEvent(teamEvent, teamCalIds, uid, exportReminders, exportAttendees, timeZone);
           events.add(vEvent);
         }
       }
@@ -299,7 +302,7 @@ public class TeamCalServiceImpl
   }
 
   public VEvent getVEvent(final TeamEventDO teamEvent, final String[] teamCalIds, final String uid, final boolean exportReminders,
-      final net.fortuna.ical4j.model.TimeZone timeZone)
+      final boolean exportAttendees, final net.fortuna.ical4j.model.TimeZone timeZone)
   {
     String summary;
     if (teamCalIds.length > 1) {
@@ -364,38 +367,40 @@ public class TeamCalServiceImpl
         }
       }
     }
-    if (teamEvent.getAttendees() != null) {
-      for (TeamEventAttendeeDO a : teamEvent.getAttendees()) {
-        String email = "mailto:";
-        if (a.getAddress() != null) {
-          email = email + a.getAddress().getEmail();
-        } else {
-          email = email + a.getUrl();
+    if (exportAttendees) {
+      if (teamEvent.getAttendees() != null) {
+        for (TeamEventAttendeeDO a : teamEvent.getAttendees()) {
+          String email = "mailto:";
+          if (a.getAddress() != null) {
+            email = email + a.getAddress().getEmail();
+          } else {
+            email = email + a.getUrl();
+          }
+          Attendee attendee = new Attendee(URI.create(email));
+          String cnValue = a.getAddress() != null ? a.getAddress().getFullName() : a.getUrl();
+          attendee.getParameters().add(new Cn(cnValue));
+          attendee.getParameters().add(CuType.INDIVIDUAL);
+          attendee.getParameters().add(Role.CHAIR);
+          switch (a.getStatus()) {
+            case ACCEPTED:
+              attendee.getParameters().add(PartStat.ACCEPTED);
+              break;
+            case DECLINED:
+              attendee.getParameters().add(PartStat.DECLINED);
+              break;
+            case IN_PROCESS:
+            default:
+              attendee.getParameters().add(PartStat.IN_PROCESS);
+              break;
+          }
+          vEvent.getProperties().add(attendee);
         }
-        Attendee attendee = new Attendee(URI.create(email));
-        String cnValue = a.getAddress() != null ? a.getAddress().getFullName() : a.getUrl();
-        attendee.getParameters().add(new Cn(cnValue));
-        attendee.getParameters().add(CuType.INDIVIDUAL);
-        attendee.getParameters().add(Role.CHAIR);
-        switch (a.getStatus()) {
-          case ACCEPTED:
-            attendee.getParameters().add(PartStat.ACCEPTED);
-            break;
-          case DECLINED:
-            attendee.getParameters().add(PartStat.DECLINED);
-            break;
-          case IN_PROCESS:
-          default:
-            attendee.getParameters().add(PartStat.IN_PROCESS);
-            break;
-        }
-        vEvent.getProperties().add(attendee);
       }
     }
     return vEvent;
   }
 
-  public CalendarEventObject getEventObject(final TeamEvent src, boolean generateICS)
+  public CalendarEventObject getEventObject(final TeamEvent src, boolean generateICS, final boolean exportAttendees)
   {
     if (src == null) {
       return null;
@@ -416,12 +421,12 @@ public class TeamCalServiceImpl
       }
     }
     if (generateICS) {
-      event.setIcsData(Base64.encodeBase64String(getIcsFileForTeamEvent(src).toByteArray()));
+      event.setIcsData(Base64.encodeBase64String(getIcsFileForTeamEvent(src, exportAttendees).toByteArray()));
     }
     return event;
   }
 
-  public CalendarEventObject getEventObject(final TeamEventDO src, boolean generateICS)
+  public CalendarEventObject getEventObject(final TeamEventDO src, boolean generateICS, final boolean exportAttendees)
   {
     if (src == null) {
       return null;
@@ -436,12 +441,12 @@ public class TeamCalServiceImpl
     event.setSubject(src.getSubject());
     copyFields(event, src);
     if (generateICS) {
-      event.setIcsData(Base64.encodeBase64String(getIcsFile(src).toByteArray()));
+      event.setIcsData(Base64.encodeBase64String(getIcsFile(src, exportAttendees).toByteArray()));
     }
     return event;
   }
 
-  public ByteArrayOutputStream getIcsFile(TeamEventDO data)
+  public ByteArrayOutputStream getIcsFile(final TeamEventDO data, final boolean exportAttendees)
   {
     ByteArrayOutputStream baos = null;
 
@@ -457,7 +462,7 @@ public class TeamCalServiceImpl
 
       final net.fortuna.ical4j.model.TimeZone timezone = ICal4JUtils.getUserTimeZone();
       String[] teamCalIds = { data.getCalendar().getPk().toString() };
-      VEvent event = getVEvent(data, teamCalIds, data.getUid(), true, timezone);
+      VEvent event = getVEvent(data, teamCalIds, data.getUid(), true, exportAttendees, timezone);
       cal.getComponents().add(event);
       CalendarOutputter outputter = new CalendarOutputter();
       outputter.output(cal, baos);
@@ -468,7 +473,7 @@ public class TeamCalServiceImpl
     return baos;
   }
 
-  public ByteArrayOutputStream getIcsFileForTeamEvent(TeamEvent data)
+  public ByteArrayOutputStream getIcsFileForTeamEvent(TeamEvent data, final boolean exportAttendees)
   {
     TeamEventDO eventDO = new TeamEventDO();
     eventDO.setEndDate(new Timestamp(data.getEndDate().getTime()));
@@ -478,7 +483,7 @@ public class TeamCalServiceImpl
     eventDO.setSubject(data.getSubject());
     eventDO.setUid(data.getUid());
     eventDO.setAllDay(data.isAllDay());
-    return getIcsFile(eventDO);
+    return getIcsFile(eventDO, exportAttendees);
   }
 
   public static VEvent createVEvent(final TeamEventDO eventDO, final net.fortuna.ical4j.model.TimeZone timezone)

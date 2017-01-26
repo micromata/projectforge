@@ -126,7 +126,7 @@ public class TeamEventDaoRest
       }
       final List<TeamEventDO> list = teamEventService.getTeamEventDOList(filter);
       if (list != null && list.size() > 0) {
-        list.forEach(event -> result.add(teamCalService.getEventObject(event, true)));
+        list.forEach(event -> result.add(teamCalService.getEventObject(event, true, true)));
       }
     } else {
       log.warn("No calendar ids are given, so can't find any events.");
@@ -164,7 +164,7 @@ public class TeamEventDaoRest
       if (list != null && list.size() > 0) {
         for (final TeamEvent event : list) {
           if (event.getStartDate().after(now) == true) {
-            result.add(teamCalService.getEventObject(event, true));
+            result.add(teamCalService.getEventObject(event, true, true));
           } else {
             log.info("Start date not in future:" + event.getStartDate() + ", " + event.getSubject());
           }
@@ -254,8 +254,7 @@ public class TeamEventDaoRest
         teamEventService.sendTeamEventToAttendees(teamEventAfterAssignAttendees, createUpdate.equals(CREATED),
             createUpdate.equals(UPDATED) && modificationStatus != ModificationStatus.NONE, false, attendeesToAssignMap);
       }
-      //Generating Rest result for response
-      result = teamCalService.getEventObject(teamEventAfterAssignAttendees, true);
+      result = teamCalService.getEventObject(teamEventAfterAssignAttendees, true, true);
       log.info("Team event: " + teamEventAfterAssignAttendees.getSubject() + " for calendar #" + teamCalDO.getId() + " successfully " + createUpdate + ".");
     } catch (Exception e) {
       log.error("Exception while creating/updating team event", e);
