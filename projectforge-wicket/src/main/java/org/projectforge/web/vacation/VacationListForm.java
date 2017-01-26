@@ -77,6 +77,7 @@ public class VacationListForm extends AbstractListForm<VacationFilter, VacationL
             vacationstatusChoiceRenderer.getValues(),
             vacationstatusChoiceRenderer);
         statusChoice.setMarkupId("filter_vacationstatus").setOutputMarkupId(true);
+        statusChoice.setNullValid(true);
         fs.add(statusChoice);
       }
       {
@@ -90,6 +91,7 @@ public class VacationListForm extends AbstractListForm<VacationFilter, VacationL
             vacationmodeChoiceRenderer.getValues(),
             vacationmodeChoiceRenderer);
         modeChoice.setMarkupId("filter_vacationmode").setOutputMarkupId(true);
+        modeChoice.setNullValid(true);
         fs.add(modeChoice);
       }
     }

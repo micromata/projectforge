@@ -103,7 +103,7 @@ import de.micromata.mgc.jpa.hibernatesearch.bridges.TimeableListFieldBridge;
     })
 @AUserRightId("HR_EMPLOYEE")
 public class EmployeeDO extends DefaultBaseWithAttrDO<EmployeeDO>
-    implements EntityWithTimeableAttr<Integer, EmployeeTimedDO>, ComplexEntity, EntityWithConfigurableAttr
+    implements EntityWithTimeableAttr<Integer, EmployeeTimedDO>, ComplexEntity, EntityWithConfigurableAttr, Comparable
 {
 
   private static final long serialVersionUID = -1208597049289694757L;
@@ -586,5 +586,32 @@ public class EmployeeDO extends DefaultBaseWithAttrDO<EmployeeDO>
   public int hashCode()
   {
     return getPk() != null ? 31 * getPk().hashCode() : super.hashCode();
+  }
+
+  @Override
+  public int compareTo(Object o)
+  {
+    if (o == null || o instanceof EmployeeDO == false) {
+      return 0;
+    }
+    EmployeeDO other = (EmployeeDO) o;
+    if (this.getUser() == null && other.getUser() == null) {
+      return 0;
+    }
+    if (this.getUser() == null && other.getUser() == null) {
+      return 0;
+    }
+    if (this.getUser() != null && other.getUser() == null) {
+      return 1;
+    }
+    if (this.getUser() == null && other.getUser() != null) {
+      return -1;
+    }
+    int result = 0;
+    result = this.getUser().getLastname().compareTo(other.getUser().getLastname());
+    if (result == 0) {
+      result = this.getUser().getFirstname().compareTo(other.getUser().getFirstname());
+    }
+    return result;
   }
 }
