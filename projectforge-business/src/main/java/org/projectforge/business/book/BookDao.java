@@ -28,7 +28,6 @@ import java.util.Collection;
 import java.util.List;
 
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.hibernate.criterion.Criterion;
 import org.hibernate.criterion.Order;
@@ -48,9 +47,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 /**
- *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- *
  */
 @Repository
 public class BookDao extends BaseDao<BookDO>
@@ -95,33 +92,23 @@ public class BookDao extends BaseDao<BookDO>
       myFilter = new BookFilter(filter);
     }
     final QueryFilter queryFilter = new QueryFilter(myFilter);
-    if (StringUtils.isBlank(myFilter.getSearchString()) == true) {
-      Collection<BookStatus> col = null;
-      if (myFilter.isPresent() == true || myFilter.isMissed() == true || myFilter.isDisposed() == true) {
-        col = new ArrayList<BookStatus>();
-        if (myFilter.isPresent() == true) {
-          // Book must be have status 'present'.
-          col.add(BookStatus.PRESENT);
-        }
-        if (myFilter.isMissed() == true) {
-          // Book must be have status 'missed'.
-          col.add(BookStatus.MISSED);
-        }
-        if (myFilter.isDisposed() == true) {
-          // Book must be have status 'disposed'.
-          col.add(BookStatus.DISPOSED);
-        }
+    Collection<BookStatus> col = null;
+    Criterion inCrit = null;
+    if (myFilter.isPresent() == true || myFilter.isMissed() == true || myFilter.isDisposed() == true) {
+      col = new ArrayList<BookStatus>();
+      if (myFilter.isPresent() == true) {
+        // Book must be have status 'present'.
+        col.add(BookStatus.PRESENT);
       }
-      myFilter.setIgnoreDeleted(false);
-      if (col != null) {
-        final Criterion inCrit = Restrictions.in("status", col);
-        if (myFilter.isDeleted() == true) {
-          queryFilter.add(Restrictions.or(inCrit, Restrictions.eq("deleted", true)));
-          myFilter.setIgnoreDeleted(true);
-        } else {
-          queryFilter.add(inCrit);
-        }
+      if (myFilter.isMissed() == true) {
+        // Book must be have status 'missed'.
+        col.add(BookStatus.MISSED);
       }
+      if (myFilter.isDisposed() == true) {
+        // Book must be have status 'disposed'.
+        col.add(BookStatus.DISPOSED);
+      }
+      queryFilter.add(Restrictions.in("status", col));
     }
     queryFilter.addOrder(Order.desc("created"));
     queryFilter.addOrder(Order.asc("authors"));
@@ -130,7 +117,7 @@ public class BookDao extends BaseDao<BookDO>
 
   /**
    * Does the book's signature already exists? If signature is null, then return always false.
-   * 
+   *
    * @param signature
    * @return
    */
@@ -188,7 +175,7 @@ public class BookDao extends BaseDao<BookDO>
 
   /**
    * return Always true, no generic select access needed for book objects.
-   * 
+   *
    * @see org.projectforge.framework.persistence.api.BaseDao#hasSelectAccess()
    */
   @Override

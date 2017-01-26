@@ -61,6 +61,9 @@ public class TenantChecker implements Serializable
    */
   public boolean isPartOfTenant(final TenantDO tenant, final BaseDO<?> obj)
   {
+    if (tenantService.isMultiTenancyAvailable() == false) {
+      return true;
+    }
     if (tenant == null) {
       return false;
     }
@@ -69,6 +72,9 @@ public class TenantChecker implements Serializable
 
   public boolean isPartOfTenant(final Integer tenantId, final BaseDO<?> obj)
   {
+    if (tenantService.isMultiTenancyAvailable() == false) {
+      return true;
+    }
     if (obj == null) {
       return false;
     }
@@ -149,6 +155,9 @@ public class TenantChecker implements Serializable
 
   public boolean isPartOfTenant(final TenantDO tenant, final PFUserDO user)
   {
+    if (tenantService.isMultiTenancyAvailable() == false) {
+      return true;
+    }
     if (tenant == null || user == null || tenant.getAssignedUsers() == null) {
       return false;
     }
