@@ -23,35 +23,21 @@
 
 package org.projectforge.web.vacation;
 
-import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
-import org.projectforge.business.fibu.EmployeeDO;
-import org.projectforge.business.fibu.api.EmployeeService;
 import org.projectforge.business.vacation.service.VacationService;
-import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
-import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.web.vacation.helper.VacationViewHelper;
-import org.projectforge.web.wicket.AbstractSecuredPage;
-import org.projectforge.web.wicket.bootstrap.GridBuilder;
+import org.projectforge.web.wicket.AbstractViewPage;
 
-public class VacationViewPage extends AbstractSecuredPage
+public class VacationViewPage extends AbstractViewPage
 {
-  private static final long serialVersionUID = 6317381238021216284L;
-
-  @SpringBean
-  private EmployeeService employeeService;
+  private static final long serialVersionUID = 6317381238012316284L;
 
   @SpringBean
   private VacationViewHelper vacationViewHelper;
 
   @SpringBean
   private VacationService vacationService;
-
-  private GridBuilder gridBuilder;
-  private EmployeeDO currentEmployee;
-
-  private WebMarkupContainer container;
 
   public VacationViewPage(final PageParameters parameters)
   {
@@ -62,21 +48,13 @@ public class VacationViewPage extends AbstractSecuredPage
   protected void onInitialize()
   {
     super.onInitialize();
-
-    final PFUserDO currentUser = ThreadLocalUserContext.getUser();
     vacationService.couldUserUseVacationService(currentUser, true); // throw runtime exception if not allowed
-    currentEmployee = employeeService.getEmployeeByUserId(currentUser.getPk());
-
   }
 
   @Override
   protected void onConfigure()
   {
     super.onConfigure();
-
-    container = new WebMarkupContainer("container");
-    body.addOrReplace(container);
-    gridBuilder = new GridBuilder(container, "flowform", true);
     vacationViewHelper.createVacationView(gridBuilder, currentEmployee, true, this);
   }
 

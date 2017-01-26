@@ -140,6 +140,7 @@ public class UserEditPage extends AbstractEditPage<PFUserDO, UserEditForm, UserD
               form.assignTenantsListHelper.getItemsToUnassign());
       end = System.currentTimeMillis();
       log.info("Finish assign tenants (user member of admin group). Took: " + (end - start) / 1000 + " sec.");
+      //No tenant is selected but the user has to assignd at least to default tenant
       if (tenantDao.hasAssignedTenants(getData()) == false) {
         log.info("Start assign tenants");
         start = System.currentTimeMillis();
