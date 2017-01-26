@@ -182,27 +182,54 @@ public class TeamEventDaoRest
   @Produces(MediaType.APPLICATION_JSON)
   public Response saveOrUpdateTeamEvent(final CalendarEventObject calendarEvent)
   {
+    //The result for returning
     CalendarEventObject result = null;
     try {
+      //The inital mode for save or update
       String createUpdate = CREATED;
+      //Getting the calender at which the event will created/updated
       TeamCalDO teamCalDO = teamCalCache.getCalendar(calendarEvent.getCalendarId());
+      //ICal4J CalendarBuilder for building calendar events from ics
       final CalendarBuilder builder = new CalendarBuilder();
+      //Build the event from ics
       final net.fortuna.ical4j.model.Calendar calendar = builder.build(new ByteArrayInputStream(Base64.decodeBase64(calendarEvent.getIcsData())));
+      //Getting the VEvent from ics
       final VEvent event = (VEvent) calendar.getComponent(Component.VEVENT);
+      //Geting the event uid
       Uid eventUid = event.getUid();
+      //Building TeamEventDO from VEvent
       final TeamEventDO teamEvent = teamCalService.createTeamEventDO(event,
           TimeZone.getTimeZone(teamCalDO.getOwner().getTimeZone()));
+      //Getting the origin team event from database by uid if exist
       TeamEventDO teamEventOrigin = teamEventService.findByUid(eventUid.getValue());
+      //Boolean value to check, if the user from the db event is the same like the one who calls rest interface
+      boolean sameUser = false;
+      //Set for origin attendees from db event
       Set<TeamEventAttendeeDO> originAttendees = new HashSet<>();
+      //Check if db event exists
       if (teamEventOrigin != null) {
-        createUpdate = UPDATED;
-        teamEvent.setId(teamEventOrigin.getPk());
-        teamEvent.setCreated(teamEventOrigin.getCreated());
-        teamEvent.setTenant(teamEventOrigin.getTenant());
-        originAttendees = teamEventOrigin.getAttendees();
+        //Check, if it is the same user
+        sameUser = teamEventOrigin.getCreator().getId().equals(ThreadLocalUserContext.getUser().getId());
+        if (sameUser) {
+          //Team event exists in db and user is the same -> DB event has to be updated
+          createUpdate = UPDATED;
+          //Setting the existing DB id, created timestamp, tenant
+          teamEvent.setId(teamEventOrigin.getPk());
+          teamEvent.setCreated(teamEventOrigin.getCreated());
+          teamEvent.setTenant(teamEventOrigin.getTenant());
+          //Save existing attendees from the db event
+          originAttendees = teamEventOrigin.getAttendees();
+        }
       }
+      //Setting the calendar
       teamEvent.setCalendar(teamCalDO);
+      //Setting uid
       teamEvent.setUid(eventUid.getValue());
+      //If not the same user we need a new uid, which is generated while saving new data
+      if (sameUser == false) {
+        teamEvent.setUid(null);
+      }
+      //Decide which attendees are new, which has to be deleted, which has to be updated
       Set<TeamEventAttendeeDO> attendeesToAssignMap = new HashSet<>();
       Set<TeamEventAttendeeDO> attendeesToUnassignMap = new HashSet<>();
       if (teamEvent.getAttendees() != null && teamEvent.getAttendees().size() > 0) {
@@ -210,6 +237,7 @@ public class TeamEventDaoRest
         attendeesToUnassignMap = getAttendeesToUnassign(teamEvent, teamEventOrigin);
         teamEvent.setAttendees(originAttendees);
       }
+      //Save or update the generated event
       teamEventService.saveOrUpdate(teamEvent);
 
       TeamEventDO teamEventAfterSaveOrUpdate = teamEventService.getById(teamEvent.getPk());
@@ -218,7 +246,7 @@ public class TeamEventDaoRest
         modificationStatus = TeamEventDO.copyValues(teamEventOrigin, teamEventAfterSaveOrUpdate, "attendees");
       }
       TeamEventDO teamEventAfterModificationTest = teamEventService.getById(teamEvent.getPk());
-
+      //Update attendees
       teamEventService.assignAttendees(teamEventAfterModificationTest, attendeesToAssignMap, attendeesToUnassignMap);
 
       TeamEventDO teamEventAfterAssignAttendees = teamEventService.getById(teamEventAfterSaveOrUpdate.getPk());
@@ -226,7 +254,6 @@ public class TeamEventDaoRest
         teamEventService.sendTeamEventToAttendees(teamEventAfterAssignAttendees, createUpdate.equals(CREATED),
             createUpdate.equals(UPDATED) && modificationStatus != ModificationStatus.NONE, false, attendeesToAssignMap);
       }
-
       result = teamCalService.getEventObject(teamEventAfterAssignAttendees, true, true);
       log.info("Team event: " + teamEventAfterAssignAttendees.getSubject() + " for calendar #" + teamCalDO.getId() + " successfully " + createUpdate + ".");
     } catch (Exception e) {
