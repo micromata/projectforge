@@ -122,7 +122,7 @@ public class TeamEventServiceImpl implements TeamEventService
       }
     }
 
-    if (data.getAttendees() != null && itemsToUnassign.size() > 0) {
+    if (data.getAttendees() != null && itemsToUnassign != null && itemsToUnassign.size() > 0) {
       data.getAttendees().removeAll(itemsToUnassign);
       for (TeamEventAttendeeDO deleteAttendee : itemsToUnassign) {
         teamEventAttendeeDao.internalMarkAsDeleted(deleteAttendee);

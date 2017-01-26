@@ -374,7 +374,13 @@ public class TeamEventEditPage extends AbstractEditPage<TeamEventDO, TeamEventEd
   {
     if (newEvent != null) {
       newEvent.setSequence(0);
+      Set<TeamEventAttendeeDO> existingAttendees = new HashSet<>();
+      newEvent.getAttendees().forEach(att -> {
+        existingAttendees.add(att.clone());
+      });
+      newEvent.getAttendees().clear();
       teamEventService.save(newEvent);
+      teamEventService.assignAttendees(newEvent, existingAttendees, null);
     }
     return null;
   }
