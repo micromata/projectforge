@@ -8,7 +8,7 @@
   <parent>
     <groupId>org.projectforge</groupId>
     <artifactId>projectforge-parent</artifactId>
-    <version>6.7.1</version>
+    <version>6.7.2</version>
   </parent>
   <licenses>
     <license>
@@ -49,8 +49,7 @@
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-maven-plugin</artifactId>
         <configuration>
-          <!-- to use Needed for intern application.properties -->
-          <layout>ZIP</layout>
+          <layout>ZIP</layout> <!-- to use PropertiesLaunchar -->
         </configuration>
       </plugin>
     </plugins>

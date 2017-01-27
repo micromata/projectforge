@@ -5,7 +5,7 @@
   <parent>
     <artifactId>org.projectforge.plugins</artifactId>
     <groupId>org.projectforge</groupId>
-    <version>6.7.1</version>
+    <version>6.7.2</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
 
