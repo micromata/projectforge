@@ -1,7 +1,6 @@
 package org.projectforge.fibu;
 
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertTrue;
+import static org.testng.Assert.*;
 
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -90,6 +89,27 @@ public class EmployeeServiceTest extends AbstractTestBase
     employee.setAustrittsDatum(cal.getTime());
     boolean result = employeeService.isEmployeeActive(employee);
     assertTrue(result);
+  }
+
+  @Test
+  public void isEmployeeActiveWithAustrittsdatumBeforeTest()
+  {
+    EmployeeDO employee = new EmployeeDO();
+    Calendar cal = Calendar.getInstance();
+    cal.add(Calendar.MONTH, -1);
+    employee.setAustrittsDatum(cal.getTime());
+    boolean result = employeeService.isEmployeeActive(employee);
+    assertFalse(result);
+  }
+
+  @Test
+  public void isEmployeeActiveWithAustrittsdatumNowTest()
+  {
+    EmployeeDO employee = new EmployeeDO();
+    Calendar cal = Calendar.getInstance();
+    employee.setAustrittsDatum(cal.getTime());
+    boolean result = employeeService.isEmployeeActive(employee);
+    assertFalse(result);
   }
 
 }
