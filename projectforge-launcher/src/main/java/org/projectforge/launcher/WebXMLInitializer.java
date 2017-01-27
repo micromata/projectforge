@@ -4,7 +4,6 @@ import javax.servlet.FilterRegistration;
 import javax.servlet.MultipartConfigElement;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
-import javax.servlet.ServletRegistration.Dynamic;
 
 import org.apache.wicket.protocol.http.WicketFilter;
 import org.apache.wicket.spring.SpringWebApplicationFactory;
@@ -19,8 +18,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.orm.hibernate3.support.OpenSessionInViewFilter;
 
-import com.sun.jersey.spi.spring.container.servlet.SpringServlet;
-
 import de.micromata.genome.util.runtime.LocalSettings;
 import de.micromata.mgc.springbootapp.ApplicationServletInitializer;
 
@@ -29,7 +26,6 @@ import de.micromata.mgc.springbootapp.ApplicationServletInitializer;
  *
  * @author Florian Blumenstein
  * @author Roger Rene Kommer (r.kommer.extern@micromata.de)
- *
  */
 @Configuration
 public class WebXMLInitializer extends ApplicationServletInitializer
@@ -89,10 +85,10 @@ public class WebXMLInitializer extends ApplicationServletInitializer
 
     sc.addListener(SessionSerializableChecker.class);
 
-    Dynamic restApplication = sc.addServlet("RestApplication", SpringServlet.class);
-    restApplication.setInitParameter("javax.ws.rs.Application", "org.projectforge.web.rest.RestApplication");
-    restApplication.setLoadOnStartup(1);
-    restApplication.addMapping("/rest/*");
+    //    Dynamic restApplication = sc.addServlet("RestApplication", SpringServlet.class);
+    //    restApplication.setInitParameter("javax.ws.rs.Application", "org.projectforge.web.rest.RestApplication");
+    //    restApplication.setLoadOnStartup(1);
+    //    restApplication.addMapping("/rest/*");
     //    int maxSize = LocalSettings.get().getIntValue("pf.config.maxUploadSize", 0);
     //    if (maxSize != 0) {
     //      System.getProperties().setProperty("org.eclipse.jetty.server.Request.maxFormContentSize",

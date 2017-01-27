@@ -255,7 +255,6 @@
     <ehcache-core.version>2.6.11</ehcache-core.version>
     <postgresql.version>9.4.1211</postgresql.version>
     <hsqldb.version>1.8.0.10</hsqldb.version>
-    <jersey.version>1.19.3</jersey.version>
     <codehaus-jackson.version>1.9.13</codehaus-jackson.version>
     <testng.versionj>6.9.9</testng.versionj>
     <powermock.version>1.6.5</powermock.version>
@@ -480,6 +479,7 @@
       </plugin>
     </plugins>
   </reporting>
+
   <repositories>
     <repository>
       <id>de.micromata.nexus.public</id>
@@ -508,4 +508,5 @@
       <url>https://labs.micromata.de/nexus/content/repositories/MGC-snapshot/</url>
     </repository>
   </repositories>
+
 </project>
