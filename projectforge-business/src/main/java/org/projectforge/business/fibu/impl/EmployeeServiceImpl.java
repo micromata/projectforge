@@ -206,7 +206,9 @@ public class EmployeeServiceImpl extends CorePersistenceServiceImpl<Integer, Emp
       return true;
     }
     final Calendar now = Calendar.getInstance();
-    return now.before(employee.getAustrittsDatum());
+    final Calendar austrittsdatum = Calendar.getInstance();
+    austrittsdatum.setTime(employee.getAustrittsDatum());
+    return now.before(austrittsdatum);
   }
 
   @Override
