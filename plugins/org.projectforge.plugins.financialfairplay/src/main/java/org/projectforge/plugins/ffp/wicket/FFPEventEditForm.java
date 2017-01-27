@@ -172,7 +172,8 @@ public class FFPEventEditForm extends AbstractEditForm<FFPEventDO, FFPEventEditP
     {
       // Event date
       final FieldsetPanel fs = gridBuilder.newFieldset(FFPEventDO.class, "eventDate");
-      DatePanel eventDate = new DatePanel(fs.newChildId(), new PropertyModel<>(data, "eventDate"), new DatePanelSettings());
+      DatePanel eventDate = new DatePanel(fs.newChildId(), new PropertyModel<>(data, "eventDate"),
+          DatePanelSettings.get().withTargetType(java.sql.Date.class), true);
       eventDate.setRequired(true);
       eventDate.setMarkupId("eventDate").setOutputMarkupId(true);
       eventDate.setEnabled(getData().getFinished() == false);
