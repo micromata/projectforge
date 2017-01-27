@@ -1,6 +1,10 @@
 package org.projectforge.fibu;
 
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertTrue;
+
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 
 import javax.persistence.NoResultException;
@@ -11,7 +15,6 @@ import org.projectforge.business.user.service.UserService;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.test.AbstractTestBase;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.testng.Assert;
 import org.testng.annotations.Test;
 
 public class EmployeeServiceTest extends AbstractTestBase
@@ -33,7 +36,7 @@ public class EmployeeServiceTest extends AbstractTestBase
     employeeDO.setUser(pfUserDO);
     employeeDO.setAccountHolder("Vorname Name");
     Integer id = employeeService.save(employeeDO);
-    Assert.assertTrue(id != null && id > 0);
+    assertTrue(id != null && id > 0);
     employeeService.delete(employeeDO);
     EmployeeDO employeeDO1 = null;
     List<Exception> exceptionList = new ArrayList<>();
@@ -43,8 +46,8 @@ public class EmployeeServiceTest extends AbstractTestBase
       exceptionList.add(e);
     }
 
-    Assert.assertEquals(exceptionList.size(), 1);
-    Assert.assertEquals(employeeDO1, null);
+    assertEquals(exceptionList.size(), 1);
+    assertEquals(employeeDO1, null);
   }
 
   private PFUserDO getPfUserDO()
@@ -66,7 +69,27 @@ public class EmployeeServiceTest extends AbstractTestBase
     String expectedNewAccountHolder = "Firstname Lastname";
     employeeService.updateAttribute(pfUserDO.getId(), expectedNewAccountHolder, "accountHolder");
     EmployeeDO employeeByUserId = employeeService.getEmployeeByUserId(pfUserDO.getId());
-    Assert.assertEquals(employeeByUserId.getAbteilung(), abteilung);
-    Assert.assertEquals(employeeByUserId.getAccountHolder(), expectedNewAccountHolder);
+    assertEquals(employeeByUserId.getAbteilung(), abteilung);
+    assertEquals(employeeByUserId.getAccountHolder(), expectedNewAccountHolder);
   }
+
+  @Test
+  public void isEmployeeActiveWithoutAustrittsdatumTest()
+  {
+    EmployeeDO employee = new EmployeeDO();
+    boolean result = employeeService.isEmployeeActive(employee);
+    assertTrue(result);
+  }
+
+  @Test
+  public void isEmployeeActiveWithAustrittsdatumTest()
+  {
+    EmployeeDO employee = new EmployeeDO();
+    Calendar cal = Calendar.getInstance();
+    cal.add(Calendar.MONTH, 1);
+    employee.setAustrittsDatum(cal.getTime());
+    boolean result = employeeService.isEmployeeActive(employee);
+    assertTrue(result);
+  }
+
 }
