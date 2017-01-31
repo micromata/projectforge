@@ -97,6 +97,9 @@ public class VacationDO extends DefaultBaseDO
   @PropertyInfo(i18nKey = "vacation.isSpecial")
   private Boolean isSpecial;
 
+  @PropertyInfo(i18nKey = "vacation.isHalfDay")
+  private Boolean isHalfDay;
+
   /**
    * The employee.
    *
@@ -229,5 +232,16 @@ public class VacationDO extends DefaultBaseDO
   public void setIsSpecial(Boolean special)
   {
     isSpecial = special;
+  }
+
+  @Column(name = "is_half_day")
+  public Boolean getHalfDay()
+  {
+    return isHalfDay;
+  }
+
+  public void setHalfDay(final Boolean halfDay)
+  {
+    isHalfDay = halfDay;
   }
 }
