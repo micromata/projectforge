@@ -22,5 +22,9 @@
       <artifactId>projectforge-common</artifactId>
       <version>${projectforge.version}</version>
     </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-jersey</artifactId>
+    </dependency>
   </dependencies>
 </project>

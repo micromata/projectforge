@@ -31,6 +31,10 @@
   </build>
   <dependencies>
     <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-logging</artifactId>
+    </dependency>
+    <dependency>
       <groupId>de.micromata.mgc</groupId>
       <artifactId>de.micromata.mgc.common</artifactId>
       <version>${mgc.version}</version>

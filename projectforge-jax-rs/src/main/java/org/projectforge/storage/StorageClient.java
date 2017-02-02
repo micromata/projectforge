@@ -117,7 +117,7 @@ public class StorageClient implements ConfigurationListener
 
   private void addAuthenticationHeader(final WebTarget webResource)
   {
-    webResource.queryParam(StorageConstants.PARAM_AUTHENTICATION_TOKEN, config.getAuthenticationToken());
+    webResource.request().header(StorageConstants.PARAM_AUTHENTICATION_TOKEN, config.getAuthenticationToken());
   }
 
   /**
