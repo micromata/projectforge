@@ -33,6 +33,11 @@
       <scope>test</scope>
       <type>test-jar</type>
     </dependency>
+    <!-- Is needed for Spring Boot web functionality (e.g. load static content)-->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-web</artifactId>
+    </dependency>
     <dependency>
       <groupId>org.apache.wicket</groupId>
       <artifactId>wicket-extensions</artifactId>
