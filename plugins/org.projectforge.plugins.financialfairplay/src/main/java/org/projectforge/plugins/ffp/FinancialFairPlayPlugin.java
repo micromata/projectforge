@@ -87,7 +87,7 @@ public class FinancialFairPlayPlugin extends AbstractPlugin
           @Override
           public Integer getObject()
           {
-            return eventService.getOpenFromDebts(ThreadLocalUserContext.getUser());
+            return eventService.getOpenDebts(ThreadLocalUserContext.getUser());
           }
         });
       }

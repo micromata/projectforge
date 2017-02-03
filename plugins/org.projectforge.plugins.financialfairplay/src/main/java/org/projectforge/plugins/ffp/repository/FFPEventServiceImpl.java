@@ -185,9 +185,20 @@ public class FFPEventServiceImpl extends CorePersistenceServiceImpl<Integer, FFP
   }
 
   @Override
-  public Integer getOpenFromDebts(PFUserDO user)
+  public Integer getOpenDebts(PFUserDO user)
   {
-    return debtDao.getOpenFromDebts(employeeDao.findByUserId(user.getId()));
+    EmployeeDO employee = employeeDao.findByUserId(user.getId());
+    return getOpenFromDebts(employee) + getOpenToDebts(employee);
+  }
+
+  private Integer getOpenFromDebts(EmployeeDO employee)
+  {
+    return debtDao.getOpenFromDebts(employee);
+  }
+
+  private Integer getOpenToDebts(EmployeeDO employee)
+  {
+    return debtDao.getOpenToDebts(employee);
   }
 
   @Override
