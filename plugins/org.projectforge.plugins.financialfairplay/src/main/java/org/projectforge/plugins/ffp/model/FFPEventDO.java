@@ -23,6 +23,7 @@ import org.hibernate.search.annotations.EncodingType;
 import org.hibernate.search.annotations.IndexedEmbedded;
 import org.hibernate.search.annotations.Resolution;
 import org.projectforge.business.fibu.EmployeeDO;
+import org.projectforge.business.user.I18nHelper;
 import org.projectforge.common.anots.PropertyInfo;
 import org.projectforge.framework.persistence.api.PFPersistancyBehavior;
 import org.projectforge.framework.persistence.entities.DefaultBaseDO;
@@ -144,5 +145,15 @@ public class FFPEventDO extends DefaultBaseDO
   public void setFinished(boolean finished)
   {
     this.finished = finished;
+  }
+
+  @Transient
+  public String getStatus()
+  {
+    if (getFinished()) {
+      return I18nHelper.getLocalizedMessage("plugins.ffp.status.closed");
+    } else {
+      return I18nHelper.getLocalizedMessage("plugins.ffp.status.open");
+    }
   }
 }
