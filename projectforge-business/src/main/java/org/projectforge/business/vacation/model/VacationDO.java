@@ -23,7 +23,6 @@
 
 package org.projectforge.business.vacation.model;
 
-import java.math.BigDecimal;
 import java.util.Date;
 
 import javax.persistence.Column;
@@ -85,9 +84,6 @@ public class VacationDO extends DefaultBaseDO
   @PropertyInfo(i18nKey = "vacation.status")
   private VacationStatus status;
 
-  @PropertyInfo(i18nKey = "vacation.workingdays")
-  private BigDecimal workingdays;
-
   //TODO FB: Wird leider nur über dem Feld ausgewertewt und nicht an der Methode.
   //Feld wird eigentlich nicht benötigt
   @PropertyInfo(i18nKey = "vacation.vacationmode")
@@ -97,7 +93,7 @@ public class VacationDO extends DefaultBaseDO
   private Boolean isSpecial;
 
   @PropertyInfo(i18nKey = "vacation.isHalfDay")
-  private Boolean isHalfDay;
+  private Boolean halfDay;
 
   /**
    * The employee.
@@ -227,11 +223,11 @@ public class VacationDO extends DefaultBaseDO
   @Column(name = "is_half_day")
   public Boolean getHalfDay()
   {
-    return isHalfDay;
+    return halfDay;
   }
 
   public void setHalfDay(final Boolean halfDay)
   {
-    isHalfDay = halfDay;
+    this.halfDay = halfDay;
   }
 }
