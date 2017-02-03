@@ -201,8 +201,8 @@ public class VacationEditForm extends AbstractEditForm<VacationDO, VacationEditP
 
     {
       // half day checkbox
-      final FieldsetPanel fs = gridBuilder.newFieldset(VacationDO.class, "isHalfDay");
-      final CheckBoxPanel checkboxPanel = new CheckBoxPanel(fs.newChildId(), new PropertyModel<>(data, "isHalfDay"), "");
+      final FieldsetPanel fs = gridBuilder.newFieldset(VacationDO.class, "halfDay");
+      final CheckBoxPanel checkboxPanel = new CheckBoxPanel(fs.newChildId(), new PropertyModel<>(data, "halfDay"), "");
       checkboxPanel.setMarkupId("vacation-isHalfDay").setOutputMarkupId(true);
       checkboxPanel.setEnabled(checkEnableInputField());
       formValidator.getDependentFormComponents()[4] = checkboxPanel.getCheckBox();
