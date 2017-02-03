@@ -36,5 +36,12 @@
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-jersey</artifactId>
     </dependency>
+    <!-- Is needed because of ClassNotFound exception: -->
+    <!-- java.lang.ClassNotFoundException: com.sun.el.ExpressionFactoryImpl -->
+    <dependency>
+      <groupId>com.sun.el</groupId>
+      <artifactId>el-ri</artifactId>
+      <version>1.0</version>
+    </dependency>
   </dependencies>
 </project>
