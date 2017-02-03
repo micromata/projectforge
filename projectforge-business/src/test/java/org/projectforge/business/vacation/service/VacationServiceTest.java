@@ -74,6 +74,24 @@ public class VacationServiceTest extends PowerMockTestCase
   }
 
   @Test
+  public void testGetVacationDays()
+  {
+    final Calendar workingDate1 = Calendar.getInstance();
+    workingDate1.set(Calendar.YEAR, 2017);
+    workingDate1.set(Calendar.MONTH, Calendar.FEBRUARY);
+    workingDate1.set(Calendar.DAY_OF_MONTH, 1);
+    final Calendar workingDate2 = Calendar.getInstance();
+    workingDate2.set(Calendar.YEAR, 2017);
+    workingDate2.set(Calendar.MONTH, Calendar.FEBRUARY);
+    workingDate2.set(Calendar.DAY_OF_MONTH, 2);
+
+    assertEquals(vacationService.getVacationDays(workingDate1.getTime(), workingDate1.getTime(), false), new BigDecimal(1));
+    assertEquals(vacationService.getVacationDays(workingDate1.getTime(), workingDate1.getTime(), true), new BigDecimal(0.5));
+    assertEquals(vacationService.getVacationDays(workingDate1.getTime(), workingDate2.getTime(), false), new BigDecimal(2));
+    assertEquals(vacationService.getVacationDays(workingDate1.getTime(), workingDate2.getTime(), true), new BigDecimal(0.5));
+  }
+
+  @Test
   public void testUpdateUsedVacationDaysFromLastYearNull()
   {
     BigDecimal newValue = this.vacationService.updateUsedVacationDaysFromLastYear(null);

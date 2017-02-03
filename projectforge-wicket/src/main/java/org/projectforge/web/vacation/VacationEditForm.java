@@ -46,7 +46,6 @@ import org.projectforge.business.vacation.service.VacationService;
 import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.access.AccessException;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
-import org.projectforge.framework.time.DayHolder;
 import org.projectforge.web.employee.DefaultEmployeeWicketProvider;
 import org.projectforge.web.wicket.AbstractEditForm;
 import org.projectforge.web.wicket.bootstrap.GridSize;
@@ -170,11 +169,7 @@ public class VacationEditForm extends AbstractEditForm<VacationDO, VacationEditP
           availableVacationDaysModel.setObject(availableVacationDays.toString());
           target.add(availableVacationDaysLabel);
 
-          if (getData().getStartDate() != null && getData().getEndDate() != null) {
-            String value = DayHolder.getNumberOfWorkingDays(data.getStartDate(), data.getEndDate()).toString();
-            neededVacationDaysModel.setObject(value);
-            target.add(neededVacationDaysLabel);
-          }
+          updateNeededVacationDaysLabel(target);
         }
       });
       startDatePanel.setRequired(true).setMarkupId("vacation-startdate").setOutputMarkupId(true);
@@ -195,11 +190,7 @@ public class VacationEditForm extends AbstractEditForm<VacationDO, VacationEditP
         @Override
         protected void onUpdate(final AjaxRequestTarget target)
         {
-          if (getData().getStartDate() != null && getData().getEndDate() != null) {
-            String value = DayHolder.getNumberOfWorkingDays(data.getStartDate(), data.getEndDate()).toString();
-            neededVacationDaysModel.setObject(value);
-            target.add(neededVacationDaysLabel);
-          }
+          updateNeededVacationDaysLabel(target);
         }
       });
       endDatePanel.setRequired(true).setMarkupId("vacation-enddate").setOutputMarkupId(true);
@@ -224,7 +215,7 @@ public class VacationEditForm extends AbstractEditForm<VacationDO, VacationEditP
       final CheckBoxPanel checkboxPanel = new CheckBoxPanel(fs.newChildId(), new PropertyModel<>(data, "isSpecial"), "");
       checkboxPanel.setMarkupId("vacation-isSpecial").setOutputMarkupId(true);
       checkboxPanel.setEnabled(checkEnableInputField());
-      formValidator.setIsSpecialCheckbox(checkboxPanel);
+      formValidator.getDependentFormComponents()[5] = checkboxPanel.getCheckBox();
       fs.add(checkboxPanel);
     }
 
@@ -242,13 +233,9 @@ public class VacationEditForm extends AbstractEditForm<VacationDO, VacationEditP
 
     {
       // Needed vacation days
-      FieldsetPanel neededVacationDaysFs = gridBuilder
-          .newFieldset(I18nHelper.getLocalizedMessage("vacation.neededdays"));
-      String value = I18nHelper.getLocalizedMessage("vacation.setStartAndEndFirst");
-      if (data.getStartDate() != null && data.getEndDate() != null) {
-        value = DayHolder.getNumberOfWorkingDays(data.getStartDate(), data.getEndDate()).toString();
-      }
-      this.neededVacationDaysModel = new Model<>(value);
+      FieldsetPanel neededVacationDaysFs = gridBuilder.newFieldset(I18nHelper.getLocalizedMessage("vacation.neededdays"));
+      this.neededVacationDaysModel = new Model<>();
+      updateNeededVacationDaysLabel();
       LabelPanel neededVacationDaysPanel = new LabelPanel(neededVacationDaysFs.newChildId(), neededVacationDaysModel);
       neededVacationDaysPanel.setMarkupId("vacation-neededVacationDays").setOutputMarkupId(true);
       this.neededVacationDaysLabel = neededVacationDaysPanel.getLabel();
@@ -295,6 +282,22 @@ public class VacationEditForm extends AbstractEditForm<VacationDO, VacationEditP
       fs.add(statusChoice);
     }
 
+  }
+
+  private void updateNeededVacationDaysLabel()
+  {
+    if (data.getStartDate() != null && data.getEndDate() != null) {
+      final BigDecimal days = vacationService.getVacationDays(data.getStartDate(), data.getEndDate(), data.getHalfDay());
+      neededVacationDaysModel.setObject(days.toString());
+    } else {
+      neededVacationDaysModel.setObject(I18nHelper.getLocalizedMessage("vacation.setStartAndEndFirst"));
+    }
+  }
+
+  private void updateNeededVacationDaysLabel(final AjaxRequestTarget target)
+  {
+    updateNeededVacationDaysLabel();
+    target.add(neededVacationDaysLabel);
   }
 
   private BigDecimal getAvailableVacationDays(VacationDO vacationData)

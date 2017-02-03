@@ -17,9 +17,7 @@ import org.projectforge.business.vacation.model.VacationDO;
 import org.projectforge.business.vacation.model.VacationStatus;
 import org.projectforge.business.vacation.service.VacationService;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
-import org.projectforge.framework.time.DayHolder;
 import org.projectforge.web.wicket.components.DatePanel;
-import org.projectforge.web.wicket.flowlayout.CheckBoxPanel;
 
 import com.vaynberg.wicket.select2.Select2Choice;
 
@@ -28,13 +26,11 @@ public class VacationFormValidator implements IFormValidator
   private static final long serialVersionUID = -8478416045860851983L;
 
   // Components for form validation.
-  private final FormComponent<?>[] dependentFormComponents = new FormComponent[5];
+  private final FormComponent<?>[] dependentFormComponents = new FormComponent[6];
 
   private final VacationService vacationService;
 
   private final VacationDO data;
-
-  private CheckBoxPanel isSpecialCheckbox;
 
   public VacationFormValidator(VacationService vacationService, VacationDO data)
   {
@@ -50,6 +46,7 @@ public class VacationFormValidator implements IFormValidator
     final DropDownChoice<VacationStatus> statusChoice = (DropDownChoice<VacationStatus>) dependentFormComponents[2];
     final Select2Choice<EmployeeDO> employeeSelect = (Select2Choice<EmployeeDO>) dependentFormComponents[3];
     final CheckBox isHalfDayCheckbox = (CheckBox) dependentFormComponents[4];
+    final CheckBox isSpecialCheckbox = (CheckBox) dependentFormComponents[5];
 
     EmployeeDO employee = employeeSelect.getConvertedInput();
     if (employee == null) {
@@ -105,6 +102,7 @@ public class VacationFormValidator implements IFormValidator
       return;
     }
 
+    // check if there is already a leave application in the period
     List<VacationDO> vacationListForPeriod = vacationService
         .getVacationForDate(employee, startDate.getTime(), endDate.getTime(), true);
     if (vacationListForPeriod != null && data.getPk() != null) {
@@ -117,7 +115,7 @@ public class VacationFormValidator implements IFormValidator
       form.error(I18nHelper.getLocalizedMessage("vacation.validate.leaveapplicationexists"));
     }
 
-    if (isSpecialCheckbox != null && isSpecialCheckbox.getCheckBox().getValue() != null && isSpecialCheckbox.getCheckBox().getValue().equals("on")) {
+    if (isOn(isSpecialCheckbox)) {
       return;
     }
 
@@ -144,12 +142,13 @@ public class VacationFormValidator implements IFormValidator
 
     //Add the old data working days to available days
     if (data.getPk() != null) {
-      final BigDecimal oldDataWorkingDays = DayHolder.getNumberOfWorkingDays(data.getStartDate(), data.getEndDate());
+      final BigDecimal oldDataWorkingDays = vacationService.getVacationDays(data.getStartDate(), data.getEndDate(), data.getHalfDay());
       availableVacationDays = availableVacationDays.add(oldDataWorkingDays);
     }
 
     //Need
-    final BigDecimal neededVacationDays = DayHolder.getNumberOfWorkingDays(startDatePanel.getConvertedInput(), endDatePanel.getConvertedInput());
+    final BigDecimal neededVacationDays = vacationService
+        .getVacationDays(startDatePanel.getConvertedInput(), endDatePanel.getConvertedInput(), isHalfDayCheckbox.getConvertedInput());
 
     //Vacation after end days from last year
     if (startDatePanel.getConvertedInput().after(endDateVacationFromLastYear.getTime())) {
@@ -169,8 +168,10 @@ public class VacationFormValidator implements IFormValidator
     if ((startDatePanel.getConvertedInput().before(endDateVacationFromLastYear.getTime())
         || startDatePanel.getConvertedInput().equals(endDateVacationFromLastYear.getTime()))
         && endDatePanel.getConvertedInput().after(endDateVacationFromLastYear.getTime())) {
-      final BigDecimal neededVacationDaysBeforeEndFromLastYear = DayHolder.getNumberOfWorkingDays(startDatePanel.getConvertedInput(),
-          endDateVacationFromLastYear.getTime());
+      final BigDecimal neededVacationDaysBeforeEndFromLastYear = vacationService
+          .getVacationDays(startDatePanel.getConvertedInput(), endDateVacationFromLastYear.getTime(),
+              false); // here we are sure that it is no half day vacation
+
       final BigDecimal restFromLastYear = availableVacationDaysFromLastYear.subtract(neededVacationDaysBeforeEndFromLastYear);
       if (restFromLastYear.compareTo(BigDecimal.ZERO) <= 0) {
         if (availableVacationDays.subtract(neededVacationDays).compareTo(BigDecimal.ZERO) < 0) {
@@ -201,8 +202,4 @@ public class VacationFormValidator implements IFormValidator
     return dependentFormComponents;
   }
 
-  public void setIsSpecialCheckbox(CheckBoxPanel isSpecialCheckbox)
-  {
-    this.isSpecialCheckbox = isSpecialCheckbox;
-  }
 }

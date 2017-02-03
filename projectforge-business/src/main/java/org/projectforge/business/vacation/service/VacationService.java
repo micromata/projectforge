@@ -179,4 +179,22 @@ public interface VacationService extends IPersistenceService<VacationDO>, IDao<V
    * @return
    */
   BigDecimal getSpecialVacationCount(EmployeeDO employee, int year, VacationStatus status);
+
+  /**
+   * Returns the number of vacation days for the given VacationDO.
+   *
+   * @param vacationData
+   * @return
+   */
+  BigDecimal getVacationDays(final VacationDO vacationData);
+
+  /**
+   * Returns the number of vacation days for the given period.
+   *
+   * @param from
+   * @param to
+   * @param isHalfDayVacation
+   * @return
+   */
+  BigDecimal getVacationDays(final Date from, final Date to, final Boolean isHalfDayVacation);
 }

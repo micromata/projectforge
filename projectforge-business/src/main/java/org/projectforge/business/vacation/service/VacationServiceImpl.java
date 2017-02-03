@@ -53,7 +53,9 @@ public class VacationServiceImpl extends CorePersistenceServiceImpl<Integer, Vac
   @Autowired
   private EmployeeService employeeService;
 
-  private final String vacationEditPagePath = "/wa/wicket/bookmarkable/org.projectforge.web.vacation.VacationEditPage";
+  private static final String vacationEditPagePath = "/wa/wicket/bookmarkable/org.projectforge.web.vacation.VacationEditPage";
+
+  private static final BigDecimal HALF_DAY = new BigDecimal(0.5);
 
   @Override
   public BigDecimal getApprovedAndPlanedVacationdaysForYear(EmployeeDO employee, int year)
@@ -235,7 +237,7 @@ public class VacationServiceImpl extends CorePersistenceServiceImpl<Integer, Vac
     BigDecimal dayCount = BigDecimal.ZERO;
     for (VacationDO v : vacationList) {
       if (v.getEndDate().before(endDateCalender.getTime()))
-        dayCount = dayCount.add(v.getWorkingdays());
+        dayCount = dayCount.add(getVacationDays(v));
       else
         dayCount = dayCount.add(DayHolder.getNumberOfWorkingDays(v.getStartDate(), endDateCalender.getTime()));
     }
@@ -244,7 +246,7 @@ public class VacationServiceImpl extends CorePersistenceServiceImpl<Integer, Vac
     if (dayCount.compareTo(vacationFromPreviousYear) < 0) // dayCount < vacationFromPreviousYear
     {
       if (vacationData.getEndDate().compareTo(endDateCalender.getTime()) < 0) {
-        newDays = actualUsedDaysOfLastYear.subtract(vacationData.getWorkingdays());
+        newDays = actualUsedDaysOfLastYear.subtract(getVacationDays(vacationData));
       } else {
         newDays = actualUsedDaysOfLastYear.subtract(DayHolder.getNumberOfWorkingDays(vacationData.getStartDate(), endDateCalender.getTime()));
       }
@@ -297,7 +299,7 @@ public class VacationServiceImpl extends CorePersistenceServiceImpl<Integer, Vac
     return getActiveVacationForYear(employee, year, false)
         .stream()
         .filter(vac -> vac.getStatus().equals(status))
-        .map(VacationDO::getWorkingdays)
+        .map(this::getVacationDays)
         .reduce(BigDecimal.ZERO, BigDecimal::add); // sum
   }
 
@@ -406,8 +408,28 @@ public class VacationServiceImpl extends CorePersistenceServiceImpl<Integer, Vac
     return vacationDao
         .getSpecialVacation(employee, year, status)
         .stream()
-        .map(VacationDO::getWorkingdays)
+        .map(this::getVacationDays)
         .reduce(BigDecimal.ZERO, BigDecimal::add); // sum
+  }
+
+  @Override
+  public BigDecimal getVacationDays(final VacationDO vacationData)
+  {
+    final Date startDate = vacationData.getStartDate();
+    final Date endDate = vacationData.getEndDate();
+
+    if (startDate != null && endDate != null) {
+      return getVacationDays(startDate, endDate, vacationData.getHalfDay());
+    }
+    return null;
+  }
+
+  @Override
+  public BigDecimal getVacationDays(final Date from, final Date to, final Boolean isHalfDayVacation)
+  {
+    return Boolean.TRUE.equals(isHalfDayVacation) // null evaluates to false
+        ? HALF_DAY
+        : DayHolder.getNumberOfWorkingDays(from, to);
   }
 
   @Override

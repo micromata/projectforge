@@ -45,7 +45,6 @@ import org.projectforge.common.anots.PropertyInfo;
 import org.projectforge.framework.persistence.api.AUserRightId;
 import org.projectforge.framework.persistence.entities.DefaultBaseDO;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
-import org.projectforge.framework.time.DayHolder;
 
 /**
  * Repräsentiert einen Urlaub. Ein Urlaub ist einem ProjectForge-Mitarbeiter zugeordnet und enthält buchhalterische
@@ -197,15 +196,6 @@ public class VacationDO extends DefaultBaseDO
   public void setStatus(final VacationStatus status)
   {
     this.status = status;
-  }
-
-  @Transient
-  public BigDecimal getWorkingdays()
-  {
-    if (this.workingdays == null) {
-      this.workingdays = DayHolder.getNumberOfWorkingDays(startDate, endDate);
-    }
-    return this.workingdays;
   }
 
   @Transient
