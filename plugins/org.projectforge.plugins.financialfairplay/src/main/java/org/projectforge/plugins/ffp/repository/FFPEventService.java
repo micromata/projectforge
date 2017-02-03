@@ -28,7 +28,7 @@ public interface FFPEventService extends IPersistenceService<FFPEventDO>, IDao<F
 
   void updateDebtTo(FFPDebtDO debt);
 
-  Integer getOpenFromDebts(PFUserDO user);
+  Integer getOpenDebts(PFUserDO user);
 
   boolean debtExists(FFPEventDO event);
 }

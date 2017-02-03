@@ -53,6 +53,18 @@ public class FFPDebtDao extends BaseDao<FFPDebtDO>
     return result;
   }
 
+  public Integer getOpenToDebts(EmployeeDO employee)
+  {
+    Integer result = 0;
+    List<FFPDebtDO> debtList = getDebtList(employee);
+    for (FFPDebtDO debt : debtList) {
+      if (debt.getTo().equals(employee) && debt.isApprovedByFrom() == true && debt.isApprovedByTo() == false) {
+        result++;
+      }
+    }
+    return result;
+  }
+
   public List<FFPDebtDO> getDebts(FFPEventDO event)
   {
     return emgrFactory.runRoTrans(emgr -> {
