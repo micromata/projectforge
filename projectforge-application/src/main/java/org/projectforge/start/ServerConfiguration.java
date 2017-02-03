@@ -36,6 +36,7 @@ public class ServerConfiguration implements EmbeddedServletContainerCustomizer
         Connector ajpConnector = new Connector("AJP/1.3");
         ajpConnector.setProtocol("AJP/1.3");
         ajpConnector.setPort(ajpPort);
+        ajpConnector.setAttribute("address", "127.0.0.1");
         ajpConnector.setSecure(false);
         ajpConnector.setAllowTrace(false);
         ajpConnector.setScheme("http");
