@@ -205,6 +205,14 @@ public class VacationEditForm extends AbstractEditForm<VacationDO, VacationEditP
       final CheckBoxPanel checkboxPanel = new CheckBoxPanel(fs.newChildId(), new PropertyModel<>(data, "halfDay"), "");
       checkboxPanel.setMarkupId("vacation-isHalfDay").setOutputMarkupId(true);
       checkboxPanel.setEnabled(checkEnableInputField());
+      checkboxPanel.getCheckBox().add(new AjaxFormComponentUpdatingBehavior("onchange")
+      {
+        @Override
+        protected void onUpdate(final AjaxRequestTarget target)
+        {
+          updateNeededVacationDaysLabel(target);
+        }
+      });
       formValidator.getDependentFormComponents()[4] = checkboxPanel.getCheckBox();
       fs.add(checkboxPanel);
     }
