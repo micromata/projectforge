@@ -143,7 +143,9 @@ public class MonthlyEmployeeReport implements Serializable
 
   private EmployeeDO employee;
 
-  private long totalGrossDuration = 0, totalNetDuration = 0, vacationCount = 0;
+  private long totalGrossDuration = 0, totalNetDuration = 0;
+
+  private BigDecimal vacationCount = BigDecimal.ZERO;
 
   private Integer kost1Id;
 
@@ -330,8 +332,7 @@ public class MonthlyEmployeeReport implements Serializable
     }
     if (vacationService != null && this.employee != null && this.employee.getUser() != null) {
       if (vacationService.couldUserUseVacationService(this.employee.getUser(), false)) {
-        this.vacationCount = vacationService.getAvailableVacationdaysForYear(this.employee
-            , this.year, false).longValue();
+        this.vacationCount = vacationService.getAvailableVacationdaysForYear(this.employee, this.year, false);
       }
     }
   }

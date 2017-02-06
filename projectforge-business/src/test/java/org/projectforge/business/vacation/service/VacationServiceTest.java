@@ -27,7 +27,6 @@ import org.projectforge.business.vacation.repository.VacationDao;
 import org.projectforge.framework.configuration.ConfigXml;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
-import org.projectforge.framework.time.DayHolder;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
@@ -201,8 +200,8 @@ public class VacationServiceTest extends PowerMockTestCase
     endDate.set(Calendar.MONTH, Calendar.MARCH);
     endDate.set(Calendar.DAY_OF_MONTH, 10);
     vacationData.setEndDate(endDate.getTime());
-    BigDecimal numberOfDays = DayHolder.getNumberOfWorkingDays(vacationData.getStartDate(), vacationData.getEndDate());
-    BigDecimal newValue = this.vacationService.updateUsedVacationDaysFromLastYear(vacationData);
+    BigDecimal numberOfDays = vacationService.getVacationDays(vacationData);
+    BigDecimal newValue = vacationService.updateUsedVacationDaysFromLastYear(vacationData);
     assertEquals(newValue, BigDecimal.ONE.add(numberOfDays));
   }
 
@@ -221,7 +220,7 @@ public class VacationServiceTest extends PowerMockTestCase
     endDate.set(Calendar.MONTH, Calendar.APRIL);
     endDate.set(Calendar.DAY_OF_MONTH, 5);
     vacationData.setEndDate(endDate.getTime());
-    BigDecimal numberOfDays = DayHolder.getNumberOfWorkingDays(vacationData.getStartDate(), endLastYear.getTime());
+    BigDecimal numberOfDays = vacationService.getVacationDays(vacationData.getStartDate(), endLastYear.getTime(), vacationData.getHalfDay());
     BigDecimal newValue = this.vacationService.updateUsedVacationDaysFromLastYear(vacationData);
     assertEquals(newValue, BigDecimal.ONE.add(numberOfDays));
   }
@@ -264,7 +263,7 @@ public class VacationServiceTest extends PowerMockTestCase
     endDate.set(Calendar.DAY_OF_MONTH, 5);
     vacation.setEndDate(endDate.getTime());
     vacationList.add(vacation);
-    BigDecimal numberOfDays = DayHolder.getNumberOfWorkingDays(vacation.getStartDate(), vacation.getEndDate());
+    BigDecimal numberOfDays = vacationService.getVacationDays(vacation);
     when(vacationDao.getActiveVacationForYear(employee, now.get(Calendar.YEAR), false)).thenReturn(vacationList);
     when(employee.getUrlaubstage()).thenReturn(30);
     BigDecimal availableVacationdays = vacationService.getAvailableVacationdaysForYear(employee, now.get(Calendar.YEAR), false);

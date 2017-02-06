@@ -142,7 +142,7 @@ public class VacationFormValidator implements IFormValidator
 
     //Add the old data working days to available days
     if (data.getPk() != null) {
-      final BigDecimal oldDataWorkingDays = vacationService.getVacationDays(data.getStartDate(), data.getEndDate(), data.getHalfDay());
+      final BigDecimal oldDataWorkingDays = vacationService.getVacationDays(data);
       availableVacationDays = availableVacationDays.add(oldDataWorkingDays);
     }
 

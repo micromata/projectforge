@@ -286,8 +286,8 @@ public class VacationEditForm extends AbstractEditForm<VacationDO, VacationEditP
 
   private void updateNeededVacationDaysLabel()
   {
-    if (data.getStartDate() != null && data.getEndDate() != null) {
-      final BigDecimal days = vacationService.getVacationDays(data.getStartDate(), data.getEndDate(), data.getHalfDay());
+    final BigDecimal days = vacationService.getVacationDays(data);
+    if (days != null) {
       neededVacationDaysModel.setObject(days.toString());
     } else {
       neededVacationDaysModel.setObject(I18nHelper.getLocalizedMessage("vacation.setStartAndEndFirst"));
