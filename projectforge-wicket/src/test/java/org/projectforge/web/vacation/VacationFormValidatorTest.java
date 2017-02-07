@@ -7,10 +7,12 @@ import static org.powermock.api.mockito.PowerMockito.*;
 
 import java.math.BigDecimal;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.Locale;
 import java.util.TimeZone;
 
+import org.apache.wicket.markup.html.form.CheckBox;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.Form;
 import org.powermock.core.classloader.annotations.PrepareForTest;
@@ -20,6 +22,7 @@ import org.projectforge.business.vacation.model.VacationAttrProperty;
 import org.projectforge.business.vacation.model.VacationDO;
 import org.projectforge.business.vacation.model.VacationStatus;
 import org.projectforge.business.vacation.service.VacationService;
+import org.projectforge.business.vacation.service.VacationServiceImpl;
 import org.projectforge.framework.configuration.ConfigXml;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.web.wicket.components.DatePanel;
@@ -43,6 +46,14 @@ public class VacationFormValidatorTest extends PowerMockTestCase
 
   private DatePanel endDatePanel;
 
+  private boolean halfDay;
+
+  private CheckBox halfDayCheckBox;
+
+  private boolean isSpecial;
+
+  private CheckBox isSpecialCheckBox;
+
   private DropDownChoice<VacationStatus> statusChoice;
 
   private Select2Choice<EmployeeDO> employeeSelect;
@@ -52,11 +63,15 @@ public class VacationFormValidatorTest extends PowerMockTestCase
   {
     this.employee = mock(EmployeeDO.class);
     when(this.employee.getUrlaubstage()).thenReturn(30);
-    this.vacationService = mock(VacationService.class);
+    this.vacationService = mock(VacationServiceImpl.class);
     this.startDate = new GregorianCalendar();
     this.endDate = new GregorianCalendar();
     this.startDatePanel = mock(DatePanel.class);
     this.endDatePanel = mock(DatePanel.class);
+    this.halfDay = false;
+    this.halfDayCheckBox = mock(CheckBox.class);
+    this.isSpecial = false;
+    this.isSpecialCheckBox = mock(CheckBox.class);
     this.statusChoice = mock(DropDownChoice.class);
     this.employeeSelect = mock(Select2Choice.class);
     mockStatic(ThreadLocalUserContext.class);
@@ -71,6 +86,7 @@ public class VacationFormValidatorTest extends PowerMockTestCase
     vacationEndDate.set(Calendar.MONTH, Calendar.MARCH);
     vacationEndDate.set(Calendar.DAY_OF_MONTH, 31);
     when(this.vacationService.getEndDateVacationFromLastYear()).thenReturn(vacationEndDate);
+    when(this.vacationService.getVacationDays(any(Date.class), any(Date.class), any(Boolean.class))).thenCallRealMethod();
   }
 
   @Test
@@ -81,10 +97,8 @@ public class VacationFormValidatorTest extends PowerMockTestCase
     this.endDate.set(Calendar.MONTH, Calendar.APRIL);
     this.endDate.set(Calendar.DAY_OF_MONTH, 13);
     when(this.vacationService.getApprovedAndPlanedVacationdaysForYear(this.employee, startDate.get(Calendar.YEAR))).thenReturn(new BigDecimal(10));
-    when(this.employee.getAttribute(VacationAttrProperty.PREVIOUSYEARLEAVE.getPropertyName(), BigDecimal.class))
-        .thenReturn(new BigDecimal(5));
-    when(this.employee.getAttribute(VacationAttrProperty.PREVIOUSYEARLEAVEUSED.getPropertyName(), BigDecimal.class))
-        .thenReturn(new BigDecimal(5));
+    when(this.employee.getAttribute(VacationAttrProperty.PREVIOUSYEARLEAVE.getPropertyName(), BigDecimal.class)).thenReturn(new BigDecimal(5));
+    when(this.employee.getAttribute(VacationAttrProperty.PREVIOUSYEARLEAVEUSED.getPropertyName(), BigDecimal.class)).thenReturn(new BigDecimal(5));
     VacationFormValidator validator = createValidator();
     Form<?> form = mock(Form.class);
     validator.validate(form);
@@ -99,10 +113,8 @@ public class VacationFormValidatorTest extends PowerMockTestCase
     this.endDate.set(Calendar.MONTH, Calendar.APRIL);
     this.endDate.set(Calendar.DAY_OF_MONTH, 13);
     when(this.vacationService.getApprovedAndPlanedVacationdaysForYear(this.employee, startDate.get(Calendar.YEAR))).thenReturn(new BigDecimal(30));
-    when(this.employee.getAttribute(VacationAttrProperty.PREVIOUSYEARLEAVE.getPropertyName(), BigDecimal.class))
-        .thenReturn(new BigDecimal(5));
-    when(this.employee.getAttribute(VacationAttrProperty.PREVIOUSYEARLEAVEUSED.getPropertyName(), BigDecimal.class))
-        .thenReturn(new BigDecimal(5));
+    when(this.employee.getAttribute(VacationAttrProperty.PREVIOUSYEARLEAVE.getPropertyName(), BigDecimal.class)).thenReturn(new BigDecimal(5));
+    when(this.employee.getAttribute(VacationAttrProperty.PREVIOUSYEARLEAVEUSED.getPropertyName(), BigDecimal.class)).thenReturn(new BigDecimal(5));
     VacationFormValidator validator = createValidator();
     Form<?> form = mock(Form.class);
     validator.validate(form);
@@ -201,20 +213,22 @@ public class VacationFormValidatorTest extends PowerMockTestCase
 
   private VacationFormValidator createValidator()
   {
-    VacationDO newVacationData = new VacationDO();
-    newVacationData.setEmployee(this.employee);
-    newVacationData.setStartDate(startDate.getTime());
-    newVacationData.setEndDate(endDate.getTime());
+    final VacationFormValidator validator = new VacationFormValidator(vacationService, new VacationDO());
 
-    VacationFormValidator validator = new VacationFormValidator(vacationService, newVacationData);
-    when(startDatePanel.getConvertedInput()).thenReturn(startDate.getTime());
-    when(endDatePanel.getConvertedInput()).thenReturn(endDate.getTime());
-    when(statusChoice.getConvertedInput()).thenReturn(VacationStatus.IN_PROGRESS);
-    when(employeeSelect.getConvertedInput()).thenReturn(this.employee);
     validator.getDependentFormComponents()[0] = startDatePanel;
     validator.getDependentFormComponents()[1] = endDatePanel;
     validator.getDependentFormComponents()[2] = statusChoice;
     validator.getDependentFormComponents()[3] = employeeSelect;
+    validator.getDependentFormComponents()[4] = halfDayCheckBox;
+    validator.getDependentFormComponents()[5] = isSpecialCheckBox;
+
+    when(startDatePanel.getConvertedInput()).thenReturn(startDate.getTime());
+    when(endDatePanel.getConvertedInput()).thenReturn(endDate.getTime());
+    when(statusChoice.getConvertedInput()).thenReturn(VacationStatus.IN_PROGRESS);
+    when(employeeSelect.getConvertedInput()).thenReturn(this.employee);
+    when(halfDayCheckBox.getConvertedInput()).thenReturn(this.halfDay);
+    when(isSpecialCheckBox.getConvertedInput()).thenReturn(this.isSpecial);
+
     return validator;
   }
 

@@ -192,8 +192,8 @@ public class VacationFormValidator implements IFormValidator
 
   private boolean isOn(final CheckBox checkBox)
   {
-    final String value = checkBox.getValue();
-    return value != null && value.equals("on");
+    final Boolean value = checkBox.getConvertedInput();
+    return Boolean.TRUE.equals(value);
   }
 
   @Override
