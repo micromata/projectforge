@@ -97,6 +97,12 @@ public class FFPEventServiceImpl extends CorePersistenceServiceImpl<Integer, FFP
     return eventDao;
   }
 
+  @Override
+  public FFPDebtDao getDebtDao()
+  {
+    return debtDao;
+  }
+
   public List<FFPDebtDO> calculateDebt(FFPEventDO event)
   {
     Set<FFPAccountingDO> accountingDOs = event.getAccountingList();

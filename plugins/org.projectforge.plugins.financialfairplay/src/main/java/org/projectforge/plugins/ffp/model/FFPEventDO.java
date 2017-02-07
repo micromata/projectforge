@@ -1,5 +1,6 @@
 package org.projectforge.plugins.ffp.model;
 
+import java.math.BigDecimal;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
@@ -54,6 +55,9 @@ public class FFPEventDO extends DefaultBaseDO
   private Set<FFPAccountingDO> accountingList;
 
   private boolean finished;
+
+  @PropertyInfo(i18nKey = "plugins.ffp.commonDebtValue")
+  private BigDecimal commonDebtValue;
 
   /**
    * The organizer.
@@ -145,6 +149,17 @@ public class FFPEventDO extends DefaultBaseDO
   public void setFinished(boolean finished)
   {
     this.finished = finished;
+  }
+
+  @Column
+  public BigDecimal getCommonDebtValue()
+  {
+    return commonDebtValue;
+  }
+
+  public void setCommonDebtValue(BigDecimal commonDebtValue)
+  {
+    this.commonDebtValue = commonDebtValue;
   }
 
   @Transient
