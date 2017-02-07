@@ -211,6 +211,40 @@ public class VacationFormValidatorTest extends PowerMockTestCase
     verify(form, times(0)).error(any());
   }
 
+  @Test
+  public void oneDayAndHalfDaySelectedTest()
+  {
+    this.startDate.set(Calendar.MONTH, Calendar.APRIL);
+    this.startDate.set(Calendar.DAY_OF_MONTH, 2);
+    this.endDate.set(Calendar.MONTH, Calendar.APRIL);
+    this.endDate.set(Calendar.DAY_OF_MONTH, 2);
+    this.halfDay = true;
+    when(this.vacationService.getApprovedAndPlanedVacationdaysForYear(this.employee, startDate.get(Calendar.YEAR))).thenReturn(new BigDecimal(0));
+
+    final VacationFormValidator validator = createValidator();
+    final Form<?> form = mock(Form.class);
+    validator.validate(form);
+
+    verify(form, times(0)).error(any());
+  }
+
+  @Test
+  public void moreThanOneDayAndHalfDaySelectedTest()
+  {
+    this.startDate.set(Calendar.MONTH, Calendar.APRIL);
+    this.startDate.set(Calendar.DAY_OF_MONTH, 2);
+    this.endDate.set(Calendar.MONTH, Calendar.APRIL);
+    this.endDate.set(Calendar.DAY_OF_MONTH, 20);
+    this.halfDay = true;
+    when(this.vacationService.getApprovedAndPlanedVacationdaysForYear(this.employee, startDate.get(Calendar.YEAR))).thenReturn(new BigDecimal(0));
+
+    final VacationFormValidator validator = createValidator();
+    final Form<?> form = mock(Form.class);
+    validator.validate(form);
+
+    verify(form, times(1)).error(any());
+  }
+
   private VacationFormValidator createValidator()
   {
     final VacationFormValidator validator = new VacationFormValidator(vacationService, new VacationDO());
