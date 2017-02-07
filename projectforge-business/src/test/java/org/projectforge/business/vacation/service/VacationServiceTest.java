@@ -27,6 +27,7 @@ import org.projectforge.business.vacation.repository.VacationDao;
 import org.projectforge.framework.configuration.ConfigXml;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
+import org.projectforge.framework.time.DayHolder;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
@@ -117,6 +118,7 @@ public class VacationServiceTest extends PowerMockTestCase
   public void testUpdateUsedVacationDaysFromLastYearLaterThanEndDate()
   {
     VacationDO vacationData = new VacationDO();
+    vacationData.setIsSpecial(false);
     vacationData.setEmployee(employee);
     Calendar startDate = Calendar.getInstance();
     startDate.set(Calendar.MONTH, Calendar.APRIL);
@@ -134,6 +136,7 @@ public class VacationServiceTest extends PowerMockTestCase
   public void testUpdateUsedVacationDaysFromLastYearZero()
   {
     VacationDO vacationData = new VacationDO();
+    vacationData.setIsSpecial(false);
     vacationData.setEmployee(employee);
     Calendar startDate = Calendar.getInstance();
     startDate.set(Calendar.MONTH, Calendar.MARCH);
@@ -151,6 +154,7 @@ public class VacationServiceTest extends PowerMockTestCase
   public void testUpdateUsedVacationDaysFromLastYearCompletUsed()
   {
     VacationDO vacationData = new VacationDO();
+    vacationData.setIsSpecial(false);
     when(employee.getAttribute(VacationAttrProperty.PREVIOUSYEARLEAVE.getPropertyName(), BigDecimal.class)).thenReturn(new BigDecimal(5));
     when(employee.getAttribute(VacationAttrProperty.PREVIOUSYEARLEAVEUSED.getPropertyName(), BigDecimal.class)).thenReturn(new BigDecimal(5));
     vacationData.setEmployee(employee);
@@ -170,6 +174,7 @@ public class VacationServiceTest extends PowerMockTestCase
   public void testUpdateUsedVacationDaysFromLastYearFillUpRest()
   {
     VacationDO vacationData = new VacationDO();
+    vacationData.setIsSpecial(false);
     when(employee.getAttribute(VacationAttrProperty.PREVIOUSYEARLEAVE.getPropertyName(), BigDecimal.class)).thenReturn(new BigDecimal(10));
     when(employee.getAttribute(VacationAttrProperty.PREVIOUSYEARLEAVEUSED.getPropertyName(), BigDecimal.class)).thenReturn(new BigDecimal(9));
     vacationData.setEmployee(employee);
@@ -189,6 +194,7 @@ public class VacationServiceTest extends PowerMockTestCase
   public void testUpdateUsedVacationDaysFromLastYearSomeRest()
   {
     VacationDO vacationData = new VacationDO();
+    vacationData.setIsSpecial(false);
     when(employee.getAttribute(VacationAttrProperty.PREVIOUSYEARLEAVE.getPropertyName(), BigDecimal.class)).thenReturn(new BigDecimal(20));
     when(employee.getAttribute(VacationAttrProperty.PREVIOUSYEARLEAVEUSED.getPropertyName(), BigDecimal.class)).thenReturn(new BigDecimal(1));
     vacationData.setEmployee(employee);
@@ -209,6 +215,7 @@ public class VacationServiceTest extends PowerMockTestCase
   public void testUpdateUsedVacationDaysFromLastYearOverEndDate()
   {
     VacationDO vacationData = new VacationDO();
+    vacationData.setIsSpecial(false);
     when(employee.getAttribute(VacationAttrProperty.PREVIOUSYEARLEAVE.getPropertyName(), BigDecimal.class)).thenReturn(new BigDecimal(20));
     when(employee.getAttribute(VacationAttrProperty.PREVIOUSYEARLEAVEUSED.getPropertyName(), BigDecimal.class)).thenReturn(new BigDecimal(1));
     vacationData.setEmployee(employee);
@@ -223,6 +230,42 @@ public class VacationServiceTest extends PowerMockTestCase
     BigDecimal numberOfDays = vacationService.getVacationDays(vacationData.getStartDate(), endLastYear.getTime(), vacationData.getHalfDay());
     BigDecimal newValue = this.vacationService.updateUsedVacationDaysFromLastYear(vacationData);
     assertEquals(newValue, BigDecimal.ONE.add(numberOfDays));
+  }
+
+  @Test
+  public void testUpdateUsedVacationDaysFromLastYearIsSpecial()
+  {
+    VacationDO vacationData = new VacationDO();
+    when(employee.getAttribute(VacationAttrProperty.PREVIOUSYEARLEAVE.getPropertyName(), BigDecimal.class)).thenReturn(new BigDecimal(20));
+    when(employee.getAttribute(VacationAttrProperty.PREVIOUSYEARLEAVEUSED.getPropertyName(), BigDecimal.class)).thenReturn(new BigDecimal(1));
+    vacationData.setEmployee(employee);
+    vacationData.setIsSpecial(true);
+    BigDecimal newValue = this.vacationService.updateUsedVacationDaysFromLastYear(vacationData);
+    assertEquals(newValue, BigDecimal.ZERO);
+  }
+
+  @Test
+  public void testUpdateUsedVacationDaysFromLastYearFirstNormalAfterIsSpecial()
+  {
+    VacationDO vacationData = new VacationDO();
+    when(employee.getAttribute(VacationAttrProperty.PREVIOUSYEARLEAVE.getPropertyName(), BigDecimal.class)).thenReturn(new BigDecimal(20));
+    when(employee.getAttribute(VacationAttrProperty.PREVIOUSYEARLEAVEUSED.getPropertyName(), BigDecimal.class)).thenReturn(new BigDecimal(0));
+    vacationData.setEmployee(employee);
+    vacationData.setIsSpecial(false);
+    Calendar startDate = Calendar.getInstance();
+    startDate.set(Calendar.MONTH, Calendar.MARCH);
+    startDate.set(Calendar.DAY_OF_MONTH, 1);
+    vacationData.setStartDate(startDate.getTime());
+    Calendar endDate = Calendar.getInstance();
+    endDate.set(Calendar.MONTH, Calendar.MARCH);
+    endDate.set(Calendar.DAY_OF_MONTH, 10);
+    vacationData.setEndDate(endDate.getTime());
+    BigDecimal newValue = this.vacationService.updateUsedVacationDaysFromLastYear(vacationData);
+    BigDecimal numberOfDays = DayHolder.getNumberOfWorkingDays(vacationData.getStartDate(), vacationData.getEndDate());
+    assertEquals(newValue, BigDecimal.ZERO.add(numberOfDays));
+    vacationData.setIsSpecial(true);
+    BigDecimal Value = this.vacationService.updateUsedVacationDaysFromLastYear(vacationData);
+    assertEquals(Value, BigDecimal.ZERO);
   }
 
   @Test

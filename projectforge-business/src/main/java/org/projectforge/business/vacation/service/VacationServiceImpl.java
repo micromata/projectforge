@@ -181,6 +181,15 @@ public class VacationServiceImpl extends CorePersistenceServiceImpl<Integer, Vac
     final Calendar now = Calendar.getInstance(ThreadLocalUserContext.getTimeZone());
     final Calendar startDate = Calendar.getInstance(ThreadLocalUserContext.getTimeZone());
     final Calendar endDateVacationFromLastYear = getEndDateVacationFromLastYear();
+    if (vacationData.getIsSpecial() == true) {
+      if (vacationData.getId() != null) {
+        VacationDO vacation = vacationDao.getById(vacationData.getId());
+        if (vacation.getIsSpecial() == false) {
+          return deleteUsedVacationDaysFromLastYear(vacation);
+        }
+      }
+      return BigDecimal.ZERO;
+    }
     startDate.setTime(vacationData.getStartDate());
     if (startDate.get(Calendar.YEAR) > now.get(Calendar.YEAR) && vacationData.getStartDate().before(endDateVacationFromLastYear.getTime()) == false) {
       return BigDecimal.ZERO;
@@ -218,15 +227,13 @@ public class VacationServiceImpl extends CorePersistenceServiceImpl<Integer, Vac
   @Override
   public BigDecimal deleteUsedVacationDaysFromLastYear(VacationDO vacationData)
   {
-    if (vacationData == null || vacationData.getEmployee() == null || vacationData.getStartDate() == null || vacationData.getEndDate() == null) {
+    if (vacationData.getIsSpecial() == true || vacationData == null || vacationData.getEmployee() == null || vacationData.getStartDate() == null
+        || vacationData.getEndDate() == null) {
       return BigDecimal.ZERO;
     }
-    final BigDecimal vacationDays = getVacationDays(vacationData);
-
     final EmployeeDO employee = vacationData.getEmployee();
     final BigDecimal actualUsedDaysOfLastYear = getVacationFromPreviousYearUsed(employee);
     final BigDecimal vacationFromPreviousYear = getVacationFromPreviousYear(employee);
-
     final Calendar startDateCalender = Calendar.getInstance(ThreadLocalUserContext.getTimeZone());
     startDateCalender.setTime(vacationData.getStartDate());
     final Calendar firstOfJanOfStartYearCalender = Calendar.getInstance(ThreadLocalUserContext.getTimeZone());
@@ -257,7 +264,6 @@ public class VacationServiceImpl extends CorePersistenceServiceImpl<Integer, Vac
         newDays = BigDecimal.ZERO;
       }
     }
-
     employee.putAttribute(VacationAttrProperty.PREVIOUSYEARLEAVEUSED.getPropertyName(), newDays);
     employeeDao.internalUpdate(employee);
     return newDays;
