@@ -427,6 +427,22 @@ public class FFPEventEditForm extends AbstractEditForm<FFPEventDO, FFPEventEditP
       }
 
     });
+    columns.add(new CellItemListenerPropertyColumn<FFPAccountingDO>(FFPAccountingDO.class, "plugins.ffp.comment", "comment", null)
+    {
+      private static final long serialVersionUID = 367295012323610620L;
+
+      @Override
+      public void populateItem(Item<ICellPopulator<FFPAccountingDO>> item, String componentId,
+          IModel<FFPAccountingDO> rowModel)
+      {
+        InputPanel input = new InputPanel(componentId,
+            new MaxLengthTextField(InputPanel.WICKET_ID,
+                new PropertyModel<>(rowModel.getObject(), "comment"), 2000));
+        input.setEnabled(rowModel.getObject().getEvent().getFinished() == false);
+        item.add(input);
+      }
+
+    });
     return columns;
   }
 

@@ -18,6 +18,8 @@ public interface FFPEventService extends IPersistenceService<FFPEventDO>, IDao<F
 {
   FFPEventDao getEventDao();
 
+  FFPDebtDao getDebtDao();
+
   List<FFPDebtDO> calculateDebt(FFPEventDO event);
 
   List<FFPDebtDO> getDeptList(EmployeeDO currentEmployee);
