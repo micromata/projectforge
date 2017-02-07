@@ -6,6 +6,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
+import org.apache.log4j.Logger;
 import org.projectforge.business.configuration.ConfigurationService;
 import org.projectforge.business.fibu.EmployeeDO;
 import org.projectforge.business.fibu.EmployeeDao;
@@ -16,7 +17,6 @@ import org.projectforge.business.vacation.model.VacationDO;
 import org.projectforge.business.vacation.model.VacationStatus;
 import org.projectforge.business.vacation.repository.VacationDao;
 import org.projectforge.framework.access.AccessException;
-import org.projectforge.framework.i18n.UserException;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.persistence.history.DisplayHistoryEntry;
 import org.projectforge.framework.persistence.jpa.impl.CorePersistenceServiceImpl;
@@ -38,6 +38,8 @@ import org.springframework.stereotype.Service;
 public class VacationServiceImpl extends CorePersistenceServiceImpl<Integer, VacationDO>
     implements VacationService
 {
+  private static final Logger log = Logger.getLogger(VacationServiceImpl.class);
+
   @Autowired
   private VacationDao vacationDao;
 
@@ -131,24 +133,25 @@ public class VacationServiceImpl extends CorePersistenceServiceImpl<Integer, Vac
   {
     Mail mail = new Mail();
     DateTimeFormatter dateFormatter = DateTimeFormatter.instance();
-    if (approved) {
-      //Send mail to HR (employee in copy)
-      mail.setContent(I18nHelper.getLocalizedMessage("vacation.mail.hr.approved", vacationData.getEmployee().getUser().getFullname(),
-          dateFormatter.getFormattedDate(vacationData.getStartDate()), dateFormatter.getFormattedDate(vacationData.getEndDate()),
-          vacationData.getSubstitution().getUser().getFullname(),
-          vacationData.getManager().getUser().getFullname(),
-          configService.getDomain() + vacationEditPagePath + "?id=" + vacationData.getId()));
-      mail.setSubject(I18nHelper.getLocalizedMessage("vacation.mail.subject", vacationData.getEmployee().getUser().getFullname()));
-      mail.setContentType(Mail.CONTENTTYPE_HTML);
-      if (configService.getHREmailadress() == null) {
-        throw new UserException("HR email address not configured!");
-      }
-      mail.setTo(configService.getHREmailadress(), "HR-MANAGEMENT");
-      mail.setTo(vacationData.getManager().getUser());
-      mail.setTo(vacationData.getEmployee().getUser());
-      sendMailService.send(mail, null, null);
-    }
+    if (configService.getHREmailadress() != null) {
+      if (approved) {
+        //Send mail to HR (employee in copy)
+        mail.setContent(I18nHelper.getLocalizedMessage("vacation.mail.hr.approved", vacationData.getEmployee().getUser().getFullname(),
+            dateFormatter.getFormattedDate(vacationData.getStartDate()), dateFormatter.getFormattedDate(vacationData.getEndDate()),
+            vacationData.getSubstitution().getUser().getFullname(),
+            vacationData.getManager().getUser().getFullname(),
+            configService.getDomain() + vacationEditPagePath + "?id=" + vacationData.getId()));
+        mail.setSubject(I18nHelper.getLocalizedMessage("vacation.mail.subject", vacationData.getEmployee().getUser().getFullname()));
+        mail.setContentType(Mail.CONTENTTYPE_HTML);
 
+        mail.setTo(configService.getHREmailadress(), "HR-MANAGEMENT");
+        mail.setTo(vacationData.getManager().getUser());
+        mail.setTo(vacationData.getEmployee().getUser());
+        sendMailService.send(mail, null, null);
+      }
+    } else {
+      log.warn("HR email address not configured!");
+    }
     //Send mail to substitution (employee in copy)
     String decision = approved ? "approved" : "declined";
     mail = new Mail();
