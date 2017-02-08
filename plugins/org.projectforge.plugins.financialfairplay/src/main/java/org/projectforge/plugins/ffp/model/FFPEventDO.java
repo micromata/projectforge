@@ -1,5 +1,6 @@
 package org.projectforge.plugins.ffp.model;
 
+import java.math.BigDecimal;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
@@ -23,6 +24,7 @@ import org.hibernate.search.annotations.EncodingType;
 import org.hibernate.search.annotations.IndexedEmbedded;
 import org.hibernate.search.annotations.Resolution;
 import org.projectforge.business.fibu.EmployeeDO;
+import org.projectforge.business.user.I18nHelper;
 import org.projectforge.common.anots.PropertyInfo;
 import org.projectforge.framework.persistence.api.PFPersistancyBehavior;
 import org.projectforge.framework.persistence.entities.DefaultBaseDO;
@@ -53,6 +55,9 @@ public class FFPEventDO extends DefaultBaseDO
   private Set<FFPAccountingDO> accountingList;
 
   private boolean finished;
+
+  @PropertyInfo(i18nKey = "plugins.ffp.commonDebtValue")
+  private BigDecimal commonDebtValue;
 
   /**
    * The organizer.
@@ -144,5 +149,26 @@ public class FFPEventDO extends DefaultBaseDO
   public void setFinished(boolean finished)
   {
     this.finished = finished;
+  }
+
+  @Column
+  public BigDecimal getCommonDebtValue()
+  {
+    return commonDebtValue;
+  }
+
+  public void setCommonDebtValue(BigDecimal commonDebtValue)
+  {
+    this.commonDebtValue = commonDebtValue;
+  }
+
+  @Transient
+  public String getStatus()
+  {
+    if (getFinished()) {
+      return I18nHelper.getLocalizedMessage("plugins.ffp.status.closed");
+    } else {
+      return I18nHelper.getLocalizedMessage("plugins.ffp.status.open");
+    }
   }
 }

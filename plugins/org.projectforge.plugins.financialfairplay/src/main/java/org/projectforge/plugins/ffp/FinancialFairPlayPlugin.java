@@ -23,13 +23,16 @@
 
 package org.projectforge.plugins.ffp;
 
+import java.util.List;
+
 import org.apache.wicket.model.Model;
 import org.projectforge.continuousdb.UpdateEntry;
+import org.projectforge.framework.persistence.database.InitDatabaseDao;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.plugins.core.AbstractPlugin;
 import org.projectforge.plugins.ffp.repository.FFPEventDao;
 import org.projectforge.plugins.ffp.repository.FFPEventService;
-import org.projectforge.plugins.ffp.wicket.FFPDeptViewPage;
+import org.projectforge.plugins.ffp.wicket.FFPDebtListPage;
 import org.projectforge.plugins.ffp.wicket.FFPEventListPage;
 import org.projectforge.web.MenuBuilderContext;
 import org.projectforge.web.MenuEntry;
@@ -57,6 +60,9 @@ public class FinancialFairPlayPlugin extends AbstractPlugin
   @Autowired
   private FFPEventService eventService;
 
+  @Autowired
+  private InitDatabaseDao initDatabaseDao;
+
   /**
    * @see org.projectforge.plugins.core.AbstractPlugin#initialize()
    */
@@ -64,7 +70,9 @@ public class FinancialFairPlayPlugin extends AbstractPlugin
   protected void initialize()
   {
 
-    FinancialFairPlayPluginUpdates.dao = myDatabaseUpdater;
+    FinancialFairPlayPluginUpdates.databaseUpdateService = myDatabaseUpdater;
+    FinancialFairPlayPluginUpdates.initDatabaseDao = initDatabaseDao;
+
     // Register it:
     register(ID, FFPEventDao.class, eventService.getEventDao(), "plugins.financialfairplay");
 
@@ -77,7 +85,7 @@ public class FinancialFairPlayPlugin extends AbstractPlugin
     pluginWicketRegistrationService
         .registerMenuItem(
             new MenuItemDef(parentMenu, ID, 121, "plugins.ffp.submenu.financialfairplay.eventlist", FFPEventListPage.class));
-    final MenuItemDef debtViewPage = new MenuItemDef(parentMenu, ID, 122, "plugins.ffp.submenu.financialfairplay.dept", FFPDeptViewPage.class)
+    final MenuItemDef debtViewPage = new MenuItemDef(parentMenu, ID, 122, "plugins.ffp.submenu.financialfairplay.dept", FFPDebtListPage.class)
     {
       @Override
       protected void afterMenuEntryCreation(final MenuEntry createdMenuEntry, final MenuBuilderContext context)
@@ -87,7 +95,7 @@ public class FinancialFairPlayPlugin extends AbstractPlugin
           @Override
           public Integer getObject()
           {
-            return eventService.getOpenFromDebts(ThreadLocalUserContext.getUser());
+            return eventService.getOpenDebts(ThreadLocalUserContext.getUser());
           }
         });
       }
@@ -95,7 +103,7 @@ public class FinancialFairPlayPlugin extends AbstractPlugin
     pluginWicketRegistrationService.registerMenuItem(debtViewPage);
 
     // Define the access management:
-    registerRight(new FinancialFairPlayRight(accessChecker));
+    registerRight(new FinancialFairPlayDebtRight(accessChecker));
 
     // All the i18n stuff:
     addResourceBundle(RESOURCE_BUNDLE_NAME);
@@ -108,6 +116,15 @@ public class FinancialFairPlayPlugin extends AbstractPlugin
   public UpdateEntry getInitializationUpdateEntry()
   {
     return FinancialFairPlayPluginUpdates.getInitializationUpdateEntry();
+  }
+
+  /**
+   * @see org.projectforge.plugins.core.AbstractPlugin#getUpdateEntries()
+   */
+  @Override
+  public List<UpdateEntry> getUpdateEntries()
+  {
+    return FinancialFairPlayPluginUpdates.getUpdateEntries();
   }
 
 }
