@@ -102,10 +102,13 @@ public class FFPEventListPage extends AbstractListPage<FFPEventListForm, FFPEven
                   event.getTitle()));
         }
         cellItemListener.populateItem(item, componentId, rowModel);
-        item.add(AttributeModifier.replace("style", "width: 90%"));
+        item.add(AttributeModifier.replace("style", "width: 50%"));
         addRowClick(item);
       }
     });
+
+    columns.add(new CellItemListenerPropertyColumn<FFPEventDO>(new ResourceModel("plugins.ffp.status"),
+        getSortable("status", sortable), "status", cellItemListener));
 
     return columns;
   }
