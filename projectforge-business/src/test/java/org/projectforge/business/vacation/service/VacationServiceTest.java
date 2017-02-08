@@ -1,17 +1,22 @@
 package org.projectforge.business.vacation.service;
 
+import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.when;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.testng.Assert.assertEquals;
 
 import java.math.BigDecimal;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.TimeZone;
 
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
@@ -23,11 +28,11 @@ import org.projectforge.business.fibu.EmployeeDO;
 import org.projectforge.business.fibu.EmployeeDao;
 import org.projectforge.business.vacation.model.VacationAttrProperty;
 import org.projectforge.business.vacation.model.VacationDO;
+import org.projectforge.business.vacation.model.VacationStatus;
 import org.projectforge.business.vacation.repository.VacationDao;
 import org.projectforge.framework.configuration.ConfigXml;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
-import org.projectforge.framework.time.DayHolder;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
@@ -37,6 +42,12 @@ import org.testng.annotations.Test;
 @PrepareForTest({ ThreadLocalUserContext.class, ConfigXml.class })
 public class VacationServiceTest extends PowerMockTestCase
 {
+  private final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+
+  private final Calendar now = Calendar.getInstance();
+
+  private final Calendar endLastYear = Calendar.getInstance();
+
   @InjectMocks
   private VacationService vacationService = new VacationServiceImpl();
 
@@ -52,10 +63,6 @@ public class VacationServiceTest extends PowerMockTestCase
   @Mock
   private EmployeeDO employee;
 
-  private Calendar now = Calendar.getInstance();
-
-  Calendar endLastYear = Calendar.getInstance();
-
   @BeforeMethod
   public void setUp()
   {
@@ -68,6 +75,7 @@ public class VacationServiceTest extends PowerMockTestCase
     PowerMockito.when(ThreadLocalUserContext.getLocale()).thenReturn(locale);
     PowerMockito.when(ThreadLocalUserContext.getTimeZone()).thenReturn(timeZone);
     PowerMockito.when(ConfigXml.getInstance()).thenReturn(configXml);
+    endLastYear.set(Calendar.YEAR, 2017);
     endLastYear.set(Calendar.MONTH, Calendar.MARCH);
     endLastYear.set(Calendar.DAY_OF_MONTH, 31);
     when(configService.getEndDateVacationFromLastYear()).thenReturn(endLastYear);
@@ -261,7 +269,7 @@ public class VacationServiceTest extends PowerMockTestCase
     endDate.set(Calendar.DAY_OF_MONTH, 10);
     vacationData.setEndDate(endDate.getTime());
     BigDecimal newValue = this.vacationService.updateUsedVacationDaysFromLastYear(vacationData);
-    BigDecimal numberOfDays = DayHolder.getNumberOfWorkingDays(vacationData.getStartDate(), vacationData.getEndDate());
+    BigDecimal numberOfDays = this.vacationService.getVacationDays(vacationData);
     assertEquals(newValue, BigDecimal.ZERO.add(numberOfDays));
     vacationData.setIsSpecial(true);
     BigDecimal Value = this.vacationService.updateUsedVacationDaysFromLastYear(vacationData);
@@ -311,6 +319,91 @@ public class VacationServiceTest extends PowerMockTestCase
     when(employee.getUrlaubstage()).thenReturn(30);
     BigDecimal availableVacationdays = vacationService.getAvailableVacationdaysForYear(employee, now.get(Calendar.YEAR), false);
     assertEquals(availableVacationdays, new BigDecimal(30).subtract(numberOfDays));
+  }
+
+  @Test
+  public void testGetAvailableVacationDaysForYearAtDate() throws ParseException
+  {
+    final List<VacationDO> vacationList = Arrays.asList(
+        createVacation("2017-02-01", "2017-02-02", false, VacationStatus.IN_PROGRESS), // 2, will not be considered
+        createVacation("2017-02-03", "2017-02-06", false, VacationStatus.REJECTED), // 2, will not be considered
+        createVacation("2017-02-01", "2017-02-10", false, VacationStatus.APPROVED), // 8
+        createVacation("2017-02-13", "2017-02-13", true, VacationStatus.APPROVED), // 0.5
+        createVacation("2017-02-24", "2017-03-03", false, VacationStatus.APPROVED), // 3 in feb + 3 in mar
+        createVacation("2017-03-30", "2017-04-04", false, VacationStatus.APPROVED) // 2 in mar + 2 in apr
+    );
+
+    final int yearlyVacation = 30;
+    final BigDecimal prevYear = new BigDecimal(20);
+    final BigDecimal prevYearUsed = new BigDecimal(16.5);
+    when(employee.getUrlaubstage()).thenReturn(yearlyVacation);
+    when(employee.getAttribute(VacationAttrProperty.PREVIOUSYEARLEAVE.getPropertyName(), BigDecimal.class)).thenReturn(prevYear);
+    when(employee.getAttribute(VacationAttrProperty.PREVIOUSYEARLEAVEUSED.getPropertyName(), BigDecimal.class)).thenReturn(prevYearUsed);
+
+    final ArgumentCaptor<Date> startDateCaptor = ArgumentCaptor.forClass(Date.class);
+    when(vacationDao.getVacationForPeriod(same(employee), startDateCaptor.capture(), any(Date.class), eq(false))).thenReturn(vacationList);
+    final Date expectedStartDate = sdf.parse("2017-01-01");
+
+    // Test 1
+    final BigDecimal availableVacationdays = vacationService.getAvailableVacationDaysForYearAtDate(employee, sdf.parse("2017-02-28"));
+    assertEquals(availableVacationdays, new BigDecimal(yearlyVacation).add(prevYear).subtract(new BigDecimal(11.5)));
+    assertEquals(startDateCaptor.getValue(), expectedStartDate);
+    assertEquals(startDateCaptor.getAllValues().size(), 1);
+
+    // Test 2
+    final BigDecimal availableVacationdays2 = vacationService.getAvailableVacationDaysForYearAtDate(employee, sdf.parse("2017-03-31"));
+    assertEquals(availableVacationdays2, new BigDecimal(yearlyVacation).add(prevYear).subtract(new BigDecimal(16.5)));
+    assertEquals(startDateCaptor.getValue(), expectedStartDate);
+    assertEquals(startDateCaptor.getAllValues().size(), 2);
+
+    // Test 3
+    final BigDecimal availableVacationdays3 = vacationService.getAvailableVacationDaysForYearAtDate(employee, sdf.parse("2017-04-30"));
+    assertEquals(availableVacationdays3, new BigDecimal(yearlyVacation).add(prevYearUsed).subtract(new BigDecimal(18.5)));
+    assertEquals(startDateCaptor.getValue(), expectedStartDate);
+    assertEquals(startDateCaptor.getAllValues().size(), 3);
+  }
+
+  @Test
+  public void testGetAvailableVacationDaysForYearAtDatePrevYear() throws ParseException
+  {
+    final List<VacationDO> vacationList = Arrays.asList(
+        createVacation("2016-02-24", "2016-03-03", false, VacationStatus.APPROVED), // 4 in feb + 3 in mar
+        createVacation("2016-03-30", "2016-04-04", false, VacationStatus.APPROVED) // 2 in mar + 2 in apr
+    );
+
+    final int yearlyVacation = 30;
+    final BigDecimal prevYear = new BigDecimal(20);
+    final BigDecimal prevYearUsed = new BigDecimal(16.5);
+    when(employee.getUrlaubstage()).thenReturn(yearlyVacation);
+    when(employee.getAttribute(VacationAttrProperty.PREVIOUSYEARLEAVE.getPropertyName(), BigDecimal.class)).thenReturn(prevYear);
+    when(employee.getAttribute(VacationAttrProperty.PREVIOUSYEARLEAVEUSED.getPropertyName(), BigDecimal.class)).thenReturn(prevYearUsed);
+
+    final ArgumentCaptor<Date> startDateCaptor = ArgumentCaptor.forClass(Date.class);
+    when(vacationDao.getVacationForPeriod(same(employee), startDateCaptor.capture(), any(Date.class), eq(false))).thenReturn(vacationList);
+    final Date expectedStartDate = sdf.parse("2016-01-01");
+
+    // here we verify that the previous year leave att values are ignored because they belong to 2017 (see this.endLastYear) and we query values from 2016
+    // Test 1
+    final BigDecimal availableVacationdays = vacationService.getAvailableVacationDaysForYearAtDate(employee, sdf.parse("2016-02-29"));
+    assertEquals(availableVacationdays, new BigDecimal(yearlyVacation).subtract(new BigDecimal(4)));
+    assertEquals(startDateCaptor.getValue(), expectedStartDate);
+    assertEquals(startDateCaptor.getAllValues().size(), 1);
+
+    // Test 2
+    final BigDecimal availableVacationdays2 = vacationService.getAvailableVacationDaysForYearAtDate(employee, sdf.parse("2016-04-30"));
+    assertEquals(availableVacationdays2, new BigDecimal(yearlyVacation).subtract(new BigDecimal(11)));
+    assertEquals(startDateCaptor.getValue(), expectedStartDate);
+    assertEquals(startDateCaptor.getAllValues().size(), 2);
+  }
+
+  private VacationDO createVacation(final String from, final String to, final Boolean halfDay, final VacationStatus status) throws ParseException
+  {
+    final VacationDO vacation = new VacationDO();
+    vacation.setStartDate(sdf.parse(from));
+    vacation.setEndDate(sdf.parse(to));
+    vacation.setHalfDay(halfDay);
+    vacation.setStatus(status);
+    return vacation;
   }
 
 }

@@ -332,7 +332,7 @@ public class MonthlyEmployeeReport implements Serializable
     }
     if (vacationService != null && this.employee != null && this.employee.getUser() != null) {
       if (vacationService.couldUserUseVacationService(this.employee.getUser(), false)) {
-        this.vacationCount = vacationService.getAvailableVacationdaysForYear(this.employee, this.year, false);
+        this.vacationCount = vacationService.getAvailableVacationDaysForYearAtDate(this.employee, this.toDate);
       }
     }
   }
