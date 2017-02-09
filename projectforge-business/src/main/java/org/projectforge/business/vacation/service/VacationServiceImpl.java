@@ -503,9 +503,12 @@ public class VacationServiceImpl extends CorePersistenceServiceImpl<Integer, Vac
   @Override
   public BigDecimal getVacationDays(final Date from, final Date to, final Boolean isHalfDayVacation)
   {
-    return Boolean.TRUE.equals(isHalfDayVacation) // null evaluates to false
+    final BigDecimal numberOfWorkingDays = DayHolder.getNumberOfWorkingDays(from, to);
+
+    // don't return HALF_DAY if there is no working day
+    return numberOfWorkingDays.equals(BigDecimal.ZERO) == false && Boolean.TRUE.equals(isHalfDayVacation) // null evaluates to false
         ? HALF_DAY
-        : DayHolder.getNumberOfWorkingDays(from, to);
+        : numberOfWorkingDays;
   }
 
   @Override
