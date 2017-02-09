@@ -2,10 +2,12 @@ package org.projectforge.business.vacation.service;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
+import org.apache.commons.lang.StringUtils;
 import org.projectforge.business.configuration.ConfigurationService;
 import org.projectforge.business.fibu.EmployeeDO;
 import org.projectforge.business.fibu.EmployeeDao;
@@ -57,6 +59,8 @@ public class VacationServiceImpl extends CorePersistenceServiceImpl<Integer, Vac
 
   private static final BigDecimal HALF_DAY = new BigDecimal(0.5);
 
+  private static final DateTimeFormatter dateFormatter = DateTimeFormatter.instance();
+
   @Override
   public BigDecimal getApprovedAndPlanedVacationdaysForYear(EmployeeDO employee, int year)
   {
@@ -68,102 +72,115 @@ public class VacationServiceImpl extends CorePersistenceServiceImpl<Integer, Vac
   @Override
   public void sendMailToVacationInvolved(VacationDO vacationData, boolean isNew, boolean isDeleted)
   {
-    //Send mail to manager (employee in copy)
-    Mail mail = new Mail();
-    String i18nPMContent = "";
-    String i18nPMSubject = "";
-    String i18nSubContent = "";
-    String i18nSubSubject = "";
-    DateTimeFormatter dateFormatter = DateTimeFormatter.instance();
+    final String urlOfVacationEditPage = configService.getDomain() + vacationEditPagePath + "?id=" + vacationData.getId();
+    final String employeeFullName = vacationData.getEmployee().getUser().getFullname();
+    final String managerFirstName = vacationData.getManager().getUser().getFirstname();
+    final String substitutionFirstName = vacationData.getSubstitution().getUser().getFirstname();
+
+    final String periodI18nKey = vacationData.getHalfDay() ? "vacation.mail.period.halfday" : "vacation.mail.period.fromto";
+    final String vacationStartDate = dateFormatter.getFormattedDate(vacationData.getStartDate());
+    final String vacationEndDate = dateFormatter.getFormattedDate(vacationData.getEndDate());
+    final String periodText = I18nHelper.getLocalizedMessage(periodI18nKey, vacationStartDate, vacationEndDate);
+
+    final String i18nSubject;
+    final String i18nPMContent;
+    final String i18nSubContent;
+
     if (isNew == true && isDeleted == false) {
-      i18nPMContent = I18nHelper.getLocalizedMessage("vacation.mail.pm.application", vacationData.getManager().getUser().getFirstname(),
-          vacationData.getEmployee().getUser().getFullname(), dateFormatter.getFormattedDate(vacationData.getStartDate()),
-          dateFormatter.getFormattedDate(vacationData.getEndDate()),
-          configService.getDomain() + vacationEditPagePath + "?id=" + vacationData.getId());
-      i18nPMSubject = I18nHelper.getLocalizedMessage("vacation.mail.subject", vacationData.getEmployee().getUser().getFullname());
-      i18nSubContent = I18nHelper.getLocalizedMessage("vacation.mail.sub.application", vacationData.getSubstitution().getUser().getFirstname(),
-          vacationData.getEmployee().getUser().getFullname(), dateFormatter.getFormattedDate(vacationData.getStartDate()),
-          dateFormatter.getFormattedDate(vacationData.getEndDate()),
-          configService.getDomain() + vacationEditPagePath + "?id=" + vacationData.getId());
-      i18nSubSubject = I18nHelper.getLocalizedMessage("vacation.mail.subject", vacationData.getEmployee().getUser().getFullname());
+      i18nSubject = I18nHelper.getLocalizedMessage("vacation.mail.subject", employeeFullName);
+      i18nPMContent = I18nHelper
+          .getLocalizedMessage("vacation.mail.pm.application", managerFirstName, employeeFullName, periodText, urlOfVacationEditPage);
+      i18nSubContent = I18nHelper
+          .getLocalizedMessage("vacation.mail.sub.application", substitutionFirstName, employeeFullName, periodText, urlOfVacationEditPage);
+    } else if (isNew == false && isDeleted == false) {
+      i18nSubject = I18nHelper.getLocalizedMessage("vacation.mail.subject.edit", employeeFullName);
+      i18nPMContent = I18nHelper
+          .getLocalizedMessage("vacation.mail.pm.application.edit", managerFirstName, employeeFullName, periodText, urlOfVacationEditPage);
+      i18nSubContent = I18nHelper
+          .getLocalizedMessage("vacation.mail.sub.application.edit", substitutionFirstName, employeeFullName, periodText, urlOfVacationEditPage);
+    } else {
+      // isDeleted
+      i18nSubject = I18nHelper.getLocalizedMessage("vacation.mail.subject.deleted", employeeFullName);
+      i18nPMContent = I18nHelper
+          .getLocalizedMessage("vacation.mail.application.deleted", managerFirstName, employeeFullName, periodText, urlOfVacationEditPage);
+      i18nSubContent = I18nHelper
+          .getLocalizedMessage("vacation.mail.application.deleted", substitutionFirstName, employeeFullName, periodText, urlOfVacationEditPage);
     }
-    if (isNew == false && isDeleted == false) {
-      i18nPMContent = I18nHelper.getLocalizedMessage("vacation.mail.pm.application.edit", vacationData.getManager().getUser().getFirstname(),
-          vacationData.getEmployee().getUser().getFullname(), dateFormatter.getFormattedDate(vacationData.getStartDate()),
-          dateFormatter.getFormattedDate(vacationData.getEndDate()),
-          configService.getDomain() + vacationEditPagePath + "?id=" + vacationData.getId());
-      i18nPMSubject = I18nHelper.getLocalizedMessage("vacation.mail.subject.edit", vacationData.getEmployee().getUser().getFullname());
-      i18nSubContent = I18nHelper.getLocalizedMessage("vacation.mail.sub.application.edit", vacationData.getSubstitution().getUser().getFirstname(),
-          vacationData.getEmployee().getUser().getFullname(), dateFormatter.getFormattedDate(vacationData.getStartDate()),
-          dateFormatter.getFormattedDate(vacationData.getEndDate()),
-          configService.getDomain() + vacationEditPagePath + "?id=" + vacationData.getId());
-      i18nSubSubject = I18nHelper.getLocalizedMessage("vacation.mail.subject.edit", vacationData.getEmployee().getUser().getFullname());
-    }
-    if (isDeleted) {
-      i18nPMContent = I18nHelper.getLocalizedMessage("vacation.mail.application.deleted", vacationData.getManager().getUser().getFirstname(),
-          vacationData.getEmployee().getUser().getFullname(), dateFormatter.getFormattedDate(vacationData.getStartDate()),
-          dateFormatter.getFormattedDate(vacationData.getEndDate()),
-          configService.getDomain() + vacationEditPagePath + "?id=" + vacationData.getId());
-      i18nPMSubject = I18nHelper.getLocalizedMessage("vacation.mail.subject.deleted", vacationData.getEmployee().getUser().getFullname());
-      i18nSubContent = I18nHelper.getLocalizedMessage("vacation.mail.application.deleted", vacationData.getSubstitution().getUser().getFirstname(),
-          vacationData.getEmployee().getUser().getFullname(), dateFormatter.getFormattedDate(vacationData.getStartDate()),
-          dateFormatter.getFormattedDate(vacationData.getEndDate()),
-          configService.getDomain() + vacationEditPagePath + "?id=" + vacationData.getId());
-      i18nSubSubject = I18nHelper.getLocalizedMessage("vacation.mail.subject.deleted", vacationData.getEmployee().getUser().getFullname());
-    }
-    mail.setContent(i18nPMContent);
-    mail.setSubject(i18nPMSubject);
-    mail.setContentType(Mail.CONTENTTYPE_HTML);
-    mail.setTo(vacationData.getManager().getUser());
-    mail.setTo(vacationData.getEmployee().getUser());
-    sendMailService.send(mail, null, null);
+
+    //Send mail to manager (employee in copy)
+    sendMail(i18nSubject, i18nPMContent,
+        vacationData.getManager().getUser(),
+        vacationData.getEmployee().getUser()
+    );
 
     //Send mail to substitution (employee in copy)
-    mail = new Mail();
-    mail.setContent(i18nSubContent);
-    mail.setSubject(i18nSubSubject);
-    mail.setContentType(Mail.CONTENTTYPE_HTML);
-    mail.setTo(vacationData.getSubstitution().getUser());
-    mail.setTo(vacationData.getEmployee().getUser());
-    sendMailService.send(mail, null, null);
+    sendMail(i18nSubject, i18nSubContent,
+        vacationData.getSubstitution().getUser(),
+        vacationData.getEmployee().getUser()
+    );
   }
 
   @Override
   public void sendMailToEmployeeAndHR(VacationDO vacationData, boolean approved)
   {
-    Mail mail = new Mail();
-    DateTimeFormatter dateFormatter = DateTimeFormatter.instance();
+    final String urlOfVacationEditPage = configService.getDomain() + vacationEditPagePath + "?id=" + vacationData.getId();
+    final String employeeFirstName = vacationData.getEmployee().getUser().getFirstname();
+    final String employeeFullName = vacationData.getEmployee().getUser().getFullname();
+    final String substitutionFirstName = vacationData.getSubstitution().getUser().getFirstname();
+    final String substitutionFullName = vacationData.getSubstitution().getUser().getFullname();
+    final String managerFullName = vacationData.getManager().getUser().getFullname();
+
+    final String periodI18nKey = vacationData.getHalfDay() ? "vacation.mail.period.halfday" : "vacation.mail.period.fromto";
+    final String vacationStartDate = dateFormatter.getFormattedDate(vacationData.getStartDate());
+    final String vacationEndDate = dateFormatter.getFormattedDate(vacationData.getEndDate());
+    final String periodText = I18nHelper.getLocalizedMessage(periodI18nKey, vacationStartDate, vacationEndDate);
+
     if (approved) {
       //Send mail to HR (employee in copy)
-      mail.setContent(I18nHelper.getLocalizedMessage("vacation.mail.hr.approved", vacationData.getEmployee().getUser().getFullname(),
-          dateFormatter.getFormattedDate(vacationData.getStartDate()), dateFormatter.getFormattedDate(vacationData.getEndDate()),
-          vacationData.getSubstitution().getUser().getFullname(),
-          vacationData.getManager().getUser().getFullname(),
-          configService.getDomain() + vacationEditPagePath + "?id=" + vacationData.getId()));
-      mail.setSubject(I18nHelper.getLocalizedMessage("vacation.mail.subject", vacationData.getEmployee().getUser().getFullname()));
-      mail.setContentType(Mail.CONTENTTYPE_HTML);
       if (configService.getHREmailadress() == null) {
         throw new UserException("HR email address not configured!");
       }
-      mail.setTo(configService.getHREmailadress(), "HR-MANAGEMENT");
-      mail.setTo(vacationData.getManager().getUser());
-      mail.setTo(vacationData.getEmployee().getUser());
-      sendMailService.send(mail, null, null);
+
+      final String subject = I18nHelper.getLocalizedMessage("vacation.mail.subject", employeeFullName);
+      final String content = I18nHelper
+          .getLocalizedMessage("vacation.mail.hr.approved", employeeFullName, periodText, substitutionFullName, managerFullName, urlOfVacationEditPage);
+
+      sendMail(subject, content,
+          configService.getHREmailadress(), "HR-MANAGEMENT",
+          vacationData.getManager().getUser(),
+          vacationData.getEmployee().getUser()
+      );
     }
 
     //Send mail to substitution (employee in copy)
-    String decision = approved ? "approved" : "declined";
-    mail = new Mail();
-    mail.setContent(I18nHelper.getLocalizedMessage("vacation.mail.employee." + decision, vacationData.getEmployee().getUser().getFirstname(),
-        vacationData.getSubstitution().getUser().getFirstname(), vacationData.getEmployee().getUser().getFullname(),
-        dateFormatter.getFormattedDate(vacationData.getStartDate()), dateFormatter.getFormattedDate(vacationData.getEndDate()),
-        vacationData.getSubstitution().getUser().getFullname(),
-        configService.getDomain() + vacationEditPagePath + "?id=" + vacationData.getId()));
-    mail.setSubject(I18nHelper.getLocalizedMessage("vacation.mail.subject.edit", vacationData.getEmployee().getUser().getFullname()));
+    final String subject = I18nHelper.getLocalizedMessage("vacation.mail.subject.edit", employeeFullName);
+    final String i18nKey = approved ? "vacation.mail.employee.approved" : "vacation.mail.employee.declined";
+    final String content = I18nHelper
+        .getLocalizedMessage(i18nKey, employeeFirstName, substitutionFirstName, employeeFullName, periodText, substitutionFullName, urlOfVacationEditPage);
+
+    sendMail(subject, content,
+        vacationData.getSubstitution().getUser(),
+        vacationData.getEmployee().getUser()
+    );
+  }
+
+  private boolean sendMail(final String subject, final String content, final PFUserDO... recipients)
+  {
+    return sendMail(subject, content, null, null, recipients);
+  }
+
+  private boolean sendMail(final String subject, final String content, final String recipientMailAddress, final String recipientRealName,
+      final PFUserDO... additionalRecipients)
+  {
+    final Mail mail = new Mail();
     mail.setContentType(Mail.CONTENTTYPE_HTML);
-    mail.setTo(vacationData.getSubstitution().getUser());
-    mail.setTo(vacationData.getEmployee().getUser());
-    sendMailService.send(mail, null, null);
+    mail.setSubject(subject);
+    mail.setContent(content);
+    if (StringUtils.isNotBlank(recipientMailAddress) && StringUtils.isNotBlank(recipientRealName)) {
+      mail.setTo(recipientMailAddress, recipientRealName);
+    }
+    Arrays.stream(additionalRecipients).forEach(mail::setTo);
+    return sendMailService.send(mail, null, null);
   }
 
   @Override
