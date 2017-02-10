@@ -122,12 +122,12 @@ public class TeamEventRight extends UserRightAccessCheck<TeamEventDO>
    * Same as {@link #hasUpdateAccess(PFUserDO, TeamEventDO, TeamEventDO)}
    * 
    * @see org.projectforge.business.user.UserRightAccessCheck#hasDeleteAccess(org.projectforge.framework.persistence.user.entities.PFUserDO,
-   *      java.lang.Object)
+   *      java.lang.Object, java.lang.Object)
    */
   @Override
-  public boolean hasDeleteAccess(final PFUserDO user, final TeamEventDO obj)
+  public boolean hasDeleteAccess(final PFUserDO user, final TeamEventDO obj, final TeamEventDO oldObj)
   {
-    return hasUpdateAccess(user, obj, null);
+    return hasUpdateAccess(user, obj, oldObj);
   }
 
   /**

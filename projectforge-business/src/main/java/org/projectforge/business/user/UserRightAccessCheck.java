@@ -117,9 +117,9 @@ public class UserRightAccessCheck<O> extends UserRight
     return hasAccess(user, obj, oldObj, OperationType.UPDATE);
   }
 
-  public boolean hasDeleteAccess(final PFUserDO user, final O obj)
+  public boolean hasDeleteAccess(final PFUserDO user, final O obj, final O oldObj)
   {
-    return hasAccess(user, obj, null, OperationType.DELETE);
+    return hasAccess(user, obj, oldObj, OperationType.DELETE);
   }
 
   /**
