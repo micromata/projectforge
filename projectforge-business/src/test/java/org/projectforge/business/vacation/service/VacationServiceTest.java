@@ -71,6 +71,7 @@ public class VacationServiceTest extends PowerMockTestCase
     mockStatic(ConfigXml.class);
     Locale locale = Locale.getDefault();
     TimeZone timeZone = TimeZone.getDefault();
+    sdf.setTimeZone(timeZone);
     ConfigXml configXml = new ConfigXml("./target/Projectforge");
     PowerMockito.when(ThreadLocalUserContext.getLocale()).thenReturn(locale);
     PowerMockito.when(ThreadLocalUserContext.getTimeZone()).thenReturn(timeZone);
