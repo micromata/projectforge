@@ -7,6 +7,7 @@ import java.util.Date;
 import java.util.List;
 
 import org.projectforge.business.fibu.EmployeeDO;
+import org.projectforge.business.teamcal.admin.model.TeamCalDO;
 import org.projectforge.business.vacation.model.VacationDO;
 import org.projectforge.business.vacation.model.VacationStatus;
 import org.projectforge.framework.persistence.api.IDao;
@@ -179,4 +180,12 @@ public interface VacationService extends IPersistenceService<VacationDO>, IDao<V
    * @return
    */
   BigDecimal getSpecialVacationCount(EmployeeDO employee, int year, VacationStatus status);
+
+  /**
+   * Returns the calendars for apllication for leave
+   *
+   * @param vacation
+   * @return
+   */
+  List<TeamCalDO> getCalendarsForVacation(VacationDO vacation);
 }

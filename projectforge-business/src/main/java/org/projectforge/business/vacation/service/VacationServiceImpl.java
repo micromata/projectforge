@@ -10,6 +10,7 @@ import org.projectforge.business.configuration.ConfigurationService;
 import org.projectforge.business.fibu.EmployeeDO;
 import org.projectforge.business.fibu.EmployeeDao;
 import org.projectforge.business.fibu.api.EmployeeService;
+import org.projectforge.business.teamcal.admin.model.TeamCalDO;
 import org.projectforge.business.user.I18nHelper;
 import org.projectforge.business.vacation.model.VacationAttrProperty;
 import org.projectforge.business.vacation.model.VacationDO;
@@ -408,6 +409,12 @@ public class VacationServiceImpl extends CorePersistenceServiceImpl<Integer, Vac
         .stream()
         .map(VacationDO::getWorkingdays)
         .reduce(BigDecimal.ZERO, BigDecimal::add); // sum
+  }
+
+  @Override
+  public List<TeamCalDO> getCalendarsForVacation(VacationDO vacation)
+  {
+    return vacationDao.getCalendarsForVacation(vacation);
   }
 
   @Override

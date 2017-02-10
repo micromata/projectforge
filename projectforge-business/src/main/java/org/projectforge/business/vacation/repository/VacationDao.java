@@ -24,6 +24,7 @@
 package org.projectforge.business.vacation.repository;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
@@ -34,9 +35,11 @@ import java.util.stream.Collectors;
 import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Restrictions;
 import org.projectforge.business.fibu.EmployeeDO;
+import org.projectforge.business.teamcal.admin.model.TeamCalDO;
 import org.projectforge.business.user.UserRightId;
 import org.projectforge.business.user.UserRightValue;
 import org.projectforge.business.vacation.VacationFilter;
+import org.projectforge.business.vacation.model.VacationCalendarDO;
 import org.projectforge.business.vacation.model.VacationDO;
 import org.projectforge.business.vacation.model.VacationStatus;
 import org.projectforge.framework.access.AccessChecker;
@@ -181,5 +184,19 @@ public class VacationDao extends BaseDao<VacationDO>
               endYear.getTime(), "status", status, "isSpecial", true, "deleted", false, "tenant", ThreadLocalUserContext.getUser().getTenant());
     });
     return resultList != null ? resultList : Collections.emptyList();
+  }
+
+  public List<TeamCalDO> getCalendarsForVacation(VacationDO vacation)
+  {
+    final List<TeamCalDO> calendarList = new ArrayList<>();
+    final List<VacationCalendarDO> resultList = emgrFactory.runRoTrans(emgr -> {
+      List<TeamCalDO> calendarResultList = new ArrayList<>();
+      final String baseSQL = "SELECT vc FROM VacationCalendarDO vc WHERE vc.vacation = :vacation";
+      return emgr.selectDetached(VacationCalendarDO.class, baseSQL, "vacation", vacation);
+    });
+    if (resultList != null && resultList.size() > 0) {
+      resultList.forEach(res -> calendarList.add(res.getCalendar()));
+    }
+    return calendarList;
   }
 }

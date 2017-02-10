@@ -25,6 +25,8 @@ package org.projectforge.web.vacation;
 
 import java.math.BigDecimal;
 import java.util.Calendar;
+import java.util.Collection;
+import java.util.Comparator;
 
 import org.apache.log4j.Logger;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -34,9 +36,13 @@ import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
+import org.projectforge.business.configuration.ConfigurationService;
 import org.projectforge.business.fibu.EmployeeDO;
 import org.projectforge.business.fibu.api.EmployeeService;
 import org.projectforge.business.multitenancy.TenantService;
+import org.projectforge.business.teamcal.admin.TeamCalCache;
+import org.projectforge.business.teamcal.admin.model.TeamCalDO;
+import org.projectforge.business.teamcal.service.TeamCalServiceImpl;
 import org.projectforge.business.user.I18nHelper;
 import org.projectforge.business.user.UserRightId;
 import org.projectforge.business.user.UserRightValue;
@@ -47,7 +53,9 @@ import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.access.AccessException;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.time.DayHolder;
+import org.projectforge.web.common.MultiChoiceListHelper;
 import org.projectforge.web.employee.DefaultEmployeeWicketProvider;
+import org.projectforge.web.teamcal.admin.TeamCalsProvider;
 import org.projectforge.web.wicket.AbstractEditForm;
 import org.projectforge.web.wicket.bootstrap.GridSize;
 import org.projectforge.web.wicket.components.DatePanel;
@@ -59,6 +67,7 @@ import org.projectforge.web.wicket.flowlayout.LabelPanel;
 import org.projectforge.web.wicket.flowlayout.Select2SingleChoicePanel;
 
 import com.vaynberg.wicket.select2.Select2Choice;
+import com.vaynberg.wicket.select2.Select2MultiChoice;
 
 public class VacationEditForm extends AbstractEditForm<VacationDO, VacationEditPage>
 {
@@ -76,7 +85,16 @@ public class VacationEditForm extends AbstractEditForm<VacationDO, VacationEditP
   private TenantService tenantService;
 
   @SpringBean
+  private ConfigurationService configService;
+
+  @SpringBean
   private AccessChecker accessChecker;
+
+  @SpringBean
+  private TeamCalServiceImpl teamCalService;
+
+  @SpringBean
+  private TeamCalCache teamCalCache;
 
   private Label neededVacationDaysLabel;
 
@@ -268,6 +286,45 @@ public class VacationEditForm extends AbstractEditForm<VacationDO, VacationEditP
       substitutionSelect.setRequired(true).setMarkupId("vacation-substitution").setOutputMarkupId(true);
       substitutionSelect.setEnabled(checkEnableInputField());
       fs.add(new Select2SingleChoicePanel<EmployeeDO>(fs.newChildId(), substitutionSelect));
+    }
+
+    {
+      // CALENDAR
+      final FieldsetPanel fieldSet = gridBuilder.newFieldset(getString("vacation.calendar"));
+      Collection<TeamCalDO> fullList = teamCalService.getFullAccessCalendar();
+      TeamCalDO vacationCalendar = configService.getVacationCalendar();
+      if (vacationCalendar != null) {
+        fullList.add(vacationCalendar);
+      }
+      MultiChoiceListHelper<TeamCalDO> assignCalendarListHelper = new MultiChoiceListHelper<TeamCalDO>()
+          .setComparator(new Comparator<TeamCalDO>()
+          {
+            @Override
+            public int compare(TeamCalDO o1, TeamCalDO o2)
+            {
+              return o1.getPk().compareTo(o2.getPk());
+            }
+
+          }).setFullList(fullList);
+      if (vacationCalendar != null) {
+        assignCalendarListHelper.addOriginalAssignedItem(vacationCalendar).assignItem(vacationCalendar);
+      }
+
+      if (vacationService.getCalendarsForVacation(this.data) != null && vacationService.getCalendarsForVacation(this.data).size() > 0) {
+        for (final TeamCalDO calendar : vacationService.getCalendarsForVacation(this.data)) {
+          if (vacationCalendar == null || calendar.getId().equals(vacationCalendar.getId()) == false) {
+            assignCalendarListHelper.addOriginalAssignedItem(calendar).assignItem(calendar);
+          }
+        }
+      }
+
+      final Select2MultiChoice<TeamCalDO> calendars = new Select2MultiChoice<TeamCalDO>(
+          fieldSet.getSelect2MultiChoiceId(),
+          new PropertyModel<Collection<TeamCalDO>>(assignCalendarListHelper, "assignedItems"),
+          new TeamCalsProvider(teamCalCache));
+      calendars.setMarkupId("calenders").setOutputMarkupId(true);
+      calendars.setEnabled(checkEnableInputField());
+      fieldSet.add(calendars);
     }
 
     {

@@ -34,16 +34,19 @@ import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.apache.wicket.util.convert.IConverter;
 import org.apache.wicket.validation.IValidatable;
 import org.apache.wicket.validation.IValidator;
-import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.business.task.TaskDO;
 import org.projectforge.business.task.TaskDao;
+import org.projectforge.business.teamcal.admin.TeamCalCache;
+import org.projectforge.business.teamcal.admin.model.TeamCalDO;
 import org.projectforge.framework.configuration.Configuration;
 import org.projectforge.framework.configuration.ConfigurationParam;
 import org.projectforge.framework.configuration.ConfigurationType;
 import org.projectforge.framework.configuration.entities.ConfigurationDO;
 import org.projectforge.framework.utils.NumberHelper;
 import org.projectforge.web.task.TaskSelectPanel;
+import org.projectforge.web.teamcal.admin.TeamCalsProvider;
 import org.projectforge.web.wicket.AbstractEditForm;
+import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.web.wicket.components.MaxLengthTextArea;
 import org.projectforge.web.wicket.components.MaxLengthTextField;
 import org.projectforge.web.wicket.components.MinMaxNumberField;
@@ -52,7 +55,10 @@ import org.projectforge.web.wicket.converter.BigDecimalPercentConverter;
 import org.projectforge.web.wicket.flowlayout.DivTextPanel;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
 import org.projectforge.web.wicket.flowlayout.InputPanel;
+import org.projectforge.web.wicket.flowlayout.Select2SingleChoicePanel;
 import org.projectforge.web.wicket.flowlayout.TextAreaPanel;
+
+import com.vaynberg.wicket.select2.Select2Choice;
 
 public class ConfigurationEditForm extends AbstractEditForm<ConfigurationDO, ConfigurationEditPage>
 {
@@ -67,8 +73,13 @@ public class ConfigurationEditForm extends AbstractEditForm<ConfigurationDO, Con
 
   private TaskDO task;
 
+  private TeamCalDO calendar;
+
   @SpringBean
   private TaskDao taskDao;
+
+  @SpringBean
+  private TeamCalCache teamCalCache;
 
   @Override
   @SuppressWarnings("serial")
@@ -103,7 +114,9 @@ public class ConfigurationEditForm extends AbstractEditForm<ConfigurationDO, Con
           public IConverter getConverter(final Class type)
           {
             return new BigDecimalPercentConverter(true);
-          };
+          }
+
+          ;
         };
         fs.add(numberField);
         valueField = numberField;
@@ -145,6 +158,15 @@ public class ConfigurationEditForm extends AbstractEditForm<ConfigurationDO, Con
             parentPage, "taskId");
         fs.add(taskSelectPanel);
         taskSelectPanel.init();
+      } else if (data.getConfigurationType() == ConfigurationType.CALENDAR) {
+        if (data.getCalendarId() != null) {
+          this.calendar = teamCalCache.getCalendar(data.getCalendarId());
+        }
+        final Select2Choice<TeamCalDO> teamCalSelectSelect = new Select2Choice<>(
+            Select2SingleChoicePanel.WICKET_ID,
+            new PropertyModel<TeamCalDO>(this, "calendar"),
+            new TeamCalsProvider(teamCalCache));
+        fs.add(new Select2SingleChoicePanel<TeamCalDO>(fs.newChildId(), teamCalSelectSelect));
       } else {
         throw new UnsupportedOperationException(
             "Parameter of type '" + data.getConfigurationType() + "' not supported.");
@@ -182,6 +204,30 @@ public class ConfigurationEditForm extends AbstractEditForm<ConfigurationDO, Con
       setTask(taskDao.getById(taskId));
     } else {
       setTask((TaskDO) null);
+    }
+  }
+
+  public TeamCalDO getCalendar()
+  {
+    return calendar;
+  }
+
+  public void setCalendar(final TeamCalDO calendar)
+  {
+    this.calendar = calendar;
+    if (calendar != null) {
+      data.setCalendarId(calendar.getId());
+    } else {
+      data.setCalendarId(null);
+    }
+  }
+
+  public void setCalendar(final Integer calendarId)
+  {
+    if (calendarId != null) {
+      setCalendar(teamCalCache.getCalendar(calendarId));
+    } else {
+      setCalendar((TeamCalDO) null);
     }
   }
 
