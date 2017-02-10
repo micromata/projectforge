@@ -140,6 +140,9 @@ public class VacationEditPage extends AbstractEditPage<VacationDO, VacationEditF
         if (form.getStatusBeforeModification().equals(VacationStatus.IN_PROGRESS) && VacationStatus.APPROVED.equals(form.getData().getStatus())) {
           vacationService.updateUsedVacationDaysFromLastYear(form.getData());
           vacationService.sendMailToEmployeeAndHR(form.getData(), true);
+        } else if (form.getStatusBeforeModification().equals(VacationStatus.APPROVED) && (VacationStatus.REJECTED.equals(form.getData().getStatus())
+            || VacationStatus.IN_PROGRESS.equals(form.getData().getStatus()))) {
+          vacationService.deleteUsedVacationDaysFromLastYear(form.getData());
         }
       }
     } catch (final Exception e) {
@@ -153,8 +156,10 @@ public class VacationEditPage extends AbstractEditPage<VacationDO, VacationEditF
   public WebPage afterDelete()
   {
     try {
-      vacationService.deleteUsedVacationDaysFromLastYear(form.getData());
-      vacationService.sendMailToVacationInvolved(form.getData(), false, true);
+      if (VacationStatus.APPROVED.equals(form.getData().getStatus())) {
+        vacationService.deleteUsedVacationDaysFromLastYear(form.getData());
+        vacationService.sendMailToVacationInvolved(form.getData(), false, true);
+      }
     } catch (final Exception e) {
       log.error("There is a exception in afterDelete: " + e.getMessage(), e);
       error(I18nHelper.getLocalizedMessage("vacation.error.sendmail"));
@@ -165,8 +170,12 @@ public class VacationEditPage extends AbstractEditPage<VacationDO, VacationEditF
   public WebPage afterUndelete()
   {
     try {
-      vacationService.updateUsedVacationDaysFromLastYear(form.getData());
-      vacationService.sendMailToVacationInvolved(form.getData(), false, false);
+      if (VacationStatus.APPROVED.equals(form.getData().getStatus())) {
+        vacationService.updateUsedVacationDaysFromLastYear(form.getData());
+        vacationService.sendMailToEmployeeAndHR(form.getData(), true);
+      } else {
+        vacationService.sendMailToVacationInvolved(form.getData(), false, false);
+      }
     } catch (final Exception e) {
       log.error("There is a exception in afterUndelete: " + e.getMessage(), e);
       error(I18nHelper.getLocalizedMessage("vacation.error.sendmail"));
