@@ -145,14 +145,14 @@ public class DatabaseCoreUpdates
     list.add(new UpdateEntryImpl(CORE_REGION_ID, "6.7.0", "2017-01-11",
         "Add payment type for order book position. Add users to project and order. Extend order position status.")
     {
-      private final String AUFTRAG_TABLE_COL_NAME = "status";
-      private final String AUFTRAG_OLD_STATUS_POTENZIAL = "GROB_KALKULATION";
+      private static final String AUFTRAG_TABLE_COL_NAME = "status";
+      private static final String AUFTRAG_OLD_STATUS_POTENZIAL = "GROB_KALKULATION";
       private final String AUFTRAG_NEW_STATUS_POTENZIAL = AuftragsStatus.POTENZIAL.name();
 
-      private final String AUFTRAG_POS_TABLE_COL_NAME = "status";
-      private final String AUFTRAG_POS_OLD_STATUS_BEAUFTRAGT = "BEAUFTRAGTE_OPTION";
+      private static final String AUFTRAG_POS_TABLE_COL_NAME = "status";
+      private static final String AUFTRAG_POS_OLD_STATUS_BEAUFTRAGT = "BEAUFTRAGTE_OPTION";
       private final String AUFTRAG_POS_NEW_STATUS_BEAUFTRAGT = AuftragsPositionsStatus.BEAUFTRAGT.name();
-      private final String AUFTRAG_POS_OLD_STATUS_ABGELEHNT = "NICHT_BEAUFTRAGT";
+      private static final String AUFTRAG_POS_OLD_STATUS_ABGELEHNT = "NICHT_BEAUFTRAGT";
       private final String AUFTRAG_POS_NEW_STATUS_ABGELEHNT = AuftragsPositionsStatus.ABGELEHNT.name();
 
       private boolean doesAuftragPotenzialNeedsUpdate()
