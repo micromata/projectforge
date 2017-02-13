@@ -106,6 +106,8 @@ public class VacationEditForm extends AbstractEditForm<VacationDO, VacationEditP
 
   private VacationStatus statusBeforeModification;
 
+  MultiChoiceListHelper<TeamCalDO> assignCalendarListHelper;
+
   public VacationEditForm(final VacationEditPage parentPage, final VacationDO data)
   {
     super(parentPage, data);
@@ -296,7 +298,7 @@ public class VacationEditForm extends AbstractEditForm<VacationDO, VacationEditP
       if (vacationCalendar != null) {
         fullList.add(vacationCalendar);
       }
-      MultiChoiceListHelper<TeamCalDO> assignCalendarListHelper = new MultiChoiceListHelper<TeamCalDO>()
+      assignCalendarListHelper = new MultiChoiceListHelper<TeamCalDO>()
           .setComparator(new Comparator<TeamCalDO>()
           {
             @Override

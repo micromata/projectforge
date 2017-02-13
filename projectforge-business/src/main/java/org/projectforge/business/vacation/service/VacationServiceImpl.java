@@ -2,7 +2,9 @@ package org.projectforge.business.vacation.service;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
+import java.sql.Timestamp;
 import java.util.Calendar;
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 
@@ -11,8 +13,11 @@ import org.projectforge.business.fibu.EmployeeDO;
 import org.projectforge.business.fibu.EmployeeDao;
 import org.projectforge.business.fibu.api.EmployeeService;
 import org.projectforge.business.teamcal.admin.model.TeamCalDO;
+import org.projectforge.business.teamcal.event.TeamEventDao;
+import org.projectforge.business.teamcal.event.model.TeamEventDO;
 import org.projectforge.business.user.I18nHelper;
 import org.projectforge.business.vacation.model.VacationAttrProperty;
+import org.projectforge.business.vacation.model.VacationCalendarDO;
 import org.projectforge.business.vacation.model.VacationDO;
 import org.projectforge.business.vacation.model.VacationStatus;
 import org.projectforge.business.vacation.repository.VacationDao;
@@ -53,6 +58,9 @@ public class VacationServiceImpl extends CorePersistenceServiceImpl<Integer, Vac
 
   @Autowired
   private EmployeeService employeeService;
+
+  @Autowired
+  private TeamEventDao teamEventDao;
 
   private final String vacationEditPagePath = "/wa/wicket/bookmarkable/org.projectforge.web.vacation.VacationEditPage";
 
@@ -477,4 +485,57 @@ public class VacationServiceImpl extends CorePersistenceServiceImpl<Integer, Vac
     vacationDao.rebuildDatabaseIndex();
   }
 
+  public void saveOrUpdateVacationCalendars(VacationDO vacation, Collection<TeamCalDO> items)
+  {
+    List<VacationCalendarDO> vacationCalendarDOs = vacationDao.getVacationCalendarDOs(vacation);
+    for (VacationCalendarDO vacationCalendarDO : vacationCalendarDOs) {
+      if (vacationCalendarDO.getEvent() != null) {
+        vacationCalendarDO.getEvent().setDeleted(true);
+        teamEventDao.internalUpdate(vacationCalendarDO.getEvent());
+      }
+      vacationDao.deleteVacationCalendarDO(vacationCalendarDO);
+    }
+    vacationCalendarDOs.clear();
+    for (TeamCalDO teamCalDO : items) {
+      VacationCalendarDO vacationCalendarDO = new VacationCalendarDO();
+      vacationCalendarDO.setCalendar(teamCalDO);
+      vacationCalendarDO.setVacation(vacation);
+      vacationCalendarDOs.add(vacationCalendarDO);
+    }
+    for (VacationCalendarDO vacationCalendarDO : vacationCalendarDOs) {
+      vacationDao.saveVacationCalendar(vacationCalendarDO);
+    }
+  }
+
+  @Override
+  public void deleteEventsForVacationCalendars(VacationDO vacation)
+  {
+    List<VacationCalendarDO> vacationCalendarDOs = vacationDao.getVacationCalendarDOs(vacation);
+    for (VacationCalendarDO vacationCalendarDO : vacationCalendarDOs) {
+      if (vacationCalendarDO.getEvent() != null) {
+        vacationCalendarDO.getEvent().setDeleted(true);
+        teamEventDao.internalUpdate(vacationCalendarDO.getEvent());
+        vacationDao.deleteVacationCalendarDO(vacationCalendarDO);
+      }
+    }
+  }
+
+  @Override
+  public void createEventsForVacationCalendars(VacationDO vacation)
+  {
+    List<VacationCalendarDO> vacationCalendarDOs = vacationDao.getVacationCalendarDOs(vacation);
+    for (VacationCalendarDO vacationCalendarDO : vacationCalendarDOs) {
+      TeamEventDO teamEventDO = new TeamEventDO();
+      teamEventDO.setAllDay(true);
+      final Timestamp startTimestamp = new Timestamp(vacation.getStartDate().getTime());
+      final Timestamp endTimestamp = new Timestamp(vacation.getEndDate().getTime());
+      teamEventDO.setStartDate(startTimestamp);
+      teamEventDO.setEndDate(endTimestamp);
+      teamEventDO.setSubject("Urlaub ( " + vacation.getEmployee().getUser().getFullname() + ")");
+      teamEventDO.setCalendar(vacationCalendarDO.getCalendar());
+      teamEventDao.internalSave(teamEventDO);
+      vacationCalendarDO.setEvent(teamEventDO);
+      vacationDao.saveVacationCalendar(vacationCalendarDO);
+    }
+  }
 }

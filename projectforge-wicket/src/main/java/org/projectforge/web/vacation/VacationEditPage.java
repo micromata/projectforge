@@ -129,6 +129,7 @@ public class VacationEditPage extends AbstractEditPage<VacationDO, VacationEditF
   public AbstractSecuredBasePage afterSaveOrUpdate()
   {
     try {
+      vacationService.saveOrUpdateVacationCalendars(form.getData(), form.assignCalendarListHelper.getFullList());
       if (wasNew) {
         vacationService.sendMailToVacationInvolved(form.getData(), true, false);
       } else {
@@ -136,10 +137,13 @@ public class VacationEditPage extends AbstractEditPage<VacationDO, VacationEditF
           vacationService.sendMailToVacationInvolved(form.getData(), false, false);
         }
       }
-      if (form.getStatusBeforeModification() != null) {
-        if (form.getStatusBeforeModification().equals(VacationStatus.IN_PROGRESS) && VacationStatus.APPROVED.equals(form.getData().getStatus())) {
-          vacationService.updateUsedVacationDaysFromLastYear(form.getData());
-          vacationService.sendMailToEmployeeAndHR(form.getData(), true);
+      if (VacationStatus.APPROVED.equals(form.getData().getStatus())) {
+        vacationService.createEventsForVacationCalendars(form.getData());
+        if (form.getStatusBeforeModification() != null) {
+          if (form.getStatusBeforeModification().equals(VacationStatus.IN_PROGRESS)) {
+            vacationService.updateUsedVacationDaysFromLastYear(form.getData());
+            //vacationService.sendMailToEmployeeAndHR(form.getData(), true);
+          }
         }
       }
     } catch (final Exception e) {
@@ -155,6 +159,7 @@ public class VacationEditPage extends AbstractEditPage<VacationDO, VacationEditF
     try {
       vacationService.deleteUsedVacationDaysFromLastYear(form.getData());
       vacationService.sendMailToVacationInvolved(form.getData(), false, true);
+      vacationService.deleteEventsForVacationCalendars(form.getData());
     } catch (final Exception e) {
       log.error("There is a exception in afterDelete: " + e.getMessage(), e);
       error(I18nHelper.getLocalizedMessage("vacation.error.sendmail"));
@@ -167,6 +172,7 @@ public class VacationEditPage extends AbstractEditPage<VacationDO, VacationEditF
     try {
       vacationService.updateUsedVacationDaysFromLastYear(form.getData());
       vacationService.sendMailToVacationInvolved(form.getData(), false, false);
+      vacationService.createEventsForVacationCalendars(form.getData());
     } catch (final Exception e) {
       log.error("There is a exception in afterUndelete: " + e.getMessage(), e);
       error(I18nHelper.getLocalizedMessage("vacation.error.sendmail"));

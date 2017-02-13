@@ -31,12 +31,14 @@ import javax.persistence.Table;
 
 import org.projectforge.business.teamcal.admin.model.TeamCalDO;
 import org.projectforge.business.teamcal.event.model.TeamEventDO;
+import org.projectforge.framework.persistence.api.AUserRightId;
 import org.projectforge.framework.persistence.entities.DefaultBaseDO;
 
 /**
  * @author Florian Blumenstein
  */
 @Entity
+@AUserRightId(value = "EMPLOYEE_VACATION", checkAccess = false)
 @Table(name = "t_employee_vacation_calendar")
 public class VacationCalendarDO extends DefaultBaseDO
 {
@@ -73,7 +75,7 @@ public class VacationCalendarDO extends DefaultBaseDO
   }
 
   @ManyToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = "event_id", nullable = false)
+  @JoinColumn(name = "event_id")
   public TeamEventDO getEvent()
   {
     return event;

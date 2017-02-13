@@ -3,6 +3,7 @@ package org.projectforge.business.vacation.service;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.Calendar;
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 
@@ -188,4 +189,29 @@ public interface VacationService extends IPersistenceService<VacationDO>, IDao<V
    * @return
    */
   List<TeamCalDO> getCalendarsForVacation(VacationDO vacation);
+
+  /**
+   * Save the calendars for apllication for leave
+   *
+   * @param items
+   * @param vacation
+   * @return
+   */
+  void saveOrUpdateVacationCalendars(VacationDO vacation, Collection<TeamCalDO> items);
+
+  /**
+   * Delete CalenderEvents for apllication for leave
+   *
+   * @param vacation
+   * @return
+   */
+  void deleteEventsForVacationCalendars(VacationDO vacation);
+
+  /**
+   * Create CalenderEvents for apllication for leave
+   *
+   * @param vacation
+   * @return
+   */
+  void createEventsForVacationCalendars(VacationDO vacation);
 }

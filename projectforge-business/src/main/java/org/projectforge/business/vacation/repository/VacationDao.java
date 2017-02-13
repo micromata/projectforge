@@ -189,14 +189,45 @@ public class VacationDao extends BaseDao<VacationDO>
   public List<TeamCalDO> getCalendarsForVacation(VacationDO vacation)
   {
     final List<TeamCalDO> calendarList = new ArrayList<>();
-    final List<VacationCalendarDO> resultList = emgrFactory.runRoTrans(emgr -> {
-      List<TeamCalDO> calendarResultList = new ArrayList<>();
-      final String baseSQL = "SELECT vc FROM VacationCalendarDO vc WHERE vc.vacation = :vacation";
-      return emgr.selectDetached(VacationCalendarDO.class, baseSQL, "vacation", vacation);
-    });
+    if (vacation.getId() == null) {
+      return calendarList;
+    }
+    final List<VacationCalendarDO> resultList = getVacationCalendarDOs(vacation);
+    List<TeamCalDO> calendarResultList = new ArrayList<>();
     if (resultList != null && resultList.size() > 0) {
       resultList.forEach(res -> calendarList.add(res.getCalendar()));
     }
     return calendarList;
+  }
+
+  public List<VacationCalendarDO> getVacationCalendarDOs(VacationDO vacation)
+  {
+    final List<VacationCalendarDO> resultList = emgrFactory.runRoTrans(emgr -> {
+      final String baseSQL = "SELECT vc FROM VacationCalendarDO vc WHERE vc.vacation = :vacation";
+      return emgr.selectDetached(VacationCalendarDO.class, baseSQL, "vacation", vacation);
+    });
+    return resultList;
+  }
+
+  public void saveVacationCalendar(VacationCalendarDO obj)
+  {
+    emgrFactory.runInTrans(emgr -> {
+      if (obj.getId() != null) {
+        VacationCalendarDO vacationCalendarDO = emgr.selectByPkAttached(VacationCalendarDO.class, obj.getPk());
+        vacationCalendarDO.setEvent(obj.getEvent());
+        emgr.update(vacationCalendarDO);
+      } else {
+        emgr.insert(obj);
+      }
+      return null;
+    });
+  }
+
+  public void deleteVacationCalendarDO(VacationCalendarDO obj)
+  {
+    emgrFactory.runInTrans(emgr -> {
+      emgr.markDeleted(obj);
+      return null;
+    });
   }
 }
