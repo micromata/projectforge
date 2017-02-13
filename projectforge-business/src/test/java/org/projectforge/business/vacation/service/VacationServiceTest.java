@@ -256,25 +256,34 @@ public class VacationServiceTest extends PowerMockTestCase
   @Test
   public void testUpdateUsedVacationDaysFromLastYearFirstNormalAfterIsSpecial()
   {
-    VacationDO vacationData = new VacationDO();
+    final VacationDO vacationData = new VacationDO();
+    final VacationDO vacationDataOld = new VacationDO();
     when(employee.getAttribute(VacationAttrProperty.PREVIOUSYEARLEAVE.getPropertyName(), BigDecimal.class)).thenReturn(new BigDecimal(20));
-    when(employee.getAttribute(VacationAttrProperty.PREVIOUSYEARLEAVEUSED.getPropertyName(), BigDecimal.class)).thenReturn(new BigDecimal(0));
+    when(employee.getAttribute(VacationAttrProperty.PREVIOUSYEARLEAVEUSED.getPropertyName(), BigDecimal.class)).thenReturn(new BigDecimal(3));
     vacationData.setEmployee(employee);
+    vacationDataOld.setEmployee(employee);
     vacationData.setIsSpecial(false);
-    Calendar startDate = Calendar.getInstance();
+    vacationDataOld.setIsSpecial(false);
+    vacationData.setId(4711);
+    vacationDataOld.setId(4711);
+    final Calendar startDate = Calendar.getInstance();
     startDate.set(Calendar.MONTH, Calendar.MARCH);
     startDate.set(Calendar.DAY_OF_MONTH, 1);
     vacationData.setStartDate(startDate.getTime());
-    Calendar endDate = Calendar.getInstance();
+    vacationDataOld.setStartDate(startDate.getTime());
+    final Calendar endDate = Calendar.getInstance();
     endDate.set(Calendar.MONTH, Calendar.MARCH);
     endDate.set(Calendar.DAY_OF_MONTH, 10);
     vacationData.setEndDate(endDate.getTime());
-    BigDecimal newValue = this.vacationService.updateUsedVacationDaysFromLastYear(vacationData);
-    BigDecimal numberOfDays = this.vacationService.getVacationDays(vacationData);
-    assertEquals(newValue, BigDecimal.ZERO.add(numberOfDays));
+    vacationDataOld.setEndDate(endDate.getTime());
+    final BigDecimal newValue = this.vacationService.updateUsedVacationDaysFromLastYear(vacationData);
+
+    when(vacationDao.getById(4711)).thenReturn(vacationDataOld);
+    final BigDecimal numberOfDays = this.vacationService.getVacationDays(vacationData);
+    assertEquals(newValue, new BigDecimal(3).add(numberOfDays));
     vacationData.setIsSpecial(true);
-    BigDecimal Value = this.vacationService.updateUsedVacationDaysFromLastYear(vacationData);
-    assertEquals(Value, BigDecimal.ZERO);
+    final BigDecimal value = this.vacationService.updateUsedVacationDaysFromLastYear(vacationData);
+    assertEquals(value, BigDecimal.ZERO);
   }
 
   @Test
