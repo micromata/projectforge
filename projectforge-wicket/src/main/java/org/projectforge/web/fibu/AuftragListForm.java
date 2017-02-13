@@ -47,7 +47,7 @@ import org.projectforge.web.wicket.flowlayout.DivTextPanel;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
 import org.projectforge.web.wicket.flowlayout.TextStyle;
 
-public class AuftragListForm extends AbstractListForm<AuftragListFilter, AuftragListPage>
+public class AuftragListForm extends AbstractListForm<AuftragFilter, AuftragListPage>
 {
   private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(AuftragListForm.class);
 
@@ -348,9 +348,9 @@ public class AuftragListForm extends AbstractListForm<AuftragListFilter, Auftrag
   }
 
   @Override
-  protected AuftragListFilter newSearchFilterInstance()
+  protected AuftragFilter newSearchFilterInstance()
   {
-    return new AuftragListFilter();
+    return new AuftragFilter();
   }
 
   @Override

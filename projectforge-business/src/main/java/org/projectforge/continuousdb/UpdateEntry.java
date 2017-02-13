@@ -23,8 +23,6 @@
 
 package org.projectforge.continuousdb;
 
-import java.io.Serializable;
-
 import org.projectforge.Version;
 
 /**
@@ -32,7 +30,7 @@ import org.projectforge.Version;
  *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-public abstract class UpdateEntry implements Serializable, Comparable<UpdateEntry>
+public abstract class UpdateEntry implements Comparable<UpdateEntry>
 {
   private static final long serialVersionUID = -8205244215928531249L;
 

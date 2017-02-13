@@ -32,6 +32,9 @@ public class FFPAccountingDO extends DefaultBaseDO
   @PropertyInfo(i18nKey = "plugins.ffp.weighting")
   private BigDecimal weighting;
 
+  @PropertyInfo(i18nKey = "plugins.ffp.comment")
+  private String comment;
+
   @ManyToOne(fetch = FetchType.EAGER)
   @JoinColumn(name = "EVENT_ID")
   public FFPEventDO getEvent()
@@ -76,6 +79,17 @@ public class FFPAccountingDO extends DefaultBaseDO
   public void setWeighting(BigDecimal weighting)
   {
     this.weighting = weighting;
+  }
+
+  @Column
+  public String getComment()
+  {
+    return comment;
+  }
+
+  public void setComment(String comment)
+  {
+    this.comment = comment;
   }
 
   @Override
