@@ -10,6 +10,8 @@ import org.projectforge.web.rest.TaskDaoRest;
 import org.projectforge.web.rest.TimesheetDaoRest;
 import org.projectforge.web.rest.TimesheetTemplatesRest;
 import org.projectforge.web.rest.converter.PFUserDOTypeAdapter;
+import org.projectforge.web.teamcal.rest.TeamCalDaoRest;
+import org.projectforge.web.teamcal.rest.TeamEventDaoRest;
 import org.springframework.stereotype.Component;
 
 /**
@@ -24,6 +26,8 @@ public class JerseyConfiguration extends ResourceConfig
     register(AuthenticationRest.class);
     register(AddressDaoRest.class);
     register(TaskDaoRest.class);
+    register(TeamCalDaoRest.class);
+    register(TeamEventDaoRest.class);
     register(TimesheetDaoRest.class);
     register(TimesheetTemplatesRest.class);
     JsonUtils.add(PFUserDO.class, new PFUserDOTypeAdapter());
