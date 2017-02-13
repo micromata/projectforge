@@ -53,10 +53,10 @@ import org.springframework.stereotype.Controller;
 public class TimesheetTemplatesRest
 {
   @Autowired
-  UserPrefDao userPrefDao;
+  private UserPrefDao userPrefDao;
 
   @Autowired
-  TimesheetTemplateConverter timesheetTemplateConverter;
+  private TimesheetTemplateConverter timesheetTemplateConverter;
 
   @GET
   @Path(RestPaths.LIST)
