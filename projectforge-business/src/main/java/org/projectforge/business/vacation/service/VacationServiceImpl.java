@@ -487,22 +487,11 @@ public class VacationServiceImpl extends CorePersistenceServiceImpl<Integer, Vac
 
   public void saveOrUpdateVacationCalendars(VacationDO vacation, Collection<TeamCalDO> items)
   {
-    List<VacationCalendarDO> vacationCalendarDOs = vacationDao.getVacationCalendarDOs(vacation);
-    for (VacationCalendarDO vacationCalendarDO : vacationCalendarDOs) {
-      if (vacationCalendarDO.getEvent() != null) {
-        vacationCalendarDO.getEvent().setDeleted(true);
-        teamEventDao.internalUpdate(vacationCalendarDO.getEvent());
-      }
-      vacationDao.deleteVacationCalendarDO(vacationCalendarDO);
-    }
-    vacationCalendarDOs.clear();
+    deleteEventsForVacationCalendars(vacation);
     for (TeamCalDO teamCalDO : items) {
       VacationCalendarDO vacationCalendarDO = new VacationCalendarDO();
       vacationCalendarDO.setCalendar(teamCalDO);
       vacationCalendarDO.setVacation(vacation);
-      vacationCalendarDOs.add(vacationCalendarDO);
-    }
-    for (VacationCalendarDO vacationCalendarDO : vacationCalendarDOs) {
       vacationDao.saveVacationCalendar(vacationCalendarDO);
     }
   }
@@ -513,10 +502,9 @@ public class VacationServiceImpl extends CorePersistenceServiceImpl<Integer, Vac
     List<VacationCalendarDO> vacationCalendarDOs = vacationDao.getVacationCalendarDOs(vacation);
     for (VacationCalendarDO vacationCalendarDO : vacationCalendarDOs) {
       if (vacationCalendarDO.getEvent() != null) {
-        vacationCalendarDO.getEvent().setDeleted(true);
-        teamEventDao.internalUpdate(vacationCalendarDO.getEvent());
-        vacationDao.deleteVacationCalendarDO(vacationCalendarDO);
+        teamEventDao.internalMarkAsDeleted(vacationCalendarDO.getEvent());
       }
+      vacationDao.deleteVacationCalendarDO(vacationCalendarDO);
     }
   }
 
@@ -525,17 +513,20 @@ public class VacationServiceImpl extends CorePersistenceServiceImpl<Integer, Vac
   {
     List<VacationCalendarDO> vacationCalendarDOs = vacationDao.getVacationCalendarDOs(vacation);
     for (VacationCalendarDO vacationCalendarDO : vacationCalendarDOs) {
-      TeamEventDO teamEventDO = new TeamEventDO();
-      teamEventDO.setAllDay(true);
-      final Timestamp startTimestamp = new Timestamp(vacation.getStartDate().getTime());
-      final Timestamp endTimestamp = new Timestamp(vacation.getEndDate().getTime());
-      teamEventDO.setStartDate(startTimestamp);
-      teamEventDO.setEndDate(endTimestamp);
-      teamEventDO.setSubject("Urlaub ( " + vacation.getEmployee().getUser().getFullname() + ")");
-      teamEventDO.setCalendar(vacationCalendarDO.getCalendar());
-      teamEventDao.internalSave(teamEventDO);
-      vacationCalendarDO.setEvent(teamEventDO);
-      vacationDao.saveVacationCalendar(vacationCalendarDO);
+      if (vacationCalendarDO.isDeleted() == false) {
+        TeamEventDO teamEventDO = new TeamEventDO();
+        teamEventDO.setAllDay(true);
+        final Timestamp startTimestamp = new Timestamp(vacation.getStartDate().getTime());
+        final Timestamp endTimestamp = new Timestamp(vacation.getEndDate().getTime());
+        teamEventDO.setStartDate(startTimestamp);
+        teamEventDO.setEndDate(endTimestamp);
+        //I18N KEy erstellen
+        teamEventDO.setSubject("Urlaub ( " + vacation.getEmployee().getUser().getFullname() + " )");
+        teamEventDO.setCalendar(vacationCalendarDO.getCalendar());
+        teamEventDao.internalSave(teamEventDO);
+        vacationCalendarDO.setEvent(teamEventDO);
+        vacationDao.saveVacationCalendar(vacationCalendarDO);
+      }
     }
   }
 }

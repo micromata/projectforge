@@ -27,6 +27,7 @@ import org.apache.log4j.Logger;
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
+import org.projectforge.business.configuration.ConfigurationService;
 import org.projectforge.business.fibu.api.EmployeeService;
 import org.projectforge.business.user.I18nHelper;
 import org.projectforge.business.vacation.model.VacationDO;
@@ -47,6 +48,9 @@ public class VacationEditPage extends AbstractEditPage<VacationDO, VacationEditF
 
   @SpringBean
   private VacationService vacationService;
+
+  @SpringBean
+  private ConfigurationService configService;
 
   @SpringBean
   private EmployeeService employeeService;
@@ -129,7 +133,10 @@ public class VacationEditPage extends AbstractEditPage<VacationDO, VacationEditF
   public AbstractSecuredBasePage afterSaveOrUpdate()
   {
     try {
-      vacationService.saveOrUpdateVacationCalendars(form.getData(), form.assignCalendarListHelper.getFullList());
+      if (form.assignCalendarListHelper.getAssignedItems().contains(configService.getVacationCalendar()) == false) {
+        form.assignCalendarListHelper.getAssignedItems().add(configService.getVacationCalendar());
+      }
+      vacationService.saveOrUpdateVacationCalendars(form.getData(), form.assignCalendarListHelper.getAssignedItems());
       if (wasNew) {
         vacationService.sendMailToVacationInvolved(form.getData(), true, false);
       } else {
@@ -143,6 +150,12 @@ public class VacationEditPage extends AbstractEditPage<VacationDO, VacationEditF
           if (form.getStatusBeforeModification().equals(VacationStatus.IN_PROGRESS)) {
             vacationService.updateUsedVacationDaysFromLastYear(form.getData());
             //vacationService.sendMailToEmployeeAndHR(form.getData(), true);
+          }
+        }
+      } else if (VacationStatus.REJECTED.equals(form.getData().getStatus()) || VacationStatus.IN_PROGRESS.equals(form.getData().getStatus())) {
+        if (form.getStatusBeforeModification() != null) {
+          if (form.getStatusBeforeModification().equals(VacationStatus.APPROVED)) {
+            vacationService.deleteEventsForVacationCalendars(form.getData());
           }
         }
       }
