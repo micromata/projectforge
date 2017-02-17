@@ -20,6 +20,7 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.ResourceModel;
 import org.projectforge.business.configuration.ConfigurationService;
 import org.projectforge.business.fibu.EmployeeDO;
 import org.projectforge.business.user.I18nHelper;
@@ -32,6 +33,7 @@ import org.projectforge.framework.time.DateTimeFormatter;
 import org.projectforge.web.vacation.VacationEditPage;
 import org.projectforge.web.vacation.VacationViewPageSortableDataProvider;
 import org.projectforge.web.wicket.CellItemListener;
+import org.projectforge.web.wicket.CellItemListenerLambdaColumn;
 import org.projectforge.web.wicket.CellItemListenerPropertyColumn;
 import org.projectforge.web.wicket.ListSelectActionPanel;
 import org.projectforge.web.wicket.WicketUtils;
@@ -174,9 +176,13 @@ public class VacationViewHelper
       }
     });
 
-    columns.add(new CellItemListenerPropertyColumn<VacationDO>(VacationDO.class, "endDate", "endDate", cellItemListener));
-    columns.add(new CellItemListenerPropertyColumn<VacationDO>(VacationDO.class, "status", "status", cellItemListener));
-    columns.add(new CellItemListenerPropertyColumn<VacationDO>(VacationDO.class, "workingdays", "workingdays", cellItemListener));
+    columns.add(new CellItemListenerPropertyColumn<>(VacationDO.class, "endDate", "endDate", cellItemListener));
+    columns.add(new CellItemListenerPropertyColumn<>(VacationDO.class, "status", "status", cellItemListener));
+    columns.add(new CellItemListenerLambdaColumn<>(new ResourceModel("vacation.workingdays"),
+        rowModel -> vacationService.getVacationDays(rowModel.getObject().getStartDate(), rowModel.getObject().getEndDate(), rowModel.getObject().getHalfDay()),
+        cellItemListener)
+    );
+
     columns.add(new CellItemListenerPropertyColumn<VacationDO>(VacationDO.class, "isSpecial", "isSpecial", cellItemListener)
     {
       @Override
@@ -200,7 +206,7 @@ public class VacationViewHelper
     if (StringUtils.isBlank(value) == true) {
       return false;
     }
-    final FieldsetPanel fs = gridBuilder.newFieldset(I18nHelper.getLocalizedMessage(label, labelParameters)).suppressLabelForWarning();
+    final FieldsetPanel fs = gridBuilder.newFieldset(I18nHelper.getLocalizedMessage(label, (Object[]) labelParameters)).suppressLabelForWarning();
     DivTextPanel divTextPanel = new DivTextPanel(fs.newChildId(), value);
     WebMarkupContainer fieldset = fs.getFieldset();
     fieldset.add(AttributeAppender.append("class", "vacationPanel"));

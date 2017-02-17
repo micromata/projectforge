@@ -116,13 +116,14 @@ public class DatabaseCoreUpdates
     // 6.8.0
     // /////////////////////////////////////////////////////////////////
     list.add(new UpdateEntryImpl(CORE_REGION_ID, "6.8.0", "2017-02-15",
-        "Add calendar to vacation.")
+        "Add calendar to vacation." + "Add possibility to create applications for leave of a half day.")
     {
       @Override
       public UpdatePreCheckStatus runPreCheck()
       {
         log.info("Running pre-check for ProjectForge version 6.8.0");
-        if (databaseUpdateService.doesTableExist("t_employee_vacation_calendar") == false) {
+        if (databaseUpdateService.doesTableExist("t_employee_vacation_calendar") == false
+            || databaseUpdateService.doesTableAttributeExist("t_employee_vacation", "is_half_day") == false) {
           return UpdatePreCheckStatus.READY_FOR_UPDATE;
         }
         return UpdatePreCheckStatus.ALREADY_UPDATED;
@@ -131,7 +132,8 @@ public class DatabaseCoreUpdates
       @Override
       public UpdateRunningStatus runUpdate()
       {
-        if (databaseUpdateService.doesTableExist("t_employee_vacation_calendar") == false) {
+        if (databaseUpdateService.doesTableExist("t_employee_vacation_calendar") == false
+            || databaseUpdateService.doesTableAttributeExist("t_employee_vacation", "is_half_day") == false) {
           //Updating the schema
           initDatabaseDao.updateSchema();
         }
@@ -146,14 +148,14 @@ public class DatabaseCoreUpdates
     list.add(new UpdateEntryImpl(CORE_REGION_ID, "6.7.0", "2017-01-11",
         "Add payment type for order book position. Add users to project and order. Extend order position status.")
     {
-      private final String AUFTRAG_TABLE_COL_NAME = "status";
-      private final String AUFTRAG_OLD_STATUS_POTENZIAL = "GROB_KALKULATION";
+      private static final String AUFTRAG_TABLE_COL_NAME = "status";
+      private static final String AUFTRAG_OLD_STATUS_POTENZIAL = "GROB_KALKULATION";
       private final String AUFTRAG_NEW_STATUS_POTENZIAL = AuftragsStatus.POTENZIAL.name();
 
-      private final String AUFTRAG_POS_TABLE_COL_NAME = "status";
-      private final String AUFTRAG_POS_OLD_STATUS_BEAUFTRAGT = "BEAUFTRAGTE_OPTION";
+      private static final String AUFTRAG_POS_TABLE_COL_NAME = "status";
+      private static final String AUFTRAG_POS_OLD_STATUS_BEAUFTRAGT = "BEAUFTRAGTE_OPTION";
       private final String AUFTRAG_POS_NEW_STATUS_BEAUFTRAGT = AuftragsPositionsStatus.BEAUFTRAGT.name();
-      private final String AUFTRAG_POS_OLD_STATUS_ABGELEHNT = "NICHT_BEAUFTRAGT";
+      private static final String AUFTRAG_POS_OLD_STATUS_ABGELEHNT = "NICHT_BEAUFTRAGT";
       private final String AUFTRAG_POS_NEW_STATUS_ABGELEHNT = AuftragsPositionsStatus.ABGELEHNT.name();
 
       private boolean doesAuftragPotenzialNeedsUpdate()

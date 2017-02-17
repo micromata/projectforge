@@ -136,24 +136,39 @@ public class VacationEditPage extends AbstractEditPage<VacationDO, VacationEditF
       vacationService.saveOrUpdateVacationCalendars(form.getData(), form.assignCalendarListHelper.getAssignedItems());
       if (wasNew) {
         vacationService.sendMailToVacationInvolved(form.getData(), true, false);
-      } else {
-        if (VacationStatus.IN_PROGRESS.equals(form.getData().getStatus())) {
-          vacationService.sendMailToVacationInvolved(form.getData(), false, false);
-        }
+      } else if (VacationStatus.IN_PROGRESS == form.getData().getStatus()) {
+        vacationService.sendMailToVacationInvolved(form.getData(), false, false);
       }
       if (VacationStatus.APPROVED.equals(form.getData().getStatus())) {
         vacationService.createEventsForVacationCalendars(form.getData());
-        if (form.getStatusBeforeModification() != null) {
-          if (form.getStatusBeforeModification().equals(VacationStatus.IN_PROGRESS)) {
+      }
+      if (form.getStatusBeforeModification() == VacationStatus.IN_PROGRESS) {
+        switch (form.getData().getStatus()) {
+          case APPROVED:
+            // IN_PROGRESS -> APPROVED
             vacationService.updateUsedVacationDaysFromLastYear(form.getData());
-            //vacationService.sendMailToEmployeeAndHR(form.getData(), true);
-          }
+            vacationService.sendMailToEmployeeAndHR(form.getData(), true);
+            break;
+
+          case REJECTED:
+            // IN_PROGRESS -> REJECTED
+            vacationService.sendMailToEmployeeAndHR(form.getData(), false);
+            break;
+
+          default:
+            // nothing to do
         }
-      } else if (VacationStatus.REJECTED.equals(form.getData().getStatus()) || VacationStatus.IN_PROGRESS.equals(form.getData().getStatus())) {
-        if (form.getStatusBeforeModification() != null) {
-          if (form.getStatusBeforeModification().equals(VacationStatus.APPROVED)) {
+      }
+      if (form.getStatusBeforeModification() == VacationStatus.APPROVED) {
+        switch (form.getData().getStatus()) {
+          case REJECTED:
+          case IN_PROGRESS:
+            // APPROVED -> NOT APPROVED
             vacationService.deleteEventsForVacationCalendars(form.getData());
-          }
+            break;
+
+          default:
+            // nothing to do
         }
       }
     } catch (final Exception e) {
