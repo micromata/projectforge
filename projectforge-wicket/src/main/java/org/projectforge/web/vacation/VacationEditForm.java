@@ -326,6 +326,7 @@ public class VacationEditForm extends AbstractEditForm<VacationDO, VacationEditP
           new TeamCalsProvider(teamCalCache));
       calendars.setMarkupId("calenders").setOutputMarkupId(true);
       calendars.setEnabled(checkEnableInputField());
+      formValidator.getDependentFormComponents()[4] = calendars;
       fieldSet.add(calendars);
     }
 

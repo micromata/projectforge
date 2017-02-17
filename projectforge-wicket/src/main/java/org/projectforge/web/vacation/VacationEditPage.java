@@ -133,9 +133,6 @@ public class VacationEditPage extends AbstractEditPage<VacationDO, VacationEditF
   public AbstractSecuredBasePage afterSaveOrUpdate()
   {
     try {
-      if (form.assignCalendarListHelper.getAssignedItems().contains(configService.getVacationCalendar()) == false) {
-        form.assignCalendarListHelper.getAssignedItems().add(configService.getVacationCalendar());
-      }
       vacationService.saveOrUpdateVacationCalendars(form.getData(), form.assignCalendarListHelper.getAssignedItems());
       if (wasNew) {
         vacationService.sendMailToVacationInvolved(form.getData(), true, false);

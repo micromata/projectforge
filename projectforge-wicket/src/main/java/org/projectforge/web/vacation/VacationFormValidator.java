@@ -2,6 +2,7 @@ package org.projectforge.web.vacation;
 
 import java.math.BigDecimal;
 import java.util.Calendar;
+import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -9,7 +10,10 @@ import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.form.validation.IFormValidator;
+import org.apache.wicket.spring.injection.annot.SpringBean;
+import org.projectforge.business.configuration.ConfigurationService;
 import org.projectforge.business.fibu.EmployeeDO;
+import org.projectforge.business.teamcal.admin.model.TeamCalDO;
 import org.projectforge.business.user.I18nHelper;
 import org.projectforge.business.vacation.model.VacationAttrProperty;
 import org.projectforge.business.vacation.model.VacationDO;
@@ -21,6 +25,7 @@ import org.projectforge.web.wicket.components.DatePanel;
 import org.projectforge.web.wicket.flowlayout.CheckBoxPanel;
 
 import com.vaynberg.wicket.select2.Select2Choice;
+import com.vaynberg.wicket.select2.Select2MultiChoice;
 
 public class VacationFormValidator implements IFormValidator
 {
@@ -35,6 +40,9 @@ public class VacationFormValidator implements IFormValidator
 
   private CheckBoxPanel isSpecialCheckbox;
 
+  @SpringBean
+  private ConfigurationService configService;
+
   public VacationFormValidator(VacationService vacationService, VacationDO data)
   {
     this.vacationService = vacationService;
@@ -48,6 +56,7 @@ public class VacationFormValidator implements IFormValidator
     final DatePanel endDatePanel = (DatePanel) dependentFormComponents[1];
     final DropDownChoice<VacationStatus> statusChoice = (DropDownChoice<VacationStatus>) dependentFormComponents[2];
     final Select2Choice<EmployeeDO> employeeSelect = (Select2Choice<EmployeeDO>) dependentFormComponents[3];
+    final Select2MultiChoice<TeamCalDO> calendars = (Select2MultiChoice<TeamCalDO>) dependentFormComponents[4];
 
     EmployeeDO employee = employeeSelect.getConvertedInput();
     if (employee == null) {
@@ -180,9 +189,13 @@ public class VacationFormValidator implements IFormValidator
         }
       }
     }
-
     if (enoughDaysLeft == false) {
       form.error(I18nHelper.getLocalizedMessage("vacation.validate.notEnoughVacationDaysLeft"));
+    }
+
+    Collection<TeamCalDO> convertedInput = calendars.getConvertedInput();
+    if (convertedInput.contains(configService.getVacationCalendar()) == false) {
+      form.error(I18nHelper.getLocalizedMessage("vacation.validate.noCalender", configService.getVacationCalendar()));
     }
   }
 
