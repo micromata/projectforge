@@ -164,7 +164,7 @@ public class VacationEditPage extends AbstractEditPage<VacationDO, VacationEditF
           case REJECTED:
           case IN_PROGRESS:
             // APPROVED -> NOT APPROVED
-            vacationService.deleteEventsForVacationCalendars(form.getData());
+            vacationService.markAsDeleteEventsForVacationCalendars(form.getData());
             break;
 
           default:
@@ -184,7 +184,7 @@ public class VacationEditPage extends AbstractEditPage<VacationDO, VacationEditF
     try {
       vacationService.deleteUsedVacationDaysFromLastYear(form.getData());
       vacationService.sendMailToVacationInvolved(form.getData(), false, true);
-      vacationService.deleteEventsForVacationCalendars(form.getData());
+      vacationService.markAsDeleteEventsForVacationCalendars(form.getData());
     } catch (final Exception e) {
       log.error("There is a exception in afterDelete: " + e.getMessage(), e);
       error(I18nHelper.getLocalizedMessage("vacation.error.sendmail"));

@@ -197,9 +197,12 @@ public class VacationFormValidator implements IFormValidator
       form.error(I18nHelper.getLocalizedMessage("vacation.validate.notEnoughVacationDaysLeft"));
     }
 
-    Collection<TeamCalDO> convertedInput = calendars.getConvertedInput();
-    if (convertedInput.contains(configService.getVacationCalendar()) == false) {
-      form.error(I18nHelper.getLocalizedMessage("vacation.validate.noCalender", configService.getVacationCalendar()));
+    //check Vacation Calender
+    if (configService.getVacationCalendar() != null) {
+      Collection<TeamCalDO> convertedInput = calendars.getConvertedInput();
+      if (convertedInput.contains(configService.getVacationCalendar()) == false) {
+        form.error(I18nHelper.getLocalizedMessage("vacation.validate.noCalender", configService.getVacationCalendar()));
+      }
     }
   }
 

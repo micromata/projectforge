@@ -217,7 +217,7 @@ public interface VacationService extends IPersistenceService<VacationDO>, IDao<V
    * @param vacation
    * @return
    */
-  void deleteEventsForVacationCalendars(VacationDO vacation);
+  void markAsDeleteEventsForVacationCalendars(VacationDO vacation);
 
   /**
    * Create CalenderEvents for apllication for leave
