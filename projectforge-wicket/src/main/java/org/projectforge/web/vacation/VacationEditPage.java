@@ -142,21 +142,23 @@ public class VacationEditPage extends AbstractEditPage<VacationDO, VacationEditF
       if (VacationStatus.APPROVED.equals(form.getData().getStatus())) {
         vacationService.createEventsForVacationCalendars(form.getData());
       }
-      if (form.getStatusBeforeModification() == VacationStatus.IN_PROGRESS) {
-        switch (form.getData().getStatus()) {
-          case APPROVED:
-            // IN_PROGRESS -> APPROVED
-            vacationService.updateUsedVacationDaysFromLastYear(form.getData());
-            vacationService.sendMailToEmployeeAndHR(form.getData(), true);
-            break;
+      if (form.getStatusBeforeModification() != null) {
+        if (form.getStatusBeforeModification() == VacationStatus.IN_PROGRESS) {
+          switch (form.getData().getStatus()) {
+            case APPROVED:
+              // IN_PROGRESS -> APPROVED
+              vacationService.updateUsedVacationDaysFromLastYear(form.getData());
+              vacationService.sendMailToEmployeeAndHR(form.getData(), true);
+              break;
 
-          case REJECTED:
-            // IN_PROGRESS -> REJECTED
-            vacationService.sendMailToEmployeeAndHR(form.getData(), false);
-            break;
+            case REJECTED:
+              // IN_PROGRESS -> REJECTED
+              vacationService.sendMailToEmployeeAndHR(form.getData(), false);
+              break;
 
-          default:
-            // nothing to do
+            default:
+              // nothing to do
+          }
         }
       }
       if (form.getStatusBeforeModification() == VacationStatus.APPROVED) {
@@ -165,6 +167,7 @@ public class VacationEditPage extends AbstractEditPage<VacationDO, VacationEditF
           case IN_PROGRESS:
             // APPROVED -> NOT APPROVED
             vacationService.markAsDeleteEventsForVacationCalendars(form.getData());
+            vacationService.deleteUsedVacationDaysFromLastYear(form.getData());
             break;
 
           default:
@@ -182,9 +185,11 @@ public class VacationEditPage extends AbstractEditPage<VacationDO, VacationEditF
   public WebPage afterDelete()
   {
     try {
-      vacationService.deleteUsedVacationDaysFromLastYear(form.getData());
-      vacationService.sendMailToVacationInvolved(form.getData(), false, true);
       vacationService.markAsDeleteEventsForVacationCalendars(form.getData());
+      if (VacationStatus.APPROVED.equals(form.getData().getStatus())) {
+        vacationService.deleteUsedVacationDaysFromLastYear(form.getData());
+        vacationService.sendMailToVacationInvolved(form.getData(), false, true);
+      }
     } catch (final Exception e) {
       log.error("There is a exception in afterDelete: " + e.getMessage(), e);
       error(I18nHelper.getLocalizedMessage("vacation.error.sendmail"));
@@ -195,9 +200,13 @@ public class VacationEditPage extends AbstractEditPage<VacationDO, VacationEditF
   public WebPage afterUndelete()
   {
     try {
-      vacationService.updateUsedVacationDaysFromLastYear(form.getData());
-      vacationService.sendMailToVacationInvolved(form.getData(), false, false);
-      vacationService.createEventsForVacationCalendars(form.getData());
+      if (VacationStatus.APPROVED.equals(form.getData().getStatus())) {
+        vacationService.updateUsedVacationDaysFromLastYear(form.getData());
+        vacationService.sendMailToEmployeeAndHR(form.getData(), true);
+        vacationService.createEventsForVacationCalendars(form.getData());
+      } else {
+        vacationService.sendMailToVacationInvolved(form.getData(), false, false);
+      }
     } catch (final Exception e) {
       log.error("There is a exception in afterUndelete: " + e.getMessage(), e);
       error(I18nHelper.getLocalizedMessage("vacation.error.sendmail"));
