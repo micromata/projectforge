@@ -131,18 +131,30 @@ public class VacationEditPage extends AbstractEditPage<VacationDO, VacationEditF
     try {
       if (wasNew) {
         vacationService.sendMailToVacationInvolved(form.getData(), true, false);
-      } else {
-        if (VacationStatus.IN_PROGRESS.equals(form.getData().getStatus())) {
-          vacationService.sendMailToVacationInvolved(form.getData(), false, false);
-        }
+      } else if (VacationStatus.IN_PROGRESS == form.getData().getStatus()) {
+        vacationService.sendMailToVacationInvolved(form.getData(), false, false);
       }
       if (form.getStatusBeforeModification() != null) {
-        if (form.getStatusBeforeModification().equals(VacationStatus.IN_PROGRESS) && VacationStatus.APPROVED.equals(form.getData().getStatus())) {
-          vacationService.updateUsedVacationDaysFromLastYear(form.getData());
-          vacationService.sendMailToEmployeeAndHR(form.getData(), true);
-        } else if (form.getStatusBeforeModification().equals(VacationStatus.APPROVED) && (VacationStatus.REJECTED.equals(form.getData().getStatus())
+        if (form.getStatusBeforeModification().equals(VacationStatus.APPROVED) && (VacationStatus.REJECTED.equals(form.getData().getStatus())
             || VacationStatus.IN_PROGRESS.equals(form.getData().getStatus()))) {
           vacationService.deleteUsedVacationDaysFromLastYear(form.getData());
+        }
+        if (form.getStatusBeforeModification() == VacationStatus.IN_PROGRESS) {
+          switch (form.getData().getStatus()) {
+            case APPROVED:
+              // IN_PROGRESS -> APPROVED
+              vacationService.updateUsedVacationDaysFromLastYear(form.getData());
+              vacationService.sendMailToEmployeeAndHR(form.getData(), true);
+              break;
+
+            case REJECTED:
+              // IN_PROGRESS -> REJECTED
+              vacationService.sendMailToEmployeeAndHR(form.getData(), false);
+              break;
+
+            default:
+              // nothing to do
+          }
         }
       }
     } catch (final Exception e) {

@@ -10,6 +10,7 @@ import java.util.Set;
 
 import org.projectforge.business.fibu.EmployeeDO;
 import org.projectforge.business.fibu.EmployeeDao;
+import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.persistence.history.DisplayHistoryEntry;
 import org.projectforge.framework.persistence.jpa.impl.CorePersistenceServiceImpl;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
@@ -62,6 +63,12 @@ public class FFPEventServiceImpl extends CorePersistenceServiceImpl<Integer, FFP
   }
 
   @Override
+  public boolean hasInsertAccess(PFUserDO user)
+  {
+    return true;
+  }
+
+  @Override
   public boolean hasDeleteAccess(PFUserDO user, FFPEventDO obj, FFPEventDO dbObj, boolean throwException)
   {
     return eventDao.hasDeleteAccess(user, obj, dbObj, throwException);
@@ -101,6 +108,12 @@ public class FFPEventServiceImpl extends CorePersistenceServiceImpl<Integer, FFP
   public FFPDebtDao getDebtDao()
   {
     return debtDao;
+  }
+
+  @Override
+  public List<FFPEventDO> getList(BaseSearchFilter filter)
+  {
+    return eventDao.getList(filter);
   }
 
   public List<FFPDebtDO> calculateDebt(FFPEventDO event)

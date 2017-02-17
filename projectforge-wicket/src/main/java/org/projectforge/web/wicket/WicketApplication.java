@@ -52,6 +52,8 @@ import org.apache.wicket.request.resource.PackageResourceReference;
 import org.apache.wicket.resource.loader.BundleStringResourceLoader;
 import org.apache.wicket.spring.injection.annot.SpringComponentInjector;
 import org.apache.wicket.util.lang.Bytes;
+import org.apache.wicket.util.time.Duration;
+import org.projectforge.Const;
 import org.projectforge.ProjectForgeApp;
 import org.projectforge.business.configuration.ConfigurationService;
 import org.projectforge.business.ldap.LdapMasterLoginHandler;
@@ -352,6 +354,8 @@ public class WicketApplication extends WebApplication implements WicketApplicati
     // getSessionSettings().setMaxPageMaps(20); // Map up to 20 pages per session (default is 5).
     getComponentInstantiationListeners().add(new SpringComponentInjector(this));
     getApplicationSettings().setInternalErrorPage(ErrorPage.class);
+    getRequestCycleSettings().setTimeout(Duration.minutes(Const.WICKET_REQUEST_TIMEOUT_MINUTES));
+
     // getRequestCycleSettings().setGatherExtendedBrowserInfo(true); // For getting browser width and height.
 
     // Select2:

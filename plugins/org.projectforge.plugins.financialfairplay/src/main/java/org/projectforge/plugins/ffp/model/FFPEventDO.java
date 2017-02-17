@@ -26,6 +26,7 @@ import org.hibernate.search.annotations.Resolution;
 import org.projectforge.business.fibu.EmployeeDO;
 import org.projectforge.business.user.I18nHelper;
 import org.projectforge.common.anots.PropertyInfo;
+import org.projectforge.framework.persistence.api.AUserRightId;
 import org.projectforge.framework.persistence.api.PFPersistancyBehavior;
 import org.projectforge.framework.persistence.entities.DefaultBaseDO;
 
@@ -34,6 +35,7 @@ import de.micromata.genome.db.jpa.history.api.WithHistory;
 @Entity
 @Table(name = "T_PLUGIN_FINANCIALFAIRPLAY_EVENT")
 @WithHistory
+@AUserRightId(value = "FFP_EVENT", checkAccess = false)
 public class FFPEventDO extends DefaultBaseDO
 {
   private static final long serialVersionUID = 1579119768006685087L;

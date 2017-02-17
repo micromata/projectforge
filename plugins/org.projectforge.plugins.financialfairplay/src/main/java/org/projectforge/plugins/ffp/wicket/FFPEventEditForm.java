@@ -401,10 +401,11 @@ public class FFPEventEditForm extends AbstractEditForm<FFPEventDO, FFPEventEditP
       public void populateItem(Item<ICellPopulator<FFPAccountingDO>> item, String componentId,
           IModel<FFPAccountingDO> rowModel)
       {
-        InputPanel input = new InputPanel(componentId,
-            new MinMaxNumberField<BigDecimal>(InputPanel.WICKET_ID,
-                new PropertyModel<>(rowModel.getObject(), "value"),
-                new BigDecimal(0), new BigDecimal(Integer.MAX_VALUE)));
+        MinMaxNumberField<BigDecimal> field = new MinMaxNumberField<BigDecimal>(InputPanel.WICKET_ID,
+            new PropertyModel<>(rowModel.getObject(), "value"),
+            new BigDecimal(0), new BigDecimal(Integer.MAX_VALUE));
+        field.setRequired(true);
+        InputPanel input = new InputPanel(componentId, field);
         input.setEnabled(rowModel.getObject().getEvent().getFinished() == false);
         item.add(input);
       }
@@ -418,10 +419,11 @@ public class FFPEventEditForm extends AbstractEditForm<FFPEventDO, FFPEventEditP
       public void populateItem(Item<ICellPopulator<FFPAccountingDO>> item, String componentId,
           IModel<FFPAccountingDO> rowModel)
       {
-        InputPanel input = new InputPanel(componentId,
-            new MinMaxNumberField<BigDecimal>(InputPanel.WICKET_ID,
-                new PropertyModel<>(rowModel.getObject(), "weighting"),
-                new BigDecimal(0), new BigDecimal(Integer.MAX_VALUE)));
+        MinMaxNumberField field = new MinMaxNumberField<BigDecimal>(InputPanel.WICKET_ID,
+            new PropertyModel<>(rowModel.getObject(), "weighting"),
+            new BigDecimal(0), new BigDecimal(Integer.MAX_VALUE));
+        field.setRequired(true);
+        InputPanel input = new InputPanel(componentId, field);
         input.setEnabled(rowModel.getObject().getEvent().getFinished() == false);
         item.add(input);
       }
@@ -437,7 +439,7 @@ public class FFPEventEditForm extends AbstractEditForm<FFPEventDO, FFPEventEditP
       {
         InputPanel input = new InputPanel(componentId,
             new MaxLengthTextField(InputPanel.WICKET_ID,
-                new PropertyModel<>(rowModel.getObject(), "comment"), 2000));
+                new PropertyModel<>(rowModel.getObject(), "comment")));
         input.setEnabled(rowModel.getObject().getEvent().getFinished() == false);
         item.add(input);
       }

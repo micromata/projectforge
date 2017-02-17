@@ -32,6 +32,7 @@ import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.ResourceModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.fibu.EmployeeDO;
@@ -42,6 +43,7 @@ import org.projectforge.export.DOGetterListExcelExporter;
 import org.projectforge.web.fibu.ISelectCallerPage;
 import org.projectforge.web.wicket.AbstractListPage;
 import org.projectforge.web.wicket.CellItemListener;
+import org.projectforge.web.wicket.CellItemListenerLambdaColumn;
 import org.projectforge.web.wicket.CellItemListenerPropertyColumn;
 import org.projectforge.web.wicket.IListPageColumnsCreator;
 import org.projectforge.web.wicket.ListPage;
@@ -71,7 +73,7 @@ public class VacationListPage extends AbstractListPage<VacationListForm, Vacatio
   @SuppressWarnings("serial")
   public List<IColumn<VacationDO, String>> createColumns(final WebPage returnToPage, final boolean sortable)
   {
-    final List<IColumn<VacationDO, String>> columns = new ArrayList<IColumn<VacationDO, String>>();
+    final List<IColumn<VacationDO, String>> columns = new ArrayList<>();
 
     final CellItemListener<VacationDO> cellItemListener = new CellItemListener<VacationDO>()
     {
@@ -83,6 +85,7 @@ public class VacationListPage extends AbstractListPage<VacationListForm, Vacatio
         appendCssClasses(item, vacation.getId(), vacation.isDeleted());
       }
     };
+
     columns.add(new CellItemListenerPropertyColumn<VacationDO>(VacationDO.class,
         getSortable("employee", sortable),
         "employee", cellItemListener)
@@ -129,9 +132,10 @@ public class VacationListPage extends AbstractListPage<VacationListForm, Vacatio
             "status",
             cellItemListener));
 
-    columns
-        .add(new CellItemListenerPropertyColumn<VacationDO>(VacationDO.class, "workingdays", "workingdays",
-            cellItemListener));
+    columns.add(new CellItemListenerLambdaColumn<>(new ResourceModel("vacation.workingdays"),
+        rowModel -> vacationService.getVacationDays(rowModel.getObject()),
+        cellItemListener)
+    );
 
     columns
         .add(new CellItemListenerPropertyColumn<VacationDO>(VacationDO.class, "isSpecial", "isSpecial",
