@@ -11,7 +11,6 @@ import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.form.validation.IFormValidator;
-import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.configuration.ConfigurationService;
 import org.projectforge.business.fibu.EmployeeDO;
 import org.projectforge.business.teamcal.admin.model.TeamCalDO;
@@ -31,17 +30,17 @@ public class VacationFormValidator implements IFormValidator
   private static final long serialVersionUID = -8478416045860851983L;
 
   // Components for form validation.
-  private final FormComponent<?>[] dependentFormComponents = new FormComponent[6];
+  private final FormComponent<?>[] dependentFormComponents = new FormComponent[7];
 
   private final VacationService vacationService;
 
   private final VacationDO data;
 
-  @SpringBean
   private ConfigurationService configService;
 
-  public VacationFormValidator(VacationService vacationService, VacationDO data)
+  public VacationFormValidator(VacationService vacationService, VacationDO data, ConfigurationService configService)
   {
+    this.configService = configService;
     this.vacationService = vacationService;
     this.data = data;
   }
@@ -201,7 +200,7 @@ public class VacationFormValidator implements IFormValidator
     if (configService.getVacationCalendar() != null) {
       Collection<TeamCalDO> convertedInput = calendars.getConvertedInput();
       if (convertedInput.contains(configService.getVacationCalendar()) == false) {
-        form.error(I18nHelper.getLocalizedMessage("vacation.validate.noCalender", configService.getVacationCalendar()));
+        form.error(I18nHelper.getLocalizedMessage("vacation.validate.noCalender", configService.getVacationCalendar().getTitle()));
       }
     }
   }

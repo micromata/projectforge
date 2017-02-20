@@ -230,4 +230,12 @@ public class VacationDao extends BaseDao<VacationDO>
       return null;
     });
   }
+
+  public void unDeleteVacationCalendarDO(VacationCalendarDO obj)
+  {
+    emgrFactory.runInTrans(emgr -> {
+      emgr.markUndeleted(obj);
+      return null;
+    });
+  }
 }

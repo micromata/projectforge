@@ -58,6 +58,7 @@ import org.projectforge.business.teamcal.admin.model.TeamCalDO;
 import org.projectforge.business.teamcal.event.TeamEventRecurrenceData;
 import org.projectforge.business.teamcal.service.TeamCalServiceImpl;
 import org.projectforge.framework.calendar.ICal4JUtils;
+import org.projectforge.framework.persistence.api.AUserRightId;
 import org.projectforge.framework.persistence.api.Constants;
 import org.projectforge.framework.persistence.api.PFPersistancyBehavior;
 import org.projectforge.framework.persistence.entities.DefaultBaseDO;
@@ -102,6 +103,7 @@ import net.fortuna.ical4j.model.property.RRule;
         @javax.persistence.Index(name = "idx_plugin_team_cal_time", columnList = "calendar_fk, start_date, end_date")
     })
 @WithHistory(noHistoryProperties = { "lastUpdate", "created" }, nestedEntities = { TeamEventAttendeeDO.class })
+@AUserRightId(value = "PLUGIN_CALENDAR_EVENT")
 public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
 {
   private static final long serialVersionUID = -9205582135590380919L;

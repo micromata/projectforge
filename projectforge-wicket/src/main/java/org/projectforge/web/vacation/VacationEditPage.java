@@ -164,6 +164,11 @@ public class VacationEditPage extends AbstractEditPage<VacationDO, VacationEditF
       if (form.getStatusBeforeModification() == VacationStatus.APPROVED) {
         switch (form.getData().getStatus()) {
           case REJECTED:
+            // APPROVED -> NOT APPROVED
+            vacationService.markAsDeleteEventsForVacationCalendars(form.getData());
+            vacationService.deleteUsedVacationDaysFromLastYear(form.getData());
+            break;
+
           case IN_PROGRESS:
             // APPROVED -> NOT APPROVED
             vacationService.markAsDeleteEventsForVacationCalendars(form.getData());
@@ -185,8 +190,8 @@ public class VacationEditPage extends AbstractEditPage<VacationDO, VacationEditF
   public WebPage afterDelete()
   {
     try {
-      vacationService.markAsDeleteEventsForVacationCalendars(form.getData());
       if (VacationStatus.APPROVED.equals(form.getData().getStatus())) {
+        vacationService.markAsDeleteEventsForVacationCalendars(form.getData());
         vacationService.deleteUsedVacationDaysFromLastYear(form.getData());
         vacationService.sendMailToVacationInvolved(form.getData(), false, true);
       }
@@ -200,6 +205,7 @@ public class VacationEditPage extends AbstractEditPage<VacationDO, VacationEditF
   public WebPage afterUndelete()
   {
     try {
+      vacationService.markAsUnDeleteEventsForVacationCalendars(form.getData());
       if (VacationStatus.APPROVED.equals(form.getData().getStatus())) {
         vacationService.updateUsedVacationDaysFromLastYear(form.getData());
         vacationService.sendMailToEmployeeAndHR(form.getData(), true);

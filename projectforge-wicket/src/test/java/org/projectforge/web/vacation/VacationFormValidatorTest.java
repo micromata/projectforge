@@ -17,6 +17,7 @@ import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.Form;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.testng.PowerMockTestCase;
+import org.projectforge.business.configuration.ConfigurationServiceImpl;
 import org.projectforge.business.fibu.EmployeeDO;
 import org.projectforge.business.vacation.model.VacationAttrProperty;
 import org.projectforge.business.vacation.model.VacationDO;
@@ -247,7 +248,7 @@ public class VacationFormValidatorTest extends PowerMockTestCase
 
   private VacationFormValidator createValidator()
   {
-    final VacationFormValidator validator = new VacationFormValidator(vacationService, new VacationDO());
+    final VacationFormValidator validator = new VacationFormValidator(vacationService, new VacationDO(), new ConfigurationServiceImpl());
 
     validator.getDependentFormComponents()[0] = startDatePanel;
     validator.getDependentFormComponents()[1] = endDatePanel;
