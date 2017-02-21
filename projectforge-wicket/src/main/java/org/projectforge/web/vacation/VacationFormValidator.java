@@ -196,6 +196,11 @@ public class VacationFormValidator implements IFormValidator
       form.error(I18nHelper.getLocalizedMessage("vacation.validate.notEnoughVacationDaysLeft"));
     }
 
+    //vacationdays < 0.5 days
+    if (vacationService.getVacationDays(startDate.getTime(), endDate.getTime(), isOn(isHalfDayCheckbox)).compareTo(new BigDecimal(0.5)) <= 0) {
+      form.error(I18nHelper.getLocalizedMessage("vacation.validate.daysarenull"));
+    }
+
     //check Vacation Calender
     if (configService.getVacationCalendar() != null) {
       Collection<TeamCalDO> convertedInput = calendars.getConvertedInput();

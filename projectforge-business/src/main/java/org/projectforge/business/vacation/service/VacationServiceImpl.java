@@ -9,6 +9,7 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 
+import org.apache.log4j.Logger;
 import org.apache.commons.lang.StringUtils;
 import org.projectforge.business.configuration.ConfigurationService;
 import org.projectforge.business.fibu.EmployeeDO;
@@ -24,7 +25,6 @@ import org.projectforge.business.vacation.model.VacationDO;
 import org.projectforge.business.vacation.model.VacationStatus;
 import org.projectforge.business.vacation.repository.VacationDao;
 import org.projectforge.framework.access.AccessException;
-import org.projectforge.framework.i18n.UserException;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.persistence.history.DisplayHistoryEntry;
 import org.projectforge.framework.persistence.jpa.impl.CorePersistenceServiceImpl;
@@ -46,6 +46,8 @@ import org.springframework.stereotype.Service;
 public class VacationServiceImpl extends CorePersistenceServiceImpl<Integer, VacationDO>
     implements VacationService
 {
+  private static final Logger log = Logger.getLogger(VacationServiceImpl.class);
+
   @Autowired
   private VacationDao vacationDao;
 
@@ -145,12 +147,8 @@ public class VacationServiceImpl extends CorePersistenceServiceImpl<Integer, Vac
     final String vacationEndDate = dateFormatter.getFormattedDate(vacationData.getEndDate());
     final String periodText = I18nHelper.getLocalizedMessage(periodI18nKey, vacationStartDate, vacationEndDate);
 
-    if (approved) {
+    if (approved && configService.getHREmailadress() != null) {
       //Send mail to HR (employee in copy)
-      if (configService.getHREmailadress() == null) {
-        throw new UserException("HR email address not configured!");
-      }
-
       final String subject = I18nHelper.getLocalizedMessage("vacation.mail.subject", employeeFullName);
       final String content = I18nHelper
           .getLocalizedMessage("vacation.mail.hr.approved", employeeFullName, periodText, substitutionFullName, managerFullName, urlOfVacationEditPage);
@@ -161,7 +159,6 @@ public class VacationServiceImpl extends CorePersistenceServiceImpl<Integer, Vac
           vacationData.getEmployee().getUser()
       );
     }
-
     //Send mail to substitution (employee in copy)
     final String subject = I18nHelper.getLocalizedMessage("vacation.mail.subject.edit", employeeFullName);
     final String i18nKey = approved ? "vacation.mail.employee.approved" : "vacation.mail.employee.declined";

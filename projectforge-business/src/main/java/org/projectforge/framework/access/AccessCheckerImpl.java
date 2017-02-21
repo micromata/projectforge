@@ -446,7 +446,7 @@ public class AccessCheckerImpl implements AccessChecker, Serializable
           result = ((UserRightAccessCheck) right).hasUpdateAccess(user, obj, oldObj);
           break;
         case DELETE:
-          result = ((UserRightAccessCheck) right).hasDeleteAccess(user, obj);
+          result = ((UserRightAccessCheck) right).hasDeleteAccess(user, obj, oldObj);
           break;
         default:
           throw new UnsupportedOperationException("Oups, value not supported for OperationType: " + operationType);
