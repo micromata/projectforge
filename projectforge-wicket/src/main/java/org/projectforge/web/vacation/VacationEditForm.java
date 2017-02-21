@@ -24,9 +24,11 @@
 package org.projectforge.web.vacation;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.List;
 
 import org.apache.log4j.Logger;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -326,10 +328,14 @@ public class VacationEditForm extends AbstractEditForm<VacationDO, VacationEditP
         }
       }
 
+      List<TeamCalDO> vacationCalendarList = new ArrayList<>();
+      if(vacationCalendar != null) {
+        vacationCalendarList.add(vacationCalendar);
+      }
       final Select2MultiChoice<TeamCalDO> calendars = new Select2MultiChoice<TeamCalDO>(
           fieldSet.getSelect2MultiChoiceId(),
           new PropertyModel<Collection<TeamCalDO>>(assignCalendarListHelper, "assignedItems"),
-          new TeamCalsProvider(teamCalCache));
+          new TeamCalsProvider(teamCalCache, vacationCalendarList));
       calendars.setMarkupId("calenders").setOutputMarkupId(true);
       calendars.setEnabled(checkEnableInputField());
       formValidator.getDependentFormComponents()[6] = calendars;
