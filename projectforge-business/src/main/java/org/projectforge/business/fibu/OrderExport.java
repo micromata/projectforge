@@ -125,7 +125,7 @@ public class OrderExport
     mapping.add(OrderCol.SALESMANAGER, order.getSalesManager() != null ? order.getSalesManager().getFullname() : "");
     final BigDecimal netSum = order.getNettoSumme() != null ? order.getNettoSumme() : BigDecimal.ZERO;
     final BigDecimal invoicedSum = order.getFakturiertSum() != null ? order.getFakturiertSum() : BigDecimal.ZERO;
-    final BigDecimal toBeInvoicedSum = netSum.subtract(invoicedSum);
+    final BigDecimal toBeInvoicedSum = order.getZuFakturierenSum();
     mapping.add(OrderCol.NETSUM, netSum);
     addCurrency(mapping, OrderCol.INVOICED, invoicedSum);
     addCurrency(mapping, OrderCol.TO_BE_INVOICED, toBeInvoicedSum);
@@ -192,7 +192,13 @@ public class OrderExport
     mapping.add(PosCol.PERSON_DAYS, pos.getPersonDays());
     final BigDecimal netSum = pos.getNettoSumme() != null ? pos.getNettoSumme() : BigDecimal.ZERO;
     final BigDecimal invoicedSum = pos.getFakturiertSum() != null ? pos.getFakturiertSum() : BigDecimal.ZERO;
-    final BigDecimal toBeInvoicedSum = netSum.subtract(invoicedSum);
+    BigDecimal toBeInvoicedSum = netSum.subtract(invoicedSum);
+    if (pos.getStatus() != null) {
+      if (pos.getStatus().equals(AuftragsPositionsStatus.ABGELEHNT) || pos.getStatus().equals(AuftragsPositionsStatus.ERSETZT) || pos.getStatus()
+          .equals(AuftragsPositionsStatus.OPTIONAL)) {
+        toBeInvoicedSum = BigDecimal.ZERO;
+      }
+    }
     mapping.add(PosCol.NETSUM, netSum);
     addCurrency(mapping, PosCol.INVOICED, invoicedSum);
     addCurrency(mapping, PosCol.TO_BE_INVOICED, toBeInvoicedSum);
