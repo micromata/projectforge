@@ -172,7 +172,8 @@ public class FFPEventEditForm extends AbstractEditForm<FFPEventDO, FFPEventEditP
     {
       // Event date
       final FieldsetPanel fs = gridBuilder.newFieldset(FFPEventDO.class, "eventDate");
-      DatePanel eventDate = new DatePanel(fs.newChildId(), new PropertyModel<>(data, "eventDate"), new DatePanelSettings());
+      DatePanel eventDate = new DatePanel(fs.newChildId(), new PropertyModel<>(data, "eventDate"),
+          DatePanelSettings.get().withTargetType(java.sql.Date.class), true);
       eventDate.setRequired(true);
       eventDate.setMarkupId("eventDate").setOutputMarkupId(true);
       eventDate.setEnabled(getData().getFinished() == false);
@@ -400,10 +401,11 @@ public class FFPEventEditForm extends AbstractEditForm<FFPEventDO, FFPEventEditP
       public void populateItem(Item<ICellPopulator<FFPAccountingDO>> item, String componentId,
           IModel<FFPAccountingDO> rowModel)
       {
-        InputPanel input = new InputPanel(componentId,
-            new MinMaxNumberField<BigDecimal>(InputPanel.WICKET_ID,
-                new PropertyModel<>(rowModel.getObject(), "value"),
-                new BigDecimal(0), new BigDecimal(Integer.MAX_VALUE)));
+        MinMaxNumberField<BigDecimal> field = new MinMaxNumberField<BigDecimal>(InputPanel.WICKET_ID,
+            new PropertyModel<>(rowModel.getObject(), "value"),
+            new BigDecimal(0), new BigDecimal(Integer.MAX_VALUE));
+        field.setRequired(true);
+        InputPanel input = new InputPanel(componentId, field);
         input.setEnabled(rowModel.getObject().getEvent().getFinished() == false);
         item.add(input);
       }
@@ -417,10 +419,27 @@ public class FFPEventEditForm extends AbstractEditForm<FFPEventDO, FFPEventEditP
       public void populateItem(Item<ICellPopulator<FFPAccountingDO>> item, String componentId,
           IModel<FFPAccountingDO> rowModel)
       {
+        MinMaxNumberField field = new MinMaxNumberField<BigDecimal>(InputPanel.WICKET_ID,
+            new PropertyModel<>(rowModel.getObject(), "weighting"),
+            new BigDecimal(0), new BigDecimal(Integer.MAX_VALUE));
+        field.setRequired(true);
+        InputPanel input = new InputPanel(componentId, field);
+        input.setEnabled(rowModel.getObject().getEvent().getFinished() == false);
+        item.add(input);
+      }
+
+    });
+    columns.add(new CellItemListenerPropertyColumn<FFPAccountingDO>(FFPAccountingDO.class, "plugins.ffp.comment", "comment", null)
+    {
+      private static final long serialVersionUID = 367295012323610620L;
+
+      @Override
+      public void populateItem(Item<ICellPopulator<FFPAccountingDO>> item, String componentId,
+          IModel<FFPAccountingDO> rowModel)
+      {
         InputPanel input = new InputPanel(componentId,
-            new MinMaxNumberField<BigDecimal>(InputPanel.WICKET_ID,
-                new PropertyModel<>(rowModel.getObject(), "weighting"),
-                new BigDecimal(0), new BigDecimal(Integer.MAX_VALUE)));
+            new MaxLengthTextField(InputPanel.WICKET_ID,
+                new PropertyModel<>(rowModel.getObject(), "comment")));
         input.setEnabled(rowModel.getObject().getEvent().getFinished() == false);
         item.add(input);
       }

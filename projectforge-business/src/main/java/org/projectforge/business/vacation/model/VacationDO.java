@@ -23,7 +23,6 @@
 
 package org.projectforge.business.vacation.model;
 
-import java.math.BigDecimal;
 import java.util.Date;
 
 import javax.persistence.Column;
@@ -45,7 +44,6 @@ import org.projectforge.common.anots.PropertyInfo;
 import org.projectforge.framework.persistence.api.AUserRightId;
 import org.projectforge.framework.persistence.entities.DefaultBaseDO;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
-import org.projectforge.framework.time.DayHolder;
 
 /**
  * Repräsentiert einen Urlaub. Ein Urlaub ist einem ProjectForge-Mitarbeiter zugeordnet und enthält buchhalterische
@@ -86,9 +84,6 @@ public class VacationDO extends DefaultBaseDO
   @PropertyInfo(i18nKey = "vacation.status")
   private VacationStatus status;
 
-  @PropertyInfo(i18nKey = "vacation.workingdays")
-  private BigDecimal workingdays;
-
   //TODO FB: Wird leider nur über dem Feld ausgewertewt und nicht an der Methode.
   //Feld wird eigentlich nicht benötigt
   @PropertyInfo(i18nKey = "vacation.vacationmode")
@@ -96,6 +91,9 @@ public class VacationDO extends DefaultBaseDO
 
   @PropertyInfo(i18nKey = "vacation.isSpecial")
   private Boolean isSpecial;
+
+  @PropertyInfo(i18nKey = "vacation.isHalfDay")
+  private Boolean halfDay;
 
   /**
    * The employee.
@@ -197,15 +195,6 @@ public class VacationDO extends DefaultBaseDO
   }
 
   @Transient
-  public BigDecimal getWorkingdays()
-  {
-    if (this.workingdays == null) {
-      this.workingdays = DayHolder.getNumberOfWorkingDays(startDate, endDate);
-    }
-    return this.workingdays;
-  }
-
-  @Transient
   public VacationMode getVacationmode()
   {
     if (ThreadLocalUserContext.getUser().getPk().equals(employee.getUser().getPk())) {
@@ -229,5 +218,16 @@ public class VacationDO extends DefaultBaseDO
   public void setIsSpecial(Boolean special)
   {
     isSpecial = special;
+  }
+
+  @Column(name = "is_half_day")
+  public Boolean getHalfDay()
+  {
+    return halfDay;
+  }
+
+  public void setHalfDay(final Boolean halfDay)
+  {
+    this.halfDay = halfDay;
   }
 }

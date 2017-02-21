@@ -29,7 +29,6 @@ import org.apache.log4j.Logger;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.plugins.ffp.model.FFPEventDO;
-import org.projectforge.plugins.ffp.repository.FFPEventDao;
 import org.projectforge.plugins.ffp.repository.FFPEventService;
 import org.projectforge.web.fibu.ISelectCallerPage;
 import org.projectforge.web.wicket.AbstractEditPage;
@@ -37,7 +36,7 @@ import org.projectforge.web.wicket.AbstractSecuredBasePage;
 import org.projectforge.web.wicket.EditPage;
 
 @EditPage(defaultReturnPage = FFPEventListPage.class)
-public class FFPEventEditPage extends AbstractEditPage<FFPEventDO, FFPEventEditForm, FFPEventDao>
+public class FFPEventEditPage extends AbstractEditPage<FFPEventDO, FFPEventEditForm, FFPEventService>
     implements ISelectCallerPage
 {
   private static final long serialVersionUID = -3899191243765232906L;
@@ -105,9 +104,9 @@ public class FFPEventEditPage extends AbstractEditPage<FFPEventDO, FFPEventEditF
   }
 
   @Override
-  protected FFPEventDao getBaseDao()
+  protected FFPEventService getBaseDao()
   {
-    return eventService.getEventDao();
+    return eventService;
   }
 
   @Override

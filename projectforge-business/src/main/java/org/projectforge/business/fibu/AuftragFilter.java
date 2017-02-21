@@ -28,9 +28,12 @@ import java.io.Serializable;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 
+import com.thoughtworks.xstream.annotations.XStreamAlias;
+
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
+@XStreamAlias("AuftragFilter")
 public class AuftragFilter extends BaseSearchFilter implements Serializable
 {
   private static final long serialVersionUID = 3456000966109255447L;
@@ -188,5 +191,15 @@ public class AuftragFilter extends BaseSearchFilter implements Serializable
   public void setAuftragsPositionsPaymentType(final AuftragsPositionsPaymentType auftragsPositionsPaymentType)
   {
     this.auftragsPositionsPaymentType = auftragsPositionsPaymentType;
+  }
+
+  @Override
+  public AuftragFilter reset()
+  {
+    year = -1;
+    searchString = "";
+    setAuftragsPositionsArt(null);
+    setListType(AuftragFilter.FILTER_ALL);
+    return this;
   }
 }

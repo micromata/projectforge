@@ -37,7 +37,7 @@ import org.apache.wicket.model.ResourceModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.plugins.ffp.model.FFPEventDO;
-import org.projectforge.plugins.ffp.repository.FFPEventDao;
+import org.projectforge.plugins.ffp.repository.FFPEventService;
 import org.projectforge.web.wicket.AbstractListPage;
 import org.projectforge.web.wicket.CellItemListener;
 import org.projectforge.web.wicket.CellItemListenerPropertyColumn;
@@ -46,13 +46,13 @@ import org.projectforge.web.wicket.ListPage;
 import org.projectforge.web.wicket.ListSelectActionPanel;
 
 @ListPage(editPage = FFPEventEditPage.class)
-public class FFPEventListPage extends AbstractListPage<FFPEventListForm, FFPEventDao, FFPEventDO> implements
+public class FFPEventListPage extends AbstractListPage<FFPEventListForm, FFPEventService, FFPEventDO> implements
     IListPageColumnsCreator<FFPEventDO>
 {
   private static final long serialVersionUID = -8406452960003792763L;
 
   @SpringBean
-  private FFPEventDao eventDao;
+  private FFPEventService eventService;
 
   public FFPEventListPage(final PageParameters parameters)
   {
@@ -102,10 +102,13 @@ public class FFPEventListPage extends AbstractListPage<FFPEventListForm, FFPEven
                   event.getTitle()));
         }
         cellItemListener.populateItem(item, componentId, rowModel);
-        item.add(AttributeModifier.replace("style", "width: 90%"));
+        item.add(AttributeModifier.replace("style", "width: 50%"));
         addRowClick(item);
       }
     });
+
+    columns.add(new CellItemListenerPropertyColumn<FFPEventDO>(new ResourceModel("plugins.ffp.status"),
+        getSortable("status", sortable), "status", cellItemListener));
 
     return columns;
   }
@@ -125,13 +128,9 @@ public class FFPEventListPage extends AbstractListPage<FFPEventListForm, FFPEven
   }
 
   @Override
-  public FFPEventDao getBaseDao()
+  public FFPEventService getBaseDao()
   {
-    return eventDao;
+    return eventService;
   }
 
-  protected FFPEventDao getEmployeeDao()
-  {
-    return eventDao;
-  }
 }
