@@ -106,7 +106,7 @@ public class ToDoRight extends UserRightAccessCheck<ToDoDO>
    *      java.lang.Object)
    */
   @Override
-  public boolean hasDeleteAccess(final PFUserDO user, final ToDoDO obj)
+  public boolean hasDeleteAccess(final PFUserDO user, final ToDoDO obj, final ToDoDO oldObj)
   {
     return hasAccess(user, obj, OperationType.DELETE);
   }
