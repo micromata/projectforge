@@ -10,6 +10,8 @@ import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.form.validation.IFormValidator;
+import org.apache.wicket.spring.injection.annot.SpringBean;
+import org.projectforge.business.configuration.ConfigurationService;
 import org.projectforge.business.fibu.EmployeeDO;
 import org.projectforge.business.user.I18nHelper;
 import org.projectforge.business.vacation.model.VacationAttrProperty;
@@ -31,6 +33,9 @@ public class VacationFormValidator implements IFormValidator
   private final VacationService vacationService;
 
   private final VacationDO data;
+
+  @SpringBean
+  private ConfigurationService configService;
 
   public VacationFormValidator(VacationService vacationService, VacationDO data)
   {
@@ -187,6 +192,11 @@ public class VacationFormValidator implements IFormValidator
 
     if (enoughDaysLeft == false) {
       form.error(I18nHelper.getLocalizedMessage("vacation.validate.notEnoughVacationDaysLeft"));
+    }
+
+    //vacationdays < 0.5 days
+    if (vacationService.getVacationDays(data.getStartDate(), data.getEndDate(), data.getHalfDay()).compareTo(BigDecimal.ONE) <= 0) {
+      form.error(I18nHelper.getLocalizedMessage("vacation.validate.daysarenull"));
     }
   }
 

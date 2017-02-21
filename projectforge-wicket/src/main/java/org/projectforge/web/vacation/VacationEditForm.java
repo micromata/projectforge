@@ -248,6 +248,7 @@ public class VacationEditForm extends AbstractEditForm<VacationDO, VacationEditP
       neededVacationDaysPanel.setMarkupId("vacation-neededVacationDays").setOutputMarkupId(true);
       this.neededVacationDaysLabel = neededVacationDaysPanel.getLabel();
       this.neededVacationDaysLabel.setOutputMarkupId(true);
+
       neededVacationDaysFs.add(neededVacationDaysPanel);
     }
 
