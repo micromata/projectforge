@@ -144,7 +144,7 @@ public class VacationEditForm extends AbstractEditForm<VacationDO, VacationEditP
     if (checkReadAccess() == false) {
       throw new AccessException("access.exception.userHasNotRight");
     }
-    VacationFormValidator formValidator = new VacationFormValidator(vacationService, data, configService);
+    VacationFormValidator formValidator = new VacationFormValidator(vacationService, configService, data);
     add(formValidator);
 
     gridBuilder.newSplitPanel(GridSize.COL50);

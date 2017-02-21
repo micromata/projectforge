@@ -17,6 +17,7 @@ import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.Form;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.testng.PowerMockTestCase;
+import org.projectforge.business.configuration.ConfigurationService;
 import org.projectforge.business.configuration.ConfigurationServiceImpl;
 import org.projectforge.business.fibu.EmployeeDO;
 import org.projectforge.business.vacation.model.VacationAttrProperty;
@@ -38,6 +39,8 @@ public class VacationFormValidatorTest extends PowerMockTestCase
   private EmployeeDO employee;
 
   private VacationService vacationService;
+
+  private ConfigurationService configService;
 
   private Calendar startDate;
 
@@ -65,6 +68,7 @@ public class VacationFormValidatorTest extends PowerMockTestCase
     this.employee = mock(EmployeeDO.class);
     when(this.employee.getUrlaubstage()).thenReturn(30);
     this.vacationService = mock(VacationServiceImpl.class);
+    this.configService = mock(ConfigurationServiceImpl.class);
     this.startDate = new GregorianCalendar();
     this.endDate = new GregorianCalendar();
     this.startDatePanel = mock(DatePanel.class);
@@ -248,7 +252,7 @@ public class VacationFormValidatorTest extends PowerMockTestCase
 
   private VacationFormValidator createValidator()
   {
-    final VacationFormValidator validator = new VacationFormValidator(vacationService, new VacationDO(), new ConfigurationServiceImpl());
+    final VacationFormValidator validator = new VacationFormValidator(vacationService, configService, new VacationDO());
 
     validator.getDependentFormComponents()[0] = startDatePanel;
     validator.getDependentFormComponents()[1] = endDatePanel;

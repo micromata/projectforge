@@ -38,7 +38,7 @@ public class VacationFormValidator implements IFormValidator
 
   private ConfigurationService configService;
 
-  public VacationFormValidator(VacationService vacationService, VacationDO data, ConfigurationService configService)
+  public VacationFormValidator(VacationService vacationService, ConfigurationService configService, VacationDO data)
   {
     this.configService = configService;
     this.vacationService = vacationService;
