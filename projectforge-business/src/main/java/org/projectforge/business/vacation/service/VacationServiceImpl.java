@@ -2,23 +2,29 @@ package org.projectforge.business.vacation.service;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
+import java.sql.Timestamp;
 import java.util.Arrays;
 import java.util.Calendar;
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 
+import org.apache.log4j.Logger;
 import org.apache.commons.lang.StringUtils;
 import org.projectforge.business.configuration.ConfigurationService;
 import org.projectforge.business.fibu.EmployeeDO;
 import org.projectforge.business.fibu.EmployeeDao;
 import org.projectforge.business.fibu.api.EmployeeService;
+import org.projectforge.business.teamcal.admin.model.TeamCalDO;
+import org.projectforge.business.teamcal.event.TeamEventDao;
+import org.projectforge.business.teamcal.event.model.TeamEventDO;
 import org.projectforge.business.user.I18nHelper;
 import org.projectforge.business.vacation.model.VacationAttrProperty;
+import org.projectforge.business.vacation.model.VacationCalendarDO;
 import org.projectforge.business.vacation.model.VacationDO;
 import org.projectforge.business.vacation.model.VacationStatus;
 import org.projectforge.business.vacation.repository.VacationDao;
 import org.projectforge.framework.access.AccessException;
-import org.projectforge.framework.i18n.UserException;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.persistence.history.DisplayHistoryEntry;
 import org.projectforge.framework.persistence.jpa.impl.CorePersistenceServiceImpl;
@@ -40,6 +46,8 @@ import org.springframework.stereotype.Service;
 public class VacationServiceImpl extends CorePersistenceServiceImpl<Integer, VacationDO>
     implements VacationService
 {
+  private static final Logger log = Logger.getLogger(VacationServiceImpl.class);
+
   @Autowired
   private VacationDao vacationDao;
 
@@ -54,6 +62,10 @@ public class VacationServiceImpl extends CorePersistenceServiceImpl<Integer, Vac
 
   @Autowired
   private EmployeeService employeeService;
+
+
+  @Autowired
+  private TeamEventDao teamEventDao;
 
   private static final String vacationEditPagePath = "/wa/wicket/bookmarkable/org.projectforge.web.vacation.VacationEditPage";
 
@@ -135,12 +147,8 @@ public class VacationServiceImpl extends CorePersistenceServiceImpl<Integer, Vac
     final String vacationEndDate = dateFormatter.getFormattedDate(vacationData.getEndDate());
     final String periodText = I18nHelper.getLocalizedMessage(periodI18nKey, vacationStartDate, vacationEndDate);
 
-    if (approved) {
+    if (approved && configService.getHREmailadress() != null) {
       //Send mail to HR (employee in copy)
-      if (configService.getHREmailadress() == null) {
-        throw new UserException("HR email address not configured!");
-      }
-
       final String subject = I18nHelper.getLocalizedMessage("vacation.mail.subject", employeeFullName);
       final String content = I18nHelper
           .getLocalizedMessage("vacation.mail.hr.approved", employeeFullName, periodText, substitutionFullName, managerFullName, urlOfVacationEditPage);
@@ -151,7 +159,6 @@ public class VacationServiceImpl extends CorePersistenceServiceImpl<Integer, Vac
           vacationData.getEmployee().getUser()
       );
     }
-
     //Send mail to substitution (employee in copy)
     final String subject = I18nHelper.getLocalizedMessage("vacation.mail.subject.edit", employeeFullName);
     final String i18nKey = approved ? "vacation.mail.employee.approved" : "vacation.mail.employee.declined";
@@ -482,7 +489,11 @@ public class VacationServiceImpl extends CorePersistenceServiceImpl<Integer, Vac
         .reduce(BigDecimal.ZERO, BigDecimal::add); // sum
   }
 
-  @Override
+  public List<TeamCalDO> getCalendarsForVacation(VacationDO vacation)
+  {
+    return vacationDao.getCalendarsForVacation(vacation);
+  }
+
   public BigDecimal getVacationDays(final VacationDO vacationData)
   {
     return getVacationDays(vacationData, null);
@@ -571,4 +582,82 @@ public class VacationServiceImpl extends CorePersistenceServiceImpl<Integer, Vac
     vacationDao.rebuildDatabaseIndex();
   }
 
+  public void saveOrUpdateVacationCalendars(VacationDO vacation, Collection<TeamCalDO> items)
+  {
+    for (TeamCalDO teamCalDO : items) {
+      vacationDao.saveVacationCalendar(getOrCreateVacationCalendarDO(vacation, teamCalDO));
+    }
+  }
+
+  @Override
+  public void markAsDeleteEventsForVacationCalendars(VacationDO vacation)
+  {
+    List<VacationCalendarDO> vacationCalendarDOs = vacationDao.getVacationCalendarDOs(vacation);
+    for (VacationCalendarDO vacationCalendarDO : vacationCalendarDOs) {
+      if (vacationCalendarDO.isDeleted() == false) {
+        if (vacationCalendarDO.getEvent() != null) {
+          teamEventDao.internalMarkAsDeleted(teamEventDao.getById(vacationCalendarDO.getEvent().getId()));
+        }
+      }
+    }
+  }
+
+  @Override
+  public void markAsUnDeleteEventsForVacationCalendars(VacationDO vacation)
+  {
+    List<VacationCalendarDO> vacationCalendarDOs = vacationDao.getVacationCalendarDOs(vacation);
+    for (VacationCalendarDO vacationCalendarDO : vacationCalendarDOs) {
+      if (vacationCalendarDO.isDeleted()) {
+        vacationDao.unDeleteVacationCalendarDO(vacationCalendarDO);
+      }
+    }
+  }
+
+  @Override
+  public void createEventsForVacationCalendars(VacationDO vacation)
+  {
+    List<VacationCalendarDO> vacationCalendarDOs = vacationDao.getVacationCalendarDOs(vacation);
+    for (VacationCalendarDO vacationCalendarDO : vacationCalendarDOs) {
+      vacationCalendarDO.setEvent(getOrCreateTeamEventDO(vacationCalendarDO));
+      vacationCalendarDO.setDeleted(false);
+      vacationDao.saveVacationCalendar(vacationCalendarDO);
+    }
+  }
+
+  public VacationCalendarDO getOrCreateVacationCalendarDO(VacationDO vacation, TeamCalDO teamCalDO)
+  {
+    List<VacationCalendarDO> vacationCalendarDOs = vacationDao.getVacationCalendarDOs(vacation);
+    for (VacationCalendarDO vacationCalendarDO : vacationCalendarDOs) {
+      if (vacationCalendarDO.getCalendar().equals(teamCalDO)) {
+        vacationCalendarDO.setDeleted(false);
+        return vacationCalendarDO;
+      }
+    }
+    VacationCalendarDO vacationCalendarDO = new VacationCalendarDO();
+    vacationCalendarDO.setCalendar(teamCalDO);
+    vacationCalendarDO.setVacation(vacation);
+    return vacationCalendarDO;
+  }
+
+  public TeamEventDO getOrCreateTeamEventDO(VacationCalendarDO vacationCalendarDO)
+  {
+    if (vacationCalendarDO.getEvent() != null) {
+      TeamEventDO byId = teamEventDao.getById(vacationCalendarDO.getEvent().getId());
+      teamEventDao.internalUndelete(byId);
+      return byId;
+    } else {
+      TeamEventDO teamEventDO = new TeamEventDO();
+      teamEventDO.setAllDay(true);
+      final Timestamp startTimestamp = new Timestamp(vacationCalendarDO.getVacation().getStartDate().getTime());
+      final Timestamp endTimestamp = new Timestamp(vacationCalendarDO.getVacation().getEndDate().getTime());
+      teamEventDO.setStartDate(startTimestamp);
+      teamEventDO.setEndDate(endTimestamp);
+      //I18N KEy erstellen
+      teamEventDO.setSubject(I18nHelper
+          .getLocalizedMessage("vacation.vacationevent", vacationCalendarDO.getVacation().getEmployee().getUser().getFullname()));
+      teamEventDO.setCalendar(vacationCalendarDO.getCalendar());
+      teamEventDao.internalSave(teamEventDO);
+      return teamEventDO;
+    }
+  }
 }

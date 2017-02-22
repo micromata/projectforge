@@ -28,6 +28,8 @@ import org.projectforge.business.configuration.ConfigurationService;
 import org.projectforge.business.converter.DOConverter;
 import org.projectforge.business.teamcal.TeamCalConfig;
 import org.projectforge.business.teamcal.admin.TeamCalCache;
+import org.projectforge.business.teamcal.admin.TeamCalDao;
+import org.projectforge.business.teamcal.admin.TeamCalFilter;
 import org.projectforge.business.teamcal.admin.TeamCalsComparator;
 import org.projectforge.business.teamcal.admin.model.TeamCalDO;
 import org.projectforge.business.teamcal.event.TeamEventFilter;
@@ -114,6 +116,9 @@ public class TeamCalServiceImpl
 
   @Autowired
   private TeamEventService teamEventService;
+
+  @Autowired
+  private TeamCalDao teamCalDao;
 
   public List<Integer> getCalIdList(final Collection<TeamCalDO> teamCals)
   {
@@ -860,6 +865,15 @@ public class TeamCalServiceImpl
         log.warn("ReminderDurationUnit '" + src.getReminderDurationUnit() + "' not yet implemented.");
       }
     }
+  }
+
+  public List<TeamCalDO> getFullAccessCalendar()
+  {
+    final TeamCalFilter filter = new TeamCalFilter();
+    filter.setFullAccess(true);
+    filter.setMinimalAccess(false);
+    filter.setReadonlyAccess(false);
+    return teamCalDao.getList(filter);
   }
 
 }

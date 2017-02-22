@@ -4,7 +4,7 @@
   <parent>
     <groupId>org.projectforge</groupId>
     <artifactId>projectforge-parent</artifactId>
-    <version>6.8.0-SNAPSHOT</version>
+    <version>6.9.0-SNAPSHOT</version>
   </parent>
   <artifactId>org.projectforge.tools</artifactId>
   <packaging>pom</packaging>

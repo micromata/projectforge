@@ -116,7 +116,7 @@ public class TeamCalRight extends UserRightAccessCheck<TeamCalDO>
   @Override
   public boolean hasUpdateAccess(final PFUserDO user, final TeamCalDO obj, final TeamCalDO oldObj)
   {
-    return hasInsertAccess(user, obj) == true;
+    return hasInsertAccess(user, oldObj) == true;
   }
 
   /**
@@ -124,12 +124,12 @@ public class TeamCalRight extends UserRightAccessCheck<TeamCalDO>
    * right to delete the tasks he is allowed to delete to-do's to.
    * 
    * @see org.projectforge.business.user.UserRightAccessCheck#hasDeleteAccess(org.projectforge.framework.persistence.user.entities.PFUserDO,
-   *      java.lang.Object)
+   *      java.lang.Object, java.lang.Object)
    */
   @Override
-  public boolean hasDeleteAccess(final PFUserDO user, final TeamCalDO obj)
+  public boolean hasDeleteAccess(final PFUserDO user, final TeamCalDO obj, final TeamCalDO oldObj)
   {
-    return hasInsertAccess(user, obj) == true;
+    return hasInsertAccess(user, oldObj) == true;
   }
 
   /**

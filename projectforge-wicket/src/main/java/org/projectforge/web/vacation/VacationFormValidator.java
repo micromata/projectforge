@@ -2,6 +2,7 @@ package org.projectforge.web.vacation;
 
 import java.math.BigDecimal;
 import java.util.Calendar;
+import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -10,7 +11,9 @@ import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.form.validation.IFormValidator;
+import org.projectforge.business.configuration.ConfigurationService;
 import org.projectforge.business.fibu.EmployeeDO;
+import org.projectforge.business.teamcal.admin.model.TeamCalDO;
 import org.projectforge.business.user.I18nHelper;
 import org.projectforge.business.vacation.model.VacationAttrProperty;
 import org.projectforge.business.vacation.model.VacationDO;
@@ -20,20 +23,24 @@ import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.web.wicket.components.DatePanel;
 
 import com.vaynberg.wicket.select2.Select2Choice;
+import com.vaynberg.wicket.select2.Select2MultiChoice;
 
 public class VacationFormValidator implements IFormValidator
 {
   private static final long serialVersionUID = -8478416045860851983L;
 
   // Components for form validation.
-  private final FormComponent<?>[] dependentFormComponents = new FormComponent[6];
+  private final FormComponent<?>[] dependentFormComponents = new FormComponent[7];
 
   private final VacationService vacationService;
 
   private final VacationDO data;
 
-  public VacationFormValidator(VacationService vacationService, VacationDO data)
+  private ConfigurationService configService;
+
+  public VacationFormValidator(VacationService vacationService, ConfigurationService configService, VacationDO data)
   {
+    this.configService = configService;
     this.vacationService = vacationService;
     this.data = data;
   }
@@ -47,6 +54,7 @@ public class VacationFormValidator implements IFormValidator
     final Select2Choice<EmployeeDO> employeeSelect = (Select2Choice<EmployeeDO>) dependentFormComponents[3];
     final CheckBox isHalfDayCheckbox = (CheckBox) dependentFormComponents[4];
     final CheckBox isSpecialCheckbox = (CheckBox) dependentFormComponents[5];
+    final Select2MultiChoice<TeamCalDO> calendars = (Select2MultiChoice<TeamCalDO>) dependentFormComponents[6];
 
     EmployeeDO employee = employeeSelect.getConvertedInput();
     if (employee == null) {
@@ -115,6 +123,19 @@ public class VacationFormValidator implements IFormValidator
       form.error(I18nHelper.getLocalizedMessage("vacation.validate.leaveapplicationexists"));
     }
 
+    //vacationdays < 0.5 days
+    if (vacationService.getVacationDays(startDate.getTime(), endDate.getTime(), isOn(isHalfDayCheckbox)).compareTo(new BigDecimal(0.5)) <= 0) {
+      form.error(I18nHelper.getLocalizedMessage("vacation.validate.daysarenull"));
+    }
+
+    //check Vacation Calender
+    if (configService.getVacationCalendar() != null) {
+      Collection<TeamCalDO> convertedInput = calendars.getConvertedInput();
+      if (convertedInput.contains(configService.getVacationCalendar()) == false) {
+        form.error(I18nHelper.getLocalizedMessage("vacation.validate.noCalender", configService.getVacationCalendar().getTitle()));
+      }
+    }
+
     if (isOn(isSpecialCheckbox)) {
       return;
     }
@@ -142,7 +163,7 @@ public class VacationFormValidator implements IFormValidator
 
     //Add the old data working days to available days
     if (data.getPk() != null) {
-      final BigDecimal oldDataWorkingDays = vacationService.getVacationDays(data);
+      final BigDecimal oldDataWorkingDays = vacationService.getVacationDays(data.getStartDate(), data.getEndDate(), data.getHalfDay());
       availableVacationDays = availableVacationDays.add(oldDataWorkingDays);
     }
 
@@ -184,7 +205,6 @@ public class VacationFormValidator implements IFormValidator
         }
       }
     }
-
     if (enoughDaysLeft == false) {
       form.error(I18nHelper.getLocalizedMessage("vacation.validate.notEnoughVacationDaysLeft"));
     }

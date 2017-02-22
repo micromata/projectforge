@@ -115,13 +115,15 @@ public class DatabaseCoreUpdates
     ////////////////////////////////////////////////////////////////////
     // 6.8.0
     // /////////////////////////////////////////////////////////////////
-    list.add(new UpdateEntryImpl(CORE_REGION_ID, "6.8.0", "2017-02-15", "Add possibility to create applications for leave of a half day.")
+    list.add(new UpdateEntryImpl(CORE_REGION_ID, "6.8.0", "2017-02-15",
+        "Add calendar to vacation." + "Add possibility to create applications for leave of a half day.")
     {
       @Override
       public UpdatePreCheckStatus runPreCheck()
       {
         log.info("Running pre-check for ProjectForge version 6.8.0");
-        if (databaseUpdateService.doesTableAttributeExist("t_employee_vacation", "is_half_day") == false) {
+        if (databaseUpdateService.doesTableExist("t_employee_vacation_calendar") == false
+            || databaseUpdateService.doesTableAttributeExist("t_employee_vacation", "is_half_day") == false) {
           return UpdatePreCheckStatus.READY_FOR_UPDATE;
         }
         return UpdatePreCheckStatus.ALREADY_UPDATED;
@@ -130,7 +132,8 @@ public class DatabaseCoreUpdates
       @Override
       public UpdateRunningStatus runUpdate()
       {
-        if (databaseUpdateService.doesTableAttributeExist("t_employee_vacation", "is_half_day") == false) {
+        if (databaseUpdateService.doesTableExist("t_employee_vacation_calendar") == false
+            || databaseUpdateService.doesTableAttributeExist("t_employee_vacation", "is_half_day") == false) {
           //Updating the schema
           initDatabaseDao.updateSchema();
         }

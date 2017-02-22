@@ -667,15 +667,24 @@ public class AuftragEditForm extends AbstractEditForm<AuftragDO, AuftragEditPage
         // not invoiced
         final FieldsetPanel fs = posGridBuilder.newFieldset(getString("fibu.title.fakturiert.not")).suppressLabelForWarning();
         if (position.getNettoSumme() != null) {
+          BigDecimal invoiced = BigDecimal.ZERO;
+
           if (showInvoices == true) {
             BigDecimal invoicedSumForPosition = RechnungDao.getNettoSumme(invoicePositionsByOrderPositionId);
             BigDecimal notInvoicedSumForPosition = position.getNettoSumme().subtract(invoicedSumForPosition);
-            fs.add(new DivTextPanel(fs.newChildId(),
-                CurrencyFormatter.format(notInvoicedSumForPosition)));
+            invoiced = notInvoicedSumForPosition;
           } else {
-            fs.add(new DivTextPanel(fs.newChildId(),
-                CurrencyFormatter.format(position.getNettoSumme())));
+            invoiced = position.getNettoSumme();
           }
+          if (position.getStatus() != null) {
+            if (position.getStatus().equals(AuftragsPositionsStatus.ABGELEHNT) || position.getStatus().equals(AuftragsPositionsStatus.ERSETZT) || position
+                .getStatus()
+                .equals(AuftragsPositionsStatus.OPTIONAL)) {
+              invoiced = BigDecimal.ZERO;
+            }
+          }
+          fs.add(new DivTextPanel(fs.newChildId(),
+              CurrencyFormatter.format(invoiced)));
         }
       }
       posGridBuilder.newSplitPanel(GridSize.COL25);

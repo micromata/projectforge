@@ -218,7 +218,7 @@ public class VacationServiceTest extends PowerMockTestCase
     endDate.set(Calendar.MONTH, Calendar.MARCH);
     endDate.set(Calendar.DAY_OF_MONTH, 10);
     vacationData.setEndDate(endDate.getTime());
-    BigDecimal numberOfDays = vacationService.getVacationDays(vacationData);
+    BigDecimal numberOfDays = vacationService.getVacationDays(vacationData.getStartDate(), vacationData.getEndDate(), vacationData.getHalfDay());
     BigDecimal newValue = vacationService.updateUsedVacationDaysFromLastYear(vacationData);
     assertEquals(newValue, BigDecimal.ONE.add(numberOfDays));
   }
@@ -282,7 +282,7 @@ public class VacationServiceTest extends PowerMockTestCase
     final BigDecimal newValue = this.vacationService.updateUsedVacationDaysFromLastYear(vacationData);
 
     when(vacationDao.getById(4711)).thenReturn(vacationDataOld);
-    final BigDecimal numberOfDays = this.vacationService.getVacationDays(vacationData);
+    final BigDecimal numberOfDays = this.vacationService.getVacationDays(vacationData.getStartDate(), vacationData.getEndDate(), vacationData.getHalfDay());
     assertEquals(newValue, new BigDecimal(3).add(numberOfDays));
     vacationData.setIsSpecial(true);
     final BigDecimal value = this.vacationService.updateUsedVacationDaysFromLastYear(vacationData);
@@ -327,7 +327,7 @@ public class VacationServiceTest extends PowerMockTestCase
     endDate.set(Calendar.DAY_OF_MONTH, 5);
     vacation.setEndDate(endDate.getTime());
     vacationList.add(vacation);
-    BigDecimal numberOfDays = vacationService.getVacationDays(vacation);
+    BigDecimal numberOfDays = vacationService.getVacationDays(vacation.getStartDate(), vacation.getEndDate(), vacation.getHalfDay());
     when(vacationDao.getActiveVacationForYear(employee, now.get(Calendar.YEAR), false)).thenReturn(vacationList);
     when(employee.getUrlaubstage()).thenReturn(30);
     BigDecimal availableVacationdays = vacationService.getAvailableVacationdaysForYear(employee, now.get(Calendar.YEAR), false);

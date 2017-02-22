@@ -179,7 +179,7 @@ public class VacationViewHelper
     columns.add(new CellItemListenerPropertyColumn<>(VacationDO.class, "endDate", "endDate", cellItemListener));
     columns.add(new CellItemListenerPropertyColumn<>(VacationDO.class, "status", "status", cellItemListener));
     columns.add(new CellItemListenerLambdaColumn<>(new ResourceModel("vacation.workingdays"),
-        rowModel -> vacationService.getVacationDays(rowModel.getObject()),
+        rowModel -> vacationService.getVacationDays(rowModel.getObject().getStartDate(), rowModel.getObject().getEndDate(), rowModel.getObject().getHalfDay()),
         cellItemListener)
     );
 

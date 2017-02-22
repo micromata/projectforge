@@ -67,7 +67,9 @@ import org.springframework.stereotype.Controller;
 
 import net.fortuna.ical4j.data.CalendarBuilder;
 import net.fortuna.ical4j.model.Component;
+import net.fortuna.ical4j.model.ComponentList;
 import net.fortuna.ical4j.model.TimeZone;
+import net.fortuna.ical4j.model.component.CalendarComponent;
 import net.fortuna.ical4j.model.component.VEvent;
 import net.fortuna.ical4j.model.property.Uid;
 
@@ -181,8 +183,7 @@ public class TeamEventDaoRest
   @Produces(MediaType.APPLICATION_JSON)
   public Response saveTeamEvent(final CalendarEventObject calendarEvent)
   {
-    //The result for returning
-    CalendarEventObject result = null;
+
     try {
       //Getting the calender at which the event will created/updated
       TeamCalDO teamCalDO = teamCalCache.getCalendar(calendarEvent.getCalendarId());
@@ -192,31 +193,38 @@ public class TeamEventDaoRest
       final net.fortuna.ical4j.model.Calendar calendar = builder.build(new ByteArrayInputStream(Base64.decodeBase64(calendarEvent.getIcsData())));
       //Getting the VEvent from ics
       final VEvent event = (VEvent) calendar.getComponent(Component.VEVENT);
-      //Building TeamEventDO from VEvent
-      final TeamEventDO teamEvent = teamCalService.createTeamEventDO(event,
-          TimeZone.getTimeZone(teamCalDO.getOwner().getTimeZone()), false);
-      //Setting the calendar
-      teamEvent.setCalendar(teamCalDO);
-      //Save attendee list, because assignment later
-      Set<TeamEventAttendeeDO> attendees = new HashSet<>();
-      teamEvent.getAttendees().forEach(att -> {
-        attendees.add(att.clone());
-      });
-      teamEvent.setAttendees(null);
-      //Save or update the generated event
-      teamEventService.save(teamEvent);
-      //Update attendees
-      teamEventService.assignAttendees(teamEvent, attendees, null);
-
-      if (attendees.size() > 0) {
-        teamEventService.sendTeamEventToAttendees(teamEvent, true, false, false, null);
-      }
-      result = teamCalService.getEventObject(teamEvent, true, true);
-      log.info("Team event: " + teamEvent.getSubject() + " for calendar #" + teamCalDO.getId() + " successfully created.");
+      return saveVEvent(event, teamCalDO);
     } catch (Exception e) {
       log.error("Exception while creating team event", e);
       return Response.serverError().build();
     }
+  }
+
+  private Response saveVEvent(VEvent event, TeamCalDO teamCalDO)
+  {
+    //The result for returning
+    CalendarEventObject result = null;
+    //Building TeamEventDO from VEvent
+    final TeamEventDO teamEvent = teamCalService.createTeamEventDO(event,
+        TimeZone.getTimeZone(teamCalDO.getOwner().getTimeZone()), false);
+    //Setting the calendar
+    teamEvent.setCalendar(teamCalDO);
+    //Save attendee list, because assignment later
+    Set<TeamEventAttendeeDO> attendees = new HashSet<>();
+    teamEvent.getAttendees().forEach(att -> {
+      attendees.add(att.clone());
+    });
+    teamEvent.setAttendees(null);
+    //Save or update the generated event
+    teamEventService.save(teamEvent);
+    //Update attendees
+    teamEventService.assignAttendees(teamEvent, attendees, null);
+
+    if (attendees.size() > 0) {
+      teamEventService.sendTeamEventToAttendees(teamEvent, true, false, false, null);
+    }
+    result = teamCalService.getEventObject(teamEvent, true, true);
+    log.info("Team event: " + teamEvent.getSubject() + " for calendar #" + teamCalDO.getId() + " successfully created.");
     if (result != null) {
       final String json = JsonUtils.toJson(result);
       return Response.ok(json).build();
@@ -242,12 +250,22 @@ public class TeamEventDaoRest
       //Build the event from ics
       final net.fortuna.ical4j.model.Calendar calendar = builder.build(new ByteArrayInputStream(Base64.decodeBase64(calendarEvent.getIcsData())));
       //Getting the VEvent from ics
-      final VEvent event = (VEvent) calendar.getComponent(Component.VEVENT);
+      final ComponentList<CalendarComponent> vevents = calendar.getComponents(Component.VEVENT);
+      final VEvent event = (VEvent) vevents.get(0);
       //Geting the event uid
       Uid eventUid = event.getUid();
       //Building TeamEventDO from VEvent
       final TeamEventDO teamEvent = teamCalService.createTeamEventDO(event,
           TimeZone.getTimeZone(teamCalDO.getOwner().getTimeZone()));
+      if (vevents.size() > 1) {
+        VEvent event2 = (VEvent) vevents.get(1);
+        if (event.getUid().equals(event2.getUid())) {
+          //Set ExDate in event1
+          teamEvent.addRecurrenceExDate(event2.getRecurrenceId().getDate(), teamEvent.getTimeZone());
+          //Create new Event from event2
+          saveVEvent(event2, teamCalDO);
+        }
+      }
       //Getting the origin team event from database by uid if exist
       TeamEventDO teamEventOrigin = teamEventService.findByUid(eventUid.getValue());
       //Check if db event exists

@@ -138,7 +138,7 @@ public class PollRight extends UserRightAccessCheck<PollDO>
    *      java.lang.Object)
    */
   @Override
-  public boolean hasDeleteAccess(final PFUserDO user, final PollDO obj)
+  public boolean hasDeleteAccess(final PFUserDO user, final PollDO obj, final PollDO oldObj)
   {
     return hasAccess(user, obj, OperationType.DELETE);
   }

@@ -49,6 +49,7 @@ public enum ConfigurationParam implements IConfigurationParam
   MEB_SMS_RECEIVING_PHONE_NUMBER("mebSMSReceivingPhoneNumber", ConfigurationType.STRING, false), //
   PLUGIN_ACTIVATED("pluginsActivated", ConfigurationType.STRING, true), //
   HR_MAILADDRESS("hr.emailaddress", ConfigurationType.STRING, true),//
+  VACATION_CAL_ID("vacation.cal.id", ConfigurationType.CALENDAR, true),//
   END_DATE_VACATION_LASTR_YEAR("vacation.lastyear.enddate", ConfigurationType.STRING, true, "31.03.");
 
   private String key;

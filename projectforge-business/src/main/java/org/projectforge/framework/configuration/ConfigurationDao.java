@@ -52,9 +52,8 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * Configuration values persistet in the data base. Please access the configuration parameters via
  * {@link AbstractConfiguration}.
- * 
- * @author Kai Reinhard (k.reinhard@micromata.de)
  *
+ * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 @Repository
 public class ConfigurationDao extends BaseDao<ConfigurationDO>
@@ -72,7 +71,7 @@ public class ConfigurationDao extends BaseDao<ConfigurationDO>
 
   /**
    * Force reload of the Configuration cache.
-   * 
+   *
    * @see org.projectforge.framework.persistence.api.BaseDao#afterSaveOrModify(ExtendedBaseDO)
    * @see AbstractConfiguration#setExpired()
    */
@@ -130,6 +129,11 @@ public class ConfigurationDao extends BaseDao<ConfigurationDO>
     return list.get(0);
   }
 
+  public Object getValue(final IConfigurationParam parameter)
+  {
+    return getValue(parameter, getEntry(parameter));
+  }
+
   public Object getValue(final IConfigurationParam parameter, final ConfigurationDO configurationDO)
   {
     if (parameter.getType().isIn(ConfigurationType.STRING, ConfigurationType.TEXT) == true) {
@@ -163,6 +167,12 @@ public class ConfigurationDao extends BaseDao<ConfigurationDO>
       }
       final Integer taskId = configurationDO.getTaskId();
       return taskId;
+    } else if (parameter.getType() == ConfigurationType.CALENDAR) {
+      if (configurationDO == null) {
+        return null;
+      }
+      final Integer calendarId = configurationDO.getCalendarId();
+      return calendarId;
     } else if (parameter.getType() == ConfigurationType.TIME_ZONE) {
       String timezoneId = configurationDO != null ? configurationDO.getTimeZoneId() : null;
       if (timezoneId == null) {
