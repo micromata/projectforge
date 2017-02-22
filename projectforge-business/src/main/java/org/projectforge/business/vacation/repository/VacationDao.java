@@ -24,6 +24,7 @@
 package org.projectforge.business.vacation.repository;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
@@ -34,9 +35,11 @@ import java.util.stream.Collectors;
 import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Restrictions;
 import org.projectforge.business.fibu.EmployeeDO;
+import org.projectforge.business.teamcal.admin.model.TeamCalDO;
 import org.projectforge.business.user.UserRightId;
 import org.projectforge.business.user.UserRightValue;
 import org.projectforge.business.vacation.VacationFilter;
+import org.projectforge.business.vacation.model.VacationCalendarDO;
 import org.projectforge.business.vacation.model.VacationDO;
 import org.projectforge.business.vacation.model.VacationStatus;
 import org.projectforge.framework.access.AccessChecker;
@@ -181,5 +184,58 @@ public class VacationDao extends BaseDao<VacationDO>
               endYear.getTime(), "status", status, "isSpecial", true, "deleted", false, "tenant", ThreadLocalUserContext.getUser().getTenant());
     });
     return resultList != null ? resultList : Collections.emptyList();
+  }
+
+  public List<TeamCalDO> getCalendarsForVacation(VacationDO vacation)
+  {
+    final List<TeamCalDO> calendarList = new ArrayList<>();
+    if (vacation.getId() == null) {
+      return calendarList;
+    }
+    final List<VacationCalendarDO> resultList = getVacationCalendarDOs(vacation);
+    List<TeamCalDO> calendarResultList = new ArrayList<>();
+    if (resultList != null && resultList.size() > 0) {
+      resultList.forEach(res -> calendarList.add(res.getCalendar()));
+    }
+    return calendarList;
+  }
+
+  public List<VacationCalendarDO> getVacationCalendarDOs(VacationDO vacation)
+  {
+    final List<VacationCalendarDO> resultList = emgrFactory.runRoTrans(emgr -> {
+      final String baseSQL = "SELECT vc FROM VacationCalendarDO vc WHERE vc.vacation = :vacation";
+      return emgr.selectDetached(VacationCalendarDO.class, baseSQL, "vacation", vacation);
+    });
+    return resultList;
+  }
+
+  public void saveVacationCalendar(VacationCalendarDO obj)
+  {
+    emgrFactory.runInTrans(emgr -> {
+      if (obj.getId() != null) {
+        VacationCalendarDO vacationCalendarDO = emgr.selectByPkAttached(VacationCalendarDO.class, obj.getPk());
+        vacationCalendarDO.setEvent(obj.getEvent());
+        emgr.update(vacationCalendarDO);
+      } else {
+        emgr.insert(obj);
+      }
+      return null;
+    });
+  }
+
+  public void deleteVacationCalendarDO(VacationCalendarDO obj)
+  {
+    emgrFactory.runInTrans(emgr -> {
+      emgr.markDeleted(obj);
+      return null;
+    });
+  }
+
+  public void unDeleteVacationCalendarDO(VacationCalendarDO obj)
+  {
+    emgrFactory.runInTrans(emgr -> {
+      emgr.markUndeleted(obj);
+      return null;
+    });
   }
 }

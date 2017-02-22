@@ -7,6 +7,7 @@ import java.util.TimeZone;
 import javax.net.ssl.SSLSocketFactory;
 
 import org.projectforge.business.orga.ContractType;
+import org.projectforge.business.teamcal.admin.model.TeamCalDO;
 import org.projectforge.framework.configuration.IConfigurationParam;
 import org.projectforge.framework.configuration.SecurityConfig;
 import org.projectforge.framework.configuration.entities.ConfigurationDO;
@@ -17,7 +18,6 @@ import de.micromata.genome.util.runtime.config.MailSessionLocalSettingsConfigMod
 
 public interface ConfigurationService
 {
-
   Object[] getResourceContentAsString(String filename);
 
   Object[] getResourceAsInputStream(String filename);
@@ -84,11 +84,13 @@ public interface ConfigurationService
 
   boolean getCompileCss();
 
-    String getLoginHandlerClass();
-    
-    String getTeamCalCryptPassword();
+  String getLoginHandlerClass();
+
+  String getTeamCalCryptPassword();
 
   Calendar getEndDateVacationFromLastYear();
 
   String getHREmailadress();
+
+  TeamCalDO getVacationCalendar();
 }

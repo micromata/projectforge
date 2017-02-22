@@ -85,8 +85,19 @@ public class TeamEventListPage extends AbstractListPage<TeamEventListForm, TeamE
     final String str = WicketUtils.getAsString(getPageParameters(), PARAM_CALENDARS);
     if (StringUtils.isNotBlank(str) == true) {
       final Collection<TeamCalDO> teamCals = new TeamCalsProvider(teamCalCache).getSortedCalendars(str);
-      getFilter().setTeamCals(TeamCalsProvider.getCalIdList(teamCals));
+      getFilter().setTeamCals(getCalIdList(teamCals));
     }
+  }
+
+  private List<Integer> getCalIdList(final Collection<TeamCalDO> teamCals)
+  {
+    final List<Integer> list = new ArrayList<Integer>();
+    if (teamCals != null) {
+      for (final TeamCalDO cal : teamCals) {
+        list.add(cal.getId());
+      }
+    }
+    return list;
   }
 
   /**
@@ -160,7 +171,7 @@ public class TeamEventListPage extends AbstractListPage<TeamEventListForm, TeamE
   @Override
   protected boolean onSearchSubmit()
   {
-    getFilter().setTeamCals(TeamCalsProvider.getCalIdList(form.calendarsListHelper.getAssignedItems()));
+    getFilter().setTeamCals(getCalIdList(form.calendarsListHelper.getAssignedItems()));
     return super.onSearchSubmit();
   }
 

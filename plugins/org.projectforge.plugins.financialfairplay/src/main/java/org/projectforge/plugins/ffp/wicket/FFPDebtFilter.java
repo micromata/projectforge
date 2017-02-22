@@ -21,27 +21,47 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.web.fibu;
+package org.projectforge.plugins.ffp.wicket;
 
-import org.projectforge.business.fibu.AuftragFilter;
+import java.io.Serializable;
+
+import org.projectforge.framework.persistence.api.BaseSearchFilter;
 
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 
-
 /**
+ * @author Florian Blumenstein
  */
-@XStreamAlias("AuftragFilter")
-public class AuftragListFilter extends AuftragFilter
+@XStreamAlias("FFPDebtFilter")
+public class FFPDebtFilter extends BaseSearchFilter implements Serializable
 {
-  private static final long serialVersionUID = -6983625672785815596L;
+  private static final long serialVersionUID = 8567780910637887786L;
 
-  @Override
-  public AuftragListFilter reset()
+  private boolean showOnlyActiveEntries;
+
+  private Integer employeeId;
+
+  public FFPDebtFilter()
   {
-    year = -1;
-    searchString = "";
-    setAuftragsPositionsArt(null);
-    setListType(AuftragFilter.FILTER_ALL);
-    return this;
+  }
+
+  public FFPDebtFilter(Integer employeeId)
+  {
+    this.employeeId = employeeId;
+  }
+
+  public FFPDebtFilter(final BaseSearchFilter filter)
+  {
+    super(filter);
+  }
+
+  public Integer getEmployeeId()
+  {
+    return employeeId;
+  }
+
+  public void setEmployeeId(Integer employeeId)
+  {
+    this.employeeId = employeeId;
   }
 }

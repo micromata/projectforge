@@ -3,10 +3,12 @@ package org.projectforge.business.vacation.service;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.Calendar;
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 
 import org.projectforge.business.fibu.EmployeeDO;
+import org.projectforge.business.teamcal.admin.model.TeamCalDO;
 import org.projectforge.business.vacation.model.VacationDO;
 import org.projectforge.business.vacation.model.VacationStatus;
 import org.projectforge.framework.persistence.api.IDao;
@@ -68,6 +70,17 @@ public interface VacationService extends IPersistenceService<VacationDO>, IDao<V
    * @return number of available vacation
    */
   BigDecimal getAvailableVacationdaysForYear(PFUserDO user, int year, boolean checkLastYear);
+
+  /**
+   * Returns the number of available vacation days for the given employee at the given date.
+   * For example: If date is 2017-04-30, then the approved vacation between 2017-01-01 and 2017-04-30 is regarded.
+   * Also the (used) vacation from the previous year is regarded depending on the given date.
+   *
+   * @param employee
+   * @param queryDate
+   * @return
+   */
+  BigDecimal getAvailableVacationDaysForYearAtDate(final EmployeeDO employee, final Date queryDate);
 
   /**
    * Returns the number of approved vacation days
@@ -179,4 +192,56 @@ public interface VacationService extends IPersistenceService<VacationDO>, IDao<V
    * @return
    */
   BigDecimal getSpecialVacationCount(EmployeeDO employee, int year, VacationStatus status);
+
+  /**
+   <<<<<<< HEAD
+   * Returns the calendars for apllication for leave
+   *
+   * @param vacation
+   * @return
+   */
+  List<TeamCalDO> getCalendarsForVacation(VacationDO vacation);
+
+  /**
+   * Save the calendars for apllication for leave
+   *
+   * @param items
+   * @param vacation
+   * @return
+   */
+  void saveOrUpdateVacationCalendars(VacationDO vacation, Collection<TeamCalDO> items);
+
+  /**
+   * Delete CalenderEvents for apllication for leave
+   *
+   * @param vacation
+   * @return
+   */
+  void markAsDeleteEventsForVacationCalendars(VacationDO vacation);
+
+  /**
+   * UnDelete CalenderEvents for apllication for leave
+   *
+   * @param vacation
+   * @return
+   */
+  void markAsUnDeleteEventsForVacationCalendars(VacationDO vacation);
+
+  /**
+   * Create CalenderEvents for apllication for leave
+   *
+   * @param vacation
+   * @return
+   */
+  void createEventsForVacationCalendars(VacationDO vacation);
+
+  /**
+   * Returns the number of vacation days for the given period.
+   *
+   * @param from
+   * @param to
+   * @param isHalfDayVacation
+   * @return
+   */
+  BigDecimal getVacationDays(final Date from, final Date to, final Boolean isHalfDayVacation);
 }
