@@ -84,7 +84,7 @@
     <dependency>
       <groupId>org.wicketstuff</groupId>
       <artifactId>wicketstuff-html5</artifactId>
-      <version>6.9.0-SNAPSHOT</version>
+      <version>6.8.0</version>
     </dependency>
   </dependencies>
   <build>
