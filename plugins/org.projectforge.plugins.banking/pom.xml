@@ -4,7 +4,7 @@
   <parent>
     <groupId>org.projectforge</groupId>
     <artifactId>org.projectforge.plugins</artifactId>
-    <version>6.8.0-SNAPSHOT</version>
+    <version>6.8.0</version>
   </parent>
   <artifactId>org.projectforge.plugins.banking</artifactId>
   <packaging>jar</packaging>
