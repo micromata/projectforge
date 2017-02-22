@@ -25,6 +25,8 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.projectforge.business.meb.MebMailClient;
 import org.projectforge.business.orga.ContractType;
+import org.projectforge.business.teamcal.admin.TeamCalCache;
+import org.projectforge.business.teamcal.admin.model.TeamCalDO;
 import org.projectforge.framework.configuration.ConfigXml;
 import org.projectforge.framework.configuration.ConfigurationDao;
 import org.projectforge.framework.configuration.ConfigurationParam;
@@ -80,6 +82,9 @@ public class ConfigurationServiceImpl implements ConfigurationService
 
   @Autowired
   private MebMailClient mebMailClient;
+
+  @Autowired
+  private TeamCalCache teamCalCache;
 
   @Value("${projectforge.fontsDirectory}")
   private String fontsDirectory;
@@ -633,6 +638,12 @@ public class ConfigurationServiceImpl implements ConfigurationService
       return hrMailaddress.getStringValue();
     }
     return null;
+  }
+
+  @Override
+  public TeamCalDO getVacationCalendar()
+  {
+    return teamCalCache.getCalendar((Integer) configDao.getValue(ConfigurationParam.VACATION_CAL_ID));
   }
 
 }

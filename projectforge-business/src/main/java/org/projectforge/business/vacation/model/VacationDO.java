@@ -230,4 +230,5 @@ public class VacationDO extends DefaultBaseDO
   {
     this.halfDay = halfDay;
   }
+
 }

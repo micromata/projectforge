@@ -3,10 +3,12 @@ package org.projectforge.business.vacation.service;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.Calendar;
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 
 import org.projectforge.business.fibu.EmployeeDO;
+import org.projectforge.business.teamcal.admin.model.TeamCalDO;
 import org.projectforge.business.vacation.model.VacationDO;
 import org.projectforge.business.vacation.model.VacationStatus;
 import org.projectforge.framework.persistence.api.IDao;
@@ -192,12 +194,46 @@ public interface VacationService extends IPersistenceService<VacationDO>, IDao<V
   BigDecimal getSpecialVacationCount(EmployeeDO employee, int year, VacationStatus status);
 
   /**
-   * Returns the number of vacation days for the given VacationDO.
+   <<<<<<< HEAD
+   * Returns the calendars for apllication for leave
    *
-   * @param vacationData
+   * @param vacation
    * @return
    */
-  BigDecimal getVacationDays(final VacationDO vacationData);
+  List<TeamCalDO> getCalendarsForVacation(VacationDO vacation);
+
+  /**
+   * Save the calendars for apllication for leave
+   *
+   * @param items
+   * @param vacation
+   * @return
+   */
+  void saveOrUpdateVacationCalendars(VacationDO vacation, Collection<TeamCalDO> items);
+
+  /**
+   * Delete CalenderEvents for apllication for leave
+   *
+   * @param vacation
+   * @return
+   */
+  void markAsDeleteEventsForVacationCalendars(VacationDO vacation);
+
+  /**
+   * UnDelete CalenderEvents for apllication for leave
+   *
+   * @param vacation
+   * @return
+   */
+  void markAsUnDeleteEventsForVacationCalendars(VacationDO vacation);
+
+  /**
+   * Create CalenderEvents for apllication for leave
+   *
+   * @param vacation
+   * @return
+   */
+  void createEventsForVacationCalendars(VacationDO vacation);
 
   /**
    * Returns the number of vacation days for the given period.
