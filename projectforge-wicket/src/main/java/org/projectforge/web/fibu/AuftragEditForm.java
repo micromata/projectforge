@@ -62,7 +62,6 @@ import org.projectforge.business.fibu.KundeDO;
 import org.projectforge.business.fibu.ModeOfPaymentType;
 import org.projectforge.business.fibu.PaymentScheduleDO;
 import org.projectforge.business.fibu.PeriodOfPerformanceType;
-import org.projectforge.business.fibu.ProjektDO;
 import org.projectforge.business.fibu.RechnungCache;
 import org.projectforge.business.fibu.RechnungDao;
 import org.projectforge.business.fibu.RechnungsPositionVO;
@@ -239,9 +238,7 @@ public class AuftragEditForm extends AbstractEditForm<AuftragDO, AuftragEditPage
     {
       // project
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("fibu.projekt")).suppressLabelForWarning();
-      projektSelectPanel = new NewProjektSelectPanel(fs.newChildId(), new PropertyModel<ProjektDO>(data, "projekt"),
-          parentPage,
-          "projektId");
+      projektSelectPanel = new NewProjektSelectPanel(fs.newChildId(), new PropertyModel<>(data, "projekt"), parentPage, "projektId");
       projektSelectPanel.getTextField().add(new AjaxFormComponentUpdatingBehavior("change")
       {
         @Override
@@ -249,14 +246,20 @@ public class AuftragEditForm extends AbstractEditForm<AuftragDO, AuftragEditPage
         {
           if (getData().getKundeId() == null && StringUtils.isBlank(getData().getKundeText()) == true) {
             getData().setKunde(projektSelectPanel.getModelObject().getKunde());
-            getData().setProjectManager(projektSelectPanel.getModelObject().getProjectManager());
-            getData().setHeadOfBusinessManager(projektSelectPanel.getModelObject().getHeadOfBusinessManager());
-            getData().setSalesManager(projektSelectPanel.getModelObject().getSalesManager());
+            target.add(kundeSelectPanel.getTextField());
           }
-          target.add(kundeSelectPanel.getTextField());
-          target.add(projectManagerSelectPanel.getFormComponent());
-          target.add(headOfBusinessManagerSelectPanel.getFormComponent());
-          target.add(salesManagerSelectPanel.getFormComponent());
+          if (getData().getProjectManager() == null) {
+            getData().setProjectManager(projektSelectPanel.getModelObject().getProjectManager());
+            target.add(projectManagerSelectPanel.getFormComponent());
+          }
+          if (getData().getHeadOfBusinessManager() == null) {
+            getData().setHeadOfBusinessManager(projektSelectPanel.getModelObject().getHeadOfBusinessManager());
+            target.add(headOfBusinessManagerSelectPanel.getFormComponent());
+          }
+          if (getData().getSalesManager() == null) {
+            getData().setSalesManager(projektSelectPanel.getModelObject().getSalesManager());
+            target.add(salesManagerSelectPanel.getFormComponent());
+          }
         }
       });
       // ajaxUpdateComponents.add(projektSelectPanel.getTextField());
@@ -281,9 +284,9 @@ public class AuftragEditForm extends AbstractEditForm<AuftragDO, AuftragEditPage
       // project manager
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("fibu.projectManager"));
       projectManagerSelectPanel = new UserSelectPanel(fs.newChildId(),
-          new PropertyModel<PFUserDO>(data, "projectManager"),
+          new PropertyModel<>(data, "projectManager"),
           parentPage, "projectManagerId");
-      projectManagerSelectPanel.getComponentOutputId();
+      projectManagerSelectPanel.getFormComponent().setOutputMarkupId(true);
       fs.add(projectManagerSelectPanel);
       projectManagerSelectPanel.init();
     }
@@ -292,9 +295,9 @@ public class AuftragEditForm extends AbstractEditForm<AuftragDO, AuftragEditPage
       // head of business manager
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("fibu.headOfBusinessManager"));
       headOfBusinessManagerSelectPanel = new UserSelectPanel(fs.newChildId(),
-          new PropertyModel<PFUserDO>(data, "headOfBusinessManager"),
+          new PropertyModel<>(data, "headOfBusinessManager"),
           parentPage, "headOfBusinessManagerId");
-      headOfBusinessManagerSelectPanel.getComponentOutputId();
+      headOfBusinessManagerSelectPanel.getFormComponent().setOutputMarkupId(true);
       fs.add(headOfBusinessManagerSelectPanel);
       headOfBusinessManagerSelectPanel.init();
     }
@@ -303,9 +306,9 @@ public class AuftragEditForm extends AbstractEditForm<AuftragDO, AuftragEditPage
       //sales manager
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("fibu.salesManager"));
       salesManagerSelectPanel = new UserSelectPanel(fs.newChildId(),
-          new PropertyModel<PFUserDO>(data, "salesManager"),
+          new PropertyModel<>(data, "salesManager"),
           parentPage, "salesManagerId");
-      salesManagerSelectPanel.getComponentOutputId();
+      salesManagerSelectPanel.getFormComponent().setOutputMarkupId(true);
       fs.add(salesManagerSelectPanel);
       salesManagerSelectPanel.init();
     }
