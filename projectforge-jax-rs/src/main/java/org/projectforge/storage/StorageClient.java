@@ -24,17 +24,16 @@
 package org.projectforge.storage;
 
 import javax.annotation.PostConstruct;
+import javax.ws.rs.client.Client;
+import javax.ws.rs.client.ClientBuilder;
+import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 
 import org.projectforge.framework.configuration.ConfigXml;
 import org.projectforge.framework.configuration.ConfigurationListener;
 import org.projectforge.shared.storage.StorageConstants;
 import org.springframework.stereotype.Component;
-
-import com.sun.jersey.api.client.Client;
-import com.sun.jersey.api.client.ClientResponse;
-import com.sun.jersey.api.client.WebResource;
-import com.sun.jersey.api.client.WebResource.Builder;
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
@@ -66,32 +65,37 @@ public class StorageClient implements ConfigurationListener
         log.info("No storageConfig given in config.xml. Storage not available.");
         return;
       }
-      final Client client = Client.create();
-      WebResource webResource = client.resource(getUrl("/initialization"))//
+      final Client client = ClientBuilder.newClient();
+      WebTarget webResource = client.target(getUrl("/initialization"))//
           .queryParam(StorageConstants.PARAM_AUTHENTICATION_TOKEN, this.config.getAuthenticationToken())//
           .queryParam(StorageConstants.PARAM_BASE_DIR, ConfigXml.getInstance().getApplicationHomeDir());
-      ClientResponse response = webResource.accept(MediaType.TEXT_PLAIN).get(ClientResponse.class);
-      if (response.getStatus() != ClientResponse.Status.OK.getStatusCode()) {
+      Response response = webResource.request(MediaType.TEXT_PLAIN).get();
+      if (response.getStatus() != Response.Status.OK.getStatusCode()) {
         throw new RuntimeException("Failed : HTTP error code : " + response.getStatus());
       }
-      String output = response.getEntity(String.class);
+      String output = null;
+      if (response.getEntity() instanceof String) {
+        output = (String) response.getEntity();
+      }
       if ("OK".equals(output) == false) {
         throw new RuntimeException("Initialization of ProjectForge's storage failed: " + output);
       }
-      webResource = client.resource(getUrl("/securityCheck"));
-      response = webResource.accept(MediaType.TEXT_PLAIN).get(ClientResponse.class);
-      if (response.getStatus() == ClientResponse.Status.OK.getStatusCode()) {
+      webResource = client.target(getUrl("/securityCheck"));
+      response = webResource.request(MediaType.TEXT_PLAIN).get();
+      if (response.getStatus() == Response.Status.OK.getStatusCode()) {
         final String message = "Security alert: storage is available without any authentication!!!!!!!!!!!!!!!!";
         log.fatal(message);
         throw new RuntimeException(message);
       }
-      webResource = client.resource(getUrl("/securityCheck"));
+      webResource = client.target(getUrl("/securityCheck"));
       addAuthenticationHeader(webResource);
-      response = webResource.accept(MediaType.TEXT_PLAIN).get(ClientResponse.class);
-      if (response.getStatus() != ClientResponse.Status.OK.getStatusCode()) {
+      response = webResource.request(MediaType.TEXT_PLAIN).get();
+      if (response.getStatus() != Response.Status.OK.getStatusCode()) {
         throw new RuntimeException("Failed : HTTP error code : " + response.getStatus());
       }
-      output = response.getEntity(String.class);
+      if (response.getEntity() instanceof String) {
+        output = (String) response.getEntity();
+      }
       if (output.equals("authenticated") == false) {
         final String message = "Authentication didn't work. Storage isn't available.";
         log.fatal(message);
@@ -111,9 +115,9 @@ public class StorageClient implements ConfigurationListener
     return url + "/" + service;
   }
 
-  private Builder addAuthenticationHeader(final WebResource webResource)
+  private void addAuthenticationHeader(final WebTarget webResource)
   {
-    return webResource.header(StorageConstants.PARAM_AUTHENTICATION_TOKEN, config.getAuthenticationToken());
+    webResource.request().header(StorageConstants.PARAM_AUTHENTICATION_TOKEN, config.getAuthenticationToken());
   }
 
   /**

@@ -26,15 +26,17 @@ package org.projectforge.rest;
 import java.util.Calendar;
 import java.util.Collection;
 
+import javax.ws.rs.client.Client;
+import javax.ws.rs.client.ClientBuilder;
+import javax.ws.rs.client.WebTarget;
+import javax.ws.rs.core.Response;
+
 import org.projectforge.model.rest.AddressObject;
 import org.projectforge.model.rest.RestPaths;
 import org.projectforge.model.rest.UserObject;
 import org.projectforge.rest.converter.DateTimeFormat;
 
 import com.google.gson.reflect.TypeToken;
-import com.sun.jersey.api.client.Client;
-import com.sun.jersey.api.client.ClientResponse;
-import com.sun.jersey.api.client.WebResource;
 
 public class AddressDaoClientMain
 {
@@ -43,7 +45,7 @@ public class AddressDaoClientMain
   @SuppressWarnings("unused")
   public static void main(final String[] args)
   {
-    final Client client = Client.create();
+    final Client client = ClientBuilder.newClient();
     final UserObject user = RestClientMain.authenticate(client);
 
     final Calendar cal = Calendar.getInstance();
@@ -52,19 +54,19 @@ public class AddressDaoClientMain
     //modifiedSince = null; // Uncomment this for testing modifiedSince paramter.
 
     // http://localhost:8080/ProjectForge/rest/task/tree // userId / token
-    WebResource webResource = client.resource(RestClientMain.getUrl() + RestPaths.buildListPath(RestPaths.ADDRESS))
+    WebTarget webResource = client.target(RestClientMain.getUrl() + RestPaths.buildListPath(RestPaths.ADDRESS))
         .queryParam("search", "");
     if (modifiedSince != null) {
       webResource = webResource.queryParam("modifiedSince", "" + modifiedSince);
     }
     webResource = RestClientMain.setConnectionSettings(webResource,
         new ConnectionSettings().setDateTimeFormat(DateTimeFormat.MILLIS_SINCE_1970));
-    final ClientResponse response = RestClientMain.getClientResponse(webResource, user);
-    if (response.getStatus() != ClientResponse.Status.OK.getStatusCode()) {
+    final Response response = RestClientMain.getClientResponse(webResource, user);
+    if (response.getStatus() != Response.Status.OK.getStatusCode()) {
       log.error("Failed : HTTP error code : " + response.getStatus());
       return;
     }
-    final String json = response.getEntity(String.class);
+    final String json = (String) response.getEntity();
     log.info(json);
     final Collection<AddressObject> col = JsonUtils.fromJson(json, new TypeToken<Collection<AddressObject>>()
     {

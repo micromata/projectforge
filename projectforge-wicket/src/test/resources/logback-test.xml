@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<configuration>
-  <include resource="org/springframework/boot/logging/logback/base.xml"/>
-  <logger name="org.projectforge" level="error"/>
-  <logger name="de.micromata" level="error"/>
-  <logger name="org.springframework" level="error"/>
-  <logger name="org.hibernate" level="error"/>
-</configuration>

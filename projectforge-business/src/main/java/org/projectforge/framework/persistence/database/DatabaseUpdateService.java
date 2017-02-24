@@ -84,7 +84,7 @@ public class DatabaseUpdateService
 {
   private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(DatabaseUpdateService.class);
 
-  private static PFUserDO SYSTEM_ADMIN_PSEUDO_USER = new PFUserDO()
+  private static final PFUserDO SYSTEM_ADMIN_PSEUDO_USER = new PFUserDO()
       .setUsername("System admin user only for internal usage");
 
   private DatabaseSupport databaseSupport;

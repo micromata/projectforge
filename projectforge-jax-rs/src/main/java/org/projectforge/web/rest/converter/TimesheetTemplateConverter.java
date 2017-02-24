@@ -40,13 +40,13 @@ import org.springframework.stereotype.Service;
 public class TimesheetTemplateConverter
 {
   @Autowired
-  UserPrefDao userPrefDao;
+  private UserPrefDao userPrefDao;
 
   @Autowired
-  Kost2DOConverter kost2DOConverter;
+  private Kost2DOConverter kost2DOConverter;
 
   @Autowired
-  TaskDOConverter taskDOConverter;
+  private TaskDOConverter taskDOConverter;
 
   public TimesheetTemplateObject getTimesheetTemplateObject(final UserPrefDO userPrefDO)
   {

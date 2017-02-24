@@ -25,15 +25,17 @@ package org.projectforge.rest;
 
 import java.util.Collection;
 
+import javax.ws.rs.client.Client;
+import javax.ws.rs.client.ClientBuilder;
+import javax.ws.rs.client.WebTarget;
+import javax.ws.rs.core.Response;
+
 import org.projectforge.model.rest.CalendarEventObject;
 import org.projectforge.model.rest.CalendarObject;
 import org.projectforge.model.rest.RestPaths;
 import org.projectforge.model.rest.UserObject;
 
 import com.google.gson.reflect.TypeToken;
-import com.sun.jersey.api.client.Client;
-import com.sun.jersey.api.client.ClientResponse;
-import com.sun.jersey.api.client.WebResource;
 
 public class TeamCalClientMain
 {
@@ -41,15 +43,15 @@ public class TeamCalClientMain
 
   public static void main(final String[] args)
   {
-    final Client client = Client.create();
+    final Client client = ClientBuilder.newClient();
     final UserObject user = RestClientMain.authenticate(client);
 
-    WebResource webResource = client.resource(RestClientMain.getUrl() + RestPaths.buildListPath(RestPaths.TEAMCAL));
-    ClientResponse response = RestClientMain.getClientResponse(webResource, user);
-    if (response.getStatus() != ClientResponse.Status.OK.getStatusCode()) {
+    WebTarget webResource = client.target(RestClientMain.getUrl() + RestPaths.buildListPath(RestPaths.TEAMCAL));
+    Response response = RestClientMain.getClientResponse(webResource, user);
+    if (response.getStatus() != Response.Status.OK.getStatusCode()) {
       throw new RuntimeException("Failed : HTTP error code : " + response.getStatus());
     }
-    String json = response.getEntity(String.class);
+    String json = (String) response.getEntity();
     log.info(json);
     final Collection<CalendarObject> calendars = JsonUtils.fromJson(json, new TypeToken<Collection<CalendarObject>>()
     {
@@ -58,14 +60,14 @@ public class TeamCalClientMain
       log.info(calendar);
     }
 
-    webResource = client.resource(RestClientMain.getUrl() + RestPaths.buildListPath(RestPaths.TEAMEVENTS))
+    webResource = client.target(RestClientMain.getUrl() + RestPaths.buildListPath(RestPaths.TEAMEVENTS))
     // .queryParam("calendarIds", "1292975,1240526,1240528");
     ;
     response = RestClientMain.getClientResponse(webResource, user);
-    if (response.getStatus() != ClientResponse.Status.OK.getStatusCode()) {
+    if (response.getStatus() != Response.Status.OK.getStatusCode()) {
       throw new RuntimeException("Failed : HTTP error code : " + response.getStatus());
     }
-    json = response.getEntity(String.class);
+    json = (String) response.getEntity();
     log.info(json);
     final Collection<CalendarEventObject> events = JsonUtils.fromJson(json,
         new TypeToken<Collection<CalendarEventObject>>()

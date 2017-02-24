@@ -25,14 +25,16 @@ package org.projectforge.rest;
 
 import java.util.Collection;
 
+import javax.ws.rs.client.Client;
+import javax.ws.rs.client.ClientBuilder;
+import javax.ws.rs.client.WebTarget;
+import javax.ws.rs.core.Response;
+
 import org.projectforge.model.rest.RestPaths;
 import org.projectforge.model.rest.TaskObject;
 import org.projectforge.model.rest.UserObject;
 
 import com.google.gson.reflect.TypeToken;
-import com.sun.jersey.api.client.Client;
-import com.sun.jersey.api.client.ClientResponse;
-import com.sun.jersey.api.client.WebResource;
 
 public class TaskDaoClientMain
 {
@@ -40,17 +42,17 @@ public class TaskDaoClientMain
 
   public static void main(final String[] args)
   {
-    final Client client = Client.create();
+    final Client client = ClientBuilder.newClient();
     final UserObject user = RestClientMain.authenticate(client);
 
     // http://localhost:8080/ProjectForge/rest/task/tree // userId / token
-    final WebResource webResource = client.resource(RestClientMain.getUrl() + RestPaths.buildTreePath(RestPaths.TASK))
+    final WebTarget webResource = client.target(RestClientMain.getUrl() + RestPaths.buildTreePath(RestPaths.TASK))
         .queryParam("search", "");
-    final ClientResponse response = RestClientMain.getClientResponse(webResource, user);
-    if (response.getStatus() != ClientResponse.Status.OK.getStatusCode()) {
+    final Response response = RestClientMain.getClientResponse(webResource, user);
+    if (response.getStatus() != Response.Status.OK.getStatusCode()) {
       throw new RuntimeException("Failed : HTTP error code : " + response.getStatus());
     }
-    final String json = response.getEntity(String.class);
+    final String json = (String) response.getEntity();
     log.info(json);
     final Collection<TaskObject> col = JsonUtils.fromJson(json, new TypeToken<Collection<TaskObject>>()
     {

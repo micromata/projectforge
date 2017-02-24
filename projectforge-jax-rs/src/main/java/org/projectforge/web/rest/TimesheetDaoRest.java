@@ -61,7 +61,7 @@ public class TimesheetDaoRest
   private TaskDao taskDao;
 
   @Autowired
-  TaskDOConverter taskDOConverter;
+  private TaskDOConverter taskDOConverter;
 
   /**
    * Rest-Call für: {@link TaskDao#getList(org.projectforge.core.BaseSearchFilter)}
