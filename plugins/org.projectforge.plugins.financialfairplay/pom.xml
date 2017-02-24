@@ -4,7 +4,7 @@
   <parent>
     <groupId>org.projectforge</groupId>
     <artifactId>org.projectforge.plugins</artifactId>
-    <version>6.9.0-SNAPSHOT</version>
+    <version>6.8.1</version>
   </parent>
   <artifactId>org.projectforge.plugins.financialfairplay</artifactId>
   <packaging>jar</packaging>
