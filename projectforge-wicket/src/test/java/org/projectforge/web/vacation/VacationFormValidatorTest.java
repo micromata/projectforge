@@ -226,13 +226,13 @@ public class VacationFormValidatorTest extends PowerMockTestCase
     verify(form, times(0)).error(any());
   }
 
-  @Test(enabled = false)
+  @Test
   public void oneDayAndHalfDaySelectedTest()
   {
     this.startDate.set(Calendar.MONTH, Calendar.APRIL);
-    this.startDate.set(Calendar.DAY_OF_MONTH, 2);
+    this.startDate.set(Calendar.DAY_OF_MONTH, 3);
     this.endDate.set(Calendar.MONTH, Calendar.APRIL);
-    this.endDate.set(Calendar.DAY_OF_MONTH, 2);
+    this.endDate.set(Calendar.DAY_OF_MONTH, 3);
     this.halfDay = true;
     when(this.vacationService.getApprovedAndPlanedVacationdaysForYear(this.employee, startDate.get(Calendar.YEAR))).thenReturn(new BigDecimal(0));
 
@@ -260,15 +260,15 @@ public class VacationFormValidatorTest extends PowerMockTestCase
     verify(form, times(1)).error(any());
   }
 
-  @Test(enabled = false)
+  @Test
   public void zeroDaysOfVacation()
   {
-    this.startDate.set(Calendar.MONTH, Calendar.OCTOBER);
-    this.startDate.set(Calendar.DAY_OF_MONTH, 3);
-    this.endDate.set(Calendar.MONTH, Calendar.OCTOBER);
-    this.endDate.set(Calendar.DAY_OF_MONTH, 3);
+    this.startDate.set(Calendar.MONTH, Calendar.APRIL);
+    this.startDate.set(Calendar.DAY_OF_MONTH, 2);
+    this.endDate.set(Calendar.MONTH, Calendar.APRIL);
+    this.endDate.set(Calendar.DAY_OF_MONTH, 2);
     this.halfDay = true;
-    when(this.vacationService.getVacationDays(any(), any(), any())).thenReturn(new BigDecimal(0));
+    when(this.vacationService.getApprovedAndPlanedVacationdaysForYear(this.employee, startDate.get(Calendar.YEAR))).thenReturn(new BigDecimal(0));
 
     final VacationFormValidator validator = createValidator();
     final Form<?> form = mock(Form.class);
