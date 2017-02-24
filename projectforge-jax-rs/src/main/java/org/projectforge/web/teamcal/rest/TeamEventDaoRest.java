@@ -278,7 +278,9 @@ public class TeamEventDaoRest
       final Set<TeamEventAttendeeDO> originAttendees;
       //Setting the existing DB id, created timestamp, tenant
       teamEvent.setId(teamEventOrigin.getPk());
+      teamEvent.setCreator(teamEventOrigin.getCreator());
       teamEvent.setCreated(teamEventOrigin.getCreated());
+      teamEvent.setLastUpdate();
       teamEvent.setTenant(teamEventOrigin.getTenant());
       //Save existing attendees from the db event
       originAttendees = teamEventOrigin.getAttendees();
