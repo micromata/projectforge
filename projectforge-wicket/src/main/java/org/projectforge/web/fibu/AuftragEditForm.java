@@ -245,7 +245,7 @@ public class AuftragEditForm extends AbstractEditForm<AuftragDO, AuftragEditPage
         @Override
         protected void onUpdate(final AjaxRequestTarget target)
         {
-          setKundePmHobmAndSmIfEmpty(target);
+          setKundePmHobmAndSmIfEmpty(projektSelectPanel.getModelObject(), target);
         }
       });
       // ajaxUpdateComponents.add(projektSelectPanel.getTextField());
@@ -508,24 +508,26 @@ public class AuftragEditForm extends AbstractEditForm<AuftragDO, AuftragEditPage
       }
     });
 
-    setKundePmHobmAndSmIfEmpty(null);
+    setKundePmHobmAndSmIfEmpty(getData().getProjekt(), null);
   }
 
-  private void setKundePmHobmAndSmIfEmpty(final AjaxRequestTarget target)
+  void setKundePmHobmAndSmIfEmpty(final ProjektDO project, final AjaxRequestTarget target)
   {
-    final ProjektDO project = projektSelectPanel.getModelObject();
-
     if (project == null) {
       return;
     }
 
     if (getData().getKundeId() == null && StringUtils.isBlank(getData().getKundeText()) == true) {
       getData().setKunde(project.getKunde());
-      target.add(kundeSelectPanel.getTextField());
+      kundeSelectPanel.getTextField().modelChanged();
+      if (target != null) {
+        target.add(kundeSelectPanel.getTextField());
+      }
     }
 
     if (getData().getProjectManager() == null) {
       getData().setProjectManager(project.getProjectManager());
+      projectManagerSelectPanel.getFormComponent().modelChanged();
       if (target != null) {
         target.add(projectManagerSelectPanel.getFormComponent());
       }
@@ -533,6 +535,7 @@ public class AuftragEditForm extends AbstractEditForm<AuftragDO, AuftragEditPage
 
     if (getData().getHeadOfBusinessManager() == null) {
       getData().setHeadOfBusinessManager(project.getHeadOfBusinessManager());
+      headOfBusinessManagerSelectPanel.getFormComponent().modelChanged();
       if (target != null) {
         target.add(headOfBusinessManagerSelectPanel.getFormComponent());
       }
@@ -540,6 +543,7 @@ public class AuftragEditForm extends AbstractEditForm<AuftragDO, AuftragEditPage
 
     if (getData().getSalesManager() == null) {
       getData().setSalesManager(project.getSalesManager());
+      salesManagerSelectPanel.getFormComponent().modelChanged();
       if (target != null) {
         target.add(salesManagerSelectPanel.getFormComponent());
       }
