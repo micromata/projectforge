@@ -62,6 +62,7 @@ import org.projectforge.business.fibu.KundeDO;
 import org.projectforge.business.fibu.ModeOfPaymentType;
 import org.projectforge.business.fibu.PaymentScheduleDO;
 import org.projectforge.business.fibu.PeriodOfPerformanceType;
+import org.projectforge.business.fibu.ProjektDO;
 import org.projectforge.business.fibu.RechnungCache;
 import org.projectforge.business.fibu.RechnungDao;
 import org.projectforge.business.fibu.RechnungsPositionVO;
@@ -244,22 +245,7 @@ public class AuftragEditForm extends AbstractEditForm<AuftragDO, AuftragEditPage
         @Override
         protected void onUpdate(final AjaxRequestTarget target)
         {
-          if (getData().getKundeId() == null && StringUtils.isBlank(getData().getKundeText()) == true) {
-            getData().setKunde(projektSelectPanel.getModelObject().getKunde());
-            target.add(kundeSelectPanel.getTextField());
-          }
-          if (getData().getProjectManager() == null) {
-            getData().setProjectManager(projektSelectPanel.getModelObject().getProjectManager());
-            target.add(projectManagerSelectPanel.getFormComponent());
-          }
-          if (getData().getHeadOfBusinessManager() == null) {
-            getData().setHeadOfBusinessManager(projektSelectPanel.getModelObject().getHeadOfBusinessManager());
-            target.add(headOfBusinessManagerSelectPanel.getFormComponent());
-          }
-          if (getData().getSalesManager() == null) {
-            getData().setSalesManager(projektSelectPanel.getModelObject().getSalesManager());
-            target.add(salesManagerSelectPanel.getFormComponent());
-          }
+          setKundePmHobmAndSmIfEmpty(target);
         }
       });
       // ajaxUpdateComponents.add(projektSelectPanel.getTextField());
@@ -521,6 +507,43 @@ public class AuftragEditForm extends AbstractEditForm<AuftragDO, AuftragEditPage
         }
       }
     });
+
+    setKundePmHobmAndSmIfEmpty(null);
+  }
+
+  private void setKundePmHobmAndSmIfEmpty(final AjaxRequestTarget target)
+  {
+    final ProjektDO project = projektSelectPanel.getModelObject();
+
+    if (project == null) {
+      return;
+    }
+
+    if (getData().getKundeId() == null && StringUtils.isBlank(getData().getKundeText()) == true) {
+      getData().setKunde(project.getKunde());
+      target.add(kundeSelectPanel.getTextField());
+    }
+
+    if (getData().getProjectManager() == null) {
+      getData().setProjectManager(project.getProjectManager());
+      if (target != null) {
+        target.add(projectManagerSelectPanel.getFormComponent());
+      }
+    }
+
+    if (getData().getHeadOfBusinessManager() == null) {
+      getData().setHeadOfBusinessManager(project.getHeadOfBusinessManager());
+      if (target != null) {
+        target.add(headOfBusinessManagerSelectPanel.getFormComponent());
+      }
+    }
+
+    if (getData().getSalesManager() == null) {
+      getData().setSalesManager(project.getSalesManager());
+      if (target != null) {
+        target.add(salesManagerSelectPanel.getFormComponent());
+      }
+    }
   }
 
   @SuppressWarnings("serial")
