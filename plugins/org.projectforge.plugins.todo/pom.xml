@@ -4,7 +4,7 @@
   <parent>
     <groupId>org.projectforge</groupId>
     <artifactId>org.projectforge.plugins</artifactId>
-    <version>6.8.0</version>
+    <version>6.8.1</version>
   </parent>
   <artifactId>org.projectforge.plugins.todo</artifactId>
   <packaging>jar</packaging>

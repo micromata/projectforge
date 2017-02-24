@@ -23,11 +23,16 @@
 
 package org.projectforge.web.fibu;
 
-import org.apache.commons.lang.StringUtils;
+import java.util.Date;
+
 import org.apache.log4j.Logger;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
-import org.projectforge.business.fibu.*;
+import org.projectforge.business.fibu.AuftragDO;
+import org.projectforge.business.fibu.AuftragDao;
+import org.projectforge.business.fibu.AuftragsPositionDO;
+import org.projectforge.business.fibu.ProjektDO;
+import org.projectforge.business.fibu.ProjektDao;
 import org.projectforge.business.user.ProjectForgeGroup;
 import org.projectforge.framework.access.OperationType;
 import org.projectforge.framework.persistence.api.ModificationStatus;
@@ -37,8 +42,6 @@ import org.projectforge.web.wicket.AbstractEditPage;
 import org.projectforge.web.wicket.AbstractSecuredBasePage;
 import org.projectforge.web.wicket.EditPage;
 import org.projectforge.web.wicket.WicketUtils;
-
-import java.util.Date;
 
 @EditPage(defaultReturnPage = AuftragListPage.class)
 public class AuftragEditPage extends AbstractEditPage<AuftragDO, AuftragEditForm, AuftragDao>
@@ -83,15 +86,9 @@ public class AuftragEditPage extends AbstractEditPage<AuftragDO, AuftragEditForm
     if ("projektId".equals(property) == true) {
       auftragDao.setProjekt(getData(), (Integer) selectedValue);
       form.projektSelectPanel.getTextField().modelChanged();
-      if (getData().getProjektId() != null && getData().getProjektId() >= 0 && getData().getKundeId() == null) {
-        if (StringUtils.isBlank(form.kundeSelectPanel.getKundeTextInput()) == true) {
-          // User has selected a project and the kunde is not set:
-          final ProjektDO projekt = projektDao.getById(getData().getProjektId());
-          if (projekt != null) {
-            auftragDao.setKunde(getData(), projekt.getKundeId());
-            form.kundeSelectPanel.getTextField().modelChanged();
-          }
-        }
+      if (getData().getProjektId() != null && getData().getProjektId() >= 0) {
+        final ProjektDO projekt = projektDao.getById(getData().getProjektId());
+        form.setKundePmHobmAndSmIfEmpty(projekt, null);
       }
     } else if ("kundeId".equals(property) == true) {
       auftragDao.setKunde(getData(), (Integer) selectedValue);

@@ -127,7 +127,6 @@ public class AddressDaoRest
       }
     }
     final List<AddressObject> result = new LinkedList<AddressObject>();
-    final Set<Integer> alreadyExported = new HashSet<Integer>();
     if (list != null) {
       for (final AddressDO addressDO : list) {
         if (exportAll == false && favoritesSet.contains(addressDO.getId()) == false) {
@@ -137,15 +136,11 @@ public class AddressDaoRest
         final AddressObject address = AddressDOConverter.getAddressObject(addressDao, addressDO,
             BooleanUtils.isTrue(disableImageData), BooleanUtils.isTrue(disableVCardData));
         result.add(address);
-        alreadyExported.add(address.getId());
       }
     }
     if (exportAll == false && modifiedSinceDate != null) {
       // Add now personal address entries which were modified since the given date (deleted or added):
       for (final PersonalAddressDO personalAddress : favorites) {
-        if (alreadyExported.contains(personalAddress.getAddressId()) == true) {
-          // Already exported:
-        }
         if (personalAddress.getLastUpdate() != null
             && personalAddress.getLastUpdate().before(modifiedSinceDate) == false) {
           final AddressDO addressDO = addressDao.getById(personalAddress.getAddressId());

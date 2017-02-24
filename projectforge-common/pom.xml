@@ -6,7 +6,7 @@
   <parent>
     <groupId>org.projectforge</groupId>
     <artifactId>projectforge-parent</artifactId>
-    <version>6.8.0</version>
+    <version>6.8.1</version>
   </parent>
   <properties>
     <timestamp>${maven.build.timestamp}</timestamp>
@@ -30,6 +30,10 @@
     </resources>
   </build>
   <dependencies>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-logging</artifactId>
+    </dependency>
     <dependency>
       <groupId>de.micromata.mgc</groupId>
       <artifactId>de.micromata.mgc.common</artifactId>

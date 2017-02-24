@@ -3,12 +3,13 @@
   <modelVersion>4.0.0</modelVersion>
   <artifactId>projectforge-application</artifactId>
   <packaging>jar</packaging>
-
+  <!-- UNCOMMENT IF WANT TO BUILD WAR FILE-->
+  <!--<packaging>war</packaging>-->
 
   <parent>
     <groupId>org.projectforge</groupId>
     <artifactId>projectforge-parent</artifactId>
-    <version>6.8.0</version>
+    <version>6.8.1</version>
   </parent>
   <licenses>
     <license>
@@ -22,6 +23,14 @@
     <start-class>org.projectforge.start.ProjectForgeApplication</start-class>
   </properties>
   <dependencies>
+    <!-- UNCOMMENT IF WANT TO BUILD WAR FILE-->
+    <!--
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-tomcat</artifactId>
+      <scope>provided</scope>
+    </dependency>
+    -->
     <!-- PF -->
     <dependency>
       <groupId>org.projectforge</groupId>
@@ -49,7 +58,10 @@
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-maven-plugin</artifactId>
         <configuration>
-          <layout>ZIP</layout> <!-- to use PropertiesLaunchar -->
+          <!-- needed for intern application.properties -->
+          <layout>ZIP</layout>
+          <!-- UNCOMMENT IF WANT TO BUILD WAR FILE-->
+          <!--<layout>WAR</layout>-->
         </configuration>
       </plugin>
     </plugins>

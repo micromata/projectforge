@@ -6,7 +6,7 @@
   <parent>
     <groupId>org.projectforge</groupId>
     <artifactId>projectforge-parent</artifactId>
-    <version>6.8.0</version>
+    <version>6.8.1</version>
   </parent>
   <licenses>
     <license>
@@ -21,6 +21,10 @@
       <groupId>org.projectforge</groupId>
       <artifactId>projectforge-common</artifactId>
       <version>${projectforge.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-jersey</artifactId>
     </dependency>
   </dependencies>
 </project>

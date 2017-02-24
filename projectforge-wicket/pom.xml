@@ -5,7 +5,7 @@
   <parent>
     <groupId>org.projectforge</groupId>
     <artifactId>projectforge-parent</artifactId>
-    <version>6.8.0</version>
+    <version>6.8.1</version>
   </parent>
   <licenses>
     <license>
@@ -32,6 +32,11 @@
       <version>${projectforge.version}</version>
       <scope>test</scope>
       <type>test-jar</type>
+    </dependency>
+    <!-- Is needed for Spring Boot web functionality (e.g. load static content)-->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-web</artifactId>
     </dependency>
     <dependency>
       <groupId>org.apache.wicket</groupId>

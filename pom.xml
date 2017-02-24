@@ -4,25 +4,13 @@
   <groupId>org.projectforge</groupId>
   <artifactId>projectforge-parent</artifactId>
   <packaging>pom</packaging>
-  <version>6.8.0</version>
+  <version>6.8.1</version>
 
   <parent>
     <groupId>org.springframework.boot</groupId>
     <artifactId>spring-boot-starter-parent</artifactId>
-    <version>1.4.1.RELEASE</version>
+    <version>1.5.1.RELEASE</version>
   </parent>
-
-  <dependencyManagement>
-    <dependencies>
-      <dependency>
-        <groupId>org.springframework.cloud</groupId>
-        <artifactId>spring-cloud-dependencies</artifactId>
-        <version>Camden.SR1</version>
-        <type>pom</type>
-        <scope>import</scope>
-      </dependency>
-    </dependencies>
-  </dependencyManagement>
 
   <name>ProjectForge</name>
   <description>
@@ -192,7 +180,6 @@
     <module>projectforge-excel</module>
     <module>projectforge-business</module>
     <module>projectforge-jax-rs</module>
-    <!-- <module>projectforge-microservices/projectforge-microservices-server</module> -->
     <module>projectforge-wicket</module>
     <module>plugins</module>
     <module>projectforge-application</module>
@@ -255,7 +242,6 @@
     <ehcache-core.version>2.6.11</ehcache-core.version>
     <postgresql.version>9.4.1211</postgresql.version>
     <hsqldb.version>1.8.0.10</hsqldb.version>
-    <jersey.version>1.19.3</jersey.version>
     <codehaus-jackson.version>1.9.13</codehaus-jackson.version>
     <testng.versionj>6.9.9</testng.versionj>
     <powermock.version>1.6.5</powermock.version>
@@ -279,16 +265,6 @@
           <artifactId>mockito-core</artifactId>
         </exclusion>
       </exclusions>
-    </dependency>
-
-    <!--<dependency>-->
-    <!--<groupId>org.springframework.cloud</groupId>-->
-    <!--<artifactId>spring-cloud-starter-config</artifactId>-->
-    <!--</dependency>-->
-
-    <dependency>
-      <groupId>org.springframework.cloud</groupId>
-      <artifactId>spring-cloud-starter-eureka</artifactId>
     </dependency>
 
     <dependency>
@@ -480,6 +456,7 @@
       </plugin>
     </plugins>
   </reporting>
+
   <repositories>
     <repository>
       <id>de.micromata.nexus.public</id>
@@ -508,4 +485,5 @@
       <url>https://labs.micromata.de/nexus/content/repositories/MGC-snapshot/</url>
     </repository>
   </repositories>
+
 </project>

@@ -56,7 +56,7 @@ public class TeamCalDaoRest
   private TeamCalDao teamCalDao;
 
   @Autowired
-  UserRightService userRights;
+  private UserRightService userRights;
 
   /**
    * Rest-Call for {@link TeamCalDao#getList(org.projectforge.core.BaseSearchFilter)}

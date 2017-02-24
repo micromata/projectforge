@@ -21,6 +21,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.testng.PowerMockTestCase;
 import org.projectforge.business.configuration.ConfigurationService;
@@ -40,6 +41,8 @@ import org.testng.annotations.Test;
  * Created by blumenstein on 27.10.16.
  */
 @PrepareForTest({ ThreadLocalUserContext.class, ConfigXml.class })
+//Needed for: java.lang.ClassCastException: com.sun.org.apache.xerces.internal.jaxp.SAXParserFactoryImpl cannot be cast to javax.xml.parsers.SAXParserFactory
+@PowerMockIgnore({ "javax.management.*", "javax.xml.parsers.*", "com.sun.org.apache.xerces.internal.jaxp.*", "ch.qos.logback.*", "org.slf4j.*" })
 public class VacationServiceTest extends PowerMockTestCase
 {
   private final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");

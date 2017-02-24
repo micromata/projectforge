@@ -41,10 +41,10 @@ import org.springframework.stereotype.Service;
 public class TimesheetDOConverter
 {
   @Autowired
-  Kost2DOConverter kost2DOConverter;
+  private Kost2DOConverter kost2DOConverter;
 
   @Autowired
-  TaskDOConverter taskDOConverter;
+  private TaskDOConverter taskDOConverter;
 
   public TimesheetObject getTimesheetObject(final TimesheetDO timesheetDO)
   {

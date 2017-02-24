@@ -25,14 +25,16 @@ package org.projectforge.rest;
 
 import java.util.Collection;
 
+import javax.ws.rs.client.Client;
+import javax.ws.rs.client.ClientBuilder;
+import javax.ws.rs.client.WebTarget;
+import javax.ws.rs.core.Response;
+
 import org.projectforge.model.rest.RestPaths;
 import org.projectforge.model.rest.TimesheetTemplateObject;
 import org.projectforge.model.rest.UserObject;
 
 import com.google.gson.reflect.TypeToken;
-import com.sun.jersey.api.client.Client;
-import com.sun.jersey.api.client.ClientResponse;
-import com.sun.jersey.api.client.WebResource;
 
 public class TimesheetTemplateClientMain
 {
@@ -41,17 +43,17 @@ public class TimesheetTemplateClientMain
 
   public static void main(final String[] args)
   {
-    final Client client = Client.create();
+    final Client client = ClientBuilder.newClient();
     final UserObject user = RestClientMain.authenticate(client);
 
     // http://localhost:8080/ProjectForge/rest/task/tree // userId / token
-    final WebResource webResource = client
-        .resource(RestClientMain.getUrl() + RestPaths.buildListPath(RestPaths.TIMESHEET_TEMPLATE));
-    final ClientResponse response = RestClientMain.getClientResponse(webResource, user);
-    if (response.getStatus() != ClientResponse.Status.OK.getStatusCode()) {
+    final WebTarget webResource = client
+        .target(RestClientMain.getUrl() + RestPaths.buildListPath(RestPaths.TIMESHEET_TEMPLATE));
+    final Response response = RestClientMain.getClientResponse(webResource, user);
+    if (response.getStatus() != Response.Status.OK.getStatusCode()) {
       throw new RuntimeException("Failed : HTTP error code : " + response.getStatus());
     }
-    final String json = response.getEntity(String.class);
+    final String json = (String) response.getEntity();
     log.info(json);
     final Collection<TimesheetTemplateObject> col = JsonUtils.fromJson(json,
         new TypeToken<Collection<TimesheetTemplateObject>>()

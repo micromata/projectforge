@@ -83,8 +83,6 @@ import net.fortuna.ical4j.model.property.Uid;
 public class TeamEventDaoRest
 {
   private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(TeamEventDaoRest.class);
-  private static final String CREATED = "created";
-  private static final String UPDATED = "updated";
 
   @Autowired
   private TeamCalServiceImpl teamCalService;
@@ -277,10 +275,12 @@ public class TeamEventDaoRest
         return saveTeamEvent(calendarEvent);
       }
       //Set for origin attendees from db event
-      Set<TeamEventAttendeeDO> originAttendees = new HashSet<>();
+      final Set<TeamEventAttendeeDO> originAttendees;
       //Setting the existing DB id, created timestamp, tenant
       teamEvent.setId(teamEventOrigin.getPk());
+      teamEvent.setCreator(teamEventOrigin.getCreator());
       teamEvent.setCreated(teamEventOrigin.getCreated());
+      teamEvent.setLastUpdate();
       teamEvent.setTenant(teamEventOrigin.getTenant());
       //Save existing attendees from the db event
       originAttendees = teamEventOrigin.getAttendees();
@@ -384,12 +384,11 @@ public class TeamEventDaoRest
       newTeamEvent.getAttendees().forEach(att -> newEmailAdresses.add(att.getAddress() != null ? att.getAddress().getEmail() : att.getUrl()));
       Map<String, TeamEventAttendeeDO> originEmailAttendeeMap = new HashMap<>();
       originTeamEvent.getAttendees().forEach(att -> originEmailAttendeeMap.put(att.getAddress() != null ? att.getAddress().getEmail() : att.getUrl(), att));
-      Set<TeamEventAttendeeDO> attendeesToUnassign = new HashSet<>();
-      for (String originAttendeeEmail : originEmailAttendeeMap.keySet()) {
-        if (newEmailAdresses.contains(originAttendeeEmail) == false) {
-          result.add(originEmailAttendeeMap.get(originAttendeeEmail));
+      originEmailAttendeeMap.forEach((k, v) -> {
+        if (newEmailAdresses.contains(k) == false) {
+          result.add(v);
         }
-      }
+      });
     }
     return result;
   }
@@ -408,10 +407,9 @@ public class TeamEventDaoRest
       originTeamEvent.getAttendees().forEach(att -> originEmailAdresses.add(att.getAddress() != null ? att.getAddress().getEmail() : att.getUrl()));
       Map<String, TeamEventAttendeeDO> newEmailAttendeeMap = new HashMap<>();
       newTeamEvent.getAttendees().forEach(att -> newEmailAttendeeMap.put(att.getAddress() != null ? att.getAddress().getEmail() : att.getUrl(), att));
-      Set<TeamEventAttendeeDO> attendeesToUnassign = new HashSet<>();
-      for (String newAttendeeEmail : newEmailAttendeeMap.keySet()) {
-        if (originEmailAdresses.contains(newAttendeeEmail) == false) {
-          TeamEventAttendeeDO newTeamEventAttendeeDO = newEmailAttendeeMap.get(newAttendeeEmail);
+      for (Map.Entry<String, TeamEventAttendeeDO> newAttendeeEmail : newEmailAttendeeMap.entrySet()) {
+        if (originEmailAdresses.contains(newAttendeeEmail.getKey()) == false) {
+          final TeamEventAttendeeDO newTeamEventAttendeeDO = newAttendeeEmail.getValue();
           newTeamEventAttendeeDO.setPk(null);
           result.add(newTeamEventAttendeeDO);
         }

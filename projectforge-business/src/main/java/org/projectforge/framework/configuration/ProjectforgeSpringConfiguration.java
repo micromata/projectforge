@@ -16,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import org.springframework.orm.hibernate5.HibernateTemplate;
 import org.springframework.orm.hibernate5.HibernateTransactionManager;
 import org.springframework.scheduling.annotation.EnableScheduling;
@@ -39,6 +40,8 @@ import de.micromata.mgc.jpa.spring.factories.JpaToSessionSpringBeanFactory;
 @Configuration
 @EnableTransactionManagement
 @EnableScheduling
+//Needed, because not only interfaces are used as injection points
+@EnableAspectJAutoProxy(proxyTargetClass = true)
 public class ProjectforgeSpringConfiguration
 {
   @Value("${projectforge.base.dir}")

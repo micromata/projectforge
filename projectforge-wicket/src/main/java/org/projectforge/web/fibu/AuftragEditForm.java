@@ -239,24 +239,13 @@ public class AuftragEditForm extends AbstractEditForm<AuftragDO, AuftragEditPage
     {
       // project
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("fibu.projekt")).suppressLabelForWarning();
-      projektSelectPanel = new NewProjektSelectPanel(fs.newChildId(), new PropertyModel<ProjektDO>(data, "projekt"),
-          parentPage,
-          "projektId");
+      projektSelectPanel = new NewProjektSelectPanel(fs.newChildId(), new PropertyModel<>(data, "projekt"), parentPage, "projektId");
       projektSelectPanel.getTextField().add(new AjaxFormComponentUpdatingBehavior("change")
       {
         @Override
         protected void onUpdate(final AjaxRequestTarget target)
         {
-          if (getData().getKundeId() == null && StringUtils.isBlank(getData().getKundeText()) == true) {
-            getData().setKunde(projektSelectPanel.getModelObject().getKunde());
-            getData().setProjectManager(projektSelectPanel.getModelObject().getProjectManager());
-            getData().setHeadOfBusinessManager(projektSelectPanel.getModelObject().getHeadOfBusinessManager());
-            getData().setSalesManager(projektSelectPanel.getModelObject().getSalesManager());
-          }
-          target.add(kundeSelectPanel.getTextField());
-          target.add(projectManagerSelectPanel.getFormComponent());
-          target.add(headOfBusinessManagerSelectPanel.getFormComponent());
-          target.add(salesManagerSelectPanel.getFormComponent());
+          setKundePmHobmAndSmIfEmpty(projektSelectPanel.getModelObject(), target);
         }
       });
       // ajaxUpdateComponents.add(projektSelectPanel.getTextField());
@@ -281,9 +270,9 @@ public class AuftragEditForm extends AbstractEditForm<AuftragDO, AuftragEditPage
       // project manager
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("fibu.projectManager"));
       projectManagerSelectPanel = new UserSelectPanel(fs.newChildId(),
-          new PropertyModel<PFUserDO>(data, "projectManager"),
+          new PropertyModel<>(data, "projectManager"),
           parentPage, "projectManagerId");
-      projectManagerSelectPanel.getComponentOutputId();
+      projectManagerSelectPanel.getFormComponent().setOutputMarkupId(true);
       fs.add(projectManagerSelectPanel);
       projectManagerSelectPanel.init();
     }
@@ -292,9 +281,9 @@ public class AuftragEditForm extends AbstractEditForm<AuftragDO, AuftragEditPage
       // head of business manager
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("fibu.headOfBusinessManager"));
       headOfBusinessManagerSelectPanel = new UserSelectPanel(fs.newChildId(),
-          new PropertyModel<PFUserDO>(data, "headOfBusinessManager"),
+          new PropertyModel<>(data, "headOfBusinessManager"),
           parentPage, "headOfBusinessManagerId");
-      headOfBusinessManagerSelectPanel.getComponentOutputId();
+      headOfBusinessManagerSelectPanel.getFormComponent().setOutputMarkupId(true);
       fs.add(headOfBusinessManagerSelectPanel);
       headOfBusinessManagerSelectPanel.init();
     }
@@ -303,9 +292,9 @@ public class AuftragEditForm extends AbstractEditForm<AuftragDO, AuftragEditPage
       //sales manager
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("fibu.salesManager"));
       salesManagerSelectPanel = new UserSelectPanel(fs.newChildId(),
-          new PropertyModel<PFUserDO>(data, "salesManager"),
+          new PropertyModel<>(data, "salesManager"),
           parentPage, "salesManagerId");
-      salesManagerSelectPanel.getComponentOutputId();
+      salesManagerSelectPanel.getFormComponent().setOutputMarkupId(true);
       fs.add(salesManagerSelectPanel);
       salesManagerSelectPanel.init();
     }
@@ -518,6 +507,47 @@ public class AuftragEditForm extends AbstractEditForm<AuftragDO, AuftragEditPage
         }
       }
     });
+
+    setKundePmHobmAndSmIfEmpty(getData().getProjekt(), null);
+  }
+
+  void setKundePmHobmAndSmIfEmpty(final ProjektDO project, final AjaxRequestTarget target)
+  {
+    if (project == null) {
+      return;
+    }
+
+    if (getData().getKundeId() == null && StringUtils.isBlank(getData().getKundeText()) == true) {
+      getData().setKunde(project.getKunde());
+      kundeSelectPanel.getTextField().modelChanged();
+      if (target != null) {
+        target.add(kundeSelectPanel.getTextField());
+      }
+    }
+
+    if (getData().getProjectManager() == null) {
+      getData().setProjectManager(project.getProjectManager());
+      projectManagerSelectPanel.getFormComponent().modelChanged();
+      if (target != null) {
+        target.add(projectManagerSelectPanel.getFormComponent());
+      }
+    }
+
+    if (getData().getHeadOfBusinessManager() == null) {
+      getData().setHeadOfBusinessManager(project.getHeadOfBusinessManager());
+      headOfBusinessManagerSelectPanel.getFormComponent().modelChanged();
+      if (target != null) {
+        target.add(headOfBusinessManagerSelectPanel.getFormComponent());
+      }
+    }
+
+    if (getData().getSalesManager() == null) {
+      getData().setSalesManager(project.getSalesManager());
+      salesManagerSelectPanel.getFormComponent().modelChanged();
+      if (target != null) {
+        target.add(salesManagerSelectPanel.getFormComponent());
+      }
+    }
   }
 
   @SuppressWarnings("serial")
