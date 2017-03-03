@@ -24,13 +24,17 @@
 package org.projectforge.business.vacation.model;
 
 import java.util.Date;
+import java.util.Set;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 import javax.persistence.FetchType;
+import javax.persistence.Index;
 import javax.persistence.JoinColumn;
+import javax.persistence.JoinTable;
+import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
@@ -44,6 +48,7 @@ import org.projectforge.common.anots.PropertyInfo;
 import org.projectforge.framework.persistence.api.AUserRightId;
 import org.projectforge.framework.persistence.entities.DefaultBaseDO;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
+import org.projectforge.framework.persistence.user.entities.PFUserDO;
 
 /**
  * Repräsentiert einen Urlaub. Ein Urlaub ist einem ProjectForge-Mitarbeiter zugeordnet und enthält buchhalterische
@@ -56,7 +61,6 @@ import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 @Table(name = "t_employee_vacation",
     indexes = {
         @javax.persistence.Index(name = "idx_fk_t_vacation_employee_id", columnList = "employee_id"),
-        @javax.persistence.Index(name = "idx_fk_t_vacation_substitution_id", columnList = "substitution_id"),
         @javax.persistence.Index(name = "idx_fk_t_vacation_manager_id", columnList = "manager_id"),
         @javax.persistence.Index(name = "idx_fk_t_vacation_tenant_id", columnList = "tenant_id")
     })
@@ -76,7 +80,7 @@ public class VacationDO extends DefaultBaseDO
   private Date endDate;
 
   @PropertyInfo(i18nKey = "vacation.substitution")
-  private EmployeeDO substitution;
+  private Set<EmployeeDO> substitutions;
 
   @PropertyInfo(i18nKey = "vacation.manager")
   private EmployeeDO manager;
@@ -116,23 +120,31 @@ public class VacationDO extends DefaultBaseDO
   }
 
   /**
-   * The substitution.
+   * The substitutions.
    *
-   * @return the substitution
+   * @return the substitutions
    */
-  @ManyToOne(fetch = FetchType.EAGER)
-  @JoinColumn(name = "substitution_id", nullable = false)
-  public EmployeeDO getSubstitution()
+  @ManyToMany
+  @JoinTable(
+      name = "t_employee_vacation_substitution",
+      joinColumns = @JoinColumn(name = "vacation_id", referencedColumnName = "PK"),
+      inverseJoinColumns = @JoinColumn(name = "substitution_id", referencedColumnName = "PK"),
+      indexes = {
+          @Index(name = "idx_fk_t_employee_vacation_substitution_vacation_id", columnList = "vacation_id"),
+          @Index(name = "idx_fk_t_employee_vacation_substitution_substitution_id", columnList = "substitution_id")
+      }
+  )
+  public Set<EmployeeDO> getSubstitutions()
   {
-    return substitution;
+    return substitutions;
   }
 
   /**
    * @param substitution the substitution to set
    */
-  public void setSubstitution(final EmployeeDO substitution)
+  public void setSubstitutions(final Set<EmployeeDO> substitution)
   {
-    this.substitution = substitution;
+    this.substitutions = substitution;
   }
 
   /**
@@ -162,7 +174,7 @@ public class VacationDO extends DefaultBaseDO
     return startDate;
   }
 
-  public void setStartDate(Date startDate)
+  public void setStartDate(final Date startDate)
   {
     this.startDate = startDate;
   }
@@ -174,7 +186,7 @@ public class VacationDO extends DefaultBaseDO
     return endDate;
   }
 
-  public void setEndDate(Date endDate)
+  public void setEndDate(final Date endDate)
   {
     this.endDate = endDate;
   }
@@ -197,16 +209,27 @@ public class VacationDO extends DefaultBaseDO
   @Transient
   public VacationMode getVacationmode()
   {
-    if (ThreadLocalUserContext.getUser().getPk().equals(employee.getUser().getPk())) {
+    final Integer currentUserId = ThreadLocalUserContext.getUserId();
+    if (currentUserId.equals(employee.getUser().getPk())) {
       return VacationMode.OWN;
     }
-    if (ThreadLocalUserContext.getUser().getPk().equals(manager.getUser().getPk())) {
+    if (currentUserId.equals(manager.getUser().getPk())) {
       return VacationMode.MANAGER;
     }
-    if (ThreadLocalUserContext.getUser().getPk().equals(substitution.getUser().getPk())) {
+    if (isSubstitution(currentUserId)) {
       return VacationMode.SUBSTITUTION;
     }
     return VacationMode.OTHER;
+  }
+
+  @Transient
+  public boolean isSubstitution(final Integer userId)
+  {
+    return userId != null && substitutions != null && substitutions.stream()
+        .map(EmployeeDO::getUser)
+        .map(PFUserDO::getPk)
+        .anyMatch(pk -> pk.equals(userId));
+
   }
 
   @Column(name = "is_special", nullable = false)
@@ -215,7 +238,7 @@ public class VacationDO extends DefaultBaseDO
     return isSpecial;
   }
 
-  public void setIsSpecial(Boolean special)
+  public void setIsSpecial(final Boolean special)
   {
     isSpecial = special;
   }
