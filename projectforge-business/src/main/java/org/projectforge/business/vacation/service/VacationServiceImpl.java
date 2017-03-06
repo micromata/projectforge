@@ -9,8 +9,8 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 
-import org.apache.log4j.Logger;
 import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
 import org.projectforge.business.configuration.ConfigurationService;
 import org.projectforge.business.fibu.EmployeeDO;
 import org.projectforge.business.fibu.EmployeeDao;
@@ -618,9 +618,10 @@ public class VacationServiceImpl extends CorePersistenceServiceImpl<Integer, Vac
   {
     List<VacationCalendarDO> vacationCalendarDOs = vacationDao.getVacationCalendarDOs(vacation);
     for (VacationCalendarDO vacationCalendarDO : vacationCalendarDOs) {
-      vacationCalendarDO.setEvent(getOrCreateTeamEventDO(vacationCalendarDO));
-      vacationCalendarDO.setDeleted(false);
-      vacationDao.saveVacationCalendar(vacationCalendarDO);
+      if (vacationCalendarDO.isDeleted() == false) {
+        vacationCalendarDO.setEvent(getOrCreateTeamEventDO(vacationCalendarDO));
+        vacationDao.saveVacationCalendar(vacationCalendarDO);
+      }
     }
   }
 
