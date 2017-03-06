@@ -9,8 +9,8 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 
-import org.apache.log4j.Logger;
 import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
 import org.projectforge.business.configuration.ConfigurationService;
 import org.projectforge.business.fibu.EmployeeDO;
 import org.projectforge.business.fibu.EmployeeDao;
@@ -587,6 +587,14 @@ public class VacationServiceImpl extends CorePersistenceServiceImpl<Integer, Vac
     for (TeamCalDO teamCalDO : items) {
       vacationDao.saveVacationCalendar(getOrCreateVacationCalendarDO(vacation, teamCalDO));
     }
+    List<VacationCalendarDO> vacationCalendarDOs = vacationDao.getVacationCalendarDOs(vacation);
+    for (VacationCalendarDO vacationCalendarDO : vacationCalendarDOs) {
+      if (items.contains(vacationCalendarDO.getCalendar()) == false)
+        vacationDao.deleteVacationCalendarDO(vacationCalendarDO);
+      else
+        vacationDao.unDeleteVacationCalendarDO(vacationCalendarDO);
+
+    }
   }
 
   @Override
@@ -596,8 +604,20 @@ public class VacationServiceImpl extends CorePersistenceServiceImpl<Integer, Vac
     for (VacationCalendarDO vacationCalendarDO : vacationCalendarDOs) {
       if (vacationCalendarDO.isDeleted() == false) {
         if (vacationCalendarDO.getEvent() != null) {
+          vacationDao.deleteVacationCalendarDO(vacationCalendarDO);
           teamEventDao.internalMarkAsDeleted(teamEventDao.getById(vacationCalendarDO.getEvent().getId()));
         }
+      }
+    }
+  }
+
+  @Override
+  public void markAsUnDeleteVacationCalendars(VacationDO vacation)
+  {
+    List<VacationCalendarDO> vacationCalendarDOs = vacationDao.getVacationCalendarDOs(vacation);
+    for (VacationCalendarDO vacationCalendarDO : vacationCalendarDOs) {
+      if (vacationCalendarDO.isDeleted()) {
+        vacationDao.unDeleteVacationCalendarDO(vacationCalendarDO);
       }
     }
   }
@@ -607,8 +627,8 @@ public class VacationServiceImpl extends CorePersistenceServiceImpl<Integer, Vac
   {
     List<VacationCalendarDO> vacationCalendarDOs = vacationDao.getVacationCalendarDOs(vacation);
     for (VacationCalendarDO vacationCalendarDO : vacationCalendarDOs) {
-      if (vacationCalendarDO.isDeleted()) {
-        vacationDao.unDeleteVacationCalendarDO(vacationCalendarDO);
+      if (vacationCalendarDO.getEvent() != null) {
+        teamEventDao.internalUndelete(teamEventDao.getById(vacationCalendarDO.getEvent().getId()));
       }
     }
   }
@@ -652,7 +672,6 @@ public class VacationServiceImpl extends CorePersistenceServiceImpl<Integer, Vac
       final Timestamp endTimestamp = new Timestamp(vacationCalendarDO.getVacation().getEndDate().getTime());
       teamEventDO.setStartDate(startTimestamp);
       teamEventDO.setEndDate(endTimestamp);
-      //I18N KEy erstellen
       teamEventDO.setSubject(I18nHelper
           .getLocalizedMessage("vacation.vacationevent", vacationCalendarDO.getVacation().getEmployee().getUser().getFullname()));
       teamEventDO.setCalendar(vacationCalendarDO.getCalendar());

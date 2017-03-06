@@ -205,8 +205,9 @@ public class VacationEditPage extends AbstractEditPage<VacationDO, VacationEditF
   public WebPage afterUndelete()
   {
     try {
-      vacationService.markAsUnDeleteEventsForVacationCalendars(form.getData());
+      vacationService.markAsUnDeleteVacationCalendars(form.getData());
       if (VacationStatus.APPROVED.equals(form.getData().getStatus())) {
+        vacationService.markAsUnDeleteEventsForVacationCalendars(form.getData());
         vacationService.updateUsedVacationDaysFromLastYear(form.getData());
         vacationService.sendMailToEmployeeAndHR(form.getData(), true);
         vacationService.createEventsForVacationCalendars(form.getData());

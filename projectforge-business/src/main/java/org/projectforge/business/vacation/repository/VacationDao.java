@@ -195,7 +195,10 @@ public class VacationDao extends BaseDao<VacationDO>
     final List<VacationCalendarDO> resultList = getVacationCalendarDOs(vacation);
     List<TeamCalDO> calendarResultList = new ArrayList<>();
     if (resultList != null && resultList.size() > 0) {
-      resultList.forEach(res -> calendarList.add(res.getCalendar()));
+      resultList.forEach(res -> {
+        if (res.isDeleted() == false)
+          calendarList.add(res.getCalendar());
+      });
     }
     return calendarList;
   }
