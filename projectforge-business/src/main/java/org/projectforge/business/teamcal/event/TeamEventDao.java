@@ -187,7 +187,7 @@ public class TeamEventDao extends BaseDao<TeamEventDO>
   protected void afterSaveOrModify(final TeamEventDO event)
   {
     if (StringUtils.isBlank(event.getUid())) {
-      event.setUid(TeamCalConfig.get().createEventUid(event.getPk()));
+      event.setUid(TeamCalConfig.get().createEventUid());
       getHibernateTemplate().merge(event);
     }
   }

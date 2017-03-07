@@ -297,7 +297,7 @@ public class TeamCalServiceImpl
             continue;
           }
           final TeamEventDO teamEvent = (TeamEventDO) teamEventObject;
-          final String uid = TeamCalConfig.get().createEventUid(teamEvent.getId());
+          final String uid = TeamCalConfig.get().createEventUid();
           final VEvent vEvent = getVEvent(teamEvent, teamCalIds, uid, exportReminders, exportAttendees, timeZone);
           events.add(vEvent);
         }

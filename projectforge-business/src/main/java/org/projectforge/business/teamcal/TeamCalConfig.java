@@ -26,11 +26,10 @@ package org.projectforge.business.teamcal;
 import org.projectforge.framework.configuration.ConfigXml;
 import org.projectforge.framework.configuration.Configuration;
 import org.projectforge.framework.configuration.ConfigurationData;
+import java.util.UUID;
 
 public class TeamCalConfig implements ConfigurationData
 {
-  // Don't change this, otherwise the synchronization with older entries may fail.
-  public static final String EVENT_UID_PREFIX = "pf-event";
 
   // Don't change this, otherwise the synchronization with older entries may fail.
   public static final String TIMESHEET_UID_PREFIX = "pf-ts";
@@ -78,12 +77,11 @@ public class TeamCalConfig implements ConfigurationData
   }
 
   /**
-   * @param id
    * @return
    */
-  public String createEventUid(final Integer id)
+  public String createEventUid()
   {
-    return createUid(EVENT_UID_PREFIX, id);
+    return UUID.randomUUID().toString();
   }
 
   /**
