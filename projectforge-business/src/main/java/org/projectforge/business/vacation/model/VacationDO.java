@@ -24,6 +24,7 @@
 package org.projectforge.business.vacation.model;
 
 import java.util.Date;
+import java.util.HashSet;
 import java.util.Set;
 
 import javax.persistence.Column;
@@ -80,7 +81,7 @@ public class VacationDO extends DefaultBaseDO
   private Date endDate;
 
   @PropertyInfo(i18nKey = "vacation.substitution")
-  private Set<EmployeeDO> substitutions;
+  private Set<EmployeeDO> substitutions = new HashSet<>();
 
   @PropertyInfo(i18nKey = "vacation.manager")
   private EmployeeDO manager;

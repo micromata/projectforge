@@ -202,6 +202,7 @@ public class VacationEditPage extends AbstractEditPage<VacationDO, VacationEditF
     return null;
   }
 
+  @Override
   public WebPage afterUndelete()
   {
     try {

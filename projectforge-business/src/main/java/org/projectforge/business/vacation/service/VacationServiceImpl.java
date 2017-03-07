@@ -8,6 +8,8 @@ import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
@@ -86,7 +88,6 @@ public class VacationServiceImpl extends CorePersistenceServiceImpl<Integer, Vac
     final String urlOfVacationEditPage = configService.getDomain() + vacationEditPagePath + "?id=" + vacationData.getId();
     final String employeeFullName = vacationData.getEmployee().getUser().getFullname();
     final String managerFirstName = vacationData.getManager().getUser().getFirstname();
-    final String substitutionFirstName = "TODO CT"; //vacationData.getSubstitutions().getUser().getFirstname();
 
     final String periodI18nKey = vacationData.getHalfDay() ? "vacation.mail.period.halfday" : "vacation.mail.period.fromto";
     final String vacationStartDate = dateFormatter.getFormattedDate(vacationData.getStartDate());
@@ -95,51 +96,63 @@ public class VacationServiceImpl extends CorePersistenceServiceImpl<Integer, Vac
 
     final String i18nSubject;
     final String i18nPMContent;
-    final String i18nSubContent;
 
     if (isNew == true && isDeleted == false) {
       i18nSubject = I18nHelper.getLocalizedMessage("vacation.mail.subject", employeeFullName);
       i18nPMContent = I18nHelper
           .getLocalizedMessage("vacation.mail.pm.application", managerFirstName, employeeFullName, periodText, urlOfVacationEditPage);
-      i18nSubContent = I18nHelper
-          .getLocalizedMessage("vacation.mail.sub.application", substitutionFirstName, employeeFullName, periodText, urlOfVacationEditPage);
     } else if (isNew == false && isDeleted == false) {
       i18nSubject = I18nHelper.getLocalizedMessage("vacation.mail.subject.edit", employeeFullName);
       i18nPMContent = I18nHelper
           .getLocalizedMessage("vacation.mail.pm.application.edit", managerFirstName, employeeFullName, periodText, urlOfVacationEditPage);
-      i18nSubContent = I18nHelper
-          .getLocalizedMessage("vacation.mail.sub.application.edit", substitutionFirstName, employeeFullName, periodText, urlOfVacationEditPage);
     } else {
       // isDeleted
       i18nSubject = I18nHelper.getLocalizedMessage("vacation.mail.subject.deleted", employeeFullName);
       i18nPMContent = I18nHelper
           .getLocalizedMessage("vacation.mail.application.deleted", managerFirstName, employeeFullName, periodText, urlOfVacationEditPage);
-      i18nSubContent = I18nHelper
-          .getLocalizedMessage("vacation.mail.application.deleted", substitutionFirstName, employeeFullName, periodText, urlOfVacationEditPage);
     }
 
-    //Send mail to manager (employee in copy)
+    // Send mail to manager and employee
     sendMail(i18nSubject, i18nPMContent,
         vacationData.getManager().getUser(),
         vacationData.getEmployee().getUser()
     );
 
-    //Send mail to substitution (employee in copy)
-    sendMail(i18nSubject, i18nSubContent,
-        // TODO CT vacationData.getSubstitutions().getUser(),
-        vacationData.getEmployee().getUser()
-    );
+    // Send mail to substitutions and employee
+    for (final EmployeeDO substitution : vacationData.getSubstitutions()) {
+      final PFUserDO substitutionUser = substitution.getUser();
+      final String substitutionFirstName = substitutionUser.getFirstname();
+      final String i18nSubContent;
+
+      if (isNew == true && isDeleted == false) {
+        i18nSubContent = I18nHelper
+            .getLocalizedMessage("vacation.mail.sub.application", substitutionFirstName, employeeFullName, periodText, urlOfVacationEditPage);
+      } else if (isNew == false && isDeleted == false) {
+        i18nSubContent = I18nHelper
+            .getLocalizedMessage("vacation.mail.sub.application.edit", substitutionFirstName, employeeFullName, periodText, urlOfVacationEditPage);
+      } else {
+        // isDeleted
+        i18nSubContent = I18nHelper
+            .getLocalizedMessage("vacation.mail.application.deleted", substitutionFirstName, employeeFullName, periodText, urlOfVacationEditPage);
+      }
+
+      sendMail(i18nSubject, i18nSubContent,
+          substitutionUser,
+          vacationData.getEmployee().getUser()
+      );
+    }
   }
 
   @Override
   public void sendMailToEmployeeAndHR(final VacationDO vacationData, final boolean approved)
   {
     final String urlOfVacationEditPage = configService.getDomain() + vacationEditPagePath + "?id=" + vacationData.getId();
-    final String employeeFirstName = vacationData.getEmployee().getUser().getFirstname();
     final String employeeFullName = vacationData.getEmployee().getUser().getFullname();
-    final String substitutionFirstName = "TODO CT"; //vacationData.getSubstitutions().getUser().getFirstname();
-    final String substitutionFullName = "TODO CT"; //vacationData.getSubstitutions().getUser().getFullname();
     final String managerFullName = vacationData.getManager().getUser().getFullname();
+    final String substitutionFullNames = vacationData.getSubstitutions().stream()
+        .map(EmployeeDO::getUser)
+        .map(PFUserDO::getFullname)
+        .collect(Collectors.joining(", "));
 
     final String periodI18nKey = vacationData.getHalfDay() ? "vacation.mail.period.halfday" : "vacation.mail.period.fromto";
     final String vacationStartDate = dateFormatter.getFormattedDate(vacationData.getStartDate());
@@ -150,7 +163,7 @@ public class VacationServiceImpl extends CorePersistenceServiceImpl<Integer, Vac
       //Send mail to HR (employee in copy)
       final String subject = I18nHelper.getLocalizedMessage("vacation.mail.subject", employeeFullName);
       final String content = I18nHelper
-          .getLocalizedMessage("vacation.mail.hr.approved", employeeFullName, periodText, substitutionFullName, managerFullName, urlOfVacationEditPage);
+          .getLocalizedMessage("vacation.mail.hr.approved", employeeFullName, periodText, substitutionFullNames, managerFullName, urlOfVacationEditPage);
 
       sendMail(subject, content,
           configService.getHREmailadress(), "HR-MANAGEMENT",
@@ -158,16 +171,15 @@ public class VacationServiceImpl extends CorePersistenceServiceImpl<Integer, Vac
           vacationData.getEmployee().getUser()
       );
     }
-    //Send mail to substitution (employee in copy)
+
+    // Send mail to substitutions and employee
     final String subject = I18nHelper.getLocalizedMessage("vacation.mail.subject.edit", employeeFullName);
     final String i18nKey = approved ? "vacation.mail.employee.approved" : "vacation.mail.employee.declined";
-    final String content = I18nHelper
-        .getLocalizedMessage(i18nKey, employeeFirstName, substitutionFirstName, employeeFullName, periodText, substitutionFullName, urlOfVacationEditPage);
-
-    sendMail(subject, content,
-        // TODO CT vacationData.getSubstitutions().getUser(),
-        vacationData.getEmployee().getUser()
-    );
+    final String content = I18nHelper.getLocalizedMessage(i18nKey, employeeFullName, periodText, substitutionFullNames, urlOfVacationEditPage);
+    final PFUserDO[] recipients = Stream.concat(vacationData.getSubstitutions().stream(), Stream.of(vacationData.getEmployee()))
+        .map(EmployeeDO::getUser)
+        .toArray(PFUserDO[]::new);
+    sendMail(subject, content, recipients);
   }
 
   private boolean sendMail(final String subject, final String content, final PFUserDO... recipients)
@@ -583,10 +595,12 @@ public class VacationServiceImpl extends CorePersistenceServiceImpl<Integer, Vac
   }
 
   @Override
-  public void saveOrUpdateVacationCalendars(final VacationDO vacation, final Collection<TeamCalDO> items)
+  public void saveOrUpdateVacationCalendars(final VacationDO vacation, final Collection<TeamCalDO> calendars)
   {
-    for (final TeamCalDO teamCalDO : items) {
-      vacationDao.saveVacationCalendar(getOrCreateVacationCalendarDO(vacation, teamCalDO));
+    if (calendars != null) {
+      for (final TeamCalDO teamCalDO : calendars) {
+        vacationDao.saveVacationCalendar(getOrCreateVacationCalendarDO(vacation, teamCalDO));
+      }
     }
   }
 
