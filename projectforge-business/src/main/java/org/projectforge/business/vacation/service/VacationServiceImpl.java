@@ -667,9 +667,7 @@ public class VacationServiceImpl extends CorePersistenceServiceImpl<Integer, Vac
       final Timestamp endTimestamp = new Timestamp(vacationCalendarDO.getVacation().getEndDate().getTime());
       teamEventDO.setStartDate(startTimestamp);
       teamEventDO.setEndDate(endTimestamp);
-      //I18N KEy erstellen
-      teamEventDO.setSubject(I18nHelper
-          .getLocalizedMessage("vacation.vacationevent", vacationCalendarDO.getVacation().getEmployee().getUser().getFullname()));
+      teamEventDO.setSubject(vacationCalendarDO.getVacation().getEmployee().getUser().getFullname());
       teamEventDO.setCalendar(vacationCalendarDO.getCalendar());
       teamEventDao.internalSave(teamEventDO);
       return teamEventDO;
