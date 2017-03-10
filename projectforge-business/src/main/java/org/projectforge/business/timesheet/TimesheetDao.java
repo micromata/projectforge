@@ -49,7 +49,6 @@ import org.projectforge.business.task.TaskDO;
 import org.projectforge.business.task.TaskNode;
 import org.projectforge.business.task.TaskTree;
 import org.projectforge.business.tasktree.TaskTreeHelper;
-import org.projectforge.business.user.I18nHelper;
 import org.projectforge.business.user.ProjectForgeGroup;
 import org.projectforge.business.user.UserDao;
 import org.projectforge.common.task.TaskStatus;
@@ -923,36 +922,5 @@ public class TimesheetDao extends BaseDao<TimesheetDO>
   protected boolean useOwnCriteriaCacheRegion()
   {
     return true;
-  }
-
-  public HashSet<String> massupdate(List<TimesheetDO> list, TimesheetDO master)
-  {
-    HashSet<String> exceptions = new HashSet<>();
-    if (list == null || list.size() == 0) {
-      // No entries to update.
-      return null;
-    }
-    if (list.size() > MAX_MASS_UPDATE) {
-      throw new UserException(MAX_MASS_UPDATE_EXCEEDED_EXCEPTION_I18N, new Object[] { MAX_MASS_UPDATE });
-    }
-    final Object store = prepareMassUpdateStore(list, master);
-    for (final TimesheetDO entry : list) {
-      try {
-        if (massUpdateEntry(entry, master, store) == true) {
-          update(entry);
-        } else {
-          exceptions.add(I18nHelper.getLocalizedMessage("timesheet.error"));
-        }
-      } catch (IllegalArgumentException ex) {
-        exceptions.add(I18nHelper.getLocalizedMessage("timesheet.error.kost2NotGiven"));
-      } catch (final Exception ex) {
-        exceptions.add(I18nHelper.getLocalizedMessage("timesheet.error"));
-        log.info("Exception occured while updating entry inside mass update: " + entry);
-      }
-    }
-    if (exceptions.isEmpty() == false) {
-      return exceptions;
-    }
-    return null;
   }
 }

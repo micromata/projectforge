@@ -25,7 +25,6 @@ package org.projectforge.web.timesheet;
 
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 
@@ -176,13 +175,7 @@ public class TimesheetMassUpdatePage extends AbstractMassEditPage implements ISe
     if (form.updateTask == false) {
       form.data.setTask(null);
     }
-    HashSet<String> exceptions = timesheetDao.massupdate(timesheets, form.data);
-    if (exceptions != null) {
-      for (String str : exceptions) {
-        error(str);
-      }
-    } else {
-      super.updateAll();
-    }
+    timesheetDao.massUpdate(timesheets, form.data);
+    super.updateAll();
   }
 }
