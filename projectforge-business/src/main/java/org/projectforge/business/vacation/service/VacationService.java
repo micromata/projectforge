@@ -204,11 +204,11 @@ public interface VacationService extends IPersistenceService<VacationDO>, IDao<V
   /**
    * Save the calendars for apllication for leave
    *
-   * @param items
+   * @param calendars
    * @param vacation
    * @return
    */
-  void saveOrUpdateVacationCalendars(VacationDO vacation, Collection<TeamCalDO> items);
+  void saveOrUpdateVacationCalendars(VacationDO vacation, Collection<TeamCalDO> calendars);
 
   /**
    * Delete CalenderEvents for apllication for leave
