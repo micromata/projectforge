@@ -114,11 +114,14 @@ public class VacationDao extends BaseDao<VacationDO>
     final QueryFilter queryFilter = createQueryFilter(myFilter);
     if (accessChecker.hasLoggedInUserRight(UserRightId.HR_VACATION, false, UserRightValue.READONLY,
         UserRightValue.READWRITE) == false) {
-      EmployeeDO employeeFromFilter = emgrFactory.runRoTrans(emgr -> emgr.selectByPk(EmployeeDO.class, myFilter.getEmployeeId()));
+      final Integer employeeId = myFilter.getEmployeeId();
+      final EmployeeDO employeeFromFilter = emgrFactory.runRoTrans(emgr -> emgr.selectByPk(EmployeeDO.class, employeeId));
+      queryFilter.createAlias("substitutions", "subAlias"); // use alias to create the inner join
       queryFilter.add(Restrictions.or(
           Restrictions.eq("employee", employeeFromFilter),
           Restrictions.eq("manager", employeeFromFilter),
-          Restrictions.eq("substitution", employeeFromFilter)));
+          Restrictions.eq("subAlias.id", employeeId) // does not work with the whole employee object, need id
+      ));
     }
     if (myFilter.getVacationstatus() != null) {
       queryFilter.add(Restrictions.eq("status", myFilter.getVacationstatus()));
@@ -193,7 +196,6 @@ public class VacationDao extends BaseDao<VacationDO>
       return calendarList;
     }
     final List<VacationCalendarDO> resultList = getVacationCalendarDOs(vacation);
-    List<TeamCalDO> calendarResultList = new ArrayList<>();
     if (resultList != null && resultList.size() > 0) {
       resultList.forEach(res -> calendarList.add(res.getCalendar()));
     }
