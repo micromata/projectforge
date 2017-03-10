@@ -8,9 +8,11 @@ import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
-import org.apache.log4j.Logger;
 import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
 import org.projectforge.business.configuration.ConfigurationService;
 import org.projectforge.business.fibu.EmployeeDO;
 import org.projectforge.business.fibu.EmployeeDao;
@@ -63,7 +65,6 @@ public class VacationServiceImpl extends CorePersistenceServiceImpl<Integer, Vac
   @Autowired
   private EmployeeService employeeService;
 
-
   @Autowired
   private TeamEventDao teamEventDao;
 
@@ -74,7 +75,7 @@ public class VacationServiceImpl extends CorePersistenceServiceImpl<Integer, Vac
   private static final DateTimeFormatter dateFormatter = DateTimeFormatter.instance();
 
   @Override
-  public BigDecimal getApprovedAndPlanedVacationdaysForYear(EmployeeDO employee, int year)
+  public BigDecimal getApprovedAndPlanedVacationdaysForYear(final EmployeeDO employee, final int year)
   {
     final BigDecimal approved = getApprovedVacationdaysForYear(employee, year);
     final BigDecimal planned = getPlannedVacationdaysForYear(employee, year);
@@ -82,12 +83,11 @@ public class VacationServiceImpl extends CorePersistenceServiceImpl<Integer, Vac
   }
 
   @Override
-  public void sendMailToVacationInvolved(VacationDO vacationData, boolean isNew, boolean isDeleted)
+  public void sendMailToVacationInvolved(final VacationDO vacationData, final boolean isNew, final boolean isDeleted)
   {
     final String urlOfVacationEditPage = configService.getDomain() + vacationEditPagePath + "?id=" + vacationData.getId();
     final String employeeFullName = vacationData.getEmployee().getUser().getFullname();
     final String managerFirstName = vacationData.getManager().getUser().getFirstname();
-    final String substitutionFirstName = vacationData.getSubstitution().getUser().getFirstname();
 
     final String periodI18nKey = vacationData.getHalfDay() ? "vacation.mail.period.halfday" : "vacation.mail.period.fromto";
     final String vacationStartDate = dateFormatter.getFormattedDate(vacationData.getStartDate());
@@ -96,51 +96,63 @@ public class VacationServiceImpl extends CorePersistenceServiceImpl<Integer, Vac
 
     final String i18nSubject;
     final String i18nPMContent;
-    final String i18nSubContent;
 
     if (isNew == true && isDeleted == false) {
       i18nSubject = I18nHelper.getLocalizedMessage("vacation.mail.subject", employeeFullName);
       i18nPMContent = I18nHelper
           .getLocalizedMessage("vacation.mail.pm.application", managerFirstName, employeeFullName, periodText, urlOfVacationEditPage);
-      i18nSubContent = I18nHelper
-          .getLocalizedMessage("vacation.mail.sub.application", substitutionFirstName, employeeFullName, periodText, urlOfVacationEditPage);
     } else if (isNew == false && isDeleted == false) {
       i18nSubject = I18nHelper.getLocalizedMessage("vacation.mail.subject.edit", employeeFullName);
       i18nPMContent = I18nHelper
           .getLocalizedMessage("vacation.mail.pm.application.edit", managerFirstName, employeeFullName, periodText, urlOfVacationEditPage);
-      i18nSubContent = I18nHelper
-          .getLocalizedMessage("vacation.mail.sub.application.edit", substitutionFirstName, employeeFullName, periodText, urlOfVacationEditPage);
     } else {
       // isDeleted
       i18nSubject = I18nHelper.getLocalizedMessage("vacation.mail.subject.deleted", employeeFullName);
       i18nPMContent = I18nHelper
           .getLocalizedMessage("vacation.mail.application.deleted", managerFirstName, employeeFullName, periodText, urlOfVacationEditPage);
-      i18nSubContent = I18nHelper
-          .getLocalizedMessage("vacation.mail.application.deleted", substitutionFirstName, employeeFullName, periodText, urlOfVacationEditPage);
     }
 
-    //Send mail to manager (employee in copy)
+    // Send mail to manager and employee
     sendMail(i18nSubject, i18nPMContent,
         vacationData.getManager().getUser(),
         vacationData.getEmployee().getUser()
     );
 
-    //Send mail to substitution (employee in copy)
-    sendMail(i18nSubject, i18nSubContent,
-        vacationData.getSubstitution().getUser(),
-        vacationData.getEmployee().getUser()
-    );
+    // Send mail to substitutions and employee
+    for (final EmployeeDO substitution : vacationData.getSubstitutions()) {
+      final PFUserDO substitutionUser = substitution.getUser();
+      final String substitutionFirstName = substitutionUser.getFirstname();
+      final String i18nSubContent;
+
+      if (isNew == true && isDeleted == false) {
+        i18nSubContent = I18nHelper
+            .getLocalizedMessage("vacation.mail.sub.application", substitutionFirstName, employeeFullName, periodText, urlOfVacationEditPage);
+      } else if (isNew == false && isDeleted == false) {
+        i18nSubContent = I18nHelper
+            .getLocalizedMessage("vacation.mail.sub.application.edit", substitutionFirstName, employeeFullName, periodText, urlOfVacationEditPage);
+      } else {
+        // isDeleted
+        i18nSubContent = I18nHelper
+            .getLocalizedMessage("vacation.mail.application.deleted", substitutionFirstName, employeeFullName, periodText, urlOfVacationEditPage);
+      }
+
+      sendMail(i18nSubject, i18nSubContent,
+          substitutionUser,
+          vacationData.getEmployee().getUser()
+      );
+    }
   }
 
   @Override
-  public void sendMailToEmployeeAndHR(VacationDO vacationData, boolean approved)
+  public void sendMailToEmployeeAndHR(final VacationDO vacationData, final boolean approved)
   {
     final String urlOfVacationEditPage = configService.getDomain() + vacationEditPagePath + "?id=" + vacationData.getId();
-    final String employeeFirstName = vacationData.getEmployee().getUser().getFirstname();
     final String employeeFullName = vacationData.getEmployee().getUser().getFullname();
-    final String substitutionFirstName = vacationData.getSubstitution().getUser().getFirstname();
-    final String substitutionFullName = vacationData.getSubstitution().getUser().getFullname();
     final String managerFullName = vacationData.getManager().getUser().getFullname();
+    final String substitutionFullNames = vacationData.getSubstitutions().stream()
+        .map(EmployeeDO::getUser)
+        .map(PFUserDO::getFullname)
+        .collect(Collectors.joining(", "));
 
     final String periodI18nKey = vacationData.getHalfDay() ? "vacation.mail.period.halfday" : "vacation.mail.period.fromto";
     final String vacationStartDate = dateFormatter.getFormattedDate(vacationData.getStartDate());
@@ -151,7 +163,7 @@ public class VacationServiceImpl extends CorePersistenceServiceImpl<Integer, Vac
       //Send mail to HR (employee in copy)
       final String subject = I18nHelper.getLocalizedMessage("vacation.mail.subject", employeeFullName);
       final String content = I18nHelper
-          .getLocalizedMessage("vacation.mail.hr.approved", employeeFullName, periodText, substitutionFullName, managerFullName, urlOfVacationEditPage);
+          .getLocalizedMessage("vacation.mail.hr.approved", employeeFullName, periodText, substitutionFullNames, managerFullName, urlOfVacationEditPage);
 
       sendMail(subject, content,
           configService.getHREmailadress(), "HR-MANAGEMENT",
@@ -159,16 +171,15 @@ public class VacationServiceImpl extends CorePersistenceServiceImpl<Integer, Vac
           vacationData.getEmployee().getUser()
       );
     }
-    //Send mail to substitution (employee in copy)
+
+    // Send mail to substitutions and employee
     final String subject = I18nHelper.getLocalizedMessage("vacation.mail.subject.edit", employeeFullName);
     final String i18nKey = approved ? "vacation.mail.employee.approved" : "vacation.mail.employee.declined";
-    final String content = I18nHelper
-        .getLocalizedMessage(i18nKey, employeeFirstName, substitutionFirstName, employeeFullName, periodText, substitutionFullName, urlOfVacationEditPage);
-
-    sendMail(subject, content,
-        vacationData.getSubstitution().getUser(),
-        vacationData.getEmployee().getUser()
-    );
+    final String content = I18nHelper.getLocalizedMessage(i18nKey, employeeFullName, periodText, substitutionFullNames, urlOfVacationEditPage);
+    final PFUserDO[] recipients = Stream.concat(vacationData.getSubstitutions().stream(), Stream.of(vacationData.getEmployee()))
+        .map(EmployeeDO::getUser)
+        .toArray(PFUserDO[]::new);
+    sendMail(subject, content, recipients);
   }
 
   private boolean sendMail(final String subject, final String content, final PFUserDO... recipients)
@@ -207,7 +218,7 @@ public class VacationServiceImpl extends CorePersistenceServiceImpl<Integer, Vac
     final Calendar endDateVacationFromLastYear = getEndDateVacationFromLastYear();
     if (vacationData.getIsSpecial() == true) {
       if (vacationData.getId() != null) {
-        VacationDO vacation = vacationDao.getById(vacationData.getId());
+        final VacationDO vacation = vacationDao.getById(vacationData.getId());
         if (vacation.getIsSpecial() == false) {
           return deleteUsedVacationDaysFromLastYear(vacation);
         }
@@ -240,16 +251,16 @@ public class VacationServiceImpl extends CorePersistenceServiceImpl<Integer, Vac
   }
 
   @Override
-  public void updateUsedNewVacationDaysFromLastYear(EmployeeDO employee, int year)
+  public void updateUsedNewVacationDaysFromLastYear(final EmployeeDO employee, final int year)
   {
-    BigDecimal availableVacationdays = getAvailableVacationdaysForYear(employee, year, false);
+    final BigDecimal availableVacationdays = getAvailableVacationdaysForYear(employee, year, false);
     employee.putAttribute(VacationAttrProperty.PREVIOUSYEARLEAVE.getPropertyName(), availableVacationdays);
     employee.putAttribute(VacationAttrProperty.PREVIOUSYEARLEAVEUSED.getPropertyName(), BigDecimal.ZERO);
     employeeDao.internalSave(employee);
   }
 
   @Override
-  public BigDecimal deleteUsedVacationDaysFromLastYear(VacationDO vacationData)
+  public BigDecimal deleteUsedVacationDaysFromLastYear(final VacationDO vacationData)
   {
     if (vacationData == null || vacationData.getIsSpecial() == true || vacationData.getEmployee() == null || vacationData.getStartDate() == null
         || vacationData.getEndDate() == null) {
@@ -294,13 +305,13 @@ public class VacationServiceImpl extends CorePersistenceServiceImpl<Integer, Vac
   }
 
   @Override
-  public boolean couldUserUseVacationService(PFUserDO user, boolean throwException)
+  public boolean couldUserUseVacationService(final PFUserDO user, final boolean throwException)
   {
     boolean result = true;
     if (user == null || user.getId() == null) {
       return false;
     }
-    EmployeeDO employee = employeeService.getEmployeeByUserId(user.getId());
+    final EmployeeDO employee = employeeService.getEmployeeByUserId(user.getId());
     if (employee == null) {
       if (throwException) {
         throw new AccessException("access.exception.noEmployeeToUser");
@@ -327,7 +338,7 @@ public class VacationServiceImpl extends CorePersistenceServiceImpl<Integer, Vac
     return getVacationDaysForYearByStatus(employee, year, VacationStatus.IN_PROGRESS);
   }
 
-  private BigDecimal getVacationDaysForYearByStatus(final EmployeeDO employee, int year, final VacationStatus status)
+  private BigDecimal getVacationDaysForYearByStatus(final EmployeeDO employee, final int year, final VacationStatus status)
   {
     return getActiveVacationForYear(employee, year, false)
         .stream()
@@ -337,12 +348,12 @@ public class VacationServiceImpl extends CorePersistenceServiceImpl<Integer, Vac
   }
 
   @Override
-  public BigDecimal getAvailableVacationdaysForYear(PFUserDO user, int year, boolean checkLastYear)
+  public BigDecimal getAvailableVacationdaysForYear(final PFUserDO user, final int year, final boolean checkLastYear)
   {
     if (user == null) {
       return BigDecimal.ZERO;
     }
-    EmployeeDO employee = employeeService.getEmployeeByUserId(user.getPk());
+    final EmployeeDO employee = employeeService.getEmployeeByUserId(user.getPk());
     if (employee == null) {
       return BigDecimal.ZERO;
     }
@@ -350,7 +361,7 @@ public class VacationServiceImpl extends CorePersistenceServiceImpl<Integer, Vac
   }
 
   @Override
-  public BigDecimal getAvailableVacationdaysForYear(EmployeeDO employee, int year, boolean checkLastYear)
+  public BigDecimal getAvailableVacationdaysForYear(final EmployeeDO employee, final int year, final boolean checkLastYear)
   {
     if (employee == null) {
       return BigDecimal.ZERO;
@@ -427,52 +438,52 @@ public class VacationServiceImpl extends CorePersistenceServiceImpl<Integer, Vac
         .reduce(BigDecimal.ZERO, BigDecimal::add); // sum
   }
 
-  private BigDecimal getVacationFromPreviousYearUsed(EmployeeDO employee)
+  private BigDecimal getVacationFromPreviousYearUsed(final EmployeeDO employee)
   {
     final BigDecimal prevYearLeaveUsed = employee.getAttribute(VacationAttrProperty.PREVIOUSYEARLEAVEUSED.getPropertyName(), BigDecimal.class);
     return prevYearLeaveUsed != null ? prevYearLeaveUsed : BigDecimal.ZERO;
   }
 
-  private BigDecimal getVacationFromPreviousYear(EmployeeDO employee)
+  private BigDecimal getVacationFromPreviousYear(final EmployeeDO employee)
   {
     final BigDecimal prevYearLeave = employee.getAttribute(VacationAttrProperty.PREVIOUSYEARLEAVE.getPropertyName(), BigDecimal.class);
     return prevYearLeave != null ? prevYearLeave : BigDecimal.ZERO;
   }
 
   @Override
-  public List<VacationDO> getActiveVacationForYear(EmployeeDO employee, int year, boolean withSpecial)
+  public List<VacationDO> getActiveVacationForYear(final EmployeeDO employee, final int year, final boolean withSpecial)
   {
     return vacationDao.getActiveVacationForYear(employee, year, withSpecial);
   }
 
   @Override
-  public List<VacationDO> getAllActiveVacation(EmployeeDO employee, boolean withSpecial)
+  public List<VacationDO> getAllActiveVacation(final EmployeeDO employee, final boolean withSpecial)
   {
     return vacationDao.getAllActiveVacation(employee, withSpecial);
   }
 
   @Override
-  public List<VacationDO> getList(BaseSearchFilter filter)
+  public List<VacationDO> getList(final BaseSearchFilter filter)
   {
     return vacationDao.getList(filter);
   }
 
   @Override
-  public List<VacationDO> getVacation(List<Serializable> idList)
+  public List<VacationDO> getVacation(final List<Serializable> idList)
   {
     return vacationDao.internalLoad(idList);
   }
 
   @Override
-  public List<VacationDO> getVacationForDate(EmployeeDO employee, Date startDate, Date endDate, boolean withSpecial)
+  public List<VacationDO> getVacationForDate(final EmployeeDO employee, final Date startDate, final Date endDate, final boolean withSpecial)
   {
     return vacationDao.getVacationForPeriod(employee, startDate, endDate, withSpecial);
   }
 
   @Override
-  public BigDecimal getOpenLeaveApplicationsForUser(PFUserDO user)
+  public BigDecimal getOpenLeaveApplicationsForUser(final PFUserDO user)
   {
-    EmployeeDO employee = employeeService.getEmployeeByUserId(user.getId());
+    final EmployeeDO employee = employeeService.getEmployeeByUserId(user.getId());
     if (employee == null) {
       return BigDecimal.ZERO;
     }
@@ -480,7 +491,7 @@ public class VacationServiceImpl extends CorePersistenceServiceImpl<Integer, Vac
   }
 
   @Override
-  public BigDecimal getSpecialVacationCount(EmployeeDO employee, int year, VacationStatus status)
+  public BigDecimal getSpecialVacationCount(final EmployeeDO employee, final int year, final VacationStatus status)
   {
     return vacationDao
         .getSpecialVacation(employee, year, status)
@@ -489,7 +500,8 @@ public class VacationServiceImpl extends CorePersistenceServiceImpl<Integer, Vac
         .reduce(BigDecimal.ZERO, BigDecimal::add); // sum
   }
 
-  public List<TeamCalDO> getCalendarsForVacation(VacationDO vacation)
+  @Override
+  public List<TeamCalDO> getCalendarsForVacation(final VacationDO vacation)
   {
     return vacationDao.getCalendarsForVacation(vacation);
   }
@@ -523,7 +535,7 @@ public class VacationServiceImpl extends CorePersistenceServiceImpl<Integer, Vac
   }
 
   @Override
-  public boolean hasInsertAccess(PFUserDO user)
+  public boolean hasInsertAccess(final PFUserDO user)
   {
     return true;
   }
@@ -535,37 +547,37 @@ public class VacationServiceImpl extends CorePersistenceServiceImpl<Integer, Vac
   }
 
   @Override
-  public boolean hasLoggedInUserInsertAccess(VacationDO obj, boolean throwException)
+  public boolean hasLoggedInUserInsertAccess(final VacationDO obj, final boolean throwException)
   {
     return vacationDao.hasLoggedInUserInsertAccess(obj, throwException);
   }
 
   @Override
-  public boolean hasLoggedInUserUpdateAccess(VacationDO obj, VacationDO dbObj, boolean throwException)
+  public boolean hasLoggedInUserUpdateAccess(final VacationDO obj, final VacationDO dbObj, final boolean throwException)
   {
     return vacationDao.hasLoggedInUserUpdateAccess(obj, dbObj, throwException);
   }
 
   @Override
-  public boolean hasLoggedInUserDeleteAccess(VacationDO obj, VacationDO dbObj, boolean throwException)
+  public boolean hasLoggedInUserDeleteAccess(final VacationDO obj, final VacationDO dbObj, final boolean throwException)
   {
     return vacationDao.hasLoggedInUserDeleteAccess(obj, dbObj, throwException);
   }
 
   @Override
-  public boolean hasDeleteAccess(PFUserDO user, VacationDO obj, VacationDO dbObj, boolean throwException)
+  public boolean hasDeleteAccess(final PFUserDO user, final VacationDO obj, final VacationDO dbObj, final boolean throwException)
   {
     return vacationDao.hasDeleteAccess(user, obj, dbObj, throwException);
   }
 
   @Override
-  public List<String> getAutocompletion(String property, String searchString)
+  public List<String> getAutocompletion(final String property, final String searchString)
   {
     return vacationDao.getAutocompletion(property, searchString);
   }
 
   @Override
-  public List<DisplayHistoryEntry> getDisplayHistoryEntries(VacationDO obj)
+  public List<DisplayHistoryEntry> getDisplayHistoryEntries(final VacationDO obj)
   {
     return vacationDao.getDisplayHistoryEntries(obj);
   }
@@ -582,18 +594,21 @@ public class VacationServiceImpl extends CorePersistenceServiceImpl<Integer, Vac
     vacationDao.rebuildDatabaseIndex();
   }
 
-  public void saveOrUpdateVacationCalendars(VacationDO vacation, Collection<TeamCalDO> items)
+  @Override
+  public void saveOrUpdateVacationCalendars(final VacationDO vacation, final Collection<TeamCalDO> calendars)
   {
-    for (TeamCalDO teamCalDO : items) {
-      vacationDao.saveVacationCalendar(getOrCreateVacationCalendarDO(vacation, teamCalDO));
+    if (calendars != null) {
+      for (final TeamCalDO teamCalDO : calendars) {
+        vacationDao.saveVacationCalendar(getOrCreateVacationCalendarDO(vacation, teamCalDO));
+      }
     }
   }
 
   @Override
-  public void markAsDeleteEventsForVacationCalendars(VacationDO vacation)
+  public void markAsDeleteEventsForVacationCalendars(final VacationDO vacation)
   {
-    List<VacationCalendarDO> vacationCalendarDOs = vacationDao.getVacationCalendarDOs(vacation);
-    for (VacationCalendarDO vacationCalendarDO : vacationCalendarDOs) {
+    final List<VacationCalendarDO> vacationCalendarDOs = vacationDao.getVacationCalendarDOs(vacation);
+    for (final VacationCalendarDO vacationCalendarDO : vacationCalendarDOs) {
       if (vacationCalendarDO.isDeleted() == false) {
         if (vacationCalendarDO.getEvent() != null) {
           teamEventDao.internalMarkAsDeleted(teamEventDao.getById(vacationCalendarDO.getEvent().getId()));
@@ -603,10 +618,10 @@ public class VacationServiceImpl extends CorePersistenceServiceImpl<Integer, Vac
   }
 
   @Override
-  public void markAsUnDeleteEventsForVacationCalendars(VacationDO vacation)
+  public void markAsUnDeleteEventsForVacationCalendars(final VacationDO vacation)
   {
-    List<VacationCalendarDO> vacationCalendarDOs = vacationDao.getVacationCalendarDOs(vacation);
-    for (VacationCalendarDO vacationCalendarDO : vacationCalendarDOs) {
+    final List<VacationCalendarDO> vacationCalendarDOs = vacationDao.getVacationCalendarDOs(vacation);
+    for (final VacationCalendarDO vacationCalendarDO : vacationCalendarDOs) {
       if (vacationCalendarDO.isDeleted()) {
         vacationDao.unDeleteVacationCalendarDO(vacationCalendarDO);
       }
@@ -614,39 +629,39 @@ public class VacationServiceImpl extends CorePersistenceServiceImpl<Integer, Vac
   }
 
   @Override
-  public void createEventsForVacationCalendars(VacationDO vacation)
+  public void createEventsForVacationCalendars(final VacationDO vacation)
   {
-    List<VacationCalendarDO> vacationCalendarDOs = vacationDao.getVacationCalendarDOs(vacation);
-    for (VacationCalendarDO vacationCalendarDO : vacationCalendarDOs) {
+    final List<VacationCalendarDO> vacationCalendarDOs = vacationDao.getVacationCalendarDOs(vacation);
+    for (final VacationCalendarDO vacationCalendarDO : vacationCalendarDOs) {
       vacationCalendarDO.setEvent(getOrCreateTeamEventDO(vacationCalendarDO));
       vacationCalendarDO.setDeleted(false);
       vacationDao.saveVacationCalendar(vacationCalendarDO);
     }
   }
 
-  public VacationCalendarDO getOrCreateVacationCalendarDO(VacationDO vacation, TeamCalDO teamCalDO)
+  public VacationCalendarDO getOrCreateVacationCalendarDO(final VacationDO vacation, final TeamCalDO teamCalDO)
   {
-    List<VacationCalendarDO> vacationCalendarDOs = vacationDao.getVacationCalendarDOs(vacation);
-    for (VacationCalendarDO vacationCalendarDO : vacationCalendarDOs) {
+    final List<VacationCalendarDO> vacationCalendarDOs = vacationDao.getVacationCalendarDOs(vacation);
+    for (final VacationCalendarDO vacationCalendarDO : vacationCalendarDOs) {
       if (vacationCalendarDO.getCalendar().equals(teamCalDO)) {
         vacationCalendarDO.setDeleted(false);
         return vacationCalendarDO;
       }
     }
-    VacationCalendarDO vacationCalendarDO = new VacationCalendarDO();
+    final VacationCalendarDO vacationCalendarDO = new VacationCalendarDO();
     vacationCalendarDO.setCalendar(teamCalDO);
     vacationCalendarDO.setVacation(vacation);
     return vacationCalendarDO;
   }
 
-  public TeamEventDO getOrCreateTeamEventDO(VacationCalendarDO vacationCalendarDO)
+  public TeamEventDO getOrCreateTeamEventDO(final VacationCalendarDO vacationCalendarDO)
   {
     if (vacationCalendarDO.getEvent() != null) {
-      TeamEventDO byId = teamEventDao.getById(vacationCalendarDO.getEvent().getId());
+      final TeamEventDO byId = teamEventDao.getById(vacationCalendarDO.getEvent().getId());
       teamEventDao.internalUndelete(byId);
       return byId;
     } else {
-      TeamEventDO teamEventDO = new TeamEventDO();
+      final TeamEventDO teamEventDO = new TeamEventDO();
       teamEventDO.setAllDay(true);
       final Timestamp startTimestamp = new Timestamp(vacationCalendarDO.getVacation().getStartDate().getTime());
       final Timestamp endTimestamp = new Timestamp(vacationCalendarDO.getVacation().getEndDate().getTime());
