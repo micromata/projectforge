@@ -65,6 +65,7 @@ import org.projectforge.web.wicket.components.LabelValueChoiceRenderer;
 import org.projectforge.web.wicket.flowlayout.CheckBoxPanel;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
 import org.projectforge.web.wicket.flowlayout.LabelPanel;
+import org.projectforge.web.wicket.flowlayout.Select2MultiChoicePanel;
 import org.projectforge.web.wicket.flowlayout.Select2SingleChoicePanel;
 
 import com.vaynberg.wicket.select2.Select2Choice;
@@ -289,13 +290,13 @@ public class VacationEditForm extends AbstractEditForm<VacationDO, VacationEditP
     {
       // Substitution
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("vacation.substitution"));
-      final Select2Choice<EmployeeDO> substitutionSelect = new Select2Choice<>(
-          Select2SingleChoicePanel.WICKET_ID,
-          new PropertyModel<>(data, "substitution"),
+      final Select2MultiChoice<EmployeeDO> substitutionSelect = new Select2MultiChoice<>(
+          Select2MultiChoicePanel.WICKET_ID,
+          new PropertyModel<>(data, "substitutions"),
           new DefaultEmployeeWicketProvider(employeeService, checkHRWriteRight()));
       substitutionSelect.setRequired(true).setMarkupId("vacation-substitution").setOutputMarkupId(true);
       substitutionSelect.setEnabled(checkEnableInputField());
-      fs.add(new Select2SingleChoicePanel<EmployeeDO>(fs.newChildId(), substitutionSelect));
+      fs.add(new Select2MultiChoicePanel<>(fs.newChildId(), substitutionSelect));
     }
 
     {
@@ -329,7 +330,7 @@ public class VacationEditForm extends AbstractEditForm<VacationDO, VacationEditP
       }
 
       List<TeamCalDO> vacationCalendarList = new ArrayList<>();
-      if(vacationCalendar != null) {
+      if (vacationCalendar != null) {
         vacationCalendarList.add(vacationCalendar);
       }
       final Select2MultiChoice<TeamCalDO> calendars = new Select2MultiChoice<TeamCalDO>(
@@ -464,9 +465,10 @@ public class VacationEditForm extends AbstractEditForm<VacationDO, VacationEditP
 
   private boolean checkReadAccess()
   {
-    if (data.getEmployee().getUser().getPk().equals(ThreadLocalUserContext.getUserId()) == true || (data.getManager() != null
-        && data.getManager().getUser().getPk().equals(ThreadLocalUserContext.getUserId())) == true || (data.getSubstitution() != null
-        && data.getSubstitution().getUser().getPk().equals(ThreadLocalUserContext.getUserId())) == true) {
+    final Integer userId = ThreadLocalUserContext.getUserId();
+    if (data.getEmployee().getUser().getPk().equals(userId)
+        || (data.getManager() != null && data.getManager().getUser().getPk().equals(userId))
+        || data.isSubstitution(userId)) {
       return true;
     }
     if (accessChecker.hasLoggedInUserRight(UserRightId.HR_VACATION, false, UserRightValue.READONLY,
