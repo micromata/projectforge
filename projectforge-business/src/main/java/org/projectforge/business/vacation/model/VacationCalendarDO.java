@@ -28,6 +28,7 @@ import javax.persistence.FetchType;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
+import javax.persistence.UniqueConstraint;
 
 import org.projectforge.business.teamcal.admin.model.TeamCalDO;
 import org.projectforge.business.teamcal.event.model.TeamEventDO;
@@ -39,7 +40,9 @@ import org.projectforge.framework.persistence.entities.DefaultBaseDO;
  */
 @Entity
 @AUserRightId(value = "EMPLOYEE_VACATION", checkAccess = false)
-@Table(name = "t_employee_vacation_calendar")
+@Table(name = "t_employee_vacation_calendar", uniqueConstraints={
+    @UniqueConstraint(columnNames={"vacation_id", "calendar_id"})
+})
 public class VacationCalendarDO extends DefaultBaseDO
 {
   private static final long serialVersionUID = -1208123049212394757L;

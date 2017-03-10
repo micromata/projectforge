@@ -194,7 +194,6 @@ public interface VacationService extends IPersistenceService<VacationDO>, IDao<V
   BigDecimal getSpecialVacationCount(EmployeeDO employee, int year, VacationStatus status);
 
   /**
-   <<<<<<< HEAD
    * Returns the calendars for apllication for leave
    *
    * @param vacation
