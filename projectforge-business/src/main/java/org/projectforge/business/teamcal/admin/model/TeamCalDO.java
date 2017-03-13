@@ -407,19 +407,18 @@ public class TeamCalDO extends DefaultBaseDO
   @Override
   public boolean equals(final Object obj)
   {
-    final int id = this.getId();
-    if (this == obj) {
-      return true;
-    }
     if (obj == null) {
       return false;
     }
-    if (getClass() != obj.getClass()) {
+    if (this == obj) {
+      return true;
+    }
+    if(obj instanceof TeamCalDO == false) {
       return false;
     }
     final TeamCalDO other = (TeamCalDO) obj;
-    if (id != other.getId()) {
-      return false;
+    if (this.getId().equals(other.getId())) {
+      return true;
     }
     return StringUtils.equals(title, other.title);
   }
