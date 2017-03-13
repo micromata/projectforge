@@ -49,6 +49,7 @@ import org.projectforge.business.user.I18nHelper;
 import org.projectforge.business.user.UserRightId;
 import org.projectforge.business.user.UserRightValue;
 import org.projectforge.business.vacation.model.VacationDO;
+import org.projectforge.business.vacation.model.VacationMode;
 import org.projectforge.business.vacation.model.VacationStatus;
 import org.projectforge.business.vacation.service.VacationService;
 import org.projectforge.framework.access.AccessChecker;
@@ -250,8 +251,8 @@ public class VacationEditForm extends AbstractEditForm<VacationDO, VacationEditP
       fs.add(checkboxPanel);
     }
 
-    {
-      // Available vacation days
+    // Available vacation days - only visible for the creator and manager
+    if (data.getVacationmode() == VacationMode.OWN || data.getVacationmode() == VacationMode.MANAGER) {
       final FieldsetPanel fs = gridBuilder.newFieldset(I18nHelper.getLocalizedMessage("vacation.availabledays"));
       BigDecimal availableVacationDays = getAvailableVacationDays(data);
       this.availableVacationDaysModel = new Model<>(availableVacationDays.toString());
