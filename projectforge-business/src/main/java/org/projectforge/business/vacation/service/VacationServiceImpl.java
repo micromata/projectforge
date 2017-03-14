@@ -602,6 +602,14 @@ public class VacationServiceImpl extends CorePersistenceServiceImpl<Integer, Vac
         vacationDao.saveVacationCalendar(getOrCreateVacationCalendarDO(vacation, teamCalDO));
       }
     }
+    final List<VacationCalendarDO> vacationCalendars = vacationDao.getVacationCalendarDOs(vacation);
+    for (VacationCalendarDO vacationCalendar : vacationCalendars) {
+      if (calendars.contains(vacationCalendar.getCalendar()) == false) {
+        vacationDao.deleteVacationCalendarDO(vacationCalendar);
+      } else {
+        vacationDao.unDeleteVacationCalendarDO(vacationCalendar);
+      }
+    }
   }
 
   @Override
@@ -611,6 +619,7 @@ public class VacationServiceImpl extends CorePersistenceServiceImpl<Integer, Vac
     for (final VacationCalendarDO vacationCalendarDO : vacationCalendarDOs) {
       if (vacationCalendarDO.isDeleted() == false) {
         if (vacationCalendarDO.getEvent() != null) {
+          vacationDao.deleteVacationCalendarDO(vacationCalendarDO);
           teamEventDao.internalMarkAsDeleted(teamEventDao.getById(vacationCalendarDO.getEvent().getId()));
         }
       }
@@ -618,12 +627,23 @@ public class VacationServiceImpl extends CorePersistenceServiceImpl<Integer, Vac
   }
 
   @Override
-  public void markAsUnDeleteEventsForVacationCalendars(final VacationDO vacation)
+  public void markAsUnDeleteVacationCalendars(final VacationDO vacation)
   {
     final List<VacationCalendarDO> vacationCalendarDOs = vacationDao.getVacationCalendarDOs(vacation);
     for (final VacationCalendarDO vacationCalendarDO : vacationCalendarDOs) {
       if (vacationCalendarDO.isDeleted()) {
         vacationDao.unDeleteVacationCalendarDO(vacationCalendarDO);
+      }
+    }
+  }
+
+  @Override
+  public void markAsUnDeleteEventsForVacationCalendars(final VacationDO vacation)
+  {
+    List<VacationCalendarDO> vacationCalendarDOs = vacationDao.getVacationCalendarDOs(vacation);
+    for (VacationCalendarDO vacationCalendarDO : vacationCalendarDOs) {
+      if (vacationCalendarDO.getEvent() != null) {
+        teamEventDao.internalUndelete(teamEventDao.getById(vacationCalendarDO.getEvent().getId()));
       }
     }
   }

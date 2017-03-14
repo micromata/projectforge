@@ -24,11 +24,12 @@
 package org.projectforge.web.vacation;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.apache.log4j.Logger;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -54,6 +55,7 @@ import org.projectforge.business.vacation.model.VacationStatus;
 import org.projectforge.business.vacation.service.VacationService;
 import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.access.AccessException;
+import org.projectforge.framework.persistence.api.BaseDO;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.web.common.MultiChoiceListHelper;
 import org.projectforge.web.employee.DefaultEmployeeWicketProvider;
@@ -109,7 +111,7 @@ public class VacationEditForm extends AbstractEditForm<VacationDO, VacationEditP
 
   private VacationStatus statusBeforeModification;
 
-  MultiChoiceListHelper<TeamCalDO> assignCalendarListHelper;
+  final MultiChoiceListHelper<TeamCalDO> assignCalendarListHelper = new MultiChoiceListHelper<>();
 
   public VacationEditForm(final VacationEditPage parentPage, final VacationDO data)
   {
@@ -289,7 +291,7 @@ public class VacationEditForm extends AbstractEditForm<VacationDO, VacationEditP
     }
 
     {
-      // Substitution
+      // Substitutions
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("vacation.substitution"));
       final Select2MultiChoice<EmployeeDO> substitutionSelect = new Select2MultiChoice<>(
           Select2MultiChoicePanel.WICKET_ID,
@@ -301,47 +303,40 @@ public class VacationEditForm extends AbstractEditForm<VacationDO, VacationEditP
     }
 
     {
-      // CALENDAR
+      // Calendars
       final FieldsetPanel fieldSet = gridBuilder.newFieldset(getString("vacation.calendar"));
-      Collection<TeamCalDO> fullList = teamCalService.getFullAccessCalendar();
-      TeamCalDO vacationCalendar = configService.getVacationCalendar();
-      if (vacationCalendar != null) {
-        fullList.add(vacationCalendar);
-      }
-      assignCalendarListHelper = new MultiChoiceListHelper<TeamCalDO>()
-          .setComparator(new Comparator<TeamCalDO>()
-          {
-            @Override
-            public int compare(TeamCalDO o1, TeamCalDO o2)
-            {
-              return o1.getPk().compareTo(o2.getPk());
-            }
+      final List<TeamCalDO> calendarsForVacation = vacationService.getCalendarsForVacation(this.data);
+      final Set<TeamCalDO> availableCalendars = new HashSet<>(teamCalService.getFullAccessCalendar());
+      final Set<TeamCalDO> currentCalendars = new HashSet<>();
+      final TeamCalDO configuredVacationCalendar = configService.getVacationCalendar();
 
-          }).setFullList(fullList);
-      if (vacationCalendar != null) {
-        assignCalendarListHelper.addOriginalAssignedItem(vacationCalendar).assignItem(vacationCalendar);
+      if (configuredVacationCalendar != null) {
+        availableCalendars.add(configuredVacationCalendar);
+        currentCalendars.add(configuredVacationCalendar);
       }
 
-      if (vacationService.getCalendarsForVacation(this.data) != null && vacationService.getCalendarsForVacation(this.data).size() > 0) {
-        for (final TeamCalDO calendar : vacationService.getCalendarsForVacation(this.data)) {
-          if (vacationCalendar == null || calendar.getId().equals(vacationCalendar.getId()) == false) {
-            assignCalendarListHelper.addOriginalAssignedItem(calendar).assignItem(calendar);
-          }
-        }
+      assignCalendarListHelper
+          .setComparator(Comparator.comparing(BaseDO::getPk))
+          .setFullList(availableCalendars);
+
+      if (calendarsForVacation != null) {
+        currentCalendars.addAll(calendarsForVacation);
       }
 
-      List<TeamCalDO> vacationCalendarList = new ArrayList<>();
-      if (vacationCalendar != null) {
-        vacationCalendarList.add(vacationCalendar);
+      for (final TeamCalDO calendar : currentCalendars) {
+        assignCalendarListHelper
+            .addOriginalAssignedItem(calendar)
+            .assignItem(calendar);
       }
-      final Select2MultiChoice<TeamCalDO> calendars = new Select2MultiChoice<TeamCalDO>(
+
+      final Select2MultiChoice<TeamCalDO> calendarsSelect = new Select2MultiChoice<>(
           fieldSet.getSelect2MultiChoiceId(),
           new PropertyModel<Collection<TeamCalDO>>(assignCalendarListHelper, "assignedItems"),
-          new TeamCalsProvider(teamCalCache, vacationCalendarList));
-      calendars.setMarkupId("calenders").setOutputMarkupId(true);
-      calendars.setEnabled(checkEnableInputField());
-      formValidator.getDependentFormComponents()[6] = calendars;
-      fieldSet.add(calendars);
+          new TeamCalsProvider(teamCalCache));
+      calendarsSelect.setMarkupId("calenders").setOutputMarkupId(true);
+      calendarsSelect.setEnabled(checkEnableInputField());
+      formValidator.getDependentFormComponents()[6] = calendarsSelect;
+      fieldSet.add(calendarsSelect);
     }
 
     {
