@@ -23,6 +23,7 @@
 
 package org.projectforge.web.teamcal.rest;
 
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -36,7 +37,9 @@ import javax.ws.rs.core.Response;
 import org.projectforge.business.teamcal.admin.TeamCalDao;
 import org.projectforge.business.teamcal.admin.TeamCalFilter;
 import org.projectforge.business.teamcal.admin.model.TeamCalDO;
+import org.projectforge.business.user.UserXmlPreferencesDao;
 import org.projectforge.framework.persistence.api.UserRightService;
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.model.rest.CalendarObject;
 import org.projectforge.model.rest.RestPaths;
 import org.projectforge.rest.JsonUtils;
@@ -58,6 +61,9 @@ public class TeamCalDaoRest
   @Autowired
   private UserRightService userRights;
 
+  @Autowired
+  private UserXmlPreferencesDao userXmlPreferencesDao;
+
   /**
    * Rest-Call for {@link TeamCalDao#getList(org.projectforge.core.BaseSearchFilter)}
    */
@@ -73,6 +79,11 @@ public class TeamCalDaoRest
       filter.setReadonlyAccess(false);
     }
     final List<TeamCalDO> list = teamCalDao.getList(filter);
+    String teamCalBlackListIds = (String) userXmlPreferencesDao
+        .getDeserializedUserPreferencesByUserId(ThreadLocalUserContext.getUserId(), TeamCalDO.TEAMCALRESTBLACKLIST);
+    if(teamCalBlackListIds != null && teamCalBlackListIds.length() > 0) {
+      Arrays.stream(teamCalBlackListIds.split(" ")).forEach(calId -> list.remove(teamCalDao.getById(Integer.parseInt(calId))));
+    }
     final List<CalendarObject> result = new LinkedList<CalendarObject>();
     if (list != null && list.size() > 0) {
       for (final TeamCalDO cal : list) {

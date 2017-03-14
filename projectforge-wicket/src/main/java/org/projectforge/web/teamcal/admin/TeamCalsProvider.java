@@ -54,43 +54,29 @@ public class TeamCalsProvider extends TextChoiceProvider<TeamCalDO>
 
   private transient List<TeamCalDO> additionalCalendarList;
 
+  private transient boolean onlyFullAccessCalendar = false;
+
   public TeamCalsProvider(TeamCalCache teamCalCache)
   {
-    this(teamCalCache, new ArrayList<>());
+    this(teamCalCache, new ArrayList<>(), false);
   }
 
   public TeamCalsProvider(TeamCalCache teamCalCache, List<TeamCalDO> additionalCalendars)
   {
-    this.teamCalCache = teamCalCache;
-    this.additionalCalendarList = additionalCalendars;
+    this(teamCalCache, additionalCalendars, false);
   }
 
-//  public static List<Integer> getCalIdList(final Collection<TeamCalDO> teamCals)
-//  {
-//    final List<Integer> list = new ArrayList<Integer>();
-//    if (teamCals != null) {
-//      for (final TeamCalDO cal : teamCals) {
-//        list.add(cal.getId());
-//      }
-//    }
-//    return list;
-//  }
-//
-//  public static List<TeamCalDO> getCalList(TeamCalCache teamCalCache, final Collection<Integer> teamCalIds)
-//  {
-//    final List<TeamCalDO> list = new ArrayList<TeamCalDO>();
-//    if (teamCalIds != null) {
-//      for (final Integer calId : teamCalIds) {
-//        final TeamCalDO cal = teamCalCache.getCalendar(calId);
-//        if (cal != null) {
-//          list.add(cal);
-//        } else {
-//          log.warn("Calendar with id " + calId + " not found in cache.");
-//        }
-//      }
-//    }
-//    return list;
-//  }
+  public TeamCalsProvider(TeamCalCache teamCalCache, boolean onlyFullAccessCalendar)
+  {
+    this(teamCalCache, new ArrayList<>(), onlyFullAccessCalendar);
+  }
+
+  public TeamCalsProvider(TeamCalCache teamCalCache, List<TeamCalDO> additionalCalendars, boolean onlyFullAccessCalendar)
+  {
+    this.teamCalCache = teamCalCache;
+    this.additionalCalendarList = additionalCalendars;
+    this.onlyFullAccessCalendar = onlyFullAccessCalendar;
+  }
 
   /**
    * @param calIds
@@ -167,7 +153,7 @@ public class TeamCalsProvider extends TextChoiceProvider<TeamCalDO>
   public Collection<TeamCalDO> getSortedCalenders()
   {
     if (sortedCals == null) {
-      final Collection<TeamCalDO> allCalendars = teamCalCache.getAllAccessibleCalendars();
+      final Collection<TeamCalDO> allCalendars = getCalendarList();
       sortedCals = new TreeSet<TeamCalDO>(calsComparator);
       for (final TeamCalDO cal : allCalendars) {
         if (cal.isDeleted() == false) {
@@ -181,6 +167,15 @@ public class TeamCalsProvider extends TextChoiceProvider<TeamCalDO>
       }
     }
     return sortedCals;
+  }
+
+  private Collection<TeamCalDO> getCalendarList()
+  {
+    if(onlyFullAccessCalendar) {
+      return teamCalCache.getAllFullAccessCalendars();
+    } else {
+      return teamCalCache.getAllAccessibleCalendars();
+    }
   }
 
   /**

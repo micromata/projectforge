@@ -44,7 +44,6 @@ import org.projectforge.business.fibu.api.EmployeeService;
 import org.projectforge.business.multitenancy.TenantService;
 import org.projectforge.business.teamcal.admin.TeamCalCache;
 import org.projectforge.business.teamcal.admin.model.TeamCalDO;
-import org.projectforge.business.teamcal.service.TeamCalServiceImpl;
 import org.projectforge.business.user.I18nHelper;
 import org.projectforge.business.user.UserRightId;
 import org.projectforge.business.user.UserRightValue;
@@ -92,9 +91,6 @@ public class VacationEditForm extends AbstractEditForm<VacationDO, VacationEditP
 
   @SpringBean
   private AccessChecker accessChecker;
-
-  @SpringBean
-  private TeamCalServiceImpl teamCalService;
 
   @SpringBean
   private TeamCalCache teamCalCache;
@@ -303,7 +299,7 @@ public class VacationEditForm extends AbstractEditForm<VacationDO, VacationEditP
     {
       // CALENDAR
       final FieldsetPanel fieldSet = gridBuilder.newFieldset(getString("vacation.calendar"));
-      Collection<TeamCalDO> fullList = teamCalService.getFullAccessCalendar();
+      Collection<TeamCalDO> fullList = teamCalCache.getAllFullAccessCalendars();
       TeamCalDO vacationCalendar = configService.getVacationCalendar();
       if (vacationCalendar != null) {
         fullList.add(vacationCalendar);
@@ -337,7 +333,7 @@ public class VacationEditForm extends AbstractEditForm<VacationDO, VacationEditP
       final Select2MultiChoice<TeamCalDO> calendars = new Select2MultiChoice<TeamCalDO>(
           fieldSet.getSelect2MultiChoiceId(),
           new PropertyModel<Collection<TeamCalDO>>(assignCalendarListHelper, "assignedItems"),
-          new TeamCalsProvider(teamCalCache, vacationCalendarList));
+          new TeamCalsProvider(teamCalCache, vacationCalendarList, true));
       calendars.setMarkupId("calenders").setOutputMarkupId(true);
       calendars.setEnabled(checkEnableInputField());
       formValidator.getDependentFormComponents()[6] = calendars;

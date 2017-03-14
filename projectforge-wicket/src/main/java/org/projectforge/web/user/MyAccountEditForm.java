@@ -23,35 +23,58 @@
 
 package org.projectforge.web.user;
 
+import java.util.Arrays;
+import java.util.Collection;
+
 import org.apache.log4j.Logger;
+import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.fibu.EmployeeDO;
 import org.projectforge.business.fibu.api.EmployeeService;
 import org.projectforge.business.group.service.GroupService;
+import org.projectforge.business.teamcal.admin.TeamCalCache;
+import org.projectforge.business.teamcal.admin.model.TeamCalDO;
 import org.projectforge.business.user.UserDao;
+import org.projectforge.business.user.UserXmlPreferencesDao;
 import org.projectforge.business.user.service.UserService;
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.web.fibu.EmployeeEditForm;
+import org.projectforge.web.teamcal.admin.TeamCalsProvider;
 import org.projectforge.web.wicket.AbstractEditForm;
 import org.projectforge.web.wicket.bootstrap.GridBuilder;
 import org.projectforge.web.wicket.bootstrap.GridSize;
 import org.projectforge.web.wicket.flowlayout.DivTextPanel;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
 
+import com.vaynberg.wicket.select2.Select2MultiChoice;
+
 public class MyAccountEditForm extends AbstractEditForm<PFUserDO, MyAccountEditPage>
 {
   private static final long serialVersionUID = 4137560623244324454L;
 
   private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(MyAccountEditForm.class);
+
   boolean invalidateAllStayLoggedInSessions;
+
   @SpringBean
   private UserService userService;
+
   @SpringBean
   private EmployeeService employeeService;
+
   private EmployeeDO employeeData;
 
   @SpringBean
   private GroupService groupService;
+
+  @SpringBean
+  private TeamCalCache teamCalCache;
+
+  @SpringBean
+  private UserXmlPreferencesDao userXmlPreferencesDao;
+
+  private Collection<TeamCalDO> teamCalRestWhiteList;
 
   public MyAccountEditForm(final MyAccountEditPage parentPage, final PFUserDO data)
   {
@@ -97,6 +120,25 @@ public class MyAccountEditForm extends AbstractEditForm<PFUserDO, MyAccountEditP
     UserEditForm.createTimeZone(gridBuilder, data);
     UserEditForm.createPhoneIds(gridBuilder, data);
     UserEditForm.createMEBPhoneNumbers(gridBuilder, data);
+
+    gridBuilder.newSplitPanel(GridSize.COL100);
+
+    // CALENDAR WHITE LIST
+    final FieldsetPanel fieldSet = gridBuilder.newFieldset(getString("user.myAccount.teamcalwhitelist"));
+    this.teamCalRestWhiteList = teamCalCache.getAllFullAccessCalendars();
+    String teamCalBlackListIds = (String) userXmlPreferencesDao
+        .getDeserializedUserPreferencesByUserId(ThreadLocalUserContext.getUserId(), TeamCalDO.TEAMCALRESTBLACKLIST);
+    if(teamCalBlackListIds != null && teamCalBlackListIds.length() > 0) {
+      Arrays.stream(teamCalBlackListIds.split(" ")).forEach(calId -> teamCalRestWhiteList.remove(teamCalCache.getCalendar(Integer.parseInt(calId))));
+    }
+
+    final Select2MultiChoice<TeamCalDO> calendars = new Select2MultiChoice<>(
+        fieldSet.getSelect2MultiChoiceId(),
+        new PropertyModel<Collection<TeamCalDO>>(this, "teamCalRestWhiteList"),
+        new TeamCalsProvider(teamCalCache, true));
+    calendars.setMarkupId("calenders").setOutputMarkupId(true);
+    fieldSet.add(calendars);
+
     employeeData = employeeService.getEmployeeByUserId(data.getId());
 
     // If this user has no employee object then th employee form part must not be displayed.
@@ -136,5 +178,10 @@ public class MyAccountEditForm extends AbstractEditForm<PFUserDO, MyAccountEditP
   public EmployeeDO getEmployeeData()
   {
     return employeeData;
+  }
+
+  public Collection<TeamCalDO> getTeamCalRestWhiteList()
+  {
+    return teamCalRestWhiteList;
   }
 }
