@@ -243,4 +243,12 @@ public interface VacationService extends IPersistenceService<VacationDO>, IDao<V
    * @return
    */
   BigDecimal getVacationDays(final Date from, final Date to, final Boolean isHalfDayVacation);
+
+  /**
+   * UnDelete Calender for apllication for leave
+   *
+   * @param vacation
+   * @return
+   */
+  void markAsUnDeleteVacationCalendars(VacationDO vacation);
 }

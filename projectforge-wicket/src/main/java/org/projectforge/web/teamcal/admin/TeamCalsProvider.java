@@ -52,30 +52,44 @@ public class TeamCalsProvider extends TextChoiceProvider<TeamCalDO>
 
   private transient TeamCalCache teamCalCache;
 
-  private transient List<TeamCalDO> additionalCalendarList;
-
   private transient boolean onlyFullAccessCalendar = false;
 
   public TeamCalsProvider(TeamCalCache teamCalCache)
   {
-    this(teamCalCache, new ArrayList<>(), false);
-  }
-
-  public TeamCalsProvider(TeamCalCache teamCalCache, List<TeamCalDO> additionalCalendars)
-  {
-    this(teamCalCache, additionalCalendars, false);
+    this(teamCalCache, false);
   }
 
   public TeamCalsProvider(TeamCalCache teamCalCache, boolean onlyFullAccessCalendar)
   {
-    this(teamCalCache, new ArrayList<>(), onlyFullAccessCalendar);
+    this.teamCalCache = teamCalCache;
+    this.onlyFullAccessCalendar = onlyFullAccessCalendar;
   }
 
-  public TeamCalsProvider(TeamCalCache teamCalCache, List<TeamCalDO> additionalCalendars, boolean onlyFullAccessCalendar)
+  public static List<Integer> getCalIdList(final Collection<TeamCalDO> teamCals)
   {
-    this.teamCalCache = teamCalCache;
-    this.additionalCalendarList = additionalCalendars;
-    this.onlyFullAccessCalendar = onlyFullAccessCalendar;
+    final List<Integer> list = new ArrayList<Integer>();
+    if (teamCals != null) {
+      for (final TeamCalDO cal : teamCals) {
+        list.add(cal.getId());
+      }
+    }
+    return list;
+  }
+
+  public static List<TeamCalDO> getCalList(TeamCalCache teamCalCache, final Collection<Integer> teamCalIds)
+  {
+    final List<TeamCalDO> list = new ArrayList<TeamCalDO>();
+    if (teamCalIds != null) {
+      for (final Integer calId : teamCalIds) {
+        final TeamCalDO cal = teamCalCache.getCalendar(calId);
+        if (cal != null) {
+          list.add(cal);
+        } else {
+          log.warn("Calendar with id " + calId + " not found in cache.");
+        }
+      }
+    }
+    return list;
   }
 
   /**
@@ -94,15 +108,7 @@ public class TeamCalsProvider extends TextChoiceProvider<TeamCalDO>
       if (cal != null) {
         list.add(cal.getTitle());
       } else {
-        boolean found = false;
-        for(final TeamCalDO calendar : additionalCalendarList) {
-          if(calendar.getId().equals(id)) {
-            list.add(calendar.getTitle());
-          }
-        };
-        if(found == false) {
-          log.warn("TeamCalDO with id '" + id + "' not found. calIds string was: " + calIds);
-        }
+        log.warn("TeamCalDO with id '" + id + "' not found. calIds string was: " + calIds);
       }
     }
     return list;
@@ -124,15 +130,7 @@ public class TeamCalsProvider extends TextChoiceProvider<TeamCalDO>
       if (cal != null) {
         sortedCals.add(cal);
       } else {
-        boolean found = false;
-        for(final TeamCalDO calendar : additionalCalendarList) {
-          if(calendar.getId().equals(id)) {
-            sortedCals.add(calendar);
-          }
-        };
-        if(found == false) {
-          log.warn("TeamCalDO with id '" + id + "' not found. calIds string was: " + calIds);
-        }
+        log.warn("TeamCalDO with id '" + id + "' not found. calIds string was: " + calIds);
       }
     }
     return sortedCals;
@@ -158,11 +156,6 @@ public class TeamCalsProvider extends TextChoiceProvider<TeamCalDO>
       for (final TeamCalDO cal : allCalendars) {
         if (cal.isDeleted() == false) {
           sortedCals.add(cal);
-        }
-      }
-      for(final TeamCalDO calendar : additionalCalendarList) {
-        if (calendar.isDeleted() == false) {
-          sortedCals.add(calendar);
         }
       }
     }
@@ -255,9 +248,6 @@ public class TeamCalsProvider extends TextChoiceProvider<TeamCalDO>
       final TeamCalDO cal = teamCalCache.getCalendar(calId);
       if (cal != null) {
         list.add(cal);
-      }
-      for(final TeamCalDO calendar : additionalCalendarList) {
-        list.add(calendar);
       }
     }
     return list;
