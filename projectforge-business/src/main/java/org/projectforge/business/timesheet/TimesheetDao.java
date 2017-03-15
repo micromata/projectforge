@@ -862,6 +862,7 @@ public class TimesheetDao extends BaseDao<TimesheetDO>
   @Override
   protected boolean massUpdateEntry(final TimesheetDO entry, final TimesheetDO master, final Object store)
   {
+    boolean kost2Converted = false;
     if (store != null) {
       @SuppressWarnings("unchecked")
       final List<Kost2DO> kost2List = (List<Kost2DO>) store;
@@ -872,20 +873,17 @@ public class TimesheetDao extends BaseDao<TimesheetDO>
         setKost2(entry, master.getKost2Id());
       } else if (entry.getKost2Id() == null) {
         throw new UserException("timesheet.error.massupdate.kost2null");
-      } else {
-        if (contains(kost2List, entry.getKost2Id()) == false) {
-          // Try to convert kost2 ids from old project to new project.
-          boolean success = false;
-          for (final Kost2DO kost2 : kost2List) {
-            if (kost2.getKost2ArtId().compareTo(entry.getKost2().getKost2ArtId()) == 0) {
-              success = true; // found.
-              entry.setKost2(kost2);
-              break;
-            }
+      } else if (contains(kost2List, entry.getKost2Id()) == false) {
+        // Try to convert kost2 ids from old project to new project.
+        for (final Kost2DO kost2 : kost2List) {
+          if (kost2.getKost2ArtId().compareTo(entry.getKost2().getKost2ArtId()) == 0) {
+            kost2Converted = true; // found.
+            entry.setKost2(kost2);
+            break;
           }
-          if (success == false) {
-            throw new UserException("timesheet.error.massupdate.couldnotconvertkost2");
-          }
+        }
+        if (kost2Converted == false) {
+          throw new UserException("timesheet.error.massupdate.couldnotconvertkost2");
         }
       }
     }
@@ -894,8 +892,8 @@ public class TimesheetDao extends BaseDao<TimesheetDO>
     }
     if (master.getKost2Id() != null) {
       setKost2(entry, master.getKost2Id());
-    } else {
-      // clear destination kost2 if master has no kost2
+    } else if (kost2Converted == false) {
+      // clear destination kost2 if master has no kost2 and kost2 was not converted
       entry.setKost2(null);
     }
     if (StringUtils.isNotBlank(master.getLocation()) == true) {
