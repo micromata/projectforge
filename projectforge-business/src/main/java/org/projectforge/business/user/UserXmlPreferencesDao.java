@@ -155,9 +155,9 @@ public class UserXmlPreferencesDao
       return null;
   }
 
-  public Object getDeserializedUserPreferencesByUserId(final Integer userId, final String key)
+  public <T> T getDeserializedUserPreferencesByUserId(final Integer userId, final String key, final Class<T> returnClass)
   {
-    return deserialize(userId, getUserPreferencesByUserId(userId, key, true), false);
+    return (T) deserialize(userId, getUserPreferencesByUserId(userId, key, true), false);
   }
 
   /**

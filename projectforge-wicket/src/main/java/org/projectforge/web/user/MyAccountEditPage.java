@@ -24,7 +24,6 @@
 package org.projectforge.web.user;
 
 import java.util.Collection;
-import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -104,7 +103,7 @@ public class MyAccountEditPage extends AbstractEditPage<PFUserDO, MyAccountEditF
     Collection<TeamCalDO> teamCalRestWhiteList = form.getTeamCalRestWhiteList();
     Collection<TeamCalDO> teamCalRestBlackList = teamCalCache.getAllFullAccessCalendars();
     teamCalRestBlackList.removeAll(teamCalRestWhiteList);
-    String blackListIds = teamCalRestBlackList.stream().map(cal -> cal.getId().toString()).collect(Collectors.joining(" "));
+    Integer[] blackListIds = teamCalRestBlackList.stream().map(cal -> cal.getId()).toArray(size -> new Integer[size]);
     userXmlPreferencesDao.saveOrUpdate(ThreadLocalUserContext.getUserId(), TeamCalDO.TEAMCALRESTBLACKLIST, blackListIds, true);
 
     final HttpServletRequest request = WicketUtils.getHttpServletRequest(getRequest());

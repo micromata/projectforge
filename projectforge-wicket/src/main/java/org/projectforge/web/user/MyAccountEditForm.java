@@ -126,10 +126,10 @@ public class MyAccountEditForm extends AbstractEditForm<PFUserDO, MyAccountEditP
     // CALENDAR WHITE LIST
     final FieldsetPanel fieldSet = gridBuilder.newFieldset(getString("user.myAccount.teamcalwhitelist"));
     this.teamCalRestWhiteList = teamCalCache.getAllFullAccessCalendars();
-    String teamCalBlackListIds = (String) userXmlPreferencesDao
-        .getDeserializedUserPreferencesByUserId(ThreadLocalUserContext.getUserId(), TeamCalDO.TEAMCALRESTBLACKLIST);
-    if(teamCalBlackListIds != null && teamCalBlackListIds.length() > 0) {
-      Arrays.stream(teamCalBlackListIds.split(" ")).forEach(calId -> teamCalRestWhiteList.remove(teamCalCache.getCalendar(Integer.parseInt(calId))));
+    Integer[] teamCalBlackListIds = userXmlPreferencesDao
+        .getDeserializedUserPreferencesByUserId(ThreadLocalUserContext.getUserId(), TeamCalDO.TEAMCALRESTBLACKLIST, Integer[].class);
+    if(teamCalBlackListIds != null && teamCalBlackListIds.length > 0) {
+      Arrays.stream(teamCalBlackListIds).forEach(calId -> teamCalRestWhiteList.remove(teamCalCache.getCalendar(calId)));
     }
 
     final Select2MultiChoice<TeamCalDO> calendars = new Select2MultiChoice<>(
