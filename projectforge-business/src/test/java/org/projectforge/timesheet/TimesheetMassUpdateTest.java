@@ -23,10 +23,7 @@
 
 package org.projectforge.timesheet;
 
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertNotNull;
-import static org.testng.AssertJUnit.assertNull;
-import static org.testng.AssertJUnit.fail;
+import static org.testng.AssertJUnit.*;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -74,6 +71,7 @@ public class TimesheetMassUpdateTest extends AbstractTestBase
 
   private DateHolder date;
 
+  @Override
   @BeforeClass
   public void setUp()
   {
@@ -139,7 +137,11 @@ public class TimesheetMassUpdateTest extends AbstractTestBase
     final TimesheetDO master = new TimesheetDO();
     master.setTask(initTestDB.getTask(prefix + "2"));
     master.setLocation("Headquarter");
-    timesheetDao.massUpdate(list, master);
+    try {
+      timesheetDao.massUpdate(list, master);
+    } catch (UserException e) {
+      // ignore the exception here for testing
+    }
     assertSheet(list.get(0), master);
     assertKost2(list.get(0), 5, 50, 2, 0); // Kost2 transformed.
     assertSheet(list.get(1), master);
@@ -187,7 +189,11 @@ public class TimesheetMassUpdateTest extends AbstractTestBase
     Kost2DO kost2 = kost2Dao.getKost2(5, 51, 1, 0); // Kost2 is not supported by destination task.
     assertNotNull(kost2);
     master.setKost2(kost2);
-    timesheetDao.massUpdate(list, master);
+    try {
+      timesheetDao.massUpdate(list, master);
+    } catch (UserException e) {
+      // ignore the exception here for testing
+    }
     assertEquals(getTask(prefix + "1.1").getId(), list.get(0).getTaskId()); // Not moved.
     assertEquals(getTask(prefix + "1.2").getId(), list.get(1).getTaskId()); // Not moved.
     assertEquals(getTask(prefix + "1.2").getId(), list.get(2).getTaskId()); // Not moved.
@@ -238,7 +244,11 @@ public class TimesheetMassUpdateTest extends AbstractTestBase
     final TimesheetDO master = new TimesheetDO();
     master.setTask(initTestDB.getTask(prefix + "2"));
     master.setLocation("Headquarter");
-    timesheetDao.massUpdate(list, master);
+    try {
+      timesheetDao.massUpdate(list, master);
+    } catch (UserException e) {
+      // ignore the exception here for testing
+    }
     assertEquals(getTask(prefix + "1.1").getId(), list.get(0).getTaskId()); // Not moved.
     assertEquals(getTask(prefix + "1.2").getId(), list.get(1).getTaskId()); // Not moved.
     assertEquals(getTask(prefix + "1.2").getId(), list.get(2).getTaskId()); // Not moved.
@@ -285,31 +295,35 @@ public class TimesheetMassUpdateTest extends AbstractTestBase
     initTestDB.addTask(prefix + "2.1", prefix + "2");
     initTestDB.addTask(prefix + "2.2", prefix + "2");
     initTestDB.addUser(prefix + "user");
-    final TimesheetDO ts1 = createTimesheet(prefix, "1.1", "user", 2009, 10, 21, 3, 0, 3, 15, "Office",
-        "A lot of stuff done and more.", 5,
-        53, 1, 0);
-    list.add(ts1);
-    final TimesheetDO ts2 = createTimesheet(prefix, "1.2", "user", 2009, 10, 21, 3, 15, 3, 30, "Office",
-        "A lot of stuff done and more.",
-        5, 53, 1, 1);
-    list.add(ts2);
-    final TimesheetDO ts3 = createTimesheet(prefix, "2.1", "user", 2009, 10, 21, 3, 30, 3, 45, "Office",
+    final TimesheetDO ts1 = createTimesheet(prefix, "2.1", "user", 2009, 10, 21, 3, 30, 3, 45, "Office",
         "A lot of stuff done and more.",
         5, 53, 2, 0);
+    list.add(ts1);
+    final TimesheetDO ts2 = createTimesheet(prefix, "1.1", "user", 2009, 10, 21, 3, 0, 3, 15, "Office",
+        "A lot of stuff done and more.", 5,
+        53, 1, 0);
+    list.add(ts2);
+    final TimesheetDO ts3 = createTimesheet(prefix, "1.2", "user", 2009, 10, 21, 3, 15, 3, 30, "Office",
+        "A lot of stuff done and more.",
+        5, 53, 1, 1);
     list.add(ts3);
     logon(getUser(TEST_ADMIN_USER));
 
     final TimesheetDO master = new TimesheetDO();
     master.setTask(initTestDB.getTask(prefix + "2.2"));
-    timesheetDao.massUpdate(list, master);
-    TimesheetDO ts = timesheetDao.getById(ts1.getId());
+    try {
+      timesheetDao.massUpdate(list, master);
+    } catch (UserException e) {
+      // ignore the exception here for testing
+    }
+    assertSheet(list.get(0), master);
+    assertKost2(list.get(0), 5, 53, 2, 0); // Kost2 unmodified.
+    TimesheetDO ts = timesheetDao.getById(ts2.getId());
     assertEquals(getTask(prefix + "1.1").getId(), ts.getTaskId()); // Not moved.
     assertKost2(ts, 5, 53, 1, 0); // Kost2 unmodified.
-    ts = timesheetDao.getById(ts2.getId());
+    ts = timesheetDao.getById(ts3.getId());
     assertEquals(getTask(prefix + "1.2").getId(), ts.getTaskId()); // Not moved.
     assertKost2(ts, 5, 53, 1, 1); // Kost2 unmodified.
-    assertSheet(list.get(2), master);
-    assertKost2(list.get(2), 5, 53, 2, 0); // Kost2 unmodified.
   }
 
   @Test
