@@ -306,7 +306,7 @@ public class TeamCalCalendarForm extends CalendarForm
   private void redirectToImportPage(final List<VEvent> events, final TemplateEntry activeTemplate)
   {
     final PageParameters parameters = new PageParameters();
-    if (activeTemplate != null) {
+    if (activeTemplate != null && activeTemplate.getDefaultCalendarId() != null) {
       parameters.add(TeamCalImportPage.PARAM_KEY_TEAM_CAL_ID, activeTemplate.getDefaultCalendarId());
     }
     final TeamCalImportPage importPage = new TeamCalImportPage(parameters);
