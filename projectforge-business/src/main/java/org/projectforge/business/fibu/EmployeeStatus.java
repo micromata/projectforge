@@ -23,6 +23,8 @@
 
 package org.projectforge.business.fibu;
 
+import java.util.Arrays;
+
 import org.projectforge.common.i18n.I18nEnum;
 
 public enum EmployeeStatus implements I18nEnum
@@ -52,5 +54,9 @@ public enum EmployeeStatus implements I18nEnum
   EmployeeStatus(String key)
   {
     this.key = key;
+  }
+
+  public static EmployeeStatus findByKey(final String key) {
+    return Arrays.stream(values()).filter(es -> es.getKey().equals(key)).findFirst().orElse(null);
   }
 }

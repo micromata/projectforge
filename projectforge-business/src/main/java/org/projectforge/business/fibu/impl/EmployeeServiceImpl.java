@@ -8,12 +8,15 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import org.projectforge.business.fibu.EmployeeDO;
 import org.projectforge.business.fibu.EmployeeDao;
 import org.projectforge.business.fibu.EmployeeFilter;
+import org.projectforge.business.fibu.EmployeeStatus;
 import org.projectforge.business.fibu.EmployeeTimedDO;
 import org.projectforge.business.fibu.api.EmployeeService;
 import org.projectforge.business.fibu.kost.Kost1DO;
@@ -23,11 +26,13 @@ import org.projectforge.business.user.UserDao;
 import org.projectforge.framework.access.AccessException;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.persistence.api.ModificationStatus;
+import org.projectforge.framework.persistence.attr.impl.InternalAttrSchemaConstants;
 import org.projectforge.framework.persistence.history.DisplayHistoryEntry;
 import org.projectforge.framework.persistence.jpa.impl.CorePersistenceServiceImpl;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import de.micromata.genome.db.jpa.tabattr.api.AttrSchemaService;
 import de.micromata.genome.db.jpa.tabattr.api.TimeableService;
@@ -254,6 +259,42 @@ public class EmployeeServiceImpl extends CorePersistenceServiceImpl<Integer, Emp
   public List<EmployeeDO> getAll(boolean checkAccess)
   {
     return checkAccess ? employeeDao.getList(new EmployeeFilter()) : employeeDao.internalLoadAll();
+  }
+
+  @Override public EmployeeStatus getEmployeeStatus(final EmployeeDO employee)
+  {
+    final EmployeeTimedDO attrRow = timeableService
+        .getAttrRowValidAtDate(employee, InternalAttrSchemaConstants.EMPLOYEE_STATUS_GROUP_NAME, new Date());
+    if(attrRow != null && StringUtils.isEmpty(attrRow.getStringAttribute(InternalAttrSchemaConstants.EMPLOYEE_STATUS_DESC_NAME)) == false) {
+      return EmployeeStatus.findByKey(attrRow.getStringAttribute(InternalAttrSchemaConstants.EMPLOYEE_STATUS_DESC_NAME));
+    }
+    return null;
+  }
+
+  @Override
+  public boolean isFulltimeEmployee(final EmployeeDO employee, final Calendar selectedDate)
+  {
+    final Calendar date = (Calendar) selectedDate.clone(); // create a clone to avoid changing the original object
+    final Date startOfMonth = date.getTime();
+    date.add(Calendar.MONTH, 1);
+    date.add(Calendar.DATE, -1);
+    final Date endOfMonth = date.getTime();
+
+    final List<EmployeeTimedDO> attrRows = timeableService
+        .getAttrRowsWithinDateRange(employee, InternalAttrSchemaConstants.EMPLOYEE_STATUS_GROUP_NAME, startOfMonth, endOfMonth);
+
+    final EmployeeTimedDO rowValidAtBeginOfMonth = timeableService
+        .getAttrRowValidAtDate(employee, InternalAttrSchemaConstants.EMPLOYEE_STATUS_GROUP_NAME, selectedDate.getTime());
+
+    if (rowValidAtBeginOfMonth != null) {
+      attrRows.add(rowValidAtBeginOfMonth);
+    }
+
+    return attrRows
+        .stream()
+        .map(row -> row.getStringAttribute(InternalAttrSchemaConstants.EMPLOYEE_STATUS_DESC_NAME))
+        .filter(Objects::nonNull)
+        .anyMatch(s -> EmployeeStatus.FEST_ANGESTELLTER.getI18nKey().equals(s) || EmployeeStatus.BEFRISTET_ANGESTELLTER.getI18nKey().equals(s));
   }
 
 }

@@ -24,12 +24,14 @@
 package org.projectforge.web.employee;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 import org.projectforge.business.fibu.EmployeeDO;
+import org.projectforge.business.fibu.EmployeeStatus;
 import org.projectforge.business.fibu.api.EmployeeService;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.web.AbstractEmployeeWicketProvider;
@@ -44,10 +46,13 @@ public class DefaultEmployeeWicketProvider extends AbstractEmployeeWicketProvide
 
   private boolean withMyself;
 
-  public DefaultEmployeeWicketProvider(EmployeeService employeeService, boolean withMyself)
+  private List<EmployeeStatus> employeeStatusFilter;
+
+  public DefaultEmployeeWicketProvider(EmployeeService employeeService, boolean withMyself, EmployeeStatus... employeeStatusFilter)
   {
     super(employeeService);
     this.withMyself = withMyself;
+    this.employeeStatusFilter = Arrays.asList(employeeStatusFilter);
   }
 
   /**
@@ -60,6 +65,7 @@ public class DefaultEmployeeWicketProvider extends AbstractEmployeeWicketProvide
     Collection<EmployeeDO> result = new ArrayList<>();
     List<EmployeeDO> employeesWithoutLoginedUser = employeeService.findAllActive(false).stream()
         .filter(emp -> this.withMyself || emp.getUser().getPk().equals(ThreadLocalUserContext.getUserId()) == false)
+        .filter(emp -> this.employeeStatusFilter.size() < 1 || (employeeService.getEmployeeStatus(emp) != null && this.employeeStatusFilter.contains(employeeService.getEmployeeStatus(emp))))
         .filter(emp -> emp.getUser().getEmail() != null && emp.getUser().getEmail().length() > 0)
         .collect(Collectors.toList());
     for (EmployeeDO emp : employeesWithoutLoginedUser) {
