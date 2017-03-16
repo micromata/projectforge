@@ -265,8 +265,8 @@ public class EmployeeServiceImpl extends CorePersistenceServiceImpl<Integer, Emp
   {
     final EmployeeTimedDO attrRow = timeableService
         .getAttrRowValidAtDate(employee, InternalAttrSchemaConstants.EMPLOYEE_STATUS_GROUP_NAME, new Date());
-    if(attrRow != null && StringUtils.isEmpty(attrRow.getStringAttribute(InternalAttrSchemaConstants.EMPLOYEE_STATUS_DESC_NAME)) == false) {
-      return EmployeeStatus.findByKey(attrRow.getStringAttribute(InternalAttrSchemaConstants.EMPLOYEE_STATUS_DESC_NAME));
+    if (attrRow != null && StringUtils.isEmpty(attrRow.getStringAttribute(InternalAttrSchemaConstants.EMPLOYEE_STATUS_DESC_NAME)) == false) {
+      return EmployeeStatus.findByi18nKey(attrRow.getStringAttribute(InternalAttrSchemaConstants.EMPLOYEE_STATUS_DESC_NAME));
     }
     return null;
   }

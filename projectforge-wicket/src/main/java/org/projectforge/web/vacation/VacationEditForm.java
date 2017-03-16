@@ -117,7 +117,6 @@ public class VacationEditForm extends AbstractEditForm<VacationDO, VacationEditP
   public VacationEditForm(final VacationEditPage parentPage, final VacationDO data)
   {
     super(parentPage, data);
-    vacationService.couldUserUseVacationService(ThreadLocalUserContext.getUser(), true);
     if (data.getEmployee() == null) {
       if (parentPage.employeeIdFromPageParameters != null) {
         data.setEmployee(employeeService.selectByPkDetached(parentPage.employeeIdFromPageParameters));
@@ -285,7 +284,8 @@ public class VacationEditForm extends AbstractEditForm<VacationDO, VacationEditP
       final Select2Choice<EmployeeDO> managerSelect = new Select2Choice<>(
           Select2SingleChoicePanel.WICKET_ID,
           new PropertyModel<>(data, "manager"),
-          new DefaultEmployeeWicketProvider(employeeService, checkHRWriteRight(), EmployeeStatus.FEST_ANGESTELLTER, EmployeeStatus.BEFRISTET_ANGESTELLTER, EmployeeStatus.FREELANCER));
+          new DefaultEmployeeWicketProvider(employeeService, checkHRWriteRight(), EmployeeStatus.FEST_ANGESTELLTER, EmployeeStatus.BEFRISTET_ANGESTELLTER,
+              EmployeeStatus.FREELANCER));
       managerSelect.setRequired(true).setMarkupId("vacation-manager").setOutputMarkupId(true);
       managerSelect.setEnabled(checkEnableInputField());
       fs.add(new Select2SingleChoicePanel<EmployeeDO>(fs.newChildId(), managerSelect));
