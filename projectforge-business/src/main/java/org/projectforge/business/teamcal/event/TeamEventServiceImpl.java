@@ -203,7 +203,7 @@ public class TeamEventServiceImpl implements TeamEventService
     String startDay = formatter.format(startDate.getTime());
     String endDay = formatter.format(endDate.getTime());
 
-    formatter = new SimpleDateFormat("dd. MMMMM HH:mm", ThreadLocalUserContext.getLocale());
+    formatter = new SimpleDateFormat("dd. MMMMM YYYY HH:mm", ThreadLocalUserContext.getLocale());
     formatter.setTimeZone(ThreadLocalUserContext.getUser().getTimeZoneObject());
     String beginDateTime = formatter.format(startDate.getTime());
     String endDateTime = formatter.format(endDate.getTime());
@@ -215,8 +215,8 @@ public class TeamEventServiceImpl implements TeamEventService
       invitationText = I18nHelper
           .getLocalizedMessage("plugins.teamcal.attendee.email.content.new", data.getCreator().getFullname(), data.getSubject());
     }
-    String beginText = startDay + ", " + beginDateTime;
-    String endText = endDay + ", " + endDateTime;
+    String beginText = startDay + ", " + beginDateTime + " " + I18nHelper.getLocalizedMessage("oclock") + ".";
+    String endText = endDay + ", " + endDateTime + " " + I18nHelper.getLocalizedMessage("oclock") + ".";
     String dayOfWeek = startDay;
 
     String fromToHeader;
@@ -232,10 +232,10 @@ public class TeamEventServiceImpl implements TeamEventService
       fromToHeader = beginDateTime;
     }
     if (data.isAllDay()) {
-      formatter = new SimpleDateFormat("dd. MMMMM", ThreadLocalUserContext.getLocale());
+      formatter = new SimpleDateFormat("dd. MMMMM YYYY", ThreadLocalUserContext.getLocale());
       formatter.setTimeZone(ThreadLocalUserContext.getUser().getTimeZoneObject());
       fromToHeader = formatter.format(startDate.getTime());
-      formatter = new SimpleDateFormat("EEEE, dd. MMMMM", ThreadLocalUserContext.getLocale());
+      formatter = new SimpleDateFormat("EEEE, dd. MMMMM YYYY", ThreadLocalUserContext.getLocale());
       formatter.setTimeZone(ThreadLocalUserContext.getUser().getTimeZoneObject());
       beginText =
           I18nHelper.getLocalizedMessage("plugins.teamcal.event.allDay") + ", " + formatter.format(startDate.getTime());

@@ -73,9 +73,7 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- *
  */
 @Repository
 @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
@@ -118,7 +116,7 @@ public class TimesheetDao extends BaseDao<TimesheetDO>
   /**
    * List of all years with time sheets of the given user: select min(startTime), max(startTime) from t_timesheet where
    * user=?.
-   * 
+   *
    * @return
    */
   @SuppressWarnings("unchecked")
@@ -164,7 +162,7 @@ public class TimesheetDao extends BaseDao<TimesheetDO>
 
   /**
    * Gets the available Kost2DO's for the given time sheet. The task must already be assigned to this time sheet.
-   * 
+   *
    * @param timesheet
    * @return Available list of Kost2DO's or null, if not exist.
    */
@@ -236,7 +234,7 @@ public class TimesheetDao extends BaseDao<TimesheetDO>
 
   /**
    * Gets the list filtered by the given filter.
-   * 
+   *
    * @param filter
    * @return
    */
@@ -308,7 +306,7 @@ public class TimesheetDao extends BaseDao<TimesheetDO>
 
   /**
    * Rechecks the time sheet overlaps.
-   * 
+   *
    * @see org.projectforge.framework.persistence.api.BaseDao#afterSaveOrModify(org.projectforge.core.ExtendedBaseDO)
    */
   @Override
@@ -324,7 +322,7 @@ public class TimesheetDao extends BaseDao<TimesheetDO>
 
   /**
    * Checks the start and stop time. If seconds or millis is not null, a RuntimeException will be thrown.
-   * 
+   *
    * @see org.projectforge.framework.persistence.api.BaseDao#onSaveOrModify(org.projectforge.core.ExtendedBaseDO)
    */
   @Override
@@ -362,7 +360,7 @@ public class TimesheetDao extends BaseDao<TimesheetDO>
 
   /**
    * @see org.projectforge.framework.persistence.api.BaseDao#prepareHibernateSearch(org.projectforge.core.ExtendedBaseDO,
-   *      org.projectforge.framework.access.OperationType)
+   * org.projectforge.framework.access.OperationType)
    */
   @Override
   protected void prepareHibernateSearch(final TimesheetDO obj, final OperationType operationType)
@@ -393,7 +391,7 @@ public class TimesheetDao extends BaseDao<TimesheetDO>
   /**
    * Analyses all time sheets of the user and detects any collision (overlap) of the user's time sheets. The result will
    * be cached and the duration of a new analysis is only a few milliseconds!
-   * 
+   *
    * @param user
    * @return
    */
@@ -439,7 +437,7 @@ public class TimesheetDao extends BaseDao<TimesheetDO>
   /**
    * Deletes any existing time sheet overlap analysis and forces therefore a new analysis before next time sheet list
    * selection. (The analysis will not be started inside this method!)
-   * 
+   *
    * @param userId
    */
   public void recheckTimesheetOverlap(final Integer userId)
@@ -451,7 +449,7 @@ public class TimesheetDao extends BaseDao<TimesheetDO>
   /**
    * Checks if the time sheet overlaps with another time sheet of the same user. Should be checked on every insert or
    * update (also undelete). For time collision detection deleted time sheets are ignored.
-   * 
+   *
    * @return The existing time sheet with the time period collision.
    */
   public boolean hasTimeOverlap(final TimesheetDO timesheet, final boolean throwException)
@@ -489,7 +487,7 @@ public class TimesheetDao extends BaseDao<TimesheetDO>
 
   /**
    * return Always true, no generic select access needed for address objects.
-   * 
+   *
    * @see org.projectforge.framework.persistence.api.BaseDao#hasSelectAccess()
    */
   @Override
@@ -530,9 +528,9 @@ public class TimesheetDao extends BaseDao<TimesheetDO>
   /**
    * User can always see his own time sheets. But if he has no access then the location and description values are
    * hidden (empty strings).
-   * 
+   *
    * @see org.projectforge.framework.persistence.api.BaseDao#hasSelectAccess(PFUserDO,
-   *      org.projectforge.core.ExtendedBaseDO, boolean)
+   * org.projectforge.core.ExtendedBaseDO, boolean)
    */
   @Override
   public boolean hasSelectAccess(final PFUserDO user, final TimesheetDO obj, final boolean throwException)
@@ -636,9 +634,9 @@ public class TimesheetDao extends BaseDao<TimesheetDO>
    * <li>Is the task not a leaf node and has this task or ancestor task the booking status ONLY_LEAFS?</li>
    * <li>Does any of the descendant task node has an assigned order position?</li>
    * </ol>
-   * 
-   * @param timesheet The time sheet to insert or update.
-   * @param oldTimesheet The origin time sheet from the data base (could be null, if no update is done).
+   *
+   * @param timesheet      The time sheet to insert or update.
+   * @param oldTimesheet   The origin time sheet from the data base (could be null, if no update is done).
    * @param operationType
    * @param throwException
    * @return True if none of the rules above matches.
@@ -735,9 +733,9 @@ public class TimesheetDao extends BaseDao<TimesheetDO>
    * Checks insert, update and delete operations. If an existing time sheet has to be modified, the check will only be
    * done, if any modifications of the time stamps is done (e. g. descriptions of the task are allowed if the start and
    * stop time is untouched).
-   * 
+   *
    * @param timesheet
-   * @param oldTimesheet (null for delete and insert)
+   * @param oldTimesheet   (null for delete and insert)
    * @param throwException If true and the time sheet protection is violated then an AccessException will be thrown.
    * @return true, if no time sheet protection is violated or if the logged in user is member of the finance group.
    * @see ProjectForgeGroup#FINANCE_GROUP
@@ -785,7 +783,7 @@ public class TimesheetDao extends BaseDao<TimesheetDO>
 
   /**
    * Get all locations of the user's time sheet (not deleted ones) with modification date within last year.
-   * 
+   *
    * @param searchString
    */
   @SuppressWarnings("unchecked")
@@ -810,7 +808,7 @@ public class TimesheetDao extends BaseDao<TimesheetDO>
 
   /**
    * Get all locations of the user's time sheet (not deleted ones) with modification date within last year.
-   * 
+   *
    * @param maxResults Limit the result to the recent locations.
    * @return result as Json object.
    */
@@ -821,7 +819,7 @@ public class TimesheetDao extends BaseDao<TimesheetDO>
     log.info("Get recent locations from the database.");
     final String s = "select location from "
         + (clazz.getSimpleName()
-            + " t where deleted=false and t.user.id = ? and lastUpdate > ? and t.location != null and t.location != '' order by t.lastUpdate desc");
+        + " t where deleted=false and t.user.id = ? and lastUpdate > ? and t.location != null and t.location != '' order by t.lastUpdate desc");
     final Query query = getSession().createQuery(s);
     query.setInteger(0, ThreadLocalUserContext.getUser().getId());
     final DateHolder dh = new DateHolder();
@@ -869,31 +867,23 @@ public class TimesheetDao extends BaseDao<TimesheetDO>
       final List<Kost2DO> kost2List = (List<Kost2DO>) store;
       if (master.getKost2Id() != null) {
         if (contains(kost2List, master.getKost2Id()) == false) {
-          log.info(
-              "Mass update not possible for time sheet (destination task does not support given kost2 id): " + entry);
-          return false;
+          throw new UserException("timesheet.error.massupdate.kost2notsupported");
         }
         setKost2(entry, master.getKost2Id());
       } else if (entry.getKost2Id() == null) {
-        log.info("Mass update not possible for time sheet (destination task requires kost2): " + entry);
-        return false;
-      } else {
-        if (contains(kost2List, entry.getKost2Id()) == false) {
-          // Try to convert kost2 ids from old project to new project.
-          boolean success = false;
-          for (final Kost2DO kost2 : kost2List) {
-            if (kost2.getKost2ArtId().compareTo(entry.getKost2().getKost2ArtId()) == 0) {
-              success = true; // found.
-              entry.setKost2(kost2);
-              break;
-            }
+        throw new UserException("timesheet.error.massupdate.kost2null");
+      } else if (contains(kost2List, entry.getKost2Id()) == false) {
+        // Try to convert kost2 ids from old project to new project.
+        boolean success = false;
+        for (final Kost2DO kost2 : kost2List) {
+          if (kost2.getKost2ArtId().compareTo(entry.getKost2().getKost2ArtId()) == 0) {
+            success = true; // found.
+            entry.setKost2(kost2);
+            break;
           }
-          if (success == false) {
-            log.info(
-                "Mass update not possible for time sheet (destination task have multiple kost2 entries and no correspondent kost2 art): "
-                    + entry);
-            return false;
-          }
+        }
+        if (success == false) {
+          throw new UserException("timesheet.error.massupdate.couldnotconvertkost2");
         }
       }
     }
@@ -902,6 +892,9 @@ public class TimesheetDao extends BaseDao<TimesheetDO>
     }
     if (master.getKost2Id() != null) {
       setKost2(entry, master.getKost2Id());
+    } else if (store == null) {
+      // clear destination kost2 if master has no kost2 and there is no kost2List
+      entry.setKost2(null);
     }
     if (StringUtils.isNotBlank(master.getLocation()) == true) {
       entry.setLocation(master.getLocation());
