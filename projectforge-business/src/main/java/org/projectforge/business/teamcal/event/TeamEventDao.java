@@ -181,14 +181,9 @@ public class TeamEventDao extends BaseDao<TeamEventDO>
     // Update recurrenceUntil date (for database queries):
     final Date recurrenceUntil = ICal4JUtils.calculateRecurrenceUntil(event.getRecurrenceRule(), event.getTimeZone());
     event.setRecurrenceUntil(recurrenceUntil);
-  }
 
-  @Override
-  protected void afterSaveOrModify(final TeamEventDO event)
-  {
     if (StringUtils.isBlank(event.getUid())) {
       event.setUid(TeamCalConfig.get().createEventUid());
-      getHibernateTemplate().merge(event);
     }
   }
 
@@ -290,7 +285,7 @@ public class TeamEventDao extends BaseDao<TeamEventDO>
     }
     final QueryFilter qFilter = buildQueryFilter(teamEventFilter);
     final List<TeamEventDO> list = getList(qFilter);
-    final List<TeamEventDO> result = new ArrayList<TeamEventDO>(list.size());
+    final List<TeamEventDO> result = new ArrayList<TeamEventDO>();
     if (list != null) {
       for (final TeamEventDO event : list) {
         if (matches(event.getStartDate(), event.getEndDate(), event.isAllDay(), teamEventFilter) == true) {
@@ -489,6 +484,7 @@ public class TeamEventDao extends BaseDao<TeamEventDO>
     }
     Collections.sort(list, new Comparator<DisplayHistoryEntry>()
     {
+      @Override
       public int compare(final DisplayHistoryEntry o1, final DisplayHistoryEntry o2)
       {
         return (o2.getTimestamp().compareTo(o1.getTimestamp()));
