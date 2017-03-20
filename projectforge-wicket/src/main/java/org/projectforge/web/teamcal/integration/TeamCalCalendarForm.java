@@ -255,19 +255,25 @@ public class TeamCalCalendarForm extends CalendarForm
           redirectToImportPage(events, activeModel.getObject());
           return;
         }
+
+        // Here we have just one event.
         final VEvent event = events.get(0);
         final Uid uid = event.getUid();
         // 1. Check id/external id. If not yet given, create new entry and ask for calendar to add: Redirect to TeamEventEditPage.
         final TeamEventDO dbEvent = (uid == null) ? null : teamEventDao.getByUid(uid.getValue());
         if (dbEvent != null && ThreadLocalUserContext.getUserId().equals(dbEvent.getCreator().getPk())) {
-          // Can't modify existing entry, redirect to import page:
+          // The event was created by this user, redirect to import page:
           redirectToImportPage(events, activeModel.getObject());
           return;
         }
-        TeamEventDO teamEvent = null;
+
+        // The event was not created by this user, create a new event.
+        final TeamEventDO teamEvent;
         if (dbEvent != null) {
+          // There is an event in the DB with the same UID. -> Create a new UID.
           teamEvent = teamEventConverter.createTeamEventDO(event, ThreadLocalUserContext.getTimeZone(), false);
         } else {
+          // There is no event in the DB with the same UID. -> Use this UID for the event.
           teamEvent = teamEventConverter.createTeamEventDO(event, ThreadLocalUserContext.getTimeZone(), true);
         }
         final TemplateEntry activeTemplateEntry = ((TeamCalCalendarFilter) filter).getActiveTemplateEntry();
@@ -275,7 +281,7 @@ public class TeamCalCalendarForm extends CalendarForm
           teamEventDao.setCalendar(teamEvent, activeTemplateEntry.getDefaultCalendarId());
         }
 
-        Set<TeamEventAttendeeDO> originAssignedAttendees = new HashSet<>();
+        final Set<TeamEventAttendeeDO> originAssignedAttendees = new HashSet<>();
         teamEvent.getAttendees().forEach(attendee -> {
           attendee.setPk(null);
           originAssignedAttendees.add(attendee);
