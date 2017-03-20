@@ -127,6 +127,26 @@
                 %>
             </td>
         </tr>
+        <% if(pf.getString(hasRRule).equals("true")) { %>
+        <tr>
+            <td align="right" valign="top"
+                style="text-align:right; color:#9B9B9B; width:35%; color:#9B9B9B; font-size:16px; font-weight:normal;line-height:30px;"><%=
+                pf.getI18nString("plugins.teamcal.event.event.repeat") %>:
+            </td>
+            <td align="left" style="text-align:left; color:#9B9B9B; width:65%; font-size:16px; padding-left:10px; line-height:30px;"><%= pf.getString(repeat)
+                %>
+            </td>
+        </tr>
+        <tr>
+            <td align="right" valign="top"
+                style="text-align:right; color:#9B9B9B; width:35%; color:#9B9B9B; font-size:16px; font-weight:normal;line-height:30px;"><%=
+                pf.getI18nString("plugins.teamcal.event.event.exdate") %>:
+            </td>
+            <td align="left" style="text-align:left; color:#9B9B9B; width:65%; font-size:16px; padding-left:10px; line-height:30px;"><%=
+                %>
+            </td>
+        </tr>
+        <% } %>
         <% boolean isFirst = true %>
         <% for (attendee in attendeeList) { %>
         <tr>
