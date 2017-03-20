@@ -125,7 +125,8 @@ public class DatabaseCoreUpdates
       {
         log.info("Running pre-check for ProjectForge version 6.9.0");
         if (databaseUpdateService.doesTableExist("t_employee_vacation_substitution") == false ||
-            databaseUpdateService.doesTableAttributeExist("t_employee_vacation", "substitution_id")) {
+            databaseUpdateService.doesTableAttributeExist("t_employee_vacation", "substitution_id") ||
+            databaseUpdateService.doesUniqueConstraintExists("T_PLUGIN_CALENDAR_EVENT", "unique_t_plugin_calendar_event_uid") == false) {
           return UpdatePreCheckStatus.READY_FOR_UPDATE;
         }
         return UpdatePreCheckStatus.ALREADY_UPDATED;
@@ -134,7 +135,8 @@ public class DatabaseCoreUpdates
       @Override
       public UpdateRunningStatus runUpdate()
       {
-        if (databaseUpdateService.doesTableExist("t_employee_vacation_substitution") == false) {
+        if (databaseUpdateService.doesTableExist("t_employee_vacation_substitution") == false ||
+            databaseUpdateService.doesUniqueConstraintExists("T_PLUGIN_CALENDAR_EVENT", "unique_t_plugin_calendar_event_uid") == false) {
           // Updating the schema
           initDatabaseDao.updateSchema();
         }

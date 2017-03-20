@@ -96,7 +96,7 @@ import net.fortuna.ical4j.model.property.RRule;
 @Entity
 @Indexed
 @Table(name = "T_PLUGIN_CALENDAR_EVENT",
-    uniqueConstraints = { @UniqueConstraint(columnNames = { "uid" }) },
+    uniqueConstraints = { @UniqueConstraint(name = "unique_t_plugin_calendar_event_uid", columnNames = { "uid" }) },
     indexes = {
         @javax.persistence.Index(name = "idx_fk_t_plugin_calendar_event_calendar_fk", columnList = "calendar_fk"),
         @javax.persistence.Index(name = "idx_fk_t_plugin_calendar_event_tenant_id", columnList = "tenant_id"),

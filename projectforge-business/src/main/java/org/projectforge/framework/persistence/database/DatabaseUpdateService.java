@@ -27,6 +27,7 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
 import java.util.LinkedList;
@@ -946,6 +947,13 @@ public class DatabaseUpdateService
   {
     final String tableName = new Table(entity).getName();
     return update("UPDATE " + tableName + " SET " + columnName + " = ? WHERE status = ?", newCellValue, oldCellValue);
+  }
+
+  public boolean doesUniqueConstraintExists(final String tableName, final String uniqueConstraintName)
+  {
+    final String[] allUniqueConstraintNames = getAllUniqueConstraintNames(tableName);
+    return (allUniqueConstraintNames != null) &&
+        Arrays.asList(allUniqueConstraintNames).contains(uniqueConstraintName);
   }
 
 }
