@@ -23,6 +23,8 @@
 
 package org.projectforge.web.user;
 
+import java.util.Collection;
+
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.log4j.Logger;
@@ -32,7 +34,10 @@ import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.fibu.EmployeeDO;
 import org.projectforge.business.fibu.api.EmployeeService;
 import org.projectforge.business.login.Login;
+import org.projectforge.business.teamcal.admin.TeamCalCache;
+import org.projectforge.business.teamcal.admin.model.TeamCalDO;
 import org.projectforge.business.user.UserDao;
+import org.projectforge.business.user.UserXmlPreferencesDao;
 import org.projectforge.business.user.filter.UserFilter;
 import org.projectforge.business.user.service.UserService;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
@@ -55,6 +60,12 @@ public class MyAccountEditPage extends AbstractEditPage<PFUserDO, MyAccountEditF
 
   @SpringBean
   private EmployeeService employeeService;
+
+  @SpringBean
+  private TeamCalCache teamCalCache;
+
+  @SpringBean
+  private UserXmlPreferencesDao userXmlPreferencesDao;
 
   public MyAccountEditPage(final PageParameters parameters)
   {
@@ -89,6 +100,12 @@ public class MyAccountEditPage extends AbstractEditPage<PFUserDO, MyAccountEditF
   @Override
   public AbstractSecuredBasePage afterSaveOrUpdate()
   {
+    Collection<TeamCalDO> teamCalRestWhiteList = form.getTeamCalRestWhiteList();
+    Collection<TeamCalDO> teamCalRestBlackList = teamCalCache.getAllFullAccessCalendars();
+    teamCalRestBlackList.removeAll(teamCalRestWhiteList);
+    Integer[] blackListIds = teamCalRestBlackList.stream().map(cal -> cal.getId()).toArray(size -> new Integer[size]);
+    userXmlPreferencesDao.saveOrUpdate(ThreadLocalUserContext.getUserId(), TeamCalDO.TEAMCALRESTBLACKLIST, blackListIds, true);
+
     final HttpServletRequest request = WicketUtils.getHttpServletRequest(getRequest());
     // Don't trust the form data, use logged in user from the data base instead.
     UserFilter.refreshUser(request);
@@ -122,6 +139,7 @@ public class MyAccountEditPage extends AbstractEditPage<PFUserDO, MyAccountEditF
     if (form.invalidateAllStayLoggedInSessions == true) {
       userService.renewStayLoggedInKey(getData().getId());
     }
+    afterSaveOrUpdate();
     setResponsePage(new MessagePage("message.successfullChanged"));
   }
 

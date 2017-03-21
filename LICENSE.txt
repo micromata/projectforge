@@ -1,7 +1,7 @@
 Project ProjectForge Community Edition
         www.projectforge.org
 
-Copyright (C) 2001-2016 Kai Reinhard (k.reinhard@micromata.com)
+Copyright (C) 2001-2017 Kai Reinhard (k.reinhard@micromata.com)
                         Max-Planck-Str. 5
                         34131 Kassel
 

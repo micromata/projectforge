@@ -31,7 +31,7 @@ public class CustomerDateAndTimeDeserialize extends JsonDeserializer<Date>
     try {
       return dateFormat.parse(str);
     } catch (Exception e) {
-      log.error("Exception while parsing date.");
+      log.debug("Exception while parsing date.");
     }
     return paramDeserializationContext.parseDate(str);
   }

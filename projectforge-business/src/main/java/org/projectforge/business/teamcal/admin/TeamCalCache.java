@@ -87,6 +87,24 @@ public class TeamCalCache extends AbstractCache
 
   /**
    * Get ordered calendars (by title and id).
+   *
+   * @return All accessible calendars of the context user (as owner or with full, read-only or minimal access).
+   */
+  public Collection<TeamCalDO> getAllFullAccessCalendars()
+  {
+    checkRefresh();
+    final Set<TeamCalDO> set = new TreeSet<TeamCalDO>(new TeamCalsComparator());
+    final PFUserDO loggedInUser = ThreadLocalUserContext.getUser();
+    for (final TeamCalDO cal : calendarMap.values()) {
+      if (teamCalRight.hasFullAccess(cal, loggedInUser.getId()) == true && cal.isDeleted() == false) {
+        set.add(cal);
+      }
+    }
+    return set;
+  }
+
+  /**
+   * Get ordered calendars (by title and id).
    * 
    * @return All accessible calendars of the context user (as owner or with full, read-only or minimal access).
    */
