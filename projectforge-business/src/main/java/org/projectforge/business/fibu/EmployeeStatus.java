@@ -23,12 +23,15 @@
 
 package org.projectforge.business.fibu;
 
+import java.util.Arrays;
+
 import org.projectforge.common.i18n.I18nEnum;
 
 public enum EmployeeStatus implements I18nEnum
 {
-  FEST_ANGESTELLTER("festAngestellter"), BEFRISTET_ANGESTELLTER("befristetAngestellter"), FREELANCER("freelancer"), AUSHILFE("aushilfe"), STUDENTISCHE_HILFSKRAFT(
-      "studentischeHilfskraft"), STUD_ABSCHLUSSARBEIT("studentischeAbschlussarbeit"), PRAKTIKANT("praktikant"), AZUBI("azubi");
+  FEST_ANGESTELLTER("festAngestellter"), BEFRISTET_ANGESTELLTER("befristetAngestellter"), FREELANCER("freelancer"), AUSHILFE(
+    "aushilfe"), STUDENTISCHE_HILFSKRAFT(
+    "studentischeHilfskraft"), STUD_ABSCHLUSSARBEIT("studentischeAbschlussarbeit"), PRAKTIKANT("praktikant"), AZUBI("azubi");
 
   private String key;
 
@@ -42,6 +45,7 @@ public enum EmployeeStatus implements I18nEnum
 
   /**
    * The key will be used e. g. for i18n.
+   *
    * @return
    */
   public String getKey()
@@ -52,5 +56,13 @@ public enum EmployeeStatus implements I18nEnum
   EmployeeStatus(String key)
   {
     this.key = key;
+  }
+
+  public static EmployeeStatus findByi18nKey(final String i18nKey)
+  {
+    return Arrays.stream(values())
+        .filter(es -> es.getI18nKey().equals(i18nKey))
+        .findFirst()
+        .orElse(null);
   }
 }

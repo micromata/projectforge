@@ -62,7 +62,6 @@ public class VacationListForm extends AbstractListForm<VacationFilter, VacationL
   protected void init()
   {
     super.init();
-    vacationService.couldUserUseVacationService(ThreadLocalUserContext.getUser(), true);
     final VacationFilter filter = getSearchFilter();
     {
       gridBuilder.newSplitPanel(GridSize.COL66);
