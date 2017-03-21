@@ -45,7 +45,6 @@ import org.projectforge.business.fibu.api.EmployeeService;
 import org.projectforge.business.multitenancy.TenantService;
 import org.projectforge.business.teamcal.admin.TeamCalCache;
 import org.projectforge.business.teamcal.admin.model.TeamCalDO;
-import org.projectforge.business.teamcal.service.TeamCalServiceImpl;
 import org.projectforge.business.user.I18nHelper;
 import org.projectforge.business.user.UserRightId;
 import org.projectforge.business.user.UserRightValue;
@@ -94,9 +93,6 @@ public class VacationEditForm extends AbstractEditForm<VacationDO, VacationEditP
 
   @SpringBean
   private AccessChecker accessChecker;
-
-  @SpringBean
-  private TeamCalServiceImpl teamCalService;
 
   @SpringBean
   private TeamCalCache teamCalCache;
@@ -306,7 +302,7 @@ public class VacationEditForm extends AbstractEditForm<VacationDO, VacationEditP
       // Calendars
       final FieldsetPanel fieldSet = gridBuilder.newFieldset(getString("vacation.calendar"));
       final List<TeamCalDO> calendarsForVacation = vacationService.getCalendarsForVacation(this.data);
-      final Set<TeamCalDO> availableCalendars = new HashSet<>(teamCalService.getFullAccessCalendar());
+      final Set<TeamCalDO> availableCalendars = new HashSet<>(teamCalCache.getAllFullAccessCalendars());
       final Set<TeamCalDO> currentCalendars = new HashSet<>();
       final TeamCalDO configuredVacationCalendar = configService.getVacationCalendar();
 
@@ -332,7 +328,7 @@ public class VacationEditForm extends AbstractEditForm<VacationDO, VacationEditP
       final Select2MultiChoice<TeamCalDO> calendarsSelect = new Select2MultiChoice<>(
           fieldSet.getSelect2MultiChoiceId(),
           new PropertyModel<Collection<TeamCalDO>>(assignCalendarListHelper, "assignedItems"),
-          new TeamCalsProvider(teamCalCache));
+          new TeamCalsProvider(teamCalCache, true));
       calendarsSelect.setMarkupId("calenders").setOutputMarkupId(true);
       calendarsSelect.setEnabled(checkEnableInputField());
       formValidator.getDependentFormComponents()[6] = calendarsSelect;

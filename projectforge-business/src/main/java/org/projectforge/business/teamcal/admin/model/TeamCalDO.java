@@ -66,6 +66,8 @@ public class TeamCalDO extends DefaultBaseDO
 {
   private static final long serialVersionUID = 2869432134443084605L;
 
+  public static final String TEAMCALRESTBLACKLIST = "teamCalRestBlackList";
+
   // @UserPrefParameter(i18nKey = "plugins.teamcal.subject")
   @Field(index = Index.YES /* TOKENIZED */, store = Store.NO)
   private String title;
