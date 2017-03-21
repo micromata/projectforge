@@ -232,8 +232,7 @@ public class TeamEventServiceImpl implements TeamEventService
       String endTime = formatter.format(endDate.getTime());
       fromToHeader =
           beginDateTime + " - " + endTime + " " + I18nHelper.getLocalizedMessage("oclock") + ".";
-    }
-    else    //Mehrere Tage
+    } else    //Mehrere Tage
     {
       fromToHeader = beginDateTime;
     }
@@ -258,7 +257,7 @@ public class TeamEventServiceImpl implements TeamEventService
     String repeat = "";
     RRule rRule = null;
     ArrayList<String> exDate = new ArrayList<>();
-    if(hasRRule) {
+    if (hasRRule) {
       try {
         rRule = new RRule(data.getRecurrenceRule());
       } catch (ParseException e) {
@@ -269,22 +268,19 @@ public class TeamEventServiceImpl implements TeamEventService
       SimpleDateFormat parser2 = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
       formatter = new SimpleDateFormat("dd.MM.yyyy", ThreadLocalUserContext.getLocale());
       String[] exDateSplit = data.getRecurrenceExDate().split(",");
-      if(data.getRecurrenceExDate().equals("") == false || data.getRecurrenceExDate().equals(",") == false)
-      {
-        for(int i = 0 ; i < exDateSplit.length-1 ; i++)
-        {
-          try
-          {
-            Date date = parser1.parse(exDateSplit[i].replace("T",""));
+      if (data.getRecurrenceExDate().equals("") == false || data.getRecurrenceExDate().equals(",") == false) {
+        for (int i = 0; i < exDateSplit.length - 1; i++) {
+          try {
+            Date date = parser1.parse(exDateSplit[i].replace("T", ""));
             exDate.add(formatter.format(date));
           } catch (ParseException e) {
-
+            log.warn("Something went wrong while parsing date.", e);
           }
         }
         try {
-          exDate.add(formatter.format(parser2.parse(exDateSplit[exDateSplit.length-1])));
+          exDate.add(formatter.format(parser2.parse(exDateSplit[exDateSplit.length - 1])));
         } catch (ParseException e) {
-
+          log.warn("Something went wrong while parsing date.", e);
         }
       }
     }
@@ -302,6 +298,7 @@ public class TeamEventServiceImpl implements TeamEventService
     emailDataMap.put("hasRRule", hasRRule ? "true" : "false");
     emailDataMap.put("repeat", repeat);
     emailDataMap.put("exDateList", exDate);
+    
     final String content = sendMail.renderGroovyTemplate(msg, "mail/teamEventEmail.html", emailDataMap, ThreadLocalUserContext.getUser());
     msg.setContent(content);
     boolean result = false;
@@ -329,71 +326,59 @@ public class TeamEventServiceImpl implements TeamEventService
   {
     String msg = "";
     StringBuilder stringBuilder = new StringBuilder();
-    switch(rRule.getRecur().getFrequency())
-    {
-      case "DAILY":
-      {
+    switch (rRule.getRecur().getFrequency()) {
+      case "DAILY": {
         //JEDEN
-        if(rRule.getRecur().getInterval() == 1){
+        if (rRule.getRecur().getInterval() == 1) {
           msg = I18nHelper.getLocalizedMessage("plugins.teamcal.event.event.everyDay");
-        }
-        else //ALLE ...
+        } else //ALLE ...
         {
-          msg = I18nHelper.getLocalizedMessage("plugins.teamcal.event.event.allDay",rRule.getRecur().getInterval());
+          msg = I18nHelper.getLocalizedMessage("plugins.teamcal.event.event.allDay", rRule.getRecur().getInterval());
         }
       }
       break;
-      case "WEEKLY":
-      {
+      case "WEEKLY": {
         //JEDEN
-        if(rRule.getRecur().getInterval() == 1){
+        if (rRule.getRecur().getInterval() == 1) {
           msg = I18nHelper.getLocalizedMessage("plugins.teamcal.event.event.everyWeek");
-        }
-        else //ALLE ...
+        } else //ALLE ...
         {
-          msg = I18nHelper.getLocalizedMessage("plugins.teamcal.event.event.allWeeks",rRule.getRecur().getInterval());
+          msg = I18nHelper.getLocalizedMessage("plugins.teamcal.event.event.allWeeks", rRule.getRecur().getInterval());
         }
       }
       break;
-      case "MONTHLY":
-      {
+      case "MONTHLY": {
         //JEDEN
-        if(rRule.getRecur().getInterval() == 1){
+        if (rRule.getRecur().getInterval() == 1) {
           msg = I18nHelper.getLocalizedMessage("plugins.teamcal.event.event.everyMonth");
-        }
-        else //ALLE ...
+        } else //ALLE ...
         {
-          msg = I18nHelper.getLocalizedMessage("plugins.teamcal.event.event.allMonth",rRule.getRecur().getInterval());
+          msg = I18nHelper.getLocalizedMessage("plugins.teamcal.event.event.allMonth", rRule.getRecur().getInterval());
         }
       }
       break;
-      case "YEARLY":
-      {
+      case "YEARLY": {
         //JEDEN
-        if(rRule.getRecur().getInterval() == 1){
+        if (rRule.getRecur().getInterval() == 1) {
           msg = I18nHelper.getLocalizedMessage("plugins.teamcal.event.event.everyYear");
-        }
-        else //ALLE ...
+        } else //ALLE ...
         {
-          msg = I18nHelper.getLocalizedMessage("plugins.teamcal.event.event.allYear",rRule.getRecur().getInterval());
+          msg = I18nHelper.getLocalizedMessage("plugins.teamcal.event.event.allYear", rRule.getRecur().getInterval());
         }
       }
       break;
     }
 
     //BIS ZUM
-    if(rRule.getRecur().getUntil() != null)
-    {
+    if (rRule.getRecur().getUntil() != null) {
       SimpleDateFormat formatter = new SimpleDateFormat("dd.MM.YYYY", ThreadLocalUserContext.getLocale());
       Date date = new Date(rRule.getRecur().getUntil().getTime());
       msg += stringBuilder.append(" " + I18nHelper.getLocalizedMessage("plugins.teamcal.event.event.endsAt", formatter.format(date))).toString();
     }//... MALE
-    else if(rRule.getRecur().getCount() != -1)
-    {
-      msg += stringBuilder.append(", " + I18nHelper.getLocalizedMessage("plugins.teamcal.event.event.endsBy",rRule.getRecur().getCount())).toString();
+    else if (rRule.getRecur().getCount() != -1) {
+      msg += stringBuilder.append(", " + I18nHelper.getLocalizedMessage("plugins.teamcal.event.event.endsBy", rRule.getRecur().getCount())).toString();
     }//FÜR IMMER
-    else
-    {
+    else {
 
     }
 
