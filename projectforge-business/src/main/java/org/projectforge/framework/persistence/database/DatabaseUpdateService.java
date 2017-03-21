@@ -25,6 +25,7 @@ package org.projectforge.framework.persistence.database;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -33,6 +34,7 @@ import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
@@ -42,6 +44,7 @@ import javax.persistence.UniqueConstraint;
 import javax.sql.DataSource;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.Validate;
 import org.projectforge.business.login.Login;
 import org.projectforge.business.multitenancy.TenantRegistryMap;
 import org.projectforge.business.user.ProjectForgeGroup;
@@ -112,7 +115,7 @@ public class DatabaseUpdateService
     TableAttribute.register(new TableAttributeHookImpl());
 
     final SortedSet<UpdateEntry> updateEntries = new TreeSet<UpdateEntry>();
-    DatabaseCoreUpdates.applicationContext = this.applicationContext;
+    DatabaseCoreUpdates.setApplicationContext(this.applicationContext);
     updateEntries.addAll(DatabaseCoreUpdates.getUpdateEntries());
     getSystemUpdater().setUpdateEntries(updateEntries);
   }
@@ -954,6 +957,22 @@ public class DatabaseUpdateService
     final String[] allUniqueConstraintNames = getAllUniqueConstraintNames(tableName);
     return (allUniqueConstraintNames != null) &&
         Arrays.asList(allUniqueConstraintNames).contains(uniqueConstraintName);
+  }
+
+  public Optional<Boolean> isColumnNullable(final String tableName, final String columnName)
+  {
+    try (final Connection connection = getDataSource().getConnection()) {
+      final ResultSet columns = connection.getMetaData().getColumns(null, null, tableName, columnName);
+      Validate.isTrue(columns.next());
+
+      // for columnIndex see https://docs.oracle.com/javase/8/docs/api/java/sql/DatabaseMetaData.html#getColumns-java.lang.String-java.lang.String-java.lang.String-java.lang.String-
+      Validate.isTrue(columns.getString(4).equalsIgnoreCase(columnName));
+      final boolean isNullable = columns.getInt(11) == ResultSetMetaData.columnNullable;
+      return Optional.of(isNullable);
+    } catch (SQLException e) {
+      log.error(e);
+      return Optional.empty();
+    }
   }
 
 }

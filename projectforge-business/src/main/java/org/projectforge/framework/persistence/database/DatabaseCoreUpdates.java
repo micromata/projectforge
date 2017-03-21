@@ -103,7 +103,12 @@ public class DatabaseCoreUpdates
 
   private static final String VERSION_5_0 = "5.0";
 
-  protected static ApplicationContext applicationContext;
+  private static ApplicationContext applicationContext;
+
+  static void setApplicationContext(final ApplicationContext applicationContext)
+  {
+    DatabaseCoreUpdates.applicationContext = applicationContext;
+  }
 
   @SuppressWarnings("serial")
   public static List<UpdateEntry> getUpdateEntries()
@@ -129,6 +134,12 @@ public class DatabaseCoreUpdates
             databaseUpdateService.doesUniqueConstraintExists("T_PLUGIN_CALENDAR_EVENT", "unique_t_plugin_calendar_event_uid") == false) {
           return UpdatePreCheckStatus.READY_FOR_UPDATE;
         }
+
+        final Optional<Boolean> isColumnNullable = databaseUpdateService.isColumnNullable("t_plugin_calendar_event", "uid");
+        if (isColumnNullable.isPresent() == false || isColumnNullable.get()) {
+          return UpdatePreCheckStatus.READY_FOR_UPDATE;
+        }
+
         return UpdatePreCheckStatus.ALREADY_UPDATED;
       }
 
@@ -139,6 +150,11 @@ public class DatabaseCoreUpdates
             databaseUpdateService.doesUniqueConstraintExists("T_PLUGIN_CALENDAR_EVENT", "unique_t_plugin_calendar_event_uid") == false) {
           // Updating the schema
           initDatabaseDao.updateSchema();
+        }
+
+        final Optional<Boolean> isColumnNullable = databaseUpdateService.isColumnNullable("t_plugin_calendar_event", "uid");
+        if (isColumnNullable.isPresent() == false || isColumnNullable.get()) {
+          databaseUpdateService.execute("ALTER TABLE t_plugin_calendar_event ALTER COLUMN uid SET NOT NULL;");
         }
 
         if (databaseUpdateService.doesTableAttributeExist("t_employee_vacation", "substitution_id")) {
