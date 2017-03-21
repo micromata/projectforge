@@ -232,7 +232,8 @@ public class TeamEventServiceImpl implements TeamEventService
       String endTime = formatter.format(endDate.getTime());
       fromToHeader =
           beginDateTime + " - " + endTime + " " + I18nHelper.getLocalizedMessage("oclock") + ".";
-    } else    //Mehrere Tage
+    }
+    else    //Mehrere Tage
     {
       fromToHeader = beginDateTime;
     }
@@ -256,7 +257,7 @@ public class TeamEventServiceImpl implements TeamEventService
     }
     String repeat = "";
     RRule rRule = null;
-    ArrayList<String> exDate = null;
+    ArrayList<String> exDate = new ArrayList<>();
     if(hasRRule) {
       try {
         rRule = new RRule(data.getRecurrenceRule());
@@ -264,11 +265,27 @@ public class TeamEventServiceImpl implements TeamEventService
         e.printStackTrace();
       }
       repeat = getRepeatText(rRule);
-      SimpleDateFormat parser = new SimpleDateFormat("");
-      formatter = new SimpleDateFormat("dd. MMMMM YYYY", ThreadLocalUserContext.getLocale());
-      for(String str : data.getRecurrenceExDate().split(";"))
+      SimpleDateFormat parser1 = new SimpleDateFormat("yyyyMMddhhmmss");
+      SimpleDateFormat parser2 = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
+      formatter = new SimpleDateFormat("dd.MM.yyyy", ThreadLocalUserContext.getLocale());
+      String[] exDateSplit = data.getRecurrenceExDate().split(",");
+      if(data.getRecurrenceExDate().equals("") == false || data.getRecurrenceExDate().equals(",") == false)
       {
+        for(int i = 0 ; i < exDateSplit.length-1 ; i++)
+        {
+          try
+          {
+            Date date = parser1.parse(exDateSplit[i].replace("T",""));
+            exDate.add(formatter.format(date));
+          } catch (ParseException e) {
 
+          }
+        }
+        try {
+          exDate.add(formatter.format(parser2.parse(exDateSplit[exDateSplit.length-1])));
+        } catch (ParseException e) {
+
+        }
       }
     }
     emailDataMap.put("dayOfWeek", dayOfWeek);
@@ -284,6 +301,7 @@ public class TeamEventServiceImpl implements TeamEventService
     emailDataMap.put("deleted", deleted ? "true" : "false");
     emailDataMap.put("hasRRule", hasRRule ? "true" : "false");
     emailDataMap.put("repeat", repeat);
+    emailDataMap.put("exDateList", exDate);
     final String content = sendMail.renderGroovyTemplate(msg, "mail/teamEventEmail.html", emailDataMap, ThreadLocalUserContext.getUser());
     msg.setContent(content);
     boolean result = false;
@@ -317,11 +335,11 @@ public class TeamEventServiceImpl implements TeamEventService
       {
         //JEDEN
         if(rRule.getRecur().getInterval() == 1){
-          msg = stringBuilder.append("Jeden Tag").toString();
+          msg = I18nHelper.getLocalizedMessage("plugins.teamcal.event.event.everyDay");
         }
         else //ALLE ...
         {
-          msg = stringBuilder.append("Alle " + rRule.getRecur().getInterval() + " Tag").toString();
+          msg = I18nHelper.getLocalizedMessage("plugins.teamcal.event.event.allDay",rRule.getRecur().getInterval());
         }
       }
       break;
@@ -329,11 +347,11 @@ public class TeamEventServiceImpl implements TeamEventService
       {
         //JEDEN
         if(rRule.getRecur().getInterval() == 1){
-          msg = stringBuilder.append("Jede Woche").toString();
+          msg = I18nHelper.getLocalizedMessage("plugins.teamcal.event.event.everyWeek");
         }
         else //ALLE ...
         {
-          msg = stringBuilder.append("Alle " + rRule.getRecur().getInterval() + " Wochen").toString();
+          msg = I18nHelper.getLocalizedMessage("plugins.teamcal.event.event.allWeeks",rRule.getRecur().getInterval());
         }
       }
       break;
@@ -341,11 +359,11 @@ public class TeamEventServiceImpl implements TeamEventService
       {
         //JEDEN
         if(rRule.getRecur().getInterval() == 1){
-          msg = stringBuilder.append("Jeden Monat").toString();
+          msg = I18nHelper.getLocalizedMessage("plugins.teamcal.event.event.everyMonth");
         }
         else //ALLE ...
         {
-          msg = stringBuilder.append("Alle " + rRule.getRecur().getInterval() + " Monate").toString();
+          msg = I18nHelper.getLocalizedMessage("plugins.teamcal.event.event.allMonth",rRule.getRecur().getInterval());
         }
       }
       break;
@@ -353,11 +371,11 @@ public class TeamEventServiceImpl implements TeamEventService
       {
         //JEDEN
         if(rRule.getRecur().getInterval() == 1){
-          msg = stringBuilder.append("Jedes Jahr").toString();
+          msg = I18nHelper.getLocalizedMessage("plugins.teamcal.event.event.everyYear");
         }
         else //ALLE ...
         {
-          msg = stringBuilder.append("Alle " + rRule.getRecur().getInterval() + " Jahre").toString();
+          msg = I18nHelper.getLocalizedMessage("plugins.teamcal.event.event.allYear",rRule.getRecur().getInterval());
         }
       }
       break;
@@ -366,11 +384,13 @@ public class TeamEventServiceImpl implements TeamEventService
     //BIS ZUM
     if(rRule.getRecur().getUntil() != null)
     {
-        msg = stringBuilder.append(" bis zum " + new Date(rRule.getRecur().getUntil().getTime()).toString()).toString();
+      SimpleDateFormat formatter = new SimpleDateFormat("dd.MM.YYYY", ThreadLocalUserContext.getLocale());
+      Date date = new Date(rRule.getRecur().getUntil().getTime());
+      msg += stringBuilder.append(" " + I18nHelper.getLocalizedMessage("plugins.teamcal.event.event.endsAt", formatter.format(date))).toString();
     }//... MALE
     else if(rRule.getRecur().getCount() != -1)
     {
-      msg = stringBuilder.append(", " + rRule.getRecur().getCount()  + " male").toString();
+      msg += stringBuilder.append(", " + I18nHelper.getLocalizedMessage("plugins.teamcal.event.event.endsBy",rRule.getRecur().getCount())).toString();
     }//FÜR IMMER
     else
     {
