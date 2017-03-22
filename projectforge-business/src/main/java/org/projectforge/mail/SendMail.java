@@ -60,9 +60,8 @@ import de.micromata.genome.util.validation.ValMessage;
 
 /**
  * Helper class for creating and transporting E-Mails. Groovy script is use-able for e-mail template mechanism.
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
  */
 @Service
 public class SendMail
@@ -76,7 +75,7 @@ public class SendMail
 
   /**
    * Get the ProjectForge standard subject: "[ProjectForge] ..."
-   * 
+   *
    * @param subject
    */
   public static String getProjectForgeSubject(final String subject)
@@ -87,7 +86,7 @@ public class SendMail
   /**
    * @param composedMessage
    * @return true for successful sending, otherwise an exception will be thrown.
-   * @throws UserException if to address is not given.
+   * @throws UserException          if to address is not given.
    * @throws InternalErrorException due to technical failures.
    */
   public boolean send(final Mail composedMessage, final String icalContent,
@@ -157,7 +156,7 @@ public class SendMail
         }
       } else {
         // create message with attachments
-        final MimeMultipart mp = createMailAttachmentContent(composedMessage, icalContent, attachments, sendMailConfig);
+        final MimeMultipart mp = createMailAttachmentContent(message, composedMessage, icalContent, attachments, sendMailConfig);
         message.setContent(mp);
       }
 
@@ -171,7 +170,7 @@ public class SendMail
     log.info("E-Mail successfully sent: " + composedMessage.toString());
   }
 
-  private MimeMultipart createMailAttachmentContent(final Mail composedMessage, final String icalContent,
+  private MimeMultipart createMailAttachmentContent(MimeMessage message, final Mail composedMessage, final String icalContent,
       final Collection<? extends MailAttachment> attachments,
       final SendMailConfig sendMailConfig) throws MessagingException
   {
@@ -193,9 +192,15 @@ public class SendMail
     mp.addBodyPart(mbp1);
 
     if (StringUtils.isNotBlank(icalContent) == true) {
-      final DataSource dataSource = new ByteArrayDataSource(icalContent.getBytes(), "text/plain");
+      message.addHeaderLine("method=REQUEST");
+      message.addHeaderLine("charset=UTF-8");
+      message.addHeaderLine("component=VEVENT");
+
       final MimeBodyPart icalBodyPart = new MimeBodyPart();
-      icalBodyPart.setDataHandler(new DataHandler(dataSource));
+      icalBodyPart.setHeader("Content-Class", "urn:content-  classes:calendarmessage");
+      icalBodyPart.setHeader("Content-ID", "calendar_message");
+      icalBodyPart.setDataHandler(new DataHandler(
+          new ByteArrayDataSource(icalContent.getBytes(), "text/calendar")));
       final String s = Integer.toString(RandomUtils.nextInt());
       icalBodyPart.setFileName("ICal-" + s + ".ics");
       mp.addBodyPart(icalBodyPart);

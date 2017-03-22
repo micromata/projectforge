@@ -267,8 +267,8 @@ public class TeamEventServiceImpl implements TeamEventService
       SimpleDateFormat parser1 = new SimpleDateFormat("yyyyMMddhhmmss");
       SimpleDateFormat parser2 = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
       formatter = new SimpleDateFormat("dd.MM.yyyy", ThreadLocalUserContext.getLocale());
-      String[] exDateSplit = data.getRecurrenceExDate().split(",");
-      if (data.getRecurrenceExDate().equals("") == false || data.getRecurrenceExDate().equals(",") == false) {
+      if (data.getRecurrenceExDate() != null && (data.getRecurrenceExDate().equals("") == false || data.getRecurrenceExDate().equals(",") == false)) {
+        String[] exDateSplit = data.getRecurrenceExDate().split(",");
         for (int i = 0; i < exDateSplit.length - 1; i++) {
           try {
             Date date = parser1.parse(exDateSplit[i].replace("T", ""));
@@ -298,7 +298,7 @@ public class TeamEventServiceImpl implements TeamEventService
     emailDataMap.put("hasRRule", hasRRule ? "true" : "false");
     emailDataMap.put("repeat", repeat);
     emailDataMap.put("exDateList", exDate);
-    
+
     final String content = sendMail.renderGroovyTemplate(msg, "mail/teamEventEmail.html", emailDataMap, ThreadLocalUserContext.getUser());
     msg.setContent(content);
     boolean result = false;
@@ -329,7 +329,7 @@ public class TeamEventServiceImpl implements TeamEventService
     switch (rRule.getRecur().getFrequency()) {
       case "DAILY": {
         //JEDEN
-        if (rRule.getRecur().getInterval() == 1) {
+        if (rRule.getRecur().getInterval() == -1) {
           msg = I18nHelper.getLocalizedMessage("plugins.teamcal.event.event.everyDay");
         } else //ALLE ...
         {
@@ -339,7 +339,7 @@ public class TeamEventServiceImpl implements TeamEventService
       break;
       case "WEEKLY": {
         //JEDEN
-        if (rRule.getRecur().getInterval() == 1) {
+        if (rRule.getRecur().getInterval() == -1) {
           msg = I18nHelper.getLocalizedMessage("plugins.teamcal.event.event.everyWeek");
         } else //ALLE ...
         {
@@ -349,7 +349,7 @@ public class TeamEventServiceImpl implements TeamEventService
       break;
       case "MONTHLY": {
         //JEDEN
-        if (rRule.getRecur().getInterval() == 1) {
+        if (rRule.getRecur().getInterval() == -1) {
           msg = I18nHelper.getLocalizedMessage("plugins.teamcal.event.event.everyMonth");
         } else //ALLE ...
         {
@@ -359,7 +359,7 @@ public class TeamEventServiceImpl implements TeamEventService
       break;
       case "YEARLY": {
         //JEDEN
-        if (rRule.getRecur().getInterval() == 1) {
+        if (rRule.getRecur().getInterval() == -1) {
           msg = I18nHelper.getLocalizedMessage("plugins.teamcal.event.event.everyYear");
         } else //ALLE ...
         {

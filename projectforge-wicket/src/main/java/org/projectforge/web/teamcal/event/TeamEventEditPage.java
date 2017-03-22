@@ -381,6 +381,7 @@ public class TeamEventEditPage extends AbstractEditPage<TeamEventDO, TeamEventEd
       newEvent.getAttendees().clear();
       teamEventService.save(newEvent);
       teamEventService.assignAttendees(newEvent, existingAttendees, null);
+      teamEventService.sendTeamEventToAttendees(newEvent, true, false, false, existingAttendees);
     }
     return null;
   }
