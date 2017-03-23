@@ -60,6 +60,8 @@ import org.projectforge.business.orga.VisitorbookTimedAttrWithDataDO;
 import org.projectforge.business.orga.VisitorbookTimedDO;
 import org.projectforge.business.scripting.ScriptDO;
 import org.projectforge.business.task.TaskDO;
+import org.projectforge.business.teamcal.TeamCalConfig;
+import org.projectforge.business.teamcal.event.model.TeamEventDO;
 import org.projectforge.business.user.GroupDao;
 import org.projectforge.business.user.ProjectForgeGroup;
 import org.projectforge.business.user.UserXmlPreferencesDO;
@@ -146,8 +148,11 @@ public class DatabaseCoreUpdates
       @Override
       public UpdateRunningStatus runUpdate()
       {
-        if (databaseUpdateService.doesTableExist("t_employee_vacation_substitution") == false ||
-            databaseUpdateService.doesUniqueConstraintExists("T_PLUGIN_CALENDAR_EVENT", "unique_t_plugin_calendar_event_uid") == false) {
+        if (databaseUpdateService.doesTableExist("t_employee_vacation_substitution") == false
+            || databaseUpdateService.doesUniqueConstraintExists("T_PLUGIN_CALENDAR_EVENT", "unique_t_plugin_calendar_event_uid") == false) {
+          if (doesDublicateUidsExists()) {
+            handleDublicateUids();
+          }
           // Updating the schema
           initDatabaseDao.updateSchema();
         }
@@ -164,6 +169,34 @@ public class DatabaseCoreUpdates
         }
 
         return UpdateRunningStatus.DONE;
+      }
+
+      private void handleDublicateUids()
+      {
+        final PfEmgrFactory emf = applicationContext.getBean(PfEmgrFactory.class);
+        emf.runInTrans(emgr -> {
+          List<DatabaseResultRow> resultSet = databaseUpdateService
+              .query("SELECT uid, COUNT(*) FROM t_plugin_calendar_event GROUP BY uid HAVING COUNT(*) > 1");
+          for (DatabaseResultRow resultLine : resultSet) {
+            List<TeamEventDO> teList = emgr
+                .selectAttached(TeamEventDO.class, "SELECT t FROM TeamEventDO t WHERE t.uid = :uid", "uid", resultLine.getEntry(0).getValue());
+            for (TeamEventDO te : teList) {
+              te.setUid(TeamCalConfig.get().createEventUid());
+              emgr.update(te);
+            }
+          }
+          return null;
+        });
+      }
+
+      private boolean doesDublicateUidsExists()
+      {
+        List<DatabaseResultRow> resultSet = databaseUpdateService
+            .query("SELECT uid, COUNT(*) FROM t_plugin_calendar_event GROUP BY uid HAVING COUNT(*) > 1");
+        if (resultSet != null && resultSet.size() > 0) {
+          return true;
+        }
+        return false;
       }
 
       // migrate from old substitution column to new t_employee_vacation_substitution table
