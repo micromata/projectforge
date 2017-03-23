@@ -137,7 +137,7 @@ public class UserXmlPreferencesDao
    * 
    * @param userId
    */
-  private UserXmlPreferencesDO getUserPreferencesByUserId(final Integer userId, final String key,
+  public UserXmlPreferencesDO getUserPreferencesByUserId(final Integer userId, final String key,
       final boolean checkAccess)
   {
     if (checkAccess == true) {
@@ -153,6 +153,11 @@ public class UserXmlPreferencesDao
       return list.get(0);
     } else
       return null;
+  }
+
+  public <T> T getDeserializedUserPreferencesByUserId(final Integer userId, final String key, final Class<T> returnClass)
+  {
+    return (T) deserialize(userId, getUserPreferencesByUserId(userId, key, true), false);
   }
 
   /**

@@ -5245,6 +5245,7 @@
     <lastUpdate class="sql-timestamp" id="1125">2013-04-07 18:07:32.479</lastUpdate>
     <deleted>false</deleted>
     <id>1</id>
+    <uid>testdata1</uid>
     <subject>Weekly meeting with my boss</subject>
     <location>Headquarter</location>
     <allDay>false</allDay>
@@ -5264,6 +5265,7 @@
     <lastUpdate class="sql-timestamp" id="1132">2013-04-07 18:09:35.002</lastUpdate>
     <deleted>false</deleted>
     <id>2</id>
+    <uid>testdata2</uid>
     <subject>Legal affaires regular meeting</subject>
     <location>Micromata</location>
     <allDay>false</allDay>
@@ -5281,6 +5283,7 @@
     <lastUpdate class="sql-timestamp" id="1139">2013-04-07 18:10:39.758</lastUpdate>
     <deleted>false</deleted>
     <id>3</id>
+    <uid>testdata3</uid>
     <subject>Team breakfast</subject>
     <location>Headquarter</location>
     <allDay>false</allDay>
@@ -5300,6 +5303,7 @@
     <lastUpdate class="sql-timestamp" id="1146">2013-04-07 18:11:21.989</lastUpdate>
     <deleted>false</deleted>
     <id>4</id>
+    <uid>testdata4</uid>
     <subject>My home office day</subject>
     <location>Sweet home</location>
     <allDay>true</allDay>
@@ -5317,6 +5321,7 @@
     <lastUpdate class="sql-timestamp" id="1153">2013-04-07 18:12:37.26</lastUpdate>
     <deleted>false</deleted>
     <id>5</id>
+    <uid>testdata5</uid>
     <subject>Weekly team-meeting</subject>
     <location>Headquarter</location>
     <allDay>false</allDay>
@@ -5334,6 +5339,7 @@
     <lastUpdate class="sql-timestamp" id="1160">2013-04-07 18:14:07.579</lastUpdate>
     <deleted>false</deleted>
     <id>6</id>
+    <uid>testdata6</uid>
     <subject>Volleyball training</subject>
     <location>Gym</location>
     <allDay>false</allDay>
@@ -5352,6 +5358,7 @@
     <lastUpdate class="sql-timestamp" id="1167">2013-04-07 18:15:11.396</lastUpdate>
     <deleted>false</deleted>
     <id>7</id>
+    <uid>testdata7</uid>
     <subject>Code review meeting</subject>
     <location>Headquarter</location>
     <allDay>false</allDay>

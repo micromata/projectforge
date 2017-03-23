@@ -63,6 +63,8 @@ import org.projectforge.business.task.TaskDO;
 import org.projectforge.business.user.GroupDao;
 import org.projectforge.business.user.ProjectForgeGroup;
 import org.projectforge.business.user.UserXmlPreferencesDO;
+import org.projectforge.business.vacation.model.VacationDO;
+import org.projectforge.business.vacation.repository.VacationDao;
 import org.projectforge.continuousdb.DatabaseResultRow;
 import org.projectforge.continuousdb.SchemaGenerator;
 import org.projectforge.continuousdb.Table;
@@ -101,7 +103,12 @@ public class DatabaseCoreUpdates
 
   private static final String VERSION_5_0 = "5.0";
 
-  protected static ApplicationContext applicationContext;
+  private static ApplicationContext applicationContext;
+
+  static void setApplicationContext(final ApplicationContext applicationContext)
+  {
+    DatabaseCoreUpdates.applicationContext = applicationContext;
+  }
 
   @SuppressWarnings("serial")
   public static List<UpdateEntry> getUpdateEntries()
@@ -111,6 +118,73 @@ public class DatabaseCoreUpdates
     final InitDatabaseDao initDatabaseDao = applicationContext.getBean(InitDatabaseDao.class);
 
     final List<UpdateEntry> list = new ArrayList<>();
+
+    ////////////////////////////////////////////////////////////////////
+    // 6.9.0
+    // /////////////////////////////////////////////////////////////////
+    list.add(new UpdateEntryImpl(CORE_REGION_ID, "6.9.0", "2017-03-15",
+        "Allow multiple substitutions on application for leave.")
+    {
+      @Override
+      public UpdatePreCheckStatus runPreCheck()
+      {
+        log.info("Running pre-check for ProjectForge version 6.9.0");
+        if (databaseUpdateService.doesTableExist("t_employee_vacation_substitution") == false ||
+            databaseUpdateService.doesTableAttributeExist("t_employee_vacation", "substitution_id") ||
+            databaseUpdateService.doesUniqueConstraintExists("T_PLUGIN_CALENDAR_EVENT", "unique_t_plugin_calendar_event_uid") == false) {
+          return UpdatePreCheckStatus.READY_FOR_UPDATE;
+        }
+
+        final Optional<Boolean> isColumnNullable = databaseUpdateService.isColumnNullable("t_plugin_calendar_event", "uid");
+        if (isColumnNullable.isPresent() == false || isColumnNullable.get()) {
+          return UpdatePreCheckStatus.READY_FOR_UPDATE;
+        }
+
+        return UpdatePreCheckStatus.ALREADY_UPDATED;
+      }
+
+      @Override
+      public UpdateRunningStatus runUpdate()
+      {
+        if (databaseUpdateService.doesTableExist("t_employee_vacation_substitution") == false ||
+            databaseUpdateService.doesUniqueConstraintExists("T_PLUGIN_CALENDAR_EVENT", "unique_t_plugin_calendar_event_uid") == false) {
+          // Updating the schema
+          initDatabaseDao.updateSchema();
+        }
+
+        final Optional<Boolean> isColumnNullable = databaseUpdateService.isColumnNullable("t_plugin_calendar_event", "uid");
+        if (isColumnNullable.isPresent() == false || isColumnNullable.get()) {
+          databaseUpdateService.execute("ALTER TABLE t_plugin_calendar_event ALTER COLUMN uid SET NOT NULL;");
+        }
+
+        if (databaseUpdateService.doesTableAttributeExist("t_employee_vacation", "substitution_id")) {
+          migrateSubstitutions();
+          // drop old substitution column
+          databaseUpdateService.dropTableAttribute("t_employee_vacation", "substitution_id");
+        }
+
+        return UpdateRunningStatus.DONE;
+      }
+
+      // migrate from old substitution column to new t_employee_vacation_substitution table
+      private void migrateSubstitutions()
+      {
+        final VacationDao vacationDao = applicationContext.getBean(VacationDao.class);
+        final EmployeeDao employeeDao = applicationContext.getBean(EmployeeDao.class);
+
+        final List<DatabaseResultRow> resultRows = databaseUpdateService
+            .query("SELECT pk, substitution_id FROM t_employee_vacation WHERE substitution_id IS NOT NULL;");
+
+        for (final DatabaseResultRow row : resultRows) {
+          final int vacationId = (int) row.getEntry("pk").getValue();
+          final int substitutionId = (int) row.getEntry("substitution_id").getValue();
+          final VacationDO vacation = vacationDao.internalGetById(vacationId);
+          final EmployeeDO substitution = employeeDao.internalGetById(substitutionId);
+          vacation.getSubstitutions().add(substitution);
+          vacationDao.internalUpdate(vacation);
+        }
+      }
+    });
 
     ////////////////////////////////////////////////////////////////////
     // 6.8.0

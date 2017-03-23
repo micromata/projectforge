@@ -40,6 +40,7 @@ import org.projectforge.business.user.I18nHelper;
 import org.projectforge.business.vacation.model.VacationDO;
 import org.projectforge.business.vacation.service.VacationService;
 import org.projectforge.export.DOGetterListExcelExporter;
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.web.fibu.ISelectCallerPage;
 import org.projectforge.web.wicket.AbstractListPage;
 import org.projectforge.web.wicket.CellItemListener;
@@ -161,6 +162,7 @@ public class VacationListPage extends AbstractListPage<VacationListForm, Vacatio
   @Override
   protected void init()
   {
+    newItemMenuEntry.setVisible(vacationService.couldUserUseVacationService(ThreadLocalUserContext.getUser(), false));
     final List<IColumn<VacationDO, String>> columns = createColumns(this, true);
     dataTable = createDataTable(columns, "startDate", SortOrder.DESCENDING);
     form.add(dataTable);
