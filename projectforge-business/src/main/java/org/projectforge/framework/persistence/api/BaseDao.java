@@ -109,15 +109,15 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
   /**
    * DEBUG flag. remove later
    */
-  public static boolean NO_UPDATE_MAGIC = true;
+  public static final boolean NO_UPDATE_MAGIC = true;
   /**
    * DEBUG flag. remove later
    */
-  public static boolean USE_SEARCH_SERVIVE = false;
+  public static final boolean USE_SEARCH_SERVIVE = false;
   /**
    * DEBUG flag. Not sure, if always has be flushed.
    */
-  public static boolean LUCENE_FLUSH_ALWAYS = true;
+  public static final boolean LUCENE_FLUSH_ALWAYS = true;
 
   protected Class<O> clazz;
 
@@ -1615,8 +1615,9 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
       if (massUpdateEntry(entry, master, store) == true) {
         try {
           update(entry);
-        } catch (final Exception ex) {
-          log.info("Exception occured while updating entry inside mass update: " + entry);
+        } catch (final IllegalArgumentException ex) {
+          log.error("Exception occured while updating entry inside mass update: " + entry + ex.getMessage());
+          throw new UserException("error", ex.getMessage());
         }
       }
     }

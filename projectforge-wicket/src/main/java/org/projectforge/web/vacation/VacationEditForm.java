@@ -41,11 +41,11 @@ import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.configuration.ConfigurationService;
 import org.projectforge.business.fibu.EmployeeDO;
+import org.projectforge.business.fibu.EmployeeStatus;
 import org.projectforge.business.fibu.api.EmployeeService;
 import org.projectforge.business.multitenancy.TenantService;
 import org.projectforge.business.teamcal.admin.TeamCalCache;
 import org.projectforge.business.teamcal.admin.model.TeamCalDO;
-import org.projectforge.business.teamcal.service.TeamCalServiceImpl;
 import org.projectforge.business.user.I18nHelper;
 import org.projectforge.business.user.UserRightId;
 import org.projectforge.business.user.UserRightValue;
@@ -96,9 +96,6 @@ public class VacationEditForm extends AbstractEditForm<VacationDO, VacationEditP
   private AccessChecker accessChecker;
 
   @SpringBean
-  private TeamCalServiceImpl teamCalService;
-
-  @SpringBean
   private TeamCalCache teamCalCache;
 
   private Label neededVacationDaysLabel;
@@ -116,7 +113,6 @@ public class VacationEditForm extends AbstractEditForm<VacationDO, VacationEditP
   public VacationEditForm(final VacationEditPage parentPage, final VacationDO data)
   {
     super(parentPage, data);
-    vacationService.couldUserUseVacationService(ThreadLocalUserContext.getUser(), true);
     if (data.getEmployee() == null) {
       if (parentPage.employeeIdFromPageParameters != null) {
         data.setEmployee(employeeService.selectByPkDetached(parentPage.employeeIdFromPageParameters));
@@ -284,7 +280,8 @@ public class VacationEditForm extends AbstractEditForm<VacationDO, VacationEditP
       final Select2Choice<EmployeeDO> managerSelect = new Select2Choice<>(
           Select2SingleChoicePanel.WICKET_ID,
           new PropertyModel<>(data, "manager"),
-          new DefaultEmployeeWicketProvider(employeeService, checkHRWriteRight()));
+          new DefaultEmployeeWicketProvider(employeeService, checkHRWriteRight(), EmployeeStatus.FEST_ANGESTELLTER, EmployeeStatus.BEFRISTET_ANGESTELLTER,
+              EmployeeStatus.FREELANCER));
       managerSelect.setRequired(true).setMarkupId("vacation-manager").setOutputMarkupId(true);
       managerSelect.setEnabled(checkEnableInputField());
       fs.add(new Select2SingleChoicePanel<EmployeeDO>(fs.newChildId(), managerSelect));
@@ -306,7 +303,7 @@ public class VacationEditForm extends AbstractEditForm<VacationDO, VacationEditP
       // Calendars
       final FieldsetPanel fieldSet = gridBuilder.newFieldset(getString("vacation.calendar"));
       final List<TeamCalDO> calendarsForVacation = vacationService.getCalendarsForVacation(this.data);
-      final Set<TeamCalDO> availableCalendars = new HashSet<>(teamCalService.getFullAccessCalendar());
+      final Set<TeamCalDO> availableCalendars = new HashSet<>(teamCalCache.getAllFullAccessCalendars());
       final Set<TeamCalDO> currentCalendars = new HashSet<>();
       final TeamCalDO configuredVacationCalendar = configService.getVacationCalendar();
 
@@ -332,7 +329,7 @@ public class VacationEditForm extends AbstractEditForm<VacationDO, VacationEditP
       final Select2MultiChoice<TeamCalDO> calendarsSelect = new Select2MultiChoice<>(
           fieldSet.getSelect2MultiChoiceId(),
           new PropertyModel<Collection<TeamCalDO>>(assignCalendarListHelper, "assignedItems"),
-          new TeamCalsProvider(teamCalCache));
+          new TeamCalsProvider(teamCalCache, true));
       calendarsSelect.setMarkupId("calenders").setOutputMarkupId(true);
       calendarsSelect.setEnabled(checkEnableInputField());
       formValidator.getDependentFormComponents()[6] = calendarsSelect;

@@ -4,10 +4,12 @@ import java.io.ByteArrayOutputStream;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 import java.text.DateFormat;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -36,6 +38,8 @@ import org.projectforge.mail.Mail;
 import org.projectforge.mail.SendMail;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import net.fortuna.ical4j.model.property.RRule;
 
 @Service
 public class TeamEventServiceImpl implements TeamEventService
@@ -181,6 +185,7 @@ public class TeamEventServiceImpl implements TeamEventService
   private boolean sendMail(TeamEventDO data, TeamEventAttendeeDO attendee, String mode)
   {
     boolean deleted = "deleted".equals(mode);
+    boolean hasRRule = data.hasRecurrence();
     final Mail msg = createMail(mode);
     addAttendeeToMail(attendee, msg);
     DateFormat formatter = DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT);
@@ -241,13 +246,6 @@ public class TeamEventServiceImpl implements TeamEventService
           I18nHelper.getLocalizedMessage("plugins.teamcal.event.allDay") + ", " + formatter.format(startDate.getTime());
       endText = I18nHelper.getLocalizedMessage("plugins.teamcal.event.allDay") + ", " + formatter.format(endDate.getTime());
     }
-
-    emailDataMap.put("dayOfWeek", dayOfWeek);
-    emailDataMap.put("fromToHeader", fromToHeader);
-    emailDataMap.put("invitationText", invitationText);
-    emailDataMap.put("beginText", beginText);
-    emailDataMap.put("endText", endText);
-
     List<String> attendeeList = new ArrayList<>();
     for (TeamEventAttendeeDO attendees : data.getAttendees()) {
       if (attendees.getAddress() != null) {
@@ -256,12 +254,51 @@ public class TeamEventServiceImpl implements TeamEventService
         attendeeList.add(attendees.getUrl());
       }
     }
+    String repeat = "";
+    RRule rRule = null;
+    ArrayList<String> exDate = new ArrayList<>();
+    if (hasRRule) {
+      try {
+        rRule = new RRule(data.getRecurrenceRule());
+      } catch (ParseException e) {
+        e.printStackTrace();
+      }
+      repeat = getRepeatText(rRule);
+      SimpleDateFormat parser1 = new SimpleDateFormat("yyyyMMddhhmmss");
+      SimpleDateFormat parser2 = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
+      formatter = new SimpleDateFormat("dd.MM.yyyy", ThreadLocalUserContext.getLocale());
+      if (data.getRecurrenceExDate() != null && (data.getRecurrenceExDate().equals("") == false || data.getRecurrenceExDate().equals(",") == false)) {
+        String[] exDateSplit = data.getRecurrenceExDate().split(",");
+        for (int i = 0; i < exDateSplit.length - 1; i++) {
+          try {
+            Date date = parser1.parse(exDateSplit[i].replace("T", ""));
+            exDate.add(formatter.format(date));
+          } catch (ParseException e) {
+            log.warn("Something went wrong while parsing date.", e);
+          }
+        }
+        try {
+          exDate.add(formatter.format(parser2.parse(exDateSplit[exDateSplit.length - 1])));
+        } catch (ParseException e) {
+          log.warn("Something went wrong while parsing date.", e);
+        }
+      }
+    }
+    emailDataMap.put("dayOfWeek", dayOfWeek);
+    emailDataMap.put("fromToHeader", fromToHeader);
+    emailDataMap.put("invitationText", invitationText);
+    emailDataMap.put("beginText", beginText);
+    emailDataMap.put("endText", endText);
     emailDataMap.put("attendeeList", attendeeList);
     emailDataMap.put("location", location);
     emailDataMap.put("note", note);
     emailDataMap.put("acceptLink", getResponseLink(data, attendee, TeamEventAttendeeStatus.ACCEPTED));
     emailDataMap.put("declineLink", getResponseLink(data, attendee, TeamEventAttendeeStatus.DECLINED));
     emailDataMap.put("deleted", deleted ? "true" : "false");
+    emailDataMap.put("hasRRule", hasRRule ? "true" : "false");
+    emailDataMap.put("repeat", repeat);
+    emailDataMap.put("exDateList", exDate);
+
     final String content = sendMail.renderGroovyTemplate(msg, "mail/teamEventEmail.html", emailDataMap, ThreadLocalUserContext.getUser());
     msg.setContent(content);
     boolean result = false;
@@ -283,6 +320,69 @@ public class TeamEventServiceImpl implements TeamEventService
     final String messageParamBegin = "uid=" + event.getUid() + "&attendee=" + attendee.getId();
     final String acceptParams = cryptService.encryptParameterMessage(messageParamBegin + "&status=" + status.name());
     return configService.getDomain() + TeamCalResponseServlet.PFCALENDAR + "?" + acceptParams;
+  }
+
+  private String getRepeatText(RRule rRule)
+  {
+    String msg = "";
+    StringBuilder stringBuilder = new StringBuilder();
+    switch (rRule.getRecur().getFrequency()) {
+      case "DAILY": {
+        //JEDEN
+        if (rRule.getRecur().getInterval() == -1) {
+          msg = I18nHelper.getLocalizedMessage("plugins.teamcal.event.event.everyDay");
+        } else //ALLE ...
+        {
+          msg = I18nHelper.getLocalizedMessage("plugins.teamcal.event.event.allDay", rRule.getRecur().getInterval());
+        }
+      }
+      break;
+      case "WEEKLY": {
+        //JEDEN
+        if (rRule.getRecur().getInterval() == -1) {
+          msg = I18nHelper.getLocalizedMessage("plugins.teamcal.event.event.everyWeek");
+        } else //ALLE ...
+        {
+          msg = I18nHelper.getLocalizedMessage("plugins.teamcal.event.event.allWeeks", rRule.getRecur().getInterval());
+        }
+      }
+      break;
+      case "MONTHLY": {
+        //JEDEN
+        if (rRule.getRecur().getInterval() == -1) {
+          msg = I18nHelper.getLocalizedMessage("plugins.teamcal.event.event.everyMonth");
+        } else //ALLE ...
+        {
+          msg = I18nHelper.getLocalizedMessage("plugins.teamcal.event.event.allMonth", rRule.getRecur().getInterval());
+        }
+      }
+      break;
+      case "YEARLY": {
+        //JEDEN
+        if (rRule.getRecur().getInterval() == -1) {
+          msg = I18nHelper.getLocalizedMessage("plugins.teamcal.event.event.everyYear");
+        } else //ALLE ...
+        {
+          msg = I18nHelper.getLocalizedMessage("plugins.teamcal.event.event.allYear", rRule.getRecur().getInterval());
+        }
+      }
+      break;
+    }
+
+    //BIS ZUM
+    if (rRule.getRecur().getUntil() != null) {
+      SimpleDateFormat formatter = new SimpleDateFormat("dd.MM.YYYY", ThreadLocalUserContext.getLocale());
+      Date date = new Date(rRule.getRecur().getUntil().getTime());
+      msg += stringBuilder.append(" " + I18nHelper.getLocalizedMessage("plugins.teamcal.event.event.endsAt", formatter.format(date))).toString();
+    }//... MALE
+    else if (rRule.getRecur().getCount() != -1) {
+      msg += stringBuilder.append(", " + I18nHelper.getLocalizedMessage("plugins.teamcal.event.event.endsBy", rRule.getRecur().getCount())).toString();
+    }//FÜR IMMER
+    else {
+
+    }
+
+    return msg;
   }
 
   private void addAttendeeToMail(TeamEventAttendeeDO attendee, Mail msg)

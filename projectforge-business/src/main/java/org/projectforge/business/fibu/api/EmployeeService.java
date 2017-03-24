@@ -6,6 +6,7 @@ import java.util.Collection;
 import java.util.List;
 
 import org.projectforge.business.fibu.EmployeeDO;
+import org.projectforge.business.fibu.EmployeeStatus;
 import org.projectforge.business.fibu.EmployeeTimedDO;
 import org.projectforge.framework.persistence.api.IDao;
 import org.projectforge.framework.persistence.api.IPersistenceService;
@@ -37,4 +38,15 @@ public interface EmployeeService extends IPersistenceService<EmployeeDO>, IDao<E
   EmployeeDO getEmployeeByStaffnumber(String staffnumber);
 
   List<EmployeeDO> getAll(boolean checkAccess);
+
+  EmployeeStatus getEmployeeStatus(EmployeeDO employee);
+
+  /**
+   * Checks if the employee was full time some day at the beginning of the month or within the month.
+   *
+   * @param employee     The employee.
+   * @param selectedDate The first day of the month to check.
+   * @return The result.
+   */
+  boolean isFulltimeEmployee(EmployeeDO employee, Calendar selectedDate);
 }

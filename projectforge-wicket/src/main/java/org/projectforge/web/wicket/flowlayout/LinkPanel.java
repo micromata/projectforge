@@ -18,8 +18,14 @@ public class LinkPanel extends Panel
 
   private final Link link;
 
-  public LinkPanel(final String id, final String linkName, final Class< ? extends WebPage> editClass,
+  public LinkPanel(final String id, final String linkName, final Class<? extends WebPage> editClass,
       final WebPage returnToPage)
+  {
+    this(id, linkName, editClass, returnToPage, new PageParameters());
+  }
+
+  public LinkPanel(final String id, final String linkName, final Class<? extends WebPage> editClass,
+      final WebPage returnToPage, final PageParameters pageParameters)
   {
     super(id);
 
@@ -29,7 +35,7 @@ public class LinkPanel extends Panel
       public void onClick()
       {
         final AbstractSecuredPage editPage = (AbstractSecuredPage) ReflectionHelper.newInstance(editClass, PageParameters.class,
-            returnToPage.getPageParameters());
+            pageParameters);
         if (editPage instanceof AbstractEditPage) {
           ((AbstractEditPage<?, ?, ?>) editPage).setReturnToPage(returnToPage);
         }
@@ -41,7 +47,8 @@ public class LinkPanel extends Panel
     link.add(new Label("label", linkName));
   }
 
-  public void addLinkAttribute(String attribute, String value) {
+  public void addLinkAttribute(String attribute, String value)
+  {
     link.add(new AttributeAppender(attribute, value));
   }
 }

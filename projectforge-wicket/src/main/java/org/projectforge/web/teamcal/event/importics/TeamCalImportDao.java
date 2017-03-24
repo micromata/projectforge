@@ -60,7 +60,7 @@ public class TeamCalImportDao
    */
   private static final int INSERT_BLOCK_SIZE = 50;
 
-  static final String[] DIFF_PROPERTIES = { "subject", "location", "allDay", "startDate", "endDate", "note",
+  private static final String[] DIFF_PROPERTIES = { "subject", "location", "allDay", "startDate", "endDate", "note",
       "recurrenceRule",
       "recurrenceUntil" };
 
@@ -154,6 +154,7 @@ public class TeamCalImportDao
       final TeamEventDO dbEvent = teamEventDao.getByUid(event.getUid());
       if (dbEvent != null) {
         event.setId(dbEvent.getId());
+        event.setTenant(dbEvent.getTenant());
         if (el.isSelected() == true) {
           col.add(event);
         }
