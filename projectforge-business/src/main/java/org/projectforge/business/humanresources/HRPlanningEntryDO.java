@@ -56,18 +56,16 @@ import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.utils.ObjectHelper;
 
 /**
- * 
  * @author Mario Groß (m.gross@micromata.de)
- * 
  */
 @Entity
 @Indexed
 @Table(name = "T_HR_PLANNING_ENTRY",
-    indexes = {
-        @javax.persistence.Index(name = "idx_fk_t_hr_planning_entry_planning_fk", columnList = "planning_fk"),
-        @javax.persistence.Index(name = "idx_fk_t_hr_planning_entry_projekt_fk", columnList = "projekt_fk"),
-        @javax.persistence.Index(name = "idx_fk_t_hr_planning_entry_tenant_id", columnList = "tenant_id")
-    })
+       indexes = {
+           @javax.persistence.Index(name = "idx_fk_t_hr_planning_entry_planning_fk", columnList = "planning_fk"),
+           @javax.persistence.Index(name = "idx_fk_t_hr_planning_entry_projekt_fk", columnList = "projekt_fk"),
+           @javax.persistence.Index(name = "idx_fk_t_hr_planning_entry_tenant_id", columnList = "tenant_id")
+       })
 public class HRPlanningEntryDO extends DefaultBaseDO implements ShortDisplayNameCapable
 {
   private static final long serialVersionUID = -7788797217095084177L;
@@ -85,7 +83,7 @@ public class HRPlanningEntryDO extends DefaultBaseDO implements ShortDisplayName
   private Priority priority;
 
   @Field(index = Index.YES, analyze = Analyze.NO /* UN_TOKENIZED */, store = Store.NO,
-      bridge = @FieldBridge(impl = IntegerBridge.class))
+         bridge = @FieldBridge(impl = IntegerBridge.class))
   private Integer probability;
 
   /**
@@ -154,7 +152,7 @@ public class HRPlanningEntryDO extends DefaultBaseDO implements ShortDisplayName
 
   /**
    * @return Hours without assigned day of week (unspecified). This means, it doesn't matter on which day of week the
-   *         job will be done.
+   * job will be done.
    */
   @Column(scale = 2, precision = 5)
   public BigDecimal getUnassignedHours()
@@ -292,7 +290,7 @@ public class HRPlanningEntryDO extends DefaultBaseDO implements ShortDisplayName
 
   /**
    * Gets the customer of the project.
-   * 
+   *
    * @see ProjektFormatter#formatProjektKundeAsString(ProjektDO, KundeDO, String)
    */
   @Transient
@@ -360,7 +358,81 @@ public class HRPlanningEntryDO extends DefaultBaseDO implements ShortDisplayName
       if (this.getId() != null || other.getId() != null) {
         return ObjectUtils.equals(this.getId(), other.getId());
       } else {
-        return false;
+        if ((this.getStatus() != null && other.getStatus() == null) || (this.getStatus() == null && other.getStatus() != null)) {
+          return false;
+        }
+        if (this.getStatus() != null && other.getStatus() != null) {
+          if (this.getStatus().equals(other.getStatus()) == false) {
+            return false;
+          }
+        }
+        if ((this.getProjektId() != null && other.getProjektId() == null) || (this.getProjektId() == null && other.getProjektId() != null)) {
+          return false;
+        }
+        if (this.getProjektId() != null && other.getProjektId() != null) {
+          if (this.getProjektId().equals(other.getProjektId()) == false) {
+            return false;
+          }
+        }
+        if ((this.getUnassignedHours() != null && other.getUnassignedHours() == null) || (this.getUnassignedHours() == null
+            && other.getUnassignedHours() != null)) {
+          return false;
+        }
+        if (this.getUnassignedHours() != null && other.getUnassignedHours() != null) {
+          if (this.getUnassignedHours().equals(other.getUnassignedHours()) == false) {
+            return false;
+          }
+        }
+        if ((this.getMondayHours() != null && other.getMondayHours() == null) || (this.getMondayHours() == null && other.getMondayHours() != null)) {
+          return false;
+        }
+        if (this.getMondayHours() != null && other.getMondayHours() != null) {
+          if (this.getMondayHours().equals(other.getMondayHours()) == false) {
+            return false;
+          }
+        }
+        if ((this.getTuesdayHours() != null && other.getTuesdayHours() == null) || (this.getTuesdayHours() == null && other.getTuesdayHours() != null)) {
+          return false;
+        }
+        if (this.getTuesdayHours() != null && other.getTuesdayHours() != null) {
+          if (this.getTuesdayHours().equals(other.getTuesdayHours()) == false) {
+            return false;
+          }
+        }
+        if ((this.getWednesdayHours() != null && other.getWednesdayHours() == null) || (this.getWednesdayHours() == null
+            && other.getWednesdayHours() != null)) {
+          return false;
+        }
+        if (this.getWednesdayHours() != null && other.getWednesdayHours() != null) {
+          if (this.getWednesdayHours().equals(other.getWednesdayHours()) == false) {
+            return false;
+          }
+        }
+        if ((this.getThursdayHours() != null && other.getThursdayHours() == null) || (this.getThursdayHours() == null && other.getThursdayHours() != null)) {
+          return false;
+        }
+        if (this.getThursdayHours() != null && other.getThursdayHours() != null) {
+          if (this.getThursdayHours().equals(other.getThursdayHours()) == false) {
+            return false;
+          }
+        }
+        if ((this.getFridayHours() != null && other.getFridayHours() == null) || (this.getFridayHours() == null && other.getFridayHours() != null)) {
+          return false;
+        }
+        if (this.getFridayHours() != null && other.getFridayHours() != null) {
+          if (this.getFridayHours().equals(other.getFridayHours()) == false) {
+            return false;
+          }
+        }
+        if ((this.getWeekendHours() != null && other.getWeekendHours() == null) || (this.getWeekendHours() == null && other.getWeekendHours() != null)) {
+          return false;
+        }
+        if (this.getWeekendHours() != null && other.getWeekendHours() != null) {
+          if (this.getWeekendHours().equals(other.getWeekendHours()) == false) {
+            return false;
+          }
+        }
+        return true;
       }
     }
     return false;
@@ -394,7 +466,7 @@ public class HRPlanningEntryDO extends DefaultBaseDO implements ShortDisplayName
 
   /**
    * Clones this entry (without id's).
-   * 
+   *
    * @return
    */
   public HRPlanningEntryDO newClone()
