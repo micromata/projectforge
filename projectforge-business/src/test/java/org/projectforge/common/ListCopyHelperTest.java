@@ -31,9 +31,10 @@ import java.math.BigDecimal;
 import org.projectforge.business.fibu.RechnungsPositionDO;
 import org.projectforge.business.fibu.kost.KostZuweisungDO;
 import org.projectforge.business.fibu.kost.KostZuweisungenCopyHelper;
+import org.projectforge.test.AbstractTestBase;
 import org.testng.annotations.Test;
 
-public class ListCopyHelperTest
+public class ListCopyHelperTest extends AbstractTestBase
 {
   @Test
   public void copy()
@@ -41,13 +42,17 @@ public class ListCopyHelperTest
     final KostZuweisungenCopyHelper lch = new KostZuweisungenCopyHelper();
     final RechnungsPositionDO srcPos = new RechnungsPositionDO();
     final RechnungsPositionDO destPos = new RechnungsPositionDO();
+
     lch.mycopy(srcPos.getKostZuweisungen(), destPos.getKostZuweisungen(), destPos);
     assertNull(destPos.getKostZuweisungen());
+
     srcPos.addKostZuweisung(new KostZuweisungDO().setNetto(BigDecimal.ONE).setComment("1"));
     lch.mycopy(srcPos.getKostZuweisungen(), destPos.getKostZuweisungen(), destPos);
     assertEquals(1, destPos.getKostZuweisungen().size());
+
     destPos.addKostZuweisung(new KostZuweisungDO().setNetto(BigDecimal.ONE).setComment("1"));
     assertEquals(2, destPos.getKostZuweisungen().size());
+
     lch.mycopy(srcPos.getKostZuweisungen(), destPos.getKostZuweisungen(), destPos);
     assertEquals(1, destPos.getKostZuweisungen().size());
 
