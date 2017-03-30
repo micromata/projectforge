@@ -303,8 +303,8 @@ public class AuftragEditForm extends AbstractEditForm<AuftragDO, AuftragEditPage
       // order date
       final FieldsetPanel fsEntryDate = gridBuilder.newFieldset(getString("fibu.auftrag.erfassung.datum"));
       final DatePanel erfassungsDatumPanel = new DatePanel(fsEntryDate.newChildId(),
-          new PropertyModel<Date>(data, "erfassungsDatum"), DatePanelSettings
-          .get().withTargetType(java.sql.Date.class));
+          new PropertyModel<Date>(data, "erfassungsDatum"),
+          DatePanelSettings.get().withTargetType(java.sql.Date.class), true);
       erfassungsDatumPanel.setRequired(true);
       erfassungsDatumPanel.setEnabled(false);
       fsEntryDate.add(erfassungsDatumPanel);
