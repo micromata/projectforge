@@ -21,6 +21,10 @@
         <groovy>if (vacationAvailabel) {</groovy>
         <th color="#999999">${vacationCountLabel}</th>
         <td>${report.formattedVacationCount}</td>
+        <!--
+        <th color="#999999">${vacationPlandCountLabel}</th>
+        <td>${report.formattedVacationPlandCount}</td>
+        -->
         <groovy>} else {</groovy>
         <th color="#999999"></th>
         <td></td>
@@ -137,7 +141,6 @@
       <groovy>}</groovy>
     </table-body>
   </table>
-
   <block margin-top="10pt"/>
   <table width="100%">
     <table-column column-width="proportional-column-width(1)"/>
