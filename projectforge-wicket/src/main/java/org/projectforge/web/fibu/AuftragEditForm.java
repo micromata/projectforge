@@ -630,7 +630,7 @@ public class AuftragEditForm extends AbstractEditForm<AuftragDO, AuftragEditPage
             fsPaymentType.getDropDownChoiceId(),
             new PropertyModel<AuftragsPositionsPaymentType>(position, "paymentType"), paymentTypeChoiceRenderer.getValues(), paymentTypeChoiceRenderer);
         //paymentTypeChoice.setNullValid(false);
-        //paymentTypeChoice.setRequired(true);
+        paymentTypeChoice.setRequired(true);
         fsPaymentType.add(paymentTypeChoice);
       }
       posGridBuilder.newSplitPanel(GridSize.COL33);
@@ -728,7 +728,7 @@ public class AuftragEditForm extends AbstractEditForm<AuftragDO, AuftragEditPage
             new PropertyModel<AuftragsPositionsStatus>(position, "status"), statusChoiceRenderer.getValues(),
             statusChoiceRenderer);
         statusChoice.setNullValid(true);
-        statusChoice.setRequired(false);
+        statusChoice.setRequired(true);
         fs.add(statusChoice);
         if (abgeschlossenUndNichtFakturiert == true) {
           fs.setWarningBackground();
