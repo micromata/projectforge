@@ -21,33 +21,29 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.common;
+package org.projectforge.business.fibu.kost;
 
 import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertNull;
 
 import java.math.BigDecimal;
 
 import org.projectforge.business.fibu.RechnungsPositionDO;
-import org.projectforge.business.fibu.kost.KostZuweisungDO;
-import org.projectforge.business.fibu.kost.KostZuweisungenCopyHelper;
 import org.projectforge.test.AbstractTestBase;
 import org.testng.annotations.Test;
 
-public class ListCopyHelperTest extends AbstractTestBase
+public class KostZuweisungenCopyHelperTest extends AbstractTestBase
 {
   @Test
   public void copy()
   {
-    final KostZuweisungenCopyHelper lch = new KostZuweisungenCopyHelper();
     final RechnungsPositionDO srcPos = new RechnungsPositionDO();
     final RechnungsPositionDO destPos = new RechnungsPositionDO();
 
-    lch.mycopy(srcPos.getKostZuweisungen(), destPos.getKostZuweisungen(), destPos);
-    assertNull(destPos.getKostZuweisungen());
+    KostZuweisungenCopyHelper.copy(srcPos.getKostZuweisungen(), destPos);
+    assertEquals(0, destPos.getKostZuweisungen().size());
 
     srcPos.addKostZuweisung(new KostZuweisungDO().setNetto(BigDecimal.ONE).setComment("1"));
-    lch.mycopy(srcPos.getKostZuweisungen(), destPos.getKostZuweisungen(), destPos);
+    KostZuweisungenCopyHelper.copy(srcPos.getKostZuweisungen(), destPos);
     assertEquals(1, destPos.getKostZuweisungen().size());
     assertEquals(srcPos.getKostZuweisungen().get(0), destPos.getKostZuweisungen().get(0));
 
@@ -55,27 +51,37 @@ public class ListCopyHelperTest extends AbstractTestBase
     assertEquals(2, destPos.getKostZuweisungen().size());
 
     // srcPos "overwrites" dstPos
-    lch.mycopy(srcPos.getKostZuweisungen(), destPos.getKostZuweisungen(), destPos);
+    KostZuweisungenCopyHelper.copy(srcPos.getKostZuweisungen(), destPos);
     assertEquals(1, destPos.getKostZuweisungen().size());
     assertEquals(srcPos.getKostZuweisungen().get(0), destPos.getKostZuweisungen().get(0));
 
     srcPos.getKostZuweisung(0).setNetto(BigDecimal.TEN).setComment("10");
-    lch.mycopy(srcPos.getKostZuweisungen(), destPos.getKostZuweisungen(), destPos);
+    KostZuweisungenCopyHelper.copy(srcPos.getKostZuweisungen(), destPos);
     assertEquals(1, destPos.getKostZuweisungen().size());
     assertEquals(BigDecimal.TEN, destPos.getKostZuweisung(0).getNetto());
     assertEquals("10", destPos.getKostZuweisung(0).getComment());
 
     srcPos.addKostZuweisung(new KostZuweisungDO().setNetto(BigDecimal.ONE).setComment("2"));
     srcPos.addKostZuweisung(new KostZuweisungDO().setNetto(BigDecimal.ONE).setComment("3"));
-    lch.mycopy(srcPos.getKostZuweisungen(), destPos.getKostZuweisungen(), destPos);
-    assertEquals(3, destPos.getKostZuweisungen().size());
+    srcPos.addKostZuweisung(new KostZuweisungDO().setNetto(BigDecimal.ONE).setComment("4"));
+    srcPos.addKostZuweisung(new KostZuweisungDO().setNetto(BigDecimal.ONE).setComment("5"));
+    KostZuweisungenCopyHelper.copy(srcPos.getKostZuweisungen(), destPos);
+    assertEquals(5, destPos.getKostZuweisungen().size());
     assertEquals(srcPos.getKostZuweisungen().get(0), destPos.getKostZuweisungen().get(0));
     assertEquals(srcPos.getKostZuweisungen().get(1), destPos.getKostZuweisungen().get(1));
     assertEquals(srcPos.getKostZuweisungen().get(2), destPos.getKostZuweisungen().get(2));
+    assertEquals(srcPos.getKostZuweisungen().get(3), destPos.getKostZuweisungen().get(3));
+    assertEquals(srcPos.getKostZuweisungen().get(4), destPos.getKostZuweisungen().get(4));
 
+    srcPos.deleteKostZuweisung(3);
     srcPos.deleteKostZuweisung(2);
     srcPos.deleteKostZuweisung(1);
-    lch.mycopy(srcPos.getKostZuweisungen(), destPos.getKostZuweisungen(), destPos);
-    assertEquals(1, destPos.getKostZuweisungen().size());
+    KostZuweisungenCopyHelper.copy(srcPos.getKostZuweisungen(), destPos);
+    assertEquals(2, destPos.getKostZuweisungen().size());
+    assertEquals(srcPos.getKostZuweisungen().get(0), destPos.getKostZuweisungen().get(0));
+    assertEquals(srcPos.getKostZuweisungen().get(1), destPos.getKostZuweisungen().get(1));
+    assertEquals(srcPos.getKostZuweisungen().get(0).getNetto(), destPos.getKostZuweisungen().get(0).getNetto());
+    assertEquals(srcPos.getKostZuweisungen().get(1).getNetto(), destPos.getKostZuweisungen().get(1).getNetto());
+    assertEquals(4, srcPos.getKostZuweisungen().get(1).getIndex());
   }
 }
