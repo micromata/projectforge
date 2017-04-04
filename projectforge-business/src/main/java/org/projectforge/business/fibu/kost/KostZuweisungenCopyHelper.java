@@ -24,7 +24,6 @@
 package org.projectforge.business.fibu.kost;
 
 import java.util.List;
-import java.util.function.Predicate;
 
 import org.projectforge.business.fibu.AbstractRechnungsPositionDO;
 
@@ -46,12 +45,10 @@ public class KostZuweisungenCopyHelper
 
         // checks if the destList already contains an entry which equals the source entry regarding their IDs and not necessarily their values
         // see KostZuweisungDO.equals()
-        if (destList.contains(srcEntry)) {
-          // dest entry already exists, find it
-          destEntry = destList.stream()
-              .filter(Predicate.isEqual(srcEntry))
-              .findFirst()
-              .get();
+        final int index = destList.indexOf(srcEntry);
+        if (index >= 0) {
+          // dest entry already exists, get it
+          destEntry = destList.get(index);
         } else {
           // create new dest entry
           destEntry = new KostZuweisungDO();

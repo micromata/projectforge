@@ -42,7 +42,9 @@ public class KostZuweisungenCopyHelperTest extends AbstractTestBase
     KostZuweisungenCopyHelper.copy(srcPos.getKostZuweisungen(), destPos);
     assertEquals(0, destPos.getKostZuweisungen().size());
 
-    srcPos.addKostZuweisung(new KostZuweisungDO().setNetto(BigDecimal.ONE).setComment("1"));
+    final KostZuweisungDO kostZuweisung = new KostZuweisungDO().setNetto(BigDecimal.ONE).setComment("1");
+    kostZuweisung.setId(4711); // simulate non deletable
+    srcPos.addKostZuweisung(kostZuweisung);
     KostZuweisungenCopyHelper.copy(srcPos.getKostZuweisungen(), destPos);
     assertEquals(1, destPos.getKostZuweisungen().size());
     assertEquals(srcPos.getKostZuweisungen().get(0), destPos.getKostZuweisungen().get(0));
@@ -76,6 +78,7 @@ public class KostZuweisungenCopyHelperTest extends AbstractTestBase
     srcPos.deleteKostZuweisung(3);
     srcPos.deleteKostZuweisung(2);
     srcPos.deleteKostZuweisung(1);
+    srcPos.deleteKostZuweisung(0); // is not deletable, see above
     KostZuweisungenCopyHelper.copy(srcPos.getKostZuweisungen(), destPos);
     assertEquals(2, destPos.getKostZuweisungen().size());
     assertEquals(srcPos.getKostZuweisungen().get(0), destPos.getKostZuweisungen().get(0));
