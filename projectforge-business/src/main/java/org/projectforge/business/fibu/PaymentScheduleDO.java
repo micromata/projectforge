@@ -44,7 +44,6 @@ import org.projectforge.framework.persistence.entities.DefaultBaseDO;
 
 /**
  * @author Werner Feder (werner.feder@t-online.de)
- * 
  */
 @Entity
 @Table(name = "T_FIBU_PAYMENT_SCHEDULE",
@@ -53,6 +52,7 @@ import org.projectforge.framework.persistence.entities.DefaultBaseDO;
     },
     indexes = {
         @javax.persistence.Index(name = "idx_fk_t_fibu_payment_schedule_auftrag_id", columnList = "auftrag_id"),
+        @javax.persistence.Index(name = "idx_fk_t_fibu_payment_schedule_position_id", columnList = "position_id"),
         @javax.persistence.Index(name = "idx_fk_t_fibu_payment_schedule_tenant_id", columnList = "tenant_id")
     })
 public class PaymentScheduleDO extends DefaultBaseDO implements ShortDisplayNameCapable
@@ -60,6 +60,11 @@ public class PaymentScheduleDO extends DefaultBaseDO implements ShortDisplayName
   private static final long serialVersionUID = -8024212050762584171L;
 
   private AuftragDO auftrag;
+
+  /**
+   * The position this payment schedule is assigned to.
+   */
+  private AuftragsPositionDO position;
 
   private short number;
 
@@ -80,7 +85,7 @@ public class PaymentScheduleDO extends DefaultBaseDO implements ShortDisplayName
 
   /**
    * Not used as object due to performance reasons.
-   * 
+   *
    * @return AuftragDO
    */
   @ManyToOne(fetch = FetchType.EAGER)
@@ -103,6 +108,18 @@ public class PaymentScheduleDO extends DefaultBaseDO implements ShortDisplayName
       return null;
     }
     return auftrag.getId();
+  }
+
+  @ManyToOne
+  @JoinColumn(name = "position_id")
+  public AuftragsPositionDO getPosition()
+  {
+    return position;
+  }
+
+  public void setPosition(final AuftragsPositionDO position)
+  {
+    this.position = position;
   }
 
   @Column
