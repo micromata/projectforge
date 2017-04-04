@@ -1,17 +1,20 @@
 <wicket:panel xmlns:wicket="http://wicket.apache.org/dtds.data/wicket-xhtml1.4-strict.dtd">
-   <table wicket:id="main">
-	   	<tr >
-		   	<th><b><span wicket:id="dateLabel"></span></b></th>
-		   	<th><b><span wicket:id="amountLabel"></span></b></th>
-		   	<th><b><span wicket:id="commentLabel"></span></b></th>
-		   	<th><b><span wicket:id="reachedLabel"></span></b></th>		   
-	   	</tr>
-	   	<tr wicket:id="liRepeater">
-	   		<td><span wicket:id="scheduleDate"></span></td>
-	   		<td><input wicket:id="amount"></input></td>
-	   		<td><input wicket:id="comment"></input></td>
-	   		<td><input type="checkbox" wicket:id="reached"></input></td>
-	   	    <td wicket:id="vollstaendigFakturiert"><input type="checkbox"></input></td>    	
-	   	</tr>
-   </table>
+    <table wicket:id="main">
+        <tr>
+            <th><b><span wicket:id="positionLabel"></span></b></th>
+            <th><b><span wicket:id="dateLabel"></span></b></th>
+            <th><b><span wicket:id="amountLabel"></span></b></th>
+            <th><b><span wicket:id="commentLabel"></span></b></th>
+            <th><b><span wicket:id="reachedLabel"></span></b></th>
+            <th>&nbsp;</th>
+        </tr>
+        <tr wicket:id="liRepeater">
+            <td><select wicket:id="position"></select></td>
+            <td><span wicket:id="scheduleDate"></span></td>
+            <td><input wicket:id="amount"></input></td>
+            <td><input wicket:id="comment"></input></td>
+            <td><input type="checkbox" wicket:id="reached"></input></td>
+            <td wicket:id="vollstaendigFakturiert"><input type="checkbox"></input></td>
+        </tr>
+    </table>
 </wicket:panel>
