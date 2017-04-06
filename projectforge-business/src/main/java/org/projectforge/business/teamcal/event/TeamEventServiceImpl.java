@@ -139,7 +139,27 @@ public class TeamEventServiceImpl implements TeamEventService
   public boolean sendTeamEventToAttendees(TeamEventDO data, boolean isNew, boolean hasChanges, boolean isDeleted,
       Set<TeamEventAttendeeDO> addedAttendees)
   {
+    Date now = new Date();
     boolean result = false;
+    if(data.getEndDate().before(now)) {
+      Date untilDate = null;
+      if(data.getRecurrenceRule() != null)
+      {
+        try {
+          RRule rRule = new RRule(data.getRecurrenceRule());
+          untilDate = new Date(rRule.getRecur().getUntil().getTime());
+        } catch (ParseException e) {
+          return false;
+        }
+        if(untilDate.before(now)) {
+          return false;
+        }
+      }
+      else
+      {
+        return false;
+      }
+    }
     String mode = "";
     if (isDeleted) {
       mode = "deleted";
