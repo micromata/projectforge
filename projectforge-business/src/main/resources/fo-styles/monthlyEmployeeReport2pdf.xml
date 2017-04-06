@@ -9,8 +9,8 @@
     <table-column column-width="25mm"/>
     <table-column column-width="45mm"/>
     <table-column column-width="25mm"/>
-    <table-column column-width="45mm"/>
-    <table-column column-width="45mm"/>
+    <table-column column-width="35mm"/>
+    <table-column column-width="95mm"/>
     <table-column column-width="25mm"/>
     <table-body>
       <tr>
@@ -21,10 +21,19 @@
         <groovy>if (vacationAvailabel) {</groovy>
         <th color="#999999">${vacationCountLabel}</th>
         <td>${report.formattedVacationCount}</td>
-        <!--
+        <groovy>} else {</groovy>
+        <th color="#999999"></th>
+        <td></td>
+        <groovy>}</groovy>
+      </tr>
+      <tr>
+        <th color="#999999">${workingDaysLabel}</th>
+        <td>${workingDays}</td>
+        <th color="#999999">${kost1Label}</th>
+        <td>${kost1}</td>
+        <groovy>if (vacationAvailabel) {</groovy>
         <th color="#999999">${vacationPlandCountLabel}</th>
         <td>${report.formattedVacationPlandCount}</td>
-        -->
         <groovy>} else {</groovy>
         <th color="#999999"></th>
         <td></td>
@@ -36,14 +45,6 @@
         <td number-columns-spanned="5" color="#990000">${report.formattedUnbookedDays}</td>
       </tr>
       <groovy>}</groovy>
-      <tr>
-        <th color="#999999">${workingDaysLabel}</th>
-        <td>${workingDays}</td>
-        <th color="#999999">${kost1Label}</th>
-        <td>${kost1}</td>
-        <th></th>
-        <td></td>
-      </tr>
     </table-body>
   </table>
   <block margin-top="10pt"/>
