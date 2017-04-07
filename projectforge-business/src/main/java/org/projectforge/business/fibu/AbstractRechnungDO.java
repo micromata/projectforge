@@ -57,7 +57,7 @@ import de.micromata.genome.db.jpa.xmldump.api.JpaXmlPersist;
 
 @MappedSuperclass
 @JpaXmlPersist(beforePersistListener = AbstractRechnungXmlBeforePersistListener.class,
-    persistAfter = Kost2ArtDO.class)
+               persistAfter = Kost2ArtDO.class)
 public abstract class AbstractRechnungDO<T extends AbstractRechnungsPositionDO> extends DefaultBaseDO
 {
   private static final long serialVersionUID = -8936320220788212987L;
@@ -97,6 +97,18 @@ public abstract class AbstractRechnungDO<T extends AbstractRechnungsPositionDO> 
 
   @PropertyInfo(i18nKey = "fibu.konto")
   private KontoDO konto;
+
+  @PropertyInfo(i18nKey = "fibu.rechnung.receiver")
+  @Field(index = Index.YES /* TOKENIZED */, store = Store.NO)
+  private String receiver;
+
+  @PropertyInfo(i18nKey = "fibu.rechnung.iban")
+  @Field(index = Index.YES /* TOKENIZED */, store = Store.NO)
+  private String iban;
+
+  @PropertyInfo(i18nKey = "fibu.rechnung.bic")
+  @Field(index = Index.YES /* TOKENIZED */, store = Store.NO)
+  private String bic;
 
   @PFPersistancyBehavior(autoUpdateCollectionEntries = true)
   protected List<T> positionen = null;
@@ -178,10 +190,43 @@ public abstract class AbstractRechnungDO<T extends AbstractRechnungsPositionDO> 
     return this;
   }
 
+  @Column
+  public String getReceiver()
+  {
+    return receiver;
+  }
+
+  public void setReceiver(String receiver)
+  {
+    this.receiver = receiver;
+  }
+
+  @Column(length = 50)
+  public String getIban()
+  {
+    return iban;
+  }
+
+  public void setIban(String iban)
+  {
+    this.iban = iban;
+  }
+
+  @Column(length = 11)
+  public String getBic()
+  {
+    return bic;
+  }
+
+  public void setBic(String bic)
+  {
+    this.bic = bic;
+  }
+
   /**
    * Wird nur zur Berechnung benutzt und kann für die Anzeige aufgerufen werden. Vorher sollte recalculate aufgerufen
    * werden.
-   * 
+   *
    * @see #recalculate()
    */
   @Transient
@@ -246,7 +291,7 @@ public abstract class AbstractRechnungDO<T extends AbstractRechnungsPositionDO> 
 
   /**
    * Bruttobetrag, den der Kunde bezahlt hat.
-   * 
+   *
    * @return
    */
   @Column(name = "zahl_betrag", scale = 2, precision = 12)
@@ -389,7 +434,7 @@ public abstract class AbstractRechnungDO<T extends AbstractRechnungsPositionDO> 
 
   /**
    * The user interface status of an invoice. The {@link RechnungUIStatus} is stored as XML.
-   * 
+   *
    * @return the XML representation of the uiStatus.
    * @see RechnungUIStatus
    */

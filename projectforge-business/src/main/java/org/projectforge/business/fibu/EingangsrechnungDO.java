@@ -24,6 +24,7 @@
 package org.projectforge.business.fibu;
 
 import java.math.BigDecimal;
+import java.sql.Date;
 import java.util.List;
 
 import javax.persistence.CascadeType;
@@ -38,26 +39,31 @@ import javax.persistence.Transient;
 
 import org.apache.commons.lang.StringUtils;
 import org.hibernate.annotations.IndexColumn;
+import org.hibernate.search.annotations.Analyze;
+import org.hibernate.search.annotations.DateBridge;
+import org.hibernate.search.annotations.EncodingType;
 import org.hibernate.search.annotations.Field;
 import org.hibernate.search.annotations.Index;
 import org.hibernate.search.annotations.Indexed;
+import org.hibernate.search.annotations.Resolution;
 import org.hibernate.search.annotations.Store;
 import org.projectforge.common.anots.PropertyInfo;
+import org.projectforge.common.props.PropertyType;
 
 import de.micromata.genome.db.jpa.history.api.WithHistory;
 
 /**
  * Eingehende Rechnungen.
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 @Entity
 @Indexed
 @Table(name = "t_fibu_eingangsrechnung",
-    indexes = {
-        @javax.persistence.Index(name = "idx_fk_t_fibu_eingangsrechnung_konto_id", columnList = "konto_id"),
-        @javax.persistence.Index(name = "idx_fk_t_fibu_eingangsrechnung_tenant_id", columnList = "tenant_id")
-    })
+       indexes = {
+           @javax.persistence.Index(name = "idx_fk_t_fibu_eingangsrechnung_konto_id", columnList = "konto_id"),
+           @javax.persistence.Index(name = "idx_fk_t_fibu_eingangsrechnung_tenant_id", columnList = "tenant_id")
+       })
 // @AssociationOverride(name="positionen", joinColumns=@JoinColumn(name="eingangsrechnung_fk"))
 @WithHistory(noHistoryProperties = { "lastUpdate", "created" }, nestedEntities = { EingangsrechnungsPositionDO.class })
 public class EingangsrechnungDO extends AbstractRechnungDO<EingangsrechnungsPositionDO>
@@ -76,6 +82,18 @@ public class EingangsrechnungDO extends AbstractRechnungDO<EingangsrechnungsPosi
   @PropertyInfo(i18nKey = "fibu.payment.type")
   private PaymentType paymentType;
 
+  @PropertyInfo(i18nKey = "fibu.rechnung.customernr")
+  @Field(index = Index.YES /* TOKENIZED */, store = Store.NO)
+  private String customernr;
+
+  @PropertyInfo(i18nKey = "fibu.rechnung.discountPercent", type = PropertyType.CURRENCY)
+  private BigDecimal discountPercent;
+
+  @PropertyInfo(i18nKey = "fibu.rechnung.discountMaturity")
+  @Field(index = Index.YES, analyze = Analyze.NO /* UN_TOKENIZED */)
+  @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
+  private Date discountMaturity;
+
   @Column(length = 255)
   public String getKreditor()
   {
@@ -89,7 +107,7 @@ public class EingangsrechnungDO extends AbstractRechnungDO<EingangsrechnungsPosi
 
   /**
    * Referenz / Eingangsrechnungsnummer des Kreditors.
-   * 
+   *
    * @return
    */
   @Column(length = 1000)
@@ -104,7 +122,7 @@ public class EingangsrechnungDO extends AbstractRechnungDO<EingangsrechnungsPosi
   }
 
   @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER, mappedBy = "eingangsrechnung",
-      targetEntity = EingangsrechnungsPositionDO.class)
+             targetEntity = EingangsrechnungsPositionDO.class)
   @IndexColumn(name = "number", base = 1)
   @Override
   public List<EingangsrechnungsPositionDO> getPositionen()
@@ -130,6 +148,39 @@ public class EingangsrechnungDO extends AbstractRechnungDO<EingangsrechnungsPosi
   {
     this.paymentType = paymentType;
     return this;
+  }
+
+  @Column
+  public String getCustomernr()
+  {
+    return customernr;
+  }
+
+  public void setCustomernr(String customernr)
+  {
+    this.customernr = customernr;
+  }
+
+  @Column
+  public BigDecimal getDiscountPercent()
+  {
+    return discountPercent;
+  }
+
+  public void setDiscountPercent(BigDecimal discountPercent)
+  {
+    this.discountPercent = discountPercent;
+  }
+
+  @Column
+  public Date getDiscountMaturity()
+  {
+    return discountMaturity;
+  }
+
+  public void setDiscountMaturity(Date discountMaturity)
+  {
+    this.discountMaturity = discountMaturity;
   }
 
   /**
