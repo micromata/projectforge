@@ -300,7 +300,7 @@ public class AuftragEditForm extends AbstractEditForm<AuftragDO, AuftragEditPage
     }
     gridBuilder.newSplitPanel(GridSize.SPAN2);
     {
-      // order date
+      // erfassungsDatum
       final FieldsetPanel fsEntryDate = gridBuilder.newFieldset(getString("fibu.auftrag.erfassung.datum"));
       final DatePanel erfassungsDatumPanel = new DatePanel(fsEntryDate.newChildId(),
           new PropertyModel<Date>(data, "erfassungsDatum"),
@@ -311,21 +311,21 @@ public class AuftragEditForm extends AbstractEditForm<AuftragDO, AuftragEditPage
     }
     gridBuilder.newSplitPanel(GridSize.SPAN2);
     {
-      // entry date
+      // angebotsDatum
       final FieldsetPanel fsOrderDate = gridBuilder.newFieldset(getString("fibu.auftrag.angebot.datum"));
       final DatePanel angebotsDatumPanel = new DatePanel(fsOrderDate.newChildId(),
           new PropertyModel<Date>(data, "angebotsDatum"), DatePanelSettings
-          .get().withTargetType(java.sql.Date.class));
+          .get().withTargetType(java.sql.Date.class), true);
       angebotsDatumPanel.setRequired(true);
       fsOrderDate.add(angebotsDatumPanel);
     }
     gridBuilder.newSplitPanel(GridSize.SPAN2);
     {
-      // entry date
+      // entscheidungsDatum
       final FieldsetPanel fsOrderDate = gridBuilder.newFieldset(getString("fibu.auftrag.entscheidung.datum"));
       final DatePanel angebotsDatumPanel = new DatePanel(fsOrderDate.newChildId(),
           new PropertyModel<Date>(data, "entscheidungsDatum"), DatePanelSettings
-          .get().withTargetType(java.sql.Date.class));
+          .get().withTargetType(java.sql.Date.class), true);
       fsOrderDate.add(angebotsDatumPanel);
     }
     gridBuilder.newSplitPanel(GridSize.COL50);
