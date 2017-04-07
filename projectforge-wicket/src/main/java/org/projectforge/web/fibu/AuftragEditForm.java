@@ -334,7 +334,7 @@ public class AuftragEditForm extends AbstractEditForm<AuftragDO, AuftragEditPage
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("fibu.auftrag.bindungsFrist"));
       final DatePanel bindungsFristPanel = new DatePanel(fs.newChildId(),
           new PropertyModel<Date>(data, "bindungsFrist"), DatePanelSettings
-          .get().withTargetType(java.sql.Date.class));
+          .get().withTargetType(java.sql.Date.class), true);
       fs.add(bindungsFristPanel);
     }
     gridBuilder.newSplitPanel(GridSize.COL50);
@@ -355,7 +355,7 @@ public class AuftragEditForm extends AbstractEditForm<AuftragDO, AuftragEditPage
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("fibu.auftrag.beauftragungsdatum"));
       final DatePanel beauftragungsDatumPanel = new DatePanel(fs.newChildId(),
           new PropertyModel<Date>(data, "beauftragungsDatum"),
-          DatePanelSettings.get().withTargetType(java.sql.Date.class));
+          DatePanelSettings.get().withTargetType(java.sql.Date.class), true);
       fs.add(beauftragungsDatumPanel);
     }
     gridBuilder.newSplitPanel(GridSize.COL50);
