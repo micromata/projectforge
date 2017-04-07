@@ -135,12 +135,9 @@ public class TeamEventServiceImpl implements TeamEventService
     teamEventDao.update(data);
   }
 
-  @Override
-  public boolean sendTeamEventToAttendees(TeamEventDO data, boolean isNew, boolean hasChanges, boolean isDeleted,
-      Set<TeamEventAttendeeDO> addedAttendees)
+  private boolean checkSendMail(TeamEventDO data)
   {
     Date now = new Date();
-    boolean result = false;
     if(data.getEndDate().before(now)) {
       Date untilDate = null;
       if(data.getRecurrenceRule() != null)
@@ -160,33 +157,44 @@ public class TeamEventServiceImpl implements TeamEventService
         return false;
       }
     }
-    String mode = "";
-    if (isDeleted) {
-      mode = "deleted";
-      for (TeamEventAttendeeDO attendee : data.getAttendees()) {
-        result = sendMail(data, attendee, mode);
+    return true;
+  }
+
+  @Override
+  public boolean sendTeamEventToAttendees(TeamEventDO data, boolean isNew, boolean hasChanges, boolean isDeleted,
+      Set<TeamEventAttendeeDO> addedAttendees)
+  {
+    boolean result = false;
+    if(checkSendMail(data)) {
+      String mode = "";
+      if (isDeleted) {
+        mode = "deleted";
+        for (TeamEventAttendeeDO attendee : data.getAttendees()) {
+          result = sendMail(data, attendee, mode);
+        }
+        return result;
+      }
+      if (isNew) {
+        mode = "new";
+        for (TeamEventAttendeeDO attendee : data.getAttendees()) {
+          result = sendMail(data, attendee, mode);
+        }
+      } else {
+        Set<TeamEventAttendeeDO> sendToList = new HashSet<>();
+        if (hasChanges == false && addedAttendees.size() > 0) {
+          mode = "new";
+          sendToList = addedAttendees;
+        } else {
+          mode = "update";
+          sendToList = data.getAttendees();
+        }
+        for (TeamEventAttendeeDO attendee : sendToList) {
+          result = sendMail(data, attendee, mode);
+        }
       }
       return result;
     }
-    if (isNew) {
-      mode = "new";
-      for (TeamEventAttendeeDO attendee : data.getAttendees()) {
-        result = sendMail(data, attendee, mode);
-      }
-    } else {
-      Set<TeamEventAttendeeDO> sendToList = new HashSet<>();
-      if (hasChanges == false && addedAttendees.size() > 0) {
-        mode = "new";
-        sendToList = addedAttendees;
-      } else {
-        mode = "update";
-        sendToList = data.getAttendees();
-      }
-      for (TeamEventAttendeeDO attendee : sendToList) {
-        result = sendMail(data, attendee, mode);
-      }
-    }
-    return result;
+    return false;
   }
 
   private Mail createMail(String mode)
