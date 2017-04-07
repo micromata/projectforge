@@ -24,13 +24,13 @@
 package org.projectforge.web.fibu;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.CheckBox;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.FormComponent;
-import org.apache.wicket.markup.html.form.IChoiceRenderer;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.markup.repeater.RepeatingView;
@@ -146,26 +146,14 @@ public class PaymentSchedulePanel extends Panel
     }
   }
 
-  private FormComponent<AuftragsPositionDO> createPositionColumn(final PaymentScheduleDO entry)
+  private FormComponent<Short> createPositionColumn(final PaymentScheduleDO payment)
   {
-    final List<AuftragsPositionDO> positions = entry.getAuftrag().getPositionenNotDeleted();
+    final List<Short> availablePositionNumbers = payment.getAuftrag().getPositionenNotDeleted().stream()
+        .map(AuftragsPositionDO::getNumber)
+        .collect(Collectors.toList());
 
-    final IChoiceRenderer<AuftragsPositionDO> positionRenderer = new IChoiceRenderer<AuftragsPositionDO>()
-    {
-      @Override
-      public Object getDisplayValue(final AuftragsPositionDO pos)
-      {
-        return pos.getNumber();
-      }
-
-      @Override
-      public String getIdValue(final AuftragsPositionDO pos, final int index)
-      {
-        return String.valueOf(index);
-      }
-    };
-
-    return new DropDownChoice<>("position", new PropertyModel<>(entry, "position"), positions, positionRenderer)
+    return new DropDownChoice<>("positionNumber", new PropertyModel<>(payment, "positionNumber"), availablePositionNumbers)
+        .setNullValid(true)
         .setRequired(true);
   }
 }

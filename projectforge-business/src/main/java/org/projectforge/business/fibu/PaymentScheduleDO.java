@@ -52,7 +52,6 @@ import org.projectforge.framework.persistence.entities.DefaultBaseDO;
     },
     indexes = {
         @javax.persistence.Index(name = "idx_fk_t_fibu_payment_schedule_auftrag_id", columnList = "auftrag_id"),
-        @javax.persistence.Index(name = "idx_fk_t_fibu_payment_schedule_position_id", columnList = "position_id"),
         @javax.persistence.Index(name = "idx_fk_t_fibu_payment_schedule_tenant_id", columnList = "tenant_id")
     })
 public class PaymentScheduleDO extends DefaultBaseDO implements ShortDisplayNameCapable
@@ -62,9 +61,9 @@ public class PaymentScheduleDO extends DefaultBaseDO implements ShortDisplayName
   private AuftragDO auftrag;
 
   /**
-   * The position this payment schedule is assigned to.
+   * The position's number this payment schedule is assigned to.
    */
-  private AuftragsPositionDO position;
+  private Short positionNumber;
 
   private short number;
 
@@ -110,16 +109,15 @@ public class PaymentScheduleDO extends DefaultBaseDO implements ShortDisplayName
     return auftrag.getId();
   }
 
-  @ManyToOne
-  @JoinColumn(name = "position_id")
-  public AuftragsPositionDO getPosition()
+  @Column(name = "position_number")
+  public Short getPositionNumber()
   {
-    return position;
+    return positionNumber;
   }
 
-  public void setPosition(final AuftragsPositionDO position)
+  public void setPositionNumber(final Short positionNumber)
   {
-    this.position = position;
+    this.positionNumber = positionNumber;
   }
 
   @Column
