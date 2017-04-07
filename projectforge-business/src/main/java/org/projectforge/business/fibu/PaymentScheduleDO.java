@@ -115,9 +115,10 @@ public class PaymentScheduleDO extends DefaultBaseDO implements ShortDisplayName
     return positionNumber;
   }
 
-  public void setPositionNumber(final Short positionNumber)
+  public PaymentScheduleDO setPositionNumber(final Short positionNumber)
   {
     this.positionNumber = positionNumber;
+    return this;
   }
 
   @Column
