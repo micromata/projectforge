@@ -147,6 +147,8 @@ public class MonthlyEmployeeReport implements Serializable
 
   private BigDecimal vacationCount = BigDecimal.ZERO;
 
+  private BigDecimal vacationPlandCount = BigDecimal.ZERO;
+
   private Integer kost1Id;
 
   private List<MonthlyEmployeeReportWeek> weeks;
@@ -333,6 +335,7 @@ public class MonthlyEmployeeReport implements Serializable
     if (vacationService != null && this.employee != null && this.employee.getUser() != null) {
       if (vacationService.couldUserUseVacationService(this.employee.getUser(), false)) {
         this.vacationCount = vacationService.getAvailableVacationDaysForYearAtDate(this.employee, this.toDate);
+        this.vacationPlandCount = vacationService.getPlandVacationDaysForYearAtDate(this.employee, this.toDate);
       }
     }
   }
@@ -470,6 +473,11 @@ public class MonthlyEmployeeReport implements Serializable
   public String getFormattedVacationCount()
   {
     return vacationCount + " " + I18nHelper.getLocalizedMessage("day");
+  }
+
+  public String getFormattedVacationPlandCount()
+  {
+    return vacationPlandCount + " " + I18nHelper.getLocalizedMessage("day");
   }
 
   public String getFormattedTotalNetDuration()
