@@ -390,11 +390,35 @@ public class VacationServiceImpl extends CorePersistenceServiceImpl<Integer, Vac
   }
 
   @Override
+  public BigDecimal getPlandVacationDaysForYearAtDate(final EmployeeDO employee, final Date queryDate)
+  {
+    final Calendar endDate = Calendar.getInstance();
+    endDate.setTime(queryDate);
+    endDate.set(Calendar.MONTH, Calendar.DECEMBER);
+    endDate.set(Calendar.DAY_OF_MONTH, 31);
+    endDate.set(Calendar.HOUR_OF_DAY, 0);
+    endDate.set(Calendar.MINUTE, 0);
+    endDate.set(Calendar.SECOND, 0);
+    endDate.set(Calendar.MILLISECOND, 0);
+
+    return getApprovedVacationDaysForYearUntilDate(employee, queryDate, endDate.getTime());
+  }
+
+  @Override
   public BigDecimal getAvailableVacationDaysForYearAtDate(final EmployeeDO employee, final Date queryDate)
   {
+    final Calendar startDate = Calendar.getInstance();
+    startDate.setTime(queryDate);
+    startDate.set(Calendar.MONTH, Calendar.JANUARY);
+    startDate.set(Calendar.DAY_OF_MONTH, 1);
+    startDate.set(Calendar.HOUR_OF_DAY, 0);
+    startDate.set(Calendar.MINUTE, 0);
+    startDate.set(Calendar.SECOND, 0);
+    startDate.set(Calendar.MILLISECOND, 0);
+
     final BigDecimal vacationDays = new BigDecimal(employee.getUrlaubstage());
     final BigDecimal vacationDaysPrevYear = getVacationDaysFromPrevYearDependingOnDate(employee, queryDate);
-    final BigDecimal approvedVacationDays = getApprovedVacationDaysForYearUntilDate(employee, queryDate);
+    final BigDecimal approvedVacationDays = getApprovedVacationDaysForYearUntilDate(employee, startDate.getTime(), queryDate);
 
     return vacationDays
         .add(vacationDaysPrevYear)
@@ -419,18 +443,10 @@ public class VacationServiceImpl extends CorePersistenceServiceImpl<Integer, Vac
         : getVacationFromPreviousYear(employee);
   }
 
-  private BigDecimal getApprovedVacationDaysForYearUntilDate(final EmployeeDO employee, final Date until)
+  private BigDecimal getApprovedVacationDaysForYearUntilDate(final EmployeeDO employee, final Date from, final Date until)
   {
-    final Calendar startDate = Calendar.getInstance();
-    startDate.setTime(until);
-    startDate.set(Calendar.MONTH, Calendar.JANUARY);
-    startDate.set(Calendar.DAY_OF_MONTH, 1);
-    startDate.set(Calendar.HOUR_OF_DAY, 0);
-    startDate.set(Calendar.MINUTE, 0);
-    startDate.set(Calendar.SECOND, 0);
-    startDate.set(Calendar.MILLISECOND, 0);
 
-    final List<VacationDO> vacations = getVacationForDate(employee, startDate.getTime(), until, false);
+    final List<VacationDO> vacations = getVacationForDate(employee, from, until, false);
 
     return vacations.stream()
         .filter(v -> v.getStatus().equals(VacationStatus.APPROVED))
