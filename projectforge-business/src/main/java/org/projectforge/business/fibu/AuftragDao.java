@@ -551,8 +551,14 @@ public class AuftragDao extends BaseDao<AuftragDO>
 
   void validateAmountsInPaymentScheduleNotGreaterThanNetSumOfPosition(final AuftragDO auftrag)
   {
+    final List<PaymentScheduleDO> paymentSchedules = auftrag.getPaymentSchedules();
+    if (paymentSchedules == null) {
+      // if there are no payment schedules, there are no amounts which can be greater -> validation OK
+      return;
+    }
+
     for (final AuftragsPositionDO pos : auftrag.getPositionenNotDeleted()) {
-      final BigDecimal sumOfAmountsForCurrentPosition = auftrag.getPaymentSchedules().stream()
+      final BigDecimal sumOfAmountsForCurrentPosition = paymentSchedules.stream()
           .filter(payment -> payment.getPositionNumber() == pos.getNumber())
           .map(PaymentScheduleDO::getAmount)
           .filter(Objects::nonNull)
