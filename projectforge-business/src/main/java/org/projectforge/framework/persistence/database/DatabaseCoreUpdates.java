@@ -122,6 +122,33 @@ public class DatabaseCoreUpdates
     final List<UpdateEntry> list = new ArrayList<>();
 
     ////////////////////////////////////////////////////////////////////
+    // 6.10.0
+    // /////////////////////////////////////////////////////////////////
+    list.add(new UpdateEntryImpl(CORE_REGION_ID, "6.10.0", "2017-04-11",
+        "Add column position_number to table T_FIBU_PAYMENT_SCHEDULE.")
+    {
+      @Override
+      public UpdatePreCheckStatus runPreCheck()
+      {
+        log.info("Running pre-check for ProjectForge version 6.10.0");
+        if (databaseUpdateService.doesTableAttributeExist("T_FIBU_PAYMENT_SCHEDULE", "position_number") == false) {
+          return UpdatePreCheckStatus.READY_FOR_UPDATE;
+        }
+        return UpdatePreCheckStatus.ALREADY_UPDATED;
+      }
+
+      @Override
+      public UpdateRunningStatus runUpdate()
+      {
+        if (databaseUpdateService.doesTableAttributeExist("T_FIBU_PAYMENT_SCHEDULE", "position_number") == false) {
+          initDatabaseDao.updateSchema();
+        }
+        return UpdateRunningStatus.DONE;
+      }
+
+    });
+
+    ////////////////////////////////////////////////////////////////////
     // 6.9.0
     // /////////////////////////////////////////////////////////////////
     list.add(new UpdateEntryImpl(CORE_REGION_ID, "6.9.0", "2017-03-15",
