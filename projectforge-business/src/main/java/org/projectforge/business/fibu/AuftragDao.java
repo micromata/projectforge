@@ -564,7 +564,8 @@ public class AuftragDao extends BaseDao<AuftragDO>
           .filter(Objects::nonNull)
           .reduce(BigDecimal.ZERO, BigDecimal::add); // sum
 
-      if (sumOfAmountsForCurrentPosition.compareTo(pos.getNettoSumme()) > 0) {
+      final BigDecimal netSum = pos.getNettoSumme();
+      if (netSum != null && sumOfAmountsForCurrentPosition.compareTo(netSum) > 0) {
         throw new UserException("fibu.auftrag.error.amountsInPaymentScheduleAreGreaterThanNetSumOfPosition", pos.getNumber());
       }
     }
