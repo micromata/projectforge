@@ -101,7 +101,7 @@ public abstract class AbstractRechnungDO<T extends AbstractRechnungsPositionDO> 
   @PropertyInfo(i18nKey = "fibu.konto")
   private KontoDO konto;
 
-  @PropertyInfo(i18nKey = "fibu.rechnung.discountPercent", type = PropertyType.CURRENCY)
+  @PropertyInfo(i18nKey = "fibu.rechnung.discountPercent")
   private BigDecimal discountPercent;
 
   @PropertyInfo(i18nKey = "fibu.rechnung.discountMaturity")
