@@ -31,6 +31,7 @@ import java.util.List;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
@@ -53,6 +54,7 @@ import org.projectforge.business.fibu.AuftragsPositionDO;
 import org.projectforge.business.fibu.RechnungsPositionDO;
 import org.projectforge.business.fibu.kost.KostZuweisungDO;
 import org.projectforge.business.fibu.kost.KostZuweisungenCopyHelper;
+import org.projectforge.business.user.I18nHelper;
 import org.projectforge.business.utils.CurrencyFormatter;
 import org.projectforge.common.StringHelper;
 import org.projectforge.framework.configuration.Configuration;
@@ -87,12 +89,12 @@ import org.projectforge.web.wicket.flowlayout.TextStyle;
 import org.projectforge.web.wicket.flowlayout.ToggleContainerPanel;
 import org.projectforge.web.wicket.flowlayout.ToggleContainerPanel.ToggleStatus;
 
-public abstract class AbstractRechnungEditForm<O extends AbstractRechnungDO<T>, T extends AbstractRechnungsPositionDO, P extends AbstractEditPage< ? , ? , ? >>
-extends AbstractEditForm<O, P>
+public abstract class AbstractRechnungEditForm<O extends AbstractRechnungDO<T>, T extends AbstractRechnungsPositionDO, P extends AbstractEditPage<?, ?, ?>>
+    extends AbstractEditForm<O, P>
 {
   private static final long serialVersionUID = 9073611406229693582L;
 
-  public static final int[] ZAHLUNGSZIELE_IN_TAGEN = { 7, 14, 30, 60, 90};
+  public static final int[] ZAHLUNGSZIELE_IN_TAGEN = { 7, 14, 30, 60, 90 };
 
   private static final Component[] COMPONENT_ARRAY = new Component[0];
 
@@ -106,11 +108,11 @@ extends AbstractEditForm<O, P>
 
   private Component[] ajaxUpdateComponentsArray;
 
-  protected final FormComponent< ? >[] dependentFormComponents = new FormComponent[5];
+  protected final FormComponent<?>[] dependentFormComponents = new FormComponent[7];
 
-  protected DatePanel datumPanel, faelligkeitPanel;
+  protected DatePanel datumPanel, faelligkeitPanel, discountPanel;
 
-  protected Integer zahlungsZiel;
+  protected Integer zahlungsZiel, discountZahlungsZiel;
 
   public AbstractRechnungEditForm(final P parentPage, final O data)
   {
@@ -127,6 +129,8 @@ extends AbstractEditForm<O, P>
     final TextField<Date> faelligkeitField = (TextField<Date>) dependentFormComponents[2];
     final TextField<BigDecimal> zahlBetragField = (TextField<BigDecimal>) dependentFormComponents[3];
     final DropDownChoice<Integer> zahlungsZielChoice = (DropDownChoice<Integer>) dependentFormComponents[4];
+    final TextField<Date> discountMaturityField = (TextField<Date>) dependentFormComponents[5];
+    final DropDownChoice<Integer> discountZahlungsZielChoice = (DropDownChoice<Integer>) dependentFormComponents[6];
 
     final Date bezahlDatum = bezahlDatumField.getConvertedInput();
 
@@ -143,6 +147,22 @@ extends AbstractEditForm<O, P>
         faelligkeit = day.getDate();
         getData().setFaelligkeit(day.getSQLDate());
         faelligkeitPanel.markModelAsChanged();
+      }
+    }
+
+    final Integer discountZahlungsZiel = discountZahlungsZielChoice.getConvertedInput();
+    Date maturity = discountMaturityField.getConvertedInput();
+    if (maturity == null && discountZahlungsZiel != null) {
+      Date date = datumField.getConvertedInput();
+      if (date == null) {
+        date = getData().getDatum();
+      }
+      if (date != null) {
+        final DayHolder day = new DayHolder(date);
+        day.add(Calendar.DAY_OF_YEAR, discountZahlungsZiel);
+        maturity = day.getDate();
+        getData().setDiscountMaturity(day.getSQLDate());
+        discountPanel.markModelAsChanged();
       }
     }
     getData().recalculate();
@@ -162,15 +182,16 @@ extends AbstractEditForm<O, P>
   protected void init()
   {
     super.init();
-    add(new IFormValidator() {
+    add(new IFormValidator()
+    {
       @Override
-      public FormComponent< ? >[] getDependentFormComponents()
+      public FormComponent<?>[] getDependentFormComponents()
       {
         return dependentFormComponents;
       }
 
       @Override
-      public void validate(final Form< ? > form)
+      public void validate(final Form<?> form)
       {
         validation();
       }
@@ -198,7 +219,8 @@ extends AbstractEditForm<O, P>
     {
       // Net sum
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("fibu.common.netto"));
-      final DivTextPanel netPanel = new DivTextPanel(fs.newChildId(), new Model<String>() {
+      final DivTextPanel netPanel = new DivTextPanel(fs.newChildId(), new Model<String>()
+      {
         @Override
         public String getObject()
         {
@@ -213,7 +235,8 @@ extends AbstractEditForm<O, P>
     {
       // Vat amount
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("fibu.common.vatAmount"));
-      final DivTextPanel vatPanel = new DivTextPanel(fs.newChildId(), new Model<String>() {
+      final DivTextPanel vatPanel = new DivTextPanel(fs.newChildId(), new Model<String>()
+      {
         @Override
         public String getObject()
         {
@@ -228,7 +251,8 @@ extends AbstractEditForm<O, P>
     {
       // Brutto
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("fibu.common.brutto"));
-      final DivTextPanel grossPanel = new DivTextPanel(fs.newChildId(), new Model<String>() {
+      final DivTextPanel grossPanel = new DivTextPanel(fs.newChildId(), new Model<String>()
+      {
         @Override
         public String getObject()
         {
@@ -253,8 +277,9 @@ extends AbstractEditForm<O, P>
       // Zahlbetrag
       final FieldsetPanel fs = gridBuilder.newFieldset(AbstractRechnungDO.class, "zahlBetrag");
       final TextField<BigDecimal> zahlBetragField = new TextField<BigDecimal>(InputPanel.WICKET_ID, new PropertyModel<BigDecimal>(data,
-          "zahlBetrag")) {
-        @SuppressWarnings({ "rawtypes", "unchecked"})
+          "zahlBetrag"))
+      {
+        @SuppressWarnings({ "rawtypes", "unchecked" })
         @Override
         public IConverter getConverter(final Class type)
         {
@@ -273,7 +298,6 @@ extends AbstractEditForm<O, P>
       dependentFormComponents[2] = faelligkeitPanel.getDateField();
       fs.add(faelligkeitPanel);
       fs.setLabelFor(faelligkeitPanel);
-      addCellAfterFaelligkeit();
 
       // DropDownChoice ZahlungsZiel
       final LabelValueChoiceRenderer<Integer> zielChoiceRenderer = new LabelValueChoiceRenderer<Integer>();
@@ -281,7 +305,8 @@ extends AbstractEditForm<O, P>
         zielChoiceRenderer.addValue(days, String.valueOf(days) + " " + getString("days"));
       }
       final DropDownChoice<Integer> zahlungsZielChoice = new DropDownChoice<Integer>(fs.getDropDownChoiceId(), new PropertyModel<Integer>(
-          this, "zahlungsZiel"), zielChoiceRenderer.getValues(), zielChoiceRenderer) {
+          this, "zahlungsZiel"), zielChoiceRenderer.getValues(), zielChoiceRenderer)
+      {
         @Override
         public boolean isVisible()
         {
@@ -293,14 +318,16 @@ extends AbstractEditForm<O, P>
       zahlungsZielChoice.setRequired(false);
 
       fs.add(zahlungsZielChoice);
-      fs.add(new DivTextPanel(fs.newChildId(), new Model<String>() {
+      fs.add(new DivTextPanel(fs.newChildId(), new Model<String>()
+      {
         @Override
         public String getObject()
         {
           data.recalculate();
           return data.getZahlungsZielInTagen() + " " + getString("days");
         }
-      }) {
+      })
+      {
         @Override
         public boolean isVisible()
         {
@@ -308,6 +335,58 @@ extends AbstractEditForm<O, P>
         }
       });
     }
+    {
+      gridBuilder.newSubSplitPanel(GridSize.COL50);
+      // Discount
+      final FieldsetPanel fs = gridBuilder.newFieldset(I18nHelper.getLocalizedMessage("fibu.rechnung.discount"));
+      discountPanel = new DatePanel(fs.newChildId(), new PropertyModel<Date>(data, "discountMaturity"), DatePanelSettings.get()
+          .withTargetType(java.sql.Date.class), true);
+      dependentFormComponents[5] = discountPanel.getDateField();
+      fs.add(discountPanel);
+      fs.setLabelFor(discountPanel);
+
+      // DropDownChoice DiscountZahlungsZiel
+      final LabelValueChoiceRenderer<Integer> discountZielChoiceRenderer = new LabelValueChoiceRenderer<Integer>();
+      for (final int days : ZAHLUNGSZIELE_IN_TAGEN) {
+        discountZielChoiceRenderer.addValue(days, String.valueOf(days) + " " + getString("days"));
+      }
+      final DropDownChoice<Integer> discountZahlungsZielChoice = new DropDownChoice<Integer>(fs.getDropDownChoiceId(), new PropertyModel<Integer>(
+          this, "discountZahlungsZiel"), discountZielChoiceRenderer.getValues(), discountZielChoiceRenderer)
+      {
+        @Override
+        public boolean isVisible()
+        {
+          return data.getDiscountMaturity() == null;
+        }
+      };
+      dependentFormComponents[6] = discountZahlungsZielChoice;
+      discountZahlungsZielChoice.setNullValid(true);
+      discountZahlungsZielChoice.setRequired(false);
+
+      fs.add(discountZahlungsZielChoice);
+      fs.add(new DivTextPanel(fs.newChildId(), new Model<String>()
+      {
+        @Override
+        public String getObject()
+        {
+          data.recalculate();
+          return data.getDiscountZahlungsZielInTagen() + " " + getString("days");
+        }
+      })
+      {
+        @Override
+        public boolean isVisible()
+        {
+          return data.getDiscountMaturity() != null;
+        }
+      });
+      TextField<BigDecimal> discountPercentField = new TextField<BigDecimal>(InputPanel.WICKET_ID, new PropertyModel<BigDecimal>(data, "discountPercent"));
+      discountPercentField.add(AttributeModifier.replace("style", "max-width: 50px;"));
+      fs.add(discountPercentField);
+    }
+
+    addCellAfterDiscount();
+
     // GRID 50% - BLOCK
     gridBuilder.newSplitPanel(GridSize.COL50);
     {
@@ -329,7 +408,8 @@ extends AbstractEditForm<O, P>
     refresh();
     if (getBaseDao().hasInsertAccess(getUser()) == true) {
       final DivPanel panel = gridBuilder.newGridPanel().getPanel();
-      final Button addPositionButton = new Button(SingleButtonPanel.WICKET_ID) {
+      final Button addPositionButton = new Button(SingleButtonPanel.WICKET_ID)
+      {
         @Override
         public final void onSubmit()
         {
@@ -350,7 +430,7 @@ extends AbstractEditForm<O, P>
     }
   }
 
-  protected void addCellAfterFaelligkeit()
+  protected void addCellAfterDiscount()
   {
     // Do nothing.
   }
@@ -377,7 +457,8 @@ extends AbstractEditForm<O, P>
       }
       final List<Component> ajaxUpdatePositionComponents = new ArrayList<Component>();
       final RechnungsPositionDO rechnungsPosition = (position instanceof RechnungsPositionDO) ? (RechnungsPositionDO) position : null;
-      final ToggleContainerPanel positionsPanel = new ToggleContainerPanel(positionsRepeater.newChildId()) {
+      final ToggleContainerPanel positionsPanel = new ToggleContainerPanel(positionsRepeater.newChildId())
+      {
         /**
          * @see org.projectforge.web.wicket.flowlayout.ToggleContainerPanel#wantsOnStatusChangedNotification()
          */
@@ -418,7 +499,8 @@ extends AbstractEditForm<O, P>
           final FieldsetPanel fieldset = posGridBuilder.newFieldset(getString("fibu.auftrag")).setLabelSide(false);
           fieldset.add(new InputPanel(fieldset.newChildId(), new AuftragsPositionFormComponent(InputPanel.WICKET_ID,
               new PropertyModel<AuftragsPositionDO>(position, "auftragsPosition"), false)));
-          fieldset.add(new IconPanel(fieldset.newIconChildId(), IconType.GOTO, getString("show")) {
+          fieldset.add(new IconPanel(fieldset.newIconChildId(), IconType.GOTO, getString("show"))
+          {
             /**
              * @see org.apache.wicket.markup.html.link.Link#onClick()
              */
@@ -447,7 +529,8 @@ extends AbstractEditForm<O, P>
           final FieldsetPanel fieldset = posGridBuilder.newFieldset(getString("fibu.rechnung.menge")).setLabelSide(false);
           final TextField<BigDecimal> amountTextField = new MinMaxNumberField<BigDecimal>(InputPanel.WICKET_ID,
               new PropertyModel<BigDecimal>(position, "menge"), BigDecimal.ZERO, NumberHelper.BILLION);
-          amountTextField.add(new AjaxFormComponentUpdatingBehavior("onblur") {
+          amountTextField.add(new AjaxFormComponentUpdatingBehavior("onblur")
+          {
             @Override
             protected void onUpdate(final AjaxRequestTarget target)
             {
@@ -461,15 +544,17 @@ extends AbstractEditForm<O, P>
           posGridBuilder.newSubSplitPanel(gridSize);
           final FieldsetPanel fieldset = posGridBuilder.newFieldset(getString("fibu.rechnung.position.einzelNetto")).setLabelSide(false);
           final TextField<BigDecimal> netTextField = new TextField<BigDecimal>(InputPanel.WICKET_ID, new PropertyModel<BigDecimal>(
-              position, "einzelNetto")) {
-            @SuppressWarnings({ "rawtypes", "unchecked"})
+              position, "einzelNetto"))
+          {
+            @SuppressWarnings({ "rawtypes", "unchecked" })
             @Override
             public IConverter getConverter(final Class type)
             {
               return new CurrencyConverter();
             }
           };
-          netTextField.add(new AjaxFormComponentUpdatingBehavior("onblur") {
+          netTextField.add(new AjaxFormComponentUpdatingBehavior("onblur")
+          {
             @Override
             protected void onUpdate(final AjaxRequestTarget target)
             {
@@ -483,15 +568,17 @@ extends AbstractEditForm<O, P>
           posGridBuilder.newSubSplitPanel(gridSize);
           final FieldsetPanel fieldset = posGridBuilder.newFieldset(getString("fibu.rechnung.mehrwertSteuerSatz")).setLabelSide(false);
           final TextField<BigDecimal> vatTextField = new MinMaxNumberField<BigDecimal>(InputPanel.WICKET_ID, new PropertyModel<BigDecimal>(
-              position, "vat"), BigDecimal.ZERO, NumberHelper.HUNDRED) {
-            @SuppressWarnings({ "rawtypes", "unchecked"})
+              position, "vat"), BigDecimal.ZERO, NumberHelper.HUNDRED)
+          {
+            @SuppressWarnings({ "rawtypes", "unchecked" })
             @Override
             public IConverter getConverter(final Class type)
             {
               return new BigDecimalPercentConverter(true);
             }
           };
-          vatTextField.add(new AjaxFormComponentUpdatingBehavior("onblur") {
+          vatTextField.add(new AjaxFormComponentUpdatingBehavior("onblur")
+          {
             @Override
             protected void onUpdate(final AjaxRequestTarget target)
             {
@@ -507,12 +594,15 @@ extends AbstractEditForm<O, P>
         {
           final FieldsetPanel fieldset = posGridBuilder.newFieldset(getString("fibu.common.netto")).setLabelSide(false)
               .suppressLabelForWarning();
-          final TextPanel netTextPanel = new TextPanel(fieldset.newChildId(), new Model<String>() {
+          final TextPanel netTextPanel = new TextPanel(fieldset.newChildId(), new Model<String>()
+          {
             @Override
             public String getObject()
             {
               return CurrencyFormatter.format(position.getNetSum());
-            };
+            }
+
+            ;
           });
           ajaxUpdatePositionComponents.add(netTextPanel.getLabel4Ajax());
           fieldset.add(netTextPanel);
@@ -523,12 +613,15 @@ extends AbstractEditForm<O, P>
         {
           final FieldsetPanel fieldset = posGridBuilder.newFieldset(getString("fibu.common.vatAmount")).setLabelSide(false)
               .suppressLabelForWarning();
-          final TextPanel vatTextPanel = new TextPanel(fieldset.newChildId(), new Model<String>() {
+          final TextPanel vatTextPanel = new TextPanel(fieldset.newChildId(), new Model<String>()
+          {
             @Override
             public String getObject()
             {
               return CurrencyFormatter.format(position.getVatAmount());
-            };
+            }
+
+            ;
           });
           fieldset.add(vatTextPanel);
           ajaxUpdatePositionComponents.add(vatTextPanel.getLabel4Ajax());
@@ -539,12 +632,15 @@ extends AbstractEditForm<O, P>
         {
           final FieldsetPanel fieldset = posGridBuilder.newFieldset(getString("fibu.common.brutto")).setLabelSide(false)
               .suppressLabelForWarning();
-          final TextPanel grossTextPanel = new TextPanel(fieldset.newChildId(), new Model<String>() {
+          final TextPanel grossTextPanel = new TextPanel(fieldset.newChildId(), new Model<String>()
+          {
             @Override
             public String getObject()
             {
               return CurrencyFormatter.format(position.getBruttoSum());
-            };
+            }
+
+            ;
           });
           fieldset.add(grossTextPanel);
           ajaxUpdatePositionComponents.add(grossTextPanel.getLabel4Ajax());
@@ -567,7 +663,8 @@ extends AbstractEditForm<O, P>
           {
             posGridBuilder.newSubSplitPanel(GridSize.COL50);
             DivPanel panel = posGridBuilder.getPanel();
-            final RechnungCostTablePanel costTable = new RechnungCostTablePanel(panel.newChildId(), position) {
+            final RechnungCostTablePanel costTable = new RechnungCostTablePanel(panel.newChildId(), position)
+            {
               /**
                * @see org.projectforge.web.fibu.RechnungCostTablePanel#onRenderCostRow(org.projectforge.business.fibu.AbstractRechnungsPositionDO,
                *      org.apache.wicket.Component, org.apache.wicket.Component)
@@ -592,9 +689,10 @@ extends AbstractEditForm<O, P>
               } else {
                 buttonType = ButtonType.LIGHT;
               }
-              final AjaxButton editCostButton = new AjaxButton(ButtonPanel.BUTTON_ID, this) {
+              final AjaxButton editCostButton = new AjaxButton(ButtonPanel.BUTTON_ID, this)
+              {
                 @Override
-                protected void onSubmit(final AjaxRequestTarget target, final Form< ? > form)
+                protected void onSubmit(final AjaxRequestTarget target, final Form<?> form)
                 {
                   costEditModalDialog.open(target);
                   // Redraw the content:
@@ -604,7 +702,7 @@ extends AbstractEditForm<O, P>
                 }
 
                 @Override
-                protected void onError(final AjaxRequestTarget target, final Form< ? > form)
+                protected void onError(final AjaxRequestTarget target, final Form<?> form)
                 {
                   target.add(AbstractRechnungEditForm.this.feedbackPanel);
                 }
@@ -614,7 +712,8 @@ extends AbstractEditForm<O, P>
             } else {
               panel.add(new TextPanel(panel.newChildId(), " "));
             }
-            panel.add(new TextPanel(panel.newChildId(), new Model<String>() {
+            panel.add(new TextPanel(panel.newChildId(), new Model<String>()
+            {
               @Override
               public String getObject()
               {
@@ -634,6 +733,7 @@ extends AbstractEditForm<O, P>
 
   /**
    * Does nothing at default.
+   *
    * @param position
    * @param costAssignment
    * @param cost1
@@ -660,6 +760,7 @@ extends AbstractEditForm<O, P>
 
   /**
    * Overwrite this method if you need to add own form elements for a order position.
+   *
    * @param item
    * @param position
    */
@@ -738,6 +839,7 @@ extends AbstractEditForm<O, P>
 
   /**
    * Dummy method. Does nothing.
+   *
    * @param bezahlDatumInMillis
    */
   public void setBezahlDatumInMillis(final Long bezahlDatumInMillis)

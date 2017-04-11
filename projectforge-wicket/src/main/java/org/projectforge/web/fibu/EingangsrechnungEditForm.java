@@ -23,10 +23,12 @@
 
 package org.projectforge.web.fibu;
 
-import java.util.Date;
 import java.util.List;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
@@ -37,12 +39,10 @@ import org.projectforge.business.fibu.KontoCache;
 import org.projectforge.business.fibu.KontoDO;
 import org.projectforge.business.fibu.PaymentType;
 import org.projectforge.business.fibu.kost.AccountingConfig;
-import org.projectforge.business.user.I18nHelper;
+import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
 import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.web.wicket.autocompletion.PFAutoCompleteTextField;
 import org.projectforge.web.wicket.bootstrap.GridSize;
-import org.projectforge.web.wicket.components.DatePanel;
-import org.projectforge.web.wicket.components.DatePanelSettings;
 import org.projectforge.web.wicket.components.LabelValueChoiceRenderer;
 import org.projectforge.web.wicket.components.MaxLengthTextField;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
@@ -56,7 +56,15 @@ public class EingangsrechnungEditForm extends
   private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(EingangsrechnungEditForm.class);
 
   @SpringBean
-  KontoCache kontoCache;
+  transient KontoCache kontoCache;
+
+  @SpringBean
+  private transient PfEmgrFactory pfEmgrFactory;
+
+  private MaxLengthTextField recieverField;
+  private MaxLengthTextField ibanField;
+  private MaxLengthTextField bicField;
+  private MaxLengthTextField customernrField;
 
   public EingangsrechnungEditForm(final EingangsrechnungEditPage parentPage, final EingangsrechnungDO data)
   {
@@ -87,12 +95,23 @@ public class EingangsrechnungEditForm extends
         }
       };
       kreditorField.withMatchContains(true).withMinChars(2).withFocus(true).add(WicketUtils.setFocus());
+      kreditorField.add(new AjaxFormComponentUpdatingBehavior("change")
+      {
+        @Override
+        protected void onUpdate(final AjaxRequestTarget target)
+        {
+          log.info("Es geht!!!! Kreditor: " + kreditorField.getModelObject());
+          setKreditorinformations(kreditorField.getModelObject(), target);
+        }
+      });
       fs.add(kreditorField);
     }
     {
       // Customernr
       final FieldsetPanel fs = gridBuilder.newFieldset(EingangsrechnungDO.class, "customernr");
-      fs.add(new MaxLengthTextField(InputPanel.WICKET_ID, new PropertyModel<String>(data, "customernr")));
+      customernrField = new MaxLengthTextField(InputPanel.WICKET_ID, new PropertyModel<String>(data, "customernr"));
+      customernrField.setOutputMarkupId(true);
+      fs.add(customernrField);
     }
     {
       // Reference
@@ -111,19 +130,41 @@ public class EingangsrechnungEditForm extends
     }
   }
 
-  @Override
-  protected void addCellAfterFaelligkeit()
+  private void setKreditorinformations(String kreditorname, AjaxRequestTarget target)
   {
-    {
-      // Skonto
-      gridBuilder.newSubSplitPanel(GridSize.COL50);
-      final FieldsetPanel fs = gridBuilder.newFieldset(I18nHelper.getLocalizedMessage("fibu.rechnung.discount"));
-      DatePanel discountMaturity = new DatePanel(fs.newChildId(), new PropertyModel<Date>(data, "discountMaturity"), DatePanelSettings.get()
-          .withTargetType(java.sql.Date.class), true);
-      MaxLengthTextField discountPercent = new MaxLengthTextField(InputPanel.WICKET_ID, new PropertyModel<String>(data, "discountPercent"));
-      fs.add(discountMaturity);
-      fs.add(discountPercent);
+    if (StringUtils.isEmpty(kreditorname)) {
+      return;
     }
+    List<EingangsrechnungDO> erList = pfEmgrFactory.runRoTrans(emgr -> {
+      String sql = "SELECT er FROM EingangsrechnungDO er WHERE er.kreditor = :kreditor ORDER BY er.datum DESC";
+      return emgr.select(EingangsrechnungDO.class, sql, "kreditor", kreditorname);
+    });
+    if (erList != null && erList.size() > 0) {
+      EingangsrechnungDO latestRe = erList.get(0);
+      //Update Customer No.
+      getData().setCustomernr(latestRe.getCustomernr());
+      customernrField.modelChanged();
+      if (target != null) {
+        target.add(customernrField);
+      }
+      //Update Konto
+      getData().setReceiver(latestRe.getReceiver());
+      getData().setIban(latestRe.getIban());
+      getData().setBic(latestRe.getBic());
+      recieverField.modelChanged();
+      ibanField.modelChanged();
+      bicField.modelChanged();
+      if (target != null) {
+        target.add(recieverField);
+        target.add(ibanField);
+        target.add(bicField);
+      }
+    }
+  }
+
+  @Override
+  protected void addCellAfterDiscount()
+  {
     {
       // DropDownChoice payment type
       gridBuilder.newSplitPanel(GridSize.COL50);
@@ -140,17 +181,23 @@ public class EingangsrechnungEditForm extends
     {
       // Reciever
       final FieldsetPanel fs = gridBuilder.newFieldset(AbstractRechnungDO.class, "receiver");
-      fs.add(new MaxLengthTextField(InputPanel.WICKET_ID, new PropertyModel<String>(data, "receiver")));
+      recieverField = new MaxLengthTextField(InputPanel.WICKET_ID, new PropertyModel<String>(data, "receiver"));
+      recieverField.setOutputMarkupId(true);
+      fs.add(recieverField);
     }
     {
       // IBAN
       final FieldsetPanel fs = gridBuilder.newFieldset(AbstractRechnungDO.class, "iban");
-      fs.add(new MaxLengthTextField(InputPanel.WICKET_ID, new PropertyModel<String>(data, "iban")));
+      ibanField = new MaxLengthTextField(InputPanel.WICKET_ID, new PropertyModel<String>(data, "iban"));
+      ibanField.setOutputMarkupId(true);
+      fs.add(ibanField);
     }
     {
       // BIC
       final FieldsetPanel fs = gridBuilder.newFieldset(AbstractRechnungDO.class, "bic");
-      fs.add(new MaxLengthTextField(InputPanel.WICKET_ID, new PropertyModel<String>(data, "bic")));
+      bicField = new MaxLengthTextField(InputPanel.WICKET_ID, new PropertyModel<String>(data, "bic"));
+      bicField.setOutputMarkupId(true);
+      fs.add(bicField);
     }
   }
 

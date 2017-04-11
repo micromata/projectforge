@@ -87,6 +87,9 @@ public abstract class AbstractRechnungDO<T extends AbstractRechnungsPositionDO> 
   @Field(index = Index.YES, analyze = Analyze.NO /* UN_TOKENIZED */)
   protected transient Integer zahlungsZielInTagen;
 
+  @Field(index = Index.YES, analyze = Analyze.NO /* UN_TOKENIZED */)
+  protected transient Integer discountZahlungsZielInTagen;
+
   @PropertyInfo(i18nKey = "fibu.rechnung.bezahlDatum")
   @Field(index = Index.YES, analyze = Analyze.NO /* UN_TOKENIZED */)
   @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
@@ -97,6 +100,14 @@ public abstract class AbstractRechnungDO<T extends AbstractRechnungsPositionDO> 
 
   @PropertyInfo(i18nKey = "fibu.konto")
   private KontoDO konto;
+
+  @PropertyInfo(i18nKey = "fibu.rechnung.discountPercent", type = PropertyType.CURRENCY)
+  private BigDecimal discountPercent;
+
+  @PropertyInfo(i18nKey = "fibu.rechnung.discountMaturity")
+  @Field(index = Index.YES, analyze = Analyze.NO /* UN_TOKENIZED */)
+  @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
+  private Date discountMaturity;
 
   @PropertyInfo(i18nKey = "fibu.rechnung.receiver")
   @Field(index = Index.YES /* TOKENIZED */, store = Store.NO)
@@ -128,6 +139,12 @@ public abstract class AbstractRechnungDO<T extends AbstractRechnungsPositionDO> 
     }
     final DateHolder date = new DateHolder(this.datum);
     this.zahlungsZielInTagen = date.daysBetween(this.faelligkeit);
+
+    if (this.datum == null || this.discountMaturity == null) {
+      this.discountZahlungsZielInTagen = null;
+      return;
+    }
+    this.discountZahlungsZielInTagen = date.daysBetween(this.discountMaturity);
   }
 
   @Column(length = 4000)
@@ -223,6 +240,28 @@ public abstract class AbstractRechnungDO<T extends AbstractRechnungsPositionDO> 
     this.bic = bic;
   }
 
+  @Column
+  public BigDecimal getDiscountPercent()
+  {
+    return discountPercent;
+  }
+
+  public void setDiscountPercent(BigDecimal discountPercent)
+  {
+    this.discountPercent = discountPercent;
+  }
+
+  @Column
+  public Date getDiscountMaturity()
+  {
+    return discountMaturity;
+  }
+
+  public void setDiscountMaturity(Date discountMaturity)
+  {
+    this.discountMaturity = discountMaturity;
+  }
+
   /**
    * Wird nur zur Berechnung benutzt und kann für die Anzeige aufgerufen werden. Vorher sollte recalculate aufgerufen
    * werden.
@@ -238,6 +277,24 @@ public abstract class AbstractRechnungDO<T extends AbstractRechnungsPositionDO> 
   public AbstractRechnungDO<T> setZahlungsZielInTagen(final Integer zahlungsZielInTagen)
   {
     this.zahlungsZielInTagen = zahlungsZielInTagen;
+    return this;
+  }
+
+  /**
+   * Wird nur zur Berechnung benutzt und kann für die Anzeige aufgerufen werden. Vorher sollte recalculate aufgerufen
+   * werden.
+   *
+   * @see #recalculate()
+   */
+  @Transient
+  public Integer getDiscountZahlungsZielInTagen()
+  {
+    return discountZahlungsZielInTagen;
+  }
+
+  public AbstractRechnungDO<T> setDiscountZahlungsZielInTagen(final Integer discountZahlungsZielInTagen)
+  {
+    this.discountZahlungsZielInTagen = discountZahlungsZielInTagen;
     return this;
   }
 
