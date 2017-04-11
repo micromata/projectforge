@@ -664,7 +664,7 @@ public class TeamCalServiceImpl
       timestamp = ICal4JUtils.getSqlTimestamp(event.getEndDate().getDate());
     }
     teamEvent.setEndDate(timestamp);
-    if (withUid && event.getUid() != null) {
+    if (withUid && event.getUid() != null && StringUtils.isEmpty(event.getUid().getValue()) == false) {
       teamEvent.setUid(event.getUid().getValue());
     }
     if (event.getLocation() != null) {

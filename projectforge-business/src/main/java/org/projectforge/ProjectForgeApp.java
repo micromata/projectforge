@@ -215,8 +215,6 @@ public class ProjectForgeApp
   {
     log.info("Shutdown...");
     upAndRunning = false;
-    log.info("Syncing all user preferences to database.");
-    userXmlPreferencesCache.forceReload();
     try {
       final UserContext internalSystemAdminUserContext = UserContext
           .__internalCreateWithSpecialUser(DatabaseUpdateService

@@ -44,7 +44,6 @@ import org.projectforge.framework.persistence.entities.DefaultBaseDO;
 
 /**
  * @author Werner Feder (werner.feder@t-online.de)
- * 
  */
 @Entity
 @Table(name = "T_FIBU_PAYMENT_SCHEDULE",
@@ -60,6 +59,11 @@ public class PaymentScheduleDO extends DefaultBaseDO implements ShortDisplayName
   private static final long serialVersionUID = -8024212050762584171L;
 
   private AuftragDO auftrag;
+
+  /**
+   * The position's number this payment schedule is assigned to.
+   */
+  private Short positionNumber;
 
   private short number;
 
@@ -80,7 +84,7 @@ public class PaymentScheduleDO extends DefaultBaseDO implements ShortDisplayName
 
   /**
    * Not used as object due to performance reasons.
-   * 
+   *
    * @return AuftragDO
    */
   @ManyToOne(fetch = FetchType.EAGER)
@@ -103,6 +107,18 @@ public class PaymentScheduleDO extends DefaultBaseDO implements ShortDisplayName
       return null;
     }
     return auftrag.getId();
+  }
+
+  @Column(name = "position_number")
+  public Short getPositionNumber()
+  {
+    return positionNumber;
+  }
+
+  public PaymentScheduleDO setPositionNumber(final Short positionNumber)
+  {
+    this.positionNumber = positionNumber;
+    return this;
   }
 
   @Column

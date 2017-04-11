@@ -27,12 +27,12 @@ import org.projectforge.common.i18n.I18nEnum;
 
 /**
  * Can't use LabelValueBean because XStream doesn't support generics (does it?).
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
  */
 public enum PaymentType implements I18nEnum
 {
-  BANK_TRANSFER("bankTransfer"), DEBIT("debit"), CREDIT_CARD("creditCard"), CASH("cash");
+  BANK_TRANSFER("bankTransfer"), DEBIT("debit"), CREDIT_CARD("creditCard"), CASH("cash"), SALARY("salary"), CREDIT("credit");
 
   private String key;
 
@@ -57,7 +57,8 @@ public enum PaymentType implements I18nEnum
     this.key = key;
   }
 
-  public boolean isIn(final PaymentType... type) {
+  public boolean isIn(final PaymentType... type)
+  {
     for (final PaymentType t : type) {
       if (this == t) {
         return true;

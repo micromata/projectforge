@@ -21,25 +21,17 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.fibu;
+package org.projectforge.business.fibu;
 
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.fail;
+import static org.testng.AssertJUnit.*;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.List;
 import java.util.Random;
 
-import org.projectforge.business.fibu.AuftragDO;
-import org.projectforge.business.fibu.AuftragDao;
-import org.projectforge.business.fibu.AuftragFilter;
-import org.projectforge.business.fibu.AuftragsPositionDO;
-import org.projectforge.business.fibu.AuftragsPositionsStatus;
-import org.projectforge.business.fibu.AuftragsStatus;
-import org.projectforge.business.fibu.ProjektDO;
-import org.projectforge.business.fibu.ProjektDao;
-import org.projectforge.business.fibu.ProjektFilter;
 import org.projectforge.business.user.GroupDao;
 import org.projectforge.business.user.UserRightDao;
 import org.projectforge.business.user.UserRightId;
@@ -113,7 +105,6 @@ public class AuftragDaoTest extends AbstractTestBase
     auftrag2.addPosition(new AuftragsPositionDO());
     final Serializable id2 = auftragDao.save(auftrag2);
     dbNumber++; // Needed for getNextNumber test;
-    auftrag2 = auftragDao.getById(id2);
 
     AuftragDO auftrag3 = new AuftragDO();
     auftrag3.setNummer(auftragDao.getNextNumber(auftrag3));
@@ -128,7 +119,6 @@ public class AuftragDaoTest extends AbstractTestBase
     auftrag3.addPosition(position);
     final Serializable id3 = auftragDao.save(auftrag3);
     dbNumber++; // Needed for getNextNumber test;
-    auftrag3 = auftragDao.getById(id3);
 
     logon(TEST_PROJECT_MANAGER_USER);
     try {
@@ -408,23 +398,38 @@ public class AuftragDaoTest extends AbstractTestBase
     assertEquals(3, auftrag.getPositionen().size());
   }
 
-  public void setAuftragDao(final AuftragDao auftragDao)
+  @Test
+  public void validateAmountsInPaymentScheduleNotGreaterThanNetSumOfPosition()
   {
-    this.auftragDao = auftragDao;
-  }
+    final AuftragDO auftrag = new AuftragDO();
+    final List<AuftragsPositionDO> auftragsPositions = auftrag.ensureAndGetPositionen();
+    final List<PaymentScheduleDO> paymentSchedules = auftrag.ensureAndGetPaymentSchedules();
 
-  public void setGroupDao(final GroupDao groupDao)
-  {
-    this.groupDao = groupDao;
-  }
+    auftragsPositions.add(new AuftragsPositionDO().setNumber((short) 1).setNettoSumme(new BigDecimal(2000)));
+    auftragsPositions.add(new AuftragsPositionDO().setNumber((short) 2).setNettoSumme(new BigDecimal(5000)));
 
-  public void setProjektDao(final ProjektDao projektDao)
-  {
-    this.projektDao = projektDao;
-  }
+    paymentSchedules.add(new PaymentScheduleDO().setPositionNumber((short) 1).setAmount(new BigDecimal(1000)));
+    paymentSchedules.add(new PaymentScheduleDO().setPositionNumber((short) 1).setAmount(null)); // should not cause a NPE
+    paymentSchedules.add(new PaymentScheduleDO().setPositionNumber((short) 1).setAmount(new BigDecimal(1000)));
+    paymentSchedules.add(new PaymentScheduleDO().setPositionNumber((short) 2).setAmount(new BigDecimal(2000)));
+    paymentSchedules.add(new PaymentScheduleDO().setPositionNumber((short) 2).setAmount(new BigDecimal(2999)));
 
-  public void setUserRightDao(final UserRightDao userRightDao)
-  {
-    this.userRightDao = userRightDao;
+    boolean exceptionThrown = false;
+    try {
+      auftragDao.validateAmountsInPaymentScheduleNotGreaterThanNetSumOfPosition(auftrag);
+    } catch (UserException e) {
+      exceptionThrown = true;
+    }
+    assertFalse(exceptionThrown);
+
+    // amounts of position 1 (2001) will now be greater than netto summe (2000) -> should throw exception
+    paymentSchedules.add(new PaymentScheduleDO().setPositionNumber((short) 1).setAmount(new BigDecimal(1)));
+
+    try {
+      auftragDao.validateAmountsInPaymentScheduleNotGreaterThanNetSumOfPosition(auftrag);
+    } catch (UserException e) {
+      exceptionThrown = true;
+    }
+    assertTrue(exceptionThrown);
   }
 }

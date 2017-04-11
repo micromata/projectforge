@@ -26,48 +26,37 @@ package org.projectforge.business.fibu.kost;
 import java.util.List;
 
 import org.projectforge.business.fibu.AbstractRechnungsPositionDO;
-import org.projectforge.framework.persistence.api.ModificationStatus;
-import org.projectforge.framework.persistence.utils.ListCopyHelper;
 
-public class KostZuweisungenCopyHelper extends ListCopyHelper<KostZuweisungDO>
+public class KostZuweisungenCopyHelper
 {
-  public static final String[] IGNORE_FIELDS = { "rechnungsPosition"};
+  private static final String[] IGNORE_FIELDS = { "rechnungsPosition" };
 
-  /**
-   * @see org.projectforge.framework.persistence.utils.ListCopyHelper#copy(java.util.List, java.util.List, java.lang.Object[])
-   */
-  @Override
-  public ModificationStatus copy(final List<KostZuweisungDO> srcList, final List<KostZuweisungDO> destList, final Object... objects)
+  public static void copy(final List<KostZuweisungDO> srcList, final AbstractRechnungsPositionDO destPosition)
   {
-    throw new IllegalArgumentException("Please call mycopy with AbstractRechnungsPositionDO instead!");
+    final List<KostZuweisungDO> destList = destPosition.ensureAndGetKostzuweisungen();
+
+    // first remove every deletable entry
+    destList.removeIf(destPosition::isKostZuweisungDeletable);
+
+    // then copy values from src to dest entry or create new dest entry if it does not exist
+    if (srcList != null) {
+      for (final KostZuweisungDO srcEntry : srcList) {
+        final KostZuweisungDO destEntry;
+
+        // checks if the destList already contains an entry which equals the source entry regarding their IDs and not necessarily their values
+        // see KostZuweisungDO.equals()
+        final int index = destList.indexOf(srcEntry);
+        if (index >= 0) {
+          // dest entry already exists, get it
+          destEntry = destList.get(index);
+        } else {
+          // create new dest entry
+          destEntry = new KostZuweisungDO();
+          destPosition.addKostZuweisung(destEntry);
+        }
+        destEntry.copyValuesFrom(srcEntry, IGNORE_FIELDS);
+      }
+    }
   }
 
-  public ModificationStatus mycopy(final List<KostZuweisungDO> srcList, final List<KostZuweisungDO> destList,
-      final AbstractRechnungsPositionDO destPosition)
-  {
-    return super.copy(srcList, destList, destPosition);
-  }
-
-  @Override
-  protected ModificationStatus copyFrom(final KostZuweisungDO srcEntry, final KostZuweisungDO destEntry, final Object... objects)
-  {
-    return destEntry.copyValuesFrom(srcEntry, IGNORE_FIELDS);
-  }
-
-  @Override
-  protected void appendDestEntry(final List<KostZuweisungDO> destList, final KostZuweisungDO srcEntry, final Object... objects)
-  {
-    final AbstractRechnungsPositionDO destPositionDO = (AbstractRechnungsPositionDO) objects[0];
-    final KostZuweisungDO destEntry = new KostZuweisungDO();
-    destEntry.copyValuesFrom(srcEntry, IGNORE_FIELDS);
-    destPositionDO.addKostZuweisung(destEntry);
-  }
-
-  @Override
-  protected void removeDestEntry(final List<KostZuweisungDO> destList, final KostZuweisungDO destEntry, final int pos,
-      final Object... objects)
-  {
-    final AbstractRechnungsPositionDO destPositionDO = (AbstractRechnungsPositionDO) objects[0];
-    destPositionDO.deleteKostZuweisung(destEntry.getIndex());
-  }
 }

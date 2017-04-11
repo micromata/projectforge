@@ -4,7 +4,7 @@
   <groupId>org.projectforge</groupId>
   <artifactId>projectforge-parent</artifactId>
   <packaging>pom</packaging>
-  <version>6.9.0</version>
+  <version>6.10.0</version>
 
   <parent>
     <groupId>org.springframework.boot</groupId>
@@ -332,102 +332,158 @@
     <sourceDirectory>src/main/java</sourceDirectory>
     <plugins>
       <plugin>
-        <groupId>org.jacoco</groupId>
-        <artifactId>jacoco-maven-plugin</artifactId>
+        <groupId>org.sonarsource.scanner.maven</groupId>
+        <artifactId>sonar-maven-plugin</artifactId>
+        <version>3.2</version>
       </plugin>
       <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
-        <version>2.19.1</version>
-        <executions>
-          <execution>
-            <id>normal</id>
-            <phase>test</phase>
-            <goals>
-              <goal>test</goal>
-            </goals>
-            <configuration>
-              <!--forkMode>always</forkMode -->
-              <argLine>${argLine} -Xms512m -Xmx1024m</argLine>
-              <includes>
-                <include>**/*Test.java</include>
-              </includes>
-            </configuration>
-          </execution>
-          <execution>
-            <id>plugins</id>
-            <phase>test</phase>
-            <goals>
-              <goal>test</goal>
-            </goals>
-            <configuration>
-              <forkMode>always</forkMode>
-              <argLine>${argLine} -Xms512m -Xmx1024m</argLine>
-              <includes>
-                <include>**/*TestFork.java</include>
-              </includes>
-            </configuration>
-          </execution>
-        </executions>
         <configuration>
-          <argLine>${argLine} -Xms512m -Xmx1024m</argLine>
-          <includes>
-            <include>**/*Test.java</include>
-          </includes>
-          <properties>
+          <systemProperties>
             <property>
               <name>configfailurepolicy</name>
-              <value>continue</value>
+              <value>continue</value> 
             </property>
-          </properties>
+             
+          </systemProperties>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.jacoco</groupId>
+        <artifactId>jacoco-maven-plugin</artifactId>
+        <version>0.7.9</version>
+        <configuration>
+          <!-- The destination file for the code coverage report has to be set
+            to the same value in the parent pom and in each module pom. Then JaCoCo will
+            add up information in the same report, so that, it will give the cross-module
+            code coverage. -->
+          <destFile>${sonar.jacoco.reportPath}</destFile>
         </configuration>
       </plugin>
     </plugins>
-    <pluginManagement>
-      <plugins>
-        <plugin>
-          <groupId>org.jacoco</groupId>
-          <artifactId>jacoco-maven-plugin</artifactId>
-          <version>0.7.5.201505241946</version>
-          <configuration>
-            <destFile>${sonar.jacoco.reportPath}</destFile>
-            <append>true</append>
-            <dataFile>${basedir}/target/coverage-reports/jacoco-unit.exec</dataFile>
-          </configuration>
-          <executions>
-            <execution>
-              <id>jacoco-initialize</id>
-              <goals>
-                <goal>prepare-agent</goal>
-              </goals>
-            </execution>
-            <execution>
-              <id>jacoco-site</id>
-              <phase>package</phase>
-              <goals>
-                <goal>report</goal>
-              </goals>
-            </execution>
-          </executions>
-        </plugin>
-        <plugin>
-          <groupId>org.codehaus.mojo</groupId>
-          <artifactId>sonar-maven-plugin</artifactId>
-          <version>2.3</version>
-        </plugin>
-      </plugins>
-    </pluginManagement>
   </build>
+  <profiles>
+    <profile>
+      <id>sonar-coverage</id>
+      <activation>
+        <activeByDefault>true</activeByDefault>
+      </activation>
+      <build>
+        <pluginManagement>
+          <plugins>
+            <plugin>
+              <groupId>org.jacoco</groupId>
+              <artifactId>jacoco-maven-plugin</artifactId>
+            </plugin>
+          </plugins>
+        </pluginManagement>
+        <plugins>
+          <plugin>
+            <groupId>org.jacoco</groupId>
+            <artifactId>jacoco-maven-plugin</artifactId>
+            <version>0.7.9</version>
+            <configuration>
+              <append>true</append>
+            </configuration>
+            <executions>
+              <execution>
+                <id>agent-for-ut</id>
+                <goals>
+                  <goal>prepare-agent</goal>
+                </goals>
+              </execution>
+              <execution>
+                <id>agent-for-it</id>
+                <goals>
+                  <goal>prepare-agent-integration</goal>
+                </goals>
+              </execution>
+              <execution>
+                <id>jacoco-site</id>
+                <phase>verify</phase>
+                <goals>
+                  <goal>report</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
   <reporting>
     <outputDirectory>target/site</outputDirectory>
     <plugins>
       <plugin>
-        <groupId>org.owasp</groupId>
-        <artifactId>dependency-check-maven</artifactId>
-        <version>1.4.4</version>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>findbugs-maven-plugin</artifactId>
+        <version>3.0.4</version>
+        <configuration>
+          <outputDirectory>/target/site/findbugs/</outputDirectory>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-pmd-plugin</artifactId>
+        <version>3.7</version>
         <reportSets>
           <reportSet>
-            <id>aggregate</id>
+            <!-- defines pmd reports in the modules -->
+            <id>pmd-report</id>
+            <reports>
+              <report>pmd</report>
+            </reports>
+          </reportSet>
+          <reportSet>
+            <!-- defines pmd aggregate report -->
+            <id>pmd-aggregate</id>
             <inherited>false</inherited>
+            <reports>
+              <report>pmd</report>
+            </reports>
+            <configuration>
+              <aggregate>true</aggregate>
+            </configuration>
+          </reportSet>
+          <reportSet>
+            <!-- defines cpd reports in the modules -->
+            <id>cpd-report</id>
+            <reports>
+              <report>cpd</report>
+            </reports>
+          </reportSet>
+          <reportSet>
+            <!-- defines cpd aggregate report -->
+            <id>cpd-aggregate</id>
+            <inherited>false</inherited>
+            <reports>
+              <report>cpd</report>
+            </reports>
+            <configuration>
+              <aggregate>true</aggregate>
+            </configuration>
+          </reportSet>
+        </reportSets>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-checkstyle-plugin</artifactId>
+        <version>2.17</version>
+        <reportSets>
+          <reportSet>
+            <reports>
+              <report>checkstyle</report>
+            </reports>
+          </reportSet>
+        </reportSets>
+      </plugin>
+      <plugin>
+        <groupId>org.owasp</groupId>
+        <artifactId>dependency-check-maven</artifactId>
+        <version>1.4.5</version>
+        <reportSets>
+          <reportSet>
             <reports>
               <report>aggregate</report>
             </reports>
@@ -442,22 +498,45 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-javadoc-plugin</artifactId>
-        <version>2.9</version>
+        <version>2.10.4</version>
         <configuration>
           <additionalparam>-Xdoclint:none</additionalparam>
           <encoding>utf-8</encoding>
           <charset>utf-8</charset>
         </configuration>
+        <reportSets>
+          <reportSet>
+            <id>aggregate</id>
+            <inherited>false</inherited>
+            <reports>
+              <report>aggregate</report>
+            </reports>
+          </reportSet>
+        </reportSets>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jxr-plugin</artifactId>
+        <version>2.3</version>
+        <reportSets>
+          <reportSet>
+            <id>aggregate</id>
+            <inherited>false</inherited>
+            <reports>
+              <report>aggregate</report>
+            </reports>
+          </reportSet>
+        </reportSets>
       </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-project-info-reports-plugin</artifactId>
-        <version>2.7</version>
+        <version>2.9</version>
       </plugin>
     </plugins>
   </reporting>
-
   <repositories>
+    <!--
     <repository>
       <id>de.micromata.nexus.public</id>
       <name>Micromata Nexus
@@ -472,6 +551,7 @@
       </name>
       <url>https://repo.micromata.de/nexus/content/groups/public-snapshots</url>
     </repository>
+    -->
     <repository>
       <id>MGC</id>
       <name>Micromata Labs MGC</name>
@@ -485,5 +565,4 @@
       <url>https://labs.micromata.de/nexus/content/repositories/MGC-snapshot/</url>
     </repository>
   </repositories>
-
 </project>
