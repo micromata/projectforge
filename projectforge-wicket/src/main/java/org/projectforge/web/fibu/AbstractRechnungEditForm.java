@@ -601,8 +601,6 @@ public abstract class AbstractRechnungEditForm<O extends AbstractRechnungDO<T>, 
             {
               return CurrencyFormatter.format(position.getNetSum());
             }
-
-            ;
           });
           ajaxUpdatePositionComponents.add(netTextPanel.getLabel4Ajax());
           fieldset.add(netTextPanel);
@@ -620,8 +618,6 @@ public abstract class AbstractRechnungEditForm<O extends AbstractRechnungDO<T>, 
             {
               return CurrencyFormatter.format(position.getVatAmount());
             }
-
-            ;
           });
           fieldset.add(vatTextPanel);
           ajaxUpdatePositionComponents.add(vatTextPanel.getLabel4Ajax());
@@ -639,8 +635,6 @@ public abstract class AbstractRechnungEditForm<O extends AbstractRechnungDO<T>, 
             {
               return CurrencyFormatter.format(position.getBruttoSum());
             }
-
-            ;
           });
           fieldset.add(grossTextPanel);
           ajaxUpdatePositionComponents.add(grossTextPanel.getLabel4Ajax());
@@ -822,8 +816,7 @@ public abstract class AbstractRechnungEditForm<O extends AbstractRechnungDO<T>, 
     {
       // Copy edited values to DO object.
       final AbstractRechnungsPositionDO srcPosition = rechnungCostEditTablePanel.getPosition();
-      final KostZuweisungenCopyHelper kostZuweisungCopyHelper = new KostZuweisungenCopyHelper();
-      kostZuweisungCopyHelper.mycopy(srcPosition.getKostZuweisungen(), position.getKostZuweisungen(), position);
+      KostZuweisungenCopyHelper.copy(srcPosition.getKostZuweisungen(), position);
       target.add(costTable.refresh().getTable());
       return super.onCloseButtonSubmit(target);
     }

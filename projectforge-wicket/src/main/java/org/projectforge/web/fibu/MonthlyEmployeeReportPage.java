@@ -188,7 +188,7 @@ public class MonthlyEmployeeReportPage extends AbstractStandardFormPage implemen
         }
       }));
     }
-    gridBuilder.newSplitPanel(GridSize.COL66);
+    gridBuilder.newSplitPanel(GridSize.COL50);
     {
       final FieldsetPanel fs = new FieldsetPanel(gridBuilder.getPanel(), getString("fibu.common.workingDays"),
           getString("fibu.monthlyEmployeeReport.withoutTimesheets"))
@@ -214,7 +214,7 @@ public class MonthlyEmployeeReportPage extends AbstractStandardFormPage implemen
         }
       }, TextStyle.RED));
     }
-    gridBuilder.newSplitPanel(GridSize.COL33);
+    gridBuilder.newSplitPanel(GridSize.COL25);
     {
       final FieldsetPanel fs = new FieldsetPanel(gridBuilder.getPanel(), getString("vacation.annualleave"))
       {
@@ -237,6 +237,32 @@ public class MonthlyEmployeeReportPage extends AbstractStandardFormPage implemen
         public String getObject()
         {
           return report.getFormattedVacationCount();
+        }
+      }));
+    }
+    gridBuilder.newSplitPanel(GridSize.COL25);
+    {
+      final FieldsetPanel fs = new FieldsetPanel(gridBuilder.getPanel(), getString("vacation.plandannualleave"))
+      {
+        /**
+         * @see org.apache.wicket.Component#isVisible()
+         */
+        @Override
+        public boolean isVisible()
+        {
+          return report != null && StringUtils.isNotBlank(report.getFormattedVacationPlandCount()) && vacationService.couldUserUseVacationService(
+              ThreadLocalUserContext.getUser(), false);
+        }
+      }.suppressLabelForWarning();
+      fs.add(new DivTextPanel(fs.newChildId(), new Model<String>()
+      {
+        /**
+         * @see org.apache.wicket.model.Model#getObject()
+         */
+        @Override
+        public String getObject()
+        {
+          return report.getFormattedVacationPlandCount();
         }
       }));
     }
@@ -482,6 +508,7 @@ public class MonthlyEmployeeReportPage extends AbstractStandardFormPage implemen
     data.put("totalSumLabel", getString("fibu.monthlyEmployeeReport.totalSum"));
     data.put("vacationAvailabel", vacationService.couldUserUseVacationService(form.filter.getUser(), false));
     data.put("vacationCountLabel", getString("vacation.annualleave"));
+    data.put("vacationPlandCountLabel", getString("vacation.plandannualleave"));
     data.put("report", report);
     data.put("signatureEmployeeLabel", getString("timesheet.signatureEmployee") + ": " + employee.getFullname());
     data.put("signatureProjectLeaderLabel", getString("timesheet.signatureProjectLeader"));

@@ -122,6 +122,39 @@ public class DatabaseCoreUpdates
     final List<UpdateEntry> list = new ArrayList<>();
 
     ////////////////////////////////////////////////////////////////////
+    // 6.10.0
+    // /////////////////////////////////////////////////////////////////
+    list.add(new UpdateEntryImpl(CORE_REGION_ID, "6.10.0", "2017-04-11",
+        "Add column position_number to table T_FIBU_PAYMENT_SCHEDULE, Add discounts and konto informations.")
+    {
+      @Override
+      public UpdatePreCheckStatus runPreCheck()
+      {
+        log.info("Running pre-check for ProjectForge version 6.10.0");
+        if (databaseUpdateService.doesTableAttributeExist("T_FIBU_PAYMENT_SCHEDULE", "position_number") == false
+            || databaseUpdateService.doesTableAttributeExist("t_fibu_eingangsrechnung", "discountmaturity") == false
+            || databaseUpdateService.doesTableAttributeExist("t_fibu_rechnung", "discountmaturity") == false
+            || databaseUpdateService.doesTableAttributeExist("t_fibu_eingangsrechnung", "customernr") == false) {
+          return UpdatePreCheckStatus.READY_FOR_UPDATE;
+        }
+        return UpdatePreCheckStatus.ALREADY_UPDATED;
+      }
+
+      @Override
+      public UpdateRunningStatus runUpdate()
+      {
+        if (databaseUpdateService.doesTableAttributeExist("T_FIBU_PAYMENT_SCHEDULE", "position_number") == false
+            || databaseUpdateService.doesTableAttributeExist("t_fibu_eingangsrechnung", "discountmaturity") == false
+            || databaseUpdateService.doesTableAttributeExist("t_fibu_rechnung", "discountmaturity") == false
+            || databaseUpdateService.doesTableAttributeExist("t_fibu_eingangsrechnung", "customernr") == false) {
+          initDatabaseDao.updateSchema();
+        }
+        return UpdateRunningStatus.DONE;
+      }
+
+    });
+
+    ////////////////////////////////////////////////////////////////////
     // 6.9.0
     // /////////////////////////////////////////////////////////////////
     list.add(new UpdateEntryImpl(CORE_REGION_ID, "6.9.0", "2017-03-15",
