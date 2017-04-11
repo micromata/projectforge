@@ -23,6 +23,7 @@
 
 package org.projectforge.business.fibu;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
@@ -31,6 +32,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -544,6 +546,29 @@ public class AuftragDao extends BaseDao<AuftragDO>
         }
       }
     }
+    validateAmountsInPaymentScheduleNotGreaterThanNetSumOfPosition(obj);
+  }
+
+  void validateAmountsInPaymentScheduleNotGreaterThanNetSumOfPosition(final AuftragDO auftrag)
+  {
+    final List<PaymentScheduleDO> paymentSchedules = auftrag.getPaymentSchedules();
+    if (paymentSchedules == null) {
+      // if there are no payment schedules, there are no amounts which can be greater -> validation OK
+      return;
+    }
+
+    for (final AuftragsPositionDO pos : auftrag.getPositionenNotDeleted()) {
+      final BigDecimal sumOfAmountsForCurrentPosition = paymentSchedules.stream()
+          .filter(payment -> payment.getPositionNumber() == pos.getNumber())
+          .map(PaymentScheduleDO::getAmount)
+          .filter(Objects::nonNull)
+          .reduce(BigDecimal.ZERO, BigDecimal::add); // sum
+
+      final BigDecimal netSum = pos.getNettoSumme();
+      if (netSum != null && sumOfAmountsForCurrentPosition.compareTo(netSum) > 0) {
+        throw new UserException("fibu.auftrag.error.amountsInPaymentScheduleAreGreaterThanNetSumOfPosition", pos.getNumber());
+      }
+    }
   }
 
   @Override
@@ -587,6 +612,7 @@ public class AuftragDao extends BaseDao<AuftragDO>
    * @param operationType
    * @return
    */
+
   public boolean sendNotificationIfRequired(final AuftragDO auftrag, final OperationType operationType,
       final String requestUrl)
   {

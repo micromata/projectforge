@@ -205,7 +205,6 @@ public class AuftragEditForm extends AbstractEditForm<AuftragDO, AuftragEditPage
       String orderInvoiceInfo = I18nHelper.getLocalizedMessage("fibu.auftrag.invoice.info", CurrencyFormatter.format(data.getFakturiertSum()),
           CurrencyFormatter.format(data.getZuFakturierenSum()));
       fs.add(new DivTextPanel(fs.newChildId(), orderInvoiceInfo));
-      ;
     }
     gridBuilder.newGridPanel();
     {
@@ -414,10 +413,8 @@ public class AuftragEditForm extends AbstractEditForm<AuftragDO, AuftragEditPage
       gridBuilder.getPanel().add(schedulesPanel);
       final GridBuilder innerGridBuilder = schedulesPanel.createGridBuilder();
       final DivPanel dp = innerGridBuilder.getPanel();
-      dp.add(paymentSchedulePanel = new PaymentSchedulePanel(dp.newChildId(),
-          new CompoundPropertyModel<AuftragDO>(data), getUser()));
-      paymentSchedulePanel
-          .setVisible(data.getPaymentSchedules() != null && data.getPaymentSchedules().isEmpty() == false);
+      dp.add(paymentSchedulePanel = new PaymentSchedulePanel(dp.newChildId(), new CompoundPropertyModel<AuftragDO>(data), getUser()));
+      paymentSchedulePanel.setVisible(data.getPaymentSchedules() != null && data.getPaymentSchedules().isEmpty() == false);
       final Button addPositionButton = new Button(SingleButtonPanel.WICKET_ID)
       {
         @Override
@@ -428,9 +425,8 @@ public class AuftragEditForm extends AbstractEditForm<AuftragDO, AuftragEditPage
           paymentSchedulePanel.setVisible(true);
         }
       };
-      final SingleButtonPanel addPositionButtonPanel = new SingleButtonPanel(dp.newChildId(), addPositionButton,
-          getString("add"));
-      addPositionButtonPanel.setTooltip(getString("fibu.auftrag.tooltip.addPosition"));
+      final SingleButtonPanel addPositionButtonPanel = new SingleButtonPanel(dp.newChildId(), addPositionButton, getString("add"));
+      addPositionButtonPanel.setTooltip(getString("fibu.auftrag.tooltip.addPaymentschedule"));
       dp.add(addPositionButtonPanel);
     }
     gridBuilder.newSplitPanel(GridSize.COL50);
@@ -449,7 +445,7 @@ public class AuftragEditForm extends AbstractEditForm<AuftragDO, AuftragEditPage
     // positions
     gridBuilder.newGridPanel();
     positionsRepeater = gridBuilder.newRepeatingView();
-    refresh();
+    refreshPositions();
     if (getBaseDao().hasInsertAccess(getUser()) == true) {
       final DivPanel panel = gridBuilder.newGridPanel().getPanel();
       final Button addPositionButton = new Button(SingleButtonPanel.WICKET_ID)
@@ -458,7 +454,8 @@ public class AuftragEditForm extends AbstractEditForm<AuftragDO, AuftragEditPage
         public final void onSubmit()
         {
           getData().addPosition(new AuftragsPositionDO());
-          refresh();
+          refreshPositions();
+          paymentSchedulePanel.rebuildEntries();
         }
       };
       final SingleButtonPanel addPositionButtonPanel = new SingleButtonPanel(panel.newChildId(), addPositionButton,
@@ -551,7 +548,7 @@ public class AuftragEditForm extends AbstractEditForm<AuftragDO, AuftragEditPage
   }
 
   @SuppressWarnings("serial")
-  void refresh()
+  private void refreshPositions()
   {
     positionsRepeater.removeAll();
     performanceChoices.clear();
@@ -844,7 +841,8 @@ public class AuftragEditForm extends AbstractEditForm<AuftragDO, AuftragEditPage
           public final void onSubmit()
           {
             position.setDeleted(true);
-            refresh();
+            refreshPositions();
+            paymentSchedulePanel.rebuildEntries();
           }
         };
         removePositionButton.add(AttributeModifier.append("class", ButtonType.DELETE.getClassAttrValue()));
