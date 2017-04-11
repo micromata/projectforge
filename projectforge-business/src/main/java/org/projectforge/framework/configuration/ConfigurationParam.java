@@ -50,15 +50,18 @@ public enum ConfigurationParam implements IConfigurationParam
   PLUGIN_ACTIVATED("pluginsActivated", ConfigurationType.STRING, true), //
   HR_MAILADDRESS("hr.emailaddress", ConfigurationType.STRING, true),//
   VACATION_CAL_ID("vacation.cal.id", ConfigurationType.CALENDAR, true),//
-  END_DATE_VACATION_LASTR_YEAR("vacation.lastyear.enddate", ConfigurationType.STRING, true, "31.03.");
+  END_DATE_VACATION_LASTR_YEAR("vacation.lastyear.enddate", ConfigurationType.STRING, true, "31.03."),
+  MIN_PASSWORD_LENGTH("minPasswordLength", ConfigurationType.INTEGER, true, 10);
 
-  private String key;
+  private final String key;
 
-  private ConfigurationType type;
+  private final ConfigurationType type;
 
-  private String defaultStringValue;
+  private final String defaultStringValue;
 
-  private boolean global;
+  private final int defaultIntValue;
+
+  private final boolean global;
 
   /**
    * The key will be used e. g. for i18n.
@@ -92,6 +95,12 @@ public enum ConfigurationParam implements IConfigurationParam
     return defaultStringValue;
   }
 
+  @Override
+  public int getDefaultIntValue()
+  {
+    return defaultIntValue;
+  }
+
   /**
    * @return The full i18n key including the i18n prefix "administration.configuration.param." and the suffix
    * ".description".
@@ -117,12 +126,22 @@ public enum ConfigurationParam implements IConfigurationParam
     this(key, type, global, null);
   }
 
-  ConfigurationParam(final String key, final ConfigurationType type, final boolean global,
-      final String defaultStringValue)
+  ConfigurationParam(final String key, final ConfigurationType type, final boolean global, final String defaultStringValue)
+  {
+    this(key, type, global, defaultStringValue, 0);
+  }
+
+  ConfigurationParam(final String key, final ConfigurationType type, final boolean global, final int defaultIntValue)
+  {
+    this(key, type, global, null, defaultIntValue);
+  }
+
+  ConfigurationParam(final String key, final ConfigurationType type, final boolean global, final String defaultStringValue, final int defaultIntValue)
   {
     this.key = key;
     this.type = type;
     this.global = global;
     this.defaultStringValue = defaultStringValue;
+    this.defaultIntValue = defaultIntValue;
   }
 }

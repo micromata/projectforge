@@ -2,15 +2,14 @@ package org.projectforge.framework.configuration;
 
 /**
  * Configuration names.
- * 
- * @author Roger Rene Kommer (r.kommer.extern@micromata.de)
  *
+ * @author Roger Rene Kommer (r.kommer.extern@micromata.de)
  */
 public interface IConfigurationParam
 {
   /**
    * key used in DB, etc.
-   * 
+   *
    * @return
    */
   String getKey();
@@ -24,11 +23,13 @@ public interface IConfigurationParam
 
   /**
    * @return The full i18n key including the i18n prefix "administration.configuration.param." and the suffix
-   *         ".description".
+   * ".description".
    */
   String getDescriptionI18nKey();
 
   boolean isGlobal();
 
   String getDefaultStringValue();
+
+  int getDefaultIntValue();
 }
