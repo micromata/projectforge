@@ -15,7 +15,7 @@ import java.util.Map;
 
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.IChoiceRenderer;
-import org.projectforge.business.user.I18nHelper;
+import org.projectforge.framework.i18n.I18nHelper;
 import org.projectforge.web.wicket.flowlayout.ComponentWrapperPanel;
 import org.projectforge.web.wicket.flowlayout.DropDownChoicePanel;
 

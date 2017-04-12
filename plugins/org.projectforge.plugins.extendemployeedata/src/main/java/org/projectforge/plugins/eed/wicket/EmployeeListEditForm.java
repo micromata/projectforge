@@ -12,7 +12,7 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.fibu.EmployeeFilter;
-import org.projectforge.business.user.I18nHelper;
+import org.projectforge.framework.i18n.I18nHelper;
 import org.projectforge.plugins.eed.ExtendEmployeeDataEnum;
 import org.projectforge.plugins.eed.service.EEDHelper;
 import org.projectforge.web.wicket.AbstractListForm;

@@ -28,10 +28,10 @@ import java.util.TimeZone;
 
 import org.apache.commons.lang.ObjectUtils;
 import org.joda.time.DateTimeZone;
-import org.projectforge.business.user.I18nHelper;
 import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.framework.configuration.ConfigXml;
 import org.projectforge.framework.configuration.Configuration;
+import org.projectforge.framework.i18n.I18nHelper;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.time.DateHelper;
 

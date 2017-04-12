@@ -5,7 +5,7 @@ import java.math.BigDecimal;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.form.validation.IFormValidator;
-import org.projectforge.business.user.I18nHelper;
+import org.projectforge.framework.i18n.I18nHelper;
 import org.projectforge.web.wicket.components.MinMaxNumberField;
 
 public class EmployeeVacationFormValidator implements IFormValidator

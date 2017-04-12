@@ -26,8 +26,8 @@ package org.projectforge.plugins.skillmatrix;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.fail;
 
-import org.projectforge.business.user.I18nHelper;
 import org.projectforge.framework.access.AccessException;
+import org.projectforge.framework.i18n.I18nHelper;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.plugins.core.PluginAdminService;
 import org.projectforge.test.AbstractTestBase;
@@ -49,6 +49,7 @@ public class SkillDaoTestFork extends AbstractTestBase
 
   private Integer skillId;
 
+  @Override
   @BeforeClass
   public void setUp()
   {

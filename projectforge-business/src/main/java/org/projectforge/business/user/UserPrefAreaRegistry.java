@@ -32,6 +32,7 @@ import java.util.Locale;
 import java.util.Set;
 
 import org.projectforge.common.StringHelper;
+import org.projectforge.framework.i18n.I18nHelper;
 import org.projectforge.framework.persistence.user.api.UserPrefArea;
 
 /**

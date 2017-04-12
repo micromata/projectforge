@@ -21,7 +21,7 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.business.user;
+package org.projectforge.framework.i18n;
 
 import java.text.MessageFormat;
 import java.util.HashSet;
@@ -32,7 +32,6 @@ import java.util.ResourceBundle;
 import java.util.Set;
 
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
-import org.projectforge.web.i18n.I18NService;
 
 /**
  * ThreadLocal context.
@@ -45,7 +44,7 @@ public class I18nHelper
 
   private static final Set<String> BUNDLE_NAMES = new HashSet<>();
 
-  private static I18NService i18NService;
+  private static I18nService i18nService;
 
   public static void addBundleName(String bundleName)
   {
@@ -57,14 +56,14 @@ public class I18nHelper
     return BUNDLE_NAMES;
   }
 
-  public static I18NService getI18NService()
+  public static I18nService getI18nService()
   {
-    return i18NService;
+    return i18nService;
   }
 
-  public static void setI18NService(final I18NService i18NService)
+  public static void setI18nService(final I18nService i18nService)
   {
-    I18nHelper.i18NService = i18NService;
+    I18nHelper.i18nService = i18nService;
   }
 
   public static String getLocalizedMessage(final String i18nKey, final Object... params)
@@ -104,7 +103,7 @@ public class I18nHelper
       if (bundle.containsKey(i18nKey)) {
         return bundle.getString(i18nKey);
       } else {
-        return i18NService.getAdditionalString(i18nKey, locale);
+        return i18nService.getAdditionalString(i18nKey, locale);
       }
     } catch (final Exception ex) {
       log.warn("Resource key '" + i18nKey + "' not found for locale '" + locale + "'");

@@ -7,7 +7,7 @@ import org.apache.wicket.validation.IValidatable;
 import org.apache.wicket.validation.IValidator;
 import org.apache.wicket.validation.ValidationError;
 import org.projectforge.business.teamcal.event.model.TeamEventAttendeeDO;
-import org.projectforge.business.user.I18nHelper;
+import org.projectforge.framework.i18n.I18nHelper;
 
 public class TeamEventAttendeeValidator implements IValidator<Collection<TeamEventAttendeeDO>>
 {

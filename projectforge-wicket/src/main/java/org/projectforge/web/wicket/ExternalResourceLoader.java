@@ -4,13 +4,13 @@ import java.util.Locale;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.resource.loader.IStringResourceLoader;
-import org.projectforge.business.user.I18nHelper;
+import org.projectforge.framework.i18n.I18nHelper;
 
 public class ExternalResourceLoader implements IStringResourceLoader
 {
   private String findResource(Locale locale, String key)
   {
-    return I18nHelper.getI18NService().getAdditionalString(key, locale);
+    return I18nHelper.getI18nService().getAdditionalString(key, locale);
   }
 
   @Override

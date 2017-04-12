@@ -1,4 +1,4 @@
-package org.projectforge.web.i18n;
+package org.projectforge.framework.i18n;
 
 import java.io.File;
 import java.net.MalformedURLException;
@@ -16,14 +16,13 @@ import javax.annotation.PostConstruct;
 
 import org.projectforge.Const;
 import org.projectforge.business.configuration.ConfigurationService;
-import org.projectforge.business.user.I18nHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import de.micromata.genome.util.types.Pair;
 
 @Service
-public class I18NServiceImpl implements I18NService
+public class I18nServiceImpl implements I18nService
 {
   @Autowired
   private ConfigurationService configurationService;
@@ -35,7 +34,7 @@ public class I18NServiceImpl implements I18NService
   @PostConstruct
   public void init()
   {
-    I18nHelper.setI18NService(this);
+    I18nHelper.setI18nService(this);
     loadResourceBundles();
   }
 
