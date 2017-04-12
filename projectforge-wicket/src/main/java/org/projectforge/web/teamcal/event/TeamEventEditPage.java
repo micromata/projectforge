@@ -280,6 +280,20 @@ public class TeamEventEditPage extends AbstractEditPage<TeamEventDO, TeamEventEd
    * @see org.projectforge.web.wicket.AbstractEditPage#onDelete()
    */
   @Override
+  public AbstractSecuredBasePage onUndelete()
+  {
+    super.onUndelete();
+    if (getData().getAttendees() != null && getData().getAttendees().size() > 0) {
+      teamEventService.sendTeamEventToAttendees(getData(), false, true, false, null);
+    }
+    getBaseDao().undelete(getData());
+    return (AbstractSecuredBasePage) getReturnToPage();
+  }
+
+  /**
+   * @see org.projectforge.web.wicket.AbstractEditPage#onDelete()
+   */
+  @Override
   public AbstractSecuredBasePage onDelete()
   {
     super.onDelete();
