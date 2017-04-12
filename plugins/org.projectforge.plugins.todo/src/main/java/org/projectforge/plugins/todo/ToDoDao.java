@@ -59,9 +59,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 /**
- *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- *
  */
 @Repository
 public class ToDoDao extends BaseDao<ToDoDO>
@@ -167,7 +165,7 @@ public class ToDoDao extends BaseDao<ToDoDO>
 
   /**
    * Sends an e-mail to the projekt manager if exists and is not equals to the logged in user.
-   * 
+   *
    * @param todo
    * @param operationType
    * @return
@@ -225,10 +223,10 @@ public class ToDoDao extends BaseDao<ToDoDO>
     final StringBuffer subject = new StringBuffer();
     final ToDoStatus status = toDo.getStatus();
     if (status != null && status != ToDoStatus.OPENED) {
-      subject.append("[").append(I18nHelper.getLocalizedString(locale, "plugins.todo.status")).append(": ")
-          .append(I18nHelper.getLocalizedString(locale, status.getI18nKey())).append("] ");
+      subject.append("[").append(I18nHelper.getLocalizedMessage(locale, "plugins.todo.status")).append(": ")
+          .append(I18nHelper.getLocalizedMessage(locale, status.getI18nKey())).append("] ");
     }
-    subject.append(I18nHelper.getLocalizedString(locale, "plugins.todo.todo")).append(": ");
+    subject.append(I18nHelper.getLocalizedMessage(locale, "plugins.todo.todo")).append(": ");
     subject.append(toDo.getSubject());
     msg.setProjectForgeSubject(subject.toString());
     final String content = sendMail.renderGroovyTemplate(msg, "mail/todoChangeNotification.html", data, recipient);
@@ -294,7 +292,7 @@ public class ToDoDao extends BaseDao<ToDoDO>
    * Get the number of open to-do entries for the given user. Entries are open (in this context) when they're not
    * deleted or closed. <br/>
    * The result is cached (therefore you can call this method very often).
-   * 
+   *
    * @param userId If null then the current logged in user is assumed.
    * @return Number of open to-do entries.
    */
@@ -308,7 +306,7 @@ public class ToDoDao extends BaseDao<ToDoDO>
 
   /**
    * Called by ToDoCache to get the number of open entries for the given users.
-   * 
+   *
    * @param userId
    * @return Number of open to-do entries.
    */

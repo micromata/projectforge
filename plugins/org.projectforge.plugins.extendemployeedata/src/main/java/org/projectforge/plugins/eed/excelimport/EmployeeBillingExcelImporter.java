@@ -82,10 +82,10 @@ public class EmployeeBillingExcelImporter
     // mapping from excel column name to the bean field name
     final Map<String, String> map = new HashMap<>();
     map.put("Id", "id");
-    map.put(I18nHelper.getLocalizedString("fibu.employee.user"), "fullName");
+    map.put(I18nHelper.getLocalizedMessage("fibu.employee.user"), "fullName");
 
     ExtendEmployeeDataEnum.getAllAttrColumnDescriptions().forEach(
-        desc -> map.put(I18nHelper.getLocalizedString(desc.getI18nKey()), desc.getCombinedName()));
+        desc -> map.put(I18nHelper.getLocalizedMessage(desc.getI18nKey()), desc.getCombinedName()));
     importer.setColumnMapping(map);
 
     final List<AttrColumnDescription> attrColumnsInSheet = getAttrColumnsUsedInSheet(importer);
@@ -105,7 +105,7 @@ public class EmployeeBillingExcelImporter
     return ExtendEmployeeDataEnum
         .getAllAttrColumnDescriptions()
         .stream()
-        .filter(desc -> columnNames.contains(I18nHelper.getLocalizedString(desc.getI18nKey())))
+        .filter(desc -> columnNames.contains(I18nHelper.getLocalizedMessage(desc.getI18nKey())))
         .collect(Collectors.toList());
   }
 

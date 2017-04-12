@@ -27,6 +27,7 @@ import java.text.MessageFormat;
 import java.util.HashSet;
 import java.util.Locale;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.Set;
 
@@ -40,10 +41,11 @@ import org.projectforge.web.i18n.I18NService;
  */
 public class I18nHelper
 {
-  public static final Set<String> BUNDLE_NAMES = new HashSet<>();
   private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(I18nHelper.class);
 
-  public static I18NService i18NService;
+  private static final Set<String> BUNDLE_NAMES = new HashSet<>();
+
+  private static I18NService i18NService;
 
   public static void addBundleName(String bundleName)
   {
@@ -55,85 +57,71 @@ public class I18nHelper
     return BUNDLE_NAMES;
   }
 
-  /**
-   * Use-ful for using the locale of another user (e. g. the receiver of an e-mail).
-   *
-   * @param locale If null, then the context user's locale is assumed.
-   * @return
-   */
-  private static ResourceBundle getResourceBundle(final String bundleName, final Locale locale)
+  public static I18NService getI18NService()
   {
-    final ResourceBundle resourceBundle = locale != null ? ResourceBundle.getBundle(bundleName, locale) : ResourceBundle
-        .getBundle(bundleName);
-    return resourceBundle;
+    return i18NService;
   }
 
-  public static String getLocalizedMessage(final Locale locale, final String messageKey, final Object... params)
+  public static void setI18NService(final I18NService i18NService)
   {
-    if (params == null) {
-      return getLocalizedString(locale, messageKey);
+    I18nHelper.i18NService = i18NService;
+  }
+
+  public static String getLocalizedMessage(final String i18nKey, final Object... params)
+  {
+    return getLocalizedMessage(ThreadLocalUserContext.getLocale(), i18nKey, params);
+  }
+
+  public static String getLocalizedMessage(final Locale locale, final String i18nKey, final Object... params)
+  {
+    final String localized = getLocalizedString(locale, i18nKey);
+    return (params == null || params.length == 0)
+        ? localized
+        : MessageFormat.format(localized, params);
+  }
+
+  private static String getLocalizedString(final Locale locale, final String i18nKey)
+  {
+    try {
+      final Optional<String> translation = BUNDLE_NAMES.stream()
+          .map(bundleName -> getLocalizedString(bundleName, locale, i18nKey))
+          .filter(Objects::nonNull)
+          .findFirst();
+
+      if (translation.isPresent()) {
+        return translation.get();
+      }
+    } catch (final Exception ex) { // MissingResourceException or NullpointerException
+      log.warn("Resource key '" + i18nKey + "' not found for locale '" + locale + "'");
     }
-    return MessageFormat.format(getLocalizedString(locale, messageKey), params);
+    return "???" + i18nKey + "???";
   }
 
-  private static String getLocalizedString(final String bundleName, final Locale locale, final String key)
+  private static String getLocalizedString(final String bundleName, final Locale locale, final String i18nKey)
   {
     try {
       final ResourceBundle bundle = getResourceBundle(bundleName, locale);
-      if (bundle.containsKey(key) == true) {
-        return bundle.getString(key);
+      if (bundle.containsKey(i18nKey)) {
+        return bundle.getString(i18nKey);
       } else {
-        return i18NService.getAdditionalString(key, locale);
+        return i18NService.getAdditionalString(i18nKey, locale);
       }
     } catch (final Exception ex) {
-      log.warn("Resource key '" + key + "' not found for locale '" + locale + "'");
+      log.warn("Resource key '" + i18nKey + "' not found for locale '" + locale + "'");
     }
     return null;
   }
 
   /**
-   * USE getLocalizedMessage(final String key, final Object... params) instead
-   * 
-   * @param key
-   * @return
+   * Use-ful for using the locale of another user (e. g. the receiver of an e-mail).
+   *
+   * @param locale If null, then the context user's locale is assumed.
    */
-  @Deprecated
-  public static String getLocalizedString(final String key)
+  private static ResourceBundle getResourceBundle(final String bundleName, final Locale locale)
   {
-    return getLocalizedString(ThreadLocalUserContext.getLocale(), key);
-  }
-
-  public static String getLocalizedMessage(final String key, final Object... params)
-  {
-    if (params == null || params.length == 0) {
-      return getLocalizedString(key);
-    }
-    return MessageFormat.format(getLocalizedString(key), params);
-  }
-
-  public static String getLocalizedString(final Locale locale, final String key)
-  {
-    try {
-      //      String translation = null;
-      //      for(String bundleName : BUNDLE_NAMES) {
-      //        translation = getLocalizedString(bundleName, locale, key);
-      //        if (translation != null) {
-      //          return translation;
-      //        }
-      //      }
-      String translation = BUNDLE_NAMES
-          .stream()
-          .map(bundleName -> getLocalizedString(bundleName, locale, key))
-          .filter(Objects::nonNull)
-          .findFirst()
-          .orElse(null);
-      if (translation != null) {
-        return translation;
-      }
-    } catch (final Exception ex) { // MissingResourceException or NullpointerException
-      log.warn("Resource key '" + key + "' not found for locale '" + locale + "'");
-    }
-    return "???" + key + "???";
+    return (locale != null)
+        ? ResourceBundle.getBundle(bundleName, locale)
+        : ResourceBundle.getBundle(bundleName);
   }
 
 }

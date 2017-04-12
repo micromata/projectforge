@@ -48,7 +48,7 @@ public class EmployeeBillingImportForm extends AbstractImportForm<ImportFilter, 
     gridBuilder.newGridPanel();
 
     // Date DropDowns
-    final FieldsetPanel fsMonthYear = gridBuilder.newFieldset(I18nHelper.getLocalizedString("plugins.eed.listcare.yearmonth"));
+    final FieldsetPanel fsMonthYear = gridBuilder.newFieldset(I18nHelper.getLocalizedMessage("plugins.eed.listcare.yearmonth"));
 
     dropDownMonth = new DropDownChoicePanel<>(fsMonthYear.newChildId(),
         new DropDownChoice<>(DropDownChoicePanel.WICKET_ID, new PropertyModel<>(this, "selectedMonth"), EEDHelper.MONTH_INTEGERS)

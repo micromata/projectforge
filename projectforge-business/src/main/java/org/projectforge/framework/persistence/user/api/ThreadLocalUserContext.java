@@ -23,6 +23,9 @@
 
 package org.projectforge.framework.persistence.user.api;
 
+import java.util.Locale;
+import java.util.TimeZone;
+
 import org.apache.commons.lang.ObjectUtils;
 import org.joda.time.DateTimeZone;
 import org.projectforge.business.user.I18nHelper;
@@ -32,12 +35,9 @@ import org.projectforge.framework.configuration.Configuration;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.time.DateHelper;
 
-import java.util.Locale;
-import java.util.TimeZone;
-
 /**
  * ThreadLocal context.
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 public class ThreadLocalUserContext
@@ -70,7 +70,7 @@ public class ThreadLocalUserContext
 
   /**
    * If given user is null, {@link #clear()} is called.
-   * 
+   *
    * @param user
    */
   public final static void setUser(UserGroupCache userGroupCache, final PFUserDO user)
@@ -90,7 +90,7 @@ public class ThreadLocalUserContext
     if (log.isDebugEnabled() == true) {
       log.debug("setUserInfo: " + newUser != null ? newUser.getDisplayUsername()
           : "null" + ", was: " + oldUser != null ? oldUser
-              .getDisplayUsername() : "null");
+          .getDisplayUsername() : "null");
     }
     threadLocalUserContext.set(userContext);
     if (log.isDebugEnabled() == true) {
@@ -123,10 +123,10 @@ public class ThreadLocalUserContext
   /**
    * If context user's locale is null and the given defaultLocale is not null, then the context user's client locale
    * will be set to given defaultLocale.
-   * 
+   *
    * @param defaultLocale will be used, if the context user or his user locale does not exist.
    * @return The locale of the user if exists, otherwise the given default locale or if null the system's default
-   *         locale.
+   * locale.
    * @see #getUser()
    * @see PFUserDO#getLocale()
    */
@@ -178,7 +178,7 @@ public class ThreadLocalUserContext
   /**
    * The first day of the week, configured at the given user, if not configured {@link ConfigXml#getFirstDayOfWeek()} is
    * used.
-   * 
+   *
    * @return
    * @see ConfigXml#getFirstDayOfWeek()
    */
@@ -206,6 +206,6 @@ public class ThreadLocalUserContext
 
   public static String getLocalizedString(final String key)
   {
-    return I18nHelper.getLocalizedString(getLocale(), key);
+    return I18nHelper.getLocalizedMessage(getLocale(), key);
   }
 }

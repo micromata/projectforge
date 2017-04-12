@@ -13,7 +13,6 @@ import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.fibu.EmployeeFilter;
 import org.projectforge.business.user.I18nHelper;
-import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.plugins.eed.ExtendEmployeeDataEnum;
 import org.projectforge.plugins.eed.service.EEDHelper;
 import org.projectforge.web.wicket.AbstractListForm;
@@ -74,7 +73,7 @@ public class EmployeeListEditForm extends AbstractListForm<EmployeeFilter, Emplo
     //Fieldset for Date DropDown
     final FieldsetPanel fsMonthYear = gridBuilder
         .newFieldset(
-            I18nHelper.getLocalizedString(ThreadLocalUserContext.getLocale(), "plugins.eed.listcare.yearmonth"));
+            I18nHelper.getLocalizedMessage("plugins.eed.listcare.yearmonth"));
     //Get actual Month as preselected
     selectedMonth = Calendar.getInstance().get(Calendar.MONTH) + 1;
     //Month DropDown
@@ -92,25 +91,25 @@ public class EmployeeListEditForm extends AbstractListForm<EmployeeFilter, Emplo
 
     //Fieldset for option DropDown
     final FieldsetPanel fsOption = gridBuilder
-        .newFieldset(I18nHelper.getLocalizedString(ThreadLocalUserContext.getLocale(), "plugins.eed.listcare.option"));
+        .newFieldset(I18nHelper.getLocalizedMessage("plugins.eed.listcare.option"));
     //Option DropDown
     final DropDownChoicePanel<ExtendEmployeeDataEnum> ddcOption = new DropDownChoicePanel<>(
         gridBuilder.getPanel().newChildId(),
         new DropDownChoice<>(DropDownChoicePanel.WICKET_ID, new PropertyModel<>(this, "selectedOption"),
             Arrays.asList(ExtendEmployeeDataEnum.values()), new IChoiceRenderer<ExtendEmployeeDataEnum>()
-            {
-              @Override
-              public Object getDisplayValue(ExtendEmployeeDataEnum eede)
-              {
-                return I18nHelper.getLocalizedString(eede.getI18nKeyDropDown());
-              }
+        {
+          @Override
+          public Object getDisplayValue(ExtendEmployeeDataEnum eede)
+          {
+            return I18nHelper.getLocalizedMessage(eede.getI18nKeyDropDown());
+          }
 
-              @Override
-              public String getIdValue(ExtendEmployeeDataEnum eede, int index)
-              {
-                return String.valueOf(index);
-              }
-            }));
+          @Override
+          public String getIdValue(ExtendEmployeeDataEnum eede, int index)
+          {
+            return String.valueOf(index);
+          }
+        }));
     fsOption.add(ddcOption);
 
     //Filter for active employees

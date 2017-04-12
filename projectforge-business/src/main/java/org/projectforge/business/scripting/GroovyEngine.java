@@ -205,7 +205,7 @@ public class GroovyEngine
    */
   public String getI18nString(final String key)
   {
-    return I18nHelper.getLocalizedString(locale, key);
+    return I18nHelper.getLocalizedMessage(locale, key);
   }
 
   /**
@@ -323,7 +323,7 @@ public class GroovyEngine
     if (i18nEnum == null) {
       return "";
     }
-    return I18nHelper.getLocalizedString(locale, i18nEnum.getI18nKey());
+    return I18nHelper.getLocalizedMessage(locale, i18nEnum.getI18nKey());
   }
 
   /**

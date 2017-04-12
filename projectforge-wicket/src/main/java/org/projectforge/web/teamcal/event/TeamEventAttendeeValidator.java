@@ -22,15 +22,15 @@ public class TeamEventAttendeeValidator implements IValidator<Collection<TeamEve
         EmailValidator validator = EmailValidator.getInstance();
         boolean isValid = validator.isValid(attendee.getUrl());
         if (isValid == false) {
-          error(validatable, I18nHelper.getLocalizedString("plugins.teamcal.attendee.email.invalid"));
+          error(validatable, I18nHelper.getLocalizedMessage("plugins.teamcal.attendee.email.invalid"));
         }
       }
     }
   }
 
-  private void error(IValidatable<Collection<TeamEventAttendeeDO>> validatable, String errorKey)
+  private void error(IValidatable<Collection<TeamEventAttendeeDO>> validatable, String message)
   {
-    ValidationError error = new ValidationError(errorKey);
+    ValidationError error = new ValidationError(message);
     validatable.error(error);
   }
 

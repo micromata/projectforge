@@ -188,7 +188,7 @@ public class EmployeeListEditPage extends AbstractListPage<EmployeeListEditForm,
       e.getTimeableAttributes().removeAll(unusedTimeableAttributes);
       employeeService.update(e);
     }
-    info(I18nHelper.getLocalizedString("plugins.eed.listcare.savesucces"));
+    info(I18nHelper.getLocalizedMessage("plugins.eed.listcare.savesucces"));
   }
 
   @Override

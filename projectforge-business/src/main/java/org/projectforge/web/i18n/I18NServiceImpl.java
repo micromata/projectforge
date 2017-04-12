@@ -35,7 +35,7 @@ public class I18NServiceImpl implements I18NService
   @PostConstruct
   public void init()
   {
-    I18nHelper.i18NService = this;
+    I18nHelper.setI18NService(this);
     resourceBundles = new ArrayList<>();
     loadResourceBundles();
   }
@@ -64,7 +64,7 @@ public class I18NServiceImpl implements I18NService
       for (String bundleName : resourceBundles) {
 
         try {
-          if(new File(configurationService.getResourceDir() + File.separator + bundleName + "_" + locale.toString() + ".properties").exists()) {
+          if (new File(configurationService.getResourceDir() + File.separator + bundleName + "_" + locale.toString() + ".properties").exists()) {
             localeResourceBundleMap
                 .put(new Pair<>(locale, bundleName), ResourceBundle.getBundle(bundleName, locale, loader));
           } else {
@@ -109,7 +109,7 @@ public class I18NServiceImpl implements I18NService
         Pair<Locale, String> localeStringPair = new Pair<>(locale, resourceBundle);
         if (localeResourceBundleMap.keySet().contains(localeStringPair) == false) {
           for (Pair<Locale, String> iterationPair : localeResourceBundleMap.keySet()) {
-            if (iterationPair.getKey().equals(Locale.ROOT) ==  false && locale.toString().startsWith(iterationPair.getKey().toString()) == true) {
+            if (iterationPair.getKey().equals(Locale.ROOT) == false && locale.toString().startsWith(iterationPair.getKey().toString()) == true) {
               // replace searched for with nearest candidate e.g. for de_de use de
               localeStringPair = iterationPair;
               break;
@@ -133,6 +133,7 @@ public class I18NServiceImpl implements I18NService
     return null;
   }
 
+  @Override
   public ResourceBundle getResourceBundleFor(String name, Locale locale)
   {
     return localeResourceBundleMap.get(new Pair<>(locale, name));
