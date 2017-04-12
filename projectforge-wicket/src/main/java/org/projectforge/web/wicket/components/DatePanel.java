@@ -37,6 +37,7 @@ import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.validation.IValidatable;
 import org.apache.wicket.validation.IValidator;
 import org.apache.wicket.validation.ValidationError;
+import org.projectforge.Const;
 import org.projectforge.web.wicket.WicketRenderHeadUtils;
 import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.web.wicket.converter.MyDateConverter;
@@ -62,7 +63,7 @@ public class DatePanel extends FormComponentPanel<Date> implements ComponentWrap
 
   private boolean autosubmit;
 
-  private int minYear = 1900, maxYear = 2100;
+  private int minYear = Const.MINYEAR, maxYear = Const.MAXYEAR;
 
   /**
    * @param id
