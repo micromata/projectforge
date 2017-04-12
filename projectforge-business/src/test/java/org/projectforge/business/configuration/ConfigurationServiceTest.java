@@ -20,8 +20,10 @@ public class ConfigurationServiceTest extends AbstractTestBase
   @Test
   public void testGetMinPasswordLength()
   {
+    final int defaultMinPwLen = ConfigurationParam.MIN_PASSWORD_LENGTH.getDefaultIntValue();
+    
     // default
-    assertEquals(10, configurationService.getMinPasswordLength());
+    assertEquals(defaultMinPwLen, configurationService.getMinPasswordLength());
 
     final ConfigurationDO minPwLenEntry = configurationDao.getEntry(ConfigurationParam.MIN_PASSWORD_LENGTH);
     minPwLenEntry.setIntValue(16);
@@ -31,6 +33,6 @@ public class ConfigurationServiceTest extends AbstractTestBase
     // null -> use default
     minPwLenEntry.setIntValue(null);
     configurationDao.internalUpdate(minPwLenEntry);
-    assertEquals(10, configurationService.getMinPasswordLength());
+    assertEquals(defaultMinPwLen, configurationService.getMinPasswordLength());
   }
 }
