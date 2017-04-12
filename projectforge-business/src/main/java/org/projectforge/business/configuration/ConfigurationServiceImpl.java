@@ -646,4 +646,17 @@ public class ConfigurationServiceImpl implements ConfigurationService
     return teamCalCache.getCalendar((Integer) configDao.getValue(ConfigurationParam.VACATION_CAL_ID));
   }
 
+  @Override
+  public int getMinPasswordLength()
+  {
+    final ConfigurationDO minPwLenEntry = configDao.getEntry(ConfigurationParam.MIN_PASSWORD_LENGTH);
+    if (minPwLenEntry != null) {
+      final Integer minPwLenValue = minPwLenEntry.getIntValue();
+      if (minPwLenValue != null) {
+        return minPwLenValue;
+      }
+    }
+    return ConfigurationParam.MIN_PASSWORD_LENGTH.getDefaultIntValue();
+  }
+
 }

@@ -178,6 +178,7 @@ public class UserServiceImpl implements UserService
    * @return The decrypted string.
    * @see Crypt#decrypt(String, String)
    */
+  @Override
   public String decrypt(final Integer userId, final String encryptedString)
   {
     // final PFUserDO user = userCache.getUser(userId); // for faster access (due to permanent usage e. g. by subscription of calendars
@@ -208,6 +209,7 @@ public class UserServiceImpl implements UserService
    * @return
    * @see #encrypt(Integer, String)
    */
+  @Override
   public String encrypt(final String data)
   {
     return encrypt(ThreadLocalUserContext.getUserId(), data);
@@ -233,6 +235,7 @@ public class UserServiceImpl implements UserService
    * @param password as clear text.
    * @see Crypt#digest(String)
    */
+  @Override
   public void createEncryptedPassword(final PFUserDO user, final String password)
   {
     final String saltString = createSaltString();
@@ -255,6 +258,7 @@ public class UserServiceImpl implements UserService
    * @param newPassword
    * @return Error message key if any check failed or null, if successfully changed.
    */
+  @Override
   @Transactional(readOnly = false, propagation = Propagation.REQUIRED)
   public String changePassword(PFUserDO user, final String oldPassword, final String newPassword)
   {
@@ -285,6 +289,7 @@ public class UserServiceImpl implements UserService
    * @param newWlanPassword
    * @return Error message key if any check failed or null, if successfully changed.
    */
+  @Override
   @Transactional(readOnly = false, propagation = Propagation.REQUIRED)
   public String changeWlanPassword(PFUserDO user, final String loginPassword, final String newWlanPassword)
   {
@@ -310,17 +315,19 @@ public class UserServiceImpl implements UserService
   }
 
   /**
-   * Checks the password quality of a new password. Password must have at least 6 characters and at minimum one letter
+   * Checks the password quality of a new password. Password must have at least n characters and at minimum one letter
    * and one non-letter character.
    *
    * @param newPassword
    * @return null if password quality is OK, otherwise the i18n message key of the password check failure.
    */
+  @Override
   public String checkPasswordQuality(final String newPassword)
   {
     boolean letter = false;
     boolean nonLetter = false;
-    if (newPassword == null || newPassword.length() < 6) {
+    final int minPasswordLength = configurationService.getMinPasswordLength();
+    if (newPassword == null || newPassword.length() < minPasswordLength) {
       return Const.MESSAGE_KEY_PASSWORD_QUALITY_CHECK;
     }
     for (int i = 0; i < newPassword.length(); i++) {
@@ -403,6 +410,7 @@ public class UserServiceImpl implements UserService
    * @param password as clear text.
    * @return true if the password matches the user's password.
    */
+  @Override
   public PasswordCheckResult checkPassword(final PFUserDO user, final String password)
   {
     if (user == null) {
@@ -452,6 +460,7 @@ public class UserServiceImpl implements UserService
    * @param userId
    * @return
    */
+  @Override
   @Transactional(readOnly = false, propagation = Propagation.REQUIRED)
   public String getStayLoggedInKey(final Integer userId)
   {
@@ -466,6 +475,7 @@ public class UserServiceImpl implements UserService
   /**
    * Renews the user's stay-logged-in key (random string sequence).
    */
+  @Override
   @Transactional(readOnly = false, propagation = Propagation.REQUIRED)
   public void renewStayLoggedInKey(final Integer userId)
   {
@@ -486,6 +496,7 @@ public class UserServiceImpl implements UserService
    * @param encryptedPassword
    * @return
    */
+  @Override
   public PFUserDO authenticateUser(final String username, final String password)
   {
     Validate.notNull(username);
@@ -591,6 +602,7 @@ public class UserServiceImpl implements UserService
     return null;
   }
 
+  @Override
   public String[] getPersonalPhoneIdentifiers(final PFUserDO user)
   {
     final String[] tokens = StringUtils.split(user.getPersonalPhoneIdentifiers(), ", ;|");
