@@ -79,6 +79,8 @@ import org.projectforge.common.StringHelper;
 import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.configuration.ApplicationContextProvider;
 import org.projectforge.framework.configuration.Configuration;
+import org.projectforge.framework.i18n.I18nHelper;
+import org.projectforge.framework.i18n.I18nKeyAndParams;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.GroupDO;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
@@ -863,9 +865,10 @@ public class UserEditForm extends AbstractEditForm<PFUserDO, UserEditPage>
         return;
       }
       if (passwordUser == null) {
-        final String errorMsgKey = userService.checkPasswordQuality(passwordInput);
+        final I18nKeyAndParams errorMsgKey = userService.checkPasswordQuality(passwordInput);
         if (errorMsgKey != null) {
-          validatable.error(new ValidationError().addKey(errorMsgKey));
+          final String localizedMessage = I18nHelper.getLocalizedMessage(errorMsgKey);
+          validatable.error(new ValidationError().setMessage(localizedMessage));
         } else {
           passwordUser = new PFUserDO();
           userService.createEncryptedPassword(passwordUser, passwordInput);
@@ -877,7 +880,7 @@ public class UserEditForm extends AbstractEditForm<PFUserDO, UserEditPage>
     WicketUtils.setPercentSize(passwordRepeatField, 50);
     fs.add(passwordField);
     fs.add(passwordRepeatField);
-    fs.addHelpIcon(getString(Const.MESSAGE_KEY_PASSWORD_QUALITY_CHECK));
+    fs.addHelpIcon(I18nHelper.getLocalizedMessage(userService.getPasswordQualityI18nKeyAndParams()));
   }
 
   private void addWlanPasswordFields()
@@ -929,9 +932,10 @@ public class UserEditForm extends AbstractEditForm<PFUserDO, UserEditPage>
         return;
       }
 
-      final String errorMsgKey = userService.checkPasswordQuality(passwordInput);
+      final I18nKeyAndParams errorMsgKey = userService.checkPasswordQuality(passwordInput);
       if (errorMsgKey != null) {
-        validatable.error(new ValidationError().addKey(errorMsgKey));
+        final String localizedMessage = I18nHelper.getLocalizedMessage(errorMsgKey);
+        validatable.error(new ValidationError().setMessage(localizedMessage));
       } else {
         wlanPasswordValid = true;
       }
@@ -941,7 +945,7 @@ public class UserEditForm extends AbstractEditForm<PFUserDO, UserEditPage>
     WicketUtils.setPercentSize(passwordRepeatField, 50);
     fs.add(passwordField);
     fs.add(passwordRepeatField);
-    fs.addHelpIcon(getString(Const.MESSAGE_KEY_PASSWORD_QUALITY_CHECK));
+    fs.addHelpIcon(I18nHelper.getLocalizedMessage(userService.getPasswordQualityI18nKeyAndParams()));
   }
 
   private static void addDateFormatCombobox(final GridBuilder gridBuilder, final PFUserDO user, final String labelKey,

@@ -17,13 +17,13 @@ import org.projectforge.business.fibu.EmployeeDO;
 import org.projectforge.business.fibu.EmployeeFilter;
 import org.projectforge.business.fibu.EmployeeTimedDO;
 import org.projectforge.business.fibu.api.EmployeeService;
-import org.projectforge.business.user.I18nHelper;
 import org.projectforge.business.user.UserRightId;
 import org.projectforge.business.user.UserRightValue;
 import org.projectforge.export.AttrColumnDescription;
 import org.projectforge.export.DOListExcelExporter;
 import org.projectforge.export.DOWithAttrListExcelExporter;
 import org.projectforge.framework.access.AccessException;
+import org.projectforge.framework.i18n.I18nHelper;
 import org.projectforge.framework.persistence.attr.impl.GuiAttrSchemaService;
 import org.projectforge.plugins.eed.ExtendEmployeeDataEnum;
 import org.projectforge.web.core.MenuBarPanel;
@@ -188,7 +188,7 @@ public class EmployeeListEditPage extends AbstractListPage<EmployeeListEditForm,
       e.getTimeableAttributes().removeAll(unusedTimeableAttributes);
       employeeService.update(e);
     }
-    info(I18nHelper.getLocalizedString("plugins.eed.listcare.savesucces"));
+    info(I18nHelper.getLocalizedMessage("plugins.eed.listcare.savesucces"));
   }
 
   @Override

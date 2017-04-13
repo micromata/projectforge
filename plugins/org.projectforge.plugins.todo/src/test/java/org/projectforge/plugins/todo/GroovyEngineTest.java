@@ -23,9 +23,7 @@
 
 package org.projectforge.plugins.todo;
 
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertNull;
-import static org.testng.AssertJUnit.assertTrue;
+import static org.testng.AssertJUnit.*;
 
 import java.util.ArrayList;
 import java.util.Locale;
@@ -34,8 +32,8 @@ import java.util.TimeZone;
 import org.projectforge.AppVersion;
 import org.projectforge.business.configuration.ConfigurationService;
 import org.projectforge.business.scripting.GroovyEngine;
-import org.projectforge.business.user.I18nHelper;
 import org.projectforge.common.i18n.Priority;
+import org.projectforge.framework.i18n.I18nHelper;
 import org.projectforge.framework.persistence.history.DisplayHistoryEntry;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.plugins.core.PluginAdminService;
@@ -56,6 +54,7 @@ public class GroovyEngineTest extends AbstractTestBase
   @Autowired
   private PluginAdminService pluginAdminService;
 
+  @Override
   @BeforeClass
   public void setUp()
   {

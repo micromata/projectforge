@@ -47,8 +47,8 @@ import org.apache.wicket.util.tester.WicketTester;
 import org.apache.wicket.util.visit.IVisit;
 import org.apache.wicket.util.visit.IVisitor;
 import org.projectforge.ProjectForgeApp;
-import org.projectforge.business.user.I18nHelper;
 import org.projectforge.business.user.UserXmlPreferencesCache;
+import org.projectforge.framework.i18n.I18nHelper;
 import org.projectforge.plugins.core.AbstractPlugin;
 import org.projectforge.plugins.core.PluginAdminService;
 import org.projectforge.test.AbstractTestBase;
@@ -62,9 +62,8 @@ import org.testng.annotations.BeforeClass;
 /**
  * Your wicket tester class must extends this or any derived class from AbstractTestBase for correct initialization of
  * Spring, data-base, resource locator etc. Before your tests a new data-base is initialized and set-up with test data.
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
  */
 public class WicketPageTestBase extends AbstractTestBase
 {
@@ -152,7 +151,7 @@ public class WicketPageTestBase extends AbstractTestBase
       getResourceSettings().getStringResourceLoaders().add(new BundleStringResourceLoader(bundleName));
       I18nHelper.addBundleName(bundleName);
     }
-  };
+  }
 
   @BeforeClass
   public void setUpWicketApplication()
@@ -163,7 +162,7 @@ public class WicketPageTestBase extends AbstractTestBase
   /**
    * Logs the user in, if not already logged-in. If an user is already logged in then nothing is done. Therefore you
    * must log-out an user before any new login.
-   * 
+   *
    * @param username
    * @param password not encrypted.
    */
@@ -175,7 +174,7 @@ public class WicketPageTestBase extends AbstractTestBase
   /**
    * Logs the user in, if not already logged-in. If an user is already logged in then nothing is done. Therefore you
    * must log-out an user before any new login.
-   * 
+   *
    * @param username
    * @param password not encrypted.
    */
@@ -206,9 +205,9 @@ public class WicketPageTestBase extends AbstractTestBase
   /**
    * Searches FormComponents (model object), LabeledWebmarkupContainers (label model) and ContentMenuEntryPanels
    * (label).
-   * 
+   *
    * @param container
-   * @param label i18n key of the label or label (for buttons).
+   * @param label     i18n key of the label or label (for buttons).
    * @return Found component with the given label or null if no such component found.
    * @see FormComponent#getModelObject()
    * @see LabeledWebMarkupContainer#getLabel()
@@ -267,7 +266,7 @@ public class WicketPageTestBase extends AbstractTestBase
 
   /**
    * Searches ContentMenuEntryPanels.
-   * 
+   *
    * @param container
    * @param accessKey
    * @return Found component with the given label or null if no such component found.
@@ -311,8 +310,7 @@ public class WicketPageTestBase extends AbstractTestBase
   }
 
   /**
-   * 
-   * @param tester WicketTester with the last rendered page.
+   * @param tester        WicketTester with the last rendered page.
    * @param containerPath path of the container to search in.
    * @param label
    * @see #findComponentByLabel(MarkupContainer, String)
@@ -323,8 +321,7 @@ public class WicketPageTestBase extends AbstractTestBase
   }
 
   /**
-   * 
-   * @param tester WicketTester with the last rendered page.
+   * @param tester        WicketTester with the last rendered page.
    * @param containerPath path of the container to search in.
    * @param label
    * @see #findComponentByLabel(MarkupContainer, String)

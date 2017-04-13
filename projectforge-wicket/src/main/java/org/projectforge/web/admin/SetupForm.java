@@ -30,6 +30,7 @@ import org.apache.wicket.markup.ComponentTag;
 import org.apache.wicket.markup.html.form.Button;
 import org.apache.wicket.markup.html.form.PasswordTextField;
 import org.apache.wicket.markup.repeater.RepeatingView;
+import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
@@ -38,6 +39,8 @@ import org.apache.wicket.validation.IValidator;
 import org.projectforge.business.user.service.UserService;
 import org.projectforge.framework.configuration.Configuration;
 import org.projectforge.framework.configuration.entities.ConfigurationDO;
+import org.projectforge.framework.i18n.I18nHelper;
+import org.projectforge.framework.i18n.I18nKeyAndParams;
 import org.projectforge.framework.persistence.database.InitDatabaseDao;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.web.wicket.AbstractForm;
@@ -64,38 +67,33 @@ public class SetupForm extends AbstractForm<SetupForm, SetupPage>
   @SpringBean
   private UserService userService;
 
-  private final SetupTarget setupMode = SetupTarget.TEST_DATA;
+  private final IModel<SetupTarget> setupModeModel = new Model<>(SetupTarget.TEST_DATA);
 
-  private final TimeZone timeZone = TimeZone.getDefault();
+  // this value is changed by a PropertyModel
+  private TimeZone timeZone = TimeZone.getDefault();
 
-  private String sysopEMail;
+  private final IModel<String> sysopEMailModel = new Model<>();
 
-  private String feedbackEMail;
+  private final IModel<String> feedbackEMailModel = new Model<>();
 
-  private String calendarDomain;
+  private final IModel<String> calendarDomainModel = new Model<>();
 
   // @SuppressWarnings("unused")
   // private String organization;
 
-  @SuppressWarnings("unused")
-  private String password;
-
-  @SuppressWarnings("unused")
-  private String passwordRepeat;
-
-  /** User for storing adminUsername and password with salt. */
-  private final PFUserDO adminUser;
+  /**
+   * User for storing adminUsername and password with salt.
+   */
+  private final PFUserDO adminUser = new PFUserDO();
 
   /**
    * Cross site request forgery token.
    */
-  private final CsrfTokenHandler csrfTokenHandler;
+  private final CsrfTokenHandler csrfTokenHandler = new CsrfTokenHandler(this);
 
   public SetupForm(final SetupPage parentPage)
   {
     super(parentPage, "setupform");
-    csrfTokenHandler = new CsrfTokenHandler(this);
-    adminUser = new PFUserDO();
     adminUser.setUsername(InitDatabaseDao.DEFAULT_ADMIN_USER);
   }
 
@@ -114,9 +112,7 @@ public class SetupForm extends AbstractForm<SetupForm, SetupPage>
       final DivPanel radioPanel = fs.addNewRadioBoxButtonDiv();
       fs.add(radioPanel);
       fs.setLabelFor(radioPanel);
-      final RadioGroupPanel<SetupTarget> radioGroup = new RadioGroupPanel<SetupTarget>(radioPanel.newChildId(),
-          "setuptarget",
-          new PropertyModel<SetupTarget>(this, "setupMode"));
+      final RadioGroupPanel<SetupTarget> radioGroup = new RadioGroupPanel<>(radioPanel.newChildId(), "setuptarget", setupModeModel);
       radioPanel.add(radioGroup);
       for (final SetupTarget target : SetupTarget.values()) {
         radioGroup.add(new Model<SetupTarget>(target), getString(target.getI18nKey()),
@@ -133,23 +129,9 @@ public class SetupForm extends AbstractForm<SetupForm, SetupPage>
           new PropertyModel<String>(adminUser, "username"), 100);
       usernameTextField.setMarkupId("username");
       usernameTextField.setOutputMarkupId(true);
-      fs.add(
-          usernameTextField);
+      fs.add(usernameTextField);
     }
-    final PasswordTextField passwordField = new PasswordTextField(PasswordPanel.WICKET_ID,
-        new PropertyModel<String>(this, "password"))
-    {
-      @Override
-      protected void onComponentTag(final ComponentTag tag)
-      {
-        super.onComponentTag(tag);
-        if (adminUser.getPassword() == null) {
-          tag.put("value", "");
-        } else if (StringUtils.isEmpty(getConvertedInput()) == false) {
-          tag.put("value", MAGIC_PASSWORD);
-        }
-      }
-    };
+    final PasswordTextField passwordField = createPasswordField();
     passwordField.setMarkupId("password").setOutputMarkupId(true);
     {
       // Password
@@ -161,43 +143,24 @@ public class SetupForm extends AbstractForm<SetupForm, SetupPage>
     {
       // Password repeat
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("passwordRepeat"));
-      final PasswordTextField passwordRepeatField = new PasswordTextField(PasswordPanel.WICKET_ID,
-          new PropertyModel<String>(this,
-              "passwordRepeat"))
-      {
-        @Override
-        protected void onComponentTag(final ComponentTag tag)
-        {
-          super.onComponentTag(tag);
-          if (adminUser.getPassword() == null) {
-            tag.put("value", "");
-          } else if (StringUtils.isEmpty(getConvertedInput()) == false) {
-            tag.put("value", MAGIC_PASSWORD);
-          }
-        }
-      };
+      final PasswordTextField passwordRepeatField = createPasswordField();
       passwordRepeatField.setRequired(true); // No setReset(true), otherwise uploading and re-entering passwords is a real pain.
       passwordRepeatField.setMarkupId("passwordRepeat").setOutputMarkupId(true);
-      passwordRepeatField.add(new IValidator<String>()
-      {
-        @Override
-        public void validate(final IValidatable<String> validatable)
-        {
-          final String input = validatable.getValue();
-          final String passwordInput = passwordField.getConvertedInput();
-          if (StringUtils.equals(input, passwordInput) == false) {
-            passwordRepeatField.error(getString("user.error.passwordAndRepeatDoesNotMatch"));
+      passwordRepeatField.add((IValidator<String>) validatable -> {
+        final String input = validatable.getValue();
+        final String passwordInput = passwordField.getConvertedInput();
+        if (StringUtils.equals(input, passwordInput) == false) {
+          passwordRepeatField.error(getString("user.error.passwordAndRepeatDoesNotMatch"));
+          adminUser.setPassword(null);
+          return;
+        }
+        if (MAGIC_PASSWORD.equals(passwordInput) == false || adminUser.getPassword() == null) {
+          final I18nKeyAndParams errorMsgKey = userService.checkPasswordQuality(passwordInput);
+          if (errorMsgKey != null) {
             adminUser.setPassword(null);
-            return;
-          }
-          if (MAGIC_PASSWORD.equals(passwordInput) == false || adminUser.getPassword() == null) {
-            final String errorMsgKey = userService.checkPasswordQuality(passwordInput);
-            if (errorMsgKey != null) {
-              adminUser.setPassword(null);
-              passwordField.error(getString(errorMsgKey));
-            } else {
-              userService.createEncryptedPassword(adminUser, passwordInput);
-            }
+            passwordField.error(I18nHelper.getLocalizedMessage(errorMsgKey));
+          } else {
+            userService.createEncryptedPassword(adminUser, passwordInput);
           }
         }
       });
@@ -206,8 +169,7 @@ public class SetupForm extends AbstractForm<SetupForm, SetupPage>
     {
       // Time zone
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("administration.configuration.param.timezone"));
-      final TimeZonePanel timeZone = new TimeZonePanel(fs.newChildId(),
-          new PropertyModel<TimeZone>(this, "timeZone"));
+      final TimeZonePanel timeZone = new TimeZonePanel(fs.newChildId(), new PropertyModel<>(this, "timeZone"));
       fs.setLabelFor(timeZone);
       fs.add(timeZone);
       fs.addHelpIcon(getString("administration.configuration.param.timezone.description"));
@@ -215,10 +177,7 @@ public class SetupForm extends AbstractForm<SetupForm, SetupPage>
     {
       // Calendar domain
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("administration.configuration.param.calendarDomain"));
-      final RequiredMaxLengthTextField textField = new RequiredMaxLengthTextField(InputPanel.WICKET_ID,
-          new PropertyModel<String>(this,
-              "calendarDomain"),
-          ConfigurationDO.PARAM_LENGTH);
+      final RequiredMaxLengthTextField textField = new RequiredMaxLengthTextField(InputPanel.WICKET_ID, calendarDomainModel, ConfigurationDO.PARAM_LENGTH);
       fs.add(textField);
       textField.setMarkupId("calendarDomain").setOutputMarkupId(true);
       textField.add(new IValidator<String>()
@@ -238,8 +197,7 @@ public class SetupForm extends AbstractForm<SetupForm, SetupPage>
       final FieldsetPanel fs = gridBuilder.newFieldset(
           getString("administration.configuration.param.systemAdministratorEMail.label"),
           getString("email"));
-      fs.add(new MaxLengthTextField(InputPanel.WICKET_ID, new PropertyModel<String>(this, "sysopEMail"),
-          ConfigurationDO.PARAM_LENGTH));
+      fs.add(new MaxLengthTextField(InputPanel.WICKET_ID, sysopEMailModel, ConfigurationDO.PARAM_LENGTH));
       fs.addHelpIcon(getString("administration.configuration.param.systemAdministratorEMail.description"));
     }
     {
@@ -247,8 +205,7 @@ public class SetupForm extends AbstractForm<SetupForm, SetupPage>
       final FieldsetPanel fs = gridBuilder.newFieldset(
           getString("administration.configuration.param.feedbackEMail.label"),
           getString("email"));
-      fs.add(new MaxLengthTextField(InputPanel.WICKET_ID, new PropertyModel<String>(this, "feedbackEMail"),
-          ConfigurationDO.PARAM_LENGTH));
+      fs.add(new MaxLengthTextField(InputPanel.WICKET_ID, feedbackEMailModel, ConfigurationDO.PARAM_LENGTH));
       fs.addHelpIcon(getString("administration.configuration.param.feedbackEMail.description"));
     }
     final RepeatingView actionButtons = new RepeatingView("buttons");
@@ -271,6 +228,23 @@ public class SetupForm extends AbstractForm<SetupForm, SetupPage>
     }
   }
 
+  private PasswordTextField createPasswordField()
+  {
+    return new PasswordTextField(PasswordPanel.WICKET_ID, new Model<>())
+    {
+      @Override
+      protected void onComponentTag(final ComponentTag tag)
+      {
+        super.onComponentTag(tag);
+        if (adminUser.getPassword() == null) {
+          tag.put("value", "");
+        } else if (StringUtils.isEmpty(getConvertedInput()) == false) {
+          tag.put("value", MAGIC_PASSWORD);
+        }
+      }
+    };
+  }
+
   @Override
   protected void onSubmit()
   {
@@ -278,9 +252,9 @@ public class SetupForm extends AbstractForm<SetupForm, SetupPage>
     csrfTokenHandler.onSubmit();
   }
 
-  public SetupTarget getSetupMode()
+  SetupTarget getSetupMode()
   {
-    return setupMode;
+    return setupModeModel.getObject();
   }
 
   public TimeZone getTimeZone()
@@ -291,25 +265,25 @@ public class SetupForm extends AbstractForm<SetupForm, SetupPage>
   /**
    * @return the calendarDomain
    */
-  public String getCalendarDomain()
+  String getCalendarDomain()
   {
-    return calendarDomain;
+    return calendarDomainModel.getObject();
   }
 
-  public String getSysopEMail()
+  String getSysopEMail()
   {
-    return sysopEMail;
+    return sysopEMailModel.getObject();
   }
 
-  public String getFeedbackEMail()
+  String getFeedbackEMail()
   {
-    return feedbackEMail;
+    return feedbackEMailModel.getObject();
   }
 
   /**
    * @return the adminUser containing the desired username and password with the used salt-string.
    */
-  public PFUserDO getAdminUser()
+  PFUserDO getAdminUser()
   {
     return adminUser;
   }

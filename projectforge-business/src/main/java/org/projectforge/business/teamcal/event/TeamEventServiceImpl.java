@@ -30,8 +30,8 @@ import org.projectforge.business.teamcal.event.model.TeamEventDO;
 import org.projectforge.business.teamcal.service.CryptService;
 import org.projectforge.business.teamcal.service.TeamCalServiceImpl;
 import org.projectforge.business.teamcal.servlet.TeamCalResponseServlet;
-import org.projectforge.business.user.I18nHelper;
 import org.projectforge.business.user.service.UserService;
+import org.projectforge.framework.i18n.I18nHelper;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.mail.Mail;
@@ -138,10 +138,9 @@ public class TeamEventServiceImpl implements TeamEventService
   private boolean checkSendMail(TeamEventDO data)
   {
     Date now = new Date();
-    if(data.getEndDate().before(now)) {
+    if (data.getEndDate().before(now)) {
       Date untilDate = null;
-      if(data.getRecurrenceRule() != null)
-      {
+      if (data.getRecurrenceRule() != null) {
         try {
           RRule rRule = new RRule(data.getRecurrenceRule());
           if(rRule.getRecur().getUntil() == null)
@@ -150,12 +149,10 @@ public class TeamEventServiceImpl implements TeamEventService
         } catch (ParseException e) {
           return false;
         }
-        if(untilDate.before(now)) {
+        if (untilDate.before(now)) {
           return false;
         }
-      }
-      else
-      {
+      } else {
         return false;
       }
     }
@@ -167,7 +164,7 @@ public class TeamEventServiceImpl implements TeamEventService
       Set<TeamEventAttendeeDO> addedAttendees)
   {
     boolean result = false;
-    if(checkSendMail(data)) {
+    if (checkSendMail(data)) {
       String mode = "";
       if (isDeleted) {
         mode = "deleted";

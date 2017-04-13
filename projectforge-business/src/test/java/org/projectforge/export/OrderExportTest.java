@@ -17,8 +17,8 @@ import org.projectforge.business.fibu.AuftragsStatus;
 import org.projectforge.business.fibu.KundeDO;
 import org.projectforge.business.fibu.OrderExport;
 import org.projectforge.business.fibu.PaymentScheduleDO;
-import org.projectforge.business.user.I18nHelper;
 import org.projectforge.excel.ExcelImport;
+import org.projectforge.framework.i18n.I18nHelper;
 import org.projectforge.test.AbstractTestBase;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.testng.Assert;
@@ -173,6 +173,6 @@ public class OrderExportTest extends AbstractTestBase
       e1.printStackTrace();
     }
     Assert.assertTrue(hasFirstScheduleDate && hasSecondScheduleDate && hasCommentfirstSchedule
-                      && hasAmount1 && hasAmount2 && hasCommentSecondSchedule && hasScheduleNumber && hasSetBoolean);
+        && hasAmount1 && hasAmount2 && hasCommentSecondSchedule && hasScheduleNumber && hasSetBoolean);
   }
 }
