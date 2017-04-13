@@ -42,10 +42,12 @@ import org.projectforge.business.teamcal.event.TeamEventRecurrenceData;
 import org.projectforge.business.teamcal.event.TeamRecurrenceEvent;
 import org.projectforge.business.teamcal.event.model.TeamCalEventId;
 import org.projectforge.business.teamcal.event.model.TeamEvent;
+import org.projectforge.business.teamcal.event.model.TeamEventAttendeeDO;
 import org.projectforge.business.teamcal.event.model.TeamEventDO;
 import org.projectforge.business.teamcal.event.right.TeamEventRight;
 import org.projectforge.business.teamcal.filter.TeamCalCalendarFilter;
 import org.projectforge.business.teamcal.filter.TemplateEntry;
+import org.projectforge.business.user.I18nHelper;
 import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
@@ -196,11 +198,32 @@ public class TeamCalEventProvider extends MyFullCalendarEventsProvider
               + " "
               + getString(eventDO.getReminderDurationUnit().getI18nKey());
         }
-        event.setTooltip(eventDO.getCalendar().getTitle(), new String[][] { { eventDO.getSubject() },
+        String attendees = null;
+        if(eventDO.getAttendees() != null && eventDO.getAttendees().isEmpty() == false)
+        {
+          final StringBuffer buf = new StringBuffer();
+          for(TeamEventAttendeeDO teamEventAttendeeDO : eventDO.getAttendees())
+          {
+            buf.append("\n");
+            if(teamEventAttendeeDO.getUser() != null) {
+              buf.append("- " + teamEventAttendeeDO.getUser().getFullname())
+                  .append("  [" + I18nHelper.getLocalizedMessage(teamEventAttendeeDO.getStatus().getI18nKey()) + "]");
+
+            }
+            else {
+              buf.append("- " + teamEventAttendeeDO.getUrl())
+                  .append("  [" + I18nHelper.getLocalizedMessage(teamEventAttendeeDO.getStatus().getI18nKey()) + "]");
+            }
+          }
+          attendees = buf.toString();
+        }
+        event.setTooltip(eventDO.getCalendar().getTitle(), new String[][] {
+            { eventDO.getSubject() },
             { eventDO.getLocation(), getString("timesheet.location") },
             { eventDO.getNote(), getString("plugins.teamcal.event.note") },
             { recurrence, getString("plugins.teamcal.event.recurrence") },
-            { reminder, getString("plugins.teamcal.event.reminder") } });
+            { reminder, getString("plugins.teamcal.event.reminder") },
+            { attendees, getString("plugins.teamcal.attendees")}});
         final String title;
         String durationString = "";
         if (longFormat == true) {
