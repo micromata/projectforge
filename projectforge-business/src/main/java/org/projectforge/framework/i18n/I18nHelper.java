@@ -61,9 +61,14 @@ public class I18nHelper
     return i18nService;
   }
 
-  public static void setI18nService(final I18nService i18nService)
+  static void setI18nService(final I18nService i18nService)
   {
     I18nHelper.i18nService = i18nService;
+  }
+
+  public static String getLocalizedMessage(final I18nKeyAndParams i18nKeyAndParams)
+  {
+    return getLocalizedMessage(i18nKeyAndParams.getKey(), i18nKeyAndParams.getParams());
   }
 
   public static String getLocalizedMessage(final String i18nKey, final Object... params)

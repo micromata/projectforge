@@ -29,9 +29,9 @@ import java.io.Serializable;
 
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
-import org.projectforge.Const;
 import org.projectforge.business.group.service.GroupService;
 import org.projectforge.business.multitenancy.TenantRegistryMap;
+import org.projectforge.framework.i18n.I18nKeyAndParams;
 import org.projectforge.framework.persistence.user.entities.GroupDO;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.test.AbstractTestBase;
@@ -58,17 +58,16 @@ public class UserTest extends AbstractTestBase
     final PFUserDO user = userService.getByUsername(TEST_ADMIN_USER);
     assertEquals(user.getUsername(), TEST_ADMIN_USER);
     final UserGroupCache userGroupCache = TenantRegistryMap.getInstance().getTenantRegistry().getUserGroupCache();
-    final UserGroupCache cache = userGroupCache;
     final PFUserDO user1 = getUser("user1");
     final String groupnames = groupService.getGroupnames(user1.getId());
     assertEquals("Groupnames", "group1; group2", groupnames);
-    assertEquals(true, cache.isUserMemberOfGroup(user1.getId(), getGroupId("group1")));
-    assertEquals(false, cache.isUserMemberOfGroup(user1.getId(), getGroupId("group3")));
+    assertEquals(true, userGroupCache.isUserMemberOfGroup(user1.getId(), getGroupId("group1")));
+    assertEquals(false, userGroupCache.isUserMemberOfGroup(user1.getId(), getGroupId("group3")));
     final GroupDO group = groupService.getGroup(getGroupId("group1"));
     assertEquals("group1", group.getName());
     final PFUserDO admin = getUser(ADMIN);
-    assertEquals("Administrator", true, cache.isUserMemberOfAdminGroup(admin.getId()));
-    assertEquals("Not administrator", false, cache.isUserMemberOfAdminGroup(user1.getId()));
+    assertEquals("Administrator", true, userGroupCache.isUserMemberOfAdminGroup(admin.getId()));
+    assertEquals("Not administrator", false, userGroupCache.isUserMemberOfAdminGroup(user1.getId()));
   }
 
   @Test
@@ -132,12 +131,13 @@ public class UserTest extends AbstractTestBase
   @Test
   public void testPasswordQuality()
   {
-    assertEquals("Empty password not allowed.", Const.MESSAGE_KEY_PASSWORD_QUALITY_CHECK, userService.checkPasswordQuality(null));
-    assertEquals("Password with less than 10 characters not allowed.", Const.MESSAGE_KEY_PASSWORD_QUALITY_CHECK, userService.checkPasswordQuality(""));
-    assertEquals("Password with less than 10 characters not allowed.", Const.MESSAGE_KEY_PASSWORD_QUALITY_CHECK, userService.checkPasswordQuality("abcd12345"));
-    assertEquals("Password must have one non letter at minimum.", Const.MESSAGE_KEY_PASSWORD_QUALITY_CHECK, userService.checkPasswordQuality("ProjectForge"));
-    assertEquals("Password must have one letter at minimum.", Const.MESSAGE_KEY_PASSWORD_QUALITY_CHECK, userService.checkPasswordQuality("1234567890"));
-    assertEquals("Password must have one letter at minimum.", Const.MESSAGE_KEY_PASSWORD_QUALITY_CHECK, userService.checkPasswordQuality("12345678901"));
+    final I18nKeyAndParams passwordQualityMessage = userService.getPasswordQualityI18nKeyAndParams();
+    assertEquals("Empty password not allowed.", passwordQualityMessage, userService.checkPasswordQuality(null));
+    assertEquals("Password with less than 10 characters not allowed.", passwordQualityMessage, userService.checkPasswordQuality(""));
+    assertEquals("Password with less than 10 characters not allowed.", passwordQualityMessage, userService.checkPasswordQuality("abcd12345"));
+    assertEquals("Password must have one non letter at minimum.", passwordQualityMessage, userService.checkPasswordQuality("ProjectForge"));
+    assertEquals("Password must have one letter at minimum.", passwordQualityMessage, userService.checkPasswordQuality("1234567890"));
+    assertEquals("Password must have one letter at minimum.", passwordQualityMessage, userService.checkPasswordQuality("12345678901"));
     assertNull("Password OK.", userService.checkPasswordQuality("kabcdjh!id"));
     assertNull("Password OK.", userService.checkPasswordQuality("kjh8iabcddsf"));
     assertNull("Password OK.", userService.checkPasswordQuality("  5     g "));
