@@ -47,8 +47,8 @@ import org.projectforge.business.teamcal.event.model.TeamEventDO;
 import org.projectforge.business.teamcal.event.right.TeamEventRight;
 import org.projectforge.business.teamcal.filter.TeamCalCalendarFilter;
 import org.projectforge.business.teamcal.filter.TemplateEntry;
-import org.projectforge.business.user.I18nHelper;
 import org.projectforge.framework.access.AccessChecker;
+import org.projectforge.framework.i18n.I18nHelper;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.time.RecurrenceFrequency;
@@ -63,7 +63,6 @@ import net.ftlines.wicket.fullcalendar.callback.EventDroppedCallbackScriptGenera
  * @author Johannes Unterstein (j.unterstein@micromata.de)
  * @author M. Lauterbach (m.lauterbach@micromata.de)
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
  */
 public class TeamCalEventProvider extends MyFullCalendarEventsProvider
 {
@@ -97,7 +96,7 @@ public class TeamCalEventProvider extends MyFullCalendarEventsProvider
 
   /**
    * @see org.projectforge.web.calendar.MyFullCalendarEventsProvider#getEvents(org.joda.time.DateTime,
-   *      org.joda.time.DateTime)
+   * org.joda.time.DateTime)
    */
   @Override
   public Collection<Event> getEvents(final DateTime start, final DateTime end)
@@ -108,7 +107,7 @@ public class TeamCalEventProvider extends MyFullCalendarEventsProvider
 
   /**
    * @see org.projectforge.web.calendar.MyFullCalendarEventsProvider#buildEvents(org.joda.time.DateTime,
-   *      org.joda.time.DateTime)
+   * org.joda.time.DateTime)
    */
   @Override
   protected void buildEvents(final DateTime start, final DateTime end)
@@ -199,18 +198,15 @@ public class TeamCalEventProvider extends MyFullCalendarEventsProvider
               + getString(eventDO.getReminderDurationUnit().getI18nKey());
         }
         String attendees = null;
-        if(eventDO.getAttendees() != null && eventDO.getAttendees().isEmpty() == false)
-        {
+        if (eventDO.getAttendees() != null && eventDO.getAttendees().isEmpty() == false) {
           final StringBuffer buf = new StringBuffer();
-          for(TeamEventAttendeeDO teamEventAttendeeDO : eventDO.getAttendees())
-          {
+          for (TeamEventAttendeeDO teamEventAttendeeDO : eventDO.getAttendees()) {
             buf.append("\n");
-            if(teamEventAttendeeDO.getUser() != null) {
+            if (teamEventAttendeeDO.getUser() != null) {
               buf.append("- " + teamEventAttendeeDO.getUser().getFullname())
                   .append("  [" + I18nHelper.getLocalizedMessage(teamEventAttendeeDO.getStatus().getI18nKey()) + "]");
 
-            }
-            else {
+            } else {
               buf.append("- " + teamEventAttendeeDO.getUrl())
                   .append("  [" + I18nHelper.getLocalizedMessage(teamEventAttendeeDO.getStatus().getI18nKey()) + "]");
             }
@@ -223,7 +219,7 @@ public class TeamCalEventProvider extends MyFullCalendarEventsProvider
             { eventDO.getNote(), getString("plugins.teamcal.event.note") },
             { recurrence, getString("plugins.teamcal.event.recurrence") },
             { reminder, getString("plugins.teamcal.event.reminder") },
-            { attendees, getString("plugins.teamcal.attendees")}});
+            { attendees, getString("plugins.teamcal.attendees") } });
         final String title;
         String durationString = "";
         if (longFormat == true) {
