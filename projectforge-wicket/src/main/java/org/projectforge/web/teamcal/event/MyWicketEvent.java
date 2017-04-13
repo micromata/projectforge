@@ -112,7 +112,6 @@ public class MyWicketEvent extends Event
         buf.append(value);
       }
     }
-
     if (first == false) {
       buf.append("\n");
     }
