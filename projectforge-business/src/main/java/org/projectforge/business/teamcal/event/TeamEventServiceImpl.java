@@ -144,6 +144,8 @@ public class TeamEventServiceImpl implements TeamEventService
       {
         try {
           RRule rRule = new RRule(data.getRecurrenceRule());
+          if(rRule.getRecur().getUntil() == null)
+            return true;
           untilDate = new Date(rRule.getRecur().getUntil().getTime());
         } catch (ParseException e) {
           return false;
