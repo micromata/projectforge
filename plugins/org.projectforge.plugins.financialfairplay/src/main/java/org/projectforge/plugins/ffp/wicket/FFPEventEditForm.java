@@ -60,18 +60,19 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.ResourceModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
-import org.projectforge.business.fibu.EmployeeDO;
-import org.projectforge.business.fibu.api.EmployeeService;
 import org.projectforge.business.user.I18nHelper;
+import org.projectforge.business.user.PFUserFilter;
+import org.projectforge.business.user.UserDao;
 import org.projectforge.framework.i18n.UserException;
 import org.projectforge.framework.persistence.api.IdObject;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
+import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.utils.MyBeanComparator;
 import org.projectforge.plugins.ffp.model.FFPAccountingDO;
 import org.projectforge.plugins.ffp.model.FFPEventDO;
 import org.projectforge.plugins.ffp.repository.FFPEventService;
 import org.projectforge.web.common.MultiChoiceListHelper;
-import org.projectforge.web.employee.EmployeeWicketProvider;
+import org.projectforge.web.user.UsersProvider;
 import org.projectforge.web.wicket.AbstractEditForm;
 import org.projectforge.web.wicket.CellItemListenerPropertyColumn;
 import org.projectforge.web.wicket.bootstrap.GridBuilder;
@@ -96,12 +97,12 @@ public class FFPEventEditForm extends AbstractEditForm<FFPEventDO, FFPEventEditP
   private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(FFPEventEditForm.class);
 
   @SpringBean
-  private EmployeeService employeeService;
+  private UserDao userDao;
 
   @SpringBean
   private FFPEventService eventService;
 
-  protected MultiChoiceListHelper<EmployeeDO> assignAttendeesListHelper;
+  protected MultiChoiceListHelper<PFUserDO> assignAttendeesListHelper;
 
   public FFPEventEditForm(final FFPEventEditPage parentPage, final FFPEventDO data)
   {
@@ -116,25 +117,25 @@ public class FFPEventEditForm extends AbstractEditForm<FFPEventDO, FFPEventEditP
 
   private SingleButtonPanel finishButtonPanel;
 
-  private EmployeeDO currentUserEmployee;
+  private PFUserDO currentUser;
 
   @Override
   protected void init()
   {
     super.init();
-    currentUserEmployee = employeeService.getEmployeeByUserId(ThreadLocalUserContext.getUser().getId());
+    currentUser = ThreadLocalUserContext.getUser();
     if (data.getOrganizer() == null) {
-      if (currentUserEmployee == null) {
-        error(I18nHelper.getLocalizedMessage("plugins.ffp.validate.noEmployeeToUser"));
+      if (currentUser == null) {
+        error(I18nHelper.getLocalizedMessage("plugins.ffp.validate.noUser"));
         return;
       } else {
-        data.setOrganizer(currentUserEmployee);
+        data.setOrganizer(currentUser);
       }
     }
 
     if (isNew()) {
-      if (currentUserEmployee != null) {
-        this.accountingList.add(getNewFfpAccountingDO(currentUserEmployee));
+      if (currentUser != null) {
+        this.accountingList.add(getNewFfpAccountingDO(currentUser));
       }
     }
 
@@ -153,8 +154,8 @@ public class FFPEventEditForm extends AbstractEditForm<FFPEventDO, FFPEventEditP
       @Override
       public void validate(Form<?> form)
       {
-        Select2MultiChoice<EmployeeDO> attendeesSelect2 = (Select2MultiChoice<EmployeeDO>) dependentFormComponents[0];
-        Collection<EmployeeDO> attendeeList = attendeesSelect2.getConvertedInput();
+        Select2MultiChoice<PFUserDO> attendeesSelect2 = (Select2MultiChoice<PFUserDO>) dependentFormComponents[0];
+        Collection<PFUserDO> attendeeList = attendeesSelect2.getConvertedInput();
         if (attendeeList != null && attendeeList.size() < 2) {
           error(I18nHelper.getLocalizedMessage("plugins.ffp.validate.minAttendees"));
         }
@@ -167,7 +168,7 @@ public class FFPEventEditForm extends AbstractEditForm<FFPEventDO, FFPEventEditP
     {
       // Organizer
       final FieldsetPanel fs = gridBuilder.newFieldset(FFPEventDO.class, "organizer");
-      fs.add(new DivTextPanel(fs.newChildId(), data.getOrganizer().getUser().getFullname()));
+      fs.add(new DivTextPanel(fs.newChildId(), data.getOrganizer().getFullname()));
     }
     {
       // Event date
@@ -192,20 +193,20 @@ public class FFPEventEditForm extends AbstractEditForm<FFPEventDO, FFPEventEditP
     {
       // ATTENDEES
       final FieldsetPanel fieldSet = gridBuilder.newFieldset(getString("plugins.ffp.attendees"));
-      assignAttendeesListHelper = new MultiChoiceListHelper<EmployeeDO>()
-          .setComparator(new Comparator<EmployeeDO>()
+      assignAttendeesListHelper = new MultiChoiceListHelper<PFUserDO>()
+          .setComparator(new Comparator<PFUserDO>()
           {
 
             @Override
-            public int compare(EmployeeDO o1, EmployeeDO o2)
+            public int compare(PFUserDO o1, PFUserDO o2)
             {
               return o1.getPk().compareTo(o2.getPk());
             }
 
-          }).setFullList(employeeService.findAllActive(false));
+          }).setFullList(userDao.getList(new PFUserFilter().setDeactivatedUser(false)));
 
       if (this.data.getAttendeeList() != null && this.data.getAttendeeList().size() > 0) {
-        for (final EmployeeDO attendee : this.data.getAttendeeList()) {
+        for (final PFUserDO attendee : this.data.getAttendeeList()) {
           assignAttendeesListHelper.addOriginalAssignedItem(attendee).assignItem(attendee);
         }
       }
@@ -215,10 +216,10 @@ public class FFPEventEditForm extends AbstractEditForm<FFPEventDO, FFPEventEditP
         }
       }
 
-      final Select2MultiChoice<EmployeeDO> attendees = new Select2MultiChoice<EmployeeDO>(
+      final Select2MultiChoice<PFUserDO> attendees = new Select2MultiChoice<PFUserDO>(
           fieldSet.getSelect2MultiChoiceId(),
-          new PropertyModel<Collection<EmployeeDO>>(this.assignAttendeesListHelper, "assignedItems"),
-          new EmployeeWicketProvider(employeeService, true));
+          new PropertyModel<Collection<PFUserDO>>(this.assignAttendeesListHelper, "assignedItems"),
+          new UsersProvider(userDao));
       attendees.setRequired(true).setMarkupId("attendees").setOutputMarkupId(true);
       attendees.add(new AjaxEventBehavior(OnChangeAjaxBehavior.EVENT_NAME)
       {
@@ -241,7 +242,7 @@ public class FFPEventEditForm extends AbstractEditForm<FFPEventDO, FFPEventEditP
               formComponent.valid();
               formComponent.updateModel();
             }
-            dataTable = createDataTable(createColumns(), "attendee.user.fullname", SortOrder.ASCENDING, getData());
+            dataTable = createDataTable(createColumns(), "attendee.fullname", SortOrder.ASCENDING, getData());
             tablePanel.addOrReplace(dataTable);
             target.add(dataTable);
           } catch (RuntimeException e) {
@@ -295,8 +296,8 @@ public class FFPEventEditForm extends AbstractEditForm<FFPEventDO, FFPEventEditP
         finishButtonPanel.setVisible(false);
       }
     }
-    if (getData().getFinished() == false && getData().getOrganizer() != null && currentUserEmployee != null
-        && getData().getOrganizer().getId().equals(currentUserEmployee.getId())) {
+    if (getData().getFinished() == false && getData().getOrganizer() != null && currentUser != null
+        && getData().getOrganizer().getId().equals(currentUser.getId())) {
       finishButtonPanel.setVisible(true);
     }
   }
@@ -313,7 +314,7 @@ public class FFPEventEditForm extends AbstractEditForm<FFPEventDO, FFPEventEditP
     this.tablePanel = new TablePanel(section.newChildId());
     this.tablePanel.setOutputMarkupId(true);
     section.add(tablePanel);
-    this.dataTable = createDataTable(createColumns(), "attendee.user.fullname", SortOrder.ASCENDING, getData());
+    this.dataTable = createDataTable(createColumns(), "attendee.fullname", SortOrder.ASCENDING, getData());
     tablePanel.add(this.dataTable);
   }
 
@@ -365,8 +366,8 @@ public class FFPEventEditForm extends AbstractEditForm<FFPEventDO, FFPEventEditP
       Set<FFPAccountingDO> toRemove = new HashSet<>();
       this.accountingList.forEach(acc -> {
         boolean found = false;
-        for (EmployeeDO emp : assignAttendeesListHelper.getAssignedItems()) {
-          if (emp.getId().equals(acc.getAttendee().getId())) {
+        for (PFUserDO user : assignAttendeesListHelper.getAssignedItems()) {
+          if (user.getId().equals(acc.getAttendee().getId())) {
             found = true;
           }
         }
@@ -379,11 +380,11 @@ public class FFPEventEditForm extends AbstractEditForm<FFPEventDO, FFPEventEditP
     return this.accountingList;
   }
 
-  private FFPAccountingDO getNewFfpAccountingDO(EmployeeDO emp)
+  private FFPAccountingDO getNewFfpAccountingDO(PFUserDO user)
   {
     FFPAccountingDO accounting = new FFPAccountingDO();
     accounting.setEvent(getData());
-    accounting.setAttendee(emp);
+    accounting.setAttendee(user);
     accounting.setValue(BigDecimal.ZERO);
     accounting.setWeighting(BigDecimal.ONE);
     return accounting;
@@ -392,7 +393,7 @@ public class FFPEventEditForm extends AbstractEditForm<FFPEventDO, FFPEventEditP
   private List<IColumn<FFPAccountingDO, String>> createColumns()
   {
     final List<IColumn<FFPAccountingDO, String>> columns = new ArrayList<>();
-    columns.add(new PropertyColumn<FFPAccountingDO, String>(new ResourceModel("name"), "attendee.user.fullname"));
+    columns.add(new PropertyColumn<FFPAccountingDO, String>(new ResourceModel("name"), "attendee.fullname"));
     columns.add(new CellItemListenerPropertyColumn<FFPAccountingDO>(FFPAccountingDO.class, "plugins.ffp.value", "value", null)
     {
       private static final long serialVersionUID = 3672950740712610620L;
