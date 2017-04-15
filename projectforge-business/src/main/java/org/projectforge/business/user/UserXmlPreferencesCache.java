@@ -27,20 +27,24 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.annotation.PreDestroy;
+
 import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.cache.AbstractCache;
+import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Component;
 
 /**
  * Stores all user persistent objects such as filter settings, personal settings and persists them to the database.
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
  */
 @Component
+@DependsOn("entityManagerFactory")
 public class UserXmlPreferencesCache extends AbstractCache
 {
   private static final long serialVersionUID = 248972660689793455L;
@@ -53,11 +57,11 @@ public class UserXmlPreferencesCache extends AbstractCache
   private UserXmlPreferencesDao userXmlPreferencesDao;
 
   @Autowired
-  UserDao userDao;
+  private PfEmgrFactory emgrFactory;
 
   /**
    * Please use UserPreferenceHelper instead for correct handling of demo user's preferences!
-   * 
+   *
    * @see org.projectforge.business.user.UserXmlPreferencesMap#putEntry(String, Object, boolean)
    */
   public void putEntry(final Integer userId, final String key, final Object value, final boolean persistent)
@@ -69,7 +73,7 @@ public class UserXmlPreferencesCache extends AbstractCache
 
   /**
    * Please use UserPreferenceHelper instead for correct handling of demo user's preferences!
-   * 
+   *
    * @see #ensureAndGetUserPreferencesData(Integer)
    */
   public Object getEntry(final Integer userId, final String key)
@@ -81,7 +85,7 @@ public class UserXmlPreferencesCache extends AbstractCache
 
   /**
    * Please use UserPreferenceHelper instead for correct handling of demo user's preferences!
-   * 
+   *
    * @see org.projectforge.business.user.UserXmlPreferencesMap#removeEntry(String)
    */
   public Object removeEntry(final Integer userId, final String key)
@@ -102,7 +106,7 @@ public class UserXmlPreferencesCache extends AbstractCache
 
   /**
    * Please use UserPreferenceHelper instead for correct handling of demo user's preferences!
-   * 
+   *
    * @param userId
    * @return
    */
@@ -151,7 +155,9 @@ public class UserXmlPreferencesCache extends AbstractCache
         return;
       }
     }
-    PFUserDO user = userDao.getById(userId);
+    PFUserDO user = emgrFactory.runInTrans(emgr -> {
+      return emgr.selectByPk(PFUserDO.class, userId);
+    });
     if (AccessChecker.isDemoUser(user) == true) {
       // Do nothing for demo user.
       return;
@@ -166,7 +172,7 @@ public class UserXmlPreferencesCache extends AbstractCache
   /**
    * Stores the PersistentUserObjects in the database or on start up restores the persistent user objects from the
    * database.
-   * 
+   *
    * @see org.projectforge.framework.cache.AbstractCache#refresh()
    */
   @Override
@@ -181,7 +187,7 @@ public class UserXmlPreferencesCache extends AbstractCache
 
   /**
    * Clear all volatile data (after logout). Forces refreshing of volatile data after re-login.
-   * 
+   *
    * @param userId
    */
   public void clear(final Integer userId)
@@ -199,4 +205,10 @@ public class UserXmlPreferencesCache extends AbstractCache
     this.expireTime = 10 * TICKS_PER_MINUTE;
   }
 
+  @PreDestroy
+  public void preDestroy()
+  {
+    log.info("Syncing all user preferences to database.");
+    this.forceReload();
+  }
 }

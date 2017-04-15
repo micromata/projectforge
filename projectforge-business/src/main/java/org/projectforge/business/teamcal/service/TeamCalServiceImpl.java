@@ -29,7 +29,6 @@ import org.projectforge.business.converter.DOConverter;
 import org.projectforge.business.teamcal.TeamCalConfig;
 import org.projectforge.business.teamcal.admin.TeamCalCache;
 import org.projectforge.business.teamcal.admin.TeamCalDao;
-import org.projectforge.business.teamcal.admin.TeamCalFilter;
 import org.projectforge.business.teamcal.admin.TeamCalsComparator;
 import org.projectforge.business.teamcal.admin.model.TeamCalDO;
 import org.projectforge.business.teamcal.event.TeamEventFilter;
@@ -75,7 +74,6 @@ import net.fortuna.ical4j.model.property.Action;
 import net.fortuna.ical4j.model.property.Attendee;
 import net.fortuna.ical4j.model.property.CalScale;
 import net.fortuna.ical4j.model.property.Description;
-import net.fortuna.ical4j.model.property.DtEnd;
 import net.fortuna.ical4j.model.property.DtStart;
 import net.fortuna.ical4j.model.property.ExDate;
 import net.fortuna.ical4j.model.property.Location;
@@ -285,8 +283,8 @@ public class TeamCalServiceImpl
     eventFilter.setStartDate(eventDateLimit);
     final boolean exportReminders = "true".equals(params.get(PARAM_EXPORT_REMINDER)) == true;
     final boolean exportAttendees = "true".equals(params.get(PARAM_EXPORT_ATTENDEES)) == true;
-    for (int i = 0; i < teamCalIds.length; i++) {
-      final Integer id = Integer.valueOf(teamCalIds[i]);
+    for (final String teamCalId : teamCalIds) {
+      final Integer id = Integer.valueOf(teamCalId);
       eventFilter.setTeamCalId(id);
       final List<TeamEvent> teamEvents = teamEventService.getEventList(eventFilter, false);
       if (teamEvents != null && teamEvents.size() > 0) {
@@ -297,8 +295,7 @@ public class TeamCalServiceImpl
             continue;
           }
           final TeamEventDO teamEvent = (TeamEventDO) teamEventObject;
-          final String uid = TeamCalConfig.get().createEventUid(teamEvent.getId());
-          final VEvent vEvent = getVEvent(teamEvent, teamCalIds, uid, exportReminders, exportAttendees, timeZone);
+          final VEvent vEvent = createVEvent(teamEvent, teamCalIds, exportReminders, exportAttendees, timeZone);
           events.add(vEvent);
         }
       }
@@ -306,17 +303,16 @@ public class TeamCalServiceImpl
     return events;
   }
 
-  public VEvent getVEvent(final TeamEventDO teamEvent, final String[] teamCalIds, final String uid, final boolean exportReminders,
+  private VEvent createVEvent(final TeamEventDO teamEvent, final String[] teamCalIds, final boolean exportReminders,
       final boolean exportAttendees, final net.fortuna.ical4j.model.TimeZone timeZone)
   {
-    String summary;
+    final String summary;
     if (teamCalIds.length > 1) {
       summary = teamEvent.getSubject() + " (" + teamEvent.getCalendar().getTitle() + ")";
     } else {
       summary = teamEvent.getSubject();
     }
-    final VEvent vEvent = ICal4JUtils.createVEvent(teamEvent.getStartDate(), teamEvent.getEndDate(), uid, summary,
-        teamEvent.isAllDay());
+    final VEvent vEvent = ICal4JUtils.createVEvent(teamEvent.getStartDate(), teamEvent.getEndDate(), teamEvent.getUid(), summary, teamEvent.isAllDay());
     if (StringUtils.isNotBlank(teamEvent.getLocation()) == true) {
       vEvent.getProperties().add(new Location(teamEvent.getLocation()));
     }
@@ -466,8 +462,8 @@ public class TeamCalServiceImpl
       cal.getProperties().add(CalScale.GREGORIAN);
 
       final net.fortuna.ical4j.model.TimeZone timezone = ICal4JUtils.getUserTimeZone();
-      String[] teamCalIds = { data.getCalendar().getPk().toString() };
-      VEvent event = getVEvent(data, teamCalIds, data.getUid(), true, exportAttendees, timezone);
+      final String[] teamCalIds = { data.getCalendar().getPk().toString() };
+      final VEvent event = createVEvent(data, teamCalIds, true, exportAttendees, timezone);
       cal.getComponents().add(event);
       CalendarOutputter outputter = new CalendarOutputter();
       outputter.output(cal, baos);
@@ -653,7 +649,6 @@ public class TeamCalServiceImpl
     teamEvent.setTimeZone(timeZone);
     teamEvent.setCreator(ThreadLocalUserContext.getUser());
     final DtStart dtStart = event.getStartDate();
-    final DtEnd dtEnd = event.getEndDate();
     if (dtStart != null && dtStart.getParameter("VALUE") != null && dtStart.getParameter("VALUE").getValue().contains("DATE") == true
         && dtStart.getParameter("VALUE").getValue().contains("DATE-TIME") == false) {
       teamEvent.setAllDay(true);
@@ -669,7 +664,7 @@ public class TeamCalServiceImpl
       timestamp = ICal4JUtils.getSqlTimestamp(event.getEndDate().getDate());
     }
     teamEvent.setEndDate(timestamp);
-    if (withUid && event.getUid() != null) {
+    if (withUid && event.getUid() != null && StringUtils.isEmpty(event.getUid().getValue()) == false) {
       teamEvent.setUid(event.getUid().getValue());
     }
     if (event.getLocation() != null) {
@@ -778,7 +773,7 @@ public class TeamCalServiceImpl
 
   public static RecurrenceFrequency[] getSupportedRecurrenceFrequencies()
   {
-    return SUPPORTED_FREQUENCIES;
+    return SUPPORTED_FREQUENCIES.clone();
   }
 
   public static List<VEvent> getVEvents(final net.fortuna.ical4j.model.Calendar calendar)
@@ -820,6 +815,7 @@ public class TeamCalServiceImpl
     }
     Collections.sort(events, new Comparator<TeamEventDO>()
     {
+      @Override
       public int compare(final TeamEventDO o1, final TeamEventDO o2)
       {
         final java.util.Date startDate1 = o1.getStartDate();
@@ -833,7 +829,6 @@ public class TeamCalServiceImpl
         return startDate1.compareTo(startDate2);
       }
 
-      ;
     });
     return events;
   }
@@ -865,15 +860,6 @@ public class TeamCalServiceImpl
         log.warn("ReminderDurationUnit '" + src.getReminderDurationUnit() + "' not yet implemented.");
       }
     }
-  }
-
-  public List<TeamCalDO> getFullAccessCalendar()
-  {
-    final TeamCalFilter filter = new TeamCalFilter();
-    filter.setFullAccess(true);
-    filter.setMinimalAccess(false);
-    filter.setReadonlyAccess(false);
-    return teamCalDao.getList(filter);
   }
 
 }

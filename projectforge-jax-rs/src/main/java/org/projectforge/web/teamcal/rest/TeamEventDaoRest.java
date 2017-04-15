@@ -183,7 +183,6 @@ public class TeamEventDaoRest
   @Produces(MediaType.APPLICATION_JSON)
   public Response saveTeamEvent(final CalendarEventObject calendarEvent)
   {
-
     try {
       //Getting the calender at which the event will created/updated
       TeamCalDO teamCalDO = teamCalCache.getCalendar(calendarEvent.getCalendarId());
@@ -193,20 +192,34 @@ public class TeamEventDaoRest
       final net.fortuna.ical4j.model.Calendar calendar = builder.build(new ByteArrayInputStream(Base64.decodeBase64(calendarEvent.getIcsData())));
       //Getting the VEvent from ics
       final VEvent event = (VEvent) calendar.getComponent(Component.VEVENT);
-      return saveVEvent(event, teamCalDO);
+      if(event.getUid() != null)
+      {
+        //Getting the origin team event from database by uid if exist
+        TeamEventDO teamEventOrigin = teamEventService.findByUid(event.getUid().getValue());
+        //Check if db event exists
+        if (teamEventOrigin != null && teamEventOrigin.getCalendar().getId().equals(teamCalDO.getId())) {
+          return updateTeamEvent(calendarEvent);
+        }
+        else
+        {
+          event.getUid().setValue("");
+          return saveVEvent(event, teamCalDO, true);
+        }
+      }
+      return Response.serverError().build();
     } catch (Exception e) {
       log.error("Exception while creating team event", e);
       return Response.serverError().build();
     }
   }
 
-  private Response saveVEvent(VEvent event, TeamCalDO teamCalDO)
+  private Response saveVEvent(VEvent event, TeamCalDO teamCalDO, boolean withUid)
   {
     //The result for returning
     CalendarEventObject result = null;
     //Building TeamEventDO from VEvent
     final TeamEventDO teamEvent = teamCalService.createTeamEventDO(event,
-        TimeZone.getTimeZone(teamCalDO.getOwner().getTimeZone()), false);
+        TimeZone.getTimeZone(teamCalDO.getOwner().getTimeZone()), withUid);
     //Setting the calendar
     teamEvent.setCalendar(teamCalDO);
     //Save attendee list, because assignment later
@@ -263,7 +276,7 @@ public class TeamEventDaoRest
           //Set ExDate in event1
           teamEvent.addRecurrenceExDate(event2.getRecurrenceId().getDate(), teamEvent.getTimeZone());
           //Create new Event from event2
-          saveVEvent(event2, teamCalDO);
+          saveVEvent(event2, teamCalDO, false);
         }
       }
       //Getting the origin team event from database by uid if exist

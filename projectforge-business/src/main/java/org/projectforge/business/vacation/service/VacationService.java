@@ -83,6 +83,16 @@ public interface VacationService extends IPersistenceService<VacationDO>, IDao<V
   BigDecimal getAvailableVacationDaysForYearAtDate(final EmployeeDO employee, final Date queryDate);
 
   /**
+   * Returns the number of pland vacation days for the given employee at the given date.
+   * For example: If date is 2017-04-30, then the vacation between 2017-04-30 and 2017-12-31 is regarded.
+   *
+   * @param employee
+   * @param queryDate
+   * @return
+   */
+  BigDecimal getPlandVacationDaysForYearAtDate(final EmployeeDO employee, final Date queryDate);
+
+  /**
    * Returns the number of approved vacation days
    *
    * @param employee
@@ -194,7 +204,6 @@ public interface VacationService extends IPersistenceService<VacationDO>, IDao<V
   BigDecimal getSpecialVacationCount(EmployeeDO employee, int year, VacationStatus status);
 
   /**
-   <<<<<<< HEAD
    * Returns the calendars for apllication for leave
    *
    * @param vacation
@@ -205,11 +214,11 @@ public interface VacationService extends IPersistenceService<VacationDO>, IDao<V
   /**
    * Save the calendars for apllication for leave
    *
-   * @param items
+   * @param calendars
    * @param vacation
    * @return
    */
-  void saveOrUpdateVacationCalendars(VacationDO vacation, Collection<TeamCalDO> items);
+  void saveOrUpdateVacationCalendars(VacationDO vacation, Collection<TeamCalDO> calendars);
 
   /**
    * Delete CalenderEvents for apllication for leave
@@ -244,4 +253,12 @@ public interface VacationService extends IPersistenceService<VacationDO>, IDao<V
    * @return
    */
   BigDecimal getVacationDays(final Date from, final Date to, final Boolean isHalfDayVacation);
+
+  /**
+   * UnDelete Calender for apllication for leave
+   *
+   * @param vacation
+   * @return
+   */
+  void markAsUnDeleteVacationCalendars(VacationDO vacation);
 }

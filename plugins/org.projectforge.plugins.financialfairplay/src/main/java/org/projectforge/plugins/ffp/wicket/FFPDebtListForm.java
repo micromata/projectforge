@@ -25,9 +25,7 @@ package org.projectforge.plugins.ffp.wicket;
 
 import org.apache.log4j.Logger;
 import org.apache.wicket.spring.injection.annot.SpringBean;
-import org.projectforge.business.fibu.EmployeeDO;
 import org.projectforge.business.fibu.api.EmployeeService;
-import org.projectforge.framework.access.AccessException;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.web.wicket.AbstractListForm;
 
@@ -54,10 +52,6 @@ public class FFPDebtListForm extends AbstractListForm<FFPDebtFilter, FFPDebtList
   @Override
   protected FFPDebtFilter newSearchFilterInstance()
   {
-    EmployeeDO employee = employeeService.getEmployeeByUserId(ThreadLocalUserContext.getUserId());
-    if (employee == null) {
-      throw new AccessException("access.exception.noEmployeeToUser");
-    }
-    return new FFPDebtFilter(employee.getPk());
+    return new FFPDebtFilter(ThreadLocalUserContext.getUserId());
   }
 }

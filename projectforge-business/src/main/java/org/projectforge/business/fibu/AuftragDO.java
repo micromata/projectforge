@@ -28,6 +28,7 @@ import java.sql.Date;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -595,6 +596,14 @@ public class AuftragDO extends DefaultBaseDO
       }
     }
     return this.positionen;
+  }
+
+  @Transient
+  public List<AuftragsPositionDO> getPositionenNotDeleted()
+  {
+    return getPositionen().stream()
+        .filter(pos -> pos.isDeleted() == false)
+        .collect(Collectors.toList());
   }
 
   /**

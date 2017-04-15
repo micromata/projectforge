@@ -53,7 +53,6 @@ import org.projectforge.framework.xstream.converter.JodaDateMidnightConverter;
 import org.projectforge.framework.xstream.converter.JodaDateTimeConverter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
-import org.springframework.orm.hibernate5.HibernateTemplate;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Propagation;
@@ -66,7 +65,6 @@ import com.thoughtworks.xstream.XStream;
  * xml (compressed (gzip and base64) for larger xml content).
  *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- *
  */
 @Repository
 @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
@@ -81,9 +79,6 @@ public class UserXmlPreferencesDao
   private UserDao userDao;
 
   @Autowired
-  private HibernateTemplate hibernateTemplate;
-
-  @Autowired
   private ApplicationContext applicationContext;
 
   @Autowired
@@ -91,6 +86,9 @@ public class UserXmlPreferencesDao
 
   @Autowired
   private TenantDao tenantDao;
+
+  @Autowired
+  private PfEmgrFactory emgrFactory;
 
   private final XStream xstream = XStreamHelper.createXStream();
 
@@ -108,7 +106,7 @@ public class UserXmlPreferencesDao
 
   /**
    * Process the given classes before marshaling and unmarshaling by XStream. This method is usable by plugins.
-   * 
+   *
    * @param classes
    */
   public void processAnnotations(final Class<?>... classes)
@@ -118,9 +116,9 @@ public class UserXmlPreferencesDao
 
   /**
    * Register converters before marshaling and unmarshaling by XStream. This method is usable by plugins.
-   * 
+   *
    * @param daoClass Class of the dao.
-   * @param doClass Class of the DO which will be converted.
+   * @param doClass  Class of the DO which will be converted.
    * @param priority The priority needed by xtream for using converters in the demanded order.
    * @see UserXmlPreferencesBaseDOSingleValueConverter#UserXmlPreferencesBaseDOSingleValueConverter(Class, Class)
    */
@@ -134,17 +132,17 @@ public class UserXmlPreferencesDao
   /**
    * Throws AccessException if the context user is not admin user and not owner of the UserXmlPreferences, meaning the
    * given userId must be the id of the context user.
-   * 
+   *
    * @param userId
    */
-  private UserXmlPreferencesDO getUserPreferencesByUserId(final Integer userId, final String key,
+  public UserXmlPreferencesDO getUserPreferencesByUserId(final Integer userId, final String key,
       final boolean checkAccess)
   {
     if (checkAccess == true) {
       checkAccess(userId);
     }
-    final List<UserXmlPreferencesDO> list = PfEmgrFactory.get().runInTrans((emgr) -> {
-      return emgr.select(UserXmlPreferencesDO.class,
+    final List<UserXmlPreferencesDO> list = emgrFactory.runInTrans((emgr) -> {
+      return emgr.selectAttached(UserXmlPreferencesDO.class,
           "select u from UserXmlPreferencesDO u where u.user.id = :userid and u.key = :key",
           "userid", userId, "key", key);
     });
@@ -155,10 +153,15 @@ public class UserXmlPreferencesDao
       return null;
   }
 
+  public <T> T getDeserializedUserPreferencesByUserId(final Integer userId, final String key, final Class<T> returnClass)
+  {
+    return (T) deserialize(userId, getUserPreferencesByUserId(userId, key, true), false);
+  }
+
   /**
    * Throws AccessException if the context user is not admin user and not owner of the UserXmlPreferences, meaning the
    * given userId must be the id of the context user.
-   * 
+   *
    * @param userId
    */
   @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
@@ -174,7 +177,7 @@ public class UserXmlPreferencesDao
   /**
    * Checks if the given userIs is equals to the context user or the if the user is an admin user. If not a
    * AccessException will be thrown.
-   * 
+   *
    * @param userId
    */
   public void checkAccess(final Integer userId)
@@ -188,9 +191,8 @@ public class UserXmlPreferencesDao
 
   /**
    * Here you can update user preferences formats by manipulation the stored xml string.
-   * 
+   *
    * @param userId
-   * 
    * @param userPrefs
    * @param logError
    */
@@ -318,16 +320,23 @@ public class UserXmlPreferencesDao
     }
     userPrefs.setLastUpdate(date);
     userPrefs.setVersion();
+    final UserXmlPreferencesDO userPrefsForDB = userPrefs;
     if (isNew == true) {
       if (log.isDebugEnabled() == true) {
         log.debug("Storing new user preference for user '" + userId + "': " + xml);
       }
-      hibernateTemplate.save(userPrefs);
+      emgrFactory.runInTrans(emgr -> {
+        emgr.insert(userPrefsForDB);
+        return null;
+      });
     } else {
       if (log.isDebugEnabled() == true) {
         log.debug("Updating user preference for user '" + userPrefs.getUserId() + "': " + xml);
       }
-      hibernateTemplate.update(userPrefs);
+      emgrFactory.runInTrans(emgr -> {
+        emgr.update(emgr.selectByPkAttached(UserXmlPreferencesDO.class, userPrefsForDB.getId()));
+        return null;
+      });
     }
   }
 
@@ -340,7 +349,10 @@ public class UserXmlPreferencesDao
     }
     final UserXmlPreferencesDO userPreferencesDO = getUserPreferencesByUserId(userId, key, true);
     if (userPreferencesDO != null) {
-      hibernateTemplate.delete(userPreferencesDO);
+      emgrFactory.runInTrans(emgr -> {
+        emgr.deleteAttached(emgr.selectByPkAttached(UserXmlPreferencesDO.class, userPreferencesDO.getId()));
+        return null;
+      });
     }
   }
 }

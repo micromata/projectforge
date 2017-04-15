@@ -62,7 +62,7 @@ public class OrderExport
   protected AccessChecker accessChecker;
 
   @Autowired
-  RechnungCache rechnungCache;
+  private RechnungCache rechnungCache;
 
   @Autowired
   private AuftragDao auftragDao;
@@ -242,6 +242,8 @@ public class OrderExport
       final PaymentScheduleDO scheduleDO)
   {
     mapping.add(PaymentsCol.NUMBER, order.getNummer());
+    final Short positionNumber = scheduleDO.getPositionNumber();
+    mapping.add(PaymentsCol.POS_NUMBER, positionNumber != null ? "#" + positionNumber : "");
     mapping.add(PaymentsCol.PAY_NUMBER, "#" + scheduleDO.getNumber());
     mapping.add(PaymentsCol.AMOUNT, scheduleDO.getAmount());
     mapping.add(PaymentsCol.COMMENT, scheduleDO.getComment());
@@ -357,12 +359,12 @@ public class OrderExport
   {
     return new ExportColumn[] {
         new I18nExportColumn(PaymentsCol.NUMBER, "fibu.auftrag.nummer.short", MyXlsContentProvider.LENGTH_ID),
+        new I18nExportColumn(PaymentsCol.POS_NUMBER, "fibu.auftrag.position", MyXlsContentProvider.LENGTH_ID),
         new I18nExportColumn(PaymentsCol.PAY_NUMBER, "fibu.auftrag.zahlung", MyXlsContentProvider.LENGTH_ID),
         new I18nExportColumn(PaymentsCol.AMOUNT, "fibu.common.betrag", MyXlsContentProvider.LENGTH_CURRENCY),
         new I18nExportColumn(PaymentsCol.COMMENT, "comment", MyXlsContentProvider.LENGTH_STD),
         new I18nExportColumn(PaymentsCol.REACHED, "fibu.common.reached", MyXlsContentProvider.LENGTH_STD),
-        new I18nExportColumn(PaymentsCol.VOLLSTAENDIG_FAKTURIERT, "fibu.auftrag.vollstaendigFakturiert",
-            MyXlsContentProvider.LENGTH_STD),
+        new I18nExportColumn(PaymentsCol.VOLLSTAENDIG_FAKTURIERT, "fibu.auftrag.vollstaendigFakturiert", MyXlsContentProvider.LENGTH_STD),
         new I18nExportColumn(PaymentsCol.SCHEDULE_DATE, "date", MyXlsContentProvider.LENGTH_DATE)
     };
   }
@@ -380,22 +382,22 @@ public class OrderExport
 
   private enum OrderCol
   {
-    NUMMER, NUMBER_OF_POSITIONS, DATE_OF_OFFER, DATE_OF_ENTRY, DATE_OF_DESICION, ORDER_DATE, STATUS, STATUS_COMMENT, PROJECT, PROJECT_CUSTOMER, TITLE, PROJECTMANAGER, HEADOFBUSINESSMANAGER, SALESMANAGER, NETSUM, INVOICED, TO_BE_INVOICED, COMPLETELY_INVOICED, INVOICES, PERIOD_OF_PERFORMANCE_BEGIN, PERIOD_OF_PERFORMANCE_END, PROBABILITY_OF_OCCURRENCE, CONTACT_PERSON, REFERENCE, COMMENT;
+    NUMMER, NUMBER_OF_POSITIONS, DATE_OF_OFFER, DATE_OF_ENTRY, DATE_OF_DESICION, ORDER_DATE, STATUS, STATUS_COMMENT, PROJECT, PROJECT_CUSTOMER, TITLE, PROJECTMANAGER, HEADOFBUSINESSMANAGER, SALESMANAGER, NETSUM, INVOICED, TO_BE_INVOICED, COMPLETELY_INVOICED, INVOICES, PERIOD_OF_PERFORMANCE_BEGIN, PERIOD_OF_PERFORMANCE_END, PROBABILITY_OF_OCCURRENCE, CONTACT_PERSON, REFERENCE, COMMENT
   }
 
   private enum PosCol
   {
-    NUMBER, POS_NUMBER, DATE_OF_OFFER, DATE_OF_ENTRY, DATE_OF_DESICION, PROJECT, ORDER_TITLE, TITLE, TYPE, PAYMENTTYPE, STATUS, PERSON_DAYS, NETSUM, INVOICED, TO_BE_INVOICED, COMPLETELY_INVOICED, INVOICES, PERIOD_OF_PERFORMANCE_BEGIN, PERIOD_OF_PERFORMANCE_END, TASK, COMMENT;
+    NUMBER, POS_NUMBER, DATE_OF_OFFER, DATE_OF_ENTRY, DATE_OF_DESICION, PROJECT, ORDER_TITLE, TITLE, TYPE, PAYMENTTYPE, STATUS, PERSON_DAYS, NETSUM, INVOICED, TO_BE_INVOICED, COMPLETELY_INVOICED, INVOICES, PERIOD_OF_PERFORMANCE_BEGIN, PERIOD_OF_PERFORMANCE_END, TASK, COMMENT
   }
 
   private enum PaymentsCol
   {
-    NUMBER, PAY_NUMBER, AMOUNT, COMMENT, REACHED, VOLLSTAENDIG_FAKTURIERT, SCHEDULE_DATE;
+    NUMBER, POS_NUMBER, PAY_NUMBER, AMOUNT, COMMENT, REACHED, VOLLSTAENDIG_FAKTURIERT, SCHEDULE_DATE
   }
 
   private class MyContentProvider extends MyXlsContentProvider
   {
-    public MyContentProvider(final ExportWorkbook workbook)
+    private MyContentProvider(final ExportWorkbook workbook)
     {
       super(workbook);
     }

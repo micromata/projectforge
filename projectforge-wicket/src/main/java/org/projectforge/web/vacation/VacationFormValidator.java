@@ -128,11 +128,12 @@ public class VacationFormValidator implements IFormValidator
       form.error(I18nHelper.getLocalizedMessage("vacation.validate.daysarenull"));
     }
 
-    //check Vacation Calender
-    if (configService.getVacationCalendar() != null) {
-      Collection<TeamCalDO> convertedInput = calendars.getConvertedInput();
-      if (convertedInput.contains(configService.getVacationCalendar()) == false) {
-        form.error(I18nHelper.getLocalizedMessage("vacation.validate.noCalender", configService.getVacationCalendar().getTitle()));
+    // check Vacation Calender
+    final TeamCalDO configuredVacationCalendar = configService.getVacationCalendar();
+    if (configuredVacationCalendar != null) {
+      final Collection<TeamCalDO> selectedCalendars = calendars.getConvertedInput();
+      if (selectedCalendars.contains(configuredVacationCalendar) == false) {
+        form.error(I18nHelper.getLocalizedMessage("vacation.validate.noCalender", configuredVacationCalendar.getTitle()));
       }
     }
 

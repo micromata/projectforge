@@ -39,15 +39,15 @@ public class FFPDebtFilter extends BaseSearchFilter implements Serializable
 
   private boolean showOnlyActiveEntries;
 
-  private Integer employeeId;
+  private Integer userId;
 
   public FFPDebtFilter()
   {
   }
 
-  public FFPDebtFilter(Integer employeeId)
+  public FFPDebtFilter(Integer userId)
   {
-    this.employeeId = employeeId;
+    this.userId = userId;
   }
 
   public FFPDebtFilter(final BaseSearchFilter filter)
@@ -55,13 +55,13 @@ public class FFPDebtFilter extends BaseSearchFilter implements Serializable
     super(filter);
   }
 
-  public Integer getEmployeeId()
+  public Integer getUserId()
   {
-    return employeeId;
+    return userId;
   }
 
-  public void setEmployeeId(Integer employeeId)
+  public void setUserId(Integer userId)
   {
-    this.employeeId = employeeId;
+    this.userId = userId;
   }
 }

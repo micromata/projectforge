@@ -158,6 +158,7 @@ public class ProjektEditForm extends AbstractEditForm<ProjektDO, ProjektEditPage
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("fibu.projekt.name"));
       final MaxLengthTextField field = new MaxLengthTextField(InputPanel.WICKET_ID,
           new PropertyModel<String>(data, "name"));
+      field.setRequired(true);
       fs.add(field);
       WicketUtils.setFocus(field);
       WicketUtils.setStrong(field);

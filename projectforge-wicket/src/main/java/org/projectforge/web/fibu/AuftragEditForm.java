@@ -205,7 +205,6 @@ public class AuftragEditForm extends AbstractEditForm<AuftragDO, AuftragEditPage
       String orderInvoiceInfo = I18nHelper.getLocalizedMessage("fibu.auftrag.invoice.info", CurrencyFormatter.format(data.getFakturiertSum()),
           CurrencyFormatter.format(data.getZuFakturierenSum()));
       fs.add(new DivTextPanel(fs.newChildId(), orderInvoiceInfo));
-      ;
     }
     gridBuilder.newGridPanel();
     {
@@ -300,32 +299,32 @@ public class AuftragEditForm extends AbstractEditForm<AuftragDO, AuftragEditPage
     }
     gridBuilder.newSplitPanel(GridSize.SPAN2);
     {
-      // order date
+      // erfassungsDatum
       final FieldsetPanel fsEntryDate = gridBuilder.newFieldset(getString("fibu.auftrag.erfassung.datum"));
       final DatePanel erfassungsDatumPanel = new DatePanel(fsEntryDate.newChildId(),
-          new PropertyModel<Date>(data, "erfassungsDatum"), DatePanelSettings
-          .get().withTargetType(java.sql.Date.class));
+          new PropertyModel<Date>(data, "erfassungsDatum"),
+          DatePanelSettings.get().withTargetType(java.sql.Date.class), true);
       erfassungsDatumPanel.setRequired(true);
       erfassungsDatumPanel.setEnabled(false);
       fsEntryDate.add(erfassungsDatumPanel);
     }
     gridBuilder.newSplitPanel(GridSize.SPAN2);
     {
-      // entry date
+      // angebotsDatum
       final FieldsetPanel fsOrderDate = gridBuilder.newFieldset(getString("fibu.auftrag.angebot.datum"));
       final DatePanel angebotsDatumPanel = new DatePanel(fsOrderDate.newChildId(),
           new PropertyModel<Date>(data, "angebotsDatum"), DatePanelSettings
-          .get().withTargetType(java.sql.Date.class));
+          .get().withTargetType(java.sql.Date.class), true);
       angebotsDatumPanel.setRequired(true);
       fsOrderDate.add(angebotsDatumPanel);
     }
     gridBuilder.newSplitPanel(GridSize.SPAN2);
     {
-      // entry date
+      // entscheidungsDatum
       final FieldsetPanel fsOrderDate = gridBuilder.newFieldset(getString("fibu.auftrag.entscheidung.datum"));
       final DatePanel angebotsDatumPanel = new DatePanel(fsOrderDate.newChildId(),
           new PropertyModel<Date>(data, "entscheidungsDatum"), DatePanelSettings
-          .get().withTargetType(java.sql.Date.class));
+          .get().withTargetType(java.sql.Date.class), true);
       fsOrderDate.add(angebotsDatumPanel);
     }
     gridBuilder.newSplitPanel(GridSize.COL50);
@@ -334,7 +333,7 @@ public class AuftragEditForm extends AbstractEditForm<AuftragDO, AuftragEditPage
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("fibu.auftrag.bindungsFrist"));
       final DatePanel bindungsFristPanel = new DatePanel(fs.newChildId(),
           new PropertyModel<Date>(data, "bindungsFrist"), DatePanelSettings
-          .get().withTargetType(java.sql.Date.class));
+          .get().withTargetType(java.sql.Date.class), true);
       fs.add(bindungsFristPanel);
     }
     gridBuilder.newSplitPanel(GridSize.COL50);
@@ -355,7 +354,7 @@ public class AuftragEditForm extends AbstractEditForm<AuftragDO, AuftragEditPage
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("fibu.auftrag.beauftragungsdatum"));
       final DatePanel beauftragungsDatumPanel = new DatePanel(fs.newChildId(),
           new PropertyModel<Date>(data, "beauftragungsDatum"),
-          DatePanelSettings.get().withTargetType(java.sql.Date.class));
+          DatePanelSettings.get().withTargetType(java.sql.Date.class), true);
       fs.add(beauftragungsDatumPanel);
     }
     gridBuilder.newSplitPanel(GridSize.COL50);
@@ -414,10 +413,8 @@ public class AuftragEditForm extends AbstractEditForm<AuftragDO, AuftragEditPage
       gridBuilder.getPanel().add(schedulesPanel);
       final GridBuilder innerGridBuilder = schedulesPanel.createGridBuilder();
       final DivPanel dp = innerGridBuilder.getPanel();
-      dp.add(paymentSchedulePanel = new PaymentSchedulePanel(dp.newChildId(),
-          new CompoundPropertyModel<AuftragDO>(data), getUser()));
-      paymentSchedulePanel
-          .setVisible(data.getPaymentSchedules() != null && data.getPaymentSchedules().isEmpty() == false);
+      dp.add(paymentSchedulePanel = new PaymentSchedulePanel(dp.newChildId(), new CompoundPropertyModel<AuftragDO>(data), getUser()));
+      paymentSchedulePanel.setVisible(data.getPaymentSchedules() != null && data.getPaymentSchedules().isEmpty() == false);
       final Button addPositionButton = new Button(SingleButtonPanel.WICKET_ID)
       {
         @Override
@@ -428,9 +425,8 @@ public class AuftragEditForm extends AbstractEditForm<AuftragDO, AuftragEditPage
           paymentSchedulePanel.setVisible(true);
         }
       };
-      final SingleButtonPanel addPositionButtonPanel = new SingleButtonPanel(dp.newChildId(), addPositionButton,
-          getString("add"));
-      addPositionButtonPanel.setTooltip(getString("fibu.auftrag.tooltip.addPosition"));
+      final SingleButtonPanel addPositionButtonPanel = new SingleButtonPanel(dp.newChildId(), addPositionButton, getString("add"));
+      addPositionButtonPanel.setTooltip(getString("fibu.auftrag.tooltip.addPaymentschedule"));
       dp.add(addPositionButtonPanel);
     }
     gridBuilder.newSplitPanel(GridSize.COL50);
@@ -449,7 +445,7 @@ public class AuftragEditForm extends AbstractEditForm<AuftragDO, AuftragEditPage
     // positions
     gridBuilder.newGridPanel();
     positionsRepeater = gridBuilder.newRepeatingView();
-    refresh();
+    refreshPositions();
     if (getBaseDao().hasInsertAccess(getUser()) == true) {
       final DivPanel panel = gridBuilder.newGridPanel().getPanel();
       final Button addPositionButton = new Button(SingleButtonPanel.WICKET_ID)
@@ -458,7 +454,8 @@ public class AuftragEditForm extends AbstractEditForm<AuftragDO, AuftragEditPage
         public final void onSubmit()
         {
           getData().addPosition(new AuftragsPositionDO());
-          refresh();
+          refreshPositions();
+          paymentSchedulePanel.rebuildEntries();
         }
       };
       final SingleButtonPanel addPositionButtonPanel = new SingleButtonPanel(panel.newChildId(), addPositionButton,
@@ -551,7 +548,7 @@ public class AuftragEditForm extends AbstractEditForm<AuftragDO, AuftragEditPage
   }
 
   @SuppressWarnings("serial")
-  void refresh()
+  private void refreshPositions()
   {
     positionsRepeater.removeAll();
     performanceChoices.clear();
@@ -630,7 +627,7 @@ public class AuftragEditForm extends AbstractEditForm<AuftragDO, AuftragEditPage
             fsPaymentType.getDropDownChoiceId(),
             new PropertyModel<AuftragsPositionsPaymentType>(position, "paymentType"), paymentTypeChoiceRenderer.getValues(), paymentTypeChoiceRenderer);
         //paymentTypeChoice.setNullValid(false);
-        //paymentTypeChoice.setRequired(true);
+        paymentTypeChoice.setRequired(true);
         fsPaymentType.add(paymentTypeChoice);
       }
       posGridBuilder.newSplitPanel(GridSize.COL33);
@@ -728,7 +725,7 @@ public class AuftragEditForm extends AbstractEditForm<AuftragDO, AuftragEditPage
             new PropertyModel<AuftragsPositionsStatus>(position, "status"), statusChoiceRenderer.getValues(),
             statusChoiceRenderer);
         statusChoice.setNullValid(true);
-        statusChoice.setRequired(false);
+        statusChoice.setRequired(true);
         fs.add(statusChoice);
         if (abgeschlossenUndNichtFakturiert == true) {
           fs.setWarningBackground();
@@ -844,7 +841,8 @@ public class AuftragEditForm extends AbstractEditForm<AuftragDO, AuftragEditPage
           public final void onSubmit()
           {
             position.setDeleted(true);
-            refresh();
+            refreshPositions();
+            paymentSchedulePanel.rebuildEntries();
           }
         };
         removePositionButton.add(AttributeModifier.append("class", ButtonType.DELETE.getClassAttrValue()));

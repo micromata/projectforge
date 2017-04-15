@@ -76,10 +76,8 @@ public class VacationFormValidatorTest extends PowerMockTestCase
     when(this.employee.getUrlaubstage()).thenReturn(30);
     this.vacationService = mock(VacationServiceImpl.class);
     this.configService = mock(ConfigurationServiceImpl.class);
-    this.startDate = new GregorianCalendar();
-    this.startDate.set(Calendar.YEAR, 2017);
-    this.endDate = new GregorianCalendar();
-    this.endDate.set(Calendar.YEAR, 2017);
+    this.startDate = new GregorianCalendar(2017, 0, 1);
+    this.endDate = new GregorianCalendar(2017, 0, 1);
     this.startDatePanel = mock(DatePanel.class);
     this.endDatePanel = mock(DatePanel.class);
     this.halfDay = false;
