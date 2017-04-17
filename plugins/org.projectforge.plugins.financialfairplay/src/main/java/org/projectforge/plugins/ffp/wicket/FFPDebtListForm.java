@@ -24,10 +24,14 @@
 package org.projectforge.plugins.ffp.wicket;
 
 import org.apache.log4j.Logger;
+import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.fibu.api.EmployeeService;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.web.wicket.AbstractListForm;
+import org.projectforge.web.wicket.bootstrap.GridSize;
+import org.projectforge.web.wicket.flowlayout.DivPanel;
+import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
 
 public class FFPDebtListForm extends AbstractListForm<FFPDebtFilter, FFPDebtListPage>
 {
@@ -42,6 +46,20 @@ public class FFPDebtListForm extends AbstractListForm<FFPDebtFilter, FFPDebtList
   {
     super(parentPage);
   }
+  
+  @Override
+  protected void onOptionsPanelCreate(FieldsetPanel optionsFieldsetPanel, DivPanel optionsCheckBoxesPanel) {
+    final FFPDebtFilter ffpDebtFilter = getSearchFilter();
+    optionsCheckBoxesPanel.add(createAutoRefreshCheckBoxButton(optionsCheckBoxesPanel.newChildId(),
+            new PropertyModel<Boolean>(ffpDebtFilter, "fromMe"), getString("plugins.ffp.debt.options.fromMe")));
+    optionsCheckBoxesPanel.add(createAutoRefreshCheckBoxButton(optionsCheckBoxesPanel.newChildId(),
+            new PropertyModel<Boolean>(ffpDebtFilter, "toMe"), getString("plugins.ffp.debt.options.toMe")));
+    optionsCheckBoxesPanel.add(createAutoRefreshCheckBoxButton(optionsCheckBoxesPanel.newChildId(),
+            new PropertyModel<Boolean>(ffpDebtFilter, "iNeedToApprove"), getString("plugins.ffp.debt.options.iNeedToApprove")));
+    optionsCheckBoxesPanel.add(createAutoRefreshCheckBoxButton(optionsCheckBoxesPanel.newChildId(),
+            new PropertyModel<Boolean>(ffpDebtFilter, "hideBothApproved"), getString("plugins.ffp.debt.options.hideBothApprove")));
+  }
+  
 
   @Override
   protected Logger getLogger()

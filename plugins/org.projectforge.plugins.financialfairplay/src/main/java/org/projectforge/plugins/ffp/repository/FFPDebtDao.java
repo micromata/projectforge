@@ -2,7 +2,9 @@ package org.projectforge.plugins.ffp.repository;
 
 import java.util.List;
 
+import org.hibernate.criterion.LogicalExpression;
 import org.hibernate.criterion.Restrictions;
+import org.hibernate.criterion.SimpleExpression;
 import org.projectforge.framework.persistence.api.BaseDao;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.persistence.api.QueryFilter;
@@ -40,9 +42,9 @@ public class FFPDebtDao extends BaseDao<FFPDebtDO>
 
   public List<FFPDebtDO> getDebtList(PFUserDO user)
   {
-    return emgrFactory.runRoTrans(emgr -> {
-      return emgr.select(FFPDebtDO.class, "SELECT d FROM FFPDebtDO d WHERE d.from = :from OR d.to = :to", "from", user, "to", user);
-    });
+    return emgrFactory.runRoTrans(emgr -> 
+      emgr.select(FFPDebtDO.class, "SELECT d FROM FFPDebtDO d WHERE d.from = :from OR d.to = :to", "from", user, "to", user)
+    );
   }
 
   public Integer getOpenFromDebts(PFUserDO user)
@@ -90,6 +92,26 @@ public class FFPDebtDao extends BaseDao<FFPDebtDO>
     queryFilter.add(Restrictions.or(
         Restrictions.eq("from", userFromFilter),
         Restrictions.eq("to", userFromFilter)));
+    if (myFilter.isFromMe()) {
+      queryFilter.add(Restrictions.eq("from", userFromFilter));
+    }
+    if (myFilter.isToMe()) {
+      queryFilter.add(Restrictions.eq("to", userFromFilter));
+    }
+    if (myFilter.isiNeedToApprove()) {
+        LogicalExpression fromMe = Restrictions.and(//
+            Restrictions.eq("from", userFromFilter), //
+            Restrictions.eq("approvedByFrom", false));
+        LogicalExpression toMe = Restrictions.and(//
+            Restrictions.eq("to", userFromFilter), //
+            Restrictions.eq("approvedByTo", false));
+        queryFilter.add(Restrictions.or(fromMe, toMe));
+      }
+    if (myFilter.isHideBothApproved()) {
+        SimpleExpression notApprovedByFrom = Restrictions.eq("approvedByFrom", false);
+        SimpleExpression notApprovedByTo = Restrictions.eq("approvedByTo", false);
+        queryFilter.add(Restrictions.or(notApprovedByFrom, notApprovedByTo));
+      }
     return getList(queryFilter);
   }
 }
