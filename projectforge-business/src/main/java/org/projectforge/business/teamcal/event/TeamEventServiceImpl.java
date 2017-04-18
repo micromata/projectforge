@@ -135,27 +135,27 @@ public class TeamEventServiceImpl implements TeamEventService
     teamEventDao.update(data);
   }
 
-  private boolean checkSendMail(TeamEventDO data)
+  private boolean checkSendMail(final TeamEventDO data)
   {
-    Date now = new Date();
-    if(data.getEndDate().before(now)) {
-      Date untilDate = null;
-      if(data.getRecurrenceRule() != null)
-      {
+    final Date now = new Date();
+    if (data.getEndDate().before(now)) {
+      if (data.getRecurrenceRule() != null) {
+        final net.fortuna.ical4j.model.Date until;
         try {
-          RRule rRule = new RRule(data.getRecurrenceRule());
-          if(rRule.getRecur().getUntil() == null)
+          final RRule rRule = new RRule(data.getRecurrenceRule());
+          until = rRule.getRecur().getUntil();
+          if (until == null) {
             return true;
-          untilDate = new Date(rRule.getRecur().getUntil().getTime());
+          }
         } catch (ParseException e) {
           return false;
         }
-        if(untilDate.before(now)) {
+
+        final Date untilDate = new Date(until.getTime());
+        if (untilDate.before(now)) {
           return false;
         }
-      }
-      else
-      {
+      } else {
         return false;
       }
     }
@@ -167,7 +167,7 @@ public class TeamEventServiceImpl implements TeamEventService
       Set<TeamEventAttendeeDO> addedAttendees)
   {
     boolean result = false;
-    if(checkSendMail(data)) {
+    if (checkSendMail(data)) {
       String mode = "";
       if (isDeleted) {
         mode = "deleted";
