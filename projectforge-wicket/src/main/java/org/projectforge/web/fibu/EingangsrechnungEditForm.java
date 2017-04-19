@@ -25,6 +25,8 @@ package org.projectforge.web.fibu;
 
 import java.util.List;
 
+import javax.persistence.TypedQuery;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -56,7 +58,7 @@ public class EingangsrechnungEditForm extends
   private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(EingangsrechnungEditForm.class);
 
   @SpringBean
-  transient KontoCache kontoCache;
+  private transient KontoCache kontoCache;
 
   @SpringBean
   private transient PfEmgrFactory pfEmgrFactory;
@@ -100,8 +102,7 @@ public class EingangsrechnungEditForm extends
         @Override
         protected void onUpdate(final AjaxRequestTarget target)
         {
-          log.info("Es geht!!!! Kreditor: " + kreditorField.getModelObject());
-          setKreditorinformations(kreditorField.getModelObject(), target);
+          autofillLatestKreditorInformations(kreditorField.getModelObject(), target);
         }
       });
       fs.add(kreditorField);
@@ -130,36 +131,36 @@ public class EingangsrechnungEditForm extends
     }
   }
 
-  private void setKreditorinformations(String kreditorname, AjaxRequestTarget target)
+  private void autofillLatestKreditorInformations(final String kreditorName, final AjaxRequestTarget target)
   {
-    if (StringUtils.isEmpty(kreditorname)) {
+    if (StringUtils.isEmpty(kreditorName)) {
       return;
     }
-    List<EingangsrechnungDO> erList = pfEmgrFactory.runRoTrans(emgr -> {
-      String sql = "SELECT er FROM EingangsrechnungDO er WHERE er.kreditor = :kreditor ORDER BY er.datum DESC";
-      return emgr.select(EingangsrechnungDO.class, sql, "kreditor", kreditorname);
+
+    final EingangsrechnungDO latestRe = pfEmgrFactory.runRoTrans(emgr -> {
+      final String sql = "SELECT er FROM EingangsrechnungDO er WHERE er.kreditor = :kreditor AND er.deleted = false ORDER BY er.datum DESC";
+      final TypedQuery<EingangsrechnungDO> query = emgr.createQueryDetached(EingangsrechnungDO.class, sql, "kreditor", kreditorName);
+      final List<EingangsrechnungDO> resultList = query.setMaxResults(1).getResultList();
+      return (resultList != null && resultList.size() > 0) ? resultList.get(0) : null;
     });
-    if (erList != null && erList.size() > 0) {
-      EingangsrechnungDO latestRe = erList.get(0);
-      //Update Customer No.
-      getData().setCustomernr(latestRe.getCustomernr());
-      customernrField.modelChanged();
-      if (target != null) {
-        target.add(customernrField);
-      }
-      //Update Konto
-      getData().setReceiver(latestRe.getReceiver());
-      getData().setIban(latestRe.getIban());
-      getData().setBic(latestRe.getBic());
-      recieverField.modelChanged();
-      ibanField.modelChanged();
-      bicField.modelChanged();
-      if (target != null) {
-        target.add(recieverField);
-        target.add(ibanField);
-        target.add(bicField);
-      }
+
+    if (latestRe == null) {
+      return;
     }
+
+    // Update Customer No.
+    getData().setCustomernr(latestRe.getCustomernr());
+    target.add(customernrField);
+
+    // Update Konto
+    getData().setReceiver(latestRe.getReceiver());
+    target.add(recieverField);
+
+    getData().setIban(latestRe.getIban());
+    target.add(ibanField);
+
+    getData().setBic(latestRe.getBic());
+    target.add(bicField);
   }
 
   @Override
