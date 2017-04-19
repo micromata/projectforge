@@ -138,7 +138,7 @@ public class EingangsrechnungEditForm extends
     }
 
     final EingangsrechnungDO latestRe = pfEmgrFactory.runRoTrans(emgr -> {
-      final String sql = "SELECT er FROM EingangsrechnungDO er WHERE er.kreditor = :kreditor AND er.deleted = false ORDER BY er.datum DESC";
+      final String sql = "SELECT er FROM EingangsrechnungDO er WHERE er.kreditor = :kreditor AND er.deleted = false ORDER BY er.created DESC";
       final TypedQuery<EingangsrechnungDO> query = emgr.createQueryDetached(EingangsrechnungDO.class, sql, "kreditor", kreditorName);
       final List<EingangsrechnungDO> resultList = query.setMaxResults(1).getResultList();
       return (resultList != null && resultList.size() > 0) ? resultList.get(0) : null;
