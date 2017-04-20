@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.util.Calendar;
 import java.util.Date;
 
+import org.projectforge.framework.i18n.RequiredFieldIsEmptyException;
 import org.projectforge.framework.i18n.UserException;
 import org.projectforge.framework.time.DayHolder;
 
@@ -46,7 +47,7 @@ public class AbstractRechnungDaoHelper
   private static void validateFaelligkeit(final AbstractRechnungDO<?> rechnung)
   {
     if (rechnung.getFaelligkeit() == null) {
-      throw new UserException("fibu.rechnung.faelligkeit"); // TODO CT i18n
+      throw new RequiredFieldIsEmptyException("fibu.rechnung.faelligkeit");
     }
   }
 
