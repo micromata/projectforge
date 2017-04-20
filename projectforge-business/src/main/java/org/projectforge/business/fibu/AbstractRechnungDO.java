@@ -57,7 +57,7 @@ import de.micromata.genome.db.jpa.xmldump.api.JpaXmlPersist;
 
 @MappedSuperclass
 @JpaXmlPersist(beforePersistListener = AbstractRechnungXmlBeforePersistListener.class,
-               persistAfter = Kost2ArtDO.class)
+    persistAfter = Kost2ArtDO.class)
 public abstract class AbstractRechnungDO<T extends AbstractRechnungsPositionDO> extends DefaultBaseDO
 {
   private static final long serialVersionUID = -8936320220788212987L;
@@ -133,18 +133,16 @@ public abstract class AbstractRechnungDO<T extends AbstractRechnungsPositionDO> 
   @Override
   public void recalculate()
   {
-    if (this.datum == null || this.faelligkeit == null) {
+    // recalculate the transient fields
+    if (this.datum == null) {
       this.zahlungsZielInTagen = null;
-      return;
-    }
-    final DateHolder date = new DateHolder(this.datum);
-    this.zahlungsZielInTagen = date.daysBetween(this.faelligkeit);
-
-    if (this.datum == null || this.discountMaturity == null) {
       this.discountZahlungsZielInTagen = null;
       return;
     }
-    this.discountZahlungsZielInTagen = date.daysBetween(this.discountMaturity);
+
+    final DateHolder date = new DateHolder(this.datum);
+    this.zahlungsZielInTagen = (this.faelligkeit == null) ? null : date.daysBetween(this.faelligkeit);
+    this.discountZahlungsZielInTagen = (this.discountMaturity == null) ? null : date.daysBetween(this.discountMaturity);
   }
 
   @Column(length = 4000)

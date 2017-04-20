@@ -118,26 +118,28 @@ public class EingangsrechnungDao extends BaseDao<EingangsrechnungDO>
    * @see org.projectforge.framework.persistence.api.BaseDao#onSaveOrModify(org.projectforge.core.ExtendedBaseDO)
    */
   @Override
-  protected void onSaveOrModify(final EingangsrechnungDO obj)
+  protected void onSaveOrModify(final EingangsrechnungDO rechnung)
   {
-    if (obj.getZahlBetrag() != null) {
-      obj.setZahlBetrag(obj.getZahlBetrag().setScale(2, RoundingMode.HALF_UP));
+    AbstractRechnungDaoHelper.onSaveOrModify(rechnung);
+
+    if (rechnung.getZahlBetrag() != null) {
+      rechnung.setZahlBetrag(rechnung.getZahlBetrag().setScale(2, RoundingMode.HALF_UP));
     }
-    obj.recalculate();
-    if (CollectionUtils.isEmpty(obj.getPositionen()) == true) {
+    rechnung.recalculate();
+    if (CollectionUtils.isEmpty(rechnung.getPositionen()) == true) {
       throw new UserException("fibu.rechnung.error.rechnungHatKeinePositionen");
     }
-    final int size = obj.getPositionen().size();
+    final int size = rechnung.getPositionen().size();
     for (int i = size - 1; i > 0; i--) {
       // Don't remove first position, remove only the last empty positions.
-      final EingangsrechnungsPositionDO position = obj.getPositionen().get(i);
+      final EingangsrechnungsPositionDO position = rechnung.getPositionen().get(i);
       if (position.getId() == null && position.isEmpty() == true) {
-        obj.getPositionen().remove(i);
+        rechnung.getPositionen().remove(i);
       } else {
         break;
       }
     }
-    RechnungDao.writeUiStatusToXml(obj);
+    RechnungDao.writeUiStatusToXml(rechnung);
   }
 
   @Override

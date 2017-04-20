@@ -25,7 +25,6 @@ package org.projectforge.web.fibu;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
@@ -40,9 +39,7 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.Button;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.Form;
-import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.form.TextField;
-import org.apache.wicket.markup.html.form.validation.IFormValidator;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
@@ -59,7 +56,6 @@ import org.projectforge.business.utils.CurrencyFormatter;
 import org.projectforge.common.StringHelper;
 import org.projectforge.framework.configuration.Configuration;
 import org.projectforge.framework.configuration.ConfigurationParam;
-import org.projectforge.framework.time.DayHolder;
 import org.projectforge.framework.utils.NumberHelper;
 import org.projectforge.web.dialog.ModalDialog;
 import org.projectforge.web.wicket.AbstractEditForm;
@@ -108,12 +104,6 @@ public abstract class AbstractRechnungEditForm<O extends AbstractRechnungDO<T>, 
 
   private Component[] ajaxUpdateComponentsArray;
 
-  private DatePanel faelligkeitPanel;
-
-  private DatePanel discountPanel;
-
-  protected final FormComponent<?>[] dependentFormComponents = new FormComponent[7];
-
   public AbstractRechnungEditForm(final P parentPage, final O data)
   {
     super(parentPage, data);
@@ -121,80 +111,12 @@ public abstract class AbstractRechnungEditForm<O extends AbstractRechnungDO<T>, 
 
   protected abstract void onInit();
 
-  @SuppressWarnings("unchecked")
-  protected void validation()
-  {
-    final TextField<Date> datumField = (TextField<Date>) dependentFormComponents[0];
-    final TextField<Date> bezahlDatumField = (TextField<Date>) dependentFormComponents[1];
-    final TextField<Date> faelligkeitField = (TextField<Date>) dependentFormComponents[2];
-    final TextField<BigDecimal> zahlBetragField = (TextField<BigDecimal>) dependentFormComponents[3];
-    final DropDownChoice<Integer> zahlungsZielChoice = (DropDownChoice<Integer>) dependentFormComponents[4];
-    final TextField<Date> discountMaturityField = (TextField<Date>) dependentFormComponents[5];
-    final DropDownChoice<Integer> discountZahlungsZielChoice = (DropDownChoice<Integer>) dependentFormComponents[6];
-
-    final Date bezahlDatum = bezahlDatumField.getConvertedInput();
-
-    final Integer zahlungsZiel = zahlungsZielChoice.getConvertedInput();
-    Date faelligkeit = faelligkeitField.getConvertedInput();
-    if (faelligkeit == null && zahlungsZiel != null) {
-      Date date = datumField.getConvertedInput();
-      if (date == null) {
-        date = getData().getDatum();
-      }
-      if (date != null) {
-        final DayHolder day = new DayHolder(date);
-        day.add(Calendar.DAY_OF_YEAR, zahlungsZiel);
-        faelligkeit = day.getDate();
-        getData().setFaelligkeit(day.getSQLDate());
-        faelligkeitPanel.markModelAsChanged();
-      }
-    }
-
-    final Integer discountZahlungsZiel = discountZahlungsZielChoice.getConvertedInput();
-    Date maturity = discountMaturityField.getConvertedInput();
-    if (maturity == null && discountZahlungsZiel != null) {
-      Date date = datumField.getConvertedInput();
-      if (date == null) {
-        date = getData().getDatum();
-      }
-      if (date != null) {
-        final DayHolder day = new DayHolder(date);
-        day.add(Calendar.DAY_OF_YEAR, discountZahlungsZiel);
-        getData().setDiscountMaturity(day.getSQLDate());
-        discountPanel.markModelAsChanged();
-      }
-    }
-    getData().recalculate();
-
-    final BigDecimal zahlBetrag = zahlBetragField.getConvertedInput();
-    final boolean zahlBetragExists = (zahlBetrag != null && zahlBetrag.compareTo(BigDecimal.ZERO) != 0);
-    if (bezahlDatum != null && zahlBetragExists == false) {
-      addError("fibu.rechnung.error.bezahlDatumUndZahlbetragRequired");
-    }
-    if (faelligkeit == null) {
-      addFieldRequiredError("fibu.rechnung.faelligkeit");
-    }
-  }
-
   @SuppressWarnings("serial")
   @Override
   protected void init()
   {
     super.init();
-    add(new IFormValidator()
-    {
-      @Override
-      public FormComponent<?>[] getDependentFormComponents()
-      {
-        return dependentFormComponents;
-      }
 
-      @Override
-      public void validate(final Form<?> form)
-      {
-        validation();
-      }
-    });
     if (Configuration.getInstance().isCostConfigured() == true) {
       costConfigured = true;
     }
@@ -210,7 +132,6 @@ public abstract class AbstractRechnungEditForm<O extends AbstractRechnungDO<T>, 
       final FieldsetPanel fs = gridBuilder.newFieldset(AbstractRechnungDO.class, "datum");
       final DatePanel datumPanel = new DatePanel(fs.newChildId(), new PropertyModel<Date>(data, "datum"), DatePanelSettings.get().withTargetType(
           java.sql.Date.class));
-      dependentFormComponents[0] = datumPanel.getDateField();
       datumPanel.setRequired(true);
       fs.add(datumPanel);
     }
@@ -266,9 +187,8 @@ public abstract class AbstractRechnungEditForm<O extends AbstractRechnungDO<T>, 
     {
       // Bezahldatum
       final FieldsetPanel fs = gridBuilder.newFieldset(AbstractRechnungDO.class, "bezahlDatum");
-      final DatePanel bezahlDatumPanel = new DatePanel(fs.newChildId(), new PropertyModel<Date>(data, "bezahlDatum"), DatePanelSettings
-          .get().withTargetType(java.sql.Date.class));
-      dependentFormComponents[1] = bezahlDatumPanel.getDateField();
+      final DatePanel bezahlDatumPanel = new DatePanel(fs.newChildId(), new PropertyModel<>(data, "bezahlDatum"),
+          DatePanelSettings.get().withTargetType(java.sql.Date.class));
       fs.add(bezahlDatumPanel);
     }
     gridBuilder.newSubSplitPanel(GridSize.COL50);
@@ -285,16 +205,14 @@ public abstract class AbstractRechnungEditForm<O extends AbstractRechnungDO<T>, 
           return new CurrencyConverter();
         }
       };
-      dependentFormComponents[3] = zahlBetragField;
       fs.add(zahlBetragField);
     }
     {
       gridBuilder.newSubSplitPanel(GridSize.COL50);
       // Fälligkeit und Zahlungsziel
       final FieldsetPanel fs = gridBuilder.newFieldset(AbstractRechnungDO.class, "faelligkeit");
-      faelligkeitPanel = new DatePanel(fs.newChildId(), new PropertyModel<Date>(data, "faelligkeit"), DatePanelSettings.get()
-          .withTargetType(java.sql.Date.class));
-      dependentFormComponents[2] = faelligkeitPanel.getDateField();
+      final DatePanel faelligkeitPanel = new DatePanel(fs.newChildId(), new PropertyModel<>(data, "faelligkeit"),
+          DatePanelSettings.get().withTargetType(java.sql.Date.class));
       fs.add(faelligkeitPanel);
       fs.setLabelFor(faelligkeitPanel);
 
@@ -303,8 +221,8 @@ public abstract class AbstractRechnungEditForm<O extends AbstractRechnungDO<T>, 
       for (final int days : ZAHLUNGSZIELE_IN_TAGEN) {
         zielChoiceRenderer.addValue(days, String.valueOf(days) + " " + getString("days"));
       }
-      final DropDownChoice<Integer> zahlungsZielChoice = new DropDownChoice<Integer>(fs.getDropDownChoiceId(), new Model<>(), zielChoiceRenderer.getValues(),
-          zielChoiceRenderer)
+      final DropDownChoice<Integer> zahlungsZielChoice = new DropDownChoice<Integer>(fs.getDropDownChoiceId(), new PropertyModel<>(data, "zahlungsZielInTagen"),
+          zielChoiceRenderer.getValues(), zielChoiceRenderer)
       {
         @Override
         public boolean isVisible()
@@ -312,7 +230,6 @@ public abstract class AbstractRechnungEditForm<O extends AbstractRechnungDO<T>, 
           return data.getFaelligkeit() == null;
         }
       };
-      dependentFormComponents[4] = zahlungsZielChoice;
       zahlungsZielChoice.setNullValid(true);
       zahlungsZielChoice.setRequired(false);
 
@@ -338,9 +255,8 @@ public abstract class AbstractRechnungEditForm<O extends AbstractRechnungDO<T>, 
       gridBuilder.newSubSplitPanel(GridSize.COL50);
       // Discount
       final FieldsetPanel fs = gridBuilder.newFieldset(I18nHelper.getLocalizedMessage("fibu.rechnung.discount"));
-      discountPanel = new DatePanel(fs.newChildId(), new PropertyModel<Date>(data, "discountMaturity"), DatePanelSettings.get()
-          .withTargetType(java.sql.Date.class), true);
-      dependentFormComponents[5] = discountPanel.getDateField();
+      final DatePanel discountPanel = new DatePanel(fs.newChildId(), new PropertyModel<>(data, "discountMaturity"),
+          DatePanelSettings.get().withTargetType(java.sql.Date.class), true);
       fs.add(discountPanel);
       fs.setLabelFor(discountPanel);
 
@@ -349,8 +265,8 @@ public abstract class AbstractRechnungEditForm<O extends AbstractRechnungDO<T>, 
       for (final int days : ZAHLUNGSZIELE_IN_TAGEN) {
         discountZielChoiceRenderer.addValue(days, String.valueOf(days) + " " + getString("days"));
       }
-      final DropDownChoice<Integer> discountZahlungsZielChoice = new DropDownChoice<Integer>(fs.getDropDownChoiceId(), new Model<>(),
-          discountZielChoiceRenderer.getValues(), discountZielChoiceRenderer)
+      final DropDownChoice<Integer> discountZahlungsZielChoice = new DropDownChoice<Integer>(fs.getDropDownChoiceId(),
+          new PropertyModel<>(data, "discountZahlungsZielInTagen"), discountZielChoiceRenderer.getValues(), discountZielChoiceRenderer)
       {
         @Override
         public boolean isVisible()
@@ -358,7 +274,6 @@ public abstract class AbstractRechnungEditForm<O extends AbstractRechnungDO<T>, 
           return data.getDiscountMaturity() == null;
         }
       };
-      dependentFormComponents[6] = discountZahlungsZielChoice;
       discountZahlungsZielChoice.setNullValid(true);
       discountZahlungsZielChoice.setRequired(false);
 
