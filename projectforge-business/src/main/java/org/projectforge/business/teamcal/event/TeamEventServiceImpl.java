@@ -135,18 +135,23 @@ public class TeamEventServiceImpl implements TeamEventService
     teamEventDao.update(data);
   }
 
-  private boolean checkSendMail(TeamEventDO data)
+  private boolean checkSendMail(final TeamEventDO data)
   {
-    Date now = new Date();
+    final Date now = new Date();
     if (data.getEndDate().before(now)) {
-      Date untilDate = null;
       if (data.getRecurrenceRule() != null) {
+        final net.fortuna.ical4j.model.Date until;
         try {
-          RRule rRule = new RRule(data.getRecurrenceRule());
-          untilDate = new Date(rRule.getRecur().getUntil().getTime());
+          final RRule rRule = new RRule(data.getRecurrenceRule());
+          until = rRule.getRecur().getUntil();
+          if (until == null) {
+            return true;
+          }
         } catch (ParseException e) {
           return false;
         }
+
+        final Date untilDate = new Date(until.getTime());
         if (untilDate.before(now)) {
           return false;
         }
