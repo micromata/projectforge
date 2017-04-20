@@ -25,8 +25,6 @@ package org.projectforge.web.fibu;
 
 import java.util.List;
 
-import javax.persistence.TypedQuery;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -36,12 +34,12 @@ import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.fibu.AbstractRechnungDO;
 import org.projectforge.business.fibu.EingangsrechnungDO;
+import org.projectforge.business.fibu.EingangsrechnungDao;
 import org.projectforge.business.fibu.EingangsrechnungsPositionDO;
 import org.projectforge.business.fibu.KontoCache;
 import org.projectforge.business.fibu.KontoDO;
 import org.projectforge.business.fibu.PaymentType;
 import org.projectforge.business.fibu.kost.AccountingConfig;
-import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
 import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.web.wicket.autocompletion.PFAutoCompleteTextField;
 import org.projectforge.web.wicket.bootstrap.GridSize;
@@ -61,7 +59,7 @@ public class EingangsrechnungEditForm extends
   private transient KontoCache kontoCache;
 
   @SpringBean
-  private transient PfEmgrFactory pfEmgrFactory;
+  private transient EingangsrechnungDao eingangsrechnungDao;
 
   private MaxLengthTextField recieverField;
   private MaxLengthTextField ibanField;
@@ -131,35 +129,29 @@ public class EingangsrechnungEditForm extends
     }
   }
 
-  private void autofillLatestKreditorInformations(final String kreditorName, final AjaxRequestTarget target)
+  private void autofillLatestKreditorInformations(final String kreditor, final AjaxRequestTarget target)
   {
-    if (StringUtils.isEmpty(kreditorName)) {
+    if (StringUtils.isEmpty(kreditor)) {
       return;
     }
 
-    final EingangsrechnungDO latestRe = pfEmgrFactory.runRoTrans(emgr -> {
-      final String sql = "SELECT er FROM EingangsrechnungDO er WHERE er.kreditor = :kreditor AND er.deleted = false ORDER BY er.created DESC";
-      final TypedQuery<EingangsrechnungDO> query = emgr.createQueryDetached(EingangsrechnungDO.class, sql, "kreditor", kreditorName);
-      final List<EingangsrechnungDO> resultList = query.setMaxResults(1).getResultList();
-      return (resultList != null && resultList.size() > 0) ? resultList.get(0) : null;
-    });
-
-    if (latestRe == null) {
+    final EingangsrechnungDO newestRechnung = eingangsrechnungDao.findNewestByKreditor(kreditor);
+    if (newestRechnung == null) {
       return;
     }
 
     // Update Customer No.
-    getData().setCustomernr(latestRe.getCustomernr());
+    getData().setCustomernr(newestRechnung.getCustomernr());
     target.add(customernrField);
 
     // Update Konto
-    getData().setReceiver(latestRe.getReceiver());
+    getData().setReceiver(newestRechnung.getReceiver());
     target.add(recieverField);
 
-    getData().setIban(latestRe.getIban());
+    getData().setIban(newestRechnung.getIban());
     target.add(ibanField);
 
-    getData().setBic(latestRe.getBic());
+    getData().setBic(newestRechnung.getBic());
     target.add(bicField);
   }
 
