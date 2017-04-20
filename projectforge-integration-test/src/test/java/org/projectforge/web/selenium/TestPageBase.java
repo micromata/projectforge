@@ -1,5 +1,12 @@
 package org.projectforge.web.selenium;
 
+import static org.testng.Assert.assertTrue;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Locale;
+
 import org.openqa.selenium.By;
 import org.openqa.selenium.Keys;
 import org.openqa.selenium.StaleElementReferenceException;
@@ -7,17 +14,10 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.Select;
 import org.openqa.selenium.support.ui.WebDriverWait;
-import org.projectforge.web.i18n.I18NService;
+import org.projectforge.framework.i18n.I18nService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Locale;
-
-import static org.testng.Assert.assertTrue;
 
 public abstract class TestPageBase<T extends TestPageBase>
 {
@@ -27,7 +27,7 @@ public abstract class TestPageBase<T extends TestPageBase>
   protected static String baseUrl;
 
   @Autowired
-  private I18NService i18NService;
+  private I18nService i18NService;
 
   public TestPageBase()
   {
@@ -91,8 +91,6 @@ public abstract class TestPageBase<T extends TestPageBase>
   {
     clickAndWaitForFullPageReload(driver.findElement(By.id(id)));
   }
-
-
 
   public void clickAndWaitForFullPageReload(WebElement id)
   {

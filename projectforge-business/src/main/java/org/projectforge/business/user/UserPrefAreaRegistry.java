@@ -32,10 +32,12 @@ import java.util.Locale;
 import java.util.Set;
 
 import org.projectforge.common.StringHelper;
+import org.projectforge.framework.i18n.I18nHelper;
 import org.projectforge.framework.persistence.user.api.UserPrefArea;
 
 /**
  * All user pref areas. They will shown in the list of 'my settings'.
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 public class UserPrefAreaRegistry
@@ -54,12 +56,13 @@ public class UserPrefAreaRegistry
     set.add(userPrefArea);
     return this;
   }
-  
-  public UserPrefArea getEntry(final String id) {
+
+  public UserPrefArea getEntry(final String id)
+  {
     for (final UserPrefArea area : set) {
-     if (id.equals(area.getId()) == true) {
-       return area;
-     }
+      if (id.equals(area.getId()) == true) {
+        return area;
+      }
     }
     return null;
   }
@@ -72,12 +75,15 @@ public class UserPrefAreaRegistry
   {
     final List<UserPrefArea> list = new ArrayList<UserPrefArea>();
     list.addAll(set);
-    Collections.sort(list, new Comparator<UserPrefArea>() {
+    Collections.sort(list, new Comparator<UserPrefArea>()
+    {
       @Override
       public int compare(final UserPrefArea o1, final UserPrefArea o2)
       {
-        return StringHelper.compareTo(I18nHelper.getLocalizedString(locale, o1.getI18nKey()), I18nHelper.getLocalizedString(locale, o2
-            .getI18nKey()));
+        return StringHelper.compareTo(
+            I18nHelper.getLocalizedMessage(locale, o1.getI18nKey()),
+            I18nHelper.getLocalizedMessage(locale, o2.getI18nKey())
+        );
       }
     });
     return list;

@@ -93,4 +93,6 @@ public interface ConfigurationService
   String getHREmailadress();
 
   TeamCalDO getVacationCalendar();
+
+  int getMinPasswordLength();
 }

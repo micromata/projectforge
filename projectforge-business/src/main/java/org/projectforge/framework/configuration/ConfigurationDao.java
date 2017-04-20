@@ -205,10 +205,11 @@ public class ConfigurationDao extends BaseDao<ConfigurationDO>
     throw new UnsupportedOperationException();
   }
 
-  private void checkAndUpdateDatabaseEntry(final IConfigurationParam param, final List<ConfigurationDO> list,
-      final Set<String> params)
+  private void checkAndUpdateDatabaseEntry(final IConfigurationParam param, final List<ConfigurationDO> list, final Set<String> params)
   {
     params.add(param.getKey());
+
+    // find the entry and update it
     for (final ConfigurationDO configuration : list) {
       if (param.getKey().equals(configuration.getParameter()) == true) {
         boolean modified = false;
@@ -233,6 +234,7 @@ public class ConfigurationDao extends BaseDao<ConfigurationDO>
         return;
       }
     }
+
     // Entry does not exist: Create entry:
     log.info("Entry does not exist. Creating parameter '" + param.getKey() + "'.");
     final ConfigurationDO configuration = new ConfigurationDO();
@@ -241,6 +243,9 @@ public class ConfigurationDao extends BaseDao<ConfigurationDO>
     configuration.setGlobal(param.isGlobal());
     if (param.getType().isIn(ConfigurationType.STRING, ConfigurationType.TEXT) == true) {
       configuration.setValue(param.getDefaultStringValue());
+    }
+    if (param.getType().isIn(ConfigurationType.INTEGER)) {
+      configuration.setIntValue(param.getDefaultIntValue());
     }
     internalSave(configuration);
   }
