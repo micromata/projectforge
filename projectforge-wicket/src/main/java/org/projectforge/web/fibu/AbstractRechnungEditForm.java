@@ -94,25 +94,25 @@ public abstract class AbstractRechnungEditForm<O extends AbstractRechnungDO<T>, 
 {
   private static final long serialVersionUID = 9073611406229693582L;
 
-  public static final int[] ZAHLUNGSZIELE_IN_TAGEN = { 7, 14, 30, 60, 90 };
+  private static final int[] ZAHLUNGSZIELE_IN_TAGEN = { 7, 14, 30, 60, 90 };
 
   private static final Component[] COMPONENT_ARRAY = new Component[0];
 
-  protected RepeatingView positionsRepeater;
+  private RepeatingView positionsRepeater;
 
   private boolean costConfigured;
 
   private CostEditModalDialog costEditModalDialog;
 
-  private final List<Component> ajaxUpdateComponents = new ArrayList<Component>();
+  private final List<Component> ajaxUpdateComponents = new ArrayList<>();
 
   private Component[] ajaxUpdateComponentsArray;
 
+  private DatePanel faelligkeitPanel;
+
+  private DatePanel discountPanel;
+
   protected final FormComponent<?>[] dependentFormComponents = new FormComponent[7];
-
-  protected DatePanel datumPanel, faelligkeitPanel, discountPanel;
-
-  protected Integer zahlungsZiel, discountZahlungsZiel;
 
   public AbstractRechnungEditForm(final P parentPage, final O data)
   {
@@ -160,7 +160,6 @@ public abstract class AbstractRechnungEditForm<O extends AbstractRechnungDO<T>, 
       if (date != null) {
         final DayHolder day = new DayHolder(date);
         day.add(Calendar.DAY_OF_YEAR, discountZahlungsZiel);
-        maturity = day.getDate();
         getData().setDiscountMaturity(day.getSQLDate());
         discountPanel.markModelAsChanged();
       }
@@ -209,7 +208,7 @@ public abstract class AbstractRechnungEditForm<O extends AbstractRechnungDO<T>, 
     {
       // Date
       final FieldsetPanel fs = gridBuilder.newFieldset(AbstractRechnungDO.class, "datum");
-      datumPanel = new DatePanel(fs.newChildId(), new PropertyModel<Date>(data, "datum"), DatePanelSettings.get().withTargetType(
+      final DatePanel datumPanel = new DatePanel(fs.newChildId(), new PropertyModel<Date>(data, "datum"), DatePanelSettings.get().withTargetType(
           java.sql.Date.class));
       dependentFormComponents[0] = datumPanel.getDateField();
       datumPanel.setRequired(true);
@@ -304,8 +303,8 @@ public abstract class AbstractRechnungEditForm<O extends AbstractRechnungDO<T>, 
       for (final int days : ZAHLUNGSZIELE_IN_TAGEN) {
         zielChoiceRenderer.addValue(days, String.valueOf(days) + " " + getString("days"));
       }
-      final DropDownChoice<Integer> zahlungsZielChoice = new DropDownChoice<Integer>(fs.getDropDownChoiceId(), new PropertyModel<Integer>(
-          this, "zahlungsZiel"), zielChoiceRenderer.getValues(), zielChoiceRenderer)
+      final DropDownChoice<Integer> zahlungsZielChoice = new DropDownChoice<Integer>(fs.getDropDownChoiceId(), new Model<>(), zielChoiceRenderer.getValues(),
+          zielChoiceRenderer)
       {
         @Override
         public boolean isVisible()
@@ -350,8 +349,8 @@ public abstract class AbstractRechnungEditForm<O extends AbstractRechnungDO<T>, 
       for (final int days : ZAHLUNGSZIELE_IN_TAGEN) {
         discountZielChoiceRenderer.addValue(days, String.valueOf(days) + " " + getString("days"));
       }
-      final DropDownChoice<Integer> discountZahlungsZielChoice = new DropDownChoice<Integer>(fs.getDropDownChoiceId(), new PropertyModel<Integer>(
-          this, "discountZahlungsZiel"), discountZielChoiceRenderer.getValues(), discountZielChoiceRenderer)
+      final DropDownChoice<Integer> discountZahlungsZielChoice = new DropDownChoice<Integer>(fs.getDropDownChoiceId(), new Model<>(),
+          discountZielChoiceRenderer.getValues(), discountZielChoiceRenderer)
       {
         @Override
         public boolean isVisible()
