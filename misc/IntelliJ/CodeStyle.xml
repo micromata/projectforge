@@ -1,4 +1,6 @@
 <code_scheme name="ProjectForge">
+  <option name="GENERATE_FINAL_LOCALS" value="true" />
+  <option name="GENERATE_FINAL_PARAMETERS" value="true" />
   <option name="CLASS_COUNT_TO_USE_IMPORT_ON_DEMAND" value="99" />
   <option name="IMPORT_LAYOUT_TABLE">
     <value>
@@ -16,6 +18,7 @@
     </value>
   </option>
   <option name="RIGHT_MARGIN" value="160" />
+  <option name="JD_KEEP_INVALID_TAGS" value="false" />
   <option name="FORMATTER_TAGS_ENABLED" value="true" />
   <XML>
     <option name="XML_LEGACY_SETTINGS_IMPORTED" value="true" />
@@ -44,7 +47,7 @@
     <option name="TERNARY_OPERATION_WRAP" value="5" />
     <option name="ARRAY_INITIALIZER_WRAP" value="1" />
     <option name="PARAMETER_ANNOTATION_WRAP" value="1" />
-    <option name="VARIABLE_ANNOTATION_WRAP" value="1" />
+    <option name="VARIABLE_ANNOTATION_WRAP" value="2" />
     <indentOptions>
       <option name="INDENT_SIZE" value="2" />
       <option name="CONTINUATION_INDENT_SIZE" value="4" />
