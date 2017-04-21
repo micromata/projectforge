@@ -23,6 +23,8 @@
 
 package org.projectforge.web.teamcal.event;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -63,7 +65,6 @@ import net.ftlines.wicket.fullcalendar.callback.EventDroppedCallbackScriptGenera
  * @author Johannes Unterstein (j.unterstein@micromata.de)
  * @author M. Lauterbach (m.lauterbach@micromata.de)
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
  */
 public class TeamCalEventProvider extends MyFullCalendarEventsProvider
 {
@@ -97,7 +98,7 @@ public class TeamCalEventProvider extends MyFullCalendarEventsProvider
 
   /**
    * @see org.projectforge.web.calendar.MyFullCalendarEventsProvider#getEvents(org.joda.time.DateTime,
-   *      org.joda.time.DateTime)
+   * org.joda.time.DateTime)
    */
   @Override
   public Collection<Event> getEvents(final DateTime start, final DateTime end)
@@ -108,7 +109,7 @@ public class TeamCalEventProvider extends MyFullCalendarEventsProvider
 
   /**
    * @see org.projectforge.web.calendar.MyFullCalendarEventsProvider#buildEvents(org.joda.time.DateTime,
-   *      org.joda.time.DateTime)
+   * org.joda.time.DateTime)
    */
   @Override
   protected void buildEvents(final DateTime start, final DateTime end)
@@ -198,32 +199,41 @@ public class TeamCalEventProvider extends MyFullCalendarEventsProvider
               + " "
               + getString(eventDO.getReminderDurationUnit().getI18nKey());
         }
-        String attendees = null;
-        if(eventDO.getAttendees() != null && eventDO.getAttendees().isEmpty() == false)
-        {
-          final StringBuffer buf = new StringBuffer();
-          for(TeamEventAttendeeDO teamEventAttendeeDO : eventDO.getAttendees())
-          {
-            buf.append("\n");
-            if(teamEventAttendeeDO.getUser() != null) {
-              buf.append("- " + teamEventAttendeeDO.getUser().getFullname())
-                  .append("  [" + I18nHelper.getLocalizedMessage(teamEventAttendeeDO.getStatus().getI18nKey()) + "]");
-
-            }
-            else {
-              buf.append("- " + teamEventAttendeeDO.getUrl())
-                  .append("  [" + I18nHelper.getLocalizedMessage(teamEventAttendeeDO.getStatus().getI18nKey()) + "]");
-            }
-          }
-          attendees = buf.toString();
-        }
-        event.setTooltip(eventDO.getCalendar().getTitle(), new String[][] {
+        String[][] strings = {
             { eventDO.getSubject() },
             { eventDO.getLocation(), getString("timesheet.location") },
             { eventDO.getNote(), getString("plugins.teamcal.event.note") },
             { recurrence, getString("plugins.teamcal.event.recurrence") },
-            { reminder, getString("plugins.teamcal.event.reminder") },
-            { attendees, getString("plugins.teamcal.attendees")}});
+            { reminder, getString("plugins.teamcal.event.reminder") } };
+        ArrayList<String[]> toolTips = new ArrayList<>();
+        toolTips.addAll(Arrays.asList(strings));
+        if (eventDO.getAttendees() != null && eventDO.getAttendees().isEmpty() == false) {
+          toolTips.add(new String[] { getString("plugins.teamcal.attendees") + ":" });
+          for (TeamEventAttendeeDO teamEventAttendeeDO : eventDO.getAttendees()) {
+            final StringBuilder buf = new StringBuilder();
+            if (teamEventAttendeeDO.getUser() != null) {
+              buf.append("- ")
+                  .append(teamEventAttendeeDO.getUser().getFullname())
+                  .append("  [")
+                  .append(I18nHelper.getLocalizedMessage(teamEventAttendeeDO.getStatus().getI18nKey()))
+                  .append("]");
+            } else if (teamEventAttendeeDO.getUrl() != null) {
+              buf.append("- ")
+                  .append(teamEventAttendeeDO.getUrl())
+                  .append("  [")
+                  .append(I18nHelper.getLocalizedMessage(teamEventAttendeeDO.getStatus().getI18nKey()))
+                  .append("]");
+            } else {
+              buf.append("- ")
+                  .append(teamEventAttendeeDO.getAddress().getEmail())
+                  .append("  [")
+                  .append(I18nHelper.getLocalizedMessage(teamEventAttendeeDO.getStatus().getI18nKey()))
+                  .append("]");
+            }
+            toolTips.add(new String[] { buf.toString() });
+          }
+        }
+        event.setTooltip(eventDO.getCalendar().getTitle(), toolTips.toArray(new String[toolTips.size()][]));
         final String title;
         String durationString = "";
         if (longFormat == true) {
