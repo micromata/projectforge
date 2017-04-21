@@ -37,13 +37,15 @@ import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.apache.wicket.validation.IValidatable;
 import org.apache.wicket.validation.ValidationError;
 import org.apache.wicket.validation.validator.AbstractValidator;
+import org.projectforge.Const;
 import org.projectforge.business.book.BookDO;
 import org.projectforge.business.book.BookDao;
 import org.projectforge.business.book.BookStatus;
 import org.projectforge.business.book.BookType;
-import org.projectforge.web.wicket.WicketUtils;
+import org.projectforge.business.user.I18nHelper;
 import org.projectforge.framework.time.DateTimeFormatter;
 import org.projectforge.web.wicket.AbstractEditForm;
+import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.web.wicket.bootstrap.GridSize;
 import org.projectforge.web.wicket.components.LabelValueChoiceRenderer;
 import org.projectforge.web.wicket.components.MaxLengthTextArea;
@@ -107,6 +109,14 @@ public class BookEditForm extends AbstractEditForm<BookDO, BookEditPage>
             && StringUtils.isBlank(signatureField.getConvertedInput()) == true
             && StringUtils.isBlank(yearOfPublishingField.getConvertedInput()) == true) {
           error(getString("book.error.toFewFields"));
+        }
+        try {
+          final int year = Integer.parseInt(yearOfPublishingField.getConvertedInput());
+          if (year < Const.MINYEAR || year > Const.MAXYEAR) {
+            form.error(I18nHelper.getLocalizedMessage("error.yearOutOfRange", Const.MINYEAR, Const.MAXYEAR));
+          }
+        } catch (NumberFormatException e) {
+          form.error(I18nHelper.getLocalizedMessage("book.error.number"));
         }
       }
     });
