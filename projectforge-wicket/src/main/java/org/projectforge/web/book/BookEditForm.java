@@ -110,9 +110,13 @@ public class BookEditForm extends AbstractEditForm<BookDO, BookEditPage>
             && StringUtils.isBlank(yearOfPublishingField.getConvertedInput()) == true) {
           error(getString("book.error.toFewFields"));
         }
-        final int year = Integer.parseInt(yearOfPublishingField.getConvertedInput());
-        if (year < Const.MINYEAR || year > Const.MAXYEAR) {
-          form.error(I18nHelper.getLocalizedMessage("error.yearOutOfRange", Const.MINYEAR, Const.MAXYEAR));
+        try {
+          final int year = Integer.parseInt(yearOfPublishingField.getConvertedInput());
+          if (year < Const.MINYEAR || year > Const.MAXYEAR) {
+            form.error(I18nHelper.getLocalizedMessage("error.yearOutOfRange", Const.MINYEAR, Const.MAXYEAR));
+          }
+        } catch (NumberFormatException e) {
+          form.error(I18nHelper.getLocalizedMessage("book.error.number"));
         }
       }
     });
