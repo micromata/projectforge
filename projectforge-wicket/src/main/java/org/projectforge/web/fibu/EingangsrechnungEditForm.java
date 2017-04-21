@@ -25,18 +25,22 @@ package org.projectforge.web.fibu;
 
 import java.util.List;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
-import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.business.fibu.AbstractRechnungDO;
 import org.projectforge.business.fibu.EingangsrechnungDO;
+import org.projectforge.business.fibu.EingangsrechnungDao;
 import org.projectforge.business.fibu.EingangsrechnungsPositionDO;
 import org.projectforge.business.fibu.KontoCache;
 import org.projectforge.business.fibu.KontoDO;
 import org.projectforge.business.fibu.PaymentType;
 import org.projectforge.business.fibu.kost.AccountingConfig;
+import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.web.wicket.autocompletion.PFAutoCompleteTextField;
 import org.projectforge.web.wicket.bootstrap.GridSize;
 import org.projectforge.web.wicket.components.LabelValueChoiceRenderer;
@@ -52,7 +56,15 @@ public class EingangsrechnungEditForm extends
   private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(EingangsrechnungEditForm.class);
 
   @SpringBean
-  KontoCache kontoCache;
+  private transient KontoCache kontoCache;
+
+  @SpringBean
+  private transient EingangsrechnungDao eingangsrechnungDao;
+
+  private MaxLengthTextField recieverField;
+  private MaxLengthTextField ibanField;
+  private MaxLengthTextField bicField;
+  private MaxLengthTextField customernrField;
 
   public EingangsrechnungEditForm(final EingangsrechnungEditPage parentPage, final EingangsrechnungDO data)
   {
@@ -83,7 +95,22 @@ public class EingangsrechnungEditForm extends
         }
       };
       kreditorField.withMatchContains(true).withMinChars(2).withFocus(true).add(WicketUtils.setFocus());
+      kreditorField.add(new AjaxFormComponentUpdatingBehavior("change")
+      {
+        @Override
+        protected void onUpdate(final AjaxRequestTarget target)
+        {
+          autofillLatestKreditorInformations(kreditorField.getModelObject(), target);
+        }
+      });
       fs.add(kreditorField);
+    }
+    {
+      // Customernr
+      final FieldsetPanel fs = gridBuilder.newFieldset(EingangsrechnungDO.class, "customernr");
+      customernrField = new MaxLengthTextField(InputPanel.WICKET_ID, new PropertyModel<String>(data, "customernr"));
+      customernrField.setOutputMarkupId(true);
+      fs.add(customernrField);
     }
     {
       // Reference
@@ -102,20 +129,69 @@ public class EingangsrechnungEditForm extends
     }
   }
 
-  @Override
-  protected void addCellAfterFaelligkeit()
+  private void autofillLatestKreditorInformations(final String kreditor, final AjaxRequestTarget target)
   {
-    gridBuilder.newSplitPanel(GridSize.COL50);
-    // DropDownChoice payment type
-    final FieldsetPanel fs = gridBuilder.newFieldset(EingangsrechnungDO.class, "paymentType");
-    final LabelValueChoiceRenderer<PaymentType> paymentTypeChoiceRenderer = new LabelValueChoiceRenderer<PaymentType>(
-        this,
-        PaymentType.values());
-    final DropDownChoice<PaymentType> paymentTypeChoice = new DropDownChoice<PaymentType>(fs.getDropDownChoiceId(),
-        new PropertyModel<PaymentType>(data, "paymentType"), paymentTypeChoiceRenderer.getValues(),
-        paymentTypeChoiceRenderer);
-    paymentTypeChoice.setNullValid(true);
-    fs.add(paymentTypeChoice);
+    if (StringUtils.isEmpty(kreditor)) {
+      return;
+    }
+
+    final EingangsrechnungDO newestRechnung = eingangsrechnungDao.findNewestByKreditor(kreditor);
+    if (newestRechnung == null) {
+      return;
+    }
+
+    // Update Customer No.
+    getData().setCustomernr(newestRechnung.getCustomernr());
+    target.add(customernrField);
+
+    // Update Konto
+    getData().setReceiver(newestRechnung.getReceiver());
+    target.add(recieverField);
+
+    getData().setIban(newestRechnung.getIban());
+    target.add(ibanField);
+
+    getData().setBic(newestRechnung.getBic());
+    target.add(bicField);
+  }
+
+  @Override
+  protected void addCellAfterDiscount()
+  {
+    {
+      // DropDownChoice payment type
+      gridBuilder.newSplitPanel(GridSize.COL50);
+      final FieldsetPanel fs = gridBuilder.newFieldset(EingangsrechnungDO.class, "paymentType");
+      final LabelValueChoiceRenderer<PaymentType> paymentTypeChoiceRenderer = new LabelValueChoiceRenderer<PaymentType>(
+          this,
+          PaymentType.values());
+      final DropDownChoice<PaymentType> paymentTypeChoice = new DropDownChoice<PaymentType>(fs.getDropDownChoiceId(),
+          new PropertyModel<PaymentType>(data, "paymentType"), paymentTypeChoiceRenderer.getValues(),
+          paymentTypeChoiceRenderer);
+      paymentTypeChoice.setNullValid(true);
+      fs.add(paymentTypeChoice);
+    }
+    {
+      // Reciever
+      final FieldsetPanel fs = gridBuilder.newFieldset(AbstractRechnungDO.class, "receiver");
+      recieverField = new MaxLengthTextField(InputPanel.WICKET_ID, new PropertyModel<String>(data, "receiver"));
+      recieverField.setOutputMarkupId(true);
+      fs.add(recieverField);
+    }
+    {
+      // IBAN
+      final FieldsetPanel fs = gridBuilder.newFieldset(AbstractRechnungDO.class, "iban");
+      ibanField = new MaxLengthTextField(InputPanel.WICKET_ID, new PropertyModel<String>(data, "iban"));
+      ibanField.setOutputMarkupId(true);
+      fs.add(ibanField);
+    }
+    {
+      // BIC
+      final FieldsetPanel fs = gridBuilder.newFieldset(AbstractRechnungDO.class, "bic");
+      bicField = new MaxLengthTextField(InputPanel.WICKET_ID, new PropertyModel<String>(data, "bic"));
+      bicField.setOutputMarkupId(true);
+      fs.add(bicField);
+    }
   }
 
   @Override
