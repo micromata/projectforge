@@ -175,65 +175,8 @@ public class TeamCalEventProvider extends MyFullCalendarEventsProvider
 
         event.setStart(startDate);
         event.setEnd(endDate);
+        event.setTooltip(eventDO.getCalendar().getTitle(), createTooltipLabelValues(eventDO));
 
-        String recurrence = null;
-        if (eventDO.hasRecurrence() == true) {
-          final Recur recur = eventDO.getRecurrenceObject();
-          final TeamEventRecurrenceData recurrenceData = new TeamEventRecurrenceData(recur,
-              ThreadLocalUserContext.getTimeZone());
-          final RecurrenceFrequency frequency = recurrenceData.getFrequency();
-          if (frequency != null) {
-            final String unitI18nKey = frequency.getUnitI18nKey();
-            if (unitI18nKey != null) {
-              recurrence = recurrenceData.getInterval() + " " + getString(unitI18nKey);
-            }
-          }
-        }
-        String reminder = null;
-        if (eventDO.getReminderActionType() != null
-            && NumberHelper.greaterZero(eventDO.getReminderDuration()) == true
-            && eventDO.getReminderDurationUnit() != null) {
-          reminder = getString(eventDO.getReminderActionType().getI18nKey())
-              + " "
-              + eventDO.getReminderDuration()
-              + " "
-              + getString(eventDO.getReminderDurationUnit().getI18nKey());
-        }
-        String[][] strings = {
-            { eventDO.getSubject() },
-            { eventDO.getLocation(), getString("timesheet.location") },
-            { eventDO.getNote(), getString("plugins.teamcal.event.note") },
-            { recurrence, getString("plugins.teamcal.event.recurrence") },
-            { reminder, getString("plugins.teamcal.event.reminder") } };
-        ArrayList<String[]> toolTips = new ArrayList<>();
-        toolTips.addAll(Arrays.asList(strings));
-        if (eventDO.getAttendees() != null && eventDO.getAttendees().isEmpty() == false) {
-          toolTips.add(new String[] { getString("plugins.teamcal.attendees") + ":" });
-          for (TeamEventAttendeeDO teamEventAttendeeDO : eventDO.getAttendees()) {
-            final StringBuilder buf = new StringBuilder();
-            if (teamEventAttendeeDO.getUser() != null) {
-              buf.append("- ")
-                  .append(teamEventAttendeeDO.getUser().getFullname())
-                  .append("  [")
-                  .append(I18nHelper.getLocalizedMessage(teamEventAttendeeDO.getStatus().getI18nKey()))
-                  .append("]");
-            } else if (teamEventAttendeeDO.getUrl() != null) {
-              buf.append("- ")
-                  .append(teamEventAttendeeDO.getUrl())
-                  .append("  [")
-                  .append(I18nHelper.getLocalizedMessage(teamEventAttendeeDO.getStatus().getI18nKey()))
-                  .append("]");
-            } else {
-              buf.append("- ")
-                  .append(teamEventAttendeeDO.getAddress().getEmail())
-                  .append("  [")
-                  .append(I18nHelper.getLocalizedMessage(teamEventAttendeeDO.getStatus().getI18nKey()))
-                  .append("]");
-            }
-            toolTips.add(new String[] { buf.toString() });
-          }
-        }
-        event.setTooltip(eventDO.getCalendar().getTitle(), toolTips.toArray(new String[toolTips.size()][]));
         final String title;
         String durationString = "";
         if (longFormat == true) {
@@ -274,6 +217,69 @@ public class TeamCalEventProvider extends MyFullCalendarEventsProvider
         events.put(id + "", event);
       }
     }
+  }
+
+  private String[][] createTooltipLabelValues(final TeamEventDO eventDO)
+  {
+    String recurrence = null;
+    if (eventDO.hasRecurrence() == true) {
+      final Recur recur = eventDO.getRecurrenceObject();
+      final TeamEventRecurrenceData recurrenceData = new TeamEventRecurrenceData(recur,
+          ThreadLocalUserContext.getTimeZone());
+      final RecurrenceFrequency frequency = recurrenceData.getFrequency();
+      if (frequency != null) {
+        final String unitI18nKey = frequency.getUnitI18nKey();
+        if (unitI18nKey != null) {
+          recurrence = recurrenceData.getInterval() + " " + getString(unitI18nKey);
+        }
+      }
+    }
+
+    String reminder = null;
+    if (eventDO.getReminderActionType() != null
+        && NumberHelper.greaterZero(eventDO.getReminderDuration()) == true
+        && eventDO.getReminderDurationUnit() != null) {
+      reminder = getString(eventDO.getReminderActionType().getI18nKey())
+          + " "
+          + eventDO.getReminderDuration()
+          + " "
+          + getString(eventDO.getReminderDurationUnit().getI18nKey());
+    }
+
+    final String[][] tooltipContentWithoutAttendees = {
+        { eventDO.getSubject() },
+        { eventDO.getLocation(), getString("timesheet.location") },
+        { eventDO.getNote(), getString("plugins.teamcal.event.note") },
+        { recurrence, getString("plugins.teamcal.event.recurrence") },
+        { reminder, getString("plugins.teamcal.event.reminder") }
+    };
+
+    final List<String[]> tooltipContent = new ArrayList<>(Arrays.asList(tooltipContentWithoutAttendees));
+
+    if (eventDO.getAttendees() != null && eventDO.getAttendees().isEmpty() == false) {
+      tooltipContent.add(new String[] { getString("plugins.teamcal.attendees") + ":" });
+
+      for (TeamEventAttendeeDO teamEventAttendeeDO : eventDO.getAttendees()) {
+        final StringBuilder buf = new StringBuilder();
+        buf.append("- ");
+
+        if (teamEventAttendeeDO.getUser() != null) {
+          buf.append(teamEventAttendeeDO.getUser().getFullname());
+        } else if (teamEventAttendeeDO.getUrl() != null) {
+          buf.append(teamEventAttendeeDO.getUrl());
+        } else {
+          buf.append(teamEventAttendeeDO.getAddress().getFullName());
+        }
+
+        buf.append("  [")
+            .append(I18nHelper.getLocalizedMessage(teamEventAttendeeDO.getStatus().getI18nKey()))
+            .append("]");
+
+        tooltipContent.add(new String[] { buf.toString() });
+      }
+    }
+
+    return tooltipContent.toArray(new String[tooltipContent.size()][]);
   }
 
   public TeamEvent getTeamEvent(final String id)
