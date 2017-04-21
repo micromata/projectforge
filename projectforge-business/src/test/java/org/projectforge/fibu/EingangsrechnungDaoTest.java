@@ -50,6 +50,7 @@ public class EingangsrechnungDaoTest extends AbstractTestBase
     EingangsrechnungDO eingangsrechnung = new EingangsrechnungDO();
     eingangsrechnung.setDatum(new Date(System.currentTimeMillis()));
     eingangsrechnung.addPosition(new EingangsrechnungsPositionDO());
+    eingangsrechnung.setFaelligkeit(new Date(System.currentTimeMillis()));
     Serializable id = eingangsrechnungDao.save(eingangsrechnung);
     eingangsrechnung = eingangsrechnungDao.getById(id);
 
