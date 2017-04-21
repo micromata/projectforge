@@ -150,6 +150,7 @@ public class TeamEventServiceImpl implements TeamEventService
         } catch (ParseException e) {
           return false;
         }
+
         final Date untilDate = new Date(until.getTime());
         if (untilDate.before(now)) {
           return false;
