@@ -23,9 +23,6 @@
 
 package org.projectforge.web.book;
 
-import java.util.Calendar;
-import java.util.Date;
-
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.apache.wicket.markup.html.form.Button;
@@ -46,10 +43,9 @@ import org.projectforge.business.book.BookDao;
 import org.projectforge.business.book.BookStatus;
 import org.projectforge.business.book.BookType;
 import org.projectforge.business.user.I18nHelper;
-import org.projectforge.excel.ExcelDateFormats;
-import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.framework.time.DateTimeFormatter;
 import org.projectforge.web.wicket.AbstractEditForm;
+import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.web.wicket.bootstrap.GridSize;
 import org.projectforge.web.wicket.components.LabelValueChoiceRenderer;
 import org.projectforge.web.wicket.components.MaxLengthTextArea;
@@ -114,9 +110,13 @@ public class BookEditForm extends AbstractEditForm<BookDO, BookEditPage>
             && StringUtils.isBlank(yearOfPublishingField.getConvertedInput()) == true) {
           error(getString("book.error.toFewFields"));
         }
-        final int year = Integer.parseInt(yearOfPublishingField.getConvertedInput());
-        if (year < Const.MINYEAR || year > Const.MAXYEAR) {
-          form.error(I18nHelper.getLocalizedMessage("error.yearOutOfRange", Const.MINYEAR, Const.MAXYEAR));
+        try {
+          final int year = Integer.parseInt(yearOfPublishingField.getConvertedInput());
+          if (year < Const.MINYEAR || year > Const.MAXYEAR) {
+            form.error(I18nHelper.getLocalizedMessage("error.yearOutOfRange", Const.MINYEAR, Const.MAXYEAR));
+          }
+        } catch (NumberFormatException e) {
+          form.error(I18nHelper.getLocalizedMessage("book.error.number"));
         }
       }
     });
