@@ -42,7 +42,7 @@ import org.projectforge.business.book.BookDO;
 import org.projectforge.business.book.BookDao;
 import org.projectforge.business.book.BookStatus;
 import org.projectforge.business.book.BookType;
-import org.projectforge.business.user.I18nHelper;
+import org.projectforge.framework.i18n.I18nHelper;
 import org.projectforge.framework.time.DateTimeFormatter;
 import org.projectforge.web.wicket.AbstractEditForm;
 import org.projectforge.web.wicket.WicketUtils;
