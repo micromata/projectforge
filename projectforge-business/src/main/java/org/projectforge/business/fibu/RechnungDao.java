@@ -78,7 +78,7 @@ public class RechnungDao extends BaseDao<RechnungDO>
       "positionen.text", "positionen.auftragsPosition.position", "positionen.auftragsPosition.position",
       "positionen.auftragsPosition.titel", "positionen.auftragsPosition.bemerkung" };
 
-  private static BigDecimal defaultSteuersatz = new BigDecimal(0.19);
+  private static BigDecimal defaultSteuersatz = BigDecimal.valueOf(0.19);
 
   @Autowired
   private KundeDao kundeDao;
@@ -136,7 +136,7 @@ public class RechnungDao extends BaseDao<RechnungDO>
 
   /**
    * List of all years with invoices: select min(datum), max(datum) from t_fibu_rechnung.
-   * 
+   *
    * @return
    */
   @SuppressWarnings("unchecked")
@@ -176,7 +176,7 @@ public class RechnungDao extends BaseDao<RechnungDO>
 
   /**
    * @param rechnung
-   * @param kundeId If null, then kunde will be set to null;
+   * @param kundeId  If null, then kunde will be set to null;
    * @see BaseDao#getOrLoad(Integer)
    */
   public void setKunde(final RechnungDO rechnung, final Integer kundeId)
@@ -201,55 +201,75 @@ public class RechnungDao extends BaseDao<RechnungDO>
    * Gutschriftsanzeigen dürfen keine Rechnungsnummer haben. Wenn eine Rechnungsnummer für neue Rechnungen gegeben
    * wurde, so muss sie fortlaufend sein. Berechnet das Zahlungsziel in Tagen, wenn nicht gesetzt, damit es indiziert
    * wird.
-   * 
+   *
    * @see org.projectforge.framework.persistence.api.BaseDao#onSaveOrModify(org.projectforge.core.ExtendedBaseDO)
    */
   @SuppressWarnings("unchecked")
   @Override
-  protected void onSaveOrModify(final RechnungDO obj)
+  protected void onSaveOrModify(final RechnungDO rechnung)
   {
-    if (obj.getTyp() == RechnungTyp.GUTSCHRIFTSANZEIGE_DURCH_KUNDEN) {
-      if (obj.getNummer() != null) {
+    AbstractRechnungDaoHelper.onSaveOrModify(rechnung);
+
+    validate(rechnung);
+
+    if (rechnung.getTyp() == RechnungTyp.GUTSCHRIFTSANZEIGE_DURCH_KUNDEN) {
+      if (rechnung.getNummer() != null) {
         throw new UserException("fibu.rechnung.error.gutschriftsanzeigeDarfKeineRechnungsnummerHaben");
       }
     } else {
-      if (obj.getNummer() == null) {
+      if (rechnung.getNummer() == null) {
         throw new UserException("validation.required.valueNotPresent",
             new MessageParam("fibu.rechnung.nummer", MessageParamType.I18N_KEY));
       }
-      if (obj.getId() == null) {
+      if (rechnung.getId() == null) {
         // Neue Rechnung
-        final Integer next = getNextNumber(obj);
-        if (next.intValue() != obj.getNummer().intValue()) {
+        final Integer next = getNextNumber(rechnung);
+        if (next.intValue() != rechnung.getNummer().intValue()) {
           throw new UserException("fibu.rechnung.error.rechnungsNummerIstNichtFortlaufend");
         }
       } else {
         final List<RechnungDO> list = (List<RechnungDO>) getHibernateTemplate().find(
             "from RechnungDO r where r.nummer = ? and r.id <> ?",
-            new Object[] { obj.getNummer(), obj.getId() });
+            new Object[] { rechnung.getNummer(), rechnung.getId() });
         if (list != null && list.size() > 0) {
           throw new UserException("fibu.rechnung.error.rechnungsNummerBereitsVergeben");
         }
       }
     }
-    if (obj.getZahlBetrag() != null) {
-      obj.setZahlBetrag(obj.getZahlBetrag().setScale(2, RoundingMode.HALF_UP));
+    if (rechnung.getZahlBetrag() != null) {
+      rechnung.setZahlBetrag(rechnung.getZahlBetrag().setScale(2, RoundingMode.HALF_UP));
     }
-    obj.recalculate();
-    if (CollectionUtils.isEmpty(obj.getPositionen()) == true) {
+    rechnung.recalculate();
+    if (CollectionUtils.isEmpty(rechnung.getPositionen()) == true) {
       throw new UserException("fibu.rechnung.error.rechnungHatKeinePositionen");
     }
-    final int size = obj.getPositionen().size();
+    final int size = rechnung.getPositionen().size();
     for (int i = size - 1; i > 0; i--) {
       // Don't remove first position, remove only the last empty positions.
-      final RechnungsPositionDO position = obj.getPositionen().get(i);
+      final RechnungsPositionDO position = rechnung.getPositionen().get(i);
       if (position.getId() == null && position.isEmpty() == true) {
-        obj.getPositionen().remove(i);
+        rechnung.getPositionen().remove(i);
       } else {
         break;
       }
     }
-    writeUiStatusToXml(obj);
+    writeUiStatusToXml(rechnung);
+  }
+
+  private void validate(final RechnungDO rechnung)
+  {
+    final RechnungStatus status = rechnung.getStatus();
+    final BigDecimal zahlBetrag = rechnung.getZahlBetrag();
+    final boolean zahlBetragExists = (zahlBetrag != null && zahlBetrag.compareTo(BigDecimal.ZERO) != 0);
+    if (status == RechnungStatus.BEZAHLT && zahlBetragExists == false) {
+      throw new UserException("fibu.rechnung.error.statusBezahltErfordertZahlBetrag");
+    }
+
+    final Integer projektId = rechnung.getProjektId();
+    final Integer kundeId = rechnung.getKundeId();
+    if (projektId == null && kundeId == null) {
+      throw new UserException("fibu.rechnung.error.kundeTextOderProjektRequired");
+    }
   }
 
   @Override
@@ -266,7 +286,7 @@ public class RechnungDao extends BaseDao<RechnungDO>
 
   /**
    * @see org.projectforge.framework.persistence.api.BaseDao#prepareHibernateSearch(org.projectforge.core.ExtendedBaseDO,
-   *      org.projectforge.framework.access.OperationType)
+   * org.projectforge.framework.access.OperationType)
    */
   @Override
   protected void prepareHibernateSearch(final RechnungDO obj, final OperationType operationType)
@@ -282,7 +302,7 @@ public class RechnungDao extends BaseDao<RechnungDO>
 
   /**
    * Fetches the cost assignments.
-   * 
+   *
    * @see org.projectforge.framework.persistence.api.BaseDao#getById(java.io.Serializable)
    */
   @Transactional(readOnly = true, propagation = Propagation.REQUIRES_NEW)
@@ -297,7 +317,7 @@ public class RechnungDao extends BaseDao<RechnungDO>
       }
     }
     return rechnung;
-  };
+  }
 
   @Override
   public List<RechnungDO> getList(final BaseSearchFilter filter)
@@ -360,10 +380,10 @@ public class RechnungDao extends BaseDao<RechnungDO>
 
   /**
    * Gets the highest Rechnungsnummer.
-   * 
+   *
    * @param rechnung wird benötigt, damit geschaut werden kann, ob diese Rechnung ggf. schon existiert. Wenn sie schon
-   *          eine Nummer hatte, so kann verhindert werden, dass sie eine nächst höhere Nummer bekommt. Eine solche
-   *          Rechnung bekommt die alte Nummer wieder zugeordnet.
+   *                 eine Nummer hatte, so kann verhindert werden, dass sie eine nächst höhere Nummer bekommt. Eine solche
+   *                 Rechnung bekommt die alte Nummer wieder zugeordnet.
    */
   @SuppressWarnings("unchecked")
   @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
@@ -388,7 +408,7 @@ public class RechnungDao extends BaseDao<RechnungDO>
 
   /**
    * Gets history entries of super and adds all history entries of the RechnungsPositionDO childs.
-   * 
+   *
    * @see org.projectforge.framework.persistence.api.BaseDao#getDisplayHistoryEntries(org.projectforge.core.ExtendedBaseDO)
    */
   @Override
@@ -447,9 +467,9 @@ public class RechnungDao extends BaseDao<RechnungDO>
 
   /**
    * Returns also true, if idSet contains the id of any order position.
-   * 
+   *
    * @see org.projectforge.framework.persistence.api.BaseDao#contains(java.util.Set,
-   *      org.projectforge.core.ExtendedBaseDO)
+   * org.projectforge.core.ExtendedBaseDO)
    */
   @Override
   protected boolean contains(final Set<Integer> idSet, final RechnungDO entry)
@@ -475,7 +495,7 @@ public class RechnungDao extends BaseDao<RechnungDO>
 
   /**
    * Not static for invocation of Spring.
-   * 
+   *
    * @param value
    */
   public void setDefaultSteuersatz(final BigDecimal value)

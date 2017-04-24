@@ -52,48 +52,54 @@ public class RechnungDaoTest extends AbstractTestBase
   public void getNextNumber()
   {
     logon(TEST_FINANCE_USER);
-    RechnungDO rechnung = new RechnungDO();
-    int number = rechnungDao.getNextNumber(rechnung);
-    rechnung.setDatum(new Date(System.currentTimeMillis()));
+    final RechnungDO rechnung1 = new RechnungDO();
+    int number = rechnungDao.getNextNumber(rechnung1);
+    rechnung1.setDatum(new Date(System.currentTimeMillis()));
+    rechnung1.setFaelligkeit(new Date(System.currentTimeMillis()));
+    rechnung1.setProjekt(initTestDB.addProjekt(null, 1, "foo"));
     try {
-      rechnungDao.save(rechnung);
+      rechnungDao.save(rechnung1);
       fail("Exception with wrong number should be thrown (no number given).");
     } catch (UserException ex) {
     }
-    rechnung.setNummer(number);
-    rechnung.addPosition(createPosition(1, "50.00", "0", "test"));
-    Serializable id = rechnungDao.save(rechnung);
-    rechnung = rechnungDao.getById(id);
-    assertEquals(dbNumber++, rechnung.getNummer().intValue());
+    rechnung1.setNummer(number);
+    rechnung1.addPosition(createPosition(1, "50.00", "0", "test"));
+    Serializable id = rechnungDao.save(rechnung1);
+    final RechnungDO rechnung1FromDb = rechnungDao.getById(id);
+    assertEquals(dbNumber++, rechnung1FromDb.getNummer().intValue());
 
-    rechnung = new RechnungDO();
-    rechnung.setDatum(new Date(System.currentTimeMillis()));
-    rechnung.setNummer(number);
+    final RechnungDO rechnung2 = new RechnungDO();
+    rechnung2.setDatum(new Date(System.currentTimeMillis()));
+    rechnung2.setNummer(number);
     try {
-      rechnungDao.save(rechnung);
+      rechnungDao.save(rechnung2);
       fail("Exception with wrong number should be thrown (does already exists).");
     } catch (UserException ex) {
     }
-    number = rechnungDao.getNextNumber(rechnung);
-    rechnung.setNummer(number + 1);
+    number = rechnungDao.getNextNumber(rechnung2);
+    rechnung2.setNummer(number + 1);
+    rechnung2.setFaelligkeit(new Date(System.currentTimeMillis()));
+    rechnung2.setProjekt(initTestDB.addProjekt(null, 1, "foo"));
     try {
-      rechnungDao.save(rechnung);
+      rechnungDao.save(rechnung2);
       fail("Exception with wrong number should be thrown (not continuously).");
     } catch (UserException ex) {
     }
-    rechnung.setNummer(number);
-    rechnung.addPosition(createPosition(1, "50.00", "0", "test"));
-    id = rechnungDao.save(rechnung);
-    rechnung = rechnungDao.getById(id);
-    assertEquals(dbNumber++, rechnung.getNummer().intValue());
+    rechnung2.setNummer(number);
+    rechnung2.addPosition(createPosition(1, "50.00", "0", "test"));
+    id = rechnungDao.save(rechnung2);
+    final RechnungDO rechnung2FromDb = rechnungDao.getById(id);
+    assertEquals(dbNumber++, rechnung2FromDb.getNummer().intValue());
 
-    rechnung = new RechnungDO();
-    rechnung.setDatum(new Date(System.currentTimeMillis()));
-    rechnung.setTyp(RechnungTyp.GUTSCHRIFTSANZEIGE_DURCH_KUNDEN);
-    rechnung.addPosition(createPosition(1, "50.00", "0", "test"));
-    id = rechnungDao.save(rechnung);
-    rechnung = rechnungDao.getById(id);
-    assertEquals(null, rechnung.getNummer());
+    final RechnungDO rechnung3 = new RechnungDO();
+    rechnung3.setDatum(new Date(System.currentTimeMillis()));
+    rechnung3.setTyp(RechnungTyp.GUTSCHRIFTSANZEIGE_DURCH_KUNDEN);
+    rechnung3.addPosition(createPosition(1, "50.00", "0", "test"));
+    rechnung3.setFaelligkeit(new Date(System.currentTimeMillis()));
+    rechnung3.setProjekt(initTestDB.addProjekt(null, 1, "foo"));
+    id = rechnungDao.save(rechnung3);
+    final RechnungDO rechnung3FromDb = rechnungDao.getById(id);
+    assertEquals(null, rechnung3FromDb.getNummer());
     dbNumber++; // Needed for getNextNumber test;
   }
 
@@ -104,6 +110,8 @@ public class RechnungDaoTest extends AbstractTestBase
     RechnungDO rechnung = new RechnungDO();
     int number = rechnungDao.getNextNumber(rechnung);
     rechnung.setDatum(new Date(System.currentTimeMillis()));
+    rechnung.setFaelligkeit(new Date(System.currentTimeMillis()));
+    rechnung.setProjekt(initTestDB.addProjekt(null, 1, "foo"));
     rechnung.setNummer(number);
 
     rechnung.addPosition(createPosition(2, "100.50", "0.19", "test"));

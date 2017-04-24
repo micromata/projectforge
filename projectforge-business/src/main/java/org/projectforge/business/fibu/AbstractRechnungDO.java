@@ -87,6 +87,9 @@ public abstract class AbstractRechnungDO<T extends AbstractRechnungsPositionDO> 
   @Field(index = Index.YES, analyze = Analyze.NO /* UN_TOKENIZED */)
   protected transient Integer zahlungsZielInTagen;
 
+  @Field(index = Index.YES, analyze = Analyze.NO /* UN_TOKENIZED */)
+  protected transient Integer discountZahlungsZielInTagen;
+
   @PropertyInfo(i18nKey = "fibu.rechnung.bezahlDatum")
   @Field(index = Index.YES, analyze = Analyze.NO /* UN_TOKENIZED */)
   @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
@@ -97,6 +100,26 @@ public abstract class AbstractRechnungDO<T extends AbstractRechnungsPositionDO> 
 
   @PropertyInfo(i18nKey = "fibu.konto")
   private KontoDO konto;
+
+  @PropertyInfo(i18nKey = "fibu.rechnung.discountPercent")
+  private BigDecimal discountPercent;
+
+  @PropertyInfo(i18nKey = "fibu.rechnung.discountMaturity")
+  @Field(index = Index.YES, analyze = Analyze.NO /* UN_TOKENIZED */)
+  @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
+  private Date discountMaturity;
+
+  @PropertyInfo(i18nKey = "fibu.rechnung.receiver")
+  @Field(index = Index.YES /* TOKENIZED */, store = Store.NO)
+  private String receiver;
+
+  @PropertyInfo(i18nKey = "fibu.rechnung.iban")
+  @Field(index = Index.YES /* TOKENIZED */, store = Store.NO)
+  private String iban;
+
+  @PropertyInfo(i18nKey = "fibu.rechnung.bic")
+  @Field(index = Index.YES /* TOKENIZED */, store = Store.NO)
+  private String bic;
 
   @PFPersistancyBehavior(autoUpdateCollectionEntries = true)
   protected List<T> positionen = null;
@@ -110,12 +133,16 @@ public abstract class AbstractRechnungDO<T extends AbstractRechnungsPositionDO> 
   @Override
   public void recalculate()
   {
-    if (this.datum == null || this.faelligkeit == null) {
+    // recalculate the transient fields
+    if (this.datum == null) {
       this.zahlungsZielInTagen = null;
+      this.discountZahlungsZielInTagen = null;
       return;
     }
+
     final DateHolder date = new DateHolder(this.datum);
-    this.zahlungsZielInTagen = date.daysBetween(this.faelligkeit);
+    this.zahlungsZielInTagen = (this.faelligkeit == null) ? null : date.daysBetween(this.faelligkeit);
+    this.discountZahlungsZielInTagen = (this.discountMaturity == null) ? null : date.daysBetween(this.discountMaturity);
   }
 
   @Column(length = 4000)
@@ -178,10 +205,65 @@ public abstract class AbstractRechnungDO<T extends AbstractRechnungsPositionDO> 
     return this;
   }
 
+  @Column
+  public String getReceiver()
+  {
+    return receiver;
+  }
+
+  public void setReceiver(String receiver)
+  {
+    this.receiver = receiver;
+  }
+
+  @Column(length = 50)
+  public String getIban()
+  {
+    return iban;
+  }
+
+  public void setIban(String iban)
+  {
+    this.iban = iban;
+  }
+
+  @Column(length = 11)
+  public String getBic()
+  {
+    return bic;
+  }
+
+  public void setBic(String bic)
+  {
+    this.bic = bic;
+  }
+
+  @Column
+  public BigDecimal getDiscountPercent()
+  {
+    return discountPercent;
+  }
+
+  public void setDiscountPercent(BigDecimal discountPercent)
+  {
+    this.discountPercent = discountPercent;
+  }
+
+  @Column
+  public Date getDiscountMaturity()
+  {
+    return discountMaturity;
+  }
+
+  public void setDiscountMaturity(Date discountMaturity)
+  {
+    this.discountMaturity = discountMaturity;
+  }
+
   /**
    * Wird nur zur Berechnung benutzt und kann für die Anzeige aufgerufen werden. Vorher sollte recalculate aufgerufen
    * werden.
-   * 
+   *
    * @see #recalculate()
    */
   @Transient
@@ -193,6 +275,24 @@ public abstract class AbstractRechnungDO<T extends AbstractRechnungsPositionDO> 
   public AbstractRechnungDO<T> setZahlungsZielInTagen(final Integer zahlungsZielInTagen)
   {
     this.zahlungsZielInTagen = zahlungsZielInTagen;
+    return this;
+  }
+
+  /**
+   * Wird nur zur Berechnung benutzt und kann für die Anzeige aufgerufen werden. Vorher sollte recalculate aufgerufen
+   * werden.
+   *
+   * @see #recalculate()
+   */
+  @Transient
+  public Integer getDiscountZahlungsZielInTagen()
+  {
+    return discountZahlungsZielInTagen;
+  }
+
+  public AbstractRechnungDO<T> setDiscountZahlungsZielInTagen(final Integer discountZahlungsZielInTagen)
+  {
+    this.discountZahlungsZielInTagen = discountZahlungsZielInTagen;
     return this;
   }
 
@@ -246,7 +346,7 @@ public abstract class AbstractRechnungDO<T extends AbstractRechnungsPositionDO> 
 
   /**
    * Bruttobetrag, den der Kunde bezahlt hat.
-   * 
+   *
    * @return
    */
   @Column(name = "zahl_betrag", scale = 2, precision = 12)
@@ -389,7 +489,7 @@ public abstract class AbstractRechnungDO<T extends AbstractRechnungsPositionDO> 
 
   /**
    * The user interface status of an invoice. The {@link RechnungUIStatus} is stored as XML.
-   * 
+   *
    * @return the XML representation of the uiStatus.
    * @see RechnungUIStatus
    */
