@@ -62,28 +62,6 @@ public class UsersProvider extends TextChoiceProvider<PFUserDO>
     this.userDao = userDao;
   }
 
-  /**
-   * @param userIds
-   * @return
-   */
-  public List<String> getUserNames(final String userIds)
-  {
-    if (StringUtils.isEmpty(userIds) == true) {
-      return null;
-    }
-    final int[] ids = StringHelper.splitToInts(userIds, ",", false);
-    final List<String> list = new ArrayList<String>();
-    for (final int id : ids) {
-      final PFUserDO user = getUserGroupCache().getUser(id);
-      if (user != null) {
-        list.add(user.getFullname());
-      } else {
-        log.warn("User with id '" + id + "' not found in UserGroupCache. userIds string was: " + userIds);
-      }
-    }
-    return list;
-  }
-
   public Collection<PFUserDO> getSortedUsers()
   {
     if (sortedUsers == null) {
@@ -101,7 +79,6 @@ public class UsersProvider extends TextChoiceProvider<PFUserDO>
   }
 
   /**
-   * 
    * @param userIds
    * @return
    */

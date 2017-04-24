@@ -14,8 +14,6 @@ public class Const
 
   public static final int WICKET_REQUEST_TIMEOUT_MINUTES = 5;
 
-  public static final String MESSAGE_KEY_PASSWORD_QUALITY_CHECK = "user.changePassword.error.passwordQualityCheck";
-
   public static final String COOKIE_NAME_FOR_STAY_LOGGED_IN = "stayLoggedIn";
 
   // Available Loacles for external i18n-files

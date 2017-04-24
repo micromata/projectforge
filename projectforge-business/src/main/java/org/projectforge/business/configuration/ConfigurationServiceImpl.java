@@ -646,4 +646,22 @@ public class ConfigurationServiceImpl implements ConfigurationService
     return teamCalCache.getCalendar((Integer) configDao.getValue(ConfigurationParam.VACATION_CAL_ID));
   }
 
+  @Override
+  public int getMinPasswordLength()
+  {
+    try {
+      final ConfigurationDO minPwLenEntry = configDao.getEntry(ConfigurationParam.MIN_PASSWORD_LENGTH);
+      if (minPwLenEntry != null) {
+        final Integer minPwLenValue = minPwLenEntry.getIntValue();
+        if (minPwLenValue != null) {
+          return minPwLenValue;
+        }
+      }
+    } catch (final RuntimeException e) {
+      // this could happen if the database is not initialized (during projectforge initial setup)
+      log.warn("Exception while getting the min password length configuration.", e);
+    }
+    return ConfigurationParam.MIN_PASSWORD_LENGTH.getDefaultIntValue();
+  }
+
 }

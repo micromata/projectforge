@@ -29,6 +29,7 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.login.Login;
 import org.projectforge.business.user.service.UserService;
+import org.projectforge.framework.i18n.I18nKeyAndParams;
 import org.projectforge.web.wicket.AbstractStandardFormPage;
 import org.projectforge.web.wicket.MessagePage;
 
@@ -74,17 +75,14 @@ public class ChangePasswordPage extends AbstractStandardFormPage
       form.addError("user.error.passwordAndRepeatDoesNotMatch");
       return;
     }
-    String errorMsgKey = userService.checkPasswordQuality(form.getNewPassword());
-    if (errorMsgKey != null) {
-      form.addError(errorMsgKey);
-      return;
-    }
+
     log.info("User wants to change his password.");
-    errorMsgKey = userService.changePassword(getUser(), form.getOldPassword(), form.getNewPassword());
+    final I18nKeyAndParams errorMsgKey = userService.changePassword(getUser(), form.getOldPassword(), form.getNewPassword());
     if (errorMsgKey != null) {
       form.addError(errorMsgKey);
       return;
     }
+
     setResponsePage(new MessagePage("user.changePassword.msg.passwordSuccessfullyChanged"));
   }
 
