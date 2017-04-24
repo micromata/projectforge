@@ -23,9 +23,11 @@
 
 package org.projectforge.business.fibu;
 
+import java.sql.Date;
 import java.util.List;
 
 import javax.persistence.CascadeType;
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.JoinColumn;
@@ -36,13 +38,16 @@ import javax.persistence.Table;
 import javax.persistence.Transient;
 import javax.persistence.UniqueConstraint;
 
+import org.hibernate.search.annotations.DateBridge;
+import org.hibernate.search.annotations.EncodingType;
 import org.hibernate.search.annotations.Indexed;
 import org.hibernate.search.annotations.IndexedEmbedded;
+import org.hibernate.search.annotations.Resolution;
 import org.projectforge.business.fibu.kost.KostZuweisungDO;
 
 /**
  * Repräsentiert eine Position innerhalb eine Rechnung.
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 @Entity
@@ -65,6 +70,12 @@ public class RechnungsPositionDO extends AbstractRechnungsPositionDO
 
   @IndexedEmbedded(depth = 1)
   private AuftragsPositionDO auftragsPosition;
+
+  @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
+  private Date periodOfPerformanceBegin;
+
+  @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
+  private Date periodOfPerformanceEnd;
 
   @Override
   @ManyToOne(fetch = FetchType.EAGER)
@@ -94,6 +105,31 @@ public class RechnungsPositionDO extends AbstractRechnungsPositionDO
     return this;
   }
 
+  @Column(name = "period_of_performance_begin")
+  public Date getPeriodOfPerformanceBegin()
+  {
+    return periodOfPerformanceBegin;
+  }
+
+  public RechnungsPositionDO setPeriodOfPerformanceBegin(final Date periodOfPerformanceBegin)
+  {
+    this.periodOfPerformanceBegin = periodOfPerformanceBegin;
+    return this;
+  }
+
+  @Column(name = "period_of_performance_end")
+  public Date getPeriodOfPerformanceEnd()
+  {
+    return periodOfPerformanceEnd;
+  }
+
+  public RechnungsPositionDO setPeriodOfPerformanceEnd(final Date periodOfPerformanceEnd)
+  {
+    this.periodOfPerformanceEnd = periodOfPerformanceEnd;
+    return this;
+  }
+
+  @Override
   @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
   @JoinColumn(name = "rechnungs_pos_fk")
   @OrderColumn(name = "index")
