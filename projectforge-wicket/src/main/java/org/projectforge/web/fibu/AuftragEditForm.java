@@ -24,27 +24,20 @@
 package org.projectforge.web.fibu;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
-import java.util.function.BooleanSupplier;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.apache.wicket.AttributeModifier;
-import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.markup.html.form.Button;
 import org.apache.wicket.markup.html.form.CheckBox;
 import org.apache.wicket.markup.html.form.DropDownChoice;
-import org.apache.wicket.markup.html.form.Form;
-import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.form.TextField;
-import org.apache.wicket.markup.html.form.validation.IFormValidator;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.CompoundPropertyModel;
 import org.apache.wicket.model.Model;
@@ -61,7 +54,6 @@ import org.projectforge.business.fibu.AuftragsStatus;
 import org.projectforge.business.fibu.KundeDO;
 import org.projectforge.business.fibu.ModeOfPaymentType;
 import org.projectforge.business.fibu.PaymentScheduleDO;
-import org.projectforge.business.fibu.PeriodOfPerformanceType;
 import org.projectforge.business.fibu.ProjektDO;
 import org.projectforge.business.fibu.RechnungCache;
 import org.projectforge.business.fibu.RechnungDao;
@@ -117,19 +109,13 @@ public class AuftragEditForm extends AbstractEditForm<AuftragDO, AuftragEditPage
 
   protected NewCustomerSelectPanel kundeSelectPanel;
 
-  private final List<DropDownChoice<PeriodOfPerformanceType>> performanceChoices = new ArrayList<>();
-
-  private final List<Component> ajaxPosTargets = new ArrayList<Component>();
-
-  private FormComponent<?>[] positionsDependentFormComponents = new FormComponent[0];
-
-  private DatePanel fromDatePanel, endDatePanel;
-
   private PaymentSchedulePanel paymentSchedulePanel;
 
   protected NewProjektSelectPanel projektSelectPanel;
 
   private UserSelectPanel projectManagerSelectPanel, headOfBusinessManagerSelectPanel, salesManagerSelectPanel;
+
+  private final PeriodOfPerformanceHelper periodOfPerformanceHelper = new PeriodOfPerformanceHelper();
 
   @SpringBean
   AccessChecker accessChecker;
@@ -361,20 +347,7 @@ public class AuftragEditForm extends AbstractEditForm<AuftragDO, AuftragEditPage
     {
       // Period of performance
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("fibu.periodOfPerformance"));
-      final BooleanSupplier isAnyPerformanceTypeSeeAboveSelected = () -> performanceChoices
-          .stream()
-          .map(FormComponent::getRawInput) // had to use getRawInput here instead of getModelObject, because it did not work well
-          .anyMatch(PeriodOfPerformanceType.SEEABOVE.name()::equals);
-
-      fromDatePanel = new DatePanel(fs.newChildId(), new PropertyModel<>(data, "periodOfPerformanceBegin"),
-          DatePanelSettings.get().withTargetType(java.sql.Date.class), isAnyPerformanceTypeSeeAboveSelected);
-      fs.add(fromDatePanel);
-
-      fs.add(new DivTextPanel(fs.newChildId(), "-"));
-
-      endDatePanel = new DatePanel(fs.newChildId(), new PropertyModel<>(data, "periodOfPerformanceEnd"),
-          DatePanelSettings.get().withTargetType(java.sql.Date.class), isAnyPerformanceTypeSeeAboveSelected);
-      fs.add(endDatePanel);
+      periodOfPerformanceHelper.createPeriodOfPerformanceFields(fs, getData());
     }
     {
       // Probability of occurrence
@@ -469,41 +442,7 @@ public class AuftragEditForm extends AbstractEditForm<AuftragDO, AuftragEditPage
           .addCheckBox(new PropertyModel<Boolean>(this, "sendEMailNotification"), null)
           .setTooltip(getString("label.sendEMailNotification"));
     }
-    add(new IFormValidator()
-    {
-      @Override
-      public FormComponent<?>[] getDependentFormComponents()
-      {
-        return positionsDependentFormComponents;
-      }
-
-      @Override
-      public void validate(final Form<?> form)
-      {
-        final Date performanceFromDate = fromDatePanel.getDateField().getConvertedInput();
-        final Date performanceEndDate = endDatePanel.getDateField().getConvertedInput();
-        if (performanceFromDate == null || performanceEndDate == null) {
-          return;
-        } else if (performanceEndDate.before(performanceFromDate) == true) {
-          endDatePanel.error(getString("error.endDateBeforeBeginDate"));
-        }
-        for (int i = 0; i < positionsDependentFormComponents.length - 1; i += 2) {
-          final Date posPerformanceFromDate = ((DatePanel) positionsDependentFormComponents[i]).getDateField()
-              .getConvertedInput();
-          final Date posPerformanceEndDate = ((DatePanel) positionsDependentFormComponents[i + 1]).getDateField()
-              .getConvertedInput();
-          if (posPerformanceFromDate == null || posPerformanceEndDate == null) {
-            continue;
-          }
-          if (posPerformanceEndDate.before(posPerformanceFromDate) == true) {
-            positionsDependentFormComponents[i + 1].error(getString("error.endDateBeforeBeginDate"));
-          }
-          if (posPerformanceFromDate.before(performanceFromDate) == true) {
-            positionsDependentFormComponents[i + 1].error(getString("error.posFromDateBeforeFromDate"));
-          }
-        }
-      }
-    });
+    add(periodOfPerformanceHelper.createValidator());
 
     setKundePmHobmAndSmIfEmpty(getData().getProjekt(), null);
   }
@@ -551,10 +490,8 @@ public class AuftragEditForm extends AbstractEditForm<AuftragDO, AuftragEditPage
   private void refreshPositions()
   {
     positionsRepeater.removeAll();
-    performanceChoices.clear();
-    this.ajaxPosTargets.clear();
+    periodOfPerformanceHelper.onRefreshPositions();
 
-    final Collection<FormComponent<?>> dependentComponents = new ArrayList<FormComponent<?>>();
     if (CollectionUtils.isEmpty(data.getPositionen()) == true) {
       // Ensure that at least one position is available:
       data.addPosition(new AuftragsPositionDO());
@@ -754,77 +691,17 @@ public class AuftragEditForm extends AbstractEditForm<AuftragDO, AuftragEditPage
       {
         // Period of performance
         final FieldsetPanel fs = posGridBuilder.newFieldset(getString("fibu.periodOfPerformance"));
-        final LabelValueChoiceRenderer<PeriodOfPerformanceType> performanceChoiceRenderer = new LabelValueChoiceRenderer<PeriodOfPerformanceType>(
-            fs, PeriodOfPerformanceType.values());
-        final DropDownChoice<PeriodOfPerformanceType> performanceChoice = new DropDownChoice<PeriodOfPerformanceType>(
-            fs.getDropDownChoiceId(), new PropertyModel<PeriodOfPerformanceType>(position, "periodOfPerformanceType"),
-            performanceChoiceRenderer.getValues(), performanceChoiceRenderer)
-        {
-          /**
-           * @see org.apache.wicket.markup.html.form.AbstractSingleSelectChoice#getDefaultChoice(java.lang.String)
-           */
-          @Override
-          protected CharSequence getDefaultChoice(final String selectedValue)
-          {
-            if (posHasOwnPeriodOfPerformance(position.getNumber()) == true) {
-              return super.getDefaultChoice(PeriodOfPerformanceType.OWN.toString());
-            } else {
-              return super.getDefaultChoice(PeriodOfPerformanceType.SEEABOVE.toString());
-            }
-          }
-        };
 
-        performanceChoice.add(new AjaxFormComponentUpdatingBehavior("onchange")
-        {
-          @Override
-          protected void onUpdate(final AjaxRequestTarget target)
-          {
-            final short pos = position.getNumber();
-            final PeriodOfPerformanceType s = performanceChoice.getModelObject();
-            final boolean visible = s.equals(PeriodOfPerformanceType.OWN);
-            setPosPeriodOfPerformanceVisible(pos, visible);
-            if (ajaxPosTargets != null) {
-              for (final Component ajaxPosTarget : ajaxPosTargets)
-                target.add(ajaxPosTarget);
-            }
-          }
-        });
-        performanceChoice.setOutputMarkupPlaceholderTag(true);
-        fs.add(performanceChoice);
-        performanceChoices.add(performanceChoice);
+        periodOfPerformanceHelper.createPositionsPeriodOfPerformanceFields(fs, position);
 
-        final BooleanSupplier isPerformanceTypeOwnSelected = () -> PeriodOfPerformanceType.OWN.equals(performanceChoice.getModelObject());
-
-        final DatePanel fromDatePanel = new DatePanel(fs.newChildId(), new PropertyModel<>(position, "periodOfPerformanceBegin"),
-            DatePanelSettings.get().withTargetType(java.sql.Date.class), isPerformanceTypeOwnSelected);
-        fromDatePanel.getDateField().setOutputMarkupPlaceholderTag(true);
-        fs.add(fromDatePanel);
-        ajaxPosTargets.add(fromDatePanel.getDateField());
-        dependentComponents.add(fromDatePanel);
-
-        final DivTextPanel divPanel = new DivTextPanel(fs.newChildId(), "-");
-        divPanel.getLabel4Ajax().setOutputMarkupPlaceholderTag(true);
-        fs.add(divPanel);
-        ajaxPosTargets.add(divPanel.getLabel4Ajax());
-
-        final DatePanel endDatePanel = new DatePanel(fs.newChildId(), new PropertyModel<>(position, "periodOfPerformanceEnd"),
-            DatePanelSettings.get().withTargetType(java.sql.Date.class), isPerformanceTypeOwnSelected);
-        endDatePanel.getDateField().setOutputMarkupPlaceholderTag(true);
-        fs.add(endDatePanel);
-        ajaxPosTargets.add(endDatePanel.getDateField());
-        dependentComponents.add(endDatePanel);
-
-        final LabelValueChoiceRenderer<ModeOfPaymentType> paymentChoiceRenderer = new LabelValueChoiceRenderer<ModeOfPaymentType>(
-            fs,
-            ModeOfPaymentType.values());
-        final DropDownChoice<ModeOfPaymentType> paymentChoice = new DropDownChoice<ModeOfPaymentType>(
-            fs.getDropDownChoiceId(),
-            new PropertyModel<ModeOfPaymentType>(position, "modeOfPaymentType"), paymentChoiceRenderer.getValues(),
-            paymentChoiceRenderer);
+        final LabelValueChoiceRenderer<ModeOfPaymentType> paymentChoiceRenderer = new LabelValueChoiceRenderer<>(fs, ModeOfPaymentType.values());
+        final DropDownChoice<ModeOfPaymentType> paymentChoice = new DropDownChoice<>(fs.getDropDownChoiceId(),
+            new PropertyModel<>(position, "modeOfPaymentType"), paymentChoiceRenderer.getValues(), paymentChoiceRenderer);
         paymentChoice.setOutputMarkupPlaceholderTag(true);
         fs.add(paymentChoice);
-        ajaxPosTargets.add(paymentChoice);
+        periodOfPerformanceHelper.addToPositionComponentsToToggleVisibility(position.getNumber(), paymentChoice);
       }
+
       posGridBuilder.newGridPanel();
       {
         // Comment
@@ -853,10 +730,7 @@ public class AuftragEditForm extends AbstractEditForm<AuftragDO, AuftragEditPage
       if (position.isDeleted()) {
         positionsPanel.setVisible(false);
       }
-      setPosPeriodOfPerformanceVisible(position.getNumber(), posHasOwnPeriodOfPerformance(position.getNumber()));
     }
-    positionsDependentFormComponents = dependentComponents.toArray(new FormComponent[0]);
-
   }
 
   protected String getPositionHeading(final AuftragsPositionDO position, final ToggleContainerPanel positionsPanel)
@@ -916,22 +790,4 @@ public class AuftragEditForm extends AbstractEditForm<AuftragDO, AuftragEditPage
     return log;
   }
 
-  private boolean posHasOwnPeriodOfPerformance(final short number)
-  {
-    return ((getData().getPosition(number).getPeriodOfPerformanceBegin() != null
-        && StringUtils.isBlank(getData().getPosition(number)
-        .getPeriodOfPerformanceBegin().toString()) == false)
-        || (getData().getPosition(number).getPeriodOfPerformanceEnd() != null
-        && StringUtils.isBlank(getData().getPosition(number)
-        .getPeriodOfPerformanceEnd().toString()) == false)
-        || getData().getPosition(number).getPeriodOfPerformanceType() == PeriodOfPerformanceType.OWN);
-  }
-
-  private void setPosPeriodOfPerformanceVisible(final short pos, final boolean visible)
-  {
-    ajaxPosTargets.get(pos * 4 - 4).setVisible(visible);
-    ajaxPosTargets.get(pos * 4 - 3).setVisible(visible);
-    ajaxPosTargets.get(pos * 4 - 2).setVisible(visible);
-    ajaxPosTargets.get(pos * 4 - 1).setVisible(visible);
-  }
 }
