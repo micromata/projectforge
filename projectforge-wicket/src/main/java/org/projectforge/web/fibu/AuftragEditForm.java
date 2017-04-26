@@ -347,7 +347,9 @@ public class AuftragEditForm extends AbstractEditForm<AuftragDO, AuftragEditPage
     {
       // Period of performance
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("fibu.periodOfPerformance"));
-      periodOfPerformanceHelper.createPeriodOfPerformanceFields(fs, getData());
+      periodOfPerformanceHelper.createPeriodOfPerformanceFields(fs,
+          new PropertyModel<>(data, "periodOfPerformanceBegin"),
+          new PropertyModel<>(data, "periodOfPerformanceEnd"));
     }
     {
       // Probability of occurrence
@@ -692,14 +694,18 @@ public class AuftragEditForm extends AbstractEditForm<AuftragDO, AuftragEditPage
         // Period of performance
         final FieldsetPanel fs = posGridBuilder.newFieldset(getString("fibu.periodOfPerformance"));
 
-        periodOfPerformanceHelper.createPositionsPeriodOfPerformanceFields(fs, position);
-
         final LabelValueChoiceRenderer<ModeOfPaymentType> paymentChoiceRenderer = new LabelValueChoiceRenderer<>(fs, ModeOfPaymentType.values());
         final DropDownChoice<ModeOfPaymentType> paymentChoice = new DropDownChoice<>(fs.getDropDownChoiceId(),
             new PropertyModel<>(position, "modeOfPaymentType"), paymentChoiceRenderer.getValues(), paymentChoiceRenderer);
         paymentChoice.setOutputMarkupPlaceholderTag(true);
+
+        periodOfPerformanceHelper.createPositionsPeriodOfPerformanceFields(fs,
+            new PropertyModel<>(position, "periodOfPerformanceType"),
+            new PropertyModel<>(position, "periodOfPerformanceBegin"),
+            new PropertyModel<>(position, "periodOfPerformanceEnd"),
+            paymentChoice);
+
         fs.add(paymentChoice);
-        periodOfPerformanceHelper.addToPositionComponentsToToggleVisibility(position.getNumber(), paymentChoice);
       }
 
       posGridBuilder.newGridPanel();
