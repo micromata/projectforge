@@ -29,11 +29,8 @@ import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
-import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.DropDownChoice;
-import org.apache.wicket.markup.html.link.Link;
 import org.apache.wicket.model.PropertyModel;
-import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.fibu.AbstractRechnungsPositionDO;
 import org.projectforge.business.fibu.KontoCache;
@@ -48,10 +45,8 @@ import org.projectforge.business.fibu.kost.AccountingConfig;
 import org.projectforge.business.fibu.kost.Kost2DO;
 import org.projectforge.business.fibu.kost.KostZuweisungDO;
 import org.projectforge.framework.utils.NumberHelper;
-import org.projectforge.web.wicket.AbstractEditPage;
-import org.projectforge.web.wicket.PresizedImage;
-import org.projectforge.web.wicket.WebConstants;
 import org.projectforge.web.wicket.WicketUtils;
+import org.projectforge.web.wicket.bootstrap.GridBuilder;
 import org.projectforge.web.wicket.bootstrap.GridSize;
 import org.projectforge.web.wicket.components.LabelValueChoiceRenderer;
 import org.projectforge.web.wicket.components.MaxLengthTextField;
@@ -66,12 +61,14 @@ public class RechnungEditForm extends AbstractRechnungEditForm<RechnungDO, Rechn
 
   private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(RechnungEditForm.class);
 
+  private final PeriodOfPerformanceHelper periodOfPerformanceHelper = new PeriodOfPerformanceHelper();
+
   @SpringBean
   private KontoCache kontoCache;
 
-  protected NewCustomerSelectPanel customerSelectPanel;
+  NewCustomerSelectPanel customerSelectPanel;
 
-  protected NewProjektSelectPanel projektSelectPanel;
+  NewProjektSelectPanel projektSelectPanel;
 
   public RechnungEditForm(final RechnungEditPage parentPage, final RechnungDO data)
   {
@@ -174,34 +171,26 @@ public class RechnungEditForm extends AbstractRechnungEditForm<RechnungDO, Rechn
       fs.setLabelFor(customerSelectPanel.getKundeTextField());
       fs.addHelpIcon(getString("fibu.rechnung.hint.kannVonProjektKundenAbweichen"));
     }
+    {
+      // Period of performance
+      final FieldsetPanel fs = gridBuilder.newFieldset(getString("fibu.periodOfPerformance"));
+      periodOfPerformanceHelper.createPeriodOfPerformanceFields(fs,
+          new PropertyModel<>(data, "periodOfPerformanceBegin"),
+          new PropertyModel<>(data, "periodOfPerformanceEnd"));
+    }
+    add(periodOfPerformanceHelper.createValidator());
   }
 
-  @SuppressWarnings("serial")
   @Override
-  protected void onRenderPosition(final WebMarkupContainer item, final RechnungsPositionDO position)
+  protected void onRenderPosition(final GridBuilder posGridBuilder, final RechnungsPositionDO position)
   {
-    // item.add(new AuftragsPositionFormComponent("orderPosition", new PropertyModel<AuftragsPositionDO>(position, "auftragsPosition"),
-    // false));
-
-    final Link<String> orderLink = new Link<String>("orderLink")
-    {
-      @Override
-      public void onClick()
-      {
-        if (position.getAuftragsPosition() != null) {
-          final PageParameters parameters = new PageParameters();
-          parameters.add(AbstractEditPage.PARAMETER_KEY_ID, position.getAuftragsPosition().getAuftrag().getId());
-          final AuftragEditPage auftragEditPage = new AuftragEditPage(parameters);
-          auftragEditPage.setReturnToPage(getParentPage());
-          setResponsePage(auftragEditPage);
-        }
-      }
-    };
-    item.add(orderLink);
-    if (position.getAuftragsPosition() == null) {
-      orderLink.setVisible(false);
-    }
-    orderLink.add(new PresizedImage("linkImage", WebConstants.IMAGE_FIND));
+    // Period of performance
+    posGridBuilder.newSplitPanel(GridSize.COL100);
+    final FieldsetPanel fs = posGridBuilder.newFieldset(getString("fibu.periodOfPerformance"));
+    periodOfPerformanceHelper.createPositionsPeriodOfPerformanceFields(fs,
+        new PropertyModel<>(position, "periodOfPerformanceType"),
+        new PropertyModel<>(position, "periodOfPerformanceBegin"),
+        new PropertyModel<>(position, "periodOfPerformanceEnd"));
   }
 
   /**
@@ -222,9 +211,9 @@ public class RechnungEditForm extends AbstractRechnungEditForm<RechnungDO, Rechn
     }
     final Kost2DO cost2 = costAssignment.getKost2();
     final ProjektDO projekt = invoice.getProjekt();
-    int numberRange = -1; // First number of cost.
+    int numberRange; // First number of cost.
     int area = -1; // Number 2-4
-    int number = -1; // Number 5-6.
+    int number; // Number 5-6.
     if (projekt != null) {
       numberRange = projekt.getNummernkreis();
       area = projekt.getBereich();
@@ -248,6 +237,13 @@ public class RechnungEditForm extends AbstractRechnungEditForm<RechnungDO, Rechn
     if (differs == true) {
       WicketUtils.setWarningTooltip(cost2Component);
     }
+  }
+
+  @Override
+  protected void refreshPositions()
+  {
+    periodOfPerformanceHelper.onRefreshPositions();
+    super.refreshPositions();
   }
 
   @Override

@@ -85,7 +85,7 @@ public class RechnungEditPage extends AbstractEditPage<RechnungDO, RechnungEditF
   }
 
   @Override
-  protected RechnungEditForm newEditForm(final AbstractEditPage< ? , ? , ? > parentPage, final RechnungDO data)
+  protected RechnungEditForm newEditForm(final AbstractEditPage<?, ?, ?> parentPage, final RechnungDO data)
   {
     return new RechnungEditForm(this, data);
   }
@@ -95,7 +95,6 @@ public class RechnungEditPage extends AbstractEditPage<RechnungDO, RechnungEditF
   {
     return log;
   }
-
 
   /**
    * @see org.projectforge.web.wicket.AbstractEditPage#cloneData()
@@ -124,14 +123,16 @@ public class RechnungEditPage extends AbstractEditPage<RechnungDO, RechnungEditF
         rechnung.addPosition(position);
       }
     }
-    form.refresh();
+    form.refreshPositions();
   }
 
+  @Override
   public void cancelSelection(final String property)
   {
     // Do nothing.
   }
 
+  @Override
   public void select(final String property, final Object selectedValue)
   {
     if ("projektId".equals(property) == true) {
@@ -156,6 +157,7 @@ public class RechnungEditPage extends AbstractEditPage<RechnungDO, RechnungEditF
     }
   }
 
+  @Override
   public void unselect(final String property)
   {
     if ("projektId".equals(property) == true) {
