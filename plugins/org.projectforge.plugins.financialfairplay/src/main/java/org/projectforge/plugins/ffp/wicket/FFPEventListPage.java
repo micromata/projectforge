@@ -117,7 +117,7 @@ public class FFPEventListPage extends AbstractListPage<FFPEventListForm, FFPEven
   protected void init()
   {
     final List<IColumn<FFPEventDO, String>> columns = createColumns(this, true);
-    dataTable = createDataTable(columns, "title", SortOrder.ASCENDING);
+    dataTable = createDataTable(columns, "eventDate", SortOrder.DESCENDING);
     form.add(dataTable);
   }
 

@@ -1,6 +1,8 @@
 package org.projectforge.plugins.ffp.repository;
 
-import static org.testng.AssertJUnit.*;
+import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertNotNull;
+import static org.testng.AssertJUnit.assertTrue;
 
 import java.math.BigDecimal;
 import java.util.HashSet;
@@ -8,7 +10,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.Predicate;
 
-import org.projectforge.business.fibu.EmployeeDO;
+import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.plugins.ffp.model.FFPAccountingDO;
 import org.projectforge.plugins.ffp.model.FFPDebtDO;
 import org.projectforge.plugins.ffp.model.FFPEventDO;
@@ -186,7 +188,7 @@ public class FFPEventServiceImplDebtCalculationTest
   private FFPAccountingDO createFfpAccounting(Integer pk, BigDecimal value, BigDecimal weighting)
   {
     FFPAccountingDO ffpAccountingDO1 = new FFPAccountingDO();
-    EmployeeDO attendee = new EmployeeDO();
+    PFUserDO attendee = new PFUserDO();
     attendee.setPk(pk);
     ffpAccountingDO1.setAttendee(attendee);
     ffpAccountingDO1.setWeighting(weighting);

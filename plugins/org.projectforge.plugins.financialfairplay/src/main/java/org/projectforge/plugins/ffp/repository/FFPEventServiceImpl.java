@@ -8,8 +8,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import org.projectforge.business.fibu.EmployeeDO;
-import org.projectforge.business.fibu.EmployeeDao;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.persistence.history.DisplayHistoryEntry;
 import org.projectforge.framework.persistence.jpa.impl.CorePersistenceServiceImpl;
@@ -34,9 +32,6 @@ public class FFPEventServiceImpl extends CorePersistenceServiceImpl<Integer, FFP
 
   @Autowired
   private FFPDebtDao debtDao;
-
-  @Autowired
-  private EmployeeDao employeeDao;
 
   @Override
   public boolean hasLoggedInUserInsertAccess()
@@ -178,9 +173,9 @@ public class FFPEventServiceImpl extends CorePersistenceServiceImpl<Integer, FFP
   }
 
   @Override
-  public List<FFPDebtDO> getDeptList(EmployeeDO employee)
+  public List<FFPDebtDO> getDeptList(PFUserDO user)
   {
-    return debtDao.getDebtList(employee);
+    return debtDao.getDebtList(user);
   }
 
   @Override
@@ -206,18 +201,17 @@ public class FFPEventServiceImpl extends CorePersistenceServiceImpl<Integer, FFP
   @Override
   public Integer getOpenDebts(PFUserDO user)
   {
-    EmployeeDO employee = employeeDao.findByUserId(user.getId());
-    return getOpenFromDebts(employee) + getOpenToDebts(employee);
+    return getOpenFromDebts(user) + getOpenToDebts(user);
   }
 
-  private Integer getOpenFromDebts(EmployeeDO employee)
+  private Integer getOpenFromDebts(PFUserDO user)
   {
-    return debtDao.getOpenFromDebts(employee);
+    return debtDao.getOpenFromDebts(user);
   }
 
-  private Integer getOpenToDebts(EmployeeDO employee)
+  private Integer getOpenToDebts(PFUserDO user)
   {
-    return debtDao.getOpenToDebts(employee);
+    return debtDao.getOpenToDebts(user);
   }
 
   @Override

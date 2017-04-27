@@ -1,10 +1,16 @@
 package org.projectforge.plugins.ffp.repository;
 
+import java.util.List;
+
+import org.hibernate.criterion.Restrictions;
 import org.projectforge.framework.access.OperationType;
 import org.projectforge.framework.persistence.api.BaseDao;
+import org.projectforge.framework.persistence.api.BaseSearchFilter;
+import org.projectforge.framework.persistence.api.QueryFilter;
 import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.plugins.ffp.model.FFPEventDO;
+import org.projectforge.plugins.ffp.wicket.FFPEventFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
@@ -36,5 +42,19 @@ public class FFPEventDao extends BaseDao<FFPEventDO>
       final boolean throwException)
   {
     return true;
+  }
+  @Override
+	public List<FFPEventDO> getList(BaseSearchFilter filter) {
+    final FFPEventFilter myFilter;
+    if (filter instanceof FFPEventFilter) {
+      myFilter = (FFPEventFilter) filter;
+    } else {
+      myFilter = new FFPEventFilter(filter);
+    }
+    final QueryFilter queryFilter = createQueryFilter(filter);
+    if (myFilter.isShowOnlyActiveEntries()) {
+      queryFilter.add(Restrictions.eq("finished", false));
+    }
+    return getList(queryFilter);
   }
 }
