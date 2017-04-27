@@ -2,12 +2,14 @@ package org.projectforge.plugins.ffp.repository;
 
 import java.util.List;
 
+import org.hibernate.criterion.LogicalExpression;
 import org.hibernate.criterion.Restrictions;
-import org.projectforge.business.fibu.EmployeeDO;
+import org.hibernate.criterion.SimpleExpression;
 import org.projectforge.framework.persistence.api.BaseDao;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.persistence.api.QueryFilter;
 import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
+import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.plugins.ffp.FinancialFairPlayPluginUserRightId;
 import org.projectforge.plugins.ffp.model.FFPDebtDO;
 import org.projectforge.plugins.ffp.model.FFPEventDO;
@@ -38,31 +40,31 @@ public class FFPDebtDao extends BaseDao<FFPDebtDO>
     return new FFPDebtDO();
   }
 
-  public List<FFPDebtDO> getDebtList(EmployeeDO employee)
+  public List<FFPDebtDO> getDebtList(PFUserDO user)
   {
-    return emgrFactory.runRoTrans(emgr -> {
-      return emgr.select(FFPDebtDO.class, "SELECT d FROM FFPDebtDO d WHERE d.from = :from OR d.to = :to", "from", employee, "to", employee);
-    });
+    return emgrFactory.runRoTrans(emgr -> 
+      emgr.select(FFPDebtDO.class, "SELECT d FROM FFPDebtDO d WHERE d.from = :from OR d.to = :to", "from", user, "to", user)
+    );
   }
 
-  public Integer getOpenFromDebts(EmployeeDO employee)
+  public Integer getOpenFromDebts(PFUserDO user)
   {
     Integer result = 0;
-    List<FFPDebtDO> debtList = getDebtList(employee);
+    List<FFPDebtDO> debtList = getDebtList(user);
     for (FFPDebtDO debt : debtList) {
-      if (debt.getFrom().equals(employee) && debt.isApprovedByFrom() == false) {
+      if (debt.getFrom().equals(user) && debt.isApprovedByFrom() == false) {
         result++;
       }
     }
     return result;
   }
 
-  public Integer getOpenToDebts(EmployeeDO employee)
+  public Integer getOpenToDebts(PFUserDO user)
   {
     Integer result = 0;
-    List<FFPDebtDO> debtList = getDebtList(employee);
+    List<FFPDebtDO> debtList = getDebtList(user);
     for (FFPDebtDO debt : debtList) {
-      if (debt.getTo().equals(employee) && debt.isApprovedByFrom() == true && debt.isApprovedByTo() == false) {
+      if (debt.getTo().equals(user) && debt.isApprovedByFrom() == true && debt.isApprovedByTo() == false) {
         result++;
       }
     }
@@ -86,10 +88,30 @@ public class FFPDebtDao extends BaseDao<FFPDebtDO>
       myFilter = new FFPDebtFilter(filter);
     }
     final QueryFilter queryFilter = createQueryFilter(filter);
-    EmployeeDO employeeFromFilter = emgrFactory.runRoTrans(emgr -> emgr.selectByPk(EmployeeDO.class, myFilter.getEmployeeId()));
+    PFUserDO userFromFilter = emgrFactory.runRoTrans(emgr -> emgr.selectByPk(PFUserDO.class, myFilter.getUserId()));
     queryFilter.add(Restrictions.or(
-        Restrictions.eq("from", employeeFromFilter),
-        Restrictions.eq("to", employeeFromFilter)));
+        Restrictions.eq("from", userFromFilter),
+        Restrictions.eq("to", userFromFilter)));
+    if (myFilter.isFromMe()) {
+      queryFilter.add(Restrictions.eq("from", userFromFilter));
+    }
+    if (myFilter.isToMe()) {
+      queryFilter.add(Restrictions.eq("to", userFromFilter));
+    }
+    if (myFilter.isiNeedToApprove()) {
+        LogicalExpression fromMe = Restrictions.and(//
+            Restrictions.eq("from", userFromFilter), //
+            Restrictions.eq("approvedByFrom", false));
+        LogicalExpression toMe = Restrictions.and(//
+            Restrictions.eq("to", userFromFilter), //
+            Restrictions.eq("approvedByTo", false));
+        queryFilter.add(Restrictions.or(fromMe, toMe));
+      }
+    if (myFilter.isHideBothApproved()) {
+        SimpleExpression notApprovedByFrom = Restrictions.eq("approvedByFrom", false);
+        SimpleExpression notApprovedByTo = Restrictions.eq("approvedByTo", false);
+        queryFilter.add(Restrictions.or(notApprovedByFrom, notApprovedByTo));
+      }
     return getList(queryFilter);
   }
 }

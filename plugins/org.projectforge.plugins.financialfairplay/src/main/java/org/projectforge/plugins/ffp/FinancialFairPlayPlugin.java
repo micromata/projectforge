@@ -69,9 +69,7 @@ public class FinancialFairPlayPlugin extends AbstractPlugin
   @Override
   protected void initialize()
   {
-
-    FinancialFairPlayPluginUpdates.databaseUpdateService = myDatabaseUpdater;
-    FinancialFairPlayPluginUpdates.initDatabaseDao = initDatabaseDao;
+    FinancialFairPlayPluginUpdates.applicationContext = applicationContext;
 
     // Register it:
     register(ID, FFPEventDao.class, eventService.getEventDao(), "plugins.financialfairplay");

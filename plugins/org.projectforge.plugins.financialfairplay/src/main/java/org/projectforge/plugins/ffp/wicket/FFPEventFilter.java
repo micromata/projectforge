@@ -39,7 +39,7 @@ public class FFPEventFilter extends BaseSearchFilter implements Serializable
 {
   private static final long serialVersionUID = 8567780910637887786L;
 
-  private boolean showOnlyActiveEntries;
+  private boolean showOnlyActiveEntries=true;
 
   public FFPEventFilter()
   {
@@ -48,5 +48,13 @@ public class FFPEventFilter extends BaseSearchFilter implements Serializable
   public FFPEventFilter(final BaseSearchFilter filter)
   {
     super(filter);
+  }
+
+  public boolean isShowOnlyActiveEntries() {
+    return showOnlyActiveEntries;
+  }
+
+  public void setShowOnlyActiveEntries(boolean showOnlyActiveEntries) {
+    this.showOnlyActiveEntries = showOnlyActiveEntries;
   }
 }

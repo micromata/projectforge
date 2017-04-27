@@ -116,11 +116,11 @@ public class PluginAdminServiceImpl implements PluginAdminService
     factory.initializeBean(plugin, projectForgePluginService.getPluginId());
     factory.autowireBean(plugin);
     PluginsRegistry.instance().register(plugin);
+    plugin.init();
     setSystemUpdater(plugin);
     for (PluginCallback callback : afterCreatedActivePluginsCallback) {
       callback.call(plugin);
     }
-    plugin.init();
     LOG.info("Plugin activated: " + projectForgePluginService.getPluginId());
   }
 
