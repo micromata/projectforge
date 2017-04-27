@@ -41,7 +41,7 @@ class PeriodOfPerformanceHelper
       final IModel<Date> periodOfPerformanceEndModel)
   {
     final BooleanSupplier isAnyPerformanceTypeSeeAboveSelected = () -> performanceDropDowns.stream()
-        .map(FormComponent::getRawInput) // had to use getRawInput here instead of getModelObject, because it did not work well
+        .map(FormComponent::getRawInput) // need to use getRawInput here instead of getModelObject, because model is not updated at time of validation
         .anyMatch(PeriodOfPerformanceType.SEEABOVE.name()::equals);
 
     fromDatePanel = new DatePanel(fs.newChildId(), periodOfPerformanceBeginModel, DatePanelSettings.get().withTargetType(java.sql.Date.class),
@@ -62,27 +62,28 @@ class PeriodOfPerformanceHelper
     final List<Component> componentsToToggleVisibility = new ArrayList<>();
 
     // drop down
-    final LabelValueChoiceRenderer<PeriodOfPerformanceType> performanceChoiceRenderer = new LabelValueChoiceRenderer<>(fs, PeriodOfPerformanceType.values());
-    final DropDownChoice<PeriodOfPerformanceType> performanceChoice = new DropDownChoice<>(fs.getDropDownChoiceId(), periodOfPerformanceTypeModel,
-        performanceChoiceRenderer.getValues(), performanceChoiceRenderer);
-    performanceChoice.add(new AjaxFormComponentUpdatingBehavior("onchange")
+    final LabelValueChoiceRenderer<PeriodOfPerformanceType> performanceTypeRenderer = new LabelValueChoiceRenderer<>(fs, PeriodOfPerformanceType.values());
+    final DropDownChoice<PeriodOfPerformanceType> performanceTypeDropDown = new DropDownChoice<>(fs.getDropDownChoiceId(), periodOfPerformanceTypeModel,
+        performanceTypeRenderer.getValues(), performanceTypeRenderer);
+    performanceTypeDropDown.add(new AjaxFormComponentUpdatingBehavior("onchange")
     {
       @Override
       protected void onUpdate(final AjaxRequestTarget target)
       {
         // update visibility
-        final boolean visible = hasOwnPeriodOfPerformance(performanceChoice);
+        final boolean visible = hasOwnPeriodOfPerformance(performanceTypeDropDown);
         for (final Component ajaxPosTarget : componentsToToggleVisibility) {
           ajaxPosTarget.setVisible(visible);
           target.add(ajaxPosTarget);
         }
       }
     });
-    performanceChoice.setOutputMarkupPlaceholderTag(true);
-    fs.add(performanceChoice);
-    performanceDropDowns.add(performanceChoice);
+    performanceTypeDropDown.setRequired(true);
+    performanceTypeDropDown.setOutputMarkupPlaceholderTag(true);
+    fs.add(performanceTypeDropDown);
+    performanceDropDowns.add(performanceTypeDropDown);
 
-    final BooleanSupplier hasOwnPeriodOfPerformanceSupplier = () -> hasOwnPeriodOfPerformance(performanceChoice);
+    final BooleanSupplier hasOwnPeriodOfPerformanceSupplier = () -> hasOwnPeriodOfPerformance(performanceTypeDropDown);
 
     // from date
     final DatePanel fromDatePanel = new DatePanel(fs.newChildId(), periodOfPerformanceBeginModel, DatePanelSettings.get().withTargetType(java.sql.Date.class),
@@ -110,7 +111,7 @@ class PeriodOfPerformanceHelper
     componentsToToggleVisibility.addAll(Arrays.asList(additionalComponentsToToggleVisibility));
 
     // set initial visibility
-    final boolean visible = hasOwnPeriodOfPerformance(performanceChoice);
+    final boolean visible = hasOwnPeriodOfPerformance(performanceTypeDropDown);
     for (final Component component : componentsToToggleVisibility) {
       component.setVisible(visible);
     }

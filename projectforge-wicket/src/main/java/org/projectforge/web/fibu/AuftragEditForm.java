@@ -35,7 +35,6 @@ import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.markup.html.form.Button;
-import org.apache.wicket.markup.html.form.CheckBox;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.repeater.RepeatingView;
@@ -101,27 +100,25 @@ public class AuftragEditForm extends AbstractEditForm<AuftragDO, AuftragEditPage
 
   private static final BigDecimal MAX_PERSON_DAYS = new BigDecimal(10000);
 
+  private final PeriodOfPerformanceHelper periodOfPerformanceHelper = new PeriodOfPerformanceHelper();
+
   private boolean sendEMailNotification = true;
 
-  protected CheckBox sendEMailNotficationCheckBox;
+  private RepeatingView positionsRepeater;
 
-  protected RepeatingView positionsRepeater, paymentSchedulesRepeater;
-
-  protected NewCustomerSelectPanel kundeSelectPanel;
+  NewCustomerSelectPanel kundeSelectPanel;
 
   private PaymentSchedulePanel paymentSchedulePanel;
 
-  protected NewProjektSelectPanel projektSelectPanel;
+  NewProjektSelectPanel projektSelectPanel;
 
   private UserSelectPanel projectManagerSelectPanel, headOfBusinessManagerSelectPanel, salesManagerSelectPanel;
 
-  private final PeriodOfPerformanceHelper periodOfPerformanceHelper = new PeriodOfPerformanceHelper();
+  @SpringBean
+  private AccessChecker accessChecker;
 
   @SpringBean
-  AccessChecker accessChecker;
-
-  @SpringBean
-  RechnungCache rechnungCache;
+  private RechnungCache rechnungCache;
 
   @SpringBean
   private AuftragDao auftragDao;

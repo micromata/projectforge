@@ -29,6 +29,8 @@ import java.util.List;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.FetchType;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
@@ -71,6 +73,8 @@ public class RechnungsPositionDO extends AbstractRechnungsPositionDO
   @IndexedEmbedded(depth = 1)
   private AuftragsPositionDO auftragsPosition;
 
+  private PeriodOfPerformanceType periodOfPerformanceType = PeriodOfPerformanceType.SEEABOVE;
+
   @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
   private Date periodOfPerformanceBegin;
 
@@ -102,6 +106,19 @@ public class RechnungsPositionDO extends AbstractRechnungsPositionDO
   public RechnungsPositionDO setAuftragsPosition(final AuftragsPositionDO auftragsPosition)
   {
     this.auftragsPosition = auftragsPosition;
+    return this;
+  }
+
+  @Enumerated(EnumType.STRING)
+  @Column(name = "period_of_performance_type", length = 10)
+  public PeriodOfPerformanceType getPeriodOfPerformanceType()
+  {
+    return periodOfPerformanceType;
+  }
+
+  public RechnungsPositionDO setPeriodOfPerformanceType(final PeriodOfPerformanceType periodOfPerformanceType)
+  {
+    this.periodOfPerformanceType = periodOfPerformanceType;
     return this;
   }
 
