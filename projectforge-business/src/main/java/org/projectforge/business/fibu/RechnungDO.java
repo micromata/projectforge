@@ -105,10 +105,12 @@ public class RechnungDO extends AbstractRechnungDO<RechnungsPositionDO> implemen
   @Field(index = Index.YES /* TOKENIZED */, store = Store.NO)
   private RechnungTyp typ;
 
+  @PropertyInfo(i18nKey = "fibu.periodOfPerformance.from")
   @Field(index = Index.YES, analyze = Analyze.NO /* UN_TOKENIZED */, store = Store.NO)
   @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
   private Date periodOfPerformanceBegin;
 
+  @PropertyInfo(i18nKey = "fibu.periodOfPerformance.to")
   @Field(index = Index.YES, analyze = Analyze.NO /* UN_TOKENIZED */, store = Store.NO)
   @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
   private Date periodOfPerformanceEnd;
