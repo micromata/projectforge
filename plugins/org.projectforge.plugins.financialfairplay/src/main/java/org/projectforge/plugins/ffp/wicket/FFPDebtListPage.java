@@ -41,9 +41,6 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.ResourceModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
-import org.projectforge.business.fibu.EmployeeDO;
-import org.projectforge.business.fibu.api.EmployeeService;
-import org.projectforge.framework.access.AccessException;
 import org.projectforge.framework.i18n.I18nHelper;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.plugins.ffp.model.FFPDebtDO;
@@ -63,11 +60,6 @@ public class FFPDebtListPage extends AbstractListPage<FFPDebtListForm, FFPDebtDa
   @SpringBean
   private FFPEventService eventService;
 
-  @SpringBean
-  private EmployeeService employeeService;
-
-  protected EmployeeDO currentEmployee;
-
   public FFPDebtListPage(final PageParameters parameters)
   {
     super(parameters, "plugins.ffp");
@@ -79,8 +71,8 @@ public class FFPDebtListPage extends AbstractListPage<FFPDebtListForm, FFPDebtDa
     final List<IColumn<FFPDebtDO, String>> columns = new ArrayList<>();
     columns.add(new PropertyColumn<FFPDebtDO, String>(new ResourceModel("plugins.ffp.eventDate"), "event.eventDate"));
     columns.add(new PropertyColumn<FFPDebtDO, String>(new ResourceModel("plugins.ffp.title"), "event.title"));
-    columns.add(new PropertyColumn<FFPDebtDO, String>(new ResourceModel("plugins.ffp.from"), "from.user.fullname"));
-    columns.add(new PropertyColumn<FFPDebtDO, String>(new ResourceModel("plugins.ffp.to"), "to.user.fullname"));
+    columns.add(new PropertyColumn<FFPDebtDO, String>(new ResourceModel("plugins.ffp.from"), "from.fullname"));
+    columns.add(new PropertyColumn<FFPDebtDO, String>(new ResourceModel("plugins.ffp.to"), "to.fullname"));
     columns.add(new CellItemListenerPropertyColumn<FFPDebtDO>(FFPDebtDO.class, "plugins.ffp.value", "value", null));
 
     columns.add(new CellItemListenerPropertyColumn<FFPDebtDO>(FFPDebtDO.class, "plugins.ffp.approvedByFrom", "approvedByFrom", null)
@@ -93,7 +85,7 @@ public class FFPDebtListPage extends AbstractListPage<FFPDebtListForm, FFPDebtDa
       {
         FFPDebtDO debt = rowModel.getObject();
         Button button = new Button(ButtonPanel.BUTTON_ID);
-        if (debt.getFrom().equals(currentEmployee)) {
+        if (debt.getFrom().equals(ThreadLocalUserContext.getUser())) {
           button.setOutputMarkupId(true);
           button.add(new AjaxEventBehavior("click")
           {
@@ -128,7 +120,7 @@ public class FFPDebtListPage extends AbstractListPage<FFPDebtListForm, FFPDebtDa
       {
         FFPDebtDO debt = rowModel.getObject();
         Button button = new Button(ButtonPanel.BUTTON_ID);
-        if (debt.isApprovedByFrom() && debt.getTo().equals(currentEmployee)) {
+        if (debt.isApprovedByFrom() && debt.getTo().equals(ThreadLocalUserContext.getUser())) {
           button.setOutputMarkupId(true);
           button.add(new AjaxEventBehavior("click")
           {
@@ -160,10 +152,6 @@ public class FFPDebtListPage extends AbstractListPage<FFPDebtListForm, FFPDebtDa
   protected void init()
   {
     newItemMenuEntry.setVisible(false);
-    currentEmployee = employeeService.getEmployeeByUserId(ThreadLocalUserContext.getUserId());
-    if (currentEmployee == null) {
-      throw new AccessException("access.exception.noEmployeeToUser");
-    }
     final List<IColumn<FFPDebtDO, String>> columns = createColumns(this, true);
     dataTable = createDataTable(columns, "title", SortOrder.ASCENDING);
     form.add(dataTable);

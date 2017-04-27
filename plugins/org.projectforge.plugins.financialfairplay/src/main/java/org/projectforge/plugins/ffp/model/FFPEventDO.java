@@ -23,12 +23,12 @@ import org.hibernate.search.annotations.DateBridge;
 import org.hibernate.search.annotations.EncodingType;
 import org.hibernate.search.annotations.IndexedEmbedded;
 import org.hibernate.search.annotations.Resolution;
-import org.projectforge.business.fibu.EmployeeDO;
 import org.projectforge.common.anots.PropertyInfo;
 import org.projectforge.framework.i18n.I18nHelper;
 import org.projectforge.framework.persistence.api.AUserRightId;
 import org.projectforge.framework.persistence.api.PFPersistancyBehavior;
 import org.projectforge.framework.persistence.entities.DefaultBaseDO;
+import org.projectforge.framework.persistence.user.entities.PFUserDO;
 
 import de.micromata.genome.db.jpa.history.api.WithHistory;
 
@@ -41,8 +41,8 @@ public class FFPEventDO extends DefaultBaseDO
   private static final long serialVersionUID = 1579119768006685087L;
 
   @PropertyInfo(i18nKey = "plugins.ffp.organizer")
-  @IndexedEmbedded(includePaths = { "user.firstname", "user.lastname" })
-  private EmployeeDO organizer;
+  @IndexedEmbedded(includePaths = { "firstname", "lastname" })
+  private PFUserDO organizer;
 
   @PropertyInfo(i18nKey = "plugins.ffp.title")
   private String title;
@@ -51,7 +51,7 @@ public class FFPEventDO extends DefaultBaseDO
   @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
   private Date eventDate;
 
-  private Set<EmployeeDO> attendeeList;
+  private Set<PFUserDO> attendeeList;
 
   @PFPersistancyBehavior(autoUpdateCollectionEntries = true)
   private Set<FFPAccountingDO> accountingList;
@@ -67,8 +67,8 @@ public class FFPEventDO extends DefaultBaseDO
    * @return the user
    */
   @ManyToOne(fetch = FetchType.EAGER)
-  @JoinColumn(name = "organizer_id", nullable = false)
-  public EmployeeDO getOrganizer()
+  @JoinColumn(name = "organizer_user_id")
+  public PFUserDO getOrganizer()
   {
     return organizer;
   }
@@ -76,7 +76,7 @@ public class FFPEventDO extends DefaultBaseDO
   /**
    * @param organizer the organizer to set
    */
-  public void setOrganizer(final EmployeeDO organizer)
+  public void setOrganizer(final PFUserDO organizer)
   {
     this.organizer = organizer;
   }
@@ -108,8 +108,8 @@ public class FFPEventDO extends DefaultBaseDO
   @JoinTable(
       name = "T_PLUGIN_FINANCIALFAIRPLAY_EVENT_ATTENDEE",
       joinColumns = @JoinColumn(name = "EVENT_PK", referencedColumnName = "PK"),
-      inverseJoinColumns = @JoinColumn(name = "ATTENDEE_PK", referencedColumnName = "PK"))
-  public Set<EmployeeDO> getAttendeeList()
+      inverseJoinColumns = @JoinColumn(name = "ATTENDEE_USER_PK", referencedColumnName = "PK"))
+  public Set<PFUserDO> getAttendeeList()
   {
     if (attendeeList == null) {
       attendeeList = new HashSet<>();
@@ -117,7 +117,7 @@ public class FFPEventDO extends DefaultBaseDO
     return attendeeList;
   }
 
-  public void setAttendeeList(Set<EmployeeDO> attendeeList)
+  public void setAttendeeList(Set<PFUserDO> attendeeList)
   {
     this.attendeeList = attendeeList;
   }
@@ -137,9 +137,9 @@ public class FFPEventDO extends DefaultBaseDO
   }
 
   @Transient
-  public void addAttendee(EmployeeDO employee)
+  public void addAttendee(PFUserDO attendee)
   {
-    getAttendeeList().add(employee);
+    getAttendeeList().add(attendee);
   }
 
   @Column
