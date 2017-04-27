@@ -23,8 +23,6 @@
 
 package org.projectforge.web.fibu;
 
-import java.math.BigDecimal;
-
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.apache.wicket.AttributeModifier;
@@ -33,12 +31,10 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.DropDownChoice;
-import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.html.link.Link;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
-import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.business.fibu.AbstractRechnungsPositionDO;
 import org.projectforge.business.fibu.KontoCache;
 import org.projectforge.business.fibu.KontoDO;
@@ -55,6 +51,7 @@ import org.projectforge.framework.utils.NumberHelper;
 import org.projectforge.web.wicket.AbstractEditPage;
 import org.projectforge.web.wicket.PresizedImage;
 import org.projectforge.web.wicket.WebConstants;
+import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.web.wicket.bootstrap.GridSize;
 import org.projectforge.web.wicket.components.LabelValueChoiceRenderer;
 import org.projectforge.web.wicket.components.MaxLengthTextField;
@@ -70,9 +67,7 @@ public class RechnungEditForm extends AbstractRechnungEditForm<RechnungDO, Rechn
   private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(RechnungEditForm.class);
 
   @SpringBean
-  KontoCache kontoCache;
-
-  private DropDownChoice<RechnungStatus> statusChoice;
+  private KontoCache kontoCache;
 
   protected NewCustomerSelectPanel customerSelectPanel;
 
@@ -118,8 +113,7 @@ public class RechnungEditForm extends AbstractRechnungEditForm<RechnungDO, Rechn
       final LabelValueChoiceRenderer<RechnungStatus> statusChoiceRenderer = new LabelValueChoiceRenderer<RechnungStatus>(
           this,
           RechnungStatus.values());
-      statusChoice = new DropDownChoice<RechnungStatus>(fs.getDropDownChoiceId(),
-          new PropertyModel<RechnungStatus>(data, "status"),
+      final DropDownChoice<RechnungStatus> statusChoice = new DropDownChoice<>(fs.getDropDownChoiceId(), new PropertyModel<>(data, "status"),
           statusChoiceRenderer.getValues(), statusChoiceRenderer);
       statusChoice.setNullValid(false);
       statusChoice.setRequired(true);
@@ -212,7 +206,7 @@ public class RechnungEditForm extends AbstractRechnungEditForm<RechnungDO, Rechn
 
   /**
    * Highlights the cost2 element if it differs from the cost2 of the given project (if any).
-   * 
+   *
    * @param position
    * @param cost1
    * @param cost2
@@ -253,28 +247,6 @@ public class RechnungEditForm extends AbstractRechnungEditForm<RechnungDO, Rechn
     }
     if (differs == true) {
       WicketUtils.setWarningTooltip(cost2Component);
-    }
-  }
-
-  @SuppressWarnings("unchecked")
-  @Override
-  protected void validation()
-  {
-    super.validation();
-
-    final RechnungStatus status = statusChoice.getConvertedInput();
-    final TextField<BigDecimal> zahlBetragField = (TextField<BigDecimal>) dependentFormComponents[3];
-    final BigDecimal zahlBetrag = zahlBetragField.getConvertedInput();
-    final Integer projektId = getData().getProjektId();
-    final Integer kundeId = getData().getKundeId();
-    // final String kundeText = customerSelectPanel.getKundeTextField().getConvertedInput();
-    final boolean zahlBetragExists = (zahlBetrag != null && zahlBetrag.compareTo(BigDecimal.ZERO) != 0);
-    if (status == RechnungStatus.BEZAHLT && zahlBetragExists == false) {
-      addError("fibu.rechnung.error.statusBezahltErfordertZahlBetrag");
-    }
-    // if (projektId == null && StringUtils.isBlank(kundeText) == true && kundeId == null) {
-    if (projektId == null && kundeId == null) {
-      addError("fibu.rechnung.error.kundeTextOderProjektRequired");
     }
   }
 
