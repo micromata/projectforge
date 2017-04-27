@@ -9,9 +9,9 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
-import org.projectforge.business.fibu.EmployeeDO;
 import org.projectforge.common.anots.PropertyInfo;
 import org.projectforge.framework.persistence.entities.DefaultBaseDO;
+import org.projectforge.framework.persistence.user.entities.PFUserDO;
 
 import de.micromata.genome.db.jpa.history.api.WithHistory;
 
@@ -24,7 +24,7 @@ public class FFPAccountingDO extends DefaultBaseDO
 
   private FFPEventDO event;
 
-  private EmployeeDO attendee;
+  private PFUserDO attendee;
 
   @PropertyInfo(i18nKey = "plugins.ffp.value")
   private BigDecimal value;
@@ -48,13 +48,13 @@ public class FFPAccountingDO extends DefaultBaseDO
   }
 
   @ManyToOne(fetch = FetchType.EAGER)
-  @JoinColumn(name = "ATTENDEE_ID")
-  public EmployeeDO getAttendee()
+  @JoinColumn(name = "ATTENDEE_USER_ID")
+  public PFUserDO getAttendee()
   {
     return attendee;
   }
 
-  public void setAttendee(EmployeeDO attendee)
+  public void setAttendee(PFUserDO attendee)
   {
     this.attendee = attendee;
   }

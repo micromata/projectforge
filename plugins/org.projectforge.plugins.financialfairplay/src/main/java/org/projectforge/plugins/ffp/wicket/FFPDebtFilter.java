@@ -37,17 +37,22 @@ public class FFPDebtFilter extends BaseSearchFilter implements Serializable
 {
   private static final long serialVersionUID = 8567780910637887786L;
 
-  private boolean showOnlyActiveEntries;
+  private Integer userId;
+ 
+  private boolean fromMe; 
+  
+  private boolean toMe; 
+  
+  // show only debts i need to approve
+  private boolean iNeedToApprove=true; 
 
-  private Integer employeeId;
+  // hide if both approved already 
+  private boolean hideBothApproved=true; 
+ 
 
-  public FFPDebtFilter()
+  public FFPDebtFilter(Integer userId)
   {
-  }
-
-  public FFPDebtFilter(Integer employeeId)
-  {
-    this.employeeId = employeeId;
+    this.userId = userId;
   }
 
   public FFPDebtFilter(final BaseSearchFilter filter)
@@ -55,13 +60,45 @@ public class FFPDebtFilter extends BaseSearchFilter implements Serializable
     super(filter);
   }
 
-  public Integer getEmployeeId()
+  public Integer getUserId()
   {
-    return employeeId;
+    return userId;
   }
 
-  public void setEmployeeId(Integer employeeId)
+  public void setUserId(Integer userId)
   {
-    this.employeeId = employeeId;
+    this.userId = userId;
+  }
+
+  public boolean isFromMe() {
+    return fromMe;
+  }
+
+  public void setFromMe(boolean fromMe) {
+  this.fromMe = fromMe;
+  }
+
+  public boolean isToMe() {
+  return toMe;
+  }
+
+  public void setToMe(boolean toMe) {
+    this.toMe = toMe;
+  }
+
+  public boolean isiNeedToApprove() {
+    return iNeedToApprove;
+  }
+
+  public void setiNeedToApprove(boolean iNeedToApprove) {
+    this.iNeedToApprove = iNeedToApprove;
+  }
+
+  public boolean isHideBothApproved() {
+    return hideBothApproved;
+  }
+
+  public void setHideBothApproved(boolean hideBothApproved) {
+    this.hideBothApproved = hideBothApproved;
   }
 }
