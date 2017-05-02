@@ -41,6 +41,7 @@ import org.hibernate.search.annotations.DateBridge;
 import org.hibernate.search.annotations.EncodingType;
 import org.hibernate.search.annotations.Field;
 import org.hibernate.search.annotations.Index;
+import org.hibernate.search.annotations.IndexedEmbedded;
 import org.hibernate.search.annotations.Resolution;
 import org.hibernate.search.annotations.Store;
 import org.projectforge.business.fibu.kost.Kost2ArtDO;
@@ -99,6 +100,7 @@ public abstract class AbstractRechnungDO<T extends AbstractRechnungsPositionDO> 
   protected BigDecimal zahlBetrag;
 
   @PropertyInfo(i18nKey = "fibu.konto")
+  @IndexedEmbedded(depth = 1)
   private KontoDO konto;
 
   @PropertyInfo(i18nKey = "fibu.rechnung.discountPercent")
