@@ -137,22 +137,6 @@ public class FinancialFairPlayPluginUpdates
         if (databaseUpdateService.doesTableAttributeExist("t_plugin_financialfairplay_event", "organizer_user_id") == false) {
           return false;
         }
-        List<DatabaseResultRow> queryResult = databaseUpdateService.query("SELECT organizer_id FROM t_plugin_financialfairplay_event");
-        if (queryResult != null) {
-          if (queryResult.size() < 1) {
-            return true;
-          } else {
-            DatabaseResultRow resultRow = queryResult.get(0);
-            DatabaseResultRowEntry entry = resultRow.getEntry(0);
-            Integer organizerId = (Integer) entry.getValue();
-            List<DatabaseResultRow> userQueryResult = databaseUpdateService.query("SELECT * FROM t_pf_user WHERE pk = ?", organizerId);
-            if (userQueryResult.size() > 0) {
-              return true;
-            } else {
-              return false;
-            }
-          }
-        }
         return false;
       }
 
