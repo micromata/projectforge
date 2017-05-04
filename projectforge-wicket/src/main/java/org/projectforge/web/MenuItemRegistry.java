@@ -189,6 +189,12 @@ public class MenuItemRegistry implements Serializable
     //        }
     //      }
     //    }
+
+    // Check if ID already exisits
+    if (get(menuItemDef.getId()) != null) {
+      throw (new IllegalArgumentException(String.format("Duplicated menu ID '%s' for entry '%s'", menuItemDef.getId(), menuItemDef.getI18nKey())));
+    }
+
     menuItemList.add(menuItemDef);
     return menuItemDef;
   }
@@ -319,7 +325,7 @@ public class MenuItemRegistry implements Serializable
     reg.register(common, MenuItemDefId.TEAMCALENDAR, 20, TeamCalListPage.class); //
     final MenuItemDef vacation = new MenuItemDef(common, MenuItemDefId.VACATION.getId(), 21, MenuItemDefId.VACATION.getI18nKey(), VacationListPage.class)
     {
-       @Override
+      @Override
       protected void afterMenuEntryCreation(final MenuEntry createdMenuEntry, final MenuBuilderContext context)
       {
         createdMenuEntry.setNewCounterModel(new MenuNewCounterVacation());
