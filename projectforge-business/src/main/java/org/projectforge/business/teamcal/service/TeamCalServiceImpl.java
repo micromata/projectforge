@@ -462,6 +462,7 @@ public class TeamCalServiceImpl
       cal.getProperties().add(CalScale.GREGORIAN);
 
       final net.fortuna.ical4j.model.TimeZone timezone = ICal4JUtils.getUserTimeZone();
+      cal.getComponents().add(timezone.getVTimeZone());
       final String[] teamCalIds = { data.getCalendar().getPk().toString() };
       final VEvent event = createVEvent(data, teamCalIds, true, exportAttendees, timezone);
       cal.getComponents().add(event);
@@ -779,8 +780,7 @@ public class TeamCalServiceImpl
   public static List<VEvent> getVEvents(final net.fortuna.ical4j.model.Calendar calendar)
   {
     final List<VEvent> events = new ArrayList<VEvent>();
-    @SuppressWarnings("unchecked")
-    final List<CalendarComponent> list = calendar.getComponents(Component.VEVENT);
+    @SuppressWarnings("unchecked") final List<CalendarComponent> list = calendar.getComponents(Component.VEVENT);
     if (list == null || list.size() == 0) {
       return events;
     }
