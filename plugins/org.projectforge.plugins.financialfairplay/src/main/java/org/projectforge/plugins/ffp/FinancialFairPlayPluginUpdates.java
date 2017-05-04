@@ -62,7 +62,9 @@ public class FinancialFairPlayPluginUpdates
 
       private void updateEmployeeToUser()
       {
-        databaseUpdateService.update("ALTER TABLE t_plugin_financialfairplay_event ADD organizer_user_id integer");
+        if (databaseUpdateService.doesTableAttributeExist("t_plugin_financialfairplay_event", "organizer_user_id") == false) {
+          databaseUpdateService.update("ALTER TABLE t_plugin_financialfairplay_event ADD organizer_user_id integer");
+        }
         List<DatabaseResultRow> eventQueryResult = databaseUpdateService.query("SELECT organizer_id FROM t_plugin_financialfairplay_event");
         for (DatabaseResultRow resultRow : eventQueryResult) {
           DatabaseResultRowEntry entry = resultRow.getEntry(0);
@@ -70,9 +72,13 @@ public class FinancialFairPlayPluginUpdates
           Integer userId = getUserIdForEmployeeId(organizerId);
           databaseUpdateService.update("UPDATE t_plugin_financialfairplay_event SET organizer_user_id = " + userId + " WHERE organizer_id = " + organizerId);
         }
-        databaseUpdateService.update("ALTER TABLE t_plugin_financialfairplay_event DROP COLUMN organizer_id");
+        if (databaseUpdateService.doesTableAttributeExist("t_plugin_financialfairplay_event", "organizer_id")) {
+          databaseUpdateService.update("ALTER TABLE t_plugin_financialfairplay_event DROP COLUMN organizer_id");
+        }
 
-        databaseUpdateService.update("ALTER TABLE t_plugin_financialfairplay_event_attendee ADD attendee_user_pk integer");
+        if (databaseUpdateService.doesTableAttributeExist("t_plugin_financialfairplay_event_attendee", "attendee_user_pk") == false) {
+          databaseUpdateService.update("ALTER TABLE t_plugin_financialfairplay_event_attendee ADD attendee_user_pk integer");
+        }
         List<DatabaseResultRow> attendeeQueryResult = databaseUpdateService.query("SELECT attendee_pk FROM t_plugin_financialfairplay_event_attendee");
         for (DatabaseResultRow resultRow : attendeeQueryResult) {
           DatabaseResultRowEntry entry = resultRow.getEntry(0);
@@ -81,13 +87,22 @@ public class FinancialFairPlayPluginUpdates
           databaseUpdateService
               .update("UPDATE t_plugin_financialfairplay_event_attendee SET attendee_user_pk = " + userId + " WHERE attendee_pk = " + attendeeId);
         }
-        databaseUpdateService.update("ALTER TABLE t_plugin_financialfairplay_event_attendee DROP COLUMN attendee_pk");
+        if (databaseUpdateService.doesTableAttributeExist("t_plugin_financialfairplay_event_attendee", "attendee_pk")) {
+          databaseUpdateService.update("ALTER TABLE t_plugin_financialfairplay_event_attendee DROP COLUMN attendee_pk");
+        }
 
-        databaseUpdateService.update("ALTER TABLE t_plugin_financialfairplay_debt ADD attendee_user_id_from integer");
-        databaseUpdateService.update("ALTER TABLE t_plugin_financialfairplay_debt ADD attendee_user_id_to integer");
+        if (databaseUpdateService.doesTableAttributeExist("t_plugin_financialfairplay_debt", "attendee_user_id_from") == false) {
+          databaseUpdateService.update("ALTER TABLE t_plugin_financialfairplay_debt ADD attendee_user_id_from integer");
+        }
+        if (databaseUpdateService.doesTableAttributeExist("t_plugin_financialfairplay_debt", "attendee_user_id_to") == false) {
+          databaseUpdateService.update("ALTER TABLE t_plugin_financialfairplay_debt ADD attendee_user_id_to integer");
+        }
         List<DatabaseResultRow> attendeeFromToQueryResult = databaseUpdateService
             .query("SELECT attendee_id_from, attendee_id_to FROM t_plugin_financialfairplay_debt");
-        for (DatabaseResultRow resultRow : attendeeFromToQueryResult) {
+        for (
+            DatabaseResultRow resultRow : attendeeFromToQueryResult)
+
+        {
           DatabaseResultRowEntry entryFrom = resultRow.getEntry(0);
           DatabaseResultRowEntry entryTo = resultRow.getEntry(1);
           Integer attendeeFromId = (Integer) entryFrom.getValue();
@@ -98,23 +113,38 @@ public class FinancialFairPlayPluginUpdates
               "UPDATE t_plugin_financialfairplay_debt SET attendee_user_id_from = " + userFromId + ", attendee_user_id_to = " + userToId
                   + " WHERE attendee_id_from = " + attendeeFromId + " AND attendee_id_to = " + attendeeToId);
         }
-        databaseUpdateService.update("ALTER TABLE t_plugin_financialfairplay_debt DROP COLUMN attendee_id_from");
-        databaseUpdateService.update("ALTER TABLE t_plugin_financialfairplay_debt DROP COLUMN attendee_id_to");
+        if (databaseUpdateService.doesTableAttributeExist("t_plugin_financialfairplay_debt", "attendee_id_from")) {
+          databaseUpdateService.update("ALTER TABLE t_plugin_financialfairplay_debt DROP COLUMN attendee_id_from");
+        }
+        if (databaseUpdateService.doesTableAttributeExist("t_plugin_financialfairplay_debt", "attendee_id_to")) {
+          databaseUpdateService.update("ALTER TABLE t_plugin_financialfairplay_debt DROP COLUMN attendee_id_to");
+        }
 
-        databaseUpdateService.update("ALTER TABLE t_plugin_financialfairplay_accounting ADD attendee_user_id integer");
+        if (databaseUpdateService.doesTableAttributeExist("t_plugin_financialfairplay_accounting", "attendee_user_id") == false) {
+          databaseUpdateService.update("ALTER TABLE t_plugin_financialfairplay_accounting ADD attendee_user_id integer");
+        }
         List<DatabaseResultRow> attendeeAccountingQueryResult = databaseUpdateService.query("SELECT attendee_id FROM t_plugin_financialfairplay_accounting");
-        for (DatabaseResultRow resultRow : attendeeAccountingQueryResult) {
+        for (
+            DatabaseResultRow resultRow : attendeeAccountingQueryResult)
+
+        {
           DatabaseResultRowEntry entry = resultRow.getEntry(0);
           Integer attendeeId = (Integer) entry.getValue();
           Integer userId = getUserIdForEmployeeId(attendeeId);
-          databaseUpdateService.update("UPDATE t_plugin_financialfairplay_accounting SET attendee_user_id = " + userId + " WHERE attendee_id = " + attendeeId);
+          databaseUpdateService
+              .update("UPDATE t_plugin_financialfairplay_accounting SET attendee_user_id = " + userId + " WHERE attendee_id = " + attendeeId);
         }
-        databaseUpdateService.update("ALTER TABLE t_plugin_financialfairplay_accounting DROP COLUMN attendee_id");
+        if (databaseUpdateService.doesTableAttributeExist("t_plugin_financialfairplay_accounting", "attendee_id")) {
+          databaseUpdateService.update("ALTER TABLE t_plugin_financialfairplay_accounting DROP COLUMN attendee_id");
+        }
 
         UserDao userDao = applicationContext.getBean(UserDao.class);
         UserXmlPreferencesCache cache = applicationContext.getBean(UserXmlPreferencesCache.class);
         List<PFUserDO> userList = userDao.getList(new PFUserFilter());
-        for (PFUserDO user : userList) {
+        for (
+            PFUserDO user : userList)
+
+        {
           cache.removeEntry(user.getId(), "org.projectforge.plugins.ffp.wicket.FFPDebtListForm:Filter");
         }
       }
