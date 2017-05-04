@@ -190,7 +190,7 @@ public class MenuItemRegistry implements Serializable
     //      }
     //    }
 
-    // Check if ID already exisits
+    // Check if ID already exists
     if (get(menuItemDef.getId()) != null) {
       throw (new IllegalArgumentException(String.format("Duplicated menu ID '%s' for entry '%s'", menuItemDef.getId(), menuItemDef.getI18nKey())));
     }
