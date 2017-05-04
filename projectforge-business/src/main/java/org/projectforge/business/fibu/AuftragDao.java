@@ -376,7 +376,8 @@ public class AuftragDao extends BaseDao<AuftragDO>
               AuftragsStatus.ESKALATION }));
     } else if (myFilter.isShowErsetzt() == true) {
       queryFilter.add(Restrictions.eq("auftragsStatus", AuftragsStatus.ERSETZT));
-    } else if (myFilter.getUser() != null) {
+    }
+    if (myFilter.getUser() != null) {
       queryFilter.add(
           Restrictions.or(
               Restrictions.eq("contactPerson", myFilter.getUser()),

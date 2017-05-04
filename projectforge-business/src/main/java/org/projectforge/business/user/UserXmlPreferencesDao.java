@@ -334,7 +334,13 @@ public class UserXmlPreferencesDao
         log.debug("Updating user preference for user '" + userPrefs.getUserId() + "': " + xml);
       }
       emgrFactory.runInTrans(emgr -> {
-        emgr.update(emgr.selectByPkAttached(UserXmlPreferencesDO.class, userPrefsForDB.getId()));
+        UserXmlPreferencesDO attachedEntity = emgr.selectByPkAttached(UserXmlPreferencesDO.class, userPrefsForDB.getId());
+        attachedEntity.setSerializedSettings(userPrefsForDB.getSerializedSettings());
+        attachedEntity.setLastUpdate(userPrefsForDB.getLastUpdate());
+        attachedEntity.setVersion();
+        emgr.update(attachedEntity);
+        //Doesn't work because of attached detached probs
+        //emgr.update(userPrefsForDB);
         return null;
       });
     }

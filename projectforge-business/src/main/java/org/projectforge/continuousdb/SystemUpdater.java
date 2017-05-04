@@ -92,7 +92,7 @@ public class SystemUpdater
     log.info("Checking for database updates...");
     final Set<String> checkedRegions = new HashSet<String>();
     for (final UpdateEntry updateEntry : getUpdateEntries()) {
-      if (checkedRegions.contains(updateEntry.getRegionId()) == true) {
+      if (updateEntry.isInitial() == false && checkedRegions.contains(updateEntry.getRegionId()) == true) {
         // Check only the newest update entry.
         continue;
       }
@@ -109,9 +109,9 @@ public class SystemUpdater
         for (final String str : DATA_BASE_UPDATES_REQUIRED) {
           log.warn(str);
         }
-        for (final String str : DATA_BASE_UPDATES_REQUIRED) {
-          System.err.println(str);
-        }
+        //for (final String str : DATA_BASE_UPDATES_REQUIRED) {
+        //  System.err.println(str);
+        //}
         return false;
       }
     }

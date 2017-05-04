@@ -132,7 +132,7 @@ public class VacationFormValidator implements IFormValidator
     final TeamCalDO configuredVacationCalendar = configService.getVacationCalendar();
     if (configuredVacationCalendar != null) {
       final Collection<TeamCalDO> selectedCalendars = calendars.getConvertedInput();
-      if (selectedCalendars.contains(configuredVacationCalendar) == false) {
+      if (selectedCalendars == null || selectedCalendars.contains(configuredVacationCalendar) == false) {
         form.error(I18nHelper.getLocalizedMessage("vacation.validate.noCalender", configuredVacationCalendar.getTitle()));
       }
     }
