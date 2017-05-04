@@ -28,13 +28,13 @@ import java.math.BigDecimal;
 import java.sql.Date;
 import java.util.Calendar;
 
+import org.projectforge.business.excel.ContentProvider;
+import org.projectforge.business.excel.ExportColumn;
+import org.projectforge.business.excel.ExportSheet;
+import org.projectforge.business.excel.Formula;
+import org.projectforge.business.excel.I18nExportColumn;
+import org.projectforge.business.excel.PropertyMapping;
 import org.projectforge.business.scripting.I18n;
-import org.projectforge.excel.ContentProvider;
-import org.projectforge.excel.ExportColumn;
-import org.projectforge.excel.ExportSheet;
-import org.projectforge.excel.Formula;
-import org.projectforge.excel.I18nExportColumn;
-import org.projectforge.excel.PropertyMapping;
 import org.projectforge.export.MyExcelExporter;
 import org.projectforge.framework.time.DateFormatType;
 import org.projectforge.framework.time.DateFormats;
@@ -43,7 +43,6 @@ import org.projectforge.framework.utils.NumberHelper;
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
  */
 public class LiquidityForecastCashFlow implements Serializable
 {

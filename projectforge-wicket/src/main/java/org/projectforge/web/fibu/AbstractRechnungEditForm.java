@@ -35,7 +35,6 @@ import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.markup.html.form.AjaxButton;
-import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.Button;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.Form;
@@ -319,7 +318,7 @@ public abstract class AbstractRechnungEditForm<O extends AbstractRechnungDO<T>, 
     if (costConfigured == true) {
       addCostEditModalDialog();
     }
-    refresh();
+    refreshPositions();
     if (getBaseDao().hasInsertAccess(getUser()) == true) {
       final DivPanel panel = gridBuilder.newGridPanel().getPanel();
       final Button addPositionButton = new Button(SingleButtonPanel.WICKET_ID)
@@ -335,7 +334,7 @@ public abstract class AbstractRechnungEditForm<O extends AbstractRechnungDO<T>, 
               position.setVat(predecessor.getVat()); // Preset the vat from the predecessor position.
             }
           }
-          refresh();
+          refreshPositions();
         }
       };
       final SingleButtonPanel addPositionButtonPanel = new SingleButtonPanel(panel.newChildId(), addPositionButton, getString("add"));
@@ -352,7 +351,7 @@ public abstract class AbstractRechnungEditForm<O extends AbstractRechnungDO<T>, 
   protected abstract T newPositionInstance();
 
   @SuppressWarnings("serial")
-  void refresh()
+  protected void refreshPositions()
   {
     positionsRepeater.removeAll();
     final boolean hasInsertAccess = getBaseDao().hasInsertAccess(getUser());
@@ -362,6 +361,7 @@ public abstract class AbstractRechnungEditForm<O extends AbstractRechnungDO<T>, 
       position.setVat(Configuration.getInstance().getPercentValue(ConfigurationParam.FIBU_DEFAULT_VAT));
       data.addPosition(position);
     }
+
     for (final T position : data.getPositionen()) {
       // Fetch all kostZuweisungen:
       if (CollectionUtils.isNotEmpty(position.getKostZuweisungen()) == true) {
@@ -564,78 +564,77 @@ public abstract class AbstractRechnungEditForm<O extends AbstractRechnungDO<T>, 
         final FieldsetPanel fieldset = posGridBuilder.newFieldset(getString("fibu.rechnung.text"));
         fieldset.add(new MaxLengthTextArea(TextAreaPanel.WICKET_ID, new PropertyModel<String>(position, "text")), true);
       }
+      // Cost assignments
       if (costConfigured == true) {
+        posGridBuilder.newSplitPanel(GridSize.COL50, true);
         {
-          // Cost assignments
-          posGridBuilder.newSplitPanel(GridSize.COL50, true);
+          posGridBuilder.newSubSplitPanel(GridSize.COL50);
+          DivPanel panel = posGridBuilder.getPanel();
+          final RechnungCostTablePanel costTable = new RechnungCostTablePanel(panel.newChildId(), position)
           {
-            posGridBuilder.newSubSplitPanel(GridSize.COL50);
-            DivPanel panel = posGridBuilder.getPanel();
-            final RechnungCostTablePanel costTable = new RechnungCostTablePanel(panel.newChildId(), position)
+            /**
+             * @see org.projectforge.web.fibu.RechnungCostTablePanel#onRenderCostRow(org.projectforge.business.fibu.AbstractRechnungsPositionDO,
+             *      org.apache.wicket.Component, org.apache.wicket.Component)
+             */
+            @Override
+            protected void onRenderCostRow(final AbstractRechnungsPositionDO position, final KostZuweisungDO costAssignment,
+                final Component cost1, final Component cost2)
             {
-              /**
-               * @see org.projectforge.web.fibu.RechnungCostTablePanel#onRenderCostRow(org.projectforge.business.fibu.AbstractRechnungsPositionDO,
-               *      org.apache.wicket.Component, org.apache.wicket.Component)
-               */
+              AbstractRechnungEditForm.this.onRenderCostRow(position, costAssignment, cost1, cost2);
+            }
+          };
+          panel.add(costTable);
+          ajaxUpdatePositionComponents.add(costTable.refresh().getTable());
+
+          posGridBuilder.newSubSplitPanel(GridSize.COL50);
+          panel = posGridBuilder.getPanel();
+          final BigDecimal fehlbetrag = position.getKostZuweisungNetFehlbetrag();
+          if (hasInsertAccess == true) {
+            ButtonType buttonType;
+            if (NumberHelper.isNotZero(fehlbetrag) == true) {
+              buttonType = ButtonType.RED;
+            } else {
+              buttonType = ButtonType.LIGHT;
+            }
+            final AjaxButton editCostButton = new AjaxButton(ButtonPanel.BUTTON_ID, this)
+            {
               @Override
-              protected void onRenderCostRow(final AbstractRechnungsPositionDO position, final KostZuweisungDO costAssignment,
-                  final Component cost1, final Component cost2)
+              protected void onSubmit(final AjaxRequestTarget target, final Form<?> form)
               {
-                AbstractRechnungEditForm.this.onRenderCostRow(position, costAssignment, cost1, cost2);
+                costEditModalDialog.open(target);
+                // Redraw the content:
+                costEditModalDialog.redraw(position, costTable);
+                // The content was changed:
+                costEditModalDialog.addContent(target);
+              }
+
+              @Override
+              protected void onError(final AjaxRequestTarget target, final Form<?> form)
+              {
+                target.add(AbstractRechnungEditForm.this.feedbackPanel);
               }
             };
-            panel.add(costTable);
-            ajaxUpdatePositionComponents.add(costTable.refresh().getTable());
-
-            posGridBuilder.newSubSplitPanel(GridSize.COL50);
-            panel = posGridBuilder.getPanel();
-            final BigDecimal fehlbetrag = position.getKostZuweisungNetFehlbetrag();
-            if (hasInsertAccess == true) {
-              ButtonType buttonType;
-              if (NumberHelper.isNotZero(fehlbetrag) == true) {
-                buttonType = ButtonType.RED;
-              } else {
-                buttonType = ButtonType.LIGHT;
-              }
-              final AjaxButton editCostButton = new AjaxButton(ButtonPanel.BUTTON_ID, this)
-              {
-                @Override
-                protected void onSubmit(final AjaxRequestTarget target, final Form<?> form)
-                {
-                  costEditModalDialog.open(target);
-                  // Redraw the content:
-                  costEditModalDialog.redraw(position, costTable);
-                  // The content was changed:
-                  costEditModalDialog.addContent(target);
-                }
-
-                @Override
-                protected void onError(final AjaxRequestTarget target, final Form<?> form)
-                {
-                  target.add(AbstractRechnungEditForm.this.feedbackPanel);
-                }
-              };
-              editCostButton.setDefaultFormProcessing(false);
-              panel.add(new ButtonPanel(panel.newChildId(), getString("edit"), editCostButton, buttonType));
-            } else {
-              panel.add(new TextPanel(panel.newChildId(), " "));
-            }
-            panel.add(new TextPanel(panel.newChildId(), new Model<String>()
-            {
-              @Override
-              public String getObject()
-              {
-                final BigDecimal fehlbetrag = position.getKostZuweisungNetFehlbetrag();
-                if (NumberHelper.isNotZero(fehlbetrag) == true) {
-                  return CurrencyFormatter.format(fehlbetrag);
-                } else {
-                  return "";
-                }
-              }
-            }, TextStyle.RED));
+            editCostButton.setDefaultFormProcessing(false);
+            panel.add(new ButtonPanel(panel.newChildId(), getString("edit"), editCostButton, buttonType));
+          } else {
+            panel.add(new TextPanel(panel.newChildId(), " "));
           }
+          panel.add(new TextPanel(panel.newChildId(), new Model<String>()
+          {
+            @Override
+            public String getObject()
+            {
+              final BigDecimal fehlbetrag = position.getKostZuweisungNetFehlbetrag();
+              if (NumberHelper.isNotZero(fehlbetrag) == true) {
+                return CurrencyFormatter.format(fehlbetrag);
+              } else {
+                return "";
+              }
+            }
+          }, TextStyle.RED));
         }
       }
+      onRenderPosition(posGridBuilder, position);
     }
   }
 
@@ -668,13 +667,9 @@ public abstract class AbstractRechnungEditForm<O extends AbstractRechnungDO<T>, 
 
   /**
    * Overwrite this method if you need to add own form elements for a order position.
-   *
-   * @param item
-   * @param position
    */
-  protected void onRenderPosition(final WebMarkupContainer item, final T position)
+  protected void onRenderPosition(final GridBuilder posGridBuilder, final T position)
   {
-
   }
 
   protected void addCostEditModalDialog()

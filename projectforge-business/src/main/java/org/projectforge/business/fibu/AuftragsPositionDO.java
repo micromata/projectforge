@@ -99,7 +99,7 @@ public class AuftragsPositionDO extends DefaultBaseDO implements ShortDisplayNam
 
   private boolean vollstaendigFakturiert;
 
-  private PeriodOfPerformanceType periodOfPerformanceType;
+  private PeriodOfPerformanceType periodOfPerformanceType = PeriodOfPerformanceType.SEEABOVE;
 
   @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
   private Date periodOfPerformanceBegin;

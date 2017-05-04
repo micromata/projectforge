@@ -20,6 +20,9 @@
   <option name="RIGHT_MARGIN" value="160" />
   <option name="JD_KEEP_INVALID_TAGS" value="false" />
   <option name="FORMATTER_TAGS_ENABLED" value="true" />
+  <Properties>
+    <option name="KEEP_BLANK_LINES" value="true" />
+  </Properties>
   <XML>
     <option name="XML_LEGACY_SETTINGS_IMPORTED" value="true" />
   </XML>

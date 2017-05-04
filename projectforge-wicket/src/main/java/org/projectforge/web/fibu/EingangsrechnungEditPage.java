@@ -97,19 +97,22 @@ public class EingangsrechnungEditPage
         rechnung.addPosition(position);
       }
     }
-    form.refresh();
+    form.refreshPositions();
   }
 
+  @Override
   public void cancelSelection(final String property)
   {
     // Do nothing.
   }
 
+  @Override
   public void select(final String property, final Object selectedValue)
   {
     log.error("Property '" + property + "' not supported for selection.");
   }
 
+  @Override
   public void unselect(final String property)
   {
     log.error("Property '" + property + "' not supported for selection.");

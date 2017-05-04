@@ -33,14 +33,14 @@ import java.util.zip.ZipOutputStream;
 import org.apache.commons.io.IOUtils;
 import org.apache.wicket.util.resource.AbstractResourceStreamWriter;
 import org.apache.wicket.util.resource.IResourceStream;
-import org.projectforge.excel.ExportWorkbook;
+import org.projectforge.business.excel.ExportWorkbook;
 import org.projectforge.export.ExportJFreeChart;
 import org.projectforge.export.ExportZipFile;
 
 /**
  * For exporting multiple objects by one script you may collect all objects within this zip archive.
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
  */
 public class ExportZipArchive
 {
@@ -95,7 +95,8 @@ public class ExportZipArchive
 
   public IResourceStream createResourceStreamWriter()
   {
-    final IResourceStream iResourceStream = new AbstractResourceStreamWriter() {
+    final IResourceStream iResourceStream = new AbstractResourceStreamWriter()
+    {
       private static final long serialVersionUID = 7780552906708508709L;
 
       @Override

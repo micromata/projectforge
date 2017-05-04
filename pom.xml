@@ -177,7 +177,6 @@
   <modules>
     <module>projectforge-common</module>
     <module>projectforge-model</module>
-    <module>projectforge-excel</module>
     <module>projectforge-business</module>
     <module>projectforge-jax-rs</module>
     <module>projectforge-wicket</module>
@@ -220,7 +219,7 @@
     <aspectjtools.version>1.8.7</aspectjtools.version>
     <cglib-nodep.version>3.2.0</cglib-nodep.version>
     <groovy.version>2.4.4</groovy.version>
-    <poi.version>3.13</poi.version>
+    <poi.version>3.16</poi.version>
     <wicket.version>6.8.0</wicket.version>
     <wicket-select2.version>2.2</wicket-select2.version>
 

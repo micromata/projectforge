@@ -37,6 +37,13 @@ import java.util.Map;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.poi.hssf.util.HSSFColor;
+import org.projectforge.business.excel.CellFormat;
+import org.projectforge.business.excel.ContentProvider;
+import org.projectforge.business.excel.ExportCell;
+import org.projectforge.business.excel.ExportRow;
+import org.projectforge.business.excel.ExportSheet;
+import org.projectforge.business.excel.ExportWorkbook;
+import org.projectforge.business.excel.PropertyMapping;
 import org.projectforge.business.fibu.EmployeeDO;
 import org.projectforge.business.fibu.EmployeeDao;
 import org.projectforge.business.fibu.EmployeeFilter;
@@ -50,13 +57,6 @@ import org.projectforge.business.fibu.kost.Kost2DO;
 import org.projectforge.business.multitenancy.TenantRegistry;
 import org.projectforge.business.multitenancy.TenantRegistryMap;
 import org.projectforge.business.user.UserGroupCache;
-import org.projectforge.excel.CellFormat;
-import org.projectforge.excel.ContentProvider;
-import org.projectforge.excel.ExportCell;
-import org.projectforge.excel.ExportRow;
-import org.projectforge.excel.ExportSheet;
-import org.projectforge.excel.ExportWorkbook;
-import org.projectforge.excel.PropertyMapping;
 import org.projectforge.export.MyXlsContentProvider;
 import org.projectforge.framework.calendar.MonthHolder;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
@@ -72,7 +72,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 /**
  * For excel export of employee salaries for import in Datev.
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 @Repository
@@ -117,7 +117,9 @@ public class EmployeeSalaryExportDao
     {
       return new MyContentProvider(this.workbook);
     }
-  };
+  }
+
+  ;
 
   private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(EmployeeSalaryExportDao.class);
 
@@ -130,16 +132,16 @@ public class EmployeeSalaryExportDao
   private enum ExcelColumn
   {
     KOST1("fibu.kost1", MyXlsContentProvider.LENGTH_KOSTENTRAEGER), MITARBEITER("fibu.employee",
-        MyXlsContentProvider.LENGTH_USER), STUNDEN(
-            "hours", MyXlsContentProvider.LENGTH_DURATION), KOST2("fibu.kost2",
-                MyXlsContentProvider.LENGTH_KOSTENTRAEGER), BRUTTO_MIT_AG(
-                    "fibu.employee.salary.bruttoMitAgAnteil",
-                    MyXlsContentProvider.LENGTH_CURRENCY), KORREKTUR("fibu.common.korrekturWert",
-                        MyXlsContentProvider.LENGTH_CURRENCY), SUMME("sum",
-                            MyXlsContentProvider.LENGTH_CURRENCY), BEZEICHNUNG("description",
-                                MyXlsContentProvider.LENGTH_EXTRA_LONG), DATUM("date",
-                                    MyXlsContentProvider.LENGTH_DATE), KONTO("fibu.buchungssatz.konto", 14), GEGENKONTO(
-                                        "fibu.buchungssatz.gegenKonto", 14);
+      MyXlsContentProvider.LENGTH_USER), STUNDEN(
+      "hours", MyXlsContentProvider.LENGTH_DURATION), KOST2("fibu.kost2",
+      MyXlsContentProvider.LENGTH_KOSTENTRAEGER), BRUTTO_MIT_AG(
+      "fibu.employee.salary.bruttoMitAgAnteil",
+      MyXlsContentProvider.LENGTH_CURRENCY), KORREKTUR("fibu.common.korrekturWert",
+      MyXlsContentProvider.LENGTH_CURRENCY), SUMME("sum",
+      MyXlsContentProvider.LENGTH_CURRENCY), BEZEICHNUNG("description",
+      MyXlsContentProvider.LENGTH_EXTRA_LONG), DATUM("date",
+      MyXlsContentProvider.LENGTH_DATE), KONTO("fibu.buchungssatz.konto", 14), GEGENKONTO(
+      "fibu.buchungssatz.gegenKonto", 14);
 
     final String theTitle;
 

@@ -47,9 +47,9 @@ import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.projectforge.business.excel.ExportSheet;
 import org.projectforge.common.StringHelper;
 import org.projectforge.common.anots.PropertyInfo;
-import org.projectforge.excel.ExportSheet;
 import org.projectforge.export.DOListExcelExporter;
 import org.projectforge.framework.i18n.UserException;
 import org.projectforge.framework.persistence.api.BaseDO;
@@ -150,7 +150,7 @@ public abstract class AbstractListPage<F extends AbstractListForm<?, ?>, D exten
   /**
    * @param cellItem
    * @param massUpdate If true then a mouse click on the row should (de)activate the check box to select the row for the
-   *          mass update, otherwise this method calls addRowClick(Item).
+   *                   mass update, otherwise this method calls addRowClick(Item).
    * @see #addRowClick(Item)
    */
   protected static void addRowClick(final Item<?> cellItem, final boolean massUpdate)
@@ -197,7 +197,7 @@ public abstract class AbstractListPage<F extends AbstractListForm<?, ?>, D exten
 
   /**
    * Copies all fields of the given filter to the current filter of the form.
-   * 
+   *
    * @param filter
    */
   public void copySearchFieldsFrom(final BaseSearchFilter filter)
@@ -215,7 +215,7 @@ public abstract class AbstractListPage<F extends AbstractListForm<?, ?>, D exten
 
   /**
    * Highlight the row representing the data object with the given id.
-   * 
+   *
    * @param highlightedRowId
    */
   public void setHighlightedRowId(final Serializable highlightedRowId)
@@ -237,10 +237,10 @@ public abstract class AbstractListPage<F extends AbstractListForm<?, ?>, D exten
   }
 
   /**
-   * @param item The item where to add the css classes.
-   * @param rowDataId If the current row data is equals to the hightlightedRow then the style will contain highlighting.
+   * @param item             The item where to add the css classes.
+   * @param rowDataId        If the current row data is equals to the hightlightedRow then the style will contain highlighting.
    * @param highlightedRowId The current row to highlight (id of the data object behind the row).
-   * @param isDeleted Is this entry deleted? Then the deleted style will be added.
+   * @param isDeleted        Is this entry deleted? Then the deleted style will be added.
    * @return
    */
   protected static void appendCssClasses(final Item<?> item, final Serializable rowDataId,
@@ -263,8 +263,8 @@ public abstract class AbstractListPage<F extends AbstractListForm<?, ?>, D exten
 
   /**
    * Adds some standard css classes such as {@link RowCssClass#MARKED_AS_DELETED} for deleted entries.
-   * 
-   * @param item The item where to add the css classes.
+   *
+   * @param item      The item where to add the css classes.
    * @param rowDataId If the current row data is equals to the hightlightedRow then the style will contain highlighting.
    * @param isDeleted Is this entry deleted? Then the deleted style will be added.
    * @return
@@ -275,7 +275,7 @@ public abstract class AbstractListPage<F extends AbstractListForm<?, ?>, D exten
   }
 
   /**
-   * @param item The item where to add the css classes.
+   * @param item          The item where to add the css classes.
    * @param rowCssClasses The css class to append to the given item.
    * @return
    */
@@ -286,7 +286,7 @@ public abstract class AbstractListPage<F extends AbstractListForm<?, ?>, D exten
 
   /**
    * Adds storeFilter=false to the parameters.
-   * 
+   *
    * @see org.projectforge.web.wicket.AbstractSecuredPage#getBookmarkableInitialParameters()
    */
   @Override
@@ -348,7 +348,9 @@ public abstract class AbstractListPage<F extends AbstractListForm<?, ?>, D exten
         public void onClick()
         {
           redirectToEditPage(null);
-        };
+        }
+
+        ;
       }, IconType.PLUS);
       newItemMenuEntry.setAccessKey(WebConstants.ACCESS_KEY_ADD).setTooltip(
           getString(WebConstants.ACCESS_KEY_ADD_TOOLTIP_TITLE),
@@ -371,7 +373,9 @@ public abstract class AbstractListPage<F extends AbstractListForm<?, ?>, D exten
         public void onClick()
         {
           setMassUpdateMode(true);
-        };
+        }
+
+        ;
       }, getString("massUpdate"));
       contentMenuBarPanel.addMenuEntry(massUpdateMenuEntry);
 
@@ -410,10 +414,10 @@ public abstract class AbstractListPage<F extends AbstractListForm<?, ?>, D exten
 
   /**
    * Called if the user clicks on the "new" (new entry) link.
-   * 
+   *
    * @param params nullable or set by derived class methods before calling super.onNewClick();
    * @return The edit page (response page). The return value has no effect. It's only useful for derived class methods
-   *         which calls super.onNewClick();
+   * which calls super.onNewClick();
    */
   protected AbstractEditPage<?, ?, ?> redirectToEditPage(PageParameters params)
   {
@@ -645,7 +649,7 @@ public abstract class AbstractListPage<F extends AbstractListForm<?, ?>, D exten
 
   /**
    * Overwrite this method if your list page does support mass update.
-   * 
+   *
    * @return false at default.
    */
   public boolean isSupportsMassUpdate()
@@ -655,7 +659,7 @@ public abstract class AbstractListPage<F extends AbstractListForm<?, ?>, D exten
 
   /**
    * Later: Try AjaxFallBackDatatable again.
-   * 
+   *
    * @param columns
    * @param sortProperty
    * @param ascending
@@ -674,7 +678,7 @@ public abstract class AbstractListPage<F extends AbstractListForm<?, ?>, D exten
   /**
    * At default a new SortableDOProvider is returned. Overload this method e. g. for avoiding
    * LazyInitializationExceptions due to sorting.
-   * 
+   *
    * @param sortProperty
    * @param ascending
    */
@@ -686,7 +690,7 @@ public abstract class AbstractListPage<F extends AbstractListForm<?, ?>, D exten
   /**
    * At default a new SortableDOProvider is returned. Overload this method e. g. for avoiding
    * LazyInitializationExceptions due to sorting.
-   * 
+   *
    * @param sortProperty
    * @param ascending
    */
@@ -702,7 +706,7 @@ public abstract class AbstractListPage<F extends AbstractListForm<?, ?>, D exten
   /**
    * For displaying the hibernate search fields. Returns list as csv. These fields the user can directly address in his
    * search string, e. g. street:marie.
-   * 
+   *
    * @return
    * @see org.projectforge.framework.persistence.api.BaseDao#getSearchFields()
    */
@@ -722,7 +726,7 @@ public abstract class AbstractListPage<F extends AbstractListForm<?, ?>, D exten
   /**
    * Calls getString(key) with key "[i18nPrefix].title.list" or "[i18nPrefix].title.list.select" dependent weather the
    * list is shown for browsing or selecting (select mode).
-   * 
+   *
    * @see org.projectforge.web.wicket.AbstractUnsecureBasePage#getTitle()
    * @see #isSelectMode()
    */
@@ -747,9 +751,9 @@ public abstract class AbstractListPage<F extends AbstractListForm<?, ?>, D exten
   /**
    * Adds a excel export content menu entry. ProjectForge exports all data fields (annotated with {@link PropertyInfo}
    * of the current displayed result list.
-   * 
+   *
    * @param filenameIdentifier If given then the id will be part of the exported filename, may be null.
-   * @param sheetTitle may be null.
+   * @param sheetTitle         may be null.
    */
   public void addExcelExport(final String filenameIdentifier, final String sheetTitle)
   {
@@ -761,7 +765,9 @@ public abstract class AbstractListPage<F extends AbstractListForm<?, ?>, D exten
           public void onClick()
           {
             exportExcel(filenameIdentifier, sheetTitle);
-          };
+          }
+
+          ;
         }, getString("exportAsXls")).setTooltip(getString("tooltip.export.excel"));
     addContentMenuEntry(exportExcelButton);
   }
@@ -799,7 +805,7 @@ public abstract class AbstractListPage<F extends AbstractListForm<?, ?>, D exten
 
   /**
    * Does nothing at default. If overload, don't forget to call super.cancelSelection(String) if no property matches.
-   * 
+   *
    * @see org.projectforge.web.fibu.ISelectCallerPage#cancelSelection(java.lang.String)
    */
   @Override
@@ -810,7 +816,7 @@ public abstract class AbstractListPage<F extends AbstractListForm<?, ?>, D exten
 
   /**
    * Handles modifiedByUserId. If overload, don't forget to call super.select(String) if no property matches.
-   * 
+   *
    * @see org.projectforge.web.wicket.AbstractListPage#select(java.lang.String, java.lang.Object)
    */
   @Override
@@ -827,7 +833,7 @@ public abstract class AbstractListPage<F extends AbstractListForm<?, ?>, D exten
 
   /**
    * Handles modifiedByUserId. If overload, don't forget to call super.select(String) if no property matches.
-   * 
+   *
    * @see org.projectforge.web.fibu.ISelectCallerPage#unselect(java.lang.String)
    */
   @Override
@@ -860,7 +866,7 @@ public abstract class AbstractListPage<F extends AbstractListForm<?, ?>, D exten
   /**
    * Adds the search string to the recent list, if filter is from type BaseSearchFilter and the search string is not
    * blank and not from type id:4711.
-   * 
+   *
    * @param Filter The search filter.
    */
   protected void addRecentSearchTerm()
@@ -884,7 +890,7 @@ public abstract class AbstractListPage<F extends AbstractListForm<?, ?>, D exten
 
   /**
    * Tiny helper method.
-   * 
+   *
    * @param propertyName
    * @param sortable
    * @return return sortable ? propertyName : null;
@@ -896,7 +902,7 @@ public abstract class AbstractListPage<F extends AbstractListForm<?, ?>, D exten
 
   /**
    * ONLY for internal purposes to tell the IListPageColumnsCreator that it's instantiated by the SearchAreaPanel.
-   * 
+   *
    * @param calledBySearchPage the calledBySearchForm to set
    */
   public void setCalledBySearchPage(final boolean calledBySearchPage)

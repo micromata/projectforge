@@ -2,8 +2,8 @@ package org.projectforge.export;
 
 import java.lang.reflect.Field;
 
+import org.projectforge.business.excel.PropertyMapping;
 import org.projectforge.common.BeanHelper;
-import org.projectforge.excel.PropertyMapping;
 
 /**
  * Created by blumenstein on 24.11.16.
