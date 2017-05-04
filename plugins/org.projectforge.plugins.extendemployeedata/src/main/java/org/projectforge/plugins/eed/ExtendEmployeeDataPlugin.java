@@ -83,21 +83,21 @@ public class ExtendEmployeeDataPlugin extends AbstractPlugin
     // Register the menu entry as sub menu entry of the misc menu:
     final MenuItemDef parentMenu = pluginWicketRegistrationService.getMenuItemDef(MenuItemDefId.HR);
     pluginWicketRegistrationService
-        .registerMenuItem(new MenuItemDef(parentMenu, "plugins_eed_menu_listcare", 21, "plugins.eed.menu.listcare", EmployeeListEditPage.class,
+        .registerMenuItem(new MenuItemDef(parentMenu, "eed_listcare", 21, "plugins.eed.menu.listcare", EmployeeListEditPage.class,
             UserRightId.HR_EMPLOYEE, READONLY_READWRITE));
     pluginWicketRegistrationService
         .registerMenuItem(
-            new MenuItemDef(parentMenu, "plugins_eed_menu_listcareimport", 22, "plugins.eed.menu.listcareimport", EmployeeBillingImportPage.class,
+            new MenuItemDef(parentMenu, "eed_listcareimport", 22, "plugins.eed.menu.listcareimport", EmployeeBillingImportPage.class,
                 UserRightId.HR_EMPLOYEE, READONLY_READWRITE));
     pluginWicketRegistrationService
-        .registerMenuItem(new MenuItemDef(parentMenu, "plugins_eed_menu_export", 23, "plugins.eed.menu.export", ExportDataPage.class,
+        .registerMenuItem(new MenuItemDef(parentMenu, "eed_export", 23, "plugins.eed.menu.export", ExportDataPage.class,
             UserRightId.HR_EMPLOYEE_SALARY, READONLY_READWRITE));
     pluginWicketRegistrationService
-        .registerMenuItem(new MenuItemDef(parentMenu, "plugins_eed_menu_import", 23, "plugins.eed.menu.import", EmployeeSalaryImportPage.class,
+        .registerMenuItem(new MenuItemDef(parentMenu, "eed_import", 23, "plugins.eed.menu.import", EmployeeSalaryImportPage.class,
             UserRightId.HR_EMPLOYEE_SALARY, UserRightValue.READWRITE));
     pluginWicketRegistrationService
         .registerMenuItem(
-            new MenuItemDef(parentMenu, "plugins_eed_menu_config", 24, "plugins.eed.menu.config", EmployeeConfigurationPage.class,
+            new MenuItemDef(parentMenu, "eed_config", 24, "plugins.eed.menu.config", EmployeeConfigurationPage.class,
                 UserRightId.HR_EMPLOYEE_SALARY, READONLY_READWRITE));
 
     // Define the access management:
