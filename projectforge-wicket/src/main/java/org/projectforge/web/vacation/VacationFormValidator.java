@@ -14,11 +14,11 @@ import org.apache.wicket.markup.html.form.validation.IFormValidator;
 import org.projectforge.business.configuration.ConfigurationService;
 import org.projectforge.business.fibu.EmployeeDO;
 import org.projectforge.business.teamcal.admin.model.TeamCalDO;
-import org.projectforge.business.user.I18nHelper;
 import org.projectforge.business.vacation.model.VacationAttrProperty;
 import org.projectforge.business.vacation.model.VacationDO;
 import org.projectforge.business.vacation.model.VacationStatus;
 import org.projectforge.business.vacation.service.VacationService;
+import org.projectforge.framework.i18n.I18nHelper;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.web.wicket.components.DatePanel;
 
@@ -132,7 +132,7 @@ public class VacationFormValidator implements IFormValidator
     final TeamCalDO configuredVacationCalendar = configService.getVacationCalendar();
     if (configuredVacationCalendar != null) {
       final Collection<TeamCalDO> selectedCalendars = calendars.getConvertedInput();
-      if (selectedCalendars.contains(configuredVacationCalendar) == false) {
+      if (selectedCalendars == null || selectedCalendars.contains(configuredVacationCalendar) == false) {
         form.error(I18nHelper.getLocalizedMessage("vacation.validate.noCalender", configuredVacationCalendar.getTitle()));
       }
     }

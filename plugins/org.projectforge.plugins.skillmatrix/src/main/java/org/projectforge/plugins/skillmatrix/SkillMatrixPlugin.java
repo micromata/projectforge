@@ -38,6 +38,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class SkillMatrixPlugin extends AbstractPlugin
 {
+  public static final String ID_SKILL_TOP_LEVEL = "skillTopLevel";
 
   public static final String ID_SKILL_RATING = "skillRating";
 
@@ -113,7 +114,7 @@ public class SkillMatrixPlugin extends AbstractPlugin
         TrainingAttendeeEditPage.class);
 
     // Register the menu entry as sub menu entry of the misc menu:
-    final MenuItemDef parentMenu = new MenuItemDef(null, ID_SKILL, 90, I18N_KEY_SKILL_MENU_ENTRY, SkillTreePage.class);
+    final MenuItemDef parentMenu = new MenuItemDef(null, ID_SKILL_TOP_LEVEL, 90, I18N_KEY_SKILL_MENU_ENTRY, SkillTreePage.class);
 
     pluginWicketRegistrationService.registerMenuItem(parentMenu);
     pluginWicketRegistrationService.registerMenuItem(

@@ -24,6 +24,7 @@
 package org.projectforge.web.vacation;
 
 import java.math.BigDecimal;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Comparator;
@@ -46,7 +47,6 @@ import org.projectforge.business.fibu.api.EmployeeService;
 import org.projectforge.business.multitenancy.TenantService;
 import org.projectforge.business.teamcal.admin.TeamCalCache;
 import org.projectforge.business.teamcal.admin.model.TeamCalDO;
-import org.projectforge.business.user.I18nHelper;
 import org.projectforge.business.user.UserRightId;
 import org.projectforge.business.user.UserRightValue;
 import org.projectforge.business.vacation.model.VacationDO;
@@ -55,6 +55,7 @@ import org.projectforge.business.vacation.model.VacationStatus;
 import org.projectforge.business.vacation.service.VacationService;
 import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.access.AccessException;
+import org.projectforge.framework.i18n.I18nHelper;
 import org.projectforge.framework.persistence.api.BaseDO;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.web.common.MultiChoiceListHelper;
@@ -329,7 +330,7 @@ public class VacationEditForm extends AbstractEditForm<VacationDO, VacationEditP
       final Select2MultiChoice<TeamCalDO> calendarsSelect = new Select2MultiChoice<>(
           fieldSet.getSelect2MultiChoiceId(),
           new PropertyModel<Collection<TeamCalDO>>(assignCalendarListHelper, "assignedItems"),
-          new TeamCalsProvider(teamCalCache, true));
+          new TeamCalsProvider(teamCalCache, true, Arrays.asList(configuredVacationCalendar)));
       calendarsSelect.setMarkupId("calenders").setOutputMarkupId(true);
       calendarsSelect.setEnabled(checkEnableInputField());
       formValidator.getDependentFormComponents()[6] = calendarsSelect;

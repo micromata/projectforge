@@ -39,12 +39,12 @@ import org.projectforge.business.fibu.KundeDO;
 import org.projectforge.business.fibu.ProjektDO;
 import org.projectforge.business.task.TaskDO;
 import org.projectforge.business.task.formatter.TaskFormatter;
-import org.projectforge.business.user.I18nHelper;
 import org.projectforge.business.utils.CurrencyFormatter;
 import org.projectforge.business.utils.HtmlHelper;
 import org.projectforge.common.i18n.I18nEnum;
 import org.projectforge.framework.configuration.ConfigXml;
 import org.projectforge.framework.configuration.Configuration;
+import org.projectforge.framework.i18n.I18nHelper;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.time.DateTimeFormatter;
 import org.projectforge.framework.utils.NumberFormatter;
@@ -205,7 +205,7 @@ public class GroovyEngine
    */
   public String getI18nString(final String key)
   {
-    return I18nHelper.getLocalizedString(locale, key);
+    return I18nHelper.getLocalizedMessage(locale, key);
   }
 
   /**
@@ -323,7 +323,7 @@ public class GroovyEngine
     if (i18nEnum == null) {
       return "";
     }
-    return I18nHelper.getLocalizedString(locale, i18nEnum.getI18nKey());
+    return I18nHelper.getLocalizedMessage(locale, i18nEnum.getI18nKey());
   }
 
   /**

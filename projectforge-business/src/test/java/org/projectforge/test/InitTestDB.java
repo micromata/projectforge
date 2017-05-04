@@ -252,14 +252,18 @@ public class InitTestDB
     final ProjektDO projekt = new ProjektDO();
     projekt.setNummer(projektNummer);
     projekt.setName(projektName);
-    projektDao.setKunde(projekt, kunde.getId());
+    if (kunde != null) {
+      projektDao.setKunde(projekt, kunde.getId());
+    }
     projektDao.save(projekt);
     if (kost2ArtIds != null) {
       for (final Integer id : kost2ArtIds) {
         final Kost2DO kost2 = new Kost2DO();
         kost2.setProjekt(projekt);
         kost2.setNummernkreis(5);
-        kost2.setBereich(kunde.getId());
+        if (kunde != null) {
+          kost2.setBereich(kunde.getId());
+        }
         kost2.setTeilbereich(projekt.getNummer());
         kost2Dao.setKost2Art(kost2, id);
         kost2Dao.save(kost2);

@@ -14,8 +14,6 @@ public class Const
 
   public static final int WICKET_REQUEST_TIMEOUT_MINUTES = 5;
 
-  public static final String MESSAGE_KEY_PASSWORD_QUALITY_CHECK = "user.changePassword.error.passwordQualityCheck";
-
   public static final String COOKIE_NAME_FOR_STAY_LOGGED_IN = "stayLoggedIn";
 
   // Available Loacles for external i18n-files
@@ -41,4 +39,8 @@ public class Const
 
   // if you change this, check the multipart.maxFileSize value in the properties file
   public static final int ADDRESS_EDITPAGE_MAX_IMAGE_UPLOAD_SIZE = 1024 * 1024;
+
+  public static final int MINYEAR = 1900;
+
+  public static final int MAXYEAR = 2100;
 }

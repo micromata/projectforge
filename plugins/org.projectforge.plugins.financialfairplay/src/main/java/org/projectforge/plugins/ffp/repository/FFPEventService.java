@@ -2,7 +2,6 @@ package org.projectforge.plugins.ffp.repository;
 
 import java.util.List;
 
-import org.projectforge.business.fibu.EmployeeDO;
 import org.projectforge.framework.persistence.api.IDao;
 import org.projectforge.framework.persistence.api.IPersistenceService;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
@@ -22,7 +21,7 @@ public interface FFPEventService extends IPersistenceService<FFPEventDO>, IDao<F
 
   List<FFPDebtDO> calculateDebt(FFPEventDO event);
 
-  List<FFPDebtDO> getDeptList(EmployeeDO currentEmployee);
+  List<FFPDebtDO> getDeptList(PFUserDO user);
 
   void createDept(FFPEventDO event);
 

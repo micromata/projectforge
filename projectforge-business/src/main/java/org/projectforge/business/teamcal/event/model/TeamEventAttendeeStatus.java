@@ -23,8 +23,8 @@
 
 package org.projectforge.business.teamcal.event.model;
 
-import org.projectforge.business.user.I18nHelper;
 import org.projectforge.common.i18n.I18nEnum;
+import org.projectforge.framework.i18n.I18nHelper;
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
@@ -47,6 +47,7 @@ public enum TeamEventAttendeeStatus implements I18nEnum
   /**
    * @return The full i18n key including the i18n prefix "fibu.auftrag.status.".
    */
+  @Override
   public String getI18nKey()
   {
     return "plugins.teamcal.attendee.status." + key;

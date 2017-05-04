@@ -7,8 +7,7 @@ import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
-import org.projectforge.business.user.I18nHelper;
-import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
+import org.projectforge.framework.i18n.I18nHelper;
 import org.projectforge.plugins.eed.service.EEDHelper;
 import org.projectforge.web.wicket.AbstractStandardForm;
 import org.projectforge.web.wicket.WicketUtils;
@@ -39,9 +38,7 @@ public class ExportDataForm extends AbstractStandardForm<Object, ExportDataPage>
 
     //Filter
     //Fieldset for Date DropDown
-    final FieldsetPanel fsMonthYear = gridBuilder
-        .newFieldset(
-            I18nHelper.getLocalizedString(ThreadLocalUserContext.getLocale(), "plugins.eed.listcare.yearmonth"));
+    final FieldsetPanel fsMonthYear = gridBuilder.newFieldset(I18nHelper.getLocalizedMessage("plugins.eed.listcare.yearmonth"));
     //Get actual Month as preselected
     selectedMonth = Calendar.getInstance().get(Calendar.MONTH) + 1;
     //Month DropDown

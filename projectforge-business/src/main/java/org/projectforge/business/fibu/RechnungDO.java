@@ -24,6 +24,7 @@
 package org.projectforge.business.fibu;
 
 import java.math.BigDecimal;
+import java.sql.Date;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
@@ -43,11 +44,14 @@ import javax.persistence.UniqueConstraint;
 
 import org.hibernate.annotations.IndexColumn;
 import org.hibernate.search.annotations.Analyze;
+import org.hibernate.search.annotations.DateBridge;
+import org.hibernate.search.annotations.EncodingType;
 import org.hibernate.search.annotations.Field;
 import org.hibernate.search.annotations.FieldBridge;
 import org.hibernate.search.annotations.Index;
 import org.hibernate.search.annotations.Indexed;
 import org.hibernate.search.annotations.IndexedEmbedded;
+import org.hibernate.search.annotations.Resolution;
 import org.hibernate.search.annotations.Store;
 import org.hibernate.search.bridge.builtin.IntegerBridge;
 import org.projectforge.common.anots.PropertyInfo;
@@ -56,7 +60,7 @@ import de.micromata.genome.db.jpa.history.api.WithHistory;
 
 /**
  * Geplante und gestellte Rechnungen.
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 @Entity
@@ -100,6 +104,16 @@ public class RechnungDO extends AbstractRechnungDO<RechnungsPositionDO> implemen
   @PropertyInfo(i18nKey = "fibu.rechnung.typ")
   @Field(index = Index.YES /* TOKENIZED */, store = Store.NO)
   private RechnungTyp typ;
+
+  @PropertyInfo(i18nKey = "fibu.periodOfPerformance.from")
+  @Field(index = Index.YES, analyze = Analyze.NO /* UN_TOKENIZED */, store = Store.NO)
+  @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
+  private Date periodOfPerformanceBegin;
+
+  @PropertyInfo(i18nKey = "fibu.periodOfPerformance.to")
+  @Field(index = Index.YES, analyze = Analyze.NO /* UN_TOKENIZED */, store = Store.NO)
+  @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
+  private Date periodOfPerformanceEnd;
 
   /**
    * Rechnungsempfänger. Dieser Kunde kann vom Kunden, der mit dem Projekt verbunden ist abweichen.
@@ -201,6 +215,30 @@ public class RechnungDO extends AbstractRechnungDO<RechnungsPositionDO> implemen
     return this;
   }
 
+  @Column(name = "period_of_performance_begin")
+  public Date getPeriodOfPerformanceBegin()
+  {
+    return periodOfPerformanceBegin;
+  }
+
+  public RechnungDO setPeriodOfPerformanceBegin(final Date periodOfPerformanceBegin)
+  {
+    this.periodOfPerformanceBegin = periodOfPerformanceBegin;
+    return this;
+  }
+
+  @Column(name = "period_of_performance_end")
+  public Date getPeriodOfPerformanceEnd()
+  {
+    return periodOfPerformanceEnd;
+  }
+
+  public RechnungDO setPeriodOfPerformanceEnd(final Date periodOfPerformanceEnd)
+  {
+    this.periodOfPerformanceEnd = periodOfPerformanceEnd;
+    return this;
+  }
+
   /**
    * (this.status == RechnungStatus.BEZAHLT && this.bezahlDatum != null && this.zahlBetrag != null)
    */
@@ -253,9 +291,9 @@ public class RechnungDO extends AbstractRechnungDO<RechnungsPositionDO> implemen
   public int compareTo(final RechnungDO o)
   {
     if (this.datum != null && o.datum != null) {
-      final int r = this.datum.compareTo(o.datum);
+      final int r = o.datum.compareTo(this.datum);
       if (r != 0) {
-        return -r;
+        return r;
       }
 
     }

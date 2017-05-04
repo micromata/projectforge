@@ -50,6 +50,7 @@ import org.projectforge.business.fibu.KundeDO;
 import org.projectforge.business.fibu.PaymentScheduleDO;
 import org.projectforge.business.fibu.ProjektDO;
 import org.projectforge.business.fibu.RechnungDO;
+import org.projectforge.business.fibu.RechnungsPositionDO;
 import org.projectforge.business.fibu.api.EmployeeService;
 import org.projectforge.business.multitenancy.TenantRegistryMap;
 import org.projectforge.business.multitenancy.TenantService;
@@ -120,6 +121,42 @@ public class DatabaseCoreUpdates
     final InitDatabaseDao initDatabaseDao = applicationContext.getBean(InitDatabaseDao.class);
 
     final List<UpdateEntry> list = new ArrayList<>();
+
+    ////////////////////////////////////////////////////////////////////
+    // 6.11.0
+    // /////////////////////////////////////////////////////////////////
+    list.add(new UpdateEntryImpl(CORE_REGION_ID, "6.11.0", "2017-05-03",
+        "Add discounts and konto informations. Add period of performance to invoices.")
+    {
+      @Override
+      public UpdatePreCheckStatus runPreCheck()
+      {
+        log.info("Running pre-check for ProjectForge version 6.11.0");
+        if (isSchemaUpdateNecessary()) {
+          return UpdatePreCheckStatus.READY_FOR_UPDATE;
+        }
+        return UpdatePreCheckStatus.ALREADY_UPDATED;
+      }
+
+      @Override
+      public UpdateRunningStatus runUpdate()
+      {
+        if (isSchemaUpdateNecessary()) {
+          initDatabaseDao.updateSchema();
+        }
+        return UpdateRunningStatus.DONE;
+      }
+
+      private boolean isSchemaUpdateNecessary()
+      {
+        return databaseUpdateService.doesTableAttributeExist("t_fibu_eingangsrechnung", "discountmaturity") == false
+            || databaseUpdateService.doesTableAttributeExist("t_fibu_rechnung", "discountmaturity") == false
+            || databaseUpdateService.doesTableAttributeExist("t_fibu_eingangsrechnung", "customernr") == false
+            || databaseUpdateService.doTableAttributesExist(RechnungDO.class, "periodOfPerformanceBegin", "periodOfPerformanceEnd") == false
+            || databaseUpdateService.doTableAttributesExist(RechnungsPositionDO.class, "periodOfPerformanceType", "periodOfPerformanceBegin",
+            "periodOfPerformanceEnd") == false;
+      }
+    });
 
     ////////////////////////////////////////////////////////////////////
     // 6.10.0
@@ -218,12 +255,8 @@ public class DatabaseCoreUpdates
 
       private boolean doesDublicateUidsExists()
       {
-        List<DatabaseResultRow> resultSet = databaseUpdateService
-            .query("SELECT uid, COUNT(*) FROM t_plugin_calendar_event GROUP BY uid HAVING COUNT(*) > 1");
-        if (resultSet != null && resultSet.size() > 0) {
-          return true;
-        }
-        return false;
+        List<DatabaseResultRow> resultSet = databaseUpdateService.query("SELECT uid, COUNT(*) FROM t_plugin_calendar_event GROUP BY uid HAVING COUNT(*) > 1");
+        return resultSet != null && resultSet.size() > 0;
       }
 
       // migrate from old substitution column to new t_employee_vacation_substitution table

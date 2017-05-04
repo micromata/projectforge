@@ -69,9 +69,7 @@ public class FinancialFairPlayPlugin extends AbstractPlugin
   @Override
   protected void initialize()
   {
-
-    FinancialFairPlayPluginUpdates.databaseUpdateService = myDatabaseUpdater;
-    FinancialFairPlayPluginUpdates.initDatabaseDao = initDatabaseDao;
+    FinancialFairPlayPluginUpdates.applicationContext = applicationContext;
 
     // Register it:
     register(ID, FFPEventDao.class, eventService.getEventDao(), "plugins.financialfairplay");
@@ -84,8 +82,9 @@ public class FinancialFairPlayPlugin extends AbstractPlugin
 
     pluginWicketRegistrationService
         .registerMenuItem(
-            new MenuItemDef(parentMenu, ID, 121, "plugins.ffp.submenu.financialfairplay.eventlist", FFPEventListPage.class));
-    final MenuItemDef debtViewPage = new MenuItemDef(parentMenu, ID, 122, "plugins.ffp.submenu.financialfairplay.dept", FFPDebtListPage.class)
+            new MenuItemDef(parentMenu, "financialfairplay_eventlist", 121, "plugins.ffp.submenu.financialfairplay.eventlist", FFPEventListPage.class));
+    final MenuItemDef debtViewPage = new MenuItemDef(parentMenu, "financialfairplay_dept", 122, "plugins.ffp.submenu.financialfairplay.dept",
+        FFPDebtListPage.class)
     {
       @Override
       protected void afterMenuEntryCreation(final MenuEntry createdMenuEntry, final MenuBuilderContext context)

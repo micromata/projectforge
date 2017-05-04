@@ -10,7 +10,6 @@ import java.util.TreeSet;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
-import org.projectforge.Const;
 import org.projectforge.business.configuration.ConfigurationService;
 import org.projectforge.business.login.Login;
 import org.projectforge.business.login.PasswordCheckResult;
@@ -21,6 +20,7 @@ import org.projectforge.business.user.UsersComparator;
 import org.projectforge.common.StringHelper;
 import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.configuration.SecurityConfig;
+import org.projectforge.framework.i18n.I18nKeyAndParams;
 import org.projectforge.framework.persistence.api.ModificationStatus;
 import org.projectforge.framework.persistence.history.HistoryBaseDaoAdapter;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
@@ -42,6 +42,8 @@ public class UserServiceImpl implements UserService
   private static final String MESSAGE_KEY_OLD_PASSWORD_WRONG = "user.changePassword.error.oldPasswordWrong";
 
   private static final String MESSAGE_KEY_LOGIN_PASSWORD_WRONG = "user.changeWlanPassword.error.loginPasswordWrong";
+
+  private static final String MESSAGE_KEY_PASSWORD_QUALITY_CHECK = "user.changePassword.error.passwordQualityCheck";
 
   private UserGroupCache userGroupCache;
 
@@ -178,6 +180,7 @@ public class UserServiceImpl implements UserService
    * @return The decrypted string.
    * @see Crypt#decrypt(String, String)
    */
+  @Override
   public String decrypt(final Integer userId, final String encryptedString)
   {
     // final PFUserDO user = userCache.getUser(userId); // for faster access (due to permanent usage e. g. by subscription of calendars
@@ -208,6 +211,7 @@ public class UserServiceImpl implements UserService
    * @return
    * @see #encrypt(Integer, String)
    */
+  @Override
   public String encrypt(final String data)
   {
     return encrypt(ThreadLocalUserContext.getUserId(), data);
@@ -233,6 +237,7 @@ public class UserServiceImpl implements UserService
    * @param password as clear text.
    * @see Crypt#digest(String)
    */
+  @Override
   public void createEncryptedPassword(final PFUserDO user, final String password)
   {
     final String saltString = createSaltString();
@@ -246,6 +251,12 @@ public class UserServiceImpl implements UserService
     return NumberHelper.getSecureRandomBase64String(10);
   }
 
+  @Override
+  public I18nKeyAndParams getPasswordQualityI18nKeyAndParams()
+  {
+    return new I18nKeyAndParams(MESSAGE_KEY_PASSWORD_QUALITY_CHECK, configurationService.getMinPasswordLength());
+  }
+
   /**
    * Changes the user's password. Checks the password quality and the correct authentication for the old password
    * before. Also the stay-logged-in-key will be renewed, so any existing stay-logged-in cookie will be invalid.
@@ -255,20 +266,21 @@ public class UserServiceImpl implements UserService
    * @param newPassword
    * @return Error message key if any check failed or null, if successfully changed.
    */
+  @Override
   @Transactional(readOnly = false, propagation = Propagation.REQUIRED)
-  public String changePassword(PFUserDO user, final String oldPassword, final String newPassword)
+  public I18nKeyAndParams changePassword(PFUserDO user, final String oldPassword, final String newPassword)
   {
     Validate.notNull(user);
     Validate.notNull(oldPassword);
     Validate.notNull(newPassword);
-    final String errorMsgKey = checkPasswordQuality(newPassword);
+    final I18nKeyAndParams errorMsgKey = checkPasswordQuality(newPassword);
     if (errorMsgKey != null) {
       return errorMsgKey;
     }
     accessChecker.checkRestrictedOrDemoUser();
     user = getUser(user.getUsername(), oldPassword, false);
     if (user == null) {
-      return MESSAGE_KEY_OLD_PASSWORD_WRONG;
+      return new I18nKeyAndParams(MESSAGE_KEY_OLD_PASSWORD_WRONG);
     }
     createEncryptedPassword(user, newPassword);
     onPasswordChange(user, true);
@@ -285,14 +297,15 @@ public class UserServiceImpl implements UserService
    * @param newWlanPassword
    * @return Error message key if any check failed or null, if successfully changed.
    */
+  @Override
   @Transactional(readOnly = false, propagation = Propagation.REQUIRED)
-  public String changeWlanPassword(PFUserDO user, final String loginPassword, final String newWlanPassword)
+  public I18nKeyAndParams changeWlanPassword(PFUserDO user, final String loginPassword, final String newWlanPassword)
   {
     Validate.notNull(user);
     Validate.notNull(loginPassword);
     Validate.notNull(newWlanPassword);
 
-    final String errorMsgKey = checkPasswordQuality(newWlanPassword);
+    final I18nKeyAndParams errorMsgKey = checkPasswordQuality(newWlanPassword);
     if (errorMsgKey != null) {
       return errorMsgKey;
     }
@@ -300,7 +313,7 @@ public class UserServiceImpl implements UserService
     accessChecker.checkRestrictedOrDemoUser();
     user = getUser(user.getUsername(), loginPassword, false); // get user from DB to persist the change of the wlan password time
     if (user == null) {
-      return MESSAGE_KEY_LOGIN_PASSWORD_WRONG;
+      return new I18nKeyAndParams(MESSAGE_KEY_LOGIN_PASSWORD_WRONG);
     }
 
     onWlanPasswordChange(user, true); // set last change time and creaty history entry
@@ -310,18 +323,20 @@ public class UserServiceImpl implements UserService
   }
 
   /**
-   * Checks the password quality of a new password. Password must have at least 6 characters and at minimum one letter
+   * Checks the password quality of a new password. Password must have at least n characters and at minimum one letter
    * and one non-letter character.
    *
    * @param newPassword
    * @return null if password quality is OK, otherwise the i18n message key of the password check failure.
    */
-  public String checkPasswordQuality(final String newPassword)
+  @Override
+  public I18nKeyAndParams checkPasswordQuality(final String newPassword)
   {
     boolean letter = false;
     boolean nonLetter = false;
-    if (newPassword == null || newPassword.length() < 6) {
-      return Const.MESSAGE_KEY_PASSWORD_QUALITY_CHECK;
+    final int minPasswordLength = configurationService.getMinPasswordLength();
+    if (newPassword == null || newPassword.length() < minPasswordLength) {
+      return getPasswordQualityI18nKeyAndParams();
     }
     for (int i = 0; i < newPassword.length(); i++) {
       final char ch = newPassword.charAt(i);
@@ -334,7 +349,7 @@ public class UserServiceImpl implements UserService
     if (letter == true && nonLetter == true) {
       return null;
     }
-    return Const.MESSAGE_KEY_PASSWORD_QUALITY_CHECK;
+    return getPasswordQualityI18nKeyAndParams();
   }
 
   @Override
@@ -403,6 +418,7 @@ public class UserServiceImpl implements UserService
    * @param password as clear text.
    * @return true if the password matches the user's password.
    */
+  @Override
   public PasswordCheckResult checkPassword(final PFUserDO user, final String password)
   {
     if (user == null) {
@@ -452,6 +468,7 @@ public class UserServiceImpl implements UserService
    * @param userId
    * @return
    */
+  @Override
   @Transactional(readOnly = false, propagation = Propagation.REQUIRED)
   public String getStayLoggedInKey(final Integer userId)
   {
@@ -466,6 +483,7 @@ public class UserServiceImpl implements UserService
   /**
    * Renews the user's stay-logged-in key (random string sequence).
    */
+  @Override
   @Transactional(readOnly = false, propagation = Propagation.REQUIRED)
   public void renewStayLoggedInKey(final Integer userId)
   {
@@ -481,11 +499,8 @@ public class UserServiceImpl implements UserService
 
   /**
    * Ohne Zugangsbegrenzung. Wird bei Anmeldung benötigt.
-   *
-   * @param username
-   * @param encryptedPassword
-   * @return
    */
+  @Override
   public PFUserDO authenticateUser(final String username, final String password)
   {
     Validate.notNull(username);
@@ -591,6 +606,7 @@ public class UserServiceImpl implements UserService
     return null;
   }
 
+  @Override
   public String[] getPersonalPhoneIdentifiers(final PFUserDO user)
   {
     final String[] tokens = StringUtils.split(user.getPersonalPhoneIdentifiers(), ", ;|");

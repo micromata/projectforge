@@ -54,6 +54,8 @@ public class TeamCalsProvider extends TextChoiceProvider<TeamCalDO>
 
   private transient boolean onlyFullAccessCalendar = false;
 
+  private List<TeamCalDO> additionalCalendarList;
+
   public TeamCalsProvider(TeamCalCache teamCalCache)
   {
     this(teamCalCache, false);
@@ -61,8 +63,14 @@ public class TeamCalsProvider extends TextChoiceProvider<TeamCalDO>
 
   public TeamCalsProvider(TeamCalCache teamCalCache, boolean onlyFullAccessCalendar)
   {
+    this(teamCalCache, onlyFullAccessCalendar, null);
+  }
+
+  public TeamCalsProvider(TeamCalCache teamCalCache, boolean onlyFullAccessCalendar, List<TeamCalDO> additionalCalendarList)
+  {
     this.teamCalCache = teamCalCache;
     this.onlyFullAccessCalendar = onlyFullAccessCalendar;
+    this.additionalCalendarList = additionalCalendarList;
   }
 
   public static List<Integer> getCalIdList(final Collection<TeamCalDO> teamCals)
@@ -164,11 +172,16 @@ public class TeamCalsProvider extends TextChoiceProvider<TeamCalDO>
 
   private Collection<TeamCalDO> getCalendarList()
   {
-    if(onlyFullAccessCalendar) {
-      return teamCalCache.getAllFullAccessCalendars();
+    Collection<TeamCalDO> result = null;
+    if (onlyFullAccessCalendar) {
+      result = teamCalCache.getAllFullAccessCalendars();
     } else {
-      return teamCalCache.getAllAccessibleCalendars();
+      result = teamCalCache.getAllAccessibleCalendars();
     }
+    if (this.additionalCalendarList != null && this.additionalCalendarList.size() > 0) {
+      result.addAll(this.additionalCalendarList);
+    }
+    return result;
   }
 
   /**
