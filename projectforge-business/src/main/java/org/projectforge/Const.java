@@ -37,9 +37,6 @@ public class Const
 
   public static final Integer TIMESHEET_CALENDAR_ID = -1;
 
-  // if you change this, check the multipart.maxFileSize value in the properties file
-  public static final int ADDRESS_EDITPAGE_MAX_IMAGE_UPLOAD_SIZE = 1024 * 1024;
-
   public static final int MINYEAR = 1900;
 
   public static final int MAXYEAR = 2100;
