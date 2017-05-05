@@ -98,8 +98,11 @@ public class TaskWizardForm extends AbstractStandardForm<TaskWizardForm, TaskWiz
       };
       createTaskButton.setDefaultFormProcessing(false);
       WicketUtils.addTooltip(createTaskButton, getString("task.wizard.button.createTask.tooltip"));
-      fs.add(new SingleButtonPanel(fs.newChildId(), createTaskButton, getString("task.wizard.button.createTask"),
-          SingleButtonPanel.NORMAL));
+      SingleButtonPanel singleButtonPanel = new SingleButtonPanel(fs.newChildId(), createTaskButton, getString("task.wizard.button.createTask"),
+          SingleButtonPanel.WICKET_ID);
+      singleButtonPanel.setNonSubmitButton();
+      fs.add(singleButtonPanel);
+
     }
     // Team
     groupSelectPanelTeam = createGroupComponents(number++, "team");
@@ -137,7 +140,7 @@ public class TaskWizardForm extends AbstractStandardForm<TaskWizardForm, TaskWiz
         }
       });
     }
-    final Button finishButton = new Button("button", new Model<String>("finish"))
+    final Button finishButton = new Button(SingleButtonPanel.WICKET_ID, new Model<String>("finish"))
     {
       @Override
       public final void onSubmit()
@@ -170,7 +173,7 @@ public class TaskWizardForm extends AbstractStandardForm<TaskWizardForm, TaskWiz
         key + "Id");
     fs.add(groupSelectPanel);
     groupSelectPanel.setShowFavorites(false).init();
-    final Button createGroupButton = new Button("button", new Model<String>("createGroup" + key))
+    final Button createGroupButton = new Button(SingleButtonPanel.WICKET_ID, new Model<String>("createGroup" + key))
     {
       @Override
       public final void onSubmit()
@@ -203,6 +206,7 @@ public class TaskWizardForm extends AbstractStandardForm<TaskWizardForm, TaskWiz
     final SingleButtonPanel createGroupButtonPanel = new SingleButtonPanel(fs.newChildId(), createGroupButton,
         getString("task.wizard.button.createGroup"), SingleButtonPanel.NORMAL);
     WicketUtils.addTooltip(createGroupButton, getString("task.wizard.button.createGroup.tooltip"));
+    createGroupButtonPanel.setNonSubmitButton();
     fs.add(createGroupButtonPanel);
     return groupSelectPanel;
   }
