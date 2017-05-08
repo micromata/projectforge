@@ -65,6 +65,11 @@ public class AuftragListForm extends AbstractListForm<AuftragFilter, AuftragList
   @SpringBean
   private AuftragDao auftragDao;
 
+  public AuftragListForm(final AuftragListPage parentPage)
+  {
+    super(parentPage);
+  }
+  
   @SuppressWarnings("serial")
   @Override
   protected void init()
@@ -239,7 +244,7 @@ public class AuftragListForm extends AbstractListForm<AuftragFilter, AuftragList
       {
         getSearchFilter().setAuftragsStatuses(auftragsStatuses);
       }
-      
+
       @Override
       public void detach()
       {
@@ -318,6 +323,7 @@ public class AuftragListForm extends AbstractListForm<AuftragFilter, AuftragList
     }
   }
 
+  // used by a PropertyModel "auftragsPositionsPaymentType"
   public Integer getAuftragsPositionsPaymentType()
   {
     if (getSearchFilter().getAuftragsPositionsPaymentType() != null) {
@@ -327,6 +333,7 @@ public class AuftragListForm extends AbstractListForm<AuftragFilter, AuftragList
     }
   }
 
+  // used by a PropertyModel "auftragsPositionsPaymentType"
   public void setAuftragsPositionsPaymentType(final Integer auftragsPositionsPaymentType)
   {
     if (auftragsPositionsPaymentType == null || auftragsPositionsPaymentType == -1) {
@@ -334,11 +341,6 @@ public class AuftragListForm extends AbstractListForm<AuftragFilter, AuftragList
     } else {
       getSearchFilter().setAuftragsPositionsPaymentType(AuftragsPositionsPaymentType.values()[auftragsPositionsPaymentType]);
     }
-  }
-
-  public AuftragListForm(final AuftragListPage parentPage)
-  {
-    super(parentPage);
   }
 
   private AuftragsStatistik getAuftragsStatistik()

@@ -26,6 +26,9 @@ public class I18nEnumChoiceProvider<T extends Enum<T> & I18nEnum> extends TextCh
     return I18nHelper.getLocalizedMessage(choice.getI18nKey());
   }
 
+  /**
+   * Converts the given Enum value to the Enum name.
+   */
   @Override
   protected Object getId(final T choice)
   {
@@ -35,7 +38,6 @@ public class I18nEnumChoiceProvider<T extends Enum<T> & I18nEnum> extends TextCh
   @Override
   public void query(final String term, final int page, final Response<T> response)
   {
-    // TODO CT: need to handle page?
     final String termLowerCase = term.toLowerCase();
     final List<T> matchingAuftragsPositionsArten = EnumSet.allOf(clazz).stream()
         .filter(art -> I18nHelper.getLocalizedMessage(art.getI18nKey()).toLowerCase().contains(termLowerCase))
@@ -44,6 +46,9 @@ public class I18nEnumChoiceProvider<T extends Enum<T> & I18nEnum> extends TextCh
     response.addAll(matchingAuftragsPositionsArten);
   }
 
+  /**
+   * Converts a Collection of Enum names to a Collection of the corresponding Enum values.
+   */
   @Override
   public Collection<T> toChoices(final Collection<String> ids)
   {
