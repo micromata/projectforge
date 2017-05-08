@@ -37,6 +37,7 @@ import org.projectforge.business.fibu.AuftragFilter;
 import org.projectforge.business.fibu.AuftragsPositionsArt;
 import org.projectforge.business.fibu.AuftragsPositionsPaymentType;
 import org.projectforge.business.fibu.AuftragsStatistik;
+import org.projectforge.business.fibu.AuftragsStatus;
 import org.projectforge.business.utils.CurrencyFormatter;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.web.common.I18nEnumChoiceProvider;
@@ -186,32 +187,8 @@ public class AuftragListForm extends AbstractListForm<AuftragFilter, AuftragList
     yearChoice.setNullValid(false);
     optionsFieldsetPanel.add(yearChoice);
 
-    // DropDownChoice listType
-    final LabelValueChoiceRenderer<String> typeChoiceRenderer = new LabelValueChoiceRenderer<String>();
-    for (final String str : AuftragFilter.LIST) {
-      typeChoiceRenderer.addValue(str, getString("fibu.auftrag.filter.type." + str));
-    }
-    final DropDownChoice<String> typeChoice = new DropDownChoice<String>(optionsFieldsetPanel.getDropDownChoiceId(),
-        new PropertyModel<String>(this,
-            "searchFilter.listType"),
-        typeChoiceRenderer.getValues(), typeChoiceRenderer)
-    {
-      @Override
-      protected boolean wantOnSelectionChangedNotifications()
-      {
-        return true;
-      }
+    createAuftragsStatusMultiChoice(optionsFieldsetPanel);
 
-      @Override
-      protected void onSelectionChanged(final String newSelection)
-      {
-        parentPage.refresh();
-      }
-    };
-    typeChoice.setNullValid(false);
-    optionsFieldsetPanel.add(typeChoice);
-
-    // DropDownChoice AuftragsPositionsArt
     createAuftragsPositionsArtMultiChoice(optionsFieldsetPanel);
 
     // DropDownChoice AuftragsPositionsPaymentType
@@ -245,6 +222,38 @@ public class AuftragListForm extends AbstractListForm<AuftragFilter, AuftragList
         parentPage, "user");
     optionsFieldsetPanel.add(userSelectPanel);
     userSelectPanel.init();
+  }
+
+  private void createAuftragsStatusMultiChoice(final FieldsetPanel optionsFieldsetPanel)
+  {
+    final IModel<Collection<AuftragsStatus>> auftragsStatusesModel = new IModel<Collection<AuftragsStatus>>()
+    {
+      @Override
+      public Collection<AuftragsStatus> getObject()
+      {
+        return getSearchFilter().getAuftragsStatuses();
+      }
+
+      @Override
+      public void setObject(final Collection<AuftragsStatus> auftragsStatuses)
+      {
+        getSearchFilter().setAuftragsStatuses(auftragsStatuses);
+      }
+      
+      @Override
+      public void detach()
+      {
+        // nothing to do
+      }
+    };
+
+    final Select2MultiChoice<AuftragsStatus> multiChoice = new Select2MultiChoice<>(
+        Select2MultiChoicePanel.WICKET_ID,
+        auftragsStatusesModel,
+        new I18nEnumChoiceProvider<>(AuftragsStatus.class)
+    );
+
+    optionsFieldsetPanel.add(new Select2MultiChoicePanel<>(optionsFieldsetPanel.newChildId(), multiChoice));
   }
 
   private void createAuftragsPositionsArtMultiChoice(final FieldsetPanel optionsFieldsetPanel)
