@@ -24,9 +24,14 @@
 package org.projectforge.web.fibu;
 
 import java.math.BigDecimal;
+import java.util.Collection;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.apache.log4j.Logger;
 import org.apache.wicket.markup.html.form.DropDownChoice;
+import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
@@ -45,7 +50,13 @@ import org.projectforge.web.wicket.components.YearListCoiceRenderer;
 import org.projectforge.web.wicket.flowlayout.DivPanel;
 import org.projectforge.web.wicket.flowlayout.DivTextPanel;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
+import org.projectforge.web.wicket.flowlayout.Select2MultiChoicePanel;
 import org.projectforge.web.wicket.flowlayout.TextStyle;
+
+import com.vaynberg.wicket.select2.ChoiceProvider;
+import com.vaynberg.wicket.select2.Response;
+import com.vaynberg.wicket.select2.Select2MultiChoice;
+import com.vaynberg.wicket.select2.TextChoiceProvider;
 
 public class AuftragListForm extends AbstractListForm<AuftragFilter, AuftragListPage>
 {
@@ -206,30 +217,7 @@ public class AuftragListForm extends AbstractListForm<AuftragFilter, AuftragList
     optionsFieldsetPanel.add(typeChoice);
 
     // DropDownChoice AuftragsPositionsArt
-    final LabelValueChoiceRenderer<Integer> auftragsPositionsArtChoiceRenderer = new LabelValueChoiceRenderer<Integer>();
-    auftragsPositionsArtChoiceRenderer.addValue(-1, getString("filter.all"));
-    for (final AuftragsPositionsArt art : AuftragsPositionsArt.values()) {
-      auftragsPositionsArtChoiceRenderer.addValue(art.ordinal(), getString(art.getI18nKey()));
-    }
-    final DropDownChoice<Integer> auftragsPositionsArtChoice = new DropDownChoice<Integer>(
-        optionsFieldsetPanel.getDropDownChoiceId(),
-        new PropertyModel<Integer>(this, "auftragsPositionsArt"), auftragsPositionsArtChoiceRenderer.getValues(),
-        auftragsPositionsArtChoiceRenderer)
-    {
-      @Override
-      protected boolean wantOnSelectionChangedNotifications()
-      {
-        return true;
-      }
-
-      @Override
-      protected void onSelectionChanged(final Integer newSelection)
-      {
-        parentPage.refresh();
-      }
-    };
-    auftragsPositionsArtChoice.setNullValid(false);
-    optionsFieldsetPanel.add(auftragsPositionsArtChoice);
+    createAuftragsPositionsArtMultiChoice(optionsFieldsetPanel);
 
     // DropDownChoice AuftragsPositionsPaymentType
     final LabelValueChoiceRenderer<Integer> auftragsPositionsPaymentTypeChoiceRenderer = new LabelValueChoiceRenderer<Integer>();
@@ -264,11 +252,76 @@ public class AuftragListForm extends AbstractListForm<AuftragFilter, AuftragList
     userSelectPanel.init();
   }
 
+  private void createAuftragsPositionsArtMultiChoice(final FieldsetPanel optionsFieldsetPanel)
+  {
+    final IModel<Collection<AuftragsPositionsArt>> auftragsPositionsArtenModel = new IModel<Collection<AuftragsPositionsArt>>()
+    {
+      @Override
+      public Collection<AuftragsPositionsArt> getObject()
+      {
+        return getSearchFilter().getAuftragsPositionsArten();
+      }
+
+      @Override
+      public void setObject(final Collection<AuftragsPositionsArt> auftragsPositionsArten)
+      {
+        getSearchFilter().setAuftragsPositionsArten(auftragsPositionsArten);
+      }
+
+      @Override
+      public void detach()
+      {
+        // nothing to do
+      }
+    };
+
+    final ChoiceProvider<AuftragsPositionsArt> choiceProvider = new TextChoiceProvider<AuftragsPositionsArt>()
+    {
+      @Override
+      protected String getDisplayText(final AuftragsPositionsArt choice)
+      {
+        return getString(choice.getI18nKey());
+      }
+
+      @Override
+      protected Object getId(final AuftragsPositionsArt choice)
+      {
+        return choice.name();
+      }
+
+      @Override
+      public void query(final String term, final int page, final Response<AuftragsPositionsArt> response)
+      {
+        // TODO CT: need to handle page?
+        final String termLowerCase = term.toLowerCase();
+        final List<AuftragsPositionsArt> matchingAuftragsPositionsArten = Stream.of(AuftragsPositionsArt.values())
+            .filter(art -> getString(art.getI18nKey()).toLowerCase().contains(termLowerCase))
+            .collect(Collectors.toList());
+
+        response.addAll(matchingAuftragsPositionsArten);
+      }
+
+      @Override
+      public Collection<AuftragsPositionsArt> toChoices(final Collection<String> ids)
+      {
+        return ids.stream()
+            .map(AuftragsPositionsArt::valueOf)
+            .collect(Collectors.toList());
+      }
+    };
+
+    final Select2MultiChoice<AuftragsPositionsArt> multiChoice = new Select2MultiChoice<>(Select2MultiChoicePanel.WICKET_ID, auftragsPositionsArtenModel,
+        choiceProvider);
+
+    optionsFieldsetPanel.add(new Select2MultiChoicePanel<>(optionsFieldsetPanel.newChildId(), multiChoice));
+  }
+
   protected void refresh()
   {
     this.auftragsStatistik = null;
   }
 
+  @Override
   public PFUserDO getUser()
   {
     return getSearchFilter().getUser();
@@ -290,24 +343,6 @@ public class AuftragListForm extends AbstractListForm<AuftragFilter, AuftragList
       getSearchFilter().setYear(-1);
     } else {
       getSearchFilter().setYear(year);
-    }
-  }
-
-  public Integer getAuftragsPositionsArt()
-  {
-    if (getSearchFilter().getAuftragsPositionsArt() != null) {
-      return getSearchFilter().getAuftragsPositionsArt().ordinal();
-    } else {
-      return -1;
-    }
-  }
-
-  public void setAuftragsPositionsArt(final Integer auftragsPositionsArt)
-  {
-    if (auftragsPositionsArt == null || auftragsPositionsArt == -1) {
-      getSearchFilter().setAuftragsPositionsArt(null);
-    } else {
-      getSearchFilter().setAuftragsPositionsArt(AuftragsPositionsArt.values()[auftragsPositionsArt]);
     }
   }
 

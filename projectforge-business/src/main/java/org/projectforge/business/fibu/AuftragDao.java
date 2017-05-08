@@ -442,29 +442,9 @@ public class AuftragDao extends BaseDao<AuftragDO>
         }
       });
     }
-    if (myFilter.getAuftragsPositionsArt() != null) {
-      final AuftragFilter fil = myFilter;
-      CollectionUtils.filter(list, new Predicate()
-      {
-        @Override
-        public boolean evaluate(final Object object)
-        {
-          final AuftragDO auftrag = (AuftragDO) object;
-          boolean match = false;
-          if (fil.getAuftragsPositionsArt() != null) {
-            if (CollectionUtils.isNotEmpty(auftrag.getPositionen()) == true) {
-              for (final AuftragsPositionDO position : auftrag.getPositionen()) {
-                if (fil.getAuftragsPositionsArt() == position.getArt()) {
-                  match = true;
-                  break;
-                }
-              }
-            }
-          }
-          return match;
-        }
-      });
-    }
+
+    filterPositionsArten(myFilter, list);
+
     if (myFilter.getAuftragsPositionsPaymentType() != null) {
       final AuftragFilter fil = myFilter;
       CollectionUtils.filter(list, new Predicate()
@@ -489,6 +469,22 @@ public class AuftragDao extends BaseDao<AuftragDO>
       });
     }
     return list;
+  }
+
+  private void filterPositionsArten(final AuftragFilter myFilter, final List<AuftragDO> list)
+  {
+    final Collection<AuftragsPositionsArt> auftragsPositionsArten = myFilter.getAuftragsPositionsArten();
+
+    if (CollectionUtils.isNotEmpty(auftragsPositionsArten)) {
+      CollectionUtils.filter(list, object -> {
+        final List<AuftragsPositionDO> positionen = ((AuftragDO) object).getPositionen();
+
+        // check if any of the current positions contains at least one AuftragsPositionsArt of the auftragsPositionsArten of the filter
+        return CollectionUtils.isNotEmpty(positionen) && positionen.stream()
+            .map(AuftragsPositionDO::getArt)
+            .anyMatch(positionsArt -> auftragsPositionsArten.stream().anyMatch(art -> art == positionsArt));
+      });
+    }
   }
 
   @SuppressWarnings("unchecked")

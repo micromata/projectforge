@@ -24,6 +24,7 @@
 package org.projectforge.business.fibu;
 
 import java.io.Serializable;
+import java.util.Collection;
 
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
@@ -62,7 +63,7 @@ public class AuftragFilter extends BaseSearchFilter implements Serializable
 
   protected String listType = FILTER_ALL;
 
-  protected AuftragsPositionsArt auftragsPositionsArt;
+  protected Collection<AuftragsPositionsArt> auftragsPositionsArten;
 
   protected AuftragsPositionsPaymentType auftragsPositionsPaymentType;
 
@@ -168,14 +169,14 @@ public class AuftragFilter extends BaseSearchFilter implements Serializable
    *
    * @return
    */
-  public AuftragsPositionsArt getAuftragsPositionsArt()
+  public Collection<AuftragsPositionsArt> getAuftragsPositionsArten()
   {
-    return auftragsPositionsArt;
+    return auftragsPositionsArten;
   }
 
-  public void setAuftragsPositionsArt(final AuftragsPositionsArt auftragsPositionsArt)
+  public void setAuftragsPositionsArten(final Collection<AuftragsPositionsArt> auftragsPositionsArten)
   {
-    this.auftragsPositionsArt = auftragsPositionsArt;
+    this.auftragsPositionsArten = auftragsPositionsArten;
   }
 
   /**
@@ -198,7 +199,7 @@ public class AuftragFilter extends BaseSearchFilter implements Serializable
   {
     year = -1;
     searchString = "";
-    setAuftragsPositionsArt(null);
+    setAuftragsPositionsArten(null);
     setListType(AuftragFilter.FILTER_ALL);
     return this;
   }
