@@ -25,9 +25,6 @@ package org.projectforge.web.fibu;
 
 import java.math.BigDecimal;
 import java.util.Collection;
-import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import org.apache.log4j.Logger;
 import org.apache.wicket.markup.html.form.DropDownChoice;
@@ -42,6 +39,7 @@ import org.projectforge.business.fibu.AuftragsPositionsPaymentType;
 import org.projectforge.business.fibu.AuftragsStatistik;
 import org.projectforge.business.utils.CurrencyFormatter;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
+import org.projectforge.web.common.I18nEnumChoiceProvider;
 import org.projectforge.web.user.UserSelectPanel;
 import org.projectforge.web.wicket.AbstractListForm;
 import org.projectforge.web.wicket.WebConstants;
@@ -53,10 +51,7 @@ import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
 import org.projectforge.web.wicket.flowlayout.Select2MultiChoicePanel;
 import org.projectforge.web.wicket.flowlayout.TextStyle;
 
-import com.vaynberg.wicket.select2.ChoiceProvider;
-import com.vaynberg.wicket.select2.Response;
 import com.vaynberg.wicket.select2.Select2MultiChoice;
-import com.vaynberg.wicket.select2.TextChoiceProvider;
 
 public class AuftragListForm extends AbstractListForm<AuftragFilter, AuftragListPage>
 {
@@ -275,43 +270,11 @@ public class AuftragListForm extends AbstractListForm<AuftragFilter, AuftragList
       }
     };
 
-    final ChoiceProvider<AuftragsPositionsArt> choiceProvider = new TextChoiceProvider<AuftragsPositionsArt>()
-    {
-      @Override
-      protected String getDisplayText(final AuftragsPositionsArt choice)
-      {
-        return getString(choice.getI18nKey());
-      }
-
-      @Override
-      protected Object getId(final AuftragsPositionsArt choice)
-      {
-        return choice.name();
-      }
-
-      @Override
-      public void query(final String term, final int page, final Response<AuftragsPositionsArt> response)
-      {
-        // TODO CT: need to handle page?
-        final String termLowerCase = term.toLowerCase();
-        final List<AuftragsPositionsArt> matchingAuftragsPositionsArten = Stream.of(AuftragsPositionsArt.values())
-            .filter(art -> getString(art.getI18nKey()).toLowerCase().contains(termLowerCase))
-            .collect(Collectors.toList());
-
-        response.addAll(matchingAuftragsPositionsArten);
-      }
-
-      @Override
-      public Collection<AuftragsPositionsArt> toChoices(final Collection<String> ids)
-      {
-        return ids.stream()
-            .map(AuftragsPositionsArt::valueOf)
-            .collect(Collectors.toList());
-      }
-    };
-
-    final Select2MultiChoice<AuftragsPositionsArt> multiChoice = new Select2MultiChoice<>(Select2MultiChoicePanel.WICKET_ID, auftragsPositionsArtenModel,
-        choiceProvider);
+    final Select2MultiChoice<AuftragsPositionsArt> multiChoice = new Select2MultiChoice<>(
+        Select2MultiChoicePanel.WICKET_ID,
+        auftragsPositionsArtenModel,
+        new I18nEnumChoiceProvider<>(AuftragsPositionsArt.class)
+    );
 
     optionsFieldsetPanel.add(new Select2MultiChoicePanel<>(optionsFieldsetPanel.newChildId(), multiChoice));
   }
