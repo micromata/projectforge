@@ -39,6 +39,7 @@ public class AuftragFilter extends BaseSearchFilter implements Serializable
 {
   private static final long serialVersionUID = 3456000966109255447L;
 
+  // TODO CT: delete fibu.auftrag.filter.type.* i18n keys?
   public static final String FILTER_ALL = "all";
 
   public static final String FILTER_AKQUISE = "akquise";
@@ -63,7 +64,9 @@ public class AuftragFilter extends BaseSearchFilter implements Serializable
 
   protected String listType = FILTER_ALL;
 
-  protected Collection<AuftragsPositionsArt> auftragsPositionsArten;
+  private Collection<AuftragsStatus> auftragsStatuses;
+
+  private Collection<AuftragsPositionsArt> auftragsPositionsArten;
 
   protected AuftragsPositionsPaymentType auftragsPositionsPaymentType;
 
@@ -165,9 +168,20 @@ public class AuftragFilter extends BaseSearchFilter implements Serializable
   }
 
   /**
-   * null represents all.
-   *
-   * @return
+   * null / empty collection represents all.
+   */
+  public Collection<AuftragsStatus> getAuftragsStatuses()
+  {
+    return auftragsStatuses;
+  }
+
+  public void setAuftragsStatuses(final Collection<AuftragsStatus> auftragsStatuses)
+  {
+    this.auftragsStatuses = auftragsStatuses;
+  }
+
+  /**
+   * null / empty collection represents all.
    */
   public Collection<AuftragsPositionsArt> getAuftragsPositionsArten()
   {
@@ -199,6 +213,7 @@ public class AuftragFilter extends BaseSearchFilter implements Serializable
   {
     year = -1;
     searchString = "";
+    setAuftragsStatuses(null);
     setAuftragsPositionsArten(null);
     setListType(AuftragFilter.FILTER_ALL);
     return this;
