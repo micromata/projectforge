@@ -613,7 +613,7 @@ public class DatabaseUpdateService
         return name;
       }
     }
-    final String message = "Oups, can't find any free constraint name! This must be a bug or a database out of control! Tryiing to find a name '"
+    final String message = "Oups, can't find any free constraint name! This must be a bug or a database out of control! Trying to find a name '"
         + prefix
         + "[0-999]' for table '"
         + table
@@ -638,7 +638,7 @@ public class DatabaseUpdateService
       if (numberOfEntries != 1) {
         log.error("Error while getting unique constraint name for table '"
             + table
-            + "'. Eeach result entry of the query should be one but is: "
+            + "'. Each result entry of the query should be one but is: "
             + numberOfEntries);
       }
       if (numberOfEntries > 0) {
@@ -833,8 +833,8 @@ public class DatabaseUpdateService
 
   public int getDatabaseTableColumnLenght(final Class<?> entityClass, final String attributeNames)
   {
-    String jdbcQuery = "select character_maximum_length from information_schema.columns where table_name = '"
-        + new Table(entityClass).getName().toLowerCase() + "' And column_name = '" + attributeNames + "'";
+    String jdbcQuery = "select character_maximum_length from information_schema.columns where LOWER(table_name) = '"
+        + new Table(entityClass).getName().toLowerCase() + "' And LOWER(column_name) = '" + attributeNames + "'";
     final DatabaseExecutor jdbc = getDatabaseExecutor();
     log.info(jdbcQuery);
     return jdbc.queryForInt(jdbcQuery);

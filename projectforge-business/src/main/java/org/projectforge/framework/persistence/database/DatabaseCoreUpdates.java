@@ -201,7 +201,7 @@ public class DatabaseCoreUpdates
           return UpdatePreCheckStatus.READY_FOR_UPDATE;
         }
 
-        final Optional<Boolean> isColumnNullable = databaseUpdateService.isColumnNullable("t_plugin_calendar_event", "uid");
+        final Optional<Boolean> isColumnNullable = databaseUpdateService.isColumnNullable("T_PLUGIN_CALENDAR_EVENT", "UID");
         if (isColumnNullable.isPresent() == false || isColumnNullable.get()) {
           return UpdatePreCheckStatus.READY_FOR_UPDATE;
         }
@@ -214,14 +214,14 @@ public class DatabaseCoreUpdates
       {
         if (databaseUpdateService.doesTableExist("t_employee_vacation_substitution") == false
             || databaseUpdateService.doesUniqueConstraintExists("T_PLUGIN_CALENDAR_EVENT", "unique_t_plugin_calendar_event_uid") == false) {
-          if (doesDublicateUidsExists()) {
-            handleDublicateUids();
+          if (doesDuplicateUidsExists()) {
+            handleDuplicateUids();
           }
           // Updating the schema
           initDatabaseDao.updateSchema();
         }
 
-        final Optional<Boolean> isColumnNullable = databaseUpdateService.isColumnNullable("t_plugin_calendar_event", "uid");
+        final Optional<Boolean> isColumnNullable = databaseUpdateService.isColumnNullable("T_PLUGIN_CALENDAR_EVENT", "UID");
         if (isColumnNullable.isPresent() == false || isColumnNullable.get()) {
           databaseUpdateService.execute("ALTER TABLE t_plugin_calendar_event ALTER COLUMN uid SET NOT NULL;");
         }
@@ -235,7 +235,7 @@ public class DatabaseCoreUpdates
         return UpdateRunningStatus.DONE;
       }
 
-      private void handleDublicateUids()
+      private void handleDuplicateUids()
       {
         final PfEmgrFactory emf = applicationContext.getBean(PfEmgrFactory.class);
         emf.runInTrans(emgr -> {
@@ -253,7 +253,7 @@ public class DatabaseCoreUpdates
         });
       }
 
-      private boolean doesDublicateUidsExists()
+      private boolean doesDuplicateUidsExists()
       {
         List<DatabaseResultRow> resultSet = databaseUpdateService.query("SELECT uid, COUNT(*) FROM t_plugin_calendar_event GROUP BY uid HAVING COUNT(*) > 1");
         return resultSet != null && resultSet.size() > 0;
@@ -594,7 +594,7 @@ public class DatabaseCoreUpdates
 
         if (databaseUpdateService.getDatabaseTableColumnLenght(PFUserDO.class, "ssh_public_key") < 4096) {
           final Table userTable = new Table(PFUserDO.class);
-          databaseUpdateService.alterTableColumnVarCharLength(userTable.getName(), "ssh_public_key", 4096);
+          databaseUpdateService.alterTableColumnVarCharLength(userTable.getName(), "SSH_PUBLIC_KEY", 4096);
         }
 
         if (databaseUpdateService.doesGroupExists(ProjectForgeGroup.HR_GROUP) == false) {
