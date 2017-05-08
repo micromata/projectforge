@@ -99,7 +99,7 @@ public class TaskWizardForm extends AbstractStandardForm<TaskWizardForm, TaskWiz
       createTaskButton.setDefaultFormProcessing(false);
       WicketUtils.addTooltip(createTaskButton, getString("task.wizard.button.createTask.tooltip"));
       SingleButtonPanel singleButtonPanel = new SingleButtonPanel(fs.newChildId(), createTaskButton, getString("task.wizard.button.createTask"),
-          SingleButtonPanel.WICKET_ID);
+          SingleButtonPanel.NORMAL);
       singleButtonPanel.setNonSubmitButton();
       fs.add(singleButtonPanel);
 
