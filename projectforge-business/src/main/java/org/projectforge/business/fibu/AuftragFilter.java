@@ -68,6 +68,8 @@ public class AuftragFilter extends BaseSearchFilter implements Serializable
 
   private Collection<AuftragsPositionsArt> auftragsPositionsArten;
 
+  private AuftragFakturiertFilterStatus auftragFakturiertFilterStatus;
+
   protected AuftragsPositionsPaymentType auftragsPositionsPaymentType;
 
   public static final String[] LIST = { FILTER_ALL, FILTER_AKQUISE, FILTER_BEAUFTRAGT, FILTER_NOCH_NICHT_VOLLSTAENDIG_FAKTURIERT,
@@ -144,8 +146,6 @@ public class AuftragFilter extends BaseSearchFilter implements Serializable
 
   /**
    * Year of invoices to filter. "<= 0" means showing all years.
-   *
-   * @return
    */
   public int getYear()
   {
@@ -193,10 +193,21 @@ public class AuftragFilter extends BaseSearchFilter implements Serializable
     this.auftragsPositionsArten = auftragsPositionsArten;
   }
 
+  public AuftragFakturiertFilterStatus getAuftragFakturiertFilterStatus()
+  {
+    if (auftragFakturiertFilterStatus == null) {
+      auftragFakturiertFilterStatus = AuftragFakturiertFilterStatus.ALL;
+    }
+    return auftragFakturiertFilterStatus;
+  }
+
+  public void setAuftragFakturiertFilterStatus(final AuftragFakturiertFilterStatus auftragFakturiertFilterStatus)
+  {
+    this.auftragFakturiertFilterStatus = auftragFakturiertFilterStatus;
+  }
+
   /**
    * null represents all.
-   *
-   * @return
    */
   public AuftragsPositionsPaymentType getAuftragsPositionsPaymentType()
   {
@@ -215,6 +226,7 @@ public class AuftragFilter extends BaseSearchFilter implements Serializable
     searchString = "";
     setAuftragsStatuses(null);
     setAuftragsPositionsArten(null);
+    setAuftragFakturiertFilterStatus(null);
     setListType(AuftragFilter.FILTER_ALL);
     return this;
   }

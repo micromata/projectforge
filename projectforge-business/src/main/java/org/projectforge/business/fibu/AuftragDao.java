@@ -37,7 +37,6 @@ import java.util.Set;
 import java.util.TreeSet;
 
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.collections.Predicate;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.hibernate.Criteria;
@@ -436,34 +435,28 @@ public class AuftragDao extends BaseDao<AuftragDO>
       list = internalGetList(queryFilter);
     }
 
-    Boolean vollstaendigFakturiert = null;
-    filterFakturiert(myFilter, list, vollstaendigFakturiert);
+    filterFakturiert(myFilter.getAuftragFakturiertFilterStatus(), myFilter, list);
 
     filterPositionsArten(myFilter, list);
 
     if (myFilter.getAuftragsPositionsPaymentType() != null) {
-      final AuftragFilter fil = myFilter;
-      CollectionUtils.filter(list, new Predicate()
-      {
-        @Override
-        public boolean evaluate(final Object object)
-        {
-          final AuftragDO auftrag = (AuftragDO) object;
-          boolean match = false;
-          if (fil.getAuftragsPositionsPaymentType() != null) {
-            if (CollectionUtils.isNotEmpty(auftrag.getPositionen()) == true) {
-              for (final AuftragsPositionDO position : auftrag.getPositionen()) {
-                if (fil.getAuftragsPositionsPaymentType() == position.getPaymentType()) {
-                  match = true;
-                  break;
-                }
+      CollectionUtils.filter(list, object -> {
+        final AuftragDO auftrag = (AuftragDO) object;
+        boolean match = false;
+        if (myFilter.getAuftragsPositionsPaymentType() != null) {
+          if (CollectionUtils.isNotEmpty(auftrag.getPositionen()) == true) {
+            for (final AuftragsPositionDO position : auftrag.getPositionen()) {
+              if (myFilter.getAuftragsPositionsPaymentType() == position.getPaymentType()) {
+                match = true;
+                break;
               }
             }
           }
-          return match;
         }
+        return match;
       });
     }
+
     return list;
   }
 
@@ -478,11 +471,14 @@ public class AuftragDao extends BaseDao<AuftragDO>
     queryFilter.add(Restrictions.in("auftragsStatus", auftragsStatuses));
   }
 
-  private void filterFakturiert(final AuftragFilter myFilter, final List<AuftragDO> list, final Boolean vollstaendigFakturiert)
+  // TODO CT: remove argument myFilter
+  private void filterFakturiert(final AuftragFakturiertFilterStatus auftragFakturiertFilterStatus, final AuftragFilter myFilter, final List<AuftragDO> list)
   {
-    if (vollstaendigFakturiert == null) {
+    if (auftragFakturiertFilterStatus == null || auftragFakturiertFilterStatus == AuftragFakturiertFilterStatus.ALL) {
       return;
     }
+
+    boolean vollstaendigFakturiert = (AuftragFakturiertFilterStatus.FAKTURIERT == auftragFakturiertFilterStatus);
 
     CollectionUtils.filter(list, object -> {
       final AuftragDO auftrag = (AuftragDO) object;

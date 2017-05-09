@@ -33,6 +33,7 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.fibu.AuftragDao;
+import org.projectforge.business.fibu.AuftragFakturiertFilterStatus;
 import org.projectforge.business.fibu.AuftragFilter;
 import org.projectforge.business.fibu.AuftragsPositionsArt;
 import org.projectforge.business.fibu.AuftragsPositionsPaymentType;
@@ -69,7 +70,7 @@ public class AuftragListForm extends AbstractListForm<AuftragFilter, AuftragList
   {
     super(parentPage);
   }
-  
+
   @SuppressWarnings("serial")
   @Override
   protected void init()
@@ -173,9 +174,7 @@ public class AuftragListForm extends AbstractListForm<AuftragFilter, AuftragList
     // DropDownChoice years
     final YearListCoiceRenderer yearListChoiceRenderer = new YearListCoiceRenderer(auftragDao.getYears(), true);
     final DropDownChoice<Integer> yearChoice = new DropDownChoice<Integer>(optionsFieldsetPanel.getDropDownChoiceId(),
-        new PropertyModel<Integer>(this,
-            "year"),
-        yearListChoiceRenderer.getYears(), yearListChoiceRenderer)
+        new PropertyModel<>(this, "year"), yearListChoiceRenderer.getYears(), yearListChoiceRenderer)
     {
       @Override
       protected boolean wantOnSelectionChangedNotifications()
@@ -196,31 +195,9 @@ public class AuftragListForm extends AbstractListForm<AuftragFilter, AuftragList
 
     createAuftragsPositionsArtMultiChoice(optionsFieldsetPanel);
 
-    // DropDownChoice AuftragsPositionsPaymentType
-    final LabelValueChoiceRenderer<Integer> auftragsPositionsPaymentTypeChoiceRenderer = new LabelValueChoiceRenderer<Integer>();
-    auftragsPositionsPaymentTypeChoiceRenderer.addValue(-1, getString("filter.all"));
-    for (final AuftragsPositionsPaymentType paymentType : AuftragsPositionsPaymentType.values()) {
-      auftragsPositionsPaymentTypeChoiceRenderer.addValue(paymentType.ordinal(), getString(paymentType.getI18nKey()));
-    }
-    final DropDownChoice<Integer> auftragsPositionsPaymentTypeChoice = new DropDownChoice<Integer>(
-        optionsFieldsetPanel.getDropDownChoiceId(),
-        new PropertyModel<Integer>(this, "auftragsPositionsPaymentType"), auftragsPositionsPaymentTypeChoiceRenderer.getValues(),
-        auftragsPositionsPaymentTypeChoiceRenderer)
-    {
-      @Override
-      protected boolean wantOnSelectionChangedNotifications()
-      {
-        return true;
-      }
+    createAuftragFakturiertDropDown(optionsFieldsetPanel);
 
-      @Override
-      protected void onSelectionChanged(final Integer newSelection)
-      {
-        parentPage.refresh();
-      }
-    };
-    auftragsPositionsPaymentTypeChoice.setNullValid(false);
-    optionsFieldsetPanel.add(auftragsPositionsPaymentTypeChoice);
+    createAuftragsPositionsPaymentTypeDropDown(optionsFieldsetPanel);
 
     final UserSelectPanel userSelectPanel = new UserSelectPanel(optionsFieldsetPanel.newChildId(),
         new PropertyModel<PFUserDO>(this, "user"),
@@ -291,6 +268,66 @@ public class AuftragListForm extends AbstractListForm<AuftragFilter, AuftragList
     );
 
     optionsFieldsetPanel.add(new Select2MultiChoicePanel<>(optionsFieldsetPanel.newChildId(), multiChoice));
+  }
+
+  private void createAuftragFakturiertDropDown(final FieldsetPanel optionsFieldsetPanel)
+  {
+    final IModel<AuftragFakturiertFilterStatus> fakturiertModel = new IModel<AuftragFakturiertFilterStatus>()
+    {
+      @Override
+      public AuftragFakturiertFilterStatus getObject()
+      {
+        return getSearchFilter().getAuftragFakturiertFilterStatus();
+      }
+
+      @Override
+      public void setObject(final AuftragFakturiertFilterStatus object)
+      {
+        getSearchFilter().setAuftragFakturiertFilterStatus(object);
+      }
+
+      @Override
+      public void detach()
+      {
+        // nothing to do
+      }
+    };
+
+    final LabelValueChoiceRenderer<AuftragFakturiertFilterStatus> fakturiertChoiceRenderer = new LabelValueChoiceRenderer<>(this,
+        AuftragFakturiertFilterStatus.values());
+
+    final DropDownChoice<AuftragFakturiertFilterStatus> fakturiertChoice = new DropDownChoice<>(optionsFieldsetPanel.getDropDownChoiceId(), fakturiertModel,
+        fakturiertChoiceRenderer.getValues(), fakturiertChoiceRenderer);
+
+    fakturiertChoice.setNullValid(false);
+    optionsFieldsetPanel.add(fakturiertChoice);
+  }
+
+  private void createAuftragsPositionsPaymentTypeDropDown(final FieldsetPanel optionsFieldsetPanel)
+  {
+    final LabelValueChoiceRenderer<Integer> auftragsPositionsPaymentTypeChoiceRenderer = new LabelValueChoiceRenderer<>();
+    auftragsPositionsPaymentTypeChoiceRenderer.addValue(-1, getString("filter.all"));
+    for (final AuftragsPositionsPaymentType paymentType : AuftragsPositionsPaymentType.values()) {
+      auftragsPositionsPaymentTypeChoiceRenderer.addValue(paymentType.ordinal(), getString(paymentType.getI18nKey()));
+    }
+    final DropDownChoice<Integer> auftragsPositionsPaymentTypeChoice = new DropDownChoice<Integer>(optionsFieldsetPanel.getDropDownChoiceId(),
+        new PropertyModel<>(this, "auftragsPositionsPaymentType"), auftragsPositionsPaymentTypeChoiceRenderer.getValues(),
+        auftragsPositionsPaymentTypeChoiceRenderer)
+    {
+      @Override
+      protected boolean wantOnSelectionChangedNotifications()
+      {
+        return true;
+      }
+
+      @Override
+      protected void onSelectionChanged(final Integer newSelection)
+      {
+        parentPage.refresh();
+      }
+    };
+    auftragsPositionsPaymentTypeChoice.setNullValid(false);
+    optionsFieldsetPanel.add(auftragsPositionsPaymentTypeChoice);
   }
 
   protected void refresh()
