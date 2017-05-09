@@ -26,10 +26,10 @@ package org.projectforge.web.address;
 import org.apache.log4j.Logger;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
-import org.projectforge.Const;
 import org.projectforge.business.address.AddressDO;
 import org.projectforge.business.address.AddressDao;
 import org.projectforge.business.address.PersonalAddressDao;
+import org.projectforge.business.configuration.ConfigurationService;
 import org.projectforge.web.address.AddressPageSupport.AddressParameters;
 import org.projectforge.web.common.timeattr.AttrModel;
 import org.projectforge.web.wicket.AbstractEditForm;
@@ -48,6 +48,9 @@ public class AddressEditForm extends AbstractEditForm<AddressDO, AddressEditPage
   protected AddressPageSupport addressEditSupport;
   @SpringBean
   private PersonalAddressDao personalAddressDao;
+
+  @SpringBean
+  private ConfigurationService configurationService;
 
   public AddressEditForm(final AddressEditPage parentPage, final AddressDO data)
   {
@@ -121,7 +124,8 @@ public class AddressEditForm extends AbstractEditForm<AddressDO, AddressEditPage
 
     gridBuilder.newSplitPanel(GridSize.COL50, true).newSubSplitPanel(GridSize.COL100);
     final FieldsetPanel fs1 = gridBuilder.newFieldset(gridBuilder.getString("address.image"));
-    new ImageUploadPanel(fs1.newChildId(), fs1, this, new AttrModel<>(data, "profileImageData", byte[].class), Const.ADDRESS_EDITPAGE_MAX_IMAGE_UPLOAD_SIZE);
+    new ImageUploadPanel(fs1.newChildId(), fs1, this, new AttrModel<>(data, "profileImageData", byte[].class),
+        this.configurationService.getMaxFileSizeImage());
 
     gridBuilder.newGridPanel();
     addressEditSupport.addComment();

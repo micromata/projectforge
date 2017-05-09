@@ -95,4 +95,8 @@ public interface ConfigurationService
   TeamCalDO getVacationCalendar();
 
   int getMinPasswordLength();
+
+  String getMaxFileSizeImage();
+
+  String getMaxFileSizeDatev();
 }
