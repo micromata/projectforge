@@ -24,6 +24,7 @@
 package org.projectforge.business.fibu;
 
 import java.io.Serializable;
+import java.util.Collection;
 
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
@@ -38,6 +39,7 @@ public class AuftragFilter extends BaseSearchFilter implements Serializable
 {
   private static final long serialVersionUID = 3456000966109255447L;
 
+  // TODO CT: delete fibu.auftrag.filter.type.* i18n keys?
   public static final String FILTER_ALL = "all";
 
   public static final String FILTER_AKQUISE = "akquise";
@@ -62,7 +64,11 @@ public class AuftragFilter extends BaseSearchFilter implements Serializable
 
   protected String listType = FILTER_ALL;
 
-  protected AuftragsPositionsArt auftragsPositionsArt;
+  private Collection<AuftragsStatus> auftragsStatuses;
+
+  private Collection<AuftragsPositionsArt> auftragsPositionsArten;
+
+  private AuftragFakturiertFilterStatus auftragFakturiertFilterStatus;
 
   protected AuftragsPositionsPaymentType auftragsPositionsPaymentType;
 
@@ -140,8 +146,6 @@ public class AuftragFilter extends BaseSearchFilter implements Serializable
 
   /**
    * Year of invoices to filter. "<= 0" means showing all years.
-   *
-   * @return
    */
   public int getYear()
   {
@@ -164,24 +168,46 @@ public class AuftragFilter extends BaseSearchFilter implements Serializable
   }
 
   /**
-   * null represents all.
-   *
-   * @return
+   * null / empty collection represents all.
    */
-  public AuftragsPositionsArt getAuftragsPositionsArt()
+  public Collection<AuftragsStatus> getAuftragsStatuses()
   {
-    return auftragsPositionsArt;
+    return auftragsStatuses;
   }
 
-  public void setAuftragsPositionsArt(final AuftragsPositionsArt auftragsPositionsArt)
+  public void setAuftragsStatuses(final Collection<AuftragsStatus> auftragsStatuses)
   {
-    this.auftragsPositionsArt = auftragsPositionsArt;
+    this.auftragsStatuses = auftragsStatuses;
+  }
+
+  /**
+   * null / empty collection represents all.
+   */
+  public Collection<AuftragsPositionsArt> getAuftragsPositionsArten()
+  {
+    return auftragsPositionsArten;
+  }
+
+  public void setAuftragsPositionsArten(final Collection<AuftragsPositionsArt> auftragsPositionsArten)
+  {
+    this.auftragsPositionsArten = auftragsPositionsArten;
+  }
+
+  public AuftragFakturiertFilterStatus getAuftragFakturiertFilterStatus()
+  {
+    if (auftragFakturiertFilterStatus == null) {
+      auftragFakturiertFilterStatus = AuftragFakturiertFilterStatus.ALL;
+    }
+    return auftragFakturiertFilterStatus;
+  }
+
+  public void setAuftragFakturiertFilterStatus(final AuftragFakturiertFilterStatus auftragFakturiertFilterStatus)
+  {
+    this.auftragFakturiertFilterStatus = auftragFakturiertFilterStatus;
   }
 
   /**
    * null represents all.
-   *
-   * @return
    */
   public AuftragsPositionsPaymentType getAuftragsPositionsPaymentType()
   {
@@ -198,7 +224,9 @@ public class AuftragFilter extends BaseSearchFilter implements Serializable
   {
     year = -1;
     searchString = "";
-    setAuftragsPositionsArt(null);
+    setAuftragsStatuses(null);
+    setAuftragsPositionsArten(null);
+    setAuftragFakturiertFilterStatus(null);
     setListType(AuftragFilter.FILTER_ALL);
     return this;
   }
