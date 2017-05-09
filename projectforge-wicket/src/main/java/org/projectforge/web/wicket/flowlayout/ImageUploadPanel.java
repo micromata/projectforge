@@ -40,8 +40,10 @@ import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.ResourceModel;
 import org.apache.wicket.request.resource.DynamicImageResource;
+import org.apache.wicket.util.lang.Bytes;
 import org.apache.wicket.validation.IValidator;
 import org.projectforge.framework.utils.FileHelper;
+import org.projectforge.framework.utils.NumberHelper;
 import org.projectforge.web.dialog.ModalQuestionDialog;
 import org.projectforge.web.wicket.AbstractEditForm;
 import org.projectforge.web.wicket.AbstractSecuredPage;
@@ -75,9 +77,14 @@ public class ImageUploadPanel extends Panel implements ComponentWrapperPanel
    */
   @SuppressWarnings("serial")
   public ImageUploadPanel(final String id, final FieldsetPanel fs, final AbstractEditForm<?, ?> form,
-      final IModel<byte[]> file, final int maxImageSize)
+      final IModel<byte[]> file, final String maxImageSize)
   {
     super(id);
+
+    // set max form size
+    Bytes maxSize = Bytes.valueOf(maxImageSize);
+    form.setMaxSize(maxSize);
+
     this.file = file;
     final WebMarkupContainer main = new WebMarkupContainer("main");
     add(main);
@@ -140,22 +147,24 @@ public class ImageUploadPanel extends Panel implements ComponentWrapperPanel
       @Override
       protected void onSubmit(final AjaxRequestTarget target, final FileList fileList)
       {
-        if (fileList.getSize() > maxImageSize) {
-          // add error message
-          form.addError("common.imageuploadpanel.filetolarge", maxImageSize);
-
-          // clear input field to avoid uploading the image
-          fileUploadField.clearInput();
-          target.add(main);
-        }
-        // always add the feedback panel to clear the error message
+        // return form to remove errors
         target.add(form.getFeedbackPanel());
+      }
+
+      @Override
+      protected void addErrorMsg(AjaxRequestTarget target, FileList fileList)
+      {
+        form.addError("common.uploadpanel.filetolarge", NumberHelper.formatBytes(maxSize.bytes()));
       }
 
       @Override
       protected void onError(final AjaxRequestTarget target, final FileList fileList)
       {
-        // nothing to do
+        // clear input field to avoid uploading the image
+        ImageUploadPanel.this.fileUploadField.clearInput();
+
+        // return form
+        target.add(form.getFeedbackPanel());
       }
     });
 
