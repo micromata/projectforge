@@ -24,6 +24,7 @@
 package org.projectforge.business.fibu;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Collection;
 
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
@@ -64,9 +65,9 @@ public class AuftragFilter extends BaseSearchFilter implements Serializable
 
   protected String listType = FILTER_ALL;
 
-  private Collection<AuftragsStatus> auftragsStatuses;
+  private final Collection<AuftragsStatus> auftragsStatuses = new ArrayList<>();
 
-  private Collection<AuftragsPositionsArt> auftragsPositionsArten;
+  private final Collection<AuftragsPositionsArt> auftragsPositionsArten = new ArrayList<>();
 
   private AuftragFakturiertFilterStatus auftragFakturiertFilterStatus;
 
@@ -168,29 +169,19 @@ public class AuftragFilter extends BaseSearchFilter implements Serializable
   }
 
   /**
-   * null / empty collection represents all.
+   * empty collection represents all.
    */
   public Collection<AuftragsStatus> getAuftragsStatuses()
   {
     return auftragsStatuses;
   }
 
-  public void setAuftragsStatuses(final Collection<AuftragsStatus> auftragsStatuses)
-  {
-    this.auftragsStatuses = auftragsStatuses;
-  }
-
   /**
-   * null / empty collection represents all.
+   * empty collection represents all.
    */
   public Collection<AuftragsPositionsArt> getAuftragsPositionsArten()
   {
     return auftragsPositionsArten;
-  }
-
-  public void setAuftragsPositionsArten(final Collection<AuftragsPositionsArt> auftragsPositionsArten)
-  {
-    this.auftragsPositionsArten = auftragsPositionsArten;
   }
 
   public AuftragFakturiertFilterStatus getAuftragFakturiertFilterStatus()
@@ -224,8 +215,8 @@ public class AuftragFilter extends BaseSearchFilter implements Serializable
   {
     year = -1;
     searchString = "";
-    setAuftragsStatuses(null);
-    setAuftragsPositionsArten(null);
+    auftragsStatuses.clear();
+    auftragsPositionsArten.clear();
     setAuftragFakturiertFilterStatus(null);
     setListType(AuftragFilter.FILTER_ALL);
     return this;

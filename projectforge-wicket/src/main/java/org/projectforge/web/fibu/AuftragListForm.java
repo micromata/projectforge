@@ -30,7 +30,6 @@ import org.apache.log4j.Logger;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
-import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.fibu.AuftragDao;
 import org.projectforge.business.fibu.AuftragFakturiertFilterStatus;
@@ -44,6 +43,7 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.web.common.I18nEnumChoiceProvider;
 import org.projectforge.web.user.UserSelectPanel;
 import org.projectforge.web.wicket.AbstractListForm;
+import org.projectforge.web.wicket.LambdaModel;
 import org.projectforge.web.wicket.WebConstants;
 import org.projectforge.web.wicket.components.LabelValueChoiceRenderer;
 import org.projectforge.web.wicket.components.YearListCoiceRenderer;
@@ -174,7 +174,7 @@ public class AuftragListForm extends AbstractListForm<AuftragFilter, AuftragList
     // DropDownChoice years
     final YearListCoiceRenderer yearListChoiceRenderer = new YearListCoiceRenderer(auftragDao.getYears(), true);
     final DropDownChoice<Integer> yearChoice = new DropDownChoice<Integer>(optionsFieldsetPanel.getDropDownChoiceId(),
-        new PropertyModel<>(this, "year"), yearListChoiceRenderer.getYears(), yearListChoiceRenderer)
+        LambdaModel.of(this::getYear, this::setYear), yearListChoiceRenderer.getYears(), yearListChoiceRenderer)
     {
       @Override
       protected boolean wantOnSelectionChangedNotifications()
@@ -199,8 +199,7 @@ public class AuftragListForm extends AbstractListForm<AuftragFilter, AuftragList
 
     createAuftragsPositionsPaymentTypeDropDown(optionsFieldsetPanel);
 
-    final UserSelectPanel userSelectPanel = new UserSelectPanel(optionsFieldsetPanel.newChildId(),
-        new PropertyModel<PFUserDO>(this, "user"),
+    final UserSelectPanel userSelectPanel = new UserSelectPanel(optionsFieldsetPanel.newChildId(), LambdaModel.of(this::getUser, this::setUser),
         parentPage, "user");
     optionsFieldsetPanel.add(userSelectPanel);
     userSelectPanel.init();
@@ -208,26 +207,7 @@ public class AuftragListForm extends AbstractListForm<AuftragFilter, AuftragList
 
   private void createAuftragsStatusMultiChoice(final FieldsetPanel optionsFieldsetPanel)
   {
-    final IModel<Collection<AuftragsStatus>> auftragsStatusesModel = new IModel<Collection<AuftragsStatus>>()
-    {
-      @Override
-      public Collection<AuftragsStatus> getObject()
-      {
-        return getSearchFilter().getAuftragsStatuses();
-      }
-
-      @Override
-      public void setObject(final Collection<AuftragsStatus> auftragsStatuses)
-      {
-        getSearchFilter().setAuftragsStatuses(auftragsStatuses);
-      }
-
-      @Override
-      public void detach()
-      {
-        // nothing to do
-      }
-    };
+    final IModel<Collection<AuftragsStatus>> auftragsStatusesModel = LambdaModel.of(getSearchFilter()::getAuftragsStatuses);
 
     final Select2MultiChoice<AuftragsStatus> multiChoice = new Select2MultiChoice<>(
         Select2MultiChoicePanel.WICKET_ID,
@@ -240,26 +220,7 @@ public class AuftragListForm extends AbstractListForm<AuftragFilter, AuftragList
 
   private void createAuftragsPositionsArtMultiChoice(final FieldsetPanel optionsFieldsetPanel)
   {
-    final IModel<Collection<AuftragsPositionsArt>> auftragsPositionsArtenModel = new IModel<Collection<AuftragsPositionsArt>>()
-    {
-      @Override
-      public Collection<AuftragsPositionsArt> getObject()
-      {
-        return getSearchFilter().getAuftragsPositionsArten();
-      }
-
-      @Override
-      public void setObject(final Collection<AuftragsPositionsArt> auftragsPositionsArten)
-      {
-        getSearchFilter().setAuftragsPositionsArten(auftragsPositionsArten);
-      }
-
-      @Override
-      public void detach()
-      {
-        // nothing to do
-      }
-    };
+    final IModel<Collection<AuftragsPositionsArt>> auftragsPositionsArtenModel = LambdaModel.of(getSearchFilter()::getAuftragsPositionsArten);
 
     final Select2MultiChoice<AuftragsPositionsArt> multiChoice = new Select2MultiChoice<>(
         Select2MultiChoicePanel.WICKET_ID,
@@ -272,26 +233,8 @@ public class AuftragListForm extends AbstractListForm<AuftragFilter, AuftragList
 
   private void createAuftragFakturiertDropDown(final FieldsetPanel optionsFieldsetPanel)
   {
-    final IModel<AuftragFakturiertFilterStatus> fakturiertModel = new IModel<AuftragFakturiertFilterStatus>()
-    {
-      @Override
-      public AuftragFakturiertFilterStatus getObject()
-      {
-        return getSearchFilter().getAuftragFakturiertFilterStatus();
-      }
-
-      @Override
-      public void setObject(final AuftragFakturiertFilterStatus object)
-      {
-        getSearchFilter().setAuftragFakturiertFilterStatus(object);
-      }
-
-      @Override
-      public void detach()
-      {
-        // nothing to do
-      }
-    };
+    final IModel<AuftragFakturiertFilterStatus> fakturiertModel = LambdaModel
+        .of(getSearchFilter()::getAuftragFakturiertFilterStatus, getSearchFilter()::setAuftragFakturiertFilterStatus);
 
     final LabelValueChoiceRenderer<AuftragFakturiertFilterStatus> fakturiertChoiceRenderer = new LabelValueChoiceRenderer<>(this,
         AuftragFakturiertFilterStatus.values());
@@ -311,7 +254,7 @@ public class AuftragListForm extends AbstractListForm<AuftragFilter, AuftragList
       auftragsPositionsPaymentTypeChoiceRenderer.addValue(paymentType.ordinal(), getString(paymentType.getI18nKey()));
     }
     final DropDownChoice<Integer> auftragsPositionsPaymentTypeChoice = new DropDownChoice<Integer>(optionsFieldsetPanel.getDropDownChoiceId(),
-        new PropertyModel<>(this, "auftragsPositionsPaymentType"), auftragsPositionsPaymentTypeChoiceRenderer.getValues(),
+        LambdaModel.of(this::getAuftragsPositionsPaymentType, this::setAuftragsPositionsPaymentType), auftragsPositionsPaymentTypeChoiceRenderer.getValues(),
         auftragsPositionsPaymentTypeChoiceRenderer)
     {
       @Override
@@ -360,8 +303,7 @@ public class AuftragListForm extends AbstractListForm<AuftragFilter, AuftragList
     }
   }
 
-  // used by a PropertyModel "auftragsPositionsPaymentType"
-  public Integer getAuftragsPositionsPaymentType()
+  private Integer getAuftragsPositionsPaymentType()
   {
     if (getSearchFilter().getAuftragsPositionsPaymentType() != null) {
       return getSearchFilter().getAuftragsPositionsPaymentType().ordinal();
@@ -370,8 +312,7 @@ public class AuftragListForm extends AbstractListForm<AuftragFilter, AuftragList
     }
   }
 
-  // used by a PropertyModel "auftragsPositionsPaymentType"
-  public void setAuftragsPositionsPaymentType(final Integer auftragsPositionsPaymentType)
+  private void setAuftragsPositionsPaymentType(final Integer auftragsPositionsPaymentType)
   {
     if (auftragsPositionsPaymentType == null || auftragsPositionsPaymentType == -1) {
       getSearchFilter().setAuftragsPositionsPaymentType(null);
