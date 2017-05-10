@@ -84,7 +84,7 @@ public class RechnungEditPage extends AbstractEditPage<RechnungDO, RechnungEditF
         log.debug("Export invoice.");
         ByteArrayOutputStream baos = invoiceService.getInvoiceWordDocument(getData());
         if (baos != null) {
-          DownloadUtils.setDownloadTarget(baos.toByteArray(), getData().getNummer() != null ? getData().getNummer().toString() + "_" : "_" + "invoice.docx");
+          DownloadUtils.setDownloadTarget(baos.toByteArray(), (getData().getNummer() != null ? getData().getNummer().toString() + "_" : "_") + "invoice.docx");
         }
       }
 
