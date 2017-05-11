@@ -40,6 +40,7 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.hibernate.Criteria;
+import org.hibernate.criterion.Criterion;
 import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Restrictions;
 import org.projectforge.business.configuration.ConfigurationService;
@@ -435,7 +436,7 @@ public class AuftragDao extends BaseDao<AuftragDO>
       list = internalGetList(queryFilter);
     }
 
-    filterFakturiert(myFilter.getAuftragFakturiertFilterStatus(), myFilter, list);
+    filterFakturiert(myFilter, list);
 
     filterPositionsArten(myFilter, list);
 
@@ -468,20 +469,26 @@ public class AuftragDao extends BaseDao<AuftragDO>
       return;
     }
 
+    final List<Criterion> orCriterions = new ArrayList<>();
+    orCriterions.add(Restrictions.in("auftragsStatus", auftragsStatuses));
+    orCriterions.add(Restrictions.in("position.status", auftragsStatuses));
+
+    // special case
+    if (auftragsStatuses.contains(AuftragsStatus.ABGESCHLOSSEN)) {
+      orCriterions.add(Restrictions.eq("paymentSchedule.reached", true));
+      queryFilter.createAlias("paymentSchedules", "paymentSchedule", Criteria.FULL_JOIN);
+    }
+
     queryFilter
         .createAlias("positionen", "position")
-        .add(
-            Restrictions.or(
-                Restrictions.in("auftragsStatus", auftragsStatuses),
-                Restrictions.in("position.status", auftragsStatuses)
-            )
-        );
+        .add(Restrictions.or(orCriterions.toArray(new Criterion[orCriterions.size()])));
   }
 
-  // TODO CT: remove argument myFilter
-  private void filterFakturiert(final AuftragFakturiertFilterStatus auftragFakturiertFilterStatus, final AuftragFilter myFilter, final List<AuftragDO> list)
+  private void filterFakturiert(final AuftragFilter myFilter, final List<AuftragDO> list)
   {
+    final AuftragFakturiertFilterStatus auftragFakturiertFilterStatus = myFilter.getAuftragFakturiertFilterStatus();
     if (auftragFakturiertFilterStatus == null || auftragFakturiertFilterStatus == AuftragFakturiertFilterStatus.ALL) {
+      // do not filter
       return;
     }
 
@@ -491,26 +498,32 @@ public class AuftragDao extends BaseDao<AuftragDO>
       final AuftragDO auftrag = (AuftragDO) object;
       final boolean orderIsCompletelyInvoiced = auftrag.isVollstaendigFakturiert();
 
-      if (HibernateUtils.getDialect() != DatabaseDialect.HSQL && myFilter.isShowAbgeschlossenNichtFakturiert()) {
+      // special case
+      if (HibernateUtils.getDialect() != DatabaseDialect.HSQL &&
+          vollstaendigFakturiert == false && myFilter.getAuftragsStatuses().contains(AuftragsStatus.ABGESCHLOSSEN)) {
+
         // if order is completed and not all positions are completely invoiced
         if (auftrag.getAuftragsStatus() == AuftragsStatus.ABGESCHLOSSEN && orderIsCompletelyInvoiced == false) {
           return true;
         }
+
         // if order is completed and not completely invoiced
         if (auftrag.getPositionen() != null) {
           for (final AuftragsPositionDO pos : auftrag.getPositionen()) {
-            if (pos.isAbgeschlossenUndNichtVollstaendigFakturiert() == true) {
+            if (pos.isAbgeschlossenUndNichtVollstaendigFakturiert()) {
               return true;
             }
           }
         }
+
         if (auftrag.getPaymentSchedules() != null) {
           for (final PaymentScheduleDO schedule : auftrag.getPaymentSchedules()) {
-            if (schedule.isReached() == true && schedule.isVollstaendigFakturiert() == false) {
+            if (schedule.isReached() && schedule.isVollstaendigFakturiert() == false) {
               return true;
             }
           }
         }
+
         return false;
       }
 
