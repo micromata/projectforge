@@ -468,7 +468,14 @@ public class AuftragDao extends BaseDao<AuftragDO>
       return;
     }
 
-    queryFilter.add(Restrictions.in("auftragsStatus", auftragsStatuses));
+    queryFilter
+        .createAlias("positionen", "position")
+        .add(
+            Restrictions.or(
+                Restrictions.in("auftragsStatus", auftragsStatuses),
+                Restrictions.in("position.status", auftragsStatuses)
+            )
+        );
   }
 
   // TODO CT: remove argument myFilter
