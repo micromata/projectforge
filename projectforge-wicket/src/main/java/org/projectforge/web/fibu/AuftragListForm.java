@@ -24,11 +24,9 @@
 package org.projectforge.web.fibu;
 
 import java.math.BigDecimal;
-import java.util.Collection;
 
 import org.apache.log4j.Logger;
 import org.apache.wicket.markup.html.form.DropDownChoice;
-import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.fibu.AuftragDao;
@@ -49,6 +47,7 @@ import org.projectforge.web.wicket.components.LabelValueChoiceRenderer;
 import org.projectforge.web.wicket.components.YearListCoiceRenderer;
 import org.projectforge.web.wicket.flowlayout.DivPanel;
 import org.projectforge.web.wicket.flowlayout.DivTextPanel;
+import org.projectforge.web.wicket.flowlayout.DropDownChoicePanel;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
 import org.projectforge.web.wicket.flowlayout.Select2MultiChoicePanel;
 import org.projectforge.web.wicket.flowlayout.TextStyle;
@@ -61,10 +60,10 @@ public class AuftragListForm extends AbstractListForm<AuftragFilter, AuftragList
 
   private static final long serialVersionUID = -5969136444233092172L;
 
-  private AuftragsStatistik auftragsStatistik;
-
   @SpringBean
   private AuftragDao auftragDao;
+
+  private AuftragsStatistik auftragsStatistik;
 
   public AuftragListForm(final AuftragListPage parentPage)
   {
@@ -171,106 +170,92 @@ public class AuftragListForm extends AbstractListForm<AuftragFilter, AuftragList
   @Override
   protected void onOptionsPanelCreate(final FieldsetPanel optionsFieldsetPanel, final DivPanel optionsCheckBoxesPanel)
   {
-    // DropDownChoice years
-    final YearListCoiceRenderer yearListChoiceRenderer = new YearListCoiceRenderer(auftragDao.getYears(), true);
-    final DropDownChoice<Integer> yearChoice = new DropDownChoice<Integer>(optionsFieldsetPanel.getDropDownChoiceId(),
-        LambdaModel.of(this::getYear, this::setYear), yearListChoiceRenderer.getYears(), yearListChoiceRenderer)
-    {
-      @Override
-      protected boolean wantOnSelectionChangedNotifications()
-      {
-        return true;
-      }
-
-      @Override
-      protected void onSelectionChanged(final Integer newSelection)
-      {
-        parentPage.refresh();
-      }
-    };
-    yearChoice.setNullValid(false);
-    optionsFieldsetPanel.add(yearChoice);
-
-    createAuftragsStatusMultiChoice(optionsFieldsetPanel);
-
-    createAuftragsPositionsArtMultiChoice(optionsFieldsetPanel);
-
-    createAuftragFakturiertDropDown(optionsFieldsetPanel);
-
-    createAuftragsPositionsPaymentTypeDropDown(optionsFieldsetPanel);
-
-    final UserSelectPanel userSelectPanel = new UserSelectPanel(optionsFieldsetPanel.newChildId(), LambdaModel.of(this::getUser, this::setUser),
-        parentPage, "user");
-    optionsFieldsetPanel.add(userSelectPanel);
-    userSelectPanel.init();
+    optionsFieldsetPanel.add(createAuftragsStatusMultiChoice());
+    optionsFieldsetPanel.add(createAuftragsPositionsArtMultiChoice());
+    optionsFieldsetPanel.add(createYearsDropDown());
+    optionsFieldsetPanel.add(createAuftragFakturiertDropDown());
+    optionsFieldsetPanel.add(createAuftragsPositionsPaymentTypeDropDown());
+    optionsFieldsetPanel.add(createUserSelect(optionsFieldsetPanel.newChildId()));
   }
 
-  private void createAuftragsStatusMultiChoice(final FieldsetPanel optionsFieldsetPanel)
+  private Select2MultiChoice<AuftragsStatus> createAuftragsStatusMultiChoice()
   {
-    final IModel<Collection<AuftragsStatus>> auftragsStatusesModel = LambdaModel.of(getSearchFilter()::getAuftragsStatuses);
-
-    final Select2MultiChoice<AuftragsStatus> multiChoice = new Select2MultiChoice<>(
+    return new Select2MultiChoice<>(
         Select2MultiChoicePanel.WICKET_ID,
-        auftragsStatusesModel,
+        LambdaModel.of(getSearchFilter()::getAuftragsStatuses),
         new I18nEnumChoiceProvider<>(AuftragsStatus.class)
     );
-
-    optionsFieldsetPanel.add(new Select2MultiChoicePanel<>(optionsFieldsetPanel.newChildId(), multiChoice));
   }
 
-  private void createAuftragsPositionsArtMultiChoice(final FieldsetPanel optionsFieldsetPanel)
+  private Select2MultiChoice<AuftragsPositionsArt> createAuftragsPositionsArtMultiChoice()
   {
-    final IModel<Collection<AuftragsPositionsArt>> auftragsPositionsArtenModel = LambdaModel.of(getSearchFilter()::getAuftragsPositionsArten);
-
-    final Select2MultiChoice<AuftragsPositionsArt> multiChoice = new Select2MultiChoice<>(
+    return new Select2MultiChoice<>(
         Select2MultiChoicePanel.WICKET_ID,
-        auftragsPositionsArtenModel,
+        LambdaModel.of(getSearchFilter()::getAuftragsPositionsArten),
         new I18nEnumChoiceProvider<>(AuftragsPositionsArt.class)
     );
-
-    optionsFieldsetPanel.add(new Select2MultiChoicePanel<>(optionsFieldsetPanel.newChildId(), multiChoice));
   }
 
-  private void createAuftragFakturiertDropDown(final FieldsetPanel optionsFieldsetPanel)
+  private DropDownChoice<Integer> createYearsDropDown()
   {
-    final IModel<AuftragFakturiertFilterStatus> fakturiertModel = LambdaModel
-        .of(getSearchFilter()::getAuftragFakturiertFilterStatus, getSearchFilter()::setAuftragFakturiertFilterStatus);
+    final YearListCoiceRenderer yearListChoiceRenderer = new YearListCoiceRenderer(auftragDao.getYears(), true);
 
+    final DropDownChoice<Integer> yearChoice = new DropDownChoice<>(
+        DropDownChoicePanel.WICKET_ID,
+        LambdaModel.of(this::getYear, this::setYear),
+        yearListChoiceRenderer.getYears(),
+        yearListChoiceRenderer
+    );
+    yearChoice.setNullValid(false);
+
+    return yearChoice;
+  }
+
+  private DropDownChoice<AuftragFakturiertFilterStatus> createAuftragFakturiertDropDown()
+  {
     final LabelValueChoiceRenderer<AuftragFakturiertFilterStatus> fakturiertChoiceRenderer = new LabelValueChoiceRenderer<>(this,
         AuftragFakturiertFilterStatus.values());
 
-    final DropDownChoice<AuftragFakturiertFilterStatus> fakturiertChoice = new DropDownChoice<>(optionsFieldsetPanel.getDropDownChoiceId(), fakturiertModel,
-        fakturiertChoiceRenderer.getValues(), fakturiertChoiceRenderer);
-
+    final DropDownChoice<AuftragFakturiertFilterStatus> fakturiertChoice = new DropDownChoice<>(
+        DropDownChoicePanel.WICKET_ID,
+        LambdaModel.of(getSearchFilter()::getAuftragFakturiertFilterStatus, getSearchFilter()::setAuftragFakturiertFilterStatus),
+        fakturiertChoiceRenderer.getValues(),
+        fakturiertChoiceRenderer
+    );
     fakturiertChoice.setNullValid(false);
-    optionsFieldsetPanel.add(fakturiertChoice);
+
+    return fakturiertChoice;
   }
 
-  private void createAuftragsPositionsPaymentTypeDropDown(final FieldsetPanel optionsFieldsetPanel)
+  private DropDownChoice<Integer> createAuftragsPositionsPaymentTypeDropDown()
   {
     final LabelValueChoiceRenderer<Integer> auftragsPositionsPaymentTypeChoiceRenderer = new LabelValueChoiceRenderer<>();
     auftragsPositionsPaymentTypeChoiceRenderer.addValue(-1, getString("filter.all"));
     for (final AuftragsPositionsPaymentType paymentType : AuftragsPositionsPaymentType.values()) {
       auftragsPositionsPaymentTypeChoiceRenderer.addValue(paymentType.ordinal(), getString(paymentType.getI18nKey()));
     }
-    final DropDownChoice<Integer> auftragsPositionsPaymentTypeChoice = new DropDownChoice<Integer>(optionsFieldsetPanel.getDropDownChoiceId(),
-        LambdaModel.of(this::getAuftragsPositionsPaymentType, this::setAuftragsPositionsPaymentType), auftragsPositionsPaymentTypeChoiceRenderer.getValues(),
-        auftragsPositionsPaymentTypeChoiceRenderer)
-    {
-      @Override
-      protected boolean wantOnSelectionChangedNotifications()
-      {
-        return true;
-      }
 
-      @Override
-      protected void onSelectionChanged(final Integer newSelection)
-      {
-        parentPage.refresh();
-      }
-    };
+    final DropDownChoice<Integer> auftragsPositionsPaymentTypeChoice = new DropDownChoice<>(
+        DropDownChoicePanel.WICKET_ID,
+        LambdaModel.of(this::getAuftragsPositionsPaymentType, this::setAuftragsPositionsPaymentType),
+        auftragsPositionsPaymentTypeChoiceRenderer.getValues(),
+        auftragsPositionsPaymentTypeChoiceRenderer
+    );
     auftragsPositionsPaymentTypeChoice.setNullValid(false);
-    optionsFieldsetPanel.add(auftragsPositionsPaymentTypeChoice);
+
+    return auftragsPositionsPaymentTypeChoice;
+  }
+
+  private UserSelectPanel createUserSelect(final String id)
+  {
+    final UserSelectPanel userSelectPanel = new UserSelectPanel(
+        id,
+        LambdaModel.of(this::getUser, this::setUser),
+        parentPage,
+        "user"
+    );
+    userSelectPanel.init();
+    return userSelectPanel;
   }
 
   protected void refresh()
