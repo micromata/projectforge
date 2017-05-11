@@ -38,7 +38,7 @@ public class EmployeeSalaryServiceImpl implements EmployeeSalaryService
   {
     List<EmployeeSalaryDO> findByEmployee = employeeSalaryDao.findByEmployee(employee);
     for (EmployeeSalaryDO sal : findByEmployee) {
-      if (sal.isDeleted() == false && sal.getYear().equals(selectedDate.get(Calendar.YEAR)) && sal.getMonth().equals(selectedDate.get(Calendar.MONTH))) {
+      if (sal.getYear().equals(selectedDate.get(Calendar.YEAR)) && sal.getMonth().equals(selectedDate.get(Calendar.MONTH))) {
         return sal;
       }
     }
