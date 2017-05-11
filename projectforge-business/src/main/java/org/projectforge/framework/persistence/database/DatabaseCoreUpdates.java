@@ -36,6 +36,7 @@ import java.util.TimeZone;
 import java.util.function.Predicate;
 
 import org.projectforge.business.address.AddressDO;
+import org.projectforge.business.address.AddressDao;
 import org.projectforge.business.fibu.AuftragDO;
 import org.projectforge.business.fibu.AuftragsPositionDO;
 import org.projectforge.business.fibu.AuftragsPositionsStatus;
@@ -121,6 +122,50 @@ public class DatabaseCoreUpdates
     final InitDatabaseDao initDatabaseDao = applicationContext.getBean(InitDatabaseDao.class);
 
     final List<UpdateEntry> list = new ArrayList<>();
+
+    ////////////////////////////////////////////////////////////////////
+    // 6.12.0
+    // /////////////////////////////////////////////////////////////////
+    list.add(new UpdateEntryImpl(CORE_REGION_ID, "6.12.0", "2017-05-24",
+        "Change address image data to AddressDO.")
+    {
+      @Override
+      public UpdatePreCheckStatus runPreCheck()
+      {
+        log.info("Running pre-check for ProjectForge version 6.12.0");
+        if (databaseUpdateService.doesTableAttributeExist("T_ADDRESS", "imagedata") == false) {
+          return UpdatePreCheckStatus.READY_FOR_UPDATE;
+        }
+        return UpdatePreCheckStatus.ALREADY_UPDATED;
+      }
+
+      @Override
+      public UpdateRunningStatus runUpdate()
+      {
+        if (databaseUpdateService.doesTableAttributeExist("T_ADDRESS", "imagedata") == false) {
+          initDatabaseDao.updateSchema();
+          migrateImageData();
+        }
+        return UpdateRunningStatus.DONE;
+      }
+
+      private void migrateImageData()
+      {
+        AddressDao addressDao = applicationContext.getBean(AddressDao.class);
+        List<AddressDO> allAddresses = addressDao.internalLoadAll();
+        for (AddressDO ad : allAddresses) {
+          byte[] imageData = ad.getAttribute("profileImageData", byte[].class);
+          final PfEmgrFactory emf = applicationContext.getBean(PfEmgrFactory.class);
+          emf.runInTrans(emgr -> {
+            AddressDO addressDO = emgr.selectByPkAttached(AddressDO.class, ad.getId());
+            addressDO.setImageData(imageData);
+            emgr.update(addressDO);
+            return null;
+          });
+        }
+      }
+
+    });
 
     ////////////////////////////////////////////////////////////////////
     // 6.11.0
