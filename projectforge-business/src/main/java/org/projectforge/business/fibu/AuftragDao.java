@@ -313,7 +313,8 @@ public class AuftragDao extends BaseDao<AuftragDO>
       return abgeschlossenNichtFakturiert;
     }
     final AuftragFilter filter = new AuftragFilter();
-    filter.setListType(AuftragFilter.FILTER_ABGESCHLOSSEN_NF);
+    filter.getAuftragsStatuses().add(AuftragsStatus.ABGESCHLOSSEN);
+    filter.setAuftragFakturiertFilterStatus(AuftragFakturiertFilterStatus.NICHT_FAKTURIERT);
     try {
       final List<AuftragDO> list = getList(filter, false);
       abgeschlossenNichtFakturiert = list != null ? list.size() : 0;
@@ -329,66 +330,6 @@ public class AuftragDao extends BaseDao<AuftragDO>
   public List<AuftragDO> getList(final BaseSearchFilter filter)
   {
     return getList(filter, true);
-  }
-
-  // TODO CT: remove
-  private Boolean removeMe(final AuftragFilter myFilter, final QueryFilter queryFilter)
-  {
-    Boolean vollstaendigFakturiert = null;
-
-    // ???
-    if (myFilter.isShowBeauftragtNochNichtVollstaendigFakturiert() == true) {
-      queryFilter
-          .add(Restrictions.not(Restrictions.in("auftragsStatus", new AuftragsStatus[] { AuftragsStatus.ABGELEHNT,
-              AuftragsStatus.ERSETZT, AuftragsStatus.GELEGT, AuftragsStatus.POTENZIAL, AuftragsStatus.IN_ERSTELLUNG })));
-      vollstaendigFakturiert = false;
-    }
-
-    // ???
-    else if (myFilter.isShowNochNichtVollstaendigFakturiert() == true) {
-      queryFilter
-          .add(Restrictions.not(Restrictions.in("auftragsStatus", new AuftragsStatus[] { AuftragsStatus.ABGELEHNT, AuftragsStatus.ERSETZT })));
-      vollstaendigFakturiert = false;
-    }
-
-    // ok
-    else if (myFilter.isShowVollstaendigFakturiert() == true) {
-      vollstaendigFakturiert = true;
-    } else if (myFilter.isShowAbgelehnt() == true) {
-      queryFilter.add(Restrictions.eq("auftragsStatus", AuftragsStatus.ABGELEHNT));
-    }
-
-    // ???
-    else if (myFilter.isShowAbgeschlossenNichtFakturiert() == true) {
-      queryFilter
-          .createAlias("positionen", "position")
-          .createAlias("paymentSchedules", "paymentSchedule", Criteria.FULL_JOIN)
-          .add(
-              Restrictions.or(
-                  Restrictions.or(
-                      Restrictions.eq("auftragsStatus", AuftragsStatus.ABGESCHLOSSEN),
-                      Restrictions.eq("position.status", AuftragsPositionsStatus.ABGESCHLOSSEN)
-                  ),
-                  Restrictions.eq("paymentSchedule.reached", true)
-              )
-          );
-      vollstaendigFakturiert = false;
-    }
-
-    // ok
-    else if (myFilter.isShowAkquise() == true) {
-      queryFilter.add(
-          Restrictions.in("auftragsStatus", new AuftragsStatus[] { AuftragsStatus.GELEGT, AuftragsStatus.IN_ERSTELLUNG,
-              AuftragsStatus.POTENZIAL }));
-
-    } else if (myFilter.isShowBeauftragt() == true) {
-      queryFilter
-          .add(Restrictions.in("auftragsStatus", new AuftragsStatus[] { AuftragsStatus.BEAUFTRAGT, AuftragsStatus.LOI,
-              AuftragsStatus.ESKALATION }));
-    } else if (myFilter.isShowErsetzt() == true) {
-      queryFilter.add(Restrictions.eq("auftragsStatus", AuftragsStatus.ERSETZT));
-    }
-    return vollstaendigFakturiert;
   }
 
   private List<AuftragDO> getList(final BaseSearchFilter filter, final boolean checkAccess)

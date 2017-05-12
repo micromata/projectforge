@@ -39,7 +39,6 @@ import java.util.regex.Pattern;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.projectforge.business.address.FormOfAddress;
-import org.projectforge.business.fibu.AuftragFilter;
 import org.projectforge.business.fibu.AuftragsStatus;
 import org.projectforge.common.i18n.Priority;
 import org.projectforge.framework.calendar.MonthHolder;
@@ -51,9 +50,8 @@ import org.projectforge.web.wicket.WebConstants;
 /**
  * Tries to get all used i18n keys from the sources (java and html). As result a file is written which will be checked
  * by AdminAction.checkI18nProperties. Unused i18n keys should be detected.
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
  */
 public class CreateI18nKeys
 {
@@ -70,8 +68,6 @@ public class CreateI18nKeys
   private static final String PATH_FORM_OF_ADDRESS = getPathForClass(FormOfAddress.class);
 
   private static final String PATH_MENU_ITEM_DEF = getPathForClass(MenuItemDef.class);
-
-  private static final String PATH_AUFTRAG_FILTER = getPathForClass(AuftragFilter.class);
 
   private static final String PATH_AUFTRAG_STATUS = getPathForClass(AuftragsStatus.class);
 
@@ -154,10 +150,6 @@ public class CreateI18nKeys
         for (final FormOfAddress form : FormOfAddress.values()) {
           add(i18nKeyUsage, form.getI18nKey(), file);
         }
-      } else if (file.getPath().endsWith(PATH_AUFTRAG_FILTER) == true) {
-        for (final String key : AuftragFilter.LIST) {
-          add(i18nKeyUsage, "fibu.auftrag.filter.type." + key, file);
-        }
       } else if (file.getPath().endsWith(PATH_AUFTRAG_STATUS) == true) {
         for (final AuftragsStatus status : AuftragsStatus.values()) {
           add(i18nKeyUsage, status.getI18nKey(), file);
@@ -172,7 +164,7 @@ public class CreateI18nKeys
         }
       } else if (file.getName().endsWith("Page.java") == true
           && (content.contains("extends AbstractListPage") == true
-              || content.contains("extends AbstractEditPage") == true)) { // Wicket
+          || content.contains("extends AbstractEditPage") == true)) { // Wicket
         // Page
         List<String> list = find(file, content, "super\\(parameters, \"([a-zA-Z0-9\\.]+)\"\\);"); // super(parameters, "i18nKey");
         for (final String entry : list) {
