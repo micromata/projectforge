@@ -421,7 +421,7 @@ public class AuftragDao extends BaseDao<AuftragDO>
     }
 
     queryFilter
-        .createAlias("positionen", "position")
+        .createAlias("positionen", "position", Criteria.FULL_JOIN)
         .add(Restrictions.or(orCriterions.toArray(new Criterion[orCriterions.size()])));
   }
 
