@@ -23,7 +23,10 @@
 
 package org.projectforge.web.admin;
 
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
 import org.apache.wicket.markup.html.form.Button;
+import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
@@ -37,12 +40,13 @@ import org.projectforge.web.task.TaskTreePage;
 import org.projectforge.web.user.GroupEditPage;
 import org.projectforge.web.user.NewGroupSelectPanel;
 import org.projectforge.web.wicket.AbstractStandardForm;
-import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.web.wicket.components.SingleButtonPanel;
 import org.projectforge.web.wicket.flowlayout.DivPanel;
 import org.projectforge.web.wicket.flowlayout.DivTextPanel;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
 import org.projectforge.web.wicket.flowlayout.Heading3Panel;
+import org.projectforge.web.wicket.flowlayout.IconLinkPanel;
+import org.projectforge.web.wicket.flowlayout.IconType;
 
 public class TaskWizardForm extends AbstractStandardForm<TaskWizardForm, TaskWizardPage>
 {
@@ -84,10 +88,11 @@ public class TaskWizardForm extends AbstractStandardForm<TaskWizardForm, TaskWiz
       fs.add(taskSelectPanel);
       taskSelectPanel.setShowFavorites(false).init();
       taskSelectPanel.setRequired(true);
-      final Button createTaskButton = new Button(SingleButtonPanel.WICKET_ID, new Model<String>("createTask"))
+
+      AjaxSubmitLink createTaskLink = new AjaxSubmitLink(IconLinkPanel.LINK_ID)
       {
         @Override
-        public final void onSubmit()
+        protected void onSubmit(final AjaxRequestTarget target, final Form<?> form)
         {
           final PageParameters params = new PageParameters();
           params.add(TaskEditPage.PARAM_PARENT_TASK_ID, getTaskTree().getRootTaskNode().getId());
@@ -96,13 +101,9 @@ public class TaskWizardForm extends AbstractStandardForm<TaskWizardForm, TaskWiz
           setResponsePage(editPage);
         }
       };
-      createTaskButton.setDefaultFormProcessing(false);
-      WicketUtils.addTooltip(createTaskButton, getString("task.wizard.button.createTask.tooltip"));
-      SingleButtonPanel singleButtonPanel = new SingleButtonPanel(fs.newChildId(), createTaskButton, getString("task.wizard.button.createTask"),
-          SingleButtonPanel.NORMAL);
-      singleButtonPanel.setNonSubmitButton();
-      fs.add(singleButtonPanel);
-
+      createTaskLink.setDefaultFormProcessing(false);
+      fs.add(new IconLinkPanel(fs.newChildId(), IconType.PLUS_SIGN,
+          new Model<String>(getString("task.wizard.button.createTask")), createTaskLink));
     }
     // Team
     groupSelectPanelTeam = createGroupComponents(number++, "team");
@@ -174,10 +175,10 @@ public class TaskWizardForm extends AbstractStandardForm<TaskWizardForm, TaskWiz
         key + "Id");
     fs.add(groupSelectPanel);
     groupSelectPanel.setShowFavorites(false).init();
-    final Button createGroupButton = new Button(SingleButtonPanel.WICKET_ID, new Model<String>("createGroup" + key))
+    AjaxSubmitLink createGroupLink = new AjaxSubmitLink(IconLinkPanel.LINK_ID)
     {
       @Override
-      public final void onSubmit()
+      protected void onSubmit(final AjaxRequestTarget target, final Form<?> form)
       {
         parentPage.managerGroupCreated = "managerGroup".equals(key);
         final PageParameters params = new PageParameters();
@@ -197,12 +198,9 @@ public class TaskWizardForm extends AbstractStandardForm<TaskWizardForm, TaskWiz
         setResponsePage(editPage);
       }
     };
-    createGroupButton.setDefaultFormProcessing(false);
-    final SingleButtonPanel createGroupButtonPanel = new SingleButtonPanel(fs.newChildId(), createGroupButton,
-        getString("task.wizard.button.createGroup"), SingleButtonPanel.NORMAL);
-    WicketUtils.addTooltip(createGroupButton, getString("task.wizard.button.createGroup.tooltip"));
-    createGroupButtonPanel.setNonSubmitButton();
-    fs.add(createGroupButtonPanel);
+    createGroupLink.setDefaultFormProcessing(false);
+    fs.add(new IconLinkPanel(fs.newChildId(), IconType.PLUS_SIGN,
+        new Model<String>(getString("task.wizard.button.createGroup.tooltip")), createGroupLink));
     return groupSelectPanel;
   }
 
