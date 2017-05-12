@@ -66,9 +66,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 /**
  * For initialization of a new ProjectForge system.
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
  */
 @Repository
 @Transactional(readOnly = false, propagation = Propagation.REQUIRED)
@@ -110,9 +109,9 @@ public class InitDatabaseDao
 
   /**
    * If the database is empty (user list is empty) then a admin user and ProjectForge root task will be created.
-   * 
+   *
    * @param adminUser The admin user with the desired username and the salted password (salt string included). All other
-   *          attributes and groups of the user are set by this method.
+   *                  attributes and groups of the user are set by this method.
    */
   public void initializeDefaultData(final PFUserDO adminUser, final TimeZone adminUserTimezone)
   {
@@ -189,7 +188,8 @@ public class InitDatabaseDao
   public TenantDO insertDefaultTenant()
   {
     log.info("Adding default tenant.");
-    String insertDefaultTenant = "INSERT INTO t_tenant VALUES (1,'2016-03-17 14:00:00',FALSE,'2016-03-17 14:00:00',TRUE,'Default tenant','Default tenant','defaultTenant',1)";
+    String insertDefaultTenant = "INSERT INTO t_tenant(PK, CREATED, DELETED, LAST_UPDATE, DEFAULT_TENANT, NAME, SHORTNAME, DESCRIPTION, TENANT_ID) "
+        + "VALUES (1,'2016-03-17 14:00:00',FALSE,'2016-03-17 14:00:00',TRUE,'Default tenant','Default tenant','defaultTenant',1)";
     jdbcTemplate.execute(insertDefaultTenant);
     log.info("Adding default tenant finished.");
     tenantService.resetTenantTableStatus();
@@ -198,7 +198,7 @@ public class InitDatabaseDao
 
   /**
    * Only for internal usage by {@link TenantDao} or {@link InitDatabaseDao}!
-   * 
+   *
    * @param tenant
    * @param adminUser
    */
@@ -246,7 +246,7 @@ public class InitDatabaseDao
   }
 
   /**
-   * @param adminUser The admin user with the desired username and the salted password (salt string included).
+   * @param adminUser         The admin user with the desired username and the salted password (salt string included).
    * @param adminUserTimezone
    */
   public PFUserDO updateAdminUser(PFUserDO user, final TimeZone adminUserTimezone)

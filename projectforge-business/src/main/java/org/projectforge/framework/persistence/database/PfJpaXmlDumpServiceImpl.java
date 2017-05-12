@@ -350,6 +350,7 @@ public class PfJpaXmlDumpServiceImpl extends JpaXmlDumpServiceImpl implements In
         if (o instanceof TenantDO) {
           TenantDO t = (TenantDO) o;
           if (t.isDefault()) {
+            LOG.info("Found default tenant");
             defaultTenant = t;
             break;
           }
@@ -372,6 +373,13 @@ public class PfJpaXmlDumpServiceImpl extends JpaXmlDumpServiceImpl implements In
           users.add(user);
         }
       }
+      // TODO fix duplication bug!
+      //if (o instanceof TaskDO) {
+      //  TaskDO tdo = (TaskDO) o;
+      //  System.out.println(tdo.getParentTaskId() + " " + tdo.getTitle() + " " + tdo.getResponsibleUserId() + " " + tdo.hashCode());
+      //  System.out.println(tdo.toString());
+      //  System.out.println(System.identityHashCode(tdo));
+      //}
       if (o instanceof UserXmlPreferencesDO) {
         UserXmlPreferencesDO pref = (UserXmlPreferencesDO) o;
         pref.setTenant(defaultTenant);

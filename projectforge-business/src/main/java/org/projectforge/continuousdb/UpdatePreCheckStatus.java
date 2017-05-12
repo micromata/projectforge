@@ -29,11 +29,21 @@ package org.projectforge.continuousdb;
 public enum UpdatePreCheckStatus
 {
   UNKNOWN,
-  /** Ready for updating. */
+  /**
+   * Ready for updating.
+   */
   READY_FOR_UPDATE,
-  /** Already updated, nothing to do. */
+  /**
+   * Updated, but restart required
+   */
+  RESTARED_REQUIRED,
+  /**
+   * Already updated, nothing to do.
+   */
   ALREADY_UPDATED,
-  /** Update failed. Oh no... */
+  /**
+   * Update failed. Oh no...
+   */
   FAILED;
 
   public boolean isIn(final UpdatePreCheckStatus... status)

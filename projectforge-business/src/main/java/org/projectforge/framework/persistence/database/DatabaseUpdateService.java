@@ -377,6 +377,21 @@ public class DatabaseUpdateService
     buf.append("\n);\n");
   }
 
+  public String getAttribute(final Class entityClass, final String property)
+  {
+    TableAttribute attr = TableAttribute.createTableAttribute(entityClass, property);
+
+    if (attr == null)
+      return "";
+
+    final Column columnAnnotation = attr.getAnnotation(Column.class);
+    if (columnAnnotation != null && StringUtils.isNotEmpty(columnAnnotation.columnDefinition()) == true) {
+      return columnAnnotation.columnDefinition();
+    } else {
+      return getDatabaseSupport().getType(attr);
+    }
+  }
+
   private void buildAttribute(final StringBuffer buf, final TableAttribute attr)
   {
     buf.append(attr.getName()).append(" ");
@@ -498,7 +513,9 @@ public class DatabaseUpdateService
   {
     final StringBuffer buf = new StringBuffer();
     buildAddTableAttributesStatement(buf, table, attributes);
-    execute(buf.toString());
+
+    this.execute(buf.toString());
+
     return true;
   }
 
@@ -511,7 +528,9 @@ public class DatabaseUpdateService
   {
     final StringBuffer buf = new StringBuffer();
     buildAddTableAttributesStatement(buf, table, attributes);
-    execute(buf.toString());
+
+    this.execute(buf.toString());
+
     return true;
   }
 
@@ -753,7 +772,6 @@ public class DatabaseUpdateService
 
   /**
    * @param name
-   * @param attributes
    * @return true, if the index was dropped, false if an error has occured or the index does not exist.
    */
   public boolean dropIndex(final String name)
@@ -774,6 +792,17 @@ public class DatabaseUpdateService
    */
   public void execute(final String jdbcString)
   {
+    // splitting in multiple commands is required for HSQL
+    if (DatabaseSupport.getInstance().getDialect() != DatabaseDialect.HSQL) {
+      if (jdbcString.contains(";")) {
+        final String[] adds = jdbcString.replace('\n', ' ').split(";");
+
+        for (String add : adds) {
+          execute(add, true);
+        }
+      }
+    }
+
     execute(jdbcString, true);
   }
 
@@ -962,7 +991,14 @@ public class DatabaseUpdateService
   public Optional<Boolean> isColumnNullable(final String tableName, final String columnName)
   {
     try (final Connection connection = getDataSource().getConnection()) {
-      final ResultSet columns = connection.getMetaData().getColumns(null, null, tableName, columnName);
+
+      final ResultSet columns;
+
+      if (DatabaseSupport.getInstance().getDialect() == DatabaseDialect.HSQL) {
+        columns = connection.getMetaData().getColumns(null, null, tableName, columnName);
+      } else { // postgres needs lower case
+        columns = connection.getMetaData().getColumns(null, null, tableName.toLowerCase(), columnName.toLowerCase());
+      }
       Validate.isTrue(columns.next());
 
       // for columnIndex see https://docs.oracle.com/javase/8/docs/api/java/sql/DatabaseMetaData.html#getColumns-java.lang.String-java.lang.String-java.lang.String-java.lang.String-
@@ -973,6 +1009,38 @@ public class DatabaseUpdateService
       log.error(e);
       return Optional.empty();
     }
+  }
+
+  public int dropForeignKeys()
+  {
+    final DatabaseExecutor jdbc = this.getDatabaseExecutor();
+    int countDroppedKeys = 0;
+    int countCurrent = 0;
+    String tableNameLast = null;
+
+    final List<DatabaseResultRow> queryResult = jdbc
+        .query("SELECT TABLE_NAME, CONSTRAINT_NAME FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS WHERE CONSTRAINT_TYPE='FOREIGN KEY' ORDER BY TABLE_NAME;");
+    for (DatabaseResultRow row : queryResult) {
+      final String tableName = (String) row.getEntry(0).getValue();
+      final String foreignKey = (String) row.getEntry(1).getValue();
+
+      if (false == tableName.equals(tableNameLast)) {
+        log.info(String.format("Dropped '%s' foreign keys for table '%s'", countCurrent, tableNameLast));
+        log.info(String.format("Check foreign key constraints of table '%s'", tableName));
+
+        tableNameLast = tableName;
+        countCurrent = 0;
+      }
+
+      jdbc.execute(String.format("ALTER TABLE %s DROP CONSTRAINT %s;", tableName, foreignKey), true);
+
+      ++countDroppedKeys;
+      ++countCurrent;
+    }
+
+    log.info(String.format("Dropped '%s' foreign keys for table '%s'", tableNameLast, countCurrent));
+
+    return countDroppedKeys;
   }
 
 }
