@@ -35,7 +35,10 @@ import java.util.Set;
 import java.util.TimeZone;
 import java.util.function.Predicate;
 
+import org.projectforge.business.address.AddressAttrDO;
+import org.projectforge.business.address.AddressAttrDataDO;
 import org.projectforge.business.address.AddressDO;
+import org.projectforge.business.address.AddressDao;
 import org.projectforge.business.fibu.AuftragDO;
 import org.projectforge.business.fibu.AuftragsPositionDO;
 import org.projectforge.business.fibu.AuftragsPositionsStatus;
@@ -82,6 +85,8 @@ import org.projectforge.framework.configuration.entities.ConfigurationDO;
 import org.projectforge.framework.persistence.attr.impl.InternalAttrSchemaConstants;
 import org.projectforge.framework.persistence.entities.AbstractBaseDO;
 import org.projectforge.framework.persistence.history.HistoryBaseDaoAdapter;
+import org.projectforge.framework.persistence.history.entities.PfHistoryAttrDO;
+import org.projectforge.framework.persistence.history.entities.PfHistoryAttrDataDO;
 import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
 import org.projectforge.framework.persistence.user.entities.GroupDO;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
@@ -123,16 +128,16 @@ public class DatabaseCoreUpdates
     final List<UpdateEntry> list = new ArrayList<>();
 
     ////////////////////////////////////////////////////////////////////
-    // 6.11.0
+    // 6.12.0
     // /////////////////////////////////////////////////////////////////
-    list.add(new UpdateEntryImpl(CORE_REGION_ID, "6.11.0", "2017-05-03",
-        "Add discounts and konto informations. Add period of performance to invoices.")
+    list.add(new UpdateEntryImpl(CORE_REGION_ID, "6.12.0", "2017-05-24",
+        "Change address image data to AddressDO.")
     {
       @Override
       public UpdatePreCheckStatus runPreCheck()
       {
-        log.info("Running pre-check for ProjectForge version 6.11.0");
-        if (isSchemaUpdateNecessary()) {
+        log.info("Running pre-check for ProjectForge version 6.12.0");
+        if (databaseUpdateService.doesTableAttributeExist("T_ADDRESS", "imagedata") == false) {
           return UpdatePreCheckStatus.READY_FOR_UPDATE;
         }
         return UpdatePreCheckStatus.ALREADY_UPDATED;
@@ -141,22 +146,110 @@ public class DatabaseCoreUpdates
       @Override
       public UpdateRunningStatus runUpdate()
       {
-        if (isSchemaUpdateNecessary()) {
+        if (databaseUpdateService.doesTableAttributeExist("T_ADDRESS", "imagedata") == false) {
           initDatabaseDao.updateSchema();
+          migrateImageData();
+          deleteImageHistoryData();
+          deleteImageAddressAttrData();
         }
         return UpdateRunningStatus.DONE;
       }
 
-      private boolean isSchemaUpdateNecessary()
+      private void deleteImageAddressAttrData()
       {
-        return databaseUpdateService.doesTableAttributeExist("t_fibu_eingangsrechnung", "discountmaturity") == false
-            || databaseUpdateService.doesTableAttributeExist("t_fibu_rechnung", "discountmaturity") == false
-            || databaseUpdateService.doesTableAttributeExist("t_fibu_eingangsrechnung", "customernr") == false
-            || databaseUpdateService.doTableAttributesExist(RechnungDO.class, "periodOfPerformanceBegin", "periodOfPerformanceEnd") == false
-            || databaseUpdateService.doTableAttributesExist(RechnungsPositionDO.class, "periodOfPerformanceType", "periodOfPerformanceBegin",
-            "periodOfPerformanceEnd") == false;
+        final PfEmgrFactory emf = applicationContext.getBean(PfEmgrFactory.class);
+        emf.runInTrans(emgr -> {
+          List<AddressAttrDO> addrAttrList = emgr.selectAttached(AddressAttrDO.class,
+              "SELECT addrAttr FROM AddressAttrDO addrAttr WHERE addrAttr.propertyName = 'profileImageData'");
+          for (AddressAttrDO addrAttr : addrAttrList) {
+            List<AddressAttrDataDO> addrAttrDataList = emgr.
+                selectAttached(AddressAttrDataDO.class, "SELECT addrAttrData FROM AddressAttrDataDO addrAttrData WHERE addrAttrData.parent = :addrAttr",
+                    "addrAttr", addrAttr);
+            for (AddressAttrDataDO addrAttrData : addrAttrDataList) {
+              databaseUpdateService.execute("DELETE FROM t_address_attrdata WHERE pk = " + addrAttrData.getPk());
+            }
+            databaseUpdateService.execute("DELETE FROM t_address_attr WHERE pk = " + addrAttr.getPk());
+          }
+          return null;
+        });
       }
+
+      private void deleteImageHistoryData()
+      {
+        final PfEmgrFactory emf = applicationContext.getBean(PfEmgrFactory.class);
+        emf.runInTrans(emgr -> {
+          List<PfHistoryAttrDO> histAttrList = emgr.selectAttached(PfHistoryAttrDO.class,
+              "SELECT histAttr FROM PfHistoryAttrDO histAttr WHERE histAttr.propertyName LIKE '%attrs.profileImageData%'");
+          for (PfHistoryAttrDO histAttr : histAttrList) {
+            List<PfHistoryAttrDataDO> histAttrDataList = emgr.
+                selectAttached(PfHistoryAttrDataDO.class, "SELECT histAttrData FROM PfHistoryAttrDataDO histAttrData WHERE histAttrData.parent = :histAttr",
+                    "histAttr", histAttr);
+            for (PfHistoryAttrDataDO histAttrData : histAttrDataList) {
+              databaseUpdateService.execute("DELETE FROM t_pf_history_attr_data WHERE pk = " + histAttrData.getPk());
+            }
+            databaseUpdateService.execute("DELETE FROM t_pf_history_attr WHERE pk = " + histAttr.getPk());
+          }
+          return null;
+        });
+      }
+
+      private void migrateImageData()
+      {
+        AddressDao addressDao = applicationContext.getBean(AddressDao.class);
+        List<AddressDO> allAddresses = addressDao.internalLoadAll();
+        for (AddressDO ad : allAddresses) {
+          byte[] imageData = ad.getAttribute("profileImageData", byte[].class);
+          if (imageData != null && imageData.length > 0) {
+            final PfEmgrFactory emf = applicationContext.getBean(PfEmgrFactory.class);
+            emf.runInTrans(emgr -> {
+              AddressDO addressDO = emgr.selectByPkAttached(AddressDO.class, ad.getId());
+              addressDO.setImageData(imageData);
+              emgr.update(addressDO);
+              return null;
+            });
+          }
+        }
+      }
+
     });
+
+    ////////////////////////////////////////////////////////////////////
+    // 6.11.0
+    // /////////////////////////////////////////////////////////////////
+    list.add(new
+
+                 UpdateEntryImpl(CORE_REGION_ID, "6.11.0", "2017-05-03",
+                     "Add discounts and konto informations. Add period of performance to invoices.")
+                 {
+                   @Override
+                   public UpdatePreCheckStatus runPreCheck()
+                   {
+                     log.info("Running pre-check for ProjectForge version 6.11.0");
+                     if (isSchemaUpdateNecessary()) {
+                       return UpdatePreCheckStatus.READY_FOR_UPDATE;
+                     }
+                     return UpdatePreCheckStatus.ALREADY_UPDATED;
+                   }
+
+                   @Override
+                   public UpdateRunningStatus runUpdate()
+                   {
+                     if (isSchemaUpdateNecessary()) {
+                       initDatabaseDao.updateSchema();
+                     }
+                     return UpdateRunningStatus.DONE;
+                   }
+
+                   private boolean isSchemaUpdateNecessary()
+                   {
+                     return databaseUpdateService.doesTableAttributeExist("t_fibu_eingangsrechnung", "discountmaturity") == false
+                         || databaseUpdateService.doesTableAttributeExist("t_fibu_rechnung", "discountmaturity") == false
+                         || databaseUpdateService.doesTableAttributeExist("t_fibu_eingangsrechnung", "customernr") == false
+                         || databaseUpdateService.doTableAttributesExist(RechnungDO.class, "periodOfPerformanceBegin", "periodOfPerformanceEnd") == false
+                         || databaseUpdateService.doTableAttributesExist(RechnungsPositionDO.class, "periodOfPerformanceType", "periodOfPerformanceBegin",
+                         "periodOfPerformanceEnd") == false;
+                   }
+                 });
 
     ////////////////////////////////////////////////////////////////////
     // 6.10.0
