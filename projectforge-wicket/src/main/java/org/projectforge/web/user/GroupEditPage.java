@@ -27,13 +27,14 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
-import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.business.ldap.GroupDOConverter;
 import org.projectforge.business.user.GroupDao;
 import org.projectforge.framework.persistence.user.entities.GroupDO;
+import org.projectforge.web.fibu.ISelectCallerPage;
 import org.projectforge.web.wicket.AbstractEditPage;
 import org.projectforge.web.wicket.AbstractSecuredBasePage;
 import org.projectforge.web.wicket.EditPage;
+import org.projectforge.web.wicket.WicketUtils;
 
 @EditPage(defaultReturnPage = GroupListPage.class)
 public class GroupEditPage extends AbstractEditPage<GroupDO, GroupEditForm, GroupDao>
@@ -47,6 +48,8 @@ public class GroupEditPage extends AbstractEditPage<GroupDO, GroupEditForm, Grou
 
   private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(GroupEditPage.class);
 
+  private final String selectProperty;
+
   @SpringBean
   private GroupDao groupDao;
 
@@ -55,18 +58,25 @@ public class GroupEditPage extends AbstractEditPage<GroupDO, GroupEditForm, Grou
 
   /**
    * Used by the TutorialPage.
-   * 
+   *
    * @param group
    */
   public GroupEditPage(final GroupDO group)
   {
     super(new PageParameters(), "group");
     super.init(group);
+    selectProperty = null;
   }
 
   public GroupEditPage(final PageParameters parameters)
   {
+    this(parameters, null);
+  }
+
+  public GroupEditPage(final PageParameters parameters, final String selectProperty)
+  {
     super(parameters, "group");
+    this.selectProperty = selectProperty;
     super.init();
     final String groupName = WicketUtils.getAsString(parameters, PARAM_GROUP_NAME);
     if (StringUtils.isNotEmpty(groupName) == true) {
@@ -85,6 +95,16 @@ public class GroupEditPage extends AbstractEditPage<GroupDO, GroupEditForm, Grou
       getData().setLdapValues(xml);
     }
     return super.onSaveOrUpdate();
+  }
+
+  @Override
+  public AbstractSecuredBasePage afterSaveOrUpdate()
+  {
+    if (selectProperty != null) {
+      ((ISelectCallerPage) returnToPage).select(selectProperty, getData().getId());
+    }
+
+    return super.afterSaveOrUpdate();
   }
 
   @Override
