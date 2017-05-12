@@ -198,6 +198,7 @@ public class AddressDO extends DefaultBaseWithAttrDO<AddressDO>
   @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
   private Date birthday;
 
+  @NoHistory
   private byte[] imageData;
 
   // @FieldBridge(impl = HibernateSearchInstantMessagingBridge.class)
