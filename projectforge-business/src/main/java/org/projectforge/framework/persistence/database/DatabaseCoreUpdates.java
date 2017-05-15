@@ -548,7 +548,7 @@ public class DatabaseCoreUpdates
       {
         log.info("Running pre-check for ProjectForge version 6.4.0");
         // ensure that the tenant exists, otherwise the following statements will fail with an SQL exception
-        if (!databaseUpdateService.doTablesExist(TenantDO.class)) {
+        if (!databaseUpdateService.doTablesExist(TenantDO.class) || databaseUpdateService.internalIsTableEmpty("T_TENANT")) {
           return UpdatePreCheckStatus.READY_FOR_UPDATE;
         }
 
@@ -1349,7 +1349,7 @@ public class DatabaseCoreUpdates
     return list;
   }
 
-  public static void uniqueConstraintWorkaround(final DatabaseUpdateService dus, final PfEmgrFactory emf)
+  private static void uniqueConstraintWorkaround(final DatabaseUpdateService dus, final PfEmgrFactory emf)
   {
     EntityMetadata pce;
 
