@@ -153,6 +153,7 @@ public class SystemUpdateForm extends AbstractForm<SystemUpdateForm, SystemUpdat
     boolean odd = true;
     final List<WebMarkupContainer> updatebleItems = new ArrayList<>();
     UpdateEntry entryToUpdate = null;
+    boolean isRestartRequired = false;
     for (final UpdateEntry updateEntry : updateEntries) {
       if (showOldUpdateScripts == false && updateEntry.getPreCheckStatus() == UpdatePreCheckStatus.ALREADY_UPDATED) {
         continue;
@@ -181,6 +182,9 @@ public class SystemUpdateForm extends AbstractForm<SystemUpdateForm, SystemUpdat
       if (updateEntry.getPreCheckStatus() == UpdatePreCheckStatus.READY_FOR_UPDATE) {
         updatebleItems.add(item);
         entryToUpdate = updateEntry;
+      } else if (updateEntry.getPreCheckStatus() == UpdatePreCheckStatus.RESTARED_REQUIRED) {
+        updatebleItems.add(item);
+        isRestartRequired = true;
       } else {
         final String runningResult = updateEntry.getRunningResult();
         item.add(new Label("update", HtmlHelper.escapeHtml(runningResult, true)));
@@ -190,7 +194,7 @@ public class SystemUpdateForm extends AbstractForm<SystemUpdateForm, SystemUpdat
     int countEntriesToUpdate = updatebleItems.size();
     int counter = 1;
     for (WebMarkupContainer updateItem : updatebleItems) {
-      if (counter == countEntriesToUpdate) {
+      if (counter == countEntriesToUpdate && isRestartRequired == false) {
         // add update button only to last entry (lowest version)
         addButtonToItem(updateItem, entryToUpdate);
       } else {
