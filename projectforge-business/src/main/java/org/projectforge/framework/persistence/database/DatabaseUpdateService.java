@@ -511,30 +511,17 @@ public class DatabaseUpdateService
 
   public boolean addTableAttributes(final String table, final TableAttribute... attributes)
   {
-    final StringBuffer buf = new StringBuffer();
-    buildAddTableAttributesStatement(buf, table, attributes);
-
-    this.execute(buf.toString());
+    // splitting in multiple commands is required for HSQL
+    for (TableAttribute att : attributes) {
+      final StringBuffer buf = new StringBuffer();
+      buildAddTableAttributesStatement(buf, table, att);
+      this.execute(buf.toString());
+    }
 
     return true;
   }
 
   public boolean addTableAttributes(final Table table, final TableAttribute... attributes)
-  {
-    return addTableAttributes(table.getName(), attributes);
-  }
-
-  public boolean addTableAttributes(final String table, final Collection<TableAttribute> attributes)
-  {
-    final StringBuffer buf = new StringBuffer();
-    buildAddTableAttributesStatement(buf, table, attributes);
-
-    this.execute(buf.toString());
-
-    return true;
-  }
-
-  public boolean addTableAttributes(final Table table, final Collection<TableAttribute> attributes)
   {
     return addTableAttributes(table.getName(), attributes);
   }
@@ -792,17 +779,6 @@ public class DatabaseUpdateService
    */
   public void execute(final String jdbcString)
   {
-    // splitting in multiple commands is required for HSQL
-    if (DatabaseSupport.getInstance().getDialect() != DatabaseDialect.HSQL) {
-      if (jdbcString.contains(";")) {
-        final String[] adds = jdbcString.replace('\n', ' ').split(";");
-
-        for (String add : adds) {
-          execute(add, true);
-        }
-      }
-    }
-
     execute(jdbcString, true);
   }
 
