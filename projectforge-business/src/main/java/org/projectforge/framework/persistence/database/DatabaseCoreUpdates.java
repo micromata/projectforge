@@ -24,8 +24,11 @@
 package org.projectforge.framework.persistence.database;
 
 import java.math.BigDecimal;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.time.temporal.ChronoField;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
@@ -94,6 +97,7 @@ import org.projectforge.framework.persistence.user.entities.GroupDO;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.persistence.user.entities.TenantDO;
 import org.projectforge.framework.persistence.user.entities.UserRightDO;
+import org.projectforge.framework.time.DateFormats;
 import org.projectforge.framework.time.DateHelper;
 import org.springframework.context.ApplicationContext;
 
@@ -216,6 +220,78 @@ public class DatabaseCoreUpdates
         }
       }
 
+    });
+
+    ////////////////////////////////////////////////////////////////////
+    // 6.11.1
+    // /////////////////////////////////////////////////////////////////
+    list.add(new UpdateEntryImpl(CORE_REGION_ID, "6.11.1", "2017-05-19",
+        "Correct calendar exdates")
+    {
+      @Override
+      public UpdatePreCheckStatus runPreCheck()
+      {
+        log.info("Running pre-check for ProjectForge version 6.11.1");
+        if (hasISODates()) {
+          return UpdatePreCheckStatus.READY_FOR_UPDATE;
+        }
+        return UpdatePreCheckStatus.ALREADY_UPDATED;
+      }
+
+      @Override
+      public UpdateRunningStatus runUpdate()
+      {
+        if (hasISODates()) {
+          final PfEmgrFactory emf = applicationContext.getBean(PfEmgrFactory.class);
+          emf.runInTrans(emgr -> {
+            SimpleDateFormat iCalFormatterWithTime = new SimpleDateFormat(DateFormats.ICAL_DATETIME_FORMAT);
+            SimpleDateFormat iCalFormatterAllDay = new SimpleDateFormat(DateFormats.COMPACT_DATE);
+            List<SimpleDateFormat> formatterPatterns = Arrays
+                .asList(new SimpleDateFormat(DateFormats.ISO_TIMESTAMP_SECONDS), new SimpleDateFormat(DateFormats.ISO_TIMESTAMP_MINUTES),
+                    new SimpleDateFormat(DateFormats.ISO_DATE), iCalFormatterWithTime, iCalFormatterAllDay);
+            List<TeamEventDO> teamEventDOList = emgr
+                .selectAttached(TeamEventDO.class, "SELECT te FROM TeamEventDO te WHERE te.recurrenceExDate IS NOT NULL AND te.recurrenceExDate <> ''");
+            for (TeamEventDO te : teamEventDOList) {
+              String exDateList = te.getRecurrenceExDate();
+              String[] exDateArray = exDateList.split(",");
+              List<String> finalExDates = new ArrayList<>();
+              for (String exDateOld : exDateArray) {
+                Date oldDate = null;
+                for (SimpleDateFormat sdf : formatterPatterns) {
+                  try {
+                    oldDate = sdf.parse(exDateOld);
+                    break;
+                  } catch (ParseException e) {
+                    if (log.isDebugEnabled()) {
+                      log.debug("Date not parsable. Try another parser.");
+                    }
+                  }
+                }
+                if (oldDate == null) {
+                  log.error("Date not parsable. Ignoring it: " + exDateOld);
+                  continue;
+                }
+                if (te.isAllDay()) {
+                  finalExDates.add(iCalFormatterAllDay.format(oldDate));
+                } else {
+                  finalExDates.add(iCalFormatterWithTime.format(oldDate));
+                }
+              }
+              String newExDateValue = String.join(",", finalExDates);
+              te.setRecurrenceExDate(newExDateValue);
+              emgr.update(te);
+            }
+            return null;
+          });
+        }
+        return UpdateRunningStatus.DONE;
+      }
+
+      private boolean hasISODates()
+      {
+        List<DatabaseResultRow> result = databaseUpdateService.query("SELECT * FROM T_PLUGIN_CALENDAR_EVENT WHERE recurrence_ex_date LIKE '%-%' LIMIT 1");
+        return result.size() > 0;
+      }
     });
 
     ////////////////////////////////////////////////////////////////////

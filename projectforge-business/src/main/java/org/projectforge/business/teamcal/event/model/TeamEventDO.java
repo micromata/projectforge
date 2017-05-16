@@ -561,11 +561,7 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
       return this;
     }
     final String exDate;
-    if (isAllDay() == true) {
-      exDate = ICal4JUtils.asISODateString(date, timeZone);
-    } else {
-      exDate = ICal4JUtils.asISODateTimeString(date);
-    }
+    exDate = ICal4JUtils.asICalDateString(date, timeZone, isAllDay());
     if (recurrenceExDate == null) {
       recurrenceExDate = exDate;
     } else if (recurrenceExDate.contains(exDate) == false) {
@@ -592,7 +588,7 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
   @Transient
   public TeamEventDO setRecurrenceDate(final Date recurrenceDate)
   {
-    final DateFormat df = new SimpleDateFormat(DateFormats.ISO_TIMESTAMP_MILLIS);
+    final DateFormat df = new SimpleDateFormat(DateFormats.ICAL_DATETIME_FORMAT);
     // Need the user's time-zone for getting midnight of desired date.
     df.setTimeZone(ThreadLocalUserContext.getTimeZone());
     // But print it as UTC date:

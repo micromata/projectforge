@@ -55,10 +55,6 @@ public class ICal4JUtils
 
   private static TimeZoneRegistry registry = TimeZoneRegistryFactory.getInstance().createRegistry();
 
-  private static final String ICAL_DATETIME_FORMAT = "yyyyMMdd'T'HHmmss";
-
-  private static final String ICAL_DATE_FORMAT = "yyyyMMdd";
-
   /**
    * @return The timeZone (ical4j) built of the default java timeZone of the user.
    * @see ThreadLocalUserContext#getTimeZone()
@@ -295,9 +291,9 @@ public class ICal4JUtils
     String pattern;
     java.util.TimeZone tz = timeZone;
     if (dateString.indexOf('T') > 0) {
-      pattern = ICAL_DATETIME_FORMAT;
+      pattern = DateFormats.ICAL_DATETIME_FORMAT;
     } else {
-      pattern = ICAL_DATE_FORMAT;
+      pattern = DateFormats.COMPACT_DATE;
       tz = DateHelper.UTC;
     }
     final DateFormat df = new SimpleDateFormat(pattern);
@@ -353,6 +349,25 @@ public class ICal4JUtils
     }
     final DateFormat df = new SimpleDateFormat(DateFormats.ISO_TIMESTAMP_SECONDS);
     df.setTimeZone(DateHelper.UTC);
+    return df.format(date);
+  }
+
+  public static String asICalDateString(final Date date, final java.util.TimeZone timeZone, final boolean withoutTime)
+  {
+    if (date == null) {
+      return null;
+    }
+    DateFormat df = null;
+    if (withoutTime) {
+      df = new SimpleDateFormat(DateFormats.COMPACT_DATE);
+    } else {
+      df = new SimpleDateFormat(DateFormats.ICAL_DATETIME_FORMAT);
+    }
+    if (timeZone != null) {
+      df.setTimeZone(timeZone);
+    } else {
+      df.setTimeZone(DateHelper.UTC);
+    }
     return df.format(date);
   }
 
