@@ -34,7 +34,6 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.ResourceModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
-import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.business.task.TaskDO;
 import org.projectforge.business.task.TaskTree;
 import org.projectforge.business.tasktree.TaskTreeHelper;
@@ -47,9 +46,11 @@ import org.projectforge.web.calendar.QuickSelectPanel;
 import org.projectforge.web.task.TaskSelectPanel;
 import org.projectforge.web.user.UserSelectPanel;
 import org.projectforge.web.wicket.AbstractListForm;
+import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.web.wicket.bootstrap.GridSize;
 import org.projectforge.web.wicket.components.DatePanel;
 import org.projectforge.web.wicket.components.DatePanelSettings;
+import org.projectforge.web.wicket.flowlayout.CheckBoxButton;
 import org.projectforge.web.wicket.flowlayout.DivPanel;
 import org.projectforge.web.wicket.flowlayout.DivTextPanel;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
@@ -82,6 +83,7 @@ public class TimesheetListForm extends AbstractListForm<TimesheetListFilter, Tim
   protected void init()
   {
     super.init();
+
     add(new IFormValidator()
     {
       @Override
@@ -93,9 +95,7 @@ public class TimesheetListForm extends AbstractListForm<TimesheetListFilter, Tim
       @Override
       public void validate(final Form<?> form)
       {
-        if (parentPage.isMassUpdateMode() == true) {
-
-        } else {
+        if (parentPage.isMassUpdateMode() == false) {
           final TimesheetFilter filter = getSearchFilter();
           final Date from = startDate.getConvertedInput();
           final Date to = stopDate.getConvertedInput();
@@ -107,7 +107,8 @@ public class TimesheetListForm extends AbstractListForm<TimesheetListFilter, Tim
         }
       }
     });
-    final TimesheetFilter filter = getSearchFilter();
+
+    // Task
     {
       gridBuilder.newSplitPanel(GridSize.COL66);
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("task")).suppressLabelForWarning();
@@ -133,8 +134,10 @@ public class TimesheetListForm extends AbstractListForm<TimesheetListFilter, Tim
       taskSelectPanel.init();
       taskSelectPanel.setRequired(false);
     }
+
+    // Assignee
+    final TimesheetFilter filter = getSearchFilter();
     {
-      // Assignee
       gridBuilder.newSplitPanel(GridSize.COL33);
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("user"));
       final UserSelectPanel assigneeSelectPanel = new UserSelectPanel(fs.newChildId(), new Model<PFUserDO>()
@@ -157,7 +160,7 @@ public class TimesheetListForm extends AbstractListForm<TimesheetListFilter, Tim
       }, parentPage, "userId");
       fs.add(assigneeSelectPanel);
       assigneeSelectPanel.setDefaultFormProcessing(false);
-      assigneeSelectPanel.init().withAutoSubmit(true);
+      assigneeSelectPanel.init();
     }
     {
       gridBuilder.newSplitPanel(GridSize.COL66);
@@ -181,7 +184,7 @@ public class TimesheetListForm extends AbstractListForm<TimesheetListFilter, Tim
             getSearchFilter().setStopTime(null);
             clearInput();
             parentPage.refresh();
-          };
+          }
         };
         unselectPeriodLink.setDefaultFormProcessing(false);
         fs.add(new IconLinkPanel(fs.newChildId(), IconType.REMOVE_SIGN,
@@ -232,20 +235,31 @@ public class TimesheetListForm extends AbstractListForm<TimesheetListFilter, Tim
 
   /**
    * @see org.projectforge.web.wicket.AbstractListForm#onOptionsPanelCreate(org.projectforge.web.wicket.flowlayout.FieldsetPanel,
-   *      org.projectforge.web.wicket.flowlayout.DivPanel)
+   * org.projectforge.web.wicket.flowlayout.DivPanel)
    */
   @Override
   protected void onOptionsPanelCreate(final FieldsetPanel optionsFieldsetPanel, final DivPanel optionsCheckBoxesPanel)
   {
-    optionsCheckBoxesPanel
-        .add(createAutoRefreshCheckBoxButton(optionsCheckBoxesPanel.newChildId(), new PropertyModel<Boolean>(
-            getSearchFilter(), "longFormat"), getString("longFormat")));
-    optionsCheckBoxesPanel
-        .add(createAutoRefreshCheckBoxButton(optionsCheckBoxesPanel.newChildId(), new PropertyModel<Boolean>(
-            getSearchFilter(), "recursive"), getString("task.recursive")));
-    optionsCheckBoxesPanel.add(createAutoRefreshCheckBoxButton(optionsCheckBoxesPanel.newChildId(),
-        new PropertyModel<Boolean>(getSearchFilter(), "marked"), getString("timesheet.filter.withTimeperiodCollision"),
-        getString("timesheet.filter.withTimeperiodCollision.tooltip")).setWarning());
+    optionsCheckBoxesPanel.add(new CheckBoxButton(
+        optionsCheckBoxesPanel.newChildId(),
+        new PropertyModel<>(getSearchFilter(), "longFormat"),
+        getString("longFormat")
+    ));
+
+    optionsCheckBoxesPanel.add(new CheckBoxButton(
+        optionsCheckBoxesPanel.newChildId(),
+        new PropertyModel<>(getSearchFilter(), "recursive"),
+        getString("task.recursive")
+    ));
+
+    final CheckBoxButton markedButton = new CheckBoxButton(
+        optionsCheckBoxesPanel.newChildId(),
+        new PropertyModel<>(getSearchFilter(), "marked"),
+        getString("timesheet.filter.withTimeperiodCollision")
+    );
+    markedButton.setWarning();
+    markedButton.setTooltip(getString("timesheet.filter.withTimeperiodCollision.tooltip"));
+    optionsCheckBoxesPanel.add(markedButton);
   }
 
   /**
