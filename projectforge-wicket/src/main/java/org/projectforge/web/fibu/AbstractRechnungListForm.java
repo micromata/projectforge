@@ -57,7 +57,7 @@ public abstract class AbstractRechnungListForm<F extends RechnungFilter, P exten
   @SuppressWarnings("serial")
   protected void init()
   {
-    super.init();
+    super.init(false);
     gridBuilder.newGridPanel();
     {
       // Statistics
