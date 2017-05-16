@@ -27,7 +27,6 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.AttributeModifier;
@@ -101,6 +100,7 @@ public class AuftragListPage extends AbstractListPage<AuftragListForm, AuftragDa
     final List<IColumn<AuftragDO, String>> columns = new ArrayList<IColumn<AuftragDO, String>>();
     final CellItemListener<AuftragDO> cellItemListener = new CellItemListener<AuftragDO>()
     {
+      @Override
       public void populateItem(final Item<ICellPopulator<AuftragDO>> item, final String componentId,
           final IModel<AuftragDO> rowModel)
       {
@@ -148,13 +148,15 @@ public class AuftragListPage extends AbstractListPage<AuftragListForm, AuftragDa
         cellItemListener));
     columns.add(new AbstractColumn<AuftragDO, String>(new Model<String>(getString("label.position.short")))
     {
+      @Override
       public void populateItem(final Item<ICellPopulator<AuftragDO>> cellItem, final String componentId,
           final IModel<AuftragDO> rowModel)
       {
         final AuftragDO auftrag = rowModel.getObject();
         auftragDao.calculateInvoicedSum(auftrag);
-        final List<AuftragsPositionDO> fullList = auftrag.getPositionen();
-        final List<AuftragsPositionDO> list = fullList.stream().filter(pos -> pos.isDeleted() == false).collect(Collectors.toList());
+        //final List<AuftragsPositionDO> fullList = auftrag.getPositionenIncludingDeleted();
+        final List<AuftragsPositionDO> list = auftrag
+            .getPositionenExcludingDeleted();//fullList.stream().filter(pos -> pos.isDeleted() == false).collect(Collectors.toList());
         final Label label = new Label(componentId, new Model<String>("#" + list.size()));
         if (list != null) {
           final StringBuffer buf = new StringBuffer();
