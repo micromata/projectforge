@@ -79,6 +79,7 @@ import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
 import org.projectforge.web.wicket.flowlayout.HtmlCommentPanel;
 import org.projectforge.web.wicket.flowlayout.InputPanel;
 import org.projectforge.web.wicket.flowlayout.LabelPanel;
+import org.projectforge.web.wicket.flowlayout.TextAreaPanel;
 import org.projectforge.web.wicket.flowlayout.ToggleContainerPanel;
 
 import com.vaynberg.wicket.select2.Select2MultiChoice;
@@ -382,8 +383,8 @@ public class TeamEventEditForm extends AbstractEditForm<TeamEventDO, TeamEventEd
         // Until. Only visible if recurrenceData.interval != NONE.
         recurrenceExDateFieldset = innerGridBuilder.newFieldset(getString("plugins.teamcal.event.recurrence.exDate"));
         recurrenceExDateFieldset
-            .add(new MaxLengthTextField(recurrenceExDateFieldset.getTextFieldId(), new PropertyModel<String>(data,
-                "recurrenceExDate")));
+            .add(new MaxLengthTextArea(TextAreaPanel.WICKET_ID, new PropertyModel<String>(data,
+                "recurrenceExDate"), 4000));
         recurrenceExDateFieldset.getFieldset().setOutputMarkupId(true);
         recurrenceExDateFieldset.addHelpIcon(getString("plugins.teamcal.event.recurrence.exDate.tooltip"));
       }

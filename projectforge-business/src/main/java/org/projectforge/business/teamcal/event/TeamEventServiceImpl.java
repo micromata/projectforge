@@ -31,6 +31,7 @@ import org.projectforge.business.teamcal.service.CryptService;
 import org.projectforge.business.teamcal.service.TeamCalServiceImpl;
 import org.projectforge.business.teamcal.servlet.TeamCalResponseServlet;
 import org.projectforge.business.user.service.UserService;
+import org.projectforge.framework.calendar.ICal4JUtils;
 import org.projectforge.framework.i18n.I18nHelper;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
@@ -294,23 +295,14 @@ public class TeamEventServiceImpl implements TeamEventService
         e.printStackTrace();
       }
       repeat = getRepeatText(rRule);
-      SimpleDateFormat parser1 = new SimpleDateFormat("yyyyMMddhhmmss");
-      SimpleDateFormat parser2 = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
       formatter = new SimpleDateFormat("dd.MM.yyyy", ThreadLocalUserContext.getLocale());
       if (data.getRecurrenceExDate() != null && (data.getRecurrenceExDate().equals("") == false || data.getRecurrenceExDate().equals(",") == false)) {
         String[] exDateSplit = data.getRecurrenceExDate().split(",");
         for (int i = 0; i < exDateSplit.length - 1; i++) {
-          try {
-            Date date = parser1.parse(exDateSplit[i].replace("T", ""));
+          Date date = ICal4JUtils.parseICalDateString(exDateSplit[i], ThreadLocalUserContext.getTimeZone());
+          if (date != null) {
             exDate.add(formatter.format(date));
-          } catch (ParseException e) {
-            log.warn("Something went wrong while parsing date.", e);
           }
-        }
-        try {
-          exDate.add(formatter.format(parser2.parse(exDateSplit[exDateSplit.length - 1])));
-        } catch (ParseException e) {
-          log.warn("Something went wrong while parsing date.", e);
         }
       }
     }
@@ -332,14 +324,19 @@ public class TeamEventServiceImpl implements TeamEventService
     final String content = sendMail.renderGroovyTemplate(msg, "mail/teamEventEmail.html", emailDataMap, ThreadLocalUserContext.getUser());
     msg.setContent(content);
     boolean result = false;
-    try {
+    try
+
+    {
       if (deleted) {
         result = sendMail.send(msg, null, null);
       } else {
         ByteArrayOutputStream icsFile = teamEventConverter.getIcsFile(data, false);
         result = sendMail.send(msg, icsFile.toString(StandardCharsets.UTF_8.name()), null);
       }
-    } catch (UnsupportedEncodingException e) {
+    } catch (
+        UnsupportedEncodingException e)
+
+    {
       log.error("Something went wrong sending team event to attendee", e);
     }
     return result;
