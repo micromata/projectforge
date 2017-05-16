@@ -62,7 +62,7 @@ public class AuftragListForm extends AbstractListForm<AuftragFilter, AuftragList
   @Override
   protected void init()
   {
-    super.init();
+    super.init(false);
     {
       // Statistics
       gridBuilder.newGridPanel();
@@ -269,6 +269,7 @@ public class AuftragListForm extends AbstractListForm<AuftragFilter, AuftragList
     this.auftragsStatistik = null;
   }
 
+  @Override
   public PFUserDO getUser()
   {
     return getSearchFilter().getUser();
