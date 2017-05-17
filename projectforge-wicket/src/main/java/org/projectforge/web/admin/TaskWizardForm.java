@@ -130,8 +130,6 @@ public class TaskWizardForm extends AbstractStandardForm<TaskWizardForm, TaskWiz
           }
         }
       }));
-    }
-    {
       addCancelButton(new Button(SingleButtonPanel.WICKET_ID, new Model<String>("cancel"))
       {
         @Override
@@ -147,12 +145,6 @@ public class TaskWizardForm extends AbstractStandardForm<TaskWizardForm, TaskWiz
       public final void onSubmit()
       {
         parentPage.create();
-      }
-
-      @Override
-      public boolean isVisible()
-      {
-        return parentPage.actionRequired();
       }
     };
     final SingleButtonPanel finishButtonPanel = new SingleButtonPanel(actionButtons.newChildId(), finishButton,
