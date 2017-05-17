@@ -140,6 +140,7 @@ public class VacationEditPage extends AbstractEditPage<VacationDO, VacationEditF
         vacationService.sendMailToVacationInvolved(form.getData(), false, false);
       }
       if (VacationStatus.APPROVED.equals(form.getData().getStatus())) {
+        vacationService.markAsDeleteEventsForVacationCalendars(form.getData(), false);
         vacationService.createEventsForVacationCalendars(form.getData());
       }
       if (form.getStatusBeforeModification() != null) {
@@ -160,23 +161,16 @@ public class VacationEditPage extends AbstractEditPage<VacationDO, VacationEditF
               // nothing to do
           }
         }
-      }
-      if (form.getStatusBeforeModification() == VacationStatus.APPROVED) {
-        switch (form.getData().getStatus()) {
-          case REJECTED:
-            // APPROVED -> NOT APPROVED
-            vacationService.markAsDeleteEventsForVacationCalendars(form.getData());
-            vacationService.deleteUsedVacationDaysFromLastYear(form.getData());
-            break;
-
-          case IN_PROGRESS:
-            // APPROVED -> NOT APPROVED
-            vacationService.markAsDeleteEventsForVacationCalendars(form.getData());
-            vacationService.deleteUsedVacationDaysFromLastYear(form.getData());
-            break;
-
-          default:
-            // nothing to do
+        if (form.getStatusBeforeModification() == VacationStatus.APPROVED) {
+          switch (form.getData().getStatus()) {
+            case REJECTED:
+            case IN_PROGRESS:  // APPROVED -> NOT APPROVED
+              vacationService.markAsDeleteEventsForVacationCalendars(form.getData(), true);
+              vacationService.deleteUsedVacationDaysFromLastYear(form.getData());
+              break;
+            default:
+              // nothing to do
+          }
         }
       }
     } catch (final Exception e) {
@@ -191,7 +185,7 @@ public class VacationEditPage extends AbstractEditPage<VacationDO, VacationEditF
   {
     try {
       if (VacationStatus.APPROVED.equals(form.getData().getStatus())) {
-        vacationService.markAsDeleteEventsForVacationCalendars(form.getData());
+        vacationService.markAsDeleteEventsForVacationCalendars(form.getData(), true);
         vacationService.deleteUsedVacationDaysFromLastYear(form.getData());
         vacationService.sendMailToVacationInvolved(form.getData(), false, true);
       }

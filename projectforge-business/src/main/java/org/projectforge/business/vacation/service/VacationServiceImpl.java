@@ -629,15 +629,15 @@ public class VacationServiceImpl extends CorePersistenceServiceImpl<Integer, Vac
   }
 
   @Override
-  public void markAsDeleteEventsForVacationCalendars(final VacationDO vacation)
+  public void markAsDeleteEventsForVacationCalendars(final VacationDO vacation, boolean withVacationDao)
   {
     final List<VacationCalendarDO> vacationCalendarDOs = vacationDao.getVacationCalendarDOs(vacation);
     for (final VacationCalendarDO vacationCalendarDO : vacationCalendarDOs) {
-      if (vacationCalendarDO.isDeleted() == false) {
-        if (vacationCalendarDO.getEvent() != null) {
+      if (vacationCalendarDO.getEvent() != null) {
+        if (withVacationDao) {
           vacationDao.deleteVacationCalendarDO(vacationCalendarDO);
-          teamEventDao.internalMarkAsDeleted(teamEventDao.getById(vacationCalendarDO.getEvent().getId()));
         }
+        teamEventDao.internalMarkAsDeleted(teamEventDao.internalGetById((vacationCalendarDO.getEvent().getId())));
       }
     }
   }
@@ -659,7 +659,7 @@ public class VacationServiceImpl extends CorePersistenceServiceImpl<Integer, Vac
     List<VacationCalendarDO> vacationCalendarDOs = vacationDao.getVacationCalendarDOs(vacation);
     for (VacationCalendarDO vacationCalendarDO : vacationCalendarDOs) {
       if (vacationCalendarDO.getEvent() != null) {
-        teamEventDao.internalUndelete(teamEventDao.getById(vacationCalendarDO.getEvent().getId()));
+        teamEventDao.internalUndelete(teamEventDao.internalGetById(vacationCalendarDO.getEvent().getId()));
       }
     }
   }
@@ -694,8 +694,16 @@ public class VacationServiceImpl extends CorePersistenceServiceImpl<Integer, Vac
   public TeamEventDO getOrCreateTeamEventDO(final VacationCalendarDO vacationCalendarDO)
   {
     if (vacationCalendarDO.getEvent() != null) {
-      final TeamEventDO byId = teamEventDao.getById(vacationCalendarDO.getEvent().getId());
+      final TeamEventDO byId = teamEventDao.internalGetById(vacationCalendarDO.getEvent().getId());
       teamEventDao.internalUndelete(byId);
+      if (byId.getStartDate().equals(vacationCalendarDO.getVacation().getStartDate()) == false || byId.getEndDate()
+          .equals(vacationCalendarDO.getVacation().getEndDate()) == false) {
+        final Timestamp startTimestamp = new Timestamp(vacationCalendarDO.getVacation().getStartDate().getTime());
+        final Timestamp endTimestamp = new Timestamp(vacationCalendarDO.getVacation().getEndDate().getTime());
+        byId.setStartDate(startTimestamp);
+        byId.setEndDate(endTimestamp);
+        teamEventDao.internalSaveOrUpdate(byId);
+      }
       return byId;
     } else {
       final TeamEventDO teamEventDO = new TeamEventDO();
