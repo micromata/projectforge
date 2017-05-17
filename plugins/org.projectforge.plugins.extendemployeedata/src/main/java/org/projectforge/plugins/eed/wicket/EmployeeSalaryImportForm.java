@@ -4,11 +4,9 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
 
-import org.apache.wicket.feedback.FeedbackMessage;
 import org.apache.wicket.markup.html.form.Button;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.upload.FileUploadField;
-import org.apache.wicket.markup.html.panel.FeedbackPanel;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.framework.i18n.I18nHelper;
@@ -37,8 +35,6 @@ public class EmployeeSalaryImportForm extends AbstractImportForm<ImportFilter, E
 
   private DropDownChoicePanel<Integer> dropDownYear;
 
-  private FeedbackPanel feedbackPanel;
-
   public EmployeeSalaryImportForm(final EmployeeSalaryImportPage parentPage)
   {
     super(parentPage);
@@ -49,10 +45,6 @@ public class EmployeeSalaryImportForm extends AbstractImportForm<ImportFilter, E
   protected void init()
   {
     super.init();
-
-    this.feedbackPanel = new FeedbackPanel(gridBuilder.getMainContainer().newChildId());
-
-    gridBuilder.getMainContainer().add(feedbackPanel);
 
     gridBuilder.newGridPanel();
 
@@ -107,10 +99,5 @@ public class EmployeeSalaryImportForm extends AbstractImportForm<ImportFilter, E
   {
     dropDownMonth.setEnabled(enabled);
     dropDownYear.setEnabled(enabled);
-  }
-
-  void writeToFeedbackPanel(String message)
-  {
-    this.feedbackPanel.getFeedbackMessages().add(new FeedbackMessage(null, message, 0));
   }
 }
