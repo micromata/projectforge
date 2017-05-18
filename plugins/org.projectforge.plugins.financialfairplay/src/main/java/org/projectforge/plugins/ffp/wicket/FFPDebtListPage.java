@@ -95,15 +95,15 @@ public class FFPDebtListPage extends AbstractListPage<FFPDebtListForm, FFPDebtDa
               if (debt.isApprovedByFrom() == false) {
                 eventService.updateDebtFrom(debt);
                 button.add(AttributeModifier.append("class", ButtonType.GREEN.getClassAttrValue()));
-                button.addOrReplace(new Label("title", I18nHelper.getLocalizedMessage("plugins.ffp.approved")));
+                button.addOrReplace(new Label("title", I18nHelper.getLocalizedMessage("plugins.ffp.payed")));
                 target.add(button);
               }
             }
           });
         }
         String label = debt.isApprovedByFrom() ?
-            I18nHelper.getLocalizedMessage("plugins.ffp.approved") :
-            I18nHelper.getLocalizedMessage("plugins.ffp.notApproved");
+            I18nHelper.getLocalizedMessage("plugins.ffp.payed") :
+            I18nHelper.getLocalizedMessage("plugins.ffp.notPayed");
         ButtonType bt = debt.isApprovedByFrom() ? ButtonType.GREEN : ButtonType.RED;
         ButtonPanel buttonPanel = new ButtonPanel(componentId, label, button, bt);
         item.add(buttonPanel);
