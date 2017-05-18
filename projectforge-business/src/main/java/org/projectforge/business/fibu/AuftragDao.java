@@ -157,7 +157,7 @@ public class AuftragDao extends BaseDao<AuftragDO>
     final Map<Integer, Set<AuftragsPositionVO>> result = new HashMap<Integer, Set<AuftragsPositionVO>>();
     @SuppressWarnings("unchecked")
     final List<AuftragsPositionDO> list = (List<AuftragsPositionDO>) getHibernateTemplate()
-        .find("from AuftragsPositionDO a where a.task.id is not null");
+        .find("from AuftragsPositionDO a where a.task.id is not null and a.deleted = false");
     if (list == null) {
       return result;
     }
@@ -218,8 +218,8 @@ public class AuftragDao extends BaseDao<AuftragDO>
     if (order == null) {
       return;
     }
-    if (order.getPositionen() != null) {
-      for (final AuftragsPositionDO pos : order.getPositionen()) {
+    if (order.getPositionenExcludingDeleted() != null) {
+      for (final AuftragsPositionDO pos : order.getPositionenExcludingDeleted()) {
         final Set<RechnungsPositionVO> set = rechnungCache
             .getRechnungsPositionVOSetByAuftragsPositionId(pos.getId());
         if (set != null) {
@@ -422,8 +422,8 @@ public class AuftragDao extends BaseDao<AuftragDO>
               return true;
             }
             // if order is completed and not completely invoiced
-            if (auftrag.getPositionen() != null) {
-              for (final AuftragsPositionDO pos : auftrag.getPositionen()) {
+            if (auftrag.getPositionenExcludingDeleted() != null) {
+              for (final AuftragsPositionDO pos : auftrag.getPositionenExcludingDeleted()) {
                 if (pos.isAbgeschlossenUndNichtVollstaendigFakturiert() == true) {
                   return true;
                 }
@@ -452,8 +452,8 @@ public class AuftragDao extends BaseDao<AuftragDO>
           final AuftragDO auftrag = (AuftragDO) object;
           boolean match = false;
           if (fil.getAuftragsPositionsArt() != null) {
-            if (CollectionUtils.isNotEmpty(auftrag.getPositionen()) == true) {
-              for (final AuftragsPositionDO position : auftrag.getPositionen()) {
+            if (CollectionUtils.isNotEmpty(auftrag.getPositionenExcludingDeleted()) == true) {
+              for (final AuftragsPositionDO position : auftrag.getPositionenExcludingDeleted()) {
                 if (fil.getAuftragsPositionsArt() == position.getArt()) {
                   match = true;
                   break;
@@ -475,8 +475,8 @@ public class AuftragDao extends BaseDao<AuftragDO>
           final AuftragDO auftrag = (AuftragDO) object;
           boolean match = false;
           if (fil.getAuftragsPositionsPaymentType() != null) {
-            if (CollectionUtils.isNotEmpty(auftrag.getPositionen()) == true) {
-              for (final AuftragsPositionDO position : auftrag.getPositionen()) {
+            if (CollectionUtils.isNotEmpty(auftrag.getPositionenExcludingDeleted()) == true) {
+              for (final AuftragsPositionDO position : auftrag.getPositionenExcludingDeleted()) {
                 if (fil.getAuftragsPositionsPaymentType() == position.getPaymentType()) {
                   match = true;
                   break;
@@ -513,21 +513,21 @@ public class AuftragDao extends BaseDao<AuftragDO>
         throw new UserException("fibu.auftrag.error.nummerBereitsVergeben");
       }
     }
-    if (CollectionUtils.isEmpty(obj.getPositionen()) == true) {
+    if (CollectionUtils.isEmpty(obj.getPositionenIncludingDeleted()) == true) {
       throw new UserException("fibu.auftrag.error.auftragHatKeinePositionen");
     }
-    final int size = obj.getPositionen().size();
+    final int size = obj.getPositionenIncludingDeleted().size();
     for (int i = size - 1; i > 0; i--) {
       // Don't remove first position, remove only the last empty positions.
-      final AuftragsPositionDO position = obj.getPositionen().get(i);
+      final AuftragsPositionDO position = obj.getPositionenIncludingDeleted().get(i);
       if (position.getId() == null && position.isEmpty() == true) {
-        obj.getPositionen().remove(i);
+        obj.getPositionenIncludingDeleted().remove(i);
       } else {
         break;
       }
     }
-    if (CollectionUtils.isNotEmpty(obj.getPositionen()) == true) {
-      for (final AuftragsPositionDO position : obj.getPositionen()) {
+    if (CollectionUtils.isNotEmpty(obj.getPositionenIncludingDeleted()) == true) {
+      for (final AuftragsPositionDO position : obj.getPositionenIncludingDeleted()) {
         position.checkVollstaendigFakturiert();
       }
     }
@@ -558,7 +558,7 @@ public class AuftragDao extends BaseDao<AuftragDO>
       return;
     }
 
-    for (final AuftragsPositionDO pos : auftrag.getPositionenNotDeleted()) {
+    for (final AuftragsPositionDO pos : auftrag.getPositionenExcludingDeleted()) {
       final BigDecimal sumOfAmountsForCurrentPosition = paymentSchedules.stream()
           .filter(payment -> payment.getPositionNumber() == pos.getNumber())
           .map(PaymentScheduleDO::getAmount)
@@ -699,8 +699,8 @@ public class AuftragDao extends BaseDao<AuftragDO>
     if (hasLoggedInUserHistoryAccess(obj, false) == false) {
       return list;
     }
-    if (CollectionUtils.isNotEmpty(obj.getPositionen()) == true) {
-      for (final AuftragsPositionDO position : obj.getPositionen()) {
+    if (CollectionUtils.isNotEmpty(obj.getPositionenIncludingDeleted()) == true) {
+      for (final AuftragsPositionDO position : obj.getPositionenIncludingDeleted()) {
         final List<DisplayHistoryEntry> entries = internalGetDisplayHistoryEntries(position);
         for (final DisplayHistoryEntry entry : entries) {
           final String propertyName = entry.getPropertyName();
@@ -756,7 +756,7 @@ public class AuftragDao extends BaseDao<AuftragDO>
     if (super.contains(idSet, entry) == true) {
       return true;
     }
-    for (final AuftragsPositionDO pos : entry.getPositionen()) {
+    for (final AuftragsPositionDO pos : entry.getPositionenIncludingDeleted()) {
       if (idSet.contains(pos.getId()) == true) {
         return true;
       }
