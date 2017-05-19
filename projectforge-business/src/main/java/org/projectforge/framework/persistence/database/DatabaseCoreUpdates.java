@@ -55,6 +55,7 @@ import org.projectforge.business.fibu.ProjektDO;
 import org.projectforge.business.fibu.RechnungDO;
 import org.projectforge.business.fibu.RechnungsPositionDO;
 import org.projectforge.business.fibu.api.EmployeeService;
+import org.projectforge.business.multitenancy.TenantDao;
 import org.projectforge.business.multitenancy.TenantRegistryMap;
 import org.projectforge.business.multitenancy.TenantService;
 import org.projectforge.business.orga.VisitorbookDO;
@@ -99,6 +100,7 @@ import de.micromata.genome.db.jpa.history.api.HistoryEntry;
 import de.micromata.genome.db.jpa.tabattr.api.TimeableRow;
 import de.micromata.genome.jpa.CriteriaUpdate;
 import de.micromata.genome.jpa.metainf.EntityMetadata;
+import de.micromata.genome.jpa.metainf.JpaMetadataEntityNotFoundException;
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
@@ -112,6 +114,7 @@ public class DatabaseCoreUpdates
   private static final String VERSION_5_0 = "5.0";
 
   private static ApplicationContext applicationContext;
+  private static String RESTART_RQUIRED = "no";
 
   static void setApplicationContext(final ApplicationContext applicationContext)
   {
@@ -124,6 +127,7 @@ public class DatabaseCoreUpdates
     final DatabaseUpdateService databaseUpdateService = applicationContext.getBean(DatabaseUpdateService.class);
     final PfEmgrFactory emf = applicationContext.getBean(PfEmgrFactory.class);
     final InitDatabaseDao initDatabaseDao = applicationContext.getBean(InitDatabaseDao.class);
+    final TenantDao tenantDao = applicationContext.getBean(TenantDao.class);
 
     final List<UpdateEntry> list = new ArrayList<>();
 
@@ -294,7 +298,7 @@ public class DatabaseCoreUpdates
           return UpdatePreCheckStatus.READY_FOR_UPDATE;
         }
 
-        final Optional<Boolean> isColumnNullable = databaseUpdateService.isColumnNullable("t_plugin_calendar_event", "uid");
+        final Optional<Boolean> isColumnNullable = databaseUpdateService.isColumnNullable("T_PLUGIN_CALENDAR_EVENT", "UID");
         if (isColumnNullable.isPresent() == false || isColumnNullable.get()) {
           return UpdatePreCheckStatus.READY_FOR_UPDATE;
         }
@@ -307,14 +311,14 @@ public class DatabaseCoreUpdates
       {
         if (databaseUpdateService.doesTableExist("t_employee_vacation_substitution") == false
             || databaseUpdateService.doesUniqueConstraintExists("T_PLUGIN_CALENDAR_EVENT", "unique_t_plugin_calendar_event_uid") == false) {
-          if (doesDublicateUidsExists()) {
-            handleDublicateUids();
+          if (doesDuplicateUidsExists()) {
+            handleDuplicateUids();
           }
           // Updating the schema
           initDatabaseDao.updateSchema();
         }
 
-        final Optional<Boolean> isColumnNullable = databaseUpdateService.isColumnNullable("t_plugin_calendar_event", "uid");
+        final Optional<Boolean> isColumnNullable = databaseUpdateService.isColumnNullable("T_PLUGIN_CALENDAR_EVENT", "UID");
         if (isColumnNullable.isPresent() == false || isColumnNullable.get()) {
           databaseUpdateService.execute("ALTER TABLE t_plugin_calendar_event ALTER COLUMN uid SET NOT NULL;");
         }
@@ -328,7 +332,7 @@ public class DatabaseCoreUpdates
         return UpdateRunningStatus.DONE;
       }
 
-      private void handleDublicateUids()
+      private void handleDuplicateUids()
       {
         final PfEmgrFactory emf = applicationContext.getBean(PfEmgrFactory.class);
         emf.runInTrans(emgr -> {
@@ -346,7 +350,7 @@ public class DatabaseCoreUpdates
         });
       }
 
-      private boolean doesDublicateUidsExists()
+      private boolean doesDuplicateUidsExists()
       {
         List<DatabaseResultRow> resultSet = databaseUpdateService.query("SELECT uid, COUNT(*) FROM t_plugin_calendar_event GROUP BY uid HAVING COUNT(*) > 1");
         return resultSet != null && resultSet.size() > 0;
@@ -437,7 +441,7 @@ public class DatabaseCoreUpdates
       public UpdatePreCheckStatus runPreCheck()
       {
         log.info("Running pre-check for ProjectForge version 6.7.0");
-        if (databaseUpdateService.doesTableAttributeExist("t_fibu_auftrag_position", "paymentType") == false
+        if (this.isUpdateFibuAuftragPositionRequired()
             || databaseUpdateService.doesTableAttributeExist("T_FIBU_PROJEKT", "projectmanager_fk") == false
             || databaseUpdateService.doesTableAttributeExist("T_FIBU_PROJEKT", "headofbusinessmanager_fk") == false
             || databaseUpdateService.doesTableAttributeExist("T_FIBU_PROJEKT", "salesmanager_fk") == false
@@ -457,7 +461,7 @@ public class DatabaseCoreUpdates
       @Override
       public UpdateRunningStatus runUpdate()
       {
-        if (databaseUpdateService.doesTableAttributeExist("t_fibu_auftrag_position", "paymentType") == false) {
+        if (this.isUpdateFibuAuftragPositionRequired()) {
           //Updating the schema
           initDatabaseDao.updateSchema();
           databaseUpdateService.execute("UPDATE t_fibu_auftrag_position SET paymentType = 'FESTPREISPAKET', art = NULL WHERE art = 'FESTPREISPAKET'");
@@ -488,6 +492,21 @@ public class DatabaseCoreUpdates
         }
 
         return UpdateRunningStatus.DONE;
+      }
+
+      private boolean isUpdateFibuAuftragPositionRequired()
+      {
+        // new field does not exist
+        if (databaseUpdateService.doesTableAttributeExist("t_fibu_auftrag_position", "paymentType") == false)
+          return true;
+
+        // old values in art field
+        if (databaseUpdateService.doesTableRowExists(AuftragsPositionDO.class, "art", "FESTPREISPAKET", true) ||
+            databaseUpdateService.doesTableRowExists(AuftragsPositionDO.class, "art", "TIME_AND_MATERIALS", true) ||
+            databaseUpdateService.doesTableRowExists(AuftragsPositionDO.class, "art", "HOT_FIX", true))
+          return true;
+
+        return false;
       }
 
     });
@@ -621,7 +640,7 @@ public class DatabaseCoreUpdates
       {
         log.info("Running pre-check for ProjectForge version 6.4.0");
         // ensure that the tenant exists, otherwise the following statements will fail with an SQL exception
-        if (!databaseUpdateService.doTablesExist(TenantDO.class)) {
+        if (!databaseUpdateService.doTablesExist(TenantDO.class) || databaseUpdateService.internalIsTableEmpty("T_TENANT")) {
           return UpdatePreCheckStatus.READY_FOR_UPDATE;
         }
 
@@ -681,13 +700,16 @@ public class DatabaseCoreUpdates
       {
         if (databaseUpdateService.doesTableAttributeExist("T_PLUGIN_CALENDAR_EVENT_ATTENDEE", "address_id") == false
             || databaseUpdateService.doesTableAttributeExist("T_PLUGIN_CALENDAR_EVENT", "uid") == false) {
-          //Updating the schema
+          // fix unique constraint error
+          uniqueConstraintWorkaround(databaseUpdateService, emf);
+
+          // Updating the schema
           initDatabaseDao.updateSchema();
         }
 
         if (databaseUpdateService.getDatabaseTableColumnLenght(PFUserDO.class, "ssh_public_key") < 4096) {
           final Table userTable = new Table(PFUserDO.class);
-          databaseUpdateService.alterTableColumnVarCharLength(userTable.getName(), "ssh_public_key", 4096);
+          databaseUpdateService.alterTableColumnVarCharLength(userTable.getName(), "SSH_PUBLIC_KEY", 4096);
         }
 
         if (databaseUpdateService.doesGroupExists(ProjectForgeGroup.HR_GROUP) == false) {
@@ -714,6 +736,7 @@ public class DatabaseCoreUpdates
                 "SELECT r FROM UserRightDO r WHERE r.rightIdString = :rightId",
                 "rightId",
                 "FIBU_EMPLOYEE_SALARY");
+
             salaryRights.forEach(sr -> {
               sr.setRightIdString("HR_EMPLOYEE_SALARY");
               usersToAddToHrGroup.add(sr.getUser());
@@ -765,6 +788,13 @@ public class DatabaseCoreUpdates
       @Override
       public UpdateRunningStatus runUpdate()
       {
+        if (databaseUpdateService.doTablesExist(EmployeeTimedDO.class) == false) {
+          // fix unique constraint error
+          uniqueConstraintWorkaround(databaseUpdateService, emf);
+          // Updating the schema
+          initDatabaseDao.updateSchema();
+        }
+
         return emf.runInTrans(emgr -> {
           emgr.selectAllAttached(EmployeeTimedDO.class)
               .forEach(this::normalizeStartTime);
@@ -801,8 +831,11 @@ public class DatabaseCoreUpdates
       @Override
       public UpdateRunningStatus runUpdate()
       {
-        //Updating the schema
+        // fix unique constraint error
+        uniqueConstraintWorkaround(databaseUpdateService, emf);
+        // Updating the schema
         initDatabaseDao.updateSchema();
+
         return UpdateRunningStatus.DONE;
       }
     });
@@ -831,12 +864,30 @@ public class DatabaseCoreUpdates
       @Override
       public UpdateRunningStatus runUpdate()
       {
+        // fix unique constraint error
+        uniqueConstraintWorkaround(databaseUpdateService, emf);
 
-        //Generating the schema
+        // drop foreign keys for all known tables
+        // ------------------------------------------------------------------------------------------------------------------------
+        int count = databaseUpdateService.dropForeignKeys();
+        log.info(String.format("%s foreign keys are dropped due to the new hibernate naming schema", count));
+        // ------------------------------------------------------------------------------------------------------------------------
+
+        // Updating the schema
         initDatabaseDao.updateSchema();
 
-        //Init default tenant
-        TenantDO defaultTenant = initDatabaseDao.insertDefaultTenant();
+        // init default tenant
+        TenantDO defaultTenant;
+        if (databaseUpdateService.internalIsTableEmpty("t_tenant") == true) {
+          try {
+            defaultTenant = initDatabaseDao.insertDefaultTenant();
+          } catch (Exception e) {
+            e.printStackTrace();
+            return UpdateRunningStatus.FAILED;
+          }
+        } else {
+          defaultTenant = tenantDao.getDefaultTenant();
+        }
 
         //Insert default tenant on every entity
         log.info("Start adding default tenant to entities.");
@@ -873,7 +924,7 @@ public class DatabaseCoreUpdates
         }
         log.info("Finished adding default tenant to entities.");
 
-        //User default tenant zuweisen
+        // assign default tenant to each user
         log.info("Start assigning users to default tenant.");
         try {
           emf.tx().go(emgr -> {
@@ -921,6 +972,10 @@ public class DatabaseCoreUpdates
       @Override
       public UpdatePreCheckStatus runPreCheck()
       {
+        if (RESTART_RQUIRED.equals("v5.5")) {
+          return UpdatePreCheckStatus.RESTART_REQUIRED;
+        }
+        log.info("Running pre-check for ProjectForge version 5.5");
         if (databaseUpdateService.doTableAttributesExist(EmployeeDO.class, "weeklyWorkingHours") == false) {
           return UpdatePreCheckStatus.READY_FOR_UPDATE;
         }
@@ -976,17 +1031,21 @@ public class DatabaseCoreUpdates
         }
         if (databaseUpdateService.doTableAttributesExist(AuftragsPositionDO.class, "periodOfPerformanceType",
             "modeOfPaymentType") == false) {
-          databaseUpdateService.addTableAttributes(AuftragsPositionDO.class, "periodOfPerformanceType",
-              "modeOfPaymentType");
+          databaseUpdateService.addTableAttributes(AuftragsPositionDO.class, "modeOfPaymentType");
+          databaseUpdateService.addTableAttributes(AuftragsPositionDO.class, "periodOfPerformanceType");
         }
         if (databaseUpdateService.doTableAttributesExist(AuftragDO.class, "periodOfPerformanceBegin",
             "periodOfPerformanceEnd") == false) {
-          databaseUpdateService.addTableAttributes(AuftragDO.class, "periodOfPerformanceBegin", "periodOfPerformanceEnd");
+          databaseUpdateService.addTableAttributes(AuftragDO.class, "periodOfPerformanceBegin");
+          databaseUpdateService.addTableAttributes(AuftragDO.class, "periodOfPerformanceEnd");
         }
         if (databaseUpdateService.doTablesExist(PaymentScheduleDO.class) == false) {
+          new SchemaGenerator(databaseUpdateService).add(TenantDO.class).createSchema();
           new SchemaGenerator(databaseUpdateService).add(PaymentScheduleDO.class).createSchema();
           databaseUpdateService.createMissingIndices();
         }
+
+        RESTART_RQUIRED = "v5.5";
         return UpdateRunningStatus.DONE;
       }
     });
@@ -1370,6 +1429,28 @@ public class DatabaseCoreUpdates
       }
     });
     return list;
+  }
+
+  private static void uniqueConstraintWorkaround(final DatabaseUpdateService dus, final PfEmgrFactory emf)
+  {
+    EntityMetadata pce;
+
+    try {
+      pce = emf.getMetadataRepository().getEntityMetaDataBySimpleClassName("TeamEventDO");
+    } catch (JpaMetadataEntityNotFoundException e) {
+      log.error("No JPA class found for TeamEventDO");
+      pce = null;
+    }
+
+    if (dus.doesTableAttributeExist("T_PLUGIN_CALENDAR_EVENT", "uid") == false && pce != null) {
+      // required workaround, because null values are not accepted
+      final String type = dus.getAttribute(pce.getJavaType(), "uid");
+      final String command1 = String.format("ALTER TABLE T_PLUGIN_CALENDAR_EVENT ADD COLUMN UID %s DEFAULT 'default value'", type);
+
+      dus.execute(command1);
+      dus.execute("ALTER TABLE T_PLUGIN_CALENDAR_EVENT ALTER COLUMN UID SET NOT NULL");
+      dus.execute("ALTER TABLE T_PLUGIN_CALENDAR_EVENT ALTER COLUMN UID DROP DEFAULT");
+    }
   }
 
   public static void migrateEmployeeStatusToAttr()

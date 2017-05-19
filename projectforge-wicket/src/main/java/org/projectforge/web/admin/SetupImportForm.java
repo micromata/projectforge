@@ -23,17 +23,24 @@
 
 package org.projectforge.web.admin;
 
+import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.form.Button;
 import org.apache.wicket.markup.html.form.upload.FileUploadField;
+import org.apache.wicket.markup.html.panel.FeedbackPanel;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.Model;
+import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.apache.wicket.util.lang.Bytes;
+import org.projectforge.business.configuration.ConfigurationService;
+import org.projectforge.framework.utils.NumberHelper;
 import org.projectforge.web.wicket.AbstractForm;
 import org.projectforge.web.wicket.CsrfTokenHandler;
 import org.projectforge.web.wicket.bootstrap.GridBuilder;
 import org.projectforge.web.wicket.components.SingleButtonPanel;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
 import org.projectforge.web.wicket.flowlayout.FileUploadPanel;
+import org.wicketstuff.html5.fileapi.FileFieldSizeCheckBehavior;
+import org.wicketstuff.html5.fileapi.FileList;
 
 public class SetupImportForm extends AbstractForm<SetupImportForm, SetupPage>
 {
@@ -43,6 +50,9 @@ public class SetupImportForm extends AbstractForm<SetupImportForm, SetupPage>
 
   protected String filename;
 
+  @SpringBean
+  private ConfigurationService configurationService;
+
   /**
    * Cross site request forgery token.
    */
@@ -51,7 +61,6 @@ public class SetupImportForm extends AbstractForm<SetupImportForm, SetupPage>
   public SetupImportForm(final SetupPage parentPage)
   {
     super(parentPage, "importform");
-    initUpload(Bytes.megabytes(100));
     csrfTokenHandler = new CsrfTokenHandler(this);
   }
 
@@ -59,7 +68,17 @@ public class SetupImportForm extends AbstractForm<SetupImportForm, SetupPage>
   @SuppressWarnings("serial")
   protected void init()
   {
-    add(createFeedbackPanel());
+    FeedbackPanel feedbackPanel = createFeedbackPanel();
+    feedbackPanel.setOutputMarkupId(true);
+    add(feedbackPanel);
+
+    this.setOutputMarkupId(true);
+
+    // set max size
+    Bytes maxSize = Bytes.valueOf(configurationService.getMaxFileSizeXmlDumpImport());
+    this.setMaxSize(maxSize);
+    this.setMultiPart(true);
+
     final GridBuilder gridBuilder = newGridBuilder(this, "flowform");
     gridBuilder.newFormHeading(getString("import"));
     {
@@ -85,5 +104,36 @@ public class SetupImportForm extends AbstractForm<SetupImportForm, SetupPage>
           SingleButtonPanel.DEFAULT_SUBMIT);
       actionButtons.add(importButtonPanel);
     }
+
+    this.fileUploadField.add(new FileFieldSizeCheckBehavior()
+    {
+      @Override
+      protected void onSubmit(final AjaxRequestTarget target, final FileList fileList)
+      {
+        if (fileList.getNumOfFiles() == 1) {
+          if (false == (fileList.get(0).getName().endsWith(".xml.gz") || fileList.get(0).getName().endsWith(".xml")))
+            SetupImportForm.this.addError("common.uploadpanel.filewrongtype", ".xml; .xml.gz");
+        }
+
+        // return form to remove errors
+        target.add(feedbackPanel);
+      }
+
+      @Override
+      protected void addErrorMsg(AjaxRequestTarget target, FileList fileList)
+      {
+        SetupImportForm.this.addError("common.uploadpanel.filetolarge", NumberHelper.formatBytes(maxSize.bytes()));
+      }
+
+      @Override
+      protected void onError(final AjaxRequestTarget target, final FileList fileList)
+      {
+        // clear input field to avoid uploading the image
+        SetupImportForm.this.fileUploadField.clearInput();
+
+        // return form
+        target.add(SetupImportForm.this);
+      }
+    });
   }
 }

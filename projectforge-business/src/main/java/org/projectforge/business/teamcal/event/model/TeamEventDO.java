@@ -223,7 +223,7 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
   }
 
   /**
-   * @param title
+   * @param subject
    * @return this for chaining.
    */
   public TeamEventDO setSubject(final String subject)

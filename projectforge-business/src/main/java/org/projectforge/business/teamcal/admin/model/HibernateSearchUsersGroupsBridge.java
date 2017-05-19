@@ -34,7 +34,9 @@ import org.projectforge.business.user.GroupDao;
 import org.projectforge.business.user.GroupsComparator;
 import org.projectforge.business.user.UserDao;
 import org.projectforge.business.user.UsersComparator;
+import org.projectforge.common.DatabaseDialect;
 import org.projectforge.common.StringHelper;
+import org.projectforge.continuousdb.DatabaseSupport;
 import org.projectforge.framework.configuration.ApplicationContextProvider;
 import org.projectforge.framework.persistence.user.entities.GroupDO;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
@@ -42,9 +44,8 @@ import org.springframework.context.ApplicationContext;
 
 /**
  * Users and groups bridge for hibernate search.
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
  */
 public class HibernateSearchUsersGroupsBridge implements FieldBridge
 {
@@ -61,10 +62,11 @@ public class HibernateSearchUsersGroupsBridge implements FieldBridge
 
   /**
    * Get all names of groups and users and creates an index containing all user and group names separated by '|'. <br/>
-   * 
+   *
    * @see org.hibernate.search.bridge.FieldBridge#set(java.lang.String, java.lang.Object,
-   *      org.apache.lucene.document.Document, org.hibernate.search.bridge.LuceneOptions)
+   * org.apache.lucene.document.Document, org.hibernate.search.bridge.LuceneOptions)
    */
+  @Override
   public void set(final String name, final Object value, final Document document, final LuceneOptions luceneOptions)
   {
     final TeamCalDO calendar = (TeamCalDO) value;
@@ -80,12 +82,17 @@ public class HibernateSearchUsersGroupsBridge implements FieldBridge
       return;
     }
     final StringBuffer buf = new StringBuffer();
-    appendGroups(getSortedGroups(calendar.getFullAccessGroupIds()), buf);
-    appendGroups(getSortedGroups(calendar.getReadonlyAccessGroupIds()), buf);
-    appendGroups(getSortedGroups(calendar.getMinimalAccessGroupIds()), buf);
-    appendUsers(getSortedUsers(calendar.getFullAccessUserIds()), buf);
-    appendUsers(getSortedUsers(calendar.getReadonlyAccessUserIds()), buf);
-    appendUsers(getSortedUsers(calendar.getMinimalAccessUserIds()), buf);
+
+    // query information in Bridge results in a deadlock in HSQLDB
+    if (DatabaseSupport.getInstance().getDialect() != DatabaseDialect.HSQL) {
+      appendGroups(getSortedGroups(calendar.getFullAccessGroupIds()), buf);
+      appendGroups(getSortedGroups(calendar.getReadonlyAccessGroupIds()), buf);
+      appendGroups(getSortedGroups(calendar.getMinimalAccessGroupIds()), buf);
+      appendUsers(getSortedUsers(calendar.getFullAccessUserIds()), buf);
+      appendUsers(getSortedUsers(calendar.getReadonlyAccessUserIds()), buf);
+      appendUsers(getSortedUsers(calendar.getMinimalAccessUserIds()), buf);
+    }
+
     if (log.isDebugEnabled() == true) {
       log.debug(buf.toString());
     }

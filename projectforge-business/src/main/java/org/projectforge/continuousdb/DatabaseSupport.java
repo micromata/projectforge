@@ -28,9 +28,8 @@ import org.projectforge.common.DatabaseDialect;
 
 /**
  * All database dialect specific implementations should be placed here.
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
  */
 public class DatabaseSupport
 {
@@ -68,7 +67,7 @@ public class DatabaseSupport
    * "extract(epoch from sum(toProperty - fromProperty))". <br/>
    * If no optimization is given, the caller selects all database entries and aggregates via Java the sum (full table
    * scan).
-   * 
+   *
    * @param fromProperty
    * @param toProperty
    * @return part of select string or null if for the used database no optimization is given.
@@ -193,13 +192,15 @@ public class DatabaseSupport
   public String alterTableColumnVarCharLength(final String table, final String attribute, final int length)
   {
     if (dialect == DatabaseDialect.PostgreSQL) {
-      return "ALTER TABLE " + table + " ALTER COLUMN " + attribute + " TYPE varchar(" + length + ")";
+      return "ALTER TABLE " + table.toUpperCase() + " ALTER COLUMN " + attribute.toUpperCase() + " TYPE varchar(" + length + ")";
     } else {
-      return "ALTER TABLE " + table + " ALTER COLUMN " + attribute + " varchar(" + length + ")";
+      return "ALTER TABLE " + table.toLowerCase() + " ALTER COLUMN " + attribute.toLowerCase() + " varchar(" + length + ")";
     }
   }
 
-  /** Will be called on shutdown by WicketApplication. */
+  /**
+   * Will be called on shutdown by WicketApplication.
+   */
   public String getShutdownDatabaseStatement()
   {
     if (dialect == DatabaseDialect.HSQL) {
@@ -226,7 +227,7 @@ public class DatabaseSupport
     if (dialect == DatabaseDialect.PostgreSQL) {
       return "SELECT conname FROM pg_constraint WHERE conrelid = (SELECT oid FROM pg_class WHERE LOWER(relname) = ? and contype='u');";
     } else if (dialect == DatabaseDialect.HSQL) {
-      return "SELECT CONSTRAINT_NAME FROM INFORMATION_SCHEMA.SYSTEM_TABLE_CONSTRAINTS WHERE CONSTRAINT_TYPE='UNIQUE' AND LOWER(TABLE_NAME) = ?;";
+      return "SELECT LOWER(CONSTRAINT_NAME) FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS WHERE CONSTRAINT_TYPE='UNIQUE' AND LOWER(TABLE_NAME) = ?;";
     }
     return null;
   }

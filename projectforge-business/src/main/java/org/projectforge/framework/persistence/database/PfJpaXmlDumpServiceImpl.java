@@ -66,9 +66,8 @@ import de.micromata.mgc.jpa.hibernatesearch.impl.SearchEmgr;
 
 /**
  * PF extends to JpaXmlDumpServiceImpl.
- * 
- * @author Roger Rene Kommer (r.kommer.extern@micromata.de)
  *
+ * @author Roger Rene Kommer (r.kommer.extern@micromata.de)
  */
 @Service
 public class PfJpaXmlDumpServiceImpl extends JpaXmlDumpServiceImpl implements InitializingBean, PfJpaXmlDumpService
@@ -202,7 +201,7 @@ public class PfJpaXmlDumpServiceImpl extends JpaXmlDumpServiceImpl implements In
     GlobalConfiguration.getInstance().forceReload();
     assignUserToGroups();
     correctTeamCalIds();
-    correctAdressAndBookTaskId();
+    correctAddressAndBookTaskId();
     return ret;
   }
 
@@ -296,7 +295,7 @@ public class PfJpaXmlDumpServiceImpl extends JpaXmlDumpServiceImpl implements In
     groupDao.setDoHistoryUpdate(true);
   }
 
-  private void correctAdressAndBookTaskId()
+  private void correctAddressAndBookTaskId()
   {
     Integer rootTaskId = 1;
     for (TaskDO tDO : taskDao.internalLoadAll()) {
@@ -335,12 +334,36 @@ public class PfJpaXmlDumpServiceImpl extends JpaXmlDumpServiceImpl implements In
     xstream.registerConverter(new SkippUnkownElementsCollectionConverter(xstream.getMapper()),
         XStream.PRIORITY_VERY_HIGH);
 
+    TenantDO defaultTenant = tenantService.getDefaultTenant();
+
     List<Object> objects = new ArrayList<>();
     Object result = xstream.fromXML(inputStream, objects);
     objects = (List<Object>) result;
+    LOG.info("Read object from xml: " + objects.size());
     List<Object> recObjects = recorder.getAllEnties();
-    TenantDO defaultTenant = tenantService.getDefaultTenant();
     List<PFUserDO> users = new ArrayList<>();
+
+    // searching default tenant
+    if (defaultTenant == null) {
+      LOG.info("Default tenant is null, searching in XML dump");
+      for (Object o : recObjects) {
+        if (o instanceof TenantDO) {
+          TenantDO t = (TenantDO) o;
+          if (t.isDefault()) {
+            LOG.info("Found default tenant");
+            defaultTenant = t;
+            break;
+          }
+        }
+      }
+
+      if (defaultTenant == null) {
+        LOG.error("Default tenant is missing");
+        return 0;
+      }
+    }
+
+    // set default tenant
     for (Object o : recObjects) {
       if (o instanceof DefaultBaseDO) {
         DefaultBaseDO baseObject = (DefaultBaseDO) o;
@@ -350,14 +373,22 @@ public class PfJpaXmlDumpServiceImpl extends JpaXmlDumpServiceImpl implements In
           users.add(user);
         }
       }
+      // TODO fix duplication bug!
+      //if (o instanceof TaskDO) {
+      //  TaskDO tdo = (TaskDO) o;
+      //  System.out.println(tdo.getParentTaskId() + " " + tdo.getTitle() + " " + tdo.getResponsibleUserId() + " " + tdo.hashCode());
+      //  System.out.println(tdo.toString());
+      //  System.out.println(System.identityHashCode(tdo));
+      //}
       if (o instanceof UserXmlPreferencesDO) {
         UserXmlPreferencesDO pref = (UserXmlPreferencesDO) o;
         pref.setTenant(defaultTenant);
       }
     }
+
     XmlDumpRestoreContext ctx = createRestoreContext(fac, recObjects);
-    LOG.info("Readed object from xml: " + objects.size());
     if (restoreMode == RestoreMode.InsertAll) {
+      LOG.info("Writing XML objects to database");
       insertAll(fac, ctx);
       for (PFUserDO user : users) {
         Set<TenantDO> tenantsToAssign = new HashSet<>();
@@ -373,7 +404,7 @@ public class PfJpaXmlDumpServiceImpl extends JpaXmlDumpServiceImpl implements In
 
   private void correctTeamCalIds()
   {
-    LOG.info("Correting TeamCal ids!");
+    LOG.info("Correcting TeamCal ids!");
 
     List<TeamCalDO> calList = teamCalDao.internalLoadAll();
     List<GroupDO> groupDOList = groupDao.internalLoadAll();

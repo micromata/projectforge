@@ -99,4 +99,6 @@ public interface ConfigurationService
   String getMaxFileSizeImage();
 
   String getMaxFileSizeDatev();
+
+  String getMaxFileSizeXmlDumpImport();
 }
