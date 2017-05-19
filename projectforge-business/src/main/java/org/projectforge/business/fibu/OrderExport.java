@@ -105,7 +105,7 @@ public class OrderExport
     auftragDao.calculateInvoicedSum(order);
     mapping.add(OrderCol.NUMMER, order.getNummer());
     mapping.add(OrderCol.NUMBER_OF_POSITIONS,
-        "#" + (order.getPositionen() != null ? order.getPositionen().size() : "0"));
+        "#" + (order.getPositionenExcludingDeleted() != null ? order.getPositionenExcludingDeleted().size() : "0"));
     mapping.add(OrderCol.DATE_OF_ENTRY, order.getErfassungsDatum());
     mapping.add(OrderCol.DATE_OF_OFFER, order.getAngebotsDatum());
     mapping.add(OrderCol.DATE_OF_DESICION, order.getEntscheidungsDatum());
@@ -320,13 +320,7 @@ public class OrderExport
         PosCol.PERIOD_OF_PERFORMANCE_END.ordinal(),
         ThreadLocalUserContext.getLocalizedString("fibu.periodOfPerformance"));
     for (final AuftragDO order : list) {
-      if (order.getPositionen() == null) {
-        continue;
-      }
-      for (final AuftragsPositionDO pos : order.getPositionen()) {
-        if (pos.isDeleted()) {
-          continue;
-        }
+      for (final AuftragsPositionDO pos : order.getPositionenExcludingDeleted()) {
         final PropertyMapping mapping = new PropertyMapping();
         addPosMapping(mapping, order, pos);
         sheet.addRow(mapping.getMapping(), 0);

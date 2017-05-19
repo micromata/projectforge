@@ -219,7 +219,7 @@ public class AddressListPage extends AbstractListPage<AddressListForm, AddressDa
               @Override
               protected byte[] getImageData(final Attributes attributes)
               {
-                byte[] result = address.getAttribute("profileImageData", byte[].class);
+                byte[] result = address.getImageData();
                 if (result == null || result.length < 1) {
                   try {
                     result = IOUtils
@@ -269,7 +269,7 @@ public class AddressListPage extends AbstractListPage<AddressListForm, AddressDa
         if (StringUtils.isNotBlank(address.getEmail()) == true) {
           final ExternalLinkPanel mailToLinkPanel = new ExternalLinkPanel(view.newChildId(),
               "mailto:" + address.getEmail(), address
-                  .getEmail());
+              .getEmail());
           mailToLinkPanel.getLink().add(AttributeModifier.replace("onclick", "javascript:suppressNextRowClick();"));
           view.add(mailToLinkPanel);
           first = false;
@@ -340,7 +340,7 @@ public class AddressListPage extends AbstractListPage<AddressListForm, AddressDa
             public void onClick()
             {
               setResponsePage(SendSmsPage.class, new PageParameters());
-            };
+            }
           }, getString("address.tooltip.writeSMS"));
       addContentMenuEntry(menuEntry);
     }
@@ -380,7 +380,7 @@ public class AddressListPage extends AbstractListPage<AddressListForm, AddressDa
       final ContentMenuEntryPanel exportVCardsButton = new ContentMenuEntryPanel(exportMenu.newSubMenuChildId(),
           exportVCardsLink,
           getString("address.book.vCardExport")).setTooltip(getString("address.book.vCardExport.tooltip.title"),
-              getString("address.book.vCardExport.tooltip.content"));
+          getString("address.book.vCardExport.tooltip.content"));
       exportMenu.addSubMenuEntry(exportVCardsButton);
     }
     {
@@ -405,7 +405,7 @@ public class AddressListPage extends AbstractListPage<AddressListForm, AddressDa
       final ContentMenuEntryPanel excelExportButton = new ContentMenuEntryPanel(exportMenu.newSubMenuChildId(),
           excelExportLink,
           getString("address.book.export")).setTooltip(getString("address.book.export"),
-              getString("address.book.export.tooltip"));
+          getString("address.book.export.tooltip"));
       exportMenu.addSubMenuEntry(excelExportButton);
     }
     {
@@ -432,8 +432,8 @@ public class AddressListPage extends AbstractListPage<AddressListForm, AddressDa
       final ContentMenuEntryPanel exportPhoneListButton = new ContentMenuEntryPanel(exportMenu.newSubMenuChildId(),
           exportPhoneListLink,
           getString("address.book.exportFavoritePhoneList")).setTooltip(
-              getString("address.book.exportFavoritePhoneList.tooltip.title"),
-              getString("address.book.exportFavoritePhoneList.tooltip.content"));
+          getString("address.book.exportFavoritePhoneList.tooltip.title"),
+          getString("address.book.exportFavoritePhoneList.tooltip.content"));
       exportMenu.addSubMenuEntry(exportPhoneListButton);
     }
     {
@@ -463,8 +463,8 @@ public class AddressListPage extends AbstractListPage<AddressListForm, AddressDa
       final ContentMenuEntryPanel appleScriptButton = new ContentMenuEntryPanel(extendedMenu.newSubMenuChildId(),
           appleScriptLink,
           getString("address.book.export.appleScript4Notes")).setTooltip(
-              getString("address.book.export.appleScript4Notes"),
-              getString("address.book.export.appleScript4Notes.tooltip"));
+          getString("address.book.export.appleScript4Notes"),
+          getString("address.book.export.appleScript4Notes.tooltip"));
       extendedMenu.addSubMenuEntry(appleScriptButton);
     }
   }

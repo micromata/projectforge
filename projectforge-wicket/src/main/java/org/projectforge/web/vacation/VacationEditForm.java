@@ -101,11 +101,11 @@ public class VacationEditForm extends AbstractEditForm<VacationDO, VacationEditP
 
   private Label neededVacationDaysLabel;
 
-  private Model<String> neededVacationDaysModel;
+  private final Model<String> neededVacationDaysModel = new Model<>();
 
   private Label availableVacationDaysLabel;
 
-  private Model<String> availableVacationDaysModel;
+  private final Model<String> availableVacationDaysModel = new Model<>();
 
   private VacationStatus statusBeforeModification;
 
@@ -251,10 +251,10 @@ public class VacationEditForm extends AbstractEditForm<VacationDO, VacationEditP
     }
 
     // Available vacation days - only visible for the creator and manager
-    if (data.getVacationmode() == VacationMode.OWN || data.getVacationmode() == VacationMode.MANAGER) {
+    if (data.getVacationmode() == VacationMode.OWN || data.getVacationmode() == VacationMode.MANAGER || data.getVacationmode() == VacationMode.OTHER) {
       final FieldsetPanel fs = gridBuilder.newFieldset(I18nHelper.getLocalizedMessage("vacation.availabledays"));
       BigDecimal availableVacationDays = getAvailableVacationDays(data);
-      this.availableVacationDaysModel = new Model<>(availableVacationDays.toString());
+      this.availableVacationDaysModel.setObject(availableVacationDays.toString());
       LabelPanel availablePanel = new LabelPanel(fs.newChildId(), availableVacationDaysModel);
       availablePanel.setMarkupId("vacation-availableDays").setOutputMarkupId(true);
       this.availableVacationDaysLabel = availablePanel.getLabel();
@@ -265,7 +265,6 @@ public class VacationEditForm extends AbstractEditForm<VacationDO, VacationEditP
     {
       // Needed vacation days
       FieldsetPanel neededVacationDaysFs = gridBuilder.newFieldset(I18nHelper.getLocalizedMessage("vacation.neededdays"));
-      this.neededVacationDaysModel = new Model<>();
       updateNeededVacationDaysLabel();
       LabelPanel neededVacationDaysPanel = new LabelPanel(neededVacationDaysFs.newChildId(), neededVacationDaysModel);
       neededVacationDaysPanel.setMarkupId("vacation-neededVacationDays").setOutputMarkupId(true);

@@ -148,7 +148,7 @@ public class PaymentSchedulePanel extends Panel
 
   private FormComponent<Short> createPositionColumn(final PaymentScheduleDO payment)
   {
-    final List<Short> availablePositionNumbers = payment.getAuftrag().getPositionenNotDeleted().stream()
+    final List<Short> availablePositionNumbers = payment.getAuftrag().getPositionenExcludingDeleted().stream()
         .map(AuftragsPositionDO::getNumber)
         .collect(Collectors.toList());
 
