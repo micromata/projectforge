@@ -46,9 +46,8 @@ import org.projectforge.web.wicket.autocompletion.PFAutoCompleteTextField;
 
 /**
  * For displaying and selecting an order position.
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
  */
 public class AuftragsPositionFormComponent extends PFAutoCompleteTextField<AuftragsPositionDO>
 {
@@ -62,6 +61,7 @@ public class AuftragsPositionFormComponent extends PFAutoCompleteTextField<Auftr
   {
     private static final long serialVersionUID = -8117783418789940569L;
 
+    @Override
     public AuftragsPositionDO convertToObject(String value, final Locale locale)
     {
       value = StringUtils.trimToEmpty(value);
@@ -75,6 +75,7 @@ public class AuftragsPositionFormComponent extends PFAutoCompleteTextField<Auftr
       return auftragsPosition;
     }
 
+    @Override
     public String convertToString(final Object value, final Locale locale)
     {
       if (value == null) {
@@ -137,6 +138,7 @@ public class AuftragsPositionFormComponent extends PFAutoCompleteTextField<Auftr
     final List<AuftragDO> list = auftragDao.getList(filter);
     Collections.sort(list, new Comparator<AuftragDO>()
     {
+      @Override
       public int compare(final AuftragDO o1, final AuftragDO o2)
       {
         return (o1.getNummer().compareTo(o2.getNummer()));
@@ -144,8 +146,8 @@ public class AuftragsPositionFormComponent extends PFAutoCompleteTextField<Auftr
     });
     final List<AuftragsPositionDO> result = new ArrayList<AuftragsPositionDO>();
     for (final AuftragDO auftrag : list) {
-      if (auftrag.getPositionen() != null) {
-        for (final AuftragsPositionDO pos : auftrag.getPositionen()) {
+      if (auftrag.getPositionenIncludingDeleted() != null) {
+        for (final AuftragsPositionDO pos : auftrag.getPositionenIncludingDeleted()) {
           result.add(pos);
         }
       }

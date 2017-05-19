@@ -332,7 +332,7 @@ public class AuftragDaoTest extends AbstractTestBase
     dbNumber++; // Needed for getNextNumber test;
     auftrag1 = auftragDao.getById(id1);
 
-    AuftragsPositionDO position = auftrag1.getPositionen().get(0);
+    AuftragsPositionDO position = auftrag1.getPositionenIncludingDeleted().get(0);
     position.setVollstaendigFakturiert(true);
     try {
       auftragDao.update(auftrag1);
@@ -348,7 +348,7 @@ public class AuftragDaoTest extends AbstractTestBase
     auftrag1 = auftragDao.getById(id1);
 
     logon(TEST_PROJECT_MANAGER_USER);
-    position = auftrag1.getPositionen().get(0);
+    position = auftrag1.getPositionenIncludingDeleted().get(0);
     position.setStatus(AuftragsPositionsStatus.ABGESCHLOSSEN);
     position.setVollstaendigFakturiert(true);
     try {
@@ -360,7 +360,7 @@ public class AuftragDaoTest extends AbstractTestBase
     }
 
     logon(TEST_FINANCE_USER);
-    position = auftrag1.getPositionen().get(0);
+    position = auftrag1.getPositionenIncludingDeleted().get(0);
     position.setStatus(AuftragsPositionsStatus.ABGESCHLOSSEN);
     position.setVollstaendigFakturiert(true);
     auftragDao.update(auftrag1);
@@ -379,7 +379,7 @@ public class AuftragDaoTest extends AbstractTestBase
     Serializable id = auftragDao.save(auftrag);
     dbNumber++; // Needed for getNextNumber test;
     auftrag = auftragDao.getById(id);
-    assertEquals(1, auftrag.getPositionen().size());
+    assertEquals(1, auftrag.getPositionenIncludingDeleted().size());
     auftrag = new AuftragDO();
     auftrag.setNummer(auftragDao.getNextNumber(auftrag));
     auftrag.addPosition(new AuftragsPositionDO());
@@ -391,11 +391,11 @@ public class AuftragDaoTest extends AbstractTestBase
     id = auftragDao.save(auftrag);
     dbNumber++; // Needed for getNextNumber test;
     auftrag = auftragDao.getById(id);
-    assertEquals(3, auftrag.getPositionen().size());
-    auftrag.getPositionen().get(2).setTitel(null);
+    assertEquals(3, auftrag.getPositionenIncludingDeleted().size());
+    auftrag.getPositionenIncludingDeleted().get(2).setTitel(null);
     auftragDao.update(auftrag);
     auftrag = auftragDao.getById(id);
-    assertEquals(3, auftrag.getPositionen().size());
+    assertEquals(3, auftrag.getPositionenIncludingDeleted().size());
   }
 
   @Test

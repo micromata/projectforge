@@ -33,7 +33,7 @@ import org.projectforge.web.wicket.EditPage;
 /**
  * The controller of the edit formular page. Most functionality such as insert, update, delete etc. is done by the super
  * class.
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 @EditPage(defaultReturnPage = LicenseListPage.class)

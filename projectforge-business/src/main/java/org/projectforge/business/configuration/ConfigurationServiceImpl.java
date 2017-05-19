@@ -167,6 +167,9 @@ public class ConfigurationServiceImpl implements ConfigurationService
   @Value("${projectforge.max-file-size.datev}")
   private String maxFileSizeDatev;
 
+  @Value("${projectforge.max-file-size.xml-dump-import}")
+  private String maxFileSizeXmlDumpImport;
+
   @PostConstruct
   public void init()
   {
@@ -680,5 +683,11 @@ public class ConfigurationServiceImpl implements ConfigurationService
   public String getMaxFileSizeDatev()
   {
     return this.maxFileSizeDatev;
+  }
+
+  @Override
+  public String getMaxFileSizeXmlDumpImport()
+  {
+    return this.maxFileSizeXmlDumpImport;
   }
 }
