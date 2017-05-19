@@ -52,6 +52,7 @@ import net.fortuna.ical4j.model.Recur;
 
 public class TeamEventUtilsTest extends AbstractTestBase
 {
+  @Override
   @BeforeClass
   public void setUp()
   {
@@ -128,10 +129,18 @@ public class TeamEventUtilsTest extends AbstractTestBase
       final TeamEventDO event = createEvent(timeZone, "2013-03-21 00:00", "2013-03-21 00:00",
           RecurrenceFrequency.WEEKLY, 1, null)
           .setAllDay(true);
+
+      // check count of events without ex date
+      final Collection<TeamEvent> colWithoutExDate = TeamCalServiceImpl.getRecurrenceEvents(getDate("2013-03-01", timeZone),
+          getDate("2013-04-05", timeZone), event, timeZone);
+      assertEquals(3, colWithoutExDate.size());
+
+      // check cout of events with ex date
       event.addRecurrenceExDate(parseDate("2013-03-28", timeZone), timeZone);
       final Collection<TeamEvent> col = TeamCalServiceImpl.getRecurrenceEvents(getDate("2013-03-01", timeZone),
           getDate("2013-04-05", timeZone), event, timeZone);
       assertEquals(2, col.size());
+
       final Iterator<TeamEvent> it = col.iterator();
       TeamEvent e = it.next();
       assertEquals("2013-03-21 00:00:00.000", DateHelper.formatIsoTimestamp(e.getStartDate(), timeZone));
