@@ -36,7 +36,7 @@ public enum UpdatePreCheckStatus
   /**
    * Updated, but restart required
    */
-  RESTARED_REQUIRED,
+  RESTART_REQUIRED,
   /**
    * Already updated, nothing to do.
    */
