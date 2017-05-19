@@ -150,6 +150,7 @@ public class TaskWizardForm extends AbstractStandardForm<TaskWizardForm, TaskWiz
     final SingleButtonPanel finishButtonPanel = new SingleButtonPanel(actionButtons.newChildId(), finishButton,
         getString("task.wizard.finish"), SingleButtonPanel.DEFAULT_SUBMIT);
     actionButtons.add(finishButtonPanel);
+    this.setDefaultButton(finishButton);
   }
 
   @SuppressWarnings("serial")
