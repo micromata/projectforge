@@ -117,11 +117,10 @@ import de.micromata.genome.jpa.metainf.EntityMetadata;
 
 /**
  * Dumps and restores the data-base.
- * 
+ * <p>
  * TODO RK delete this class.
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
  */
 @Service
 @Deprecated
@@ -255,7 +254,7 @@ public class XmlDump
           return id;
         } else if (obj instanceof AuftragDO) {
           final AuftragDO auftrag = (AuftragDO) obj;
-          return save(auftrag, auftrag.getPositionen());
+          return save(auftrag, auftrag.getPositionenIncludingDeleted());
         }
         if (plugins != null) {
           for (final AbstractPlugin plugin : plugins) {
@@ -366,7 +365,6 @@ public class XmlDump
   }
 
   /**
-   * 
    * @param filename virtual filename: If the filename suffix is "gz" then the dump will be compressed.
    * @param out
    */
@@ -418,9 +416,9 @@ public class XmlDump
 
   /**
    * Verify the imported dump.
-   * 
+   *
    * @return Number of checked objects. This number is negative if any error occurs (at least one object wasn't imported
-   *         successfully).
+   * successfully).
    */
   public int verifyDump(final XStreamSavingConverter xstreamSavingConverter)
   {
@@ -571,7 +569,7 @@ public class XmlDump
         } else if (HibernateUtils.isEntity(fieldValue1.getClass()) == true) {
           if (fieldValue2 == null
               || ObjectUtils.equals(HibernateUtils.getIdentifier(fieldValue1),
-                  HibernateUtils.getIdentifier(fieldValue2)) == false) {
+              HibernateUtils.getIdentifier(fieldValue2)) == false) {
             if (logDifference == true) {
               log.error("Field '"
                   + field.getName()
@@ -616,7 +614,7 @@ public class XmlDump
   /**
    * Tests if every entry of col1 is found as equals entry in col2. You need to call this method twice with swapped
    * params for being sure of equality!
-   * 
+   *
    * @param col1
    * @param col2
    * @return
