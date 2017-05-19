@@ -694,28 +694,30 @@ public class VacationServiceImpl extends CorePersistenceServiceImpl<Integer, Vac
   public TeamEventDO getOrCreateTeamEventDO(final VacationCalendarDO vacationCalendarDO)
   {
     if (vacationCalendarDO.getEvent() != null) {
-      final TeamEventDO byId = teamEventDao.internalGetById(vacationCalendarDO.getEvent().getId());
-      teamEventDao.internalUndelete(byId);
-      if (byId.getStartDate().equals(vacationCalendarDO.getVacation().getStartDate()) == false || byId.getEndDate()
-          .equals(vacationCalendarDO.getVacation().getEndDate()) == false) {
-        final Timestamp startTimestamp = new Timestamp(vacationCalendarDO.getVacation().getStartDate().getTime());
-        final Timestamp endTimestamp = new Timestamp(vacationCalendarDO.getVacation().getEndDate().getTime());
-        byId.setStartDate(startTimestamp);
-        byId.setEndDate(endTimestamp);
-        teamEventDao.internalSaveOrUpdate(byId);
+      final TeamEventDO vacationTeamEvent = teamEventDao.internalGetById(vacationCalendarDO.getEvent().getId());
+      if (vacationTeamEvent != null) {
+        teamEventDao.internalUndelete(vacationTeamEvent);
+        if (vacationTeamEvent.getStartDate().equals(vacationCalendarDO.getVacation().getStartDate()) == false || vacationTeamEvent.getEndDate()
+            .equals(vacationCalendarDO.getVacation().getEndDate()) == false) {
+          final Timestamp startTimestamp = new Timestamp(vacationCalendarDO.getVacation().getStartDate().getTime());
+          final Timestamp endTimestamp = new Timestamp(vacationCalendarDO.getVacation().getEndDate().getTime());
+          vacationTeamEvent.setStartDate(startTimestamp);
+          vacationTeamEvent.setEndDate(endTimestamp);
+          teamEventDao.internalSaveOrUpdate(vacationTeamEvent);
+        }
       }
-      return byId;
+      return vacationTeamEvent;
     } else {
-      final TeamEventDO teamEventDO = new TeamEventDO();
-      teamEventDO.setAllDay(true);
+      final TeamEventDO newTeamEventDO = new TeamEventDO();
+      newTeamEventDO.setAllDay(true);
       final Timestamp startTimestamp = new Timestamp(vacationCalendarDO.getVacation().getStartDate().getTime());
       final Timestamp endTimestamp = new Timestamp(vacationCalendarDO.getVacation().getEndDate().getTime());
-      teamEventDO.setStartDate(startTimestamp);
-      teamEventDO.setEndDate(endTimestamp);
-      teamEventDO.setSubject(vacationCalendarDO.getVacation().getEmployee().getUser().getFullname());
-      teamEventDO.setCalendar(vacationCalendarDO.getCalendar());
-      teamEventDao.internalSave(teamEventDO);
-      return teamEventDO;
+      newTeamEventDO.setStartDate(startTimestamp);
+      newTeamEventDO.setEndDate(endTimestamp);
+      newTeamEventDO.setSubject(vacationCalendarDO.getVacation().getEmployee().getUser().getFullname());
+      newTeamEventDO.setCalendar(vacationCalendarDO.getCalendar());
+      teamEventDao.internalSave(newTeamEventDO);
+      return newTeamEventDO;
     }
   }
 }

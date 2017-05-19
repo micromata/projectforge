@@ -140,6 +140,7 @@ public class VacationEditPage extends AbstractEditPage<VacationDO, VacationEditF
         vacationService.sendMailToVacationInvolved(form.getData(), false, false);
       }
       if (VacationStatus.APPROVED.equals(form.getData().getStatus())) {
+        //To intercept special cases for add or delete team calendars
         vacationService.markAsDeleteEventsForVacationCalendars(form.getData(), false);
         vacationService.createEventsForVacationCalendars(form.getData());
       }
