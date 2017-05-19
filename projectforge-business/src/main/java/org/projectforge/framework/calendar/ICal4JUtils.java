@@ -55,10 +55,6 @@ public class ICal4JUtils
 
   private static TimeZoneRegistry registry = TimeZoneRegistryFactory.getInstance().createRegistry();
 
-  private static final String ICAL_DATETIME_FORMAT = "yyyyMMdd'T'HHmmss";
-
-  private static final String ICAL_DATE_FORMAT = "yyyyMMdd";
-
   /**
    * @return The timeZone (ical4j) built of the default java timeZone of the user.
    * @see ThreadLocalUserContext#getTimeZone()
@@ -295,9 +291,9 @@ public class ICal4JUtils
     String pattern;
     java.util.TimeZone tz = timeZone;
     if (dateString.indexOf('T') > 0) {
-      pattern = ICAL_DATETIME_FORMAT;
+      pattern = DateFormats.ICAL_DATETIME_FORMAT;
     } else {
-      pattern = ICAL_DATE_FORMAT;
+      pattern = DateFormats.COMPACT_DATE;
       tz = DateHelper.UTC;
     }
     final DateFormat df = new SimpleDateFormat(pattern);
@@ -356,6 +352,25 @@ public class ICal4JUtils
     return df.format(date);
   }
 
+  public static String asICalDateString(final Date date, final java.util.TimeZone timeZone, final boolean withoutTime)
+  {
+    if (date == null) {
+      return null;
+    }
+    DateFormat df = null;
+    if (withoutTime) {
+      df = new SimpleDateFormat(DateFormats.COMPACT_DATE);
+    } else {
+      df = new SimpleDateFormat(DateFormats.ICAL_DATETIME_FORMAT);
+    }
+    if (timeZone != null) {
+      df.setTimeZone(timeZone);
+    } else {
+      df.setTimeZone(DateHelper.UTC);
+    }
+    return df.format(date);
+  }
+
   public static String[] splitExDates(final String csv)
   {
     if (StringUtils.isBlank(csv) == true) {
@@ -368,16 +383,16 @@ public class ICal4JUtils
     return sa;
   }
 
-  public static List<net.fortuna.ical4j.model.Date> parseISODateStringsAsICal4jDates(final String csv,
+  public static List<net.fortuna.ical4j.model.Date> parseCSVDatesAsICal4jDates(final String csvDates, boolean dateTime,
       final TimeZone timeZone)
   {
-    final String[] sa = splitExDates(csv);
+    final String[] sa = splitExDates(csvDates);
     if (sa == null) {
       return null;
     }
     final List<net.fortuna.ical4j.model.Date> result = new ArrayList<net.fortuna.ical4j.model.Date>();
     for (final String str : sa) {
-      if (str == null) {
+      if (StringUtils.isEmpty(str)) {
         continue;
       }
       Date date = null;
@@ -389,7 +404,11 @@ public class ICal4JUtils
       if (date == null) {
         continue;
       }
-      result.add(getICal4jDateTime(date, timeZone));
+      if (dateTime) {
+        result.add(getICal4jDateTime(date, timeZone));
+      } else {
+        result.add(new net.fortuna.ical4j.model.Date(date));
+      }
     }
     return result;
   }
