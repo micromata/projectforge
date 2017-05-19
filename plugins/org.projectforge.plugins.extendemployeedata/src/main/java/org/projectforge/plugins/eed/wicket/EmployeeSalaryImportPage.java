@@ -27,7 +27,7 @@ public class EmployeeSalaryImportPage extends AbstractImportPage<EmployeeSalaryI
     body.add(form);
     form.init();
     clear(); // reset state of the page, clear the import storage
-    if (parameters.get(0) != null && parameters.get(0).toString() != null && parameters.get(0).toString().equals("success")) {
+    if (parameters != null && parameters.get(0) != null && parameters.get(0).toString() != null && parameters.get(0).toString().equals("success")) {
       error(I18nHelper.getLocalizedMessage("plugins.eed.salaryimport.success"));
     }
   }
