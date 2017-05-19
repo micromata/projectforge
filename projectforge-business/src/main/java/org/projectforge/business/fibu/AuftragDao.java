@@ -40,6 +40,7 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.hibernate.Criteria;
+import org.hibernate.criterion.Criterion;
 import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Restrictions;
 import org.projectforge.business.configuration.ConfigurationService;
@@ -156,7 +157,7 @@ public class AuftragDao extends BaseDao<AuftragDO>
     final Map<Integer, Set<AuftragsPositionVO>> result = new HashMap<Integer, Set<AuftragsPositionVO>>();
     @SuppressWarnings("unchecked")
     final List<AuftragsPositionDO> list = (List<AuftragsPositionDO>) getHibernateTemplate()
-        .find("from AuftragsPositionDO a where a.task.id is not null");
+        .find("from AuftragsPositionDO a where a.task.id is not null and a.deleted = false");
     if (list == null) {
       return result;
     }
@@ -217,8 +218,8 @@ public class AuftragDao extends BaseDao<AuftragDO>
     if (order == null) {
       return;
     }
-    if (order.getPositionen() != null) {
-      for (final AuftragsPositionDO pos : order.getPositionen()) {
+    if (order.getPositionenExcludingDeleted() != null) {
+      for (final AuftragsPositionDO pos : order.getPositionenExcludingDeleted()) {
         final Set<RechnungsPositionVO> set = rechnungCache
             .getRechnungsPositionVOSetByAuftragsPositionId(pos.getId());
         if (set != null) {
@@ -312,7 +313,8 @@ public class AuftragDao extends BaseDao<AuftragDO>
       return abgeschlossenNichtFakturiert;
     }
     final AuftragFilter filter = new AuftragFilter();
-    filter.setListType(AuftragFilter.FILTER_ABGESCHLOSSEN_NF);
+    filter.getAuftragsStatuses().add(AuftragsStatus.ABGESCHLOSSEN);
+    filter.setAuftragFakturiertFilterStatus(AuftragFakturiertFilterStatus.NICHT_FAKTURIERT);
     try {
       final List<AuftragDO> list = getList(filter, false);
       abgeschlossenNichtFakturiert = list != null ? list.size() : 0;
@@ -328,66 +330,6 @@ public class AuftragDao extends BaseDao<AuftragDO>
   public List<AuftragDO> getList(final BaseSearchFilter filter)
   {
     return getList(filter, true);
-  }
-
-  // TODO CT: remove
-  private Boolean removeMe(final AuftragFilter myFilter, final QueryFilter queryFilter)
-  {
-    Boolean vollstaendigFakturiert = null;
-
-    // ???
-    if (myFilter.isShowBeauftragtNochNichtVollstaendigFakturiert() == true) {
-      queryFilter
-          .add(Restrictions.not(Restrictions.in("auftragsStatus", new AuftragsStatus[] { AuftragsStatus.ABGELEHNT,
-              AuftragsStatus.ERSETZT, AuftragsStatus.GELEGT, AuftragsStatus.POTENZIAL, AuftragsStatus.IN_ERSTELLUNG })));
-      vollstaendigFakturiert = false;
-    }
-
-    // ???
-    else if (myFilter.isShowNochNichtVollstaendigFakturiert() == true) {
-      queryFilter
-          .add(Restrictions.not(Restrictions.in("auftragsStatus", new AuftragsStatus[] { AuftragsStatus.ABGELEHNT, AuftragsStatus.ERSETZT })));
-      vollstaendigFakturiert = false;
-    }
-
-    // ok
-    else if (myFilter.isShowVollstaendigFakturiert() == true) {
-      vollstaendigFakturiert = true;
-    } else if (myFilter.isShowAbgelehnt() == true) {
-      queryFilter.add(Restrictions.eq("auftragsStatus", AuftragsStatus.ABGELEHNT));
-    }
-
-    // ???
-    else if (myFilter.isShowAbgeschlossenNichtFakturiert() == true) {
-      queryFilter
-          .createAlias("positionen", "position")
-          .createAlias("paymentSchedules", "paymentSchedule", Criteria.FULL_JOIN)
-          .add(
-              Restrictions.or(
-                  Restrictions.or(
-                      Restrictions.eq("auftragsStatus", AuftragsStatus.ABGESCHLOSSEN),
-                      Restrictions.eq("position.status", AuftragsPositionsStatus.ABGESCHLOSSEN)
-                  ),
-                  Restrictions.eq("paymentSchedule.reached", true)
-              )
-          );
-      vollstaendigFakturiert = false;
-    }
-
-    // ok
-    else if (myFilter.isShowAkquise() == true) {
-      queryFilter.add(
-          Restrictions.in("auftragsStatus", new AuftragsStatus[] { AuftragsStatus.GELEGT, AuftragsStatus.IN_ERSTELLUNG,
-              AuftragsStatus.POTENZIAL }));
-
-    } else if (myFilter.isShowBeauftragt() == true) {
-      queryFilter
-          .add(Restrictions.in("auftragsStatus", new AuftragsStatus[] { AuftragsStatus.BEAUFTRAGT, AuftragsStatus.LOI,
-              AuftragsStatus.ESKALATION }));
-    } else if (myFilter.isShowErsetzt() == true) {
-      queryFilter.add(Restrictions.eq("auftragsStatus", AuftragsStatus.ERSETZT));
-    }
-    return vollstaendigFakturiert;
   }
 
   private List<AuftragDO> getList(final BaseSearchFilter filter, final boolean checkAccess)
@@ -435,7 +377,7 @@ public class AuftragDao extends BaseDao<AuftragDO>
       list = internalGetList(queryFilter);
     }
 
-    filterFakturiert(myFilter.getAuftragFakturiertFilterStatus(), myFilter, list);
+    filterFakturiert(myFilter, list);
 
     filterPositionsArten(myFilter, list);
 
@@ -444,8 +386,8 @@ public class AuftragDao extends BaseDao<AuftragDO>
         final AuftragDO auftrag = (AuftragDO) object;
         boolean match = false;
         if (myFilter.getAuftragsPositionsPaymentType() != null) {
-          if (CollectionUtils.isNotEmpty(auftrag.getPositionen()) == true) {
-            for (final AuftragsPositionDO position : auftrag.getPositionen()) {
+          if (CollectionUtils.isNotEmpty(auftrag.getPositionenExcludingDeleted()) == true) {
+            for (final AuftragsPositionDO position : auftrag.getPositionenExcludingDeleted()) {
               if (myFilter.getAuftragsPositionsPaymentType() == position.getPaymentType()) {
                 match = true;
                 break;
@@ -468,13 +410,26 @@ public class AuftragDao extends BaseDao<AuftragDO>
       return;
     }
 
-    queryFilter.add(Restrictions.in("auftragsStatus", auftragsStatuses));
+    final List<Criterion> orCriterions = new ArrayList<>();
+    orCriterions.add(Restrictions.in("auftragsStatus", auftragsStatuses));
+    orCriterions.add(Restrictions.in("position.status", auftragsStatuses));
+
+    // special case
+    if (auftragsStatuses.contains(AuftragsStatus.ABGESCHLOSSEN)) {
+      orCriterions.add(Restrictions.eq("paymentSchedule.reached", true));
+      queryFilter.createAlias("paymentSchedules", "paymentSchedule", Criteria.FULL_JOIN);
+    }
+
+    queryFilter
+        .createAlias("positionen", "position", Criteria.FULL_JOIN)
+        .add(Restrictions.or(orCriterions.toArray(new Criterion[orCriterions.size()])));
   }
 
-  // TODO CT: remove argument myFilter
-  private void filterFakturiert(final AuftragFakturiertFilterStatus auftragFakturiertFilterStatus, final AuftragFilter myFilter, final List<AuftragDO> list)
+  private void filterFakturiert(final AuftragFilter myFilter, final List<AuftragDO> list)
   {
+    final AuftragFakturiertFilterStatus auftragFakturiertFilterStatus = myFilter.getAuftragFakturiertFilterStatus();
     if (auftragFakturiertFilterStatus == null || auftragFakturiertFilterStatus == AuftragFakturiertFilterStatus.ALL) {
+      // do not filter
       return;
     }
 
@@ -484,26 +439,32 @@ public class AuftragDao extends BaseDao<AuftragDO>
       final AuftragDO auftrag = (AuftragDO) object;
       final boolean orderIsCompletelyInvoiced = auftrag.isVollstaendigFakturiert();
 
-      if (HibernateUtils.getDialect() != DatabaseDialect.HSQL && myFilter.isShowAbgeschlossenNichtFakturiert()) {
+      // special case
+      if (HibernateUtils.getDialect() != DatabaseDialect.HSQL &&
+          vollstaendigFakturiert == false && myFilter.getAuftragsStatuses().contains(AuftragsStatus.ABGESCHLOSSEN)) {
+
         // if order is completed and not all positions are completely invoiced
         if (auftrag.getAuftragsStatus() == AuftragsStatus.ABGESCHLOSSEN && orderIsCompletelyInvoiced == false) {
           return true;
         }
+
         // if order is completed and not completely invoiced
-        if (auftrag.getPositionen() != null) {
-          for (final AuftragsPositionDO pos : auftrag.getPositionen()) {
-            if (pos.isAbgeschlossenUndNichtVollstaendigFakturiert() == true) {
+        if (auftrag.getPositionenExcludingDeleted() != null) {
+          for (final AuftragsPositionDO pos : auftrag.getPositionenExcludingDeleted()) {
+            if (pos.isAbgeschlossenUndNichtVollstaendigFakturiert()) {
               return true;
             }
           }
         }
+
         if (auftrag.getPaymentSchedules() != null) {
           for (final PaymentScheduleDO schedule : auftrag.getPaymentSchedules()) {
-            if (schedule.isReached() == true && schedule.isVollstaendigFakturiert() == false) {
+            if (schedule.isReached() && schedule.isVollstaendigFakturiert() == false) {
               return true;
             }
           }
         }
+
         return false;
       }
 
@@ -517,7 +478,7 @@ public class AuftragDao extends BaseDao<AuftragDO>
 
     if (CollectionUtils.isNotEmpty(auftragsPositionsArten)) {
       CollectionUtils.filter(list, object -> {
-        final List<AuftragsPositionDO> positionen = ((AuftragDO) object).getPositionen();
+        final List<AuftragsPositionDO> positionen = ((AuftragDO) object).getPositionenExcludingDeleted();
 
         // check if any of the current positions contains at least one AuftragsPositionsArt of the auftragsPositionsArten of the filter
         return CollectionUtils.isNotEmpty(positionen) && positionen.stream()
@@ -549,21 +510,21 @@ public class AuftragDao extends BaseDao<AuftragDO>
         throw new UserException("fibu.auftrag.error.nummerBereitsVergeben");
       }
     }
-    if (CollectionUtils.isEmpty(obj.getPositionen()) == true) {
+    if (CollectionUtils.isEmpty(obj.getPositionenIncludingDeleted()) == true) {
       throw new UserException("fibu.auftrag.error.auftragHatKeinePositionen");
     }
-    final int size = obj.getPositionen().size();
+    final int size = obj.getPositionenIncludingDeleted().size();
     for (int i = size - 1; i > 0; i--) {
       // Don't remove first position, remove only the last empty positions.
-      final AuftragsPositionDO position = obj.getPositionen().get(i);
+      final AuftragsPositionDO position = obj.getPositionenIncludingDeleted().get(i);
       if (position.getId() == null && position.isEmpty() == true) {
-        obj.getPositionen().remove(i);
+        obj.getPositionenIncludingDeleted().remove(i);
       } else {
         break;
       }
     }
-    if (CollectionUtils.isNotEmpty(obj.getPositionen()) == true) {
-      for (final AuftragsPositionDO position : obj.getPositionen()) {
+    if (CollectionUtils.isNotEmpty(obj.getPositionenIncludingDeleted()) == true) {
+      for (final AuftragsPositionDO position : obj.getPositionenIncludingDeleted()) {
         position.checkVollstaendigFakturiert();
       }
     }
@@ -594,7 +555,7 @@ public class AuftragDao extends BaseDao<AuftragDO>
       return;
     }
 
-    for (final AuftragsPositionDO pos : auftrag.getPositionenNotDeleted()) {
+    for (final AuftragsPositionDO pos : auftrag.getPositionenExcludingDeleted()) {
       final BigDecimal sumOfAmountsForCurrentPosition = paymentSchedules.stream()
           .filter(payment -> payment.getPositionNumber() == pos.getNumber())
           .map(PaymentScheduleDO::getAmount)
@@ -735,8 +696,8 @@ public class AuftragDao extends BaseDao<AuftragDO>
     if (hasLoggedInUserHistoryAccess(obj, false) == false) {
       return list;
     }
-    if (CollectionUtils.isNotEmpty(obj.getPositionen()) == true) {
-      for (final AuftragsPositionDO position : obj.getPositionen()) {
+    if (CollectionUtils.isNotEmpty(obj.getPositionenIncludingDeleted()) == true) {
+      for (final AuftragsPositionDO position : obj.getPositionenIncludingDeleted()) {
         final List<DisplayHistoryEntry> entries = internalGetDisplayHistoryEntries(position);
         for (final DisplayHistoryEntry entry : entries) {
           final String propertyName = entry.getPropertyName();
@@ -792,7 +753,7 @@ public class AuftragDao extends BaseDao<AuftragDO>
     if (super.contains(idSet, entry) == true) {
       return true;
     }
-    for (final AuftragsPositionDO pos : entry.getPositionen()) {
+    for (final AuftragsPositionDO pos : entry.getPositionenIncludingDeleted()) {
       if (idSet.contains(pos.getId()) == true) {
         return true;
       }

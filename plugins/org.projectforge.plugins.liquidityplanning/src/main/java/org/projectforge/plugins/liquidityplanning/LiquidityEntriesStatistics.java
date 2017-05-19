@@ -25,10 +25,10 @@ package org.projectforge.plugins.liquidityplanning;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.util.Date;
 
 import org.projectforge.framework.time.DayHolder;
+import org.projectforge.framework.utils.NumberHelper;
 
 public class LiquidityEntriesStatistics implements Serializable
 {
@@ -52,14 +52,14 @@ public class LiquidityEntriesStatistics implements Serializable
   public void add(final LiquidityEntryDO entry)
   {
     final BigDecimal amount = entry.getAmount();
-    this.total = add(total, amount);
+    this.total = NumberHelper.add(total, amount);
     if (entry.isPaid() == true) {
-      this.paid = add(paid, amount);
+      this.paid = NumberHelper.add(paid, amount);
       counterPaid++;
     } else {
-      this.open = add(open, amount);
+      this.open = NumberHelper.add(open, amount);
       if (entry.getDateOfPayment() != null && entry.getDateOfPayment().before(today) == true) {
-        this.overdue = add(overdue, amount);
+        this.overdue = NumberHelper.add(overdue, amount);
       }
     }
     counter++;
@@ -105,18 +105,5 @@ public class LiquidityEntriesStatistics implements Serializable
   public int getCounterPaid()
   {
     return counterPaid;
-  }
-
-  private BigDecimal add(BigDecimal sum, final BigDecimal amount)
-  {
-    if (amount == null) {
-      return sum;
-    }
-    if (sum == null) {
-      sum = BigDecimal.ZERO;
-    }
-    sum = sum.add(amount);
-    sum.setScale(2, RoundingMode.HALF_UP);
-    return sum;
   }
 }

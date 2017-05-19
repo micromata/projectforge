@@ -24,6 +24,7 @@
 package org.projectforge.business.fibu;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Collection;
 
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
@@ -39,42 +40,17 @@ public class AuftragFilter extends BaseSearchFilter implements Serializable
 {
   private static final long serialVersionUID = 3456000966109255447L;
 
-  // TODO CT: delete fibu.auftrag.filter.type.* i18n keys?
-  public static final String FILTER_ALL = "all";
+  private int year;
 
-  public static final String FILTER_AKQUISE = "akquise";
+  private PFUserDO user;
 
-  public static final String FILTER_BEAUFTRAGT = "beauftragt";
+  private final Collection<AuftragsStatus> auftragsStatuses = new ArrayList<>();
 
-  public static final String FILTER_BEAUFTRAGT_NOCH_NICHT_VOLLSTAENDIG_FAKTURIERT = "beauftragtNochNichtVollstaendigFakturiert";
-
-  public static final String FILTER_ABGESCHLOSSEN_NF = "abgeschlossenNichtFakturiert";
-
-  public static final String FILTER_VOLLSTAENDIG_FAKTURIERT = "vollstaendigFakturiert";
-
-  public static final String FILTER_NOCH_NICHT_VOLLSTAENDIG_FAKTURIERT = "nochNichtVollstaendigFakturiert";
-
-  public static final String FILTER_ABGELEHNT = "abgelehnt";
-
-  public static final String FILTER_ERSETZT = "ersetzt";
-
-  protected int year;
-
-  protected PFUserDO user;
-
-  protected String listType = FILTER_ALL;
-
-  private Collection<AuftragsStatus> auftragsStatuses;
-
-  private Collection<AuftragsPositionsArt> auftragsPositionsArten;
+  private final Collection<AuftragsPositionsArt> auftragsPositionsArten = new ArrayList<>();
 
   private AuftragFakturiertFilterStatus auftragFakturiertFilterStatus;
 
-  protected AuftragsPositionsPaymentType auftragsPositionsPaymentType;
-
-  public static final String[] LIST = { FILTER_ALL, FILTER_AKQUISE, FILTER_BEAUFTRAGT, FILTER_NOCH_NICHT_VOLLSTAENDIG_FAKTURIERT,
-      FILTER_BEAUFTRAGT_NOCH_NICHT_VOLLSTAENDIG_FAKTURIERT,
-      FILTER_ABGESCHLOSSEN_NF, FILTER_VOLLSTAENDIG_FAKTURIERT, FILTER_ABGELEHNT, FILTER_ERSETZT };
+  private AuftragsPositionsPaymentType auftragsPositionsPaymentType;
 
   public AuftragFilter()
   {
@@ -83,65 +59,6 @@ public class AuftragFilter extends BaseSearchFilter implements Serializable
   public AuftragFilter(final BaseSearchFilter filter)
   {
     super(filter);
-  }
-
-  public boolean isShowAll()
-  {
-    return FILTER_ALL.equals(listType);
-  }
-
-  public boolean isShowAkquise()
-  {
-    return FILTER_AKQUISE.equals(listType);
-  }
-
-  public boolean isShowBeauftragt()
-  {
-    return FILTER_BEAUFTRAGT.equals(listType);
-  }
-
-  public boolean isShowBeauftragtNochNichtVollstaendigFakturiert()
-  {
-    return FILTER_BEAUFTRAGT_NOCH_NICHT_VOLLSTAENDIG_FAKTURIERT.equals(listType);
-  }
-
-  public boolean isShowNochNichtVollstaendigFakturiert()
-  {
-    return FILTER_NOCH_NICHT_VOLLSTAENDIG_FAKTURIERT.equals(listType);
-  }
-
-  public boolean isShowVollstaendigFakturiert()
-  {
-    return FILTER_VOLLSTAENDIG_FAKTURIERT.equals(listType);
-  }
-
-  public boolean isShowAbgeschlossenNichtFakturiert()
-  {
-    return FILTER_ABGESCHLOSSEN_NF.equals(listType);
-  }
-
-  public boolean isShowAbgelehnt()
-  {
-    return FILTER_ABGELEHNT.equals(listType);
-  }
-
-  public boolean isShowErsetzt()
-  {
-    return FILTER_ERSETZT.equals(listType);
-  }
-
-  public String getListType()
-  {
-    return this.listType;
-  }
-
-  public void setListType(String listType)
-  {
-    if (listType == null) {
-      listType = FILTER_ALL;
-      return;
-    }
-    this.listType = listType;
   }
 
   /**
@@ -168,29 +85,19 @@ public class AuftragFilter extends BaseSearchFilter implements Serializable
   }
 
   /**
-   * null / empty collection represents all.
+   * empty collection represents all.
    */
   public Collection<AuftragsStatus> getAuftragsStatuses()
   {
     return auftragsStatuses;
   }
 
-  public void setAuftragsStatuses(final Collection<AuftragsStatus> auftragsStatuses)
-  {
-    this.auftragsStatuses = auftragsStatuses;
-  }
-
   /**
-   * null / empty collection represents all.
+   * empty collection represents all.
    */
   public Collection<AuftragsPositionsArt> getAuftragsPositionsArten()
   {
     return auftragsPositionsArten;
-  }
-
-  public void setAuftragsPositionsArten(final Collection<AuftragsPositionsArt> auftragsPositionsArten)
-  {
-    this.auftragsPositionsArten = auftragsPositionsArten;
   }
 
   public AuftragFakturiertFilterStatus getAuftragFakturiertFilterStatus()
@@ -222,12 +129,13 @@ public class AuftragFilter extends BaseSearchFilter implements Serializable
   @Override
   public AuftragFilter reset()
   {
-    year = -1;
     searchString = "";
-    setAuftragsStatuses(null);
-    setAuftragsPositionsArten(null);
+    year = -1;
+    user = null;
+    auftragsStatuses.clear();
+    auftragsPositionsArten.clear();
     setAuftragFakturiertFilterStatus(null);
-    setListType(AuftragFilter.FILTER_ALL);
+    setAuftragsPositionsPaymentType(null);
     return this;
   }
 }

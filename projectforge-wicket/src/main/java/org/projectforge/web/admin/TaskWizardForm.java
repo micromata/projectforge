@@ -154,6 +154,7 @@ public class TaskWizardForm extends AbstractStandardForm<TaskWizardForm, TaskWiz
     final SingleButtonPanel finishButtonPanel = new SingleButtonPanel(actionButtons.newChildId(), finishButton,
         getString("task.wizard.finish"), SingleButtonPanel.DEFAULT_SUBMIT);
     actionButtons.add(finishButtonPanel);
+
   }
 
   @SuppressWarnings("serial")
@@ -188,15 +189,9 @@ public class TaskWizardForm extends AbstractStandardForm<TaskWizardForm, TaskWiz
           buf.append(getString("task.wizard.managerGroup.groupNameSuffix"));
         }
         params.add(GroupEditPage.PARAM_GROUP_NAME, buf.toString());
-        final GroupEditPage editPage = new GroupEditPage(params);
+        final GroupEditPage editPage = new GroupEditPage(params, key + "Id");
         editPage.setReturnToPage(parentPage);
         setResponsePage(editPage);
-      }
-
-      @Override
-      public boolean isVisible()
-      {
-        return task != null;
       }
     };
     createGroupButton.setDefaultFormProcessing(false);
