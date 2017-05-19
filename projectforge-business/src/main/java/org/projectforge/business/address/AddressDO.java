@@ -963,7 +963,7 @@ public class AddressDO extends DefaultBaseWithAttrDO<AddressDO>
     return super.getAttrs();
   }
 
-  @Column
+  @Column(length = 4000)
   public byte[] getImageData()
   {
     return imageData;
