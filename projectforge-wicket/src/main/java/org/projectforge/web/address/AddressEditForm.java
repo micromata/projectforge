@@ -31,7 +31,6 @@ import org.projectforge.business.address.AddressDao;
 import org.projectforge.business.address.PersonalAddressDao;
 import org.projectforge.business.configuration.ConfigurationService;
 import org.projectforge.web.address.AddressPageSupport.AddressParameters;
-import org.projectforge.web.common.timeattr.AttrModel;
 import org.projectforge.web.wicket.AbstractEditForm;
 import org.projectforge.web.wicket.bootstrap.GridSize;
 import org.projectforge.web.wicket.flowlayout.DivPanel;
@@ -124,8 +123,7 @@ public class AddressEditForm extends AbstractEditForm<AddressDO, AddressEditPage
 
     gridBuilder.newSplitPanel(GridSize.COL50, true).newSubSplitPanel(GridSize.COL100);
     final FieldsetPanel fs1 = gridBuilder.newFieldset(gridBuilder.getString("address.image"));
-    new ImageUploadPanel(fs1.newChildId(), fs1, this, new AttrModel<>(data, "profileImageData", byte[].class),
-        this.configurationService.getMaxFileSizeImage());
+    new ImageUploadPanel(fs1.newChildId(), fs1, this, new PropertyModel<>(data, "imageData"), this.configurationService.getMaxFileSizeImage());
 
     gridBuilder.newGridPanel();
     addressEditSupport.addComment();

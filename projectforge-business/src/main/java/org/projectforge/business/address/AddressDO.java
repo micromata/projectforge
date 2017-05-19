@@ -198,6 +198,9 @@ public class AddressDO extends DefaultBaseWithAttrDO<AddressDO>
   @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
   private Date birthday;
 
+  @NoHistory
+  private byte[] imageData;
+
   // @FieldBridge(impl = HibernateSearchInstantMessagingBridge.class)
   // @Field(index = Index.YES /*TOKENIZED*/, store = Store.NO)
   // TODO: Prepared for hibernate search.
@@ -644,7 +647,7 @@ public class AddressDO extends DefaultBaseWithAttrDO<AddressDO>
 
   /**
    * Not used as object due to performance reasons.
-   * 
+   *
    * @return
    */
   @ManyToOne(fetch = FetchType.LAZY)
@@ -795,7 +798,7 @@ public class AddressDO extends DefaultBaseWithAttrDO<AddressDO>
   /**
    * List of instant messaging contacts in the form of a property file: {skype=hugo.mustermann\naim=12345dse}. Only for
    * data base access, use getter an setter of instant messaging instead.
-   * 
+   *
    * @return
    */
   // @Column(name = "instant_messaging", length = 4000)
@@ -841,7 +844,7 @@ public class AddressDO extends DefaultBaseWithAttrDO<AddressDO>
 
   /**
    * Instant messaging settings as property file.
-   * 
+   *
    * @return
    */
   @Transient
@@ -931,7 +934,7 @@ public class AddressDO extends DefaultBaseWithAttrDO<AddressDO>
 
   /**
    * @see org.projectforge.framework.persistence.attr.entities.DefaultBaseWithAttrDO#createAttrEntity(java.lang.String,
-   *      char, java.lang.String)
+   * char, java.lang.String)
    */
   @Override
   public JpaTabAttrBaseDO<AddressDO, Integer> createAttrEntity(String key, char type, String value)
@@ -941,7 +944,7 @@ public class AddressDO extends DefaultBaseWithAttrDO<AddressDO>
 
   /**
    * @see org.projectforge.framework.persistence.attr.entities.DefaultBaseWithAttrDO#createAttrEntityWithData(java.lang.String,
-   *      char, java.lang.String)
+   * char, java.lang.String)
    */
   @Override
   public JpaTabAttrBaseDO<AddressDO, Integer> createAttrEntityWithData(String key, char type, String value)
@@ -960,4 +963,14 @@ public class AddressDO extends DefaultBaseWithAttrDO<AddressDO>
     return super.getAttrs();
   }
 
+  @Column
+  public byte[] getImageData()
+  {
+    return imageData;
+  }
+
+  public void setImageData(final byte[] imageData)
+  {
+    this.imageData = imageData;
+  }
 }
