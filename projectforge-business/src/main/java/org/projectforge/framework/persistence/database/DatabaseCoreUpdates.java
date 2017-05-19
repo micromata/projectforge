@@ -139,14 +139,14 @@ public class DatabaseCoreUpdates
     ////////////////////////////////////////////////////////////////////
     // 6.12.0
     // /////////////////////////////////////////////////////////////////
-    list.add(new UpdateEntryImpl(CORE_REGION_ID, "6.12.0", "2017-05-24",
-        "Change address image data to AddressDO.")
+    list.add(new UpdateEntryImpl(CORE_REGION_ID, "6.12.0", "2017-05-22",
+        "Correct calendar exdates. Change address image data to AddressDO.")
     {
       @Override
       public UpdatePreCheckStatus runPreCheck()
       {
         log.info("Running pre-check for ProjectForge version 6.12.0");
-        if (databaseUpdateService.doesTableAttributeExist("T_ADDRESS", "imagedata") == false) {
+        if (hasISODates() || databaseUpdateService.doesTableAttributeExist("T_ADDRESS", "imagedata") == false) {
           return UpdatePreCheckStatus.READY_FOR_UPDATE;
         }
         return UpdatePreCheckStatus.ALREADY_UPDATED;
@@ -161,7 +161,57 @@ public class DatabaseCoreUpdates
           deleteImageHistoryData();
           deleteImageAddressAttrData();
         }
+
+        if (hasISODates()) {
+          final PfEmgrFactory emf = applicationContext.getBean(PfEmgrFactory.class);
+          emf.runInTrans(emgr -> {
+            SimpleDateFormat iCalFormatterWithTime = new SimpleDateFormat(DateFormats.ICAL_DATETIME_FORMAT);
+            SimpleDateFormat iCalFormatterAllDay = new SimpleDateFormat(DateFormats.COMPACT_DATE);
+            List<SimpleDateFormat> formatterPatterns = Arrays
+                .asList(new SimpleDateFormat(DateFormats.ISO_TIMESTAMP_SECONDS), new SimpleDateFormat(DateFormats.ISO_TIMESTAMP_MINUTES),
+                    new SimpleDateFormat(DateFormats.ISO_DATE), iCalFormatterWithTime, iCalFormatterAllDay);
+            List<TeamEventDO> teamEventDOList = emgr
+                .selectAttached(TeamEventDO.class, "SELECT te FROM TeamEventDO te WHERE te.recurrenceExDate IS NOT NULL AND te.recurrenceExDate <> ''");
+            for (TeamEventDO te : teamEventDOList) {
+              String exDateList = te.getRecurrenceExDate();
+              String[] exDateArray = exDateList.split(",");
+              List<String> finalExDates = new ArrayList<>();
+              for (String exDateOld : exDateArray) {
+                Date oldDate = null;
+                for (SimpleDateFormat sdf : formatterPatterns) {
+                  try {
+                    oldDate = sdf.parse(exDateOld);
+                    break;
+                  } catch (ParseException e) {
+                    if (log.isDebugEnabled()) {
+                      log.debug("Date not parsable. Try another parser.");
+                    }
+                  }
+                }
+                if (oldDate == null) {
+                  log.error("Date not parsable. Ignoring it: " + exDateOld);
+                  continue;
+                }
+                if (te.isAllDay()) {
+                  finalExDates.add(iCalFormatterAllDay.format(oldDate));
+                } else {
+                  finalExDates.add(iCalFormatterWithTime.format(oldDate));
+                }
+              }
+              String newExDateValue = String.join(",", finalExDates);
+              te.setRecurrenceExDate(newExDateValue);
+              emgr.update(te);
+            }
+            return null;
+          });
+        }
         return UpdateRunningStatus.DONE;
+      }
+
+      private boolean hasISODates()
+      {
+        List<DatabaseResultRow> result = databaseUpdateService.query("SELECT * FROM T_PLUGIN_CALENDAR_EVENT WHERE recurrence_ex_date LIKE '%-%' LIMIT 1");
+        return result.size() > 0;
       }
 
       private void deleteImageAddressAttrData()
@@ -219,20 +269,19 @@ public class DatabaseCoreUpdates
           }
         }
       }
-
     });
 
     ////////////////////////////////////////////////////////////////////
-    // 6.11.1
+    // 6.11.0
     // /////////////////////////////////////////////////////////////////
-    list.add(new UpdateEntryImpl(CORE_REGION_ID, "6.11.1", "2017-05-19",
-        "Correct calendar exdates")
+    list.add(new UpdateEntryImpl(CORE_REGION_ID, "6.11.0", "2017-05-03",
+        "Add discounts and konto informations. Add period of performance to invoices.")
     {
       @Override
       public UpdatePreCheckStatus runPreCheck()
       {
-        log.info("Running pre-check for ProjectForge version 6.11.1");
-        if (hasISODates()) {
+        log.info("Running pre-check for ProjectForge version 6.11.0");
+        if (isSchemaUpdateNecessary()) {
           return UpdatePreCheckStatus.READY_FOR_UPDATE;
         }
         return UpdatePreCheckStatus.ALREADY_UPDATED;
@@ -241,96 +290,22 @@ public class DatabaseCoreUpdates
       @Override
       public UpdateRunningStatus runUpdate()
       {
-        if (hasISODates()) {
-          final PfEmgrFactory emf = applicationContext.getBean(PfEmgrFactory.class);
-          emf.runInTrans(emgr -> {
-            SimpleDateFormat iCalFormatterWithTime = new SimpleDateFormat(DateFormats.ICAL_DATETIME_FORMAT);
-            SimpleDateFormat iCalFormatterAllDay = new SimpleDateFormat(DateFormats.COMPACT_DATE);
-            List<SimpleDateFormat> formatterPatterns = Arrays
-                .asList(new SimpleDateFormat(DateFormats.ISO_TIMESTAMP_SECONDS), new SimpleDateFormat(DateFormats.ISO_TIMESTAMP_MINUTES),
-                    new SimpleDateFormat(DateFormats.ISO_DATE), iCalFormatterWithTime, iCalFormatterAllDay);
-            List<TeamEventDO> teamEventDOList = emgr
-                .selectAttached(TeamEventDO.class, "SELECT te FROM TeamEventDO te WHERE te.recurrenceExDate IS NOT NULL AND te.recurrenceExDate <> ''");
-            for (TeamEventDO te : teamEventDOList) {
-              String exDateList = te.getRecurrenceExDate();
-              String[] exDateArray = exDateList.split(",");
-              List<String> finalExDates = new ArrayList<>();
-              for (String exDateOld : exDateArray) {
-                Date oldDate = null;
-                for (SimpleDateFormat sdf : formatterPatterns) {
-                  try {
-                    oldDate = sdf.parse(exDateOld);
-                    break;
-                  } catch (ParseException e) {
-                    if (log.isDebugEnabled()) {
-                      log.debug("Date not parsable. Try another parser.");
-                    }
-                  }
-                }
-                if (oldDate == null) {
-                  log.error("Date not parsable. Ignoring it: " + exDateOld);
-                  continue;
-                }
-                if (te.isAllDay()) {
-                  finalExDates.add(iCalFormatterAllDay.format(oldDate));
-                } else {
-                  finalExDates.add(iCalFormatterWithTime.format(oldDate));
-                }
-              }
-              String newExDateValue = String.join(",", finalExDates);
-              te.setRecurrenceExDate(newExDateValue);
-              emgr.update(te);
-            }
-            return null;
-          });
+        if (isSchemaUpdateNecessary()) {
+          initDatabaseDao.updateSchema();
         }
         return UpdateRunningStatus.DONE;
       }
 
-      private boolean hasISODates()
+      private boolean isSchemaUpdateNecessary()
       {
-        List<DatabaseResultRow> result = databaseUpdateService.query("SELECT * FROM T_PLUGIN_CALENDAR_EVENT WHERE recurrence_ex_date LIKE '%-%' LIMIT 1");
-        return result.size() > 0;
+        return databaseUpdateService.doesTableAttributeExist("t_fibu_eingangsrechnung", "discountmaturity") == false
+            || databaseUpdateService.doesTableAttributeExist("t_fibu_rechnung", "discountmaturity") == false
+            || databaseUpdateService.doesTableAttributeExist("t_fibu_eingangsrechnung", "customernr") == false
+            || databaseUpdateService.doTableAttributesExist(RechnungDO.class, "periodOfPerformanceBegin", "periodOfPerformanceEnd") == false
+            || databaseUpdateService.doTableAttributesExist(RechnungsPositionDO.class, "periodOfPerformanceType", "periodOfPerformanceBegin",
+            "periodOfPerformanceEnd") == false;
       }
     });
-
-    ////////////////////////////////////////////////////////////////////
-    // 6.11.0
-    // /////////////////////////////////////////////////////////////////
-    list.add(new
-
-                 UpdateEntryImpl(CORE_REGION_ID, "6.11.0", "2017-05-03",
-                     "Add discounts and konto informations. Add period of performance to invoices.")
-                 {
-                   @Override
-                   public UpdatePreCheckStatus runPreCheck()
-                   {
-                     log.info("Running pre-check for ProjectForge version 6.11.0");
-                     if (isSchemaUpdateNecessary()) {
-                       return UpdatePreCheckStatus.READY_FOR_UPDATE;
-                     }
-                     return UpdatePreCheckStatus.ALREADY_UPDATED;
-                   }
-
-                   @Override
-                   public UpdateRunningStatus runUpdate()
-                   {
-                     if (isSchemaUpdateNecessary()) {
-                       initDatabaseDao.updateSchema();
-                     }
-                     return UpdateRunningStatus.DONE;
-                   }
-
-                   private boolean isSchemaUpdateNecessary()
-                   {
-                     return databaseUpdateService.doesTableAttributeExist("t_fibu_eingangsrechnung", "discountmaturity") == false
-                         || databaseUpdateService.doesTableAttributeExist("t_fibu_rechnung", "discountmaturity") == false
-                         || databaseUpdateService.doesTableAttributeExist("t_fibu_eingangsrechnung", "customernr") == false
-                         || databaseUpdateService.doTableAttributesExist(RechnungDO.class, "periodOfPerformanceBegin", "periodOfPerformanceEnd") == false
-                         || databaseUpdateService.doTableAttributesExist(RechnungsPositionDO.class, "periodOfPerformanceType", "periodOfPerformanceBegin",
-                         "periodOfPerformanceEnd") == false;
-                   }
-                 });
 
     ////////////////////////////////////////////////////////////////////
     // 6.10.0
