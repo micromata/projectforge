@@ -192,9 +192,9 @@ public class DatabaseSupport
   public String alterTableColumnVarCharLength(final String table, final String attribute, final int length)
   {
     if (dialect == DatabaseDialect.PostgreSQL) {
-      return "ALTER TABLE " + table + " ALTER COLUMN " + attribute + " TYPE varchar(" + length + ")";
+      return "ALTER TABLE " + table.toUpperCase() + " ALTER COLUMN " + attribute.toUpperCase() + " TYPE varchar(" + length + ")";
     } else {
-      return "ALTER TABLE " + table + " ALTER COLUMN " + attribute + " varchar(" + length + ")";
+      return "ALTER TABLE " + table.toLowerCase() + " ALTER COLUMN " + attribute.toLowerCase() + " varchar(" + length + ")";
     }
   }
 

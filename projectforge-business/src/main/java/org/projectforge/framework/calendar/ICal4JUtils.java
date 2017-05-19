@@ -383,16 +383,16 @@ public class ICal4JUtils
     return sa;
   }
 
-  public static List<net.fortuna.ical4j.model.Date> parseISODateStringsAsICal4jDates(final String csv,
+  public static List<net.fortuna.ical4j.model.Date> parseCSVDatesAsICal4jDates(final String csvDates, boolean dateTime,
       final TimeZone timeZone)
   {
-    final String[] sa = splitExDates(csv);
+    final String[] sa = splitExDates(csvDates);
     if (sa == null) {
       return null;
     }
     final List<net.fortuna.ical4j.model.Date> result = new ArrayList<net.fortuna.ical4j.model.Date>();
     for (final String str : sa) {
-      if (str == null) {
+      if (StringUtils.isEmpty(str)) {
         continue;
       }
       Date date = null;
@@ -404,7 +404,11 @@ public class ICal4JUtils
       if (date == null) {
         continue;
       }
-      result.add(getICal4jDateTime(date, timeZone));
+      if (dateTime) {
+        result.add(getICal4jDateTime(date, timeZone));
+      } else {
+        result.add(new net.fortuna.ical4j.model.Date(date));
+      }
     }
     return result;
   }

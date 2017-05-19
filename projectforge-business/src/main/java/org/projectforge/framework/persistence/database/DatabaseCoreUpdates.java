@@ -38,7 +38,6 @@ import java.util.Set;
 import java.util.TimeZone;
 import java.util.function.Predicate;
 
-import org.hibernate.exception.GenericJDBCException;
 import org.projectforge.business.address.AddressAttrDO;
 import org.projectforge.business.address.AddressAttrDataDO;
 import org.projectforge.business.address.AddressDO;
@@ -765,51 +764,41 @@ public class DatabaseCoreUpdates
         }
 
         if (databaseUpdateService.doesGroupExists(ProjectForgeGroup.HR_GROUP) == false) {
-          try {
-            emf.runInTrans(emgr -> {
-              GroupDO hrGroup = new GroupDO();
-              hrGroup.setName("PF_HR");
-              hrGroup.setDescription("Users for having full access to the companies hr.");
-              hrGroup.setCreated();
-              hrGroup.setTenant(applicationContext.getBean(TenantService.class).getDefaultTenant());
+          emf.runInTrans(emgr -> {
+            GroupDO hrGroup = new GroupDO();
+            hrGroup.setName("PF_HR");
+            hrGroup.setDescription("Users for having full access to the companies hr.");
+            hrGroup.setCreated();
+            hrGroup.setTenant(applicationContext.getBean(TenantService.class).getDefaultTenant());
 
-              final Set<PFUserDO> usersToAddToHrGroup = new HashSet<>();
+            final Set<PFUserDO> usersToAddToHrGroup = new HashSet<>();
 
-              final List<UserRightDO> employeeRights = emgr.selectAttached(UserRightDO.class,
-                  "SELECT r FROM UserRightDO r WHERE r.rightIdString = :rightId",
-                  "rightId",
-                  "FIBU_EMPLOYEE");
-              employeeRights.forEach(sr -> {
-                sr.setRightIdString("HR_EMPLOYEE");
-                usersToAddToHrGroup.add(sr.getUser());
-                emgr.update(sr);
-              });
-
-              final List<UserRightDO> salaryRights = emgr.selectAttached(UserRightDO.class,
-                  "SELECT r FROM UserRightDO r WHERE r.rightIdString = :rightId",
-                  "rightId",
-                  "FIBU_EMPLOYEE_SALARY");
-
-              salaryRights.forEach(sr -> {
-                sr.setRightIdString("HR_EMPLOYEE_SALARY");
-                usersToAddToHrGroup.add(sr.getUser());
-                emgr.update(sr);
-              });
-
-              usersToAddToHrGroup.forEach(hrGroup::addUser);
-
-              emgr.insert(hrGroup);
-              return hrGroup;
+            final List<UserRightDO> employeeRights = emgr.selectAttached(UserRightDO.class,
+                "SELECT r FROM UserRightDO r WHERE r.rightIdString = :rightId",
+                "rightId",
+                "FIBU_EMPLOYEE");
+            employeeRights.forEach(sr -> {
+              sr.setRightIdString("HR_EMPLOYEE");
+              usersToAddToHrGroup.add(sr.getUser());
+              emgr.update(sr);
             });
-          } catch (GenericJDBCException e) {
-            String s = e.getMessage();
-            if (s.startsWith("could not extract ResultSet")) {
 
-              throw e;
-            } else {
-              throw e;
-            }
-          }
+            final List<UserRightDO> salaryRights = emgr.selectAttached(UserRightDO.class,
+                "SELECT r FROM UserRightDO r WHERE r.rightIdString = :rightId",
+                "rightId",
+                "FIBU_EMPLOYEE_SALARY");
+
+            salaryRights.forEach(sr -> {
+              sr.setRightIdString("HR_EMPLOYEE_SALARY");
+              usersToAddToHrGroup.add(sr.getUser());
+              emgr.update(sr);
+            });
+
+            usersToAddToHrGroup.forEach(hrGroup::addUser);
+
+            emgr.insert(hrGroup);
+            return hrGroup;
+          });
         }
 
         return UpdateRunningStatus.DONE;
@@ -1034,9 +1023,9 @@ public class DatabaseCoreUpdates
       @Override
       public UpdatePreCheckStatus runPreCheck()
       {
-        if (RESTART_RQUIRED.equals("v5.5"))
-          return UpdatePreCheckStatus.RESTARED_REQUIRED;
-
+        if (RESTART_RQUIRED.equals("v5.5")) {
+          return UpdatePreCheckStatus.RESTART_REQUIRED;
+        }
         log.info("Running pre-check for ProjectForge version 5.5");
         if (databaseUpdateService.doTableAttributesExist(EmployeeDO.class, "weeklyWorkingHours") == false) {
           return UpdatePreCheckStatus.READY_FOR_UPDATE;
