@@ -74,7 +74,7 @@ public class AuftragListForm extends AbstractListForm<AuftragFilter, AuftragList
   @Override
   protected void init()
   {
-    super.init();
+    super.init(false);
     {
       // Statistics
       gridBuilder.newGridPanel();
