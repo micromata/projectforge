@@ -188,11 +188,15 @@ public class InitDatabaseDao
 
   public TenantDO insertDefaultTenant()
   {
-    log.info("Checkin if default tenant exists.");
-    String selectDefaultTenant = "SELECT FROM t_tenant WHERE pk = 1";
-    SqlRowSet selectResult = jdbcTemplate.queryForRowSet(selectDefaultTenant);
-    if (selectResult != null && selectResult.getRow() > 0) {
-      return tenantService.getDefaultTenant();
+    log.info("Checking if default tenant exists.");
+    try {
+      String selectDefaultTenant = "SELECT * FROM t_tenant WHERE pk = 1";
+      SqlRowSet selectResult = jdbcTemplate.queryForRowSet(selectDefaultTenant);
+      if (selectResult != null && selectResult.getRow() > 0) {
+        return tenantService.getDefaultTenant();
+      }
+    } catch (Exception e) {
+      log.warn("Something went wrong while checking for default tenant: " + e.getMessage());
     }
     log.info("Adding default tenant.");
     String insertDefaultTenant = "INSERT INTO t_tenant(PK, CREATED, DELETED, LAST_UPDATE, DEFAULT_TENANT, NAME, SHORTNAME, DESCRIPTION, TENANT_ID) "
