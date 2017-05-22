@@ -139,23 +139,14 @@ public class DatabaseCoreUpdates
     ////////////////////////////////////////////////////////////////////
     // 6.12.0
     // /////////////////////////////////////////////////////////////////
-<<<<<<< HEAD
     list.add(new UpdateEntryImpl(CORE_REGION_ID, "6.12.0", "2017-05-24",
         "Change address image data to AddressDO.")
-=======
-    list.add(new UpdateEntryImpl(CORE_REGION_ID, "6.12.0", "2017-05-22",
-        "Correct calendar exdates. Change address image data to AddressDO.")
->>>>>>> feature/PROJECTFORGE-3087
     {
       @Override
       public UpdatePreCheckStatus runPreCheck()
       {
         log.info("Running pre-check for ProjectForge version 6.12.0");
-<<<<<<< HEAD
-        if (databaseUpdateService.doesTableAttributeExist("T_ADDRESS", "imagedata") == false) {
-=======
         if (hasISODates() || databaseUpdateService.doesTableAttributeExist("T_ADDRESS", "imagedata") == false) {
->>>>>>> feature/PROJECTFORGE-3087
           return UpdatePreCheckStatus.READY_FOR_UPDATE;
         }
         return UpdatePreCheckStatus.ALREADY_UPDATED;
@@ -170,11 +161,6 @@ public class DatabaseCoreUpdates
           deleteImageHistoryData();
           deleteImageAddressAttrData();
         }
-<<<<<<< HEAD
-        return UpdateRunningStatus.DONE;
-      }
-=======
-
         if (hasISODates()) {
           final PfEmgrFactory emf = applicationContext.getBean(PfEmgrFactory.class);
           emf.runInTrans(emgr -> {
@@ -226,7 +212,6 @@ public class DatabaseCoreUpdates
         List<DatabaseResultRow> result = databaseUpdateService.query("SELECT * FROM T_PLUGIN_CALENDAR_EVENT WHERE recurrence_ex_date LIKE '%-%' LIMIT 1");
         return result.size() > 0;
       }
->>>>>>> feature/PROJECTFORGE-3087
 
       private void deleteImageAddressAttrData()
       {
