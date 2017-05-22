@@ -228,7 +228,7 @@ public class VacationDao extends BaseDao<VacationDO>
     });
   }
 
-  public void deleteVacationCalendarDO(VacationCalendarDO obj)
+  public void markAsDeleted(VacationCalendarDO obj)
   {
     emgrFactory.runInTrans(emgr -> {
       emgr.markDeleted(obj);
@@ -236,7 +236,7 @@ public class VacationDao extends BaseDao<VacationDO>
     });
   }
 
-  public void unDeleteVacationCalendarDO(VacationCalendarDO obj)
+  public void markAsUndeleted(VacationCalendarDO obj)
   {
     emgrFactory.runInTrans(emgr -> {
       emgr.markUndeleted(obj);
