@@ -3,6 +3,7 @@ package org.projectforge.business.user.service;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 import org.projectforge.business.login.PasswordCheckResult;
 import org.projectforge.business.user.UserDao;
@@ -37,9 +38,9 @@ public interface UserService
 
   void renewStayLoggedInKey(Integer id);
 
-  I18nKeyAndParams getPasswordQualityI18nKeyAndParams();
+  Set<I18nKeyAndParams> getPasswordQualityI18nKeyAndParams();
 
-  I18nKeyAndParams checkPasswordQuality(String passwordInput);
+  Set<I18nKeyAndParams> checkPasswordQuality(String passwordInput);
 
   void createEncryptedPassword(PFUserDO passwordUser, String passwordInput);
 
@@ -47,9 +48,9 @@ public interface UserService
 
   PasswordCheckResult checkPassword(PFUserDO user, String password);
 
-  I18nKeyAndParams changePassword(PFUserDO user, String oldPassword, String newPassword);
+  Set<I18nKeyAndParams> changePassword(PFUserDO user, String oldPassword, String newPassword);
 
-  I18nKeyAndParams changeWlanPassword(PFUserDO user, String loginPassword, String newWlanPassword);
+  Set<I18nKeyAndParams> changeWlanPassword(PFUserDO user, String loginPassword, String newWlanPassword);
 
   Integer save(PFUserDO user);
 

@@ -5,7 +5,9 @@ import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.TreeSet;
 
 import org.apache.commons.lang.StringUtils;
@@ -14,6 +16,7 @@ import org.projectforge.business.configuration.ConfigurationService;
 import org.projectforge.business.login.Login;
 import org.projectforge.business.login.PasswordCheckResult;
 import org.projectforge.business.multitenancy.TenantRegistryMap;
+import org.projectforge.business.password.PasswordQualityService;
 import org.projectforge.business.user.UserDao;
 import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.business.user.UsersComparator;
@@ -43,8 +46,6 @@ public class UserServiceImpl implements UserService
 
   private static final String MESSAGE_KEY_LOGIN_PASSWORD_WRONG = "user.changeWlanPassword.error.loginPasswordWrong";
 
-  private static final String MESSAGE_KEY_PASSWORD_QUALITY_CHECK = "user.changePassword.error.passwordQualityCheck";
-
   private UserGroupCache userGroupCache;
 
   @Autowired
@@ -55,6 +56,9 @@ public class UserServiceImpl implements UserService
 
   @Autowired
   private AccessChecker accessChecker;
+
+  @Autowired
+  private PasswordQualityService passwordQualityService;
 
   private final UsersComparator usersComparator = new UsersComparator();
 
@@ -252,9 +256,9 @@ public class UserServiceImpl implements UserService
   }
 
   @Override
-  public I18nKeyAndParams getPasswordQualityI18nKeyAndParams()
+  public Set<I18nKeyAndParams> getPasswordQualityI18nKeyAndParams()
   {
-    return new I18nKeyAndParams(MESSAGE_KEY_PASSWORD_QUALITY_CHECK, configurationService.getMinPasswordLength());
+    return passwordQualityService.getPasswordQualityI18nKeyAndParams();
   }
 
   /**
@@ -268,19 +272,24 @@ public class UserServiceImpl implements UserService
    */
   @Override
   @Transactional(readOnly = false, propagation = Propagation.REQUIRED)
-  public I18nKeyAndParams changePassword(PFUserDO user, final String oldPassword, final String newPassword)
+  public Set<I18nKeyAndParams> changePassword(PFUserDO user, final String oldPassword, final String newPassword)
   {
     Validate.notNull(user);
     Validate.notNull(oldPassword);
     Validate.notNull(newPassword);
-    final I18nKeyAndParams errorMsgKey = checkPasswordQuality(newPassword);
-    if (errorMsgKey != null) {
-      return errorMsgKey;
+    final Set<I18nKeyAndParams> errorMsgKeys = checkPasswordQuality(newPassword);
+    if (errorMsgKeys != null) {
+      return errorMsgKeys;
     }
+
     accessChecker.checkRestrictedOrDemoUser();
     user = getUser(user.getUsername(), oldPassword, false);
     if (user == null) {
-      return new I18nKeyAndParams(MESSAGE_KEY_OLD_PASSWORD_WRONG);
+      I18nKeyAndParams compareErrorMsgKey = new I18nKeyAndParams(MESSAGE_KEY_OLD_PASSWORD_WRONG);
+      Set<I18nKeyAndParams> compareErrorMsgKeys = new HashSet<>();
+      compareErrorMsgKeys.add(compareErrorMsgKey);
+      return compareErrorMsgKeys;
+
     }
     createEncryptedPassword(user, newPassword);
     onPasswordChange(user, true);
@@ -299,21 +308,23 @@ public class UserServiceImpl implements UserService
    */
   @Override
   @Transactional(readOnly = false, propagation = Propagation.REQUIRED)
-  public I18nKeyAndParams changeWlanPassword(PFUserDO user, final String loginPassword, final String newWlanPassword)
+  public Set<I18nKeyAndParams> changeWlanPassword(PFUserDO user, final String loginPassword, final String newWlanPassword)
   {
     Validate.notNull(user);
     Validate.notNull(loginPassword);
     Validate.notNull(newWlanPassword);
 
-    final I18nKeyAndParams errorMsgKey = checkPasswordQuality(newWlanPassword);
-    if (errorMsgKey != null) {
-      return errorMsgKey;
+    final Set<I18nKeyAndParams> errorMsgKeys = checkPasswordQuality(newWlanPassword);
+    if (errorMsgKeys != null) {
+      return errorMsgKeys;
     }
 
     accessChecker.checkRestrictedOrDemoUser();
     user = getUser(user.getUsername(), loginPassword, false); // get user from DB to persist the change of the wlan password time
     if (user == null) {
-      return new I18nKeyAndParams(MESSAGE_KEY_LOGIN_PASSWORD_WRONG);
+      Set<I18nKeyAndParams> compareErrorMsgKeys = new HashSet<>();
+      compareErrorMsgKeys.add(new I18nKeyAndParams(MESSAGE_KEY_LOGIN_PASSWORD_WRONG));
+      return compareErrorMsgKeys;
     }
 
     onWlanPasswordChange(user, true); // set last change time and creaty history entry
@@ -330,26 +341,9 @@ public class UserServiceImpl implements UserService
    * @return null if password quality is OK, otherwise the i18n message key of the password check failure.
    */
   @Override
-  public I18nKeyAndParams checkPasswordQuality(final String newPassword)
+  public Set<I18nKeyAndParams> checkPasswordQuality(final String newPassword)
   {
-    boolean letter = false;
-    boolean nonLetter = false;
-    final int minPasswordLength = configurationService.getMinPasswordLength();
-    if (newPassword == null || newPassword.length() < minPasswordLength) {
-      return getPasswordQualityI18nKeyAndParams();
-    }
-    for (int i = 0; i < newPassword.length(); i++) {
-      final char ch = newPassword.charAt(i);
-      if (letter == false && Character.isLetter(ch) == true) {
-        letter = true;
-      } else if (nonLetter == false && Character.isLetter(ch) == false) {
-        nonLetter = true;
-      }
-    }
-    if (letter == true && nonLetter == true) {
-      return null;
-    }
-    return getPasswordQualityI18nKeyAndParams();
+    return passwordQualityService.getPasswordQualityI18nKeyAndParams();
   }
 
   @Override

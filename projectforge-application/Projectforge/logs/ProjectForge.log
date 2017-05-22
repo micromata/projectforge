@@ -1,0 +1,941 @@
+2017-05-22 14:07:58.631 user:  INFO 70423 --- [main] o.p.start.ProjectForgeApplication        : Starting ProjectForgeApplication on cw-1-165.micromata.priv with PID 70423 (/Users/m_altmann/Programming/projectforge/pf_d/projectforge/projectforge-application/target/classes started by m_altmann in /Users/m_altmann/Programming/projectforge/pf_d/projectforge/projectforge-application)
+2017-05-22 14:07:58.632 user:  INFO 70423 --- [main] o.p.start.ProjectForgeApplication        : No active profile set, falling back to default profiles: default
+2017-05-22 14:07:59.120 user:  INFO 70423 --- [main] ationConfigEmbeddedWebApplicationContext : Refreshing org.springframework.boot.context.embedded.AnnotationConfigEmbeddedWebApplicationContext@51bd8b5c: startup date [Mon May 22 14:07:59 UTC 2017]; root of context hierarchy
+2017-05-22 14:08:00.753 user:  INFO 70423 --- [main] o.s.b.f.s.DefaultListableBeanFactory     : Overriding bean definition for bean 'requestContextFilter' with a different definition: replacing [Root bean: class [null]; scope=; abstract=false; lazyInit=false; autowireMode=3; dependencyCheck=0; autowireCandidate=true; primary=false; factoryBeanName=org.springframework.boot.autoconfigure.jersey.JerseyAutoConfiguration; factoryMethodName=requestContextFilter; initMethodName=null; destroyMethodName=(inferred); defined in class path resource [org/springframework/boot/autoconfigure/jersey/JerseyAutoConfiguration.class]] with [Root bean: class [org.springframework.boot.autoconfigure.web.WebMvcAutoConfiguration$WebMvcAutoConfigurationAdapter]; scope=; abstract=false; lazyInit=false; autowireMode=3; dependencyCheck=0; autowireCandidate=true; primary=false; factoryBeanName=null; factoryMethodName=requestContextFilter; initMethodName=null; destroyMethodName=(inferred); defined in class path resource [org/springframework/boot/autoconfigure/web/WebMvcAutoConfiguration$WebMvcAutoConfigurationAdapter.class]]
+2017-05-22 14:08:01.135 user:  INFO 70423 --- [main] f.a.AutowiredAnnotationBeanPostProcessor : JSR-330 'javax.inject.Inject' annotation found and supported for autowiring
+2017-05-22 14:08:01.653 user:  INFO 70423 --- [main] s.b.c.e.t.TomcatEmbeddedServletContainer : Tomcat initialized with port(s): 8080 (http)
+2017-05-22 14:08:01.665 user:  INFO 70423 --- [main] o.apache.catalina.core.StandardService   : Starting service Tomcat
+2017-05-22 14:08:01.666 user:  INFO 70423 --- [main] org.apache.catalina.core.StandardEngine  : Starting Servlet Engine: Apache Tomcat/8.5.14
+2017-05-22 14:08:01.757 user:  INFO 70423 --- [localhost-startStop-1] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2017-05-22 14:08:01.757 user:  INFO 70423 --- [localhost-startStop-1] o.s.web.context.ContextLoader            : Root WebApplicationContext: initialization completed in 2637 ms
+2017-05-22 14:08:02.481 user:  INFO 70423 --- [localhost-startStop-1] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [
+	name: org.projectforge.webapp
+	...]
+2017-05-22 14:08:02.668 user:  INFO 70423 --- [localhost-startStop-1] org.hibernate.Version                    : HHH000412: Hibernate Core {5.0.5.Final}
+2017-05-22 14:08:02.672 user:  INFO 70423 --- [localhost-startStop-1] org.hibernate.cfg.Environment            : HHH000206: hibernate.properties not found
+2017-05-22 14:08:02.673 user:  INFO 70423 --- [localhost-startStop-1] org.hibernate.cfg.Environment            : HHH000021: Bytecode provider name : javassist
+2017-05-22 14:08:02.737 user:  INFO 70423 --- [localhost-startStop-1] o.hibernate.annotations.common.Version   : HCANN000001: Hibernate Commons Annotations {5.0.1.Final}
+2017-05-22 14:08:02.859 user:  INFO 70423 --- [localhost-startStop-1] d.m.g.j.impl.JpaWithExtLibrariesScanner  : Patches url from file:/Users/m_altmann/Programming/projectforge/pf_d/projectforge/projectforge-business/target/classes/ to file:/Users/m_altmann/Programming/projectforge/pf_d/projectforge/projectforge-business/target/classes/
+2017-05-22 14:08:02.886 user:  INFO 70423 --- [localhost-startStop-1] d.m.g.j.impl.JpaWithExtLibrariesScanner  : Patches url from file:/Users/m_altmann/Programming/projectforge/pf_d/projectforge/plugins/org.projectforge.plugins.marketing/target/classes/ to file:/Users/m_altmann/Programming/projectforge/pf_d/projectforge/plugins/org.projectforge.plugins.marketing/target/classes/
+2017-05-22 14:08:02.889 user:  INFO 70423 --- [localhost-startStop-1] d.m.g.j.impl.JpaWithExtLibrariesScanner  : Patches url from file:/Users/m_altmann/Programming/projectforge/pf_d/projectforge/plugins/org.projectforge.plugins.extendemployeedata/target/classes/ to file:/Users/m_altmann/Programming/projectforge/pf_d/projectforge/plugins/org.projectforge.plugins.extendemployeedata/target/classes/
+2017-05-22 14:08:02.892 user:  INFO 70423 --- [localhost-startStop-1] d.m.g.j.impl.JpaWithExtLibrariesScanner  : Patches url from file:/Users/m_altmann/Programming/projectforge/pf_d/projectforge/plugins/org.projectforge.plugins.financialfairplay/target/classes/ to file:/Users/m_altmann/Programming/projectforge/pf_d/projectforge/plugins/org.projectforge.plugins.financialfairplay/target/classes/
+2017-05-22 14:08:02.893 user:  INFO 70423 --- [localhost-startStop-1] d.m.g.j.impl.JpaWithExtLibrariesScanner  : Patches url from file:/Users/m_altmann/Programming/projectforge/pf_d/projectforge/plugins/org.projectforge.plugins.memo/target/classes/ to file:/Users/m_altmann/Programming/projectforge/pf_d/projectforge/plugins/org.projectforge.plugins.memo/target/classes/
+2017-05-22 14:08:02.895 user:  INFO 70423 --- [localhost-startStop-1] d.m.g.j.impl.JpaWithExtLibrariesScanner  : Patches url from file:/Users/m_altmann/Programming/projectforge/pf_d/projectforge/plugins/org.projectforge.plugins.liquidityplanning/target/classes/ to file:/Users/m_altmann/Programming/projectforge/pf_d/projectforge/plugins/org.projectforge.plugins.liquidityplanning/target/classes/
+2017-05-22 14:08:02.901 user:  INFO 70423 --- [localhost-startStop-1] d.m.g.j.impl.JpaWithExtLibrariesScanner  : Patches url from file:/Users/m_altmann/Programming/projectforge/pf_d/projectforge/plugins/org.projectforge.plugins.skillmatrix/target/classes/ to file:/Users/m_altmann/Programming/projectforge/pf_d/projectforge/plugins/org.projectforge.plugins.skillmatrix/target/classes/
+2017-05-22 14:08:02.902 user:  INFO 70423 --- [localhost-startStop-1] d.m.g.j.impl.JpaWithExtLibrariesScanner  : Patches url from file:/Users/m_altmann/Programming/projectforge/pf_d/projectforge/plugins/org.projectforge.plugins.ihkexport/target/classes/ to file:/Users/m_altmann/Programming/projectforge/pf_d/projectforge/plugins/org.projectforge.plugins.ihkexport/target/classes/
+2017-05-22 14:08:02.904 user:  INFO 70423 --- [localhost-startStop-1] d.m.g.j.impl.JpaWithExtLibrariesScanner  : Patches url from file:/Users/m_altmann/Programming/projectforge/pf_d/projectforge/plugins/org.projectforge.plugins.licensemanagement/target/classes/ to file:/Users/m_altmann/Programming/projectforge/pf_d/projectforge/plugins/org.projectforge.plugins.licensemanagement/target/classes/
+2017-05-22 14:08:02.906 user:  INFO 70423 --- [localhost-startStop-1] d.m.g.j.impl.JpaWithExtLibrariesScanner  : Patches url from file:/Users/m_altmann/Programming/projectforge/pf_d/projectforge/plugins/org.projectforge.plugins.todo/target/classes/ to file:/Users/m_altmann/Programming/projectforge/pf_d/projectforge/plugins/org.projectforge.plugins.todo/target/classes/
+2017-05-22 14:08:03.205 user:  INFO 70423 --- [localhost-startStop-1] hsqldb.db.HSQLDB5C307C7A7A.ENGINE        : Checkpoint start
+2017-05-22 14:08:03.205 user:  INFO 70423 --- [localhost-startStop-1] hsqldb.db.HSQLDB5C307C7A7A.ENGINE        : checkpointClose start
+2017-05-22 14:08:03.205 user:  INFO 70423 --- [localhost-startStop-1] hsqldb.db.HSQLDB5C307C7A7A.ENGINE        : checkpointClose synched
+2017-05-22 14:08:03.207 user:  INFO 70423 --- [localhost-startStop-1] hsqldb.db.HSQLDB5C307C7A7A.ENGINE        : checkpointClose script done
+2017-05-22 14:08:03.210 user:  INFO 70423 --- [localhost-startStop-1] hsqldb.db.HSQLDB5C307C7A7A.ENGINE        : checkpointClose end
+2017-05-22 14:08:03.211 user:  INFO 70423 --- [localhost-startStop-1] hsqldb.db.HSQLDB5C307C7A7A.ENGINE        : Checkpoint end - txts: 1
+2017-05-22 14:08:03.230 user:  INFO 70423 --- [localhost-startStop-1] hsqldb.db.HSQLDB5C307C7A7A.ENGINE        : Database closed
+2017-05-22 14:08:03.378 user:  INFO 70423 --- [localhost-startStop-1] org.hibernate.dialect.Dialect            : HHH000400: Using dialect: org.hibernate.dialect.HSQLDialect
+2017-05-22 14:08:04.483 user:  INFO 70423 --- [localhost-startStop-1] org.hibernate.search.engine.Version      : HSEARCH000034: Hibernate Search 5.5.2.Final
+2017-05-22 14:08:05.403 user:  WARN 70423 --- [localhost-startStop-1] o.h.search.engine.impl.ConfigContext     : HSEARCH000075: Configuration setting hibernate.search.lucene_version was not specified: using LUCENE_CURRENT.
+2017-05-22 14:08:05.527 user:  INFO 70423 --- [localhost-startStop-1] o.h.s.s.impl.DirectoryProviderHelper     : HSEARCH000041: Index directory not found, creating: './Projectforge/hibernateSearch'
+2017-05-22 14:08:05.528 user:  INFO 70423 --- [localhost-startStop-1] o.h.s.s.impl.DirectoryProviderHelper     : HSEARCH000041: Index directory not found, creating: './Projectforge/hibernateSearch/org.projectforge.business.fibu.EmployeeSalaryDO'
+2017-05-22 14:08:05.716 user:  INFO 70423 --- [localhost-startStop-1] o.h.s.s.impl.DirectoryProviderHelper     : HSEARCH000041: Index directory not found, creating: './Projectforge/hibernateSearch/org.projectforge.business.fibu.EingangsrechnungsPositionDO'
+2017-05-22 14:08:05.726 user:  INFO 70423 --- [localhost-startStop-1] o.h.s.s.impl.DirectoryProviderHelper     : HSEARCH000041: Index directory not found, creating: './Projectforge/hibernateSearch/org.projectforge.plugins.skillmatrix.TrainingDO'
+2017-05-22 14:08:05.736 user:  INFO 70423 --- [localhost-startStop-1] o.h.s.s.impl.DirectoryProviderHelper     : HSEARCH000041: Index directory not found, creating: './Projectforge/hibernateSearch/org.projectforge.framework.persistence.history.entities.PfHistoryMasterDO'
+2017-05-22 14:08:05.749 user:  INFO 70423 --- [localhost-startStop-1] o.h.s.s.impl.DirectoryProviderHelper     : HSEARCH000041: Index directory not found, creating: './Projectforge/hibernateSearch/org.projectforge.business.fibu.AuftragDO'
+2017-05-22 14:08:05.776 user:  INFO 70423 --- [localhost-startStop-1] o.h.s.s.impl.DirectoryProviderHelper     : HSEARCH000041: Index directory not found, creating: './Projectforge/hibernateSearch/org.projectforge.business.fibu.KundeDO'
+2017-05-22 14:08:05.785 user:  INFO 70423 --- [localhost-startStop-1] o.h.s.s.impl.DirectoryProviderHelper     : HSEARCH000041: Index directory not found, creating: './Projectforge/hibernateSearch/org.projectforge.business.fibu.kost.Kost1DO'
+2017-05-22 14:08:05.794 user:  INFO 70423 --- [localhost-startStop-1] o.h.s.s.impl.DirectoryProviderHelper     : HSEARCH000041: Index directory not found, creating: './Projectforge/hibernateSearch/org.projectforge.business.teamcal.event.model.TeamEventAttachmentDO'
+2017-05-22 14:08:05.802 user:  INFO 70423 --- [localhost-startStop-1] o.h.s.s.impl.DirectoryProviderHelper     : HSEARCH000041: Index directory not found, creating: './Projectforge/hibernateSearch/org.projectforge.business.fibu.KontoDO'
+2017-05-22 14:08:05.811 user:  INFO 70423 --- [localhost-startStop-1] o.h.s.s.impl.DirectoryProviderHelper     : HSEARCH000041: Index directory not found, creating: './Projectforge/hibernateSearch/org.projectforge.framework.persistence.user.entities.UserPrefDO'
+2017-05-22 14:08:05.824 user:  INFO 70423 --- [localhost-startStop-1] o.h.s.s.impl.DirectoryProviderHelper     : HSEARCH000041: Index directory not found, creating: './Projectforge/hibernateSearch/org.projectforge.framework.access.GroupTaskAccessDO'
+2017-05-22 14:08:05.837 user:  INFO 70423 --- [localhost-startStop-1] o.h.s.s.impl.DirectoryProviderHelper     : HSEARCH000041: Index directory not found, creating: './Projectforge/hibernateSearch/org.projectforge.plugins.licensemanagement.LicenseDO'
+2017-05-22 14:08:05.847 user:  INFO 70423 --- [localhost-startStop-1] o.h.s.s.impl.DirectoryProviderHelper     : HSEARCH000041: Index directory not found, creating: './Projectforge/hibernateSearch/org.projectforge.plugins.memo.MemoDO'
+2017-05-22 14:08:05.860 user:  INFO 70423 --- [localhost-startStop-1] o.h.s.s.impl.DirectoryProviderHelper     : HSEARCH000041: Index directory not found, creating: './Projectforge/hibernateSearch/org.projectforge.framework.persistence.user.entities.TenantDO'
+2017-05-22 14:08:05.871 user:  INFO 70423 --- [localhost-startStop-1] o.h.s.s.impl.DirectoryProviderHelper     : HSEARCH000041: Index directory not found, creating: './Projectforge/hibernateSearch/org.projectforge.business.teamcal.event.model.TeamEventDO'
+2017-05-22 14:08:05.884 user:  INFO 70423 --- [localhost-startStop-1] o.h.s.s.impl.DirectoryProviderHelper     : HSEARCH000041: Index directory not found, creating: './Projectforge/hibernateSearch/org.projectforge.business.fibu.RechnungDO'
+2017-05-22 14:08:05.932 user:  INFO 70423 --- [localhost-startStop-1] o.h.s.s.impl.DirectoryProviderHelper     : HSEARCH000041: Index directory not found, creating: './Projectforge/hibernateSearch/org.projectforge.business.fibu.EmployeeTimedDO'
+2017-05-22 14:08:05.949 user:  INFO 70423 --- [localhost-startStop-1] o.h.s.s.impl.DirectoryProviderHelper     : HSEARCH000041: Index directory not found, creating: './Projectforge/hibernateSearch/org.projectforge.business.fibu.kost.KostZuweisungDO'
+2017-05-22 14:08:05.982 user:  INFO 70423 --- [localhost-startStop-1] o.h.s.s.impl.DirectoryProviderHelper     : HSEARCH000041: Index directory not found, creating: './Projectforge/hibernateSearch/org.projectforge.framework.configuration.entities.ConfigurationDO'
+2017-05-22 14:08:05.992 user:  INFO 70423 --- [localhost-startStop-1] o.h.s.s.impl.DirectoryProviderHelper     : HSEARCH000041: Index directory not found, creating: './Projectforge/hibernateSearch/org.projectforge.plugins.skillmatrix.SkillRatingDO'
+2017-05-22 14:08:06.004 user:  INFO 70423 --- [localhost-startStop-1] o.h.s.s.impl.DirectoryProviderHelper     : HSEARCH000041: Index directory not found, creating: './Projectforge/hibernateSearch/org.projectforge.framework.persistence.user.entities.PFUserDO'
+2017-05-22 14:08:06.019 user:  INFO 70423 --- [localhost-startStop-1] o.h.s.s.impl.DirectoryProviderHelper     : HSEARCH000041: Index directory not found, creating: './Projectforge/hibernateSearch/org.projectforge.business.orga.VisitorbookDO'
+2017-05-22 14:08:06.031 user:  INFO 70423 --- [localhost-startStop-1] o.h.s.s.impl.DirectoryProviderHelper     : HSEARCH000041: Index directory not found, creating: './Projectforge/hibernateSearch/org.projectforge.business.fibu.EingangsrechnungDO'
+2017-05-22 14:08:06.042 user:  INFO 70423 --- [localhost-startStop-1] o.h.s.s.impl.DirectoryProviderHelper     : HSEARCH000041: Index directory not found, creating: './Projectforge/hibernateSearch/org.projectforge.business.fibu.RechnungsPositionDO'
+2017-05-22 14:08:06.050 user:  INFO 70423 --- [localhost-startStop-1] o.h.s.s.impl.DirectoryProviderHelper     : HSEARCH000041: Index directory not found, creating: './Projectforge/hibernateSearch/org.projectforge.plugins.skillmatrix.TrainingAttendeeDO'
+2017-05-22 14:08:06.059 user:  INFO 70423 --- [localhost-startStop-1] o.h.s.s.impl.DirectoryProviderHelper     : HSEARCH000041: Index directory not found, creating: './Projectforge/hibernateSearch/org.projectforge.business.meb.MebEntryDO'
+2017-05-22 14:08:06.067 user:  INFO 70423 --- [localhost-startStop-1] o.h.s.s.impl.DirectoryProviderHelper     : HSEARCH000041: Index directory not found, creating: './Projectforge/hibernateSearch/org.projectforge.business.address.PersonalAddressDO'
+2017-05-22 14:08:06.073 user:  INFO 70423 --- [localhost-startStop-1] o.h.s.s.impl.DirectoryProviderHelper     : HSEARCH000041: Index directory not found, creating: './Projectforge/hibernateSearch/org.projectforge.business.teamcal.event.model.TeamEventAttendeeDO'
+2017-05-22 14:08:06.080 user:  INFO 70423 --- [localhost-startStop-1] o.h.s.s.impl.DirectoryProviderHelper     : HSEARCH000041: Index directory not found, creating: './Projectforge/hibernateSearch/org.projectforge.business.fibu.kost.Kost2ArtDO'
+2017-05-22 14:08:06.086 user:  INFO 70423 --- [localhost-startStop-1] o.h.s.s.impl.DirectoryProviderHelper     : HSEARCH000041: Index directory not found, creating: './Projectforge/hibernateSearch/org.projectforge.plugins.marketing.AddressCampaignValueDO'
+2017-05-22 14:08:06.095 user:  INFO 70423 --- [localhost-startStop-1] o.h.s.s.impl.DirectoryProviderHelper     : HSEARCH000041: Index directory not found, creating: './Projectforge/hibernateSearch/org.projectforge.framework.access.AccessEntryDO'
+2017-05-22 14:08:06.103 user:  INFO 70423 --- [localhost-startStop-1] o.h.s.s.impl.DirectoryProviderHelper     : HSEARCH000041: Index directory not found, creating: './Projectforge/hibernateSearch/org.projectforge.business.orga.PosteingangDO'
+2017-05-22 14:08:06.111 user:  INFO 70423 --- [localhost-startStop-1] o.h.s.s.impl.DirectoryProviderHelper     : HSEARCH000041: Index directory not found, creating: './Projectforge/hibernateSearch/org.projectforge.business.fibu.ProjektDO'
+2017-05-22 14:08:06.122 user:  INFO 70423 --- [localhost-startStop-1] o.h.s.s.impl.DirectoryProviderHelper     : HSEARCH000041: Index directory not found, creating: './Projectforge/hibernateSearch/org.projectforge.plugins.todo.ToDoDO'
+2017-05-22 14:08:06.135 user:  INFO 70423 --- [localhost-startStop-1] o.h.s.s.impl.DirectoryProviderHelper     : HSEARCH000041: Index directory not found, creating: './Projectforge/hibernateSearch/org.projectforge.business.orga.ContractDO'
+2017-05-22 14:08:06.142 user:  INFO 70423 --- [localhost-startStop-1] o.h.s.s.impl.DirectoryProviderHelper     : HSEARCH000041: Index directory not found, creating: './Projectforge/hibernateSearch/org.projectforge.business.humanresources.HRPlanningDO'
+2017-05-22 14:08:06.150 user:  INFO 70423 --- [localhost-startStop-1] o.h.s.s.impl.DirectoryProviderHelper     : HSEARCH000041: Index directory not found, creating: './Projectforge/hibernateSearch/org.projectforge.business.orga.PostausgangDO'
+2017-05-22 14:08:06.157 user:  INFO 70423 --- [localhost-startStop-1] o.h.s.s.impl.DirectoryProviderHelper     : HSEARCH000041: Index directory not found, creating: './Projectforge/hibernateSearch/org.projectforge.business.timesheet.TimesheetDO'
+2017-05-22 14:08:06.168 user:  INFO 70423 --- [localhost-startStop-1] o.h.s.s.impl.DirectoryProviderHelper     : HSEARCH000041: Index directory not found, creating: './Projectforge/hibernateSearch/org.projectforge.business.humanresources.HRPlanningEntryDO'
+2017-05-22 14:08:06.181 user:  INFO 70423 --- [localhost-startStop-1] o.h.s.s.impl.DirectoryProviderHelper     : HSEARCH000041: Index directory not found, creating: './Projectforge/hibernateSearch/org.projectforge.business.vacation.model.VacationDO'
+2017-05-22 14:08:06.192 user:  INFO 70423 --- [localhost-startStop-1] o.h.s.s.impl.DirectoryProviderHelper     : HSEARCH000041: Index directory not found, creating: './Projectforge/hibernateSearch/org.projectforge.business.teamcal.admin.model.TeamCalDO'
+2017-05-22 14:08:06.200 user:  INFO 70423 --- [localhost-startStop-1] o.h.s.s.impl.DirectoryProviderHelper     : HSEARCH000041: Index directory not found, creating: './Projectforge/hibernateSearch/org.projectforge.framework.persistence.user.entities.UserRightDO'
+2017-05-22 14:08:06.208 user:  INFO 70423 --- [localhost-startStop-1] o.h.s.s.impl.DirectoryProviderHelper     : HSEARCH000041: Index directory not found, creating: './Projectforge/hibernateSearch/org.projectforge.business.orga.VisitorbookTimedDO'
+2017-05-22 14:08:06.219 user:  INFO 70423 --- [localhost-startStop-1] o.h.s.s.impl.DirectoryProviderHelper     : HSEARCH000041: Index directory not found, creating: './Projectforge/hibernateSearch/org.projectforge.plugins.marketing.AddressCampaignDO'
+2017-05-22 14:08:06.227 user:  INFO 70423 --- [localhost-startStop-1] o.h.s.s.impl.DirectoryProviderHelper     : HSEARCH000041: Index directory not found, creating: './Projectforge/hibernateSearch/org.projectforge.business.address.AddressDO'
+2017-05-22 14:08:06.238 user:  INFO 70423 --- [localhost-startStop-1] o.h.s.s.impl.DirectoryProviderHelper     : HSEARCH000041: Index directory not found, creating: './Projectforge/hibernateSearch/org.projectforge.business.fibu.kost.Kost2DO'
+2017-05-22 14:08:06.250 user:  INFO 70423 --- [localhost-startStop-1] o.h.s.s.impl.DirectoryProviderHelper     : HSEARCH000041: Index directory not found, creating: './Projectforge/hibernateSearch/org.projectforge.business.fibu.EmployeeDO'
+2017-05-22 14:08:06.264 user:  INFO 70423 --- [localhost-startStop-1] o.h.s.s.impl.DirectoryProviderHelper     : HSEARCH000041: Index directory not found, creating: './Projectforge/hibernateSearch/org.projectforge.business.fibu.AuftragsPositionDO'
+2017-05-22 14:08:06.271 user:  INFO 70423 --- [localhost-startStop-1] o.h.s.s.impl.DirectoryProviderHelper     : HSEARCH000041: Index directory not found, creating: './Projectforge/hibernateSearch/org.projectforge.plugins.liquidityplanning.LiquidityEntryDO'
+2017-05-22 14:08:06.278 user:  INFO 70423 --- [localhost-startStop-1] o.h.s.s.impl.DirectoryProviderHelper     : HSEARCH000041: Index directory not found, creating: './Projectforge/hibernateSearch/org.projectforge.business.fibu.kost.BuchungssatzDO'
+2017-05-22 14:08:06.290 user:  INFO 70423 --- [localhost-startStop-1] o.h.s.s.impl.DirectoryProviderHelper     : HSEARCH000041: Index directory not found, creating: './Projectforge/hibernateSearch/org.projectforge.business.task.TaskDO'
+2017-05-22 14:08:06.300 user:  INFO 70423 --- [localhost-startStop-1] o.h.s.s.impl.DirectoryProviderHelper     : HSEARCH000041: Index directory not found, creating: './Projectforge/hibernateSearch/org.projectforge.business.scripting.ScriptDO'
+2017-05-22 14:08:06.309 user:  INFO 70423 --- [localhost-startStop-1] o.h.s.s.impl.DirectoryProviderHelper     : HSEARCH000041: Index directory not found, creating: './Projectforge/hibernateSearch/org.projectforge.plugins.skillmatrix.SkillDO'
+2017-05-22 14:08:06.316 user:  INFO 70423 --- [localhost-startStop-1] o.h.s.s.impl.DirectoryProviderHelper     : HSEARCH000041: Index directory not found, creating: './Projectforge/hibernateSearch/org.projectforge.business.gantt.GanttChartDO'
+2017-05-22 14:08:06.324 user:  INFO 70423 --- [localhost-startStop-1] o.h.s.s.impl.DirectoryProviderHelper     : HSEARCH000041: Index directory not found, creating: './Projectforge/hibernateSearch/org.projectforge.business.book.BookDO'
+2017-05-22 14:08:06.334 user:  INFO 70423 --- [localhost-startStop-1] o.h.s.s.impl.DirectoryProviderHelper     : HSEARCH000041: Index directory not found, creating: './Projectforge/hibernateSearch/org.projectforge.framework.persistence.user.entities.GroupDO'
+2017-05-22 14:08:07.025 user:  INFO 70423 --- [localhost-startStop-1] o.s.c.s.ClassPathXmlApplicationContext   : Refreshing org.springframework.context.support.ClassPathXmlApplicationContext@6f502830: startup date [Mon May 22 14:08:07 UTC 2017]; root of context hierarchy
+2017-05-22 14:08:07.028 user:  INFO 70423 --- [localhost-startStop-1] o.s.b.f.xml.XmlBeanDefinitionReader      : Loading XML bean definitions from class path resource [internalattrschema.xml]
+2017-05-22 14:08:07.089 user:  INFO 70423 --- [localhost-startStop-1] o.s.c.s.FileSystemXmlApplicationContext  : Refreshing org.springframework.context.support.FileSystemXmlApplicationContext@5990a108: startup date [Mon May 22 14:08:07 UTC 2017]; root of context hierarchy
+2017-05-22 14:08:07.089 user:  INFO 70423 --- [localhost-startStop-1] o.s.b.f.xml.XmlBeanDefinitionReader      : Loading XML bean definitions from URL [file:./Projectforge/attrschema.xml]
+2017-05-22 14:08:07.090 user:  INFO 70423 --- [localhost-startStop-1] .f.p.a.i.AttrSchemaServiceSpringBeanImpl : Can't load/parse external AttrSchema config file. Message: IOException parsing XML document from URL [file:./Projectforge/attrschema.xml]; nested exception is java.io.FileNotFoundException: ./Projectforge/attrschema.xml (No such file or directory)
+2017-05-22 14:08:07.193 user:  INFO 70423 --- [localhost-startStop-1] o.s.o.h.HibernateTransactionManager      : Using DataSource [org.apache.commons.dbcp.BasicDataSource@60867dd8] of Hibernate SessionFactory for HibernateTransactionManager
+2017-05-22 14:08:07.228 user:  INFO 70423 --- [localhost-startStop-1] o.p.f.persistence.api.HibernateUtils     : Using dialect: org.hibernate.dialect.HSQLDialect
+2017-05-22 14:08:07.228 user:  INFO 70423 --- [localhost-startStop-1] o.p.continuousdb.DatabaseSupport         : Setting database dialect to: org.hibernate.dialect.HSQLDialect
+2017-05-22 14:08:07.371 user:  INFO 70423 --- [localhost-startStop-1] o.p.framework.configuration.ConfigXml    : Using application home dir: ./Projectforge
+2017-05-22 14:08:07.372 user:  INFO 70423 --- [localhost-startStop-1] o.p.framework.configuration.ConfigXml    : Cannot read from config file: './Projectforge/config.xml'. OK, assuming default values.
+2017-05-22 14:08:07.373 user:  INFO 70423 --- [localhost-startStop-1] o.p.framework.configuration.ConfigXml    : Creating directory /Users/m_altmann/Programming/projectforge/pf_d/projectforge/projectforge-application/./Projectforge/work
+2017-05-22 14:08:07.373 user:  INFO 70423 --- [localhost-startStop-1] o.p.framework.configuration.ConfigXml    : Creating directory /Users/m_altmann/Programming/projectforge/pf_d/projectforge/projectforge-application/./Projectforge/tmp
+2017-05-22 14:08:07.373 user:  INFO 70423 --- [localhost-startStop-1] o.p.b.c.ConfigurationServiceImpl         : Creating directory /Users/m_altmann/Programming/projectforge/pf_d/projectforge/projectforge-application/./Projectforge/resources
+2017-05-22 14:08:07.373 user:  INFO 70423 --- [localhost-startStop-1] o.p.b.c.ConfigurationServiceImpl         : Creating directory /Users/m_altmann/Programming/projectforge/pf_d/projectforge/projectforge-application/./Projectforge/resources/fonts
+2017-05-22 14:08:07.373 user:  WARN 70423 --- [localhost-startStop-1] o.p.b.c.ConfigurationServiceImpl         : Can't read keystore file: jssecacerts
+2017-05-22 14:08:08.358 user:  INFO 70423 --- [localhost-startStop-1] o.s.b.w.servlet.ServletRegistrationBean  : Mapping servlet: 'org.projectforge.rest.JerseyConfiguration' to [/rest/*]
+2017-05-22 14:08:08.361 user:  INFO 70423 --- [localhost-startStop-1] o.s.b.w.servlet.ServletRegistrationBean  : Mapping servlet: 'dispatcherServlet' to [/]
+2017-05-22 14:08:08.361 user:  INFO 70423 --- [localhost-startStop-1] o.s.b.w.servlet.ServletRegistrationBean  : Mapping servlet: 'org.projectforge.web.address.PhoneLookUpServlet' to [/phoneLookup]
+2017-05-22 14:08:08.362 user:  INFO 70423 --- [localhost-startStop-1] o.s.b.w.servlet.ServletRegistrationBean  : Mapping servlet: 'org.projectforge.web.servlet.LogoServlet' to [/secure/Logo.png, /secure/Logo.jpg, /secure/Logo.gif]
+2017-05-22 14:08:08.362 user:  INFO 70423 --- [localhost-startStop-1] o.s.b.w.servlet.ServletRegistrationBean  : Mapping servlet: 'org.projectforge.web.servlet.SMSReceiverServlet' to [/secure/SMSReceiver]
+2017-05-22 14:08:08.362 user:  INFO 70423 --- [localhost-startStop-1] o.s.b.w.servlet.ServletRegistrationBean  : Mapping servlet: 'org.projectforge.business.teamcal.servlet.CalendarAboServlet' to [/export/ProjectForge.ics]
+2017-05-22 14:08:08.362 user:  INFO 70423 --- [localhost-startStop-1] o.s.b.w.servlet.ServletRegistrationBean  : Mapping servlet: 'org.projectforge.business.teamcal.servlet.TeamCalResponseServlet' to [/cal, /pfcalendar]
+2017-05-22 14:08:08.363 user:  INFO 70423 --- [localhost-startStop-1] o.s.b.w.servlet.FilterRegistrationBean   : Mapping filter: 'characterEncodingFilter' to: [/*]
+2017-05-22 14:08:08.363 user:  INFO 70423 --- [localhost-startStop-1] o.s.b.w.servlet.FilterRegistrationBean   : Mapping filter: 'hiddenHttpMethodFilter' to: [/*]
+2017-05-22 14:08:08.363 user:  INFO 70423 --- [localhost-startStop-1] o.s.b.w.servlet.FilterRegistrationBean   : Mapping filter: 'httpPutFormContentFilter' to: [/*]
+2017-05-22 14:08:08.363 user:  INFO 70423 --- [localhost-startStop-1] o.s.b.w.servlet.FilterRegistrationBean   : Mapping filter: 'requestContextFilter' to: [/*]
+2017-05-22 14:08:08.558 user:  INFO 70423 --- [localhost-startStop-1] org.apache.wicket.Application            : [wicket.app] init: Wicket core library initializer
+2017-05-22 14:08:08.559 user:  INFO 70423 --- [localhost-startStop-1] o.a.wicket.RequestListenerInterface      : registered listener interface [RequestListenerInterface name=IBehaviorListener, method=public abstract void org.apache.wicket.behavior.IBehaviorListener.onRequest()]
+2017-05-22 14:08:08.559 user:  INFO 70423 --- [localhost-startStop-1] o.a.wicket.RequestListenerInterface      : registered listener interface [RequestListenerInterface name=IFormSubmitListener, method=public abstract void org.apache.wicket.markup.html.form.IFormSubmitListener.onFormSubmitted()]
+2017-05-22 14:08:08.560 user:  INFO 70423 --- [localhost-startStop-1] o.a.wicket.RequestListenerInterface      : registered listener interface [RequestListenerInterface name=ILinkListener, method=public abstract void org.apache.wicket.markup.html.link.ILinkListener.onLinkClicked()]
+2017-05-22 14:08:08.560 user:  INFO 70423 --- [localhost-startStop-1] o.a.wicket.RequestListenerInterface      : registered listener interface [RequestListenerInterface name=IOnChangeListener, method=public abstract void org.apache.wicket.markup.html.form.IOnChangeListener.onSelectionChanged()]
+2017-05-22 14:08:08.560 user:  INFO 70423 --- [localhost-startStop-1] o.a.wicket.RequestListenerInterface      : registered listener interface [RequestListenerInterface name=IRedirectListener, method=public abstract void org.apache.wicket.IRedirectListener.onRedirect()]
+2017-05-22 14:08:08.560 user:  INFO 70423 --- [localhost-startStop-1] o.a.wicket.RequestListenerInterface      : registered listener interface [RequestListenerInterface name=IResourceListener, method=public abstract void org.apache.wicket.IResourceListener.onResourceRequested()]
+2017-05-22 14:08:08.561 user:  INFO 70423 --- [localhost-startStop-1] org.apache.wicket.Application            : [wicket.app] init: Wicket extensions initializer
+2017-05-22 14:08:08.580 user:  INFO 70423 --- [localhost-startStop-1] org.projectforge.ProjectForgeApp         : Initializing...
+2017-05-22 14:08:09.490 user:  INFO 70423 --- [localhost-startStop-1] org.projectforge.ProjectForgeApp         : Default TimeZone is: sun.util.calendar.ZoneInfo[id="UTC",offset=0,dstSavings=0,useDaylight=false,transitions=0,lastRule=null]
+2017-05-22 14:08:09.491 user:  INFO 70423 --- [localhost-startStop-1] org.projectforge.ProjectForgeApp         : user.timezone is: UTC
+2017-05-22 14:08:09.505 user:  INFO 70423 --- [localhost-startStop-1] o.s.b.f.xml.XmlBeanDefinitionReader      : Loading XML bean definitions from class path resource [org/springframework/jdbc/support/sql-error-codes.xml]
+2017-05-22 14:08:09.529 user:  INFO 70423 --- [localhost-startStop-1] o.s.jdbc.support.SQLErrorCodesFactory    : SQLErrorCodes loaded: [DB2, Derby, H2, HSQL, Informix, MS-SQL, MySQL, Oracle, PostgreSQL, Sybase, Hana]
+2017-05-22 14:08:09.532 user:  INFO 70423 --- [localhost-startStop-1] o.p.business.multitenancy.TenantDao      : Exception while checking count from table: T_TENANT Exception: StatementCallback; bad SQL grammar [SELECT COUNT(*) FROM T_TENANT]; nested exception is java.sql.SQLSyntaxErrorException: user lacks privilege or object not found: T_TENANT*** OK, if database is empty or needs to migrate ***
+2017-05-22 14:08:09.533 user:  WARN 70423 --- [localhost-startStop-1] o.p.business.multitenancy.TenantService  : Tenant table not exists. Return null for default tenant.
+2017-05-22 14:08:09.551 user:  WARN 70423 --- [localhost-startStop-1] o.p.f.p.database.DatabaseUpdateService   : Exception while checking count from table: T_PF_USER Exception: java.sql.SQLSyntaxErrorException: user lacks privilege or object not found: T_PF_USER in statement [SELECT COUNT(*) FROM T_PF_USER]
+2017-05-22 14:08:09.553 user:  WARN 70423 --- [localhost-startStop-1] o.p.f.p.database.DatabaseUpdateService   : Exception while checking count from table: T_PF_USER Exception: java.sql.SQLSyntaxErrorException: user lacks privilege or object not found: T_PF_USER in statement [SELECT COUNT(*) FROM T_PF_USER]
+2017-05-22 14:08:09.590 user:  INFO 70423 --- [localhost-startStop-1] o.p.f.c.AbstractConfiguration            : Initializing GlobalConfiguration (ConfigurationDO parameters) ...
+2017-05-22 14:08:09.604 user:  INFO 70423 --- [localhost-startStop-1] o.h.h.i.QueryTranslatorFactoryInitiator  : HHH000397: Using ASTQueryTranslatorFactory
+2017-05-22 14:08:09.709 user:  WARN 70423 --- [localhost-startStop-1] o.h.engine.jdbc.spi.SqlExceptionHelper   : SQL Error: -5501, SQLState: 42501
+2017-05-22 14:08:09.709 user: ERROR 70423 --- [localhost-startStop-1] o.h.engine.jdbc.spi.SqlExceptionHelper   : user lacks privilege or object not found: T_CONFIGURATION in statement [select configurat0_.pk as col_0_0_, configurat0_.created as col_1_0_, configurat0_.deleted as col_2_0_, configurat0_.last_update as col_3_0_, configurat0_.configurationType as col_4_0_, configurat0_.floatValue as col_5_0_, configurat0_.intValue as col_6_0_, configurat0_.parameter as col_7_0_, configurat0_.stringValue as col_8_0_ from T_CONFIGURATION configurat0_]
+2017-05-22 14:08:09.735 user: ERROR 70423 --- [localhost-startStop-1] o.p.f.c.AbstractConfiguration            : ******* Exception while getting configuration parameters from data-base (only OK for migration from older versions): org.hibernate.exception.SQLGrammarException: could not prepare statement
+
+javax.persistence.PersistenceException: org.hibernate.exception.SQLGrammarException: could not prepare statement
+	at org.hibernate.jpa.spi.AbstractEntityManagerImpl.convert(AbstractEntityManagerImpl.java:1692)
+	at org.hibernate.jpa.spi.AbstractEntityManagerImpl.convert(AbstractEntityManagerImpl.java:1602)
+	at org.hibernate.jpa.internal.QueryImpl.getResultList(QueryImpl.java:479)
+	at de.micromata.genome.jpa.events.impl.EmgrEventTypedQuery.lambda$getResultList$0(EmgrEventTypedQuery.java:62)
+	at de.micromata.genome.jpa.events.EmgrFilterEvent.nextFilter(EmgrFilterEvent.java:78)
+	at de.micromata.genome.jpa.events.EmgrEventRegistry.invokeEvents(EmgrEventRegistry.java:149)
+	at de.micromata.genome.jpa.events.impl.EmgrEventTypedQuery.getResultList(EmgrEventTypedQuery.java:59)
+	at de.micromata.genome.jpa.trace.TracedTypedQuery$1.call(TracedTypedQuery.java:75)
+	at de.micromata.genome.jpa.trace.TracedTypedQuery$1.call(TracedTypedQuery.java:70)
+	at de.micromata.genome.jpa.trace.eventhandler.StatsJpaTracer.execute(StatsJpaTracer.java:59)
+	at de.micromata.genome.jpa.trace.TracedTypedQuery.getResultList(TracedTypedQuery.java:69)
+	at de.micromata.genome.jpa.Emgr.selectDetached(Emgr.java:708)
+	at de.micromata.genome.jpa.Emgr.select(Emgr.java:592)
+	at org.projectforge.framework.configuration.ConfigurationDao.lambda$internalLoadAll$0(ConfigurationDao.java:262)
+	at de.micromata.genome.jpa.EmgrTx.go(EmgrTx.java:156)
+	at de.micromata.genome.jpa.EmgrFactory.runInTrans(EmgrFactory.java:295)
+	at org.projectforge.framework.configuration.ConfigurationDao.internalLoadAll(ConfigurationDao.java:261)
+	at org.projectforge.framework.configuration.ConfigurationDao$$FastClassBySpringCGLIB$$f776453a.invoke(<generated>)
+	at org.springframework.cglib.proxy.MethodProxy.invoke(MethodProxy.java:204)
+	at org.springframework.aop.framework.CglibAopProxy$CglibMethodInvocation.invokeJoinpoint(CglibAopProxy.java:738)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:157)
+	at org.springframework.dao.support.PersistenceExceptionTranslationInterceptor.invoke(PersistenceExceptionTranslationInterceptor.java:136)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:179)
+	at org.springframework.transaction.interceptor.TransactionInterceptor$1.proceedWithInvocation(TransactionInterceptor.java:99)
+	at org.springframework.transaction.interceptor.TransactionAspectSupport.invokeWithinTransaction(TransactionAspectSupport.java:282)
+	at org.springframework.transaction.interceptor.TransactionInterceptor.invoke(TransactionInterceptor.java:96)
+	at org.springframework.aop.framework.ReflectiveMethodInvocation.proceed(ReflectiveMethodInvocation.java:179)
+	at org.springframework.aop.framework.CglibAopProxy$DynamicAdvisedInterceptor.intercept(CglibAopProxy.java:673)
+	at org.projectforge.framework.configuration.ConfigurationDao$$EnhancerBySpringCGLIB$$4709243c.internalLoadAll(<generated>)
+	at org.projectforge.business.configuration.ConfigurationServiceImpl.daoInternalLoadAll(ConfigurationServiceImpl.java:542)
+	at org.projectforge.framework.configuration.GlobalConfiguration.loadParameters(GlobalConfiguration.java:108)
+	at org.projectforge.framework.configuration.AbstractConfiguration.refresh(AbstractConfiguration.java:155)
+	at org.projectforge.framework.cache.AbstractCache.checkRefresh(AbstractCache.java:114)
+	at org.projectforge.framework.configuration.AbstractConfiguration.getValue(AbstractConfiguration.java:134)
+	at org.projectforge.framework.configuration.AbstractConfiguration.getStringValue(AbstractConfiguration.java:78)
+	at org.projectforge.plugins.core.impl.PluginAdminServiceImpl.getActivePlugins(PluginAdminServiceImpl.java:79)
+	at org.projectforge.plugins.core.impl.PluginAdminServiceImpl.getAvailablePlugins(PluginAdminServiceImpl.java:61)
+	at org.projectforge.plugins.core.impl.PluginAdminServiceImpl.initializeActivePlugins(PluginAdminServiceImpl.java:102)
+	at org.projectforge.plugins.core.impl.PluginAdminServiceImpl.initializeActivePlugins(PluginAdminServiceImpl.java:91)
+	at org.projectforge.web.wicket.WicketApplication.init(WicketApplication.java:292)
+	at org.apache.wicket.Application.initApplication(Application.java:818)
+	at org.apache.wicket.protocol.http.WicketFilter.init(WicketFilter.java:424)
+	at org.apache.wicket.protocol.http.WicketFilter.init(WicketFilter.java:351)
+	at org.apache.catalina.core.ApplicationFilterConfig.initFilter(ApplicationFilterConfig.java:279)
+	at org.apache.catalina.core.ApplicationFilterConfig.getFilter(ApplicationFilterConfig.java:260)
+	at org.apache.catalina.core.ApplicationFilterConfig.<init>(ApplicationFilterConfig.java:105)
+	at org.apache.catalina.core.StandardContext.filterStart(StandardContext.java:4590)
+	at org.apache.catalina.core.StandardContext.startInternal(StandardContext.java:5233)
+	at org.apache.catalina.util.LifecycleBase.start(LifecycleBase.java:150)
+	at org.apache.catalina.core.ContainerBase$StartChild.call(ContainerBase.java:1419)
+	at org.apache.catalina.core.ContainerBase$StartChild.call(ContainerBase.java:1409)
+	at java.util.concurrent.FutureTask.run(FutureTask.java:266)
+	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1142)
+	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:617)
+	at java.lang.Thread.run(Thread.java:745)
+Caused by: org.hibernate.exception.SQLGrammarException: could not prepare statement
+	at org.hibernate.exception.internal.SQLExceptionTypeDelegate.convert(SQLExceptionTypeDelegate.java:63)
+	at org.hibernate.exception.internal.StandardSQLExceptionConverter.convert(StandardSQLExceptionConverter.java:42)
+	at org.hibernate.engine.jdbc.spi.SqlExceptionHelper.convert(SqlExceptionHelper.java:109)
+	at org.hibernate.engine.jdbc.internal.StatementPreparerImpl$StatementPreparationTemplate.prepareStatement(StatementPreparerImpl.java:182)
+	at org.hibernate.engine.jdbc.internal.StatementPreparerImpl.prepareQueryStatement(StatementPreparerImpl.java:148)
+	at org.hibernate.loader.Loader.prepareQueryStatement(Loader.java:1928)
+	at org.hibernate.loader.Loader.executeQueryStatement(Loader.java:1897)
+	at org.hibernate.loader.Loader.executeQueryStatement(Loader.java:1875)
+	at org.hibernate.loader.Loader.doQuery(Loader.java:919)
+	at org.hibernate.loader.Loader.doQueryAndInitializeNonLazyCollections(Loader.java:336)
+	at org.hibernate.loader.Loader.doList(Loader.java:2611)
+	at org.hibernate.loader.Loader.doList(Loader.java:2594)
+	at org.hibernate.loader.Loader.listIgnoreQueryCache(Loader.java:2423)
+	at org.hibernate.loader.Loader.list(Loader.java:2418)
+	at org.hibernate.loader.hql.QueryLoader.list(QueryLoader.java:501)
+	at org.hibernate.hql.internal.ast.QueryTranslatorImpl.list(QueryTranslatorImpl.java:371)
+	at org.hibernate.engine.query.spi.HQLQueryPlan.performList(HQLQueryPlan.java:216)
+	at org.hibernate.internal.SessionImpl.list(SessionImpl.java:1326)
+	at org.hibernate.internal.QueryImpl.list(QueryImpl.java:87)
+	at org.hibernate.jpa.internal.QueryImpl.list(QueryImpl.java:593)
+	at org.hibernate.jpa.internal.QueryImpl.getResultList(QueryImpl.java:470)
+	... 52 common frames omitted
+Caused by: java.sql.SQLSyntaxErrorException: user lacks privilege or object not found: T_CONFIGURATION in statement [select configurat0_.pk as col_0_0_, configurat0_.created as col_1_0_, configurat0_.deleted as col_2_0_, configurat0_.last_update as col_3_0_, configurat0_.configurationType as col_4_0_, configurat0_.floatValue as col_5_0_, configurat0_.intValue as col_6_0_, configurat0_.parameter as col_7_0_, configurat0_.stringValue as col_8_0_ from T_CONFIGURATION configurat0_]
+	at org.hsqldb.jdbc.JDBCUtil.sqlException(Unknown Source)
+	at org.hsqldb.jdbc.JDBCUtil.sqlException(Unknown Source)
+	at org.hsqldb.jdbc.JDBCPreparedStatement.<init>(Unknown Source)
+	at org.hsqldb.jdbc.JDBCConnection.prepareStatement(Unknown Source)
+	at org.apache.commons.dbcp.DelegatingConnection.prepareStatement(DelegatingConnection.java:281)
+	at org.apache.commons.dbcp.PoolingDataSource$PoolGuardConnectionWrapper.prepareStatement(PoolingDataSource.java:313)
+	at org.hibernate.engine.jdbc.internal.StatementPreparerImpl$5.doPrepare(StatementPreparerImpl.java:146)
+	at org.hibernate.engine.jdbc.internal.StatementPreparerImpl$StatementPreparationTemplate.prepareStatement(StatementPreparerImpl.java:172)
+	... 69 common frames omitted
+Caused by: org.hsqldb.HsqlException: user lacks privilege or object not found: T_CONFIGURATION
+	at org.hsqldb.error.Error.error(Unknown Source)
+	at org.hsqldb.error.Error.error(Unknown Source)
+	at org.hsqldb.ParserDQL.readTableName(Unknown Source)
+	at org.hsqldb.ParserDQL.readTableOrSubquery(Unknown Source)
+	at org.hsqldb.ParserDQL.XreadTableReference(Unknown Source)
+	at org.hsqldb.ParserDQL.XreadFromClause(Unknown Source)
+	at org.hsqldb.ParserDQL.XreadTableExpression(Unknown Source)
+	at org.hsqldb.ParserDQL.XreadQuerySpecification(Unknown Source)
+	at org.hsqldb.ParserDQL.XreadSimpleTable(Unknown Source)
+	at org.hsqldb.ParserDQL.XreadQueryPrimary(Unknown Source)
+	at org.hsqldb.ParserDQL.XreadQueryTerm(Unknown Source)
+	at org.hsqldb.ParserDQL.XreadQueryExpressionBody(Unknown Source)
+	at org.hsqldb.ParserDQL.XreadQueryExpression(Unknown Source)
+	at org.hsqldb.ParserDQL.compileCursorSpecification(Unknown Source)
+	at org.hsqldb.ParserCommand.compilePart(Unknown Source)
+	at org.hsqldb.ParserCommand.compileStatement(Unknown Source)
+	at org.hsqldb.Session.compileStatement(Unknown Source)
+	at org.hsqldb.StatementManager.compile(Unknown Source)
+	at org.hsqldb.Session.execute(Unknown Source)
+	... 75 common frames omitted
+
+2017-05-22 14:08:09.736 user:  INFO 70423 --- [localhost-startStop-1] o.p.f.c.AbstractConfiguration            : GlobalConfiguration: minPasswordLength=0
+2017-05-22 14:08:09.736 user:  INFO 70423 --- [localhost-startStop-1] o.p.f.c.AbstractConfiguration            : GlobalConfiguration: vacation.lastyear.enddate=31.03.
+2017-05-22 14:08:09.751 user:  INFO 70423 --- [localhost-startStop-1] o.p.continuousdb.SystemUpdater           : Checking for database updates...
+2017-05-22 14:08:09.751 user:  INFO 70423 --- [localhost-startStop-1] o.p.f.p.database.DatabaseCoreUpdates     : Running pre-check for ProjectForge version 6.12.0
+2017-05-22 14:08:09.751 user:  INFO 70423 --- [localhost-startStop-1] o.p.f.p.database.DatabaseUpdateService   : SELECT * FROM T_PLUGIN_CALENDAR_EVENT WHERE recurrence_ex_date LIKE '%-%' LIMIT 1
+2017-05-22 14:08:09.752 user: ERROR 70423 --- [localhost-startStop-1] o.projectforge.continuousdb.UpdateEntry  : Exception while running preCheck: java.sql.SQLSyntaxErrorException: user lacks privilege or object not found: T_PLUGIN_CALENDAR_EVENT in statement [SELECT * FROM T_PLUGIN_CALENDAR_EVENT WHERE recurrence_ex_date LIKE '%-%' LIMIT 1]
+
+java.lang.RuntimeException: java.sql.SQLSyntaxErrorException: user lacks privilege or object not found: T_PLUGIN_CALENDAR_EVENT in statement [SELECT * FROM T_PLUGIN_CALENDAR_EVENT WHERE recurrence_ex_date LIKE '%-%' LIMIT 1]
+	at org.projectforge.continuousdb.jdbc.JdbcExecutor.execute(JdbcExecutor.java:67)
+	at org.projectforge.continuousdb.jdbc.DatabaseExecutorImpl.query(DatabaseExecutorImpl.java:109)
+	at org.projectforge.framework.persistence.database.DatabaseUpdateService.query(DatabaseUpdateService.java:813)
+	at org.projectforge.framework.persistence.database.DatabaseUpdateService$$FastClassBySpringCGLIB$$391f6433.invoke(<generated>)
+	at org.springframework.cglib.proxy.MethodProxy.invoke(MethodProxy.java:204)
+	at org.springframework.aop.framework.CglibAopProxy$DynamicAdvisedInterceptor.intercept(CglibAopProxy.java:669)
+	at org.projectforge.framework.persistence.database.DatabaseUpdateService$$EnhancerBySpringCGLIB$$29ef24c7.query(<generated>)
+	at org.projectforge.framework.persistence.database.DatabaseCoreUpdates$1.hasISODates(DatabaseCoreUpdates.java:212)
+	at org.projectforge.framework.persistence.database.DatabaseCoreUpdates$1.runPreCheck(DatabaseCoreUpdates.java:148)
+	at org.projectforge.continuousdb.UpdateEntry.runPreCheckSafely(UpdateEntry.java:91)
+	at org.projectforge.continuousdb.SystemUpdater.isUpdated(SystemUpdater.java:100)
+	at org.projectforge.web.wicket.WicketApplication.init(WicketApplication.java:403)
+	at org.apache.wicket.Application.initApplication(Application.java:818)
+	at org.apache.wicket.protocol.http.WicketFilter.init(WicketFilter.java:424)
+	at org.apache.wicket.protocol.http.WicketFilter.init(WicketFilter.java:351)
+	at org.apache.catalina.core.ApplicationFilterConfig.initFilter(ApplicationFilterConfig.java:279)
+	at org.apache.catalina.core.ApplicationFilterConfig.getFilter(ApplicationFilterConfig.java:260)
+	at org.apache.catalina.core.ApplicationFilterConfig.<init>(ApplicationFilterConfig.java:105)
+	at org.apache.catalina.core.StandardContext.filterStart(StandardContext.java:4590)
+	at org.apache.catalina.core.StandardContext.startInternal(StandardContext.java:5233)
+	at org.apache.catalina.util.LifecycleBase.start(LifecycleBase.java:150)
+	at org.apache.catalina.core.ContainerBase$StartChild.call(ContainerBase.java:1419)
+	at org.apache.catalina.core.ContainerBase$StartChild.call(ContainerBase.java:1409)
+	at java.util.concurrent.FutureTask.run(FutureTask.java:266)
+	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1142)
+	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:617)
+	at java.lang.Thread.run(Thread.java:745)
+Caused by: java.sql.SQLSyntaxErrorException: user lacks privilege or object not found: T_PLUGIN_CALENDAR_EVENT in statement [SELECT * FROM T_PLUGIN_CALENDAR_EVENT WHERE recurrence_ex_date LIKE '%-%' LIMIT 1]
+	at org.hsqldb.jdbc.JDBCUtil.sqlException(Unknown Source)
+	at org.hsqldb.jdbc.JDBCUtil.sqlException(Unknown Source)
+	at org.hsqldb.jdbc.JDBCPreparedStatement.<init>(Unknown Source)
+	at org.hsqldb.jdbc.JDBCConnection.prepareStatement(Unknown Source)
+	at org.apache.commons.dbcp.DelegatingConnection.prepareStatement(DelegatingConnection.java:281)
+	at org.apache.commons.dbcp.PoolingDataSource$PoolGuardConnectionWrapper.prepareStatement(PoolingDataSource.java:313)
+	at org.projectforge.continuousdb.jdbc.JdbcExecutor.execute(JdbcExecutor.java:57)
+	... 26 common frames omitted
+Caused by: org.hsqldb.HsqlException: user lacks privilege or object not found: T_PLUGIN_CALENDAR_EVENT
+	at org.hsqldb.error.Error.error(Unknown Source)
+	at org.hsqldb.error.Error.error(Unknown Source)
+	at org.hsqldb.ParserDQL.readTableName(Unknown Source)
+	at org.hsqldb.ParserDQL.readTableOrSubquery(Unknown Source)
+	at org.hsqldb.ParserDQL.XreadTableReference(Unknown Source)
+	at org.hsqldb.ParserDQL.XreadFromClause(Unknown Source)
+	at org.hsqldb.ParserDQL.XreadTableExpression(Unknown Source)
+	at org.hsqldb.ParserDQL.XreadQuerySpecification(Unknown Source)
+	at org.hsqldb.ParserDQL.XreadSimpleTable(Unknown Source)
+	at org.hsqldb.ParserDQL.XreadQueryPrimary(Unknown Source)
+	at org.hsqldb.ParserDQL.XreadQueryTerm(Unknown Source)
+	at org.hsqldb.ParserDQL.XreadQueryExpressionBody(Unknown Source)
+	at org.hsqldb.ParserDQL.XreadQueryExpression(Unknown Source)
+	at org.hsqldb.ParserDQL.compileCursorSpecification(Unknown Source)
+	at org.hsqldb.ParserCommand.compilePart(Unknown Source)
+	at org.hsqldb.ParserCommand.compileStatement(Unknown Source)
+	at org.hsqldb.Session.compileStatement(Unknown Source)
+	at org.hsqldb.StatementManager.compile(Unknown Source)
+	at org.hsqldb.Session.execute(Unknown Source)
+	... 31 common frames omitted
+
+2017-05-22 14:08:09.753 user:  WARN 70423 --- [localhost-startStop-1] o.p.continuousdb.SystemUpdater           : *** Please note: The database perhaps has to be updated first before running the ProjectForge web app. Please login as administrator. Status 'FAILED' for update entry 'ProjectForge' 6.12
+2017-05-22 14:08:09.753 user:  WARN 70423 --- [localhost-startStop-1] o.p.continuousdb.SystemUpdater           : **********************************************************
+2017-05-22 14:08:09.753 user:  WARN 70423 --- [localhost-startStop-1] o.p.continuousdb.SystemUpdater           : ***                                                    ***
+2017-05-22 14:08:09.753 user:  WARN 70423 --- [localhost-startStop-1] o.p.continuousdb.SystemUpdater           : *** It seems that there have to be done some database  ***
+2017-05-22 14:08:09.753 user:  WARN 70423 --- [localhost-startStop-1] o.p.continuousdb.SystemUpdater           : *** updates first. Please login as administrator!      ***
+2017-05-22 14:08:09.753 user:  WARN 70423 --- [localhost-startStop-1] o.p.continuousdb.SystemUpdater           : *** Otherwise login of any non-administrator user      ***
+2017-05-22 14:08:09.753 user:  WARN 70423 --- [localhost-startStop-1] o.p.continuousdb.SystemUpdater           : *** isn't possible!                                    ***
+2017-05-22 14:08:09.753 user:  WARN 70423 --- [localhost-startStop-1] o.p.continuousdb.SystemUpdater           : *** Don't forget to restart ProjectForge after update. ***
+2017-05-22 14:08:09.753 user:  WARN 70423 --- [localhost-startStop-1] o.p.continuousdb.SystemUpdater           : *** It's possible that tons of error messages follow.  ***
+2017-05-22 14:08:09.753 user:  WARN 70423 --- [localhost-startStop-1] o.p.continuousdb.SystemUpdater           : ***                                                    ***
+2017-05-22 14:08:09.753 user:  WARN 70423 --- [localhost-startStop-1] o.p.continuousdb.SystemUpdater           : **********************************************************
+2017-05-22 14:08:09.757 user:  INFO 70423 --- [localhost-startStop-1] d.m.l.LessWicketApplicationInstantiator  : LessSource by file not working. Trying with Stream.
+2017-05-22 14:08:09.761 user:  INFO 70423 --- [localhost-startStop-1] org.lesscss.LessSource                   : Less file to import: bootstrap/bootstrap
+2017-05-22 14:08:09.762 user:  INFO 70423 --- [localhost-startStop-1] org.lesscss.LessSource                   : Path to less file: styles/bootstrap/bootstrap.less
+2017-05-22 14:08:09.762 user:  INFO 70423 --- [localhost-startStop-1] org.lesscss.LessSource                   : Less file to import: variables.less
+2017-05-22 14:08:09.762 user:  INFO 70423 --- [localhost-startStop-1] org.lesscss.LessSource                   : Path to less file: styles/bootstrap/variables.less
+2017-05-22 14:08:09.763 user:  INFO 70423 --- [localhost-startStop-1] org.lesscss.LessSource                   : Less file to import: mixins.less
+2017-05-22 14:08:09.764 user:  INFO 70423 --- [localhost-startStop-1] org.lesscss.LessSource                   : Path to less file: styles/bootstrap/mixins.less
+2017-05-22 14:08:09.765 user:  INFO 70423 --- [localhost-startStop-1] org.lesscss.LessSource                   : Less file to import: normalize.less
+2017-05-22 14:08:09.765 user:  INFO 70423 --- [localhost-startStop-1] org.lesscss.LessSource                   : Path to less file: styles/bootstrap/normalize.less
+2017-05-22 14:08:09.766 user:  INFO 70423 --- [localhost-startStop-1] org.lesscss.LessSource                   : Less file to import: print.less
+2017-05-22 14:08:09.766 user:  INFO 70423 --- [localhost-startStop-1] org.lesscss.LessSource                   : Path to less file: styles/bootstrap/print.less
+2017-05-22 14:08:09.767 user:  INFO 70423 --- [localhost-startStop-1] org.lesscss.LessSource                   : Less file to import: scaffolding.less
+2017-05-22 14:08:09.767 user:  INFO 70423 --- [localhost-startStop-1] org.lesscss.LessSource                   : Path to less file: styles/bootstrap/scaffolding.less
+2017-05-22 14:08:09.768 user:  INFO 70423 --- [localhost-startStop-1] org.lesscss.LessSource                   : Less file to import: type.less
+2017-05-22 14:08:09.768 user:  INFO 70423 --- [localhost-startStop-1] org.lesscss.LessSource                   : Path to less file: styles/bootstrap/type.less
+2017-05-22 14:08:09.769 user:  INFO 70423 --- [localhost-startStop-1] org.lesscss.LessSource                   : Less file to import: code.less
+2017-05-22 14:08:09.770 user:  INFO 70423 --- [localhost-startStop-1] org.lesscss.LessSource                   : Path to less file: styles/bootstrap/code.less
+2017-05-22 14:08:09.771 user:  INFO 70423 --- [localhost-startStop-1] org.lesscss.LessSource                   : Less file to import: grid.less
+2017-05-22 14:08:09.771 user:  INFO 70423 --- [localhost-startStop-1] org.lesscss.LessSource                   : Path to less file: styles/bootstrap/grid.less
+2017-05-22 14:08:09.772 user:  INFO 70423 --- [localhost-startStop-1] org.lesscss.LessSource                   : Less file to import: tables.less
+2017-05-22 14:08:09.772 user:  INFO 70423 --- [localhost-startStop-1] org.lesscss.LessSource                   : Path to less file: styles/bootstrap/tables.less
+2017-05-22 14:08:09.773 user:  INFO 70423 --- [localhost-startStop-1] org.lesscss.LessSource                   : Less file to import: forms.less
+2017-05-22 14:08:09.774 user:  INFO 70423 --- [localhost-startStop-1] org.lesscss.LessSource                   : Path to less file: styles/bootstrap/forms.less
+2017-05-22 14:08:09.775 user:  INFO 70423 --- [localhost-startStop-1] org.lesscss.LessSource                   : Less file to import: buttons.less
+2017-05-22 14:08:09.775 user:  INFO 70423 --- [localhost-startStop-1] org.lesscss.LessSource                   : Path to less file: styles/bootstrap/buttons.less
+2017-05-22 14:08:09.777 user:  INFO 70423 --- [localhost-startStop-1] org.lesscss.LessSource                   : Less file to import: component-animations.less
+2017-05-22 14:08:09.777 user:  INFO 70423 --- [localhost-startStop-1] org.lesscss.LessSource                   : Path to less file: styles/bootstrap/component-animations.less
+2017-05-22 14:08:09.778 user:  INFO 70423 --- [localhost-startStop-1] org.lesscss.LessSource                   : Less file to import: glyphicons.less
+2017-05-22 14:08:09.778 user:  INFO 70423 --- [localhost-startStop-1] org.lesscss.LessSource                   : Path to less file: styles/bootstrap/glyphicons.less
+2017-05-22 14:08:09.780 user:  INFO 70423 --- [localhost-startStop-1] org.lesscss.LessSource                   : Less file to import: dropdowns.less
+2017-05-22 14:08:09.780 user:  INFO 70423 --- [localhost-startStop-1] org.lesscss.LessSource                   : Path to less file: styles/bootstrap/dropdowns.less
+2017-05-22 14:08:09.782 user:  INFO 70423 --- [localhost-startStop-1] org.lesscss.LessSource                   : Less file to import: button-groups.less
+2017-05-22 14:08:09.782 user:  INFO 70423 --- [localhost-startStop-1] org.lesscss.LessSource                   : Path to less file: styles/bootstrap/button-groups.less
+2017-05-22 14:08:09.784 user:  INFO 70423 --- [localhost-startStop-1] org.lesscss.LessSource                   : Less file to import: input-groups.less
+2017-05-22 14:08:09.784 user:  INFO 70423 --- [localhost-startStop-1] org.lesscss.LessSource                   : Path to less file: styles/bootstrap/input-groups.less
+2017-05-22 14:08:09.786 user:  INFO 70423 --- [localhost-startStop-1] org.lesscss.LessSource                   : Less file to import: navs.less
+2017-05-22 14:08:09.786 user:  INFO 70423 --- [localhost-startStop-1] org.lesscss.LessSource                   : Path to less file: styles/bootstrap/navs.less
+2017-05-22 14:08:09.788 user:  INFO 70423 --- [localhost-startStop-1] org.lesscss.LessSource                   : Less file to import: navbar.less
+2017-05-22 14:08:09.788 user:  INFO 70423 --- [localhost-startStop-1] org.lesscss.LessSource                   : Path to less file: styles/bootstrap/navbar.less
+2017-05-22 14:08:09.791 user:  INFO 70423 --- [localhost-startStop-1] org.lesscss.LessSource                   : Less file to import: breadcrumbs.less
+2017-05-22 14:08:09.791 user:  INFO 70423 --- [localhost-startStop-1] org.lesscss.LessSource                   : Path to less file: styles/bootstrap/breadcrumbs.less
+2017-05-22 14:08:09.793 user:  INFO 70423 --- [localhost-startStop-1] org.lesscss.LessSource                   : Less file to import: pagination.less
+2017-05-22 14:08:09.793 user:  INFO 70423 --- [localhost-startStop-1] org.lesscss.LessSource                   : Path to less file: styles/bootstrap/pagination.less
+2017-05-22 14:08:09.795 user:  INFO 70423 --- [localhost-startStop-1] org.lesscss.LessSource                   : Less file to import: pager.less
+2017-05-22 14:08:09.795 user:  INFO 70423 --- [localhost-startStop-1] org.lesscss.LessSource                   : Path to less file: styles/bootstrap/pager.less
+2017-05-22 14:08:09.797 user:  INFO 70423 --- [localhost-startStop-1] org.lesscss.LessSource                   : Less file to import: labels.less
+2017-05-22 14:08:09.798 user:  INFO 70423 --- [localhost-startStop-1] org.lesscss.LessSource                   : Path to less file: styles/bootstrap/labels.less
+2017-05-22 14:08:09.801 user:  INFO 70423 --- [localhost-startStop-1] org.lesscss.LessSource                   : Less file to import: badges.less
+2017-05-22 14:08:09.801 user:  INFO 70423 --- [localhost-startStop-1] org.lesscss.LessSource                   : Path to less file: styles/bootstrap/badges.less
+2017-05-22 14:08:09.803 user:  INFO 70423 --- [localhost-startStop-1] org.lesscss.LessSource                   : Less file to import: jumbotron.less
+2017-05-22 14:08:09.804 user:  INFO 70423 --- [localhost-startStop-1] org.lesscss.LessSource                   : Path to less file: styles/bootstrap/jumbotron.less
+2017-05-22 14:08:09.806 user:  INFO 70423 --- [localhost-startStop-1] org.lesscss.LessSource                   : Less file to import: thumbnails.less
+2017-05-22 14:08:09.806 user:  INFO 70423 --- [localhost-startStop-1] org.lesscss.LessSource                   : Path to less file: styles/bootstrap/thumbnails.less
+2017-05-22 14:08:09.808 user:  INFO 70423 --- [localhost-startStop-1] org.lesscss.LessSource                   : Less file to import: alerts.less
+2017-05-22 14:08:09.808 user:  INFO 70423 --- [localhost-startStop-1] org.lesscss.LessSource                   : Path to less file: styles/bootstrap/alerts.less
+2017-05-22 14:08:09.811 user:  INFO 70423 --- [localhost-startStop-1] org.lesscss.LessSource                   : Less file to import: progress-bars.less
+2017-05-22 14:08:09.811 user:  INFO 70423 --- [localhost-startStop-1] org.lesscss.LessSource                   : Path to less file: styles/bootstrap/progress-bars.less
+2017-05-22 14:08:09.813 user:  INFO 70423 --- [localhost-startStop-1] org.lesscss.LessSource                   : Less file to import: media.less
+2017-05-22 14:08:09.813 user:  INFO 70423 --- [localhost-startStop-1] org.lesscss.LessSource                   : Path to less file: styles/bootstrap/media.less
+2017-05-22 14:08:09.816 user:  INFO 70423 --- [localhost-startStop-1] org.lesscss.LessSource                   : Less file to import: list-group.less
+2017-05-22 14:08:09.816 user:  INFO 70423 --- [localhost-startStop-1] org.lesscss.LessSource                   : Path to less file: styles/bootstrap/list-group.less
+2017-05-22 14:08:09.818 user:  INFO 70423 --- [localhost-startStop-1] org.lesscss.LessSource                   : Less file to import: panels.less
+2017-05-22 14:08:09.818 user:  INFO 70423 --- [localhost-startStop-1] org.lesscss.LessSource                   : Path to less file: styles/bootstrap/panels.less
+2017-05-22 14:08:09.820 user:  INFO 70423 --- [localhost-startStop-1] org.lesscss.LessSource                   : Less file to import: wells.less
+2017-05-22 14:08:09.820 user:  INFO 70423 --- [localhost-startStop-1] org.lesscss.LessSource                   : Path to less file: styles/bootstrap/wells.less
+2017-05-22 14:08:09.822 user:  INFO 70423 --- [localhost-startStop-1] org.lesscss.LessSource                   : Less file to import: close.less
+2017-05-22 14:08:09.822 user:  INFO 70423 --- [localhost-startStop-1] org.lesscss.LessSource                   : Path to less file: styles/bootstrap/close.less
+2017-05-22 14:08:09.824 user:  INFO 70423 --- [localhost-startStop-1] org.lesscss.LessSource                   : Less file to import: modals.less
+2017-05-22 14:08:09.825 user:  INFO 70423 --- [localhost-startStop-1] org.lesscss.LessSource                   : Path to less file: styles/bootstrap/modals.less
+2017-05-22 14:08:09.827 user:  INFO 70423 --- [localhost-startStop-1] org.lesscss.LessSource                   : Less file to import: tooltip.less
+2017-05-22 14:08:09.827 user:  INFO 70423 --- [localhost-startStop-1] org.lesscss.LessSource                   : Path to less file: styles/bootstrap/tooltip.less
+2017-05-22 14:08:09.830 user:  INFO 70423 --- [localhost-startStop-1] org.lesscss.LessSource                   : Less file to import: popovers.less
+2017-05-22 14:08:09.830 user:  INFO 70423 --- [localhost-startStop-1] org.lesscss.LessSource                   : Path to less file: styles/bootstrap/popovers.less
+2017-05-22 14:08:09.832 user:  INFO 70423 --- [localhost-startStop-1] org.lesscss.LessSource                   : Less file to import: carousel.less
+2017-05-22 14:08:09.832 user:  INFO 70423 --- [localhost-startStop-1] org.lesscss.LessSource                   : Path to less file: styles/bootstrap/carousel.less
+2017-05-22 14:08:09.835 user:  INFO 70423 --- [localhost-startStop-1] org.lesscss.LessSource                   : Less file to import: utilities.less
+2017-05-22 14:08:09.835 user:  INFO 70423 --- [localhost-startStop-1] org.lesscss.LessSource                   : Path to less file: styles/bootstrap/utilities.less
+2017-05-22 14:08:09.837 user:  INFO 70423 --- [localhost-startStop-1] org.lesscss.LessSource                   : Less file to import: responsive-utilities.less
+2017-05-22 14:08:09.837 user:  INFO 70423 --- [localhost-startStop-1] org.lesscss.LessSource                   : Path to less file: styles/bootstrap/responsive-utilities.less
+2017-05-22 14:08:09.842 user:  INFO 70423 --- [localhost-startStop-1] org.lesscss.LessSource                   : Less file to import: table-css
+2017-05-22 14:08:09.842 user:  INFO 70423 --- [localhost-startStop-1] org.lesscss.LessSource                   : Path to less file: styles/table-css.less
+2017-05-22 14:08:09.845 user:  INFO 70423 --- [localhost-startStop-1] org.lesscss.LessSource                   : Less file to import: projectforge-main-css
+2017-05-22 14:08:09.845 user:  INFO 70423 --- [localhost-startStop-1] org.lesscss.LessSource                   : Path to less file: styles/projectforge-main-css.less
+2017-05-22 14:08:09.848 user:  INFO 70423 --- [localhost-startStop-1] org.lesscss.LessSource                   : Less file to import: projectforge-bootstrap-css
+2017-05-22 14:08:09.848 user:  INFO 70423 --- [localhost-startStop-1] org.lesscss.LessSource                   : Path to less file: styles/projectforge-bootstrap-css.less
+2017-05-22 14:08:09.851 user:  INFO 70423 --- [localhost-startStop-1] org.lesscss.LessSource                   : Less file to import: projectforge-form-css
+2017-05-22 14:08:09.851 user:  INFO 70423 --- [localhost-startStop-1] org.lesscss.LessSource                   : Path to less file: styles/projectforge-form-css.less
+2017-05-22 14:08:09.854 user:  INFO 70423 --- [localhost-startStop-1] org.lesscss.LessSource                   : Less file to import: projectforge-jquery-ui-css
+2017-05-22 14:08:09.854 user:  INFO 70423 --- [localhost-startStop-1] org.lesscss.LessSource                   : Path to less file: styles/projectforge-jquery-ui-css.less
+2017-05-22 14:08:09.857 user:  INFO 70423 --- [localhost-startStop-1] org.lesscss.LessSource                   : Less file to import: projectforge-css
+2017-05-22 14:08:09.857 user:  INFO 70423 --- [localhost-startStop-1] org.lesscss.LessSource                   : Path to less file: styles/projectforge-css.less
+2017-05-22 14:08:09.860 user:  INFO 70423 --- [localhost-startStop-1] org.lesscss.LessSource                   : Less file to import: projectforge-wicket-css
+2017-05-22 14:08:09.860 user:  INFO 70423 --- [localhost-startStop-1] org.lesscss.LessSource                   : Path to less file: styles/projectforge-wicket-css.less
+2017-05-22 14:08:09.862 user:  INFO 70423 --- [localhost-startStop-1] org.lesscss.LessSource                   : Less file to import: projectforge-colors-css
+2017-05-22 14:08:09.862 user:  INFO 70423 --- [localhost-startStop-1] org.lesscss.LessSource                   : Path to less file: styles/projectforge-colors-css.less
+2017-05-22 14:08:09.865 user:  INFO 70423 --- [localhost-startStop-1] org.lesscss.LessSource                   : Less file to import: projectforge-menuconfig-css
+2017-05-22 14:08:09.865 user:  INFO 70423 --- [localhost-startStop-1] org.lesscss.LessSource                   : Path to less file: styles/projectforge-menuconfig-css.less
+2017-05-22 14:08:09.868 user:  INFO 70423 --- [localhost-startStop-1] org.lesscss.LessSource                   : Less file to import: reset-css
+2017-05-22 14:08:09.868 user:  INFO 70423 --- [localhost-startStop-1] org.lesscss.LessSource                   : Path to less file: styles/reset-css.less
+2017-05-22 14:08:09.871 user:  INFO 70423 --- [localhost-startStop-1] org.lesscss.LessSource                   : Less file to import: custom_variables
+2017-05-22 14:08:09.871 user:  INFO 70423 --- [localhost-startStop-1] org.lesscss.LessSource                   : Path to less file: styles/custom_variables.less
+2017-05-22 14:08:09.874 user:  INFO 70423 --- [localhost-startStop-1] org.lesscss.LessSource                   : Less file to import: forms
+2017-05-22 14:08:09.874 user:  INFO 70423 --- [localhost-startStop-1] org.lesscss.LessSource                   : Path to less file: styles/forms.less
+2017-05-22 14:08:09.877 user:  INFO 70423 --- [localhost-startStop-1] org.lesscss.LessSource                   : Less file to import: panels
+2017-05-22 14:08:09.877 user:  INFO 70423 --- [localhost-startStop-1] org.lesscss.LessSource                   : Path to less file: styles/panels.less
+2017-05-22 14:08:09.880 user:  INFO 70423 --- [localhost-startStop-1] d.m.l.LessWicketApplicationInstantiator  : compiling /Users/m_altmann/Programming/projectforge/pf_d/projectforge/projectforge-application/styles/projectforge.less to /Users/m_altmann/Programming/projectforge/pf_d/projectforge/projectforge-application/./Projectforge/styles/projectforge.css
+2017-05-22 14:08:13.228 user:  INFO 70423 --- [localhost-startStop-1] org.projectforge.business.login.Login    : LoginHandler org.projectforge.business.login.LoginDefaultHandler registered.
+2017-05-22 14:08:13.233 user:  INFO 70423 --- [localhost-startStop-1] o.a.wicket.protocol.http.WebApplication  : [wicket.app] Started Wicket version 6.8.0 in DEPLOYMENT mode
+2017-05-22 14:08:13.678 user:  INFO 70423 --- [main] org.projectforge.storage.StorageClient   : No storageConfig given in config.xml. Storage not available.
+2017-05-22 14:08:14.291 user:  INFO 70423 --- [main] s.w.s.m.m.a.RequestMappingHandlerAdapter : Looking for @ControllerAdvice: org.springframework.boot.context.embedded.AnnotationConfigEmbeddedWebApplicationContext@51bd8b5c: startup date [Mon May 22 14:07:59 UTC 2017]; root of context hierarchy
+2017-05-22 14:08:14.374 user:  INFO 70423 --- [main] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped "{[/error]}" onto public org.springframework.http.ResponseEntity<java.util.Map<java.lang.String, java.lang.Object>> org.springframework.boot.autoconfigure.web.BasicErrorController.error(javax.servlet.http.HttpServletRequest)
+2017-05-22 14:08:14.375 user:  INFO 70423 --- [main] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped "{[/error],produces=[text/html]}" onto public org.springframework.web.servlet.ModelAndView org.springframework.boot.autoconfigure.web.BasicErrorController.errorHtml(javax.servlet.http.HttpServletRequest,javax.servlet.http.HttpServletResponse)
+2017-05-22 14:08:14.418 user:  INFO 70423 --- [main] o.s.w.s.handler.SimpleUrlHandlerMapping  : Mapped URL path [/webjars/**] onto handler of type [class org.springframework.web.servlet.resource.ResourceHttpRequestHandler]
+2017-05-22 14:08:14.418 user:  INFO 70423 --- [main] o.s.w.s.handler.SimpleUrlHandlerMapping  : Mapped URL path [/**] onto handler of type [class org.springframework.web.servlet.resource.ResourceHttpRequestHandler]
+2017-05-22 14:08:14.469 user:  INFO 70423 --- [main] o.s.w.s.handler.SimpleUrlHandlerMapping  : Mapped URL path [/**/favicon.ico] onto handler of type [class org.springframework.web.servlet.resource.ResourceHttpRequestHandler]
+2017-05-22 14:08:14.525 user:  INFO 70423 --- [main] oConfiguration$WelcomePageHandlerMapping : Adding welcome page: class path resource [static/index.html]
+2017-05-22 14:08:15.230 user:  INFO 70423 --- [main] o.s.j.e.a.AnnotationMBeanExporter        : Registering beans for JMX exposure on startup
+2017-05-22 14:08:15.245 user:  INFO 70423 --- [main] s.a.ScheduledAnnotationBeanPostProcessor : No TaskScheduler/ScheduledExecutorService bean found for scheduled processing
+2017-05-22 14:08:15.284 user: ERROR 70423 --- [main] o.a.coyote.http11.Http11NioProtocol      : Failed to start end point associated with ProtocolHandler ["http-nio-127.0.0.1-8080"]
+
+java.net.BindException: Address already in use
+	at sun.nio.ch.Net.bind0(Native Method)
+	at sun.nio.ch.Net.bind(Net.java:433)
+	at sun.nio.ch.Net.bind(Net.java:425)
+	at sun.nio.ch.ServerSocketChannelImpl.bind(ServerSocketChannelImpl.java:223)
+	at sun.nio.ch.ServerSocketAdaptor.bind(ServerSocketAdaptor.java:74)
+	at org.apache.tomcat.util.net.NioEndpoint.bind(NioEndpoint.java:210)
+	at org.apache.tomcat.util.net.AbstractEndpoint.start(AbstractEndpoint.java:978)
+	at org.apache.coyote.AbstractProtocol.start(AbstractProtocol.java:628)
+	at org.apache.catalina.connector.Connector.startInternal(Connector.java:993)
+	at org.apache.catalina.util.LifecycleBase.start(LifecycleBase.java:150)
+	at org.apache.catalina.core.StandardService.addConnector(StandardService.java:225)
+	at org.springframework.boot.context.embedded.tomcat.TomcatEmbeddedServletContainer.addPreviouslyRemovedConnectors(TomcatEmbeddedServletContainer.java:247)
+	at org.springframework.boot.context.embedded.tomcat.TomcatEmbeddedServletContainer.start(TomcatEmbeddedServletContainer.java:190)
+	at org.springframework.boot.context.embedded.EmbeddedWebApplicationContext.startEmbeddedServletContainer(EmbeddedWebApplicationContext.java:297)
+	at org.springframework.boot.context.embedded.EmbeddedWebApplicationContext.finishRefresh(EmbeddedWebApplicationContext.java:145)
+	at org.springframework.context.support.AbstractApplicationContext.refresh(AbstractApplicationContext.java:545)
+	at org.springframework.boot.context.embedded.EmbeddedWebApplicationContext.refresh(EmbeddedWebApplicationContext.java:122)
+	at org.springframework.boot.SpringApplication.refresh(SpringApplication.java:737)
+	at org.springframework.boot.SpringApplication.refreshContext(SpringApplication.java:370)
+	at org.springframework.boot.SpringApplication.run(SpringApplication.java:314)
+	at org.springframework.boot.SpringApplication.run(SpringApplication.java:1162)
+	at org.springframework.boot.SpringApplication.run(SpringApplication.java:1151)
+	at org.projectforge.start.ProjectForgeApplication.main(ProjectForgeApplication.java:26)
+
+2017-05-22 14:08:15.284 user: ERROR 70423 --- [main] o.apache.catalina.core.StandardService   : Failed to start connector [Connector[HTTP/1.1-8080]]
+
+org.apache.catalina.LifecycleException: Failed to start component [Connector[HTTP/1.1-8080]]
+	at org.apache.catalina.util.LifecycleBase.start(LifecycleBase.java:167)
+	at org.apache.catalina.core.StandardService.addConnector(StandardService.java:225)
+	at org.springframework.boot.context.embedded.tomcat.TomcatEmbeddedServletContainer.addPreviouslyRemovedConnectors(TomcatEmbeddedServletContainer.java:247)
+	at org.springframework.boot.context.embedded.tomcat.TomcatEmbeddedServletContainer.start(TomcatEmbeddedServletContainer.java:190)
+	at org.springframework.boot.context.embedded.EmbeddedWebApplicationContext.startEmbeddedServletContainer(EmbeddedWebApplicationContext.java:297)
+	at org.springframework.boot.context.embedded.EmbeddedWebApplicationContext.finishRefresh(EmbeddedWebApplicationContext.java:145)
+	at org.springframework.context.support.AbstractApplicationContext.refresh(AbstractApplicationContext.java:545)
+	at org.springframework.boot.context.embedded.EmbeddedWebApplicationContext.refresh(EmbeddedWebApplicationContext.java:122)
+	at org.springframework.boot.SpringApplication.refresh(SpringApplication.java:737)
+	at org.springframework.boot.SpringApplication.refreshContext(SpringApplication.java:370)
+	at org.springframework.boot.SpringApplication.run(SpringApplication.java:314)
+	at org.springframework.boot.SpringApplication.run(SpringApplication.java:1162)
+	at org.springframework.boot.SpringApplication.run(SpringApplication.java:1151)
+	at org.projectforge.start.ProjectForgeApplication.main(ProjectForgeApplication.java:26)
+Caused by: org.apache.catalina.LifecycleException: service.getName(): "Tomcat";  Protocol handler start failed
+	at org.apache.catalina.connector.Connector.startInternal(Connector.java:1000)
+	at org.apache.catalina.util.LifecycleBase.start(LifecycleBase.java:150)
+	... 13 common frames omitted
+Caused by: java.net.BindException: Address already in use
+	at sun.nio.ch.Net.bind0(Native Method)
+	at sun.nio.ch.Net.bind(Net.java:433)
+	at sun.nio.ch.Net.bind(Net.java:425)
+	at sun.nio.ch.ServerSocketChannelImpl.bind(ServerSocketChannelImpl.java:223)
+	at sun.nio.ch.ServerSocketAdaptor.bind(ServerSocketAdaptor.java:74)
+	at org.apache.tomcat.util.net.NioEndpoint.bind(NioEndpoint.java:210)
+	at org.apache.tomcat.util.net.AbstractEndpoint.start(AbstractEndpoint.java:978)
+	at org.apache.coyote.AbstractProtocol.start(AbstractProtocol.java:628)
+	at org.apache.catalina.connector.Connector.startInternal(Connector.java:993)
+	... 14 common frames omitted
+
+2017-05-22 14:08:15.291 user:  INFO 70423 --- [main] o.apache.catalina.core.StandardService   : Stopping service Tomcat
+2017-05-22 14:08:15.296 user:  INFO 70423 --- [localhost-startStop-1] org.projectforge.ProjectForgeApp         : Shutdown...
+2017-05-22 14:08:15.296 user:  INFO 70423 --- [localhost-startStop-1] o.p.continuousdb.DatabaseSupport         : Setting database dialect to: org.hibernate.dialect.HSQLDialect
+2017-05-22 14:08:15.296 user:  INFO 70423 --- [localhost-startStop-1] o.p.f.p.database.DatabaseUpdateService   : Executing database shutdown statement: SHUTDOWN COMPACT
+2017-05-22 14:08:15.300 user:  INFO 70423 --- [localhost-startStop-1] hsqldb.db.HSQLDB5C307C7A7A.ENGINE        : Database closed
+2017-05-22 14:08:15.317 user:  INFO 70423 --- [localhost-startStop-1] hsqldb.db.HSQLDB5C307C7A7A.ENGINE        : open start - state not modified
+2017-05-22 14:08:15.322 user:  INFO 70423 --- [localhost-startStop-1] hsqldb.db.HSQLDB5C307C7A7A.ENGINE        : Database closed
+2017-05-22 14:08:15.427 user:  INFO 70423 --- [localhost-startStop-1] o.p.f.p.database.DatabaseUpdateService   : SHUTDOWN COMPACT
+2017-05-22 14:08:15.427 user:  INFO 70423 --- [localhost-startStop-1] org.projectforge.ProjectForgeApp         : Shutdown completed.
+2017-05-22 14:08:15.427 user:  INFO 70423 --- [localhost-startStop-1] org.apache.wicket.Application            : [wicket.app] destroy: Wicket core library initializer
+2017-05-22 14:08:15.427 user:  INFO 70423 --- [localhost-startStop-1] org.apache.wicket.Application            : [wicket.app] destroy: Wicket extensions initializer
+2017-05-22 14:08:15.439 user:  WARN 70423 --- [localhost-startStop-1] o.a.c.loader.WebappClassLoaderBase       : The web application [ROOT] appears to have started a thread named [Hibernate Search sync consumer thread for index org.projectforge.business.fibu.EmployeeSalaryDO] but has failed to stop it. This is very likely to create a memory leak. Stack trace of thread:
+ sun.misc.Unsafe.park(Native Method)
+ java.util.concurrent.locks.LockSupport.parkNanos(LockSupport.java:338)
+ org.hibernate.search.backend.impl.lucene.SyncWorkProcessor.parkCurrentThread(SyncWorkProcessor.java:168)
+ org.hibernate.search.backend.impl.lucene.SyncWorkProcessor.access$300(SyncWorkProcessor.java:35)
+ org.hibernate.search.backend.impl.lucene.SyncWorkProcessor$Consumer.run(SyncWorkProcessor.java:143)
+ java.lang.Thread.run(Thread.java:745)
+2017-05-22 14:08:15.439 user:  WARN 70423 --- [localhost-startStop-1] o.a.c.loader.WebappClassLoaderBase       : The web application [ROOT] appears to have started a thread named [Hibernate Search sync consumer thread for index org.projectforge.business.fibu.EingangsrechnungsPositionDO] but has failed to stop it. This is very likely to create a memory leak. Stack trace of thread:
+ sun.misc.Unsafe.park(Native Method)
+ java.util.concurrent.locks.LockSupport.parkNanos(LockSupport.java:338)
+ org.hibernate.search.backend.impl.lucene.SyncWorkProcessor.parkCurrentThread(SyncWorkProcessor.java:168)
+ org.hibernate.search.backend.impl.lucene.SyncWorkProcessor.access$300(SyncWorkProcessor.java:35)
+ org.hibernate.search.backend.impl.lucene.SyncWorkProcessor$Consumer.run(SyncWorkProcessor.java:143)
+ java.lang.Thread.run(Thread.java:745)
+2017-05-22 14:08:15.440 user:  WARN 70423 --- [localhost-startStop-1] o.a.c.loader.WebappClassLoaderBase       : The web application [ROOT] appears to have started a thread named [Hibernate Search sync consumer thread for index org.projectforge.plugins.skillmatrix.TrainingDO] but has failed to stop it. This is very likely to create a memory leak. Stack trace of thread:
+ sun.misc.Unsafe.park(Native Method)
+ java.util.concurrent.locks.LockSupport.parkNanos(LockSupport.java:338)
+ org.hibernate.search.backend.impl.lucene.SyncWorkProcessor.parkCurrentThread(SyncWorkProcessor.java:168)
+ org.hibernate.search.backend.impl.lucene.SyncWorkProcessor.access$300(SyncWorkProcessor.java:35)
+ org.hibernate.search.backend.impl.lucene.SyncWorkProcessor$Consumer.run(SyncWorkProcessor.java:143)
+ java.lang.Thread.run(Thread.java:745)
+2017-05-22 14:08:15.440 user:  WARN 70423 --- [localhost-startStop-1] o.a.c.loader.WebappClassLoaderBase       : The web application [ROOT] appears to have started a thread named [Hibernate Search sync consumer thread for index org.projectforge.framework.persistence.history.entities.PfHistoryMasterDO] but has failed to stop it. This is very likely to create a memory leak. Stack trace of thread:
+ sun.misc.Unsafe.park(Native Method)
+ java.util.concurrent.locks.LockSupport.parkNanos(LockSupport.java:338)
+ org.hibernate.search.backend.impl.lucene.SyncWorkProcessor.parkCurrentThread(SyncWorkProcessor.java:168)
+ org.hibernate.search.backend.impl.lucene.SyncWorkProcessor.access$300(SyncWorkProcessor.java:35)
+ org.hibernate.search.backend.impl.lucene.SyncWorkProcessor$Consumer.run(SyncWorkProcessor.java:143)
+ java.lang.Thread.run(Thread.java:745)
+2017-05-22 14:08:15.440 user:  WARN 70423 --- [localhost-startStop-1] o.a.c.loader.WebappClassLoaderBase       : The web application [ROOT] appears to have started a thread named [Hibernate Search sync consumer thread for index org.projectforge.business.fibu.AuftragDO] but has failed to stop it. This is very likely to create a memory leak. Stack trace of thread:
+ sun.misc.Unsafe.park(Native Method)
+ java.util.concurrent.locks.LockSupport.parkNanos(LockSupport.java:338)
+ org.hibernate.search.backend.impl.lucene.SyncWorkProcessor.parkCurrentThread(SyncWorkProcessor.java:168)
+ org.hibernate.search.backend.impl.lucene.SyncWorkProcessor.access$300(SyncWorkProcessor.java:35)
+ org.hibernate.search.backend.impl.lucene.SyncWorkProcessor$Consumer.run(SyncWorkProcessor.java:143)
+ java.lang.Thread.run(Thread.java:745)
+2017-05-22 14:08:15.440 user:  WARN 70423 --- [localhost-startStop-1] o.a.c.loader.WebappClassLoaderBase       : The web application [ROOT] appears to have started a thread named [Hibernate Search sync consumer thread for index org.projectforge.business.fibu.KundeDO] but has failed to stop it. This is very likely to create a memory leak. Stack trace of thread:
+ sun.misc.Unsafe.park(Native Method)
+ java.util.concurrent.locks.LockSupport.parkNanos(LockSupport.java:338)
+ org.hibernate.search.backend.impl.lucene.SyncWorkProcessor.parkCurrentThread(SyncWorkProcessor.java:168)
+ org.hibernate.search.backend.impl.lucene.SyncWorkProcessor.access$300(SyncWorkProcessor.java:35)
+ org.hibernate.search.backend.impl.lucene.SyncWorkProcessor$Consumer.run(SyncWorkProcessor.java:143)
+ java.lang.Thread.run(Thread.java:745)
+2017-05-22 14:08:15.441 user:  WARN 70423 --- [localhost-startStop-1] o.a.c.loader.WebappClassLoaderBase       : The web application [ROOT] appears to have started a thread named [Hibernate Search sync consumer thread for index org.projectforge.business.fibu.kost.Kost1DO] but has failed to stop it. This is very likely to create a memory leak. Stack trace of thread:
+ sun.misc.Unsafe.park(Native Method)
+ java.util.concurrent.locks.LockSupport.parkNanos(LockSupport.java:338)
+ org.hibernate.search.backend.impl.lucene.SyncWorkProcessor.parkCurrentThread(SyncWorkProcessor.java:168)
+ org.hibernate.search.backend.impl.lucene.SyncWorkProcessor.access$300(SyncWorkProcessor.java:35)
+ org.hibernate.search.backend.impl.lucene.SyncWorkProcessor$Consumer.run(SyncWorkProcessor.java:143)
+ java.lang.Thread.run(Thread.java:745)
+2017-05-22 14:08:15.441 user:  WARN 70423 --- [localhost-startStop-1] o.a.c.loader.WebappClassLoaderBase       : The web application [ROOT] appears to have started a thread named [Hibernate Search sync consumer thread for index org.projectforge.business.teamcal.event.model.TeamEventAttachmentDO] but has failed to stop it. This is very likely to create a memory leak. Stack trace of thread:
+ sun.misc.Unsafe.park(Native Method)
+ java.util.concurrent.locks.LockSupport.parkNanos(LockSupport.java:338)
+ org.hibernate.search.backend.impl.lucene.SyncWorkProcessor.parkCurrentThread(SyncWorkProcessor.java:168)
+ org.hibernate.search.backend.impl.lucene.SyncWorkProcessor.access$300(SyncWorkProcessor.java:35)
+ org.hibernate.search.backend.impl.lucene.SyncWorkProcessor$Consumer.run(SyncWorkProcessor.java:143)
+ java.lang.Thread.run(Thread.java:745)
+2017-05-22 14:08:15.441 user:  WARN 70423 --- [localhost-startStop-1] o.a.c.loader.WebappClassLoaderBase       : The web application [ROOT] appears to have started a thread named [Hibernate Search sync consumer thread for index org.projectforge.business.fibu.KontoDO] but has failed to stop it. This is very likely to create a memory leak. Stack trace of thread:
+ sun.misc.Unsafe.park(Native Method)
+ java.util.concurrent.locks.LockSupport.parkNanos(LockSupport.java:338)
+ org.hibernate.search.backend.impl.lucene.SyncWorkProcessor.parkCurrentThread(SyncWorkProcessor.java:168)
+ org.hibernate.search.backend.impl.lucene.SyncWorkProcessor.access$300(SyncWorkProcessor.java:35)
+ org.hibernate.search.backend.impl.lucene.SyncWorkProcessor$Consumer.run(SyncWorkProcessor.java:143)
+ java.lang.Thread.run(Thread.java:745)
+2017-05-22 14:08:15.441 user:  WARN 70423 --- [localhost-startStop-1] o.a.c.loader.WebappClassLoaderBase       : The web application [ROOT] appears to have started a thread named [Hibernate Search sync consumer thread for index org.projectforge.framework.persistence.user.entities.UserPrefDO] but has failed to stop it. This is very likely to create a memory leak. Stack trace of thread:
+ sun.misc.Unsafe.park(Native Method)
+ java.util.concurrent.locks.LockSupport.parkNanos(LockSupport.java:338)
+ org.hibernate.search.backend.impl.lucene.SyncWorkProcessor.parkCurrentThread(SyncWorkProcessor.java:168)
+ org.hibernate.search.backend.impl.lucene.SyncWorkProcessor.access$300(SyncWorkProcessor.java:35)
+ org.hibernate.search.backend.impl.lucene.SyncWorkProcessor$Consumer.run(SyncWorkProcessor.java:143)
+ java.lang.Thread.run(Thread.java:745)
+2017-05-22 14:08:15.442 user:  WARN 70423 --- [localhost-startStop-1] o.a.c.loader.WebappClassLoaderBase       : The web application [ROOT] appears to have started a thread named [Hibernate Search sync consumer thread for index org.projectforge.framework.access.GroupTaskAccessDO] but has failed to stop it. This is very likely to create a memory leak. Stack trace of thread:
+ sun.misc.Unsafe.park(Native Method)
+ java.util.concurrent.locks.LockSupport.parkNanos(LockSupport.java:338)
+ org.hibernate.search.backend.impl.lucene.SyncWorkProcessor.parkCurrentThread(SyncWorkProcessor.java:168)
+ org.hibernate.search.backend.impl.lucene.SyncWorkProcessor.access$300(SyncWorkProcessor.java:35)
+ org.hibernate.search.backend.impl.lucene.SyncWorkProcessor$Consumer.run(SyncWorkProcessor.java:143)
+ java.lang.Thread.run(Thread.java:745)
+2017-05-22 14:08:15.442 user:  WARN 70423 --- [localhost-startStop-1] o.a.c.loader.WebappClassLoaderBase       : The web application [ROOT] appears to have started a thread named [Hibernate Search sync consumer thread for index org.projectforge.plugins.licensemanagement.LicenseDO] but has failed to stop it. This is very likely to create a memory leak. Stack trace of thread:
+ sun.misc.Unsafe.park(Native Method)
+ java.util.concurrent.locks.LockSupport.parkNanos(LockSupport.java:338)
+ org.hibernate.search.backend.impl.lucene.SyncWorkProcessor.parkCurrentThread(SyncWorkProcessor.java:168)
+ org.hibernate.search.backend.impl.lucene.SyncWorkProcessor.access$300(SyncWorkProcessor.java:35)
+ org.hibernate.search.backend.impl.lucene.SyncWorkProcessor$Consumer.run(SyncWorkProcessor.java:143)
+ java.lang.Thread.run(Thread.java:745)
+2017-05-22 14:08:15.443 user:  WARN 70423 --- [localhost-startStop-1] o.a.c.loader.WebappClassLoaderBase       : The web application [ROOT] appears to have started a thread named [Hibernate Search sync consumer thread for index org.projectforge.plugins.memo.MemoDO] but has failed to stop it. This is very likely to create a memory leak. Stack trace of thread:
+ sun.misc.Unsafe.park(Native Method)
+ java.util.concurrent.locks.LockSupport.parkNanos(LockSupport.java:338)
+ org.hibernate.search.backend.impl.lucene.SyncWorkProcessor.parkCurrentThread(SyncWorkProcessor.java:168)
+ org.hibernate.search.backend.impl.lucene.SyncWorkProcessor.access$300(SyncWorkProcessor.java:35)
+ org.hibernate.search.backend.impl.lucene.SyncWorkProcessor$Consumer.run(SyncWorkProcessor.java:143)
+ java.lang.Thread.run(Thread.java:745)
+2017-05-22 14:08:15.443 user:  WARN 70423 --- [localhost-startStop-1] o.a.c.loader.WebappClassLoaderBase       : The web application [ROOT] appears to have started a thread named [Hibernate Search sync consumer thread for index org.projectforge.framework.persistence.user.entities.TenantDO] but has failed to stop it. This is very likely to create a memory leak. Stack trace of thread:
+ sun.misc.Unsafe.park(Native Method)
+ java.util.concurrent.locks.LockSupport.parkNanos(LockSupport.java:338)
+ org.hibernate.search.backend.impl.lucene.SyncWorkProcessor.parkCurrentThread(SyncWorkProcessor.java:168)
+ org.hibernate.search.backend.impl.lucene.SyncWorkProcessor.access$300(SyncWorkProcessor.java:35)
+ org.hibernate.search.backend.impl.lucene.SyncWorkProcessor$Consumer.run(SyncWorkProcessor.java:143)
+ java.lang.Thread.run(Thread.java:745)
+2017-05-22 14:08:15.443 user:  WARN 70423 --- [localhost-startStop-1] o.a.c.loader.WebappClassLoaderBase       : The web application [ROOT] appears to have started a thread named [Hibernate Search sync consumer thread for index org.projectforge.business.teamcal.event.model.TeamEventDO] but has failed to stop it. This is very likely to create a memory leak. Stack trace of thread:
+ sun.misc.Unsafe.park(Native Method)
+ java.util.concurrent.locks.LockSupport.parkNanos(LockSupport.java:338)
+ org.hibernate.search.backend.impl.lucene.SyncWorkProcessor.parkCurrentThread(SyncWorkProcessor.java:168)
+ org.hibernate.search.backend.impl.lucene.SyncWorkProcessor.access$300(SyncWorkProcessor.java:35)
+ org.hibernate.search.backend.impl.lucene.SyncWorkProcessor$Consumer.run(SyncWorkProcessor.java:143)
+ java.lang.Thread.run(Thread.java:745)
+2017-05-22 14:08:15.444 user:  WARN 70423 --- [localhost-startStop-1] o.a.c.loader.WebappClassLoaderBase       : The web application [ROOT] appears to have started a thread named [Hibernate Search sync consumer thread for index org.projectforge.business.fibu.RechnungDO] but has failed to stop it. This is very likely to create a memory leak. Stack trace of thread:
+ sun.misc.Unsafe.park(Native Method)
+ java.util.concurrent.locks.LockSupport.parkNanos(LockSupport.java:338)
+ org.hibernate.search.backend.impl.lucene.SyncWorkProcessor.parkCurrentThread(SyncWorkProcessor.java:168)
+ org.hibernate.search.backend.impl.lucene.SyncWorkProcessor.access$300(SyncWorkProcessor.java:35)
+ org.hibernate.search.backend.impl.lucene.SyncWorkProcessor$Consumer.run(SyncWorkProcessor.java:143)
+ java.lang.Thread.run(Thread.java:745)
+2017-05-22 14:08:15.444 user:  WARN 70423 --- [localhost-startStop-1] o.a.c.loader.WebappClassLoaderBase       : The web application [ROOT] appears to have started a thread named [Hibernate Search sync consumer thread for index org.projectforge.business.fibu.EmployeeTimedDO] but has failed to stop it. This is very likely to create a memory leak. Stack trace of thread:
+ sun.misc.Unsafe.park(Native Method)
+ java.util.concurrent.locks.LockSupport.parkNanos(LockSupport.java:338)
+ org.hibernate.search.backend.impl.lucene.SyncWorkProcessor.parkCurrentThread(SyncWorkProcessor.java:168)
+ org.hibernate.search.backend.impl.lucene.SyncWorkProcessor.access$300(SyncWorkProcessor.java:35)
+ org.hibernate.search.backend.impl.lucene.SyncWorkProcessor$Consumer.run(SyncWorkProcessor.java:143)
+ java.lang.Thread.run(Thread.java:745)
+2017-05-22 14:08:15.444 user:  WARN 70423 --- [localhost-startStop-1] o.a.c.loader.WebappClassLoaderBase       : The web application [ROOT] appears to have started a thread named [Hibernate Search sync consumer thread for index org.projectforge.business.fibu.kost.KostZuweisungDO] but has failed to stop it. This is very likely to create a memory leak. Stack trace of thread:
+ sun.misc.Unsafe.park(Native Method)
+ java.util.concurrent.locks.LockSupport.parkNanos(LockSupport.java:338)
+ org.hibernate.search.backend.impl.lucene.SyncWorkProcessor.parkCurrentThread(SyncWorkProcessor.java:168)
+ org.hibernate.search.backend.impl.lucene.SyncWorkProcessor.access$300(SyncWorkProcessor.java:35)
+ org.hibernate.search.backend.impl.lucene.SyncWorkProcessor$Consumer.run(SyncWorkProcessor.java:143)
+ java.lang.Thread.run(Thread.java:745)
+2017-05-22 14:08:15.445 user:  WARN 70423 --- [localhost-startStop-1] o.a.c.loader.WebappClassLoaderBase       : The web application [ROOT] appears to have started a thread named [Hibernate Search sync consumer thread for index org.projectforge.framework.configuration.entities.ConfigurationDO] but has failed to stop it. This is very likely to create a memory leak. Stack trace of thread:
+ sun.misc.Unsafe.park(Native Method)
+ java.util.concurrent.locks.LockSupport.parkNanos(LockSupport.java:338)
+ org.hibernate.search.backend.impl.lucene.SyncWorkProcessor.parkCurrentThread(SyncWorkProcessor.java:168)
+ org.hibernate.search.backend.impl.lucene.SyncWorkProcessor.access$300(SyncWorkProcessor.java:35)
+ org.hibernate.search.backend.impl.lucene.SyncWorkProcessor$Consumer.run(SyncWorkProcessor.java:143)
+ java.lang.Thread.run(Thread.java:745)
+2017-05-22 14:08:15.445 user:  WARN 70423 --- [localhost-startStop-1] o.a.c.loader.WebappClassLoaderBase       : The web application [ROOT] appears to have started a thread named [Hibernate Search sync consumer thread for index org.projectforge.plugins.skillmatrix.SkillRatingDO] but has failed to stop it. This is very likely to create a memory leak. Stack trace of thread:
+ sun.misc.Unsafe.park(Native Method)
+ java.util.concurrent.locks.LockSupport.parkNanos(LockSupport.java:338)
+ org.hibernate.search.backend.impl.lucene.SyncWorkProcessor.parkCurrentThread(SyncWorkProcessor.java:168)
+ org.hibernate.search.backend.impl.lucene.SyncWorkProcessor.access$300(SyncWorkProcessor.java:35)
+ org.hibernate.search.backend.impl.lucene.SyncWorkProcessor$Consumer.run(SyncWorkProcessor.java:143)
+ java.lang.Thread.run(Thread.java:745)
+2017-05-22 14:08:15.445 user:  WARN 70423 --- [localhost-startStop-1] o.a.c.loader.WebappClassLoaderBase       : The web application [ROOT] appears to have started a thread named [Hibernate Search sync consumer thread for index org.projectforge.framework.persistence.user.entities.PFUserDO] but has failed to stop it. This is very likely to create a memory leak. Stack trace of thread:
+ sun.misc.Unsafe.park(Native Method)
+ java.util.concurrent.locks.LockSupport.parkNanos(LockSupport.java:338)
+ org.hibernate.search.backend.impl.lucene.SyncWorkProcessor.parkCurrentThread(SyncWorkProcessor.java:168)
+ org.hibernate.search.backend.impl.lucene.SyncWorkProcessor.access$300(SyncWorkProcessor.java:35)
+ org.hibernate.search.backend.impl.lucene.SyncWorkProcessor$Consumer.run(SyncWorkProcessor.java:143)
+ java.lang.Thread.run(Thread.java:745)
+2017-05-22 14:08:15.446 user:  WARN 70423 --- [localhost-startStop-1] o.a.c.loader.WebappClassLoaderBase       : The web application [ROOT] appears to have started a thread named [Hibernate Search sync consumer thread for index org.projectforge.business.orga.VisitorbookDO] but has failed to stop it. This is very likely to create a memory leak. Stack trace of thread:
+ sun.misc.Unsafe.park(Native Method)
+ java.util.concurrent.locks.LockSupport.parkNanos(LockSupport.java:338)
+ org.hibernate.search.backend.impl.lucene.SyncWorkProcessor.parkCurrentThread(SyncWorkProcessor.java:168)
+ org.hibernate.search.backend.impl.lucene.SyncWorkProcessor.access$300(SyncWorkProcessor.java:35)
+ org.hibernate.search.backend.impl.lucene.SyncWorkProcessor$Consumer.run(SyncWorkProcessor.java:143)
+ java.lang.Thread.run(Thread.java:745)
+2017-05-22 14:08:15.446 user:  WARN 70423 --- [localhost-startStop-1] o.a.c.loader.WebappClassLoaderBase       : The web application [ROOT] appears to have started a thread named [Hibernate Search sync consumer thread for index org.projectforge.business.fibu.EingangsrechnungDO] but has failed to stop it. This is very likely to create a memory leak. Stack trace of thread:
+ sun.misc.Unsafe.park(Native Method)
+ java.util.concurrent.locks.LockSupport.parkNanos(LockSupport.java:338)
+ org.hibernate.search.backend.impl.lucene.SyncWorkProcessor.parkCurrentThread(SyncWorkProcessor.java:168)
+ org.hibernate.search.backend.impl.lucene.SyncWorkProcessor.access$300(SyncWorkProcessor.java:35)
+ org.hibernate.search.backend.impl.lucene.SyncWorkProcessor$Consumer.run(SyncWorkProcessor.java:143)
+ java.lang.Thread.run(Thread.java:745)
+2017-05-22 14:08:15.446 user:  WARN 70423 --- [localhost-startStop-1] o.a.c.loader.WebappClassLoaderBase       : The web application [ROOT] appears to have started a thread named [Hibernate Search sync consumer thread for index org.projectforge.business.fibu.RechnungsPositionDO] but has failed to stop it. This is very likely to create a memory leak. Stack trace of thread:
+ sun.misc.Unsafe.park(Native Method)
+ java.util.concurrent.locks.LockSupport.parkNanos(LockSupport.java:338)
+ org.hibernate.search.backend.impl.lucene.SyncWorkProcessor.parkCurrentThread(SyncWorkProcessor.java:168)
+ org.hibernate.search.backend.impl.lucene.SyncWorkProcessor.access$300(SyncWorkProcessor.java:35)
+ org.hibernate.search.backend.impl.lucene.SyncWorkProcessor$Consumer.run(SyncWorkProcessor.java:143)
+ java.lang.Thread.run(Thread.java:745)
+2017-05-22 14:08:15.447 user:  WARN 70423 --- [localhost-startStop-1] o.a.c.loader.WebappClassLoaderBase       : The web application [ROOT] appears to have started a thread named [Hibernate Search sync consumer thread for index org.projectforge.plugins.skillmatrix.TrainingAttendeeDO] but has failed to stop it. This is very likely to create a memory leak. Stack trace of thread:
+ sun.misc.Unsafe.park(Native Method)
+ java.util.concurrent.locks.LockSupport.parkNanos(LockSupport.java:338)
+ org.hibernate.search.backend.impl.lucene.SyncWorkProcessor.parkCurrentThread(SyncWorkProcessor.java:168)
+ org.hibernate.search.backend.impl.lucene.SyncWorkProcessor.access$300(SyncWorkProcessor.java:35)
+ org.hibernate.search.backend.impl.lucene.SyncWorkProcessor$Consumer.run(SyncWorkProcessor.java:143)
+ java.lang.Thread.run(Thread.java:745)
+2017-05-22 14:08:15.447 user:  WARN 70423 --- [localhost-startStop-1] o.a.c.loader.WebappClassLoaderBase       : The web application [ROOT] appears to have started a thread named [Hibernate Search sync consumer thread for index org.projectforge.business.meb.MebEntryDO] but has failed to stop it. This is very likely to create a memory leak. Stack trace of thread:
+ sun.misc.Unsafe.park(Native Method)
+ java.util.concurrent.locks.LockSupport.parkNanos(LockSupport.java:338)
+ org.hibernate.search.backend.impl.lucene.SyncWorkProcessor.parkCurrentThread(SyncWorkProcessor.java:168)
+ org.hibernate.search.backend.impl.lucene.SyncWorkProcessor.access$300(SyncWorkProcessor.java:35)
+ org.hibernate.search.backend.impl.lucene.SyncWorkProcessor$Consumer.run(SyncWorkProcessor.java:143)
+ java.lang.Thread.run(Thread.java:745)
+2017-05-22 14:08:15.447 user:  WARN 70423 --- [localhost-startStop-1] o.a.c.loader.WebappClassLoaderBase       : The web application [ROOT] appears to have started a thread named [Hibernate Search sync consumer thread for index org.projectforge.business.address.PersonalAddressDO] but has failed to stop it. This is very likely to create a memory leak. Stack trace of thread:
+ sun.misc.Unsafe.park(Native Method)
+ java.util.concurrent.locks.LockSupport.parkNanos(LockSupport.java:338)
+ org.hibernate.search.backend.impl.lucene.SyncWorkProcessor.parkCurrentThread(SyncWorkProcessor.java:168)
+ org.hibernate.search.backend.impl.lucene.SyncWorkProcessor.access$300(SyncWorkProcessor.java:35)
+ org.hibernate.search.backend.impl.lucene.SyncWorkProcessor$Consumer.run(SyncWorkProcessor.java:143)
+ java.lang.Thread.run(Thread.java:745)
+2017-05-22 14:08:15.447 user:  WARN 70423 --- [localhost-startStop-1] o.a.c.loader.WebappClassLoaderBase       : The web application [ROOT] appears to have started a thread named [Hibernate Search sync consumer thread for index org.projectforge.business.teamcal.event.model.TeamEventAttendeeDO] but has failed to stop it. This is very likely to create a memory leak. Stack trace of thread:
+ sun.misc.Unsafe.park(Native Method)
+ java.util.concurrent.locks.LockSupport.parkNanos(LockSupport.java:338)
+ org.hibernate.search.backend.impl.lucene.SyncWorkProcessor.parkCurrentThread(SyncWorkProcessor.java:168)
+ org.hibernate.search.backend.impl.lucene.SyncWorkProcessor.access$300(SyncWorkProcessor.java:35)
+ org.hibernate.search.backend.impl.lucene.SyncWorkProcessor$Consumer.run(SyncWorkProcessor.java:143)
+ java.lang.Thread.run(Thread.java:745)
+2017-05-22 14:08:15.448 user:  WARN 70423 --- [localhost-startStop-1] o.a.c.loader.WebappClassLoaderBase       : The web application [ROOT] appears to have started a thread named [Hibernate Search sync consumer thread for index org.projectforge.business.fibu.kost.Kost2ArtDO] but has failed to stop it. This is very likely to create a memory leak. Stack trace of thread:
+ sun.misc.Unsafe.park(Native Method)
+ java.util.concurrent.locks.LockSupport.parkNanos(LockSupport.java:338)
+ org.hibernate.search.backend.impl.lucene.SyncWorkProcessor.parkCurrentThread(SyncWorkProcessor.java:168)
+ org.hibernate.search.backend.impl.lucene.SyncWorkProcessor.access$300(SyncWorkProcessor.java:35)
+ org.hibernate.search.backend.impl.lucene.SyncWorkProcessor$Consumer.run(SyncWorkProcessor.java:143)
+ java.lang.Thread.run(Thread.java:745)
+2017-05-22 14:08:15.448 user:  WARN 70423 --- [localhost-startStop-1] o.a.c.loader.WebappClassLoaderBase       : The web application [ROOT] appears to have started a thread named [Hibernate Search sync consumer thread for index org.projectforge.plugins.marketing.AddressCampaignValueDO] but has failed to stop it. This is very likely to create a memory leak. Stack trace of thread:
+ sun.misc.Unsafe.park(Native Method)
+ java.util.concurrent.locks.LockSupport.parkNanos(LockSupport.java:338)
+ org.hibernate.search.backend.impl.lucene.SyncWorkProcessor.parkCurrentThread(SyncWorkProcessor.java:168)
+ org.hibernate.search.backend.impl.lucene.SyncWorkProcessor.access$300(SyncWorkProcessor.java:35)
+ org.hibernate.search.backend.impl.lucene.SyncWorkProcessor$Consumer.run(SyncWorkProcessor.java:143)
+ java.lang.Thread.run(Thread.java:745)
+2017-05-22 14:08:15.448 user:  WARN 70423 --- [localhost-startStop-1] o.a.c.loader.WebappClassLoaderBase       : The web application [ROOT] appears to have started a thread named [Hibernate Search sync consumer thread for index org.projectforge.framework.access.AccessEntryDO] but has failed to stop it. This is very likely to create a memory leak. Stack trace of thread:
+ sun.misc.Unsafe.park(Native Method)
+ java.util.concurrent.locks.LockSupport.parkNanos(LockSupport.java:338)
+ org.hibernate.search.backend.impl.lucene.SyncWorkProcessor.parkCurrentThread(SyncWorkProcessor.java:168)
+ org.hibernate.search.backend.impl.lucene.SyncWorkProcessor.access$300(SyncWorkProcessor.java:35)
+ org.hibernate.search.backend.impl.lucene.SyncWorkProcessor$Consumer.run(SyncWorkProcessor.java:143)
+ java.lang.Thread.run(Thread.java:745)
+2017-05-22 14:08:15.449 user:  WARN 70423 --- [localhost-startStop-1] o.a.c.loader.WebappClassLoaderBase       : The web application [ROOT] appears to have started a thread named [Hibernate Search sync consumer thread for index org.projectforge.business.orga.PosteingangDO] but has failed to stop it. This is very likely to create a memory leak. Stack trace of thread:
+ sun.misc.Unsafe.park(Native Method)
+ java.util.concurrent.locks.LockSupport.parkNanos(LockSupport.java:338)
+ org.hibernate.search.backend.impl.lucene.SyncWorkProcessor.parkCurrentThread(SyncWorkProcessor.java:168)
+ org.hibernate.search.backend.impl.lucene.SyncWorkProcessor.access$300(SyncWorkProcessor.java:35)
+ org.hibernate.search.backend.impl.lucene.SyncWorkProcessor$Consumer.run(SyncWorkProcessor.java:143)
+ java.lang.Thread.run(Thread.java:745)
+2017-05-22 14:08:15.449 user:  WARN 70423 --- [localhost-startStop-1] o.a.c.loader.WebappClassLoaderBase       : The web application [ROOT] appears to have started a thread named [Hibernate Search sync consumer thread for index org.projectforge.business.fibu.ProjektDO] but has failed to stop it. This is very likely to create a memory leak. Stack trace of thread:
+ sun.misc.Unsafe.park(Native Method)
+ java.util.concurrent.locks.LockSupport.parkNanos(LockSupport.java:338)
+ org.hibernate.search.backend.impl.lucene.SyncWorkProcessor.parkCurrentThread(SyncWorkProcessor.java:168)
+ org.hibernate.search.backend.impl.lucene.SyncWorkProcessor.access$300(SyncWorkProcessor.java:35)
+ org.hibernate.search.backend.impl.lucene.SyncWorkProcessor$Consumer.run(SyncWorkProcessor.java:143)
+ java.lang.Thread.run(Thread.java:745)
+2017-05-22 14:08:15.449 user:  WARN 70423 --- [localhost-startStop-1] o.a.c.loader.WebappClassLoaderBase       : The web application [ROOT] appears to have started a thread named [Hibernate Search sync consumer thread for index org.projectforge.plugins.todo.ToDoDO] but has failed to stop it. This is very likely to create a memory leak. Stack trace of thread:
+ sun.misc.Unsafe.park(Native Method)
+ java.util.concurrent.locks.LockSupport.parkNanos(LockSupport.java:338)
+ org.hibernate.search.backend.impl.lucene.SyncWorkProcessor.parkCurrentThread(SyncWorkProcessor.java:168)
+ org.hibernate.search.backend.impl.lucene.SyncWorkProcessor.access$300(SyncWorkProcessor.java:35)
+ org.hibernate.search.backend.impl.lucene.SyncWorkProcessor$Consumer.run(SyncWorkProcessor.java:143)
+ java.lang.Thread.run(Thread.java:745)
+2017-05-22 14:08:15.450 user:  WARN 70423 --- [localhost-startStop-1] o.a.c.loader.WebappClassLoaderBase       : The web application [ROOT] appears to have started a thread named [Hibernate Search sync consumer thread for index org.projectforge.business.orga.ContractDO] but has failed to stop it. This is very likely to create a memory leak. Stack trace of thread:
+ sun.misc.Unsafe.park(Native Method)
+ java.util.concurrent.locks.LockSupport.parkNanos(LockSupport.java:338)
+ org.hibernate.search.backend.impl.lucene.SyncWorkProcessor.parkCurrentThread(SyncWorkProcessor.java:168)
+ org.hibernate.search.backend.impl.lucene.SyncWorkProcessor.access$300(SyncWorkProcessor.java:35)
+ org.hibernate.search.backend.impl.lucene.SyncWorkProcessor$Consumer.run(SyncWorkProcessor.java:143)
+ java.lang.Thread.run(Thread.java:745)
+2017-05-22 14:08:15.450 user:  WARN 70423 --- [localhost-startStop-1] o.a.c.loader.WebappClassLoaderBase       : The web application [ROOT] appears to have started a thread named [Hibernate Search sync consumer thread for index org.projectforge.business.humanresources.HRPlanningDO] but has failed to stop it. This is very likely to create a memory leak. Stack trace of thread:
+ sun.misc.Unsafe.park(Native Method)
+ java.util.concurrent.locks.LockSupport.parkNanos(LockSupport.java:338)
+ org.hibernate.search.backend.impl.lucene.SyncWorkProcessor.parkCurrentThread(SyncWorkProcessor.java:168)
+ org.hibernate.search.backend.impl.lucene.SyncWorkProcessor.access$300(SyncWorkProcessor.java:35)
+ org.hibernate.search.backend.impl.lucene.SyncWorkProcessor$Consumer.run(SyncWorkProcessor.java:143)
+ java.lang.Thread.run(Thread.java:745)
+2017-05-22 14:08:15.450 user:  WARN 70423 --- [localhost-startStop-1] o.a.c.loader.WebappClassLoaderBase       : The web application [ROOT] appears to have started a thread named [Hibernate Search sync consumer thread for index org.projectforge.business.orga.PostausgangDO] but has failed to stop it. This is very likely to create a memory leak. Stack trace of thread:
+ sun.misc.Unsafe.park(Native Method)
+ java.util.concurrent.locks.LockSupport.parkNanos(LockSupport.java:338)
+ org.hibernate.search.backend.impl.lucene.SyncWorkProcessor.parkCurrentThread(SyncWorkProcessor.java:168)
+ org.hibernate.search.backend.impl.lucene.SyncWorkProcessor.access$300(SyncWorkProcessor.java:35)
+ org.hibernate.search.backend.impl.lucene.SyncWorkProcessor$Consumer.run(SyncWorkProcessor.java:143)
+ java.lang.Thread.run(Thread.java:745)
+2017-05-22 14:08:15.451 user:  WARN 70423 --- [localhost-startStop-1] o.a.c.loader.WebappClassLoaderBase       : The web application [ROOT] appears to have started a thread named [Hibernate Search sync consumer thread for index org.projectforge.business.timesheet.TimesheetDO] but has failed to stop it. This is very likely to create a memory leak. Stack trace of thread:
+ sun.misc.Unsafe.park(Native Method)
+ java.util.concurrent.locks.LockSupport.parkNanos(LockSupport.java:338)
+ org.hibernate.search.backend.impl.lucene.SyncWorkProcessor.parkCurrentThread(SyncWorkProcessor.java:168)
+ org.hibernate.search.backend.impl.lucene.SyncWorkProcessor.access$300(SyncWorkProcessor.java:35)
+ org.hibernate.search.backend.impl.lucene.SyncWorkProcessor$Consumer.run(SyncWorkProcessor.java:143)
+ java.lang.Thread.run(Thread.java:745)
+2017-05-22 14:08:15.451 user:  WARN 70423 --- [localhost-startStop-1] o.a.c.loader.WebappClassLoaderBase       : The web application [ROOT] appears to have started a thread named [Hibernate Search sync consumer thread for index org.projectforge.business.humanresources.HRPlanningEntryDO] but has failed to stop it. This is very likely to create a memory leak. Stack trace of thread:
+ sun.misc.Unsafe.park(Native Method)
+ java.util.concurrent.locks.LockSupport.parkNanos(LockSupport.java:338)
+ org.hibernate.search.backend.impl.lucene.SyncWorkProcessor.parkCurrentThread(SyncWorkProcessor.java:168)
+ org.hibernate.search.backend.impl.lucene.SyncWorkProcessor.access$300(SyncWorkProcessor.java:35)
+ org.hibernate.search.backend.impl.lucene.SyncWorkProcessor$Consumer.run(SyncWorkProcessor.java:143)
+ java.lang.Thread.run(Thread.java:745)
+2017-05-22 14:08:15.451 user:  WARN 70423 --- [localhost-startStop-1] o.a.c.loader.WebappClassLoaderBase       : The web application [ROOT] appears to have started a thread named [Hibernate Search sync consumer thread for index org.projectforge.business.vacation.model.VacationDO] but has failed to stop it. This is very likely to create a memory leak. Stack trace of thread:
+ sun.misc.Unsafe.park(Native Method)
+ java.util.concurrent.locks.LockSupport.parkNanos(LockSupport.java:338)
+ org.hibernate.search.backend.impl.lucene.SyncWorkProcessor.parkCurrentThread(SyncWorkProcessor.java:168)
+ org.hibernate.search.backend.impl.lucene.SyncWorkProcessor.access$300(SyncWorkProcessor.java:35)
+ org.hibernate.search.backend.impl.lucene.SyncWorkProcessor$Consumer.run(SyncWorkProcessor.java:143)
+ java.lang.Thread.run(Thread.java:745)
+2017-05-22 14:08:15.452 user:  WARN 70423 --- [localhost-startStop-1] o.a.c.loader.WebappClassLoaderBase       : The web application [ROOT] appears to have started a thread named [Hibernate Search sync consumer thread for index org.projectforge.business.teamcal.admin.model.TeamCalDO] but has failed to stop it. This is very likely to create a memory leak. Stack trace of thread:
+ sun.misc.Unsafe.park(Native Method)
+ java.util.concurrent.locks.LockSupport.parkNanos(LockSupport.java:338)
+ org.hibernate.search.backend.impl.lucene.SyncWorkProcessor.parkCurrentThread(SyncWorkProcessor.java:168)
+ org.hibernate.search.backend.impl.lucene.SyncWorkProcessor.access$300(SyncWorkProcessor.java:35)
+ org.hibernate.search.backend.impl.lucene.SyncWorkProcessor$Consumer.run(SyncWorkProcessor.java:143)
+ java.lang.Thread.run(Thread.java:745)
+2017-05-22 14:08:15.453 user:  WARN 70423 --- [localhost-startStop-1] o.a.c.loader.WebappClassLoaderBase       : The web application [ROOT] appears to have started a thread named [Hibernate Search sync consumer thread for index org.projectforge.framework.persistence.user.entities.UserRightDO] but has failed to stop it. This is very likely to create a memory leak. Stack trace of thread:
+ sun.misc.Unsafe.park(Native Method)
+ java.util.concurrent.locks.LockSupport.parkNanos(LockSupport.java:338)
+ org.hibernate.search.backend.impl.lucene.SyncWorkProcessor.parkCurrentThread(SyncWorkProcessor.java:168)
+ org.hibernate.search.backend.impl.lucene.SyncWorkProcessor.access$300(SyncWorkProcessor.java:35)
+ org.hibernate.search.backend.impl.lucene.SyncWorkProcessor$Consumer.run(SyncWorkProcessor.java:143)
+ java.lang.Thread.run(Thread.java:745)
+2017-05-22 14:08:15.453 user:  WARN 70423 --- [localhost-startStop-1] o.a.c.loader.WebappClassLoaderBase       : The web application [ROOT] appears to have started a thread named [Hibernate Search sync consumer thread for index org.projectforge.business.orga.VisitorbookTimedDO] but has failed to stop it. This is very likely to create a memory leak. Stack trace of thread:
+ sun.misc.Unsafe.park(Native Method)
+ java.util.concurrent.locks.LockSupport.parkNanos(LockSupport.java:338)
+ org.hibernate.search.backend.impl.lucene.SyncWorkProcessor.parkCurrentThread(SyncWorkProcessor.java:168)
+ org.hibernate.search.backend.impl.lucene.SyncWorkProcessor.access$300(SyncWorkProcessor.java:35)
+ org.hibernate.search.backend.impl.lucene.SyncWorkProcessor$Consumer.run(SyncWorkProcessor.java:143)
+ java.lang.Thread.run(Thread.java:745)
+2017-05-22 14:08:15.453 user:  WARN 70423 --- [localhost-startStop-1] o.a.c.loader.WebappClassLoaderBase       : The web application [ROOT] appears to have started a thread named [Hibernate Search sync consumer thread for index org.projectforge.plugins.marketing.AddressCampaignDO] but has failed to stop it. This is very likely to create a memory leak. Stack trace of thread:
+ sun.misc.Unsafe.park(Native Method)
+ java.util.concurrent.locks.LockSupport.parkNanos(LockSupport.java:338)
+ org.hibernate.search.backend.impl.lucene.SyncWorkProcessor.parkCurrentThread(SyncWorkProcessor.java:168)
+ org.hibernate.search.backend.impl.lucene.SyncWorkProcessor.access$300(SyncWorkProcessor.java:35)
+ org.hibernate.search.backend.impl.lucene.SyncWorkProcessor$Consumer.run(SyncWorkProcessor.java:143)
+ java.lang.Thread.run(Thread.java:745)
+2017-05-22 14:08:15.454 user:  WARN 70423 --- [localhost-startStop-1] o.a.c.loader.WebappClassLoaderBase       : The web application [ROOT] appears to have started a thread named [Hibernate Search sync consumer thread for index org.projectforge.business.address.AddressDO] but has failed to stop it. This is very likely to create a memory leak. Stack trace of thread:
+ sun.misc.Unsafe.park(Native Method)
+ java.util.concurrent.locks.LockSupport.parkNanos(LockSupport.java:338)
+ org.hibernate.search.backend.impl.lucene.SyncWorkProcessor.parkCurrentThread(SyncWorkProcessor.java:168)
+ org.hibernate.search.backend.impl.lucene.SyncWorkProcessor.access$300(SyncWorkProcessor.java:35)
+ org.hibernate.search.backend.impl.lucene.SyncWorkProcessor$Consumer.run(SyncWorkProcessor.java:143)
+ java.lang.Thread.run(Thread.java:745)
+2017-05-22 14:08:15.454 user:  WARN 70423 --- [localhost-startStop-1] o.a.c.loader.WebappClassLoaderBase       : The web application [ROOT] appears to have started a thread named [Hibernate Search sync consumer thread for index org.projectforge.business.fibu.kost.Kost2DO] but has failed to stop it. This is very likely to create a memory leak. Stack trace of thread:
+ sun.misc.Unsafe.park(Native Method)
+ java.util.concurrent.locks.LockSupport.parkNanos(LockSupport.java:338)
+ org.hibernate.search.backend.impl.lucene.SyncWorkProcessor.parkCurrentThread(SyncWorkProcessor.java:168)
+ org.hibernate.search.backend.impl.lucene.SyncWorkProcessor.access$300(SyncWorkProcessor.java:35)
+ org.hibernate.search.backend.impl.lucene.SyncWorkProcessor$Consumer.run(SyncWorkProcessor.java:143)
+ java.lang.Thread.run(Thread.java:745)
+2017-05-22 14:08:15.454 user:  WARN 70423 --- [localhost-startStop-1] o.a.c.loader.WebappClassLoaderBase       : The web application [ROOT] appears to have started a thread named [Hibernate Search sync consumer thread for index org.projectforge.business.fibu.EmployeeDO] but has failed to stop it. This is very likely to create a memory leak. Stack trace of thread:
+ sun.misc.Unsafe.park(Native Method)
+ java.util.concurrent.locks.LockSupport.parkNanos(LockSupport.java:338)
+ org.hibernate.search.backend.impl.lucene.SyncWorkProcessor.parkCurrentThread(SyncWorkProcessor.java:168)
+ org.hibernate.search.backend.impl.lucene.SyncWorkProcessor.access$300(SyncWorkProcessor.java:35)
+ org.hibernate.search.backend.impl.lucene.SyncWorkProcessor$Consumer.run(SyncWorkProcessor.java:143)
+ java.lang.Thread.run(Thread.java:745)
+2017-05-22 14:08:15.455 user:  WARN 70423 --- [localhost-startStop-1] o.a.c.loader.WebappClassLoaderBase       : The web application [ROOT] appears to have started a thread named [Hibernate Search sync consumer thread for index org.projectforge.business.fibu.AuftragsPositionDO] but has failed to stop it. This is very likely to create a memory leak. Stack trace of thread:
+ sun.misc.Unsafe.park(Native Method)
+ java.util.concurrent.locks.LockSupport.parkNanos(LockSupport.java:338)
+ org.hibernate.search.backend.impl.lucene.SyncWorkProcessor.parkCurrentThread(SyncWorkProcessor.java:168)
+ org.hibernate.search.backend.impl.lucene.SyncWorkProcessor.access$300(SyncWorkProcessor.java:35)
+ org.hibernate.search.backend.impl.lucene.SyncWorkProcessor$Consumer.run(SyncWorkProcessor.java:143)
+ java.lang.Thread.run(Thread.java:745)
+2017-05-22 14:08:15.455 user:  WARN 70423 --- [localhost-startStop-1] o.a.c.loader.WebappClassLoaderBase       : The web application [ROOT] appears to have started a thread named [Hibernate Search sync consumer thread for index org.projectforge.plugins.liquidityplanning.LiquidityEntryDO] but has failed to stop it. This is very likely to create a memory leak. Stack trace of thread:
+ sun.misc.Unsafe.park(Native Method)
+ java.util.concurrent.locks.LockSupport.parkNanos(LockSupport.java:338)
+ org.hibernate.search.backend.impl.lucene.SyncWorkProcessor.parkCurrentThread(SyncWorkProcessor.java:168)
+ org.hibernate.search.backend.impl.lucene.SyncWorkProcessor.access$300(SyncWorkProcessor.java:35)
+ org.hibernate.search.backend.impl.lucene.SyncWorkProcessor$Consumer.run(SyncWorkProcessor.java:143)
+ java.lang.Thread.run(Thread.java:745)
+2017-05-22 14:08:15.456 user:  WARN 70423 --- [localhost-startStop-1] o.a.c.loader.WebappClassLoaderBase       : The web application [ROOT] appears to have started a thread named [Hibernate Search sync consumer thread for index org.projectforge.business.fibu.kost.BuchungssatzDO] but has failed to stop it. This is very likely to create a memory leak. Stack trace of thread:
+ sun.misc.Unsafe.park(Native Method)
+ java.util.concurrent.locks.LockSupport.parkNanos(LockSupport.java:338)
+ org.hibernate.search.backend.impl.lucene.SyncWorkProcessor.parkCurrentThread(SyncWorkProcessor.java:168)
+ org.hibernate.search.backend.impl.lucene.SyncWorkProcessor.access$300(SyncWorkProcessor.java:35)
+ org.hibernate.search.backend.impl.lucene.SyncWorkProcessor$Consumer.run(SyncWorkProcessor.java:143)
+ java.lang.Thread.run(Thread.java:745)
+2017-05-22 14:08:15.456 user:  WARN 70423 --- [localhost-startStop-1] o.a.c.loader.WebappClassLoaderBase       : The web application [ROOT] appears to have started a thread named [Hibernate Search sync consumer thread for index org.projectforge.business.task.TaskDO] but has failed to stop it. This is very likely to create a memory leak. Stack trace of thread:
+ sun.misc.Unsafe.park(Native Method)
+ java.util.concurrent.locks.LockSupport.parkNanos(LockSupport.java:338)
+ org.hibernate.search.backend.impl.lucene.SyncWorkProcessor.parkCurrentThread(SyncWorkProcessor.java:168)
+ org.hibernate.search.backend.impl.lucene.SyncWorkProcessor.access$300(SyncWorkProcessor.java:35)
+ org.hibernate.search.backend.impl.lucene.SyncWorkProcessor$Consumer.run(SyncWorkProcessor.java:143)
+ java.lang.Thread.run(Thread.java:745)
+2017-05-22 14:08:15.456 user:  WARN 70423 --- [localhost-startStop-1] o.a.c.loader.WebappClassLoaderBase       : The web application [ROOT] appears to have started a thread named [Hibernate Search sync consumer thread for index org.projectforge.business.scripting.ScriptDO] but has failed to stop it. This is very likely to create a memory leak. Stack trace of thread:
+ sun.misc.Unsafe.park(Native Method)
+ java.util.concurrent.locks.LockSupport.parkNanos(LockSupport.java:338)
+ org.hibernate.search.backend.impl.lucene.SyncWorkProcessor.parkCurrentThread(SyncWorkProcessor.java:168)
+ org.hibernate.search.backend.impl.lucene.SyncWorkProcessor.access$300(SyncWorkProcessor.java:35)
+ org.hibernate.search.backend.impl.lucene.SyncWorkProcessor$Consumer.run(SyncWorkProcessor.java:143)
+ java.lang.Thread.run(Thread.java:745)
+2017-05-22 14:08:15.456 user:  WARN 70423 --- [localhost-startStop-1] o.a.c.loader.WebappClassLoaderBase       : The web application [ROOT] appears to have started a thread named [Hibernate Search sync consumer thread for index org.projectforge.plugins.skillmatrix.SkillDO] but has failed to stop it. This is very likely to create a memory leak. Stack trace of thread:
+ sun.misc.Unsafe.park(Native Method)
+ java.util.concurrent.locks.LockSupport.parkNanos(LockSupport.java:338)
+ org.hibernate.search.backend.impl.lucene.SyncWorkProcessor.parkCurrentThread(SyncWorkProcessor.java:168)
+ org.hibernate.search.backend.impl.lucene.SyncWorkProcessor.access$300(SyncWorkProcessor.java:35)
+ org.hibernate.search.backend.impl.lucene.SyncWorkProcessor$Consumer.run(SyncWorkProcessor.java:143)
+ java.lang.Thread.run(Thread.java:745)
+2017-05-22 14:08:15.457 user:  WARN 70423 --- [localhost-startStop-1] o.a.c.loader.WebappClassLoaderBase       : The web application [ROOT] appears to have started a thread named [Hibernate Search sync consumer thread for index org.projectforge.business.gantt.GanttChartDO] but has failed to stop it. This is very likely to create a memory leak. Stack trace of thread:
+ sun.misc.Unsafe.park(Native Method)
+ java.util.concurrent.locks.LockSupport.parkNanos(LockSupport.java:338)
+ org.hibernate.search.backend.impl.lucene.SyncWorkProcessor.parkCurrentThread(SyncWorkProcessor.java:168)
+ org.hibernate.search.backend.impl.lucene.SyncWorkProcessor.access$300(SyncWorkProcessor.java:35)
+ org.hibernate.search.backend.impl.lucene.SyncWorkProcessor$Consumer.run(SyncWorkProcessor.java:143)
+ java.lang.Thread.run(Thread.java:745)
+2017-05-22 14:08:15.457 user:  WARN 70423 --- [localhost-startStop-1] o.a.c.loader.WebappClassLoaderBase       : The web application [ROOT] appears to have started a thread named [Hibernate Search sync consumer thread for index org.projectforge.business.book.BookDO] but has failed to stop it. This is very likely to create a memory leak. Stack trace of thread:
+ sun.misc.Unsafe.park(Native Method)
+ java.util.concurrent.locks.LockSupport.parkNanos(LockSupport.java:338)
+ org.hibernate.search.backend.impl.lucene.SyncWorkProcessor.parkCurrentThread(SyncWorkProcessor.java:168)
+ org.hibernate.search.backend.impl.lucene.SyncWorkProcessor.access$300(SyncWorkProcessor.java:35)
+ org.hibernate.search.backend.impl.lucene.SyncWorkProcessor$Consumer.run(SyncWorkProcessor.java:143)
+ java.lang.Thread.run(Thread.java:745)
+2017-05-22 14:08:15.457 user:  WARN 70423 --- [localhost-startStop-1] o.a.c.loader.WebappClassLoaderBase       : The web application [ROOT] appears to have started a thread named [Hibernate Search sync consumer thread for index org.projectforge.framework.persistence.user.entities.GroupDO] but has failed to stop it. This is very likely to create a memory leak. Stack trace of thread:
+ sun.misc.Unsafe.park(Native Method)
+ java.util.concurrent.locks.LockSupport.parkNanos(LockSupport.java:338)
+ org.hibernate.search.backend.impl.lucene.SyncWorkProcessor.parkCurrentThread(SyncWorkProcessor.java:168)
+ org.hibernate.search.backend.impl.lucene.SyncWorkProcessor.access$300(SyncWorkProcessor.java:35)
+ org.hibernate.search.backend.impl.lucene.SyncWorkProcessor$Consumer.run(SyncWorkProcessor.java:143)
+ java.lang.Thread.run(Thread.java:745)
+2017-05-22 14:08:15.458 user:  WARN 70423 --- [localhost-startStop-1] o.a.c.loader.WebappClassLoaderBase       : The web application [ROOT] appears to have started a thread named [Wicket-PageSavingThread] but has failed to stop it. This is very likely to create a memory leak. Stack trace of thread:
+ sun.misc.Unsafe.park(Native Method)
+ java.util.concurrent.locks.LockSupport.parkNanos(LockSupport.java:215)
+ java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject.awaitNanos(AbstractQueuedSynchronizer.java:2078)
+ java.util.concurrent.LinkedBlockingQueue.poll(LinkedBlockingQueue.java:467)
+ org.apache.wicket.pageStore.AsynchronousDataStore$PageSavingRunnable.run(AsynchronousDataStore.java:345)
+ java.lang.Thread.run(Thread.java:745)
+2017-05-22 14:08:15.468 user:  INFO 70423 --- [main] utoConfigurationReportLoggingInitializer : 
+
+Error starting ApplicationContext. To display the auto-configuration report re-run your application with 'debug' enabled.
+2017-05-22 14:08:15.471 user: ERROR 70423 --- [main] o.s.b.d.LoggingFailureAnalysisReporter   : 
+
+***************************
+APPLICATION FAILED TO START
+***************************
+
+Description:
+
+The Tomcat connector configured to listen on port 8080 failed to start. The port may already be in use or the connector may be misconfigured.
+
+Action:
+
+Verify the connector's configuration, identify and stop any process that's listening on port 8080, or configure this application to listen on another port.
+
+2017-05-22 14:08:15.472 user:  INFO 70423 --- [main] ationConfigEmbeddedWebApplicationContext : Closing org.springframework.boot.context.embedded.AnnotationConfigEmbeddedWebApplicationContext@51bd8b5c: startup date [Mon May 22 14:07:59 UTC 2017]; root of context hierarchy
+2017-05-22 14:08:15.474 user:  INFO 70423 --- [main] o.s.j.e.a.AnnotationMBeanExporter        : Unregistering JMX-exposed beans on shutdown
+2017-05-22 14:08:15.475 user:  INFO 70423 --- [main] o.p.b.user.UserXmlPreferencesCache       : Syncing all user preferences to database.
+2017-05-22 14:08:15.475 user:  INFO 70423 --- [main] o.p.b.user.UserXmlPreferencesCache       : Flushing all user preferences to data-base....
+2017-05-22 14:08:15.475 user:  INFO 70423 --- [main] o.p.b.user.UserXmlPreferencesCache       : Flushing of user preferences to data-base done.

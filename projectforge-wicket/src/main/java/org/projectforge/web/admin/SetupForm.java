@@ -23,6 +23,7 @@
 
 package org.projectforge.web.admin;
 
+import java.util.Set;
 import java.util.TimeZone;
 
 import org.apache.commons.lang.StringUtils;
@@ -155,10 +156,12 @@ public class SetupForm extends AbstractForm<SetupForm, SetupPage>
           return;
         }
         if (MAGIC_PASSWORD.equals(passwordInput) == false || adminUser.getPassword() == null) {
-          final I18nKeyAndParams errorMsgKey = userService.checkPasswordQuality(passwordInput);
-          if (errorMsgKey != null) {
+          final Set<I18nKeyAndParams> errorMsgKeys = userService.checkPasswordQuality(passwordInput);
+          if (errorMsgKeys != null) {
             adminUser.setPassword(null);
-            passwordField.error(I18nHelper.getLocalizedMessage(errorMsgKey));
+            for (I18nKeyAndParams errorMsgKey : errorMsgKeys) {
+              passwordField.error(I18nHelper.getLocalizedMessage(errorMsgKey));
+            }
           } else {
             userService.createEncryptedPassword(adminUser, passwordInput);
           }

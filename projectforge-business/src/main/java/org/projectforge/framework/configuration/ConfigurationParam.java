@@ -51,7 +51,8 @@ public enum ConfigurationParam implements IConfigurationParam
   HR_MAILADDRESS("hr.emailaddress", ConfigurationType.STRING, true),//
   VACATION_CAL_ID("vacation.cal.id", ConfigurationType.CALENDAR, true),//
   END_DATE_VACATION_LASTR_YEAR("vacation.lastyear.enddate", ConfigurationType.STRING, true, "31.03."),
-  MIN_PASSWORD_LENGTH("minPasswordLength", ConfigurationType.INTEGER, true, 10);
+  MIN_PASSWORD_LENGTH("minPasswordLength", ConfigurationType.INTEGER, true, 10),
+  PASSWORD_FLAG_CHECK_CHANGE("password.flag.checkChange", ConfigurationType.BOOLEAN, true, false);
 
   private final String key;
 
@@ -60,6 +61,8 @@ public enum ConfigurationParam implements IConfigurationParam
   private final String defaultStringValue;
 
   private final int defaultIntValue;
+
+  private final boolean defaultBooleanValue;
 
   private final boolean global;
 
@@ -101,6 +104,12 @@ public enum ConfigurationParam implements IConfigurationParam
     return defaultIntValue;
   }
 
+  @Override
+  public boolean getDefaultBooleanValue()
+  {
+    return defaultBooleanValue;
+  }
+
   /**
    * @return The full i18n key including the i18n prefix "administration.configuration.param." and the suffix
    * ".description".
@@ -128,20 +137,29 @@ public enum ConfigurationParam implements IConfigurationParam
 
   ConfigurationParam(final String key, final ConfigurationType type, final boolean global, final String defaultStringValue)
   {
-    this(key, type, global, defaultStringValue, 0);
+    this(key, type, global, defaultStringValue, 0, false);
+
   }
 
   ConfigurationParam(final String key, final ConfigurationType type, final boolean global, final int defaultIntValue)
   {
-    this(key, type, global, null, defaultIntValue);
+    this(key, type, global, null, defaultIntValue, false);
   }
 
-  ConfigurationParam(final String key, final ConfigurationType type, final boolean global, final String defaultStringValue, final int defaultIntValue)
+  ConfigurationParam(final String key, final ConfigurationType type, final boolean global, final boolean defaultBooleanValue)
+  {
+    this(key, type, global, null, 0, defaultBooleanValue);
+  }
+
+  ConfigurationParam(final String key, final ConfigurationType type, final boolean global, final String defaultStringValue, final int defaultIntValue,
+      final boolean defaultBooleanValue)
+
   {
     this.key = key;
     this.type = type;
     this.global = global;
     this.defaultStringValue = defaultStringValue;
     this.defaultIntValue = defaultIntValue;
+    this.defaultBooleanValue = defaultBooleanValue;
   }
 }

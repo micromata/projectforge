@@ -26,6 +26,7 @@ package org.projectforge.business.user;
 import static org.testng.AssertJUnit.*;
 
 import java.io.Serializable;
+import java.util.Set;
 
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
@@ -131,7 +132,7 @@ public class UserTest extends AbstractTestBase
   @Test
   public void testPasswordQuality()
   {
-    final I18nKeyAndParams passwordQualityMessage = userService.getPasswordQualityI18nKeyAndParams();
+    final Set<I18nKeyAndParams> passwordQualityMessage = userService.getPasswordQualityI18nKeyAndParams();
     assertEquals("Empty password not allowed.", passwordQualityMessage, userService.checkPasswordQuality(null));
     assertEquals("Password with less than 10 characters not allowed.", passwordQualityMessage, userService.checkPasswordQuality(""));
     assertEquals("Password with less than 10 characters not allowed.", passwordQualityMessage, userService.checkPasswordQuality("abcd12345"));

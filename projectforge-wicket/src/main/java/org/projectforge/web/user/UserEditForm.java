@@ -29,6 +29,7 @@ import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 import java.util.TimeZone;
 
 import org.apache.commons.lang.StringUtils;
@@ -865,10 +866,12 @@ public class UserEditForm extends AbstractEditForm<PFUserDO, UserEditPage>
         return;
       }
       if (passwordUser == null) {
-        final I18nKeyAndParams errorMsgKey = userService.checkPasswordQuality(passwordInput);
-        if (errorMsgKey != null) {
-          final String localizedMessage = I18nHelper.getLocalizedMessage(errorMsgKey);
-          validatable.error(new ValidationError().setMessage(localizedMessage));
+        final Set<I18nKeyAndParams> errorMsgKeys = userService.checkPasswordQuality(passwordInput);
+        if (errorMsgKeys != null) {
+          for (I18nKeyAndParams errorMsgKey : errorMsgKeys) {
+            final String localizedMessage = I18nHelper.getLocalizedMessage(errorMsgKey);
+            validatable.error(new ValidationError().setMessage(localizedMessage));
+          }
         } else {
           passwordUser = new PFUserDO();
           userService.createEncryptedPassword(passwordUser, passwordInput);
@@ -880,7 +883,10 @@ public class UserEditForm extends AbstractEditForm<PFUserDO, UserEditPage>
     WicketUtils.setPercentSize(passwordRepeatField, 50);
     fs.add(passwordField);
     fs.add(passwordRepeatField);
-    fs.addHelpIcon(I18nHelper.getLocalizedMessage(userService.getPasswordQualityI18nKeyAndParams()));
+    Set<I18nKeyAndParams> passwordQualityI18nKeyAndParams = userService.getPasswordQualityI18nKeyAndParams();
+    for (I18nKeyAndParams passwordQualityI18n : passwordQualityI18nKeyAndParams) {
+      fs.addHelpIcon(I18nHelper.getLocalizedMessage(passwordQualityI18n));
+    }
   }
 
   private void addWlanPasswordFields()
@@ -932,10 +938,12 @@ public class UserEditForm extends AbstractEditForm<PFUserDO, UserEditPage>
         return;
       }
 
-      final I18nKeyAndParams errorMsgKey = userService.checkPasswordQuality(passwordInput);
-      if (errorMsgKey != null) {
-        final String localizedMessage = I18nHelper.getLocalizedMessage(errorMsgKey);
-        validatable.error(new ValidationError().setMessage(localizedMessage));
+      final Set<I18nKeyAndParams> errorMsgKeys = userService.checkPasswordQuality(passwordInput);
+      if (errorMsgKeys != null) {
+        for (I18nKeyAndParams errorMsgKey : errorMsgKeys) {
+          final String localizedMessage = I18nHelper.getLocalizedMessage(errorMsgKey);
+          validatable.error(new ValidationError().setMessage(localizedMessage));
+        }
       } else {
         wlanPasswordValid = true;
       }
@@ -945,7 +953,10 @@ public class UserEditForm extends AbstractEditForm<PFUserDO, UserEditPage>
     WicketUtils.setPercentSize(passwordRepeatField, 50);
     fs.add(passwordField);
     fs.add(passwordRepeatField);
-    fs.addHelpIcon(I18nHelper.getLocalizedMessage(userService.getPasswordQualityI18nKeyAndParams()));
+    Set<I18nKeyAndParams> passwordQualityI18nKeyAndParams = userService.getPasswordQualityI18nKeyAndParams();
+    for (I18nKeyAndParams passwordQualityI18n : passwordQualityI18nKeyAndParams) {
+      fs.addHelpIcon(I18nHelper.getLocalizedMessage(passwordQualityI18n));
+    }
   }
 
   private static void addDateFormatCombobox(final GridBuilder gridBuilder, final PFUserDO user, final String labelKey,
