@@ -621,34 +621,34 @@ public class VacationServiceImpl extends CorePersistenceServiceImpl<Integer, Vac
     final List<VacationCalendarDO> vacationCalendars = vacationDao.getVacationCalendarDOs(vacation);
     for (VacationCalendarDO vacationCalendar : vacationCalendars) {
       if (calendars.contains(vacationCalendar.getCalendar()) == false) {
-        vacationDao.deleteVacationCalendarDO(vacationCalendar);
+        vacationDao.markAsDeleted(vacationCalendar);
       } else {
-        vacationDao.unDeleteVacationCalendarDO(vacationCalendar);
+        vacationDao.markAsUndeleted(vacationCalendar);
       }
     }
   }
 
   @Override
-  public void markAsDeleteEventsForVacationCalendars(final VacationDO vacation)
+  public void markTeamEventsOfVacationAsDeleted(final VacationDO vacation, boolean deleteIncludingVacationCalendarDO)
   {
     final List<VacationCalendarDO> vacationCalendarDOs = vacationDao.getVacationCalendarDOs(vacation);
     for (final VacationCalendarDO vacationCalendarDO : vacationCalendarDOs) {
-      if (vacationCalendarDO.isDeleted() == false) {
-        if (vacationCalendarDO.getEvent() != null) {
-          vacationDao.deleteVacationCalendarDO(vacationCalendarDO);
-          teamEventDao.internalMarkAsDeleted(teamEventDao.getById(vacationCalendarDO.getEvent().getId()));
+      if (vacationCalendarDO.getEvent() != null) {
+        if (deleteIncludingVacationCalendarDO) {
+          vacationDao.markAsDeleted(vacationCalendarDO);
         }
+        teamEventDao.internalMarkAsDeleted(teamEventDao.internalGetById((vacationCalendarDO.getEvent().getId())));
       }
     }
   }
 
   @Override
-  public void markAsUnDeleteVacationCalendars(final VacationDO vacation)
+  public void undeleteTeamEventsOfVacation(final VacationDO vacation)
   {
     final List<VacationCalendarDO> vacationCalendarDOs = vacationDao.getVacationCalendarDOs(vacation);
     for (final VacationCalendarDO vacationCalendarDO : vacationCalendarDOs) {
       if (vacationCalendarDO.isDeleted()) {
-        vacationDao.unDeleteVacationCalendarDO(vacationCalendarDO);
+        vacationDao.markAsUndeleted(vacationCalendarDO);
       }
     }
   }
@@ -659,7 +659,7 @@ public class VacationServiceImpl extends CorePersistenceServiceImpl<Integer, Vac
     List<VacationCalendarDO> vacationCalendarDOs = vacationDao.getVacationCalendarDOs(vacation);
     for (VacationCalendarDO vacationCalendarDO : vacationCalendarDOs) {
       if (vacationCalendarDO.getEvent() != null) {
-        teamEventDao.internalUndelete(teamEventDao.getById(vacationCalendarDO.getEvent().getId()));
+        teamEventDao.internalUndelete(teamEventDao.internalGetById(vacationCalendarDO.getEvent().getId()));
       }
     }
   }
@@ -670,13 +670,13 @@ public class VacationServiceImpl extends CorePersistenceServiceImpl<Integer, Vac
     final List<VacationCalendarDO> vacationCalendarDOs = vacationDao.getVacationCalendarDOs(vacation);
     for (VacationCalendarDO vacationCalendarDO : vacationCalendarDOs) {
       if (vacationCalendarDO.isDeleted() == false) {
-        vacationCalendarDO.setEvent(getOrCreateTeamEventDO(vacationCalendarDO));
+        vacationCalendarDO.setEvent(getAndUpdateOrCreateTeamEventDO(vacationCalendarDO));
         vacationDao.saveVacationCalendar(vacationCalendarDO);
       }
     }
   }
 
-  public VacationCalendarDO getOrCreateVacationCalendarDO(final VacationDO vacation, final TeamCalDO teamCalDO)
+  private VacationCalendarDO getOrCreateVacationCalendarDO(final VacationDO vacation, final TeamCalDO teamCalDO)
   {
     final List<VacationCalendarDO> vacationCalendarDOs = vacationDao.getVacationCalendarDOs(vacation);
     for (final VacationCalendarDO vacationCalendarDO : vacationCalendarDOs) {
@@ -691,23 +691,34 @@ public class VacationServiceImpl extends CorePersistenceServiceImpl<Integer, Vac
     return vacationCalendarDO;
   }
 
-  public TeamEventDO getOrCreateTeamEventDO(final VacationCalendarDO vacationCalendarDO)
+  private TeamEventDO getAndUpdateOrCreateTeamEventDO(final VacationCalendarDO vacationCalendarDO)
   {
+    final Timestamp startTimestamp = new Timestamp(vacationCalendarDO.getVacation().getStartDate().getTime());
+    final Timestamp endTimestamp = new Timestamp(vacationCalendarDO.getVacation().getEndDate().getTime());
+
     if (vacationCalendarDO.getEvent() != null) {
-      final TeamEventDO byId = teamEventDao.getById(vacationCalendarDO.getEvent().getId());
-      teamEventDao.internalUndelete(byId);
-      return byId;
+      final TeamEventDO vacationTeamEvent = teamEventDao.internalGetById(vacationCalendarDO.getEvent().getId());
+      if (vacationTeamEvent != null) {
+        if (vacationTeamEvent.isDeleted()) {
+          teamEventDao.internalUndelete(vacationTeamEvent);
+        }
+
+        if (vacationTeamEvent.getStartDate().equals(startTimestamp) == false || vacationTeamEvent.getEndDate().equals(endTimestamp) == false) {
+          vacationTeamEvent.setStartDate(startTimestamp);
+          vacationTeamEvent.setEndDate(endTimestamp);
+          teamEventDao.internalSaveOrUpdate(vacationTeamEvent);
+        }
+      }
+      return vacationTeamEvent;
     } else {
-      final TeamEventDO teamEventDO = new TeamEventDO();
-      teamEventDO.setAllDay(true);
-      final Timestamp startTimestamp = new Timestamp(vacationCalendarDO.getVacation().getStartDate().getTime());
-      final Timestamp endTimestamp = new Timestamp(vacationCalendarDO.getVacation().getEndDate().getTime());
-      teamEventDO.setStartDate(startTimestamp);
-      teamEventDO.setEndDate(endTimestamp);
-      teamEventDO.setSubject(vacationCalendarDO.getVacation().getEmployee().getUser().getFullname());
-      teamEventDO.setCalendar(vacationCalendarDO.getCalendar());
-      teamEventDao.internalSave(teamEventDO);
-      return teamEventDO;
+      final TeamEventDO newTeamEventDO = new TeamEventDO();
+      newTeamEventDO.setAllDay(true);
+      newTeamEventDO.setStartDate(startTimestamp);
+      newTeamEventDO.setEndDate(endTimestamp);
+      newTeamEventDO.setSubject(vacationCalendarDO.getVacation().getEmployee().getUser().getFullname());
+      newTeamEventDO.setCalendar(vacationCalendarDO.getCalendar());
+      teamEventDao.internalSave(newTeamEventDO);
+      return newTeamEventDO;
     }
   }
 }
