@@ -59,6 +59,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.orm.hibernate5.HibernateTemplate;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Propagation;
@@ -187,6 +188,16 @@ public class InitDatabaseDao
 
   public TenantDO insertDefaultTenant()
   {
+    log.info("Checking if default tenant exists.");
+    try {
+      String selectDefaultTenant = "SELECT * FROM t_tenant WHERE pk = 1";
+      SqlRowSet selectResult = jdbcTemplate.queryForRowSet(selectDefaultTenant);
+      if (selectResult != null && selectResult.getRow() > 0) {
+        return tenantService.getDefaultTenant();
+      }
+    } catch (Exception e) {
+      log.warn("Something went wrong while checking for default tenant: " + e.getMessage());
+    }
     log.info("Adding default tenant.");
     String insertDefaultTenant = "INSERT INTO t_tenant(PK, CREATED, DELETED, LAST_UPDATE, DEFAULT_TENANT, NAME, SHORTNAME, DESCRIPTION, TENANT_ID) "
         + "VALUES (1,'2016-03-17 14:00:00',FALSE,'2016-03-17 14:00:00',TRUE,'Default tenant','Default tenant','defaultTenant',1)";

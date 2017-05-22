@@ -182,7 +182,7 @@ public class SystemUpdateForm extends AbstractForm<SystemUpdateForm, SystemUpdat
       if (updateEntry.getPreCheckStatus() == UpdatePreCheckStatus.READY_FOR_UPDATE) {
         updatebleItems.add(item);
         entryToUpdate = updateEntry;
-      } else if (updateEntry.getPreCheckStatus() == UpdatePreCheckStatus.RESTARED_REQUIRED) {
+      } else if (updateEntry.getPreCheckStatus() == UpdatePreCheckStatus.RESTART_REQUIRED) {
         updatebleItems.add(item);
         isRestartRequired = true;
       } else {

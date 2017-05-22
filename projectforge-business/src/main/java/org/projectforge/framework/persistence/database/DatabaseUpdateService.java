@@ -839,7 +839,7 @@ public class DatabaseUpdateService
   public int getDatabaseTableColumnLenght(final Class<?> entityClass, final String attributeNames)
   {
     String jdbcQuery = "select character_maximum_length from information_schema.columns where LOWER(table_name) = '"
-        + new Table(entityClass).getName().toLowerCase() + "' And LOWER(column_name) = '" + attributeNames + "'";
+        + new Table(entityClass).getName().toLowerCase() + "' And LOWER(column_name) = '" + attributeNames.toLowerCase() + "'";
     final DatabaseExecutor jdbc = getDatabaseExecutor();
     log.info(jdbcQuery);
     return jdbc.queryForInt(jdbcQuery);
@@ -971,7 +971,7 @@ public class DatabaseUpdateService
       final ResultSet columns;
 
       if (DatabaseSupport.getInstance().getDialect() == DatabaseDialect.HSQL) {
-        columns = connection.getMetaData().getColumns(null, null, tableName, columnName);
+        columns = connection.getMetaData().getColumns(null, null, tableName.toUpperCase(), columnName.toUpperCase());
       } else { // postgres needs lower case
         columns = connection.getMetaData().getColumns(null, null, tableName.toLowerCase(), columnName.toLowerCase());
       }

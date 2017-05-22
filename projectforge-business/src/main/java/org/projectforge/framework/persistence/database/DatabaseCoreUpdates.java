@@ -139,14 +139,23 @@ public class DatabaseCoreUpdates
     ////////////////////////////////////////////////////////////////////
     // 6.12.0
     // /////////////////////////////////////////////////////////////////
+<<<<<<< HEAD
     list.add(new UpdateEntryImpl(CORE_REGION_ID, "6.12.0", "2017-05-24",
         "Change address image data to AddressDO.")
+=======
+    list.add(new UpdateEntryImpl(CORE_REGION_ID, "6.12.0", "2017-05-22",
+        "Correct calendar exdates. Change address image data to AddressDO.")
+>>>>>>> feature/PROJECTFORGE-3087
     {
       @Override
       public UpdatePreCheckStatus runPreCheck()
       {
         log.info("Running pre-check for ProjectForge version 6.12.0");
+<<<<<<< HEAD
         if (databaseUpdateService.doesTableAttributeExist("T_ADDRESS", "imagedata") == false) {
+=======
+        if (hasISODates() || databaseUpdateService.doesTableAttributeExist("T_ADDRESS", "imagedata") == false) {
+>>>>>>> feature/PROJECTFORGE-3087
           return UpdatePreCheckStatus.READY_FOR_UPDATE;
         }
         return UpdatePreCheckStatus.ALREADY_UPDATED;
@@ -161,8 +170,63 @@ public class DatabaseCoreUpdates
           deleteImageHistoryData();
           deleteImageAddressAttrData();
         }
+<<<<<<< HEAD
         return UpdateRunningStatus.DONE;
       }
+=======
+
+        if (hasISODates()) {
+          final PfEmgrFactory emf = applicationContext.getBean(PfEmgrFactory.class);
+          emf.runInTrans(emgr -> {
+            SimpleDateFormat iCalFormatterWithTime = new SimpleDateFormat(DateFormats.ICAL_DATETIME_FORMAT);
+            SimpleDateFormat iCalFormatterAllDay = new SimpleDateFormat(DateFormats.COMPACT_DATE);
+            List<SimpleDateFormat> formatterPatterns = Arrays
+                .asList(new SimpleDateFormat(DateFormats.ISO_TIMESTAMP_SECONDS), new SimpleDateFormat(DateFormats.ISO_TIMESTAMP_MINUTES),
+                    new SimpleDateFormat(DateFormats.ISO_DATE), iCalFormatterWithTime, iCalFormatterAllDay);
+            List<TeamEventDO> teamEventDOList = emgr
+                .selectAttached(TeamEventDO.class, "SELECT te FROM TeamEventDO te WHERE te.recurrenceExDate IS NOT NULL AND te.recurrenceExDate <> ''");
+            for (TeamEventDO te : teamEventDOList) {
+              String exDateList = te.getRecurrenceExDate();
+              String[] exDateArray = exDateList.split(",");
+              List<String> finalExDates = new ArrayList<>();
+              for (String exDateOld : exDateArray) {
+                Date oldDate = null;
+                for (SimpleDateFormat sdf : formatterPatterns) {
+                  try {
+                    oldDate = sdf.parse(exDateOld);
+                    break;
+                  } catch (ParseException e) {
+                    if (log.isDebugEnabled()) {
+                      log.debug("Date not parsable. Try another parser.");
+                    }
+                  }
+                }
+                if (oldDate == null) {
+                  log.error("Date not parsable. Ignoring it: " + exDateOld);
+                  continue;
+                }
+                if (te.isAllDay()) {
+                  finalExDates.add(iCalFormatterAllDay.format(oldDate));
+                } else {
+                  finalExDates.add(iCalFormatterWithTime.format(oldDate));
+                }
+              }
+              String newExDateValue = String.join(",", finalExDates);
+              te.setRecurrenceExDate(newExDateValue);
+              emgr.update(te);
+            }
+            return null;
+          });
+        }
+        return UpdateRunningStatus.DONE;
+      }
+
+      private boolean hasISODates()
+      {
+        List<DatabaseResultRow> result = databaseUpdateService.query("SELECT * FROM T_PLUGIN_CALENDAR_EVENT WHERE recurrence_ex_date LIKE '%-%' LIMIT 1");
+        return result.size() > 0;
+      }
+>>>>>>> feature/PROJECTFORGE-3087
 
       private void deleteImageAddressAttrData()
       {
@@ -219,7 +283,6 @@ public class DatabaseCoreUpdates
           }
         }
       }
-
     });
 
     ////////////////////////////////////////////////////////////////////
@@ -790,51 +853,41 @@ public class DatabaseCoreUpdates
         }
 
         if (databaseUpdateService.doesGroupExists(ProjectForgeGroup.HR_GROUP) == false) {
-          try {
-            emf.runInTrans(emgr -> {
-              GroupDO hrGroup = new GroupDO();
-              hrGroup.setName("PF_HR");
-              hrGroup.setDescription("Users for having full access to the companies hr.");
-              hrGroup.setCreated();
-              hrGroup.setTenant(applicationContext.getBean(TenantService.class).getDefaultTenant());
+          emf.runInTrans(emgr -> {
+            GroupDO hrGroup = new GroupDO();
+            hrGroup.setName("PF_HR");
+            hrGroup.setDescription("Users for having full access to the companies hr.");
+            hrGroup.setCreated();
+            hrGroup.setTenant(applicationContext.getBean(TenantService.class).getDefaultTenant());
 
-              final Set<PFUserDO> usersToAddToHrGroup = new HashSet<>();
+            final Set<PFUserDO> usersToAddToHrGroup = new HashSet<>();
 
-              final List<UserRightDO> employeeRights = emgr.selectAttached(UserRightDO.class,
-                  "SELECT r FROM UserRightDO r WHERE r.rightIdString = :rightId",
-                  "rightId",
-                  "FIBU_EMPLOYEE");
-              employeeRights.forEach(sr -> {
-                sr.setRightIdString("HR_EMPLOYEE");
-                usersToAddToHrGroup.add(sr.getUser());
-                emgr.update(sr);
-              });
-
-              final List<UserRightDO> salaryRights = emgr.selectAttached(UserRightDO.class,
-                  "SELECT r FROM UserRightDO r WHERE r.rightIdString = :rightId",
-                  "rightId",
-                  "FIBU_EMPLOYEE_SALARY");
-
-              salaryRights.forEach(sr -> {
-                sr.setRightIdString("HR_EMPLOYEE_SALARY");
-                usersToAddToHrGroup.add(sr.getUser());
-                emgr.update(sr);
-              });
-
-              usersToAddToHrGroup.forEach(hrGroup::addUser);
-
-              emgr.insert(hrGroup);
-              return hrGroup;
+            final List<UserRightDO> employeeRights = emgr.selectAttached(UserRightDO.class,
+                "SELECT r FROM UserRightDO r WHERE r.rightIdString = :rightId",
+                "rightId",
+                "FIBU_EMPLOYEE");
+            employeeRights.forEach(sr -> {
+              sr.setRightIdString("HR_EMPLOYEE");
+              usersToAddToHrGroup.add(sr.getUser());
+              emgr.update(sr);
             });
-          } catch (GenericJDBCException e) {
-            String s = e.getMessage();
-            if (s.startsWith("could not extract ResultSet")) {
 
-              throw e;
-            } else {
-              throw e;
-            }
-          }
+            final List<UserRightDO> salaryRights = emgr.selectAttached(UserRightDO.class,
+                "SELECT r FROM UserRightDO r WHERE r.rightIdString = :rightId",
+                "rightId",
+                "FIBU_EMPLOYEE_SALARY");
+
+            salaryRights.forEach(sr -> {
+              sr.setRightIdString("HR_EMPLOYEE_SALARY");
+              usersToAddToHrGroup.add(sr.getUser());
+              emgr.update(sr);
+            });
+
+            usersToAddToHrGroup.forEach(hrGroup::addUser);
+
+            emgr.insert(hrGroup);
+            return hrGroup;
+          });
         }
 
         return UpdateRunningStatus.DONE;
@@ -1059,9 +1112,9 @@ public class DatabaseCoreUpdates
       @Override
       public UpdatePreCheckStatus runPreCheck()
       {
-        if (RESTART_RQUIRED.equals("v5.5"))
-          return UpdatePreCheckStatus.RESTARED_REQUIRED;
-
+        if (RESTART_RQUIRED.equals("v5.5")) {
+          return UpdatePreCheckStatus.RESTART_REQUIRED;
+        }
         log.info("Running pre-check for ProjectForge version 5.5");
         if (databaseUpdateService.doTableAttributesExist(EmployeeDO.class, "weeklyWorkingHours") == false) {
           return UpdatePreCheckStatus.READY_FOR_UPDATE;
