@@ -185,7 +185,7 @@ public class TaskWizardForm extends AbstractStandardForm<TaskWizardForm, TaskWiz
           buf.append(getString("task.wizard.managerGroup.groupNameSuffix"));
         }
         params.add(GroupEditPage.PARAM_GROUP_NAME, buf.toString());
-        final GroupEditPage editPage = new GroupEditPage(params);
+        final GroupEditPage editPage = new GroupEditPage(params, key + "Id");
         editPage.setReturnToPage(parentPage);
         setResponsePage(editPage);
       }

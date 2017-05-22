@@ -23,11 +23,7 @@
 
 package org.projectforge.framework.persistence.database;
 
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertNotNull;
-import static org.testng.AssertJUnit.assertNull;
-import static org.testng.AssertJUnit.assertTrue;
-import static org.testng.AssertJUnit.fail;
+import static org.testng.AssertJUnit.*;
 
 import java.util.Collection;
 import java.util.HashSet;
@@ -155,7 +151,7 @@ public class InitDatabaseDaoWithTestDataTestFork extends AbstractTestBase
       }
     }
     assertNotNull("Order #1 not found.", order);
-    assertEquals("Order #1 must have 3 order positions.", 3, order.getPositionen().size());
+    assertEquals("Order #1 must have 3 order positions.", 3, order.getPositionenIncludingDeleted().size());
 
     final List<PfHistoryMasterDO> list = hibernateTemplate.loadAll(PfHistoryMasterDO.class);
     // assertTrue("At least 10 history entries expected: " + list.size(), list.size() >= 10);

@@ -27,6 +27,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.log4j.Logger;
 import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Restrictions;
 import org.projectforge.business.user.UserRightId;
@@ -41,11 +42,12 @@ import org.springframework.stereotype.Repository;
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
  */
 @Repository
 public class EmployeeSalaryDao extends BaseDao<EmployeeSalaryDO>
 {
+  private static final Logger log = Logger.getLogger(EmployeeSalaryDao.class);
+
   public static final UserRightId USER_RIGHT_ID = UserRightId.HR_EMPLOYEE_SALARY;
 
   private static final String[] ADDITIONAL_SEARCH_FIELDS = new String[] { "employee.user.lastname",
@@ -102,30 +104,29 @@ public class EmployeeSalaryDao extends BaseDao<EmployeeSalaryDO>
     return list;
   }
 
-  /**
-   * Sets the scales of percentage and currency amounts. <br/>
-   * Gutschriftsanzeigen dürfen keine Rechnungsnummer haben. Wenn eine Rechnungsnummer für neue Rechnungen gegeben
-   * wurde, so muss sie fortlaufend sein. Berechnet das Zahlungsziel in Tagen, wenn nicht gesetzt, damit es indiziert
-   * wird.
-   * 
-   * @see org.projectforge.framework.persistence.api.BaseDao#onSaveOrModify(org.projectforge.core.ExtendedBaseDO)
-   */
-  @SuppressWarnings("unchecked")
   @Override
   protected void onSaveOrModify(EmployeeSalaryDO obj)
   {
     if (obj.getId() == null) {
-      List list = getHibernateTemplate().find(
-          "from EmployeeSalaryDO s where s.year = ? and s.month = ? and s.employee.id = ?",
-          new Object[] { obj.getYear(), obj.getMonth(), obj.getEmployeeId() });
-      if (CollectionUtils.isNotEmpty(list) == true) {
+      List<EmployeeSalaryDO> list = pfEmgrFactory.runRoTrans(emgr -> {
+        return emgr.select(EmployeeSalaryDO.class, "SELECT s FROM EmployeeSalaryDO s WHERE s.year = :year and s.month = :month and s.employee.id = :employeeid",
+            "year", obj.getYear(), "month", obj.getMonth(), "employeeid", obj.getEmployeeId());
+      });
+      if (CollectionUtils.isNotEmpty(list)) {
+        log.info("Insert of EmployeeSalaryDO not possible. There is a existing one for employee with id: " + obj.getEmployeeId() + " and year: " +
+            obj.getYear() + " and month: " + obj.getMonth() + " . Existing one: " + list.get(0).toString());
         throw new UserException("fibu.employee.salary.error.salaryAlreadyExist");
       }
     } else {
-      List list = getHibernateTemplate().find(
-          "from EmployeeSalaryDO s where s.year = ? and s.month = ? and s.employee.id = ? and id <> ?",
-          new Object[] { obj.getYear(), obj.getMonth(), obj.getEmployeeId(), obj.getId() });
-      if (CollectionUtils.isNotEmpty(list) == true) {
+      List<EmployeeSalaryDO> list = pfEmgrFactory.runRoTrans(emgr -> {
+        return emgr
+            .select(EmployeeSalaryDO.class,
+                "SELECT s FROM EmployeeSalaryDO s WHERE s.year = :year and s.month = :month and s.employee.id = :employeeid and s.id <> :id",
+                "year", obj.getYear(), "month", obj.getMonth(), "employeeid", obj.getEmployeeId(), "id", obj.getId());
+      });
+      if (CollectionUtils.isNotEmpty(list)) {
+        log.info("Update of EmployeeSalaryDO not possible. There is a existing one for employee with id: " + obj.getEmployeeId() + " and year: " +
+            obj.getYear() + " and month: " + obj.getMonth() + " and ID: " + obj.getId() + " . Existing one: " + list.get(0).toString());
         throw new UserException("fibu.employee.salary.error.salaryAlreadyExist");
       }
     }
@@ -133,7 +134,7 @@ public class EmployeeSalaryDao extends BaseDao<EmployeeSalaryDO>
 
   /**
    * @param employeeSalary
-   * @param employeeId If null, then employee will be set to null;
+   * @param employeeId     If null, then employee will be set to null;
    * @see BaseDao#getOrLoad(Integer)
    */
   public void setEmployee(final EmployeeSalaryDO employeeSalary, Integer employeeId)

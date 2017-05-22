@@ -25,12 +25,12 @@ package org.projectforge.business.fibu;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 
 import org.projectforge.framework.time.DayHolder;
+import org.projectforge.framework.utils.NumberHelper;
 import org.projectforge.statistics.IntAggregatedValues;
 
-public class AbstractRechnungsStatistik<T extends AbstractRechnungDO< ? >> implements Serializable
+public class AbstractRechnungsStatistik<T extends AbstractRechnungDO<?>> implements Serializable
 {
   private static final long serialVersionUID = 3695426728243488756L;
 
@@ -65,17 +65,17 @@ public class AbstractRechnungsStatistik<T extends AbstractRechnungDO< ? >> imple
     final BigDecimal netto = rechnung.getNetSum();
     final BigDecimal brutto = rechnung.getGrossSum();
     final BigDecimal gezahlt = rechnung.getZahlBetrag();
-    this.nettoSum = add(nettoSum, netto);
-    this.bruttoSum = add(bruttoSum, brutto);
+    this.nettoSum = NumberHelper.add(nettoSum, netto);
+    this.bruttoSum = NumberHelper.add(bruttoSum, brutto);
     if (gezahlt != null) {
-      gezahltSum = add(gezahltSum, gezahlt);
+      gezahltSum = NumberHelper.add(gezahltSum, gezahlt);
       if (gezahlt.compareTo(brutto) < 0) {
-        skontoSum = add(skontoSum, brutto.subtract(gezahlt));
+        skontoSum = NumberHelper.add(skontoSum, brutto.subtract(gezahlt));
       }
     } else {
-      offenSum = add(offenSum, brutto);
+      offenSum = NumberHelper.add(offenSum, brutto);
       if (rechnung.isUeberfaellig() == true) {
-        ueberfaelligSum = add(ueberfaelligSum, brutto);
+        ueberfaelligSum = NumberHelper.add(ueberfaelligSum, brutto);
       }
     }
     final DayHolder datum = new DayHolder(rechnung.getDatum());
@@ -143,18 +143,5 @@ public class AbstractRechnungsStatistik<T extends AbstractRechnungDO< ? >> imple
   public BigDecimal getSkonto()
   {
     return skontoSum;
-  }
-
-  private BigDecimal add(BigDecimal sum, final BigDecimal amount)
-  {
-    if (amount == null) {
-      return sum;
-    }
-    if (sum == null) {
-      sum = BigDecimal.ZERO;
-    }
-    sum = sum.add(amount);
-    sum.setScale(2, RoundingMode.HALF_UP);
-    return sum;
   }
 }

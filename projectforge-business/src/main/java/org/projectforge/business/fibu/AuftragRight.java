@@ -45,9 +45,8 @@ import org.projectforge.framework.time.DateHelper;
  * PROJECT_MANAGER/PROJECT_ASSISTANT: If set, then such users have only access to their projects (assigned by the
  * project manager groups). If you choose {@link UserRightValue#READWRITE} for such users, they'll have full read/write
  * access to all orders.
- * 
+ *
  * @author Kai Reinhard (k.reinhard@me.de)
- * 
  */
 public class AuftragRight extends UserRightAccessCheck<AuftragDO>
 {
@@ -59,20 +58,20 @@ public class AuftragRight extends UserRightAccessCheck<AuftragDO>
         UserRightServiceImpl.FALSE_READONLY_PARTLYREADWRITE_READWRITE);
     initializeUserGroupsRight(UserRightServiceImpl.FALSE_READONLY_PARTLYREADWRITE_READWRITE,
         UserRightServiceImpl.FIBU_ORGA_PM_GROUPS)
-            // All project managers have read-write access:
-            .setAvailableGroupRightValues(ProjectForgeGroup.PROJECT_MANAGER, UserRightValue.PARTLYREADWRITE)
-            // All project assistants have no, read or read-write access:
-            .setAvailableGroupRightValues(ProjectForgeGroup.PROJECT_ASSISTANT, UserRightValue.FALSE,
-                UserRightValue.PARTLYREADWRITE)
-            // Read only access for controlling users:
-            .setReadOnlyForControlling();
+        // All project managers have read-write access:
+        .setAvailableGroupRightValues(ProjectForgeGroup.PROJECT_MANAGER, UserRightValue.PARTLYREADWRITE)
+        // All project assistants have no, read or read-write access:
+        .setAvailableGroupRightValues(ProjectForgeGroup.PROJECT_ASSISTANT, UserRightValue.FALSE,
+            UserRightValue.PARTLYREADWRITE)
+        // Read only access for controlling users:
+        .setReadOnlyForControlling();
   }
 
   /**
    * @return True, if {@link UserRightId#PM_PROJECT} is potentially available for the user (independent from the
-   *         configured value).
+   * configured value).
    * @see org.projectforge.business.user.UserRightAccessCheck#hasSelectAccess(org.projectforge.framework.access.AccessChecker,
-   *      org.projectforge.framework.persistence.user.entities.PFUserDO)
+   * org.projectforge.framework.persistence.user.entities.PFUserDO)
    */
   @Override
   public boolean hasSelectAccess(final PFUserDO user)
@@ -89,7 +88,7 @@ public class AuftragRight extends UserRightAccessCheck<AuftragDO>
    * Ebenso sehen Projektmanager und Projektassistenten einen Auftrag analog zu einer Kontaktperson, sofern sie Mitglied
    * der ProjektManagerGroup des zugordneten Projekts sind. <br/>
    * Nur Mitglieder der FINANCE_GROUP dürfen für Aufträge das Flag "vollständig fakturiert" ändern.
-   * 
+   *
    * @see org.projectforge.framework.persistence.api.BaseDao#hasAccess(Object, OperationType)
    */
   @Override
@@ -112,18 +111,23 @@ public class AuftragRight extends UserRightAccessCheck<AuftragDO>
     }
     if (obj != null
         && accessChecker.isUserMemberOfGroup(user, ProjectForgeGroup.FINANCE_GROUP) == false
-        && CollectionUtils.isNotEmpty(obj.getPositionen()) == true) {
+        && CollectionUtils.isNotEmpty(obj.getPositionenIncludingDeleted()) == true) {
       // Special field check for non finance administrative staff members:
       if (operationType == OperationType.INSERT) {
-        for (final AuftragsPositionDO position : obj.getPositionen()) {
+        for (final AuftragsPositionDO position : obj.getPositionenExcludingDeleted()) {
           if (position.isVollstaendigFakturiert() == true) {
             throw new AccessException("fibu.auftrag.error.vollstaendigFakturiertProtection");
           }
         }
       } else if (oldObj != null) {
-        for (short number = 1; number <= obj.getPositionen().size(); number++) {
+        for (short number = 1; number <= obj.getPositionenIncludingDeleted().size(); number++) {
           final AuftragsPositionDO position = obj.getPosition(number);
           final AuftragsPositionDO dbPosition = oldObj.getPosition(number);
+
+          // check if deleted
+          if (position.isDeleted())
+            continue;
+
           if (dbPosition == null) {
             if (position.isVollstaendigFakturiert() == true) {
               throw new AccessException("fibu.auftrag.error.vollstaendigFakturiertProtection");

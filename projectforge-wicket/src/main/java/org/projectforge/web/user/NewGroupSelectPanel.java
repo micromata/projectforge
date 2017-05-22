@@ -46,9 +46,8 @@ import org.projectforge.web.wicket.flowlayout.ComponentWrapperPanel;
 
 /**
  * This panel shows the actual group.
- * 
+ *
  * @author Werner Feder (werner.feder@t-online.de)
- * 
  */
 public class NewGroupSelectPanel extends AbstractSelectPanel<GroupDO> implements ComponentWrapperPanel
 {
@@ -175,7 +174,6 @@ public class NewGroupSelectPanel extends AbstractSelectPanel<GroupDO> implements
             final GroupDO group = (GroupDO) value;
             return formatLabel(group);
           }
-
         };
       }
     };
@@ -185,7 +183,7 @@ public class NewGroupSelectPanel extends AbstractSelectPanel<GroupDO> implements
 
   /**
    * Should be called before init() method. If true, then the validation will be done after submitting.
-   * 
+   *
    * @param defaultFormProcessing
    */
   public void setDefaultFormProcessing(final boolean defaultFormProcessing)
@@ -205,7 +203,7 @@ public class NewGroupSelectPanel extends AbstractSelectPanel<GroupDO> implements
       public void onSubmit()
       {
         setResponsePage(new GroupListPage(caller, selectProperty));
-      };
+      }
     };
     selectButton.setDefaultFormProcessing(defaultFormProcessing);
     add(selectButton);

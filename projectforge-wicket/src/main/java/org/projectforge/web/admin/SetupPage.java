@@ -207,6 +207,10 @@ public class SetupPage extends AbstractUnsecureBasePage
       //      final XStreamSavingConverter converter = xmlDump.restoreDatabase(reader);
       //      final int counter = xmlDump.verifyDump(converter);
       //      configurationDao.checkAndUpdateDatabaseEntries();
+
+      // intialize DB schema
+      this.initDatabaseDao.updateSchema();
+
       int counter = jpaXmlDumpService.restoreDb(PfEmgrFactory.get(), is, RestoreMode.InsertAll);
       Configuration.getInstance().setExpired();
       final TaskTree taskTree = TaskTreeHelper.getTaskTree();

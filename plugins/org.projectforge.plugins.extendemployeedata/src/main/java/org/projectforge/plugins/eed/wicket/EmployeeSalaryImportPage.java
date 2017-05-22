@@ -1,16 +1,17 @@
 package org.projectforge.plugins.eed.wicket;
 
+import java.io.InputStream;
+import java.util.Date;
+
 import org.apache.wicket.markup.html.form.upload.FileUpload;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.user.UserRightId;
 import org.projectforge.business.user.UserRightValue;
+import org.projectforge.framework.i18n.I18nHelper;
 import org.projectforge.framework.persistence.utils.ImportedSheet;
 import org.projectforge.plugins.eed.service.EmployeeSalaryImportService;
 import org.projectforge.web.core.importstorage.AbstractImportPage;
-
-import java.io.InputStream;
-import java.util.Date;
 
 public class EmployeeSalaryImportPage extends AbstractImportPage<EmployeeSalaryImportForm>
 {
@@ -26,6 +27,9 @@ public class EmployeeSalaryImportPage extends AbstractImportPage<EmployeeSalaryI
     body.add(form);
     form.init();
     clear(); // reset state of the page, clear the import storage
+    if (parameters != null && parameters.get(0) != null && parameters.get(0).toString() != null && parameters.get(0).toString().equals("success")) {
+      error(I18nHelper.getLocalizedMessage("plugins.eed.salaryimport.success"));
+    }
   }
 
   @Override

@@ -44,8 +44,8 @@ import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
 import org.projectforge.web.wicket.flowlayout.RadioGroupPanel;
 import org.projectforge.web.wicket.flowlayout.TextStyle;
 
-public abstract class AbstractRechnungListForm<F extends RechnungFilter, P extends AbstractListPage< ? , ? , ? >> extends
-AbstractListForm<F, P>
+public abstract class AbstractRechnungListForm<F extends RechnungFilter, P extends AbstractListPage<?, ?, ?>> extends
+    AbstractListForm<F, P>
 {
   private static final long serialVersionUID = 2678813484329104564L;
 
@@ -57,40 +57,45 @@ AbstractListForm<F, P>
   @SuppressWarnings("serial")
   protected void init()
   {
-    super.init();
+    super.init(false);
     gridBuilder.newGridPanel();
     {
       // Statistics
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("statistics")).suppressLabelForWarning();
-      fs.add(new DivTextPanel(fs.newChildId(), new Model<String>() {
+      fs.add(new DivTextPanel(fs.newChildId(), new Model<String>()
+      {
         @Override
         public String getObject()
         {
           return getString("fibu.common.brutto") + ": " + CurrencyFormatter.format(getStats().getBrutto()) + WebConstants.HTML_TEXT_DIVIDER;
         }
       }));
-      fs.add(new DivTextPanel(fs.newChildId(), new Model<String>() {
+      fs.add(new DivTextPanel(fs.newChildId(), new Model<String>()
+      {
         @Override
         public String getObject()
         {
           return getString("fibu.common.netto") + ": " + CurrencyFormatter.format(getStats().getNetto()) + WebConstants.HTML_TEXT_DIVIDER;
         }
       }));
-      fs.add(new DivTextPanel(fs.newChildId(), new Model<String>() {
+      fs.add(new DivTextPanel(fs.newChildId(), new Model<String>()
+      {
         @Override
         public String getObject()
         {
           return getString("fibu.rechnung.offen") + ": " + CurrencyFormatter.format(getStats().getOffen()) + WebConstants.HTML_TEXT_DIVIDER;
         }
       }, TextStyle.BLUE));
-      fs.add(new DivTextPanel(fs.newChildId(), new Model<String>() {
+      fs.add(new DivTextPanel(fs.newChildId(), new Model<String>()
+      {
         @Override
         public String getObject()
         {
           return getString("fibu.rechnung.filter.ueberfaellig") + ": " + CurrencyFormatter.format(getStats().getUeberfaellig());
         }
       }, TextStyle.RED));
-      fs.add(new DivTextPanel(fs.newChildId(), new Model<String>() {
+      fs.add(new DivTextPanel(fs.newChildId(), new Model<String>()
+      {
         @Override
         public String getObject()
         {
@@ -102,7 +107,8 @@ AbstractListForm<F, P>
         }
       }));
       // fieldset.add(new HtmlCodePanel(fieldset.newChildId(), "<br/>"));
-      fs.add(new DivTextPanel(fs.newChildId(), new Model<String>() {
+      fs.add(new DivTextPanel(fs.newChildId(), new Model<String>()
+      {
         @Override
         public String getObject()
         {
@@ -112,7 +118,8 @@ AbstractListForm<F, P>
               + WebConstants.HTML_TEXT_DIVIDER;
         }
       }));
-      fs.add(new DivTextPanel(fs.newChildId(), new Model<String>() {
+      fs.add(new DivTextPanel(fs.newChildId(), new Model<String>()
+      {
         @Override
         public String getObject()
         {
@@ -124,7 +131,7 @@ AbstractListForm<F, P>
 
   /**
    * @see org.projectforge.web.wicket.AbstractListForm#onOptionsPanelCreate(org.projectforge.web.wicket.flowlayout.FieldsetPanel,
-   *      org.projectforge.web.wicket.flowlayout.DivPanel)
+   * org.projectforge.web.wicket.flowlayout.DivPanel)
    */
   @SuppressWarnings("serial")
   @Override
@@ -132,10 +139,10 @@ AbstractListForm<F, P>
   {
     // DropDownChoice years
     final YearListCoiceRenderer yearListChoiceRenderer = new YearListCoiceRenderer(years, true);
-    final DropDownChoice<Integer> yearChoice = new DropDownChoice<Integer>(optionsFieldsetPanel.getDropDownChoiceId(),
+    final DropDownChoice<Integer> yearChoice = new DropDownChoice<>(optionsFieldsetPanel.getDropDownChoiceId(),
         new PropertyModel<Integer>(this, "year"), yearListChoiceRenderer.getYears(), yearListChoiceRenderer);
     yearChoice.setNullValid(false);
-    optionsFieldsetPanel.add(yearChoice, true);
+    optionsFieldsetPanel.add(yearChoice);
 
     // // DropDownChoice months
     final LabelValueChoiceRenderer<Integer> monthChoiceRenderer = new LabelValueChoiceRenderer<Integer>();
@@ -143,62 +150,26 @@ AbstractListForm<F, P>
     for (int i = 0; i <= 11; i++) {
       monthChoiceRenderer.addValue(i, StringHelper.format2DigitNumber(i + 1));
     }
-    final DropDownChoice<Integer> monthChoice = new DropDownChoice<Integer>(optionsFieldsetPanel.getDropDownChoiceId(),
+    final DropDownChoice<Integer> monthChoice = new DropDownChoice<>(optionsFieldsetPanel.getDropDownChoiceId(),
         new PropertyModel<Integer>(this, "month"), monthChoiceRenderer.getValues(), monthChoiceRenderer);
     monthChoice.setNullValid(false);
-    optionsFieldsetPanel.add(monthChoice, true);
+    optionsFieldsetPanel.add(monthChoice);
 
     final DivPanel radioGroupPanel = optionsFieldsetPanel.addNewRadioBoxButtonDiv();
     final RadioGroupPanel<String> radioGroup = new RadioGroupPanel<String>(radioGroupPanel.newChildId(), "listtype",
-        new PropertyModel<String>(getSearchFilter(), "listType")) {
-      /**
-       * @see org.projectforge.web.wicket.flowlayout.RadioGroupPanel#wantOnSelectionChangedNotifications()
-       */
-      @Override
-      protected boolean wantOnSelectionChangedNotifications()
-      {
-        return true;
-      }
-
-      /**
-       * @see org.projectforge.web.wicket.flowlayout.RadioGroupPanel#onSelectionChanged(java.lang.Object)
-       */
-      @Override
-      protected void onSelectionChanged(final Object newSelection)
-      {
-        parentPage.refresh();
-      }
-    };
+        new PropertyModel<>(getSearchFilter(), "listType"));
     radioGroupPanel.add(radioGroup);
     radioGroup.add(new Model<String>("all"), getString("filter.all"));
     radioGroup.add(new Model<String>("unbezahlt"), getString("fibu.rechnung.filter.unbezahlt"));
     radioGroup.add(new Model<String>("ueberfaellig"), getString("fibu.rechnung.filter.ueberfaellig"));
 
     if (Configuration.getInstance().isCostConfigured() == true) {
-      optionsCheckBoxesPanel.add(new CheckBoxButton(optionsCheckBoxesPanel.newChildId(), new PropertyModel<Boolean>(getSearchFilter(),
-          "showKostZuweisungStatus"), getString("fibu.rechnung.showKostZuweisungstatus")) {
-        /**
-         * @see org.projectforge.web.wicket.flowlayout.CheckBoxButton#wantOnSelectionChangedNotifications()
-         */
-        @Override
-        protected boolean wantOnSelectionChangedNotifications()
-        {
-          return true;
-        }
-
-        /**
-         * @see org.projectforge.web.wicket.flowlayout.CheckBoxButton#onSelectionChanged()
-         */
-        @Override
-        protected void onSelectionChanged(final Boolean newSelection)
-        {
-          parentPage.refresh();
-        }
-      });
+      optionsCheckBoxesPanel.add(new CheckBoxButton(optionsCheckBoxesPanel.newChildId(), new PropertyModel<>(getSearchFilter(),
+          "showKostZuweisungStatus"), getString("fibu.rechnung.showKostZuweisungstatus")));
     }
   }
 
-  protected abstract AbstractRechnungsStatistik< ? > getStats();
+  protected abstract AbstractRechnungsStatistik<?> getStats();
 
   public Integer getYear()
   {

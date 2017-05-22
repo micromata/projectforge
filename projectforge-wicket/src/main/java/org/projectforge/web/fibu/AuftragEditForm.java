@@ -491,12 +491,12 @@ public class AuftragEditForm extends AbstractEditForm<AuftragDO, AuftragEditPage
     positionsRepeater.removeAll();
     periodOfPerformanceHelper.onRefreshPositions();
 
-    if (CollectionUtils.isEmpty(data.getPositionen()) == true) {
+    if (CollectionUtils.isEmpty(data.getPositionenIncludingDeleted()) == true) {
       // Ensure that at least one position is available:
       data.addPosition(new AuftragsPositionDO());
     }
 
-    for (final AuftragsPositionDO position : data.getPositionen()) {
+    for (final AuftragsPositionDO position : data.getPositionenIncludingDeleted()) {
       final boolean abgeschlossenUndNichtFakturiert = position.isAbgeschlossenUndNichtVollstaendigFakturiert();
       final ToggleContainerPanel positionsPanel = new ToggleContainerPanel(positionsRepeater.newChildId())
       {

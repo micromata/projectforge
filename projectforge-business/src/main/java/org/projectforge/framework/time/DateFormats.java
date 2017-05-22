@@ -33,9 +33,8 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO;
 /**
  * Date formats. All the formats base on the given defaultDateFormat. Default date formats are e. g. "dd.MM.yyyy", "dd.MM.yy", "dd/MM/yyyy",
  * "dd/MM/yy", "MM/dd/yyyy", "MM/dd/yy".
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
  */
 public class DateFormats
 {
@@ -53,8 +52,11 @@ public class DateFormats
 
   public static final String LUCENE_TIMESTAMP_MINUTE = "yyyyMMddHHmm";
 
+  public static final String ICAL_DATETIME_FORMAT = "yyyyMMdd'T'HHmmss";
+
   /**
    * Check weather the given dateString has month or day first. If not analyzable then true is returned as default value.
+   *
    * @param dateString
    * @return true if month is used before day of month.
    */
@@ -72,6 +74,7 @@ public class DateFormats
    * Tries to get the separator char in dates ('/' is the default if nothing found). <br/>
    * Example: "dd.MM.yyyy ..." results in '.', "MM/dd/yyy ..." results in '/'. <br/>
    * Only '/', '-' and '.' are supported for now.
+   *
    * @param dateString
    * @return the separator char.
    */
@@ -112,6 +115,7 @@ public class DateFormats
 
   /**
    * DefaultDateFormat with yyyy and yy and ISO format yyyy-MM-dd.
+   *
    * @param defaultDateFormat
    */
   public static String[] getDateParseFormats(final String defaultDateFormat)
@@ -132,6 +136,7 @@ public class DateFormats
 
   /**
    * Gets the format string for the logged-in user. Uses the date format of the logged in user and if not given, it'll be set.
+   *
    * @param format
    * @see Configuration#getDateFormats()
    * @see PFUserDO#getExcelDateFormat()
@@ -143,6 +148,7 @@ public class DateFormats
 
   /**
    * Ensures and gets the default date format of the logged-in user.
+   *
    * @return
    */
   private static String ensureAndGetDefaultDateFormat()
@@ -160,6 +166,7 @@ public class DateFormats
 
   /**
    * Ensures and gets the default time notation of the logged-in user.
+   *
    * @return
    */
   public static TimeNotation ensureAndGetDefaultTimeNotation()
@@ -186,6 +193,7 @@ public class DateFormats
 
   /**
    * Ensures and gets the default excel date format of the logged-in user.
+   *
    * @return
    */
   private static String ensureAndGetDefaultExcelDateFormat()
@@ -204,6 +212,7 @@ public class DateFormats
   /**
    * Gets the format string for the logged-in user. Uses the date format of the logged in user and if not given, a default format is
    * returned.
+   *
    * @param format
    * @see Configuration#getExcelDateFormats()
    * @see PFUserDO#getExcelDateFormat()

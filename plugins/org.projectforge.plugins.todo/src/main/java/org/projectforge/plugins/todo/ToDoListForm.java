@@ -137,7 +137,7 @@ public class ToDoListForm extends AbstractListForm<ToDoFilter, ToDoListPage>
 
   /**
    * @see org.projectforge.web.wicket.AbstractListForm#onOptionsPanelCreate(org.projectforge.web.wicket.flowlayout.FieldsetPanel,
-   *      org.projectforge.web.wicket.flowlayout.DivPanel)
+   * org.projectforge.web.wicket.flowlayout.DivPanel)
    */
   @Override
   protected void onOptionsPanelCreate(final FieldsetPanel optionsFieldsetPanel, final DivPanel optionsCheckBoxesPanel)
@@ -157,10 +157,14 @@ public class ToDoListForm extends AbstractListForm<ToDoFilter, ToDoListPage>
     optionsCheckBoxesPanel
         .add(createAutoRefreshCheckBoxButton(optionsCheckBoxesPanel.newChildId(), new PropertyModel<Boolean>(
             getSearchFilter(), "postponed"), getString(ToDoStatus.POSTPONED.getI18nKey())));
-    optionsCheckBoxesPanel
-        .add(createAutoRefreshCheckBoxButton(optionsCheckBoxesPanel.newChildId(),
-            new PropertyModel<Boolean>(getSearchFilter(), "onlyRecent"), getString("plugins.todo.status.onlyRecent"),
-            getString("plugins.todo.status.onlyRecent.tooltip")));
+
+    optionsCheckBoxesPanel.add(createCheckBoxButton(
+        optionsCheckBoxesPanel.newChildId(),
+        new PropertyModel<>(getSearchFilter(), "onlyRecent"),
+        getString("plugins.todo.status.onlyRecent"),
+        getString("plugins.todo.status.onlyRecent.tooltip"),
+        true
+    ));
   }
 
   @Override

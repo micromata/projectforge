@@ -42,6 +42,62 @@
       <artifactId>projectforge-jax-rs</artifactId>
       <version>${projectforge.version}</version>
     </dependency>
+
+    <!-- PF 'Plugins' -->
+    <dependency>
+      <groupId>org.projectforge</groupId>
+      <artifactId>org.projectforge.plugins.extendemployeedata</artifactId>
+      <version>${projectforge.version}</version>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.projectforge</groupId>
+      <artifactId>org.projectforge.plugins.financialfairplay</artifactId>
+      <version>${projectforge.version}</version>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.projectforge</groupId>
+      <artifactId>org.projectforge.plugins.ihkexport</artifactId>
+      <version>${projectforge.version}</version>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.projectforge</groupId>
+      <artifactId>org.projectforge.plugins.licensemanagement</artifactId>
+      <version>${projectforge.version}</version>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.projectforge</groupId>
+      <artifactId>org.projectforge.plugins.liquidityplanning</artifactId>
+      <version>${projectforge.version}</version>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.projectforge</groupId>
+      <artifactId>org.projectforge.plugins.marketing</artifactId>
+      <version>${projectforge.version}</version>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.projectforge</groupId>
+      <artifactId>org.projectforge.plugins.memo</artifactId>
+      <version>${projectforge.version}</version>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.projectforge</groupId>
+      <artifactId>org.projectforge.plugins.skillmatrix</artifactId>
+      <version>${projectforge.version}</version>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.projectforge</groupId>
+      <artifactId>org.projectforge.plugins.todo</artifactId>
+      <version>${projectforge.version}</version>
+      <scope>runtime</scope>
+    </dependency>
   </dependencies>
   <build>
     <sourceDirectory>src/main/java</sourceDirectory>

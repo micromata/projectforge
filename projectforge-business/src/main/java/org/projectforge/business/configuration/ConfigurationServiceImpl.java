@@ -161,6 +161,15 @@ public class ConfigurationServiceImpl implements ConfigurationService
   @Value("${projectforge.login.handlerClass}")
   private String loginHandlerClass;
 
+  @Value("${projectforge.max-file-size.image}")
+  private String maxFileSizeImage;
+
+  @Value("${projectforge.max-file-size.datev}")
+  private String maxFileSizeDatev;
+
+  @Value("${projectforge.max-file-size.xml-dump-import}")
+  private String maxFileSizeXmlDumpImport;
+
   @PostConstruct
   public void init()
   {
@@ -664,4 +673,21 @@ public class ConfigurationServiceImpl implements ConfigurationService
     return ConfigurationParam.MIN_PASSWORD_LENGTH.getDefaultIntValue();
   }
 
+  @Override
+  public String getMaxFileSizeImage()
+  {
+    return this.maxFileSizeImage;
+  }
+
+  @Override
+  public String getMaxFileSizeDatev()
+  {
+    return this.maxFileSizeDatev;
+  }
+
+  @Override
+  public String getMaxFileSizeXmlDumpImport()
+  {
+    return this.maxFileSizeXmlDumpImport;
+  }
 }
