@@ -629,12 +629,12 @@ public class VacationServiceImpl extends CorePersistenceServiceImpl<Integer, Vac
   }
 
   @Override
-  public void markAsDeleteEventsForVacationCalendars(final VacationDO vacation, boolean withVacationDao)
+  public void markAsDeleteEventsForVacationCalendars(final VacationDO vacation, boolean deleteIncludingVacationDO)
   {
     final List<VacationCalendarDO> vacationCalendarDOs = vacationDao.getVacationCalendarDOs(vacation);
     for (final VacationCalendarDO vacationCalendarDO : vacationCalendarDOs) {
       if (vacationCalendarDO.getEvent() != null) {
-        if (withVacationDao) {
+        if (deleteIncludingVacationDO) {
           vacationDao.deleteVacationCalendarDO(vacationCalendarDO);
         }
         teamEventDao.internalMarkAsDeleted(teamEventDao.internalGetById((vacationCalendarDO.getEvent().getId())));
