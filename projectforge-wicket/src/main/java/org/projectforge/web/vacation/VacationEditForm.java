@@ -24,7 +24,7 @@
 package org.projectforge.web.vacation;
 
 import java.math.BigDecimal;
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Comparator;
@@ -306,10 +306,12 @@ public class VacationEditForm extends AbstractEditForm<VacationDO, VacationEditP
       final Set<TeamCalDO> availableCalendars = new HashSet<>(teamCalCache.getAllFullAccessCalendars());
       final Set<TeamCalDO> currentCalendars = new HashSet<>();
       final TeamCalDO configuredVacationCalendar = configService.getVacationCalendar();
+      final List<TeamCalDO> additionalCalendars = new ArrayList<>();
 
       if (configuredVacationCalendar != null) {
         availableCalendars.add(configuredVacationCalendar);
         currentCalendars.add(configuredVacationCalendar);
+        additionalCalendars.add(configuredVacationCalendar);
       }
 
       assignCalendarListHelper
@@ -329,7 +331,7 @@ public class VacationEditForm extends AbstractEditForm<VacationDO, VacationEditP
       final Select2MultiChoice<TeamCalDO> calendarsSelect = new Select2MultiChoice<>(
           fieldSet.getSelect2MultiChoiceId(),
           new PropertyModel<Collection<TeamCalDO>>(assignCalendarListHelper, "assignedItems"),
-          new TeamCalsProvider(teamCalCache, true, Arrays.asList(configuredVacationCalendar)));
+          new TeamCalsProvider(teamCalCache, true, additionalCalendars));
       calendarsSelect.setMarkupId("calenders").setOutputMarkupId(true);
       calendarsSelect.setEnabled(checkEnableInputField());
       formValidator.getDependentFormComponents()[6] = calendarsSelect;
