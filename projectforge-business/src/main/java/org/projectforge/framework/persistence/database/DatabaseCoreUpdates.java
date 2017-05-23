@@ -38,8 +38,6 @@ import java.util.Set;
 import java.util.TimeZone;
 import java.util.function.Predicate;
 
-import org.projectforge.business.address.AddressAttrDO;
-import org.projectforge.business.address.AddressAttrDataDO;
 import org.projectforge.business.address.AddressDO;
 import org.projectforge.business.address.AddressDao;
 import org.projectforge.business.fibu.AuftragDO;
@@ -89,8 +87,6 @@ import org.projectforge.framework.configuration.entities.ConfigurationDO;
 import org.projectforge.framework.persistence.attr.impl.InternalAttrSchemaConstants;
 import org.projectforge.framework.persistence.entities.AbstractBaseDO;
 import org.projectforge.framework.persistence.history.HistoryBaseDaoAdapter;
-import org.projectforge.framework.persistence.history.entities.PfHistoryAttrDO;
-import org.projectforge.framework.persistence.history.entities.PfHistoryAttrDataDO;
 import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
 import org.projectforge.framework.persistence.user.entities.GroupDO;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
@@ -159,6 +155,7 @@ public class DatabaseCoreUpdates
           migrateImageData();
           deleteImageHistoryData();
           deleteImageAddressAttrData();
+          log.info("Address image data migration DONE.");
         }
 
         if (hasISODates()) {
@@ -220,40 +217,23 @@ public class DatabaseCoreUpdates
 
       private void deleteImageAddressAttrData()
       {
-        final PfEmgrFactory emf = applicationContext.getBean(PfEmgrFactory.class);
-        emf.runInTrans(emgr -> {
-          List<AddressAttrDO> addrAttrList = emgr.selectAttached(AddressAttrDO.class,
-              "SELECT addrAttr FROM AddressAttrDO addrAttr WHERE addrAttr.propertyName = 'profileImageData'");
-          for (AddressAttrDO addrAttr : addrAttrList) {
-            List<AddressAttrDataDO> addrAttrDataList = emgr.
-                selectAttached(AddressAttrDataDO.class, "SELECT addrAttrData FROM AddressAttrDataDO addrAttrData WHERE addrAttrData.parent = :addrAttr",
-                    "addrAttr", addrAttr);
-            for (AddressAttrDataDO addrAttrData : addrAttrDataList) {
-              databaseUpdateService.execute("DELETE FROM t_address_attrdata WHERE pk = " + addrAttrData.getPk());
-            }
-            databaseUpdateService.execute("DELETE FROM t_address_attr WHERE pk = " + addrAttr.getPk());
-          }
-          return null;
-        });
+        List<DatabaseResultRow> attrResultList = databaseUpdateService.query("SELECT pk FROM t_address_attr WHERE propertyname = 'profileImageData'");
+        for (DatabaseResultRow attrRow : attrResultList) {
+          Integer attrId = (Integer) attrRow.getEntry(0).getValue();
+          databaseUpdateService.execute("DELETE FROM t_address_attrdata WHERE parent_id = " + attrId);
+          databaseUpdateService.execute("DELETE FROM t_address_attr WHERE pk = " + attrId);
+        }
       }
 
       private void deleteImageHistoryData()
       {
-        final PfEmgrFactory emf = applicationContext.getBean(PfEmgrFactory.class);
-        emf.runInTrans(emgr -> {
-          List<PfHistoryAttrDO> histAttrList = emgr.selectAttached(PfHistoryAttrDO.class,
-              "SELECT histAttr FROM PfHistoryAttrDO histAttr WHERE histAttr.propertyName LIKE '%attrs.profileImageData%'");
-          for (PfHistoryAttrDO histAttr : histAttrList) {
-            List<PfHistoryAttrDataDO> histAttrDataList = emgr.
-                selectAttached(PfHistoryAttrDataDO.class, "SELECT histAttrData FROM PfHistoryAttrDataDO histAttrData WHERE histAttrData.parent = :histAttr",
-                    "histAttr", histAttr);
-            for (PfHistoryAttrDataDO histAttrData : histAttrDataList) {
-              databaseUpdateService.execute("DELETE FROM t_pf_history_attr_data WHERE pk = " + histAttrData.getPk());
-            }
-            databaseUpdateService.execute("DELETE FROM t_pf_history_attr WHERE pk = " + histAttr.getPk());
-          }
-          return null;
-        });
+        List<DatabaseResultRow> histAttrResultList = databaseUpdateService
+            .query("SELECT pk FROM t_pf_history_attr WHERE propertyname LIKE '%attrs.profileImageData%'");
+        for (DatabaseResultRow histAttrRow : histAttrResultList) {
+          Long histAttrId = (Long) histAttrRow.getEntry(0).getValue();
+          databaseUpdateService.execute("DELETE FROM t_pf_history_attr_data WHERE parent_pk = " + histAttrId);
+          databaseUpdateService.execute("DELETE FROM t_pf_history_attr WHERE pk = " + histAttrId);
+        }
       }
 
       private void migrateImageData()
