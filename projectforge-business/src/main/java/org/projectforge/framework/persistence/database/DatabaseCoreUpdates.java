@@ -162,47 +162,52 @@ public class DatabaseCoreUpdates
         }
 
         if (hasISODates()) {
-          final PfEmgrFactory emf = applicationContext.getBean(PfEmgrFactory.class);
-          emf.runInTrans(emgr -> {
-            SimpleDateFormat iCalFormatterWithTime = new SimpleDateFormat(DateFormats.ICAL_DATETIME_FORMAT);
-            SimpleDateFormat iCalFormatterAllDay = new SimpleDateFormat(DateFormats.COMPACT_DATE);
-            List<SimpleDateFormat> formatterPatterns = Arrays
-                .asList(new SimpleDateFormat(DateFormats.ISO_TIMESTAMP_SECONDS), new SimpleDateFormat(DateFormats.ISO_TIMESTAMP_MINUTES),
-                    new SimpleDateFormat(DateFormats.ISO_DATE), iCalFormatterWithTime, iCalFormatterAllDay);
-            List<TeamEventDO> teamEventDOList = emgr
-                .selectAttached(TeamEventDO.class, "SELECT te FROM TeamEventDO te WHERE te.recurrenceExDate IS NOT NULL AND te.recurrenceExDate <> ''");
-            for (TeamEventDO te : teamEventDOList) {
-              String exDateList = te.getRecurrenceExDate();
-              String[] exDateArray = exDateList.split(",");
-              List<String> finalExDates = new ArrayList<>();
-              for (String exDateOld : exDateArray) {
-                Date oldDate = null;
-                for (SimpleDateFormat sdf : formatterPatterns) {
-                  try {
-                    oldDate = sdf.parse(exDateOld);
-                    break;
-                  } catch (ParseException e) {
-                    if (log.isDebugEnabled()) {
-                      log.debug("Date not parsable. Try another parser.");
-                    }
+          SimpleDateFormat iCalFormatterWithTime = new SimpleDateFormat(DateFormats.ICAL_DATETIME_FORMAT);
+          SimpleDateFormat iCalFormatterAllDay = new SimpleDateFormat(DateFormats.COMPACT_DATE);
+          List<SimpleDateFormat> formatterPatterns = Arrays
+              .asList(new SimpleDateFormat(DateFormats.ISO_TIMESTAMP_SECONDS), new SimpleDateFormat(DateFormats.ISO_TIMESTAMP_MINUTES),
+                  new SimpleDateFormat(DateFormats.ISO_DATE), iCalFormatterWithTime, iCalFormatterAllDay);
+          List<DatabaseResultRow> resultList = databaseUpdateService
+              .query(
+                  "SELECT pk, recurrence_ex_date, all_day FROM t_plugin_calendar_event te WHERE te.recurrence_ex_date IS NOT NULL AND te.recurrence_ex_date <> ''");
+          log.info("Found: " + resultList.size() + " event entries to update.");
+          for (DatabaseResultRow row : resultList) {
+            Integer id = (Integer) row.getEntry(0).getValue();
+            String exDateList = (String) row.getEntry(1).getValue();
+            Boolean allDay = (Boolean) row.getEntry(2).getValue();
+            log.debug("Event with id: " + id + " has exdate value: " + exDateList);
+            String[] exDateArray = exDateList.split(",");
+            List<String> finalExDates = new ArrayList<>();
+            for (String exDateOld : exDateArray) {
+              Date oldDate = null;
+              for (SimpleDateFormat sdf : formatterPatterns) {
+                try {
+                  oldDate = sdf.parse(exDateOld);
+                  break;
+                } catch (ParseException e) {
+                  if (log.isDebugEnabled()) {
+                    log.debug("Date not parsable. Try another parser.");
                   }
                 }
-                if (oldDate == null) {
-                  log.error("Date not parsable. Ignoring it: " + exDateOld);
-                  continue;
-                }
-                if (te.isAllDay()) {
-                  finalExDates.add(iCalFormatterAllDay.format(oldDate));
-                } else {
-                  finalExDates.add(iCalFormatterWithTime.format(oldDate));
-                }
               }
-              String newExDateValue = String.join(",", finalExDates);
-              te.setRecurrenceExDate(newExDateValue);
-              emgr.update(te);
+              if (oldDate == null) {
+                log.error("Date not parsable. Ignoring it: " + exDateOld);
+                continue;
+              }
+              if (allDay != null && allDay) {
+                finalExDates.add(iCalFormatterAllDay.format(oldDate));
+              } else {
+                finalExDates.add(iCalFormatterWithTime.format(oldDate));
+              }
             }
-            return null;
-          });
+            String newExDateValue = String.join(",", finalExDates);
+            try {
+              databaseUpdateService.execute("UPDATE t_plugin_calendar_event SET recurrence_ex_date = '" + newExDateValue + "' WHERE pk = " + id);
+            } catch (Exception e) {
+              log.error("Error while updating event with id: " + id + " and new exdatevalue: " + newExDateValue + " . Ignoring it.");
+            }
+          }
+          log.info("Exdate migration DONE.");
         }
         return UpdateRunningStatus.DONE;
       }
