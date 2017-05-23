@@ -273,40 +273,38 @@ public class DatabaseCoreUpdates
     ////////////////////////////////////////////////////////////////////
     // 6.11.0
     // /////////////////////////////////////////////////////////////////
-    list.add(new
+    list.add(new UpdateEntryImpl(CORE_REGION_ID, "6.11.0", "2017-05-03",
+        "Add discounts and konto informations. Add period of performance to invoices.")
+    {
+      @Override
+      public UpdatePreCheckStatus runPreCheck()
+      {
+        log.info("Running pre-check for ProjectForge version 6.11.0");
+        if (isSchemaUpdateNecessary()) {
+          return UpdatePreCheckStatus.READY_FOR_UPDATE;
+        }
+        return UpdatePreCheckStatus.ALREADY_UPDATED;
+      }
 
-                 UpdateEntryImpl(CORE_REGION_ID, "6.11.0", "2017-05-03",
-                     "Add discounts and konto informations. Add period of performance to invoices.")
-                 {
-                   @Override
-                   public UpdatePreCheckStatus runPreCheck()
-                   {
-                     log.info("Running pre-check for ProjectForge version 6.11.0");
-                     if (isSchemaUpdateNecessary()) {
-                       return UpdatePreCheckStatus.READY_FOR_UPDATE;
-                     }
-                     return UpdatePreCheckStatus.ALREADY_UPDATED;
-                   }
+      @Override
+      public UpdateRunningStatus runUpdate()
+      {
+        if (isSchemaUpdateNecessary()) {
+          initDatabaseDao.updateSchema();
+        }
+        return UpdateRunningStatus.DONE;
+      }
 
-                   @Override
-                   public UpdateRunningStatus runUpdate()
-                   {
-                     if (isSchemaUpdateNecessary()) {
-                       initDatabaseDao.updateSchema();
-                     }
-                     return UpdateRunningStatus.DONE;
-                   }
-
-                   private boolean isSchemaUpdateNecessary()
-                   {
-                     return databaseUpdateService.doesTableAttributeExist("t_fibu_eingangsrechnung", "discountmaturity") == false
-                         || databaseUpdateService.doesTableAttributeExist("t_fibu_rechnung", "discountmaturity") == false
-                         || databaseUpdateService.doesTableAttributeExist("t_fibu_eingangsrechnung", "customernr") == false
-                         || databaseUpdateService.doTableAttributesExist(RechnungDO.class, "periodOfPerformanceBegin", "periodOfPerformanceEnd") == false
-                         || databaseUpdateService.doTableAttributesExist(RechnungsPositionDO.class, "periodOfPerformanceType", "periodOfPerformanceBegin",
-                         "periodOfPerformanceEnd") == false;
-                   }
-                 });
+      private boolean isSchemaUpdateNecessary()
+      {
+        return databaseUpdateService.doesTableAttributeExist("t_fibu_eingangsrechnung", "discountmaturity") == false
+            || databaseUpdateService.doesTableAttributeExist("t_fibu_rechnung", "discountmaturity") == false
+            || databaseUpdateService.doesTableAttributeExist("t_fibu_eingangsrechnung", "customernr") == false
+            || databaseUpdateService.doTableAttributesExist(RechnungDO.class, "periodOfPerformanceBegin", "periodOfPerformanceEnd") == false
+            || databaseUpdateService.doTableAttributesExist(RechnungsPositionDO.class, "periodOfPerformanceType", "periodOfPerformanceBegin",
+            "periodOfPerformanceEnd") == false;
+      }
+    });
 
     ////////////////////////////////////////////////////////////////////
     // 6.10.0
