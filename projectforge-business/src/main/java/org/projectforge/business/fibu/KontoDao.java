@@ -27,6 +27,7 @@ import java.util.List;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.projectforge.business.user.UserRightId;
+import org.projectforge.framework.i18n.UserException;
 import org.projectforge.framework.persistence.api.BaseDao;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
@@ -80,5 +81,17 @@ public class KontoDao extends BaseDao<KontoDO>
   public KontoCache getKontoCache()
   {
     return kontoCache;
+  }
+
+  @Override
+  protected void onSaveOrModify(final KontoDO obj)
+  {
+    if (obj.getNummer() != null && obj.getNummer() > 0) {
+      KontoDO existingAccount = getKonto(obj.getNummer());
+      //Insert case
+      if (existingAccount != null && (obj.getId() == null || obj.getId().equals(existingAccount.getId()) == false)) {
+        throw new UserException("fibu.konto.validate.duplicate");
+      }
+    }
   }
 }
