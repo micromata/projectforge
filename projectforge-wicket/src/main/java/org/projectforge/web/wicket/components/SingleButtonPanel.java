@@ -29,13 +29,13 @@ import org.apache.wicket.markup.html.form.Button;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
-import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.common.StringHelper;
+import org.projectforge.web.wicket.WicketUtils;
 
 /**
  * Panel for using as single button (needed for css decoration).
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
  */
 public class SingleButtonPanel extends Panel
 {
@@ -69,7 +69,6 @@ public class SingleButtonPanel extends Panel
   public static final String RESET = WARNING;
 
   /**
-   * 
    * @param id
    * @param button
    * @param label
@@ -81,7 +80,6 @@ public class SingleButtonPanel extends Panel
   }
 
   /**
-   * 
    * @param id
    * @param button
    * @param label
@@ -116,6 +114,11 @@ public class SingleButtonPanel extends Panel
       WicketUtils.addTooltip(button, tooltip);
     }
     return this;
+  }
+
+  public void setNonSubmitButton()
+  {
+    button.add(AttributeModifier.replace("type", "button"));
   }
 
   public Button getButton()

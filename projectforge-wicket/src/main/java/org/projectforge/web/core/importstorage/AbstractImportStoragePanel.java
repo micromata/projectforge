@@ -44,6 +44,7 @@ import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.ResourceModel;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.projectforge.common.StringHelper;
 import org.projectforge.framework.persistence.utils.ImportStatus;
 import org.projectforge.framework.persistence.utils.ImportStorage;
@@ -61,9 +62,8 @@ import de.micromata.hibernate.history.delta.PropertyDelta;
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
  */
-public abstract class AbstractImportStoragePanel<P extends AbstractImportPage<?>>extends Panel
+public abstract class AbstractImportStoragePanel<P extends AbstractImportPage<?>> extends Panel
 {
   private static final long serialVersionUID = 6755444819211298966L;
 
@@ -108,7 +108,7 @@ public abstract class AbstractImportStoragePanel<P extends AbstractImportPage<?>
     }
     add(storageHeadingLabel = new Label("storageHeading",
         "Import storage: " + (storage != null ? storage.getFilename() : "")))
-            .setRenderBodyOnly(true);
+        .setRenderBodyOnly(true);
 
     add(errorPropertiesTable = new WebMarkupContainer("errorPropertiesTable"));
     if (MapUtils.isNotEmpty(errorProperties) == true) {
@@ -275,7 +275,7 @@ public abstract class AbstractImportStoragePanel<P extends AbstractImportPage<?>
 
   /**
    * Does nothing at default.
-   * 
+   *
    * @param actionLinkRepeater
    */
   protected void appendSheetActionLinks(final ImportedSheet<?> sheet, final RepeatingView actionLinkRepeater)
@@ -326,8 +326,8 @@ public abstract class AbstractImportStoragePanel<P extends AbstractImportPage<?>
       if ("all".equals(listType) == true //
           || ("faulty".equals(listType) == true && element.isFaulty() == true)//
           || ("modified".equals(listType) == true
-              && (element.isNew() == true || element.isModified() == true || element.isFaulty() == true)) //
-      ) {
+          && (element.isNew() == true || element.isModified() == true || element.isFaulty() == true)) //
+          ) {
         // Yes, show this element.
       } else {
         // Don't show this element.
@@ -450,9 +450,9 @@ public abstract class AbstractImportStoragePanel<P extends AbstractImportPage<?>
       super.onCloseButtonSubmit(target);
       if (isConfirmed() == true) {
         parentPage.commit(sheetName);
-        setResponsePage(parentPage);
+        setResponsePage(parentPage.getClass(), new PageParameters().set(0, "success"));
       }
       return true;
     }
-  };
+  }
 }

@@ -350,8 +350,8 @@ public class TeamCalServiceImpl
       final RRule rrule = new RRule(recur);
       vEvent.getProperties().add(rrule);
       if (teamEvent.getRecurrenceExDate() != null) {
-        final List<net.fortuna.ical4j.model.Date> exDates = ICal4JUtils.parseISODateStringsAsICal4jDates(
-            teamEvent.getRecurrenceExDate(), timeZone);
+        final List<net.fortuna.ical4j.model.Date> exDates = ICal4JUtils.parseCSVDatesAsICal4jDates(
+            teamEvent.getRecurrenceExDate(), (false == teamEvent.isAllDay()), timeZone);
         if (CollectionUtils.isEmpty(exDates) == false) {
           for (final net.fortuna.ical4j.model.Date date : exDates) {
             final DateList dateList;
@@ -552,39 +552,33 @@ public class TeamCalServiceImpl
       log.error("Error getting timezone from ical4j.");
       ical4jTimeZone = ICal4JUtils.getUserTimeZone();
     }
+
     final net.fortuna.ical4j.model.DateTime ical4jStartDate = new net.fortuna.ical4j.model.DateTime(startDate);
     ical4jStartDate.setTimeZone(ical4jTimeZone);
     final net.fortuna.ical4j.model.DateTime ical4jEndDate = new net.fortuna.ical4j.model.DateTime(endDate);
     ical4jEndDate.setTimeZone(ICal4JUtils.getTimeZone(timeZone4Calc));
     final net.fortuna.ical4j.model.DateTime seedDate = new net.fortuna.ical4j.model.DateTime(eventStartDate);
     seedDate.setTimeZone(ICal4JUtils.getTimeZone(timeZone4Calc));
-    if (ical4jStartDate == null || ical4jEndDate == null || seedDate == null) {
-      log.error("Can't get recurrence events of event "
-          + event.getId()
-          + ". Not all three dates are given: startDate="
-          + ical4jStartDate
-          + ", endDate="
-          + ical4jEndDate
-          + ", seed="
-          + seedDate);
-      return null;
-    }
-    final List<net.fortuna.ical4j.model.Date> exDates = ICal4JUtils.parseISODateStringsAsICal4jDates(
-        event.getRecurrenceExDate(),
-        ical4jTimeZone);
+
+    // get ex dates of event
+    final List<net.fortuna.ical4j.model.Date> exDates = ICal4JUtils.parseCSVDatesAsICal4jDates(
+        event.getRecurrenceExDate(), (false == event.isAllDay()), ical4jTimeZone);
+
+    // get events in time range
     final DateList dateList = recur.getDates(seedDate, ical4jStartDate, ical4jEndDate, Value.DATE_TIME);
+
+    // remove ex range values
     final Collection<TeamEvent> col = new ArrayList<TeamEvent>();
     if (dateList != null) {
       OuterLoop:
       for (final Object obj : dateList) {
         final net.fortuna.ical4j.model.DateTime dateTime = (net.fortuna.ical4j.model.DateTime) obj;
         final String isoDateString = event.isAllDay() == true ? DateHelper.formatIsoDate(dateTime, timeZone)
-            : DateHelper
-            .formatIsoTimestamp(dateTime, DateHelper.UTC);
+            : DateHelper.formatIsoTimestamp(dateTime, DateHelper.UTC);
         if (exDates != null && exDates.size() > 0) {
           for (final net.fortuna.ical4j.model.Date exDate : exDates) {
             if (event.isAllDay() == false) {
-              if (exDate.getTime() == dateTime.getTime()) {
+              if (dateTime.equals(exDate)) {
                 if (log.isDebugEnabled() == true) {
                   log.debug("= ex-dates equals: " + isoDateString + " == " + exDate);
                 }
@@ -596,7 +590,7 @@ public class TeamCalServiceImpl
               final String isoExDateString = DateHelper.formatIsoDate(exDate, DateHelper.UTC);
               if (isoDateString.equals(isoExDateString) == true) {
                 if (log.isDebugEnabled() == true) {
-                  log.debug("= ex-dates equals: " + isoDateString + " == " + isoExDateString);
+                  log.debug(String.format("= ex-dates equals: %s == %s", isoDateString, isoExDateString));
                 }
                 // this date is part of ex dates, so don't use it.
                 continue OuterLoop;
@@ -780,7 +774,8 @@ public class TeamCalServiceImpl
   public static List<VEvent> getVEvents(final net.fortuna.ical4j.model.Calendar calendar)
   {
     final List<VEvent> events = new ArrayList<VEvent>();
-    @SuppressWarnings("unchecked") final List<CalendarComponent> list = calendar.getComponents(Component.VEVENT);
+    @SuppressWarnings("unchecked")
+    final List<CalendarComponent> list = calendar.getComponents(Component.VEVENT);
     if (list == null || list.size() == 0) {
       return events;
     }

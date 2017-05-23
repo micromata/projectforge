@@ -564,8 +564,8 @@ public class AuftragDO extends DefaultBaseDO
     if (getAuftragsStatus().isIn(AuftragsStatus.ABGESCHLOSSEN) == true && isVollstaendigFakturiert() == false) {
       return true;
     }
-    if (getPositionen() != null) {
-      for (final AuftragsPositionDO pos : getPositionen()) {
+    if (getPositionenIncludingDeleted() != null) {
+      for (final AuftragsPositionDO pos : getPositionenIncludingDeleted()) {
         if (pos.isDeleted()) {
           continue;
         }
@@ -584,7 +584,7 @@ public class AuftragDO extends DefaultBaseDO
   //@OrderColumn(name = "number")
   //TODO: Kann so nicht verwendet werden, da Zähler bei 1 starten muss. Größerer Umbau von nöten, um es zu ändern.
   @IndexColumn(name = "number", base = 1)
-  public List<AuftragsPositionDO> getPositionen()
+  private List<AuftragsPositionDO> getPositionen()
   {
     if (this.positionen == null) {
       log.debug("The list of AuftragsPositionDO is null. AuftragDO id: " + this.getId());
@@ -598,8 +598,26 @@ public class AuftragDO extends DefaultBaseDO
     return this.positionen;
   }
 
+  /**
+   * Get list of AuftragsPosition including elements that are marked as deleted.
+   * <b>Attention: Changes in this list will be persisted</b>.
+   *
+   * @return Returns the full list of linked AuftragsPositionen.
+   */
   @Transient
-  public List<AuftragsPositionDO> getPositionenNotDeleted()
+  public List<AuftragsPositionDO> getPositionenIncludingDeleted()
+  {
+    return this.getPositionen();
+  }
+
+  /**
+   * Get list of AuftragsPosition excluding elements that are marked as deleted.
+   * <b>Attention: Changes in this list will not be persisted.</b>
+   *
+   * @return Returns a filtered list of AUftragsPosition excluding marked as deleted elements.
+   */
+  @Transient
+  public List<AuftragsPositionDO> getPositionenExcludingDeleted()
   {
     return getPositionen().stream()
         .filter(pos -> pos.isDeleted() == false)

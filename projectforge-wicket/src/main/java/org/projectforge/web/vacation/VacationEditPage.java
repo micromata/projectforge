@@ -140,6 +140,8 @@ public class VacationEditPage extends AbstractEditPage<VacationDO, VacationEditF
         vacationService.sendMailToVacationInvolved(form.getData(), false, false);
       }
       if (VacationStatus.APPROVED.equals(form.getData().getStatus())) {
+        //To intercept special cases for add or delete team calendars
+        vacationService.markTeamEventsOfVacationAsDeleted(form.getData(), false);
         vacationService.createEventsForVacationCalendars(form.getData());
       }
       if (form.getStatusBeforeModification() != null) {
@@ -160,23 +162,16 @@ public class VacationEditPage extends AbstractEditPage<VacationDO, VacationEditF
               // nothing to do
           }
         }
-      }
-      if (form.getStatusBeforeModification() == VacationStatus.APPROVED) {
-        switch (form.getData().getStatus()) {
-          case REJECTED:
-            // APPROVED -> NOT APPROVED
-            vacationService.markAsDeleteEventsForVacationCalendars(form.getData());
-            vacationService.deleteUsedVacationDaysFromLastYear(form.getData());
-            break;
-
-          case IN_PROGRESS:
-            // APPROVED -> NOT APPROVED
-            vacationService.markAsDeleteEventsForVacationCalendars(form.getData());
-            vacationService.deleteUsedVacationDaysFromLastYear(form.getData());
-            break;
-
-          default:
-            // nothing to do
+        if (form.getStatusBeforeModification() == VacationStatus.APPROVED) {
+          switch (form.getData().getStatus()) {
+            case REJECTED:
+            case IN_PROGRESS:  // APPROVED -> NOT APPROVED
+              vacationService.markTeamEventsOfVacationAsDeleted(form.getData(), true);
+              vacationService.deleteUsedVacationDaysFromLastYear(form.getData());
+              break;
+            default:
+              // nothing to do
+          }
         }
       }
     } catch (final Exception e) {
@@ -191,7 +186,7 @@ public class VacationEditPage extends AbstractEditPage<VacationDO, VacationEditF
   {
     try {
       if (VacationStatus.APPROVED.equals(form.getData().getStatus())) {
-        vacationService.markAsDeleteEventsForVacationCalendars(form.getData());
+        vacationService.markTeamEventsOfVacationAsDeleted(form.getData(), true);
         vacationService.deleteUsedVacationDaysFromLastYear(form.getData());
         vacationService.sendMailToVacationInvolved(form.getData(), false, true);
       }
@@ -206,7 +201,7 @@ public class VacationEditPage extends AbstractEditPage<VacationDO, VacationEditF
   public WebPage afterUndelete()
   {
     try {
-      vacationService.markAsUnDeleteVacationCalendars(form.getData());
+      vacationService.undeleteTeamEventsOfVacation(form.getData());
       if (VacationStatus.APPROVED.equals(form.getData().getStatus())) {
         vacationService.markAsUnDeleteEventsForVacationCalendars(form.getData());
         vacationService.updateUsedVacationDaysFromLastYear(form.getData());

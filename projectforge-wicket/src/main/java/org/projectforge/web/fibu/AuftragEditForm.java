@@ -491,12 +491,12 @@ public class AuftragEditForm extends AbstractEditForm<AuftragDO, AuftragEditPage
     positionsRepeater.removeAll();
     periodOfPerformanceHelper.onRefreshPositions();
 
-    if (CollectionUtils.isEmpty(data.getPositionen()) == true) {
+    if (CollectionUtils.isEmpty(data.getPositionenIncludingDeleted()) == true) {
       // Ensure that at least one position is available:
       data.addPosition(new AuftragsPositionDO());
     }
 
-    for (final AuftragsPositionDO position : data.getPositionen()) {
+    for (final AuftragsPositionDO position : data.getPositionenIncludingDeleted()) {
       final boolean abgeschlossenUndNichtFakturiert = position.isAbgeschlossenUndNichtVollstaendigFakturiert();
       final ToggleContainerPanel positionsPanel = new ToggleContainerPanel(positionsRepeater.newChildId())
       {
@@ -728,12 +728,22 @@ public class AuftragEditForm extends AbstractEditForm<AuftragDO, AuftragEditPage
         removePositionButton.add(AttributeModifier.append("class", ButtonType.DELETE.getClassAttrValue()));
         final SingleButtonPanel removePositionButtonPanel = new SingleButtonPanel(divPanel.newChildId(), removePositionButton,
             getString("delete"));
+        removePositionButtonPanel.setVisible(positionInInvoiceExists(position) == false);
         divPanel.add(removePositionButtonPanel);
       }
       if (position.isDeleted()) {
         positionsPanel.setVisible(false);
       }
     }
+  }
+
+  private boolean positionInInvoiceExists(final AuftragsPositionDO position)
+  {
+    if (position.getId() != null) {
+      Set<RechnungsPositionVO> invoicePositionList = rechnungCache.getRechnungsPositionVOSetByAuftragsPositionId(position.getId());
+      return invoicePositionList != null && invoicePositionList.isEmpty() == false;
+    }
+    return false;
   }
 
   protected String getPositionHeading(final AuftragsPositionDO position, final ToggleContainerPanel positionsPanel)
