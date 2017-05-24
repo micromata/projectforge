@@ -61,7 +61,6 @@ import net.fortuna.ical4j.model.Dur;
 import net.fortuna.ical4j.model.Property;
 import net.fortuna.ical4j.model.PropertyList;
 import net.fortuna.ical4j.model.Recur;
-import net.fortuna.ical4j.model.ValidationException;
 import net.fortuna.ical4j.model.component.CalendarComponent;
 import net.fortuna.ical4j.model.component.VAlarm;
 import net.fortuna.ical4j.model.component.VEvent;
@@ -468,7 +467,7 @@ public class TeamCalServiceImpl
       cal.getComponents().add(event);
       CalendarOutputter outputter = new CalendarOutputter();
       outputter.output(cal, baos);
-    } catch (IOException | ValidationException e) {
+    } catch (IOException e) {
       log.error("Error while exporting calendar event. " + e.getMessage());
       return null;
     }
@@ -536,10 +535,6 @@ public class TeamCalServiceImpl
         ? DateHelper.formatIsoDate(event.getStartDate(), timeZone) : DateHelper
         .formatIsoTimestamp(event.getStartDate(), DateHelper.UTC);
     java.util.Date eventStartDate = event.getStartDate();
-    if (event.isAllDay() == true) {
-      // eventStartDate should be midnight in user's time zone.
-      eventStartDate = DateHelper.parseIsoDate(eventStartDateString, timeZone);
-    }
     if (log.isDebugEnabled() == true) {
       log.debug("---------- startDate=" + DateHelper.formatIsoTimestamp(eventStartDate, timeZone) + ", timeZone="
           + timeZone.getID());

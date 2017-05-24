@@ -227,8 +227,8 @@
     <javax.servlet-api.version>3.1.0</javax.servlet-api.version>
     <javax.mail.version>1.4.7</javax.mail.version>
     <el-api.version>3.0.0</el-api.version>
-    <ical4j.version>2.0-beta1</ical4j.version>
-    <ical4j-vcard.version>0.9.6.2</ical4j-vcard.version>
+    <ical4j.version>2.0.0</ical4j.version>
+    <ical4j-vcard.version>1.0.0</ical4j-vcard.version>
     <xstream.version>1.4.8</xstream.version>
     <itext.version>2.1.7</itext.version>
     <jfreechart.version>1.0.19</jfreechart.version>
