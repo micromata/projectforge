@@ -73,6 +73,11 @@ public class ICal4JUtils
     return registry.getTimeZone(timeZone.getID());
   }
 
+  public static TimeZone getUTCTimeZone()
+  {
+    return registry.getTimeZone("GMT");
+  }
+
   public static VEvent createVEvent(final Date startDate, final Date endDate, final String uid, final String summary)
   {
     return createVEvent(startDate, endDate, uid, summary, false);
@@ -409,6 +414,34 @@ public class ICal4JUtils
       } else {
         result.add(new net.fortuna.ical4j.model.Date(date));
       }
+    }
+    return result;
+  }
+
+  public static List<Date> parseCSVDatesAsJavaUtilDates(final String csvDates, final java.util.TimeZone timeZone)
+  {
+    final String[] sa = splitExDates(csvDates);
+    if (sa == null) {
+      return null;
+    }
+    final List<Date> result = new ArrayList<>();
+    for (final String str : sa) {
+      if (StringUtils.isEmpty(str)) {
+        continue;
+      }
+
+      Date date = null;
+      if (str.matches("\\d{8}.*") == true) {
+        date = parseICalDateString(str, timeZone);
+      } else {
+        date = parseISODateString(str);
+      }
+
+      if (date == null) {
+        continue;
+      }
+
+      result.add(date);
     }
     return result;
   }

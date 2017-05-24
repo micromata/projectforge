@@ -32,6 +32,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.builder.ReflectionToStringBuilder;
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 /**
  * For documentation please refer the ProjectForge-API: TeamEventDO object.
@@ -43,9 +44,11 @@ public class CalendarEventObject extends AbstractBaseObject
 {
   private Integer calendarId;
 
+  @JsonSerialize(using = CustomerDateAndTimeSerialize.class)
   @JsonDeserialize(using = CustomerDateAndTimeDeserialize.class)
   private Date startDate;
 
+  @JsonSerialize(using = CustomerDateAndTimeSerialize.class)
   @JsonDeserialize(using = CustomerDateAndTimeDeserialize.class)
   private Date endDate;
 
@@ -57,6 +60,7 @@ public class CalendarEventObject extends AbstractBaseObject
 
   private String note;
 
+  @JsonSerialize(using = CustomerDateAndTimeSerialize.class)
   @JsonDeserialize(using = CustomerDateAndTimeDeserialize.class)
   private Date reminder;
 
@@ -66,6 +70,7 @@ public class CalendarEventObject extends AbstractBaseObject
 
   private String recurrenceRule, recurrenceExDate;
 
+  @JsonSerialize(using = CustomerDateAndTimeSerialize.class)
   @JsonDeserialize(using = CustomerDateAndTimeDeserialize.class)
   private Date recurrenceUntil;
 

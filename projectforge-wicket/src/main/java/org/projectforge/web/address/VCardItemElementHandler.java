@@ -30,26 +30,27 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 
-import net.fortuna.ical4j.model.ValidationException;
+import org.apache.commons.lang.StringUtils;
+
 import net.fortuna.ical4j.vcard.Group;
 import net.fortuna.ical4j.vcard.Parameter;
 import net.fortuna.ical4j.vcard.Property;
 import net.fortuna.ical4j.vcard.Property.Id;
 
-import org.apache.commons.lang.StringUtils;
-
 /**
  * Handle vCard item entries.<br />
  * {@link net.fortuna.ical4j.vcard} is not possible to handle item elements.
- * 
- * @author Maximilian Lauterbach (m.lauterbach@micromata.de)
  *
+ * @author Maximilian Lauterbach (m.lauterbach@micromata.de)
  */
 public class VCardItemElementHandler
 {
+  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(VCardItemElementHandler.class);
+
   private final ArrayList<Property> itemList;
 
-  public VCardItemElementHandler(final FileInputStream fis){
+  public VCardItemElementHandler(final FileInputStream fis)
+  {
     final DataInputStream in = new DataInputStream(fis);
     final BufferedReader br = new BufferedReader(new InputStreamReader(in));
     itemList = new ArrayList<Property>();
@@ -57,7 +58,7 @@ public class VCardItemElementHandler
     //Read File Line By Line
     try {
       String strLine;
-      while ((strLine = br.readLine()) != null)   {
+      while ((strLine = br.readLine()) != null) {
         // looking for a item entry
         if (strLine.startsWith("item") && !strLine.contains("X-AB")) {
 
@@ -78,9 +79,9 @@ public class VCardItemElementHandler
           boolean startSignFound = false;
 
           String valueCache = "";
-          for (int i = n; i < str.length; i++){
+          for (int i = n; i < str.length; i++) {
             // looking for parameters
-            if (str[i].equals("WORK") || str[i].equals("HOME")){
+            if (str[i].equals("WORK") || str[i].equals("HOME")) {
               param.add(getParameter(str[i]));
             }
 
@@ -88,25 +89,26 @@ public class VCardItemElementHandler
              * looking for start sign.
              * usually ":" but sometimes addresses starts with ":;;"
              */
-            if (str[i].equals(":;;") || str[i].equals(":") || str[i].equals(":;") && !startSignFound){
+            if (str[i].equals(":;;") || str[i].equals(":") || str[i].equals(":;") && !startSignFound) {
               startSignFound = true;
-            } else
-              if (startSignFound) {
-                // terminate unwanted signs.
-                if(str[i].equals(";") || str[i].equals(";;") || str[i].equals(".;"))
-                  valueCache = valueCache + ";";
-                else
-                  valueCache = valueCache + str[i];
-              }
+            } else if (startSignFound) {
+              // terminate unwanted signs.
+              if (str[i].equals(";") || str[i].equals(";;") || str[i].equals(".;"))
+                valueCache = valueCache + ";";
+              else
+                valueCache = valueCache + str[i];
+            }
           }
 
           final String finalValue = valueCache;
           // set property with group at index = 3
           @SuppressWarnings("serial")
-          final Property property = new Property(new Group(str[n]), id, param) {
+          final Property property = new Property(new Group(str[n]), id, param)
+          {
             @Override
-            public void validate() throws ValidationException
+            public void validate()
             {
+              log.debug("I'm in the validate method. But nobody else is here.");
             }
 
             @Override
@@ -131,10 +133,11 @@ public class VCardItemElementHandler
 
   /**
    * Get list of "item" elements as {@link net.fortuna.ical4j.vcard.Property}
-   * 
+   *
    * @return ArrayList<Property>
    */
-  public ArrayList<Property> getItemList(){
+  public ArrayList<Property> getItemList()
+  {
     return itemList;
   }
 
@@ -145,7 +148,8 @@ public class VCardItemElementHandler
   @SuppressWarnings("serial")
   private Parameter getParameter(final String param)
   {
-    return new Parameter(Parameter.Id.TYPE) {
+    return new Parameter(Parameter.Id.TYPE)
+    {
 
       @Override
       public String getValue()
@@ -163,7 +167,7 @@ public class VCardItemElementHandler
   {
     Id found = null;
     for (final Id id : Id.values())
-      if(id.toString().equals(string)){
+      if (id.toString().equals(string)) {
         found = id;
         break;
       }

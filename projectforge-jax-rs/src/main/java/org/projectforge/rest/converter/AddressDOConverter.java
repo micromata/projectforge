@@ -84,7 +84,7 @@ public class AddressDOConverter
     address.setWebsite(addressDO.getWebsite());
     address.setZipCode(addressDO.getZipCode());
     if (disableImageData == false) {
-      address.setImage(Base64.encodeBase64String(addressDO.getAttribute("profileImageData", byte[].class)));
+      address.setImage(Base64.encodeBase64String(addressDO.getImageData()));
     }
     if (disableVCard == false) {
       final StringWriter writer = new StringWriter();
