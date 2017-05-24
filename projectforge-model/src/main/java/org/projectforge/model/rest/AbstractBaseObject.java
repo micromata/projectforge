@@ -26,6 +26,7 @@ package org.projectforge.model.rest;
 import java.util.Date;
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 /**
  * For documentation please refer the ProjectForge-API: DefaultBaseDO object.
@@ -39,6 +40,7 @@ public abstract class AbstractBaseObject
 
   private boolean deleted;
 
+  @JsonSerialize(using = CustomerDateAndTimeSerialize.class)
   @JsonDeserialize(using = CustomerDateAndTimeDeserialize.class)
   private Date created, lastUpdate;
 
