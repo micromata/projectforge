@@ -66,7 +66,7 @@ public class RestServicesTest extends AbstractTestBase
     addressDO.setPrivateZipCode("1337");
     addressDO.setPrivateMobilePhone("007");
     addressDO.setPrivatePhone("I forgot my number");
-    addressDO.putAttribute("profileImageData", new byte[] { 0, 1, 3 });
+    addressDO.setImageData(new byte[] { 0, 1, 3 });
     addressDO.setTask(getTask("1.1"));
     addressDao.save(addressDO);
 

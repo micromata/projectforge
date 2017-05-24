@@ -61,7 +61,6 @@ import net.fortuna.ical4j.model.Dur;
 import net.fortuna.ical4j.model.Property;
 import net.fortuna.ical4j.model.PropertyList;
 import net.fortuna.ical4j.model.Recur;
-import net.fortuna.ical4j.model.ValidationException;
 import net.fortuna.ical4j.model.component.CalendarComponent;
 import net.fortuna.ical4j.model.component.VAlarm;
 import net.fortuna.ical4j.model.component.VEvent;
@@ -468,7 +467,7 @@ public class TeamCalServiceImpl
       cal.getComponents().add(event);
       CalendarOutputter outputter = new CalendarOutputter();
       outputter.output(cal, baos);
-    } catch (IOException | ValidationException e) {
+    } catch (IOException e) {
       log.error("Error while exporting calendar event. " + e.getMessage());
       return null;
     }
@@ -521,8 +520,7 @@ public class TeamCalServiceImpl
   }
 
   public static Collection<TeamEvent> getRecurrenceEvents(final java.util.Date startDate, final java.util.Date endDate,
-      final TeamEventDO event,
-      final java.util.TimeZone timeZone)
+      final TeamEventDO event, final java.util.TimeZone timeZone)
   {
     if (event.hasRecurrence() == false) {
       return null;
@@ -537,10 +535,6 @@ public class TeamCalServiceImpl
         ? DateHelper.formatIsoDate(event.getStartDate(), timeZone) : DateHelper
         .formatIsoTimestamp(event.getStartDate(), DateHelper.UTC);
     java.util.Date eventStartDate = event.getStartDate();
-    if (event.isAllDay() == true) {
-      // eventStartDate should be midnight in user's time zone.
-      eventStartDate = DateHelper.parseIsoDate(eventStartDateString, timeZone);
-    }
     if (log.isDebugEnabled() == true) {
       log.debug("---------- startDate=" + DateHelper.formatIsoTimestamp(eventStartDate, timeZone) + ", timeZone="
           + timeZone.getID());
@@ -561,14 +555,13 @@ public class TeamCalServiceImpl
     seedDate.setTimeZone(ICal4JUtils.getTimeZone(timeZone4Calc));
 
     // get ex dates of event
-    final List<net.fortuna.ical4j.model.Date> exDates = ICal4JUtils.parseCSVDatesAsICal4jDates(
-        event.getRecurrenceExDate(), (false == event.isAllDay()), ical4jTimeZone);
+    final List<Date> exDates = ICal4JUtils.parseCSVDatesAsJavaUtilDates(event.getRecurrenceExDate(), DateHelper.UTC);
 
     // get events in time range
     final DateList dateList = recur.getDates(seedDate, ical4jStartDate, ical4jEndDate, Value.DATE_TIME);
 
     // remove ex range values
-    final Collection<TeamEvent> col = new ArrayList<TeamEvent>();
+    final Collection<TeamEvent> col = new ArrayList<>();
     if (dateList != null) {
       OuterLoop:
       for (final Object obj : dateList) {
@@ -576,9 +569,10 @@ public class TeamCalServiceImpl
         final String isoDateString = event.isAllDay() == true ? DateHelper.formatIsoDate(dateTime, timeZone)
             : DateHelper.formatIsoTimestamp(dateTime, DateHelper.UTC);
         if (exDates != null && exDates.size() > 0) {
-          for (final net.fortuna.ical4j.model.Date exDate : exDates) {
+          for (Date exDate : exDates) {
             if (event.isAllDay() == false) {
-              if (dateTime.equals(exDate)) {
+              Date recurDateJavaUtil = new Date(dateTime.getTime());
+              if (recurDateJavaUtil.equals(exDate)) {
                 if (log.isDebugEnabled() == true) {
                   log.debug("= ex-dates equals: " + isoDateString + " == " + exDate);
                 }
