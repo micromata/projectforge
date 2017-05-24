@@ -66,6 +66,7 @@ import org.projectforge.framework.persistence.entities.DefaultBaseDO;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.time.DateFormats;
+import org.projectforge.framework.time.DateHelper;
 import org.projectforge.framework.time.TimePeriod;
 
 import de.micromata.genome.db.jpa.history.api.NoHistory;
@@ -552,16 +553,15 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
 
   /**
    * @param date
-   * @param timeZone Only used for all day events.
    * @return
    */
-  public TeamEventDO addRecurrenceExDate(final Date date, final TimeZone timeZone)
+  public TeamEventDO addRecurrenceExDate(final Date date)
   {
     if (date == null) {
       return this;
     }
     final String exDate;
-    exDate = ICal4JUtils.asICalDateString(date, timeZone, isAllDay());
+    exDate = ICal4JUtils.asICalDateString(date, DateHelper.UTC, isAllDay());
     if (recurrenceExDate == null) {
       recurrenceExDate = exDate;
     } else if (recurrenceExDate.contains(exDate) == false) {

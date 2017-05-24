@@ -69,7 +69,6 @@ import org.springframework.web.context.support.WebApplicationContextUtils;
 import net.fortuna.ical4j.data.CalendarOutputter;
 import net.fortuna.ical4j.model.Calendar;
 import net.fortuna.ical4j.model.TimeZone;
-import net.fortuna.ical4j.model.ValidationException;
 import net.fortuna.ical4j.model.component.VEvent;
 import net.fortuna.ical4j.model.property.CalScale;
 import net.fortuna.ical4j.model.property.Description;
@@ -181,11 +180,8 @@ public class CalendarAboServlet extends HttpServlet
 
       resp.setContentType("text/calendar");
       final CalendarOutputter output = new CalendarOutputter(false);
-      try {
-        output.output(calendar, resp.getOutputStream());
-      } catch (final ValidationException ex) {
-        ex.printStackTrace();
-      }
+      output.output(calendar, resp.getOutputStream());
+
     } finally {
       log.info("Finished request: " + logMessage);
       ThreadLocalUserContext.setUser(getUserGroupCache(), null);

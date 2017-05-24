@@ -200,7 +200,6 @@ public class TeamEventEditPage extends AbstractEditPage<TeamEventDO, TeamEventEd
               setResponsePage(timesheetEditPage);
             }
 
-            ;
           }, getString("plugins.teamcal.event.convert2Timesheet"));
       addContentMenuEntry(menu);
     }
@@ -224,7 +223,6 @@ public class TeamEventEditPage extends AbstractEditPage<TeamEventDO, TeamEventEd
           setResponsePage(new TimesheetEditPage(timesheet).setReturnToPage(returnToPage));
         }
 
-        ;
       }.setDefaultFormProcessing(false), getString("plugins.teamcal.switchToTimesheetButton"));
       addContentMenuEntry(menu);
     } else {
@@ -243,7 +241,6 @@ public class TeamEventEditPage extends AbstractEditPage<TeamEventDO, TeamEventEd
           }
         }
 
-        ;
       }.setDefaultFormProcessing(false), getString("plugins.teamcal.exportIcsButton"));
       addContentMenuEntry(menu);
     }
@@ -310,7 +307,7 @@ public class TeamEventEditPage extends AbstractEditPage<TeamEventDO, TeamEventEd
       masterEvent.setRecurrence(form.recurrenceData);
       getBaseDao().update(masterEvent);
     } else if (recurrencyChangeType == RecurrencyChangeType.ONLY_CURRENT) { // only current date
-      masterEvent.addRecurrenceExDate(eventOfCaller.getStartDate(), ThreadLocalUserContext.getTimeZone());
+      masterEvent.addRecurrenceExDate(eventOfCaller.getStartDate());
       getBaseDao().update(masterEvent);
     }
     return (AbstractSecuredBasePage) getReturnToPage();
@@ -363,7 +360,7 @@ public class TeamEventEditPage extends AbstractEditPage<TeamEventDO, TeamEventEd
       return null;
     } else if (recurrencyChangeType == RecurrencyChangeType.ONLY_CURRENT) { // only current date
       // Add current date to the master date as exclusion date and save this event (without recurrence settings).
-      masterEvent.addRecurrenceExDate(eventOfCaller.getStartDate(), ThreadLocalUserContext.getTimeZone());
+      masterEvent.addRecurrenceExDate(eventOfCaller.getStartDate());
       newEvent = oldDataObject.clone();
       newEvent.setRecurrenceDate(eventOfCaller.getStartDate());
       newEvent.setRecurrenceReferenceId(masterEvent.getId());
