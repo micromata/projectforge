@@ -192,16 +192,13 @@ public class TeamEventDaoRest
       final net.fortuna.ical4j.model.Calendar calendar = builder.build(new ByteArrayInputStream(Base64.decodeBase64(calendarEvent.getIcsData())));
       //Getting the VEvent from ics
       final VEvent event = (VEvent) calendar.getComponent(Component.VEVENT);
-      if(event.getUid() != null)
-      {
+      if (event.getUid() != null) {
         //Getting the origin team event from database by uid if exist
         TeamEventDO teamEventOrigin = teamEventService.findByUid(event.getUid().getValue());
         //Check if db event exists
         if (teamEventOrigin != null && teamEventOrigin.getCalendar().getId().equals(teamCalDO.getId())) {
           return updateTeamEvent(calendarEvent);
-        }
-        else
-        {
+        } else {
           event.getUid().setValue("");
           return saveVEvent(event, teamCalDO, true);
         }
@@ -274,7 +271,7 @@ public class TeamEventDaoRest
         VEvent event2 = (VEvent) vevents.get(1);
         if (event.getUid().equals(event2.getUid())) {
           //Set ExDate in event1
-          teamEvent.addRecurrenceExDate(event2.getRecurrenceId().getDate(), teamEvent.getTimeZone());
+          teamEvent.addRecurrenceExDate(event2.getRecurrenceId().getDate());
           //Create new Event from event2
           saveVEvent(event2, teamCalDO, false);
         }
