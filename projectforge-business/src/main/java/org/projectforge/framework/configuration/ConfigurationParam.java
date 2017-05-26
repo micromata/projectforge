@@ -116,9 +116,9 @@ public enum ConfigurationParam implements IConfigurationParam
    */
   MIN_PASSWORD_LENGTH("minPasswordLength", ConfigurationType.INTEGER, true, 10),
   /**
-   * Password Flag Check - change configuration param.
+   * Password Flag Check - configuration, that passwords will be checked that passwords have to change each time a new one is entered.
    */
-  PASSWORD_FLAG_CHECK_CHANGE("password.flag.checkChange", ConfigurationType.BOOLEAN, true, false);
+  PASSWORD_FLAG_CHECK_CHANGE("password.flag.checkChange", ConfigurationType.BOOLEAN, true, true);
 
   /**
    * Key.

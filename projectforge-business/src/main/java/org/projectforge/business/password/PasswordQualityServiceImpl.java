@@ -81,17 +81,23 @@ public class PasswordQualityServiceImpl implements PasswordQualityService
   public I18nKeysAndParamsSet checkPasswordQualityOnChange(final String oldPassword, final String newPassword)
 
   {
-    i18nKeyAndParamsSet = checkPasswordQuality(newPassword);
-    if (i18nKeyAndParamsSet == null) {
+    if (checkPasswordQuality(newPassword) == null) {
       i18nKeyAndParamsSet = new I18nKeysAndParamsSet();
     }
-    if (StringUtils.equals(oldPassword, newPassword) == true) {
-      addErrorI18nKey(new I18nKeyAndParams(MESSAGE_KEY_PASSWORD_OLD_EQ_NEW_ERROR));
+    if (configurationService.getFlagCheckPasswordChange() == true) {
+      checkForPasswordEquality(oldPassword, newPassword);
     }
     if (i18nKeyAndParamsSet.isEmpty() == true)
       return null;
     else
       return i18nKeyAndParamsSet;
+  }
+
+  private void checkForPasswordEquality(final String oldPassword, final String newPassword)
+  {
+    if (StringUtils.equals(oldPassword, newPassword) == true) {
+      addErrorI18nKey(new I18nKeyAndParams(MESSAGE_KEY_PASSWORD_OLD_EQ_NEW_ERROR));
+    }
   }
 
   /**
@@ -104,6 +110,7 @@ public class PasswordQualityServiceImpl implements PasswordQualityService
   public I18nKeysAndParamsSet checkPasswordQuality(final String password)
   {
     i18nKeyAndParamsSet = new I18nKeysAndParamsSet();
+
     final int minPasswordLength = configurationService.getMinPasswordLength();
     if (password == null || password.length() < minPasswordLength) {
       addErrorI18nKey(new I18nKeyAndParams(MESSAGE_KEY_PASSWORD_MIN_LENGTH_ERROR, configurationService.getMinPasswordLength()));
@@ -112,6 +119,16 @@ public class PasswordQualityServiceImpl implements PasswordQualityService
       }
     }
 
+    checkForCharsInPassword(password);
+
+    if (i18nKeyAndParamsSet.isEmpty() == true)
+      return null;
+    else
+      return i18nKeyAndParamsSet;
+  }
+
+  private void checkForCharsInPassword(final String password)
+  {
     boolean letter = false;
     boolean nonLetter = false;
     for (int i = 0; i < password.length(); i++) {
@@ -128,11 +145,6 @@ public class PasswordQualityServiceImpl implements PasswordQualityService
     if (nonLetter == false) {
       addErrorI18nKey(new I18nKeyAndParams(MESSAGE_KEY_PASSWORD_NONCHAR_ERROR));
     }
-
-    if (i18nKeyAndParamsSet.isEmpty() == true)
-      return null;
-    else
-      return i18nKeyAndParamsSet;
   }
 
 }

@@ -247,6 +247,9 @@ public class ConfigurationDao extends BaseDao<ConfigurationDO>
     if (param.getType().isIn(ConfigurationType.INTEGER)) {
       configuration.setIntValue(param.getDefaultIntValue());
     }
+    if (param.getType().isIn(ConfigurationType.BOOLEAN)) {
+      configuration.setStringValue(String.valueOf(param.getDefaultBooleanValue()));
+    }
     internalSave(configuration);
   }
 
