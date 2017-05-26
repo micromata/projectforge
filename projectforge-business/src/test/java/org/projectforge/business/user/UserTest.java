@@ -26,13 +26,13 @@ package org.projectforge.business.user;
 import static org.testng.AssertJUnit.*;
 
 import java.io.Serializable;
-import java.util.Set;
 
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.projectforge.business.group.service.GroupService;
 import org.projectforge.business.multitenancy.TenantRegistryMap;
 import org.projectforge.framework.i18n.I18nKeyAndParams;
+import org.projectforge.framework.i18n.I18nKeysAndParamsSet;
 import org.projectforge.framework.persistence.user.entities.GroupDO;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.test.AbstractTestBase;
@@ -46,6 +46,16 @@ public class UserTest extends AbstractTestBase
 {
   private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(UserTest.class);
   private static final String STRONGOLDPW = "ja6gieyai8quie0Eey!ooS8eMonah:";
+
+  private static final String MESSAGE_KEY_PASSWORD_QUALITY_ERROR = "user.changePassword.error.passwordQualityCheck";
+
+  private static final String MESSAGE_KEY_PASSWORD_MIN_LENGTH_ERROR = "user.changePassword.error.notMinLength";
+
+  private static final String MESSAGE_KEY_PASSWORD_CHARACTER_ERROR = "user.changePassword.error.noCharacter";
+
+  private static final String MESSAGE_KEY_PASSWORD_NONCHAR_ERROR = "user.changePassword.error.noNonCharacter";
+
+  private static final String MESSAGE_KEY_PASSWORD_OLD_EQ_NEW_ERROR = "user.changePassword.error.oldPasswdEqualsNew";
 
   @Autowired
   private TransactionTemplate txTemplate;
@@ -130,23 +140,47 @@ public class UserTest extends AbstractTestBase
     assertEquals("SHA{9B4DDF20612345C5FC7A9355022E07368CDDF23A}", dest.getPassword());
   }
 
+  /**
+   * Test password quality.
+   */
   @Test
   public void testPasswordQuality()
   {
-    final Set<I18nKeyAndParams> passwordQualityMessage = userService.getPasswordQualityI18nKeyAndParams();
 
-//    assertTrue("Empty password not allowed.", userService.checkPasswordQualityOnChange(STRONGOLDPW, null).contains(new I18nKeyAndParams()))
-    //    assertEquals("Empty password not allowed.", passwordQualityMessage, userService.checkPasswordQualityOnChange(STRONGOLDPW, null));
-    //    assertEquals("Password with less than 10 characters not allowed.", passwordQualityMessage, userService.checkPasswordQualityOnChange(STRONGOLDPW, ""));
-    //    assertEquals("Password with less than 10 characters not allowed.", passwordQualityMessage,
-    //        userService.checkPasswordQualityOnChange(STRONGOLDPW, "abcd12345"));
-    //    assertEquals("Password must have one non letter at minimum.", passwordQualityMessage,
-    //        userService.checkPasswordQualityOnChange(STRONGOLDPW, "ProjectForge"));
-    //    assertEquals("Password must have one letter at minimum.", passwordQualityMessage, userService.checkPasswordQualityOnChange(STRONGOLDPW, "1234567890"));
-    //    assertEquals("Password must have one letter at minimum.", passwordQualityMessage, userService.checkPasswordQualityOnChange(STRONGOLDPW, "12345678901"));
-    //    assertNull("Password OK.", userService.checkPasswordQualityOnChange(STRONGOLDPW, "kabcdjh!id"));
-    //    assertNull("Password OK.", userService.checkPasswordQualityOnChange(STRONGOLDPW, "kjh8iabcddsf"));
-    //    assertNull("Password OK.", userService.checkPasswordQualityOnChange(STRONGOLDPW, "  5     g "));
+    I18nKeysAndParamsSet passwordQualityMessages = userService.checkPasswordQualityOnChange(STRONGOLDPW, null);
+    assertTrue("Empty password not allowed.",
+        passwordQualityMessages.isInSet(new I18nKeyAndParams(MESSAGE_KEY_PASSWORD_MIN_LENGTH_ERROR, 10)));
+
+    passwordQualityMessages = userService.checkPasswordQualityOnChange(STRONGOLDPW, "");
+    assertTrue("Empty password not allowed.",
+        passwordQualityMessages.isInSet(new I18nKeyAndParams(MESSAGE_KEY_PASSWORD_MIN_LENGTH_ERROR, 10)));
+
+    passwordQualityMessages = userService.checkPasswordQualityOnChange(STRONGOLDPW, "abcd12345");
+    assertTrue("Password with less than " + "10" + " characters not allowed.",
+        passwordQualityMessages.isInSet(new
+            I18nKeyAndParams(MESSAGE_KEY_PASSWORD_MIN_LENGTH_ERROR, 10)));
+
+    passwordQualityMessages = userService.checkPasswordQualityOnChange(STRONGOLDPW, "ProjectForge");
+    assertTrue("Password must have one non letter at minimum.",
+        passwordQualityMessages.isInSet(new I18nKeyAndParams(MESSAGE_KEY_PASSWORD_NONCHAR_ERROR)));
+
+    passwordQualityMessages = userService.checkPasswordQualityOnChange(STRONGOLDPW, "1234567890");
+    assertTrue("Password must have one non letter at minimum.",
+        passwordQualityMessages.isInSet(new I18nKeyAndParams(MESSAGE_KEY_PASSWORD_CHARACTER_ERROR)));
+
+    passwordQualityMessages = userService.checkPasswordQualityOnChange(STRONGOLDPW, "12345678901");
+    assertTrue("Password must have one non letter at minimum.",
+        passwordQualityMessages.isInSet(new I18nKeyAndParams(MESSAGE_KEY_PASSWORD_CHARACTER_ERROR)));
+
+    passwordQualityMessages = userService.checkPasswordQualityOnChange(STRONGOLDPW, STRONGOLDPW);
+    assertTrue("Password must New password should not be the same as the old one.",
+        passwordQualityMessages.isInSet(new I18nKeyAndParams(MESSAGE_KEY_PASSWORD_OLD_EQ_NEW_ERROR)));
+
+    assertNull("Password OK.", userService.checkPasswordQualityOnChange(STRONGOLDPW, "kabcdjh!id"));
+
+    assertNull("Password OK.", userService.checkPasswordQualityOnChange(STRONGOLDPW, "kjh8iabcddsf"));
+
+    assertNull("Password OK.", userService.checkPasswordQualityOnChange(STRONGOLDPW, "  5     g "));
   }
 
   // TODO HISTORY

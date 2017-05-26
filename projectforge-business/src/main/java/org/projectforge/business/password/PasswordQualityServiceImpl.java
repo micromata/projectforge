@@ -8,25 +8,48 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 /**
+ * Class responsible to check quality of a password referencing stored configuration.
+ *
  * @author Matthias Altmann (m.altmann@micromata.de)
  */
 @Service
 public class PasswordQualityServiceImpl implements PasswordQualityService
 {
 
+  /**
+   * Constant MESSAGE_KEY_PASSWORD_QUALITY_ERROR.
+   */
   private static final String MESSAGE_KEY_PASSWORD_QUALITY_ERROR = "user.changePassword.error.passwordQualityCheck";
 
+  /**
+   * Constant MESSAGE_KEY_PASSWORD_MIN_LENGTH_ERROR.
+   */
   private static final String MESSAGE_KEY_PASSWORD_MIN_LENGTH_ERROR = "user.changePassword.error.notMinLength";
 
+  /**
+   * Constant MESSAGE_KEY_PASSWORD_CHARACTER_ERROR.
+   */
   private static final String MESSAGE_KEY_PASSWORD_CHARACTER_ERROR = "user.changePassword.error.noCharacter";
 
+  /**
+   * Constant MESSAGE_KEY_PASSWORD_NONCHAR_ERROR.
+   */
   private static final String MESSAGE_KEY_PASSWORD_NONCHAR_ERROR = "user.changePassword.error.noNonCharacter";
 
+  /**
+   * Constant MESSAGE_KEY_PASSWORD_OLD_EQ_NEW_ERROR.
+   */
   private static final String MESSAGE_KEY_PASSWORD_OLD_EQ_NEW_ERROR = "user.changePassword.error.oldPasswdEqualsNew";
 
+  /**
+   * Configuration service projectforge.
+   */
   @Autowired
   private ConfigurationService configurationService;
 
+  /**
+   * Set holding i18n keys for constraints not fulfilled by password to check inside this class.
+   */
   private I18nKeysAndParamsSet i18nKeyAndParamsSet = new I18nKeysAndParamsSet();
 
   @Override
@@ -37,6 +60,11 @@ public class PasswordQualityServiceImpl implements PasswordQualityService
 
   }
 
+  /**
+   * Add an I18n Error Key.
+   *
+   * @param i18nKeyAndParams the 18 n key and params
+   */
   private void addErrorI18nKey(final I18nKeyAndParams i18nKeyAndParams)
   {
     i18nKeyAndParamsSet.add(i18nKeyAndParams);
@@ -79,6 +107,9 @@ public class PasswordQualityServiceImpl implements PasswordQualityService
     final int minPasswordLength = configurationService.getMinPasswordLength();
     if (password == null || password.length() < minPasswordLength) {
       addErrorI18nKey(new I18nKeyAndParams(MESSAGE_KEY_PASSWORD_MIN_LENGTH_ERROR, configurationService.getMinPasswordLength()));
+      if (password == null) {
+        return i18nKeyAndParamsSet;
+      }
     }
 
     boolean letter = false;
