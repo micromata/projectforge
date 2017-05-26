@@ -1,11 +1,9 @@
 package org.projectforge.business.password;
 
-import java.util.HashSet;
-import java.util.Set;
-
 import org.apache.commons.lang.StringUtils;
 import org.projectforge.business.configuration.ConfigurationService;
 import org.projectforge.framework.i18n.I18nKeyAndParams;
+import org.projectforge.framework.i18n.I18nKeysAndParamsSet;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -29,10 +27,10 @@ public class PasswordQualityServiceImpl implements PasswordQualityService
   @Autowired
   private ConfigurationService configurationService;
 
-  private Set<I18nKeyAndParams> i18nKeyAndParamsSet = new HashSet<>();
+  private I18nKeysAndParamsSet i18nKeyAndParamsSet = new I18nKeysAndParamsSet();
 
   @Override
-  public Set<I18nKeyAndParams> getPasswordQualityI18nKeyAndParams()
+  public I18nKeysAndParamsSet getPasswordQualityI18nKeyAndParams()
   {
     i18nKeyAndParamsSet.add(new I18nKeyAndParams(MESSAGE_KEY_PASSWORD_QUALITY_ERROR, configurationService.getMinPasswordLength()));
     return i18nKeyAndParamsSet;
@@ -52,12 +50,12 @@ public class PasswordQualityServiceImpl implements PasswordQualityService
    * @return null if password quality is OK, otherwise the i18n message key of the password check failure.
    */
   @Override
-  public Set<I18nKeyAndParams> checkPasswordQualityOnChange(final String oldPassword, final String newPassword)
+  public I18nKeysAndParamsSet checkPasswordQualityOnChange(final String oldPassword, final String newPassword)
 
   {
     i18nKeyAndParamsSet = checkPasswordQuality(newPassword);
     if (i18nKeyAndParamsSet == null) {
-      i18nKeyAndParamsSet = new HashSet<>();
+      i18nKeyAndParamsSet = new I18nKeysAndParamsSet();
     }
     if (StringUtils.equals(oldPassword, newPassword) == true) {
       addErrorI18nKey(new I18nKeyAndParams(MESSAGE_KEY_PASSWORD_OLD_EQ_NEW_ERROR));
@@ -75,9 +73,9 @@ public class PasswordQualityServiceImpl implements PasswordQualityService
    * @return null if password quality is OK, otherwise the i18n message key of the password check failure.
    */
   @Override
-  public Set<I18nKeyAndParams> checkPasswordQuality(final String password)
+  public I18nKeysAndParamsSet checkPasswordQuality(final String password)
   {
-    i18nKeyAndParamsSet = new HashSet<>();
+    i18nKeyAndParamsSet = new I18nKeysAndParamsSet();
     final int minPasswordLength = configurationService.getMinPasswordLength();
     if (password == null || password.length() < minPasswordLength) {
       addErrorI18nKey(new I18nKeyAndParams(MESSAGE_KEY_PASSWORD_MIN_LENGTH_ERROR, configurationService.getMinPasswordLength()));

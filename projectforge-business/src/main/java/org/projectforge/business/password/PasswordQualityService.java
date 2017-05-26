@@ -1,17 +1,15 @@
 package org.projectforge.business.password;
 
-import java.util.Set;
-
-import org.projectforge.framework.i18n.I18nKeyAndParams;
+import org.projectforge.framework.i18n.I18nKeysAndParamsSet;
 
 /**
  * @author Matthias Altmann (m.altmann@micromata.de)
  */
 public interface PasswordQualityService
 {
-  Set<I18nKeyAndParams> getPasswordQualityI18nKeyAndParams();
+  I18nKeysAndParamsSet getPasswordQualityI18nKeyAndParams();
 
-  Set<I18nKeyAndParams> checkPasswordQualityOnChange(String oldPassword, String newPassword);
+  I18nKeysAndParamsSet checkPasswordQualityOnChange(String oldPassword, String newPassword);
 
-  Set<I18nKeyAndParams> checkPasswordQuality(String password);
+  I18nKeysAndParamsSet checkPasswordQuality(String password);
 }
