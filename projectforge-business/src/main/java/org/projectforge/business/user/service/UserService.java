@@ -40,8 +40,6 @@ public interface UserService
 
   Set<I18nKeyAndParams> getPasswordQualityI18nKeyAndParams();
 
-  Set<I18nKeyAndParams> checkPasswordQuality(String passwordInput);
-
   void createEncryptedPassword(PFUserDO passwordUser, String passwordInput);
 
   PFUserDO getByUsername(String username);
@@ -67,6 +65,10 @@ public interface UserService
   String getStayLoggedInKey(Integer id);
 
   List<PFUserDO> loadAll();
+
+  Set<I18nKeyAndParams> checkPasswordQualityOnChange(final String oldPassword, final String newPassword);
+
+  Set<I18nKeyAndParams> checkPasswordQuality(final String newPassword);
 
   void onPasswordChange(final PFUserDO user, final boolean createHistoryEntry);
 

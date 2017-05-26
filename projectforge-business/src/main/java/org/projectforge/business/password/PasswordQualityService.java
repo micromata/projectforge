@@ -11,5 +11,7 @@ public interface PasswordQualityService
 {
   Set<I18nKeyAndParams> getPasswordQualityI18nKeyAndParams();
 
-  Set<I18nKeyAndParams> checkPasswordQuality(String newPassword);
+  Set<I18nKeyAndParams> checkPasswordQualityOnChange(String oldPassword, String newPassword);
+
+  Set<I18nKeyAndParams> checkPasswordQuality(String password);
 }

@@ -45,6 +45,7 @@ import org.testng.annotations.Test;
 public class UserTest extends AbstractTestBase
 {
   private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(UserTest.class);
+  private static final String STRONGOLDPW = "ja6gieyai8quie0Eey!ooS8eMonah:";
 
   @Autowired
   private TransactionTemplate txTemplate;
@@ -133,15 +134,17 @@ public class UserTest extends AbstractTestBase
   public void testPasswordQuality()
   {
     final Set<I18nKeyAndParams> passwordQualityMessage = userService.getPasswordQualityI18nKeyAndParams();
-    assertEquals("Empty password not allowed.", passwordQualityMessage, userService.checkPasswordQuality(null));
-    assertEquals("Password with less than 10 characters not allowed.", passwordQualityMessage, userService.checkPasswordQuality(""));
-    assertEquals("Password with less than 10 characters not allowed.", passwordQualityMessage, userService.checkPasswordQuality("abcd12345"));
-    assertEquals("Password must have one non letter at minimum.", passwordQualityMessage, userService.checkPasswordQuality("ProjectForge"));
-    assertEquals("Password must have one letter at minimum.", passwordQualityMessage, userService.checkPasswordQuality("1234567890"));
-    assertEquals("Password must have one letter at minimum.", passwordQualityMessage, userService.checkPasswordQuality("12345678901"));
-    assertNull("Password OK.", userService.checkPasswordQuality("kabcdjh!id"));
-    assertNull("Password OK.", userService.checkPasswordQuality("kjh8iabcddsf"));
-    assertNull("Password OK.", userService.checkPasswordQuality("  5     g "));
+    assertEquals("Empty password not allowed.", passwordQualityMessage, userService.checkPasswordQualityOnChange(STRONGOLDPW, null));
+    assertEquals("Password with less than 10 characters not allowed.", passwordQualityMessage, userService.checkPasswordQualityOnChange(STRONGOLDPW, ""));
+    assertEquals("Password with less than 10 characters not allowed.", passwordQualityMessage,
+        userService.checkPasswordQualityOnChange(STRONGOLDPW, "abcd12345"));
+    assertEquals("Password must have one non letter at minimum.", passwordQualityMessage,
+        userService.checkPasswordQualityOnChange(STRONGOLDPW, "ProjectForge"));
+    assertEquals("Password must have one letter at minimum.", passwordQualityMessage, userService.checkPasswordQualityOnChange(STRONGOLDPW, "1234567890"));
+    assertEquals("Password must have one letter at minimum.", passwordQualityMessage, userService.checkPasswordQualityOnChange(STRONGOLDPW, "12345678901"));
+    assertNull("Password OK.", userService.checkPasswordQualityOnChange(STRONGOLDPW, "kabcdjh!id"));
+    assertNull("Password OK.", userService.checkPasswordQualityOnChange(STRONGOLDPW, "kjh8iabcddsf"));
+    assertNull("Password OK.", userService.checkPasswordQualityOnChange(STRONGOLDPW, "  5     g "));
   }
 
   // TODO HISTORY

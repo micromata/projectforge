@@ -277,7 +277,7 @@ public class UserServiceImpl implements UserService
     Validate.notNull(user);
     Validate.notNull(oldPassword);
     Validate.notNull(newPassword);
-    final Set<I18nKeyAndParams> errorMsgKeys = checkPasswordQuality(newPassword);
+    final Set<I18nKeyAndParams> errorMsgKeys = checkPasswordQualityOnChange(oldPassword, newPassword);
     if (errorMsgKeys != null) {
       return errorMsgKeys;
     }
@@ -314,7 +314,7 @@ public class UserServiceImpl implements UserService
     Validate.notNull(loginPassword);
     Validate.notNull(newWlanPassword);
 
-    final Set<I18nKeyAndParams> errorMsgKeys = checkPasswordQuality(newWlanPassword);
+    final Set<I18nKeyAndParams> errorMsgKeys = checkPasswordQualityOnChange(loginPassword, newWlanPassword);
     if (errorMsgKeys != null) {
       return errorMsgKeys;
     }
@@ -341,9 +341,22 @@ public class UserServiceImpl implements UserService
    * @return null if password quality is OK, otherwise the i18n message key of the password check failure.
    */
   @Override
+  public Set<I18nKeyAndParams> checkPasswordQualityOnChange(final String oldPassword, final String newPassword)
+  {
+    return passwordQualityService.checkPasswordQualityOnChange(oldPassword, newPassword);
+  }
+
+  /**
+   * Checks the password quality of a new password. Password must have at least n characters and at minimum one letter
+   * and one non-letter character.
+   *
+   * @param newPassword
+   * @return null if password quality is OK, otherwise the i18n message key of the password check failure.
+   */
+  @Override
   public Set<I18nKeyAndParams> checkPasswordQuality(final String newPassword)
   {
-    return passwordQualityService.getPasswordQualityI18nKeyAndParams();
+    return passwordQualityService.checkPasswordQuality(newPassword);
   }
 
   @Override
