@@ -58,6 +58,7 @@ import org.projectforge.business.teamcal.service.TeamCalServiceImpl;
 import org.projectforge.common.StringHelper;
 import org.projectforge.framework.persistence.api.ModificationStatus;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
+import org.projectforge.framework.time.DateHelper;
 import org.projectforge.framework.time.DayHolder;
 import org.projectforge.model.rest.CalendarEventObject;
 import org.projectforge.model.rest.RestPaths;
@@ -271,6 +272,7 @@ public class TeamEventDaoRest
         VEvent event2 = (VEvent) vevents.get(1);
         if (event.getUid().equals(event2.getUid())) {
           //Set ExDate in event1
+          // ical4j handles timezone internally, no actions required
           teamEvent.addRecurrenceExDate(event2.getRecurrenceId().getDate());
           //Create new Event from event2
           saveVEvent(event2, teamCalDO, false);
