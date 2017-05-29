@@ -22,6 +22,7 @@ import java.util.TreeSet;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.validator.routines.EmailValidator;
+import org.apache.poi.ss.usermodel.DateUtil;
 import org.joda.time.DateMidnight;
 import org.joda.time.DateTime;
 import org.projectforge.business.configuration.ConfigurationService;
@@ -54,10 +55,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
+import de.micromata.genome.util.types.DateUtils;
 import net.fortuna.ical4j.data.CalendarOutputter;
 import net.fortuna.ical4j.model.Component;
 import net.fortuna.ical4j.model.DateList;
 import net.fortuna.ical4j.model.Dur;
+import net.fortuna.ical4j.model.Parameter;
 import net.fortuna.ical4j.model.Property;
 import net.fortuna.ical4j.model.PropertyList;
 import net.fortuna.ical4j.model.Recur;
@@ -350,7 +353,7 @@ public class TeamCalServiceImpl
       vEvent.getProperties().add(rrule);
       if (teamEvent.getRecurrenceExDate() != null) {
         final List<net.fortuna.ical4j.model.Date> exDates = ICal4JUtils.parseCSVDatesAsICal4jDates(
-            teamEvent.getRecurrenceExDate(), (false == teamEvent.isAllDay()), timeZone);
+            teamEvent.getRecurrenceExDate(), (false == teamEvent.isAllDay()), ICal4JUtils.getUTCTimeZone());
         if (CollectionUtils.isEmpty(exDates) == false) {
           for (final net.fortuna.ical4j.model.Date date : exDates) {
             final DateList dateList;
@@ -745,15 +748,32 @@ public class TeamCalServiceImpl
       }
     }
 
+    // find recurrence rule
     final RRule rule = (RRule) event.getProperty(Property.RRULE);
     if (rule != null) {
       teamEvent.setRecurrenceRule(rule.getValue());
     }
+
+    // parsing ExDates
     PropertyList exDateProperties = event.getProperties(Property.EXDATE);
     if (exDateProperties != null) {
       List<String> exDateList = new ArrayList<>();
       exDateProperties.forEach(exDateProp -> {
-        exDateList.add(exDateProp.getValue());
+        // find timezone of exdate
+        final Parameter tzidParam = exDateProp.getParameter("TZID");
+        String timezoneId;
+        if (tzidParam != null && tzidParam.getValue() != null) {
+          timezoneId = tzidParam.getValue();
+        } else {
+          timezoneId = "UTC";
+        }
+        TimeZone timezone = TimeZone.getTimeZone(timezoneId);
+
+        // parse ExDate with inherent timezone
+        Date exDate = ICal4JUtils.parseICalDateString(exDateProp.getValue(), timezone);
+
+        // add ExDate in UTC to list
+        exDateList.add(ICal4JUtils.asICalDateString(exDate, DateHelper.UTC, teamEvent.isAllDay()));
       });
       teamEvent.setRecurrenceExDate(String.join(",", exDateList));
     }
