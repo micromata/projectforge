@@ -5,6 +5,11 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import org.apache.poi.xwpf.usermodel.XWPFDocument;
+import org.apache.poi.xwpf.usermodel.XWPFParagraph;
+import org.apache.poi.xwpf.usermodel.XWPFRun;
+import org.apache.poi.xwpf.usermodel.XWPFTable;
+import org.apache.poi.xwpf.usermodel.XWPFTableCell;
+import org.apache.poi.xwpf.usermodel.XWPFTableRow;
 import org.projectforge.business.configuration.ConfigurationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -42,6 +47,8 @@ public class InvoiceService
         invoiceTemplate = applicationContext.getResource("classpath:officeTemplates/invoiceTemplate.docx");
       }
       XWPFDocument templateDocument = readWordFile(invoiceTemplate.getInputStream());
+      //TODO:
+
       result = new ByteArrayOutputStream();
       templateDocument.write(result);
     } catch (IOException e) {
@@ -60,4 +67,24 @@ public class InvoiceService
     }
     return null;
   }
+
+  public void replaceText(XWPFDocument templateDocument, String data, String key)
+  {
+    for (XWPFTable tbl : templateDocument.getTables()) {
+      for (XWPFTableRow row : tbl.getRows()) {
+        for (XWPFTableCell cell : row.getTableCells()) {
+          for (XWPFParagraph p : cell.getParagraphs()) {
+            for (XWPFRun r : p.getRuns()) {
+              String text = r.getText(0);
+              if (text != null && text.contains(key)) {
+                text = text.replace(key, data);
+                r.setText(text, 0);
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
 }
