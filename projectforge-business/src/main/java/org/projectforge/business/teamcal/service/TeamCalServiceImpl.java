@@ -775,6 +775,8 @@ public class TeamCalServiceImpl
         // add ExDate in UTC to list
         exDateList.add(ICal4JUtils.asICalDateString(exDate, DateHelper.UTC, teamEvent.isAllDay()));
       });
+
+      // TODO compute diff? could help to improve concurrent requests
       teamEvent.setRecurrenceExDate(String.join(",", exDateList));
     }
     return teamEvent;
