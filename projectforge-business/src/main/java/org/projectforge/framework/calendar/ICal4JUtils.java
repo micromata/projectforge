@@ -75,7 +75,7 @@ public class ICal4JUtils
 
   public static TimeZone getUTCTimeZone()
   {
-    return registry.getTimeZone("GMT");
+    return registry.getTimeZone("UTC");
   }
 
   public static VEvent createVEvent(final Date startDate, final Date endDate, final String uid, final String summary)

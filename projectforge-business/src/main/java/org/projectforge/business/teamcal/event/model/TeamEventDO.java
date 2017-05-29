@@ -552,8 +552,10 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
   }
 
   /**
+   * Adds a new ExDate to this event.
+   *
    * @param date
-   * @return
+   * @return this for chaining.
    */
   public TeamEventDO addRecurrenceExDate(final Date date)
   {
@@ -562,16 +564,21 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
     }
     final String exDate;
     exDate = ICal4JUtils.asICalDateString(date, DateHelper.UTC, isAllDay());
-    if (recurrenceExDate == null) {
+    if (recurrenceExDate == null || recurrenceExDate.isEmpty()) {
       recurrenceExDate = exDate;
     } else if (recurrenceExDate.contains(exDate) == false) {
-      // Add this ex date only if not yet added:
+      // Add this ExDate only if not yet added:
       recurrenceExDate = recurrenceExDate + "," + exDate;
     }
     return this;
   }
 
   /**
+   * Sets the ExDates for recurring event. Expected format is CSV (date,date,date).
+   * Supported date formats are <b>yyyyMMdd</b> for all day events and <b>yyyyMMdd'T'HHmmss</b> otherwise.
+   * <p>
+   * <b>Caution:</b> all timestamps must be represented in UTC!
+   *
    * @param recurrenceExDate the recurrenceExDate to set
    * @return this for chaining.
    */
@@ -582,7 +589,7 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
   }
 
   /**
-   * @param recurrenceExDate the recurrenceExDate to set
+   * @param recurrenceDate the recurrenceDate to set
    * @return this for chaining.
    */
   @Transient
