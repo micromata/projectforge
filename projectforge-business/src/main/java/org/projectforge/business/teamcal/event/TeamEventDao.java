@@ -179,6 +179,8 @@ public class TeamEventDao extends BaseDao<TeamEventDO>
       }
     }
     // Update recurrenceUntil date (for database queries):
+    // TODO fix parsing behavior, currently the timestamp is mapped to 23:59:59 of the same day. Results in to many events in external tools.
+    // TODO check web view, check writing until from web interface
     final Date recurrenceUntil = ICal4JUtils.calculateRecurrenceUntil(event.getRecurrenceRule(), event.getTimeZone());
     event.setRecurrenceUntil(recurrenceUntil);
 
