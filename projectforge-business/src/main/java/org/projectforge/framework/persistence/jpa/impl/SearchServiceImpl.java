@@ -55,7 +55,6 @@ public class SearchServiceImpl implements SearchService
 
   /**
    * {@inheritDoc}
-   *
    */
 
   @Override
@@ -150,7 +149,7 @@ public class SearchServiceImpl implements SearchService
       }
       if (list != null) {
         list = (List<ENT>) CollectionUtils.select(list, PredicateUtils.uniquePredicate());
-        if (list.size() > 0 && searchFilter.isUseModificationFilter() == true) {
+        if (list.size() > 0 && searchFilter.applyModificationFilter()) {
           // Search now all history entries which were modified by the given user and/or in the given time period.
           Set<Integer> idSet = getHistoryEntries(session, searchFilter, entClazz);
           List<ENT> result = new ArrayList<ENT>();
