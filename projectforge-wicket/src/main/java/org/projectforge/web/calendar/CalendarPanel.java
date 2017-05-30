@@ -41,6 +41,7 @@ import org.projectforge.business.timesheet.TimesheetDO;
 import org.projectforge.business.timesheet.TimesheetDao;
 import org.projectforge.business.user.ProjectForgeGroup;
 import org.projectforge.framework.access.AccessChecker;
+import org.projectforge.framework.access.OperationType;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.time.DateHelper;
@@ -53,6 +54,7 @@ import org.projectforge.web.wicket.AbstractEditPage;
 import org.projectforge.web.wicket.components.DatePickerUtils;
 import org.projectforge.web.wicket.components.JodaDatePanel;
 
+import name.fraser.neil.plaintext.DiffMatchPatch;
 import net.ftlines.wicket.fullcalendar.CalendarResponse;
 import net.ftlines.wicket.fullcalendar.Event;
 import net.ftlines.wicket.fullcalendar.EventProvider;
@@ -448,79 +450,83 @@ public class CalendarPanel extends Panel
     if (newEndTimeMillis != null) {
       timesheet.setStopTime(new Timestamp(newEndTimeMillis));
     }
-
     final PFUserDO loggedInUser = ThreadLocalUserContext.getUser();
 
-    // check constraints
+    // copy or move?
+    boolean isMoveAction = CalendarDropMode.MOVE_SAVE.equals(dropMode) || CalendarDropMode.MOVE_EDIT.equals(dropMode);
+    if (isMoveAction) {
+      // move
+      // nothing to do here
+    } else {
+      // copy
+      timesheet.setId(null);
+      timesheet.setDeleted(false);
+      timesheetDao.setUser(timesheet, loggedInUser.getId()); // Copy for own user.
+    }
+
+    // check overlapping
     if (timesheetDao.hasTimeOverlap(timesheet, false)) {
-      // Move and copy timesheet results in overlapping events
       this.error(getString("timesheet.error.overlapping"));
       setResponsePage(getPage());
       return;
     }
-    if (timesheetDao.hasInsertAccess(loggedInUser, timesheet, false) == false) {
-      // User has no insert access, therefore ignore this request...
-      setResponsePage(getPage());
-      return;
-    }
 
-    if (CalendarDropMode.MOVE_SAVE.equals(dropMode) || CalendarDropMode.MOVE_EDIT.equals(dropMode)) {
-      if (timesheetDao.hasUpdateAccess(loggedInUser, timesheet, dbTimesheet, false) == false) {
-        // User has no update access, therefore ignore this request...
+    // check bookalbe
+    OperationType type = isMoveAction ? OperationType.UPDATE : OperationType.INSERT;
+    if (timesheetDao.checkTimesheetProtection(loggedInUser, timesheet, dbTimesheet, type, false)) {
+      if (timesheetDao.checkTaskBookable(timesheet, dbTimesheet, type, false) == false) {
+        this.error(getString("timesheet.error.taskNotBookable.taskNotOpened").replace("{0}", timesheet.getTask().getShortDisplayName()));
+        setResponsePage(getPage());
         return;
       }
-      if (CalendarDropMode.MOVE_SAVE.equals(dropMode)) {
-        try {
+    }
+
+    // check rights
+    boolean access;
+    if (isMoveAction) {
+      access = timesheetDao.hasUpdateAccess(loggedInUser, timesheet, dbTimesheet, false);
+    } else {
+      access = timesheetDao.hasInsertAccess(loggedInUser, timesheet, false);
+    }
+
+    if (access == false) {
+      this.error(getString("timesheet.error.noAccess"));
+      setResponsePage(getPage());
+    }
+
+    try {
+      switch (dropMode) {
+        case MOVE_SAVE:
           timesheetDao.update(timesheet);
           setResponsePage(getPage());
-        } catch (IllegalArgumentException ex) {
-          if (ex.getMessage().equals("Kost2Id of time sheet is not available in the task's kost2 list!")
-              || ex.getMessage().equals("Kost2Id can't be given for task without any kost2 entries!")) {
-            TimesheetEditPage timesheetEditPage = new TimesheetEditPage(timesheet);
-            timesheetEditPage.error(getString("timesheet.error.copyNoMatchingKost2"));
-            setResponsePage(timesheetEditPage.setReturnToPage((WebPage) getPage()));
-            return;
-          } else {
-            throw ex;
-          }
-        }
+          break;
+        case MOVE_EDIT:
+          setResponsePage(new TimesheetEditPage(timesheet).setReturnToPage((WebPage) getPage()));
+          break;
+        case COPY_SAVE:
+          timesheetDao.save(timesheet);
+          setResponsePage(getPage());
+          break;
+        case COPY_EDIT:
+          setResponsePage(new TimesheetEditPage(timesheet).setReturnToPage((WebPage) getPage()));
+          break;
+        case CANCEL:
+          // CANCEL -> should be handled through javascript now
+          setResponsePage(getPage());
+          break;
+      }
+    } catch (IllegalArgumentException ex) {
+      // strange type of exception handling
+      if (ex.getMessage().equals("Kost2Id of time sheet is not available in the task's kost2 list!")
+          || ex.getMessage().equals("Kost2Id can't be given for task without any kost2 entries!")) {
+        TimesheetEditPage timesheetEditPage = new TimesheetEditPage(timesheet);
+        timesheetEditPage.error(getString("timesheet.error.copyNoMatchingKost2"));
+        setResponsePage(timesheetEditPage.setReturnToPage((WebPage) getPage()));
+        return;
       } else {
-        setResponsePage(new TimesheetEditPage(timesheet).setReturnToPage((WebPage) getPage()));
+        throw ex;
       }
-      return;
     }
-    // Copy this time sheet:
-    timesheet.setId(null);
-    timesheet.setDeleted(false);
-    timesheetDao.setUser(timesheet, loggedInUser.getId()); // Copy for own user.
-
-    // copy & save
-    if (CalendarDropMode.COPY_SAVE.equals(dropMode)) {
-      try {
-        timesheetDao.save(timesheet);
-      } catch (IllegalArgumentException ex) {
-        if (ex.getMessage().equals("Kost2Id of time sheet is not available in the task's kost2 list!")
-            || ex.getMessage().equals("Kost2Id can't be given for task without any kost2 entries!")) {
-          TimesheetEditPage timesheetEditPage = new TimesheetEditPage(timesheet);
-          timesheetEditPage.error(getString("timesheet.error.copyNoMatchingKost2"));
-          setResponsePage(timesheetEditPage.setReturnToPage((WebPage) getPage()));
-          return;
-        } else {
-          throw ex;
-        }
-      }
-      setResponsePage(getPage());
-      return;
-    }
-
-    // copy & edit
-    if (CalendarDropMode.COPY_EDIT.equals(dropMode) == true) {
-      setResponsePage(new TimesheetEditPage(timesheet).setReturnToPage((WebPage) getPage()));
-      return;
-    }
-
-    // CANCEL -> should be handled through javascript now
-    setResponsePage(getPage());
   }
 
   /**
