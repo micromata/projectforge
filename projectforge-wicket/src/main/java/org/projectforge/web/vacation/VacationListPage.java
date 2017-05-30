@@ -25,6 +25,7 @@ package org.projectforge.web.vacation;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
@@ -155,6 +156,69 @@ public class VacationListPage extends AbstractListPage<VacationListForm, Vacatio
             cellItemListener.populateItem(item, componentId, rowModel);
           }
         });
+
+    columns.add(new CellItemListenerPropertyColumn<VacationDO>(VacationDO.class,
+        getSortable("manager", sortable),
+        "manager", cellItemListener)
+    {
+      /**
+       * @see org.projectforge.web.wicket.CellItemListenerPropertyColumn#populateItem(org.apache.wicket.markup.repeater.Item,
+       *      java.lang.String, org.apache.wicket.model.IModel)
+       */
+      @Override
+      public void populateItem(final Item<ICellPopulator<VacationDO>> item, final String componentId,
+          final IModel<VacationDO> rowModel)
+      {
+        final VacationDO vacation = rowModel.getObject();
+        final EmployeeDO manager = vacation.getManager();
+        final String fullname = manager != null && manager.getUser() != null ? manager.getUser().getFullname()
+            : null;
+        if (isSelectMode() == false) {
+          item.add(new ListSelectActionPanel(componentId, rowModel, VacationEditPage.class, vacation.getId(),
+              returnToPage, fullname));
+        } else {
+          item.add(
+              new ListSelectActionPanel(componentId, rowModel, caller, selectProperty, vacation.getId(), fullname));
+        }
+        cellItemListener.populateItem(item, componentId, rowModel);
+        addRowClick(item);
+      }
+    });
+
+    columns.add(new CellItemListenerPropertyColumn<VacationDO>(VacationDO.class,
+        getSortable("substitutions", sortable),
+        "substitutions", cellItemListener)
+    {
+      /**
+       * @see org.projectforge.web.wicket.CellItemListenerPropertyColumn#populateItem(org.apache.wicket.markup.repeater.Item,
+       *      java.lang.String, org.apache.wicket.model.IModel)
+       */
+      @Override
+      public void populateItem(final Item<ICellPopulator<VacationDO>> item, final String componentId,
+          final IModel<VacationDO> rowModel)
+      {
+        final VacationDO vacation = rowModel.getObject();
+        final Set<EmployeeDO> substitutions = vacation.getSubstitutions();
+        final List<String> substitutionNames = new ArrayList<>();
+
+        for (EmployeeDO substitution : substitutions) {
+          if (substitution != null && substitution.getUser() != null) {
+            substitutionNames.add(substitution.getUser().getFullname());
+          }
+        }
+
+        if (isSelectMode() == false) {
+          item.add(new ListSelectActionPanel(componentId, rowModel, VacationEditPage.class, vacation.getId(),
+              returnToPage, String.join(", ", substitutionNames)));
+        } else {
+          item.add(
+              new ListSelectActionPanel(componentId, rowModel, caller, selectProperty, vacation.getId(), String.join(" ,", substitutionNames)));
+        }
+
+        cellItemListener.populateItem(item, componentId, rowModel);
+        addRowClick(item);
+      }
+    });
 
     return columns;
   }
