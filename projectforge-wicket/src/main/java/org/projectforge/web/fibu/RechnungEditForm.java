@@ -73,6 +73,8 @@ public class RechnungEditForm extends AbstractRechnungEditForm<RechnungDO, Rechn
   public RechnungEditForm(final RechnungEditPage parentPage, final RechnungDO data)
   {
     super(parentPage, data);
+    // no submit on clone
+    this.ignoreErrorOnClone = true;
   }
 
   @SuppressWarnings("serial")
