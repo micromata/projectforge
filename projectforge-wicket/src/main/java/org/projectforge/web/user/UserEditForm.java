@@ -29,7 +29,6 @@ import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
-import java.util.Set;
 import java.util.TimeZone;
 
 import org.apache.commons.lang.StringUtils;
@@ -67,6 +66,7 @@ import org.projectforge.business.login.Login;
 import org.projectforge.business.multitenancy.TenantDao;
 import org.projectforge.business.multitenancy.TenantService;
 import org.projectforge.business.multitenancy.TenantsComparator;
+import org.projectforge.business.password.PasswordQualityService;
 import org.projectforge.business.user.GroupDao;
 import org.projectforge.business.user.GroupsComparator;
 import org.projectforge.business.user.UserDao;
@@ -142,6 +142,9 @@ public class UserEditForm extends AbstractEditForm<PFUserDO, UserEditPage>
 
   @SpringBean
   private TenantService tenantService;
+
+  @SpringBean
+  private PasswordQualityService passwordQualityService;
 
   @SpringBean
   private UserService userService;
@@ -866,7 +869,7 @@ public class UserEditForm extends AbstractEditForm<PFUserDO, UserEditPage>
         return;
       }
       if (passwordUser == null) {
-        final Set<I18nKeyAndParams> errorMsgKeys = userService.checkPasswordQuality(passwordInput);
+        final List<I18nKeyAndParams> errorMsgKeys = passwordQualityService.checkPasswordQuality(passwordInput);
         if (errorMsgKeys != null) {
           for (I18nKeyAndParams errorMsgKey : errorMsgKeys) {
             final String localizedMessage = I18nHelper.getLocalizedMessage(errorMsgKey);
@@ -883,7 +886,7 @@ public class UserEditForm extends AbstractEditForm<PFUserDO, UserEditPage>
     WicketUtils.setPercentSize(passwordRepeatField, 50);
     fs.add(passwordField);
     fs.add(passwordRepeatField);
-    Set<I18nKeyAndParams> passwordQualityI18nKeyAndParams = userService.getPasswordQualityI18nKeyAndParams();
+    final List<I18nKeyAndParams> passwordQualityI18nKeyAndParams = passwordQualityService.getPasswordQualityI18nKeyAndParams();
     for (I18nKeyAndParams passwordQualityI18n : passwordQualityI18nKeyAndParams) {
       fs.addHelpIcon(I18nHelper.getLocalizedMessage(passwordQualityI18n));
     }
@@ -938,7 +941,7 @@ public class UserEditForm extends AbstractEditForm<PFUserDO, UserEditPage>
         return;
       }
 
-      final Set<I18nKeyAndParams> errorMsgKeys = userService.checkPasswordQuality(passwordInput);
+      final List<I18nKeyAndParams> errorMsgKeys = passwordQualityService.checkPasswordQuality(passwordInput);
       if (errorMsgKeys != null) {
         for (I18nKeyAndParams errorMsgKey : errorMsgKeys) {
           final String localizedMessage = I18nHelper.getLocalizedMessage(errorMsgKey);
@@ -953,7 +956,7 @@ public class UserEditForm extends AbstractEditForm<PFUserDO, UserEditPage>
     WicketUtils.setPercentSize(passwordRepeatField, 50);
     fs.add(passwordField);
     fs.add(passwordRepeatField);
-    Set<I18nKeyAndParams> passwordQualityI18nKeyAndParams = userService.getPasswordQualityI18nKeyAndParams();
+    final List<I18nKeyAndParams> passwordQualityI18nKeyAndParams = passwordQualityService.getPasswordQualityI18nKeyAndParams();
     for (I18nKeyAndParams passwordQualityI18n : passwordQualityI18nKeyAndParams) {
       fs.addHelpIcon(I18nHelper.getLocalizedMessage(passwordQualityI18n));
     }
