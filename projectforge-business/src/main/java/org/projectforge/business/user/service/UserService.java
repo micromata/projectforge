@@ -37,19 +37,15 @@ public interface UserService
 
   void renewStayLoggedInKey(Integer id);
 
-  I18nKeyAndParams getPasswordQualityI18nKeyAndParams();
-
-  I18nKeyAndParams checkPasswordQuality(String passwordInput);
-
   void createEncryptedPassword(PFUserDO passwordUser, String passwordInput);
 
   PFUserDO getByUsername(String username);
 
   PasswordCheckResult checkPassword(PFUserDO user, String password);
 
-  I18nKeyAndParams changePassword(PFUserDO user, String oldPassword, String newPassword);
+  List<I18nKeyAndParams> changePassword(PFUserDO user, String oldPassword, String newPassword);
 
-  I18nKeyAndParams changeWlanPassword(PFUserDO user, String loginPassword, String newWlanPassword);
+  List<I18nKeyAndParams> changeWlanPassword(PFUserDO user, String loginPassword, String newWlanPassword);
 
   Integer save(PFUserDO user);
 
