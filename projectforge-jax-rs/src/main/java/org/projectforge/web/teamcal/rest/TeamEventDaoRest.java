@@ -58,6 +58,7 @@ import org.projectforge.business.teamcal.service.TeamCalServiceImpl;
 import org.projectforge.common.StringHelper;
 import org.projectforge.framework.persistence.api.ModificationStatus;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
+import org.projectforge.framework.time.DateHelper;
 import org.projectforge.framework.time.DayHolder;
 import org.projectforge.model.rest.CalendarEventObject;
 import org.projectforge.model.rest.RestPaths;
@@ -192,16 +193,13 @@ public class TeamEventDaoRest
       final net.fortuna.ical4j.model.Calendar calendar = builder.build(new ByteArrayInputStream(Base64.decodeBase64(calendarEvent.getIcsData())));
       //Getting the VEvent from ics
       final VEvent event = (VEvent) calendar.getComponent(Component.VEVENT);
-      if(event.getUid() != null)
-      {
+      if (event.getUid() != null) {
         //Getting the origin team event from database by uid if exist
         TeamEventDO teamEventOrigin = teamEventService.findByUid(event.getUid().getValue());
         //Check if db event exists
         if (teamEventOrigin != null && teamEventOrigin.getCalendar().getId().equals(teamCalDO.getId())) {
           return updateTeamEvent(calendarEvent);
-        }
-        else
-        {
+        } else {
           event.getUid().setValue("");
           return saveVEvent(event, teamCalDO, true);
         }
@@ -274,7 +272,8 @@ public class TeamEventDaoRest
         VEvent event2 = (VEvent) vevents.get(1);
         if (event.getUid().equals(event2.getUid())) {
           //Set ExDate in event1
-          teamEvent.addRecurrenceExDate(event2.getRecurrenceId().getDate(), teamEvent.getTimeZone());
+          // ical4j handles timezone internally, no actions required
+          teamEvent.addRecurrenceExDate(event2.getRecurrenceId().getDate());
           //Create new Event from event2
           saveVEvent(event2, teamCalDO, false);
         }

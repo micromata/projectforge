@@ -66,6 +66,7 @@ import org.projectforge.framework.persistence.entities.DefaultBaseDO;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.time.DateFormats;
+import org.projectforge.framework.time.DateHelper;
 import org.projectforge.framework.time.TimePeriod;
 
 import de.micromata.genome.db.jpa.history.api.NoHistory;
@@ -551,27 +552,33 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
   }
 
   /**
+   * Adds a new ExDate to this event.
+   *
    * @param date
-   * @param timeZone Only used for all day events.
-   * @return
+   * @return this for chaining.
    */
-  public TeamEventDO addRecurrenceExDate(final Date date, final TimeZone timeZone)
+  public TeamEventDO addRecurrenceExDate(final Date date)
   {
     if (date == null) {
       return this;
     }
     final String exDate;
-    exDate = ICal4JUtils.asICalDateString(date, timeZone, isAllDay());
-    if (recurrenceExDate == null) {
+    exDate = ICal4JUtils.asICalDateString(date, DateHelper.UTC, isAllDay());
+    if (recurrenceExDate == null || recurrenceExDate.isEmpty()) {
       recurrenceExDate = exDate;
     } else if (recurrenceExDate.contains(exDate) == false) {
-      // Add this ex date only if not yet added:
+      // Add this ExDate only if not yet added:
       recurrenceExDate = recurrenceExDate + "," + exDate;
     }
     return this;
   }
 
   /**
+   * Sets the ExDates for recurring event. Expected format is CSV (date,date,date).
+   * Supported date formats are <b>yyyyMMdd</b> for all day events and <b>yyyyMMdd'T'HHmmss</b> otherwise.
+   * <p>
+   * <b>Caution:</b> all timestamps must be represented in UTC!
+   *
    * @param recurrenceExDate the recurrenceExDate to set
    * @return this for chaining.
    */
@@ -582,7 +589,7 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
   }
 
   /**
-   * @param recurrenceExDate the recurrenceExDate to set
+   * @param recurrenceDate the recurrenceDate to set
    * @return this for chaining.
    */
   @Transient

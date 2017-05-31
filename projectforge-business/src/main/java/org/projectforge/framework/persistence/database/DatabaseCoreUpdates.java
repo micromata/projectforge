@@ -38,8 +38,6 @@ import java.util.Set;
 import java.util.TimeZone;
 import java.util.function.Predicate;
 
-import org.projectforge.business.address.AddressAttrDO;
-import org.projectforge.business.address.AddressAttrDataDO;
 import org.projectforge.business.address.AddressDO;
 import org.projectforge.business.address.AddressDao;
 import org.projectforge.business.fibu.AuftragDO;
@@ -89,8 +87,6 @@ import org.projectforge.framework.configuration.entities.ConfigurationDO;
 import org.projectforge.framework.persistence.attr.impl.InternalAttrSchemaConstants;
 import org.projectforge.framework.persistence.entities.AbstractBaseDO;
 import org.projectforge.framework.persistence.history.HistoryBaseDaoAdapter;
-import org.projectforge.framework.persistence.history.entities.PfHistoryAttrDO;
-import org.projectforge.framework.persistence.history.entities.PfHistoryAttrDataDO;
 import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
 import org.projectforge.framework.persistence.user.entities.GroupDO;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
@@ -159,50 +155,56 @@ public class DatabaseCoreUpdates
           migrateImageData();
           deleteImageHistoryData();
           deleteImageAddressAttrData();
+          log.info("Address image data migration DONE.");
         }
 
         if (hasISODates()) {
-          final PfEmgrFactory emf = applicationContext.getBean(PfEmgrFactory.class);
-          emf.runInTrans(emgr -> {
-            SimpleDateFormat iCalFormatterWithTime = new SimpleDateFormat(DateFormats.ICAL_DATETIME_FORMAT);
-            SimpleDateFormat iCalFormatterAllDay = new SimpleDateFormat(DateFormats.COMPACT_DATE);
-            List<SimpleDateFormat> formatterPatterns = Arrays
-                .asList(new SimpleDateFormat(DateFormats.ISO_TIMESTAMP_SECONDS), new SimpleDateFormat(DateFormats.ISO_TIMESTAMP_MINUTES),
-                    new SimpleDateFormat(DateFormats.ISO_DATE), iCalFormatterWithTime, iCalFormatterAllDay);
-            List<TeamEventDO> teamEventDOList = emgr
-                .selectAttached(TeamEventDO.class, "SELECT te FROM TeamEventDO te WHERE te.recurrenceExDate IS NOT NULL AND te.recurrenceExDate <> ''");
-            for (TeamEventDO te : teamEventDOList) {
-              String exDateList = te.getRecurrenceExDate();
-              String[] exDateArray = exDateList.split(",");
-              List<String> finalExDates = new ArrayList<>();
-              for (String exDateOld : exDateArray) {
-                Date oldDate = null;
-                for (SimpleDateFormat sdf : formatterPatterns) {
-                  try {
-                    oldDate = sdf.parse(exDateOld);
-                    break;
-                  } catch (ParseException e) {
-                    if (log.isDebugEnabled()) {
-                      log.debug("Date not parsable. Try another parser.");
-                    }
+          SimpleDateFormat iCalFormatterWithTime = new SimpleDateFormat(DateFormats.ICAL_DATETIME_FORMAT);
+          SimpleDateFormat iCalFormatterAllDay = new SimpleDateFormat(DateFormats.COMPACT_DATE);
+          List<SimpleDateFormat> formatterPatterns = Arrays
+              .asList(new SimpleDateFormat(DateFormats.ISO_TIMESTAMP_SECONDS), new SimpleDateFormat(DateFormats.ISO_TIMESTAMP_MINUTES),
+                  new SimpleDateFormat(DateFormats.ISO_DATE), iCalFormatterWithTime, iCalFormatterAllDay);
+          List<DatabaseResultRow> resultList = databaseUpdateService
+              .query(
+                  "SELECT pk, recurrence_ex_date, all_day FROM t_plugin_calendar_event te WHERE te.recurrence_ex_date IS NOT NULL AND te.recurrence_ex_date <> ''");
+          log.info("Found: " + resultList.size() + " event entries to update.");
+          for (DatabaseResultRow row : resultList) {
+            Integer id = (Integer) row.getEntry(0).getValue();
+            String exDateList = (String) row.getEntry(1).getValue();
+            Boolean allDay = (Boolean) row.getEntry(2).getValue();
+            log.debug("Event with id: " + id + " has exdate value: " + exDateList);
+            String[] exDateArray = exDateList.split(",");
+            List<String> finalExDates = new ArrayList<>();
+            for (String exDateOld : exDateArray) {
+              Date oldDate = null;
+              for (SimpleDateFormat sdf : formatterPatterns) {
+                try {
+                  oldDate = sdf.parse(exDateOld);
+                  break;
+                } catch (ParseException e) {
+                  if (log.isDebugEnabled()) {
+                    log.debug("Date not parsable. Try another parser.");
                   }
                 }
-                if (oldDate == null) {
-                  log.error("Date not parsable. Ignoring it: " + exDateOld);
-                  continue;
-                }
-                if (te.isAllDay()) {
-                  finalExDates.add(iCalFormatterAllDay.format(oldDate));
-                } else {
-                  finalExDates.add(iCalFormatterWithTime.format(oldDate));
-                }
               }
-              String newExDateValue = String.join(",", finalExDates);
-              te.setRecurrenceExDate(newExDateValue);
-              emgr.update(te);
+              if (oldDate == null) {
+                log.error("Date not parsable. Ignoring it: " + exDateOld);
+                continue;
+              }
+              if (allDay != null && allDay) {
+                finalExDates.add(iCalFormatterAllDay.format(oldDate));
+              } else {
+                finalExDates.add(iCalFormatterWithTime.format(oldDate));
+              }
             }
-            return null;
-          });
+            String newExDateValue = String.join(",", finalExDates);
+            try {
+              databaseUpdateService.execute("UPDATE t_plugin_calendar_event SET recurrence_ex_date = '" + newExDateValue + "' WHERE pk = " + id);
+            } catch (Exception e) {
+              log.error("Error while updating event with id: " + id + " and new exdatevalue: " + newExDateValue + " . Ignoring it.");
+            }
+          }
+          log.info("Exdate migration DONE.");
         }
         return UpdateRunningStatus.DONE;
       }
@@ -215,40 +217,23 @@ public class DatabaseCoreUpdates
 
       private void deleteImageAddressAttrData()
       {
-        final PfEmgrFactory emf = applicationContext.getBean(PfEmgrFactory.class);
-        emf.runInTrans(emgr -> {
-          List<AddressAttrDO> addrAttrList = emgr.selectAttached(AddressAttrDO.class,
-              "SELECT addrAttr FROM AddressAttrDO addrAttr WHERE addrAttr.propertyName = 'profileImageData'");
-          for (AddressAttrDO addrAttr : addrAttrList) {
-            List<AddressAttrDataDO> addrAttrDataList = emgr.
-                selectAttached(AddressAttrDataDO.class, "SELECT addrAttrData FROM AddressAttrDataDO addrAttrData WHERE addrAttrData.parent = :addrAttr",
-                    "addrAttr", addrAttr);
-            for (AddressAttrDataDO addrAttrData : addrAttrDataList) {
-              databaseUpdateService.execute("DELETE FROM t_address_attrdata WHERE pk = " + addrAttrData.getPk());
-            }
-            databaseUpdateService.execute("DELETE FROM t_address_attr WHERE pk = " + addrAttr.getPk());
-          }
-          return null;
-        });
+        List<DatabaseResultRow> attrResultList = databaseUpdateService.query("SELECT pk FROM t_address_attr WHERE propertyname = 'profileImageData'");
+        for (DatabaseResultRow attrRow : attrResultList) {
+          Integer attrId = (Integer) attrRow.getEntry(0).getValue();
+          databaseUpdateService.execute("DELETE FROM t_address_attrdata WHERE parent_id = " + attrId);
+          databaseUpdateService.execute("DELETE FROM t_address_attr WHERE pk = " + attrId);
+        }
       }
 
       private void deleteImageHistoryData()
       {
-        final PfEmgrFactory emf = applicationContext.getBean(PfEmgrFactory.class);
-        emf.runInTrans(emgr -> {
-          List<PfHistoryAttrDO> histAttrList = emgr.selectAttached(PfHistoryAttrDO.class,
-              "SELECT histAttr FROM PfHistoryAttrDO histAttr WHERE histAttr.propertyName LIKE '%attrs.profileImageData%'");
-          for (PfHistoryAttrDO histAttr : histAttrList) {
-            List<PfHistoryAttrDataDO> histAttrDataList = emgr.
-                selectAttached(PfHistoryAttrDataDO.class, "SELECT histAttrData FROM PfHistoryAttrDataDO histAttrData WHERE histAttrData.parent = :histAttr",
-                    "histAttr", histAttr);
-            for (PfHistoryAttrDataDO histAttrData : histAttrDataList) {
-              databaseUpdateService.execute("DELETE FROM t_pf_history_attr_data WHERE pk = " + histAttrData.getPk());
-            }
-            databaseUpdateService.execute("DELETE FROM t_pf_history_attr WHERE pk = " + histAttr.getPk());
-          }
-          return null;
-        });
+        List<DatabaseResultRow> histAttrResultList = databaseUpdateService
+            .query("SELECT pk FROM t_pf_history_attr WHERE propertyname LIKE '%attrs.profileImageData%'");
+        for (DatabaseResultRow histAttrRow : histAttrResultList) {
+          Long histAttrId = (Long) histAttrRow.getEntry(0).getValue();
+          databaseUpdateService.execute("DELETE FROM t_pf_history_attr_data WHERE parent_pk = " + histAttrId);
+          databaseUpdateService.execute("DELETE FROM t_pf_history_attr WHERE pk = " + histAttrId);
+        }
       }
 
       private void migrateImageData()
@@ -273,40 +258,38 @@ public class DatabaseCoreUpdates
     ////////////////////////////////////////////////////////////////////
     // 6.11.0
     // /////////////////////////////////////////////////////////////////
-    list.add(new
+    list.add(new UpdateEntryImpl(CORE_REGION_ID, "6.11.0", "2017-05-03",
+        "Add discounts and konto informations. Add period of performance to invoices.")
+    {
+      @Override
+      public UpdatePreCheckStatus runPreCheck()
+      {
+        log.info("Running pre-check for ProjectForge version 6.11.0");
+        if (isSchemaUpdateNecessary()) {
+          return UpdatePreCheckStatus.READY_FOR_UPDATE;
+        }
+        return UpdatePreCheckStatus.ALREADY_UPDATED;
+      }
 
-                 UpdateEntryImpl(CORE_REGION_ID, "6.11.0", "2017-05-03",
-                     "Add discounts and konto informations. Add period of performance to invoices.")
-                 {
-                   @Override
-                   public UpdatePreCheckStatus runPreCheck()
-                   {
-                     log.info("Running pre-check for ProjectForge version 6.11.0");
-                     if (isSchemaUpdateNecessary()) {
-                       return UpdatePreCheckStatus.READY_FOR_UPDATE;
-                     }
-                     return UpdatePreCheckStatus.ALREADY_UPDATED;
-                   }
+      @Override
+      public UpdateRunningStatus runUpdate()
+      {
+        if (isSchemaUpdateNecessary()) {
+          initDatabaseDao.updateSchema();
+        }
+        return UpdateRunningStatus.DONE;
+      }
 
-                   @Override
-                   public UpdateRunningStatus runUpdate()
-                   {
-                     if (isSchemaUpdateNecessary()) {
-                       initDatabaseDao.updateSchema();
-                     }
-                     return UpdateRunningStatus.DONE;
-                   }
-
-                   private boolean isSchemaUpdateNecessary()
-                   {
-                     return databaseUpdateService.doesTableAttributeExist("t_fibu_eingangsrechnung", "discountmaturity") == false
-                         || databaseUpdateService.doesTableAttributeExist("t_fibu_rechnung", "discountmaturity") == false
-                         || databaseUpdateService.doesTableAttributeExist("t_fibu_eingangsrechnung", "customernr") == false
-                         || databaseUpdateService.doTableAttributesExist(RechnungDO.class, "periodOfPerformanceBegin", "periodOfPerformanceEnd") == false
-                         || databaseUpdateService.doTableAttributesExist(RechnungsPositionDO.class, "periodOfPerformanceType", "periodOfPerformanceBegin",
-                         "periodOfPerformanceEnd") == false;
-                   }
-                 });
+      private boolean isSchemaUpdateNecessary()
+      {
+        return databaseUpdateService.doesTableAttributeExist("t_fibu_eingangsrechnung", "discountmaturity") == false
+            || databaseUpdateService.doesTableAttributeExist("t_fibu_rechnung", "discountmaturity") == false
+            || databaseUpdateService.doesTableAttributeExist("t_fibu_eingangsrechnung", "customernr") == false
+            || databaseUpdateService.doTableAttributesExist(RechnungDO.class, "periodOfPerformanceBegin", "periodOfPerformanceEnd") == false
+            || databaseUpdateService.doTableAttributesExist(RechnungsPositionDO.class, "periodOfPerformanceType", "periodOfPerformanceBegin",
+            "periodOfPerformanceEnd") == false;
+      }
+    });
 
     ////////////////////////////////////////////////////////////////////
     // 6.10.0
