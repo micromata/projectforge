@@ -270,7 +270,7 @@ public class UserServiceImpl implements UserService
     Validate.notNull(oldPassword);
     Validate.notNull(newPassword);
     final List<I18nKeyAndParams> errorMsgKeys = passwordQualityService.checkPasswordQuality(oldPassword, newPassword);
-    if (errorMsgKeys != null) {
+    if (errorMsgKeys.isEmpty() == false) {
       return errorMsgKeys;
     }
 
@@ -307,7 +307,7 @@ public class UserServiceImpl implements UserService
     Validate.notNull(newWlanPassword);
 
     final List<I18nKeyAndParams> errorMsgKeys = passwordQualityService.checkPasswordQuality(newWlanPassword);
-    if (errorMsgKeys != null) {
+    if (errorMsgKeys.isEmpty() == false) {
       return errorMsgKeys;
     }
 

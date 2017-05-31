@@ -50,11 +50,9 @@ public class PasswordQualityServiceImpl implements PasswordQualityService
   private ConfigurationService configurationService;
 
   @Override
-  public List<I18nKeyAndParams> getPasswordQualityI18nKeyAndParams()
+  public I18nKeyAndParams getPasswordQualityI18nKeyAndParams()
   {
-    final List<I18nKeyAndParams> i18nKeyAndParams = new ArrayList<>();
-    i18nKeyAndParams.add(new I18nKeyAndParams(MESSAGE_KEY_PASSWORD_QUALITY_ERROR, configurationService.getMinPasswordLength()));
-    return i18nKeyAndParams;
+    return new I18nKeyAndParams(MESSAGE_KEY_PASSWORD_QUALITY_ERROR, configurationService.getMinPasswordLength());
   }
 
   /**
@@ -101,7 +99,7 @@ public class PasswordQualityServiceImpl implements PasswordQualityService
 
     // stop here if only the new password is validated
     if (checkOldPassword == false) {
-      return result.isEmpty() ? null : result;
+      return result;
     }
 
     // compare old and new password
@@ -109,7 +107,7 @@ public class PasswordQualityServiceImpl implements PasswordQualityService
       result.add(new I18nKeyAndParams(MESSAGE_KEY_PASSWORD_OLD_EQ_NEW_ERROR));
     }
 
-    return result.isEmpty() ? null : result;
+    return result;
   }
 
   private void checkForCharsInPassword(final String password, final List<I18nKeyAndParams> result)

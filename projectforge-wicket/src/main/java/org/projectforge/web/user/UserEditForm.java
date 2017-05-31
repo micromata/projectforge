@@ -870,7 +870,7 @@ public class UserEditForm extends AbstractEditForm<PFUserDO, UserEditPage>
       }
       if (passwordUser == null) {
         final List<I18nKeyAndParams> errorMsgKeys = passwordQualityService.checkPasswordQuality(passwordInput);
-        if (errorMsgKeys != null) {
+        if (errorMsgKeys.isEmpty() == false) {
           for (I18nKeyAndParams errorMsgKey : errorMsgKeys) {
             final String localizedMessage = I18nHelper.getLocalizedMessage(errorMsgKey);
             validatable.error(new ValidationError().setMessage(localizedMessage));
@@ -886,10 +886,8 @@ public class UserEditForm extends AbstractEditForm<PFUserDO, UserEditPage>
     WicketUtils.setPercentSize(passwordRepeatField, 50);
     fs.add(passwordField);
     fs.add(passwordRepeatField);
-    final List<I18nKeyAndParams> passwordQualityI18nKeyAndParams = passwordQualityService.getPasswordQualityI18nKeyAndParams();
-    for (I18nKeyAndParams passwordQualityI18n : passwordQualityI18nKeyAndParams) {
-      fs.addHelpIcon(I18nHelper.getLocalizedMessage(passwordQualityI18n));
-    }
+    final I18nKeyAndParams passwordQualityI18nKeyAndParams = passwordQualityService.getPasswordQualityI18nKeyAndParams();
+    fs.addHelpIcon(I18nHelper.getLocalizedMessage(passwordQualityI18nKeyAndParams));
   }
 
   private void addWlanPasswordFields()
@@ -942,7 +940,7 @@ public class UserEditForm extends AbstractEditForm<PFUserDO, UserEditPage>
       }
 
       final List<I18nKeyAndParams> errorMsgKeys = passwordQualityService.checkPasswordQuality(passwordInput);
-      if (errorMsgKeys != null) {
+      if (errorMsgKeys.isEmpty() == false) {
         for (I18nKeyAndParams errorMsgKey : errorMsgKeys) {
           final String localizedMessage = I18nHelper.getLocalizedMessage(errorMsgKey);
           validatable.error(new ValidationError().setMessage(localizedMessage));
@@ -956,10 +954,8 @@ public class UserEditForm extends AbstractEditForm<PFUserDO, UserEditPage>
     WicketUtils.setPercentSize(passwordRepeatField, 50);
     fs.add(passwordField);
     fs.add(passwordRepeatField);
-    final List<I18nKeyAndParams> passwordQualityI18nKeyAndParams = passwordQualityService.getPasswordQualityI18nKeyAndParams();
-    for (I18nKeyAndParams passwordQualityI18n : passwordQualityI18nKeyAndParams) {
-      fs.addHelpIcon(I18nHelper.getLocalizedMessage(passwordQualityI18n));
-    }
+    final I18nKeyAndParams passwordQualityI18nKeyAndParams = passwordQualityService.getPasswordQualityI18nKeyAndParams();
+    fs.addHelpIcon(I18nHelper.getLocalizedMessage(passwordQualityI18nKeyAndParams));
   }
 
   private static void addDateFormatCombobox(final GridBuilder gridBuilder, final PFUserDO user, final String labelKey,

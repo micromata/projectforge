@@ -78,7 +78,7 @@ public class ChangeWlanPasswordPage extends AbstractStandardFormPage
 
     log.info("User wants to change his WLAN password.");
     final List<I18nKeyAndParams> errorMsgKeys = userService.changeWlanPassword(getUser(), form.getLoginPassword(), form.getNewWlanPassword());
-    if (errorMsgKeys != null) {
+    if (errorMsgKeys.isEmpty() == false) {
       for (I18nKeyAndParams errorMsgKey : errorMsgKeys) {
         form.addError(errorMsgKey);
       }

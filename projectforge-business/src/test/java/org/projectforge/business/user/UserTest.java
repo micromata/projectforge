@@ -150,7 +150,6 @@ public class UserTest extends AbstractTestBase
   @Test
   public void testPasswordQuality()
   {
-
     List<I18nKeyAndParams> passwordQualityMessages = passwordQualityService.checkPasswordQuality(STRONGOLDPW, null);
     assertTrue("Empty password not allowed.",
         passwordQualityMessages.contains(new I18nKeyAndParams(MESSAGE_KEY_PASSWORD_MIN_LENGTH_ERROR, 10)));
@@ -180,11 +179,11 @@ public class UserTest extends AbstractTestBase
     assertTrue("Password must New password should not be the same as the old one.",
         passwordQualityMessages.contains(new I18nKeyAndParams(MESSAGE_KEY_PASSWORD_OLD_EQ_NEW_ERROR)));
 
-    assertNull("Password OK.", passwordQualityService.checkPasswordQuality(STRONGOLDPW, "kabcdjh!id"));
+    assertTrue("Password OK.", passwordQualityService.checkPasswordQuality(STRONGOLDPW, "kabcdjh!id").isEmpty());
 
-    assertNull("Password OK.", passwordQualityService.checkPasswordQuality(STRONGOLDPW, "kjh8iabcddsf"));
+    assertTrue("Password OK.", passwordQualityService.checkPasswordQuality(STRONGOLDPW, "kjh8iabcddsf").isEmpty());
 
-    assertNull("Password OK.", passwordQualityService.checkPasswordQuality(STRONGOLDPW, "  5     g "));
+    assertTrue("Password OK.", passwordQualityService.checkPasswordQuality(STRONGOLDPW, "  5     g ").isEmpty());
   }
 
   // TODO HISTORY

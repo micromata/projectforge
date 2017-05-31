@@ -161,7 +161,7 @@ public class SetupForm extends AbstractForm<SetupForm, SetupPage>
         }
         if (MAGIC_PASSWORD.equals(passwordInput) == false || adminUser.getPassword() == null) {
           final List<I18nKeyAndParams> errorMsgKeys = passwordQualityService.checkPasswordQuality(passwordInput);
-          if (errorMsgKeys != null) {
+          if (errorMsgKeys.isEmpty() == false) {
             adminUser.setPassword(null);
             for (I18nKeyAndParams errorMsgKey : errorMsgKeys) {
               passwordField.error(I18nHelper.getLocalizedMessage(errorMsgKey));

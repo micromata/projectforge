@@ -80,7 +80,7 @@ public class ChangePasswordPage extends AbstractStandardFormPage
 
     log.info("User wants to change his password.");
     final List<I18nKeyAndParams> errorMsgKeys = userService.changePassword(getUser(), form.getOldPassword(), form.getNewPassword());
-    if (errorMsgKeys != null) {
+    if (errorMsgKeys.isEmpty() == false) {
       for (I18nKeyAndParams errorMsgKey : errorMsgKeys) {
         form.addError(errorMsgKey);
       }
