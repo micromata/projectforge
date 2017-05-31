@@ -6,7 +6,7 @@ import java.util.List;
 
 import org.projectforge.business.login.PasswordCheckResult;
 import org.projectforge.business.user.UserDao;
-import org.projectforge.framework.i18n.I18nKeysAndParamsSet;
+import org.projectforge.framework.i18n.I18nKeyAndParams;
 import org.projectforge.framework.persistence.api.ModificationStatus;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 
@@ -37,17 +37,15 @@ public interface UserService
 
   void renewStayLoggedInKey(Integer id);
 
-  I18nKeysAndParamsSet getPasswordQualityI18nKeyAndParams();
-
   void createEncryptedPassword(PFUserDO passwordUser, String passwordInput);
 
   PFUserDO getByUsername(String username);
 
   PasswordCheckResult checkPassword(PFUserDO user, String password);
 
-  I18nKeysAndParamsSet changePassword(PFUserDO user, String oldPassword, String newPassword);
+  List<I18nKeyAndParams> changePassword(PFUserDO user, String oldPassword, String newPassword);
 
-  I18nKeysAndParamsSet changeWlanPassword(PFUserDO user, String loginPassword, String newWlanPassword);
+  List<I18nKeyAndParams> changeWlanPassword(PFUserDO user, String loginPassword, String newWlanPassword);
 
   Integer save(PFUserDO user);
 
@@ -64,10 +62,6 @@ public interface UserService
   String getStayLoggedInKey(Integer id);
 
   List<PFUserDO> loadAll();
-
-  I18nKeysAndParamsSet checkPasswordQualityOnChange(final String oldPassword, final String newPassword);
-
-  I18nKeysAndParamsSet checkPasswordQuality(final String newPassword);
 
   void onPasswordChange(final PFUserDO user, final boolean createHistoryEntry);
 

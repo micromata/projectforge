@@ -22,7 +22,6 @@ import org.projectforge.common.StringHelper;
 import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.configuration.SecurityConfig;
 import org.projectforge.framework.i18n.I18nKeyAndParams;
-import org.projectforge.framework.i18n.I18nKeysAndParamsSet;
 import org.projectforge.framework.persistence.api.ModificationStatus;
 import org.projectforge.framework.persistence.history.HistoryBaseDaoAdapter;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
@@ -254,12 +253,6 @@ public class UserServiceImpl implements UserService
     return NumberHelper.getSecureRandomBase64String(10);
   }
 
-  @Override
-  public I18nKeysAndParamsSet getPasswordQualityI18nKeyAndParams()
-  {
-    return passwordQualityService.getPasswordQualityI18nKeyAndParams();
-  }
-
   /**
    * Changes the user's password. Checks the password quality and the correct authentication for the old password
    * before. Also the stay-logged-in-key will be renewed, so any existing stay-logged-in cookie will be invalid.
@@ -271,12 +264,12 @@ public class UserServiceImpl implements UserService
    */
   @Override
   @Transactional(readOnly = false, propagation = Propagation.REQUIRED)
-  public I18nKeysAndParamsSet changePassword(PFUserDO user, final String oldPassword, final String newPassword)
+  public List<I18nKeyAndParams> changePassword(PFUserDO user, final String oldPassword, final String newPassword)
   {
     Validate.notNull(user);
     Validate.notNull(oldPassword);
     Validate.notNull(newPassword);
-    final I18nKeysAndParamsSet errorMsgKeys = checkPasswordQualityOnChange(oldPassword, newPassword);
+    final List<I18nKeyAndParams> errorMsgKeys = passwordQualityService.checkPasswordQuality(oldPassword, newPassword);
     if (errorMsgKeys != null) {
       return errorMsgKeys;
     }
@@ -285,7 +278,7 @@ public class UserServiceImpl implements UserService
     user = getUser(user.getUsername(), oldPassword, false);
     if (user == null) {
       I18nKeyAndParams compareErrorMsgKey = new I18nKeyAndParams(MESSAGE_KEY_OLD_PASSWORD_WRONG);
-      I18nKeysAndParamsSet compareErrorMsgKeys = new I18nKeysAndParamsSet();
+      List<I18nKeyAndParams> compareErrorMsgKeys = new ArrayList<>();
       compareErrorMsgKeys.add(compareErrorMsgKey);
       return compareErrorMsgKeys;
 
@@ -307,13 +300,13 @@ public class UserServiceImpl implements UserService
    */
   @Override
   @Transactional(readOnly = false, propagation = Propagation.REQUIRED)
-  public I18nKeysAndParamsSet changeWlanPassword(PFUserDO user, final String loginPassword, final String newWlanPassword)
+  public List<I18nKeyAndParams> changeWlanPassword(PFUserDO user, final String loginPassword, final String newWlanPassword)
   {
     Validate.notNull(user);
     Validate.notNull(loginPassword);
     Validate.notNull(newWlanPassword);
 
-    final I18nKeysAndParamsSet errorMsgKeys = checkPasswordQualityOnChange(loginPassword, newWlanPassword);
+    final List<I18nKeyAndParams> errorMsgKeys = passwordQualityService.checkPasswordQuality(newWlanPassword);
     if (errorMsgKeys != null) {
       return errorMsgKeys;
     }
@@ -321,7 +314,7 @@ public class UserServiceImpl implements UserService
     accessChecker.checkRestrictedOrDemoUser();
     user = getUser(user.getUsername(), loginPassword, false); // get user from DB to persist the change of the wlan password time
     if (user == null) {
-      I18nKeysAndParamsSet compareErrorMsgKeys = new I18nKeysAndParamsSet();
+      List<I18nKeyAndParams> compareErrorMsgKeys = new ArrayList<>();
       compareErrorMsgKeys.add(new I18nKeyAndParams(MESSAGE_KEY_LOGIN_PASSWORD_WRONG));
       return compareErrorMsgKeys;
     }
@@ -330,32 +323,6 @@ public class UserServiceImpl implements UserService
     Login.getInstance().wlanPasswordChanged(user, newWlanPassword); // change the wlan password
     log.info("WLAN Password changed for user: " + user.getId() + " - " + user.getUsername());
     return null;
-  }
-
-  /**
-   * Checks the password quality of a new password. Password must have at least n characters and at minimum one letter
-   * and one non-letter character.
-   *
-   * @param newPassword
-   * @return null if password quality is OK, otherwise the i18n message key of the password check failure.
-   */
-  @Override
-  public I18nKeysAndParamsSet checkPasswordQualityOnChange(final String oldPassword, final String newPassword)
-  {
-    return passwordQualityService.checkPasswordQualityOnChange(oldPassword, newPassword);
-  }
-
-  /**
-   * Checks the password quality of a new password. Password must have at least n characters and at minimum one letter
-   * and one non-letter character.
-   *
-   * @param newPassword
-   * @return null if password quality is OK, otherwise the i18n message key of the password check failure.
-   */
-  @Override
-  public I18nKeysAndParamsSet checkPasswordQuality(final String newPassword)
-  {
-    return passwordQualityService.checkPasswordQuality(newPassword);
   }
 
   @Override

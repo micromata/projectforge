@@ -23,7 +23,7 @@
 
 package org.projectforge.web.user;
 
-import java.util.Set;
+import java.util.List;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.RestartResponseException;
@@ -79,7 +79,7 @@ public class ChangePasswordPage extends AbstractStandardFormPage
     }
 
     log.info("User wants to change his password.");
-    final Set<I18nKeyAndParams> errorMsgKeys = userService.changePassword(getUser(), form.getOldPassword(), form.getNewPassword());
+    final List<I18nKeyAndParams> errorMsgKeys = userService.changePassword(getUser(), form.getOldPassword(), form.getNewPassword());
     if (errorMsgKeys != null) {
       for (I18nKeyAndParams errorMsgKey : errorMsgKeys) {
         form.addError(errorMsgKey);

@@ -1,9 +1,11 @@
 package org.projectforge.business.password;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.apache.commons.lang.StringUtils;
 import org.projectforge.business.configuration.ConfigurationService;
 import org.projectforge.framework.i18n.I18nKeyAndParams;
-import org.projectforge.framework.i18n.I18nKeysAndParamsSet;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -47,27 +49,24 @@ public class PasswordQualityServiceImpl implements PasswordQualityService
   @Autowired
   private ConfigurationService configurationService;
 
-  /**
-   * Set holding i18n keys for constraints not fulfilled by password to check inside this class.
-   */
-  private I18nKeysAndParamsSet i18nKeyAndParamsSet = new I18nKeysAndParamsSet();
-
   @Override
-  public I18nKeysAndParamsSet getPasswordQualityI18nKeyAndParams()
+  public List<I18nKeyAndParams> getPasswordQualityI18nKeyAndParams()
   {
-    i18nKeyAndParamsSet.add(new I18nKeyAndParams(MESSAGE_KEY_PASSWORD_QUALITY_ERROR, configurationService.getMinPasswordLength()));
-    return i18nKeyAndParamsSet;
-
+    final List<I18nKeyAndParams> i18nKeyAndParams = new ArrayList<>();
+    i18nKeyAndParams.add(new I18nKeyAndParams(MESSAGE_KEY_PASSWORD_QUALITY_ERROR, configurationService.getMinPasswordLength()));
+    return i18nKeyAndParams;
   }
 
   /**
-   * Add an I18n Error Key.
+   * Checks the password quality of a new password. Password must have at least n characters and at minimum one letter
+   * and one non-letter character.
    *
-   * @param i18nKeyAndParams the 18 n key and params
+   * @return null if password quality is OK, otherwise the i18n message key of the password check failure.
    */
-  private void addErrorI18nKey(final I18nKeyAndParams i18nKeyAndParams)
+  @Override
+  public List<I18nKeyAndParams> checkPasswordQuality(final String password)
   {
-    i18nKeyAndParamsSet.add(i18nKeyAndParams);
+    return this.validate(password, null, false);
   }
 
   /**
@@ -78,72 +77,58 @@ public class PasswordQualityServiceImpl implements PasswordQualityService
    * @return null if password quality is OK, otherwise the i18n message key of the password check failure.
    */
   @Override
-  public I18nKeysAndParamsSet checkPasswordQualityOnChange(final String oldPassword, final String newPassword)
-
+  public List<I18nKeyAndParams> checkPasswordQuality(final String oldPassword, final String newPassword)
   {
-    if (checkPasswordQuality(newPassword) == null) {
-      i18nKeyAndParamsSet = new I18nKeysAndParamsSet();
-    }
-    if (configurationService.getFlagCheckPasswordChange() == true) {
-      checkForPasswordEquality(oldPassword, newPassword);
-    }
-    if (i18nKeyAndParamsSet.isEmpty() == true)
-      return null;
-    else
-      return i18nKeyAndParamsSet;
+    return validate(newPassword, oldPassword, true);
   }
 
-  private void checkForPasswordEquality(final String oldPassword, final String newPassword)
+  private List<I18nKeyAndParams> validate(final String newPassword, final String oldPassword, final boolean checkOldPassword)
   {
-    if (StringUtils.equals(oldPassword, newPassword) == true) {
-      addErrorI18nKey(new I18nKeyAndParams(MESSAGE_KEY_PASSWORD_OLD_EQ_NEW_ERROR));
-    }
-  }
+    final List<I18nKeyAndParams> result = new ArrayList<>();
 
-  /**
-   * Checks the password quality of a new password. Password must have at least n characters and at minimum one letter
-   * and one non-letter character.
-   *
-   * @return null if password quality is OK, otherwise the i18n message key of the password check failure.
-   */
-  @Override
-  public I18nKeysAndParamsSet checkPasswordQuality(final String password)
-  {
-    i18nKeyAndParamsSet = new I18nKeysAndParamsSet();
-
+    // check min length
     final int minPasswordLength = configurationService.getMinPasswordLength();
-    if (password == null || password.length() < minPasswordLength) {
-      addErrorI18nKey(new I18nKeyAndParams(MESSAGE_KEY_PASSWORD_MIN_LENGTH_ERROR, configurationService.getMinPasswordLength()));
-      if (password == null) {
-        return i18nKeyAndParamsSet;
+    if (newPassword == null || newPassword.length() < minPasswordLength) {
+      result.add(new I18nKeyAndParams(MESSAGE_KEY_PASSWORD_MIN_LENGTH_ERROR, configurationService.getMinPasswordLength()));
+
+      if (newPassword == null) {
+        return result;
       }
     }
 
-    checkForCharsInPassword(password);
+    // check for character and none character
+    checkForCharsInPassword(newPassword, result);
 
-    if (i18nKeyAndParamsSet.isEmpty() == true)
-      return null;
-    else
-      return i18nKeyAndParamsSet;
+    // stop here if only the new password is validated
+    if (checkOldPassword == false) {
+      return result.isEmpty() ? null : result;
+    }
+
+    // compare old and new password
+    if (configurationService.getFlagCheckPasswordChange() && StringUtils.equals(oldPassword, newPassword)) {
+      result.add(new I18nKeyAndParams(MESSAGE_KEY_PASSWORD_OLD_EQ_NEW_ERROR));
+    }
+
+    return result.isEmpty() ? null : result;
   }
 
-  private void checkForCharsInPassword(final String password)
+  private void checkForCharsInPassword(final String password, final List<I18nKeyAndParams> result)
   {
     boolean letter = false;
     boolean nonLetter = false;
     for (int i = 0; i < password.length(); i++) {
       final char ch = password.charAt(i);
-      if (letter == false && Character.isLetter(ch) == true) {
+      if (letter == false && Character.isLetter(ch)) {
         letter = true;
       } else if (nonLetter == false && Character.isLetter(ch) == false) {
         nonLetter = true;
       }
     }
     if (letter == false) {
-      addErrorI18nKey(new I18nKeyAndParams(MESSAGE_KEY_PASSWORD_CHARACTER_ERROR));
+      result.add(new I18nKeyAndParams(MESSAGE_KEY_PASSWORD_CHARACTER_ERROR));
     }
     if (nonLetter == false) {
-      addErrorI18nKey(new I18nKeyAndParams(MESSAGE_KEY_PASSWORD_NONCHAR_ERROR));
+      result.add(new I18nKeyAndParams(MESSAGE_KEY_PASSWORD_NONCHAR_ERROR));
     }
   }
 

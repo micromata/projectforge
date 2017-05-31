@@ -1,6 +1,8 @@
 package org.projectforge.business.password;
 
-import org.projectforge.framework.i18n.I18nKeysAndParamsSet;
+import java.util.List;
+
+import org.projectforge.framework.i18n.I18nKeyAndParams;
 
 /**
  * Interface holding password quality check functions in Projectforge.
@@ -10,26 +12,26 @@ import org.projectforge.framework.i18n.I18nKeysAndParamsSet;
 public interface PasswordQualityService
 {
   /**
-   * Gets password quality i18nkeyandparams.
+   * Gets password quality.
    *
    * @return the password quality i18nkeyandparams
    */
-  I18nKeysAndParamsSet getPasswordQualityI18nKeyAndParams();
+  List<I18nKeyAndParams> getPasswordQualityI18nKeyAndParams();
 
   /**
-   * Check password quality on change 18nkeysandparams set.
+   * Check password quality and compare old and new password.
    *
    * @param oldPassword the old password
    * @param newPassword the new password
    * @return 18nkeysandparams set of constraints not fulfilled.
    */
-  I18nKeysAndParamsSet checkPasswordQualityOnChange(String oldPassword, String newPassword);
+  List<I18nKeyAndParams> checkPasswordQuality(String oldPassword, String newPassword);
 
   /**
-   * Check password quality 18nkeysandparams set.
+   * Checks the password quality of a new password.
    *
    * @param password entered password
    * @return 18nkeysandparams set of constraints not fulfilled.
    */
-  I18nKeysAndParamsSet checkPasswordQuality(String password);
+  List<I18nKeyAndParams> checkPasswordQuality(String password);
 }

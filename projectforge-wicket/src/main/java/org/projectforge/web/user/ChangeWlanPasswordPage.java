@@ -23,7 +23,7 @@
 
 package org.projectforge.web.user;
 
-import java.util.Set;
+import java.util.List;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.RestartResponseException;
@@ -77,7 +77,7 @@ public class ChangeWlanPasswordPage extends AbstractStandardFormPage
     }
 
     log.info("User wants to change his WLAN password.");
-    final Set<I18nKeyAndParams> errorMsgKeys = userService.changeWlanPassword(getUser(), form.getLoginPassword(), form.getNewWlanPassword());
+    final List<I18nKeyAndParams> errorMsgKeys = userService.changeWlanPassword(getUser(), form.getLoginPassword(), form.getNewWlanPassword());
     if (errorMsgKeys != null) {
       for (I18nKeyAndParams errorMsgKey : errorMsgKeys) {
         form.addError(errorMsgKey);

@@ -688,7 +688,7 @@ public class ConfigurationServiceImpl implements ConfigurationService
       // this could happen if the database is not initialized (during projectforge initial setup)
       log.warn("Exception while getting configuration flag - password change requirement.", e);
     }
-    return ConfigurationParam.MIN_PASSWORD_LENGTH.getDefaultBooleanValue();
+    return ConfigurationParam.PASSWORD_FLAG_CHECK_CHANGE.getDefaultBooleanValue();
   }
 
   @Override
