@@ -21,7 +21,7 @@ public class ConfigurationServiceTest extends AbstractTestBase
   public void testGetMinPasswordLength()
   {
     final int defaultMinPwLen = ConfigurationParam.MIN_PASSWORD_LENGTH.getDefaultIntValue();
-    
+
     // default
     assertEquals(defaultMinPwLen, configurationService.getMinPasswordLength());
 
@@ -34,5 +34,22 @@ public class ConfigurationServiceTest extends AbstractTestBase
     minPwLenEntry.setIntValue(null);
     configurationDao.internalUpdate(minPwLenEntry);
     assertEquals(defaultMinPwLen, configurationService.getMinPasswordLength());
+  }
+
+  /**
+   * Test flag password change verification on newly entered password, that passwords have to change.
+   */
+  @Test
+  public void testGetFlagPasswordChange()
+  {
+    final boolean defaultFlagPwChange = ConfigurationParam.PASSWORD_FLAG_CHECK_CHANGE.getDefaultBooleanValue();
+
+    // default
+    assertEquals(defaultFlagPwChange, configurationService.getFlagCheckPasswordChange());
+
+    final ConfigurationDO flagPwChange = configurationDao.getEntry(ConfigurationParam.PASSWORD_FLAG_CHECK_CHANGE);
+    flagPwChange.setBooleanValue(false);
+    configurationDao.internalUpdate(flagPwChange);
+    assertEquals(false, configurationService.getFlagCheckPasswordChange());
   }
 }
