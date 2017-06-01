@@ -51,10 +51,5 @@ public class ConfigurationServiceTest extends AbstractTestBase
     flagPwChange.setBooleanValue(false);
     configurationDao.internalUpdate(flagPwChange);
     assertEquals(false, configurationService.getFlagCheckPasswordChange());
-
-    // null -> use default
-    flagPwChange.setBooleanValue(null);
-    configurationDao.internalUpdate(flagPwChange);
-    assertEquals(defaultFlagPwChange, configurationService.getMinPasswordLength());
   }
 }
