@@ -4,6 +4,7 @@ import java.io.Serializable;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.TreeSet;
@@ -269,6 +270,7 @@ public class UserServiceImpl implements UserService
     Validate.notNull(user);
     Validate.notNull(oldPassword);
     Validate.notNull(newPassword);
+
     final List<I18nKeyAndParams> errorMsgKeys = passwordQualityService.checkPasswordQuality(oldPassword, newPassword);
     if (errorMsgKeys.isEmpty() == false) {
       return errorMsgKeys;
@@ -277,17 +279,14 @@ public class UserServiceImpl implements UserService
     accessChecker.checkRestrictedOrDemoUser();
     user = getUser(user.getUsername(), oldPassword, false);
     if (user == null) {
-      I18nKeyAndParams compareErrorMsgKey = new I18nKeyAndParams(MESSAGE_KEY_OLD_PASSWORD_WRONG);
-      List<I18nKeyAndParams> compareErrorMsgKeys = new ArrayList<>();
-      compareErrorMsgKeys.add(compareErrorMsgKey);
-      return compareErrorMsgKeys;
-
+      return Collections.singletonList(new I18nKeyAndParams(MESSAGE_KEY_OLD_PASSWORD_WRONG));
     }
+    
     createEncryptedPassword(user, newPassword);
     onPasswordChange(user, true);
     Login.getInstance().passwordChanged(user, newPassword);
     log.info("Password changed and stay-logged-key renewed for user: " + user.getId() + " - " + user.getUsername());
-    return null;
+    return Collections.emptyList();
   }
 
   /**
@@ -314,15 +313,13 @@ public class UserServiceImpl implements UserService
     accessChecker.checkRestrictedOrDemoUser();
     user = getUser(user.getUsername(), loginPassword, false); // get user from DB to persist the change of the wlan password time
     if (user == null) {
-      List<I18nKeyAndParams> compareErrorMsgKeys = new ArrayList<>();
-      compareErrorMsgKeys.add(new I18nKeyAndParams(MESSAGE_KEY_LOGIN_PASSWORD_WRONG));
-      return compareErrorMsgKeys;
+      return Collections.singletonList(new I18nKeyAndParams(MESSAGE_KEY_LOGIN_PASSWORD_WRONG));
     }
 
     onWlanPasswordChange(user, true); // set last change time and creaty history entry
     Login.getInstance().wlanPasswordChanged(user, newWlanPassword); // change the wlan password
     log.info("WLAN Password changed for user: " + user.getId() + " - " + user.getUsername());
-    return null;
+    return Collections.emptyList();
   }
 
   @Override
