@@ -28,11 +28,9 @@ import java.util.Date;
 import org.apache.log4j.Logger;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.FormComponent;
-import org.apache.wicket.markup.html.form.SubmitLink;
 import org.apache.wicket.markup.html.form.validation.IFormValidator;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
-import org.apache.wicket.model.ResourceModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.task.TaskDO;
 import org.projectforge.business.task.TaskTree;
@@ -41,22 +39,17 @@ import org.projectforge.business.timesheet.TimesheetDO;
 import org.projectforge.business.timesheet.TimesheetFilter;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.time.DateTimeFormatter;
-import org.projectforge.web.CSSColor;
-import org.projectforge.web.calendar.QuickSelectPanel;
 import org.projectforge.web.task.TaskSelectPanel;
 import org.projectforge.web.user.UserSelectPanel;
 import org.projectforge.web.wicket.AbstractListForm;
-import org.projectforge.web.wicket.WicketUtils;
+import org.projectforge.web.wicket.LambdaModel;
+import org.projectforge.web.wicket.TimePeriodPanel;
 import org.projectforge.web.wicket.bootstrap.GridSize;
 import org.projectforge.web.wicket.components.DatePanel;
-import org.projectforge.web.wicket.components.DatePanelSettings;
 import org.projectforge.web.wicket.flowlayout.CheckBoxButton;
 import org.projectforge.web.wicket.flowlayout.DivPanel;
 import org.projectforge.web.wicket.flowlayout.DivTextPanel;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
-import org.projectforge.web.wicket.flowlayout.HtmlCommentPanel;
-import org.projectforge.web.wicket.flowlayout.IconLinkPanel;
-import org.projectforge.web.wicket.flowlayout.IconType;
 
 public class TimesheetListForm extends AbstractListForm<TimesheetListFilter, TimesheetListPage>
 {
@@ -69,9 +62,9 @@ public class TimesheetListForm extends AbstractListForm<TimesheetListFilter, Tim
   @SpringBean
   private DateTimeFormatter dateTimeFormatter;
 
-  protected DatePanel startDate;
+  DatePanel startDate;
 
-  protected DatePanel stopDate;
+  DatePanel stopDate;
 
   private String exportFormat;
 
@@ -165,52 +158,16 @@ public class TimesheetListForm extends AbstractListForm<TimesheetListFilter, Tim
     {
       gridBuilder.newSplitPanel(GridSize.COL66);
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("timePeriod"));
-      startDate = new DatePanel(fs.newChildId(), new PropertyModel<Date>(filter, "startTime"), DatePanelSettings.get()
-          .withSelectPeriodMode(true));
-      fs.add(dependentFormComponents[0] = startDate);
+      final TimePeriodPanel timePeriodPanel = new TimePeriodPanel(
+          fs.newChildId(),
+          LambdaModel.of(filter::getStartTime, filter::setStartTime),
+          LambdaModel.of(filter::getStopTime, filter::setStopTime),
+          parentPage
+      );
+      fs.add(timePeriodPanel);
+      dependentFormComponents[0] = startDate = timePeriodPanel.getStartDatePanel();
+      dependentFormComponents[1] = stopDate = timePeriodPanel.getEndDatePanel();
       fs.setLabelFor(startDate);
-      fs.add(new DivTextPanel(fs.newChildId(), " - "));
-      stopDate = new DatePanel(fs.newChildId(), new PropertyModel<Date>(filter, "stopTime"),
-          DatePanelSettings.get().withSelectPeriodMode(
-              true));
-      fs.add(dependentFormComponents[1] = stopDate);
-      {
-        final SubmitLink unselectPeriodLink = new SubmitLink(IconLinkPanel.LINK_ID)
-        {
-          @Override
-          public void onSubmit()
-          {
-            getSearchFilter().setStartTime(null);
-            getSearchFilter().setStopTime(null);
-            clearInput();
-            parentPage.refresh();
-          }
-        };
-        unselectPeriodLink.setDefaultFormProcessing(false);
-        fs.add(new IconLinkPanel(fs.newChildId(), IconType.REMOVE_SIGN,
-            new ResourceModel("calendar.tooltip.unselectPeriod"),
-            unselectPeriodLink).setColor(CSSColor.RED));
-      }
-      final QuickSelectPanel quickSelectPanel = new QuickSelectPanel(fs.newChildId(), parentPage, "quickSelect",
-          startDate);
-      fs.add(quickSelectPanel);
-      quickSelectPanel.init();
-      fs.add(new DivTextPanel(fs.newChildId(), new Model<String>()
-      {
-        @Override
-        public String getObject()
-        {
-          return WicketUtils.getCalendarWeeks(TimesheetListForm.this, filter.getStartTime(), filter.getStopTime());
-        }
-      }));
-      fs.add(new HtmlCommentPanel(fs.newChildId(), new Model<String>()
-      {
-        @Override
-        public String getObject()
-        {
-          return WicketUtils.getUTCDates(filter.getStartTime(), filter.getStopTime());
-        }
-      }));
     }
     {
       // Duration
