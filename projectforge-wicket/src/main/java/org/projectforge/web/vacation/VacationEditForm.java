@@ -28,6 +28,7 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -181,30 +182,14 @@ public class VacationEditForm extends AbstractEditForm<VacationDO, VacationEditP
       final FieldsetPanel fs = gridBuilder.newFieldset(VacationDO.class, "startDate");
       DatePanel startDatePanel = new DatePanel(fs.newChildId(), new PropertyModel<>(data, "startDate"),
           DatePanelSettings.get().withTargetType(java.sql.Date.class), true);
-      startDatePanel.getDateField().add(new AjaxFormComponentUpdatingBehavior("onchange")
-      {
-        private static final long serialVersionUID = 2462233190993745889L;
-
-        @Override
-        protected void onUpdate(final AjaxRequestTarget target)
-        {
-          BigDecimal availableVacationDays = getAvailableVacationDays(data);
-          availableVacationDaysModel.setObject(availableVacationDays.toString());
-          target.add(availableVacationDaysLabel);
-
-          updateNeededVacationDaysLabel(target);
-        }
-      });
       startDatePanel.setRequired(true).setMarkupId("vacation-startdate").setOutputMarkupId(true);
       startDatePanel.setEnabled(checkEnableInputField());
       formValidator.getDependentFormComponents()[0] = startDatePanel;
       fs.add(startDatePanel);
-    }
 
-    {
       // End date
-      final FieldsetPanel fs = gridBuilder.newFieldset(VacationDO.class, "endDate");
-      DatePanel endDatePanel = new DatePanel(fs.newChildId(), new PropertyModel<>(data, "endDate"),
+      final FieldsetPanel fsEndDate = gridBuilder.newFieldset(VacationDO.class, "endDate");
+      DatePanel endDatePanel = new DatePanel(fsEndDate.newChildId(), new PropertyModel<>(data, "endDate"),
           DatePanelSettings.get().withTargetType(java.sql.Date.class), true);
       endDatePanel.getDateField().add(new AjaxFormComponentUpdatingBehavior("onchange")
       {
@@ -217,9 +202,36 @@ public class VacationEditForm extends AbstractEditForm<VacationDO, VacationEditP
         }
       });
       endDatePanel.setRequired(true).setMarkupId("vacation-enddate").setOutputMarkupId(true);
+      endDatePanel.getDateField().setOutputMarkupId(true);
       endDatePanel.setEnabled(checkEnableInputField());
       formValidator.getDependentFormComponents()[1] = endDatePanel;
-      fs.add(endDatePanel);
+      fsEndDate.add(endDatePanel);
+
+      startDatePanel.getDateField().add(new AjaxFormComponentUpdatingBehavior("onchange")
+      {
+        private static final long serialVersionUID = 4577664688930645961L;
+
+        @Override
+        protected void onUpdate(final AjaxRequestTarget target)
+        {
+          // needed days
+          BigDecimal availableVacationDays = getAvailableVacationDays(data);
+          availableVacationDaysModel.setObject(availableVacationDays.toString());
+          target.add(availableVacationDaysLabel);
+
+          updateNeededVacationDaysLabel(target);
+
+          // end date
+          final long selectedDate = startDatePanel.getDateField().getModelObject().getTime();
+
+          if (endDatePanel.getDateField().getModelObject() == null) {
+            endDatePanel.getDateField().setModelObject(new Date(selectedDate));
+          } else if (selectedDate > endDatePanel.getDateField().getModelObject().getTime()) {
+            endDatePanel.getDateField().getModelObject().setTime(selectedDate);
+          }
+          target.add(endDatePanel.getDateField());
+        }
+      });
     }
 
     {
@@ -251,7 +263,9 @@ public class VacationEditForm extends AbstractEditForm<VacationDO, VacationEditP
     }
 
     // Available vacation days - only visible for the creator and manager
-    if (data.getVacationmode() == VacationMode.OWN || data.getVacationmode() == VacationMode.MANAGER || data.getVacationmode() == VacationMode.OTHER) {
+    if (data.getVacationmode() == VacationMode.OWN || data.getVacationmode() == VacationMode.MANAGER || data.getVacationmode() == VacationMode.OTHER)
+
+    {
       final FieldsetPanel fs = gridBuilder.newFieldset(I18nHelper.getLocalizedMessage("vacation.availabledays"));
       BigDecimal availableVacationDays = getAvailableVacationDays(data);
       this.availableVacationDaysModel.setObject(availableVacationDays.toString());
