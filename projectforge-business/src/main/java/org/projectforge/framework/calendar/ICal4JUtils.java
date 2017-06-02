@@ -133,37 +133,13 @@ public class ICal4JUtils
       final net.fortuna.ical4j.model.Date until = recur != null ? recur.getUntil() : null;
       if (until != null) {
         final Date untilEndOfDay = CalendarUtils.getEndOfDay(until, timeZone);
-        recur.setUntil(new net.fortuna.ical4j.model.Date(untilEndOfDay));
+        recur.setUntil(new net.fortuna.ical4j.model.DateTime(untilEndOfDay));
       }
       return rule;
     } catch (final ParseException ex) {
       log.error("Exception encountered while parsing rrule '" + rruleString + "': " + ex.getMessage(), ex);
       return null;
     }
-  }
-
-  /**
-   * @param rruleString
-   * @param timeZone
-   * @see ICal4JUtils#calculateRecurrenceRule(String)
-   * @see RRule#getRecur()
-   */
-  public static Recur calculateRecurrence(final String rruleString, java.util.TimeZone timeZone)
-  {
-    final RRule rule = calculateRecurrenceRule(rruleString, timeZone);
-    return rule != null ? rule.getRecur() : null;
-  }
-
-  public static Date calculateRecurrenceUntil(final String rruleString, java.util.TimeZone timeZone)
-  {
-    if (StringUtils.isBlank(rruleString) == true) {
-      return null;
-    }
-    final Recur recur = calculateRecurrence(rruleString, timeZone);
-    if (recur == null) {
-      return null;
-    }
-    return recur.getUntil();
   }
 
   public static String getCal4JFrequencyString(final RecurrenceFrequency interval)

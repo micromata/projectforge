@@ -69,6 +69,8 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import net.fortuna.ical4j.model.property.RRule;
+
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
  * @author M. Lauterbach (m.lauterbach@micromata.de)
@@ -168,6 +170,8 @@ public class TeamEventDao extends BaseDao<TeamEventDO>
   {
     super.onSaveOrModify(event);
     Validate.notNull(event.getCalendar());
+
+    // If is all day event, set start and stop to midnight
     if (event.isAllDay() == true) {
       final Date startDate = event.getStartDate();
       if (startDate != null) {
@@ -178,12 +182,14 @@ public class TeamEventDao extends BaseDao<TeamEventDO>
         event.setEndDate(CalendarUtils.getUTCMidnightTimestamp(endDate));
       }
     }
+
     // Update recurrenceUntil date (for database queries):
     // TODO fix parsing behavior, currently the timestamp is mapped to 23:59:59 of the same day. Results in to many events in external tools.
     // TODO check web view, check writing until from web interface
-    final Date recurrenceUntil = ICal4JUtils.calculateRecurrenceUntil(event.getRecurrenceRule(), event.getTimeZone());
-    event.setRecurrenceUntil(recurrenceUntil);
+    // TODO check if this method is entered when editing in web view
+    event.recalculate();
 
+    // create uid if missing
     if (StringUtils.isBlank(event.getUid())) {
       event.setUid(TeamCalConfig.get().createEventUid());
     }
@@ -203,7 +209,7 @@ public class TeamEventDao extends BaseDao<TeamEventDO>
    */
   public List<TeamEvent> getEventList(final TeamEventFilter filter, final boolean calculateRecurrenceEvents)
   {
-    final List<TeamEvent> result = new ArrayList<TeamEvent>();
+    final List<TeamEvent> result = new ArrayList<>();
     List<TeamEventDO> list = getList(filter);
     if (CollectionUtils.isNotEmpty(list) == true) {
       for (final TeamEventDO eventDO : list) {

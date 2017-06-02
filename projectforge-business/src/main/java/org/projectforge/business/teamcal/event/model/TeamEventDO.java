@@ -520,11 +520,14 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
   public void recalculate()
   {
     super.recalculate();
+
     recurrenceRuleObject = ICal4JUtils.calculateRecurrenceRule(recurrenceRule, getTimeZone());
+
     if (recurrenceRuleObject == null || recurrenceRuleObject.getRecur() == null) {
       this.recurrenceUntil = null;
       return;
     }
+
     this.recurrenceUntil = recurrenceRuleObject.getRecur().getUntil();
   }
 
