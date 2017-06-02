@@ -85,10 +85,13 @@ public abstract class AbstractEditForm<O extends AbstractBaseDO<Integer>, P exte
   protected O oldData;
   private AttributeAppender updateAndStayButtonClassHiddenAttributeAppender;
 
+  protected boolean ignoreErrorOnClone;
+
   public AbstractEditForm(final P parentPage, final O data)
   {
     super(parentPage);
     this.data = data;
+    this.ignoreErrorOnClone = false;
   }
 
   /**
@@ -394,6 +397,14 @@ public abstract class AbstractEditForm<O extends AbstractBaseDO<Integer>, P exte
         public final void onSubmit()
         {
           parentPage.cloneData();
+        }
+
+        @Override
+        public void onError()
+        {
+          if (ignoreErrorOnClone) {
+            parentPage.cloneData();
+          }
         }
       };
       final SingleButtonPanel cloneButtonPanel = new SingleButtonPanel(actionButtons.newChildId(), cloneButton,
