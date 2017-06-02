@@ -207,7 +207,7 @@ public class TimesheetListPage extends AbstractListPage<TimesheetListForm, Times
         public void onSubmit()
         {
           exportPDF();
-        };
+        }
       };
       exportMenu.addSubMenuEntry(
           new ContentMenuEntryPanel(exportMenu.newSubMenuChildId(), exportPDFButton, getString("exportAsPdf"))
@@ -220,7 +220,7 @@ public class TimesheetListPage extends AbstractListPage<TimesheetListForm, Times
         public void onSubmit()
         {
           exportExcel();
-        };
+        }
       };
       exportMenu.addSubMenuEntry(
           new ContentMenuEntryPanel(exportMenu.newSubMenuChildId(), exportExcelButton, getString("exportAsXls"))
@@ -240,7 +240,7 @@ public class TimesheetListPage extends AbstractListPage<TimesheetListForm, Times
       public void onClick(final AjaxRequestTarget target)
       {
         icsExportDialog.open(target);
-      };
+      }
 
     };
     // final IconLinkPanel exportICalButtonPanel = new IconLinkPanel(buttonGroupPanel.newChildId(), IconType.DOWNLOAD,
@@ -287,11 +287,11 @@ public class TimesheetListPage extends AbstractListPage<TimesheetListForm, Times
 
   /**
    * For re-usage in other pages.
-   * 
+   *
    * @param page
    * @param isMassUpdateMode
-   * @param timesheetFilter If given, then the long format filter setting will be used for displaying the description,
-   *          otherwise the short description is used.
+   * @param timesheetFilter  If given, then the long format filter setting will be used for displaying the description,
+   *                         otherwise the short description is used.
    */
   @SuppressWarnings("serial")
   protected static final List<IColumn<TimesheetDO, String>> createColumns(
@@ -375,7 +375,7 @@ public class TimesheetListPage extends AbstractListPage<TimesheetListForm, Times
     columns.add(new TaskPropertyColumn<TimesheetDO>(page.getString("task"),
         getSortable("task.title", sortable), "task",
         cellItemListener)
-            .withTaskTree(taskTree));
+        .withTaskTree(taskTree));
     if (systemInfoCache.isCost2EntriesExists() == true) {
       columns.add(new CellItemListenerPropertyColumn<TimesheetDO>(page.getString("fibu.kost2"),
           getSortable("kost2.shortDisplayName",
@@ -514,7 +514,6 @@ public class TimesheetListPage extends AbstractListPage<TimesheetListForm, Times
   }
 
   /**
-   * 
    * @see org.projectforge.web.fibu.ISelectCallerPage#unselect(java.lang.String)
    */
   @Override
@@ -539,7 +538,7 @@ public class TimesheetListPage extends AbstractListPage<TimesheetListForm, Times
   {
     final TimesheetFilter filter = form.getSearchFilter();
     if (filter.getStartTime() == null && filter.getStopTime() == null && filter.getTaskId() == null) {
-      return null;
+      return new ArrayList<>(); // return null results in an addition error message! (search.error)
     }
     return super.buildList();
   }
@@ -606,7 +605,7 @@ public class TimesheetListPage extends AbstractListPage<TimesheetListForm, Times
 
   /**
    * Avoid LazyInitializationException user.fullname.
-   * 
+   *
    * @see org.projectforge.web.wicket.AbstractListPage#createSortableDataProvider(java.lang.String, boolean)
    */
   @SuppressWarnings("serial")
