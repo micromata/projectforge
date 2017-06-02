@@ -184,7 +184,7 @@ public class RechnungListPage extends AbstractListPage<RechnungListForm, Rechnun
         new CellItemListenerPropertyColumn<RechnungDO>(getString("fibu.projekt"), getSortable("projekt.name", sortable),
             "projekt.name", cellItemListener));
     if (kontoCache.isEmpty() == false) {
-      columns.add(new CellItemListenerPropertyColumn<RechnungDO>(RechnungDO.class, null, "konto", cellItemListener)
+      columns.add(new CellItemListenerPropertyColumn<RechnungDO>(RechnungDO.class, getSortable("konto", sortable), "konto", cellItemListener)
       {
         /**
          * @see org.projectforge.web.wicket.CellItemListenerPropertyColumn#populateItem(org.apache.wicket.markup.repeater.Item,
