@@ -26,7 +26,9 @@ package org.projectforge.business.teamcal.event.model;
 import java.sql.Timestamp;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.TimeZone;
@@ -57,7 +59,6 @@ import org.hibernate.search.annotations.Resolution;
 import org.hibernate.search.annotations.Store;
 import org.projectforge.business.teamcal.admin.model.TeamCalDO;
 import org.projectforge.business.teamcal.event.TeamEventRecurrenceData;
-import org.projectforge.business.teamcal.service.TeamCalServiceImpl;
 import org.projectforge.framework.calendar.ICal4JUtils;
 import org.projectforge.framework.persistence.api.AUserRightId;
 import org.projectforge.framework.persistence.api.Constants;
@@ -67,10 +68,12 @@ import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.time.DateFormats;
 import org.projectforge.framework.time.DateHelper;
+import org.projectforge.framework.time.RecurrenceFrequency;
 import org.projectforge.framework.time.TimePeriod;
 
 import de.micromata.genome.db.jpa.history.api.NoHistory;
 import de.micromata.genome.db.jpa.history.api.WithHistory;
+import net.fortuna.ical4j.model.DateTime;
 import net.fortuna.ical4j.model.Recur;
 import net.fortuna.ical4j.model.property.RRule;
 
@@ -461,11 +464,71 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
    * @param recurrenceRule the recurrence to set
    * @return this for chaining.
    */
-  public TeamEventDO setRecurrenceRule(final String recurrenceRule)
+  private TeamEventDO setRecurrenceRule(final String recurrenceRule)
   {
     this.recurrenceRule = recurrenceRule;
     this.recurrenceRuleObject = null;
-    recalculate();
+
+    return this;
+  }
+
+  /**
+   * @param rRule
+   * @return this for chaining.
+   */
+  @Transient
+  public TeamEventDO setRecurrence(final RRule rRule)
+  {
+    if (rRule == null || rRule.getRecur() == null) {
+      this.recurrenceRuleObject = null;
+      this.recurrenceRule = null;
+      this.recurrenceUntil = null;
+
+      return this;
+    }
+
+    final Recur recur = rRule.getRecur();
+
+    if (recur.getUntil() != null) {
+      if (this.allDay) {
+        if (recur.getUntil() instanceof DateTime) {
+          // switch to date (no time)
+          recur.setUntil(new net.fortuna.ical4j.model.Date(recur.getUntil()));
+        }
+      } else {
+        // TODO fix time zone stuff....
+        Calendar calUntil = new GregorianCalendar(ThreadLocalUserContext.getTimeZone());
+        Calendar calStart = new GregorianCalendar(ThreadLocalUserContext.getTimeZone());
+
+        calUntil.setTime(recur.getUntil());
+        calStart.setTime(this.startDate);
+
+        // update date of start date to until date
+        calStart.set(Calendar.YEAR, calUntil.get(Calendar.YEAR));
+        calStart.set(Calendar.DAY_OF_YEAR, calUntil.get(Calendar.DAY_OF_YEAR));
+
+        // remove one day if event start is before until time
+        if (calStart.getTimeInMillis() > calUntil.getTimeInMillis()) {
+          calUntil.add(Calendar.DAY_OF_YEAR, -1);
+        }
+
+        // Set to end of day in user time zone
+        calUntil.set(Calendar.HOUR_OF_DAY, 23);
+        calUntil.set(Calendar.MINUTE, 59);
+        calUntil.set(Calendar.SECOND, 59);
+        calUntil.clear(Calendar.MILLISECOND);
+
+        final DateTime newUntil = new DateTime(calUntil.getTime());
+        newUntil.setUtc(true);
+
+        recur.setUntil(newUntil);
+      }
+    }
+
+    this.recurrenceRuleObject = null; // do not use rRule param here!
+    this.recurrenceRule = rRule.getValue();
+    this.recurrenceUntil = recur.getUntil();
+
     return this;
   }
 
@@ -476,23 +539,58 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
   @Transient
   public TeamEventDO setRecurrence(final TeamEventRecurrenceData recurData)
   {
-    final String rruleString = TeamCalServiceImpl.calculateRRule(recurData);
-    setRecurrenceRule(rruleString);
-    return this;
-  }
+    if (recurData == null || recurData.getFrequency() == null || recurData.getFrequency() == RecurrenceFrequency.NONE) {
+      this.recurrenceRuleObject = null;
+      this.recurrenceRule = null;
+      this.recurrenceUntil = null;
 
-  /**
-   * Will be renewed if {@link #setRecurrenceRule(String)} is called.
-   *
-   * @return the recurrenceRuleObject
-   */
-  @Transient
-  public RRule getRecurrenceRuleObject()
-  {
-    if (recurrenceRuleObject == null) {
-      recalculate();
+      return this;
     }
-    return recurrenceRuleObject;
+
+    if (recurData.isCustomized() == false) {
+      recurData.setInterval(1);
+    }
+
+    final Recur recur = new Recur();
+
+    // Set until
+    if (recurData.getUntil() != null) {
+      if (this.allDay) {
+        // just use date, no time
+        final net.fortuna.ical4j.model.Date untilICal4J = new net.fortuna.ical4j.model.Date(recurData.getUntil());
+        recur.setUntil(untilICal4J);
+      } else {
+        // TODO fix time zone stuff...
+        // use date and time for recurring
+        Calendar calUntilUTC = new GregorianCalendar(DateHelper.UTC);
+        Calendar calUntilUserTime = new GregorianCalendar(ThreadLocalUserContext.getTimeZone());
+
+        calUntilUTC.setTime(recurData.getUntil());
+        calUntilUserTime.set(Calendar.YEAR, calUntilUTC.get(Calendar.YEAR));
+        calUntilUserTime.set(Calendar.DAY_OF_YEAR, calUntilUTC.get(Calendar.DAY_OF_YEAR));
+
+        // update until to end of day
+        calUntilUserTime.set(Calendar.HOUR_OF_DAY, 23);
+        calUntilUserTime.set(Calendar.MINUTE, 59);
+        calUntilUserTime.set(Calendar.SECOND, 59);
+        calUntilUserTime.clear(Calendar.MILLISECOND);
+
+        DateTime untilICal4J = new net.fortuna.ical4j.model.DateTime(calUntilUserTime.getTime());
+        untilICal4J.setUtc(true);
+        recur.setUntil(untilICal4J);
+      }
+    }
+
+    recur.setInterval(recurData.getInterval());
+    recur.setFrequency(ICal4JUtils.getCal4JFrequencyString(recurData.getFrequency()));
+
+    final RRule rrule = new RRule(recur);
+
+    this.recurrenceRuleObject = rrule;
+    this.recurrenceRule = rrule.getValue();
+    this.recurrenceUntil = rrule.getRecur().getUntil();
+
+    return this;
   }
 
   /**
@@ -506,29 +604,26 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
 
   public TeamEventDO clearAllRecurrenceFields()
   {
-    setRecurrence(null).setRecurrenceExDate(null).setRecurrenceUntil(null);
+    this.recurrenceRule = null;
+    this.recurrenceRuleObject = null;
+    this.recurrenceExDate = null;
+    this.recurrenceUntil = null;
+
     return this;
   }
 
   /**
-   * The recurrenceUntil date is calculated by the recurrenceRule string if given, otherwise the date is set to null.
-   * get
+   * Will be renewed if {@link #setRecurrenceRule(String)} is called.
    *
-   * @see org.projectforge.framework.persistence.entities.AbstractBaseDO#recalculate()
+   * @return the recurrenceRuleObject
    */
-  @Override
-  public void recalculate()
+  @Transient
+  public RRule getRecurrenceRuleObject()
   {
-    super.recalculate();
-
-    recurrenceRuleObject = ICal4JUtils.calculateRecurrenceRule(recurrenceRule, getTimeZone());
-
-    if (recurrenceRuleObject == null || recurrenceRuleObject.getRecur() == null) {
-      this.recurrenceUntil = null;
-      return;
+    if (recurrenceRuleObject == null) {
+      recurrenceRuleObject = ICal4JUtils.calculateRRule(recurrenceRule);
     }
-
-    this.recurrenceUntil = recurrenceRuleObject.getRecur().getUntil();
+    return recurrenceRuleObject;
   }
 
   /**
@@ -555,6 +650,21 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
   }
 
   /**
+   * Sets the ExDates for recurring event. Expected format is CSV (date,date,date).
+   * Supported date formats are <b>yyyyMMdd</b> for all day events and <b>yyyyMMdd'T'HHmmss</b> otherwise.
+   * <p>
+   * <b>Caution:</b> all timestamps must be represented in UTC!
+   *
+   * @param recurrenceExDate the recurrenceExDate to set
+   * @return this for chaining.
+   */
+  public TeamEventDO setRecurrenceExDate(final String recurrenceExDate)
+  {
+    this.recurrenceExDate = recurrenceExDate;
+    return this;
+  }
+
+  /**
    * Adds a new ExDate to this event.
    *
    * @param date
@@ -577,37 +687,6 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
   }
 
   /**
-   * Sets the ExDates for recurring event. Expected format is CSV (date,date,date).
-   * Supported date formats are <b>yyyyMMdd</b> for all day events and <b>yyyyMMdd'T'HHmmss</b> otherwise.
-   * <p>
-   * <b>Caution:</b> all timestamps must be represented in UTC!
-   *
-   * @param recurrenceExDate the recurrenceExDate to set
-   * @return this for chaining.
-   */
-  public TeamEventDO setRecurrenceExDate(final String recurrenceExDate)
-  {
-    this.recurrenceExDate = recurrenceExDate;
-    return this;
-  }
-
-  /**
-   * @param recurrenceDate the recurrenceDate to set
-   * @return this for chaining.
-   */
-  @Transient
-  public TeamEventDO setRecurrenceDate(final Date recurrenceDate)
-  {
-    final DateFormat df = new SimpleDateFormat(DateFormats.ICAL_DATETIME_FORMAT);
-    // Need the user's time-zone for getting midnight of desired date.
-    df.setTimeZone(ThreadLocalUserContext.getTimeZone());
-    // But print it as UTC date:
-    final String recurrenceDateString = df.format(recurrenceDate);
-    setRecurrenceDate(recurrenceDateString);
-    return this;
-  }
-
-  /**
    * This field is RECURRENCE_ID. Isn't yet used (ex-date is always used instead in master event).
    *
    * @return the recurrenceId
@@ -625,6 +704,22 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
   public TeamEventDO setRecurrenceDate(final String recurrenceDateString)
   {
     this.recurrenceReferenceDate = recurrenceDateString;
+    return this;
+  }
+
+  /**
+   * @param recurrenceDate the recurrenceDate to set
+   * @return this for chaining.
+   */
+  @Transient
+  public TeamEventDO setRecurrenceDate(final Date recurrenceDate)
+  {
+    final DateFormat df = new SimpleDateFormat(DateFormats.ICAL_DATETIME_FORMAT);
+    // Need the user's time-zone for getting midnight of desired date.
+    df.setTimeZone(ThreadLocalUserContext.getTimeZone());
+    // But print it as UTC date:
+    final String recurrenceDateString = df.format(recurrenceDate);
+    setRecurrenceDate(recurrenceDateString);
     return this;
   }
 
@@ -678,7 +773,7 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
    * @param recurrenceUntil the recurrenceEndDate to set
    * @return this for chaining.
    */
-  public TeamEventDO setRecurrenceUntil(final java.util.Date recurrenceUntil)
+  private TeamEventDO setRecurrenceUntil(final java.util.Date recurrenceUntil)
   {
     this.recurrenceUntil = recurrenceUntil;
     return this;

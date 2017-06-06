@@ -63,9 +63,11 @@ public class TeamEventRecurrenceData implements Serializable
     if (this.interval < 1) {
       this.interval = 1;
     }
-    if (recur.getUntil() != null) {
-      this.until = CalendarUtils.getEndOfDay(recur.getUntil(), timeZone);
-    }
+    //    if (recur.getUntil() != null) {
+    //      this.until = CalendarUtils.getEndOfDay(recur.getUntil(), timeZone);
+    //    }
+
+    this.until = recur.getUntil();
     this.frequency = ICal4JUtils.getFrequency(recur);
   }
 
@@ -115,7 +117,7 @@ public class TeamEventRecurrenceData implements Serializable
 
   /**
    * If given interval is greater than 1 then the interval is set, otherwise the interval is set to -1 (default).
-   * 
+   *
    * @param interval the interval to set
    * @return this for chaining.
    */
@@ -139,7 +141,7 @@ public class TeamEventRecurrenceData implements Serializable
 
   /**
    * Used by Wicket form field in {@link TeamEventEditForm}.
-   * 
+   *
    * @param value If true than interval will be set as 2 as default otherwise as -1.
    */
   public void setCustomized(final boolean value)
