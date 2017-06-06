@@ -62,9 +62,9 @@ public class TimesheetListForm extends AbstractListForm<TimesheetListFilter, Tim
   @SpringBean
   private DateTimeFormatter dateTimeFormatter;
 
-  DatePanel startDate;
+  private DatePanel startDate;
 
-  DatePanel stopDate;
+  private DatePanel stopDate;
 
   private String exportFormat;
 

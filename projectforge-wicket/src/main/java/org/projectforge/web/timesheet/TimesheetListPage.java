@@ -68,7 +68,6 @@ import org.projectforge.framework.renderer.PdfRenderer;
 import org.projectforge.framework.time.DateFormatType;
 import org.projectforge.framework.time.DateFormats;
 import org.projectforge.framework.time.DateHelper;
-import org.projectforge.framework.time.DateHolder;
 import org.projectforge.framework.utils.FileHelper;
 import org.projectforge.framework.utils.MyBeanComparator;
 import org.projectforge.jira.JiraUtils;
@@ -96,7 +95,7 @@ public class TimesheetListPage extends AbstractListPage<TimesheetListForm, Times
 {
   private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(TimesheetListPage.class);
 
-  protected static final String[] MY_BOOKMARKABLE_INITIAL_PROPERTIES = mergeStringArrays(
+  private static final String[] MY_BOOKMARKABLE_INITIAL_PROPERTIES = mergeStringArrays(
       BOOKMARKABLE_INITIAL_PROPERTIES, new String[] {
           "f.userId|user", "f.taskId|task", "f.startTime|t1", "f.stopTime|t2", "f.marked", "f.longFormat|long",
           "f.recursive" });
@@ -492,21 +491,6 @@ public class TimesheetListPage extends AbstractListPage<TimesheetListForm, Times
       refresh();
     } else if ("userId".equals(property) == true) {
       form.getSearchFilter().setUserId((Integer) selectedValue);
-      refresh();
-    } else if (property.startsWith("quickSelect.") == true) { // month".equals(property) == true) {
-      final Date date = (Date) selectedValue;
-      form.getSearchFilter().setStartTime(date);
-      final DateHolder dateHolder = new DateHolder(date);
-      if (property.endsWith(".month") == true) {
-        dateHolder.setEndOfMonth();
-      } else if (property.endsWith(".week") == true) {
-        dateHolder.setEndOfWeek();
-      } else {
-        log.error("Property '" + property + "' not supported for selection.");
-      }
-      form.getSearchFilter().setStopTime(dateHolder.getDate());
-      form.startDate.markModelAsChanged();
-      form.stopDate.markModelAsChanged();
       refresh();
     } else {
       super.select(property, selectedValue);

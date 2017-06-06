@@ -2,12 +2,15 @@ package org.projectforge.web.wicket;
 
 import java.util.Date;
 
+import org.apache.log4j.Logger;
 import org.apache.wicket.markup.html.form.SubmitLink;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.ResourceModel;
+import org.projectforge.framework.time.DateHolder;
 import org.projectforge.web.CSSColor;
 import org.projectforge.web.calendar.QuickSelectPanel;
+import org.projectforge.web.fibu.ISelectCallerPage;
 import org.projectforge.web.wicket.components.DatePanel;
 import org.projectforge.web.wicket.components.DatePanelSettings;
 import org.projectforge.web.wicket.flowlayout.DivTextPanel;
@@ -16,21 +19,33 @@ import org.projectforge.web.wicket.flowlayout.IconLinkPanel;
 import org.projectforge.web.wicket.flowlayout.IconType;
 
 // TODO CT: use FormComponentPanel?
-public class TimePeriodPanel extends Panel
+public class TimePeriodPanel extends Panel implements ISelectCallerPage
 {
-  private final DatePanel startDate;
+  private static final Logger log = Logger.getLogger(TimePeriodPanel.class);
 
-  private final DatePanel endDate;
+  private final IModel<Date> startDateModel;
 
-  public TimePeriodPanel(final String id, final IModel<Date> startDateModel, final IModel<Date> endDateModel, final AbstractListPage<?, ?, ?> caller)
+  private final IModel<Date> endDateModel;
+
+  private final AbstractListPage<?, ?, ?> parentPage;
+
+  private final DatePanel startDatePanel;
+
+  private final DatePanel endDatePanel;
+
+  public TimePeriodPanel(final String id, final IModel<Date> startDateModel, final IModel<Date> endDateModel, final AbstractListPage<?, ?, ?> parentPage)
   {
     super(id);
 
-    startDate = new DatePanel("startDate", startDateModel, DatePanelSettings.get().withSelectPeriodMode(true));
-    add(startDate);
+    this.startDateModel = startDateModel;
+    this.endDateModel = endDateModel;
+    this.parentPage = parentPage;
 
-    endDate = new DatePanel("endDate", endDateModel, DatePanelSettings.get().withSelectPeriodMode(true));
-    add(endDate);
+    startDatePanel = new DatePanel("startDate", startDateModel, DatePanelSettings.get().withSelectPeriodMode(true));
+    add(startDatePanel);
+
+    endDatePanel = new DatePanel("endDate", endDateModel, DatePanelSettings.get().withSelectPeriodMode(true));
+    add(endDatePanel);
 
     // clear button
     final SubmitLink unselectPeriodLink = new SubmitLink(IconLinkPanel.LINK_ID)
@@ -40,9 +55,7 @@ public class TimePeriodPanel extends Panel
       {
         startDateModel.setObject(null);
         endDateModel.setObject(null);
-        startDate.markModelAsChanged();
-        endDate.markModelAsChanged();
-        caller.refresh();
+        refreshPage();
       }
     };
     unselectPeriodLink.setDefaultFormProcessing(false);
@@ -53,7 +66,7 @@ public class TimePeriodPanel extends Panel
     add(unselectLinkPanel);
 
     // quick select buttons
-    final QuickSelectPanel quickSelectPanel = new QuickSelectPanel("quickSelect", caller, "quickSelect", startDate);
+    final QuickSelectPanel quickSelectPanel = new QuickSelectPanel("quickSelect", this, "quickSelect", startDatePanel);
     add(quickSelectPanel);
     quickSelectPanel.init();
 
@@ -68,14 +81,57 @@ public class TimePeriodPanel extends Panel
     ));
   }
 
+  private void refreshPage()
+  {
+    startDatePanel.markModelAsChanged();
+    endDatePanel.markModelAsChanged();
+    parentPage.refresh();
+  }
+
+  // TODO CT: validation
   public DatePanel getStartDatePanel()
   {
-    return startDate;
+    return startDatePanel;
   }
 
   public DatePanel getEndDatePanel()
   {
-    return endDate;
+    return endDatePanel;
   }
 
+  /**
+   * This is called from the QuickSelectPanel, when the user clicks one of its buttons.
+   */
+  @Override
+  public void select(final String property, final Object selectedValue)
+  {
+    if (property.startsWith("quickSelect.")) {
+      final Date startDate = (Date) selectedValue;
+      startDateModel.setObject(startDate);
+
+      final DateHolder endDateHolder = new DateHolder(startDate);
+      if (property.endsWith(".month") == true) {
+        endDateHolder.setEndOfMonth();
+      } else if (property.endsWith(".week") == true) {
+        endDateHolder.setEndOfWeek();
+      } else {
+        log.error("Property '" + property + "' not supported for selection.");
+      }
+      endDateModel.setObject(endDateHolder.getDate());
+
+      refreshPage();
+    }
+  }
+
+  @Override
+  public void unselect(final String property)
+  {
+    // unused
+  }
+
+  @Override
+  public void cancelSelection(final String property)
+  {
+    // unused
+  }
 }
