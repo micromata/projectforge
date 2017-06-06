@@ -26,6 +26,7 @@ package org.projectforge.business.fibu;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Date;
 
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
@@ -40,9 +41,11 @@ public class AuftragFilter extends BaseSearchFilter implements Serializable
 {
   private static final long serialVersionUID = 3456000966109255447L;
 
-  private int year;
-
   private PFUserDO user;
+
+  private Date startDate;
+
+  private Date endDate;
 
   private final Collection<AuftragsStatus> auftragsStatuses = new ArrayList<>();
 
@@ -61,19 +64,6 @@ public class AuftragFilter extends BaseSearchFilter implements Serializable
     super(filter);
   }
 
-  /**
-   * Year of invoices to filter. "<= 0" means showing all years.
-   */
-  public int getYear()
-  {
-    return year;
-  }
-
-  public void setYear(final int year)
-  {
-    this.year = year;
-  }
-
   public PFUserDO getUser()
   {
     return user;
@@ -82,6 +72,26 @@ public class AuftragFilter extends BaseSearchFilter implements Serializable
   public void setUser(final PFUserDO user)
   {
     this.user = user;
+  }
+
+  public Date getStartDate()
+  {
+    return startDate;
+  }
+
+  public void setStartDate(final Date startDate)
+  {
+    this.startDate = startDate;
+  }
+
+  public Date getEndDate()
+  {
+    return endDate;
+  }
+
+  public void setEndDate(final Date endDate)
+  {
+    this.endDate = endDate;
   }
 
   /**
@@ -130,7 +140,8 @@ public class AuftragFilter extends BaseSearchFilter implements Serializable
   public AuftragFilter reset()
   {
     searchString = "";
-    year = -1;
+    startDate = null;
+    endDate = null;
     user = null;
     auftragsStatuses.clear();
     auftragsPositionsArten.clear();

@@ -25,7 +25,6 @@ package org.projectforge.business.fibu;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
@@ -61,7 +60,6 @@ import org.projectforge.framework.persistence.api.QueryFilter;
 import org.projectforge.framework.persistence.history.DisplayHistoryEntry;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.persistence.utils.SQLHelper;
-import org.projectforge.framework.time.DateHelper;
 import org.projectforge.framework.utils.NumberHelper;
 import org.projectforge.framework.xstream.XmlObjectReader;
 import org.projectforge.framework.xstream.XmlObjectWriter;
@@ -357,15 +355,16 @@ public class AuftragDao extends BaseDao<AuftragDO>
       );
     }
 
-    if (myFilter.getYear() > 1900) {
-      final Calendar cal = DateHelper.getUTCCalendar();
-      cal.set(Calendar.YEAR, myFilter.getYear());
-      cal.set(Calendar.DAY_OF_YEAR, 1);
-      final java.sql.Date lo = new java.sql.Date(cal.getTimeInMillis());
-      final int lastDayOfYear = cal.getActualMaximum(Calendar.DAY_OF_YEAR);
-      cal.set(Calendar.DAY_OF_YEAR, lastDayOfYear);
-      final java.sql.Date hi = new java.sql.Date(cal.getTimeInMillis());
-      queryFilter.add(Restrictions.between("angebotsDatum", lo, hi));
+    if (myFilter.getStartDate() != null && myFilter.getEndDate() != null) {
+      //      final Calendar cal = DateHelper.getUTCCalendar();
+      //      cal.set(Calendar.YEAR, myFilter.getYear());
+      //      cal.set(Calendar.DAY_OF_YEAR, 1);
+      //      final java.sql.Date lo = new java.sql.Date(cal.getTimeInMillis());
+      //      final int lastDayOfYear = cal.getActualMaximum(Calendar.DAY_OF_YEAR);
+      //      cal.set(Calendar.DAY_OF_YEAR, lastDayOfYear);
+      //      final java.sql.Date hi = new java.sql.Date(cal.getTimeInMillis());
+      // TODO CT: fix timezone problem
+      queryFilter.add(Restrictions.between("angebotsDatum", myFilter.getStartDate(), myFilter.getEndDate()));
     }
 
     queryFilter.addOrder(Order.desc("nummer"));
