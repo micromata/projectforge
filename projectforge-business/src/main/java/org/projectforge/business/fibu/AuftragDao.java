@@ -60,6 +60,7 @@ import org.projectforge.framework.persistence.api.QueryFilter;
 import org.projectforge.framework.persistence.history.DisplayHistoryEntry;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.persistence.utils.SQLHelper;
+import org.projectforge.framework.time.DateHelper;
 import org.projectforge.framework.utils.NumberHelper;
 import org.projectforge.framework.xstream.XmlObjectReader;
 import org.projectforge.framework.xstream.XmlObjectWriter;
@@ -340,7 +341,6 @@ public class AuftragDao extends BaseDao<AuftragDO>
     }
 
     final QueryFilter queryFilter = new QueryFilter(myFilter);
-    //    Boolean vollstaendigFakturiert = removeMe(myFilter, queryFilter);
 
     filterAuftragsStatuses(myFilter, queryFilter);
 
@@ -355,16 +355,17 @@ public class AuftragDao extends BaseDao<AuftragDO>
       );
     }
 
+    // filter angebotsDatum
     if (myFilter.getStartDate() != null && myFilter.getEndDate() != null) {
-      //      final Calendar cal = DateHelper.getUTCCalendar();
-      //      cal.set(Calendar.YEAR, myFilter.getYear());
-      //      cal.set(Calendar.DAY_OF_YEAR, 1);
-      //      final java.sql.Date lo = new java.sql.Date(cal.getTimeInMillis());
-      //      final int lastDayOfYear = cal.getActualMaximum(Calendar.DAY_OF_YEAR);
-      //      cal.set(Calendar.DAY_OF_YEAR, lastDayOfYear);
-      //      final java.sql.Date hi = new java.sql.Date(cal.getTimeInMillis());
-      // TODO CT: fix timezone problem
-      queryFilter.add(Restrictions.between("angebotsDatum", myFilter.getStartDate(), myFilter.getEndDate()));
+      final java.sql.Date startDate = DateHelper.convertDateToSqlDateInTheUsersTimeZone(myFilter.getStartDate());
+      final java.sql.Date endDate = DateHelper.convertDateToSqlDateInTheUsersTimeZone(myFilter.getEndDate());
+      queryFilter.add(Restrictions.between("angebotsDatum", startDate, endDate));
+    } else if (myFilter.getStartDate() != null) {
+      final java.sql.Date startDate = DateHelper.convertDateToSqlDateInTheUsersTimeZone(myFilter.getStartDate());
+      queryFilter.add(Restrictions.ge("angebotsDatum", startDate));
+    } else if (myFilter.getEndDate() != null) {
+      final java.sql.Date endDate = DateHelper.convertDateToSqlDateInTheUsersTimeZone(myFilter.getEndDate());
+      queryFilter.add(Restrictions.le("angebotsDatum", endDate));
     }
 
     queryFilter.addOrder(Order.desc("nummer"));
