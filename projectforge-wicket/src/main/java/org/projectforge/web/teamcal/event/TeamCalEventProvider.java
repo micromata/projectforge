@@ -59,8 +59,6 @@ import org.projectforge.framework.time.RecurrenceFrequency;
 import org.projectforge.framework.utils.NumberHelper;
 import org.projectforge.web.calendar.MyFullCalendarEventsProvider;
 
-import net.fortuna.ical4j.model.Recur;
-import net.fortuna.ical4j.model.Time;
 import net.ftlines.wicket.fullcalendar.Event;
 import net.ftlines.wicket.fullcalendar.callback.EventDroppedCallbackScriptGenerator;
 
@@ -227,9 +225,7 @@ public class TeamCalEventProvider extends MyFullCalendarEventsProvider
   {
     String recurrence = null;
     if (eventDO.hasRecurrence() == true) {
-      final Recur recur = eventDO.getRecurrenceObject();
-      final TeamEventRecurrenceData recurrenceData = new TeamEventRecurrenceData(recur,
-          ThreadLocalUserContext.getTimeZone());
+      final TeamEventRecurrenceData recurrenceData = eventDO.getRecurrenceData();
       final RecurrenceFrequency frequency = recurrenceData.getFrequency();
       if (frequency != null) {
         final String unitI18nKey = frequency.getUnitI18nKey();

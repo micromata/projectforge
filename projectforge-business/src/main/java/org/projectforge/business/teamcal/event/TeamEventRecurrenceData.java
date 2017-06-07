@@ -53,24 +53,6 @@ public class TeamEventRecurrenceData implements Serializable
     this.timeZone = timeZone;
   }
 
-  public TeamEventRecurrenceData(final Recur recur, final TimeZone timeZone)
-  {
-    this.timeZone = timeZone;
-    if (recur == null) {
-      return;
-    }
-    this.interval = recur.getInterval();
-    if (this.interval < 1) {
-      this.interval = 1;
-    }
-    //    if (recur.getUntil() != null) {
-    //      this.until = CalendarUtils.getEndOfDay(recur.getUntil(), timeZone);
-    //    }
-
-    this.until = recur.getUntil();
-    this.frequency = ICal4JUtils.getFrequency(recur);
-  }
-
   /**
    * @return the frequency
    */

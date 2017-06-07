@@ -30,6 +30,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.TimeZone;
 import java.util.TreeSet;
@@ -73,8 +74,10 @@ import org.projectforge.framework.time.TimePeriod;
 
 import de.micromata.genome.db.jpa.history.api.NoHistory;
 import de.micromata.genome.db.jpa.history.api.WithHistory;
+import net.fortuna.ical4j.model.DateList;
 import net.fortuna.ical4j.model.DateTime;
 import net.fortuna.ical4j.model.Recur;
+import net.fortuna.ical4j.model.parameter.Value;
 import net.fortuna.ical4j.model.property.RRule;
 
 /**
@@ -494,40 +497,18 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
         if (recur.getUntil() instanceof DateTime) {
           // switch to date (no time)
           recur.setUntil(new net.fortuna.ical4j.model.Date(recur.getUntil()));
+          this.recurrenceUntil = recur.getUntil();
         }
+        this.recurrenceUntil = recur.getUntil();
       } else {
-        // TODO fix time zone stuff....
-        Calendar calUntil = new GregorianCalendar(ThreadLocalUserContext.getTimeZone());
-        Calendar calStart = new GregorianCalendar(ThreadLocalUserContext.getTimeZone());
-
-        calUntil.setTime(recur.getUntil());
-        calStart.setTime(this.startDate);
-
-        // update date of start date to until date
-        calStart.set(Calendar.YEAR, calUntil.get(Calendar.YEAR));
-        calStart.set(Calendar.DAY_OF_YEAR, calUntil.get(Calendar.DAY_OF_YEAR));
-
-        // remove one day if event start is before until time
-        if (calStart.getTimeInMillis() > calUntil.getTimeInMillis()) {
-          calUntil.add(Calendar.DAY_OF_YEAR, -1);
-        }
-
-        // Set to end of day in user time zone
-        calUntil.set(Calendar.HOUR_OF_DAY, 23);
-        calUntil.set(Calendar.MINUTE, 59);
-        calUntil.set(Calendar.SECOND, 59);
-        calUntil.clear(Calendar.MILLISECOND);
-
-        final DateTime newUntil = new DateTime(calUntil.getTime());
-        newUntil.setUtc(true);
-
-        recur.setUntil(newUntil);
+        this.recurrenceUntil = this.fixUntilInRecur(recur, recur.getUntil(), false);
       }
+    } else {
+      this.recurrenceUntil = null;
     }
 
     this.recurrenceRuleObject = null; // do not use rRule param here!
     this.recurrenceRule = rRule.getValue();
-    this.recurrenceUntil = recur.getUntil();
 
     return this;
   }
@@ -552,45 +533,75 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
     }
 
     final Recur recur = new Recur();
+    recur.setInterval(recurData.getInterval());
+    recur.setFrequency(ICal4JUtils.getCal4JFrequencyString(recurData.getFrequency()));
 
     // Set until
     if (recurData.getUntil() != null) {
       if (this.allDay) {
+        // remove timezone from date for all day events!
+        Calendar calUserTimeZone = new GregorianCalendar(ThreadLocalUserContext.getTimeZone());
+        Calendar calUTC = new GregorianCalendar(DateHelper.UTC);
+
+        calUserTimeZone.setTime(recurData.getUntil());
+        calUTC.set(Calendar.YEAR, calUserTimeZone.get(Calendar.YEAR));
+        calUTC.set(Calendar.DAY_OF_YEAR, calUserTimeZone.get(Calendar.DAY_OF_YEAR));
+        calUTC.set(Calendar.HOUR_OF_DAY, 0);
+        calUTC.set(Calendar.MINUTE, 0);
+        calUTC.set(Calendar.SECOND, 0);
+        calUTC.set(Calendar.MILLISECOND, 0);
+
         // just use date, no time
-        final net.fortuna.ical4j.model.Date untilICal4J = new net.fortuna.ical4j.model.Date(recurData.getUntil());
+        final net.fortuna.ical4j.model.Date untilICal4J = new net.fortuna.ical4j.model.Date(calUTC.getTime());
         recur.setUntil(untilICal4J);
+        this.recurrenceUntil = calUTC.getTime();
       } else {
-        // TODO fix time zone stuff...
-        // use date and time for recurring
-        Calendar calUntilUTC = new GregorianCalendar(DateHelper.UTC);
-        Calendar calUntilUserTime = new GregorianCalendar(ThreadLocalUserContext.getTimeZone());
-
-        calUntilUTC.setTime(recurData.getUntil());
-        calUntilUserTime.set(Calendar.YEAR, calUntilUTC.get(Calendar.YEAR));
-        calUntilUserTime.set(Calendar.DAY_OF_YEAR, calUntilUTC.get(Calendar.DAY_OF_YEAR));
-
-        // update until to end of day
-        calUntilUserTime.set(Calendar.HOUR_OF_DAY, 23);
-        calUntilUserTime.set(Calendar.MINUTE, 59);
-        calUntilUserTime.set(Calendar.SECOND, 59);
-        calUntilUserTime.clear(Calendar.MILLISECOND);
-
-        DateTime untilICal4J = new net.fortuna.ical4j.model.DateTime(calUntilUserTime.getTime());
-        untilICal4J.setUtc(true);
-        recur.setUntil(untilICal4J);
+        this.recurrenceUntil = this.fixUntilInRecur(recur, recurData.getUntil(), true);
       }
+    } else {
+      this.recurrenceUntil = null;
     }
-
-    recur.setInterval(recurData.getInterval());
-    recur.setFrequency(ICal4JUtils.getCal4JFrequencyString(recurData.getFrequency()));
 
     final RRule rrule = new RRule(recur);
 
     this.recurrenceRuleObject = rrule;
     this.recurrenceRule = rrule.getValue();
-    this.recurrenceUntil = rrule.getRecur().getUntil();
 
     return this;
+  }
+
+  private Date fixUntilInRecur(final Recur recur, final Date until, boolean useAllDay)
+  {
+    Calendar calUntil = new GregorianCalendar(ThreadLocalUserContext.getTimeZone());
+    Calendar calStart = new GregorianCalendar(ThreadLocalUserContext.getTimeZone());
+
+    calUntil.setTime(until);
+    calStart.setTime(this.startDate);
+
+    // update date of start date to until date
+    calStart.set(Calendar.YEAR, calUntil.get(Calendar.YEAR));
+    calStart.set(Calendar.DAY_OF_YEAR, calUntil.get(Calendar.DAY_OF_YEAR));
+
+    // remove one day if event start on this day is before until
+    if (useAllDay == false && calStart.getTimeInMillis() > calUntil.getTimeInMillis()) {
+      calStart.add(Calendar.DAY_OF_YEAR, -1);
+    }
+
+    // remember time of until
+    calUntil.setTime(calStart.getTime());
+
+    // add 23:59:59 to event start (next possible event time ist +24h, 1 day)
+    calStart.add(Calendar.DAY_OF_YEAR, 1);
+    calStart.add(Calendar.SECOND, -1);
+    calStart.set(Calendar.MILLISECOND, 0);
+
+    // update recur until
+    DateTime untilICal4J = new net.fortuna.ical4j.model.DateTime(calStart.getTime());
+    untilICal4J.setUtc(true);
+    recur.setUntil(untilICal4J);
+
+    // return cal event before changes for DB use
+    return calUntil.getTime();
   }
 
   /**
@@ -610,6 +621,42 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
     this.recurrenceUntil = null;
 
     return this;
+  }
+
+  @Transient
+  public TeamEventRecurrenceData getRecurrenceData()
+  {
+    final TeamEventRecurrenceData recurrenceData = new TeamEventRecurrenceData(ThreadLocalUserContext.getTimeZone());
+    final Recur recur = this.getRecurrenceObject();
+
+    if (recur == null) {
+      return recurrenceData;
+    }
+
+    recurrenceData.setInterval(recur.getInterval() < 1 ? 1 : recur.getInterval());
+
+    if (this.recurrenceUntil != null) {
+      if (this.isAllDay()) {
+        // transform until to user timezone, required for data picker
+        Calendar calUserTimeZone = new GregorianCalendar(ThreadLocalUserContext.getTimeZone());
+        Calendar calUTC = new GregorianCalendar(DateHelper.UTC);
+
+        calUTC.setTime(this.recurrenceUntil);
+        calUserTimeZone.set(Calendar.YEAR, calUTC.get(Calendar.YEAR));
+        calUserTimeZone.set(Calendar.DAY_OF_YEAR, calUTC.get(Calendar.DAY_OF_YEAR));
+        calUserTimeZone.set(Calendar.HOUR_OF_DAY, 0);
+        calUserTimeZone.set(Calendar.MINUTE, 0);
+        calUserTimeZone.set(Calendar.SECOND, 0);
+        calUserTimeZone.set(Calendar.MILLISECOND, 0);
+
+        recurrenceData.setUntil(calUserTimeZone.getTime());
+      } else {
+        recurrenceData.setUntil(recur.getUntil());
+      }
+    }
+    recurrenceData.setFrequency(ICal4JUtils.getFrequency(recur));
+
+    return recurrenceData;
   }
 
   /**
@@ -755,7 +802,7 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
   }
 
   /**
-   * If not given the recurrence will never ends.
+   * If not given the recurrence will never ends. Identifies the last possible event occurrence.
    *
    * @return the recurrenceEndDate
    */

@@ -356,15 +356,15 @@ public class TeamEventEditPage extends AbstractEditPage<TeamEventDO, TeamEventEd
     }
     form.setData(masterEvent);
     if (recurrencyChangeType == RecurrencyChangeType.ALL_FUTURE) {
+      newEvent = oldDataObject.clone();
       // Set the end date of the master date one day before current date and save this event.
       final Date recurrenceUntil = this.getUntilDate(eventOfCaller.getStartDate());
-      newEvent = oldDataObject.clone();
+      form.recurrenceData.setUntil(recurrenceUntil);
+      getData().setRecurrence(form.recurrenceData);
       if (log.isDebugEnabled() == true) {
         log.debug("Recurrency until date of master entry will be set to: " + DateHelper.formatAsUTC(recurrenceUntil));
         log.debug("The new event is: " + newEvent);
       }
-      form.recurrenceData.setUntil(recurrenceUntil);
-      getData().setRecurrence(form.recurrenceData);
       return null;
     } else if (recurrencyChangeType == RecurrencyChangeType.ONLY_CURRENT) { // only current date
       // Add current date to the master date as exclusion date and save this event (without recurrence settings).

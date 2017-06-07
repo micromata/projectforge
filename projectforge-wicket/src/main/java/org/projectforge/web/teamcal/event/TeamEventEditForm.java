@@ -52,7 +52,6 @@ import org.projectforge.business.teamcal.event.right.TeamEventRight;
 import org.projectforge.business.teamcal.service.TeamCalServiceImpl;
 import org.projectforge.business.utils.HtmlHelper;
 import org.projectforge.framework.access.AccessChecker;
-import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.time.DateHelper;
 import org.projectforge.framework.time.DateHolder;
 import org.projectforge.framework.time.DatePrecision;
@@ -76,15 +75,12 @@ import org.projectforge.web.wicket.flowlayout.CheckBoxButton;
 import org.projectforge.web.wicket.flowlayout.DivPanel;
 import org.projectforge.web.wicket.flowlayout.DivTextPanel;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
-import org.projectforge.web.wicket.flowlayout.HtmlCommentPanel;
 import org.projectforge.web.wicket.flowlayout.InputPanel;
 import org.projectforge.web.wicket.flowlayout.LabelPanel;
 import org.projectforge.web.wicket.flowlayout.TextAreaPanel;
 import org.projectforge.web.wicket.flowlayout.ToggleContainerPanel;
 
 import com.vaynberg.wicket.select2.Select2MultiChoice;
-
-import net.fortuna.ical4j.model.Recur;
 
 /**
  * Form to edit team events.
@@ -161,8 +157,8 @@ public class TeamEventEditForm extends AbstractEditForm<TeamEventDO, TeamEventEd
   {
     super.init();
 
-    final Recur recur = data.getRecurrenceObject();
-    recurrenceData = new TeamEventRecurrenceData(recur, ThreadLocalUserContext.getTimeZone());
+    recurrenceData = data.getRecurrenceData();
+
     gridBuilder.newSplitPanel(GridSize.COL50);
     final TeamCalDO teamCal = data.getCalendar();
     // setting access view
@@ -360,16 +356,8 @@ public class TeamEventEditForm extends AbstractEditForm<TeamEventDO, TeamEventEd
       recurrenceUntilDateFieldset = gridBuilder.newFieldset(getString("plugins.teamcal.event.recurrence.until"));
       recurrenceUntilDateFieldset
           .add(new DatePanel(recurrenceUntilDateFieldset.newChildId(), new PropertyModel<Date>(recurrenceData,
-              "until"), DatePanelSettings.get().withTargetType(java.sql.Date.class)));
+              "until"), DatePanelSettings.get().withTargetType(Date.class)));
       recurrenceUntilDateFieldset.getFieldset().setOutputMarkupId(true);
-      recurrenceUntilDateFieldset.add(new HtmlCommentPanel(recurrenceUntilDateFieldset.newChildId(), new Model<String>()
-      {
-        @Override
-        public String getObject()
-        {
-          return WicketUtils.getUTCDate("until", recurrenceData.getUntil());
-        }
-      }));
     }
 
     gridBuilder.newGridPanel();
@@ -477,7 +465,7 @@ public class TeamEventEditForm extends AbstractEditForm<TeamEventDO, TeamEventEd
       for (final TeamCalDO cal : list) {
         calChoiceRenderer.addValue(cal, cal.getTitle());
       }
-      final DropDownChoice<TeamCalDO> calDropDownChoice = new DropDownChoice<TeamCalDO>(fieldSet.getDropDownChoiceId(),
+      final DropDownChoice<TeamCalDO> calDropDownChoice = new DropDownChoice<>(fieldSet.getDropDownChoiceId(),
           new PropertyModel<TeamCalDO>(data, "calendar"), calChoiceRenderer.getValues(), calChoiceRenderer);
       calDropDownChoice.setNullValid(false);
       calDropDownChoice.setRequired(true);
@@ -487,8 +475,6 @@ public class TeamEventEditForm extends AbstractEditForm<TeamEventDO, TeamEventEd
 
   /**
    * create date panel
-   *
-   * @param dateFieldSet
    */
   private void initDatePanel()
   {
