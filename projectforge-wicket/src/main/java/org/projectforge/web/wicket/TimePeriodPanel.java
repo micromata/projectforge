@@ -3,11 +3,13 @@ package org.projectforge.web.wicket;
 import java.util.Date;
 
 import org.apache.log4j.Logger;
+import org.apache.wicket.markup.html.form.FormComponentPanel;
 import org.apache.wicket.markup.html.form.SubmitLink;
-import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 import org.apache.wicket.model.ResourceModel;
 import org.projectforge.framework.time.DateHolder;
+import org.projectforge.framework.time.TimePeriod;
 import org.projectforge.web.CSSColor;
 import org.projectforge.web.calendar.QuickSelectPanel;
 import org.projectforge.web.fibu.ISelectCallerPage;
@@ -18,8 +20,13 @@ import org.projectforge.web.wicket.flowlayout.HtmlCommentPanel;
 import org.projectforge.web.wicket.flowlayout.IconLinkPanel;
 import org.projectforge.web.wicket.flowlayout.IconType;
 
-// TODO CT: use FormComponentPanel?
-public class TimePeriodPanel extends Panel implements ISelectCallerPage
+/**
+ * This Panel consists of two date pickers (start and end date) and a quick select for month and week.
+ * For validation you can call the getConvertedInput method to get a TimePeriod which contains the start and end date.
+ * <p>
+ * It extends FormComponentPanel just to have a validate() method.
+ */
+public class TimePeriodPanel extends FormComponentPanel<TimePeriod> implements ISelectCallerPage
 {
   private static final Logger log = Logger.getLogger(TimePeriodPanel.class);
 
@@ -35,7 +42,8 @@ public class TimePeriodPanel extends Panel implements ISelectCallerPage
 
   public TimePeriodPanel(final String id, final IModel<Date> startDateModel, final IModel<Date> endDateModel, final AbstractListPage<?, ?, ?> parentPage)
   {
-    super(id);
+    // We have to pass a model just to satisfy the needs of the FormComponentPanel. The model is actually not used.
+    super(id, new Model<>());
 
     this.startDateModel = startDateModel;
     this.endDateModel = endDateModel;
@@ -88,15 +96,36 @@ public class TimePeriodPanel extends Panel implements ISelectCallerPage
     parentPage.refresh();
   }
 
-  // TODO CT: validation
-  public DatePanel getStartDatePanel()
+  @Override
+  protected void convertInput()
   {
-    return startDatePanel;
+    setConvertedInput(new TimePeriod(
+        startDatePanel.getConvertedInput(),
+        endDatePanel.getConvertedInput()
+    ));
   }
 
-  public DatePanel getEndDatePanel()
+  @Override
+  public void validate()
   {
-    return endDatePanel;
+    super.validate(); // calls convertInput
+
+    final Date start = startDatePanel.getConvertedInput();
+    final Date end = endDatePanel.getConvertedInput();
+    if (start != null && end != null && start.after(end) == true) {
+      error(getString("timePeriodPanel.startTimeAfterStopTime"));
+    }
+  }
+
+  /**
+   * Returns the markup ID of the start date field.
+   *
+   * @return The markup ID of the start date field.
+   */
+  @Override
+  public String getMarkupId()
+  {
+    return startDatePanel.getDateField().getMarkupId();
   }
 
   /**

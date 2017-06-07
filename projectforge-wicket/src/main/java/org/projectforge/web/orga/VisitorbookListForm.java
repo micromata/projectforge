@@ -77,11 +77,10 @@ public class VisitorbookListForm extends AbstractListForm<VisitorbookFilter, Vis
       @Override
       public void validate(final Form<?> form)
       {
-        final VisitorbookFilter filter = getSearchFilter();
         final Date from = startDate.getConvertedInput();
         final Date to = stopDate.getConvertedInput();
         if (from != null && to != null && from.after(to) == true) {
-          error(getString("timesheet.error.startTimeAfterStopTime"));
+          error(getString("timePeriodPanel.startTimeAfterStopTime"));
         }
       }
     });
@@ -108,7 +107,6 @@ public class VisitorbookListForm extends AbstractListForm<VisitorbookFilter, Vis
             parentPage.refresh();
           }
 
-          ;
         };
         unselectPeriodLink.setDefaultFormProcessing(false);
         fs.add(new IconLinkPanel(fs.newChildId(), IconType.REMOVE_SIGN,

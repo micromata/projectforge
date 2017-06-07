@@ -39,13 +39,13 @@ import org.projectforge.business.timesheet.TimesheetDO;
 import org.projectforge.business.timesheet.TimesheetFilter;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.time.DateTimeFormatter;
+import org.projectforge.framework.time.TimePeriod;
 import org.projectforge.web.task.TaskSelectPanel;
 import org.projectforge.web.user.UserSelectPanel;
 import org.projectforge.web.wicket.AbstractListForm;
 import org.projectforge.web.wicket.LambdaModel;
 import org.projectforge.web.wicket.TimePeriodPanel;
 import org.projectforge.web.wicket.bootstrap.GridSize;
-import org.projectforge.web.wicket.components.DatePanel;
 import org.projectforge.web.wicket.flowlayout.CheckBoxButton;
 import org.projectforge.web.wicket.flowlayout.DivPanel;
 import org.projectforge.web.wicket.flowlayout.DivTextPanel;
@@ -62,44 +62,13 @@ public class TimesheetListForm extends AbstractListForm<TimesheetListFilter, Tim
   @SpringBean
   private DateTimeFormatter dateTimeFormatter;
 
-  private DatePanel startDate;
-
-  private DatePanel stopDate;
-
   private String exportFormat;
-
-  // Components for form validation.
-  private final FormComponent<?>[] dependentFormComponents = new FormComponent<?>[2];
 
   @SuppressWarnings("serial")
   @Override
   protected void init()
   {
     super.init(false);
-
-    add(new IFormValidator()
-    {
-      @Override
-      public FormComponent<?>[] getDependentFormComponents()
-      {
-        return dependentFormComponents;
-      }
-
-      @Override
-      public void validate(final Form<?> form)
-      {
-        if (parentPage.isMassUpdateMode() == false) {
-          final TimesheetFilter filter = getSearchFilter();
-          final Date from = startDate.getConvertedInput();
-          final Date to = stopDate.getConvertedInput();
-          if (from == null && to == null && filter.getTaskId() == null) {
-            error(getString("timesheet.error.filter.needMore"));
-          } else if (from != null && to != null && from.after(to) == true) {
-            error(getString("timesheet.error.startTimeAfterStopTime"));
-          }
-        }
-      }
-    });
 
     // Task
     {
@@ -155,22 +124,21 @@ public class TimesheetListForm extends AbstractListForm<TimesheetListFilter, Tim
       assigneeSelectPanel.setDefaultFormProcessing(false);
       assigneeSelectPanel.init();
     }
+
+    // time period
+    gridBuilder.newSplitPanel(GridSize.COL66);
+    final FieldsetPanel tpfs = gridBuilder.newFieldset(getString("timePeriod"));
+    final TimePeriodPanel timePeriodPanel = new TimePeriodPanel(
+        tpfs.newChildId(),
+        LambdaModel.of(filter::getStartTime, filter::setStartTime),
+        LambdaModel.of(filter::getStopTime, filter::setStopTime),
+        parentPage
+    );
+    tpfs.add(timePeriodPanel);
+    tpfs.setLabelFor(timePeriodPanel);
+
+    // Duration
     {
-      gridBuilder.newSplitPanel(GridSize.COL66);
-      final FieldsetPanel fs = gridBuilder.newFieldset(getString("timePeriod"));
-      final TimePeriodPanel timePeriodPanel = new TimePeriodPanel(
-          fs.newChildId(),
-          LambdaModel.of(filter::getStartTime, filter::setStartTime),
-          LambdaModel.of(filter::getStopTime, filter::setStopTime),
-          parentPage
-      );
-      fs.add(timePeriodPanel);
-      dependentFormComponents[0] = startDate = timePeriodPanel.getStartDatePanel();
-      dependentFormComponents[1] = stopDate = timePeriodPanel.getEndDatePanel();
-      fs.setLabelFor(startDate);
-    }
-    {
-      // Duration
       gridBuilder.newSplitPanel(GridSize.COL33);
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("timesheet.totalDuration")).suppressLabelForWarning();
       fs.add(new DivTextPanel(fs.newChildId(), new Model<String>()
@@ -187,6 +155,32 @@ public class TimesheetListForm extends AbstractListForm<TimesheetListFilter, Tim
           return dateTimeFormatter.getPrettyFormattedDuration(duration);
         }
       }));
+
+      add(new IFormValidator()
+      {
+        final FormComponent<?>[] dependentFormComponents = new FormComponent<?>[] { timePeriodPanel };
+
+        @Override
+        public FormComponent<?>[] getDependentFormComponents()
+        {
+          return dependentFormComponents;
+        }
+
+        @Override
+        public void validate(final Form<?> form)
+        {
+          if (parentPage.isMassUpdateMode() == false) {
+            final TimesheetFilter filter = getSearchFilter();
+            final TimePeriod timePeriod = timePeriodPanel.getConvertedInput();
+            final Date from = timePeriod.getFromDate();
+            final Date to = timePeriod.getToDate();
+            if (from == null && to == null && filter.getTaskId() == null) {
+              error(getString("timesheet.error.filter.needMore"));
+            }
+          }
+        }
+      });
+
     }
   }
 

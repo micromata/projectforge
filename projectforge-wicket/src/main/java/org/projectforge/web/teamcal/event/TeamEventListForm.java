@@ -60,7 +60,6 @@ import com.vaynberg.wicket.select2.Select2MultiChoice;
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
  */
 public class TeamEventListForm extends AbstractListForm<TeamEventFilter, TeamEventListPage>
 {
@@ -113,13 +112,11 @@ public class TeamEventListForm extends AbstractListForm<TeamEventFilter, TeamEve
       @Override
       public void validate(final Form<?> form)
       {
-        if (parentPage.isMassUpdateMode() == true) {
-
-        } else {
+        if (parentPage.isMassUpdateMode() == false) {
           final Date from = startDate.getConvertedInput();
           final Date to = endDate.getConvertedInput();
           if (from != null && to != null && from.after(to) == true) {
-            error(getString("timesheet.error.startTimeAfterStopTime"));
+            error(getString("timePeriodPanel.startTimeAfterStopTime"));
           }
         }
       }
@@ -149,7 +146,7 @@ public class TeamEventListForm extends AbstractListForm<TeamEventFilter, TeamEve
 
   /**
    * @see org.projectforge.web.wicket.AbstractListForm#onOptionsPanelCreate(org.projectforge.web.wicket.flowlayout.FieldsetPanel,
-   *      org.projectforge.web.wicket.flowlayout.DivPanel)
+   * org.projectforge.web.wicket.flowlayout.DivPanel)
    */
   @SuppressWarnings("serial")
   @Override
@@ -177,7 +174,8 @@ public class TeamEventListForm extends AbstractListForm<TeamEventFilter, TeamEve
             getSearchFilter().setEndDate(null);
             clearInput();
             parentPage.refresh();
-          };
+          }
+
         };
         unselectPeriod.setDefaultFormProcessing(false);
         optionsFieldsetPanel
