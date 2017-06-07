@@ -76,6 +76,13 @@ public class AuftragListForm extends AbstractListForm<AuftragFilter, AuftragList
   {
     super.init(false);
     {
+      // time period
+      gridBuilder.newGridPanel();
+      final FieldsetPanel tpfs = gridBuilder.newFieldset(getString("timePeriod"));
+      final TimePeriodPanel timePeriodPanel = createTimePeriodPanel(tpfs.newChildId());
+      tpfs.add(timePeriodPanel);
+      tpfs.setLabelFor(timePeriodPanel);
+
       // Statistics
       gridBuilder.newGridPanel();
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("statistics")).suppressLabelForWarning();
@@ -172,7 +179,6 @@ public class AuftragListForm extends AbstractListForm<AuftragFilter, AuftragList
   {
     optionsFieldsetPanel.add(createAuftragsStatusMultiChoice());
     optionsFieldsetPanel.add(createAuftragsPositionsArtMultiChoice());
-    optionsFieldsetPanel.add(createTimePeriodPanel(optionsFieldsetPanel.newChildId()));
     optionsFieldsetPanel.add(createAuftragFakturiertDropDown());
     optionsFieldsetPanel.add(createAuftragsPositionsPaymentTypeDropDown());
     optionsFieldsetPanel.add(createUserSelect(optionsFieldsetPanel.newChildId()));
