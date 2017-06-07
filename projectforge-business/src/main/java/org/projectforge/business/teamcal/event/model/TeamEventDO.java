@@ -590,7 +590,7 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
     // remember time of until
     calUntil.setTime(calStart.getTime());
 
-    // add 23:59:59 to event start (next possible event time ist +24h, 1 day)
+    // add 23:59:59 to event start (next possible event time is +24h, 1 day)
     calStart.add(Calendar.DAY_OF_YEAR, 1);
     calStart.add(Calendar.SECOND, -1);
     calStart.set(Calendar.MILLISECOND, 0);
@@ -651,7 +651,7 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
 
         recurrenceData.setUntil(calUserTimeZone.getTime());
       } else {
-        recurrenceData.setUntil(recur.getUntil());
+        recurrenceData.setUntil(this.getRecurrenceUntil());
       }
     }
     recurrenceData.setFrequency(ICal4JUtils.getFrequency(recur));
