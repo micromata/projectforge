@@ -29,9 +29,7 @@ import java.sql.Date;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 
 /**
- * 
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
  */
 public class RechnungFilter extends BaseSearchFilter implements Serializable
 {
@@ -44,10 +42,6 @@ public class RechnungFilter extends BaseSearchFilter implements Serializable
   public static final String FILTER_UNBEZAHLT = "unbezahlt";
 
   private static final long serialVersionUID = 3078373853576678481L;
-
-  protected int year;
-
-  protected int month;
 
   protected Date fromDate, toDate;
 
@@ -79,6 +73,7 @@ public class RechnungFilter extends BaseSearchFilter implements Serializable
 
   /**
    * Standard means to consider options: current, departed, uninteresting, personaIngrata, ...
+   *
    * @return
    */
   public boolean isShowAll()
@@ -114,7 +109,6 @@ public class RechnungFilter extends BaseSearchFilter implements Serializable
     return FILTER_BEZAHLT.equals(listType);
   }
 
-
   public RechnungFilter setShowUeberFaellig()
   {
     listType = FILTER_UEBERFAELLIG;
@@ -142,35 +136,8 @@ public class RechnungFilter extends BaseSearchFilter implements Serializable
   }
 
   /**
-   * Year of invoices to filter. "<= 0" means showing all years.
-   * @return
-   */
-  public int getYear()
-  {
-    return year;
-  }
-
-  public void setYear(final int year)
-  {
-    this.year = year;
-  }
-
-  /**
-   * Month of invoices to filter. "<=0" (for month or year) means showing all months.
-   * @return
-   */
-  public int getMonth()
-  {
-    return month;
-  }
-
-  public void setMonth(final int month)
-  {
-    this.month = month;
-  }
-
-  /**
    * If given then the year and month setting is ignored by {@link RechnungDao#getList(BaseSearchFilter)}.
+   *
    * @return the fromDate
    */
   public Date getFromDate()
@@ -190,6 +157,7 @@ public class RechnungFilter extends BaseSearchFilter implements Serializable
 
   /**
    * If given then the year and month setting is ignored by {@link RechnungDao#getList(BaseSearchFilter)}.
+   *
    * @return the toDate
    */
   public Date getToDate()
@@ -206,4 +174,16 @@ public class RechnungFilter extends BaseSearchFilter implements Serializable
     this.toDate = toDate;
     return this;
   }
+
+  @Override
+  public RechnungFilter reset()
+  {
+    super.reset();
+    fromDate = null;
+    toDate = null;
+    setShowAll();
+    searchString = "";
+    return this;
+  }
+
 }

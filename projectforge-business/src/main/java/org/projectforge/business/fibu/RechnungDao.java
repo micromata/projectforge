@@ -337,8 +337,6 @@ public class RechnungDao extends BaseDao<RechnungDO>
       } else if (myFilter.getToDate() != null) {
         queryFilter.add(Restrictions.le("datum", myFilter.getToDate()));
       }
-    } else {
-      queryFilter.setYearAndMonth("datum", myFilter.getYear(), myFilter.getMonth());
     }
     queryFilter.addOrder(Order.desc("datum"));
     queryFilter.addOrder(Order.desc("nummer"));

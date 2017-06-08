@@ -23,20 +23,21 @@
 
 package org.projectforge.web.fibu;
 
+import java.util.Date;
+
 import org.apache.log4j.Logger;
-import org.apache.wicket.markup.html.form.DropDownChoice;
+import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.projectforge.business.fibu.AbstractRechnungsStatistik;
 import org.projectforge.business.fibu.RechnungFilter;
 import org.projectforge.business.utils.CurrencyFormatter;
-import org.projectforge.common.StringHelper;
 import org.projectforge.framework.configuration.Configuration;
 import org.projectforge.web.wicket.AbstractListForm;
 import org.projectforge.web.wicket.AbstractListPage;
+import org.projectforge.web.wicket.LambdaModel;
+import org.projectforge.web.wicket.TimePeriodPanel;
 import org.projectforge.web.wicket.WebConstants;
-import org.projectforge.web.wicket.components.LabelValueChoiceRenderer;
-import org.projectforge.web.wicket.components.YearListCoiceRenderer;
 import org.projectforge.web.wicket.flowlayout.CheckBoxButton;
 import org.projectforge.web.wicket.flowlayout.DivPanel;
 import org.projectforge.web.wicket.flowlayout.DivTextPanel;
@@ -58,6 +59,14 @@ public abstract class AbstractRechnungListForm<F extends RechnungFilter, P exten
   protected void init()
   {
     super.init(false);
+
+    // time period
+    gridBuilder.newGridPanel();
+    final FieldsetPanel tpfs = gridBuilder.newFieldset(getString("timePeriod"));
+    final TimePeriodPanel timePeriodPanel = createTimePeriodPanel(tpfs.newChildId());
+    tpfs.add(timePeriodPanel);
+    tpfs.setLabelFor(timePeriodPanel);
+
     gridBuilder.newGridPanel();
     {
       // Statistics
@@ -137,24 +146,6 @@ public abstract class AbstractRechnungListForm<F extends RechnungFilter, P exten
   @Override
   protected void onOptionsPanelCreate(final FieldsetPanel optionsFieldsetPanel, final DivPanel optionsCheckBoxesPanel)
   {
-    // DropDownChoice years
-    final YearListCoiceRenderer yearListChoiceRenderer = new YearListCoiceRenderer(years, true);
-    final DropDownChoice<Integer> yearChoice = new DropDownChoice<>(optionsFieldsetPanel.getDropDownChoiceId(),
-        new PropertyModel<Integer>(this, "year"), yearListChoiceRenderer.getYears(), yearListChoiceRenderer);
-    yearChoice.setNullValid(false);
-    optionsFieldsetPanel.add(yearChoice);
-
-    // // DropDownChoice months
-    final LabelValueChoiceRenderer<Integer> monthChoiceRenderer = new LabelValueChoiceRenderer<Integer>();
-    monthChoiceRenderer.addValue(-1, "");
-    for (int i = 0; i <= 11; i++) {
-      monthChoiceRenderer.addValue(i, StringHelper.format2DigitNumber(i + 1));
-    }
-    final DropDownChoice<Integer> monthChoice = new DropDownChoice<>(optionsFieldsetPanel.getDropDownChoiceId(),
-        new PropertyModel<Integer>(this, "month"), monthChoiceRenderer.getValues(), monthChoiceRenderer);
-    monthChoice.setNullValid(false);
-    optionsFieldsetPanel.add(monthChoice);
-
     final DivPanel radioGroupPanel = optionsFieldsetPanel.addNewRadioBoxButtonDiv();
     final RadioGroupPanel<String> radioGroup = new RadioGroupPanel<String>(radioGroupPanel.newChildId(), "listtype",
         new PropertyModel<>(getSearchFilter(), "listType"));
@@ -169,35 +160,30 @@ public abstract class AbstractRechnungListForm<F extends RechnungFilter, P exten
     }
   }
 
+  private TimePeriodPanel createTimePeriodPanel(final String id)
+  {
+    final F filter = getSearchFilter();
+
+    // TODO CT: check timezone
+    final IModel<Date> startDateModel = LambdaModel.of(
+        () -> filter.getFromDate() != null ? new Date(filter.getFromDate().getTime()) : null,
+        date -> filter.setFromDate(date != null ? new java.sql.Date(date.getTime()) : null)
+    );
+
+    final IModel<Date> endDateModel = LambdaModel.of(
+        () -> filter.getToDate() != null ? new Date(filter.getToDate().getTime()) : null,
+        date -> filter.setToDate(date != null ? new java.sql.Date(date.getTime()) : null)
+    );
+
+    return new TimePeriodPanel(
+        id,
+        startDateModel,
+        endDateModel,
+        parentPage
+    );
+  }
+
   protected abstract AbstractRechnungsStatistik<?> getStats();
-
-  public Integer getYear()
-  {
-    return getSearchFilter().getYear();
-  }
-
-  public void setYear(final Integer year)
-  {
-    if (year == null) {
-      getSearchFilter().setYear(-1);
-    } else {
-      getSearchFilter().setYear(year);
-    }
-  }
-
-  public Integer getMonth()
-  {
-    return getSearchFilter().getMonth();
-  }
-
-  public void setMonth(final Integer month)
-  {
-    if (month == null) {
-      getSearchFilter().setMonth(-1);
-    } else {
-      getSearchFilter().setMonth(month);
-    }
-  }
 
   public AbstractRechnungListForm(final P parentPage)
   {

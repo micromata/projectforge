@@ -109,7 +109,7 @@ public class EingangsrechnungListPage
 
   /**
    * Forces the statistics to be reloaded.
-   * 
+   *
    * @see org.projectforge.web.wicket.AbstractListPage#refresh()
    */
   @Override
@@ -126,6 +126,7 @@ public class EingangsrechnungListPage
     final List<IColumn<EingangsrechnungDO, String>> columns = new ArrayList<IColumn<EingangsrechnungDO, String>>();
     final CellItemListener<EingangsrechnungDO> cellItemListener = new CellItemListener<EingangsrechnungDO>()
     {
+      @Override
       public void populateItem(final Item<ICellPopulator<EingangsrechnungDO>> item, final String componentId,
           final IModel<EingangsrechnungDO> rowModel)
       {
@@ -142,7 +143,7 @@ public class EingangsrechnungListPage
     };
     columns.add(new CellItemListenerPropertyColumn<EingangsrechnungDO>(
         new Model<String>(getString("fibu.common.creditor")), getSortable(
-            "kreditor", sortable),
+        "kreditor", sortable),
         "kreditor", cellItemListener)
     {
       @SuppressWarnings({ "unchecked", "rawtypes" })
@@ -224,7 +225,8 @@ public class EingangsrechnungListPage
             public void onClick()
             {
               exportExcelWithCostAssignments();
-            };
+            }
+
           }, getString("fibu.rechnung.kostExcelExport")).setTooltip(getString("fibu.rechnung.kostExcelExport.tootlip"));
       addContentMenuEntry(exportExcelButton);
     }
@@ -309,8 +311,8 @@ public class EingangsrechnungListPage
     refresh();
     final RechnungFilter filter = new RechnungFilter();
     final RechnungFilter src = form.getSearchFilter();
-    filter.setYear(src.getYear());
-    filter.setMonth(src.getMonth());
+    filter.setFromDate(src.getFromDate());
+    filter.setToDate(src.getToDate());
     final List<EingangsrechnungDO> rechnungen = eingangsrechnungDao.getList(filter);
     if (rechnungen == null || rechnungen.size() == 0) {
       // Nothing to export.

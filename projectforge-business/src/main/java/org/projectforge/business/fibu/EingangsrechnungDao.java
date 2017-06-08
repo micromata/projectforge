@@ -172,8 +172,6 @@ public class EingangsrechnungDao extends BaseDao<EingangsrechnungDO>
       } else if (myFilter.getToDate() != null) {
         queryFilter.add(Restrictions.le("datum", myFilter.getToDate()));
       }
-    } else {
-      queryFilter.setYearAndMonth("datum", myFilter.getYear(), myFilter.getMonth());
     }
     queryFilter.addOrder(Order.desc("datum"));
     queryFilter.addOrder(Order.desc("kreditor"));
