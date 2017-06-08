@@ -34,7 +34,6 @@ import javax.persistence.TypedQuery;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.hibernate.criterion.Order;
-import org.hibernate.criterion.Restrictions;
 import org.projectforge.business.fibu.kost.KostZuweisungDO;
 import org.projectforge.business.user.UserRightId;
 import org.projectforge.framework.i18n.UserException;
@@ -163,16 +162,7 @@ public class EingangsrechnungDao extends BaseDao<EingangsrechnungDO>
     } else {
       myFilter = new RechnungFilter(filter);
     }
-    final QueryFilter queryFilter = new QueryFilter(myFilter);
-    if (myFilter.getFromDate() != null || myFilter.getToDate() != null) {
-      if (myFilter.getFromDate() != null && myFilter.getToDate() != null) {
-        queryFilter.add(Restrictions.between("datum", myFilter.getFromDate(), myFilter.getToDate()));
-      } else if (myFilter.getFromDate() != null) {
-        queryFilter.add(Restrictions.ge("datum", myFilter.getFromDate()));
-      } else if (myFilter.getToDate() != null) {
-        queryFilter.add(Restrictions.le("datum", myFilter.getToDate()));
-      }
-    }
+    final QueryFilter queryFilter = AbstractRechnungDaoHelper.createQueryFilterWithDateRestriction(myFilter);
     queryFilter.addOrder(Order.desc("datum"));
     queryFilter.addOrder(Order.desc("kreditor"));
     final List<EingangsrechnungDO> list = getList(queryFilter);
