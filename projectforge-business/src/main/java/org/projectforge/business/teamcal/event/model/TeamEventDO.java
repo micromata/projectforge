@@ -582,9 +582,6 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
       calStart.add(Calendar.DAY_OF_YEAR, -1);
     }
 
-    // remember time of last occurrence
-    calUntil.setTime(calStart.getTime());
-
     // add 23:59:59 to event start (next possible event time is +24h, 1 day)
     calStart.add(Calendar.DAY_OF_YEAR, 1);
     calStart.add(Calendar.SECOND, -1);
@@ -595,8 +592,8 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
     untilICal4J.setUtc(true);
     recur.setUntil(untilICal4J);
 
-    // return time of last occurrence for DB use
-    return calUntil.getTime();
+    // return new until date for DB usage
+    return calStart.getTime();
   }
 
   /**
@@ -632,8 +629,8 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
     recurrenceData.setInterval(recur.getInterval() < 1 ? 1 : recur.getInterval());
 
     if (this.recurrenceUntil != null) {
+      // transform until to user timezone, required for data picker
       if (this.isAllDay()) {
-        // transform until to user timezone, required for data picker
         Calendar calUserTimeZone = new GregorianCalendar(timezone);
         Calendar calUTC = new GregorianCalendar(DateHelper.UTC);
 
@@ -647,7 +644,13 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
 
         recurrenceData.setUntil(calUserTimeZone.getTime());
       } else {
-        recurrenceData.setUntil(this.getRecurrenceUntil());
+        Calendar calUTC = new GregorianCalendar(DateHelper.UTC);
+
+        calUTC.setTime(this.recurrenceUntil);
+        calUTC.add(Calendar.DAY_OF_YEAR, -1);
+        calUTC.add(Calendar.SECOND, 1);
+
+        recurrenceData.setUntil(calUTC.getTime());
       }
     }
     recurrenceData.setFrequency(ICal4JUtils.getFrequency(recur));
