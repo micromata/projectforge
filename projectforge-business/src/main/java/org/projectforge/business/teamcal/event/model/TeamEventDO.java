@@ -165,9 +165,6 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
   // See RFC 2445 section 4.8.7.4
   private Integer sequence = 0;
 
-  // See RFC 2445 section 4.8.1.11
-  // private TeamEventStatus status = TeamEventStatus.UNKNOWN;
-
   @PFPersistancyBehavior(autoUpdateCollectionEntries = true)
   private Set<TeamEventAttachmentDO> attachments;
 
@@ -192,7 +189,7 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
       attachments.clear();
     }
     uid = null;
-    // status = null;
+
     return this;
   }
 
@@ -581,7 +578,7 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
     calStart.set(Calendar.DAY_OF_YEAR, calUntil.get(Calendar.DAY_OF_YEAR));
 
     // remove one day if event start on this day is after until (-> last day is the day before)
-    if (useAllDay == false && calStart.after(calUntil.getTimeInMillis())) {
+    if (useAllDay == false && calStart.after(calUntil)) {
       calStart.add(Calendar.DAY_OF_YEAR, -1);
     }
 
@@ -594,7 +591,7 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
     calStart.set(Calendar.MILLISECOND, 0);
 
     // update recur until
-    DateTime untilICal4J = new net.fortuna.ical4j.model.DateTime(calStart.getTime());
+    DateTime untilICal4J = new DateTime(calStart.getTime());
     untilICal4J.setUtc(true);
     recur.setUntil(untilICal4J);
 
