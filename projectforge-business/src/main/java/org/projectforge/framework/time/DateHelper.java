@@ -722,6 +722,10 @@ public class DateHelper implements Serializable
 
   public static java.sql.Date convertDateToSqlDateInTheUsersTimeZone(final Date date)
   {
+    if (date == null) {
+      return null;
+    }
+
     final TimeZone utc = TimeZone.getTimeZone("UTC");
     final TimeZone usersTimeZone = ThreadLocalUserContext.getTimeZone();
     final Date dateInUsersTimezone = convertDateIntoOtherTimezone(date, utc, usersTimeZone);

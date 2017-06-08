@@ -135,11 +135,6 @@ public class RechnungFilter extends BaseSearchFilter implements Serializable
     return this;
   }
 
-  /**
-   * If given then the year and month setting is ignored by {@link RechnungDao#getList(BaseSearchFilter)}.
-   *
-   * @return the fromDate
-   */
   public Date getFromDate()
   {
     return fromDate;
@@ -155,11 +150,6 @@ public class RechnungFilter extends BaseSearchFilter implements Serializable
     return this;
   }
 
-  /**
-   * If given then the year and month setting is ignored by {@link RechnungDao#getList(BaseSearchFilter)}.
-   *
-   * @return the toDate
-   */
   public Date getToDate()
   {
     return toDate;

@@ -33,9 +33,9 @@ import org.projectforge.business.fibu.AbstractRechnungsStatistik;
 import org.projectforge.business.fibu.RechnungFilter;
 import org.projectforge.business.utils.CurrencyFormatter;
 import org.projectforge.framework.configuration.Configuration;
+import org.projectforge.framework.time.DateHelper;
 import org.projectforge.web.wicket.AbstractListForm;
 import org.projectforge.web.wicket.AbstractListPage;
-import org.projectforge.web.wicket.LambdaModel;
 import org.projectforge.web.wicket.TimePeriodPanel;
 import org.projectforge.web.wicket.WebConstants;
 import org.projectforge.web.wicket.flowlayout.CheckBoxButton;
@@ -164,23 +164,30 @@ public abstract class AbstractRechnungListForm<F extends RechnungFilter, P exten
   {
     final F filter = getSearchFilter();
 
-    // TODO CT: check timezone
-    final IModel<Date> startDateModel = LambdaModel.of(
-        () -> filter.getFromDate() != null ? new Date(filter.getFromDate().getTime()) : null,
-        date -> filter.setFromDate(date != null ? new java.sql.Date(date.getTime()) : null)
-    );
+    // We use the following two date models as storage for the java.util.Date which is used in the TimePeriodPanel and override the
+    // setObject methods to convert the java.util.Date to java.sql.Date which is then set in the filter.
 
-    final IModel<Date> endDateModel = LambdaModel.of(
-        () -> filter.getToDate() != null ? new Date(filter.getToDate().getTime()) : null,
-        date -> filter.setToDate(date != null ? new java.sql.Date(date.getTime()) : null)
-    );
+    final IModel<Date> startDateModel = new Model<Date>()
+    {
+      @Override
+      public void setObject(final Date date)
+      {
+        super.setObject(date);
+        filter.setFromDate(DateHelper.convertDateToSqlDateInTheUsersTimeZone(date));
+      }
+    };
 
-    return new TimePeriodPanel(
-        id,
-        startDateModel,
-        endDateModel,
-        parentPage
-    );
+    final IModel<Date> endDateModel = new Model<Date>()
+    {
+      @Override
+      public void setObject(final Date date)
+      {
+        super.setObject(date);
+        filter.setToDate(DateHelper.convertDateToSqlDateInTheUsersTimeZone(date));
+      }
+    };
+
+    return new TimePeriodPanel(id, startDateModel, endDateModel, parentPage);
   }
 
   protected abstract AbstractRechnungsStatistik<?> getStats();
