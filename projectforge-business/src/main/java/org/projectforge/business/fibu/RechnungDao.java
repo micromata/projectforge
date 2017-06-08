@@ -78,8 +78,6 @@ public class RechnungDao extends BaseDao<RechnungDO>
       "positionen.text", "positionen.auftragsPosition.position", "positionen.auftragsPosition.position",
       "positionen.auftragsPosition.titel", "positionen.auftragsPosition.bemerkung" };
 
-  private static BigDecimal defaultSteuersatz = BigDecimal.valueOf(0.19);
-
   @Autowired
   private KundeDao kundeDao;
 
@@ -481,24 +479,6 @@ public class RechnungDao extends BaseDao<RechnungDO>
       }
     }
     return false;
-  }
-
-  /**
-   * Defined in application context.
-   */
-  public static BigDecimal getDefaultSteuersatz()
-  {
-    return defaultSteuersatz;
-  }
-
-  /**
-   * Not static for invocation of Spring.
-   *
-   * @param value
-   */
-  public void setDefaultSteuersatz(final BigDecimal value)
-  {
-    defaultSteuersatz = value;
   }
 
   @Override
