@@ -580,12 +580,12 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
     calStart.set(Calendar.YEAR, calUntil.get(Calendar.YEAR));
     calStart.set(Calendar.DAY_OF_YEAR, calUntil.get(Calendar.DAY_OF_YEAR));
 
-    // remove one day if event start on this day is before until
-    if (useAllDay == false && calStart.getTimeInMillis() > calUntil.getTimeInMillis()) {
+    // remove one day if event start on this day is after until (-> last day is the day before)
+    if (useAllDay == false && calStart.after(calUntil.getTimeInMillis())) {
       calStart.add(Calendar.DAY_OF_YEAR, -1);
     }
 
-    // remember time of until
+    // remember time of last occurrence
     calUntil.setTime(calStart.getTime());
 
     // add 23:59:59 to event start (next possible event time is +24h, 1 day)
@@ -598,7 +598,7 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
     untilICal4J.setUtc(true);
     recur.setUntil(untilICal4J);
 
-    // return cal event before changes for DB use
+    // return time of last occurrence for DB use
     return calUntil.getTime();
   }
 
