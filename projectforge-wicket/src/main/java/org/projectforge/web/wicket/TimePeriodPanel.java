@@ -24,7 +24,7 @@ import org.projectforge.web.wicket.flowlayout.IconType;
  * This Panel consists of two date pickers (start and end date) and a quick select for month and week.
  * For validation you can call the getConvertedInput method to get a TimePeriod which contains the start and end date.
  * <p>
- * It extends FormComponentPanel just to have a validate() method.
+ * It extends FormComponentPanel to have the validate() and getConvertedInput() method.
  */
 public class TimePeriodPanel extends FormComponentPanel<TimePeriod> implements ISelectCallerPage
 {
@@ -112,7 +112,7 @@ public class TimePeriodPanel extends FormComponentPanel<TimePeriod> implements I
 
     final Date start = startDatePanel.getConvertedInput();
     final Date end = endDatePanel.getConvertedInput();
-    if (start != null && end != null && start.after(end) == true) {
+    if (start != null && end != null && start.after(end)) {
       error(getString("timePeriodPanel.startTimeAfterStopTime"));
     }
   }
