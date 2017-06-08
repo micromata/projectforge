@@ -23,6 +23,7 @@
 
 package org.projectforge.business.teamcal.event.model;
 
+import java.sql.Time;
 import java.sql.Timestamp;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -65,7 +66,6 @@ import org.projectforge.framework.persistence.api.AUserRightId;
 import org.projectforge.framework.persistence.api.Constants;
 import org.projectforge.framework.persistence.api.PFPersistancyBehavior;
 import org.projectforge.framework.persistence.entities.DefaultBaseDO;
-import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.time.DateFormats;
 import org.projectforge.framework.time.DateHelper;
@@ -170,8 +170,6 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
 
   @PFPersistancyBehavior(autoUpdateCollectionEntries = true)
   private Set<TeamEventAttachmentDO> attachments;
-
-  private TimeZone timeZone;
 
   private PFUserDO creator;
 
@@ -480,7 +478,7 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
    * @return this for chaining.
    */
   @Transient
-  public TeamEventDO setRecurrence(final RRule rRule)
+  public TeamEventDO setRecurrence(final RRule rRule, TimeZone timezone)
   {
     if (rRule == null || rRule.getRecur() == null) {
       this.recurrenceRuleObject = null;
@@ -501,7 +499,7 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
         }
         this.recurrenceUntil = recur.getUntil();
       } else {
-        this.recurrenceUntil = this.fixUntilInRecur(recur, recur.getUntil(), false);
+        this.recurrenceUntil = this.fixUntilInRecur(recur, recur.getUntil(), false, timezone);
       }
     } else {
       this.recurrenceUntil = null;
@@ -540,7 +538,7 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
     if (recurData.getUntil() != null) {
       if (this.allDay) {
         // remove timezone from date for all day events!
-        Calendar calUserTimeZone = new GregorianCalendar(ThreadLocalUserContext.getTimeZone());
+        Calendar calUserTimeZone = new GregorianCalendar(recurData.getTimeZone());
         Calendar calUTC = new GregorianCalendar(DateHelper.UTC);
 
         calUserTimeZone.setTime(recurData.getUntil());
@@ -556,7 +554,7 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
         recur.setUntil(untilICal4J);
         this.recurrenceUntil = calUTC.getTime();
       } else {
-        this.recurrenceUntil = this.fixUntilInRecur(recur, recurData.getUntil(), true);
+        this.recurrenceUntil = this.fixUntilInRecur(recur, recurData.getUntil(), true, recurData.getTimeZone());
       }
     } else {
       this.recurrenceUntil = null;
@@ -570,10 +568,10 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
     return this;
   }
 
-  private Date fixUntilInRecur(final Recur recur, final Date until, boolean useAllDay)
+  private Date fixUntilInRecur(final Recur recur, final Date until, boolean useAllDay, TimeZone timezone)
   {
-    Calendar calUntil = new GregorianCalendar(ThreadLocalUserContext.getTimeZone());
-    Calendar calStart = new GregorianCalendar(ThreadLocalUserContext.getTimeZone());
+    Calendar calUntil = new GregorianCalendar(timezone);
+    Calendar calStart = new GregorianCalendar(timezone);
 
     calUntil.setTime(until);
     calStart.setTime(this.startDate);
@@ -613,6 +611,7 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
     return StringUtils.isNotBlank(this.recurrenceRule);
   }
 
+  @Transient
   public TeamEventDO clearAllRecurrenceFields()
   {
     this.recurrenceRule = null;
@@ -624,9 +623,9 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
   }
 
   @Transient
-  public TeamEventRecurrenceData getRecurrenceData()
+  public TeamEventRecurrenceData getRecurrenceData(TimeZone timezone)
   {
-    final TeamEventRecurrenceData recurrenceData = new TeamEventRecurrenceData(ThreadLocalUserContext.getTimeZone());
+    final TeamEventRecurrenceData recurrenceData = new TeamEventRecurrenceData(timezone);
     final Recur recur = this.getRecurrenceObject();
 
     if (recur == null) {
@@ -638,7 +637,7 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
     if (this.recurrenceUntil != null) {
       if (this.isAllDay()) {
         // transform until to user timezone, required for data picker
-        Calendar calUserTimeZone = new GregorianCalendar(ThreadLocalUserContext.getTimeZone());
+        Calendar calUserTimeZone = new GregorianCalendar(timezone);
         Calendar calUTC = new GregorianCalendar(DateHelper.UTC);
 
         calUTC.setTime(this.recurrenceUntil);
@@ -759,11 +758,11 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
    * @return this for chaining.
    */
   @Transient
-  public TeamEventDO setRecurrenceDate(final Date recurrenceDate)
+  public TeamEventDO setRecurrenceDate(final Date recurrenceDate, TimeZone timezone)
   {
     final DateFormat df = new SimpleDateFormat(DateFormats.ICAL_DATETIME_FORMAT);
     // Need the user's time-zone for getting midnight of desired date.
-    df.setTimeZone(ThreadLocalUserContext.getTimeZone());
+    df.setTimeZone(timezone);
     // But print it as UTC date:
     final String recurrenceDateString = df.format(recurrenceDate);
     setRecurrenceDate(recurrenceDateString);
@@ -983,25 +982,6 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
   {
     this.creator = creator;
   }
-
-  // /**
-  // * @return the status
-  // */
-  // @Column
-  // public TeamEventStatus getStatus()
-  // {
-  // return status;
-  // }
-  //
-  // /**
-  // * @param status the status to set
-  // * @return this for chaining.
-  // */
-  // public TeamEventDO setStatus(final TeamEventStatus status)
-  // {
-  // this.status = status;
-  // return this;
-  // }
 
   /**
    * @see java.lang.Object#hashCode()
@@ -1241,20 +1221,5 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
     result.recurrenceUntil = this.recurrenceUntil;
     result.sequence = this.sequence;
     return result;
-  }
-
-  @Transient
-  public TimeZone getTimeZone()
-  {
-    if (timeZone == null) {
-      timeZone = ThreadLocalUserContext.getTimeZone();
-    }
-    return timeZone;
-  }
-
-  @Transient
-  public void setTimeZone(TimeZone timeZone)
-  {
-    this.timeZone = timeZone;
   }
 }

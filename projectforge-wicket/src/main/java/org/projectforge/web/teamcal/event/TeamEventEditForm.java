@@ -52,6 +52,7 @@ import org.projectforge.business.teamcal.event.right.TeamEventRight;
 import org.projectforge.business.teamcal.service.TeamCalServiceImpl;
 import org.projectforge.business.utils.HtmlHelper;
 import org.projectforge.framework.access.AccessChecker;
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.time.DateHelper;
 import org.projectforge.framework.time.DateHolder;
 import org.projectforge.framework.time.DatePrecision;
@@ -157,7 +158,7 @@ public class TeamEventEditForm extends AbstractEditForm<TeamEventDO, TeamEventEd
   {
     super.init();
 
-    recurrenceData = data.getRecurrenceData();
+    recurrenceData = data.getRecurrenceData(ThreadLocalUserContext.getTimeZone());
 
     gridBuilder.newSplitPanel(GridSize.COL50);
     final TeamCalDO teamCal = data.getCalendar();

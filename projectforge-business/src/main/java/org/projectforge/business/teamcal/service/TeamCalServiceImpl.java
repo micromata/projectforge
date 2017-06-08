@@ -617,7 +617,6 @@ public class TeamCalServiceImpl
   public TeamEventDO createTeamEventDO(final VEvent event, java.util.TimeZone timeZone, boolean withUid)
   {
     final TeamEventDO teamEvent = new TeamEventDO();
-    teamEvent.setTimeZone(timeZone);
     teamEvent.setCreator(ThreadLocalUserContext.getUser());
     final DtStart dtStart = event.getStartDate();
     if (dtStart != null && dtStart.getParameter("VALUE") != null && dtStart.getParameter("VALUE").getValue().contains("DATE") == true
@@ -730,7 +729,7 @@ public class TeamCalServiceImpl
     // find recurrence rule
     final RRule rule = (RRule) event.getProperty(Property.RRULE);
     if (rule != null) {
-      teamEvent.setRecurrence(rule);
+      teamEvent.setRecurrence(rule, timeZone);
     }
 
     // parsing ExDates

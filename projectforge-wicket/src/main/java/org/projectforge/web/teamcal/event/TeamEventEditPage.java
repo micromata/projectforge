@@ -370,7 +370,7 @@ public class TeamEventEditPage extends AbstractEditPage<TeamEventDO, TeamEventEd
       // Add current date to the master date as exclusion date and save this event (without recurrence settings).
       masterEvent.addRecurrenceExDate(eventOfCaller.getStartDate());
       newEvent = oldDataObject.clone();
-      newEvent.setRecurrenceDate(eventOfCaller.getStartDate());
+      newEvent.setRecurrenceDate(eventOfCaller.getStartDate(), ThreadLocalUserContext.getTimeZone());
       newEvent.setRecurrenceReferenceId(masterEvent.getId());
       if (log.isDebugEnabled() == true) {
         log.debug("Recurrency ex date of master entry is now added: "

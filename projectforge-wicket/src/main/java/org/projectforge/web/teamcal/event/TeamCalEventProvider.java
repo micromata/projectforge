@@ -225,7 +225,7 @@ public class TeamCalEventProvider extends MyFullCalendarEventsProvider
   {
     String recurrence = null;
     if (eventDO.hasRecurrence() == true) {
-      final TeamEventRecurrenceData recurrenceData = eventDO.getRecurrenceData();
+      final TeamEventRecurrenceData recurrenceData = eventDO.getRecurrenceData(ThreadLocalUserContext.getTimeZone());
       final RecurrenceFrequency frequency = recurrenceData.getFrequency();
       if (frequency != null) {
         final String unitI18nKey = frequency.getUnitI18nKey();
