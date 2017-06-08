@@ -27,7 +27,6 @@ import org.projectforge.business.fibu.RechnungFilter;
 
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 
-
 @XStreamAlias("EingangsrechnungFilter")
 public class EingangsrechnungListFilter extends RechnungFilter
 {
@@ -50,14 +49,4 @@ public class EingangsrechnungListFilter extends RechnungFilter
     this.showKostZuweisungStatus = showKostZuweisungStatus;
   }
 
-  @Override
-  public EingangsrechnungListFilter reset()
-  {
-    super.reset();
-    year = -1;
-    month = -1;
-    setShowAll();
-    searchString = "";
-    return this;
-  }
 }

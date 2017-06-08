@@ -25,7 +25,6 @@ package org.projectforge.business.fibu;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
@@ -342,7 +341,6 @@ public class AuftragDao extends BaseDao<AuftragDO>
     }
 
     final QueryFilter queryFilter = new QueryFilter(myFilter);
-    //    Boolean vollstaendigFakturiert = removeMe(myFilter, queryFilter);
 
     filterAuftragsStatuses(myFilter, queryFilter);
 
@@ -357,15 +355,17 @@ public class AuftragDao extends BaseDao<AuftragDO>
       );
     }
 
-    if (myFilter.getYear() > 1900) {
-      final Calendar cal = DateHelper.getUTCCalendar();
-      cal.set(Calendar.YEAR, myFilter.getYear());
-      cal.set(Calendar.DAY_OF_YEAR, 1);
-      final java.sql.Date lo = new java.sql.Date(cal.getTimeInMillis());
-      final int lastDayOfYear = cal.getActualMaximum(Calendar.DAY_OF_YEAR);
-      cal.set(Calendar.DAY_OF_YEAR, lastDayOfYear);
-      final java.sql.Date hi = new java.sql.Date(cal.getTimeInMillis());
-      queryFilter.add(Restrictions.between("angebotsDatum", lo, hi));
+    // filter angebotsDatum
+    if (myFilter.getStartDate() != null && myFilter.getEndDate() != null) {
+      final java.sql.Date startDate = DateHelper.convertDateToSqlDateInTheUsersTimeZone(myFilter.getStartDate());
+      final java.sql.Date endDate = DateHelper.convertDateToSqlDateInTheUsersTimeZone(myFilter.getEndDate());
+      queryFilter.add(Restrictions.between("angebotsDatum", startDate, endDate));
+    } else if (myFilter.getStartDate() != null) {
+      final java.sql.Date startDate = DateHelper.convertDateToSqlDateInTheUsersTimeZone(myFilter.getStartDate());
+      queryFilter.add(Restrictions.ge("angebotsDatum", startDate));
+    } else if (myFilter.getEndDate() != null) {
+      final java.sql.Date endDate = DateHelper.convertDateToSqlDateInTheUsersTimeZone(myFilter.getEndDate());
+      queryFilter.add(Restrictions.le("angebotsDatum", endDate));
     }
 
     queryFilter.addOrder(Order.desc("nummer"));
