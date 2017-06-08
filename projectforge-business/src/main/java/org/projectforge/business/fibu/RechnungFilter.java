@@ -24,7 +24,7 @@
 package org.projectforge.business.fibu;
 
 import java.io.Serializable;
-import java.sql.Date;
+import java.util.Date;
 
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 
