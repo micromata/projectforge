@@ -375,7 +375,6 @@ public class EmployeeSalaryExportDao
     row.addCell(4, differenz, "STUNDEN");
     row.addCell(5, report.getUnbookedDays().size());
     row.addCell(6, report.getFormattedUnbookedDays());
-
   }
 
   public TenantRegistry getTenantRegistry()
