@@ -365,8 +365,8 @@ public class RechnungListPage extends AbstractListPage<RechnungListForm, Rechnun
     refresh();
     final RechnungFilter filter = new RechnungFilter();
     final RechnungFilter src = form.getSearchFilter();
-    filter.setYear(src.getYear());
-    filter.setMonth(src.getMonth());
+    filter.setFromDate(src.getFromDate());
+    filter.setToDate(src.getToDate());
     final List<RechnungDO> rechnungen = rechnungDao.getList(filter);
     if (rechnungen == null || rechnungen.size() == 0) {
       // Nothing to export.

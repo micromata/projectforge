@@ -40,7 +40,6 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.hibernate.FetchMode;
 import org.hibernate.criterion.Order;
-import org.hibernate.criterion.Restrictions;
 import org.projectforge.business.fibu.kost.KostZuweisungDO;
 import org.projectforge.business.user.UserRightId;
 import org.projectforge.framework.access.AccessException;
@@ -77,8 +76,6 @@ public class RechnungDao extends BaseDao<RechnungDO>
       "projekt.kunde.name",
       "positionen.text", "positionen.auftragsPosition.position", "positionen.auftragsPosition.position",
       "positionen.auftragsPosition.titel", "positionen.auftragsPosition.bemerkung" };
-
-  private static BigDecimal defaultSteuersatz = BigDecimal.valueOf(0.19);
 
   @Autowired
   private KundeDao kundeDao;
@@ -328,18 +325,7 @@ public class RechnungDao extends BaseDao<RechnungDO>
     } else {
       myFilter = new RechnungFilter(filter);
     }
-    final QueryFilter queryFilter = new QueryFilter(myFilter);
-    if (myFilter.getFromDate() != null || myFilter.getToDate() != null) {
-      if (myFilter.getFromDate() != null && myFilter.getToDate() != null) {
-        queryFilter.add(Restrictions.between("datum", myFilter.getFromDate(), myFilter.getToDate()));
-      } else if (myFilter.getFromDate() != null) {
-        queryFilter.add(Restrictions.ge("datum", myFilter.getFromDate()));
-      } else if (myFilter.getToDate() != null) {
-        queryFilter.add(Restrictions.le("datum", myFilter.getToDate()));
-      }
-    } else {
-      queryFilter.setYearAndMonth("datum", myFilter.getYear(), myFilter.getMonth());
-    }
+    final QueryFilter queryFilter = AbstractRechnungDaoHelper.createQueryFilterWithDateRestriction(myFilter);
     queryFilter.addOrder(Order.desc("datum"));
     queryFilter.addOrder(Order.desc("nummer"));
     if (myFilter.isShowKostZuweisungStatus() == true) {
@@ -483,24 +469,6 @@ public class RechnungDao extends BaseDao<RechnungDO>
       }
     }
     return false;
-  }
-
-  /**
-   * Defined in application context.
-   */
-  public static BigDecimal getDefaultSteuersatz()
-  {
-    return defaultSteuersatz;
-  }
-
-  /**
-   * Not static for invocation of Spring.
-   *
-   * @param value
-   */
-  public void setDefaultSteuersatz(final BigDecimal value)
-  {
-    defaultSteuersatz = value;
   }
 
   @Override

@@ -42,9 +42,9 @@ import org.projectforge.web.common.I18nEnumChoiceProvider;
 import org.projectforge.web.user.UserSelectPanel;
 import org.projectforge.web.wicket.AbstractListForm;
 import org.projectforge.web.wicket.LambdaModel;
+import org.projectforge.web.wicket.TimePeriodPanel;
 import org.projectforge.web.wicket.WebConstants;
 import org.projectforge.web.wicket.components.LabelValueChoiceRenderer;
-import org.projectforge.web.wicket.components.YearListCoiceRenderer;
 import org.projectforge.web.wicket.flowlayout.DivPanel;
 import org.projectforge.web.wicket.flowlayout.DivTextPanel;
 import org.projectforge.web.wicket.flowlayout.DropDownChoicePanel;
@@ -76,6 +76,13 @@ public class AuftragListForm extends AbstractListForm<AuftragFilter, AuftragList
   {
     super.init(false);
     {
+      // time period
+      gridBuilder.newGridPanel();
+      final FieldsetPanel tpfs = gridBuilder.newFieldset(getString("timePeriod"));
+      final TimePeriodPanel timePeriodPanel = createTimePeriodPanel(tpfs.newChildId());
+      tpfs.add(timePeriodPanel);
+      tpfs.setLabelFor(timePeriodPanel);
+
       // Statistics
       gridBuilder.newGridPanel();
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("statistics")).suppressLabelForWarning();
@@ -172,7 +179,6 @@ public class AuftragListForm extends AbstractListForm<AuftragFilter, AuftragList
   {
     optionsFieldsetPanel.add(createAuftragsStatusMultiChoice());
     optionsFieldsetPanel.add(createAuftragsPositionsArtMultiChoice());
-    optionsFieldsetPanel.add(createYearsDropDown());
     optionsFieldsetPanel.add(createAuftragFakturiertDropDown());
     optionsFieldsetPanel.add(createAuftragsPositionsPaymentTypeDropDown());
     optionsFieldsetPanel.add(createUserSelect(optionsFieldsetPanel.newChildId()));
@@ -196,19 +202,16 @@ public class AuftragListForm extends AbstractListForm<AuftragFilter, AuftragList
     );
   }
 
-  private DropDownChoice<Integer> createYearsDropDown()
+  private TimePeriodPanel createTimePeriodPanel(final String id)
   {
-    final YearListCoiceRenderer yearListChoiceRenderer = new YearListCoiceRenderer(auftragDao.getYears(), true);
+    final AuftragFilter filter = getSearchFilter();
 
-    final DropDownChoice<Integer> yearChoice = new DropDownChoice<>(
-        DropDownChoicePanel.WICKET_ID,
-        LambdaModel.of(this::getYear, this::setYear),
-        yearListChoiceRenderer.getYears(),
-        yearListChoiceRenderer
+    return new TimePeriodPanel(
+        id,
+        LambdaModel.of(filter::getStartDate, filter::setStartDate),
+        LambdaModel.of(filter::getEndDate, filter::setEndDate),
+        parentPage
     );
-    yearChoice.setNullValid(false);
-
-    return yearChoice;
   }
 
   private DropDownChoice<AuftragFakturiertFilterStatus> createAuftragFakturiertDropDown()
@@ -272,20 +275,6 @@ public class AuftragListForm extends AbstractListForm<AuftragFilter, AuftragList
   public void setUser(final PFUserDO user)
   {
     getSearchFilter().setUser(user);
-  }
-
-  public Integer getYear()
-  {
-    return getSearchFilter().getYear();
-  }
-
-  public void setYear(final Integer year)
-  {
-    if (year == null) {
-      getSearchFilter().setYear(-1);
-    } else {
-      getSearchFilter().setYear(year);
-    }
   }
 
   private Integer getAuftragsPositionsPaymentType()

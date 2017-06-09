@@ -311,8 +311,8 @@ public class EingangsrechnungListPage
     refresh();
     final RechnungFilter filter = new RechnungFilter();
     final RechnungFilter src = form.getSearchFilter();
-    filter.setYear(src.getYear());
-    filter.setMonth(src.getMonth());
+    filter.setFromDate(src.getFromDate());
+    filter.setToDate(src.getToDate());
     final List<EingangsrechnungDO> rechnungen = eingangsrechnungDao.getList(filter);
     if (rechnungen == null || rechnungen.size() == 0) {
       // Nothing to export.

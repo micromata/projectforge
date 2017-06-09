@@ -27,22 +27,8 @@ import org.projectforge.business.fibu.RechnungFilter;
 
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 
-
-/**
- */
 @XStreamAlias("RechnungFilter")
 public class RechnungListFilter extends RechnungFilter
 {
   private static final long serialVersionUID = -874619598640299510L;
-
-  @Override
-  public RechnungListFilter reset()
-  {
-    super.reset();
-    year = -1;
-    month = -1;
-    setShowAll();
-    searchString = "";
-    return this;
-  }
 }
