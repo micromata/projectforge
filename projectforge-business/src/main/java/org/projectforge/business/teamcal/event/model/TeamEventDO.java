@@ -488,16 +488,7 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
     final Recur recur = rRule.getRecur();
 
     if (recur.getUntil() != null) {
-      if (this.allDay) {
-        if (recur.getUntil() instanceof DateTime) {
-          // switch to date (no time)
-          recur.setUntil(new net.fortuna.ical4j.model.Date(recur.getUntil()));
-          this.recurrenceUntil = recur.getUntil();
-        }
-        this.recurrenceUntil = recur.getUntil();
-      } else {
-        this.recurrenceUntil = this.fixUntilInRecur(recur, recur.getUntil(), false, timezone);
-      }
+      this.recurrenceUntil = recur.getUntil();
     } else {
       this.recurrenceUntil = null;
     }
@@ -534,24 +525,12 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
     // Set until
     if (recurData.getUntil() != null) {
       if (this.allDay) {
-        // remove timezone from date for all day events!
-        Calendar calUserTimeZone = new GregorianCalendar(recurData.getTimeZone());
-        Calendar calUTC = new GregorianCalendar(DateHelper.UTC);
-
-        calUserTimeZone.setTime(recurData.getUntil());
-        calUTC.set(Calendar.YEAR, calUserTimeZone.get(Calendar.YEAR));
-        calUTC.set(Calendar.DAY_OF_YEAR, calUserTimeZone.get(Calendar.DAY_OF_YEAR));
-        calUTC.set(Calendar.HOUR_OF_DAY, 0);
-        calUTC.set(Calendar.MINUTE, 0);
-        calUTC.set(Calendar.SECOND, 0);
-        calUTC.set(Calendar.MILLISECOND, 0);
-
         // just use date, no time
-        final net.fortuna.ical4j.model.Date untilICal4J = new net.fortuna.ical4j.model.Date(calUTC.getTime());
+        final net.fortuna.ical4j.model.Date untilICal4J = new net.fortuna.ical4j.model.Date(recurData.getUntil());
         recur.setUntil(untilICal4J);
-        this.recurrenceUntil = calUTC.getTime();
+        this.recurrenceUntil = recurData.getUntil();
       } else {
-        this.recurrenceUntil = this.fixUntilInRecur(recur, recurData.getUntil(), true, recurData.getTimeZone());
+        this.recurrenceUntil = this.fixUntilInRecur(recur, recurData.getUntil(), recurData.getTimeZone());
       }
     } else {
       this.recurrenceUntil = null;
@@ -565,26 +544,23 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
     return this;
   }
 
-  private Date fixUntilInRecur(final Recur recur, final Date until, boolean useAllDay, TimeZone timezone)
+  private Date fixUntilInRecur(final Recur recur, final Date until, TimeZone timezone)
   {
-    Calendar calUntil = new GregorianCalendar(timezone);
-    Calendar calStart = new GregorianCalendar(timezone);
+    // until in RecurrenceData is always in UTC!
+    Calendar calUntil = Calendar.getInstance(DateHelper.UTC);
+    Calendar calStart = Calendar.getInstance(timezone);
 
     calUntil.setTime(until);
-    calStart.setTime(this.startDate);
+    //    calStart.setTime(this.startDate);
 
     // update date of start date to until date
     calStart.set(Calendar.YEAR, calUntil.get(Calendar.YEAR));
     calStart.set(Calendar.DAY_OF_YEAR, calUntil.get(Calendar.DAY_OF_YEAR));
 
-    // remove one day if event start on this day is after until (-> last day is the day before)
-    if (useAllDay == false && calStart.after(calUntil)) {
-      calStart.add(Calendar.DAY_OF_YEAR, -1);
-    }
-
-    // add 23:59:59 to event start (next possible event time is +24h, 1 day)
-    calStart.add(Calendar.DAY_OF_YEAR, 1);
-    calStart.add(Calendar.SECOND, -1);
+    // set until to last limit of day in user time
+    calStart.set(Calendar.HOUR_OF_DAY, 23);
+    calStart.set(Calendar.MINUTE, 59);
+    calStart.set(Calendar.SECOND, 59);
     calStart.set(Calendar.MILLISECOND, 0);
 
     // update recur until
@@ -629,26 +605,36 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
     recurrenceData.setInterval(recur.getInterval() < 1 ? 1 : recur.getInterval());
 
     if (this.recurrenceUntil != null) {
-      // transform until to user timezone, required for data picker
+      // transform until to timezone
       if (this.isAllDay()) {
-        Calendar calUserTimeZone = new GregorianCalendar(timezone);
-        Calendar calUTC = new GregorianCalendar(DateHelper.UTC);
-
-        calUTC.setTime(this.recurrenceUntil);
-        calUserTimeZone.set(Calendar.YEAR, calUTC.get(Calendar.YEAR));
-        calUserTimeZone.set(Calendar.DAY_OF_YEAR, calUTC.get(Calendar.DAY_OF_YEAR));
-        calUserTimeZone.set(Calendar.HOUR_OF_DAY, 0);
-        calUserTimeZone.set(Calendar.MINUTE, 0);
-        calUserTimeZone.set(Calendar.SECOND, 0);
-        calUserTimeZone.set(Calendar.MILLISECOND, 0);
-
-        recurrenceData.setUntil(calUserTimeZone.getTime());
+        recurrenceData.setUntil(this.recurrenceUntil);
       } else {
-        Calendar calUTC = new GregorianCalendar(DateHelper.UTC);
+        // determine last possible event in event time zone (owner time zone)
+        Calendar calUntil = Calendar.getInstance(this.getTimeZone());
+        Calendar calStart = Calendar.getInstance(this.getTimeZone());
 
-        calUTC.setTime(this.recurrenceUntil);
-        calUTC.add(Calendar.DAY_OF_YEAR, -1);
-        calUTC.add(Calendar.SECOND, 1);
+        calUntil.setTime(this.recurrenceUntil);
+        calStart.setTime(this.startDate);
+
+        calStart.set(Calendar.YEAR, calUntil.get(Calendar.YEAR));
+        calStart.set(Calendar.DAY_OF_YEAR, calUntil.get(Calendar.DAY_OF_YEAR));
+
+        if (calStart.after(calUntil)) {
+          calStart.add(Calendar.DAY_OF_YEAR, -1);
+        }
+
+        // move to target time zone and transform to UTC
+        Calendar calTimeZone = Calendar.getInstance(timezone);
+        Calendar calUTC = Calendar.getInstance(DateHelper.UTC);
+
+        calTimeZone.setTime(calStart.getTime());
+
+        calUTC.set(Calendar.YEAR, calTimeZone.get(Calendar.YEAR));
+        calUTC.set(Calendar.DAY_OF_YEAR, calTimeZone.get(Calendar.DAY_OF_YEAR));
+        calUTC.set(Calendar.HOUR_OF_DAY, 0);
+        calUTC.set(Calendar.MINUTE, 0);
+        calUTC.set(Calendar.SECOND, 0);
+        calUTC.set(Calendar.MILLISECOND, 0);
 
         recurrenceData.setUntil(calUTC.getTime());
       }
@@ -1221,5 +1207,22 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
     result.recurrenceUntil = this.recurrenceUntil;
     result.sequence = this.sequence;
     return result;
+  }
+
+  /**
+   * Returns the events owner time zone.
+   *
+   * @return Returns the events owner time zone.
+   */
+  @Transient
+  public TimeZone getTimeZone()
+  {
+    final PFUserDO user = this.getCreator();
+
+    if (user == null) {
+      return DateHelper.UTC;
+    }
+
+    return user.getTimeZoneObject();
   }
 }

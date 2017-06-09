@@ -72,7 +72,7 @@ public class TeamEventRecurrenceData implements Serializable
   }
 
   /**
-   * @return the until
+   * @return the until, contains the possible last occurrence of an event
    */
   public Date getUntil()
   {

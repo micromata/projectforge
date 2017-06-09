@@ -201,8 +201,9 @@ public class DatabaseCoreUpdates
             calStart.set(Calendar.DAY_OF_YEAR, calUntil.get(Calendar.DAY_OF_YEAR));
 
             // add 23:59:59 to event start (next possible event time is +24h, 1 day)
-            calStart.add(Calendar.DAY_OF_YEAR, 1);
-            calStart.add(Calendar.SECOND, -1);
+            calStart.set(Calendar.HOUR_OF_DAY, 23);
+            calStart.set(Calendar.MINUTE, 59);
+            calStart.set(Calendar.SECOND, 59);
             calStart.set(Calendar.MILLISECOND, 0);
 
             // update recur until

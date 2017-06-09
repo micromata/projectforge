@@ -331,7 +331,7 @@ public class TeamEventEditForm extends AbstractEditForm<TeamEventDO, TeamEventEd
           getString("plugins.teamcal.event.recurrence.customized.all"), false) + "&nbsp;");
       panel.getLabel().setEscapeModelStrings(false);
       recurrenceIntervalFieldset.add(panel);
-      final MinMaxNumberField<Integer> intervalNumberField = new MinMaxNumberField<Integer>(InputPanel.WICKET_ID,
+      final MinMaxNumberField<Integer> intervalNumberField = new MinMaxNumberField<>(InputPanel.WICKET_ID,
           new PropertyModel<Integer>(recurrenceData, "interval"), 0, 1000);
       WicketUtils.setSize(intervalNumberField, 1);
       recurrenceIntervalFieldset.add(intervalNumberField);
@@ -355,9 +355,10 @@ public class TeamEventEditForm extends AbstractEditForm<TeamEventDO, TeamEventEd
     {
       // Until. Only visible if recurrenceData.interval != NONE.
       recurrenceUntilDateFieldset = gridBuilder.newFieldset(getString("plugins.teamcal.event.recurrence.until"));
-      recurrenceUntilDateFieldset
-          .add(new DatePanel(recurrenceUntilDateFieldset.newChildId(), new PropertyModel<Date>(recurrenceData,
-              "until"), DatePanelSettings.get().withTargetType(Date.class)));
+      final DatePanel untilDatePanel = new DatePanel(recurrenceUntilDateFieldset.newChildId(), new PropertyModel<Date>(recurrenceData,
+          "until"), DatePanelSettings.get().withTimeZone(DateHelper.UTC));
+
+      recurrenceUntilDateFieldset.add(untilDatePanel);
       recurrenceUntilDateFieldset.getFieldset().setOutputMarkupId(true);
     }
 
