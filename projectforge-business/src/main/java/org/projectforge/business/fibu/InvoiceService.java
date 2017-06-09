@@ -3,6 +3,7 @@ package org.projectforge.business.fibu;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.math.BigDecimal;
 import java.util.List;
 
 import javax.xml.namespace.QName;
@@ -53,16 +54,41 @@ public class InvoiceService
         invoiceTemplate = applicationContext.getResource("classpath:officeTemplates/invoiceTemplate.docx");
       }
       XWPFDocument templateDocument = readWordFile(invoiceTemplate.getInputStream());
-      replaceText(templateDocument,"= Rechnungsadresse", data.getCustomerAddress());
-      replaceText(templateDocument,"= Typ", data.getTyp().toString());
-      replaceText(templateDocument,":=Kundenreferenz", data.getCustomerref1());
-      replaceText(templateDocument,":=Kundenreferenz 2", data.getCustomerref2());
-      replaceText(templateDocument,"= Auftragsnummer(n)", "");
-      replaceText(templateDocument,"= Nummer", data.getNummer().toString());
-      replaceText(templateDocument,"= Rechnungsdatum", data.getDatum().toString());
-      replaceText(templateDocument, "=Fälligkeit", data.getFaelligkeit().toString());
-      replaceText(templateDocument, "= Skonto", "");
-      replaceText(templateDocument, "=Fälligkeit Skonto", "");
+      replaceTextInDoc(templateDocument, "Rechnungsadresse", data.getCustomerAddress());
+      replaceTextInDoc(templateDocument, "Typ", data.getTyp().toString());
+      replaceTextInDoc(templateDocument, "Kundenreferenz", data.getCustomerref1());
+      replaceTextInDoc(templateDocument, "Kundenreferenz2", data.getCustomerref2());
+      replaceTextInDoc(templateDocument, "Auftragsnummer", data.getPositionen().get(0).getAuftragsPosition().getAuftrag().getNummer().toString());
+      replaceTextInDoc(templateDocument, "Nummer", data.getNummer().toString());
+      replaceTextInDoc(templateDocument, "Rechnungsdatum", data.getDatum().toString());
+      //Skonto
+      if (data.getDiscountPercent() != null) {
+        String skontoText =
+            "Wir bitten um Überweisung des Gesamtbetrages abzüglich " + data.getDiscountPercent().toString() + "% Skonto bis zum " + " danach bis zum " + data
+                .getFaelligkeit().toString() + " ohne Abzüge und freuen uns auf eine weiterhin erfolgreiche Zusammenarbeit";
+        replaceTextInDoc(templateDocument, "EndText", skontoText);
+      } else {
+        String faelligkeitText = "Wir bitten um Überweisung des Gesamtbetrages bis zum " + data
+            .getFaelligkeit().toString() + " und freuen uns auf eine weiterhin erfolgreiche Zusammenarbeit.";
+        replaceTextInDoc(templateDocument, "EndText", faelligkeitText);
+      }
+      //Positionen
+      XWPFTableRow tmpRow = null;
+      for (XWPFTable tbl : templateDocument.getTables()) {
+        tmpRow = tbl.getRow(1);
+      }
+      for (RechnungsPositionDO pos : data.getPositionen()) {
+        if (pos.getNumber() == 1) {
+          generateTableText(templateDocument, pos, data);
+        } else {
+          templateDocument.getTables().get(0).addRow(tmpRow, pos.getNumber());
+          generateTableText(templateDocument, pos, data);
+        }
+      }
+      replaceTextInTable(templateDocument, "Zwischensumm", data.getNetSum().toString());
+      replaceTextInTable(templateDocument, "MwSt", data.getNetSum().divide(new BigDecimal(100)).multiply(new BigDecimal(19)).toString());
+      replaceTextInTable(templateDocument, "Gesamtbetrag",
+          data.getNetSum().add(data.getNetSum().divide(new BigDecimal(100)).multiply(new BigDecimal(19))).toString());
 
       result = new ByteArrayOutputStream();
       templateDocument.write(result);
@@ -70,6 +96,23 @@ public class InvoiceService
       log.error("Could not read invoice template", e);
     }
     return result;
+  }
+
+  private void generateTableText(XWPFDocument docx, RechnungsPositionDO pos, RechnungDO data)
+  {
+    replaceTextInTable(docx, "id", String.valueOf(pos.getNumber()));
+    replaceTextInTable(docx, String.valueOf(pos.getNumber()) + "Posnummer", String.valueOf(pos.getNumber()));
+    replaceTextInTable(docx, String.valueOf(pos.getNumber()) + "Text", pos.getText());
+    if (pos.getPeriodOfPerformanceType() == PeriodOfPerformanceType.OWN) {
+      replaceTextInTable(docx, String.valueOf(pos.getNumber()) + "Leistungszeitraum",
+          pos.getPeriodOfPerformanceBegin().toString() + "-" + pos.getPeriodOfPerformanceEnd());
+    } else {
+      replaceTextInTable(docx, String.valueOf(pos.getNumber()) + "Leistungszeitraum",
+          data.getPeriodOfPerformanceBegin().toString() + "-" + data.getPeriodOfPerformanceEnd());
+    }
+    replaceTextInTable(docx, String.valueOf(pos.getNumber()) + "Menge", pos.getMenge().toString());
+    replaceTextInTable(docx, String.valueOf(pos.getNumber()) + "Einzelpreis", pos.getEinzelNetto().toString());
+    replaceTextInTable(docx, String.valueOf(pos.getNumber()) + "Betrag", pos.getEinzelNetto().multiply(pos.getMenge()).toString());
   }
 
   private XWPFDocument readWordFile(InputStream is)
@@ -83,33 +126,23 @@ public class InvoiceService
     return null;
   }
 
-  private void replaceText(XWPFDocument docx, String text, String replaceText)
+  private void replaceTextInDoc(XWPFDocument docx, String text, String replaceText)
   {
     //Zeilen
     for (XWPFParagraph p : docx.getParagraphs()) {
-        searchInRuns(p.getRuns(), text , replaceText);
-    }
-    //Tabellen
-    for (XWPFTable tbl : docx.getTables()) {
-      for (XWPFTableRow row : tbl.getRows()) {
-        for (XWPFTableCell cell : row.getTableCells()) {
-          for (XWPFParagraph p : cell.getParagraphs()) {
-            searchInRuns(p.getRuns(), text , replaceText);
-          }
-        }
-      }
+      searchInRuns(p.getRuns(), text, replaceText);
     }
     //Text-Box
     for (XWPFParagraph p : docx.getParagraphs()) {
-      XmlObject[] textBoxObjects =  p.getCTP().selectPath("declare namespace w='http://schemas.openxmlformats.org/wordprocessingml/2006/main' "
+      XmlObject[] textBoxObjects = p.getCTP().selectPath("declare namespace w='http://schemas.openxmlformats.org/wordprocessingml/2006/main' "
           + "declare namespace wps='http://schemas.microsoft.com/office/word/2010/wordprocessingShape' .//*/wps:txbx/w:txbxContent");
-      for (int i =0; i < textBoxObjects.length; i++) {
+      for (int i = 0; i < textBoxObjects.length; i++) {
         XWPFParagraph embeddedPara = null;
         try {
-          XmlObject[] paraObjects = textBoxObjects[i].selectChildren( new QName("http://schemas.openxmlformats.org/wordprocessingml/2006/main", "p"));
-          for (int j=0; j<paraObjects.length; j++) {
+          XmlObject[] paraObjects = textBoxObjects[i].selectChildren(new QName("http://schemas.openxmlformats.org/wordprocessingml/2006/main", "p"));
+          for (int j = 0; j < paraObjects.length; j++) {
             embeddedPara = new XWPFParagraph(CTP.Factory.parse(paraObjects[j].xmlText()), p.getBody());
-            searchInRuns(embeddedPara.getRuns(), text , replaceText);
+            searchInRuns(embeddedPara.getRuns(), text, replaceText);
           }
         } catch (XmlException e) {
           //handle
@@ -117,17 +150,41 @@ public class InvoiceService
       }
     }
   }
-  
-  private void searchInRuns(List<XWPFRun> runs, String text, String replaceText )
+
+  private void searchInRuns(List<XWPFRun> runs, String text, String replaceText)
   {
     if (runs != null) {
       for (XWPFRun r : runs) {
         String tmp_text = r.getText(0);
-        if (tmp_text != null && tmp_text.contains(text)) {
-          tmp_text = tmp_text.replace(text, replaceText);
+        if (tmp_text != null && tmp_text.contains("{" + text + "}")) {
+          if (replaceText == null) {
+            tmp_text = tmp_text.replace("{" + text + "}", "");
+          } else {
+            tmp_text = tmp_text.replace("{" + text + "}", replaceText);
+          }
           r.setText(tmp_text, 0);
         }
       }
     }
   }
+
+  private void replaceTextInTable(XWPFDocument docx, String text, String replaceText)
+  {
+    //Tabellen
+    for (XWPFTable tbl : docx.getTables()) {
+      for (XWPFTableRow row : tbl.getRows()) {
+        for (XWPFTableCell cell : row.getTableCells()) {
+          if (cell.getText().contains("{" + text + "}")) {
+            if (replaceText == null) {
+              cell.setText(cell.getText().replace("{" + text + "}", ""));
+            } else {
+              cell.setText(cell.getText().replace("{" + text + "}", replaceText));
+            }
+          }
+        }
+      }
+    }
+
+  }
+
 }
