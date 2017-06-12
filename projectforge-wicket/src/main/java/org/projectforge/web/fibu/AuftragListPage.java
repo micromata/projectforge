@@ -154,9 +154,7 @@ public class AuftragListPage extends AbstractListPage<AuftragListForm, AuftragDa
       {
         final AuftragDO auftrag = rowModel.getObject();
         auftragDao.calculateInvoicedSum(auftrag);
-        //final List<AuftragsPositionDO> fullList = auftrag.getPositionenIncludingDeleted();
-        final List<AuftragsPositionDO> list = auftrag
-            .getPositionenExcludingDeleted();//fullList.stream().filter(pos -> pos.isDeleted() == false).collect(Collectors.toList());
+        final List<AuftragsPositionDO> list = auftrag.getPositionenExcludingDeleted();
         final Label label = new Label(componentId, new Model<String>("#" + list.size()));
         if (list != null) {
           final StringBuffer buf = new StringBuffer();
