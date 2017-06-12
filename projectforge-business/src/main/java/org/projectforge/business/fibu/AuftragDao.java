@@ -423,6 +423,11 @@ public class AuftragDao extends BaseDao<AuftragDO>
     queryFilter
         .createAlias("positionen", "position", Criteria.FULL_JOIN)
         .add(Restrictions.or(orCriterions.toArray(new Criterion[orCriterions.size()])));
+
+    // check deleted
+    if (myFilter.isIgnoreDeleted() == false) {
+      queryFilter.add(Restrictions.eq("position.deleted", myFilter.isDeleted()));
+    }
   }
 
   private void filterFakturiert(final AuftragFilter myFilter, final List<AuftragDO> list)
