@@ -167,7 +167,7 @@ public class EingangsrechnungListPage
         addRowClick(item);
       }
     });
-    columns.add(new CellItemListenerPropertyColumn<EingangsrechnungDO>(new Model<String>(getString("fibu.konto")), null,
+    columns.add(new CellItemListenerPropertyColumn<EingangsrechnungDO>(new Model<String>(getString("fibu.konto")), getSortable("konto", sortable),
         "konto",
         cellItemListener)
     {
