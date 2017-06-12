@@ -358,7 +358,9 @@ public class TeamCalServiceImpl
               dateList = new DateList(Value.DATE);
             } else {
               dateList = new DateList();
+              dateList.setUtc(true);
             }
+
             dateList.add(date);
             ExDate exDate;
             exDate = new ExDate(dateList);
