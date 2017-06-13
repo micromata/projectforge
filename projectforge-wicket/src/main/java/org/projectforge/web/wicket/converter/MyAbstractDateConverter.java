@@ -35,6 +35,7 @@ import org.apache.commons.lang.ClassUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.datetime.DateConverter;
 import org.apache.wicket.util.convert.ConversionException;
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.time.DateFormatType;
 import org.projectforge.framework.time.DateFormats;
 import org.projectforge.framework.time.DateTimeFormatter;
@@ -82,7 +83,9 @@ public abstract class MyAbstractDateConverter extends DateConverter
     if (value == null) {
       return null;
     }
-    return DateTimeFormatter.instance().getFormattedDate(value, locale, this.timeZone);
+
+    return DateTimeFormatter.instance()
+        .getFormattedDate(value, ThreadLocalUserContext.getLocale(), this.timeZone == null ? ThreadLocalUserContext.getTimeZone() : this.timeZone);
   }
 
   /**
@@ -114,7 +117,7 @@ public abstract class MyAbstractDateConverter extends DateConverter
       if (ClassUtils.isAssignable(targetType, java.sql.Date.class) == false) {
         // Set time zone not for java.sql.Date, because e. g. for Europe/Berlin the date 1970-11-21 will
         // result in 1970-11-20 23:00:00 UTC and therefore 1970-11-20!
-        dateFormats[i].setTimeZone(timeZone);
+        dateFormats[i].setTimeZone(this.timeZone == null ? ThreadLocalUserContext.getTimeZone() : this.timeZone);
       }
     }
 
