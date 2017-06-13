@@ -449,10 +449,24 @@ public class AuftragDao extends BaseDao<AuftragDO>
     final java.sql.Date endDate = DateHelper.convertDateToSqlDateInTheUsersTimeZone(myFilter.getPeriodOfPerformanceEndDate());
 
     if (startDate != null && endDate != null) {
-      return Optional.of(Restrictions.and(
-          Restrictions.ge("periodOfPerformanceEnd", startDate),
+      return Optional.of(
+          Restrictions.and(
+              Restrictions.ge("periodOfPerformanceEnd", startDate),
+              Restrictions.le("periodOfPerformanceBegin", endDate)
+          )
+      );
+    }
+
+    if (startDate != null) {
+      return Optional.of(
+          Restrictions.ge("periodOfPerformanceEnd", startDate)
+      );
+    }
+
+    if (endDate != null) {
+      return Optional.of(
           Restrictions.le("periodOfPerformanceBegin", endDate)
-      ));
+      );
     }
 
     return Optional.empty();
