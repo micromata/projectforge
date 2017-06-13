@@ -25,14 +25,15 @@ package org.projectforge.web.wicket.components;
 
 import java.io.Serializable;
 import java.util.Date;
+import java.util.TimeZone;
 
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.web.calendar.CalendarPage;
-
 
 /**
  * Fluent design pattern.
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
  */
 public class DatePanelSettings implements Serializable
 {
@@ -48,12 +49,15 @@ public class DatePanelSettings implements Serializable
 
   protected String selectProperty;
 
-  protected Class< ? extends Date> targetType = Date.class;
+  protected Class<? extends Date> targetType = Date.class;
 
   protected Integer tabIndex;
 
+  protected TimeZone timeZone = ThreadLocalUserContext.getTimeZone();
+
   /**
    * Default is null.
+   *
    * @param tabIndex Use tabIndex as html tab index of date field (if visible), hours and minutes.
    * @return this
    */
@@ -70,10 +74,11 @@ public class DatePanelSettings implements Serializable
 
   /**
    * Target type of the model (java.util.Date is default).
+   *
    * @param targetType
    * @return this
    */
-  public DatePanelSettings withTargetType(final Class< ? extends Date> targetType)
+  public DatePanelSettings withTargetType(final Class<? extends Date> targetType)
   {
     this.targetType = targetType;
     return this;
@@ -81,6 +86,7 @@ public class DatePanelSettings implements Serializable
 
   /**
    * If true the user can select periods (weeks, months, hours).
+   *
    * @param selectPeriodMode
    * @return this
    * @see CalendarPage#setSelectPeriodMode(boolean)
@@ -93,6 +99,7 @@ public class DatePanelSettings implements Serializable
 
   /**
    * If true the user can select time stamps of time sheets.
+   *
    * @param selectStartStopTime
    * @return this
    * @see CalendarPage#setSelectStartStopTime(boolean)
@@ -105,6 +112,7 @@ public class DatePanelSettings implements Serializable
 
   /**
    * Customized tool tip to show for the calendar view select icon.
+   *
    * @param i18nKey
    * @return this
    */
@@ -116,6 +124,7 @@ public class DatePanelSettings implements Serializable
 
   /**
    * If not given then the wicket id of the component will be used.
+   *
    * @param selectProperty
    * @return this
    */
@@ -127,11 +136,23 @@ public class DatePanelSettings implements Serializable
 
   /**
    * Use this instead of setRequired(boolean) of the panel itself.
+   *
    * @param required
    */
   public DatePanelSettings withRequired(final boolean required)
   {
     this.required = required;
+    return this;
+  }
+
+  /**
+   * Set the time zone of the selected date
+   *
+   * @param timeZone
+   */
+  public DatePanelSettings withTimeZone(final TimeZone timeZone)
+  {
+    this.timeZone = timeZone;
     return this;
   }
 }

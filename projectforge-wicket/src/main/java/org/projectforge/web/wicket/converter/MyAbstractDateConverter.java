@@ -29,12 +29,12 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
+import java.util.TimeZone;
 
 import org.apache.commons.lang.ClassUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.datetime.DateConverter;
 import org.apache.wicket.util.convert.ConversionException;
-import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.time.DateFormatType;
 import org.projectforge.framework.time.DateFormats;
 import org.projectforge.framework.time.DateTimeFormatter;
@@ -42,8 +42,8 @@ import org.projectforge.framework.time.DayHolder;
 
 /**
  * Concepts and implementation based on Stripes DateTypeConverter implementation.
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
  */
 public abstract class MyAbstractDateConverter extends DateConverter
 {
@@ -51,11 +51,13 @@ public abstract class MyAbstractDateConverter extends DateConverter
 
   private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(MyAbstractDateConverter.class);
 
-  private final Class< ? extends Date> targetType;
+  private final Class<? extends Date> targetType;
+
+  private TimeZone timeZone;
 
   private String userDateFormat;
 
-  public MyAbstractDateConverter(final Class< ? extends Date> targetType)
+  public MyAbstractDateConverter(final Class<? extends Date> targetType)
   {
     super(true);
     this.targetType = targetType;
@@ -80,7 +82,7 @@ public abstract class MyAbstractDateConverter extends DateConverter
     if (value == null) {
       return null;
     }
-    return DateTimeFormatter.instance().getFormattedDate(value);
+    return DateTimeFormatter.instance().getFormattedDate(value, locale, this.timeZone);
   }
 
   /**
@@ -112,7 +114,7 @@ public abstract class MyAbstractDateConverter extends DateConverter
       if (ClassUtils.isAssignable(targetType, java.sql.Date.class) == false) {
         // Set time zone not for java.sql.Date, because e. g. for Europe/Berlin the date 1970-11-21 will
         // result in 1970-11-20 23:00:00 UTC and therefore 1970-11-20!
-        dateFormats[i].setTimeZone(ThreadLocalUserContext.getTimeZone());
+        dateFormats[i].setTimeZone(timeZone);
       }
     }
 
@@ -143,6 +145,7 @@ public abstract class MyAbstractDateConverter extends DateConverter
 
   /**
    * Removes unnecessary white spaces and appends current year, if not given.
+   *
    * @param dateString
    * @param locale
    * @return
@@ -205,5 +208,11 @@ public abstract class MyAbstractDateConverter extends DateConverter
       return buf.toString();
     }
     return str;
+  }
+
+  public MyAbstractDateConverter setTimeZone(TimeZone timeZone)
+  {
+    this.timeZone = timeZone;
+    return this;
   }
 }

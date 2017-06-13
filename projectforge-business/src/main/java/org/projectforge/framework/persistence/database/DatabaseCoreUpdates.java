@@ -29,8 +29,10 @@ import java.text.SimpleDateFormat;
 import java.time.temporal.ChronoField;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -81,6 +83,7 @@ import org.projectforge.continuousdb.UpdateEntry;
 import org.projectforge.continuousdb.UpdateEntryImpl;
 import org.projectforge.continuousdb.UpdatePreCheckStatus;
 import org.projectforge.continuousdb.UpdateRunningStatus;
+import org.projectforge.framework.calendar.ICal4JUtils;
 import org.projectforge.framework.configuration.Configuration;
 import org.projectforge.framework.configuration.ConfigurationType;
 import org.projectforge.framework.configuration.entities.ConfigurationDO;
@@ -101,6 +104,8 @@ import de.micromata.genome.db.jpa.tabattr.api.TimeableRow;
 import de.micromata.genome.jpa.CriteriaUpdate;
 import de.micromata.genome.jpa.metainf.EntityMetadata;
 import de.micromata.genome.jpa.metainf.JpaMetadataEntityNotFoundException;
+import net.fortuna.ical4j.model.DateTime;
+import net.fortuna.ical4j.model.property.RRule;
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
@@ -130,6 +135,107 @@ public class DatabaseCoreUpdates
     final TenantDao tenantDao = applicationContext.getBean(TenantDao.class);
 
     final List<UpdateEntry> list = new ArrayList<>();
+
+    ////////////////////////////////////////////////////////////////////
+    // 6.12.0
+    // /////////////////////////////////////////////////////////////////
+    list.add(new UpdateEntryImpl(CORE_REGION_ID, "6.13.0", "2017-06-08",
+        "Correct error in until date of recurring events.")
+    {
+      @Override
+      public UpdatePreCheckStatus runPreCheck()
+      {
+        log.info("Running pre-check for ProjectForge version 6.13.0");
+        if (hasBadUntilDate()) {
+          return UpdatePreCheckStatus.READY_FOR_UPDATE;
+        }
+        return UpdatePreCheckStatus.ALREADY_UPDATED;
+      }
+
+      @Override
+      public UpdateRunningStatus runUpdate()
+      {
+        if (hasBadUntilDate()) {
+          Calendar calUntil = new GregorianCalendar(DateHelper.UTC);
+          Calendar calStart = new GregorianCalendar(DateHelper.UTC);
+
+          List<DatabaseResultRow> resultList = databaseUpdateService
+              .query(
+                  "select e.pk, e.start_date, e.recurrence_rule, e.recurrence_until, u.time_zone from t_plugin_calendar_event e, t_pf_user u where e.team_event_fk_creator = u.pk and e.recurrence_until is not null and all_day = false and to_char(recurrence_until, 'hh24:mi:ss') = '00:00:00'");
+          log.info("Found: " + resultList.size() + " event entries to update until date.");
+
+          for (DatabaseResultRow row : resultList) {
+            Integer id = (Integer) row.getEntry(0).getValue();
+            Date startDate = (Date) row.getEntry(1).getValue();
+            String rruleStr = (String) row.getEntry(2).getValue();
+            Date untilDate = (Date) row.getEntry(3).getValue();
+            String timeZoneString = (String) row.getEntry(4).getValue();
+
+            if (startDate == null || rruleStr == null || untilDate == null) {
+
+              log.warn(String
+                  .format("Processing event with id '%s', start date '%s', RRule '%s', and until date '%s' failed. Invalid data.",
+                      id, startDate, rruleStr, untilDate));
+              continue;
+            }
+
+            log.debug(String.format("Processing event with id '%s', start date '%s', RRule '%s', until date '%s', and timezone '%s'",
+                id, startDate, rruleStr, untilDate, timeZoneString));
+
+            TimeZone timeZone = TimeZone.getTimeZone(timeZoneString);
+            if (timeZone == null) {
+              timeZone = DateHelper.UTC;
+            }
+
+            calUntil.clear();
+            calStart.clear();
+            calUntil.setTimeZone(timeZone);
+            calStart.setTimeZone(timeZone);
+
+            // start processing
+            calUntil.setTime(untilDate);
+            calStart.setTime(startDate);
+
+            // update date of start date to until date
+            calStart.set(Calendar.YEAR, calUntil.get(Calendar.YEAR));
+            calStart.set(Calendar.DAY_OF_YEAR, calUntil.get(Calendar.DAY_OF_YEAR));
+
+            // add 23:59:59 to event start (next possible event time is +24h, 1 day)
+            calStart.set(Calendar.HOUR_OF_DAY, 23);
+            calStart.set(Calendar.MINUTE, 59);
+            calStart.set(Calendar.SECOND, 59);
+            calStart.set(Calendar.MILLISECOND, 0);
+
+            // update recur until
+            DateTime untilICal4J = new DateTime(calStart.getTime());
+            untilICal4J.setUtc(true);
+            RRule rRule = ICal4JUtils.calculateRRule(rruleStr);
+            rRule.getRecur().setUntil(untilICal4J);
+
+            try {
+              databaseUpdateService
+                  .execute(String.format("UPDATE t_plugin_calendar_event SET recurrence_rule = '%s', recurrence_until = '%s' WHERE pk = %s",
+                      rRule.getValue(), DateHelper.formatIsoTimestamp(calStart.getTime()), id));
+            } catch (Exception e) {
+              log.error(String.format("Error while updating event with id '%s' and new recurrence_rule '%s', recurrence_until '%s'. Ignoring it.",
+                  id, rRule.getValue(), DateHelper.formatIsoTimestamp(calStart.getTime())));
+            }
+
+            log.info(String.format("Updated event with id '%s' from '%s' to '%s'",
+                id, DateHelper.formatIsoTimestamp(untilDate), DateHelper.formatIsoTimestamp(calStart.getTime())));
+          }
+          log.info("Until date migration is DONE.");
+        }
+        return UpdateRunningStatus.DONE;
+      }
+
+      private boolean hasBadUntilDate()
+      {
+        List<DatabaseResultRow> result = databaseUpdateService.query(
+            "select pk from t_plugin_calendar_event where recurrence_until is not null and to_char(recurrence_until, 'hh24:mi:ss') = '00:00:00' and all_day = false LIMIT 1");
+        return result.size() > 0;
+      }
+    });
 
     ////////////////////////////////////////////////////////////////////
     // 6.12.0
