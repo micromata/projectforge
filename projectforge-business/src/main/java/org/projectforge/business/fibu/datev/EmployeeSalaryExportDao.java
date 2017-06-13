@@ -118,9 +118,7 @@ public class EmployeeSalaryExportDao
       return new MyContentProvider(this.workbook);
     }
   }
-
-  ;
-
+  
   private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(EmployeeSalaryExportDao.class);
 
   @Autowired
@@ -225,6 +223,8 @@ public class EmployeeSalaryExportDao
     employeeSheet.setColumnWidth(2, 12 * 256);
     employeeSheet.setColumnWidth(3, 12 * 256);
     employeeSheet.setColumnWidth(4, 12 * 256);
+    employeeSheet.setColumnWidth(5, 26 * 256);
+    employeeSheet.setColumnWidth(6, 20 * 256);
     final ContentProvider provider = employeeSheet.getContentProvider();
     provider.putFormat("STUNDEN", "0.00;[Red]-0.00");
     final ExportRow employeeRow = employeeSheet.addRow();
@@ -233,6 +233,8 @@ public class EmployeeSalaryExportDao
     employeeRow.addCell(2, ThreadLocalUserContext.getLocalizedString("fibu.employee.sollstunden"));
     employeeRow.addCell(3, ThreadLocalUserContext.getLocalizedString("fibu.employee.iststunden"));
     employeeRow.addCell(4, ThreadLocalUserContext.getLocalizedString("fibu.common.difference"));
+    employeeRow.addCell(5, ThreadLocalUserContext.getLocalizedString("fibu.monthlyEmployeeReport.daysCountWithoutTimesheets"));
+    employeeRow.addCell(6, ThreadLocalUserContext.getLocalizedString("fibu.monthlyEmployeeReport.daysWithoutTimesheets"));
 
     // build all column names, title, widths from fixed and variable columns
     final int numCols = ExcelColumn.values().length;
@@ -324,7 +326,7 @@ public class EmployeeSalaryExportDao
         mapping.add(ExcelColumn.GEGENKONTO, GEGENKONTO); // constant.
         sheet.addRow(mapping.getMapping(), 0);
       }
-      addEmployeeRow(employeeSheet, salary.getEmployee(), numberOfWorkingDays, netDuration);
+      addEmployeeRow(employeeSheet, salary.getEmployee(), numberOfWorkingDays, netDuration, report);
     }
     for (final EmployeeDO employee : missedEmployees) {
       final PFUserDO user = getUserGroupCache().getUser(employee.getUserId());
@@ -335,7 +337,7 @@ public class EmployeeSalaryExportDao
       sheet.addRow(mapping.getMapping(), 0);
       final MonthlyEmployeeReport report = monthlyEmployeeReportDao.getReport(year, month, user);
       final BigDecimal netDuration = new BigDecimal(report.getTotalNetDuration());
-      addEmployeeRow(employeeSheet, employee, numberOfWorkingDays, netDuration);
+      addEmployeeRow(employeeSheet, employee, numberOfWorkingDays, netDuration, report);
     }
     // sheet.setZoom(3, 4); // 75%
 
@@ -349,8 +351,8 @@ public class EmployeeSalaryExportDao
     return baos.toByteArray();
   }
 
-  private void addEmployeeRow(final ExportSheet sheet, final EmployeeDO employee, final BigDecimal numberOfWorkingDays,
-      final BigDecimal totalDuration)
+  private void addEmployeeRow(final ExportSheet sheet, final EmployeeDO employee, final BigDecimal numberOfWorkingDays, final BigDecimal totalDuration,
+      final MonthlyEmployeeReport report)
   {
     final PFUserDO user = getUserGroupCache().getUser(employee.getUserId());
     final ExportRow row = sheet.addRow();
@@ -371,6 +373,8 @@ public class EmployeeSalaryExportDao
     // Differenz
     final BigDecimal differenz = total.subtract(soll);
     row.addCell(4, differenz, "STUNDEN");
+    row.addCell(5, report.getUnbookedDays().size());
+    row.addCell(6, report.getFormattedUnbookedDays());
   }
 
   public TenantRegistry getTenantRegistry()

@@ -31,7 +31,7 @@ import org.apache.commons.lang.StringUtils;
 /**
  * Base search filter supported by the DAO's for filtering the result lists. The search filter will be translated via
  * QueryFilter into hibernate query criterias.
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 public class BaseSearchFilter implements Serializable
@@ -138,7 +138,7 @@ public class BaseSearchFilter implements Serializable
   /**
    * If not null and a query string for a full text index search is given, then only the given search fields are used
    * instead of the default search fields of the dao.
-   * 
+   *
    * @return
    */
   public String[] getSearchFields()
@@ -149,7 +149,7 @@ public class BaseSearchFilter implements Serializable
   /**
    * If given {@link BaseDao#getList(BaseSearchFilter)} will only search for entries which last date of modification
    * AbstractBaseDO.getLastUpdate() isn't before given date.
-   * 
+   *
    * @return the modifiedSince
    */
   public Date getModifiedSince()
@@ -169,12 +169,17 @@ public class BaseSearchFilter implements Serializable
 
   /**
    * If true then modifiedByUser and time of last modification is used for filtering.
-   * 
+   *
    * @return
    */
   public boolean isUseModificationFilter()
   {
     return useModificationFilter;
+  }
+
+  public boolean applyModificationFilter()
+  {
+    return this.useModificationFilter && (this.startTimeOfModification != null || this.stopTimeOfModification != null || this.modifiedByUserId != null);
   }
 
   /**
@@ -234,7 +239,7 @@ public class BaseSearchFilter implements Serializable
 
   /**
    * If true the history entries are included in the search.
-   * 
+   *
    * @return the searchHistory
    */
   public boolean isSearchHistory()
@@ -290,7 +295,7 @@ public class BaseSearchFilter implements Serializable
 
   /**
    * Maximum number of rows in the result list.
-   * 
+   *
    * @return
    */
   public int getMaxRows()
@@ -310,7 +315,7 @@ public class BaseSearchFilter implements Serializable
 
   /**
    * If an error occured (e. g. lucene parse exception) this message will be returned.
-   * 
+   *
    * @return
    */
   public String getErrorMessage()

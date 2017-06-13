@@ -25,22 +25,24 @@ package org.projectforge.web.wicket.flowlayout;
 
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.panel.Panel;
+import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
 /**
  * Represents an icon.
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
  */
 public class HtmlCommentPanel extends Panel
 {
   private static final long serialVersionUID = -4126462093466172226L;
 
   @SuppressWarnings("serial")
-  public HtmlCommentPanel(final String id, final Model<String> comment)
+  public HtmlCommentPanel(final String id, final IModel<String> comment)
   {
     super(id);
-    add(new Label("comment", new Model<String>() {
+    add(new Label("comment", new Model<String>()
+    {
       @Override
       public String getObject()
       {
@@ -53,7 +55,8 @@ public class HtmlCommentPanel extends Panel
   public HtmlCommentPanel(final String id, final String comment)
   {
     super(id);
-    add(new Label("comment", new Model<String>() {
+    add(new Label("comment", new Model<String>()
+    {
       @Override
       public String getObject()
       {

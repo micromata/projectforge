@@ -127,6 +127,7 @@ public class EingangsrechnungListPage
     final List<IColumn<EingangsrechnungDO, String>> columns = new ArrayList<IColumn<EingangsrechnungDO, String>>();
     final CellItemListener<EingangsrechnungDO> cellItemListener = new CellItemListener<EingangsrechnungDO>()
     {
+      @Override
       public void populateItem(final Item<ICellPopulator<EingangsrechnungDO>> item, final String componentId,
           final IModel<EingangsrechnungDO> rowModel)
       {
@@ -167,7 +168,7 @@ public class EingangsrechnungListPage
         addRowClick(item);
       }
     });
-    columns.add(new CellItemListenerPropertyColumn<EingangsrechnungDO>(new Model<String>(getString("fibu.konto")), null,
+    columns.add(new CellItemListenerPropertyColumn<EingangsrechnungDO>(new Model<String>(getString("fibu.konto")), getSortable("konto", sortable),
         "konto",
         cellItemListener)
     {
@@ -226,8 +227,7 @@ public class EingangsrechnungListPage
             {
               exportExcelWithCostAssignments();
             }
-
-            ;
+            
           }, getString("fibu.rechnung.kostExcelExport")).setTooltip(getString("fibu.rechnung.kostExcelExport.tootlip"));
       addContentMenuEntry(exportExcelButton);
     }
@@ -312,8 +312,8 @@ public class EingangsrechnungListPage
     refresh();
     final RechnungFilter filter = new RechnungFilter();
     final RechnungFilter src = form.getSearchFilter();
-    filter.setYear(src.getYear());
-    filter.setMonth(src.getMonth());
+    filter.setFromDate(src.getFromDate());
+    filter.setToDate(src.getToDate());
     final List<EingangsrechnungDO> rechnungen = eingangsrechnungDao.getList(filter);
     if (rechnungen == null || rechnungen.size() == 0) {
       // Nothing to export.

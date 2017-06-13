@@ -66,6 +66,7 @@ import org.projectforge.business.login.Login;
 import org.projectforge.business.multitenancy.TenantDao;
 import org.projectforge.business.multitenancy.TenantService;
 import org.projectforge.business.multitenancy.TenantsComparator;
+import org.projectforge.business.password.PasswordQualityService;
 import org.projectforge.business.user.GroupDao;
 import org.projectforge.business.user.GroupsComparator;
 import org.projectforge.business.user.UserDao;
@@ -141,6 +142,9 @@ public class UserEditForm extends AbstractEditForm<PFUserDO, UserEditPage>
 
   @SpringBean
   private TenantService tenantService;
+
+  @SpringBean
+  private PasswordQualityService passwordQualityService;
 
   @SpringBean
   private UserService userService;
@@ -865,10 +869,12 @@ public class UserEditForm extends AbstractEditForm<PFUserDO, UserEditPage>
         return;
       }
       if (passwordUser == null) {
-        final I18nKeyAndParams errorMsgKey = userService.checkPasswordQuality(passwordInput);
-        if (errorMsgKey != null) {
-          final String localizedMessage = I18nHelper.getLocalizedMessage(errorMsgKey);
-          validatable.error(new ValidationError().setMessage(localizedMessage));
+        final List<I18nKeyAndParams> errorMsgKeys = passwordQualityService.checkPasswordQuality(passwordInput);
+        if (errorMsgKeys.isEmpty() == false) {
+          for (I18nKeyAndParams errorMsgKey : errorMsgKeys) {
+            final String localizedMessage = I18nHelper.getLocalizedMessage(errorMsgKey);
+            validatable.error(new ValidationError().setMessage(localizedMessage));
+          }
         } else {
           passwordUser = new PFUserDO();
           userService.createEncryptedPassword(passwordUser, passwordInput);
@@ -880,7 +886,8 @@ public class UserEditForm extends AbstractEditForm<PFUserDO, UserEditPage>
     WicketUtils.setPercentSize(passwordRepeatField, 50);
     fs.add(passwordField);
     fs.add(passwordRepeatField);
-    fs.addHelpIcon(I18nHelper.getLocalizedMessage(userService.getPasswordQualityI18nKeyAndParams()));
+    final I18nKeyAndParams passwordQualityI18nKeyAndParams = passwordQualityService.getPasswordQualityI18nKeyAndParams();
+    fs.addHelpIcon(I18nHelper.getLocalizedMessage(passwordQualityI18nKeyAndParams));
   }
 
   private void addWlanPasswordFields()
@@ -932,10 +939,12 @@ public class UserEditForm extends AbstractEditForm<PFUserDO, UserEditPage>
         return;
       }
 
-      final I18nKeyAndParams errorMsgKey = userService.checkPasswordQuality(passwordInput);
-      if (errorMsgKey != null) {
-        final String localizedMessage = I18nHelper.getLocalizedMessage(errorMsgKey);
-        validatable.error(new ValidationError().setMessage(localizedMessage));
+      final List<I18nKeyAndParams> errorMsgKeys = passwordQualityService.checkPasswordQuality(passwordInput);
+      if (errorMsgKeys.isEmpty() == false) {
+        for (I18nKeyAndParams errorMsgKey : errorMsgKeys) {
+          final String localizedMessage = I18nHelper.getLocalizedMessage(errorMsgKey);
+          validatable.error(new ValidationError().setMessage(localizedMessage));
+        }
       } else {
         wlanPasswordValid = true;
       }
@@ -945,7 +954,8 @@ public class UserEditForm extends AbstractEditForm<PFUserDO, UserEditPage>
     WicketUtils.setPercentSize(passwordRepeatField, 50);
     fs.add(passwordField);
     fs.add(passwordRepeatField);
-    fs.addHelpIcon(I18nHelper.getLocalizedMessage(userService.getPasswordQualityI18nKeyAndParams()));
+    final I18nKeyAndParams passwordQualityI18nKeyAndParams = passwordQualityService.getPasswordQualityI18nKeyAndParams();
+    fs.addHelpIcon(I18nHelper.getLocalizedMessage(passwordQualityI18nKeyAndParams));
   }
 
   private static void addDateFormatCombobox(final GridBuilder gridBuilder, final PFUserDO user, final String labelKey,
