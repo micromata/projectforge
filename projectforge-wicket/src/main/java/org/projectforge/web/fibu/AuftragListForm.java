@@ -24,9 +24,11 @@
 package org.projectforge.web.fibu;
 
 import java.math.BigDecimal;
+import java.util.Date;
 
 import org.apache.log4j.Logger;
 import org.apache.wicket.markup.html.form.DropDownChoice;
+import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.fibu.AuftragDao;
@@ -76,12 +78,20 @@ public class AuftragListForm extends AbstractListForm<AuftragFilter, AuftragList
   {
     super.init(false);
     {
-      // time period
-      gridBuilder.newGridPanel();
-      final FieldsetPanel tpfs = gridBuilder.newFieldset(getString("timePeriod"));
-      final TimePeriodPanel timePeriodPanel = createTimePeriodPanel(tpfs.newChildId());
-      tpfs.add(timePeriodPanel);
-      tpfs.setLabelFor(timePeriodPanel);
+      final AuftragFilter filter = getSearchFilter();
+
+      // TODO CT: label i18n
+      // time period for TODO
+      addTimePeriodPanel("timePeriod",
+          LambdaModel.of(filter::getStartDate, filter::setStartDate),
+          LambdaModel.of(filter::getEndDate, filter::setEndDate)
+      );
+
+      // time period for period of performance
+      addTimePeriodPanel("timePeriod",
+          LambdaModel.of(filter::getPeriodOfPerformanceStartDate, filter::setPeriodOfPerformanceStartDate),
+          LambdaModel.of(filter::getPeriodOfPerformanceEndDate, filter::setPeriodOfPerformanceEndDate)
+      );
 
       // Statistics
       gridBuilder.newGridPanel();
@@ -167,6 +177,15 @@ public class AuftragListForm extends AbstractListForm<AuftragFilter, AuftragList
         }
       });
     }
+  }
+
+  private void addTimePeriodPanel(final String labelI18nKey, final IModel<Date> startDateModel, final IModel<Date> endDateModel)
+  {
+    gridBuilder.newGridPanel();
+    final FieldsetPanel fs = gridBuilder.newFieldset(getString(labelI18nKey));
+    final TimePeriodPanel timePeriodPanel = new TimePeriodPanel(fs.newChildId(), startDateModel, endDateModel, parentPage);
+    fs.add(timePeriodPanel);
+    fs.setLabelFor(timePeriodPanel);
   }
 
   /**

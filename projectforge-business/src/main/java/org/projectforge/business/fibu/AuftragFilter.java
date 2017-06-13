@@ -47,6 +47,10 @@ public class AuftragFilter extends BaseSearchFilter implements Serializable
 
   private Date endDate;
 
+  private Date periodOfPerformanceStartDate;
+
+  private Date periodOfPerformanceEndDate;
+
   private final Collection<AuftragsStatus> auftragsStatuses = new ArrayList<>();
 
   private final Collection<AuftragsPositionsArt> auftragsPositionsArten = new ArrayList<>();
@@ -92,6 +96,26 @@ public class AuftragFilter extends BaseSearchFilter implements Serializable
   public void setEndDate(final Date endDate)
   {
     this.endDate = endDate;
+  }
+
+  public Date getPeriodOfPerformanceStartDate()
+  {
+    return periodOfPerformanceStartDate;
+  }
+
+  public void setPeriodOfPerformanceStartDate(final Date periodOfPerformanceStartDate)
+  {
+    this.periodOfPerformanceStartDate = periodOfPerformanceStartDate;
+  }
+
+  public Date getPeriodOfPerformanceEndDate()
+  {
+    return periodOfPerformanceEndDate;
+  }
+
+  public void setPeriodOfPerformanceEndDate(final Date periodOfPerformanceEndDate)
+  {
+    this.periodOfPerformanceEndDate = periodOfPerformanceEndDate;
   }
 
   /**
@@ -142,6 +166,8 @@ public class AuftragFilter extends BaseSearchFilter implements Serializable
     searchString = "";
     startDate = null;
     endDate = null;
+    periodOfPerformanceStartDate = null;
+    periodOfPerformanceEndDate = null;
     user = null;
     auftragsStatuses.clear();
     auftragsPositionsArten.clear();
