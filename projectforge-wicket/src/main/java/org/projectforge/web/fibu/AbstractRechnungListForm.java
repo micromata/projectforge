@@ -23,10 +23,7 @@
 
 package org.projectforge.web.fibu;
 
-import java.util.Date;
-
 import org.apache.log4j.Logger;
-import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.projectforge.business.fibu.AbstractRechnungsStatistik;
@@ -36,7 +33,6 @@ import org.projectforge.framework.configuration.Configuration;
 import org.projectforge.web.wicket.AbstractListForm;
 import org.projectforge.web.wicket.AbstractListPage;
 import org.projectforge.web.wicket.LambdaModel;
-import org.projectforge.web.wicket.TimePeriodPanel;
 import org.projectforge.web.wicket.WebConstants;
 import org.projectforge.web.wicket.flowlayout.CheckBoxButton;
 import org.projectforge.web.wicket.flowlayout.DivPanel;
@@ -61,11 +57,12 @@ public abstract class AbstractRechnungListForm<F extends RechnungFilter, P exten
     super.init(false);
 
     // time period
-    gridBuilder.newGridPanel();
-    final FieldsetPanel tpfs = gridBuilder.newFieldset(getString("timePeriod"));
-    final TimePeriodPanel timePeriodPanel = createTimePeriodPanel(tpfs.newChildId());
-    tpfs.add(timePeriodPanel);
-    tpfs.setLabelFor(timePeriodPanel);
+    final F filter = getSearchFilter();
+
+    addTimePeriodPanel("timePeriod",
+        LambdaModel.of(filter::getFromDate, filter::setFromDate),
+        LambdaModel.of(filter::getToDate, filter::setToDate)
+    );
 
     gridBuilder.newGridPanel();
     {
@@ -158,14 +155,6 @@ public abstract class AbstractRechnungListForm<F extends RechnungFilter, P exten
       optionsCheckBoxesPanel.add(new CheckBoxButton(optionsCheckBoxesPanel.newChildId(), new PropertyModel<>(getSearchFilter(),
           "showKostZuweisungStatus"), getString("fibu.rechnung.showKostZuweisungstatus")));
     }
-  }
-
-  private TimePeriodPanel createTimePeriodPanel(final String id)
-  {
-    final F filter = getSearchFilter();
-    final IModel<Date> startDateModel = LambdaModel.of(filter::getFromDate, filter::setFromDate);
-    final IModel<Date> endDateModel = LambdaModel.of(filter::getToDate, filter::setToDate);
-    return new TimePeriodPanel(id, startDateModel, endDateModel, parentPage);
   }
 
   protected abstract AbstractRechnungsStatistik<?> getStats();

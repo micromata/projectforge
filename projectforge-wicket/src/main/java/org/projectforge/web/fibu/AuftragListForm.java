@@ -24,11 +24,9 @@
 package org.projectforge.web.fibu;
 
 import java.math.BigDecimal;
-import java.util.Date;
 
 import org.apache.log4j.Logger;
 import org.apache.wicket.markup.html.form.DropDownChoice;
-import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.fibu.AuftragDao;
@@ -44,9 +42,7 @@ import org.projectforge.web.common.I18nEnumChoiceProvider;
 import org.projectforge.web.user.UserSelectPanel;
 import org.projectforge.web.wicket.AbstractListForm;
 import org.projectforge.web.wicket.LambdaModel;
-import org.projectforge.web.wicket.TimePeriodPanel;
 import org.projectforge.web.wicket.WebConstants;
-import org.projectforge.web.wicket.bootstrap.GridSize;
 import org.projectforge.web.wicket.components.LabelValueChoiceRenderer;
 import org.projectforge.web.wicket.flowlayout.DivPanel;
 import org.projectforge.web.wicket.flowlayout.DivTextPanel;
@@ -183,15 +179,6 @@ public class AuftragListForm extends AbstractListForm<AuftragFilter, AuftragList
     });
   }
 
-  private void addTimePeriodPanel(final String labelI18nKey, final IModel<Date> startDateModel, final IModel<Date> endDateModel)
-  {
-    gridBuilder.newSplitPanel(GridSize.COL50);
-    final FieldsetPanel fs = gridBuilder.newFieldset(getString(labelI18nKey));
-    final TimePeriodPanel timePeriodPanel = new TimePeriodPanel(fs.newChildId(), startDateModel, endDateModel, parentPage);
-    fs.add(timePeriodPanel);
-    fs.setLabelFor(timePeriodPanel);
-  }
-
   /**
    * @see org.projectforge.web.wicket.AbstractListForm#onOptionsPanelCreate(org.projectforge.web.wicket.flowlayout.FieldsetPanel,
    * org.projectforge.web.wicket.flowlayout.DivPanel)
@@ -222,18 +209,6 @@ public class AuftragListForm extends AbstractListForm<AuftragFilter, AuftragList
         Select2MultiChoicePanel.WICKET_ID,
         LambdaModel.of(getSearchFilter()::getAuftragsPositionsArten),
         new I18nEnumChoiceProvider<>(AuftragsPositionsArt.class)
-    );
-  }
-
-  private TimePeriodPanel createTimePeriodPanel(final String id)
-  {
-    final AuftragFilter filter = getSearchFilter();
-
-    return new TimePeriodPanel(
-        id,
-        LambdaModel.of(filter::getStartDate, filter::setStartDate),
-        LambdaModel.of(filter::getEndDate, filter::setEndDate),
-        parentPage
     );
   }
 
