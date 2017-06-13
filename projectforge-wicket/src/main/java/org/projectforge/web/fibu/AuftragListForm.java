@@ -46,6 +46,7 @@ import org.projectforge.web.wicket.AbstractListForm;
 import org.projectforge.web.wicket.LambdaModel;
 import org.projectforge.web.wicket.TimePeriodPanel;
 import org.projectforge.web.wicket.WebConstants;
+import org.projectforge.web.wicket.bootstrap.GridSize;
 import org.projectforge.web.wicket.components.LabelValueChoiceRenderer;
 import org.projectforge.web.wicket.flowlayout.DivPanel;
 import org.projectforge.web.wicket.flowlayout.DivTextPanel;
@@ -77,111 +78,114 @@ public class AuftragListForm extends AbstractListForm<AuftragFilter, AuftragList
   protected void init()
   {
     super.init(false);
+
+    final AuftragFilter filter = getSearchFilter();
+
+    // time period for erfassungsdatum
+    addTimePeriodPanel("fibu.auftrag.erfassung.datum",
+        LambdaModel.of(filter::getStartDate, filter::setStartDate),
+        LambdaModel.of(filter::getEndDate, filter::setEndDate)
+    );
+
+    // time period for period of performance
+    addTimePeriodPanel("fibu.periodOfPerformance",
+        LambdaModel.of(filter::getPeriodOfPerformanceStartDate, filter::setPeriodOfPerformanceStartDate),
+        LambdaModel.of(filter::getPeriodOfPerformanceEndDate, filter::setPeriodOfPerformanceEndDate)
+    );
+
+    // Statistics
+    addStatistics();
+  }
+
+  private void addStatistics()
+  {
+    gridBuilder.newGridPanel();
+    final FieldsetPanel fs = gridBuilder.newFieldset(getString("statistics")).suppressLabelForWarning();
+    fs.add(new DivTextPanel(fs.newChildId(), new Model<String>()
     {
-      final AuftragFilter filter = getSearchFilter();
+      @Override
+      public String getObject()
+      {
+        return getStatisticsValue("fibu.common.netto", getAuftragsStatistik().getNettoSum(),
+            getAuftragsStatistik().getCounter());
+      }
+    }));
+    fs.add(new DivTextPanel(fs.newChildId(), new Model<String>()
+    {
+      @Override
+      public String getObject()
+      {
+        return WebConstants.HTML_TEXT_DIVIDER
+            + getStatisticsValue("akquise", getAuftragsStatistik().getAkquiseSum(),
+            getAuftragsStatistik().getCounterAkquise());
+      }
 
-      // TODO CT: label i18n
-      // time period for TODO
-      addTimePeriodPanel("timePeriod",
-          LambdaModel.of(filter::getStartDate, filter::setStartDate),
-          LambdaModel.of(filter::getEndDate, filter::setEndDate)
-      );
-
-      // time period for period of performance
-      addTimePeriodPanel("fibu.periodOfPerformance",
-          LambdaModel.of(filter::getPeriodOfPerformanceStartDate, filter::setPeriodOfPerformanceStartDate),
-          LambdaModel.of(filter::getPeriodOfPerformanceEndDate, filter::setPeriodOfPerformanceEndDate)
-      );
-
-      // Statistics
-      gridBuilder.newGridPanel();
-      final FieldsetPanel fs = gridBuilder.newFieldset(getString("statistics")).suppressLabelForWarning();
-      fs.add(new DivTextPanel(fs.newChildId(), new Model<String>()
+    })
+    {
+      @Override
+      public boolean isVisible()
       {
-        @Override
-        public String getObject()
-        {
-          return getStatisticsValue("fibu.common.netto", getAuftragsStatistik().getNettoSum(),
-              getAuftragsStatistik().getCounter());
-        }
-      }));
-      fs.add(new DivTextPanel(fs.newChildId(), new Model<String>()
+        return (getAuftragsStatistik().getCounterAkquise() > 0);
+      }
+    });
+    fs.add(new DivTextPanel(fs.newChildId(), new Model<String>()
+    {
+      @Override
+      public String getObject()
       {
-        @Override
-        public String getObject()
-        {
-          return WebConstants.HTML_TEXT_DIVIDER
-              + getStatisticsValue("akquise", getAuftragsStatistik().getAkquiseSum(),
-              getAuftragsStatistik().getCounterAkquise());
-        }
-
-      })
+        return WebConstants.HTML_TEXT_DIVIDER
+            + getStatisticsValue("fibu.auftrag.status.beauftragt", getAuftragsStatistik().getBeauftragtSum(),
+            getAuftragsStatistik()
+                .getCounterBeauftragt());
+      }
+    }, TextStyle.BLUE)
+    {
+      @Override
+      public boolean isVisible()
       {
-        @Override
-        public boolean isVisible()
-        {
-          return (getAuftragsStatistik().getCounterAkquise() > 0);
-        }
-      });
-      fs.add(new DivTextPanel(fs.newChildId(), new Model<String>()
+        return (getAuftragsStatistik().getCounterBeauftragt() > 0);
+      }
+    });
+    fs.add(new DivTextPanel(fs.newChildId(), new Model<String>()
+    {
+      @Override
+      public String getObject()
       {
-        @Override
-        public String getObject()
-        {
-          return WebConstants.HTML_TEXT_DIVIDER
-              + getStatisticsValue("fibu.auftrag.status.beauftragt", getAuftragsStatistik().getBeauftragtSum(),
-              getAuftragsStatistik()
-                  .getCounterBeauftragt());
-        }
-      }, TextStyle.BLUE)
+        return WebConstants.HTML_TEXT_DIVIDER
+            + getStatisticsValue("fibu.fakturiert", getAuftragsStatistik().getFakturiertSum(),
+            getAuftragsStatistik().getCounterFakturiert());
+      }
+    })
+    {
+      @Override
+      public boolean isVisible()
       {
-        @Override
-        public boolean isVisible()
-        {
-          return (getAuftragsStatistik().getCounterBeauftragt() > 0);
-        }
-      });
-      fs.add(new DivTextPanel(fs.newChildId(), new Model<String>()
+        return (getAuftragsStatistik().getCounterFakturiert() > 0);
+      }
+    });
+    fs.add(new DivTextPanel(fs.newChildId(), new Model<String>()
+    {
+      @Override
+      public String getObject()
       {
-        @Override
-        public String getObject()
-        {
-          return WebConstants.HTML_TEXT_DIVIDER
-              + getStatisticsValue("fibu.fakturiert", getAuftragsStatistik().getFakturiertSum(),
-              getAuftragsStatistik().getCounterFakturiert());
-        }
-      })
+        return WebConstants.HTML_TEXT_DIVIDER
+            + getStatisticsValue("fibu.auftrag.filter.type.abgeschlossenNichtFakturiert",
+            getAuftragsStatistik().getZuFakturierenSum(),
+            getAuftragsStatistik().getCounterZuFakturieren());
+      }
+    }, TextStyle.RED)
+    {
+      @Override
+      public boolean isVisible()
       {
-        @Override
-        public boolean isVisible()
-        {
-          return (getAuftragsStatistik().getCounterFakturiert() > 0);
-        }
-      });
-      fs.add(new DivTextPanel(fs.newChildId(), new Model<String>()
-      {
-        @Override
-        public String getObject()
-        {
-          return WebConstants.HTML_TEXT_DIVIDER
-              + getStatisticsValue("fibu.auftrag.filter.type.abgeschlossenNichtFakturiert",
-              getAuftragsStatistik().getZuFakturierenSum(),
-              getAuftragsStatistik().getCounterZuFakturieren());
-        }
-      }, TextStyle.RED)
-      {
-        @Override
-        public boolean isVisible()
-        {
-          return (getAuftragsStatistik().getCounterZuFakturieren() > 0);
-        }
-      });
-    }
+        return (getAuftragsStatistik().getCounterZuFakturieren() > 0);
+      }
+    });
   }
 
   private void addTimePeriodPanel(final String labelI18nKey, final IModel<Date> startDateModel, final IModel<Date> endDateModel)
   {
-    gridBuilder.newGridPanel();
+    gridBuilder.newSplitPanel(GridSize.COL50);
     final FieldsetPanel fs = gridBuilder.newFieldset(getString(labelI18nKey));
     final TimePeriodPanel timePeriodPanel = new TimePeriodPanel(fs.newChildId(), startDateModel, endDateModel, parentPage);
     fs.add(timePeriodPanel);

@@ -422,22 +422,27 @@ public class AuftragDao extends BaseDao<AuftragDO>
     }
   }
 
-  // TODO CT: erfassungsDatum statt angebotsDatum
   private Optional<Criterion> createCriterionForAngebotsDatum(final AuftragFilter myFilter)
   {
     final java.sql.Date startDate = DateHelper.convertDateToSqlDateInTheUsersTimeZone(myFilter.getStartDate());
     final java.sql.Date endDate = DateHelper.convertDateToSqlDateInTheUsersTimeZone(myFilter.getEndDate());
 
     if (startDate != null && endDate != null) {
-      return Optional.of(Restrictions.between("angebotsDatum", startDate, endDate));
+      return Optional.of(
+          Restrictions.between("erfassungsDatum", startDate, endDate)
+      );
     }
 
     if (startDate != null) {
-      return Optional.of(Restrictions.ge("angebotsDatum", startDate));
+      return Optional.of(
+          Restrictions.ge("erfassungsDatum", startDate)
+      );
     }
 
     if (endDate != null) {
-      return Optional.of(Restrictions.le("angebotsDatum", endDate));
+      return Optional.of(
+          Restrictions.le("erfassungsDatum", endDate)
+      );
     }
 
     return Optional.empty();
