@@ -88,7 +88,7 @@ public class AuftragListForm extends AbstractListForm<AuftragFilter, AuftragList
       );
 
       // time period for period of performance
-      addTimePeriodPanel("timePeriod",
+      addTimePeriodPanel("fibu.periodOfPerformance",
           LambdaModel.of(filter::getPeriodOfPerformanceStartDate, filter::setPeriodOfPerformanceStartDate),
           LambdaModel.of(filter::getPeriodOfPerformanceEndDate, filter::setPeriodOfPerformanceEndDate)
       );
