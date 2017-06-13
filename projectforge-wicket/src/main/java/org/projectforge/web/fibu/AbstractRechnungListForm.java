@@ -56,83 +56,90 @@ public abstract class AbstractRechnungListForm<F extends RechnungFilter, P exten
   {
     super.init(false);
 
-    // time period
+    // time period for Rechnungsdatum
     final F filter = getSearchFilter();
-
-    addTimePeriodPanel("timePeriod",
+    addTimePeriodPanel("fibu.rechnung.datum",
         LambdaModel.of(filter::getFromDate, filter::setFromDate),
         LambdaModel.of(filter::getToDate, filter::setToDate)
     );
 
+    onBeforeAddStatistics();
+
+    addStatistics();
+  }
+
+  private void addStatistics()
+  {
     gridBuilder.newGridPanel();
+    final FieldsetPanel fs = gridBuilder.newFieldset(getString("statistics")).suppressLabelForWarning();
+    fs.add(new DivTextPanel(fs.newChildId(), new Model<String>()
     {
-      // Statistics
-      final FieldsetPanel fs = gridBuilder.newFieldset(getString("statistics")).suppressLabelForWarning();
-      fs.add(new DivTextPanel(fs.newChildId(), new Model<String>()
+      @Override
+      public String getObject()
       {
-        @Override
-        public String getObject()
-        {
-          return getString("fibu.common.brutto") + ": " + CurrencyFormatter.format(getStats().getBrutto()) + WebConstants.HTML_TEXT_DIVIDER;
-        }
-      }));
-      fs.add(new DivTextPanel(fs.newChildId(), new Model<String>()
+        return getString("fibu.common.brutto") + ": " + CurrencyFormatter.format(getStats().getBrutto()) + WebConstants.HTML_TEXT_DIVIDER;
+      }
+    }));
+    fs.add(new DivTextPanel(fs.newChildId(), new Model<String>()
+    {
+      @Override
+      public String getObject()
       {
-        @Override
-        public String getObject()
-        {
-          return getString("fibu.common.netto") + ": " + CurrencyFormatter.format(getStats().getNetto()) + WebConstants.HTML_TEXT_DIVIDER;
-        }
-      }));
-      fs.add(new DivTextPanel(fs.newChildId(), new Model<String>()
+        return getString("fibu.common.netto") + ": " + CurrencyFormatter.format(getStats().getNetto()) + WebConstants.HTML_TEXT_DIVIDER;
+      }
+    }));
+    fs.add(new DivTextPanel(fs.newChildId(), new Model<String>()
+    {
+      @Override
+      public String getObject()
       {
-        @Override
-        public String getObject()
-        {
-          return getString("fibu.rechnung.offen") + ": " + CurrencyFormatter.format(getStats().getOffen()) + WebConstants.HTML_TEXT_DIVIDER;
-        }
-      }, TextStyle.BLUE));
-      fs.add(new DivTextPanel(fs.newChildId(), new Model<String>()
+        return getString("fibu.rechnung.offen") + ": " + CurrencyFormatter.format(getStats().getOffen()) + WebConstants.HTML_TEXT_DIVIDER;
+      }
+    }, TextStyle.BLUE));
+    fs.add(new DivTextPanel(fs.newChildId(), new Model<String>()
+    {
+      @Override
+      public String getObject()
       {
-        @Override
-        public String getObject()
-        {
-          return getString("fibu.rechnung.filter.ueberfaellig") + ": " + CurrencyFormatter.format(getStats().getUeberfaellig());
-        }
-      }, TextStyle.RED));
-      fs.add(new DivTextPanel(fs.newChildId(), new Model<String>()
+        return getString("fibu.rechnung.filter.ueberfaellig") + ": " + CurrencyFormatter.format(getStats().getUeberfaellig());
+      }
+    }, TextStyle.RED));
+    fs.add(new DivTextPanel(fs.newChildId(), new Model<String>()
+    {
+      @Override
+      public String getObject()
       {
-        @Override
-        public String getObject()
-        {
-          return WebConstants.HTML_TEXT_DIVIDER
-              + getString("fibu.rechnung.skonto")
-              + ": "
-              + CurrencyFormatter.format(getStats().getSkonto())
-              + WebConstants.HTML_TEXT_DIVIDER;
-        }
-      }));
-      // fieldset.add(new HtmlCodePanel(fieldset.newChildId(), "<br/>"));
-      fs.add(new DivTextPanel(fs.newChildId(), new Model<String>()
+        return WebConstants.HTML_TEXT_DIVIDER
+            + getString("fibu.rechnung.skonto")
+            + ": "
+            + CurrencyFormatter.format(getStats().getSkonto())
+            + WebConstants.HTML_TEXT_DIVIDER;
+      }
+    }));
+    // fieldset.add(new HtmlCodePanel(fieldset.newChildId(), "<br/>"));
+    fs.add(new DivTextPanel(fs.newChildId(), new Model<String>()
+    {
+      @Override
+      public String getObject()
       {
-        @Override
-        public String getObject()
-        {
-          return getString("fibu.rechnung.zahlungsZiel")
-              + ": Ø "
-              + String.valueOf(getStats().getZahlungszielAverage())
-              + WebConstants.HTML_TEXT_DIVIDER;
-        }
-      }));
-      fs.add(new DivTextPanel(fs.newChildId(), new Model<String>()
+        return getString("fibu.rechnung.zahlungsZiel")
+            + ": Ø "
+            + String.valueOf(getStats().getZahlungszielAverage())
+            + WebConstants.HTML_TEXT_DIVIDER;
+      }
+    }));
+    fs.add(new DivTextPanel(fs.newChildId(), new Model<String>()
+    {
+      @Override
+      public String getObject()
       {
-        @Override
-        public String getObject()
-        {
-          return getString("fibu.rechnung.zahlungsZiel.actual") + ": Ø " + String.valueOf(getStats().getTatsaechlichesZahlungzielAverage());
-        }
-      }));
-    }
+        return getString("fibu.rechnung.zahlungsZiel.actual") + ": Ø " + String.valueOf(getStats().getTatsaechlichesZahlungzielAverage());
+      }
+    }));
+  }
+
+  protected void onBeforeAddStatistics()
+  {
   }
 
   /**

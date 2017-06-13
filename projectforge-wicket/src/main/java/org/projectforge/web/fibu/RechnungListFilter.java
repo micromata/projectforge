@@ -23,6 +23,8 @@
 
 package org.projectforge.web.fibu;
 
+import java.util.Date;
+
 import org.projectforge.business.fibu.RechnungFilter;
 
 import com.thoughtworks.xstream.annotations.XStreamAlias;
@@ -31,4 +33,36 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
 public class RechnungListFilter extends RechnungFilter
 {
   private static final long serialVersionUID = -874619598640299510L;
+
+  private Date periodOfPerformanceStartDate;
+
+  private Date periodOfPerformanceEndDate;
+
+  public Date getPeriodOfPerformanceStartDate()
+  {
+    return periodOfPerformanceStartDate;
+  }
+
+  public void setPeriodOfPerformanceStartDate(final Date periodOfPerformanceStartDate)
+  {
+    this.periodOfPerformanceStartDate = periodOfPerformanceStartDate;
+  }
+
+  public Date getPeriodOfPerformanceEndDate()
+  {
+    return periodOfPerformanceEndDate;
+  }
+
+  public void setPeriodOfPerformanceEndDate(final Date periodOfPerformanceEndDate)
+  {
+    this.periodOfPerformanceEndDate = periodOfPerformanceEndDate;
+  }
+
+  @Override
+  public RechnungFilter reset()
+  {
+    periodOfPerformanceStartDate = null;
+    periodOfPerformanceEndDate = null;
+    return super.reset();
+  }
 }
