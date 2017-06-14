@@ -23,19 +23,27 @@
 
 package org.projectforge.web.fibu;
 
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 
 import org.apache.log4j.Logger;
+import org.apache.wicket.markup.html.link.Link;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.fibu.EingangsrechnungDO;
 import org.projectforge.business.fibu.EingangsrechnungDao;
 import org.projectforge.business.fibu.EingangsrechnungsPositionDO;
+import org.projectforge.business.fibu.PaymentType;
+import org.projectforge.business.fibu.kost.reporting.InvoiceTransferExport;
+import org.projectforge.framework.time.DateHelper;
 import org.projectforge.framework.time.DayHolder;
 import org.projectforge.web.wicket.AbstractEditPage;
+import org.projectforge.web.wicket.DownloadUtils;
 import org.projectforge.web.wicket.EditPage;
+import org.projectforge.web.wicket.components.ContentMenuEntryPanel;
 
 @EditPage(defaultReturnPage = EingangsrechnungListPage.class)
 public class EingangsrechnungEditPage
@@ -49,10 +57,87 @@ public class EingangsrechnungEditPage
   @SpringBean
   private EingangsrechnungDao eingangsrechnungDao;
 
+  @SpringBean
+  private InvoiceTransferExport invoiceTransferExport;
+
+  private ContentMenuEntryPanel exportInvoiceButton;
+
   public EingangsrechnungEditPage(final PageParameters parameters)
   {
     super(parameters, "fibu.eingangsrechnung");
     init();
+  }
+
+  @Override
+  protected void init()
+  {
+    super.init();
+
+    this.exportInvoiceButton = new ContentMenuEntryPanel(getNewContentMenuChildId(),
+        new Link<Object>("link")
+        {
+          @Override
+          public void onClick()
+          {
+            EingangsrechnungEditPage.this.exportInvoiceAsXML();
+          }
+        }, getString("fibu.rechnung.transferExport")).setTooltip(getString("fibu.rechnung.transferExport.tootlip"));
+    addContentMenuEntry(exportInvoiceButton);
+    this.exportInvoiceButton.setVisible(this.getData().getPaymentType().equals(PaymentType.BANK_TRANSFER));
+  }
+
+  @Override
+  protected void onBeforeRender()
+  {
+    super.onBeforeRender();
+    this.exportInvoiceButton.setVisible(this.getData().getPaymentType().equals(PaymentType.BANK_TRANSFER));
+  }
+
+  private void exportInvoiceAsXML()
+  {
+    this.form.getFeedbackMessages().clear();
+    final EingangsrechnungDO invoice = this.getData();
+
+    // check invoice
+    if (invoice.getGrossSum() == null) {
+      // TODO
+      this.form.addError("fibu.rechnung.transferExport.error");
+    }
+    if (invoice.getPaymentType().equals(PaymentType.BANK_TRANSFER) == false) {
+      // TODO
+      this.form.addError("fibu.rechnung.transferExport.error");
+    }
+    if (invoice.getBic() == null) {
+      // TODO
+      this.form.addError("fibu.rechnung.transferExport.error");
+    }
+    if (invoice.getIban() == null) {
+      // TODO
+      this.form.addError("fibu.rechnung.transferExport.error");
+    }
+    if (invoice.getReceiver() == null) {
+      // TODO
+      this.form.addError("fibu.rechnung.transferExport.error");
+    }
+    if (invoice.getBemerkung() == null) {
+      // TODO
+      this.form.addError("fibu.rechnung.transferExport.error");
+    }
+
+    if (this.form.getFeedbackMessages().isEmpty() == false) {
+      return;
+    }
+
+    final String filename = String.format("transaction-%s.xml", invoice.getPk()); // TODO
+    byte[] xml = this.invoiceTransferExport.generateTransfer(this.getData());
+
+    if (xml == null || xml.length == 0) {
+      this.log.error("Oups, xml has zero size. Filename: " + filename);
+      this.form.addError("fibu.rechnung.transferExport.error");
+      return;
+    }
+
+    DownloadUtils.setDownloadTarget(xml, filename);
   }
 
   @Override
