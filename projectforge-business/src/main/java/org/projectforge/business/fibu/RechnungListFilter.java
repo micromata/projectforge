@@ -53,7 +53,6 @@ public class RechnungListFilter extends RechnungFilter implements SearchFilterWi
     return periodOfPerformanceStartDate;
   }
 
-  @Override
   public void setPeriodOfPerformanceStartDate(final Date periodOfPerformanceStartDate)
   {
     this.periodOfPerformanceStartDate = periodOfPerformanceStartDate;
@@ -65,7 +64,6 @@ public class RechnungListFilter extends RechnungFilter implements SearchFilterWi
     return periodOfPerformanceEndDate;
   }
 
-  @Override
   public void setPeriodOfPerformanceEndDate(final Date periodOfPerformanceEndDate)
   {
     this.periodOfPerformanceEndDate = periodOfPerformanceEndDate;

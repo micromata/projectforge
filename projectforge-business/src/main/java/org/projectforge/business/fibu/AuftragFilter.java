@@ -104,7 +104,6 @@ public class AuftragFilter extends BaseSearchFilter implements Serializable, Sea
     return periodOfPerformanceStartDate;
   }
 
-  @Override
   public void setPeriodOfPerformanceStartDate(final Date periodOfPerformanceStartDate)
   {
     this.periodOfPerformanceStartDate = periodOfPerformanceStartDate;
@@ -116,7 +115,6 @@ public class AuftragFilter extends BaseSearchFilter implements Serializable, Sea
     return periodOfPerformanceEndDate;
   }
 
-  @Override
   public void setPeriodOfPerformanceEndDate(final Date periodOfPerformanceEndDate)
   {
     this.periodOfPerformanceEndDate = periodOfPerformanceEndDate;
