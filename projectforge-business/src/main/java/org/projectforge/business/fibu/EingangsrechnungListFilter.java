@@ -21,48 +21,30 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.web.fibu;
-
-import java.util.Date;
-
-import org.projectforge.business.fibu.RechnungFilter;
+package org.projectforge.business.fibu;
 
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 
-@XStreamAlias("RechnungFilter")
-public class RechnungListFilter extends RechnungFilter
+@XStreamAlias("EingangsrechnungFilter")
+public class EingangsrechnungListFilter extends RechnungFilter
 {
-  private static final long serialVersionUID = -874619598640299510L;
+  private static final long serialVersionUID = -9163400923075871920L;
 
-  private Date periodOfPerformanceStartDate;
+  private boolean showKostZuweisungStatus;
 
-  private Date periodOfPerformanceEndDate;
-
-  public Date getPeriodOfPerformanceStartDate()
+  /**
+   * Zeige Fehlbeträge in der Liste.
+   */
+  @Override
+  public boolean isShowKostZuweisungStatus()
   {
-    return periodOfPerformanceStartDate;
-  }
-
-  public void setPeriodOfPerformanceStartDate(final Date periodOfPerformanceStartDate)
-  {
-    this.periodOfPerformanceStartDate = periodOfPerformanceStartDate;
-  }
-
-  public Date getPeriodOfPerformanceEndDate()
-  {
-    return periodOfPerformanceEndDate;
-  }
-
-  public void setPeriodOfPerformanceEndDate(final Date periodOfPerformanceEndDate)
-  {
-    this.periodOfPerformanceEndDate = periodOfPerformanceEndDate;
+    return showKostZuweisungStatus;
   }
 
   @Override
-  public RechnungFilter reset()
+  public void setShowKostZuweisungStatus(final boolean showKostZuweisungStatus)
   {
-    periodOfPerformanceStartDate = null;
-    periodOfPerformanceEndDate = null;
-    return super.reset();
+    this.showKostZuweisungStatus = showKostZuweisungStatus;
   }
+
 }

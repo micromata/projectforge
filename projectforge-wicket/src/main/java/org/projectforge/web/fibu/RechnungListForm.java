@@ -25,6 +25,7 @@ package org.projectforge.web.fibu;
 
 import org.apache.log4j.Logger;
 import org.projectforge.business.fibu.RechnungDao;
+import org.projectforge.business.fibu.RechnungListFilter;
 import org.projectforge.business.fibu.RechnungsStatistik;
 import org.projectforge.web.wicket.LambdaModel;
 
