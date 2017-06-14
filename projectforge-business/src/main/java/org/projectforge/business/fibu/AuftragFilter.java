@@ -37,7 +37,7 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 @XStreamAlias("AuftragFilter")
-public class AuftragFilter extends BaseSearchFilter implements Serializable
+public class AuftragFilter extends BaseSearchFilter implements Serializable, SearchFilterWithPeriodOfPerformance
 {
   private static final long serialVersionUID = 3456000966109255447L;
 
@@ -46,6 +46,10 @@ public class AuftragFilter extends BaseSearchFilter implements Serializable
   private Date startDate;
 
   private Date endDate;
+
+  private Date periodOfPerformanceStartDate;
+
+  private Date periodOfPerformanceEndDate;
 
   private final Collection<AuftragsStatus> auftragsStatuses = new ArrayList<>();
 
@@ -92,6 +96,28 @@ public class AuftragFilter extends BaseSearchFilter implements Serializable
   public void setEndDate(final Date endDate)
   {
     this.endDate = endDate;
+  }
+
+  @Override
+  public Date getPeriodOfPerformanceStartDate()
+  {
+    return periodOfPerformanceStartDate;
+  }
+
+  public void setPeriodOfPerformanceStartDate(final Date periodOfPerformanceStartDate)
+  {
+    this.periodOfPerformanceStartDate = periodOfPerformanceStartDate;
+  }
+
+  @Override
+  public Date getPeriodOfPerformanceEndDate()
+  {
+    return periodOfPerformanceEndDate;
+  }
+
+  public void setPeriodOfPerformanceEndDate(final Date periodOfPerformanceEndDate)
+  {
+    this.periodOfPerformanceEndDate = periodOfPerformanceEndDate;
   }
 
   /**
@@ -142,6 +168,8 @@ public class AuftragFilter extends BaseSearchFilter implements Serializable
     searchString = "";
     startDate = null;
     endDate = null;
+    periodOfPerformanceStartDate = null;
+    periodOfPerformanceEndDate = null;
     user = null;
     auftragsStatuses.clear();
     auftragsPositionsArten.clear();

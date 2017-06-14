@@ -32,6 +32,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -342,7 +343,7 @@ public class AuftragDao extends BaseDao<AuftragDO>
 
     final QueryFilter queryFilter = new QueryFilter(myFilter);
 
-    filterAuftragsStatuses(myFilter, queryFilter);
+    addCriterionForAuftragsStatuses(myFilter, queryFilter);
 
     if (myFilter.getUser() != null) {
       queryFilter.add(
@@ -355,18 +356,9 @@ public class AuftragDao extends BaseDao<AuftragDO>
       );
     }
 
-    // filter angebotsDatum
-    if (myFilter.getStartDate() != null && myFilter.getEndDate() != null) {
-      final java.sql.Date startDate = DateHelper.convertDateToSqlDateInTheUsersTimeZone(myFilter.getStartDate());
-      final java.sql.Date endDate = DateHelper.convertDateToSqlDateInTheUsersTimeZone(myFilter.getEndDate());
-      queryFilter.add(Restrictions.between("angebotsDatum", startDate, endDate));
-    } else if (myFilter.getStartDate() != null) {
-      final java.sql.Date startDate = DateHelper.convertDateToSqlDateInTheUsersTimeZone(myFilter.getStartDate());
-      queryFilter.add(Restrictions.ge("angebotsDatum", startDate));
-    } else if (myFilter.getEndDate() != null) {
-      final java.sql.Date endDate = DateHelper.convertDateToSqlDateInTheUsersTimeZone(myFilter.getEndDate());
-      queryFilter.add(Restrictions.le("angebotsDatum", endDate));
-    }
+    createCriterionForErfassungsDatum(myFilter).ifPresent(queryFilter::add);
+
+    AuftragAndRechnungDaoHelper.createCriterionForPeriodOfPerformance(myFilter).ifPresent(queryFilter::add);
 
     queryFilter.addOrder(Order.desc("nummer"));
 
@@ -402,7 +394,7 @@ public class AuftragDao extends BaseDao<AuftragDO>
     return list;
   }
 
-  private void filterAuftragsStatuses(final AuftragFilter myFilter, final QueryFilter queryFilter)
+  private void addCriterionForAuftragsStatuses(final AuftragFilter myFilter, final QueryFilter queryFilter)
   {
     final Collection<AuftragsStatus> auftragsStatuses = myFilter.getAuftragsStatuses();
     if (CollectionUtils.isEmpty(auftragsStatuses)) {
@@ -428,6 +420,32 @@ public class AuftragDao extends BaseDao<AuftragDO>
     if (myFilter.isIgnoreDeleted() == false) {
       queryFilter.add(Restrictions.eq("position.deleted", myFilter.isDeleted()));
     }
+  }
+
+  private Optional<Criterion> createCriterionForErfassungsDatum(final AuftragFilter myFilter)
+  {
+    final java.sql.Date startDate = DateHelper.convertDateToSqlDateInTheUsersTimeZone(myFilter.getStartDate());
+    final java.sql.Date endDate = DateHelper.convertDateToSqlDateInTheUsersTimeZone(myFilter.getEndDate());
+
+    if (startDate != null && endDate != null) {
+      return Optional.of(
+          Restrictions.between("erfassungsDatum", startDate, endDate)
+      );
+    }
+
+    if (startDate != null) {
+      return Optional.of(
+          Restrictions.ge("erfassungsDatum", startDate)
+      );
+    }
+
+    if (endDate != null) {
+      return Optional.of(
+          Restrictions.le("erfassungsDatum", endDate)
+      );
+    }
+
+    return Optional.empty();
   }
 
   private void filterFakturiert(final AuftragFilter myFilter, final List<AuftragDO> list)

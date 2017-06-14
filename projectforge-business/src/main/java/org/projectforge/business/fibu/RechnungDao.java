@@ -205,7 +205,7 @@ public class RechnungDao extends BaseDao<RechnungDO>
   @Override
   protected void onSaveOrModify(final RechnungDO rechnung)
   {
-    AbstractRechnungDaoHelper.onSaveOrModify(rechnung);
+    AuftragAndRechnungDaoHelper.onSaveOrModify(rechnung);
 
     validate(rechnung);
 
@@ -319,34 +319,39 @@ public class RechnungDao extends BaseDao<RechnungDO>
   @Override
   public List<RechnungDO> getList(final BaseSearchFilter filter)
   {
-    final RechnungFilter myFilter;
-    if (filter instanceof RechnungFilter) {
-      myFilter = (RechnungFilter) filter;
+    final RechnungListFilter myFilter;
+    if (filter instanceof RechnungListFilter) {
+      myFilter = (RechnungListFilter) filter;
     } else {
-      myFilter = new RechnungFilter(filter);
+      myFilter = new RechnungListFilter(filter);
     }
-    final QueryFilter queryFilter = AbstractRechnungDaoHelper.createQueryFilterWithDateRestriction(myFilter);
+
+    final QueryFilter queryFilter = AuftragAndRechnungDaoHelper.createQueryFilterWithDateRestriction(myFilter);
     queryFilter.addOrder(Order.desc("datum"));
     queryFilter.addOrder(Order.desc("nummer"));
-    if (myFilter.isShowKostZuweisungStatus() == true) {
+    if (myFilter.isShowKostZuweisungStatus()) {
       queryFilter.setFetchMode("positionen.kostZuweisungen", FetchMode.JOIN);
     }
+
+    AuftragAndRechnungDaoHelper.createCriterionForPeriodOfPerformance(myFilter).ifPresent(queryFilter::add);
+
     final List<RechnungDO> list = getList(queryFilter);
     if (myFilter.isShowAll() == true || myFilter.isDeleted() == true) {
       return list;
     }
+
     final List<RechnungDO> result = new ArrayList<RechnungDO>();
     for (final RechnungDO rechnung : list) {
-      if (myFilter.isShowUnbezahlt() == true) {
+      if (myFilter.isShowUnbezahlt()) {
         if (rechnung.isBezahlt() == false) {
           result.add(rechnung);
         }
-      } else if (myFilter.isShowBezahlt() == true) {
-        if (rechnung.isBezahlt() == true) {
+      } else if (myFilter.isShowBezahlt()) {
+        if (rechnung.isBezahlt()) {
           result.add(rechnung);
         }
-      } else if (myFilter.isShowUeberFaellig() == true) {
-        if (rechnung.isUeberfaellig() == true) {
+      } else if (myFilter.isShowUeberFaellig()) {
+        if (rechnung.isUeberfaellig()) {
           result.add(rechnung);
         }
       } else {
