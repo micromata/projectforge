@@ -33,16 +33,13 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.hibernate.FetchMode;
-import org.hibernate.criterion.Criterion;
 import org.hibernate.criterion.Order;
-import org.hibernate.criterion.Restrictions;
 import org.projectforge.business.fibu.kost.KostZuweisungDO;
 import org.projectforge.business.user.UserRightId;
 import org.projectforge.framework.access.AccessException;
@@ -208,7 +205,7 @@ public class RechnungDao extends BaseDao<RechnungDO>
   @Override
   protected void onSaveOrModify(final RechnungDO rechnung)
   {
-    AbstractRechnungDaoHelper.onSaveOrModify(rechnung);
+    AuftragAndRechnungDaoHelper.onSaveOrModify(rechnung);
 
     validate(rechnung);
 
@@ -329,19 +326,20 @@ public class RechnungDao extends BaseDao<RechnungDO>
       myFilter = new RechnungListFilter(filter);
     }
 
-    final QueryFilter queryFilter = AbstractRechnungDaoHelper.createQueryFilterWithDateRestriction(myFilter);
+    final QueryFilter queryFilter = AuftragAndRechnungDaoHelper.createQueryFilterWithDateRestriction(myFilter);
     queryFilter.addOrder(Order.desc("datum"));
     queryFilter.addOrder(Order.desc("nummer"));
     if (myFilter.isShowKostZuweisungStatus()) {
       queryFilter.setFetchMode("positionen.kostZuweisungen", FetchMode.JOIN);
     }
 
-    createCriterionForPeriodOfPerformance(myFilter).ifPresent(queryFilter::add);
+    AuftragAndRechnungDaoHelper.createCriterionForPeriodOfPerformance(myFilter).ifPresent(queryFilter::add);
 
     final List<RechnungDO> list = getList(queryFilter);
     if (myFilter.isShowAll() == true || myFilter.isDeleted() == true) {
       return list;
     }
+
     final List<RechnungDO> result = new ArrayList<RechnungDO>();
     for (final RechnungDO rechnung : list) {
       if (myFilter.isShowUnbezahlt()) {
@@ -362,35 +360,6 @@ public class RechnungDao extends BaseDao<RechnungDO>
       }
     }
     return result;
-  }
-
-  private Optional<Criterion> createCriterionForPeriodOfPerformance(final RechnungListFilter myFilter)
-  {
-    final java.sql.Date startDate = DateHelper.convertDateToSqlDateInTheUsersTimeZone(myFilter.getPeriodOfPerformanceStartDate());
-    final java.sql.Date endDate = DateHelper.convertDateToSqlDateInTheUsersTimeZone(myFilter.getPeriodOfPerformanceEndDate());
-
-    if (startDate != null && endDate != null) {
-      return Optional.of(
-          Restrictions.and(
-              Restrictions.ge("periodOfPerformanceEnd", startDate),
-              Restrictions.le("periodOfPerformanceBegin", endDate)
-          )
-      );
-    }
-
-    if (startDate != null) {
-      return Optional.of(
-          Restrictions.ge("periodOfPerformanceEnd", startDate)
-      );
-    }
-
-    if (endDate != null) {
-      return Optional.of(
-          Restrictions.le("periodOfPerformanceBegin", endDate)
-      );
-    }
-
-    return Optional.empty();
   }
 
   @Override

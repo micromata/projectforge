@@ -30,7 +30,7 @@ import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 
 @XStreamAlias("RechnungFilter")
-public class RechnungListFilter extends RechnungFilter
+public class RechnungListFilter extends RechnungFilter implements SearchFilterWithPeriodOfPerformance
 {
   private static final long serialVersionUID = -874619598640299510L;
 
@@ -47,21 +47,25 @@ public class RechnungListFilter extends RechnungFilter
     super(filter);
   }
 
+  @Override
   public Date getPeriodOfPerformanceStartDate()
   {
     return periodOfPerformanceStartDate;
   }
 
+  @Override
   public void setPeriodOfPerformanceStartDate(final Date periodOfPerformanceStartDate)
   {
     this.periodOfPerformanceStartDate = periodOfPerformanceStartDate;
   }
 
+  @Override
   public Date getPeriodOfPerformanceEndDate()
   {
     return periodOfPerformanceEndDate;
   }
 
+  @Override
   public void setPeriodOfPerformanceEndDate(final Date periodOfPerformanceEndDate)
   {
     this.periodOfPerformanceEndDate = periodOfPerformanceEndDate;

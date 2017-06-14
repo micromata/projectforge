@@ -37,7 +37,7 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 @XStreamAlias("AuftragFilter")
-public class AuftragFilter extends BaseSearchFilter implements Serializable
+public class AuftragFilter extends BaseSearchFilter implements Serializable, SearchFilterWithPeriodOfPerformance
 {
   private static final long serialVersionUID = 3456000966109255447L;
 
@@ -98,21 +98,25 @@ public class AuftragFilter extends BaseSearchFilter implements Serializable
     this.endDate = endDate;
   }
 
+  @Override
   public Date getPeriodOfPerformanceStartDate()
   {
     return periodOfPerformanceStartDate;
   }
 
+  @Override
   public void setPeriodOfPerformanceStartDate(final Date periodOfPerformanceStartDate)
   {
     this.periodOfPerformanceStartDate = periodOfPerformanceStartDate;
   }
 
+  @Override
   public Date getPeriodOfPerformanceEndDate()
   {
     return periodOfPerformanceEndDate;
   }
 
+  @Override
   public void setPeriodOfPerformanceEndDate(final Date periodOfPerformanceEndDate)
   {
     this.periodOfPerformanceEndDate = periodOfPerformanceEndDate;

@@ -358,7 +358,7 @@ public class AuftragDao extends BaseDao<AuftragDO>
 
     createCriterionForAngebotsDatum(myFilter).ifPresent(queryFilter::add);
 
-    createCriterionForPeriodOfPerformance(myFilter).ifPresent(queryFilter::add);
+    AuftragAndRechnungDaoHelper.createCriterionForPeriodOfPerformance(myFilter).ifPresent(queryFilter::add);
 
     queryFilter.addOrder(Order.desc("nummer"));
 
@@ -442,35 +442,6 @@ public class AuftragDao extends BaseDao<AuftragDO>
     if (endDate != null) {
       return Optional.of(
           Restrictions.le("erfassungsDatum", endDate)
-      );
-    }
-
-    return Optional.empty();
-  }
-
-  private Optional<Criterion> createCriterionForPeriodOfPerformance(final AuftragFilter myFilter)
-  {
-    final java.sql.Date startDate = DateHelper.convertDateToSqlDateInTheUsersTimeZone(myFilter.getPeriodOfPerformanceStartDate());
-    final java.sql.Date endDate = DateHelper.convertDateToSqlDateInTheUsersTimeZone(myFilter.getPeriodOfPerformanceEndDate());
-
-    if (startDate != null && endDate != null) {
-      return Optional.of(
-          Restrictions.and(
-              Restrictions.ge("periodOfPerformanceEnd", startDate),
-              Restrictions.le("periodOfPerformanceBegin", endDate)
-          )
-      );
-    }
-
-    if (startDate != null) {
-      return Optional.of(
-          Restrictions.ge("periodOfPerformanceEnd", startDate)
-      );
-    }
-
-    if (endDate != null) {
-      return Optional.of(
-          Restrictions.le("periodOfPerformanceBegin", endDate)
       );
     }
 
