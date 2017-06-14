@@ -356,7 +356,7 @@ public class AuftragDao extends BaseDao<AuftragDO>
       );
     }
 
-    createCriterionForAngebotsDatum(myFilter).ifPresent(queryFilter::add);
+    createCriterionForErfassungsDatum(myFilter).ifPresent(queryFilter::add);
 
     AuftragAndRechnungDaoHelper.createCriterionForPeriodOfPerformance(myFilter).ifPresent(queryFilter::add);
 
@@ -422,7 +422,7 @@ public class AuftragDao extends BaseDao<AuftragDO>
     }
   }
 
-  private Optional<Criterion> createCriterionForAngebotsDatum(final AuftragFilter myFilter)
+  private Optional<Criterion> createCriterionForErfassungsDatum(final AuftragFilter myFilter)
   {
     final java.sql.Date startDate = DateHelper.convertDateToSqlDateInTheUsersTimeZone(myFilter.getStartDate());
     final java.sql.Date endDate = DateHelper.convertDateToSqlDateInTheUsersTimeZone(myFilter.getEndDate());
