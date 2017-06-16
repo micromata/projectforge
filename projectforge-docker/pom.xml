@@ -33,10 +33,9 @@
               <outputDirectory>${basedir}/target/extra-resources</outputDirectory>
               <resources>
                 <resource>
-                  <directory>${basedir}/../projectforge-application</directory>
+                  <directory>${basedir}/../projectforge-application/target</directory>
                   <includes>
-                    <include>application.properties</include>
-                    <include>target/projectforge-application-${project.version}.jar</include>
+                    <include>projectforge-application-${project.version}.jar</include>
                   </includes>
                 </resource>
               </resources>

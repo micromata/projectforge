@@ -1,7 +1,5 @@
 FROM debian:jessie
 MAINTAINER Micromata
-ENV http_proxy=http://proxy.micromata.priv:3128
-ENV https_proxy=http://proxy.micromata.priv:3128
 
 ## Install requirements ( oracle-java7-installer )
 RUN echo "deb http://ppa.launchpad.net/webupd8team/java/ubuntu precise main" | tee /etc/apt/sources.list.d/webupd8team-java.list && \
@@ -23,4 +21,4 @@ ENTRYPOINT ["/usr/bin/java", "-jar", "/usr/share/projectforge-application-6.13.0
 ADD ./target/extra-resources/target/projectforge-application-6.13.0-SNAPSHOT.jar /usr/share/projectforge-application-6.13.0-SNAPSHOT.jar
 
 # Add the properties
-ADD ./target/extra-resources/application.properties /usr/share/application.properties
+ADD ./configuration/default-application.properties /usr/share/application.properties
