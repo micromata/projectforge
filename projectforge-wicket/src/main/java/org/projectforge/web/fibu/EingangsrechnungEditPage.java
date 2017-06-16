@@ -24,8 +24,11 @@
 package org.projectforge.web.fibu;
 
 import java.io.UnsupportedEncodingException;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
@@ -38,6 +41,7 @@ import org.projectforge.business.fibu.EingangsrechnungDao;
 import org.projectforge.business.fibu.EingangsrechnungsPositionDO;
 import org.projectforge.business.fibu.PaymentType;
 import org.projectforge.business.fibu.kost.reporting.InvoiceTransferExport;
+import org.projectforge.common.props.PropUtils;
 import org.projectforge.framework.time.DateHelper;
 import org.projectforge.framework.time.DayHolder;
 import org.projectforge.web.wicket.AbstractEditPage;
@@ -60,8 +64,6 @@ public class EingangsrechnungEditPage
   @SpringBean
   private InvoiceTransferExport invoiceTransferExport;
 
-  private ContentMenuEntryPanel exportInvoiceButton;
-
   public EingangsrechnungEditPage(final PageParameters parameters)
   {
     super(parameters, "fibu.eingangsrechnung");
@@ -73,7 +75,7 @@ public class EingangsrechnungEditPage
   {
     super.init();
 
-    this.exportInvoiceButton = new ContentMenuEntryPanel(getNewContentMenuChildId(),
+    final ContentMenuEntryPanel exportInvoiceButton = new ContentMenuEntryPanel(getNewContentMenuChildId(),
         new Link<Object>("link")
         {
           @Override
@@ -83,14 +85,6 @@ public class EingangsrechnungEditPage
           }
         }, getString("fibu.rechnung.transferExport")).setTooltip(getString("fibu.rechnung.transferExport.tootlip"));
     addContentMenuEntry(exportInvoiceButton);
-    this.exportInvoiceButton.setVisible(this.getData().getPaymentType().equals(PaymentType.BANK_TRANSFER));
-  }
-
-  @Override
-  protected void onBeforeRender()
-  {
-    super.onBeforeRender();
-    this.exportInvoiceButton.setVisible(this.getData().getPaymentType().equals(PaymentType.BANK_TRANSFER));
   }
 
   private void exportInvoiceAsXML()
@@ -98,37 +92,35 @@ public class EingangsrechnungEditPage
     this.form.getFeedbackMessages().clear();
     final EingangsrechnungDO invoice = this.getData();
 
+    List<String> missingFields = new ArrayList<>();
+
     // check invoice
-    if (invoice.getGrossSum() == null) {
-      // TODO
-      this.form.addError("fibu.rechnung.transferExport.error");
+    if (invoice.getGrossSum() == null || invoice.getGrossSum().compareTo(BigDecimal.ZERO) == 0) {
+      missingFields.add(this.getString("fibu.common.brutto"));
     }
-    if (invoice.getPaymentType().equals(PaymentType.BANK_TRANSFER) == false) {
-      // TODO
-      this.form.addError("fibu.rechnung.transferExport.error");
+    if (invoice.getPaymentType() != PaymentType.BANK_TRANSFER) {
+      missingFields.add(this.getString(PropUtils.getI18nKey(EingangsrechnungDO.class, "paymentType")));
     }
     if (invoice.getBic() == null) {
-      // TODO
-      this.form.addError("fibu.rechnung.transferExport.error");
+      missingFields.add(this.getString(PropUtils.getI18nKey(EingangsrechnungDO.class, "bic")));
     }
     if (invoice.getIban() == null) {
-      // TODO
-      this.form.addError("fibu.rechnung.transferExport.error");
+      missingFields.add(this.getString(PropUtils.getI18nKey(EingangsrechnungDO.class, "iban")));
     }
     if (invoice.getReceiver() == null) {
-      // TODO
-      this.form.addError("fibu.rechnung.transferExport.error");
+      missingFields.add(this.getString(PropUtils.getI18nKey(EingangsrechnungDO.class, "receiver")));
     }
     if (invoice.getBemerkung() == null) {
-      // TODO
-      this.form.addError("fibu.rechnung.transferExport.error");
+      missingFields.add(this.getString(PropUtils.getI18nKey(EingangsrechnungDO.class, "bemerkung")));
     }
 
-    if (this.form.getFeedbackMessages().isEmpty() == false) {
+    if (missingFields.isEmpty() == false) {
+      String missingFieldsStr = String.join(", ", missingFields);
+      this.form.addError("fibu.rechnung.transferExport.error.missing", missingFieldsStr);
       return;
     }
 
-    final String filename = String.format("transaction-%s.xml", invoice.getPk()); // TODO
+    final String filename = String.format("transfer-%s-%s", invoice.getPk(), DateHelper.getTimestampAsFilenameSuffix(new Date()));
     byte[] xml = this.invoiceTransferExport.generateTransfer(this.getData());
 
     if (xml == null || xml.length == 0) {
