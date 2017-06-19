@@ -23,10 +23,7 @@
 
 package org.projectforge.web.fibu;
 
-import java.util.Date;
-
 import org.apache.log4j.Logger;
-import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.projectforge.business.fibu.AbstractRechnungsStatistik;
@@ -36,7 +33,6 @@ import org.projectforge.framework.configuration.Configuration;
 import org.projectforge.web.wicket.AbstractListForm;
 import org.projectforge.web.wicket.AbstractListPage;
 import org.projectforge.web.wicket.LambdaModel;
-import org.projectforge.web.wicket.TimePeriodPanel;
 import org.projectforge.web.wicket.WebConstants;
 import org.projectforge.web.wicket.flowlayout.CheckBoxButton;
 import org.projectforge.web.wicket.flowlayout.DivPanel;
@@ -60,82 +56,90 @@ public abstract class AbstractRechnungListForm<F extends RechnungFilter, P exten
   {
     super.init(false);
 
-    // time period
-    gridBuilder.newGridPanel();
-    final FieldsetPanel tpfs = gridBuilder.newFieldset(getString("timePeriod"));
-    final TimePeriodPanel timePeriodPanel = createTimePeriodPanel(tpfs.newChildId());
-    tpfs.add(timePeriodPanel);
-    tpfs.setLabelFor(timePeriodPanel);
+    // time period for Rechnungsdatum
+    final F filter = getSearchFilter();
+    addTimePeriodPanel("fibu.rechnung.datum",
+        LambdaModel.of(filter::getFromDate, filter::setFromDate),
+        LambdaModel.of(filter::getToDate, filter::setToDate)
+    );
 
+    onBeforeAddStatistics();
+
+    addStatistics();
+  }
+
+  private void addStatistics()
+  {
     gridBuilder.newGridPanel();
+    final FieldsetPanel fs = gridBuilder.newFieldset(getString("statistics")).suppressLabelForWarning();
+    fs.add(new DivTextPanel(fs.newChildId(), new Model<String>()
     {
-      // Statistics
-      final FieldsetPanel fs = gridBuilder.newFieldset(getString("statistics")).suppressLabelForWarning();
-      fs.add(new DivTextPanel(fs.newChildId(), new Model<String>()
+      @Override
+      public String getObject()
       {
-        @Override
-        public String getObject()
-        {
-          return getString("fibu.common.brutto") + ": " + CurrencyFormatter.format(getStats().getBrutto()) + WebConstants.HTML_TEXT_DIVIDER;
-        }
-      }));
-      fs.add(new DivTextPanel(fs.newChildId(), new Model<String>()
+        return getString("fibu.common.brutto") + ": " + CurrencyFormatter.format(getStats().getBrutto()) + WebConstants.HTML_TEXT_DIVIDER;
+      }
+    }));
+    fs.add(new DivTextPanel(fs.newChildId(), new Model<String>()
+    {
+      @Override
+      public String getObject()
       {
-        @Override
-        public String getObject()
-        {
-          return getString("fibu.common.netto") + ": " + CurrencyFormatter.format(getStats().getNetto()) + WebConstants.HTML_TEXT_DIVIDER;
-        }
-      }));
-      fs.add(new DivTextPanel(fs.newChildId(), new Model<String>()
+        return getString("fibu.common.netto") + ": " + CurrencyFormatter.format(getStats().getNetto()) + WebConstants.HTML_TEXT_DIVIDER;
+      }
+    }));
+    fs.add(new DivTextPanel(fs.newChildId(), new Model<String>()
+    {
+      @Override
+      public String getObject()
       {
-        @Override
-        public String getObject()
-        {
-          return getString("fibu.rechnung.offen") + ": " + CurrencyFormatter.format(getStats().getOffen()) + WebConstants.HTML_TEXT_DIVIDER;
-        }
-      }, TextStyle.BLUE));
-      fs.add(new DivTextPanel(fs.newChildId(), new Model<String>()
+        return getString("fibu.rechnung.offen") + ": " + CurrencyFormatter.format(getStats().getOffen()) + WebConstants.HTML_TEXT_DIVIDER;
+      }
+    }, TextStyle.BLUE));
+    fs.add(new DivTextPanel(fs.newChildId(), new Model<String>()
+    {
+      @Override
+      public String getObject()
       {
-        @Override
-        public String getObject()
-        {
-          return getString("fibu.rechnung.filter.ueberfaellig") + ": " + CurrencyFormatter.format(getStats().getUeberfaellig());
-        }
-      }, TextStyle.RED));
-      fs.add(new DivTextPanel(fs.newChildId(), new Model<String>()
+        return getString("fibu.rechnung.filter.ueberfaellig") + ": " + CurrencyFormatter.format(getStats().getUeberfaellig());
+      }
+    }, TextStyle.RED));
+    fs.add(new DivTextPanel(fs.newChildId(), new Model<String>()
+    {
+      @Override
+      public String getObject()
       {
-        @Override
-        public String getObject()
-        {
-          return WebConstants.HTML_TEXT_DIVIDER
-              + getString("fibu.rechnung.skonto")
-              + ": "
-              + CurrencyFormatter.format(getStats().getSkonto())
-              + WebConstants.HTML_TEXT_DIVIDER;
-        }
-      }));
-      // fieldset.add(new HtmlCodePanel(fieldset.newChildId(), "<br/>"));
-      fs.add(new DivTextPanel(fs.newChildId(), new Model<String>()
+        return WebConstants.HTML_TEXT_DIVIDER
+            + getString("fibu.rechnung.skonto")
+            + ": "
+            + CurrencyFormatter.format(getStats().getSkonto())
+            + WebConstants.HTML_TEXT_DIVIDER;
+      }
+    }));
+    // fieldset.add(new HtmlCodePanel(fieldset.newChildId(), "<br/>"));
+    fs.add(new DivTextPanel(fs.newChildId(), new Model<String>()
+    {
+      @Override
+      public String getObject()
       {
-        @Override
-        public String getObject()
-        {
-          return getString("fibu.rechnung.zahlungsZiel")
-              + ": Ø "
-              + String.valueOf(getStats().getZahlungszielAverage())
-              + WebConstants.HTML_TEXT_DIVIDER;
-        }
-      }));
-      fs.add(new DivTextPanel(fs.newChildId(), new Model<String>()
+        return getString("fibu.rechnung.zahlungsZiel")
+            + ": Ø "
+            + String.valueOf(getStats().getZahlungszielAverage())
+            + WebConstants.HTML_TEXT_DIVIDER;
+      }
+    }));
+    fs.add(new DivTextPanel(fs.newChildId(), new Model<String>()
+    {
+      @Override
+      public String getObject()
       {
-        @Override
-        public String getObject()
-        {
-          return getString("fibu.rechnung.zahlungsZiel.actual") + ": Ø " + String.valueOf(getStats().getTatsaechlichesZahlungzielAverage());
-        }
-      }));
-    }
+        return getString("fibu.rechnung.zahlungsZiel.actual") + ": Ø " + String.valueOf(getStats().getTatsaechlichesZahlungzielAverage());
+      }
+    }));
+  }
+
+  protected void onBeforeAddStatistics()
+  {
   }
 
   /**
@@ -158,14 +162,6 @@ public abstract class AbstractRechnungListForm<F extends RechnungFilter, P exten
       optionsCheckBoxesPanel.add(new CheckBoxButton(optionsCheckBoxesPanel.newChildId(), new PropertyModel<>(getSearchFilter(),
           "showKostZuweisungStatus"), getString("fibu.rechnung.showKostZuweisungstatus")));
     }
-  }
-
-  private TimePeriodPanel createTimePeriodPanel(final String id)
-  {
-    final F filter = getSearchFilter();
-    final IModel<Date> startDateModel = LambdaModel.of(filter::getFromDate, filter::setFromDate);
-    final IModel<Date> endDateModel = LambdaModel.of(filter::getToDate, filter::setToDate);
-    return new TimePeriodPanel(id, startDateModel, endDateModel, parentPage);
   }
 
   protected abstract AbstractRechnungsStatistik<?> getStats();
