@@ -44,6 +44,7 @@ import javax.xml.validation.SchemaFactory;
 
 import org.projectforge.business.fibu.EingangsrechnungDO;
 import org.projectforge.business.fibu.PaymentType;
+import org.projectforge.framework.i18n.UserException;
 import org.projectforge.generated.AccountIdentificationSEPA;
 import org.projectforge.generated.ActiveOrHistoricCurrencyAndAmountSEPA;
 import org.projectforge.generated.ActiveOrHistoricCurrencyCodeEUR;
@@ -250,9 +251,13 @@ public class SEPATransferGenerator
       return out.toByteArray();
     } catch (JAXBException e) {
       log.error("An error occurred while marshaling the generated java transaction object. Transfer generation failed.", e);
-    }
+      
+      if (e.getLinkedException() != null && e.getLinkedException().getMessage() != null) {
+        throw new UserException("fibu.rechnung.transferExport.error", e.getLinkedException().getMessage());
+      }
 
-    return null;
+      return null;
+    }
   }
 
   public Document parse(final byte[] input)
