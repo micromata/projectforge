@@ -14,6 +14,7 @@ import org.apache.poi.xwpf.usermodel.XWPFRun;
 import org.apache.poi.xwpf.usermodel.XWPFTable;
 import org.apache.poi.xwpf.usermodel.XWPFTableCell;
 import org.apache.poi.xwpf.usermodel.XWPFTableRow;
+import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTRow;
 import org.projectforge.business.configuration.ConfigurationService;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -227,8 +228,10 @@ public class InvoiceService
   private void copyTableRow(final XWPFTable posTbl, final int rowCounter)
   {
     XWPFTableRow rowToCopy = posTbl.getRow(1);
-    XWPFTableRow copyRow = new XWPFTableRow(rowToCopy.getCtRow(), posTbl);
-    posTbl.addRow(copyRow, rowCounter);
+    CTRow row = posTbl.getCTTbl().insertNewTr(rowCounter);
+    row.set(rowToCopy.getCtRow());
+    XWPFTableRow copyRow = new XWPFTableRow(row, posTbl);
+    posTbl.getRows().add(rowCounter, copyRow);
   }
 
   private XWPFDocument readWordFile(InputStream is)
