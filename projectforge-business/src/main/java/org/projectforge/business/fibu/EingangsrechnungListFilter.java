@@ -21,14 +21,30 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.web.fibu;
-
-import org.projectforge.business.fibu.RechnungFilter;
+package org.projectforge.business.fibu;
 
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 
-@XStreamAlias("RechnungFilter")
-public class RechnungListFilter extends RechnungFilter
+@XStreamAlias("EingangsrechnungFilter")
+public class EingangsrechnungListFilter extends RechnungFilter
 {
-  private static final long serialVersionUID = -874619598640299510L;
+  private static final long serialVersionUID = -9163400923075871920L;
+
+  private boolean showKostZuweisungStatus;
+
+  /**
+   * Zeige Fehlbeträge in der Liste.
+   */
+  @Override
+  public boolean isShowKostZuweisungStatus()
+  {
+    return showKostZuweisungStatus;
+  }
+
+  @Override
+  public void setShowKostZuweisungStatus(final boolean showKostZuweisungStatus)
+  {
+    this.showKostZuweisungStatus = showKostZuweisungStatus;
+  }
+
 }
