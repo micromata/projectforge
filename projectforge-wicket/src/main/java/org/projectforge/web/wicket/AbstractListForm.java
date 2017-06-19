@@ -437,6 +437,15 @@ public abstract class AbstractListForm<F extends BaseSearchFilter, P extends Abs
     WicketUtils.addTooltip(field, getString("search.string.info.title"), getParentPage().getSearchToolTip(), false);
   }
 
+  protected void addTimePeriodPanel(final String labelI18nKey, final IModel<Date> startDateModel, final IModel<Date> endDateModel)
+  {
+    gridBuilder.newSplitPanel(GridSize.COL50);
+    final FieldsetPanel fs = gridBuilder.newFieldset(getString(labelI18nKey));
+    final TimePeriodPanel timePeriodPanel = new TimePeriodPanel(fs.newChildId(), startDateModel, endDateModel, parentPage);
+    fs.add(timePeriodPanel);
+    fs.setLabelFor(timePeriodPanel);
+  }
+
   public void addActionButton(final Component entry)
   {
     this.actionButtons.add(entry);
