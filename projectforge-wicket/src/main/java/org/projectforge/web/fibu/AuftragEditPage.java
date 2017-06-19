@@ -23,7 +23,7 @@
 
 package org.projectforge.web.fibu;
 
-import java.util.Date;
+import java.time.LocalDate;
 
 import org.apache.log4j.Logger;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
@@ -36,7 +36,7 @@ import org.projectforge.business.fibu.ProjektDao;
 import org.projectforge.business.user.ProjectForgeGroup;
 import org.projectforge.framework.access.OperationType;
 import org.projectforge.framework.persistence.api.ModificationStatus;
-import org.projectforge.framework.time.DayHolder;
+import org.projectforge.framework.time.DateHelper;
 import org.projectforge.framework.utils.NumberHelper;
 import org.projectforge.web.wicket.AbstractEditPage;
 import org.projectforge.web.wicket.AbstractSecuredBasePage;
@@ -81,6 +81,7 @@ public class AuftragEditPage extends AbstractEditPage<AuftragDO, AuftragEditForm
   /**
    * @see org.projectforge.web.fibu.ISelectCallerPage#select(String, Object)
    */
+  @Override
   public void select(final String property, final Object selectedValue)
   {
     if ("projektId".equals(property) == true) {
@@ -116,6 +117,7 @@ public class AuftragEditPage extends AbstractEditPage<AuftragDO, AuftragEditForm
   /**
    * @see org.projectforge.web.fibu.ISelectCallerPage#unselect(java.lang.String)
    */
+  @Override
   public void unselect(final String property)
   {
     if ("projektId".equals(property) == true) {
@@ -139,6 +141,7 @@ public class AuftragEditPage extends AbstractEditPage<AuftragDO, AuftragEditForm
   /**
    * @see org.projectforge.web.fibu.ISelectCallerPage#cancelSelection(java.lang.String)
    */
+  @Override
   public void cancelSelection(final String property)
   {
     // Do nothing.
@@ -159,32 +162,32 @@ public class AuftragEditPage extends AbstractEditPage<AuftragDO, AuftragEditForm
   @Override
   protected void onPreEdit()
   {
-    if (getData().getId() == null) {
-      if (getData().getAngebotsDatum() == null) {
-        final DayHolder today = new DayHolder();
-        getData().setAngebotsDatum(new java.sql.Date(today.getTimeInMillis()));
-        getData().setErfassungsDatum(new java.sql.Date(today.getTimeInMillis()));
-        getData().setEntscheidungsDatum(new java.sql.Date(today.getTimeInMillis()));
+    final AuftragDO auftrag = getData();
+
+    if (auftrag.getId() == null) {
+      if (auftrag.getAngebotsDatum() == null) {
+        final LocalDate today = LocalDate.now();
+        auftrag.setAngebotsDatum(java.sql.Date.valueOf(today));
+        auftrag.setErfassungsDatum(java.sql.Date.valueOf(today));
+        auftrag.setEntscheidungsDatum(java.sql.Date.valueOf(today));
       }
-      if (getData().getContactPersonId() == null
-          && accessChecker.isLoggedInUserMemberOfGroup(ProjectForgeGroup.PROJECT_MANAGER) == true) {
-        auftragDao.setContactPerson(getData(), getUser().getId());
+      if (auftrag.getContactPersonId() == null && accessChecker.isLoggedInUserMemberOfGroup(ProjectForgeGroup.PROJECT_MANAGER)) {
+        auftragDao.setContactPerson(auftrag, getUser().getId());
         form.setSendEMailNotification(false);
       }
-    } else if (getData().getErfassungsDatum() == null) {
-      if (getData().getCreated() == null) {
-        if (getData().getAngebotsDatum() == null) {
-          getData().setErfassungsDatum(new java.sql.Date(new Date().getTime()));
-        } else {
-          getData().setErfassungsDatum(new java.sql.Date(getData().getAngebotsDatum().getTime()));
-        }
+    } else if (auftrag.getErfassungsDatum() == null) {
+      if (auftrag.getCreated() != null) {
+        auftrag.setErfassungsDatum(DateHelper.convertDateToSqlDateInTheUsersTimeZone(auftrag.getCreated()));
+      } else if (auftrag.getAngebotsDatum() != null) {
+        auftrag.setErfassungsDatum((java.sql.Date) auftrag.getAngebotsDatum().clone());
       } else {
-        getData().setErfassungsDatum(new java.sql.Date(getData().getCreated().getTime()));
+        auftrag.setErfassungsDatum(java.sql.Date.valueOf(LocalDate.now()));
       }
     } else {
       setSendEMailNotification();
     }
-    getData().recalculate();
+
+    auftrag.recalculate();
   }
 
   @Override
