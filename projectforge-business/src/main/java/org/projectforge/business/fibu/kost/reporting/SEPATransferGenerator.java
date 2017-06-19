@@ -23,23 +23,27 @@
 
 package org.projectforge.business.fibu.kost.reporting;
 
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.InputStream;
 import java.math.BigDecimal;
 import java.net.URL;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.GregorianCalendar;
 
 import javax.xml.XMLConstants;
 import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
+import javax.xml.bind.Unmarshaller;
 import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
 
 import org.projectforge.business.fibu.EingangsrechnungDO;
 import org.projectforge.business.fibu.PaymentType;
-import org.projectforge.framework.time.DateHelper;
 import org.projectforge.generated.AccountIdentificationSEPA;
 import org.projectforge.generated.ActiveOrHistoricCurrencyAndAmountSEPA;
 import org.projectforge.generated.ActiveOrHistoricCurrencyCodeEUR;
@@ -69,24 +73,26 @@ import org.xml.sax.SAXException;
 import com.sun.org.apache.xerces.internal.jaxp.datatype.XMLGregorianCalendarImpl;
 
 /**
- * This component generates transfer files in pain.001.003.03 format.
+ * This component generates and reads transfer files in pain.001.003.03 format.
  *
  * @author Stefan Niemczyk (s.niemczyk@micromata.de)
  */
 @Component
-public class InvoiceTransferExport
+public class SEPATransferGenerator
 {
   final private static String PAIN_001_003_03_XSD = "misc/pain.001.003.03.xsd";
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(InvoiceTransferExport.class);
+  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(SEPATransferGenerator.class);
 
   private Schema painSchema;
   private JAXBContext jaxbContext;
+  private SimpleDateFormat formatter;
 
-  public InvoiceTransferExport()
+  public SEPATransferGenerator()
   {
-    painSchema = null;
-    jaxbContext = null;
+    this.formatter = new SimpleDateFormat("yyyy-MM-dd-HH:mm");
+    this.painSchema = null;
+    this.jaxbContext = null;
 
     URL xsd = getClass().getClassLoader().getResource(PAIN_001_003_03_XSD);
 
@@ -110,7 +116,7 @@ public class InvoiceTransferExport
    * @param invoice The invoice to generate the transfer xml
    * @return Returns the byte array of the xml or null in case of an error.
    */
-  public byte[] generateTransfer(final EingangsrechnungDO invoice)
+  public byte[] format(final EingangsrechnungDO invoice)
   {
     // if jaxb context is missing, generation is not possible
     if (this.jaxbContext == null) {
@@ -127,7 +133,7 @@ public class InvoiceTransferExport
 
     // Generate structure
     ObjectFactory factory = new ObjectFactory();
-    String msgID = String.format("transfer-%s-%s", invoice.getPk(), DateHelper.getTimestampAsFilenameSuffix(new Date()));
+    String msgID = String.format("transfer-%s-%s", invoice.getPk(), this.formatter.format(new Date()));
     final BigDecimal amount = invoice.getGrossSum();
     String debitor = invoice.getTenant().getName();
 
@@ -180,14 +186,14 @@ public class InvoiceTransferExport
     CashAccountSEPA1 dbtrAcct = factory.createCashAccountSEPA1();
     AccountIdentificationSEPA id = factory.createAccountIdentificationSEPA();
     dbtrAcct.setId(id);
-    id.setIBAN("DE87200500001234567890"); // dummy iban, is swapped by program afterwards
+    id.setIBAN("DE87200500001234567890"); // dummy iban, is replaced by external program afterwards
     pmtInf.setDbtrAcct(dbtrAcct);
 
     // set debitor bic
     BranchAndFinancialInstitutionIdentificationSEPA3 dbtrAgt = factory.createBranchAndFinancialInstitutionIdentificationSEPA3();
     FinancialInstitutionIdentificationSEPA3 finInstnId = factory.createFinancialInstitutionIdentificationSEPA3();
     dbtrAgt.setFinInstnId(finInstnId);
-    finInstnId.setBIC("BANKDEFFXXX"); // dummy bic, is swapped by program afterwards
+    finInstnId.setBIC("BANKDEFFXXX"); // dummy bic, is replaced by external program afterwards
     pmtInf.setDbtrAgt(dbtrAgt);
 
     // create transaction
@@ -244,6 +250,27 @@ public class InvoiceTransferExport
       return out.toByteArray();
     } catch (JAXBException e) {
       log.error("An error occurred while marshaling the generated java transaction object. Transfer generation failed.", e);
+    }
+
+    return null;
+  }
+
+  public Document parse(final byte[] input)
+  {
+    if (this.jaxbContext == null) {
+      log.error("Parsing transfer not possible, jaxb context is missing. Please check your pain.001.003.03.xsd file.");
+      return null;
+    }
+
+    try {
+      Unmarshaller unmarshaller = this.jaxbContext.createUnmarshaller();
+      unmarshaller.setSchema(this.painSchema);
+      InputStream inStream = new ByteArrayInputStream(input);
+      JAXBElement<Document> result = (JAXBElement<Document>) unmarshaller.unmarshal(inStream);
+
+      return result.getValue();
+    } catch (JAXBException e) {
+      log.error("An error occurred while unmarshaling the java transaction object.", e);
     }
 
     return null;

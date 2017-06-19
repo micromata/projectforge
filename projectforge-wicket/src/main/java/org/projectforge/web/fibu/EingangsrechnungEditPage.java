@@ -23,12 +23,9 @@
 
 package org.projectforge.web.fibu;
 
-import java.io.UnsupportedEncodingException;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
@@ -40,7 +37,7 @@ import org.projectforge.business.fibu.EingangsrechnungDO;
 import org.projectforge.business.fibu.EingangsrechnungDao;
 import org.projectforge.business.fibu.EingangsrechnungsPositionDO;
 import org.projectforge.business.fibu.PaymentType;
-import org.projectforge.business.fibu.kost.reporting.InvoiceTransferExport;
+import org.projectforge.business.fibu.kost.reporting.SEPATransferGenerator;
 import org.projectforge.common.props.PropUtils;
 import org.projectforge.framework.time.DateHelper;
 import org.projectforge.framework.time.DayHolder;
@@ -62,7 +59,7 @@ public class EingangsrechnungEditPage
   private EingangsrechnungDao eingangsrechnungDao;
 
   @SpringBean
-  private InvoiceTransferExport invoiceTransferExport;
+  private SEPATransferGenerator SEPATransferGenerator;
 
   public EingangsrechnungEditPage(final PageParameters parameters)
   {
@@ -120,8 +117,8 @@ public class EingangsrechnungEditPage
       return;
     }
 
-    final String filename = String.format("transfer-%s-%s", invoice.getPk(), DateHelper.getTimestampAsFilenameSuffix(new Date()));
-    byte[] xml = this.invoiceTransferExport.generateTransfer(this.getData());
+    final String filename = String.format("transfer-%s-%s.xml", invoice.getPk(), DateHelper.getTimestampAsFilenameSuffix(new Date()));
+    byte[] xml = this.SEPATransferGenerator.format(this.getData());
 
     if (xml == null || xml.length == 0) {
       this.log.error("Oups, xml has zero size. Filename: " + filename);
