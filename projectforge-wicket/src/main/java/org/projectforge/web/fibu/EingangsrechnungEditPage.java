@@ -39,8 +39,10 @@ import org.projectforge.business.fibu.EingangsrechnungsPositionDO;
 import org.projectforge.business.fibu.PaymentType;
 import org.projectforge.business.fibu.kost.reporting.SEPATransferGenerator;
 import org.projectforge.common.props.PropUtils;
+import org.projectforge.framework.i18n.UserException;
 import org.projectforge.framework.time.DateHelper;
 import org.projectforge.framework.time.DayHolder;
+import org.projectforge.web.wicket.AbstractEditForm;
 import org.projectforge.web.wicket.AbstractEditPage;
 import org.projectforge.web.wicket.DownloadUtils;
 import org.projectforge.web.wicket.EditPage;
@@ -118,7 +120,13 @@ public class EingangsrechnungEditPage
     }
 
     final String filename = String.format("transfer-%s-%s.xml", invoice.getPk(), DateHelper.getTimestampAsFilenameSuffix(new Date()));
-    byte[] xml = this.SEPATransferGenerator.format(this.getData());
+    byte[] xml;
+    try {
+      xml = this.SEPATransferGenerator.format(this.getData());
+    } catch (final UserException ex) {
+      this.form.error(this.translateParams(ex));
+      return;
+    }
 
     if (xml == null || xml.length == 0) {
       this.log.error("Oups, xml has zero size. Filename: " + filename);

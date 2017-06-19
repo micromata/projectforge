@@ -44,6 +44,7 @@ import javax.xml.validation.SchemaFactory;
 
 import org.projectforge.business.fibu.EingangsrechnungDO;
 import org.projectforge.business.fibu.PaymentType;
+import org.projectforge.framework.i18n.UserException;
 import org.projectforge.generated.AccountIdentificationSEPA;
 import org.projectforge.generated.ActiveOrHistoricCurrencyAndAmountSEPA;
 import org.projectforge.generated.ActiveOrHistoricCurrencyCodeEUR;
@@ -103,7 +104,7 @@ public class SEPATransferGenerator
 
     try {
       SchemaFactory schemaFactory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
-      painSchema = schemaFactory.newSchema(new File(xsd.getFile()));
+      painSchema = schemaFactory.newSchema(xsd);
       jaxbContext = JAXBContext.newInstance(Document.class.getPackage().getName());
     } catch (SAXException | JAXBException e) {
       log.error("An error occurred while reading pain.001.003.03.xsd and creating jaxb context -> transfer export not possible.", e);
@@ -250,9 +251,13 @@ public class SEPATransferGenerator
       return out.toByteArray();
     } catch (JAXBException e) {
       log.error("An error occurred while marshaling the generated java transaction object. Transfer generation failed.", e);
-    }
 
-    return null;
+      if (e.getLinkedException() != null && e.getLinkedException().getMessage() != null) {
+        throw new UserException("fibu.rechnung.transferExport.error", e.getLinkedException().getMessage());
+      }
+
+      return null;
+    }
   }
 
   public Document parse(final byte[] input)
