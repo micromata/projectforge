@@ -39,6 +39,7 @@ import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.teamcal.event.TeamEventDao;
 import org.projectforge.business.teamcal.event.TeamEventService;
 import org.projectforge.business.teamcal.event.TeamRecurrenceEvent;
+import org.projectforge.business.teamcal.event.diff.TeamEventDiffType;
 import org.projectforge.business.teamcal.event.model.TeamEvent;
 import org.projectforge.business.teamcal.event.model.TeamEventAttendeeDO;
 import org.projectforge.business.teamcal.event.model.TeamEventDO;
@@ -280,9 +281,8 @@ public class TeamEventEditPage extends AbstractEditPage<TeamEventDO, TeamEventEd
   public AbstractSecuredBasePage afterUndelete()
   {
     super.afterUndelete();
-    if (getData().getAttendees() != null && getData().getAttendees().size() > 0) {
-      teamEventService.sendTeamEventToAttendees(getData(), false, true, false, null);
-    }
+    teamEventService.checkAndSendMail(getData(), TeamEventDiffType.RESTORED);
+
     return null;
   }
 

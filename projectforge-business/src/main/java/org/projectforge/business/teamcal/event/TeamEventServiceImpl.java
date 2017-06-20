@@ -22,6 +22,7 @@ import org.projectforge.business.address.AddressDO;
 import org.projectforge.business.address.AddressDao;
 import org.projectforge.business.configuration.ConfigurationService;
 import org.projectforge.business.teamcal.admin.model.TeamCalDO;
+import org.projectforge.business.teamcal.event.diff.TeamEventDiffType;
 import org.projectforge.business.teamcal.event.model.TeamEvent;
 import org.projectforge.business.teamcal.event.model.TeamEventAttendeeDO;
 import org.projectforge.business.teamcal.event.model.TeamEventAttendeeDao;
@@ -115,8 +116,7 @@ public class TeamEventServiceImpl implements TeamEventService
   }
 
   @Override
-  public void assignAttendees(TeamEventDO data, Set<TeamEventAttendeeDO> itemsToAssign,
-      Set<TeamEventAttendeeDO> itemsToUnassign)
+  public void assignAttendees(TeamEventDO data, Set<TeamEventAttendeeDO> itemsToAssign, Set<TeamEventAttendeeDO> itemsToUnassign)
   {
     for (TeamEventAttendeeDO assignAttendee : itemsToAssign) {
       if (assignAttendee.getId() == null || assignAttendee.getId() < 0) {
@@ -133,6 +133,7 @@ public class TeamEventServiceImpl implements TeamEventService
         teamEventAttendeeDao.internalMarkAsDeleted(deleteAttendee);
       }
     }
+
     teamEventDao.update(data);
   }
 
@@ -161,6 +162,20 @@ public class TeamEventServiceImpl implements TeamEventService
       }
     }
     return true;
+  }
+
+  @Override
+  public boolean checkAndSendMail(final TeamEventDO event, final TeamEventDiffType diffType)
+  {
+
+    return false;
+  }
+
+  @Override
+  public boolean checkAndSendMail(final TeamEventDO eventNew, final TeamEventDO eventOld)
+  {
+
+    return false;
   }
 
   @Override

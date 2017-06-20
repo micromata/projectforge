@@ -51,6 +51,7 @@ import org.projectforge.business.teamcal.admin.model.TeamCalDO;
 import org.projectforge.business.teamcal.event.TeamEventDao;
 import org.projectforge.business.teamcal.event.TeamEventFilter;
 import org.projectforge.business.teamcal.event.TeamEventService;
+import org.projectforge.business.teamcal.event.diff.TeamEventDiffType;
 import org.projectforge.business.teamcal.event.model.TeamEvent;
 import org.projectforge.business.teamcal.event.model.TeamEventAttendeeDO;
 import org.projectforge.business.teamcal.event.model.TeamEventDO;
@@ -231,9 +232,9 @@ public class TeamEventDaoRest
     //Update attendees
     teamEventService.assignAttendees(teamEvent, attendees, null);
 
-    if (attendees.size() > 0) {
-      teamEventService.sendTeamEventToAttendees(teamEvent, true, false, false, null);
-    }
+    // check if mail should be send
+    teamEventService.checkAndSendMail(teamEvent, null);
+
     result = teamCalService.getEventObject(teamEvent, true, true);
     log.info("Team event: " + teamEvent.getSubject() + " for calendar #" + teamCalDO.getId() + " successfully created.");
     if (result != null) {
@@ -311,20 +312,19 @@ public class TeamEventDaoRest
       //Save or update the generated event
       teamEventService.update(teamEvent);
 
-      TeamEventDO teamEventAfterSaveOrUpdate = teamEventService.getById(teamEvent.getPk());
-      ModificationStatus modificationStatus = ModificationStatus.NONE;
-      modificationStatus = TeamEventDO.copyValues(teamEventOrigin, teamEventAfterSaveOrUpdate, "attendees");
-      TeamEventDO teamEventAfterModificationTest = teamEventService.getById(teamEvent.getPk());
+      //TeamEventDO teamEventAfterSaveOrUpdate = teamEventService.getById(teamEvent.getPk());
+      //ModificationStatus modificationStatus = ModificationStatus.NONE;
+      //modificationStatus = TeamEventDO.copyValues(teamEventOrigin, teamEventAfterSaveOrUpdate, "attendees");
+      //TeamEventDO teamEventAfterModificationTest = teamEventService.getById(teamEvent.getPk());
       //Update attendees
-      teamEventService.assignAttendees(teamEventAfterModificationTest, attendeesToAssignMap, attendeesToUnassignMap);
+      teamEventService.assignAttendees(teamEvent, attendeesToAssignMap, attendeesToUnassignMap);
 
-      TeamEventDO teamEventAfterAssignAttendees = teamEventService.getById(teamEventAfterSaveOrUpdate.getPk());
-      if ((attendeesToAssignMap != null && attendeesToAssignMap.size() > 0) || (modificationStatus != null && modificationStatus != ModificationStatus.NONE)) {
-        teamEventService.sendTeamEventToAttendees(teamEventAfterAssignAttendees, false,
-            true && modificationStatus != ModificationStatus.NONE, false, attendeesToAssignMap);
-      }
-      result = teamCalService.getEventObject(teamEventAfterAssignAttendees, true, true);
-      log.info("Team event: " + teamEventAfterAssignAttendees.getSubject() + " for calendar #" + teamCalDO.getId() + " successfully updated.");
+      //TeamEventDO teamEventAfterAssignAttendees = teamEventService.getById(teamEventAfterSaveOrUpdate.getPk());
+
+      teamEventService.checkAndSendMail(teamEvent, teamEventOrigin);
+
+      result = teamCalService.getEventObject(teamEvent, true, true);
+      log.info("Team event: " + teamEvent.getSubject() + " for calendar #" + teamCalDO.getId() + " successfully updated.");
     } catch (Exception e) {
       log.error("Exception while updating team event", e);
       return Response.serverError().build();
@@ -347,10 +347,10 @@ public class TeamEventDaoRest
       final net.fortuna.ical4j.model.Calendar calendar = builder.build(new ByteArrayInputStream(Base64.decodeBase64(calendarEvent.getIcsData())));
       final VEvent event = (VEvent) calendar.getComponent(Component.VEVENT);
       Uid eventUid = event.getUid();
-      TeamEventDO teamEventOrigin = teamEventService.findByUid(eventUid.getValue());
-      if (teamEventOrigin != null) {
-        teamEventService.markAsDeleted(teamEventOrigin);
-        teamEventService.sendTeamEventToAttendees(teamEventOrigin, false, false, true, null);
+      TeamEventDO teamEvent = teamEventService.findByUid(eventUid.getValue());
+      if (teamEvent != null) {
+        teamEventService.markAsDeleted(teamEvent);
+        teamEventService.checkAndSendMail(teamEvent, TeamEventDiffType.DELETED);
         log.info("Team event with the id: " + eventUid.getValue() + " for calendar #" + calendarEvent.getCalendarId() + " successfully marked as deleted.");
       } else {
         log.warn("Team event with uid: " + eventUid.getValue() + " not found");
