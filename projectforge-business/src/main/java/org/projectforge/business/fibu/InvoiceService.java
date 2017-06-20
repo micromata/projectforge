@@ -3,9 +3,12 @@ package org.projectforge.business.fibu;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.math.BigDecimal;
+import java.text.DecimalFormat;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.xwpf.usermodel.XWPFDocument;
@@ -17,6 +20,7 @@ import org.apache.poi.xwpf.usermodel.XWPFTableRow;
 import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTRow;
 import org.projectforge.business.configuration.ConfigurationService;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
+import org.projectforge.framework.time.DateTimeFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
@@ -47,12 +51,14 @@ public class InvoiceService
     ByteArrayOutputStream result = null;
     try {
       Resource invoiceTemplate = null;
+      boolean isSkonto = data.getDiscountMaturity() != null && data.getDiscountPercent() != null && data.getDiscountZahlungsZielInTagen() != null;
       if (customInvoiceTemplateName.isEmpty() == false) {
         String resourceDir = configurationService.getResourceDir();
-        invoiceTemplate = applicationContext.getResource("file://" + resourceDir + "/officeTemplates/" + customInvoiceTemplateName);
+        invoiceTemplate = applicationContext
+            .getResource("file://" + resourceDir + "/officeTemplates/" + customInvoiceTemplateName + (isSkonto ? "_Skonto" : "") + ".docx");
       }
       if (invoiceTemplate == null || invoiceTemplate.exists() == false) {
-        invoiceTemplate = applicationContext.getResource("classpath:officeTemplates/InvoiceTemplate.docx");
+        invoiceTemplate = applicationContext.getResource("classpath:officeTemplates/InvoiceTemplate" + (isSkonto ? "_Skonto" : "") + ".docx");
       }
       XWPFDocument templateDocument = readWordFile(invoiceTemplate.getInputStream());
       Map<String, String> map = new HashMap<>();
@@ -60,42 +66,21 @@ public class InvoiceService
       map.put("Typ", data.getTyp().toString());
       map.put("Kundenreferenz", data.getCustomerref1());
       map.put("Kundenreferenz2", data.getCustomerref2());
-      map.put("Auftragsnummer", data.getPositionen().get(0).getAuftragsPosition().getAuftrag().getNummer().toString());
-      map.put("Vorname_Nachname", ThreadLocalUserContext.getUser().getFullname());
+      map.put("Auftragsnummer", data.getPositionen().stream()
+          .map(pos -> String.valueOf(pos.getAuftragsPosition().getAuftrag().getNummer()))
+          .distinct()
+          .collect(Collectors.joining(", ")));
+      map.put("VORNAME_NACHNAME", ThreadLocalUserContext.getUser().getFullname().toUpperCase());
       map.put("Rechnungsnummer", data.getNummer().toString());
-      map.put("Rechnungsdatum", data.getDatum().toString());
+      map.put("Rechnungsdatum", DateTimeFormatter.instance().getFormattedDate(data.getDatum()));
+      map.put("Faelligkeit", DateTimeFormatter.instance().getFormattedDate(data.getFaelligkeit()));
+      if (isSkonto) {
+        map.put("Skonto", formatBigDecimal(data.getDiscountPercent()) + " %");
+        map.put("Faelligkeit_Skonto", DateTimeFormatter.instance().getFormattedDate(data.getDiscountMaturity()));
+      }
       replaceInWholeDocument(templateDocument, map);
 
-      replaceInPosTable(templateDocument, data.getPositionen());
-
-      //Skonto
-      //      if (data.getDiscountPercent() != null) {
-      //        String skontoText =
-      //            "Wir bitten um Überweisung des Gesamtbetrages abzüglich " + data.getDiscountPercent().toString() + "% Skonto bis zum " + " danach bis zum " + data
-      //                .getFaelligkeit().toString() + " ohne Abzüge und freuen uns auf eine weiterhin erfolgreiche Zusammenarbeit";
-      //        replaceTextInDoc(templateDocument, "EndText", skontoText);
-      //      } else {
-      //        String faelligkeitText = "Wir bitten um Überweisung des Gesamtbetrages bis zum " + data
-      //            .getFaelligkeit().toString() + " und freuen uns auf eine weiterhin erfolgreiche Zusammenarbeit.";
-      //        replaceTextInDoc(templateDocument, "EndText", faelligkeitText);
-      //      }
-      //      //Positionen
-      //      XWPFTableRow tmpRow = null;
-      //      for (XWPFTable tbl : templateDocument.getTables()) {
-      //        tmpRow = tbl.getRow(1);
-      //      }
-      //      for (RechnungsPositionDO pos : data.getPositionen()) {
-      //        if (pos.getNumber() == 1) {
-      //          generateTableText(templateDocument, pos, data);
-      //        } else {
-      //          templateDocument.getTables().get(0).addRow(tmpRow, pos.getNumber());
-      //          generateTableText(templateDocument, pos, data);
-      //        }
-      //      }
-      //      replaceTextInTable(templateDocument, "Zwischensumm", data.getNetSum().toString());
-      //      replaceTextInTable(templateDocument, "MwSt", data.getNetSum().divide(new BigDecimal(100)).multiply(new BigDecimal(19)).toString());
-      //      replaceTextInTable(templateDocument, "Gesamtbetrag",
-      //          data.getNetSum().add(data.getNetSum().divide(new BigDecimal(100)).multiply(new BigDecimal(19))).toString());
+      replaceInPosTable(templateDocument, data);
 
       result = new ByteArrayOutputStream();
       templateDocument.write(result);
@@ -105,7 +90,7 @@ public class InvoiceService
     return result;
   }
 
-  public void replaceInWholeDocument(XWPFDocument document, Map<String, String> map)
+  private void replaceInWholeDocument(XWPFDocument document, Map<String, String> map)
   {
     List<XWPFParagraph> paragraphs = document.getParagraphs();
     for (XWPFParagraph paragraph : paragraphs) {
@@ -116,7 +101,7 @@ public class InvoiceService
     }
   }
 
-  public void replaceInWholeDocument(XWPFDocument document, String searchText, String replacement)
+  private void replaceInWholeDocument(XWPFDocument document, String searchText, String replacement)
   {
     List<XWPFParagraph> paragraphs = document.getParagraphs();
     for (XWPFParagraph paragraph : paragraphs) {
@@ -137,7 +122,7 @@ public class InvoiceService
     }
   }
 
-  public void replaceInParagraph(XWPFParagraph paragraph, String searchText, String replacement)
+  private void replaceInParagraph(XWPFParagraph paragraph, String searchText, String replacement)
   {
     boolean found = true;
     while (found) {
@@ -153,7 +138,15 @@ public class InvoiceService
         if (replacement.contains("\r\n")) {
           replacement = replacement.replace("\r", "");
         }
-        run.setText(replacement, 0);
+        int runCount = paragraph.getRuns().size();
+        StringBuffer sb = new StringBuffer();
+        for (int i = 0; i <= runCount; i++) {
+          if (i >= runNum && i <= lastRunNum) {
+            sb.append(paragraph.getRuns().get(i).getText(0));
+          }
+        }
+        String newText = sb.toString().replace(searchText, replacement);
+        run.setText(newText, 0);
         for (int i = lastRunNum; i > runNum; i--) {
           paragraph.removeRun(i);
         }
@@ -198,12 +191,68 @@ public class InvoiceService
     return map;
   }
 
-  private void replaceInPosTable(final XWPFDocument templateDocument, final List<RechnungsPositionDO> positionen)
+  private void replaceInPosTable(final XWPFDocument templateDocument, final RechnungDO invoice)
   {
-    generatePosTableRows(templateDocument, positionen);
+    XWPFTable posTbl = generatePosTableRows(templateDocument, invoice.getPositionen());
+    replacePosDataInTable(posTbl, invoice);
+    replaceSumDataInTable(posTbl, invoice);
   }
 
-  private void generatePosTableRows(final XWPFDocument templateDocument, final List<RechnungsPositionDO> positionen)
+  private void replaceSumDataInTable(final XWPFTable posTbl, final RechnungDO invoice)
+  {
+    Map<String, String> map = new HashMap<>();
+    map.put("Zwischensumme", formatBigDecimal(invoice.getNetSum()));
+    map.put("MwSt", formatBigDecimal(invoice.getVatAmountSum()));
+    map.put("Gesamtbetrag", formatBigDecimal(invoice.getGrossSum()));
+    int tableRowSize = posTbl.getRows().size();
+    for (int startSumRow = tableRowSize - 2; startSumRow < tableRowSize; startSumRow++) {
+      for (XWPFTableCell cell : posTbl.getRow(startSumRow).getTableCells()) {
+        for (XWPFParagraph cellParagraph : cell.getParagraphs()) {
+          replaceInParagraph(cellParagraph, map);
+        }
+      }
+    }
+  }
+
+  private String formatBigDecimal(final BigDecimal value)
+  {
+    DecimalFormat df = new DecimalFormat("#,###.00");
+    return df.format(value.setScale(2));
+  }
+
+  private void replacePosDataInTable(final XWPFTable posTbl, final RechnungDO invoice)
+  {
+    int rowCount = 1;
+    for (RechnungsPositionDO position : invoice.getPositionen()) {
+      String identifier = "{" + position.getNumber() + "}";
+      Map<String, String> map = new HashMap<>();
+      map.put(identifier + "Posnummer", String.valueOf(position.getNumber()));
+      map.put(identifier + "Text", position.getText());
+      map.put(identifier + "Leistungszeitraum", getPeriodOfPerformance(position, invoice));
+      map.put(identifier + "Menge", formatBigDecimal(position.getMenge()));
+      map.put(identifier + "Einzelpreis", formatBigDecimal(position.getEinzelNetto()));
+      map.put(identifier + "Betrag", formatBigDecimal(position.getNetSum()));
+      for (XWPFTableCell cell : posTbl.getRow(rowCount).getTableCells()) {
+        for (XWPFParagraph cellParagraph : cell.getParagraphs()) {
+          replaceInParagraph(cellParagraph, map);
+        }
+      }
+      rowCount++;
+    }
+  }
+
+  private String getPeriodOfPerformance(final RechnungsPositionDO position, final RechnungDO invoice)
+  {
+    if (position.getPeriodOfPerformanceType().equals(PeriodOfPerformanceType.OWN)) {
+      return DateTimeFormatter.instance().getFormattedDate(position.getPeriodOfPerformanceBegin()) + " - " + DateTimeFormatter.instance()
+          .getFormattedDate(position.getPeriodOfPerformanceEnd());
+    } else {
+      return DateTimeFormatter.instance().getFormattedDate(invoice.getPeriodOfPerformanceBegin()) + " - " + DateTimeFormatter.instance()
+          .getFormattedDate(invoice.getPeriodOfPerformanceEnd());
+    }
+  }
+
+  private XWPFTable generatePosTableRows(final XWPFDocument templateDocument, final List<RechnungsPositionDO> positionen)
   {
     XWPFTable posTbl = null;
     for (XWPFTable tbl : templateDocument.getTables()) {
@@ -223,6 +272,7 @@ public class InvoiceService
       }
       rowCount++;
     }
+    return posTbl;
   }
 
   private void copyTableRow(final XWPFTable posTbl, final int rowCounter)
