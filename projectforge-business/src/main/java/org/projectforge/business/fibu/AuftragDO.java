@@ -59,6 +59,7 @@ import org.projectforge.framework.persistence.api.PFPersistancyBehavior;
 import org.projectforge.framework.persistence.entities.DefaultBaseDO;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.utils.NumberHelper;
+import org.projectforge.framework.xstream.XmlObjectReader;
 
 import de.micromata.genome.db.jpa.history.api.NoHistory;
 import de.micromata.genome.db.jpa.history.api.WithHistory;
@@ -779,9 +780,14 @@ public class AuftragDO extends DefaultBaseDO
   @Transient
   public AuftragUIStatus getUiStatus()
   {
-    if (uiStatus == null) {
+    if (uiStatus == null && StringUtils.isEmpty(uiStatusAsXml)) {
       uiStatus = new AuftragUIStatus();
+    } else if (uiStatus == null) {
+      final XmlObjectReader reader = new XmlObjectReader();
+      reader.initialize(AuftragUIStatus.class);
+      uiStatus = (AuftragUIStatus) reader.read(uiStatusAsXml);
     }
+
     return uiStatus;
   }
 

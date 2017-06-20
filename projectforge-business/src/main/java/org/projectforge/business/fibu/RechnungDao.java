@@ -36,7 +36,6 @@ import java.util.List;
 import java.util.Set;
 
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.hibernate.FetchMode;
 import org.hibernate.criterion.Order;
@@ -53,7 +52,6 @@ import org.projectforge.framework.persistence.api.QueryFilter;
 import org.projectforge.framework.persistence.history.DisplayHistoryEntry;
 import org.projectforge.framework.persistence.utils.SQLHelper;
 import org.projectforge.framework.time.DateHelper;
-import org.projectforge.framework.xstream.XmlObjectReader;
 import org.projectforge.framework.xstream.XmlObjectWriter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
@@ -95,20 +93,6 @@ public class RechnungDao extends BaseDao<RechnungDO>
       }
     }
     return nettoSumme;
-  }
-
-  static void readUiStatusFromXml(final AbstractRechnungDO<?> rechnung)
-  {
-    final XmlObjectReader reader = new XmlObjectReader();
-    reader.initialize(RechnungUIStatus.class);
-    final String styleAsXml = rechnung.getUiStatusAsXml();
-    final RechnungUIStatus status;
-    if (StringUtils.isEmpty(styleAsXml) == true) {
-      status = new RechnungUIStatus();
-    } else {
-      status = (RechnungUIStatus) reader.read(styleAsXml);
-    }
-    rechnung.setUiStatus(status);
   }
 
   static void writeUiStatusToXml(final AbstractRechnungDO<?> rechnung)
@@ -267,12 +251,6 @@ public class RechnungDao extends BaseDao<RechnungDO>
     if (projektId == null && kundeId == null) {
       throw new UserException("fibu.rechnung.error.kundeTextOderProjektRequired");
     }
-  }
-
-  @Override
-  public void afterLoad(final RechnungDO obj)
-  {
-    readUiStatusFromXml(obj);
   }
 
   @Override
