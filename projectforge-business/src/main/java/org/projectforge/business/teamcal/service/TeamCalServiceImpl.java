@@ -345,12 +345,9 @@ public class TeamCalServiceImpl
 
     if (teamEvent.hasRecurrence() == true) {
       final Recur recur = teamEvent.getRecurrenceObject();
-      if (recur.getUntil() != null) {
-        recur.setUntil(
-            ICal4JUtils.getICal4jDateTime(CalendarUtils.getEndOfDay(recur.getUntil(), timeZone), timeZone));
-      }
       final RRule rrule = new RRule(recur);
       vEvent.getProperties().add(rrule);
+
       if (teamEvent.getRecurrenceExDate() != null) {
         final List<net.fortuna.ical4j.model.Date> exDates = ICal4JUtils.parseCSVDatesAsICal4jDates(
             teamEvent.getRecurrenceExDate(), (false == teamEvent.isAllDay()), ICal4JUtils.getUTCTimeZone());
@@ -361,7 +358,9 @@ public class TeamCalServiceImpl
               dateList = new DateList(Value.DATE);
             } else {
               dateList = new DateList();
+              dateList.setUtc(true);
             }
+
             dateList.add(date);
             ExDate exDate;
             exDate = new ExDate(dateList);
@@ -434,6 +433,7 @@ public class TeamCalServiceImpl
     if (src == null) {
       return null;
     }
+
     final CalendarEventObject event = new CalendarEventObject();
     event.setId(src.getPk());
     event.setUid(src.getUid());
@@ -502,26 +502,6 @@ public class TeamCalServiceImpl
     return vEvent;
   }
 
-  public static String calculateRRule(final TeamEventRecurrenceData recurData)
-  {
-    if (recurData == null || recurData.getFrequency() == null || recurData.getFrequency() == RecurrenceFrequency.NONE) {
-      return null;
-    }
-    if (recurData.isCustomized() == false) {
-      recurData.setInterval(1);
-    }
-    final Recur recur = new Recur();
-    final net.fortuna.ical4j.model.Date untilDate = ICal4JUtils.getICal4jDate(recurData.getUntil(),
-        recurData.getTimeZone());
-    if (untilDate != null) {
-      recur.setUntil(untilDate);
-    }
-    recur.setInterval(recurData.getInterval());
-    recur.setFrequency(ICal4JUtils.getCal4JFrequencyString(recurData.getFrequency()));
-    final RRule rrule = new RRule(recur);
-    return rrule.getValue();
-  }
-
   public static Collection<TeamEvent> getRecurrenceEvents(final java.util.Date startDate, final java.util.Date endDate,
       final TeamEventDO event, final java.util.TimeZone timeZone)
   {
@@ -529,6 +509,7 @@ public class TeamCalServiceImpl
       return null;
     }
     final Recur recur = event.getRecurrenceObject();
+
     if (recur == null) {
       // Shouldn't happen:
       return null;
@@ -638,7 +619,6 @@ public class TeamCalServiceImpl
   public TeamEventDO createTeamEventDO(final VEvent event, java.util.TimeZone timeZone, boolean withUid)
   {
     final TeamEventDO teamEvent = new TeamEventDO();
-    teamEvent.setTimeZone(timeZone);
     teamEvent.setCreator(ThreadLocalUserContext.getUser());
     final DtStart dtStart = event.getStartDate();
     if (dtStart != null && dtStart.getParameter("VALUE") != null && dtStart.getParameter("VALUE").getValue().contains("DATE") == true
@@ -751,7 +731,7 @@ public class TeamCalServiceImpl
     // find recurrence rule
     final RRule rule = (RRule) event.getProperty(Property.RRULE);
     if (rule != null) {
-      teamEvent.setRecurrenceRule(rule.getValue());
+      teamEvent.setRecurrence(rule, timeZone);
     }
 
     // parsing ExDates
