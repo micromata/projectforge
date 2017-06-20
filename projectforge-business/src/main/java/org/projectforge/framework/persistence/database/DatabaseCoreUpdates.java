@@ -137,9 +137,9 @@ public class DatabaseCoreUpdates
     final List<UpdateEntry> list = new ArrayList<>();
 
     ////////////////////////////////////////////////////////////////////
-    // 6.12.0
+    // 6.13.0
     // /////////////////////////////////////////////////////////////////
-    list.add(new UpdateEntryImpl(CORE_REGION_ID, "6.13.0", "2017-06-08",
+    list.add(new UpdateEntryImpl(CORE_REGION_ID, "6.13.0", "2017-06-21",
         "Correct error in until date of recurring events.")
     {
       @Override
