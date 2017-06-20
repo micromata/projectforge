@@ -31,12 +31,15 @@ import java.util.Date;
 import java.util.List;
 
 import org.apache.commons.lang.StringUtils;
+import org.projectforge.business.teamcal.event.TeamEventRecurrenceData;
 import org.projectforge.common.StringHelper;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.time.DateFormats;
 import org.projectforge.framework.time.DateHelper;
 import org.projectforge.framework.time.RecurrenceFrequency;
 
+import aQute.lib.json.DateHandler;
+import net.fortuna.ical4j.model.DateTime;
 import net.fortuna.ical4j.model.Recur;
 import net.fortuna.ical4j.model.TimeZone;
 import net.fortuna.ical4j.model.TimeZoneRegistry;
@@ -118,52 +121,19 @@ public class ICal4JUtils
 
   /**
    * @param rruleString
-   * @param timeZone
    * @return null if rruleString is empty, otherwise new RRule object.
    */
-  public static RRule calculateRecurrenceRule(final String rruleString, java.util.TimeZone timeZone)
+  public static RRule calculateRRule(final String rruleString)
   {
     if (StringUtils.isBlank(rruleString) == true) {
       return null;
     }
     try {
-      final RRule rule = new RRule(rruleString);
-      // set the recurrence end date to the last minute of the day
-      final Recur recur = rule.getRecur();
-      final net.fortuna.ical4j.model.Date until = recur != null ? recur.getUntil() : null;
-      if (until != null) {
-        final Date untilEndOfDay = CalendarUtils.getEndOfDay(until, timeZone);
-        recur.setUntil(new net.fortuna.ical4j.model.Date(untilEndOfDay));
-      }
-      return rule;
+      return new RRule(rruleString);
     } catch (final ParseException ex) {
       log.error("Exception encountered while parsing rrule '" + rruleString + "': " + ex.getMessage(), ex);
       return null;
     }
-  }
-
-  /**
-   * @param rruleString
-   * @param timeZone
-   * @see ICal4JUtils#calculateRecurrenceRule(String)
-   * @see RRule#getRecur()
-   */
-  public static Recur calculateRecurrence(final String rruleString, java.util.TimeZone timeZone)
-  {
-    final RRule rule = calculateRecurrenceRule(rruleString, timeZone);
-    return rule != null ? rule.getRecur() : null;
-  }
-
-  public static Date calculateRecurrenceUntil(final String rruleString, java.util.TimeZone timeZone)
-  {
-    if (StringUtils.isBlank(rruleString) == true) {
-      return null;
-    }
-    final Recur recur = calculateRecurrence(rruleString, timeZone);
-    if (recur == null) {
-      return null;
-    }
-    return recur.getUntil();
   }
 
   public static String getCal4JFrequencyString(final RecurrenceFrequency interval)
@@ -203,7 +173,7 @@ public class ICal4JUtils
   }
 
   /**
-   * @param recur
+   * @param interval
    * @return
    */
   public static String getFrequency(final RecurrenceFrequency interval)
@@ -257,6 +227,8 @@ public class ICal4JUtils
     }
   }
 
+  // TODO remove, date should not use timezone!
+  @Deprecated
   public static net.fortuna.ical4j.model.Date getICal4jDate(final java.util.Date javaDate,
       final java.util.TimeZone timeZone)
   {
