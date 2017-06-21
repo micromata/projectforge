@@ -237,6 +237,7 @@
     <mpxj.version>4.3.0</mpxj.version>
     <fop.version>1.0</fop.version>
     <xmlgraphics-commons.version>1.5</xmlgraphics-commons.version>
+    <xmlgraphics-batik-codec.version>1.9</xmlgraphics-batik-codec.version>
     <!-- HIBERNATE5 -->
     <ehcache-core.version>2.6.11</ehcache-core.version>
     <postgresql.version>9.4.1211</postgresql.version>

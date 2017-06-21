@@ -236,6 +236,12 @@
       <artifactId>xmlgraphics-commons</artifactId>
       <version>${xmlgraphics-commons.version}</version>
     </dependency>
+    <!-- Needed for Gantt-Chart generation -->
+    <dependency>
+      <groupId>org.apache.xmlgraphics</groupId>
+      <artifactId>batik-codec</artifactId>
+      <version>${xmlgraphics-batik-codec.version}</version>
+    </dependency>
     <dependency>
       <groupId>net.sf.ehcache</groupId>
       <artifactId>ehcache-core</artifactId>
