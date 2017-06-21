@@ -140,7 +140,7 @@ public class DatabaseCoreUpdates
     // 6.13.0
     // /////////////////////////////////////////////////////////////////
     list.add(new UpdateEntryImpl(CORE_REGION_ID, "6.13.0", "2017-06-21",
-        "Correct error in until date of recurring events.")
+        "Correct error in until date of recurring events. Add fields to invoice DO.")
     {
       @Override
       public UpdatePreCheckStatus runPreCheck()
