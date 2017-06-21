@@ -27,17 +27,18 @@ import org.projectforge.common.i18n.I18nEnum;
 
 /**
  * Es gibt zwei Arten: Die normale Rechnung mit Rechnungsnummer und die Gutschriftsanzeige durch den Kunden ohne Rechnungsnummer.
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
  */
 public enum RechnungTyp implements I18nEnum
 {
-  RECHNUNG("rechnung"), GUTSCHRIFTSANZEIGE_DURCH_KUNDEN("gutschriftsAnzeigeDurchKunden");
+  RECHNUNG("rechnung"), GUTSCHRIFTSANZEIGE_DURCH_KUNDEN("gutschriftsAnzeigeDurchKunden"), CANCELLATION("cancellation");
 
   private String key;
 
   /**
    * The key will be used e. g. for i18n.
+   *
    * @return
    */
   public String getKey()

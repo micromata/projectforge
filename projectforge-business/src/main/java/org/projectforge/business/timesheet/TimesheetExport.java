@@ -29,6 +29,15 @@ import java.util.List;
 
 import org.apache.poi.hssf.util.HSSFColor;
 import org.projectforge.business.common.OutputType;
+import org.projectforge.business.excel.CellFormat;
+import org.projectforge.business.excel.ContentProvider;
+import org.projectforge.business.excel.ExportCell;
+import org.projectforge.business.excel.ExportColumn;
+import org.projectforge.business.excel.ExportRow;
+import org.projectforge.business.excel.ExportSheet;
+import org.projectforge.business.excel.ExportWorkbook;
+import org.projectforge.business.excel.I18nExportColumn;
+import org.projectforge.business.excel.PropertyMapping;
 import org.projectforge.business.fibu.KundeDO;
 import org.projectforge.business.fibu.ProjektDO;
 import org.projectforge.business.fibu.kost.Kost2DO;
@@ -38,15 +47,6 @@ import org.projectforge.business.task.TaskTree;
 import org.projectforge.business.task.formatter.TaskFormatter;
 import org.projectforge.business.tasktree.TaskTreeHelper;
 import org.projectforge.business.user.UserGroupCache;
-import org.projectforge.excel.CellFormat;
-import org.projectforge.excel.ContentProvider;
-import org.projectforge.excel.ExportCell;
-import org.projectforge.excel.ExportColumn;
-import org.projectforge.excel.ExportRow;
-import org.projectforge.excel.ExportSheet;
-import org.projectforge.excel.ExportWorkbook;
-import org.projectforge.excel.I18nExportColumn;
-import org.projectforge.excel.PropertyMapping;
 import org.projectforge.export.MyXlsContentProvider;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
@@ -59,7 +59,7 @@ import org.springframework.stereotype.Service;
 
 /**
  * For excel export.
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 @Service
@@ -108,7 +108,9 @@ public class TimesheetExport
     {
       return new MyContentProvider(this.workbook);
     }
-  };
+  }
+
+  ;
 
   private enum Col
   {

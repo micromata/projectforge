@@ -29,6 +29,12 @@ import java.util.List;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.hibernate.criterion.Order;
+import org.projectforge.business.excel.ContentProvider;
+import org.projectforge.business.excel.ExportColumn;
+import org.projectforge.business.excel.ExportSheet;
+import org.projectforge.business.excel.ExportWorkbook;
+import org.projectforge.business.excel.I18nExportColumn;
+import org.projectforge.business.excel.PropertyMapping;
 import org.projectforge.business.fibu.AbstractRechnungDO;
 import org.projectforge.business.fibu.AbstractRechnungsPositionDO;
 import org.projectforge.business.fibu.EingangsrechnungDO;
@@ -40,12 +46,6 @@ import org.projectforge.business.fibu.ProjektFormatter;
 import org.projectforge.business.fibu.RechnungDO;
 import org.projectforge.business.fibu.RechnungsPositionDO;
 import org.projectforge.common.StringHelper;
-import org.projectforge.excel.ContentProvider;
-import org.projectforge.excel.ExportColumn;
-import org.projectforge.excel.ExportSheet;
-import org.projectforge.excel.ExportWorkbook;
-import org.projectforge.excel.I18nExportColumn;
-import org.projectforge.excel.PropertyMapping;
 import org.projectforge.export.MyXlsContentProvider;
 import org.projectforge.framework.persistence.api.QueryFilter;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
@@ -56,7 +56,7 @@ import org.springframework.stereotype.Component;
 
 /**
  * For excel export.
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 @Component
@@ -80,7 +80,9 @@ public class KostZuweisungExport
     {
       return new MyContentProvider(this.workbook);
     }
-  };
+  }
+
+  ;
 
   private enum InvoicesCol
   {
@@ -108,7 +110,7 @@ public class KostZuweisungExport
 
   /**
    * Export all cost assignements of the given invoices as excel list.
-   * 
+   *
    * @param list
    * @return
    */
