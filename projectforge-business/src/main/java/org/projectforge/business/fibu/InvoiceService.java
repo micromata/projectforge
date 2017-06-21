@@ -67,6 +67,7 @@ public class InvoiceService
       map.put("Kundenreferenz", data.getCustomerref1());
       map.put("Kundenreferenz2", data.getCustomerref2());
       map.put("Auftragsnummer", data.getPositionen().stream()
+          .filter(pos -> pos.getAuftragsPosition() != null && pos.getAuftragsPosition().getAuftrag() != null)
           .map(pos -> String.valueOf(pos.getAuftragsPosition().getAuftrag().getNummer()))
           .distinct()
           .collect(Collectors.joining(", ")));
