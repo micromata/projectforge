@@ -82,7 +82,12 @@ public class PfBasicLocalSettingsConfigModel extends AbstractLocalSettingsConfig
     sw.put("server.session.cookie.http-only", "true");
     sw.put("server.session.tracking-modes", "cookie", " this avoids session fixation via jsessionid in URL");
     sw.put("server.session.timeout", "3600", " Session timeout in seconds.");
-    sw.put("multipart.maxFileSize", "1024Kb");
+
+    sw.put("spring.http.multipart.max-file-size", "10Mb", "Upload sizes");
+    sw.put("spring.http.multipart.max-request-size", "11Mb");
+    sw.put("projectforge.max-file-size.image", "1Mb");
+    sw.put("projectforge.max-file-size.datev", "3Mb");
+    sw.put("projectforge.max-file-size.xml-dump-import", "10Mb");
 
     sw.put("pf.config.security.teamCalCryptPassword", "enter-a-password-here",
         " password to encrypt the links which are sent by email for event invitations, max 32 characters");
