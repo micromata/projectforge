@@ -4,6 +4,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigDecimal;
+import java.sql.Date;
 import java.text.DecimalFormat;
 import java.util.HashMap;
 import java.util.List;
@@ -61,28 +62,33 @@ public class InvoiceService
       if (invoiceTemplate == null || invoiceTemplate.exists() == false) {
         invoiceTemplate = applicationContext.getResource("classpath:officeTemplates/InvoiceTemplate" + (isSkonto ? "_Skonto" : "") + ".docx");
       }
-      XWPFDocument templateDocument = readWordFile(invoiceTemplate.getInputStream());
-      Map<String, String> map = new HashMap<>();
-      map.put("Rechnungsadresse", data.getCustomerAddress());
-      map.put("Typ", data.getTyp() != null ? I18nHelper.getLocalizedMessage(data.getTyp().getI18nKey()) : "");
-      map.put("Kundenreferenz", data.getCustomerref1());
-      map.put("Kundenreferenz2", data.getCustomerref2());
-      map.put("Auftragsnummer", data.getPositionen().stream()
+
+      Map<String, String> replacementMap = new HashMap<>();
+      replacementMap.put("Rechnungsadresse", data.getCustomerAddress());
+      replacementMap.put("Typ", data.getTyp() != null ? I18nHelper.getLocalizedMessage(data.getTyp().getI18nKey()) : "");
+      replacementMap.put("Kundenreferenz", data.getCustomerref1());
+      replacementMap.put("Kundenreferenz2", data.getCustomerref2());
+      replacementMap.put("Auftragsnummer", data.getPositionen().stream()
           .filter(pos -> pos.getAuftragsPosition() != null && pos.getAuftragsPosition().getAuftrag() != null)
           .map(pos -> String.valueOf(pos.getAuftragsPosition().getAuftrag().getNummer()))
           .distinct()
           .collect(Collectors.joining(", ")));
-      map.put("VORNAME_NACHNAME", ThreadLocalUserContext.getUser() != null && ThreadLocalUserContext.getUser().getFullname() != null ?
+      replacementMap.put("VORNAME_NACHNAME", ThreadLocalUserContext.getUser() != null && ThreadLocalUserContext.getUser().getFullname() != null ?
           ThreadLocalUserContext.getUser().getFullname().toUpperCase() :
           "");
-      map.put("Rechnungsnummer", data.getNummer() != null ? data.getNummer().toString() : "");
-      map.put("Rechnungsdatum", DateTimeFormatter.instance().getFormattedDate(data.getDatum()));
-      map.put("Faelligkeit", DateTimeFormatter.instance().getFormattedDate(data.getFaelligkeit()));
+      replacementMap.put("Rechnungsnummer", data.getNummer() != null ? data.getNummer().toString() : "");
+      replacementMap.put("Rechnungsdatum", DateTimeFormatter.instance().getFormattedDate(data.getDatum()));
+      replacementMap.put("Faelligkeit", DateTimeFormatter.instance().getFormattedDate(data.getFaelligkeit()));
       if (isSkonto) {
-        map.put("Skonto", formatBigDecimal(data.getDiscountPercent()) + " %");
-        map.put("Faelligkeit_Skonto", DateTimeFormatter.instance().getFormattedDate(data.getDiscountMaturity()));
+        replacementMap.put("Skonto", formatBigDecimal(data.getDiscountPercent()) + " %");
+        replacementMap.put("Faelligkeit_Skonto", DateTimeFormatter.instance().getFormattedDate(data.getDiscountMaturity()));
       }
-      replaceInWholeDocument(templateDocument, map);
+
+      XWPFDocument templateDocument = readWordFile(invoiceTemplate.getInputStream());
+
+      replaceInWholeDocument(templateDocument, replacementMap);
+
+      replaceInTable(templateDocument, replacementMap);
 
       replaceInPosTable(templateDocument, data);
 
@@ -101,18 +107,6 @@ public class InvoiceService
       if (StringUtils.isEmpty(paragraph.getText()) == false) {
         replaceInParagraph(paragraph, map);
       }
-      replaceInTable(document, map);
-    }
-  }
-
-  private void replaceInWholeDocument(XWPFDocument document, String searchText, String replacement)
-  {
-    List<XWPFParagraph> paragraphs = document.getParagraphs();
-    for (XWPFParagraph paragraph : paragraphs) {
-      if (StringUtils.isEmpty(paragraph.getText()) == false && StringUtils.contains(paragraph.getText(), searchText)) {
-        replaceInParagraph(paragraph, "{" + searchText + "}", replacement);
-      }
-      replaceInTable(document, "{" + searchText + "}", replacement);
     }
   }
 
@@ -143,7 +137,7 @@ public class InvoiceService
           replacement = replacement.replace("\r", "");
         }
         int runCount = paragraph.getRuns().size();
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
         for (int i = 0; i <= runCount; i++) {
           if (i >= runNum && i <= lastRunNum) {
             sb.append(paragraph.getRuns().get(i).getText(0));
@@ -250,13 +244,18 @@ public class InvoiceService
 
   private String getPeriodOfPerformance(final RechnungsPositionDO position, final RechnungDO invoice)
   {
-    if (position.getPeriodOfPerformanceType().equals(PeriodOfPerformanceType.OWN)) {
-      return DateTimeFormatter.instance().getFormattedDate(position.getPeriodOfPerformanceBegin()) + " - " + DateTimeFormatter.instance()
-          .getFormattedDate(position.getPeriodOfPerformanceEnd());
+    final Date begin;
+    final Date end;
+
+    if (position.getPeriodOfPerformanceType() == PeriodOfPerformanceType.OWN) {
+      begin = position.getPeriodOfPerformanceBegin();
+      end = position.getPeriodOfPerformanceEnd();
     } else {
-      return DateTimeFormatter.instance().getFormattedDate(invoice.getPeriodOfPerformanceBegin()) + " - " + DateTimeFormatter.instance()
-          .getFormattedDate(invoice.getPeriodOfPerformanceEnd());
+      begin = invoice.getPeriodOfPerformanceBegin();
+      end = invoice.getPeriodOfPerformanceEnd();
     }
+
+    return DateTimeFormatter.instance().getFormattedDate(begin) + " - " + DateTimeFormatter.instance().getFormattedDate(end);
   }
 
   private XWPFTable generatePosTableRows(final XWPFDocument templateDocument, final List<RechnungsPositionDO> positionen)
@@ -294,8 +293,7 @@ public class InvoiceService
   private XWPFDocument readWordFile(InputStream is)
   {
     try {
-      XWPFDocument docx = new XWPFDocument(is);
-      return docx;
+      return new XWPFDocument(is);
     } catch (IOException e) {
       log.error("Exception while reading docx file.", e);
     }
