@@ -19,6 +19,7 @@ import org.apache.poi.xwpf.usermodel.XWPFTableCell;
 import org.apache.poi.xwpf.usermodel.XWPFTableRow;
 import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTRow;
 import org.projectforge.business.configuration.ConfigurationService;
+import org.projectforge.framework.i18n.I18nHelper;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.time.DateTimeFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -63,7 +64,7 @@ public class InvoiceService
       XWPFDocument templateDocument = readWordFile(invoiceTemplate.getInputStream());
       Map<String, String> map = new HashMap<>();
       map.put("Rechnungsadresse", data.getCustomerAddress());
-      map.put("Typ", data.getTyp().toString());
+      map.put("Typ", data.getTyp() != null ? I18nHelper.getLocalizedMessage(data.getTyp().getI18nKey()) : "");
       map.put("Kundenreferenz", data.getCustomerref1());
       map.put("Kundenreferenz2", data.getCustomerref2());
       map.put("Auftragsnummer", data.getPositionen().stream()
@@ -71,8 +72,10 @@ public class InvoiceService
           .map(pos -> String.valueOf(pos.getAuftragsPosition().getAuftrag().getNummer()))
           .distinct()
           .collect(Collectors.joining(", ")));
-      map.put("VORNAME_NACHNAME", ThreadLocalUserContext.getUser().getFullname().toUpperCase());
-      map.put("Rechnungsnummer", data.getNummer().toString());
+      map.put("VORNAME_NACHNAME", ThreadLocalUserContext.getUser() != null && ThreadLocalUserContext.getUser().getFullname() != null ?
+          ThreadLocalUserContext.getUser().getFullname().toUpperCase() :
+          "");
+      map.put("Rechnungsnummer", data.getNummer() != null ? data.getNummer().toString() : "");
       map.put("Rechnungsdatum", DateTimeFormatter.instance().getFormattedDate(data.getDatum()));
       map.put("Faelligkeit", DateTimeFormatter.instance().getFormattedDate(data.getFaelligkeit()));
       if (isSkonto) {
