@@ -84,8 +84,10 @@ public class RechnungEditPage extends AbstractEditPage<RechnungDO, RechnungEditF
         log.debug("Export invoice.");
         ByteArrayOutputStream baos = invoiceService.getInvoiceWordDocument(getData());
         if (baos != null) {
-          DownloadUtils.setDownloadTarget(baos.toByteArray(),
-              (getData().getNummer() != null ? getData().getNummer().toString() + "_" : "") + getData().getBetreff().replace(" ", "_") + "_" + "invoice.docx");
+          final String number = getData().getNummer() != null ? getData().getNummer().toString() + "_" : "";
+          final String sanitizedBetreff = getData().getBetreff().replaceAll("\\W+", "_");
+          final String filename = number + sanitizedBetreff + "_invoice.docx";
+          DownloadUtils.setDownloadTarget(baos.toByteArray(), filename);
         }
       }
 
@@ -141,7 +143,7 @@ public class RechnungEditPage extends AbstractEditPage<RechnungDO, RechnungEditF
     rechnung.setStatus(RechnungStatus.GESTELLT);
     final List<RechnungsPositionDO> positionen = getData().getPositionen();
     if (positionen != null) {
-      rechnung.setPositionen(new ArrayList<RechnungsPositionDO>());
+      rechnung.setPositionen(new ArrayList<>());
       for (final RechnungsPositionDO origPosition : positionen) {
         final RechnungsPositionDO position = (RechnungsPositionDO) origPosition.newClone();
         rechnung.addPosition(position);
