@@ -12,12 +12,12 @@ import java.util.List;
 
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
+import org.projectforge.business.excel.ExcelImport;
 import org.projectforge.business.fibu.AuftragDO;
 import org.projectforge.business.fibu.AuftragsStatus;
 import org.projectforge.business.fibu.KundeDO;
 import org.projectforge.business.fibu.OrderExport;
 import org.projectforge.business.fibu.PaymentScheduleDO;
-import org.projectforge.excel.ExcelImport;
 import org.projectforge.framework.i18n.I18nHelper;
 import org.projectforge.test.AbstractTestBase;
 import org.springframework.beans.factory.annotation.Autowired;

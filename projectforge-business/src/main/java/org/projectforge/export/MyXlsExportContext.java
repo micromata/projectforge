@@ -25,17 +25,16 @@ package org.projectforge.export;
 
 import java.util.Locale;
 
-import org.projectforge.excel.ContentProvider;
-import org.projectforge.excel.ExcelDateFormats;
-import org.projectforge.excel.ExportConfig;
-import org.projectforge.excel.ExportContext;
-import org.projectforge.excel.ExportWorkbook;
+import org.projectforge.business.excel.ContentProvider;
+import org.projectforge.business.excel.ExcelDateFormats;
+import org.projectforge.business.excel.ExportConfig;
+import org.projectforge.business.excel.ExportContext;
+import org.projectforge.business.excel.ExportWorkbook;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
  */
 public class MyXlsExportContext implements ExportContext
 {
@@ -45,7 +44,8 @@ public class MyXlsExportContext implements ExportContext
   {
     if (initialized == false) {
       initialized = true;
-      ExportConfig.setInstance(new ExportConfig() {
+      ExportConfig.setInstance(new ExportConfig()
+      {
         @Override
         protected ContentProvider createNewContentProvider(final ExportWorkbook workbook)
         {
@@ -59,7 +59,7 @@ public class MyXlsExportContext implements ExportContext
 
   /**
    * @return the default locale of the system or the locale set by {@link #setLocale(Locale)}.
-   * @see org.projectforge.excel.ExportContext#getLocale()
+   * @see ExportContext#getLocale()
    */
   public Locale getLocale()
   {
@@ -77,7 +77,7 @@ public class MyXlsExportContext implements ExportContext
 
   /**
    * @return Does not translation: returns the i18nKey itself.
-   * @see org.projectforge.excel.ExportContext#getLocalizedString(java.lang.String)
+   * @see ExportContext#getLocalizedString(java.lang.String)
    */
   public String getLocalizedString(final String i18nKey)
   {
@@ -86,7 +86,8 @@ public class MyXlsExportContext implements ExportContext
 
   /**
    * Returns the excel format of the context user if found, otherwise: {@link ExcelDateFormats#EXCEL_DEFAULT_DATE}
-   * @see org.projectforge.excel.ExportContext#getExcelDateFormat()
+   *
+   * @see ExportContext#getExcelDateFormat()
    */
   @Override
   public String getExcelDateFormat()

@@ -36,8 +36,9 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
+import org.projectforge.business.excel.ExcelExporter;
+import org.projectforge.business.excel.PropertyMapping;
 import org.projectforge.business.user.UserFormatter;
-import org.projectforge.excel.PropertyMapping;
 import org.projectforge.export.DOListExcelExporter;
 import org.projectforge.framework.time.DateTimeFormatter;
 import org.projectforge.framework.utils.NumberHelper;
@@ -53,7 +54,6 @@ import org.projectforge.web.wicket.WicketUtils;
 
 /**
  * @author Billy Duong (b.duong@micromata.de)
- * 
  */
 @ListPage(editPage = SkillRatingEditPage.class)
 public class SkillRatingListPage extends AbstractListPage<SkillRatingListForm, SkillRatingDao, SkillRatingDO> implements
@@ -81,7 +81,7 @@ public class SkillRatingListPage extends AbstractListPage<SkillRatingListForm, S
 
   /**
    * @see org.projectforge.web.wicket.IListPageColumnsCreator#createColumns(org.apache.wicket.markup.html.WebPage,
-   *      boolean)
+   * boolean)
    */
   @SuppressWarnings("serial")
   @Override
@@ -124,7 +124,7 @@ public class SkillRatingListPage extends AbstractListPage<SkillRatingListForm, S
     final CellItemListenerPropertyColumn<SkillRatingDO> user = new UserPropertyColumn<SkillRatingDO>(
         getUserGroupCache(),
         SkillRatingDO.class, getSortable(
-            "userId", sortable),
+        "userId", sortable),
         "user", cellItemListener).withUserFormatter(userFormatter);
 
     // TODO: Workaround with get (hardcoded I18N), needs a better solution.
@@ -192,7 +192,7 @@ public class SkillRatingListPage extends AbstractListPage<SkillRatingListForm, S
     return new DOListExcelExporter(filenameIdentifier)
     {
       /**
-       * @see org.projectforge.excel.ExcelExporter#addMapping(org.projectforge.excel.PropertyMapping, java.lang.Object,
+       * @see ExcelExporter#addMapping(PropertyMapping, java.lang.Object,
        *      java.lang.reflect.Field)
        */
       @Override
@@ -243,7 +243,6 @@ public class SkillRatingListPage extends AbstractListPage<SkillRatingListForm, S
   }
 
   /**
-   * 
    * @see org.projectforge.web.fibu.ISelectCallerPage#unselect(java.lang.String)
    */
   @Override

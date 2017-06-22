@@ -26,14 +26,14 @@ package org.projectforge.business.fibu;
 import java.lang.reflect.Field;
 import java.util.Collection;
 
+import org.projectforge.business.excel.ContentProvider;
+import org.projectforge.business.excel.ExcelExporter;
+import org.projectforge.business.excel.ExportColumn;
+import org.projectforge.business.excel.ExportSheet;
+import org.projectforge.business.excel.I18nExportColumn;
+import org.projectforge.business.excel.PropertyMapping;
 import org.projectforge.common.anots.PropertyInfo;
 import org.projectforge.common.props.PropUtils;
-import org.projectforge.excel.ContentProvider;
-import org.projectforge.excel.ExcelExporter;
-import org.projectforge.excel.ExportColumn;
-import org.projectforge.excel.ExportSheet;
-import org.projectforge.excel.I18nExportColumn;
-import org.projectforge.excel.PropertyMapping;
 import org.projectforge.export.MyExcelExporter;
 
 public class InvoicesExcelExport
@@ -100,7 +100,7 @@ public class InvoicesExcelExport
     }
   }
 
-  private I18nExportColumn createColumn(final ExcelExporter exporter, final ExportSheet sheet, final Class< ? > clazz, final String property)
+  private I18nExportColumn createColumn(final ExcelExporter exporter, final ExportSheet sheet, final Class<?> clazz, final String property)
   {
     final Field field = PropUtils.getField(clazz, property);
     final PropertyInfo propInfo = PropUtils.get(field);

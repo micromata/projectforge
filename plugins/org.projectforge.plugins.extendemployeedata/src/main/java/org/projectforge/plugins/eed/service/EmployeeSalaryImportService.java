@@ -7,10 +7,10 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang.Validate;
+import org.projectforge.business.excel.ExcelImportException;
 import org.projectforge.business.fibu.EmployeeSalaryDO;
 import org.projectforge.business.fibu.api.EmployeeSalaryService;
 import org.projectforge.business.fibu.api.EmployeeService;
-import org.projectforge.excel.ExcelImportException;
 import org.projectforge.framework.i18n.UserException;
 import org.projectforge.framework.persistence.utils.ImportStatus;
 import org.projectforge.framework.persistence.utils.ImportStorage;

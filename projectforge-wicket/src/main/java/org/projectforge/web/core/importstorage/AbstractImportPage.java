@@ -26,14 +26,14 @@ package org.projectforge.web.core.importstorage;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.projectforge.business.common.SupplierWithException;
-import org.projectforge.excel.ExcelImportException;
+import org.projectforge.business.excel.ExcelImportException;
 import org.projectforge.framework.i18n.UserException;
 import org.projectforge.framework.persistence.utils.ImportStorage;
 import org.projectforge.framework.persistence.utils.ImportedSheet;
 import org.projectforge.framework.utils.ActionLog;
 import org.projectforge.web.wicket.AbstractStandardFormPage;
 
-public abstract class AbstractImportPage<F extends AbstractImportForm< ? , ? , ? >> extends AbstractStandardFormPage
+public abstract class AbstractImportPage<F extends AbstractImportForm<?, ?, ?>> extends AbstractStandardFormPage
 {
   private static final long serialVersionUID = -7206460665473795739L;
 
@@ -50,6 +50,7 @@ public abstract class AbstractImportPage<F extends AbstractImportForm< ? , ? , ?
 
   /**
    * Clears imported storages if exists.
+   *
    * @return
    */
   protected void clear()
@@ -65,7 +66,7 @@ public abstract class AbstractImportPage<F extends AbstractImportForm< ? , ? , ?
       log.error("Reconcile called without storage.");
       return null;
     }
-    final ImportedSheet<?>sheet = form.getStorage().getNamedSheet(sheetName);
+    final ImportedSheet<?> sheet = form.getStorage().getNamedSheet(sheetName);
     if (sheet == null) {
       log.error("Reconcile called without finding sheet: '"
           + sheetName + "'.");
@@ -73,13 +74,13 @@ public abstract class AbstractImportPage<F extends AbstractImportForm< ? , ? , ?
     return sheet;
   }
 
-  protected ImportedSheet<?>  commit(final String sheetName)
+  protected ImportedSheet<?> commit(final String sheetName)
   {
     if (form.getStorage() == null) {
       log.error("Commit called without storage.");
       return null;
     }
-    final ImportedSheet<?>sheet = form.getStorage().getNamedSheet(sheetName);
+    final ImportedSheet<?> sheet = form.getStorage().getNamedSheet(sheetName);
     if (sheet == null) {
       log.error("Commit called without finding sheet: '"
           + sheetName + "'.");
@@ -89,28 +90,28 @@ public abstract class AbstractImportPage<F extends AbstractImportForm< ? , ? , ?
 
   protected void selectAll(final String sheetName)
   {
-    final ImportedSheet< ? > sheet = form.getStorage().getNamedSheet(sheetName);
+    final ImportedSheet<?> sheet = form.getStorage().getNamedSheet(sheetName);
     Validate.notNull(sheet);
     sheet.selectAll(true, "modified".equals(form.importFilter.getListType()));
   }
 
   protected void select(final String sheetName, final int number)
   {
-    final ImportedSheet< ? > sheet = form.getStorage().getNamedSheet(sheetName);
+    final ImportedSheet<?> sheet = form.getStorage().getNamedSheet(sheetName);
     Validate.notNull(sheet);
     sheet.select(true, "modified".equals(form.importFilter.getListType()), number);
   }
 
   protected void deselectAll(final String sheetName)
   {
-    final ImportedSheet< ? > sheet = form.getStorage().getNamedSheet(sheetName);
+    final ImportedSheet<?> sheet = form.getStorage().getNamedSheet(sheetName);
     Validate.notNull(sheet);
     sheet.selectAll(false, false);
   }
 
   protected void showErrorSummary(final String sheetName)
   {
-    final ImportedSheet< ? > sheet = form.getStorage().getNamedSheet(sheetName);
+    final ImportedSheet<?> sheet = form.getStorage().getNamedSheet(sheetName);
     Validate.notNull(sheet);
     form.setErrorProperties(sheet.getErrorProperties());
   }
@@ -120,13 +121,13 @@ public abstract class AbstractImportPage<F extends AbstractImportForm< ? , ? , ?
     return this.getClass() + ".importStorage";
   }
 
-  protected void setStorage(final ImportStorage< ? > storage)
+  protected void setStorage(final ImportStorage<?> storage)
   {
     form.storagePanel.storage = storage;
     putUserPrefEntry(getStorageKey(), form.getStorage(), false);
   }
 
-  protected ImportStorage< ? > getStorage()
+  protected ImportStorage<?> getStorage()
   {
     return form.getStorage();
   }
