@@ -220,6 +220,9 @@ public class InvoiceService
 
   private String formatBigDecimal(final BigDecimal value)
   {
+    if (value == null) {
+      return "";
+    }
     DecimalFormat df = new DecimalFormat("#,###.00");
     return df.format(value.setScale(2));
   }
