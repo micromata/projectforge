@@ -26,6 +26,8 @@ package org.projectforge.business.teamcal.event.model;
 import org.projectforge.common.i18n.I18nEnum;
 import org.projectforge.framework.i18n.I18nHelper;
 
+import net.fortuna.ical4j.model.parameter.PartStat;
+
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
@@ -74,5 +76,32 @@ public enum TeamEventAttendeeStatus implements I18nEnum
       }
     }
     return false;
+  }
+
+  public static TeamEventAttendeeStatus getStatusForPartStat(final String partStat)
+  {
+    if (PartStat.ACCEPTED.getName().equals(partStat)) {
+      return TeamEventAttendeeStatus.ACCEPTED;
+    }
+    if (PartStat.COMPLETED.getName().equals(partStat)) {
+      return TeamEventAttendeeStatus.COMPLETED;
+    }
+    if (PartStat.DECLINED.getName().equals(partStat)) {
+      return TeamEventAttendeeStatus.DECLINED;
+    }
+    if (PartStat.DELEGATED.getName().equals(partStat)) {
+      return TeamEventAttendeeStatus.DELEGATED;
+    }
+    if (PartStat.IN_PROCESS.getName().equals(partStat)) {
+      return TeamEventAttendeeStatus.IN_PROCESS;
+    }
+    if (PartStat.NEEDS_ACTION.getName().equals(partStat)) {
+      return TeamEventAttendeeStatus.NEEDS_ACTION;
+    }
+    if (PartStat.TENTATIVE.getName().equals(partStat)) {
+      return TeamEventAttendeeStatus.TENTATIVE;
+    }
+
+    return null;
   }
 }

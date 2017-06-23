@@ -157,7 +157,7 @@ public class TeamEventDaoRest
     }
     day.add(Calendar.DAY_OF_YEAR, days);
     final Collection<Integer> cals = getCalendarIds(calendarIds);
-    final List<CalendarEventObject> result = new LinkedList<CalendarEventObject>();
+    final List<CalendarEventObject> result = new LinkedList<>();
     if (cals.size() > 0) {
       final Date now = new Date();
       final TeamEventFilter filter = new TeamEventFilter().setStartDate(now).setEndDate(day.getDate())
@@ -191,6 +191,7 @@ public class TeamEventDaoRest
       //ICal4J CalendarBuilder for building calendar events from ics
       final CalendarBuilder builder = new CalendarBuilder();
       //Build the event from ics
+      String icalStr = new String(Base64.decodeBase64(calendarEvent.getIcsData()));
       final net.fortuna.ical4j.model.Calendar calendar = builder.build(new ByteArrayInputStream(Base64.decodeBase64(calendarEvent.getIcsData())));
       //Getting the VEvent from ics
       final VEvent event = (VEvent) calendar.getComponent(Component.VEVENT);
@@ -201,7 +202,6 @@ public class TeamEventDaoRest
         if (teamEventOrigin != null && teamEventOrigin.getCalendar().getId().equals(teamCalDO.getId())) {
           return updateTeamEvent(calendarEvent);
         } else {
-          event.getUid().setValue("");
           return saveVEvent(event, teamCalDO, true);
         }
       }
@@ -217,8 +217,7 @@ public class TeamEventDaoRest
     //The result for returning
     CalendarEventObject result = null;
     //Building TeamEventDO from VEvent
-    final TeamEventDO teamEvent = teamCalService.createTeamEventDO(event,
-        TimeZone.getTimeZone(teamCalDO.getOwner().getTimeZone()), withUid);
+    final TeamEventDO teamEvent = teamCalService.createTeamEventDO(event, TimeZone.getTimeZone(teamCalDO.getOwner().getTimeZone()), withUid);
     //Setting the calendar
     teamEvent.setCalendar(teamCalDO);
     //Save attendee list, because assignment later
@@ -233,7 +232,7 @@ public class TeamEventDaoRest
     teamEventService.assignAttendees(teamEvent, attendees, null);
 
     // check if mail should be send
-    teamEventService.checkAndSendMail(teamEvent, null);
+    teamEventService.checkAndSendMail(teamEvent, TeamEventDiffType.NEW);
 
     result = teamCalService.getEventObject(teamEvent, true, true);
     log.info("Team event: " + teamEvent.getSubject() + " for calendar #" + teamCalDO.getId() + " successfully created.");
@@ -287,39 +286,24 @@ public class TeamEventDaoRest
         log.info("Creating new team event!");
         return saveTeamEvent(calendarEvent);
       }
-      //Set for origin attendees from db event
-      final Set<TeamEventAttendeeDO> originAttendees;
+      if (teamEventOrigin.isDeleted()) {
+        teamEventService.undelete(teamEventOrigin);
+      }
+
       //Setting the existing DB id, created timestamp, tenant
       teamEvent.setId(teamEventOrigin.getPk());
       teamEvent.setCreator(teamEventOrigin.getCreator());
       teamEvent.setCreated(teamEventOrigin.getCreated());
       teamEvent.setLastUpdate();
       teamEvent.setTenant(teamEventOrigin.getTenant());
-      //Save existing attendees from the db event
-      originAttendees = teamEventOrigin.getAttendees();
       //Setting the calendar
       teamEvent.setCalendar(teamCalDO);
       //Setting uid
       teamEvent.setUid(eventUid.getValue());
-      //Decide which attendees are new, which has to be deleted, which has to be updated
-      Set<TeamEventAttendeeDO> attendeesToAssignMap = new HashSet<>();
-      Set<TeamEventAttendeeDO> attendeesToUnassignMap = new HashSet<>();
-      if (teamEvent.getAttendees() != null && teamEvent.getAttendees().size() > 0) {
-        attendeesToAssignMap = getAttendeesToAssign(teamEvent, teamEventOrigin);
-        attendeesToUnassignMap = getAttendeesToUnassign(teamEvent, teamEventOrigin);
-        teamEvent.setAttendees(originAttendees);
-      }
+
       //Save or update the generated event
+      teamEventService.updateAttendees(teamEvent, teamEventOrigin.getAttendees());
       teamEventService.update(teamEvent);
-
-      //TeamEventDO teamEventAfterSaveOrUpdate = teamEventService.getById(teamEvent.getPk());
-      //ModificationStatus modificationStatus = ModificationStatus.NONE;
-      //modificationStatus = TeamEventDO.copyValues(teamEventOrigin, teamEventAfterSaveOrUpdate, "attendees");
-      //TeamEventDO teamEventAfterModificationTest = teamEventService.getById(teamEvent.getPk());
-      //Update attendees
-      teamEventService.assignAttendees(teamEvent, attendeesToAssignMap, attendeesToUnassignMap);
-
-      //TeamEventDO teamEventAfterAssignAttendees = teamEventService.getById(teamEventAfterSaveOrUpdate.getPk());
 
       teamEventService.checkAndSendMail(teamEvent, teamEventOrigin);
 
@@ -329,6 +313,7 @@ public class TeamEventDaoRest
       log.error("Exception while updating team event", e);
       return Response.serverError().build();
     }
+
     if (result != null) {
       final String json = JsonUtils.toJson(result);
       return Response.ok(json).build();
@@ -386,48 +371,48 @@ public class TeamEventDaoRest
     return cals;
   }
 
-  private Set<TeamEventAttendeeDO> getAttendeesToUnassign(TeamEventDO newTeamEvent, TeamEventDO originTeamEvent)
-  {
-    Set<TeamEventAttendeeDO> result = new HashSet<>();
-    if (originTeamEvent == null || originTeamEvent.getAttendees() == null || originTeamEvent.getAttendees().size() < 1) {
-      return result;
-    } else {
-      Set<String> newEmailAdresses = new HashSet<>();
-      newTeamEvent.getAttendees().forEach(att -> newEmailAdresses.add(att.getAddress() != null ? att.getAddress().getEmail() : att.getUrl()));
-      Map<String, TeamEventAttendeeDO> originEmailAttendeeMap = new HashMap<>();
-      originTeamEvent.getAttendees().forEach(att -> originEmailAttendeeMap.put(att.getAddress() != null ? att.getAddress().getEmail() : att.getUrl(), att));
-      originEmailAttendeeMap.forEach((k, v) -> {
-        if (newEmailAdresses.contains(k) == false) {
-          result.add(v);
-        }
-      });
-    }
-    return result;
-  }
-
-  private Set<TeamEventAttendeeDO> getAttendeesToAssign(TeamEventDO newTeamEvent, TeamEventDO originTeamEvent)
-  {
-    Set<TeamEventAttendeeDO> result = new HashSet<>();
-    if (originTeamEvent == null || originTeamEvent.getAttendees() == null || originTeamEvent.getAttendees().size() < 1) {
-      for (TeamEventAttendeeDO newAttendee : newTeamEvent.getAttendees()) {
-        newAttendee.setPk(null);
-        result.add(newAttendee);
-      }
-      return result;
-    } else {
-      Set<String> originEmailAdresses = new HashSet<>();
-      originTeamEvent.getAttendees().forEach(att -> originEmailAdresses.add(att.getAddress() != null ? att.getAddress().getEmail() : att.getUrl()));
-      Map<String, TeamEventAttendeeDO> newEmailAttendeeMap = new HashMap<>();
-      newTeamEvent.getAttendees().forEach(att -> newEmailAttendeeMap.put(att.getAddress() != null ? att.getAddress().getEmail() : att.getUrl(), att));
-      for (Map.Entry<String, TeamEventAttendeeDO> newAttendeeEmail : newEmailAttendeeMap.entrySet()) {
-        if (originEmailAdresses.contains(newAttendeeEmail.getKey()) == false) {
-          final TeamEventAttendeeDO newTeamEventAttendeeDO = newAttendeeEmail.getValue();
-          newTeamEventAttendeeDO.setPk(null);
-          result.add(newTeamEventAttendeeDO);
-        }
-      }
-      return result;
-    }
-  }
+  //  private Set<TeamEventAttendeeDO> getAttendeesToUnassign(TeamEventDO newTeamEvent, TeamEventDO originTeamEvent)
+  //  {
+  //    Set<TeamEventAttendeeDO> result = new HashSet<>();
+  //    if (originTeamEvent == null || originTeamEvent.getAttendees() == null || originTeamEvent.getAttendees().size() < 1) {
+  //      return result;
+  //    } else {
+  //      Set<String> newEmailAdresses = new HashSet<>();
+  //      newTeamEvent.getAttendees().forEach(att -> newEmailAdresses.add(att.getAddress() != null ? att.getAddress().getEmail() : att.getUrl()));
+  //      Map<String, TeamEventAttendeeDO> originEmailAttendeeMap = new HashMap<>();
+  //      originTeamEvent.getAttendees().forEach(att -> originEmailAttendeeMap.put(att.getAddress() != null ? att.getAddress().getEmail() : att.getUrl(), att));
+  //      originEmailAttendeeMap.forEach((k, v) -> {
+  //        if (newEmailAdresses.contains(k) == false) {
+  //          result.add(v);
+  //        }
+  //      });
+  //    }
+  //    return result;
+  //  }
+  //
+  //  private Set<TeamEventAttendeeDO> getAttendeesToAssign(TeamEventDO newTeamEvent, TeamEventDO originTeamEvent)
+  //  {
+  //    Set<TeamEventAttendeeDO> result = new HashSet<>();
+  //    if (originTeamEvent == null || originTeamEvent.getAttendees() == null || originTeamEvent.getAttendees().size() < 1) {
+  //      for (TeamEventAttendeeDO newAttendee : newTeamEvent.getAttendees()) {
+  //        newAttendee.setPk(null);
+  //        result.add(newAttendee);
+  //      }
+  //      return result;
+  //    } else {
+  //      Set<String> originEmailAdresses = new HashSet<>();
+  //      originTeamEvent.getAttendees().forEach(att -> originEmailAdresses.add(att.getAddress() != null ? att.getAddress().getEmail() : att.getUrl()));
+  //      Map<String, TeamEventAttendeeDO> newEmailAttendeeMap = new HashMap<>();
+  //      newTeamEvent.getAttendees().forEach(att -> newEmailAttendeeMap.put(att.getAddress() != null ? att.getAddress().getEmail() : att.getUrl(), att));
+  //      for (Map.Entry<String, TeamEventAttendeeDO> newAttendeeEmail : newEmailAttendeeMap.entrySet()) {
+  //        if (originEmailAdresses.contains(newAttendeeEmail.getKey()) == false) {
+  //          final TeamEventAttendeeDO newTeamEventAttendeeDO = newAttendeeEmail.getValue();
+  //          newTeamEventAttendeeDO.setPk(null);
+  //          result.add(newTeamEventAttendeeDO);
+  //        }
+  //      }
+  //      return result;
+  //    }
+  //  }
 
 }

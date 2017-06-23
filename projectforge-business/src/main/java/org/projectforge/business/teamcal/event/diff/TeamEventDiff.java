@@ -26,6 +26,7 @@ package org.projectforge.business.teamcal.event.diff;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -41,6 +42,19 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO;
  */
 public class TeamEventDiff
 {
+  public static TeamEventDiff compute(final TeamEventDO eventNewState, final TeamEventDiffType type)
+  {
+    if (eventNewState == null) {
+      return null;
+    }
+
+    TeamEventDiff diff = new TeamEventDiff();
+    diff.eventNewState = eventNewState;
+    diff.type = type;
+
+    return diff;
+  }
+
   /**
    * Computes the diff between old and new state of an event.
    *
@@ -56,6 +70,8 @@ public class TeamEventDiff
     }
 
     TeamEventDiff diff = new TeamEventDiff();
+    diff.eventNewState = eventNewState;
+    diff.eventOldState = eventOldState;
 
     // old is null -> new event, no further diff
     if (eventOldState == null) {
@@ -120,7 +136,9 @@ public class TeamEventDiff
         diff.attendeesAdded.addAll(attendeesNewState);
       } else {
         for (TeamEventAttendeeDO attendee : attendeesNewState) {
-          if (attendeesOldState.contains(attendee) == false) {
+          if (attendeesOldState.contains(attendee)) {
+            diff.attendeesNotChanged.add(attendee);
+          } else {
             diff.attendeesAdded.add(attendee);
           }
         }
@@ -150,7 +168,7 @@ public class TeamEventDiff
     //      }
     //    }
 
-    if (diff.fieldDiffs.isEmpty() && diff.attendeesRemoved.isEmpty() && diff.attendeesAdded.isEmpty()) {
+    if (diff.fieldDiffs.isEmpty()) {
       diff.type = TeamEventDiffType.NONE;
     } else {
       diff.type = TeamEventDiffType.UPDATED;
@@ -177,6 +195,8 @@ public class TeamEventDiff
   }
 
   // meta information
+  private TeamEventDO eventNewState;
+  private TeamEventDO eventOldState;
   private TeamEventDiffType type;
   private List<TeamEventFieldDiff> allFields;
   private List<TeamEventFieldDiff> fieldDiffs;
@@ -203,8 +223,9 @@ public class TeamEventDiff
   private TeamEventFieldDiff<ReminderActionType> reminderActionType;
 
   // attendees
-  private List<TeamEventAttendeeDO> attendeesAdded;
-  private List<TeamEventAttendeeDO> attendeesRemoved;
+  private Set<TeamEventAttendeeDO> attendeesAdded;
+  private Set<TeamEventAttendeeDO> attendeesRemoved;
+  private Set<TeamEventAttendeeDO> attendeesNotChanged;
 
   /**
    * Use compute method @see org.projectforge.business.teamcal.event.TeamEventDiff#compute(TeamEventDO, TeamEventDO)
@@ -214,8 +235,19 @@ public class TeamEventDiff
     // do not call from outside
     this.allFields = new ArrayList<>();
     this.fieldDiffs = new ArrayList<>();
-    this.attendeesAdded = new ArrayList<>();
-    this.attendeesRemoved = new ArrayList<>();
+    this.attendeesAdded = new HashSet<>();
+    this.attendeesRemoved = new HashSet<>();
+    this.attendeesNotChanged = new HashSet<>();
+  }
+
+  public TeamEventDO getEventNewState()
+  {
+    return this.eventNewState;
+  }
+
+  public TeamEventDO getEventOldState()
+  {
+    return this.eventOldState;
   }
 
   public <F> TeamEventFieldDiff<F> getFieldDiff(final TeamEventField field)
@@ -244,14 +276,19 @@ public class TeamEventDiff
     return this.fieldDiffs;
   }
 
-  public List<TeamEventAttendeeDO> getAttendeesRemove()
+  public Set<TeamEventAttendeeDO> getAttendeesRemoved()
   {
     return this.attendeesRemoved;
   }
 
-  public List<TeamEventAttendeeDO> getAttendeesAdded()
+  public Set<TeamEventAttendeeDO> getAttendeesAdded()
   {
     return this.attendeesAdded;
+  }
+
+  public Set<TeamEventAttendeeDO> getAttendeesNotChanged()
+  {
+    return this.attendeesNotChanged;
   }
 
 }

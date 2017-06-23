@@ -3,14 +3,17 @@ package org.projectforge.business.teamcal.service;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
@@ -36,6 +39,7 @@ import org.projectforge.business.teamcal.event.TeamEventFilter;
 import org.projectforge.business.teamcal.event.TeamEventRecurrenceData;
 import org.projectforge.business.teamcal.event.TeamEventService;
 import org.projectforge.business.teamcal.event.TeamRecurrenceEvent;
+import org.projectforge.business.teamcal.event.diff.TeamEventField;
 import org.projectforge.business.teamcal.event.model.ReminderActionType;
 import org.projectforge.business.teamcal.event.model.ReminderDurationUnit;
 import org.projectforge.business.teamcal.event.model.TeamEvent;
@@ -61,6 +65,7 @@ import net.fortuna.ical4j.model.Component;
 import net.fortuna.ical4j.model.DateList;
 import net.fortuna.ical4j.model.Dur;
 import net.fortuna.ical4j.model.Parameter;
+import net.fortuna.ical4j.model.ParameterList;
 import net.fortuna.ical4j.model.Property;
 import net.fortuna.ical4j.model.PropertyList;
 import net.fortuna.ical4j.model.Recur;
@@ -71,6 +76,7 @@ import net.fortuna.ical4j.model.parameter.Cn;
 import net.fortuna.ical4j.model.parameter.CuType;
 import net.fortuna.ical4j.model.parameter.PartStat;
 import net.fortuna.ical4j.model.parameter.Role;
+import net.fortuna.ical4j.model.parameter.Rsvp;
 import net.fortuna.ical4j.model.parameter.Value;
 import net.fortuna.ical4j.model.property.Action;
 import net.fortuna.ical4j.model.property.Attendee;
@@ -79,9 +85,12 @@ import net.fortuna.ical4j.model.property.Description;
 import net.fortuna.ical4j.model.property.DtStart;
 import net.fortuna.ical4j.model.property.ExDate;
 import net.fortuna.ical4j.model.property.Location;
+import net.fortuna.ical4j.model.property.Method;
 import net.fortuna.ical4j.model.property.Name;
+import net.fortuna.ical4j.model.property.Organizer;
 import net.fortuna.ical4j.model.property.ProdId;
 import net.fortuna.ical4j.model.property.RRule;
+import net.fortuna.ical4j.model.property.Sequence;
 import net.fortuna.ical4j.model.property.Trigger;
 import net.fortuna.ical4j.model.property.Version;
 
@@ -323,6 +332,45 @@ public class TeamCalServiceImpl
       vEvent.getProperties().add(new Description(teamEvent.getNote()));
     }
 
+    // set sequence number
+    if (teamEvent.getSequence() != null) {
+      vEvent.getProperties().add(new Sequence(teamEvent.getSequence()));
+    } else {
+      vEvent.getProperties().add(new Sequence(0));
+    }
+
+    // add owner
+    Organizer organizer = null;
+
+    try {
+      if (teamEvent.isOwnership() != null && teamEvent.isOwnership()) {
+        ParameterList param = new ParameterList();
+        param.add(new Cn(teamEvent.getCreator().getFullname()));
+        organizer = new Organizer(param, "mailto:null");
+      } else if (teamEvent.getOrganizer() != null) {
+        // read owner from
+        // TODO add further fields, currently missing
+        organizer = new Organizer(teamEvent.getOrganizer());
+        organizer.getParameters().add(new Cn("admin@test.de"));
+        organizer.getParameters().add(new Parameter("EMAIL", null)
+        {
+          @Override
+          public String getValue()
+          {
+            return "admin@test.de";
+          }
+        });
+      } else {
+        // TODO user better default value here
+        organizer = new Organizer("mailto:null");
+      }
+    } catch (URISyntaxException e) {
+      // TODO handle exception, write default?
+      // e.printStackTrace();
+    }
+
+    vEvent.getProperties().add(organizer);
+
     // add alarm if necessary
     if (exportReminders == true && teamEvent.getReminderDuration() != null
         && teamEvent.getReminderActionType() != null) {
@@ -371,6 +419,7 @@ public class TeamCalServiceImpl
     }
     if (exportAttendees) {
       if (teamEvent.getAttendees() != null) {
+        // TODO add organizer user, most likely as chair
         for (TeamEventAttendeeDO a : teamEvent.getAttendees()) {
           String email = "mailto:";
           if (a.getAddress() != null) {
@@ -382,7 +431,7 @@ public class TeamCalServiceImpl
           String cnValue = a.getAddress() != null ? a.getAddress().getFullName() : a.getUrl();
           attendee.getParameters().add(new Cn(cnValue));
           attendee.getParameters().add(CuType.INDIVIDUAL);
-          attendee.getParameters().add(Role.CHAIR);
+          attendee.getParameters().add(Role.REQ_PARTICIPANT); // TODO read from attendees table, maybe field must be added and filled
           switch (a.getStatus()) {
             case ACCEPTED:
               attendee.getParameters().add(PartStat.ACCEPTED);
@@ -444,12 +493,12 @@ public class TeamCalServiceImpl
     event.setSubject(src.getSubject());
     copyFields(event, src);
     if (generateICS) {
-      event.setIcsData(Base64.encodeBase64String(getIcsFile(src, exportAttendees).toByteArray()));
+      event.setIcsData(Base64.encodeBase64String(getIcsFile(src, exportAttendees, null).toByteArray()));
     }
     return event;
   }
 
-  public ByteArrayOutputStream getIcsFile(final TeamEventDO data, final boolean exportAttendees)
+  public ByteArrayOutputStream getIcsFile(final TeamEventDO data, final boolean exportAttendees, final Method method)
   {
     ByteArrayOutputStream baos = null;
 
@@ -462,6 +511,9 @@ public class TeamCalServiceImpl
           new ProdId("-//" + ThreadLocalUserContext.getUser().getDisplayUsername() + "//ProjectForge//" + locale.toString().toUpperCase()));
       cal.getProperties().add(Version.VERSION_2_0);
       cal.getProperties().add(CalScale.GREGORIAN);
+      if (method != null) {
+        cal.getProperties().add(method);
+      }
 
       final net.fortuna.ical4j.model.TimeZone timezone = ICal4JUtils.getUserTimeZone();
       cal.getComponents().add(timezone.getVTimeZone());
@@ -487,7 +539,7 @@ public class TeamCalServiceImpl
     eventDO.setSubject(data.getSubject());
     eventDO.setUid(data.getUid());
     eventDO.setAllDay(data.isAllDay());
-    return getIcsFile(eventDO, exportAttendees);
+    return getIcsFile(eventDO, exportAttendees, null);
   }
 
   public static VEvent createVEvent(final TeamEventDO eventDO, final net.fortuna.ical4j.model.TimeZone timezone)
@@ -654,12 +706,40 @@ public class TeamCalServiceImpl
     } else {
       teamEvent.setSubject("");
     }
+    boolean ownership = false;
+
     if (event.getOrganizer() != null) {
+      Parameter organizerCNParam = event.getOrganizer().getParameter(Parameter.CN);
+      Parameter organizerMailParam = event.getOrganizer().getParameter("EMAIL");
+
+      String organizerCN = organizerCNParam != null ? organizerCNParam.getValue() : null;
+      String organizerEMail = organizerMailParam != null ? organizerCNParam.getValue() : null;
+      String organizerValue = event.getOrganizer().getValue();
+
+      // owner mail to is missing && username is login name of this user (apple calender tool)
+      if ((organizerCN == null || organizerCN.equals(ThreadLocalUserContext.getUser().getUsername())) && "mailto:null".equals(organizerValue)) {
+        ownership = true;
+      } else if (organizerEMail != null && organizerEMail.equals(ThreadLocalUserContext.getUser().getEmail())) {
+        ownership = true;
+      }
+
+      // TODO handle organizer parameters!
       teamEvent.setOrganizer(event.getOrganizer().getValue());
+
+    } else {
+      // some clients, such as thunderbird lightning, does not send an organizer -> pf has ownership
+      ownership = true;
     }
 
+    teamEvent.setOwnership(ownership);
+
+    // TODO fix thunderbird bug
+    //event.validate(Method.REQUEST);
+
     final List<VAlarm> alarms = event.getAlarms();
-    if (alarms != null && alarms.size() >= 1) {
+    if (alarms != null && alarms.size() >= 1)
+
+    {
       final VAlarm alarm = alarms.get(0);
       final Dur dur = alarm.getTrigger().getDuration();
       if (alarm.getAction() != null && dur != null) {
@@ -691,57 +771,93 @@ public class TeamCalServiceImpl
 
     final PropertyList eventAttendees = event.getProperties(Attendee.ATTENDEE);
     if (eventAttendees != null && eventAttendees.size() > 0) {
-      Set<String> foundAttendeeEmails = new HashSet<>();
       Integer internalNewAttendeeSequence = -10000;
+
       List<TeamEventAttendeeDO> attendeesFromDbList = teamEventService.getAddressesAndUserAsAttendee();
       for (int i = 0; i < eventAttendees.size(); i++) {
         Attendee attendee = (Attendee) eventAttendees.get(i);
         String email = null;
         URI attendeeEMailAddressUri = attendee.getCalAddress();
+
+        Cn cn = (Cn) attendee.getParameter(Parameter.CN);
+        CuType cuType = (CuType) attendee.getParameter(Parameter.CUTYPE);
+        PartStat partStat = (PartStat) attendee.getParameter(Parameter.PARTSTAT);
+        Rsvp rsvp = (Rsvp) attendee.getParameter(Parameter.RSVP);
+        Role role = (Role) attendee.getParameter(Parameter.ROLE);
+
         if (attendeeEMailAddressUri != null) {
           email = attendeeEMailAddressUri.getSchemeSpecificPart();
         }
-        if (email != null && EmailValidator.getInstance().isValid(email)) {
-          if (foundAttendeeEmails.contains(email) == false) {
-            foundAttendeeEmails.add(email);
-          }
-        } else {
-          email = null;
+        if (email != null && EmailValidator.getInstance().isValid(email) == false) {
+          continue; // TODO maybe validation is not necassary, could also be en url? check rfc
         }
-        if (email != null) {
-          TeamEventAttendeeDO foundAttendee = null;
-          for (TeamEventAttendeeDO dBAttendee : attendeesFromDbList) {
-            if (dBAttendee.getAddress().getEmail().equals(email)) {
-              foundAttendee = dBAttendee;
-              foundAttendee.setId(internalNewAttendeeSequence);
-              internalNewAttendeeSequence--;
-            }
+
+        TeamEventAttendeeDO attendeeDO = null;
+
+        // search for eMail in DB as possible attendee
+        for (TeamEventAttendeeDO dBAttendee : attendeesFromDbList) {
+          if (dBAttendee.getAddress().getEmail().equals(email)) {
+            attendeeDO = dBAttendee;
+            attendeeDO.setId(internalNewAttendeeSequence--);
+            break;
           }
-          if (foundAttendee == null) {
-            foundAttendee = new TeamEventAttendeeDO().setUrl(email);
-            foundAttendee.setStatus(TeamEventAttendeeStatus.NEW);
-            foundAttendee.setId(internalNewAttendeeSequence);
-            internalNewAttendeeSequence--;
-          }
-          teamEvent.addAttendee(foundAttendee);
         }
+
+        if (attendeeDO == null) {
+          attendeeDO = new TeamEventAttendeeDO();
+          attendeeDO.setUrl(email);
+          attendeeDO.setId(internalNewAttendeeSequence--);
+        }
+
+        // set additional fields
+        List<String> stepOver = Arrays.asList(Parameter.CN, Parameter.CUTYPE, Parameter.PARTSTAT, Parameter.RSVP, Parameter.ROLE);
+        attendeeDO.setCommonName(cn != null ? cn.getValue() : null);
+        attendeeDO.setStatus(TeamEventAttendeeStatus.getStatusForPartStat(partStat.getValue()));
+        attendeeDO.setCuType(cuType != null ? cuType.getValue() : null);
+        attendeeDO.setRsvp(rsvp != null ? rsvp.getRsvp() : null);
+        attendeeDO.setRole(role != null ? role.getValue() : null);
+
+        // further params
+        StringBuilder sb = new StringBuilder();
+        Iterator<Parameter> iter = attendee.getParameters().iterator();
+
+        while (iter.hasNext()) {
+          final Parameter param = iter.next();
+          if (param.getName() == null || stepOver.contains(param.getName())) {
+            continue;
+          }
+
+          sb.append(";");
+          sb.append(param.toString());
+        }
+
+        if (sb.length() > 0) {
+          // remove first ';'
+          attendeeDO.setAdditionalParams(sb.substring(1));
+        }
+
+        teamEvent.addAttendee(attendeeDO);
       }
     }
 
     // find recurrence rule
     final RRule rule = (RRule) event.getProperty(Property.RRULE);
-    if (rule != null) {
+    if (rule != null)
+
+    {
       teamEvent.setRecurrence(rule, timeZone);
     }
 
     // parsing ExDates
     PropertyList exDateProperties = event.getProperties(Property.EXDATE);
-    if (exDateProperties != null) {
+    if (exDateProperties != null)
+
+    {
       List<String> exDateList = new ArrayList<>();
       exDateProperties.forEach(exDateProp -> {
         // find timezone of exdate
-        final Parameter tzidParam = exDateProp.getParameter("TZID");
-        String timezoneId;
+        final Parameter tzidParam = exDateProp.getParameter(Parameter.TZID);
+        final String timezoneId;
         if (tzidParam != null && tzidParam.getValue() != null) {
           timezoneId = tzidParam.getValue();
         } else {

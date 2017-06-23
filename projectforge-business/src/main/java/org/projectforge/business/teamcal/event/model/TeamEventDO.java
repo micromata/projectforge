@@ -48,8 +48,10 @@ import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.persistence.Transient;
 import javax.persistence.UniqueConstraint;
+import javax.validation.constraints.NotNull;
 
 import org.apache.commons.lang.StringUtils;
+import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.search.annotations.Analyze;
 import org.hibernate.search.annotations.DateBridge;
 import org.hibernate.search.annotations.EncodingType;
@@ -152,6 +154,8 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
 
   private Set<TeamEventAttendeeDO> attendees;
 
+  private Boolean ownership;
+
   private String organizer;
 
   private String uid;
@@ -196,6 +200,19 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
   public TeamEventDO()
   {
 
+  }
+
+  @Override
+  public void setLastUpdate()
+  {
+    super.setLastUpdate();
+
+    // increment sequence number
+    if (this.sequence == null) {
+      this.sequence = 0;
+    } else {
+      this.sequence = this.sequence + 1;
+    }
   }
 
   /**
@@ -425,6 +442,18 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
     }
     attendee.setNumber(number);
     this.attendees.add(attendee);
+    return this;
+  }
+
+  @Column
+  public Boolean isOwnership()
+  {
+    return this.ownership;
+  }
+
+  public TeamEventDO setOwnership(final Boolean ownership)
+  {
+    this.ownership = ownership;
     return this;
   }
 
@@ -1011,6 +1040,13 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
     if (allDay != other.allDay) {
       return false;
     }
+
+    if (ownership == null && other.ownership != null) {
+      return false;
+    } else if (ownership != other.ownership) {
+      return false;
+    }
+
     if (attendees == null) {
       if (other.attendees != null) {
         return false;
@@ -1157,6 +1193,7 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
     clone.recurrenceReferenceDate = this.recurrenceReferenceDate;
     clone.recurrenceReferenceId = this.recurrenceReferenceId;
     clone.recurrenceUntil = this.recurrenceUntil;
+    clone.ownership = this.ownership;
     clone.organizer = this.organizer;
     clone.note = this.note;
     clone.lastEmail = this.lastEmail;
@@ -1206,6 +1243,7 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
     result.recurrenceReferenceId = this.recurrenceReferenceId;
     result.recurrenceUntil = this.recurrenceUntil;
     result.sequence = this.sequence;
+    result.ownership = this.ownership;
     return result;
   }
 

@@ -4,7 +4,6 @@ import java.sql.Timestamp;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.TimeZone;
 
 import org.junit.Assert;
 import org.junit.BeforeClass;
@@ -37,13 +36,13 @@ public class TeamEventDiffTest
     final TeamEventDiff diff = TeamEventDiff.compute(newEvent, oldEvent, Collections.EMPTY_SET);
 
     Assert.assertNotNull(diff);
-    Assert.assertEquals(TeamEventDiffType.UPDATED, diff.getDiffType());
-    Assert.assertTrue(diff.isDiff());
+    Assert.assertEquals(TeamEventDiffType.NONE, diff.getDiffType());
+    Assert.assertFalse(diff.isDiff());
 
     Assert.assertEquals(0, diff.getFieldDiffs().size());
 
     Assert.assertEquals(2, diff.getAttendeesAdded().size());
-    Assert.assertEquals(0, diff.getAttendeesRemove().size());
+    Assert.assertEquals(0, diff.getAttendeesRemoved().size());
   }
 
   @Test
@@ -57,13 +56,13 @@ public class TeamEventDiffTest
     final TeamEventDiff diff = TeamEventDiff.compute(newEvent, oldEvent, Collections.EMPTY_SET);
 
     Assert.assertNotNull(diff);
-    Assert.assertEquals(TeamEventDiffType.UPDATED, diff.getDiffType());
-    Assert.assertTrue(diff.isDiff());
+    Assert.assertEquals(TeamEventDiffType.NONE, diff.getDiffType());
+    Assert.assertFalse(diff.isDiff());
 
     Assert.assertEquals(0, diff.getFieldDiffs().size());
 
     Assert.assertEquals(0, diff.getAttendeesAdded().size());
-    Assert.assertEquals(2, diff.getAttendeesRemove().size());
+    Assert.assertEquals(2, diff.getAttendeesRemoved().size());
   }
 
   @Test
@@ -73,6 +72,7 @@ public class TeamEventDiffTest
     TeamEventDO oldEvent = EVENT_1.clone();
 
     TeamEventAttendeeDO attendeeRemoved = (TeamEventAttendeeDO) newEvent.getAttendees().toArray()[0];
+    TeamEventAttendeeDO attendeeNotChanged = (TeamEventAttendeeDO) newEvent.getAttendees().toArray()[1];
     newEvent.getAttendees().remove(attendeeRemoved);
     TeamEventAttendeeDO attendee3 = new TeamEventAttendeeDO();
     attendee3.setUrl("url3");
@@ -84,18 +84,20 @@ public class TeamEventDiffTest
     final TeamEventDiff diff = TeamEventDiff.compute(newEvent, oldEvent, Collections.EMPTY_SET);
 
     Assert.assertNotNull(diff);
-    Assert.assertEquals(TeamEventDiffType.UPDATED, diff.getDiffType());
-    Assert.assertTrue(diff.isDiff());
+    Assert.assertEquals(TeamEventDiffType.NONE, diff.getDiffType());
+    Assert.assertFalse(diff.isDiff());
 
     Assert.assertEquals(0, diff.getFieldDiffs().size());
 
     Assert.assertEquals(2, diff.getAttendeesAdded().size());
-    Assert.assertEquals(1, diff.getAttendeesRemove().size());
+    Assert.assertEquals(1, diff.getAttendeesRemoved().size());
+    Assert.assertEquals(1, diff.getAttendeesNotChanged().size());
 
     Assert.assertTrue(diff.getAttendeesAdded().contains(attendee3));
     Assert.assertTrue(diff.getAttendeesAdded().contains(attendee4));
 
-    Assert.assertTrue(diff.getAttendeesRemove().contains(attendeeRemoved));
+    Assert.assertTrue(diff.getAttendeesRemoved().contains(attendeeRemoved));
+    Assert.assertTrue(diff.getAttendeesNotChanged().contains(attendeeNotChanged));
   }
 
   @Test
@@ -341,7 +343,6 @@ public class TeamEventDiffTest
     calendar1.setTitle("Title 2");
 
     EVENT_1 = new TeamEventDO();
-    EVENT_1.setTimeZone(TimeZone.getTimeZone("UTC"));
 
     EVENT_1.setCreator(user1);
     EVENT_1.setCalendar(calendar1);
@@ -351,10 +352,8 @@ public class TeamEventDiffTest
     EVENT_1.setSubject("Subject 1");
     EVENT_1.setLocation("Location 1");
     EVENT_1.setRecurrenceExDate(null);
-    EVENT_1.setRecurrenceRule("");
     EVENT_1.setRecurrenceDate("");
     EVENT_1.setRecurrenceReferenceId("");
-    EVENT_1.setRecurrenceUntil(null);
     EVENT_1.setLastEmail(null);
     EVENT_1.setSequence(null);
     EVENT_1.setReminderDuration(null);
