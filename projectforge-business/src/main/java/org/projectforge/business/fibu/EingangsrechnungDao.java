@@ -34,7 +34,6 @@ import javax.persistence.TypedQuery;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.hibernate.criterion.Order;
-import org.hibernate.criterion.Restrictions;
 import org.projectforge.business.fibu.kost.KostZuweisungDO;
 import org.projectforge.business.user.UserRightId;
 import org.projectforge.framework.i18n.UserException;
@@ -120,7 +119,7 @@ public class EingangsrechnungDao extends BaseDao<EingangsrechnungDO>
   @Override
   protected void onSaveOrModify(final EingangsrechnungDO rechnung)
   {
-    AbstractRechnungDaoHelper.onSaveOrModify(rechnung);
+    AuftragAndRechnungDaoHelper.onSaveOrModify(rechnung);
 
     if (rechnung.getZahlBetrag() != null) {
       rechnung.setZahlBetrag(rechnung.getZahlBetrag().setScale(2, RoundingMode.HALF_UP));
@@ -143,12 +142,6 @@ public class EingangsrechnungDao extends BaseDao<EingangsrechnungDO>
   }
 
   @Override
-  public void afterLoad(final EingangsrechnungDO obj)
-  {
-    RechnungDao.readUiStatusFromXml(obj);
-  }
-
-  @Override
   protected String[] getAdditionalSearchFields()
   {
     return ADDITIONAL_SEARCH_FIELDS;
@@ -163,24 +156,16 @@ public class EingangsrechnungDao extends BaseDao<EingangsrechnungDO>
     } else {
       myFilter = new RechnungFilter(filter);
     }
-    final QueryFilter queryFilter = new QueryFilter(myFilter);
-    if (myFilter.getFromDate() != null || myFilter.getToDate() != null) {
-      if (myFilter.getFromDate() != null && myFilter.getToDate() != null) {
-        queryFilter.add(Restrictions.between("datum", myFilter.getFromDate(), myFilter.getToDate()));
-      } else if (myFilter.getFromDate() != null) {
-        queryFilter.add(Restrictions.ge("datum", myFilter.getFromDate()));
-      } else if (myFilter.getToDate() != null) {
-        queryFilter.add(Restrictions.le("datum", myFilter.getToDate()));
-      }
-    } else {
-      queryFilter.setYearAndMonth("datum", myFilter.getYear(), myFilter.getMonth());
-    }
+
+    final QueryFilter queryFilter = AuftragAndRechnungDaoHelper.createQueryFilterWithDateRestriction(myFilter);
     queryFilter.addOrder(Order.desc("datum"));
     queryFilter.addOrder(Order.desc("kreditor"));
+
     final List<EingangsrechnungDO> list = getList(queryFilter);
     if (myFilter.isShowAll() == true || myFilter.isDeleted() == true) {
       return list;
     }
+
     final List<EingangsrechnungDO> result = new ArrayList<EingangsrechnungDO>();
     for (final EingangsrechnungDO rechnung : list) {
       if (myFilter.isShowUnbezahlt() == true) {

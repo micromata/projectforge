@@ -24,19 +24,16 @@
 package org.projectforge.web.fibu;
 
 import org.apache.log4j.Logger;
-import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.projectforge.business.fibu.AbstractRechnungsStatistik;
 import org.projectforge.business.fibu.RechnungFilter;
 import org.projectforge.business.utils.CurrencyFormatter;
-import org.projectforge.common.StringHelper;
 import org.projectforge.framework.configuration.Configuration;
 import org.projectforge.web.wicket.AbstractListForm;
 import org.projectforge.web.wicket.AbstractListPage;
+import org.projectforge.web.wicket.LambdaModel;
 import org.projectforge.web.wicket.WebConstants;
-import org.projectforge.web.wicket.components.LabelValueChoiceRenderer;
-import org.projectforge.web.wicket.components.YearListCoiceRenderer;
 import org.projectforge.web.wicket.flowlayout.CheckBoxButton;
 import org.projectforge.web.wicket.flowlayout.DivPanel;
 import org.projectforge.web.wicket.flowlayout.DivTextPanel;
@@ -58,75 +55,91 @@ public abstract class AbstractRechnungListForm<F extends RechnungFilter, P exten
   protected void init()
   {
     super.init(false);
+
+    // time period for Rechnungsdatum
+    final F filter = getSearchFilter();
+    addTimePeriodPanel("fibu.rechnung.datum",
+        LambdaModel.of(filter::getFromDate, filter::setFromDate),
+        LambdaModel.of(filter::getToDate, filter::setToDate)
+    );
+
+    onBeforeAddStatistics();
+
+    addStatistics();
+  }
+
+  private void addStatistics()
+  {
     gridBuilder.newGridPanel();
+    final FieldsetPanel fs = gridBuilder.newFieldset(getString("statistics")).suppressLabelForWarning();
+    fs.add(new DivTextPanel(fs.newChildId(), new Model<String>()
     {
-      // Statistics
-      final FieldsetPanel fs = gridBuilder.newFieldset(getString("statistics")).suppressLabelForWarning();
-      fs.add(new DivTextPanel(fs.newChildId(), new Model<String>()
+      @Override
+      public String getObject()
       {
-        @Override
-        public String getObject()
-        {
-          return getString("fibu.common.brutto") + ": " + CurrencyFormatter.format(getStats().getBrutto()) + WebConstants.HTML_TEXT_DIVIDER;
-        }
-      }));
-      fs.add(new DivTextPanel(fs.newChildId(), new Model<String>()
+        return getString("fibu.common.brutto") + ": " + CurrencyFormatter.format(getStats().getBrutto()) + WebConstants.HTML_TEXT_DIVIDER;
+      }
+    }));
+    fs.add(new DivTextPanel(fs.newChildId(), new Model<String>()
+    {
+      @Override
+      public String getObject()
       {
-        @Override
-        public String getObject()
-        {
-          return getString("fibu.common.netto") + ": " + CurrencyFormatter.format(getStats().getNetto()) + WebConstants.HTML_TEXT_DIVIDER;
-        }
-      }));
-      fs.add(new DivTextPanel(fs.newChildId(), new Model<String>()
+        return getString("fibu.common.netto") + ": " + CurrencyFormatter.format(getStats().getNetto()) + WebConstants.HTML_TEXT_DIVIDER;
+      }
+    }));
+    fs.add(new DivTextPanel(fs.newChildId(), new Model<String>()
+    {
+      @Override
+      public String getObject()
       {
-        @Override
-        public String getObject()
-        {
-          return getString("fibu.rechnung.offen") + ": " + CurrencyFormatter.format(getStats().getOffen()) + WebConstants.HTML_TEXT_DIVIDER;
-        }
-      }, TextStyle.BLUE));
-      fs.add(new DivTextPanel(fs.newChildId(), new Model<String>()
+        return getString("fibu.rechnung.offen") + ": " + CurrencyFormatter.format(getStats().getOffen()) + WebConstants.HTML_TEXT_DIVIDER;
+      }
+    }, TextStyle.BLUE));
+    fs.add(new DivTextPanel(fs.newChildId(), new Model<String>()
+    {
+      @Override
+      public String getObject()
       {
-        @Override
-        public String getObject()
-        {
-          return getString("fibu.rechnung.filter.ueberfaellig") + ": " + CurrencyFormatter.format(getStats().getUeberfaellig());
-        }
-      }, TextStyle.RED));
-      fs.add(new DivTextPanel(fs.newChildId(), new Model<String>()
+        return getString("fibu.rechnung.filter.ueberfaellig") + ": " + CurrencyFormatter.format(getStats().getUeberfaellig());
+      }
+    }, TextStyle.RED));
+    fs.add(new DivTextPanel(fs.newChildId(), new Model<String>()
+    {
+      @Override
+      public String getObject()
       {
-        @Override
-        public String getObject()
-        {
-          return WebConstants.HTML_TEXT_DIVIDER
-              + getString("fibu.rechnung.skonto")
-              + ": "
-              + CurrencyFormatter.format(getStats().getSkonto())
-              + WebConstants.HTML_TEXT_DIVIDER;
-        }
-      }));
-      // fieldset.add(new HtmlCodePanel(fieldset.newChildId(), "<br/>"));
-      fs.add(new DivTextPanel(fs.newChildId(), new Model<String>()
+        return WebConstants.HTML_TEXT_DIVIDER
+            + getString("fibu.rechnung.skonto")
+            + ": "
+            + CurrencyFormatter.format(getStats().getSkonto())
+            + WebConstants.HTML_TEXT_DIVIDER;
+      }
+    }));
+    // fieldset.add(new HtmlCodePanel(fieldset.newChildId(), "<br/>"));
+    fs.add(new DivTextPanel(fs.newChildId(), new Model<String>()
+    {
+      @Override
+      public String getObject()
       {
-        @Override
-        public String getObject()
-        {
-          return getString("fibu.rechnung.zahlungsZiel")
-              + ": Ø "
-              + String.valueOf(getStats().getZahlungszielAverage())
-              + WebConstants.HTML_TEXT_DIVIDER;
-        }
-      }));
-      fs.add(new DivTextPanel(fs.newChildId(), new Model<String>()
+        return getString("fibu.rechnung.zahlungsZiel")
+            + ": Ø "
+            + String.valueOf(getStats().getZahlungszielAverage())
+            + WebConstants.HTML_TEXT_DIVIDER;
+      }
+    }));
+    fs.add(new DivTextPanel(fs.newChildId(), new Model<String>()
+    {
+      @Override
+      public String getObject()
       {
-        @Override
-        public String getObject()
-        {
-          return getString("fibu.rechnung.zahlungsZiel.actual") + ": Ø " + String.valueOf(getStats().getTatsaechlichesZahlungzielAverage());
-        }
-      }));
-    }
+        return getString("fibu.rechnung.zahlungsZiel.actual") + ": Ø " + String.valueOf(getStats().getTatsaechlichesZahlungzielAverage());
+      }
+    }));
+  }
+
+  protected void onBeforeAddStatistics()
+  {
   }
 
   /**
@@ -137,24 +150,6 @@ public abstract class AbstractRechnungListForm<F extends RechnungFilter, P exten
   @Override
   protected void onOptionsPanelCreate(final FieldsetPanel optionsFieldsetPanel, final DivPanel optionsCheckBoxesPanel)
   {
-    // DropDownChoice years
-    final YearListCoiceRenderer yearListChoiceRenderer = new YearListCoiceRenderer(years, true);
-    final DropDownChoice<Integer> yearChoice = new DropDownChoice<>(optionsFieldsetPanel.getDropDownChoiceId(),
-        new PropertyModel<Integer>(this, "year"), yearListChoiceRenderer.getYears(), yearListChoiceRenderer);
-    yearChoice.setNullValid(false);
-    optionsFieldsetPanel.add(yearChoice);
-
-    // // DropDownChoice months
-    final LabelValueChoiceRenderer<Integer> monthChoiceRenderer = new LabelValueChoiceRenderer<Integer>();
-    monthChoiceRenderer.addValue(-1, "");
-    for (int i = 0; i <= 11; i++) {
-      monthChoiceRenderer.addValue(i, StringHelper.format2DigitNumber(i + 1));
-    }
-    final DropDownChoice<Integer> monthChoice = new DropDownChoice<>(optionsFieldsetPanel.getDropDownChoiceId(),
-        new PropertyModel<Integer>(this, "month"), monthChoiceRenderer.getValues(), monthChoiceRenderer);
-    monthChoice.setNullValid(false);
-    optionsFieldsetPanel.add(monthChoice);
-
     final DivPanel radioGroupPanel = optionsFieldsetPanel.addNewRadioBoxButtonDiv();
     final RadioGroupPanel<String> radioGroup = new RadioGroupPanel<String>(radioGroupPanel.newChildId(), "listtype",
         new PropertyModel<>(getSearchFilter(), "listType"));
@@ -170,34 +165,6 @@ public abstract class AbstractRechnungListForm<F extends RechnungFilter, P exten
   }
 
   protected abstract AbstractRechnungsStatistik<?> getStats();
-
-  public Integer getYear()
-  {
-    return getSearchFilter().getYear();
-  }
-
-  public void setYear(final Integer year)
-  {
-    if (year == null) {
-      getSearchFilter().setYear(-1);
-    } else {
-      getSearchFilter().setYear(year);
-    }
-  }
-
-  public Integer getMonth()
-  {
-    return getSearchFilter().getMonth();
-  }
-
-  public void setMonth(final Integer month)
-  {
-    if (month == null) {
-      getSearchFilter().setMonth(-1);
-    } else {
-      getSearchFilter().setMonth(month);
-    }
-  }
 
   public AbstractRechnungListForm(final P parentPage)
   {

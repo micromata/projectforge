@@ -130,6 +130,7 @@ public class DatePanel extends FormComponentPanel<Date> implements ComponentWrap
     super(id, model);
     setType(settings.targetType);
     final MyDateConverter dateConverter = new MyDateConverter(settings.targetType, "M-");
+    dateConverter.setTimeZone(settings.timeZone);
     final IModel<Date> modelForDateField = useModelDirectly ? model : new PropertyModel<>(this, "date");
     dateField = new DateTextField("dateField", modelForDateField, dateConverter)
     {

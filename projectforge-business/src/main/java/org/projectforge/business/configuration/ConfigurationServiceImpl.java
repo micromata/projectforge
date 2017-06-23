@@ -674,6 +674,24 @@ public class ConfigurationServiceImpl implements ConfigurationService
   }
 
   @Override
+  public boolean getFlagCheckPasswordChange()
+  {
+    try {
+      final ConfigurationDO flagCheckPwChangeConf = configDao.getEntry(ConfigurationParam.PASSWORD_FLAG_CHECK_CHANGE);
+      if (flagCheckPwChangeConf != null) {
+        final Boolean flagCheckPwChange = flagCheckPwChangeConf.getBooleanValue();
+        if (flagCheckPwChange != null) {
+          return flagCheckPwChange;
+        }
+      }
+    } catch (final RuntimeException e) {
+      // this could happen if the database is not initialized (during projectforge initial setup)
+      log.warn("Exception while getting configuration flag - password change requirement.", e);
+    }
+    return ConfigurationParam.PASSWORD_FLAG_CHECK_CHANGE.getDefaultBooleanValue();
+  }
+
+  @Override
   public String getMaxFileSizeImage()
   {
     return this.maxFileSizeImage;

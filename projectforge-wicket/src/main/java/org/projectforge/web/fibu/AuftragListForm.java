@@ -44,7 +44,6 @@ import org.projectforge.web.wicket.AbstractListForm;
 import org.projectforge.web.wicket.LambdaModel;
 import org.projectforge.web.wicket.WebConstants;
 import org.projectforge.web.wicket.components.LabelValueChoiceRenderer;
-import org.projectforge.web.wicket.components.YearListCoiceRenderer;
 import org.projectforge.web.wicket.flowlayout.DivPanel;
 import org.projectforge.web.wicket.flowlayout.DivTextPanel;
 import org.projectforge.web.wicket.flowlayout.DropDownChoicePanel;
@@ -75,91 +74,109 @@ public class AuftragListForm extends AbstractListForm<AuftragFilter, AuftragList
   protected void init()
   {
     super.init(false);
-    {
-      // Statistics
-      gridBuilder.newGridPanel();
-      final FieldsetPanel fs = gridBuilder.newFieldset(getString("statistics")).suppressLabelForWarning();
-      fs.add(new DivTextPanel(fs.newChildId(), new Model<String>()
-      {
-        @Override
-        public String getObject()
-        {
-          return getStatisticsValue("fibu.common.netto", getAuftragsStatistik().getNettoSum(),
-              getAuftragsStatistik().getCounter());
-        }
-      }));
-      fs.add(new DivTextPanel(fs.newChildId(), new Model<String>()
-      {
-        @Override
-        public String getObject()
-        {
-          return WebConstants.HTML_TEXT_DIVIDER
-              + getStatisticsValue("akquise", getAuftragsStatistik().getAkquiseSum(),
-              getAuftragsStatistik().getCounterAkquise());
-        }
 
-      })
+    final AuftragFilter filter = getSearchFilter();
+
+    // time period for erfassungsdatum
+    addTimePeriodPanel("fibu.auftrag.erfassung.datum",
+        LambdaModel.of(filter::getStartDate, filter::setStartDate),
+        LambdaModel.of(filter::getEndDate, filter::setEndDate)
+    );
+
+    // time period for period of performance
+    addTimePeriodPanel("fibu.periodOfPerformance",
+        LambdaModel.of(filter::getPeriodOfPerformanceStartDate, filter::setPeriodOfPerformanceStartDate),
+        LambdaModel.of(filter::getPeriodOfPerformanceEndDate, filter::setPeriodOfPerformanceEndDate)
+    );
+
+    // Statistics
+    addStatistics();
+  }
+
+  private void addStatistics()
+  {
+    gridBuilder.newGridPanel();
+    final FieldsetPanel fs = gridBuilder.newFieldset(getString("statistics")).suppressLabelForWarning();
+    fs.add(new DivTextPanel(fs.newChildId(), new Model<String>()
+    {
+      @Override
+      public String getObject()
       {
-        @Override
-        public boolean isVisible()
-        {
-          return (getAuftragsStatistik().getCounterAkquise() > 0);
-        }
-      });
-      fs.add(new DivTextPanel(fs.newChildId(), new Model<String>()
+        return getStatisticsValue("fibu.common.netto", getAuftragsStatistik().getNettoSum(),
+            getAuftragsStatistik().getCounter());
+      }
+    }));
+    fs.add(new DivTextPanel(fs.newChildId(), new Model<String>()
+    {
+      @Override
+      public String getObject()
       {
-        @Override
-        public String getObject()
-        {
-          return WebConstants.HTML_TEXT_DIVIDER
-              + getStatisticsValue("fibu.auftrag.status.beauftragt", getAuftragsStatistik().getBeauftragtSum(),
-              getAuftragsStatistik()
-                  .getCounterBeauftragt());
-        }
-      }, TextStyle.BLUE)
+        return WebConstants.HTML_TEXT_DIVIDER
+            + getStatisticsValue("akquise", getAuftragsStatistik().getAkquiseSum(),
+            getAuftragsStatistik().getCounterAkquise());
+      }
+
+    })
+    {
+      @Override
+      public boolean isVisible()
       {
-        @Override
-        public boolean isVisible()
-        {
-          return (getAuftragsStatistik().getCounterBeauftragt() > 0);
-        }
-      });
-      fs.add(new DivTextPanel(fs.newChildId(), new Model<String>()
+        return (getAuftragsStatistik().getCounterAkquise() > 0);
+      }
+    });
+    fs.add(new DivTextPanel(fs.newChildId(), new Model<String>()
+    {
+      @Override
+      public String getObject()
       {
-        @Override
-        public String getObject()
-        {
-          return WebConstants.HTML_TEXT_DIVIDER
-              + getStatisticsValue("fibu.fakturiert", getAuftragsStatistik().getFakturiertSum(),
-              getAuftragsStatistik().getCounterFakturiert());
-        }
-      })
+        return WebConstants.HTML_TEXT_DIVIDER
+            + getStatisticsValue("fibu.auftrag.status.beauftragt", getAuftragsStatistik().getBeauftragtSum(),
+            getAuftragsStatistik()
+                .getCounterBeauftragt());
+      }
+    }, TextStyle.BLUE)
+    {
+      @Override
+      public boolean isVisible()
       {
-        @Override
-        public boolean isVisible()
-        {
-          return (getAuftragsStatistik().getCounterFakturiert() > 0);
-        }
-      });
-      fs.add(new DivTextPanel(fs.newChildId(), new Model<String>()
+        return (getAuftragsStatistik().getCounterBeauftragt() > 0);
+      }
+    });
+    fs.add(new DivTextPanel(fs.newChildId(), new Model<String>()
+    {
+      @Override
+      public String getObject()
       {
-        @Override
-        public String getObject()
-        {
-          return WebConstants.HTML_TEXT_DIVIDER
-              + getStatisticsValue("fibu.auftrag.filter.type.abgeschlossenNichtFakturiert",
-              getAuftragsStatistik().getZuFakturierenSum(),
-              getAuftragsStatistik().getCounterZuFakturieren());
-        }
-      }, TextStyle.RED)
+        return WebConstants.HTML_TEXT_DIVIDER
+            + getStatisticsValue("fibu.fakturiert", getAuftragsStatistik().getFakturiertSum(),
+            getAuftragsStatistik().getCounterFakturiert());
+      }
+    })
+    {
+      @Override
+      public boolean isVisible()
       {
-        @Override
-        public boolean isVisible()
-        {
-          return (getAuftragsStatistik().getCounterZuFakturieren() > 0);
-        }
-      });
-    }
+        return (getAuftragsStatistik().getCounterFakturiert() > 0);
+      }
+    });
+    fs.add(new DivTextPanel(fs.newChildId(), new Model<String>()
+    {
+      @Override
+      public String getObject()
+      {
+        return WebConstants.HTML_TEXT_DIVIDER
+            + getStatisticsValue("fibu.auftrag.filter.type.abgeschlossenNichtFakturiert",
+            getAuftragsStatistik().getZuFakturierenSum(),
+            getAuftragsStatistik().getCounterZuFakturieren());
+      }
+    }, TextStyle.RED)
+    {
+      @Override
+      public boolean isVisible()
+      {
+        return (getAuftragsStatistik().getCounterZuFakturieren() > 0);
+      }
+    });
   }
 
   /**
@@ -172,7 +189,6 @@ public class AuftragListForm extends AbstractListForm<AuftragFilter, AuftragList
   {
     optionsFieldsetPanel.add(createAuftragsStatusMultiChoice());
     optionsFieldsetPanel.add(createAuftragsPositionsArtMultiChoice());
-    optionsFieldsetPanel.add(createYearsDropDown());
     optionsFieldsetPanel.add(createAuftragFakturiertDropDown());
     optionsFieldsetPanel.add(createAuftragsPositionsPaymentTypeDropDown());
     optionsFieldsetPanel.add(createUserSelect(optionsFieldsetPanel.newChildId()));
@@ -194,21 +210,6 @@ public class AuftragListForm extends AbstractListForm<AuftragFilter, AuftragList
         LambdaModel.of(getSearchFilter()::getAuftragsPositionsArten),
         new I18nEnumChoiceProvider<>(AuftragsPositionsArt.class)
     );
-  }
-
-  private DropDownChoice<Integer> createYearsDropDown()
-  {
-    final YearListCoiceRenderer yearListChoiceRenderer = new YearListCoiceRenderer(auftragDao.getYears(), true);
-
-    final DropDownChoice<Integer> yearChoice = new DropDownChoice<>(
-        DropDownChoicePanel.WICKET_ID,
-        LambdaModel.of(this::getYear, this::setYear),
-        yearListChoiceRenderer.getYears(),
-        yearListChoiceRenderer
-    );
-    yearChoice.setNullValid(false);
-
-    return yearChoice;
   }
 
   private DropDownChoice<AuftragFakturiertFilterStatus> createAuftragFakturiertDropDown()
@@ -272,20 +273,6 @@ public class AuftragListForm extends AbstractListForm<AuftragFilter, AuftragList
   public void setUser(final PFUserDO user)
   {
     getSearchFilter().setUser(user);
-  }
-
-  public Integer getYear()
-  {
-    return getSearchFilter().getYear();
-  }
-
-  public void setYear(final Integer year)
-  {
-    if (year == null) {
-      getSearchFilter().setYear(-1);
-    } else {
-      getSearchFilter().setYear(year);
-    }
   }
 
   private Integer getAuftragsPositionsPaymentType()

@@ -49,9 +49,8 @@ import org.projectforge.framework.utils.LabelValueBean;
 
 /**
  * Parse and formats dates.
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
  */
 public class DateHelper implements Serializable
 {
@@ -104,7 +103,7 @@ public class DateHelper implements Serializable
 
   /**
    * Compares millis. If both dates are null then they're equal.
-   * 
+   *
    * @param d1
    * @param d2
    * @see Date#getTime()
@@ -122,7 +121,7 @@ public class DateHelper implements Serializable
 
   /**
    * thread safe
-   * 
+   *
    * @param timezone
    */
   public static DateFormat getIsoDateFormat(final TimeZone timezone)
@@ -136,7 +135,7 @@ public class DateHelper implements Serializable
 
   /**
    * thread safe
-   * 
+   *
    * @param timezone If null then time zone is ignored.
    */
   public static DateFormat getIsoTimestampFormat(final TimeZone timezone)
@@ -150,7 +149,7 @@ public class DateHelper implements Serializable
 
   /**
    * thread safe
-   * 
+   *
    * @param timezone
    */
   public static DateFormat getFilenameFormatTimestamp(final TimeZone timezone)
@@ -164,7 +163,7 @@ public class DateHelper implements Serializable
 
   /**
    * thread safe
-   * 
+   *
    * @param timezone
    */
   public static DateFormat getFilenameFormatDate(final TimeZone timezone)
@@ -216,7 +215,7 @@ public class DateHelper implements Serializable
 
   /**
    * Formats the given date as UTC date in ISO format attached TimeZone (UTC).
-   * 
+   *
    * @param date
    * @return
    */
@@ -244,7 +243,7 @@ public class DateHelper implements Serializable
 
   /**
    * Takes time zone of context user if exist.
-   * 
+   *
    * @param date
    */
   public static String formatIsoDate(final Date date)
@@ -254,7 +253,7 @@ public class DateHelper implements Serializable
 
   /**
    * Takes time zone of context user if exist.
-   * 
+   *
    * @param date
    */
   public static String formatIsoDate(final Date date, final TimeZone timeZone)
@@ -264,7 +263,7 @@ public class DateHelper implements Serializable
 
   /**
    * logError = true
-   * 
+   *
    * @param str
    * @return
    * @see #parseMillis(String, boolean)
@@ -305,7 +304,7 @@ public class DateHelper implements Serializable
 
   /**
    * Format yyyy-mm-dd
-   * 
+   *
    * @param isoDateString
    * @return Parsed date or null if a parse error occurs.
    */
@@ -324,7 +323,7 @@ public class DateHelper implements Serializable
 
   /**
    * Format: {@link DateFormats#ISO_TIMESTAMP_MILLIS}
-   * 
+   *
    * @param isoDateString
    * @return Parsed date or null if a parse error occurs.
    */
@@ -348,7 +347,7 @@ public class DateHelper implements Serializable
 
   /**
    * Format yyyy-mm-dd:yyyy-mm-dd
-   * 
+   *
    * @param isoTimePeriodString
    * @return Parsed time period or null if a parse error occurs.
    */
@@ -370,7 +369,7 @@ public class DateHelper implements Serializable
 
   /**
    * Output via FOR_TESTCASE_OUTPUT_FORMATTER for test cases.<br/>
-   * 
+   *
    * @param dateHolder
    * @return
    */
@@ -381,7 +380,7 @@ public class DateHelper implements Serializable
 
   /**
    * Output via FOR_TESTCASE_OUTPUT_FORMATTER for test cases.
-   * 
+   *
    * @param dateHolder
    * @return
    */
@@ -416,7 +415,7 @@ public class DateHelper implements Serializable
 
   /**
    * Returns a calendar instance. If a context user is given then the user's time zone and locale will be used if given.
-   * 
+   *
    * @param locale if given this locale will overwrite any the context user's locale.
    */
   public static Calendar getCalendar(final Locale locale)
@@ -442,11 +441,11 @@ public class DateHelper implements Serializable
 
   /**
    * If stopTime is before startTime a negative value will be returned.
-   * 
+   *
    * @param startTime
    * @param stopTime
    * @return Duration in minutes or 0, if not computable (if start or stop time is null or stopTime is before
-   *         startTime).
+   * startTime).
    */
   public static long getDuration(final Date startTime, final Date stopTime)
   {
@@ -458,8 +457,8 @@ public class DateHelper implements Serializable
   }
 
   /**
-   * @return Formatted string without seconds, such as 5:45.
    * @param time in millis
+   * @return Formatted string without seconds, such as 5:45.
    */
   public static String formatDuration(final long milliSeconds)
   {
@@ -511,12 +510,12 @@ public class DateHelper implements Serializable
 
   /**
    * Should be used application wide for getting and/or displaying the week of year!
-   * 
+   *
    * @param date
    * @return Return the week of year. The week of year depends on the Locale set in the Configuration (config.xml). If
-   *         given date is null then -1 is returned. For "de" the first week of year is the first week with a minimum of
-   *         4 days in the new year. For "en" the first week of the year is the first week with a minimum of 1 days in
-   *         the new year.
+   * given date is null then -1 is returned. For "de" the first week of year is the first week with a minimum of
+   * 4 days in the new year. For "en" the first week of the year is the first week with a minimum of 1 days in
+   * the new year.
    * @see java.util.Calendar#getMinimalDaysInFirstWeek()
    * @see Configuration#getDefaultLocale()
    */
@@ -533,12 +532,12 @@ public class DateHelper implements Serializable
 
   /**
    * Should be used application wide for getting and/or displaying the week of year!
-   * 
+   *
    * @param calendar (this methods uses the year, month and day of the given Calendar)
    * @return Return the week of year. The week of year depends on the Locale set in the Configuration (config.xml). If
-   *         given date is null then -1 is returned. For "de" the first week of year is the first week with a minimum of
-   *         4 days in the new year. For "en" the first week of the year is the first week with a minimum of 1 days in
-   *         the new year.
+   * given date is null then -1 is returned. For "de" the first week of year is the first week with a minimum of
+   * 4 days in the new year. For "en" the first week of the year is the first week with a minimum of 1 days in
+   * the new year.
    * @see java.util.Calendar#getMinimalDaysInFirstWeek()
    * @see Configuration#getDefaultLocale()
    */
@@ -556,12 +555,12 @@ public class DateHelper implements Serializable
 
   /**
    * Should be used application wide for getting and/or displaying the week of year!
-   * 
+   *
    * @param date
    * @return Return the week of year. The week of year depends on the Locale set in the Configuration (config.xml). If
-   *         given date is null then -1 is returned. For "de" the first week of year is the first week with a minimum of
-   *         4 days in the new year. For "en" the first week of the year is the first week with a minimum of 1 days in
-   *         the new year.
+   * given date is null then -1 is returned. For "de" the first week of year is the first week with a minimum of
+   * 4 days in the new year. For "en" the first week of the year is the first week with a minimum of 1 days in
+   * the new year.
    * @see java.util.Calendar#getMinimalDaysInFirstWeek()
    * @see Configuration#getDefaultLocale()
    */
@@ -577,7 +576,7 @@ public class DateHelper implements Serializable
    * @param d1
    * @param d2
    * @return True if the dates are both null or both represents the same day (year, month, day) independent of the
-   *         hours, minutes etc.
+   * hours, minutes etc.
    * @see DateHolder#isSameDay(Date)
    */
   public static boolean isSameDay(final Date d1, final Date d2)
@@ -599,7 +598,7 @@ public class DateHelper implements Serializable
    * @param d1
    * @param d2
    * @return True if the dates are both null or both represents the same day (year, month, day) independent of the
-   *         hours, minutes etc.
+   * hours, minutes etc.
    * @see DateHolder#isSameDay(Date)
    */
   public static boolean isSameDay(final DateTime d1, final DateTime d2)
@@ -653,7 +652,7 @@ public class DateHelper implements Serializable
 
   /**
    * Sets given DateTime (UTC) as local time, meaning e. g. 08:00 UTC will be 08:00 local time.
-   * 
+   *
    * @param dateTime
    * @return
    * @see DateTime#toString(String)
@@ -719,6 +718,18 @@ public class DateHelper implements Serializable
     final LocalDateTime localDateTime = LocalDateTime.ofInstant(instant, to.toZoneId());
     final Instant instant2 = localDateTime.toInstant(from.toZoneId().getRules().getOffset(instant));
     return Date.from(instant2);
+  }
+
+  public static java.sql.Date convertDateToSqlDateInTheUsersTimeZone(final Date date)
+  {
+    if (date == null) {
+      return null;
+    }
+
+    final TimeZone utc = TimeZone.getTimeZone("UTC");
+    final TimeZone usersTimeZone = ThreadLocalUserContext.getTimeZone();
+    final Date dateInUsersTimezone = convertDateIntoOtherTimezone(date, utc, usersTimeZone);
+    return new java.sql.Date(dateInUsersTimezone.getTime());
   }
 
 }

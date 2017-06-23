@@ -96,6 +96,8 @@ public interface ConfigurationService
 
   int getMinPasswordLength();
 
+  boolean getFlagCheckPasswordChange();
+
   String getMaxFileSizeImage();
 
   String getMaxFileSizeDatev();

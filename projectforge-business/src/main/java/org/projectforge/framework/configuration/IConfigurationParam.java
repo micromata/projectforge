@@ -21,6 +21,8 @@ public interface IConfigurationParam
    */
   String getI18nKey();
 
+  boolean getDefaultBooleanValue();
+
   /**
    * @return The full i18n key including the i18n prefix "administration.configuration.param." and the suffix
    * ".description".

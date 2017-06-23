@@ -29,15 +29,15 @@ import java.util.List;
 import java.util.Locale;
 
 import org.apache.poi.hssf.util.HSSFColor;
-import org.projectforge.excel.CellFormat;
-import org.projectforge.excel.ContentProvider;
-import org.projectforge.excel.ExportCell;
-import org.projectforge.excel.ExportColumn;
-import org.projectforge.excel.ExportRow;
-import org.projectforge.excel.ExportSheet;
-import org.projectforge.excel.ExportWorkbook;
-import org.projectforge.excel.I18nExportColumn;
-import org.projectforge.excel.PropertyMapping;
+import org.projectforge.business.excel.CellFormat;
+import org.projectforge.business.excel.ContentProvider;
+import org.projectforge.business.excel.ExportCell;
+import org.projectforge.business.excel.ExportColumn;
+import org.projectforge.business.excel.ExportRow;
+import org.projectforge.business.excel.ExportSheet;
+import org.projectforge.business.excel.ExportWorkbook;
+import org.projectforge.business.excel.I18nExportColumn;
+import org.projectforge.business.excel.PropertyMapping;
 import org.projectforge.export.MyXlsContentProvider;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.time.DateTimeFormatter;
@@ -45,9 +45,8 @@ import org.springframework.stereotype.Service;
 
 /**
  * For excel exports.
- * 
+ *
  * @author Mario Groß (m.gross@micromata.de)
- * 
  */
 @Service
 public class HRPlanningExport
@@ -89,7 +88,9 @@ public class HRPlanningExport
     {
       return new MyContentProvider(this.workbook);
     }
-  };
+  }
+
+  ;
 
   private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(HRPlanningExport.class);
 
@@ -184,7 +185,7 @@ public class HRPlanningExport
 
   /**
    * Exports a Calendarweek Overview to Excel
-   * 
+   *
    * @param list
    * @return
    */
@@ -440,7 +441,7 @@ public class HRPlanningExport
 
   /**
    * Exports a Project to User View to excel
-   * 
+   *
    * @param list
    * @return
    */

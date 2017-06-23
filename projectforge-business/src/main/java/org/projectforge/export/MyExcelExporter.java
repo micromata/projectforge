@@ -25,19 +25,18 @@ package org.projectforge.export;
 
 import java.lang.reflect.Field;
 
+import org.projectforge.business.excel.CellFormat;
+import org.projectforge.business.excel.ContentProvider;
+import org.projectforge.business.excel.ExcelExporter;
+import org.projectforge.business.excel.ExportColumn;
+import org.projectforge.business.excel.ExportSheet;
 import org.projectforge.common.anots.PropertyInfo;
 import org.projectforge.common.props.PropertyType;
-import org.projectforge.excel.CellFormat;
-import org.projectforge.excel.ContentProvider;
-import org.projectforge.excel.ExcelExporter;
-import org.projectforge.excel.ExportColumn;
-import org.projectforge.excel.ExportSheet;
 import org.projectforge.framework.time.DateFormatType;
 import org.projectforge.framework.time.DateFormats;
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
  */
 public class MyExcelExporter extends ExcelExporter
 {
@@ -51,9 +50,10 @@ public class MyExcelExporter extends ExcelExporter
 
   public ExportSheet addSheet(final String sheetTitle)
   {
-    final ContentProvider contentProvider = new MyXlsContentProvider(getWorkbook()) {
+    final ContentProvider contentProvider = new MyXlsContentProvider(getWorkbook())
+    {
       /**
-       * @see org.projectforge.export.MyXlsContentProvider#getCustomizedCellFormat(org.projectforge.excel.CellFormat, java.lang.Object)
+       * @see org.projectforge.export.MyXlsContentProvider#getCustomizedCellFormat(CellFormat, java.lang.Object)
        */
       @Override
       protected CellFormat getCustomizedCellFormat(final CellFormat format, final Object value)
@@ -66,6 +66,7 @@ public class MyExcelExporter extends ExcelExporter
 
   /**
    * Adds customized formats. Put here your customized formats to your ExportSheet.
+   *
    * @param field
    * @param propInfo may-be null.
    * @param column

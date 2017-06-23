@@ -23,6 +23,7 @@
 
 package org.projectforge.web.admin;
 
+import java.util.List;
 import java.util.TimeZone;
 
 import org.apache.commons.lang.StringUtils;
@@ -36,6 +37,7 @@ import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.apache.wicket.validation.IValidatable;
 import org.apache.wicket.validation.IValidator;
+import org.projectforge.business.password.PasswordQualityService;
 import org.projectforge.business.user.service.UserService;
 import org.projectforge.framework.configuration.Configuration;
 import org.projectforge.framework.configuration.entities.ConfigurationDO;
@@ -66,6 +68,9 @@ public class SetupForm extends AbstractForm<SetupForm, SetupPage>
 
   @SpringBean
   private UserService userService;
+
+  @SpringBean
+  private PasswordQualityService passwordQualityService;
 
   private final IModel<SetupTarget> setupModeModel = new Model<>(SetupTarget.TEST_DATA);
 
@@ -155,10 +160,12 @@ public class SetupForm extends AbstractForm<SetupForm, SetupPage>
           return;
         }
         if (MAGIC_PASSWORD.equals(passwordInput) == false || adminUser.getPassword() == null) {
-          final I18nKeyAndParams errorMsgKey = userService.checkPasswordQuality(passwordInput);
-          if (errorMsgKey != null) {
+          final List<I18nKeyAndParams> errorMsgKeys = passwordQualityService.checkPasswordQuality(passwordInput);
+          if (errorMsgKeys.isEmpty() == false) {
             adminUser.setPassword(null);
-            passwordField.error(I18nHelper.getLocalizedMessage(errorMsgKey));
+            for (I18nKeyAndParams errorMsgKey : errorMsgKeys) {
+              passwordField.error(I18nHelper.getLocalizedMessage(errorMsgKey));
+            }
           } else {
             userService.createEncryptedPassword(adminUser, passwordInput);
           }

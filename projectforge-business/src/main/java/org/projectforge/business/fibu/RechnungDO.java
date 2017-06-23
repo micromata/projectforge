@@ -104,6 +104,18 @@ public class RechnungDO extends AbstractRechnungDO<RechnungsPositionDO> implemen
   @PropertyInfo(i18nKey = "fibu.rechnung.typ")
   @Field(index = Index.YES /* TOKENIZED */, store = Store.NO)
   private RechnungTyp typ;
+  
+  @PropertyInfo(i18nKey = "fibu.customerref1")
+  @Field(index = Index.YES /* TOKENIZED */, store = Store.NO)
+  private String customerref1;
+
+  @PropertyInfo(i18nKey = "fibu.customerref2")
+  @Field(index = Index.YES /* TOKENIZED */, store = Store.NO)
+  private String customerref2;
+
+  @PropertyInfo(i18nKey = "fibu.customer.address")
+  @Field(index = Index.YES /* TOKENIZED */, store = Store.NO)
+  private String customerAddress;
 
   @PropertyInfo(i18nKey = "fibu.periodOfPerformance.from")
   @Field(index = Index.YES, analyze = Analyze.NO /* UN_TOKENIZED */, store = Store.NO)
@@ -152,6 +164,42 @@ public class RechnungDO extends AbstractRechnungDO<RechnungsPositionDO> implemen
   public RechnungDO setKundeText(final String kundeText)
   {
     this.kundeText = kundeText;
+    return this;
+  }
+
+  @Column(name = "customerref1")
+  public String getCustomerref1()
+  {
+    return customerref1;
+  }
+
+  public RechnungDO setCustomerref1(final String customerref1)
+  {
+    this.customerref1 = customerref1;
+    return this;
+  }
+
+  @Column(name = "customerref2")
+  public String getCustomerref2()
+  {
+    return customerref2;
+  }
+
+  public RechnungDO setCustomerref2(final String customerref2)
+  {
+    this.customerref2 = customerref2;
+    return this;
+  }
+
+  @Column(name = "customeraddress")
+  public String getCustomerAddress()
+  {
+    return customerAddress;
+  }
+
+  public RechnungDO setCustomerAddress(final String customerAddress)
+  {
+    this.customerAddress = customerAddress;
     return this;
   }
 

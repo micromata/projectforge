@@ -16,10 +16,10 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.util.CellRangeAddress;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeConstants;
+import org.projectforge.business.excel.ExportRow;
+import org.projectforge.business.excel.ExportSheet;
+import org.projectforge.business.excel.ExportWorkbook;
 import org.projectforge.business.timesheet.TimesheetDO;
-import org.projectforge.excel.ExportRow;
-import org.projectforge.excel.ExportSheet;
-import org.projectforge.excel.ExportWorkbook;
 import org.springframework.core.io.ClassPathResource;
 
 /**
@@ -174,11 +174,11 @@ class IhkExporter
       CellRangeAddress cellRangeAddress = worksheet.getMergedRegion(i);
       if (cellRangeAddress.getFirstRow() == sourceRow.getRowNum()) {
         CellRangeAddress newCellRangeAddress = new CellRangeAddress(newRow.getRowNum(),
-          (newRow.getRowNum() +
-            (cellRangeAddress.getLastRow() - cellRangeAddress.getFirstRow()
-            )),
-          cellRangeAddress.getFirstColumn(),
-          cellRangeAddress.getLastColumn());
+            (newRow.getRowNum() +
+                (cellRangeAddress.getLastRow() - cellRangeAddress.getFirstRow()
+                )),
+            cellRangeAddress.getFirstColumn(),
+            cellRangeAddress.getLastColumn());
         worksheet.addMergedRegion(newCellRangeAddress);
       }
     }

@@ -23,14 +23,17 @@
 
 package org.projectforge.web.fibu;
 
+import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
+import org.apache.wicket.markup.html.form.SubmitLink;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
+import org.projectforge.business.fibu.InvoiceService;
 import org.projectforge.business.fibu.ProjektDO;
 import org.projectforge.business.fibu.ProjektDao;
 import org.projectforge.business.fibu.RechnungDO;
@@ -41,7 +44,9 @@ import org.projectforge.business.fibu.RechnungsPositionDO;
 import org.projectforge.framework.time.DayHolder;
 import org.projectforge.web.wicket.AbstractEditPage;
 import org.projectforge.web.wicket.AbstractSecuredBasePage;
+import org.projectforge.web.wicket.DownloadUtils;
 import org.projectforge.web.wicket.EditPage;
+import org.projectforge.web.wicket.components.ContentMenuEntryPanel;
 
 @EditPage(defaultReturnPage = RechnungListPage.class)
 public class RechnungEditPage extends AbstractEditPage<RechnungDO, RechnungEditForm, RechnungDao> implements ISelectCallerPage
@@ -56,6 +61,9 @@ public class RechnungEditPage extends AbstractEditPage<RechnungDO, RechnungEditF
   @SpringBean
   private ProjektDao projektDao;
 
+  @SpringBean
+  private InvoiceService invoiceService;
+
   public RechnungEditPage(final PageParameters parameters)
   {
     super(parameters, "fibu.rechnung");
@@ -67,6 +75,24 @@ public class RechnungEditPage extends AbstractEditPage<RechnungDO, RechnungEditF
       getData().setTyp(RechnungTyp.RECHNUNG);
     }
     getData().recalculate(); // Muss immer gemacht werden, damit das Zahlungsziel in Tagen berechnet wird.
+    final ContentMenuEntryPanel menu = new ContentMenuEntryPanel(getNewContentMenuChildId(), new SubmitLink(
+        ContentMenuEntryPanel.LINK_ID, form)
+    {
+      @Override
+      public void onSubmit()
+      {
+        log.debug("Export invoice.");
+        ByteArrayOutputStream baos = invoiceService.getInvoiceWordDocument(getData());
+        if (baos != null) {
+          final String number = getData().getNummer() != null ? getData().getNummer().toString() + "_" : "";
+          final String sanitizedBetreff = getData().getBetreff().replaceAll("\\W+", "_");
+          final String filename = number + sanitizedBetreff + "_invoice.docx";
+          DownloadUtils.setDownloadTarget(baos.toByteArray(), filename);
+        }
+      }
+
+    }.setDefaultFormProcessing(false), getString("fibu.rechnung.exportInvoice"));
+    addContentMenuEntry(menu);
   }
 
   @Override
@@ -117,7 +143,7 @@ public class RechnungEditPage extends AbstractEditPage<RechnungDO, RechnungEditF
     rechnung.setStatus(RechnungStatus.GESTELLT);
     final List<RechnungsPositionDO> positionen = getData().getPositionen();
     if (positionen != null) {
-      rechnung.setPositionen(new ArrayList<RechnungsPositionDO>());
+      rechnung.setPositionen(new ArrayList<>());
       for (final RechnungsPositionDO origPosition : positionen) {
         final RechnungsPositionDO position = (RechnungsPositionDO) origPosition.newClone();
         rechnung.addPosition(position);

@@ -25,7 +25,6 @@ package org.projectforge.business.fibu;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
@@ -33,11 +32,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
 
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.hibernate.Criteria;
 import org.hibernate.criterion.Criterion;
@@ -63,7 +62,6 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.persistence.utils.SQLHelper;
 import org.projectforge.framework.time.DateHelper;
 import org.projectforge.framework.utils.NumberHelper;
-import org.projectforge.framework.xstream.XmlObjectReader;
 import org.projectforge.framework.xstream.XmlObjectWriter;
 import org.projectforge.mail.Mail;
 import org.projectforge.mail.SendMail;
@@ -342,9 +340,8 @@ public class AuftragDao extends BaseDao<AuftragDO>
     }
 
     final QueryFilter queryFilter = new QueryFilter(myFilter);
-    //    Boolean vollstaendigFakturiert = removeMe(myFilter, queryFilter);
 
-    filterAuftragsStatuses(myFilter, queryFilter);
+    addCriterionForAuftragsStatuses(myFilter, queryFilter);
 
     if (myFilter.getUser() != null) {
       queryFilter.add(
@@ -357,16 +354,9 @@ public class AuftragDao extends BaseDao<AuftragDO>
       );
     }
 
-    if (myFilter.getYear() > 1900) {
-      final Calendar cal = DateHelper.getUTCCalendar();
-      cal.set(Calendar.YEAR, myFilter.getYear());
-      cal.set(Calendar.DAY_OF_YEAR, 1);
-      final java.sql.Date lo = new java.sql.Date(cal.getTimeInMillis());
-      final int lastDayOfYear = cal.getActualMaximum(Calendar.DAY_OF_YEAR);
-      cal.set(Calendar.DAY_OF_YEAR, lastDayOfYear);
-      final java.sql.Date hi = new java.sql.Date(cal.getTimeInMillis());
-      queryFilter.add(Restrictions.between("angebotsDatum", lo, hi));
-    }
+    createCriterionForErfassungsDatum(myFilter).ifPresent(queryFilter::add);
+
+    AuftragAndRechnungDaoHelper.createCriterionForPeriodOfPerformance(myFilter).ifPresent(queryFilter::add);
 
     queryFilter.addOrder(Order.desc("nummer"));
 
@@ -402,7 +392,7 @@ public class AuftragDao extends BaseDao<AuftragDO>
     return list;
   }
 
-  private void filterAuftragsStatuses(final AuftragFilter myFilter, final QueryFilter queryFilter)
+  private void addCriterionForAuftragsStatuses(final AuftragFilter myFilter, final QueryFilter queryFilter)
   {
     final Collection<AuftragsStatus> auftragsStatuses = myFilter.getAuftragsStatuses();
     if (CollectionUtils.isEmpty(auftragsStatuses)) {
@@ -423,6 +413,37 @@ public class AuftragDao extends BaseDao<AuftragDO>
     queryFilter
         .createAlias("positionen", "position", Criteria.FULL_JOIN)
         .add(Restrictions.or(orCriterions.toArray(new Criterion[orCriterions.size()])));
+
+    // check deleted
+    if (myFilter.isIgnoreDeleted() == false) {
+      queryFilter.add(Restrictions.eq("position.deleted", myFilter.isDeleted()));
+    }
+  }
+
+  private Optional<Criterion> createCriterionForErfassungsDatum(final AuftragFilter myFilter)
+  {
+    final java.sql.Date startDate = DateHelper.convertDateToSqlDateInTheUsersTimeZone(myFilter.getStartDate());
+    final java.sql.Date endDate = DateHelper.convertDateToSqlDateInTheUsersTimeZone(myFilter.getEndDate());
+
+    if (startDate != null && endDate != null) {
+      return Optional.of(
+          Restrictions.between("erfassungsDatum", startDate, endDate)
+      );
+    }
+
+    if (startDate != null) {
+      return Optional.of(
+          Restrictions.ge("erfassungsDatum", startDate)
+      );
+    }
+
+    if (endDate != null) {
+      return Optional.of(
+          Restrictions.le("erfassungsDatum", endDate)
+      );
+    }
+
+    return Optional.empty();
   }
 
   private void filterFakturiert(final AuftragFilter myFilter, final List<AuftragDO> list)
@@ -576,21 +597,6 @@ public class AuftragDao extends BaseDao<AuftragDO>
     if (taskTree != null) {
       taskTree.refreshOrderPositionReferences();
     }
-  }
-
-  @Override
-  public void afterLoad(final AuftragDO obj)
-  {
-    final XmlObjectReader reader = new XmlObjectReader();
-    reader.initialize(AuftragUIStatus.class);
-    final String styleAsXml = obj.getUiStatusAsXml();
-    final AuftragUIStatus status;
-    if (StringUtils.isEmpty(styleAsXml) == true) {
-      status = new AuftragUIStatus();
-    } else {
-      status = (AuftragUIStatus) reader.read(styleAsXml);
-    }
-    obj.setUiStatus(status);
   }
 
   /**

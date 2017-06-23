@@ -78,7 +78,7 @@ public class ConfigurationDao extends BaseDao<ConfigurationDO>
   @Override
   protected void afterSaveOrModify(final ConfigurationDO obj)
   {
-    if (obj.getConfigurationType() == ConfigurationParam.MULTI_TENANCY_ENABLED.getType()
+    if (obj.getParameter().equals(ConfigurationParam.MULTI_TENANCY_ENABLED.getKey())
         && obj.getBooleanValue() == true) {
       // Enable current logged in user as super admin user.
       final Integer adminUserId = ThreadLocalUserContext.getUserId();
@@ -246,6 +246,9 @@ public class ConfigurationDao extends BaseDao<ConfigurationDO>
     }
     if (param.getType().isIn(ConfigurationType.INTEGER)) {
       configuration.setIntValue(param.getDefaultIntValue());
+    }
+    if (param.getType().isIn(ConfigurationType.BOOLEAN)) {
+      configuration.setStringValue(String.valueOf(param.getDefaultBooleanValue()));
     }
     internalSave(configuration);
   }

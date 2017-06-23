@@ -36,6 +36,7 @@ import javax.persistence.MappedSuperclass;
 import javax.persistence.Transient;
 
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang.StringUtils;
 import org.hibernate.search.annotations.Analyze;
 import org.hibernate.search.annotations.DateBridge;
 import org.hibernate.search.annotations.EncodingType;
@@ -52,6 +53,7 @@ import org.projectforge.framework.persistence.api.PFPersistancyBehavior;
 import org.projectforge.framework.persistence.entities.DefaultBaseDO;
 import org.projectforge.framework.time.DateHolder;
 import org.projectforge.framework.time.DayHolder;
+import org.projectforge.framework.xstream.XmlObjectReader;
 
 import de.micromata.genome.db.jpa.history.api.NoHistory;
 import de.micromata.genome.db.jpa.xmldump.api.JpaXmlPersist;
@@ -517,9 +519,14 @@ public abstract class AbstractRechnungDO<T extends AbstractRechnungsPositionDO> 
   @Transient
   public RechnungUIStatus getUiStatus()
   {
-    if (uiStatus == null) {
+    if (uiStatus == null && StringUtils.isEmpty(uiStatusAsXml)) {
       uiStatus = new RechnungUIStatus();
+    } else if (uiStatus == null) {
+      final XmlObjectReader reader = new XmlObjectReader();
+      reader.initialize(RechnungUIStatus.class);
+      uiStatus = (RechnungUIStatus) reader.read(uiStatusAsXml);
     }
+
     return uiStatus;
   }
 

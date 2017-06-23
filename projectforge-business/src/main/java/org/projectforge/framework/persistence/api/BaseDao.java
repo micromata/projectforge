@@ -411,7 +411,7 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
       }
       if (list != null) {
         list = selectUnique(list);
-        if (list.size() > 0 && searchFilter.isUseModificationFilter() == true) {
+        if (list.size() > 0 && searchFilter.applyModificationFilter()) {
           // Search now all history entries which were modified by the given user and/or in the given time period.
           final Set<Integer> idSet = getHistoryEntries(getSession(), searchFilter);
           final List<O> result = new ArrayList<O>();

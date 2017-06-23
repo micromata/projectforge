@@ -33,6 +33,7 @@ import org.apache.log4j.Logger;
 import org.apache.poi.hssf.usermodel.HSSFCell;
 import org.apache.poi.hssf.usermodel.HSSFRow;
 import org.apache.poi.hssf.usermodel.HSSFSheet;
+import org.projectforge.business.excel.ExcelImport;
 import org.projectforge.business.fibu.KontoDO;
 import org.projectforge.business.fibu.KontoDao;
 import org.projectforge.business.fibu.KostFormatter;
@@ -41,7 +42,6 @@ import org.projectforge.business.fibu.kost.Kost1DO;
 import org.projectforge.business.fibu.kost.Kost1Dao;
 import org.projectforge.business.fibu.kost.Kost2DO;
 import org.projectforge.business.fibu.kost.Kost2Dao;
-import org.projectforge.excel.ExcelImport;
 import org.projectforge.framework.i18n.UserException;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.utils.ImportStorage;
@@ -55,7 +55,9 @@ public class BuchungssatzExcelImporter
 {
   private static final Logger log = Logger.getLogger(BuchungssatzExcelImporter.class);
 
-  /** In dieser Zeile stehen die Überschriften der Spalten für die Buchungssätze. */
+  /**
+   * In dieser Zeile stehen die Überschriften der Spalten für die Buchungssätze.
+   */
   public static final int ROW_COLUMNNAMES = 0;
 
   /**
@@ -118,7 +120,7 @@ public class BuchungssatzExcelImporter
 
   private ImportedSheet<BuchungssatzDO> importBuchungssaetze(final ExcelImport<BuchungssatzImportRow> imp, final HSSFSheet sheet,
       final int month) throws Exception
-      {
+  {
     final ImportedSheet<BuchungssatzDO> importedSheet = new ImportedSheet<BuchungssatzDO>();
     imp.setNameRowIndex(ROW_COLUMNNAMES);
     imp.setStartingRowIndex(ROW_COLUMNNAMES + 1);
@@ -170,7 +172,9 @@ public class BuchungssatzExcelImporter
       if (year == 0) {
         year = date.getYear();
       } else if (year != date.getYear()) {
-        final String msg = "Not supported: Buchungssätze innerhalb eines Excel-Sheets liegen in verschiedenen Jahren: Im Blatt '" + sheet.getSheetName() + "', in Zeile " + (i + 2);
+        final String msg =
+            "Not supported: Buchungssätze innerhalb eines Excel-Sheets liegen in verschiedenen Jahren: Im Blatt '" + sheet.getSheetName() + "', in Zeile " + (i
+                + 2);
         actionLog.logError(msg);
         throw new UserException(msg);
       }
@@ -194,11 +198,12 @@ public class BuchungssatzExcelImporter
     importedSheet.setProperty("year", year);
     importedSheet.setProperty("month", month);
     return importedSheet;
-      }
+  }
 
   /**
    * Dummerweise ist im DATEV-Export die Spalte SH zweimal vertreten. Da wir SH aber für Haben/Soll auswerten müssen, müssen die Spalten
    * unterschiedlich heißen. Die zweite Spalte wird hier in SH2 umbenannt, sofern vorhanden.
+   *
    * @param sheet
    */
   private void rename2ndSH(final HSSFSheet sheet)

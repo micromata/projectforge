@@ -31,16 +31,17 @@ import java.util.Map;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.poi.hssf.util.HSSFColor;
 import org.projectforge.business.converter.LanguageConverter;
+import org.projectforge.business.excel.CellFormat;
+import org.projectforge.business.excel.ContentProvider;
+import org.projectforge.business.excel.ExportCell;
+import org.projectforge.business.excel.ExportColumn;
+import org.projectforge.business.excel.ExportRow;
+import org.projectforge.business.excel.ExportSheet;
+import org.projectforge.business.excel.ExportWorkbook;
+import org.projectforge.business.excel.I18nExportColumn;
+import org.projectforge.business.excel.PropertyMapping;
+import org.projectforge.business.excel.XlsContentProvider;
 import org.projectforge.business.user.ProjectForgeGroup;
-import org.projectforge.excel.CellFormat;
-import org.projectforge.excel.ContentProvider;
-import org.projectforge.excel.ExportCell;
-import org.projectforge.excel.ExportColumn;
-import org.projectforge.excel.ExportRow;
-import org.projectforge.excel.ExportSheet;
-import org.projectforge.excel.ExportWorkbook;
-import org.projectforge.excel.I18nExportColumn;
-import org.projectforge.excel.PropertyMapping;
 import org.projectforge.export.MyXlsContentProvider;
 import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
@@ -49,7 +50,7 @@ import org.springframework.stereotype.Service;
 
 /**
  * For excel export.
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 @Service("addressExport")
@@ -63,7 +64,7 @@ public class AddressExport
     }
 
     /**
-     * @see org.projectforge.excel.XlsContentProvider#updateRowStyle(org.projectforge.excel.ExportRow)
+     * @see XlsContentProvider#updateRowStyle(ExportRow)
      */
     @Override
     public MyContentProvider updateRowStyle(final ExportRow row)
@@ -91,11 +92,13 @@ public class AddressExport
     }
 
     @Override
-    public org.projectforge.excel.ContentProvider newInstance()
+    public ContentProvider newInstance()
     {
       return new MyContentProvider(this.workbook);
     }
-  };
+  }
+
+  ;
 
   private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(AddressExport.class);
 
@@ -232,7 +235,7 @@ public class AddressExport
    * Exports the filtered list as table with almost all fields. For members of group FINANCE_GROUP (PF_Finance) and
    * MARKETING_GROUP (PF_Marketing) all addresses are exported, for others only those which are marked as personal
    * favorites.
-   * 
+   *
    * @param Used by sub classes such as AddressCampaignValueExport.
    * @throws IOException
    */
