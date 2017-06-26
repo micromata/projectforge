@@ -1,7 +1,7 @@
 FROM debian:jessie
 MAINTAINER Micromata
 
-## Install requirements ( oracle-java7-installer )
+## Install requirements ( oracle-java8-installer )
 RUN echo "deb http://ppa.launchpad.net/webupd8team/java/ubuntu precise main" | tee /etc/apt/sources.list.d/webupd8team-java.list && \
     echo "deb-src http://ppa.launchpad.net/webupd8team/java/ubuntu precise main" | tee -a /etc/apt/sources.list.d/webupd8team-java.list && \
     apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys EEA14886 && \
@@ -15,10 +15,10 @@ EXPOSE 8080
 
 WORKDIR /usr/share
 
-ENTRYPOINT ["/usr/bin/java", "-jar", "/usr/share/projectforge-application-6.13.0-SNAPSHOT.jar"]
+ENTRYPOINT ["/usr/bin/java", "-jar", "/usr/share/projectforge-application-6.14.0-SNAPSHOT.jar"]
 
 # Add the service itself
-ADD ./target/extra-resources/target/projectforge-application-6.13.0-SNAPSHOT.jar /usr/share/projectforge-application-6.13.0-SNAPSHOT.jar
+ADD ./target/extra-resources/projectforge-application-6.14.0-SNAPSHOT.jar /usr/share/projectforge-application-6.14.0-SNAPSHOT.jar
 
 # Add the properties
 ADD ./configuration/default-application.properties /usr/share/application.properties
