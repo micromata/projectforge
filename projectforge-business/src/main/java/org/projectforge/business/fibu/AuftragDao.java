@@ -24,6 +24,7 @@
 package org.projectforge.business.fibu;
 
 import java.math.BigDecimal;
+import java.sql.Date;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -35,6 +36,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.stream.Collectors;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.Validate;
@@ -565,7 +567,41 @@ public class AuftragDao extends BaseDao<AuftragDO>
         }
       }
     }
+    validateDatesInPaymentScheduleWithinPeriodOfPerformanceOfPosition(obj);
     validateAmountsInPaymentScheduleNotGreaterThanNetSumOfPosition(obj);
+  }
+
+  void validateDatesInPaymentScheduleWithinPeriodOfPerformanceOfPosition(final AuftragDO auftrag)
+  {
+    final List<PaymentScheduleDO> paymentSchedules = auftrag.getPaymentSchedules();
+    if (paymentSchedules == null) {
+      // if there are no payment schedules, there are no dates which are not within the period of performance
+      return;
+    }
+
+    final List<Short> positionsWithDatesNotWithinPop = new ArrayList<>();
+    for (final AuftragsPositionDO pos : auftrag.getPositionenExcludingDeleted()) {
+      final Date periodOfPerformanceBegin = pos.hasOwnPeriodOfPerformance() ? pos.getPeriodOfPerformanceBegin() : auftrag.getPeriodOfPerformanceBegin();
+      final Date periodOfPerformanceEnd = pos.hasOwnPeriodOfPerformance() ? pos.getPeriodOfPerformanceEnd() : auftrag.getPeriodOfPerformanceEnd();
+
+      final boolean hasDateNotInRange = paymentSchedules.stream()
+          .filter(payment -> payment.getPositionNumber() == pos.getNumber())
+          .map(PaymentScheduleDO::getScheduleDate)
+          .filter(Objects::nonNull)
+          .anyMatch(date -> date.before(periodOfPerformanceBegin) || date.after(periodOfPerformanceEnd));
+
+      if (hasDateNotInRange) {
+        positionsWithDatesNotWithinPop.add(pos.getNumber());
+      }
+    }
+
+    if (positionsWithDatesNotWithinPop.isEmpty() == false) {
+      final String positions = positionsWithDatesNotWithinPop.stream()
+          .map(Object::toString)
+          .collect(Collectors.joining(", "));
+
+      throw new UserException("fibu.auftrag.error.datesInPaymentScheduleNotWithinPeriodOfPerformanceOfPosition", positions);
+    }
   }
 
   void validateAmountsInPaymentScheduleNotGreaterThanNetSumOfPosition(final AuftragDO auftrag)
