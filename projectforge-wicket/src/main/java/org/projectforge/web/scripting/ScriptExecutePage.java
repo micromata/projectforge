@@ -30,6 +30,7 @@ import org.apache.wicket.markup.html.link.Link;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
+import org.projectforge.business.excel.ExportWorkbook;
 import org.projectforge.business.scripting.ScriptDO;
 import org.projectforge.business.scripting.ScriptDao;
 import org.projectforge.business.scripting.ScriptParameter;
@@ -38,7 +39,6 @@ import org.projectforge.business.scripting.xstream.ScriptCallData;
 import org.projectforge.business.task.TaskDO;
 import org.projectforge.business.task.TaskDao;
 import org.projectforge.business.user.UserDao;
-import org.projectforge.excel.ExportWorkbook;
 import org.projectforge.export.ExportJFreeChart;
 import org.projectforge.framework.i18n.UserException;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
@@ -99,7 +99,9 @@ public class ScriptExecutePage extends AbstractScriptingPage implements ISelectC
             editPage.setReturnToPage(ScriptExecutePage.this);
             form.refresh = true; // Force reload of parameter settings.
             setResponsePage(editPage);
-          };
+          }
+
+          ;
         }, getString("edit"));
     addContentMenuEntry(editMenuEntryPanel);
     form = new ScriptExecuteForm(this, loadScript());

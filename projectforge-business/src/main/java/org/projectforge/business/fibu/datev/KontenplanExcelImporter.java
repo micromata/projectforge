@@ -29,8 +29,8 @@ import java.util.Map;
 
 import org.apache.log4j.Logger;
 import org.apache.poi.hssf.usermodel.HSSFSheet;
+import org.projectforge.business.excel.ExcelImport;
 import org.projectforge.business.fibu.KontoDO;
-import org.projectforge.excel.ExcelImport;
 import org.projectforge.framework.persistence.utils.ImportStorage;
 import org.projectforge.framework.persistence.utils.ImportedElement;
 import org.projectforge.framework.persistence.utils.ImportedSheet;
@@ -42,7 +42,9 @@ public class KontenplanExcelImporter
 
   private static final Logger log = Logger.getLogger(KontenplanExcelImporter.class);
 
-  /** In dieser Zeile stehen die Überschriften der Spalten für die Konten. */
+  /**
+   * In dieser Zeile stehen die Überschriften der Spalten für die Konten.
+   */
   public static final int ROW_COLUMNNAMES = 1;
 
   public void doImport(final ImportStorage<KontoDO> storage, final InputStream is, final ActionLog actionLog) throws Exception
@@ -63,7 +65,7 @@ public class KontenplanExcelImporter
 
   private void importKontenplan(final ImportStorage<KontoDO> storage, final ExcelImport<KontenplanExcelRow> imp, final HSSFSheet sheet,
       final ActionLog actionLog) throws Exception
-      {
+  {
     final ImportedSheet<KontoDO> importedSheet = new ImportedSheet<KontoDO>();
     storage.addSheet(importedSheet);
     importedSheet.setName(NAME_OF_EXCEL_SHEET);
@@ -88,7 +90,7 @@ public class KontenplanExcelImporter
       importedSheet.addElement(element);
       log.debug(konto);
     }
-      }
+  }
 
   private KontoDO convertKonto(final KontenplanExcelRow row) throws Exception
   {

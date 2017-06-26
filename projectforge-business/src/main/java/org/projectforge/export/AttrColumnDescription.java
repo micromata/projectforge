@@ -1,6 +1,6 @@
 package org.projectforge.export;
 
-import org.projectforge.excel.I18nExportColumn;
+import org.projectforge.business.excel.I18nExportColumn;
 
 public class AttrColumnDescription
 {

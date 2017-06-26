@@ -35,6 +35,7 @@ import java.util.TimeZone;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
 import org.joda.time.Days;
 import org.joda.time.Period;
 import org.projectforge.business.teamcal.admin.right.TeamCalRight;
@@ -53,11 +54,11 @@ import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.i18n.I18nHelper;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
+import org.projectforge.framework.time.DateHelper;
 import org.projectforge.framework.time.RecurrenceFrequency;
 import org.projectforge.framework.utils.NumberHelper;
 import org.projectforge.web.calendar.MyFullCalendarEventsProvider;
 
-import net.fortuna.ical4j.model.Recur;
 import net.ftlines.wicket.fullcalendar.Event;
 import net.ftlines.wicket.fullcalendar.callback.EventDroppedCallbackScriptGenerator;
 
@@ -131,27 +132,29 @@ public class TeamCalEventProvider extends MyFullCalendarEventsProvider
     eventFilter.setUser(ThreadLocalUserContext.getUser());
     final List<TeamEvent> teamEvents = teamEventDao.getEventList(eventFilter, true);
 
-    boolean longFormat = false;
     days = Days.daysBetween(start, end).getDays();
-    if (days < 10) {
-      // Week or day view:
-      longFormat = true;
-    }
+    // Week or day view:
+    final boolean longFormat = days < 10;
 
     final TeamCalRight right = new TeamCalRight(accessChecker);
     final PFUserDO user = ThreadLocalUserContext.getUser();
     final TimeZone timeZone = ThreadLocalUserContext.getTimeZone();
     if (CollectionUtils.isNotEmpty(teamEvents) == true) {
       for (final TeamEvent teamEvent : teamEvents) {
-        final DateTime startDate = new DateTime(teamEvent.getStartDate(), ThreadLocalUserContext.getDateTimeZone());
-        final DateTime endDate = new DateTime(teamEvent.getEndDate(), ThreadLocalUserContext.getDateTimeZone());
         final TeamEventDO eventDO;
-        final TeamCalEventId id = new TeamCalEventId(teamEvent, timeZone);
         if (teamEvent instanceof TeamEventDO) {
           eventDO = (TeamEventDO) teamEvent;
         } else {
           eventDO = ((TeamRecurrenceEvent) teamEvent).getMaster();
         }
+
+        // Use UTC for all day events to prevent date shift for timezones with negative offset
+        final DateTimeZone dateTimeZone = eventDO.isAllDay() ? DateTimeZone.forTimeZone(DateHelper.UTC) : ThreadLocalUserContext.getDateTimeZone();
+        final DateTime startDate = new DateTime(teamEvent.getStartDate(), dateTimeZone);
+        final DateTime endDate = new DateTime(teamEvent.getEndDate(), dateTimeZone);
+
+        final TeamCalEventId id = new TeamCalEventId(teamEvent, timeZone);
+
         teamEventMap.put(id.toString(), teamEvent);
         final MyWicketEvent event = new MyWicketEvent();
         event.setClassName(EVENT_CLASS_NAME + " " + EventDroppedCallbackScriptGenerator.NO_CONTEXTMENU_INDICATOR);
@@ -180,7 +183,6 @@ public class TeamCalEventProvider extends MyFullCalendarEventsProvider
         final String title;
         String durationString = "";
         if (longFormat == true) {
-          // String day = duration.getDays() + "";
           final Period period = new Period(startDate, endDate);
           int hourInt = period.getHours();
           if (period.getDays() > 0) {
@@ -214,7 +216,7 @@ public class TeamCalEventProvider extends MyFullCalendarEventsProvider
         } else {
           event.setTitle(title);
         }
-        events.put(id + "", event);
+        events.put(String.valueOf(id), event);
       }
     }
   }
@@ -223,9 +225,7 @@ public class TeamCalEventProvider extends MyFullCalendarEventsProvider
   {
     String recurrence = null;
     if (eventDO.hasRecurrence() == true) {
-      final Recur recur = eventDO.getRecurrenceObject();
-      final TeamEventRecurrenceData recurrenceData = new TeamEventRecurrenceData(recur,
-          ThreadLocalUserContext.getTimeZone());
+      final TeamEventRecurrenceData recurrenceData = eventDO.getRecurrenceData(ThreadLocalUserContext.getTimeZone());
       final RecurrenceFrequency frequency = recurrenceData.getFrequency();
       if (frequency != null) {
         final String unitI18nKey = frequency.getUnitI18nKey();

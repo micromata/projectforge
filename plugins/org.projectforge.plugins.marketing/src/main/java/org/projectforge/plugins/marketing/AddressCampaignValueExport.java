@@ -28,17 +28,17 @@ import java.util.Map;
 import org.projectforge.business.address.AddressDO;
 import org.projectforge.business.address.AddressExport;
 import org.projectforge.business.converter.LanguageConverter;
-import org.projectforge.excel.ExportColumn;
-import org.projectforge.excel.ExportSheet;
-import org.projectforge.excel.I18nExportColumn;
-import org.projectforge.excel.PropertyMapping;
+import org.projectforge.business.excel.ExportColumn;
+import org.projectforge.business.excel.ExportSheet;
+import org.projectforge.business.excel.I18nExportColumn;
+import org.projectforge.business.excel.PropertyMapping;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.springframework.stereotype.Service;
 
 /**
  * For excel export. export must be called with two params, the first is the AddressCampaignValue map and the second the
  * title of the address campaign.
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 @Service("addressCampaignValueExport")

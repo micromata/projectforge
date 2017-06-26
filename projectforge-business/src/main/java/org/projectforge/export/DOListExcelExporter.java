@@ -26,15 +26,15 @@ package org.projectforge.export;
 import java.lang.reflect.Field;
 import java.util.Date;
 
+import org.projectforge.business.excel.ContentProvider;
+import org.projectforge.business.excel.ExportColumn;
 import org.projectforge.common.anots.PropertyInfo;
-import org.projectforge.excel.ContentProvider;
-import org.projectforge.excel.ExportColumn;
 import org.projectforge.framework.time.DateHelper;
 
 /**
  * MyExcelExporter with minor optimizations e. g. for AbstractListPage.
- * @author Kai Reinhard (k.reinhard@micromata.de)
  *
+ * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 public class DOListExcelExporter extends MyExcelExporter
 {
@@ -51,8 +51,8 @@ public class DOListExcelExporter extends MyExcelExporter
   }
 
   /**
-   * @see org.projectforge.export.MyExcelExporter#putFieldFormat(org.projectforge.excel.ContentProvider, java.lang.reflect.Field,
-   *      org.projectforge.common.anots.PropertyInfo, org.projectforge.excel.ExportColumn)
+   * @see org.projectforge.export.MyExcelExporter#putFieldFormat(ContentProvider, java.lang.reflect.Field,
+   * org.projectforge.common.anots.PropertyInfo, ExportColumn)
    */
   @Override
   public void putFieldFormat(final ContentProvider sheetProvider, final Field field, final PropertyInfo propInfo,
@@ -66,6 +66,7 @@ public class DOListExcelExporter extends MyExcelExporter
 
   /**
    * If true then the whole first row will be declared with Excel auto-filter.
+   *
    * @return true at default.
    */
   public boolean isExcelAutoFilter()
@@ -75,6 +76,7 @@ public class DOListExcelExporter extends MyExcelExporter
 
   /**
    * You may add here data or sheets to the Excel file before the download starts. Does nothing at default.
+   *
    * @param exporter
    */
   public void onBeforeDownload()

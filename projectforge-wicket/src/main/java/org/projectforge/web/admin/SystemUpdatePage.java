@@ -29,11 +29,11 @@ import java.util.List;
 import org.apache.wicket.markup.html.link.Link;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
+import org.projectforge.business.excel.ExportSheet;
+import org.projectforge.business.excel.ExportWorkbook;
 import org.projectforge.business.login.Login;
 import org.projectforge.business.user.ProjectForgeGroup;
 import org.projectforge.continuousdb.UpdateEntry;
-import org.projectforge.excel.ExportSheet;
-import org.projectforge.excel.ExportWorkbook;
 import org.projectforge.framework.access.AccessCheckerImpl;
 import org.projectforge.framework.access.AccessException;
 import org.projectforge.framework.persistence.database.DatabaseUpdateDO;
@@ -83,7 +83,9 @@ public class SystemUpdatePage extends AbstractSecuredPage
                 + ".xls";
             final byte[] xls = workbook.getAsByteArray();
             DownloadUtils.setDownloadTarget(xls, filename);
-          };
+          }
+
+          ;
         }, getString("system.update.downloadUpdateHistoryAsXls"));
     addContentMenuEntry(menu);
   }

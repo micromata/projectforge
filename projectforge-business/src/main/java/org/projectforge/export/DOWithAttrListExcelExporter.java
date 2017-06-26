@@ -4,9 +4,9 @@ import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
 
-import org.projectforge.excel.ContentProvider;
-import org.projectforge.excel.ExportColumn;
-import org.projectforge.excel.PropertyMapping;
+import org.projectforge.business.excel.ContentProvider;
+import org.projectforge.business.excel.ExportColumn;
+import org.projectforge.business.excel.PropertyMapping;
 
 import de.micromata.genome.db.jpa.tabattr.api.EntityWithTimeableAttr;
 import de.micromata.genome.db.jpa.tabattr.api.TimeableAttrRow;

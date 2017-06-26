@@ -119,7 +119,7 @@ public class EingangsrechnungDao extends BaseDao<EingangsrechnungDO>
   @Override
   protected void onSaveOrModify(final EingangsrechnungDO rechnung)
   {
-    AbstractRechnungDaoHelper.onSaveOrModify(rechnung);
+    AuftragAndRechnungDaoHelper.onSaveOrModify(rechnung);
 
     if (rechnung.getZahlBetrag() != null) {
       rechnung.setZahlBetrag(rechnung.getZahlBetrag().setScale(2, RoundingMode.HALF_UP));
@@ -142,12 +142,6 @@ public class EingangsrechnungDao extends BaseDao<EingangsrechnungDO>
   }
 
   @Override
-  public void afterLoad(final EingangsrechnungDO obj)
-  {
-    RechnungDao.readUiStatusFromXml(obj);
-  }
-
-  @Override
   protected String[] getAdditionalSearchFields()
   {
     return ADDITIONAL_SEARCH_FIELDS;
@@ -162,13 +156,16 @@ public class EingangsrechnungDao extends BaseDao<EingangsrechnungDO>
     } else {
       myFilter = new RechnungFilter(filter);
     }
-    final QueryFilter queryFilter = AbstractRechnungDaoHelper.createQueryFilterWithDateRestriction(myFilter);
+
+    final QueryFilter queryFilter = AuftragAndRechnungDaoHelper.createQueryFilterWithDateRestriction(myFilter);
     queryFilter.addOrder(Order.desc("datum"));
     queryFilter.addOrder(Order.desc("kreditor"));
+
     final List<EingangsrechnungDO> list = getList(queryFilter);
     if (myFilter.isShowAll() == true || myFilter.isDeleted() == true) {
       return list;
     }
+
     final List<EingangsrechnungDO> result = new ArrayList<EingangsrechnungDO>();
     for (final EingangsrechnungDO rechnung : list) {
       if (myFilter.isShowUnbezahlt() == true) {

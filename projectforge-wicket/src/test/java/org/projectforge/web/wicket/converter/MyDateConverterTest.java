@@ -73,31 +73,31 @@ public class MyDateConverterTest extends AbstractTestBase
     final MyDateConverter conv = new MyDateConverter();
     try {
       conv.convertToObject("31.11.09", Locale.GERMAN);
-      fail("ConversionException exprected.");
+      fail("ConversionException expected.");
     } catch (final ConversionException ex) {
       // OK
     }
     try {
       conv.convertToObject("31.11.", Locale.GERMAN);
-      fail("ConversionException exprected.");
+      fail("ConversionException expected.");
     } catch (final ConversionException ex) {
       // OK
     }
     try {
       conv.convertToObject("11/31/1970", Locale.ENGLISH);
-      fail("ConversionException exprected.");
+      fail("ConversionException expected.");
     } catch (final ConversionException ex) {
       // OK
     }
     try {
       conv.convertToObject("11/31/70", Locale.ENGLISH);
-      fail("ConversionException exprected.");
+      fail("ConversionException expected.");
     } catch (final ConversionException ex) {
       // OK
     }
     try {
       conv.convertToObject("11/31", Locale.ENGLISH);
-      fail("ConversionException exprected.");
+      fail("ConversionException expected.");
     } catch (final ConversionException ex) {
       // OK
     }
@@ -161,14 +161,14 @@ public class MyDateConverterTest extends AbstractTestBase
     assertDates(testDate, date);
     try {
       date = conv.convertToObject("1970.10.21", Locale.GERMAN);
-      fail("ConversionException exprected.");
+      fail("ConversionException expected.");
     } catch (final ConversionException ex) {
       // OK
     }
 
     try {
       date = conv.convertToObject(String.valueOf(testDate.getTime()), Locale.GERMAN); // millis not supported.
-      fail("ConversionException exprected.");
+      fail("ConversionException expected.");
     } catch (final ConversionException ex) {
       // OK
     }
@@ -208,7 +208,7 @@ public class MyDateConverterTest extends AbstractTestBase
     assertDates(testDate, date);
     try {
       date = conv.convertToObject(String.valueOf(testDate.getTime()), Locale.ENGLISH); // millis not supported.
-      fail("ConversionException exprected.");
+      fail("ConversionException expected.");
     } catch (final ConversionException ex) {
       // OK
     }

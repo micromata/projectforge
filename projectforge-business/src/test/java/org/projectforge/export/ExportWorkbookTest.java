@@ -31,10 +31,10 @@ import java.sql.Timestamp;
 import java.util.Date;
 import java.util.Locale;
 
-import org.projectforge.excel.ContentProvider;
-import org.projectforge.excel.ExportConfig;
-import org.projectforge.excel.ExportSheet;
-import org.projectforge.excel.ExportWorkbook;
+import org.projectforge.business.excel.ContentProvider;
+import org.projectforge.business.excel.ExportConfig;
+import org.projectforge.business.excel.ExportSheet;
+import org.projectforge.business.excel.ExportWorkbook;
 import org.projectforge.framework.configuration.ConfigXmlTest;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;

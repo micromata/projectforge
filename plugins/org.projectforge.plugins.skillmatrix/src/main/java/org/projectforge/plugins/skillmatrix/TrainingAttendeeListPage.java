@@ -35,8 +35,9 @@ import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
+import org.projectforge.business.excel.ExcelExporter;
+import org.projectforge.business.excel.PropertyMapping;
 import org.projectforge.business.user.UserFormatter;
-import org.projectforge.excel.PropertyMapping;
 import org.projectforge.export.DOListExcelExporter;
 import org.projectforge.framework.time.DateTimeFormatter;
 import org.projectforge.framework.utils.NumberHelper;
@@ -51,7 +52,7 @@ import org.projectforge.web.wicket.WicketUtils;
 
 /**
  * The controller of the list page. Most functionality such as search etc. is done by the super class.
- * 
+ *
  * @author Werner Feder (werner.feder@t-online.de)
  */
 @ListPage(editPage = TrainingAttendeeEditPage.class)
@@ -83,7 +84,7 @@ public class TrainingAttendeeListPage
 
   /**
    * @see org.projectforge.web.wicket.IListPageColumnsCreator#createColumns(org.apache.wicket.markup.html.WebPage,
-   *      boolean)
+   * boolean)
    */
   @SuppressWarnings("serial")
   @Override
@@ -173,7 +174,7 @@ public class TrainingAttendeeListPage
     return new DOListExcelExporter(filenameIdentifier)
     {
       /**
-       * @see org.projectforge.excel.ExcelExporter#addMapping(org.projectforge.excel.PropertyMapping, java.lang.Object,
+       * @see ExcelExporter#addMapping(PropertyMapping, java.lang.Object,
        *      java.lang.reflect.Field)
        */
       @Override
@@ -216,7 +217,6 @@ public class TrainingAttendeeListPage
   }
 
   /**
-   * 
    * @see org.projectforge.web.fibu.ISelectCallerPage#unselect(java.lang.String)
    */
   @Override
