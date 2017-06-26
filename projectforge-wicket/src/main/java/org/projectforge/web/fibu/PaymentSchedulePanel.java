@@ -26,6 +26,7 @@ package org.projectforge.web.fibu;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.CheckBox;
@@ -36,6 +37,7 @@ import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
+import org.apache.wicket.model.ResourceModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.apache.wicket.util.convert.IConverter;
 import org.projectforge.business.fibu.AuftragDO;
@@ -113,6 +115,7 @@ public class PaymentSchedulePanel extends Panel
         // date
         final DatePanel datePanel = new DatePanel("scheduleDate", new PropertyModel<>(entry, "scheduleDate"),
             DatePanelSettings.get().withTargetType(java.sql.Date.class));
+        datePanel.setLabel(new ResourceModel("fibu.rechnung.datum.short"));
         item.add(datePanel);
 
         // amount
@@ -124,8 +127,19 @@ public class PaymentSchedulePanel extends Panel
           {
             return new CurrencyConverter();
           }
+
+          @Override
+          public boolean isRequired()
+          {
+            // amount is required when a date is entered
+            return StringUtils.isNotBlank(datePanel.getDateField().getValue());
+          }
         };
+        amount.setLabel(new ResourceModel("fibu.common.betrag"));
         item.add(amount);
+
+        // date is required when an amount is entered
+        datePanel.setRequiredSupplier(() -> StringUtils.isNotBlank(amount.getValue()));
 
         // comment
         item.add(new MaxLengthTextField("comment", new PropertyModel<>(entry, "comment")));
@@ -154,6 +168,7 @@ public class PaymentSchedulePanel extends Panel
 
     return new DropDownChoice<>("positionNumber", new PropertyModel<>(payment, "positionNumber"), availablePositionNumbers)
         .setNullValid(true)
-        .setRequired(true);
+        .setRequired(true)
+        .setLabel(new ResourceModel("fibu.auftrag.position"));
   }
 }
