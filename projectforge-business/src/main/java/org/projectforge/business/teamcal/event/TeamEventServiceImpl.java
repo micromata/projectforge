@@ -83,6 +83,7 @@ public class TeamEventServiceImpl implements TeamEventService
   @Autowired
   private ConfigurationService configService;
 
+  // Set TeamCalEvent fields used for computing a diff in order to send notification mails
   private static final Set<TeamEventField> TEAM_EVENT_FIELD_FILTER = Sets.newHashSet(
       TeamEventField.START_DATE,
       TeamEventField.END_DATE,
@@ -118,7 +119,7 @@ public class TeamEventServiceImpl implements TeamEventService
     for (AddressDO singleAddress : allAddressList) {
       if (StringUtils.isBlank(singleAddress.getEmail()) == false) {
         TeamEventAttendeeDO attendee = new TeamEventAttendeeDO();
-        attendee.setStatus(TeamEventAttendeeStatus.NEW);
+        attendee.setStatus(TeamEventAttendeeStatus.IN_PROCESS);
         attendee.setAddress(singleAddress);
         List<PFUserDO> userWithSameMail = userService.findUserByMail(singleAddress.getEmail());
         if (userWithSameMail.size() > 0 && addedUserIds.contains(userWithSameMail.get(0).getId()) == false) {
@@ -377,7 +378,7 @@ public class TeamEventServiceImpl implements TeamEventService
         break;
     }
 
-    ByteArrayOutputStream icsFile = teamEventConverter.getIcsFile(event, true, method);
+    ByteArrayOutputStream icsFile = teamEventConverter.getIcsFile(event, true, false, method);
     try {
       String ics = icsFile.toString(StandardCharsets.UTF_8.name());
 
@@ -507,7 +508,7 @@ public class TeamEventServiceImpl implements TeamEventService
 
   private String getResponseLink(TeamEventDO event, TeamEventAttendeeDO attendee, TeamEventAttendeeStatus status)
   {
-    final String messageParamBegin = "uid=" + event.getUid() + "&attendee=" + attendee.getId();
+    final String messageParamBegin = "calendar=" + event.getCalendarId() + "&uid=" + event.getUid() + "&attendee=" + attendee.getId();
     final String acceptParams = cryptService.encryptParameterMessage(messageParamBegin + "&status=" + status.name());
     return configService.getDomain() + TeamCalResponseServlet.PFCALENDAR + "?" + acceptParams;
   }
@@ -576,9 +577,9 @@ public class TeamEventServiceImpl implements TeamEventService
   }
 
   @Override
-  public TeamEventDO findByUid(String reqEventUid)
+  public TeamEventDO findByUid(Integer calendarId, String reqEventUid)
   {
-    return teamEventDao.getByUid(reqEventUid);
+    return teamEventDao.getByUid(calendarId, reqEventUid);
   }
 
   @Override

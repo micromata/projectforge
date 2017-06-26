@@ -69,6 +69,7 @@ import org.projectforge.business.orga.VisitorbookTimedDO;
 import org.projectforge.business.scripting.ScriptDO;
 import org.projectforge.business.task.TaskDO;
 import org.projectforge.business.teamcal.TeamCalConfig;
+import org.projectforge.business.teamcal.event.model.TeamEventAttendeeDO;
 import org.projectforge.business.teamcal.event.model.TeamEventDO;
 import org.projectforge.business.user.GroupDao;
 import org.projectforge.business.user.ProjectForgeGroup;
@@ -135,6 +136,54 @@ public class DatabaseCoreUpdates
     final TenantDao tenantDao = applicationContext.getBean(TenantDao.class);
 
     final List<UpdateEntry> list = new ArrayList<>();
+
+    ////////////////////////////////////////////////////////////////////
+    // 6.14.0
+    // /////////////////////////////////////////////////////////////////
+    list.add(new UpdateEntryImpl(CORE_REGION_ID, "6.14.0", "2017-06-26",
+        "Add fields to event and event attendee table. Change unique constraint in event table.")
+    {
+      @Override
+      public UpdatePreCheckStatus runPreCheck()
+      {
+        log.info("Running pre-check for ProjectForge version 6.14.0");
+        if (this.missingFields() || oldUniqueConstraint()) {
+          return UpdatePreCheckStatus.READY_FOR_UPDATE;
+        }
+        return UpdatePreCheckStatus.ALREADY_UPDATED;
+      }
+
+      @Override
+      public UpdateRunningStatus runUpdate()
+      {
+        // update unique constraint
+        if (oldUniqueConstraint()) {
+          databaseUpdateService.execute("ALTER TABLE T_PLUGIN_CALENDAR_EVENT DROP CONSTRAINT unique_t_plugin_calendar_event_uid");
+          initDatabaseDao.updateSchema();
+        }
+
+        // add missing fields
+        if (missingFields()) {
+          initDatabaseDao.updateSchema();
+        }
+
+        return null;
+      }
+
+      private boolean missingFields()
+      {
+        return databaseUpdateService.doesTableAttributeExist("T_PLUGIN_CALENDAR_EVENT_ATTENDEE", "COMMON_NAME") == false
+            || databaseUpdateService.doesTableAttributeExist("T_PLUGIN_CALENDAR_EVENT_ATTENDEE", "CU_TYPE") == false
+            || databaseUpdateService.doesTableAttributeExist("T_PLUGIN_CALENDAR_EVENT_ATTENDEE", "RSVP") == false
+            || databaseUpdateService.doesTableAttributeExist("T_PLUGIN_CALENDAR_EVENT_ATTENDEE", "ROLE") == false
+            || databaseUpdateService.doesTableAttributeExist("T_PLUGIN_CALENDAR_EVENT_ATTENDEE", "ADDITIONAL_PARAMS") == false;
+      }
+
+      private boolean oldUniqueConstraint()
+      {
+        return databaseUpdateService.doesUniqueConstraintExists("T_PLUGIN_CALENDAR_EVENT", "unique_t_plugin_calendar_event_uid");
+      }
+    });
 
     ////////////////////////////////////////////////////////////////////
     // 6.13.0
@@ -436,7 +485,7 @@ public class DatabaseCoreUpdates
         log.info("Running pre-check for ProjectForge version 6.9.0");
         if (databaseUpdateService.doesTableExist("t_employee_vacation_substitution") == false ||
             databaseUpdateService.doesTableAttributeExist("t_employee_vacation", "substitution_id") ||
-            databaseUpdateService.doesUniqueConstraintExists("T_PLUGIN_CALENDAR_EVENT", "unique_t_plugin_calendar_event_uid") == false) {
+            uniqueConstraintMissing()) {
           return UpdatePreCheckStatus.READY_FOR_UPDATE;
         }
 
@@ -451,8 +500,7 @@ public class DatabaseCoreUpdates
       @Override
       public UpdateRunningStatus runUpdate()
       {
-        if (databaseUpdateService.doesTableExist("t_employee_vacation_substitution") == false
-            || databaseUpdateService.doesUniqueConstraintExists("T_PLUGIN_CALENDAR_EVENT", "unique_t_plugin_calendar_event_uid") == false) {
+        if (databaseUpdateService.doesTableExist("t_employee_vacation_substitution") == false || uniqueConstraintMissing()) {
           if (doesDuplicateUidsExists()) {
             handleDuplicateUids();
           }
@@ -515,6 +563,12 @@ public class DatabaseCoreUpdates
           vacation.getSubstitutions().add(substitution);
           vacationDao.internalUpdate(vacation);
         }
+      }
+
+      private boolean uniqueConstraintMissing()
+      {
+        return (databaseUpdateService.doesUniqueConstraintExists("T_PLUGIN_CALENDAR_EVENT", "unique_t_plugin_calendar_event_uid")
+            || databaseUpdateService.doesUniqueConstraintExists("T_PLUGIN_CALENDAR_EVENT", "unique_t_plugin_calendar_event_uid_calendar_fk")) == false;
       }
     });
 

@@ -27,7 +27,7 @@ public interface TeamEventService
 
   boolean checkAndSendMail(final TeamEventDO eventNew, final TeamEventDO eventOld);
 
-  TeamEventDO findByUid(String reqEventUid);
+  TeamEventDO findByUid(Integer calendarId, String reqEventUid);
 
   TeamEventAttendeeDO findByAttendeeId(Integer attendeeId, boolean checkAccess);
 

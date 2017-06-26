@@ -117,7 +117,7 @@ public class TeamEventDaoRest
     }
 
     final Collection<Integer> cals = getCalendarIds(calendarIds);
-    final List<CalendarEventObject> result = new LinkedList<CalendarEventObject>();
+    final List<CalendarEventObject> result = new LinkedList<>();
     if (cals.size() > 0) {
       final TeamEventFilter filter = new TeamEventFilter().setTeamCals(cals);
       if (start != null) {
@@ -128,7 +128,7 @@ public class TeamEventDaoRest
       }
       final List<TeamEventDO> list = teamEventService.getTeamEventDOList(filter);
       if (list != null && list.size() > 0) {
-        list.forEach(event -> result.add(teamCalService.getEventObject(event, true, true)));
+        list.forEach(event -> result.add(teamCalService.getEventObject(event, true, true, true)));
       }
     } else {
       log.warn("No calendar ids are given, so can't find any events.");
@@ -166,7 +166,7 @@ public class TeamEventDaoRest
       if (list != null && list.size() > 0) {
         for (final TeamEvent event : list) {
           if (event.getStartDate().after(now) == true) {
-            result.add(teamCalService.getEventObject(event, true, true));
+            result.add(teamCalService.getEventObject(event, true, true, true));
           } else {
             log.info("Start date not in future:" + event.getStartDate() + ", " + event.getSubject());
           }
@@ -197,7 +197,7 @@ public class TeamEventDaoRest
       final VEvent event = (VEvent) calendar.getComponent(Component.VEVENT);
       if (event.getUid() != null) {
         //Getting the origin team event from database by uid if exist
-        TeamEventDO teamEventOrigin = teamEventService.findByUid(event.getUid().getValue());
+        TeamEventDO teamEventOrigin = teamEventService.findByUid(calendarEvent.getCalendarId(), event.getUid().getValue());
         //Check if db event exists
         if (teamEventOrigin != null && teamEventOrigin.getCalendar().getId().equals(teamCalDO.getId())) {
           return updateTeamEvent(calendarEvent);
@@ -234,7 +234,7 @@ public class TeamEventDaoRest
     // check if mail should be send
     teamEventService.checkAndSendMail(teamEvent, TeamEventDiffType.NEW);
 
-    result = teamCalService.getEventObject(teamEvent, true, true);
+    result = teamCalService.getEventObject(teamEvent, true, true, true);
     log.info("Team event: " + teamEvent.getSubject() + " for calendar #" + teamCalDO.getId() + " successfully created.");
     if (result != null) {
       final String json = JsonUtils.toJson(result);
@@ -279,7 +279,7 @@ public class TeamEventDaoRest
         }
       }
       //Getting the origin team event from database by uid if exist
-      TeamEventDO teamEventOrigin = teamEventService.findByUid(eventUid.getValue());
+      TeamEventDO teamEventOrigin = teamEventService.findByUid(calendarEvent.getCalendarId(), eventUid.getValue());
       //Check if db event exists
       if (teamEventOrigin == null) {
         log.error("No team event found with uid " + eventUid.getValue());
@@ -307,7 +307,7 @@ public class TeamEventDaoRest
 
       teamEventService.checkAndSendMail(teamEvent, teamEventOrigin);
 
-      result = teamCalService.getEventObject(teamEvent, true, true);
+      result = teamCalService.getEventObject(teamEvent, true, true, true);
       log.info("Team event: " + teamEvent.getSubject() + " for calendar #" + teamCalDO.getId() + " successfully updated.");
     } catch (Exception e) {
       log.error("Exception while updating team event", e);
@@ -332,7 +332,7 @@ public class TeamEventDaoRest
       final net.fortuna.ical4j.model.Calendar calendar = builder.build(new ByteArrayInputStream(Base64.decodeBase64(calendarEvent.getIcsData())));
       final VEvent event = (VEvent) calendar.getComponent(Component.VEVENT);
       Uid eventUid = event.getUid();
-      TeamEventDO teamEvent = teamEventService.findByUid(eventUid.getValue());
+      TeamEventDO teamEvent = teamEventService.findByUid(calendarEvent.getCalendarId(), eventUid.getValue());
       if (teamEvent != null) {
         teamEventService.markAsDeleted(teamEvent);
         teamEventService.checkAndSendMail(teamEvent, TeamEventDiffType.DELETED);
@@ -370,49 +370,5 @@ public class TeamEventDaoRest
     }
     return cals;
   }
-
-  //  private Set<TeamEventAttendeeDO> getAttendeesToUnassign(TeamEventDO newTeamEvent, TeamEventDO originTeamEvent)
-  //  {
-  //    Set<TeamEventAttendeeDO> result = new HashSet<>();
-  //    if (originTeamEvent == null || originTeamEvent.getAttendees() == null || originTeamEvent.getAttendees().size() < 1) {
-  //      return result;
-  //    } else {
-  //      Set<String> newEmailAdresses = new HashSet<>();
-  //      newTeamEvent.getAttendees().forEach(att -> newEmailAdresses.add(att.getAddress() != null ? att.getAddress().getEmail() : att.getUrl()));
-  //      Map<String, TeamEventAttendeeDO> originEmailAttendeeMap = new HashMap<>();
-  //      originTeamEvent.getAttendees().forEach(att -> originEmailAttendeeMap.put(att.getAddress() != null ? att.getAddress().getEmail() : att.getUrl(), att));
-  //      originEmailAttendeeMap.forEach((k, v) -> {
-  //        if (newEmailAdresses.contains(k) == false) {
-  //          result.add(v);
-  //        }
-  //      });
-  //    }
-  //    return result;
-  //  }
-  //
-  //  private Set<TeamEventAttendeeDO> getAttendeesToAssign(TeamEventDO newTeamEvent, TeamEventDO originTeamEvent)
-  //  {
-  //    Set<TeamEventAttendeeDO> result = new HashSet<>();
-  //    if (originTeamEvent == null || originTeamEvent.getAttendees() == null || originTeamEvent.getAttendees().size() < 1) {
-  //      for (TeamEventAttendeeDO newAttendee : newTeamEvent.getAttendees()) {
-  //        newAttendee.setPk(null);
-  //        result.add(newAttendee);
-  //      }
-  //      return result;
-  //    } else {
-  //      Set<String> originEmailAdresses = new HashSet<>();
-  //      originTeamEvent.getAttendees().forEach(att -> originEmailAdresses.add(att.getAddress() != null ? att.getAddress().getEmail() : att.getUrl()));
-  //      Map<String, TeamEventAttendeeDO> newEmailAttendeeMap = new HashMap<>();
-  //      newTeamEvent.getAttendees().forEach(att -> newEmailAttendeeMap.put(att.getAddress() != null ? att.getAddress().getEmail() : att.getUrl(), att));
-  //      for (Map.Entry<String, TeamEventAttendeeDO> newAttendeeEmail : newEmailAttendeeMap.entrySet()) {
-  //        if (originEmailAdresses.contains(newAttendeeEmail.getKey()) == false) {
-  //          final TeamEventAttendeeDO newTeamEventAttendeeDO = newAttendeeEmail.getValue();
-  //          newTeamEventAttendeeDO.setPk(null);
-  //          result.add(newTeamEventAttendeeDO);
-  //        }
-  //      }
-  //      return result;
-  //    }
-  //  }
 
 }
