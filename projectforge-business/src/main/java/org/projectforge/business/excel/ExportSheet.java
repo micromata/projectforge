@@ -318,23 +318,17 @@ public class ExportSheet
   }
 
   /**
-   * Set auto-filter for the whole first row. Maximum number of supported cells is 26 (A1:Z1)! Must be called after
-   * adding the first row with all heading cells.
+   * Set auto-filter for the whole first row. Must be called after adding the first row with all heading cells.
    *
    * @return this for chaining.
    */
   public ExportSheet setAutoFilter()
   {
-    final ExportRow row = getRow(0);
-    int numberOfCols = row.getMaxCol();
-    if (numberOfCols > 26) {
-      log.warn("#setAutoFilter supports only up to 26 columns! " + numberOfCols + " exceeds 26.");
-      numberOfCols = 26;
-    }
-    getPoiSheet().setAutoFilter(
-        org.apache.poi.ss.util.CellRangeAddress
-            .valueOf("A1:" + (Character.toString((char) ('A' + numberOfCols))) + "1"));
-
+    final int headingRow = 0;
+    final ExportRow row = getRow(headingRow);
+    final int lastCol = row.getMaxCol();
+    final CellRangeAddress range = new CellRangeAddress(headingRow, headingRow, 0, lastCol);
+    getPoiSheet().setAutoFilter(range);
     return this;
   }
 
