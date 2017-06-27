@@ -48,8 +48,10 @@ import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.persistence.Transient;
 import javax.persistence.UniqueConstraint;
+import javax.validation.constraints.NotNull;
 
 import org.apache.commons.lang.StringUtils;
+import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.search.annotations.Analyze;
 import org.hibernate.search.annotations.DateBridge;
 import org.hibernate.search.annotations.EncodingType;
@@ -103,7 +105,7 @@ import net.fortuna.ical4j.model.property.RRule;
 @Entity
 @Indexed
 @Table(name = "T_PLUGIN_CALENDAR_EVENT",
-    uniqueConstraints = { @UniqueConstraint(name = "unique_t_plugin_calendar_event_uid", columnNames = { "uid" }) },
+    uniqueConstraints = { @UniqueConstraint(name = "unique_t_plugin_calendar_event_uid_calendar_fk", columnNames = { "uid", "calendar_fk" }) },
     indexes = {
         @javax.persistence.Index(name = "idx_fk_t_plugin_calendar_event_calendar_fk", columnList = "calendar_fk"),
         @javax.persistence.Index(name = "idx_fk_t_plugin_calendar_event_tenant_id", columnList = "tenant_id"),
@@ -152,7 +154,10 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
 
   private Set<TeamEventAttendeeDO> attendees;
 
+  private Boolean ownership;
+
   private String organizer;
+  private String organizer_additional_params;
 
   private String uid;
 
@@ -196,6 +201,19 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
   public TeamEventDO()
   {
 
+  }
+
+  @Override
+  public void setLastUpdate()
+  {
+    super.setLastUpdate();
+
+    // increment sequence number
+    if (this.sequence == null) {
+      this.sequence = 0;
+    } else {
+      this.sequence = this.sequence + 1;
+    }
   }
 
   /**
@@ -428,6 +446,18 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
     return this;
   }
 
+  @Column
+  public Boolean isOwnership()
+  {
+    return this.ownership;
+  }
+
+  public TeamEventDO setOwnership(final Boolean ownership)
+  {
+    this.ownership = ownership;
+    return this;
+  }
+
   /**
    * @return the organizer
    */
@@ -444,6 +474,18 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
   public TeamEventDO setOrganizer(final String organizer)
   {
     this.organizer = organizer;
+    return this;
+  }
+
+  @Column(length = 1000, name = "organizer_additional_params")
+  public String getOrganizerAdditionalParams()
+  {
+    return organizer_additional_params;
+  }
+
+  public TeamEventDO setOrganizerAdditionalParams(final String organizer_additional_params)
+  {
+    this.organizer_additional_params = organizer_additional_params;
     return this;
   }
 
@@ -1011,6 +1053,13 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
     if (allDay != other.allDay) {
       return false;
     }
+
+    if (ownership == null && other.ownership != null) {
+      return false;
+    } else if (ownership != other.ownership) {
+      return false;
+    }
+
     if (attendees == null) {
       if (other.attendees != null) {
         return false;
@@ -1065,6 +1114,20 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
         return false;
       }
     } else if (recurrenceUntil.equals(other.recurrenceUntil) == false) {
+      return false;
+    }
+    if (organizer == null) {
+      if (other.organizer != null) {
+        return false;
+      }
+    } else if (organizer.equals(other.organizer) == false) {
+      return false;
+    }
+    if (organizer_additional_params == null) {
+      if (other.organizer_additional_params != null) {
+        return false;
+      }
+    } else if (organizer_additional_params.equals(other.organizer_additional_params) == false) {
       return false;
     }
     if (startDate == null) {
@@ -1157,11 +1220,12 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
     clone.recurrenceReferenceDate = this.recurrenceReferenceDate;
     clone.recurrenceReferenceId = this.recurrenceReferenceId;
     clone.recurrenceUntil = this.recurrenceUntil;
+    clone.ownership = this.ownership;
     clone.organizer = this.organizer;
+    clone.organizer_additional_params = this.organizer_additional_params;
     clone.note = this.note;
     clone.lastEmail = this.lastEmail;
     clone.sequence = this.sequence;
-    // clone.status = this.status;
     clone.reminderDuration = this.reminderDuration;
     clone.reminderDurationType = this.reminderDurationType;
     clone.reminderActionType = this.reminderActionType;
@@ -1206,13 +1270,16 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
     result.recurrenceReferenceId = this.recurrenceReferenceId;
     result.recurrenceUntil = this.recurrenceUntil;
     result.sequence = this.sequence;
+    result.ownership = this.ownership;
+    result.organizer = this.organizer;
+    result.organizer_additional_params = this.organizer_additional_params;
     return result;
   }
 
   /**
-   * Returns the events owner time zone.
+   * Returns time zone of event owner.
    *
-   * @return Returns the events owner time zone.
+   * @return Returns time zone of event owner.
    */
   @Transient
   public TimeZone getTimeZone()

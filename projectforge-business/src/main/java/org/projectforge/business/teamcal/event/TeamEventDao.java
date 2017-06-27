@@ -34,6 +34,7 @@ import java.util.Set;
 import java.util.TimeZone;
 
 import javax.persistence.NoResultException;
+import javax.persistence.NonUniqueResultException;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
@@ -141,19 +142,32 @@ public class TeamEventDao extends BaseDao<TeamEventDO>
     teamEvent.setCalendar(teamCal);
   }
 
-  public TeamEventDO getByUid(final String uid)
+  public TeamEventDO getByUid(Integer calendarId, final String uid)
   {
     if (uid == null) {
       return null;
     }
-    try {
-      return emgrFac.runRoTrans(emgr -> {
-        String baseSQL = "select e from TeamEventDO e where e.uid = :uid";
-        return emgr.selectSingleAttached(TeamEventDO.class, baseSQL + META_SQL_WITH_SPECIAL, "uid", uid, "deleted", false,
-            "tenant", ThreadLocalUserContext.getUser() != null ? ThreadLocalUserContext.getUser().getTenant() : tenantService.getDefaultTenant());
-      });
-    } catch (NoResultException e) {
-      return null;
+
+    if (calendarId == null) {
+      try {
+        return emgrFac.runRoTrans(emgr -> {
+          String baseSQL = "select e from TeamEventDO e where e.uid = :uid";
+          return emgr.selectSingleAttached(TeamEventDO.class, baseSQL + META_SQL_WITH_SPECIAL, "uid", uid, "deleted", false,
+              "tenant", ThreadLocalUserContext.getUser() != null ? ThreadLocalUserContext.getUser().getTenant() : tenantService.getDefaultTenant());
+        });
+      } catch (NoResultException | NonUniqueResultException e) {
+        return null;
+      }
+    } else {
+      try {
+        return emgrFac.runRoTrans(emgr -> {
+          String baseSQL = "select e from TeamEventDO e where e.uid = :uid AND e.calendar.id = :calendarId";
+          return emgr.selectSingleAttached(TeamEventDO.class, baseSQL + META_SQL_WITH_SPECIAL, "uid", uid, "calendarId", calendarId, "deleted", false,
+              "tenant", ThreadLocalUserContext.getUser() != null ? ThreadLocalUserContext.getUser().getTenant() : tenantService.getDefaultTenant());
+        });
+      } catch (NoResultException e) {
+        return null;
+      }
     }
   }
 

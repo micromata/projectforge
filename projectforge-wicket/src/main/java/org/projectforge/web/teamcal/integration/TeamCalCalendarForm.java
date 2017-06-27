@@ -259,24 +259,23 @@ public class TeamCalCalendarForm extends CalendarForm
         // Here we have just one event.
         final VEvent event = events.get(0);
         final Uid uid = event.getUid();
+        final TemplateEntry activeTemplateEntry = ((TeamCalCalendarFilter) filter).getActiveTemplateEntry();
         // 1. Check id/external id. If not yet given, create new entry and ask for calendar to add: Redirect to TeamEventEditPage.
-        final TeamEventDO dbEvent = (uid == null) ? null : teamEventDao.getByUid(uid.getValue());
-        if (dbEvent != null && ThreadLocalUserContext.getUserId().equals(dbEvent.getCreator().getPk())) {
-          // The event was created by this user, redirect to import page:
-          redirectToImportPage(events, activeModel.getObject());
-          return;
+
+        if (uid != null && activeTemplateEntry != null) {
+          final TeamEventDO dbEvent = teamEventDao.getByUid(activeTemplateEntry.getDefaultCalendarId(), uid.getValue());
+
+          if (dbEvent != null && ThreadLocalUserContext.getUserId().equals(dbEvent.getCreator().getPk())) {
+            // TODO merge
+            // The event was created by this user, redirect to import page:
+            redirectToImportPage(events, activeModel.getObject());
+            return;
+          }
         }
 
         // The event was not created by this user, create a new event.
-        final TeamEventDO teamEvent;
-        if (dbEvent != null) {
-          // There is an event in the DB with the same UID. -> Create a new UID.
-          teamEvent = teamEventConverter.createTeamEventDO(event, ThreadLocalUserContext.getTimeZone(), false);
-        } else {
-          // There is no event in the DB with the same UID. -> Use this UID for the event.
-          teamEvent = teamEventConverter.createTeamEventDO(event, ThreadLocalUserContext.getTimeZone(), true);
-        }
-        final TemplateEntry activeTemplateEntry = ((TeamCalCalendarFilter) filter).getActiveTemplateEntry();
+        final TeamEventDO teamEvent = teamEventConverter.createTeamEventDO(event, ThreadLocalUserContext.getTimeZone(), true);
+
         if (activeTemplateEntry != null && activeTemplateEntry.getDefaultCalendarId() != null) {
           teamEventDao.setCalendar(teamEvent, activeTemplateEntry.getDefaultCalendarId());
         }
