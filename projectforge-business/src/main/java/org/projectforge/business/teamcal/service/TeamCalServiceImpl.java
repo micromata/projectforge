@@ -312,7 +312,7 @@ public class TeamCalServiceImpl
             continue;
           }
           final TeamEventDO teamEvent = (TeamEventDO) teamEventObject;
-          final VEvent vEvent = createVEvent(teamEvent, teamCalIds, exportReminders, exportAttendees, false, timeZone);
+          final VEvent vEvent = createVEvent(teamEvent, teamCalIds, exportReminders, exportAttendees, false, null);
           events.add(vEvent);
         }
       }
@@ -321,7 +321,7 @@ public class TeamCalServiceImpl
   }
 
   private VEvent createVEvent(final TeamEventDO teamEvent, final String[] teamCalIds, final boolean exportReminders,
-      final boolean exportAttendees, final boolean editable, final net.fortuna.ical4j.model.TimeZone timeZone)
+      final boolean exportAttendees, final boolean editable, Method method)
   {
     final String summary;
     if (teamCalIds.length > 1) {
@@ -345,14 +345,6 @@ public class TeamCalServiceImpl
     net.fortuna.ical4j.model.DateTime lastModified = new net.fortuna.ical4j.model.DateTime(teamEvent.getCreated());
     created.setUtc(true);
     vEvent.getProperties().add(new LastModified(lastModified));
-
-    // set note
-    if (StringUtils.isNotBlank(teamEvent.getNote()) == true) {
-      vEvent.getProperties().add(new Description(teamEvent.getNote()));
-    }
-
-    // set visibility
-    // TODO vEvent.getProperties().add(Transp.OPAQUE);
 
     // set sequence number
     if (teamEvent.getSequence() != null) {
@@ -400,6 +392,19 @@ public class TeamCalServiceImpl
     }
 
     vEvent.getProperties().add(organizer);
+
+    // stop is method is cancel
+    if (method == Method.CANCEL) {
+      return vEvent;
+    }
+
+    // set note
+    if (StringUtils.isNotBlank(teamEvent.getNote()) == true) {
+      vEvent.getProperties().add(new Description(teamEvent.getNote()));
+    }
+
+    // set visibility
+    // TODO vEvent.getProperties().add(Transp.OPAQUE);
 
     // add alarm if necessary
     if (exportReminders == true && teamEvent.getReminderDuration() != null
@@ -597,7 +602,7 @@ public class TeamCalServiceImpl
       final net.fortuna.ical4j.model.TimeZone timezone = ICal4JUtils.getUserTimeZone();
       cal.getComponents().add(timezone.getVTimeZone());
       final String[] teamCalIds = { data.getCalendar().getPk().toString() };
-      final VEvent event = createVEvent(data, teamCalIds, true, exportAttendees, editable, timezone);
+      final VEvent event = createVEvent(data, teamCalIds, true, exportAttendees, editable, method);
       cal.getComponents().add(event);
       CalendarOutputter outputter = new CalendarOutputter();
       outputter.output(cal, baos);
