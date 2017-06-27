@@ -37,7 +37,6 @@ import java.util.Set;
 import java.util.TreeSet;
 
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.hibernate.Criteria;
 import org.hibernate.criterion.Criterion;
@@ -63,7 +62,6 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.persistence.utils.SQLHelper;
 import org.projectforge.framework.time.DateHelper;
 import org.projectforge.framework.utils.NumberHelper;
-import org.projectforge.framework.xstream.XmlObjectReader;
 import org.projectforge.framework.xstream.XmlObjectWriter;
 import org.projectforge.mail.Mail;
 import org.projectforge.mail.SendMail;
@@ -599,21 +597,6 @@ public class AuftragDao extends BaseDao<AuftragDO>
     if (taskTree != null) {
       taskTree.refreshOrderPositionReferences();
     }
-  }
-
-  @Override
-  public void afterLoad(final AuftragDO obj)
-  {
-    final XmlObjectReader reader = new XmlObjectReader();
-    reader.initialize(AuftragUIStatus.class);
-    final String styleAsXml = obj.getUiStatusAsXml();
-    final AuftragUIStatus status;
-    if (StringUtils.isEmpty(styleAsXml) == true) {
-      status = new AuftragUIStatus();
-    } else {
-      status = (AuftragUIStatus) reader.read(styleAsXml);
-    }
-    obj.setUiStatus(status);
   }
 
   /**

@@ -37,13 +37,14 @@ import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
+import org.projectforge.business.excel.ContentProvider;
+import org.projectforge.business.excel.ExcelExporter;
+import org.projectforge.business.excel.ExportColumn;
+import org.projectforge.business.excel.PropertyMapping;
 import org.projectforge.business.fibu.EmployeeSalaryDO;
 import org.projectforge.business.fibu.EmployeeSalaryDao;
 import org.projectforge.business.fibu.datev.EmployeeSalaryExportDao;
 import org.projectforge.common.anots.PropertyInfo;
-import org.projectforge.excel.ContentProvider;
-import org.projectforge.excel.ExportColumn;
-import org.projectforge.excel.PropertyMapping;
 import org.projectforge.export.DOListExcelExporter;
 import org.projectforge.framework.time.DateHelper;
 import org.projectforge.web.wicket.AbstractListPage;
@@ -202,8 +203,8 @@ public class EmployeeSalaryListPage
     return new DOListExcelExporter(filenameIdentifier)
     {
       /**
-       * @see org.projectforge.export.MyExcelExporter#putFieldFormat(org.projectforge.excel.ContentProvider,
-       *      java.lang.reflect.Field, org.projectforge.common.anots.PropertyInfo, org.projectforge.excel.ExportColumn)
+       * @see org.projectforge.export.MyExcelExporter#putFieldFormat(ContentProvider,
+       *      java.lang.reflect.Field, org.projectforge.common.anots.PropertyInfo, ExportColumn)
        */
       @Override
       public void putFieldFormat(final ContentProvider sheetProvider, final Field field, final PropertyInfo propInfo,
@@ -221,7 +222,7 @@ public class EmployeeSalaryListPage
       }
 
       /**
-       * @see org.projectforge.excel.ExcelExporter#addMapping(org.projectforge.excel.PropertyMapping, java.lang.Object,
+       * @see ExcelExporter#addMapping(PropertyMapping, java.lang.Object,
        *      java.lang.reflect.Field)
        */
       @Override

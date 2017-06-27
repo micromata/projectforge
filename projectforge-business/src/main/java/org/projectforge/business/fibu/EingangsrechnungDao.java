@@ -142,12 +142,6 @@ public class EingangsrechnungDao extends BaseDao<EingangsrechnungDO>
   }
 
   @Override
-  public void afterLoad(final EingangsrechnungDO obj)
-  {
-    RechnungDao.readUiStatusFromXml(obj);
-  }
-
-  @Override
   protected String[] getAdditionalSearchFields()
   {
     return ADDITIONAL_SEARCH_FIELDS;

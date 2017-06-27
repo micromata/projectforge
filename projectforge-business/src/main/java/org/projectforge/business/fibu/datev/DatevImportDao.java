@@ -29,6 +29,7 @@ import java.util.Collection;
 
 import org.apache.commons.lang.Validate;
 import org.hibernate.LockMode;
+import org.projectforge.business.excel.ExcelImportException;
 import org.projectforge.business.fibu.KontoDO;
 import org.projectforge.business.fibu.KontoDao;
 import org.projectforge.business.fibu.KostFormatter;
@@ -40,7 +41,6 @@ import org.projectforge.business.fibu.kost.Kost2DO;
 import org.projectforge.business.fibu.kost.Kost2Dao;
 import org.projectforge.business.user.UserRightId;
 import org.projectforge.business.user.UserRightValue;
-import org.projectforge.excel.ExcelImportException;
 import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.access.AccessException;
 import org.projectforge.framework.i18n.UserException;
@@ -107,7 +107,7 @@ public class DatevImportDao
 
   /**
    * Has the user the right FIBU_DATEV_IMPORT (value true)?
-   * 
+   *
    * @param accessChecker
    * @see UserRightId#FIBU_DATEV_IMPORT
    * @see AccessChecker#hasRight(UserRightId, UserRightValue, boolean)
@@ -119,7 +119,7 @@ public class DatevImportDao
 
   /**
    * Has the user the right FIBU_DATEV_IMPORT (value true)?
-   * 
+   *
    * @param accessChecker
    * @throws AccessException
    * @see UserRightId#FIBU_DATEV_IMPORT
@@ -138,7 +138,7 @@ public class DatevImportDao
   /**
    * Liest den Kontenplan aus dem InputStream (Exceltabelle) und schreibt die gelesenen Werte des Kontenplans in
    * ImportStorge. Der User muss der FINANCE_GROUP angehören, um diese Funktionalität ausführen zu können.
-   * 
+   *
    * @param is
    * @param filename
    * @return ImportStorage mit den gelesenen Daten.
@@ -159,7 +159,7 @@ public class DatevImportDao
   /**
    * Liest die Buchungsdaten aus dem InputStream (Exceltabelle) und schreibt die gelesenen Werte in ImportStorge. Der
    * User muss der FINANCE_GROUP angehören, um diese Funktionalität ausführen zu können.
-   * 
+   *
    * @param is
    * @param filename
    * @return ImportStorage mit den gelesenen Daten.
@@ -167,7 +167,7 @@ public class DatevImportDao
    */
   public ImportStorage<BuchungssatzDO> importBuchungsdaten(final InputStream is, final String filename,
       final ActionLog actionLog)
-          throws Exception
+      throws Exception
   {
     checkLoggeinUserRight(accessChecker);
     log.info("importBuchungsdaten called");
@@ -187,9 +187,9 @@ public class DatevImportDao
    * Der ImportStorage wird verprobt, dass heißt ein Schreiben der importierten Werte in die Datenbank wird getestet.
    * Ergebnis sind mögliche Fehler und Statistiken, welche Werte neu geschrieben und welche geändert werden. Der User
    * muss der FINANCE_GROUP angehören, um diese Funktionalität ausführen zu können.
-   * 
+   *
    * @param storage
-   * @param name of sheet to reconcile.
+   * @param name    of sheet to reconcile.
    */
   @SuppressWarnings("unchecked")
   public void reconcile(final ImportStorage<?> storage, final String sheetName)

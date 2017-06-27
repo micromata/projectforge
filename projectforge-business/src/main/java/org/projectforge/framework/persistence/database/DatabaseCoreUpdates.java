@@ -222,13 +222,13 @@ public class DatabaseCoreUpdates
     // 6.13.0
     // /////////////////////////////////////////////////////////////////
     list.add(new UpdateEntryImpl(CORE_REGION_ID, "6.13.0", "2017-06-21",
-        "Correct error in until date of recurring events.")
+        "Correct error in until date of recurring events. Add fields to invoice DO.")
     {
       @Override
       public UpdatePreCheckStatus runPreCheck()
       {
         log.info("Running pre-check for ProjectForge version 6.13.0");
-        if (hasBadUntilDate()) {
+        if (hasNewInvoiceFields() == false || hasBadUntilDate()) {
           return UpdatePreCheckStatus.READY_FOR_UPDATE;
         }
         return UpdatePreCheckStatus.ALREADY_UPDATED;
@@ -237,6 +237,10 @@ public class DatabaseCoreUpdates
       @Override
       public UpdateRunningStatus runUpdate()
       {
+        if (hasNewInvoiceFields() == false) {
+          initDatabaseDao.updateSchema();
+        }
+
         if (hasBadUntilDate()) {
           Calendar calUntil = new GregorianCalendar(DateHelper.UTC);
           Calendar calStart = new GregorianCalendar(DateHelper.UTC);
@@ -309,6 +313,13 @@ public class DatabaseCoreUpdates
           log.info("Until date migration is DONE.");
         }
         return UpdateRunningStatus.DONE;
+      }
+
+      private boolean hasNewInvoiceFields()
+      {
+        return databaseUpdateService.doesTableAttributeExist("t_fibu_rechnung", "customerref1") &&
+            databaseUpdateService.doesTableAttributeExist("t_fibu_rechnung", "customerref2") &&
+            databaseUpdateService.doesTableAttributeExist("t_fibu_rechnung", "customeraddress");
       }
 
       private boolean hasBadUntilDate()

@@ -24,6 +24,11 @@
 package org.projectforge.export;
 
 import org.apache.commons.lang.BooleanUtils;
+import org.projectforge.business.excel.CellFormat;
+import org.projectforge.business.excel.ContentProvider;
+import org.projectforge.business.excel.ExportCell;
+import org.projectforge.business.excel.ExportWorkbook;
+import org.projectforge.business.excel.XlsContentProvider;
 import org.projectforge.business.fibu.EmployeeDO;
 import org.projectforge.business.fibu.KontoDO;
 import org.projectforge.business.fibu.KostFormatter;
@@ -34,10 +39,6 @@ import org.projectforge.business.fibu.ProjektFormatter;
 import org.projectforge.business.fibu.kost.Kost1DO;
 import org.projectforge.business.fibu.kost.Kost2DO;
 import org.projectforge.common.i18n.I18nEnum;
-import org.projectforge.excel.CellFormat;
-import org.projectforge.excel.ContentProvider;
-import org.projectforge.excel.ExportWorkbook;
-import org.projectforge.excel.XlsContentProvider;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.time.DateFormatType;
@@ -55,7 +56,7 @@ public class MyXlsContentProvider extends XlsContentProvider
   public static final int LENGTH_ZIPCODE = 7;
 
   /**
-   * @see org.projectforge.excel.XlsContentProvider#newInstance()
+   * @see XlsContentProvider#newInstance()
    */
   @Override
   public ContentProvider newInstance()
@@ -71,7 +72,7 @@ public class MyXlsContentProvider extends XlsContentProvider
   }
 
   /**
-   * @see org.projectforge.excel.XlsContentProvider#getCustomizedValue(java.lang.Object)
+   * @see XlsContentProvider#getCustomizedValue(java.lang.Object)
    */
   @Override
   public Object getCustomizedValue(final Object value)
@@ -101,8 +102,8 @@ public class MyXlsContentProvider extends XlsContentProvider
   }
 
   /**
-   * @see org.projectforge.excel.XlsContentProvider#getCellFormat(org.projectforge.excel.ExportCell, java.lang.Object, java.lang.String,
-   *      java.util.Map)
+   * @see XlsContentProvider#getCellFormat(ExportCell, java.lang.Object, java.lang.String,
+   * java.util.Map)
    */
   @Override
   protected CellFormat getCustomizedCellFormat(final CellFormat format, final Object value)
