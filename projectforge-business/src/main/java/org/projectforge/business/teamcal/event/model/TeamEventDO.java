@@ -207,13 +207,6 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
   public void setLastUpdate()
   {
     super.setLastUpdate();
-
-    // increment sequence number
-    if (this.sequence == null) {
-      this.sequence = 0;
-    } else {
-      this.sequence = this.sequence + 1;
-    }
   }
 
   /**
@@ -953,7 +946,12 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
 
   public void incSequence()
   {
-    sequence++;
+    // increment sequence number
+    if (this.sequence == null) {
+      this.sequence = 0;
+    } else {
+      this.sequence = this.sequence + 1;
+    }
   }
 
   /**

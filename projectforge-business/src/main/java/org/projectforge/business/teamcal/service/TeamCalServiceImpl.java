@@ -778,17 +778,17 @@ public class TeamCalServiceImpl
     if (event.getLocation() != null) {
       teamEvent.setLocation(event.getLocation().getValue());
     } else {
-      teamEvent.setLocation("");
+      teamEvent.setLocation(null);
     }
     if (event.getDescription() != null) {
       teamEvent.setNote(event.getDescription().getValue());
     } else {
-      teamEvent.setNote("");
+      teamEvent.setNote(null);
     }
     if (event.getSummary() != null) {
       teamEvent.setSubject(event.getSummary().getValue());
     } else {
-      teamEvent.setSubject("");
+      teamEvent.setSubject(null);
     }
     boolean ownership = false;
 
@@ -946,17 +946,11 @@ public class TeamCalServiceImpl
 
     // find recurrence rule
     final RRule rule = (RRule) event.getProperty(Property.RRULE);
-    if (rule != null)
-
-    {
-      teamEvent.setRecurrence(rule, timeZone);
-    }
+    teamEvent.setRecurrence(rule, timeZone);
 
     // parsing ExDates
     PropertyList exDateProperties = event.getProperties(Property.EXDATE);
-    if (exDateProperties != null)
-
-    {
+    if (exDateProperties != null) {
       List<String> exDateList = new ArrayList<>();
       exDateProperties.forEach(exDateProp -> {
         // find timezone of exdate
@@ -978,6 +972,8 @@ public class TeamCalServiceImpl
 
       // TODO compute diff? could help to improve concurrent requests
       teamEvent.setRecurrenceExDate(String.join(",", exDateList));
+    } else {
+      teamEvent.setRecurrenceExDate(null);
     }
     return teamEvent;
   }
