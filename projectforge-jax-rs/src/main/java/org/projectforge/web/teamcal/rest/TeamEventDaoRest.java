@@ -26,6 +26,7 @@ package org.projectforge.web.teamcal.rest;
 import java.io.ByteArrayInputStream;
 import java.util.Calendar;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -266,8 +267,7 @@ public class TeamEventDaoRest
       //Geting the event uid
       Uid eventUid = event.getUid();
       //Building TeamEventDO from VEvent
-      final TeamEventDO teamEvent = teamCalService.createTeamEventDO(event,
-          TimeZone.getTimeZone(teamCalDO.getOwner().getTimeZone()));
+      final TeamEventDO teamEvent = teamCalService.createTeamEventDO(event, TimeZone.getTimeZone(teamCalDO.getOwner().getTimeZone()));
       if (vevents.size() > 1) {
         VEvent event2 = (VEvent) vevents.get(1);
         if (event.getUid().equals(event2.getUid())) {
@@ -286,9 +286,6 @@ public class TeamEventDaoRest
         log.info("Creating new team event!");
         return saveTeamEvent(calendarEvent);
       }
-      if (teamEventOrigin.isDeleted()) {
-        teamEventService.undelete(teamEventOrigin);
-      }
 
       //Setting the existing DB id, created timestamp, tenant
       teamEvent.setId(teamEventOrigin.getPk());
@@ -301,11 +298,21 @@ public class TeamEventDaoRest
       //Setting uid
       teamEvent.setUid(eventUid.getValue());
 
-      //Save or update the generated event
-      teamEventService.updateAttendees(teamEvent, teamEventOrigin.getAttendees());
-      teamEventService.update(teamEvent);
+      if (teamEventOrigin.isDeleted()) {
+        teamEventService.undelete(teamEventOrigin);
 
-      teamEventService.checkAndSendMail(teamEvent, teamEventOrigin);
+        //Save or update the generated event
+        teamEventService.updateAttendees(teamEvent, teamEventOrigin.getAttendees());
+        teamEventService.update(teamEvent);
+
+        teamEventService.checkAndSendMail(teamEvent, TeamEventDiffType.NEW);
+      } else {
+        //Save or update the generated event
+        teamEventService.updateAttendees(teamEvent, teamEventOrigin.getAttendees());
+        teamEventService.update(teamEvent);
+
+        teamEventService.checkAndSendMail(teamEvent, teamEventOrigin);
+      }
 
       result = teamCalService.getEventObject(teamEvent, true, true, true);
       log.info("Team event: " + teamEvent.getSubject() + " for calendar #" + teamCalDO.getId() + " successfully updated.");

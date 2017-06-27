@@ -157,6 +157,7 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
   private Boolean ownership;
 
   private String organizer;
+  private String organizer_additional_params;
 
   private String uid;
 
@@ -473,6 +474,18 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
   public TeamEventDO setOrganizer(final String organizer)
   {
     this.organizer = organizer;
+    return this;
+  }
+
+  @Column(length = 1000, name = "organizer_additional_params")
+  public String getOrganizerAdditionalParams()
+  {
+    return organizer_additional_params;
+  }
+
+  public TeamEventDO setOrganizerAdditionalParams(final String organizer_additional_params)
+  {
+    this.organizer_additional_params = organizer_additional_params;
     return this;
   }
 
@@ -1103,6 +1116,20 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
     } else if (recurrenceUntil.equals(other.recurrenceUntil) == false) {
       return false;
     }
+    if (organizer == null) {
+      if (other.organizer != null) {
+        return false;
+      }
+    } else if (organizer.equals(other.organizer) == false) {
+      return false;
+    }
+    if (organizer_additional_params == null) {
+      if (other.organizer_additional_params != null) {
+        return false;
+      }
+    } else if (organizer_additional_params.equals(other.organizer_additional_params) == false) {
+      return false;
+    }
     if (startDate == null) {
       if (other.startDate != null) {
         return false;
@@ -1195,10 +1222,10 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
     clone.recurrenceUntil = this.recurrenceUntil;
     clone.ownership = this.ownership;
     clone.organizer = this.organizer;
+    clone.organizer_additional_params = this.organizer_additional_params;
     clone.note = this.note;
     clone.lastEmail = this.lastEmail;
     clone.sequence = this.sequence;
-    // clone.status = this.status;
     clone.reminderDuration = this.reminderDuration;
     clone.reminderDurationType = this.reminderDurationType;
     clone.reminderActionType = this.reminderActionType;
@@ -1244,13 +1271,15 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
     result.recurrenceUntil = this.recurrenceUntil;
     result.sequence = this.sequence;
     result.ownership = this.ownership;
+    result.organizer = this.organizer;
+    result.organizer_additional_params = this.organizer_additional_params;
     return result;
   }
 
   /**
-   * Returns the events owner time zone.
+   * Returns time zone of event owner.
    *
-   * @return Returns the events owner time zone.
+   * @return Returns time zone of event owner.
    */
   @Transient
   public TimeZone getTimeZone()

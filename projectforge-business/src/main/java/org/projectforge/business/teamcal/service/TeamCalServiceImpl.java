@@ -50,6 +50,7 @@ import org.projectforge.common.StringHelper;
 import org.projectforge.framework.calendar.CalendarUtils;
 import org.projectforge.framework.calendar.ICal4JUtils;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
+import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.time.DateHelper;
 import org.projectforge.framework.time.DateHolder;
 import org.projectforge.framework.time.DayHolder;
@@ -350,8 +351,8 @@ public class TeamCalServiceImpl
       vEvent.getProperties().add(new Description(teamEvent.getNote()));
     }
 
-    // set visiblity
-    vEvent.getProperties().add(Transp.OPAQUE);
+    // set visibility
+    // TODO vEvent.getProperties().add(Transp.OPAQUE);
 
     // set sequence number
     if (teamEvent.getSequence() != null) {
@@ -377,14 +378,20 @@ public class TeamCalServiceImpl
         }
       } else if (teamEvent.getOrganizer() != null) {
         // read owner from
-        // TODO add further fields, currently missing
         ParameterList param = new ParameterList();
-        param.add(CuType.INDIVIDUAL);
-        param.add(Role.CHAIR);
-        param.add(PartStat.ACCEPTED);
+        this.parseAdditionalParameters(param, teamEvent.getOrganizerAdditionalParams());
+        if (param.getParameter(Parameter.CUTYPE) == null) {
+          param.add(CuType.INDIVIDUAL);
+        }
+        if (param.getParameter(Parameter.ROLE) == null) {
+          param.add(Role.CHAIR);
+        }
+        if (param.getParameter(Parameter.PARTSTAT) == null) {
+          param.add(PartStat.ACCEPTED);
+        }
         organizer = new Organizer(param, teamEvent.getOrganizer());
       } else {
-        // TODO user better default value here
+        // TODO use better default value here
         organizer = new Organizer("mailto:null");
       }
     } catch (URISyntaxException e) {
@@ -463,58 +470,64 @@ public class TeamCalServiceImpl
           attendee.getParameters().add(new Rsvp(a.getRsvp()));
         }
         attendee.getParameters().add(a.getStatus() != null ? a.getStatus().getPartStat() : PartStat.NEEDS_ACTION);
-
-        if (a.getAdditionalParams() != null) {
-          ParameterFactoryImpl parameterFactory = ParameterFactoryImpl.getInstance();
-          StringBuilder sb = new StringBuilder();
-          boolean quoted = false;
-          boolean escaped = false;
-          char[] chars = a.getAdditionalParams().toCharArray();
-          String name = null;
-
-          for (char c : chars) {
-            switch (c) {
-              case ';':
-                if (escaped == false && name != null && sb.length() > 0) {
-                  try {
-                    attendee.getParameters().add(parameterFactory.createParameter(name, sb.toString().replaceAll("\"", "")));
-                    name = null;
-                  } catch (URISyntaxException e) {
-                    // TODO
-                    e.printStackTrace();
-                  }
-                }
-                break;
-              case '"':
-                escaped = escaped == false;
-                break;
-              case '=':
-                if (escaped == false && sb.length() > 0) {
-                  name = sb.toString();
-                  sb.setLength(0);
-                }
-                break;
-              default:
-                sb.append(c);
-                break;
-            }
-          }
-
-          if (escaped == false && name != null && sb.length() > 0) {
-            try {
-              attendee.getParameters().add(parameterFactory.createParameter(name, sb.toString().replaceAll("\"", "")));
-            } catch (URISyntaxException e) {
-              // TODO
-              e.printStackTrace();
-            }
-          }
-        }
+        this.parseAdditionalParameters(attendee.getParameters(), a.getAdditionalParams());
 
         vEvent.getProperties().add(attendee);
       }
     }
 
     return vEvent;
+  }
+
+  private void parseAdditionalParameters(final ParameterList list, final String additonalParams)
+  {
+    if (list == null || additonalParams == null) {
+      return;
+    }
+
+    ParameterFactoryImpl parameterFactory = ParameterFactoryImpl.getInstance();
+    StringBuilder sb = new StringBuilder();
+    boolean quoted = false;
+    boolean escaped = false;
+    char[] chars = additonalParams.toCharArray();
+    String name = null;
+
+    for (char c : chars) {
+      switch (c) {
+        case ';':
+          if (escaped == false && name != null && sb.length() > 0) {
+            try {
+              list.add(parameterFactory.createParameter(name, sb.toString().replaceAll("\"", "")));
+              name = null;
+            } catch (URISyntaxException e) {
+              // TODO
+              e.printStackTrace();
+            }
+          }
+          break;
+        case '"':
+          escaped = escaped == false;
+          break;
+        case '=':
+          if (escaped == false && sb.length() > 0) {
+            name = sb.toString();
+            sb.setLength(0);
+          }
+          break;
+        default:
+          sb.append(c);
+          break;
+      }
+    }
+
+    if (escaped == false && name != null && sb.length() > 0) {
+      try {
+        list.add(parameterFactory.createParameter(name, sb.toString().replaceAll("\"", "")));
+      } catch (URISyntaxException e) {
+        // TODO
+        e.printStackTrace();
+      }
+    }
   }
 
   public CalendarEventObject getEventObject(final TeamEvent src, boolean generateICS, final boolean exportAttendees, final boolean editable)
@@ -737,10 +750,10 @@ public class TeamCalServiceImpl
   public TeamEventDO createTeamEventDO(final VEvent event, java.util.TimeZone timeZone, boolean withUid)
   {
     final TeamEventDO teamEvent = new TeamEventDO();
-    teamEvent.setCreator(ThreadLocalUserContext.getUser());
+    final PFUserDO user = ThreadLocalUserContext.getUser();
+    teamEvent.setCreator(user);
     final DtStart dtStart = event.getStartDate();
-    if (dtStart != null && dtStart.getParameter("VALUE") != null && dtStart.getParameter("VALUE").getValue().contains("DATE") == true
-        && dtStart.getParameter("VALUE").getValue().contains("DATE-TIME") == false) {
+    if (dtStart != null && dtStart.getDate() instanceof net.fortuna.ical4j.model.DateTime == false) {
       teamEvent.setAllDay(true);
     }
     Timestamp timestamp = ICal4JUtils.getSqlTimestamp(dtStart.getDate());
@@ -779,17 +792,37 @@ public class TeamCalServiceImpl
       Parameter organizerMailParam = event.getOrganizer().getParameter("EMAIL");
 
       String organizerCN = organizerCNParam != null ? organizerCNParam.getValue() : null;
-      String organizerEMail = organizerMailParam != null ? organizerCNParam.getValue() : null;
+      String organizerEMail = organizerMailParam != null ? organizerMailParam.getValue() : null;
       String organizerValue = event.getOrganizer().getValue();
 
       // owner mail to is missing && username is login name of this user (apple calender tool)
-      if ((organizerCN == null || organizerCN.equals(ThreadLocalUserContext.getUser().getUsername())) && "mailto:null".equals(organizerValue)) {
-        ownership = true;
-      } else if (organizerEMail != null && organizerEMail.equals(ThreadLocalUserContext.getUser().getEmail())) {
-        ownership = true;
+      if (user != null) {
+        if ((organizerCN == null || organizerCN.equals(user.getUsername())) && "mailto:null".equals(organizerValue)) {
+          ownership = true;
+        } else if (organizerEMail != null && organizerEMail.equals(user.getEmail())) {
+          ownership = true;
+        }
       }
 
-      // TODO handle organizer parameters!
+      // further params
+      StringBuilder sb = new StringBuilder();
+      Iterator<Parameter> iter = event.getOrganizer().getParameters().iterator();
+
+      while (iter.hasNext()) {
+        final Parameter param = iter.next();
+        if (param.getName() == null) {
+          continue;
+        }
+
+        sb.append(";");
+        sb.append(param.toString());
+      }
+
+      if (sb.length() > 0) {
+        // remove first ';'
+        teamEvent.setOrganizerAdditionalParams(sb.substring(1));
+      }
+
       teamEvent.setOrganizer(event.getOrganizer().getValue());
 
     } else {

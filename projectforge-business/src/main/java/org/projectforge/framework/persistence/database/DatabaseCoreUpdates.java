@@ -147,7 +147,7 @@ public class DatabaseCoreUpdates
       public UpdatePreCheckStatus runPreCheck()
       {
         log.info("Running pre-check for ProjectForge version 6.14.0");
-        if (this.missingFields() || oldUniqueConstraint()) {
+        if (this.missingFields() || oldUniqueConstraint() || noOwnership()) {
           return UpdatePreCheckStatus.READY_FOR_UPDATE;
         }
         return UpdatePreCheckStatus.ALREADY_UPDATED;
@@ -167,6 +167,31 @@ public class DatabaseCoreUpdates
           initDatabaseDao.updateSchema();
         }
 
+        // check ownership
+        if (noOwnership()) {
+          List<DatabaseResultRow> resultList = databaseUpdateService.query("select e.pk, e.organizer from t_plugin_calendar_event e");
+          log.info("Found: " + resultList.size() + " event entries to update ownership.");
+
+          for (DatabaseResultRow row : resultList) {
+            Integer id = (Integer) row.getEntry(0).getValue();
+            String organizer = (String) row.getEntry(1).getValue();
+            Boolean ownership = Boolean.TRUE;
+
+            if (organizer != null && organizer.equals("mailto:null") == false) {
+              ownership = Boolean.FALSE;
+            }
+
+            try {
+              databaseUpdateService.execute(String.format("UPDATE t_plugin_calendar_event SET ownership = '%s' WHERE pk = %s", ownership, id));
+            } catch (Exception e) {
+              log.error(String.format("Error while updating event with id '%s' and new ownership. Ignoring it.", id, ownership));
+            }
+
+            log.info(String.format("Updated event with id '%s' set ownership to '%s'", id, ownership));
+          }
+          log.info("Ownership computation DONE.");
+        }
+
         return null;
       }
 
@@ -176,12 +201,20 @@ public class DatabaseCoreUpdates
             || databaseUpdateService.doesTableAttributeExist("T_PLUGIN_CALENDAR_EVENT_ATTENDEE", "CU_TYPE") == false
             || databaseUpdateService.doesTableAttributeExist("T_PLUGIN_CALENDAR_EVENT_ATTENDEE", "RSVP") == false
             || databaseUpdateService.doesTableAttributeExist("T_PLUGIN_CALENDAR_EVENT_ATTENDEE", "ROLE") == false
-            || databaseUpdateService.doesTableAttributeExist("T_PLUGIN_CALENDAR_EVENT_ATTENDEE", "ADDITIONAL_PARAMS") == false;
+            || databaseUpdateService.doesTableAttributeExist("T_PLUGIN_CALENDAR_EVENT_ATTENDEE", "ADDITIONAL_PARAMS") == false
+            || databaseUpdateService.doesTableAttributeExist("T_PLUGIN_CALENDAR_EVENT", "OWNERSHIP") == false
+            || databaseUpdateService.doesTableAttributeExist("T_PLUGIN_CALENDAR_EVENT", "ORGANIZER_ADDITIONAL_PARAMS") == false;
       }
 
       private boolean oldUniqueConstraint()
       {
         return databaseUpdateService.doesUniqueConstraintExists("T_PLUGIN_CALENDAR_EVENT", "unique_t_plugin_calendar_event_uid");
+      }
+
+      private boolean noOwnership()
+      {
+        List<DatabaseResultRow> result = databaseUpdateService.query("select pk from t_plugin_calendar_event where ownership is not null LIMIT 1");
+        return result.size() == 0;
       }
     });
 
