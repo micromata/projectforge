@@ -8,7 +8,6 @@ import java.io.InputStream;
 import java.net.URL;
 import java.security.KeyStore;
 import java.util.Calendar;
-import java.util.GregorianCalendar;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -34,6 +33,7 @@ import org.projectforge.framework.configuration.GlobalConfiguration;
 import org.projectforge.framework.configuration.IConfigurationParam;
 import org.projectforge.framework.configuration.SecurityConfig;
 import org.projectforge.framework.configuration.entities.ConfigurationDO;
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.TenantDO;
 import org.projectforge.framework.utils.FileHelper;
 import org.projectforge.mail.SendMailConfig;
@@ -635,8 +635,9 @@ public class ConfigurationServiceImpl implements ConfigurationService
         month = 2;
       }
     }
-    Calendar now = new GregorianCalendar();
-    return new GregorianCalendar(now.get(Calendar.YEAR), month, day);
+    Calendar result = Calendar.getInstance(ThreadLocalUserContext.getTimeZone());
+    result.set(result.get(Calendar.YEAR), month, day, 23, 59, 59);
+    return result;
   }
 
   @Override
