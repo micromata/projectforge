@@ -453,7 +453,9 @@ public class CalendarPanel extends Panel
     final PFUserDO loggedInUser = ThreadLocalUserContext.getUser();
 
     // copy or move?
-    boolean isMoveAction = CalendarDropMode.MOVE_SAVE.equals(dropMode) || CalendarDropMode.MOVE_EDIT.equals(dropMode);
+    boolean isMoveAction = CalendarDropMode.MOVE_SAVE == dropMode || CalendarDropMode.MOVE_EDIT == dropMode;
+    boolean isEditAction = CalendarDropMode.COPY_EDIT == dropMode || CalendarDropMode.MOVE_EDIT == dropMode;
+
     if (isMoveAction) {
       // move
       // nothing to do here
@@ -464,8 +466,8 @@ public class CalendarPanel extends Panel
       timesheetDao.setUser(timesheet, loggedInUser.getId()); // Copy for own user.
     }
 
-    // check overlapping
-    if (timesheetDao.hasTimeOverlap(timesheet, false)) {
+    // check overlapping for edit actions
+    if (isEditAction == false && timesheetDao.hasTimeOverlap(timesheet, false)) {
       this.error(getString("timesheet.error.overlapping"));
       setResponsePage(getPage());
       return;
@@ -484,14 +486,33 @@ public class CalendarPanel extends Panel
     // check rights
     boolean access;
     if (isMoveAction) {
-      access = timesheetDao.hasUpdateAccess(loggedInUser, timesheet, dbTimesheet, false);
+      access = true;
+      if (timesheetDao.hasAccess(loggedInUser, timesheet, dbTimesheet, OperationType.UPDATE, false) == false) {
+        access = false;
+      } else if (dbTimesheet.getUserId().equals(timesheet.getUserId()) == false) {
+        // User changes the owner of the time sheet:
+        if (timesheetDao.hasAccess(loggedInUser, dbTimesheet, null, OperationType.DELETE, false) == false) {
+          // Deleting of time sheet of another user is not allowed.
+          access = false;
+        }
+      } else if (dbTimesheet.getTaskId().equals(timesheet.getTaskId()) == false) {
+        // User moves the object to another task:
+        if (timesheetDao.hasAccess(loggedInUser, timesheet, null, OperationType.INSERT, false) == false) {
+          // Inserting of object under new task not allowed.
+          access = false;
+        } else if (timesheetDao.hasAccess(loggedInUser, dbTimesheet, null, OperationType.DELETE, false) == false) {
+          // Deleting of object under old task not allowed.
+          access = false;
+        }
+      }
     } else {
-      access = timesheetDao.hasInsertAccess(loggedInUser, timesheet, false);
+      access = timesheetDao.hasAccess(loggedInUser, timesheet, null, OperationType.INSERT, false);
     }
 
     if (access == false) {
       this.error(getString("timesheet.error.noAccess"));
       setResponsePage(getPage());
+      return;
     }
 
     try {
