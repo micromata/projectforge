@@ -140,6 +140,8 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
   @NoHistory
   private Timestamp lastEmail;
 
+  private Timestamp dtStamp;
+
   @IndexedEmbedded(depth = 1)
   private TeamCalDO calendar;
 
@@ -180,16 +182,19 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
    */
   public TeamEventDO clearFields()
   {
+    ownership = null;
     subject = location = note = null;
     if (attendees != null) {
       attendees.clear();
     }
     organizer = null;
+    organizer_additional_params = null;
     reminderDuration = null;
     reminderDurationType = null;
     reminderActionType = null;
     lastEmail = null;
     sequence = null;
+    dtStamp = null;
     if (attachments != null) {
       attachments.clear();
     }
@@ -367,6 +372,25 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
   public TeamEventDO setLastEmail(final Timestamp lastEmail)
   {
     this.lastEmail = lastEmail;
+    return this;
+  }
+
+  /**
+   * @return the DTSTAMP
+   */
+  @Column(name = "dt_stamp")
+  public Timestamp getDtStamp()
+  {
+    return dtStamp;
+  }
+
+  /**
+   * @param dtStamp the DTSTAMP to set
+   * @return this for chaining.
+   */
+  public TeamEventDO setDtStamp(final Timestamp dtStamp)
+  {
+    this.dtStamp = dtStamp;
     return this;
   }
 
@@ -944,16 +968,6 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
     return this;
   }
 
-  public void incSequence()
-  {
-    // increment sequence number
-    if (this.sequence == null) {
-      this.sequence = 0;
-    } else {
-      this.sequence = this.sequence + 1;
-    }
-  }
-
   /**
    * @return the attachments
    */
@@ -1029,6 +1043,9 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
     result = prime * result + ((recurrenceUntil == null) ? 0 : recurrenceUntil.hashCode());
     result = prime * result + ((startDate == null) ? 0 : startDate.hashCode());
     result = prime * result + ((subject == null) ? 0 : subject.hashCode());
+    result = prime * result + ((organizer == null) ? 0 : organizer.hashCode());
+    result = prime * result + ((organizer_additional_params == null) ? 0 : organizer_additional_params.hashCode());
+    result = prime * result + ((dtStamp == null) ? 0 : dtStamp.hashCode());
     return result;
   }
 
@@ -1135,6 +1152,13 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
     } else if (startDate.equals(other.startDate) == false) {
       return false;
     }
+    if (dtStamp == null) {
+      if (other.dtStamp != null) {
+        return false;
+      }
+    } else if (dtStamp.equals(other.dtStamp) == false) {
+      return false;
+    }
     if (subject == null) {
       if (other.subject != null) {
         return false;
@@ -1152,50 +1176,98 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
     return true;
   }
 
+  @Transient
   public boolean mustIncSequence(final TeamEventDO other)
   {
-    if (location == null) {
-      if (other.location != null) {
-        return true;
-      }
-    } else if (!location.equals(other.location)) {
+    if (allDay != other.allDay) {
       return true;
     }
-    if (startDate == null) {
-      if (other.startDate != null) {
-        return true;
-      }
-    } else if (!startDate.equals(other.startDate)) {
-      return true;
-    }
+
     if (endDate == null) {
       if (other.endDate != null) {
         return true;
       }
-    } else if (!endDate.equals(other.endDate)) {
+    } else if (endDate.equals(other.endDate) == false) {
+      return true;
+    }
+    if (location == null) {
+      if (other.location != null) {
+        return true;
+      }
+    } else if (location.equals(other.location) == false) {
+      return true;
+    }
+    if (note == null) {
+      if (other.note != null) {
+        return true;
+      }
+    } else if (note.equals(other.note) == false) {
       return true;
     }
     if (recurrenceExDate == null) {
       if (other.recurrenceExDate != null) {
         return true;
       }
-    } else if (!recurrenceExDate.equals(other.recurrenceExDate)) {
+    } else if (recurrenceExDate.equals(other.recurrenceExDate) == false) {
       return true;
     }
     if (recurrenceRule == null) {
       if (other.recurrenceRule != null) {
         return true;
       }
-    } else if (!recurrenceRule.equals(other.recurrenceRule)) {
+    } else if (recurrenceRule.equals(other.recurrenceRule) == false) {
       return true;
     }
     if (recurrenceUntil == null) {
       if (other.recurrenceUntil != null) {
         return true;
       }
-    } else if (!recurrenceUntil.equals(other.recurrenceUntil)) {
+    } else if (recurrenceUntil.equals(other.recurrenceUntil) == false) {
       return true;
     }
+    if (organizer == null) {
+      if (other.organizer != null) {
+        return true;
+      }
+    } else if (organizer.equals(other.organizer) == false) {
+      return true;
+    }
+    if (organizer_additional_params == null) {
+      if (other.organizer_additional_params != null) {
+        return true;
+      }
+    } else if (organizer_additional_params.equals(other.organizer_additional_params) == false) {
+      return true;
+    }
+    if (startDate == null) {
+      if (other.startDate != null) {
+        return true;
+      }
+    } else if (startDate.equals(other.startDate) == false) {
+      return true;
+    }
+    if (subject == null) {
+      if (other.subject != null) {
+        return true;
+      }
+    } else if (subject.equals(other.subject) == false) {
+      return true;
+    }
+    if (attendees == null || attendees.isEmpty()) {
+      if (other.attendees != null && other.attendees.isEmpty() == false) {
+        return true;
+      }
+    } else if (attendees.equals(other.attendees) == false) {
+      return true;
+    }
+    if (attachments == null || attachments.isEmpty()) {
+      if (other.attachments != null && other.attachments.isEmpty() == false) {
+        return true;
+      }
+    } else if (attachments.equals(other.attachments) == false) {
+      return true;
+    }
+
     return false;
   }
 
@@ -1223,6 +1295,7 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
     clone.organizer_additional_params = this.organizer_additional_params;
     clone.note = this.note;
     clone.lastEmail = this.lastEmail;
+    clone.dtStamp = this.dtStamp;
     clone.sequence = this.sequence;
     clone.reminderDuration = this.reminderDuration;
     clone.reminderDurationType = this.reminderDurationType;
@@ -1254,6 +1327,7 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
     return clone;
   }
 
+  @Transient
   public TeamEventDO createMinimalCopy()
   {
     final TeamEventDO result = new TeamEventDO();
@@ -1261,6 +1335,7 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
     result.setCalendar(this.getCalendar());
     result.startDate = this.startDate;
     result.endDate = this.endDate;
+    result.dtStamp = this.dtStamp;
     result.allDay = this.allDay;
     result.recurrenceExDate = this.recurrenceExDate;
     result.recurrenceRule = this.recurrenceRule;

@@ -215,8 +215,6 @@ public class TeamEventDaoRest
 
   private Response saveVEvent(VEvent event, TeamCalDO teamCalDO, boolean withUid)
   {
-    //The result for returning
-    CalendarEventObject result = null;
     //Building TeamEventDO from VEvent
     final TeamEventDO teamEvent = teamCalService.createTeamEventDO(event, TimeZone.getTimeZone(teamCalDO.getOwner().getTimeZone()), withUid);
     //Setting the calendar
@@ -232,10 +230,10 @@ public class TeamEventDaoRest
     //Update attendees
     teamEventService.assignAttendees(teamEvent, attendees, null);
 
-    // check if mail should be send
+    // handle sending notification mail
     teamEventService.checkAndSendMail(teamEvent, TeamEventDiffType.NEW);
 
-    result = teamCalService.getEventObject(teamEvent, true, true, true);
+    final CalendarEventObject result = teamCalService.getEventObject(teamEvent, true, true, true);
     log.info("Team event: " + teamEvent.getSubject() + " for calendar #" + teamCalDO.getId() + " successfully created.");
     if (result != null) {
       final String json = JsonUtils.toJson(result);
@@ -287,19 +285,17 @@ public class TeamEventDaoRest
         return saveTeamEvent(calendarEvent);
       }
 
-      //Setting the existing DB id, created timestamp, tenant
+      //Setting the existing DB id, created timestamp, tenant, etc. ...
       teamEvent.setId(teamEventOrigin.getPk());
-      teamEvent.setCreator(teamEventOrigin.getCreator());
       teamEvent.setCreated(teamEventOrigin.getCreated());
       teamEvent.setLastUpdate();
       teamEvent.setTenant(teamEventOrigin.getTenant());
-      //Setting the calendar
       teamEvent.setCalendar(teamCalDO);
-      //Setting uid
       teamEvent.setUid(eventUid.getValue());
 
       if (teamEventOrigin.isDeleted()) {
         teamEventService.undelete(teamEventOrigin);
+        teamEvent.setCreator(teamEventOrigin.getCreator());
 
         //Save or update the generated event
         teamEventService.updateAttendees(teamEvent, teamEventOrigin.getAttendees());
@@ -307,6 +303,8 @@ public class TeamEventDaoRest
 
         teamEventService.checkAndSendMail(teamEvent, TeamEventDiffType.NEW);
       } else {
+        teamEvent.setCreator(teamEventOrigin.getCreator());
+
         //Save or update the generated event
         teamEventService.updateAttendees(teamEvent, teamEventOrigin.getAttendees());
         teamEventService.update(teamEvent);
