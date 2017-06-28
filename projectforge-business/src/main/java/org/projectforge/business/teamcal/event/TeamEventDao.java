@@ -23,6 +23,7 @@
 
 package org.projectforge.business.teamcal.event;
 
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
@@ -180,119 +181,17 @@ public class TeamEventDao extends BaseDao<TeamEventDO>
     }
 
     // compute diff
-    if (obj.isAllDay() != dbObj.isAllDay()) {
-      obj.incSequence();
-      return;
-    }
-    if (obj.getAttendees() == null || obj.getAttendees().isEmpty()) {
-      if (dbObj.getAttendees() != null && dbObj.getAttendees().isEmpty() == false) {
-        obj.incSequence();
-        return;
+    if (obj.mustIncSequence(dbObj)) {
+      if (obj.getSequence() == null) {
+        obj.setSequence(0);
+      } else {
+        obj.setSequence(obj.getSequence() + 1);
       }
-    } else if (obj.getAttendees().equals(dbObj.getAttendees()) == false) {
-      obj.incSequence();
-      return;
-    }
-    if (obj.getEndDate() == null) {
-      if (dbObj.getEndDate() != null) {
-        obj.incSequence();
-        return;
-      }
-    } else if (obj.getEndDate().equals(dbObj.getEndDate()) == false) {
-      obj.incSequence();
-      return;
-    }
-    if (obj.getLocation() == null) {
-      if (dbObj.getLocation() != null) {
-        obj.incSequence();
-        return;
-      }
-    } else if (obj.getLocation().equals(dbObj.getLocation()) == false) {
-      obj.incSequence();
-      return;
-    }
-    if (obj.getNote() == null) {
-      if (dbObj.getNote() != null) {
-        obj.incSequence();
-        return;
-      }
-    } else if (obj.getNote().equals(dbObj.getNote()) == false) {
-      obj.incSequence();
-      return;
-    }
-    if (obj.getRecurrenceExDate() == null) {
-      if (dbObj.getRecurrenceExDate() != null) {
-        obj.incSequence();
-        return;
-      }
-    } else if (obj.getRecurrenceExDate().equals(dbObj.getRecurrenceExDate()) == false) {
-      obj.incSequence();
-      return;
-    }
-    if (obj.getRecurrenceRule() == null) {
-      if (dbObj.getRecurrenceRule() != null) {
-        obj.incSequence();
-        return;
-      }
-    } else if (obj.getRecurrenceRule().equals(dbObj.getRecurrenceRule()) == false) {
-      obj.incSequence();
-      return;
-    }
-    if (obj.getRecurrenceUntil() == null) {
-      if (dbObj.getRecurrenceUntil() != null) {
-        obj.incSequence();
-        return;
-      }
-    } else if (obj.getRecurrenceUntil().equals(dbObj.getRecurrenceUntil()) == false) {
-      obj.incSequence();
-      return;
-    }
-    if (obj.getOrganizer() == null) {
-      if (dbObj.getOrganizer() != null) {
-        obj.incSequence();
-        return;
-      }
-    } else if (obj.getOrganizer().equals(dbObj.getOrganizer()) == false) {
-      obj.incSequence();
-      return;
-    }
-    if (obj.getOrganizerAdditionalParams() == null) {
-      if (dbObj.getOrganizerAdditionalParams() != null) {
-        obj.incSequence();
-        return;
-      }
-    } else if (obj.getOrganizerAdditionalParams().equals(dbObj.getOrganizerAdditionalParams()) == false) {
-      obj.incSequence();
-      return;
-    }
-    if (obj.getStartDate() == null) {
-      if (dbObj.getStartDate() != null) {
-        obj.incSequence();
-        return;
-      }
-    } else if (obj.getStartDate().equals(dbObj.getStartDate()) == false) {
-      obj.incSequence();
-      return;
-    }
-    if (obj.getSubject() == null) {
-      if (dbObj.getSubject() != null) {
-        obj.incSequence();
-        return;
-      }
-    } else if (obj.getSubject().equals(dbObj.getSubject()) == false) {
-      obj.incSequence();
-      return;
-    }
-    if (obj.getAttachments() == null || obj.getAttachments().isEmpty()) {
-      if (dbObj.getAttachments() != null && dbObj.getAttachments().isEmpty() == false) {
-        obj.incSequence();
-        return;
-      }
-    } else if (obj.getAttachments().equals(dbObj.getAttachments()) == false) {
-      obj.incSequence();
-      return;
-    }
 
+      if (obj.getDtStamp() == null || obj.getDtStamp().equals(dbObj.getDtStamp())) {
+        obj.setDtStamp(new Timestamp(System.currentTimeMillis()));
+      }
+    }
   }
 
   /**
@@ -321,6 +220,11 @@ public class TeamEventDao extends BaseDao<TeamEventDO>
     // create uid if missing
     if (StringUtils.isBlank(event.getUid())) {
       event.setUid(TeamCalConfig.get().createEventUid());
+    }
+
+    // set DTSTAMP
+    if (event.getDtStamp() == null) {
+      event.setDtStamp(new Timestamp(event.getCreated().getTime()));
     }
   }
 

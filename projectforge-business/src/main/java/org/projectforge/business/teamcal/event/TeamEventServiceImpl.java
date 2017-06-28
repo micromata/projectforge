@@ -165,7 +165,6 @@ public class TeamEventServiceImpl implements TeamEventService
   public void updateAttendees(TeamEventDO event, Set<TeamEventAttendeeDO> attendeesOldState)
   {
     final Set<TeamEventAttendeeDO> attendeesNewState = event.getAttendees();
-    event.getAttendees().clear();
 
     // new list is empty -> delete all
     if (attendeesNewState == null || attendeesNewState.isEmpty()) {
@@ -187,7 +186,6 @@ public class TeamEventServiceImpl implements TeamEventService
           attendee.setStatus(TeamEventAttendeeStatus.NEEDS_ACTION);
         }
 
-        event.addAttendee(attendee);
         teamEventAttendeeDao.internalSave(attendee);
       }
 
@@ -229,7 +227,6 @@ public class TeamEventServiceImpl implements TeamEventService
         if (attendee.getStatus() == null) {
           attendee.setStatus(TeamEventAttendeeStatus.NEEDS_ACTION);
         }
-        event.addAttendee(attendee);
         teamEventAttendeeDao.internalSave(attendee);
       }
     }
@@ -257,7 +254,7 @@ public class TeamEventServiceImpl implements TeamEventService
   @Override
   public boolean checkAndSendMail(final TeamEventDO event, final TeamEventDiffType diffType)
   {
-    if (this.precheckSendMail(event) == false) {
+    if (this.preCheckSendMail(event) == false) {
       return false;
     }
 
@@ -268,7 +265,7 @@ public class TeamEventServiceImpl implements TeamEventService
   @Override
   public boolean checkAndSendMail(final TeamEventDO eventNew, final TeamEventDO eventOld)
   {
-    if (this.precheckSendMail(eventNew) == false) {
+    if (this.preCheckSendMail(eventNew) == false) {
       return false;
     }
 
@@ -305,7 +302,7 @@ public class TeamEventServiceImpl implements TeamEventService
     return result;
   }
 
-  private boolean precheckSendMail(final TeamEventDO event)
+  private boolean preCheckSendMail(final TeamEventDO event)
   {
     // check event organizer
     if (event.isOwnership() != null && event.isOwnership() == false) {

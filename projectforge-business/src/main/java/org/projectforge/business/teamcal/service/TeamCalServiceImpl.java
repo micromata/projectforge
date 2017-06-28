@@ -86,6 +86,7 @@ import net.fortuna.ical4j.model.property.Attendee;
 import net.fortuna.ical4j.model.property.CalScale;
 import net.fortuna.ical4j.model.property.Created;
 import net.fortuna.ical4j.model.property.Description;
+import net.fortuna.ical4j.model.property.DtStamp;
 import net.fortuna.ical4j.model.property.DtStart;
 import net.fortuna.ical4j.model.property.ExDate;
 import net.fortuna.ical4j.model.property.LastModified;
@@ -341,10 +342,21 @@ public class TeamCalServiceImpl
     created.setUtc(true);
     vEvent.getProperties().add(new Created(created));
 
+    // set DTSTAMP
+    net.fortuna.ical4j.model.DateTime dtStampValue = new net.fortuna.ical4j.model.DateTime(teamEvent.getDtStamp());
+    dtStampValue.setUtc(true);
+    DtStamp dtStamp = (DtStamp) vEvent.getProperties().getProperty(Property.DTSTAMP);
+    if (dtStamp != null) {
+      dtStamp.setDate(dtStampValue);
+    } else {
+      vEvent.getProperties().add(new DtStamp(dtStampValue));
+    }
+
     // set last edit
-    net.fortuna.ical4j.model.DateTime lastModified = new net.fortuna.ical4j.model.DateTime(teamEvent.getCreated());
-    created.setUtc(true);
-    vEvent.getProperties().add(new LastModified(lastModified));
+    //    net.fortuna.ical4j.model.DateTime lastModified = new net.fortuna.ical4j.model.DateTime(
+    //        teamEvent.getDtStamp() != null ? teamEvent.getDtStamp() : teamEvent.getCreated());
+    //    created.setUtc(true);
+    //    vEvent.getProperties().add(new LastModified(lastModified));
 
     // set sequence number
     if (teamEvent.getSequence() != null) {
@@ -626,18 +638,6 @@ public class TeamCalServiceImpl
     return getIcsFile(eventDO, exportAttendees, editable, null);
   }
 
-  public static VEvent createVEvent(final TeamEventDO eventDO, final net.fortuna.ical4j.model.TimeZone timezone)
-  {
-    final VEvent vEvent = ICal4JUtils.createVEvent(eventDO.getStartDate(), eventDO.getEndDate(), eventDO.getUid(),
-        eventDO.getSubject(),
-        eventDO.isAllDay(), timezone);
-    if (eventDO.hasRecurrence() == true) {
-      final RRule rrule = eventDO.getRecurrenceRuleObject();
-      vEvent.getProperties().add(rrule);
-    }
-    return vEvent;
-  }
-
   public static Collection<TeamEvent> getRecurrenceEvents(final java.util.Date startDate, final java.util.Date endDate,
       final TeamEventDO event, final java.util.TimeZone timeZone)
   {
@@ -765,31 +765,39 @@ public class TeamCalServiceImpl
     teamEvent.setStartDate(timestamp);
     if (teamEvent.isAllDay() == true) {
       final org.joda.time.DateTime jodaTime = new org.joda.time.DateTime(event.getEndDate().getDate());
-      final net.fortuna.ical4j.model.Date fortunaEndDate = new net.fortuna.ical4j.model.Date(
-          jodaTime.plusDays(-1).toDate());
+      final net.fortuna.ical4j.model.Date fortunaEndDate = new net.fortuna.ical4j.model.Date(jodaTime.plusDays(-1).toDate());
       timestamp = new Timestamp(fortunaEndDate.getTime());
     } else {
       timestamp = ICal4JUtils.getSqlTimestamp(event.getEndDate().getDate());
     }
     teamEvent.setEndDate(timestamp);
+
+    if (event.getDateStamp() != null) {
+      teamEvent.setDtStamp(new Timestamp(event.getDateStamp().getDate().getTime()));
+    }
+
     if (withUid && event.getUid() != null && StringUtils.isEmpty(event.getUid().getValue()) == false) {
       teamEvent.setUid(event.getUid().getValue());
     }
+
     if (event.getLocation() != null) {
       teamEvent.setLocation(event.getLocation().getValue());
     } else {
       teamEvent.setLocation(null);
     }
+
     if (event.getDescription() != null) {
       teamEvent.setNote(event.getDescription().getValue());
     } else {
       teamEvent.setNote(null);
     }
+
     if (event.getSummary() != null) {
       teamEvent.setSubject(event.getSummary().getValue());
     } else {
       teamEvent.setSubject(null);
     }
+
     boolean ownership = false;
 
     if (event.getOrganizer() != null) {
@@ -971,7 +979,11 @@ public class TeamCalServiceImpl
       });
 
       // TODO compute diff? could help to improve concurrent requests
-      teamEvent.setRecurrenceExDate(String.join(",", exDateList));
+      if (exDateList.isEmpty()) {
+        teamEvent.setRecurrenceExDate(null);
+      } else {
+        teamEvent.setRecurrenceExDate(String.join(",", exDateList));
+      }
     } else {
       teamEvent.setRecurrenceExDate(null);
     }
@@ -1047,6 +1059,7 @@ public class TeamCalServiceImpl
     event.setRecurrenceExDate(src.getRecurrenceExDate());
     event.setRecurrenceUntil(src.getRecurrenceUntil());
     DOConverter.copyFields(event, src);
+    event.setLastUpdate(src.getDtStamp());
     if (src.getReminderActionType() != null && src.getReminderDuration() != null
         && src.getReminderDurationUnit() != null) {
       event.setReminderType(src.getReminderActionType().toString());

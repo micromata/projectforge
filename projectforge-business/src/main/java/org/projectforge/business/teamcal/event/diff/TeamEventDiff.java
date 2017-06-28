@@ -105,6 +105,9 @@ public class TeamEventDiff
     diff.location = computeFieldDiff(diff, TeamEventField.LOCATION, fieldFilter, eventNewState.getLocation(), eventOldState.getLocation());
 
     diff.organizer = computeFieldDiff(diff, TeamEventField.ORGANIZER, fieldFilter, eventNewState.getOrganizer(), eventOldState.getOrganizer());
+    diff.organizerAdditionalParams = computeFieldDiff(diff, TeamEventField.ORGANIZER_ADDITIONAL_PARAMS, fieldFilter,
+        eventNewState.getOrganizerAdditionalParams(),
+        eventOldState.getOrganizerAdditionalParams());
     diff.note = computeFieldDiff(diff, TeamEventField.NOTE, fieldFilter, eventNewState.getNote(), eventOldState.getNote());
     diff.lastEmail = computeFieldDiff(diff, TeamEventField.LAST_MAIL, fieldFilter, eventNewState.getLastEmail(), eventOldState.getLastEmail());
 
@@ -119,6 +122,7 @@ public class TeamEventDiff
     diff.recurrenceUntil = computeFieldDiff(diff, TeamEventField.RECURRENCE_UNTIL, fieldFilter, eventNewState.getRecurrenceUntil(),
         eventOldState.getRecurrenceUntil());
     diff.sequence = computeFieldDiff(diff, TeamEventField.SEQUENCE, fieldFilter, eventNewState.getSequence(), eventOldState.getSequence());
+    diff.dtStamp = computeFieldDiff(diff, TeamEventField.DT_STAMP, fieldFilter, eventNewState.getDtStamp(), eventOldState.getDtStamp());
 
     diff.reminderDuration = computeFieldDiff(diff, TeamEventField.REMINDER_DURATION, fieldFilter, eventNewState.getReminderDuration(),
         eventOldState.getReminderDuration());
@@ -206,6 +210,7 @@ public class TeamEventDiff
   private TeamEventFieldDiff<PFUserDO> creator;
   private TeamEventFieldDiff<Timestamp> startDate;
   private TeamEventFieldDiff<Timestamp> endDate;
+  private TeamEventFieldDiff<Timestamp> dtStamp;
   private TeamEventFieldDiff<Boolean> allDay;
   private TeamEventFieldDiff<String> subject;
   private TeamEventFieldDiff<String> location;
@@ -215,6 +220,7 @@ public class TeamEventDiff
   private TeamEventFieldDiff<String> recurrenceReferenceId;
   private TeamEventFieldDiff<Date> recurrenceUntil;
   private TeamEventFieldDiff<String> organizer;
+  private TeamEventFieldDiff<String> organizerAdditionalParams;
   private TeamEventFieldDiff<String> note;
   private TeamEventFieldDiff<Timestamp> lastEmail;
   private TeamEventFieldDiff<Integer> sequence;

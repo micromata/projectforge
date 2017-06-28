@@ -147,7 +147,7 @@ public class DatabaseCoreUpdates
       public UpdatePreCheckStatus runPreCheck()
       {
         log.info("Running pre-check for ProjectForge version 6.14.0");
-        if (this.missingFields() || oldUniqueConstraint() || noOwnership()) {
+        if (this.missingFields() || oldUniqueConstraint() || noOwnership() || dtStampMissing()) {
           return UpdatePreCheckStatus.READY_FOR_UPDATE;
         }
         return UpdatePreCheckStatus.ALREADY_UPDATED;
@@ -192,6 +192,16 @@ public class DatabaseCoreUpdates
           log.info("Ownership computation DONE.");
         }
 
+        // update DT_STAMP
+        if (dtStampMissing()) {
+          try {
+            databaseUpdateService.execute("UPDATE t_plugin_calendar_event SET dt_stamp = last_update");
+            log.info("Creating DT_STAMP values successful");
+          } catch (Exception e) {
+            log.error("Error while creating DT_STAMP values");
+          }
+        }
+
         return null;
       }
 
@@ -203,7 +213,8 @@ public class DatabaseCoreUpdates
             || databaseUpdateService.doesTableAttributeExist("T_PLUGIN_CALENDAR_EVENT_ATTENDEE", "ROLE") == false
             || databaseUpdateService.doesTableAttributeExist("T_PLUGIN_CALENDAR_EVENT_ATTENDEE", "ADDITIONAL_PARAMS") == false
             || databaseUpdateService.doesTableAttributeExist("T_PLUGIN_CALENDAR_EVENT", "OWNERSHIP") == false
-            || databaseUpdateService.doesTableAttributeExist("T_PLUGIN_CALENDAR_EVENT", "ORGANIZER_ADDITIONAL_PARAMS") == false;
+            || databaseUpdateService.doesTableAttributeExist("T_PLUGIN_CALENDAR_EVENT", "ORGANIZER_ADDITIONAL_PARAMS") == false
+            || databaseUpdateService.doesTableAttributeExist("T_PLUGIN_CALENDAR_EVENT", "DT_STAMP") == false;
       }
 
       private boolean oldUniqueConstraint()
@@ -214,6 +225,12 @@ public class DatabaseCoreUpdates
       private boolean noOwnership()
       {
         List<DatabaseResultRow> result = databaseUpdateService.query("select pk from t_plugin_calendar_event where ownership is not null LIMIT 1");
+        return result.size() == 0;
+      }
+
+      private boolean dtStampMissing()
+      {
+        List<DatabaseResultRow> result = databaseUpdateService.query("select pk from t_plugin_calendar_event where dt_stamp is not null LIMIT 1");
         return result.size() == 0;
       }
     });
