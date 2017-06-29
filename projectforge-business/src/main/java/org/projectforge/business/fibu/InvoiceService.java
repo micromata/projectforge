@@ -18,6 +18,7 @@ import org.apache.poi.xwpf.usermodel.XWPFRun;
 import org.apache.poi.xwpf.usermodel.XWPFTable;
 import org.apache.poi.xwpf.usermodel.XWPFTableCell;
 import org.apache.poi.xwpf.usermodel.XWPFTableRow;
+import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTRPr;
 import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTRow;
 import org.projectforge.business.configuration.ConfigurationService;
 import org.projectforge.framework.i18n.I18nHelper;
@@ -133,9 +134,6 @@ public class InvoiceService
         XWPFRun lastRun = posToRuns.get(pos + searchText.length() - 1);
         int runNum = paragraph.getRuns().indexOf(run);
         int lastRunNum = paragraph.getRuns().indexOf(lastRun);
-        if (replacement.contains("\r\n")) {
-          replacement = replacement.replace("\r", "");
-        }
         int runCount = paragraph.getRuns().size();
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i <= runCount; i++) {
@@ -144,7 +142,29 @@ public class InvoiceService
           }
         }
         String newText = sb.toString().replace(searchText, replacement);
-        run.setText(newText, 0);
+        if (replacement.contains("\n")) {
+          //Do the return stuff
+          replacement = replacement.replace("\n", "");
+          String[] replacementLines = replacement.split("\n");
+          // For each additional line, create a new run. Add carriage return on previous.
+          for (int i = 0; i < replacementLines.length; i++) {
+            // For every run except last one, add a carriage return.
+            String textForLine = replacementLines[i];
+            if (i < replacementLines.length - 1) {
+              run.setText(textForLine, 0);
+              run.addCarriageReturn();
+            } else {
+              paragraph.insertNewRun(runNum + (i + 1));
+              XWPFRun newRun = paragraph.getRuns().get(i);
+              CTRPr rPr = newRun.getCTR().isSetRPr() ? newRun.getCTR().getRPr() : newRun.getCTR().addNewRPr();
+              rPr.set(run.getCTR().getRPr());
+              newRun.setText(textForLine);
+              lastRunNum++;
+            }
+          }
+        } else {
+          run.setText(newText, 0);
+        }
         for (int i = lastRunNum; i > runNum; i--) {
           paragraph.removeRun(i);
         }
