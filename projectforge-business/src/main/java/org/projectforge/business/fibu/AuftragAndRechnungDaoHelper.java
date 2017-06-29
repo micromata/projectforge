@@ -51,8 +51,11 @@ public class AuftragAndRechnungDaoHelper
   {
     final String dateName = "datum";
 
-    final java.sql.Date fromDate = DateHelper.convertDateToSqlDateInTheUsersTimeZone(myFilter.getFromDate());
-    final java.sql.Date toDate = DateHelper.convertDateToSqlDateInTheUsersTimeZone(myFilter.getToDate());
+    final Date from = myFilter.getFromDate();
+    final Date to = myFilter.getToDate();
+
+    final java.sql.Date fromDate = from instanceof java.sql.Date ? (java.sql.Date) from : DateHelper.convertDateToSqlDateInTheUsersTimeZone(from);
+    final java.sql.Date toDate = to instanceof java.sql.Date ? (java.sql.Date) to : DateHelper.convertDateToSqlDateInTheUsersTimeZone(to);
 
     final QueryFilter queryFilter = new QueryFilter(myFilter);
 
