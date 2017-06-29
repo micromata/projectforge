@@ -86,16 +86,16 @@ public class RechnungEditPage extends AbstractEditPage<RechnungDO, RechnungEditF
           if (baos != null) {
             //Rechnungsnummer_Kunde_Projekt_Beschreibung_Leistungszeitraum_Rechnungsdatum(2017-MM-TT)
             final String number = getData().getNummer() != null ? getData().getNummer().toString() + "_" : "";
-            final String sanitizedCustomer = getData().getKunde().getName().replaceAll("\\W+", "_");
-            final String sanitizedProject = getData().getProjekt().getName().replaceAll("\\W+", "_");
-            final String sanitizedBetreff = getData().getBetreff().replaceAll("\\W+", "_");
+            final String sanitizedCustomer = getData().getKunde() != null ? getData().getKunde().getName().replaceAll("\\W+", "_") + "_" : "";
+            final String sanitizedProject = getData().getProjekt() != null ? getData().getProjekt().getName().replaceAll("\\W+", "_") + "_" : "";
+            final String sanitizedBetreff = getData().getBetreff().replaceAll("\\W+", "_") + "_";
             final String periodOfPerformance =
                 DateTimeFormatter.instance().getFormattedDate(getData().getPeriodOfPerformanceBegin()).replaceAll("\\W+", "_") + "_-_" + DateTimeFormatter
                     .instance()
-                    .getFormattedDate(getData().getPeriodOfPerformanceEnd()).replaceAll("\\W+", "_");
+                    .getFormattedDate(getData().getPeriodOfPerformanceEnd()).replaceAll("\\W+", "_") + "_";
             final String invoiceDate = DateTimeFormatter.instance().getFormattedDate(getData().getDatum()).replaceAll("\\W+", "_");
             final String filename =
-                number + sanitizedCustomer + "_" + sanitizedProject + "_" + sanitizedBetreff + "_" + periodOfPerformance + "_" + invoiceDate + "_invoice.docx";
+                number + sanitizedCustomer + sanitizedProject + sanitizedBetreff + periodOfPerformance + invoiceDate + "_invoice.docx";
             DownloadUtils.setDownloadTarget(baos.toByteArray(), filename);
           }
         }

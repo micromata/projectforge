@@ -143,26 +143,29 @@ public class InvoiceService
         }
         String newText = sb.toString().replace(searchText, replacement);
         if (replacement.contains("\n")) {
-          //Do the return stuff
-          replacement = replacement.replace("\n", "");
+          //Do the carriage return stuff
+          replacement = replacement.replace("\r", "");
           String[] replacementLines = replacement.split("\n");
           // For each additional line, create a new run. Add carriage return on previous.
           for (int i = 0; i < replacementLines.length; i++) {
             // For every run except last one, add a carriage return.
             String textForLine = replacementLines[i];
-            if (i < replacementLines.length - 1) {
+            if (i == 0) {
               run.setText(textForLine, 0);
               run.addCarriageReturn();
             } else {
-              paragraph.insertNewRun(runNum + (i + 1));
-              XWPFRun newRun = paragraph.getRuns().get(i);
+              paragraph.insertNewRun(runNum + 1);
+              XWPFRun newRun = paragraph.getRuns().get(runNum + 1);
               CTRPr rPr = newRun.getCTR().isSetRPr() ? newRun.getCTR().getRPr() : newRun.getCTR().addNewRPr();
               rPr.set(run.getCTR().getRPr());
               newRun.setText(textForLine);
+              newRun.addCarriageReturn();
+              runNum++;
               lastRunNum++;
             }
           }
         } else {
+          //Do replace staff without carriage return
           run.setText(newText, 0);
         }
         for (int i = lastRunNum; i > runNum; i--) {
