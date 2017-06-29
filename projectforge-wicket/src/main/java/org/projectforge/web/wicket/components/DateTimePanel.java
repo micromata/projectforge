@@ -44,8 +44,8 @@ import org.projectforge.web.wicket.flowlayout.ComponentWrapperPanel;
 
 /**
  * Model for date and time of day components.
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
  */
 public class DateTimePanel extends FormComponentPanel<Date> implements ComponentWrapperPanel
 {
@@ -118,6 +118,7 @@ public class DateTimePanel extends FormComponentPanel<Date> implements Component
 
   /**
    * 0, 1, ...59 or 0, 15, 30, 45 dependent on DatePrecision.
+   *
    * @return
    */
   public static LabelValueChoiceRenderer<Integer> getMinutesRenderer(final DatePrecision precision)
@@ -133,7 +134,7 @@ public class DateTimePanel extends FormComponentPanel<Date> implements Component
 
   /**
    * @param id
-   * @param label Only for displaying the field's name on validation messages.
+   * @param label             Only for displaying the field's name on validation messages.
    * @param model
    * @param precision
    * @param settings.tabIndex Use tabIndex as html tab index of date field, hours and minutes.
@@ -159,7 +160,7 @@ public class DateTimePanel extends FormComponentPanel<Date> implements Component
     timeContainer.add(minuteDropDownChoice);
     add(timeContainer);
     if (settings.tabIndex != null) {
-      datePanel.dateField.add(AttributeModifier.replace("tabindex", String.valueOf(settings.tabIndex)));
+      datePanel.getDateField().add(AttributeModifier.replace("tabindex", String.valueOf(settings.tabIndex)));
       hourOfDayDropDownChoice.add(AttributeModifier.replace("tabindex", String.valueOf(settings.tabIndex + 1)));
       minuteDropDownChoice.add(AttributeModifier.replace("tabindex", String.valueOf(settings.tabIndex + 2)));
     }
@@ -368,7 +369,7 @@ public class DateTimePanel extends FormComponentPanel<Date> implements Component
    * @see org.projectforge.web.wicket.flowlayout.ComponentWrapperPanel#getFormComponent()
    */
   @Override
-  public FormComponent< ? > getFormComponent()
+  public FormComponent<?> getFormComponent()
   {
     return datePanel.getDateField();
   }
