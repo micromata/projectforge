@@ -1,0 +1,5 @@
+docker build -t jenkinsbuild .
+
+docker run -d -v /var/run/docker.sock:/var/run/docker.sock -p 8080:8080 -v $(pwd)/jenkins_home:/var/jenkins_home --name jenkins jenkinsbuild
+
+docker exec -ti jenkins /bin/bash

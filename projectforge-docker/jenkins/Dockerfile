@@ -10,7 +10,11 @@ RUN apt-get install -y sudo software-properties-common apt-transport-https ca-ce
 	  && apt -qqqq update \
 	  && apt install  -y -qqqqq docker-ce 
 
-RUN echo "jenkins ALL=NOPASSWD: ALL" >> /etc/sudoers
+RUN groupadd docker || true
+RUN groupadd staff || true
+
+RUN gpasswd -a jenkins docker
+RUN gpasswd -a jenkins staff
 
 USER jenkins
 COPY plugins.txt /usr/share/jenkins/plugins.txt
