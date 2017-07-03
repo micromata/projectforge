@@ -86,6 +86,21 @@ public class VacationViewHelper
     appendFieldset(sectionLeftGridBuilder, "vacation.plannedvacation", plannedVacation.toString());
 
     BigDecimal availableVacation = subtotal1.subtract(plannedVacation).subtract(approvedVacationdays);
+
+    //Needed for left and middle part
+    BigDecimal vacationdaysPreviousYearUsed =
+        currentEmployee.getAttribute(VacationAttrProperty.PREVIOUSYEARLEAVEUSED.getPropertyName(), BigDecimal.class) != null ?
+            currentEmployee.getAttribute(VacationAttrProperty.PREVIOUSYEARLEAVEUSED.getPropertyName(), BigDecimal.class) : BigDecimal.ZERO;
+    BigDecimal vacationdaysPreviousYearUnused = vacationdaysPreviousYear.subtract(vacationdaysPreviousYearUsed);
+    String endDatePreviousYearVacationString =
+        endDatePreviousYearVacation.get(Calendar.DAY_OF_MONTH) + "." + (endDatePreviousYearVacation.get(Calendar.MONTH) + 1) + ".";
+
+    //If previousyearleaveunused > 0, then extend left area and display new row
+    if (vacationdaysPreviousYearUnused.compareTo(BigDecimal.ZERO) > 0 && now.after(endDatePreviousYearVacation)) {
+      appendFieldset(sectionLeftGridBuilder, "vacation.previousyearleaveunused", vacationdaysPreviousYearUnused.toString(),
+          endDatePreviousYearVacationString);
+      availableVacation = availableVacation.subtract(vacationdaysPreviousYearUnused);
+    }
     appendFieldset(sectionLeftGridBuilder, "vacation.availablevacation", availableVacation.toString());
 
     //middel
@@ -93,14 +108,8 @@ public class VacationViewHelper
     DivPanel sectionMiddle = sectionMiddleGridBuilder.getPanel();
     sectionMiddle.add(new Heading1Panel(sectionMiddle.newChildId(), I18nHelper.getLocalizedMessage("menu.vacation.lastyear")));
 
-    BigDecimal vacationdaysPreviousYearUsed =
-        currentEmployee.getAttribute(VacationAttrProperty.PREVIOUSYEARLEAVEUSED.getPropertyName(), BigDecimal.class) != null ?
-            currentEmployee.getAttribute(VacationAttrProperty.PREVIOUSYEARLEAVEUSED.getPropertyName(), BigDecimal.class) : BigDecimal.ZERO;
     appendFieldset(sectionMiddleGridBuilder, "vacation.previousyearleaveused", vacationdaysPreviousYearUsed.toString());
 
-    BigDecimal vacationdaysPreviousYearUnused = vacationdaysPreviousYear.subtract(vacationdaysPreviousYearUsed);
-    String endDatePreviousYearVacationString =
-        endDatePreviousYearVacation.get(Calendar.DAY_OF_MONTH) + "." + (endDatePreviousYearVacation.get(Calendar.MONTH) + 1) + ".";
     appendFieldset(sectionMiddleGridBuilder, "vacation.previousyearleaveunused", vacationdaysPreviousYearUnused.toString(),
         endDatePreviousYearVacationString);
 
