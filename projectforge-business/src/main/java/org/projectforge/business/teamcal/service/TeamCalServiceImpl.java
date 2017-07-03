@@ -924,7 +924,7 @@ public class TeamCalServiceImpl
         // set additional fields
         List<String> stepOver = Arrays.asList(Parameter.CN, Parameter.CUTYPE, Parameter.PARTSTAT, Parameter.RSVP, Parameter.ROLE);
         attendeeDO.setCommonName(cn != null ? cn.getValue() : null);
-        attendeeDO.setStatus(TeamEventAttendeeStatus.getStatusForPartStat(partStat.getValue()));
+        attendeeDO.setStatus(partStat != null ? TeamEventAttendeeStatus.getStatusForPartStat(partStat.getValue()) : null);
         attendeeDO.setCuType(cuType != null ? cuType.getValue() : null);
         attendeeDO.setRsvp(rsvp != null ? rsvp.getRsvp() : null);
         attendeeDO.setRole(role != null ? role.getValue() : null);
