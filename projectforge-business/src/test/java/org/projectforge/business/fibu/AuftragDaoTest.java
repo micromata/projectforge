@@ -401,6 +401,48 @@ public class AuftragDaoTest extends AbstractTestBase
   }
 
   @Test
+  public void validateDatesInPaymentScheduleWithinPeriodOfPerformanceOfPosition()
+  {
+    final AuftragDO auftrag = new AuftragDO();
+    final List<AuftragsPositionDO> auftragsPositions = auftrag.ensureAndGetPositionen();
+    final List<PaymentScheduleDO> paymentSchedules = auftrag.ensureAndGetPaymentSchedules();
+
+    auftrag.setPeriodOfPerformanceBegin(java.sql.Date.valueOf(LocalDate.of(2017, 5, 1)));
+    auftrag.setPeriodOfPerformanceEnd(java.sql.Date.valueOf(LocalDate.of(2017, 6, 30)));
+
+    auftragsPositions.add(new AuftragsPositionDO().setNumber((short) 1));
+    auftragsPositions.add(new AuftragsPositionDO().setNumber((short) 2).setPeriodOfPerformanceType(PeriodOfPerformanceType.OWN)
+        .setPeriodOfPerformanceBegin(java.sql.Date.valueOf(LocalDate.of(2017, 5, 24)))
+        .setPeriodOfPerformanceEnd(java.sql.Date.valueOf(LocalDate.of(2017, 5, 25))));
+
+    paymentSchedules.add(new PaymentScheduleDO().setPositionNumber((short) 1).setScheduleDate(java.sql.Date.valueOf(LocalDate.of(2017, 5, 1))));
+    paymentSchedules.add(new PaymentScheduleDO().setPositionNumber((short) 1).setScheduleDate(java.sql.Date.valueOf(LocalDate.of(2017, 5, 20))));
+    paymentSchedules.add(new PaymentScheduleDO().setPositionNumber((short) 1).setScheduleDate(java.sql.Date.valueOf(LocalDate.of(2017, 6, 30))));
+    paymentSchedules.add(new PaymentScheduleDO().setPositionNumber((short) 2).setScheduleDate(java.sql.Date.valueOf(LocalDate.of(2017, 5, 24))));
+    paymentSchedules.add(new PaymentScheduleDO().setPositionNumber((short) 2).setScheduleDate(java.sql.Date.valueOf(LocalDate.of(2017, 5, 25))));
+
+    boolean exceptionThrown = false;
+    try {
+      auftragDao.validateDatesInPaymentScheduleWithinPeriodOfPerformanceOfPosition(auftrag);
+    } catch (UserException e) {
+      exceptionThrown = true;
+    }
+    assertFalse(exceptionThrown);
+
+    paymentSchedules.add(new PaymentScheduleDO().setPositionNumber((short) 1).setScheduleDate(java.sql.Date.valueOf(LocalDate.of(2017, 4, 30))));
+    paymentSchedules.add(new PaymentScheduleDO().setPositionNumber((short) 2).setScheduleDate(java.sql.Date.valueOf(LocalDate.of(2017, 5, 26))));
+
+    try {
+      auftragDao.validateDatesInPaymentScheduleWithinPeriodOfPerformanceOfPosition(auftrag);
+    } catch (UserException e) {
+      exceptionThrown = true;
+      assertEquals(e.getParams().length, 1);
+      assertEquals(e.getParams()[0], "1, 2");
+    }
+    assertTrue(exceptionThrown);
+  }
+
+  @Test
   public void validateAmountsInPaymentScheduleNotGreaterThanNetSumOfPosition()
   {
     final AuftragDO auftrag = new AuftragDO();
