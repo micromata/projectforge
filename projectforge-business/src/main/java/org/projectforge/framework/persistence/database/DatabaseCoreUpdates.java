@@ -138,15 +138,15 @@ public class DatabaseCoreUpdates
     final List<UpdateEntry> list = new ArrayList<>();
 
     ////////////////////////////////////////////////////////////////////
-    // 6.14.0
+    // 6.15.0
     // /////////////////////////////////////////////////////////////////
-    list.add(new UpdateEntryImpl(CORE_REGION_ID, "6.14.0", "2017-06-26",
+    list.add(new UpdateEntryImpl(CORE_REGION_ID, "6.15.0", "2017-07-19",
         "Add fields to event and event attendee table. Change unique constraint in event table.")
     {
       @Override
       public UpdatePreCheckStatus runPreCheck()
       {
-        log.info("Running pre-check for ProjectForge version 6.14.0");
+        log.info("Running pre-check for ProjectForge version 6.15.0");
         if (this.missingFields() || oldUniqueConstraint() || noOwnership() || dtStampMissing()) {
           return UpdatePreCheckStatus.READY_FOR_UPDATE;
         }
