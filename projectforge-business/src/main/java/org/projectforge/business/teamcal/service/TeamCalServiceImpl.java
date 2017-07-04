@@ -110,6 +110,8 @@ public class TeamCalServiceImpl
 
   public static final String PARAM_EXPORT_ATTENDEES = "exportAttendees";
 
+  private static final List<String> stepOver = Arrays.asList(Parameter.CN, Parameter.CUTYPE, Parameter.PARTSTAT, Parameter.RSVP, Parameter.ROLE);
+
   private final TeamCalsComparator calsComparator = new TeamCalsComparator();
 
   private Collection<TeamCalDO> sortedCals;
@@ -756,70 +758,59 @@ public class TeamCalServiceImpl
   {
     final TeamEventDO teamEvent = new TeamEventDO();
     final PFUserDO user = ThreadLocalUserContext.getUser();
+
     teamEvent.setCreator(user);
+
     final DtStart dtStart = event.getStartDate();
-    if (dtStart != null && dtStart.getDate() instanceof net.fortuna.ical4j.model.DateTime == false) {
-      teamEvent.setAllDay(true);
-    }
-    Timestamp timestamp = ICal4JUtils.getSqlTimestamp(dtStart.getDate());
-    teamEvent.setStartDate(timestamp);
-    if (teamEvent.isAllDay() == true) {
+
+    teamEvent.setAllDay(dtStart != null && dtStart.getDate() instanceof net.fortuna.ical4j.model.DateTime == false);
+    teamEvent.setStartDate(ICal4JUtils.getSqlTimestamp(dtStart.getDate()));
+    if (teamEvent.isAllDay()) {
+      // TODO sn change behaviour to iCal standard
       final org.joda.time.DateTime jodaTime = new org.joda.time.DateTime(event.getEndDate().getDate());
       final net.fortuna.ical4j.model.Date fortunaEndDate = new net.fortuna.ical4j.model.Date(jodaTime.plusDays(-1).toDate());
-      timestamp = new Timestamp(fortunaEndDate.getTime());
+      teamEvent.setEndDate(new Timestamp(fortunaEndDate.getTime()));
     } else {
-      timestamp = ICal4JUtils.getSqlTimestamp(event.getEndDate().getDate());
-    }
-    teamEvent.setEndDate(timestamp);
-
-    if (event.getDateStamp() != null) {
-      teamEvent.setDtStamp(new Timestamp(event.getDateStamp().getDate().getTime()));
+      teamEvent.setEndDate(ICal4JUtils.getSqlTimestamp(event.getEndDate().getDate()));
     }
 
     if (withUid && event.getUid() != null && StringUtils.isEmpty(event.getUid().getValue()) == false) {
       teamEvent.setUid(event.getUid().getValue());
     }
 
-    if (event.getLocation() != null) {
-      teamEvent.setLocation(event.getLocation().getValue());
-    } else {
-      teamEvent.setLocation(null);
-    }
-
-    if (event.getDescription() != null) {
-      teamEvent.setNote(event.getDescription().getValue());
-    } else {
-      teamEvent.setNote(null);
-    }
-
-    if (event.getSummary() != null) {
-      teamEvent.setSubject(event.getSummary().getValue());
-    } else {
-      teamEvent.setSubject(null);
-    }
+    teamEvent.setDtStamp(event.getDateStamp() != null ? new Timestamp(event.getDateStamp().getDate().getTime()) : null);
+    teamEvent.setLocation(event.getLocation() != null ? event.getLocation().getValue() : null);
+    teamEvent.setNote(event.getDescription() != null ? event.getDescription().getValue() : null);
+    teamEvent.setSubject(event.getSummary() != null ? event.getSummary().getValue() : null);
 
     boolean ownership = false;
 
-    if (event.getOrganizer() != null) {
-      Parameter organizerCNParam = event.getOrganizer().getParameter(Parameter.CN);
-      Parameter organizerMailParam = event.getOrganizer().getParameter("EMAIL");
+    Organizer organizer = event.getOrganizer();
+    if (organizer != null) {
+      Parameter organizerCNParam = organizer.getParameter(Parameter.CN);
+      Parameter organizerMailParam = organizer.getParameter("EMAIL");
 
       String organizerCN = organizerCNParam != null ? organizerCNParam.getValue() : null;
       String organizerEMail = organizerMailParam != null ? organizerMailParam.getValue() : null;
-      String organizerValue = event.getOrganizer().getValue();
+      String organizerValue = organizer.getValue();
 
-      // owner mail to is missing && username is login name of this user (apple calender tool)
+      // determine ownership
       if (user != null) {
-        if ((organizerCN == null || organizerCN.equals(user.getUsername())) && "mailto:null".equals(organizerValue)) {
+        if ("mailto:null".equals(organizerValue)) {
+          // owner mail to is missing (apple calender tool)
+          ownership = true;
+        } else if (organizerCN != null && organizerCN.equals(user.getUsername())) {
+          // organizer name is user name
           ownership = true;
         } else if (organizerEMail != null && organizerEMail.equals(user.getEmail())) {
+          // organizer email is user email
           ownership = true;
         }
       }
 
-      // further params
+      // further parameters
       StringBuilder sb = new StringBuilder();
-      Iterator<Parameter> iter = event.getOrganizer().getParameters().iterator();
+      Iterator<Parameter> iter = organizer.getParameters().iterator();
 
       while (iter.hasNext()) {
         final Parameter param = iter.next();
@@ -836,8 +827,9 @@ public class TeamCalServiceImpl
         teamEvent.setOrganizerAdditionalParams(sb.substring(1));
       }
 
-      teamEvent.setOrganizer(event.getOrganizer().getValue());
-
+      if ("mailto:null".equals(organizerValue) == false) {
+        teamEvent.setOrganizer(organizer.getValue());
+      }
     } else {
       // some clients, such as thunderbird lightning, does not send an organizer -> pf has ownership
       ownership = true;
@@ -845,13 +837,8 @@ public class TeamCalServiceImpl
 
     teamEvent.setOwnership(ownership);
 
-    // TODO fix thunderbird bug
-    //event.validate(Method.REQUEST);
-
     final List<VAlarm> alarms = event.getAlarms();
-    if (alarms != null && alarms.size() >= 1)
-
-    {
+    if (alarms != null && alarms.size() >= 1) {
       final VAlarm alarm = alarms.get(0);
       final Dur dur = alarm.getTrigger().getDuration();
       if (alarm.getAction() != null && dur != null) {
@@ -888,20 +875,11 @@ public class TeamCalServiceImpl
       List<TeamEventAttendeeDO> attendeesFromDbList = teamEventService.getAddressesAndUserAsAttendee();
       for (int i = 0; i < eventAttendees.size(); i++) {
         Attendee attendee = (Attendee) eventAttendees.get(i);
-        String email = null;
-        URI attendeeEMailAddressUri = attendee.getCalAddress();
+        URI attendeeUri = attendee.getCalAddress();
+        final String email = (attendeeUri != null) ? attendeeUri.getSchemeSpecificPart() : null;
 
-        Cn cn = (Cn) attendee.getParameter(Parameter.CN);
-        CuType cuType = (CuType) attendee.getParameter(Parameter.CUTYPE);
-        PartStat partStat = (PartStat) attendee.getParameter(Parameter.PARTSTAT);
-        Rsvp rsvp = (Rsvp) attendee.getParameter(Parameter.RSVP);
-        Role role = (Role) attendee.getParameter(Parameter.ROLE);
-
-        if (attendeeEMailAddressUri != null) {
-          email = attendeeEMailAddressUri.getSchemeSpecificPart();
-        }
         if (email != null && EmailValidator.getInstance().isValid(email) == false) {
-          continue; // TODO maybe validation is not necassary, could also be en url? check rfc
+          continue; // TODO maybe validation is not necessary, could also be en url? check rfc
         }
 
         TeamEventAttendeeDO attendeeDO = null;
@@ -922,7 +900,12 @@ public class TeamCalServiceImpl
         }
 
         // set additional fields
-        List<String> stepOver = Arrays.asList(Parameter.CN, Parameter.CUTYPE, Parameter.PARTSTAT, Parameter.RSVP, Parameter.ROLE);
+        final Cn cn = (Cn) attendee.getParameter(Parameter.CN);
+        final CuType cuType = (CuType) attendee.getParameter(Parameter.CUTYPE);
+        final PartStat partStat = (PartStat) attendee.getParameter(Parameter.PARTSTAT);
+        final Rsvp rsvp = (Rsvp) attendee.getParameter(Parameter.RSVP);
+        final Role role = (Role) attendee.getParameter(Parameter.ROLE);
+
         attendeeDO.setCommonName(cn != null ? cn.getValue() : null);
         attendeeDO.setStatus(partStat != null ? TeamEventAttendeeStatus.getStatusForPartStat(partStat.getValue()) : null);
         attendeeDO.setCuType(cuType != null ? cuType.getValue() : null);
