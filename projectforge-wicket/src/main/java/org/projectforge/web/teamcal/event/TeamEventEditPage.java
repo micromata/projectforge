@@ -383,26 +383,6 @@ public class TeamEventEditPage extends AbstractEditPage<TeamEventDO, TeamEventEd
   }
 
   /**
-   * @see org.projectforge.web.wicket.AbstractEditPage#afterUpdate(org.projectforge.framework.persistence.api.ModificationStatus)
-   */
-  @Override
-  public AbstractSecuredBasePage afterUpdate(final ModificationStatus modificationStatus)
-  {
-    if (newEvent != null) {
-      newEvent.setSequence(0);
-      Set<TeamEventAttendeeDO> existingAttendees = new HashSet<>();
-      newEvent.getAttendees().forEach(att -> {
-        existingAttendees.add(att.clone());
-      });
-      newEvent.getAttendees().clear();
-      teamEventService.save(newEvent);
-      teamEventService.assignAttendees(newEvent, existingAttendees, null);
-      teamEventService.checkAndSendMail(newEvent, TeamEventDiffType.NEW);
-    }
-    return null;
-  }
-
-  /**
    * @see org.projectforge.web.wicket.AbstractEditPage#afterSaveOrUpdate()
    */
   @Override
@@ -410,10 +390,23 @@ public class TeamEventEditPage extends AbstractEditPage<TeamEventDO, TeamEventEd
   {
     super.afterSaveOrUpdate();
 
-    TeamEventDO teamEventAfterSaveOrUpdate = teamEventService.getById(getData().getPk());
-    teamEventService.assignAttendees(teamEventAfterSaveOrUpdate, form.assignAttendeesListHelper.getItemsToAssign(),
-        form.assignAttendeesListHelper.getItemsToUnassign());
-    teamEventService.checkAndSendMail(teamEventAfterSaveOrUpdate, this.teamEventBeforeSaveOrUpdate);
+    if (newEvent != null) {
+      // changed one element of an recurring event
+      newEvent.setSequence(0);
+      newEvent.getAttendees().clear();
+      teamEventService.save(newEvent);
+
+      Set<TeamEventAttendeeDO> toAssign = new HashSet<>();
+      form.assignAttendeesListHelper.getAssignedItems().stream().forEach(a -> toAssign.add(a.clone()));
+
+      teamEventService.assignAttendees(newEvent, toAssign, null);
+      teamEventService.checkAndSendMail(newEvent, TeamEventDiffType.NEW);
+    } else {
+      TeamEventDO teamEventAfterSaveOrUpdate = teamEventService.getById(getData().getPk());
+      teamEventService.assignAttendees(teamEventAfterSaveOrUpdate, form.assignAttendeesListHelper.getItemsToAssign(),
+          form.assignAttendeesListHelper.getItemsToUnassign());
+      teamEventService.checkAndSendMail(teamEventAfterSaveOrUpdate, this.teamEventBeforeSaveOrUpdate);
+    }
 
     return null;
   }

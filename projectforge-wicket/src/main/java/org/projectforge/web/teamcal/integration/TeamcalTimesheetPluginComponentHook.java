@@ -36,9 +36,8 @@ import org.projectforge.web.wicket.components.ContentMenuEntryPanel;
 
 /**
  * Adds the switch to team event page button to the {@link TimesheetEditPage}
- * 
+ *
  * @author Johannes Unterstein (j.unterstein@micromata.de)
- * 
  */
 public class TeamcalTimesheetPluginComponentHook implements TimesheetPluginComponentHook, Serializable
 {
@@ -46,7 +45,7 @@ public class TeamcalTimesheetPluginComponentHook implements TimesheetPluginCompo
 
   /**
    * @see org.projectforge.web.timesheet.TimesheetPluginComponentHook#renderComponentsToTimesheetEditForm(org.projectforge.web.timesheet.TimesheetEditForm,
-   *      org.projectforge.business.timesheet.TimesheetDO)
+   * org.projectforge.business.timesheet.TimesheetDO)
    */
   @Override
   public void renderComponentsToTimesheetEditForm(final TimesheetEditPage page, final TimesheetDO timesheet)
@@ -67,6 +66,7 @@ public class TeamcalTimesheetPluginComponentHook implements TimesheetPluginCompo
           public void onSubmit()
           {
             final TeamEventDO event = new TeamEventDO();
+            event.setOwnership(true);
             if (timesheet != null) {
               event.setStartDate(timesheet.getStartTime());
               event.setEndDate(timesheet.getStopTime());
@@ -74,7 +74,7 @@ public class TeamcalTimesheetPluginComponentHook implements TimesheetPluginCompo
               event.setNote(timesheet.getDescription());
             }
             setResponsePage(new TeamEventEditPage(new PageParameters(), event).setReturnToPage(page.getReturnToPage()));
-          };
+          }
         }.setDefaultFormProcessing(false), page.getString("plugins.teamcal.switchToTeamEventButton"));
     page.addContentMenuEntry(menu);
   }
