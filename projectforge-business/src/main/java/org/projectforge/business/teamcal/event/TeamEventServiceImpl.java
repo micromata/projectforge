@@ -574,9 +574,9 @@ public class TeamEventServiceImpl implements TeamEventService
   }
 
   @Override
-  public TeamEventDO findByUid(Integer calendarId, String reqEventUid)
+  public TeamEventDO findByUid(Integer calendarId, String reqEventUid, boolean excludeDeleted)
   {
-    return teamEventDao.getByUid(calendarId, reqEventUid);
+    return teamEventDao.getByUid(calendarId, reqEventUid, excludeDeleted);
   }
 
   @Override

@@ -145,30 +145,44 @@ public class TeamEventDao extends BaseDao<TeamEventDO>
 
   public TeamEventDO getByUid(Integer calendarId, final String uid)
   {
+    return this.getByUid(calendarId, uid, true);
+  }
+
+  public TeamEventDO getByUid(Integer calendarId, final String uid, final boolean excludeDeleted)
+  {
     if (uid == null) {
       return null;
     }
 
-    if (calendarId == null) {
-      try {
-        return emgrFac.runRoTrans(emgr -> {
-          String baseSQL = "select e from TeamEventDO e where e.uid = :uid";
-          return emgr.selectSingleAttached(TeamEventDO.class, baseSQL + META_SQL_WITH_SPECIAL, "uid", uid, "deleted", false,
-              "tenant", ThreadLocalUserContext.getUser() != null ? ThreadLocalUserContext.getUser().getTenant() : tenantService.getDefaultTenant());
-        });
-      } catch (NoResultException | NonUniqueResultException e) {
-        return null;
-      }
-    } else {
-      try {
-        return emgrFac.runRoTrans(emgr -> {
-          String baseSQL = "select e from TeamEventDO e where e.uid = :uid AND e.calendar.id = :calendarId";
-          return emgr.selectSingleAttached(TeamEventDO.class, baseSQL + META_SQL_WITH_SPECIAL, "uid", uid, "calendarId", calendarId, "deleted", false,
-              "tenant", ThreadLocalUserContext.getUser() != null ? ThreadLocalUserContext.getUser().getTenant() : tenantService.getDefaultTenant());
-        });
-      } catch (NoResultException e) {
-        return null;
-      }
+    final StringBuilder sqlQuery = new StringBuilder();
+    final List<Object> params = new ArrayList<>();
+
+    sqlQuery.append("select e from TeamEventDO e where e.uid = :uid AND e.tenant = :tenant");
+
+    params.add("uid");
+    params.add(uid);
+    params.add("tenant");
+    params.add(ThreadLocalUserContext.getUser() != null ? ThreadLocalUserContext.getUser().getTenant() : tenantService.getDefaultTenant());
+
+    if (excludeDeleted) {
+      sqlQuery.append(" AND e.deleted = :deleted");
+      params.add("deleted");
+      params.add(false);
+    }
+
+    // workaround to still handle old requests
+    if (calendarId != null) {
+      sqlQuery.append(" AND e.calendar.id = :calendarId");
+      params.add("calendarId");
+      params.add(calendarId);
+    }
+
+    try {
+      return emgrFac.runRoTrans(emgr -> {
+        return emgr.selectSingleAttached(TeamEventDO.class, sqlQuery.toString(), params.toArray());
+      });
+    } catch (NoResultException | NonUniqueResultException e) {
+      return null;
     }
   }
 

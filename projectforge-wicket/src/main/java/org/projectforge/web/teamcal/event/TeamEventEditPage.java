@@ -409,6 +409,7 @@ public class TeamEventEditPage extends AbstractEditPage<TeamEventDO, TeamEventEd
   public AbstractSecuredBasePage afterSaveOrUpdate()
   {
     super.afterSaveOrUpdate();
+
     TeamEventDO teamEventAfterSaveOrUpdate = teamEventService.getById(getData().getPk());
     teamEventService.assignAttendees(teamEventAfterSaveOrUpdate, form.assignAttendeesListHelper.getItemsToAssign(),
         form.assignAttendeesListHelper.getItemsToUnassign());
