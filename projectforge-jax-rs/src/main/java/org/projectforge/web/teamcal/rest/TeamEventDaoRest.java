@@ -198,7 +198,7 @@ public class TeamEventDaoRest
       final VEvent event = (VEvent) calendar.getComponent(Component.VEVENT);
       if (event.getUid() != null) {
         //Getting the origin team event from database by uid if exist
-        TeamEventDO teamEventOrigin = teamEventService.findByUid(calendarEvent.getCalendarId(), event.getUid().getValue());
+        TeamEventDO teamEventOrigin = teamEventService.findByUid(calendarEvent.getCalendarId(), event.getUid().getValue(), false);
         //Check if db event exists
         if (teamEventOrigin != null && teamEventOrigin.getCalendar().getId().equals(teamCalDO.getId())) {
           return updateTeamEvent(calendarEvent);
@@ -277,7 +277,7 @@ public class TeamEventDaoRest
         }
       }
       //Getting the origin team event from database by uid if exist
-      TeamEventDO teamEventOrigin = teamEventService.findByUid(calendarEvent.getCalendarId(), eventUid.getValue());
+      TeamEventDO teamEventOrigin = teamEventService.findByUid(calendarEvent.getCalendarId(), eventUid.getValue(), false);
       //Check if db event exists
       if (teamEventOrigin == null) {
         log.error("No team event found with uid " + eventUid.getValue());
@@ -337,7 +337,7 @@ public class TeamEventDaoRest
       final net.fortuna.ical4j.model.Calendar calendar = builder.build(new ByteArrayInputStream(Base64.decodeBase64(calendarEvent.getIcsData())));
       final VEvent event = (VEvent) calendar.getComponent(Component.VEVENT);
       Uid eventUid = event.getUid();
-      TeamEventDO teamEvent = teamEventService.findByUid(calendarEvent.getCalendarId(), eventUid.getValue());
+      TeamEventDO teamEvent = teamEventService.findByUid(calendarEvent.getCalendarId(), eventUid.getValue(), true);
       if (teamEvent != null) {
         teamEventService.markAsDeleted(teamEvent);
         teamEventService.checkAndSendMail(teamEvent, TeamEventDiffType.DELETED);

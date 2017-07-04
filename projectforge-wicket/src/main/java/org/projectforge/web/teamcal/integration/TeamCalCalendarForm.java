@@ -36,6 +36,8 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.teamcal.admin.TeamCalCache;
 import org.projectforge.business.teamcal.event.TeamEventDao;
+import org.projectforge.business.teamcal.event.TeamEventService;
+import org.projectforge.business.teamcal.event.diff.TeamEventDiffType;
 import org.projectforge.business.teamcal.event.model.TeamEventAttendeeDO;
 import org.projectforge.business.teamcal.event.model.TeamEventDO;
 import org.projectforge.business.teamcal.filter.ICalendarFilter;
@@ -81,6 +83,9 @@ public class TeamCalCalendarForm extends CalendarForm
 
   @SpringBean
   private transient TeamEventDao teamEventDao;
+
+  @SpringBean
+  private transient TeamEventService teamEventService;
 
   @SpringBean
   transient TeamCalCache teamCalCache;
@@ -222,8 +227,7 @@ public class TeamCalCalendarForm extends CalendarForm
     });
 
     final IconButtonPanel calendarButtonPanel = new AjaxIconButtonPanel(buttonGroupPanel.newChildId(), IconType.EDIT,
-        new ResourceModel(
-            "plugins.teamcal.calendar.filter.edit"))
+        new ResourceModel("plugins.teamcal.calendar.filter.edit"))
     {
       /**
        * @see org.projectforge.web.wicket.flowlayout.AjaxIconButtonPanel#onSubmit(org.apache.wicket.ajax.AjaxRequestTarget)
@@ -260,22 +264,30 @@ public class TeamCalCalendarForm extends CalendarForm
         final VEvent event = events.get(0);
         final Uid uid = event.getUid();
         final TemplateEntry activeTemplateEntry = ((TeamCalCalendarFilter) filter).getActiveTemplateEntry();
-        // 1. Check id/external id. If not yet given, create new entry and ask for calendar to add: Redirect to TeamEventEditPage.
+        // check id/external id. If not yet given, create new entry and ask for calendar to add: Redirect to TeamEventEditPage.
+
+        final TeamEventDO teamEvent = teamEventConverter.createTeamEventDO(event, ThreadLocalUserContext.getTimeZone(), true);
 
         if (uid != null && activeTemplateEntry != null) {
-          final TeamEventDO dbEvent = teamEventDao.getByUid(activeTemplateEntry.getDefaultCalendarId(), uid.getValue());
+          final TeamEventDO dbEvent = teamEventDao.getByUid(activeTemplateEntry.getDefaultCalendarId(), uid.getValue(), false);
 
-          if (dbEvent != null && ThreadLocalUserContext.getUserId().equals(dbEvent.getCreator().getPk())) {
-            // TODO merge
-            // The event was created by this user, redirect to import page:
-            redirectToImportPage(events, activeModel.getObject());
-            return;
+          if (dbEvent != null) {
+            if (ThreadLocalUserContext.getUserId().equals(dbEvent.getCreator().getPk()) || dbEvent.isDeleted()) {
+              teamEvent.setId(dbEvent.getPk());
+              teamEvent.setCreated(dbEvent.getCreated());
+              teamEvent.setTenant(dbEvent.getTenant());
+              teamEvent.setUid(uid.getValue());
+              teamEvent.setCreator(dbEvent.getCreator());
+              teamEvent.setDeleted(dbEvent.isDeleted());
+            } else {
+              // Can't import event with existing uid in selected calendar, redirect to import page:
+              redirectToImportPage(events, activeModel.getObject());
+              return;
+            }
           }
         }
 
-        // The event was not created by this user, create a new event.
-        final TeamEventDO teamEvent = teamEventConverter.createTeamEventDO(event, ThreadLocalUserContext.getTimeZone(), true);
-
+        // set calendar
         if (activeTemplateEntry != null && activeTemplateEntry.getDefaultCalendarId() != null) {
           teamEventDao.setCalendar(teamEvent, activeTemplateEntry.getDefaultCalendarId());
         }
@@ -326,8 +338,7 @@ public class TeamCalCalendarForm extends CalendarForm
   @Override
   protected void onInitialize()
   {
-    errorDialog = new ModalMessageDialog(parentPage.newModalDialogId(),
-        new ResourceModel("plugins.teamcal.import.ics.error"));
+    errorDialog = new ModalMessageDialog(parentPage.newModalDialogId(), new ResourceModel("plugins.teamcal.import.ics.error"));
     errorDialog.setType(DivType.ALERT_ERROR);
     parentPage.add(errorDialog);
     errorDialog.init();

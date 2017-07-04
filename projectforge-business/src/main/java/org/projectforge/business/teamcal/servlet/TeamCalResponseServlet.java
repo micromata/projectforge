@@ -141,7 +141,7 @@ public class TeamCalResponseServlet extends HttpServlet
       resp.sendError(HttpStatus.SC_BAD_REQUEST);
       return;
     }
-    TeamEventDO event = teamEventService.findByUid(calendarId, reqEventUid);
+    TeamEventDO event = teamEventService.findByUid(calendarId, reqEventUid, true);
     if (event == null) {
       log.warn("Bad request, request parameter 'uid' not valid: " + reqEventUid);
       sendNotValidData(resp);
