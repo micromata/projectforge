@@ -304,21 +304,23 @@ public class TeamEventServiceImpl implements TeamEventService
 
   private boolean preCheckSendMail(final TeamEventDO event)
   {
-    // check event organizer
+    // check event ownership
     if (event.isOwnership() != null && event.isOwnership() == false) {
       return false;
     }
 
-    // check date, do not send mails for events in the past
+    // check date, send mails for future events only
     final Date now = new Date();
-    if (event.getEndDate().before(now) == false) {
+    if (event.getStartDate().after(now)) {
       return true;
     }
 
+    // No recurrence so event is in the past
     if (event.getRecurrenceRule() == null) {
       return false;
     }
 
+    // Check rrule to see if an until date exsits
     try {
       final RRule rRule = new RRule(event.getRecurrenceRule());
       final net.fortuna.ical4j.model.Date until = rRule.getRecur().getUntil();

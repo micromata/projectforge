@@ -285,7 +285,7 @@ public class TeamEventDaoRest
         return saveTeamEvent(calendarEvent);
       }
 
-      //Setting the existing DB id, created timestamp, tenant, etc. ...
+      // set existing DB id, created timestamp, tenant, etc. ...
       teamEvent.setId(teamEventOrigin.getPk());
       teamEvent.setCreated(teamEventOrigin.getCreated());
       teamEvent.setLastUpdate();
@@ -297,7 +297,7 @@ public class TeamEventDaoRest
         teamEventService.undelete(teamEventOrigin);
         teamEvent.setCreator(teamEventOrigin.getCreator());
 
-        //Save or update the generated event
+        // save or update the generated event
         teamEventService.updateAttendees(teamEvent, teamEventOrigin.getAttendees());
         teamEventService.update(teamEvent);
 
@@ -305,7 +305,7 @@ public class TeamEventDaoRest
       } else {
         teamEvent.setCreator(teamEventOrigin.getCreator());
 
-        //Save or update the generated event
+        // save or update the generated event
         teamEventService.updateAttendees(teamEvent, teamEventOrigin.getAttendees());
         teamEventService.update(teamEvent);
 
