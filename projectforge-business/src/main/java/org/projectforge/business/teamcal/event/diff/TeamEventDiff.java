@@ -172,10 +172,12 @@ public class TeamEventDiff
     //      }
     //    }
 
-    if (diff.fieldDiffs.isEmpty()) {
-      diff.type = TeamEventDiffType.NONE;
-    } else {
+    if (diff.fieldDiffs.isEmpty() == false) {
       diff.type = TeamEventDiffType.UPDATED;
+    } else if (diff.attendeesAdded.isEmpty() == false || diff.attendeesRemoved.isEmpty() == false) {
+      diff.type = TeamEventDiffType.ATTENDEES;
+    } else {
+      diff.type = TeamEventDiffType.NONE;
     }
 
     return diff;

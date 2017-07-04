@@ -194,6 +194,25 @@ public class TeamEventDao extends BaseDao<TeamEventDO>
     }
   }
 
+  @Override
+  protected void onSave(final TeamEventDO event)
+  {
+    // set ownership if empty
+    if (event.isOwnership() == null) {
+      event.setOwnership(true);
+    }
+
+    // set DTSTAMP if empty
+    if (event.getDtStamp() == null) {
+      event.setDtStamp(new Timestamp(event.getCreated().getTime()));
+    }
+
+    // create uid if empty
+    if (StringUtils.isBlank(event.getUid())) {
+      event.setUid(TeamCalConfig.get().createEventUid());
+    }
+  }
+
   /**
    * Sets midnight (UTC) of all day events.
    *
@@ -215,16 +234,6 @@ public class TeamEventDao extends BaseDao<TeamEventDO>
       if (endDate != null) {
         event.setEndDate(CalendarUtils.getUTCMidnightTimestamp(endDate));
       }
-    }
-
-    // create uid if missing
-    if (StringUtils.isBlank(event.getUid())) {
-      event.setUid(TeamCalConfig.get().createEventUid());
-    }
-
-    // set DTSTAMP
-    if (event.getDtStamp() == null) {
-      event.setDtStamp(new Timestamp(event.getCreated().getTime()));
     }
   }
 

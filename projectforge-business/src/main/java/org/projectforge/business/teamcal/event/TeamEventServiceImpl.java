@@ -279,23 +279,20 @@ public class TeamEventServiceImpl implements TeamEventService
 
     switch (diff.getDiffType()) {
       case NEW:
+      case RESTORED:
         result &= this.sendMail(diff.getEventNewState(), diff, diff.getEventNewState().getAttendees(), EventMailType.NEW);
         break;
       case DELETED:
         result &= this.sendMail(diff.getEventNewState(), diff, diff.getEventNewState().getAttendees(), EventMailType.DELETED);
         break;
       case UPDATED:
+      case ATTENDEES:
         result &= this.sendMail(diff.getEventNewState(), diff, diff.getAttendeesNotChanged(), EventMailType.UPDATED);
         result &= this.sendMail(diff.getEventNewState(), diff, diff.getAttendeesAdded(), EventMailType.NEW);
         result &= this.sendMail(diff.getEventOldState(), diff, diff.getAttendeesRemoved(), EventMailType.DELETED);
-        break;
-      case RESTORED:
-        result &= this.sendMail(diff.getEventNewState(), diff, diff.getEventNewState().getAttendees(), EventMailType.NEW);
         break;
       case NONE:
-        result &= this.sendMail(diff.getEventNewState(), diff, diff.getAttendeesNotChanged(), EventMailType.UPDATED);
-        result &= this.sendMail(diff.getEventNewState(), diff, diff.getAttendeesAdded(), EventMailType.NEW);
-        result &= this.sendMail(diff.getEventOldState(), diff, diff.getAttendeesRemoved(), EventMailType.DELETED);
+        // nothing to do
         break;
     }
 
@@ -385,7 +382,7 @@ public class TeamEventServiceImpl implements TeamEventService
       // send mail & return result
       return sendMail.send(msg, ics, null);
     } catch (UnsupportedEncodingException e) {
-      log.error("Something went wrong sending team event to attendee", e);
+      log.error("An error occurred while sending an event notification to attendee", e);
       return false;
     }
   }
