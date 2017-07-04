@@ -36,8 +36,8 @@ public class TeamEventDiffTest
     final TeamEventDiff diff = TeamEventDiff.compute(newEvent, oldEvent, Collections.EMPTY_SET);
 
     Assert.assertNotNull(diff);
-    Assert.assertEquals(TeamEventDiffType.NONE, diff.getDiffType());
-    Assert.assertFalse(diff.isDiff());
+    Assert.assertEquals(TeamEventDiffType.ATTENDEES, diff.getDiffType());
+    Assert.assertTrue(diff.isDiff());
 
     Assert.assertEquals(0, diff.getFieldDiffs().size());
 
@@ -56,8 +56,8 @@ public class TeamEventDiffTest
     final TeamEventDiff diff = TeamEventDiff.compute(newEvent, oldEvent, Collections.EMPTY_SET);
 
     Assert.assertNotNull(diff);
-    Assert.assertEquals(TeamEventDiffType.NONE, diff.getDiffType());
-    Assert.assertFalse(diff.isDiff());
+    Assert.assertEquals(TeamEventDiffType.ATTENDEES, diff.getDiffType());
+    Assert.assertTrue(diff.isDiff());
 
     Assert.assertEquals(0, diff.getFieldDiffs().size());
 
@@ -84,8 +84,8 @@ public class TeamEventDiffTest
     final TeamEventDiff diff = TeamEventDiff.compute(newEvent, oldEvent, Collections.EMPTY_SET);
 
     Assert.assertNotNull(diff);
-    Assert.assertEquals(TeamEventDiffType.NONE, diff.getDiffType());
-    Assert.assertFalse(diff.isDiff());
+    Assert.assertEquals(TeamEventDiffType.ATTENDEES, diff.getDiffType());
+    Assert.assertTrue(diff.isDiff());
 
     Assert.assertEquals(0, diff.getFieldDiffs().size());
 

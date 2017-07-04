@@ -25,5 +25,5 @@ package org.projectforge.business.teamcal.event.diff;
 
 public enum TeamEventDiffType
 {
-  NEW, UPDATED, DELETED, RESTORED, NONE
+  NEW, UPDATED, DELETED, RESTORED, ATTENDEES, NONE
 }
