@@ -121,6 +121,13 @@ public class AdminPage extends AbstractStandardFormPage implements ISelectCaller
 
   private final AdminForm form;
 
+  @Override
+  protected void onBeforeRender()
+  {
+    super.onBeforeRender();
+    checkAccess();
+  }
+
   public AdminPage(final PageParameters parameters)
   {
     super(parameters);

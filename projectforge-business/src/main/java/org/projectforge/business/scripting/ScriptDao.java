@@ -43,9 +43,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 /**
- * 
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
  */
 @Repository
 public class ScriptDao extends BaseDao<ScriptDO>
@@ -62,9 +60,9 @@ public class ScriptDao extends BaseDao<ScriptDO>
 
   /**
    * Copy old script as script backup if modified.
-   * 
+   *
    * @see org.projectforge.framework.persistence.api.BaseDao#onChange(org.projectforge.core.ExtendedBaseDO,
-   *      org.projectforge.core.ExtendedBaseDO)
+   * org.projectforge.core.ExtendedBaseDO)
    */
   @Override
   protected void onChange(final ScriptDO obj, final ScriptDO dbObj)
@@ -76,7 +74,7 @@ public class ScriptDao extends BaseDao<ScriptDO>
 
   /**
    * User must be member of group controlling or finance.
-   * 
+   *
    * @see org.projectforge.framework.persistence.api.BaseDao#hasAccess(Object, OperationType)
    */
   @Override
@@ -117,10 +115,10 @@ public class ScriptDao extends BaseDao<ScriptDO>
     scriptVariables.put("i18n", new I18n());
 
     String scriptContent = script.getScriptAsString();
-    if (scriptContent.contains("import org.projectforge.export") == true) {
-      // Package was renamed in version 5.2:
+    if (scriptContent.contains("import org.projectforge.export")) {
+      // Package was renamed in version 5.2 and 6.13:
       scriptContent = scriptContent.replace("import org.projectforge.export",
-          "import org.projectforge.export.*\nimport org.projectforge.excel");
+          "import org.projectforge.export.*\nimport org.projectforge.business.excel");
     }
     groovyResult = groovyExecutor.execute(new GroovyResult(), scriptContent, scriptVariables);
     return groovyResult;
@@ -129,8 +127,6 @@ public class ScriptDao extends BaseDao<ScriptDO>
   /**
    * Adds all registered dao's and other variables, such as appId, appVersion and task-tree. These variables are
    * available in Groovy scripts
-   * 
-   * @param scriptVariables
    */
   public void addScriptVariables(final Map<String, Object> scriptVariables)
   {

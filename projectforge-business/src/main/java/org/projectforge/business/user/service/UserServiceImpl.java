@@ -170,10 +170,15 @@ public class UserServiceImpl implements UserService
   public String getCachedAuthenticationToken(final Integer userId)
   {
     final PFUserDO user = getUserGroupCache().getUser(userId);
+    if (user == null) {
+      return null;
+    }
+
     final String authenticationToken = user.getAuthenticationToken();
     if (StringUtils.isBlank(authenticationToken) == false && authenticationToken.trim().length() >= 10) {
       return authenticationToken;
     }
+
     return userDao.getAuthenticationToken(userId);
   }
 
@@ -281,7 +286,7 @@ public class UserServiceImpl implements UserService
     if (user == null) {
       return Collections.singletonList(new I18nKeyAndParams(MESSAGE_KEY_OLD_PASSWORD_WRONG));
     }
-    
+
     createEncryptedPassword(user, newPassword);
     onPasswordChange(user, true);
     Login.getInstance().passwordChanged(user, newPassword);
