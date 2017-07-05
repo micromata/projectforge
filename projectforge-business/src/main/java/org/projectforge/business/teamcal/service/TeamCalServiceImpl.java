@@ -758,11 +758,9 @@ public class TeamCalServiceImpl
   {
     final TeamEventDO teamEvent = new TeamEventDO();
     final PFUserDO user = ThreadLocalUserContext.getUser();
-
-    teamEvent.setCreator(user);
-
     final DtStart dtStart = event.getStartDate();
 
+    teamEvent.setCreator(user);
     teamEvent.setAllDay(dtStart != null && dtStart.getDate() instanceof net.fortuna.ical4j.model.DateTime == false);
     teamEvent.setStartDate(ICal4JUtils.getSqlTimestamp(dtStart.getDate()));
     if (teamEvent.isAllDay()) {
@@ -937,7 +935,7 @@ public class TeamCalServiceImpl
 
     // find recurrence rule
     final RRule rule = (RRule) event.getProperty(Property.RRULE);
-    teamEvent.setRecurrence(rule, timeZone);
+    teamEvent.setRecurrence(rule);
 
     // parsing ExDates
     PropertyList exDateProperties = event.getProperties(Property.EXDATE);

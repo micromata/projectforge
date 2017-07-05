@@ -534,7 +534,7 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
    * @return this for chaining.
    */
   @Transient
-  public TeamEventDO setRecurrence(final RRule rRule, TimeZone timezone)
+  public TeamEventDO setRecurrence(final RRule rRule)
   {
     if (rRule == null || rRule.getRecur() == null) {
       this.recurrenceRuleObject = null;
