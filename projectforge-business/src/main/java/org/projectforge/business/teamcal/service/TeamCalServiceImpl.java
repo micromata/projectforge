@@ -506,7 +506,6 @@ public class TeamCalServiceImpl
 
     ParameterFactoryImpl parameterFactory = ParameterFactoryImpl.getInstance();
     StringBuilder sb = new StringBuilder();
-    boolean quoted = false;
     boolean escaped = false;
     char[] chars = additonalParams.toCharArray();
     String name = null;
@@ -517,15 +516,16 @@ public class TeamCalServiceImpl
           if (escaped == false && name != null && sb.length() > 0) {
             try {
               list.add(parameterFactory.createParameter(name, sb.toString().replaceAll("\"", "")));
-              name = null;
             } catch (URISyntaxException e) {
               // TODO
               e.printStackTrace();
             }
+            name = null;
+            sb.setLength(0);
           }
           break;
         case '"':
-          escaped = escaped == false;
+          escaped = (escaped == false);
           break;
         case '=':
           if (escaped == false && sb.length() > 0) {
