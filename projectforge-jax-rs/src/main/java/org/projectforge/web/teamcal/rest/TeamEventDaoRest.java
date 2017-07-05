@@ -273,6 +273,7 @@ public class TeamEventDaoRest
           // ical4j handles timezone internally, no actions required
           teamEvent.addRecurrenceExDate(event2.getRecurrenceId().getDate());
           //Create new Event from event2
+          // TODO sn remove false, currently required because altering a single event of a recurring one results has the same uid
           saveVEvent(event2, teamCalDO, false);
         }
       }
