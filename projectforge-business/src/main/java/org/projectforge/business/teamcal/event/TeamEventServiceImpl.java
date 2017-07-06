@@ -14,8 +14,10 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.TimeZone;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
 
@@ -214,6 +216,8 @@ public class TeamEventServiceImpl implements TeamEventService
           attendee.setCommentOfAttendee(attendeeOld.getCommentOfAttendee());
           attendee.setLoginToken(attendeeOld.getLoginToken());
           attendee.setNumber(attendeeOld.getNumber());
+          attendee.setAddress(attendeeOld.getAddress());
+          attendee.setUser(attendeeOld.getUser());
 
           teamEventAttendeeDao.internalSave(attendee);
 
@@ -317,7 +321,7 @@ public class TeamEventServiceImpl implements TeamEventService
       return false;
     }
 
-    // Check rrule to see if an until date exsits
+    // Check rrule to see if an until date exists
     try {
       final RRule rRule = new RRule(event.getRecurrenceRule());
       final net.fortuna.ical4j.model.Date until = rRule.getRecur().getUntil();
@@ -345,8 +349,14 @@ public class TeamEventServiceImpl implements TeamEventService
 
   private boolean sendMail(final TeamEventDO event, final TeamEventDiff diff, TeamEventAttendeeDO attendee, final EventMailType mailType)
   {
-    final Mail msg = createMail(event, mailType);
-    final Map<String, Object> dataMap = createData(event, diff, attendee, mailType);
+    final PFUserDO sender = ThreadLocalUserContext.getUser();
+
+    if (sender == null) {
+      return false;
+    }
+
+    final Mail msg = createMail(event, mailType, sender);
+    final Map<String, Object> dataMap = createData(event, diff, sender, attendee, mailType);
 
     // add attendee as receiver
     if (attendee.getAddress() != null) {
@@ -387,48 +397,58 @@ public class TeamEventServiceImpl implements TeamEventService
     }
   }
 
-  private Mail createMail(final TeamEventDO event, final EventMailType mailType)
+  private Mail createMail(final TeamEventDO event, final EventMailType mailType, final PFUserDO sender)
   {
     final Mail msg = new Mail();
-    PFUserDO user = ThreadLocalUserContext.getUser();
-    if (user != null) {
-      msg.setFrom(user.getEmail());
-      msg.setFromRealname(user.getFullname());
-    }
+    msg.setFrom(sender.getEmail());
+    msg.setFromRealname(sender.getFullname());
+
     msg.setContentType(Mail.CONTENTTYPE_HTML);
-    String subject = I18nHelper.getLocalizedMessage("plugins.teamcal.attendee.email.subject." + mailType.name().toLowerCase(),
-        event.getCreator().getFullname(), event.getSubject());
+    final String subject = I18nHelper.getLocalizedMessage("plugins.teamcal.attendee.email.subject." + mailType.name().toLowerCase(),
+        sender.getFullname(), event.getSubject());
     msg.setProjectForgeSubject(subject);
     return msg;
   }
 
-  private Map<String, Object> createData(final TeamEventDO event, final TeamEventDiff diff, TeamEventAttendeeDO attendee, final EventMailType mailType)
+  private Map<String, Object> createData(final TeamEventDO event, final TeamEventDiff diff, final PFUserDO sender,
+      TeamEventAttendeeDO attendee, final EventMailType mailType)
   {
+    // get local and timezone
+    final Locale locale;
+    final TimeZone timezone;
+
+    if (attendee.getUser() != null) {
+      locale = attendee.getUser().getLocale() != null ? attendee.getUser().getLocale() : ThreadLocalUserContext.getLocale(null);
+      timezone = attendee.getUser().getTimeZoneObject();
+    } else {
+      locale = sender.getLocale() != null ? sender.getLocale() : ThreadLocalUserContext.getLocale(null);
+      timezone = sender.getTimeZoneObject();
+    }
+
     // TODO rework!
     // TODO add diff stuff if updated
     DateFormat formatter = DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT);
-    formatter.setTimeZone(ThreadLocalUserContext.getUser().getTimeZoneObject());
+    formatter.setTimeZone(timezone);
 
     final Map<String, Object> dataMap = new HashMap<>();
-    Calendar startDate = Calendar.getInstance(ThreadLocalUserContext.getTimeZone());
+    Calendar startDate = Calendar.getInstance(timezone);
     startDate.setTime(event.getStartDate());
-    Calendar endDate = Calendar.getInstance(ThreadLocalUserContext.getTimeZone());
+    Calendar endDate = Calendar.getInstance(timezone);
     endDate.setTime(event.getEndDate());
 
     String location = event.getLocation() != null ? event.getLocation() : "";
     String note = event.getNote() != null ? event.getNote() : "";
-    formatter = new SimpleDateFormat("EEEE", ThreadLocalUserContext.getLocale());
-    formatter.setTimeZone(ThreadLocalUserContext.getUser().getTimeZoneObject());
+    formatter = new SimpleDateFormat("EEEE", locale);
+    formatter.setTimeZone(timezone);
     String startDay = formatter.format(startDate.getTime());
     String endDay = formatter.format(endDate.getTime());
 
-    formatter = new SimpleDateFormat("dd. MMMMM YYYY HH:mm", ThreadLocalUserContext.getLocale());
-    formatter.setTimeZone(ThreadLocalUserContext.getUser().getTimeZoneObject());
+    formatter = new SimpleDateFormat("dd. MMMMM YYYY HH:mm", locale);
+    formatter.setTimeZone(timezone);
     String beginDateTime = formatter.format(startDate.getTime());
     String endDateTime = formatter.format(endDate.getTime());
-    String invitationText = I18nHelper
-        .getLocalizedMessage("plugins.teamcal.attendee.email.content." + mailType.name().toLowerCase(),
-            event.getCreator().getFullname(), event.getSubject());
+    String invitationText = I18nHelper.getLocalizedMessage("plugins.teamcal.attendee.email.content." + mailType.name().toLowerCase(),
+        sender.getFullname(), event.getSubject());
     String beginText = startDay + ", " + beginDateTime + " " + I18nHelper.getLocalizedMessage("oclock") + ".";
     String endText = endDay + ", " + endDateTime + " " + I18nHelper.getLocalizedMessage("oclock") + ".";
     String dayOfWeek = startDay;
@@ -436,8 +456,8 @@ public class TeamEventServiceImpl implements TeamEventService
     String fromToHeader;
     if (startDate.get(Calendar.DATE) == endDate.get(Calendar.DATE)) //Einen Tag
     {
-      formatter = new SimpleDateFormat("HH:mm", ThreadLocalUserContext.getLocale());
-      formatter.setTimeZone(ThreadLocalUserContext.getUser().getTimeZoneObject());
+      formatter = new SimpleDateFormat("HH:mm", locale);
+      formatter.setTimeZone(timezone);
       String endTime = formatter.format(endDate.getTime());
       fromToHeader =
           beginDateTime + " - " + endTime + " " + I18nHelper.getLocalizedMessage("oclock") + ".";
@@ -446,22 +466,18 @@ public class TeamEventServiceImpl implements TeamEventService
       fromToHeader = beginDateTime;
     }
     if (event.isAllDay()) {
-      formatter = new SimpleDateFormat("dd. MMMMM YYYY", ThreadLocalUserContext.getLocale());
-      formatter.setTimeZone(ThreadLocalUserContext.getUser().getTimeZoneObject());
+      formatter = new SimpleDateFormat("dd. MMMMM YYYY", locale);
+      formatter.setTimeZone(timezone);
       fromToHeader = formatter.format(startDate.getTime());
-      formatter = new SimpleDateFormat("EEEE, dd. MMMMM YYYY", ThreadLocalUserContext.getLocale());
-      formatter.setTimeZone(ThreadLocalUserContext.getUser().getTimeZoneObject());
+      formatter = new SimpleDateFormat("EEEE, dd. MMMMM YYYY", locale);
+      formatter.setTimeZone(timezone);
       beginText =
           I18nHelper.getLocalizedMessage("plugins.teamcal.event.allDay") + ", " + formatter.format(startDate.getTime());
       endText = I18nHelper.getLocalizedMessage("plugins.teamcal.event.allDay") + ", " + formatter.format(endDate.getTime());
     }
     List<String> attendeeList = new ArrayList<>();
     for (TeamEventAttendeeDO attendees : event.getAttendees()) {
-      if (attendees.getAddress() != null) {
-        attendeeList.add(attendees.getAddress().getEmail());
-      } else {
-        attendeeList.add(attendees.getUrl());
-      }
+      attendeeList.add(attendees.getAddress() != null ? attendees.getAddress().getEmail() : attendees.getUrl());
     }
     String repeat = "";
     RRule rRule = null;
@@ -473,11 +489,11 @@ public class TeamEventServiceImpl implements TeamEventService
         e.printStackTrace();
       }
       repeat = getRepeatText(rRule);
-      formatter = new SimpleDateFormat("dd.MM.yyyy", ThreadLocalUserContext.getLocale());
-      if (event.getRecurrenceExDate() != null && (event.getRecurrenceExDate().equals("") == false || event.getRecurrenceExDate().equals(",") == false)) {
+      formatter = new SimpleDateFormat("dd.MM.yyyy", locale);
+      if (event.getRecurrenceExDate() != null && event.getRecurrenceExDate().length() > 7) {
         String[] exDateSplit = event.getRecurrenceExDate().split(",");
         for (int i = 0; i < exDateSplit.length - 1; i++) {
-          Date date = ICal4JUtils.parseICalDateString(exDateSplit[i], ThreadLocalUserContext.getTimeZone());
+          Date date = ICal4JUtils.parseICalDateString(exDateSplit[i], timezone);
           if (date != null) {
             exDate.add(formatter.format(date));
           }
