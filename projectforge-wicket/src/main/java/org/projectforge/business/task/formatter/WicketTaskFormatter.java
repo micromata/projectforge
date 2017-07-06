@@ -37,6 +37,8 @@ import org.projectforge.web.common.WicketHtmlHelper;
 
 public class WicketTaskFormatter extends TaskFormatter
 {
+  private static final String IMAGE_INFO_ICON = "images/information.png";
+
   /**
    * enableLinks = false, lineThroughDeletedTasks = true
    *
@@ -111,7 +113,7 @@ public class WicketTaskFormatter extends TaskFormatter
     if (showPathAsTooltip == true) {
       final String taskPath = getTaskPath(requestCycle, task.getId(), null, false);
       if (taskPath != null) {
-        WicketHtmlHelper.appendImageTag(requestCycle, buf, HtmlHelper.getInfoImage(), taskPath);
+        WicketHtmlHelper.appendImageTag(requestCycle, buf, IMAGE_INFO_ICON, taskPath);
       }
     }
     // if (enableLink == true) {
