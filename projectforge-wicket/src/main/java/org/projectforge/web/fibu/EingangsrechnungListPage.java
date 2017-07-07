@@ -48,7 +48,10 @@ import org.projectforge.business.fibu.KontoCache;
 import org.projectforge.business.fibu.KontoDO;
 import org.projectforge.business.fibu.RechnungFilter;
 import org.projectforge.business.fibu.kost.KostZuweisungExport;
+import org.projectforge.business.fibu.kost.reporting.SEPATransferGenerator;
+import org.projectforge.business.fibu.kost.reporting.SEPATransferResult;
 import org.projectforge.business.utils.CurrencyFormatter;
+import org.projectforge.common.props.PropUtils;
 import org.projectforge.excel.ContentProvider;
 import org.projectforge.excel.ExportColumn;
 import org.projectforge.excel.I18nExportColumn;
@@ -56,7 +59,9 @@ import org.projectforge.excel.PropertyMapping;
 import org.projectforge.export.DOListExcelExporter;
 import org.projectforge.export.MyXlsContentProvider;
 import org.projectforge.framework.configuration.Configuration;
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.time.DateHelper;
+import org.projectforge.framework.time.DateTimeFormatter;
 import org.projectforge.framework.utils.NumberHelper;
 import org.projectforge.web.wicket.AbstractListPage;
 import org.projectforge.web.wicket.CellItemListener;
@@ -86,6 +91,9 @@ public class EingangsrechnungListPage
 
   @SpringBean
   KontoCache kontoCache;
+
+  @SpringBean
+  private org.projectforge.business.fibu.kost.reporting.SEPATransferGenerator SEPATransferGenerator;
 
   private EingangsrechnungsStatistik eingangsrechnungsStatistik;
 
@@ -216,6 +224,18 @@ public class EingangsrechnungListPage
   {
     dataTable = createDataTable(createColumns(this, true), "datum", SortOrder.DESCENDING);
     form.add(dataTable);
+
+    final ContentMenuEntryPanel exportInvoiceButton = new ContentMenuEntryPanel(getNewContentMenuChildId(),
+        new Link<Object>("link")
+        {
+          @Override
+          public void onClick()
+          {
+            EingangsrechnungListPage.this.exportInvoicesAsXML();
+          }
+        }, getString("fibu.rechnung.transferExport")).setTooltip(getString("fibu.rechnung.transferExport.tootlip"));
+    addContentMenuEntry(exportInvoiceButton);
+
     addExcelExport(getString("fibu.common.creditor"), getString("fibu.eingangsrechnungen"));
     if (Configuration.getInstance().isCostConfigured() == true) {
       final ContentMenuEntryPanel exportExcelButton = new ContentMenuEntryPanel(getNewContentMenuChildId(),
@@ -304,6 +324,55 @@ public class EingangsrechnungListPage
         mapping.add("netSum", invoice.getNetSum());
       }
     };
+  }
+
+  private void exportInvoicesAsXML()
+  {
+    refresh();
+    final RechnungFilter filter = new RechnungFilter();
+    final RechnungFilter src = form.getSearchFilter();
+    filter.setFromDate(src.getFromDate());
+    filter.setToDate(src.getToDate());
+    final List<EingangsrechnungDO> invoices = eingangsrechnungDao.getList(filter);
+
+    if (invoices == null || invoices.size() == 0) {
+      // Nothing to export.
+      form.addError("validation.error.nothingToExport");
+      return;
+    }
+
+    this.form.getFeedbackMessages().clear();
+
+    final String filename = String.format("transfer-%s.xml", DateHelper.getTimestampAsFilenameSuffix(new Date()));
+    SEPATransferResult result = this.SEPATransferGenerator.format(invoices);
+
+    if (result.isSuccessful() == false) {
+      if (result.getErrors().isEmpty()) {
+        // unknown error
+        this.log.error("Oups, xml has zero size. Filename: " + filename);
+        this.form.addError("fibu.rechnung.transferExport.error");
+        return;
+      }
+
+      List<String> brokenInvoices = new ArrayList<>();
+      DateTimeFormatter formatter = DateTimeFormatter.instance();
+
+      // check invoice
+      for (EingangsrechnungDO invoice : result.getErrors().keySet()) {
+        if (invoice.getReferenz() != null) {
+          brokenInvoices.add(invoice.getKreditor() + ", " + invoice.getReferenz() + ", " + formatter.getFormattedDate(invoice.getDatum()));
+        } else {
+          brokenInvoices.add(invoice.getKreditor() + ", " + formatter.getFormattedDate(invoice.getDatum()));
+        }
+      }
+
+      String brokenInvoicesStr = String.join("; ", brokenInvoices);
+      this.form.addError("fibu.rechnung.transferExport.error.entries", brokenInvoicesStr);
+
+      return;
+    }
+
+    DownloadUtils.setDownloadTarget(result.getXml(), filename);
   }
 
   protected void exportExcelWithCostAssignments()
