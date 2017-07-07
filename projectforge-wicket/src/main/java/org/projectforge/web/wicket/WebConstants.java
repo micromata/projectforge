@@ -42,7 +42,9 @@ public class WebConstants
 
   public static final String ACCESS_KEY_ADD_TOOLTIP_TITLE = "tooltip.accesskey.addEntry.title";
 
-  /** For setting the caller action page as parameter for the callee. */
+  /**
+   * For setting the caller action page as parameter for the callee.
+   */
   public static final String PARAMETER_CALLER = "caller";
 
   public static final String PARAMETER_USER_ID = "uid";
@@ -51,7 +53,7 @@ public class WebConstants
 
   private static final String DIR = "images/";
 
-  public static final String DOC_LINK_HANDBUCH_LUCENE = "secure/doc/UserGuide.html#label_fullindexsearch";
+  public static final String DOC_LINK_HANDBUCH_LUCENE = "https://www.projectforge.org/documentation/user-guide.html#Full-indexed%20search";
 
   public static final String I18N_KEY_FIELD_REQUIRED = "validation.error.fieldRequired";
 
