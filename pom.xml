@@ -186,22 +186,6 @@
     <module>projectforge-docker</module>
   </modules>
 
-  <profiles>
-    <profile>
-      <id>withoutLauncher</id>
-      <modules>
-        <module>projectforge-common</module>
-        <module>projectforge-model</module>
-        <module>projectforge-business</module>
-        <module>projectforge-jax-rs</module>
-        <module>projectforge-wicket</module>
-        <module>plugins</module>
-        <module>projectforge-application</module>
-        <module>projectforge-docker</module>
-      </modules>
-    </profile>
-  </profiles>
-
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
@@ -427,6 +411,19 @@
           </plugin>
         </plugins>
       </build>
+    </profile>
+    <profile>
+      <id>withoutLauncher</id>
+      <modules>
+        <module>projectforge-common</module>
+        <module>projectforge-model</module>
+        <module>projectforge-business</module>
+        <module>projectforge-jax-rs</module>
+        <module>projectforge-wicket</module>
+        <module>plugins</module>
+        <module>projectforge-application</module>
+        <module>projectforge-docker</module>
+      </modules>
     </profile>
   </profiles>
   <reporting>
