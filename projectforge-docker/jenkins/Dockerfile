@@ -16,6 +16,8 @@ RUN groupadd staff || true
 RUN gpasswd -a jenkins docker
 RUN gpasswd -a jenkins staff
 
+COPY .ssh /var/jenkins_home/.ssh
+
 USER jenkins
 COPY plugins.txt /usr/share/jenkins/plugins.txt
 RUN /usr/local/bin/plugins.sh /usr/share/jenkins/plugins.txt
