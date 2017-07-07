@@ -1,23 +1,32 @@
-FROM jenkins:latest
+FROM ubuntu:latest
 
-USER root
-RUN apt-get update
+# Let's start with some basic stuff.
+RUN apt-get update -qq && apt-get install -qqy \
+    apt-transport-https \
+    ca-certificates \
+    curl \
+    lxc \
+    iptables
 
-RUN apt-get install -y sudo software-properties-common apt-transport-https ca-certificates curl gnupg2 software-properties-common \
-      && rm -rf /var/lib/apt/lists/* \
-      && curl -fsSL https://download.docker.com/linux/debian/gpg | sudo apt-key add - \
-      && add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/debian $(lsb_release -cs) stable" \
-	  && apt -qqqq update \
-	  && apt install  -y -qqqqq docker-ce 
+# Install Docker from Docker Inc. repositories.
+RUN curl -sSL https://get.docker.com/ | sh
 
-RUN groupadd docker || true
-RUN groupadd staff || true
+# Install the magic wrapper.
+ADD ./wrapdocker /usr/local/bin/wrapdocker
+RUN chmod +x /usr/local/bin/wrapdocker
 
-RUN gpasswd -a jenkins docker
-RUN gpasswd -a jenkins staff
+# Define additional metadata for our image.
+VOLUME /var/lib/docker
+CMD ["wrapdocker"]
 
-COPY .ssh /var/jenkins_home/.ssh
+RUN export JENKINS_HOME=/var/jenkins
 
-USER jenkins
-COPY plugins.txt /usr/share/jenkins/plugins.txt
-RUN /usr/local/bin/plugins.sh /usr/share/jenkins/plugins.txt
+# default command to launch jenkins
+CMD java -jar /usr/share/jenkins/jenkins.war
+
+# for jenkins
+RUN echo deb http://pkg.jenkins-ci.org/debian binary/ >> /etc/apt/sources.list \
+    && wget -q -O - http://pkg.jenkins-ci.org/debian/jenkins-ci.org.key | apt-key add -
+RUN apt-get update -qq && apt-get install -qqy jenkins
+
+COPY .ssh /var/jenkins/.ssh
