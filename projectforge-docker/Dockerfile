@@ -9,7 +9,7 @@ RUN adduser -D pf
 COPY ./target/extra-resources/projectforge-application-6.15.0-SNAPSHOT.jar /home/pf/projectforge-application.jar
 
 # Add the properties
-COPY ./configuration/default-application.properties /home/pf/application.properties
+COPY ./target/extra-resources/application.properties /home/pf/
 
 # run PF as user projectforge instead of root
 USER pf
