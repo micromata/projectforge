@@ -1,16 +1,21 @@
-FROM openjdk:8
+FROM openjdk:8-alpine
 
 MAINTAINER Micromata
 
+# add projectforge user and create home directory
+RUN adduser -D projectforge
+
 # Add the projectforge jar
-ADD ./target/extra-resources/projectforge-application-6.14.0-SNAPSHOT.jar /usr/share/projectforge-application-6.14.0-SNAPSHOT.jar
+COPY ./target/extra-resources/projectforge-application-6.15.0-SNAPSHOT.jar /home/projectforge/projectforge-application.jar
 
 # Add the properties
-ADD ./configuration/default-application.properties /usr/share/application.properties
+COPY ./configuration/default-application.properties /home/projectforge/application.properties
+
+# run PF as user projectforge instead of root
+USER projectforge
+
+WORKDIR /home/projectforge
 
 EXPOSE 8080
 
-# TODO: run as unprivileged user
-WORKDIR /usr/share
-
-ENTRYPOINT ["/usr/bin/java", "-jar", "/usr/share/projectforge-application-6.14.0-SNAPSHOT.jar"]
+CMD ["/usr/bin/java", "-jar", "projectforge-application.jar"]
