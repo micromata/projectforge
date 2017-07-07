@@ -83,6 +83,9 @@ public class AuftragListPage extends AbstractListPage<AuftragListForm, AuftragDa
   private OrderExport orderExport;
 
   @SpringBean
+  private ForecastExport forecastExport;
+
+  @SpringBean
   private UserFormatter userFormatter;
 
   @SpringBean
@@ -252,6 +255,7 @@ public class AuftragListPage extends AbstractListPage<AuftragListForm, AuftragDa
   {
     dataTable = createDataTable(createColumns(this, true), "nummer", SortOrder.DESCENDING);
     form.add(dataTable);
+
     final ContentMenuEntryPanel exportExcelButton = new ContentMenuEntryPanel(getNewContentMenuChildId(),
         new Link<Object>("link")
         {
@@ -271,6 +275,24 @@ public class AuftragListPage extends AbstractListPage<AuftragListForm, AuftragDa
         }, getString("exportAsXls")).setTooltip(getString("tooltip.export.excel"));
     addContentMenuEntry(exportExcelButton);
 
+    final ContentMenuEntryPanel forecastExportButton = new ContentMenuEntryPanel(getNewContentMenuChildId(),
+        new Link<Object>("link")
+        {
+          @Override
+          public void onClick()
+          {
+            final List<AuftragDO> list = getList();
+            final byte[] xls = forecastExport.export(list);
+            if (xls == null || xls.length == 0) {
+              form.addError("datatable.no-records-found");
+              return;
+            }
+            final String filename = "ProjectForge-Forecast_" + DateHelper.getDateAsFilenameSuffix(new Date())
+                + ".xls";
+            DownloadUtils.setDownloadTarget(xls, filename);
+          }
+        }, getString("fibu.auftrag.forecastExportAsXls")).setTooltip(getString("fibu.auftrag.forecastExportAsXls.tooltip"));
+    addContentMenuEntry(exportExcelButton);
   }
 
   @Override
