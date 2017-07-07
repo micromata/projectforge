@@ -38,6 +38,7 @@ import org.projectforge.business.fibu.EingangsrechnungDao;
 import org.projectforge.business.fibu.EingangsrechnungsPositionDO;
 import org.projectforge.business.fibu.PaymentType;
 import org.projectforge.business.fibu.kost.reporting.SEPATransferGenerator;
+import org.projectforge.business.fibu.kost.reporting.SEPATransferResult;
 import org.projectforge.common.props.PropUtils;
 import org.projectforge.framework.i18n.UserException;
 import org.projectforge.framework.time.DateHelper;
@@ -91,50 +92,50 @@ public class EingangsrechnungEditPage
     this.form.getFeedbackMessages().clear();
     final EingangsrechnungDO invoice = this.getData();
 
-    List<String> missingFields = new ArrayList<>();
+    final String filename = String.format("transfer-%s-%s.xml", invoice.getPk(), DateHelper.getTimestampAsFilenameSuffix(new Date()));
+    SEPATransferResult result = this.SEPATransferGenerator.format(this.getData());
 
-    // check invoice
-    if (invoice.getGrossSum() == null || invoice.getGrossSum().compareTo(BigDecimal.ZERO) == 0) {
-      missingFields.add(this.getString("fibu.common.brutto"));
-    }
-    if (invoice.getPaymentType() != PaymentType.BANK_TRANSFER) {
-      missingFields.add(this.getString(PropUtils.getI18nKey(EingangsrechnungDO.class, "paymentType")));
-    }
-    if (invoice.getBic() == null) {
-      missingFields.add(this.getString(PropUtils.getI18nKey(EingangsrechnungDO.class, "bic")));
-    }
-    if (invoice.getIban() == null) {
-      missingFields.add(this.getString(PropUtils.getI18nKey(EingangsrechnungDO.class, "iban")));
-    }
-    if (invoice.getReceiver() == null) {
-      missingFields.add(this.getString(PropUtils.getI18nKey(EingangsrechnungDO.class, "receiver")));
-    }
-    if (invoice.getBemerkung() == null) {
-      missingFields.add(this.getString(PropUtils.getI18nKey(EingangsrechnungDO.class, "bemerkung")));
-    }
+    if (result.isSuccessful() == false) {
+      if (result.getErrors().isEmpty()) {
+        // unknown error
+        this.log.error("Oups, xml has zero size. Filename: " + filename);
+        this.form.addError("fibu.rechnung.transferExport.error");
+        return;
+      }
 
-    if (missingFields.isEmpty() == false) {
+      List<String> missingFields = new ArrayList<>();
+
+      // check invoice
+      for (org.projectforge.business.fibu.kost.reporting.SEPATransferGenerator.SEPATransferError error : result.getErrors().get(invoice)) {
+        switch (error) {
+          case SUM:
+            missingFields.add(this.getString("fibu.common.brutto"));
+            break;
+          case BANK_TRANSFER:
+            missingFields.add(this.getString(PropUtils.getI18nKey(EingangsrechnungDO.class, "paymentType")));
+            break;
+          case IBAN:
+            missingFields.add(this.getString(PropUtils.getI18nKey(EingangsrechnungDO.class, "iban")));
+            break;
+          case BIC:
+            missingFields.add(this.getString(PropUtils.getI18nKey(EingangsrechnungDO.class, "bic")));
+            break;
+          case RECEIVER:
+            missingFields.add(this.getString(PropUtils.getI18nKey(EingangsrechnungDO.class, "receiver")));
+            break;
+          case REFERENCE:
+            missingFields.add(this.getString(PropUtils.getI18nKey(EingangsrechnungDO.class, "referenz")));
+            break;
+        }
+      }
+
       String missingFieldsStr = String.join(", ", missingFields);
       this.form.addError("fibu.rechnung.transferExport.error.missing", missingFieldsStr);
+
       return;
     }
 
-    final String filename = String.format("transfer-%s-%s.xml", invoice.getPk(), DateHelper.getTimestampAsFilenameSuffix(new Date()));
-    byte[] xml;
-    try {
-      xml = this.SEPATransferGenerator.format(this.getData());
-    } catch (final UserException ex) {
-      this.form.error(this.translateParams(ex));
-      return;
-    }
-
-    if (xml == null || xml.length == 0) {
-      this.log.error("Oups, xml has zero size. Filename: " + filename);
-      this.form.addError("fibu.rechnung.transferExport.error");
-      return;
-    }
-
-    DownloadUtils.setDownloadTarget(xml, filename);
+    DownloadUtils.setDownloadTarget(result.getXml(), filename);
   }
 
   @Override

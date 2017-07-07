@@ -34,6 +34,7 @@ import org.projectforge.business.fibu.EingangsrechnungDO;
 import org.projectforge.business.fibu.EingangsrechnungsPositionDO;
 import org.projectforge.business.fibu.PaymentType;
 import org.projectforge.business.fibu.kost.reporting.SEPATransferGenerator;
+import org.projectforge.business.fibu.kost.reporting.SEPATransferResult;
 import org.projectforge.framework.persistence.user.entities.TenantDO;
 import org.projectforge.generated.CreditTransferTransactionInformationSCT;
 import org.projectforge.generated.Document;
@@ -57,6 +58,8 @@ public class SEPATransferGeneratorTest extends AbstractTestBase
     this.testInvoice("Test debitor", "Test creditor", "DE12341234123412341234", null, "", new BigDecimal(100.0), false);
     this.testInvoice("Test debitor", "Test creditor", "DE12341234123412341234", "abcdefg1234", null, new BigDecimal(100.0), false);
     this.testInvoice("Test debitor", "Test creditor", "DE12341234123412341234", "abcdefg1234", "Do stuff", new BigDecimal(0.0), false);
+    this.testInvoice("Test debitor", "Test creditor", "41234", "abcdefg1234", "Do stuff", new BigDecimal(100.0), false);
+    this.testInvoice("Test debitor", "Test creditor", "DE12341234123412341234", "abcde", "Do stuff", new BigDecimal(100.0), false);
 
     // Test success cases
     this.testInvoice("Test debitor", "Test creditor", "DE12341234123412341234", "abcdefg1234", "Do stuff", new BigDecimal(100.0), true);
@@ -79,7 +82,7 @@ public class SEPATransferGeneratorTest extends AbstractTestBase
     invoice.setReceiver(creditor);
     invoice.setIban(iban);
     invoice.setBic(bic);
-    invoice.setBemerkung(purpose);
+    invoice.setReferenz(purpose);
     EingangsrechnungsPositionDO position = new EingangsrechnungsPositionDO();
     position.setEinzelNetto(amount);
     position.setMenge(BigDecimal.ONE);
@@ -89,17 +92,17 @@ public class SEPATransferGeneratorTest extends AbstractTestBase
     // recalculate
     invoice.recalculate();
 
-    byte[] result = this.SEPATransferGenerator.format(invoice);
+    SEPATransferResult result = this.SEPATransferGenerator.format(invoice);
 
     if (ok == false) {
-      Assert.assertNull(result);
+      Assert.assertFalse(result.isSuccessful());
       return;
     }
 
-    Assert.assertNotNull(result);
+    Assert.assertTrue(result.isSuccessful());
 
     // unmarshall
-    Document document = this.SEPATransferGenerator.parse(result);
+    Document document = this.SEPATransferGenerator.parse(result.getXml());
     Assert.assertNotNull(document);
 
     final PaymentInstructionInformationSCT pmtInf = document.getCstmrCdtTrfInitn().getPmtInf().get(0);
