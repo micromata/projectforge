@@ -148,6 +148,28 @@
       </roles>
       <timezone>-1</timezone>
     </developer>
+    <developer>
+      <id>fdesel</id>
+      <name>Fabian Desel</name>
+      <email>f.desel at micromata.de</email>
+      <organization>Micromata GmbH</organization>
+      <organizationUrl>http://www.micromata.com</organizationUrl>
+      <roles>
+        <role>developer</role>
+      </roles>
+      <timezone>-1</timezone>
+    </developer>
+    <developer>
+      <id>sniemczyk</id>
+      <name>Stefan Niemczyk</name>
+      <email>s.niemczyk at micromata.de</email>
+      <organization>Micromata GmbH</organization>
+      <organizationUrl>http://www.micromata.com</organizationUrl>
+      <roles>
+        <role>developer</role>
+      </roles>
+      <timezone>-1</timezone>
+    </developer>
   </developers>
   <contributors>
     <contributor>
