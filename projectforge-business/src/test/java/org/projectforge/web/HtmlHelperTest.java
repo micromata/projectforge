@@ -38,17 +38,6 @@ public class HtmlHelperTest
   }
 
   @Test
-  public void testAppendAncorOnClickSubmitEventStartTag()
-  {
-    StringBuffer buf = new StringBuffer();
-    HtmlHelper.appendAncorOnClickSubmitEventStartTag(buf, "submitEvent", "select.task");
-    assertEquals("<a href=\"#\" onclick=\"javascript:submitEvent('select.task')\">", buf.toString());
-    buf = new StringBuffer();
-    HtmlHelper.appendAncorOnClickSubmitEventStartTag(buf, "submitSelectedEvent", "selectTask", "4");
-    assertEquals("<a href=\"#\" onclick=\"javascript:submitSelectedEvent('selectTask', '4')\">", buf.toString());
-  }
-
-  @Test
   public void testFormatText()
   {
     assertEquals("", HtmlHelper.formatText(null, true));
