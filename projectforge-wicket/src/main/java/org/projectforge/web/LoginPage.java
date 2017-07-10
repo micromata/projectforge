@@ -87,7 +87,7 @@ public class LoginPage extends AbstractUnsecureBasePage
   /**
    * Add parameter to force non-mobile version. This avoids a redirect to the LoginMobilePage and is used by
    * LoginMobilePage.
-   * 
+   *
    * @return PageParameters.
    */
   public static PageParameters forceNonMobile()
@@ -192,7 +192,7 @@ public class LoginPage extends AbstractUnsecureBasePage
       final WebMarkupContainer container = new WebMarkupContainer("messageOfTheDay");
       body.add(container.setVisible(StringUtils.isNotBlank(messageOfTheDay)));
       final Label messageOfTheDayLabel = new Label("msg", messageOfTheDay);
-      container.add(messageOfTheDayLabel.setEscapeModelStrings(false));
+      container.add(messageOfTheDayLabel);
     }
     errorsContainer = new WebMarkupContainer("errors");
     body.add(errorsContainer.setVisible(false));
