@@ -23,24 +23,18 @@
 
 package org.projectforge.web;
 
-import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.Model;
-import org.apache.wicket.request.http.WebRequest;
-import org.apache.wicket.request.http.WebResponse;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.ProjectForgeApp;
 import org.projectforge.business.login.LoginResultStatus;
 import org.projectforge.business.user.UserDao;
-import org.projectforge.business.user.UserXmlPreferencesCache;
+import org.projectforge.business.user.filter.CookieService;
 import org.projectforge.business.user.filter.UserFilter;
 import org.projectforge.business.utils.HtmlHelper;
 import org.projectforge.framework.configuration.ConfigurationParam;
@@ -51,7 +45,6 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.web.admin.SetupPage;
 import org.projectforge.web.admin.SystemUpdatePage;
 import org.projectforge.web.mobile.LoginMobilePage;
-import org.projectforge.web.session.MySession;
 import org.projectforge.web.wicket.AbstractUnsecureBasePage;
 import org.projectforge.web.wicket.WicketUtils;
 
@@ -76,6 +69,9 @@ public class LoginPage extends AbstractUnsecureBasePage
   private LoginService loginService;
 
   @SpringBean
+  private CookieService cookieService;
+
+  @SpringBean
   private InitDatabaseDao initDatabaseDao;
 
   private WebMarkupContainer errorsContainer;
@@ -87,7 +83,7 @@ public class LoginPage extends AbstractUnsecureBasePage
   /**
    * Add parameter to force non-mobile version. This avoids a redirect to the LoginMobilePage and is used by
    * LoginMobilePage.
-   * 
+   *
    * @return PageParameters.
    */
   public static PageParameters forceNonMobile()
@@ -95,46 +91,6 @@ public class LoginPage extends AbstractUnsecureBasePage
     final PageParameters params = new PageParameters();
     params.add(PARAMETER_KEY_FORCE_NON_MOBILE, "true");
     return params;
-  }
-
-  public static void logout(final MySession mySession, final WebRequest request, final WebResponse response,
-      final UserXmlPreferencesCache userXmlPreferencesCache, MenuBuilder menuBuilder)
-  {
-    final Cookie stayLoggedInCookie = UserFilter.getStayLoggedInCookie(WicketUtils.getHttpServletRequest(request));
-    logout(mySession, stayLoggedInCookie, userXmlPreferencesCache, menuBuilder);
-    if (stayLoggedInCookie != null) {
-      response.addCookie(stayLoggedInCookie);
-    }
-  }
-
-  public static void logout(final MySession mySession, final HttpServletRequest request,
-      final HttpServletResponse response,
-      final UserXmlPreferencesCache userXmlPreferencesCache, MenuBuilder menuBuilder)
-  {
-    final Cookie stayLoggedInCookie = UserFilter.getStayLoggedInCookie(request);
-    logout(mySession, stayLoggedInCookie, userXmlPreferencesCache, menuBuilder);
-    if (stayLoggedInCookie != null) {
-      response.addCookie(stayLoggedInCookie);
-    }
-  }
-
-  private static void logout(final MySession mySession, final Cookie stayLoggedInCookie,
-      final UserXmlPreferencesCache userXmlPreferencesCache, MenuBuilder menuBuilder)
-  {
-    final PFUserDO user = mySession.getUser();
-    if (user != null) {
-      userXmlPreferencesCache.flushToDB(user.getId());
-      userXmlPreferencesCache.clear(user.getId());
-      if (menuBuilder != null) {
-        menuBuilder.expireMenu(user.getId());
-      }
-    }
-    mySession.logout();
-    if (stayLoggedInCookie != null) {
-      stayLoggedInCookie.setMaxAge(0);
-      stayLoggedInCookie.setValue(null);
-      stayLoggedInCookie.setPath("/");
-    }
   }
 
   @Override
@@ -206,10 +162,9 @@ public class LoginPage extends AbstractUnsecureBasePage
     }));
   }
 
-  public LoginResultStatus checkLogin()
+  LoginResultStatus checkLogin()
   {
-    return loginService.internalCheckLogin(this, form.getUsername(), form.getPassword(), form.isStayLoggedIn(),
-        WicketUtils.getDefaultPage());
+    return loginService.internalCheckLogin(this, form.getUsername(), form.getPassword(), form.isStayLoggedIn(), WicketUtils.getDefaultPage());
   }
 
   void addError(final String msg)
