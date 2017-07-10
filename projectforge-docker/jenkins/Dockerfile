@@ -1,5 +1,7 @@
 FROM ubuntu:latest
 
+ADD ssh /root/.ssh
+
 # Let's start with some basic stuff.
 RUN apt-get update -qq && apt-get install -qqy \
     apt-transport-https \
@@ -19,14 +21,15 @@ RUN chmod +x /usr/local/bin/wrapdocker
 VOLUME /var/lib/docker
 CMD ["wrapdocker"]
 
-RUN export JENKINS_HOME=/var/jenkins
+EXPOSE 8080
+
+# for jenkins
+RUN wget -q -O - https://pkg.jenkins.io/debian-stable/jenkins.io.key | apt-key add -
+RUN echo deb https://pkg.jenkins.io/debian-stable binary/ >> /etc/apt/sources.list
+RUN apt-get update -qq && apt-get install -qqy jenkins
+
+# default jenkins home directory
+ENV JENKINS_HOME /var/jenkins
 
 # default command to launch jenkins
 CMD java -jar /usr/share/jenkins/jenkins.war
-
-# for jenkins
-RUN echo deb http://pkg.jenkins-ci.org/debian binary/ >> /etc/apt/sources.list \
-    && wget -q -O - http://pkg.jenkins-ci.org/debian/jenkins-ci.org.key | apt-key add -
-RUN apt-get update -qq && apt-get install -qqy jenkins
-
-COPY .ssh /var/jenkins/.ssh
