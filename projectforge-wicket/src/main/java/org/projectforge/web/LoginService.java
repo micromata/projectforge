@@ -2,9 +2,13 @@ package org.projectforge.web;
 
 import javax.annotation.PostConstruct;
 import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.markup.html.WebPage;
+import org.apache.wicket.request.http.WebRequest;
+import org.apache.wicket.request.http.WebResponse;
 import org.projectforge.Const;
 import org.projectforge.business.ldap.LdapMasterLoginHandler;
 import org.projectforge.business.ldap.LdapSlaveLoginHandler;
@@ -16,6 +20,8 @@ import org.projectforge.business.login.LoginResultStatus;
 import org.projectforge.business.multitenancy.TenantRegistry;
 import org.projectforge.business.multitenancy.TenantRegistryMap;
 import org.projectforge.business.user.UserGroupCache;
+import org.projectforge.business.user.UserXmlPreferencesCache;
+import org.projectforge.business.user.filter.CookieService;
 import org.projectforge.business.user.filter.UserFilter;
 import org.projectforge.business.user.service.UserService;
 import org.projectforge.framework.persistence.user.api.UserContext;
@@ -40,10 +46,13 @@ public class LoginService
   @Autowired
   private UserService userService;
 
+  @Autowired
+  private CookieService cookieService;
+
   @Value("${projectforge.login.handlerClass}")
   private String loginHandlerClass;
 
-  LoginHandler loginHandler;
+  private LoginHandler loginHandler;
 
   @PostConstruct
   public void init()
@@ -107,8 +116,7 @@ public class LoginService
           + loggedInUser.getUsername()
           + ":"
           + userService.getStayLoggedInKey(user.getId()));
-      UserFilter.addStayLoggedInCookie(WicketUtils.getHttpServletRequest(page.getRequest()),
-          WicketUtils.getHttpServletResponse(page.getResponse()), cookie);
+      cookieService.addStayLoggedInCookie(WicketUtils.getHttpServletRequest(page.getRequest()), WicketUtils.getHttpServletResponse(page.getResponse()), cookie);
     }
     internalLogin(page, user);
     // Do not redirect to requested page in maintenance mode (update required first):
@@ -158,7 +166,7 @@ public class LoginService
   /**
    * If given then this login handler will be used instead of {@link LoginDefaultHandler}. For ldap please use e. g.
    * org.projectforge.ldap.LdapLoginHandler.
-   * 
+   *
    * @return the loginHandlerClass or "" if not given
    */
   public String getLoginHandlerClass()
@@ -167,6 +175,46 @@ public class LoginService
       return loginHandlerClass;
     }
     return "";
+  }
+
+  public void logout(final MySession mySession, final WebRequest request, final WebResponse response,
+      final UserXmlPreferencesCache userXmlPreferencesCache, MenuBuilder menuBuilder)
+  {
+    final Cookie stayLoggedInCookie = cookieService.getStayLoggedInCookie(WicketUtils.getHttpServletRequest(request));
+    logout(mySession, stayLoggedInCookie, userXmlPreferencesCache, menuBuilder);
+    if (stayLoggedInCookie != null) {
+      response.addCookie(stayLoggedInCookie);
+    }
+  }
+
+  public void logout(final MySession mySession, final HttpServletRequest request,
+      final HttpServletResponse response,
+      final UserXmlPreferencesCache userXmlPreferencesCache, MenuBuilder menuBuilder)
+  {
+    final Cookie stayLoggedInCookie = cookieService.getStayLoggedInCookie(request);
+    logout(mySession, stayLoggedInCookie, userXmlPreferencesCache, menuBuilder);
+    if (stayLoggedInCookie != null) {
+      response.addCookie(stayLoggedInCookie);
+    }
+  }
+
+  private void logout(final MySession mySession, final Cookie stayLoggedInCookie,
+      final UserXmlPreferencesCache userXmlPreferencesCache, MenuBuilder menuBuilder)
+  {
+    final PFUserDO user = mySession.getUser();
+    if (user != null) {
+      userXmlPreferencesCache.flushToDB(user.getId());
+      userXmlPreferencesCache.clear(user.getId());
+      if (menuBuilder != null) {
+        menuBuilder.expireMenu(user.getId());
+      }
+    }
+    mySession.logout();
+    if (stayLoggedInCookie != null) {
+      stayLoggedInCookie.setMaxAge(0);
+      stayLoggedInCookie.setValue(null);
+      stayLoggedInCookie.setPath("/");
+    }
   }
 
 }

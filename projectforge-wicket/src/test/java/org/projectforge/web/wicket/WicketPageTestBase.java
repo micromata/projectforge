@@ -53,6 +53,7 @@ import org.projectforge.plugins.core.AbstractPlugin;
 import org.projectforge.plugins.core.PluginAdminService;
 import org.projectforge.test.AbstractTestBase;
 import org.projectforge.web.LoginPage;
+import org.projectforge.web.LoginService;
 import org.projectforge.web.MenuBuilder;
 import org.projectforge.web.session.MySession;
 import org.projectforge.web.wicket.components.ContentMenuEntryPanel;
@@ -75,10 +76,14 @@ public class WicketPageTestBase extends AbstractTestBase
   private UserXmlPreferencesCache userXmlPreferencesCache;
 
   @Autowired
-  MenuBuilder menuBuilder;
+  private MenuBuilder menuBuilder;
 
   @Autowired
-  PluginAdminService pluginAdminService;
+  private PluginAdminService pluginAdminService;
+
+  @Autowired
+  private LoginService loginService;
+
   /**
    * don't know why, but we chache it...
    */
@@ -337,8 +342,7 @@ public class WicketPageTestBase extends AbstractTestBase
    */
   protected void logout()
   {
-    LoginPage.logout((MySession) tester.getSession(), tester.getRequest(), tester.getResponse(),
-        userXmlPreferencesCache, menuBuilder);
+    loginService.logout((MySession) tester.getSession(), tester.getRequest(), tester.getResponse(), userXmlPreferencesCache, menuBuilder);
     tester.startPage(LoginPage.class);
     tester.assertRenderedPage(LoginPage.class);
   }

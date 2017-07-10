@@ -11,30 +11,28 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class ServerConfiguration implements EmbeddedServletContainerCustomizer
 {
-
   static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(ServerConfiguration.class);
 
   @Value("${projectforge.servletContextPath}")
   private String servletContextPath;
 
-  @Value("${tomcat.ajp.port}")
+  @Value("${tomcat.ajp.port:8009}")
   private int ajpPort;
 
   @Value("${tomcat.ajp.enabled:false}")
   private boolean tomcatAjpEnabled;
 
   @Override
-  public void customize(ConfigurableEmbeddedServletContainer container)
+  public void customize(final ConfigurableEmbeddedServletContainer container)
   {
-    if (StringUtils.isBlank(servletContextPath) == false) {
+    if (StringUtils.isNotBlank(servletContextPath)) {
       container.setContextPath(servletContextPath);
     }
 
     if (container instanceof TomcatEmbeddedServletContainerFactory) {
-      TomcatEmbeddedServletContainerFactory tomcatContainer = (TomcatEmbeddedServletContainerFactory) container;
+      final TomcatEmbeddedServletContainerFactory tomcatContainer = (TomcatEmbeddedServletContainerFactory) container;
       if (tomcatAjpEnabled) {
-        Connector ajpConnector = new Connector("AJP/1.3");
-        ajpConnector.setProtocol("AJP/1.3");
+        final Connector ajpConnector = new Connector("AJP/1.3");
         ajpConnector.setPort(ajpPort);
         ajpConnector.setAttribute("address", "127.0.0.1");
         ajpConnector.setSecure(false);
@@ -43,6 +41,5 @@ public class ServerConfiguration implements EmbeddedServletContainerCustomizer
         tomcatContainer.getAdditionalTomcatConnectors().add(ajpConnector);
       }
     }
-
   }
 }
