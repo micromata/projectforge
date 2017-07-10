@@ -45,6 +45,11 @@ public class RechnungListFilter extends RechnungFilter implements SearchFilterWi
   public RechnungListFilter(final BaseSearchFilter filter)
   {
     super(filter);
+
+    if (filter instanceof RechnungListFilter) {
+      this.periodOfPerformanceStartDate = ((RechnungListFilter) filter).getPeriodOfPerformanceStartDate();
+      this.periodOfPerformanceEndDate = ((RechnungListFilter) filter).getPeriodOfPerformanceEndDate();
+    }
   }
 
   @Override
