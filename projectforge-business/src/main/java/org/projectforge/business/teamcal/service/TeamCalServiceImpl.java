@@ -988,7 +988,7 @@ public class TeamCalServiceImpl
     for (final Component c : list) {
       final VEvent event = (VEvent) c;
 
-      if (StringUtils.equals(event.getSummary().getValue(), TeamCalConfig.SETUP_EVENT) == true) {
+      if (event.getSummary() != null && StringUtils.equals(event.getSummary().getValue(), TeamCalConfig.SETUP_EVENT) == true) {
         // skip setup event!
         continue;
       }
