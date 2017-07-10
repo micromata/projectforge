@@ -12,6 +12,7 @@ import org.projectforge.framework.persistence.user.api.UserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.utils.NumberHelper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.web.ServerProperties;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -23,6 +24,9 @@ public class CookieService
 
   @Autowired
   private UserDao userDao;
+
+  @Autowired
+  private ServerProperties serverProperties;
 
   /**
    * User is not logged. Checks a stay-logged-in-cookie.
@@ -75,7 +79,7 @@ public class CookieService
   {
     stayLoggedInCookie.setMaxAge(COOKIE_MAX_AGE);
     stayLoggedInCookie.setPath("/");
-    if (request.isSecure() == true) {
+    if (request.isSecure() || isSecureCookieConfigured()) {
       log.debug("Set secure cookie");
       stayLoggedInCookie.setSecure(true);
     } else {
@@ -83,6 +87,15 @@ public class CookieService
     }
     stayLoggedInCookie.setHttpOnly(true);
     response.addCookie(stayLoggedInCookie); // Refresh cookie.
+  }
+
+  /**
+   * Reads the secure cookie setting from the spring boot configuration.
+   */
+  private Boolean isSecureCookieConfigured()
+  {
+    final Boolean secure = serverProperties.getSession().getCookie().getSecure();
+    return secure != null && secure == true;
   }
 
   public Cookie getStayLoggedInCookie(final HttpServletRequest request)
