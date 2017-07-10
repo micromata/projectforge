@@ -67,9 +67,8 @@ import com.vaynberg.wicket.select2.Select2MultiChoice;
 
 /**
  * Creates a top form-panel to add filter functions or other options.
- * 
+ *
  * @author Maximilian Lauterbach (m.lauterbach@micromata.de)
- * 
  */
 public class TeamCalEditForm extends AbstractEditForm<TeamCalDO, TeamCalEditPage>
 {
@@ -160,6 +159,13 @@ public class TeamCalEditForm extends AbstractEditForm<TeamCalDO, TeamCalEditPage
     }
 
     gridBuilder.newSplitPanel(GridSize.COL50);
+    // ID
+    {
+      if (isNew() == false && accessChecker.isLoggedInUserMemberOfAdminGroup() == true) {
+        final FieldsetPanel fs = gridBuilder.newFieldset(getString("plugins.teamcal.id"));
+        fs.add(new Label(fs.newChildId(), data.getId()));
+      }
+    }
     // set owner
     {
       if (data.getOwner() == null) {
@@ -195,7 +201,9 @@ public class TeamCalEditForm extends AbstractEditForm<TeamCalDO, TeamCalEditPage
         {
           icsExportDialog.setCalendarTitle(target, data.getTitle());
           icsExportDialog.open(target);
-        };
+        }
+
+        ;
       });
     }
     if (access == true) {

@@ -56,8 +56,8 @@ import de.micromata.genome.db.jpa.xmldump.api.JpaXmlPersist;
 @Indexed
 @Table(name = "T_CONFIGURATION", uniqueConstraints = {
     @UniqueConstraint(columnNames = { "parameter", "tenant_id" }) }, indexes = {
-        @javax.persistence.Index(name = "idx_fk_t_configuration_tenant_id", columnList = "tenant_id")
-    })
+    @javax.persistence.Index(name = "idx_fk_t_configuration_tenant_id", columnList = "tenant_id")
+})
 @JpaXmlPersist(beforePersistListener = ConfigurationXmlBeforePersistListener.class)
 @AUserRightId("ADMIN_CORE")
 public class ConfigurationDO extends DefaultBaseDO
@@ -141,7 +141,7 @@ public class ConfigurationDO extends DefaultBaseDO
 
   /**
    * @return The full i18n key including the i18n prefix "administration.configuration.param." and the suffix
-   *         ".description".
+   * ".description".
    */
   @Transient
   public String getDescriptionI18nKey()
@@ -247,6 +247,23 @@ public class ConfigurationDO extends DefaultBaseDO
     setIntValue(taskId);
   }
 
+  @Transient
+  public Integer getCalendarId()
+  {
+    if (intValue != null) {
+      checkType(ConfigurationType.CALENDAR);
+    }
+    return getIntValue();
+  }
+
+  public void setCalendarId(final Integer calendarId)
+  {
+    if (calendarId != null) {
+      checkType(ConfigurationType.CALENDAR);
+    }
+    setIntValue(calendarId);
+  }
+
   @Column(scale = 5, precision = 18)
   public BigDecimal getFloatValue()
   {
@@ -286,7 +303,8 @@ public class ConfigurationDO extends DefaultBaseDO
         ConfigurationType.TIME_ZONE) == true) {
       return this.stringValue;
     } else if (this.configurationType == ConfigurationType.INTEGER
-        || this.configurationType == ConfigurationType.TASK) {
+        || this.configurationType == ConfigurationType.TASK
+        || this.configurationType == ConfigurationType.CALENDAR) {
       return this.intValue;
     } else if (this.configurationType == ConfigurationType.FLOAT
         || this.configurationType == ConfigurationType.PERCENT) {
@@ -336,6 +354,9 @@ public class ConfigurationDO extends DefaultBaseDO
     } else if (this.configurationType.isIn(ConfigurationType.INTEGER, ConfigurationType.TASK) == true) {
       this.stringValue = null;
       this.floatValue = null;
+    } else if (this.configurationType.isIn(ConfigurationType.INTEGER, ConfigurationType.CALENDAR) == true) {
+      this.stringValue = null;
+      this.floatValue = null;
     } else if (this.configurationType.isIn(ConfigurationType.FLOAT, ConfigurationType.PERCENT) == true) {
       this.stringValue = null;
       this.intValue = null;
@@ -351,9 +372,11 @@ public class ConfigurationDO extends DefaultBaseDO
         return;
       } else if (type == ConfigurationType.STRING
           && this.configurationType.isIn(ConfigurationType.TEXT, ConfigurationType.BOOLEAN,
-              ConfigurationType.TIME_ZONE) == true) {
+          ConfigurationType.TIME_ZONE) == true) {
         return;
       } else if (type == ConfigurationType.INTEGER && this.configurationType == ConfigurationType.TASK) {
+        return;
+      } else if (type == ConfigurationType.INTEGER && this.configurationType == ConfigurationType.CALENDAR) {
         return;
       } else if (type == ConfigurationType.FLOAT && this.configurationType == ConfigurationType.PERCENT) {
         return;
@@ -374,9 +397,11 @@ public class ConfigurationDO extends DefaultBaseDO
       // Do nothing.
     } else if (type == ConfigurationType.STRING
         && this.configurationType.isIn(ConfigurationType.TEXT, ConfigurationType.BOOLEAN,
-            ConfigurationType.TIME_ZONE) == true) {
+        ConfigurationType.TIME_ZONE) == true) {
       // Do nothing.
     } else if (type == ConfigurationType.INTEGER && this.configurationType == ConfigurationType.TASK) {
+      // Do nothing.
+    } else if (type == ConfigurationType.INTEGER && this.configurationType == ConfigurationType.CALENDAR) {
       // Do nothing.
     } else if (type == ConfigurationType.FLOAT && this.configurationType == ConfigurationType.PERCENT) {
       // Do nothing.

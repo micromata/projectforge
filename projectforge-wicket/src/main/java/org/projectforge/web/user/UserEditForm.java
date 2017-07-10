@@ -66,6 +66,7 @@ import org.projectforge.business.login.Login;
 import org.projectforge.business.multitenancy.TenantDao;
 import org.projectforge.business.multitenancy.TenantService;
 import org.projectforge.business.multitenancy.TenantsComparator;
+import org.projectforge.business.password.PasswordQualityService;
 import org.projectforge.business.user.GroupDao;
 import org.projectforge.business.user.GroupsComparator;
 import org.projectforge.business.user.UserDao;
@@ -79,6 +80,8 @@ import org.projectforge.common.StringHelper;
 import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.configuration.ApplicationContextProvider;
 import org.projectforge.framework.configuration.Configuration;
+import org.projectforge.framework.i18n.I18nHelper;
+import org.projectforge.framework.i18n.I18nKeyAndParams;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.GroupDO;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
@@ -139,6 +142,9 @@ public class UserEditForm extends AbstractEditForm<PFUserDO, UserEditPage>
 
   @SpringBean
   private TenantService tenantService;
+
+  @SpringBean
+  private PasswordQualityService passwordQualityService;
 
   @SpringBean
   private UserService userService;
@@ -863,9 +869,12 @@ public class UserEditForm extends AbstractEditForm<PFUserDO, UserEditPage>
         return;
       }
       if (passwordUser == null) {
-        final String errorMsgKey = userService.checkPasswordQuality(passwordInput);
-        if (errorMsgKey != null) {
-          validatable.error(new ValidationError().addKey(errorMsgKey));
+        final List<I18nKeyAndParams> errorMsgKeys = passwordQualityService.checkPasswordQuality(passwordInput);
+        if (errorMsgKeys.isEmpty() == false) {
+          for (I18nKeyAndParams errorMsgKey : errorMsgKeys) {
+            final String localizedMessage = I18nHelper.getLocalizedMessage(errorMsgKey);
+            validatable.error(new ValidationError().setMessage(localizedMessage));
+          }
         } else {
           passwordUser = new PFUserDO();
           userService.createEncryptedPassword(passwordUser, passwordInput);
@@ -877,7 +886,8 @@ public class UserEditForm extends AbstractEditForm<PFUserDO, UserEditPage>
     WicketUtils.setPercentSize(passwordRepeatField, 50);
     fs.add(passwordField);
     fs.add(passwordRepeatField);
-    fs.addHelpIcon(getString(Const.MESSAGE_KEY_PASSWORD_QUALITY_CHECK));
+    final I18nKeyAndParams passwordQualityI18nKeyAndParams = passwordQualityService.getPasswordQualityI18nKeyAndParams();
+    fs.addHelpIcon(I18nHelper.getLocalizedMessage(passwordQualityI18nKeyAndParams));
   }
 
   private void addWlanPasswordFields()
@@ -929,9 +939,12 @@ public class UserEditForm extends AbstractEditForm<PFUserDO, UserEditPage>
         return;
       }
 
-      final String errorMsgKey = userService.checkPasswordQuality(passwordInput);
-      if (errorMsgKey != null) {
-        validatable.error(new ValidationError().addKey(errorMsgKey));
+      final List<I18nKeyAndParams> errorMsgKeys = passwordQualityService.checkPasswordQuality(passwordInput);
+      if (errorMsgKeys.isEmpty() == false) {
+        for (I18nKeyAndParams errorMsgKey : errorMsgKeys) {
+          final String localizedMessage = I18nHelper.getLocalizedMessage(errorMsgKey);
+          validatable.error(new ValidationError().setMessage(localizedMessage));
+        }
       } else {
         wlanPasswordValid = true;
       }
@@ -941,7 +954,8 @@ public class UserEditForm extends AbstractEditForm<PFUserDO, UserEditPage>
     WicketUtils.setPercentSize(passwordRepeatField, 50);
     fs.add(passwordField);
     fs.add(passwordRepeatField);
-    fs.addHelpIcon(getString(Const.MESSAGE_KEY_PASSWORD_QUALITY_CHECK));
+    final I18nKeyAndParams passwordQualityI18nKeyAndParams = passwordQualityService.getPasswordQualityI18nKeyAndParams();
+    fs.addHelpIcon(I18nHelper.getLocalizedMessage(passwordQualityI18nKeyAndParams));
   }
 
   private static void addDateFormatCombobox(final GridBuilder gridBuilder, final PFUserDO user, final String labelKey,

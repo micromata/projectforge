@@ -23,17 +23,17 @@
 
 package org.projectforge.business.teamcal;
 
+import java.util.UUID;
+
 import org.projectforge.framework.configuration.ConfigXml;
 import org.projectforge.framework.configuration.Configuration;
 import org.projectforge.framework.configuration.ConfigurationData;
 
 public class TeamCalConfig implements ConfigurationData
 {
-  // Don't change this, otherwise the synchronization with older entries may fail.
-  public static final String EVENT_UID_PREFIX = "pf-event";
 
   // Don't change this, otherwise the synchronization with older entries may fail.
-  public static final String TIMESHEET_UID_PREFIX = "pf-ts";
+  private static final String TIMESHEET_UID_PREFIX = "pf-ts";
 
   /**
    * setup event is needed for empty calendars
@@ -60,30 +60,29 @@ public class TeamCalConfig implements ConfigurationData
    * @param id
    * @see #createUid(String, String)
    */
-  public String createUid(final String prefix, final Integer id)
+  private String createUid(final String prefix, final Integer id)
   {
     return createUid(prefix, id != null ? id.toString() : "");
   }
 
   /**
    * Creates a world wide unique event id for ical events for better synchronization.
-   * 
+   *
    * @param prefix
    * @param id
    * @return uid of the format: "${prefix}-${id}@${domain}", e. g. "pf-event-1234@projectforge.org".
    */
-  public String createUid(final String prefix, final String id)
+  private String createUid(final String prefix, final String id)
   {
     return prefix + "-" + id + "@" + getDomain();
   }
 
   /**
-   * @param id
    * @return
    */
-  public String createEventUid(final Integer id)
+  public String createEventUid()
   {
-    return createUid(EVENT_UID_PREFIX, id);
+    return UUID.randomUUID().toString();
   }
 
   /**
@@ -97,7 +96,7 @@ public class TeamCalConfig implements ConfigurationData
 
   /**
    * Only for internal test purposes.
-   * 
+   *
    * @param config
    */
   public static void __internalSetConfig(final TeamCalConfig newConfig)

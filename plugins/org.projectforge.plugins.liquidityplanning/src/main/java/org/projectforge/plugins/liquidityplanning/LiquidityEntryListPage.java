@@ -38,6 +38,9 @@ import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
+import org.projectforge.business.excel.ContentProvider;
+import org.projectforge.business.excel.ExportColumn;
+import org.projectforge.business.excel.ExportSheet;
 import org.projectforge.business.fibu.EingangsrechnungDO;
 import org.projectforge.business.fibu.EingangsrechnungDao;
 import org.projectforge.business.fibu.InvoicesExcelExport;
@@ -46,9 +49,6 @@ import org.projectforge.business.fibu.RechnungDO;
 import org.projectforge.business.fibu.RechnungDao;
 import org.projectforge.business.fibu.RechnungFilter;
 import org.projectforge.common.anots.PropertyInfo;
-import org.projectforge.excel.ContentProvider;
-import org.projectforge.excel.ExportColumn;
-import org.projectforge.excel.ExportSheet;
 import org.projectforge.export.DOListExcelExporter;
 import org.projectforge.framework.time.DateTimeFormatter;
 import org.projectforge.framework.time.DayHolder;
@@ -66,9 +66,8 @@ import org.projectforge.web.wicket.flowlayout.IconType;
 
 /**
  * The controller of the list page. Most functionality such as search etc. is done by the super class.
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
  */
 @ListPage(editPage = LiquidityEntryEditPage.class)
 public class LiquidityEntryListPage
@@ -87,7 +86,7 @@ public class LiquidityEntryListPage
   private EingangsrechnungDao eingangsrechnungDao;
 
   @SpringBean
-  LiquidityForecast forecast;
+  private LiquidityForecast forecast;
 
   private LiquidityEntriesStatistics statistics;
 
@@ -104,6 +103,7 @@ public class LiquidityEntryListPage
     return statistics;
   }
 
+  @Override
   @SuppressWarnings("serial")
   public List<IColumn<LiquidityEntryDO, String>> createColumns(final WebPage returnToPage, final boolean sortable)
   {
@@ -111,6 +111,7 @@ public class LiquidityEntryListPage
     final Date today = new DayHolder().getDate();
     final CellItemListener<LiquidityEntryDO> cellItemListener = new CellItemListener<LiquidityEntryDO>()
     {
+      @Override
       public void populateItem(final Item<ICellPopulator<LiquidityEntryDO>> item, final String componentId,
           final IModel<LiquidityEntryDO> rowModel)
       {
@@ -196,7 +197,8 @@ public class LiquidityEntryListPage
                 .setForecast(getForecast());
             page.setReturnToPage(LiquidityEntryListPage.this);
             setResponsePage(page);
-          };
+          }
+
         }, getString("plugins.liquidityplanning.forecast"));
     addContentMenuEntry(liquidityForecastButton);
     addExcelExport("liquidity", getString("plugins.liquidityplanning.entry.title.heading"));
@@ -211,8 +213,8 @@ public class LiquidityEntryListPage
     return new DOListExcelExporter("liquidity")
     {
       /**
-       * @see org.projectforge.export.DOListExcelExporter#putFieldFormat(org.projectforge.excel.ContentProvider,
-       *      java.lang.reflect.Field, org.projectforge.common.anots.PropertyInfo, org.projectforge.excel.ExportColumn)
+       * @see org.projectforge.export.DOListExcelExporter#putFieldFormat(ContentProvider,
+       *      java.lang.reflect.Field, org.projectforge.common.anots.PropertyInfo, ExportColumn)
        */
       @Override
       public void putFieldFormat(final ContentProvider sheetProvider, final Field field, final PropertyInfo propInfo,
@@ -252,39 +254,36 @@ public class LiquidityEntryListPage
 
   /**
    * Calculates expected dates of payments inside the last year (-365 days).
-   * 
-   * @return
    */
-  public LiquidityForecast getForecast()
+  private LiquidityForecast getForecast()
   {
     // Consider only invoices of the last year:
     final java.sql.Date fromDate = new DayHolder().add(Calendar.DAY_OF_YEAR, -365).getSQLDate();
     {
-      final List<RechnungDO> paidInvoices = rechnungDao
-          .getList(new RechnungFilter().setShowBezahlt().setFromDate(fromDate));
+      final List<RechnungDO> paidInvoices = rechnungDao.getList(new RechnungFilter().setShowBezahlt().setFromDate(fromDate));
       forecast.calculateExpectedTimeOfPayments(paidInvoices);
+
       final List<RechnungDO> invoices = rechnungDao.getList(new RechnungFilter().setShowUnbezahlt());
       forecast.setInvoices(invoices);
     }
     {
-      final List<EingangsrechnungDO> paidInvoices = eingangsrechnungDao
-          .getList(new RechnungFilter().setShowBezahlt().setFromDate(fromDate));
+      final List<EingangsrechnungDO> paidInvoices = eingangsrechnungDao.getList(new RechnungFilter().setShowBezahlt().setFromDate(fromDate));
       forecast.calculateExpectedTimeOfCreditorPayments(paidInvoices);
-      final List<EingangsrechnungDO> creditorInvoices = eingangsrechnungDao.getList(new RechnungFilter()
-          .setListType(RechnungFilter.FILTER_UNBEZAHLT));
+
+      final List<EingangsrechnungDO> creditorInvoices = eingangsrechnungDao.getList(new RechnungFilter().setListType(RechnungFilter.FILTER_UNBEZAHLT));
       forecast.setCreditorInvoices(creditorInvoices);
     }
-    final List<LiquidityEntryDO> list = liquidityEntryDao
-        .getList(new LiquidityFilter().setPaymentStatus(PaymentStatus.UNPAID));
+
+    final List<LiquidityEntryDO> list = liquidityEntryDao.getList(new LiquidityFilter().setPaymentStatus(PaymentStatus.UNPAID));
     forecast.set(list);
+
     forecast.build();
     return forecast;
-
   }
 
   /**
    * Forces the statistics to be reloaded.
-   * 
+   *
    * @see org.projectforge.web.wicket.AbstractListPage#refresh()
    */
   @Override

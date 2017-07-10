@@ -33,10 +33,11 @@ import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.form.FormComponentPanel;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.validation.IValidatable;
 import org.apache.wicket.validation.IValidator;
 import org.apache.wicket.validation.ValidationError;
+import org.projectforge.Const;
+import org.projectforge.web.wicket.LambdaModel;
 import org.projectforge.web.wicket.WicketRenderHeadUtils;
 import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.web.wicket.converter.MyDateConverter;
@@ -52,17 +53,19 @@ public class DatePanel extends FormComponentPanel<Date> implements ComponentWrap
 {
   private static final long serialVersionUID = 3785639935585959803L;
 
-  protected Date date;
+  private BooleanSupplier requiredSupplier;
 
-  protected final DateTextField dateField;
+  private Date date;
 
-  protected boolean modelMarkedAsChanged;
+  private final DateTextField dateField;
 
-  protected Boolean required;
+  private boolean modelMarkedAsChanged;
+
+  private Boolean required;
 
   private boolean autosubmit;
 
-  private int minYear = 1900, maxYear = 2100;
+  private int minYear = Const.MINYEAR, maxYear = Const.MAXYEAR;
 
   /**
    * @param id
@@ -127,9 +130,11 @@ public class DatePanel extends FormComponentPanel<Date> implements ComponentWrap
       final BooleanSupplier requiredSupplier)
   {
     super(id, model);
+    this.requiredSupplier = requiredSupplier;
     setType(settings.targetType);
     final MyDateConverter dateConverter = new MyDateConverter(settings.targetType, "M-");
-    final IModel<Date> modelForDateField = useModelDirectly ? model : new PropertyModel<>(this, "date");
+    dateConverter.setTimeZone(settings.timeZone);
+    final IModel<Date> modelForDateField = useModelDirectly ? model : LambdaModel.of(() -> this.date, date -> this.date = date);
     dateField = new DateTextField("dateField", modelForDateField, dateConverter)
     {
       /**
@@ -146,7 +151,7 @@ public class DatePanel extends FormComponentPanel<Date> implements ComponentWrap
       @Override
       public boolean isRequired()
       {
-        return (requiredSupplier != null) ? requiredSupplier.getAsBoolean() : super.isRequired();
+        return (DatePanel.this.requiredSupplier != null) ? DatePanel.this.requiredSupplier.getAsBoolean() : super.isRequired();
       }
     };
     dateField.add(AttributeModifier.replace("size", "10"));
@@ -238,6 +243,11 @@ public class DatePanel extends FormComponentPanel<Date> implements ComponentWrap
     return this;
   }
 
+  public void setRequiredSupplier(final BooleanSupplier requiredSupplier)
+  {
+    this.requiredSupplier = requiredSupplier;
+  }
+
   /**
    * Work around: If you change the model call this method, so onBeforeRender calls DateField.modelChanged() for updating the form text
    * field.
@@ -250,7 +260,7 @@ public class DatePanel extends FormComponentPanel<Date> implements ComponentWrap
   @Override
   protected void onBeforeRender()
   {
-    date = (Date) getDefaultModelObject();
+    date = (Date) getDefaultModelObject(); // copy the value from the outer model to the dateField's model
     if (modelMarkedAsChanged == true) {
       dateField.modelChanged();
       modelMarkedAsChanged = false;

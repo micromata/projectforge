@@ -23,12 +23,15 @@
 
 package org.projectforge.web.user;
 
+import java.util.List;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.login.Login;
 import org.projectforge.business.user.service.UserService;
+import org.projectforge.framework.i18n.I18nKeyAndParams;
 import org.projectforge.web.wicket.AbstractStandardFormPage;
 import org.projectforge.web.wicket.MessagePage;
 
@@ -74,9 +77,11 @@ public class ChangeWlanPasswordPage extends AbstractStandardFormPage
     }
 
     log.info("User wants to change his WLAN password.");
-    final String errorMsgKey = userService.changeWlanPassword(getUser(), form.getLoginPassword(), form.getNewWlanPassword());
-    if (errorMsgKey != null) {
-      form.addError(errorMsgKey);
+    final List<I18nKeyAndParams> errorMsgKeys = userService.changeWlanPassword(getUser(), form.getLoginPassword(), form.getNewWlanPassword());
+    if (errorMsgKeys.isEmpty() == false) {
+      for (I18nKeyAndParams errorMsgKey : errorMsgKeys) {
+        form.addError(errorMsgKey);
+      }
       return;
     }
 

@@ -42,6 +42,11 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
+import org.projectforge.business.excel.ContentProvider;
+import org.projectforge.business.excel.ExcelExporter;
+import org.projectforge.business.excel.ExportColumn;
+import org.projectforge.business.excel.I18nExportColumn;
+import org.projectforge.business.excel.PropertyMapping;
 import org.projectforge.business.fibu.AuftragsPositionVO;
 import org.projectforge.business.fibu.KontoCache;
 import org.projectforge.business.fibu.KontoDO;
@@ -52,10 +57,6 @@ import org.projectforge.business.fibu.RechnungFilter;
 import org.projectforge.business.fibu.RechnungsStatistik;
 import org.projectforge.business.fibu.kost.KostZuweisungExport;
 import org.projectforge.business.utils.CurrencyFormatter;
-import org.projectforge.excel.ContentProvider;
-import org.projectforge.excel.ExportColumn;
-import org.projectforge.excel.I18nExportColumn;
-import org.projectforge.excel.PropertyMapping;
 import org.projectforge.export.DOListExcelExporter;
 import org.projectforge.export.MyXlsContentProvider;
 import org.projectforge.framework.configuration.Configuration;
@@ -112,7 +113,7 @@ public class RechnungListPage extends AbstractListPage<RechnungListForm, Rechnun
 
   /**
    * Forces the statistics to be reloaded.
-   * 
+   *
    * @see org.projectforge.web.wicket.AbstractListPage#refresh()
    */
   @Override
@@ -129,6 +130,7 @@ public class RechnungListPage extends AbstractListPage<RechnungListForm, Rechnun
     final List<IColumn<RechnungDO, String>> columns = new ArrayList<IColumn<RechnungDO, String>>();
     final CellItemListener<RechnungDO> cellItemListener = new CellItemListener<RechnungDO>()
     {
+      @Override
       public void populateItem(final Item<ICellPopulator<RechnungDO>> item, final String componentId,
           final IModel<RechnungDO> rowModel)
       {
@@ -149,7 +151,7 @@ public class RechnungListPage extends AbstractListPage<RechnungListForm, Rechnun
     };
     columns.add(new CellItemListenerPropertyColumn<RechnungDO>(
         new Model<String>(getString("fibu.rechnung.nummer.short")), getSortable(
-            "nummer", sortable),
+        "nummer", sortable),
         "nummer", cellItemListener)
     {
       /**
@@ -183,7 +185,7 @@ public class RechnungListPage extends AbstractListPage<RechnungListForm, Rechnun
         new CellItemListenerPropertyColumn<RechnungDO>(getString("fibu.projekt"), getSortable("projekt.name", sortable),
             "projekt.name", cellItemListener));
     if (kontoCache.isEmpty() == false) {
-      columns.add(new CellItemListenerPropertyColumn<RechnungDO>(RechnungDO.class, null, "konto", cellItemListener)
+      columns.add(new CellItemListenerPropertyColumn<RechnungDO>(RechnungDO.class, getSortable("konto", sortable), "konto", cellItemListener)
       {
         /**
          * @see org.projectforge.web.wicket.CellItemListenerPropertyColumn#populateItem(org.apache.wicket.markup.repeater.Item,
@@ -214,6 +216,13 @@ public class RechnungListPage extends AbstractListPage<RechnungListForm, Rechnun
         getSortable("bezahlDatum",
             sortable),
         "bezahlDatum", cellItemListener));
+
+    columns.add(new CellItemListenerPropertyColumn<>(getString("fibu.periodOfPerformance.from"),
+        getSortable("periodOfPerformanceBegin", sortable), "periodOfPerformanceBegin", cellItemListener));
+
+    columns.add(new CellItemListenerPropertyColumn<>(getString("fibu.periodOfPerformance.to"),
+        getSortable("periodOfPerformanceEnd", sortable), "periodOfPerformanceEnd", cellItemListener));
+
     columns.add(new CurrencyPropertyColumn<RechnungDO>(getString("fibu.common.netto"), getSortable("netSum", sortable),
         "netSum",
         cellItemListener));
@@ -243,7 +252,7 @@ public class RechnungListPage extends AbstractListPage<RechnungListForm, Rechnun
               // Lazy initialization because getString(...) of OrderPositionsPanel fails if panel.init(orderPositions) is called directly
               // after instantiation.
               init(orderPositions);
-            };
+            }
           };
           item.add(panel);
         }
@@ -274,7 +283,7 @@ public class RechnungListPage extends AbstractListPage<RechnungListForm, Rechnun
             public void onClick()
             {
               exportExcelWithCostAssignments();
-            };
+            }
           }, getString("fibu.rechnung.kostExcelExport")).setTooltip(getString("fibu.rechnung.kostExcelExport.tootlip"));
       addContentMenuEntry(exportExcelButton);
     }
@@ -289,7 +298,7 @@ public class RechnungListPage extends AbstractListPage<RechnungListForm, Rechnun
     return new DOListExcelExporter(filenameIdentifier)
     {
       /**
-       * @see org.projectforge.excel.ExcelExporter#onBeforeSettingColumns(java.util.List)
+       * @see ExcelExporter#onBeforeSettingColumns(java.util.List)
        */
       @Override
       protected List<ExportColumn> onBeforeSettingColumns(final ContentProvider sheetProvider,
@@ -311,7 +320,7 @@ public class RechnungListPage extends AbstractListPage<RechnungListForm, Rechnun
       }
 
       /**
-       * @see org.projectforge.excel.ExcelExporter#addMapping(org.projectforge.excel.PropertyMapping, java.lang.Object,
+       * @see ExcelExporter#addMapping(PropertyMapping, java.lang.Object,
        *      java.lang.reflect.Field)
        */
       @Override
@@ -334,7 +343,7 @@ public class RechnungListPage extends AbstractListPage<RechnungListForm, Rechnun
       }
 
       /**
-       * @see org.projectforge.excel.ExcelExporter#addMappings(org.projectforge.excel.PropertyMapping, java.lang.Object)
+       * @see ExcelExporter#addMappings(PropertyMapping, java.lang.Object)
        */
       @Override
       protected void addMappings(final PropertyMapping mapping, final Object entry)
@@ -357,8 +366,8 @@ public class RechnungListPage extends AbstractListPage<RechnungListForm, Rechnun
     refresh();
     final RechnungFilter filter = new RechnungFilter();
     final RechnungFilter src = form.getSearchFilter();
-    filter.setYear(src.getYear());
-    filter.setMonth(src.getMonth());
+    filter.setFromDate(src.getFromDate());
+    filter.setToDate(src.getToDate());
     final List<RechnungDO> rechnungen = rechnungDao.getList(filter);
     if (rechnungen == null || rechnungen.size() == 0) {
       // Nothing to export.

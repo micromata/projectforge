@@ -24,7 +24,14 @@
 package org.projectforge.web.vacation;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 import org.apache.log4j.Logger;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -34,20 +41,27 @@ import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
+import org.projectforge.business.configuration.ConfigurationService;
 import org.projectforge.business.fibu.EmployeeDO;
+import org.projectforge.business.fibu.EmployeeStatus;
 import org.projectforge.business.fibu.api.EmployeeService;
 import org.projectforge.business.multitenancy.TenantService;
-import org.projectforge.business.user.I18nHelper;
+import org.projectforge.business.teamcal.admin.TeamCalCache;
+import org.projectforge.business.teamcal.admin.model.TeamCalDO;
 import org.projectforge.business.user.UserRightId;
 import org.projectforge.business.user.UserRightValue;
 import org.projectforge.business.vacation.model.VacationDO;
+import org.projectforge.business.vacation.model.VacationMode;
 import org.projectforge.business.vacation.model.VacationStatus;
 import org.projectforge.business.vacation.service.VacationService;
 import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.access.AccessException;
+import org.projectforge.framework.i18n.I18nHelper;
+import org.projectforge.framework.persistence.api.BaseDO;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
-import org.projectforge.framework.time.DayHolder;
+import org.projectforge.web.common.MultiChoiceListHelper;
 import org.projectforge.web.employee.DefaultEmployeeWicketProvider;
+import org.projectforge.web.teamcal.admin.TeamCalsProvider;
 import org.projectforge.web.wicket.AbstractEditForm;
 import org.projectforge.web.wicket.bootstrap.GridSize;
 import org.projectforge.web.wicket.components.DatePanel;
@@ -56,9 +70,11 @@ import org.projectforge.web.wicket.components.LabelValueChoiceRenderer;
 import org.projectforge.web.wicket.flowlayout.CheckBoxPanel;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
 import org.projectforge.web.wicket.flowlayout.LabelPanel;
+import org.projectforge.web.wicket.flowlayout.Select2MultiChoicePanel;
 import org.projectforge.web.wicket.flowlayout.Select2SingleChoicePanel;
 
 import com.vaynberg.wicket.select2.Select2Choice;
+import com.vaynberg.wicket.select2.Select2MultiChoice;
 
 public class VacationEditForm extends AbstractEditForm<VacationDO, VacationEditPage>
 {
@@ -76,22 +92,29 @@ public class VacationEditForm extends AbstractEditForm<VacationDO, VacationEditP
   private TenantService tenantService;
 
   @SpringBean
+  private ConfigurationService configService;
+
+  @SpringBean
   private AccessChecker accessChecker;
+
+  @SpringBean
+  private TeamCalCache teamCalCache;
 
   private Label neededVacationDaysLabel;
 
-  private Model<String> neededVacationDaysModel;
+  private final Model<String> neededVacationDaysModel = new Model<>();
 
   private Label availableVacationDaysLabel;
 
-  private Model<String> availableVacationDaysModel;
+  private final Model<String> availableVacationDaysModel = new Model<>();
 
   private VacationStatus statusBeforeModification;
+
+  final MultiChoiceListHelper<TeamCalDO> assignCalendarListHelper = new MultiChoiceListHelper<>();
 
   public VacationEditForm(final VacationEditPage parentPage, final VacationDO data)
   {
     super(parentPage, data);
-    vacationService.couldUserUseVacationService(ThreadLocalUserContext.getUser(), true);
     if (data.getEmployee() == null) {
       if (parentPage.employeeIdFromPageParameters != null) {
         data.setEmployee(employeeService.selectByPkDetached(parentPage.employeeIdFromPageParameters));
@@ -125,7 +148,7 @@ public class VacationEditForm extends AbstractEditForm<VacationDO, VacationEditP
     if (checkReadAccess() == false) {
       throw new AccessException("access.exception.userHasNotRight");
     }
-    VacationFormValidator formValidator = new VacationFormValidator(vacationService, data);
+    VacationFormValidator formValidator = new VacationFormValidator(vacationService, configService, data);
     add(formValidator);
 
     gridBuilder.newSplitPanel(GridSize.COL50);
@@ -159,34 +182,14 @@ public class VacationEditForm extends AbstractEditForm<VacationDO, VacationEditP
       final FieldsetPanel fs = gridBuilder.newFieldset(VacationDO.class, "startDate");
       DatePanel startDatePanel = new DatePanel(fs.newChildId(), new PropertyModel<>(data, "startDate"),
           DatePanelSettings.get().withTargetType(java.sql.Date.class), true);
-      startDatePanel.getDateField().add(new AjaxFormComponentUpdatingBehavior("onchange")
-      {
-        private static final long serialVersionUID = 2462233190993745889L;
-
-        @Override
-        protected void onUpdate(final AjaxRequestTarget target)
-        {
-          BigDecimal availableVacationDays = getAvailableVacationDays(data);
-          availableVacationDaysModel.setObject(availableVacationDays.toString());
-          target.add(availableVacationDaysLabel);
-
-          if (getData().getStartDate() != null && getData().getEndDate() != null) {
-            String value = DayHolder.getNumberOfWorkingDays(data.getStartDate(), data.getEndDate()).toString();
-            neededVacationDaysModel.setObject(value);
-            target.add(neededVacationDaysLabel);
-          }
-        }
-      });
       startDatePanel.setRequired(true).setMarkupId("vacation-startdate").setOutputMarkupId(true);
       startDatePanel.setEnabled(checkEnableInputField());
       formValidator.getDependentFormComponents()[0] = startDatePanel;
       fs.add(startDatePanel);
-    }
 
-    {
       // End date
-      final FieldsetPanel fs = gridBuilder.newFieldset(VacationDO.class, "endDate");
-      DatePanel endDatePanel = new DatePanel(fs.newChildId(), new PropertyModel<>(data, "endDate"),
+      final FieldsetPanel fsEndDate = gridBuilder.newFieldset(VacationDO.class, "endDate");
+      DatePanel endDatePanel = new DatePanel(fsEndDate.newChildId(), new PropertyModel<>(data, "endDate"),
           DatePanelSettings.get().withTargetType(java.sql.Date.class), true);
       endDatePanel.getDateField().add(new AjaxFormComponentUpdatingBehavior("onchange")
       {
@@ -195,34 +198,77 @@ public class VacationEditForm extends AbstractEditForm<VacationDO, VacationEditP
         @Override
         protected void onUpdate(final AjaxRequestTarget target)
         {
-          if (getData().getStartDate() != null && getData().getEndDate() != null) {
-            String value = DayHolder.getNumberOfWorkingDays(data.getStartDate(), data.getEndDate()).toString();
-            neededVacationDaysModel.setObject(value);
-            target.add(neededVacationDaysLabel);
-          }
+          updateNeededVacationDaysLabel(target);
         }
       });
       endDatePanel.setRequired(true).setMarkupId("vacation-enddate").setOutputMarkupId(true);
+      endDatePanel.getDateField().setOutputMarkupId(true);
       endDatePanel.setEnabled(checkEnableInputField());
       formValidator.getDependentFormComponents()[1] = endDatePanel;
-      fs.add(endDatePanel);
+      fsEndDate.add(endDatePanel);
+
+      startDatePanel.getDateField().add(new AjaxFormComponentUpdatingBehavior("onchange")
+      {
+        private static final long serialVersionUID = 4577664688930645961L;
+
+        @Override
+        protected void onUpdate(final AjaxRequestTarget target)
+        {
+          // needed days
+          BigDecimal availableVacationDays = getAvailableVacationDays(data);
+          availableVacationDaysModel.setObject(availableVacationDays.toString());
+          target.add(availableVacationDaysLabel);
+
+          updateNeededVacationDaysLabel(target);
+
+          // end date
+          final long selectedDate = startDatePanel.getDateField().getModelObject().getTime();
+
+          if (endDatePanel.getDateField().getModelObject() == null) {
+            endDatePanel.getDateField().setModelObject(new Date(selectedDate));
+          } else if (selectedDate > endDatePanel.getDateField().getModelObject().getTime()) {
+            endDatePanel.getDateField().getModelObject().setTime(selectedDate);
+          }
+          target.add(endDatePanel.getDateField());
+        }
+      });
+    }
+
+    {
+      // half day checkbox
+      final FieldsetPanel fs = gridBuilder.newFieldset(VacationDO.class, "halfDay");
+      final CheckBoxPanel checkboxPanel = new CheckBoxPanel(fs.newChildId(), new PropertyModel<>(data, "halfDay"), "");
+      checkboxPanel.setMarkupId("vacation-isHalfDay").setOutputMarkupId(true);
+      checkboxPanel.setEnabled(checkEnableInputField());
+      checkboxPanel.getCheckBox().add(new AjaxFormComponentUpdatingBehavior("onchange")
+      {
+        @Override
+        protected void onUpdate(final AjaxRequestTarget target)
+        {
+          updateNeededVacationDaysLabel(target);
+        }
+      });
+      formValidator.getDependentFormComponents()[4] = checkboxPanel.getCheckBox();
+      fs.add(checkboxPanel);
     }
 
     {
       // Special holiday
       final FieldsetPanel fs = gridBuilder.newFieldset(VacationDO.class, "isSpecial");
-      CheckBoxPanel checkboxPanel = new CheckBoxPanel(fs.newChildId(), new PropertyModel<>(data, "isSpecial"), "");
+      final CheckBoxPanel checkboxPanel = new CheckBoxPanel(fs.newChildId(), new PropertyModel<>(data, "isSpecial"), "");
       checkboxPanel.setMarkupId("vacation-isSpecial").setOutputMarkupId(true);
       checkboxPanel.setEnabled(checkEnableInputField());
-      formValidator.setIsSpecialCheckbox(checkboxPanel);
+      formValidator.getDependentFormComponents()[5] = checkboxPanel.getCheckBox();
       fs.add(checkboxPanel);
     }
 
+    // Available vacation days - only visible for the creator and manager
+    if (data.getVacationmode() == VacationMode.OWN || data.getVacationmode() == VacationMode.MANAGER || data.getVacationmode() == VacationMode.OTHER)
+
     {
-      // Available vacation days
       final FieldsetPanel fs = gridBuilder.newFieldset(I18nHelper.getLocalizedMessage("vacation.availabledays"));
       BigDecimal availableVacationDays = getAvailableVacationDays(data);
-      this.availableVacationDaysModel = new Model<>(availableVacationDays.toString());
+      this.availableVacationDaysModel.setObject(availableVacationDays.toString());
       LabelPanel availablePanel = new LabelPanel(fs.newChildId(), availableVacationDaysModel);
       availablePanel.setMarkupId("vacation-availableDays").setOutputMarkupId(true);
       this.availableVacationDaysLabel = availablePanel.getLabel();
@@ -232,17 +278,13 @@ public class VacationEditForm extends AbstractEditForm<VacationDO, VacationEditP
 
     {
       // Needed vacation days
-      FieldsetPanel neededVacationDaysFs = gridBuilder
-          .newFieldset(I18nHelper.getLocalizedMessage("vacation.neededdays"));
-      String value = I18nHelper.getLocalizedMessage("vacation.setStartAndEndFirst");
-      if (data.getStartDate() != null && data.getEndDate() != null) {
-        value = DayHolder.getNumberOfWorkingDays(data.getStartDate(), data.getEndDate()).toString();
-      }
-      this.neededVacationDaysModel = new Model<>(value);
+      FieldsetPanel neededVacationDaysFs = gridBuilder.newFieldset(I18nHelper.getLocalizedMessage("vacation.neededdays"));
+      updateNeededVacationDaysLabel();
       LabelPanel neededVacationDaysPanel = new LabelPanel(neededVacationDaysFs.newChildId(), neededVacationDaysModel);
       neededVacationDaysPanel.setMarkupId("vacation-neededVacationDays").setOutputMarkupId(true);
       this.neededVacationDaysLabel = neededVacationDaysPanel.getLabel();
       this.neededVacationDaysLabel.setOutputMarkupId(true);
+
       neededVacationDaysFs.add(neededVacationDaysPanel);
     }
 
@@ -252,22 +294,62 @@ public class VacationEditForm extends AbstractEditForm<VacationDO, VacationEditP
       final Select2Choice<EmployeeDO> managerSelect = new Select2Choice<>(
           Select2SingleChoicePanel.WICKET_ID,
           new PropertyModel<>(data, "manager"),
-          new DefaultEmployeeWicketProvider(employeeService, checkHRWriteRight()));
+          new DefaultEmployeeWicketProvider(employeeService, checkHRWriteRight(), EmployeeStatus.FEST_ANGESTELLTER, EmployeeStatus.BEFRISTET_ANGESTELLTER,
+              EmployeeStatus.FREELANCER));
       managerSelect.setRequired(true).setMarkupId("vacation-manager").setOutputMarkupId(true);
       managerSelect.setEnabled(checkEnableInputField());
       fs.add(new Select2SingleChoicePanel<EmployeeDO>(fs.newChildId(), managerSelect));
     }
 
     {
-      // Substitution
+      // Substitutions
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("vacation.substitution"));
-      final Select2Choice<EmployeeDO> substitutionSelect = new Select2Choice<>(
-          Select2SingleChoicePanel.WICKET_ID,
-          new PropertyModel<>(data, "substitution"),
+      final Select2MultiChoice<EmployeeDO> substitutionSelect = new Select2MultiChoice<>(
+          Select2MultiChoicePanel.WICKET_ID,
+          new PropertyModel<>(data, "substitutions"),
           new DefaultEmployeeWicketProvider(employeeService, checkHRWriteRight()));
       substitutionSelect.setRequired(true).setMarkupId("vacation-substitution").setOutputMarkupId(true);
       substitutionSelect.setEnabled(checkEnableInputField());
-      fs.add(new Select2SingleChoicePanel<EmployeeDO>(fs.newChildId(), substitutionSelect));
+      fs.add(new Select2MultiChoicePanel<>(fs.newChildId(), substitutionSelect));
+    }
+
+    {
+      // Calendars
+      final FieldsetPanel fieldSet = gridBuilder.newFieldset(getString("vacation.calendar"));
+      final List<TeamCalDO> calendarsForVacation = vacationService.getCalendarsForVacation(this.data);
+      final Set<TeamCalDO> availableCalendars = new HashSet<>(teamCalCache.getAllFullAccessCalendars());
+      final Set<TeamCalDO> currentCalendars = new HashSet<>();
+      final TeamCalDO configuredVacationCalendar = configService.getVacationCalendar();
+      final List<TeamCalDO> additionalCalendars = new ArrayList<>();
+
+      if (configuredVacationCalendar != null) {
+        availableCalendars.add(configuredVacationCalendar);
+        currentCalendars.add(configuredVacationCalendar);
+        additionalCalendars.add(configuredVacationCalendar);
+      }
+
+      assignCalendarListHelper
+          .setComparator(Comparator.comparing(BaseDO::getPk))
+          .setFullList(availableCalendars);
+
+      if (calendarsForVacation != null) {
+        currentCalendars.addAll(calendarsForVacation);
+      }
+
+      for (final TeamCalDO calendar : currentCalendars) {
+        assignCalendarListHelper
+            .addOriginalAssignedItem(calendar)
+            .assignItem(calendar);
+      }
+
+      final Select2MultiChoice<TeamCalDO> calendarsSelect = new Select2MultiChoice<>(
+          fieldSet.getSelect2MultiChoiceId(),
+          new PropertyModel<Collection<TeamCalDO>>(assignCalendarListHelper, "assignedItems"),
+          new TeamCalsProvider(teamCalCache, true, additionalCalendars));
+      calendarsSelect.setMarkupId("calenders").setOutputMarkupId(true);
+      calendarsSelect.setEnabled(checkEnableInputField());
+      formValidator.getDependentFormComponents()[6] = calendarsSelect;
+      fieldSet.add(calendarsSelect);
     }
 
     {
@@ -285,6 +367,27 @@ public class VacationEditForm extends AbstractEditForm<VacationDO, VacationEditP
       fs.add(statusChoice);
     }
 
+  }
+
+  private void updateNeededVacationDaysLabel()
+  {
+    final BigDecimal days;
+    if (data.getStartDate() == null || data.getEndDate() == null) {
+      days = BigDecimal.ZERO;
+    } else {
+      days = vacationService.getVacationDays(data.getStartDate(), data.getEndDate(), data.getHalfDay());
+    }
+    if (days != null) {
+      neededVacationDaysModel.setObject(days.toString());
+    } else {
+      neededVacationDaysModel.setObject(I18nHelper.getLocalizedMessage("vacation.setStartAndEndFirst"));
+    }
+  }
+
+  private void updateNeededVacationDaysLabel(final AjaxRequestTarget target)
+  {
+    updateNeededVacationDaysLabel();
+    target.add(neededVacationDaysLabel);
   }
 
   private BigDecimal getAvailableVacationDays(VacationDO vacationData)
@@ -321,6 +424,9 @@ public class VacationEditForm extends AbstractEditForm<VacationDO, VacationEditP
 
   private boolean hasUserEditStatusRight()
   {
+    if (checkHRWriteRight()) {
+      return true;
+    }
     if (VacationStatus.APPROVED.equals(data.getStatus())) {
       //Only HR can change approved applications
       if (checkWriteAccess()) {
@@ -371,9 +477,10 @@ public class VacationEditForm extends AbstractEditForm<VacationDO, VacationEditP
 
   private boolean checkReadAccess()
   {
-    if (data.getEmployee().getUser().getPk().equals(ThreadLocalUserContext.getUserId()) == true || (data.getManager() != null
-        && data.getManager().getUser().getPk().equals(ThreadLocalUserContext.getUserId())) == true || (data.getSubstitution() != null
-        && data.getSubstitution().getUser().getPk().equals(ThreadLocalUserContext.getUserId())) == true) {
+    final Integer userId = ThreadLocalUserContext.getUserId();
+    if (data.getEmployee().getUser().getPk().equals(userId)
+        || (data.getManager() != null && data.getManager().getUser().getPk().equals(userId))
+        || data.isSubstitution(userId)) {
       return true;
     }
     if (accessChecker.hasLoggedInUserRight(UserRightId.HR_VACATION, false, UserRightValue.READONLY,

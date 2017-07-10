@@ -52,9 +52,25 @@ public class TeamCalsProvider extends TextChoiceProvider<TeamCalDO>
 
   private transient TeamCalCache teamCalCache;
 
+  private transient boolean onlyFullAccessCalendar = false;
+
+  private List<TeamCalDO> additionalCalendarList;
+
   public TeamCalsProvider(TeamCalCache teamCalCache)
   {
+    this(teamCalCache, false);
+  }
+
+  public TeamCalsProvider(TeamCalCache teamCalCache, boolean onlyFullAccessCalendar)
+  {
+    this(teamCalCache, onlyFullAccessCalendar, null);
+  }
+
+  public TeamCalsProvider(TeamCalCache teamCalCache, boolean onlyFullAccessCalendar, List<TeamCalDO> additionalCalendarList)
+  {
     this.teamCalCache = teamCalCache;
+    this.onlyFullAccessCalendar = onlyFullAccessCalendar;
+    this.additionalCalendarList = additionalCalendarList;
   }
 
   public static List<Integer> getCalIdList(final Collection<TeamCalDO> teamCals)
@@ -143,7 +159,7 @@ public class TeamCalsProvider extends TextChoiceProvider<TeamCalDO>
   public Collection<TeamCalDO> getSortedCalenders()
   {
     if (sortedCals == null) {
-      final Collection<TeamCalDO> allCalendars = teamCalCache.getAllAccessibleCalendars();
+      final Collection<TeamCalDO> allCalendars = getCalendarList();
       sortedCals = new TreeSet<TeamCalDO>(calsComparator);
       for (final TeamCalDO cal : allCalendars) {
         if (cal.isDeleted() == false) {
@@ -152,6 +168,20 @@ public class TeamCalsProvider extends TextChoiceProvider<TeamCalDO>
       }
     }
     return sortedCals;
+  }
+
+  private Collection<TeamCalDO> getCalendarList()
+  {
+    Collection<TeamCalDO> result = null;
+    if (onlyFullAccessCalendar) {
+      result = teamCalCache.getAllFullAccessCalendars();
+    } else {
+      result = teamCalCache.getAllAccessibleCalendars();
+    }
+    if (this.additionalCalendarList != null && this.additionalCalendarList.size() > 0) {
+      result.addAll(this.additionalCalendarList);
+    }
+    return result;
   }
 
   /**

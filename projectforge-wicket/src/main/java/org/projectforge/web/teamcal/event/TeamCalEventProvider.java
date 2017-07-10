@@ -23,6 +23,8 @@
 
 package org.projectforge.web.teamcal.event;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -33,6 +35,7 @@ import java.util.TimeZone;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
 import org.joda.time.Days;
 import org.joda.time.Period;
 import org.projectforge.business.teamcal.admin.right.TeamCalRight;
@@ -42,18 +45,20 @@ import org.projectforge.business.teamcal.event.TeamEventRecurrenceData;
 import org.projectforge.business.teamcal.event.TeamRecurrenceEvent;
 import org.projectforge.business.teamcal.event.model.TeamCalEventId;
 import org.projectforge.business.teamcal.event.model.TeamEvent;
+import org.projectforge.business.teamcal.event.model.TeamEventAttendeeDO;
 import org.projectforge.business.teamcal.event.model.TeamEventDO;
 import org.projectforge.business.teamcal.event.right.TeamEventRight;
 import org.projectforge.business.teamcal.filter.TeamCalCalendarFilter;
 import org.projectforge.business.teamcal.filter.TemplateEntry;
 import org.projectforge.framework.access.AccessChecker;
+import org.projectforge.framework.i18n.I18nHelper;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
+import org.projectforge.framework.time.DateHelper;
 import org.projectforge.framework.time.RecurrenceFrequency;
 import org.projectforge.framework.utils.NumberHelper;
 import org.projectforge.web.calendar.MyFullCalendarEventsProvider;
 
-import net.fortuna.ical4j.model.Recur;
 import net.ftlines.wicket.fullcalendar.Event;
 import net.ftlines.wicket.fullcalendar.callback.EventDroppedCallbackScriptGenerator;
 
@@ -61,7 +66,6 @@ import net.ftlines.wicket.fullcalendar.callback.EventDroppedCallbackScriptGenera
  * @author Johannes Unterstein (j.unterstein@micromata.de)
  * @author M. Lauterbach (m.lauterbach@micromata.de)
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
  */
 public class TeamCalEventProvider extends MyFullCalendarEventsProvider
 {
@@ -95,7 +99,7 @@ public class TeamCalEventProvider extends MyFullCalendarEventsProvider
 
   /**
    * @see org.projectforge.web.calendar.MyFullCalendarEventsProvider#getEvents(org.joda.time.DateTime,
-   *      org.joda.time.DateTime)
+   * org.joda.time.DateTime)
    */
   @Override
   public Collection<Event> getEvents(final DateTime start, final DateTime end)
@@ -106,7 +110,7 @@ public class TeamCalEventProvider extends MyFullCalendarEventsProvider
 
   /**
    * @see org.projectforge.web.calendar.MyFullCalendarEventsProvider#buildEvents(org.joda.time.DateTime,
-   *      org.joda.time.DateTime)
+   * org.joda.time.DateTime)
    */
   @Override
   protected void buildEvents(final DateTime start, final DateTime end)
@@ -128,27 +132,29 @@ public class TeamCalEventProvider extends MyFullCalendarEventsProvider
     eventFilter.setUser(ThreadLocalUserContext.getUser());
     final List<TeamEvent> teamEvents = teamEventDao.getEventList(eventFilter, true);
 
-    boolean longFormat = false;
     days = Days.daysBetween(start, end).getDays();
-    if (days < 10) {
-      // Week or day view:
-      longFormat = true;
-    }
+    // Week or day view:
+    final boolean longFormat = days < 10;
 
     final TeamCalRight right = new TeamCalRight(accessChecker);
     final PFUserDO user = ThreadLocalUserContext.getUser();
     final TimeZone timeZone = ThreadLocalUserContext.getTimeZone();
     if (CollectionUtils.isNotEmpty(teamEvents) == true) {
       for (final TeamEvent teamEvent : teamEvents) {
-        final DateTime startDate = new DateTime(teamEvent.getStartDate(), ThreadLocalUserContext.getDateTimeZone());
-        final DateTime endDate = new DateTime(teamEvent.getEndDate(), ThreadLocalUserContext.getDateTimeZone());
         final TeamEventDO eventDO;
-        final TeamCalEventId id = new TeamCalEventId(teamEvent, timeZone);
         if (teamEvent instanceof TeamEventDO) {
           eventDO = (TeamEventDO) teamEvent;
         } else {
           eventDO = ((TeamRecurrenceEvent) teamEvent).getMaster();
         }
+
+        // Use UTC for all day events to prevent date shift for timezones with negative offset
+        final DateTimeZone dateTimeZone = eventDO.isAllDay() ? DateTimeZone.forTimeZone(DateHelper.UTC) : ThreadLocalUserContext.getDateTimeZone();
+        final DateTime startDate = new DateTime(teamEvent.getStartDate(), dateTimeZone);
+        final DateTime endDate = new DateTime(teamEvent.getEndDate(), dateTimeZone);
+
+        final TeamCalEventId id = new TeamCalEventId(teamEvent, timeZone);
+
         teamEventMap.put(id.toString(), teamEvent);
         final MyWicketEvent event = new MyWicketEvent();
         event.setClassName(EVENT_CLASS_NAME + " " + EventDroppedCallbackScriptGenerator.NO_CONTEXTMENU_INDICATOR);
@@ -172,39 +178,11 @@ public class TeamCalEventProvider extends MyFullCalendarEventsProvider
 
         event.setStart(startDate);
         event.setEnd(endDate);
+        event.setTooltip(eventDO.getCalendar().getTitle(), createTooltipLabelValues(eventDO));
 
-        String recurrence = null;
-        if (eventDO.hasRecurrence() == true) {
-          final Recur recur = eventDO.getRecurrenceObject();
-          final TeamEventRecurrenceData recurrenceData = new TeamEventRecurrenceData(recur,
-              ThreadLocalUserContext.getTimeZone());
-          final RecurrenceFrequency frequency = recurrenceData.getFrequency();
-          if (frequency != null) {
-            final String unitI18nKey = frequency.getUnitI18nKey();
-            if (unitI18nKey != null) {
-              recurrence = recurrenceData.getInterval() + " " + getString(unitI18nKey);
-            }
-          }
-        }
-        String reminder = null;
-        if (eventDO.getReminderActionType() != null
-            && NumberHelper.greaterZero(eventDO.getReminderDuration()) == true
-            && eventDO.getReminderDurationUnit() != null) {
-          reminder = getString(eventDO.getReminderActionType().getI18nKey())
-              + " "
-              + eventDO.getReminderDuration()
-              + " "
-              + getString(eventDO.getReminderDurationUnit().getI18nKey());
-        }
-        event.setTooltip(eventDO.getCalendar().getTitle(), new String[][] { { eventDO.getSubject() },
-            { eventDO.getLocation(), getString("timesheet.location") },
-            { eventDO.getNote(), getString("plugins.teamcal.event.note") },
-            { recurrence, getString("plugins.teamcal.event.recurrence") },
-            { reminder, getString("plugins.teamcal.event.reminder") } });
         final String title;
         String durationString = "";
         if (longFormat == true) {
-          // String day = duration.getDays() + "";
           final Period period = new Period(startDate, endDate);
           int hourInt = period.getHours();
           if (period.getDays() > 0) {
@@ -238,9 +216,70 @@ public class TeamCalEventProvider extends MyFullCalendarEventsProvider
         } else {
           event.setTitle(title);
         }
-        events.put(id + "", event);
+        events.put(String.valueOf(id), event);
       }
     }
+  }
+
+  private String[][] createTooltipLabelValues(final TeamEventDO eventDO)
+  {
+    String recurrence = null;
+    if (eventDO.hasRecurrence() == true) {
+      final TeamEventRecurrenceData recurrenceData = eventDO.getRecurrenceData(ThreadLocalUserContext.getTimeZone());
+      final RecurrenceFrequency frequency = recurrenceData.getFrequency();
+      if (frequency != null) {
+        final String unitI18nKey = frequency.getUnitI18nKey();
+        if (unitI18nKey != null) {
+          recurrence = recurrenceData.getInterval() + " " + getString(unitI18nKey);
+        }
+      }
+    }
+
+    String reminder = null;
+    if (eventDO.getReminderActionType() != null
+        && NumberHelper.greaterZero(eventDO.getReminderDuration()) == true
+        && eventDO.getReminderDurationUnit() != null) {
+      reminder = getString(eventDO.getReminderActionType().getI18nKey())
+          + " "
+          + eventDO.getReminderDuration()
+          + " "
+          + getString(eventDO.getReminderDurationUnit().getI18nKey());
+    }
+
+    final String[][] tooltipContentWithoutAttendees = {
+        { eventDO.getSubject() },
+        { eventDO.getLocation(), getString("timesheet.location") },
+        { eventDO.getNote(), getString("plugins.teamcal.event.note") },
+        { recurrence, getString("plugins.teamcal.event.recurrence") },
+        { reminder, getString("plugins.teamcal.event.reminder") }
+    };
+
+    final List<String[]> tooltipContent = new ArrayList<>(Arrays.asList(tooltipContentWithoutAttendees));
+
+    if (eventDO.getAttendees() != null && eventDO.getAttendees().isEmpty() == false) {
+      tooltipContent.add(new String[] { getString("plugins.teamcal.attendees") + ":" });
+
+      for (TeamEventAttendeeDO teamEventAttendeeDO : eventDO.getAttendees()) {
+        final StringBuilder buf = new StringBuilder();
+        buf.append("- ");
+
+        if (teamEventAttendeeDO.getUser() != null) {
+          buf.append(teamEventAttendeeDO.getUser().getFullname());
+        } else if (teamEventAttendeeDO.getUrl() != null) {
+          buf.append(teamEventAttendeeDO.getUrl());
+        } else {
+          buf.append(teamEventAttendeeDO.getAddress().getFullName());
+        }
+
+        buf.append("  [")
+            .append(I18nHelper.getLocalizedMessage(teamEventAttendeeDO.getStatus().getI18nKey()))
+            .append("]");
+
+        tooltipContent.add(new String[] { buf.toString() });
+      }
+    }
+
+    return tooltipContent.toArray(new String[tooltipContent.size()][]);
   }
 
   public TeamEvent getTeamEvent(final String id)

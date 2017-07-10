@@ -36,7 +36,7 @@ import org.projectforge.web.wicket.bootstrap.GridBuilder;
 import org.projectforge.web.wicket.components.SingleButtonPanel;
 import org.projectforge.web.wicket.flowlayout.MyComponentsRepeater;
 
-public abstract class AbstractEditForm<O extends AbstractBaseDO<Integer>, P extends AbstractEditPage<?, ?, ?>>extends
+public abstract class AbstractEditForm<O extends AbstractBaseDO<Integer>, P extends AbstractEditPage<?, ?, ?>> extends
     AbstractSecuredForm<O, P>
 {
   public static final String UPDATE_AND_STAY_BUTTON_MARKUP_ID = "updateAndStay";
@@ -85,10 +85,13 @@ public abstract class AbstractEditForm<O extends AbstractBaseDO<Integer>, P exte
   protected O oldData;
   private AttributeAppender updateAndStayButtonClassHiddenAttributeAppender;
 
+  protected boolean ignoreErrorOnClone;
+
   public AbstractEditForm(final P parentPage, final O data)
   {
     super(parentPage);
     this.data = data;
+    this.ignoreErrorOnClone = false;
   }
 
   /**
@@ -227,7 +230,7 @@ public abstract class AbstractEditForm<O extends AbstractBaseDO<Integer>, P exte
       updateAndStayButton.setMarkupId(UPDATE_AND_STAY_BUTTON_MARKUP_ID).setOutputMarkupId(true);
 
       // This button does not need a name since it is not visible to the user.
-      updateAndStayButtonPanel = new SingleButtonPanel(actionButtons.newChildId(), updateAndStayButton, getString("save"));
+      updateAndStayButtonPanel = new SingleButtonPanel(actionButtons.newChildId(), updateAndStayButton, "");
       updateAndStayButtonClassHiddenAttributeAppender = AttributeModifier.append("class", "hidden");
       updateAndStayButtonPanel.getButton().add(updateAndStayButtonClassHiddenAttributeAppender);
       actionButtons.add(updateAndStayButtonPanel);
@@ -395,6 +398,14 @@ public abstract class AbstractEditForm<O extends AbstractBaseDO<Integer>, P exte
         {
           parentPage.cloneData();
         }
+
+        @Override
+        public void onError()
+        {
+          if (ignoreErrorOnClone) {
+            parentPage.cloneData();
+          }
+        }
       };
       final SingleButtonPanel cloneButtonPanel = new SingleButtonPanel(actionButtons.newChildId(), cloneButton,
           getString("clone"))
@@ -423,7 +434,6 @@ public abstract class AbstractEditForm<O extends AbstractBaseDO<Integer>, P exte
     updateButtonPanel.setClassnames(SingleButtonPanel.DEFAULT_SUBMIT);
     updateAndNextButtonPanel.setClassnames(SingleButtonPanel.DEFAULT_SUBMIT);
     undeleteButtonPanel.setClassnames(SingleButtonPanel.DEFAULT_SUBMIT);
-    updateAndStayButtonPanel.setClassnames(SingleButtonPanel.DEFAULT_SUBMIT);
   }
 
   /**
@@ -439,7 +449,9 @@ public abstract class AbstractEditForm<O extends AbstractBaseDO<Integer>, P exte
     return this.data;
   }
 
-  /** This class uses the logger of the extended class. */
+  /**
+   * This class uses the logger of the extended class.
+   */
   protected abstract Logger getLogger();
 
   public FeedbackPanel getFeedbackPanel()

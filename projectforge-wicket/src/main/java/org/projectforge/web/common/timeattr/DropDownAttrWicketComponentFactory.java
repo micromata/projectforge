@@ -15,8 +15,7 @@ import java.util.Map;
 
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.IChoiceRenderer;
-import org.projectforge.business.user.I18nHelper;
-import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
+import org.projectforge.framework.i18n.I18nHelper;
 import org.projectforge.web.wicket.flowlayout.ComponentWrapperPanel;
 import org.projectforge.web.wicket.flowlayout.DropDownChoicePanel;
 
@@ -26,9 +25,8 @@ import de.micromata.genome.db.jpa.tabattr.api.EntityWithAttributes;
 
 /**
  * A DropDown input field.
- * 
- * @author Florian Blumenstein
  *
+ * @author Florian Blumenstein
  */
 public class DropDownAttrWicketComponentFactory implements AttrWicketComponentFactory
 {
@@ -41,27 +39,27 @@ public class DropDownAttrWicketComponentFactory implements AttrWicketComponentFa
   {
     Map<String, String> keyValueMap = new HashMap<>();
     for (String i18nKey : i18nKeyList) {
-      String i18nValue = I18nHelper.getLocalizedString(ThreadLocalUserContext.getLocale(), i18nKey);
+      String i18nValue = I18nHelper.getLocalizedMessage(i18nKey);
       keyValueMap.put(i18nKey, i18nValue);
     }
 
     DropDownChoice<String> dropdownChoice = new DropDownChoice<>("dropDownChoice",
         new AttrModel<>(entity, desc.getPropertyName(), String.class), i18nKeyList, new IChoiceRenderer<String>()
-        {
-          private static final long serialVersionUID = 8866606967292296621L;
+    {
+      private static final long serialVersionUID = 8866606967292296621L;
 
-          @Override
-          public Object getDisplayValue(String object)
-          {
-            return keyValueMap.get(object);
-          }
+      @Override
+      public Object getDisplayValue(String object)
+      {
+        return keyValueMap.get(object);
+      }
 
-          @Override
-          public String getIdValue(String object, int index)
-          {
-            return String.valueOf(index);
-          }
-        }
+      @Override
+      public String getIdValue(String object, int index)
+      {
+        return String.valueOf(index);
+      }
+    }
     );
     setAndOutputMarkupId(dropdownChoice, group, desc);
     dropdownChoice.setRequired(desc.isRequired());

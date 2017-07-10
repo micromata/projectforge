@@ -26,12 +26,14 @@ package org.projectforge.business.user;
 import static org.testng.AssertJUnit.*;
 
 import java.io.Serializable;
+import java.util.List;
 
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
-import org.projectforge.Const;
 import org.projectforge.business.group.service.GroupService;
 import org.projectforge.business.multitenancy.TenantRegistryMap;
+import org.projectforge.business.password.PasswordQualityService;
+import org.projectforge.framework.i18n.I18nKeyAndParams;
 import org.projectforge.framework.persistence.user.entities.GroupDO;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.test.AbstractTestBase;
@@ -44,12 +46,26 @@ import org.testng.annotations.Test;
 public class UserTest extends AbstractTestBase
 {
   private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(UserTest.class);
+  private static final String STRONGOLDPW = "ja6gieyai8quie0Eey!ooS8eMonah:";
+
+  private static final String MESSAGE_KEY_PASSWORD_QUALITY_ERROR = "user.changePassword.error.passwordQualityCheck";
+
+  private static final String MESSAGE_KEY_PASSWORD_MIN_LENGTH_ERROR = "user.changePassword.error.notMinLength";
+
+  private static final String MESSAGE_KEY_PASSWORD_CHARACTER_ERROR = "user.changePassword.error.noCharacter";
+
+  private static final String MESSAGE_KEY_PASSWORD_NONCHAR_ERROR = "user.changePassword.error.noNonCharacter";
+
+  private static final String MESSAGE_KEY_PASSWORD_OLD_EQ_NEW_ERROR = "user.changePassword.error.oldPasswdEqualsNew";
 
   @Autowired
   private TransactionTemplate txTemplate;
 
   @Autowired
   private GroupService groupService;
+
+  @Autowired
+  private PasswordQualityService passwordQualityService;
 
   @Test
   public void testUserDO()
@@ -58,17 +74,16 @@ public class UserTest extends AbstractTestBase
     final PFUserDO user = userService.getByUsername(TEST_ADMIN_USER);
     assertEquals(user.getUsername(), TEST_ADMIN_USER);
     final UserGroupCache userGroupCache = TenantRegistryMap.getInstance().getTenantRegistry().getUserGroupCache();
-    final UserGroupCache cache = userGroupCache;
     final PFUserDO user1 = getUser("user1");
     final String groupnames = groupService.getGroupnames(user1.getId());
     assertEquals("Groupnames", "group1; group2", groupnames);
-    assertEquals(true, cache.isUserMemberOfGroup(user1.getId(), getGroupId("group1")));
-    assertEquals(false, cache.isUserMemberOfGroup(user1.getId(), getGroupId("group3")));
+    assertEquals(true, userGroupCache.isUserMemberOfGroup(user1.getId(), getGroupId("group1")));
+    assertEquals(false, userGroupCache.isUserMemberOfGroup(user1.getId(), getGroupId("group3")));
     final GroupDO group = groupService.getGroup(getGroupId("group1"));
     assertEquals("group1", group.getName());
     final PFUserDO admin = getUser(ADMIN);
-    assertEquals("Administrator", true, cache.isUserMemberOfAdminGroup(admin.getId()));
-    assertEquals("Not administrator", false, cache.isUserMemberOfAdminGroup(user1.getId()));
+    assertEquals("Administrator", true, userGroupCache.isUserMemberOfAdminGroup(admin.getId()));
+    assertEquals("Not administrator", false, userGroupCache.isUserMemberOfAdminGroup(user1.getId()));
   }
 
   @Test
@@ -98,19 +113,19 @@ public class UserTest extends AbstractTestBase
     assertEquals("UserTest", user.getUsername());
     assertNull(user.getPassword()); // Not SHA, should be ignored.
     assertEquals("Description", user.getDescription());
-    assertEquals(new Integer(1), user.getTenant() != null ? user.getTenant().getPk() : new Integer(-1));
+    assertEquals(Integer.valueOf(1), user.getTenant() != null ? user.getTenant().getPk() : Integer.valueOf(-1));
     user.setDescription("Description\ntest");
     user.setPassword("secret");
     userService.update(user);
     user = userService.getById(id);
     assertEquals("Description\ntest", user.getDescription());
-    assertEquals(new Integer(1), user.getTenant() != null ? user.getTenant().getPk() : new Integer(-1));
+    assertEquals(Integer.valueOf(1), user.getTenant() != null ? user.getTenant().getPk() : Integer.valueOf(-1));
     assertNull(user.getPassword()); // Not SHA, should be ignored.
     user.setPassword("SHA{...}");
     userService.update(user);
     user = userService.getById(id);
     assertEquals("SHA{...}", user.getPassword());
-    assertEquals(new Integer(1), user.getTenant() != null ? user.getTenant().getPk() : new Integer(-1));
+    assertEquals(Integer.valueOf(1), user.getTenant() != null ? user.getTenant().getPk() : Integer.valueOf(-1));
   }
 
   @Test
@@ -129,26 +144,46 @@ public class UserTest extends AbstractTestBase
     assertEquals("SHA{9B4DDF20612345C5FC7A9355022E07368CDDF23A}", dest.getPassword());
   }
 
+  /**
+   * Test password quality.
+   */
   @Test
   public void testPasswordQuality()
   {
-    assertEquals("Empty password not allowed.", Const.MESSAGE_KEY_PASSWORD_QUALITY_CHECK,
-        userService.checkPasswordQuality(null));
-    assertEquals("Password with less than 6 characters not allowed.", Const.MESSAGE_KEY_PASSWORD_QUALITY_CHECK,
-        userService
-            .checkPasswordQuality(""));
-    assertEquals("Password with less than 6 characters not allowed.", Const.MESSAGE_KEY_PASSWORD_QUALITY_CHECK,
-        userService
-            .checkPasswordQuality("o2345"));
-    assertEquals("Password must have one non letter at minimum.", Const.MESSAGE_KEY_PASSWORD_QUALITY_CHECK, userService
-        .checkPasswordQuality("ProjectForge"));
-    assertEquals("Password must have one letter at minimum.", Const.MESSAGE_KEY_PASSWORD_QUALITY_CHECK, userService
-        .checkPasswordQuality("123456"));
-    assertEquals("Password must have one letter at minimum.", Const.MESSAGE_KEY_PASSWORD_QUALITY_CHECK, userService
-        .checkPasswordQuality("1234567"));
-    assertNull("Password OK.", userService.checkPasswordQuality("kjh!id"));
-    assertNull("Password OK.", userService.checkPasswordQuality("kjh8idsf"));
-    assertNull("Password OK.", userService.checkPasswordQuality("  5 g "));
+    List<I18nKeyAndParams> passwordQualityMessages = passwordQualityService.checkPasswordQuality(STRONGOLDPW, null);
+    assertTrue("Empty password not allowed.",
+        passwordQualityMessages.contains(new I18nKeyAndParams(MESSAGE_KEY_PASSWORD_MIN_LENGTH_ERROR, 10)));
+
+    passwordQualityMessages = passwordQualityService.checkPasswordQuality(STRONGOLDPW, "");
+    assertTrue("Empty password not allowed.",
+        passwordQualityMessages.contains(new I18nKeyAndParams(MESSAGE_KEY_PASSWORD_MIN_LENGTH_ERROR, 10)));
+
+    passwordQualityMessages = passwordQualityService.checkPasswordQuality(STRONGOLDPW, "abcd12345");
+    assertTrue("Password with less than " + "10" + " characters not allowed.",
+        passwordQualityMessages.contains(new
+            I18nKeyAndParams(MESSAGE_KEY_PASSWORD_MIN_LENGTH_ERROR, 10)));
+
+    passwordQualityMessages = passwordQualityService.checkPasswordQuality(STRONGOLDPW, "ProjectForge");
+    assertTrue("Password must have one non letter at minimum.",
+        passwordQualityMessages.contains(new I18nKeyAndParams(MESSAGE_KEY_PASSWORD_NONCHAR_ERROR)));
+
+    passwordQualityMessages = passwordQualityService.checkPasswordQuality(STRONGOLDPW, "1234567890");
+    assertTrue("Password must have one non letter at minimum.",
+        passwordQualityMessages.contains(new I18nKeyAndParams(MESSAGE_KEY_PASSWORD_CHARACTER_ERROR)));
+
+    passwordQualityMessages = passwordQualityService.checkPasswordQuality(STRONGOLDPW, "12345678901");
+    assertTrue("Password must have one non letter at minimum.",
+        passwordQualityMessages.contains(new I18nKeyAndParams(MESSAGE_KEY_PASSWORD_CHARACTER_ERROR)));
+
+    passwordQualityMessages = passwordQualityService.checkPasswordQuality(STRONGOLDPW, STRONGOLDPW);
+    assertTrue("Password must New password should not be the same as the old one.",
+        passwordQualityMessages.contains(new I18nKeyAndParams(MESSAGE_KEY_PASSWORD_OLD_EQ_NEW_ERROR)));
+
+    assertTrue("Password OK.", passwordQualityService.checkPasswordQuality(STRONGOLDPW, "kabcdjh!id").isEmpty());
+
+    assertTrue("Password OK.", passwordQualityService.checkPasswordQuality(STRONGOLDPW, "kjh8iabcddsf").isEmpty());
+
+    assertTrue("Password OK.", passwordQualityService.checkPasswordQuality(STRONGOLDPW, "  5     g ").isEmpty());
   }
 
   // TODO HISTORY

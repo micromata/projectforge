@@ -44,11 +44,11 @@ import org.projectforge.business.fibu.kost.Kost2DO;
 import org.projectforge.business.task.TaskDO;
 import org.projectforge.business.task.formatter.TaskFormatter;
 import org.projectforge.business.timesheet.TimesheetDO;
-import org.projectforge.business.user.I18nHelper;
 import org.projectforge.business.vacation.service.VacationService;
 import org.projectforge.common.StringHelper;
 import org.projectforge.framework.calendar.MonthHolder;
 import org.projectforge.framework.calendar.WeekHolder;
+import org.projectforge.framework.i18n.I18nHelper;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.time.DateHolder;
 import org.projectforge.framework.time.DayHolder;
@@ -143,7 +143,11 @@ public class MonthlyEmployeeReport implements Serializable
 
   private EmployeeDO employee;
 
-  private long totalGrossDuration = 0, totalNetDuration = 0, vacationCount = 0;
+  private long totalGrossDuration = 0, totalNetDuration = 0;
+
+  private BigDecimal vacationCount = BigDecimal.ZERO;
+
+  private BigDecimal vacationPlandCount = BigDecimal.ZERO;
 
   private Integer kost1Id;
 
@@ -330,8 +334,8 @@ public class MonthlyEmployeeReport implements Serializable
     }
     if (vacationService != null && this.employee != null && this.employee.getUser() != null) {
       if (vacationService.couldUserUseVacationService(this.employee.getUser(), false)) {
-        this.vacationCount = vacationService.getAvailableVacationdaysForYear(this.employee
-            , this.year, false).longValue();
+        this.vacationCount = vacationService.getAvailableVacationDaysForYearAtDate(this.employee, this.toDate);
+        this.vacationPlandCount = vacationService.getPlandVacationDaysForYearAtDate(this.employee, this.toDate);
       }
     }
   }
@@ -469,6 +473,11 @@ public class MonthlyEmployeeReport implements Serializable
   public String getFormattedVacationCount()
   {
     return vacationCount + " " + I18nHelper.getLocalizedMessage("day");
+  }
+
+  public String getFormattedVacationPlandCount()
+  {
+    return vacationPlandCount + " " + I18nHelper.getLocalizedMessage("day");
   }
 
   public String getFormattedTotalNetDuration()

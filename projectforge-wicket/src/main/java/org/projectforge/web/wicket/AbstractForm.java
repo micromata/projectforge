@@ -41,6 +41,7 @@ import org.apache.wicket.util.lang.Bytes;
 import org.apache.wicket.util.upload.FileUploadException;
 import org.projectforge.business.multitenancy.TenantRegistry;
 import org.projectforge.business.multitenancy.TenantRegistryMap;
+import org.projectforge.framework.i18n.I18nKeyAndParams;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.web.session.MySession;
 import org.projectforge.web.wicket.bootstrap.GridBuilder;
@@ -59,7 +60,7 @@ public abstract class AbstractForm<F, P extends AbstractUnsecureBasePage> extend
 
   /**
    * Convenience method for creating a component which is in the mark-up file but should not be visible.
-   * 
+   *
    * @param wicketId
    * @return
    * @see AbstractUnsecureBasePage#createInvisibleDummyComponent(String)
@@ -111,6 +112,11 @@ public abstract class AbstractForm<F, P extends AbstractUnsecureBasePage> extend
   {
     super.onBeforeRender();
     visitChildren(shinyVisitor);
+  }
+
+  public void addError(final I18nKeyAndParams msgKeyAndParams)
+  {
+    addError(msgKeyAndParams.getKey(), msgKeyAndParams.getParams());
   }
 
   public void addError(final String msgKey)
@@ -180,7 +186,7 @@ public abstract class AbstractForm<F, P extends AbstractUnsecureBasePage> extend
 
   /**
    * For getting caches etc.
-   * 
+   *
    * @return The current tenantRegistry also for systems without tenants configured.
    */
   protected TenantRegistry getTenantRegistry()

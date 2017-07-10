@@ -27,40 +27,131 @@ import java.util.TimeZone;
 
 import org.projectforge.framework.configuration.entities.ConfigurationDO;
 
+/**
+ * Configuration parameter class.
+ */
 public enum ConfigurationParam implements IConfigurationParam
 {
+  /**
+   * System admin email.
+   */
   // Global parameters:
   SYSTEM_ADMIN_E_MAIL("systemAdministratorEMail", ConfigurationType.STRING, true), //
+  /**
+   * Message of the day configuration param.
+   */
   MESSAGE_OF_THE_DAY("messageOfTheDay", ConfigurationType.TEXT, true), //
+  /**
+   * Multi tenancy enabled configuration param.
+   */
   MULTI_TENANCY_ENABLED("admin.multiTenancyEnabled", ConfigurationType.BOOLEAN, true), //
 
+  /**
+   * The Calendar domain.
+   */
   // Tenant specific parameters:
   CALENDAR_DOMAIN("calendarDomain", ConfigurationType.STRING, false), //
+  /**
+   * Organization configuration param.
+   */
   ORGANIZATION("organization", ConfigurationType.TEXT, false), //
+  /**
+   * Default timezone configuration param.
+   */
   DEFAULT_TIMEZONE("timezone", ConfigurationType.TIME_ZONE, false, TimeZone.getDefault().getID()), //
+  /**
+   * Date formats configuration param.
+   */
   DATE_FORMATS("dateFormats", ConfigurationType.STRING, false, "MM/dd/yyyy;dd/MM/yyyy;dd.MM.yyyy;yyyy-MM-dd"), //
+  /**
+   * Excel date formats configuration param.
+   */
   EXCEL_DATE_FORMATS("excelDateFormats", ConfigurationType.STRING, false, "MM/DD/YYYY;DD/MM/YYYY;DD.MM.YYYY"), //
+  /**
+   * Feedback e mail configuration param.
+   */
   FEEDBACK_E_MAIL("feedbackEMail", ConfigurationType.STRING, false), //
+  /**
+   * Fibu default vat configuration param.
+   */
   FIBU_DEFAULT_VAT("fibu.defaultVAT", ConfigurationType.PERCENT, false), //
+  /**
+   * Cost configured configuration param.
+   */
   COST_CONFIGURED("fibu.costConfigured", ConfigurationType.BOOLEAN, false), //
+  /**
+   * Default task id 4 addresses configuration param.
+   */
   DEFAULT_TASK_ID_4_ADDRESSES("defaultTask4Addresses", ConfigurationType.TASK, false), //
+  /**
+   * Default task id 4 books configuration param.
+   */
   DEFAULT_TASK_ID_4_BOOKS("defaultTask4Books", ConfigurationType.TASK, false), //
+  /**
+   * Default country phone prefix configuration param.
+   */
   DEFAULT_COUNTRY_PHONE_PREFIX("countryPhonePrefix", ConfigurationType.STRING, false, "+49"), //
+  /**
+   * Meb sms receiving phone number configuration param.
+   */
   MEB_SMS_RECEIVING_PHONE_NUMBER("mebSMSReceivingPhoneNumber", ConfigurationType.STRING, false), //
+  /**
+   * Plugin activated configuration param.
+   */
   PLUGIN_ACTIVATED("pluginsActivated", ConfigurationType.STRING, true), //
+  /**
+   * Hr mailaddress configuration param.
+   */
   HR_MAILADDRESS("hr.emailaddress", ConfigurationType.STRING, true),//
-  END_DATE_VACATION_LASTR_YEAR("vacation.lastyear.enddate", ConfigurationType.STRING, true, "31.03.");
-
-  private String key;
-
-  private ConfigurationType type;
-
-  private String defaultStringValue;
-
-  private boolean global;
+  /**
+   * Vacation cal id configuration param.
+   */
+  VACATION_CAL_ID("vacation.cal.id", ConfigurationType.CALENDAR, true),//
+  /**
+   * End date vacation lastr year configuration param.
+   */
+  END_DATE_VACATION_LASTR_YEAR("vacation.lastyear.enddate", ConfigurationType.STRING, true, "31.03."),
+  /**
+   * Minimum password length configuration param.
+   */
+  MIN_PASSWORD_LENGTH("minPasswordLength", ConfigurationType.INTEGER, true, 10),
+  /**
+   * Password Flag Check - configuration, that passwords will be checked that passwords have to change each time a new one is entered.
+   */
+  PASSWORD_FLAG_CHECK_CHANGE("password.flag.checkChange", ConfigurationType.BOOLEAN, true, true);
 
   /**
-   * The key will be used e. g. for i18n.
+   * Key.
+   */
+  private final String key;
+
+  /**
+   * Configuration Type.
+   */
+  private final ConfigurationType type;
+
+  /**
+   * Default string value.
+   */
+  private final String defaultStringValue;
+
+  /**
+   * Default int value.
+   */
+  private final int defaultIntValue;
+
+  /**
+   * Default boolean value.
+   */
+  private final boolean defaultBooleanValue;
+
+  /**
+   * Global.
+   */
+  private final boolean global;
+
+  /**
+   * Key will be used e. g. for i18n.
    *
    * @return
    */
@@ -91,6 +182,18 @@ public enum ConfigurationParam implements IConfigurationParam
     return defaultStringValue;
   }
 
+  @Override
+  public int getDefaultIntValue()
+  {
+    return defaultIntValue;
+  }
+
+  @Override
+  public boolean getDefaultBooleanValue()
+  {
+    return defaultBooleanValue;
+  }
+
   /**
    * @return The full i18n key including the i18n prefix "administration.configuration.param." and the suffix
    * ".description".
@@ -111,17 +214,77 @@ public enum ConfigurationParam implements IConfigurationParam
     return global;
   }
 
+  /**
+   * Instantiates a new Configuration param.
+   *
+   * @param key    the key
+   * @param type   the type
+   * @param global the global
+   */
   ConfigurationParam(final String key, final ConfigurationType type, final boolean global)
   {
     this(key, type, global, null);
   }
 
-  ConfigurationParam(final String key, final ConfigurationType type, final boolean global,
-      final String defaultStringValue)
+  /**
+   * Instantiates a new Configuration param.
+   *
+   * @param key                the key
+   * @param type               the type
+   * @param global             the global
+   * @param defaultStringValue the default string value
+   */
+  ConfigurationParam(final String key, final ConfigurationType type, final boolean global, final String defaultStringValue)
+  {
+    this(key, type, global, defaultStringValue, 0, false);
+
+  }
+
+  /**
+   * Instantiates a new Configuration param.
+   *
+   * @param key             the key
+   * @param type            the type
+   * @param global          the global
+   * @param defaultIntValue the default int value
+   */
+  ConfigurationParam(final String key, final ConfigurationType type, final boolean global, final int defaultIntValue)
+  {
+    this(key, type, global, null, defaultIntValue, false);
+  }
+
+  /**
+   * Instantiates a new Configuration param.
+   *
+   * @param key                 the key
+   * @param type                the type
+   * @param global              the global
+   * @param defaultBooleanValue the default boolean value
+   */
+  ConfigurationParam(final String key, final ConfigurationType type, final boolean global, final boolean defaultBooleanValue)
+  {
+    this(key, type, global, null, 0, defaultBooleanValue);
+  }
+
+  /**
+   * Instantiates a new Configuration param.
+   *
+   * @param key                 the key
+   * @param type                the type
+   * @param global              the global
+   * @param defaultStringValue  the default string value
+   * @param defaultIntValue     the default int value
+   * @param defaultBooleanValue the default boolean value
+   */
+  ConfigurationParam(final String key, final ConfigurationType type, final boolean global, final String defaultStringValue, final int defaultIntValue,
+      final boolean defaultBooleanValue)
+
   {
     this.key = key;
     this.type = type;
     this.global = global;
     this.defaultStringValue = defaultStringValue;
+    this.defaultIntValue = defaultIntValue;
+    this.defaultBooleanValue = defaultBooleanValue;
   }
 }

@@ -20,18 +20,20 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.ResourceModel;
 import org.projectforge.business.configuration.ConfigurationService;
 import org.projectforge.business.fibu.EmployeeDO;
-import org.projectforge.business.user.I18nHelper;
 import org.projectforge.business.vacation.model.VacationAttrProperty;
 import org.projectforge.business.vacation.model.VacationDO;
 import org.projectforge.business.vacation.model.VacationStatus;
 import org.projectforge.business.vacation.service.VacationService;
+import org.projectforge.framework.i18n.I18nHelper;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.time.DateTimeFormatter;
 import org.projectforge.web.vacation.VacationEditPage;
 import org.projectforge.web.vacation.VacationViewPageSortableDataProvider;
 import org.projectforge.web.wicket.CellItemListener;
+import org.projectforge.web.wicket.CellItemListenerLambdaColumn;
 import org.projectforge.web.wicket.CellItemListenerPropertyColumn;
 import org.projectforge.web.wicket.ListSelectActionPanel;
 import org.projectforge.web.wicket.WicketUtils;
@@ -84,6 +86,21 @@ public class VacationViewHelper
     appendFieldset(sectionLeftGridBuilder, "vacation.plannedvacation", plannedVacation.toString());
 
     BigDecimal availableVacation = subtotal1.subtract(plannedVacation).subtract(approvedVacationdays);
+
+    //Needed for left and middle part
+    BigDecimal vacationdaysPreviousYearUsed =
+        currentEmployee.getAttribute(VacationAttrProperty.PREVIOUSYEARLEAVEUSED.getPropertyName(), BigDecimal.class) != null ?
+            currentEmployee.getAttribute(VacationAttrProperty.PREVIOUSYEARLEAVEUSED.getPropertyName(), BigDecimal.class) : BigDecimal.ZERO;
+    BigDecimal vacationdaysPreviousYearUnused = vacationdaysPreviousYear.subtract(vacationdaysPreviousYearUsed);
+    String endDatePreviousYearVacationString =
+        endDatePreviousYearVacation.get(Calendar.DAY_OF_MONTH) + "." + (endDatePreviousYearVacation.get(Calendar.MONTH) + 1) + ".";
+
+    //If previousyearleaveunused > 0, then extend left area and display new row
+    if (vacationdaysPreviousYearUnused.compareTo(BigDecimal.ZERO) > 0 && now.after(endDatePreviousYearVacation)) {
+      appendFieldset(sectionLeftGridBuilder, "vacation.previousyearleaveunused", vacationdaysPreviousYearUnused.toString(),
+          endDatePreviousYearVacationString);
+      availableVacation = availableVacation.subtract(vacationdaysPreviousYearUnused);
+    }
     appendFieldset(sectionLeftGridBuilder, "vacation.availablevacation", availableVacation.toString());
 
     //middel
@@ -91,14 +108,8 @@ public class VacationViewHelper
     DivPanel sectionMiddle = sectionMiddleGridBuilder.getPanel();
     sectionMiddle.add(new Heading1Panel(sectionMiddle.newChildId(), I18nHelper.getLocalizedMessage("menu.vacation.lastyear")));
 
-    BigDecimal vacationdaysPreviousYearUsed =
-        currentEmployee.getAttribute(VacationAttrProperty.PREVIOUSYEARLEAVEUSED.getPropertyName(), BigDecimal.class) != null ?
-            currentEmployee.getAttribute(VacationAttrProperty.PREVIOUSYEARLEAVEUSED.getPropertyName(), BigDecimal.class) : BigDecimal.ZERO;
     appendFieldset(sectionMiddleGridBuilder, "vacation.previousyearleaveused", vacationdaysPreviousYearUsed.toString());
 
-    BigDecimal vacationdaysPreviousYearUnused = vacationdaysPreviousYear.subtract(vacationdaysPreviousYearUsed);
-    String endDatePreviousYearVacationString =
-        endDatePreviousYearVacation.get(Calendar.DAY_OF_MONTH) + "." + (endDatePreviousYearVacation.get(Calendar.MONTH) + 1) + ".";
     appendFieldset(sectionMiddleGridBuilder, "vacation.previousyearleaveunused", vacationdaysPreviousYearUnused.toString(),
         endDatePreviousYearVacationString);
 
@@ -174,9 +185,13 @@ public class VacationViewHelper
       }
     });
 
-    columns.add(new CellItemListenerPropertyColumn<VacationDO>(VacationDO.class, "endDate", "endDate", cellItemListener));
-    columns.add(new CellItemListenerPropertyColumn<VacationDO>(VacationDO.class, "status", "status", cellItemListener));
-    columns.add(new CellItemListenerPropertyColumn<VacationDO>(VacationDO.class, "workingdays", "workingdays", cellItemListener));
+    columns.add(new CellItemListenerPropertyColumn<>(VacationDO.class, "endDate", "endDate", cellItemListener));
+    columns.add(new CellItemListenerPropertyColumn<>(VacationDO.class, "status", "status", cellItemListener));
+    columns.add(new CellItemListenerLambdaColumn<>(new ResourceModel("vacation.workingdays"),
+        rowModel -> vacationService.getVacationDays(rowModel.getObject().getStartDate(), rowModel.getObject().getEndDate(), rowModel.getObject().getHalfDay()),
+        cellItemListener)
+    );
+
     columns.add(new CellItemListenerPropertyColumn<VacationDO>(VacationDO.class, "isSpecial", "isSpecial", cellItemListener)
     {
       @Override
@@ -200,7 +215,7 @@ public class VacationViewHelper
     if (StringUtils.isBlank(value) == true) {
       return false;
     }
-    final FieldsetPanel fs = gridBuilder.newFieldset(I18nHelper.getLocalizedMessage(label, labelParameters)).suppressLabelForWarning();
+    final FieldsetPanel fs = gridBuilder.newFieldset(I18nHelper.getLocalizedMessage(label, (Object[]) labelParameters)).suppressLabelForWarning();
     DivTextPanel divTextPanel = new DivTextPanel(fs.newChildId(), value);
     WebMarkupContainer fieldset = fs.getFieldset();
     fieldset.add(AttributeAppender.append("class", "vacationPanel"));

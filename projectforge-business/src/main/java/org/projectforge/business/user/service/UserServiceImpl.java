@@ -4,23 +4,25 @@ import java.io.Serializable;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.TreeSet;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
-import org.projectforge.Const;
 import org.projectforge.business.configuration.ConfigurationService;
 import org.projectforge.business.login.Login;
 import org.projectforge.business.login.PasswordCheckResult;
 import org.projectforge.business.multitenancy.TenantRegistryMap;
+import org.projectforge.business.password.PasswordQualityService;
 import org.projectforge.business.user.UserDao;
 import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.business.user.UsersComparator;
 import org.projectforge.common.StringHelper;
 import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.configuration.SecurityConfig;
+import org.projectforge.framework.i18n.I18nKeyAndParams;
 import org.projectforge.framework.persistence.api.ModificationStatus;
 import org.projectforge.framework.persistence.history.HistoryBaseDaoAdapter;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
@@ -53,6 +55,9 @@ public class UserServiceImpl implements UserService
 
   @Autowired
   private AccessChecker accessChecker;
+
+  @Autowired
+  private PasswordQualityService passwordQualityService;
 
   private final UsersComparator usersComparator = new UsersComparator();
 
@@ -165,10 +170,15 @@ public class UserServiceImpl implements UserService
   public String getCachedAuthenticationToken(final Integer userId)
   {
     final PFUserDO user = getUserGroupCache().getUser(userId);
+    if (user == null) {
+      return null;
+    }
+
     final String authenticationToken = user.getAuthenticationToken();
     if (StringUtils.isBlank(authenticationToken) == false && authenticationToken.trim().length() >= 10) {
       return authenticationToken;
     }
+
     return userDao.getAuthenticationToken(userId);
   }
 
@@ -178,6 +188,7 @@ public class UserServiceImpl implements UserService
    * @return The decrypted string.
    * @see Crypt#decrypt(String, String)
    */
+  @Override
   public String decrypt(final Integer userId, final String encryptedString)
   {
     // final PFUserDO user = userCache.getUser(userId); // for faster access (due to permanent usage e. g. by subscription of calendars
@@ -208,6 +219,7 @@ public class UserServiceImpl implements UserService
    * @return
    * @see #encrypt(Integer, String)
    */
+  @Override
   public String encrypt(final String data)
   {
     return encrypt(ThreadLocalUserContext.getUserId(), data);
@@ -233,6 +245,7 @@ public class UserServiceImpl implements UserService
    * @param password as clear text.
    * @see Crypt#digest(String)
    */
+  @Override
   public void createEncryptedPassword(final PFUserDO user, final String password)
   {
     final String saltString = createSaltString();
@@ -255,26 +268,30 @@ public class UserServiceImpl implements UserService
    * @param newPassword
    * @return Error message key if any check failed or null, if successfully changed.
    */
+  @Override
   @Transactional(readOnly = false, propagation = Propagation.REQUIRED)
-  public String changePassword(PFUserDO user, final String oldPassword, final String newPassword)
+  public List<I18nKeyAndParams> changePassword(PFUserDO user, final String oldPassword, final String newPassword)
   {
     Validate.notNull(user);
     Validate.notNull(oldPassword);
     Validate.notNull(newPassword);
-    final String errorMsgKey = checkPasswordQuality(newPassword);
-    if (errorMsgKey != null) {
-      return errorMsgKey;
+
+    final List<I18nKeyAndParams> errorMsgKeys = passwordQualityService.checkPasswordQuality(oldPassword, newPassword);
+    if (errorMsgKeys.isEmpty() == false) {
+      return errorMsgKeys;
     }
+
     accessChecker.checkRestrictedOrDemoUser();
     user = getUser(user.getUsername(), oldPassword, false);
     if (user == null) {
-      return MESSAGE_KEY_OLD_PASSWORD_WRONG;
+      return Collections.singletonList(new I18nKeyAndParams(MESSAGE_KEY_OLD_PASSWORD_WRONG));
     }
+
     createEncryptedPassword(user, newPassword);
     onPasswordChange(user, true);
     Login.getInstance().passwordChanged(user, newPassword);
     log.info("Password changed and stay-logged-key renewed for user: " + user.getId() + " - " + user.getUsername());
-    return null;
+    return Collections.emptyList();
   }
 
   /**
@@ -285,56 +302,29 @@ public class UserServiceImpl implements UserService
    * @param newWlanPassword
    * @return Error message key if any check failed or null, if successfully changed.
    */
+  @Override
   @Transactional(readOnly = false, propagation = Propagation.REQUIRED)
-  public String changeWlanPassword(PFUserDO user, final String loginPassword, final String newWlanPassword)
+  public List<I18nKeyAndParams> changeWlanPassword(PFUserDO user, final String loginPassword, final String newWlanPassword)
   {
     Validate.notNull(user);
     Validate.notNull(loginPassword);
     Validate.notNull(newWlanPassword);
 
-    final String errorMsgKey = checkPasswordQuality(newWlanPassword);
-    if (errorMsgKey != null) {
-      return errorMsgKey;
+    final List<I18nKeyAndParams> errorMsgKeys = passwordQualityService.checkPasswordQuality(newWlanPassword);
+    if (errorMsgKeys.isEmpty() == false) {
+      return errorMsgKeys;
     }
 
     accessChecker.checkRestrictedOrDemoUser();
     user = getUser(user.getUsername(), loginPassword, false); // get user from DB to persist the change of the wlan password time
     if (user == null) {
-      return MESSAGE_KEY_LOGIN_PASSWORD_WRONG;
+      return Collections.singletonList(new I18nKeyAndParams(MESSAGE_KEY_LOGIN_PASSWORD_WRONG));
     }
 
     onWlanPasswordChange(user, true); // set last change time and creaty history entry
     Login.getInstance().wlanPasswordChanged(user, newWlanPassword); // change the wlan password
     log.info("WLAN Password changed for user: " + user.getId() + " - " + user.getUsername());
-    return null;
-  }
-
-  /**
-   * Checks the password quality of a new password. Password must have at least 6 characters and at minimum one letter
-   * and one non-letter character.
-   *
-   * @param newPassword
-   * @return null if password quality is OK, otherwise the i18n message key of the password check failure.
-   */
-  public String checkPasswordQuality(final String newPassword)
-  {
-    boolean letter = false;
-    boolean nonLetter = false;
-    if (newPassword == null || newPassword.length() < 6) {
-      return Const.MESSAGE_KEY_PASSWORD_QUALITY_CHECK;
-    }
-    for (int i = 0; i < newPassword.length(); i++) {
-      final char ch = newPassword.charAt(i);
-      if (letter == false && Character.isLetter(ch) == true) {
-        letter = true;
-      } else if (nonLetter == false && Character.isLetter(ch) == false) {
-        nonLetter = true;
-      }
-    }
-    if (letter == true && nonLetter == true) {
-      return null;
-    }
-    return Const.MESSAGE_KEY_PASSWORD_QUALITY_CHECK;
+    return Collections.emptyList();
   }
 
   @Override
@@ -403,6 +393,7 @@ public class UserServiceImpl implements UserService
    * @param password as clear text.
    * @return true if the password matches the user's password.
    */
+  @Override
   public PasswordCheckResult checkPassword(final PFUserDO user, final String password)
   {
     if (user == null) {
@@ -452,6 +443,7 @@ public class UserServiceImpl implements UserService
    * @param userId
    * @return
    */
+  @Override
   @Transactional(readOnly = false, propagation = Propagation.REQUIRED)
   public String getStayLoggedInKey(final Integer userId)
   {
@@ -466,6 +458,7 @@ public class UserServiceImpl implements UserService
   /**
    * Renews the user's stay-logged-in key (random string sequence).
    */
+  @Override
   @Transactional(readOnly = false, propagation = Propagation.REQUIRED)
   public void renewStayLoggedInKey(final Integer userId)
   {
@@ -481,11 +474,8 @@ public class UserServiceImpl implements UserService
 
   /**
    * Ohne Zugangsbegrenzung. Wird bei Anmeldung benötigt.
-   *
-   * @param username
-   * @param encryptedPassword
-   * @return
    */
+  @Override
   public PFUserDO authenticateUser(final String username, final String password)
   {
     Validate.notNull(username);
@@ -591,6 +581,7 @@ public class UserServiceImpl implements UserService
     return null;
   }
 
+  @Override
   public String[] getPersonalPhoneIdentifiers(final PFUserDO user)
   {
     final String[] tokens = StringUtils.split(user.getPersonalPhoneIdentifiers(), ", ;|");

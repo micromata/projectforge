@@ -48,12 +48,12 @@ import org.projectforge.business.systeminfo.SystemDao;
 import org.projectforge.business.task.TaskDO;
 import org.projectforge.business.task.TaskTree;
 import org.projectforge.business.tasktree.TaskTreeHelper;
-import org.projectforge.business.user.I18nHelper;
 import org.projectforge.business.user.UserXmlPreferencesCache;
 import org.projectforge.business.user.UserXmlPreferencesMigrationDao;
 import org.projectforge.framework.configuration.ConfigXml;
 import org.projectforge.framework.configuration.Configuration;
 import org.projectforge.framework.configuration.ConfigurationParam;
+import org.projectforge.framework.i18n.I18nHelper;
 import org.projectforge.framework.persistence.api.ReindexSettings;
 import org.projectforge.framework.persistence.database.DatabaseUpdateService;
 import org.projectforge.framework.persistence.history.HibernateSearchReindexer;
@@ -121,6 +121,13 @@ public class AdminPage extends AbstractStandardFormPage implements ISelectCaller
 
   private final AdminForm form;
 
+  @Override
+  protected void onBeforeRender()
+  {
+    super.onBeforeRender();
+    checkAccess();
+  }
+
   public AdminPage(final PageParameters parameters)
   {
     super(parameters);
@@ -155,7 +162,7 @@ public class AdminPage extends AbstractStandardFormPage implements ISelectCaller
     final ContentMenuEntryPanel rereadConfigurationLinkMenuItem = new ContentMenuEntryPanel(
         configurationMenu.newSubMenuChildId(),
         rereadConfigurationLink, getString("system.admin.button.rereadConfiguration"))
-            .setTooltip(getString("system.admin.button.rereadConfiguration.tooltip"));
+        .setTooltip(getString("system.admin.button.rereadConfiguration.tooltip"));
     configurationMenu.addSubMenuEntry(rereadConfigurationLinkMenuItem);
 
     // Export configuration.
@@ -170,7 +177,7 @@ public class AdminPage extends AbstractStandardFormPage implements ISelectCaller
     final ContentMenuEntryPanel exportConfigurationLinkMenuItem = new ContentMenuEntryPanel(
         configurationMenu.newSubMenuChildId(),
         exportConfigurationLink, getString("system.admin.button.exportConfiguration"))
-            .setTooltip(getString("system.admin.button.exportConfiguration.tooltip"));
+        .setTooltip(getString("system.admin.button.exportConfiguration.tooltip"));
     configurationMenu.addSubMenuEntry(exportConfigurationLinkMenuItem);
   }
 
@@ -193,7 +200,7 @@ public class AdminPage extends AbstractStandardFormPage implements ISelectCaller
     final ContentMenuEntryPanel refreshCachesLinkMenuItem = new ContentMenuEntryPanel(cachesMenu.newSubMenuChildId(),
         refreshCachesLink,
         getString("system.admin.button.refreshCaches"))
-            .setTooltip(getString("system.admin.button.refreshCaches.tooltip"));
+        .setTooltip(getString("system.admin.button.refreshCaches.tooltip"));
     cachesMenu.addSubMenuEntry(refreshCachesLinkMenuItem);
   }
 
@@ -216,7 +223,7 @@ public class AdminPage extends AbstractStandardFormPage implements ISelectCaller
     final ContentMenuEntryPanel updateUserPrefsLinkMenuItem = new ContentMenuEntryPanel(
         databaseActionsMenu.newSubMenuChildId(),
         updateUserPrefsLink, getString("system.admin.button.updateUserPrefs"))
-            .setTooltip(getString("system.admin.button.updateUserPrefs.tooltip"));
+        .setTooltip(getString("system.admin.button.updateUserPrefs.tooltip"));
     databaseActionsMenu.addSubMenuEntry(updateUserPrefsLinkMenuItem);
 
     // Create missing data-base indices.
@@ -231,7 +238,7 @@ public class AdminPage extends AbstractStandardFormPage implements ISelectCaller
     final ContentMenuEntryPanel createMissingDatabaseIndicesLinkMenuItem = new ContentMenuEntryPanel(
         databaseActionsMenu.newSubMenuChildId(), createMissingDatabaseIndicesLink,
         getString("system.admin.button.createMissingDatabaseIndices"))
-            .setTooltip(getString("system.admin.button.createMissingDatabaseIndices.tooltip"));
+        .setTooltip(getString("system.admin.button.createMissingDatabaseIndices.tooltip"));
     databaseActionsMenu.addSubMenuEntry(createMissingDatabaseIndicesLinkMenuItem);
     {
       // Dump data-base.
@@ -246,7 +253,7 @@ public class AdminPage extends AbstractStandardFormPage implements ISelectCaller
       final ContentMenuEntryPanel dumpDatabaseLinkMenuItem = new ContentMenuEntryPanel(
           databaseActionsMenu.newSubMenuChildId(),
           dumpDatabaseLink, getString("system.admin.button.dump"))
-              .setTooltip(getString("system.admin.button.dump.tooltip"));
+          .setTooltip(getString("system.admin.button.dump.tooltip"));
       databaseActionsMenu.addSubMenuEntry(dumpDatabaseLinkMenuItem);
       dumpDatabaseLink.add(WicketUtils.javaScriptConfirmDialogOnClick(getString("system.admin.button.dump.question")));
     }
@@ -263,7 +270,7 @@ public class AdminPage extends AbstractStandardFormPage implements ISelectCaller
       final ContentMenuEntryPanel schemaExportLinkMenuItem = new ContentMenuEntryPanel(
           databaseActionsMenu.newSubMenuChildId(),
           schemaExportLink, getString("system.admin.button.schemaExport"))
-              .setTooltip(getString("system.admin.button.schemaExport.tooltip"));
+          .setTooltip(getString("system.admin.button.schemaExport.tooltip"));
       databaseActionsMenu.addSubMenuEntry(schemaExportLinkMenuItem);
     }
   }
@@ -287,7 +294,7 @@ public class AdminPage extends AbstractStandardFormPage implements ISelectCaller
     final ContentMenuEntryPanel checkSystemIntegrityLinkMenuItem = new ContentMenuEntryPanel(
         miscChecksMenu.newSubMenuChildId(),
         checkSystemIntegrityLink, getString("system.admin.button.checkSystemIntegrity"))
-            .setTooltip(getString("system.admin.button.checkSystemIntegrity.tooltip"));
+        .setTooltip(getString("system.admin.button.checkSystemIntegrity.tooltip"));
     miscChecksMenu.addSubMenuEntry(checkSystemIntegrityLinkMenuItem);
   }
 
@@ -313,7 +320,7 @@ public class AdminPage extends AbstractStandardFormPage implements ISelectCaller
     };
     final ContentMenuEntryPanel checkUnseenMebMailsLinkMenuItem = new ContentMenuEntryPanel(mebMenu.newSubMenuChildId(),
         checkUnseenMebMailsLink, getString("system.admin.button.checkUnseenMebMails"))
-            .setTooltip(getString("system.admin.button.checkUnseenMebMails.tooltip"));
+        .setTooltip(getString("system.admin.button.checkUnseenMebMails.tooltip"));
     mebMenu.addSubMenuEntry(checkUnseenMebMailsLinkMenuItem);
 
     // Import all meb mails.
@@ -327,7 +334,7 @@ public class AdminPage extends AbstractStandardFormPage implements ISelectCaller
     };
     final ContentMenuEntryPanel importAllMebMailsLinkMenuItem = new ContentMenuEntryPanel(mebMenu.newSubMenuChildId(),
         importAllMebMailsLink, getString("system.admin.button.importAllMebMails"))
-            .setTooltip(getString("system.admin.button.importAllMebMails.tooltip"));
+        .setTooltip(getString("system.admin.button.importAllMebMails.tooltip"));
     mebMenu.addSubMenuEntry(importAllMebMailsLinkMenuItem);
   }
 
@@ -353,7 +360,7 @@ public class AdminPage extends AbstractStandardFormPage implements ISelectCaller
     final ContentMenuEntryPanel checkI18nPropertiesLinkMenuItem = new ContentMenuEntryPanel(
         developmentMenu.newSubMenuChildId(),
         checkI18nPropertiesLink, getString("system.admin.button.checkI18nProperties"))
-            .setTooltip(getString("system.admin.button.checkI18nProperties.tooltip"));
+        .setTooltip(getString("system.admin.button.checkI18nProperties.tooltip"));
     developmentMenu.addSubMenuEntry(checkI18nPropertiesLinkMenuItem);
     // Create test objects
     final Link<Void> createTestObjectsLink = new Link<Void>(ContentMenuEntryPanel.LINK_ID)

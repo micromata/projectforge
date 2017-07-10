@@ -39,11 +39,11 @@ import org.projectforge.business.fibu.EmployeeDO;
 import org.projectforge.business.fibu.EmployeeTimedDO;
 import org.projectforge.business.fibu.Gender;
 import org.projectforge.business.fibu.api.EmployeeService;
-import org.projectforge.business.user.I18nHelper;
 import org.projectforge.business.user.UserRightId;
 import org.projectforge.business.vacation.model.VacationAttrProperty;
 import org.projectforge.business.vacation.service.VacationService;
 import org.projectforge.framework.access.AccessChecker;
+import org.projectforge.framework.i18n.I18nHelper;
 import org.projectforge.framework.persistence.attr.impl.GuiAttrSchemaService;
 import org.projectforge.web.common.BicValidator;
 import org.projectforge.web.common.IbanValidator;
@@ -344,7 +344,7 @@ public class EmployeeEditForm extends AbstractEditForm<EmployeeDO, EmployeeEditP
     if (isNew() == false && vacationService.couldUserUseVacationService(data.getUser(), false)) {
       GridBuilder vacationGridBuilder = tabPanel.getOrCreateTab("vacation");
       vacationViewHelper.createVacationView(vacationGridBuilder, data, accessChecker
-          .hasLoggedInUserWriteAccess(UserRightId.HR_VACATION, false), this.getReturnToPage());
+          .hasLoggedInUserWriteAccess(UserRightId.HR_VACATION, false), parentPage);
     }
 
   }

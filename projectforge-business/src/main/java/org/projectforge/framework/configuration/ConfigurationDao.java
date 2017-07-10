@@ -52,9 +52,8 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * Configuration values persistet in the data base. Please access the configuration parameters via
  * {@link AbstractConfiguration}.
- * 
- * @author Kai Reinhard (k.reinhard@micromata.de)
  *
+ * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 @Repository
 public class ConfigurationDao extends BaseDao<ConfigurationDO>
@@ -72,14 +71,14 @@ public class ConfigurationDao extends BaseDao<ConfigurationDO>
 
   /**
    * Force reload of the Configuration cache.
-   * 
+   *
    * @see org.projectforge.framework.persistence.api.BaseDao#afterSaveOrModify(ExtendedBaseDO)
    * @see AbstractConfiguration#setExpired()
    */
   @Override
   protected void afterSaveOrModify(final ConfigurationDO obj)
   {
-    if (obj.getConfigurationType() == ConfigurationParam.MULTI_TENANCY_ENABLED.getType()
+    if (obj.getParameter().equals(ConfigurationParam.MULTI_TENANCY_ENABLED.getKey())
         && obj.getBooleanValue() == true) {
       // Enable current logged in user as super admin user.
       final Integer adminUserId = ThreadLocalUserContext.getUserId();
@@ -130,6 +129,11 @@ public class ConfigurationDao extends BaseDao<ConfigurationDO>
     return list.get(0);
   }
 
+  public Object getValue(final IConfigurationParam parameter)
+  {
+    return getValue(parameter, getEntry(parameter));
+  }
+
   public Object getValue(final IConfigurationParam parameter, final ConfigurationDO configurationDO)
   {
     if (parameter.getType().isIn(ConfigurationType.STRING, ConfigurationType.TEXT) == true) {
@@ -163,6 +167,12 @@ public class ConfigurationDao extends BaseDao<ConfigurationDO>
       }
       final Integer taskId = configurationDO.getTaskId();
       return taskId;
+    } else if (parameter.getType() == ConfigurationType.CALENDAR) {
+      if (configurationDO == null) {
+        return null;
+      }
+      final Integer calendarId = configurationDO.getCalendarId();
+      return calendarId;
     } else if (parameter.getType() == ConfigurationType.TIME_ZONE) {
       String timezoneId = configurationDO != null ? configurationDO.getTimeZoneId() : null;
       if (timezoneId == null) {
@@ -195,10 +205,11 @@ public class ConfigurationDao extends BaseDao<ConfigurationDO>
     throw new UnsupportedOperationException();
   }
 
-  private void checkAndUpdateDatabaseEntry(final IConfigurationParam param, final List<ConfigurationDO> list,
-      final Set<String> params)
+  private void checkAndUpdateDatabaseEntry(final IConfigurationParam param, final List<ConfigurationDO> list, final Set<String> params)
   {
     params.add(param.getKey());
+
+    // find the entry and update it
     for (final ConfigurationDO configuration : list) {
       if (param.getKey().equals(configuration.getParameter()) == true) {
         boolean modified = false;
@@ -223,6 +234,7 @@ public class ConfigurationDao extends BaseDao<ConfigurationDO>
         return;
       }
     }
+
     // Entry does not exist: Create entry:
     log.info("Entry does not exist. Creating parameter '" + param.getKey() + "'.");
     final ConfigurationDO configuration = new ConfigurationDO();
@@ -231,6 +243,12 @@ public class ConfigurationDao extends BaseDao<ConfigurationDO>
     configuration.setGlobal(param.isGlobal());
     if (param.getType().isIn(ConfigurationType.STRING, ConfigurationType.TEXT) == true) {
       configuration.setValue(param.getDefaultStringValue());
+    }
+    if (param.getType().isIn(ConfigurationType.INTEGER)) {
+      configuration.setIntValue(param.getDefaultIntValue());
+    }
+    if (param.getType().isIn(ConfigurationType.BOOLEAN)) {
+      configuration.setStringValue(String.valueOf(param.getDefaultBooleanValue()));
     }
     internalSave(configuration);
   }

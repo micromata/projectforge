@@ -44,7 +44,7 @@ public class Kost2DOConverter
   private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(Kost2DOConverter.class);
 
   @Autowired
-  Kost2Dao kost2Dao;
+  private Kost2Dao kost2Dao;
 
   public Cost2Object getCost2Object(Kost2DO kost2DO)
   {

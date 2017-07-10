@@ -23,12 +23,12 @@
 
 package org.projectforge.framework.configuration;
 
-
 public enum ConfigurationType
 {
-  STRING, TEXT, INTEGER, FLOAT, BOOLEAN, PERCENT, TASK, TIME_ZONE;
-  
-  public boolean isIn(final ConfigurationType...configurationTypes) {
+  STRING, TEXT, INTEGER, FLOAT, BOOLEAN, PERCENT, TASK, TIME_ZONE, CALENDAR;
+
+  public boolean isIn(final ConfigurationType... configurationTypes)
+  {
     for (ConfigurationType type : configurationTypes) {
       if (this == type) {
         return true;

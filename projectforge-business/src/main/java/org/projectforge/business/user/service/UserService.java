@@ -6,6 +6,7 @@ import java.util.List;
 
 import org.projectforge.business.login.PasswordCheckResult;
 import org.projectforge.business.user.UserDao;
+import org.projectforge.framework.i18n.I18nKeyAndParams;
 import org.projectforge.framework.persistence.api.ModificationStatus;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 
@@ -36,17 +37,15 @@ public interface UserService
 
   void renewStayLoggedInKey(Integer id);
 
-  String checkPasswordQuality(String passwordInput);
-
   void createEncryptedPassword(PFUserDO passwordUser, String passwordInput);
 
   PFUserDO getByUsername(String username);
 
   PasswordCheckResult checkPassword(PFUserDO user, String password);
 
-  String changePassword(PFUserDO user, String oldPassword, String newPassword);
+  List<I18nKeyAndParams> changePassword(PFUserDO user, String oldPassword, String newPassword);
 
-  String changeWlanPassword(PFUserDO user, String loginPassword, String newWlanPassword);
+  List<I18nKeyAndParams> changeWlanPassword(PFUserDO user, String loginPassword, String newWlanPassword);
 
   Integer save(PFUserDO user);
 

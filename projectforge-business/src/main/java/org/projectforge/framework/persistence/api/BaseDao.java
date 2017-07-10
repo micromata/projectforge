@@ -109,15 +109,15 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
   /**
    * DEBUG flag. remove later
    */
-  public static boolean NO_UPDATE_MAGIC = true;
+  public static final boolean NO_UPDATE_MAGIC = true;
   /**
    * DEBUG flag. remove later
    */
-  public static boolean USE_SEARCH_SERVIVE = false;
+  public static final boolean USE_SEARCH_SERVIVE = false;
   /**
    * DEBUG flag. Not sure, if always has be flushed.
    */
-  public static boolean LUCENE_FLUSH_ALWAYS = true;
+  public static final boolean LUCENE_FLUSH_ALWAYS = true;
 
   protected Class<O> clazz;
 
@@ -411,7 +411,7 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
       }
       if (list != null) {
         list = selectUnique(list);
-        if (list.size() > 0 && searchFilter.isUseModificationFilter() == true) {
+        if (list.size() > 0 && searchFilter.applyModificationFilter()) {
           // Search now all history entries which were modified by the given user and/or in the given time period.
           final Set<Integer> idSet = getHistoryEntries(getSession(), searchFilter);
           final List<O> result = new ArrayList<O>();
@@ -1615,8 +1615,9 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
       if (massUpdateEntry(entry, master, store) == true) {
         try {
           update(entry);
-        } catch (final Exception ex) {
-          log.info("Exception occured while updating entry inside mass update: " + entry);
+        } catch (final IllegalArgumentException ex) {
+          log.error("Exception occured while updating entry inside mass update: " + entry + ex.getMessage());
+          throw new UserException("error", ex.getMessage());
         }
       }
     }
@@ -1675,7 +1676,7 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
     return idSet;
   }
 
-  // TODO RK entweder so oder ueber annots. 
+  // TODO RK entweder so oder ueber annots.
   // siehe org.projectforge.framework.persistence.jpa.impl.HibernateSearchFilterUtils.getNestedHistoryEntities(Class<?>)
   protected Class<?>[] getAdditionalHistorySearchDOs()
   {

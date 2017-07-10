@@ -43,7 +43,6 @@ import org.apache.wicket.markup.html.panel.FeedbackPanel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
-import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.persistence.jpa.impl.HibernateSearchFilterUtils;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
@@ -69,7 +68,7 @@ import org.projectforge.web.wicket.flowlayout.IconType;
 import org.projectforge.web.wicket.flowlayout.InputPanel;
 import org.projectforge.web.wicket.flowlayout.MyComponentsRepeater;
 
-public abstract class AbstractListForm<F extends BaseSearchFilter, P extends AbstractListPage<?, ?, ?>>extends
+public abstract class AbstractListForm<F extends BaseSearchFilter, P extends AbstractListPage<?, ?, ?>> extends
     AbstractSecuredForm<F, P>
 {
   private static final long serialVersionUID = 1304394324524767035L;
@@ -143,6 +142,11 @@ public abstract class AbstractListForm<F extends BaseSearchFilter, P extends Abs
   @Override
   protected void init()
   {
+    init(true);
+  }
+
+  protected void init(final boolean autoRefreshOnFilterChange)
+  {
     super.init();
     final FeedbackPanel feedbackPanel = new FeedbackPanel("feedback");
     feedbackPanel.setOutputMarkupId(true);
@@ -208,14 +212,21 @@ public abstract class AbstractListForm<F extends BaseSearchFilter, P extends Abs
       final DivPanel optionsCheckBoxesPanel = optionsFieldsetPanel.addNewCheckBoxButtonDiv();
       onOptionsPanelCreate(optionsFieldsetPanel, optionsCheckBoxesPanel);
       if (showHistorySearchAndDeleteCheckbox() == true) {
-        optionsCheckBoxesPanel.add(createAutoRefreshCheckBoxButton(optionsCheckBoxesPanel.newChildId(),
-            new PropertyModel<Boolean>(getSearchFilter(), "deleted"), getString(I18N_ONLY_DELETED),
-            getString(I18N_ONLY_DELETED_TOOLTIP))
-                .setWarning());
-        optionsCheckBoxesPanel
-            .add(createAutoRefreshCheckBoxButton(optionsCheckBoxesPanel.newChildId(), new PropertyModel<Boolean>(
-                getSearchFilter(), "searchHistory"), getString("search.searchHistory"),
-                getString("search.searchHistory.additional.tooltip")));
+        optionsCheckBoxesPanel.add(createCheckBoxButton(
+            optionsCheckBoxesPanel.newChildId(),
+            new PropertyModel<Boolean>(getSearchFilter(), "deleted"),
+            getString(I18N_ONLY_DELETED),
+            getString(I18N_ONLY_DELETED_TOOLTIP),
+            autoRefreshOnFilterChange
+        ).setWarning());
+
+        optionsCheckBoxesPanel.add(createCheckBoxButton(
+            optionsCheckBoxesPanel.newChildId(),
+            new PropertyModel<Boolean>(getSearchFilter(), "searchHistory"),
+            getString("search.searchHistory"),
+            getString("search.searchHistory.additional.tooltip"),
+            autoRefreshOnFilterChange
+        ));
       }
       if (optionsCheckBoxesPanel.hasChilds() == true) {
         optionsFieldsetPanel.add(optionsCheckBoxesPanel);
@@ -398,7 +409,7 @@ public abstract class AbstractListForm<F extends BaseSearchFilter, P extends Abs
   /**
    * Here you can add elements to the given FieldsetPanel or optionsPanel. The optionsPanel is not yet added to the
    * FieldsetPanel.
-   * 
+   *
    * @param optionsFieldsetPanel
    * @param optionsPanel
    */
@@ -424,6 +435,15 @@ public abstract class AbstractListForm<F extends BaseSearchFilter, P extends Abs
   protected void createSearchFieldTooltip(final Component field)
   {
     WicketUtils.addTooltip(field, getString("search.string.info.title"), getParentPage().getSearchToolTip(), false);
+  }
+
+  protected void addTimePeriodPanel(final String labelI18nKey, final IModel<Date> startDateModel, final IModel<Date> endDateModel)
+  {
+    gridBuilder.newSplitPanel(GridSize.COL50);
+    final FieldsetPanel fs = gridBuilder.newFieldset(getString(labelI18nKey));
+    final TimePeriodPanel timePeriodPanel = new TimePeriodPanel(fs.newChildId(), startDateModel, endDateModel, parentPage);
+    fs.add(timePeriodPanel);
+    fs.setLabelFor(timePeriodPanel);
   }
 
   public void addActionButton(final Component entry)
@@ -470,7 +490,7 @@ public abstract class AbstractListForm<F extends BaseSearchFilter, P extends Abs
 
   /**
    * onchange, onclick or submit without button.
-   * 
+   *
    * @see org.apache.wicket.markup.html.form.Form#onSubmit()
    */
   @Override
@@ -550,31 +570,22 @@ public abstract class AbstractListForm<F extends BaseSearchFilter, P extends Abs
     return this.searchFilter;
   }
 
-  public CheckBoxButton createAutoRefreshCheckBoxButton(final String id, final IModel<Boolean> model,
-      final String label)
+  public CheckBoxButton createAutoRefreshCheckBoxButton(final String id, final IModel<Boolean> model, final String label)
   {
-    return createAutoRefreshCheckBoxButton(id, model, label, null);
+    return createCheckBoxButton(id, model, label, null, true);
   }
 
   @SuppressWarnings("serial")
-  protected CheckBoxButton createAutoRefreshCheckBoxButton(final String id, final IModel<Boolean> model,
-      final String label,
-      final String tooltip)
+  protected CheckBoxButton createCheckBoxButton(final String id, final IModel<Boolean> model, final String label, final String tooltip,
+      final boolean autoRefresh)
   {
-    final CheckBoxButton checkBoxPanel = new CheckBoxButton(id, model, label)
+    final CheckBoxButton checkBoxPanel = new CheckBoxButton(id, model, label, autoRefresh)
     {
-      @Override
-      protected boolean wantOnSelectionChangedNotifications()
-      {
-        return true;
-      };
-
       @Override
       protected void onSelectionChanged(final Boolean newSelection)
       {
         parentPage.refresh();
-      };
-
+      }
     };
     if (tooltip != null) {
       checkBoxPanel.setTooltip(tooltip);
@@ -619,8 +630,8 @@ public abstract class AbstractListForm<F extends BaseSearchFilter, P extends Abs
 
   /**
    * For displaying the modified search string for lucene, e. g. "modified searchstring: micromata*"
-   * 
-   * @param component Needed for {@link Component#getString(String)}.
+   *
+   * @param component    Needed for {@link Component#getString(String)}.
    * @param searchString
    * @return
    */
@@ -632,7 +643,7 @@ public abstract class AbstractListForm<F extends BaseSearchFilter, P extends Abs
 
   /**
    * Any given de-serialized filter will be set from parent page.
-   * 
+   *
    * @param filter
    */
   @SuppressWarnings("unchecked")
@@ -648,7 +659,7 @@ public abstract class AbstractListForm<F extends BaseSearchFilter, P extends Abs
 
   /**
    * Used by search cell to define visibility.
-   * 
+   *
    * @return True if not overload.
    */
   protected boolean isFilterVisible()
@@ -658,7 +669,7 @@ public abstract class AbstractListForm<F extends BaseSearchFilter, P extends Abs
 
   /**
    * Used by search cell to define visibility of search input string and extended search filter.
-   * 
+   *
    * @return True if not overload.
    */
   protected boolean isSearchFilterVisible()
@@ -682,7 +693,9 @@ public abstract class AbstractListForm<F extends BaseSearchFilter, P extends Abs
     }
   }
 
-  /** This class uses the logger of the extended class. */
+  /**
+   * This class uses the logger of the extended class.
+   */
   protected abstract Logger getLogger();
 
   protected boolean showOptionsPanel()

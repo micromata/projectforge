@@ -99,7 +99,7 @@ public class AuftragsPositionDO extends DefaultBaseDO implements ShortDisplayNam
 
   private boolean vollstaendigFakturiert;
 
-  private PeriodOfPerformanceType periodOfPerformanceType;
+  private PeriodOfPerformanceType periodOfPerformanceType = PeriodOfPerformanceType.SEEABOVE;
 
   @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
   private Date periodOfPerformanceBegin;
@@ -391,13 +391,8 @@ public class AuftragsPositionDO extends DefaultBaseDO implements ShortDisplayNam
   {
     if (o instanceof AuftragsPositionDO) {
       final AuftragsPositionDO other = (AuftragsPositionDO) o;
-      if (ObjectUtils.equals(this.getNumber(), other.getNumber()) == false) {
-        return false;
-      }
-      if (ObjectUtils.equals(this.getAuftragId(), other.getAuftragId()) == false) {
-        return false;
-      }
-      return true;
+      return ObjectUtils.equals(this.getNumber(), other.getNumber()) &&
+          ObjectUtils.equals(this.getAuftragId(), other.getAuftragId());
     }
     return false;
   }
@@ -432,5 +427,11 @@ public class AuftragsPositionDO extends DefaultBaseDO implements ShortDisplayNam
     }
     buf.append(".").append(this.number);
     return buf.toString();
+  }
+
+  @Transient
+  public boolean hasOwnPeriodOfPerformance()
+  {
+    return periodOfPerformanceType == PeriodOfPerformanceType.OWN;
   }
 }

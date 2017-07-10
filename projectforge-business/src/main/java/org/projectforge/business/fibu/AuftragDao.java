@@ -23,22 +23,25 @@
 
 package org.projectforge.business.fibu;
 
+import java.math.BigDecimal;
+import java.sql.Date;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.stream.Collectors;
 
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.collections.Predicate;
-import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.hibernate.Criteria;
+import org.hibernate.criterion.Criterion;
 import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Restrictions;
 import org.projectforge.business.configuration.ConfigurationService;
@@ -61,7 +64,6 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.persistence.utils.SQLHelper;
 import org.projectforge.framework.time.DateHelper;
 import org.projectforge.framework.utils.NumberHelper;
-import org.projectforge.framework.xstream.XmlObjectReader;
 import org.projectforge.framework.xstream.XmlObjectWriter;
 import org.projectforge.mail.Mail;
 import org.projectforge.mail.SendMail;
@@ -155,7 +157,7 @@ public class AuftragDao extends BaseDao<AuftragDO>
     final Map<Integer, Set<AuftragsPositionVO>> result = new HashMap<Integer, Set<AuftragsPositionVO>>();
     @SuppressWarnings("unchecked")
     final List<AuftragsPositionDO> list = (List<AuftragsPositionDO>) getHibernateTemplate()
-        .find("from AuftragsPositionDO a where a.task.id is not null");
+        .find("from AuftragsPositionDO a where a.task.id is not null and a.deleted = false");
     if (list == null) {
       return result;
     }
@@ -216,8 +218,8 @@ public class AuftragDao extends BaseDao<AuftragDO>
     if (order == null) {
       return;
     }
-    if (order.getPositionen() != null) {
-      for (final AuftragsPositionDO pos : order.getPositionen()) {
+    if (order.getPositionenExcludingDeleted() != null) {
+      for (final AuftragsPositionDO pos : order.getPositionenExcludingDeleted()) {
         final Set<RechnungsPositionVO> set = rechnungCache
             .getRechnungsPositionVOSetByAuftragsPositionId(pos.getId());
         if (set != null) {
@@ -311,7 +313,8 @@ public class AuftragDao extends BaseDao<AuftragDO>
       return abgeschlossenNichtFakturiert;
     }
     final AuftragFilter filter = new AuftragFilter();
-    filter.setListType(AuftragFilter.FILTER_ABGESCHLOSSEN_NF);
+    filter.getAuftragsStatuses().add(AuftragsStatus.ABGESCHLOSSEN);
+    filter.setAuftragFakturiertFilterStatus(AuftragFakturiertFilterStatus.NICHT_FAKTURIERT);
     try {
       final List<AuftragDO> list = getList(filter, false);
       abgeschlossenNichtFakturiert = list != null ? list.size() : 0;
@@ -337,44 +340,12 @@ public class AuftragDao extends BaseDao<AuftragDO>
     } else {
       myFilter = new AuftragFilter(filter);
     }
+
     final QueryFilter queryFilter = new QueryFilter(myFilter);
-    Boolean vollstaendigFakturiert = null;
-    if (myFilter.isShowBeauftragtNochNichtVollstaendigFakturiert() == true) {
-      queryFilter
-          .add(Restrictions.not(Restrictions.in("auftragsStatus", new AuftragsStatus[] { AuftragsStatus.ABGELEHNT,
-              AuftragsStatus.ERSETZT, AuftragsStatus.GELEGT, AuftragsStatus.POTENZIAL,
-              AuftragsStatus.IN_ERSTELLUNG })));
-      vollstaendigFakturiert = false;
-    } else if (myFilter.isShowNochNichtVollstaendigFakturiert() == true) {
-      queryFilter
-          .add(Restrictions.not(Restrictions.in("auftragsStatus", new AuftragsStatus[] { AuftragsStatus.ABGELEHNT,
-              AuftragsStatus.ERSETZT })));
-      vollstaendigFakturiert = false;
-    } else if (myFilter.isShowVollstaendigFakturiert() == true) {
-      vollstaendigFakturiert = true;
-    } else if (myFilter.isShowAbgelehnt() == true) {
-      queryFilter.add(Restrictions.eq("auftragsStatus", AuftragsStatus.ABGELEHNT));
-    } else if (myFilter.isShowAbgeschlossenNichtFakturiert() == true) {
-      queryFilter
-          .createAlias("positionen", "position")
-          .createAlias("paymentSchedules", "paymentSchedule", Criteria.FULL_JOIN)
-          .add(
-              Restrictions.or(
-                  Restrictions.or(Restrictions.eq("auftragsStatus", AuftragsStatus.ABGESCHLOSSEN),
-                      Restrictions.eq("position.status", AuftragsPositionsStatus.ABGESCHLOSSEN)),
-                  Restrictions.eq("paymentSchedule.reached", true)));
-      vollstaendigFakturiert = false;
-    } else if (myFilter.isShowAkquise() == true) {
-      queryFilter.add(
-          Restrictions.in("auftragsStatus", new AuftragsStatus[] { AuftragsStatus.GELEGT, AuftragsStatus.IN_ERSTELLUNG,
-              AuftragsStatus.POTENZIAL }));
-    } else if (myFilter.isShowBeauftragt() == true) {
-      queryFilter
-          .add(Restrictions.in("auftragsStatus", new AuftragsStatus[] { AuftragsStatus.BEAUFTRAGT, AuftragsStatus.LOI,
-              AuftragsStatus.ESKALATION }));
-    } else if (myFilter.isShowErsetzt() == true) {
-      queryFilter.add(Restrictions.eq("auftragsStatus", AuftragsStatus.ERSETZT));
-    } else if (myFilter.getUser() != null) {
+
+    addCriterionForAuftragsStatuses(myFilter, queryFilter);
+
+    if (myFilter.getUser() != null) {
       queryFilter.add(
           Restrictions.or(
               Restrictions.eq("contactPerson", myFilter.getUser()),
@@ -384,108 +355,160 @@ public class AuftragDao extends BaseDao<AuftragDO>
           )
       );
     }
-    if (myFilter.getYear() > 1900) {
-      final Calendar cal = DateHelper.getUTCCalendar();
-      cal.set(Calendar.YEAR, myFilter.getYear());
-      java.sql.Date lo = null;
-      java.sql.Date hi = null;
-      cal.set(Calendar.DAY_OF_YEAR, 1);
-      lo = new java.sql.Date(cal.getTimeInMillis());
-      final int lastDayOfYear = cal.getActualMaximum(Calendar.DAY_OF_YEAR);
-      cal.set(Calendar.DAY_OF_YEAR, lastDayOfYear);
-      hi = new java.sql.Date(cal.getTimeInMillis());
-      queryFilter.add(Restrictions.between("angebotsDatum", lo, hi));
-    }
+
+    createCriterionForErfassungsDatum(myFilter).ifPresent(queryFilter::add);
+
+    AuftragAndRechnungDaoHelper.createCriterionForPeriodOfPerformance(myFilter).ifPresent(queryFilter::add);
+
     queryFilter.addOrder(Order.desc("nummer"));
+
     final List<AuftragDO> list;
     if (checkAccess == true) {
       list = getList(queryFilter);
     } else {
       list = internalGetList(queryFilter);
     }
-    if (vollstaendigFakturiert != null) {
-      final Boolean invoiced = vollstaendigFakturiert;
-      CollectionUtils.filter(list, new Predicate()
-      {
-        @Override
-        public boolean evaluate(final Object object)
-        {
-          final AuftragDO auftrag = (AuftragDO) object;
-          final boolean orderIsCompletelyInvoiced = auftrag.isVollstaendigFakturiert();
-          if (HibernateUtils.getDialect() != DatabaseDialect.HSQL
-              && myFilter.isShowAbgeschlossenNichtFakturiert() == true) {
-            // if order is completed and not all positions are completely invoiced
-            if (auftrag.getAuftragsStatus() == AuftragsStatus.ABGESCHLOSSEN && orderIsCompletelyInvoiced == false) {
+
+    filterFakturiert(myFilter, list);
+
+    filterPositionsArten(myFilter, list);
+
+    if (myFilter.getAuftragsPositionsPaymentType() != null) {
+      CollectionUtils.filter(list, object -> {
+        final AuftragDO auftrag = (AuftragDO) object;
+        boolean match = false;
+        if (myFilter.getAuftragsPositionsPaymentType() != null) {
+          if (CollectionUtils.isNotEmpty(auftrag.getPositionenExcludingDeleted()) == true) {
+            for (final AuftragsPositionDO position : auftrag.getPositionenExcludingDeleted()) {
+              if (myFilter.getAuftragsPositionsPaymentType() == position.getPaymentType()) {
+                match = true;
+                break;
+              }
+            }
+          }
+        }
+        return match;
+      });
+    }
+
+    return list;
+  }
+
+  private void addCriterionForAuftragsStatuses(final AuftragFilter myFilter, final QueryFilter queryFilter)
+  {
+    final Collection<AuftragsStatus> auftragsStatuses = myFilter.getAuftragsStatuses();
+    if (CollectionUtils.isEmpty(auftragsStatuses)) {
+      // nothing to do
+      return;
+    }
+
+    final List<Criterion> orCriterions = new ArrayList<>();
+    orCriterions.add(Restrictions.in("auftragsStatus", auftragsStatuses));
+    orCriterions.add(Restrictions.in("position.status", auftragsStatuses));
+
+    // special case
+    if (auftragsStatuses.contains(AuftragsStatus.ABGESCHLOSSEN)) {
+      orCriterions.add(Restrictions.eq("paymentSchedule.reached", true));
+      queryFilter.createAlias("paymentSchedules", "paymentSchedule", Criteria.FULL_JOIN);
+    }
+
+    queryFilter
+        .createAlias("positionen", "position", Criteria.FULL_JOIN)
+        .add(Restrictions.or(orCriterions.toArray(new Criterion[orCriterions.size()])));
+
+    // check deleted
+    if (myFilter.isIgnoreDeleted() == false) {
+      queryFilter.add(Restrictions.eq("position.deleted", myFilter.isDeleted()));
+    }
+  }
+
+  private Optional<Criterion> createCriterionForErfassungsDatum(final AuftragFilter myFilter)
+  {
+    final java.sql.Date startDate = DateHelper.convertDateToSqlDateInTheUsersTimeZone(myFilter.getStartDate());
+    final java.sql.Date endDate = DateHelper.convertDateToSqlDateInTheUsersTimeZone(myFilter.getEndDate());
+
+    if (startDate != null && endDate != null) {
+      return Optional.of(
+          Restrictions.between("erfassungsDatum", startDate, endDate)
+      );
+    }
+
+    if (startDate != null) {
+      return Optional.of(
+          Restrictions.ge("erfassungsDatum", startDate)
+      );
+    }
+
+    if (endDate != null) {
+      return Optional.of(
+          Restrictions.le("erfassungsDatum", endDate)
+      );
+    }
+
+    return Optional.empty();
+  }
+
+  private void filterFakturiert(final AuftragFilter myFilter, final List<AuftragDO> list)
+  {
+    final AuftragFakturiertFilterStatus auftragFakturiertFilterStatus = myFilter.getAuftragFakturiertFilterStatus();
+    if (auftragFakturiertFilterStatus == null || auftragFakturiertFilterStatus == AuftragFakturiertFilterStatus.ALL) {
+      // do not filter
+      return;
+    }
+
+    boolean vollstaendigFakturiert = (AuftragFakturiertFilterStatus.FAKTURIERT == auftragFakturiertFilterStatus);
+
+    CollectionUtils.filter(list, object -> {
+      final AuftragDO auftrag = (AuftragDO) object;
+      final boolean orderIsCompletelyInvoiced = auftrag.isVollstaendigFakturiert();
+
+      // special case
+      if (HibernateUtils.getDialect() != DatabaseDialect.HSQL &&
+          vollstaendigFakturiert == false && myFilter.getAuftragsStatuses().contains(AuftragsStatus.ABGESCHLOSSEN)) {
+
+        // if order is completed and not all positions are completely invoiced
+        if (auftrag.getAuftragsStatus() == AuftragsStatus.ABGESCHLOSSEN && orderIsCompletelyInvoiced == false) {
+          return true;
+        }
+
+        // if order is completed and not completely invoiced
+        if (auftrag.getPositionenExcludingDeleted() != null) {
+          for (final AuftragsPositionDO pos : auftrag.getPositionenExcludingDeleted()) {
+            if (pos.isAbgeschlossenUndNichtVollstaendigFakturiert()) {
               return true;
             }
-            // if order is completed and not completely invoiced
-            if (auftrag.getPositionen() != null) {
-              for (final AuftragsPositionDO pos : auftrag.getPositionen()) {
-                if (pos.isAbgeschlossenUndNichtVollstaendigFakturiert() == true) {
-                  return true;
-                }
-              }
-            }
-            if (auftrag.getPaymentSchedules() != null) {
-              for (final PaymentScheduleDO schedule : auftrag.getPaymentSchedules()) {
-                if (schedule.isReached() == true && schedule.isVollstaendigFakturiert() == false) {
-                  return true;
-                }
-              }
-            }
-            return false;
           }
-          return orderIsCompletelyInvoiced == invoiced;
         }
-      });
-    }
-    if (myFilter.getAuftragsPositionsArt() != null) {
-      final AuftragFilter fil = myFilter;
-      CollectionUtils.filter(list, new Predicate()
-      {
-        @Override
-        public boolean evaluate(final Object object)
-        {
-          final AuftragDO auftrag = (AuftragDO) object;
-          boolean match = false;
-          if (fil.getAuftragsPositionsArt() != null) {
-            if (CollectionUtils.isNotEmpty(auftrag.getPositionen()) == true) {
-              for (final AuftragsPositionDO position : auftrag.getPositionen()) {
-                if (fil.getAuftragsPositionsArt() == position.getArt()) {
-                  match = true;
-                  break;
-                }
-              }
+
+        if (auftrag.getPaymentSchedules() != null) {
+          for (final PaymentScheduleDO schedule : auftrag.getPaymentSchedules()) {
+            if (schedule.isReached() && schedule.isVollstaendigFakturiert() == false) {
+              return true;
             }
           }
-          return match;
         }
+
+        return false;
+      }
+
+      return orderIsCompletelyInvoiced == vollstaendigFakturiert;
+    });
+  }
+
+  private void filterPositionsArten(final AuftragFilter myFilter, final List<AuftragDO> list)
+  {
+    final Collection<AuftragsPositionsArt> auftragsPositionsArten = myFilter.getAuftragsPositionsArten();
+
+    if (CollectionUtils.isNotEmpty(auftragsPositionsArten)) {
+      CollectionUtils.filter(list, object -> {
+        final List<AuftragsPositionDO> positionen = ((AuftragDO) object).getPositionenExcludingDeleted();
+
+        // check if any of the current positions contains at least one AuftragsPositionsArt of the auftragsPositionsArten of the filter
+        return CollectionUtils.isNotEmpty(positionen) && positionen.stream()
+            .map(AuftragsPositionDO::getArt)
+            .anyMatch(positionsArt -> auftragsPositionsArten.stream().anyMatch(art -> art == positionsArt));
       });
     }
-    if (myFilter.getAuftragsPositionsPaymentType() != null) {
-      final AuftragFilter fil = myFilter;
-      CollectionUtils.filter(list, new Predicate()
-      {
-        @Override
-        public boolean evaluate(final Object object)
-        {
-          final AuftragDO auftrag = (AuftragDO) object;
-          boolean match = false;
-          if (fil.getAuftragsPositionsPaymentType() != null) {
-            if (CollectionUtils.isNotEmpty(auftrag.getPositionen()) == true) {
-              for (final AuftragsPositionDO position : auftrag.getPositionen()) {
-                if (fil.getAuftragsPositionsPaymentType() == position.getPaymentType()) {
-                  match = true;
-                  break;
-                }
-              }
-            }
-          }
-          return match;
-        }
-      });
-    }
-    return list;
   }
 
   @SuppressWarnings("unchecked")
@@ -510,21 +533,21 @@ public class AuftragDao extends BaseDao<AuftragDO>
         throw new UserException("fibu.auftrag.error.nummerBereitsVergeben");
       }
     }
-    if (CollectionUtils.isEmpty(obj.getPositionen()) == true) {
+    if (CollectionUtils.isEmpty(obj.getPositionenIncludingDeleted()) == true) {
       throw new UserException("fibu.auftrag.error.auftragHatKeinePositionen");
     }
-    final int size = obj.getPositionen().size();
+    final int size = obj.getPositionenIncludingDeleted().size();
     for (int i = size - 1; i > 0; i--) {
       // Don't remove first position, remove only the last empty positions.
-      final AuftragsPositionDO position = obj.getPositionen().get(i);
+      final AuftragsPositionDO position = obj.getPositionenIncludingDeleted().get(i);
       if (position.getId() == null && position.isEmpty() == true) {
-        obj.getPositionen().remove(i);
+        obj.getPositionenIncludingDeleted().remove(i);
       } else {
         break;
       }
     }
-    if (CollectionUtils.isNotEmpty(obj.getPositionen()) == true) {
-      for (final AuftragsPositionDO position : obj.getPositionen()) {
+    if (CollectionUtils.isNotEmpty(obj.getPositionenIncludingDeleted()) == true) {
+      for (final AuftragsPositionDO position : obj.getPositionenIncludingDeleted()) {
         position.checkVollstaendigFakturiert();
       }
     }
@@ -544,6 +567,63 @@ public class AuftragDao extends BaseDao<AuftragDO>
         }
       }
     }
+    validateDatesInPaymentScheduleWithinPeriodOfPerformanceOfPosition(obj);
+    validateAmountsInPaymentScheduleNotGreaterThanNetSumOfPosition(obj);
+  }
+
+  void validateDatesInPaymentScheduleWithinPeriodOfPerformanceOfPosition(final AuftragDO auftrag)
+  {
+    final List<PaymentScheduleDO> paymentSchedules = auftrag.getPaymentSchedules();
+    if (paymentSchedules == null) {
+      // if there are no payment schedules, there are no dates which are not within the period of performance
+      return;
+    }
+
+    final List<Short> positionsWithDatesNotWithinPop = new ArrayList<>();
+    for (final AuftragsPositionDO pos : auftrag.getPositionenExcludingDeleted()) {
+      final Date periodOfPerformanceBegin = pos.hasOwnPeriodOfPerformance() ? pos.getPeriodOfPerformanceBegin() : auftrag.getPeriodOfPerformanceBegin();
+      final Date periodOfPerformanceEnd = pos.hasOwnPeriodOfPerformance() ? pos.getPeriodOfPerformanceEnd() : auftrag.getPeriodOfPerformanceEnd();
+
+      final boolean hasDateNotInRange = paymentSchedules.stream()
+          .filter(payment -> payment.getPositionNumber() == pos.getNumber())
+          .map(PaymentScheduleDO::getScheduleDate)
+          .filter(Objects::nonNull)
+          .anyMatch(date -> date.before(periodOfPerformanceBegin) || date.after(periodOfPerformanceEnd));
+
+      if (hasDateNotInRange) {
+        positionsWithDatesNotWithinPop.add(pos.getNumber());
+      }
+    }
+
+    if (positionsWithDatesNotWithinPop.isEmpty() == false) {
+      final String positions = positionsWithDatesNotWithinPop.stream()
+          .map(Object::toString)
+          .collect(Collectors.joining(", "));
+
+      throw new UserException("fibu.auftrag.error.datesInPaymentScheduleNotWithinPeriodOfPerformanceOfPosition", positions);
+    }
+  }
+
+  void validateAmountsInPaymentScheduleNotGreaterThanNetSumOfPosition(final AuftragDO auftrag)
+  {
+    final List<PaymentScheduleDO> paymentSchedules = auftrag.getPaymentSchedules();
+    if (paymentSchedules == null) {
+      // if there are no payment schedules, there are no amounts which can be greater -> validation OK
+      return;
+    }
+
+    for (final AuftragsPositionDO pos : auftrag.getPositionenExcludingDeleted()) {
+      final BigDecimal sumOfAmountsForCurrentPosition = paymentSchedules.stream()
+          .filter(payment -> payment.getPositionNumber() == pos.getNumber())
+          .map(PaymentScheduleDO::getAmount)
+          .filter(Objects::nonNull)
+          .reduce(BigDecimal.ZERO, BigDecimal::add); // sum
+
+      final BigDecimal netSum = pos.getNettoSumme();
+      if (netSum != null && sumOfAmountsForCurrentPosition.compareTo(netSum) > 0) {
+        throw new UserException("fibu.auftrag.error.amountsInPaymentScheduleAreGreaterThanNetSumOfPosition", pos.getNumber());
+      }
+    }
   }
 
   @Override
@@ -553,21 +633,6 @@ public class AuftragDao extends BaseDao<AuftragDO>
     if (taskTree != null) {
       taskTree.refreshOrderPositionReferences();
     }
-  }
-
-  @Override
-  public void afterLoad(final AuftragDO obj)
-  {
-    final XmlObjectReader reader = new XmlObjectReader();
-    reader.initialize(AuftragUIStatus.class);
-    final String styleAsXml = obj.getUiStatusAsXml();
-    final AuftragUIStatus status;
-    if (StringUtils.isEmpty(styleAsXml) == true) {
-      status = new AuftragUIStatus();
-    } else {
-      status = (AuftragUIStatus) reader.read(styleAsXml);
-    }
-    obj.setUiStatus(status);
   }
 
   /**
@@ -587,6 +652,7 @@ public class AuftragDao extends BaseDao<AuftragDO>
    * @param operationType
    * @return
    */
+
   public boolean sendNotificationIfRequired(final AuftragDO auftrag, final OperationType operationType,
       final String requestUrl)
   {
@@ -672,8 +738,8 @@ public class AuftragDao extends BaseDao<AuftragDO>
     if (hasLoggedInUserHistoryAccess(obj, false) == false) {
       return list;
     }
-    if (CollectionUtils.isNotEmpty(obj.getPositionen()) == true) {
-      for (final AuftragsPositionDO position : obj.getPositionen()) {
+    if (CollectionUtils.isNotEmpty(obj.getPositionenIncludingDeleted()) == true) {
+      for (final AuftragsPositionDO position : obj.getPositionenIncludingDeleted()) {
         final List<DisplayHistoryEntry> entries = internalGetDisplayHistoryEntries(position);
         for (final DisplayHistoryEntry entry : entries) {
           final String propertyName = entry.getPropertyName();
@@ -729,7 +795,7 @@ public class AuftragDao extends BaseDao<AuftragDO>
     if (super.contains(idSet, entry) == true) {
       return true;
     }
-    for (final AuftragsPositionDO pos : entry.getPositionen()) {
+    for (final AuftragsPositionDO pos : entry.getPositionenIncludingDeleted()) {
       if (idSet.contains(pos.getId()) == true) {
         return true;
       }

@@ -29,15 +29,15 @@ import java.util.List;
 import java.util.Set;
 
 import org.apache.commons.collections.CollectionUtils;
+import org.projectforge.business.excel.ContentProvider;
+import org.projectforge.business.excel.ExportColumn;
+import org.projectforge.business.excel.ExportSheet;
+import org.projectforge.business.excel.ExportWorkbook;
+import org.projectforge.business.excel.I18nExportColumn;
+import org.projectforge.business.excel.PropertyMapping;
 import org.projectforge.business.multitenancy.TenantRegistry;
 import org.projectforge.business.multitenancy.TenantRegistryMap;
 import org.projectforge.business.task.TaskNode;
-import org.projectforge.excel.ContentProvider;
-import org.projectforge.excel.ExportColumn;
-import org.projectforge.excel.ExportSheet;
-import org.projectforge.excel.ExportWorkbook;
-import org.projectforge.excel.I18nExportColumn;
-import org.projectforge.excel.PropertyMapping;
 import org.projectforge.export.MyXlsContentProvider;
 import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
@@ -62,7 +62,7 @@ public class OrderExport
   protected AccessChecker accessChecker;
 
   @Autowired
-  RechnungCache rechnungCache;
+  private RechnungCache rechnungCache;
 
   @Autowired
   private AuftragDao auftragDao;
@@ -105,7 +105,7 @@ public class OrderExport
     auftragDao.calculateInvoicedSum(order);
     mapping.add(OrderCol.NUMMER, order.getNummer());
     mapping.add(OrderCol.NUMBER_OF_POSITIONS,
-        "#" + (order.getPositionen() != null ? order.getPositionen().size() : "0"));
+        "#" + (order.getPositionenExcludingDeleted() != null ? order.getPositionenExcludingDeleted().size() : "0"));
     mapping.add(OrderCol.DATE_OF_ENTRY, order.getErfassungsDatum());
     mapping.add(OrderCol.DATE_OF_OFFER, order.getAngebotsDatum());
     mapping.add(OrderCol.DATE_OF_DESICION, order.getEntscheidungsDatum());
@@ -125,7 +125,7 @@ public class OrderExport
     mapping.add(OrderCol.SALESMANAGER, order.getSalesManager() != null ? order.getSalesManager().getFullname() : "");
     final BigDecimal netSum = order.getNettoSumme() != null ? order.getNettoSumme() : BigDecimal.ZERO;
     final BigDecimal invoicedSum = order.getFakturiertSum() != null ? order.getFakturiertSum() : BigDecimal.ZERO;
-    final BigDecimal toBeInvoicedSum = netSum.subtract(invoicedSum);
+    final BigDecimal toBeInvoicedSum = order.getZuFakturierenSum();
     mapping.add(OrderCol.NETSUM, netSum);
     addCurrency(mapping, OrderCol.INVOICED, invoicedSum);
     addCurrency(mapping, OrderCol.TO_BE_INVOICED, toBeInvoicedSum);
@@ -192,7 +192,13 @@ public class OrderExport
     mapping.add(PosCol.PERSON_DAYS, pos.getPersonDays());
     final BigDecimal netSum = pos.getNettoSumme() != null ? pos.getNettoSumme() : BigDecimal.ZERO;
     final BigDecimal invoicedSum = pos.getFakturiertSum() != null ? pos.getFakturiertSum() : BigDecimal.ZERO;
-    final BigDecimal toBeInvoicedSum = netSum.subtract(invoicedSum);
+    BigDecimal toBeInvoicedSum = netSum.subtract(invoicedSum);
+    if (pos.getStatus() != null) {
+      if (pos.getStatus().equals(AuftragsPositionsStatus.ABGELEHNT) || pos.getStatus().equals(AuftragsPositionsStatus.ERSETZT) || pos.getStatus()
+          .equals(AuftragsPositionsStatus.OPTIONAL)) {
+        toBeInvoicedSum = BigDecimal.ZERO;
+      }
+    }
     mapping.add(PosCol.NETSUM, netSum);
     addCurrency(mapping, PosCol.INVOICED, invoicedSum);
     addCurrency(mapping, PosCol.TO_BE_INVOICED, toBeInvoicedSum);
@@ -236,6 +242,8 @@ public class OrderExport
       final PaymentScheduleDO scheduleDO)
   {
     mapping.add(PaymentsCol.NUMBER, order.getNummer());
+    final Short positionNumber = scheduleDO.getPositionNumber();
+    mapping.add(PaymentsCol.POS_NUMBER, positionNumber != null ? "#" + positionNumber : "");
     mapping.add(PaymentsCol.PAY_NUMBER, "#" + scheduleDO.getNumber());
     mapping.add(PaymentsCol.AMOUNT, scheduleDO.getAmount());
     mapping.add(PaymentsCol.COMMENT, scheduleDO.getComment());
@@ -312,13 +320,7 @@ public class OrderExport
         PosCol.PERIOD_OF_PERFORMANCE_END.ordinal(),
         ThreadLocalUserContext.getLocalizedString("fibu.periodOfPerformance"));
     for (final AuftragDO order : list) {
-      if (order.getPositionen() == null) {
-        continue;
-      }
-      for (final AuftragsPositionDO pos : order.getPositionen()) {
-        if (pos.isDeleted()) {
-          continue;
-        }
+      for (final AuftragsPositionDO pos : order.getPositionenExcludingDeleted()) {
         final PropertyMapping mapping = new PropertyMapping();
         addPosMapping(mapping, order, pos);
         sheet.addRow(mapping.getMapping(), 0);
@@ -351,12 +353,12 @@ public class OrderExport
   {
     return new ExportColumn[] {
         new I18nExportColumn(PaymentsCol.NUMBER, "fibu.auftrag.nummer.short", MyXlsContentProvider.LENGTH_ID),
+        new I18nExportColumn(PaymentsCol.POS_NUMBER, "fibu.auftrag.position", MyXlsContentProvider.LENGTH_ID),
         new I18nExportColumn(PaymentsCol.PAY_NUMBER, "fibu.auftrag.zahlung", MyXlsContentProvider.LENGTH_ID),
         new I18nExportColumn(PaymentsCol.AMOUNT, "fibu.common.betrag", MyXlsContentProvider.LENGTH_CURRENCY),
         new I18nExportColumn(PaymentsCol.COMMENT, "comment", MyXlsContentProvider.LENGTH_STD),
         new I18nExportColumn(PaymentsCol.REACHED, "fibu.common.reached", MyXlsContentProvider.LENGTH_STD),
-        new I18nExportColumn(PaymentsCol.VOLLSTAENDIG_FAKTURIERT, "fibu.auftrag.vollstaendigFakturiert",
-            MyXlsContentProvider.LENGTH_STD),
+        new I18nExportColumn(PaymentsCol.VOLLSTAENDIG_FAKTURIERT, "fibu.auftrag.vollstaendigFakturiert", MyXlsContentProvider.LENGTH_STD),
         new I18nExportColumn(PaymentsCol.SCHEDULE_DATE, "date", MyXlsContentProvider.LENGTH_DATE)
     };
   }
@@ -374,28 +376,28 @@ public class OrderExport
 
   private enum OrderCol
   {
-    NUMMER, NUMBER_OF_POSITIONS, DATE_OF_OFFER, DATE_OF_ENTRY, DATE_OF_DESICION, ORDER_DATE, STATUS, STATUS_COMMENT, PROJECT, PROJECT_CUSTOMER, TITLE, PROJECTMANAGER, HEADOFBUSINESSMANAGER, SALESMANAGER, NETSUM, INVOICED, TO_BE_INVOICED, COMPLETELY_INVOICED, INVOICES, PERIOD_OF_PERFORMANCE_BEGIN, PERIOD_OF_PERFORMANCE_END, PROBABILITY_OF_OCCURRENCE, CONTACT_PERSON, REFERENCE, COMMENT;
+    NUMMER, NUMBER_OF_POSITIONS, DATE_OF_OFFER, DATE_OF_ENTRY, DATE_OF_DESICION, ORDER_DATE, STATUS, STATUS_COMMENT, PROJECT, PROJECT_CUSTOMER, TITLE, PROJECTMANAGER, HEADOFBUSINESSMANAGER, SALESMANAGER, NETSUM, INVOICED, TO_BE_INVOICED, COMPLETELY_INVOICED, INVOICES, PERIOD_OF_PERFORMANCE_BEGIN, PERIOD_OF_PERFORMANCE_END, PROBABILITY_OF_OCCURRENCE, CONTACT_PERSON, REFERENCE, COMMENT
   }
 
   private enum PosCol
   {
-    NUMBER, POS_NUMBER, DATE_OF_OFFER, DATE_OF_ENTRY, DATE_OF_DESICION, PROJECT, ORDER_TITLE, TITLE, TYPE, PAYMENTTYPE, STATUS, PERSON_DAYS, NETSUM, INVOICED, TO_BE_INVOICED, COMPLETELY_INVOICED, INVOICES, PERIOD_OF_PERFORMANCE_BEGIN, PERIOD_OF_PERFORMANCE_END, TASK, COMMENT;
+    NUMBER, POS_NUMBER, DATE_OF_OFFER, DATE_OF_ENTRY, DATE_OF_DESICION, PROJECT, ORDER_TITLE, TITLE, TYPE, PAYMENTTYPE, STATUS, PERSON_DAYS, NETSUM, INVOICED, TO_BE_INVOICED, COMPLETELY_INVOICED, INVOICES, PERIOD_OF_PERFORMANCE_BEGIN, PERIOD_OF_PERFORMANCE_END, TASK, COMMENT
   }
 
   private enum PaymentsCol
   {
-    NUMBER, PAY_NUMBER, AMOUNT, COMMENT, REACHED, VOLLSTAENDIG_FAKTURIERT, SCHEDULE_DATE;
+    NUMBER, POS_NUMBER, PAY_NUMBER, AMOUNT, COMMENT, REACHED, VOLLSTAENDIG_FAKTURIERT, SCHEDULE_DATE
   }
 
   private class MyContentProvider extends MyXlsContentProvider
   {
-    public MyContentProvider(final ExportWorkbook workbook)
+    private MyContentProvider(final ExportWorkbook workbook)
     {
       super(workbook);
     }
 
     @Override
-    public org.projectforge.excel.ContentProvider newInstance()
+    public ContentProvider newInstance()
     {
       return new MyContentProvider(this.workbook);
     }

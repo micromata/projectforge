@@ -23,16 +23,6 @@
 
 package org.projectforge.business.scripting;
 
-import de.micromata.genome.db.jpa.history.api.NoHistory;
-import org.apache.commons.lang.StringUtils;
-import org.hibernate.annotations.Type;
-import org.hibernate.search.annotations.Field;
-import org.hibernate.search.annotations.Index;
-import org.hibernate.search.annotations.Indexed;
-import org.hibernate.search.annotations.Store;
-import org.projectforge.framework.persistence.entities.DefaultBaseDO;
-import org.projectforge.framework.persistence.utils.ReflectionToString;
-
 import java.io.UnsupportedEncodingException;
 
 import javax.persistence.Basic;
@@ -43,6 +33,17 @@ import javax.persistence.Enumerated;
 import javax.persistence.FetchType;
 import javax.persistence.Table;
 import javax.persistence.Transient;
+
+import org.apache.commons.lang.StringUtils;
+import org.hibernate.annotations.Type;
+import org.hibernate.search.annotations.Field;
+import org.hibernate.search.annotations.Index;
+import org.hibernate.search.annotations.Indexed;
+import org.hibernate.search.annotations.Store;
+import org.projectforge.framework.persistence.entities.DefaultBaseDO;
+import org.projectforge.framework.persistence.utils.ReflectionToString;
+
+import de.micromata.genome.db.jpa.history.api.NoHistory;
 
 /**
  * Scripts can be stored and executed by authorized users.
@@ -120,6 +121,7 @@ public class ScriptDO extends DefaultBaseDO
    */
   @Basic(fetch = FetchType.LAZY)
   @Type(type = "binary")
+  @Column(length = 2000)
   public byte[] getScript()
   {
     return script;
@@ -176,7 +178,7 @@ public class ScriptDO extends DefaultBaseDO
    * @return
    */
   @Basic(fetch = FetchType.LAZY)
-  @Column(name = "script_backup")
+  @Column(name = "script_backup", length = 2000)
   @Type(type = "binary")
   public byte[] getScriptBackup()
   {

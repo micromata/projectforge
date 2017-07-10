@@ -3,12 +3,13 @@
   <modelVersion>4.0.0</modelVersion>
   <artifactId>projectforge-application</artifactId>
   <packaging>jar</packaging>
-
+  <!-- UNCOMMENT IF WANT TO BUILD WAR FILE-->
+  <!--<packaging>war</packaging>-->
 
   <parent>
     <groupId>org.projectforge</groupId>
     <artifactId>projectforge-parent</artifactId>
-    <version>6.8.0-SNAPSHOT</version>
+    <version>6.15.0-SNAPSHOT</version>
   </parent>
   <licenses>
     <license>
@@ -22,6 +23,14 @@
     <start-class>org.projectforge.start.ProjectForgeApplication</start-class>
   </properties>
   <dependencies>
+    <!-- UNCOMMENT IF WANT TO BUILD WAR FILE-->
+    <!--
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-tomcat</artifactId>
+      <scope>provided</scope>
+    </dependency>
+    -->
     <!-- PF -->
     <dependency>
       <groupId>org.projectforge</groupId>
@@ -32,6 +41,62 @@
       <groupId>org.projectforge</groupId>
       <artifactId>projectforge-jax-rs</artifactId>
       <version>${projectforge.version}</version>
+    </dependency>
+
+    <!-- PF 'Plugins' -->
+    <dependency>
+      <groupId>org.projectforge</groupId>
+      <artifactId>org.projectforge.plugins.extendemployeedata</artifactId>
+      <version>${projectforge.version}</version>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.projectforge</groupId>
+      <artifactId>org.projectforge.plugins.financialfairplay</artifactId>
+      <version>${projectforge.version}</version>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.projectforge</groupId>
+      <artifactId>org.projectforge.plugins.ihkexport</artifactId>
+      <version>${projectforge.version}</version>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.projectforge</groupId>
+      <artifactId>org.projectforge.plugins.licensemanagement</artifactId>
+      <version>${projectforge.version}</version>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.projectforge</groupId>
+      <artifactId>org.projectforge.plugins.liquidityplanning</artifactId>
+      <version>${projectforge.version}</version>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.projectforge</groupId>
+      <artifactId>org.projectforge.plugins.marketing</artifactId>
+      <version>${projectforge.version}</version>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.projectforge</groupId>
+      <artifactId>org.projectforge.plugins.memo</artifactId>
+      <version>${projectforge.version}</version>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.projectforge</groupId>
+      <artifactId>org.projectforge.plugins.skillmatrix</artifactId>
+      <version>${projectforge.version}</version>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.projectforge</groupId>
+      <artifactId>org.projectforge.plugins.todo</artifactId>
+      <version>${projectforge.version}</version>
+      <scope>runtime</scope>
     </dependency>
   </dependencies>
   <build>
@@ -49,7 +114,10 @@
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-maven-plugin</artifactId>
         <configuration>
-          <layout>ZIP</layout> <!-- to use PropertiesLaunchar -->
+          <!-- needed for intern application.properties -->
+          <layout>ZIP</layout>
+          <!-- UNCOMMENT IF WANT TO BUILD WAR FILE-->
+          <!--<layout>WAR</layout>-->
         </configuration>
       </plugin>
     </plugins>

@@ -20,7 +20,7 @@ public class CustomerDateAndTimeDeserialize extends JsonDeserializer<Date>
   private static Logger log = LoggerFactory.getLogger(CustomerDateAndTimeDeserialize.class);
 
   private SimpleDateFormat dateFormat = new SimpleDateFormat(
-      "yyyy-MM-dd HH:mm:ss.SSS");
+      "yyyy-MM-dd HH:mm:ss");
 
   @Override
   public Date deserialize(JsonParser paramJsonParser,
@@ -31,8 +31,9 @@ public class CustomerDateAndTimeDeserialize extends JsonDeserializer<Date>
     try {
       return dateFormat.parse(str);
     } catch (Exception e) {
-      log.error("Exception while parsing date.");
+      log.warn("Exception while parsing date: '" + str + "' Message: " + e.getMessage());
     }
+    log.info("Try to use JSON default parser");
     return paramDeserializationContext.parseDate(str);
   }
 }

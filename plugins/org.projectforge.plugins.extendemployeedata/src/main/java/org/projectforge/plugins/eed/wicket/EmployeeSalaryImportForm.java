@@ -9,7 +9,7 @@ import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.upload.FileUploadField;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
-import org.projectforge.business.user.I18nHelper;
+import org.projectforge.framework.i18n.I18nHelper;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.plugins.eed.service.EEDHelper;
 import org.projectforge.web.core.importstorage.AbstractImportForm;
@@ -49,7 +49,7 @@ public class EmployeeSalaryImportForm extends AbstractImportForm<ImportFilter, E
     gridBuilder.newGridPanel();
 
     // Date DropDowns
-    final FieldsetPanel fsMonthYear = gridBuilder.newFieldset(I18nHelper.getLocalizedString("plugins.eed.listcare.yearmonth"));
+    final FieldsetPanel fsMonthYear = gridBuilder.newFieldset(I18nHelper.getLocalizedMessage("plugins.eed.listcare.yearmonth"));
 
     dropDownMonth = new DropDownChoicePanel<>(fsMonthYear.newChildId(),
         new DropDownChoice<>(DropDownChoicePanel.WICKET_ID, new PropertyModel<>(this, "selectedMonth"), EEDHelper.MONTH_INTEGERS)

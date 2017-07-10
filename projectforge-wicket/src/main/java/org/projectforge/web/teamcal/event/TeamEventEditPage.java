@@ -25,7 +25,9 @@ package org.projectforge.web.teamcal.event;
 
 import java.io.ByteArrayOutputStream;
 import java.sql.Timestamp;
+import java.util.Calendar;
 import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -200,7 +202,6 @@ public class TeamEventEditPage extends AbstractEditPage<TeamEventDO, TeamEventEd
               setResponsePage(timesheetEditPage);
             }
 
-            ;
           }, getString("plugins.teamcal.event.convert2Timesheet"));
       addContentMenuEntry(menu);
     }
@@ -224,7 +225,6 @@ public class TeamEventEditPage extends AbstractEditPage<TeamEventDO, TeamEventEd
           setResponsePage(new TimesheetEditPage(timesheet).setReturnToPage(returnToPage));
         }
 
-        ;
       }.setDefaultFormProcessing(false), getString("plugins.teamcal.switchToTimesheetButton"));
       addContentMenuEntry(menu);
     } else {
@@ -243,7 +243,6 @@ public class TeamEventEditPage extends AbstractEditPage<TeamEventDO, TeamEventEd
           }
         }
 
-        ;
       }.setDefaultFormProcessing(false), getString("plugins.teamcal.exportIcsButton"));
       addContentMenuEntry(menu);
     }
@@ -277,6 +276,25 @@ public class TeamEventEditPage extends AbstractEditPage<TeamEventDO, TeamEventEd
   }
 
   /**
+   * @see org.projectforge.web.wicket.AbstractEditPage#afterUndelete()
+   */
+  @Override
+  public AbstractSecuredBasePage afterUndelete()
+  {
+    super.afterUndelete();
+    if (getData().getAttendees() != null && getData().getAttendees().size() > 0) {
+      teamEventService.sendTeamEventToAttendees(getData(), false, true, false, null);
+    }
+    return null;
+  }
+
+  private Date getUntilDate(Date untilUTC)
+  {
+    // move one day to past, the TeamEventDO will post process this value while setting
+    return new Date(untilUTC.getTime() - 24 * 60 * 60 * 1000);
+  }
+
+  /**
    * @see org.projectforge.web.wicket.AbstractEditPage#onDelete()
    */
   @Override
@@ -292,12 +310,12 @@ public class TeamEventEditPage extends AbstractEditPage<TeamEventDO, TeamEventEd
     final Integer masterId = getData().getId(); // Store the id of the master entry.
     final TeamEventDO masterEvent = teamEventService.getById(masterId);
     if (recurrencyChangeType == RecurrencyChangeType.ALL_FUTURE) {
-      final Date recurrenceUntil = new Date(eventOfCaller.getStartDate().getTime() - 24 * 3600 * 1000);
-      form.recurrenceData.setUntil(recurrenceUntil); // Minus 24 hour.
+      final Date recurrenceUntil = this.getUntilDate(eventOfCaller.getStartDate());
+      form.recurrenceData.setUntil(recurrenceUntil);
       masterEvent.setRecurrence(form.recurrenceData);
       getBaseDao().update(masterEvent);
     } else if (recurrencyChangeType == RecurrencyChangeType.ONLY_CURRENT) { // only current date
-      masterEvent.addRecurrenceExDate(eventOfCaller.getStartDate(), ThreadLocalUserContext.getTimeZone());
+      masterEvent.addRecurrenceExDate(eventOfCaller.getStartDate());
       getBaseDao().update(masterEvent);
     }
     return (AbstractSecuredBasePage) getReturnToPage();
@@ -338,21 +356,21 @@ public class TeamEventEditPage extends AbstractEditPage<TeamEventDO, TeamEventEd
     }
     form.setData(masterEvent);
     if (recurrencyChangeType == RecurrencyChangeType.ALL_FUTURE) {
-      // Set the end date of the master date one day before current date and save this event.
-      final Date recurrenceUntil = new Date(eventOfCaller.getStartDate().getTime() - 24 * 3600 * 1000);
       newEvent = oldDataObject.clone();
+      // Set the end date of the master date one day before current date and save this event.
+      final Date recurrenceUntil = this.getUntilDate(eventOfCaller.getStartDate());
+      form.recurrenceData.setUntil(recurrenceUntil);
+      getData().setRecurrence(form.recurrenceData);
       if (log.isDebugEnabled() == true) {
         log.debug("Recurrency until date of master entry will be set to: " + DateHelper.formatAsUTC(recurrenceUntil));
         log.debug("The new event is: " + newEvent);
       }
-      form.recurrenceData.setUntil(recurrenceUntil); // Minus 24 hour.
-      getData().setRecurrence(form.recurrenceData);
       return null;
     } else if (recurrencyChangeType == RecurrencyChangeType.ONLY_CURRENT) { // only current date
       // Add current date to the master date as exclusion date and save this event (without recurrence settings).
-      masterEvent.addRecurrenceExDate(eventOfCaller.getStartDate(), ThreadLocalUserContext.getTimeZone());
+      masterEvent.addRecurrenceExDate(eventOfCaller.getStartDate());
       newEvent = oldDataObject.clone();
-      newEvent.setRecurrenceDate(eventOfCaller.getStartDate());
+      newEvent.setRecurrenceDate(eventOfCaller.getStartDate(), ThreadLocalUserContext.getTimeZone());
       newEvent.setRecurrenceReferenceId(masterEvent.getId());
       if (log.isDebugEnabled() == true) {
         log.debug("Recurrency ex date of master entry is now added: "
@@ -381,6 +399,7 @@ public class TeamEventEditPage extends AbstractEditPage<TeamEventDO, TeamEventEd
       newEvent.getAttendees().clear();
       teamEventService.save(newEvent);
       teamEventService.assignAttendees(newEvent, existingAttendees, null);
+      teamEventService.sendTeamEventToAttendees(newEvent, true, false, false, existingAttendees);
     }
     return null;
   }

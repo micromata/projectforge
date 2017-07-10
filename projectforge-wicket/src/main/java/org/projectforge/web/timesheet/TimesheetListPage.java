@@ -68,7 +68,6 @@ import org.projectforge.framework.renderer.PdfRenderer;
 import org.projectforge.framework.time.DateFormatType;
 import org.projectforge.framework.time.DateFormats;
 import org.projectforge.framework.time.DateHelper;
-import org.projectforge.framework.time.DateHolder;
 import org.projectforge.framework.utils.FileHelper;
 import org.projectforge.framework.utils.MyBeanComparator;
 import org.projectforge.jira.JiraUtils;
@@ -96,7 +95,7 @@ public class TimesheetListPage extends AbstractListPage<TimesheetListForm, Times
 {
   private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(TimesheetListPage.class);
 
-  protected static final String[] MY_BOOKMARKABLE_INITIAL_PROPERTIES = mergeStringArrays(
+  private static final String[] MY_BOOKMARKABLE_INITIAL_PROPERTIES = mergeStringArrays(
       BOOKMARKABLE_INITIAL_PROPERTIES, new String[] {
           "f.userId|user", "f.taskId|task", "f.startTime|t1", "f.stopTime|t2", "f.marked", "f.longFormat|long",
           "f.recursive" });
@@ -207,7 +206,7 @@ public class TimesheetListPage extends AbstractListPage<TimesheetListForm, Times
         public void onSubmit()
         {
           exportPDF();
-        };
+        }
       };
       exportMenu.addSubMenuEntry(
           new ContentMenuEntryPanel(exportMenu.newSubMenuChildId(), exportPDFButton, getString("exportAsPdf"))
@@ -220,7 +219,7 @@ public class TimesheetListPage extends AbstractListPage<TimesheetListForm, Times
         public void onSubmit()
         {
           exportExcel();
-        };
+        }
       };
       exportMenu.addSubMenuEntry(
           new ContentMenuEntryPanel(exportMenu.newSubMenuChildId(), exportExcelButton, getString("exportAsXls"))
@@ -240,7 +239,7 @@ public class TimesheetListPage extends AbstractListPage<TimesheetListForm, Times
       public void onClick(final AjaxRequestTarget target)
       {
         icsExportDialog.open(target);
-      };
+      }
 
     };
     // final IconLinkPanel exportICalButtonPanel = new IconLinkPanel(buttonGroupPanel.newChildId(), IconType.DOWNLOAD,
@@ -287,11 +286,11 @@ public class TimesheetListPage extends AbstractListPage<TimesheetListForm, Times
 
   /**
    * For re-usage in other pages.
-   * 
+   *
    * @param page
    * @param isMassUpdateMode
-   * @param timesheetFilter If given, then the long format filter setting will be used for displaying the description,
-   *          otherwise the short description is used.
+   * @param timesheetFilter  If given, then the long format filter setting will be used for displaying the description,
+   *                         otherwise the short description is used.
    */
   @SuppressWarnings("serial")
   protected static final List<IColumn<TimesheetDO, String>> createColumns(
@@ -375,7 +374,7 @@ public class TimesheetListPage extends AbstractListPage<TimesheetListForm, Times
     columns.add(new TaskPropertyColumn<TimesheetDO>(page.getString("task"),
         getSortable("task.title", sortable), "task",
         cellItemListener)
-            .withTaskTree(taskTree));
+        .withTaskTree(taskTree));
     if (systemInfoCache.isCost2EntriesExists() == true) {
       columns.add(new CellItemListenerPropertyColumn<TimesheetDO>(page.getString("fibu.kost2"),
           getSortable("kost2.shortDisplayName",
@@ -493,28 +492,12 @@ public class TimesheetListPage extends AbstractListPage<TimesheetListForm, Times
     } else if ("userId".equals(property) == true) {
       form.getSearchFilter().setUserId((Integer) selectedValue);
       refresh();
-    } else if (property.startsWith("quickSelect.") == true) { // month".equals(property) == true) {
-      final Date date = (Date) selectedValue;
-      form.getSearchFilter().setStartTime(date);
-      final DateHolder dateHolder = new DateHolder(date);
-      if (property.endsWith(".month") == true) {
-        dateHolder.setEndOfMonth();
-      } else if (property.endsWith(".week") == true) {
-        dateHolder.setEndOfWeek();
-      } else {
-        log.error("Property '" + property + "' not supported for selection.");
-      }
-      form.getSearchFilter().setStopTime(dateHolder.getDate());
-      form.startDate.markModelAsChanged();
-      form.stopDate.markModelAsChanged();
-      refresh();
     } else {
       super.select(property, selectedValue);
     }
   }
 
   /**
-   * 
    * @see org.projectforge.web.fibu.ISelectCallerPage#unselect(java.lang.String)
    */
   @Override
@@ -539,7 +522,7 @@ public class TimesheetListPage extends AbstractListPage<TimesheetListForm, Times
   {
     final TimesheetFilter filter = form.getSearchFilter();
     if (filter.getStartTime() == null && filter.getStopTime() == null && filter.getTaskId() == null) {
-      return null;
+      return new ArrayList<>(); // return null results in an addition error message! (search.error)
     }
     return super.buildList();
   }
@@ -606,7 +589,7 @@ public class TimesheetListPage extends AbstractListPage<TimesheetListForm, Times
 
   /**
    * Avoid LazyInitializationException user.fullname.
-   * 
+   *
    * @see org.projectforge.web.wicket.AbstractListPage#createSortableDataProvider(java.lang.String, boolean)
    */
   @SuppressWarnings("serial")

@@ -8,8 +8,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import org.projectforge.business.fibu.EmployeeDO;
-import org.projectforge.business.fibu.EmployeeDao;
+import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.persistence.history.DisplayHistoryEntry;
 import org.projectforge.framework.persistence.jpa.impl.CorePersistenceServiceImpl;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
@@ -34,9 +33,6 @@ public class FFPEventServiceImpl extends CorePersistenceServiceImpl<Integer, FFP
   @Autowired
   private FFPDebtDao debtDao;
 
-  @Autowired
-  private EmployeeDao employeeDao;
-
   @Override
   public boolean hasLoggedInUserInsertAccess()
   {
@@ -59,6 +55,12 @@ public class FFPEventServiceImpl extends CorePersistenceServiceImpl<Integer, FFP
   public boolean hasLoggedInUserDeleteAccess(FFPEventDO obj, FFPEventDO dbObj, boolean throwException)
   {
     return eventDao.hasLoggedInUserDeleteAccess(obj, dbObj, throwException);
+  }
+
+  @Override
+  public boolean hasInsertAccess(PFUserDO user)
+  {
+    return true;
   }
 
   @Override
@@ -95,6 +97,18 @@ public class FFPEventServiceImpl extends CorePersistenceServiceImpl<Integer, FFP
   public FFPEventDao getEventDao()
   {
     return eventDao;
+  }
+
+  @Override
+  public FFPDebtDao getDebtDao()
+  {
+    return debtDao;
+  }
+
+  @Override
+  public List<FFPEventDO> getList(BaseSearchFilter filter)
+  {
+    return eventDao.getList(filter);
   }
 
   public List<FFPDebtDO> calculateDebt(FFPEventDO event)
@@ -159,9 +173,9 @@ public class FFPEventServiceImpl extends CorePersistenceServiceImpl<Integer, FFP
   }
 
   @Override
-  public List<FFPDebtDO> getDeptList(EmployeeDO employee)
+  public List<FFPDebtDO> getDeptList(PFUserDO user)
   {
-    return debtDao.getDebtList(employee);
+    return debtDao.getDebtList(user);
   }
 
   @Override
@@ -185,9 +199,19 @@ public class FFPEventServiceImpl extends CorePersistenceServiceImpl<Integer, FFP
   }
 
   @Override
-  public Integer getOpenFromDebts(PFUserDO user)
+  public Integer getOpenDebts(PFUserDO user)
   {
-    return debtDao.getOpenFromDebts(employeeDao.findByUserId(user.getId()));
+    return getOpenFromDebts(user) + getOpenToDebts(user);
+  }
+
+  private Integer getOpenFromDebts(PFUserDO user)
+  {
+    return debtDao.getOpenFromDebts(user);
+  }
+
+  private Integer getOpenToDebts(PFUserDO user)
+  {
+    return debtDao.getOpenToDebts(user);
   }
 
   @Override

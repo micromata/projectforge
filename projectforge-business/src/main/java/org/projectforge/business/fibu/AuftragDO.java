@@ -28,6 +28,7 @@ import java.sql.Date;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -58,6 +59,7 @@ import org.projectforge.framework.persistence.api.PFPersistancyBehavior;
 import org.projectforge.framework.persistence.entities.DefaultBaseDO;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.utils.NumberHelper;
+import org.projectforge.framework.xstream.XmlObjectReader;
 
 import de.micromata.genome.db.jpa.history.api.NoHistory;
 import de.micromata.genome.db.jpa.history.api.WithHistory;
@@ -563,8 +565,8 @@ public class AuftragDO extends DefaultBaseDO
     if (getAuftragsStatus().isIn(AuftragsStatus.ABGESCHLOSSEN) == true && isVollstaendigFakturiert() == false) {
       return true;
     }
-    if (getPositionen() != null) {
-      for (final AuftragsPositionDO pos : getPositionen()) {
+    if (getPositionenIncludingDeleted() != null) {
+      for (final AuftragsPositionDO pos : getPositionenIncludingDeleted()) {
         if (pos.isDeleted()) {
           continue;
         }
@@ -583,7 +585,7 @@ public class AuftragDO extends DefaultBaseDO
   //@OrderColumn(name = "number")
   //TODO: Kann so nicht verwendet werden, da Zähler bei 1 starten muss. Größerer Umbau von nöten, um es zu ändern.
   @IndexColumn(name = "number", base = 1)
-  public List<AuftragsPositionDO> getPositionen()
+  private List<AuftragsPositionDO> getPositionen()
   {
     if (this.positionen == null) {
       log.debug("The list of AuftragsPositionDO is null. AuftragDO id: " + this.getId());
@@ -595,6 +597,32 @@ public class AuftragDO extends DefaultBaseDO
       }
     }
     return this.positionen;
+  }
+
+  /**
+   * Get list of AuftragsPosition including elements that are marked as deleted.
+   * <b>Attention: Changes in this list will be persisted</b>.
+   *
+   * @return Returns the full list of linked AuftragsPositionen.
+   */
+  @Transient
+  public List<AuftragsPositionDO> getPositionenIncludingDeleted()
+  {
+    return this.getPositionen();
+  }
+
+  /**
+   * Get list of AuftragsPosition excluding elements that are marked as deleted.
+   * <b>Attention: Changes in this list will not be persisted.</b>
+   *
+   * @return Returns a filtered list of AUftragsPosition excluding marked as deleted elements.
+   */
+  @Transient
+  public List<AuftragsPositionDO> getPositionenExcludingDeleted()
+  {
+    return getPositionen().stream()
+        .filter(pos -> pos.isDeleted() == false)
+        .collect(Collectors.toList());
   }
 
   /**
@@ -704,6 +732,12 @@ public class AuftragDO extends DefaultBaseDO
         if (pos.isDeleted()) {
           continue;
         }
+        if (pos.getStatus() != null) {
+          if (pos.getStatus().equals(AuftragsPositionsStatus.ABGELEHNT) || pos.getStatus().equals(AuftragsPositionsStatus.ERSETZT) || pos.getStatus()
+              .equals(AuftragsPositionsStatus.OPTIONAL)) {
+            continue;
+          }
+        }
         BigDecimal net = pos.getNettoSumme();
         if (net == null) {
           net = BigDecimal.ZERO;
@@ -746,9 +780,14 @@ public class AuftragDO extends DefaultBaseDO
   @Transient
   public AuftragUIStatus getUiStatus()
   {
-    if (uiStatus == null) {
+    if (uiStatus == null && StringUtils.isEmpty(uiStatusAsXml)) {
       uiStatus = new AuftragUIStatus();
+    } else if (uiStatus == null) {
+      final XmlObjectReader reader = new XmlObjectReader();
+      reader.initialize(AuftragUIStatus.class);
+      uiStatus = (AuftragUIStatus) reader.read(uiStatusAsXml);
     }
+
     return uiStatus;
   }
 

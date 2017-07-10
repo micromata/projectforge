@@ -28,16 +28,6 @@ import java.io.IOException;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
-import org.apache.directory.server.core.DefaultCoreSession;
-import org.apache.directory.server.core.LdapPrincipal;
-import org.apache.directory.server.core.interceptor.context.AddOperationContext;
-import org.apache.directory.server.core.partition.impl.btree.jdbm.JdbmPartition;
-import org.apache.directory.server.ldap.LdapServer;
-import org.apache.directory.shared.ldap.constants.AuthenticationLevel;
-import org.apache.directory.shared.ldap.entry.DefaultServerEntry;
-import org.apache.directory.shared.ldap.exception.LdapInvalidDnException;
-import org.apache.directory.shared.ldap.name.DN;
-import org.apache.directory.shared.ldap.schema.SchemaManager;
 import org.projectforge.business.fibu.kost.AccountingConfig;
 import org.projectforge.framework.xstream.AliasMap;
 import org.projectforge.framework.xstream.XmlObjectReader;
@@ -47,7 +37,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 /**
  * Test helper class for do some tests with a real LDAP test system. The LDAP system settings have to be set in
  * $USER.HOME/rojectForge/testldapConfig.xml:
- * 
+ * <p>
  * <pre>
  * &lt;?xml version="1.0" encoding="UTF-8" ?&gt;
  * &lt;ldapConfig&gt;
@@ -61,9 +51,8 @@ import org.springframework.beans.factory.annotation.Autowired;
  *     &lt;sslCertificateFile&gt;/Users/kai/ProjectForge/testldap.cert&lt;/sslCertificateFile&gt;
  * &lt;/ldapConfig&gt;
  * </pre>
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
  */
 public class LdapRealTestHelper
 {
@@ -119,9 +108,9 @@ public class LdapRealTestHelper
 
         //ldapOrganizationalUnitDao.createIfNotExist(getUserPath(), "Test area for tests of ProjectForge.");
         //ldapOrganizationalUnitDao.createIfNotExist(LdapUserDao.DEACTIVATED_SUB_CONTEXT, "for deactivated users.",
-         //   getUserPath());
+        //   getUserPath());
         //ldapOrganizationalUnitDao.createIfNotExist(LdapUserDao.RESTRICTED_USER_SUB_CONTEXT, "for restricted users.",
-         //   getUserPath());
+        //   getUserPath());
         //ldapOrganizationalUnitDao.createIfNotExist(getGroupPath(), "Test area for tests of ProjectForge.");
       }
     }
@@ -170,7 +159,7 @@ public class LdapRealTestHelper
 
   private LdapConfig readConfig()
   {
-    if ( JUnitLDAPTestWrapper.ldapServerWrap != null) {
+    if (JUnitLDAPTestWrapper.ldapServerWrap != null) {
       LdapConfig ldapConfig = new LdapConfig();
       ldapConfig.setPort(JUnitLDAPTestWrapper.ldapServerWrap.getPort());
       ldapConfig.setServer(JUnitLDAPTestWrapper.ldapServerWrap.getTransports()[0].getAddress());
@@ -197,7 +186,7 @@ public class LdapRealTestHelper
       } catch (final IOException ex) {
         log.error(ex.getMessage(), ex);
         throw new IllegalArgumentException("Cannot read config file '" + CONFIG_FILE + "' properly : " + ex.getMessage(),
-                ex);
+            ex);
       }
       if (xml == null) {
         throw new IllegalArgumentException("Cannot read from config file: '" + CONFIG_FILE + "'.");
@@ -211,7 +200,7 @@ public class LdapRealTestHelper
         return cfg;
       } catch (final Throwable ex) {
         throw new IllegalArgumentException("Cannot read config file '" + CONFIG_FILE + "' properly : " + ex.getMessage(),
-                ex);
+            ex);
       }
     }
   }

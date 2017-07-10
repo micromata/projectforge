@@ -183,12 +183,12 @@ public class EmployeeTest extends AbstractTestBase
     log.info("Employee: " + e.toString());
     List<DisplayHistoryEntry> historyEntriesBefore = employeeDao.getDisplayHistoryEntries(e);
 
-    String iban = "/*/*/*/*/*///*/*//*//*/*/*/*/*/*/*/*/*/*/*/*/*////*/*//*/*/*/*/*/*";
+    String iban = "/*/*/*/*/*///*/*//*//*/*/*/*/*/*/*/*/*/*/*/*/*////";
     e.setIban(iban);
     assertEquals(e.getIban(), iban);
     employeeDao.update(e); // for history test
 
-    String bic = "ööäööäööäöäöäöäöäöäööäöäöäöä";
+    String bic = "ööäööäööäöä";
     e.setBic(bic);
     assertEquals(e.getBic(), bic);
     employeeDao.update(e); // for history test

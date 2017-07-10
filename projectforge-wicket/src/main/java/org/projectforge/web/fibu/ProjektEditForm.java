@@ -41,7 +41,7 @@ import org.projectforge.business.fibu.ProjektStatus;
 import org.projectforge.business.fibu.kost.AccountingConfig;
 import org.projectforge.business.fibu.kost.KostCache;
 import org.projectforge.business.task.TaskDO;
-import org.projectforge.business.user.I18nHelper;
+import org.projectforge.framework.i18n.I18nHelper;
 import org.projectforge.framework.persistence.user.entities.GroupDO;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.reporting.Kost2Art;
@@ -158,6 +158,7 @@ public class ProjektEditForm extends AbstractEditForm<ProjektDO, ProjektEditPage
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("fibu.projekt.name"));
       final MaxLengthTextField field = new MaxLengthTextField(InputPanel.WICKET_ID,
           new PropertyModel<String>(data, "name"));
+      field.setRequired(true);
       fs.add(field);
       WicketUtils.setFocus(field);
       WicketUtils.setStrong(field);

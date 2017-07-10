@@ -26,6 +26,7 @@ package org.projectforge.business.fibu;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 import javax.persistence.Column;
 import javax.persistence.MappedSuperclass;
@@ -44,7 +45,7 @@ import org.projectforge.framework.utils.NumberHelper;
 
 /**
  * Repräsentiert eine Position innerhalb eine Rechnung.
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 @MappedSuperclass
@@ -115,7 +116,7 @@ public abstract class AbstractRechnungsPositionDO extends DefaultBaseDO implemen
     if (vat != null) {
       this.vat = vat.stripTrailingZeros();
     } else {
-      this.vat = vat;
+      this.vat = null;
     }
     return this;
   }
@@ -226,7 +227,7 @@ public abstract class AbstractRechnungsPositionDO extends DefaultBaseDO implemen
 
   /**
    * kostZuweisung.setEingangsrechnungsPosition(this);
-   * 
+   *
    * @param kostZuweisung
    */
   protected abstract void setThis(final KostZuweisungDO kostZuweisung);
@@ -257,7 +258,7 @@ public abstract class AbstractRechnungsPositionDO extends DefaultBaseDO implemen
   /**
    * Does only work for not already persisted entries (meaning entries without an id / pk) and only the last entry of
    * the list. Otherwise this method logs an error message and do nothing else.
-   * 
+   *
    * @param idx
    * @see #isKostZuweisungDeletable(KostZuweisungDO)
    */
@@ -279,7 +280,7 @@ public abstract class AbstractRechnungsPositionDO extends DefaultBaseDO implemen
 
   /**
    * Only the last entry of cost assignments is deletable if not already persisted (no id/pk given).
-   * 
+   *
    * @param zuweisung
    * @return
    */
@@ -288,9 +289,8 @@ public abstract class AbstractRechnungsPositionDO extends DefaultBaseDO implemen
     if (zuweisung == null) {
       return false;
     }
-    if ((this instanceof EingangsrechnungsPositionDO && zuweisung.getEingangsrechnungsPositionId() != this.getId())
-        || this instanceof RechnungsPositionDO
-            && zuweisung.getRechnungsPositionId() != this.getId()) {
+    if (this instanceof EingangsrechnungsPositionDO && Objects.equals(zuweisung.getEingangsrechnungsPositionId(), this.getId()) == false
+        || this instanceof RechnungsPositionDO && Objects.equals(zuweisung.getRechnungsPositionId(), this.getId()) == false) {
       log.error("Oups, given cost assignment is not assigned to this invoice position.");
       return false;
     }
@@ -334,7 +334,7 @@ public abstract class AbstractRechnungsPositionDO extends DefaultBaseDO implemen
 
   /**
    * Clones this including cost assignments and order position (without id's).
-   * 
+   *
    * @return
    */
   public AbstractRechnungsPositionDO newClone()

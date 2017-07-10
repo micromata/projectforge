@@ -40,7 +40,6 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.apache.wicket.util.convert.IConverter;
-import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.business.fibu.AbstractRechnungsPositionDO;
 import org.projectforge.business.fibu.EingangsrechnungsPositionDO;
 import org.projectforge.business.fibu.ProjektDO;
@@ -57,6 +56,7 @@ import org.projectforge.framework.utils.NumberFormatter;
 import org.projectforge.framework.utils.NumberHelper;
 import org.projectforge.web.wicket.CsrfTokenHandler;
 import org.projectforge.web.wicket.WicketAjaxUtils;
+import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.web.wicket.components.MinMaxNumberField;
 import org.projectforge.web.wicket.components.SingleButtonPanel;
 import org.projectforge.web.wicket.converter.CurrencyConverter;
@@ -67,7 +67,6 @@ import org.projectforge.web.wicket.flowlayout.MyAjaxComponentHolder;
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
  */
 public class RechnungCostEditTablePanel extends Panel
 {
@@ -101,7 +100,8 @@ public class RechnungCostEditTablePanel extends Panel
     feedbackPanel = new FeedbackPanel("feedback");
     ajaxComponents.register(feedbackPanel);
     add(feedbackPanel);
-    this.form = new Form<AbstractRechnungsPositionDO>("form") {
+    this.form = new Form<AbstractRechnungsPositionDO>("form")
+    {
       @Override
       protected void onSubmit()
       {
@@ -132,7 +132,7 @@ public class RechnungCostEditTablePanel extends Panel
       position = new EingangsrechnungsPositionDO();
     }
     position.copyValuesFrom(origPosition, "kostZuweisungen");
-    new KostZuweisungenCopyHelper().mycopy(origPosition.getKostZuweisungen(), null, position);
+    KostZuweisungenCopyHelper.copy(origPosition.getKostZuweisungen(), position);
     List<KostZuweisungDO> kostzuweisungen = position.getKostZuweisungen();
     if (CollectionUtils.isEmpty(kostzuweisungen) == true) {
       addZuweisung(position);
@@ -142,7 +142,8 @@ public class RechnungCostEditTablePanel extends Panel
       final WebMarkupContainer row = createRow(rows.newChildId(), position, zuweisung);
       rows.add(row);
     }
-    final Label restLabel = new Label("restValue", new Model<String>() {
+    final Label restLabel = new Label("restValue", new Model<String>()
+    {
       /**
        * @see org.apache.wicket.model.Model#getObject()
        */
@@ -154,23 +155,23 @@ public class RechnungCostEditTablePanel extends Panel
     });
     form.add(restLabel);
     ajaxComponents.register(restLabel);
-    final AjaxButton addRowButton = new AjaxButton(ButtonPanel.BUTTON_ID, form) {
+    final AjaxButton addRowButton = new AjaxButton(ButtonPanel.BUTTON_ID, form)
+    {
       @Override
-      protected void onSubmit(final AjaxRequestTarget target, final Form< ? > form)
+      protected void onSubmit(final AjaxRequestTarget target, final Form<?> form)
       {
         final KostZuweisungDO zuweisung = addZuweisung(position);
         final WebMarkupContainer newRow = createRow(rows.newChildId(), position, zuweisung);
         newRow.setOutputMarkupId(true);
-        final StringBuffer prependJavascriptBuf = new StringBuffer();
-        prependJavascriptBuf.append(WicketAjaxUtils.appendChild("costAssignmentBody", "tr", newRow.getMarkupId()));
+        final String prependJavascript = WicketAjaxUtils.appendChild("costAssignmentBody", "tr", newRow.getMarkupId());
         rows.add(newRow);
         target.add(newRow);
         ajaxComponents.addTargetComponents(target);
-        target.prependJavaScript(prependJavascriptBuf.toString());
+        target.prependJavaScript(prependJavascript);
       }
 
       @Override
-      protected void onError(final AjaxRequestTarget target, final Form< ? > form)
+      protected void onError(final AjaxRequestTarget target, final Form<?> form)
       {
         target.add(feedbackPanel);
       }
@@ -179,15 +180,16 @@ public class RechnungCostEditTablePanel extends Panel
     final SingleButtonPanel addPositionButtonPanel = new SingleButtonPanel("addRowButton", addRowButton, getString("add"));
     form.add(addPositionButtonPanel);
 
-    final AjaxButton recalculateButton = new AjaxButton(ButtonPanel.BUTTON_ID, form) {
+    final AjaxButton recalculateButton = new AjaxButton(ButtonPanel.BUTTON_ID, form)
+    {
       @Override
-      protected void onSubmit(final AjaxRequestTarget target, final Form< ? > form)
+      protected void onSubmit(final AjaxRequestTarget target, final Form<?> form)
       {
         ajaxComponents.addTargetComponents(target);
       }
 
       @Override
-      protected void onError(final AjaxRequestTarget target, final Form< ? > form)
+      protected void onError(final AjaxRequestTarget target, final Form<?> form)
       {
         target.add(feedbackPanel);
       }
@@ -214,8 +216,9 @@ public class RechnungCostEditTablePanel extends Panel
     ajaxComponents.register(kost2);
 
     final MinMaxNumberField<BigDecimal> netto = new MinMaxNumberField<BigDecimal>("netto",
-        new PropertyModel<BigDecimal>(zuweisung, "netto"), Constants.TEN_BILLION_NEGATIVE, Constants.TEN_BILLION) {
-      @SuppressWarnings({ "rawtypes", "unchecked"})
+        new PropertyModel<BigDecimal>(zuweisung, "netto"), Constants.TEN_BILLION_NEGATIVE, Constants.TEN_BILLION)
+    {
+      @SuppressWarnings({ "rawtypes", "unchecked" })
       @Override
       public IConverter getConverter(final Class type)
       {
@@ -226,7 +229,8 @@ public class RechnungCostEditTablePanel extends Panel
     WicketUtils.addTooltip(netto, getString("currencyConverter.percentage.help"));
     row.add(netto);
     ajaxComponents.register(netto); // Should be updated if e. g. percentage value is given.
-    final Label pLabel = new Label("percentage", new Model<String>() {
+    final Label pLabel = new Label("percentage", new Model<String>()
+    {
       /**
        * @see org.apache.wicket.model.Model#getObject()
        */
@@ -251,9 +255,10 @@ public class RechnungCostEditTablePanel extends Panel
     row.add(pLabel);
 
     if (position.isKostZuweisungDeletable(zuweisung) == true) {
-      final AjaxButton deleteRowButton = new AjaxButton(ButtonPanel.BUTTON_ID, form) {
+      final AjaxButton deleteRowButton = new AjaxButton(ButtonPanel.BUTTON_ID, form)
+      {
         @Override
-        protected void onSubmit(final AjaxRequestTarget target, final Form< ? > form)
+        protected void onSubmit(final AjaxRequestTarget target, final Form<?> form)
         {
           position.deleteKostZuweisung(zuweisung.getIndex());
           final StringBuffer prependJavascriptBuf = new StringBuffer();
@@ -264,7 +269,7 @@ public class RechnungCostEditTablePanel extends Panel
         }
 
         @Override
-        protected void onError(final AjaxRequestTarget target, final Form< ? > form)
+        protected void onError(final AjaxRequestTarget target, final Form<?> form)
         {
           target.add(feedbackPanel.setVisible(true));
         }
@@ -292,15 +297,13 @@ public class RechnungCostEditTablePanel extends Panel
     if (RechnungsPositionDO.class.isAssignableFrom(position.getClass()) == true && kostZuweisung.getKost2() == null) {
       // Preset kost2 with first kost2 found for the projekt.
       final RechnungsPositionDO rechnungsPosition = (RechnungsPositionDO) position;
-      if (rechnungsPosition != null) {
-        final RechnungDO rechnung = rechnungsPosition.getRechnung();
-        if (rechnung != null) {
-          final ProjektDO project = rechnung.getProjekt();
-          if (project != null) {
-            final List<Kost2DO> kost2List = kost2Dao.getActiveKost2(project);
-            if (CollectionUtils.isNotEmpty(kost2List) == true) {
-              kostZuweisung.setKost2(kost2List.get(0));
-            }
+      final RechnungDO rechnung = rechnungsPosition.getRechnung();
+      if (rechnung != null) {
+        final ProjektDO project = rechnung.getProjekt();
+        if (project != null) {
+          final List<Kost2DO> kost2List = kost2Dao.getActiveKost2(project);
+          if (CollectionUtils.isNotEmpty(kost2List) == true) {
+            kostZuweisung.setKost2(kost2List.get(0));
           }
         }
       }

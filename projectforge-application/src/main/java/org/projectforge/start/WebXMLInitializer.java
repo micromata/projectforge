@@ -3,7 +3,6 @@ package org.projectforge.start;
 import javax.servlet.FilterRegistration;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
-import javax.servlet.ServletRegistration.Dynamic;
 
 import org.apache.wicket.protocol.http.WicketFilter;
 import org.apache.wicket.spring.SpringWebApplicationFactory;
@@ -13,17 +12,14 @@ import org.projectforge.web.doc.TutorialFilter;
 import org.projectforge.web.filter.ResponseHeaderFilter;
 import org.projectforge.web.filter.SpringThreadLocalFilter;
 import org.projectforge.web.rest.RestUserFilter;
-import org.springframework.boot.context.embedded.ServletContextInitializer;
+import org.springframework.boot.web.servlet.ServletContextInitializer;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.orm.hibernate3.support.OpenSessionInViewFilter;
-
-import com.sun.jersey.spi.spring.container.servlet.SpringServlet;
 
 /**
  * This class is the replacement of the web.xml. It registers the wicket filter in the spring aware configuration style.
  *
  * @author Florian Blumenstein
- *
  */
 @Configuration
 public class WebXMLInitializer implements ServletContextInitializer
@@ -83,23 +79,6 @@ public class WebXMLInitializer implements ServletContextInitializer
 
     sc.addListener(SessionSerializableChecker.class);
 
-    Dynamic restApplication = sc.addServlet("RestApplication", SpringServlet.class);
-    restApplication.setInitParameter("javax.ws.rs.Application", "org.projectforge.web.rest.RestApplication");
-    restApplication.setLoadOnStartup(1);
-    restApplication.addMapping("/rest/*");
-    //sc.getSessionCookieConfig().setHttpOnly(true);
-
   }
-
-  //  @Bean
-  //  public MultipartConfigElement multipartConfigElement()
-  //  {
-  //    MultipartProperties mpp = new MultipartProperties();
-  //    mpp.setMaxFileSize(ls.get("multipart.maxFileSize"));
-  //    mpp.setLocation(ls.get("multipart.location"));
-  //    mpp.setMaxRequestSize(ls.get("multipart.maxRequestSize"));
-  //    mpp.setFileSizeThreshold(ls.get("fileSizeThreshold"));
-  //    return mpp.createMultipartConfig();
-  //  }
 
 }

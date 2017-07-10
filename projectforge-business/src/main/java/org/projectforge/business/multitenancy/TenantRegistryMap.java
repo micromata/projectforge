@@ -37,7 +37,7 @@ import org.springframework.context.ApplicationContext;
 
 /**
  * Holds TenantCachesHolder element and detaches them if not used for some time to save memory.
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 public class TenantRegistryMap extends AbstractCache
@@ -132,11 +132,16 @@ public class TenantRegistryMap extends AbstractCache
 
   private TenantRegistry getSingleTenantRegistry()
   {
+    if (singleTenantRegistry == null) {
+      singleTenantRegistry = createSingleTenantRegistry();
+    }
+    return singleTenantRegistry;
+  }
+
+  private TenantRegistry createSingleTenantRegistry()
+  {
     synchronized (this) {
-      if (singleTenantRegistry == null) {
-        singleTenantRegistry = new TenantRegistry(tenantService.getDefaultTenant(), applicationContext);
-      }
-      return singleTenantRegistry;
+      return new TenantRegistry(tenantService.getDefaultTenant(), applicationContext);
     }
   }
 
@@ -145,19 +150,24 @@ public class TenantRegistryMap extends AbstractCache
    * tenants but no default tenant and the users try to login in, but no tenant will be found (error messages will
    * occur). The super admin is the onliest user to fix this issue (because the system is available due to this dummy
    * tenant).
-   * 
+   *
    * @return
    */
   private TenantRegistry getDummyTenantRegistry()
   {
+    if (dummyTenantRegistry == null) {
+      createDummyTenantRegistry();
+    }
+    return dummyTenantRegistry;
+  }
+
+  private void createDummyTenantRegistry()
+  {
     synchronized (this) {
-      if (dummyTenantRegistry == null) {
-        final TenantDO dummyTenant = new TenantDO().setName("Dummy tenant").setShortName("Dummy tenant")
-            .setDescription("This tenant is only a technical tenant, if no default tenant is given.");
-        dummyTenant.setId(-1);
-        dummyTenantRegistry = new TenantRegistry(dummyTenant, applicationContext);
-      }
-      return dummyTenantRegistry;
+      final TenantDO dummyTenant = new TenantDO().setName("Dummy tenant").setShortName("Dummy tenant")
+          .setDescription("This tenant is only a technical tenant, if no default tenant is given.");
+      dummyTenant.setId(-1);
+      dummyTenantRegistry = new TenantRegistry(dummyTenant, applicationContext);
     }
   }
 
@@ -204,7 +214,6 @@ public class TenantRegistryMap extends AbstractCache
   {
     this.applicationContext = applicationContext;
     this.tenantChecker = applicationContext.getBean(TenantChecker.class);
-    this.tenantService = applicationContext.getBean(TenantService.class);
     this.tenantService = applicationContext.getBean(TenantService.class);
   }
 

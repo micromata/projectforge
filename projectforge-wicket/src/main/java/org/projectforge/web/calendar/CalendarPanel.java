@@ -41,6 +41,7 @@ import org.projectforge.business.timesheet.TimesheetDO;
 import org.projectforge.business.timesheet.TimesheetDao;
 import org.projectforge.business.user.ProjectForgeGroup;
 import org.projectforge.framework.access.AccessChecker;
+import org.projectforge.framework.access.OperationType;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.time.DateHelper;
@@ -53,6 +54,7 @@ import org.projectforge.web.wicket.AbstractEditPage;
 import org.projectforge.web.wicket.components.DatePickerUtils;
 import org.projectforge.web.wicket.components.JodaDatePanel;
 
+import name.fraser.neil.plaintext.DiffMatchPatch;
 import net.ftlines.wicket.fullcalendar.CalendarResponse;
 import net.ftlines.wicket.fullcalendar.Event;
 import net.ftlines.wicket.fullcalendar.EventProvider;
@@ -106,7 +108,7 @@ public class CalendarPanel extends Panel
 
   /**
    * At default the filter is equals to the customized filter. For the team plug-in the filter is a different filter.
-   * 
+   *
    * @param filter
    * @param filter
    */
@@ -165,7 +167,7 @@ public class CalendarPanel extends Panel
 
       /**
        * Event was moved, a new start time was chosen.
-       * 
+       *
        * @see net.ftlines.wicket.fullcalendar.FullCalendar#onEventDropped(net.ftlines.wicket.fullcalendar.callback.DroppedEvent,
        *      net.ftlines.wicket.fullcalendar.CalendarResponse)
        */
@@ -337,7 +339,7 @@ public class CalendarPanel extends Panel
   /**
    * Hook method for overwriting children, which is called, when an date range event occurs which can not be handled
    * through this page.
-   * 
+   *
    * @param selectedCalendar
    * @param range
    * @param response
@@ -350,7 +352,7 @@ public class CalendarPanel extends Panel
 
   /**
    * Hook method for overwriting children, which is called, when an event source should be registered
-   * 
+   *
    * @param config
    * @param filter
    */
@@ -363,7 +365,7 @@ public class CalendarPanel extends Panel
    * Hook method for overwriting children, which is called, when an event should be modifies which could not be handled
    * through this page.<br/>
    * This could occur, when {@link Event} belongs to an {@link EventProvider} of a child implementation.
-   * 
+   *
    * @param event
    * @param newStartTime
    * @param newEndTime
@@ -388,10 +390,9 @@ public class CalendarPanel extends Panel
   /**
    * Hook method for overwriting children, which is called, when the pre initialization of the calendars are made.<br/>
    * Please call getEvents on you {@link EventProvider}.
-   * 
+   *
    * @param response
    * @param view
-   * 
    */
   protected void onCallGetEventsHook(final View view, final CalendarResponse response)
   {
@@ -400,7 +401,7 @@ public class CalendarPanel extends Panel
 
   /**
    * Hook method for overwriting children, which is called, when something in the calendar was clicked
-   * 
+   *
    * @param clickedEvent
    * @param response
    * @param event
@@ -419,82 +420,133 @@ public class CalendarPanel extends Panel
   {
     final String eventId = event != null ? event.getId() : null;
     final String eventClassName = event != null ? event.getClassName() : null;
-    if (eventId != null && Const.EVENT_CLASS_NAME.equals(eventClassName) == true) {
-      // User clicked on a time sheet, show the time sheet:
-      final Integer id = NumberHelper.parseInteger(eventId);
-      final TimesheetDO dbTimesheet = timesheetDao.internalGetById(id);
-      if (dbTimesheet == null) {
-        return;
-      }
-      final TimesheetDO timesheet = new TimesheetDO();
-      timesheet.copyValuesFrom(dbTimesheet);
-      final Long newStartTimeMillis = newStartTime != null ? DateHelper.getDateTimeAsMillis(newStartTime) : null;
-      final Long newEndTimeMillis = newEndTime != null ? DateHelper.getDateTimeAsMillis(newEndTime) : null;
-      if (newStartTimeMillis != null) {
-        timesheet.setStartDate(newStartTimeMillis);
-      }
-      if (newEndTimeMillis != null) {
-        timesheet.setStopTime(new Timestamp(newEndTimeMillis));
-      }
-      final PFUserDO loggedInUser = ThreadLocalUserContext.getUser();
-      if (CalendarDropMode.MOVE_SAVE.equals(dropMode) == true || CalendarDropMode.MOVE_EDIT.equals(dropMode) == true) {
-        if (timesheetDao.hasUpdateAccess(loggedInUser, timesheet, dbTimesheet, false) == false) {
-          // User has no update access, therefore ignore this request...
-          return;
-        }
-        if (CalendarDropMode.MOVE_SAVE.equals(dropMode) == true) {
-          try {
-            timesheetDao.update(timesheet);
-            setResponsePage(getPage());
-          } catch (IllegalArgumentException ex) {
-            if (ex.getMessage().equals("Kost2Id of time sheet is not available in the task's kost2 list!")
-                || ex.getMessage().equals("Kost2Id can't be given for task without any kost2 entries!")) {
-              TimesheetEditPage timesheetEditPage = new TimesheetEditPage(timesheet);
-              timesheetEditPage.error(getString("timesheet.error.copyNoMatchingKost2"));
-              setResponsePage(timesheetEditPage.setReturnToPage((WebPage) getPage()));
-              return;
-            } else {
-              throw ex;
-            }
-          }
-        } else {
-          setResponsePage(new TimesheetEditPage(timesheet).setReturnToPage((WebPage) getPage()));
-        }
-        return;
-      }
-      // Copy this time sheet:
+
+    // check if event is timesheet
+    if (eventId != null && Const.EVENT_CLASS_NAME.equals(eventClassName) == false) {
+      // no timesheet modify event
+      onModifyEventHook(event, newStartTime, newEndTime, dropMode, response);
+      return;
+    }
+
+    // press CANCEL
+    if (CalendarDropMode.CANCEL.equals(dropMode)) {
+      setResponsePage(getPage());
+      return;
+    }
+
+    // User clicked on a time sheet, show the time sheet:
+    final Integer id = NumberHelper.parseInteger(eventId);
+    final TimesheetDO dbTimesheet = timesheetDao.internalGetById(id);
+    if (dbTimesheet == null) {
+      return;
+    }
+    final TimesheetDO timesheet = new TimesheetDO();
+    timesheet.copyValuesFrom(dbTimesheet);
+    final Long newStartTimeMillis = newStartTime != null ? DateHelper.getDateTimeAsMillis(newStartTime) : null;
+    final Long newEndTimeMillis = newEndTime != null ? DateHelper.getDateTimeAsMillis(newEndTime) : null;
+    if (newStartTimeMillis != null) {
+      timesheet.setStartDate(newStartTimeMillis);
+    }
+    if (newEndTimeMillis != null) {
+      timesheet.setStopTime(new Timestamp(newEndTimeMillis));
+    }
+    final PFUserDO loggedInUser = ThreadLocalUserContext.getUser();
+
+    // copy or move?
+    boolean isMoveAction = CalendarDropMode.MOVE_SAVE == dropMode || CalendarDropMode.MOVE_EDIT == dropMode;
+    boolean isEditAction = CalendarDropMode.COPY_EDIT == dropMode || CalendarDropMode.MOVE_EDIT == dropMode;
+
+    if (isMoveAction) {
+      // move
+      // nothing to do here
+    } else {
+      // copy
       timesheet.setId(null);
       timesheet.setDeleted(false);
       timesheetDao.setUser(timesheet, loggedInUser.getId()); // Copy for own user.
-      if (CalendarDropMode.COPY_SAVE.equals(dropMode) == true) {
-        if (timesheetDao.hasInsertAccess(loggedInUser, timesheet, false) == false) {
-          // User has no insert access, therefore ignore this request...
-          this.error(getString("timesheet.error.taskNotBookable.taskClosedForBooking"));
-          return;
-        }
-        try {
-          timesheetDao.save(timesheet);
-        } catch (IllegalArgumentException ex) {
-          if (ex.getMessage().equals("Kost2Id of time sheet is not available in the task's kost2 list!")
-              || ex.getMessage().equals("Kost2Id can't be given for task without any kost2 entries!")) {
-            TimesheetEditPage timesheetEditPage = new TimesheetEditPage(timesheet);
-            timesheetEditPage.error(getString("timesheet.error.copyNoMatchingKost2"));
-            setResponsePage(timesheetEditPage.setReturnToPage((WebPage) getPage()));
-            return;
-          } else {
-            throw ex;
-          }
-        }
+    }
+
+    // check overlapping for edit actions
+    if (isEditAction == false && timesheetDao.hasTimeOverlap(timesheet, false)) {
+      this.error(getString("timesheet.error.overlapping"));
+      setResponsePage(getPage());
+      return;
+    }
+
+    // check bookalbe
+    OperationType type = isMoveAction ? OperationType.UPDATE : OperationType.INSERT;
+    if (timesheetDao.checkTimesheetProtection(loggedInUser, timesheet, dbTimesheet, type, false)) {
+      if (timesheetDao.checkTaskBookable(timesheet, dbTimesheet, type, false) == false) {
+        this.error(getString("timesheet.error.taskNotBookable.taskNotOpened").replace("{0}", timesheet.getTask().getShortDisplayName()));
         setResponsePage(getPage());
         return;
-      } else if (CalendarDropMode.COPY_EDIT.equals(dropMode) == true) {
-        setResponsePage(new TimesheetEditPage(timesheet).setReturnToPage((WebPage) getPage()));
-      } else {
-        // CANCEL -> should be handled through javascript now
-        setResponsePage(getPage());
+      }
+    }
+
+    // check rights
+    boolean access;
+    if (isMoveAction) {
+      access = true;
+      if (timesheetDao.hasAccess(loggedInUser, timesheet, dbTimesheet, OperationType.UPDATE, false) == false) {
+        access = false;
+      } else if (dbTimesheet.getUserId().equals(timesheet.getUserId()) == false) {
+        // User changes the owner of the time sheet:
+        if (timesheetDao.hasAccess(loggedInUser, dbTimesheet, null, OperationType.DELETE, false) == false) {
+          // Deleting of time sheet of another user is not allowed.
+          access = false;
+        }
+      } else if (dbTimesheet.getTaskId().equals(timesheet.getTaskId()) == false) {
+        // User moves the object to another task:
+        if (timesheetDao.hasAccess(loggedInUser, timesheet, null, OperationType.INSERT, false) == false) {
+          // Inserting of object under new task not allowed.
+          access = false;
+        } else if (timesheetDao.hasAccess(loggedInUser, dbTimesheet, null, OperationType.DELETE, false) == false) {
+          // Deleting of object under old task not allowed.
+          access = false;
+        }
       }
     } else {
-      onModifyEventHook(event, newStartTime, newEndTime, dropMode, response);
+      access = timesheetDao.hasAccess(loggedInUser, timesheet, null, OperationType.INSERT, false);
+    }
+
+    if (access == false) {
+      this.error(getString("timesheet.error.noAccess"));
+      setResponsePage(getPage());
+      return;
+    }
+
+    try {
+      switch (dropMode) {
+        case MOVE_SAVE:
+          timesheetDao.update(timesheet);
+          setResponsePage(getPage());
+          break;
+        case MOVE_EDIT:
+          setResponsePage(new TimesheetEditPage(timesheet).setReturnToPage((WebPage) getPage()));
+          break;
+        case COPY_SAVE:
+          timesheetDao.save(timesheet);
+          setResponsePage(getPage());
+          break;
+        case COPY_EDIT:
+          setResponsePage(new TimesheetEditPage(timesheet).setReturnToPage((WebPage) getPage()));
+          break;
+        case CANCEL:
+          // CANCEL -> should be handled through javascript now
+          setResponsePage(getPage());
+          break;
+      }
+    } catch (IllegalArgumentException ex) {
+      // strange type of exception handling
+      if (ex.getMessage().equals("Kost2Id of time sheet is not available in the task's kost2 list!")
+          || ex.getMessage().equals("Kost2Id can't be given for task without any kost2 entries!")) {
+        TimesheetEditPage timesheetEditPage = new TimesheetEditPage(timesheet);
+        timesheetEditPage.error(getString("timesheet.error.copyNoMatchingKost2"));
+        setResponsePage(timesheetEditPage.setReturnToPage((WebPage) getPage()));
+        return;
+      } else {
+        throw ex;
+      }
     }
   }
 
@@ -557,8 +609,7 @@ public class CalendarPanel extends Panel
 
   /**
    * Forces to reloaded time sheets in onBeforeRender().
-   * 
-   * @param refresh the refresh to set
+   *
    * @return this for chaining.
    */
   public CalendarPanel forceReload()

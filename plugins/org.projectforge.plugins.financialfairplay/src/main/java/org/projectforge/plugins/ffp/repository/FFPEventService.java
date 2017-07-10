@@ -2,7 +2,6 @@ package org.projectforge.plugins.ffp.repository;
 
 import java.util.List;
 
-import org.projectforge.business.fibu.EmployeeDO;
 import org.projectforge.framework.persistence.api.IDao;
 import org.projectforge.framework.persistence.api.IPersistenceService;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
@@ -18,9 +17,11 @@ public interface FFPEventService extends IPersistenceService<FFPEventDO>, IDao<F
 {
   FFPEventDao getEventDao();
 
+  FFPDebtDao getDebtDao();
+
   List<FFPDebtDO> calculateDebt(FFPEventDO event);
 
-  List<FFPDebtDO> getDeptList(EmployeeDO currentEmployee);
+  List<FFPDebtDO> getDeptList(PFUserDO user);
 
   void createDept(FFPEventDO event);
 
@@ -28,7 +29,7 @@ public interface FFPEventService extends IPersistenceService<FFPEventDO>, IDao<F
 
   void updateDebtTo(FFPDebtDO debt);
 
-  Integer getOpenFromDebts(PFUserDO user);
+  Integer getOpenDebts(PFUserDO user);
 
   boolean debtExists(FFPEventDO event);
 }

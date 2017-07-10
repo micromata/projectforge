@@ -8,7 +8,6 @@ import java.io.InputStream;
 import java.net.URL;
 import java.security.KeyStore;
 import java.util.Calendar;
-import java.util.GregorianCalendar;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -25,6 +24,8 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.projectforge.business.meb.MebMailClient;
 import org.projectforge.business.orga.ContractType;
+import org.projectforge.business.teamcal.admin.TeamCalCache;
+import org.projectforge.business.teamcal.admin.model.TeamCalDO;
 import org.projectforge.framework.configuration.ConfigXml;
 import org.projectforge.framework.configuration.ConfigurationDao;
 import org.projectforge.framework.configuration.ConfigurationParam;
@@ -32,6 +33,7 @@ import org.projectforge.framework.configuration.GlobalConfiguration;
 import org.projectforge.framework.configuration.IConfigurationParam;
 import org.projectforge.framework.configuration.SecurityConfig;
 import org.projectforge.framework.configuration.entities.ConfigurationDO;
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.TenantDO;
 import org.projectforge.framework.utils.FileHelper;
 import org.projectforge.mail.SendMailConfig;
@@ -80,6 +82,9 @@ public class ConfigurationServiceImpl implements ConfigurationService
 
   @Autowired
   private MebMailClient mebMailClient;
+
+  @Autowired
+  private TeamCalCache teamCalCache;
 
   @Value("${projectforge.fontsDirectory}")
   private String fontsDirectory;
@@ -155,6 +160,15 @@ public class ConfigurationServiceImpl implements ConfigurationService
 
   @Value("${projectforge.login.handlerClass}")
   private String loginHandlerClass;
+
+  @Value("${projectforge.max-file-size.image}")
+  private String maxFileSizeImage;
+
+  @Value("${projectforge.max-file-size.datev}")
+  private String maxFileSizeDatev;
+
+  @Value("${projectforge.max-file-size.xml-dump-import}")
+  private String maxFileSizeXmlDumpImport;
 
   @PostConstruct
   public void init()
@@ -621,8 +635,9 @@ public class ConfigurationServiceImpl implements ConfigurationService
         month = 2;
       }
     }
-    Calendar now = new GregorianCalendar();
-    return new GregorianCalendar(now.get(Calendar.YEAR), month, day);
+    Calendar result = Calendar.getInstance(ThreadLocalUserContext.getTimeZone());
+    result.set(result.get(Calendar.YEAR), month, day, 23, 59, 59);
+    return result;
   }
 
   @Override
@@ -635,4 +650,63 @@ public class ConfigurationServiceImpl implements ConfigurationService
     return null;
   }
 
+  @Override
+  public TeamCalDO getVacationCalendar()
+  {
+    return teamCalCache.getCalendar((Integer) configDao.getValue(ConfigurationParam.VACATION_CAL_ID));
+  }
+
+  @Override
+  public int getMinPasswordLength()
+  {
+    try {
+      final ConfigurationDO minPwLenEntry = configDao.getEntry(ConfigurationParam.MIN_PASSWORD_LENGTH);
+      if (minPwLenEntry != null) {
+        final Integer minPwLenValue = minPwLenEntry.getIntValue();
+        if (minPwLenValue != null) {
+          return minPwLenValue;
+        }
+      }
+    } catch (final RuntimeException e) {
+      // this could happen if the database is not initialized (during projectforge initial setup)
+      log.warn("Exception while getting the min password length configuration.", e);
+    }
+    return ConfigurationParam.MIN_PASSWORD_LENGTH.getDefaultIntValue();
+  }
+
+  @Override
+  public boolean getFlagCheckPasswordChange()
+  {
+    try {
+      final ConfigurationDO flagCheckPwChangeConf = configDao.getEntry(ConfigurationParam.PASSWORD_FLAG_CHECK_CHANGE);
+      if (flagCheckPwChangeConf != null) {
+        final Boolean flagCheckPwChange = flagCheckPwChangeConf.getBooleanValue();
+        if (flagCheckPwChange != null) {
+          return flagCheckPwChange;
+        }
+      }
+    } catch (final RuntimeException e) {
+      // this could happen if the database is not initialized (during projectforge initial setup)
+      log.warn("Exception while getting configuration flag - password change requirement.", e);
+    }
+    return ConfigurationParam.PASSWORD_FLAG_CHECK_CHANGE.getDefaultBooleanValue();
+  }
+
+  @Override
+  public String getMaxFileSizeImage()
+  {
+    return this.maxFileSizeImage;
+  }
+
+  @Override
+  public String getMaxFileSizeDatev()
+  {
+    return this.maxFileSizeDatev;
+  }
+
+  @Override
+  public String getMaxFileSizeXmlDumpImport()
+  {
+    return this.maxFileSizeXmlDumpImport;
+  }
 }

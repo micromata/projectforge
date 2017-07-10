@@ -24,10 +24,15 @@
 package org.projectforge.framework.persistence.database;
 
 import java.math.BigDecimal;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.time.temporal.ChronoField;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -36,6 +41,7 @@ import java.util.TimeZone;
 import java.util.function.Predicate;
 
 import org.projectforge.business.address.AddressDO;
+import org.projectforge.business.address.AddressDao;
 import org.projectforge.business.fibu.AuftragDO;
 import org.projectforge.business.fibu.AuftragsPositionDO;
 import org.projectforge.business.fibu.AuftragsPositionsStatus;
@@ -50,7 +56,9 @@ import org.projectforge.business.fibu.KundeDO;
 import org.projectforge.business.fibu.PaymentScheduleDO;
 import org.projectforge.business.fibu.ProjektDO;
 import org.projectforge.business.fibu.RechnungDO;
+import org.projectforge.business.fibu.RechnungsPositionDO;
 import org.projectforge.business.fibu.api.EmployeeService;
+import org.projectforge.business.multitenancy.TenantDao;
 import org.projectforge.business.multitenancy.TenantRegistryMap;
 import org.projectforge.business.multitenancy.TenantService;
 import org.projectforge.business.orga.VisitorbookDO;
@@ -60,9 +68,13 @@ import org.projectforge.business.orga.VisitorbookTimedAttrWithDataDO;
 import org.projectforge.business.orga.VisitorbookTimedDO;
 import org.projectforge.business.scripting.ScriptDO;
 import org.projectforge.business.task.TaskDO;
+import org.projectforge.business.teamcal.TeamCalConfig;
+import org.projectforge.business.teamcal.event.model.TeamEventDO;
 import org.projectforge.business.user.GroupDao;
 import org.projectforge.business.user.ProjectForgeGroup;
 import org.projectforge.business.user.UserXmlPreferencesDO;
+import org.projectforge.business.vacation.model.VacationDO;
+import org.projectforge.business.vacation.repository.VacationDao;
 import org.projectforge.continuousdb.DatabaseResultRow;
 import org.projectforge.continuousdb.SchemaGenerator;
 import org.projectforge.continuousdb.Table;
@@ -71,6 +83,7 @@ import org.projectforge.continuousdb.UpdateEntry;
 import org.projectforge.continuousdb.UpdateEntryImpl;
 import org.projectforge.continuousdb.UpdatePreCheckStatus;
 import org.projectforge.continuousdb.UpdateRunningStatus;
+import org.projectforge.framework.calendar.ICal4JUtils;
 import org.projectforge.framework.configuration.Configuration;
 import org.projectforge.framework.configuration.ConfigurationType;
 import org.projectforge.framework.configuration.entities.ConfigurationDO;
@@ -82,6 +95,7 @@ import org.projectforge.framework.persistence.user.entities.GroupDO;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.persistence.user.entities.TenantDO;
 import org.projectforge.framework.persistence.user.entities.UserRightDO;
+import org.projectforge.framework.time.DateFormats;
 import org.projectforge.framework.time.DateHelper;
 import org.springframework.context.ApplicationContext;
 
@@ -89,6 +103,9 @@ import de.micromata.genome.db.jpa.history.api.HistoryEntry;
 import de.micromata.genome.db.jpa.tabattr.api.TimeableRow;
 import de.micromata.genome.jpa.CriteriaUpdate;
 import de.micromata.genome.jpa.metainf.EntityMetadata;
+import de.micromata.genome.jpa.metainf.JpaMetadataEntityNotFoundException;
+import net.fortuna.ical4j.model.DateTime;
+import net.fortuna.ical4j.model.property.RRule;
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
@@ -101,7 +118,13 @@ public class DatabaseCoreUpdates
 
   private static final String VERSION_5_0 = "5.0";
 
-  protected static ApplicationContext applicationContext;
+  private static ApplicationContext applicationContext;
+  private static String RESTART_RQUIRED = "no";
+
+  static void setApplicationContext(final ApplicationContext applicationContext)
+  {
+    DatabaseCoreUpdates.applicationContext = applicationContext;
+  }
 
   @SuppressWarnings("serial")
   public static List<UpdateEntry> getUpdateEntries()
@@ -109,8 +132,432 @@ public class DatabaseCoreUpdates
     final DatabaseUpdateService databaseUpdateService = applicationContext.getBean(DatabaseUpdateService.class);
     final PfEmgrFactory emf = applicationContext.getBean(PfEmgrFactory.class);
     final InitDatabaseDao initDatabaseDao = applicationContext.getBean(InitDatabaseDao.class);
+    final TenantDao tenantDao = applicationContext.getBean(TenantDao.class);
 
     final List<UpdateEntry> list = new ArrayList<>();
+
+    ////////////////////////////////////////////////////////////////////
+    // 6.13.0
+    // /////////////////////////////////////////////////////////////////
+    list.add(new UpdateEntryImpl(CORE_REGION_ID, "6.13.0", "2017-06-21",
+        "Correct error in until date of recurring events. Add fields to invoice DO.")
+    {
+      @Override
+      public UpdatePreCheckStatus runPreCheck()
+      {
+        log.info("Running pre-check for ProjectForge version 6.13.0");
+        if (hasNewInvoiceFields() == false || hasBadUntilDate()) {
+          return UpdatePreCheckStatus.READY_FOR_UPDATE;
+        }
+        return UpdatePreCheckStatus.ALREADY_UPDATED;
+      }
+
+      @Override
+      public UpdateRunningStatus runUpdate()
+      {
+        if (hasNewInvoiceFields() == false) {
+          initDatabaseDao.updateSchema();
+        }
+
+        if (hasBadUntilDate()) {
+          Calendar calUntil = new GregorianCalendar(DateHelper.UTC);
+          Calendar calStart = new GregorianCalendar(DateHelper.UTC);
+
+          List<DatabaseResultRow> resultList = databaseUpdateService
+              .query(
+                  "select e.pk, e.start_date, e.recurrence_rule, e.recurrence_until, u.time_zone from t_plugin_calendar_event e, t_pf_user u where e.team_event_fk_creator = u.pk and e.recurrence_until is not null and all_day = false and to_char(recurrence_until, 'hh24:mi:ss') = '00:00:00'");
+          log.info("Found: " + resultList.size() + " event entries to update until date.");
+
+          for (DatabaseResultRow row : resultList) {
+            Integer id = (Integer) row.getEntry(0).getValue();
+            Date startDate = (Date) row.getEntry(1).getValue();
+            String rruleStr = (String) row.getEntry(2).getValue();
+            Date untilDate = (Date) row.getEntry(3).getValue();
+            String timeZoneString = (String) row.getEntry(4).getValue();
+
+            if (startDate == null || rruleStr == null || untilDate == null) {
+
+              log.warn(String
+                  .format("Processing event with id '%s', start date '%s', RRule '%s', and until date '%s' failed. Invalid data.",
+                      id, startDate, rruleStr, untilDate));
+              continue;
+            }
+
+            log.debug(String.format("Processing event with id '%s', start date '%s', RRule '%s', until date '%s', and timezone '%s'",
+                id, startDate, rruleStr, untilDate, timeZoneString));
+
+            TimeZone timeZone = TimeZone.getTimeZone(timeZoneString);
+            if (timeZone == null) {
+              timeZone = DateHelper.UTC;
+            }
+
+            calUntil.clear();
+            calStart.clear();
+            calUntil.setTimeZone(timeZone);
+            calStart.setTimeZone(timeZone);
+
+            // start processing
+            calUntil.setTime(untilDate);
+            calStart.setTime(startDate);
+
+            // update date of start date to until date
+            calStart.set(Calendar.YEAR, calUntil.get(Calendar.YEAR));
+            calStart.set(Calendar.DAY_OF_YEAR, calUntil.get(Calendar.DAY_OF_YEAR));
+
+            // add 23:59:59 to event start (next possible event time is +24h, 1 day)
+            calStart.set(Calendar.HOUR_OF_DAY, 23);
+            calStart.set(Calendar.MINUTE, 59);
+            calStart.set(Calendar.SECOND, 59);
+            calStart.set(Calendar.MILLISECOND, 0);
+
+            // update recur until
+            DateTime untilICal4J = new DateTime(calStart.getTime());
+            untilICal4J.setUtc(true);
+            RRule rRule = ICal4JUtils.calculateRRule(rruleStr);
+            rRule.getRecur().setUntil(untilICal4J);
+
+            try {
+              databaseUpdateService
+                  .execute(String.format("UPDATE t_plugin_calendar_event SET recurrence_rule = '%s', recurrence_until = '%s' WHERE pk = %s",
+                      rRule.getValue(), DateHelper.formatIsoTimestamp(calStart.getTime()), id));
+            } catch (Exception e) {
+              log.error(String.format("Error while updating event with id '%s' and new recurrence_rule '%s', recurrence_until '%s'. Ignoring it.",
+                  id, rRule.getValue(), DateHelper.formatIsoTimestamp(calStart.getTime())));
+            }
+
+            log.info(String.format("Updated event with id '%s' from '%s' to '%s'",
+                id, DateHelper.formatIsoTimestamp(untilDate), DateHelper.formatIsoTimestamp(calStart.getTime())));
+          }
+          log.info("Until date migration is DONE.");
+        }
+        return UpdateRunningStatus.DONE;
+      }
+
+      private boolean hasNewInvoiceFields()
+      {
+        return databaseUpdateService.doesTableAttributeExist("t_fibu_rechnung", "customerref1") &&
+            databaseUpdateService.doesTableAttributeExist("t_fibu_rechnung", "customerref2") &&
+            databaseUpdateService.doesTableAttributeExist("t_fibu_rechnung", "customeraddress");
+      }
+
+      private boolean hasBadUntilDate()
+      {
+        List<DatabaseResultRow> result = databaseUpdateService.query(
+            "select pk from t_plugin_calendar_event where recurrence_until is not null and to_char(recurrence_until, 'hh24:mi:ss') = '00:00:00' and all_day = false LIMIT 1");
+        return result.size() > 0;
+      }
+    });
+
+    ////////////////////////////////////////////////////////////////////
+    // 6.12.0
+    // /////////////////////////////////////////////////////////////////
+    list.add(new UpdateEntryImpl(CORE_REGION_ID, "6.12.0", "2017-05-22",
+        "Correct calendar exdates. Change address image data to AddressDO.")
+    {
+      @Override
+      public UpdatePreCheckStatus runPreCheck()
+      {
+        log.info("Running pre-check for ProjectForge version 6.12.0");
+        if (hasISODates() || databaseUpdateService.doesTableAttributeExist("T_ADDRESS", "imagedata") == false) {
+          return UpdatePreCheckStatus.READY_FOR_UPDATE;
+        }
+        return UpdatePreCheckStatus.ALREADY_UPDATED;
+      }
+
+      @Override
+      public UpdateRunningStatus runUpdate()
+      {
+        if (databaseUpdateService.doesTableAttributeExist("T_ADDRESS", "imagedata") == false) {
+          initDatabaseDao.updateSchema();
+          migrateImageData();
+          deleteImageHistoryData();
+          deleteImageAddressAttrData();
+          log.info("Address image data migration DONE.");
+        }
+
+        if (hasISODates()) {
+          SimpleDateFormat iCalFormatterWithTime = new SimpleDateFormat(DateFormats.ICAL_DATETIME_FORMAT);
+          SimpleDateFormat iCalFormatterAllDay = new SimpleDateFormat(DateFormats.COMPACT_DATE);
+          List<SimpleDateFormat> formatterPatterns = Arrays
+              .asList(new SimpleDateFormat(DateFormats.ISO_TIMESTAMP_SECONDS), new SimpleDateFormat(DateFormats.ISO_TIMESTAMP_MINUTES),
+                  new SimpleDateFormat(DateFormats.ISO_DATE), iCalFormatterWithTime, iCalFormatterAllDay);
+          List<DatabaseResultRow> resultList = databaseUpdateService
+              .query(
+                  "SELECT pk, recurrence_ex_date, all_day FROM t_plugin_calendar_event te WHERE te.recurrence_ex_date IS NOT NULL AND te.recurrence_ex_date <> ''");
+          log.info("Found: " + resultList.size() + " event entries to update.");
+          for (DatabaseResultRow row : resultList) {
+            Integer id = (Integer) row.getEntry(0).getValue();
+            String exDateList = (String) row.getEntry(1).getValue();
+            Boolean allDay = (Boolean) row.getEntry(2).getValue();
+            log.debug("Event with id: " + id + " has exdate value: " + exDateList);
+            String[] exDateArray = exDateList.split(",");
+            List<String> finalExDates = new ArrayList<>();
+            for (String exDateOld : exDateArray) {
+              Date oldDate = null;
+              for (SimpleDateFormat sdf : formatterPatterns) {
+                try {
+                  oldDate = sdf.parse(exDateOld);
+                  break;
+                } catch (ParseException e) {
+                  if (log.isDebugEnabled()) {
+                    log.debug("Date not parsable. Try another parser.");
+                  }
+                }
+              }
+              if (oldDate == null) {
+                log.error("Date not parsable. Ignoring it: " + exDateOld);
+                continue;
+              }
+              if (allDay != null && allDay) {
+                finalExDates.add(iCalFormatterAllDay.format(oldDate));
+              } else {
+                finalExDates.add(iCalFormatterWithTime.format(oldDate));
+              }
+            }
+            String newExDateValue = String.join(",", finalExDates);
+            try {
+              databaseUpdateService.execute("UPDATE t_plugin_calendar_event SET recurrence_ex_date = '" + newExDateValue + "' WHERE pk = " + id);
+            } catch (Exception e) {
+              log.error("Error while updating event with id: " + id + " and new exdatevalue: " + newExDateValue + " . Ignoring it.");
+            }
+          }
+          log.info("Exdate migration DONE.");
+        }
+        return UpdateRunningStatus.DONE;
+      }
+
+      private boolean hasISODates()
+      {
+        List<DatabaseResultRow> result = databaseUpdateService.query("SELECT * FROM T_PLUGIN_CALENDAR_EVENT WHERE recurrence_ex_date LIKE '%-%' LIMIT 1");
+        return result.size() > 0;
+      }
+
+      private void deleteImageAddressAttrData()
+      {
+        List<DatabaseResultRow> attrResultList = databaseUpdateService.query("SELECT pk FROM t_address_attr WHERE propertyname = 'profileImageData'");
+        for (DatabaseResultRow attrRow : attrResultList) {
+          Integer attrId = (Integer) attrRow.getEntry(0).getValue();
+          databaseUpdateService.execute("DELETE FROM t_address_attrdata WHERE parent_id = " + attrId);
+          databaseUpdateService.execute("DELETE FROM t_address_attr WHERE pk = " + attrId);
+        }
+      }
+
+      private void deleteImageHistoryData()
+      {
+        List<DatabaseResultRow> histAttrResultList = databaseUpdateService
+            .query("SELECT pk FROM t_pf_history_attr WHERE propertyname LIKE '%attrs.profileImageData%'");
+        for (DatabaseResultRow histAttrRow : histAttrResultList) {
+          Long histAttrId = (Long) histAttrRow.getEntry(0).getValue();
+          databaseUpdateService.execute("DELETE FROM t_pf_history_attr_data WHERE parent_pk = " + histAttrId);
+          databaseUpdateService.execute("DELETE FROM t_pf_history_attr WHERE pk = " + histAttrId);
+        }
+      }
+
+      private void migrateImageData()
+      {
+        AddressDao addressDao = applicationContext.getBean(AddressDao.class);
+        List<AddressDO> allAddresses = addressDao.internalLoadAll();
+        for (AddressDO ad : allAddresses) {
+          byte[] imageData = ad.getAttribute("profileImageData", byte[].class);
+          if (imageData != null && imageData.length > 0) {
+            final PfEmgrFactory emf = applicationContext.getBean(PfEmgrFactory.class);
+            emf.runInTrans(emgr -> {
+              AddressDO addressDO = emgr.selectByPkAttached(AddressDO.class, ad.getId());
+              addressDO.setImageData(imageData);
+              emgr.update(addressDO);
+              return null;
+            });
+          }
+        }
+      }
+    });
+
+    ////////////////////////////////////////////////////////////////////
+    // 6.11.0
+    // /////////////////////////////////////////////////////////////////
+    list.add(new UpdateEntryImpl(CORE_REGION_ID, "6.11.0", "2017-05-03",
+        "Add discounts and konto informations. Add period of performance to invoices.")
+    {
+      @Override
+      public UpdatePreCheckStatus runPreCheck()
+      {
+        log.info("Running pre-check for ProjectForge version 6.11.0");
+        if (isSchemaUpdateNecessary()) {
+          return UpdatePreCheckStatus.READY_FOR_UPDATE;
+        }
+        return UpdatePreCheckStatus.ALREADY_UPDATED;
+      }
+
+      @Override
+      public UpdateRunningStatus runUpdate()
+      {
+        if (isSchemaUpdateNecessary()) {
+          initDatabaseDao.updateSchema();
+        }
+        return UpdateRunningStatus.DONE;
+      }
+
+      private boolean isSchemaUpdateNecessary()
+      {
+        return databaseUpdateService.doesTableAttributeExist("t_fibu_eingangsrechnung", "discountmaturity") == false
+            || databaseUpdateService.doesTableAttributeExist("t_fibu_rechnung", "discountmaturity") == false
+            || databaseUpdateService.doesTableAttributeExist("t_fibu_eingangsrechnung", "customernr") == false
+            || databaseUpdateService.doTableAttributesExist(RechnungDO.class, "periodOfPerformanceBegin", "periodOfPerformanceEnd") == false
+            || databaseUpdateService.doTableAttributesExist(RechnungsPositionDO.class, "periodOfPerformanceType", "periodOfPerformanceBegin",
+            "periodOfPerformanceEnd") == false;
+      }
+    });
+
+    ////////////////////////////////////////////////////////////////////
+    // 6.10.0
+    // /////////////////////////////////////////////////////////////////
+    list.add(new UpdateEntryImpl(CORE_REGION_ID, "6.10.0", "2017-04-11",
+        "Add column position_number to table T_FIBU_PAYMENT_SCHEDULE.")
+    {
+      @Override
+      public UpdatePreCheckStatus runPreCheck()
+      {
+        log.info("Running pre-check for ProjectForge version 6.10.0");
+        if (databaseUpdateService.doesTableAttributeExist("T_FIBU_PAYMENT_SCHEDULE", "position_number") == false) {
+          return UpdatePreCheckStatus.READY_FOR_UPDATE;
+        }
+        return UpdatePreCheckStatus.ALREADY_UPDATED;
+      }
+
+      @Override
+      public UpdateRunningStatus runUpdate()
+      {
+        if (databaseUpdateService.doesTableAttributeExist("T_FIBU_PAYMENT_SCHEDULE", "position_number") == false) {
+          initDatabaseDao.updateSchema();
+        }
+        return UpdateRunningStatus.DONE;
+      }
+
+    });
+
+    ////////////////////////////////////////////////////////////////////
+    // 6.9.0
+    // /////////////////////////////////////////////////////////////////
+    list.add(new UpdateEntryImpl(CORE_REGION_ID, "6.9.0", "2017-03-15",
+        "Allow multiple substitutions on application for leave.")
+    {
+      @Override
+      public UpdatePreCheckStatus runPreCheck()
+      {
+        log.info("Running pre-check for ProjectForge version 6.9.0");
+        if (databaseUpdateService.doesTableExist("t_employee_vacation_substitution") == false ||
+            databaseUpdateService.doesTableAttributeExist("t_employee_vacation", "substitution_id") ||
+            databaseUpdateService.doesUniqueConstraintExists("T_PLUGIN_CALENDAR_EVENT", "unique_t_plugin_calendar_event_uid") == false) {
+          return UpdatePreCheckStatus.READY_FOR_UPDATE;
+        }
+
+        final Optional<Boolean> isColumnNullable = databaseUpdateService.isColumnNullable("T_PLUGIN_CALENDAR_EVENT", "UID");
+        if (isColumnNullable.isPresent() == false || isColumnNullable.get()) {
+          return UpdatePreCheckStatus.READY_FOR_UPDATE;
+        }
+
+        return UpdatePreCheckStatus.ALREADY_UPDATED;
+      }
+
+      @Override
+      public UpdateRunningStatus runUpdate()
+      {
+        if (databaseUpdateService.doesTableExist("t_employee_vacation_substitution") == false
+            || databaseUpdateService.doesUniqueConstraintExists("T_PLUGIN_CALENDAR_EVENT", "unique_t_plugin_calendar_event_uid") == false) {
+          if (doesDuplicateUidsExists()) {
+            handleDuplicateUids();
+          }
+          // Updating the schema
+          initDatabaseDao.updateSchema();
+        }
+
+        final Optional<Boolean> isColumnNullable = databaseUpdateService.isColumnNullable("T_PLUGIN_CALENDAR_EVENT", "UID");
+        if (isColumnNullable.isPresent() == false || isColumnNullable.get()) {
+          databaseUpdateService.execute("ALTER TABLE t_plugin_calendar_event ALTER COLUMN uid SET NOT NULL;");
+        }
+
+        if (databaseUpdateService.doesTableAttributeExist("t_employee_vacation", "substitution_id")) {
+          migrateSubstitutions();
+          // drop old substitution column
+          databaseUpdateService.dropTableAttribute("t_employee_vacation", "substitution_id");
+        }
+
+        return UpdateRunningStatus.DONE;
+      }
+
+      private void handleDuplicateUids()
+      {
+        final PfEmgrFactory emf = applicationContext.getBean(PfEmgrFactory.class);
+        emf.runInTrans(emgr -> {
+          List<DatabaseResultRow> resultSet = databaseUpdateService
+              .query("SELECT uid, COUNT(*) FROM t_plugin_calendar_event GROUP BY uid HAVING COUNT(*) > 1");
+          for (DatabaseResultRow resultLine : resultSet) {
+            List<TeamEventDO> teList = emgr
+                .selectAttached(TeamEventDO.class, "SELECT t FROM TeamEventDO t WHERE t.uid = :uid", "uid", resultLine.getEntry(0).getValue());
+            for (TeamEventDO te : teList) {
+              te.setUid(TeamCalConfig.get().createEventUid());
+              emgr.update(te);
+            }
+          }
+          return null;
+        });
+      }
+
+      private boolean doesDuplicateUidsExists()
+      {
+        List<DatabaseResultRow> resultSet = databaseUpdateService.query("SELECT uid, COUNT(*) FROM t_plugin_calendar_event GROUP BY uid HAVING COUNT(*) > 1");
+        return resultSet != null && resultSet.size() > 0;
+      }
+
+      // migrate from old substitution column to new t_employee_vacation_substitution table
+      private void migrateSubstitutions()
+      {
+        final VacationDao vacationDao = applicationContext.getBean(VacationDao.class);
+        final EmployeeDao employeeDao = applicationContext.getBean(EmployeeDao.class);
+
+        final List<DatabaseResultRow> resultRows = databaseUpdateService
+            .query("SELECT pk, substitution_id FROM t_employee_vacation WHERE substitution_id IS NOT NULL;");
+
+        for (final DatabaseResultRow row : resultRows) {
+          final int vacationId = (int) row.getEntry("pk").getValue();
+          final int substitutionId = (int) row.getEntry("substitution_id").getValue();
+          final VacationDO vacation = vacationDao.internalGetById(vacationId);
+          final EmployeeDO substitution = employeeDao.internalGetById(substitutionId);
+          vacation.getSubstitutions().add(substitution);
+          vacationDao.internalUpdate(vacation);
+        }
+      }
+    });
+
+    ////////////////////////////////////////////////////////////////////
+    // 6.8.0
+    // /////////////////////////////////////////////////////////////////
+    list.add(new UpdateEntryImpl(CORE_REGION_ID, "6.8.0", "2017-02-15",
+        "Add calendar to vacation." + "Add possibility to create applications for leave of a half day.")
+    {
+      @Override
+      public UpdatePreCheckStatus runPreCheck()
+      {
+        log.info("Running pre-check for ProjectForge version 6.8.0");
+        if (databaseUpdateService.doesTableExist("t_employee_vacation_calendar") == false
+            || databaseUpdateService.doesTableAttributeExist("t_employee_vacation", "is_half_day") == false) {
+          return UpdatePreCheckStatus.READY_FOR_UPDATE;
+        }
+        return UpdatePreCheckStatus.ALREADY_UPDATED;
+      }
+
+      @Override
+      public UpdateRunningStatus runUpdate()
+      {
+        if (databaseUpdateService.doesTableExist("t_employee_vacation_calendar") == false
+            || databaseUpdateService.doesTableAttributeExist("t_employee_vacation", "is_half_day") == false) {
+          //Updating the schema
+          initDatabaseDao.updateSchema();
+        }
+        return UpdateRunningStatus.DONE;
+      }
+
+    });
 
     ////////////////////////////////////////////////////////////////////
     // 6.7.0
@@ -118,14 +565,14 @@ public class DatabaseCoreUpdates
     list.add(new UpdateEntryImpl(CORE_REGION_ID, "6.7.0", "2017-01-11",
         "Add payment type for order book position. Add users to project and order. Extend order position status.")
     {
-      private final String AUFTRAG_TABLE_COL_NAME = "status";
-      private final String AUFTRAG_OLD_STATUS_POTENZIAL = "GROB_KALKULATION";
+      private static final String AUFTRAG_TABLE_COL_NAME = "status";
+      private static final String AUFTRAG_OLD_STATUS_POTENZIAL = "GROB_KALKULATION";
       private final String AUFTRAG_NEW_STATUS_POTENZIAL = AuftragsStatus.POTENZIAL.name();
 
-      private final String AUFTRAG_POS_TABLE_COL_NAME = "status";
-      private final String AUFTRAG_POS_OLD_STATUS_BEAUFTRAGT = "BEAUFTRAGTE_OPTION";
+      private static final String AUFTRAG_POS_TABLE_COL_NAME = "status";
+      private static final String AUFTRAG_POS_OLD_STATUS_BEAUFTRAGT = "BEAUFTRAGTE_OPTION";
       private final String AUFTRAG_POS_NEW_STATUS_BEAUFTRAGT = AuftragsPositionsStatus.BEAUFTRAGT.name();
-      private final String AUFTRAG_POS_OLD_STATUS_ABGELEHNT = "NICHT_BEAUFTRAGT";
+      private static final String AUFTRAG_POS_OLD_STATUS_ABGELEHNT = "NICHT_BEAUFTRAGT";
       private final String AUFTRAG_POS_NEW_STATUS_ABGELEHNT = AuftragsPositionsStatus.ABGELEHNT.name();
 
       private boolean doesAuftragPotenzialNeedsUpdate()
@@ -147,7 +594,7 @@ public class DatabaseCoreUpdates
       public UpdatePreCheckStatus runPreCheck()
       {
         log.info("Running pre-check for ProjectForge version 6.7.0");
-        if (databaseUpdateService.doesTableAttributeExist("t_fibu_auftrag_position", "paymentType") == false
+        if (this.isUpdateFibuAuftragPositionRequired()
             || databaseUpdateService.doesTableAttributeExist("T_FIBU_PROJEKT", "projectmanager_fk") == false
             || databaseUpdateService.doesTableAttributeExist("T_FIBU_PROJEKT", "headofbusinessmanager_fk") == false
             || databaseUpdateService.doesTableAttributeExist("T_FIBU_PROJEKT", "salesmanager_fk") == false
@@ -167,7 +614,7 @@ public class DatabaseCoreUpdates
       @Override
       public UpdateRunningStatus runUpdate()
       {
-        if (databaseUpdateService.doesTableAttributeExist("t_fibu_auftrag_position", "paymentType") == false) {
+        if (this.isUpdateFibuAuftragPositionRequired()) {
           //Updating the schema
           initDatabaseDao.updateSchema();
           databaseUpdateService.execute("UPDATE t_fibu_auftrag_position SET paymentType = 'FESTPREISPAKET', art = NULL WHERE art = 'FESTPREISPAKET'");
@@ -198,6 +645,21 @@ public class DatabaseCoreUpdates
         }
 
         return UpdateRunningStatus.DONE;
+      }
+
+      private boolean isUpdateFibuAuftragPositionRequired()
+      {
+        // new field does not exist
+        if (databaseUpdateService.doesTableAttributeExist("t_fibu_auftrag_position", "paymentType") == false)
+          return true;
+
+        // old values in art field
+        if (databaseUpdateService.doesTableRowExists(AuftragsPositionDO.class, "art", "FESTPREISPAKET", true) ||
+            databaseUpdateService.doesTableRowExists(AuftragsPositionDO.class, "art", "TIME_AND_MATERIALS", true) ||
+            databaseUpdateService.doesTableRowExists(AuftragsPositionDO.class, "art", "HOT_FIX", true))
+          return true;
+
+        return false;
       }
 
     });
@@ -331,7 +793,7 @@ public class DatabaseCoreUpdates
       {
         log.info("Running pre-check for ProjectForge version 6.4.0");
         // ensure that the tenant exists, otherwise the following statements will fail with an SQL exception
-        if (!databaseUpdateService.doTablesExist(TenantDO.class)) {
+        if (!databaseUpdateService.doTablesExist(TenantDO.class) || databaseUpdateService.internalIsTableEmpty("T_TENANT")) {
           return UpdatePreCheckStatus.READY_FOR_UPDATE;
         }
 
@@ -391,13 +853,16 @@ public class DatabaseCoreUpdates
       {
         if (databaseUpdateService.doesTableAttributeExist("T_PLUGIN_CALENDAR_EVENT_ATTENDEE", "address_id") == false
             || databaseUpdateService.doesTableAttributeExist("T_PLUGIN_CALENDAR_EVENT", "uid") == false) {
-          //Updating the schema
+          // fix unique constraint error
+          uniqueConstraintWorkaround(databaseUpdateService, emf);
+
+          // Updating the schema
           initDatabaseDao.updateSchema();
         }
 
         if (databaseUpdateService.getDatabaseTableColumnLenght(PFUserDO.class, "ssh_public_key") < 4096) {
           final Table userTable = new Table(PFUserDO.class);
-          databaseUpdateService.alterTableColumnVarCharLength(userTable.getName(), "ssh_public_key", 4096);
+          databaseUpdateService.alterTableColumnVarCharLength(userTable.getName(), "SSH_PUBLIC_KEY", 4096);
         }
 
         if (databaseUpdateService.doesGroupExists(ProjectForgeGroup.HR_GROUP) == false) {
@@ -424,6 +889,7 @@ public class DatabaseCoreUpdates
                 "SELECT r FROM UserRightDO r WHERE r.rightIdString = :rightId",
                 "rightId",
                 "FIBU_EMPLOYEE_SALARY");
+
             salaryRights.forEach(sr -> {
               sr.setRightIdString("HR_EMPLOYEE_SALARY");
               usersToAddToHrGroup.add(sr.getUser());
@@ -475,6 +941,13 @@ public class DatabaseCoreUpdates
       @Override
       public UpdateRunningStatus runUpdate()
       {
+        if (databaseUpdateService.doTablesExist(EmployeeTimedDO.class) == false) {
+          // fix unique constraint error
+          uniqueConstraintWorkaround(databaseUpdateService, emf);
+          // Updating the schema
+          initDatabaseDao.updateSchema();
+        }
+
         return emf.runInTrans(emgr -> {
           emgr.selectAllAttached(EmployeeTimedDO.class)
               .forEach(this::normalizeStartTime);
@@ -511,8 +984,11 @@ public class DatabaseCoreUpdates
       @Override
       public UpdateRunningStatus runUpdate()
       {
-        //Updating the schema
+        // fix unique constraint error
+        uniqueConstraintWorkaround(databaseUpdateService, emf);
+        // Updating the schema
         initDatabaseDao.updateSchema();
+
         return UpdateRunningStatus.DONE;
       }
     });
@@ -541,12 +1017,30 @@ public class DatabaseCoreUpdates
       @Override
       public UpdateRunningStatus runUpdate()
       {
+        // fix unique constraint error
+        uniqueConstraintWorkaround(databaseUpdateService, emf);
 
-        //Generating the schema
+        // drop foreign keys for all known tables
+        // ------------------------------------------------------------------------------------------------------------------------
+        int count = databaseUpdateService.dropForeignKeys();
+        log.info(String.format("%s foreign keys are dropped due to the new hibernate naming schema", count));
+        // ------------------------------------------------------------------------------------------------------------------------
+
+        // Updating the schema
         initDatabaseDao.updateSchema();
 
-        //Init default tenant
-        TenantDO defaultTenant = initDatabaseDao.insertDefaultTenant();
+        // init default tenant
+        TenantDO defaultTenant;
+        if (databaseUpdateService.internalIsTableEmpty("t_tenant") == true) {
+          try {
+            defaultTenant = initDatabaseDao.insertDefaultTenant();
+          } catch (Exception e) {
+            e.printStackTrace();
+            return UpdateRunningStatus.FAILED;
+          }
+        } else {
+          defaultTenant = tenantDao.getDefaultTenant();
+        }
 
         //Insert default tenant on every entity
         log.info("Start adding default tenant to entities.");
@@ -583,7 +1077,7 @@ public class DatabaseCoreUpdates
         }
         log.info("Finished adding default tenant to entities.");
 
-        //User default tenant zuweisen
+        // assign default tenant to each user
         log.info("Start assigning users to default tenant.");
         try {
           emf.tx().go(emgr -> {
@@ -631,6 +1125,10 @@ public class DatabaseCoreUpdates
       @Override
       public UpdatePreCheckStatus runPreCheck()
       {
+        if (RESTART_RQUIRED.equals("v5.5")) {
+          return UpdatePreCheckStatus.RESTART_REQUIRED;
+        }
+        log.info("Running pre-check for ProjectForge version 5.5");
         if (databaseUpdateService.doTableAttributesExist(EmployeeDO.class, "weeklyWorkingHours") == false) {
           return UpdatePreCheckStatus.READY_FOR_UPDATE;
         }
@@ -686,17 +1184,21 @@ public class DatabaseCoreUpdates
         }
         if (databaseUpdateService.doTableAttributesExist(AuftragsPositionDO.class, "periodOfPerformanceType",
             "modeOfPaymentType") == false) {
-          databaseUpdateService.addTableAttributes(AuftragsPositionDO.class, "periodOfPerformanceType",
-              "modeOfPaymentType");
+          databaseUpdateService.addTableAttributes(AuftragsPositionDO.class, "modeOfPaymentType");
+          databaseUpdateService.addTableAttributes(AuftragsPositionDO.class, "periodOfPerformanceType");
         }
         if (databaseUpdateService.doTableAttributesExist(AuftragDO.class, "periodOfPerformanceBegin",
             "periodOfPerformanceEnd") == false) {
-          databaseUpdateService.addTableAttributes(AuftragDO.class, "periodOfPerformanceBegin", "periodOfPerformanceEnd");
+          databaseUpdateService.addTableAttributes(AuftragDO.class, "periodOfPerformanceBegin");
+          databaseUpdateService.addTableAttributes(AuftragDO.class, "periodOfPerformanceEnd");
         }
         if (databaseUpdateService.doTablesExist(PaymentScheduleDO.class) == false) {
+          new SchemaGenerator(databaseUpdateService).add(TenantDO.class).createSchema();
           new SchemaGenerator(databaseUpdateService).add(PaymentScheduleDO.class).createSchema();
           databaseUpdateService.createMissingIndices();
         }
+
+        RESTART_RQUIRED = "v5.5";
         return UpdateRunningStatus.DONE;
       }
     });
@@ -1080,6 +1582,28 @@ public class DatabaseCoreUpdates
       }
     });
     return list;
+  }
+
+  private static void uniqueConstraintWorkaround(final DatabaseUpdateService dus, final PfEmgrFactory emf)
+  {
+    EntityMetadata pce;
+
+    try {
+      pce = emf.getMetadataRepository().getEntityMetaDataBySimpleClassName("TeamEventDO");
+    } catch (JpaMetadataEntityNotFoundException e) {
+      log.error("No JPA class found for TeamEventDO");
+      pce = null;
+    }
+
+    if (dus.doesTableAttributeExist("T_PLUGIN_CALENDAR_EVENT", "uid") == false && pce != null) {
+      // required workaround, because null values are not accepted
+      final String type = dus.getAttribute(pce.getJavaType(), "uid");
+      final String command1 = String.format("ALTER TABLE T_PLUGIN_CALENDAR_EVENT ADD COLUMN UID %s DEFAULT 'default value'", type);
+
+      dus.execute(command1);
+      dus.execute("ALTER TABLE T_PLUGIN_CALENDAR_EVENT ALTER COLUMN UID SET NOT NULL");
+      dus.execute("ALTER TABLE T_PLUGIN_CALENDAR_EVENT ALTER COLUMN UID DROP DEFAULT");
+    }
   }
 
   public static void migrateEmployeeStatusToAttr()

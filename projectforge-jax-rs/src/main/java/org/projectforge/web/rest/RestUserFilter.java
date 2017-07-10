@@ -53,10 +53,9 @@ import org.springframework.web.context.support.WebApplicationContextUtils;
 
 /**
  * Does the authentication stuff for restfull requests.
- * 
+ *
  * @author Daniel Ludwig (d.ludwig@micromata.de)
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
  */
 public class RestUserFilter implements Filter
 {
@@ -81,9 +80,9 @@ public class RestUserFilter implements Filter
    * <li>Authentication userId (authenticationUserId) and authenticationToken (authenticationToken) or</li>
    * <li>Authentication username (authenticationUsername) and password (authenticationPassword) or</li>
    * </ol>
-   * 
+   *
    * @see javax.servlet.Filter#doFilter(javax.servlet.ServletRequest, javax.servlet.ServletResponse,
-   *      javax.servlet.FilterChain)
+   * javax.servlet.FilterChain)
    */
   @Override
   public void doFilter(final ServletRequest request, final ServletResponse response, final FilterChain chain)
@@ -102,56 +101,39 @@ public class RestUserFilter implements Filter
     final LoginProtection loginProtection = LoginProtection.instance();
     final String clientIpAddress = request.getRemoteAddr();
     PFUserDO user = null;
+
     if (userString != null) {
+      if (checkLoginProtection((HttpServletResponse) response, userString, loginProtection, clientIpAddress)) {
+        // access denied
+        return;
+      }
+
       final Integer userId = NumberHelper.parseInteger(userString);
       if (userId != null) {
-        final long offset = loginProtection.getFailedLoginTimeOffsetIfExists(userString, clientIpAddress);
-        if (offset > 0) {
-          final String seconds = String.valueOf(offset / 1000);
-          log.warn("The account for '"
-              + userString
-              + "' is locked for "
-              + seconds
-              + " seconds due to failed login attempts (ip=" + clientIpAddress + ").");
-          final HttpServletResponse resp = (HttpServletResponse) response;
-          resp.sendError(HttpServletResponse.SC_FORBIDDEN);
-          return;
-        }
+        final String cachedAuthenticationToken = userService.getCachedAuthenticationToken(userId);
         final String authenticationToken = getAttribute(req, Authentication.AUTHENTICATION_TOKEN);
-        if (authenticationToken != null) {
-          if (authenticationToken.equals(userService.getCachedAuthenticationToken(userId)) == true) {
-            user = userService.getUser(userId);
-          } else {
-            log.error(Authentication.AUTHENTICATION_TOKEN
-                + " doesn't match for "
-                + Authentication.AUTHENTICATION_USER_ID
-                + " '"
-                + userId
-                + "'. Rest call forbidden.");
-          }
-        } else {
+
+        if (cachedAuthenticationToken == null) {
+          log.error(Authentication.AUTHENTICATION_USER_ID + " '" + userId + "' does not exist. Rest call forbidden.");
+        } else if (authenticationToken == null) {
+          log.error(Authentication.AUTHENTICATION_TOKEN + " not given for userId '" + userId + "'. Rest call forbidden.");
+        } else if (authenticationToken.equals(cachedAuthenticationToken) == false) {
           log.error(
-              Authentication.AUTHENTICATION_TOKEN + " not given for userId '" + userId + "'. Rest call forbidden.");
+              Authentication.AUTHENTICATION_TOKEN + " doesn't match for " + Authentication.AUTHENTICATION_USER_ID + " '" + userId + "'. Rest call forbidden.");
+        } else {
+          user = userService.getUser(userId);
         }
       } else {
-        log.error(
-            Authentication.AUTHENTICATION_USER_ID + " is not an integer: '" + userString + "'. Rest call forbidden.");
+        log.error(Authentication.AUTHENTICATION_USER_ID + " is not an integer: '" + userString + "'. Rest call forbidden.");
       }
     } else {
       userString = getAttribute(req, Authentication.AUTHENTICATION_USERNAME);
-      final String password = getAttribute(req, Authentication.AUTHENTICATION_PASSWORD);
-      final long offset = loginProtection.getFailedLoginTimeOffsetIfExists(userString, clientIpAddress);
-      if (offset > 0) {
-        final String seconds = String.valueOf(offset / 1000);
-        log.warn("The account for '"
-            + userString
-            + "' is locked for "
-            + seconds
-            + " seconds due to failed login attempts (ip=" + clientIpAddress + ").");
-        final HttpServletResponse resp = (HttpServletResponse) response;
-        resp.sendError(HttpServletResponse.SC_FORBIDDEN);
+      if (checkLoginProtection((HttpServletResponse) response, userString, loginProtection, clientIpAddress)) {
+        // access denied
         return;
       }
+
+      final String password = getAttribute(req, Authentication.AUTHENTICATION_PASSWORD);
       if (userString != null && password != null) {
         user = userService.authenticateUser(userString, password);
         if (user == null) {
@@ -171,12 +153,14 @@ public class RestUserFilter implements Filter
             + " is given for rest call: " + ((HttpServletRequest) request).getRequestURI() + " . Rest call forbidden.");
       }
     }
+
     if (user == null) {
       loginProtection.incrementFailedLoginTimeOffset(userString, clientIpAddress);
       final HttpServletResponse resp = (HttpServletResponse) response;
       resp.sendError(HttpServletResponse.SC_UNAUTHORIZED);
       return;
     }
+
     try {
       loginProtection.clearLoginTimeOffset(userString, clientIpAddress);
       ThreadLocalUserContext.setUser(getUserGroupCache(), user);
@@ -200,6 +184,23 @@ public class RestUserFilter implements Filter
       MDC.remove("ip");
       MDC.remove("user");
     }
+  }
+
+  private boolean checkLoginProtection(final HttpServletResponse response, final String userString, final LoginProtection loginProtection,
+      final String clientIpAddress) throws IOException
+  {
+    final long offset = loginProtection.getFailedLoginTimeOffsetIfExists(userString, clientIpAddress);
+    if (offset > 0) {
+      final String seconds = String.valueOf(offset / 1000);
+      log.warn("The account for '"
+          + userString
+          + "' is locked for "
+          + seconds
+          + " seconds due to failed login attempts (ip=" + clientIpAddress + ").");
+      response.sendError(HttpServletResponse.SC_FORBIDDEN);
+      return true;
+    }
+    return false;
   }
 
   private ConnectionSettings getConnectionSettings(final HttpServletRequest req)
@@ -232,20 +233,18 @@ public class RestUserFilter implements Filter
 
   /**
    * Only for tests
-   * 
-   * @param userService
    */
-  public void setUserService(UserService userService)
+  void setUserService(UserService userService)
   {
     this.userService = userService;
   }
 
-  public TenantRegistry getTenantRegistry()
+  private TenantRegistry getTenantRegistry()
   {
     return TenantRegistryMap.getInstance().getTenantRegistry();
   }
 
-  public UserGroupCache getUserGroupCache()
+  private UserGroupCache getUserGroupCache()
   {
     return getTenantRegistry().getUserGroupCache();
   }

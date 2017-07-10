@@ -23,26 +23,31 @@
 
 package org.projectforge.web.fibu;
 
-import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.CheckBox;
+import org.apache.wicket.markup.html.form.DropDownChoice;
+import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
+import org.apache.wicket.model.ResourceModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.apache.wicket.util.convert.IConverter;
-import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.business.fibu.AuftragDO;
+import org.projectforge.business.fibu.AuftragsPositionDO;
 import org.projectforge.business.fibu.PaymentScheduleDO;
 import org.projectforge.business.fibu.RechnungDao;
 import org.projectforge.business.user.UserRightValue;
 import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
+import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.web.wicket.components.DatePanel;
 import org.projectforge.web.wicket.components.DatePanelSettings;
 import org.projectforge.web.wicket.components.MaxLengthTextField;
@@ -60,18 +65,13 @@ public class PaymentSchedulePanel extends Panel
 
   private RepeatingView entrysRepeater;
 
-  private WebMarkupContainer mainContainer;
-
   private final IModel<AuftragDO> model;
 
   private final PFUserDO user;
 
   @SpringBean
-  AccessChecker accessChecker;
+  private AccessChecker accessChecker;
 
-  /**
-   * @param id
-   */
   public PaymentSchedulePanel(final String id, final IModel<AuftragDO> model, final PFUserDO user)
   {
     super(id);
@@ -86,8 +86,9 @@ public class PaymentSchedulePanel extends Panel
   protected void onInitialize()
   {
     super.onInitialize();
-    mainContainer = new WebMarkupContainer("main");
+    final WebMarkupContainer mainContainer = new WebMarkupContainer("main");
     add(mainContainer.setOutputMarkupId(true));
+    mainContainer.add(new Label("positionLabel", getString("fibu.auftrag.position")));
     mainContainer.add(new Label("dateLabel", getString("fibu.rechnung.datum.short")));
     mainContainer.add(new Label("amountLabel", getString("fibu.common.betrag")));
     mainContainer.add(new Label("commentLabel", getString("comment")));
@@ -99,7 +100,7 @@ public class PaymentSchedulePanel extends Panel
   }
 
   @SuppressWarnings("serial")
-  public void rebuildEntries()
+  void rebuildEntries()
   {
     final List<PaymentScheduleDO> entries = model.getObject().getPaymentSchedules();
     if (entries != null) {
@@ -107,11 +108,18 @@ public class PaymentSchedulePanel extends Panel
       for (final PaymentScheduleDO entry : entries) {
         final WebMarkupContainer item = new WebMarkupContainer(entrysRepeater.newChildId());
         entrysRepeater.add(item);
-        final DatePanel datePanel = new DatePanel("scheduleDate", new PropertyModel<Date>(entry, "scheduleDate"),
-            DatePanelSettings.get()
-                .withTargetType(java.sql.Date.class));
+
+        // position
+        item.add(createPositionColumn(entry));
+
+        // date
+        final DatePanel datePanel = new DatePanel("scheduleDate", new PropertyModel<>(entry, "scheduleDate"),
+            DatePanelSettings.get().withTargetType(java.sql.Date.class));
+        datePanel.setLabel(new ResourceModel("fibu.rechnung.datum.short"));
         item.add(datePanel);
-        final TextField<String> amount = new TextField<String>("amount", new PropertyModel<String>(entry, "amount"))
+
+        // amount
+        final TextField<String> amount = new TextField<String>("amount", new PropertyModel<>(entry, "amount"))
         {
           @SuppressWarnings({ "rawtypes", "unchecked" })
           @Override
@@ -119,20 +127,48 @@ public class PaymentSchedulePanel extends Panel
           {
             return new CurrencyConverter();
           }
+
+          @Override
+          public boolean isRequired()
+          {
+            // amount is required when a date is entered
+            return StringUtils.isNotBlank(datePanel.getDateField().getValue());
+          }
         };
+        amount.setLabel(new ResourceModel("fibu.common.betrag"));
         item.add(amount);
-        item.add(new MaxLengthTextField("comment", new PropertyModel<String>(entry, "comment")));
-        item.add(new CheckBox("reached", new PropertyModel<Boolean>(entry, "reached")));
+
+        // date is required when an amount is entered
+        datePanel.setRequiredSupplier(() -> StringUtils.isNotBlank(amount.getValue()));
+
+        // comment
+        item.add(new MaxLengthTextField("comment", new PropertyModel<>(entry, "comment")));
+
+        // reached
+        item.add(new CheckBox("reached", new PropertyModel<>(entry, "reached")));
+
+        // vollstaendig fakturiert
         if (accessChecker.hasRight(user, RechnungDao.USER_RIGHT_ID, UserRightValue.READWRITE) == true) {
           final DivPanel checkBoxDiv = new DivPanel("vollstaendigFakturiert", DivType.BTN_GROUP);
+          checkBoxDiv.add(new CheckBoxButton(checkBoxDiv.newChildId(), new PropertyModel<>(entry, "vollstaendigFakturiert"),
+              getString("fibu.auftrag.vollstaendigFakturiert")));
           item.add(checkBoxDiv);
-          checkBoxDiv.add(
-              new CheckBoxButton(checkBoxDiv.newChildId(), new PropertyModel<Boolean>(entry, "vollstaendigFakturiert"),
-                  getString("fibu.auftrag.vollstaendigFakturiert")));
         } else {
           item.add(WicketUtils.getInvisibleComponent("vollstaendigFakturiert"));
         }
       }
     }
+  }
+
+  private FormComponent<Short> createPositionColumn(final PaymentScheduleDO payment)
+  {
+    final List<Short> availablePositionNumbers = payment.getAuftrag().getPositionenExcludingDeleted().stream()
+        .map(AuftragsPositionDO::getNumber)
+        .collect(Collectors.toList());
+
+    return new DropDownChoice<>("positionNumber", new PropertyModel<>(payment, "positionNumber"), availablePositionNumbers)
+        .setNullValid(true)
+        .setRequired(true)
+        .setLabel(new ResourceModel("fibu.auftrag.position"));
   }
 }

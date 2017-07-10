@@ -55,7 +55,6 @@ import org.projectforge.business.teamcal.externalsubscription.TeamEventExternalS
 import org.projectforge.business.teamcal.service.TeamCalServiceImpl;
 import org.projectforge.business.user.UserRightId;
 import org.projectforge.framework.calendar.CalendarUtils;
-import org.projectforge.framework.calendar.ICal4JUtils;
 import org.projectforge.framework.persistence.api.BaseDao;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.persistence.api.QueryFilter;
@@ -168,6 +167,8 @@ public class TeamEventDao extends BaseDao<TeamEventDO>
   {
     super.onSaveOrModify(event);
     Validate.notNull(event.getCalendar());
+
+    // If is all day event, set start and stop to midnight
     if (event.isAllDay() == true) {
       final Date startDate = event.getStartDate();
       if (startDate != null) {
@@ -178,17 +179,10 @@ public class TeamEventDao extends BaseDao<TeamEventDO>
         event.setEndDate(CalendarUtils.getUTCMidnightTimestamp(endDate));
       }
     }
-    // Update recurrenceUntil date (for database queries):
-    final Date recurrenceUntil = ICal4JUtils.calculateRecurrenceUntil(event.getRecurrenceRule(), event.getTimeZone());
-    event.setRecurrenceUntil(recurrenceUntil);
-  }
 
-  @Override
-  protected void afterSaveOrModify(final TeamEventDO event)
-  {
+    // create uid if missing
     if (StringUtils.isBlank(event.getUid())) {
-      event.setUid(TeamCalConfig.get().createEventUid(event.getPk()));
-      getHibernateTemplate().merge(event);
+      event.setUid(TeamCalConfig.get().createEventUid());
     }
   }
 
@@ -206,7 +200,7 @@ public class TeamEventDao extends BaseDao<TeamEventDO>
    */
   public List<TeamEvent> getEventList(final TeamEventFilter filter, final boolean calculateRecurrenceEvents)
   {
-    final List<TeamEvent> result = new ArrayList<TeamEvent>();
+    final List<TeamEvent> result = new ArrayList<>();
     List<TeamEventDO> list = getList(filter);
     if (CollectionUtils.isNotEmpty(list) == true) {
       for (final TeamEventDO eventDO : list) {
@@ -290,7 +284,7 @@ public class TeamEventDao extends BaseDao<TeamEventDO>
     }
     final QueryFilter qFilter = buildQueryFilter(teamEventFilter);
     final List<TeamEventDO> list = getList(qFilter);
-    final List<TeamEventDO> result = new ArrayList<TeamEventDO>(list.size());
+    final List<TeamEventDO> result = new ArrayList<TeamEventDO>();
     if (list != null) {
       for (final TeamEventDO event : list) {
         if (matches(event.getStartDate(), event.getEndDate(), event.isAllDay(), teamEventFilter) == true) {
@@ -489,6 +483,7 @@ public class TeamEventDao extends BaseDao<TeamEventDO>
     }
     Collections.sort(list, new Comparator<DisplayHistoryEntry>()
     {
+      @Override
       public int compare(final DisplayHistoryEntry o1, final DisplayHistoryEntry o2)
       {
         return (o2.getTimestamp().compareTo(o1.getTimestamp()));

@@ -25,6 +25,7 @@ package org.projectforge.web.task;
 
 import java.util.List;
 import java.util.ListIterator;
+import java.util.Objects;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxEventBehavior;
@@ -39,7 +40,6 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.hibernate.Hibernate;
-import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.business.task.TaskDO;
 import org.projectforge.business.task.TaskDao;
 import org.projectforge.business.task.TaskFavorite;
@@ -52,6 +52,7 @@ import org.projectforge.web.fibu.ISelectCallerPage;
 import org.projectforge.web.wicket.AbstractEditPage;
 import org.projectforge.web.wicket.AbstractSecuredPage;
 import org.projectforge.web.wicket.AbstractSelectPanel;
+import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.web.wicket.components.FavoritesChoicePanel;
 import org.projectforge.web.wicket.flowlayout.ComponentWrapperPanel;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
@@ -60,9 +61,8 @@ import org.projectforge.web.wicket.flowlayout.IconType;
 
 /**
  * Panel for showing and selecting one task.
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
  */
 public class TaskSelectPanel extends AbstractSelectPanel<TaskDO> implements ComponentWrapperPanel
 {
@@ -130,7 +130,7 @@ public class TaskSelectPanel extends AbstractSelectPanel<TaskDO> implements Comp
     super.onBeforeRender();
     final TaskDO task = getModelObject();
     final Integer taskId = task != null ? task.getId() : null;
-    if (currentTaskId == taskId) {
+    if (Objects.equals(currentTaskId, taskId)) {
       return;
     }
     currentTaskId = taskId;
@@ -219,11 +219,12 @@ public class TaskSelectPanel extends AbstractSelectPanel<TaskDO> implements Comp
           taskTreePage.setHighlightedRowId(getModelObject().getId()); // Preselect node for highlighting.
         }
         setResponsePage(taskTreePage);
-      };
+      }
     };
     selectButton.setDefaultFormProcessing(false);
     divContainer.add(selectButton);
     selectButton.add(new IconPanel("selectHelp", IconType.TASK, getString("tooltip.selectTask")));
+
     final SubmitLink unselectButton = new SubmitLink("unselect")
     {
       @Override
@@ -240,8 +241,8 @@ public class TaskSelectPanel extends AbstractSelectPanel<TaskDO> implements Comp
     };
     unselectButton.setDefaultFormProcessing(false);
     divContainer.add(unselectButton);
-    unselectButton.add(
-        new IconPanel("unselectHelp", IconType.REMOVE_SIGN, getString("tooltip.unselectTask")).setColor(CSSColor.RED));
+    unselectButton.add(new IconPanel("unselectHelp", IconType.REMOVE_SIGN, getString("tooltip.unselectTask")).setColor(CSSColor.RED));
+
     // DropDownChoice favorites
     final FavoritesChoicePanel<TaskDO, TaskFavorite> favoritesPanel = new FavoritesChoicePanel<TaskDO, TaskFavorite>(
         "favorites",
@@ -274,11 +275,12 @@ public class TaskSelectPanel extends AbstractSelectPanel<TaskDO> implements Comp
     if (showFavorites == false) {
       favoritesPanel.setVisible(false);
     }
+
     return this;
   }
 
   /**
-   * 
+   *
    */
   private void initAutoCompletePanels()
   {
@@ -358,7 +360,7 @@ public class TaskSelectPanel extends AbstractSelectPanel<TaskDO> implements Comp
 
   /**
    * Hook method which is called, when the task is set by auto complete field
-   * 
+   *
    * @param target
    * @param taskDo
    */
@@ -371,7 +373,7 @@ public class TaskSelectPanel extends AbstractSelectPanel<TaskDO> implements Comp
 
   /**
    * Will be called if the user has chosen an entry of the task favorites drop down choice.
-   * 
+   *
    * @param task
    */
   protected void selectTask(final TaskDO task)
@@ -395,7 +397,7 @@ public class TaskSelectPanel extends AbstractSelectPanel<TaskDO> implements Comp
   /**
    * If true (default) then the path from the root task to the currently selected will be shown, otherwise only the name
    * of the task is displayed.
-   * 
+   *
    * @param showPath
    */
   public void setShowPath(final boolean showPath)
@@ -435,7 +437,7 @@ public class TaskSelectPanel extends AbstractSelectPanel<TaskDO> implements Comp
 
   /**
    * If true then only task will be displayed in autocompletion list which are allowed to have timesheets.
-   * 
+   *
    * @return the autocompleteOnlyTaskBookableForTimesheets
    */
   public boolean isAutocompleteOnlyTaskBookableForTimesheets()
