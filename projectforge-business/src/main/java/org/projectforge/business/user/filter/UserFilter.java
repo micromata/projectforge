@@ -40,19 +40,12 @@ import javax.servlet.http.HttpServletRequestWrapper;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.MDC;
 import org.projectforge.Const;
-import org.projectforge.business.login.Login;
-import org.projectforge.business.multitenancy.TenantRegistry;
-import org.projectforge.business.multitenancy.TenantRegistryMap;
-import org.projectforge.business.user.UserDao;
-import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.common.StringHelper;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.api.UserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
-import org.projectforge.framework.utils.NumberHelper;
 import org.projectforge.web.servlet.LogoServlet;
 import org.projectforge.web.servlet.SMSReceiverServlet;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -71,7 +64,8 @@ public class UserFilter implements Filter
 
   private final static String SESSION_KEY_USER = "UserFilter.user";
 
-  private static final int COOKIE_MAX_AGE = 30 * 24 * 3600; // 30 days.
+  @Autowired
+  private CookieService cookieService;
 
   // private static String IGNORE_PREFIX_WICKET;
 
@@ -86,9 +80,6 @@ public class UserFilter implements Filter
   private static String WICKET_PAGES_PREFIX;
 
   private static String CONTEXT_PATH;
-
-  @Autowired
-  private UserDao userDao;
 
   private static boolean updateRequiredFirst = false;
 
@@ -116,46 +107,6 @@ public class UserFilter implements Filter
   public static boolean isUpdateRequiredFirst()
   {
     return updateRequiredFirst;
-  }
-
-  public static Cookie getStayLoggedInCookie(final HttpServletRequest request)
-  {
-    return getCookie(request, Const.COOKIE_NAME_FOR_STAY_LOGGED_IN);
-  }
-
-  private static Cookie getCookie(final HttpServletRequest request, final String name)
-  {
-    final Cookie[] cookies = request.getCookies();
-    if (cookies != null) {
-      for (final Cookie cookie : cookies) {
-        if (name.equals(cookie.getName()) == true) {
-          return cookie;
-        }
-      }
-    }
-    return null;
-  }
-
-  /**
-   * Adds or refresh the given cookie.
-   *
-   * @param request
-   * @param response
-   * @param stayLoggedInCookie
-   */
-  public static void addStayLoggedInCookie(final HttpServletRequest request, final HttpServletResponse response,
-      final Cookie stayLoggedInCookie)
-  {
-    stayLoggedInCookie.setMaxAge(COOKIE_MAX_AGE);
-    stayLoggedInCookie.setPath("/");
-    if (request.isSecure() == true) {
-      log.debug("Set secure cookie");
-      stayLoggedInCookie.setSecure(true);
-    } else {
-      log.debug("Set unsecure cookie");
-    }
-    stayLoggedInCookie.setHttpOnly(true);
-    response.addCookie(stayLoggedInCookie); // Refresh cookie.
   }
 
   /**
@@ -246,7 +197,7 @@ public class UserFilter implements Filter
           }
         } else if (updateRequiredFirst == false) {
           // Ignore stay-logged-in if redirect to update page is required.
-          userContext = checkStayLoggedIn(request, response);
+          userContext = cookieService.checkStayLoggedIn(request, response);
           if (userContext != null) {
             if (log.isDebugEnabled() == true) {
               log.debug("User's stay logged-in cookie found: " + request.getRequestURI());
@@ -293,55 +244,7 @@ public class UserFilter implements Filter
     }
   }
 
-  /**
-   * User is not logged. Checks a stay-logged-in-cookie.
-   *
-   * @return user if valid cookie found, otherwise null.
-   */
-  private UserContext checkStayLoggedIn(final HttpServletRequest request, final HttpServletResponse response)
-  {
-    final Cookie stayLoggedInCookie = getStayLoggedInCookie(request);
-    if (stayLoggedInCookie != null) {
-      final String value = stayLoggedInCookie.getValue();
-      if (StringUtils.isBlank(value) == true) {
-        return null;
-      }
-      final String[] values = value.split(":");
-      if (values.length != 3) {
-        log.warn("Invalid cookie found: " + value);
-        return null;
-      }
-      final Integer userId = NumberHelper.parseInteger(values[0]);
-      final PFUserDO user = userDao.internalGetById(userId);
-      if (user == null) {
-        log.warn("Invalid cookie found (user not found): " + value);
-        return null;
-      }
-      if (user.getUsername().equals(values[1]) == false) {
-        log.warn("Invalid cookie found (user name wrong, maybe changed): " + value);
-        return null;
-      }
-      if (values[2] == null || values[2].equals(user.getStayLoggedInKey()) == false) {
-        log.warn("Invalid cookie found (stay-logged-in key, maybe renewed and/or user password changed): " + value);
-        return null;
-      }
-      if (Login.getInstance().checkStayLoggedIn(user) == false) {
-        log.warn("Stay-logged-in wasn't accepted by the login handler: " + user.getUserDisplayname());
-        return null;
-      }
-      // update the cookie, especially the max age
-      addStayLoggedInCookie(request, response, stayLoggedInCookie);
-      log.info("User successfully logged in using stay-logged-in method: " + user.getUserDisplayname());
-      return new UserContext(PFUserDO.createCopyWithoutSecretFields(user), getUserGroupCache());
-    }
-    return null;
-  }
-
-  /**
-   * @param request
-   * @return
-   */
-  protected HttpServletRequest decorateWithLocale(HttpServletRequest request)
+  private HttpServletRequest decorateWithLocale(HttpServletRequest request)
   {
     final Locale locale = ThreadLocalUserContext.getLocale(request.getLocale());
     request = new HttpServletRequestWrapper(request)
@@ -367,7 +270,7 @@ public class UserFilter implements Filter
    * @param req from do Filter.
    * @return true, if the filter should ignore this request, otherwise false.
    */
-  protected boolean ignoreFilterFor(final ServletRequest req)
+  private boolean ignoreFilterFor(final ServletRequest req)
   {
     final HttpServletRequest hreq = (HttpServletRequest) req;
     final String uri = hreq.getRequestURI();
@@ -391,16 +294,4 @@ public class UserFilter implements Filter
     return false;
   }
 
-  public TenantRegistry getTenantRegistry()
-  {
-    return TenantRegistryMap.getInstance().getTenantRegistry();
-  }
-
-  /**
-   * @return the UserGroupCache with groups and rights (tenant specific).
-   */
-  public UserGroupCache getUserGroupCache()
-  {
-    return getTenantRegistry().getUserGroupCache();
-  }
 }

@@ -56,6 +56,7 @@ import org.projectforge.framework.persistence.user.api.UserContext;
 import org.projectforge.framework.persistence.user.entities.TenantDO;
 import org.projectforge.web.FavoritesMenu;
 import org.projectforge.web.LoginPage;
+import org.projectforge.web.LoginService;
 import org.projectforge.web.MenuEntry;
 import org.projectforge.web.MenuItemRegistry;
 import org.projectforge.web.core.menuconfig.MenuConfig;
@@ -104,6 +105,9 @@ public class NavTopPanel extends NavAbstractPanel
 
   @SpringBean
   private VacationService vacationService;
+
+  @SpringBean
+  private LoginService loginService;
 
   /**
    * Cross site request forgery token.
@@ -190,7 +194,6 @@ public class NavTopPanel extends NavAbstractPanel
             return currentTenant != null ? currentTenant.getShortName() : "???";
           }
 
-          ;
         }).setRenderBodyOnly(true));
         final RepeatingView tenantsRepeater = new RepeatingView("tenantsRepeater");
         tenantMenu.add(tenantsRepeater);
@@ -206,7 +209,6 @@ public class NavTopPanel extends NavAbstractPanel
               throw new RestartResponseAtInterceptPageException(getPage().getPageClass());
             }
 
-            ;
           };
           li.add(changeTenantLink);
           changeTenantLink.add(new Label("label", tenant.getName()));
@@ -236,12 +238,10 @@ public class NavTopPanel extends NavAbstractPanel
         @Override
         public void onClick()
         {
-          LoginPage.logout((MySession) getSession(), (WebRequest) getRequest(), (WebResponse) getResponse(),
-              userXmlPreferencesCache, menuBuilder);
+          loginService.logout((MySession) getSession(), (WebRequest) getRequest(), (WebResponse) getResponse(), userXmlPreferencesCache, menuBuilder);
           setResponsePage(LoginPage.class);
         }
 
-        ;
       };
       logoutLink.setMarkupId("logout").setOutputMarkupId(true);
       add(logoutLink);
@@ -285,7 +285,6 @@ public class NavTopPanel extends NavAbstractPanel
         return counter;
       }
 
-      ;
     });
     add(totalMenuSuffixLabel);
 

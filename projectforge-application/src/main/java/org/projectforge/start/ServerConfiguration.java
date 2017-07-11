@@ -1,58 +1,45 @@
 package org.projectforge.start;
 
+import org.apache.catalina.connector.Connector;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.embedded.ConfigurableEmbeddedServletContainer;
 import org.springframework.boot.context.embedded.EmbeddedServletContainerCustomizer;
-import org.springframework.boot.context.embedded.jetty.JettyEmbeddedServletContainerFactory;
+import org.springframework.boot.context.embedded.tomcat.TomcatEmbeddedServletContainerFactory;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class ServerConfiguration implements EmbeddedServletContainerCustomizer
 {
-
   static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(ServerConfiguration.class);
 
   @Value("${projectforge.servletContextPath}")
   private String servletContextPath;
 
+  @Value("${tomcat.ajp.port:8009}")
+  private int ajpPort;
+
+  @Value("${tomcat.ajp.enabled:false}")
+  private boolean tomcatAjpEnabled;
+
   @Override
-  public void customize(ConfigurableEmbeddedServletContainer container)
+  public void customize(final ConfigurableEmbeddedServletContainer container)
   {
-    if (StringUtils.isBlank(servletContextPath) == false) {
+    if (StringUtils.isNotBlank(servletContextPath)) {
       container.setContextPath(servletContextPath);
     }
 
-    if (container instanceof JettyEmbeddedServletContainerFactory) {
-      //customizeJetty((JettyEmbeddedServletContainerFactory) container);
+    if (container instanceof TomcatEmbeddedServletContainerFactory) {
+      final TomcatEmbeddedServletContainerFactory tomcatContainer = (TomcatEmbeddedServletContainerFactory) container;
+      if (tomcatAjpEnabled) {
+        final Connector ajpConnector = new Connector("AJP/1.3");
+        ajpConnector.setPort(ajpPort);
+        ajpConnector.setAttribute("address", "127.0.0.1");
+        ajpConnector.setSecure(false);
+        ajpConnector.setAllowTrace(false);
+        ajpConnector.setScheme("http");
+        tomcatContainer.getAdditionalTomcatConnectors().add(ajpConnector);
+      }
     }
   }
-
-  //  private void customizeJetty(JettyEmbeddedServletContainerFactory factory)
-  //  {
-  //    factory.addServerCustomizers(new JettyServerCustomizer()
-  //    {
-  //
-  //      @Override
-  //      public void customize(Server server)
-  //      {
-  //        SslContextFactory sslContextFactory = new SslContextFactory();
-  //        sslContextFactory.setKeyStorePassword("jetty6");
-  //        try {
-  //          sslContextFactory.setKeyStorePath(ResourceUtils.getFile(
-  //              "classpath:jetty-ssl.keystore").getAbsolutePath());
-  //        } catch (FileNotFoundException ex) {
-  //          throw new IllegalStateException("Could not load keystore", ex);
-  //        }
-  //        SslSocketConnector sslConnector = new SslSocketConnector(
-  //            sslContextFactory);
-  //        sslConnector.setPort(9993);
-  //        sslConnector.setMaxIdleTime(60000);
-  //        server.addConnector(sslConnector);
-  //      }
-  //    });
-  //  }
-
-  //INFOs:
-  //http://stackoverflow.com/questions/24122123/spring-boot-jetty-ssl-port
 }
