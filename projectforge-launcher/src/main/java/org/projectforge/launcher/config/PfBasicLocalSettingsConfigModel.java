@@ -57,7 +57,7 @@ public class PfBasicLocalSettingsConfigModel extends AbstractLocalSettingsConfig
   @ALocalSettingsPath(key = "server.port", defaultValue = "8080")
   private String serverPort;
 
-  @ALocalSettingsPath(key = "server.address", defaultValue = "")
+  @ALocalSettingsPath(key = "server.address", defaultValue = "0.0.0.0")
   private String serverAddress;
 
   @Override

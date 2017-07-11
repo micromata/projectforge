@@ -25,6 +25,7 @@ package org.projectforge.web.fibu;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
@@ -47,11 +48,14 @@ import org.projectforge.business.fibu.AuftragDO;
 import org.projectforge.business.fibu.AuftragDao;
 import org.projectforge.business.fibu.AuftragsPositionDO;
 import org.projectforge.business.fibu.AuftragsStatus;
+import org.projectforge.business.fibu.ForecastExport;
 import org.projectforge.business.fibu.OrderExport;
 import org.projectforge.business.fibu.RechnungCache;
 import org.projectforge.business.task.formatter.WicketTaskFormatter;
 import org.projectforge.business.user.UserFormatter;
 import org.projectforge.business.utils.CurrencyFormatter;
+import org.projectforge.framework.i18n.UserException;
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.time.DateHelper;
 import org.projectforge.framework.utils.NumberFormatter;
 import org.projectforge.web.wicket.AbstractListPage;
@@ -71,6 +75,8 @@ public class AuftragListPage extends AbstractListPage<AuftragListForm, AuftragDa
     implements IListPageColumnsCreator<AuftragDO>
 {
   private static final long serialVersionUID = -8406452960003792763L;
+
+  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(AuftragListPage.class);
 
   private static final String[] MY_BOOKMARKABLE_INITIAL_PROPERTIES = mergeStringArrays(
       BOOKMARKABLE_INITIAL_PROPERTIES, new String[] { "f.year|y", "f.listType|lt", "f.auftragsPositionsArt|art" }
@@ -282,7 +288,19 @@ public class AuftragListPage extends AbstractListPage<AuftragListForm, AuftragDa
           public void onClick()
           {
             final List<AuftragDO> list = getList();
-            final byte[] xls = forecastExport.export(list);
+            Calendar startDate = Calendar.getInstance(ThreadLocalUserContext.getTimeZone());
+            if (form != null && form.getSearchFilter() != null && form.getSearchFilter().getPeriodOfPerformanceStartDate() != null) {
+              startDate.setTime(form.getSearchFilter().getPeriodOfPerformanceStartDate());
+            } else {
+              startDate.set(Calendar.MONTH, 0);
+            }
+            byte[] xls = null;
+            try {
+              xls = forecastExport.export(list, startDate);
+            } catch (Exception e) {
+              log.error("Exception while creating forecast report: " + e.getMessage(), e);
+              throw new UserException("error", e.getMessage());
+            }
             if (xls == null || xls.length == 0) {
               form.addError("datatable.no-records-found");
               return;
@@ -292,7 +310,7 @@ public class AuftragListPage extends AbstractListPage<AuftragListForm, AuftragDa
             DownloadUtils.setDownloadTarget(xls, filename);
           }
         }, getString("fibu.auftrag.forecastExportAsXls")).setTooltip(getString("fibu.auftrag.forecastExportAsXls.tooltip"));
-    addContentMenuEntry(exportExcelButton);
+    addContentMenuEntry(forecastExportButton);
   }
 
   @Override

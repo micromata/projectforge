@@ -30,13 +30,12 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.markup.head.JavaScriptHeaderItem;
 import org.apache.wicket.request.cycle.RequestCycle;
-import org.projectforge.framework.time.DateFormatType;
+import org.projectforge.common.DateFormatType;
 import org.projectforge.framework.time.DateFormats;
 import org.projectforge.web.I18nCore;
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
  */
 public class DatePickerUtils
 {

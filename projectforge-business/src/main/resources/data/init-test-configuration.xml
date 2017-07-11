@@ -19,7 +19,7 @@
     <id>384</id>
     <global>false</global>
     <parameter>messageOfTheDay</parameter>
-    <stringValue>Please try user &apos;&lt;span style=&quot;color:red; font-weight: bold;&quot;&gt;demo&lt;/span&gt;&apos; with password &apos;&lt;span style=&quot;color:red; font-weight: bold;&quot;&gt;demo123&lt;/span&gt;&apos;.  Have a lot of fun!</stringValue>
+    <stringValue>Please try user demo with password demo123. Have a lot of fun!</stringValue>
     <configurationType>TEXT</configurationType>
   </org.projectforge.framework.configuration.entities.ConfigurationDO>
   <org.projectforge.framework.configuration.entities.ConfigurationDO id="8">

@@ -34,9 +34,8 @@ import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 
 /**
  * TODO DESGINBUG Wicket ueber HtmlHelper.
- * 
- * @author NOT Roger Rene Kommer (r.kommer.extern@micromata.de)
  *
+ * @author NOT Roger Rene Kommer (r.kommer.extern@micromata.de)
  */
 public class DateTimeFormatter extends AbstractFormatter
 {
@@ -47,10 +46,14 @@ public class DateTimeFormatter extends AbstractFormatter
     return instance;
   }
 
-  /** Used by getPrettyFormattedDuration */
+  /**
+   * Used by getPrettyFormattedDuration
+   */
   public static final int DEFAULT_HOURS_OF_DAY = 8;
 
-  /** Used by getPrettyFormattedDuration */
+  /**
+   * Used by getPrettyFormattedDuration
+   */
   public static final int DEFAULT_MIN_HOURS4DAY_SEPARATION = 24;
 
   /**
@@ -71,7 +74,7 @@ public class DateTimeFormatter extends AbstractFormatter
 
   /**
    * Uses patternKey SHORT_DATE_FORMAT
-   * 
+   *
    * @param dateTime
    * @see #getFormattedDateTime(Object, String, Locale, TimeZone)
    */
@@ -82,20 +85,20 @@ public class DateTimeFormatter extends AbstractFormatter
 
   /**
    * Uses patternKey SHORT_DATE_FORMAT
-   * 
+   *
    * @param dateTime
    * @see #getFormattedDateTime(Object, String)
    */
   public String getFormattedDate(final Object date, final Locale locale, final TimeZone timeZone)
   {
-    return getFormattedDate(date, DateFormats.getFormatString(org.projectforge.framework.time.DateFormatType.DATE),
+    return getFormattedDate(date, DateFormats.getFormatString(org.projectforge.common.DateFormatType.DATE),
         locale,
         timeZone);
   }
 
   /**
    * Gets the formatted date (without time of day) with the context user's time zone and the internationalized pattern.
-   * 
+   *
    * @param date
    * @param patternKey i18n key of the pattern
    */
@@ -106,7 +109,7 @@ public class DateTimeFormatter extends AbstractFormatter
 
   /**
    * Gets the formatted date (without time of day) with the context user's time zone and the internationalized pattern.
-   * 
+   *
    * @param date
    * @param patternKey i18n key of the pattern
    */
@@ -124,32 +127,32 @@ public class DateTimeFormatter extends AbstractFormatter
 
   /**
    * Uses patternKey SHORT_TIMESTAMP_FORMAT_WITH_MINUTES
-   * 
+   *
    * @param dateTime
    * @see #getFormattedDateTime(Date, String)
    */
   public String getFormattedDateTime(final Date dateTime)
   {
     return getFormattedDateTime(dateTime,
-        DateFormats.getFormatString(org.projectforge.framework.time.DateFormatType.DATE_TIME_SHORT_MINUTES));
+        DateFormats.getFormatString(org.projectforge.common.DateFormatType.DATE_TIME_SHORT_MINUTES));
   }
 
   /**
    * Uses patternKey SHORT_TIMESTAMP_FORMAT_WITH_MINUTES
-   * 
+   *
    * @param dateTime
    * @see #getFormattedDateTime(Date, String)
    */
   public String getFormattedDateTime(final Date dateTime, final Locale locale, final TimeZone timeZone)
   {
     return getFormattedDateTime(dateTime,
-        DateFormats.getFormatString(org.projectforge.framework.time.DateFormatType.DATE_TIME_SHORT_MINUTES),
+        DateFormats.getFormatString(org.projectforge.common.DateFormatType.DATE_TIME_SHORT_MINUTES),
         ThreadLocalUserContext.getLocale(), ThreadLocalUserContext.getTimeZone());
   }
 
   /**
    * Gets the formatted time stamp with the context user's time zone and the internationalized pattern.
-   * 
+   *
    * @param dateTime
    * @param patternKey i18n key of the pattern
    */
@@ -161,7 +164,7 @@ public class DateTimeFormatter extends AbstractFormatter
 
   /**
    * Gets the formatted time stamp with the context user's time zone and the internationalized pattern.
-   * 
+   *
    * @param dateTime
    * @param patternKey i18n key of the pattern
    */
@@ -180,19 +183,19 @@ public class DateTimeFormatter extends AbstractFormatter
 
   /**
    * Uses patternKey TIMEOFDAY_FORMAT
-   * 
+   *
    * @param dateTime
    * @see #getFormattedTime(Date, String)
    */
   public String getFormattedTime(final Date time)
   {
     return getFormattedTime(time,
-        DateFormats.getFormatString(org.projectforge.framework.time.DateFormatType.TIME_OF_DAY_MINUTES));
+        DateFormats.getFormatString(org.projectforge.common.DateFormatType.TIME_OF_DAY_MINUTES));
   }
 
   /**
    * Gets the formatted time of day with the context user's time zone and the internationalized pattern.
-   * 
+   *
    * @param time
    * @param patternKey i18n key of the pattern
    */
@@ -213,7 +216,7 @@ public class DateTimeFormatter extends AbstractFormatter
 
   /**
    * Calls getFormattedDuration with hoursOfDay = this.durationOfWorkingDay and minHours4DaySeparation = 24.
-   * 
+   *
    * @param millis
    * @return
    * @see #getFormattedDuration(long, int, int)
@@ -225,7 +228,7 @@ public class DateTimeFormatter extends AbstractFormatter
 
   /**
    * Calls getPrettyFormattedDuration with DEFAULT_HOURS_OF_DAY and DEFAULT_MIN_HOURS4DAY_SEPARATION.
-   * 
+   *
    * @param millis
    * @return
    * @see #getPrettyFormattedDuration(long, int, int)
@@ -237,7 +240,7 @@ public class DateTimeFormatter extends AbstractFormatter
 
   /**
    * Examples: 12d 1:00h (97:00h), 9:00h
-   * 
+   *
    * @param millis
    * @param hoursOfDay
    * @param minHours4DaySeparation
@@ -257,7 +260,7 @@ public class DateTimeFormatter extends AbstractFormatter
 
   /**
    * Examples of output (localized units): 9:00h, 12d 1:00h
-   * 
+   *
    * @param millis
    * @param hoursOfDay
    * @param minHours4DaySeparation
@@ -286,7 +289,7 @@ public class DateTimeFormatter extends AbstractFormatter
 
   /**
    * Set the default duration of working day (8 at default).
-   * 
+   *
    * @param durationOfWorkingDay
    */
   public void setDurationOfWorkingDay(final int durationOfWorkingDay)
