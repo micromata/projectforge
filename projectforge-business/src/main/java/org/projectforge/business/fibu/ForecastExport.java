@@ -122,9 +122,8 @@ public class ForecastExport
       }
       orderBookDao.calculateInvoicedSum(order);
       for (AuftragsPositionDO pos : order.getPositionenExcludingDeleted()) {
-        // 3. filter deleted and AuftragsPositionsStatus
-        if (pos.isDeleted() == false && pos.getStatus() != null && auftragsPositionsStatusToShow.contains(pos.getStatus())) {
-          calculateIstSum(istSumMap, startDate, pos);
+        calculateIstSum(istSumMap, startDate, pos);
+        if (pos.getStatus() != null && auftragsPositionsStatusToShow.contains(pos.getStatus())) {
           PropertyMapping mapping = new PropertyMapping();
           addPosMapping(mapping, order, pos, startDate);
           sheet.addRow(mapping.getMapping(), 0);
@@ -292,11 +291,11 @@ public class ForecastExport
 
     final Calendar currentMonth = Calendar.getInstance();
     currentMonth.setTime(startDate.getTime());
-    currentMonth.add(Calendar.MONTH, -1);
+    //currentMonth.add(Calendar.MONTH, -1);
     final Calendar posEndDate = getEndLeistungszeitraumNextMonthEnd(order, pos);
 
     for (int i = 0; i < monthCols.length; i++) {
-      currentMonth.add(Calendar.MONTH, 1);
+      //currentMonth.add(Calendar.MONTH, 1);
       BigDecimal sum = new BigDecimal(0.0);
 
       for (PaymentScheduleDO schedule : paymentSchedules) {
@@ -315,7 +314,7 @@ public class ForecastExport
         }
       }
 
-      if (sum.compareTo(BigDecimal.ZERO) > 0) {
+      if (sum.compareTo(BigDecimal.ZERO) > 0 && checkAfterMonthBefore(currentMonth)) {
         mapping.add(monthCols[i], sum);
       }
 
@@ -335,12 +334,33 @@ public class ForecastExport
     // handle payment difference
     final Object previousValue = mapping.getMapping().get(periodOfPerformanceEnd.name());
 
-    if (previousValue == null) {
+    if (previousValue == null && checkAfterMonthBefore(currentMonth)) {
       mapping.add(periodOfPerformanceEnd, posNettoSum);
     } else {
       posNettoSum = posNettoSum.add((BigDecimal) previousValue);
-      mapping.add(periodOfPerformanceEnd, posNettoSum);
+      if (checkAfterMonthBefore(currentMonth)) {
+        mapping.add(periodOfPerformanceEnd, posNettoSum);
+      }
     }
+  }
+
+  /**
+   * Checks, if given date is behind the month before now.
+   *
+   * @param toCheck
+   * @return
+   */
+  private boolean checkAfterMonthBefore(Calendar toCheck)
+  {
+    Calendar oneMonthBeforeNow = Calendar.getInstance();
+    oneMonthBeforeNow.add(Calendar.MONTH, -1);
+    if (toCheck.get(Calendar.YEAR) == oneMonthBeforeNow.get(Calendar.YEAR)) {
+      return toCheck.get(Calendar.MONTH) > oneMonthBeforeNow.get(Calendar.MONTH);
+    }
+    if (toCheck.get(Calendar.YEAR) < oneMonthBeforeNow.get(Calendar.YEAR)) {
+      return false;
+    }
+    return true;
   }
 
   private List<PaymentScheduleDO> getPaymentSchedule(final AuftragDO order, final AuftragsPositionDO pos)
@@ -361,6 +381,8 @@ public class ForecastExport
   {
     Calendar posStartDate = getStartLeistungszeitraumNextMonthEnd(order, pos);
     Calendar posEndDate = getEndLeistungszeitraumNextMonthEnd(order, pos);
+    Calendar oneMonthBeforeNow = Calendar.getInstance();
+    oneMonthBeforeNow.add(Calendar.MONTH, -1);
     Calendar startDateWhile = Calendar.getInstance();
     startDateWhile.setTime(startDate.getTime());
     Calendar endDate = Calendar.getInstance();
@@ -368,12 +390,14 @@ public class ForecastExport
     endDate.add(Calendar.YEAR, 1);
     BigDecimal posSum = computeAccurenceValue(order, pos);
     if (posSum != null) {
-      BigDecimal monthCount = getMonthCount(posStartDate, posEndDate);
+      BigDecimal monthCount = getMonthCount(oneMonthBeforeNow, posEndDate);
       BigDecimal partlyNettoSum = posSum.divide(monthCount, RoundingMode.HALF_UP);
       int i = 0;
       while (endDate.after(posStartDate) && (posEndDate.equals(posStartDate) || posEndDate.after(posStartDate)) && i < monthCols.length) {
         if (posStartDate.get(Calendar.MONTH) == startDateWhile.get(Calendar.MONTH) && posStartDate.get(Calendar.YEAR) == startDateWhile.get(Calendar.YEAR)) {
-          mapping.add(monthCols[i], partlyNettoSum);
+          if (checkAfterMonthBefore(startDateWhile)) {
+            mapping.add(monthCols[i], partlyNettoSum);
+          }
           posStartDate.add(Calendar.MONTH, 1);
         }
         startDateWhile.add(Calendar.MONTH, 1);
