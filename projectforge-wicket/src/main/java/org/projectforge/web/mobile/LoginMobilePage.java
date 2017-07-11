@@ -89,7 +89,7 @@ public class LoginMobilePage extends AbstractMobilePage
     if (StringUtils.isBlank(messageOfTheDay) == true) {
       pageContainer.add(new Label("messageOfTheDay", "[invisible]").setVisible(false));
     } else {
-      pageContainer.add(new Label("messageOfTheDay", messageOfTheDay).setEscapeModelStrings(false));
+      pageContainer.add(new Label("messageOfTheDay", messageOfTheDay));
     }
     @SuppressWarnings("serial")
     final Link<Void> goButton = new Link<Void>("goFullWebVersion")

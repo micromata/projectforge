@@ -27,6 +27,7 @@ import static org.testng.AssertJUnit.*;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
@@ -41,6 +42,7 @@ import org.projectforge.framework.i18n.UserException;
 import org.projectforge.framework.persistence.user.entities.GroupDO;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.persistence.user.entities.UserRightDO;
+import org.projectforge.framework.time.DateHelper;
 import org.projectforge.framework.time.DateHolder;
 import org.projectforge.test.AbstractTestBase;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,7 +50,7 @@ import org.testng.annotations.Test;
 
 public class AuftragDaoTest extends AbstractTestBase
 {
-  private static int dbNumber = AuftragDao.START_NUMBER;
+  private int dbNumber = AuftragDao.START_NUMBER;
 
   @Autowired
   private AuftragDao auftragDao;
@@ -87,7 +89,7 @@ public class AuftragDaoTest extends AbstractTestBase
     AuftragDO auftrag1 = new AuftragDO();
     auftrag1.setNummer(auftragDao.getNextNumber(auftrag1));
     auftragDao.setContactPerson(auftrag1, getUserId(TEST_FINANCE_USER));
-    Serializable id1 = null;
+    Serializable id1;
     try {
       id1 = auftragDao.save(auftrag1);
       fail("UserException expected: Order should have positions.");
@@ -399,6 +401,48 @@ public class AuftragDaoTest extends AbstractTestBase
   }
 
   @Test
+  public void validateDatesInPaymentScheduleWithinPeriodOfPerformanceOfPosition()
+  {
+    final AuftragDO auftrag = new AuftragDO();
+    final List<AuftragsPositionDO> auftragsPositions = auftrag.ensureAndGetPositionen();
+    final List<PaymentScheduleDO> paymentSchedules = auftrag.ensureAndGetPaymentSchedules();
+
+    auftrag.setPeriodOfPerformanceBegin(java.sql.Date.valueOf(LocalDate.of(2017, 5, 1)));
+    auftrag.setPeriodOfPerformanceEnd(java.sql.Date.valueOf(LocalDate.of(2017, 6, 30)));
+
+    auftragsPositions.add(new AuftragsPositionDO().setNumber((short) 1));
+    auftragsPositions.add(new AuftragsPositionDO().setNumber((short) 2).setPeriodOfPerformanceType(PeriodOfPerformanceType.OWN)
+        .setPeriodOfPerformanceBegin(java.sql.Date.valueOf(LocalDate.of(2017, 5, 24)))
+        .setPeriodOfPerformanceEnd(java.sql.Date.valueOf(LocalDate.of(2017, 5, 25))));
+
+    paymentSchedules.add(new PaymentScheduleDO().setPositionNumber((short) 1).setScheduleDate(java.sql.Date.valueOf(LocalDate.of(2017, 5, 1))));
+    paymentSchedules.add(new PaymentScheduleDO().setPositionNumber((short) 1).setScheduleDate(java.sql.Date.valueOf(LocalDate.of(2017, 5, 20))));
+    paymentSchedules.add(new PaymentScheduleDO().setPositionNumber((short) 1).setScheduleDate(java.sql.Date.valueOf(LocalDate.of(2017, 6, 30))));
+    paymentSchedules.add(new PaymentScheduleDO().setPositionNumber((short) 2).setScheduleDate(java.sql.Date.valueOf(LocalDate.of(2017, 5, 24))));
+    paymentSchedules.add(new PaymentScheduleDO().setPositionNumber((short) 2).setScheduleDate(java.sql.Date.valueOf(LocalDate.of(2017, 5, 25))));
+
+    boolean exceptionThrown = false;
+    try {
+      auftragDao.validateDatesInPaymentScheduleWithinPeriodOfPerformanceOfPosition(auftrag);
+    } catch (UserException e) {
+      exceptionThrown = true;
+    }
+    assertFalse(exceptionThrown);
+
+    paymentSchedules.add(new PaymentScheduleDO().setPositionNumber((short) 1).setScheduleDate(java.sql.Date.valueOf(LocalDate.of(2017, 4, 30))));
+    paymentSchedules.add(new PaymentScheduleDO().setPositionNumber((short) 2).setScheduleDate(java.sql.Date.valueOf(LocalDate.of(2017, 5, 26))));
+
+    try {
+      auftragDao.validateDatesInPaymentScheduleWithinPeriodOfPerformanceOfPosition(auftrag);
+    } catch (UserException e) {
+      exceptionThrown = true;
+      assertEquals(e.getParams().length, 1);
+      assertEquals(e.getParams()[0], "1, 2");
+    }
+    assertTrue(exceptionThrown);
+  }
+
+  @Test
   public void validateAmountsInPaymentScheduleNotGreaterThanNetSumOfPosition()
   {
     final AuftragDO auftrag = new AuftragDO();
@@ -431,5 +475,61 @@ public class AuftragDaoTest extends AbstractTestBase
       exceptionThrown = true;
     }
     assertTrue(exceptionThrown);
+  }
+
+  @Test
+  public void testPeriodOfPerformanceFilter()
+  {
+    logon(TEST_FINANCE_USER);
+
+    auftragDao.save(createAuftragWithPeriodOfPerformance(2017, 4, 1, 2017, 4, 30));
+    auftragDao.save(createAuftragWithPeriodOfPerformance(2017, 4, 3, 2017, 4, 5));
+    auftragDao.save(createAuftragWithPeriodOfPerformance(2017, 3, 31, 2017, 5, 1));
+    auftragDao.save(createAuftragWithPeriodOfPerformance(2017, 3, 31, 2017, 4, 5));
+    auftragDao.save(createAuftragWithPeriodOfPerformance(2017, 3, 31, 2017, 5, 1));
+    auftragDao.save(createAuftragWithPeriodOfPerformance(2010, 1, 1, 2020, 12, 31));
+
+    final AuftragFilter auftragFilter = new AuftragFilter();
+    assertEquals(17, auftragDao.getList(auftragFilter).size());
+
+    setPeriodOfPerformanceStartDateAndEndDate(auftragFilter, 2017, 4, 1, 2017, 4, 30);
+    assertEquals(6, auftragDao.getList(auftragFilter).size());
+
+    setPeriodOfPerformanceStartDateAndEndDate(auftragFilter, 2017, 4, 1, 2017, 4, 1);
+    assertEquals(5, auftragDao.getList(auftragFilter).size());
+
+    auftragFilter.setPeriodOfPerformanceStartDate(null);
+    assertEquals(5, auftragDao.getList(auftragFilter).size());
+
+    setPeriodOfPerformanceStartDateAndEndDate(auftragFilter, 2017, 4, 6, 2017, 4, 6);
+    assertEquals(4, auftragDao.getList(auftragFilter).size());
+
+    auftragFilter.setPeriodOfPerformanceStartDate(null);
+    assertEquals(6, auftragDao.getList(auftragFilter).size());
+
+    setPeriodOfPerformanceStartDateAndEndDate(auftragFilter, 2016, 1, 1, 2016, 1, 1);
+    assertEquals(1, auftragDao.getList(auftragFilter).size());
+
+    auftragFilter.setPeriodOfPerformanceEndDate(null);
+    assertEquals(6, auftragDao.getList(auftragFilter).size());
+  }
+
+  private void setPeriodOfPerformanceStartDateAndEndDate(final AuftragFilter auftragFilter, final int startYear, final int startMonth, final int startDay,
+      final int endYear, final int endMonth, final int endDay)
+  {
+    auftragFilter.setPeriodOfPerformanceStartDate(DateHelper.convertLocalDateTimeToDateInUTC(LocalDate.of(startYear, startMonth, startDay).atStartOfDay()));
+    auftragFilter.setPeriodOfPerformanceEndDate(DateHelper.convertLocalDateTimeToDateInUTC(LocalDate.of(endYear, endMonth, endDay).atStartOfDay()));
+  }
+
+  private AuftragDO createAuftragWithPeriodOfPerformance(final int beginYear, final int beginMonth, final int beginDay, final int endYear, final int endMonth,
+      final int endDay)
+  {
+    final AuftragDO auftrag = new AuftragDO();
+    auftrag.setNummer(auftragDao.getNextNumber(auftrag));
+    dbNumber++;
+    auftrag.addPosition(new AuftragsPositionDO());
+    auftrag.setPeriodOfPerformanceBegin(java.sql.Date.valueOf(LocalDate.of(beginYear, beginMonth, beginDay)));
+    auftrag.setPeriodOfPerformanceEnd(java.sql.Date.valueOf(LocalDate.of(endYear, endMonth, endDay)));
+    return auftrag;
   }
 }

@@ -25,7 +25,9 @@ package org.projectforge.web.fibu;
 
 import org.apache.log4j.Logger;
 import org.projectforge.business.fibu.RechnungDao;
+import org.projectforge.business.fibu.RechnungListFilter;
 import org.projectforge.business.fibu.RechnungsStatistik;
+import org.projectforge.web.wicket.LambdaModel;
 
 public class RechnungListForm extends AbstractRechnungListForm<RechnungListFilter, RechnungListPage>
 {
@@ -39,6 +41,17 @@ public class RechnungListForm extends AbstractRechnungListForm<RechnungListFilte
     final RechnungDao rechnungDao = getParentPage().getBaseDao();
     this.years = rechnungDao.getYears();
     super.init();
+  }
+
+  @Override
+  protected void onBeforeAddStatistics()
+  {
+    // time period for period of performance
+    final RechnungListFilter filter = getSearchFilter();
+    addTimePeriodPanel("fibu.periodOfPerformance",
+        LambdaModel.of(filter::getPeriodOfPerformanceStartDate, filter::setPeriodOfPerformanceStartDate),
+        LambdaModel.of(filter::getPeriodOfPerformanceEndDate, filter::setPeriodOfPerformanceEndDate)
+    );
   }
 
   @Override

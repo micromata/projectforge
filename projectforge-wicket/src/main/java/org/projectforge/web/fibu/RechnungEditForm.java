@@ -49,11 +49,13 @@ import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.web.wicket.bootstrap.GridBuilder;
 import org.projectforge.web.wicket.bootstrap.GridSize;
 import org.projectforge.web.wicket.components.LabelValueChoiceRenderer;
+import org.projectforge.web.wicket.components.MaxLengthTextArea;
 import org.projectforge.web.wicket.components.MaxLengthTextField;
 import org.projectforge.web.wicket.components.MinMaxNumberField;
 import org.projectforge.web.wicket.components.RequiredMaxLengthTextField;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
 import org.projectforge.web.wicket.flowlayout.InputPanel;
+import org.projectforge.web.wicket.flowlayout.TextAreaPanel;
 
 public class RechnungEditForm extends AbstractRechnungEditForm<RechnungDO, RechnungsPositionDO, RechnungEditPage>
 {
@@ -172,6 +174,21 @@ public class RechnungEditForm extends AbstractRechnungEditForm<RechnungDO, Rechn
       customerSelectPanel.init();
       fs.setLabelFor(customerSelectPanel.getKundeTextField());
       fs.addHelpIcon(getString("fibu.rechnung.hint.kannVonProjektKundenAbweichen"));
+    }
+    {
+      // Customer address
+      final FieldsetPanel fs1 = gridBuilder.newFieldset(RechnungDO.class, "customerAddress");
+      final MaxLengthTextArea customerAddress = new MaxLengthTextArea(TextAreaPanel.WICKET_ID, new PropertyModel<>(data, "customerAddress"));
+      fs1.add(customerAddress);
+    }
+    {
+      // Customer reference
+      final FieldsetPanel fs1 = gridBuilder.newFieldset(RechnungDO.class, "customerref1");
+      final MaxLengthTextField customerref1 = new MaxLengthTextField(InputPanel.WICKET_ID, new PropertyModel<>(data, "customerref1"));
+      fs1.add(customerref1);
+      final FieldsetPanel fs2 = gridBuilder.newFieldset(RechnungDO.class, "customerref2");
+      final MaxLengthTextField customerref2 = new MaxLengthTextField(InputPanel.WICKET_ID, new PropertyModel<>(data, "customerref2"));
+      fs2.add(customerref2);
     }
     {
       // Period of performance

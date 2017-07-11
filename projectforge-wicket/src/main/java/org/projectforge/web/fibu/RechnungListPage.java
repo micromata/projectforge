@@ -42,6 +42,11 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
+import org.projectforge.business.excel.ContentProvider;
+import org.projectforge.business.excel.ExcelExporter;
+import org.projectforge.business.excel.ExportColumn;
+import org.projectforge.business.excel.I18nExportColumn;
+import org.projectforge.business.excel.PropertyMapping;
 import org.projectforge.business.fibu.AuftragsPositionVO;
 import org.projectforge.business.fibu.KontoCache;
 import org.projectforge.business.fibu.KontoDO;
@@ -52,10 +57,6 @@ import org.projectforge.business.fibu.RechnungFilter;
 import org.projectforge.business.fibu.RechnungsStatistik;
 import org.projectforge.business.fibu.kost.KostZuweisungExport;
 import org.projectforge.business.utils.CurrencyFormatter;
-import org.projectforge.excel.ContentProvider;
-import org.projectforge.excel.ExportColumn;
-import org.projectforge.excel.I18nExportColumn;
-import org.projectforge.excel.PropertyMapping;
 import org.projectforge.export.DOListExcelExporter;
 import org.projectforge.export.MyXlsContentProvider;
 import org.projectforge.framework.configuration.Configuration;
@@ -297,7 +298,7 @@ public class RechnungListPage extends AbstractListPage<RechnungListForm, Rechnun
     return new DOListExcelExporter(filenameIdentifier)
     {
       /**
-       * @see org.projectforge.excel.ExcelExporter#onBeforeSettingColumns(java.util.List)
+       * @see ExcelExporter#onBeforeSettingColumns(java.util.List)
        */
       @Override
       protected List<ExportColumn> onBeforeSettingColumns(final ContentProvider sheetProvider,
@@ -319,7 +320,7 @@ public class RechnungListPage extends AbstractListPage<RechnungListForm, Rechnun
       }
 
       /**
-       * @see org.projectforge.excel.ExcelExporter#addMapping(org.projectforge.excel.PropertyMapping, java.lang.Object,
+       * @see ExcelExporter#addMapping(PropertyMapping, java.lang.Object,
        *      java.lang.reflect.Field)
        */
       @Override
@@ -342,7 +343,7 @@ public class RechnungListPage extends AbstractListPage<RechnungListForm, Rechnun
       }
 
       /**
-       * @see org.projectforge.excel.ExcelExporter#addMappings(org.projectforge.excel.PropertyMapping, java.lang.Object)
+       * @see ExcelExporter#addMappings(PropertyMapping, java.lang.Object)
        */
       @Override
       protected void addMappings(final PropertyMapping mapping, final Object entry)

@@ -10,10 +10,10 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
+import org.projectforge.business.excel.ExcelImport;
 import org.projectforge.business.fibu.EmployeeDO;
 import org.projectforge.business.fibu.EmployeeTimedDO;
 import org.projectforge.business.fibu.api.EmployeeService;
-import org.projectforge.excel.ExcelImport;
 import org.projectforge.export.AttrColumnDescription;
 import org.projectforge.framework.i18n.I18nHelper;
 import org.projectforge.framework.persistence.utils.ImportStorage;

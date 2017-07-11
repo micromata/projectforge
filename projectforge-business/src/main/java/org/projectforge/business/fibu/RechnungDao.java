@@ -36,7 +36,6 @@ import java.util.List;
 import java.util.Set;
 
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.hibernate.FetchMode;
 import org.hibernate.criterion.Order;
@@ -53,7 +52,6 @@ import org.projectforge.framework.persistence.api.QueryFilter;
 import org.projectforge.framework.persistence.history.DisplayHistoryEntry;
 import org.projectforge.framework.persistence.utils.SQLHelper;
 import org.projectforge.framework.time.DateHelper;
-import org.projectforge.framework.xstream.XmlObjectReader;
 import org.projectforge.framework.xstream.XmlObjectWriter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
@@ -95,20 +93,6 @@ public class RechnungDao extends BaseDao<RechnungDO>
       }
     }
     return nettoSumme;
-  }
-
-  static void readUiStatusFromXml(final AbstractRechnungDO<?> rechnung)
-  {
-    final XmlObjectReader reader = new XmlObjectReader();
-    reader.initialize(RechnungUIStatus.class);
-    final String styleAsXml = rechnung.getUiStatusAsXml();
-    final RechnungUIStatus status;
-    if (StringUtils.isEmpty(styleAsXml) == true) {
-      status = new RechnungUIStatus();
-    } else {
-      status = (RechnungUIStatus) reader.read(styleAsXml);
-    }
-    rechnung.setUiStatus(status);
   }
 
   static void writeUiStatusToXml(final AbstractRechnungDO<?> rechnung)
@@ -205,7 +189,7 @@ public class RechnungDao extends BaseDao<RechnungDO>
   @Override
   protected void onSaveOrModify(final RechnungDO rechnung)
   {
-    AbstractRechnungDaoHelper.onSaveOrModify(rechnung);
+    AuftragAndRechnungDaoHelper.onSaveOrModify(rechnung);
 
     validate(rechnung);
 
@@ -270,12 +254,6 @@ public class RechnungDao extends BaseDao<RechnungDO>
   }
 
   @Override
-  public void afterLoad(final RechnungDO obj)
-  {
-    readUiStatusFromXml(obj);
-  }
-
-  @Override
   protected void afterSaveOrModify(final RechnungDO obj)
   {
     getRechnungCache().setExpired(); // Expire the cache because assignments to order position may be changed.
@@ -319,34 +297,39 @@ public class RechnungDao extends BaseDao<RechnungDO>
   @Override
   public List<RechnungDO> getList(final BaseSearchFilter filter)
   {
-    final RechnungFilter myFilter;
-    if (filter instanceof RechnungFilter) {
-      myFilter = (RechnungFilter) filter;
+    final RechnungListFilter myFilter;
+    if (filter instanceof RechnungListFilter) {
+      myFilter = (RechnungListFilter) filter;
     } else {
-      myFilter = new RechnungFilter(filter);
+      myFilter = new RechnungListFilter(filter);
     }
-    final QueryFilter queryFilter = AbstractRechnungDaoHelper.createQueryFilterWithDateRestriction(myFilter);
+
+    final QueryFilter queryFilter = AuftragAndRechnungDaoHelper.createQueryFilterWithDateRestriction(myFilter);
     queryFilter.addOrder(Order.desc("datum"));
     queryFilter.addOrder(Order.desc("nummer"));
-    if (myFilter.isShowKostZuweisungStatus() == true) {
+    if (myFilter.isShowKostZuweisungStatus()) {
       queryFilter.setFetchMode("positionen.kostZuweisungen", FetchMode.JOIN);
     }
+
+    AuftragAndRechnungDaoHelper.createCriterionForPeriodOfPerformance(myFilter).ifPresent(queryFilter::add);
+
     final List<RechnungDO> list = getList(queryFilter);
     if (myFilter.isShowAll() == true || myFilter.isDeleted() == true) {
       return list;
     }
+
     final List<RechnungDO> result = new ArrayList<RechnungDO>();
     for (final RechnungDO rechnung : list) {
-      if (myFilter.isShowUnbezahlt() == true) {
+      if (myFilter.isShowUnbezahlt()) {
         if (rechnung.isBezahlt() == false) {
           result.add(rechnung);
         }
-      } else if (myFilter.isShowBezahlt() == true) {
-        if (rechnung.isBezahlt() == true) {
+      } else if (myFilter.isShowBezahlt()) {
+        if (rechnung.isBezahlt()) {
           result.add(rechnung);
         }
-      } else if (myFilter.isShowUeberFaellig() == true) {
-        if (rechnung.isUeberfaellig() == true) {
+      } else if (myFilter.isShowUeberFaellig()) {
+        if (rechnung.isUeberfaellig()) {
           result.add(rechnung);
         }
       } else {

@@ -72,9 +72,9 @@ public class AuftragListPage extends AbstractListPage<AuftragListForm, AuftragDa
 {
   private static final long serialVersionUID = -8406452960003792763L;
 
-  protected static final String[] MY_BOOKMARKABLE_INITIAL_PROPERTIES = mergeStringArrays(
-      BOOKMARKABLE_INITIAL_PROPERTIES, new String[] {
-          "f.year|y", "f.listType|lt", "f.auftragsPositionsArt|art" });
+  private static final String[] MY_BOOKMARKABLE_INITIAL_PROPERTIES = mergeStringArrays(
+      BOOKMARKABLE_INITIAL_PROPERTIES, new String[] { "f.year|y", "f.listType|lt", "f.auftragsPositionsArt|art" }
+  );
 
   @SpringBean
   private AuftragDao auftragDao;
@@ -156,38 +156,39 @@ public class AuftragListPage extends AbstractListPage<AuftragListForm, AuftragDa
         auftragDao.calculateInvoicedSum(auftrag);
         final List<AuftragsPositionDO> list = auftrag.getPositionenExcludingDeleted();
         final Label label = new Label(componentId, new Model<String>("#" + list.size()));
-        if (list != null) {
-          final StringBuffer buf = new StringBuffer();
-          list.forEach(pos -> {
-            buf.append("#").append(pos.getNumber()).append(": ");
-            if (pos.getPersonDays() != null && pos.getPersonDays().compareTo(BigDecimal.ZERO) != 0) {
-              buf.append("(").append(NumberFormatter.format(pos.getPersonDays())).append(" ")
-                  .append(getString("projectmanagement.personDays.short")).append(") ");
-            }
-            if (pos.getNettoSumme() != null) {
-              buf.append(CurrencyFormatter.format(pos.getNettoSumme()));
-              if (StringUtils.isNotBlank(pos.getTitel()) == true) {
-                buf.append(": ").append(pos.getTitel());
-              }
-              buf.append(": ");
-            }
-            if (pos.getTaskId() != null) {
-              buf.append(WicketTaskFormatter.getTaskPath(pos.getTaskId(), false, OutputType.HTML));
-            } else {
-              buf.append(getString("fibu.auftrag.position.noTaskGiven"));
-            }
-            if (pos.getStatus() != null) {
-              buf.append(", ").append(getString(pos.getStatus().getI18nKey()));
-            }
-            buf.append("\n");
-          });
-          if (buf.length() > 1 && (buf.lastIndexOf("\n") == buf.length() - 1)) {
-            buf.delete(buf.length() - 1, buf.length());
+
+        final StringBuffer buf = new StringBuffer();
+        list.forEach(pos -> {
+          buf.append("#").append(pos.getNumber()).append(": ");
+          if (pos.getPersonDays() != null && pos.getPersonDays().compareTo(BigDecimal.ZERO) != 0) {
+            buf.append("(").append(NumberFormatter.format(pos.getPersonDays())).append(" ")
+                .append(getString("projectmanagement.personDays.short")).append(") ");
           }
-          WicketUtils.addTooltip(label, NumberFormatter.format(auftrag.getPersonDays())
-              + " "
-              + getString("projectmanagement.personDays.short"), buf.toString());
+          if (pos.getNettoSumme() != null) {
+            buf.append(CurrencyFormatter.format(pos.getNettoSumme()));
+            if (StringUtils.isNotBlank(pos.getTitel()) == true) {
+              buf.append(": ").append(pos.getTitel());
+            }
+            buf.append(": ");
+          }
+          if (pos.getTaskId() != null) {
+            buf.append(WicketTaskFormatter.getTaskPath(pos.getTaskId(), false, OutputType.HTML));
+          } else {
+            buf.append(getString("fibu.auftrag.position.noTaskGiven"));
+          }
+          if (pos.getStatus() != null) {
+            buf.append(", ").append(getString(pos.getStatus().getI18nKey()));
+          }
+          buf.append("\n");
+        });
+
+        if (buf.length() > 1 && (buf.lastIndexOf("\n") == buf.length() - 1)) {
+          buf.delete(buf.length() - 1, buf.length());
         }
+        WicketUtils.addTooltip(label, NumberFormatter.format(auftrag.getPersonDays())
+            + " "
+            + getString("projectmanagement.personDays.short"), buf.toString());
+
         cellItem.add(label);
         cellItemListener.populateItem(cellItem, componentId, rowModel);
       }
@@ -214,7 +215,7 @@ public class AuftragListPage extends AbstractListPage<AuftragListForm, AuftragDa
     columns
         .add(new CellItemListenerPropertyColumn<AuftragDO>(getString("fibu.common.assignedPersons"), "assignedPersons", "assignedPersons",
             cellItemListener));
-    columns.add(new CellItemListenerPropertyColumn<AuftragDO>(getString("fibu.auftrag.datum"), "angebotsDatum", "angebotsDatum",
+    columns.add(new CellItemListenerPropertyColumn<AuftragDO>(getString("fibu.auftrag.erfassung.datum"), "erfassungsDatum", "erfassungsDatum",
         cellItemListener));
     columns.add(new CellItemListenerPropertyColumn<AuftragDO>(getString("fibu.auftrag.entscheidung.datum"), "entscheidungsDatum", "entscheidungsDatum",
         cellItemListener));

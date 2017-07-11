@@ -424,6 +424,9 @@ public class VacationEditForm extends AbstractEditForm<VacationDO, VacationEditP
 
   private boolean hasUserEditStatusRight()
   {
+    if (checkHRWriteRight()) {
+      return true;
+    }
     if (VacationStatus.APPROVED.equals(data.getStatus())) {
       //Only HR can change approved applications
       if (checkWriteAccess()) {

@@ -1,3 +1,3 @@
-Release 6.12.0
-* Filter options for order book and controlling funtionality
-* Many, many bug fixes
+Release 6.14.0
+* Validate payment schedule
+* Major bug fixes

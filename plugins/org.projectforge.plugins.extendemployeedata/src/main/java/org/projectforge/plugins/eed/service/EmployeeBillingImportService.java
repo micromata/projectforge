@@ -7,9 +7,9 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang.Validate;
+import org.projectforge.business.excel.ExcelImportException;
 import org.projectforge.business.fibu.EmployeeDO;
 import org.projectforge.business.fibu.api.EmployeeService;
-import org.projectforge.excel.ExcelImportException;
 import org.projectforge.export.AttrColumnDescription;
 import org.projectforge.framework.i18n.UserException;
 import org.projectforge.framework.persistence.utils.ImportStatus;

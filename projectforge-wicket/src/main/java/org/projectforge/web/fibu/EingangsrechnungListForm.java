@@ -25,6 +25,7 @@ package org.projectforge.web.fibu;
 
 import org.apache.log4j.Logger;
 import org.projectforge.business.fibu.EingangsrechnungDao;
+import org.projectforge.business.fibu.EingangsrechnungListFilter;
 import org.projectforge.business.fibu.EingangsrechnungsStatistik;
 
 public class EingangsrechnungListForm extends AbstractRechnungListForm<EingangsrechnungListFilter, EingangsrechnungListPage>
