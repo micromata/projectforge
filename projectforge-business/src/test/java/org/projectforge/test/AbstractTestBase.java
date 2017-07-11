@@ -69,7 +69,6 @@ import de.micromata.genome.db.jpa.history.entities.EntityOpType;
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
- *
  */
 @ContextConfiguration(
     classes = { TestConfiguration.class },

@@ -35,7 +35,7 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.api.UserContext;
-import org.projectforge.web.LoginPage;
+import org.projectforge.web.LoginService;
 import org.projectforge.web.Menu;
 import org.projectforge.web.MenuBuilder;
 import org.projectforge.web.MenuEntry;
@@ -51,7 +51,10 @@ public class MenuMobilePage extends AbstractSecuredMobilePage
   private static final String PARAM_HOME_KEY = "home";
 
   @SpringBean
-  MenuBuilder menuBuilder;
+  private MenuBuilder menuBuilder;
+
+  @SpringBean
+  private LoginService loginService;
 
   /**
    * Returns a link to this the menu mobile page. It should be shown directly instead of restoring last page after
@@ -109,8 +112,7 @@ public class MenuMobilePage extends AbstractSecuredMobilePage
       @Override
       public void onClick()
       {
-        LoginPage.logout((MySession) getSession(), (WebRequest) getRequest(), (WebResponse) getResponse(),
-            userXmlPreferencesCache, menuBuilder);
+        loginService.logout((MySession) getSession(), (WebRequest) getRequest(), (WebResponse) getResponse(), userXmlPreferencesCache, menuBuilder);
         setResponsePage(LoginMobilePage.class);
       }
 
