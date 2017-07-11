@@ -222,8 +222,9 @@ public class SEPATransferGenerator
 
     // create transaction
     BigDecimal amount = BigDecimal.ZERO;
+    int index = 0;
     for (EingangsrechnungDO invoice : invoices) {
-      this.createTransaction(result, factory, invoice, msgID, pmtInf);
+      this.createTransaction(result, factory, invoice, msgID, pmtInf, ++index);
       amount = amount.add(invoice.getGrossSum());
     }
 
@@ -259,8 +260,7 @@ public class SEPATransferGenerator
   }
 
   private void createTransaction(final SEPATransferResult result, final ObjectFactory factory, final EingangsrechnungDO invoice,
-      final String msgID,
-      final PaymentInstructionInformationSCT pmtInf)
+      final String msgID, final PaymentInstructionInformationSCT pmtInf, int index)
   {
     // validate invoice, check field values
     List<SEPATransferError> errors = new ArrayList<>();
@@ -293,7 +293,7 @@ public class SEPATransferGenerator
 
     // set transaction id
     PaymentIdentificationSEPA pmtId = factory.createPaymentIdentificationSEPA();
-    pmtId.setEndToEndId(msgID + "-1-1");
+    pmtId.setEndToEndId(msgID + "-1-" + index);
     cdtTrfTxInf.setPmtId(pmtId);
 
     // set amount type (currency)
