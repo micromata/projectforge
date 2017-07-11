@@ -30,9 +30,9 @@ import org.projectforge.business.excel.ContentProvider;
 import org.projectforge.business.excel.ExcelExporter;
 import org.projectforge.business.excel.ExportColumn;
 import org.projectforge.business.excel.ExportSheet;
+import org.projectforge.common.DateFormatType;
 import org.projectforge.common.anots.PropertyInfo;
 import org.projectforge.common.props.PropertyType;
-import org.projectforge.framework.time.DateFormatType;
 import org.projectforge.framework.time.DateFormats;
 
 /**
