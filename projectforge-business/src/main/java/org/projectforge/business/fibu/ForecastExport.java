@@ -168,11 +168,13 @@ public class ForecastExport
     final Set<RechnungsPositionVO> invoicePositions = rechnungCache
         .getRechnungsPositionVOSetByAuftragsPositionId(pos.getId());
     if (invoicePositions != null) {
+      Calendar beginActualMonth = Calendar.getInstance();
+      beginActualMonth.set(Calendar.DAY_OF_MONTH, 1);
       int startMonth = startDate.get(Calendar.MONTH);
       for (RechnungsPositionVO rpo : invoicePositions) {
         Calendar rDate = Calendar.getInstance();
         rDate.setTime(rpo.getDate());
-        if (rDate.after(startDate)) {
+        if (rDate.after(startDate) && rDate.before(beginActualMonth)) {
           int monthCol = 0;
           if (startDate.get(Calendar.YEAR) == rDate.get(Calendar.YEAR)) {
             monthCol = rDate.get(Calendar.MONTH) - startMonth;
