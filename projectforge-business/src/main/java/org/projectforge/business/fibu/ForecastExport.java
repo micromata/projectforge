@@ -393,17 +393,19 @@ public class ForecastExport
     BigDecimal posSum = computeAccurenceValue(order, pos);
     if (posSum != null) {
       BigDecimal monthCount = getMonthCount(oneMonthBeforeNow, posEndDate);
-      BigDecimal partlyNettoSum = posSum.divide(monthCount, RoundingMode.HALF_UP);
-      int i = 0;
-      while (endDate.after(posStartDate) && (posEndDate.equals(posStartDate) || posEndDate.after(posStartDate)) && i < monthCols.length) {
-        if (posStartDate.get(Calendar.MONTH) == startDateWhile.get(Calendar.MONTH) && posStartDate.get(Calendar.YEAR) == startDateWhile.get(Calendar.YEAR)) {
-          if (checkAfterMonthBefore(startDateWhile)) {
-            mapping.add(monthCols[i], partlyNettoSum);
+      if (monthCount != null && monthCount.compareTo(BigDecimal.ZERO) > 0) {
+        BigDecimal partlyNettoSum = posSum.divide(monthCount, RoundingMode.HALF_UP);
+        int i = 0;
+        while (endDate.after(posStartDate) && (posEndDate.equals(posStartDate) || posEndDate.after(posStartDate)) && i < monthCols.length) {
+          if (posStartDate.get(Calendar.MONTH) == startDateWhile.get(Calendar.MONTH) && posStartDate.get(Calendar.YEAR) == startDateWhile.get(Calendar.YEAR)) {
+            if (checkAfterMonthBefore(startDateWhile)) {
+              mapping.add(monthCols[i], partlyNettoSum);
+            }
+            posStartDate.add(Calendar.MONTH, 1);
           }
-          posStartDate.add(Calendar.MONTH, 1);
+          startDateWhile.add(Calendar.MONTH, 1);
+          i++;
         }
-        startDateWhile.add(Calendar.MONTH, 1);
-        i++;
       }
     }
   }
