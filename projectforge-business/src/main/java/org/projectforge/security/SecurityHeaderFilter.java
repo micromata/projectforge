@@ -31,7 +31,7 @@ public class SecurityHeaderFilter implements Filter
 
       res.addHeader("X-XSS-Protection", "1; mode=block");
       res.addHeader("X-DNS-Prefetch-Control", "off");
-      res.addHeader("X-Frame-Options", "DENY");
+      res.addHeader("X-Frame-Options", "SAMEORIGIN");
       res.addHeader("X-Content-Type-Options", "nosniff");
     }
 
