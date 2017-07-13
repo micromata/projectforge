@@ -33,6 +33,12 @@ public class SecurityHeaderFilter implements Filter
       res.addHeader("X-DNS-Prefetch-Control", "off");
       res.addHeader("X-Frame-Options", "SAMEORIGIN");
       res.addHeader("X-Content-Type-Options", "nosniff");
+
+      // Content Security Policy header, see http://cspisawesome.com/
+      final String cspValue = "default-src 'self' data:; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'";
+      res.addHeader("Content-Security-Policy", cspValue);
+      res.addHeader("X-Content-Security-Policy", cspValue);
+      res.addHeader("X-WebKit-CSP", cspValue);
     }
 
     chain.doFilter(request, response);
