@@ -44,8 +44,8 @@ public class DocumentationPage extends AbstractSecuredPage
     String docroot = "http://www.projectforge.org/";
 
     addDocLink(body, "newsLink", docroot + "projectforge-news.html");
-    addDocLink(body, "tutorialLink", docroot + "documentation/quickstart.html");
-    addDocLink(body, "handbookLink", docroot + "documentation/user-guide.html");
+    addDocLink(body, "quickstartLink", docroot + "documentation/quickstart.html");
+    addDocLink(body, "userGuideLink", docroot + "documentation/user-guide.html");
     addDocLink(body, "faqLink", docroot + "projectforge-faq.html");
     addDocLink(body, "licenseLink", docroot + "application/terms-of-use.html");
 
