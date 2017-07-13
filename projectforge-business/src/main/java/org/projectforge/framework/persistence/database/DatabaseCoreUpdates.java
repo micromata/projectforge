@@ -40,6 +40,7 @@ import java.util.Set;
 import java.util.TimeZone;
 import java.util.function.Predicate;
 
+import org.apache.commons.lang3.StringUtils;
 import org.projectforge.business.address.AddressDO;
 import org.projectforge.business.address.AddressDao;
 import org.projectforge.business.fibu.AuftragDO;
@@ -135,6 +136,63 @@ public class DatabaseCoreUpdates
     final TenantDao tenantDao = applicationContext.getBean(TenantDao.class);
 
     final List<UpdateEntry> list = new ArrayList<>();
+
+    ////////////////////////////////////////////////////////////////////
+    // 6.15.0
+    // /////////////////////////////////////////////////////////////////
+    list.add(new UpdateEntryImpl(CORE_REGION_ID, "6.15.0", "2017-07-19",
+        "Refactoring invoice template.")
+    {
+      @Override
+      public UpdatePreCheckStatus runPreCheck()
+      {
+        log.info("Running pre-check for ProjectForge version 6.15.0");
+        if (hasRefactoredInvoiceFields() == false) {
+          return UpdatePreCheckStatus.READY_FOR_UPDATE;
+        }
+        return UpdatePreCheckStatus.ALREADY_UPDATED;
+      }
+
+      @Override
+      public UpdateRunningStatus runUpdate()
+      {
+        if (hasRefactoredInvoiceFields() == false) {
+          initDatabaseDao.updateSchema();
+          migrateCustomerRef();
+        }
+        return UpdateRunningStatus.DONE;
+      }
+
+      private void migrateCustomerRef()
+      {
+        //Migrate customer ref 1 & 2
+        List<DatabaseResultRow> resultSet = databaseUpdateService
+            .query("SELECT pk, customerref1, customerref2 FROM t_fibu_rechnung");
+        for (DatabaseResultRow row : resultSet) {
+          String pk = row.getEntry(0) != null && row.getEntry(0).getValue() != null ? row.getEntry(0).getValue().toString() : null;
+          if (pk != null) {
+            String cr1 = row.getEntry(1) != null && row.getEntry(1).getValue() != null ? row.getEntry(1).getValue().toString() : "";
+            String cr2 = row.getEntry(2) != null && row.getEntry(2).getValue() != null ? row.getEntry(2).getValue().toString() : "";
+            String newCr = "";
+            if (StringUtils.isEmpty(cr1) == false && StringUtils.isEmpty(cr2) == false) {
+              newCr = cr1 + "\r\n" + cr2;
+            } else if (StringUtils.isEmpty(cr1) == false && StringUtils.isEmpty(cr2) == true) {
+              newCr = cr1;
+            } else if (StringUtils.isEmpty(cr1) == true && StringUtils.isEmpty(cr2) == false) {
+              newCr = cr2;
+            }
+            databaseUpdateService.execute("UPDATE t_fibu_rechnung SET customerref1 = '" + newCr + "' WHERE pk = " + pk);
+          }
+        }
+        databaseUpdateService.execute("ALTER TABLE t_fibu_rechnung DROP COLUMN customerref2");
+      }
+
+      private boolean hasRefactoredInvoiceFields()
+      {
+        return databaseUpdateService.doesTableAttributeExist("t_fibu_rechnung", "attachment")
+            && databaseUpdateService.doesTableAttributeExist("t_fibu_rechnung", "customerref2") == false;
+      }
+    });
 
     ////////////////////////////////////////////////////////////////////
     // 6.13.0
@@ -236,7 +294,6 @@ public class DatabaseCoreUpdates
       private boolean hasNewInvoiceFields()
       {
         return databaseUpdateService.doesTableAttributeExist("t_fibu_rechnung", "customerref1") &&
-            databaseUpdateService.doesTableAttributeExist("t_fibu_rechnung", "customerref2") &&
             databaseUpdateService.doesTableAttributeExist("t_fibu_rechnung", "customeraddress");
       }
 

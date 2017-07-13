@@ -184,11 +184,14 @@ public class RechnungEditForm extends AbstractRechnungEditForm<RechnungDO, Rechn
     {
       // Customer reference
       final FieldsetPanel fs1 = gridBuilder.newFieldset(RechnungDO.class, "customerref1");
-      final MaxLengthTextField customerref1 = new MaxLengthTextField(InputPanel.WICKET_ID, new PropertyModel<>(data, "customerref1"));
+      final MaxLengthTextArea customerref1 = new MaxLengthTextArea(TextAreaPanel.WICKET_ID, new PropertyModel<>(data, "customerref1"));
       fs1.add(customerref1);
-      final FieldsetPanel fs2 = gridBuilder.newFieldset(RechnungDO.class, "customerref2");
-      final MaxLengthTextField customerref2 = new MaxLengthTextField(InputPanel.WICKET_ID, new PropertyModel<>(data, "customerref2"));
-      fs2.add(customerref2);
+    }
+    {
+      // Attachment
+      final FieldsetPanel fs1 = gridBuilder.newFieldset(RechnungDO.class, "attachment");
+      final MaxLengthTextArea customerref1 = new MaxLengthTextArea(TextAreaPanel.WICKET_ID, new PropertyModel<>(data, "attachment"));
+      fs1.add(customerref1);
     }
     {
       // Period of performance
