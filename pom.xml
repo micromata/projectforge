@@ -557,22 +557,6 @@
     </plugins>
   </reporting>
   <repositories>
-    <!--
-    <repository>
-      <id>de.micromata.nexus.public</id>
-      <name>Micromata Nexus
-        Public
-      </name>
-      <url>https://repo.micromata.de/nexus/content/groups/public</url>
-    </repository>
-    <repository>
-      <id>de.micromata.nexus.snapshots</id>
-      <name>Micromata
-        Nexus Snapshots
-      </name>
-      <url>https://repo.micromata.de/nexus/content/groups/public-snapshots</url>
-    </repository>
-    -->
     <repository>
       <id>MGC</id>
       <name>Micromata Labs MGC</name>
