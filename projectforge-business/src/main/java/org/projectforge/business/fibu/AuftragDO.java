@@ -55,6 +55,7 @@ import org.hibernate.search.annotations.Indexed;
 import org.hibernate.search.annotations.IndexedEmbedded;
 import org.hibernate.search.annotations.Resolution;
 import org.hibernate.search.annotations.Store;
+import org.projectforge.framework.i18n.I18nHelper;
 import org.projectforge.framework.persistence.api.PFPersistancyBehavior;
 import org.projectforge.framework.persistence.entities.DefaultBaseDO;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
@@ -348,9 +349,9 @@ public class AuftragDO extends DefaultBaseDO
   public String getAuftragsStatusAsString()
   {
     if (isVollstaendigFakturiert() == true) {
-      return "FAKTURIERT";
+      return I18nHelper.getLocalizedMessage("fibu.auftrag.status.fakturiert");
     }
-    return auftragsStatus != null ? auftragsStatus.toString() : null;
+    return auftragsStatus != null ? I18nHelper.getLocalizedMessage(auftragsStatus.getI18nKey()) : null;
   }
 
   public AuftragDO setAuftragsStatus(final AuftragsStatus auftragsStatus)
