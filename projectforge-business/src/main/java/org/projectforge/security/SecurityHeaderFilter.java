@@ -10,6 +10,8 @@ import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.lang.StringUtils;
+
 /**
  * This filter adds HTTP security headers to every response.
  * <p>
@@ -17,10 +19,14 @@ import javax.servlet.http.HttpServletResponse;
  */
 public class SecurityHeaderFilter implements Filter
 {
+  public static final String PARAM_CSP_HEADER_VALUE = "csp";
+
+  private String cspHeaderValue;
+
   @Override
   public void init(final FilterConfig filterConfig) throws ServletException
   {
-    // nothing to do
+    cspHeaderValue = filterConfig.getInitParameter(PARAM_CSP_HEADER_VALUE);
   }
 
   @Override
@@ -33,6 +39,13 @@ public class SecurityHeaderFilter implements Filter
       res.addHeader("X-DNS-Prefetch-Control", "off");
       res.addHeader("X-Frame-Options", "SAMEORIGIN");
       res.addHeader("X-Content-Type-Options", "nosniff");
+
+      // add Content Security Policy header if available, see http://cspisawesome.com/
+      if (StringUtils.isNotBlank(cspHeaderValue)) {
+        res.addHeader("Content-Security-Policy", cspHeaderValue);
+        res.addHeader("X-Content-Security-Policy", cspHeaderValue);
+        res.addHeader("X-WebKit-CSP", cspHeaderValue);
+      }
     }
 
     chain.doFilter(request, response);
