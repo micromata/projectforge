@@ -13,6 +13,7 @@ import org.projectforge.web.doc.TutorialFilter;
 import org.projectforge.web.filter.ResponseHeaderFilter;
 import org.projectforge.web.filter.SpringThreadLocalFilter;
 import org.projectforge.web.rest.RestUserFilter;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.servlet.ServletContextInitializer;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.orm.hibernate3.support.OpenSessionInViewFilter;
@@ -25,6 +26,9 @@ import org.springframework.orm.hibernate3.support.OpenSessionInViewFilter;
 @Configuration
 public class WebXMLInitializer implements ServletContextInitializer
 {
+  @Value("${projectforge.security.csp-header-value:}") // defaults to empty string
+  private String cspHeaderValue;
+
   private static final String PARAM_APP_BEAN = "applicationBean";
 
   @Override
@@ -32,6 +36,7 @@ public class WebXMLInitializer implements ServletContextInitializer
   {
     final FilterRegistration securityHeaderFilter = sc.addFilter("SecurityHeaderFilter", SecurityHeaderFilter.class);
     securityHeaderFilter.addMappingForUrlPatterns(null, false, "/*");
+    securityHeaderFilter.setInitParameter(SecurityHeaderFilter.PARAM_CSP_HEADER_VALUE, cspHeaderValue);
 
     final FilterRegistration userFilter = sc.addFilter("UserFilter", UserFilter.class);
     boolean filterAfterInternal = false;
