@@ -40,6 +40,7 @@ import java.util.Set;
 import java.util.TimeZone;
 import java.util.function.Predicate;
 
+import org.apache.commons.lang3.StringUtils;
 import org.projectforge.business.address.AddressDO;
 import org.projectforge.business.address.AddressDao;
 import org.projectforge.business.fibu.AuftragDO;
@@ -69,7 +70,6 @@ import org.projectforge.business.orga.VisitorbookTimedDO;
 import org.projectforge.business.scripting.ScriptDO;
 import org.projectforge.business.task.TaskDO;
 import org.projectforge.business.teamcal.TeamCalConfig;
-import org.projectforge.business.teamcal.event.model.TeamEventAttendeeDO;
 import org.projectforge.business.teamcal.event.model.TeamEventDO;
 import org.projectforge.business.user.GroupDao;
 import org.projectforge.business.user.ProjectForgeGroup;
@@ -141,12 +141,15 @@ public class DatabaseCoreUpdates
     // 6.15.0
     // /////////////////////////////////////////////////////////////////
     list.add(new UpdateEntryImpl(CORE_REGION_ID, "6.15.0", "2017-07-19",
-        "Add fields to event and event attendee table. Change unique constraint in event table.")
+        "Add fields to event and event attendee table. Change unique constraint in event table. Refactoring invoice template.")
     {
       @Override
       public UpdatePreCheckStatus runPreCheck()
       {
         log.info("Running pre-check for ProjectForge version 6.15.0");
+        if (hasRefactoredInvoiceFields() == false) {
+          return UpdatePreCheckStatus.READY_FOR_UPDATE;
+        }
         if (this.missingFields() || oldUniqueConstraint() || noOwnership() || dtStampMissing()) {
           return UpdatePreCheckStatus.READY_FOR_UPDATE;
         }
@@ -156,6 +159,11 @@ public class DatabaseCoreUpdates
       @Override
       public UpdateRunningStatus runUpdate()
       {
+        if (hasRefactoredInvoiceFields() == false) {
+          initDatabaseDao.updateSchema();
+          migrateCustomerRef();
+        }
+
         // update unique constraint
         if (oldUniqueConstraint()) {
           databaseUpdateService.execute("ALTER TABLE T_PLUGIN_CALENDAR_EVENT DROP CONSTRAINT unique_t_plugin_calendar_event_uid");
@@ -202,7 +210,7 @@ public class DatabaseCoreUpdates
           }
         }
 
-        return null;
+        return UpdateRunningStatus.DONE;
       }
 
       private boolean missingFields()
@@ -232,6 +240,36 @@ public class DatabaseCoreUpdates
       {
         List<DatabaseResultRow> result = databaseUpdateService.query("select pk from t_plugin_calendar_event where dt_stamp is not null LIMIT 1");
         return result.size() == 0;
+      }
+
+      private void migrateCustomerRef()
+      {
+        //Migrate customer ref 1 & 2
+        List<DatabaseResultRow> resultSet = databaseUpdateService
+            .query("SELECT pk, customerref1, customerref2 FROM t_fibu_rechnung");
+        for (DatabaseResultRow row : resultSet) {
+          String pk = row.getEntry(0) != null && row.getEntry(0).getValue() != null ? row.getEntry(0).getValue().toString() : null;
+          if (pk != null) {
+            String cr1 = row.getEntry(1) != null && row.getEntry(1).getValue() != null ? row.getEntry(1).getValue().toString() : "";
+            String cr2 = row.getEntry(2) != null && row.getEntry(2).getValue() != null ? row.getEntry(2).getValue().toString() : "";
+            String newCr = "";
+            if (StringUtils.isEmpty(cr1) == false && StringUtils.isEmpty(cr2) == false) {
+              newCr = cr1 + "\r\n" + cr2;
+            } else if (StringUtils.isEmpty(cr1) == false && StringUtils.isEmpty(cr2) == true) {
+              newCr = cr1;
+            } else if (StringUtils.isEmpty(cr1) == true && StringUtils.isEmpty(cr2) == false) {
+              newCr = cr2;
+            }
+            databaseUpdateService.execute("UPDATE t_fibu_rechnung SET customerref1 = '" + newCr + "' WHERE pk = " + pk);
+          }
+        }
+        databaseUpdateService.execute("ALTER TABLE t_fibu_rechnung DROP COLUMN customerref2");
+      }
+
+      private boolean hasRefactoredInvoiceFields()
+      {
+        return databaseUpdateService.doesTableAttributeExist("t_fibu_rechnung", "attachment")
+            && databaseUpdateService.doesTableAttributeExist("t_fibu_rechnung", "customerref2") == false;
       }
     });
 
@@ -335,7 +373,6 @@ public class DatabaseCoreUpdates
       private boolean hasNewInvoiceFields()
       {
         return databaseUpdateService.doesTableAttributeExist("t_fibu_rechnung", "customerref1") &&
-            databaseUpdateService.doesTableAttributeExist("t_fibu_rechnung", "customerref2") &&
             databaseUpdateService.doesTableAttributeExist("t_fibu_rechnung", "customeraddress");
       }
 
