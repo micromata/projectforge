@@ -79,9 +79,6 @@ public class ForecastExport
   PosCol[] monthCols = { PosCol.MONTH1, PosCol.MONTH2, PosCol.MONTH3, PosCol.MONTH4, PosCol.MONTH5, PosCol.MONTH6,
       PosCol.MONTH7, PosCol.MONTH8, PosCol.MONTH9, PosCol.MONTH10, PosCol.MONTH11, PosCol.MONTH12 };
 
-  AuftragsStatus[] auftragsStatusToShow = { AuftragsStatus.POTENZIAL, AuftragsStatus.GELEGT, AuftragsStatus.BEAUFTRAGT, AuftragsStatus.LOI,
-      AuftragsStatus.ABGESCHLOSSEN };
-
   List<AuftragsPositionsStatus> auftragsPositionsStatusToShow = Arrays
       .asList(AuftragsPositionsStatus.POTENZIAL, AuftragsPositionsStatus.GELEGT, AuftragsPositionsStatus.BEAUFTRAGT, AuftragsPositionsStatus.LOI);
 
