@@ -66,6 +66,7 @@ public class MebEditPage extends AbstractEditPage<MebEntryDO, MebEditForm, MebDa
   /**
    * @see org.projectforge.web.fibu.ISelectCallerPage#select(java.lang.String, java.lang.Integer)
    */
+  @Override
   public void select(final String property, final Object selectedValue)
   {
     if ("ownerId".equals(property) == true) {
@@ -84,6 +85,7 @@ public class MebEditPage extends AbstractEditPage<MebEntryDO, MebEditForm, MebDa
   /**
    * @see org.projectforge.web.fibu.ISelectCallerPage#unselect(java.lang.String)
    */
+  @Override
   public void unselect(final String property)
   {
     if ("ownerId".equals(property) == true) {
@@ -96,6 +98,7 @@ public class MebEditPage extends AbstractEditPage<MebEntryDO, MebEditForm, MebDa
   /**
    * @see org.projectforge.web.fibu.ISelectCallerPage#cancelSelection(java.lang.String)
    */
+  @Override
   public void cancelSelection(final String property)
   {
     // Do nothing.
@@ -108,7 +111,7 @@ public class MebEditPage extends AbstractEditPage<MebEntryDO, MebEditForm, MebDa
   }
 
   @Override
-  protected MebEditForm newEditForm(final AbstractEditPage< ? , ? , ? > parentPage, final MebEntryDO data)
+  protected MebEditForm newEditForm(final AbstractEditPage<?, ?, ?> parentPage, final MebEntryDO data)
   {
     return new MebEditForm(this, data);
   }
@@ -123,7 +126,7 @@ public class MebEditPage extends AbstractEditPage<MebEntryDO, MebEditForm, MebDa
   {
     final PageParameters parameters = new PageParameters();
     parameters.add(TimesheetEditPage.PARAMETER_KEY_START_DATE_IN_MILLIS, getData().getDate().getTime());
-    parameters.add(TimesheetEditPage.PARAMETER_KEY_DESCRIPTION, getData().getMessage());
+    parameters.add(TimesheetEditPage.PARAMETER_KEY_DESCRIPTION, getData().getMessage() != null ? getData().getMessage() : "");
     final TimesheetEditPage timesheetEditPage = new TimesheetEditPage(parameters);
     timesheetEditPage.setReturnToPage(this);
     setResponsePage(timesheetEditPage);
