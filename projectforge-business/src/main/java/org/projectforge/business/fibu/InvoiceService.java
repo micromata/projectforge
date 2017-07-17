@@ -104,7 +104,7 @@ public class InvoiceService
   private String getReplacementForAttachment(final RechnungDO data)
   {
     if (StringUtils.isEmpty(data.getAttachment()) == false) {
-      return "Anlage:\r\n" + data.getAttachment();
+      return I18nHelper.getLocalizedMessage("fibu.attachment") + ":\r\n" + data.getAttachment();
     } else {
       return "";
     }
