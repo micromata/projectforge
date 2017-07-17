@@ -34,6 +34,7 @@ import org.apache.commons.collections.Predicate;
 import org.apache.commons.lang.Validate;
 import org.projectforge.business.fibu.kost.Kost1DO;
 import org.projectforge.business.fibu.kost.Kost1Dao;
+import org.projectforge.business.multitenancy.TenantRegistryMap;
 import org.projectforge.business.user.UserDao;
 import org.projectforge.business.user.UserRightId;
 import org.projectforge.framework.persistence.api.BaseDao;
@@ -42,6 +43,7 @@ import org.projectforge.framework.persistence.api.QueryFilter;
 import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
+import org.projectforge.framework.persistence.user.entities.TenantDO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Propagation;
@@ -89,13 +91,15 @@ public class EmployeeDao extends BaseDao<EmployeeDO>
   @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
   public EmployeeDO findByUserId(final Integer userId)
   {
-    @SuppressWarnings("unchecked")
-    final List<EmployeeDO> list = (List<EmployeeDO>) getHibernateTemplate()
-        .find("from EmployeeDO e where e.user.id = ?", userId);
-    if (list != null && list.size() > 0) {
-      return list.get(0);
-    }
-    return null;
+    return emgrFactory.runRoTrans(emgr -> {
+      TenantDO tenant = TenantRegistryMap.getInstance().getTenantRegistry().getTenant();
+      List<EmployeeDO> list = emgr
+          .select(EmployeeDO.class, "SELECT e FROM EmployeeDO e WHERE e.user.id = ? AND e.tenant = ?", userId, tenant);
+      if (list != null && list.size() > 0) {
+        return list.get(0);
+      }
+      return null;
+    });
   }
 
   /**
