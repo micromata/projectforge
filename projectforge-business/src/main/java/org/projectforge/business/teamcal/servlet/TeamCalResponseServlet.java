@@ -38,6 +38,8 @@ import org.apache.commons.httpclient.HttpStatus;
 import org.apache.commons.lang.StringUtils;
 import org.projectforge.business.configuration.ConfigurationService;
 import org.projectforge.business.scripting.GroovyEngine;
+import org.projectforge.business.teamcal.admin.TeamCalDao;
+import org.projectforge.business.teamcal.admin.model.TeamCalDO;
 import org.projectforge.business.teamcal.event.TeamEventService;
 import org.projectforge.business.teamcal.event.model.TeamEventAttendeeDO;
 import org.projectforge.business.teamcal.event.model.TeamEventAttendeeStatus;
@@ -66,6 +68,9 @@ public class TeamCalResponseServlet extends HttpServlet
 
   @Autowired
   private TeamEventService teamEventService;
+
+  @Autowired
+  private TeamCalDao teamCalDao;
 
   private WebApplicationContext springContext;
 
@@ -111,6 +116,24 @@ public class TeamCalResponseServlet extends HttpServlet
     }
     final TeamEventAttendeeStatus statusFinal = status;
 
+    // Getting calendar
+    final String calendarStr = decryptedParameters.get("calendar");
+    final Integer calendarId;
+    if (StringUtils.isBlank(calendarStr) == true) {
+      calendarId = null;
+      // compatibility, disable later
+      //      log.warn("Bad request, request parameter 'calendar' not given.");
+      //      resp.sendError(HttpStatus.SC_BAD_REQUEST);
+      //      return;
+    } else {
+      calendarId = Integer.valueOf(calendarStr);
+      if (calendarId == null) {
+        log.warn("Bad request, request parameter 'calendar' not valid: " + calendarStr);
+        sendNotValidData(resp);
+        return;
+      }
+    }
+
     //Getting request event
     final String reqEventUid = decryptedParameters.get("uid");
     if (StringUtils.isBlank(reqEventUid) == true) {
@@ -118,7 +141,7 @@ public class TeamCalResponseServlet extends HttpServlet
       resp.sendError(HttpStatus.SC_BAD_REQUEST);
       return;
     }
-    TeamEventDO event = teamEventService.findByUid(reqEventUid);
+    TeamEventDO event = teamEventService.findByUid(calendarId, reqEventUid, true);
     if (event == null) {
       log.warn("Bad request, request parameter 'uid' not valid: " + reqEventUid);
       sendNotValidData(resp);

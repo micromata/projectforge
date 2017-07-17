@@ -48,8 +48,10 @@ import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.persistence.Transient;
 import javax.persistence.UniqueConstraint;
+import javax.validation.constraints.NotNull;
 
 import org.apache.commons.lang.StringUtils;
+import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.search.annotations.Analyze;
 import org.hibernate.search.annotations.DateBridge;
 import org.hibernate.search.annotations.EncodingType;
@@ -103,7 +105,7 @@ import net.fortuna.ical4j.model.property.RRule;
 @Entity
 @Indexed
 @Table(name = "T_PLUGIN_CALENDAR_EVENT",
-    uniqueConstraints = { @UniqueConstraint(name = "unique_t_plugin_calendar_event_uid", columnNames = { "uid" }) },
+    uniqueConstraints = { @UniqueConstraint(name = "unique_t_plugin_calendar_event_uid_calendar_fk", columnNames = { "uid", "calendar_fk" }) },
     indexes = {
         @javax.persistence.Index(name = "idx_fk_t_plugin_calendar_event_calendar_fk", columnList = "calendar_fk"),
         @javax.persistence.Index(name = "idx_fk_t_plugin_calendar_event_tenant_id", columnList = "tenant_id"),
@@ -138,6 +140,8 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
   @NoHistory
   private Timestamp lastEmail;
 
+  private Timestamp dtStamp;
+
   @IndexedEmbedded(depth = 1)
   private TeamCalDO calendar;
 
@@ -152,7 +156,10 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
 
   private Set<TeamEventAttendeeDO> attendees;
 
+  private Boolean ownership;
+
   private String organizer;
+  private String organizer_additional_params;
 
   private String uid;
 
@@ -175,16 +182,19 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
    */
   public TeamEventDO clearFields()
   {
+    ownership = null;
     subject = location = note = null;
     if (attendees != null) {
       attendees.clear();
     }
     organizer = null;
+    organizer_additional_params = null;
     reminderDuration = null;
     reminderDurationType = null;
     reminderActionType = null;
     lastEmail = null;
     sequence = null;
+    dtStamp = null;
     if (attachments != null) {
       attachments.clear();
     }
@@ -196,6 +206,12 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
   public TeamEventDO()
   {
 
+  }
+
+  @Override
+  public void setLastUpdate()
+  {
+    super.setLastUpdate();
   }
 
   /**
@@ -360,6 +376,25 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
   }
 
   /**
+   * @return the DTSTAMP
+   */
+  @Column(name = "dt_stamp")
+  public Timestamp getDtStamp()
+  {
+    return dtStamp;
+  }
+
+  /**
+   * @param dtStamp the DTSTAMP to set
+   * @return this for chaining.
+   */
+  public TeamEventDO setDtStamp(final Timestamp dtStamp)
+  {
+    this.dtStamp = dtStamp;
+    return this;
+  }
+
+  /**
    * @return the note
    */
   @Override
@@ -428,6 +463,18 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
     return this;
   }
 
+  @Column
+  public Boolean isOwnership()
+  {
+    return this.ownership;
+  }
+
+  public TeamEventDO setOwnership(final Boolean ownership)
+  {
+    this.ownership = ownership;
+    return this;
+  }
+
   /**
    * @return the organizer
    */
@@ -444,6 +491,18 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
   public TeamEventDO setOrganizer(final String organizer)
   {
     this.organizer = organizer;
+    return this;
+  }
+
+  @Column(length = 1000, name = "organizer_additional_params")
+  public String getOrganizerAdditionalParams()
+  {
+    return organizer_additional_params;
+  }
+
+  public TeamEventDO setOrganizerAdditionalParams(final String organizer_additional_params)
+  {
+    this.organizer_additional_params = organizer_additional_params;
     return this;
   }
 
@@ -475,7 +534,7 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
    * @return this for chaining.
    */
   @Transient
-  public TeamEventDO setRecurrence(final RRule rRule, TimeZone timezone)
+  public TeamEventDO setRecurrence(final RRule rRule)
   {
     if (rRule == null || rRule.getRecur() == null) {
       this.recurrenceRuleObject = null;
@@ -909,11 +968,6 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
     return this;
   }
 
-  public void incSequence()
-  {
-    sequence++;
-  }
-
   /**
    * @return the attachments
    */
@@ -989,6 +1043,9 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
     result = prime * result + ((recurrenceUntil == null) ? 0 : recurrenceUntil.hashCode());
     result = prime * result + ((startDate == null) ? 0 : startDate.hashCode());
     result = prime * result + ((subject == null) ? 0 : subject.hashCode());
+    result = prime * result + ((organizer == null) ? 0 : organizer.hashCode());
+    result = prime * result + ((organizer_additional_params == null) ? 0 : organizer_additional_params.hashCode());
+    result = prime * result + ((dtStamp == null) ? 0 : dtStamp.hashCode());
     return result;
   }
 
@@ -1011,6 +1068,13 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
     if (allDay != other.allDay) {
       return false;
     }
+
+    if (ownership == null && other.ownership != null) {
+      return false;
+    } else if (ownership != other.ownership) {
+      return false;
+    }
+
     if (attendees == null) {
       if (other.attendees != null) {
         return false;
@@ -1067,11 +1131,32 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
     } else if (recurrenceUntil.equals(other.recurrenceUntil) == false) {
       return false;
     }
+    if (organizer == null) {
+      if (other.organizer != null) {
+        return false;
+      }
+    } else if (organizer.equals(other.organizer) == false) {
+      return false;
+    }
+    if (organizer_additional_params == null) {
+      if (other.organizer_additional_params != null) {
+        return false;
+      }
+    } else if (organizer_additional_params.equals(other.organizer_additional_params) == false) {
+      return false;
+    }
     if (startDate == null) {
       if (other.startDate != null) {
         return false;
       }
     } else if (startDate.equals(other.startDate) == false) {
+      return false;
+    }
+    if (dtStamp == null) {
+      if (other.dtStamp != null) {
+        return false;
+      }
+    } else if (dtStamp.equals(other.dtStamp) == false) {
       return false;
     }
     if (subject == null) {
@@ -1091,50 +1176,98 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
     return true;
   }
 
+  @Transient
   public boolean mustIncSequence(final TeamEventDO other)
   {
-    if (location == null) {
-      if (other.location != null) {
-        return true;
-      }
-    } else if (!location.equals(other.location)) {
+    if (allDay != other.allDay) {
       return true;
     }
-    if (startDate == null) {
-      if (other.startDate != null) {
-        return true;
-      }
-    } else if (!startDate.equals(other.startDate)) {
-      return true;
-    }
+
     if (endDate == null) {
       if (other.endDate != null) {
         return true;
       }
-    } else if (!endDate.equals(other.endDate)) {
+    } else if (endDate.equals(other.endDate) == false) {
+      return true;
+    }
+    if (location == null) {
+      if (other.location != null) {
+        return true;
+      }
+    } else if (location.equals(other.location) == false) {
+      return true;
+    }
+    if (note == null) {
+      if (other.note != null) {
+        return true;
+      }
+    } else if (note.equals(other.note) == false) {
       return true;
     }
     if (recurrenceExDate == null) {
       if (other.recurrenceExDate != null) {
         return true;
       }
-    } else if (!recurrenceExDate.equals(other.recurrenceExDate)) {
+    } else if (recurrenceExDate.equals(other.recurrenceExDate) == false) {
       return true;
     }
     if (recurrenceRule == null) {
       if (other.recurrenceRule != null) {
         return true;
       }
-    } else if (!recurrenceRule.equals(other.recurrenceRule)) {
+    } else if (recurrenceRule.equals(other.recurrenceRule) == false) {
       return true;
     }
     if (recurrenceUntil == null) {
       if (other.recurrenceUntil != null) {
         return true;
       }
-    } else if (!recurrenceUntil.equals(other.recurrenceUntil)) {
+    } else if (recurrenceUntil.equals(other.recurrenceUntil) == false) {
       return true;
     }
+    if (organizer == null) {
+      if (other.organizer != null) {
+        return true;
+      }
+    } else if (organizer.equals(other.organizer) == false) {
+      return true;
+    }
+    if (organizer_additional_params == null) {
+      if (other.organizer_additional_params != null) {
+        return true;
+      }
+    } else if (organizer_additional_params.equals(other.organizer_additional_params) == false) {
+      return true;
+    }
+    if (startDate == null) {
+      if (other.startDate != null) {
+        return true;
+      }
+    } else if (startDate.equals(other.startDate) == false) {
+      return true;
+    }
+    if (subject == null) {
+      if (other.subject != null) {
+        return true;
+      }
+    } else if (subject.equals(other.subject) == false) {
+      return true;
+    }
+    if (attendees == null || attendees.isEmpty()) {
+      if (other.attendees != null && other.attendees.isEmpty() == false) {
+        return true;
+      }
+    } else if (attendees.equals(other.attendees) == false) {
+      return true;
+    }
+    if (attachments == null || attachments.isEmpty()) {
+      if (other.attachments != null && other.attachments.isEmpty() == false) {
+        return true;
+      }
+    } else if (attachments.equals(other.attachments) == false) {
+      return true;
+    }
+
     return false;
   }
 
@@ -1157,11 +1290,13 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
     clone.recurrenceReferenceDate = this.recurrenceReferenceDate;
     clone.recurrenceReferenceId = this.recurrenceReferenceId;
     clone.recurrenceUntil = this.recurrenceUntil;
+    clone.ownership = this.ownership;
     clone.organizer = this.organizer;
+    clone.organizer_additional_params = this.organizer_additional_params;
     clone.note = this.note;
     clone.lastEmail = this.lastEmail;
+    clone.dtStamp = this.dtStamp;
     clone.sequence = this.sequence;
-    // clone.status = this.status;
     clone.reminderDuration = this.reminderDuration;
     clone.reminderDurationType = this.reminderDurationType;
     clone.reminderActionType = this.reminderActionType;
@@ -1192,6 +1327,7 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
     return clone;
   }
 
+  @Transient
   public TeamEventDO createMinimalCopy()
   {
     final TeamEventDO result = new TeamEventDO();
@@ -1199,6 +1335,7 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
     result.setCalendar(this.getCalendar());
     result.startDate = this.startDate;
     result.endDate = this.endDate;
+    result.dtStamp = this.dtStamp;
     result.allDay = this.allDay;
     result.recurrenceExDate = this.recurrenceExDate;
     result.recurrenceRule = this.recurrenceRule;
@@ -1206,13 +1343,16 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
     result.recurrenceReferenceId = this.recurrenceReferenceId;
     result.recurrenceUntil = this.recurrenceUntil;
     result.sequence = this.sequence;
+    result.ownership = this.ownership;
+    result.organizer = this.organizer;
+    result.organizer_additional_params = this.organizer_additional_params;
     return result;
   }
 
   /**
-   * Returns the events owner time zone.
+   * Returns time zone of event owner.
    *
-   * @return Returns the events owner time zone.
+   * @return Returns time zone of event owner.
    */
   @Transient
   public TimeZone getTimeZone()
