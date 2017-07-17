@@ -141,13 +141,16 @@ public class DatabaseCoreUpdates
     // 6.15.0
     // /////////////////////////////////////////////////////////////////
     list.add(new UpdateEntryImpl(CORE_REGION_ID, "6.15.0", "2017-07-19",
-        "Refactoring invoice template.")
+        "Add fields to event and event attendee table. Change unique constraint in event table. Refactoring invoice template.")
     {
       @Override
       public UpdatePreCheckStatus runPreCheck()
       {
         log.info("Running pre-check for ProjectForge version 6.15.0");
         if (hasRefactoredInvoiceFields() == false) {
+          return UpdatePreCheckStatus.READY_FOR_UPDATE;
+        }
+        if (this.missingFields() || oldUniqueConstraint() || noOwnership() || dtStampMissing()) {
           return UpdatePreCheckStatus.READY_FOR_UPDATE;
         }
         return UpdatePreCheckStatus.ALREADY_UPDATED;
@@ -160,7 +163,83 @@ public class DatabaseCoreUpdates
           initDatabaseDao.updateSchema();
           migrateCustomerRef();
         }
+
+        // update unique constraint
+        if (oldUniqueConstraint()) {
+          databaseUpdateService.execute("ALTER TABLE T_PLUGIN_CALENDAR_EVENT DROP CONSTRAINT unique_t_plugin_calendar_event_uid");
+          initDatabaseDao.updateSchema();
+        }
+
+        // add missing fields
+        if (missingFields()) {
+          initDatabaseDao.updateSchema();
+        }
+
+        // check ownership
+        if (noOwnership()) {
+          List<DatabaseResultRow> resultList = databaseUpdateService.query("select e.pk, e.organizer from t_plugin_calendar_event e");
+          log.info("Found: " + resultList.size() + " event entries to update ownership.");
+
+          for (DatabaseResultRow row : resultList) {
+            Integer id = (Integer) row.getEntry(0).getValue();
+            String organizer = (String) row.getEntry(1).getValue();
+            Boolean ownership = Boolean.TRUE;
+
+            if (organizer != null && organizer.equals("mailto:null") == false) {
+              ownership = Boolean.FALSE;
+            }
+
+            try {
+              databaseUpdateService.execute(String.format("UPDATE t_plugin_calendar_event SET ownership = '%s' WHERE pk = %s", ownership, id));
+            } catch (Exception e) {
+              log.error(String.format("Error while updating event with id '%s' and new ownership. Ignoring it.", id, ownership));
+            }
+
+            log.info(String.format("Updated event with id '%s' set ownership to '%s'", id, ownership));
+          }
+          log.info("Ownership computation DONE.");
+        }
+
+        // update DT_STAMP
+        if (dtStampMissing()) {
+          try {
+            databaseUpdateService.execute("UPDATE t_plugin_calendar_event SET dt_stamp = last_update");
+            log.info("Creating DT_STAMP values successful");
+          } catch (Exception e) {
+            log.error("Error while creating DT_STAMP values");
+          }
+        }
+
         return UpdateRunningStatus.DONE;
+      }
+
+      private boolean missingFields()
+      {
+        return databaseUpdateService.doesTableAttributeExist("T_PLUGIN_CALENDAR_EVENT_ATTENDEE", "COMMON_NAME") == false
+            || databaseUpdateService.doesTableAttributeExist("T_PLUGIN_CALENDAR_EVENT_ATTENDEE", "CU_TYPE") == false
+            || databaseUpdateService.doesTableAttributeExist("T_PLUGIN_CALENDAR_EVENT_ATTENDEE", "RSVP") == false
+            || databaseUpdateService.doesTableAttributeExist("T_PLUGIN_CALENDAR_EVENT_ATTENDEE", "ROLE") == false
+            || databaseUpdateService.doesTableAttributeExist("T_PLUGIN_CALENDAR_EVENT_ATTENDEE", "ADDITIONAL_PARAMS") == false
+            || databaseUpdateService.doesTableAttributeExist("T_PLUGIN_CALENDAR_EVENT", "OWNERSHIP") == false
+            || databaseUpdateService.doesTableAttributeExist("T_PLUGIN_CALENDAR_EVENT", "ORGANIZER_ADDITIONAL_PARAMS") == false
+            || databaseUpdateService.doesTableAttributeExist("T_PLUGIN_CALENDAR_EVENT", "DT_STAMP") == false;
+      }
+
+      private boolean oldUniqueConstraint()
+      {
+        return databaseUpdateService.doesUniqueConstraintExists("T_PLUGIN_CALENDAR_EVENT", "unique_t_plugin_calendar_event_uid");
+      }
+
+      private boolean noOwnership()
+      {
+        List<DatabaseResultRow> result = databaseUpdateService.query("select pk from t_plugin_calendar_event where ownership is not null LIMIT 1");
+        return result.size() == 0;
+      }
+
+      private boolean dtStampMissing()
+      {
+        List<DatabaseResultRow> result = databaseUpdateService.query("select pk from t_plugin_calendar_event where dt_stamp is not null LIMIT 1");
+        return result.size() == 0;
       }
 
       private void migrateCustomerRef()
@@ -504,7 +583,7 @@ public class DatabaseCoreUpdates
         log.info("Running pre-check for ProjectForge version 6.9.0");
         if (databaseUpdateService.doesTableExist("t_employee_vacation_substitution") == false ||
             databaseUpdateService.doesTableAttributeExist("t_employee_vacation", "substitution_id") ||
-            databaseUpdateService.doesUniqueConstraintExists("T_PLUGIN_CALENDAR_EVENT", "unique_t_plugin_calendar_event_uid") == false) {
+            uniqueConstraintMissing()) {
           return UpdatePreCheckStatus.READY_FOR_UPDATE;
         }
 
@@ -519,8 +598,7 @@ public class DatabaseCoreUpdates
       @Override
       public UpdateRunningStatus runUpdate()
       {
-        if (databaseUpdateService.doesTableExist("t_employee_vacation_substitution") == false
-            || databaseUpdateService.doesUniqueConstraintExists("T_PLUGIN_CALENDAR_EVENT", "unique_t_plugin_calendar_event_uid") == false) {
+        if (databaseUpdateService.doesTableExist("t_employee_vacation_substitution") == false || uniqueConstraintMissing()) {
           if (doesDuplicateUidsExists()) {
             handleDuplicateUids();
           }
@@ -583,6 +661,12 @@ public class DatabaseCoreUpdates
           vacation.getSubstitutions().add(substitution);
           vacationDao.internalUpdate(vacation);
         }
+      }
+
+      private boolean uniqueConstraintMissing()
+      {
+        return (databaseUpdateService.doesUniqueConstraintExists("T_PLUGIN_CALENDAR_EVENT", "unique_t_plugin_calendar_event_uid")
+            || databaseUpdateService.doesUniqueConstraintExists("T_PLUGIN_CALENDAR_EVENT", "unique_t_plugin_calendar_event_uid_calendar_fk")) == false;
       }
     });
 

@@ -41,6 +41,7 @@ import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.teamcal.event.TeamEventDao;
 import org.projectforge.business.teamcal.event.TeamEventService;
 import org.projectforge.business.teamcal.event.TeamRecurrenceEvent;
+import org.projectforge.business.teamcal.event.diff.TeamEventDiffType;
 import org.projectforge.business.teamcal.event.model.TeamEvent;
 import org.projectforge.business.teamcal.event.model.TeamEventAttendeeDO;
 import org.projectforge.business.teamcal.event.model.TeamEventDO;
@@ -237,7 +238,7 @@ public class TeamEventEditPage extends AbstractEditPage<TeamEventDO, TeamEventEd
         {
           final TeamEventDO event = getData();
           log.info("Export ics for: " + event.getSubject());
-          ByteArrayOutputStream baos = teamEventConverter.getIcsFile(event, false);
+          ByteArrayOutputStream baos = teamEventConverter.getIcsFile(event, false, false, null);
           if (baos != null) {
             DownloadUtils.setDownloadTarget(baos.toByteArray(), event.getSubject().replace(" ", "") + ".ics");
           }
@@ -282,9 +283,8 @@ public class TeamEventEditPage extends AbstractEditPage<TeamEventDO, TeamEventEd
   public AbstractSecuredBasePage afterUndelete()
   {
     super.afterUndelete();
-    if (getData().getAttendees() != null && getData().getAttendees().size() > 0) {
-      teamEventService.sendTeamEventToAttendees(getData(), false, true, false, null);
-    }
+    teamEventService.checkAndSendMail(getData(), TeamEventDiffType.RESTORED);
+
     return null;
   }
 
@@ -301,9 +301,7 @@ public class TeamEventEditPage extends AbstractEditPage<TeamEventDO, TeamEventEd
   public AbstractSecuredBasePage onDelete()
   {
     super.onDelete();
-    if (getData().getAttendees() != null && getData().getAttendees().size() > 0) {
-      teamEventService.sendTeamEventToAttendees(getData(), false, false, true, null);
-    }
+    teamEventService.checkAndSendMail(this.getData(), TeamEventDiffType.DELETED);
     if (recurrencyChangeType == null || recurrencyChangeType == RecurrencyChangeType.ALL) {
       return null;
     }
@@ -385,48 +383,31 @@ public class TeamEventEditPage extends AbstractEditPage<TeamEventDO, TeamEventEd
   }
 
   /**
-   * @see org.projectforge.web.wicket.AbstractEditPage#afterUpdate(org.projectforge.framework.persistence.api.ModificationStatus)
-   */
-  @Override
-  public AbstractSecuredBasePage afterUpdate(final ModificationStatus modificationStatus)
-  {
-    if (newEvent != null) {
-      newEvent.setSequence(0);
-      Set<TeamEventAttendeeDO> existingAttendees = new HashSet<>();
-      newEvent.getAttendees().forEach(att -> {
-        existingAttendees.add(att.clone());
-      });
-      newEvent.getAttendees().clear();
-      teamEventService.save(newEvent);
-      teamEventService.assignAttendees(newEvent, existingAttendees, null);
-      teamEventService.sendTeamEventToAttendees(newEvent, true, false, false, existingAttendees);
-    }
-    return null;
-  }
-
-  /**
    * @see org.projectforge.web.wicket.AbstractEditPage#afterSaveOrUpdate()
    */
   @Override
   public AbstractSecuredBasePage afterSaveOrUpdate()
   {
     super.afterSaveOrUpdate();
-    TeamEventDO teamEventAfterSaveOrUpdate = teamEventService.getById(getData().getPk());
-    ModificationStatus modificationStatus = ModificationStatus.NONE;
-    if (this.isNew == false) {
-      modificationStatus = TeamEventDO.copyValues(this.teamEventBeforeSaveOrUpdate, teamEventAfterSaveOrUpdate, "attendees");
+
+    if (newEvent != null) {
+      // changed one element of an recurring event
+      newEvent.setSequence(0);
+      newEvent.getAttendees().clear();
+      teamEventService.save(newEvent);
+
+      Set<TeamEventAttendeeDO> toAssign = new HashSet<>();
+      form.assignAttendeesListHelper.getAssignedItems().stream().forEach(a -> toAssign.add(a.clone()));
+
+      teamEventService.assignAttendees(newEvent, toAssign, null);
+      teamEventService.checkAndSendMail(newEvent, TeamEventDiffType.NEW);
+    } else {
+      TeamEventDO teamEventAfterSaveOrUpdate = teamEventService.getById(getData().getPk());
+      teamEventService.assignAttendees(teamEventAfterSaveOrUpdate, form.assignAttendeesListHelper.getItemsToAssign(),
+          form.assignAttendeesListHelper.getItemsToUnassign());
+      teamEventService.checkAndSendMail(teamEventAfterSaveOrUpdate, this.teamEventBeforeSaveOrUpdate);
     }
 
-    TeamEventDO teamEventBeforeAssignAttendees = teamEventService.getById(teamEventAfterSaveOrUpdate.getPk());
-    teamEventService.assignAttendees(teamEventBeforeAssignAttendees, form.assignAttendeesListHelper.getItemsToAssign(),
-        form.assignAttendeesListHelper.getItemsToUnassign());
-    TeamEventDO teamEventAfterAssignAttendees = teamEventService.getById(teamEventBeforeAssignAttendees.getPk());
-
-    if ((form.assignAttendeesListHelper.getItemsToAssign() != null && form.assignAttendeesListHelper.getItemsToAssign().size() > 0) || (
-        modificationStatus != null && modificationStatus != ModificationStatus.NONE)) {
-      teamEventService.sendTeamEventToAttendees(teamEventAfterAssignAttendees, this.isNew, ModificationStatus.NONE.equals(modificationStatus) == false, false,
-          form.assignAttendeesListHelper.getItemsToAssign());
-    }
     return null;
   }
 

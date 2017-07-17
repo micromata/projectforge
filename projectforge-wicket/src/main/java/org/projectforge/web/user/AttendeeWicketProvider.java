@@ -180,7 +180,7 @@ public class AttendeeWicketProvider extends TextChoiceProvider<TeamEventAttendee
 
     if (result.size() == 0) {
       TeamEventAttendeeDO newAttendee = new TeamEventAttendeeDO().setUrl(term);
-      newAttendee.setStatus(TeamEventAttendeeStatus.NEW);
+      newAttendee.setStatus(TeamEventAttendeeStatus.IN_PROCESS);
       newAttendee.setId(getAndDecreaseInternalNewAttendeeSequence());
       customAttendees.add(newAttendee);
       result.add(newAttendee);

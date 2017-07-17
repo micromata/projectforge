@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Set;
 
 import org.projectforge.business.teamcal.admin.model.TeamCalDO;
+import org.projectforge.business.teamcal.event.diff.TeamEventDiffType;
 import org.projectforge.business.teamcal.event.model.TeamEvent;
 import org.projectforge.business.teamcal.event.model.TeamEventAttendeeDO;
 import org.projectforge.business.teamcal.event.model.TeamEventDO;
@@ -20,10 +21,13 @@ public interface TeamEventService
   void assignAttendees(TeamEventDO data, Set<TeamEventAttendeeDO> itemsToAssign,
       Set<TeamEventAttendeeDO> itemsToUnassign);
 
-  boolean sendTeamEventToAttendees(TeamEventDO data, boolean isNew, boolean hasChanges, boolean isDeleted,
-      Set<TeamEventAttendeeDO> addedAttendees);
+  void updateAttendees(TeamEventDO event, Set<TeamEventAttendeeDO> attendeesOldState);
 
-  TeamEventDO findByUid(String reqEventUid);
+  boolean checkAndSendMail(final TeamEventDO event, final TeamEventDiffType diffType);
+
+  boolean checkAndSendMail(final TeamEventDO eventNew, final TeamEventDO eventOld);
+
+  TeamEventDO findByUid(Integer calendarId, String reqEventUid, boolean excludeDeleted);
 
   TeamEventAttendeeDO findByAttendeeId(Integer attendeeId, boolean checkAccess);
 
@@ -42,6 +46,8 @@ public interface TeamEventService
   void saveOrUpdate(TeamEventDO teamEvent);
 
   void markAsDeleted(TeamEventDO teamEvent);
+
+  void undelete(TeamEventDO teamEvent);
 
   void save(TeamEventDO newEvent);
 

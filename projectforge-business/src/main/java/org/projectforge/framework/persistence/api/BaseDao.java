@@ -293,9 +293,22 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
     }
     final Session session = getSession();
     final Criteria criteria = session.createCriteria(clazz).add(Restrictions.in("id", idList));
+
+    return selectUnique(criteria.list());
+  }
+
+  @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
+  public List<O> getListByIds(final Collection<? extends Serializable> idList)
+  {
+    if (idList == null) {
+      return null;
+    }
+    final Session session = getSession();
+    final Criteria criteria = session.createCriteria(clazz).add(Restrictions.in("id", idList));
     @SuppressWarnings("unchecked")
     final List<O> list = selectUnique(criteria.list());
-    return list;
+
+    return extractEntriesWithSelectAccess(list);
   }
 
   /**

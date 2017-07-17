@@ -23,6 +23,7 @@
 
 package org.projectforge.business.teamcal.event;
 
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
@@ -34,6 +35,7 @@ import java.util.Set;
 import java.util.TimeZone;
 
 import javax.persistence.NoResultException;
+import javax.persistence.NonUniqueResultException;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
@@ -141,19 +143,87 @@ public class TeamEventDao extends BaseDao<TeamEventDO>
     teamEvent.setCalendar(teamCal);
   }
 
-  public TeamEventDO getByUid(final String uid)
+  public TeamEventDO getByUid(Integer calendarId, final String uid)
+  {
+    return this.getByUid(calendarId, uid, true);
+  }
+
+  public TeamEventDO getByUid(Integer calendarId, final String uid, final boolean excludeDeleted)
   {
     if (uid == null) {
       return null;
     }
+
+    final StringBuilder sqlQuery = new StringBuilder();
+    final List<Object> params = new ArrayList<>();
+
+    sqlQuery.append("select e from TeamEventDO e where e.uid = :uid AND e.tenant = :tenant");
+
+    params.add("uid");
+    params.add(uid);
+    params.add("tenant");
+    params.add(ThreadLocalUserContext.getUser() != null ? ThreadLocalUserContext.getUser().getTenant() : tenantService.getDefaultTenant());
+
+    if (excludeDeleted) {
+      sqlQuery.append(" AND e.deleted = :deleted");
+      params.add("deleted");
+      params.add(false);
+    }
+
+    // workaround to still handle old requests
+    if (calendarId != null) {
+      sqlQuery.append(" AND e.calendar.id = :calendarId");
+      params.add("calendarId");
+      params.add(calendarId);
+    }
+
     try {
       return emgrFac.runRoTrans(emgr -> {
-        String baseSQL = "select e from TeamEventDO e where e.uid = :uid";
-        return emgr.selectSingleAttached(TeamEventDO.class, baseSQL + META_SQL_WITH_SPECIAL, "uid", uid, "deleted", false,
-            "tenant", ThreadLocalUserContext.getUser() != null ? ThreadLocalUserContext.getUser().getTenant() : tenantService.getDefaultTenant());
+        return emgr.selectSingleAttached(TeamEventDO.class, sqlQuery.toString(), params.toArray());
       });
-    } catch (NoResultException e) {
+    } catch (NoResultException | NonUniqueResultException e) {
       return null;
+    }
+  }
+
+  @Override
+  protected void onChange(final TeamEventDO obj, final TeamEventDO dbObj)
+  {
+    // only increment sequence if PF has ownership!
+    if (obj.isOwnership() != null && obj.isOwnership() == false) {
+      return;
+    }
+
+    // compute diff
+    if (obj.mustIncSequence(dbObj)) {
+      if (obj.getSequence() == null) {
+        obj.setSequence(0);
+      } else {
+        obj.setSequence(obj.getSequence() + 1);
+      }
+
+      if (obj.getDtStamp() == null || obj.getDtStamp().equals(dbObj.getDtStamp())) {
+        obj.setDtStamp(new Timestamp(System.currentTimeMillis()));
+      }
+    }
+  }
+
+  @Override
+  protected void onSave(final TeamEventDO event)
+  {
+    // set ownership if empty
+    if (event.isOwnership() == null) {
+      event.setOwnership(true);
+    }
+
+    // set DTSTAMP if empty
+    if (event.getDtStamp() == null) {
+      event.setDtStamp(new Timestamp(event.getCreated().getTime()));
+    }
+
+    // create uid if empty
+    if (StringUtils.isBlank(event.getUid())) {
+      event.setUid(TeamCalConfig.get().createEventUid());
     }
   }
 
@@ -178,11 +248,6 @@ public class TeamEventDao extends BaseDao<TeamEventDO>
       if (endDate != null) {
         event.setEndDate(CalendarUtils.getUTCMidnightTimestamp(endDate));
       }
-    }
-
-    // create uid if missing
-    if (StringUtils.isBlank(event.getUid())) {
-      event.setUid(TeamCalConfig.get().createEventUid());
     }
   }
 

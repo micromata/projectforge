@@ -77,7 +77,7 @@ import net.fortuna.ical4j.model.property.ProdId;
 import net.fortuna.ical4j.model.property.Version;
 
 /**
- * Feed Servlet, which generates a 'text/calendar' output of the last four mounts. Currently relevant informations are
+ * Feed Servlet, which generates a 'text/calendar' output of the last four mounts. Currently relevant information is
  * date, start- and stop time and last but not least the location of an event.
  *
  * @author Kai Reinhard (k.reinhard@micromata.de)

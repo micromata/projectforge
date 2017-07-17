@@ -45,10 +45,10 @@ import org.projectforge.web.common.timeattr.AttrComperator;
 
 /**
  * Stores list of result sets (id's) for pagination and provides iterator of data-base objects on demand.
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
  */
-public class MyListPageSortableDataProvider<T extends IdObject< ? >> extends SortableDataProvider<T, String>
+public class MyListPageSortableDataProvider<T extends IdObject<?>> extends SortableDataProvider<T, String>
 {
   private static final long serialVersionUID = 1517715565769991765L;
 
@@ -68,10 +68,10 @@ public class MyListPageSortableDataProvider<T extends IdObject< ? >> extends Sor
 
   private SortParam<String> secondSortParam;
 
-  private final AbstractListPage< ? , ? , T> listPage;
+  private final AbstractListPage<?, ?, T> listPage;
 
   public MyListPageSortableDataProvider(final SortParam<String> sortParam, final SortParam<String> secondSortParam,
-      final AbstractListPage< ? , ? , T> listPage)
+      final AbstractListPage<?, ?, T> listPage)
   {
     this.listPage = listPage;
     // set default sort
@@ -139,7 +139,7 @@ public class MyListPageSortableDataProvider<T extends IdObject< ? >> extends Sor
       }
       final Object baseDao = listPage.getBaseDao();
       if (baseDao instanceof BaseDao) {
-        final List<T> list = (List<T>) ((BaseDao< ? >) baseDao).internalLoad(idList.subList(fromIndex, toIndex));
+        final List<T> list = (List<T>) ((BaseDao<?>) baseDao).getListByIds(idList.subList(fromIndex, toIndex));
         sortList(list);
         return list.iterator();
       } else {

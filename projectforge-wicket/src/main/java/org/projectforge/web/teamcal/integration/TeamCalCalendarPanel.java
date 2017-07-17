@@ -121,7 +121,7 @@ public class TeamCalCalendarPanel extends CalendarPanel
 
   /**
    * @see org.projectforge.web.calendar.CalendarPanel#onDateRangeSelectedHook(java.lang.String,
-   *      net.ftlines.wicket.fullcalendar.callback.SelectedRange, net.ftlines.wicket.fullcalendar.CalendarResponse)
+   * net.ftlines.wicket.fullcalendar.callback.SelectedRange, net.ftlines.wicket.fullcalendar.CalendarResponse)
    */
   @Override
   protected void onDateRangeSelectedHook(final String selectedCalendar, final SelectedRange range,
@@ -141,6 +141,7 @@ public class TeamCalCalendarPanel extends CalendarPanel
       final TeamCalDO calendar = teamCalDao.getById(activeTemplateEntry.getDefaultCalendarId());
       final TeamEventDO event = new TeamEventDO();
       event.setAllDay(range.isAllDay());
+      event.setOwnership(true);
       event.setStartDate(new Timestamp(DateHelper.getDateTimeAsMillis(range.getStart()))).setEndDate(
           new Timestamp(DateHelper.getDateTimeAsMillis(range.getEnd())));
       event.setCalendar(calendar);
@@ -152,8 +153,8 @@ public class TeamCalCalendarPanel extends CalendarPanel
 
   /**
    * @see org.projectforge.web.calendar.CalendarPanel#onEventClickedHook(net.ftlines.wicket.fullcalendar.callback.ClickedEvent,
-   *      net.ftlines.wicket.fullcalendar.CalendarResponse, net.ftlines.wicket.fullcalendar.Event, java.lang.String,
-   *      java.lang.String)
+   * net.ftlines.wicket.fullcalendar.CalendarResponse, net.ftlines.wicket.fullcalendar.Event, java.lang.String,
+   * java.lang.String)
    */
   @Override
   protected void onEventClickedHook(final ClickedEvent clickedEvent, final CalendarResponse response, final Event event,
@@ -186,8 +187,8 @@ public class TeamCalCalendarPanel extends CalendarPanel
 
   /**
    * @see org.projectforge.web.calendar.CalendarPanel#onModifyEventHook(net.ftlines.wicket.fullcalendar.Event,
-   *      org.joda.time.DateTime, org.joda.time.DateTime, net.ftlines.wicket.fullcalendar.callback.CalendarDropMode,
-   *      net.ftlines.wicket.fullcalendar.CalendarResponse)
+   * org.joda.time.DateTime, org.joda.time.DateTime, net.ftlines.wicket.fullcalendar.callback.CalendarDropMode,
+   * net.ftlines.wicket.fullcalendar.CalendarResponse)
    */
   @Override
   protected void onModifyEventHook(final Event event, final DateTime newStartTime, final DateTime newEndTime,
@@ -198,7 +199,7 @@ public class TeamCalCalendarPanel extends CalendarPanel
 
   /**
    * @see org.projectforge.web.calendar.CalendarPanel#onRegisterEventSourceHook(MyFullCalendarConfig, CalendarFilter,
-   *      ICalendarFilter)
+   * ICalendarFilter)
    */
   @Override
   protected void onRegisterEventSourceHook(final MyFullCalendarConfig config, final ICalendarFilter filter)
@@ -246,7 +247,7 @@ public class TeamCalCalendarPanel extends CalendarPanel
    * <li>MOVE_EDIT</li>
    * <li>MOVE_SAVE</li>
    * </ul>
-   * 
+   *
    * @param event
    * @param newStartDate
    * @param newEndDate
@@ -302,6 +303,7 @@ public class TeamCalCalendarPanel extends CalendarPanel
     if (CalendarDropMode.COPY_EDIT.equals(dropMode) || CalendarDropMode.COPY_SAVE.equals(dropMode)) {
       teamEventDO.setId(null);
       teamEventDO.setDeleted(false);
+      teamEventDO.setOwnership(true);
 
       // and save the new event -> correct time is set already
       teamEventDao.save(teamEventDO);
