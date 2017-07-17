@@ -56,6 +56,15 @@ public class RechnungFilter extends BaseSearchFilter implements Serializable
   public RechnungFilter(final BaseSearchFilter filter)
   {
     super(filter);
+
+    if (filter instanceof RechnungFilter) {
+      RechnungFilter obj = ((RechnungFilter) filter);
+
+      this.listType = obj.getListType();
+      this.fromDate = obj.getFromDate();
+      this.toDate = obj.getToDate();
+      this.showKostZuweisungStatus = obj.isShowKostZuweisungStatus();
+    }
   }
 
   /**
