@@ -94,7 +94,7 @@ public class EmployeeDao extends BaseDao<EmployeeDO>
     return emgrFactory.runRoTrans(emgr -> {
       TenantDO tenant = TenantRegistryMap.getInstance().getTenantRegistry().getTenant();
       List<EmployeeDO> list = emgr
-          .select(EmployeeDO.class, "SELECT e FROM EmployeeDO e WHERE e.user.id = ? AND e.tenant = ?", userId, tenant);
+          .select(EmployeeDO.class, "SELECT e FROM EmployeeDO e WHERE e.user.id = :userId AND e.tenant = :tenant", "userId", userId, "tenant", tenant);
       if (list != null && list.size() > 0) {
         return list.get(0);
       }
