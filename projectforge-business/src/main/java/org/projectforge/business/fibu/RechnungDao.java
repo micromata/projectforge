@@ -198,7 +198,7 @@ public class RechnungDao extends BaseDao<RechnungDO>
         throw new UserException("fibu.rechnung.error.gutschriftsanzeigeDarfKeineRechnungsnummerHaben");
       }
     } else {
-      if (rechnung.getNummer() == null) {
+      if (RechnungStatus.GEPLANT.equals(rechnung.getStatus()) == false && rechnung.getNummer() == null) {
         throw new UserException("validation.required.valueNotPresent",
             new MessageParam("fibu.rechnung.nummer", MessageParamType.I18N_KEY));
       }
