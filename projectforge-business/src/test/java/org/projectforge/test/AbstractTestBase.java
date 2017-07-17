@@ -227,6 +227,7 @@ public class AbstractTestBase extends AbstractTestNGSpringContextTests
     emf.getJpaSchemaService().clearDatabase();
     TenantRegistryMap.getInstance().setAllUserGroupCachesAsExpired();
     getUserGroupCache().setExpired();
+    TenantRegistryMap.getInstance().clear();
   }
 
   public PFUserDO logon(final String username)
