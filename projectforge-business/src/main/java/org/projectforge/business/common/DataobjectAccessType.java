@@ -21,20 +21,18 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.business.teamcal.admin.model;
-
-
+package org.projectforge.business.common;
 
 /**
  * @author Kai Reinhard (k.reinhard@me.de)
- * 
  */
-public enum TeamCalAccessType
+public enum DataobjectAccessType
 {
   FULL, READONLY, MINIMAL, NONE;
 
-  public boolean isIn(final TeamCalAccessType... types) {
-    for (final TeamCalAccessType type : types) {
+  public boolean isIn(final DataobjectAccessType... types)
+  {
+    for (final DataobjectAccessType type : types) {
       if (this == type) {
         return true;
       }

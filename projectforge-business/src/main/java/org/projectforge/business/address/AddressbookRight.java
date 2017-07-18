@@ -21,12 +21,11 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.business.teamcal.admin.right;
+package org.projectforge.business.address;
 
 import org.apache.commons.lang.ObjectUtils;
 import org.projectforge.business.common.DataobjectAccessType;
 import org.projectforge.business.multitenancy.TenantRegistryMap;
-import org.projectforge.business.teamcal.admin.model.TeamCalDO;
 import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.business.user.UserRightAccessCheck;
 import org.projectforge.business.user.UserRightCategory;
@@ -39,15 +38,15 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO;
 /**
  * @author Kai Reinhard (k.reinhard@me.de)
  */
-public class TeamCalRight extends UserRightAccessCheck<TeamCalDO>
+public class AddressbookRight extends UserRightAccessCheck<AddressbookDO>
 {
   private static final long serialVersionUID = -2928342166476350773L;
 
   private transient UserGroupCache userGroupCache;
 
-  public TeamCalRight(AccessChecker accessChecker)
+  public AddressbookRight(AccessChecker accessChecker)
   {
-    super(accessChecker, UserRightId.PLUGIN_CALENDAR, UserRightCategory.PLUGINS,
+    super(accessChecker, UserRightId.MISC_ADDRESSBOOK, UserRightCategory.MISC,
         UserRightValue.TRUE);
   }
 
@@ -55,7 +54,7 @@ public class TeamCalRight extends UserRightAccessCheck<TeamCalDO>
    * General select access.
    *
    * @return true
-   * @see org.projectforge.business.user.UserRightAccessCheck#hasSelectAccess(org.projectforge.framework.persistence.user.entities.PFUserDO)
+   * @see UserRightAccessCheck#hasSelectAccess(PFUserDO)
    */
   @Override
   public boolean hasSelectAccess(final PFUserDO user)
@@ -64,14 +63,14 @@ public class TeamCalRight extends UserRightAccessCheck<TeamCalDO>
   }
 
   /**
-   * @see org.projectforge.business.user.UserRightAccessCheck#hasSelectAccess(org.projectforge.framework.persistence.user.entities.PFUserDO,
-   * java.lang.Object)
+   * @see UserRightAccessCheck#hasSelectAccess(PFUserDO,
+   * Object)
    */
   @Override
-  public boolean hasSelectAccess(final PFUserDO user, final TeamCalDO obj)
+  public boolean hasSelectAccess(final PFUserDO user, final AddressbookDO obj)
   {
     if (isOwner(user, obj) == true || accessChecker.isUserMemberOfAdminGroup(user) == true) {
-      // User has full access to his own calendars.
+      // User has full access to his own addressbooks.
       return true;
     }
     final Integer userId = user.getId();
@@ -86,7 +85,7 @@ public class TeamCalRight extends UserRightAccessCheck<TeamCalDO>
    * General insert access.
    *
    * @return true
-   * @see org.projectforge.business.user.UserRightAccessCheck#hasInsertAccess(org.projectforge.framework.persistence.user.entities.PFUserDO)
+   * @see UserRightAccessCheck#hasInsertAccess(PFUserDO)
    */
   @Override
   public boolean hasInsertAccess(final PFUserDO user)
@@ -95,25 +94,25 @@ public class TeamCalRight extends UserRightAccessCheck<TeamCalDO>
   }
 
   /**
-   * Owners and administrators are able to insert new calendars.
+   * Owners and administrators are able to insert new addressbooks.
    *
-   * @see org.projectforge.business.user.UserRightAccessCheck#hasInsertAccess(org.projectforge.framework.persistence.user.entities.PFUserDO,
-   * java.lang.Object)
+   * @see UserRightAccessCheck#hasInsertAccess(PFUserDO,
+   * Object)
    */
   @Override
-  public boolean hasInsertAccess(final PFUserDO user, final TeamCalDO obj)
+  public boolean hasInsertAccess(final PFUserDO user, final AddressbookDO obj)
   {
     return isOwner(user, obj) == true || accessChecker.isUserMemberOfAdminGroup(user) == true;
   }
 
   /**
-   * Owners and administrators are able to update calendars.
+   * Owners and administrators are able to update addressbooks.
    *
-   * @see org.projectforge.business.user.UserRightAccessCheck#hasUpdateAccess(org.projectforge.framework.persistence.user.entities.PFUserDO,
-   * java.lang.Object, java.lang.Object)
+   * @see UserRightAccessCheck#hasUpdateAccess(PFUserDO,
+   * Object, Object)
    */
   @Override
-  public boolean hasUpdateAccess(final PFUserDO user, final TeamCalDO obj, final TeamCalDO oldObj)
+  public boolean hasUpdateAccess(final PFUserDO user, final AddressbookDO obj, final AddressbookDO oldObj)
   {
     return hasInsertAccess(user, oldObj) == true;
   }
@@ -122,21 +121,21 @@ public class TeamCalRight extends UserRightAccessCheck<TeamCalDO>
    * If user is not reporter or assignee and task is given the access to task is assumed, meaning if the user has the
    * right to delete the tasks he is allowed to delete to-do's to.
    *
-   * @see org.projectforge.business.user.UserRightAccessCheck#hasDeleteAccess(org.projectforge.framework.persistence.user.entities.PFUserDO,
-   * java.lang.Object, java.lang.Object)
+   * @see UserRightAccessCheck#hasDeleteAccess(PFUserDO,
+   * Object, Object)
    */
   @Override
-  public boolean hasDeleteAccess(final PFUserDO user, final TeamCalDO obj, final TeamCalDO oldObj)
+  public boolean hasDeleteAccess(final PFUserDO user, final AddressbookDO obj, final AddressbookDO oldObj)
   {
     return hasInsertAccess(user, oldObj) == true;
   }
 
   /**
-   * @see org.projectforge.business.user.UserRightAccessCheck#hasHistoryAccess(org.projectforge.framework.persistence.user.entities.PFUserDO,
-   * java.lang.Object)
+   * @see UserRightAccessCheck#hasHistoryAccess(PFUserDO,
+   * Object)
    */
   @Override
-  public boolean hasHistoryAccess(final PFUserDO user, final TeamCalDO obj)
+  public boolean hasHistoryAccess(final PFUserDO user, final AddressbookDO obj)
   {
     if (obj == null) {
       return true;
@@ -144,20 +143,20 @@ public class TeamCalRight extends UserRightAccessCheck<TeamCalDO>
     return hasInsertAccess(user, obj) == true;
   }
 
-  public boolean isOwner(final PFUserDO user, final TeamCalDO cal)
+  public boolean isOwner(final PFUserDO user, final AddressbookDO ab)
   {
-    if (cal == null) {
+    if (ab == null) {
       return false;
     }
-    return ObjectUtils.equals(user.getId(), cal.getOwnerId()) == true;
+    return ObjectUtils.equals(user.getId(), ab.getOwnerId()) == true;
   }
 
-  public boolean isOwner(final Integer userId, final TeamCalDO cal)
+  public boolean isOwner(final Integer userId, final AddressbookDO ab)
   {
-    if (cal == null || userId == null) {
+    if (ab == null || userId == null) {
       return false;
     }
-    return ObjectUtils.equals(userId, cal.getOwnerId()) == true;
+    return ObjectUtils.equals(userId, ab.getOwnerId()) == true;
   }
 
   public boolean isMemberOfAtLeastOneGroup(final PFUserDO user, final Integer... groupIds)
@@ -166,64 +165,64 @@ public class TeamCalRight extends UserRightAccessCheck<TeamCalDO>
   }
 
   /**
-   * @param calendar
+   * @param addressbook
    * @param userId
-   * @return {@link TeamCalAccessType#NONE}, {@link TeamCalAccessType#MINIMAL}, {@link TeamCalAccessType#READONLY} or
-   * {@link TeamCalAccessType#FULL}. null will never be returned!
+   * @return {@link DataobjectAccessType#NONE}, {@link DataobjectAccessType#MINIMAL}, {@link DataobjectAccessType#READONLY} or
+   * {@link DataobjectAccessType#FULL}. null will never be returned!
    */
-  public DataobjectAccessType getAccessType(final TeamCalDO calendar, final Integer userId)
+  public DataobjectAccessType getAccessType(final AddressbookDO ab, final Integer userId)
   {
-    if (calendar == null || userId == null) {
+    if (ab == null || userId == null) {
       return DataobjectAccessType.NONE;
     }
-    if (hasFullAccess(calendar, userId) == true) {
+    if (hasFullAccess(ab, userId) == true) {
       return DataobjectAccessType.FULL;
-    } else if (hasReadonlyAccess(calendar, userId) == true) {
+    } else if (hasReadonlyAccess(ab, userId) == true) {
       return DataobjectAccessType.READONLY;
-    } else if (hasMinimalAccess(calendar, userId) == true) {
+    } else if (hasMinimalAccess(ab, userId) == true) {
       return DataobjectAccessType.MINIMAL;
     }
     return DataobjectAccessType.NONE;
   }
 
-  public boolean hasFullAccess(final TeamCalDO calendar, final Integer userId)
+  public boolean hasFullAccess(final AddressbookDO ab, final Integer userId)
   {
-    if (calendar == null || userId == null) {
+    if (ab == null || userId == null) {
       return false;
     }
-    if (isOwner(userId, calendar) == true) {
+    if (isOwner(userId, ab) == true) {
       return true;
     }
-    final Integer[] groupIds = StringHelper.splitToIntegers(calendar.getFullAccessGroupIds(), ",");
-    final Integer[] userIds = StringHelper.splitToIntegers(calendar.getFullAccessUserIds(), ",");
+    final Integer[] groupIds = StringHelper.splitToIntegers(ab.getFullAccessGroupIds(), ",");
+    final Integer[] userIds = StringHelper.splitToIntegers(ab.getFullAccessUserIds(), ",");
     return hasAccess(groupIds, userIds, userId);
   }
 
-  public boolean hasReadonlyAccess(final TeamCalDO calendar, final Integer userId)
+  public boolean hasReadonlyAccess(final AddressbookDO ab, final Integer userId)
   {
-    if (calendar == null || userId == null) {
+    if (ab == null || userId == null) {
       return false;
     }
-    if (hasFullAccess(calendar, userId) == true) {
+    if (hasFullAccess(ab, userId) == true) {
       // User has full access (which is more than read-only access).
       return false;
     }
-    final Integer[] groupIds = StringHelper.splitToIntegers(calendar.getReadonlyAccessGroupIds(), ",");
-    final Integer[] userIds = StringHelper.splitToIntegers(calendar.getReadonlyAccessUserIds(), ",");
+    final Integer[] groupIds = StringHelper.splitToIntegers(ab.getReadonlyAccessGroupIds(), ",");
+    final Integer[] userIds = StringHelper.splitToIntegers(ab.getReadonlyAccessUserIds(), ",");
     return hasAccess(groupIds, userIds, userId);
   }
 
-  public boolean hasMinimalAccess(final TeamCalDO calendar, final Integer userId)
+  public boolean hasMinimalAccess(final AddressbookDO ab, final Integer userId)
   {
-    if (calendar == null || userId == null) {
+    if (ab == null || userId == null) {
       return false;
     }
-    if (hasFullAccess(calendar, userId) == true || hasReadonlyAccess(calendar, userId) == true) {
+    if (hasFullAccess(ab, userId) == true || hasReadonlyAccess(ab, userId) == true) {
       // User has full access or read-only access (which is more than minimal access).
       return false;
     }
-    final Integer[] groupIds = StringHelper.splitToIntegers(calendar.getMinimalAccessGroupIds(), ",");
-    final Integer[] userIds = StringHelper.splitToIntegers(calendar.getMinimalAccessUserIds(), ",");
+    final Integer[] groupIds = StringHelper.splitToIntegers(ab.getMinimalAccessGroupIds(), ",");
+    final Integer[] userIds = StringHelper.splitToIntegers(ab.getMinimalAccessUserIds(), ",");
     return hasAccess(groupIds, userIds, userId);
   }
 
