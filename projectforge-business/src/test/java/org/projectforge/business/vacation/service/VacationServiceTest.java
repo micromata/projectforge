@@ -19,6 +19,7 @@ import java.util.TimeZone;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
@@ -34,6 +35,7 @@ import org.projectforge.business.vacation.repository.VacationDao;
 import org.projectforge.framework.configuration.ConfigXml;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
+import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
@@ -417,6 +419,129 @@ public class VacationServiceTest extends PowerMockTestCase
     vacation.setHalfDay(halfDay);
     vacation.setStatus(status);
     return vacation;
+  }
+
+  @Test
+  public void testUpdateUsedNewVacationDaysFromLastYearUsedNone() throws ParseException
+  {
+    when(employee.getUrlaubstage()).thenReturn(30);
+
+    vacationService.updateUsedNewVacationDaysFromLastYear(employee, 2016);
+
+    // get values from mock
+    ArgumentCaptor<BigDecimal> prevYearLeave = ArgumentCaptor.forClass(BigDecimal.class);
+    ArgumentCaptor<BigDecimal> prevYearLeaveUsed = ArgumentCaptor.forClass(BigDecimal.class);
+    Mockito.verify(employee).putAttribute(same(VacationAttrProperty.PREVIOUSYEARLEAVE.getPropertyName()), prevYearLeave.capture());
+    Mockito.verify(employee).putAttribute(same(VacationAttrProperty.PREVIOUSYEARLEAVEUSED.getPropertyName()), prevYearLeaveUsed.capture());
+
+    Assert.assertEquals(prevYearLeave.getValue(), BigDecimal.valueOf(30));
+    Assert.assertEquals(prevYearLeaveUsed.getValue(), BigDecimal.valueOf(0));
+  }
+
+  @Test
+  public void testUpdateUsedNewVacationDaysFromLastYearUsedPartial1() throws ParseException
+  {
+    final List<VacationDO> vacationList = Arrays.asList(
+        createVacation("2017-02-01", "2017-02-02", false, VacationStatus.IN_PROGRESS), // 2, will not be considered
+        createVacation("2017-02-03", "2017-02-06", false, VacationStatus.REJECTED), // 2, will not be considered
+        createVacation("2017-02-01", "2017-02-10", false, VacationStatus.APPROVED), // 8
+        createVacation("2017-02-13", "2017-02-13", true, VacationStatus.APPROVED), // 0.5
+        createVacation("2017-02-24", "2017-03-03", false, VacationStatus.APPROVED), // 3 in feb + 3 in mar
+        createVacation("2017-03-30", "2017-04-04", false, VacationStatus.APPROVED) // 2 in mar + 2 in apr
+    );
+
+    when(employee.getUrlaubstage()).thenReturn(30);
+    when(vacationDao.getVacationForPeriod(same(employee), any(Date.class), any(Date.class), eq(false))).thenReturn(vacationList);
+
+    vacationService.updateUsedNewVacationDaysFromLastYear(employee, 2016);
+
+    // get values from mock
+    ArgumentCaptor<BigDecimal> prevYearLeave = ArgumentCaptor.forClass(BigDecimal.class);
+    ArgumentCaptor<BigDecimal> prevYearLeaveUsed = ArgumentCaptor.forClass(BigDecimal.class);
+    Mockito.verify(employee).putAttribute(same(VacationAttrProperty.PREVIOUSYEARLEAVE.getPropertyName()), prevYearLeave.capture());
+    Mockito.verify(employee).putAttribute(same(VacationAttrProperty.PREVIOUSYEARLEAVEUSED.getPropertyName()), prevYearLeaveUsed.capture());
+
+    Assert.assertEquals(prevYearLeave.getValue(), BigDecimal.valueOf(30));
+    Assert.assertEquals(prevYearLeaveUsed.getValue(), BigDecimal.valueOf(16.5));
+  }
+
+  @Test
+  public void testUpdateUsedNewVacationDaysFromLastYearUsedPartial2() throws ParseException
+  {
+    final List<VacationDO> vacationList = Arrays.asList(
+        createVacation("2017-02-01", "2017-02-02", false, VacationStatus.IN_PROGRESS), // 2, will not be considered
+        createVacation("2017-02-03", "2017-02-06", false, VacationStatus.REJECTED), // 2, will not be considered
+        createVacation("2017-02-01", "2017-02-10", false, VacationStatus.APPROVED), // 8
+        createVacation("2017-02-13", "2017-02-13", true, VacationStatus.APPROVED), // 0.5
+        createVacation("2017-02-24", "2017-03-03", false, VacationStatus.APPROVED), // 3 in feb + 3 in mar
+        createVacation("2017-03-30", "2017-04-04", false, VacationStatus.APPROVED) // 2 in mar + 2 in apr
+    );
+
+    when(employee.getUrlaubstage()).thenReturn(20);
+    when(vacationDao.getVacationForPeriod(same(employee), any(Date.class), any(Date.class), eq(false))).thenReturn(vacationList);
+
+    vacationService.updateUsedNewVacationDaysFromLastYear(employee, 2016);
+
+    // get values from mock
+    ArgumentCaptor<BigDecimal> prevYearLeave = ArgumentCaptor.forClass(BigDecimal.class);
+    ArgumentCaptor<BigDecimal> prevYearLeaveUsed = ArgumentCaptor.forClass(BigDecimal.class);
+    Mockito.verify(employee).putAttribute(same(VacationAttrProperty.PREVIOUSYEARLEAVE.getPropertyName()), prevYearLeave.capture());
+    Mockito.verify(employee).putAttribute(same(VacationAttrProperty.PREVIOUSYEARLEAVEUSED.getPropertyName()), prevYearLeaveUsed.capture());
+
+    Assert.assertEquals(prevYearLeave.getValue(), BigDecimal.valueOf(20));
+    Assert.assertEquals(prevYearLeaveUsed.getValue(), BigDecimal.valueOf(16.5));
+  }
+
+  @Test
+  public void testUpdateUsedNewVacationDaysFromLastYearUsedPartial3() throws ParseException
+  {
+    final List<VacationDO> vacationList = Arrays.asList(
+        createVacation("2017-02-01", "2017-02-02", false, VacationStatus.IN_PROGRESS), // 2, will not be considered
+        createVacation("2017-02-03", "2017-02-06", false, VacationStatus.REJECTED), // 2, will not be considered
+        createVacation("2017-02-01", "2017-02-10", false, VacationStatus.APPROVED), // 8
+        createVacation("2017-02-13", "2017-02-13", true, VacationStatus.APPROVED), // 0.5
+        createVacation("2017-02-24", "2017-03-03", false, VacationStatus.APPROVED), // 3 in feb + 3 in mar
+        createVacation("2017-03-30", "2017-04-04", false, VacationStatus.APPROVED) // 2 in mar + 2 in apr
+    );
+
+    when(employee.getUrlaubstage()).thenReturn(15);
+    when(vacationDao.getVacationForPeriod(same(employee), any(Date.class), any(Date.class), eq(false))).thenReturn(vacationList);
+
+    vacationService.updateUsedNewVacationDaysFromLastYear(employee, 2016);
+
+    // get values from mock
+    ArgumentCaptor<BigDecimal> prevYearLeave = ArgumentCaptor.forClass(BigDecimal.class);
+    ArgumentCaptor<BigDecimal> prevYearLeaveUsed = ArgumentCaptor.forClass(BigDecimal.class);
+    Mockito.verify(employee).putAttribute(same(VacationAttrProperty.PREVIOUSYEARLEAVE.getPropertyName()), prevYearLeave.capture());
+    Mockito.verify(employee).putAttribute(same(VacationAttrProperty.PREVIOUSYEARLEAVEUSED.getPropertyName()), prevYearLeaveUsed.capture());
+
+    Assert.assertEquals(prevYearLeave.getValue(), BigDecimal.valueOf(15));
+    Assert.assertEquals(prevYearLeaveUsed.getValue(), BigDecimal.valueOf(15));
+  }
+
+  @Test
+  public void testUpdateUsedNewVacationDaysFromLastYearUsedMore() throws ParseException
+  {
+    final List<VacationDO> vacationList = Arrays.asList(
+        createVacation("2017-02-01", "2017-02-02", false, VacationStatus.IN_PROGRESS), // 2, will not be considered
+        createVacation("2017-02-03", "2017-02-06", false, VacationStatus.REJECTED), // 2, will not be considered
+        createVacation("2017-02-01", "2017-02-25", false, VacationStatus.APPROVED), // 18
+        createVacation("2017-03-01", "2017-04-30", false, VacationStatus.APPROVED) //
+    );
+
+    when(employee.getUrlaubstage()).thenReturn(30);
+    when(vacationDao.getVacationForPeriod(same(employee), any(Date.class), any(Date.class), eq(false))).thenReturn(vacationList);
+
+    vacationService.updateUsedNewVacationDaysFromLastYear(employee, 2016);
+
+    // get values from mock
+    ArgumentCaptor<BigDecimal> prevYearLeave = ArgumentCaptor.forClass(BigDecimal.class);
+    ArgumentCaptor<BigDecimal> prevYearLeaveUsed = ArgumentCaptor.forClass(BigDecimal.class);
+    Mockito.verify(employee).putAttribute(same(VacationAttrProperty.PREVIOUSYEARLEAVE.getPropertyName()), prevYearLeave.capture());
+    Mockito.verify(employee).putAttribute(same(VacationAttrProperty.PREVIOUSYEARLEAVEUSED.getPropertyName()), prevYearLeaveUsed.capture());
+
+    Assert.assertEquals(prevYearLeave.getValue(), BigDecimal.valueOf(30));
+    Assert.assertEquals(prevYearLeaveUsed.getValue(), BigDecimal.valueOf(30));
   }
 
 }

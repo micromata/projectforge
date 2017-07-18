@@ -32,6 +32,7 @@ import org.projectforge.framework.persistence.history.DisplayHistoryEntry;
 import org.projectforge.framework.persistence.jpa.impl.CorePersistenceServiceImpl;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
+import org.projectforge.framework.time.DateHelper;
 import org.projectforge.framework.time.DateTimeFormatter;
 import org.projectforge.framework.time.DayHolder;
 import org.projectforge.mail.Mail;
@@ -255,7 +256,30 @@ public class VacationServiceImpl extends CorePersistenceServiceImpl<Integer, Vac
   {
     final BigDecimal availableVacationdays = getAvailableVacationdaysForYear(employee, year, false);
     employee.putAttribute(VacationAttrProperty.PREVIOUSYEARLEAVE.getPropertyName(), availableVacationdays);
-    employee.putAttribute(VacationAttrProperty.PREVIOUSYEARLEAVEUSED.getPropertyName(), BigDecimal.ZERO);
+
+    // find approved vacations in new year
+    Calendar from = Calendar.getInstance();
+    from.setTimeZone(DateHelper.UTC);
+    from.set(year + 1, Calendar.JANUARY, 1, 0, 0, 0);
+    Date to = getEndDateVacationFromLastYear().getTime();
+    List<VacationDO> vacationNewYear = vacationDao.getVacationForPeriod(employee, from.getTime(), to, false);
+
+    BigDecimal usedInNewYear = BigDecimal.ZERO;
+
+    for (VacationDO vacation : vacationNewYear) {
+      if (vacation.getStatus() != VacationStatus.APPROVED) {
+        continue;
+      }
+
+      // compute used days until EndDateVacationFromLastYear
+      BigDecimal days = this.getVacationDays(vacation.getStartDate(), vacation.getEndDate().after(to) ? to : vacation.getEndDate(), vacation.getHalfDay());
+      usedInNewYear = usedInNewYear.add(days);
+    }
+
+    // compute used days
+    final BigDecimal usedDays = availableVacationdays.compareTo(usedInNewYear) < 1 ? availableVacationdays : usedInNewYear;
+
+    employee.putAttribute(VacationAttrProperty.PREVIOUSYEARLEAVEUSED.getPropertyName(), usedDays);
     employeeDao.internalSave(employee);
   }
 
