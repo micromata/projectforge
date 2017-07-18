@@ -31,25 +31,25 @@ import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.projectforge.common.BeanHelper;
-import org.projectforge.framework.time.DateFormatType;
+import org.projectforge.common.DateFormatType;
 import org.projectforge.framework.time.DateFormats;
 import org.projectforge.framework.time.DateTimeFormatter;
 
-
 /**
  * Table view property columns representing date or time stamps.
- * @author Kai Reinhard (k.reinhard@micromata.de)
  *
+ * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 public class DatePropertyColumn<T> extends CellItemListenerPropertyColumn<T>
 {
   private static final long serialVersionUID = 4759972917073202845L;
-  
+
   private DateTimeFormatter dateTimeFormatter;
-  
+
   private String datePattern = DateFormats.getFormatString(DateFormatType.DATE_SHORT);
 
-  public DatePropertyColumn(final DateTimeFormatter dateTimeFormatter, final String label, final String sortProperty, final String property, CellItemListener<T> cellItemListener)
+  public DatePropertyColumn(final DateTimeFormatter dateTimeFormatter, final String label, final String sortProperty, final String property,
+      CellItemListener<T> cellItemListener)
   {
     super(new Model<String>(label), sortProperty, property, cellItemListener);
     this.dateTimeFormatter = dateTimeFormatter;
@@ -59,13 +59,15 @@ public class DatePropertyColumn<T> extends CellItemListenerPropertyColumn<T>
   {
     this(dateTimeFormatter, label, sortProperty, property, null);
   }
-  
+
   /**
    * Default is SHORT_DATE_FORMAT.
+   *
    * @param datePattern Date pattern to set. Please use DateTimeFormatter constants.
    * @see DateTimeFormatter#I18N_KEY_SHORT_DATE_FORMAT
    */
-  public DatePropertyColumn<T> setDatePattern(final String datePattern) {
+  public DatePropertyColumn<T> setDatePattern(final String datePattern)
+  {
     this.datePattern = datePattern;
     return this;
   }

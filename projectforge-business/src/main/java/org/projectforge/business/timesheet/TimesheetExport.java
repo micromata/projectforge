@@ -47,10 +47,10 @@ import org.projectforge.business.task.TaskTree;
 import org.projectforge.business.task.formatter.TaskFormatter;
 import org.projectforge.business.tasktree.TaskTreeHelper;
 import org.projectforge.business.user.UserGroupCache;
+import org.projectforge.common.DateFormatType;
 import org.projectforge.export.MyXlsContentProvider;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
-import org.projectforge.framework.time.DateFormatType;
 import org.projectforge.framework.time.DateFormats;
 import org.projectforge.framework.time.DateHolder;
 import org.projectforge.framework.time.DateTimeFormatter;
@@ -110,11 +110,9 @@ public class TimesheetExport
     }
   }
 
-  ;
-
   private enum Col
   {
-    USER, KUNDE, PROJEKT, KOST2, WEEK_OF_YEAR, DAY_OF_WEEK, START_TIME, STOP_TIME, DURATION, HOURS, LOCATION, TASK_TITLE, REFERENCE, SHORT_DESCRIPTION, DESCRIPTION, TASK_PATH, ID;
+    USER, KUNDE, PROJEKT, KOST2, WEEK_OF_YEAR, DAY_OF_WEEK, START_TIME, STOP_TIME, DURATION, HOURS, LOCATION, TASK_TITLE, REFERENCE, SHORT_DESCRIPTION, DESCRIPTION, TASK_PATH, ID
   }
 
   /**

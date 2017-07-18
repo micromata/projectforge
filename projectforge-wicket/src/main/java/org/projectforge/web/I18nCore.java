@@ -25,14 +25,15 @@ package org.projectforge.web;
 
 import java.util.Locale;
 
+import org.projectforge.common.DateFormatType;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
-import org.projectforge.framework.time.DateFormatType;
 import org.projectforge.framework.time.DateFormats;
 import org.projectforge.framework.time.TimeNotation;
 import org.projectforge.web.calendar.MyFullCalendarConfig;
 
 /**
  * Main class for administration ProjectForge's localization. If you want to add new translations, this class should be referred first.
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 public class I18nCore
@@ -41,6 +42,7 @@ public class I18nCore
   /**
    * The datepicker locale is used for localization of the DatePicker. If you add a new language please add also the datepicker translation
    * file jquery.ui.datepicker-de.js (replace de by your language short cut).
+   *
    * @param locale
    * @return "de" for german otherwise null (default).
    */
@@ -72,6 +74,7 @@ public class I18nCore
   /**
    * Sets the date and time formats of the FullCalendar (jquery plugin). It's easier to understand this method if you run ProjectForge and
    * check the calendar page during analyzing this method.
+   *
    * @param config
    */
   public static void setFullCalendarDateFormats(final PFUserDO user, final MyFullCalendarConfig config)

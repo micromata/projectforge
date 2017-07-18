@@ -46,13 +46,13 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.multitenancy.TenantChecker;
 import org.projectforge.business.user.UserFormatter;
+import org.projectforge.common.DateFormatType;
 import org.projectforge.framework.persistence.api.BaseDao;
 import org.projectforge.framework.persistence.api.ExtendedBaseDO;
 import org.projectforge.framework.persistence.api.IPersistenceService;
 import org.projectforge.framework.persistence.api.ModificationStatus;
 import org.projectforge.framework.persistence.entities.AbstractBaseDO;
 import org.projectforge.framework.persistence.history.DisplayHistoryEntry;
-import org.projectforge.framework.time.DateFormatType;
 import org.projectforge.framework.time.DateFormats;
 import org.projectforge.framework.time.DateTimeFormatter;
 import org.projectforge.web.admin.WizardPage;
@@ -166,7 +166,7 @@ public abstract class AbstractEditPage<O extends AbstractBaseDO<Integer>, F exte
     columns
         .add(new UserPropertyColumn<DisplayHistoryEntry>(getUserGroupCache(), getString("user"), null, "user",
             cellItemListener)
-                .withUserFormatter(userFormatter));
+            .withUserFormatter(userFormatter));
     columns
         .add(new CellItemListenerPropertyColumn<DisplayHistoryEntry>(getString("history.entryType"), null, "entryType",
             cellItemListener));
@@ -297,9 +297,9 @@ public abstract class AbstractEditPage<O extends AbstractBaseDO<Integer>, F exte
 
   /**
    * Will be called directly after storing the data object (update).
-   * 
+   *
    * @param modificationStatus MINOR or MAJOR, if the object was modified, otherwise NONE. If a not null web page is
-   *          returned, then the web page will be set as response page.
+   *                           returned, then the web page will be set as response page.
    * @see BaseDao#update(ExtendedBaseDO)
    */
   @Override
@@ -473,7 +473,7 @@ public abstract class AbstractEditPage<O extends AbstractBaseDO<Integer>, F exte
 
   /**
    * Convenience method.
-   * 
+   *
    * @see AbstractEditForm#getData()
    */
   @Override
@@ -488,7 +488,7 @@ public abstract class AbstractEditPage<O extends AbstractBaseDO<Integer>, F exte
 
   /**
    * Checks weather the id of the data object is given or not.
-   * 
+   *
    * @return true if the user wants to create a new data object or false for an already existing object.
    */
   @Override
@@ -504,7 +504,7 @@ public abstract class AbstractEditPage<O extends AbstractBaseDO<Integer>, F exte
   /**
    * Calls getString(key) with key "[i18nPrefix].title.edit" or "[i18nPrefix].title.add" dependent weather the data
    * object is already existing or new.
-   * 
+   *
    * @see org.projectforge.web.wicket.AbstractUnsecurePage#getTitle()
    */
   @Override
@@ -529,7 +529,7 @@ public abstract class AbstractEditPage<O extends AbstractBaseDO<Integer>, F exte
 
   /**
    * Removes id from the initial parameters set.
-   * 
+   *
    * @see org.projectforge.web.wicket.AbstractSecuredPage#getBookmarkableInitialParameters()
    */
   @Override
