@@ -23,12 +23,7 @@
 
 package org.projectforge.business.task;
 
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertFalse;
-import static org.testng.AssertJUnit.assertNotNull;
-import static org.testng.AssertJUnit.assertNull;
-import static org.testng.AssertJUnit.assertTrue;
-import static org.testng.AssertJUnit.fail;
+import static org.testng.AssertJUnit.*;
 
 import java.io.Serializable;
 import java.util.Calendar;
@@ -73,9 +68,7 @@ public class TaskTest extends AbstractTestBase
 
   @Autowired
   private TimesheetDao timesheetDao;
-
   
-
   @Test
   public void testTaskDO()
   {

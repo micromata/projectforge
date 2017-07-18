@@ -91,6 +91,6 @@ public class RestServicesTest extends AbstractTestBase
     Response response = taskDaoRest.getList("ProjectForge", true, false, false, false);
     Assert.assertTrue(response.getStatus() == SUCCESS_STATUS);
     Assert.assertTrue(
-        ((String) response.getEntity()).contains("\"shortDescription\":\"ProjectForge root task\""));
+        ((String) response.getEntity()).contains("\"shortDescription\":\"ProjectForge root task"));
   }
 }
