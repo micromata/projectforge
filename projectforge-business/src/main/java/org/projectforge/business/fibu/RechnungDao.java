@@ -190,7 +190,7 @@ public class RechnungDao extends BaseDao<RechnungDO>
   @Override
   protected void onSaveOrModify(final RechnungDO rechnung)
   {
-    if (rechnung.getId() != null) {
+    if (RechnungTyp.RECHNUNG.equals(rechnung.getTyp()) && rechnung.getId() != null) {
       RechnungDO originValue = internalGetById(rechnung.getId());
       if (RechnungStatus.GEPLANT.equals(originValue.getStatus()) && RechnungStatus.GEPLANT.equals(rechnung.getStatus()) == false) {
         rechnung.setNummer(getNextNumber(rechnung));
