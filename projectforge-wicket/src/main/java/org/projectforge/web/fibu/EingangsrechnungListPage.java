@@ -91,7 +91,7 @@ public class EingangsrechnungListPage
   KontoCache kontoCache;
 
   @SpringBean
-  private org.projectforge.business.fibu.kost.reporting.SEPATransferGenerator SEPATransferGenerator;
+  private SEPATransferGenerator SEPATransferGenerator;
 
   private EingangsrechnungsStatistik eingangsrechnungsStatistik;
 
@@ -129,7 +129,7 @@ public class EingangsrechnungListPage
   @Override
   public List<IColumn<EingangsrechnungDO, String>> createColumns(final WebPage returnToPage, final boolean sortable)
   {
-    final List<IColumn<EingangsrechnungDO, String>> columns = new ArrayList<IColumn<EingangsrechnungDO, String>>();
+    final List<IColumn<EingangsrechnungDO, String>> columns = new ArrayList<>();
     final CellItemListener<EingangsrechnungDO> cellItemListener = new CellItemListener<EingangsrechnungDO>()
     {
       @Override
