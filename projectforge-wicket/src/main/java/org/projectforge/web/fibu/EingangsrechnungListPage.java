@@ -53,6 +53,7 @@ import org.projectforge.business.fibu.KontoCache;
 import org.projectforge.business.fibu.KontoDO;
 import org.projectforge.business.fibu.RechnungFilter;
 import org.projectforge.business.fibu.kost.KostZuweisungExport;
+import org.projectforge.business.fibu.kost.reporting.SEPATransferGenerator;
 import org.projectforge.business.fibu.kost.reporting.SEPATransferResult;
 import org.projectforge.business.utils.CurrencyFormatter;
 import org.projectforge.export.DOListExcelExporter;
