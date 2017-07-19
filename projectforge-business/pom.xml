@@ -5,7 +5,7 @@
   <parent>
     <groupId>org.projectforge</groupId>
     <artifactId>projectforge-parent</artifactId>
-    <version>6.14.0</version>
+    <version>6.15.0</version>
   </parent>
   <licenses>
     <license>
@@ -340,6 +340,25 @@
             <goals>
               <goal>run</goal>
             </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.jvnet.jaxb2.maven2</groupId>
+        <artifactId>maven-jaxb2-plugin</artifactId>
+        <version>0.13.2</version>
+        <executions>
+          <execution>
+            <goals>
+              <goal>generate</goal>
+            </goals>
+            <configuration>
+              <schemaDirectory>src/main/resources/misc</schemaDirectory>
+              <schemaIncludes>
+                <include>pain.001.003.03.xsd</include>
+              </schemaIncludes>
+              <generatePackage>org.projectforge.generated</generatePackage>
+            </configuration>
           </execution>
         </executions>
       </plugin>

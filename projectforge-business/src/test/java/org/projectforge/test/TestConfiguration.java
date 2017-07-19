@@ -16,6 +16,7 @@ import org.projectforge.web.servlet.SMSReceiverServlet;
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.web.ServerProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -172,6 +173,16 @@ public class TestConfiguration
   public TimeableService timeableService()
   {
     return new TimeableServiceImpl();
+  }
+
+  /**
+   * This is a workaround because we are using spring unit tests and not spring boot unit tests.
+   * Without this, the spring context within our unit tests does not know this spring boot configuration bean.
+   */
+  @Bean
+  public ServerProperties serverProperties()
+  {
+    return new ServerProperties();
   }
 
   @PostConstruct

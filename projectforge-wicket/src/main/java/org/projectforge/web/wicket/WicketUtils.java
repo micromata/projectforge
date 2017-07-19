@@ -57,10 +57,10 @@ import org.apache.wicket.util.string.StringValue;
 import org.projectforge.Const;
 import org.projectforge.business.utils.HtmlHelper;
 import org.projectforge.common.BeanHelper;
+import org.projectforge.common.DateFormatType;
 import org.projectforge.common.StringHelper;
 import org.projectforge.framework.configuration.ConfigXml;
 import org.projectforge.framework.persistence.api.BaseDao;
-import org.projectforge.framework.time.DateFormatType;
 import org.projectforge.framework.time.DateFormats;
 import org.projectforge.framework.time.DateHelper;
 import org.projectforge.framework.time.DateHolder;
@@ -188,7 +188,7 @@ public class WicketUtils
 
   /**
    * Renders &lt;link type="image/x-icon" rel="shortcut icon" href="favicon.ico" /&gt;
-   * 
+   *
    * @param favicon The favicon file, e. g. "/ProjectForge/favicon.ico".
    */
   public static String getCssForFavicon(final String favicon)
@@ -198,7 +198,7 @@ public class WicketUtils
 
   /**
    * Prepends APPLICATION_CONTEXT if url starts with '/', otherwise url is returned unchanged.
-   * 
+   *
    * @param url
    */
   public static final String getAbsoluteUrl(final String url)
@@ -211,7 +211,7 @@ public class WicketUtils
 
   /**
    * Get the url for the given path (without image path). Later, the path of the images is changeable.
-   * 
+   *
    * @param requestCycle Needed to encode url.
    * @param subpath
    * @return
@@ -223,7 +223,7 @@ public class WicketUtils
 
   /**
    * Should be c:url equivalent, but isn't yet (works for now).
-   * 
+   *
    * @param requestCycle Needed to encode url.
    * @param path
    * @param encodeUrl
@@ -241,9 +241,9 @@ public class WicketUtils
   /**
    * Works for Wicket and non Wicket calling pages. For non Wicket callers the pageClass must be bookmarked in Wicket
    * application.
-   * 
+   *
    * @param pageClass
-   * @param Optional list of params in tupel form: key, value, key, value...
+   * @param Optional  list of params in tupel form: key, value, key, value...
    */
   public static String getBookmarkablePageUrl(final Class<? extends Page> pageClass, final String... params)
   {
@@ -284,7 +284,7 @@ public class WicketUtils
 
   /**
    * Tuples of parameters converted to Wicket parameters.
-   * 
+   *
    * @param params
    * @return
    */
@@ -326,7 +326,7 @@ public class WicketUtils
 
   /**
    * @return Default page of ProjectForge. Currently {@link WicketApplication#DEFAULT_PAGE} is the default page (e. g.
-   *         to redirect after login if no forward url is specified).
+   * to redirect after login if no forward url is specified).
    */
   public static String getDefaultPageUrl()
   {
@@ -335,7 +335,7 @@ public class WicketUtils
 
   /**
    * @return Default page of ProjectForge. Currently {@link WicketApplication#DEFAULT_PAGE} is the default page (e. g.
-   *         to redirect after cancel if no other return page is specified).
+   * to redirect after cancel if no other return page is specified).
    */
   public static Class<? extends WebPage> getDefaultPage()
   {
@@ -354,7 +354,7 @@ public class WicketUtils
    * If value is null or value is default value then nothing is done. Otherwise the given value is added as page
    * parameter under the given key. Dates and TimePeriods are converted and can be gotten by
    * {@link #getPageParameter(PageParameters, String, Class)}.
-   * 
+   *
    * @param pageParameters
    * @param key
    * @param value
@@ -492,7 +492,7 @@ public class WicketUtils
    * At least one parameter should be given for setting the fill the bean with all book-markable properties (absent
    * properties will be set to zero). If the given bean is an instance of {@link ISelectCallerPage} then the
    * select/unselect methods are used, otherwise the properties will set directly of the given bean.
-   * 
+   *
    * @param bean
    * @param parameters
    * @param prefix
@@ -569,7 +569,7 @@ public class WicketUtils
 
   /**
    * Adds onclick attribute with "javascript:rowClick(this);".
-   * 
+   *
    * @param row Html tr element.
    */
   public static void addRowClick(final Component row)
@@ -580,7 +580,6 @@ public class WicketUtils
   }
 
   /**
-   * 
    * @return
    */
   public static ContextImage getInvisibleDummyImage(final String id, final RequestCycle requestCylce)
@@ -607,7 +606,7 @@ public class WicketUtils
 
   /**
    * Uses "jiraSupportTooltipImage" as component id.
-   * 
+   *
    * @param parent only needed for localization
    * @param id
    * @return IconPanel which is invisible if JIRA isn't configured.
@@ -626,7 +625,7 @@ public class WicketUtils
   /**
    * Uses "jiraSupportTooltipImage" as component id. Please use {@link FieldsetPanel#addJIRASupportHelpIcon()} instead
    * of this method if possible.
-   * 
+   *
    * @param fieldset needed for localization and for getting new child id.
    * @return IconPanel which is invisible if JIRA isn't configured.
    */
@@ -660,7 +659,7 @@ public class WicketUtils
    * Add JavaScript function showDeleteEntryQuestionDialog(). Depending on BaseDao.isHistorizable() a delete or
    * mark-as-deleted question will be displayed. Usage in markup: &lt;script
    * wicket:id="showDeleteEntryQuestionDialog"&gt;[...]&lt;/script&gt;
-   * 
+   *
    * @param parent
    * @param dao
    */
@@ -680,7 +679,7 @@ public class WicketUtils
 
   /**
    * Sets the html attribute placeholder.
-   * 
+   *
    * @param component
    * @param value
    */
@@ -693,9 +692,9 @@ public class WicketUtils
   }
 
   /**
-   * @param parent Only for i18n needed.
+   * @param parent    Only for i18n needed.
    * @param startTime Start time or null.
-   * @param stopTime Stop time or null.
+   * @param stopTime  Stop time or null.
    * @return The weeks of year range for the given start an stop time.
    */
   public static String getCalendarWeeks(final MarkupContainer parent, final Date startTime, final Date stopTime)
@@ -754,7 +753,7 @@ public class WicketUtils
 
   /**
    * @param startTime Start time or null.
-   * @param stopTime Stop time or null.
+   * @param stopTime  Stop time or null.
    */
   public static String getUTCDates(final Date startTime, final Date stopTime)
   {
@@ -795,7 +794,7 @@ public class WicketUtils
 
   /**
    * Adds a SimpleAttributeModifier("title", ...) to the given component.
-   * 
+   *
    * @param component
    * @param title
    * @param text
@@ -809,7 +808,7 @@ public class WicketUtils
 
   /**
    * Adds a SimpleAttributeModifier("title", ...) to the given component.
-   * 
+   *
    * @param component
    * @param title
    * @param text
@@ -824,7 +823,7 @@ public class WicketUtils
 
   /**
    * Adds a SimpleAttributeModifier("title", ...) to the given component.
-   * 
+   *
    * @param component
    * @param text
    * @see #createTooltip(String, String)
@@ -837,7 +836,7 @@ public class WicketUtils
 
   /**
    * Adds a SimpleAttributeModifier("title", ...) to the given component.
-   * 
+   *
    * @param component
    * @param text
    * @param rightAlignment If false (default is true) the tooltip will be aligned at the bottom.
@@ -851,7 +850,7 @@ public class WicketUtils
 
   /**
    * Adds a SimpleAttributeModifier("title", ...) to the given component. Does not modify the given tool tip text!
-   * 
+   *
    * @param component
    * @param text
    */
@@ -862,7 +861,7 @@ public class WicketUtils
 
   /**
    * Adds a SimpleAttributeModifier("title", ...) to the given component. Does not modify the given tool tip text!
-   * 
+   *
    * @param component
    * @param text
    */
@@ -873,10 +872,10 @@ public class WicketUtils
 
   /**
    * Adds a SimpleAttributeModifier("title", ...) to the given component. Does not modify the given tool tip text!
-   * 
+   *
    * @param component
    * @param title
-   * @param text If the string contains "\n" characters then html=true and &lt;br/&gt; are used.
+   * @param text      If the string contains "\n" characters then html=true and &lt;br/&gt; are used.
    */
   public static Component addTooltip(final Component component, final IModel<String> title, final IModel<String> text)
   {
@@ -885,10 +884,10 @@ public class WicketUtils
 
   /**
    * Adds a SimpleAttributeModifier("title", ...) to the given component. Does not modify the given tool tip text!
-   * 
+   *
    * @param component
    * @param title
-   * @param text If the string contains "\n" characters then html=true and &lt;br/&gt; are used.
+   * @param text           If the string contains "\n" characters then html=true and &lt;br/&gt; are used.
    * @param rightAlignment If false (default is true) the tooltip will be aligned at the bottom.
    */
   public static Component addTooltip(final Component component, final IModel<String> title, final IModel<String> text,
@@ -903,11 +902,10 @@ public class WicketUtils
       @Override
       public String getObject()
       {
-        if (text != null && text.getObject() != null && text.getObject().indexOf("\n") > 0) {
-          final String newText = HtmlHelper.escapeHtml(text.getObject(), true);
-          return newText;
+        if (text != null && text.getObject() != null) {
+          return HtmlHelper.escapeHtml(text.getObject(), true);
         }
-        return text.getObject();
+        return null;
       }
     };
     component.add(AttributeModifier.replace("data-html", true));
@@ -924,7 +922,7 @@ public class WicketUtils
 
   /**
    * You need to use {@link AjaxEditableLabel#getLabel()}.
-   * 
+   *
    * @param label
    * @return
    */
@@ -941,7 +939,7 @@ public class WicketUtils
 
   /**
    * Sets readonly="readonly" and "readOnly" as class.
-   * 
+   *
    * @param component
    * @return This for chaining.
    */
@@ -955,7 +953,7 @@ public class WicketUtils
   /**
    * Sets attribute size (only for TextFields) and style="length: width"; The width value is size + 0.5 em and for drop
    * down choices size + 2em;
-   * 
+   *
    * @param component
    * @param size
    * @return This for chaining.
@@ -968,7 +966,7 @@ public class WicketUtils
   /**
    * Sets attribute size (only for TextFields) and style="length: width"; The width value is size + 0.5 em and for drop
    * down choices size + 2em;
-   * 
+   *
    * @param component
    * @param size
    * @param important If true then "!important" is appended to the width style (true is default).
@@ -996,7 +994,7 @@ public class WicketUtils
 
   /**
    * Sets attribute size (only for TextFields) and style="width: x%";
-   * 
+   *
    * @param component
    * @param size
    * @return This for chaining.
@@ -1009,7 +1007,7 @@ public class WicketUtils
 
   /**
    * Sets attribute font-size: style="font-size: 1.1em;";
-   * 
+   *
    * @param component
    * @param size
    * @return This for chaining.
@@ -1028,7 +1026,7 @@ public class WicketUtils
 
   /**
    * Sets attribute style="height: <height>ex;"
-   * 
+   *
    * @param component
    * @param size
    * @return This for chaining.
@@ -1042,7 +1040,7 @@ public class WicketUtils
   /**
    * Adds class="focus" to the given component. It's evaluated by the adminica_ui.js. FocusOnLoadBehaviour doesn't work
    * because the focus is set to early (before the components are visible).
-   * 
+   *
    * @param component
    * @return This for chaining.
    */
@@ -1054,7 +1052,7 @@ public class WicketUtils
 
   /**
    * Same as {@link #setFocus(FormComponent)}
-   * 
+   *
    * @return AttributeAppender
    */
   public static Behavior setFocus()
@@ -1065,7 +1063,7 @@ public class WicketUtils
   /**
    * For field-sets with multiple fields this method generates a multi label, such as "label1/label2", e. g.
    * "zip code/city".
-   * 
+   *
    * @param label
    * @return
    */
@@ -1076,7 +1074,7 @@ public class WicketUtils
 
   /**
    * If true then a tick-mark icon is returned, otherwise an invisible label.
-   * 
+   *
    * @param requestCycle
    * @param componentId
    * @param value
@@ -1094,7 +1092,7 @@ public class WicketUtils
   /**
    * Searchs the attribute behavior (SimpleAttributeModifier or AttibuteApendModifier) with the given attribute name and
    * returns it if found, otherwise null.
-   * 
+   *
    * @param comp
    * @param name Name of attribute.
    */
@@ -1114,7 +1112,7 @@ public class WicketUtils
   /**
    * Calls {@link Component#setResponsePage(Page)}. If the responseItem is an instance of a Page then setResponse for
    * this Page is called otherwise setResponse is called via {@link Component#getPage()}.
-   * 
+   *
    * @param component
    * @param responseItem Page or Component.
    */
@@ -1129,7 +1127,7 @@ public class WicketUtils
 
   /**
    * Casts callerPage to Component and calls {@link #setResponsePage(Component, Component)}.
-   * 
+   *
    * @param component
    * @param callerPage Must be an instance of Component (otherwise a ClassCastException is thrown).
    */

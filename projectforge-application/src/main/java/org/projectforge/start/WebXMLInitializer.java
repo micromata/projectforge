@@ -7,11 +7,13 @@ import javax.servlet.ServletException;
 import org.apache.wicket.protocol.http.WicketFilter;
 import org.apache.wicket.spring.SpringWebApplicationFactory;
 import org.projectforge.business.user.filter.UserFilter;
+import org.projectforge.security.SecurityHeaderFilter;
 import org.projectforge.web.debug.SessionSerializableChecker;
 import org.projectforge.web.doc.TutorialFilter;
 import org.projectforge.web.filter.ResponseHeaderFilter;
 import org.projectforge.web.filter.SpringThreadLocalFilter;
 import org.projectforge.web.rest.RestUserFilter;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.servlet.ServletContextInitializer;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.orm.hibernate3.support.OpenSessionInViewFilter;
@@ -24,47 +26,43 @@ import org.springframework.orm.hibernate3.support.OpenSessionInViewFilter;
 @Configuration
 public class WebXMLInitializer implements ServletContextInitializer
 {
+  @Value("${projectforge.security.csp-header-value:}") // defaults to empty string
+  private String cspHeaderValue;
 
   private static final String PARAM_APP_BEAN = "applicationBean";
 
   @Override
   public void onStartup(ServletContext sc) throws ServletException
   {
-    FilterRegistration userFilter = sc.addFilter("UserFilter",
-        UserFilter.class);
+    final FilterRegistration securityHeaderFilter = sc.addFilter("SecurityHeaderFilter", SecurityHeaderFilter.class);
+    securityHeaderFilter.addMappingForUrlPatterns(null, false, "/*");
+    securityHeaderFilter.setInitParameter(SecurityHeaderFilter.PARAM_CSP_HEADER_VALUE, cspHeaderValue);
+
+    final FilterRegistration userFilter = sc.addFilter("UserFilter", UserFilter.class);
     boolean filterAfterInternal = false;
     userFilter.addMappingForUrlPatterns(null, filterAfterInternal, "/secure/*");
     userFilter.addMappingForUrlPatterns(null, filterAfterInternal, "/wa/*");
 
-    FilterRegistration hibernateFilter = sc.addFilter("HibernateFilter",
-        OpenSessionInViewFilter.class);
-    hibernateFilter.setInitParameter("sessionFactoryBeanName",
-        "sessionFactory");
-    hibernateFilter.setInitParameter("singleSession",
-        "false");
+    final FilterRegistration hibernateFilter = sc.addFilter("HibernateFilter", OpenSessionInViewFilter.class);
+    hibernateFilter.setInitParameter("sessionFactoryBeanName", "sessionFactory");
+    hibernateFilter.setInitParameter("singleSession", "false");
     hibernateFilter.addMappingForUrlPatterns(null, filterAfterInternal, "/wa/*");
 
-    FilterRegistration springContext = sc.addFilter("springContext",
-        SpringThreadLocalFilter.class);
+    final FilterRegistration springContext = sc.addFilter("springContext", SpringThreadLocalFilter.class);
     springContext.addMappingForUrlPatterns(null, filterAfterInternal, "/secure/*");
     springContext.addMappingForUrlPatterns(null, filterAfterInternal, "/wa/*");
 
-    FilterRegistration wicketApp = sc.addFilter("wicket.app",
-        WicketFilter.class);
-    wicketApp.setInitParameter(WicketFilter.APP_FACT_PARAM,
-        SpringWebApplicationFactory.class.getName());
+    final FilterRegistration wicketApp = sc.addFilter("wicket.app", WicketFilter.class);
+    wicketApp.setInitParameter(WicketFilter.APP_FACT_PARAM, SpringWebApplicationFactory.class.getName());
     wicketApp.setInitParameter(PARAM_APP_BEAN, "wicketApplication");
     wicketApp.setInitParameter(WicketFilter.FILTER_MAPPING_PARAM, "/wa/*");
     wicketApp.addMappingForUrlPatterns(null, filterAfterInternal, "/wa/*");
 
-    FilterRegistration restUserFilter = sc.addFilter("restUserFilter",
-        RestUserFilter.class);
+    final FilterRegistration restUserFilter = sc.addFilter("restUserFilter", RestUserFilter.class);
     restUserFilter.addMappingForUrlPatterns(null, false, "/rest/*");
 
-    FilterRegistration expire = sc.addFilter("expire",
-        ResponseHeaderFilter.class);
-    expire.setInitParameter("Cache-Control",
-        "public, max-age=7200");
+    final FilterRegistration expire = sc.addFilter("expire", ResponseHeaderFilter.class);
+    expire.setInitParameter("Cache-Control", "public, max-age=7200");
     expire.addMappingForUrlPatterns(null, false, "*.css");
     expire.addMappingForUrlPatterns(null, false, "*.gif");
     expire.addMappingForUrlPatterns(null, false, "*.gspt");
@@ -73,12 +71,10 @@ public class WebXMLInitializer implements ServletContextInitializer
     expire.addMappingForUrlPatterns(null, false, "*.png");
     expire.addMappingForUrlPatterns(null, false, "*.swf");
 
-    FilterRegistration tutorialFilter = sc.addFilter("TutorialFilter",
-        TutorialFilter.class);
+    final FilterRegistration tutorialFilter = sc.addFilter("TutorialFilter", TutorialFilter.class);
     tutorialFilter.addMappingForUrlPatterns(null, false, "/secure/doc/*");
 
     sc.addListener(SessionSerializableChecker.class);
-
   }
 
 }

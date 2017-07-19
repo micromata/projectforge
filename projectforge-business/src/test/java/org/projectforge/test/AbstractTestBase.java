@@ -69,7 +69,6 @@ import de.micromata.genome.db.jpa.history.entities.EntityOpType;
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
- *
  */
 @ContextConfiguration(
     classes = { TestConfiguration.class },
@@ -228,6 +227,7 @@ public class AbstractTestBase extends AbstractTestNGSpringContextTests
     emf.getJpaSchemaService().clearDatabase();
     TenantRegistryMap.getInstance().setAllUserGroupCachesAsExpired();
     getUserGroupCache().setExpired();
+    TenantRegistryMap.getInstance().clear();
   }
 
   public PFUserDO logon(final String username)

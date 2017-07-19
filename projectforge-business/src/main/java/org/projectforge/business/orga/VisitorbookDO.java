@@ -45,7 +45,6 @@ import javax.persistence.Transient;
 import org.apache.log4j.Logger;
 import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
-import org.hibernate.search.annotations.Analyze;
 import org.hibernate.search.annotations.Field;
 import org.hibernate.search.annotations.FieldBridge;
 import org.hibernate.search.annotations.Index;
@@ -57,6 +56,7 @@ import org.projectforge.common.anots.PropertyInfo;
 import org.projectforge.framework.persistence.api.AUserRightId;
 import org.projectforge.framework.persistence.api.BaseDO;
 import org.projectforge.framework.persistence.api.ModificationStatus;
+import org.projectforge.framework.persistence.attr.impl.HibernateSearchAttrSchemaFieldInfoProvider;
 import org.projectforge.framework.persistence.entities.DefaultBaseDO;
 import org.projectforge.framework.persistence.jpa.impl.BaseDaoJpaAdapter;
 
@@ -66,10 +66,12 @@ import de.micromata.genome.db.jpa.tabattr.api.EntityWithConfigurableAttr;
 import de.micromata.genome.db.jpa.tabattr.api.EntityWithTimeableAttr;
 import de.micromata.genome.jpa.ComplexEntity;
 import de.micromata.genome.jpa.ComplexEntityVisitor;
+import de.micromata.mgc.jpa.hibernatesearch.api.HibernateSearchInfo;
 import de.micromata.mgc.jpa.hibernatesearch.bridges.TimeableListFieldBridge;
 
 @Entity
 @Indexed
+@HibernateSearchInfo(fieldInfoProvider = HibernateSearchAttrSchemaFieldInfoProvider.class, param = "visitorbook")
 @Table(name = "t_orga_visitorbook", indexes = { @javax.persistence.Index(name = "idx_fk_t_orga_visitorbook_tenant_id", columnList = "tenant_id") })
 @AUserRightId("ORGA_VISITORBOOK")
 public class VisitorbookDO extends DefaultBaseDO implements EntityWithTimeableAttr<Integer, VisitorbookTimedDO>, ComplexEntity, EntityWithConfigurableAttr
@@ -78,19 +80,20 @@ public class VisitorbookDO extends DefaultBaseDO implements EntityWithTimeableAt
 
   private static final Logger LOG = Logger.getLogger(VisitorbookDO.class);
 
-  @Field(index = Index.YES, analyze = Analyze.NO /* UN_TOKENIZED */)
+  @Field(index = Index.YES /* TOKENIZED */, store = Store.NO)
   @PropertyInfo(i18nKey = "orga.visitorbook.lastname")
   private String lastname;
 
-  @Field(index = Index.YES, analyze = Analyze.NO /* UN_TOKENIZED */)
+  @Field(index = Index.YES /* TOKENIZED */, store = Store.NO)
   @PropertyInfo(i18nKey = "orga.visitorbook.firstname")
   private String firstname;
 
-  @Field(index = Index.YES, analyze = Analyze.NO /* UN_TOKENIZED */)
+  @Field(index = Index.YES /* TOKENIZED */, store = Store.NO)
   @PropertyInfo(i18nKey = "orga.visitorbook.company")
   private String company;
 
   @PropertyInfo(i18nKey = "orga.visitorbook.contactPerson")
+  @IndexedEmbedded(depth = 2, includePaths = { "user.firstname", "user.lastname" })
   private Set<EmployeeDO> contactPersons;
 
   @PropertyInfo(i18nKey = "orga.visitorbook.visitortype")

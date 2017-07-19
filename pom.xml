@@ -4,7 +4,7 @@
   <groupId>org.projectforge</groupId>
   <artifactId>projectforge-parent</artifactId>
   <packaging>pom</packaging>
-  <version>6.14.0</version>
+  <version>6.15.0</version>
 
   <parent>
     <groupId>org.springframework.boot</groupId>
@@ -141,6 +141,28 @@
       <id>ctausendfreund</id>
       <name>Christian Tausendfreund</name>
       <email>c.tausendfreund at micromata.de</email>
+      <organization>Micromata GmbH</organization>
+      <organizationUrl>http://www.micromata.com</organizationUrl>
+      <roles>
+        <role>developer</role>
+      </roles>
+      <timezone>-1</timezone>
+    </developer>
+    <developer>
+      <id>fdesel</id>
+      <name>Fabian Desel</name>
+      <email>f.desel at micromata.de</email>
+      <organization>Micromata GmbH</organization>
+      <organizationUrl>http://www.micromata.com</organizationUrl>
+      <roles>
+        <role>developer</role>
+      </roles>
+      <timezone>-1</timezone>
+    </developer>
+    <developer>
+      <id>sniemczyk</id>
+      <name>Stefan Niemczyk</name>
+      <email>s.niemczyk at micromata.de</email>
       <organization>Micromata GmbH</organization>
       <organizationUrl>http://www.micromata.com</organizationUrl>
       <roles>
@@ -535,22 +557,6 @@
     </plugins>
   </reporting>
   <repositories>
-    <!--
-    <repository>
-      <id>de.micromata.nexus.public</id>
-      <name>Micromata Nexus
-        Public
-      </name>
-      <url>https://repo.micromata.de/nexus/content/groups/public</url>
-    </repository>
-    <repository>
-      <id>de.micromata.nexus.snapshots</id>
-      <name>Micromata
-        Nexus Snapshots
-      </name>
-      <url>https://repo.micromata.de/nexus/content/groups/public-snapshots</url>
-    </repository>
-    -->
     <repository>
       <id>MGC</id>
       <name>Micromata Labs MGC</name>

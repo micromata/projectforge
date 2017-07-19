@@ -135,7 +135,7 @@ public class TeamCalImportDao
     for (final ImportedElement<TeamEventDO> el : sheet.getElements()) {
       final TeamEventDO event = el.getValue();
       teamEventDao.setCalendar(event, teamCalId);
-      final TeamEventDO dbEvent = teamEventDao.getByUid(event.getUid());
+      final TeamEventDO dbEvent = teamEventDao.getByUid(teamCalId, event.getUid());
       el.setOldValue(dbEvent);
     }
     sheet.setStatus(ImportStatus.RECONCILED);
@@ -151,7 +151,7 @@ public class TeamCalImportDao
       if (HibernateUtils.shortenProperties(TeamEventDO.class, event, "note", "location", "subject", "organizer") == true) {
         log.info("Properties of the event were shortened: " + event);
       }
-      final TeamEventDO dbEvent = teamEventDao.getByUid(event.getUid());
+      final TeamEventDO dbEvent = teamEventDao.getByUid(teamCalId, event.getUid());
       if (dbEvent != null) {
         event.setId(dbEvent.getId());
         event.setTenant(dbEvent.getTenant());

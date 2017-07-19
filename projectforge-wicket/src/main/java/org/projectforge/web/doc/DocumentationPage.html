@@ -78,7 +78,9 @@
             </h1>
 
             <div class="teaser teaser-plain" wicket:id="newsLink">
-                <div class="teaser-heading">Release-News</div>
+                <div class="teaser-heading">
+                    <wicket:message key="doc.releaseNews"/>
+                </div>
                 <div class="teaser-content">
                     <wicket:message key="doc.releaseNews.description"/>
                 </div>
@@ -90,30 +92,30 @@
                 </div>
             </div>
 
-            <div class="teaser teaser-plain" wicket:id="tutorialLink">
+            <div class="teaser teaser-plain" wicket:id="quickstartLink">
                 <div class="teaser-heading">
-                    <wicket:message key="doc.tutorial"/>
+                    <wicket:message key="doc.quickstart"/>
                 </div>
                 <div class="teaser-content">
-                    <wicket:message key="doc.tutorial.description"/>
+                    <wicket:message key="doc.quickstart.description"/>
                 </div>
                 <div class="teaser-formats">
-                    <img src="images/html.png"/> <img src="images/page_white_acrobat.png"/>
+                    <img src="images/html.png"/>
                 </div>
                 <div class="teaser-languages">
                     <img src="images/us_flag.png"/>
                 </div>
             </div>
 
-            <div class="teaser teaser-plain" wicket:id="handbookLink">
+            <div class="teaser teaser-plain" wicket:id="userGuideLink">
                 <div class="teaser-heading">
-                    <wicket:message key="doc.handbook"/>
+                    <wicket:message key="doc.userGuide"/>
                 </div>
                 <div class="teaser-content">
-                    <wicket:message key="doc.handbook.description"/>
+                    <wicket:message key="doc.userGuide.description"/>
                 </div>
                 <div class="teaser-formats">
-                    <img src="images/html.png"/> <img src="images/page_white_acrobat.png"/>
+                    <img src="images/html.png"/>
                 </div>
                 <div class="teaser-languages">
                     <img src="images/us_flag.png"/>
@@ -129,10 +131,11 @@
                     <img src="images/html.png"/>
                 </div>
                 <div class="teaser-languages">
-                    <img src="images/us_flag.png"/> <img src="images/de_flag.png"/>
+                    <img src="images/us_flag.png"/>
                 </div>
             </div>
 
+            <!--
             <div class="teaser" style="background: url(../images/doc/doc-teaser-license.png) no-repeat;"
                  wicket:id="licenseLink">
                 <div class="teaser-content">
@@ -145,6 +148,7 @@
                     <img src="images/us_flag.png"/>
                 </div>
             </div>
+            !-->
 
             <h1 class="doc-heading" style="clear: left; padding-top: 3em;">
                 <wicket:message key="doc.devadmin"/>
@@ -158,7 +162,7 @@
                     <wicket:message key="doc.adminGuide.description"/>
                 </div>
                 <div class="teaser-formats">
-                    <img src="images/html.png"/> <img src="images/page_white_acrobat.png"/>
+                    <img src="images/html.png"/>
                 </div>
                 <div class="teaser-languages">
                     <img src="images/us_flag.png"/>
@@ -173,7 +177,7 @@
                     <wicket:message key="doc.developerGuide.description"/>
                 </div>
                 <div class="teaser-formats">
-                    <img src="images/html.png"/> <img src="images/page_white_acrobat.png"/>
+                    <img src="images/html.png"/>
                 </div>
                 <div class="teaser-languages">
                     <img src="images/us_flag.png"/>

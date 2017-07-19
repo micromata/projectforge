@@ -32,14 +32,12 @@ import org.joda.time.DateMidnight;
 import org.joda.time.DateTimeZone;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
+import org.projectforge.common.DateFormatType;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
-import org.projectforge.framework.time.DateFormatType;
 import org.projectforge.framework.time.DateFormats;
 
 /**
- * 
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
  */
 public class JodaDateConverter implements IConverter<DateMidnight>
 {

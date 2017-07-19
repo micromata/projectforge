@@ -404,7 +404,11 @@ public class InitTestDB
     if (log.isDebugEnabled() == true) {
       log.debug("TaskTree after reload: " + taskDao.getTaskTree());
     }
-    addTask("root", null);
+    if (taskDao.getTaskTree().getRootTaskNode() == null) {
+      addTask("root", null);
+    } else {
+      putTask(taskDao.getTaskTree().getRootTaskNode().getTask());
+    }
     addTask("1", "root");
     addTask("1.1", "1");
     addTask("1.2", "1");

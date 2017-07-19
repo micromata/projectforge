@@ -47,7 +47,7 @@ public class LoginMobilePage extends AbstractMobilePage
   private static final long serialVersionUID = 313568971144109236L;
 
   @SpringBean
-  LoginService loginService;
+  private LoginService loginService;
 
   @SpringBean
   private UserDao userDao;
@@ -89,7 +89,7 @@ public class LoginMobilePage extends AbstractMobilePage
     if (StringUtils.isBlank(messageOfTheDay) == true) {
       pageContainer.add(new Label("messageOfTheDay", "[invisible]").setVisible(false));
     } else {
-      pageContainer.add(new Label("messageOfTheDay", messageOfTheDay).setEscapeModelStrings(false));
+      pageContainer.add(new Label("messageOfTheDay", messageOfTheDay));
     }
     @SuppressWarnings("serial")
     final Link<Void> goButton = new Link<Void>("goFullWebVersion")
@@ -103,10 +103,9 @@ public class LoginMobilePage extends AbstractMobilePage
     pageContainer.add(goButton);
   }
 
-  protected void checkLogin()
+  void checkLogin()
   {
-    loginService.internalCheckLogin(this, form.getUsername(), form.getPassword(), form.isStayLoggedIn(),
-        WicketUtils.getDefaultMobilePage());
+    loginService.internalCheckLogin(this, form.getUsername(), form.getPassword(), form.isStayLoggedIn(), WicketUtils.getDefaultMobilePage());
   }
 
   /**
