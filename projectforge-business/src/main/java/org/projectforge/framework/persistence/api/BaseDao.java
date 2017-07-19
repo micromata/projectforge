@@ -394,20 +394,35 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
     List<O> list = null;
     Session session = getSession();
     {
-      final Criteria criteria = filter.buildCriteria(session, clazz);
-      setCacheRegion(criteria);
       if (searchFilter.isSearchNotEmpty() == true) {
         final String searchString = HibernateSearchFilterUtils.modifySearchString(searchFilter.getSearchString());
-        final String[] searchFields = searchFilter.getSearchFields() != null ? searchFilter.getSearchFields()
-            : getSearchFields();
+        final String[] searchFields = searchFilter.getSearchFields() != null ? searchFilter.getSearchFields() : getSearchFields();
         try {
-          //          String nsearch = StringUtils.replace(searchString, "*", "");
-          FullTextSession fullTextSession = Search.getFullTextSession(session);
-          final org.apache.lucene.search.Query query = HibernateSearchFilterUtils.createFullTextQuery(fullTextSession,
-              searchFields, filter, searchString, clazz);
-          final FullTextQuery fullTextQuery = fullTextSession.createFullTextQuery(query, clazz);
-          fullTextQuery.setCriteriaQuery(criteria);
-          list = fullTextQuery.list(); // return a list of managed objects
+
+          int firstIndex = 0;
+          int maxIndex = 32000; // maximum numbers of values in IN statements in postgres
+          List<O> result;
+          final List<O> allResult = new ArrayList<>();
+
+          do {
+            final Criteria criteria = filter.buildCriteria(session, clazz);
+            setCacheRegion(criteria);
+
+            FullTextSession fullTextSession = Search.getFullTextSession(session);
+            org.apache.lucene.search.Query query = HibernateSearchFilterUtils.createFullTextQuery(fullTextSession, searchFields, filter, searchString, clazz);
+            FullTextQuery fullTextQuery = fullTextSession.createFullTextQuery(query, clazz);
+
+            fullTextQuery.setCriteriaQuery(criteria);
+            fullTextQuery.setFirstResult(firstIndex);
+            fullTextQuery.setMaxResults(maxIndex);
+
+            firstIndex += maxIndex;
+
+            result = fullTextQuery.list(); // return a list of managed objects
+            allResult.addAll(result);
+          } while (result.isEmpty() == false);
+
+          list = allResult;
         } catch (final Exception ex) {
           final String errorMsg = "Lucene error message: "
               + ex.getMessage()
@@ -420,6 +435,8 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
           log.info(errorMsg);
         }
       } else {
+        final Criteria criteria = filter.buildCriteria(session, clazz);
+        setCacheRegion(criteria);
         list = criteria.list();
       }
       if (list != null) {
