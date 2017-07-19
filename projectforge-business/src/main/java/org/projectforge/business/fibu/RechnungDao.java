@@ -52,6 +52,7 @@ import org.projectforge.framework.persistence.api.QueryFilter;
 import org.projectforge.framework.persistence.history.DisplayHistoryEntry;
 import org.projectforge.framework.persistence.utils.SQLHelper;
 import org.projectforge.framework.time.DateHelper;
+import org.projectforge.framework.time.DayHolder;
 import org.projectforge.framework.xstream.XmlObjectWriter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
@@ -189,6 +190,15 @@ public class RechnungDao extends BaseDao<RechnungDO>
   @Override
   protected void onSaveOrModify(final RechnungDO rechnung)
   {
+    if (RechnungTyp.RECHNUNG.equals(rechnung.getTyp()) && rechnung.getId() != null) {
+      RechnungDO originValue = internalGetById(rechnung.getId());
+      if (RechnungStatus.GEPLANT.equals(originValue.getStatus()) && RechnungStatus.GEPLANT.equals(rechnung.getStatus()) == false) {
+        rechnung.setNummer(getNextNumber(rechnung));
+        final DayHolder day = new DayHolder();
+        rechnung.setDatum(day.getSQLDate());
+      }
+    }
+
     AuftragAndRechnungDaoHelper.onSaveOrModify(rechnung);
 
     validate(rechnung);
@@ -198,22 +208,24 @@ public class RechnungDao extends BaseDao<RechnungDO>
         throw new UserException("fibu.rechnung.error.gutschriftsanzeigeDarfKeineRechnungsnummerHaben");
       }
     } else {
-      if (rechnung.getNummer() == null) {
+      if (RechnungStatus.GEPLANT.equals(rechnung.getStatus()) == false && rechnung.getNummer() == null) {
         throw new UserException("validation.required.valueNotPresent",
             new MessageParam("fibu.rechnung.nummer", MessageParamType.I18N_KEY));
       }
-      if (rechnung.getId() == null) {
-        // Neue Rechnung
-        final Integer next = getNextNumber(rechnung);
-        if (next.intValue() != rechnung.getNummer().intValue()) {
-          throw new UserException("fibu.rechnung.error.rechnungsNummerIstNichtFortlaufend");
-        }
-      } else {
-        final List<RechnungDO> list = (List<RechnungDO>) getHibernateTemplate().find(
-            "from RechnungDO r where r.nummer = ? and r.id <> ?",
-            new Object[] { rechnung.getNummer(), rechnung.getId() });
-        if (list != null && list.size() > 0) {
-          throw new UserException("fibu.rechnung.error.rechnungsNummerBereitsVergeben");
+      if (RechnungStatus.GEPLANT.equals(rechnung.getStatus()) == false) {
+        if (rechnung.getId() == null) {
+          // Neue Rechnung
+          final Integer next = getNextNumber(rechnung);
+          if (next.intValue() != rechnung.getNummer().intValue()) {
+            throw new UserException("fibu.rechnung.error.rechnungsNummerIstNichtFortlaufend");
+          }
+        } else {
+          final List<RechnungDO> list = (List<RechnungDO>) getHibernateTemplate().find(
+              "from RechnungDO r where r.nummer = ? and r.id <> ?",
+              new Object[] { rechnung.getNummer(), rechnung.getId() });
+          if (list != null && list.size() > 0) {
+            throw new UserException("fibu.rechnung.error.rechnungsNummerBereitsVergeben");
+          }
         }
       }
     }

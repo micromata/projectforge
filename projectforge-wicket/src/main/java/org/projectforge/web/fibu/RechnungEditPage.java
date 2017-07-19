@@ -105,7 +105,8 @@ public class RechnungEditPage extends AbstractEditPage<RechnungDO, RechnungEditF
   @Override
   public AbstractSecuredBasePage onSaveOrUpdate()
   {
-    if (isNew() == true && getData().getNummer() == null && getData().getTyp() != RechnungTyp.GUTSCHRIFTSANZEIGE_DURCH_KUNDEN) {
+    if (isNew() == true && getData().getNummer() == null && getData().getTyp() != RechnungTyp.GUTSCHRIFTSANZEIGE_DURCH_KUNDEN
+        && RechnungStatus.GEPLANT.equals(getData().getStatus()) == false) {
       getData().setNummer(rechnungDao.getNextNumber(getData()));
     }
     return null;
