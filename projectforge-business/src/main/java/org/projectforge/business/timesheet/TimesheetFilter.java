@@ -24,6 +24,7 @@
 package org.projectforge.business.timesheet;
 
 import java.io.Serializable;
+import java.sql.Time;
 import java.util.Date;
 
 import org.projectforge.business.task.TaskDependentFilter;
@@ -31,9 +32,7 @@ import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.time.TimePeriod;
 
 /**
- * 
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
  */
 public class TimesheetFilter extends BaseSearchFilter implements Serializable, TaskDependentFilter
 {
@@ -60,13 +59,26 @@ public class TimesheetFilter extends BaseSearchFilter implements Serializable, T
   public TimesheetFilter(final BaseSearchFilter filter)
   {
     super(filter);
+
+    if (filter instanceof TimesheetFilter) {
+      TimesheetFilter tf = (TimesheetFilter) filter;
+      this.timePeriod = tf.timePeriod;
+      this.userId = tf.userId;
+      this.taskId = tf.taskId;
+      this.marked = tf.marked;
+      this.longFormat = tf.longFormat;
+      this.recursive = tf.recursive;
+      this.orderType = tf.orderType;
+    }
   }
 
+  @Override
   public Integer getTaskId()
   {
     return taskId;
   }
 
+  @Override
   public void setTaskId(final Integer taskId)
   {
     this.taskId = taskId;
@@ -116,6 +128,7 @@ public class TimesheetFilter extends BaseSearchFilter implements Serializable, T
 
   /**
    * Gets start and stop time from timePeriod.
+   *
    * @param timePeriod
    */
   public void setTimePeriod(final TimePeriod timePeriod)
@@ -127,6 +140,7 @@ public class TimesheetFilter extends BaseSearchFilter implements Serializable, T
   /**
    * Is this time sheet marked? (Currently marked time sheets are time sheets with time period overlap (collision) with another time sheet
    * of the same user.)
+   *
    * @return
    */
   public boolean isMarked()
@@ -141,6 +155,7 @@ public class TimesheetFilter extends BaseSearchFilter implements Serializable, T
 
   /**
    * Show description abbreviated or in long format.
+   *
    * @return
    */
   public boolean isLongFormat()
@@ -156,6 +171,7 @@ public class TimesheetFilter extends BaseSearchFilter implements Serializable, T
   /**
    * If recursive flag is false then only the time sheets of the chosen task are selected, otherwise the time sheets of the chosen task
    * including all sub task are selected.
+   *
    * @return
    */
   public boolean isRecursive()
@@ -170,6 +186,7 @@ public class TimesheetFilter extends BaseSearchFilter implements Serializable, T
 
   /**
    * Should the result set ordered descendant (default)?
+   *
    * @return
    */
   public OrderDirection getOrderType()
