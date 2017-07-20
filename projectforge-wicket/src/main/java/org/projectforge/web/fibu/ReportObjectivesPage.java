@@ -25,6 +25,7 @@ package org.projectforge.web.fibu;
 
 import java.io.InputStream;
 
+import org.apache.wicket.feedback.FeedbackMessage;
 import org.apache.wicket.markup.html.form.upload.FileUpload;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
@@ -68,6 +69,12 @@ public class ReportObjectivesPage extends AbstractStandardFormPage
         final String clientFileName = fileUpload.getClientFileName();
         final InputStream is = fileUpload.getInputStream();
         final Report report = reportDao.createReport(is);
+
+        if (report == null) {
+          error("An error occurred during the import (see log files for details).");
+          return;
+        }
+
         reportStorage = new ReportStorage(report);
         reportStorage.setFileName(clientFileName);
         putUserPrefEntry(KEY_REPORT_STORAGE, reportStorage, false);
