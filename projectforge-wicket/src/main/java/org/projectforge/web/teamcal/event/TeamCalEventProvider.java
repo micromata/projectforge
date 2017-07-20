@@ -46,6 +46,7 @@ import org.projectforge.business.teamcal.event.TeamRecurrenceEvent;
 import org.projectforge.business.teamcal.event.model.TeamCalEventId;
 import org.projectforge.business.teamcal.event.model.TeamEvent;
 import org.projectforge.business.teamcal.event.model.TeamEventAttendeeDO;
+import org.projectforge.business.teamcal.event.model.TeamEventAttendeeStatus;
 import org.projectforge.business.teamcal.event.model.TeamEventDO;
 import org.projectforge.business.teamcal.event.right.TeamEventRight;
 import org.projectforge.business.teamcal.filter.TeamCalCalendarFilter;
@@ -271,9 +272,15 @@ public class TeamCalEventProvider extends MyFullCalendarEventsProvider
           buf.append(teamEventAttendeeDO.getAddress().getFullName());
         }
 
-        buf.append("  [")
-            .append(I18nHelper.getLocalizedMessage(teamEventAttendeeDO.getStatus().getI18nKey()))
-            .append("]");
+        if (teamEventAttendeeDO.getStatus() != null) {
+          buf.append("  [")
+              .append(I18nHelper.getLocalizedMessage(teamEventAttendeeDO.getStatus().getI18nKey()))
+              .append("]");
+        } else {
+          buf.append("  [")
+              .append(I18nHelper.getLocalizedMessage(TeamEventAttendeeStatus.IN_PROCESS.getI18nKey()))
+              .append("]");
+        }
 
         tooltipContent.add(new String[] { buf.toString() });
       }
