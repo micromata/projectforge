@@ -138,6 +138,50 @@ public class DatabaseCoreUpdates
     final List<UpdateEntry> list = new ArrayList<>();
 
     ////////////////////////////////////////////////////////////////////
+    // 6.16.0
+    // /////////////////////////////////////////////////////////////////
+    list.add(new UpdateEntryImpl(CORE_REGION_ID, "6.16.0", "2017-08-01",
+        "Remove unique constraints from EmployeeTimedAttrDO and EmployeeConfigurationTimedAttrDO.")
+    {
+      @Override
+      public UpdatePreCheckStatus runPreCheck()
+      {
+        log.info("Running pre-check for ProjectForge version 6.16.0");
+        if (oldUniqueConstraint()) {
+          return UpdatePreCheckStatus.READY_FOR_UPDATE;
+        }
+
+        return UpdatePreCheckStatus.ALREADY_UPDATED;
+      }
+
+      @Override
+      public UpdateRunningStatus runUpdate()
+      {
+        // update unique constraint
+        if (oldUniqueConstraint()) {
+          String uniqueConstraint1 = databaseUpdateService.getUniqueConstraintName("t_fibu_employee_timedattr", "parent", "propertyName");
+          String uniqueConstraint2 = databaseUpdateService.getUniqueConstraintName("T_PLUGIN_EMPLOYEE_CONFIGURATION_TIMEDATTR", "parent", "propertyName");
+
+          if (uniqueConstraint1 != null) {
+            databaseUpdateService.execute("ALTER TABLE t_fibu_employee_timedattr DROP CONSTRAINT " + uniqueConstraint1);
+          }
+
+          if (uniqueConstraint2 != null) {
+            databaseUpdateService.execute("ALTER TABLE T_PLUGIN_EMPLOYEE_CONFIGURATION_TIMEDATTR DROP CONSTRAINT " + uniqueConstraint2);
+          }
+        }
+
+        return UpdateRunningStatus.DONE;
+      }
+
+      private boolean oldUniqueConstraint()
+      {
+        return databaseUpdateService.doesUniqueConstraintExists("t_fibu_employee_timedattr", "parent", "propertyName")
+            || databaseUpdateService.doesUniqueConstraintExists("T_PLUGIN_EMPLOYEE_CONFIGURATION_TIMEDATTR", "parent", "propertyName");
+      }
+    });
+
+    ////////////////////////////////////////////////////////////////////
     // 6.15.0
     // /////////////////////////////////////////////////////////////////
     list.add(new UpdateEntryImpl(CORE_REGION_ID, "6.15.0", "2017-07-19",

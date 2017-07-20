@@ -35,18 +35,14 @@ import javax.persistence.InheritanceType;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
-import javax.persistence.UniqueConstraint;
 
 import de.micromata.genome.db.jpa.tabattr.entities.JpaTabAttrBaseDO;
 
 /**
  * @author Roger Kommer (r.kommer.extern@micromata.de)
- *
  */
 @Entity
-@Table(name = "t_fibu_employee_timedattr", uniqueConstraints = {
-    @UniqueConstraint(columnNames = { "parent", "propertyName" })
-})
+@Table(name = "t_fibu_employee_timedattr")
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @DiscriminatorColumn(name = "withdata", discriminatorType = DiscriminatorType.CHAR)
 @DiscriminatorValue("0")
