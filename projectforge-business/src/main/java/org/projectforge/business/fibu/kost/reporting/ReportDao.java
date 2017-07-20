@@ -65,7 +65,7 @@ public class ReportDao
   /**
    * Erzeugt einen Report ohne Zeitraumangabe. Es wird lediglich das ReportObjective als xml vom InputStream
    * deserialisiert und dem erzeugtem Report zugewiesen.
-   * 
+   *
    * @param reportObjectiveAsXml ReportObjective als XML.
    * @see #deserializeFromXML(InputStream)
    */
@@ -74,13 +74,18 @@ public class ReportDao
     accessChecker.checkIsLoggedInUserMemberOfGroup(ProjectForgeGroup.FINANCE_GROUP,
         ProjectForgeGroup.CONTROLLING_GROUP);
     ReportObjective reportObjective = deserializeFromXML(reportObjectiveAsXml);
+
+    if (reportObjective == null) {
+      return null;
+    }
+
     Report report = new Report(reportObjective);
     return report;
   }
 
   /**
    * Only for test cases.
-   * 
+   *
    * @param reportObjectiveAsXml
    * @return
    */
@@ -96,7 +101,7 @@ public class ReportDao
   /**
    * Zeitraum muss gegeben sein. Liest die Buchungssätze anhand des Zeitraums aus der Datenbank und selektiert anhand
    * des ReportObjectives die zu verwendenden Buchungssätze.
-   * 
+   *
    * @param report
    * @see BuchungssatzDao#getList(org.projectforge.core.BaseSearchFilter)
    * @see Report#select(List)
