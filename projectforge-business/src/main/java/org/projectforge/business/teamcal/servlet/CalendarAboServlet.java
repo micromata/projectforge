@@ -275,14 +275,9 @@ public class CalendarAboServlet extends HttpServlet
       final TimesheetFilter filter = new TimesheetFilter();
       filter.setUserId(timesheetUser.getId());
       filter.setDeleted(false);
+      cal.add(java.util.Calendar.MONTH, CalendarFeedConst.PERIOD_IN_MONTHS);
       filter.setStopTime(cal.getTime());
-      // calculates the offset of the calendar
-      final int offset = cal.get(java.util.Calendar.MONTH) - CalendarFeedConst.PERIOD_IN_MONTHS;
-      if (offset < 0) {
-        setCalDate(cal, cal.get(java.util.Calendar.YEAR) - 1, 12 + offset);
-      } else {
-        setCalDate(cal, cal.get(java.util.Calendar.YEAR), offset);
-      }
+      cal.add(java.util.Calendar.MONTH, -2 * CalendarFeedConst.PERIOD_IN_MONTHS);
       filter.setStartTime(cal.getTime());
 
       final List<TimesheetDO> timesheetList = timesheetDao.getList(filter);
@@ -358,22 +353,6 @@ public class CalendarAboServlet extends HttpServlet
     // }
     // }
     return events;
-  }
-
-  /**
-   * sets the calendar to a special date. Used to calculate the year offset of an negative time period. When the time
-   * period is set to 4 month and the current month is at the begin of a year, the year-number must be decremented by
-   * one
-   *
-   * @param cal
-   * @param year
-   * @param mounth
-   */
-  private void setCalDate(final java.util.Calendar cal, final int year, final int mounth)
-  {
-    cal.clear();
-    cal.set(java.util.Calendar.YEAR, year);
-    cal.set(java.util.Calendar.MONTH, mounth);
   }
 
   private boolean isOtherUsersAllowed()
