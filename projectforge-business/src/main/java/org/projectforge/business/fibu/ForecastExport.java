@@ -370,7 +370,8 @@ public class ForecastExport
       return Collections.emptyList();
 
     List<PaymentScheduleDO> schedulesFiltered = schedules.stream()
-        .filter(schedule -> schedule.getPositionNumber() == pos.getNumber() && schedule.getScheduleDate() != null && schedule.getAmount() != null)
+        .filter(schedule -> schedule.getPositionNumber() != null && schedule.getScheduleDate() != null && schedule.getAmount() != null)
+        .filter(schedule -> schedule.getPositionNumber().intValue() == (int) pos.getNumber())
         .collect(Collectors.toList());
 
     return schedulesFiltered;
