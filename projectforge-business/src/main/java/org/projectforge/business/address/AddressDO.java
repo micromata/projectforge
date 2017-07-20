@@ -25,9 +25,11 @@ package org.projectforge.business.address;
 
 import java.sql.Date;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.StringTokenizer;
 
 import javax.persistence.CascadeType;
@@ -37,6 +39,8 @@ import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 import javax.persistence.FetchType;
 import javax.persistence.JoinColumn;
+import javax.persistence.JoinTable;
+import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
 import javax.persistence.MapKey;
 import javax.persistence.OneToMany;
@@ -55,6 +59,7 @@ import org.hibernate.search.annotations.Resolution;
 import org.hibernate.search.annotations.Store;
 import org.projectforge.business.task.TaskDO;
 import org.projectforge.common.StringHelper;
+import org.projectforge.common.anots.PropertyInfo;
 import org.projectforge.framework.persistence.attr.entities.DefaultBaseWithAttrDO;
 import org.projectforge.framework.persistence.history.HibernateSearchPhoneNumberBridge;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
@@ -200,6 +205,9 @@ public class AddressDO extends DefaultBaseWithAttrDO<AddressDO>
 
   @NoHistory
   private byte[] imageData;
+
+  @PropertyInfo(i18nKey = "vacation.substitution")
+  private Set<AddressbookDO> addressbookList = new HashSet<>();
 
   // @FieldBridge(impl = HibernateSearchInstantMessagingBridge.class)
   // @Field(index = Index.YES /*TOKENIZED*/, store = Store.NO)
@@ -972,5 +980,33 @@ public class AddressDO extends DefaultBaseWithAttrDO<AddressDO>
   public void setImageData(final byte[] imageData)
   {
     this.imageData = imageData;
+  }
+
+  /**
+   * The substitutions.
+   *
+   * @return the substitutions
+   */
+  @ManyToMany
+  @JoinTable(
+      name = "t_addressbook_address",
+      joinColumns = @JoinColumn(name = "address_id", referencedColumnName = "PK"),
+      inverseJoinColumns = @JoinColumn(name = "addressbook_id", referencedColumnName = "PK"),
+      indexes = {
+          @javax.persistence.Index(name = "idx_fk_t_addressbook_address_address_id", columnList = "address_id"),
+          @javax.persistence.Index(name = "idx_fk_t_addressbook_address_addressbook_id", columnList = "addressbook_id")
+      }
+  )
+  public Set<AddressbookDO> getAddressbookList()
+  {
+    return addressbookList;
+  }
+
+  /**
+   * @param addressbookList the addressbookList to set
+   */
+  public void setAddressbookList(final Set<AddressbookDO> addressbookList)
+  {
+    this.addressbookList = addressbookList;
   }
 }

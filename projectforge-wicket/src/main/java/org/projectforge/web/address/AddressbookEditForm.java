@@ -41,7 +41,6 @@ import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.persistence.user.entities.GroupDO;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.web.common.MultiChoiceListHelper;
-import org.projectforge.web.teamcal.dialog.TeamCalICSExportDialog;
 import org.projectforge.web.user.GroupsWicketProvider;
 import org.projectforge.web.user.UserSelectPanel;
 import org.projectforge.web.user.UsersProvider;
@@ -82,17 +81,9 @@ public class AddressbookEditForm extends AbstractEditForm<AddressbookDO, Address
 
   private JodaDatePanel datePanel;
 
-  MultiChoiceListHelper<PFUserDO> fullAccessUsersListHelper, readonlyAccessUsersListHelper,
-      minimalAccessUsersListHelper;
+  MultiChoiceListHelper<PFUserDO> fullAccessUsersListHelper, readonlyAccessUsersListHelper;
 
-  MultiChoiceListHelper<GroupDO> fullAccessGroupsListHelper, readonlyAccessGroupsListHelper,
-      minimalAccessGroupsListHelper;
-
-  private TeamCalICSExportDialog icsExportDialog;
-
-  private FieldsetPanel fsExternalSubscriptionUrl;
-
-  private FieldsetPanel fsExternalSubscriptionInterval;
+  MultiChoiceListHelper<GroupDO> fullAccessGroupsListHelper, readonlyAccessGroupsListHelper;
 
   /**
    * @param parentPage
@@ -174,6 +165,7 @@ public class AddressbookEditForm extends AbstractEditForm<AddressbookDO, Address
       } else {
         fs.add(new Label(fs.newChildId(), data.getOwner().getUsername() + ""));
       }
+      fs.setEnabled(isGlobalAddressbook(data) == false);
     }
 
     if (access == true) {
@@ -197,6 +189,7 @@ public class AddressbookEditForm extends AbstractEditForm<AddressbookDO, Address
         final Select2MultiChoice<PFUserDO> users = new Select2MultiChoice<PFUserDO>(fs.getSelect2MultiChoiceId(),
             new PropertyModel<Collection<PFUserDO>>(this.fullAccessUsersListHelper, "assignedItems"), usersProvider);
         users.setMarkupId("fullAccessUsers").setOutputMarkupId(true);
+        fs.setEnabled(isGlobalAddressbook(data) == false);
         fs.add(users);
       }
       {
@@ -218,27 +211,7 @@ public class AddressbookEditForm extends AbstractEditForm<AddressbookDO, Address
             new PropertyModel<Collection<PFUserDO>>(this.readonlyAccessUsersListHelper, "assignedItems"),
             usersProvider);
         users.setMarkupId("readOnlyAccessUsers").setOutputMarkupId(true);
-        fs.add(users);
-      }
-      {
-        // Minimal access users
-        final FieldsetPanel fs = gridBuilder.newFieldset(getString("addressbook.minimalAccess"),
-            getString("access.users"));
-        final UsersProvider usersProvider = new UsersProvider(userDao);
-        final Collection<PFUserDO> minimalAccessUsers = new UsersProvider(userDao)
-            .getSortedUsers(getData().getMinimalAccessUserIds());
-        minimalAccessUsersListHelper = new MultiChoiceListHelper<PFUserDO>().setComparator(new UsersComparator())
-            .setFullList(
-                usersProvider.getSortedUsers());
-        if (minimalAccessUsers != null) {
-          for (final PFUserDO user : minimalAccessUsers) {
-            minimalAccessUsersListHelper.addOriginalAssignedItem(user).assignItem(user);
-          }
-        }
-        final Select2MultiChoice<PFUserDO> users = new Select2MultiChoice<PFUserDO>(fs.getSelect2MultiChoiceId(),
-            new PropertyModel<Collection<PFUserDO>>(this.minimalAccessUsersListHelper, "assignedItems"), usersProvider);
-        users.setMarkupId("minimalAccessUsers").setOutputMarkupId(true);
-        fs.addHelpIcon(getString("addressbook.minimalAccess.users.hint"));
+        fs.setEnabled(isGlobalAddressbook(data) == false);
         fs.add(users);
       }
 
@@ -263,6 +236,7 @@ public class AddressbookEditForm extends AbstractEditForm<AddressbookDO, Address
             new PropertyModel<Collection<GroupDO>>(this.fullAccessGroupsListHelper, "assignedItems"),
             new GroupsWicketProvider(groupService));
         groups.setMarkupId("fullAccessGroups").setOutputMarkupId(true);
+        fs.setEnabled(isGlobalAddressbook(data) == false);
         fs.add(groups);
       }
       {
@@ -283,27 +257,7 @@ public class AddressbookEditForm extends AbstractEditForm<AddressbookDO, Address
             new PropertyModel<Collection<GroupDO>>(this.readonlyAccessGroupsListHelper, "assignedItems"),
             new GroupsWicketProvider(groupService));
         groups.setMarkupId("readOnlyAccessGroups").setOutputMarkupId(true);
-        fs.add(groups);
-      }
-      {
-        // Minimal access groups
-        final FieldsetPanel fs = gridBuilder.newFieldset(getString("addressbook.minimalAccess"),
-            getString("access.groups"));
-        final Collection<GroupDO> minimalAccessGroups = groupService
-            .getSortedGroups(getData().getMinimalAccessGroupIds());
-        minimalAccessGroupsListHelper = new MultiChoiceListHelper<GroupDO>().setComparator(new GroupsComparator())
-            .setFullList(
-                groupService.getSortedGroups());
-        if (minimalAccessGroups != null) {
-          for (final GroupDO group : minimalAccessGroups) {
-            minimalAccessGroupsListHelper.addOriginalAssignedItem(group).assignItem(group);
-          }
-        }
-        final Select2MultiChoice<GroupDO> groups = new Select2MultiChoice<GroupDO>(fs.getSelect2MultiChoiceId(),
-            new PropertyModel<Collection<GroupDO>>(this.minimalAccessGroupsListHelper, "assignedItems"),
-            new GroupsWicketProvider(groupService));
-        groups.setMarkupId("minimalAccessGroups").setOutputMarkupId(true);
-        fs.addHelpIcon(getString("addressbook.minimalAccess.groups.hint"));
+        fs.setEnabled(isGlobalAddressbook(data) == false);
         fs.add(groups);
       }
     }
@@ -333,5 +287,20 @@ public class AddressbookEditForm extends AbstractEditForm<AddressbookDO, Address
   public void setDatePanel(final JodaDatePanel datePanel)
   {
     this.datePanel = datePanel;
+  }
+
+  @Override
+  protected void updateButtonVisibility()
+  {
+    super.updateButtonVisibility();
+    //Disable undelete button for global addressbook
+    if (isGlobalAddressbook(data)) {
+      markAsDeletedButtonPanel.setVisible(false);
+    }
+  }
+
+  private boolean isGlobalAddressbook(AddressbookDO data)
+  {
+    return data != null && data.getId() != null && data.getId().equals(1);
   }
 }

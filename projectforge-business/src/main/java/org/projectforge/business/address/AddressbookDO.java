@@ -31,7 +31,6 @@ import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import javax.persistence.Transient;
 
-import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.builder.HashCodeBuilder;
 import org.hibernate.search.annotations.ClassBridge;
 import org.hibernate.search.annotations.Field;
@@ -146,28 +145,18 @@ public class AddressbookDO extends BaseUserGroupRightsDO
   }
 
   /**
-   * @see Object#equals(Object)
-   */
-  @Override
-  public boolean equals(final Object obj)
-  {
-    if (obj == null) {
-      return false;
-    }
-    if (this == obj) {
-      return true;
-    }
-    if (obj instanceof AddressbookDO == false) {
-      return false;
-    }
-    final AddressbookDO other = (AddressbookDO) obj;
-    if (this.getId().equals(other.getId())) {
-      return true;
-    }
-    return StringUtils.equals(title, other.title);
-  }
-
-  /**
+   * }
+   * if (obj instanceof AddressbookDO == false) {
+   * return false;
+   * }
+   * final AddressbookDO other = (AddressbookDO) obj;
+   * if (this.getId().equals(other.getId())) {
+   * return true;
+   * }
+   * return StringUtils.equals(title, other.title);
+   * }
+   * <p>
+   * /**
    * Returns string containing all fields (except the externalSubscriptionCalendarBinary) of given object (via
    * ReflectionToStringBuilder).
    *

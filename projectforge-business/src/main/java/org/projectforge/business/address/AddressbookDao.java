@@ -158,7 +158,16 @@ public class AddressbookDao extends BaseDao<AddressbookDO>
     final AddressbookFilter filter = new AddressbookFilter();
     filter.setOwnerType(AddressbookFilter.OwnerType.ALL);
     filter.setFullAccess(true).setReadonlyAccess(false).setMinimalAccess(false);
-    return getList(filter);
+    List<AddressbookDO> resultList = getList(filter);
+    if (resultList.stream().filter(ab -> ab.getId().equals(1)).count() < 1) {
+      resultList.add(getGlobalAddressbook());
+    }
+    return resultList;
+  }
+
+  public AddressbookDO getGlobalAddressbook()
+  {
+    return internalGetById(1);
   }
 
   /**
@@ -223,38 +232,6 @@ public class AddressbookDao extends BaseDao<AddressbookDO>
   public Collection<PFUserDO> getSortedReadonlyAccessUsers(final AddressbookDO ab)
   {
     return userService.getSortedUsers(ab.getReadonlyAccessUserIds());
-  }
-
-  /**
-   * Please note: Only the string group.minimalAccessGroupIds will be modified (but not be saved)!
-   *
-   * @param addressbook
-   * @param minimalAccessGroups
-   */
-  public void setMinimalAccessGroups(final AddressbookDO ab, final Collection<GroupDO> minimalAccessGroups)
-  {
-    ab.setMinimalAccessGroupIds(groupService.getGroupIds(minimalAccessGroups));
-  }
-
-  public Collection<GroupDO> getSortedMinimalAccessGroups(final AddressbookDO ab)
-  {
-    return groupService.getSortedGroups(ab.getMinimalAccessGroupIds());
-  }
-
-  /**
-   * Please note: Only the string group.minimalAccessGroupIds will be modified (but not be saved)!
-   *
-   * @param addressbook
-   * @param minimalAccessUsers
-   */
-  public void setMinimalAccessUsers(final AddressbookDO ab, final Collection<PFUserDO> minimalAccessUsers)
-  {
-    ab.setMinimalAccessUserIds(userService.getUserIds(minimalAccessUsers));
-  }
-
-  public Collection<PFUserDO> getSortedMinimalAccessUsers(final AddressbookDO ab)
-  {
-    return userService.getSortedUsers(ab.getMinimalAccessUserIds());
   }
 
   /**

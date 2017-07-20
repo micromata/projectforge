@@ -86,10 +86,8 @@ public class AddressbookEditPage extends AbstractEditPage<AddressbookDO, Address
   {
     addressbookDao.setFullAccessUsers(getData(), form.fullAccessUsersListHelper.getAssignedItems());
     addressbookDao.setReadonlyAccessUsers(getData(), form.readonlyAccessUsersListHelper.getAssignedItems());
-    addressbookDao.setMinimalAccessUsers(getData(), form.minimalAccessUsersListHelper.getAssignedItems());
     addressbookDao.setFullAccessGroups(getData(), form.fullAccessGroupsListHelper.getAssignedItems());
     addressbookDao.setReadonlyAccessGroups(getData(), form.readonlyAccessGroupsListHelper.getAssignedItems());
-    addressbookDao.setMinimalAccessGroups(getData(), form.minimalAccessGroupsListHelper.getAssignedItems());
     return super.onSaveOrUpdate();
   }
 
