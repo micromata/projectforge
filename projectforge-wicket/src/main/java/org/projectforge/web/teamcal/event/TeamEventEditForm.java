@@ -229,6 +229,7 @@ public class TeamEventEditForm extends AbstractEditForm<TeamEventDO, TeamEventEd
           new PropertyModel<>(this.assignAttendeesListHelper, "assignedItems"), attendeeWicketProvider);
       attendees.setMarkupId("attendees").setOutputMarkupId(true);
       attendees.add(new TeamEventAttendeeValidator());
+      attendees.getSettings().setCloseOnSelect(true);
       fieldSet.add(attendees);
       if (access == false) {
         fieldSet.setEnabled(false);

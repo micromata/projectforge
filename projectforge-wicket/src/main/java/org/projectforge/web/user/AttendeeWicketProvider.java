@@ -129,7 +129,7 @@ public class AttendeeWicketProvider extends ChoiceProvider<TeamEventAttendeeDO>
     if (mail == null) {
       mail = "";
     }
-    String status = choice.getStatus() != null ? "[" + choice.getStatus().getI18nValue() + "]" : "";
+    String status = choice.getStatus() != null ? " [" + choice.getStatus().getI18nValue() + "]" : "";
     return name + " (" + mail + ")" + status;
   }
 
@@ -143,8 +143,9 @@ public class AttendeeWicketProvider extends ChoiceProvider<TeamEventAttendeeDO>
   public void query(String term, final int page, final Response<TeamEventAttendeeDO> response)
   {
     initSortedAttendees();
+
     final List<TeamEventAttendeeDO> result = new ArrayList<>();
-    term = term.toLowerCase();
+    term = term != null ? term.toLowerCase() : "";
     String[] splitTerm = term.split(" ");
 
     final int offset = page * pageSize;

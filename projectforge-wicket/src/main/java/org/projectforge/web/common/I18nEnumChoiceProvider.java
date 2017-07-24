@@ -37,7 +37,7 @@ public class I18nEnumChoiceProvider<T extends Enum<T> & I18nEnum> extends Choice
   @Override
   public void query(final String term, final int page, final Response<T> response)
   {
-    final String termLowerCase = term.toLowerCase();
+    final String termLowerCase = term != null ? term.toLowerCase() : "";
     final List<T> matchingAuftragsPositionsArten = EnumSet.allOf(clazz).stream()
         .filter(art -> I18nHelper.getLocalizedMessage(art.getI18nKey()).toLowerCase().contains(termLowerCase))
         .collect(Collectors.toList());

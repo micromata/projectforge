@@ -89,7 +89,7 @@ public class SingleButtonPanel extends Panel
     super(id);
     this.button = button;
     add(button);
-    button.setLabel(label);
+    button.setDefaultModel(label);
     if (classnames != null) {
       button.add(AttributeModifier.append("class", StringHelper.listToString(" ", classnames)));
     }

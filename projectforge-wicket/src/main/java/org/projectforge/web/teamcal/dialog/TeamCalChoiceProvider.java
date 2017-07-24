@@ -76,7 +76,7 @@ public class TeamCalChoiceProvider extends ChoiceProvider<TeamCalDO>
     // add all access groups
     final List<TeamCalDO> fullAccessTeamCals = getTeamCalDao().getList(new TeamCalFilter());
     final List<TeamCalDO> result = new ArrayList<TeamCalDO>();
-    term = term.toLowerCase();
+    term = term != null ? term.toLowerCase() : "";
 
     final int offset = page * RESULT_PAGE_SIZE;
 

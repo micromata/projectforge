@@ -74,7 +74,7 @@ public class TeamCalsProvider extends ChoiceProvider<TeamCalDO>
 
   public static List<Integer> getCalIdList(final Collection<TeamCalDO> teamCals)
   {
-    final List<Integer> list = new ArrayList<Integer>();
+    final List<Integer> list = new ArrayList<>();
     if (teamCals != null) {
       for (final TeamCalDO cal : teamCals) {
         list.add(cal.getId());
@@ -85,7 +85,7 @@ public class TeamCalsProvider extends ChoiceProvider<TeamCalDO>
 
   public static List<TeamCalDO> getCalList(TeamCalCache teamCalCache, final Collection<Integer> teamCalIds)
   {
-    final List<TeamCalDO> list = new ArrayList<TeamCalDO>();
+    final List<TeamCalDO> list = new ArrayList<>();
     if (teamCalIds != null) {
       for (final Integer calId : teamCalIds) {
         final TeamCalDO cal = teamCalCache.getCalendar(calId);
@@ -209,8 +209,8 @@ public class TeamCalsProvider extends ChoiceProvider<TeamCalDO>
   public void query(String term, final int page, final Response<TeamCalDO> response)
   {
     final Collection<TeamCalDO> sortedCals = getSortedCalenders();
-    final List<TeamCalDO> result = new ArrayList<TeamCalDO>();
-    term = term.toLowerCase();
+    final List<TeamCalDO> result = new ArrayList<>();
+    term = term != null ? term.toLowerCase() : "";
 
     final int offset = page * pageSize;
 

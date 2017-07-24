@@ -68,7 +68,7 @@ public class TenantsProvider extends ChoiceProvider<TenantDO>
       return null;
     }
     final int[] ids = StringHelper.splitToInts(tenantIds, ",", false);
-    final List<String> list = new ArrayList<String>();
+    final List<String> list = new ArrayList<>();
     for (final int id : ids) {
       final TenantDO tenant = tenantService.getTenant(id);
       if (tenant != null) {
@@ -158,7 +158,7 @@ public class TenantsProvider extends ChoiceProvider<TenantDO>
   {
     final Collection<TenantDO> sortedTenants = getSortedTenants();
     final List<TenantDO> result = new ArrayList<TenantDO>();
-    term = term.toLowerCase();
+    term = term != null ? term.toLowerCase() : "";
 
     final int offset = page * pageSize;
 

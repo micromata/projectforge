@@ -77,7 +77,12 @@ public class GroupsWicketProvider extends ChoiceProvider<GroupDO>
   public void query(String term, final int page, final Response<GroupDO> response)
   {
     final Collection<GroupDO> sortedGroups = groupService.getSortedGroups();
-    final List<GroupDO> result = new ArrayList<GroupDO>();
+    final List<GroupDO> result = new ArrayList<>();
+
+    if (term == null) {
+      term = "";
+    }
+
     term = term.toLowerCase();
 
     final int offset = page * pageSize;

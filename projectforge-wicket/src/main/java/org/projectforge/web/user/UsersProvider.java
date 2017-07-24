@@ -137,8 +137,8 @@ public class UsersProvider extends ChoiceProvider<PFUserDO>
   public void query(String term, final int page, final Response<PFUserDO> response)
   {
     final Collection<PFUserDO> sortedUsers = getSortedUsers();
-    final List<PFUserDO> result = new ArrayList<PFUserDO>();
-    term = term.toLowerCase();
+    final List<PFUserDO> result = new ArrayList<>();
+    term = term != null ? term.toLowerCase() : "";
 
     final int offset = page * pageSize;
 
