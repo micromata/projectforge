@@ -23,15 +23,13 @@
 
 package org.projectforge.plugins.marketing;
 
-import org.projectforge.business.address.AddressFilter;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
+import org.projectforge.web.address.AddressListFilter;
 
 /**
- * 
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
  */
-public class AddressCampaignValueFilter extends AddressFilter
+public class AddressCampaignValueFilter extends AddressListFilter
 {
   private static final long serialVersionUID = 5731140604154434730L;
 
@@ -41,6 +39,7 @@ public class AddressCampaignValueFilter extends AddressFilter
 
   public AddressCampaignValueFilter()
   {
+
   }
 
   public AddressCampaignValueFilter(final BaseSearchFilter filter)

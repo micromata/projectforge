@@ -23,13 +23,35 @@
 
 package org.projectforge.web.address;
 
+import java.util.Collection;
+
 import org.projectforge.business.address.AddressFilter;
+import org.projectforge.business.address.AddressbookComparator;
+import org.projectforge.business.address.AddressbookDO;
+import org.projectforge.business.address.AddressbookDao;
+import org.projectforge.framework.configuration.ApplicationContextProvider;
+import org.projectforge.framework.persistence.api.BaseSearchFilter;
+import org.projectforge.web.common.MultiChoiceListHelper;
 
 /**
  */
 public class AddressListFilter extends AddressFilter
 {
   private static final long serialVersionUID = -2433725695846528675L;
+
+  private AddressbookWicketProvider addressbookProvider;
+
+  private MultiChoiceListHelper<AddressbookDO> addressbookListHelper;
+
+  public AddressListFilter()
+  {
+
+  }
+
+  public AddressListFilter(final BaseSearchFilter filter)
+  {
+    super(filter);
+  }
 
   @Override
   public AddressListFilter reset()
@@ -46,5 +68,34 @@ public class AddressListFilter extends AddressFilter
     setPersonaIngrata(false);
     setDeparted(false);
     return this;
+  }
+
+  public MultiChoiceListHelper<AddressbookDO> getAddressbookListHelper()
+  {
+    if (addressbookListHelper == null) {
+      addressbookListHelper = new MultiChoiceListHelper<AddressbookDO>().setComparator(new AddressbookComparator())
+          .setFullList(
+              getAddressbookProvider().getSortedAddressbooks());
+    }
+    return addressbookListHelper;
+  }
+
+  public AddressbookWicketProvider getAddressbookProvider()
+  {
+    if (addressbookProvider == null) {
+      addressbookProvider = new AddressbookWicketProvider(getAddressbookDao());
+    }
+    return addressbookProvider;
+  }
+
+  private AddressbookDao getAddressbookDao()
+  {
+    return ApplicationContextProvider.getApplicationContext().getBean(AddressbookDao.class);
+  }
+
+  @Override
+  public Collection<AddressbookDO> getAddressbooks()
+  {
+    return addressbookListHelper.getAssignedItems();
   }
 }

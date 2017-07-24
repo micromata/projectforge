@@ -67,7 +67,6 @@ public class RestServicesTest extends AbstractTestBase
     addressDO.setPrivateMobilePhone("007");
     addressDO.setPrivatePhone("I forgot my number");
     addressDO.setImageData(new byte[] { 0, 1, 3 });
-    addressDO.setTask(getTask("1.1"));
     addressDao.save(addressDO);
 
     Response response = addressDaoRest.getList("Marcel", 0l, true, true, true);

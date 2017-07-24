@@ -41,7 +41,6 @@ import javax.persistence.FetchType;
 import javax.persistence.JoinColumn;
 import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
-import javax.persistence.ManyToOne;
 import javax.persistence.MapKey;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
@@ -57,7 +56,6 @@ import org.hibernate.search.annotations.Index;
 import org.hibernate.search.annotations.Indexed;
 import org.hibernate.search.annotations.Resolution;
 import org.hibernate.search.annotations.Store;
-import org.projectforge.business.task.TaskDO;
 import org.projectforge.common.StringHelper;
 import org.projectforge.common.anots.PropertyInfo;
 import org.projectforge.framework.persistence.attr.entities.DefaultBaseWithAttrDO;
@@ -77,7 +75,6 @@ import de.micromata.genome.db.jpa.tabattr.entities.JpaTabAttrDataBaseDO;
 @Entity
 @Indexed
 @Table(name = "T_ADDRESS", indexes = {
-    @javax.persistence.Index(name = "idx_fk_t_address_task_id", columnList = "task_id"),
     @javax.persistence.Index(name = "idx_fk_t_address_tenant_id", columnList = "tenant_id")
 })
 @NoHistory
@@ -86,8 +83,6 @@ public class AddressDO extends DefaultBaseWithAttrDO<AddressDO>
   private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(AddressDO.class);
 
   private static final long serialVersionUID = 974064367925158463L;
-
-  private TaskDO task;
 
   private ContactStatus contactStatus = ContactStatus.ACTIVE;
 
@@ -651,32 +646,6 @@ public class AddressDO extends DefaultBaseWithAttrDO<AddressDO>
   public void setPublicKey(final String publicKey)
   {
     this.publicKey = publicKey;
-  }
-
-  /**
-   * Not used as object due to performance reasons.
-   *
-   * @return
-   */
-  @ManyToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = "task_id", nullable = false)
-  public TaskDO getTask()
-  {
-    return task;
-  }
-
-  public void setTask(final TaskDO task)
-  {
-    this.task = task;
-  }
-
-  @Transient
-  public Integer getTaskId()
-  {
-    if (this.task == null) {
-      return null;
-    }
-    return task.getId();
   }
 
   @Column(length = 255)
