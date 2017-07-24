@@ -32,8 +32,8 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.apache.wicket.util.convert.IConverter;
-import org.apache.wicket.validation.IValidatable;
-import org.apache.wicket.validation.validator.AbstractValidator;
+import org.apache.wicket.validation.INullAcceptingValidator;
+import org.apache.wicket.validation.ValidationError;
 import org.projectforge.business.fibu.KontoDO;
 import org.projectforge.business.fibu.KontoDao;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
@@ -50,6 +50,7 @@ public class KontoFormComponent extends PFAutoCompleteTextField<KontoDO>
   {
     private static final long serialVersionUID = -6179453515097650206L;
 
+    @Override
     public KontoDO convertToObject(final String value, final Locale locale)
     {
       if (StringUtils.isBlank(value) == true) {
@@ -64,6 +65,7 @@ public class KontoFormComponent extends PFAutoCompleteTextField<KontoDO>
       return kontoDao.getKonto(number);
     }
 
+    @Override
     public String convertToString(final Object value, final Locale locale)
     {
       if (value == null) {
@@ -79,26 +81,10 @@ public class KontoFormComponent extends PFAutoCompleteTextField<KontoDO>
     super(id, model);
     if (required == true) {
       setRequired(true);
-      add(new AbstractValidator<KontoDO>() {
-        @Override
-        protected void onValidate(final IValidatable<KontoDO> validatable)
-        {
-          final KontoDO value = validatable.getValue();
-          if (value == null) {
-            error(validatable);
-          }
-        }
-
-        @Override
-        public boolean validateOnNullValue()
-        {
-          return true;
-        }
-
-        @Override
-        protected String resourceKey()
-        {
-          return "fibu.konto.error.invalidKonto";
+      add((INullAcceptingValidator<KontoDO>) validatable -> {
+        final KontoDO value = validatable.getValue();
+        if (value == null) {
+          error(new ValidationError().addKey("fibu.konto.error.invalidKonto"));
         }
       });
     }
@@ -122,7 +108,9 @@ public class KontoFormComponent extends PFAutoCompleteTextField<KontoDO>
     final BaseSearchFilter filter = new BaseSearchFilter();
     filter.setSearchString(input);
     final List<KontoDO> list = kontoDao.getList(filter);
-    Collections.sort(list, new Comparator<KontoDO>() {
+    Collections.sort(list, new Comparator<KontoDO>()
+    {
+      @Override
       public int compare(final KontoDO o1, final KontoDO o2)
       {
         return (o1.getNummer().compareTo(o2.getNummer()));

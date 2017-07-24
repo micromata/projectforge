@@ -37,11 +37,10 @@ import org.projectforge.common.StringHelper;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.utils.NumberHelper;
+import org.wicketstuff.select2.ChoiceProvider;
+import org.wicketstuff.select2.Response;
 
-import com.vaynberg.wicket.select2.Response;
-import com.vaynberg.wicket.select2.TextChoiceProvider;
-
-public class UsersProvider extends TextChoiceProvider<PFUserDO>
+public class UsersProvider extends ChoiceProvider<PFUserDO>
 {
   private static final long serialVersionUID = 6228672635966093252L;
 
@@ -122,27 +121,18 @@ public class UsersProvider extends TextChoiceProvider<PFUserDO>
     return this;
   }
 
-  /**
-   * @see com.vaynberg.wicket.select2.TextChoiceProvider#getDisplayText(java.lang.Object)
-   */
   @Override
-  protected String getDisplayText(final PFUserDO choice)
+  public String getDisplayValue(final PFUserDO choice)
   {
     return choice.getFullname();
   }
 
-  /**
-   * @see com.vaynberg.wicket.select2.TextChoiceProvider#getId(java.lang.Object)
-   */
   @Override
-  protected Object getId(final PFUserDO choice)
+  public String getIdValue(final PFUserDO choice)
   {
-    return choice.getId();
+    return String.valueOf(choice.getId());
   }
 
-  /**
-   * @see com.vaynberg.wicket.select2.ChoiceProvider#query(java.lang.String, int, com.vaynberg.wicket.select2.Response)
-   */
   @Override
   public void query(String term, final int page, final Response<PFUserDO> response)
   {
@@ -171,9 +161,6 @@ public class UsersProvider extends TextChoiceProvider<PFUserDO>
     response.setHasMore(hasMore);
   }
 
-  /**
-   * @see com.vaynberg.wicket.select2.ChoiceProvider#toChoices(java.util.Collection)
-   */
   @Override
   public Collection<PFUserDO> toChoices(final Collection<String> ids)
   {

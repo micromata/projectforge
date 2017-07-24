@@ -29,14 +29,13 @@ import java.util.List;
 import org.apache.log4j.Logger;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.model.PropertyModel;
-import org.apache.wicket.validation.IValidatable;
+import org.apache.wicket.validation.IValidator;
 import org.apache.wicket.validation.ValidationError;
-import org.apache.wicket.validation.validator.AbstractValidator;
-import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.business.orga.PostType;
 import org.projectforge.business.orga.PostausgangDO;
 import org.projectforge.framework.time.DayHolder;
 import org.projectforge.web.wicket.AbstractEditForm;
+import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.web.wicket.autocompletion.PFAutoCompleteMaxLengthTextField;
 import org.projectforge.web.wicket.bootstrap.GridSize;
 import org.projectforge.web.wicket.components.DatePanel;
@@ -70,19 +69,15 @@ public class PostausgangEditForm extends AbstractEditForm<PostausgangDO, Postaus
       final DatePanel datumPanel = new DatePanel(fs.newChildId(), new PropertyModel<Date>(data, "datum"), DatePanelSettings.get()
           .withTargetType(java.sql.Date.class).withSelectProperty("datum"));
       datumPanel.setRequired(true);
-      datumPanel.add(new AbstractValidator<Date>() {
-        @Override
-        protected void onValidate(final IValidatable<Date> validatable)
-        {
-          final Date value = validatable.getValue();
-          if (value == null) {
-            return;
-          }
-          final DayHolder today = new DayHolder();
-          final DayHolder date = new DayHolder(value);
-          if (today.before(date) == true) { // No dates in the future accepted.
-            validatable.error(new ValidationError().addMessageKey("error.dateInFuture"));
-          }
+      datumPanel.add((IValidator<Date>) validatable -> {
+        final Date value = validatable.getValue();
+        if (value == null) {
+          return;
+        }
+        final DayHolder today = new DayHolder();
+        final DayHolder date = new DayHolder(value);
+        if (today.before(date) == true) { // No dates in the future accepted.
+          validatable.error(new ValidationError().addKey("error.dateInFuture"));
         }
       });
       fs.add(datumPanel);
@@ -103,7 +98,8 @@ public class PostausgangEditForm extends AbstractEditForm<PostausgangDO, Postaus
       // Receiver
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("orga.postausgang.empfaenger"));
       final PFAutoCompleteMaxLengthTextField empfaengerTextField = new PFAutoCompleteMaxLengthTextField(InputPanel.WICKET_ID,
-          new PropertyModel<String>(data, "empfaenger")) {
+          new PropertyModel<String>(data, "empfaenger"))
+      {
         @Override
         protected List<String> getChoices(final String input)
         {
@@ -119,7 +115,8 @@ public class PostausgangEditForm extends AbstractEditForm<PostausgangDO, Postaus
       // Person
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("orga.postausgang.person"));
       final PFAutoCompleteMaxLengthTextField personTextField = new PFAutoCompleteMaxLengthTextField(InputPanel.WICKET_ID,
-          new PropertyModel<String>(data, "person")) {
+          new PropertyModel<String>(data, "person"))
+      {
         @Override
         protected List<String> getChoices(final String input)
         {
@@ -133,7 +130,8 @@ public class PostausgangEditForm extends AbstractEditForm<PostausgangDO, Postaus
       // Content
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("orga.post.inhalt"));
       final PFAutoCompleteMaxLengthTextField inhaltTextField = new PFAutoCompleteMaxLengthTextField(InputPanel.WICKET_ID,
-          new PropertyModel<String>(data, "inhalt")) {
+          new PropertyModel<String>(data, "inhalt"))
+      {
         @Override
         protected List<String> getChoices(final String input)
         {

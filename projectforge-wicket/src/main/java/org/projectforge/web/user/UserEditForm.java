@@ -49,9 +49,8 @@ import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.ResourceModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.apache.wicket.validation.INullAcceptingValidator;
-import org.apache.wicket.validation.IValidatable;
+import org.apache.wicket.validation.IValidator;
 import org.apache.wicket.validation.ValidationError;
-import org.apache.wicket.validation.validator.AbstractValidator;
 import org.projectforge.Const;
 import org.projectforge.business.configuration.ConfigurationService;
 import org.projectforge.business.group.service.GroupService;
@@ -104,8 +103,7 @@ import org.projectforge.web.wicket.components.SingleButtonPanel;
 import org.projectforge.web.wicket.components.TimeZoneField;
 import org.projectforge.web.wicket.flowlayout.DivTextPanel;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
-
-import com.vaynberg.wicket.select2.Select2MultiChoice;
+import org.wicketstuff.select2.Select2MultiChoice;
 
 public class UserEditForm extends AbstractEditForm<PFUserDO, UserEditPage>
 {
@@ -172,7 +170,7 @@ public class UserEditForm extends AbstractEditForm<PFUserDO, UserEditPage>
 
   protected LdapUserValues ldapUserValues;
 
-  private TextField<?> usernameTextField;
+  private TextField<String> usernameTextField;
 
   private MinMaxNumberField<Integer> uidNumberField;
 
@@ -471,21 +469,14 @@ public class UserEditForm extends AbstractEditForm<PFUserDO, UserEditPage>
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("user"));
       if (adminAccess == true) {
         usernameTextField = new RequiredMaxLengthTextField(fs.getTextFieldId(),
-            new PropertyModel<String>(data, "username"));
+            new PropertyModel<>(data, "username"));
         usernameTextField.setMarkupId("userName").setOutputMarkupId(true);
         WicketUtils.setStrong(usernameTextField);
         fs.add(usernameTextField);
-        usernameTextField.add(new AbstractValidator<String>()
-        {
-
-          @Override
-          protected void onValidate(final IValidatable<String> validatable)
-          {
-            data.setUsername(validatable.getValue());
-            if (StringUtils.isNotEmpty(data.getUsername()) == true
-                && ((UserDao) getBaseDao()).doesUsernameAlreadyExist(data) == true) {
-              validatable.error(new ValidationError().addMessageKey("user.error.usernameAlreadyExists"));
-            }
+        usernameTextField.add((IValidator<String>) validatable -> {
+          data.setUsername(validatable.getValue());
+          if (StringUtils.isNotEmpty(data.getUsername()) && ((UserDao) getBaseDao()).doesUsernameAlreadyExist(data)) {
+            validatable.error(new ValidationError().addKey("user.error.usernameAlreadyExists"));
           }
         });
       } else {

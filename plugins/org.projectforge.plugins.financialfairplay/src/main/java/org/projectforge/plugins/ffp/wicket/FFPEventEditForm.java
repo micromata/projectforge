@@ -87,8 +87,7 @@ import org.projectforge.web.wicket.flowlayout.DivTextPanel;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
 import org.projectforge.web.wicket.flowlayout.InputPanel;
 import org.projectforge.web.wicket.flowlayout.TablePanel;
-
-import com.vaynberg.wicket.select2.Select2MultiChoice;
+import org.wicketstuff.select2.Select2MultiChoice;
 
 public class FFPEventEditForm extends AbstractEditForm<FFPEventDO, FFPEventEditPage>
 {

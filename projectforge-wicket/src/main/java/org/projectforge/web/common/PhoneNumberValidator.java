@@ -24,19 +24,19 @@
 package org.projectforge.web.common;
 
 import org.apache.wicket.validation.IValidatable;
+import org.apache.wicket.validation.IValidator;
 import org.apache.wicket.validation.ValidationError;
-import org.apache.wicket.validation.validator.AbstractValidator;
 import org.projectforge.common.StringHelper;
 
-public class PhoneNumberValidator extends AbstractValidator<String>
+public class PhoneNumberValidator implements IValidator<String>
 {
   private static final long serialVersionUID = 6488923290863235755L;
 
   @Override
-  protected void onValidate(final IValidatable<String> validatable)
+  public void validate(final IValidatable<String> validatable)
   {
     if (StringHelper.checkPhoneNumberFormat(validatable.getValue()) == false) {
-      validatable.error(new ValidationError().addMessageKey("address.error.phone.invalidFormat"));
+      validatable.error(new ValidationError().addKey("address.error.phone.invalidFormat"));
     }
   }
 }

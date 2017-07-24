@@ -31,11 +31,10 @@ import org.projectforge.business.group.service.GroupService;
 import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.framework.persistence.user.entities.GroupDO;
 import org.projectforge.framework.utils.NumberHelper;
+import org.wicketstuff.select2.ChoiceProvider;
+import org.wicketstuff.select2.Response;
 
-import com.vaynberg.wicket.select2.Response;
-import com.vaynberg.wicket.select2.TextChoiceProvider;
-
-public class GroupsWicketProvider extends TextChoiceProvider<GroupDO>
+public class GroupsWicketProvider extends ChoiceProvider<GroupDO>
 {
   private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(GroupsWicketProvider.class);
 
@@ -62,27 +61,18 @@ public class GroupsWicketProvider extends TextChoiceProvider<GroupDO>
     return this;
   }
 
-  /**
-   * @see com.vaynberg.wicket.select2.TextChoiceProvider#getDisplayText(java.lang.Object)
-   */
   @Override
-  protected String getDisplayText(final GroupDO choice)
+  public String getDisplayValue(final GroupDO choice)
   {
     return choice.getName();
   }
 
-  /**
-   * @see com.vaynberg.wicket.select2.TextChoiceProvider#getId(java.lang.Object)
-   */
   @Override
-  protected Object getId(final GroupDO choice)
+  public String getIdValue(final GroupDO choice)
   {
-    return choice.getId();
+    return String.valueOf(choice.getId());
   }
 
-  /**
-   * @see com.vaynberg.wicket.select2.ChoiceProvider#query(java.lang.String, int, com.vaynberg.wicket.select2.Response)
-   */
   @Override
   public void query(String term, final int page, final Response<GroupDO> response)
   {
@@ -110,9 +100,6 @@ public class GroupsWicketProvider extends TextChoiceProvider<GroupDO>
     response.setHasMore(hasMore);
   }
 
-  /**
-   * @see com.vaynberg.wicket.select2.ChoiceProvider#toChoices(java.util.Collection)
-   */
   @Override
   public Collection<GroupDO> toChoices(final Collection<String> ids)
   {

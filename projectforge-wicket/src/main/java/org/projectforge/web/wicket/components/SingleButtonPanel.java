@@ -24,7 +24,6 @@
 package org.projectforge.web.wicket.components;
 
 import org.apache.wicket.AttributeModifier;
-import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Button;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
@@ -90,7 +89,7 @@ public class SingleButtonPanel extends Panel
     super(id);
     this.button = button;
     add(button);
-    button.add(new Label("label", label).setRenderBodyOnly(true));
+    button.setLabel(label);
     if (classnames != null) {
       button.add(AttributeModifier.append("class", StringHelper.listToString(" ", classnames)));
     }

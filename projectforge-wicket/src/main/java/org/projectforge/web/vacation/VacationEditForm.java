@@ -72,9 +72,8 @@ import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
 import org.projectforge.web.wicket.flowlayout.LabelPanel;
 import org.projectforge.web.wicket.flowlayout.Select2MultiChoicePanel;
 import org.projectforge.web.wicket.flowlayout.Select2SingleChoicePanel;
-
-import com.vaynberg.wicket.select2.Select2Choice;
-import com.vaynberg.wicket.select2.Select2MultiChoice;
+import org.wicketstuff.select2.Select2Choice;
+import org.wicketstuff.select2.Select2MultiChoice;
 
 public class VacationEditForm extends AbstractEditForm<VacationDO, VacationEditPage>
 {

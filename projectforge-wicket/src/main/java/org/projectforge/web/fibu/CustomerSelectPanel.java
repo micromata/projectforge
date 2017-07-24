@@ -44,9 +44,8 @@ import org.projectforge.web.wicket.components.TooltipImage;
 
 /**
  * This panel show the actual kunde and buttons for select/unselect kunde.
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
  */
 public class CustomerSelectPanel extends AbstractSelectPanel<KundeDO>
 {
@@ -64,7 +63,7 @@ public class CustomerSelectPanel extends AbstractSelectPanel<KundeDO>
   /**
    * @param id
    * @param model
-   * @param kundeText If no Kunde is given then a free text field representing a Kunde can be used.
+   * @param kundeText      If no Kunde is given then a free text field representing a Kunde can be used.
    * @param caller
    * @param selectProperty
    */
@@ -88,7 +87,7 @@ public class CustomerSelectPanel extends AbstractSelectPanel<KundeDO>
         {
           return (CustomerSelectPanel.this.getModelObject() == null
               || NumberHelper.greaterZero(CustomerSelectPanel.this.getModelObject()
-                  .getId()) == false);
+              .getId()) == false);
         }
       };
       add(kundeTextField);
@@ -112,7 +111,7 @@ public class CustomerSelectPanel extends AbstractSelectPanel<KundeDO>
       public void onSubmit()
       {
         setResponsePage(new CustomerListPage(caller, selectProperty));
-      };
+      }
     };
     selectButton.setDefaultFormProcessing(false);
     add(selectButton);
@@ -172,7 +171,7 @@ public class CustomerSelectPanel extends AbstractSelectPanel<KundeDO>
 
   /**
    * Will be called if the user has chosen an entry of the kunde favorites drop down choice.
-   * 
+   *
    * @param kunde
    */
   protected void selectKunde(final KundeDO kunde)
@@ -209,7 +208,7 @@ public class CustomerSelectPanel extends AbstractSelectPanel<KundeDO>
   }
 
   @Override
-  protected void convertInput()
+  public void convertInput()
   {
     setConvertedInput(getModelObject());
   }

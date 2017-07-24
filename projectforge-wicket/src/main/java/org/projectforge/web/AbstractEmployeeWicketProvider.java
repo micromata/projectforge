@@ -7,13 +7,12 @@ import java.util.List;
 import org.projectforge.business.fibu.EmployeeDO;
 import org.projectforge.business.fibu.api.EmployeeService;
 import org.projectforge.framework.utils.NumberHelper;
-
-import com.vaynberg.wicket.select2.TextChoiceProvider;
+import org.wicketstuff.select2.ChoiceProvider;
 
 /**
  * Created by blumenstein on 13.12.16.
  */
-public abstract class AbstractEmployeeWicketProvider extends TextChoiceProvider<EmployeeDO>
+public abstract class AbstractEmployeeWicketProvider extends ChoiceProvider<EmployeeDO>
 {
   protected List<EmployeeDO> sortedEmployees;
 
@@ -41,27 +40,18 @@ public abstract class AbstractEmployeeWicketProvider extends TextChoiceProvider<
     return sortedEmployees;
   }
 
-  /**
-   * @see TextChoiceProvider#getDisplayText(Object)
-   */
   @Override
-  protected String getDisplayText(final EmployeeDO choice)
+  public String getDisplayValue(final EmployeeDO choice)
   {
     return choice.getUser().getFullname();
   }
 
-  /**
-   * @see TextChoiceProvider#getId(Object)
-   */
   @Override
-  protected Object getId(final EmployeeDO choice)
+  public String getIdValue(final EmployeeDO choice)
   {
-    return choice.getPk();
+    return String.valueOf(choice.getPk());
   }
 
-  /**
-   * @see com.vaynberg.wicket.select2.ChoiceProvider#toChoices(Collection)
-   */
   @Override
   public Collection<EmployeeDO> toChoices(final Collection<String> ids)
   {

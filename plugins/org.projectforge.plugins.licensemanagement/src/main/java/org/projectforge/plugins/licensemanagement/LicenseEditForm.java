@@ -52,14 +52,12 @@ import org.projectforge.web.wicket.flowlayout.FileUploadPanel;
 import org.projectforge.web.wicket.flowlayout.IconButtonPanel;
 import org.projectforge.web.wicket.flowlayout.IconType;
 import org.projectforge.web.wicket.flowlayout.InputPanel;
-
-import com.vaynberg.wicket.select2.Select2MultiChoice;
+import org.wicketstuff.select2.Select2MultiChoice;
 
 /**
  * This is the edit formular page.
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
  */
 public class LicenseEditForm extends AbstractEditForm<LicenseDO, LicenseEditPage>
 {
@@ -208,7 +206,7 @@ public class LicenseEditForm extends AbstractEditForm<LicenseDO, LicenseEditPage
     }
     if ((isNew() == true && right.hasInsertAccess(getUser()) == true) //
         || (right.hasUpdateAccess(getUser(), data, null) == true
-            && right.isLicenseKeyVisible(getUser(), data) == true)) {
+        && right.isLicenseKeyVisible(getUser(), data) == true)) {
       gridBuilder.newSplitPanel(GridSize.COL50);
       FieldsetPanel fs = gridBuilder.newFieldset(gridBuilder.getString("plugins.licensemanagement.file1"));
       fileUploadPanel1 = new FileUploadPanel(fs.newChildId(), fs, this, true,

@@ -52,7 +52,6 @@ import org.projectforge.web.wicket.flowlayout.IconType;
 
 /**
  * @author Billy Duong (b.duong@micromata.de)
- *
  */
 public class SkillSelectPanel extends AbstractSelectPanel<SkillDO> implements ComponentWrapperPanel
 {
@@ -214,7 +213,7 @@ public class SkillSelectPanel extends AbstractSelectPanel<SkillDO> implements Co
           skillTreePage.setHighlightedRowId(getModelObject().getId()); // Preselect node for highlighting.
         }
         setResponsePage(skillTreePage);
-      };
+      }
     };
     selectButton.setDefaultFormProcessing(false);
     divContainer.add(selectButton);
@@ -242,7 +241,7 @@ public class SkillSelectPanel extends AbstractSelectPanel<SkillDO> implements Co
   }
 
   /**
-   * 
+   *
    */
   private void initAutoCompletePanels()
   {
@@ -321,7 +320,7 @@ public class SkillSelectPanel extends AbstractSelectPanel<SkillDO> implements Co
 
   /**
    * Hook method which is called, when the skill is set by auto complete field
-   * 
+   *
    * @param target
    * @param skillDo
    */
@@ -334,7 +333,7 @@ public class SkillSelectPanel extends AbstractSelectPanel<SkillDO> implements Co
 
   /**
    * Will be called if the user has chosen an entry of the skill favorites drop down choice.
-   * 
+   *
    * @param skill
    */
   protected void selectSkill(final SkillDO skill)
@@ -350,7 +349,7 @@ public class SkillSelectPanel extends AbstractSelectPanel<SkillDO> implements Co
   }
 
   @Override
-  protected void convertInput()
+  public void convertInput()
   {
     setConvertedInput(getModelObject());
   }
@@ -358,7 +357,7 @@ public class SkillSelectPanel extends AbstractSelectPanel<SkillDO> implements Co
   /**
    * If true (default) then the path from the root skill to the currently selected will be shown, otherwise only the
    * name of the skill is displayed.
-   * 
+   *
    * @param showPath
    */
   public void setShowPath(final boolean showPath)

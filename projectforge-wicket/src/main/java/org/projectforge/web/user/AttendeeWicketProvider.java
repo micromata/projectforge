@@ -35,11 +35,10 @@ import org.projectforge.business.teamcal.event.model.TeamEventAttendeeStatus;
 import org.projectforge.business.teamcal.event.model.TeamEventDO;
 import org.projectforge.framework.i18n.I18nHelper;
 import org.projectforge.framework.utils.NumberHelper;
+import org.wicketstuff.select2.ChoiceProvider;
+import org.wicketstuff.select2.Response;
 
-import com.vaynberg.wicket.select2.Response;
-import com.vaynberg.wicket.select2.TextChoiceProvider;
-
-public class AttendeeWicketProvider extends TextChoiceProvider<TeamEventAttendeeDO>
+public class AttendeeWicketProvider extends ChoiceProvider<TeamEventAttendeeDO>
 {
   private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(AttendeeWicketProvider.class);
 
@@ -115,11 +114,8 @@ public class AttendeeWicketProvider extends TextChoiceProvider<TeamEventAttendee
     return customAttendees;
   }
 
-  /**
-   * @see com.vaynberg.wicket.select2.TextChoiceProvider#getDisplayText(java.lang.Object)
-   */
   @Override
-  protected String getDisplayText(final TeamEventAttendeeDO choice)
+  public String getDisplayValue(final TeamEventAttendeeDO choice)
   {
     String name = "";
     if (choice.getAddress() != null) {
@@ -137,18 +133,12 @@ public class AttendeeWicketProvider extends TextChoiceProvider<TeamEventAttendee
     return name + " (" + mail + ")" + status;
   }
 
-  /**
-   * @see com.vaynberg.wicket.select2.TextChoiceProvider#getId(java.lang.Object)
-   */
   @Override
-  protected Object getId(final TeamEventAttendeeDO choice)
+  public String getIdValue(final TeamEventAttendeeDO choice)
   {
-    return choice.getId();
+    return String.valueOf(choice.getId());
   }
 
-  /**
-   * @see com.vaynberg.wicket.select2.ChoiceProvider#query(java.lang.String, int, com.vaynberg.wicket.select2.Response)
-   */
   @Override
   public void query(String term, final int page, final Response<TeamEventAttendeeDO> response)
   {
@@ -190,9 +180,6 @@ public class AttendeeWicketProvider extends TextChoiceProvider<TeamEventAttendee
     response.setHasMore(hasMore);
   }
 
-  /**
-   * @see com.vaynberg.wicket.select2.ChoiceProvider#toChoices(java.util.Collection)
-   */
   @Override
   public Collection<TeamEventAttendeeDO> toChoices(final Collection<String> ids)
   {

@@ -26,8 +26,7 @@ package org.projectforge.plugins.marketing;
 import org.apache.log4j.Logger;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.model.PropertyModel;
-import org.apache.wicket.validation.IValidatable;
-import org.apache.wicket.validation.validator.AbstractValidator;
+import org.apache.wicket.validation.IValidator;
 import org.projectforge.web.wicket.AbstractEditForm;
 import org.projectforge.web.wicket.components.MaxLengthTextArea;
 import org.projectforge.web.wicket.components.RequiredMaxLengthTextField;
@@ -35,9 +34,8 @@ import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
 
 /**
  * This is the edit formular page.
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
  */
 public class AddressCampaignEditForm extends AbstractEditForm<AddressCampaignDO, AddressCampaignEditPage>
 {
@@ -69,14 +67,9 @@ public class AddressCampaignEditForm extends AbstractEditForm<AddressCampaignDO,
       fs.addHelpIcon(getString("plugins.marketing.addressCampaign.values.format"));
       fs.add(valuesField);
       fs.addAlertIcon(getString("plugins.marketing.addressCampaign.edit.warning.doNotChangeValues"));
-      valuesField.add(new AbstractValidator<String>()
-      {
-        @Override
-        protected void onValidate(final IValidatable<String> validatable)
-        {
-          if (AddressCampaignDO.getValuesArray(validatable.getValue()) == null) {
-            valuesField.error(getString("plugins.marketing.addressCampaign.values.invalidFormat"));
-          }
+      valuesField.add((IValidator<String>) validatable -> {
+        if (AddressCampaignDO.getValuesArray(validatable.getValue()) == null) {
+          valuesField.error(getString("plugins.marketing.addressCampaign.values.invalidFormat"));
         }
       });
     }

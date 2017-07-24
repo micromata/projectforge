@@ -34,9 +34,8 @@ import org.apache.wicket.markup.html.form.validation.IFormValidator;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
-import org.apache.wicket.validation.IValidatable;
+import org.apache.wicket.validation.IValidator;
 import org.apache.wicket.validation.ValidationError;
-import org.apache.wicket.validation.validator.AbstractValidator;
 import org.projectforge.Const;
 import org.projectforge.business.book.BookDO;
 import org.projectforge.business.book.BookDao;
@@ -171,19 +170,11 @@ public class BookEditForm extends AbstractEditForm<BookDO, BookEditPage>
     {
       // Signature
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("book.signature"));
-      final MaxLengthTextField signature = new MaxLengthTextField(InputPanel.WICKET_ID,
-          new PropertyModel<String>(data, "signature"));
-      signature.add(new AbstractValidator<String>()
-      {
-        private static final long serialVersionUID = 6488923290863235755L;
-
-        @Override
-        protected void onValidate(final IValidatable<String> validatable)
-        {
-          data.setSignature(validatable.getValue());
-          if (bookDao.doesSignatureAlreadyExist(data) == true) {
-            validatable.error(new ValidationError().addMessageKey("book.error.signatureAlreadyExists"));
-          }
+      final MaxLengthTextField signature = new MaxLengthTextField(InputPanel.WICKET_ID, new PropertyModel<>(data, "signature"));
+      signature.add((IValidator<String>) validatable -> {
+        data.setSignature(validatable.getValue());
+        if (bookDao.doesSignatureAlreadyExist(data) == true) {
+          validatable.error(new ValidationError().addKey("book.error.signatureAlreadyExists"));
         }
       });
       fs.add(dependentFormComponents[2] = signature);

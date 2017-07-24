@@ -36,11 +36,10 @@ import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.persistence.user.entities.TenantDO;
 import org.projectforge.framework.utils.NumberHelper;
+import org.wicketstuff.select2.ChoiceProvider;
+import org.wicketstuff.select2.Response;
 
-import com.vaynberg.wicket.select2.Response;
-import com.vaynberg.wicket.select2.TextChoiceProvider;
-
-public class TenantsProvider extends TextChoiceProvider<TenantDO>
+public class TenantsProvider extends ChoiceProvider<TenantDO>
 {
   private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(TenantsProvider.class);
 
@@ -82,7 +81,6 @@ public class TenantsProvider extends TextChoiceProvider<TenantDO>
   }
 
   /**
-   * 
    * @param tenantIds
    * @return
    */
@@ -143,27 +141,18 @@ public class TenantsProvider extends TextChoiceProvider<TenantDO>
     return this;
   }
 
-  /**
-   * @see com.vaynberg.wicket.select2.TextChoiceProvider#getDisplayText(java.lang.Object)
-   */
   @Override
-  protected String getDisplayText(final TenantDO choice)
+  public String getDisplayValue(final TenantDO choice)
   {
     return choice.getName();
   }
 
-  /**
-   * @see com.vaynberg.wicket.select2.TextChoiceProvider#getId(java.lang.Object)
-   */
   @Override
-  protected Object getId(final TenantDO choice)
+  public String getIdValue(final TenantDO choice)
   {
-    return choice.getId();
+    return String.valueOf(choice.getId());
   }
 
-  /**
-   * @see com.vaynberg.wicket.select2.ChoiceProvider#query(java.lang.String, int, com.vaynberg.wicket.select2.Response)
-   */
   @Override
   public void query(String term, final int page, final Response<TenantDO> response)
   {
@@ -191,9 +180,6 @@ public class TenantsProvider extends TextChoiceProvider<TenantDO>
     response.setHasMore(hasMore);
   }
 
-  /**
-   * @see com.vaynberg.wicket.select2.ChoiceProvider#toChoices(java.util.Collection)
-   */
   @Override
   public Collection<TenantDO> toChoices(final Collection<String> ids)
   {

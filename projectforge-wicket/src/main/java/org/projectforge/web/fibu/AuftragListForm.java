@@ -50,8 +50,7 @@ import org.projectforge.web.wicket.flowlayout.DropDownChoicePanel;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
 import org.projectforge.web.wicket.flowlayout.Select2MultiChoicePanel;
 import org.projectforge.web.wicket.flowlayout.TextStyle;
-
-import com.vaynberg.wicket.select2.Select2MultiChoice;
+import org.wicketstuff.select2.Select2MultiChoice;
 
 public class AuftragListForm extends AbstractListForm<AuftragFilter, AuftragListPage>
 {

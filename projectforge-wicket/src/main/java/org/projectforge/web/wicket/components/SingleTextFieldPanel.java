@@ -25,24 +25,22 @@ package org.projectforge.web.wicket.components;
 
 import java.math.BigDecimal;
 
-import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
 import org.apache.wicket.util.convert.IConverter;
 
 /**
  * Panel containing only one text input field. Can be used for creating dynamic elements (e. g. inside a repeating view). <br/>
  * This component calls setRenderBodyOnly(true). If the outer html element is needed, please call setRenderBodyOnly(false).
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
  */
 public class SingleTextFieldPanel extends Panel
 {
   private static final long serialVersionUID = 6436118474627248790L;
 
-  private TextField< ? > textField;
+  private TextField<?> textField;
 
   private SingleTextFieldPanel(final String id)
   {
@@ -50,17 +48,17 @@ public class SingleTextFieldPanel extends Panel
     setRenderBodyOnly(true);
   }
 
-  private void setTextField(final TextField< ? > textField)
+  private void setTextField(final TextField<?> textField)
   {
     this.textField = textField;
     this.add(textField);
   }
 
-  public SingleTextFieldPanel setAttributeModifier(final String attrName, final String value)
-  {
-    textField.add(new AttributeModifier(attrName, true, new Model<String>(value)));
-    return this;
-  }
+  //  public SingleTextFieldPanel setAttributeModifier(final String attrName, final String value)
+  //  {
+  //    textField.add(new AttributeModifier(attrName, true, new Model<String>(value)));
+  //    return this;
+  //  }
 
   public static SingleTextFieldPanel createMinMaxNumberField(final String id, final IModel<Integer> model, final Integer minimum,
       final Integer maximum)
@@ -75,7 +73,8 @@ public class SingleTextFieldPanel extends Panel
     final SingleTextFieldPanel panel = new SingleTextFieldPanel(id);
     final MinMaxNumberField<Integer> textField;
     if (converter != null) {
-      textField = new MinMaxNumberField<Integer>("text", model, minimum, maximum) {
+      textField = new MinMaxNumberField<Integer>("text", model, minimum, maximum)
+      {
         /**
          * @see org.projectforge.web.wicket.components.MinMaxNumberField#getConverter(java.lang.Class)
          */

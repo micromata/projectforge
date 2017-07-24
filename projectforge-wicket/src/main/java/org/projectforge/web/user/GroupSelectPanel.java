@@ -36,8 +36,8 @@ import org.projectforge.web.wicket.components.TooltipImage;
 
 /**
  * This panel show the actual group and buttons for select/unselect group.
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
  */
 public class GroupSelectPanel extends AbstractSelectPanel<GroupDO>
 {
@@ -58,6 +58,7 @@ public class GroupSelectPanel extends AbstractSelectPanel<GroupDO>
 
   /**
    * Should be called before init() method. If true, then the validation will be done after submitting.
+   *
    * @param defaultFormProcessing
    */
   public void setDefaultFormProcessing(final boolean defaultFormProcessing)
@@ -70,7 +71,8 @@ public class GroupSelectPanel extends AbstractSelectPanel<GroupDO>
   public GroupSelectPanel init()
   {
     super.init();
-    final Label groupAsStringLabel = new Label("groupAsString", new Model<String>() {
+    final Label groupAsStringLabel = new Label("groupAsString", new Model<String>()
+    {
       @Override
       public String getObject()
       {
@@ -83,17 +85,19 @@ public class GroupSelectPanel extends AbstractSelectPanel<GroupDO>
       }
     });
     add(groupAsStringLabel);
-    final SubmitLink selectButton = new SubmitLink("select") {
+    final SubmitLink selectButton = new SubmitLink("select")
+    {
       @Override
       public void onSubmit()
       {
         setResponsePage(new GroupListPage(caller, selectProperty));
-      };
+      }
     };
     selectButton.setDefaultFormProcessing(defaultFormProcessing);
     add(selectButton);
     selectButton.add(new TooltipImage("selectHelp", WebConstants.IMAGE_GROUP_SELECT, getString("tooltip.selectGroup")));
-    final SubmitLink unselectButton = new SubmitLink("unselect") {
+    final SubmitLink unselectButton = new SubmitLink("unselect")
+    {
       @Override
       public void onSubmit()
       {
@@ -113,7 +117,7 @@ public class GroupSelectPanel extends AbstractSelectPanel<GroupDO>
   }
 
   @Override
-  protected void convertInput()
+  public void convertInput()
   {
     setConvertedInput(getModelObject());
   }

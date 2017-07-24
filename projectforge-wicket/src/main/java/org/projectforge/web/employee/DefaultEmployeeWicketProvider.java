@@ -35,8 +35,7 @@ import org.projectforge.business.fibu.EmployeeStatus;
 import org.projectforge.business.fibu.api.EmployeeService;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.web.AbstractEmployeeWicketProvider;
-
-import com.vaynberg.wicket.select2.Response;
+import org.wicketstuff.select2.Response;
 
 public class DefaultEmployeeWicketProvider extends AbstractEmployeeWicketProvider
 {
@@ -55,9 +54,6 @@ public class DefaultEmployeeWicketProvider extends AbstractEmployeeWicketProvide
     this.employeeStatusFilter = Arrays.asList(employeeStatusFilter);
   }
 
-  /**
-   * @see com.vaynberg.wicket.select2.ChoiceProvider#query(java.lang.String, int, com.vaynberg.wicket.select2.Response)
-   */
   @Override
   public void query(String term, final int page, final Response<EmployeeDO> response)
   {
@@ -65,7 +61,8 @@ public class DefaultEmployeeWicketProvider extends AbstractEmployeeWicketProvide
     Collection<EmployeeDO> result = new ArrayList<>();
     List<EmployeeDO> employeesWithoutLoginedUser = employeeService.findAllActive(false).stream()
         .filter(emp -> this.withMyself || emp.getUser().getPk().equals(ThreadLocalUserContext.getUserId()) == false)
-        .filter(emp -> this.employeeStatusFilter.size() < 1 || (employeeService.getEmployeeStatus(emp) != null && this.employeeStatusFilter.contains(employeeService.getEmployeeStatus(emp))))
+        .filter(emp -> this.employeeStatusFilter.size() < 1 || (employeeService.getEmployeeStatus(emp) != null && this.employeeStatusFilter
+            .contains(employeeService.getEmployeeStatus(emp))))
         .filter(emp -> emp.getUser().getEmail() != null && emp.getUser().getEmail().length() > 0)
         .collect(Collectors.toList());
     for (EmployeeDO emp : employeesWithoutLoginedUser) {

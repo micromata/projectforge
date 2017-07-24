@@ -7,11 +7,10 @@ import java.util.stream.Collectors;
 
 import org.projectforge.common.i18n.I18nEnum;
 import org.projectforge.framework.i18n.I18nHelper;
+import org.wicketstuff.select2.ChoiceProvider;
+import org.wicketstuff.select2.Response;
 
-import com.vaynberg.wicket.select2.Response;
-import com.vaynberg.wicket.select2.TextChoiceProvider;
-
-public class I18nEnumChoiceProvider<T extends Enum<T> & I18nEnum> extends TextChoiceProvider<T>
+public class I18nEnumChoiceProvider<T extends Enum<T> & I18nEnum> extends ChoiceProvider<T>
 {
   private final Class<T> clazz;
 
@@ -21,7 +20,7 @@ public class I18nEnumChoiceProvider<T extends Enum<T> & I18nEnum> extends TextCh
   }
 
   @Override
-  protected String getDisplayText(final T choice)
+  public String getDisplayValue(final T choice)
   {
     return I18nHelper.getLocalizedMessage(choice.getI18nKey());
   }
@@ -30,7 +29,7 @@ public class I18nEnumChoiceProvider<T extends Enum<T> & I18nEnum> extends TextCh
    * Converts the given Enum value to the Enum name.
    */
   @Override
-  protected Object getId(final T choice)
+  public String getIdValue(final T choice)
   {
     return choice.name();
   }

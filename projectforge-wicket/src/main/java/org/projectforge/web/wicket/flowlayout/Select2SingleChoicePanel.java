@@ -27,8 +27,7 @@ import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 import org.projectforge.web.wicket.WicketUtils;
-
-import com.vaynberg.wicket.select2.Select2Choice;
+import org.wicketstuff.select2.Select2Choice;
 
 /**
  * Panel containing only one drop down choice box. <br/>

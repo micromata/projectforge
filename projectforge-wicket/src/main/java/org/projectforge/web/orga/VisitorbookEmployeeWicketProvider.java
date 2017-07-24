@@ -32,8 +32,7 @@ import org.projectforge.business.fibu.EmployeeDO;
 import org.projectforge.business.fibu.api.EmployeeService;
 import org.projectforge.business.orga.VisitorbookDO;
 import org.projectforge.web.AbstractEmployeeWicketProvider;
-
-import com.vaynberg.wicket.select2.Response;
+import org.wicketstuff.select2.Response;
 
 public class VisitorbookEmployeeWicketProvider extends AbstractEmployeeWicketProvider
 {

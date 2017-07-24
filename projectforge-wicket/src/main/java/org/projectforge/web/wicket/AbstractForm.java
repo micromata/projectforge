@@ -29,6 +29,7 @@ import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 
+import org.apache.commons.fileupload.FileUploadException;
 import org.apache.log4j.Logger;
 import org.apache.wicket.Component;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -38,7 +39,6 @@ import org.apache.wicket.markup.html.panel.FeedbackPanel;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.protocol.http.servlet.ServletWebRequest;
 import org.apache.wicket.util.lang.Bytes;
-import org.apache.wicket.util.upload.FileUploadException;
 import org.projectforge.business.multitenancy.TenantRegistry;
 import org.projectforge.business.multitenancy.TenantRegistryMap;
 import org.projectforge.framework.i18n.I18nKeyAndParams;
@@ -209,7 +209,7 @@ public abstract class AbstractForm<F, P extends AbstractUnsecureBasePage> extend
       // parsed out correctly
       try {
 
-        // Patched for servlet 3.0 
+        // Patched for servlet 3.0
         Servlet3MultipartServletWebRequest multipartWebRequest = new Servlet3MultipartServletWebRequest(contreq,
             request.getFilterPrefix(), getMaxSize(), getPage().getId());
         //multipartWebRequest.setFileMaxSize(getFileMaxSize());
