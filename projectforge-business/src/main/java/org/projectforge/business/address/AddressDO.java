@@ -201,6 +201,9 @@ public class AddressDO extends DefaultBaseWithAttrDO<AddressDO>
   @NoHistory
   private byte[] imageData;
 
+  @NoHistory
+  private byte[] imageDataPreview;
+
   // @FieldBridge(impl = HibernateSearchInstantMessagingBridge.class)
   // @Field(index = Index.YES /*TOKENIZED*/, store = Store.NO)
   // TODO: Prepared for hibernate search.
@@ -972,5 +975,16 @@ public class AddressDO extends DefaultBaseWithAttrDO<AddressDO>
   public void setImageData(final byte[] imageData)
   {
     this.imageData = imageData;
+  }
+
+  @Column(name = "image_data_preview", length = 1000)
+  public byte[] getImageDataPreview()
+  {
+    return imageDataPreview;
+  }
+
+  public void setImageDataPreview(final byte[] imageDataPreview)
+  {
+    this.imageDataPreview = imageDataPreview;
   }
 }
