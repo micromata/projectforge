@@ -160,7 +160,7 @@ public class VacationEditForm extends AbstractEditForm<VacationDO, VacationEditP
           new DefaultEmployeeWicketProvider(employeeService, true));
       employeeSelect.setRequired(true).setMarkupId("vacation-employee").setOutputMarkupId(true);
       employeeSelect.setEnabled(checkHRWriteRight());
-      employeeSelect.add(new AjaxFormComponentUpdatingBehavior("onchange")
+      employeeSelect.add(new AjaxFormComponentUpdatingBehavior("change")
       {
         private static final long serialVersionUID = 2462231234993745889L;
 
@@ -190,7 +190,7 @@ public class VacationEditForm extends AbstractEditForm<VacationDO, VacationEditP
       final FieldsetPanel fsEndDate = gridBuilder.newFieldset(VacationDO.class, "endDate");
       DatePanel endDatePanel = new DatePanel(fsEndDate.newChildId(), new PropertyModel<>(data, "endDate"),
           DatePanelSettings.get().withTargetType(java.sql.Date.class), true);
-      endDatePanel.getDateField().add(new AjaxFormComponentUpdatingBehavior("onchange")
+      endDatePanel.getDateField().add(new AjaxFormComponentUpdatingBehavior("change")
       {
         private static final long serialVersionUID = 2462233112393745889L;
 
@@ -206,7 +206,7 @@ public class VacationEditForm extends AbstractEditForm<VacationDO, VacationEditP
       formValidator.getDependentFormComponents()[1] = endDatePanel;
       fsEndDate.add(endDatePanel);
 
-      startDatePanel.getDateField().add(new AjaxFormComponentUpdatingBehavior("onchange")
+      startDatePanel.getDateField().add(new AjaxFormComponentUpdatingBehavior("change")
       {
         private static final long serialVersionUID = 4577664688930645961L;
 
@@ -239,7 +239,7 @@ public class VacationEditForm extends AbstractEditForm<VacationDO, VacationEditP
       final CheckBoxPanel checkboxPanel = new CheckBoxPanel(fs.newChildId(), new PropertyModel<>(data, "halfDay"), "");
       checkboxPanel.setMarkupId("vacation-isHalfDay").setOutputMarkupId(true);
       checkboxPanel.setEnabled(checkEnableInputField());
-      checkboxPanel.getCheckBox().add(new AjaxFormComponentUpdatingBehavior("onchange")
+      checkboxPanel.getCheckBox().add(new AjaxFormComponentUpdatingBehavior("change")
       {
         @Override
         protected void onUpdate(final AjaxRequestTarget target)

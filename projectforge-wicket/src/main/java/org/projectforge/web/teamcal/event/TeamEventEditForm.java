@@ -252,7 +252,7 @@ public class TeamEventEditForm extends AbstractEditForm<TeamEventDO, TeamEventEd
       final DivPanel divPanel = fieldSet.addNewCheckBoxButtonDiv();
       final CheckBoxButton checkBox = new CheckBoxButton(divPanel.newChildId(), new PropertyModel<Boolean>(data, "allDay"),
           getString("plugins.teamcal.event.allDay"));
-      checkBox.getCheckBox().add(new AjaxFormComponentUpdatingBehavior("onchange")
+      checkBox.getCheckBox().add(new AjaxFormComponentUpdatingBehavior("change")
       {
         @Override
         protected void onUpdate(final AjaxRequestTarget target)
@@ -298,7 +298,7 @@ public class TeamEventEditForm extends AbstractEditForm<TeamEventDO, TeamEventEd
       frequencyChoice.setNullValid(false);
       recurrenceFieldset.add(frequencyChoice);
       recurrenceFieldset.getFieldset().setOutputMarkupId(true);
-      frequencyChoice.add(new AjaxFormComponentUpdatingBehavior("onchange")
+      frequencyChoice.add(new AjaxFormComponentUpdatingBehavior("change")
       {
         @Override
         protected void onUpdate(final AjaxRequestTarget target)
@@ -309,7 +309,7 @@ public class TeamEventEditForm extends AbstractEditForm<TeamEventDO, TeamEventEd
       customizedCheckBoxButton = recurrenceFieldset.addNewCheckBoxButtonDiv();
       final CheckBoxButton checkBox = new CheckBoxButton(customizedCheckBoxButton.newChildId(),
           new PropertyModel<>(recurrenceData, "customized"), getString("plugins.teamcal.event.recurrence.customized"));
-      checkBox.getCheckBox().add(new AjaxFormComponentUpdatingBehavior("onchange")
+      checkBox.getCheckBox().add(new AjaxFormComponentUpdatingBehavior("change")
       {
         @Override
         protected void onUpdate(final AjaxRequestTarget target)
@@ -526,7 +526,7 @@ public class TeamEventEditForm extends AbstractEditForm<TeamEventDO, TeamEventEd
     dependentFormComponents[4] = endDateTimePanel.getHourOfDayDropDownChoice();
     dependentFormComponents[5] = endDateTimePanel.getMinuteDropDownChoice();
 
-    startDateTimePanel.getDateField().add(new AjaxFormComponentUpdatingBehavior("onchange")
+    startDateTimePanel.getDateField().add(new AjaxFormComponentUpdatingBehavior("change")
     {
       private static final long serialVersionUID = 4577664688930645961L;
 

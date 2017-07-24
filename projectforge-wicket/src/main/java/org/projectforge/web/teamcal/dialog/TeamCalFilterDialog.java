@@ -361,7 +361,7 @@ public class TeamCalFilterDialog extends ModalDialog
             TeamCalFilterDialog.this, "selectedCalendars"),
         teamProvider);
     teamCalsChoice.setOutputMarkupId(true);
-    teamCalsChoice.add(new AjaxFormComponentUpdatingBehavior("onchange")
+    teamCalsChoice.add(new AjaxFormComponentUpdatingBehavior("change")
     {
       private static final long serialVersionUID = 1L;
 

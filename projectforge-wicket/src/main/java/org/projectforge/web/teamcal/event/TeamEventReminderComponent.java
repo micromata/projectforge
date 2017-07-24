@@ -135,7 +135,7 @@ public class TeamEventReminderComponent extends Component
           }
         });
     reminderActionTypeChoice.setNullValid(true);
-    reminderActionTypeChoice.getDropDownChoice().add(new AjaxFormComponentUpdatingBehavior("onchange")
+    reminderActionTypeChoice.getDropDownChoice().add(new AjaxFormComponentUpdatingBehavior("change")
     {
 
       @Override

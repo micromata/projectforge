@@ -65,7 +65,7 @@ class PeriodOfPerformanceHelper
     final LabelValueChoiceRenderer<PeriodOfPerformanceType> performanceTypeRenderer = new LabelValueChoiceRenderer<>(fs, PeriodOfPerformanceType.values());
     final DropDownChoice<PeriodOfPerformanceType> performanceTypeDropDown = new DropDownChoice<>(fs.getDropDownChoiceId(), periodOfPerformanceTypeModel,
         performanceTypeRenderer.getValues(), performanceTypeRenderer);
-    performanceTypeDropDown.add(new AjaxFormComponentUpdatingBehavior("onchange")
+    performanceTypeDropDown.add(new AjaxFormComponentUpdatingBehavior("change")
     {
       @Override
       protected void onUpdate(final AjaxRequestTarget target)

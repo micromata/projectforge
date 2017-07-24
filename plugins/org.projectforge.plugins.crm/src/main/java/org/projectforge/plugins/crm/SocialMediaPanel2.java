@@ -51,7 +51,7 @@ public class SocialMediaPanel2 extends Panel
 {
 
   /**
-   * 
+   *
    */
   private static final long serialVersionUID = -8335406879004963257L;
 
@@ -126,10 +126,10 @@ public class SocialMediaPanel2 extends Panel
 
     final DropDownChoice<InstantMessagingType> socialMediaChoice = new DropDownChoice<InstantMessagingType>(
         "socialMediaChoice", new PropertyModel<InstantMessagingType>(
-            newSocialMediaValue, "label"),
+        newSocialMediaValue, "label"),
         socialMediaChoiceRenderer.getValues(), socialMediaChoiceRenderer);
     item.add(socialMediaChoice);
-    socialMediaChoice.add(new AjaxFormComponentUpdatingBehavior("onchange")
+    socialMediaChoice.add(new AjaxFormComponentUpdatingBehavior("change")
     {
       @Override
       protected void onUpdate(final AjaxRequestTarget target)
@@ -195,10 +195,10 @@ public class SocialMediaPanel2 extends Panel
 
         final DropDownChoice<InstantMessagingType> socialMediaChoice = new DropDownChoice<InstantMessagingType>(
             "socialMediaChoice", new PropertyModel<InstantMessagingType>(
-                socialMediaValue, "label"),
+            socialMediaValue, "label"),
             socialMediaChoiceRenderer.getValues(), socialMediaChoiceRenderer);
         item.add(socialMediaChoice);
-        socialMediaChoice.add(new AjaxFormComponentUpdatingBehavior("onchange")
+        socialMediaChoice.add(new AjaxFormComponentUpdatingBehavior("change")
         {
           @Override
           protected void onUpdate(final AjaxRequestTarget target)
