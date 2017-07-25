@@ -33,11 +33,11 @@ import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.form.FormComponentPanel;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LambdaModel;
 import org.apache.wicket.validation.IValidatable;
 import org.apache.wicket.validation.IValidator;
 import org.apache.wicket.validation.ValidationError;
 import org.projectforge.Const;
-import org.projectforge.web.wicket.LambdaModel;
 import org.projectforge.web.wicket.WicketRenderHeadUtils;
 import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.web.wicket.converter.MyDateConverter;
@@ -134,7 +134,7 @@ public class DatePanel extends FormComponentPanel<Date> implements ComponentWrap
     setType(settings.targetType);
     final MyDateConverter dateConverter = new MyDateConverter(settings.targetType, "M-");
     dateConverter.setTimeZone(settings.timeZone);
-    final IModel<Date> modelForDateField = useModelDirectly ? model : LambdaModel.of(() -> this.date, date -> this.date = date);
+    final IModel<Date> modelForDateField = useModelDirectly ? model : LambdaModel.<Date>of(() -> this.date, date -> this.date = date);
     dateField = new DateTextField("dateField", modelForDateField, dateConverter)
     {
       /**

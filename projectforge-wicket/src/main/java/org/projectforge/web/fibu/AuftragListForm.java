@@ -27,6 +27,7 @@ import java.math.BigDecimal;
 
 import org.apache.log4j.Logger;
 import org.apache.wicket.markup.html.form.DropDownChoice;
+import org.apache.wicket.model.LambdaModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.fibu.AuftragDao;
@@ -41,7 +42,6 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.web.common.I18nEnumChoiceProvider;
 import org.projectforge.web.user.UserSelectPanel;
 import org.projectforge.web.wicket.AbstractListForm;
-import org.projectforge.web.wicket.LambdaModel;
 import org.projectforge.web.wicket.WebConstants;
 import org.projectforge.web.wicket.components.LabelValueChoiceRenderer;
 import org.projectforge.web.wicket.flowlayout.DivPanel;

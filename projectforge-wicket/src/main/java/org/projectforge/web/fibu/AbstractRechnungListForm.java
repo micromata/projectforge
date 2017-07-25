@@ -23,7 +23,10 @@
 
 package org.projectforge.web.fibu;
 
+import java.util.Date;
+
 import org.apache.log4j.Logger;
+import org.apache.wicket.model.LambdaModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.projectforge.business.fibu.AbstractRechnungsStatistik;
@@ -32,7 +35,6 @@ import org.projectforge.business.utils.CurrencyFormatter;
 import org.projectforge.framework.configuration.Configuration;
 import org.projectforge.web.wicket.AbstractListForm;
 import org.projectforge.web.wicket.AbstractListPage;
-import org.projectforge.web.wicket.LambdaModel;
 import org.projectforge.web.wicket.WebConstants;
 import org.projectforge.web.wicket.flowlayout.CheckBoxButton;
 import org.projectforge.web.wicket.flowlayout.DivPanel;
@@ -59,8 +61,8 @@ public abstract class AbstractRechnungListForm<F extends RechnungFilter, P exten
     // time period for Rechnungsdatum
     final F filter = getSearchFilter();
     addTimePeriodPanel("fibu.rechnung.datum",
-        LambdaModel.of(filter::getFromDate, filter::setFromDate),
-        LambdaModel.of(filter::getToDate, filter::setToDate)
+        LambdaModel.<Date>of(filter::getFromDate, filter::setFromDate),
+        LambdaModel.<Date>of(filter::getToDate, filter::setToDate)
     );
 
     onBeforeAddStatistics();
