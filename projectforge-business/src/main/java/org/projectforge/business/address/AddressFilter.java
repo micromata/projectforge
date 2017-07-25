@@ -24,13 +24,12 @@
 package org.projectforge.business.address;
 
 import java.io.Serializable;
+import java.util.Collection;
 
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 
 /**
- * 
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
  */
 public class AddressFilter extends BaseSearchFilter implements Serializable
 {
@@ -61,6 +60,8 @@ public class AddressFilter extends BaseSearchFilter implements Serializable
   private boolean departed = false;
 
   private String listType = FILTER_FILTER;
+
+  protected Collection<AddressbookDO> addressbooks;
 
   public AddressFilter()
   {
@@ -160,6 +161,7 @@ public class AddressFilter extends BaseSearchFilter implements Serializable
 
   /**
    * Standard means to consider options: current, departed, uninteresting, personaIngrata, ...
+   *
    * @return
    */
   public boolean isFilter()
@@ -174,6 +176,7 @@ public class AddressFilter extends BaseSearchFilter implements Serializable
 
   /**
    * If set, only addresses are filtered, the user has marked.
+   *
    * @return
    * @see PersonalAddressDO#isFavorite()
    */
@@ -189,6 +192,7 @@ public class AddressFilter extends BaseSearchFilter implements Serializable
 
   /**
    * If set, only addresses are filtered which are doublets (name and first-name are equal).
+   *
    * @return
    */
   public boolean isDoublets()
@@ -203,6 +207,7 @@ public class AddressFilter extends BaseSearchFilter implements Serializable
 
   /**
    * If set, the 50 (configurable in addressDao) newest address will be shown.
+   *
    * @return
    */
   public boolean isNewest()
@@ -223,5 +228,23 @@ public class AddressFilter extends BaseSearchFilter implements Serializable
   public void setListType(final String listType)
   {
     this.listType = listType;
+  }
+
+  /**
+   * @return the addressbooks
+   */
+  public Collection<AddressbookDO> getAddressbooks()
+  {
+    return addressbooks;
+  }
+
+  /**
+   * @param addressbooks the addressbooks to set
+   * @return this for chaining.
+   */
+  public AddressFilter setAddressbooks(final Collection<AddressbookDO> addressbooks)
+  {
+    this.addressbooks = addressbooks;
+    return this;
   }
 }

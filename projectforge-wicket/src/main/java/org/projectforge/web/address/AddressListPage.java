@@ -88,6 +88,8 @@ public class AddressListPage extends AbstractListPage<AddressListForm, AddressDa
 
   private static final long serialVersionUID = 5168079498385464639L;
 
+  public static final String PARAM_ADDRESSBOOKS = "addressbooks";
+
   private static final String APPLE_SCRIPT_DIR = "misc/";
 
   private static final String APPLE_SCRIPT_FOR_ADDRESS_BOOK = "AddressBookRemoveNotesOfClassWork.scpt";
