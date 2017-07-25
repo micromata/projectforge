@@ -129,7 +129,7 @@ public class NewGroupSelectPanel extends AbstractSelectPanel<GroupDO> implements
       }
 
       @Override
-      protected void convertInput()
+      public void convertInput()
       {
         final GroupDO group = getConverter(getType()).convertToObject(getInput(), getLocale());
         setConvertedInput(group);
@@ -242,7 +242,7 @@ public class NewGroupSelectPanel extends AbstractSelectPanel<GroupDO> implements
   }
 
   @Override
-  protected void convertInput()
+  public void convertInput()
   {
     setConvertedInput(getModelObject());
   }

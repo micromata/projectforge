@@ -57,8 +57,7 @@ import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
 import org.projectforge.web.wicket.flowlayout.InputPanel;
 import org.projectforge.web.wicket.flowlayout.Select2SingleChoicePanel;
 import org.projectforge.web.wicket.flowlayout.TextAreaPanel;
-
-import com.vaynberg.wicket.select2.Select2Choice;
+import org.wicketstuff.select2.Select2Choice;
 
 public class ConfigurationEditForm extends AbstractEditForm<ConfigurationDO, ConfigurationEditPage>
 {
@@ -116,7 +115,6 @@ public class ConfigurationEditForm extends AbstractEditForm<ConfigurationDO, Con
             return new BigDecimalPercentConverter(true);
           }
 
-          ;
         };
         fs.add(numberField);
         valueField = numberField;

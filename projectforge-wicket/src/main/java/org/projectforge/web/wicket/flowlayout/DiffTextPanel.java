@@ -35,10 +35,10 @@ import org.apache.wicket.markup.html.form.TextArea;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
-import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.business.utils.HtmlHelper;
 import org.projectforge.web.dialog.ModalDialog;
 import org.projectforge.web.wicket.AbstractSecuredPage;
+import org.projectforge.web.wicket.WicketUtils;
 
 import name.fraser.neil.plaintext.DiffMatchPatch;
 import name.fraser.neil.plaintext.DiffMatchPatch.Diff;
@@ -46,9 +46,8 @@ import name.fraser.neil.plaintext.DiffMatchPatch.Diff;
 /**
  * Represents a text panel showing the difference between two texts. The old and new version of the text is shown in a
  * pop-over.
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
  */
 public class DiffTextPanel extends Panel
 {
@@ -102,7 +101,7 @@ public class DiffTextPanel extends Panel
   /**
    * If set to true, then the user is able to click on this panel and a modal dialog will open with the old and new text
    * to copy.
-   * 
+   *
    * @param showModalDialog the showModalDialog to set (default is true).
    * @return this for chaining.
    */
@@ -115,7 +114,7 @@ public class DiffTextPanel extends Panel
   /**
    * If the models of old and/or new text were changed you may call this method to force a new running of the diff
    * algorithm.
-   * 
+   *
    * @return this for chaining.
    */
   public DiffTextPanel recalculate()
@@ -126,7 +125,7 @@ public class DiffTextPanel extends Panel
 
   /**
    * Calls setRenderBodyOnly(false) and setOutputMarkupId(true) for the enclosed label.
-   * 
+   *
    * @return the label
    */
   public Label getLabel4Ajax()
@@ -155,8 +154,8 @@ public class DiffTextPanel extends Panel
   }
 
   /**
-   * @see WicketUtils#setStrong(org.apache.wicket.markup.html.form.FormComponent)
    * @return this for chaining.
+   * @see WicketUtils#setStrong(org.apache.wicket.markup.html.form.FormComponent)
    */
   public DiffTextPanel setStrong()
   {
@@ -198,7 +197,7 @@ public class DiffTextPanel extends Panel
       modalDialog.setBigWindow();
       modalDialog.setLazyBinding();
       parentPage.add(modalDialog);
-      final AjaxEventBehavior behavior = new AjaxEventBehavior("onclick")
+      final AjaxEventBehavior behavior = new AjaxEventBehavior("click")
       {
         @Override
         protected void onEvent(final AjaxRequestTarget target)

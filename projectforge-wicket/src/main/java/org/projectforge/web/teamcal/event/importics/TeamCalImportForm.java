@@ -98,7 +98,7 @@ public class TeamCalImportForm extends AbstractImportForm<ImportFilter, TeamCalI
       };
       calDropDownChoice.setNullValid(false);
       calDropDownChoice.setRequired(true);
-      //      calDropDownChoice.add(new AjaxEventBehavior("onChange")
+      //      calDropDownChoice.add(new AjaxEventBehavior("change")
       //      {
       //        @Override
       //        protected void onEvent(AjaxRequestTarget target)

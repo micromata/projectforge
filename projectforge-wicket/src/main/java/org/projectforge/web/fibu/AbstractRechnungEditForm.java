@@ -443,7 +443,7 @@ public abstract class AbstractRechnungEditForm<O extends AbstractRechnungDO<T>, 
           final FieldsetPanel fieldset = posGridBuilder.newFieldset(getString("fibu.rechnung.menge")).setLabelSide(false);
           final TextField<BigDecimal> amountTextField = new MinMaxNumberField<BigDecimal>(InputPanel.WICKET_ID,
               new PropertyModel<BigDecimal>(position, "menge"), BigDecimal.ZERO, NumberHelper.BILLION);
-          amountTextField.add(new AjaxFormComponentUpdatingBehavior("onblur")
+          amountTextField.add(new AjaxFormComponentUpdatingBehavior("blur")
           {
             @Override
             protected void onUpdate(final AjaxRequestTarget target)
@@ -467,7 +467,7 @@ public abstract class AbstractRechnungEditForm<O extends AbstractRechnungDO<T>, 
               return new CurrencyConverter();
             }
           };
-          netTextField.add(new AjaxFormComponentUpdatingBehavior("onblur")
+          netTextField.add(new AjaxFormComponentUpdatingBehavior("blur")
           {
             @Override
             protected void onUpdate(final AjaxRequestTarget target)
@@ -491,7 +491,7 @@ public abstract class AbstractRechnungEditForm<O extends AbstractRechnungDO<T>, 
               return new BigDecimalPercentConverter(true);
             }
           };
-          vatTextField.add(new AjaxFormComponentUpdatingBehavior("onblur")
+          vatTextField.add(new AjaxFormComponentUpdatingBehavior("blur")
           {
             @Override
             protected void onUpdate(final AjaxRequestTarget target)

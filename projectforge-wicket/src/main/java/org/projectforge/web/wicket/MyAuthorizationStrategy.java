@@ -30,6 +30,8 @@ import org.apache.wicket.authorization.IAuthorizationStrategy;
 import org.apache.wicket.authorization.IUnauthorizedComponentInstantiationListener;
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.request.component.IRequestableComponent;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.apache.wicket.request.resource.IResource;
 import org.projectforge.web.LoginPage;
 import org.projectforge.web.mobile.AbstractSecuredMobilePage;
 import org.projectforge.web.mobile.LoginMobilePage;
@@ -37,12 +39,19 @@ import org.projectforge.web.session.MySession;
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
  */
 public class MyAuthorizationStrategy implements IAuthorizationStrategy, IUnauthorizedComponentInstantiationListener
 {
+  @Override
   public boolean isActionAuthorized(final Component component, final Action action)
   {
+    return true;
+  }
+
+  @Override
+  public boolean isResourceAuthorized(final IResource iResource, final PageParameters pageParameters)
+  {
+    // TODO sn migration
     return true;
   }
 

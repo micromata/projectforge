@@ -33,11 +33,10 @@ import org.projectforge.business.fibu.EmployeeDO;
 import org.projectforge.business.fibu.api.EmployeeService;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.utils.NumberHelper;
+import org.wicketstuff.select2.ChoiceProvider;
+import org.wicketstuff.select2.Response;
 
-import com.vaynberg.wicket.select2.Response;
-import com.vaynberg.wicket.select2.TextChoiceProvider;
-
-public class EmployeeWicketProvider extends TextChoiceProvider<EmployeeDO>
+public class EmployeeWicketProvider extends ChoiceProvider<EmployeeDO>
 {
   private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(EmployeeWicketProvider.class);
 
@@ -70,27 +69,18 @@ public class EmployeeWicketProvider extends TextChoiceProvider<EmployeeDO>
     return this;
   }
 
-  /**
-   * @see com.vaynberg.wicket.select2.TextChoiceProvider#getDisplayText(java.lang.Object)
-   */
   @Override
-  protected String getDisplayText(final EmployeeDO choice)
+  public String getDisplayValue(final EmployeeDO choice)
   {
     return choice.getUser().getFullname();
   }
 
-  /**
-   * @see com.vaynberg.wicket.select2.TextChoiceProvider#getId(java.lang.Object)
-   */
   @Override
-  protected Object getId(final EmployeeDO choice)
+  public String getIdValue(final EmployeeDO choice)
   {
-    return choice.getId();
+    return String.valueOf(choice.getId());
   }
 
-  /**
-   * @see com.vaynberg.wicket.select2.ChoiceProvider#query(java.lang.String, int, com.vaynberg.wicket.select2.Response)
-   */
   @Override
   public void query(String term, final int page, final Response<EmployeeDO> response)
   {
@@ -121,9 +111,6 @@ public class EmployeeWicketProvider extends TextChoiceProvider<EmployeeDO>
     response.setHasMore(hasMore);
   }
 
-  /**
-   * @see com.vaynberg.wicket.select2.ChoiceProvider#toChoices(java.util.Collection)
-   */
   @Override
   public Collection<EmployeeDO> toChoices(final Collection<String> ids)
   {

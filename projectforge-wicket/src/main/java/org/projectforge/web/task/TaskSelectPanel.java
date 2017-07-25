@@ -389,7 +389,7 @@ public class TaskSelectPanel extends AbstractSelectPanel<TaskDO> implements Comp
   }
 
   @Override
-  protected void convertInput()
+  public void convertInput()
   {
     setConvertedInput(getModelObject());
   }

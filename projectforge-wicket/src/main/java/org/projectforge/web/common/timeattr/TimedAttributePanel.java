@@ -18,6 +18,7 @@ import org.apache.wicket.markup.html.form.Button;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.form.IChoiceRenderer;
+import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.ResourceModel;
@@ -162,6 +163,23 @@ public class TimedAttributePanel<PK extends Serializable, T extends TimeableAttr
           public String getIdValue(T attrRow, int index)
           {
             return String.valueOf(index);
+          }
+
+          @Override
+          public T getObject(final String s, final IModel<? extends List<? extends T>> iModel)
+          {
+            if (s == null) {
+              return null;
+            }
+
+            for (int i = iModel.getObject().size() - 1; i >= 0; --i) {
+              // TODO sn migration
+              if (s.equals(String.valueOf(i))) {
+                return iModel.getObject().get(i);
+              }
+            }
+
+            return null;
           }
         });
 

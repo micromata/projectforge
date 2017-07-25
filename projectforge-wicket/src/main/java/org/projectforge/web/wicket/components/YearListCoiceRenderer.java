@@ -28,9 +28,11 @@ import java.util.Calendar;
 import java.util.List;
 
 import org.apache.wicket.markup.html.form.IChoiceRenderer;
+import org.apache.wicket.model.IModel;
 
 /**
  * Helper class for rendering combo boxes: {"2007-2009"; "2009"; "2008"; "2007"} or {"2009"; "2008", "2007"}
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 public class YearListCoiceRenderer implements IChoiceRenderer<Integer>
@@ -47,7 +49,7 @@ public class YearListCoiceRenderer implements IChoiceRenderer<Integer>
 
   /**
    * @param years List of years, -1 represents min year until max year, e. g. "2007-2009" If no year is given then the current year is
-   *                assumed as min and max year.
+   *              assumed as min and max year.
    */
   public YearListCoiceRenderer(List<Integer> years)
   {
@@ -97,9 +99,11 @@ public class YearListCoiceRenderer implements IChoiceRenderer<Integer>
 
   /**
    * Please note: This method does not check wether the given object is an entry of the year list or not.
+   *
    * @return given integer as String or "[minYear]-[maxYear]" if value is -1.
    * @see org.apache.wicket.markup.html.form.IChoiceRenderer#getDisplayValue(java.lang.Object)
    */
+  @Override
   public Object getDisplayValue(Integer object)
   {
     if (object < 0) {
@@ -110,9 +114,27 @@ public class YearListCoiceRenderer implements IChoiceRenderer<Integer>
     return object.toString();
   }
 
+  @Override
   public String getIdValue(Integer object, int index)
   {
     return object.toString();
+  }
+
+  @Override
+  public Integer getObject(final String s, final IModel<? extends List<? extends Integer>> iModel)
+  {
+    if (s == null) {
+      return null;
+    }
+
+    for (Integer instance : iModel.getObject()) {
+      // TODO sn migration
+      if (s.equals(instance.toString())) {
+        return instance;
+      }
+    }
+
+    return null;
   }
 
 }

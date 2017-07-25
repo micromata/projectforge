@@ -55,9 +55,8 @@ import org.projectforge.web.wicket.flowlayout.ComponentWrapperPanel;
 
 /**
  * This panel shows the actual customer.
- * 
+ *
  * @author Werner Feder (werner.feder@t-online.de)
- * 
  */
 public class NewCustomerSelectPanel extends AbstractSelectPanel<KundeDO> implements ComponentWrapperPanel
 {
@@ -136,7 +135,7 @@ public class NewCustomerSelectPanel extends AbstractSelectPanel<KundeDO> impleme
       }
 
       @Override
-      protected void convertInput()
+      public void convertInput()
       {
         final KundeDO customer = getConverter(getType()).convertToObject(getInput(), getLocale());
         setConvertedInput(customer);
@@ -194,7 +193,7 @@ public class NewCustomerSelectPanel extends AbstractSelectPanel<KundeDO> impleme
 
   /**
    * Should be called before init() method. If true, then the validation will be done after submitting.
-   * 
+   *
    * @param defaultFormProcessing
    */
   public void setDefaultFormProcessing(final boolean defaultFormProcessing)
@@ -215,7 +214,7 @@ public class NewCustomerSelectPanel extends AbstractSelectPanel<KundeDO> impleme
         {
           return (NewCustomerSelectPanel.this.getModelObject() == null
               || NumberHelper.greaterZero(NewCustomerSelectPanel.this
-                  .getModelObject().getId()) == false);
+              .getModelObject().getId()) == false);
         }
       };
       add(kundeTextField);
@@ -229,7 +228,7 @@ public class NewCustomerSelectPanel extends AbstractSelectPanel<KundeDO> impleme
       public void onSubmit()
       {
         setResponsePage(new CustomerListPage(caller, selectProperty));
-      };
+      }
     };
     selectButton.setDefaultFormProcessing(false);
     add(selectButton);
@@ -300,7 +299,7 @@ public class NewCustomerSelectPanel extends AbstractSelectPanel<KundeDO> impleme
   }
 
   @Override
-  protected void convertInput()
+  public void convertInput()
   {
     setConvertedInput(getModelObject());
   }
@@ -359,7 +358,7 @@ public class NewCustomerSelectPanel extends AbstractSelectPanel<KundeDO> impleme
 
   /**
    * Will be called if the user has chosen an entry of the kunde favorites drop down choice.
-   * 
+   *
    * @param kunde
    */
   protected void selectKunde(final KundeDO kunde)

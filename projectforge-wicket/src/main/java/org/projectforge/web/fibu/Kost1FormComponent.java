@@ -32,8 +32,10 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.apache.wicket.util.convert.IConverter;
+import org.apache.wicket.validation.INullAcceptingValidator;
 import org.apache.wicket.validation.IValidatable;
-import org.apache.wicket.validation.validator.AbstractValidator;
+import org.apache.wicket.validation.IValidator;
+import org.apache.wicket.validation.ValidationError;
 import org.projectforge.business.fibu.KostFormatter;
 import org.projectforge.business.fibu.kost.Kost1DO;
 import org.projectforge.business.fibu.kost.Kost1Dao;
@@ -51,12 +53,14 @@ public class Kost1FormComponent extends PFAutoCompleteTextField<Kost1DO>
   {
     private static final long serialVersionUID = 5770334618044073827L;
 
+    @Override
     public Kost1DO convertToObject(String value, final Locale locale)
     {
       value = StringUtils.trimToEmpty(value);
       return kost1Dao.getKost1(value);
     }
 
+    @Override
     public String convertToString(final Kost1DO value, final Locale locale)
     {
       if (value == null) {
@@ -77,26 +81,10 @@ public class Kost1FormComponent extends PFAutoCompleteTextField<Kost1DO>
     super(id, model, tooltipRightAlignment);
     if (required == true) {
       setRequired(true);
-      add(new AbstractValidator<Kost1DO>() {
-        @Override
-        protected void onValidate(final IValidatable<Kost1DO> validatable)
-        {
-          final Kost1DO value = validatable.getValue();
-          if (value == null) {
-            error(validatable);
-          }
-        }
-
-        @Override
-        public boolean validateOnNullValue()
-        {
-          return true;
-        }
-
-        @Override
-        protected String resourceKey()
-        {
-          return "fibu.kost.error.invalidKost";
+      add((INullAcceptingValidator<Kost1DO>) validatable -> {
+        final Kost1DO value = validatable.getValue();
+        if (value == null) {
+          error(new ValidationError().addKey("fibu.kost.error.invalidKost"));
         }
       });
     }
@@ -121,7 +109,9 @@ public class Kost1FormComponent extends PFAutoCompleteTextField<Kost1DO>
     filter.setSearchString(input);
     filter.setListType(KostFilter.FILTER_NOT_ENDED);
     final List<Kost1DO> list = kost1Dao.getList(filter);
-    Collections.sort(list, new Comparator<Kost1DO>() {
+    Collections.sort(list, new Comparator<Kost1DO>()
+    {
+      @Override
       public int compare(final Kost1DO o1, final Kost1DO o2)
       {
         return (o1.getNummer().compareTo(o2.getNummer()));
@@ -148,7 +138,7 @@ public class Kost1FormComponent extends PFAutoCompleteTextField<Kost1DO>
     return value.getFormattedNumber() + " " + value.getDescription();
   }
 
-  @SuppressWarnings({ "rawtypes", "unchecked"})
+  @SuppressWarnings({ "rawtypes", "unchecked" })
   @Override
   public IConverter getConverter(final Class type)
   {

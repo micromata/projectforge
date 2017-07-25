@@ -51,12 +51,11 @@ import org.projectforge.web.wicket.components.DatePanelSettings;
 import org.projectforge.web.wicket.components.MaxLengthTextArea;
 import org.projectforge.web.wicket.components.RequiredMaxLengthTextField;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
-
-import com.vaynberg.wicket.select2.Select2MultiChoice;
+import org.wicketstuff.select2.Select2MultiChoice;
 
 /**
  * This is the edit formular page.
- * 
+ *
  * @author Werner Feder (werner.feder@t-online.de)
  */
 public class TrainingEditForm extends AbstractEditForm<TrainingDO, TrainingEditPage>

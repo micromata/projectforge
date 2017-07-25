@@ -44,7 +44,6 @@ import org.projectforge.web.wicket.flowlayout.CheckBoxPanel;
 
 /**
  * Inner class to represent a single calendar color and visibility panel.
- * 
  */
 public class TeamCalFilterDialogCalendarColorPanel extends Panel
 {
@@ -107,7 +106,7 @@ public class TeamCalFilterDialogCalendarColorPanel extends Panel
       rowRepeater.add(container);
       final IModel<Boolean> model = Model.of(activeTemplateEntry.isVisible(calendar.getId()) == true);
       final CheckBoxPanel checkBoxPanel = new CheckBoxPanel("isVisible", model, "");
-      checkBoxPanel.getCheckBox().add(new AjaxFormComponentUpdatingBehavior("onchange")
+      checkBoxPanel.getCheckBox().add(new AjaxFormComponentUpdatingBehavior("change")
       {
         private static final long serialVersionUID = 3523446385818267608L;
 
