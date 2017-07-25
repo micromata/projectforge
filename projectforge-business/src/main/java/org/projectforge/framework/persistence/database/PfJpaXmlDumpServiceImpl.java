@@ -15,6 +15,10 @@ import java.util.zip.GZIPInputStream;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
+import org.projectforge.business.address.AddressDO;
+import org.projectforge.business.address.AddressDao;
+import org.projectforge.business.address.AddressbookDO;
+import org.projectforge.business.address.AddressbookDao;
 import org.projectforge.business.multitenancy.TenantDao;
 import org.projectforge.business.multitenancy.TenantService;
 import org.projectforge.business.task.TaskDO;
@@ -115,6 +119,12 @@ public class PfJpaXmlDumpServiceImpl extends JpaXmlDumpServiceImpl implements In
   @Autowired
   private TenantDao tenantDao;
 
+  @Autowired
+  private AddressDao addressDao;
+
+  @Autowired
+  private AddressbookDao addressbookDao;
+
   public PfJpaXmlDumpServiceImpl()
   {
     super();
@@ -202,7 +212,18 @@ public class PfJpaXmlDumpServiceImpl extends JpaXmlDumpServiceImpl implements In
     assignUserToGroups();
     correctTeamCalIds();
     correctAddressAndBookTaskId();
+    connectAddressbook();
     return ret;
+  }
+
+  private void connectAddressbook()
+  {
+    for (AddressDO add : addressDao.internalLoadAll()) {
+      Set<AddressbookDO> globalSet = new HashSet<>();
+      globalSet.add(addressbookDao.getGlobalAddressbook());
+      add.setAddressbookList(globalSet);
+      addressDao.internalSave(add);
+    }
   }
 
   private void assignUserToGroups()

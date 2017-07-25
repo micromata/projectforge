@@ -160,7 +160,7 @@ public class AddressbookDao extends BaseDao<AddressbookDO>
     filter.setOwnerType(AddressbookFilter.OwnerType.ALL);
     filter.setFullAccess(true).setReadonlyAccess(false);
     List<AddressbookDO> resultList = getList(filter);
-    if (resultList.stream().filter(ab -> ab.getId().equals(1)).count() < 1) {
+    if (resultList.stream().filter(ab -> ab.getId().equals(GLOBAL_ADDRESSBOOK_ID)).count() < 1) {
       resultList.add(getGlobalAddressbook());
     }
     return resultList;
@@ -168,7 +168,7 @@ public class AddressbookDao extends BaseDao<AddressbookDO>
 
   public AddressbookDO getGlobalAddressbook()
   {
-    return internalGetById(1);
+    return internalGetById(GLOBAL_ADDRESSBOOK_ID);
   }
 
   /**
