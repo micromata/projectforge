@@ -50,8 +50,7 @@ import org.projectforge.web.wicket.flowlayout.DivPanelVisibility;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
 import org.projectforge.web.wicket.flowlayout.InputPanel;
 import org.projectforge.web.wicket.flowlayout.RadioGroupPanel;
-
-import com.vaynberg.wicket.select2.Select2MultiChoice;
+import org.wicketstuff.select2.Select2MultiChoice;
 
 public class AddressListForm extends AbstractListForm<AddressListFilter, AddressListPage>
 {
