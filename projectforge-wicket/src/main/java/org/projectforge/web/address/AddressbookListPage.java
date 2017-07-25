@@ -136,8 +136,6 @@ public class AddressbookListPage extends AbstractListPage<AddressbookListForm, A
           label = getString("addressbook.fullAccess");
         } else if (right.hasReadonlyAccess(ab, getUserId()) == true) {
           label = getString("addressbook.readonlyAccess");
-        } else if (right.hasMinimalAccess(ab, getUserId()) == true) {
-          label = getString("addressbook.minimalAccess");
         } else if (isAdminUser == true) {
           label = getString("addressbook.adminAccess");
         } else {

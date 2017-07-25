@@ -26,17 +26,22 @@ package org.projectforge.business.address;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang.ObjectUtils;
 import org.apache.commons.lang.Validate;
 import org.hibernate.LockMode;
 import org.projectforge.business.user.UserDao;
+import org.projectforge.business.user.UserRightId;
 import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.access.AccessException;
 import org.projectforge.framework.persistence.api.BaseDao;
 import org.projectforge.framework.persistence.api.ModificationStatus;
+import org.projectforge.framework.persistence.api.UserRightService;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,9 +52,7 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- *
  */
 @Repository
 public class PersonalAddressDao
@@ -63,11 +66,19 @@ public class PersonalAddressDao
   private UserDao userDao;
 
   @Autowired
-  HibernateTemplate hibernateTemplate;
+  private HibernateTemplate hibernateTemplate;
+
+  @Autowired
+  private AddressbookDao addressbookDao;
+
+  @Autowired
+  private UserRightService userRights;
+
+  private transient AddressbookRight addressbookRight;
 
   /**
    * @param personalAddress
-   * @param ownerId If null, then task will be set to null;
+   * @param ownerId         If null, then task will be set to null;
    * @see BaseDao#getOrLoad(Integer)
    */
   public void setOwner(final PersonalAddressDO personalAddress, final Integer ownerId)
@@ -89,16 +100,48 @@ public class PersonalAddressDao
     return internalSave(obj);
   }
 
-  private void checkAccess(final PersonalAddressDO obj)
+  private boolean checkAccess(final PersonalAddressDO obj, boolean throwException)
   {
     Validate.notNull(obj);
     Validate.notNull(obj.getOwnerId());
     Validate.notNull(obj.getAddressId());
     final PFUserDO owner = ThreadLocalUserContext.getUser();
     if (owner == null || owner.getId().equals(obj.getOwnerId()) == false) {
-      throw new AccessException("address.accessException.userIsNotOwnerOfPersonalAddress");
+      if (throwException) {
+        throw new AccessException("address.accessException.userIsNotOwnerOfPersonalAddress");
+      }
+      return false;
+    }
+    Set<Integer> abIdList = getAddressbookIdsForUser(owner);
+    if (abIdList.contains(obj.getAddressId()) == false) {
+      if (throwException) {
+        throw new AccessException("address.accessException.userHasNoRightForAddressbook");
+      }
+      return false;
     }
     accessChecker.checkRestrictedOrDemoUser();
+    return true;
+  }
+
+  private boolean checkAccess(final PersonalAddressDO obj)
+  {
+    return checkAccess(obj, true);
+  }
+
+  private Set<Integer> getAddressbookIdsForUser(final PFUserDO user)
+  {
+    Set<Integer> abIdSet = new HashSet<>();
+    //Get all addressbooks for user
+    if (addressbookRight == null) {
+      addressbookRight = (AddressbookRight) userRights.getRight(UserRightId.MISC_ADDRESSBOOK);
+    }
+    abIdSet.add(AddressbookDao.GLOBAL_ADDRESSBOOK_ID);
+    for (AddressbookDO ab : addressbookDao.internalLoadAll()) {
+      if (ab.isDeleted() == false && addressbookRight.hasSelectAccess(user, ab)) {
+        abIdSet.add(ab.getId());
+      }
+    }
+    return abIdSet;
   }
 
   private Serializable internalSave(final PersonalAddressDO obj)
@@ -177,7 +220,9 @@ public class PersonalAddressDao
             + addressId
             + "). Should not occur?!");
       }
-      return list.get(0);
+      if (checkAccess(list.get(0), false)) {
+        return list.get(0);
+      }
     }
     return null;
   }
@@ -192,11 +237,12 @@ public class PersonalAddressDao
     Validate.notNull(owner);
     Validate.notNull(owner.getId());
     @SuppressWarnings("unchecked")
-    final List<PersonalAddressDO> list = (List<PersonalAddressDO>) hibernateTemplate.find(
+    List<PersonalAddressDO> list = (List<PersonalAddressDO>) hibernateTemplate.find(
         "from "
             + PersonalAddressDO.class.getSimpleName()
             + " t join fetch t.address where t.owner.id=? and t.address.deleted=false order by t.address.name, t.address.firstName",
         owner.getId());
+    list = list.stream().filter(pa -> checkAccess(pa, false) == true).collect(Collectors.toList());
     return list;
   }
 
@@ -215,7 +261,7 @@ public class PersonalAddressDao
         "from " + PersonalAddressDO.class.getSimpleName() + " t where t.owner.id = ?", owner.getId());
     final Map<Integer, PersonalAddressDO> result = new HashMap<Integer, PersonalAddressDO>();
     for (final PersonalAddressDO entry : list) {
-      if (entry.isFavorite() == true) {
+      if (entry.isFavorite() == true && checkAccess(entry, false)) {
         result.put(entry.getAddressId(), entry);
       }
     }
@@ -240,7 +286,7 @@ public class PersonalAddressDao
         owner.getId());
     final List<AddressDO> result = new ArrayList<AddressDO>();
     for (final PersonalAddressDO entry : list) {
-      if (entry.isFavorite() == true) {
+      if (entry.isFavorite() == true && checkAccess(entry, false)) {
         result.add(entry.getAddress());
       }
     }

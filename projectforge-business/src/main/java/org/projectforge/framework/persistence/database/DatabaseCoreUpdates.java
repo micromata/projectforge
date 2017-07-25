@@ -43,6 +43,7 @@ import java.util.function.Predicate;
 import org.apache.commons.lang3.StringUtils;
 import org.projectforge.business.address.AddressDO;
 import org.projectforge.business.address.AddressDao;
+import org.projectforge.business.address.AddressbookDao;
 import org.projectforge.business.fibu.AuftragDO;
 import org.projectforge.business.fibu.AuftragsPositionDO;
 import org.projectforge.business.fibu.AuftragsPositionsStatus;
@@ -186,7 +187,8 @@ public class DatabaseCoreUpdates
           List<DatabaseResultRow> addressIds = databaseUpdateService.query("SELECT pk FROM t_address");
           addressIds.forEach(addressId -> {
             databaseUpdateService
-                .execute("INSERT INTO t_addressbook_address (address_id, addressbook_id) VALUES (" + addressId.getEntry(0).getValue() + ", 1)");
+                .execute("INSERT INTO t_addressbook_address (address_id, addressbook_id) VALUES (" + addressId.getEntry(0).getValue() + ", "
+                    + AddressbookDao.GLOBAL_ADDRESSBOOK_ID + ")");
           });
         }
 

@@ -81,6 +81,7 @@ public class AddressEditForm extends AbstractEditForm<AddressDO, AddressEditPage
           Select2MultiChoicePanel.WICKET_ID,
           new PropertyModel<>(data, "addressbookList"),
           new AddressbookWicketProvider(addressbookDao));
+      calendarSelect.setRequired(true);
       calendarSelect.setMarkupId("addressbook-select").setOutputMarkupId(true);
       fs.add(new Select2MultiChoicePanel<>(fs.newChildId(), calendarSelect));
     }

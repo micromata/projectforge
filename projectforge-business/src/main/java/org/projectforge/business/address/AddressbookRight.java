@@ -36,7 +36,7 @@ import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 
 /**
- * @author Kai Reinhard (k.reinhard@me.de)
+ * @author Florian Blumenstein
  */
 public class AddressbookRight extends UserRightAccessCheck<AddressbookDO>
 {
@@ -62,6 +62,11 @@ public class AddressbookRight extends UserRightAccessCheck<AddressbookDO>
     return true;
   }
 
+  private boolean checkGlobal(final AddressbookDO obj)
+  {
+    return obj != null && obj.getId() != null && AddressbookDao.GLOBAL_ADDRESSBOOK_ID == obj.getId();
+  }
+
   /**
    * @see UserRightAccessCheck#hasSelectAccess(PFUserDO,
    * Object)
@@ -69,13 +74,12 @@ public class AddressbookRight extends UserRightAccessCheck<AddressbookDO>
   @Override
   public boolean hasSelectAccess(final PFUserDO user, final AddressbookDO obj)
   {
-    if (isOwner(user, obj) == true || accessChecker.isUserMemberOfAdminGroup(user) == true) {
+    if (isOwner(user, obj) == true || accessChecker.isUserMemberOfAdminGroup(user) == true || checkGlobal(obj)) {
       // User has full access to his own addressbooks.
       return true;
     }
     final Integer userId = user.getId();
-    if (hasFullAccess(obj, userId) == true || hasReadonlyAccess(obj, userId) == true
-        || hasMinimalAccess(obj, userId) == true) {
+    if (hasFullAccess(obj, userId) == true || hasReadonlyAccess(obj, userId) == true) {
       return true;
     }
     return false;
@@ -102,7 +106,7 @@ public class AddressbookRight extends UserRightAccessCheck<AddressbookDO>
   @Override
   public boolean hasInsertAccess(final PFUserDO user, final AddressbookDO obj)
   {
-    return isOwner(user, obj) == true || accessChecker.isUserMemberOfAdminGroup(user) == true;
+    return isOwner(user, obj) == true || accessChecker.isUserMemberOfAdminGroup(user) == true || checkGlobal(obj);
   }
 
   /**
@@ -179,8 +183,6 @@ public class AddressbookRight extends UserRightAccessCheck<AddressbookDO>
       return DataobjectAccessType.FULL;
     } else if (hasReadonlyAccess(ab, userId) == true) {
       return DataobjectAccessType.READONLY;
-    } else if (hasMinimalAccess(ab, userId) == true) {
-      return DataobjectAccessType.MINIMAL;
     }
     return DataobjectAccessType.NONE;
   }
@@ -209,20 +211,6 @@ public class AddressbookRight extends UserRightAccessCheck<AddressbookDO>
     }
     final Integer[] groupIds = StringHelper.splitToIntegers(ab.getReadonlyAccessGroupIds(), ",");
     final Integer[] userIds = StringHelper.splitToIntegers(ab.getReadonlyAccessUserIds(), ",");
-    return hasAccess(groupIds, userIds, userId);
-  }
-
-  public boolean hasMinimalAccess(final AddressbookDO ab, final Integer userId)
-  {
-    if (ab == null || userId == null) {
-      return false;
-    }
-    if (hasFullAccess(ab, userId) == true || hasReadonlyAccess(ab, userId) == true) {
-      // User has full access or read-only access (which is more than minimal access).
-      return false;
-    }
-    final Integer[] groupIds = StringHelper.splitToIntegers(ab.getMinimalAccessGroupIds(), ",");
-    final Integer[] userIds = StringHelper.splitToIntegers(ab.getMinimalAccessUserIds(), ",");
     return hasAccess(groupIds, userIds, userId);
   }
 

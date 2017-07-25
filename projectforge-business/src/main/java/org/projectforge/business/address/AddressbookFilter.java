@@ -39,7 +39,7 @@ public class AddressbookFilter extends BaseSearchFilter implements Serializable
     ALL, OWN, OTHERS, ADMIN
   }
 
-  private boolean fullAccess, readonlyAccess, minimalAccess, adminAccess;
+  private boolean fullAccess, readonlyAccess, adminAccess;
 
   protected OwnerType abOwner;
 
@@ -51,7 +51,7 @@ public class AddressbookFilter extends BaseSearchFilter implements Serializable
   public AddressbookFilter(final BaseSearchFilter filter)
   {
     super(filter);
-    fullAccess = readonlyAccess = minimalAccess = true;
+    fullAccess = readonlyAccess = true;
     abOwner = OwnerType.ALL;
   }
 
@@ -120,24 +120,6 @@ public class AddressbookFilter extends BaseSearchFilter implements Serializable
   public AddressbookFilter setReadonlyAccess(final boolean readonlyAccess)
   {
     this.readonlyAccess = readonlyAccess;
-    return this;
-  }
-
-  /**
-   * @return the minimalAccess
-   */
-  public boolean isMinimalAccess()
-  {
-    return minimalAccess;
-  }
-
-  /**
-   * @param minimalAccess the minimalAccess to set
-   * @return this for chaining.
-   */
-  public AddressbookFilter setMinimalAccess(final boolean minimalAccess)
-  {
-    this.minimalAccess = minimalAccess;
     return this;
   }
 

@@ -124,8 +124,6 @@ public class AddressbookListForm extends AbstractListForm<AddressbookFilter, Add
         "fullAccess"), getString("addressbook.fullAccess")));
     checkBoxesPanel.add(createAutoRefreshCheckBoxButton(checkBoxesPanel.newChildId(), new PropertyModel<Boolean>(getSearchFilter(),
         "readonlyAccess"), getString("addressbook.readonlyAccess")));
-    checkBoxesPanel.add(createAutoRefreshCheckBoxButton(checkBoxesPanel.newChildId(), new PropertyModel<Boolean>(getSearchFilter(),
-        "minimalAccess"), getString("addressbook.minimalAccess")));
     optionsFieldsetPanel.add(checkBoxesPanel);
   }
 

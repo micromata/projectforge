@@ -59,6 +59,8 @@ public class AddressbookDao extends BaseDao<AddressbookDO>
       "owner.firstname",
       "owner.lastname" };
 
+  public static final int GLOBAL_ADDRESSBOOK_ID = 1;
+
   @Autowired
   private UserDao userDao;
 
@@ -132,8 +134,7 @@ public class AddressbookDao extends BaseDao<AddressbookDO>
         // User is not owner.
         if (myFilter.isAll() == true || myFilter.isOthers() == true || adminAccessOnly == true) {
           if ((myFilter.isFullAccess() == true && right.hasFullAccess(ab, userId) == true)
-              || (myFilter.isReadonlyAccess() == true && right.hasReadonlyAccess(ab, userId) == true)
-              || (myFilter.isMinimalAccess() == true && right.hasMinimalAccess(ab, userId) == true)) {
+              || (myFilter.isReadonlyAccess() == true && right.hasReadonlyAccess(ab, userId) == true)) {
             // Calendar matches the filter:
             if (adminAccessOnly == false) {
               result.add(ab);
@@ -157,7 +158,7 @@ public class AddressbookDao extends BaseDao<AddressbookDO>
   {
     final AddressbookFilter filter = new AddressbookFilter();
     filter.setOwnerType(AddressbookFilter.OwnerType.ALL);
-    filter.setFullAccess(true).setReadonlyAccess(false).setMinimalAccess(false);
+    filter.setFullAccess(true).setReadonlyAccess(false);
     List<AddressbookDO> resultList = getList(filter);
     if (resultList.stream().filter(ab -> ab.getId().equals(1)).count() < 1) {
       resultList.add(getGlobalAddressbook());
