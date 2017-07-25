@@ -31,10 +31,10 @@ import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Button;
 import org.apache.wicket.markup.html.form.DropDownChoice;
+import org.apache.wicket.markup.html.form.FormComponentUpdatingBehavior;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
-import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.framework.persistence.jpa.impl.HibernateSearchFilterUtils;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.time.DateHolder;
@@ -44,6 +44,7 @@ import org.projectforge.registry.RegistryEntry;
 import org.projectforge.web.user.UserSelectPanel;
 import org.projectforge.web.wicket.AbstractListForm;
 import org.projectforge.web.wicket.AbstractStandardForm;
+import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.web.wicket.bootstrap.GridSize;
 import org.projectforge.web.wicket.components.DatePanel;
 import org.projectforge.web.wicket.components.DatePanelSettings;
@@ -194,13 +195,14 @@ public class SearchForm extends AbstractStandardForm<SearchPageFilter, SearchPag
         lastDaysChoiceRenderer.addValue(days, getLocalizedMessage("search.lastDays", days));
       }
       final DropDownChoice<Integer> lastDaysChoice = new DropDownChoice<Integer>(fs.getDropDownChoiceId(),
-          new PropertyModel<Integer>(
-              filter, "lastDays"),
-          lastDaysChoiceRenderer.getValues(), lastDaysChoiceRenderer)
+          new PropertyModel<Integer>(filter, "lastDays"), lastDaysChoiceRenderer.getValues(), lastDaysChoiceRenderer);
+      lastDaysChoice.add(new FormComponentUpdatingBehavior()
       {
         @Override
-        protected void onSelectionChanged(final Integer newSelection)
+        public void onUpdate()
         {
+          final Integer newSelection = (Integer) this.getFormComponent().getModelObject();
+
           if (newSelection == null) {
             return;
           }
@@ -222,13 +224,7 @@ public class SearchForm extends AbstractStandardForm<SearchPageFilter, SearchPag
           modifiedStartDatePanel.markModelAsChanged();
           modifiedStopDatePanel.markModelAsChanged();
         }
-
-        @Override
-        protected boolean wantOnSelectionChangedNotifications()
-        {
-          return true;
-        }
-      };
+      });
       lastDaysChoice.setNullValid(true);
       lastDaysChoice.setRequired(false);
       fs.add(lastDaysChoice);

@@ -27,6 +27,7 @@ import java.util.List;
 
 import org.apache.log4j.Logger;
 import org.apache.wicket.markup.html.form.DropDownChoice;
+import org.apache.wicket.markup.html.form.FormComponentUpdatingBehavior;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.web.address.AddressListForm;
@@ -38,7 +39,6 @@ import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
  */
 public class AddressCampaignValueListForm
     extends AbstractListForm<AddressCampaignValueFilter, AddressCampaignValueListPage>
@@ -82,10 +82,11 @@ public class AddressCampaignValueListForm
       }
       final DropDownChoice<Integer> addressCampaignChoice = new DropDownChoice<Integer>(fs.getDropDownChoiceId(),
           new PropertyModel<Integer>(this, "addressCampaignId"), addressCampaignRenderer.getValues(),
-          addressCampaignRenderer)
+          addressCampaignRenderer);
+      addressCampaignChoice.add(new FormComponentUpdatingBehavior()
       {
         @Override
-        protected void onSelectionChanged(final Integer newSelection)
+        public void onUpdate()
         {
           for (final AddressCampaignDO addressCampaign : addressCampaignList) {
             if (addressCampaign.getId().equals(addressCampaignId) == true) {
@@ -112,13 +113,7 @@ public class AddressCampaignValueListForm
           }
           refresh();
         }
-
-        @Override
-        protected boolean wantOnSelectionChangedNotifications()
-        {
-          return true;
-        }
-      };
+      });
       fs.add(addressCampaignChoice);
     }
     {
@@ -126,24 +121,17 @@ public class AddressCampaignValueListForm
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("value"));
       final LabelValueChoiceRenderer<String> choiceRenderer = getValueLabelValueChoiceRenderer();
       addressCampaignValueDropDownChoice = new DropDownChoice<String>(fs.getDropDownChoiceId(),
-          new PropertyModel<String>(this,
-              "addressCampaignValue"),
-          choiceRenderer.getValues(), choiceRenderer)
+          new PropertyModel<String>(this, "addressCampaignValue"), choiceRenderer.getValues(), choiceRenderer);
+      addressCampaignValueDropDownChoice.add(new FormComponentUpdatingBehavior()
       {
         @Override
-        protected void onSelectionChanged(final String newSelection)
+        public void onUpdate()
         {
+          final String newSelection = (String) this.getFormComponent().getModelObject();
           searchFilter.setAddressCampaignValue(newSelection);
           parentPage.refresh();
         }
-
-        @Override
-        protected boolean wantOnSelectionChangedNotifications()
-        {
-          return true;
-        }
-
-      };
+      });
       addressCampaignValueDropDownChoice.setNullValid(true);
       fs.add(addressCampaignValueDropDownChoice);
     }
@@ -152,7 +140,7 @@ public class AddressCampaignValueListForm
 
   /**
    * @see org.projectforge.web.wicket.AbstractListForm#onOptionsPanelCreate(org.projectforge.web.wicket.flowlayout.FieldsetPanel,
-   *      org.projectforge.web.wicket.flowlayout.DivPanel)
+   * org.projectforge.web.wicket.flowlayout.DivPanel)
    */
   @Override
   protected void onOptionsPanelCreate(final FieldsetPanel optionsFieldsetPanel, final DivPanel optionsCheckBoxesPanel)

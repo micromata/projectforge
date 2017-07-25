@@ -28,6 +28,7 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.CheckBox;
 import org.apache.wicket.markup.html.form.FormComponent;
+import org.apache.wicket.markup.html.form.FormComponentUpdatingBehavior;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 import org.projectforge.web.wicket.WicketUtils;
@@ -35,8 +36,8 @@ import org.projectforge.web.wicket.WicketUtils;
 /**
  * Panel containing only one check-box. <br/>
  * This component calls setRenderBodyOnly(true). If the outer html element is needed, please call setRenderBodyOnly(false).
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
  */
 @SuppressWarnings("serial")
 public class CheckBoxPanel extends Panel implements ComponentWrapperPanel
@@ -49,8 +50,6 @@ public class CheckBoxPanel extends Panel implements ComponentWrapperPanel
 
   private WebMarkupContainer parentContainer;
 
-  private boolean wantOnSelectionChangedNotifications;
-
   /**
    * @param id
    * @param model
@@ -58,36 +57,25 @@ public class CheckBoxPanel extends Panel implements ComponentWrapperPanel
    */
   public CheckBoxPanel(final String id, final IModel<Boolean> model, final String labelString)
   {
-    this(id, model, labelString, false);
+    this(id, model, labelString, null);
   }
 
   /**
    * @param id
    * @param model
-   * @param labelString If null then a classic checkbox is used.
-   * @param wantOnSelectionChangedNotifications if true then wantOnSelectionChangedNotifications method returns true.
-   * @see CheckBox#wantOnSelectionChangedNotifications()
+   * @param labelString      If null then a classic checkbox is used.
+   * @param updatingBehavior
    */
-  public CheckBoxPanel(final String id, final IModel<Boolean> model, final String labelString,
-      final boolean wantOnSelectionChangedNotifications)
+  public CheckBoxPanel(final String id, final IModel<Boolean> model, final String labelString, final FormComponentUpdatingBehavior updatingBehavior)
   {
     super(id);
     this.parentContainer = new WebMarkupContainer("parent");
     add(this.parentContainer);
-    this.wantOnSelectionChangedNotifications = wantOnSelectionChangedNotifications;
-    checkBox = new CheckBox(WICKET_ID, model) {
-      @Override
-      public void onSelectionChanged(final Boolean newSelection)
-      {
-        CheckBoxPanel.this.onSelectionChanged(newSelection);
-      }
+    checkBox = new CheckBox(WICKET_ID, model);
 
-      @Override
-      protected boolean wantOnSelectionChangedNotifications()
-      {
-        return CheckBoxPanel.this.wantOnSelectionChangedNotifications();
-      }
-    };
+    if (updatingBehavior != null) {
+      checkBox.add(updatingBehavior);
+    }
     checkBox.setOutputMarkupId(true);
     this.parentContainer.add(checkBox);
     init(labelString);
@@ -117,6 +105,7 @@ public class CheckBoxPanel extends Panel implements ComponentWrapperPanel
 
   /**
    * Sets tool-tip for the label.
+   *
    * @param tooltip
    * @return this for chaining.
    */
@@ -128,7 +117,7 @@ public class CheckBoxPanel extends Panel implements ComponentWrapperPanel
 
   /**
    * Sets tool-tip for the label.
-   * @param tooltip
+   *
    * @return this for chaining.
    */
   public CheckBoxPanel setTooltip(final String title, final String text)
@@ -140,6 +129,7 @@ public class CheckBoxPanel extends Panel implements ComponentWrapperPanel
   /**
    * If activated then the check box is colored (red). This is useful for checkb-oxes which have an important rule on something other, e. g.
    * "show only deleted" check-box in list view should be highlighted.
+   *
    * @return
    */
   public CheckBoxPanel setWarning()
@@ -150,21 +140,6 @@ public class CheckBoxPanel extends Panel implements ComponentWrapperPanel
       checkBox.add(AttributeModifier.append("class", "warning"));
     }
     return this;
-  }
-
-  /**
-   * @see CheckBox#onSelectionChanged()
-   */
-  protected void onSelectionChanged(final Boolean newSelection)
-  {
-  }
-
-  /**
-   * @see CheckBox#wantOnSelectionChangedNotifications()
-   */
-  protected boolean wantOnSelectionChangedNotifications()
-  {
-    return wantOnSelectionChangedNotifications;
   }
 
   public CheckBox getCheckBox()
@@ -192,7 +167,7 @@ public class CheckBoxPanel extends Panel implements ComponentWrapperPanel
    * @see org.projectforge.web.wicket.flowlayout.ComponentWrapperPanel#getFormComponent()
    */
   @Override
-  public FormComponent< ? > getFormComponent()
+  public FormComponent<?> getFormComponent()
   {
     return checkBox;
   }

@@ -26,13 +26,11 @@ package org.projectforge.web.wicket.flowlayout;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.form.AjaxButton;
 import org.apache.wicket.markup.html.form.Button;
-import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.IModel;
 
 /**
  * @author Johannes Unterstein (j.unterstein@micromata.de)
  * @author M. Lauterbach (m.lauterbach@micromata.de)
- * 
  */
 public class AjaxIconButtonPanel extends IconButtonPanel
 {
@@ -103,17 +101,18 @@ public class AjaxIconButtonPanel extends IconButtonPanel
   @Override
   protected Button createButton(final String string)
   {
-    return new AjaxButton(string) {
+    return new AjaxButton(string)
+    {
       private static final long serialVersionUID = -6046879772559434161L;
 
       @Override
-      protected void onSubmit(final AjaxRequestTarget target, final Form< ? > form)
+      protected void onSubmit(final AjaxRequestTarget target)
       {
         AjaxIconButtonPanel.this.onSubmit(target);
       }
 
       @Override
-      protected void onError(final AjaxRequestTarget target, final Form< ? > form)
+      protected void onError(final AjaxRequestTarget target)
       {
         AjaxIconButtonPanel.this.onError(target);
       }

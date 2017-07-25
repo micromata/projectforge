@@ -152,9 +152,7 @@ public class AuftragEditForm extends AbstractEditForm<AuftragDO, AuftragEditPage
       // Number
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("fibu.auftrag.nummer"));
       final MinMaxNumberField<Integer> number = new MinMaxNumberField<Integer>(InputPanel.WICKET_ID,
-          new PropertyModel<Integer>(data,
-              "nummer"),
-          0, 99999999);
+          new PropertyModel<Integer>(data, "nummer"), 0, 99999999);
       number.setMaxLength(8).add(AttributeModifier.append("style", "width: 6em !important;"));
       fs.add(number);
       if (NumberHelper.greaterZero(getData().getNummer()) == false) {

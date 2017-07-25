@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.Locale;
 
 import org.apache.log4j.Logger;
+import org.apache.wicket.markup.html.form.FormComponentUpdatingBehavior;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
@@ -68,26 +69,14 @@ public class AddressListForm extends AbstractListForm<AddressListFilter, Address
     {
       final DivPanel radioGroupPanel = optionsFieldsetPanel.addNewRadioBoxButtonDiv();
       final RadioGroupPanel<String> radioGroup = new RadioGroupPanel<String>(radioGroupPanel.newChildId(), "listtype",
-          new PropertyModel<String>(searchFilter, "listType"))
+          new PropertyModel<String>(searchFilter, "listType"), new FormComponentUpdatingBehavior()
       {
-        /**
-         * @see org.projectforge.web.wicket.flowlayout.RadioGroupPanel#wantOnSelectionChangedNotifications()
-         */
         @Override
-        protected boolean wantOnSelectionChangedNotifications()
-        {
-          return true;
-        }
-
-        /**
-         * @see org.projectforge.web.wicket.flowlayout.RadioGroupPanel#onSelectionChanged(java.lang.Object)
-         */
-        @Override
-        protected void onSelectionChanged(final Object newSelection)
+        public void onUpdate()
         {
           parentPage.refresh();
         }
-      };
+      });
       radioGroupPanel.add(radioGroup);
       radioGroup.add(new Model<String>(AddressFilter.FILTER_FILTER), parentPage.getString("filter"));
       radioGroup.add(new Model<String>(AddressFilter.FILTER_NEWEST), parentPage.getString("filter.newest"));
@@ -162,7 +151,7 @@ public class AddressListForm extends AbstractListForm<AddressListFilter, Address
 
   /**
    * @see org.projectforge.web.wicket.AbstractListForm#onOptionsPanelCreate(org.projectforge.web.wicket.flowlayout.FieldsetPanel,
-   *      org.projectforge.web.wicket.flowlayout.DivPanel)
+   * org.projectforge.web.wicket.flowlayout.DivPanel)
    */
   @Override
   protected void onOptionsPanelCreate(final FieldsetPanel optionsFieldsetPanel, final DivPanel optionsCheckBoxesPanel)

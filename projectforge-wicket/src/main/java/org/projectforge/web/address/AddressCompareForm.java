@@ -36,21 +36,13 @@ import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
 
 /**
  * @author M. Lauterbach (m.lauterbach@micromata.de)
- *
  */
 public class AddressCompareForm extends AbstractEditForm<AddressDO, AddressComparePage>
 {
 
-  /**
-   * 
-   */
   private static final long serialVersionUID = 4990179617114170795L;
   private final AddressDO dataOld;
 
-  /**
-   * @param parentPage
-   * @param data
-   */
   public AddressCompareForm(final AddressComparePage parentPage, final AddressDO dataNew, final AddressDO dataOld)
   {
     super(parentPage, dataOld);
@@ -79,7 +71,8 @@ public class AddressCompareForm extends AbstractEditForm<AddressDO, AddressCompa
     }
   }
 
-  private void initFields(final AddressDO address, final boolean enabled) {
+  private void initFields(final AddressDO address, final boolean enabled)
+  {
     final FieldsetPanel fsName = gridBuilder.newFieldset("Name");
     fsName.add(new TextField<String>(fsName.getTextFieldId(), new PropertyModel<String>(address, "name")));
     fsName.setEnabled(enabled);
@@ -139,22 +132,24 @@ public class AddressCompareForm extends AbstractEditForm<AddressDO, AddressCompa
 
   /**
    * mark panel, if content already exist.
-   * 
+   *
    * @param panel
    */
-  private void setMark(final FieldsetPanel panel, final boolean paint) {
+  private void setMark(final FieldsetPanel panel, final boolean paint)
+  {
+    // TODO sn migration wicket 8 use corret ids here!!
     if (paint == true) {
-      panel.getFieldset().get(0).add(new AttributeModifier("style",
-          new Model<String>("background: #FCF8E3; border: 1px solid #FBEED5; border-radius: 4px; padding-left: 5px; padding-right: 10px; padding-bottom: 4px;")));
-    }
-    else {
-      panel.getFieldset().get(0).add(new AttributeModifier("style",
+      panel.getFieldset().get("this will throw an exeption!").add(new AttributeModifier("style",
+          new Model<String>(
+              "background: #FCF8E3; border: 1px solid #FBEED5; border-radius: 4px; padding-left: 5px; padding-right: 10px; padding-bottom: 4px;")));
+    } else {
+      panel.getFieldset().get("this will throw an exeption!").add(new AttributeModifier("style",
           new Model<String>("border: 1px solid whiteSmoke; border-radius: 4px; padding-left: 5px; padding-right: 10px; padding-bottom: 4px;")));
     }
   }
 
   /**
-   * 
+   *
    */
   public void create()
   {

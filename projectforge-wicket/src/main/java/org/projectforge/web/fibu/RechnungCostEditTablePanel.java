@@ -158,7 +158,7 @@ public class RechnungCostEditTablePanel extends Panel
     final AjaxButton addRowButton = new AjaxButton(ButtonPanel.BUTTON_ID, form)
     {
       @Override
-      protected void onSubmit(final AjaxRequestTarget target, final Form<?> form)
+      protected void onSubmit(final AjaxRequestTarget target)
       {
         final KostZuweisungDO zuweisung = addZuweisung(position);
         final WebMarkupContainer newRow = createRow(rows.newChildId(), position, zuweisung);
@@ -171,7 +171,7 @@ public class RechnungCostEditTablePanel extends Panel
       }
 
       @Override
-      protected void onError(final AjaxRequestTarget target, final Form<?> form)
+      protected void onError(final AjaxRequestTarget target)
       {
         target.add(feedbackPanel);
       }
@@ -183,13 +183,13 @@ public class RechnungCostEditTablePanel extends Panel
     final AjaxButton recalculateButton = new AjaxButton(ButtonPanel.BUTTON_ID, form)
     {
       @Override
-      protected void onSubmit(final AjaxRequestTarget target, final Form<?> form)
+      protected void onSubmit(final AjaxRequestTarget target)
       {
         ajaxComponents.addTargetComponents(target);
       }
 
       @Override
-      protected void onError(final AjaxRequestTarget target, final Form<?> form)
+      protected void onError(final AjaxRequestTarget target)
       {
         target.add(feedbackPanel);
       }
@@ -258,7 +258,7 @@ public class RechnungCostEditTablePanel extends Panel
       final AjaxButton deleteRowButton = new AjaxButton(ButtonPanel.BUTTON_ID, form)
       {
         @Override
-        protected void onSubmit(final AjaxRequestTarget target, final Form<?> form)
+        protected void onSubmit(final AjaxRequestTarget target)
         {
           position.deleteKostZuweisung(zuweisung.getIndex());
           final StringBuffer prependJavascriptBuf = new StringBuffer();
@@ -269,7 +269,7 @@ public class RechnungCostEditTablePanel extends Panel
         }
 
         @Override
-        protected void onError(final AjaxRequestTarget target, final Form<?> form)
+        protected void onError(final AjaxRequestTarget target)
         {
           target.add(feedbackPanel.setVisible(true));
         }

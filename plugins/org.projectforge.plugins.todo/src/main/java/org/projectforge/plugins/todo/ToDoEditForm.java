@@ -33,6 +33,7 @@ import org.apache.wicket.ajax.markup.html.form.AjaxButton;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.FormComponent;
+import org.apache.wicket.markup.html.form.FormComponentUpdatingBehavior;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.ResourceModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
@@ -116,21 +117,19 @@ public class ToDoEditForm extends AbstractEditForm<ToDoDO, ToDoEditPage>
             templateNamesChoiceRenderer.getValues(), templateNamesChoiceRenderer)
         {
           @Override
-          protected boolean wantOnSelectionChangedNotifications()
-          {
-            return true;
-          }
-
-          @Override
           protected CharSequence getDefaultChoice(final String selected)
           {
             return "";
           }
+        };
 
+        templateNamesChoice.add(new FormComponentUpdatingBehavior()
+        {
           @SuppressWarnings({ "unchecked", "rawtypes" })
           @Override
-          protected void onSelectionChanged(final String newSelection)
+          public void onUpdate()
           {
+            final String newSelection = (String) this.getFormComponent().getModelObject();
             if (StringUtils.isNotEmpty(newSelection) == true) {
               // Fill fields with selected template values:
               final UserPrefDO userPref = userPrefDao.getUserPref(ToDoPlugin.USER_PREF_AREA, newSelection);
@@ -151,7 +150,7 @@ public class ToDoEditForm extends AbstractEditForm<ToDoDO, ToDoEditPage>
               });
             }
           }
-        };
+        });
         templateNamesChoice.setNullValid(true);
         fs.add(templateNamesChoice);
       }
@@ -170,6 +169,7 @@ public class ToDoEditForm extends AbstractEditForm<ToDoDO, ToDoEditPage>
       fs.add(subject);
     }
     gridBuilder.newSplitPanel(GridSize.COL50);
+
     {
       // ToDo type
       final FieldsetPanel fs = gridBuilder.newFieldset(ToDoDO.class, "type");
@@ -179,6 +179,7 @@ public class ToDoEditForm extends AbstractEditForm<ToDoDO, ToDoEditPage>
           typeChoiceRenderer)
           .setNullValid(true);
     }
+
     {
       // Status
       final FieldsetPanel fs = gridBuilder.newFieldset(ToDoDO.class, "status");
@@ -188,6 +189,7 @@ public class ToDoEditForm extends AbstractEditForm<ToDoDO, ToDoEditPage>
           statusChoiceRenderer)
           .setNullValid(true);
     }
+
     {
       // Due date
       final FieldsetPanel fs = gridBuilder.newFieldset(ToDoDO.class, "dueDate");
@@ -197,6 +199,7 @@ public class ToDoEditForm extends AbstractEditForm<ToDoDO, ToDoEditPage>
     }
 
     gridBuilder.newSplitPanel(GridSize.COL50);
+
     {
       // Priority
       final FieldsetPanel fs = gridBuilder.newFieldset(ToDoDO.class, "priority");
@@ -206,6 +209,7 @@ public class ToDoEditForm extends AbstractEditForm<ToDoDO, ToDoEditPage>
           priorityChoiceRenderer)
           .setNullValid(true);
     }
+
     {
       // Assignee
       final FieldsetPanel fs = gridBuilder.newFieldset(ToDoDO.class, "assignee");
@@ -221,6 +225,7 @@ public class ToDoEditForm extends AbstractEditForm<ToDoDO, ToDoEditPage>
       assigneeUserSelectPanel.setRequired(true);
       assigneeUserSelectPanel.init();
     }
+
     {
       // Reporter
       final FieldsetPanel fs = gridBuilder.newFieldset(ToDoDO.class, "reporter");
@@ -236,6 +241,7 @@ public class ToDoEditForm extends AbstractEditForm<ToDoDO, ToDoEditPage>
       reporterUserSelectPanel.init();
     }
     gridBuilder.newGridPanel();
+
     {
       // Task
       final FieldsetPanel fs = gridBuilder.newFieldset(ToDoDO.class, "task");
@@ -246,6 +252,7 @@ public class ToDoEditForm extends AbstractEditForm<ToDoDO, ToDoEditPage>
       fs.addHelpIcon(new ResourceModel("plugins.todo.task.tooltip.title"),
           new ResourceModel("plugins.todo.task.tooltip.content"));
     }
+
     {
       // Group
       final FieldsetPanel fs = gridBuilder.newFieldset(ToDoDO.class, "group");
@@ -257,62 +264,51 @@ public class ToDoEditForm extends AbstractEditForm<ToDoDO, ToDoEditPage>
           new ResourceModel("plugins.todo.group.tooltip.content"));
       groupSelectPanel.init();
     }
+
     {
       // Description
       final FieldsetPanel fs = gridBuilder.newFieldset(ToDoDO.class, "description");
       fs.add(new MaxLengthTextArea(fs.getTextAreaId(), new PropertyModel<String>(data, "description"))).setAutogrow();
     }
+
     {
       // Comment
       final FieldsetPanel fs = gridBuilder.newFieldset(ToDoDO.class, "comment");
       commentTextArea = new MaxLengthTextArea(fs.getTextAreaId(), new PropertyModel<String>(data, "comment"));
       fs.add(commentTextArea).setAutogrow();
     }
+
     {
       // Options
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("label.options")).suppressLabelForWarning();
       final DivPanel checkBoxButton = fs.addNewCheckBoxButtonDiv();
       if (configurationService.isSendMailConfigured() == true) {
-        checkBoxButton
-            .add(new CheckBoxButton(checkBoxButton.newChildId(), new PropertyModel<Boolean>(this, "sendNotification"),
-                getString("label.sendEMailNotification")).setTooltip(getString("plugins.todo.notification.tooltip")));
+        checkBoxButton.add(new CheckBoxButton(checkBoxButton.newChildId(), new PropertyModel<Boolean>(this, "sendNotification"),
+            getString("label.sendEMailNotification")).setTooltip(getString("plugins.todo.notification.tooltip")));
       }
-      // if (ConfigXml.getInstance().isSmsConfigured() == true) {
-      // checkBoxPanel.add(new CheckBoxPanel(checkBoxPanel.newChildId(), new PropertyModel<Boolean>(this, "sendShortMessage"),
-      // getString("label.sendShortMessage")));
-      // }
-      checkBoxButton
-          .add(new CheckBoxButton(checkBoxButton.newChildId(), new PropertyModel<Boolean>(this, "saveAsTemplate"),
-              getString("userPref.saveAsTemplate")));
+      checkBoxButton.add(new CheckBoxButton(checkBoxButton.newChildId(), new PropertyModel<Boolean>(this, "saveAsTemplate"),
+          getString("userPref.saveAsTemplate")));
     }
-    if (isNew() == false
-        && getData().getStatus() != ToDoStatus.CLOSED
-        && getData().isDeleted() == false
+    if (isNew() == false && getData().getStatus() != ToDoStatus.CLOSED && getData().isDeleted() == false
         && getBaseDao().hasLoggedInUserUpdateAccess(getData(), getData(), false)) {
       // Close button:
       final AjaxButton closeButton = new AjaxButton(ButtonPanel.BUTTON_ID, this)
       {
         @Override
-        protected void onSubmit(final AjaxRequestTarget target, final Form<?> form)
+        protected void onSubmit(final AjaxRequestTarget target)
         {
           // repaint the feedback panel so that it is hidden:
-          target.add(((ToDoEditForm) form).getFeedbackPanel());
+          target.add(((ToDoEditForm) this.getForm()).getFeedbackPanel());
           getData().setComment(commentTextArea.getConvertedInput());
           closeToDoDialogCommentTextArea.modelChanged();
           target.add(closeToDoDialogCommentTextArea);
           closeToDoDialog.open(target);
-          // Focus doesn't yet work:
-          // + "$('#"
-          // + closeToDoDialog.getMainContainerMarkupId()
-          // + "').on('shown', function () { $('"
-          // + closeToDialogCommentTextArea.getMarkupId()
-          // + "').focus(); })");
         }
 
         @Override
-        protected void onError(final AjaxRequestTarget target, final Form<?> form)
+        protected void onError(final AjaxRequestTarget target)
         {
-          target.add(((ToDoEditForm) form).getFeedbackPanel());
+          target.add(((ToDoEditForm) this.getForm()).getFeedbackPanel());
         }
       };
       final SingleButtonPanel closeButtonPanel = new SingleButtonPanel(actionButtons.newChildId(), closeButton,
@@ -320,6 +316,7 @@ public class ToDoEditForm extends AbstractEditForm<ToDoDO, ToDoEditPage>
       actionButtons.add(2, closeButtonPanel);
       addCloseToDoDialog();
     }
+
   }
 
   @SuppressWarnings("serial")
@@ -353,7 +350,7 @@ public class ToDoEditForm extends AbstractEditForm<ToDoDO, ToDoEditPage>
         getData().setStatus(ToDoStatus.CLOSED);
         parentPage.updateAndClose();
         return true;
-      };
+      }
     };
     parentPage.add(closeToDoDialog);
     closeToDoDialog.setCloseButtonLabel(getString("plugins.todo.button.close")).init();

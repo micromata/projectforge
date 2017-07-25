@@ -30,12 +30,12 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.apache.wicket.Component;
 import org.apache.wicket.markup.html.form.DropDownChoice;
+import org.apache.wicket.markup.html.form.FormComponentUpdatingBehavior;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.apache.wicket.validation.IValidatable;
 import org.apache.wicket.validation.IValidator;
-import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.business.fibu.KundeDO;
 import org.projectforge.business.fibu.ProjektDO;
 import org.projectforge.business.fibu.kost.Kost2DO;
@@ -54,6 +54,7 @@ import org.projectforge.web.fibu.NewCustomerSelectPanel;
 import org.projectforge.web.fibu.NewProjektSelectPanel;
 import org.projectforge.web.task.TaskSelectPanel;
 import org.projectforge.web.wicket.AbstractEditForm;
+import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.web.wicket.bootstrap.GridSize;
 import org.projectforge.web.wicket.components.LabelValueChoiceRenderer;
 import org.projectforge.web.wicket.components.MaxLengthTextArea;
@@ -78,8 +79,8 @@ public class UserPrefEditForm extends AbstractEditForm<UserPrefDO, UserPrefEditP
   protected Map<String, Component> dependentsMap = new HashMap<String, Component>();
 
   /**
-   * @param parent Needed for i18n
-   * @param bean is used for creating a PropertyModel.
+   * @param parent       Needed for i18n
+   * @param bean         is used for creating a PropertyModel.
    * @param propertyName is used as property name of the property model.
    * @return
    */
@@ -188,25 +189,20 @@ public class UserPrefEditForm extends AbstractEditForm<UserPrefDO, UserPrefEditP
         }
       };
       final LabelValueChoiceRenderer<UserPrefArea> areaChoiceRenderer = createAreaChoiceRenderer(this);
-      final DropDownChoice<UserPrefArea> areaDropDownChoice = new DropDownChoice<UserPrefArea>(
-          fieldset.getDropDownChoiceId(),
-          new PropertyModel<UserPrefArea>(data, "area"), areaChoiceRenderer.getValues(), areaChoiceRenderer)
+      final DropDownChoice<UserPrefArea> areaDropDownChoice = new DropDownChoice<>(
+          fieldset.getDropDownChoiceId(), new PropertyModel<UserPrefArea>(data, "area"), areaChoiceRenderer.getValues(), areaChoiceRenderer);
+      areaDropDownChoice.add(new FormComponentUpdatingBehavior()
       {
         @Override
-        protected boolean wantOnSelectionChangedNotifications()
+        protected void onUpdate()
         {
-          return true;
-        }
-
-        @Override
-        protected void onSelectionChanged(final UserPrefArea newSelection)
-        {
+          final UserPrefArea newSelection = (UserPrefArea) this.getFormComponent().getModelObject();
           if (newSelection != null && parameterCreated == false) {
             // create repeater childs:
             createParameterRepeaterChilds();
           }
         }
-      };
+      });
       areaDropDownChoice.setNullValid(true);
       areaDropDownChoice.setRequired(true);
       fieldset.add(areaDropDownChoice);
@@ -373,6 +369,6 @@ public class UserPrefEditForm extends AbstractEditForm<UserPrefDO, UserPrefEditP
     {
       super.setObject(object);
       userPrefDao.setValueObject(userPrefEntry, object);
-    };
+    }
   }
 }

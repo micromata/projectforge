@@ -38,13 +38,13 @@ import org.apache.wicket.markup.html.form.Button;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.FormComponent;
+import org.apache.wicket.markup.html.form.FormComponentUpdatingBehavior;
 import org.apache.wicket.markup.html.form.validation.IFormValidator;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
-import org.apache.wicket.validation.IValidatable;
 import org.apache.wicket.validation.IValidator;
 import org.hibernate.Hibernate;
 import org.projectforge.business.fibu.ProjektDO;
@@ -226,24 +226,14 @@ public class HRPlanningEditForm extends AbstractEditForm<HRPlanningDO, HRPlannin
       };
       fs.add(checkBoxDiv);
       checkBoxDiv.add(new CheckBoxButton(checkBoxDiv.newChildId(), new PropertyModel<Boolean>(this, "showDeletedOnly"),
-          getString("onlyDeleted"))
+          getString("onlyDeleted"), new FormComponentUpdatingBehavior()
       {
-        /**
-         * @see org.projectforge.web.wicket.flowlayout.CheckBoxButton#onSelectionChanged(java.lang.Boolean)
-         */
         @Override
-        protected void onSelectionChanged(final Boolean newSelection)
+        public void onUpdate()
         {
-          super.onSelectionChanged(newSelection);
           refresh();
         }
-
-        @Override
-        protected boolean wantOnSelectionChangedNotifications()
-        {
-          return true;
-        }
-      });
+      }));
       if (isNew() == true) {
         fs.add(new SingleButtonPanel(fs.newChildId(), new Button(SingleButtonPanel.WICKET_ID, new Model<String>("predecessor"))
         {

@@ -761,7 +761,7 @@ public class UserEditForm extends AbstractEditForm<PFUserDO, UserEditPage>
     final AjaxButton createButton = new AjaxButton(SingleButtonPanel.WICKET_ID, this)
     {
       @Override
-      protected void onSubmit(final AjaxRequestTarget target, final Form<?> form)
+      protected void onSubmit(final AjaxRequestTarget target)
       {
         data.setUsername(usernameTextField.getRawInput());
         if (updatePosixAccount == true) {
@@ -802,7 +802,7 @@ public class UserEditForm extends AbstractEditForm<PFUserDO, UserEditPage>
       }
 
       @Override
-      protected void onError(final AjaxRequestTarget target, final Form<?> form)
+      protected void onError(final AjaxRequestTarget target)
       {
         target.add(UserEditForm.this.feedbackPanel);
       }

@@ -36,7 +36,7 @@ import org.apache.wicket.ajax.markup.html.form.AjaxButton;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Button;
-import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.markup.html.form.FormComponentUpdatingBehavior;
 import org.apache.wicket.markup.html.image.NonCachingImage;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.AbstractReadOnlyModel;
@@ -97,17 +97,15 @@ public class SystemUpdateForm extends AbstractForm<SystemUpdateForm, SystemUpdat
     gridBuilder.newGridPanel();
     {
       final FieldsetPanel fs = gridBuilder.newFieldset("Show all");
-      fs.add(new CheckBoxPanel(fs.newChildId(), new PropertyModel<Boolean>(this, "showOldUpdateScripts"), null, true)
-      {
-        /**
-         * @see org.projectforge.web.wicket.flowlayout.CheckBoxPanel#onSelectionChanged(java.lang.Boolean)
-         */
-        @Override
-        protected void onSelectionChanged(final Boolean newSelection)
-        {
-          parentPage.refresh();
-        }
-      });
+      fs.add(new CheckBoxPanel(fs.newChildId(), new PropertyModel<Boolean>(this, "showOldUpdateScripts"), null,
+          new FormComponentUpdatingBehavior()
+          {
+            @Override
+            public void onUpdate()
+            {
+              parentPage.refresh();
+            }
+          }));
     }
     scripts = new WebMarkupContainer("scripts");
     add(scripts);
@@ -124,12 +122,7 @@ public class SystemUpdateForm extends AbstractForm<SystemUpdateForm, SystemUpdat
           parentPage.refresh();
         }
       };
-      //      refreshButton.add(new AbstractAjaxTimerBehavior(Duration.seconds(10)) {
-      //        @Override
-      //        protected void onTimer(AjaxRequestTarget target) {
-      //            parentPage.refresh();
-      //        }
-      //      });
+
       final SingleButtonPanel refreshButtonPanel = new SingleButtonPanel(actionButtons.newChildId(), refreshButton, "refresh",
           SingleButtonPanel.DEFAULT_SUBMIT);
       actionButtons.add(refreshButtonPanel);
@@ -212,7 +205,7 @@ public class SystemUpdateForm extends AbstractForm<SystemUpdateForm, SystemUpdat
     final AjaxButton updateButton = new AjaxButton("button", new Model<String>("update"), this)
     {
       @Override
-      protected void onSubmit(AjaxRequestTarget target, Form<?> form)
+      protected void onSubmit(AjaxRequestTarget target)
       {
         parentPage.update(updateEntry);
         this.setVisible(false);

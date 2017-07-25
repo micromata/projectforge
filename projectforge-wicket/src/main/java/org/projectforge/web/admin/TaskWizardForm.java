@@ -26,7 +26,6 @@ package org.projectforge.web.admin;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
 import org.apache.wicket.markup.html.form.Button;
-import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
@@ -92,7 +91,7 @@ public class TaskWizardForm extends AbstractStandardForm<TaskWizardForm, TaskWiz
       AjaxSubmitLink createTaskLink = new AjaxSubmitLink(IconLinkPanel.LINK_ID)
       {
         @Override
-        protected void onSubmit(final AjaxRequestTarget target, final Form<?> form)
+        protected void onSubmit(final AjaxRequestTarget target)
         {
           final PageParameters params = new PageParameters();
           params.add(TaskEditPage.PARAM_PARENT_TASK_ID, getTaskTree().getRootTaskNode().getId());
@@ -170,7 +169,7 @@ public class TaskWizardForm extends AbstractStandardForm<TaskWizardForm, TaskWiz
     AjaxSubmitLink createGroupLink = new AjaxSubmitLink(IconLinkPanel.LINK_ID)
     {
       @Override
-      protected void onSubmit(final AjaxRequestTarget target, final Form<?> form)
+      protected void onSubmit(final AjaxRequestTarget target)
       {
         parentPage.managerGroupCreated = "managerGroup".equals(key);
         final PageParameters params = new PageParameters();

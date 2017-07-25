@@ -33,15 +33,14 @@ import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.TextArea;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.CompoundPropertyModel;
-import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.web.wicket.CsrfTokenHandler;
+import org.projectforge.web.wicket.WicketUtils;
 
 /**
  * The panel which includes the drop behavior for several files. If the dropped file (string) was sucessfully importet, the hook method
  * {@link #onStringImport(AjaxRequestTarget, String, String)} is called.
- * 
+ *
  * @author Johannes Unterstein (j.unterstein@micromata.de)
- * 
  */
 public abstract class DropFileContainer extends Panel
 {
@@ -54,7 +53,7 @@ public abstract class DropFileContainer extends Panel
   /**
    * Cross site request forgery token.
    */
-  private  CsrfTokenHandler csrfTokenHandler;
+  private CsrfTokenHandler csrfTokenHandler;
 
   /**
    * @param id
@@ -84,19 +83,22 @@ public abstract class DropFileContainer extends Panel
     main.add(hiddenForm);
     hiddenForm.add(new TextArea<String>("importString"));
     hiddenForm.add(new TextArea<String>("importFileName"));
-    hiddenForm.add(new AjaxSubmitLink("submitButton") {
+    hiddenForm.add(new AjaxSubmitLink("submitButton")
+    {
       private static final long serialVersionUID = 6140567784494429257L;
 
       @Override
-      protected void onSubmit(final AjaxRequestTarget target, final Form< ? > form)
+      protected void onSubmit(final AjaxRequestTarget target)
       {
-        csrfTokenHandler.onSubmit();
-        final FormBean modelObject = hiddenForm.getModel().getObject();
-        onStringImport(target, modelObject.importFileName, modelObject.importString);
+        if (target != null) {
+          csrfTokenHandler.onSubmit();
+          final FormBean modelObject = hiddenForm.getModel().getObject();
+          onStringImport(target, modelObject.importFileName, modelObject.importString);
+        }
       }
 
       @Override
-      protected void onError(final AjaxRequestTarget target, final Form< ? > form)
+      protected void onError(final AjaxRequestTarget target)
       {
         // nothing to do here
       }
@@ -130,7 +132,6 @@ public abstract class DropFileContainer extends Panel
 
   /**
    * Just the form model
-   * 
    */
   private class FormBean implements Serializable
   {

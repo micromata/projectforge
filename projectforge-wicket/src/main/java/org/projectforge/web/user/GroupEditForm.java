@@ -264,7 +264,7 @@ public class GroupEditForm extends AbstractEditForm<GroupDO, GroupEditPage>
     final AjaxButton createButton = new AjaxButton(SingleButtonPanel.WICKET_ID, this)
     {
       @Override
-      protected void onSubmit(final AjaxRequestTarget target, final Form<?> form)
+      protected void onSubmit(final AjaxRequestTarget target)
       {
         ldapPosixGroupsUtils.setDefaultValues(ldapGroupValues);
         for (final FormComponent<?> component : dependentPosixLdapFormComponentsList) {
@@ -280,7 +280,7 @@ public class GroupEditForm extends AbstractEditForm<GroupDO, GroupEditPage>
       }
 
       @Override
-      protected void onError(final AjaxRequestTarget target, final Form<?> form)
+      protected void onError(final AjaxRequestTarget target)
       {
         target.add(GroupEditForm.this.feedbackPanel);
       }

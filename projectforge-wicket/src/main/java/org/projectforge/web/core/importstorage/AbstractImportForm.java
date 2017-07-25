@@ -27,6 +27,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.wicket.markup.html.form.Button;
+import org.apache.wicket.markup.html.form.FormComponentUpdatingBehavior;
 import org.apache.wicket.markup.html.form.upload.FileUploadField;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
@@ -62,13 +63,15 @@ public abstract class AbstractImportForm<F, P extends AbstractImportPage<?>, S e
   @SuppressWarnings("serial")
   protected AbstractImportForm<F, P, S> addClearButton(final FieldsetPanel fs)
   {
-    fs.add(new SingleButtonPanel(fs.newChildId(), new Button(SingleButtonPanel.WICKET_ID, new Model<String>("clearStorage")) {
+    fs.add(new SingleButtonPanel(fs.newChildId(), new Button(SingleButtonPanel.WICKET_ID, new Model<String>("clearStorage"))
+    {
       @Override
       public final void onSubmit()
       {
         parentPage.clear();
       }
-    }, getString("common.import.clearStorage"), SingleButtonPanel.RESET) {
+    }, getString("common.import.clearStorage"), SingleButtonPanel.RESET)
+    {
       /**
        * @see org.apache.wicket.Component#isVisible()
        */
@@ -87,7 +90,8 @@ public abstract class AbstractImportForm<F, P extends AbstractImportPage<?>, S e
   @SuppressWarnings("serial")
   protected AbstractImportForm<F, P, S> addImportFilterRadio(final GridBuilder gridBuilder)
   {
-    final FieldsetPanel fs = new FieldsetPanel(gridBuilder.getPanel(), getString("filter")) {
+    final FieldsetPanel fs = new FieldsetPanel(gridBuilder.getPanel(), getString("filter"))
+    {
       /**
        * @see org.apache.wicket.Component#isVisible()
        */
@@ -99,16 +103,7 @@ public abstract class AbstractImportForm<F, P extends AbstractImportPage<?>, S e
     };
     final DivPanel radioGroupPanel = fs.addNewRadioBoxButtonDiv();
     final RadioGroupPanel<String> radioGroup = new RadioGroupPanel<String>(radioGroupPanel.newChildId(), "filterType",
-        new PropertyModel<String>(importFilter, "listType")) {
-      /**
-       * @see org.projectforge.web.wicket.flowlayout.RadioGroupPanel#wantOnSelectionChangedNotifications()
-       */
-      @Override
-      protected boolean wantOnSelectionChangedNotifications()
-      {
-        return true;
-      }
-    };
+        new PropertyModel<String>(importFilter, "listType"), new FormComponentUpdatingBehavior());
     radioGroupPanel.add(radioGroup);
     fs.setLabelFor(radioGroup.getRadioGroup());
     radioGroup.add(new Model<String>("all"), getString("filter.all"));
@@ -124,12 +119,12 @@ public abstract class AbstractImportForm<F, P extends AbstractImportPage<?>, S e
     super.onBeforeRender();
   }
 
-  protected ImportStorage< ? > getStorage()
+  protected ImportStorage<?> getStorage()
   {
     return storagePanel.storage;
   }
 
-  protected void setStorage(final ImportStorage< ? > storage)
+  protected void setStorage(final ImportStorage<?> storage)
   {
     storagePanel.storage = storage;
   }
@@ -143,7 +138,7 @@ public abstract class AbstractImportForm<F, P extends AbstractImportPage<?>, S e
   {
     storagePanel.storage = getStorage();
     if (storagePanel.storage == null) {
-      storagePanel.storage = (ImportStorage< ? >) parentPage.getUserPrefEntry(parentPage.getStorageKey());
+      storagePanel.storage = (ImportStorage<?>) parentPage.getUserPrefEntry(parentPage.getStorageKey());
     }
     if (storagePanel.storage == null) {
       storagePanel.setVisible(false);

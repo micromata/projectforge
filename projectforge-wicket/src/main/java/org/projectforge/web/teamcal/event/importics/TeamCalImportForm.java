@@ -27,6 +27,7 @@ import java.util.List;
 
 import org.apache.wicket.markup.html.form.Button;
 import org.apache.wicket.markup.html.form.DropDownChoice;
+import org.apache.wicket.markup.html.form.FormComponentUpdatingBehavior;
 import org.apache.wicket.markup.html.form.upload.FileUploadField;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
@@ -76,36 +77,17 @@ public class TeamCalImportForm extends AbstractImportForm<ImportFilter, TeamCalI
         calChoiceRenderer.addValue(cal, cal.getTitle());
       }
       final DropDownChoice<TeamCalDO> calDropDownChoice = new DropDownChoice<TeamCalDO>(fs.getDropDownChoiceId(),
-          new PropertyModel<TeamCalDO>(this, "calendar"), calChoiceRenderer.getValues(), calChoiceRenderer)
+          new PropertyModel<TeamCalDO>(this, "calendar"), calChoiceRenderer.getValues(), calChoiceRenderer);
+      calDropDownChoice.add(new FormComponentUpdatingBehavior()
       {
-        /**
-         * @see org.apache.wicket.markup.html.form.DropDownChoice#wantOnSelectionChangedNotifications()
-         */
         @Override
-        protected boolean wantOnSelectionChangedNotifications()
-        {
-          return true;
-        }
-
-        /**
-         * @see org.apache.wicket.markup.html.form.DropDownChoice#onSelectionChanged(java.lang.Object)
-         */
-        @Override
-        protected void onSelectionChanged(final TeamCalDO newSelection)
+        public void onUpdate()
         {
           parentPage.reconcile();
         }
-      };
+      });
       calDropDownChoice.setNullValid(false);
       calDropDownChoice.setRequired(true);
-      //      calDropDownChoice.add(new AjaxEventBehavior("change")
-      //      {
-      //        @Override
-      //        protected void onEvent(AjaxRequestTarget target)
-      //        {
-      //          modalDialog.open(target);
-      //        }
-      //      });
       fs.add(calDropDownChoice);
     }
     {
@@ -136,24 +118,4 @@ public class TeamCalImportForm extends AbstractImportForm<ImportFilter, TeamCalI
   {
     return calendar != null ? calendar.getId() : null;
   }
-
-  //  private void createModalDialog(final TeamCalImportPage parentPage)
-  //  {
-  //    this.modalDialog = new ModalDialog(parentPage.newModalDialogId())
-  //    {
-  //      @Override
-  //      public void init()
-  //      {
-  //        setTitle(getString("plugins.todo.closeDialog.heading"));
-  //        init(new Form<String>(getFormId()));
-  //        {
-  //          DivPanel mainPanel = gridBuilder.getPanel();
-  //          LabelPanel labelPanel = new LabelPanel(mainPanel.newChildId(), "ABC");
-  //          mainPanel.add(labelPanel);
-  //        }
-  //      }
-  //    };
-  //    parentPage.add(this.modalDialog);
-  //    this.modalDialog.setCloseButtonLabel(getString("plugins.todo.button.close")).init();
-  //  }
 }

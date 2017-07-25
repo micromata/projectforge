@@ -141,6 +141,12 @@ public class InMemoryPageStore implements IPageStore
     return null;
   }
 
+  @Override
+  public boolean canBeAsynchronous()
+  {
+    return false;
+  }
+
   /**
    * Returns the cache for stored pages for the given session id.
    *

@@ -25,6 +25,7 @@ package org.projectforge.plugins.liquidityplanning;
 
 import org.apache.log4j.Logger;
 import org.apache.wicket.markup.html.form.DropDownChoice;
+import org.apache.wicket.markup.html.form.FormComponentUpdatingBehavior;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.projectforge.business.fibu.AmountType;
@@ -42,9 +43,8 @@ import org.projectforge.web.wicket.flowlayout.TextStyle;
 /**
  * The list formular for the list view (this example has no filter settings). See ToDoListPage for seeing how to use
  * filter settings.
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
  */
 public class LiquidityEntryListForm extends AbstractListForm<LiquidityFilter, LiquidityEntryListPage>
 {
@@ -117,7 +117,7 @@ public class LiquidityEntryListForm extends AbstractListForm<LiquidityFilter, Li
 
   /**
    * @see org.projectforge.web.wicket.AbstractListForm#onOptionsPanelCreate(org.projectforge.web.wicket.flowlayout.FieldsetPanel,
-   *      org.projectforge.web.wicket.flowlayout.DivPanel)
+   * org.projectforge.web.wicket.flowlayout.DivPanel)
    */
   @SuppressWarnings("serial")
   @Override
@@ -140,27 +140,14 @@ public class LiquidityEntryListForm extends AbstractListForm<LiquidityFilter, Li
     {
       final DivPanel radioGroupPanel = optionsFieldsetPanel.addNewRadioBoxButtonDiv();
       final RadioGroupPanel<PaymentStatus> radioGroup = new RadioGroupPanel<PaymentStatus>(radioGroupPanel.newChildId(),
-          "paymentStatus",
-          new PropertyModel<PaymentStatus>(getSearchFilter(), "paymentStatus"))
+          "paymentStatus", new PropertyModel<>(getSearchFilter(), "paymentStatus"), new FormComponentUpdatingBehavior()
       {
-        /**
-         * @see org.projectforge.web.wicket.flowlayout.RadioGroupPanel#wantOnSelectionChangedNotifications()
-         */
         @Override
-        protected boolean wantOnSelectionChangedNotifications()
-        {
-          return true;
-        }
-
-        /**
-         * @see org.projectforge.web.wicket.flowlayout.RadioGroupPanel#onSelectionChanged(java.lang.Object)
-         */
-        @Override
-        protected void onSelectionChanged(final Object newSelection)
+        public void onUpdate()
         {
           parentPage.refresh();
         }
-      };
+      });
       radioGroupPanel.add(radioGroup);
       radioGroup.add(new Model<PaymentStatus>(PaymentStatus.ALL), getString(PaymentStatus.ALL.getI18nKey()));
       radioGroup.add(new Model<PaymentStatus>(PaymentStatus.UNPAID), getString(PaymentStatus.UNPAID.getI18nKey()));
@@ -169,27 +156,14 @@ public class LiquidityEntryListForm extends AbstractListForm<LiquidityFilter, Li
     {
       final DivPanel radioGroupPanel = optionsFieldsetPanel.addNewRadioBoxButtonDiv();
       final RadioGroupPanel<AmountType> radioGroup = new RadioGroupPanel<AmountType>(radioGroupPanel.newChildId(),
-          "amountType",
-          new PropertyModel<AmountType>(getSearchFilter(), "amountType"))
+          "amountType", new PropertyModel<>(getSearchFilter(), "amountType"), new FormComponentUpdatingBehavior()
       {
-        /**
-         * @see org.projectforge.web.wicket.flowlayout.RadioGroupPanel#wantOnSelectionChangedNotifications()
-         */
         @Override
-        protected boolean wantOnSelectionChangedNotifications()
-        {
-          return true;
-        }
-
-        /**
-         * @see org.projectforge.web.wicket.flowlayout.RadioGroupPanel#onSelectionChanged(java.lang.Object)
-         */
-        @Override
-        protected void onSelectionChanged(final Object newSelection)
+        public void onUpdate()
         {
           parentPage.refresh();
         }
-      };
+      });
       radioGroupPanel.add(radioGroup);
       radioGroup.add(new Model<AmountType>(AmountType.ALL), getString(AmountType.ALL.getI18nKey()));
       radioGroup.add(new Model<AmountType>(AmountType.CREDIT), getString(AmountType.CREDIT.getI18nKey()));

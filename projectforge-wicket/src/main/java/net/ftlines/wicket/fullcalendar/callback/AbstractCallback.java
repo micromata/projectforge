@@ -1,9 +1,9 @@
 /**
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
- * 
+ * <p>
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ * <p>
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -14,47 +14,53 @@ package net.ftlines.wicket.fullcalendar.callback;
 
 import java.util.Map;
 
-import net.ftlines.wicket.fullcalendar.FullCalendar;
-
 import org.apache.wicket.Component;
+import org.apache.wicket.IRequestListener;
 import org.apache.wicket.behavior.Behavior;
-import org.apache.wicket.behavior.IBehaviorListener;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
-abstract class AbstractCallback extends Behavior implements IBehaviorListener {
-	private FullCalendar calendar;
+import net.ftlines.wicket.fullcalendar.FullCalendar;
 
-	@Override
-	public void bind(Component component) {
-		super.bind(component);
-		this.calendar = (FullCalendar) component;
-	}
+abstract class AbstractCallback extends Behavior implements IRequestListener
+{
+  private FullCalendar calendar;
 
-	protected final String getUrl(Map<String, Object> parameters) {
-		PageParameters params = new PageParameters();
-		String url = calendar.urlFor(IBehaviorListener.INTERFACE, params).toString();
+  @Override
+  public void bind(Component component)
+  {
+    super.bind(component);
+    this.calendar = (FullCalendar) component;
+  }
 
-		if (parameters != null) {
-			for (Map.Entry<String, Object> parameter : parameters.entrySet()) {
-				url += "&" + parameter.getKey() + "=" + parameter.getValue();
-			}
-		}
-		return url;
-	}
+  protected final String getUrl(Map<String, Object> parameters)
+  {
+    PageParameters params = new PageParameters();
+    String url = calendar.urlForListener(params).toString();
 
-	@Override
-	public final void onRequest() {
-		respond();
-	}
+    if (parameters != null) {
+      for (Map.Entry<String, Object> parameter : parameters.entrySet()) {
+        url += "&" + parameter.getKey() + "=" + parameter.getValue();
+      }
+    }
+    return url;
+  }
 
-	protected abstract void respond();
+  @Override
+  public final void onRequest()
+  {
+    respond();
+  }
 
-	protected final FullCalendar getCalendar() {
-		return calendar;
-	}
+  protected abstract void respond();
 
-	@Override
-	public boolean getStatelessHint(Component component) {
-		return false;
-	}
+  protected final FullCalendar getCalendar()
+  {
+    return calendar;
+  }
+
+  @Override
+  public boolean getStatelessHint(Component component)
+  {
+    return false;
+  }
 }

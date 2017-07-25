@@ -25,16 +25,17 @@ package org.projectforge.web.calendar;
 
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.DropDownChoice;
+import org.apache.wicket.markup.html.form.FormComponentUpdatingBehavior;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.joda.time.DateMidnight;
-import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.business.teamcal.filter.ICalendarFilter;
 import org.projectforge.business.user.UserDao;
 import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.web.wicket.AbstractStandardForm;
+import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.web.wicket.bootstrap.GridBuilder;
 import org.projectforge.web.wicket.bootstrap.GridSize;
 import org.projectforge.web.wicket.components.DateTimePanel;
@@ -89,17 +90,8 @@ public class CalendarForm extends AbstractStandardForm<CalendarFilter, CalendarP
 
     final DropDownChoice<Integer> firstHourDropDownChoice = new DropDownChoice<Integer>(fieldset.getDropDownChoiceId(),
         new PropertyModel<Integer>(filter, "firstHour"), DateTimePanel.getHourOfDayRenderer().getValues(),
-        DateTimePanel.getHourOfDayRenderer())
-    {
-      /**
-       * @see org.apache.wicket.markup.html.form.DropDownChoice#wantOnSelectionChangedNotifications()
-       */
-      @Override
-      protected boolean wantOnSelectionChangedNotifications()
-      {
-        return true;
-      }
-    };
+        DateTimePanel.getHourOfDayRenderer());
+    firstHourDropDownChoice.add(new FormComponentUpdatingBehavior()); // required to reload the page on update
     firstHourDropDownChoice.setNullValid(false);
     firstHourDropDownChoice.setRequired(true);
     WicketUtils.addTooltip(firstHourDropDownChoice, getString("calendar.option.firstHour.tooltip"));
@@ -109,7 +101,7 @@ public class CalendarForm extends AbstractStandardForm<CalendarFilter, CalendarP
 
     calendarPageSupport.addOptions(checkBoxPanel, true, filter);
     checkBoxPanel.add(new CheckBoxButton(checkBoxPanel.newChildId(), new PropertyModel<Boolean>(filter, "slot30"),
-        getString("calendar.option.slot30"), true).setTooltip(getString("calendar.option.slot30.tooltip")));
+        getString("calendar.option.slot30")).setTooltip(getString("calendar.option.slot30.tooltip")));
 
     buttonGroupPanel = new ButtonGroupPanel(fieldset.newChildId());
     fieldset.add(buttonGroupPanel);
@@ -153,7 +145,7 @@ public class CalendarForm extends AbstractStandardForm<CalendarFilter, CalendarP
 
   /**
    * Hook method where child implementations could place their logic
-   * 
+   *
    * @param gridBuilder
    */
   protected void onAfterInit(final GridBuilder gridBuilder)

@@ -27,6 +27,7 @@ import java.io.Serializable;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
+import org.apache.wicket.markup.html.form.FormComponentUpdatingBehavior;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
@@ -100,8 +101,7 @@ public class CalendarPageSupport implements Serializable
       final String tooltipKey, final boolean autoSubmit)
   {
     final CheckBoxButton checkBoxButton = new CheckBoxButton(checkBoxDivPanel.newChildId(),
-        new PropertyModel<Boolean>(filter, property),
-        checkBoxDivPanel.getString(labelKey), autoSubmit);
+        new PropertyModel<Boolean>(filter, property), checkBoxDivPanel.getString(labelKey), autoSubmit ? new FormComponentUpdatingBehavior() : null);
     if (autoSubmit == false) {
       checkBoxButton.getCheckBox().add(new OnChangeAjaxBehavior()
       {
@@ -120,7 +120,7 @@ public class CalendarPageSupport implements Serializable
 
   /**
    * Has the logged-in user the permission to see time-sheets of other users?
-   * 
+   *
    * @return
    */
   public boolean isOtherTimesheetsUsersAllowed()

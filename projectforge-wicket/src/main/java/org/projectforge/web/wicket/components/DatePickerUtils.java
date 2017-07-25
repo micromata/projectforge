@@ -24,6 +24,7 @@
 package org.projectforge.web.wicket.components;
 
 import java.util.Locale;
+import java.util.Optional;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -53,20 +54,17 @@ public class DatePickerUtils
     }
     buf.append("  $.datepicker.setDefaults({\n");
     buf.append("    showAnim : 'fadeIn',\n");
-    // if (isGerman == true) {
-    // buf.append("    showWeek : true\n");
-    // }
     buf.append("  });\n");
     buf.append("});");
 
     // if we are in ajax request cycle, we have to use other rendering methods
-    final AjaxRequestTarget target = RequestCycle.get().find(AjaxRequestTarget.class);
-    if (target == null) {
+    final Optional<AjaxRequestTarget> target = RequestCycle.get().find(AjaxRequestTarget.class);
+    if (target.isPresent()) {
+      target.get().appendJavaScript(buf);
+      target.get().appendJavaScript(getDatePickerInitJavaScript(id, autosubmit));
+    } else {
       response.render(JavaScriptHeaderItem.forScript(buf, "datepicker"));
       response.render(JavaScriptHeaderItem.forScript(getDatePickerInitJavaScript(id, autosubmit), null));
-    } else {
-      target.appendJavaScript(buf);
-      target.appendJavaScript(getDatePickerInitJavaScript(id, autosubmit));
     }
   }
 

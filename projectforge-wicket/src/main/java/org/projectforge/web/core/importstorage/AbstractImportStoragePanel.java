@@ -36,7 +36,6 @@ import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.CheckBox;
-import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.SubmitLink;
 import org.apache.wicket.markup.html.link.AbstractLink;
 import org.apache.wicket.markup.html.panel.Panel;
@@ -215,12 +214,8 @@ public abstract class AbstractImportStoragePanel<P extends AbstractImportPage<?>
     } else if (sheet.isReconciled() == true) {
       addActionLink(actionLinkRepeater, new AjaxSubmitLink("actionLink", parentPage.form)
       {
-        /**
-         * @see org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink#onSubmit(org.apache.wicket.ajax.AjaxRequestTarget,
-         *      org.apache.wicket.markup.html.form.Form)
-         */
         @Override
-        protected void onSubmit(final AjaxRequestTarget target, final Form<?> form)
+        protected void onSubmit(final AjaxRequestTarget target)
         {
           commitDialog.sheetName = sheet.getName();
           commitDialog.open(target);

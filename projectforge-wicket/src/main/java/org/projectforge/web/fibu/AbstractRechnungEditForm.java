@@ -599,7 +599,7 @@ public abstract class AbstractRechnungEditForm<O extends AbstractRechnungDO<T>, 
             final AjaxButton editCostButton = new AjaxButton(ButtonPanel.BUTTON_ID, this)
             {
               @Override
-              protected void onSubmit(final AjaxRequestTarget target, final Form<?> form)
+              protected void onSubmit(final AjaxRequestTarget target)
               {
                 costEditModalDialog.open(target);
                 // Redraw the content:
@@ -609,7 +609,7 @@ public abstract class AbstractRechnungEditForm<O extends AbstractRechnungDO<T>, 
               }
 
               @Override
-              protected void onError(final AjaxRequestTarget target, final Form<?> form)
+              protected void onError(final AjaxRequestTarget target)
               {
                 target.add(AbstractRechnungEditForm.this.feedbackPanel);
               }

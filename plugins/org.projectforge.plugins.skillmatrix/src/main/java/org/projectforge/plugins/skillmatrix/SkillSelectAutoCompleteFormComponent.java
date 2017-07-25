@@ -25,6 +25,7 @@ package org.projectforge.plugins.skillmatrix;
 
 import java.util.List;
 import java.util.Locale;
+import java.util.Optional;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
@@ -146,9 +147,9 @@ public abstract class SkillSelectAutoCompleteFormComponent extends PFAutoComplet
 
   protected void notifyChildren()
   {
-    final AjaxRequestTarget target = RequestCycle.get().find(AjaxRequestTarget.class);
-    if (target != null) {
-      onModelSelected(target, skill);
+    final Optional<AjaxRequestTarget> target = RequestCycle.get().find(AjaxRequestTarget.class);
+    if (target.isPresent()) {
+      onModelSelected(target.get(), skill);
     }
   }
 

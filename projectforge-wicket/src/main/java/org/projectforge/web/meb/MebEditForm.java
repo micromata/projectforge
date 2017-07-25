@@ -32,11 +32,10 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.form.AjaxButton;
 import org.apache.wicket.markup.html.form.Button;
 import org.apache.wicket.markup.html.form.DropDownChoice;
-import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.markup.html.form.FormComponentUpdatingBehavior;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.hibernate.Hibernate;
-import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.business.meb.MebEntryDO;
 import org.projectforge.business.meb.MebEntryStatus;
 import org.projectforge.business.orga.PostType;
@@ -50,6 +49,7 @@ import org.projectforge.jira.JiraProject;
 import org.projectforge.web.URLHelper;
 import org.projectforge.web.user.UserSelectPanel;
 import org.projectforge.web.wicket.AbstractEditForm;
+import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.web.wicket.components.FavoritesChoicePanel;
 import org.projectforge.web.wicket.components.LabelValueChoiceRenderer;
 import org.projectforge.web.wicket.components.MaxLengthTextArea;
@@ -127,7 +127,8 @@ public class MebEditForm extends AbstractEditForm<MebEntryDO, MebEditPage>
     {
       // Actions
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("meb.actions")).suppressLabelForWarning();
-      fs.add(new SingleButtonPanel(fs.newChildId(), new Button(SingleButtonPanel.WICKET_ID, new Model<String>("createTimesheet")) {
+      fs.add(new SingleButtonPanel(fs.newChildId(), new Button(SingleButtonPanel.WICKET_ID, new Model<String>("createTimesheet"))
+      {
         @Override
         public final void onSubmit()
         {
@@ -136,7 +137,8 @@ public class MebEditForm extends AbstractEditForm<MebEntryDO, MebEditPage>
       }, getString("timesheet.title.add"), SingleButtonPanel.NORMAL));
 
       // DropDownChoice favorites
-      jiraProjectChoice = new FavoritesChoicePanel<JiraProject, JiraProject>(fs.newChildId(), UserPrefArea.JIRA_PROJECT) {
+      jiraProjectChoice = new FavoritesChoicePanel<JiraProject, JiraProject>(fs.newChildId(), UserPrefArea.JIRA_PROJECT)
+      {
         @Override
         protected void select(final JiraProject favorite)
         {
@@ -169,24 +171,21 @@ public class MebEditForm extends AbstractEditForm<MebEntryDO, MebEditPage>
       }
       // DropDownChoice issueType
       final LabelValueChoiceRenderer<JiraIssueType> typeChoiceRenderer = new LabelValueChoiceRenderer<JiraIssueType>(issueTypes);
-      @SuppressWarnings({ "rawtypes", "unchecked"})
+      @SuppressWarnings({ "rawtypes", "unchecked" })
       final DropDownChoice typeChoice = new DropDownChoice(fs.getDropDownChoiceId(), new PropertyModel(this, "jiraIssueType"),
-          typeChoiceRenderer.getValues(), typeChoiceRenderer) {
+          typeChoiceRenderer.getValues(), typeChoiceRenderer);
+      typeChoice.add(new FormComponentUpdatingBehavior()
+      {
         @Override
-        protected boolean wantOnSelectionChangedNotifications()
+        public void onUpdate()
         {
-          return true;
-        }
-
-        @Override
-        protected void onSelectionChanged(final Object newSelection)
-        {
+          final Object newSelection = this.getFormComponent().getModelObject();
           if (newSelection != null && newSelection instanceof Integer) {
             parentPage.putUserPrefEntry(USER_PREF_KEY_JIRA_ISSUE_TYPE, newSelection, true);
             // refresh();
           }
         }
-      };
+      });
       final Integer recentJiraIssueType = (Integer) parentPage.getUserPrefEntry(Integer.class, USER_PREF_KEY_JIRA_ISSUE_TYPE);
       if (recentJiraIssueType != null) {
         this.jiraIssueType = recentJiraIssueType;
@@ -194,9 +193,10 @@ public class MebEditForm extends AbstractEditForm<MebEntryDO, MebEditPage>
       typeChoice.setNullValid(false);
       fs.add(typeChoice);
 
-      final AjaxButton createJiraIssueButton = new AjaxButton(SingleButtonPanel.WICKET_ID, new Model<String>("createJIRAIssue")) {
+      final AjaxButton createJiraIssueButton = new AjaxButton(SingleButtonPanel.WICKET_ID, new Model<String>("createJIRAIssue"))
+      {
         @Override
-        public void onSubmit(final AjaxRequestTarget target, final Form< ? > form)
+        public void onSubmit(final AjaxRequestTarget target)
         {
           // ...create result page, get the url path to it...
           target.appendJavaScript("window.open('" + buildCreateJiraIssueUrl() + "','newWindow');");
@@ -207,7 +207,7 @@ public class MebEditForm extends AbstractEditForm<MebEntryDO, MebEditPage>
          *      org.apache.wicket.markup.html.form.Form)
          */
         @Override
-        protected void onError(final AjaxRequestTarget target, final Form< ? > form)
+        protected void onError(final AjaxRequestTarget target)
         {
         }
       };

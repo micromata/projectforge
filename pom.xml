@@ -241,7 +241,7 @@
     <cglib-nodep.version>3.2.0</cglib-nodep.version>
     <groovy.version>2.4.4</groovy.version>
     <poi.version>3.16</poi.version>
-    <wicket.version>7.8.0</wicket.version>
+    <wicket.version>8.0.0-M6</wicket.version>
     <wicket-select2.version>3.0</wicket-select2.version>
 
     <javax.jsp-api.version>2.3.1</javax.jsp-api.version>

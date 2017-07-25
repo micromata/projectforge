@@ -28,14 +28,15 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.CheckBox;
 import org.apache.wicket.markup.html.form.FormComponent;
+import org.apache.wicket.markup.html.form.FormComponentUpdatingBehavior;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 import org.projectforge.web.wicket.WicketUtils;
 
 /**
  * Panel containing only one check-box.
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
  */
 @SuppressWarnings("serial")
 public class CheckBoxButton extends Panel implements ComponentWrapperPanel
@@ -48,8 +49,6 @@ public class CheckBoxButton extends Panel implements ComponentWrapperPanel
 
   private WebMarkupContainer labelContainer;
 
-  private boolean wantOnSelectionChangedNotifications;
-
   /**
    * @param id
    * @param model
@@ -57,34 +56,23 @@ public class CheckBoxButton extends Panel implements ComponentWrapperPanel
    */
   public CheckBoxButton(final String id, final IModel<Boolean> model, final String labelString)
   {
-    this(id, model, labelString, false);
+    this(id, model, labelString, null);
   }
 
   /**
    * @param id
    * @param model
-   * @param labelString If null then a classic checkbox is used.
-   * @param wantOnSelectionChangedNotifications if true then wantOnSelectionChangedNotifications method returns true.
-   * @see CheckBox#wantOnSelectionChangedNotifications()
+   * @param labelString      If null then a classic checkbox is used.
+   * @param updatingBehavior
    */
-  public CheckBoxButton(final String id, final IModel<Boolean> model, final String labelString,
-      final boolean wantOnSelectionChangedNotifications)
+  public CheckBoxButton(final String id, final IModel<Boolean> model, final String labelString, final FormComponentUpdatingBehavior updatingBehavior)
   {
     super(id);
-    this.wantOnSelectionChangedNotifications = wantOnSelectionChangedNotifications;
-    checkBox = new CheckBox(WICKET_ID, model) {
-      @Override
-      public void onSelectionChanged(final Boolean newSelection)
-      {
-        CheckBoxButton.this.onSelectionChanged(newSelection);
-      }
+    checkBox = new CheckBox(WICKET_ID, model);
 
-      @Override
-      protected boolean wantOnSelectionChangedNotifications()
-      {
-        return CheckBoxButton.this.wantOnSelectionChangedNotifications();
-      }
-    };
+    if (updatingBehavior != null) {
+      checkBox.add(updatingBehavior);
+    }
     checkBox.setOutputMarkupId(true);
     init(labelString);
     labelContainer.add(checkBox);
@@ -109,6 +97,7 @@ public class CheckBoxButton extends Panel implements ComponentWrapperPanel
 
   /**
    * Sets tool-tip for the label.
+   *
    * @param tooltip
    * @return this for chaining.
    */
@@ -120,7 +109,7 @@ public class CheckBoxButton extends Panel implements ComponentWrapperPanel
 
   /**
    * Sets tool-tip for the label.
-   * @param tooltip
+   *
    * @return this for chaining.
    */
   public CheckBoxButton setTooltip(final String title, final String text)
@@ -132,27 +121,13 @@ public class CheckBoxButton extends Panel implements ComponentWrapperPanel
   /**
    * If activated then the check box is colored (red). This is useful for checkboxes which have an important rule on something other, e. g.
    * "show only deleted" check-box in list view should be highlighted.
+   *
    * @return
    */
   public CheckBoxButton setWarning()
   {
     labelContainer.add(AttributeModifier.append("class", "warning"));
     return this;
-  }
-
-  /**
-   * @see CheckBox#onSelectionChanged()
-   */
-  protected void onSelectionChanged(final Boolean newSelection)
-  {
-  }
-
-  /**
-   * @see CheckBox#wantOnSelectionChangedNotifications()
-   */
-  protected boolean wantOnSelectionChangedNotifications()
-  {
-    return wantOnSelectionChangedNotifications;
   }
 
   public CheckBox getCheckBox()
@@ -180,7 +155,7 @@ public class CheckBoxButton extends Panel implements ComponentWrapperPanel
    * @see org.projectforge.web.wicket.flowlayout.ComponentWrapperPanel#getFormComponent()
    */
   @Override
-  public FormComponent< ? > getFormComponent()
+  public FormComponent<?> getFormComponent()
   {
     return checkBox;
   }

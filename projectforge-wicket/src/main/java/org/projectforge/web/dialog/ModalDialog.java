@@ -39,9 +39,9 @@ import org.apache.wicket.markup.html.panel.FeedbackPanel;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
-import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.web.core.NavTopPanel;
 import org.projectforge.web.wicket.CsrfTokenHandler;
+import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.web.wicket.bootstrap.GridBuilder;
 import org.projectforge.web.wicket.components.SingleButtonPanel;
 import org.projectforge.web.wicket.flowlayout.MyComponentsRepeater;
@@ -52,10 +52,9 @@ import de.micromata.wicket.ajax.AjaxFormSubmitCallback;
 /**
  * Base component for the ProjectForge modal dialogs.<br/>
  * This dialog is modal.<br/>
- * 
+ *
  * @author Johannes Unterstein (j.unterstein@micromata.de)
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
  */
 public abstract class ModalDialog extends Panel
 {
@@ -85,7 +84,7 @@ public abstract class ModalDialog extends Panel
 
   private Label titleLabel;
 
-  protected Form< ? > form;
+  protected Form<?> form;
 
   protected FeedbackPanel formFeedback;
 
@@ -123,7 +122,8 @@ public abstract class ModalDialog extends Panel
     gridContentContainer.setOutputMarkupId(true);
     buttonBarContainer = new WebMarkupContainer("buttonBar");
     buttonBarContainer.setOutputMarkupId(true);
-    closeBehavior = new AjaxEventBehavior("hidden.bs.modal") {
+    closeBehavior = new AjaxEventBehavior("hidden.bs.modal")
+    {
       @Override
       protected void onEvent(final AjaxRequestTarget target)
       {
@@ -167,6 +167,7 @@ public abstract class ModalDialog extends Panel
 
   /**
    * Only the div panel of the modal dialog is rendered without buttons and content. Default is false.
+   *
    * @return this for chaining.
    */
   public ModalDialog setLazyBinding()
@@ -213,6 +214,7 @@ public abstract class ModalDialog extends Panel
 
   /**
    * Display the cancel button.
+   *
    * @return this for chaining.
    */
   public ModalDialog setShowCancelButton()
@@ -233,6 +235,7 @@ public abstract class ModalDialog extends Panel
 
   /**
    * Close is used as default:
+   *
    * @param closeButtonLabel the closeButtonLabel to set
    * @return this for chaining.
    */
@@ -244,6 +247,7 @@ public abstract class ModalDialog extends Panel
 
   /**
    * Should be called directly after {@link #init()}.
+   *
    * @param tooltipTitle
    * @param tooltipContent
    * @see WicketUtils#addTooltip(Component, IModel, IModel)
@@ -279,7 +283,7 @@ public abstract class ModalDialog extends Panel
   {
     final StringBuffer script = new StringBuffer();
     script.append("$('#").append(getMainContainerMarkupId()).append("').modal({keyboard: ").append(escapeKeyEnabled)
-    .append(", show: false });");
+        .append(", show: false });");
     final boolean isResizable = (resizable == null && bigWindow == true) || Boolean.TRUE.equals(resizable) == true;
     if (draggable == true || isResizable == true) {
       script.append(" $('#").append(getMainContainerMarkupId()).append("')");
@@ -289,15 +293,15 @@ public abstract class ModalDialog extends Panel
     }
     if (isResizable) {
       script.append(".resizable({ alsoResize: '#")
-      .append(getMainContainerMarkupId())
-      // max-height of .modal-body is 600px, need to enlarge this setting for resizing.
-      .append(
-          ", .modal-body', resize: function( event, ui ) {$('.modal-body').css('max-height', '4000px');}, minWidth: 300, minHeight: 200 })");
+          .append(getMainContainerMarkupId())
+          // max-height of .modal-body is 600px, need to enlarge this setting for resizing.
+          .append(
+              ", .modal-body', resize: function( event, ui ) {$('.modal-body').css('max-height', '4000px');}, minWidth: 300, minHeight: 200 })");
     }
     if (useCloseHandler.getObject()) {
       script.append(";$('#").append(getMainContainerMarkupId()).append("').on('hidden', function () { ")
-      .append("  Wicket.Ajax.ajax({'u':'").append(closeBehavior.getCallbackUrl()).append("','c':'").append(getMainContainerMarkupId())
-      .append("'});").append("})");
+          .append("  Wicket.Ajax.ajax({'u':'").append(closeBehavior.getCallbackUrl()).append("','c':'").append(getMainContainerMarkupId())
+          .append("'});").append("})");
     }
     return script.toString();
   }
@@ -316,6 +320,7 @@ public abstract class ModalDialog extends Panel
 
   /**
    * Add the content to the AjaxRequestTarget if the content is changed.
+   *
    * @param target
    * @return this for chaining.
    */
@@ -327,6 +332,7 @@ public abstract class ModalDialog extends Panel
 
   /**
    * Add the button bar to the AjaxRequestTarget if the buttons or their visibility are changed.
+   *
    * @param target
    * @return this for chaining.
    */
@@ -373,6 +379,7 @@ public abstract class ModalDialog extends Panel
   /**
    * The gridContentContainer is cleared (all child elements are removed). This is useful for Ajax dialogs with dynamic content (see
    * {@link NavTopPanel} for an example).
+   *
    * @return
    */
   public ModalDialog clearContent()
@@ -386,7 +393,7 @@ public abstract class ModalDialog extends Panel
   }
 
   @SuppressWarnings("serial")
-  protected void init(final Form< ? > form)
+  protected void init(final Form<?> form)
   {
     this.form = form;
     csrfTokenHandler = new CsrfTokenHandler(form);
@@ -394,7 +401,8 @@ public abstract class ModalDialog extends Panel
     form.add(gridContentContainer);
     form.add(buttonBarContainer);
     if (showCancelButton == true) {
-      final SingleButtonPanel cancelButton = appendNewAjaxActionButton(new AjaxCallback() {
+      final SingleButtonPanel cancelButton = appendNewAjaxActionButton(new AjaxCallback()
+      {
         @Override
         public void callback(final AjaxRequestTarget target)
         {
@@ -405,7 +413,8 @@ public abstract class ModalDialog extends Panel
       }, getString("cancel"), SingleButtonPanel.CANCEL);
       cancelButton.getButton().setDefaultFormProcessing(false);
     }
-    closeButtonPanel = appendNewAjaxActionButton(new AjaxFormSubmitCallback() {
+    closeButtonPanel = appendNewAjaxActionButton(new AjaxFormSubmitCallback()
+    {
 
       @Override
       public void callback(final AjaxRequestTarget target)
@@ -417,7 +426,7 @@ public abstract class ModalDialog extends Panel
       }
 
       @Override
-      public void onError(final AjaxRequestTarget target, final Form< ? > form)
+      public void onError(final AjaxRequestTarget target, final Form<?> form)
       {
         csrfTokenHandler.onSubmit();
         ModalDialog.this.onError(target, form);
@@ -451,6 +460,7 @@ public abstract class ModalDialog extends Panel
   /**
    * Called if {@link #wantsNotificationOnClose()} was chosen and the dialog is closed (by pressing esc, clicking outside or clicking the
    * upper right cross).
+   *
    * @param target
    */
   protected void handleCloseEvent(final AjaxRequestTarget target)
@@ -460,6 +470,7 @@ public abstract class ModalDialog extends Panel
 
   /**
    * Called if user hit the cancel button.
+   *
    * @param target
    */
   protected void onCancelButtonSubmit(final AjaxRequestTarget target)
@@ -468,9 +479,8 @@ public abstract class ModalDialog extends Panel
 
   /**
    * Called if user hit the close button.
-   * 
+   *
    * @param target
-   * 
    * @return true if the dialog can be close, false if errors occured.
    */
   protected boolean onCloseButtonSubmit(final AjaxRequestTarget target)
@@ -478,7 +488,7 @@ public abstract class ModalDialog extends Panel
     return true;
   }
 
-  protected void onError(final AjaxRequestTarget target, final Form< ? > form)
+  protected void onError(final AjaxRequestTarget target, final Form<?> form)
   {
   }
 
@@ -513,7 +523,7 @@ public abstract class ModalDialog extends Panel
 
   /**
    * @param ajaxCallback
-   * @param position 0 is the first position.
+   * @param position     0 is the first position.
    * @param label
    * @param classnames
    * @return
@@ -528,21 +538,22 @@ public abstract class ModalDialog extends Panel
 
   private SingleButtonPanel addNewAjaxActionButton(final AjaxCallback ajaxCallback, final String label, final String... classnames)
   {
-    final AjaxButton button = new AjaxButton("button", form) {
+    final AjaxButton button = new AjaxButton("button", form)
+    {
       private static final long serialVersionUID = -5306532706450731336L;
 
       @Override
-      protected void onSubmit(final AjaxRequestTarget target, final Form< ? > form)
+      protected void onSubmit(final AjaxRequestTarget target)
       {
         csrfTokenHandler.onSubmit();
         ajaxCallback.callback(target);
       }
 
       @Override
-      protected void onError(final AjaxRequestTarget target, final Form< ? > form)
+      protected void onError(final AjaxRequestTarget target)
       {
         if (ajaxCallback instanceof AjaxFormSubmitCallback) {
-          ((AjaxFormSubmitCallback) ajaxCallback).onError(target, form);
+          ((AjaxFormSubmitCallback) ajaxCallback).onError(target, this.getForm());
         }
       }
     };
@@ -561,7 +572,7 @@ public abstract class ModalDialog extends Panel
 
   /**
    * Sets whether the close handler is used or not. Default is false.
-   * 
+   *
    * @param useCloseHandler True if close handler should be used
    * @return This
    */

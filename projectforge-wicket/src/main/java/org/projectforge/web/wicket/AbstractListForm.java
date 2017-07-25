@@ -37,6 +37,7 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Button;
 import org.apache.wicket.markup.html.form.DropDownChoice;
+import org.apache.wicket.markup.html.form.FormComponentUpdatingBehavior;
 import org.apache.wicket.markup.html.form.HiddenField;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.html.panel.FeedbackPanel;
@@ -411,7 +412,6 @@ public abstract class AbstractListForm<F extends BaseSearchFilter, P extends Abs
    * FieldsetPanel.
    *
    * @param optionsFieldsetPanel
-   * @param optionsPanel
    */
   protected void onOptionsPanelCreate(final FieldsetPanel optionsFieldsetPanel, final DivPanel optionsCheckBoxesPanel)
   {
@@ -579,14 +579,22 @@ public abstract class AbstractListForm<F extends BaseSearchFilter, P extends Abs
   protected CheckBoxButton createCheckBoxButton(final String id, final IModel<Boolean> model, final String label, final String tooltip,
       final boolean autoRefresh)
   {
-    final CheckBoxButton checkBoxPanel = new CheckBoxButton(id, model, label, autoRefresh)
-    {
-      @Override
-      protected void onSelectionChanged(final Boolean newSelection)
+    final FormComponentUpdatingBehavior updatingBehavior;
+
+    if (autoRefresh) {
+      updatingBehavior = new FormComponentUpdatingBehavior()
       {
-        parentPage.refresh();
-      }
-    };
+        @Override
+        public void onUpdate()
+        {
+          parentPage.refresh();
+        }
+      };
+    } else {
+      updatingBehavior = null;
+    }
+
+    final CheckBoxButton checkBoxPanel = new CheckBoxButton(id, model, label, updatingBehavior);
     if (tooltip != null) {
       checkBoxPanel.setTooltip(tooltip);
     }

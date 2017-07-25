@@ -25,6 +25,7 @@ package org.projectforge.web.task;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.markup.html.form.Button;
+import org.apache.wicket.markup.html.form.FormComponentUpdatingBehavior;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -219,19 +220,15 @@ public class TaskTreeForm extends AbstractSecuredForm<TaskFilter, TaskTreePage>
   {
     public MyCheckBoxPanel(final String id, final IModel<Boolean> model, final String labelString)
     {
-      super(id, model, labelString);
+      super(id, model, labelString, new FormComponentUpdatingBehavior()
+      {
+        @Override
+        public void onUpdate()
+        {
+          parentPage.refresh();
+        }
+      });
     }
 
-    @Override
-    protected boolean wantOnSelectionChangedNotifications()
-    {
-      return true;
-    }
-
-    @Override
-    protected void onSelectionChanged(final Boolean newSelection)
-    {
-      parentPage.refresh();
-    }
   }
 }

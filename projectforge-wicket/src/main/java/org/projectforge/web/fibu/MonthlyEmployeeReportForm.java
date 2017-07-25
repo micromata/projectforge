@@ -28,6 +28,7 @@ import java.util.Date;
 
 import org.apache.wicket.markup.html.form.Button;
 import org.apache.wicket.markup.html.form.DropDownChoice;
+import org.apache.wicket.markup.html.form.FormComponentUpdatingBehavior;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
@@ -89,18 +90,9 @@ public class MonthlyEmployeeReportForm
     gridBuilder.newSplitPanel(GridSize.COL50);
     {
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("calendar.month"));
-      yearChoice = new DropDownChoice<Integer>(fs.getDropDownChoiceId(), new PropertyModel<Integer>(filter, "year"),
-          new ArrayList<Integer>())
-      {
-        /**
-         * @see org.apache.wicket.markup.html.form.DropDownChoice#wantOnSelectionChangedNotifications()
-         */
-        @Override
-        protected boolean wantOnSelectionChangedNotifications()
-        {
-          return true;
-        }
-      };
+      yearChoice = new DropDownChoice<>(fs.getDropDownChoiceId(), new PropertyModel<>(filter, "year"),
+          new ArrayList<Integer>());
+      yearChoice.add(new FormComponentUpdatingBehavior());
       yearChoice.setNullValid(false).setRequired(true);
       fs.add(yearChoice);
       // DropDownChoice months
@@ -108,18 +100,9 @@ public class MonthlyEmployeeReportForm
       for (int i = 0; i <= 11; i++) {
         monthChoiceRenderer.addValue(i, StringHelper.format2DigitNumber(i + 1));
       }
-      monthChoice = new DropDownChoice<Integer>(fs.getDropDownChoiceId(), new PropertyModel<Integer>(filter, "month"),
-          monthChoiceRenderer.getValues(), monthChoiceRenderer)
-      {
-        /**
-         * @see org.apache.wicket.markup.html.form.DropDownChoice#wantOnSelectionChangedNotifications()
-         */
-        @Override
-        protected boolean wantOnSelectionChangedNotifications()
-        {
-          return true;
-        }
-      };
+      monthChoice = new DropDownChoice<>(fs.getDropDownChoiceId(), new PropertyModel<>(filter, "month"),
+          monthChoiceRenderer.getValues(), monthChoiceRenderer);
+      monthChoice.add(new FormComponentUpdatingBehavior());
       monthChoice.setNullValid(false).setRequired(true);
       fs.add(monthChoice);
       final QuickSelectMonthPanel quickSelectPanel = new QuickSelectMonthPanel(fs.newChildId(), new Model<Date>()

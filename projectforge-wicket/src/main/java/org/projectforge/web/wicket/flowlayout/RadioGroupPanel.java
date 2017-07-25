@@ -28,6 +28,7 @@ import java.io.Serializable;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.form.FormComponentUpdatingBehavior;
 import org.apache.wicket.markup.html.form.Radio;
 import org.apache.wicket.markup.html.form.RadioGroup;
 import org.apache.wicket.markup.html.panel.Panel;
@@ -51,51 +52,22 @@ public class RadioGroupPanel<T extends Serializable> extends Panel
 
   private boolean autosubmit;
 
-  /**
-   * @param id
-   * @param model
-   * @param labelString
-   */
   public RadioGroupPanel(final String id, final String groupName, final IModel<T> model)
   {
-    super(id);
-    radioGroup = new RadioGroup<T>("radioGroup", model)
-    {
-      /**
-       * @see org.apache.wicket.markup.html.form.RadioGroup#wantOnSelectionChangedNotifications()
-       */
-      @Override
-      protected boolean wantOnSelectionChangedNotifications()
-      {
-        return RadioGroupPanel.this.wantOnSelectionChangedNotifications();
-      }
+    this(id, groupName, model, null);
+  }
 
-      /**
-       * @see org.apache.wicket.markup.html.form.RadioGroup#onSelectionChanged(java.lang.Object)
-       */
-      @Override
-      protected void onSelectionChanged(final T newSelection)
-      {
-        RadioGroupPanel.this.onSelectionChanged(newSelection);
-      }
-    };
+  public RadioGroupPanel(final String id, final String groupName, final IModel<T> model, final FormComponentUpdatingBehavior updatingBehavior)
+  {
+    super(id);
+    radioGroup = new RadioGroup<T>("radioGroup", model);
+
+    if (updatingBehavior != null) {
+      radioGroup.add(updatingBehavior);
+    }
     add(radioGroup);
     radioGroup.add(repeater = new RepeatingView("repeater"));
     setRenderBodyOnly(true);
-  }
-
-  protected void onSelectionChanged(final Object newSelection)
-  {
-  }
-
-  /**
-   * Doesn't work, isn't it?
-   *
-   * @return
-   */
-  protected boolean wantOnSelectionChangedNotifications()
-  {
-    return false;
   }
 
   public Radio<T> add(final Model<T> model, final String label)

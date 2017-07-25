@@ -24,6 +24,7 @@
 package org.projectforge.web.teamcal.admin;
 
 import org.apache.log4j.Logger;
+import org.apache.wicket.markup.html.form.FormComponentUpdatingBehavior;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
@@ -37,7 +38,6 @@ import org.projectforge.web.wicket.flowlayout.RadioGroupPanel;
 
 /**
  * @author M. Lauterbach (m.lauterbach@micromata.de)
- * 
  */
 public class TeamCalListForm extends AbstractListForm<TeamCalFilter, TeamCalListPage>
 {
@@ -64,7 +64,7 @@ public class TeamCalListForm extends AbstractListForm<TeamCalFilter, TeamCalList
 
   /**
    * @see org.projectforge.web.wicket.AbstractListForm#onOptionsPanelCreate(org.projectforge.web.wicket.flowlayout.FieldsetPanel,
-   *      org.projectforge.web.wicket.flowlayout.DivPanel)
+   * org.projectforge.web.wicket.flowlayout.DivPanel)
    */
   @SuppressWarnings("serial")
   @Override
@@ -73,25 +73,17 @@ public class TeamCalListForm extends AbstractListForm<TeamCalFilter, TeamCalList
     {
       final DivPanel radioGroupPanel = optionsFieldsetPanel.addNewRadioBoxButtonDiv();
       final RadioGroupPanel<TeamCalFilter.OwnerType> radioGroup = new RadioGroupPanel<TeamCalFilter.OwnerType>(
-          radioGroupPanel.newChildId(), "ownerType", new PropertyModel<TeamCalFilter.OwnerType>(getSearchFilter(), "ownerType")) {
-        /**
-         * @see org.projectforge.web.wicket.flowlayout.RadioGroupPanel#wantOnSelectionChangedNotifications()
-         */
-        @Override
-        protected boolean wantOnSelectionChangedNotifications()
-        {
-          return true;
-        }
-
-        /**
-         * @see org.projectforge.web.wicket.flowlayout.RadioGroupPanel#onSelectionChanged(java.lang.Object)
-         */
-        @Override
-        protected void onSelectionChanged(final Object newSelection)
-        {
-          parentPage.refresh();
-        }
-
+          radioGroupPanel.newChildId(), "ownerType", new PropertyModel<>(getSearchFilter(), "ownerType"),
+          new FormComponentUpdatingBehavior()
+          {
+            @Override
+            public void onUpdate()
+            {
+              parentPage.refresh();
+            }
+          }
+      )
+      {
         /**
          * @see org.apache.wicket.Component#isVisible()
          */
@@ -109,7 +101,8 @@ public class TeamCalListForm extends AbstractListForm<TeamCalFilter, TeamCalList
         radioGroup.add(new Model<TeamCalFilter.OwnerType>(TeamCalFilter.OwnerType.ADMIN), getString("plugins.teamcal.adminAccess"));
       }
     }
-    final DivPanel checkBoxesPanel = new DivPanel(optionsFieldsetPanel.newChildId(), DivType.BTN_GROUP) {
+    final DivPanel checkBoxesPanel = new DivPanel(optionsFieldsetPanel.newChildId(), DivType.BTN_GROUP)
+    {
       @Override
       public boolean isVisible()
       {

@@ -29,9 +29,9 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.apache.wicket.markup.html.form.Button;
 import org.apache.wicket.markup.html.form.DropDownChoice;
+import org.apache.wicket.markup.html.form.FormComponentUpdatingBehavior;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
-import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.business.gantt.GanttAccess;
 import org.projectforge.business.gantt.GanttChartDO;
 import org.projectforge.business.gantt.GanttChartSettings;
@@ -41,6 +41,7 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.web.task.TaskSelectPanel;
 import org.projectforge.web.user.UserSelectPanel;
 import org.projectforge.web.wicket.AbstractEditForm;
+import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.web.wicket.bootstrap.GridSize;
 import org.projectforge.web.wicket.components.DatePanel;
 import org.projectforge.web.wicket.components.DatePanelSettings;
@@ -108,7 +109,8 @@ public class GanttChartEditForm extends AbstractEditForm<GanttChartDO, GanttChar
     gridBuilder.newGridPanel();
     {
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("task"));
-      final TaskSelectPanel taskSelectPanel = new TaskSelectPanel(fs, new PropertyModel<TaskDO>(data, "task"), parentPage, "taskId") {
+      final TaskSelectPanel taskSelectPanel = new TaskSelectPanel(fs, new PropertyModel<TaskDO>(data, "task"), parentPage, "taskId")
+      {
         @Override
         protected void selectTask(final TaskDO task)
         {
@@ -188,17 +190,7 @@ public class GanttChartEditForm extends AbstractEditForm<GanttChartDO, GanttChar
       checkBoxPanel.addCheckBoxButton(new PropertyModel<Boolean>(data.getStyle(), "showToday"), getString("gantt.style.showToday"));
       checkBoxPanel.addCheckBoxButton(new PropertyModel<Boolean>(data.getStyle(), "showCompletion"), getString("gantt.style.showCompletion"));
       checkBoxPanel.add(new CheckBoxButton(checkBoxPanel.newChildId(), new PropertyModel<Boolean>(getSettings(), "showOnlyVisibles"),
-          getString("gantt.settings.showOnlyVisibles")) {
-        /**
-         * @see org.projectforge.web.wicket.flowlayout.CheckBoxButton#wantOnSelectionChangedNotifications()
-         */
-        @Override
-        protected boolean wantOnSelectionChangedNotifications()
-        {
-          // Submit form after toggling the check box.
-          return true;
-        }
-      });
+          getString("gantt.settings.showOnlyVisibles"), new FormComponentUpdatingBehavior()));
     }
     gridBuilder.newSplitPanel(GridSize.COL50);
     {
@@ -227,7 +219,8 @@ public class GanttChartEditForm extends AbstractEditForm<GanttChartDO, GanttChar
           this, "exportFormat"), exportFormatChoiceRenderer.getValues(), exportFormatChoiceRenderer);
       exportFormatChoice.setNullValid(false);
       fs.add(exportFormatChoice);
-      fs.add(new SingleButtonPanel(fs.newChildId(), new Button(SingleButtonPanel.WICKET_ID, new Model<String>("export")) {
+      fs.add(new SingleButtonPanel(fs.newChildId(), new Button(SingleButtonPanel.WICKET_ID, new Model<String>("export"))
+      {
         @Override
         public final void onSubmit()
         {
@@ -246,7 +239,8 @@ public class GanttChartEditForm extends AbstractEditForm<GanttChartDO, GanttChar
     }
     {
       // Redraw:
-      redrawButton = new Button(SingleButtonPanel.WICKET_ID, new Model<String>("redraw")) {
+      redrawButton = new Button(SingleButtonPanel.WICKET_ID, new Model<String>("redraw"))
+      {
         @Override
         public final void onSubmit()
         {
@@ -261,7 +255,8 @@ public class GanttChartEditForm extends AbstractEditForm<GanttChartDO, GanttChar
     }
     if (isNew() == false && data.isDeleted() == false) {
       // Clone:
-      final Button cloneButton = new Button(SingleButtonPanel.WICKET_ID, new Model<String>("clone")) {
+      final Button cloneButton = new Button(SingleButtonPanel.WICKET_ID, new Model<String>("clone"))
+      {
         @Override
         public final void onSubmit()
         {

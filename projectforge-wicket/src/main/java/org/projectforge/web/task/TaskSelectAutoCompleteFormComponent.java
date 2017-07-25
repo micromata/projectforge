@@ -26,6 +26,7 @@ package org.projectforge.web.task;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Optional;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
@@ -163,9 +164,9 @@ public abstract class TaskSelectAutoCompleteFormComponent extends PFAutoComplete
 
   protected void notifyChildren()
   {
-    final AjaxRequestTarget target = RequestCycle.get().find(AjaxRequestTarget.class);
-    if (target != null) {
-      onModelSelected(target, taskDo);
+    final Optional<AjaxRequestTarget> target = RequestCycle.get().find(AjaxRequestTarget.class);
+    if (target.isPresent()) {
+      onModelSelected(target.get(), taskDo);
     }
   }
 

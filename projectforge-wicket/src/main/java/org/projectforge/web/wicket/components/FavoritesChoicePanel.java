@@ -27,6 +27,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.FormComponentPanel;
+import org.apache.wicket.markup.html.form.FormComponentUpdatingBehavior;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.user.UserPrefDao;
@@ -37,8 +38,8 @@ import org.projectforge.web.wicket.AbstractSecuredPage;
 
 /**
  * Combo box for showing and selecting favorites quickly.
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
  */
 public abstract class FavoritesChoicePanel<T, F> extends FormComponentPanel<String>
 {
@@ -86,13 +87,8 @@ public abstract class FavoritesChoicePanel<T, F> extends FormComponentPanel<Stri
   public DropDownChoice<String> init()
   {
     final LabelValueChoiceRenderer<String> renderer = createRenderer();
-    choice = new DropDownChoice<String>("dropDownChoice", new PropertyModel<String>(this, "selected"), renderer.getValues(), renderer) {
-      @Override
-      protected boolean wantOnSelectionChangedNotifications()
-      {
-        return true;
-      }
-
+    choice = new DropDownChoice<String>("dropDownChoice", new PropertyModel<String>(this, "selected"), renderer.getValues(), renderer)
+    {
       @Override
       protected String getNullKey()
       {
@@ -101,15 +97,18 @@ public abstract class FavoritesChoicePanel<T, F> extends FormComponentPanel<Stri
         }
         return super.getNullKey();
       }
-
+    };
+    choice.add(new FormComponentUpdatingBehavior()
+    {
       @Override
-      protected void onSelectionChanged(final String newSelection)
+      public void onUpdate()
       {
+        String newSelection = (String) this.getFormComponent().getModelObject();
         if (StringUtils.isNotEmpty(newSelection) == true) {
           if (ADD_NEW_ENTRY.equals(newSelection) == true) {
             final Object favorite = newFavoriteInstance(getCurrentObject());
             final UserPrefEditPage page = new UserPrefEditPage(userPrefArea, favorite);
-            page.setReturnToPage((AbstractSecuredPage) this.getPage());
+            page.setReturnToPage((AbstractSecuredPage) FavoritesChoicePanel.this.getPage());
             refresh = true;
             setResponsePage(page);
             selected = "";
@@ -125,13 +124,13 @@ public abstract class FavoritesChoicePanel<T, F> extends FormComponentPanel<Stri
           }
         }
       }
-    };
+    });
     choice.setNullValid(true);
     if (tabIndex != null) {
       choice.add(AttributeModifier.replace("tabindex", String.valueOf(tabIndex)));
     }
 
-    if(cssClass != null){
+    if (cssClass != null) {
       choice.add(AttributeModifier.append("class", cssClass));
     }
     add(choice);
@@ -163,6 +162,7 @@ public abstract class FavoritesChoicePanel<T, F> extends FormComponentPanel<Stri
 
   /**
    * If set to true (default) after selection of an item the selection is cleared.
+   *
    * @param clearSelectionAfterSelection
    * @return this.
    */

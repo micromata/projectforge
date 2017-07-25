@@ -35,6 +35,7 @@ import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.FormComponent;
+import org.apache.wicket.markup.html.form.FormComponentUpdatingBehavior;
 import org.apache.wicket.markup.html.form.TextArea;
 import org.apache.wicket.markup.html.form.validation.IFormValidator;
 import org.apache.wicket.model.IModel;
@@ -45,7 +46,6 @@ import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.apache.wicket.validation.IValidatable;
 import org.apache.wicket.validation.IValidator;
 import org.hibernate.Hibernate;
-import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.business.fibu.KostFormatter;
 import org.projectforge.business.fibu.kost.Kost2DO;
 import org.projectforge.business.systeminfo.SystemInfoCache;
@@ -69,6 +69,7 @@ import org.projectforge.web.task.TaskListPage;
 import org.projectforge.web.task.TaskSelectPanel;
 import org.projectforge.web.user.UserSelectPanel;
 import org.projectforge.web.wicket.AbstractEditForm;
+import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.web.wicket.autocompletion.AutoCompleteIgnoreForm;
 import org.projectforge.web.wicket.autocompletion.PFAutoCompleteMaxLengthTextField;
 import org.projectforge.web.wicket.autocompletion.PFAutoCompleteTextField;
@@ -392,12 +393,6 @@ public class TimesheetEditForm extends AbstractEditForm<TimesheetDO, TimesheetEd
           new PropertyModel<String>(this, "templateName"), templateNamesChoiceRenderer.getValues(),
           templateNamesChoiceRenderer)
       {
-        @Override
-        protected boolean wantOnSelectionChangedNotifications()
-        {
-          return true;
-        }
-
         /**
          * @see org.apache.wicket.markup.html.form.AbstractSingleSelectChoice#getDefaultChoice(java.lang.String)
          */
@@ -406,10 +401,13 @@ public class TimesheetEditForm extends AbstractEditForm<TimesheetDO, TimesheetEd
         {
           return "";
         }
-
+      };
+      templateNamesChoice.add(new FormComponentUpdatingBehavior()
+      {
         @Override
-        protected void onSelectionChanged(final String newSelection)
+        public void onUpdate()
         {
+          String newSelection = (String) this.getFormComponent().getModelObject();
           if (StringUtils.isNotEmpty(newSelection) == true) {
             // Fill fields with selected template values:
             final UserPrefDO userPref = userPrefDao.getUserPref(UserPrefArea.TIMESHEET_TEMPLATE, newSelection);
@@ -441,21 +439,22 @@ public class TimesheetEditForm extends AbstractEditForm<TimesheetDO, TimesheetEd
             refresh();
           }
         }
-      };
+      });
       templateNamesChoice.setNullValid(true);
       templatesRow.add(templateNamesChoice);
     }
+
     // Needed as submit link because the modal dialog reloads the page and otherwise any previous change will be lost.
     final AjaxSubmitLink link = new AjaxSubmitLink(IconLinkPanel.LINK_ID)
     {
       @Override
-      protected void onSubmit(final AjaxRequestTarget target, final Form<?> form)
+      protected void onSubmit(final AjaxRequestTarget target)
       {
         recentSheetsModalDialog.open(target);
       }
 
       @Override
-      protected void onError(final AjaxRequestTarget target, final Form<?> form)
+      protected void onError(final AjaxRequestTarget target)
       {
       }
     };
@@ -521,7 +520,7 @@ public class TimesheetEditForm extends AbstractEditForm<TimesheetDO, TimesheetEd
 
   /**
    * Used also by TimesheetMassUpdateForm.
-   * 
+   *
    * @param timesheetDao
    * @param kost2List
    * @param data
@@ -605,7 +604,6 @@ public class TimesheetEditForm extends AbstractEditForm<TimesheetDO, TimesheetEd
   }
 
   /**
-   * 
    * @return
    */
   protected TimesheetEditFilter initTimesheetFilter()
@@ -620,7 +618,7 @@ public class TimesheetEditForm extends AbstractEditForm<TimesheetDO, TimesheetEd
 
   /**
    * @see org.projectforge.web.wicket.autocompletion.AutoCompleteIgnoreForm#ignore(org.projectforge.web.wicket.autocompletion.PFAutoCompleteTextField,
-   *      java.lang.String)
+   * java.lang.String)
    */
   @Override
   public void ignore(final PFAutoCompleteTextField<?> autoCompleteField, final String ignoreText)
