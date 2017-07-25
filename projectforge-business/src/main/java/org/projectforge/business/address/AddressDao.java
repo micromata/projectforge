@@ -303,6 +303,26 @@ public class AddressDao extends BaseDao<AddressDO>
     }
   }
 
+  @Override
+  protected void beforeSaveOrModify(final AddressDO obj)
+  {
+    if (obj != null) {
+      if (obj.getAddressbookList() == null) {
+        Set<AddressbookDO> addressbookSet = new HashSet<>();
+        addressbookSet.add(addressbookDao.getGlobalAddressbook());
+        obj.setAddressbookList(addressbookSet);
+      } else if (obj.getAddressbookList().size() < 1) {
+        obj.getAddressbookList().add(addressbookDao.getGlobalAddressbook());
+      }
+    }
+  }
+
+  @Override
+  protected void onSaveOrModify(final AddressDO obj)
+  {
+    beforeSaveOrModify(obj);
+  }
+
   private String getNormalizedFullname(final AddressDO address)
   {
     final StringBuilder builder = new StringBuilder();

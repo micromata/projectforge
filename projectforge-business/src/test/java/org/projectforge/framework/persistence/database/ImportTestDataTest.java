@@ -5,9 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.testng.annotations.Test;
 
 /**
- * 
  * @author Roger Rene Kommer (r.kommer.extern@micromata.de)
- *
  */
 public class ImportTestDataTest extends AbstractTestBase
 {
@@ -29,6 +27,7 @@ public class ImportTestDataTest extends AbstractTestBase
   {
     clearDatabase();
     initDatabaseDao.insertDefaultTenant();
+    initDatabaseDao.insertGlobalAddressbook();
     jpaXmlDumpService.createTestDatabase();
   }
 

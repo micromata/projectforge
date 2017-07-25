@@ -720,6 +720,7 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
     if (avoidNullIdCheckBeforeSave == false) {
       Validate.isTrue(obj.getId() == null);
     }
+    beforeSaveOrModify(obj);
     checkPartOfCurrentTenant(obj, OperationType.INSERT);
     checkLoggedInUserInsertAccess(obj);
     accessChecker.checkRestrictedOrDemoUser();
@@ -774,6 +775,14 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
    * at default.
    */
   protected void onSaveOrModify(final O obj)
+  {
+  }
+
+  /**
+   * This method will be called before access check of inserting and updating the object. Does nothing
+   * at default.
+   */
+  protected void beforeSaveOrModify(final O obj)
   {
   }
 
