@@ -25,7 +25,6 @@ package org.projectforge.web.task;
 
 import java.util.Set;
 
-import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.projectforge.business.task.TaskNode;
 import org.projectforge.business.task.TaskTree;
@@ -36,7 +35,6 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
  */
 @XStreamAlias("TaskTreeExpansion")
 public class TaskTreeExpansion extends TableTreeExpansion<Integer, TaskNode>
@@ -65,16 +63,13 @@ public class TaskTreeExpansion extends TableTreeExpansion<Integer, TaskNode>
 
   /**
    * @return The expansion model. Any previous persisted state of open rows will be restored from
-   *         {@link UserPreferencesHelper}.
+   * {@link UserPreferencesHelper}.
    */
   @SuppressWarnings("serial")
   public static IModel<Set<TaskNode>> getExpansionModel()
   {
-    return new AbstractReadOnlyModel<Set<TaskNode>>()
+    return new IModel<Set<TaskNode>>()
     {
-      /**
-       * @see org.apache.wicket.model.AbstractReadOnlyModel#getObject()
-       */
       @Override
       public Set<TaskNode> getObject()
       {

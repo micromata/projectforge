@@ -17,7 +17,7 @@ import java.util.UUID;
 import org.apache.wicket.IRequestListener;
 import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
-import org.apache.wicket.model.AbstractReadOnlyModel;
+import org.apache.wicket.model.IModel;
 import org.apache.wicket.util.collections.MicroMap;
 import org.apache.wicket.util.string.Strings;
 import org.apache.wicket.util.template.PackageTextTemplate;
@@ -108,7 +108,7 @@ public class FullCalendar extends AbstractFullCalendar implements IRequestListen
     getEvents = new GetEventsCallback();
     add(getEvents);
     for (final EventSource source : config.getEventSources()) {
-      source.setEventsModel(new AbstractReadOnlyModel<String>()
+      source.setEventsModel(new IModel<String>()
       {
         @Override
         public String getObject()

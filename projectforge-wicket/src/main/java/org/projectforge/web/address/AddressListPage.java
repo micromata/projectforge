@@ -48,7 +48,6 @@ import org.apache.wicket.markup.html.link.BookmarkablePageLink;
 import org.apache.wicket.markup.html.link.Link;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.markup.repeater.RepeatingView;
-import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.ResourceModel;
@@ -209,7 +208,7 @@ public class AddressListPage extends AbstractListPage<AddressListForm, AddressDa
         final RepeatingView view = new RepeatingView(componentId);
         item.add(view);
 
-        final NonCachingImage img = new NonCachingImage("image", new AbstractReadOnlyModel<DynamicImageResource>()
+        final NonCachingImage img = new NonCachingImage("image", new IModel<Object>()
         {
           @Override
           public DynamicImageResource getObject()

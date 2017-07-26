@@ -25,14 +25,12 @@ package org.projectforge.plugins.skillmatrix;
 
 import java.util.Set;
 
-import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.projectforge.web.user.UserPreferencesHelper;
 import org.projectforge.web.wicket.tree.TableTreeExpansion;
 
 /**
  * @author Billy Duong (b.duong@micromata.de)
- *
  */
 public class SkillTreeExpansion extends TableTreeExpansion<Integer, SkillNode>
 {
@@ -61,16 +59,13 @@ public class SkillTreeExpansion extends TableTreeExpansion<Integer, SkillNode>
 
   /**
    * @return The expansion model. Any previous persisted state of open rows will be restored from
-   *         {@link UserPreferencesHelper}.
+   * {@link UserPreferencesHelper}.
    */
   @SuppressWarnings("serial")
   public static IModel<Set<SkillNode>> getExpansionModel()
   {
-    return new AbstractReadOnlyModel<Set<SkillNode>>()
+    return new IModel<Set<SkillNode>>()
     {
-      /**
-       * @see org.apache.wicket.model.AbstractReadOnlyModel#getObject()
-       */
       @Override
       public Set<SkillNode> getObject()
       {

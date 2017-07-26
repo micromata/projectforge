@@ -39,7 +39,7 @@ import org.apache.wicket.markup.html.form.Button;
 import org.apache.wicket.markup.html.form.FormComponentUpdatingBehavior;
 import org.apache.wicket.markup.html.image.NonCachingImage;
 import org.apache.wicket.markup.repeater.RepeatingView;
-import org.apache.wicket.model.AbstractReadOnlyModel;
+import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.request.resource.DynamicImageResource;
@@ -220,7 +220,7 @@ public class SystemUpdateForm extends AbstractForm<SystemUpdateForm, SystemUpdat
   @SuppressWarnings("serial")
   private ImagePanel createWaitingImagePanel(String type)
   {
-    final NonCachingImage img = new NonCachingImage("image", new AbstractReadOnlyModel<DynamicImageResource>()
+    final NonCachingImage img = new NonCachingImage("image", new IModel<DynamicImageResource>()
     {
       @Override
       public DynamicImageResource getObject()

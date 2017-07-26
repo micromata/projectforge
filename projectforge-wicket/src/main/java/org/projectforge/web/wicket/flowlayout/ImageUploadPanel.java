@@ -36,7 +36,6 @@ import org.apache.wicket.markup.html.form.upload.FileUpload;
 import org.apache.wicket.markup.html.form.upload.FileUploadField;
 import org.apache.wicket.markup.html.image.NonCachingImage;
 import org.apache.wicket.markup.html.panel.Panel;
-import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.ResourceModel;
 import org.apache.wicket.request.resource.DynamicImageResource;
@@ -202,7 +201,7 @@ public class ImageUploadPanel extends Panel implements ComponentWrapperPanel
 
   private NonCachingImage createImage()
   {
-    NonCachingImage img = new NonCachingImage("image", new AbstractReadOnlyModel<DynamicImageResource>()
+    NonCachingImage img = new NonCachingImage("image", new IModel<DynamicImageResource>()
     {
       @Override
       public DynamicImageResource getObject()
