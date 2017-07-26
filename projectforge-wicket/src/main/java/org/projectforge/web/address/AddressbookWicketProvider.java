@@ -34,11 +34,10 @@ import org.projectforge.business.address.AddressbookDO;
 import org.projectforge.business.address.AddressbookDao;
 import org.projectforge.common.StringHelper;
 import org.projectforge.framework.utils.NumberHelper;
+import org.wicketstuff.select2.ChoiceProvider;
+import org.wicketstuff.select2.Response;
 
-import com.vaynberg.wicket.select2.Response;
-import com.vaynberg.wicket.select2.TextChoiceProvider;
-
-public class AddressbookWicketProvider extends TextChoiceProvider<AddressbookDO>
+public class AddressbookWicketProvider extends ChoiceProvider<AddressbookDO>
 {
   private static final long serialVersionUID = -7219524032951522997L;
 
@@ -146,7 +145,7 @@ public class AddressbookWicketProvider extends TextChoiceProvider<AddressbookDO>
    * @see TextChoiceProvider#getDisplayText(Object)
    */
   @Override
-  protected String getDisplayText(final AddressbookDO choice)
+  public String getDisplayValue(final AddressbookDO choice)
   {
     return choice.getTitle();
   }
@@ -155,9 +154,9 @@ public class AddressbookWicketProvider extends TextChoiceProvider<AddressbookDO>
    * @see TextChoiceProvider#getId(Object)
    */
   @Override
-  protected Object getId(final AddressbookDO choice)
+  public String getIdValue(final AddressbookDO choice)
   {
-    return choice.getId();
+    return String.valueOf(choice.getId());
   }
 
   /**

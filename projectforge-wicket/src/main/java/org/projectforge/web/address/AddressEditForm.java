@@ -40,8 +40,7 @@ import org.projectforge.web.wicket.flowlayout.FieldType;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
 import org.projectforge.web.wicket.flowlayout.ImageUploadPanel;
 import org.projectforge.web.wicket.flowlayout.Select2MultiChoicePanel;
-
-import com.vaynberg.wicket.select2.Select2MultiChoice;
+import org.wicketstuff.select2.Select2MultiChoice;
 
 public class AddressEditForm extends AbstractEditForm<AddressDO, AddressEditPage>
 {
