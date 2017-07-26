@@ -47,12 +47,10 @@ import org.projectforge.plugins.poll.event.PollEventDisabledChoiceProvider;
 import org.projectforge.web.common.MultiChoiceListHelper;
 import org.projectforge.web.user.UsersProvider;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
-
-import com.vaynberg.wicket.select2.Select2MultiChoice;
+import org.wicketstuff.select2.Select2MultiChoice;
 
 /**
  * @author M. Lauterbach (m.lauterbach@micromata.de)
- * 
  */
 public class NewPollOverviewPage extends PollBasePage
 {
@@ -75,7 +73,7 @@ public class NewPollOverviewPage extends PollBasePage
   private boolean isModified;
 
   /**
-   * 
+   *
    */
   public NewPollOverviewPage(final PageParameters parameters)
   {
@@ -287,7 +285,7 @@ public class NewPollOverviewPage extends PollBasePage
 
   /**
    * Validate if something was changed.
-   * 
+   *
    * @return
    */
   private boolean isModelModified()
@@ -319,7 +317,7 @@ public class NewPollOverviewPage extends PollBasePage
 
   /**
    * compare lists and their elements. returns true, if lists are identical, false else.
-   * 
+   *
    * @param listA
    * @param listB
    * @return

@@ -120,7 +120,7 @@ public class SocialMediaPanel extends Panel
             newSocialMediaValue, "contactType"),
         contactChoiceRenderer.getValues(), contactChoiceRenderer);
     item.add(contactChoice);
-    contactChoice.add(new AjaxFormComponentUpdatingBehavior("onchange")
+    contactChoice.add(new AjaxFormComponentUpdatingBehavior("change")
     {
       @Override
       protected void onUpdate(final AjaxRequestTarget target)
@@ -135,7 +135,7 @@ public class SocialMediaPanel extends Panel
             newSocialMediaValue, "socialMediaType"),
         socialMediaChoiceRenderer.getValues(), socialMediaChoiceRenderer);
     item.add(socialMediaChoice);
-    socialMediaChoice.add(new AjaxFormComponentUpdatingBehavior("onchange")
+    socialMediaChoice.add(new AjaxFormComponentUpdatingBehavior("change")
     {
       @Override
       protected void onUpdate(final AjaxRequestTarget target)
@@ -204,7 +204,7 @@ public class SocialMediaPanel extends Panel
               "contactType"),
           contactChoiceRenderer.getValues(), contactChoiceRenderer);
       item.add(contactChoice);
-      contactChoice.add(new AjaxFormComponentUpdatingBehavior("onchange")
+      contactChoice.add(new AjaxFormComponentUpdatingBehavior("change")
       {
         @Override
         protected void onUpdate(final AjaxRequestTarget target)
@@ -219,7 +219,7 @@ public class SocialMediaPanel extends Panel
               socialMediaValue, "socialMediaType"),
           socialMediaChoiceRenderer.getValues(), socialMediaChoiceRenderer);
       item.add(socialMediaChoice);
-      socialMediaChoice.add(new AjaxFormComponentUpdatingBehavior("onchange")
+      socialMediaChoice.add(new AjaxFormComponentUpdatingBehavior("change")
       {
         @Override
         protected void onUpdate(final AjaxRequestTarget target)

@@ -37,7 +37,6 @@ import org.projectforge.web.wicket.bootstrap.GridBuilder;
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
- *
  */
 public class ToggleContainerPanel extends Panel
 {
@@ -86,7 +85,7 @@ public class ToggleContainerPanel extends Panel
     setOpen();
 
     if (wantsOnStatusChangedNotification()) {
-      final AjaxEventBehavior behavior = new AjaxEventBehavior("onclick")
+      final AjaxEventBehavior behavior = new AjaxEventBehavior("click")
       {
         @Override
         protected void onEvent(final AjaxRequestTarget target)
@@ -125,7 +124,7 @@ public class ToggleContainerPanel extends Panel
 
   /**
    * Appends class "highlight" to the heading class: "collapse-header highlight"
-   * 
+   *
    * @return
    */
   public ToggleContainerPanel setHighlightedHeader()
@@ -223,7 +222,7 @@ public class ToggleContainerPanel extends Panel
 
   /**
    * Calls div.add(...);
-   * 
+   *
    * @see org.apache.wicket.Component#add(org.apache.wicket.behavior.Behavior[])
    */
   @Override
@@ -234,7 +233,7 @@ public class ToggleContainerPanel extends Panel
 
   /**
    * Has only effect before rendering this component the first time. Must be called after heading was set.
-   * 
+   *
    * @return this for chaining.
    */
   public ToggleContainerPanel setOpen()
@@ -245,7 +244,7 @@ public class ToggleContainerPanel extends Panel
 
   /**
    * Has only effect before rendering this component the first time. Must be called after heading was set.
-   * 
+   *
    * @return this for chaining.
    */
   public ToggleContainerPanel setClosed()
@@ -288,5 +287,5 @@ public class ToggleContainerPanel extends Panel
   public enum ToggleStatus
   {
     OPENED, CLOSED
-  };
+  }
 }

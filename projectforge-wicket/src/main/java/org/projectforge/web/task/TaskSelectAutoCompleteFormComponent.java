@@ -46,7 +46,6 @@ import org.projectforge.web.wicket.autocompletion.PFAutoCompleteTextField;
 
 /**
  * @author Johannes Unterstein
- * 
  */
 public abstract class TaskSelectAutoCompleteFormComponent extends PFAutoCompleteTextField<TaskDO>
 {
@@ -74,7 +73,7 @@ public abstract class TaskSelectAutoCompleteFormComponent extends PFAutoComplete
     getSettings().withLabelValue(true).withMatchContains(true).withMinChars(2).withAutoSubmit(false);
     add(AttributeModifier.append("onkeypress", "if ( event.which == 13 ) { return false; }"));
     add(AttributeModifier.append("class", "mm_delayBlur"));
-    add(new AjaxFormComponentUpdatingBehavior("onchange")
+    add(new AjaxFormComponentUpdatingBehavior("change")
     {
       private static final long serialVersionUID = 3681828654557441560L;
 
@@ -142,7 +141,7 @@ public abstract class TaskSelectAutoCompleteFormComponent extends PFAutoComplete
 
   /**
    * create path to root
-   * 
+   *
    * @return
    */
   private String createPath(final Integer taskId)
@@ -172,7 +171,7 @@ public abstract class TaskSelectAutoCompleteFormComponent extends PFAutoComplete
 
   /**
    * Hook method which is called when the model is changed with a valid durin an ajax call
-   * 
+   *
    * @param target
    * @param taskDo
    */

@@ -301,7 +301,7 @@ public class DateTimePanel extends FormComponentPanel<Date> implements Component
   }
 
   @Override
-  protected void convertInput()
+  public void convertInput()
   {
     final Date date = datePanel.getConvertedInput();
     if (date != null) {

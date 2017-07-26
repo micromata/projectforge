@@ -36,6 +36,7 @@ import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.markup.html.form.Button;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.IChoiceRenderer;
+import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.projectforge.framework.persistence.jpa.impl.LuceneServiceImpl;
@@ -50,9 +51,7 @@ import org.projectforge.web.wicket.flowlayout.InputPanel;
 import org.projectforge.web.wicket.flowlayout.TextAreaPanel;
 
 /**
- * 
  * @author Roger Rene Kommer (r.kommer.extern@micromata.de)
- *
  */
 public class LuceneConsoleForm extends AbstractStandardForm<LuceneConsoleForm, LuceneConsolePage>
 {
@@ -94,6 +93,23 @@ public class LuceneConsoleForm extends AbstractStandardForm<LuceneConsoleForm, L
         public String getIdValue(Class<?> object, int index)
         {
           return object.getName();
+        }
+
+        @Override
+        public Class<?> getObject(final String s, final IModel<? extends List<? extends Class<?>>> iModel)
+        {
+          if (s == null) {
+            return null;
+          }
+
+          for (Class<?> instance : iModel.getObject()) {
+            // TODO sn migration
+            if (s.equals(instance.toString())) {
+              return instance;
+            }
+          }
+
+          return null;
         }
       };
       Map<String, Class<?>> smptoClass = new TreeMap<>();

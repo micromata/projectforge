@@ -97,7 +97,7 @@ public class TimePeriodPanel extends FormComponentPanel<TimePeriod> implements I
   }
 
   @Override
-  protected void convertInput()
+  public void convertInput()
   {
     setConvertedInput(new TimePeriod(
         startDatePanel.getConvertedInput(),

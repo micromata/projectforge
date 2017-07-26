@@ -15,21 +15,26 @@ import org.apache.wicket.pageStore.IPageStore;
 
 /**
  * A custom IPageStore implementation, that keeps pages in memory without serialization.
- * 
- * @author Roger Rene Kommer (r.kommer.extern@micromata.de)
  *
+ * @author Roger Rene Kommer (r.kommer.extern@micromata.de)
  */
 @SuppressWarnings("SynchronizationOnLocalVariableOrMethodParameter")
 public class InMemoryPageStore implements IPageStore
 {
 
-  /** The logger. */
+  /**
+   * The logger.
+   */
   private static final Logger logger = Logger.getLogger(InMemoryPageStore.class);
 
-  /** The configured cache size (per session). */
+  /**
+   * The configured cache size (per session).
+   */
   private final int cacheSize;
 
-  /** Data structure to store pages per sessionId and per pageId. */
+  /**
+   * Data structure to store pages per sessionId and per pageId.
+   */
   private final Map<String, Map<Integer, SoftReference<IManageablePage>>> cache;
 
   /**
@@ -115,7 +120,7 @@ public class InMemoryPageStore implements IPageStore
   }
 
   @Override
-  public Serializable prepareForSerialization(String sessionId, Object page)
+  public Serializable prepareForSerialization(String sessionId, Serializable page)
   {
     throw new UnsupportedOperationException(getClass() + " does not support serialization");
   }
@@ -185,7 +190,7 @@ public class InMemoryPageStore implements IPageStore
    * (at the end).
    *
    * @param sessionId the session id
-   * @param pageId the page id
+   * @param pageId    the page id
    */
   private void updateIndex(String sessionId, Integer pageId)
   {

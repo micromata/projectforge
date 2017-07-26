@@ -32,8 +32,7 @@ import org.projectforge.business.fibu.EmployeeDO;
 import org.projectforge.business.fibu.api.EmployeeService;
 import org.projectforge.business.orga.VisitorbookDO;
 import org.projectforge.web.AbstractEmployeeWicketProvider;
-
-import com.vaynberg.wicket.select2.Response;
+import org.wicketstuff.select2.Response;
 
 public class VisitorbookEmployeeWicketProvider extends AbstractEmployeeWicketProvider
 {
@@ -68,15 +67,12 @@ public class VisitorbookEmployeeWicketProvider extends AbstractEmployeeWicketPro
     }
   }
 
-  /**
-   * @see com.vaynberg.wicket.select2.ChoiceProvider#query(String, int, Response)
-   */
   @Override
   public void query(String term, final int page, final Response<EmployeeDO> response)
   {
     initSortedEmployees();
     final List<EmployeeDO> result = new ArrayList<>();
-    term = term.toLowerCase();
+    term = term != null ? term.toLowerCase() : "";
     String[] splitTerm = term.split(" ");
 
     final int offset = page * pageSize;
@@ -88,8 +84,7 @@ public class VisitorbookEmployeeWicketProvider extends AbstractEmployeeWicketPro
         hasMore = true;
         break;
       }
-      if (Stream.of(splitTerm)
-          .allMatch(streamTerm -> employee.getUser().getFullname().toLowerCase().contains(streamTerm))) {
+      if (Stream.of(splitTerm).allMatch(streamTerm -> employee.getUser().getFullname().toLowerCase().contains(streamTerm))) {
         matched++;
         if (matched > offset) {
           result.add(employee);

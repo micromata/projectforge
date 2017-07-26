@@ -38,9 +38,8 @@ import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.form.validation.IFormValidator;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
-import org.apache.wicket.validation.IValidatable;
+import org.apache.wicket.validation.IValidator;
 import org.apache.wicket.validation.ValidationError;
-import org.apache.wicket.validation.validator.AbstractValidator;
 import org.projectforge.business.ldap.GroupDOConverter;
 import org.projectforge.business.ldap.LdapGroupValues;
 import org.projectforge.business.ldap.LdapPosixGroupsUtils;
@@ -65,8 +64,7 @@ import org.projectforge.web.wicket.components.SingleButtonPanel;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
 import org.projectforge.web.wicket.flowlayout.InputPanel;
 import org.projectforge.web.wicket.flowlayout.TextAreaPanel;
-
-import com.vaynberg.wicket.select2.Select2MultiChoice;
+import org.wicketstuff.select2.Select2MultiChoice;
 
 public class GroupEditForm extends AbstractEditForm<GroupDO, GroupEditPage>
 {
@@ -118,19 +116,11 @@ public class GroupEditForm extends AbstractEditForm<GroupDO, GroupEditPage>
           new PropertyModel<String>(getData(),
               "name"));
       name.setMarkupId("name").setOutputMarkupId(true);
-      name.add(new AbstractValidator<String>()
-      {
-        @Override
-        protected void onValidate(final IValidatable<String> validatable)
-        {
-          final String groupname = validatable.getValue();
-          if (groupname == null) {
-            return;
-          }
-          getData().setName(groupname);
-          if (groupDao.doesGroupnameAlreadyExist(getData()) == true) {
-            validatable.error(new ValidationError().addMessageKey("group.error.groupnameAlreadyExists"));
-          }
+      name.add((IValidator<String>) validatable -> {
+        final String groupname = validatable.getValue();
+        getData().setName(groupname);
+        if (groupDao.doesGroupnameAlreadyExist(getData()) == true) {
+          validatable.error(new ValidationError().addKey("fibu.kost.error.invalidKost"));
         }
       });
       fs.add(name);

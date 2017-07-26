@@ -23,7 +23,6 @@
 
 package org.projectforge.web.teamcal.event;
 
-import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 
@@ -32,7 +31,6 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.form.CheckBox;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.FormComponent;
@@ -74,7 +72,6 @@ import org.projectforge.web.wicket.components.MaxLengthTextArea;
 import org.projectforge.web.wicket.components.MaxLengthTextField;
 import org.projectforge.web.wicket.components.MinMaxNumberField;
 import org.projectforge.web.wicket.flowlayout.CheckBoxButton;
-import org.projectforge.web.wicket.flowlayout.CheckBoxPanel;
 import org.projectforge.web.wicket.flowlayout.DivPanel;
 import org.projectforge.web.wicket.flowlayout.DivTextPanel;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
@@ -82,8 +79,7 @@ import org.projectforge.web.wicket.flowlayout.InputPanel;
 import org.projectforge.web.wicket.flowlayout.LabelPanel;
 import org.projectforge.web.wicket.flowlayout.TextAreaPanel;
 import org.projectforge.web.wicket.flowlayout.ToggleContainerPanel;
-
-import com.vaynberg.wicket.select2.Select2MultiChoice;
+import org.wicketstuff.select2.Select2MultiChoice;
 
 /**
  * Form to edit team events.
@@ -233,6 +229,7 @@ public class TeamEventEditForm extends AbstractEditForm<TeamEventDO, TeamEventEd
           new PropertyModel<>(this.assignAttendeesListHelper, "assignedItems"), attendeeWicketProvider);
       attendees.setMarkupId("attendees").setOutputMarkupId(true);
       attendees.add(new TeamEventAttendeeValidator());
+      attendees.getSettings().setCloseOnSelect(true);
       fieldSet.add(attendees);
       if (access == false) {
         fieldSet.setEnabled(false);
@@ -255,7 +252,7 @@ public class TeamEventEditForm extends AbstractEditForm<TeamEventDO, TeamEventEd
       final DivPanel divPanel = fieldSet.addNewCheckBoxButtonDiv();
       final CheckBoxButton checkBox = new CheckBoxButton(divPanel.newChildId(), new PropertyModel<Boolean>(data, "allDay"),
           getString("plugins.teamcal.event.allDay"));
-      checkBox.getCheckBox().add(new AjaxFormComponentUpdatingBehavior("onchange")
+      checkBox.getCheckBox().add(new AjaxFormComponentUpdatingBehavior("change")
       {
         @Override
         protected void onUpdate(final AjaxRequestTarget target)
@@ -301,7 +298,7 @@ public class TeamEventEditForm extends AbstractEditForm<TeamEventDO, TeamEventEd
       frequencyChoice.setNullValid(false);
       recurrenceFieldset.add(frequencyChoice);
       recurrenceFieldset.getFieldset().setOutputMarkupId(true);
-      frequencyChoice.add(new AjaxFormComponentUpdatingBehavior("onchange")
+      frequencyChoice.add(new AjaxFormComponentUpdatingBehavior("change")
       {
         @Override
         protected void onUpdate(final AjaxRequestTarget target)
@@ -312,7 +309,7 @@ public class TeamEventEditForm extends AbstractEditForm<TeamEventDO, TeamEventEd
       customizedCheckBoxButton = recurrenceFieldset.addNewCheckBoxButtonDiv();
       final CheckBoxButton checkBox = new CheckBoxButton(customizedCheckBoxButton.newChildId(),
           new PropertyModel<>(recurrenceData, "customized"), getString("plugins.teamcal.event.recurrence.customized"));
-      checkBox.getCheckBox().add(new AjaxFormComponentUpdatingBehavior("onchange")
+      checkBox.getCheckBox().add(new AjaxFormComponentUpdatingBehavior("change")
       {
         @Override
         protected void onUpdate(final AjaxRequestTarget target)
@@ -529,7 +526,7 @@ public class TeamEventEditForm extends AbstractEditForm<TeamEventDO, TeamEventEd
     dependentFormComponents[4] = endDateTimePanel.getHourOfDayDropDownChoice();
     dependentFormComponents[5] = endDateTimePanel.getMinuteDropDownChoice();
 
-    startDateTimePanel.getDateField().add(new AjaxFormComponentUpdatingBehavior("onchange")
+    startDateTimePanel.getDateField().add(new AjaxFormComponentUpdatingBehavior("change")
     {
       private static final long serialVersionUID = 4577664688930645961L;
 

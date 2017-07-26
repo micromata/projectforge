@@ -46,8 +46,8 @@ import org.projectforge.web.wicket.flowlayout.ComponentWrapperPanel;
 
 /**
  * This panel is a autocompletion text field for selecting an account (DATEV-Konto).
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
  */
 public class KontoSelectPanel extends AbstractSelectPanel<KontoDO> implements ComponentWrapperPanel
 {
@@ -63,14 +63,15 @@ public class KontoSelectPanel extends AbstractSelectPanel<KontoDO> implements Co
   /**
    * @param id
    * @param model
-   * @param kontoText If no Konto is given then a free text field representing a Konto can be used.
+   * @param kontoText      If no Konto is given then a free text field representing a Konto can be used.
    * @param caller
    * @param selectProperty
    */
   public KontoSelectPanel(final String id, final IModel<KontoDO> model, final ISelectCallerPage caller, final String selectProperty)
   {
     super(id, model, caller, selectProperty);
-    kontoTextField = new PFAutoCompleteTextField<KontoDO>("kontoField", getModel()) {
+    kontoTextField = new PFAutoCompleteTextField<KontoDO>("kontoField", getModel())
+    {
       @Override
       protected List<KontoDO> getChoices(final String input)
       {
@@ -112,7 +113,7 @@ public class KontoSelectPanel extends AbstractSelectPanel<KontoDO> implements Co
       }
 
       @Override
-      protected void convertInput()
+      public void convertInput()
       {
         final KontoDO konto = (KontoDO) getConverter(getType()).convertToObject(getInput(), getLocale());
         setConvertedInput(konto);
@@ -121,7 +122,8 @@ public class KontoSelectPanel extends AbstractSelectPanel<KontoDO> implements Co
       @Override
       public IConverter getConverter(final Class type)
       {
-        return new IConverter() {
+        return new IConverter()
+        {
           @Override
           public Object convertToObject(final String value, final Locale locale)
           {
@@ -158,7 +160,8 @@ public class KontoSelectPanel extends AbstractSelectPanel<KontoDO> implements Co
       }
     };
     kontoTextField.enableTooltips().withLabelValue(true).withMatchContains(true).withMinChars(2).withAutoSubmit(false).withWidth(400);
-    kontoTextField.setLabel(new Model<String>() {
+    kontoTextField.setLabel(new Model<String>()
+    {
       @Override
       public String getObject()
       {
@@ -169,6 +172,7 @@ public class KontoSelectPanel extends AbstractSelectPanel<KontoDO> implements Co
 
   /**
    * If set then only accounting numbers are given in auto-completion list, whose number matches the given range(s).
+   *
    * @param kontoNumberRanges the kontoNumberRanges to set
    * @return this for chaining.
    * @see Ranges#setRanges(String)
@@ -181,6 +185,7 @@ public class KontoSelectPanel extends AbstractSelectPanel<KontoDO> implements Co
 
   /**
    * Must be called before component is added to a field set. This is different to most other Panels in ProjectForge.
+   *
    * @see org.projectforge.web.wicket.AbstractSelectPanel#init()
    */
   @Override
@@ -193,7 +198,7 @@ public class KontoSelectPanel extends AbstractSelectPanel<KontoDO> implements Co
   }
 
   @Override
-  protected void convertInput()
+  public void convertInput()
   {
     setConvertedInput(getModelObject());
   }
@@ -212,7 +217,7 @@ public class KontoSelectPanel extends AbstractSelectPanel<KontoDO> implements Co
    * @see org.projectforge.web.wicket.flowlayout.ComponentWrapperPanel#getFormComponent()
    */
   @Override
-  public FormComponent< ? > getFormComponent()
+  public FormComponent<?> getFormComponent()
   {
     return null;
   }

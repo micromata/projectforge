@@ -36,8 +36,8 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.apache.wicket.util.convert.ConversionException;
 import org.apache.wicket.util.convert.IConverter;
-import org.apache.wicket.validation.IValidatable;
-import org.apache.wicket.validation.validator.AbstractValidator;
+import org.apache.wicket.validation.INullAcceptingValidator;
+import org.apache.wicket.validation.ValidationError;
 import org.projectforge.business.fibu.AuftragDO;
 import org.projectforge.business.fibu.AuftragDao;
 import org.projectforge.business.fibu.AuftragFilter;
@@ -91,27 +91,10 @@ public class AuftragsPositionFormComponent extends PFAutoCompleteTextField<Auftr
     super(id, model);
     if (required == true) {
       setRequired(true);
-      add(new AbstractValidator<AuftragsPositionDO>()
-      {
-        @Override
-        protected void onValidate(final IValidatable<AuftragsPositionDO> validatable)
-        {
-          final AuftragsPositionDO value = validatable.getValue();
-          if (value == null) {
-            error(validatable);
-          }
-        }
-
-        @Override
-        public boolean validateOnNullValue()
-        {
-          return true;
-        }
-
-        @Override
-        protected String resourceKey()
-        {
-          return "fibu.auftrag.error.invalidPosition";
+      add((INullAcceptingValidator<AuftragsPositionDO>) validatable -> {
+        final AuftragsPositionDO value = validatable.getValue();
+        if (value == null) {
+          error(new ValidationError().addKey("fibu.auftrag.error.invalidPosition"));
         }
       });
     }

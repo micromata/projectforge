@@ -39,9 +39,8 @@ import org.projectforge.web.wicket.WicketUtils;
  * Panel containing only one select box. <br/>
  * This component calls setRenderBodyOnly(true). If the outer html element is needed, please call
  * setRenderBodyOnly(false).
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
  */
 @SuppressWarnings("serial")
 public class SelectPanel<T> extends Panel implements ComponentWrapperPanel
@@ -53,9 +52,8 @@ public class SelectPanel<T> extends Panel implements ComponentWrapperPanel
   private Select<T> select;
 
   /**
-   * 
    * @param id
-   * @param label see {@link FormComponent#setLabel(IModel)}
+   * @param label    see {@link FormComponent#setLabel(IModel)}
    * @param model
    * @param values
    * @param renderer
@@ -67,7 +65,7 @@ public class SelectPanel<T> extends Panel implements ComponentWrapperPanel
 
   /**
    * @param id
-   * @param label see {@link FormComponent#setLabel(IModel)}
+   * @param label  see {@link FormComponent#setLabel(IModel)}
    * @param select
    */
   public SelectPanel(final String id, final Select<T> select)
@@ -103,12 +101,12 @@ public class SelectPanel<T> extends Panel implements ComponentWrapperPanel
 
   /**
    * Adds attribute onchange="javascript:submit();"
-   * 
+   *
    * @return This for chaining.
    */
   public SelectPanel<T> setAutoSubmit()
   {
-    this.select.add(new AjaxEventBehavior("onchange")
+    this.select.add(new AjaxEventBehavior("change")
     {
       @Override
       protected void onEvent(final AjaxRequestTarget target)
@@ -121,7 +119,7 @@ public class SelectPanel<T> extends Panel implements ComponentWrapperPanel
 
   /**
    * Is called onchange event, but only if {@link #setAutoSubmit()} is called first.
-   * 
+   *
    * @param target
    */
   protected void onChange(final AjaxRequestTarget target)
@@ -140,7 +138,7 @@ public class SelectPanel<T> extends Panel implements ComponentWrapperPanel
 
   /**
    * Sets tool-tip for the label.
-   * 
+   *
    * @param tooltip
    * @return this for chaining.
    */
