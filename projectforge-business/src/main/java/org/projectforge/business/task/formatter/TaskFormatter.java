@@ -41,10 +41,10 @@ public class TaskFormatter extends AbstractFormatter
 
   /**
    * Formats path to root: "task1 -> task2 -> task3".
-   * 
+   *
    * @param taskId
    * @param showCurrentTask if true also the given task by id will be added to the path, otherwise the path of the
-   *          parent task will be shown.
+   *                        parent task will be shown.
    * @param escapeHtml
    */
   public static String getTaskPath(final Integer taskId, final boolean showCurrentTask, final OutputType outputType)
@@ -54,11 +54,11 @@ public class TaskFormatter extends AbstractFormatter
 
   /**
    * Formats path to ancestor task if given or to root: "task1 -> task2 -> task3".
-   * 
+   *
    * @param taskId
    * @param ancestorTaskId
    * @param showCurrentTask if true also the given task by id will be added to the path, otherwise the path of the
-   *          parent task will be shown.
+   *                        parent task will be shown.
    * @param escapeHtml
    */
   public static String getTaskPath(Integer taskId, final Integer ancestorTaskId, final boolean showCurrentTask,
@@ -90,7 +90,7 @@ public class TaskFormatter extends AbstractFormatter
       if (i++ > 0) {
         buf.append(" -> ");
       }
-      buf.append(task.getTitle());
+      buf.append(StringEscapeUtils.escapeXml(task.getTitle()));
     }
     if (outputType == OutputType.HTML) {
       return StringEscapeUtils.escapeHtml(buf.toString());
