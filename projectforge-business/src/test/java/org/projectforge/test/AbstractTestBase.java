@@ -178,7 +178,6 @@ public class AbstractTestBase extends AbstractTestNGSpringContextTests
 
     clearDatabase();
     initDatabaseDao.insertDefaultTenant();
-    initDatabaseDao.insertGlobalAddressbook();
 
     GlobalConfiguration.createConfiguration(configurationService);
     TenantRegistryMap tenantRegistryMap = TenantRegistryMap.getInstance();
