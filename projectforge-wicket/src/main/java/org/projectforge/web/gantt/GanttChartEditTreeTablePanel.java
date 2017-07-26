@@ -97,7 +97,6 @@ import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.web.wicket.components.AjaxRequiredMaxLengthEditableLabel;
 import org.projectforge.web.wicket.components.DatePanel;
 import org.projectforge.web.wicket.components.DatePanelSettings;
-import org.projectforge.web.wicket.components.ImageSubmitLinkPanel;
 import org.projectforge.web.wicket.components.LabelValueChoiceRenderer;
 import org.projectforge.web.wicket.components.MinMaxNumberField;
 import org.projectforge.web.wicket.components.SingleImagePanel;
@@ -191,6 +190,7 @@ public class GanttChartEditTreeTablePanel extends DefaultTreeTablePanel<GanttTre
     return this;
   }
 
+  @Override
   public String getImageUrl(final String image)
   {
     return ((AbstractUnsecureBasePage) getPage()).getImageUrl(image);
@@ -215,6 +215,7 @@ public class GanttChartEditTreeTablePanel extends DefaultTreeTablePanel<GanttTre
     }
     final TreeTableFilter<TreeTableNode> filter = new TreeTableFilter<TreeTableNode>()
     {
+      @Override
       public boolean match(final TreeTableNode name)
       {
         return true;
@@ -953,22 +954,24 @@ public class GanttChartEditTreeTablePanel extends DefaultTreeTablePanel<GanttTre
         }.setDefaultFormProcessing(false));
     selectSubmitLink.setTooltip(new ResourceModel("tooltip.selectTask"));
     panel.add(selectSubmitLink);
-    final ImageSubmitLinkPanel unselectSubmitLink = new ImageSubmitLinkPanel("unselect", form,
-        WebConstants.IMAGE_TASK_UNSELECT,
-        getString("tooltip.unselectTask"))
+    
+    final IconLinkPanel unselectSubmitLink = new IconLinkPanel("unselect", IconType.MINUS_SIGN,
+        new SubmitLink(IconLinkPanel.LINK_ID)
+        {
+          @Override
+          public void onSubmit()
+          {
+            ganttObject.setPredecessor(null);
+          }
+        }.setDefaultFormProcessing(false))
     {
-      @Override
-      public void onSubmit()
-      {
-        ganttObject.setPredecessor(null);
-      }
-
       @Override
       public boolean isVisible()
       {
         return ganttObject.getPredecessor() != null;
       }
-    }.setDefaultFormProcessing(false);
+    };
+    unselectSubmitLink.setTooltip(new ResourceModel("tooltip.unselectTask"));
     panel.add(unselectSubmitLink);
 
     new RejectSaveLinksFragment("rejectSavePredecessor", item, panel, task,
@@ -1111,6 +1114,7 @@ public class GanttChartEditTreeTablePanel extends DefaultTreeTablePanel<GanttTre
         "Please, don't use ajax for tree browsing (otherwise user inputs will be lost if you close trees");
   }
 
+  @Override
   public void cancelSelection(final String property)
   {
   }
@@ -1135,6 +1139,7 @@ public class GanttChartEditTreeTablePanel extends DefaultTreeTablePanel<GanttTre
     }
   }
 
+  @Override
   public void select(final String property, final Object selectedValue)
   {
     if (property.startsWith("startDate:") == true) {
@@ -1180,6 +1185,7 @@ public class GanttChartEditTreeTablePanel extends DefaultTreeTablePanel<GanttTre
     }
   }
 
+  @Override
   public void unselect(final String property)
   {
   }
