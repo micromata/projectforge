@@ -45,9 +45,8 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.apache.wicket.validation.IValidatable;
-import org.apache.wicket.validation.validator.AbstractValidator;
+import org.apache.wicket.validation.IValidator;
 import org.hibernate.Hibernate;
-import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.business.fibu.ProjektDO;
 import org.projectforge.business.humanresources.HRPlanningDO;
 import org.projectforge.business.humanresources.HRPlanningDao;
@@ -62,6 +61,7 @@ import org.projectforge.framework.utils.NumberHelper;
 import org.projectforge.web.fibu.NewProjektSelectPanel;
 import org.projectforge.web.user.UserSelectPanel;
 import org.projectforge.web.wicket.AbstractEditForm;
+import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.web.wicket.bootstrap.GridBuilder;
 import org.projectforge.web.wicket.bootstrap.GridSize;
 import org.projectforge.web.wicket.components.DatePanel;
@@ -79,9 +79,7 @@ import org.projectforge.web.wicket.flowlayout.TextAreaPanel;
 import org.projectforge.web.wicket.flowlayout.ToggleContainerPanel;
 
 /**
- * 
  * @author Mario Groß (m.gross@micromata.de)
- * 
  */
 public class HRPlanningEditForm extends AbstractEditForm<HRPlanningDO, HRPlanningEditPage>
 {
@@ -104,11 +102,11 @@ public class HRPlanningEditForm extends AbstractEditForm<HRPlanningDO, HRPlannin
   private boolean predecessorUpdToDate;
 
   // Components for form validation.
-  private final FormComponent< ? >[] dependentFormComponents = new FormComponent[2];
+  private final FormComponent<?>[] dependentFormComponents = new FormComponent[2];
 
-  private final List<FormComponent< ? >> dependentEntryFormComponents = new ArrayList<FormComponent< ? >>();
+  private final List<FormComponent<?>> dependentEntryFormComponents = new ArrayList<FormComponent<?>>();
 
-  private FormComponent< ? >[] dependentEntryFormComponentsArray;
+  private FormComponent<?>[] dependentEntryFormComponentsArray;
 
   protected List<NewProjektSelectPanel> projektSelectPanels = new ArrayList<NewProjektSelectPanel>();
 
@@ -122,24 +120,26 @@ public class HRPlanningEditForm extends AbstractEditForm<HRPlanningDO, HRPlannin
   protected void init()
   {
     super.init();
-    add(new IFormValidator() {
+    add(new IFormValidator()
+    {
       @Override
-      public FormComponent< ? >[] getDependentFormComponents()
+      public FormComponent<?>[] getDependentFormComponents()
       {
         return dependentFormComponents;
       }
 
       @Override
-      public void validate(final Form< ? > form)
+      public void validate(final Form<?> form)
       {
         if (hrPlanningDao.doesEntryAlreadyExist(data.getId(), data.getUserId(), data.getWeek()) == true) {
           error(getString("hr.planning.entry.error.entryDoesAlreadyExistForUserAndWeekOfYear"));
         }
       }
     });
-    add(new IFormValidator() {
+    add(new IFormValidator()
+    {
       @Override
-      public FormComponent< ? >[] getDependentFormComponents()
+      public FormComponent<?>[] getDependentFormComponents()
       {
         if (dependentEntryFormComponentsArray == null) {
           dependentEntryFormComponentsArray = new FormComponent[dependentEntryFormComponents.size()];
@@ -149,7 +149,7 @@ public class HRPlanningEditForm extends AbstractEditForm<HRPlanningDO, HRPlannin
       }
 
       @Override
-      public void validate(final Form< ? > form)
+      public void validate(final Form<?> form)
       {
         for (int i = 0; i < getDependentFormComponents().length - 1; i += 2) {
           @SuppressWarnings("unchecked")
@@ -183,36 +183,25 @@ public class HRPlanningEditForm extends AbstractEditForm<HRPlanningDO, HRPlannin
       final DatePanel weekDatePanel = new DatePanel(fs.newChildId(), new PropertyModel<Date>(data, "week"), DateTimePanelSettings.get()
           .withSelectStartStopTime(false).withTargetType(java.sql.Date.class));
       weekDatePanel.setRequired(true);
-      weekDatePanel.add(new AbstractValidator<Date>() {
-        /**
-         * @see org.apache.wicket.validation.validator.AbstractValidator#onValidate(org.apache.wicket.validation.IValidatable)
-         */
-        @Override
-        protected void onValidate(final IValidatable<Date> validatable)
-        {
-          final Date date = validatable.getValue();
-          if (date != null) {
-            final DayHolder dh = new DayHolder(date);
-            dh.setBeginOfWeek();
-            data.setWeek(dh.getSQLDate());
-          }
-          weekDatePanel.markModelAsChanged();
+      weekDatePanel.add((IValidator<Date>) iValidatable -> {
+        final Date date = iValidatable.getValue();
+        if (date != null) {
+          final DayHolder dh = new DayHolder(date);
+          dh.setBeginOfWeek();
+          data.setWeek(dh.getSQLDate());
         }
+        weekDatePanel.markModelAsChanged();
       });
-      // weekDatePanel.getDateField().add(new AjaxFormComponentUpdatingBehavior("onblur") {
-      // @Override
-      // protected void onUpdate(final AjaxRequestTarget target)
-      // {
-      // // Doesn't work with DatePicker (because DatePicker updates the value after onblur event.
-      // }
-      // });
+
       fs.add(dependentFormComponents[1] = weekDatePanel);
-      fs.add(new SingleButtonPanel(fs.newChildId(), new Button(SingleButtonPanel.WICKET_ID, new Model<String>("calendarWeek")) {
+      fs.add(new SingleButtonPanel(fs.newChildId(), new Button(SingleButtonPanel.WICKET_ID, new Model<String>("calendarWeek"))
+      {
         @Override
         public final void onSubmit()
         {
         }
-      }.setDefaultFormProcessing(false), new Model<String>() {
+      }.setDefaultFormProcessing(false), new Model<String>()
+      {
         @Override
         public String getObject()
         {
@@ -224,7 +213,8 @@ public class HRPlanningEditForm extends AbstractEditForm<HRPlanningDO, HRPlannin
         }
 
       }, SingleButtonPanel.NORMAL).setTooltip(getString("recalculate")));
-      final DivPanel checkBoxDiv = new DivPanel(fs.newChildId(), DivType.BTN_GROUP) {
+      final DivPanel checkBoxDiv = new DivPanel(fs.newChildId(), DivType.BTN_GROUP)
+      {
         /**
          * @see org.apache.wicket.Component#isVisible()
          */
@@ -236,7 +226,8 @@ public class HRPlanningEditForm extends AbstractEditForm<HRPlanningDO, HRPlannin
       };
       fs.add(checkBoxDiv);
       checkBoxDiv.add(new CheckBoxButton(checkBoxDiv.newChildId(), new PropertyModel<Boolean>(this, "showDeletedOnly"),
-          getString("onlyDeleted")) {
+          getString("onlyDeleted"))
+      {
         /**
          * @see org.projectforge.web.wicket.flowlayout.CheckBoxButton#onSelectionChanged(java.lang.Boolean)
          */
@@ -254,7 +245,8 @@ public class HRPlanningEditForm extends AbstractEditForm<HRPlanningDO, HRPlannin
         }
       });
       if (isNew() == true) {
-        fs.add(new SingleButtonPanel(fs.newChildId(), new Button(SingleButtonPanel.WICKET_ID, new Model<String>("predecessor")) {
+        fs.add(new SingleButtonPanel(fs.newChildId(), new Button(SingleButtonPanel.WICKET_ID, new Model<String>("predecessor"))
+        {
           @Override
           public final void onSubmit()
           {
@@ -272,7 +264,8 @@ public class HRPlanningEditForm extends AbstractEditForm<HRPlanningDO, HRPlannin
             predecessor = null;
             refresh();
           }
-        }.setDefaultFormProcessing(false), getString("hr.planning.entry.copyFromPredecessor")) {
+        }.setDefaultFormProcessing(false), getString("hr.planning.entry.copyFromPredecessor"))
+        {
           /**
            * @see org.apache.wicket.Component#isVisible()
            */
@@ -289,7 +282,8 @@ public class HRPlanningEditForm extends AbstractEditForm<HRPlanningDO, HRPlannin
     refresh();
     if (getBaseDao().hasInsertAccess(getUser()) == true && showDeletedOnly == false) {
       final DivPanel panel = gridBuilder.newGridPanel().getPanel();
-      final Button addPositionButton = new Button(SingleButtonPanel.WICKET_ID) {
+      final Button addPositionButton = new Button(SingleButtonPanel.WICKET_ID)
+      {
         @Override
         public final void onSubmit()
         {
@@ -369,7 +363,8 @@ public class HRPlanningEditForm extends AbstractEditForm<HRPlanningDO, HRPlannin
         dependentEntryFormComponents.add(projektSelectPanel);
         projektSelectPanels.add(projektSelectPanel);
 
-        final Button button = new Button(SingleButtonPanel.WICKET_ID, new Model<String>("deleteUndelete")) {
+        final Button button = new Button(SingleButtonPanel.WICKET_ID, new Model<String>("deleteUndelete"))
+        {
           @Override
           public final void onSubmit()
           {
@@ -394,7 +389,8 @@ public class HRPlanningEditForm extends AbstractEditForm<HRPlanningDO, HRPlannin
           }
         }
         button.setDefaultFormProcessing(false);
-        fs.add(new SingleButtonPanel(fs.newChildId(), button, buttonLabel, classNames) {
+        fs.add(new SingleButtonPanel(fs.newChildId(), button, buttonLabel, classNames)
+        {
 
         });
       }

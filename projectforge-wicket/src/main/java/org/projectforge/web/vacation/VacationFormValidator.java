@@ -21,9 +21,8 @@ import org.projectforge.business.vacation.service.VacationService;
 import org.projectforge.framework.i18n.I18nHelper;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.web.wicket.components.DatePanel;
-
-import com.vaynberg.wicket.select2.Select2Choice;
-import com.vaynberg.wicket.select2.Select2MultiChoice;
+import org.wicketstuff.select2.Select2Choice;
+import org.wicketstuff.select2.Select2MultiChoice;
 
 public class VacationFormValidator implements IFormValidator
 {

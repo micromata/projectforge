@@ -34,17 +34,15 @@ import org.projectforge.business.teamcal.admin.TeamCalFilter;
 import org.projectforge.business.teamcal.admin.model.TeamCalDO;
 import org.projectforge.framework.access.AccessException;
 import org.projectforge.framework.utils.NumberHelper;
-
-import com.vaynberg.wicket.select2.Response;
-import com.vaynberg.wicket.select2.TextChoiceProvider;
+import org.wicketstuff.select2.ChoiceProvider;
+import org.wicketstuff.select2.Response;
 
 /**
  * Provider class for multipleChoice.
- * 
+ *
  * @author M. Lauterbach (m.lauterbach@micromata.de)
- * 
  */
-public class TeamCalChoiceProvider extends TextChoiceProvider<TeamCalDO>
+public class TeamCalChoiceProvider extends ChoiceProvider<TeamCalDO>
 {
   private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(TeamCalChoiceProvider.class);
 
@@ -60,34 +58,25 @@ public class TeamCalChoiceProvider extends TextChoiceProvider<TeamCalDO>
     Injector.get().inject(this);
   }
 
-  /**
-   * @see com.vaynberg.wicket.select2.TextChoiceProvider#getDisplayText(java.lang.Object)
-   */
   @Override
-  protected String getDisplayText(final TeamCalDO teamCal)
+  public String getDisplayValue(final TeamCalDO teamCal)
   {
     return teamCal.getTitle();
   }
 
-  /**
-   * @see com.vaynberg.wicket.select2.TextChoiceProvider#getId(java.lang.Object)
-   */
   @Override
-  protected Object getId(final TeamCalDO choice)
+  public String getIdValue(final TeamCalDO choice)
   {
-    return choice.getId();
+    return String.valueOf(choice.getId());
   }
 
-  /**
-   * @see com.vaynberg.wicket.select2.ChoiceProvider#query(java.lang.String, int, com.vaynberg.wicket.select2.Response)
-   */
   @Override
   public void query(String term, final int page, final Response<TeamCalDO> response)
   {
     // add all access groups
     final List<TeamCalDO> fullAccessTeamCals = getTeamCalDao().getList(new TeamCalFilter());
     final List<TeamCalDO> result = new ArrayList<TeamCalDO>();
-    term = term.toLowerCase();
+    term = term != null ? term.toLowerCase() : "";
 
     final int offset = page * RESULT_PAGE_SIZE;
 
@@ -111,9 +100,6 @@ public class TeamCalChoiceProvider extends TextChoiceProvider<TeamCalDO>
     response.setHasMore(hasMore);
   }
 
-  /**
-   * @see com.vaynberg.wicket.select2.ChoiceProvider#toChoices(java.util.Collection)
-   */
   @Override
   public Collection<TeamCalDO> toChoices(final Collection<String> ids)
   {

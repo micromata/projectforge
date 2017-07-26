@@ -25,18 +25,10 @@ package org.projectforge.web.address;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.IOException;
 import java.sql.Date;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
-
-import net.fortuna.ical4j.data.ParserException;
-import net.fortuna.ical4j.vcard.Parameter;
-import net.fortuna.ical4j.vcard.Parameter.Id;
-import net.fortuna.ical4j.vcard.Property;
-import net.fortuna.ical4j.vcard.VCard;
-import net.fortuna.ical4j.vcard.VCardBuilder;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
@@ -53,9 +45,14 @@ import org.projectforge.web.wicket.bootstrap.GridSize;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
 import org.projectforge.web.wicket.flowlayout.FileUploadPanel;
 
+import net.fortuna.ical4j.vcard.Parameter;
+import net.fortuna.ical4j.vcard.Parameter.Id;
+import net.fortuna.ical4j.vcard.Property;
+import net.fortuna.ical4j.vcard.VCard;
+import net.fortuna.ical4j.vcard.VCardBuilder;
+
 /**
  * @author M. Lauterbach (m.lauterbach@micromata.de)
- * 
  */
 public class AddressImportForm extends AbstractEditForm<AddressDO, AddressImportPage>
 {
@@ -214,9 +211,7 @@ public class AddressImportForm extends AbstractEditForm<AddressDO, AddressImport
           //            // compare new with first match
           //            setResponsePage(new AddressComparePage(getPage().getPageParameters(), data, list.get(0)));
           //          }
-        } catch (final IOException ex) {
-          log.fatal("Exception encountered " + ex, ex);
-        } catch (final ParserException ex) {
+        } catch (final Exception ex) {
           log.fatal("Exception encountered " + ex, ex);
         }
       }
@@ -383,7 +378,7 @@ public class AddressImportForm extends AbstractEditForm<AddressDO, AddressImport
 
   /**
    * Create home newAddress
-   * 
+   *
    * @param property
    */
   private void setHomeData(final Property property, final AddressDO address)

@@ -44,19 +44,18 @@ import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
-import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.common.StringHelper;
 import org.projectforge.web.WebConfiguration;
 import org.projectforge.web.wicket.WebConstants;
-
-import com.vaynberg.wicket.select2.Select2MultiChoice;
+import org.projectforge.web.wicket.WicketUtils;
+import org.wicketstuff.select2.Select2MultiChoice;
 
 /**
  * Represents a entry of a group panel. This can be a label, text field or other form components.
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
  */
-public abstract class AbstractFieldsetPanel<T extends AbstractFieldsetPanel< ? >> extends Panel
+public abstract class AbstractFieldsetPanel<T extends AbstractFieldsetPanel<?>> extends Panel
 {
   private static final long serialVersionUID = -4215154959282166107L;
 
@@ -72,12 +71,13 @@ public abstract class AbstractFieldsetPanel<T extends AbstractFieldsetPanel< ? >
 
   protected RepeatingView fieldsRepeater;
 
-  private final List<FormComponent< ? >> allFormComponents = new ArrayList<FormComponent< ? >>();
+  private final List<FormComponent<?>> allFormComponents = new ArrayList<FormComponent<?>>();
 
   private Object storeObject;
 
   /**
    * Adds this FieldsetPanel to the parent panel.
+   *
    * @param parent
    * @param label
    */
@@ -102,6 +102,7 @@ public abstract class AbstractFieldsetPanel<T extends AbstractFieldsetPanel< ? >
 
   /**
    * Sets the background color of this whole fieldset to red.
+   *
    * @return this for chaining.
    */
   public T setWarningBackground()
@@ -124,6 +125,7 @@ public abstract class AbstractFieldsetPanel<T extends AbstractFieldsetPanel< ? >
   /**
    * Declares that there is no validation field which the label should set for. This has no other meaning and effect than not to display the
    * development warning "No label set for field...'.
+   *
    * @return
    */
   public T suppressLabelForWarning()
@@ -153,10 +155,10 @@ public abstract class AbstractFieldsetPanel<T extends AbstractFieldsetPanel< ? >
 
   private void addFormComponent(final Component component)
   {
-    if (component instanceof FormComponent< ? >) {
-      this.allFormComponents.add((FormComponent< ? >) component);
+    if (component instanceof FormComponent<?>) {
+      this.allFormComponents.add((FormComponent<?>) component);
     } else if (component instanceof ComponentWrapperPanel) {
-      final FormComponent< ? > fc = ((ComponentWrapperPanel) component).getFormComponent();
+      final FormComponent<?> fc = ((ComponentWrapperPanel) component).getFormComponent();
       if (fc != null) {
         this.allFormComponents.add(fc);
       }
@@ -165,11 +167,12 @@ public abstract class AbstractFieldsetPanel<T extends AbstractFieldsetPanel< ? >
 
   /**
    * Checks all child form components and calls {@link FormComponent#isValid()}.
+   *
    * @return true if all childs are valid, otherwise false (if any child is invalid);
    */
   public boolean isValid()
   {
-    for (final FormComponent< ? > formComponent : allFormComponents) {
+    for (final FormComponent<?> formComponent : allFormComponents) {
       if (formComponent.isValid() == false) {
         return false;
       }
@@ -183,7 +186,7 @@ public abstract class AbstractFieldsetPanel<T extends AbstractFieldsetPanel< ? >
    */
   public boolean hasFormChildsFeedbackMessage()
   {
-    for (final FormComponent< ? > formComponent : allFormComponents) {
+    for (final FormComponent<?> formComponent : allFormComponents) {
       if (formComponent.hasFeedbackMessage() == true) {
         return true;
       }
@@ -198,7 +201,7 @@ public abstract class AbstractFieldsetPanel<T extends AbstractFieldsetPanel< ? >
     }
     final StringBuffer buf = new StringBuffer();
     boolean first = true;
-    for (final FormComponent< ? > formComponent : allFormComponents) {
+    for (final FormComponent<?> formComponent : allFormComponents) {
       if (formComponent.hasFeedbackMessage() == true) {
         final FeedbackMessage feedbackMessage = formComponent.getFeedbackMessages().first();
         if (markAsRendered == true) {
@@ -215,7 +218,7 @@ public abstract class AbstractFieldsetPanel<T extends AbstractFieldsetPanel< ? >
    * @return The created InputPanel.
    * @see InputPanel#InputPanel(String, Component)
    */
-  public InputPanel add(final TextField< ? > textField)
+  public InputPanel add(final TextField<?> textField)
   {
     final InputPanel input = new InputPanel(newChildId(), textField);
     add(input);
@@ -227,7 +230,7 @@ public abstract class AbstractFieldsetPanel<T extends AbstractFieldsetPanel< ? >
    * @return The created InputPanel.
    * @see InputPanel#InputPanel(String, Component)
    */
-  public InputPanel add(final TextField< ? > textField, final FieldProperties< ? > fieldProperties)
+  public InputPanel add(final TextField<?> textField, final FieldProperties<?> fieldProperties)
   {
     final InputPanel input = add(textField);
     if (fieldProperties.getFieldType() != null) {
@@ -267,7 +270,7 @@ public abstract class AbstractFieldsetPanel<T extends AbstractFieldsetPanel< ? >
    * @return The created InputPanel.
    * @see TextAreaPanel#TextAreaPanel(String, Component)
    */
-  public TextAreaPanel add(final TextArea< ? > textArea)
+  public TextAreaPanel add(final TextArea<?> textArea)
   {
     return add(textArea, false);
   }
@@ -277,7 +280,7 @@ public abstract class AbstractFieldsetPanel<T extends AbstractFieldsetPanel< ? >
    * @return The created InputPanel.
    * @see TextAreaPanel#TextAreaPanel(String, Component)
    */
-  public TextAreaPanel add(final TextArea< ? > textArea, final boolean autogrow)
+  public TextAreaPanel add(final TextArea<?> textArea, final boolean autogrow)
   {
     final TextAreaPanel panel = new TextAreaPanel(newChildId(), textArea, autogrow);
     add(panel);
@@ -301,11 +304,11 @@ public abstract class AbstractFieldsetPanel<T extends AbstractFieldsetPanel< ? >
    * @return The created DropDownChoicePanel.
    * @see DropDownChoicePanel#DropDownChoicePanel(String, String, IModel, List, IChoiceRenderer)
    */
-  public <C> DropDownChoicePanel<C> addDropDownChoice(final IModel<C> model, final List< ? extends C> values,
+  public <C> DropDownChoicePanel<C> addDropDownChoice(final IModel<C> model, final List<? extends C> values,
       final IChoiceRenderer<C> renderer)
-      {
+  {
     return addDropDownChoice(model, values, renderer, false);
-      }
+  }
 
   /**
    * @param id
@@ -317,13 +320,13 @@ public abstract class AbstractFieldsetPanel<T extends AbstractFieldsetPanel< ? >
    * @return The created DropDownChoicePanel.
    * @see DropDownChoicePanel#DropDownChoicePanel(String, String, IModel, List, IChoiceRenderer, boolean))
    */
-  public <C> DropDownChoicePanel<C> addDropDownChoice(final IModel<C> model, final List< ? extends C> values,
+  public <C> DropDownChoicePanel<C> addDropDownChoice(final IModel<C> model, final List<? extends C> values,
       final IChoiceRenderer<C> renderer, final boolean submitOnChange)
-      {
+  {
     final DropDownChoicePanel<C> dropDownChoicePanel = new DropDownChoicePanel<C>(newChildId(), model, values, renderer, submitOnChange);
     add(dropDownChoicePanel);
     return dropDownChoicePanel;
-      }
+  }
 
   /**
    * @param id
@@ -445,7 +448,7 @@ public abstract class AbstractFieldsetPanel<T extends AbstractFieldsetPanel< ? >
           labeledComponent.setLabel(new Model<String>(labelText));
         }
       } else if (component instanceof ComponentWrapperPanel) {
-        final FormComponent<?> formComponent = ((ComponentWrapperPanel)component).getFormComponent();
+        final FormComponent<?> formComponent = ((ComponentWrapperPanel) component).getFormComponent();
         if (formComponent != null && formComponent.getLabel() == null) {
           formComponent.setLabel(new Model<String>(labelText));
         }
@@ -471,6 +474,7 @@ public abstract class AbstractFieldsetPanel<T extends AbstractFieldsetPanel< ? >
 
   /**
    * Can be used by e. g. TimesheetPageSupport for storing objects, used by the supported form.
+   *
    * @param storeObject the childField to set
    * @return this for chaining.
    */
@@ -482,6 +486,7 @@ public abstract class AbstractFieldsetPanel<T extends AbstractFieldsetPanel< ? >
 
   /**
    * Can be used by e. g. TimesheetPageSupport for storing objects, used by the supported form.
+   *
    * @return the childField
    */
   public Object getStoreObject()

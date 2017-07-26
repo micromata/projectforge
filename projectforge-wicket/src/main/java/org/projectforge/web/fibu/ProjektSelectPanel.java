@@ -33,8 +33,8 @@ import org.projectforge.business.fibu.ProjektDO;
 import org.projectforge.business.fibu.ProjektDao;
 import org.projectforge.business.fibu.ProjektFavorite;
 import org.projectforge.business.fibu.ProjektFormatter;
-import org.projectforge.framework.persistence.user.api.UserPrefArea;
 import org.projectforge.business.utils.HtmlHelper;
+import org.projectforge.framework.persistence.user.api.UserPrefArea;
 import org.projectforge.web.wicket.AbstractSelectPanel;
 import org.projectforge.web.wicket.WebConstants;
 import org.projectforge.web.wicket.components.FavoritesChoicePanel;
@@ -43,8 +43,8 @@ import org.projectforge.web.wicket.flowlayout.ComponentWrapperPanel;
 
 /**
  * This panel show the actual project and buttons for select/unselect projects.
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
  */
 public class ProjektSelectPanel extends AbstractSelectPanel<ProjektDO> implements ComponentWrapperPanel
 {
@@ -60,7 +60,7 @@ public class ProjektSelectPanel extends AbstractSelectPanel<ProjektDO> implement
 
   /**
    * @param id
-   * @param label Not yet in use.
+   * @param label          Not yet in use.
    * @param model
    * @param caller
    * @param selectProperty
@@ -69,7 +69,8 @@ public class ProjektSelectPanel extends AbstractSelectPanel<ProjektDO> implement
   public ProjektSelectPanel(final String id, final IModel<ProjektDO> model, final ISelectCallerPage caller, final String selectProperty)
   {
     super(id, model, caller, selectProperty);
-    projektAsStringLabel = new Label("projectAsString", new Model<String>() {
+    projektAsStringLabel = new Label("projectAsString", new Model<String>()
+    {
 
       @Override
       public String getObject()
@@ -91,12 +92,13 @@ public class ProjektSelectPanel extends AbstractSelectPanel<ProjektDO> implement
   public ProjektSelectPanel init()
   {
     super.init();
-    final SubmitLink selectButton = new SubmitLink("select") {
+    final SubmitLink selectButton = new SubmitLink("select")
+    {
       @Override
       public void onSubmit()
       {
         setResponsePage(new ProjektListPage(caller, selectProperty));
-      };
+      }
     };
     selectButton.setDefaultFormProcessing(false);
     add(selectButton);
@@ -105,7 +107,8 @@ public class ProjektSelectPanel extends AbstractSelectPanel<ProjektDO> implement
       selectButton.setVisible(false);
     }
     selectButton.add(new TooltipImage("selectHelp", WebConstants.IMAGE_PROJEKT_SELECT, getString("fibu.tooltip.selectProjekt")));
-    final SubmitLink unselectButton = new SubmitLink("unselect") {
+    final SubmitLink unselectButton = new SubmitLink("unselect")
+    {
       @Override
       public void onSubmit()
       {
@@ -123,7 +126,8 @@ public class ProjektSelectPanel extends AbstractSelectPanel<ProjektDO> implement
     unselectButton.add(new TooltipImage("unselectHelp", WebConstants.IMAGE_PROJEKT_UNSELECT, getString("fibu.tooltip.unselectProjekt")));
     // DropDownChoice favorites
     final FavoritesChoicePanel<ProjektDO, ProjektFavorite> favoritesPanel = new FavoritesChoicePanel<ProjektDO, ProjektFavorite>(
-        "favorites", UserPrefArea.PROJEKT_FAVORITE, tabIndex, "select half") {
+        "favorites", UserPrefArea.PROJEKT_FAVORITE, tabIndex, "select half")
+    {
       @Override
       protected void select(final ProjektFavorite favorite)
       {
@@ -156,6 +160,7 @@ public class ProjektSelectPanel extends AbstractSelectPanel<ProjektDO> implement
 
   /**
    * Will be called if the user has chosen an entry of the projekt favorites drop down choice.
+   *
    * @param projekt
    */
   protected void selectProjekt(final ProjektDO projekt)
@@ -165,7 +170,7 @@ public class ProjektSelectPanel extends AbstractSelectPanel<ProjektDO> implement
   }
 
   @Override
-  protected void convertInput()
+  public void convertInput()
   {
     setConvertedInput(getModelObject());
   }
@@ -184,7 +189,7 @@ public class ProjektSelectPanel extends AbstractSelectPanel<ProjektDO> implement
    * @see org.projectforge.web.wicket.flowlayout.ComponentWrapperPanel#getFormComponent()
    */
   @Override
-  public FormComponent< ? > getFormComponent()
+  public FormComponent<?> getFormComponent()
   {
     return null;
   }

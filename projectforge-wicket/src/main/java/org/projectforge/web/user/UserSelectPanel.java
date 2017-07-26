@@ -53,9 +53,8 @@ import org.projectforge.web.wicket.flowlayout.IconType;
 
 /**
  * This panel shows the actual user and buttons for select/unselect user.
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
  */
 public class UserSelectPanel extends AbstractSelectPanel<PFUserDO> implements ComponentWrapperPanel
 {
@@ -135,7 +134,7 @@ public class UserSelectPanel extends AbstractSelectPanel<PFUserDO> implements Co
       }
 
       @Override
-      protected void convertInput()
+      public void convertInput()
       {
         final PFUserDO user = getConverter(getType()).convertToObject(getInput(), getLocale());
         setConvertedInput(user);
@@ -204,7 +203,7 @@ public class UserSelectPanel extends AbstractSelectPanel<PFUserDO> implements Co
 
   /**
    * Should be called before init() method. If true, then the validation will be done after submitting.
-   * 
+   *
    * @param defaultFormProcessing
    */
   public void setDefaultFormProcessing(final boolean defaultFormProcessing)
@@ -214,7 +213,7 @@ public class UserSelectPanel extends AbstractSelectPanel<PFUserDO> implements Co
 
   /**
    * Must be called befor {@link #init()}. If false then the select-me-button is never displayed (default is true).
-   * 
+   *
    * @param showSelectMeButton the showSelectMeButton to set
    * @return this for chaining.
    */
@@ -305,7 +304,7 @@ public class UserSelectPanel extends AbstractSelectPanel<PFUserDO> implements Co
   }
 
   @Override
-  protected void convertInput()
+  public void convertInput()
   {
     setConvertedInput(getModelObject());
   }

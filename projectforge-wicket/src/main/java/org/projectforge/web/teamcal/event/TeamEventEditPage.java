@@ -25,9 +25,7 @@ package org.projectforge.web.teamcal.event;
 
 import java.io.ByteArrayOutputStream;
 import java.sql.Timestamp;
-import java.util.Calendar;
 import java.util.Date;
-import java.util.GregorianCalendar;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -48,7 +46,6 @@ import org.projectforge.business.teamcal.event.model.TeamEventDO;
 import org.projectforge.business.teamcal.service.TeamCalServiceImpl;
 import org.projectforge.business.timesheet.TimesheetDO;
 import org.projectforge.business.timesheet.TimesheetDao;
-import org.projectforge.framework.persistence.api.ModificationStatus;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.time.DateHelper;
 import org.projectforge.web.calendar.CalendarPage;

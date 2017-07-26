@@ -1,9 +1,9 @@
 /**
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
- * 
+ * <p>
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ * <p>
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -13,116 +13,54 @@
 package net.ftlines.wicket.fullcalendar.callback;
 
 import org.apache.wicket.Component;
-import org.apache.wicket.ajax.attributes.IAjaxCallListener;
-import org.apache.wicket.util.collections.MicroMap;
-import org.apache.wicket.util.string.interpolator.MapVariableInterpolator;
+import org.apache.wicket.ajax.attributes.AjaxCallListener;
 
 /**
- * Prevents multiple clicks while ajax request is executing
- * 
+ * Prevents multiple clicks while ajax request is executing. We keep a variable that is set to {@code true} while the
+ * request is running and to any other value when its done.
+ *
  * @author igor
  */
-public class BlockingDecorator implements IAjaxCallListener {
+public class BlockingDecorator extends AjaxCallListener
+{
 
-	// @formatter:off
+  private static String clean(String str)
+  {
+    return str != null ? str.replaceAll("[^0-9a-zA-Z]", "") : null;
+  }
 
-	private static final String template = "if (typeof(${var})=='undefined'){${var}=true;}"
-			+ "if(${var}==false){return false;}" + "${var}=false;";
+  private String var(Component component)
+  {
+    if (!component.getOutputMarkupId()) {
+      throw new IllegalStateException();
+    }
+    // Calling clean() ensures that no Javascript operators (+, -, etc) are accidentally
+    // used in the markup id, which breaks this functionality.
+    String id = clean(component.getMarkupId());
+    return "window.wicketblock" + id;
 
-	// @formatter:on
+  }
 
-	private final AbstractAjaxCallback callback;
+  @Override
+  public CharSequence getPrecondition(Component component)
+  {
+    // before we allow the request we check if one is already running by checking the var
 
-	private static String clean(String str) {
-		return str != null ? str.replaceAll("[^0-9a-zA-Z]", "") : null;
-	}
+    // return false if the var is set to true (request running)
+    return var(component) + "!==true;";
+  }
 
-	public BlockingDecorator(AbstractAjaxCallback callback) {
-		this.callback = callback;
-	}
+  @Override
+  public CharSequence getBeforeSendHandler(Component component)
+  {
+    // just before we start the request, we set the var to true
+    return var(component) + "=true;";
+  }
 
-	private String var() {
-		String var = null;
-		switch (callback.getCalendar().getAjaxConcurrency()) {
-		case DROP:
-			var = callback.getCalendar().getMarkupId();
-			break;
-		case DROP_PER_CALLBACK:
-			var = callback.getClass().getName();
-		}
-		var = "window.block" + clean(var);
-		return var;
-	}
-
-	public CharSequence decorateScript(Component component, CharSequence script) {
-		switch (callback.getCalendar().getAjaxConcurrency()) {
-		case QUEUE:
-			return script;
-		case DROP_PER_CALLBACK:
-		case DROP:
-			return new MapVariableInterpolator(template, new MicroMap<String, String>("var", var())).toString()
-				+ script;
-
-		default:
-			throw new IllegalStateException();
-		}
-	}
-
-	public CharSequence decorateOnSuccessScript(Component component, CharSequence script) {
-		switch (callback.getCalendar().getAjaxConcurrency()) {
-		case QUEUE:
-			return script;
-		case DROP_PER_CALLBACK:
-		case DROP:
-			return var() + "=true;";
-		default:
-			throw new IllegalStateException();
-		}
-	}
-
-	public CharSequence decorateOnFailureScript(Component component, CharSequence script) {
-		return decorateOnSuccessScript(component, script);
-	}
-
-	@Override
-	public CharSequence getSuccessHandler(Component component) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public CharSequence getFailureHandler(Component component) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public CharSequence getBeforeHandler(Component component) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public CharSequence getAfterHandler(Component component) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public CharSequence getCompleteHandler(Component component) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public CharSequence getPrecondition(Component component) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public CharSequence getBeforeSendHandler(Component component) {
-		// TODO Auto-generated method stub
-		return null;
-	}
+  @Override
+  public CharSequence getCompleteHandler(Component component)
+  {
+    // when the request is complete we set the var to false
+    return var(component) + "=false;";
+  }
 }

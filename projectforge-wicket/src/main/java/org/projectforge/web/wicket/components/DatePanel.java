@@ -293,7 +293,7 @@ public class DatePanel extends FormComponentPanel<Date> implements ComponentWrap
   }
 
   @Override
-  protected void convertInput()
+  public void convertInput()
   {
     setConvertedInput(dateField.getConvertedInput());
   }

@@ -36,7 +36,6 @@ import org.apache.wicket.util.template.PackageTextTemplate;
 
 /**
  * @author Johannes Unterstein (j.unterstein@micromata.de)
- * 
  */
 public class ColorPickerPanel extends Panel
 {
@@ -73,7 +72,7 @@ public class ColorPickerPanel extends Panel
     add(colorForm);
     final TextField<String> colorField = new TextField<String>("color",
         new PropertyModel<String>(this, "selectedColor"));
-    colorField.add(new AjaxFormComponentUpdatingBehavior("onchange")
+    colorField.add(new AjaxFormComponentUpdatingBehavior("change")
     {
       private static final long serialVersionUID = 1L;
 
@@ -96,7 +95,7 @@ public class ColorPickerPanel extends Panel
 
   /**
    * Hook method
-   * 
+   *
    * @param selectedColor
    */
   protected void onColorUpdate(final String selectedColor)

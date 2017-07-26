@@ -43,9 +43,8 @@ import org.projectforge.web.wicket.flowlayout.ComponentWrapperPanel;
 
 /**
  * This panel shows the actual user and buttons for select/unselect training.
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
  */
 public class TrainingSelectPanel extends AbstractSelectPanel<TrainingDO> implements ComponentWrapperPanel
 {
@@ -124,7 +123,7 @@ public class TrainingSelectPanel extends AbstractSelectPanel<TrainingDO> impleme
       }
 
       @Override
-      protected void convertInput()
+      public void convertInput()
       {
         final TrainingDO training = getConverter(getType()).convertToObject(getInput(), getLocale());
         setConvertedInput(training);
@@ -220,7 +219,7 @@ public class TrainingSelectPanel extends AbstractSelectPanel<TrainingDO> impleme
   }
 
   @Override
-  protected void convertInput()
+  public void convertInput()
   {
     setConvertedInput(getModelObject());
   }
@@ -282,7 +281,7 @@ public class TrainingSelectPanel extends AbstractSelectPanel<TrainingDO> impleme
 
   /**
    * Should be called before init() method. If true, then the validation will be done after submitting.
-   * 
+   *
    * @param defaultFormProcessing
    */
   public void setDefaultFormProcessing(final boolean defaultFormProcessing)

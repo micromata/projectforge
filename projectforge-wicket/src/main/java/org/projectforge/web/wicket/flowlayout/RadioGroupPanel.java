@@ -39,8 +39,8 @@ import org.projectforge.web.wicket.WicketUtils;
 /**
  * Panel containing only one check-box. <br/>
  * This component calls setRenderBodyOnly(true). If the outer html element is needed, please call setRenderBodyOnly(false).
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
  */
 @SuppressWarnings("serial")
 public class RadioGroupPanel<T extends Serializable> extends Panel
@@ -59,7 +59,8 @@ public class RadioGroupPanel<T extends Serializable> extends Panel
   public RadioGroupPanel(final String id, final String groupName, final IModel<T> model)
   {
     super(id);
-    radioGroup = new RadioGroup<T>("radioGroup", model) {
+    radioGroup = new RadioGroup<T>("radioGroup", model)
+    {
       /**
        * @see org.apache.wicket.markup.html.form.RadioGroup#wantOnSelectionChangedNotifications()
        */
@@ -73,7 +74,7 @@ public class RadioGroupPanel<T extends Serializable> extends Panel
        * @see org.apache.wicket.markup.html.form.RadioGroup#onSelectionChanged(java.lang.Object)
        */
       @Override
-      protected void onSelectionChanged(final Object newSelection)
+      protected void onSelectionChanged(final T newSelection)
       {
         RadioGroupPanel.this.onSelectionChanged(newSelection);
       }
@@ -89,6 +90,7 @@ public class RadioGroupPanel<T extends Serializable> extends Panel
 
   /**
    * Doesn't work, isn't it?
+   *
    * @return
    */
   protected boolean wantOnSelectionChangedNotifications()

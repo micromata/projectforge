@@ -32,7 +32,6 @@ import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.ResourceModel;
-import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.common.i18n.I18nEnum;
 import org.projectforge.common.props.PropUtils;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
@@ -40,8 +39,8 @@ import org.projectforge.framework.time.DateTimeFormatter;
 
 /**
  * Supports CellItemListener.
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
  */
 @SuppressWarnings("serial")
 public class CellItemListenerPropertyColumn<T> extends PropertyColumn<T, String>
@@ -79,7 +78,7 @@ public class CellItemListenerPropertyColumn<T> extends PropertyColumn<T, String>
     this.cellItemListener = cellItemListener;
   }
 
-  public CellItemListenerPropertyColumn(final Class< ? > clazz, final String sortProperty, final String propertyExpression,
+  public CellItemListenerPropertyColumn(final Class<?> clazz, final String sortProperty, final String propertyExpression,
       final CellItemListener<T> cellItemListener)
   {
     super(new ResourceModel(PropUtils.getI18nKey(clazz, propertyExpression)), sortProperty, propertyExpression);
@@ -93,6 +92,7 @@ public class CellItemListenerPropertyColumn<T> extends PropertyColumn<T, String>
 
   /**
    * Override this method if you want to have tool-tips.
+   *
    * @return
    */
   public String getTooltip(final T object)
@@ -102,14 +102,15 @@ public class CellItemListenerPropertyColumn<T> extends PropertyColumn<T, String>
 
   /**
    * Call CellItemListener. If a property model object is of type I18nEnum then the translation is automatically used.
+   *
    * @see org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn#populateItem(org.apache.wicket.markup.repeater.Item,
-   *      java.lang.String, org.apache.wicket.model.IModel)
+   * java.lang.String, org.apache.wicket.model.IModel)
    * @see CellItemListener#populateItem(Item, String, IModel)
    */
   @Override
   public void populateItem(final Item<ICellPopulator<T>> item, final String componentId, final IModel<T> rowModel)
   {
-    final IModel< ? > propertyModel = createLabelModel(rowModel);
+    final IModel<?> propertyModel = getDataModel(rowModel);
     final Object object = propertyModel.getObject();
     if (object == null) {
       item.add(new Label(componentId, propertyModel).setRenderBodyOnly(true));
@@ -124,7 +125,8 @@ public class CellItemListenerPropertyColumn<T> extends PropertyColumn<T, String>
     }
     final String tooltip = getTooltip(rowModel.getObject());
     if (tooltip != null && tooltip.length() > 0) {
-      WicketUtils.addTooltip(item, new Model<String>() {
+      WicketUtils.addTooltip(item, new Model<String>()
+      {
         @Override
         public String getObject()
         {
