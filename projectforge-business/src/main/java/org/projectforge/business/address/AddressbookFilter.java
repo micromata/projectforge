@@ -39,7 +39,7 @@ public class AddressbookFilter extends BaseSearchFilter implements Serializable
     ALL, OWN, OTHERS, ADMIN
   }
 
-  private boolean fullAccess, readonlyAccess, adminAccess;
+  private boolean fullAccess, readonlyAccess;
 
   protected OwnerType abOwner;
 
@@ -53,6 +53,12 @@ public class AddressbookFilter extends BaseSearchFilter implements Serializable
     super(filter);
     fullAccess = readonlyAccess = true;
     abOwner = OwnerType.ALL;
+    if (filter instanceof AddressbookFilter) {
+      final AddressbookFilter obj = (AddressbookFilter) filter;
+      this.fullAccess = obj.isFullAccess();
+      this.readonlyAccess = obj.isReadonlyAccess();
+      this.abOwner = obj.getOwnerType();
+    }
   }
 
   /**
