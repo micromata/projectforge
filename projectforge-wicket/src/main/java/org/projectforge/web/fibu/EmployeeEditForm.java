@@ -227,8 +227,8 @@ public class EmployeeEditForm extends AbstractEditForm<EmployeeDO, EmployeeEditP
       userSelectPanel.add((IValidator<PFUserDO>) validatable -> {
         PFUserDO user = validatable.getModel().getObject();
         if (user != null && user.getId() != null) {
-          EmployeeDO byUserId = employeeService.getEmployeeByUserId(user.getId());
-          if (byUserId != null) {
+          EmployeeDO employeeByUserId = employeeService.getEmployeeByUserId(user.getId());
+          if (employeeByUserId != null && employeeByUserId.getId().equals(data.getId()) == false) {
             validatable.error(new ValidationError().addKey("fibu.employee.error.employeWithUserExists"));
           }
         }
