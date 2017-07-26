@@ -27,7 +27,6 @@ public class ImportTestDataTest extends AbstractTestBase
   {
     clearDatabase();
     initDatabaseDao.insertDefaultTenant();
-    initDatabaseDao.insertGlobalAddressbook();
     jpaXmlDumpService.createTestDatabase();
   }
 
