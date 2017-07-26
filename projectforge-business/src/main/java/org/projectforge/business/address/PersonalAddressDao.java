@@ -25,6 +25,7 @@ package org.projectforge.business.address;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -112,8 +113,10 @@ public class PersonalAddressDao
       }
       return false;
     }
-    Set<Integer> abIdList = getAddressbookIdsForUser(owner);
-    if (abIdList.contains(obj.getAddressId()) == false) {
+    Set<Integer> addressbookIDListForUser = getAddressbookIdsForUser(owner);
+    Set<Integer> addressbookIDListFromAddress = obj.getAddress().getAddressbookList().stream().mapToInt(AddressbookDO::getId).boxed()
+        .collect(Collectors.toSet());
+    if (Collections.disjoint(addressbookIDListForUser, addressbookIDListFromAddress)) {
       if (throwException) {
         throw new AccessException("address.accessException.userHasNoRightForAddressbook");
       }

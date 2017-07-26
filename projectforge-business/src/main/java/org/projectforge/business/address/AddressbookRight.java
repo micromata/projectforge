@@ -26,6 +26,7 @@ package org.projectforge.business.address;
 import org.apache.commons.lang.ObjectUtils;
 import org.projectforge.business.common.DataobjectAccessType;
 import org.projectforge.business.multitenancy.TenantRegistryMap;
+import org.projectforge.business.user.ProjectForgeGroup;
 import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.business.user.UserRightAccessCheck;
 import org.projectforge.business.user.UserRightCategory;
@@ -74,8 +75,8 @@ public class AddressbookRight extends UserRightAccessCheck<AddressbookDO>
   @Override
   public boolean hasSelectAccess(final PFUserDO user, final AddressbookDO obj)
   {
-    if (isOwner(user, obj) == true || accessChecker.isUserMemberOfAdminGroup(user) == true || checkGlobal(obj)) {
-      // User has full access to his own addressbooks.
+    if (isOwner(user, obj) == true || accessChecker.isUserMemberOfAdminGroup(user) == true || checkGlobal(obj) || accessChecker.isLoggedInUserMemberOfGroup(
+        ProjectForgeGroup.ORGA_TEAM)) {
       return true;
     }
     final Integer userId = user.getId();
@@ -106,7 +107,8 @@ public class AddressbookRight extends UserRightAccessCheck<AddressbookDO>
   @Override
   public boolean hasInsertAccess(final PFUserDO user, final AddressbookDO obj)
   {
-    return isOwner(user, obj) == true || accessChecker.isUserMemberOfAdminGroup(user) == true || checkGlobal(obj);
+    return isOwner(user, obj) == true || accessChecker.isUserMemberOfAdminGroup(user) == true || checkGlobal(obj) || accessChecker.isLoggedInUserMemberOfGroup(
+        ProjectForgeGroup.ORGA_TEAM);
   }
 
   /**
@@ -216,7 +218,8 @@ public class AddressbookRight extends UserRightAccessCheck<AddressbookDO>
 
   private boolean hasAccess(final Integer[] groupIds, final Integer[] userIds, final Integer userId)
   {
-    if (getUserGroupCache().isUserMemberOfAtLeastOneGroup(userId, groupIds) == true) {
+    if (getUserGroupCache().isUserMemberOfAtLeastOneGroup(userId, groupIds) == true || accessChecker.isLoggedInUserMemberOfGroup(
+        ProjectForgeGroup.ORGA_TEAM)) {
       return true;
     }
     if (userIds == null) {
