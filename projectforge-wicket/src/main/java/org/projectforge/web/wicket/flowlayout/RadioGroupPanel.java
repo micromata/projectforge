@@ -60,11 +60,12 @@ public class RadioGroupPanel<T extends Serializable> extends Panel
   public RadioGroupPanel(final String id, final String groupName, final IModel<T> model, final FormComponentUpdatingBehavior updatingBehavior)
   {
     super(id);
-    radioGroup = new RadioGroup<T>("radioGroup", model);
+    radioGroup = new RadioGroup<>("radioGroup", model);
 
     if (updatingBehavior != null) {
       radioGroup.add(updatingBehavior);
     }
+
     add(radioGroup);
     radioGroup.add(repeater = new RepeatingView("repeater"));
     setRenderBodyOnly(true);
@@ -83,6 +84,7 @@ public class RadioGroupPanel<T extends Serializable> extends Panel
     if (autosubmit == true) {
       radio.add(AttributeModifier.replace("onchange", "javascript:submit();"));
     }
+
     cont.add(radio);
     final Label label = new Label("label", labelString);
     label.add(AttributeModifier.replace("for", radio.setOutputMarkupId(true).getMarkupId()));

@@ -109,19 +109,14 @@ public class AddressListForm extends AbstractListForm<AddressListFilter, Address
           .suppressLabelForWarning();
       final DivPanel checkBoxPanel = fieldset.addNewCheckBoxButtonDiv();
       checkBoxPanel.add(form.createAutoRefreshCheckBoxButton(checkBoxPanel.newChildId(),
-          new PropertyModel<Boolean>(searchFilter, "active"),
-          parentPage.getString("address.contactStatus.active")));
-      checkBoxPanel
-          .add(form.createAutoRefreshCheckBoxButton(checkBoxPanel.newChildId(), new PropertyModel<Boolean>(searchFilter,
-              "nonActive"), parentPage.getString("address.contactStatus.nonActive")));
-      checkBoxPanel
-          .add(form.createAutoRefreshCheckBoxButton(checkBoxPanel.newChildId(), new PropertyModel<Boolean>(searchFilter,
-              "uninteresting"), parentPage.getString("address.contactStatus.uninteresting")));
-      checkBoxPanel
-          .add(form.createAutoRefreshCheckBoxButton(checkBoxPanel.newChildId(), new PropertyModel<Boolean>(searchFilter,
-              "personaIngrata"), parentPage.getString("address.contactStatus.personaIngrata")));
-      checkBoxPanel.add(form.createAutoRefreshCheckBoxButton(checkBoxPanel.newChildId(),
-          new PropertyModel<Boolean>(searchFilter, "departed"),
+          new PropertyModel<>(searchFilter, "active"), parentPage.getString("address.contactStatus.active")));
+      checkBoxPanel.add(form.createAutoRefreshCheckBoxButton(checkBoxPanel.newChildId(), new PropertyModel<>(searchFilter,
+          "nonActive"), parentPage.getString("address.contactStatus.nonActive")));
+      checkBoxPanel.add(form.createAutoRefreshCheckBoxButton(checkBoxPanel.newChildId(), new PropertyModel<>(searchFilter,
+          "uninteresting"), parentPage.getString("address.contactStatus.uninteresting")));
+      checkBoxPanel.add(form.createAutoRefreshCheckBoxButton(checkBoxPanel.newChildId(), new PropertyModel<>(searchFilter,
+          "personaIngrata"), parentPage.getString("address.contactStatus.personaIngrata")));
+      checkBoxPanel.add(form.createAutoRefreshCheckBoxButton(checkBoxPanel.newChildId(), new PropertyModel<>(searchFilter, "departed"),
           parentPage.getString("address.contactStatus.departed")));
     }
     {
