@@ -34,32 +34,32 @@ import de.micromata.less.LessWicketApplicationInstantiator;
 public class WicketRenderHeadUtils
 {
   private static final String[][] JAVASCRIPT_FILES_DEF = { //
-    // { "scripts/jquery/1.8.2/jquery-1.8.2", ".min"}, // Wicket delivers jQuery version
-    // Needed: core, widget, mouse, position, draggable, droppable, resizable, selectable, sortable, datepicker (smoothness):
-    { "scripts/jqueryui/jquery-ui-1.10.4.custom", ".min"}, //
-    { "include/bootstrap/js/bootstrap", ""}, // ".min" bootstrap.js is modified!
-    { "scripts/contextmenu/jquery.contextmenu", ""} //
+      // { "scripts/jquery/1.8.2/jquery-1.8.2", ".min"}, // Wicket delivers jQuery version
+      // Needed: core, widget, mouse, position, draggable, droppable, resizable, selectable, sortable, datepicker (smoothness):
+      { "scripts/jqueryui/jquery-ui-1.10.4.custom", ".min" }, //
+      { "bootstrap/js/bootstrap", ".min" }, //
+      { "scripts/contextmenu/jquery.contextmenu", "" } //
   };
 
   private static final String[] JAVASCRIPT_FILES;
 
   private static final String[][] JAVASCRIPT_FILES_JAVA_DEF = { //
 
-    { "scripts/projectforge", ""} //
+      { "scripts/projectforge", "" } //
   };
 
   private static final String[] JAVASCRIPT_FILES_JAVA;
 
   private static final String[][] CSS_FILES_DEF = { //
-    { "styles/google-fonts/google-fonts", ""}, //
-    // "http://fonts.googleapis.com/css?family=Droid+Sans:regular&amp;subset=latin", //
-    { "styles/jqueryui/1.10.4/smoothness/jquery-ui-1.10.4.custom", ".min"} //
+      { "styles/google-fonts/google-fonts", "" }, //
+      // "http://fonts.googleapis.com/css?family=Droid+Sans:regular&amp;subset=latin", //
+      { "styles/jqueryui/1.10.4/smoothness/jquery-ui-1.10.4.custom", ".min" } //
   };
 
   private static final String[] CSS_FILES;
 
   private static final String[][] AUTOGROW_JAVASCRIPT_FILES_DEF = { //
-    { "scripts/autogrow/jquery.autogrowtextarea", ""}};
+      { "scripts/autogrow/jquery.autogrowtextarea", "" } };
 
   private static final String[] AUTOGROW_JAVASCRIPT_FILES;
 
@@ -97,7 +97,8 @@ public class WicketRenderHeadUtils
     }
   }
 
-  private static void handleWicketResourceHandledJavascript() {
+  private static void handleWicketResourceHandledJavascript()
+  {
     // handle wicket resource handled javascript files
     final long startTime = WicketApplication.getStartTime();
     String name = null;
@@ -156,6 +157,5 @@ public class WicketRenderHeadUtils
       response.render(JavaScriptReferenceHeaderItem.forUrl(url));
     }
   }
-
 
 }
