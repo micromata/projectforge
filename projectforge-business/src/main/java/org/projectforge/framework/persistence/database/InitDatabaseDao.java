@@ -214,6 +214,11 @@ public class InitDatabaseDao
 
   public AddressbookDO insertGlobalAddressbook()
   {
+    return insertGlobalAddressbook(null);
+  }
+
+  public AddressbookDO insertGlobalAddressbook(PFUserDO user)
+  {
     log.info("Checking if global addressbook exists.");
     try {
       String selectGlobal = "SELECT * FROM t_addressbook WHERE pk = 1";
@@ -228,7 +233,7 @@ public class InitDatabaseDao
     String insertGlobal =
         "INSERT INTO t_addressbook(pk, created, deleted, last_update, description, title, tenant_id, owner_fk) "
             + "VALUES (1, CURRENT_TIMESTAMP, false, CURRENT_TIMESTAMP, 'The global addressbook', 'Global', 1, "
-            + ThreadLocalUserContext.getUserId() + ")";
+            + (user != null && user.getId() != null ? user.getId() : ThreadLocalUserContext.getUserId()) + ")";
     jdbcTemplate.execute(insertGlobal);
     log.info("Adding global addressbook finished.");
     return addressbookDao.getGlobalAddressbook();
