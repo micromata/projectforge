@@ -353,23 +353,33 @@ function doAfterAjaxHandling() {
     });
     // quickfix to handle wicket checkboxes to work with bootstrap3
     $(document).on("change", "[data-toggle^=button] [type=checkbox]", function () {
-        var form = this.closest("form");
-        var value = $(this).attr("onclick");
-        var index = value.indexOf('f.action');
-        if (index >= 0) {
-            form.action = value.substring(index + 10, value.indexOf("'", index + 10));
-            form.submit();
-        }
+        handleWicketToggleButton(this);
     });
     $(document).on("change", "[data-toggle^=button] [type=radio]", function () {
-        var form = this.closest("form");
-        var value = $(this).attr("onclick");
-        var index = value.indexOf('f.action');
-        if (index >= 0) {
-            form.action = value.substring(index + 10, value.indexOf("'", index + 10));
-            form.submit();
+        if (handleWicketToggleButton(this) === false) {
+            // submit can be realised in surrounding div too
+            handleWicketToggleButton(this.closest("div"));
         }
     });
+}
+
+function handleWicketToggleButton(button) {
+    if (button === null || button === undefined)
+        return false;
+
+    var form = $(button).closest("form");
+    var value = $(button).attr("onclick");
+    if (value === null || value === undefined)
+        return false;
+
+    var index = value.indexOf('f.action');
+    if (index >= 0) {
+        form.action = value.substring(index + 10, value.indexOf("'", index + 10));
+        form.submit();
+        return true;
+    }
+
+    return false;
 }
 
 function initColorPicker() {

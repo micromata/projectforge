@@ -153,7 +153,7 @@ public abstract class AbstractRechnungListForm<F extends RechnungFilter, P exten
   protected void onOptionsPanelCreate(final FieldsetPanel optionsFieldsetPanel, final DivPanel optionsCheckBoxesPanel)
   {
     final DivPanel radioGroupPanel = optionsFieldsetPanel.addNewRadioBoxButtonDiv();
-    final RadioGroupPanel<String> radioGroup = new RadioGroupPanel<String>(radioGroupPanel.newChildId(), "listtype",
+    final RadioGroupPanel<String> radioGroup = new RadioGroupPanel<>(radioGroupPanel.newChildId(), "listtype",
         new PropertyModel<>(getSearchFilter(), "listType"));
     radioGroupPanel.add(radioGroup);
     radioGroup.add(new Model<String>("all"), getString("filter.all"));
