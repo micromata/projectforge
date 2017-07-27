@@ -197,7 +197,7 @@ public class DatabaseCoreUpdates
             }
             ps.close();
           } catch (SQLException e) {
-            e.printStackTrace();
+            log.error("Error while updating imageDataPreview in Database : " + e.getMessage());
           }
         }
 

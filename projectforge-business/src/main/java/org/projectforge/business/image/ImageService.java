@@ -17,6 +17,8 @@ import org.springframework.stereotype.Service;
 public class ImageService
 {
 
+  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(ImageService.class);
+
   public byte[] resizeImage(byte[] originalImage)
   {
     return resizeImage(originalImage, 25, 25);
@@ -31,27 +33,33 @@ public class ImageService
 
   private BufferedImage compressImage(BufferedImage originalImage, int width, int height)
   {
-    int type = originalImage.getType() == 0 ? BufferedImage.TYPE_INT_ARGB : originalImage.getType();
-    BufferedImage resizedImage = new BufferedImage(width, height, type);
-    Graphics2D g = resizedImage.createGraphics();
-    g.drawImage(originalImage, 0, 0, width, height, null);
-    g.dispose();
-    return resizedImage;
+    if (originalImage != null) {
+      int type = originalImage.getType() == 0 ? BufferedImage.TYPE_INT_ARGB : originalImage.getType();
+      BufferedImage resizedImage = new BufferedImage(width, height, type);
+      Graphics2D g = resizedImage.createGraphics();
+      g.drawImage(originalImage, 0, 0, width, height, null);
+      g.dispose();
+      return resizedImage;
+    }
+    return null;
   }
 
   private byte[] createBytesFromImage(BufferedImage image)
   {
-    try {
-      ByteArrayOutputStream baos = new ByteArrayOutputStream();
-      ImageIO.write(image, "png", baos);
-      baos.flush();
-      byte[] imageInByte = baos.toByteArray();
-      baos.close();
-      return imageInByte;
-    } catch (IOException e) {
-      e.printStackTrace();
-      return null;
+    if (image != null) {
+      try {
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        ImageIO.write(image, "png", baos);
+        baos.flush();
+        byte[] imageInByte = baos.toByteArray();
+        baos.close();
+        return imageInByte;
+      } catch (IOException e) {
+        log.error("Error while reading image : " + e.getMessage());
+        return null;
+      }
     }
+    return null;
   }
 
   private BufferedImage createImageFromBytes(byte[] imageData)
@@ -60,8 +68,8 @@ public class ImageService
     try {
       return ImageIO.read(bais);
     } catch (IOException e) {
-      throw new RuntimeException(e);
+      log.error("Error while read ByteArrayInputStream : " + e.getMessage());
+      return null;
     }
   }
-
 }
