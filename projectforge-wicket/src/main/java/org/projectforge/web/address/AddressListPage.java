@@ -58,6 +58,7 @@ import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.address.AddressDO;
 import org.projectforge.business.address.AddressDao;
 import org.projectforge.business.address.AddressExport;
+import org.projectforge.business.address.AddressbookDO;
 import org.projectforge.business.address.PersonalAddressDO;
 import org.projectforge.business.address.PersonalAddressDao;
 import org.projectforge.business.address.PhoneType;
@@ -322,6 +323,34 @@ public class AddressListPage extends AbstractListPage<AddressListForm, AddressDa
             item.add(AttributeModifier.append("style", new Model<String>("white-space: nowrap;")));
           }
         });
+    columns.add(new CellItemListenerPropertyColumn<AddressDO>(new Model<String>(getString("address.addressbooks")), null, "address.addressbooks",
+        cellItemListener)
+    {
+      /**
+       * @see org.projectforge.web.wicket.CellItemListenerPropertyColumn#populateItem(org.apache.wicket.markup.repeater.Item,
+       *      java.lang.String, org.apache.wicket.model.IModel)
+       */
+      @Override
+      public void populateItem(final Item<ICellPopulator<AddressDO>> item, final String componentId,
+          final IModel<AddressDO> rowModel)
+      {
+        final AddressDO address = rowModel.getObject();
+        final RepeatingView view = new RepeatingView(componentId);
+        item.add(view);
+        boolean first = true;
+        if (address.getAddressbookList() != null && address.getAddressbookList().size() > 0) {
+          for (AddressbookDO addressbook : address.getAddressbookList()) {
+            if (first == true) {
+              first = false;
+            } else {
+              view.add(new Label(view.newChildId(), "<br/>").setEscapeModelStrings(false));
+            }
+            view.add(new Label(view.newChildId(), addressbook.getTitle()));
+          }
+        }
+        cellItemListener.populateItem(item, componentId, rowModel);
+      }
+    });
     return columns;
   }
 
