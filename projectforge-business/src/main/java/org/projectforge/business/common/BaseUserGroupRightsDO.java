@@ -1,12 +1,14 @@
 package org.projectforge.business.common;
 
 import javax.persistence.Column;
+import javax.persistence.MappedSuperclass;
 
 import org.projectforge.framework.persistence.entities.DefaultBaseDO;
 
 /**
  * Created by blumenstein on 18.07.17.
  */
+@MappedSuperclass
 public class BaseUserGroupRightsDO extends DefaultBaseDO
 {
   private String fullAccessGroupIds, fullAccessUserIds;
