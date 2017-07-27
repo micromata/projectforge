@@ -145,7 +145,7 @@ public class DatabaseCoreUpdates
     // 6.16.0
     // /////////////////////////////////////////////////////////////////
     list.add(new UpdateEntryImpl(CORE_REGION_ID, "6.16.0", "2017-08-01",
-        "Remove unique constraints from EmployeeTimedAttrDO and EmployeeConfigurationTimedAttrDO. Add addressbooks, remove tasks from addresses.")
+        "Remove unique constraints from EmployeeTimedAttrDO and EmployeeConfigurationTimedAttrDO. Add addressbooks, remove tasks from addresses. Add thumbnail for address images.")
     {
       @Override
       public UpdatePreCheckStatus runPreCheck()
@@ -174,7 +174,7 @@ public class DatabaseCoreUpdates
             databaseUpdateService.execute("ALTER TABLE T_PLUGIN_EMPLOYEE_CONFIGURATION_TIMEDATTR DROP CONSTRAINT " + uniqueConstraint2);
           }
         }
-        
+
         if (isImageDataPreviewMissing()) {
           final ImageService imageService = applicationContext.getBean(ImageService.class);
           initDatabaseDao.updateSchema();
@@ -199,7 +199,7 @@ public class DatabaseCoreUpdates
             }
             ps.close();
           } catch (SQLException e) {
-            e.printStackTrace();
+            log.error("Error while updating imageDataPreview in Database : " + e.getMessage());
           }
         }
 
