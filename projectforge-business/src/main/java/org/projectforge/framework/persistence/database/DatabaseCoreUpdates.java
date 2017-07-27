@@ -142,7 +142,7 @@ public class DatabaseCoreUpdates
     // 6.16.0
     // /////////////////////////////////////////////////////////////////
     list.add(new UpdateEntryImpl(CORE_REGION_ID, "6.16.0", "2017-08-01",
-        "Remove unique constraints from EmployeeTimedAttrDO and EmployeeConfigurationTimedAttrDO. Add addressbooks, remove tasks from addresses")
+        "Remove unique constraints from EmployeeTimedAttrDO and EmployeeConfigurationTimedAttrDO. Add addressbooks, remove tasks from addresses. Add thumbnail picture to address image.")
     {
       @Override
       public UpdatePreCheckStatus runPreCheck()

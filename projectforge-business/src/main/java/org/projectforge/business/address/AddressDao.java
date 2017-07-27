@@ -36,7 +36,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 import java.util.TreeSet;
-import java.util.stream.Collectors;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
@@ -220,7 +219,7 @@ public class AddressDao extends BaseDao<AddressDO>
     Set<Integer> abIdList = new HashSet();
     //First check wicket ui addressbook filter
     if (addressFilter != null && addressFilter.getAddressbooks() != null && addressFilter.getAddressbooks().size() > 0) {
-      abIdList.addAll(addressFilter.getAddressbooks().stream().mapToInt(ab -> ab.getId()).boxed().collect(Collectors.toList()));
+      abIdList.addAll(addressFilter.getAddressbookIds());
     } else {
       //Global addressbook is selectable for every one
       abIdList.add(AddressbookDao.GLOBAL_ADDRESSBOOK_ID);
