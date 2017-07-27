@@ -26,7 +26,6 @@ package org.projectforge.web.wicket;
 import java.text.MessageFormat;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.stream.Stream;
 
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.wicket.Session;
@@ -55,13 +54,12 @@ import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.web.WebConfiguration;
-import org.projectforge.web.doc.DocumentationPage;
 import org.projectforge.web.servlet.LogoServlet;
 import org.projectforge.web.session.MySession;
 
 /**
  * Do only derive from this page, if no login is required!
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 public abstract class AbstractUnsecureBasePage extends WebPage
@@ -79,7 +77,7 @@ public abstract class AbstractUnsecureBasePage extends WebPage
 
   /**
    * Convenience method for creating a component which is in the mark-up file but should not be visible.
-   * 
+   *
    * @param wicketId
    * @return
    */
@@ -92,7 +90,7 @@ public abstract class AbstractUnsecureBasePage extends WebPage
 
   /**
    * Constructor that is invoked when page is invoked without a session.
-   * 
+   *
    * @param parameters Page parameters
    */
   @SuppressWarnings("serial")
@@ -142,7 +140,7 @@ public abstract class AbstractUnsecureBasePage extends WebPage
 
     final PFUserDO user = ThreadLocalUserContext.getUser();
     AbstractLink link;
-    link = new ExternalLink("footerNewsLink", "http://www.projectforge.org/pf-en/News");
+    link = new ExternalLink("footerNewsLink", "https://www.projectforge.org/projectforge-news.html");
     body.add(link);
     link.add(new Label("version", "Version " + AppVersion.VERSION.toString() + ", " + AppVersion.RELEASE_DATE)
         .setRenderBodyOnly(true));
@@ -171,7 +169,7 @@ public abstract class AbstractUnsecureBasePage extends WebPage
 
   /**
    * Gets the version of this Application.
-   * 
+   *
    * @see AppVersion#NUMBER
    */
   public final String getAppVersion()
@@ -181,7 +179,7 @@ public abstract class AbstractUnsecureBasePage extends WebPage
 
   /**
    * Gets the release date of this Application.
-   * 
+   *
    * @see AppVersion#RELEASE_DATE
    */
   public final String getAppReleaseDate()
@@ -191,7 +189,7 @@ public abstract class AbstractUnsecureBasePage extends WebPage
 
   /**
    * Gets the release date of this Application.
-   * 
+   *
    * @see AppVersion#RELEASE_DATE
    */
   public final String getAppReleaseTimestamp()
@@ -201,7 +199,7 @@ public abstract class AbstractUnsecureBasePage extends WebPage
 
   /**
    * Includes session id (encode URL) at default.
-   * 
+   *
    * @see #getUrl(String, boolean)
    */
   public String getUrl(final String path)
@@ -249,7 +247,7 @@ public abstract class AbstractUnsecureBasePage extends WebPage
 
   /**
    * If your page need to manipulate the body tag overwrite this method, e. g.: tag.put("onload", "...");
-   * 
+   *
    * @return
    */
   protected void onBodyTag(final ComponentTag bodyTag)
@@ -277,7 +275,7 @@ public abstract class AbstractUnsecureBasePage extends WebPage
 
   /**
    * Always returns null for unsecured page, otherwise the logged-in user.
-   * 
+   *
    * @return null
    * @see AbstractSecuredPage#getUser()
    */
@@ -288,7 +286,7 @@ public abstract class AbstractUnsecureBasePage extends WebPage
 
   /**
    * Always returns null for unsecured page, otherwise the id of the logged-in user.
-   * 
+   *
    * @return null
    * @see AbstractSecuredPage#getUser()
    */
