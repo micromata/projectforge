@@ -167,7 +167,7 @@ public class AddressbookWicketProvider extends ChoiceProvider<AddressbookDO>
   {
     final Collection<AddressbookDO> sortedCals = getSortedAddressbooks();
     final List<AddressbookDO> result = new ArrayList<>();
-    term = term.toLowerCase();
+    term = term != null ? term.toLowerCase() : "";
 
     final int offset = page * pageSize;
 
