@@ -164,7 +164,6 @@ public class AddressbookEditForm extends AbstractEditForm<AddressbookDO, Address
       } else {
         fs.add(new Label(fs.newChildId(), data.getOwner().getUsername() + ""));
       }
-      fs.setEnabled(isGlobalAddressbook(data) == false);
     }
 
     if (access == true) {

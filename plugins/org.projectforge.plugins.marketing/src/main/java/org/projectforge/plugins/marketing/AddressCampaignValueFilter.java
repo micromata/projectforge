@@ -45,6 +45,11 @@ public class AddressCampaignValueFilter extends AddressListFilter
   public AddressCampaignValueFilter(final BaseSearchFilter filter)
   {
     super(filter);
+    if (filter instanceof AddressCampaignValueFilter) {
+      AddressCampaignValueFilter obj = (AddressCampaignValueFilter) filter;
+      this.addressCampaign = obj.getAddressCampaign();
+      this.addressCampaignValue = obj.getAddressCampaignValue();
+    }
   }
 
   public AddressCampaignDO getAddressCampaign()

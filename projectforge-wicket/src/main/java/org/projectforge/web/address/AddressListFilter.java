@@ -51,6 +51,11 @@ public class AddressListFilter extends AddressFilter
   public AddressListFilter(final BaseSearchFilter filter)
   {
     super(filter);
+    if (filter instanceof AddressListFilter) {
+      AddressListFilter obj = (AddressListFilter) filter;
+      this.addressbookProvider = obj.getAddressbookProvider();
+      this.addressbookListHelper = obj.getAddressbookListHelper();
+    }
   }
 
   @Override
