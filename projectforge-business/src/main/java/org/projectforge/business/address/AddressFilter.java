@@ -24,8 +24,11 @@
 package org.projectforge.business.address;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.stream.Collectors;
 
+import org.projectforge.framework.configuration.ApplicationContextProvider;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 
 /**
@@ -61,7 +64,7 @@ public class AddressFilter extends BaseSearchFilter implements Serializable
 
   private String listType = FILTER_FILTER;
 
-  protected Collection<AddressbookDO> addressbooks;
+  private Collection<Integer> addressbookIds;
 
   public AddressFilter()
   {
@@ -71,6 +74,34 @@ public class AddressFilter extends BaseSearchFilter implements Serializable
   {
     super(filter);
     outdated = leaved = nonActive = uninteresting = personaIngrata = departed = true;
+    if (filter instanceof AddressFilter) {
+      AddressFilter obj = (AddressFilter) filter;
+      this.uptodate = obj.isUptodate();
+      this.outdated = obj.isOutdated();
+      this.leaved = obj.isLeaved();
+      this.active = obj.isActive();
+      this.nonActive = obj.isNonActive();
+      this.uninteresting = obj.isUninteresting();
+      this.personaIngrata = obj.isPersonaIngrata();
+      this.departed = obj.isDeparted();
+    }
+  }
+
+  @Override
+  public AddressFilter reset()
+  {
+    super.reset();
+    setUptodate(true);
+    setOutdated(false);
+    setLeaved(false);
+    setFilter();
+
+    setActive(true);
+    setNonActive(false);
+    setUninteresting(false);
+    setPersonaIngrata(false);
+    setDeparted(false);
+    return this;
   }
 
   public boolean isUptodate()
@@ -235,16 +266,42 @@ public class AddressFilter extends BaseSearchFilter implements Serializable
    */
   public Collection<AddressbookDO> getAddressbooks()
   {
-    return addressbooks;
+    Collection<AddressbookDO> result = new ArrayList<>();
+    if (addressbookIds != null) {
+      for (Integer id : addressbookIds) {
+        result.add(getAddressbookDao().internalGetById(id));
+      }
+    }
+    return result;
+  }
+
+  public void setAddressbooks(Collection<AddressbookDO> addressbooks)
+  {
+    if (addressbooks != null) {
+      this.addressbookIds = addressbooks.stream().mapToInt(AddressbookDO::getId).boxed().collect(Collectors.toList());
+    }
   }
 
   /**
-   * @param addressbooks the addressbooks to set
+   * @return the addressbookIds
+   */
+  public Collection<Integer> getAddressbookIds()
+  {
+    return addressbookIds;
+  }
+
+  /**
+   * @param addressbookIds the addressbookIds to set
    * @return this for chaining.
    */
-  public AddressFilter setAddressbooks(final Collection<AddressbookDO> addressbooks)
+  public AddressFilter setAddressbookIds(final Collection<Integer> addressbookIds)
   {
-    this.addressbooks = addressbooks;
+    this.addressbookIds = addressbookIds;
     return this;
+  }
+
+  private AddressbookDao getAddressbookDao()
+  {
+    return ApplicationContextProvider.getApplicationContext().getBean(AddressbookDao.class);
   }
 }

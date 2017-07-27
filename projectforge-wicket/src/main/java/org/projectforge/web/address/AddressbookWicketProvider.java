@@ -47,8 +47,6 @@ public class AddressbookWicketProvider extends ChoiceProvider<AddressbookDO>
 
   private final AddressbookComparator abComparator = new AddressbookComparator();
 
-  private Collection<AddressbookDO> sortedAddressbooks;
-
   private AddressbookDao addressbookDao;
 
   public AddressbookWicketProvider(AddressbookDao addressbookDao)
@@ -87,7 +85,7 @@ public class AddressbookWicketProvider extends ChoiceProvider<AddressbookDO>
     if (StringUtils.isEmpty(abIds) == true) {
       return null;
     }
-    sortedAddressbooks = new TreeSet<AddressbookDO>(abComparator);
+    Collection<AddressbookDO> sortedAddressbooks = new TreeSet<AddressbookDO>(abComparator);
     final int[] ids = StringHelper.splitToInts(abIds, ",", false);
     for (final int id : ids) {
       final AddressbookDO ab = addressbookDao.internalGetById(id);
@@ -114,13 +112,11 @@ public class AddressbookWicketProvider extends ChoiceProvider<AddressbookDO>
 
   public Collection<AddressbookDO> getSortedAddressbooks()
   {
-    if (sortedAddressbooks == null) {
-      final Collection<AddressbookDO> allAddressbooks = getAddressbookList();
-      sortedAddressbooks = new TreeSet<AddressbookDO>(abComparator);
-      for (final AddressbookDO ab : allAddressbooks) {
-        if (ab.isDeleted() == false) {
-          sortedAddressbooks.add(ab);
-        }
+    final Collection<AddressbookDO> allAddressbooks = getAddressbookList();
+    Collection<AddressbookDO> sortedAddressbooks = new TreeSet<AddressbookDO>(abComparator);
+    for (final AddressbookDO ab : allAddressbooks) {
+      if (ab.isDeleted() == false) {
+        sortedAddressbooks.add(ab);
       }
     }
     return sortedAddressbooks;

@@ -40,6 +40,7 @@ import org.projectforge.business.address.AddressFilter;
 import org.projectforge.business.address.AddressbookDO;
 import org.projectforge.business.address.AddressbookDao;
 import org.projectforge.common.StringHelper;
+import org.projectforge.framework.configuration.ApplicationContextProvider;
 import org.projectforge.web.wicket.AbstractListForm;
 import org.projectforge.web.wicket.AbstractListPage;
 import org.projectforge.web.wicket.autocompletion.PFAutoCompleteTextField;
@@ -52,7 +53,7 @@ import org.projectforge.web.wicket.flowlayout.InputPanel;
 import org.projectforge.web.wicket.flowlayout.RadioGroupPanel;
 import org.wicketstuff.select2.Select2MultiChoice;
 
-public class AddressListForm extends AbstractListForm<AddressListFilter, AddressListPage>
+public class AddressListForm extends AbstractListForm<AddressFilter, AddressListPage>
 {
   private static final long serialVersionUID = 8124796579658957116L;
 
@@ -109,7 +110,7 @@ public class AddressListForm extends AbstractListForm<AddressListFilter, Address
    * Used by AddressCampaignValueListForm.
    */
   public static void addFilter(final AbstractListPage<?, ?, ?> parentPage, final AbstractListForm<?, ?> form,
-      final GridBuilder gridBuilder, final AddressListFilter searchFilter, final AddressbookDao addressbookDao)
+      final GridBuilder gridBuilder, final AddressFilter searchFilter, final AddressbookDao addressbookDao)
   {
     {
       gridBuilder.newSplitPanel(GridSize.COL50);
@@ -161,7 +162,7 @@ public class AddressListForm extends AbstractListForm<AddressListFilter, Address
       gridBuilder.newSplitPanel(GridSize.COL100);
       final FieldsetPanel fs = gridBuilder.newFieldset(parentPage.getString("address.addressbooks"));
       final Select2MultiChoice<AddressbookDO> addressbooks = new Select2MultiChoice<AddressbookDO>(fs.getSelect2MultiChoiceId(),
-          new PropertyModel<Collection<AddressbookDO>>(searchFilter.getAddressbookListHelper(), "assignedItems"), searchFilter.getAddressbookProvider());
+          new PropertyModel<Collection<AddressbookDO>>(searchFilter, "addressbooks"), new AddressbookWicketProvider(getAddressbookDao()));
       fs.add(addressbooks);
     }
 
@@ -274,9 +275,9 @@ public class AddressListForm extends AbstractListForm<AddressListFilter, Address
   }
 
   @Override
-  protected AddressListFilter newSearchFilterInstance()
+  protected AddressFilter newSearchFilterInstance()
   {
-    return new AddressListFilter();
+    return new AddressFilter();
   }
 
   @Override
@@ -288,8 +289,13 @@ public class AddressListForm extends AbstractListForm<AddressListFilter, Address
   /**
    * @return the filter
    */
-  public AddressListFilter getFilter()
+  public AddressFilter getFilter()
   {
     return getSearchFilter();
+  }
+
+  private static AddressbookDao getAddressbookDao()
+  {
+    return ApplicationContextProvider.getApplicationContext().getBean(AddressbookDao.class);
   }
 }
