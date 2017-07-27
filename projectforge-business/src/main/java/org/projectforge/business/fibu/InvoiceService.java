@@ -253,7 +253,7 @@ public class InvoiceService
       return "";
     }
     DecimalFormat df = new DecimalFormat("#,###.00");
-    return df.format(value.setScale(2));
+    return df.format(value.setScale(2, BigDecimal.ROUND_HALF_DOWN));
   }
 
   private void replacePosDataInTable(final XWPFTable posTbl, final RechnungDO invoice)

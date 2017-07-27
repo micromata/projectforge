@@ -162,22 +162,20 @@ public class ForecastExport
 
   private void calculateIstSum(Map<PosCol, BigDecimal> istSumMap, Calendar startDate, AuftragsPositionDO pos)
   {
-    final Set<RechnungsPositionVO> invoicePositions = rechnungCache
-        .getRechnungsPositionVOSetByAuftragsPositionId(pos.getId());
-    if (invoicePositions != null) {
-      Calendar beginActualMonth = Calendar.getInstance();
-      beginActualMonth.set(Calendar.DAY_OF_MONTH, 1);
-      int startMonth = startDate.get(Calendar.MONTH);
-      for (RechnungsPositionVO rpo : invoicePositions) {
-        Calendar rDate = Calendar.getInstance();
-        rDate.setTime(rpo.getDate());
-        if (rDate.after(startDate) && rDate.before(beginActualMonth)) {
-          int monthCol = 0;
-          if (startDate.get(Calendar.YEAR) == rDate.get(Calendar.YEAR)) {
-            monthCol = rDate.get(Calendar.MONTH) - startMonth;
-          } else {
-            monthCol = 12 - startMonth + rDate.get(Calendar.MONTH);
-          }
+    final Set<RechnungsPositionVO> invoicePositions = rechnungCache.getRechnungsPositionVOSetByAuftragsPositionId(pos.getId());
+    if (invoicePositions == null) {
+      return;
+    }
+
+    Calendar beginActualMonth = Calendar.getInstance();
+    beginActualMonth.set(Calendar.DAY_OF_MONTH, 1);
+
+    for (RechnungsPositionVO rpo : invoicePositions) {
+      Calendar rDate = Calendar.getInstance();
+      rDate.setTime(rpo.getDate());
+      if (rDate.before(beginActualMonth)) {
+        int monthCol = this.getMonthIndex(rDate, startDate);
+        if (monthCol >= 0 && monthCol <= 11) {
           istSumMap.replace(monthCols[monthCol], istSumMap.get(monthCols[monthCol]).add(rpo.getNettoSumme()));
         }
       }
@@ -243,58 +241,74 @@ public class ForecastExport
     final TaskNode node = TenantRegistryMap.getInstance().getTenantRegistry().getTaskTree().getTaskNodeById(pos.getTaskId());
     mapping.add(PosCol.TASK, node != null && node.getTask() != null ? node.getTask().getTitle() : "");
     mapping.add(PosCol.COMMENT, pos.getBemerkung());
-    mapping.add(PosCol.PROBABILITY_OF_OCCURRENCE_VALUE, computeAccurenceValue(order, pos));
+    final BigDecimal accurenceValue = computeAccurenceValue(order, pos);
+    mapping.add(PosCol.PROBABILITY_OF_OCCURRENCE_VALUE, accurenceValue);
     SimpleDateFormat sdf = new SimpleDateFormat("dd.MM.yyyy");
     mapping.add(PosCol.MONTHEND_STARTDATE_ADD1, sdf.format(getStartLeistungszeitraumNextMonthEnd(order, pos).getTime()));
     mapping.add(PosCol.MONTHEND_ENDDATE_ADD1, sdf.format(getEndLeistungszeitraumNextMonthEnd(order, pos).getTime()));
     mapping.add(PosCol.MONTHCOUNT, getMonthCountForOrderPosition(order, pos));
 
-    switch (pos.getPaymentType()) {
-      case TIME_AND_MATERIALS:
-        fillMonthColumnsDistributed(mapping, order, pos, startDate);
-        break;
-      case PAUSCHALE:
-        if (order.getProbabilityOfOccurrence() != null) {
-          fillMonthColumnsDistributed(mapping, order, pos, startDate);
+    // get payment schedule for order position
+    final List<PaymentScheduleDO> paymentSchedules = getPaymentSchedule(order, pos);
+    final BigDecimal sumPaymentSchedule;
+    final Calendar beginDistribute;
+
+    // handle payment schedule
+    if (paymentSchedules.isEmpty() == false) {
+      BigDecimal sum = BigDecimal.ZERO;
+      beginDistribute = Calendar.getInstance();
+      beginDistribute.setTime(paymentSchedules.get(0).getScheduleDate());
+
+      for (PaymentScheduleDO schedule : paymentSchedules) {
+        sum = sum.add(schedule.getAmount().multiply(probability));
+        if (beginDistribute.getTimeInMillis() < schedule.getScheduleDate().getTime()) {
+          beginDistribute.setTime(schedule.getScheduleDate());
         }
-        break;
-      case FESTPREISPAKET:
-        fillByPaymentSchedule(mapping, order, pos, startDate);
-        break;
+      }
+
+      fillByPaymentSchedule(paymentSchedules, mapping, order, pos, startDate);
+      sumPaymentSchedule = sum;
+      beginDistribute.add(Calendar.MONTH, 2); // values are added to the next month (+1), start the month after the last one (+1)
+    } else {
+      sumPaymentSchedule = BigDecimal.ZERO;
+      beginDistribute = getStartLeistungszeitraumNextMonthEnd(order, pos);
     }
 
-  }
-
-  private void fillByPaymentSchedule(final PropertyMapping mapping, final AuftragDO order, final AuftragsPositionDO pos, final Calendar startDate)
-  {
-    // payment values
-    BigDecimal sumPaymentSchedule = new BigDecimal(0.0);
-    BigDecimal probability = getProbabilityOfAccurence(order, pos);
-    BigDecimal posNettoSum = pos.getNettoSumme();
-    PosCol periodOfPerformanceEnd = null;
-
-    // stop processing if no posNettoSum value exists
-    if (posNettoSum == null) {
+    // compute diff, return if diff is empty
+    final BigDecimal diff = accurenceValue.subtract(sumPaymentSchedule);
+    if (diff.compareTo(BigDecimal.ZERO) == 0) {
       return;
     }
 
-    posNettoSum = posNettoSum.multiply(probability);
-
-    // get payment schedule for order position
-    List<PaymentScheduleDO> paymentSchedules = getPaymentSchedule(order, pos);
-
-    // compute total sum
-    for (PaymentScheduleDO schedule : paymentSchedules) {
-      sumPaymentSchedule = sumPaymentSchedule.add(schedule.getAmount().multiply(probability));
+    // handle diff
+    switch (pos.getPaymentType()) {
+      case TIME_AND_MATERIALS:
+        fillMonthColumnsDistributed(diff, mapping, order, pos, startDate, beginDistribute);
+        break;
+      case PAUSCHALE:
+        if (order.getProbabilityOfOccurrence() != null) {
+          fillMonthColumnsDistributed(diff, mapping, order, pos, startDate, beginDistribute);
+        }
+        break;
+      case FESTPREISPAKET:
+        // fill reset at end of project time
+        this.addEndAtPeriodOfPerformance(diff, mapping, order, pos, startDate);
+        break;
     }
+  }
+
+  private void fillByPaymentSchedule(final List<PaymentScheduleDO> paymentSchedules, final PropertyMapping mapping,
+      final AuftragDO order, final AuftragsPositionDO pos, final Calendar startDate)
+  {
+    // payment values
+    BigDecimal probability = getProbabilityOfAccurence(order, pos);
 
     final Calendar currentMonth = Calendar.getInstance();
     currentMonth.setTime(startDate.getTime());
-    //currentMonth.add(Calendar.MONTH, -1);
-    final Calendar posEndDate = getEndLeistungszeitraumNextMonthEnd(order, pos);
+    currentMonth.add(Calendar.MONTH, -1);
 
     for (int i = 0; i < monthCols.length; i++) {
-      //currentMonth.add(Calendar.MONTH, 1);
+      currentMonth.add(Calendar.MONTH, 1);
       BigDecimal sum = new BigDecimal(0.0);
 
       for (PaymentScheduleDO schedule : paymentSchedules) {
@@ -316,31 +330,38 @@ public class ForecastExport
       if (sum.compareTo(BigDecimal.ZERO) > 0 && checkAfterMonthBefore(currentMonth)) {
         mapping.add(monthCols[i], sum);
       }
-
-      // detect period of performance end
-      if (posEndDate.get(Calendar.MONTH) == currentMonth.get(Calendar.MONTH) &&
-          posEndDate.get(Calendar.YEAR) == currentMonth.get(Calendar.YEAR)) {
-        periodOfPerformanceEnd = monthCols[i];
-      }
     }
+  }
 
-    // check for payment difference
-    posNettoSum = posNettoSum.subtract(sumPaymentSchedule);
-    if (posNettoSum.compareTo(BigDecimal.ZERO) == 0 || periodOfPerformanceEnd == null) {
+  private void addEndAtPeriodOfPerformance(final BigDecimal sum, final PropertyMapping mapping,
+      final AuftragDO order, final AuftragsPositionDO pos, final Calendar startDate)
+  {
+    final Calendar posEndDate = getEndLeistungszeitraumNextMonthEnd(order, pos);
+
+    int index = this.getMonthIndex(posEndDate, startDate);
+
+    if (index < 0 || index > 11) {
       return;
     }
 
     // handle payment difference
-    final Object previousValue = mapping.getMapping().get(periodOfPerformanceEnd.name());
+    final Object previousValue = mapping.getMapping().get(monthCols[index].name());
 
-    if (previousValue == null && checkAfterMonthBefore(currentMonth)) {
-      mapping.add(periodOfPerformanceEnd, posNettoSum);
+    if (previousValue == null && checkAfterMonthBefore(posEndDate)) {
+      mapping.add(monthCols[index], sum);
     } else {
-      posNettoSum = posNettoSum.add((BigDecimal) previousValue);
-      if (checkAfterMonthBefore(currentMonth)) {
-        mapping.add(periodOfPerformanceEnd, posNettoSum);
+      if (checkAfterMonthBefore(posEndDate)) {
+        mapping.add(monthCols[index], sum.add((BigDecimal) previousValue));
       }
     }
+  }
+
+  private int getMonthIndex(final Calendar date, final Calendar startDate)
+  {
+    int monthDate = date.get(Calendar.YEAR) * 12 + date.get(Calendar.MONTH) + 1;
+    int monthStartDate = startDate.get(Calendar.YEAR) * 12 + startDate.get(Calendar.MONTH) + 1;
+
+    return monthDate - monthStartDate + 1; // index from 0 to 11, +1 because table starts one month before
   }
 
   /**
@@ -377,34 +398,29 @@ public class ForecastExport
     return schedulesFiltered;
   }
 
-  private void fillMonthColumnsDistributed(final PropertyMapping mapping, final AuftragDO order, final AuftragsPositionDO pos, final Calendar startDate)
+  private void fillMonthColumnsDistributed(final BigDecimal value, final PropertyMapping mapping, final AuftragDO order, final AuftragsPositionDO pos,
+      final Calendar startDate, final Calendar beginDistribute)
   {
-    Calendar posStartDate = getStartLeistungszeitraumNextMonthEnd(order, pos);
-    Calendar posEndDate = getEndLeistungszeitraumNextMonthEnd(order, pos);
-    Calendar oneMonthBeforeNow = Calendar.getInstance();
-    oneMonthBeforeNow.add(Calendar.MONTH, -1);
-    Calendar startDateWhile = Calendar.getInstance();
-    startDateWhile.setTime(startDate.getTime());
-    Calendar endDate = Calendar.getInstance();
-    endDate.setTime(startDate.getTime());
-    endDate.add(Calendar.YEAR, 1);
-    BigDecimal posSum = computeAccurenceValue(order, pos);
-    if (posSum != null) {
-      BigDecimal monthCount = getMonthCount(oneMonthBeforeNow, posEndDate);
-      if (monthCount != null && monthCount.compareTo(BigDecimal.ZERO) > 0) {
-        BigDecimal partlyNettoSum = posSum.divide(monthCount, RoundingMode.HALF_UP);
-        int i = 0;
-        while (endDate.after(posStartDate) && (posEndDate.equals(posStartDate) || posEndDate.after(posStartDate)) && i < monthCols.length) {
-          if (posStartDate.get(Calendar.MONTH) == startDateWhile.get(Calendar.MONTH) && posStartDate.get(Calendar.YEAR) == startDateWhile.get(Calendar.YEAR)) {
-            if (checkAfterMonthBefore(startDateWhile)) {
-              mapping.add(monthCols[i], partlyNettoSum);
-            }
-            posStartDate.add(Calendar.MONTH, 1);
-          }
-          startDateWhile.add(Calendar.MONTH, 1);
-          i++;
-        }
-      }
+    int indexBegin = this.getMonthIndex(beginDistribute, startDate);
+    int indexEnd = this.getMonthIndex(getEndLeistungszeitraumNextMonthEnd(order, pos), startDate);
+
+    if (indexEnd < indexBegin) {
+      //should not happen
+      return;
+    }
+
+    BigDecimal partlyNettoSum = value.divide(BigDecimal.valueOf((indexEnd - indexBegin) + 1), RoundingMode.HALF_UP);
+
+    // create bounds
+    if (indexBegin < 0) {
+      indexBegin = 0;
+    }
+    if (indexEnd > 11) {
+      indexEnd = 11;
+    }
+
+    for (int i = indexBegin; i <= indexEnd; ++i) {
+      mapping.add(monthCols[i], partlyNettoSum);
     }
   }
 
