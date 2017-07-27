@@ -23,28 +23,35 @@
 
 package org.projectforge.plugins.marketing;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang.StringUtils;
+import org.hibernate.Session;
 import org.hibernate.criterion.Restrictions;
 import org.projectforge.business.address.AddressDO;
 import org.projectforge.business.address.AddressDao;
+import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.framework.i18n.UserException;
 import org.projectforge.framework.persistence.api.BaseDao;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.persistence.api.QueryFilter;
+import org.projectforge.framework.persistence.history.DisplayHistoryEntry;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
+import de.micromata.genome.db.jpa.history.api.DiffEntry;
+import de.micromata.genome.db.jpa.history.api.HistProp;
+import de.micromata.genome.db.jpa.history.api.HistoryEntry;
+
 /**
- *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- *
  */
 @Repository
 public class AddressCampaignValueDao extends BaseDao<AddressCampaignValueDO>
@@ -93,7 +100,7 @@ public class AddressCampaignValueDao extends BaseDao<AddressCampaignValueDO>
 
   /**
    * @param address
-   * @param taskId If null, then task will be set to null;
+   * @param taskId  If null, then task will be set to null;
    * @see BaseDao#getOrLoad(Integer)
    */
   public void setAddress(final AddressCampaignValueDO addressCampaignValue, final Integer addressId)
@@ -176,6 +183,42 @@ public class AddressCampaignValueDao extends BaseDao<AddressCampaignValueDO>
       map.put(addressCampaignValue.getAddressId(), addressCampaignValue);
     }
     return map;
+  }
+
+  @Override
+  public List<DisplayHistoryEntry> convert(final HistoryEntry<?> entry, final Session session)
+  {
+    if (entry.getDiffEntries().isEmpty() == true) {
+      final DisplayHistoryEntry se = new DisplayHistoryEntry(getUserGroupCache(), entry);
+      return Collections.singletonList(se);
+    }
+    List<DisplayHistoryEntry> result = new ArrayList<>();
+    for (DiffEntry prop : entry.getDiffEntries()) {
+      DisplayHistoryEntry se = new DisplayHistoryEntry(getUserGroupCache(), entry, prop, session)
+      {
+        @Override
+        protected Object getObjectValue(UserGroupCache userGroupCache, Session session, HistProp prop)
+        {
+          if (prop == null) {
+            return null;
+          }
+
+          String type = prop.getType();
+
+          if (AddressDO.class.getName().equals(type)) {
+            return prop.getValue();
+          }
+          if (AddressCampaignDO.class.getName().equals(type)) {
+            return prop.getValue();
+          }
+
+          return super.getObjectValue(userGroupCache, session, prop);
+        }
+      };
+      result.add(se);
+    }
+
+    return result;
   }
 
   public void setAddressDao(final AddressDao addressDao)
