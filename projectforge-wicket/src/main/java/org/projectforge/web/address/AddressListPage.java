@@ -219,7 +219,7 @@ public class AddressListPage extends AbstractListPage<AddressListForm, AddressDa
               @Override
               protected byte[] getImageData(final Attributes attributes)
               {
-                byte[] result = address.getImageData();
+                byte[] result = address.getImageDataPreview();
                 if (result == null || result.length < 1) {
                   try {
                     result = IOUtils
