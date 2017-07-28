@@ -201,7 +201,7 @@ public class ICalGenerator
         throw new RuntimeException("Unknown converter " + export);
       }
 
-      converter.convert(event, vEvent);
+      converter.toVEvent(event, vEvent);
     }
 
     return vEvent;

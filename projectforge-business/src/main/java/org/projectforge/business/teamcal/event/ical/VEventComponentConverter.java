@@ -6,5 +6,7 @@ import net.fortuna.ical4j.model.component.VEvent;
 
 public interface VEventComponentConverter
 {
-  public boolean convert(TeamEventDO event, VEvent vEvent);
+  public boolean toVEvent(TeamEventDO event, VEvent vEvent);
+
+  public boolean fromVEvent(TeamEventDO event, VEvent vEvent);
 }

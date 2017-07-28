@@ -9,18 +9,19 @@ import net.fortuna.ical4j.model.ParameterFactoryImpl;
 import net.fortuna.ical4j.model.ParameterList;
 import net.fortuna.ical4j.model.Property;
 import net.fortuna.ical4j.model.component.VEvent;
+import net.fortuna.ical4j.model.property.DtStart;
 
-public class PropertyConverter implements VEventComponentConverter
+public abstract class PropertyConverter implements VEventComponentConverter
 {
-  public Property convert(final TeamEventDO event)
+  public Property toVEvent(final TeamEventDO event)
   {
     return null;
   }
 
   @Override
-  public boolean convert(TeamEventDO event, VEvent vEvent)
+  public boolean toVEvent(TeamEventDO event, VEvent vEvent)
   {
-    Property property = this.convert(event);
+    Property property = this.toVEvent(event);
 
     if (property == null) {
       return false;
@@ -29,6 +30,12 @@ public class PropertyConverter implements VEventComponentConverter
     vEvent.getProperties().add(property);
 
     return true;
+  }
+
+  protected boolean isAllDay(final VEvent vEvent)
+  {
+    final DtStart dtStart = vEvent.getStartDate();
+    return dtStart != null && dtStart.getDate() instanceof net.fortuna.ical4j.model.DateTime == false;
   }
 
   protected void parseAdditionalParameters(final ParameterList list, final String additonalParams)

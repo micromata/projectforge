@@ -4,15 +4,23 @@ import org.projectforge.business.teamcal.event.model.TeamEventDO;
 
 import net.fortuna.ical4j.model.DateTime;
 import net.fortuna.ical4j.model.Property;
+import net.fortuna.ical4j.model.component.VEvent;
 import net.fortuna.ical4j.model.property.Created;
 
 public class CreatedConverter extends PropertyConverter
 {
   @Override
-  public Property convert(final TeamEventDO event)
+  public Property toVEvent(final TeamEventDO event)
   {
     DateTime created = new DateTime(event.getCreated());
     created.setUtc(true);
     return new Created(created);
+  }
+
+  @Override
+  public boolean fromVEvent(final TeamEventDO event, final VEvent vEvent)
+  {
+    // TODO is this read?
+    return false;
   }
 }

@@ -1,12 +1,14 @@
 package org.projectforge.business.teamcal.event.ical.converter;
 
 import java.net.URISyntaxException;
+import java.util.Iterator;
 
 import org.projectforge.business.teamcal.event.model.TeamEventDO;
 
 import net.fortuna.ical4j.model.Parameter;
 import net.fortuna.ical4j.model.ParameterList;
 import net.fortuna.ical4j.model.Property;
+import net.fortuna.ical4j.model.component.VEvent;
 import net.fortuna.ical4j.model.parameter.Cn;
 import net.fortuna.ical4j.model.parameter.CuType;
 import net.fortuna.ical4j.model.parameter.PartStat;
@@ -23,7 +25,7 @@ public class OrganizerConverter extends PropertyConverter
   }
 
   @Override
-  public Property convert(final TeamEventDO event)
+  public Property toVEvent(final TeamEventDO event)
   {
     // TODO improve ownership handling
     try {
@@ -63,5 +65,62 @@ public class OrganizerConverter extends PropertyConverter
     }
 
     return null;
+  }
+
+  @Override
+  public boolean fromVEvent(final TeamEventDO event, final VEvent vEvent)
+  {
+    boolean ownership = false;
+
+    Organizer organizer = vEvent.getOrganizer();
+    if (organizer != null) {
+      Parameter organizerCNParam = organizer.getParameter(Parameter.CN);
+      Parameter organizerMailParam = organizer.getParameter("EMAIL");
+
+      String organizerCN = organizerCNParam != null ? organizerCNParam.getValue() : null;
+      String organizerEMail = organizerMailParam != null ? organizerMailParam.getValue() : null;
+      String organizerValue = organizer.getValue();
+
+      // determine ownership
+      if ("mailto:null".equals(organizerValue)) {
+        // owner mail to is missing (apple calender tool)
+        ownership = true;
+      } else if (organizerCN != null && organizerCN.equals(event.getCreator().getUsername())) {
+        // organizer name is user name
+        ownership = true;
+      } else if (organizerEMail != null && organizerEMail.equals(event.getCreator().getEmail())) {
+        // organizer email is user email
+        ownership = true;
+      }
+
+      // further parameters
+      StringBuilder sb = new StringBuilder();
+      Iterator<Parameter> iter = organizer.getParameters().iterator();
+
+      while (iter.hasNext()) {
+        final Parameter param = iter.next();
+        if (param.getName() == null) {
+          continue;
+        }
+
+        sb.append(";");
+        sb.append(param.toString());
+      }
+
+      if (sb.length() > 0) {
+        // remove first ';'
+        event.setOrganizerAdditionalParams(sb.substring(1));
+      }
+
+      if ("mailto:null".equals(organizerValue) == false) {
+        event.setOrganizer(organizer.getValue());
+      }
+    } else {
+      // some clients, such as thunderbird lightning, do not send an organizer -> pf has ownership
+      ownership = true;
+    }
+
+    event.setOwnership(ownership);
+    return false;
   }
 }

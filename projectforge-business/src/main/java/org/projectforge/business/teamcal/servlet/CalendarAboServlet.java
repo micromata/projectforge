@@ -188,7 +188,7 @@ public class CalendarAboServlet extends HttpServlet
 
       // setup event is needed for empty calendars
       if (generator.isEmpty()) {
-        generator.addVEvent(new VEvent(new net.fortuna.ical4j.model.Date(0), "SETUP EVENT"));
+        generator.addVEvent(new VEvent(new net.fortuna.ical4j.model.Date(0), TeamCalConfig.SETUP_EVENT));
       }
 
       final StringBuffer buf = new StringBuffer();
