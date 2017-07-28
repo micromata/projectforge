@@ -53,7 +53,7 @@ import org.projectforge.business.teamcal.event.TeamEventFilter;
 import org.projectforge.business.teamcal.event.TeamEventService;
 import org.projectforge.business.teamcal.event.TeamRecurrenceEvent;
 import org.projectforge.business.teamcal.event.diff.TeamEventDiffType;
-import org.projectforge.business.teamcal.event.ical.generator.ICalGenerator;
+import org.projectforge.business.teamcal.event.ical.ICalGenerator;
 import org.projectforge.business.teamcal.event.model.ReminderDurationUnit;
 import org.projectforge.business.teamcal.event.model.TeamEvent;
 import org.projectforge.business.teamcal.event.model.TeamEventAttendeeDO;
@@ -72,7 +72,6 @@ import org.springframework.stereotype.Controller;
 import net.fortuna.ical4j.data.CalendarBuilder;
 import net.fortuna.ical4j.model.Component;
 import net.fortuna.ical4j.model.ComponentList;
-import net.fortuna.ical4j.model.TimeZone;
 import net.fortuna.ical4j.model.component.CalendarComponent;
 import net.fortuna.ical4j.model.component.VEvent;
 import net.fortuna.ical4j.model.property.Uid;
@@ -217,7 +216,7 @@ public class TeamEventDaoRest
   private Response saveVEvent(VEvent event, TeamCalDO teamCalDO, boolean withUid)
   {
     //Building TeamEventDO from VEvent
-    final TeamEventDO teamEvent = teamCalService.createTeamEventDO(event, TimeZone.getTimeZone(teamCalDO.getOwner().getTimeZone()), withUid);
+    final TeamEventDO teamEvent = teamCalService.createTeamEventDO(event, withUid);
     //Setting the calendar
     teamEvent.setCalendar(teamCalDO);
     //Save attendee list, because assignment later
@@ -266,7 +265,7 @@ public class TeamEventDaoRest
       //Geting the event uid
       Uid eventUid = event.getUid();
       //Building TeamEventDO from VEvent
-      final TeamEventDO teamEvent = teamCalService.createTeamEventDO(event, TimeZone.getTimeZone(teamCalDO.getOwner().getTimeZone()));
+      final TeamEventDO teamEvent = teamCalService.createTeamEventDO(event, true);
       if (vevents.size() > 1) {
         VEvent event2 = (VEvent) vevents.get(1);
         if (event.getUid().equals(event2.getUid())) {

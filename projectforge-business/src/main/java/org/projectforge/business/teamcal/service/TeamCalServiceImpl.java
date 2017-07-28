@@ -61,17 +61,7 @@ public class TeamCalServiceImpl
   @Autowired
   private TeamEventService teamEventService;
 
-  public TeamEventDO createTeamEventDO(final VEvent event)
-  {
-    return createTeamEventDO(event, ThreadLocalUserContext.getTimeZone(), true);
-  }
-
-  public TeamEventDO createTeamEventDO(final VEvent event, java.util.TimeZone timeZone)
-  {
-    return createTeamEventDO(event, timeZone, true);
-  }
-
-  public TeamEventDO createTeamEventDO(final VEvent event, java.util.TimeZone timeZone, boolean withUid)
+  public TeamEventDO createTeamEventDO(final VEvent event, boolean withUid)
   {
     final TeamEventDO teamEvent = new TeamEventDO();
     final PFUserDO user = ThreadLocalUserContext.getUser();
@@ -276,7 +266,6 @@ public class TeamCalServiceImpl
         exDateList.add(ICal4JUtils.asICalDateString(exDate, DateHelper.UTC, teamEvent.isAllDay()));
       });
 
-      // TODO compute diff? could help to improve concurrent requests
       if (exDateList.isEmpty()) {
         teamEvent.setRecurrenceExDate(null);
       } else {
@@ -327,7 +316,7 @@ public class TeamCalServiceImpl
       return events;
     }
     for (final VEvent vEvent : list) {
-      events.add(createTeamEventDO(vEvent));
+      events.add(createTeamEventDO(vEvent, true));
     }
     events.sort((o1, o2) -> {
       final Date startDate1 = o1.getStartDate();

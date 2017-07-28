@@ -40,7 +40,7 @@ import org.projectforge.business.teamcal.event.TeamEventDao;
 import org.projectforge.business.teamcal.event.TeamEventService;
 import org.projectforge.business.teamcal.event.TeamRecurrenceEvent;
 import org.projectforge.business.teamcal.event.diff.TeamEventDiffType;
-import org.projectforge.business.teamcal.event.ical.generator.ICalGenerator;
+import org.projectforge.business.teamcal.event.ical.ICalGenerator;
 import org.projectforge.business.teamcal.event.model.TeamEvent;
 import org.projectforge.business.teamcal.event.model.TeamEventAttendeeDO;
 import org.projectforge.business.teamcal.event.model.TeamEventDO;

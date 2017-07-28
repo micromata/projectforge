@@ -1,4 +1,6 @@
-package org.projectforge.business.teamcal.event.ical.generator.converter;
+package org.projectforge.business.teamcal.event.ical.converter;
+
+import static org.projectforge.business.teamcal.event.ical.ICalConverterStore.TIMEZONE_REGISTRY;
 
 import java.util.Date;
 
@@ -20,7 +22,7 @@ public class DTStartConverter extends PropertyConverter
       return new DtStart(date);
     } else {
       DateTime date = new DateTime(event.getStartDate());
-      date.setTimeZone(registry.getTimeZone(event.getTimeZone().getID()));
+      date.setTimeZone(TIMEZONE_REGISTRY.getTimeZone(event.getTimeZone().getID()));
       return new DtStart(date);
     }
   }

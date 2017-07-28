@@ -1,6 +1,6 @@
-package org.projectforge.business.teamcal.event.ical.generator.converter;
+package org.projectforge.business.teamcal.event.ical.converter;
 
-import org.projectforge.business.teamcal.event.ical.generator.VEventConverter;
+import org.projectforge.business.teamcal.event.ical.VEventComponentConverter;
 import org.projectforge.business.teamcal.event.model.ReminderDurationUnit;
 import org.projectforge.business.teamcal.event.model.TeamEventDO;
 
@@ -10,7 +10,7 @@ import net.fortuna.ical4j.model.component.VEvent;
 import net.fortuna.ical4j.model.property.Action;
 import net.fortuna.ical4j.model.property.Trigger;
 
-public class AlarmConverter implements VEventConverter
+public class AlarmConverter implements VEventComponentConverter
 {
   @Override
   public boolean convert(final TeamEventDO event, final VEvent vEvent)

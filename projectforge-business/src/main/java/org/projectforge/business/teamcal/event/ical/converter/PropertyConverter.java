@@ -1,21 +1,17 @@
-package org.projectforge.business.teamcal.event.ical.generator.converter;
+package org.projectforge.business.teamcal.event.ical.converter;
 
 import java.net.URISyntaxException;
 
-import org.projectforge.business.teamcal.event.ical.generator.VEventConverter;
+import org.projectforge.business.teamcal.event.ical.VEventComponentConverter;
 import org.projectforge.business.teamcal.event.model.TeamEventDO;
 
 import net.fortuna.ical4j.model.ParameterFactoryImpl;
 import net.fortuna.ical4j.model.ParameterList;
 import net.fortuna.ical4j.model.Property;
-import net.fortuna.ical4j.model.TimeZoneRegistry;
-import net.fortuna.ical4j.model.TimeZoneRegistryFactory;
 import net.fortuna.ical4j.model.component.VEvent;
 
-public class PropertyConverter implements VEventConverter
+public class PropertyConverter implements VEventComponentConverter
 {
-  protected static TimeZoneRegistry registry = TimeZoneRegistryFactory.getInstance().createRegistry();
-
   public Property convert(final TeamEventDO event)
   {
     return null;

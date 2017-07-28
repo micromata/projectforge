@@ -27,7 +27,7 @@ import org.projectforge.business.teamcal.admin.model.TeamCalDO;
 import org.projectforge.business.teamcal.event.diff.TeamEventDiff;
 import org.projectforge.business.teamcal.event.diff.TeamEventDiffType;
 import org.projectforge.business.teamcal.event.diff.TeamEventField;
-import org.projectforge.business.teamcal.event.ical.generator.ICalGenerator;
+import org.projectforge.business.teamcal.event.ical.ICalGenerator;
 import org.projectforge.business.teamcal.event.model.TeamEvent;
 import org.projectforge.business.teamcal.event.model.TeamEventAttendeeDO;
 import org.projectforge.business.teamcal.event.model.TeamEventAttendeeDao;

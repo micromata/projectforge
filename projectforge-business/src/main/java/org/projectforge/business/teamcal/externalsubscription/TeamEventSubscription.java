@@ -48,7 +48,6 @@ import net.fortuna.ical4j.data.CalendarBuilder;
 import net.fortuna.ical4j.model.Calendar;
 import net.fortuna.ical4j.model.Component;
 import net.fortuna.ical4j.model.Property;
-import net.fortuna.ical4j.model.TimeZone;
 import net.fortuna.ical4j.model.component.CalendarComponent;
 import net.fortuna.ical4j.model.component.VEvent;
 
@@ -206,8 +205,7 @@ public class TeamEventSubscription implements Serializable
       // the event id must (!) be negative and decrementing (different on each event)
       Integer startId = -1;
       for (final VEvent event : vEvents) {
-        final TeamEventDO teamEvent = teamEventConverter.createTeamEventDO(event,
-            TimeZone.getTimeZone(teamCalDO.getOwner().getTimeZone()));
+        final TeamEventDO teamEvent = teamEventConverter.createTeamEventDO(event, true);
         teamEvent.setId(startId);
         teamEvent.setCalendar(teamCalDO);
 

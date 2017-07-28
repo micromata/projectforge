@@ -1,8 +1,8 @@
-package org.projectforge.business.teamcal.event.ical.generator.converter;
+package org.projectforge.business.teamcal.event.ical.converter;
 
 import java.util.List;
 
-import org.projectforge.business.teamcal.event.ical.generator.VEventConverter;
+import org.projectforge.business.teamcal.event.ical.VEventComponentConverter;
 import org.projectforge.business.teamcal.event.model.TeamEventDO;
 import org.projectforge.framework.calendar.ICal4JUtils;
 import org.springframework.util.CollectionUtils;
@@ -13,7 +13,7 @@ import net.fortuna.ical4j.model.component.VEvent;
 import net.fortuna.ical4j.model.parameter.Value;
 import net.fortuna.ical4j.model.property.ExDate;
 
-public class ExDateConverter implements VEventConverter
+public class ExDateConverter implements VEventComponentConverter
 {
 
   @Override

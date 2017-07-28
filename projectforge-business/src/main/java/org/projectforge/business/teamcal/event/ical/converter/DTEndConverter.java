@@ -1,4 +1,6 @@
-package org.projectforge.business.teamcal.event.ical.generator.converter;
+package org.projectforge.business.teamcal.event.ical.converter;
+
+import static org.projectforge.business.teamcal.event.ical.ICalConverterStore.TIMEZONE_REGISTRY;
 
 import java.util.Date;
 
@@ -21,7 +23,7 @@ public class DTEndConverter extends PropertyConverter
       date = new net.fortuna.ical4j.model.Date(startUtc);
     } else {
       date = new DateTime(event.getEndDate());
-      ((net.fortuna.ical4j.model.DateTime) date).setTimeZone(registry.getTimeZone(event.getTimeZone().getID()));
+      ((net.fortuna.ical4j.model.DateTime) date).setTimeZone(TIMEZONE_REGISTRY.getTimeZone(event.getTimeZone().getID()));
     }
 
     return new DtEnd(date);

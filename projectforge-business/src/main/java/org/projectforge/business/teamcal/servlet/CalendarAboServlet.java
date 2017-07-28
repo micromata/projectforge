@@ -48,7 +48,7 @@ import org.projectforge.business.teamcal.TeamCalConfig;
 import org.projectforge.business.teamcal.common.CalendarHelper;
 import org.projectforge.business.teamcal.event.TeamEventFilter;
 import org.projectforge.business.teamcal.event.TeamEventService;
-import org.projectforge.business.teamcal.event.ical.generator.ICalGenerator;
+import org.projectforge.business.teamcal.event.ical.ICalGenerator;
 import org.projectforge.business.teamcal.event.model.TeamEvent;
 import org.projectforge.business.teamcal.event.model.TeamEventDO;
 import org.projectforge.business.teamcal.model.CalendarFeedConst;

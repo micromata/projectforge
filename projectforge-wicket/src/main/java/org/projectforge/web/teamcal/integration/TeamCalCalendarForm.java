@@ -265,7 +265,7 @@ public class TeamCalCalendarForm extends CalendarForm
         final TemplateEntry activeTemplateEntry = ((TeamCalCalendarFilter) filter).getActiveTemplateEntry();
         // check id/external id. If not yet given, create new entry and ask for calendar to add: Redirect to TeamEventEditPage.
 
-        final TeamEventDO teamEvent = teamEventConverter.createTeamEventDO(event, ThreadLocalUserContext.getTimeZone(), true);
+        final TeamEventDO teamEvent = teamEventConverter.createTeamEventDO(event, true);
 
         if (uid != null && activeTemplateEntry != null) {
           final TeamEventDO dbEvent = teamEventDao.getByUid(activeTemplateEntry.getDefaultCalendarId(), uid.getValue(), false);

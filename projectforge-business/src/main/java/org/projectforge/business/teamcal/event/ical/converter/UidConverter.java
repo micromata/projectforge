@@ -1,4 +1,4 @@
-package org.projectforge.business.teamcal.event.ical.generator.converter;
+package org.projectforge.business.teamcal.event.ical.converter;
 
 import org.projectforge.business.teamcal.event.model.TeamEventDO;
 

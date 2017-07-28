@@ -1,4 +1,6 @@
-package org.projectforge.business.teamcal.event.ical.generator;
+package org.projectforge.business.teamcal.event.ical;
+
+import static org.projectforge.business.teamcal.event.ical.ICalConverterStore.*;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -18,8 +20,6 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import net.fortuna.ical4j.data.CalendarOutputter;
 import net.fortuna.ical4j.model.Calendar;
 import net.fortuna.ical4j.model.Component;
-import net.fortuna.ical4j.model.TimeZoneRegistry;
-import net.fortuna.ical4j.model.TimeZoneRegistryFactory;
 import net.fortuna.ical4j.model.component.VEvent;
 import net.fortuna.ical4j.model.property.CalScale;
 import net.fortuna.ical4j.model.property.DtEnd;
@@ -33,29 +33,10 @@ import net.fortuna.ical4j.model.property.Version;
 public class ICalGenerator
 {
   private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(ICalGenerator.class);
-  private static TimeZoneRegistry registry = TimeZoneRegistryFactory.getInstance().createRegistry();
 
   //------------------------------------------------------------------------------------------------------------
   // Static part
   //------------------------------------------------------------------------------------------------------------
-
-  public static final String VEVENT_DTSTART = "VEVENT_DTSTART";
-  public static final String VEVENT_DTEND = "VEVENT_DTEND";
-  public static final String VEVENT_SUMMARY = "VEVENT_SUMMARY";
-  public static final String VEVENT_UID = "VEVENT_UID";
-  public static final String VEVENT_LOCATION = "VEVENT_LOCATION";
-  public static final String VEVENT_CREATED = "VEVENT_CREATED";
-  public static final String VEVENT_DTSTAMP = "VEVENT_DTSTAMP";
-  public static final String VEVENT_LAST_MODIFIED = "VEVENT_LAST_MODIFIED";
-  public static final String VEVENT_SEQUENCE = "VEVENT_SEQUENCE";
-  public static final String VEVENT_ORGANIZER = "VEVENT_ORGANIZER";
-  public static final String VEVENT_ORGANIZER_EDITABLE = "VEVENT_ORGANIZER_EDITABLE";
-  public static final String VEVENT_TRANSP = "VEVENT_TRANSP";
-  public static final String VEVENT_ALARM = "VEVENT_VALARM";
-  public static final String VEVENT_DESCRIPTION = "VEVENT_DESCRIPTION";
-  public static final String VEVENT_ATTENDEES = "VEVENT_ATTENDEE";
-  public static final String VEVENT_RRULE = "VEVENT_RRULE";
-  public static final String VEVENT_EX_DATE = "VEVENT_EX_DATE";
 
   public static ICalGenerator exportAllFields()
   {
@@ -127,7 +108,7 @@ public class ICalGenerator
 
     // set time zone
     if (this.timeZone != null) {
-      final net.fortuna.ical4j.model.TimeZone timezone = registry.getTimeZone(this.timeZone.getID());
+      final net.fortuna.ical4j.model.TimeZone timezone = TIMEZONE_REGISTRY.getTimeZone(this.timeZone.getID());
       calendar.getComponents().add(timezone.getVTimeZone());
     }
 
@@ -208,12 +189,12 @@ public class ICalGenerator
 
     // set time zone
     if (this.timeZone != null) {
-      final net.fortuna.ical4j.model.TimeZone timezone = registry.getTimeZone(this.timeZone.getID());
+      final net.fortuna.ical4j.model.TimeZone timezone = TIMEZONE_REGISTRY.getTimeZone(this.timeZone.getID());
       vEvent.getProperties().add(timezone.getVTimeZone().getTimeZoneId());
     }
 
     for (String export : this.exportsVEvent) {
-      VEventConverter converter = store.getVEventConverter(export);
+      VEventComponentConverter converter = store.getVEventConverter(export);
 
       if (converter == null) {
         // TODO
@@ -229,7 +210,7 @@ public class ICalGenerator
   public VEvent convertVEvent(final Date startDate, final Date endDate, final boolean allDay, final String summary, final String uid)
   {
     VEvent vEvent = new VEvent(false);
-    final net.fortuna.ical4j.model.TimeZone timezone = registry.getTimeZone(timeZone.getID());
+    final net.fortuna.ical4j.model.TimeZone timezone = TIMEZONE_REGISTRY.getTimeZone(timeZone.getID());
     final net.fortuna.ical4j.model.Date fortunaStartDate, fortunaEndDate;
 
     if (allDay == true) {
