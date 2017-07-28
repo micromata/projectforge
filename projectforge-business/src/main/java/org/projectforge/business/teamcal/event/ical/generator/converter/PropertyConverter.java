@@ -8,10 +8,14 @@ import org.projectforge.business.teamcal.event.model.TeamEventDO;
 import net.fortuna.ical4j.model.ParameterFactoryImpl;
 import net.fortuna.ical4j.model.ParameterList;
 import net.fortuna.ical4j.model.Property;
+import net.fortuna.ical4j.model.TimeZoneRegistry;
+import net.fortuna.ical4j.model.TimeZoneRegistryFactory;
 import net.fortuna.ical4j.model.component.VEvent;
 
 public class PropertyConverter implements VEventConverter
 {
+  protected static TimeZoneRegistry registry = TimeZoneRegistryFactory.getInstance().createRegistry();
+
   public Property convert(final TeamEventDO event)
   {
     return null;

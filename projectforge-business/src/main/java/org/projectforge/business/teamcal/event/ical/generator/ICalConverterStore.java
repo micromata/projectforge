@@ -6,9 +6,13 @@ import java.util.Map;
 import org.apache.commons.lang.StringUtils;
 import org.projectforge.business.teamcal.event.ical.generator.converter.AlarmConverter;
 import org.projectforge.business.teamcal.event.ical.generator.converter.AttendeeConverter;
+import org.projectforge.business.teamcal.event.ical.generator.converter.DTEndConverter;
+import org.projectforge.business.teamcal.event.ical.generator.converter.DTStartConverter;
 import org.projectforge.business.teamcal.event.ical.generator.converter.ExDateConverter;
 import org.projectforge.business.teamcal.event.ical.generator.converter.OrganizerConverter;
 import org.projectforge.business.teamcal.event.ical.generator.converter.PropertyConverter;
+import org.projectforge.business.teamcal.event.ical.generator.converter.SummaryConverter;
+import org.projectforge.business.teamcal.event.ical.generator.converter.UidConverter;
 import org.projectforge.business.teamcal.event.model.TeamEventDO;
 
 import net.fortuna.ical4j.model.DateTime;
@@ -55,6 +59,18 @@ public class ICalConverterStore
 
   private void registerVEventConverters()
   {
+    // DT start
+    this.registerVEventConverter(ICalGenerator.VEVENT_DTSTART, new DTStartConverter());
+
+    // DT end
+    this.registerVEventConverter(ICalGenerator.VEVENT_DTEND, new DTEndConverter());
+
+    // summary
+    this.registerVEventConverter(ICalGenerator.VEVENT_SUMMARY, new SummaryConverter());
+
+    // uid
+    this.registerVEventConverter(ICalGenerator.VEVENT_UID, new UidConverter());
+
     // location
     this.registerVEventConverter(ICalGenerator.VEVENT_LOCATION, new PropertyConverter()
     {

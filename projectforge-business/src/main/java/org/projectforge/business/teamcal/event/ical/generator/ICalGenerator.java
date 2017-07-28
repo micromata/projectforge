@@ -22,8 +22,11 @@ import net.fortuna.ical4j.model.TimeZoneRegistry;
 import net.fortuna.ical4j.model.TimeZoneRegistryFactory;
 import net.fortuna.ical4j.model.component.VEvent;
 import net.fortuna.ical4j.model.property.CalScale;
+import net.fortuna.ical4j.model.property.DtEnd;
+import net.fortuna.ical4j.model.property.DtStart;
 import net.fortuna.ical4j.model.property.Method;
 import net.fortuna.ical4j.model.property.ProdId;
+import net.fortuna.ical4j.model.property.Summary;
 import net.fortuna.ical4j.model.property.Uid;
 import net.fortuna.ical4j.model.property.Version;
 
@@ -36,26 +39,30 @@ public class ICalGenerator
   // Static part
   //------------------------------------------------------------------------------------------------------------
 
+  public static final String VEVENT_DTSTART = "VEVENT_DTSTART";
+  public static final String VEVENT_DTEND = "VEVENT_DTEND";
+  public static final String VEVENT_SUMMARY = "VEVENT_SUMMARY";
+  public static final String VEVENT_UID = "VEVENT_UID";
   public static final String VEVENT_LOCATION = "VEVENT_LOCATION";
   public static final String VEVENT_CREATED = "VEVENT_CREATED";
   public static final String VEVENT_DTSTAMP = "VEVENT_DTSTAMP";
-  public static final String VEVENT_LAST_MODIFIED = "LAST_MODIFIED";
-  public static final String VEVENT_SEQUENCE = "SEQUENCE";
-  public static final String VEVENT_ORGANIZER = "ORGANIZER";
+  public static final String VEVENT_LAST_MODIFIED = "VEVENT_LAST_MODIFIED";
+  public static final String VEVENT_SEQUENCE = "VEVENT_SEQUENCE";
+  public static final String VEVENT_ORGANIZER = "VEVENT_ORGANIZER";
   public static final String VEVENT_ORGANIZER_EDITABLE = "VEVENT_ORGANIZER_EDITABLE";
-  public static final String VEVENT_TRANP = "TRANSP";
-  public static final String VEVENT_ALARM = "VALARM";
-  public static final String VEVENT_DESCRIPTION = "DESCRIPTION";
-  public static final String VEVENT_ATTENDEES = "ATTENDEE";
-  public static final String VEVENT_RRULE = "RRULE";
-  public static final String VEVENT_EX_DATE = "EX_DATE";
+  public static final String VEVENT_TRANP = "VEVENT_TRANSP";
+  public static final String VEVENT_ALARM = "VEVENT_VALARM";
+  public static final String VEVENT_DESCRIPTION = "VEVENT_DESCRIPTION";
+  public static final String VEVENT_ATTENDEES = "VEVENT_ATTENDEE";
+  public static final String VEVENT_RRULE = "VEVENT_RRULE";
+  public static final String VEVENT_EX_DATE = "VEVENT_EX_DATE";
 
   public static ICalGenerator exportAllFields()
   {
     final ICalGenerator generator = new ICalGenerator();
     generator.exportsVEvent = new ArrayList<>(
-        Arrays.asList(VEVENT_CREATED, VEVENT_LOCATION, VEVENT_DTSTAMP, VEVENT_LAST_MODIFIED, VEVENT_SEQUENCE, VEVENT_ORGANIZER, VEVENT_TRANP, VEVENT_ALARM,
-            VEVENT_DESCRIPTION, VEVENT_ATTENDEES, VEVENT_RRULE, VEVENT_EX_DATE));
+        Arrays.asList(VEVENT_DTSTART, VEVENT_DTEND, VEVENT_SUMMARY, VEVENT_UID, VEVENT_CREATED, VEVENT_LOCATION, VEVENT_DTSTAMP, VEVENT_LAST_MODIFIED,
+            VEVENT_SEQUENCE, VEVENT_ORGANIZER, VEVENT_TRANP, VEVENT_ALARM, VEVENT_DESCRIPTION, VEVENT_ATTENDEES, VEVENT_RRULE, VEVENT_EX_DATE));
 
     return generator;
   }
@@ -68,8 +75,8 @@ public class ICalGenerator
       generator = exportAllFields();
     } else if (Method.REQUEST.equals(method)) {
       generator = new ICalGenerator();
-      generator.exportsVEvent = new ArrayList<>(
-          Arrays.asList(VEVENT_DTSTAMP, VEVENT_LAST_MODIFIED, VEVENT_SEQUENCE, VEVENT_ORGANIZER, VEVENT_ATTENDEES, VEVENT_RRULE, VEVENT_EX_DATE));
+      generator.exportsVEvent = new ArrayList<>(Arrays.asList(VEVENT_UID, VEVENT_DTSTAMP, VEVENT_LAST_MODIFIED,
+          VEVENT_SEQUENCE, VEVENT_ORGANIZER, VEVENT_ATTENDEES, VEVENT_RRULE, VEVENT_EX_DATE));
     } else {
       throw new UnsupportedOperationException("");
     }
@@ -113,7 +120,7 @@ public class ICalGenerator
   public ICalGenerator reset()
   {
     // creating a new calendar
-    final Calendar calendar = new Calendar();
+    this.calendar = new Calendar();
     calendar.getProperties().add(new ProdId("-//" + user.getDisplayUsername() + "//ProjectForge//" + locale.toString().toUpperCase()));
     calendar.getProperties().add(Version.VERSION_2_0);
     calendar.getProperties().add(CalScale.GREGORIAN);
@@ -197,7 +204,13 @@ public class ICalGenerator
     final ICalConverterStore store = ICalConverterStore.getInstance();
 
     // create vEvent
-    final VEvent vEvent = this.convertVEvent(event.getStartDate(), event.getEndDate(), event.isAllDay(), event.getUid(), event.getSubject());
+    final VEvent vEvent = new VEvent(false);
+
+    // set time zone
+    if (this.timeZone != null) {
+      final net.fortuna.ical4j.model.TimeZone timezone = registry.getTimeZone(this.timeZone.getID());
+      vEvent.getProperties().add(timezone.getVTimeZone().getTimeZoneId());
+    }
 
     for (String export : this.exportsVEvent) {
       VEventConverter converter = store.getVEventConverter(export);
@@ -215,26 +228,30 @@ public class ICalGenerator
 
   public VEvent convertVEvent(final Date startDate, final Date endDate, final boolean allDay, final String summary, final String uid)
   {
-    VEvent vEvent;
+    VEvent vEvent = new VEvent(false);
     final net.fortuna.ical4j.model.TimeZone timezone = registry.getTimeZone(timeZone.getID());
+    final net.fortuna.ical4j.model.Date fortunaStartDate, fortunaEndDate;
 
     if (allDay == true) {
       final Date startUtc = CalendarUtils.getUTCMidnightDate(startDate);
       final Date endUtc = CalendarUtils.getUTCMidnightDate(endDate);
-      final net.fortuna.ical4j.model.Date fortunaStartDate = new net.fortuna.ical4j.model.Date(startUtc);
+      fortunaStartDate = new net.fortuna.ical4j.model.Date(startUtc);
       // TODO should not be done
       final org.joda.time.DateTime jodaTime = new org.joda.time.DateTime(endUtc);
       // requires plus 1 because one day will be omitted by calendar.
-      final net.fortuna.ical4j.model.Date fortunaEndDate = new net.fortuna.ical4j.model.Date(jodaTime.plusDays(1).toDate());
-      vEvent = new VEvent(fortunaStartDate, fortunaEndDate, summary);
+      fortunaEndDate = new net.fortuna.ical4j.model.Date(jodaTime.plusDays(1).toDate());
     } else {
-      final net.fortuna.ical4j.model.DateTime fortunaStartDate = new net.fortuna.ical4j.model.DateTime(startDate);
-      fortunaStartDate.setTimeZone(timezone);
-      final net.fortuna.ical4j.model.DateTime fortunaEndDate = new net.fortuna.ical4j.model.DateTime(endDate);
-      fortunaEndDate.setTimeZone(timezone);
-      vEvent = new VEvent(fortunaStartDate, fortunaEndDate, summary);
-      vEvent.getProperties().add(timezone.getVTimeZone().getTimeZoneId());
+      fortunaStartDate = new net.fortuna.ical4j.model.DateTime(startDate);
+      ((net.fortuna.ical4j.model.DateTime) fortunaStartDate).setTimeZone(timezone);
+      fortunaEndDate = new net.fortuna.ical4j.model.DateTime(endDate);
+      ((net.fortuna.ical4j.model.DateTime) fortunaEndDate).setTimeZone(timezone);
     }
+
+    vEvent.getProperties().add(timezone.getVTimeZone().getTimeZoneId());
+    vEvent.getProperties().add(new DtStart(fortunaStartDate));
+    vEvent.getProperties().add(new DtEnd(fortunaEndDate));
+
+    vEvent.getProperties().add(new Summary(summary));
     vEvent.getProperties().add(new Uid(uid));
 
     return vEvent;
