@@ -204,6 +204,9 @@ public class AddressDO extends DefaultBaseWithAttrDO<AddressDO>
   @PropertyInfo(i18nKey = "vacation.substitution")
   private Set<AddressbookDO> addressbookList = new HashSet<>();
 
+  @NoHistory
+  private byte[] imageDataPreview;
+
   // @FieldBridge(impl = HibernateSearchInstantMessagingBridge.class)
   // @Field(index = Index.YES /*TOKENIZED*/, store = Store.NO)
   // TODO: Prepared for hibernate search.
@@ -977,5 +980,16 @@ public class AddressDO extends DefaultBaseWithAttrDO<AddressDO>
   public void setAddressbookList(final Set<AddressbookDO> addressbookList)
   {
     this.addressbookList = addressbookList;
+  }
+
+  @Column(name = "image_data_preview", length = 1000)
+  public byte[] getImageDataPreview()
+  {
+    return imageDataPreview;
+  }
+
+  public void setImageDataPreview(final byte[] imageDataPreview)
+  {
+    this.imageDataPreview = imageDataPreview;
   }
 }

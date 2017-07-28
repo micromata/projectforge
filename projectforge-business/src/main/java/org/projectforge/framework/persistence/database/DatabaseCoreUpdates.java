@@ -24,6 +24,8 @@
 package org.projectforge.framework.persistence.database;
 
 import java.math.BigDecimal;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.temporal.ChronoField;
@@ -60,6 +62,7 @@ import org.projectforge.business.fibu.ProjektDO;
 import org.projectforge.business.fibu.RechnungDO;
 import org.projectforge.business.fibu.RechnungsPositionDO;
 import org.projectforge.business.fibu.api.EmployeeService;
+import org.projectforge.business.image.ImageService;
 import org.projectforge.business.multitenancy.TenantDao;
 import org.projectforge.business.multitenancy.TenantRegistryMap;
 import org.projectforge.business.multitenancy.TenantService;
@@ -142,13 +145,13 @@ public class DatabaseCoreUpdates
     // 6.16.0
     // /////////////////////////////////////////////////////////////////
     list.add(new UpdateEntryImpl(CORE_REGION_ID, "6.16.0", "2017-08-01",
-        "Remove unique constraints from EmployeeTimedAttrDO and EmployeeConfigurationTimedAttrDO. Add addressbooks, remove tasks from addresses.")
+        "Remove unique constraints from EmployeeTimedAttrDO and EmployeeConfigurationTimedAttrDO. Add thumbnail for address images. Add addressbooks, remove tasks from addresses.")
     {
       @Override
       public UpdatePreCheckStatus runPreCheck()
       {
         log.info("Running pre-check for ProjectForge version 6.16.0");
-        if (oldUniqueConstraint() || checkForAddresses() == false) {
+        if (oldUniqueConstraint() || isImageDataPreviewMissing() || checkForAddresses() == false) {
           return UpdatePreCheckStatus.READY_FOR_UPDATE;
         }
 
@@ -171,6 +174,33 @@ public class DatabaseCoreUpdates
             databaseUpdateService.execute("ALTER TABLE T_PLUGIN_EMPLOYEE_CONFIGURATION_TIMEDATTR DROP CONSTRAINT " + uniqueConstraint2);
           }
         }
+        if (isImageDataPreviewMissing()) {
+          final ImageService imageService = applicationContext.getBean(ImageService.class);
+          initDatabaseDao.updateSchema();
+          List<DatabaseResultRow> resultList = databaseUpdateService.query("select pk, imagedata from t_address where imagedata is not null");
+          log.info("Found: " + resultList.size() + " event entries to update imagedata.");
+
+          String sql = "UPDATE t_address SET image_data_preview = ? WHERE pk = ?";
+          PreparedStatement ps = null;
+          try {
+            ps = databaseUpdateService.getDataSource().getConnection().prepareStatement(sql);
+
+            for (DatabaseResultRow row : resultList) {
+              Integer id = (Integer) row.getEntry(0).getValue();
+              byte[] imageDataPreview = imageService.resizeImage((byte[]) row.getEntry(1).getValue());
+              try {
+                ps.setInt(2, id);
+                ps.setBytes(1, imageDataPreview);
+                ps.executeUpdate();
+              } catch (Exception e) {
+                log.error(String.format("Error while updating event with id '%s' and new imageData. Ignoring it.", id, imageDataPreview));
+              }
+            }
+            ps.close();
+          } catch (SQLException e) {
+            log.error("Error while updating imageDataPreview in Database : " + e.getMessage());
+          }
+        }
 
         //Add addressbook, remove task from addresses
         if (checkForAddresses() == false) {
@@ -190,6 +220,11 @@ public class DatabaseCoreUpdates
         }
 
         return UpdateRunningStatus.DONE;
+      }
+
+      private boolean isImageDataPreviewMissing()
+      {
+        return databaseUpdateService.doesTableAttributeExist("t_address", "image_data_preview") == false;
       }
 
       private boolean oldUniqueConstraint()
