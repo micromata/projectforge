@@ -50,7 +50,7 @@ public class ICalGenerator
   public static final String VEVENT_SEQUENCE = "VEVENT_SEQUENCE";
   public static final String VEVENT_ORGANIZER = "VEVENT_ORGANIZER";
   public static final String VEVENT_ORGANIZER_EDITABLE = "VEVENT_ORGANIZER_EDITABLE";
-  public static final String VEVENT_TRANP = "VEVENT_TRANSP";
+  public static final String VEVENT_TRANSP = "VEVENT_TRANSP";
   public static final String VEVENT_ALARM = "VEVENT_VALARM";
   public static final String VEVENT_DESCRIPTION = "VEVENT_DESCRIPTION";
   public static final String VEVENT_ATTENDEES = "VEVENT_ATTENDEE";
@@ -62,7 +62,7 @@ public class ICalGenerator
     final ICalGenerator generator = new ICalGenerator();
     generator.exportsVEvent = new ArrayList<>(
         Arrays.asList(VEVENT_DTSTART, VEVENT_DTEND, VEVENT_SUMMARY, VEVENT_UID, VEVENT_CREATED, VEVENT_LOCATION, VEVENT_DTSTAMP, VEVENT_LAST_MODIFIED,
-            VEVENT_SEQUENCE, VEVENT_ORGANIZER, VEVENT_TRANP, VEVENT_ALARM, VEVENT_DESCRIPTION, VEVENT_ATTENDEES, VEVENT_RRULE, VEVENT_EX_DATE));
+            VEVENT_SEQUENCE, VEVENT_ORGANIZER, VEVENT_TRANSP, VEVENT_ALARM, VEVENT_DESCRIPTION, VEVENT_ATTENDEES, VEVENT_RRULE, VEVENT_EX_DATE));
 
     return generator;
   }
