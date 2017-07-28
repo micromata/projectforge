@@ -36,6 +36,7 @@ import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.multitenancy.TenantRegistryMap;
 import org.projectforge.business.teamcal.admin.model.TeamCalDO;
 import org.projectforge.business.teamcal.service.TeamCalServiceImpl;
+import org.projectforge.business.teamcal.servlet.CalendarAboServlet;
 import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
@@ -170,8 +171,7 @@ public class TeamCalICSExportDialog extends AbstractICSExportDialog
   @Override
   protected String getUrl()
   {
-    return teamCalService.getUrl(teamCal.getId(),
-        "&" + teamCalService.PARAM_EXPORT_REMINDER + "=" + exportReminders);
+    return "&teamCals=" + teamCal.getId() + "&" + CalendarAboServlet.PARAM_EXPORT_REMINDER + "=" + exportReminders;
   }
 
 }

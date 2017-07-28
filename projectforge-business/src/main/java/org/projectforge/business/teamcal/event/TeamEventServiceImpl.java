@@ -9,7 +9,6 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -18,7 +17,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.TimeZone;
-import java.util.TreeSet;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
@@ -29,6 +27,7 @@ import org.projectforge.business.teamcal.admin.model.TeamCalDO;
 import org.projectforge.business.teamcal.event.diff.TeamEventDiff;
 import org.projectforge.business.teamcal.event.diff.TeamEventDiffType;
 import org.projectforge.business.teamcal.event.diff.TeamEventField;
+import org.projectforge.business.teamcal.event.ical.generator.ICalGenerator;
 import org.projectforge.business.teamcal.event.model.TeamEvent;
 import org.projectforge.business.teamcal.event.model.TeamEventAttendeeDO;
 import org.projectforge.business.teamcal.event.model.TeamEventAttendeeDao;
@@ -385,7 +384,10 @@ public class TeamEventServiceImpl implements TeamEventService
         break;
     }
 
-    ByteArrayOutputStream icsFile = teamEventConverter.getIcsFile(event, true, false, method);
+    final ICalGenerator generator = ICalGenerator.forMethod(method);
+    generator.addVEvent(event);
+    ByteArrayOutputStream icsFile = generator.getCalendarAsByteStream();
+
     try {
       String ics = icsFile.toString(StandardCharsets.UTF_8.name());
 

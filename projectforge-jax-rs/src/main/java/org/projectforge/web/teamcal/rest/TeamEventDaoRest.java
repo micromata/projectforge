@@ -24,15 +24,13 @@
 package org.projectforge.web.teamcal.rest;
 
 import java.io.ByteArrayInputStream;
+import java.sql.Timestamp;
 import java.util.Calendar;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import javax.ws.rs.Consumes;
@@ -47,20 +45,23 @@ import javax.ws.rs.core.Response;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang.StringUtils;
+import org.projectforge.business.converter.DOConverter;
 import org.projectforge.business.teamcal.admin.TeamCalCache;
 import org.projectforge.business.teamcal.admin.model.TeamCalDO;
 import org.projectforge.business.teamcal.event.TeamEventDao;
 import org.projectforge.business.teamcal.event.TeamEventFilter;
 import org.projectforge.business.teamcal.event.TeamEventService;
+import org.projectforge.business.teamcal.event.TeamRecurrenceEvent;
 import org.projectforge.business.teamcal.event.diff.TeamEventDiffType;
+import org.projectforge.business.teamcal.event.ical.generator.ICalGenerator;
+import org.projectforge.business.teamcal.event.model.ReminderDurationUnit;
 import org.projectforge.business.teamcal.event.model.TeamEvent;
 import org.projectforge.business.teamcal.event.model.TeamEventAttendeeDO;
 import org.projectforge.business.teamcal.event.model.TeamEventDO;
 import org.projectforge.business.teamcal.service.TeamCalServiceImpl;
 import org.projectforge.common.StringHelper;
-import org.projectforge.framework.persistence.api.ModificationStatus;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
-import org.projectforge.framework.time.DateHelper;
+import org.projectforge.framework.time.DateHolder;
 import org.projectforge.framework.time.DayHolder;
 import org.projectforge.model.rest.CalendarEventObject;
 import org.projectforge.model.rest.RestPaths;
@@ -129,7 +130,7 @@ public class TeamEventDaoRest
       }
       final List<TeamEventDO> list = teamEventService.getTeamEventDOList(filter);
       if (list != null && list.size() > 0) {
-        list.forEach(event -> result.add(teamCalService.getEventObject(event, true, true, true)));
+        list.forEach(event -> result.add(this.getEventObject(event)));
       }
     } else {
       log.warn("No calendar ids are given, so can't find any events.");
@@ -167,7 +168,7 @@ public class TeamEventDaoRest
       if (list != null && list.size() > 0) {
         for (final TeamEvent event : list) {
           if (event.getStartDate().after(now) == true) {
-            result.add(teamCalService.getEventObject(event, true, true, true));
+            result.add(this.getEventObject(event));
           } else {
             log.info("Start date not in future:" + event.getStartDate() + ", " + event.getSubject());
           }
@@ -233,7 +234,7 @@ public class TeamEventDaoRest
     // handle sending notification mail
     teamEventService.checkAndSendMail(teamEvent, TeamEventDiffType.NEW);
 
-    final CalendarEventObject result = teamCalService.getEventObject(teamEvent, true, true, true);
+    final CalendarEventObject result = this.getEventObject(teamEvent);
     log.info("Team event: " + teamEvent.getSubject() + " for calendar #" + teamCalDO.getId() + " successfully created.");
     if (result != null) {
       final String json = JsonUtils.toJson(result);
@@ -313,7 +314,7 @@ public class TeamEventDaoRest
         teamEventService.checkAndSendMail(teamEvent, teamEventOrigin);
       }
 
-      result = teamCalService.getEventObject(teamEvent, true, true, true);
+      result = this.getEventObject(teamEvent);
       log.info("Team event: " + teamEvent.getSubject() + " for calendar #" + teamCalDO.getId() + " successfully updated.");
     } catch (Exception e) {
       log.error("Exception while updating team event", e);
@@ -352,6 +353,85 @@ public class TeamEventDaoRest
       return Response.serverError().build();
     }
     return Response.ok().build();
+  }
+
+  private CalendarEventObject getEventObject(final TeamEvent src)
+  {
+    if (src == null) {
+      return null;
+    }
+
+    final ICalGenerator generator = ICalGenerator.exportAllFields();
+    generator.editableVEvent(true);
+
+    final CalendarEventObject event = new CalendarEventObject();
+    event.setUid(src.getUid());
+    event.setStartDate(src.getStartDate());
+    event.setEndDate(src.getEndDate());
+    event.setLocation(src.getLocation());
+    event.setNote(src.getNote());
+    event.setSubject(src.getSubject());
+
+    if (src instanceof TeamEventDO) {
+      copyFields(event, (TeamEventDO) src);
+      generator.addVEvent((TeamEventDO) src);
+      event.setIcsData(Base64.encodeBase64String(generator.getCalendarAsByteStream().toByteArray()));
+
+      return event;
+    }
+
+    if (src instanceof TeamRecurrenceEvent) {
+      final TeamEventDO master = ((TeamRecurrenceEvent) src).getMaster();
+      if (master != null) {
+        copyFields(event, master);
+      }
+    }
+
+    TeamEventDO eventDO = new TeamEventDO();
+
+    eventDO.setEndDate(new Timestamp(src.getEndDate().getTime()));
+    eventDO.setLocation(src.getLocation());
+    eventDO.setNote(src.getNote());
+    eventDO.setStartDate(new Timestamp(src.getStartDate().getTime()));
+    eventDO.setSubject(src.getSubject());
+    eventDO.setUid(src.getUid());
+    eventDO.setAllDay(src.isAllDay());
+
+    generator.addVEvent(eventDO);
+
+    event.setIcsData(Base64.encodeBase64String(generator.getCalendarAsByteStream().toByteArray()));
+
+    return event;
+  }
+
+  private void copyFields(final CalendarEventObject event, final TeamEventDO src)
+  {
+    event.setCalendarId(src.getCalendarId());
+    event.setRecurrenceRule(src.getRecurrenceRule());
+    event.setRecurrenceExDate(src.getRecurrenceExDate());
+    event.setRecurrenceUntil(src.getRecurrenceUntil());
+    DOConverter.copyFields(event, src);
+    event.setLastUpdate(src.getDtStamp());
+    if (src.getReminderActionType() != null && src.getReminderDuration() != null
+        && src.getReminderDurationUnit() != null) {
+      event.setReminderType(src.getReminderActionType().toString());
+      event.setReminderDuration(src.getReminderDuration());
+      final ReminderDurationUnit unit = src.getReminderDurationUnit();
+      event.setReminderUnit(unit.toString());
+      final DateHolder date = new DateHolder(src.getStartDate());
+      if (unit == ReminderDurationUnit.MINUTES) {
+        date.add(Calendar.MINUTE, -src.getReminderDuration());
+        event.setReminder(date.getDate());
+      } else if (unit == ReminderDurationUnit.HOURS) {
+        date.add(Calendar.HOUR, -src.getReminderDuration());
+        event.setReminder(date.getDate());
+      } else if (unit == ReminderDurationUnit.DAYS) {
+        date.add(Calendar.DAY_OF_YEAR, -src.getReminderDuration());
+        event.setReminder(date.getDate());
+      } else {
+        log.warn("ReminderDurationUnit '" + src.getReminderDurationUnit() + "' not yet implemented.");
+      }
+    }
   }
 
   private Collection<Integer> getCalendarIds(String calendarIds)

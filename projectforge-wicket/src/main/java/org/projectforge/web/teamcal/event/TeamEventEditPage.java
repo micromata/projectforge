@@ -40,6 +40,7 @@ import org.projectforge.business.teamcal.event.TeamEventDao;
 import org.projectforge.business.teamcal.event.TeamEventService;
 import org.projectforge.business.teamcal.event.TeamRecurrenceEvent;
 import org.projectforge.business.teamcal.event.diff.TeamEventDiffType;
+import org.projectforge.business.teamcal.event.ical.generator.ICalGenerator;
 import org.projectforge.business.teamcal.event.model.TeamEvent;
 import org.projectforge.business.teamcal.event.model.TeamEventAttendeeDO;
 import org.projectforge.business.teamcal.event.model.TeamEventDO;
@@ -227,17 +228,20 @@ public class TeamEventEditPage extends AbstractEditPage<TeamEventDO, TeamEventEd
       addContentMenuEntry(menu);
     } else {
       @SuppressWarnings("serial")
-      final ContentMenuEntryPanel menu = new ContentMenuEntryPanel(getNewContentMenuChildId(), new SubmitLink(
-          ContentMenuEntryPanel.LINK_ID, form)
+      final ContentMenuEntryPanel menu = new ContentMenuEntryPanel(getNewContentMenuChildId(), new SubmitLink(ContentMenuEntryPanel.LINK_ID, form)
       {
         @Override
         public void onSubmit()
         {
           final TeamEventDO event = getData();
           log.info("Export ics for: " + event.getSubject());
-          ByteArrayOutputStream baos = teamEventConverter.getIcsFile(event, false, false, null);
-          if (baos != null) {
-            DownloadUtils.setDownloadTarget(baos.toByteArray(), event.getSubject().replace(" ", "") + ".ics");
+
+          final ICalGenerator generator = ICalGenerator.exportAllFields();
+          generator.addVEvent(event);
+          ByteArrayOutputStream icsFile = generator.getCalendarAsByteStream();
+
+          if (icsFile != null) {
+            DownloadUtils.setDownloadTarget(icsFile.toByteArray(), event.getSubject().replace(" ", "") + ".ics");
           }
         }
 

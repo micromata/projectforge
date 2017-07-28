@@ -1,74 +1,39 @@
 package org.projectforge.business.teamcal.service;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.Date;
-import java.util.HashSet;
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
 import java.util.TimeZone;
-import java.util.TreeSet;
 
-import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.validator.routines.EmailValidator;
-import org.apache.poi.ss.usermodel.DateUtil;
-import org.joda.time.DateMidnight;
-import org.joda.time.DateTime;
-import org.projectforge.business.configuration.ConfigurationService;
-import org.projectforge.business.converter.DOConverter;
 import org.projectforge.business.teamcal.TeamCalConfig;
-import org.projectforge.business.teamcal.admin.TeamCalCache;
-import org.projectforge.business.teamcal.admin.TeamCalDao;
-import org.projectforge.business.teamcal.admin.TeamCalsComparator;
-import org.projectforge.business.teamcal.admin.model.TeamCalDO;
-import org.projectforge.business.teamcal.event.TeamEventFilter;
-import org.projectforge.business.teamcal.event.TeamEventRecurrenceData;
 import org.projectforge.business.teamcal.event.TeamEventService;
 import org.projectforge.business.teamcal.event.TeamRecurrenceEvent;
-import org.projectforge.business.teamcal.event.diff.TeamEventField;
 import org.projectforge.business.teamcal.event.model.ReminderActionType;
 import org.projectforge.business.teamcal.event.model.ReminderDurationUnit;
 import org.projectforge.business.teamcal.event.model.TeamEvent;
 import org.projectforge.business.teamcal.event.model.TeamEventAttendeeDO;
 import org.projectforge.business.teamcal.event.model.TeamEventAttendeeStatus;
 import org.projectforge.business.teamcal.event.model.TeamEventDO;
-import org.projectforge.common.StringHelper;
-import org.projectforge.framework.calendar.CalendarUtils;
 import org.projectforge.framework.calendar.ICal4JUtils;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.time.DateHelper;
-import org.projectforge.framework.time.DateHolder;
-import org.projectforge.framework.time.DayHolder;
 import org.projectforge.framework.time.RecurrenceFrequency;
-import org.projectforge.model.rest.CalendarEventObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.util.CollectionUtils;
 
-import de.micromata.genome.util.types.DateUtils;
-import net.fortuna.ical4j.data.CalendarOutputter;
-import net.fortuna.ical4j.data.CalendarParserImpl;
 import net.fortuna.ical4j.model.Component;
 import net.fortuna.ical4j.model.DateList;
 import net.fortuna.ical4j.model.Dur;
 import net.fortuna.ical4j.model.Parameter;
-import net.fortuna.ical4j.model.ParameterFactoryImpl;
-import net.fortuna.ical4j.model.ParameterList;
 import net.fortuna.ical4j.model.Property;
 import net.fortuna.ical4j.model.PropertyList;
 import net.fortuna.ical4j.model.Recur;
@@ -83,562 +48,25 @@ import net.fortuna.ical4j.model.parameter.Rsvp;
 import net.fortuna.ical4j.model.parameter.Value;
 import net.fortuna.ical4j.model.property.Action;
 import net.fortuna.ical4j.model.property.Attendee;
-import net.fortuna.ical4j.model.property.CalScale;
-import net.fortuna.ical4j.model.property.Created;
-import net.fortuna.ical4j.model.property.Description;
-import net.fortuna.ical4j.model.property.DtStamp;
 import net.fortuna.ical4j.model.property.DtStart;
-import net.fortuna.ical4j.model.property.ExDate;
-import net.fortuna.ical4j.model.property.LastModified;
-import net.fortuna.ical4j.model.property.Location;
-import net.fortuna.ical4j.model.property.Method;
-import net.fortuna.ical4j.model.property.Name;
 import net.fortuna.ical4j.model.property.Organizer;
-import net.fortuna.ical4j.model.property.ProdId;
 import net.fortuna.ical4j.model.property.RRule;
-import net.fortuna.ical4j.model.property.Sequence;
-import net.fortuna.ical4j.model.property.Transp;
-import net.fortuna.ical4j.model.property.Trigger;
-import net.fortuna.ical4j.model.property.Version;
 
 @Service
 public class TeamCalServiceImpl
 {
   private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(TeamCalServiceImpl.class);
 
-  public static final String PARAM_EXPORT_REMINDER = "exportReminders";
-
-  public static final String PARAM_EXPORT_ATTENDEES = "exportAttendees";
-
-  private static final List<String> stepOver = Arrays.asList(Parameter.CN, Parameter.CUTYPE, Parameter.PARTSTAT, Parameter.RSVP, Parameter.ROLE);
-
-  private final TeamCalsComparator calsComparator = new TeamCalsComparator();
-
-  private Collection<TeamCalDO> sortedCals;
+  private static final List<String> STEP_OVER = Arrays.asList(Parameter.CN, Parameter.CUTYPE, Parameter.PARTSTAT, Parameter.RSVP, Parameter.ROLE);
 
   private static final RecurrenceFrequency[] SUPPORTED_FREQUENCIES = new RecurrenceFrequency[] {
-      RecurrenceFrequency.NONE,
-      RecurrenceFrequency.DAILY, RecurrenceFrequency.WEEKLY, RecurrenceFrequency.MONTHLY, RecurrenceFrequency.YEARLY };
+      RecurrenceFrequency.NONE, RecurrenceFrequency.DAILY, RecurrenceFrequency.WEEKLY, RecurrenceFrequency.MONTHLY, RecurrenceFrequency.YEARLY };
 
-  // needed to convert weeks into days
+  // needed to convertVEvent weeks into days
   private static final int DURATION_OF_WEEK = 7;
 
   @Autowired
-  private TeamCalCache teamCalCache;
-
-  @Autowired
-  private CalendarFeedService calendarFeedService;
-
-  @Autowired
-  private ConfigurationService configService;
-
-  @Autowired
   private TeamEventService teamEventService;
-
-  @Autowired
-  private TeamCalDao teamCalDao;
-
-  public List<Integer> getCalIdList(final Collection<TeamCalDO> teamCals)
-  {
-    return teamEventService.getCalIdList(teamCals);
-  }
-
-  public List<TeamCalDO> getCalList(TeamCalCache teamCalCache, final Collection<Integer> teamCalIds)
-  {
-    final List<TeamCalDO> list = new ArrayList<TeamCalDO>();
-    if (teamCalIds != null) {
-      for (final Integer calId : teamCalIds) {
-        final TeamCalDO cal = teamCalCache.getCalendar(calId);
-        if (cal != null) {
-          list.add(cal);
-        } else {
-          log.warn("Calendar with id " + calId + " not found in cache.");
-        }
-      }
-    }
-    return list;
-  }
-
-  /**
-   * @param calIds
-   * @return
-   */
-  public List<String> getCalendarNames(final String calIds)
-  {
-    if (StringUtils.isEmpty(calIds) == true) {
-      return null;
-    }
-    final int[] ids = StringHelper.splitToInts(calIds, ",", false);
-    final List<String> list = new ArrayList<String>();
-    for (final int id : ids) {
-      final TeamCalDO cal = teamCalCache.getCalendar(id);
-      if (cal != null) {
-        list.add(cal.getTitle());
-      } else {
-        log.warn("TeamCalDO with id '" + id + "' not found. calIds string was: " + calIds);
-      }
-    }
-    return list;
-  }
-
-  /**
-   * @param calIds
-   * @return
-   */
-  public Collection<TeamCalDO> getSortedCalendars(final String calIds)
-  {
-    if (StringUtils.isEmpty(calIds) == true) {
-      return null;
-    }
-    sortedCals = new TreeSet<TeamCalDO>(calsComparator);
-    final int[] ids = StringHelper.splitToInts(calIds, ",", false);
-    for (final int id : ids) {
-      final TeamCalDO cal = teamCalCache.getCalendar(id);
-      if (cal != null) {
-        sortedCals.add(cal);
-      } else {
-        log.warn("TeamCalDO with id '" + id + "' not found. calIds string was: " + calIds);
-      }
-    }
-    return sortedCals;
-  }
-
-  public String getCalendarIds(final Collection<TeamCalDO> calendars)
-  {
-    final StringBuffer buf = new StringBuffer();
-    boolean first = true;
-    for (final TeamCalDO calendar : calendars) {
-      if (calendar.getId() != null) {
-        first = StringHelper.append(buf, first, String.valueOf(calendar.getId()), ",");
-      }
-    }
-    return buf.toString();
-  }
-
-  public Collection<TeamCalDO> getSortedCalenders()
-  {
-    if (sortedCals == null) {
-      final Collection<TeamCalDO> allCalendars = teamCalCache.getAllAccessibleCalendars();
-      sortedCals = new TreeSet<TeamCalDO>(calsComparator);
-      for (final TeamCalDO cal : allCalendars) {
-        if (cal.isDeleted() == false) {
-          sortedCals.add(cal);
-        }
-      }
-    }
-    return sortedCals;
-  }
-
-  public Collection<VEvent> getConfiguredHolidaysAsVEvent(DateTime holidaysFrom, DateTime holidayTo)
-  {
-    final List<VEvent> events = new ArrayList<VEvent>();
-    DateMidnight day = new DateMidnight(holidaysFrom);
-    int idCounter = 0;
-    int paranoiaCounter = 0;
-    do {
-      if (++paranoiaCounter > 4000) {
-        log.error(
-            "Paranoia counter exceeded! Dear developer, please have a look at the implementation of buildEvents.");
-        break;
-      }
-      final Date date = day.toDate();
-      final TimeZone timeZone = day.getZone().toTimeZone();
-      final DayHolder dh = new DayHolder(date, timeZone, null);
-      if (dh.isHoliday() == false) {
-        day = day.plusDays(1);
-        continue;
-      }
-
-      String title;
-      final String holidayInfo = dh.getHolidayInfo();
-      if (holidayInfo != null && holidayInfo.startsWith("calendar.holiday.") == true) {
-        title = ThreadLocalUserContext.getLocalizedString(holidayInfo);
-      } else {
-        title = holidayInfo;
-      }
-      final VEvent vEvent = ICal4JUtils.createVEvent(holidaysFrom.toDate(), holidayTo.toDate(),
-          "pf-holiday" + (++idCounter), title, true);
-      //      event.setBackgroundColor(backgroundColor);
-      //      event.setColor(color);
-      //      event.setTextColor(textColor);
-      events.add(vEvent);
-      day = day.plusDays(1);
-    } while (day.isAfter(holidayTo) == false);
-    return events;
-  }
-
-  public String getUrl(final String teamCalIds, final String additionalParameterString)
-  {
-    String buf = "&teamCals=" + teamCalIds;
-    if (additionalParameterString != null) {
-      buf += additionalParameterString;
-    }
-    return calendarFeedService.getUrl(buf);
-  }
-
-  public String getUrl(final Integer teamCalId, final String additionalParameterString)
-  {
-    return getUrl(teamCalId != null ? teamCalId.toString() : "", additionalParameterString);
-  }
-
-  /**
-   * @see org.projectforge.business.teamcal.service.calendar.CalendarFeedHook#getEvents(net.fortuna.ical4j.model.TimeZone,
-   * java.util.Calendar)
-   */
-  public List<VEvent> getEvents(final Map<String, String> params, final net.fortuna.ical4j.model.TimeZone timeZone)
-  {
-    final String teamCals = params.get("teamCals");
-    if (teamCals == null) {
-      return null;
-    }
-    final String[] teamCalIds = StringUtils.split(teamCals, ";");
-    if (teamCalIds == null) {
-      return null;
-    }
-    final List<VEvent> events = new LinkedList<VEvent>();
-    final TeamEventFilter eventFilter = new TeamEventFilter();
-    eventFilter.setDeleted(false);
-    final DateTime now = DateTime.now();
-    final Date eventDateLimit = now.minusYears(1).toDate();
-    eventFilter.setStartDate(eventDateLimit);
-    final boolean exportReminders = "true".equals(params.get(PARAM_EXPORT_REMINDER)) == true;
-    final boolean exportAttendees = "true".equals(params.get(PARAM_EXPORT_ATTENDEES)) == true;
-    for (final String teamCalId : teamCalIds) {
-      final Integer id = Integer.valueOf(teamCalId);
-      eventFilter.setTeamCalId(id);
-      final List<TeamEvent> teamEvents = teamEventService.getEventList(eventFilter, false);
-      if (teamEvents != null && teamEvents.size() > 0) {
-        for (final TeamEvent teamEventObject : teamEvents) {
-          if (teamEventObject instanceof TeamEventDO == false) {
-            log.warn("Oups, shouldn't occur, please contact the developer: teamEvent isn't of type TeamEventDO: "
-                + teamEventObject);
-            continue;
-          }
-          final TeamEventDO teamEvent = (TeamEventDO) teamEventObject;
-          final VEvent vEvent = createVEvent(teamEvent, teamCalIds, exportReminders, exportAttendees, false, null);
-          events.add(vEvent);
-        }
-      }
-    }
-    return events;
-  }
-
-  private VEvent createVEvent(final TeamEventDO teamEvent, final String[] teamCalIds, final boolean exportReminders,
-      final boolean exportAttendees, final boolean editable, Method method)
-  {
-    final String summary;
-    if (teamCalIds.length > 1) {
-      summary = teamEvent.getSubject() + " (" + teamEvent.getCalendar().getTitle() + ")";
-    } else {
-      summary = teamEvent.getSubject();
-    }
-
-    // create vEvent
-    final VEvent vEvent = ICal4JUtils.createVEvent(teamEvent.getStartDate(), teamEvent.getEndDate(), teamEvent.getUid(), summary, teamEvent.isAllDay());
-    if (StringUtils.isNotBlank(teamEvent.getLocation()) == true) {
-      vEvent.getProperties().add(new Location(teamEvent.getLocation()));
-    }
-
-    // set created
-    net.fortuna.ical4j.model.DateTime created = new net.fortuna.ical4j.model.DateTime(teamEvent.getCreated());
-    created.setUtc(true);
-    vEvent.getProperties().add(new Created(created));
-
-    // set DTSTAMP
-    net.fortuna.ical4j.model.DateTime dtStampValue = new net.fortuna.ical4j.model.DateTime(teamEvent.getDtStamp());
-    dtStampValue.setUtc(true);
-    DtStamp dtStamp = (DtStamp) vEvent.getProperties().getProperty(Property.DTSTAMP);
-    if (dtStamp != null) {
-      dtStamp.setDate(dtStampValue);
-    } else {
-      vEvent.getProperties().add(new DtStamp(dtStampValue));
-    }
-
-    // set last edit
-    //    net.fortuna.ical4j.model.DateTime lastModified = new net.fortuna.ical4j.model.DateTime(
-    //        teamEvent.getDtStamp() != null ? teamEvent.getDtStamp() : teamEvent.getCreated());
-    //    created.setUtc(true);
-    //    vEvent.getProperties().add(new LastModified(lastModified));
-
-    // set sequence number
-    if (teamEvent.getSequence() != null) {
-      vEvent.getProperties().add(new Sequence(teamEvent.getSequence()));
-    } else {
-      vEvent.getProperties().add(new Sequence(0));
-    }
-
-    // add owner
-    Organizer organizer = null;
-
-    try {
-      if (teamEvent.isOwnership() != null && teamEvent.isOwnership()) {
-        ParameterList param = new ParameterList();
-        param.add(new Cn(teamEvent.getCreator().getFullname()));
-        param.add(CuType.INDIVIDUAL);
-        param.add(Role.CHAIR);
-        param.add(PartStat.ACCEPTED);
-        if (editable) {
-          organizer = new Organizer(param, "mailto:null");
-        } else {
-          organizer = new Organizer(param, "mailto:" + teamEvent.getCreator().getEmail());
-        }
-      } else if (teamEvent.getOrganizer() != null) {
-        // read owner from
-        ParameterList param = new ParameterList();
-        this.parseAdditionalParameters(param, teamEvent.getOrganizerAdditionalParams());
-        if (param.getParameter(Parameter.CUTYPE) == null) {
-          param.add(CuType.INDIVIDUAL);
-        }
-        if (param.getParameter(Parameter.ROLE) == null) {
-          param.add(Role.CHAIR);
-        }
-        if (param.getParameter(Parameter.PARTSTAT) == null) {
-          param.add(PartStat.ACCEPTED);
-        }
-        organizer = new Organizer(param, teamEvent.getOrganizer());
-      } else {
-        // TODO use better default value here
-        organizer = new Organizer("mailto:null");
-      }
-    } catch (URISyntaxException e) {
-      // TODO handle exception, write default?
-      // e.printStackTrace();
-    }
-
-    vEvent.getProperties().add(organizer);
-
-    // stop is method is cancel
-    if (method == Method.CANCEL) {
-      return vEvent;
-    }
-
-    // set note
-    if (StringUtils.isNotBlank(teamEvent.getNote()) == true) {
-      vEvent.getProperties().add(new Description(teamEvent.getNote()));
-    }
-
-    // set visibility
-    // TODO vEvent.getProperties().add(Transp.OPAQUE);
-
-    // add alarm if necessary
-    if (exportReminders == true && teamEvent.getReminderDuration() != null
-        && teamEvent.getReminderActionType() != null) {
-      final VAlarm alarm = new VAlarm();
-      Dur dur = null;
-      // (-1) * needed to set alert before
-      if (ReminderDurationUnit.MINUTES.equals(teamEvent.getReminderDurationUnit())) {
-        dur = new Dur(0, 0, (-1) * teamEvent.getReminderDuration(), 0);
-      } else if (ReminderDurationUnit.HOURS.equals(teamEvent.getReminderDurationUnit())) {
-        dur = new Dur(0, (-1) * teamEvent.getReminderDuration(), 0, 0);
-      } else if (ReminderDurationUnit.DAYS.equals(teamEvent.getReminderDurationUnit())) {
-        dur = new Dur((-1) * teamEvent.getReminderDuration(), 0, 0, 0);
-      }
-      if (dur != null) {
-        alarm.getProperties().add(new Trigger(dur));
-        alarm.getProperties().add(new Action(teamEvent.getReminderActionType().getType()));
-        vEvent.getAlarms().add(alarm);
-      }
-    }
-
-    if (teamEvent.hasRecurrence() == true) {
-      final Recur recur = teamEvent.getRecurrenceObject();
-      final RRule rrule = new RRule(recur);
-      vEvent.getProperties().add(rrule);
-
-      if (teamEvent.getRecurrenceExDate() != null) {
-        final List<net.fortuna.ical4j.model.Date> exDates = ICal4JUtils.parseCSVDatesAsICal4jDates(
-            teamEvent.getRecurrenceExDate(), (false == teamEvent.isAllDay()), ICal4JUtils.getUTCTimeZone());
-        if (CollectionUtils.isEmpty(exDates) == false) {
-          for (final net.fortuna.ical4j.model.Date date : exDates) {
-            final DateList dateList;
-            if (teamEvent.isAllDay() == true) {
-              dateList = new DateList(Value.DATE);
-            } else {
-              dateList = new DateList();
-              dateList.setUtc(true);
-            }
-
-            dateList.add(date);
-            ExDate exDate;
-            exDate = new ExDate(dateList);
-            vEvent.getProperties().add(exDate);
-          }
-        }
-      }
-    }
-
-    if (exportAttendees && teamEvent.getAttendees() != null) {
-      // TODO add organizer user, most likely as chair
-      for (TeamEventAttendeeDO a : teamEvent.getAttendees()) {
-        String email = "mailto:" + (a.getAddress() != null ? a.getAddress().getEmail() : a.getUrl());
-
-        Attendee attendee = new Attendee(URI.create(email));
-
-        // set common name
-        if (a.getAddress() != null) {
-          attendee.getParameters().add(new Cn(a.getAddress().getFullName()));
-        } else if (a.getCommonName() != null) {
-          attendee.getParameters().add(new Cn(a.getCommonName()));
-        } else {
-          attendee.getParameters().add(new Cn(a.getUrl()));
-        }
-
-        attendee.getParameters().add(a.getCuType() != null ? new CuType(a.getCuType()) : CuType.INDIVIDUAL);
-        attendee.getParameters().add(a.getRole() != null ? new Role(a.getRole()) : Role.REQ_PARTICIPANT);
-        if (a.getRsvp() != null) {
-          attendee.getParameters().add(new Rsvp(a.getRsvp()));
-        }
-        attendee.getParameters().add(a.getStatus() != null ? a.getStatus().getPartStat() : PartStat.NEEDS_ACTION);
-        this.parseAdditionalParameters(attendee.getParameters(), a.getAdditionalParams());
-
-        vEvent.getProperties().add(attendee);
-      }
-    }
-
-    return vEvent;
-  }
-
-  private void parseAdditionalParameters(final ParameterList list, final String additonalParams)
-  {
-    if (list == null || additonalParams == null) {
-      return;
-    }
-
-    ParameterFactoryImpl parameterFactory = ParameterFactoryImpl.getInstance();
-    StringBuilder sb = new StringBuilder();
-    boolean escaped = false;
-    char[] chars = additonalParams.toCharArray();
-    String name = null;
-
-    for (char c : chars) {
-      switch (c) {
-        case ';':
-          if (escaped == false && name != null && sb.length() > 0) {
-            try {
-              list.add(parameterFactory.createParameter(name, sb.toString().replaceAll("\"", "")));
-            } catch (URISyntaxException e) {
-              // TODO
-              e.printStackTrace();
-            }
-            name = null;
-            sb.setLength(0);
-          }
-          break;
-        case '"':
-          escaped = (escaped == false);
-          break;
-        case '=':
-          if (escaped == false && sb.length() > 0) {
-            name = sb.toString();
-            sb.setLength(0);
-          }
-          break;
-        default:
-          sb.append(c);
-          break;
-      }
-    }
-
-    if (escaped == false && name != null && sb.length() > 0) {
-      try {
-        list.add(parameterFactory.createParameter(name, sb.toString().replaceAll("\"", "")));
-      } catch (URISyntaxException e) {
-        // TODO
-        e.printStackTrace();
-      }
-    }
-  }
-
-  public CalendarEventObject getEventObject(final TeamEvent src, boolean generateICS, final boolean exportAttendees, final boolean editable)
-  {
-    if (src == null) {
-      return null;
-    }
-    final CalendarEventObject event = new CalendarEventObject();
-    event.setUid(src.getUid());
-    event.setStartDate(src.getStartDate());
-    event.setEndDate(src.getEndDate());
-    event.setLocation(src.getLocation());
-    event.setNote(src.getNote());
-    event.setSubject(src.getSubject());
-    if (src instanceof TeamEventDO) {
-      copyFields(event, (TeamEventDO) src);
-    } else if (src instanceof TeamRecurrenceEvent) {
-      final TeamEventDO master = ((TeamRecurrenceEvent) src).getMaster();
-      if (master != null) {
-        copyFields(event, master);
-      }
-    }
-    if (generateICS) {
-      event.setIcsData(Base64.encodeBase64String(getIcsFileForTeamEvent(src, exportAttendees, editable).toByteArray()));
-    }
-    return event;
-  }
-
-  public CalendarEventObject getEventObject(final TeamEventDO src, boolean generateICS, final boolean exportAttendees, final boolean editable)
-  {
-    if (src == null) {
-      return null;
-    }
-
-    final CalendarEventObject event = new CalendarEventObject();
-    event.setId(src.getPk());
-    event.setUid(src.getUid());
-    event.setStartDate(src.getStartDate());
-    event.setEndDate(src.getEndDate());
-    event.setLocation(src.getLocation());
-    event.setNote(src.getNote());
-    event.setSubject(src.getSubject());
-    copyFields(event, src);
-    if (generateICS) {
-      event.setIcsData(Base64.encodeBase64String(getIcsFile(src, exportAttendees, editable, null).toByteArray()));
-    }
-    return event;
-  }
-
-  public ByteArrayOutputStream getIcsFile(final TeamEventDO data, final boolean exportAttendees, final boolean editable, final Method method)
-  {
-    ByteArrayOutputStream baos = null;
-
-    try {
-      baos = new ByteArrayOutputStream();
-
-      final net.fortuna.ical4j.model.Calendar cal = new net.fortuna.ical4j.model.Calendar();
-      final Locale locale = ThreadLocalUserContext.getLocale();
-      cal.getProperties().add(
-          new ProdId("-//" + ThreadLocalUserContext.getUser().getDisplayUsername() + "//ProjectForge//" + locale.toString().toUpperCase()));
-      cal.getProperties().add(Version.VERSION_2_0);
-      cal.getProperties().add(CalScale.GREGORIAN);
-      if (method != null) {
-        cal.getProperties().add(method);
-      }
-
-      final net.fortuna.ical4j.model.TimeZone timezone = ICal4JUtils.getUserTimeZone();
-      cal.getComponents().add(timezone.getVTimeZone());
-      final String[] teamCalIds = { data.getCalendar().getPk().toString() };
-      final VEvent event = createVEvent(data, teamCalIds, true, exportAttendees, editable, method);
-      cal.getComponents().add(event);
-      CalendarOutputter outputter = new CalendarOutputter();
-      outputter.output(cal, baos);
-    } catch (IOException e) {
-      log.error("Error while exporting calendar event. " + e.getMessage());
-      return null;
-    }
-    return baos;
-  }
-
-  public ByteArrayOutputStream getIcsFileForTeamEvent(TeamEvent data, final boolean exportAttendees, final boolean editable)
-  {
-    TeamEventDO eventDO = new TeamEventDO();
-    eventDO.setEndDate(new Timestamp(data.getEndDate().getTime()));
-    eventDO.setLocation(data.getLocation());
-    eventDO.setNote(data.getNote());
-    eventDO.setStartDate(new Timestamp(data.getStartDate().getTime()));
-    eventDO.setSubject(data.getSubject());
-    eventDO.setUid(data.getUid());
-    eventDO.setAllDay(data.isAllDay());
-    return getIcsFile(eventDO, exportAttendees, editable, null);
-  }
 
   public static Collection<TeamEvent> getRecurrenceEvents(final java.util.Date startDate, final java.util.Date endDate,
       final TeamEventDO event, final java.util.TimeZone timeZone)
@@ -916,7 +344,7 @@ public class TeamCalServiceImpl
 
         while (iter.hasNext()) {
           final Parameter param = iter.next();
-          if (param.getName() == null || stepOver.contains(param.getName())) {
+          if (param.getName() == null || STEP_OVER.contains(param.getName())) {
             continue;
           }
 
@@ -978,7 +406,7 @@ public class TeamCalServiceImpl
 
   public static List<VEvent> getVEvents(final net.fortuna.ical4j.model.Calendar calendar)
   {
-    final List<VEvent> events = new ArrayList<VEvent>();
+    final List<VEvent> events = new ArrayList<>();
     @SuppressWarnings("unchecked")
     final List<CalendarComponent> list = calendar.getComponents(Component.VEVENT);
     if (list == null || list.size() == 0) {
@@ -1000,8 +428,7 @@ public class TeamCalServiceImpl
   public List<TeamEventDO> getTeamEvents(final net.fortuna.ical4j.model.Calendar calendar)
   {
     final List<VEvent> list = getVEvents(calendar);
-    final List<TeamEventDO> events = convert(list);
-    return events;
+    return convert(list);
   }
 
   public List<TeamEventDO> convert(final List<VEvent> list)
@@ -1013,54 +440,18 @@ public class TeamCalServiceImpl
     for (final VEvent vEvent : list) {
       events.add(createTeamEventDO(vEvent));
     }
-    Collections.sort(events, new Comparator<TeamEventDO>()
-    {
-      @Override
-      public int compare(final TeamEventDO o1, final TeamEventDO o2)
-      {
-        final java.util.Date startDate1 = o1.getStartDate();
-        final java.util.Date startDate2 = o2.getStartDate();
-        if (startDate1 == null) {
-          if (startDate2 == null) {
-            return 0;
-          }
-          return -1;
+    events.sort((o1, o2) -> {
+      final Date startDate1 = o1.getStartDate();
+      final Date startDate2 = o2.getStartDate();
+      if (startDate1 == null) {
+        if (startDate2 == null) {
+          return 0;
         }
-        return startDate1.compareTo(startDate2);
+        return -1;
       }
-
+      return startDate1.compareTo(startDate2);
     });
     return events;
-  }
-
-  private void copyFields(final CalendarEventObject event, final TeamEventDO src)
-  {
-    event.setCalendarId(src.getCalendarId());
-    event.setRecurrenceRule(src.getRecurrenceRule());
-    event.setRecurrenceExDate(src.getRecurrenceExDate());
-    event.setRecurrenceUntil(src.getRecurrenceUntil());
-    DOConverter.copyFields(event, src);
-    event.setLastUpdate(src.getDtStamp());
-    if (src.getReminderActionType() != null && src.getReminderDuration() != null
-        && src.getReminderDurationUnit() != null) {
-      event.setReminderType(src.getReminderActionType().toString());
-      event.setReminderDuration(src.getReminderDuration());
-      final ReminderDurationUnit unit = src.getReminderDurationUnit();
-      event.setReminderUnit(unit.toString());
-      final DateHolder date = new DateHolder(src.getStartDate());
-      if (unit == ReminderDurationUnit.MINUTES) {
-        date.add(Calendar.MINUTE, -src.getReminderDuration());
-        event.setReminder(date.getDate());
-      } else if (unit == ReminderDurationUnit.HOURS) {
-        date.add(Calendar.HOUR, -src.getReminderDuration());
-        event.setReminder(date.getDate());
-      } else if (unit == ReminderDurationUnit.DAYS) {
-        date.add(Calendar.DAY_OF_YEAR, -src.getReminderDuration());
-        event.setReminder(date.getDate());
-      } else {
-        log.warn("ReminderDurationUnit '" + src.getReminderDurationUnit() + "' not yet implemented.");
-      }
-    }
   }
 
 }
