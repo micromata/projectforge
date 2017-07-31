@@ -9,7 +9,6 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -18,7 +17,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.TimeZone;
-import java.util.TreeSet;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
@@ -114,6 +112,9 @@ public class TeamEventServiceImpl implements TeamEventService
   public List<TeamEventAttendeeDO> getAddressesAndUserAsAttendee()
   {
     List<TeamEventAttendeeDO> resultList = new ArrayList<>();
+    List<AddressDO> allAddressList = addressDao.internalLoadAllNotDeleted();
+    List<PFUserDO> allUserList = userService.getAllActiveUsers();
+
     Set<Integer> addedUserIds = new HashSet<>();
     List<AddressDO> allAddressList = addressDao.internalLoadAllNotDeleted().stream()
         .sorted((address1, address2) -> address2.getFullName().compareTo(address1.getFullName()))

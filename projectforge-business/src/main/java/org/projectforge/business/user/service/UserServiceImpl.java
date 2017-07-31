@@ -8,6 +8,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.TreeSet;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
@@ -158,6 +159,12 @@ public class UserServiceImpl implements UserService
           ex);
       return new ArrayList<PFUserDO>();
     }
+  }
+
+  @Override
+  public List<PFUserDO> getAllActiveUsers()
+  {
+    return getAllUsers().stream().filter(u -> u.isDeactivated() == false && u.isDeleted() == false).collect(Collectors.toList());
   }
 
   /**
