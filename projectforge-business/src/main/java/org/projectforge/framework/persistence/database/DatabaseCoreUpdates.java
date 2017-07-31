@@ -217,6 +217,7 @@ public class DatabaseCoreUpdates
                 .execute("INSERT INTO t_addressbook_address (address_id, addressbook_id) VALUES (" + addressId.getEntry(0).getValue() + ", "
                     + AddressbookDao.GLOBAL_ADDRESSBOOK_ID + ")");
           });
+          databaseUpdateService.execute("DELETE FROM t_configuration WHERE parameter = 'defaultTask4Addresses'");
         }
 
         return UpdateRunningStatus.DONE;

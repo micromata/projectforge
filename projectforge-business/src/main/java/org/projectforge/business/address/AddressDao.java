@@ -84,14 +84,6 @@ public class AddressDao extends BaseDao<AddressDO>
     super(AddressDO.class);
   }
 
-  /**
-   * Addresses will be assigned to a default task.
-   */
-  public Integer getDefaultTaskId()
-  {
-    return Configuration.getInstance().getTaskIdValue(ConfigurationParam.DEFAULT_TASK_ID_4_ADDRESSES);
-  }
-
   public List<Locale> getUsedCommunicationLanguages()
   {
     @SuppressWarnings("unchecked")

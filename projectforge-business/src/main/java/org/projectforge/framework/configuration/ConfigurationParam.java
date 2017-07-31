@@ -80,10 +80,6 @@ public enum ConfigurationParam implements IConfigurationParam
    */
   COST_CONFIGURED("fibu.costConfigured", ConfigurationType.BOOLEAN, false), //
   /**
-   * Default task id 4 addresses configuration param.
-   */
-  DEFAULT_TASK_ID_4_ADDRESSES("defaultTask4Addresses", ConfigurationType.TASK, false), //
-  /**
    * Default task id 4 books configuration param.
    */
   DEFAULT_TASK_ID_4_BOOKS("defaultTask4Books", ConfigurationType.TASK, false), //
