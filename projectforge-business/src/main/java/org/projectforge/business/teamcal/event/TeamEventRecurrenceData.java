@@ -27,11 +27,7 @@ import java.io.Serializable;
 import java.util.Date;
 import java.util.TimeZone;
 
-import org.projectforge.framework.calendar.CalendarUtils;
-import org.projectforge.framework.calendar.ICal4JUtils;
 import org.projectforge.framework.time.RecurrenceFrequency;
-
-import net.fortuna.ical4j.model.Recur;
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
