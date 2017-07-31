@@ -30,6 +30,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.lucene.document.Document;
 import org.hibernate.search.bridge.FieldBridge;
 import org.hibernate.search.bridge.LuceneOptions;
+import org.projectforge.business.common.BaseUserGroupRightsDO;
 import org.projectforge.business.user.GroupDao;
 import org.projectforge.business.user.GroupsComparator;
 import org.projectforge.business.user.UserDao;
@@ -69,7 +70,7 @@ public class HibernateSearchUsersGroupsBridge implements FieldBridge
   @Override
   public void set(final String name, final Object value, final Document document, final LuceneOptions luceneOptions)
   {
-    final TeamCalDO calendar = (TeamCalDO) value;
+    final BaseUserGroupRightsDO doObject = (BaseUserGroupRightsDO) value;
     final ApplicationContext appContext = ApplicationContextProvider.getApplicationContext();
     if (appContext == null) {
       log.error("ApplicationContext not available!");
@@ -85,12 +86,12 @@ public class HibernateSearchUsersGroupsBridge implements FieldBridge
 
     // query information in Bridge results in a deadlock in HSQLDB
     if (DatabaseSupport.getInstance().getDialect() != DatabaseDialect.HSQL) {
-      appendGroups(getSortedGroups(calendar.getFullAccessGroupIds()), buf);
-      appendGroups(getSortedGroups(calendar.getReadonlyAccessGroupIds()), buf);
-      appendGroups(getSortedGroups(calendar.getMinimalAccessGroupIds()), buf);
-      appendUsers(getSortedUsers(calendar.getFullAccessUserIds()), buf);
-      appendUsers(getSortedUsers(calendar.getReadonlyAccessUserIds()), buf);
-      appendUsers(getSortedUsers(calendar.getMinimalAccessUserIds()), buf);
+      appendGroups(getSortedGroups(doObject.getFullAccessGroupIds()), buf);
+      appendGroups(getSortedGroups(doObject.getReadonlyAccessGroupIds()), buf);
+      appendGroups(getSortedGroups(doObject.getMinimalAccessGroupIds()), buf);
+      appendUsers(getSortedUsers(doObject.getFullAccessUserIds()), buf);
+      appendUsers(getSortedUsers(doObject.getReadonlyAccessUserIds()), buf);
+      appendUsers(getSortedUsers(doObject.getMinimalAccessUserIds()), buf);
     }
 
     if (log.isDebugEnabled() == true) {

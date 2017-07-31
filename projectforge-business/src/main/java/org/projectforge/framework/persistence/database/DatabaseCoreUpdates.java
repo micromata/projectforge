@@ -45,6 +45,7 @@ import java.util.function.Predicate;
 import org.apache.commons.lang3.StringUtils;
 import org.projectforge.business.address.AddressDO;
 import org.projectforge.business.address.AddressDao;
+import org.projectforge.business.address.AddressbookDao;
 import org.projectforge.business.fibu.AuftragDO;
 import org.projectforge.business.fibu.AuftragsPositionDO;
 import org.projectforge.business.fibu.AuftragsPositionsStatus;
@@ -144,13 +145,13 @@ public class DatabaseCoreUpdates
     // 6.16.0
     // /////////////////////////////////////////////////////////////////
     list.add(new UpdateEntryImpl(CORE_REGION_ID, "6.16.0", "2017-08-01",
-        "Remove unique constraints from EmployeeTimedAttrDO and EmployeeConfigurationTimedAttrDO. Add thumbnail for address images.")
+        "Remove unique constraints from EmployeeTimedAttrDO and EmployeeConfigurationTimedAttrDO. Add thumbnail for address images. Add addressbooks, remove tasks from addresses.")
     {
       @Override
       public UpdatePreCheckStatus runPreCheck()
       {
         log.info("Running pre-check for ProjectForge version 6.16.0");
-        if (oldUniqueConstraint() || isImageDataPreviewMissing()) {
+        if (oldUniqueConstraint() || isImageDataPreviewMissing() || checkForAddresses() == false) {
           return UpdatePreCheckStatus.READY_FOR_UPDATE;
         }
 
@@ -201,6 +202,24 @@ public class DatabaseCoreUpdates
           }
         }
 
+        //Add addressbook, remove task from addresses
+        if (checkForAddresses() == false) {
+          initDatabaseDao.updateSchema();
+          String taskUniqueConstraint = databaseUpdateService.getUniqueConstraintName("t_address", "task_id");
+          if (StringUtils.isBlank(taskUniqueConstraint) == false) {
+            databaseUpdateService.execute("ALTER TABLE t_address DROP CONSTRAINT " + taskUniqueConstraint);
+          }
+          databaseUpdateService.execute("ALTER TABLE t_address DROP COLUMN task_id");
+          initDatabaseDao.insertGlobalAddressbook();
+          List<DatabaseResultRow> addressIds = databaseUpdateService.query("SELECT pk FROM t_address");
+          addressIds.forEach(addressId -> {
+            databaseUpdateService
+                .execute("INSERT INTO t_addressbook_address (address_id, addressbook_id) VALUES (" + addressId.getEntry(0).getValue() + ", "
+                    + AddressbookDao.GLOBAL_ADDRESSBOOK_ID + ")");
+          });
+          databaseUpdateService.execute("DELETE FROM t_configuration WHERE parameter = 'defaultTask4Addresses'");
+        }
+
         return UpdateRunningStatus.DONE;
       }
 
@@ -213,6 +232,11 @@ public class DatabaseCoreUpdates
       {
         return databaseUpdateService.doesUniqueConstraintExists("t_fibu_employee_timedattr", "parent", "propertyName")
             || databaseUpdateService.doesUniqueConstraintExists("T_PLUGIN_EMPLOYEE_CONFIGURATION_TIMEDATTR", "parent", "propertyName");
+      }
+
+      private boolean checkForAddresses()
+      {
+        return databaseUpdateService.doesTableExist("T_ADDRESSBOOK");
       }
     });
 

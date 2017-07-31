@@ -33,6 +33,8 @@ import java.util.TimeZone;
 import javax.persistence.Persistence;
 import javax.sql.DataSource;
 
+import org.projectforge.business.address.AddressbookDO;
+import org.projectforge.business.address.AddressbookDao;
 import org.projectforge.business.multitenancy.TenantDao;
 import org.projectforge.business.multitenancy.TenantRegistry;
 import org.projectforge.business.multitenancy.TenantRegistryMap;
@@ -101,6 +103,9 @@ public class InitDatabaseDao
 
   @Autowired
   private TenantService tenantService;
+
+  @Autowired
+  private AddressbookDao addressbookDao;
 
   @Value("${hibernate.search.default.indexBase}")
   private String hibernateIndexDir;
@@ -205,6 +210,33 @@ public class InitDatabaseDao
     log.info("Adding default tenant finished.");
     tenantService.resetTenantTableStatus();
     return tenantService.getDefaultTenant();
+  }
+
+  public AddressbookDO insertGlobalAddressbook()
+  {
+    return insertGlobalAddressbook(null);
+  }
+
+  public AddressbookDO insertGlobalAddressbook(PFUserDO user)
+  {
+    log.info("Checking if global addressbook exists.");
+    try {
+      String selectGlobal = "SELECT * FROM t_addressbook WHERE pk = 1";
+      SqlRowSet selectResult = jdbcTemplate.queryForRowSet(selectGlobal);
+      if (selectResult != null && selectResult.getRow() > 0) {
+        return addressbookDao.getGlobalAddressbook();
+      }
+    } catch (Exception e) {
+      log.warn("Something went wrong while checking for global addressbook: " + e.getMessage());
+    }
+    log.info("Adding global addressbook.");
+    String insertGlobal =
+        "INSERT INTO t_addressbook(pk, created, deleted, last_update, description, title, tenant_id, owner_fk) "
+            + "VALUES (1, CURRENT_TIMESTAMP, false, CURRENT_TIMESTAMP, 'The global addressbook', 'Global', 1, "
+            + (user != null && user.getId() != null ? user.getId() : ThreadLocalUserContext.getUserId()) + ")";
+    jdbcTemplate.execute(insertGlobal);
+    log.info("Adding global addressbook finished.");
+    return addressbookDao.getGlobalAddressbook();
   }
 
   /**
@@ -325,5 +357,4 @@ public class InitDatabaseDao
     }
     log.info("Finished generating Schema...");
   }
-
 }

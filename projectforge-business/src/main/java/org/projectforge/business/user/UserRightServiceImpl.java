@@ -34,6 +34,7 @@ import javax.annotation.PostConstruct;
 
 import org.apache.commons.collections.list.UnmodifiableList;
 import org.jfree.util.Log;
+import org.projectforge.business.address.AddressbookRight;
 import org.projectforge.business.fibu.AuftragRight;
 import org.projectforge.business.fibu.ProjektRight;
 import org.projectforge.business.gantt.GanttChartRight;
@@ -144,6 +145,7 @@ public class UserRightServiceImpl implements UserRightService, Serializable
     addRight(new HRPlanningRight(accessChecker));
     addRight(new TeamCalRight(accessChecker));
     addRight(new TeamEventRight(accessChecker));
+    addRight(new AddressbookRight(accessChecker));
 
     addRight(UserRightCategory.ADMIN, UserRightId.ADMIN_CORE, FALSE_READONLY_READWRITE, ProjectForgeGroup.ADMIN_GROUP);
   }

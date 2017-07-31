@@ -39,6 +39,7 @@ public enum MenuItemDefId
   ACCESS_LIST("accessList"), //
   ACCOUNT_LIST("fibu.konten"), //
   ACCOUNTING_RECORD_LIST("fibu.buchungssaetze"), //
+  ADDRESSBOOK_LIST("addressbookList"), //
   ADDRESS_LIST("addressList"), //
   BANK_ACCOUNT_LIST("finance.bankAccounts"), //
   BOOK_LIST("bookList"), //
