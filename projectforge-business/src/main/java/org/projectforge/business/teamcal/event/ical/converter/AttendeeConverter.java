@@ -75,7 +75,6 @@ public class AttendeeConverter extends PropertyConverter
 
     Integer internalNewAttendeeSequence = -10000;
 
-    List<TeamEventAttendeeDO> attendeesFromDbList = teamEventService.getAddressesAndUserAsAttendee(); // TODO do this not here!!
     for (int i = 0; i < eventAttendees.size(); i++) {
       Attendee attendee = (Attendee) eventAttendees.get(i);
       URI attendeeUri = attendee.getCalAddress();
@@ -87,14 +86,15 @@ public class AttendeeConverter extends PropertyConverter
 
       TeamEventAttendeeDO attendeeDO = null;
 
+      //    List<TeamEventAttendeeDO> attendeesFromDbList = teamEventService.getAddressesAndUserAsAttendee(); // TODO do this not here!!
       // search for eMail in DB as possible attendee
-      for (TeamEventAttendeeDO dBAttendee : attendeesFromDbList) {
-        if (dBAttendee.getAddress().getEmail().equals(email)) {
-          attendeeDO = dBAttendee;
-          attendeeDO.setId(internalNewAttendeeSequence--);
-          break;
-        }
-      }
+      //      for (TeamEventAttendeeDO dBAttendee : attendeesFromDbList) {
+      //        if (dBAttendee.getAddress().getEmail().equals(email)) {
+      //          attendeeDO = dBAttendee;
+      //          attendeeDO.setId(internalNewAttendeeSequence--);
+      //          break;
+      //        }
+      //      }
 
       if (attendeeDO == null) {
         attendeeDO = new TeamEventAttendeeDO();

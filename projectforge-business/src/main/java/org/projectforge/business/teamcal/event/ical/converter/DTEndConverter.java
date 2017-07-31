@@ -37,6 +37,10 @@ public class DTEndConverter extends PropertyConverter
   {
     final boolean isAllDay = this.isAllDay(vEvent);
 
+    if (vEvent.getProperties().getProperties(Property.DTEND).isEmpty()) {
+      return false;
+    }
+
     if (isAllDay) {
       // TODO sn change behaviour to iCal standard
       final org.joda.time.DateTime jodaTime = new org.joda.time.DateTime(vEvent.getEndDate().getDate());

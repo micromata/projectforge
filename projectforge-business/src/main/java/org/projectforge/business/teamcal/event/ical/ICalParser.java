@@ -1,11 +1,10 @@
 package org.projectforge.business.teamcal.event.ical;
 
-import static org.projectforge.business.teamcal.event.ical.ICalConverterStore.*;
+import static org.projectforge.business.teamcal.event.ical.ICalConverterStore.FULL_LIST;
 
 import java.io.IOException;
 import java.io.StringReader;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
@@ -36,9 +35,7 @@ public class ICalParser
   public static ICalParser parseAllFields()
   {
     final ICalParser parser = new ICalParser();
-    parser.parseVEvent = new ArrayList<>(
-        Arrays.asList(VEVENT_DTSTART, VEVENT_DTEND, VEVENT_SUMMARY, VEVENT_UID, VEVENT_CREATED, VEVENT_LOCATION, VEVENT_DTSTAMP, VEVENT_LAST_MODIFIED,
-            VEVENT_SEQUENCE, VEVENT_ORGANIZER, VEVENT_TRANSP, VEVENT_ALARM, VEVENT_DESCRIPTION, VEVENT_ATTENDEES, VEVENT_RRULE, VEVENT_EX_DATE));
+    parser.parseVEvent = new ArrayList<>(FULL_LIST);
 
     return parser;
   }
@@ -150,5 +147,10 @@ public class ICalParser
     }
 
     return event;
+  }
+
+  public List<TeamEventDO> getExtractedEvents()
+  {
+    return this.extractedEvents;
   }
 }

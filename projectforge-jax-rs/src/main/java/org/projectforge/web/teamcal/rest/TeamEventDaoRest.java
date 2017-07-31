@@ -373,7 +373,7 @@ public class TeamEventDaoRest
 
     if (src instanceof TeamEventDO) {
       copyFields(event, (TeamEventDO) src);
-      generator.addVEvent((TeamEventDO) src);
+      generator.addEvent((TeamEventDO) src);
       event.setIcsData(Base64.encodeBase64String(generator.getCalendarAsByteStream().toByteArray()));
 
       return event;
@@ -396,7 +396,7 @@ public class TeamEventDaoRest
     eventDO.setUid(src.getUid());
     eventDO.setAllDay(src.isAllDay());
 
-    generator.addVEvent(eventDO);
+    generator.addEvent(eventDO);
 
     event.setIcsData(Base64.encodeBase64String(generator.getCalendarAsByteStream().toByteArray()));
 

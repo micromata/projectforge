@@ -188,7 +188,7 @@ public class CalendarAboServlet extends HttpServlet
 
       // setup event is needed for empty calendars
       if (generator.isEmpty()) {
-        generator.addVEvent(new VEvent(new net.fortuna.ical4j.model.Date(0), TeamCalConfig.SETUP_EVENT));
+        generator.addEvent(new VEvent(new net.fortuna.ical4j.model.Date(0), TeamCalConfig.SETUP_EVENT));
       }
 
       final StringBuffer buf = new StringBuffer();
@@ -282,7 +282,7 @@ public class CalendarAboServlet extends HttpServlet
           continue;
         }
 
-        generator.addVEvent((TeamEventDO) teamEventObject);
+        generator.addEvent((TeamEventDO) teamEventObject);
       }
     }
   }
@@ -320,7 +320,7 @@ public class CalendarAboServlet extends HttpServlet
         vEvent.getProperties().add(new Location(timesheet.getLocation()));
       }
 
-      generator.addVEvent(vEvent);
+      generator.addEvent(vEvent);
     }
   }
 
@@ -358,7 +358,7 @@ public class CalendarAboServlet extends HttpServlet
         title = holidayInfo;
       }
 
-      generator.addVEvent(holidaysFrom.toDate(), holidayTo.toDate(), true, title, "pf-holiday" + (++idCounter));
+      generator.addEvent(holidaysFrom.toDate(), holidayTo.toDate(), true, title, "pf-holiday" + (++idCounter));
 
       day = day.plusDays(1);
     } while (day.isAfter(holidayTo) == false);
@@ -378,7 +378,7 @@ public class CalendarAboServlet extends HttpServlet
     final DayHolder current = new DayHolder(from);
     int paranoiaCounter = 0;
     do {
-      generator.addVEvent(current.getDate(), current.getDate(), true,
+      generator.addEvent(current.getDate(), current.getDate(), true,
           ThreadLocalUserContext.getLocalizedString("calendar.weekOfYearShortLabel") + " " + current.getWeekOfYear(),
           "pf-weekOfYear" + current.getYear() + "-" + paranoiaCounter);
 

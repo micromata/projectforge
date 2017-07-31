@@ -237,7 +237,7 @@ public class TeamEventEditPage extends AbstractEditPage<TeamEventDO, TeamEventEd
           log.info("Export ics for: " + event.getSubject());
 
           final ICalGenerator generator = ICalGenerator.exportAllFields();
-          generator.addVEvent(event);
+          generator.addEvent(event);
           ByteArrayOutputStream icsFile = generator.getCalendarAsByteStream();
 
           if (icsFile != null) {

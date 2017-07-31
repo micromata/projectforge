@@ -1,6 +1,9 @@
 package org.projectforge.business.teamcal.event.ical;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.projectforge.business.teamcal.event.ical.converter.AlarmConverter;
@@ -44,6 +47,10 @@ public class ICalConverterStore
   public static final String VEVENT_ATTENDEES = "VEVENT_ATTENDEE";
   public static final String VEVENT_RRULE = "VEVENT_RRULE";
   public static final String VEVENT_EX_DATE = "VEVENT_EX_DATE";
+
+  public static final List<String> FULL_LIST = new ArrayList<>(
+      Arrays.asList(VEVENT_DTSTART, VEVENT_DTEND, VEVENT_SUMMARY, VEVENT_UID, VEVENT_CREATED, VEVENT_LOCATION, VEVENT_DTSTAMP, VEVENT_LAST_MODIFIED,
+          VEVENT_SEQUENCE, VEVENT_ORGANIZER, VEVENT_TRANSP, VEVENT_ALARM, VEVENT_DESCRIPTION, VEVENT_ATTENDEES, VEVENT_RRULE, VEVENT_EX_DATE));
 
   private static ICalConverterStore ourInstance = new ICalConverterStore();
 

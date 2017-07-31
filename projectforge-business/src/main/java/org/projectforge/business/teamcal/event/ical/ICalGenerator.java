@@ -41,9 +41,7 @@ public class ICalGenerator
   public static ICalGenerator exportAllFields()
   {
     final ICalGenerator generator = new ICalGenerator();
-    generator.exportsVEvent = new ArrayList<>(
-        Arrays.asList(VEVENT_DTSTART, VEVENT_DTEND, VEVENT_SUMMARY, VEVENT_UID, VEVENT_CREATED, VEVENT_LOCATION, VEVENT_DTSTAMP, VEVENT_LAST_MODIFIED,
-            VEVENT_SEQUENCE, VEVENT_ORGANIZER, VEVENT_TRANSP, VEVENT_ALARM, VEVENT_DESCRIPTION, VEVENT_ATTENDEES, VEVENT_RRULE, VEVENT_EX_DATE));
+    generator.exportsVEvent = new ArrayList<>(FULL_LIST);
 
     return generator;
   }
@@ -54,12 +52,12 @@ public class ICalGenerator
 
     if (Method.REQUEST.equals(method)) {
       generator = exportAllFields();
-    } else if (Method.REQUEST.equals(method)) {
+    } else if (Method.CANCEL.equals(method)) {
       generator = new ICalGenerator();
-      generator.exportsVEvent = new ArrayList<>(Arrays.asList(VEVENT_UID, VEVENT_DTSTAMP, VEVENT_LAST_MODIFIED,
-          VEVENT_SEQUENCE, VEVENT_ORGANIZER, VEVENT_ATTENDEES, VEVENT_RRULE, VEVENT_EX_DATE));
+      generator.exportsVEvent = new ArrayList<>(Arrays.asList(VEVENT_UID, VEVENT_DTSTAMP, VEVENT_DTSTART, VEVENT_SEQUENCE, VEVENT_ORGANIZER,
+          VEVENT_ATTENDEES, VEVENT_RRULE, VEVENT_EX_DATE));
     } else {
-      throw new UnsupportedOperationException("");
+      throw new UnsupportedOperationException(""); // TODO
     }
 
     generator.method = method;
@@ -155,7 +153,7 @@ public class ICalGenerator
     return this.calendar.getComponents(Component.VEVENT).isEmpty();
   }
 
-  public ICalGenerator addVEvent(final TeamEventDO event)
+  public ICalGenerator addEvent(final TeamEventDO event)
   {
     final VEvent vEvent = this.convertVEvent(event);
 
@@ -166,14 +164,14 @@ public class ICalGenerator
     return this;
   }
 
-  public ICalGenerator addVEvent(final VEvent vEvent)
+  public ICalGenerator addEvent(final VEvent vEvent)
   {
     this.calendar.getComponents().add(vEvent);
 
     return this;
   }
 
-  public ICalGenerator addVEvent(final Date startDate, final Date endDate, final boolean allDay, final String summary, final String uid)
+  public ICalGenerator addEvent(final Date startDate, final Date endDate, final boolean allDay, final String summary, final String uid)
   {
     this.calendar.getComponents().add(this.convertVEvent(startDate, endDate, allDay, summary, uid));
 
@@ -278,5 +276,10 @@ public class ICalGenerator
     }
 
     return this;
+  }
+
+  public List<String> getExportsVEvent()
+  {
+    return this.exportsVEvent;
   }
 }

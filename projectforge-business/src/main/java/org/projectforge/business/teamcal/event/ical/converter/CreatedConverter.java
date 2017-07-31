@@ -12,9 +12,13 @@ public class CreatedConverter extends PropertyConverter
   @Override
   public Property toVEvent(final TeamEventDO event)
   {
-    DateTime created = new DateTime(event.getCreated());
-    created.setUtc(true);
-    return new Created(created);
+    if (event.getCreated() != null) {
+      DateTime created = new DateTime(event.getCreated());
+      created.setUtc(true);
+      return new Created(created);
+    }
+
+    return null;
   }
 
   @Override

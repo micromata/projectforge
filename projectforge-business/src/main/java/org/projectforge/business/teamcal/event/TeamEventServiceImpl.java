@@ -385,7 +385,7 @@ public class TeamEventServiceImpl implements TeamEventService
     }
 
     final ICalGenerator generator = ICalGenerator.forMethod(method);
-    generator.addVEvent(event);
+    generator.addEvent(event);
     ByteArrayOutputStream icsFile = generator.getCalendarAsByteStream();
 
     try {
