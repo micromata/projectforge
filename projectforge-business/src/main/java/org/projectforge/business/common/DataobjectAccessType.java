@@ -21,30 +21,22 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.web.address;
-
-import org.projectforge.business.address.AddressFilter;
+package org.projectforge.business.common;
 
 /**
+ * @author Kai Reinhard (k.reinhard@me.de)
  */
-public class AddressListFilter extends AddressFilter
+public enum DataobjectAccessType
 {
-  private static final long serialVersionUID = -2433725695846528675L;
+  FULL, READONLY, MINIMAL, NONE;
 
-  @Override
-  public AddressListFilter reset()
+  public boolean isIn(final DataobjectAccessType... types)
   {
-    super.reset();
-    setUptodate(true);
-    setOutdated(false);
-    setLeaved(false);
-    setFilter();
-
-    setActive(true);
-    setNonActive(false);
-    setUninteresting(false);
-    setPersonaIngrata(false);
-    setDeparted(false);
-    return this;
+    for (final DataobjectAccessType type : types) {
+      if (this == type) {
+        return true;
+      }
+    }
+    return false;
   }
 }

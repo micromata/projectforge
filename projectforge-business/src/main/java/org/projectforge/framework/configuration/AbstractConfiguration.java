@@ -39,11 +39,11 @@ import org.projectforge.framework.xstream.XmlObject;
 /**
  * This class also provides the configuration of the parameters which are stored via ConfigurationDao. Those parameters
  * are cached. <br/>
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
- * 
- *         TODO DESIGNBUG derived
+ * <p>
+ * <p>
+ * TODO DESIGNBUG derived
  */
 @XmlObject(alias = "config")
 public abstract class AbstractConfiguration extends AbstractCache
@@ -112,11 +112,6 @@ public abstract class AbstractConfiguration extends AbstractCache
       return task.getId();
     }
     return null;
-  }
-
-  public boolean isAddressManagementConfigured()
-  {
-    return getTaskIdValue(ConfigurationParam.DEFAULT_TASK_ID_4_ADDRESSES) != null;
   }
 
   public boolean isBookManagementConfigured()

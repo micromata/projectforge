@@ -32,7 +32,6 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.projectforge.business.teamcal.filter.ICalendarFilter;
 import org.projectforge.framework.access.AccessChecker;
-import org.projectforge.framework.configuration.Configuration;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.web.fibu.ISelectCallerPage;
@@ -87,9 +86,7 @@ public class CalendarPageSupport implements Serializable
         "calendar.option.showBreaks.tooltip", autoSubmit);
     addCheckBox(checkBoxDivPanel, filter, "showPlanning", "calendar.option.planning",
         "calendar.option.planning.tooltip", autoSubmit);
-    if (Configuration.getInstance().isAddressManagementConfigured() == true) {
-      addCheckBox(checkBoxDivPanel, filter, "showBirthdays", "calendar.option.birthdays", null, autoSubmit);
-    }
+    addCheckBox(checkBoxDivPanel, filter, "showBirthdays", "calendar.option.birthdays", null, autoSubmit);
     addCheckBox(checkBoxDivPanel, filter, "showStatistics", "calendar.option.statistics",
         "calendar.option.statistics.tooltip", autoSubmit);
   }
@@ -120,7 +117,7 @@ public class CalendarPageSupport implements Serializable
 
   /**
    * Has the logged-in user the permission to see time-sheets of other users?
-   * 
+   *
    * @return
    */
   public boolean isOtherTimesheetsUsersAllowed()

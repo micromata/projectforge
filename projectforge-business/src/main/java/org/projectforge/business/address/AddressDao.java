@@ -39,18 +39,18 @@ import java.util.TreeSet;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.Validate;
 import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Restrictions;
-import org.projectforge.business.task.TaskDO;
-import org.projectforge.business.task.TaskDao;
-import org.projectforge.framework.access.AccessType;
+import org.projectforge.business.user.UserRightId;
+import org.projectforge.framework.access.AccessException;
 import org.projectforge.framework.access.OperationType;
 import org.projectforge.framework.configuration.Configuration;
 import org.projectforge.framework.configuration.ConfigurationParam;
 import org.projectforge.framework.persistence.api.BaseDao;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.persistence.api.QueryFilter;
+import org.projectforge.framework.persistence.api.UserRightService;
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.time.DateHelper;
 import org.projectforge.framework.time.DateHolder;
@@ -59,9 +59,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 /**
- *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- *
  */
 @Repository
 public class AddressDao extends BaseDao<AddressDO>
@@ -71,7 +69,12 @@ public class AddressDao extends BaseDao<AddressDO>
   private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(AddressDao.class);
 
   @Autowired
-  private TaskDao taskDao;
+  private AddressbookDao addressbookDao;
+
+  @Autowired
+  private UserRightService userRights;
+
+  private transient AddressbookRight addressbookRight;
 
   @Autowired
   private PersonalAddressDao personalAddressDao;
@@ -79,14 +82,6 @@ public class AddressDao extends BaseDao<AddressDO>
   public AddressDao()
   {
     super(AddressDO.class);
-  }
-
-  /**
-   * Addresses will be assigned to a default task.
-   */
-  public Integer getDefaultTaskId()
-  {
-    return Configuration.getInstance().getTaskIdValue(ConfigurationParam.DEFAULT_TASK_ID_4_ADDRESSES);
   }
 
   public List<Locale> getUsedCommunicationLanguages()
@@ -100,7 +95,7 @@ public class AddressDao extends BaseDao<AddressDO>
 
   /**
    * Get the newest address entries (by time of creation).
-   * 
+   *
    * @return
    * @see #getNewestMax()
    */
@@ -108,6 +103,7 @@ public class AddressDao extends BaseDao<AddressDO>
   {
     final QueryFilter queryFilter = new QueryFilter();
     queryFilter.addOrder(Order.desc("created"));
+    addAddressbookRestriction(queryFilter, null);
     if (filter.getMaxRows() > 0) {
       queryFilter.setMaxResults(filter.getMaxRows());
     }
@@ -181,6 +177,10 @@ public class AddressDao extends BaseDao<AddressDO>
         }
         queryFilter.add(Restrictions.in("addressStatus", col));
       }
+
+      //Add addressbook restriction
+      addAddressbookRestriction(queryFilter, myFilter);
+
     }
     queryFilter.addOrder(Order.asc("name"));
     final List<AddressDO> result = getList(queryFilter);
@@ -205,6 +205,115 @@ public class AddressDao extends BaseDao<AddressDO>
     return result;
   }
 
+  private void addAddressbookRestriction(final QueryFilter queryFilter, final AddressFilter addressFilter)
+  {
+    //Addressbook rights check
+    Set<Integer> abIdList = new HashSet();
+    //First check wicket ui addressbook filter
+    if (addressFilter != null && addressFilter.getAddressbooks() != null && addressFilter.getAddressbooks().size() > 0) {
+      abIdList.addAll(addressFilter.getAddressbookIds());
+    } else {
+      //Global addressbook is selectable for every one
+      abIdList.add(AddressbookDao.GLOBAL_ADDRESSBOOK_ID);
+      //Get all addressbooks for user
+      if (addressbookRight == null) {
+        addressbookRight = (AddressbookRight) userRights.getRight(UserRightId.MISC_ADDRESSBOOK);
+      }
+      for (AddressbookDO ab : addressbookDao.internalLoadAll()) {
+        if (ab.isDeleted() == false && addressbookRight.hasSelectAccess(ThreadLocalUserContext.getUser(), ab)) {
+          abIdList.add(ab.getId());
+        }
+      }
+    }
+    //Has to be on id value, full entity doesn't work!!!
+    queryFilter.createAlias("addressbookList", "abl");
+    queryFilter.add(Restrictions.in("abl.id", abIdList));
+  }
+
+  /**
+   * @see org.projectforge.framework.persistence.api.BaseDao#hasAccess(Object, OperationType)
+   */
+  @Override
+  public boolean hasAccess(final PFUserDO user, final AddressDO obj, final AddressDO oldObj,
+      final OperationType operationType,
+      final boolean throwException)
+  {
+    if (addressbookRight == null) {
+      addressbookRight = (AddressbookRight) userRights.getRight(UserRightId.MISC_ADDRESSBOOK);
+    }
+    if (obj == null || obj.getAddressbookList() == null) {
+      //Nothing to check, should not happen, but does
+      return true;
+    }
+    switch (operationType) {
+      case SELECT:
+        for (AddressbookDO ab : obj.getAddressbookList()) {
+          if (addressbookRight.hasSelectAccess(user, ab)) {
+            return true;
+          }
+          if (throwException) {
+            throw new AccessException(user, "access.exception.userHasNotRight", addressbookRight, operationType);
+          }
+          return false;
+        }
+      case INSERT:
+        for (AddressbookDO ab : obj.getAddressbookList()) {
+          if (addressbookRight.hasInsertAccess(user, ab)) {
+            return true;
+          }
+          if (throwException) {
+            throw new AccessException(user, "access.exception.userHasNotRight", addressbookRight, operationType);
+          }
+          return false;
+        }
+      case UPDATE:
+        for (AddressbookDO ab : obj.getAddressbookList()) {
+          if (addressbookRight.hasUpdateAccess(user, ab, ab)) {
+            return true;
+          }
+          if (throwException) {
+            throw new AccessException(user, "access.exception.userHasNotRight", addressbookRight, operationType);
+          }
+          return false;
+        }
+      case DELETE:
+        for (AddressbookDO ab : obj.getAddressbookList()) {
+          if (addressbookRight.hasDeleteAccess(user, ab, ab)) {
+            return true;
+          }
+          if (throwException) {
+            throw new AccessException(user, "access.exception.userHasNotRight", addressbookRight, operationType);
+          }
+          return false;
+        }
+      default:
+        if (throwException) {
+          throw new AccessException(user, "access.exception.userHasNotRight", addressbookRight, operationType);
+        }
+        return false;
+    }
+  }
+
+  @Override
+  protected void beforeSaveOrModify(final AddressDO obj)
+  {
+    if (obj != null) {
+      if (obj.getAddressbookList() == null) {
+        Set<AddressbookDO> addressbookSet = new HashSet<>();
+        addressbookSet.add(addressbookDao.getGlobalAddressbook());
+        obj.setAddressbookList(addressbookSet);
+      } else if (obj.getAddressbookList().size() < 1) {
+        obj.getAddressbookList().add(addressbookDao.getGlobalAddressbook());
+      }
+    }
+  }
+
+  @Override
+  protected void onSaveOrModify(final AddressDO obj)
+  {
+    beforeSaveOrModify(obj);
+  }
+
   private String getNormalizedFullname(final AddressDO address)
   {
     final StringBuilder builder = new StringBuilder();
@@ -218,85 +327,12 @@ public class AddressDao extends BaseDao<AddressDO>
   }
 
   /**
-   * @param address
-   * @param taskId If null, then task will be set to null;
-   * @see BaseDao#getOrLoad(Integer)
-   */
-  public void setTask(final AddressDO address, final Integer taskId)
-  {
-    final TaskDO task = taskDao.getOrLoad(taskId);
-    address.setTask(task);
-  }
-
-  /**
-   * return Always true, no generic select access needed for address objects.
-   * 
-   * @see org.projectforge.framework.persistence.api.BaseDao#hasSelectAccess()
-   */
-  @Override
-  public boolean hasSelectAccess(final PFUserDO user, final boolean throwException)
-  {
-    return true;
-  }
-
-  private void beforeUpdateOrSave(final AddressDO address)
-  {
-    if (address != null && address.getTaskId() == null) {
-      setTask(address, getDefaultTaskId());
-    }
-  }
-
-  /**
-   * @see org.projectforge.framework.persistence.api.BaseDao#hasAccess(Object, OperationType)
-   */
-  @Override
-  public boolean hasAccess(final PFUserDO user, final AddressDO obj, final AddressDO oldObj,
-      final OperationType operationType,
-      final boolean throwException)
-  {
-    beforeUpdateOrSave(obj);
-    return accessChecker.hasPermission(user, obj.getTaskId(), AccessType.TASKS, operationType, throwException);
-  }
-
-  /**
-   * @see org.projectforge.framework.persistence.api.BaseDao#hasUpdateAccess(Object, Object)
-   */
-  @Override
-  public boolean hasUpdateAccess(final PFUserDO user, final AddressDO obj, final AddressDO dbObj,
-      final boolean throwException)
-  {
-    Validate.notNull(dbObj);
-    Validate.notNull(obj);
-    beforeUpdateOrSave(obj);
-    Validate.notNull(dbObj.getTaskId());
-    Validate.notNull(obj.getTaskId());
-    if (accessChecker.hasPermission(user, obj.getTaskId(), AccessType.TASKS, OperationType.UPDATE,
-        throwException) == false) {
-      return false;
-    }
-    if (dbObj.getTaskId().equals(obj.getTaskId()) == false) {
-      // User moves the object to another task:
-      if (accessChecker.hasPermission(user, obj.getTaskId(), AccessType.TASKS, OperationType.INSERT,
-          throwException) == false) {
-        // Inserting of object under new task not allowed.
-        return false;
-      }
-      if (accessChecker.hasPermission(user, dbObj.getTaskId(), AccessType.TASKS, OperationType.DELETE,
-          throwException) == false) {
-        // Deleting of object under old task not allowed.
-        return false;
-      }
-    }
-    return true;
-  }
-
-  /**
    * Get the birthdays of address entries.
-   * 
+   *
    * @param fromDate Search for birthdays from given date (ignoring the year).
-   * @param toDate Search for birthdays until given date (ignoring the year).
-   * @param max Maximum number of result entries.
-   * @param all If false, only the birthdays of favorites will be returned.
+   * @param toDate   Search for birthdays until given date (ignoring the year).
+   * @param max      Maximum number of result entries.
+   * @param all      If false, only the birthdays of favorites will be returned.
    * @return The entries are ordered by date of year and name.
    */
   public Set<BirthdayAddress> getBirthdays(final Date fromDate, final Date toDate, final int max, final boolean all)
@@ -379,7 +415,7 @@ public class AddressDao extends BaseDao<AddressDO>
 
   /**
    * Exports a single vcard for the given addressDO
-   * 
+   *
    * @param pw
    * @param addressDO
    * @return
@@ -461,7 +497,7 @@ public class AddressDao extends BaseDao<AddressDO>
 
   /**
    * Used by vCard export for field 'FN' (full name). Concatenates first name, last name and title.
-   * 
+   *
    * @return
    */
   public String getFullName(final AddressDO a)
@@ -556,7 +592,7 @@ public class AddressDao extends BaseDao<AddressDO>
   /**
    * Simply calls StringUtils.defaultString(String) and replaces: "\r" -> "", "\n" -> "\\n", "," -> "\\,", ":" -> "\\:"
    * and print the resulted string into given PrintWriter (without newline).
-   * 
+   *
    * @param str
    * @see StringUtils#defaultString(String)
    */
@@ -590,7 +626,7 @@ public class AddressDao extends BaseDao<AddressDO>
 
   /**
    * Simply call StringUtils.isNotBlank(String)
-   * 
+   *
    * @param str
    * @return
    * @see StringUtils#isNotBlank(String)

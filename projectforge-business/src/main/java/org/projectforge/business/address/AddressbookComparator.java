@@ -21,24 +21,23 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.business.teamcal.admin.model;
+package org.projectforge.business.address;
 
+import java.io.Serializable;
+import java.util.Comparator;
 
-
-/**
- * @author Kai Reinhard (k.reinhard@me.de)
- * 
- */
-public enum TeamCalAccessType
+public class AddressbookComparator implements Comparator<AddressbookDO>, Serializable
 {
-  FULL, READONLY, MINIMAL, NONE;
+  private static final long serialVersionUID = -1458885789659898564L;
 
-  public boolean isIn(final TeamCalAccessType... types) {
-    for (final TeamCalAccessType type : types) {
-      if (this == type) {
-        return true;
-      }
-    }
-    return false;
+  /**
+   * @see Comparator#compare(Object, Object)
+   */
+  @Override
+  public int compare(final AddressbookDO g1, final AddressbookDO g2)
+  {
+    final String n1 = g1 != null && g1.getTitle() != null ? g1.getTitle().toLowerCase() : "";
+    final String n2 = g2 != null && g2.getTitle() != null ? g2.getTitle().toLowerCase() : "";
+    return n1.compareTo(n2);
   }
 }

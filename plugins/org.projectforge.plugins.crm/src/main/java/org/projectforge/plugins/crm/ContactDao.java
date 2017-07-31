@@ -32,7 +32,6 @@ import org.projectforge.business.task.TaskDao;
 import org.projectforge.framework.access.AccessType;
 import org.projectforge.framework.access.OperationType;
 import org.projectforge.framework.configuration.Configuration;
-import org.projectforge.framework.configuration.ConfigurationParam;
 import org.projectforge.framework.persistence.api.BaseDao;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,7 +39,6 @@ import org.springframework.stereotype.Repository;
 
 /**
  * @author Werner Feder (werner.feder@t-online.de)
- *
  */
 @Repository
 public class ContactDao extends BaseDao<ContactDO>
@@ -90,7 +88,7 @@ public class ContactDao extends BaseDao<ContactDO>
 
   /**
    * @param address
-   * @param taskId If null, then task will be set to null;
+   * @param taskId  If null, then task will be set to null;
    * @see BaseDao#getOrLoad(Integer)
    */
   public void setTask(final ContactDO address, final Integer taskId)
@@ -101,28 +99,13 @@ public class ContactDao extends BaseDao<ContactDO>
 
   /**
    * return Always true, no generic select access needed for address objects.
-   * 
+   *
    * @see org.projectforge.framework.persistence.api.BaseDao#hasSelectAccess()
    */
   @Override
   public boolean hasSelectAccess(final PFUserDO user, final boolean throwException)
   {
     return true;
-  }
-
-  /**
-   * Addresses will be assigned to a default task.
-   */
-  public Integer getDefaultTaskId()
-  {
-    return configuration.getTaskIdValue(ConfigurationParam.DEFAULT_TASK_ID_4_ADDRESSES);
-  }
-
-  private void beforeUpdateOrSave(final ContactDO address)
-  {
-    if (address != null && address.getTaskId() == null) {
-      setTask(address, getDefaultTaskId());
-    }
   }
 
   /**
@@ -133,7 +116,6 @@ public class ContactDao extends BaseDao<ContactDO>
       final OperationType operationType,
       final boolean throwException)
   {
-    beforeUpdateOrSave(obj);
     return accessChecker.hasPermission(user, obj.getTaskId(), AccessType.TASKS, operationType, throwException);
   }
 
@@ -146,7 +128,6 @@ public class ContactDao extends BaseDao<ContactDO>
   {
     Validate.notNull(dbObj);
     Validate.notNull(obj);
-    beforeUpdateOrSave(obj);
     Validate.notNull(dbObj.getTaskId());
     Validate.notNull(obj.getTaskId());
     if (accessChecker.hasPermission(user, obj.getTaskId(), AccessType.TASKS, OperationType.UPDATE,
@@ -180,7 +161,7 @@ public class ContactDao extends BaseDao<ContactDO>
 
   /**
    * Exports xml string as List of Social Media values.
-   * 
+   *
    * @param SocialMediaValue values
    */
   public List<SocialMediaValue> readSocialMediaValues(final String valuesAsXml)
@@ -190,7 +171,7 @@ public class ContactDao extends BaseDao<ContactDO>
 
   /**
    * Exports the Social Media values as xml string.
-   * 
+   *
    * @param SocialMediaValue values
    */
   public String getSocialMediaValuesAsXml(final SocialMediaValue... values)

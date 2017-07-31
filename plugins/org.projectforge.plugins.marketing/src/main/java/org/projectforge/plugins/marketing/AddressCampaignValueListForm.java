@@ -29,6 +29,7 @@ import org.apache.log4j.Logger;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
+import org.projectforge.business.address.AddressbookDao;
 import org.projectforge.web.address.AddressListForm;
 import org.projectforge.web.wicket.AbstractListForm;
 import org.projectforge.web.wicket.bootstrap.GridSize;
@@ -38,7 +39,6 @@ import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
  */
 public class AddressCampaignValueListForm
     extends AbstractListForm<AddressCampaignValueFilter, AddressCampaignValueListPage>
@@ -52,6 +52,9 @@ public class AddressCampaignValueListForm
 
   @SpringBean
   private AddressCampaignDao addressCampaignDao;
+
+  @SpringBean
+  private AddressbookDao addressbookDao;
 
   private Integer addressCampaignId;
 
@@ -147,12 +150,12 @@ public class AddressCampaignValueListForm
       addressCampaignValueDropDownChoice.setNullValid(true);
       fs.add(addressCampaignValueDropDownChoice);
     }
-    AddressListForm.addFilter(parentPage, this, gridBuilder, getSearchFilter());
+    AddressListForm.addFilter(parentPage, this, gridBuilder, getSearchFilter(), addressbookDao);
   }
 
   /**
    * @see org.projectforge.web.wicket.AbstractListForm#onOptionsPanelCreate(org.projectforge.web.wicket.flowlayout.FieldsetPanel,
-   *      org.projectforge.web.wicket.flowlayout.DivPanel)
+   * org.projectforge.web.wicket.flowlayout.DivPanel)
    */
   @Override
   protected void onOptionsPanelCreate(final FieldsetPanel optionsFieldsetPanel, final DivPanel optionsCheckBoxesPanel)
