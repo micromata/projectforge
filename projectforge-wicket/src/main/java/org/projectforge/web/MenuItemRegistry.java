@@ -231,15 +231,6 @@ public class MenuItemRegistry implements Serializable
     get(MenuItemDefId.ACCOUNTING_RECORD_LIST).setVisibility(costConfiguredVisibility);
     get(MenuItemDefId.REPORT_OBJECTIVES).setVisibility(costConfiguredVisibility);
     get(MenuItemDefId.DATEV_IMPORT).setVisibility(costConfiguredVisibility);
-
-    get(MenuItemDefId.ADDRESS_LIST).setVisibility(new MenuItemDefVisibility()
-    {
-      @Override
-      public boolean isVisible()
-      {
-        return Configuration.getInstance().isAddressManagementConfigured();
-      }
-    });
     get(MenuItemDefId.BOOK_LIST).setVisibility(new MenuItemDefVisibility()
     {
       @Override

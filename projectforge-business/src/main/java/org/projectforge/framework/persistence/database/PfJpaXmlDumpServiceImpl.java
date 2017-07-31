@@ -325,10 +325,6 @@ public class PfJpaXmlDumpServiceImpl extends JpaXmlDumpServiceImpl implements In
       }
     }
     for (ConfigurationDO cDO : configDao.internalLoadAll()) {
-      if (cDO.getParameter().equals(ConfigurationParam.DEFAULT_TASK_ID_4_ADDRESSES.getKey())) {
-        cDO.setTaskId(rootTaskId);
-        configDao.internalUpdate(cDO);
-      }
       if (cDO.getParameter().equals(ConfigurationParam.DEFAULT_TASK_ID_4_BOOKS.getKey())) {
         cDO.setTaskId(rootTaskId);
         configDao.internalUpdate(cDO);

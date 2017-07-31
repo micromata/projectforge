@@ -201,11 +201,11 @@ public class AddressDO extends DefaultBaseWithAttrDO<AddressDO>
   @NoHistory
   private byte[] imageData;
 
-  @NoHistory
-  private byte[] imageDataPreview;
-
   @PropertyInfo(i18nKey = "vacation.substitution")
   private Set<AddressbookDO> addressbookList = new HashSet<>();
+
+  @NoHistory
+  private byte[] imageDataPreview;
 
   // @FieldBridge(impl = HibernateSearchInstantMessagingBridge.class)
   // @Field(index = Index.YES /*TOKENIZED*/, store = Store.NO)
@@ -954,17 +954,6 @@ public class AddressDO extends DefaultBaseWithAttrDO<AddressDO>
     this.imageData = imageData;
   }
 
-  @Column(name = "image_data_preview", length = 1000)
-  public byte[] getImageDataPreview()
-  {
-    return imageDataPreview;
-  }
-
-  public void setImageDataPreview(final byte[] imageDataPreview)
-  {
-    this.imageDataPreview = imageDataPreview;
-  }
-
   /**
    * The substitutions.
    *
@@ -988,10 +977,19 @@ public class AddressDO extends DefaultBaseWithAttrDO<AddressDO>
   /**
    * @param addressbookList the addressbookList to set
    */
-
   public void setAddressbookList(final Set<AddressbookDO> addressbookList)
   {
     this.addressbookList = addressbookList;
+  }
 
+  @Column(name = "image_data_preview", length = 1000)
+  public byte[] getImageDataPreview()
+  {
+    return imageDataPreview;
+  }
+
+  public void setImageDataPreview(final byte[] imageDataPreview)
+  {
+    this.imageDataPreview = imageDataPreview;
   }
 }

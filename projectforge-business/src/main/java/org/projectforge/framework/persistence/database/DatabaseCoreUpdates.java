@@ -145,7 +145,7 @@ public class DatabaseCoreUpdates
     // 6.16.0
     // /////////////////////////////////////////////////////////////////
     list.add(new UpdateEntryImpl(CORE_REGION_ID, "6.16.0", "2017-08-01",
-        "Remove unique constraints from EmployeeTimedAttrDO and EmployeeConfigurationTimedAttrDO. Add addressbooks, remove tasks from addresses. Add thumbnail for address images.")
+        "Remove unique constraints from EmployeeTimedAttrDO and EmployeeConfigurationTimedAttrDO. Add thumbnail for address images. Add addressbooks, remove tasks from addresses.")
     {
       @Override
       public UpdatePreCheckStatus runPreCheck()
@@ -174,7 +174,6 @@ public class DatabaseCoreUpdates
             databaseUpdateService.execute("ALTER TABLE T_PLUGIN_EMPLOYEE_CONFIGURATION_TIMEDATTR DROP CONSTRAINT " + uniqueConstraint2);
           }
         }
-
         if (isImageDataPreviewMissing()) {
           final ImageService imageService = applicationContext.getBean(ImageService.class);
           initDatabaseDao.updateSchema();
@@ -218,6 +217,7 @@ public class DatabaseCoreUpdates
                 .execute("INSERT INTO t_addressbook_address (address_id, addressbook_id) VALUES (" + addressId.getEntry(0).getValue() + ", "
                     + AddressbookDao.GLOBAL_ADDRESSBOOK_ID + ")");
           });
+          databaseUpdateService.execute("DELETE FROM t_configuration WHERE parameter = 'defaultTask4Addresses'");
         }
 
         return UpdateRunningStatus.DONE;
@@ -513,6 +513,7 @@ public class DatabaseCoreUpdates
           deleteImageAddressAttrData();
           log.info("Address image data migration DONE.");
         }
+
         if (hasISODates()) {
           SimpleDateFormat iCalFormatterWithTime = new SimpleDateFormat(DateFormats.ICAL_DATETIME_FORMAT);
           SimpleDateFormat iCalFormatterAllDay = new SimpleDateFormat(DateFormats.COMPACT_DATE);
