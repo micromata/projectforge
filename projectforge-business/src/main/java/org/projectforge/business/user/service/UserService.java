@@ -81,4 +81,5 @@ public interface UserService
 
   List<PFUserDO> findUserByMail(String email);
 
+  List<PFUserDO> getAllActiveUsers();
 }
