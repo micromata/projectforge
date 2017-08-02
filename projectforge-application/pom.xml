@@ -9,7 +9,7 @@
   <parent>
     <groupId>org.projectforge</groupId>
     <artifactId>projectforge-parent</artifactId>
-    <version>6.16.0</version>
+    <version>6.17.0-SNAPSHOT</version>
   </parent>
   <licenses>
     <license>
