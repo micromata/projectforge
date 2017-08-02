@@ -37,8 +37,8 @@ import org.projectforge.web.wicket.components.PlainLabel;
 
 /**
  * Panel for selecting list page entries for editing and selecting for callers.
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
  */
 @SuppressWarnings("serial")
 public class ListSelectActionPanel extends Panel
@@ -49,14 +49,15 @@ public class ListSelectActionPanel extends Panel
 
   /**
    * Constructor for list view in selection mode.
-   * @param id component id
-   * @param model model for contact
-   * @param caller The calling page.
+   *
+   * @param id             component id
+   * @param model          model for contact
+   * @param caller         The calling page.
    * @param selectProperty The property (name) of the caller to select.
-   * @param objectId The id of the object to select on click.
-   * @param label The label string to show (additional to the row_pointer.png).
+   * @param objectId       The id of the object to select on click.
+   * @param label          The label string to show (additional to the row_pointer.png).
    */
-  public ListSelectActionPanel(final String id, final IModel< ? > model, final ISelectCallerPage caller, final String selectProperty,
+  public ListSelectActionPanel(final String id, final IModel<?> model, final ISelectCallerPage caller, final String selectProperty,
       final Integer objectId, final String label)
   {
     this(id, model, caller, selectProperty, objectId, new PlainLabel(LABEL_ID, label));
@@ -64,25 +65,28 @@ public class ListSelectActionPanel extends Panel
 
   /**
    * Constructor for list view in selection mode.
-   * @param id component id
-   * @param model model for contact
-   * @param caller The calling page.
+   *
+   * @param id             component id
+   * @param model          model for contact
+   * @param caller         The calling page.
    * @param selectProperty The property (name) of the caller to select.
-   * @param objectId The id of the object to select on click.
-   * @param label The label to show (additional to the row_pointer.png). The id of the label should be LABEL_ID.
+   * @param objectId       The id of the object to select on click.
+   * @param label          The label to show (additional to the row_pointer.png). The id of the label should be LABEL_ID.
    */
-  public ListSelectActionPanel(final String id, final IModel< ? > model, final ISelectCallerPage caller, final String selectProperty,
+  public ListSelectActionPanel(final String id, final IModel<?> model, final ISelectCallerPage caller, final String selectProperty,
       final Integer objectId, final Label label)
   {
     super(id, model);
     setRenderBodyOnly(true);
-    final Link< ? > link = new Link<Void>("select") {
+    final Link<?> link = new Link<Void>("select")
+    {
       @Override
       public void onClick()
       {
         WicketUtils.setResponsePage(this, caller);
         caller.select(selectProperty, objectId);
-      };
+      }
+
     };
     add(link);
     add(label);
@@ -90,15 +94,16 @@ public class ListSelectActionPanel extends Panel
 
   /**
    * Constructor for normal list view for selecting one entry to edit.
-   * @param id component id
-   * @param model model for contact
+   *
+   * @param id        component id
+   * @param model     model for contact
    * @param editClass The edit page to redirect to.
-   * @param objectId The id of the object to edit in edit page.
-   * @param label The label string to show (additional to the row_pointer.png).
-   * @param params Pairs of params (key, value).
+   * @param objectId  The id of the object to edit in edit page.
+   * @param label     The label string to show (additional to the row_pointer.png).
+   * @param params    Pairs of params (key, value).
    * @see WicketUtils#getPageParameters(String[])
    */
-  public ListSelectActionPanel(final String id, final IModel< ? > model, final Class< ? extends WebPage> editClass, final Integer objectId,
+  public ListSelectActionPanel(final String id, final IModel<?> model, final Class<? extends WebPage> editClass, final Integer objectId,
       final WebPage returnToPage, final String label, final String... params)
   {
     this(id, model, editClass, objectId, returnToPage, new PlainLabel(LABEL_ID, label), params);
@@ -106,34 +111,39 @@ public class ListSelectActionPanel extends Panel
 
   /**
    * Constructor for normal list view for selecting one entry to edit.
-   * @param id component id
-   * @param model model for contact
+   *
+   * @param id            component id
+   * @param model         model for contact
    * @param editPageClass The edit page to redirect to.
-   * @param objectId The id of the object to edit in edit page.
-   * @param label The label to show (additional to the row_pointer.png). The id of the label should be LABEL_ID.
-   * @param params Pairs of params (key, value).
+   * @param objectId      The id of the object to edit in edit page.
+   * @param label         The label to show (additional to the row_pointer.png). The id of the label should be LABEL_ID.
+   * @param params        Pairs of params (key, value).
    * @see WicketUtils#getPageParameters(String[])
    */
-  public ListSelectActionPanel(final String id, final IModel< ? > model, final Class< ? extends WebPage> editPageClass,
+  public ListSelectActionPanel(final String id, final IModel<?> model, final Class<? extends WebPage> editPageClass,
       final Integer objectId, final WebPage returnToPage, final Label label, final String... params)
   {
     super(id, model);
     setRenderBodyOnly(true);
-    final Link< ? > link = new Link<Void>(LINK_ID) {
+    final Link<?> link = new Link<Void>(LINK_ID)
+    {
+
       @Override
+      //      public void onClick(final AjaxRequestTarget target)
       public void onClick()
       {
         final PageParameters pageParams = WicketUtils.getPageParameters(params);
         if (objectId != null) {
           pageParams.add(AbstractEditPage.PARAMETER_KEY_ID, String.valueOf(objectId));
         }
-        final AbstractSecuredPage editPage = (AbstractSecuredPage) ReflectionHelper.newInstance(editPageClass, PageParameters.class,
-            pageParams);
+        final AbstractSecuredPage editPage = (AbstractSecuredPage) ReflectionHelper.newInstance(editPageClass, PageParameters.class, pageParams);
         if (editPage instanceof AbstractEditPage) {
-          ((AbstractEditPage< ? , ? , ? >) editPage).setReturnToPage(returnToPage);
+          ((AbstractEditPage<?, ?, ?>) editPage).setReturnToPage(returnToPage);
         }
+        //        target.getPage().setResponsePage(editPage);
         setResponsePage(editPage);
-      };
+      }
+
     };
     add(link);
     add(label);
