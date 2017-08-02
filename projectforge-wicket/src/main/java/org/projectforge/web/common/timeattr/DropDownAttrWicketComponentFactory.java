@@ -58,19 +58,26 @@ public class DropDownAttrWicketComponentFactory implements AttrWicketComponentFa
       @Override
       public String getIdValue(String object, int index)
       {
-        return String.valueOf(index);
+        return String.valueOf(index) + "_" + object;
       }
 
       @Override
-      public String getObject(final String s, final IModel<? extends List<? extends String>> iModel)
+      public String getObject(final String indexId, final IModel<? extends List<? extends String>> iModel)
       {
-        if (s == null) {
+        if (indexId == null) {
           return null;
         }
 
+        String key = null;
+        String[] keyArray = indexId.split("\\d+_");
+        if (keyArray == null || keyArray.length < 2 || keyArray.length > 2) {
+          return null;
+        } else {
+          key = keyArray[1];
+        }
+
         for (String instance : iModel.getObject()) {
-          // TODO sn migration
-          if (s.equals(instance)) {
+          if (instance.equals(key)) {
             return instance;
           }
         }
