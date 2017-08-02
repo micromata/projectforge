@@ -159,7 +159,7 @@ public class DisplayHistoryEntry implements Serializable
     return String.valueOf(toShortNameOfList(value));
   }
 
-  private Object getObjectValue(UserGroupCache userGroupCache, Session session, HistProp prop)
+  protected Object getObjectValue(UserGroupCache userGroupCache, Session session, HistProp prop)
   {
     if (prop == null) {
       return null;

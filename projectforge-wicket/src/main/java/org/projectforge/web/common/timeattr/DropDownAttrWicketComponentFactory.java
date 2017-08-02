@@ -15,6 +15,7 @@ import java.util.Map;
 
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.IChoiceRenderer;
+import org.apache.wicket.model.IModel;
 import org.projectforge.framework.i18n.I18nHelper;
 import org.projectforge.web.wicket.flowlayout.ComponentWrapperPanel;
 import org.projectforge.web.wicket.flowlayout.DropDownChoicePanel;
@@ -57,7 +58,31 @@ public class DropDownAttrWicketComponentFactory implements AttrWicketComponentFa
       @Override
       public String getIdValue(String object, int index)
       {
-        return String.valueOf(index);
+        return String.valueOf(index) + "_" + object;
+      }
+
+      @Override
+      public String getObject(final String indexId, final IModel<? extends List<? extends String>> iModel)
+      {
+        if (indexId == null) {
+          return null;
+        }
+
+        String key = null;
+        String[] keyArray = indexId.split("\\d+_");
+        if (keyArray == null || keyArray.length < 2 || keyArray.length > 2) {
+          return null;
+        } else {
+          key = keyArray[1];
+        }
+
+        for (String instance : iModel.getObject()) {
+          if (instance.equals(key)) {
+            return instance;
+          }
+        }
+
+        return null;
       }
     }
     );

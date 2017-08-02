@@ -434,7 +434,7 @@ public class WicketApplication extends WebApplication implements WicketApplicati
       projectForgeApp.finalizeInitialization();
     }
 
-    getPageSettings().setRecreateMountedPagesAfterExpiry(false);
+    getPageSettings().setRecreateBookmarkablePagesAfterExpiry(false);
     initPageStore();
   }
 

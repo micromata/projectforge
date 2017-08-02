@@ -32,8 +32,8 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.apache.wicket.util.convert.IConverter;
-import org.apache.wicket.validation.IValidatable;
-import org.apache.wicket.validation.validator.AbstractValidator;
+import org.apache.wicket.validation.INullAcceptingValidator;
+import org.apache.wicket.validation.ValidationError;
 import org.projectforge.business.fibu.KostFormatter;
 import org.projectforge.business.fibu.kost.Kost2DO;
 import org.projectforge.business.fibu.kost.Kost2Dao;
@@ -51,12 +51,14 @@ public class Kost2FormComponent extends PFAutoCompleteTextField<Kost2DO>
   {
     private static final long serialVersionUID = 5770334618044073827L;
 
+    @Override
     public Kost2DO convertToObject(String value, final Locale locale)
     {
       value = StringUtils.trimToEmpty(value);
       return kost2Dao.getKost2(value);
     }
 
+    @Override
     public String convertToString(final Object value, final Locale locale)
     {
       if (value == null) {
@@ -77,26 +79,10 @@ public class Kost2FormComponent extends PFAutoCompleteTextField<Kost2DO>
     super(id, model, tooltipRightAlignment);
     if (required == true) {
       setRequired(true);
-      add(new AbstractValidator<Kost2DO>() {
-        @Override
-        protected void onValidate(final IValidatable<Kost2DO> validatable)
-        {
-          final Kost2DO value = validatable.getValue();
-          if (value == null) {
-            error(validatable);
-          }
-        }
-
-        @Override
-        public boolean validateOnNullValue()
-        {
-          return true;
-        }
-
-        @Override
-        protected String resourceKey()
-        {
-          return "fibu.kost.error.invalidKost";
+      add((INullAcceptingValidator<Kost2DO>) validatable -> {
+        final Kost2DO value = validatable.getValue();
+        if (value == null) {
+          error(new ValidationError().addKey("fibu.kost.error.invalidKost"));
         }
       });
     }
@@ -121,7 +107,9 @@ public class Kost2FormComponent extends PFAutoCompleteTextField<Kost2DO>
     filter.setSearchString(input);
     filter.setListType(KostFilter.FILTER_NOT_ENDED);
     final List<Kost2DO> list = kost2Dao.getList(filter);
-    Collections.sort(list, new Comparator<Kost2DO>() {
+    Collections.sort(list, new Comparator<Kost2DO>()
+    {
+      @Override
       public int compare(final Kost2DO o1, final Kost2DO o2)
       {
         return (o1.getNummer().compareTo(o2.getNummer()));

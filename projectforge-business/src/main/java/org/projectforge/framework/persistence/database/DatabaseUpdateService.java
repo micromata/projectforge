@@ -31,6 +31,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -77,6 +78,7 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import de.micromata.genome.db.jpa.tabattr.api.TimeableAttrRow;
+import javafx.util.Pair;
 
 /**
  * For manipulating the database (patching data etc.)
@@ -962,6 +964,64 @@ public class DatabaseUpdateService
     final String[] allUniqueConstraintNames = getAllUniqueConstraintNames(tableName);
     return (allUniqueConstraintNames != null) &&
         Arrays.asList(allUniqueConstraintNames).contains(uniqueConstraintName);
+  }
+
+  public boolean doesUniqueConstraintExists(final String tableName, final String... fields)
+  {
+    return this.getUniqueConstraintName(tableName, fields) != null;
+  }
+
+  public String getUniqueConstraintName(final String tableName, final String... fields)
+  {
+    String queryString = String.format("select tc.constraint_name, cc.Column_Name from INFORMATION_SCHEMA.TABLE_CONSTRAINTS tc "
+        + "inner join information_schema.constraint_column_usage cc on tc.Constraint_Name = cc.Constraint_Name "
+        + "where tc.CONSTRAINT_TYPE='UNIQUE' and LOWER(tc.table_name)='%s'", tableName.toLowerCase());
+
+    List<DatabaseResultRow> resultSet = this.query(queryString);
+
+    if (resultSet == null || resultSet.isEmpty()) {
+      return null;
+    }
+
+    Map<String, List<String>> constraints = new HashMap<>();
+    for (DatabaseResultRow row : resultSet) {
+      String constraint = row.getEntry(0) != null && row.getEntry(0).getValue() != null ? row.getEntry(0).getValue().toString() : null;
+      String column = row.getEntry(1) != null && row.getEntry(1).getValue() != null ? row.getEntry(1).getValue().toString() : null;
+
+      if (constraint == null || column == null) {
+        continue;
+      }
+
+      if (constraints.containsKey(constraint) == false) {
+        constraints.put(constraint, new ArrayList<String>());
+      }
+      constraints.get(constraint).add(column.toLowerCase());
+    }
+
+    for (final String constraint : constraints.keySet()) {
+      final List columns = constraints.get(constraint);
+      boolean ok = true;
+
+      if (columns.size() != fields.length) {
+        continue;
+      }
+
+      for (final String field : fields) {
+        if (columns.contains(field.toLowerCase())) {
+          continue;
+        }
+
+        ok = false;
+        break;
+      }
+
+      if (ok) {
+        return constraint;
+      }
+
+    }
+
+    return null;
   }
 
   public Optional<Boolean> isColumnNullable(final String tableName, final String columnName)

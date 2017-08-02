@@ -37,7 +37,6 @@ import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.teamcal.admin.TeamCalCache;
 import org.projectforge.business.teamcal.event.TeamEventDao;
 import org.projectforge.business.teamcal.event.TeamEventService;
-import org.projectforge.business.teamcal.event.diff.TeamEventDiffType;
 import org.projectforge.business.teamcal.event.model.TeamEventAttendeeDO;
 import org.projectforge.business.teamcal.event.model.TeamEventDO;
 import org.projectforge.business.teamcal.filter.ICalendarFilter;
@@ -197,7 +196,7 @@ public class TeamCalCalendarForm extends CalendarForm
     templateChoice.setTooltip(getString("plugins.teamcal.calendar.filter.choose"));
     templateChoice.getDropDownChoice().setOutputMarkupId(true);
 
-    templateChoice.getDropDownChoice().add(new AjaxFormComponentUpdatingBehavior("onchange")
+    templateChoice.getDropDownChoice().add(new AjaxFormComponentUpdatingBehavior("change")
     {
       private static final long serialVersionUID = 8999698636114154230L;
 

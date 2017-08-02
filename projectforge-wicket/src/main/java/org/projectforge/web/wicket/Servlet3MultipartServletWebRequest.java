@@ -15,21 +15,21 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.Part;
 
+import org.apache.commons.fileupload.FileItem;
+import org.apache.commons.fileupload.FileItemHeaders;
+import org.apache.commons.fileupload.FileUploadException;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.apache.wicket.protocol.http.servlet.MultipartServletWebRequest;
 import org.apache.wicket.util.lang.Bytes;
-import org.apache.wicket.util.upload.FileItem;
-import org.apache.wicket.util.upload.FileUploadException;
 
 import de.micromata.genome.util.runtime.RuntimeIOException;
 
 /**
  * Compat to servlet 3.0 api.
- * 
- * @author Roger Rene Kommer (r.kommer.extern@micromata.de)
  *
+ * @author Roger Rene Kommer (r.kommer.extern@micromata.de)
  */
 public class Servlet3MultipartServletWebRequest extends MultipartServletWebRequest
 {
@@ -48,6 +48,7 @@ public class Servlet3MultipartServletWebRequest extends MultipartServletWebReque
     this.upload = upload;
   }
 
+  @Override
   public void parseFileParts() throws FileUploadException
   {
 
@@ -67,15 +68,15 @@ public class Servlet3MultipartServletWebRequest extends MultipartServletWebReque
 
   /**
    * File item based on Part.
-   * 
-   * @author Roger Rene Kommer (r.kommer.extern@micromata.de)
    *
+   * @author Roger Rene Kommer (r.kommer.extern@micromata.de)
    */
   public static class ParFileItem implements FileItem
   {
     private Part part;
     private byte[] bytes;
     private boolean formField;
+    private FileItemHeaders headers;
 
     public ParFileItem(Part part)
     {
@@ -181,6 +182,19 @@ public class Servlet3MultipartServletWebRequest extends MultipartServletWebReque
       return null;
     }
 
+    @Override
+    public FileItemHeaders getHeaders()
+    {
+      // TODO sn migration check
+      return this.headers;
+    }
+
+    @Override
+    public void setHeaders(final FileItemHeaders headers)
+    {
+      // TODO sn migration check
+      this.headers = headers;
+    }
   }
 
   protected void parsePart(Part part)

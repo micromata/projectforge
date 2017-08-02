@@ -27,16 +27,15 @@ import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
-import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.web.wicket.WicketRenderHeadUtils;
-
-import com.vaynberg.wicket.select2.Select2MultiChoice;
+import org.projectforge.web.wicket.WicketUtils;
+import org.wicketstuff.select2.Select2MultiChoice;
 
 /**
  * Panel containing only one drop down choice box. <br/>
  * This component calls setRenderBodyOnly(true). If the outer html element is needed, please call setRenderBodyOnly(false).
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
  */
 @SuppressWarnings("serial")
 public class Select2MultiChoicePanel<T> extends Panel implements ComponentWrapperPanel
@@ -57,7 +56,7 @@ public class Select2MultiChoicePanel<T> extends Panel implements ComponentWrappe
 
   /**
    * @param id
-   * @param label see {@link FormComponent#setLabel(IModel)}
+   * @param label          see {@link FormComponent#setLabel(IModel)}
    * @param dropDownChoice
    */
   public Select2MultiChoicePanel(final String id, final Select2MultiChoice<T> select2MultiChoice)
@@ -88,6 +87,7 @@ public class Select2MultiChoicePanel<T> extends Panel implements ComponentWrappe
 
   /**
    * Sets tool-tip for the label.
+   *
    * @param tooltip
    * @return this for chaining.
    */
@@ -101,7 +101,7 @@ public class Select2MultiChoicePanel<T> extends Panel implements ComponentWrappe
    * @see org.projectforge.web.wicket.flowlayout.ComponentWrapperPanel#getFormComponent()
    */
   @Override
-  public FormComponent< ? > getFormComponent()
+  public FormComponent<?> getFormComponent()
   {
     return select2MultiChoice;
   }

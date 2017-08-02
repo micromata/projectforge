@@ -46,8 +46,7 @@ import org.projectforge.web.wicket.bootstrap.GridBuilder;
 import org.projectforge.web.wicket.bootstrap.GridSize;
 import org.projectforge.web.wicket.flowlayout.DivTextPanel;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
-
-import com.vaynberg.wicket.select2.Select2MultiChoice;
+import org.wicketstuff.select2.Select2MultiChoice;
 
 public class MyAccountEditForm extends AbstractEditForm<PFUserDO, MyAccountEditPage>
 {
@@ -128,7 +127,7 @@ public class MyAccountEditForm extends AbstractEditForm<PFUserDO, MyAccountEditP
     this.teamCalRestWhiteList = teamCalCache.getAllFullAccessCalendars();
     Integer[] teamCalBlackListIds = userXmlPreferencesDao
         .getDeserializedUserPreferencesByUserId(ThreadLocalUserContext.getUserId(), TeamCalDO.TEAMCALRESTBLACKLIST, Integer[].class);
-    if(teamCalBlackListIds != null && teamCalBlackListIds.length > 0) {
+    if (teamCalBlackListIds != null && teamCalBlackListIds.length > 0) {
       Arrays.stream(teamCalBlackListIds).forEach(calId -> teamCalRestWhiteList.remove(teamCalCache.getCalendar(calId)));
     }
 

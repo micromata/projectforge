@@ -281,6 +281,7 @@ public class InitTestDB
     ThreadLocalUserContext.setUser(getUserGroupCache(), initUser);
     initConfiguration();
     initUsers();
+    initDatabaseDao.insertGlobalAddressbook(AbstractTestBase.ADMIN_USER);
     initGroups();
     initTaskTree();
     initAccess();

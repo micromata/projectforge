@@ -24,8 +24,8 @@
 package org.projectforge.business.teamcal.admin.right;
 
 import org.apache.commons.lang.ObjectUtils;
+import org.projectforge.business.common.DataobjectAccessType;
 import org.projectforge.business.multitenancy.TenantRegistryMap;
-import org.projectforge.business.teamcal.admin.model.TeamCalAccessType;
 import org.projectforge.business.teamcal.admin.model.TeamCalDO;
 import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.business.user.UserRightAccessCheck;
@@ -38,7 +38,6 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO;
 
 /**
  * @author Kai Reinhard (k.reinhard@me.de)
- * 
  */
 public class TeamCalRight extends UserRightAccessCheck<TeamCalDO>
 {
@@ -54,7 +53,7 @@ public class TeamCalRight extends UserRightAccessCheck<TeamCalDO>
 
   /**
    * General select access.
-   * 
+   *
    * @return true
    * @see org.projectforge.business.user.UserRightAccessCheck#hasSelectAccess(org.projectforge.framework.persistence.user.entities.PFUserDO)
    */
@@ -66,7 +65,7 @@ public class TeamCalRight extends UserRightAccessCheck<TeamCalDO>
 
   /**
    * @see org.projectforge.business.user.UserRightAccessCheck#hasSelectAccess(org.projectforge.framework.persistence.user.entities.PFUserDO,
-   *      java.lang.Object)
+   * java.lang.Object)
    */
   @Override
   public boolean hasSelectAccess(final PFUserDO user, final TeamCalDO obj)
@@ -85,7 +84,7 @@ public class TeamCalRight extends UserRightAccessCheck<TeamCalDO>
 
   /**
    * General insert access.
-   * 
+   *
    * @return true
    * @see org.projectforge.business.user.UserRightAccessCheck#hasInsertAccess(org.projectforge.framework.persistence.user.entities.PFUserDO)
    */
@@ -97,9 +96,9 @@ public class TeamCalRight extends UserRightAccessCheck<TeamCalDO>
 
   /**
    * Owners and administrators are able to insert new calendars.
-   * 
+   *
    * @see org.projectforge.business.user.UserRightAccessCheck#hasInsertAccess(org.projectforge.framework.persistence.user.entities.PFUserDO,
-   *      java.lang.Object)
+   * java.lang.Object)
    */
   @Override
   public boolean hasInsertAccess(final PFUserDO user, final TeamCalDO obj)
@@ -109,9 +108,9 @@ public class TeamCalRight extends UserRightAccessCheck<TeamCalDO>
 
   /**
    * Owners and administrators are able to update calendars.
-   * 
+   *
    * @see org.projectforge.business.user.UserRightAccessCheck#hasUpdateAccess(org.projectforge.framework.persistence.user.entities.PFUserDO,
-   *      java.lang.Object, java.lang.Object)
+   * java.lang.Object, java.lang.Object)
    */
   @Override
   public boolean hasUpdateAccess(final PFUserDO user, final TeamCalDO obj, final TeamCalDO oldObj)
@@ -122,9 +121,9 @@ public class TeamCalRight extends UserRightAccessCheck<TeamCalDO>
   /**
    * If user is not reporter or assignee and task is given the access to task is assumed, meaning if the user has the
    * right to delete the tasks he is allowed to delete to-do's to.
-   * 
+   *
    * @see org.projectforge.business.user.UserRightAccessCheck#hasDeleteAccess(org.projectforge.framework.persistence.user.entities.PFUserDO,
-   *      java.lang.Object, java.lang.Object)
+   * java.lang.Object, java.lang.Object)
    */
   @Override
   public boolean hasDeleteAccess(final PFUserDO user, final TeamCalDO obj, final TeamCalDO oldObj)
@@ -134,7 +133,7 @@ public class TeamCalRight extends UserRightAccessCheck<TeamCalDO>
 
   /**
    * @see org.projectforge.business.user.UserRightAccessCheck#hasHistoryAccess(org.projectforge.framework.persistence.user.entities.PFUserDO,
-   *      java.lang.Object)
+   * java.lang.Object)
    */
   @Override
   public boolean hasHistoryAccess(final PFUserDO user, final TeamCalDO obj)
@@ -170,21 +169,21 @@ public class TeamCalRight extends UserRightAccessCheck<TeamCalDO>
    * @param calendar
    * @param userId
    * @return {@link TeamCalAccessType#NONE}, {@link TeamCalAccessType#MINIMAL}, {@link TeamCalAccessType#READONLY} or
-   *         {@link TeamCalAccessType#FULL}. null will never be returned!
+   * {@link TeamCalAccessType#FULL}. null will never be returned!
    */
-  public TeamCalAccessType getAccessType(final TeamCalDO calendar, final Integer userId)
+  public DataobjectAccessType getAccessType(final TeamCalDO calendar, final Integer userId)
   {
     if (calendar == null || userId == null) {
-      return TeamCalAccessType.NONE;
+      return DataobjectAccessType.NONE;
     }
     if (hasFullAccess(calendar, userId) == true) {
-      return TeamCalAccessType.FULL;
+      return DataobjectAccessType.FULL;
     } else if (hasReadonlyAccess(calendar, userId) == true) {
-      return TeamCalAccessType.READONLY;
+      return DataobjectAccessType.READONLY;
     } else if (hasMinimalAccess(calendar, userId) == true) {
-      return TeamCalAccessType.MINIMAL;
+      return DataobjectAccessType.MINIMAL;
     }
-    return TeamCalAccessType.NONE;
+    return DataobjectAccessType.NONE;
   }
 
   public boolean hasFullAccess(final TeamCalDO calendar, final Integer userId)

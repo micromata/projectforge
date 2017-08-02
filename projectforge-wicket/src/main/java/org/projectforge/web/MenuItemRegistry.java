@@ -65,6 +65,7 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.web.access.AccessListPage;
 import org.projectforge.web.address.AddressListPage;
 import org.projectforge.web.address.AddressMobileListPage;
+import org.projectforge.web.address.AddressbookListPage;
 import org.projectforge.web.address.PhoneCallPage;
 import org.projectforge.web.address.SendSmsPage;
 import org.projectforge.web.admin.AdminPage;
@@ -230,15 +231,6 @@ public class MenuItemRegistry implements Serializable
     get(MenuItemDefId.ACCOUNTING_RECORD_LIST).setVisibility(costConfiguredVisibility);
     get(MenuItemDefId.REPORT_OBJECTIVES).setVisibility(costConfiguredVisibility);
     get(MenuItemDefId.DATEV_IMPORT).setVisibility(costConfiguredVisibility);
-
-    get(MenuItemDefId.ADDRESS_LIST).setVisibility(new MenuItemDefVisibility()
-    {
-      @Override
-      public boolean isVisible()
-      {
-        return Configuration.getInstance().isAddressManagementConfigured();
-      }
-    });
     get(MenuItemDefId.BOOK_LIST).setVisibility(new MenuItemDefVisibility()
     {
       @Override
@@ -333,6 +325,7 @@ public class MenuItemRegistry implements Serializable
     };
     reg.register(vacation);
     reg.register(common, MenuItemDefId.BOOK_LIST, 30, BookListPage.class); // Visible for all.
+    reg.register(common, MenuItemDefId.ADDRESSBOOK_LIST, 35, AddressbookListPage.class); //
     reg.register(common, MenuItemDefId.ADDRESS_LIST, 40, AddressListPage.class)
         .setMobileMenu(AddressMobileListPage.class, 100); // Visible
     // for all.

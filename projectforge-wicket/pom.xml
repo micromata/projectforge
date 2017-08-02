@@ -5,7 +5,7 @@
   <parent>
     <groupId>org.projectforge</groupId>
     <artifactId>projectforge-parent</artifactId>
-    <version>6.15.1</version>
+    <version>6.16.0</version>
   </parent>
   <licenses>
     <license>
@@ -59,17 +59,17 @@
       <artifactId>wicket-spring</artifactId>
       <version>${wicket.version}</version>
     </dependency>
-    <dependency>
-      <groupId>com.vaynberg.wicket.select2</groupId>
-      <artifactId>wicket-select2</artifactId>
-      <version>${wicket-select2.version}</version>
-      <exclusions>
-        <exclusion>
-          <artifactId>wicket-core</artifactId>
-          <groupId>org.apache.wicket</groupId>
-        </exclusion>
-      </exclusions>
-    </dependency>
+    <!--<dependency>-->
+    <!--<groupId>com.vaynberg.wicket.select2</groupId>-->
+    <!--<artifactId>wicket-select2</artifactId>-->
+    <!--<version>${wicket-select2.version}</version>-->
+    <!--<exclusions>-->
+    <!--<exclusion>-->
+    <!--<artifactId>wicket-core</artifactId>-->
+    <!--<groupId>org.apache.wicket</groupId>-->
+    <!--</exclusion>-->
+    <!--</exclusions>-->
+    <!--</dependency>-->
     <dependency>
       <groupId>javax.servlet.jsp</groupId>
       <artifactId>javax.servlet.jsp-api</artifactId>
@@ -89,7 +89,12 @@
     <dependency>
       <groupId>org.wicketstuff</groupId>
       <artifactId>wicketstuff-html5</artifactId>
-      <version>6.8.0</version>
+      <version>${wicket.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.wicketstuff</groupId>
+      <artifactId>wicketstuff-select2</artifactId>
+      <version>${wicket.version}</version>
     </dependency>
   </dependencies>
   <build>

@@ -113,7 +113,7 @@ public class ContactEntryPanel extends Panel
             newEntryValue, "contactType"),
         formChoiceRenderer.getValues(), formChoiceRenderer);
     item.add(dropdownChoice);
-    dropdownChoice.add(new AjaxFormComponentUpdatingBehavior("onchange")
+    dropdownChoice.add(new AjaxFormComponentUpdatingBehavior("change")
     {
       @Override
       protected void onUpdate(final AjaxRequestTarget target)
@@ -274,7 +274,7 @@ public class ContactEntryPanel extends Panel
                 "contactType"),
             formChoiceRenderer.getValues(), formChoiceRenderer);
         item.add(dropdownChoice);
-        dropdownChoice.add(new AjaxFormComponentUpdatingBehavior("onchange")
+        dropdownChoice.add(new AjaxFormComponentUpdatingBehavior("change")
         {
           @Override
           protected void onUpdate(final AjaxRequestTarget target)

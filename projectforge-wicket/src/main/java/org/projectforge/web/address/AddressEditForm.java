@@ -28,6 +28,8 @@ import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.address.AddressDO;
 import org.projectforge.business.address.AddressDao;
+import org.projectforge.business.address.AddressbookDO;
+import org.projectforge.business.address.AddressbookDao;
 import org.projectforge.business.address.PersonalAddressDao;
 import org.projectforge.business.configuration.ConfigurationService;
 import org.projectforge.web.address.AddressPageSupport.AddressParameters;
@@ -37,19 +39,27 @@ import org.projectforge.web.wicket.flowlayout.DivPanel;
 import org.projectforge.web.wicket.flowlayout.FieldType;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
 import org.projectforge.web.wicket.flowlayout.ImageUploadPanel;
+import org.projectforge.web.wicket.flowlayout.Select2MultiChoicePanel;
+import org.wicketstuff.select2.Select2MultiChoice;
 
 public class AddressEditForm extends AbstractEditForm<AddressDO, AddressEditPage>
 {
   private static final long serialVersionUID = 3881031215413525517L;
 
   private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(AddressEditForm.class);
+
   private static final String PHONE_NUMBER_FAVORITE_LABEL = "*";
+
   protected AddressPageSupport addressEditSupport;
+
   @SpringBean
   private PersonalAddressDao personalAddressDao;
 
   @SpringBean
   private ConfigurationService configurationService;
+
+  @SpringBean
+  private AddressbookDao addressbookDao;
 
   public AddressEditForm(final AddressEditPage parentPage, final AddressDO data)
   {
@@ -62,6 +72,18 @@ public class AddressEditForm extends AbstractEditForm<AddressDO, AddressEditPage
     super.init();
     addressEditSupport = new AddressPageSupport(this, gridBuilder, (AddressDao) getBaseDao(), personalAddressDao, data);
     /* GRID8 - BLOCK */
+    gridBuilder.newSplitPanel(GridSize.COL100);
+    {
+      // Addressbooks
+      final FieldsetPanel fs = gridBuilder.newFieldset(getString("address.addressbooks"));
+      final Select2MultiChoice<AddressbookDO> calendarSelect = new Select2MultiChoice<>(
+          Select2MultiChoicePanel.WICKET_ID,
+          new PropertyModel<>(data, "addressbookList"),
+          new AddressbookWicketProvider(addressbookDao));
+      calendarSelect.setRequired(true);
+      calendarSelect.setMarkupId("addressbook-select").setOutputMarkupId(true);
+      fs.add(new Select2MultiChoicePanel<>(fs.newChildId(), calendarSelect));
+    }
     gridBuilder.newSplitPanel(GridSize.COL50, true).newSubSplitPanel(GridSize.COL50);
     addressEditSupport.addName();
     addressEditSupport.addFirstName();
