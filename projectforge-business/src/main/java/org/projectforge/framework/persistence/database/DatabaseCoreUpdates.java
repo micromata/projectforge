@@ -236,7 +236,7 @@ public class DatabaseCoreUpdates
 
       private boolean checkForAddresses()
       {
-        return databaseUpdateService.doesTableExist("T_ADDRESSBOOK");
+        return databaseUpdateService.doesTableExist("T_ADDRESSBOOK") && databaseUpdateService.query("select * from t_addressbook where pk = 1").size() > 0;
       }
     });
 
