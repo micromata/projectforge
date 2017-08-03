@@ -32,6 +32,8 @@ import org.projectforge.business.teamcal.admin.TeamCalCache;
 import org.projectforge.business.teamcal.admin.TeamCalDao;
 import org.projectforge.business.teamcal.admin.TeamCalsComparator;
 import org.projectforge.business.teamcal.admin.model.TeamCalDO;
+import org.projectforge.business.teamcal.event.RecurrenceFrequencyModeOne;
+import org.projectforge.business.teamcal.event.RecurrenceFrequencyModeTwo;
 import org.projectforge.business.teamcal.event.TeamEventFilter;
 import org.projectforge.business.teamcal.event.TeamEventService;
 import org.projectforge.business.teamcal.event.TeamRecurrenceEvent;
@@ -108,6 +110,15 @@ public class TeamCalServiceImpl
   private static final RecurrenceFrequency[] SUPPORTED_FREQUENCIES = new RecurrenceFrequency[] {
       RecurrenceFrequency.NONE,
       RecurrenceFrequency.DAILY, RecurrenceFrequency.WEEKLY, RecurrenceFrequency.MONTHLY, RecurrenceFrequency.YEARLY };
+
+  private static final RecurrenceFrequencyModeOne[] SUPPORTED_MODE_ONE = new RecurrenceFrequencyModeOne[] {
+      RecurrenceFrequencyModeOne.FIRST, RecurrenceFrequencyModeOne.SECOND, RecurrenceFrequencyModeOne.THIRD, RecurrenceFrequencyModeOne.FOURTH,
+      RecurrenceFrequencyModeOne.FIFTH };
+
+  private static final RecurrenceFrequencyModeTwo[] SUPPORTED_MODE_TWO = new RecurrenceFrequencyModeTwo[] {
+      RecurrenceFrequencyModeTwo.MONDAY, RecurrenceFrequencyModeTwo.TUESDAY, RecurrenceFrequencyModeTwo.WEDNESDAY, RecurrenceFrequencyModeTwo.THURSDAY,
+      RecurrenceFrequencyModeTwo.FRIDAY, RecurrenceFrequencyModeTwo.SATURDAY, RecurrenceFrequencyModeTwo.SUNDAY,
+      RecurrenceFrequencyModeTwo.DAY, RecurrenceFrequencyModeTwo.WEEKDAY, RecurrenceFrequencyModeTwo.WEEKEND };
 
   // needed to convert weeks into days
   private static final int DURATION_OF_WEEK = 7;
@@ -963,6 +974,16 @@ public class TeamCalServiceImpl
   public static RecurrenceFrequency[] getSupportedRecurrenceFrequencies()
   {
     return SUPPORTED_FREQUENCIES.clone();
+  }
+
+  public static RecurrenceFrequencyModeOne[] getSupportedRecurrenceFrequenciesModeOne()
+  {
+    return SUPPORTED_MODE_ONE.clone();
+  }
+
+  public static RecurrenceFrequencyModeTwo[] getSupportedRecurrenceFrequenciesModeTwo()
+  {
+    return SUPPORTED_MODE_TWO.clone();
   }
 
   public static List<VEvent> getVEvents(final net.fortuna.ical4j.model.Calendar calendar)

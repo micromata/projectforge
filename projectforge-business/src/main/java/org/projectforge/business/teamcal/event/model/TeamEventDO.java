@@ -23,15 +23,12 @@
 
 package org.projectforge.business.teamcal.event.model;
 
-import java.sql.Time;
 import java.sql.Timestamp;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.GregorianCalendar;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 import java.util.TimeZone;
 import java.util.TreeSet;
@@ -48,10 +45,8 @@ import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.persistence.Transient;
 import javax.persistence.UniqueConstraint;
-import javax.validation.constraints.NotNull;
 
 import org.apache.commons.lang.StringUtils;
-import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.search.annotations.Analyze;
 import org.hibernate.search.annotations.DateBridge;
 import org.hibernate.search.annotations.EncodingType;
@@ -76,10 +71,9 @@ import org.projectforge.framework.time.TimePeriod;
 
 import de.micromata.genome.db.jpa.history.api.NoHistory;
 import de.micromata.genome.db.jpa.history.api.WithHistory;
-import net.fortuna.ical4j.model.DateList;
 import net.fortuna.ical4j.model.DateTime;
 import net.fortuna.ical4j.model.Recur;
-import net.fortuna.ical4j.model.parameter.Value;
+import net.fortuna.ical4j.model.WeekDay;
 import net.fortuna.ical4j.model.property.RRule;
 
 /**
@@ -700,6 +694,45 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
     }
     recurrenceData.setFrequency(ICal4JUtils.getFrequency(recur));
 
+    if (recurrenceData.getFrequency() == RecurrenceFrequency.WEEKLY) {
+      boolean[] weekdays = recurrenceData.getWeekdays();
+      for (WeekDay wd : recur.getDayList()) {
+        recurrenceData.setCustomized(true);
+        if (wd.getDay() == WeekDay.MO.getDay()) {
+          weekdays[0] = true;
+        } else if (wd.getDay() == WeekDay.TU.getDay()) {
+          weekdays[1] = true;
+        } else if (wd.getDay() == WeekDay.WE.getDay()) {
+          weekdays[2] = true;
+        } else if (wd.getDay() == WeekDay.TH.getDay()) {
+          weekdays[3] = true;
+        } else if (wd.getDay() == WeekDay.FR.getDay()) {
+          weekdays[4] = true;
+        } else if (wd.getDay() == WeekDay.SA.getDay()) {
+          weekdays[5] = true;
+        } else if (wd.getDay() == WeekDay.SU.getDay()) {
+          weekdays[6] = true;
+        }
+      }
+      recurrenceData.setWeekdays(weekdays);
+    }
+    if (recurrenceData.getFrequency() == RecurrenceFrequency.MONTHLY) {
+      boolean[] monthdays = recurrenceData.getMonthdays();
+      for (Integer day : recur.getMonthDayList()) {
+        recurrenceData.setCustomized(true);
+        recurrenceData.setMonthDays(true);
+        monthdays[day] = true;
+      }
+      recurrenceData.setMonthdays(monthdays);
+    }
+    if (recurrenceData.getFrequency() == RecurrenceFrequency.YEARLY) {
+      boolean[] months = recurrenceData.getMonths();
+      for (Integer day : recur.getMonthList()) {
+        recurrenceData.setCustomized(true);
+        months[day - 1] = true;
+      }
+      recurrenceData.setMonths(months);
+    }
     return recurrenceData;
   }
 

@@ -38,11 +38,132 @@ public class TeamEventRecurrenceData implements Serializable
 
   private RecurrenceFrequency frequency = RecurrenceFrequency.NONE;
 
+  private RecurrenceFrequencyModeOne modeOneMonth = RecurrenceFrequencyModeOne.FIFTH;
+  private RecurrenceFrequencyModeOne modeOneYear = RecurrenceFrequencyModeOne.FIFTH;
+
+  private RecurrenceFrequencyModeTwo modeTwoMonth = RecurrenceFrequencyModeTwo.MONDAY;
+  private RecurrenceFrequencyModeTwo modeTwoYear = RecurrenceFrequencyModeTwo.MONDAY;
+
+  private boolean customized = false;
+
+  private boolean yearMode = false;
+  private boolean monthMode = false;
+  private boolean monthDays = false;
+
+  private boolean weekdays[] = new boolean[7];
+  private boolean monthdays[] = new boolean[31];
+  private boolean months[] = new boolean[12];
+
   private Date until;
 
   private int interval = 1;
 
   private TimeZone timeZone;
+
+  public void setCustomized(final boolean customized)
+  {
+    this.customized = customized;
+  }
+
+  public boolean[] getMonthdays()
+  {
+    return monthdays;
+  }
+
+  public void setMonthdays(final boolean[] monthdays)
+  {
+    this.monthdays = monthdays;
+  }
+
+  public boolean[] getMonths()
+  {
+    return months;
+  }
+
+  public void setMonths(final boolean[] months)
+  {
+    this.months = months;
+  }
+
+  public boolean isYearMode()
+  {
+    return yearMode;
+  }
+
+  public void setYearMode(final boolean yearMode)
+  {
+    this.yearMode = yearMode;
+  }
+
+  public boolean isMonthMode()
+  {
+    return monthMode;
+  }
+
+  public void setMonthMode(final boolean monthMode)
+  {
+    this.monthMode = monthMode;
+  }
+
+  public boolean isMonthDays()
+  {
+    return monthDays;
+  }
+
+  public void setMonthDays(final boolean monthDays)
+  {
+    this.monthDays = monthDays;
+  }
+
+  public boolean[] getWeekdays()
+  {
+    return weekdays;
+  }
+
+  public void setWeekdays(final boolean[] weekdays)
+  {
+    this.weekdays = weekdays;
+  }
+
+  public RecurrenceFrequencyModeOne getModeOneMonth()
+  {
+    return modeOneMonth;
+  }
+
+  public void setModeOneMonth(final RecurrenceFrequencyModeOne modeOneMonth)
+  {
+    this.modeOneMonth = modeOneMonth;
+  }
+
+  public RecurrenceFrequencyModeOne getModeOneYear()
+  {
+    return modeOneYear;
+  }
+
+  public void setModeOneYear(final RecurrenceFrequencyModeOne modeOneYear)
+  {
+    this.modeOneYear = modeOneYear;
+  }
+
+  public RecurrenceFrequencyModeTwo getModeTwoMonth()
+  {
+    return modeTwoMonth;
+  }
+
+  public void setModeTwoMonth(final RecurrenceFrequencyModeTwo modeTwoMonth)
+  {
+    this.modeTwoMonth = modeTwoMonth;
+  }
+
+  public RecurrenceFrequencyModeTwo getModeTwoYear()
+  {
+    return modeTwoYear;
+  }
+
+  public void setModeTwoYear(final RecurrenceFrequencyModeTwo modeTwoYear)
+  {
+    this.modeTwoYear = modeTwoYear;
+  }
 
   public TeamEventRecurrenceData(final TimeZone timeZone)
   {
@@ -94,41 +215,21 @@ public class TeamEventRecurrenceData implements Serializable
   }
 
   /**
-   * If given interval is greater than 1 then the interval is set, otherwise the interval is set to -1 (default).
-   *
    * @param interval the interval to set
    * @return this for chaining.
    */
   public TeamEventRecurrenceData setInterval(final int interval)
   {
-    if (interval > 1) {
-      this.interval = interval;
-    } else {
-      this.interval = -1;
-    }
+    this.interval = interval;
     return this;
   }
 
-  /**
-   * @return true if interval > 1, otherwise false.
-   */
   public boolean isCustomized()
   {
-    return this.interval > 1;
-  }
-
-  /**
-   * Used by Wicket form field in {@link TeamEventEditForm}.
-   *
-   * @param value If true than interval will be set as 2 as default otherwise as -1.
-   */
-  public void setCustomized(final boolean value)
-  {
-    if (value == true) {
-      this.interval = 2;
-    } else {
-      this.interval = -1;
-    }
+    if (customized || interval > 1)
+      return true;
+    else
+      return false;
   }
 
   /**
