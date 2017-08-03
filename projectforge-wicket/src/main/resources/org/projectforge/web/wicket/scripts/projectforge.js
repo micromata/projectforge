@@ -15,8 +15,17 @@ function toggle(component) {
  *
  */
 $(function () {
-    $('.tree-junction-expanded, .tree-junction-collapsed, .tree-folder-open, .tree-folder-closed').on('click', function (e) {
-        e.stopImmediatePropagation();
+    $('body').on('click', '.tableTree tr', function (e) {
+        // console.group('click')
+        // console.log(e.target);
+        // console.log(e.currentTarget);
+        // console.groupEnd();
+        // if ($(e.target).is('.tree-label, .tree-junction-expanded, .tree-junction-collapsed, .tree-folder-open, .tree-folder-closed')) {
+        if ($(e.target).hasClass('tree-label') || $(e.target).hasClass('tree-junction-expanded') || $(e.target).hasClass('tree-junction-collapsed') || $(e.target).hasClass('tree-folder-open') || $(e.target).hasClass('tree-folder-closed')) {
+            e.preventDefault();
+        } else {
+            rowClick(e.currentTarget);
+        }
     });
 });
 
