@@ -71,7 +71,6 @@ import org.projectforge.web.core.PriorityFormatter;
 import org.projectforge.web.fibu.ISelectCallerPage;
 import org.projectforge.web.fibu.OrderPositionsPanel;
 import org.projectforge.web.user.UserPropertyColumn;
-import org.projectforge.web.wicket.AbstractListPage;
 import org.projectforge.web.wicket.AbstractSecuredPage;
 import org.projectforge.web.wicket.CellItemListener;
 import org.projectforge.web.wicket.CellItemListenerPropertyColumn;
@@ -83,7 +82,6 @@ import org.springframework.stereotype.Service;
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
  */
 @Service
 @Scope("prototype")
@@ -172,6 +170,7 @@ public class TaskTreeBuilder implements Serializable
   {
     final CellItemListener<TaskNode> cellItemListener = new CellItemListener<TaskNode>()
     {
+      @Override
       public void populateItem(final Item<ICellPopulator<TaskNode>> item, final String componentId,
           final IModel<TaskNode> rowModel)
       {
@@ -199,7 +198,7 @@ public class TaskTreeBuilder implements Serializable
           view.add(
               new ListSelectActionPanel(view.newChildId(), rowModel, caller, selectProperty, taskNode.getId(), ""));
         }
-        AbstractListPage.addRowClick(cellItem);
+        //AbstractListPage.addRowClick(cellItem);
         final NodeModel<TaskNode> nodeModel = (NodeModel<TaskNode>) rowModel;
         final Component nodeComponent = getTree().newNodeComponent(view.newChildId(), nodeModel.getWrappedModel());
         nodeComponent.add(new NodeBorder(nodeModel.getBranches()));
@@ -256,7 +255,7 @@ public class TaskTreeBuilder implements Serializable
                 // Lazy initialization because getString(...) of OrderPositionsPanel fails if panel.init(orderPositions) is called directly
                 // after instantiation.
                 init(orderPositions);
-              };
+              }
             };
             item.add(orderPositionsPanel);
           }
