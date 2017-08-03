@@ -90,8 +90,13 @@ public class RechnungEditPage extends AbstractEditPage<RechnungDO, RechnungEditF
             final String sanitizedProject = getData().getProjekt() != null ? getData().getProjekt().getName().replaceAll("\\W+", "_") + "_" : "";
             final String sanitizedBetreff = getData().getBetreff().replaceAll("\\W+", "_") + "_";
             final String invoiceDate = DateTimeFormatter.instance().getFormattedDate(getData().getDatum()).replaceAll("\\W+", "_");
-            final String filename =
-                number + sanitizedCustomer + sanitizedProject + sanitizedBetreff + invoiceDate + "_invoice.docx";
+            final String suffix = "_invoice.docx";
+            String filename =
+                number + sanitizedCustomer + sanitizedProject + sanitizedBetreff + invoiceDate;
+            if (filename.length() > (255 - suffix.length())) {
+              filename = filename.substring(0, (245 - suffix.length()));
+              filename = filename + "[more]" + suffix;
+            }
             DownloadUtils.setDownloadTarget(baos.toByteArray(), filename);
           }
         }
