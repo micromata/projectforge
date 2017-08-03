@@ -41,7 +41,6 @@ import org.projectforge.business.fibu.RechnungDao;
 import org.projectforge.business.fibu.RechnungStatus;
 import org.projectforge.business.fibu.RechnungTyp;
 import org.projectforge.business.fibu.RechnungsPositionDO;
-import org.projectforge.framework.time.DateTimeFormatter;
 import org.projectforge.framework.time.DayHolder;
 import org.projectforge.web.wicket.AbstractEditPage;
 import org.projectforge.web.wicket.AbstractSecuredBasePage;
@@ -84,21 +83,7 @@ public class RechnungEditPage extends AbstractEditPage<RechnungDO, RechnungEditF
           log.debug("Export invoice.");
           ByteArrayOutputStream baos = invoiceService.getInvoiceWordDocument(getData());
           if (baos != null) {
-            //Rechnungsnummer_Kunde_Projekt_Betreff(mit Unterstrichen statt Leerzeichen)_Datum(2017-07-04)
-            final String number = getData().getNummer() != null ? getData().getNummer().toString() + "_" : "";
-            final String sanitizedCustomer = getData().getKunde() != null ? getData().getKunde().getName().replaceAll("\\W+", "_") + "_" : "";
-            final String sanitizedProject = getData().getProjekt() != null ? getData().getProjekt().getName().replaceAll("\\W+", "_") + "_" : "";
-            final String sanitizedBetreff = getData().getBetreff().replaceAll("\\W+", "_") + "_";
-            final String invoiceDate = DateTimeFormatter.instance().getFormattedDate(getData().getDatum()).replaceAll("\\W+", "_");
-            final String suffix = "_invoice.docx";
-            String filename =
-                number + sanitizedCustomer + sanitizedProject + sanitizedBetreff + invoiceDate;
-            if (filename.length() > (255 - suffix.length())) {
-              filename = filename.substring(0, (245 - suffix.length()));
-              filename = filename + "[more]" + suffix;
-            } else {
-              filename = filename + suffix;
-            }
+            String filename = invoiceService.getInvoiceFilename(getData());
             DownloadUtils.setDownloadTarget(baos.toByteArray(), filename);
           }
         }
