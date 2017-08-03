@@ -96,6 +96,8 @@ public class RechnungEditPage extends AbstractEditPage<RechnungDO, RechnungEditF
             if (filename.length() > (255 - suffix.length())) {
               filename = filename.substring(0, (245 - suffix.length()));
               filename = filename + "[more]" + suffix;
+            } else {
+              filename = filename + suffix;
             }
             DownloadUtils.setDownloadTarget(baos.toByteArray(), filename);
           }
