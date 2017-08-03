@@ -86,7 +86,6 @@ public class ListSelectActionPanel extends Panel
         WicketUtils.setResponsePage(this, caller);
         caller.select(selectProperty, objectId);
       }
-
     };
     add(link);
     add(label);
@@ -127,23 +126,20 @@ public class ListSelectActionPanel extends Panel
     setRenderBodyOnly(true);
     final Link<?> link = new Link<Void>(LINK_ID)
     {
-
       @Override
-      //      public void onClick(final AjaxRequestTarget target)
       public void onClick()
       {
         final PageParameters pageParams = WicketUtils.getPageParameters(params);
         if (objectId != null) {
           pageParams.add(AbstractEditPage.PARAMETER_KEY_ID, String.valueOf(objectId));
         }
-        final AbstractSecuredPage editPage = (AbstractSecuredPage) ReflectionHelper.newInstance(editPageClass, PageParameters.class, pageParams);
+        final AbstractSecuredPage editPage = (AbstractSecuredPage) ReflectionHelper.newInstance(editPageClass, PageParameters.class,
+            pageParams);
         if (editPage instanceof AbstractEditPage) {
           ((AbstractEditPage<?, ?, ?>) editPage).setReturnToPage(returnToPage);
         }
-        //        target.getPage().setResponsePage(editPage);
         setResponsePage(editPage);
       }
-
     };
     add(link);
     add(label);
