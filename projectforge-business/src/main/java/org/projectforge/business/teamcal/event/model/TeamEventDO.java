@@ -23,15 +23,12 @@
 
 package org.projectforge.business.teamcal.event.model;
 
-import java.sql.Time;
 import java.sql.Timestamp;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.GregorianCalendar;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 import java.util.TimeZone;
 import java.util.TreeSet;
@@ -48,10 +45,8 @@ import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.persistence.Transient;
 import javax.persistence.UniqueConstraint;
-import javax.validation.constraints.NotNull;
 
 import org.apache.commons.lang.StringUtils;
-import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.search.annotations.Analyze;
 import org.hibernate.search.annotations.DateBridge;
 import org.hibernate.search.annotations.EncodingType;
@@ -76,10 +71,8 @@ import org.projectforge.framework.time.TimePeriod;
 
 import de.micromata.genome.db.jpa.history.api.NoHistory;
 import de.micromata.genome.db.jpa.history.api.WithHistory;
-import net.fortuna.ical4j.model.DateList;
 import net.fortuna.ical4j.model.DateTime;
 import net.fortuna.ical4j.model.Recur;
-import net.fortuna.ical4j.model.parameter.Value;
 import net.fortuna.ical4j.model.property.RRule;
 
 /**
@@ -161,16 +154,13 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
   private String organizer;
   private String organizer_additional_params;
 
+  // See RFC 2445 section 4.8.7.4
+  private Integer sequence = 0;
   private String uid;
 
   private Integer reminderDuration;
-
   private ReminderDurationUnit reminderDurationType;
-
   private ReminderActionType reminderActionType;
-
-  // See RFC 2445 section 4.8.7.4
-  private Integer sequence = 0;
 
   @PFPersistancyBehavior(autoUpdateCollectionEntries = true)
   private Set<TeamEventAttachmentDO> attachments;

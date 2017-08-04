@@ -73,8 +73,6 @@ public class AttendeeConverter extends PropertyConverter
       return false;
     }
 
-    Integer internalNewAttendeeSequence = -10000;
-
     for (int i = 0; i < eventAttendees.size(); i++) {
       Attendee attendee = (Attendee) eventAttendees.get(i);
       URI attendeeUri = attendee.getCalAddress();
@@ -84,23 +82,8 @@ public class AttendeeConverter extends PropertyConverter
         continue; // TODO maybe validation is not necessary, could also be en url? check rfc
       }
 
-      TeamEventAttendeeDO attendeeDO = null;
-
-      //    List<TeamEventAttendeeDO> attendeesFromDbList = teamEventService.getAddressesAndUserAsAttendee(); // TODO do this not here!!
-      // search for eMail in DB as possible attendee
-      //      for (TeamEventAttendeeDO dBAttendee : attendeesFromDbList) {
-      //        if (dBAttendee.getAddress().getEmail().equals(email)) {
-      //          attendeeDO = dBAttendee;
-      //          attendeeDO.setId(internalNewAttendeeSequence--);
-      //          break;
-      //        }
-      //      }
-
-      if (attendeeDO == null) {
-        attendeeDO = new TeamEventAttendeeDO();
-        attendeeDO.setUrl(email);
-        attendeeDO.setId(internalNewAttendeeSequence--);
-      }
+      TeamEventAttendeeDO attendeeDO = new TeamEventAttendeeDO();
+      attendeeDO.setUrl(email);
 
       // set additional fields
       final Cn cn = (Cn) attendee.getParameter(Parameter.CN);

@@ -384,6 +384,8 @@ public class ICalGeneratorParserTest extends AbstractTestBase
       } else if (VEVENT_RRULE.equals(field)) {
         Assert.assertEquals(eventExtracted.getRecurrenceRule(), eventSrc.getRecurrenceRule());
         Assert.assertEquals(eventExtracted.getRecurrenceDate(), eventSrc.getRecurrenceDate());
+      } else if (VEVENT_RECURRENCE_ID.equals(field)) {
+        // currently not implemented
       } else if (VEVENT_EX_DATE.equals(field)) {
         Assert.assertEquals(eventExtracted.getRecurrenceExDate(), eventSrc.getRecurrenceExDate());
       } else {
@@ -432,6 +434,8 @@ public class ICalGeneratorParserTest extends AbstractTestBase
         } else if (VEVENT_RRULE.equals(field)) {
           Assert.assertNull(eventExtracted.getRecurrenceRule());
           Assert.assertNull(eventExtracted.getRecurrenceDate());
+        } else if (VEVENT_RECURRENCE_ID.equals(field)) {
+          // currently not implemented
         } else if (VEVENT_EX_DATE.equals(field)) {
           Assert.assertNull(eventExtracted.getRecurrenceExDate());
         } else {

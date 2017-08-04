@@ -24,14 +24,13 @@
 package org.projectforge.web.teamcal.rest;
 
 import java.io.ByteArrayInputStream;
+import java.io.InputStream;
 import java.sql.Timestamp;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
-import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Set;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -52,13 +51,12 @@ import org.projectforge.business.teamcal.event.TeamEventDao;
 import org.projectforge.business.teamcal.event.TeamEventFilter;
 import org.projectforge.business.teamcal.event.TeamEventService;
 import org.projectforge.business.teamcal.event.TeamRecurrenceEvent;
-import org.projectforge.business.teamcal.event.diff.TeamEventDiffType;
+import org.projectforge.business.teamcal.event.ical.HandleMethod;
 import org.projectforge.business.teamcal.event.ical.ICalGenerator;
+import org.projectforge.business.teamcal.event.ical.ICalHandler;
 import org.projectforge.business.teamcal.event.model.ReminderDurationUnit;
 import org.projectforge.business.teamcal.event.model.TeamEvent;
-import org.projectforge.business.teamcal.event.model.TeamEventAttendeeDO;
 import org.projectforge.business.teamcal.event.model.TeamEventDO;
-import org.projectforge.business.teamcal.service.TeamCalServiceImpl;
 import org.projectforge.common.StringHelper;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.time.DateHolder;
@@ -68,13 +66,6 @@ import org.projectforge.model.rest.RestPaths;
 import org.projectforge.rest.JsonUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
-
-import net.fortuna.ical4j.data.CalendarBuilder;
-import net.fortuna.ical4j.model.Component;
-import net.fortuna.ical4j.model.ComponentList;
-import net.fortuna.ical4j.model.component.CalendarComponent;
-import net.fortuna.ical4j.model.component.VEvent;
-import net.fortuna.ical4j.model.property.Uid;
 
 /**
  * REST interface for {@link TeamEventDao}
@@ -86,9 +77,6 @@ import net.fortuna.ical4j.model.property.Uid;
 public class TeamEventDaoRest
 {
   private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(TeamEventDaoRest.class);
-
-  @Autowired
-  private TeamCalServiceImpl teamCalService;
 
   @Autowired
   private TeamEventService teamEventService;
@@ -186,63 +174,39 @@ public class TeamEventDaoRest
   @Produces(MediaType.APPLICATION_JSON)
   public Response saveTeamEvent(final CalendarEventObject calendarEvent)
   {
-    try {
-      //Getting the calender at which the event will created/updated
-      TeamCalDO teamCalDO = teamCalCache.getCalendar(calendarEvent.getCalendarId());
-      //ICal4J CalendarBuilder for building calendar events from ics
-      final CalendarBuilder builder = new CalendarBuilder();
-      //Build the event from ics
-      String icalStr = new String(Base64.decodeBase64(calendarEvent.getIcsData()));
-      final net.fortuna.ical4j.model.Calendar calendar = builder.build(new ByteArrayInputStream(Base64.decodeBase64(calendarEvent.getIcsData())));
-      //Getting the VEvent from ics
-      final VEvent event = (VEvent) calendar.getComponent(Component.VEVENT);
-      if (event.getUid() != null) {
-        //Getting the origin team event from database by uid if exist
-        TeamEventDO teamEventOrigin = teamEventService.findByUid(calendarEvent.getCalendarId(), event.getUid().getValue(), false);
-        //Check if db event exists
-        if (teamEventOrigin != null && teamEventOrigin.getCalendar().getId().equals(teamCalDO.getId())) {
-          return updateTeamEvent(calendarEvent);
-        } else {
-          return saveVEvent(event, teamCalDO, true);
-        }
-      }
-      return Response.serverError().build();
-    } catch (Exception e) {
-      log.error("Exception while creating team event", e);
-      return Response.serverError().build();
-    }
+    return handleICal(calendarEvent);
   }
 
-  private Response saveVEvent(VEvent event, TeamCalDO teamCalDO, boolean withUid)
-  {
-    //Building TeamEventDO from VEvent
-    final TeamEventDO teamEvent = teamCalService.createTeamEventDO(event, withUid);
-    //Setting the calendar
-    teamEvent.setCalendar(teamCalDO);
-    //Save attendee list, because assignment later
-    Set<TeamEventAttendeeDO> attendees = new HashSet<>();
-    teamEvent.getAttendees().forEach(att -> {
-      attendees.add(att.clone());
-    });
-    teamEvent.setAttendees(null);
-    //Save or update the generated event
-    teamEventService.save(teamEvent);
-    //Update attendees
-    teamEventService.assignAttendees(teamEvent, attendees, null);
-
-    // handle sending notification mail
-    teamEventService.checkAndSendMail(teamEvent, TeamEventDiffType.NEW);
-
-    final CalendarEventObject result = this.getEventObject(teamEvent);
-    log.info("Team event: " + teamEvent.getSubject() + " for calendar #" + teamCalDO.getId() + " successfully created.");
-    if (result != null) {
-      final String json = JsonUtils.toJson(result);
-      return Response.ok(json).build();
-    } else {
-      log.error("Something went wrong while creating team event");
-      return Response.serverError().build();
-    }
-  }
+  //  private Response saveVEvent(VEvent event, TeamCalDO teamCalDO, boolean withUid)
+  //  {
+  //    //Building TeamEventDO from VEvent
+  //    final TeamEventDO teamEvent = teamCalService.createTeamEventDO(event, withUid);
+  //    //Setting the calendar
+  //    teamEvent.setCalendar(teamCalDO);
+  //    //Save attendee list, because assignment later
+  //    Set<TeamEventAttendeeDO> attendees = new HashSet<>();
+  //    teamEvent.getAttendees().forEach(att -> {
+  //      attendees.add(att.clone());
+  //    });
+  //    teamEvent.setAttendees(null);
+  //    //Save or update the generated event
+  //    teamEventService.save(teamEvent);
+  //    //Update attendees
+  //    teamEventService.assignAttendees(teamEvent, attendees, null);
+  //
+  //    // handle sending notification mail
+  //    teamEventService.checkAndSendMail(teamEvent, TeamEventDiffType.NEW);
+  //
+  //    final CalendarEventObject result = this.getEventObject(teamEvent);
+  //    log.info("Team event: " + teamEvent.getSubject() + " for calendar #" + teamCalDO.getId() + " successfully created.");
+  //    if (result != null) {
+  //      final String json = JsonUtils.toJson(result);
+  //      return Response.ok(json).build();
+  //    } else {
+  //      log.error("Something went wrong while creating team event");
+  //      return Response.serverError().build();
+  //    }
+  //  }
 
   @PUT
   @Path(RestPaths.UPDATE)
@@ -250,81 +214,111 @@ public class TeamEventDaoRest
   @Produces(MediaType.APPLICATION_JSON)
   public Response updateTeamEvent(final CalendarEventObject calendarEvent)
   {
+    return this.handleICal(calendarEvent);
     //The result for returning
-    CalendarEventObject result = null;
+    //    CalendarEventObject result = null;
+    //    try {
+    //      //Getting the calender at which the event will created/updated
+    //      TeamCalDO teamCalDO = teamCalCache.getCalendar(calendarEvent.getCalendarId());
+    //      //ICal4J CalendarBuilder for building calendar events from ics
+    //      final CalendarBuilder builder = new CalendarBuilder();
+    //      //Build the event from ics
+    //      final net.fortuna.ical4j.model.Calendar calendar = builder.build(new ByteArrayInputStream(Base64.decodeBase64(calendarEvent.getIcsData())));
+    //      //Getting the VEvent from ics
+    //      final ComponentList<CalendarComponent> vevents = calendar.getComponents(Component.VEVENT);
+    //      final VEvent event = (VEvent) vevents.get(0);
+    //      //Geting the event uid
+    //      Uid eventUid = event.getUid();
+    //      //Building TeamEventDO from VEvent
+    //      final TeamEventDO teamEvent = teamCalService.createTeamEventDO(event, true);
+    //      if (vevents.size() > 1) {
+    //        VEvent event2 = (VEvent) vevents.get(1);
+    //        if (event.getUid().equals(event2.getUid())) {
+    //          //Set ExDate in event1
+    //          // ical4j handles timezone internally, no actions required
+    //          teamEvent.addRecurrenceExDate(event2.getRecurrenceId().getDate());
+    //          //Create new Event from event2
+    //          // TODO sn remove false, currently required because altering a single event of a recurring one results has the same uid
+    //          saveVEvent(event2, teamCalDO, false);
+    //        }
+    //      }
+    //      //Getting the origin team event from database by uid if exist
+    //      TeamEventDO teamEventOrigin = teamEventService.findByUid(calendarEvent.getCalendarId(), eventUid.getValue(), false);
+    //      //Check if db event exists
+    //      if (teamEventOrigin == null) {
+    //        log.error("No team event found with uid " + eventUid.getValue());
+    //        log.info("Creating new team event!");
+    //        return saveTeamEvent(calendarEvent);
+    //      }
+    //
+    //      // set existing DB id, created timestamp, tenant, etc. ...
+    //      teamEvent.setId(teamEventOrigin.getPk());
+    //      teamEvent.setCreated(teamEventOrigin.getCreated());
+    //      teamEvent.setLastUpdate();
+    //      teamEvent.setTenant(teamEventOrigin.getTenant());
+    //      teamEvent.setCalendar(teamCalDO);
+    //      teamEvent.setUid(eventUid.getValue());
+    //
+    //      if (teamEventOrigin.isDeleted()) {
+    //        teamEventService.undelete(teamEventOrigin);
+    //        teamEvent.setCreator(teamEventOrigin.getCreator());
+    //
+    //        // save or update the generated event
+    //        teamEventService.updateAttendees(teamEvent, teamEventOrigin.getAttendees());
+    //        teamEventService.update(teamEvent);
+    //
+    //        teamEventService.checkAndSendMail(teamEvent, TeamEventDiffType.NEW);
+    //      } else {
+    //        teamEvent.setCreator(teamEventOrigin.getCreator());
+    //
+    //        // save or update the generated event
+    //        teamEventService.updateAttendees(teamEvent, teamEventOrigin.getAttendees());
+    //        teamEventService.update(teamEvent);
+    //
+    //        teamEventService.checkAndSendMail(teamEvent, teamEventOrigin);
+    //      }
+    //
+    //      result = this.getEventObject(teamEvent);
+    //      log.info("Team event: " + teamEvent.getSubject() + " for calendar #" + teamCalDO.getId() + " successfully updated.");
+    //    } catch (Exception e) {
+    //      log.error("Exception while updating team event", e);
+    //      return Response.serverError().build();
+    //    }
+    //
+    //    if (result != null) {
+    //      final String json = JsonUtils.toJson(result);
+    //      return Response.ok(json).build();
+    //    } else {
+    //      log.error("Something went wrong while updating team event");
+    //      return Response.serverError().build();
+    //    }
+  }
+
+  private Response handleICal(final CalendarEventObject calendarEvent)
+  {
     try {
       //Getting the calender at which the event will created/updated
       TeamCalDO teamCalDO = teamCalCache.getCalendar(calendarEvent.getCalendarId());
-      //ICal4J CalendarBuilder for building calendar events from ics
-      final CalendarBuilder builder = new CalendarBuilder();
-      //Build the event from ics
-      final net.fortuna.ical4j.model.Calendar calendar = builder.build(new ByteArrayInputStream(Base64.decodeBase64(calendarEvent.getIcsData())));
-      //Getting the VEvent from ics
-      final ComponentList<CalendarComponent> vevents = calendar.getComponents(Component.VEVENT);
-      final VEvent event = (VEvent) vevents.get(0);
-      //Geting the event uid
-      Uid eventUid = event.getUid();
-      //Building TeamEventDO from VEvent
-      final TeamEventDO teamEvent = teamCalService.createTeamEventDO(event, true);
-      if (vevents.size() > 1) {
-        VEvent event2 = (VEvent) vevents.get(1);
-        if (event.getUid().equals(event2.getUid())) {
-          //Set ExDate in event1
-          // ical4j handles timezone internally, no actions required
-          teamEvent.addRecurrenceExDate(event2.getRecurrenceId().getDate());
-          //Create new Event from event2
-          // TODO sn remove false, currently required because altering a single event of a recurring one results has the same uid
-          saveVEvent(event2, teamCalDO, false);
-        }
-      }
-      //Getting the origin team event from database by uid if exist
-      TeamEventDO teamEventOrigin = teamEventService.findByUid(calendarEvent.getCalendarId(), eventUid.getValue(), false);
-      //Check if db event exists
-      if (teamEventOrigin == null) {
-        log.error("No team event found with uid " + eventUid.getValue());
-        log.info("Creating new team event!");
-        return saveTeamEvent(calendarEvent);
+
+      // Get handler
+      final ICalHandler handler = this.teamEventService.getEventHandler(teamCalDO);
+      final InputStream iCalStream = new ByteArrayInputStream(Base64.decodeBase64(calendarEvent.getIcsData()));
+
+      if (handler.readICal(iCalStream, HandleMethod.ADD_UPDATE) == false || handler.isEmpty()) {
+        return Response.serverError().build();
       }
 
-      // set existing DB id, created timestamp, tenant, etc. ...
-      teamEvent.setId(teamEventOrigin.getPk());
-      teamEvent.setCreated(teamEventOrigin.getCreated());
-      teamEvent.setLastUpdate();
-      teamEvent.setTenant(teamEventOrigin.getTenant());
-      teamEvent.setCalendar(teamCalDO);
-      teamEvent.setUid(eventUid.getValue());
-
-      if (teamEventOrigin.isDeleted()) {
-        teamEventService.undelete(teamEventOrigin);
-        teamEvent.setCreator(teamEventOrigin.getCreator());
-
-        // save or update the generated event
-        teamEventService.updateAttendees(teamEvent, teamEventOrigin.getAttendees());
-        teamEventService.update(teamEvent);
-
-        teamEventService.checkAndSendMail(teamEvent, TeamEventDiffType.NEW);
-      } else {
-        teamEvent.setCreator(teamEventOrigin.getCreator());
-
-        // save or update the generated event
-        teamEventService.updateAttendees(teamEvent, teamEventOrigin.getAttendees());
-        teamEventService.update(teamEvent);
-
-        teamEventService.checkAndSendMail(teamEvent, teamEventOrigin);
+      if (handler.processAll() == false) {
+        return Response.serverError().build();
       }
 
-      result = this.getEventObject(teamEvent);
-      log.info("Team event: " + teamEvent.getSubject() + " for calendar #" + teamCalDO.getId() + " successfully updated.");
-    } catch (Exception e) {
-      log.error("Exception while updating team event", e);
-      return Response.serverError().build();
-    }
+      final CalendarEventObject result = this.getEventObject(handler.getFirstResult());
+      log.info("Team event: " + result.getSubject() + " for calendar #" + teamCalDO.getId() + " successfully created.");
 
-    if (result != null) {
       final String json = JsonUtils.toJson(result);
       return Response.ok(json).build();
-    } else {
-      log.error("Something went wrong while updating team event");
+    } catch (Exception e) {
+      log.error("Exception while creating team event", e);
       return Response.serverError().build();
     }
   }
@@ -333,25 +327,43 @@ public class TeamEventDaoRest
   @Consumes(MediaType.APPLICATION_JSON)
   public Response deleteTeamEvent(final CalendarEventObject calendarEvent)
   {
-    try {
-      final CalendarBuilder builder = new CalendarBuilder();
-      final net.fortuna.ical4j.model.Calendar calendar = builder.build(new ByteArrayInputStream(Base64.decodeBase64(calendarEvent.getIcsData())));
-      final VEvent event = (VEvent) calendar.getComponent(Component.VEVENT);
-      Uid eventUid = event.getUid();
-      TeamEventDO teamEvent = teamEventService.findByUid(calendarEvent.getCalendarId(), eventUid.getValue(), true);
-      if (teamEvent != null) {
-        teamEventService.markAsDeleted(teamEvent);
-        teamEventService.checkAndSendMail(teamEvent, TeamEventDiffType.DELETED);
-        log.info("Team event with the id: " + eventUid.getValue() + " for calendar #" + calendarEvent.getCalendarId() + " successfully marked as deleted.");
-      } else {
-        log.warn("Team event with uid: " + eventUid.getValue() + " not found");
-        return Response.serverError().build();
-      }
-    } catch (Exception e) {
-      log.error("Exception while deleting team event", e);
+    //Getting the calender at which the event will created/updated
+    TeamCalDO teamCalDO = teamCalCache.getCalendar(calendarEvent.getCalendarId());
+
+    // Get handler
+    final ICalHandler handler = this.teamEventService.getEventHandler(teamCalDO);
+    final InputStream iCalStream = new ByteArrayInputStream(Base64.decodeBase64(calendarEvent.getIcsData()));
+
+    if (handler.readICal(iCalStream, HandleMethod.REMOVE) == false || handler.eventCount() != 1) {
       return Response.serverError().build();
     }
+
+    if (handler.processAll() == false) {
+      return Response.serverError().build();
+    }
+
     return Response.ok().build();
+    //    // TODO
+    //    try {
+    //      final CalendarBuilder builder = new CalendarBuilder();
+    //      final net.fortuna.ical4j.model.Calendar calendar = builder.build(new ByteArrayInputStream(Base64.decodeBase64(calendarEvent.getIcsData())));
+    //      final VEvent event = (VEvent) calendar.getComponent(Component.VEVENT);
+    //      Uid eventUid = event.getUid();
+    //      TeamEventDO teamEvent = teamEventService.findByUid(calendarEvent.getCalendarId(), eventUid.getValue(), true);
+    //      if (teamEvent != null) {
+    //        teamEventService.markAsDeleted(teamEvent);
+    //        teamEventService.checkAndSendMail(teamEvent, TeamEventDiffType.DELETED);
+    //        log.info("Team event with the id: " + eventUid.getValue() + " for calendar #" + calendarEvent.getCalendarId() + " successfully marked as deleted.");
+    //      } else {
+    //        log.warn("Team event with uid: " + eventUid.getValue() + " not found");
+    //        return Response.serverError().build();
+    //      }
+    //    } catch (Exception e) {
+    //      log.error("Exception while deleting team event", e);
+    //      return Response.serverError().build();
+    //    }
+    //
+    //    return Response.ok().build();
   }
 
   private CalendarEventObject getEventObject(final TeamEvent src)

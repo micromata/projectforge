@@ -85,10 +85,10 @@ public class OrganizerConverter extends PropertyConverter
       if ("mailto:null".equals(organizerValue)) {
         // owner mail to is missing (apple calender tool)
         ownership = true;
-      } else if (organizerCN != null && organizerCN.equals(event.getCreator().getUsername())) {
+      } else if (organizerCN != null && event.getCreator() != null && organizerCN.equals(event.getCreator().getUsername())) {
         // organizer name is user name
         ownership = true;
-      } else if (organizerEMail != null && organizerEMail.equals(event.getCreator().getEmail())) {
+      } else if (organizerEMail != null && event.getCreator() != null && organizerEMail.equals(event.getCreator().getEmail())) {
         // organizer email is user email
         ownership = true;
       }

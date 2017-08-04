@@ -18,6 +18,7 @@ import org.projectforge.business.teamcal.event.ical.converter.LastModifiedConver
 import org.projectforge.business.teamcal.event.ical.converter.LocationConverter;
 import org.projectforge.business.teamcal.event.ical.converter.OrganizerConverter;
 import org.projectforge.business.teamcal.event.ical.converter.RRuleConverter;
+import org.projectforge.business.teamcal.event.ical.converter.RecurrenceIdConverter;
 import org.projectforge.business.teamcal.event.ical.converter.SequenceConverter;
 import org.projectforge.business.teamcal.event.ical.converter.SummaryConverter;
 import org.projectforge.business.teamcal.event.ical.converter.TransparencyConverter;
@@ -46,11 +47,13 @@ public class ICalConverterStore
   public static final String VEVENT_DESCRIPTION = "VEVENT_DESCRIPTION";
   public static final String VEVENT_ATTENDEES = "VEVENT_ATTENDEE";
   public static final String VEVENT_RRULE = "VEVENT_RRULE";
+  public static final String VEVENT_RECURRENCE_ID = "VEVENT_RECURRENCE_ID";
   public static final String VEVENT_EX_DATE = "VEVENT_EX_DATE";
 
   public static final List<String> FULL_LIST = new ArrayList<>(
       Arrays.asList(VEVENT_DTSTART, VEVENT_DTEND, VEVENT_SUMMARY, VEVENT_UID, VEVENT_CREATED, VEVENT_LOCATION, VEVENT_DTSTAMP, VEVENT_LAST_MODIFIED,
-          VEVENT_SEQUENCE, VEVENT_ORGANIZER, VEVENT_TRANSP, VEVENT_ALARM, VEVENT_DESCRIPTION, VEVENT_ATTENDEES, VEVENT_RRULE, VEVENT_EX_DATE));
+          VEVENT_SEQUENCE, VEVENT_ORGANIZER, VEVENT_TRANSP, VEVENT_ALARM, VEVENT_DESCRIPTION, VEVENT_ATTENDEES, VEVENT_RRULE, VEVENT_RECURRENCE_ID,
+          VEVENT_EX_DATE));
 
   private static ICalConverterStore ourInstance = new ICalConverterStore();
 
@@ -100,6 +103,7 @@ public class ICalConverterStore
     this.registerVEventConverter(VEVENT_DESCRIPTION, new DescriptionConverter());
     this.registerVEventConverter(VEVENT_ATTENDEES, new AttendeeConverter());
     this.registerVEventConverter(VEVENT_RRULE, new RRuleConverter());
+    this.registerVEventConverter(VEVENT_RECURRENCE_ID, new RecurrenceIdConverter());
     this.registerVEventConverter(VEVENT_EX_DATE, new ExDateConverter());
   }
 }

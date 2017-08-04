@@ -182,9 +182,7 @@ public class TeamEventDao extends BaseDao<TeamEventDO>
     }
 
     try {
-      return emgrFac.runRoTrans(emgr -> {
-        return emgr.selectSingleAttached(TeamEventDO.class, sqlQuery.toString(), params.toArray());
-      });
+      return emgrFac.runRoTrans(emgr -> emgr.selectSingleAttached(TeamEventDO.class, sqlQuery.toString(), params.toArray()));
     } catch (NoResultException | NonUniqueResultException e) {
       return null;
     }

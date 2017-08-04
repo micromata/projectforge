@@ -3,6 +3,9 @@ package org.projectforge.business.teamcal.event.ical;
 import static org.projectforge.business.teamcal.event.ical.ICalConverterStore.FULL_LIST;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
 import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Date;
@@ -73,19 +76,34 @@ public class ICalParser
     this.extractedEvents = new ArrayList<>();
   }
 
-  public boolean parse(final String icalString)
+  public boolean parse(final String iCalString)
+  {
+    return this.parse(new StringReader(iCalString));
+  }
+
+  public boolean parse(final InputStream iCalStream)
+  {
+    return this.parse(new InputStreamReader(iCalStream));
+  }
+
+  public boolean parse(final Reader iCalReader)
   {
     this.reset();
     final CalendarBuilder builder = new CalendarBuilder();
 
     try {
       // parse calendar
-      this.calendar = builder.build(new StringReader(icalString));
+      this.calendar = builder.build(iCalReader);
     } catch (IOException | ParserException e) {
       log.error("An unknown error occurred while parsing an ICS file", e);
       return false;
     }
+    return this.parse(this.calendar);
+  }
 
+  @Deprecated
+  public boolean parse(final Calendar calendar)
+  {
     this.method = this.calendar.getMethod();
 
     final List<CalendarComponent> list = calendar.getComponents(Component.VEVENT);
@@ -151,6 +169,12 @@ public class ICalParser
   public List<TeamEventDO> getExtractedEvents()
   {
     return this.extractedEvents;
+  }
+
+  @Deprecated
+  public List<VEvent> getVEvents()
+  {
+    return this.events;
   }
 
   public Method getMethod()
