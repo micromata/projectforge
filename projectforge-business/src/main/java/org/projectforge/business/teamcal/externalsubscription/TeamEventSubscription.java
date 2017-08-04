@@ -116,7 +116,7 @@ public class TeamEventSubscription implements Serializable
     currentInitializedHash = null;
     lastUpdated = null;
     String url = teamCalDO.getExternalSubscriptionUrl();
-    if (teamCalDO.isExternalSubscription() == false || StringUtils.isEmpty(url) == true) {
+    if (teamCalDO.isExternalSubscription() == false || StringUtils.isEmpty(url)) {
       // No external subscription.
       clear();
       return;
@@ -190,8 +190,7 @@ public class TeamEventSubscription implements Serializable
       final List<VEvent> vEvents = new ArrayList<VEvent>();
       for (final CalendarComponent c : list) {
         final VEvent event = (VEvent) c;
-        if (event.getSummary() != null
-            && StringUtils.equals(event.getSummary().getValue(), TeamCalConfig.SETUP_EVENT) == true) {
+        if (event.getSummary() != null && StringUtils.equals(event.getSummary().getValue(), TeamCalConfig.SETUP_EVENT)) {
           // skip setup event!
           continue;
         }

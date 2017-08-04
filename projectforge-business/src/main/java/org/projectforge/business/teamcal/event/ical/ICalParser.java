@@ -82,12 +82,11 @@ public class ICalParser
       // parse calendar
       this.calendar = builder.build(new StringReader(icalString));
     } catch (IOException | ParserException e) {
-      e.printStackTrace();
-      // TODO
+      log.error("An unknown error occurred while parsing an ICS file", e);
       return false;
     }
 
-    // TODO parse timezone?
+    this.method = this.calendar.getMethod();
 
     final List<CalendarComponent> list = calendar.getComponents(Component.VEVENT);
     if (list == null || list.size() == 0) {
@@ -139,8 +138,8 @@ public class ICalParser
       VEventComponentConverter converter = store.getVEventConverter(extract);
 
       if (converter == null) {
-        // TODO
-        throw new RuntimeException("Unknown converter " + extract);
+        log.warn(String.format("No converter found for '%s', converter is skipped", extract));
+        continue;
       }
 
       converter.fromVEvent(event, vEvent);
@@ -152,5 +151,10 @@ public class ICalParser
   public List<TeamEventDO> getExtractedEvents()
   {
     return this.extractedEvents;
+  }
+
+  public Method getMethod()
+  {
+    return this.method;
   }
 }

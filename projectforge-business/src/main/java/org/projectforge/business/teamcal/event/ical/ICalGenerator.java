@@ -57,7 +57,7 @@ public class ICalGenerator
       generator.exportsVEvent = new ArrayList<>(Arrays.asList(VEVENT_UID, VEVENT_DTSTAMP, VEVENT_DTSTART, VEVENT_SEQUENCE, VEVENT_ORGANIZER,
           VEVENT_ATTENDEES, VEVENT_RRULE, VEVENT_EX_DATE));
     } else {
-      throw new UnsupportedOperationException(""); // TODO
+      throw new UnsupportedOperationException(String.format("No generator for method '%s'", method.getValue()));
     }
 
     generator.method = method;
@@ -195,8 +195,8 @@ public class ICalGenerator
       VEventComponentConverter converter = store.getVEventConverter(export);
 
       if (converter == null) {
-        // TODO
-        throw new RuntimeException("Unknown converter " + export);
+        log.warn(String.format("No converter found for '%s', converter is skipped", export));
+        continue;
       }
 
       converter.toVEvent(event, vEvent);
