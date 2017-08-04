@@ -24,6 +24,7 @@
 package org.projectforge.web.address;
 
 import java.io.Serializable;
+import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
 
@@ -36,7 +37,10 @@ import org.apache.wicket.util.convert.IConverter;
 import org.projectforge.business.address.AddressDO;
 import org.projectforge.business.address.AddressDao;
 import org.projectforge.business.address.AddressFilter;
+import org.projectforge.business.address.AddressbookDO;
+import org.projectforge.business.address.AddressbookDao;
 import org.projectforge.common.StringHelper;
+import org.projectforge.framework.configuration.ApplicationContextProvider;
 import org.projectforge.web.wicket.AbstractListForm;
 import org.projectforge.web.wicket.AbstractListPage;
 import org.projectforge.web.wicket.autocompletion.PFAutoCompleteTextField;
@@ -47,8 +51,9 @@ import org.projectforge.web.wicket.flowlayout.DivPanelVisibility;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
 import org.projectforge.web.wicket.flowlayout.InputPanel;
 import org.projectforge.web.wicket.flowlayout.RadioGroupPanel;
+import org.wicketstuff.select2.Select2MultiChoice;
 
-public class AddressListForm extends AbstractListForm<AddressListFilter, AddressListPage>
+public class AddressListForm extends AbstractListForm<AddressFilter, AddressListPage>
 {
   private static final long serialVersionUID = 8124796579658957116L;
 
@@ -56,6 +61,9 @@ public class AddressListForm extends AbstractListForm<AddressListFilter, Address
 
   @SpringBean
   private AddressDao addressDao;
+
+  @SpringBean
+  private AddressbookDao addressbookDao;
 
   /**
    * Used by AddressCampaignValueListForm.
@@ -101,9 +109,8 @@ public class AddressListForm extends AbstractListForm<AddressListFilter, Address
   /**
    * Used by AddressCampaignValueListForm.
    */
-  @SuppressWarnings("serial")
   public static void addFilter(final AbstractListPage<?, ?, ?> parentPage, final AbstractListForm<?, ?> form,
-      final GridBuilder gridBuilder, final AddressFilter searchFilter)
+      final GridBuilder gridBuilder, final AddressFilter searchFilter, final AddressbookDao addressbookDao)
   {
     {
       gridBuilder.newSplitPanel(GridSize.COL50);
@@ -150,6 +157,14 @@ public class AddressListForm extends AbstractListForm<AddressListFilter, Address
           new PropertyModel<Boolean>(searchFilter, "leaved"),
           parentPage.getString("address.addressStatus.leaved")));
     }
+    {
+      // Addressbook
+      gridBuilder.newSplitPanel(GridSize.COL100);
+      final FieldsetPanel fs = gridBuilder.newFieldset(parentPage.getString("address.addressbooks"));
+      final Select2MultiChoice<AddressbookDO> addressbooks = new Select2MultiChoice<AddressbookDO>(fs.getSelect2MultiChoiceId(),
+          new PropertyModel<Collection<AddressbookDO>>(searchFilter, "addressbooks"), new AddressbookWicketProvider(getAddressbookDao()));
+      fs.add(addressbooks);
+    }
 
   }
 
@@ -157,12 +172,12 @@ public class AddressListForm extends AbstractListForm<AddressListFilter, Address
   protected void init()
   {
     super.init();
-    addFilter(parentPage, this, gridBuilder, getSearchFilter());
+    addFilter(parentPage, this, gridBuilder, getSearchFilter(), this.addressbookDao);
   }
 
   /**
    * @see org.projectforge.web.wicket.AbstractListForm#onOptionsPanelCreate(org.projectforge.web.wicket.flowlayout.FieldsetPanel,
-   *      org.projectforge.web.wicket.flowlayout.DivPanel)
+   * org.projectforge.web.wicket.flowlayout.DivPanel)
    */
   @Override
   protected void onOptionsPanelCreate(final FieldsetPanel optionsFieldsetPanel, final DivPanel optionsCheckBoxesPanel)
@@ -260,14 +275,27 @@ public class AddressListForm extends AbstractListForm<AddressListFilter, Address
   }
 
   @Override
-  protected AddressListFilter newSearchFilterInstance()
+  protected AddressFilter newSearchFilterInstance()
   {
-    return new AddressListFilter();
+    return new AddressFilter();
   }
 
   @Override
   protected Logger getLogger()
   {
     return log;
+  }
+
+  /**
+   * @return the filter
+   */
+  public AddressFilter getFilter()
+  {
+    return getSearchFilter();
+  }
+
+  private static AddressbookDao getAddressbookDao()
+  {
+    return ApplicationContextProvider.getApplicationContext().getBean(AddressbookDao.class);
   }
 }

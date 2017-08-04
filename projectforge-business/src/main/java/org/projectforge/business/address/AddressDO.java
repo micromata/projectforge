@@ -25,9 +25,11 @@ package org.projectforge.business.address;
 
 import java.sql.Date;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.StringTokenizer;
 
 import javax.persistence.CascadeType;
@@ -37,7 +39,8 @@ import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 import javax.persistence.FetchType;
 import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
+import javax.persistence.JoinTable;
+import javax.persistence.ManyToMany;
 import javax.persistence.MapKey;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
@@ -53,8 +56,8 @@ import org.hibernate.search.annotations.Index;
 import org.hibernate.search.annotations.Indexed;
 import org.hibernate.search.annotations.Resolution;
 import org.hibernate.search.annotations.Store;
-import org.projectforge.business.task.TaskDO;
 import org.projectforge.common.StringHelper;
+import org.projectforge.common.anots.PropertyInfo;
 import org.projectforge.framework.persistence.attr.entities.DefaultBaseWithAttrDO;
 import org.projectforge.framework.persistence.history.HibernateSearchPhoneNumberBridge;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
@@ -72,7 +75,6 @@ import de.micromata.genome.db.jpa.tabattr.entities.JpaTabAttrDataBaseDO;
 @Entity
 @Indexed
 @Table(name = "T_ADDRESS", indexes = {
-    @javax.persistence.Index(name = "idx_fk_t_address_task_id", columnList = "task_id"),
     @javax.persistence.Index(name = "idx_fk_t_address_tenant_id", columnList = "tenant_id")
 })
 @NoHistory
@@ -81,8 +83,6 @@ public class AddressDO extends DefaultBaseWithAttrDO<AddressDO>
   private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(AddressDO.class);
 
   private static final long serialVersionUID = 974064367925158463L;
-
-  private TaskDO task;
 
   private ContactStatus contactStatus = ContactStatus.ACTIVE;
 
@@ -200,6 +200,12 @@ public class AddressDO extends DefaultBaseWithAttrDO<AddressDO>
 
   @NoHistory
   private byte[] imageData;
+
+  @PropertyInfo(i18nKey = "vacation.substitution")
+  private Set<AddressbookDO> addressbookList = new HashSet<>();
+
+  @NoHistory
+  private byte[] imageDataPreview;
 
   // @FieldBridge(impl = HibernateSearchInstantMessagingBridge.class)
   // @Field(index = Index.YES /*TOKENIZED*/, store = Store.NO)
@@ -645,32 +651,6 @@ public class AddressDO extends DefaultBaseWithAttrDO<AddressDO>
     this.publicKey = publicKey;
   }
 
-  /**
-   * Not used as object due to performance reasons.
-   *
-   * @return
-   */
-  @ManyToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = "task_id", nullable = false)
-  public TaskDO getTask()
-  {
-    return task;
-  }
-
-  public void setTask(final TaskDO task)
-  {
-    this.task = task;
-  }
-
-  @Transient
-  public Integer getTaskId()
-  {
-    if (this.task == null) {
-      return null;
-    }
-    return task.getId();
-  }
-
   @Column(length = 255)
   public String getTitle()
   {
@@ -972,5 +952,44 @@ public class AddressDO extends DefaultBaseWithAttrDO<AddressDO>
   public void setImageData(final byte[] imageData)
   {
     this.imageData = imageData;
+  }
+
+  /**
+   * The substitutions.
+   *
+   * @return the substitutions
+   */
+  @ManyToMany
+  @JoinTable(
+      name = "t_addressbook_address",
+      joinColumns = @JoinColumn(name = "address_id", referencedColumnName = "PK"),
+      inverseJoinColumns = @JoinColumn(name = "addressbook_id", referencedColumnName = "PK"),
+      indexes = {
+          @javax.persistence.Index(name = "idx_fk_t_addressbook_address_address_id", columnList = "address_id"),
+          @javax.persistence.Index(name = "idx_fk_t_addressbook_address_addressbook_id", columnList = "addressbook_id")
+      }
+  )
+  public Set<AddressbookDO> getAddressbookList()
+  {
+    return addressbookList;
+  }
+
+  /**
+   * @param addressbookList the addressbookList to set
+   */
+  public void setAddressbookList(final Set<AddressbookDO> addressbookList)
+  {
+    this.addressbookList = addressbookList;
+  }
+
+  @Column(name = "image_data_preview", length = 1000)
+  public byte[] getImageDataPreview()
+  {
+    return imageDataPreview;
+  }
+
+  public void setImageDataPreview(final byte[] imageDataPreview)
+  {
+    this.imageDataPreview = imageDataPreview;
   }
 }

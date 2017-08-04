@@ -115,6 +115,8 @@ public class SetupPage extends AbstractUnsecureBasePage
     initDatabaseDao.updateSchema();
     //Init default tenant
     initDatabaseDao.insertDefaultTenant();
+    //Init global addressbook
+    initDatabaseDao.insertGlobalAddressbook();
 
     if (setupForm.getSetupMode() == SetupTarget.EMPTY_DATABASE) {
       //Init default data (admin user, groups and root task)

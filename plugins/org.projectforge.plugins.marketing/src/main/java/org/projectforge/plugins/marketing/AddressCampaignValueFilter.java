@@ -27,9 +27,7 @@ import org.projectforge.business.address.AddressFilter;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 
 /**
- * 
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
  */
 public class AddressCampaignValueFilter extends AddressFilter
 {
@@ -41,11 +39,17 @@ public class AddressCampaignValueFilter extends AddressFilter
 
   public AddressCampaignValueFilter()
   {
+
   }
 
   public AddressCampaignValueFilter(final BaseSearchFilter filter)
   {
     super(filter);
+    if (filter instanceof AddressCampaignValueFilter) {
+      AddressCampaignValueFilter obj = (AddressCampaignValueFilter) filter;
+      this.addressCampaign = obj.getAddressCampaign();
+      this.addressCampaignValue = obj.getAddressCampaignValue();
+    }
   }
 
   public AddressCampaignDO getAddressCampaign()

@@ -33,9 +33,9 @@ import java.util.Map;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.hibernate.criterion.Restrictions;
+import org.projectforge.business.common.DataobjectAccessType;
 import org.projectforge.business.teamcal.admin.TeamCalCache;
 import org.projectforge.business.teamcal.admin.TeamCalDao;
-import org.projectforge.business.teamcal.admin.model.TeamCalAccessType;
 import org.projectforge.business.teamcal.admin.model.TeamCalDO;
 import org.projectforge.business.teamcal.admin.right.TeamCalRight;
 import org.projectforge.business.teamcal.event.TeamEventFilter;
@@ -184,11 +184,11 @@ public class TeamEventExternalSubscriptionCache
       return null;
     }
     final Integer userId = ThreadLocalUserContext.getUserId();
-    final TeamCalAccessType accessType = getAccessType(eventSubscription.getTeamCalId(), userId);
-    if (accessType == TeamCalAccessType.NONE) {
+    final DataobjectAccessType accessType = getAccessType(eventSubscription.getTeamCalId(), userId);
+    if (accessType == DataobjectAccessType.NONE) {
       return null;
     }
-    return eventSubscription.getEvents(startTime, endTime, accessType == TeamCalAccessType.MINIMAL);
+    return eventSubscription.getEvents(startTime, endTime, accessType == DataobjectAccessType.MINIMAL);
   }
 
   public List<TeamEventDO> getRecurrenceEvents(final TeamEventFilter filter)
@@ -204,8 +204,8 @@ public class TeamEventExternalSubscriptionCache
           continue;
         }
         final TeamCalDO calendar = teamCalCache.getCalendar(calendarId);
-        if (getTeamCalRight().getAccessType(calendar, userId).isIn(TeamCalAccessType.FULL, TeamCalAccessType.READONLY,
-            TeamCalAccessType.MINIMAL) == false) {
+        if (getTeamCalRight().getAccessType(calendar, userId).isIn(DataobjectAccessType.FULL, DataobjectAccessType.READONLY,
+            DataobjectAccessType.MINIMAL) == false) {
           continue;
         }
         teamCals.add(calendarId);
@@ -216,7 +216,7 @@ public class TeamEventExternalSubscriptionCache
       if (eventSubscription != null) {
         final TeamCalDO cal = teamCalCache.getCalendar(filter.getTeamCalId());
         if (getTeamCalRight().getAccessType(cal, userId)
-            .isIn(TeamCalAccessType.FULL, TeamCalAccessType.READONLY, TeamCalAccessType.MINIMAL) == true) {
+            .isIn(DataobjectAccessType.FULL, DataobjectAccessType.READONLY, DataobjectAccessType.MINIMAL) == true) {
           teamCals.add(filter.getTeamCalId());
         }
       }
@@ -229,7 +229,7 @@ public class TeamEventExternalSubscriptionCache
           if (recurrenceEvents != null && recurrenceEvents.size() > 0) {
             for (final TeamEventDO event : recurrenceEvents) {
               final TeamCalDO calendar = teamCalCache.getCalendar(calendarId);
-              if (getTeamCalRight().getAccessType(calendar, userId) == TeamCalAccessType.MINIMAL) {
+              if (getTeamCalRight().getAccessType(calendar, userId) == DataobjectAccessType.MINIMAL) {
                 result.add(event.createMinimalCopy());
               } else {
                 result.add(event);
@@ -242,7 +242,7 @@ public class TeamEventExternalSubscriptionCache
     return result;
   }
 
-  private TeamCalAccessType getAccessType(final Integer calendarId, final Integer userId)
+  private DataobjectAccessType getAccessType(final Integer calendarId, final Integer userId)
   {
     final TeamCalDO cal = teamCalCache.getCalendar(calendarId);
     return getTeamCalRight().getAccessType(cal, userId);

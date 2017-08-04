@@ -38,6 +38,7 @@ import org.projectforge.business.address.AddressDao;
 import org.projectforge.business.address.PersonalAddressDO;
 import org.projectforge.business.address.PersonalAddressDao;
 import org.projectforge.business.configuration.ConfigurationService;
+import org.projectforge.business.image.ImageService;
 import org.projectforge.framework.time.DateHelper;
 import org.projectforge.web.wicket.AbstractEditForm;
 import org.projectforge.web.wicket.AbstractEditPage;
@@ -63,6 +64,9 @@ public class AddressEditPage extends AbstractEditPage<AddressDO, AddressEditForm
 
   @SpringBean
   private ConfigurationService configurationService;
+
+  @SpringBean
+  private ImageService imageService;
 
   private boolean cloneFlag = false;
 
@@ -190,6 +194,11 @@ public class AddressEditPage extends AbstractEditPage<AddressDO, AddressEditForm
       }
       cloneFlag = false;
     }
+    byte[] image = null;
+    if (getData().getImageData() != null) {
+      image = imageService.resizeImage(getData().getImageData());
+    }
+    getData().setImageDataPreview(image);
     return null;
   }
 
@@ -210,4 +219,5 @@ public class AddressEditPage extends AbstractEditPage<AddressDO, AddressEditForm
   {
     return log;
   }
+
 }

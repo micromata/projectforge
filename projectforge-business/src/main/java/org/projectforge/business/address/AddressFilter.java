@@ -24,13 +24,15 @@
 package org.projectforge.business.address;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.stream.Collectors;
 
+import org.projectforge.framework.configuration.ApplicationContextProvider;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 
 /**
- * 
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
  */
 public class AddressFilter extends BaseSearchFilter implements Serializable
 {
@@ -62,6 +64,8 @@ public class AddressFilter extends BaseSearchFilter implements Serializable
 
   private String listType = FILTER_FILTER;
 
+  private Collection<Integer> addressbookIds;
+
   public AddressFilter()
   {
   }
@@ -70,6 +74,34 @@ public class AddressFilter extends BaseSearchFilter implements Serializable
   {
     super(filter);
     outdated = leaved = nonActive = uninteresting = personaIngrata = departed = true;
+    if (filter instanceof AddressFilter) {
+      AddressFilter obj = (AddressFilter) filter;
+      this.uptodate = obj.isUptodate();
+      this.outdated = obj.isOutdated();
+      this.leaved = obj.isLeaved();
+      this.active = obj.isActive();
+      this.nonActive = obj.isNonActive();
+      this.uninteresting = obj.isUninteresting();
+      this.personaIngrata = obj.isPersonaIngrata();
+      this.departed = obj.isDeparted();
+    }
+  }
+
+  @Override
+  public AddressFilter reset()
+  {
+    super.reset();
+    setUptodate(true);
+    setOutdated(false);
+    setLeaved(false);
+    setFilter();
+
+    setActive(true);
+    setNonActive(false);
+    setUninteresting(false);
+    setPersonaIngrata(false);
+    setDeparted(false);
+    return this;
   }
 
   public boolean isUptodate()
@@ -160,6 +192,7 @@ public class AddressFilter extends BaseSearchFilter implements Serializable
 
   /**
    * Standard means to consider options: current, departed, uninteresting, personaIngrata, ...
+   *
    * @return
    */
   public boolean isFilter()
@@ -174,6 +207,7 @@ public class AddressFilter extends BaseSearchFilter implements Serializable
 
   /**
    * If set, only addresses are filtered, the user has marked.
+   *
    * @return
    * @see PersonalAddressDO#isFavorite()
    */
@@ -189,6 +223,7 @@ public class AddressFilter extends BaseSearchFilter implements Serializable
 
   /**
    * If set, only addresses are filtered which are doublets (name and first-name are equal).
+   *
    * @return
    */
   public boolean isDoublets()
@@ -203,6 +238,7 @@ public class AddressFilter extends BaseSearchFilter implements Serializable
 
   /**
    * If set, the 50 (configurable in addressDao) newest address will be shown.
+   *
    * @return
    */
   public boolean isNewest()
@@ -223,5 +259,49 @@ public class AddressFilter extends BaseSearchFilter implements Serializable
   public void setListType(final String listType)
   {
     this.listType = listType;
+  }
+
+  /**
+   * @return the addressbooks
+   */
+  public Collection<AddressbookDO> getAddressbooks()
+  {
+    Collection<AddressbookDO> result = new ArrayList<>();
+    if (addressbookIds != null) {
+      for (Integer id : addressbookIds) {
+        result.add(getAddressbookDao().internalGetById(id));
+      }
+    }
+    return result;
+  }
+
+  public void setAddressbooks(Collection<AddressbookDO> addressbooks)
+  {
+    if (addressbooks != null) {
+      this.addressbookIds = addressbooks.stream().mapToInt(AddressbookDO::getId).boxed().collect(Collectors.toList());
+    }
+  }
+
+  /**
+   * @return the addressbookIds
+   */
+  public Collection<Integer> getAddressbookIds()
+  {
+    return addressbookIds;
+  }
+
+  /**
+   * @param addressbookIds the addressbookIds to set
+   * @return this for chaining.
+   */
+  public AddressFilter setAddressbookIds(final Collection<Integer> addressbookIds)
+  {
+    this.addressbookIds = addressbookIds;
+    return this;
+  }
+
+  private AddressbookDao getAddressbookDao()
+  {
+    return ApplicationContextProvider.getApplicationContext().getBean(AddressbookDao.class);
   }
 }
