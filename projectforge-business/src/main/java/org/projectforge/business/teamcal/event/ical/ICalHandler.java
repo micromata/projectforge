@@ -130,13 +130,28 @@ public class ICalHandler
 
     // TODO improve handling of recurring events!!!!
     for (RecurringEventHandle eventHandle : recurringHandles.values()) {
-      // check if main recurring event is present
-      if (eventHandle.getEvent() != null) {
-        this.persist(eventHandle, ignoreWarnings);
-      }
+      TeamEventDO recurringEvent = eventHandle.getEvent();
 
       for (EventHandle additionalEvent : eventHandle.getRelatedEvents()) {
         this.persist(additionalEvent, ignoreWarnings);
+
+        // TODO remove this after handling of recurring is fixed!
+        if (recurringEvent != null) {
+          String exDates = recurringEvent.getRecurrenceExDate();
+
+          if (exDates != null && exDates.length() > 4) {
+            exDates += ",";
+          } else {
+            exDates = "";
+          }
+
+          recurringEvent.setRecurrenceExDate(exDates + additionalEvent.getEvent().getRecurrenceReferenceId());
+        }
+      }
+
+      // check if main recurring event is present
+      if (recurringEvent != null) {
+        this.persist(eventHandle, ignoreWarnings);
       }
     }
   }

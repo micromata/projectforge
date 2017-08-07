@@ -250,6 +250,28 @@ public class ICalHandlerTest extends PowerMockTestCase
   }
 
   @Test
+  public void testICalHandlerEventToDeleteNotFound() throws IOException
+  {
+    TeamCalDO calendar = new TeamCalDO();
+    calendar.setId(100);
+
+    // delete --------------------------------------------------------------------------------------------------------------------
+    ICalHandler handler = eventService.getEventHandler(calendar);
+    Assert.assertNotNull(handler);
+
+    boolean result = handler.readICal(IOUtils.toString(this.getClass().getResourceAsStream("/ical/normal_delete.ics"), "UTF-8"), HandleMethod.CANCEL);
+    Assert.assertTrue(result);
+    Assert.assertEquals(1, handler.eventCount());
+
+    result = handler.validate();
+    Assert.assertTrue(result);
+
+    final EventHandle handle = handler.getSingleEventHandles().get(0);
+    Assert.assertEquals(1, handle.getWarnings().size());
+    Assert.assertEquals(EventHandleError.WARN_EVENT_TO_DELETE_NOT_FOUND, handle.getWarnings().get(0));
+  }
+
+  @Test
   public void testICalHandlerNormal() throws IOException
   {
     TeamCalDO calendar = new TeamCalDO();
@@ -347,29 +369,7 @@ public class ICalHandlerTest extends PowerMockTestCase
   }
 
   @Test
-  public void testICalHandlerEventToDeleteNotFound() throws IOException
-  {
-    TeamCalDO calendar = new TeamCalDO();
-    calendar.setId(100);
-
-    // delete --------------------------------------------------------------------------------------------------------------------
-    ICalHandler handler = eventService.getEventHandler(calendar);
-    Assert.assertNotNull(handler);
-
-    boolean result = handler.readICal(IOUtils.toString(this.getClass().getResourceAsStream("/ical/normal_delete.ics"), "UTF-8"), HandleMethod.CANCEL);
-    Assert.assertTrue(result);
-    Assert.assertEquals(1, handler.eventCount());
-
-    result = handler.validate();
-    Assert.assertTrue(result);
-
-    final EventHandle handle = handler.getSingleEventHandles().get(0);
-    Assert.assertEquals(1, handle.getWarnings().size());
-    Assert.assertEquals(EventHandleError.WARN_EVENT_TO_DELETE_NOT_FOUND, handle.getWarnings().get(0));
-  }
-
-  @Test
-  public void testICalHandlerRecurrency() throws IOException
+  public void testICalHandlerRecurring() throws IOException
   {
     TeamCalDO calendar = new TeamCalDO();
     calendar.setId(100);
@@ -535,7 +535,7 @@ public class ICalHandlerTest extends PowerMockTestCase
 
     Assert.assertEquals("FREQ=DAILY", event.getRecurrenceRule());
     Assert.assertEquals(null, event.getRecurrenceUntil());
-    Assert.assertEquals(null, event.getRecurrenceExDate());
+    Assert.assertEquals("20170706T124500", event.getRecurrenceExDate());
     Assert.assertEquals(null, event.getRecurrenceReferenceId());
 
     when(eventService.findByUid(Mockito.eq(100), Mockito.eq("366F19E0-1602-4D58-B303-E1D58AF4D227"), Mockito.anyBoolean())).thenReturn(event);
@@ -552,6 +552,231 @@ public class ICalHandlerTest extends PowerMockTestCase
     handler.persist(true);
 
     Mockito.verify(teamEventDao).markAsDeleted(deletedEvent.capture());
+  }
+
+  @Test
+  public void testICalHandlerInputAppleCalendarNormal() throws IOException
+  {
+    TeamCalDO calendar = new TeamCalDO();
+    calendar.setId(100);
+    ArgumentCaptor<TeamEventDO> savedEvent = ArgumentCaptor.forClass(TeamEventDO.class);
+    ArgumentCaptor<TeamEventDO> updatedEvent = ArgumentCaptor.forClass(TeamEventDO.class);
+
+    // invite --------------------------------------------------------------------------------------------------------------------
+    ICalHandler handler = eventService.getEventHandler(calendar);
+    Assert.assertNotNull(handler);
+
+    boolean result = handler.readICal(IOUtils.toString(this.getClass().getResourceAsStream("/ical/apple_calendar_normal_create.ics"), "UTF-8"),
+        HandleMethod.ADD_UPDATE);
+    Assert.assertTrue(result);
+
+    result = handler.validate();
+    Assert.assertTrue(result);
+    handler.persist(true);
+
+    Mockito.verify(teamEventDao).save(savedEvent.capture());
+    TeamEventDO event = savedEvent.getValue();
+    Assert.assertNotNull(event);
+
+    Assert.assertEquals(calendar, event.getCalendar());
+    Assert.assertEquals("170FA3B6-D786-43DC-A78F-BED563CCD411", event.getUid());
+    Assert.assertEquals(DateHelper.parseIsoTimestamp("2017-08-07 12:54:55.000", DateHelper.UTC).getTime(), event.getDtStamp().getTime());
+    Assert.assertEquals(DateHelper.parseIsoTimestamp("2017-08-12 16:00:00.000", DateHelper.EUROPE_BERLIN).getTime(), event.getStartDate().getTime());
+    Assert.assertEquals(DateHelper.parseIsoTimestamp("2017-08-12 17:00:00.000", DateHelper.EUROPE_BERLIN).getTime(), event.getEndDate().getTime());
+    Assert.assertEquals("Test Anlegen", event.getSubject());
+    Assert.assertEquals(Integer.valueOf(0), event.getSequence());
+    Assert.assertEquals(null, event.getOrganizer());
+    Assert.assertEquals(null, event.getLocation());
+    Assert.assertEquals(0, event.getAttendees().size());
+
+    when(eventService.findByUid(Mockito.eq(100), Mockito.eq("170FA3B6-D786-43DC-A78F-BED563CCD411"), Mockito.anyBoolean())).thenReturn(event);
+
+    // edit 1 --------------------------------------------------------------------------------------------------------------------
+    handler = eventService.getEventHandler(calendar);
+    Assert.assertNotNull(handler);
+
+    result = handler.readICal(IOUtils.toString(this.getClass().getResourceAsStream("/ical/apple_calendar_normal_edit_location.ics"), "UTF-8"),
+        HandleMethod.ADD_UPDATE);
+    Assert.assertTrue(result);
+
+    result = handler.validate();
+    Assert.assertTrue(result);
+    handler.persist(true);
+
+    Mockito.verify(teamEventDao).internalUpdate(updatedEvent.capture(), Mockito.eq(true));
+    event = updatedEvent.getValue();
+    Assert.assertNotNull(event);
+
+    Assert.assertEquals("170FA3B6-D786-43DC-A78F-BED563CCD411", event.getUid());
+    Assert.assertEquals(DateHelper.parseIsoTimestamp("2017-08-07 12:56:14.000", DateHelper.UTC).getTime(), event.getDtStamp().getTime());
+    Assert.assertEquals(DateHelper.parseIsoTimestamp("2017-08-12 16:00:00.000", DateHelper.EUROPE_BERLIN).getTime(), event.getStartDate().getTime());
+    Assert.assertEquals(DateHelper.parseIsoTimestamp("2017-08-12 17:00:00.000", DateHelper.EUROPE_BERLIN).getTime(), event.getEndDate().getTime());
+    Assert.assertEquals("Test Anlegen", event.getSubject());
+    Assert.assertEquals(Integer.valueOf(0), event.getSequence());
+    Assert.assertEquals(null, event.getOrganizer());
+    Assert.assertEquals("adding location", event.getLocation());
+    Assert.assertEquals(0, event.getAttendees().size());
+
+    // edit 2 --------------------------------------------------------------------------------------------------------------------
+    handler = eventService.getEventHandler(calendar);
+    Assert.assertNotNull(handler);
+
+    result = handler.readICal(IOUtils.toString(this.getClass().getResourceAsStream("/ical/apple_calendar_normal_edit_day.ics"), "UTF-8"),
+        HandleMethod.ADD_UPDATE);
+    Assert.assertTrue(result);
+
+    result = handler.validate();
+    Assert.assertTrue(result);
+    handler.persist(true);
+
+    Mockito.verify(teamEventDao, Mockito.times(2)).internalUpdate(updatedEvent.capture(), Mockito.eq(true));
+    event = updatedEvent.getValue();
+    Assert.assertNotNull(event);
+
+    Assert.assertEquals("170FA3B6-D786-43DC-A78F-BED563CCD411", event.getUid());
+    Assert.assertEquals(DateHelper.parseIsoTimestamp("2017-08-07 12:56:52.000", DateHelper.UTC).getTime(), event.getDtStamp().getTime());
+    Assert.assertEquals(DateHelper.parseIsoTimestamp("2017-08-13 16:00:00.000", DateHelper.EUROPE_BERLIN).getTime(), event.getStartDate().getTime());
+    Assert.assertEquals(DateHelper.parseIsoTimestamp("2017-08-13 17:00:00.000", DateHelper.EUROPE_BERLIN).getTime(), event.getEndDate().getTime());
+    Assert.assertEquals("Test Anlegen", event.getSubject());
+    Assert.assertEquals(Integer.valueOf(0), event.getSequence());
+    Assert.assertEquals(null, event.getOrganizer());
+    Assert.assertEquals("adding location", event.getLocation());
+    Assert.assertEquals(0, event.getAttendees().size());
+  }
+
+  @Test
+  public void testICalHandlerAppleCalendarRecurring() throws IOException
+  {
+    TeamCalDO calendar = new TeamCalDO();
+    calendar.setId(100);
+    ArgumentCaptor<TeamEventDO> savedEvent = ArgumentCaptor.forClass(TeamEventDO.class);
+    ArgumentCaptor<TeamEventDO> updatedEvent = ArgumentCaptor.forClass(TeamEventDO.class);
+    ArgumentCaptor<TeamEventDO> deletedEvent = ArgumentCaptor.forClass(TeamEventDO.class);
+
+    // invite --------------------------------------------------------------------------------------------------------------------
+    ICalHandler handler = eventService.getEventHandler(calendar);
+    Assert.assertNotNull(handler);
+
+    boolean result = handler.readICal(IOUtils.toString(this.getClass().getResourceAsStream("/ical/apple_calendar_recurring_create.ics"), "UTF-8"),
+        HandleMethod.ADD_UPDATE);
+    Assert.assertTrue(result);
+
+    result = handler.validate();
+    Assert.assertTrue(result);
+    handler.persist(true);
+
+    Mockito.verify(teamEventDao).save(savedEvent.capture());
+    TeamEventDO event = savedEvent.getValue();
+    Assert.assertNotNull(event);
+
+    Assert.assertEquals(calendar, event.getCalendar());
+    Assert.assertEquals("08C6BECA-AFF3-4363-870A-CB642436E69A", event.getUid());
+    Assert.assertEquals(DateHelper.parseIsoTimestamp("2017-08-07 12:59:07.000", DateHelper.UTC).getTime(), event.getDtStamp().getTime());
+    Assert.assertEquals(DateHelper.parseIsoTimestamp("2017-08-14 16:00:00.000", DateHelper.EUROPE_BERLIN).getTime(), event.getStartDate().getTime());
+    Assert.assertEquals(DateHelper.parseIsoTimestamp("2017-08-14 17:00:00.000", DateHelper.EUROPE_BERLIN).getTime(), event.getEndDate().getTime());
+    Assert.assertEquals("Recurring Dayly", event.getSubject());
+    Assert.assertEquals(Integer.valueOf(0), event.getSequence());
+    Assert.assertEquals(null, event.getOrganizer());
+    Assert.assertEquals(null, event.getLocation());
+    Assert.assertEquals(null, event.getNote());
+    Assert.assertEquals(0, event.getAttendees().size());
+
+    Assert.assertEquals("FREQ=DAILY;INTERVAL=1", event.getRecurrenceRule());
+    Assert.assertEquals(null, event.getRecurrenceUntil());
+    Assert.assertEquals(null, event.getRecurrenceExDate());
+    Assert.assertEquals(null, event.getRecurrenceReferenceId());
+
+    when(eventService.findByUid(Mockito.eq(100), Mockito.eq("08C6BECA-AFF3-4363-870A-CB642436E69A"), Mockito.anyBoolean())).thenReturn(event);
+
+    // add exdate ----------------------------------------------------------------------------------------------------------------
+    handler = eventService.getEventHandler(calendar);
+    Assert.assertNotNull(handler);
+
+    result = handler.readICal(IOUtils.toString(this.getClass().getResourceAsStream("/ical/apple_calendar_recurring_add_exdate.ics"), "UTF-8"),
+        HandleMethod.ADD_UPDATE);
+    Assert.assertTrue(result);
+
+    result = handler.validate();
+    Assert.assertTrue(result);
+    handler.persist(true);
+
+    Mockito.verify(teamEventDao).internalUpdate(updatedEvent.capture(), Mockito.eq(true));
+    event = updatedEvent.getValue();
+    Assert.assertNotNull(event);
+
+    Assert.assertEquals(calendar, event.getCalendar());
+    Assert.assertEquals("08C6BECA-AFF3-4363-870A-CB642436E69A", event.getUid());
+    Assert.assertEquals(DateHelper.parseIsoTimestamp("2017-08-07 12:59:07.000", DateHelper.UTC).getTime(), event.getDtStamp().getTime());
+    Assert.assertEquals(DateHelper.parseIsoTimestamp("2017-08-14 16:00:00.000", DateHelper.EUROPE_BERLIN).getTime(), event.getStartDate().getTime());
+    Assert.assertEquals(DateHelper.parseIsoTimestamp("2017-08-14 17:00:00.000", DateHelper.EUROPE_BERLIN).getTime(), event.getEndDate().getTime());
+    Assert.assertEquals("Recurring Dayly", event.getSubject());
+    Assert.assertEquals(Integer.valueOf(0), event.getSequence());
+    Assert.assertEquals(null, event.getOrganizer());
+    Assert.assertEquals(null, event.getLocation());
+    Assert.assertEquals(null, event.getNote());
+    Assert.assertEquals(0, event.getAttendees().size());
+
+    Assert.assertEquals("FREQ=DAILY;INTERVAL=1", event.getRecurrenceRule());
+    Assert.assertEquals(null, event.getRecurrenceUntil());
+    Assert.assertEquals("20170822T140000", event.getRecurrenceExDate());
+    Assert.assertEquals(null, event.getRecurrenceReferenceId());
+
+    // add exception -------------------------------------------------------------------------------------------------------------
+    handler = eventService.getEventHandler(calendar);
+    Assert.assertNotNull(handler);
+
+    result = handler.readICal(IOUtils.toString(this.getClass().getResourceAsStream("/ical/apple_calendar_recurring_add_exception.ics"), "UTF-8"),
+        HandleMethod.ADD_UPDATE);
+    Assert.assertTrue(result);
+
+    result = handler.validate();
+    Assert.assertTrue(result);
+    handler.persist(true);
+
+    Mockito.verify(teamEventDao, Mockito.times(2)).internalUpdate(updatedEvent.capture(), Mockito.eq(true));
+    event = updatedEvent.getValue();
+    Assert.assertNotNull(event);
+
+    Assert.assertEquals(calendar, event.getCalendar());
+    Assert.assertEquals("08C6BECA-AFF3-4363-870A-CB642436E69A", event.getUid());
+    Assert.assertEquals(DateHelper.parseIsoTimestamp("2017-08-07 12:59:07.000", DateHelper.UTC).getTime(), event.getDtStamp().getTime());
+    Assert.assertEquals(DateHelper.parseIsoTimestamp("2017-08-14 16:00:00.000", DateHelper.EUROPE_BERLIN).getTime(), event.getStartDate().getTime());
+    Assert.assertEquals(DateHelper.parseIsoTimestamp("2017-08-14 17:00:00.000", DateHelper.EUROPE_BERLIN).getTime(), event.getEndDate().getTime());
+    Assert.assertEquals("Recurring Dayly", event.getSubject());
+    Assert.assertEquals(Integer.valueOf(0), event.getSequence());
+    Assert.assertEquals(null, event.getOrganizer());
+    Assert.assertEquals(null, event.getLocation());
+    Assert.assertEquals(null, event.getNote());
+    Assert.assertEquals(0, event.getAttendees().size());
+
+    Assert.assertEquals("FREQ=DAILY;INTERVAL=1", event.getRecurrenceRule());
+    Assert.assertEquals(null, event.getRecurrenceUntil());
+    Assert.assertEquals("20170822T140000,20170824T140000", event.getRecurrenceExDate());
+    Assert.assertEquals(null, event.getRecurrenceReferenceId());
+
+    Mockito.verify(teamEventDao, Mockito.times(2)).save(savedEvent.capture());
+    event = savedEvent.getValue();
+    Assert.assertNotNull(event);
+
+    Assert.assertEquals(calendar, event.getCalendar());
+    Assert.assertEquals(null, event.getUid());
+    Assert.assertEquals(DateHelper.parseIsoTimestamp("2017-08-07 13:02:24.000", DateHelper.UTC).getTime(), event.getDtStamp().getTime());
+    Assert.assertEquals(DateHelper.parseIsoTimestamp("2017-08-24 17:00:00.000", DateHelper.EUROPE_BERLIN).getTime(), event.getStartDate().getTime());
+    Assert.assertEquals(DateHelper.parseIsoTimestamp("2017-08-24 18:00:00.000", DateHelper.EUROPE_BERLIN).getTime(), event.getEndDate().getTime());
+    Assert.assertEquals("Recurring Dayly", event.getSubject());
+    Assert.assertEquals(Integer.valueOf(0), event.getSequence());
+    Assert.assertEquals(null, event.getOrganizer());
+    Assert.assertEquals(null, event.getLocation());
+    Assert.assertEquals(null, event.getNote());
+    Assert.assertEquals(0, event.getAttendees().size());
+
+    Assert.assertEquals(null, event.getRecurrenceRule());
+    Assert.assertEquals(null, event.getRecurrenceUntil());
+    Assert.assertEquals(null, event.getRecurrenceExDate());
+    Assert.assertEquals("20170824T140000", event.getRecurrenceReferenceId());
+
+    // TODO apple_calendar_recurring_edit_futur_1
+    // TODO apple_calendar_recurring_edit_futur_2
   }
 
   void validateAttendee(final TeamEventAttendeeDO attendee, final CuType cuType, final TeamEventAttendeeStatus status,
