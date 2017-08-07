@@ -43,7 +43,6 @@ import org.projectforge.business.teamcal.event.model.TeamEventDO;
 import org.projectforge.business.teamcal.filter.ICalendarFilter;
 import org.projectforge.business.teamcal.filter.TeamCalCalendarFilter;
 import org.projectforge.business.teamcal.filter.TemplateEntry;
-import org.projectforge.business.teamcal.service.TeamCalServiceImpl;
 import org.projectforge.common.StringHelper;
 import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
@@ -90,9 +89,6 @@ public class TeamCalCalendarForm extends CalendarForm
 
   @SpringBean
   transient AccessChecker accessChecker;
-
-  @SpringBean
-  transient TeamCalServiceImpl teamEventConverter;
 
   @SuppressWarnings("unused")
   private TemplateEntry activeTemplate;

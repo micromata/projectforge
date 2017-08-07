@@ -8,13 +8,8 @@ import org.projectforge.business.teamcal.event.model.TeamEventDO;
 
 public class EventHandle
 {
-  public enum HandleState
-  {
-    UNKNOWN, PROCESSED, ERROR
-  }
-
-  private HandleState state;
   private TeamEventDO event;
+  private TeamEventDO eventInDB;
   private HandleMethod method;
   private boolean process;
   private TeamCalDO calendar;
@@ -23,22 +18,11 @@ public class EventHandle
 
   public EventHandle(final TeamEventDO event, final TeamCalDO calendar, final HandleMethod method)
   {
-    this.state = HandleState.UNKNOWN;
     this.event = event;
     this.method = method;
     this.process = false;
     this.calendar = calendar;
     this.errors = new ArrayList<>();
-  }
-
-  public HandleState getState()
-  {
-    return state;
-  }
-
-  public void setState(final HandleState state)
-  {
-    this.state = state;
   }
 
   public TeamEventDO getEvent()
@@ -49,6 +33,16 @@ public class EventHandle
   public void setEvent(final TeamEventDO event)
   {
     this.event = event;
+  }
+
+  public TeamEventDO getEventInDB()
+  {
+    return eventInDB;
+  }
+
+  public void setEventInDB(final TeamEventDO eventInDB)
+  {
+    this.eventInDB = eventInDB;
   }
 
   public boolean isProcess()

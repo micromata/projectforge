@@ -44,7 +44,6 @@ import org.projectforge.business.teamcal.event.ical.ICalGenerator;
 import org.projectforge.business.teamcal.event.model.TeamEvent;
 import org.projectforge.business.teamcal.event.model.TeamEventAttendeeDO;
 import org.projectforge.business.teamcal.event.model.TeamEventDO;
-import org.projectforge.business.teamcal.service.TeamCalServiceImpl;
 import org.projectforge.business.timesheet.TimesheetDO;
 import org.projectforge.business.timesheet.TimesheetDao;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
@@ -69,9 +68,6 @@ public class TeamEventEditPage extends AbstractEditPage<TeamEventDO, TeamEventEd
 
   @SpringBean
   private TimesheetDao timesheetDao;
-
-  @SpringBean
-  private TeamCalServiceImpl teamEventConverter;
 
   @SpringBean
   private TeamEventService teamEventService;
@@ -169,9 +165,6 @@ public class TeamEventEditPage extends AbstractEditPage<TeamEventDO, TeamEventEd
     init(teamEventDO);
   }
 
-  /**
-   * @see org.projectforge.web.wicket.AbstractEditPage#init(org.projectforge.core.AbstractBaseDO)
-   */
   @Override
   protected void init(final TeamEventDO data)
   {
@@ -463,10 +456,6 @@ public class TeamEventEditPage extends AbstractEditPage<TeamEventDO, TeamEventEd
     return log;
   }
 
-  /**
-   * @see org.projectforge.web.wicket.AbstractEditPage#newEditForm(org.projectforge.web.wicket.AbstractEditPage,
-   * org.projectforge.core.AbstractBaseDO)
-   */
   @Override
   protected TeamEventEditForm newEditForm(final AbstractEditPage<?, ?, ?> parentPage, final TeamEventDO data)
   {

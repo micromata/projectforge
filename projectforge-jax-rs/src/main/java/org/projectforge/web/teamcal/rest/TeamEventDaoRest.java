@@ -177,37 +177,6 @@ public class TeamEventDaoRest
     return handleICal(calendarEvent);
   }
 
-  //  private Response saveVEvent(VEvent event, TeamCalDO teamCalDO, boolean withUid)
-  //  {
-  //    //Building TeamEventDO from VEvent
-  //    final TeamEventDO teamEvent = teamCalService.createTeamEventDO(event, withUid);
-  //    //Setting the calendar
-  //    teamEvent.setCalendar(teamCalDO);
-  //    //Save attendee list, because assignment later
-  //    Set<TeamEventAttendeeDO> attendees = new HashSet<>();
-  //    teamEvent.getAttendees().forEach(att -> {
-  //      attendees.add(att.clone());
-  //    });
-  //    teamEvent.setAttendees(null);
-  //    //Save or update the generated event
-  //    teamEventService.save(teamEvent);
-  //    //Update attendees
-  //    teamEventService.assignAttendees(teamEvent, attendees, null);
-  //
-  //    // handle sending notification mail
-  //    teamEventService.checkAndSendMail(teamEvent, TeamEventDiffType.NEW);
-  //
-  //    final CalendarEventObject result = this.getEventObject(teamEvent);
-  //    log.info("Team event: " + teamEvent.getSubject() + " for calendar #" + teamCalDO.getId() + " successfully created.");
-  //    if (result != null) {
-  //      final String json = JsonUtils.toJson(result);
-  //      return Response.ok(json).build();
-  //    } else {
-  //      log.error("Something went wrong while creating team event");
-  //      return Response.serverError().build();
-  //    }
-  //  }
-
   @PUT
   @Path(RestPaths.UPDATE)
   @Consumes(MediaType.APPLICATION_JSON)
@@ -215,83 +184,6 @@ public class TeamEventDaoRest
   public Response updateTeamEvent(final CalendarEventObject calendarEvent)
   {
     return this.handleICal(calendarEvent);
-    //The result for returning
-    //    CalendarEventObject result = null;
-    //    try {
-    //      //Getting the calender at which the event will created/updated
-    //      TeamCalDO teamCalDO = teamCalCache.getCalendar(calendarEvent.getCalendarId());
-    //      //ICal4J CalendarBuilder for building calendar events from ics
-    //      final CalendarBuilder builder = new CalendarBuilder();
-    //      //Build the event from ics
-    //      final net.fortuna.ical4j.model.Calendar calendar = builder.build(new ByteArrayInputStream(Base64.decodeBase64(calendarEvent.getIcsData())));
-    //      //Getting the VEvent from ics
-    //      final ComponentList<CalendarComponent> vevents = calendar.getComponents(Component.VEVENT);
-    //      final VEvent event = (VEvent) vevents.get(0);
-    //      //Geting the event uid
-    //      Uid eventUid = event.getUid();
-    //      //Building TeamEventDO from VEvent
-    //      final TeamEventDO teamEvent = teamCalService.createTeamEventDO(event, true);
-    //      if (vevents.size() > 1) {
-    //        VEvent event2 = (VEvent) vevents.get(1);
-    //        if (event.getUid().equals(event2.getUid())) {
-    //          //Set ExDate in event1
-    //          // ical4j handles timezone internally, no actions required
-    //          teamEvent.addRecurrenceExDate(event2.getRecurrenceId().getDate());
-    //          //Create new Event from event2
-    //          // TODO sn remove false, currently required because altering a single event of a recurring one results has the same uid
-    //          saveVEvent(event2, teamCalDO, false);
-    //        }
-    //      }
-    //      //Getting the origin team event from database by uid if exist
-    //      TeamEventDO teamEventOrigin = teamEventService.findByUid(calendarEvent.getCalendarId(), eventUid.getValue(), false);
-    //      //Check if db event exists
-    //      if (teamEventOrigin == null) {
-    //        log.error("No team event found with uid " + eventUid.getValue());
-    //        log.info("Creating new team event!");
-    //        return saveTeamEvent(calendarEvent);
-    //      }
-    //
-    //      // set existing DB id, created timestamp, tenant, etc. ...
-    //      teamEvent.setId(teamEventOrigin.getPk());
-    //      teamEvent.setCreated(teamEventOrigin.getCreated());
-    //      teamEvent.setLastUpdate();
-    //      teamEvent.setTenant(teamEventOrigin.getTenant());
-    //      teamEvent.setCalendar(teamCalDO);
-    //      teamEvent.setUid(eventUid.getValue());
-    //
-    //      if (teamEventOrigin.isDeleted()) {
-    //        teamEventService.undelete(teamEventOrigin);
-    //        teamEvent.setCreator(teamEventOrigin.getCreator());
-    //
-    //        // save or update the generated event
-    //        teamEventService.updateAttendees(teamEvent, teamEventOrigin.getAttendees());
-    //        teamEventService.update(teamEvent);
-    //
-    //        teamEventService.checkAndSendMail(teamEvent, TeamEventDiffType.NEW);
-    //      } else {
-    //        teamEvent.setCreator(teamEventOrigin.getCreator());
-    //
-    //        // save or update the generated event
-    //        teamEventService.updateAttendees(teamEvent, teamEventOrigin.getAttendees());
-    //        teamEventService.update(teamEvent);
-    //
-    //        teamEventService.checkAndSendMail(teamEvent, teamEventOrigin);
-    //      }
-    //
-    //      result = this.getEventObject(teamEvent);
-    //      log.info("Team event: " + teamEvent.getSubject() + " for calendar #" + teamCalDO.getId() + " successfully updated.");
-    //    } catch (Exception e) {
-    //      log.error("Exception while updating team event", e);
-    //      return Response.serverError().build();
-    //    }
-    //
-    //    if (result != null) {
-    //      final String json = JsonUtils.toJson(result);
-    //      return Response.ok(json).build();
-    //    } else {
-    //      log.error("Something went wrong while updating team event");
-    //      return Response.serverError().build();
-    //    }
   }
 
   private Response handleICal(final CalendarEventObject calendarEvent)
@@ -308,9 +200,11 @@ public class TeamEventDaoRest
         return Response.serverError().build();
       }
 
-      if (handler.processAll() == false) {
+      if (handler.validate() == false) {
         return Response.serverError().build();
       }
+
+      handler.persistErrorFree();
 
       final CalendarEventObject result = this.getEventObject(handler.getFirstResult());
       log.info("Team event: " + result.getSubject() + " for calendar #" + teamCalDO.getId() + " successfully created.");
@@ -338,32 +232,13 @@ public class TeamEventDaoRest
       return Response.serverError().build();
     }
 
-    if (handler.processAll() == false) {
+    if (handler.validate() == false) {
       return Response.serverError().build();
     }
 
+    handler.persistErrorFree();
+
     return Response.ok().build();
-    //    // TODO
-    //    try {
-    //      final CalendarBuilder builder = new CalendarBuilder();
-    //      final net.fortuna.ical4j.model.Calendar calendar = builder.build(new ByteArrayInputStream(Base64.decodeBase64(calendarEvent.getIcsData())));
-    //      final VEvent event = (VEvent) calendar.getComponent(Component.VEVENT);
-    //      Uid eventUid = event.getUid();
-    //      TeamEventDO teamEvent = teamEventService.findByUid(calendarEvent.getCalendarId(), eventUid.getValue(), true);
-    //      if (teamEvent != null) {
-    //        teamEventService.markAsDeleted(teamEvent);
-    //        teamEventService.checkAndSendMail(teamEvent, TeamEventDiffType.DELETED);
-    //        log.info("Team event with the id: " + eventUid.getValue() + " for calendar #" + calendarEvent.getCalendarId() + " successfully marked as deleted.");
-    //      } else {
-    //        log.warn("Team event with uid: " + eventUid.getValue() + " not found");
-    //        return Response.serverError().build();
-    //      }
-    //    } catch (Exception e) {
-    //      log.error("Exception while deleting team event", e);
-    //      return Response.serverError().build();
-    //    }
-    //
-    //    return Response.ok().build();
   }
 
   private CalendarEventObject getEventObject(final TeamEvent src)

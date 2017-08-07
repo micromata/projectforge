@@ -44,15 +44,15 @@ public class ICalHandler
 
   public boolean readICal(final InputStream iCalStream, final HandleMethod method)
   {
-    return this.readIcal(new InputStreamReader(iCalStream), method);
+    return this.readICal(new InputStreamReader(iCalStream), method);
   }
 
   public boolean readICal(final String iCalString, final HandleMethod method)
   {
-    return this.readIcal(new StringReader(iCalString), method);
+    return this.readICal(new StringReader(iCalString), method);
   }
 
-  public boolean readIcal(final Reader iCalReader, final HandleMethod handleMethod)
+  public boolean readICal(final Reader iCalReader, final HandleMethod handleMethod)
   {
     // parse ical
     boolean result = parser.parse(iCalReader);
@@ -97,109 +97,136 @@ public class ICalHandler
     return true;
   }
 
-  public boolean processAll()
+  public boolean validate()
   {
     boolean error = false;
 
     for (EventHandle eventHandle : singleEventHandles) {
-      try {
-        switch (eventHandle.getMethod()) {
-          case ADD_UPDATE:
-            this.saveOrUpdateEvent(eventHandle);
-            break;
-          case REMOVE:
-            this.deleteEvent(eventHandle);
-            break;
-        }
-
-        if (eventHandle.getErrors().isEmpty() == false) {
-          error = true;
-        }
-      } catch (Exception e) {
-        error = true;
-        log.error(String.format("An error occurred while processing the event with uid '%s'", eventHandle.getEvent().getUid()), e);
-      }
+      this.validate(eventHandle);
+      error = error || (eventHandle.getErrors().isEmpty() == false);
     }
 
     // TODO improve handling of recurring events!!!!
     for (RecurringEventHandle eventHandle : recurringHandles.values()) {
-      if (eventHandle.getEvent() == null) {
-        continue;
-      }
+      this.validate(eventHandle);
+      error = error || (eventHandle.getErrors().isEmpty() == false);
 
-      try {
-        switch (eventHandle.getMethod()) {
-          case ADD_UPDATE:
-            this.saveOrUpdateEvent(eventHandle);
-            for (EventHandle additionalEvent : eventHandle.getRelatedEvents()) {
-              additionalEvent.getEvent().setUid(null);
-              this.saveOrUpdateEvent(additionalEvent); // TODO send mail ?
-            }
-            break;
-          case REMOVE:
-            this.deleteEvent(eventHandle);
-            //            for (EventHandle additionalEvent : eventHandle.getRelatedEvents()) {
-            //              this.deleteEvent(additionalEvent); // TODO send mail
-            //            }
-            break;
-        }
-
-        if (eventHandle.getErrors().isEmpty() == false) {
-          error = true;
-        }
-      } catch (Exception e) {
-        error = true;
-        log.error(String.format("An error occurred while processing the event with uid '%s'", eventHandle.getEvent().getUid()), e);
+      for (EventHandle additionalEvent : eventHandle.getRelatedEvents()) {
+        this.validate(additionalEvent);
       }
     }
 
     return error == false;
   }
 
-  private void saveOrUpdateEvent(final EventHandle eventHandle)
+  public void persistErrorFree()
   {
-    TeamEventDO event = eventHandle.getEvent();
+    boolean error = false;
 
-    if (event == null) {
+    for (EventHandle eventHandle : singleEventHandles) {
+      this.persist(eventHandle);
+    }
+
+    // TODO improve handling of recurring events!!!!
+    for (RecurringEventHandle eventHandle : recurringHandles.values()) {
+      this.persist(eventHandle);
+
+      for (EventHandle additionalEvent : eventHandle.getRelatedEvents()) {
+        additionalEvent.getEvent().setUid(null); // TODO remove this line when uid constraint is fixed
+        this.persist(eventHandle);
+      }
+    }
+  }
+
+  private void validate(final EventHandle eventHandle)
+  {
+    // delete all errors
+    eventHandle.getErrors().clear();
+
+    // check event
+    if (eventHandle.getEvent() == null) {
+      eventHandle.addError(EventHandleError.MAIN_RECURRING_EVENT_MISSING);
       return;
     }
 
-    // try getting the event from database for uid
-    final TeamEventDO eventDB;
-    if (eventHandle.getCalendar() != null) {
-      eventDB = eventService.findByUid(eventHandle.getCalendar().getId(), event.getUid(), false);
-      event.setCalendar(eventHandle.getCalendar());
-    } else {
-      eventDB = null;
+    // check calender
+    if (eventHandle.getCalendar() == null) {
+      eventHandle.setEventInDB(null);
       eventHandle.addError(EventHandleError.CALANDER_NOT_SPECIFIED);
+      return;
     }
+
+    // check db
+    switch (eventHandle.getMethod()) {
+      case ADD_UPDATE:
+        eventHandle.setEventInDB(eventService.findByUid(eventHandle.getCalendar().getId(), eventHandle.getEvent().getUid(), false));
+        break;
+
+      case REMOVE:
+        TeamEventDO eventInDB = eventService.findByUid(eventHandle.getCalendar().getId(), eventHandle.getEvent().getUid(), true);
+        eventHandle.setEventInDB(eventInDB);
+        if (eventInDB == null) {
+          eventHandle.addError(EventHandleError.EVENT_TO_DELETE_NOT_FOUND);
+        }
+        break;
+    }
+  }
+
+  private void persist(final EventHandle eventHandle)
+  {
+    // persist is not possible if errors exists
+    if (eventHandle.getErrors().isEmpty() == false) {
+      return;
+    }
+
+    try {
+      switch (eventHandle.getMethod()) {
+        case ADD_UPDATE:
+          this.saveOrUpdate(eventHandle);
+          break;
+        case REMOVE:
+          this.delete(eventHandle);
+          break;
+      }
+    } catch (Exception e) {
+      log.error(String.format("An error occurred while persist event with uid '%s'", eventHandle.getEvent().getUid()), e);
+    }
+  }
+
+  private void saveOrUpdate(final EventHandle eventHandle)
+  {
+    final TeamEventDO event = eventHandle.getEvent();
+    final TeamEventDO eventInDB = eventHandle.getEventInDB();
+
+    // set calendar
+    event.setCalendar(eventHandle.getCalendar());
 
     // fix attendees
     this.fixAttendees(eventHandle);
 
-    if (eventDB != null) {
+    if (eventInDB != null) {
       // event exists, update metadata
-      event.setId(eventDB.getPk());
-      event.setCreated(eventDB.getCreated());
+      event.setId(eventInDB.getPk());
+      event.setCreated(eventInDB.getCreated());
       event.setLastUpdate();
-      event.setTenant(eventDB.getTenant());
-      event.setCreator(eventDB.getCreator());
+      event.setTenant(eventInDB.getTenant());
+      event.setCreator(eventInDB.getCreator());
 
-      final boolean isDeleted = eventDB.isDeleted();
+      final boolean isDeleted = eventInDB.isDeleted();
       if (isDeleted) {
         // event is deleted, restore
-        eventService.undelete(eventDB);
+        eventService.undelete(eventInDB);
       }
 
       // update attendees & event
-      eventService.updateAttendees(event, eventDB.getAttendees());
+      eventService.updateAttendees(event, eventInDB.getAttendees());
       eventService.update(event);
 
       // send notification mail
       if (isDeleted) {
         eventService.checkAndSendMail(event, TeamEventDiffType.NEW);
       } else {
-        eventService.checkAndSendMail(event, eventDB);
+        eventService.checkAndSendMail(event, eventInDB);
       }
     } else {
       // save attendee list, because assignment later
@@ -216,6 +243,13 @@ public class ICalHandler
     }
   }
 
+  private void delete(final EventHandle eventHandle)
+  {
+    final TeamEventDO event = eventHandle.getEvent();
+    eventService.markAsDeleted(event);
+    eventService.checkAndSendMail(event, TeamEventDiffType.DELETED);
+  }
+
   private void fixAttendees(final EventHandle eventHandle)
   {
     if (eventHandle.getEvent() == null) {
@@ -227,17 +261,6 @@ public class ICalHandler
     //    }
 
     eventService.fixAttendees(eventHandle.getEvent());
-  }
-
-  private void deleteEvent(final EventHandle eventHandle)
-  {
-    TeamEventDO event = eventService.findByUid(eventHandle.getCalendar().getId(), eventHandle.getEvent().getUid(), true);
-    if (event != null) {
-      eventService.markAsDeleted(event);
-      eventService.checkAndSendMail(event, TeamEventDiffType.DELETED);
-    } else {
-      eventHandle.addError(EventHandleError.EVENT_NOT_FOUND);
-    }
   }
 
   private HandleMethod readMethod(final HandleMethod expectedMethod)

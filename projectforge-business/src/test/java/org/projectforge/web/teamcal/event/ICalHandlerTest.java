@@ -88,8 +88,9 @@ public class ICalHandlerTest extends PowerMockTestCase
     boolean result = handler.readICal(IOUtils.toString(this.getClass().getResourceAsStream("/ical/ical_test_input1.ics"), "UTF-8"), HandleMethod.ADD_UPDATE);
     Assert.assertTrue(result);
 
-    result = handler.processAll();
+    result = handler.validate();
     Assert.assertTrue(result);
+    handler.persistErrorFree();
 
     Mockito.verify(teamEventDao).save(savedEvent.capture());
     TeamEventDO event = savedEvent.getValue();
