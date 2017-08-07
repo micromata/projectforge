@@ -212,7 +212,7 @@ public class ICalGeneratorParserTest extends AbstractTestBase
   {
     ICalParser parser = ICalParser.parseAllFields();
 
-    Assert.assertTrue(parser.parse(IOUtils.toString(this.getClass().getResourceAsStream("/ical/ical_test_input1.ics"), "UTF-8")));
+    Assert.assertTrue(parser.parse(IOUtils.toString(this.getClass().getResourceAsStream("/ical/ical_test_input.ics"), "UTF-8")));
 
     // check event
     Assert.assertEquals(parser.getExtractedEvents().size(), 1);

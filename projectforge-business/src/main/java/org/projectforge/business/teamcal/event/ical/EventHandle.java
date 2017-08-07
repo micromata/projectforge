@@ -15,6 +15,7 @@ public class EventHandle
   private TeamCalDO calendar;
 
   private List<EventHandleError> errors;
+  private List<EventHandleError> warnings;
 
   public EventHandle(final TeamEventDO event, final TeamCalDO calendar, final HandleMethod method)
   {
@@ -23,6 +24,12 @@ public class EventHandle
     this.process = false;
     this.calendar = calendar;
     this.errors = new ArrayList<>();
+    this.warnings = new ArrayList<>();
+  }
+
+  public boolean isValid(final boolean ignoreWarnings)
+  {
+    return this.errors.isEmpty() && (ignoreWarnings || this.warnings.isEmpty());
   }
 
   public TeamEventDO getEvent()
@@ -85,8 +92,23 @@ public class EventHandle
     return errors;
   }
 
-  public void setErrors(final List<EventHandleError> errors)
+  public void setError(final List<EventHandleError> errors)
   {
     this.errors = errors;
+  }
+
+  public void addWarning(final EventHandleError warnings)
+  {
+    this.warnings.add(warnings);
+  }
+
+  public List<EventHandleError> getWarnings()
+  {
+    return warnings;
+  }
+
+  public void setWarnings(final List<EventHandleError> warnings)
+  {
+    this.warnings = warnings;
   }
 }

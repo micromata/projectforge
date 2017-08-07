@@ -143,7 +143,9 @@ public class TeamEventServiceImpl implements TeamEventService
     for (TeamEventAttendeeDO assignAttendee : itemsToAssign) {
       if (assignAttendee.getId() == null || assignAttendee.getId() < 0) {
         assignAttendee.setId(null);
-        assignAttendee.setStatus(TeamEventAttendeeStatus.IN_PROCESS);
+        if (assignAttendee.getStatus() == null) {
+          assignAttendee.setStatus(TeamEventAttendeeStatus.NEEDS_ACTION);
+        }
         data.addAttendee(assignAttendee);
         teamEventAttendeeDao.internalSave(assignAttendee);
       }

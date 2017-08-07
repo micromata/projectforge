@@ -92,25 +92,25 @@ public enum TeamEventAttendeeStatus implements I18nEnum
 
   public static TeamEventAttendeeStatus getStatusForPartStat(final String partStat)
   {
-    if (PartStat.ACCEPTED.getName().equals(partStat)) {
+    if (PartStat.ACCEPTED.getValue().equals(partStat)) {
       return TeamEventAttendeeStatus.ACCEPTED;
     }
-    if (PartStat.COMPLETED.getName().equals(partStat)) {
+    if (PartStat.COMPLETED.getValue().equals(partStat)) {
       return TeamEventAttendeeStatus.COMPLETED;
     }
-    if (PartStat.DECLINED.getName().equals(partStat)) {
+    if (PartStat.DECLINED.getValue().equals(partStat)) {
       return TeamEventAttendeeStatus.DECLINED;
     }
-    if (PartStat.DELEGATED.getName().equals(partStat)) {
+    if (PartStat.DELEGATED.getValue().equals(partStat)) {
       return TeamEventAttendeeStatus.DELEGATED;
     }
-    if (PartStat.IN_PROCESS.getName().equals(partStat)) {
+    if (PartStat.IN_PROCESS.getValue().equals(partStat)) {
       return TeamEventAttendeeStatus.IN_PROCESS;
     }
-    if (PartStat.NEEDS_ACTION.getName().equals(partStat)) {
+    if (PartStat.NEEDS_ACTION.getValue().equals(partStat)) {
       return TeamEventAttendeeStatus.NEEDS_ACTION;
     }
-    if (PartStat.TENTATIVE.getName().equals(partStat)) {
+    if (PartStat.TENTATIVE.getValue().equals(partStat)) {
       return TeamEventAttendeeStatus.TENTATIVE;
     }
 

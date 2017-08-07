@@ -54,7 +54,7 @@ public class ICalHandler
 
   public boolean readICal(final Reader iCalReader, final HandleMethod handleMethod)
   {
-    // parse ical
+    // parse iCal
     boolean result = parser.parse(iCalReader);
 
     if (result == false) {
@@ -82,9 +82,10 @@ public class ICalHandler
 
         if (handle == null) {
           handle = new RecurringEventHandle(null, this.defaultCalendar, method);
+          this.recurringHandles.put(event.getUid(), handle);
         }
 
-        if (event.getRecurrenceRule() != null) {
+        if (event.getRecurrenceReferenceId() == null) {
           // set master event
           handle.setEvent(event);
         } else {
@@ -111,7 +112,9 @@ public class ICalHandler
       this.validate(eventHandle);
       error = error || (eventHandle.getErrors().isEmpty() == false);
 
+      // TODO additional events should be exdates or similar of the main event!
       for (EventHandle additionalEvent : eventHandle.getRelatedEvents()) {
+        additionalEvent.getEvent().setUid(null); // TODO remove this line when uid constraint is fixed
         this.validate(additionalEvent);
       }
     }
@@ -119,63 +122,78 @@ public class ICalHandler
     return error == false;
   }
 
-  public void persistErrorFree()
+  public void persist(final boolean ignoreWarnings)
   {
-    boolean error = false;
-
     for (EventHandle eventHandle : singleEventHandles) {
-      this.persist(eventHandle);
+      this.persist(eventHandle, ignoreWarnings);
     }
 
     // TODO improve handling of recurring events!!!!
     for (RecurringEventHandle eventHandle : recurringHandles.values()) {
-      this.persist(eventHandle);
+      // check if main recurring event is present
+      if (eventHandle.getEvent() != null) {
+        this.persist(eventHandle, ignoreWarnings);
+      }
 
       for (EventHandle additionalEvent : eventHandle.getRelatedEvents()) {
-        additionalEvent.getEvent().setUid(null); // TODO remove this line when uid constraint is fixed
-        this.persist(eventHandle);
+        this.persist(additionalEvent, ignoreWarnings);
       }
     }
   }
 
   private void validate(final EventHandle eventHandle)
   {
-    // delete all errors
-    eventHandle.getErrors().clear();
+    final TeamEventDO event = eventHandle.getEvent();
+    final TeamCalDO calendar = eventHandle.getCalendar();
 
-    // check event
-    if (eventHandle.getEvent() == null) {
-      eventHandle.addError(EventHandleError.MAIN_RECURRING_EVENT_MISSING);
-      return;
-    }
+    // clear errors & warnings
+    eventHandle.getErrors().clear();
+    eventHandle.getWarnings().clear();
 
     // check calender
-    if (eventHandle.getCalendar() == null) {
+    if (calendar == null) {
       eventHandle.setEventInDB(null);
       eventHandle.addError(EventHandleError.CALANDER_NOT_SPECIFIED);
       return;
     }
 
+    // check method
+    if (eventHandle.getMethod() == null) {
+      eventHandle.addError(EventHandleError.NO_METHOD_SELECTED);
+      return;
+    }
+
+    // check event
+    if (event == null) {
+      eventHandle.addWarning(EventHandleError.WARN_MAIN_RECURRING_EVENT_MISSING);
+      return;
+    }
+
     // check db
+    TeamEventDO eventInDB;
     switch (eventHandle.getMethod()) {
       case ADD_UPDATE:
-        eventHandle.setEventInDB(eventService.findByUid(eventHandle.getCalendar().getId(), eventHandle.getEvent().getUid(), false));
+        eventInDB = eventService.findByUid(calendar.getId(), event.getUid(), false);
+        eventHandle.setEventInDB(eventInDB);
+        if (eventInDB != null && eventInDB.getDtStamp() != null && eventInDB.getDtStamp().after(event.getDtStamp())) {
+          eventHandle.addWarning(EventHandleError.WARN_OUTDATED);
+        }
         break;
 
-      case REMOVE:
-        TeamEventDO eventInDB = eventService.findByUid(eventHandle.getCalendar().getId(), eventHandle.getEvent().getUid(), true);
+      case CANCEL:
+        eventInDB = eventService.findByUid(calendar.getId(), event.getUid(), true);
         eventHandle.setEventInDB(eventInDB);
         if (eventInDB == null) {
-          eventHandle.addError(EventHandleError.EVENT_TO_DELETE_NOT_FOUND);
+          eventHandle.addWarning(EventHandleError.WARN_EVENT_TO_DELETE_NOT_FOUND);
         }
         break;
     }
   }
 
-  private void persist(final EventHandle eventHandle)
+  private void persist(final EventHandle eventHandle, final boolean ignoreWarnings)
   {
     // persist is not possible if errors exists
-    if (eventHandle.getErrors().isEmpty() == false) {
+    if (eventHandle.isValid(ignoreWarnings) == false) {
       return;
     }
 
@@ -184,7 +202,7 @@ public class ICalHandler
         case ADD_UPDATE:
           this.saveOrUpdate(eventHandle);
           break;
-        case REMOVE:
+        case CANCEL:
           this.delete(eventHandle);
           break;
       }
@@ -229,7 +247,7 @@ public class ICalHandler
         eventService.checkAndSendMail(event, eventInDB);
       }
     } else {
-      // save attendee list, because assignment later
+      // save attendee list, assign after saving the event
       Set<TeamEventAttendeeDO> attendees = new HashSet<>();
       event.getAttendees().forEach(att -> attendees.add(att.clone()));
       event.setAttendees(null);
@@ -245,7 +263,11 @@ public class ICalHandler
 
   private void delete(final EventHandle eventHandle)
   {
-    final TeamEventDO event = eventHandle.getEvent();
+    final TeamEventDO event = eventHandle.getEventInDB();
+
+    if (event == null)
+      return;
+
     eventService.markAsDeleted(event);
     eventService.checkAndSendMail(event, TeamEventDiffType.DELETED);
   }
@@ -265,20 +287,16 @@ public class ICalHandler
 
   private HandleMethod readMethod(final HandleMethod expectedMethod)
   {
-    if (expectedMethod != null) {
-      return expectedMethod; // TODO
-    }
-
     Method methodIcal = parser.getMethod();
 
-    if (methodIcal == null) {
+    if (methodIcal == null && expectedMethod == null) {
       log.warn("No method defined and ICal does not contain a method");
       return null;
     }
 
     final HandleMethod method;
     if (Method.CANCEL.equals(methodIcal)) {
-      method = HandleMethod.REMOVE;
+      method = HandleMethod.CANCEL;
     } else if (Method.REQUEST.equals(methodIcal)) {
       method = HandleMethod.ADD_UPDATE;
     } else if (Method.REFRESH.equals(methodIcal)) {
@@ -294,12 +312,17 @@ public class ICalHandler
     } else if (Method.REPLY.equals(methodIcal)) {
       method = null;
     } else {
-      log.warn(String.format("Unknown method in ICal: '%s'", methodIcal.getValue()));
+      if (methodIcal == null) {
+        log.warn(String.format("Unknown method in ICal: '%s'", methodIcal));
+      }
       method = null;
     }
-    // TODO
 
-    return method;
+    if (expectedMethod != null && method != null && expectedMethod != method) {
+      log.warn(String.format("Expected method '%s' is overritten by method from iCal '%s'", expectedMethod.name(), methodIcal.getValue()));
+    }
+
+    return method == null ? expectedMethod : method;
   }
 
   public TeamEventDO getFirstResult()
@@ -311,7 +334,7 @@ public class ICalHandler
     if (this.singleEventHandles.isEmpty() == false) {
       return this.singleEventHandles.get(0).getEvent();
     } else {
-      return this.recurringHandles.get(0).getEvent();
+      return this.recurringHandles.values().iterator().next().getEvent();
     }
   }
 
@@ -334,4 +357,15 @@ public class ICalHandler
   {
     this.defaultCalendar = defaultCalendar;
   }
+
+  public List<EventHandle> getSingleEventHandles()
+  {
+    return singleEventHandles;
+  }
+
+  public Map<String, RecurringEventHandle> getRecurringHandles()
+  {
+    return recurringHandles;
+  }
+
 }

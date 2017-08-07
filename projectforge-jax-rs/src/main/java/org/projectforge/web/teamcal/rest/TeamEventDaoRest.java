@@ -149,8 +149,7 @@ public class TeamEventDaoRest
     final List<CalendarEventObject> result = new LinkedList<>();
     if (cals.size() > 0) {
       final Date now = new Date();
-      final TeamEventFilter filter = new TeamEventFilter().setStartDate(now).setEndDate(day.getDate())
-          .setTeamCals(cals);
+      final TeamEventFilter filter = new TeamEventFilter().setStartDate(now).setEndDate(day.getDate()).setTeamCals(cals);
       final List<TeamEvent> list = teamEventService.getEventList(filter, true);
       if (list != null && list.size() > 0) {
         for (final TeamEvent event : list) {
@@ -204,7 +203,7 @@ public class TeamEventDaoRest
         return Response.serverError().build();
       }
 
-      handler.persistErrorFree();
+      handler.persist(true);
 
       final CalendarEventObject result = this.getEventObject(handler.getFirstResult());
       log.info("Team event: " + result.getSubject() + " for calendar #" + teamCalDO.getId() + " successfully created.");
@@ -228,7 +227,7 @@ public class TeamEventDaoRest
     final ICalHandler handler = this.teamEventService.getEventHandler(teamCalDO);
     final InputStream iCalStream = new ByteArrayInputStream(Base64.decodeBase64(calendarEvent.getIcsData()));
 
-    if (handler.readICal(iCalStream, HandleMethod.REMOVE) == false || handler.eventCount() != 1) {
+    if (handler.readICal(iCalStream, HandleMethod.CANCEL) == false || handler.eventCount() != 1) {
       return Response.serverError().build();
     }
 
@@ -236,7 +235,7 @@ public class TeamEventDaoRest
       return Response.serverError().build();
     }
 
-    handler.persistErrorFree();
+    handler.persist(true);
 
     return Response.ok().build();
   }
