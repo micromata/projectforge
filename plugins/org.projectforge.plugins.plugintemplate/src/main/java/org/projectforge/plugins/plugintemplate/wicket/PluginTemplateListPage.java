@@ -124,6 +124,8 @@ public class PluginTemplateListPage extends AbstractListPage<PluginTemplateListF
     final List<IColumn<PluginTemplateDO, String>> columns = createColumns(this, true);
     dataTable = createDataTable(columns, "created", SortOrder.DESCENDING);
     form.add(dataTable);
+    //To add excel export for list page:
+    //addExcelExport(getString("plugins.plugintemplate.title.list"), "pluginTamplete");
   }
 
   @Override
