@@ -194,8 +194,15 @@ public class RechnungDao extends BaseDao<RechnungDO>
       RechnungDO originValue = internalGetById(rechnung.getId());
       if (RechnungStatus.GEPLANT.equals(originValue.getStatus()) && RechnungStatus.GEPLANT.equals(rechnung.getStatus()) == false) {
         rechnung.setNummer(getNextNumber(rechnung));
+
         final DayHolder day = new DayHolder();
         rechnung.setDatum(day.getSQLDate());
+        
+        Integer zahlungsZielInTagen = rechnung.getZahlungsZielInTagen();
+        if (zahlungsZielInTagen != null) {
+          day.add(Calendar.DAY_OF_MONTH, zahlungsZielInTagen);
+        }
+        rechnung.setFaelligkeit(day.getSQLDate());
       }
     }
 
