@@ -26,13 +26,14 @@ import org.projectforge.business.teamcal.admin.model.TeamCalDO;
 import org.projectforge.business.teamcal.event.diff.TeamEventDiff;
 import org.projectforge.business.teamcal.event.diff.TeamEventDiffType;
 import org.projectforge.business.teamcal.event.diff.TeamEventField;
+import org.projectforge.business.teamcal.event.ical.ICalGenerator;
+import org.projectforge.business.teamcal.event.ical.ICalHandler;
 import org.projectforge.business.teamcal.event.model.TeamEvent;
 import org.projectforge.business.teamcal.event.model.TeamEventAttendeeDO;
 import org.projectforge.business.teamcal.event.model.TeamEventAttendeeDao;
 import org.projectforge.business.teamcal.event.model.TeamEventAttendeeStatus;
 import org.projectforge.business.teamcal.event.model.TeamEventDO;
 import org.projectforge.business.teamcal.service.CryptService;
-import org.projectforge.business.teamcal.service.TeamCalServiceImpl;
 import org.projectforge.business.teamcal.servlet.TeamCalResponseServlet;
 import org.projectforge.business.user.service.UserService;
 import org.projectforge.framework.calendar.ICal4JUtils;
@@ -69,9 +70,6 @@ public class TeamEventServiceImpl implements TeamEventService
 
   @Autowired
   private SendMail sendMail;
-
-  @Autowired
-  private TeamCalServiceImpl teamEventConverter;
 
   @Autowired
   private UserService userService;
@@ -151,7 +149,9 @@ public class TeamEventServiceImpl implements TeamEventService
     for (TeamEventAttendeeDO assignAttendee : itemsToAssign) {
       if (assignAttendee.getId() == null || assignAttendee.getId() < 0) {
         assignAttendee.setId(null);
-        assignAttendee.setStatus(TeamEventAttendeeStatus.IN_PROCESS);
+        if (assignAttendee.getStatus() == null) {
+          assignAttendee.setStatus(TeamEventAttendeeStatus.NEEDS_ACTION);
+        }
         data.addAttendee(assignAttendee);
         teamEventAttendeeDao.internalSave(assignAttendee);
       }
@@ -389,7 +389,10 @@ public class TeamEventServiceImpl implements TeamEventService
         break;
     }
 
-    ByteArrayOutputStream icsFile = teamEventConverter.getIcsFile(event, true, false, method);
+    final ICalGenerator generator = ICalGenerator.forMethod(method);
+    generator.addEvent(event);
+    ByteArrayOutputStream icsFile = generator.getCalendarAsByteStream();
+
     try {
       String ics = icsFile.toString(StandardCharsets.UTF_8.name());
 
@@ -693,4 +696,36 @@ public class TeamEventServiceImpl implements TeamEventService
     return teamEventDao.getCalIdList(teamCals);
   }
 
+  @Override
+  public ICalHandler getEventHandler(final TeamCalDO defaultCalendar)
+  {
+    return new ICalHandler(this, defaultCalendar);
+  }
+
+  @Override
+  public void fixAttendees(final TeamEventDO event)
+  {
+    List<TeamEventAttendeeDO> attendeesFromDbList = this.getAddressesAndUserAsAttendee();
+
+    Integer internalNewAttendeeSequence = -10000;
+    boolean found;
+
+    for (TeamEventAttendeeDO attendeeDO : event.getAttendees()) {
+      found = false;
+
+      //    search for eMail in DB as possible attendee
+      for (TeamEventAttendeeDO dBAttendee : attendeesFromDbList) {
+        if (dBAttendee.getAddress().getEmail().equals(attendeeDO.getUrl())) {
+          attendeeDO = dBAttendee;
+          attendeeDO.setId(internalNewAttendeeSequence--);
+          found = true;
+          break;
+        }
+      }
+
+      if (found == false) {
+        attendeeDO.setId(internalNewAttendeeSequence--);
+      }
+    }
+  }
 }

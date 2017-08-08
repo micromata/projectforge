@@ -24,10 +24,10 @@
 package org.projectforge.business.teamcal.servlet;
 
 import java.io.IOException;
-import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
+import java.util.TimeZone;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -39,14 +39,19 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.httpclient.HttpStatus;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.MDC;
+import org.joda.time.DateMidnight;
 import org.joda.time.DateTime;
 import org.projectforge.ProjectForgeApp;
 import org.projectforge.business.multitenancy.TenantRegistry;
 import org.projectforge.business.multitenancy.TenantRegistryMap;
 import org.projectforge.business.teamcal.TeamCalConfig;
 import org.projectforge.business.teamcal.common.CalendarHelper;
+import org.projectforge.business.teamcal.event.TeamEventFilter;
+import org.projectforge.business.teamcal.event.TeamEventService;
+import org.projectforge.business.teamcal.event.ical.ICalGenerator;
+import org.projectforge.business.teamcal.event.model.TeamEvent;
+import org.projectforge.business.teamcal.event.model.TeamEventDO;
 import org.projectforge.business.teamcal.model.CalendarFeedConst;
-import org.projectforge.business.teamcal.service.TeamCalServiceImpl;
 import org.projectforge.business.timesheet.TimesheetDO;
 import org.projectforge.business.timesheet.TimesheetDao;
 import org.projectforge.business.timesheet.TimesheetFilter;
@@ -55,8 +60,6 @@ import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.business.user.service.UserService;
 import org.projectforge.common.StringHelper;
 import org.projectforge.framework.access.AccessChecker;
-import org.projectforge.framework.access.AccessException;
-import org.projectforge.framework.calendar.ICal4JUtils;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.time.DayHolder;
@@ -66,15 +69,9 @@ import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.support.WebApplicationContextUtils;
 
-import net.fortuna.ical4j.data.CalendarOutputter;
-import net.fortuna.ical4j.model.Calendar;
-import net.fortuna.ical4j.model.TimeZone;
 import net.fortuna.ical4j.model.component.VEvent;
-import net.fortuna.ical4j.model.property.CalScale;
 import net.fortuna.ical4j.model.property.Description;
 import net.fortuna.ical4j.model.property.Location;
-import net.fortuna.ical4j.model.property.ProdId;
-import net.fortuna.ical4j.model.property.Version;
 
 /**
  * Feed Servlet, which generates a 'text/calendar' output of the last four mounts. Currently relevant information is
@@ -89,10 +86,8 @@ public class CalendarAboServlet extends HttpServlet
 
   private static final long serialVersionUID = 1480433876190009435L;
 
-  /**
-   * setup event is needed for empty calendars
-   */
-  public static final String SETUP_EVENT = "SETUP EVENT";
+  public static final String PARAM_EXPORT_REMINDER = "exportReminders";
+  public static final String PARAM_EXPORT_ATTENDEES = "exportAttendees";
 
   @Autowired
   private TimesheetDao timesheetDao;
@@ -106,7 +101,7 @@ public class CalendarAboServlet extends HttpServlet
   private UserService userService;
 
   @Autowired
-  private TeamCalServiceImpl teamCalService;
+  private TeamEventService teamEventService;
 
   @Override
   public void init(final ServletConfig config) throws ServletException
@@ -118,38 +113,38 @@ public class CalendarAboServlet extends HttpServlet
   }
 
   @Override
-  protected void doGet(final HttpServletRequest req, final HttpServletResponse resp)
-      throws ServletException, IOException
+  protected void doGet(final HttpServletRequest req, final HttpServletResponse resp) throws ServletException, IOException
   {
+    // check if PF is running
     if (ProjectForgeApp.getInstance().isUpAndRunning() == false) {
-      log.error(
-          "System isn't up and running, CalendarFeed call denied. The system is may-be in start-up phase or in maintenance mode.");
+      log.error("System isn't up and running, CalendarFeed call denied. The system is may-be in start-up phase or in maintenance mode.");
       resp.sendError(HttpServletResponse.SC_SERVICE_UNAVAILABLE);
       return;
     }
+
     PFUserDO user = null;
     String logMessage = null;
+
     try {
+      // add logging stuff
       MDC.put("ip", (Object) req.getRemoteAddr());
       MDC.put("session", (Object) req.getSession().getId());
+
+      // read user
       if (StringUtils.isBlank(req.getParameter("user")) || StringUtils.isBlank(req.getParameter("q"))) {
         resp.sendError(HttpStatus.SC_BAD_REQUEST);
         log.error("Bad request, parameters user and q not given. Query string is: " + req.getQueryString());
         return;
       }
-      final String encryptedParams = req.getParameter("q");
       final Integer userId = NumberHelper.parseInteger(req.getParameter("user"));
       if (userId == null) {
         log.error("Bad request, parameter user is not an integer: " + req.getQueryString());
+        resp.sendError(HttpStatus.SC_BAD_REQUEST);
         return;
       }
-      user = TenantRegistryMap.getInstance().getTenantRegistry().getUserGroupCache().getUser(userId);
-      if (user == null) {
-        log.error("Bad request, user not found: " + req.getQueryString());
-        return;
-      }
-      ThreadLocalUserContext.setUser(getUserGroupCache(), user);
-      MDC.put("user", (Object) user.getUsername());
+
+      // read params of request
+      final String encryptedParams = req.getParameter("q");
       final String decryptedParams = userService.decrypt(userId, encryptedParams);
       if (decryptedParams == null) {
         log.error("Bad request, can't decrypt parameter q (may-be the user's authentication token was changed): "
@@ -157,30 +152,63 @@ public class CalendarAboServlet extends HttpServlet
         return;
       }
       final Map<String, String> params = StringHelper.getKeyValues(decryptedParams, "&");
-      params.put(TeamCalServiceImpl.PARAM_EXPORT_ATTENDEES, "true");
-      final Calendar calendar = createCal(params, userId, params.get("token"),
-          params.get(CalendarFeedConst.PARAM_NAME_TIMESHEET_USER));
-      final StringBuffer buf = new StringBuffer();
-      boolean first = true;
-      for (final Map.Entry<String, String> entry : params.entrySet()) {
-        if ("token".equals(entry.getKey()) == true) {
-          continue;
-        }
-        first = StringHelper.append(buf, first, entry.getKey(), ", ");
-        buf.append("=").append(entry.getValue());
-      }
-      logMessage = buf.toString();
-      log.info("Getting calendar entries for: " + logMessage);
 
-      if (calendar == null) {
+      // validate user
+      user = userService.getUserByAuthenticationToken(userId, params.get("token"));
+      if (user == null) {
+        log.error("Bad request, user not found: " + req.getQueryString());
         resp.sendError(HttpStatus.SC_BAD_REQUEST);
-        log.error("Bad request, can't find calendar.");
         return;
       }
+      ThreadLocalUserContext.setUser(getUserGroupCache(), user);
+      MDC.put("user", (Object) user.getUsername());
+
+      // check timesheet user
+      String timesheetUserParam = params.get(CalendarFeedConst.PARAM_NAME_TIMESHEET_USER);
+      PFUserDO timesheetUser = null;
+      if (timesheetUserParam != null) {
+        timesheetUser = this.getTimesheetUser(userId, timesheetUserParam);
+
+        if (timesheetUser == null) {
+          resp.sendError(HttpStatus.SC_BAD_REQUEST);
+          return;
+        }
+      }
+
+      // create ical generator
+      ICalGenerator generator = ICalGenerator.exportAllFields();
+      final boolean exportReminders = "true".equals(params.get(PARAM_EXPORT_REMINDER));
+      generator.exportVEventAlarm(exportReminders);
+
+      // read events
+      readEventsFromCalendars(generator, params);
+      readTimesheets(generator, timesheetUser);
+      readHolidays(generator, params);
+      readWeeksOfYear(generator, params);
+
+      // setup event is needed for empty calendars
+      if (generator.isEmpty()) {
+        generator.addEvent(new VEvent(new net.fortuna.ical4j.model.Date(0), TeamCalConfig.SETUP_EVENT));
+      }
+
+      final StringBuffer buf = new StringBuffer();
+
+      // create log message
+      for (final Map.Entry<String, String> entry : params.entrySet()) {
+        if ("token".equals(entry.getKey())) {
+          continue;
+        }
+
+        buf.append(entry.getKey());
+        buf.append("=");
+        buf.append(entry.getValue());
+        buf.append(", ");
+      }
+      logMessage = buf.toString();
+      log.info("Read calendar entries for: " + logMessage);
 
       resp.setContentType("text/calendar");
-      final CalendarOutputter output = new CalendarOutputter(false);
-      output.output(calendar, resp.getOutputStream());
+      generator.writeCalendarToOutputStream(resp.getOutputStream());
 
     } finally {
       log.info("Finished request: " + logMessage);
@@ -193,166 +221,172 @@ public class CalendarAboServlet extends HttpServlet
     }
   }
 
-  /**
-   * creates a calendar for the user, identified by his name and authentication key.
-   *
-   * @param params
-   * @param userName
-   * @param userKey
-   * @return a calendar, null if authentication fails
-   */
-  private Calendar createCal(final Map<String, String> params, final Integer userId, final String authKey,
-      final String timesheetUserParam)
+  private PFUserDO getTimesheetUser(final Integer userId, final String timesheetUserParam)
   {
-    final PFUserDO loggedInUser = userService.getUserByAuthenticationToken(userId, authKey);
-
-    if (loggedInUser == null) {
-      return null;
-    }
     PFUserDO timesheetUser = null;
+
     if (StringUtils.isNotBlank(timesheetUserParam) == true) {
       final Integer timesheetUserId = NumberHelper.parseInteger(timesheetUserParam);
       if (timesheetUserId != null) {
-        if (timesheetUserId.equals(loggedInUser.getId()) == false) {
+        if (timesheetUserId.equals(userId) == false) {
           log.error("Not yet allowed: all users are only allowed to download their own time-sheets.");
           return null;
         }
-        timesheetUser = TenantRegistryMap.getInstance().getTenantRegistry().getUserGroupCache()
-            .getUser(timesheetUserId);
+        timesheetUser = TenantRegistryMap.getInstance().getTenantRegistry().getUserGroupCache().getUser(timesheetUserId);
+
         if (timesheetUser == null) {
           log.error("Time-sheet user with id '" + timesheetUserParam + "' not found.");
           return null;
         }
       }
     }
-    // creating a new calendar
-    final Calendar calendar = new Calendar();
-    final Locale locale = ThreadLocalUserContext.getLocale();
-    calendar.getProperties().add(
-        new ProdId("-//" + loggedInUser.getDisplayUsername() + "//ProjectForge//" + locale.toString().toUpperCase()));
-    calendar.getProperties().add(Version.VERSION_2_0);
-    calendar.getProperties().add(CalScale.GREGORIAN);
 
-    // setup event is needed for empty calendars
-    calendar.getComponents().add(new VEvent(new net.fortuna.ical4j.model.Date(0), SETUP_EVENT));
+    //    if (loggedInUser.getId().equals(timesheetUser.getId()) == false && isOtherUsersAllowed() == false) {
+    //      // Only project managers, controllers and administrative staff is allowed to subscribe time-sheets of other users.
+    //      log.warn("User tried to get time-sheets of other user: " + timesheetUser);
+    //      timesheetUser = loggedInUser;
+    //    }
 
-    // adding events
-    for (final VEvent event : getEvents(params, timesheetUser)) {
-      calendar.getComponents().add(event);
-    }
-    return calendar;
+    return timesheetUser;
   }
 
-  /**
-   * builds the list of events
-   *
-   * @return
-   */
-  private List<VEvent> getEvents(final Map<String, String> params, PFUserDO timesheetUser)
+  private void readEventsFromCalendars(final ICalGenerator generator, final Map<String, String> params)
   {
-    final PFUserDO loggedInUser = ThreadLocalUserContext.getUser();
-    if (loggedInUser == null) {
-      throw new AccessException("No logged-in-user found!");
+    final String teamCals = params.get("teamCals");
+    if (teamCals == null) {
+      return;
     }
-    final List<VEvent> events = new ArrayList<VEvent>();
-    final TimeZone timezone = ICal4JUtils.getUserTimeZone();
+    final String[] teamCalIds = StringUtils.split(teamCals, ";");
+    if (teamCalIds == null) {
+      return;
+    }
+
+    final TeamEventFilter eventFilter = new TeamEventFilter();
+    final DateTime now = DateTime.now();
+    final Date eventDateLimit = now.minusYears(1).toDate();
+    eventFilter.setDeleted(false);
+    eventFilter.setStartDate(eventDateLimit);
+
+    for (final String teamCalId : teamCalIds) {
+      final Integer id = Integer.valueOf(teamCalId);
+      eventFilter.setTeamCalId(id);
+      final List<TeamEvent> teamEvents = teamEventService.getEventList(eventFilter, false);
+
+      if (teamEvents == null || teamEvents.isEmpty()) {
+        continue;
+      }
+
+      for (final TeamEvent teamEventObject : teamEvents) {
+        if (teamEventObject instanceof TeamEventDO == false) {
+          log.warn("Oups, shouldn't occur, please contact the developer: teamEvent isn't of type TeamEventDO: " + teamEventObject);
+          continue;
+        }
+
+        generator.addEvent((TeamEventDO) teamEventObject);
+      }
+    }
+  }
+
+  private void readTimesheets(final ICalGenerator generator, final PFUserDO timesheetUser)
+  {
+    if (timesheetUser == null) {
+      return;
+    }
+
     final java.util.Calendar cal = java.util.Calendar.getInstance(ThreadLocalUserContext.getTimeZone());
 
-    boolean eventsExist = false;
-    final List<VEvent> list = teamCalService.getEvents(params, timezone);
-    if (list != null && list.size() > 0) {
-      events.addAll(list);
-      eventsExist = true;
-    }
+    // initializes timesheet filter
+    final TimesheetFilter filter = new TimesheetFilter();
+    filter.setUserId(timesheetUser.getId());
+    filter.setDeleted(false);
+    cal.add(java.util.Calendar.MONTH, CalendarFeedConst.PERIOD_IN_MONTHS);
+    filter.setStopTime(cal.getTime());
+    cal.add(java.util.Calendar.MONTH, -2 * CalendarFeedConst.PERIOD_IN_MONTHS);
+    filter.setStartTime(cal.getTime());
 
-    if (timesheetUser != null) {
-      if (loggedInUser.getId().equals(timesheetUser.getId()) == false && isOtherUsersAllowed() == false) {
-        // Only project managers, controllers and administrative staff is allowed to subscribe time-sheets of other users.
-        log.warn("User tried to get time-sheets of other user: " + timesheetUser);
-        timesheetUser = loggedInUser;
+    final List<TimesheetDO> timesheetList = timesheetDao.getList(filter);
+
+    // iterate over all timesheets and adds each event to the calendar
+    for (final TimesheetDO timesheet : timesheetList) {
+      final String uid = TeamCalConfig.get().createTimesheetUid(timesheet.getId());
+      final String summary = CalendarHelper.getTitle(timesheet) + " (ts)";
+
+      final VEvent vEvent = generator.convertVEvent(timesheet.getStartTime(), timesheet.getStopTime(), false, uid, summary);
+
+      if (StringUtils.isNotBlank(timesheet.getDescription()) == true) {
+        vEvent.getProperties().add(new Description(timesheet.getDescription()));
       }
-      // initializes timesheet filter
-      final TimesheetFilter filter = new TimesheetFilter();
-      filter.setUserId(timesheetUser.getId());
-      filter.setDeleted(false);
-      cal.add(java.util.Calendar.MONTH, CalendarFeedConst.PERIOD_IN_MONTHS);
-      filter.setStopTime(cal.getTime());
-      cal.add(java.util.Calendar.MONTH, -2 * CalendarFeedConst.PERIOD_IN_MONTHS);
-      filter.setStartTime(cal.getTime());
-
-      final List<TimesheetDO> timesheetList = timesheetDao.getList(filter);
-
-      // iterate over all timesheets and adds each event to the calendar
-      for (final TimesheetDO timesheet : timesheetList) {
-
-        final String uid = TeamCalConfig.get().createTimesheetUid(timesheet.getId());
-        String summary;
-        if (eventsExist == true) {
-          summary = CalendarHelper.getTitle(timesheet) + " (ts)";
-        } else {
-          summary = CalendarHelper.getTitle(timesheet);
-        }
-        final VEvent vEvent = ICal4JUtils.createVEvent(timesheet.getStartTime(), timesheet.getStopTime(), uid, summary);
-        if (StringUtils.isNotBlank(timesheet.getDescription()) == true) {
-          vEvent.getProperties().add(new Description(timesheet.getDescription()));
-        }
-        if (StringUtils.isNotBlank(timesheet.getLocation()) == true) {
-          vEvent.getProperties().add(new Location(timesheet.getLocation()));
-        }
-        events.add(vEvent);
+      if (StringUtils.isNotBlank(timesheet.getLocation()) == true) {
+        vEvent.getProperties().add(new Location(timesheet.getLocation()));
       }
+
+      generator.addEvent(vEvent);
     }
-    final String holidays = params.get(CalendarFeedConst.PARAM_NAME_HOLIDAYS);
-    if ("true".equals(holidays) == true) {
-      DateTime holidaysFrom = new DateTime(ThreadLocalUserContext.getDateTimeZone());
-      holidaysFrom = holidaysFrom.dayOfYear().withMinimumValue().millisOfDay().withMinimumValue().minusYears(2);
-      final DateTime holidayTo = holidaysFrom.plusYears(6);
-      events.addAll(teamCalService.getConfiguredHolidaysAsVEvent(holidaysFrom, holidayTo));
+  }
+
+  private void readHolidays(final ICalGenerator generator, final Map<String, String> params)
+  {
+    if ("true".equals(params.get(CalendarFeedConst.PARAM_NAME_HOLIDAYS)) == false) {
+      return;
     }
+
+    DateTime holidaysFrom = new DateTime(ThreadLocalUserContext.getDateTimeZone());
+    holidaysFrom = holidaysFrom.dayOfYear().withMinimumValue().millisOfDay().withMinimumValue().minusYears(2);
+    final DateTime holidayTo = holidaysFrom.plusYears(6);
+    DateMidnight day = new DateMidnight(holidaysFrom);
+    int idCounter = 0;
+    int paranoiaCounter = 0;
+
+    do {
+      if (++paranoiaCounter > 4000) {
+        log.error("Paranoia counter exceeded! Dear developer, please have a look at the implementation of buildEvents.");
+        break;
+      }
+      final Date date = day.toDate();
+      final TimeZone timeZone = day.getZone().toTimeZone();
+      final DayHolder dh = new DayHolder(date, timeZone, null);
+      if (dh.isHoliday() == false) {
+        day = day.plusDays(1);
+        continue;
+      }
+
+      final String title;
+      final String holidayInfo = dh.getHolidayInfo();
+      if (holidayInfo != null && holidayInfo.startsWith("calendar.holiday.") == true) {
+        title = ThreadLocalUserContext.getLocalizedString(holidayInfo);
+      } else {
+        title = holidayInfo;
+      }
+
+      generator.addEvent(holidaysFrom.toDate(), holidayTo.toDate(), true, title, "pf-holiday" + (++idCounter));
+
+      day = day.plusDays(1);
+    } while (day.isAfter(holidayTo) == false);
+  }
+
+  private void readWeeksOfYear(final ICalGenerator generator, final Map<String, String> params)
+  {
     final String weeksOfYear = params.get(CalendarFeedConst.PARAM_NAME_WEEK_OF_YEARS);
-    if ("true".equals(weeksOfYear) == true) {
-      final DayHolder from = new DayHolder();
-      from.setBeginOfYear().add(java.util.Calendar.YEAR, -2).setBeginOfWeek();
-      final DayHolder to = new DayHolder(from);
-      to.add(java.util.Calendar.YEAR, 6);
-      final DayHolder current = new DayHolder(from);
-      int paranoiaCounter = 0;
-      do {
-        final VEvent vEvent = ICal4JUtils.createVEvent(current.getDate(), current.getDate(), "pf-weekOfYear"
-                + current.getYear()
-                + "-"
-                + paranoiaCounter,
-            ThreadLocalUserContext.getLocalizedString("calendar.weekOfYearShortLabel") + " " + current.getWeekOfYear(),
-            true);
-        events.add(vEvent);
-        current.add(java.util.Calendar.WEEK_OF_YEAR, 1);
-        if (++paranoiaCounter > 500) {
-          log.warn(
-              "Dear developer, please have a look here, paranoiaCounter exceeded! Aborting calculation of weeks of year.");
-        }
-      } while (current.before(to) == true);
+    if ("true".equals(weeksOfYear) == false) {
+      return;
     }
-    // Integer hrPlanningUserId = NumberHelper.parseInteger(params.get(PARAM_NAME_HR_PLANNING));
-    // if (hrPlanningUserId != null) {
-    // if (loggedInUser.getId().equals(hrPlanningUserId) == false && isOtherUsersAllowed() == false) {
-    // // Only project managers, controllers and administrative staff is allowed to subscribe time-sheets of other users.
-    // log.warn("User tried to get time-sheets of other user: " + timesheetUser);
-    // hrPlanningUserId = loggedInUser.getId();
-    // }
-    // final HRPlanningDao hrPlanningDao = Registry.instance().getDao(HRPlanningDao.class);
-    // final HRPlanningEventsProvider hrPlanningEventsProvider = new HRPlanningEventsProvider(new CalendarFilter().setShowPlanning(true)
-    // .setTimesheetUserId(hrPlanningUserId), hrPlanningDao);
-    // DateTime planningFrom = new DateTime(ThreadLocalUserContext.getDateTimeZone());
-    // planningFrom = planningFrom.dayOfYear().withMinimumValue().millisOfDay().withMinimumValue().minusYears(1);
-    // final DateTime planningTo = planningFrom.plusYears(4);
-    // for (final Event event : hrPlanningEventsProvider.getEvents(planningFrom, planningTo)) {
-    // final Date fromDate = event.getStart().toDate();
-    // final Date toDate = event.getEnd() != null ? event.getEnd().toDate() : fromDate;
-    // final VEvent vEvent = ICal4JUtils.createVEvent(fromDate, toDate, "pf-hr-planning" + event.getId(), event.getTitle(), true);
-    // events.add(vEvent);
-    // }
-    // }
-    return events;
+
+    final DayHolder from = new DayHolder();
+    from.setBeginOfYear().add(java.util.Calendar.YEAR, -2).setBeginOfWeek();
+    final DayHolder to = new DayHolder(from);
+    to.add(java.util.Calendar.YEAR, 6);
+    final DayHolder current = new DayHolder(from);
+    int paranoiaCounter = 0;
+    do {
+      generator.addEvent(current.getDate(), current.getDate(), true,
+          ThreadLocalUserContext.getLocalizedString("calendar.weekOfYearShortLabel") + " " + current.getWeekOfYear(),
+          "pf-weekOfYear" + current.getYear() + "-" + paranoiaCounter);
+
+      current.add(java.util.Calendar.WEEK_OF_YEAR, 1);
+      if (++paranoiaCounter > 500) {
+        log.warn("Dear developer, please have a look here, paranoiaCounter exceeded! Aborting calculation of weeks of year.");
+      }
+    } while (current.before(to) == true);
   }
 
   private boolean isOtherUsersAllowed()

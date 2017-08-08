@@ -37,20 +37,13 @@ import org.apache.commons.httpclient.HttpStatus;
 import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
-import org.projectforge.business.teamcal.TeamCalConfig;
 import org.projectforge.business.teamcal.admin.TeamCalDao;
 import org.projectforge.business.teamcal.admin.model.TeamCalDO;
+import org.projectforge.business.teamcal.event.ical.ICalParser;
 import org.projectforge.business.teamcal.event.model.TeamEventDO;
-import org.projectforge.business.teamcal.service.TeamCalServiceImpl;
 import org.projectforge.framework.time.DateHelper;
 
 import net.fortuna.ical4j.data.CalendarBuilder;
-import net.fortuna.ical4j.model.Calendar;
-import net.fortuna.ical4j.model.Component;
-import net.fortuna.ical4j.model.Property;
-import net.fortuna.ical4j.model.TimeZone;
-import net.fortuna.ical4j.model.component.CalendarComponent;
-import net.fortuna.ical4j.model.component.VEvent;
 
 /**
  * Holds and updates events of a subscribed calendar.
@@ -111,13 +104,13 @@ public class TeamEventSubscription implements Serializable
    * We update the cache softly, therefore we create a new instance and replace the old instance in the cached map then
    * creation and update is therefore the same two lines of code, but semantically different things.
    */
-  public void update(final TeamCalDao teamCalDao, final TeamCalDO teamCalDO, final TeamCalServiceImpl teamEventConverter)
+  public void update(final TeamCalDao teamCalDao, final TeamCalDO teamCalDO)
   {
     this.teamCalId = teamCalDO.getId();
     currentInitializedHash = null;
     lastUpdated = null;
     String url = teamCalDO.getExternalSubscriptionUrl();
-    if (teamCalDO.isExternalSubscription() == false || StringUtils.isEmpty(url) == true) {
+    if (teamCalDO.isExternalSubscription() == false || StringUtils.isEmpty(url)) {
       // No external subscription.
       clear();
       return;
@@ -182,44 +175,31 @@ public class TeamEventSubscription implements Serializable
     }
 
     final SubscriptionHolder newSubscription = new SubscriptionHolder();
-    final ArrayList<TeamEventDO> newRecurrenceEvents = new ArrayList<TeamEventDO>();
+    final ArrayList<TeamEventDO> newRecurrenceEvents = new ArrayList<>();
     try {
       final Date timeInPast = new Date(System.currentTimeMillis() - TIME_IN_THE_PAST);
-      final Calendar calendar = builder.build(new ByteArrayInputStream(bytes));
-      @SuppressWarnings("unchecked")
-      final List<CalendarComponent> list = calendar.getComponents(Component.VEVENT);
-      final List<VEvent> vEvents = new ArrayList<VEvent>();
-      for (final CalendarComponent c : list) {
-        final VEvent event = (VEvent) c;
-        if (event.getSummary() != null
-            && StringUtils.equals(event.getSummary().getValue(), TeamCalConfig.SETUP_EVENT) == true) {
-          // skip setup event!
-          continue;
-        }
-        // skip only far gone events, if they have no recurrence
-        if (event.getStartDate().getDate().before(timeInPast) && event.getProperty(Property.RRULE) == null) {
-          continue;
-        }
-        vEvents.add(event);
-      }
+      Integer startId = -1;
+      ICalParser parser = ICalParser.parseAllFields();
+      parser.parse(new ByteArrayInputStream(bytes));
 
       // the event id must (!) be negative and decrementing (different on each event)
-      Integer startId = -1;
-      for (final VEvent event : vEvents) {
-        final TeamEventDO teamEvent = teamEventConverter.createTeamEventDO(event,
-            TimeZone.getTimeZone(teamCalDO.getOwner().getTimeZone()));
-        teamEvent.setId(startId);
-        teamEvent.setCalendar(teamCalDO);
+      for (TeamEventDO event : parser.getExtractedEvents()) {
+        if (event.getStartDate().getTime() < timeInPast.getTime() && event.getRecurrenceRule() == null) {
+          continue;
+        }
+        event.setId(startId);
+        event.setCalendar(teamCalDO);
 
-        if (teamEvent.hasRecurrence() == true) {
+        if (event.hasRecurrence() == true) {
           // special treatment for recurrence events ..
-          newRecurrenceEvents.add(teamEvent);
+          newRecurrenceEvents.add(event);
         } else {
-          newSubscription.add(teamEvent);
+          newSubscription.add(event);
         }
 
         startId--;
       }
+
       // OK, update the subscription:
       recurrenceEvents = newRecurrenceEvents;
       subscription = newSubscription;

@@ -31,22 +31,17 @@ import java.util.Date;
 import java.util.List;
 
 import org.apache.commons.lang.StringUtils;
-import org.projectforge.business.teamcal.event.TeamEventRecurrenceData;
 import org.projectforge.common.StringHelper;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.time.DateFormats;
 import org.projectforge.framework.time.DateHelper;
 import org.projectforge.framework.time.RecurrenceFrequency;
 
-import aQute.lib.json.DateHandler;
-import net.fortuna.ical4j.model.DateTime;
 import net.fortuna.ical4j.model.Recur;
 import net.fortuna.ical4j.model.TimeZone;
 import net.fortuna.ical4j.model.TimeZoneRegistry;
 import net.fortuna.ical4j.model.TimeZoneRegistryFactory;
-import net.fortuna.ical4j.model.component.VEvent;
 import net.fortuna.ical4j.model.property.RRule;
-import net.fortuna.ical4j.model.property.Uid;
 import net.fortuna.ical4j.util.Dates;
 
 /**
@@ -79,44 +74,6 @@ public class ICal4JUtils
   public static TimeZone getUTCTimeZone()
   {
     return registry.getTimeZone("UTC");
-  }
-
-  public static VEvent createVEvent(final Date startDate, final Date endDate, final String uid, final String summary)
-  {
-    return createVEvent(startDate, endDate, uid, summary, false);
-  }
-
-  public static VEvent createVEvent(final Date startDate, final Date endDate, final String uid, final String summary,
-      final boolean allDay)
-  {
-    final TimeZone timezone = getUserTimeZone();
-    return createVEvent(startDate, endDate, uid, summary, allDay, timezone);
-  }
-
-  public static VEvent createVEvent(final Date startDate, final Date endDate, final String uid, final String summary,
-      final boolean allDay,
-      final TimeZone timezone)
-  {
-    VEvent vEvent;
-    if (allDay == true) {
-      final Date startUtc = CalendarUtils.getUTCMidnightDate(startDate);
-      final Date endUtc = CalendarUtils.getUTCMidnightDate(endDate);
-      final net.fortuna.ical4j.model.Date fortunaStartDate = new net.fortuna.ical4j.model.Date(startUtc);
-      final org.joda.time.DateTime jodaTime = new org.joda.time.DateTime(endUtc);
-      // requires plus 1 because one day will be omitted by calendar.
-      final net.fortuna.ical4j.model.Date fortunaEndDate = new net.fortuna.ical4j.model.Date(
-          jodaTime.plusDays(1).toDate());
-      vEvent = new VEvent(fortunaStartDate, fortunaEndDate, summary);
-    } else {
-      final net.fortuna.ical4j.model.DateTime fortunaStartDate = new net.fortuna.ical4j.model.DateTime(startDate);
-      fortunaStartDate.setTimeZone(timezone);
-      final net.fortuna.ical4j.model.DateTime fortunaEndDate = new net.fortuna.ical4j.model.DateTime(endDate);
-      fortunaEndDate.setTimeZone(timezone);
-      vEvent = new VEvent(fortunaStartDate, fortunaEndDate, summary);
-      vEvent.getProperties().add(timezone.getVTimeZone().getTimeZoneId());
-    }
-    vEvent.getProperties().add(new Uid(uid));
-    return vEvent;
   }
 
   /**
