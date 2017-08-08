@@ -9,7 +9,6 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -18,8 +17,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.TimeZone;
-import java.util.TreeSet;
-import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 import org.projectforge.business.address.AddressDO;
@@ -114,21 +111,28 @@ public class TeamEventServiceImpl implements TeamEventService
   public List<TeamEventAttendeeDO> getAddressesAndUserAsAttendee()
   {
     List<TeamEventAttendeeDO> resultList = new ArrayList<>();
+    List<AddressDO> allAddressList = addressDao.internalLoadAllNotDeleted();
+    List<PFUserDO> allUserList = userService.getAllActiveUsers();
     Set<Integer> addedUserIds = new HashSet<>();
-    List<AddressDO> allAddressList = addressDao.internalLoadAllNotDeleted().stream()
-        .sorted((address1, address2) -> address2.getFullName().compareTo(address1.getFullName()))
-        .collect(Collectors.toList());
     for (AddressDO singleAddress : allAddressList) {
       if (StringUtils.isBlank(singleAddress.getEmail()) == false) {
         TeamEventAttendeeDO attendee = new TeamEventAttendeeDO();
         attendee.setStatus(TeamEventAttendeeStatus.IN_PROCESS);
         attendee.setAddress(singleAddress);
-        List<PFUserDO> userWithSameMail = userService.findUserByMail(singleAddress.getEmail());
-        if (userWithSameMail.size() > 0 && addedUserIds.contains(userWithSameMail.get(0).getId()) == false) {
-          PFUserDO user = userWithSameMail.get(0);
-          attendee.setUser(user);
-          addedUserIds.add(user.getId());
+        PFUserDO userWithSameMail = allUserList.stream()
+            .filter(u -> u.getEmail() != null && u.getEmail().toLowerCase().equals(singleAddress.getEmail().toLowerCase())).findFirst().orElse(null);
+        if (userWithSameMail != null && addedUserIds.contains(userWithSameMail.getId()) == false) {
+          attendee.setUser(userWithSameMail);
+          addedUserIds.add(userWithSameMail.getId());
         }
+        resultList.add(attendee);
+      }
+    }
+    for (PFUserDO u : allUserList) {
+      if (addedUserIds.contains(u.getId()) == false) {
+        TeamEventAttendeeDO attendee = new TeamEventAttendeeDO();
+        attendee.setStatus(TeamEventAttendeeStatus.IN_PROCESS);
+        attendee.setUser(u);
         resultList.add(attendee);
       }
     }
