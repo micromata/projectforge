@@ -334,7 +334,7 @@ public class ICalHandler
     }
 
     if (expectedMethod != null && method != null && expectedMethod != method) {
-      log.warn(String.format("Expected method '%s' is overritten by method from iCal '%s'", expectedMethod.name(), methodIcal.getValue()));
+      log.warn(String.format("Expected method '%s' is overridden by method from iCal '%s'", expectedMethod.name(), methodIcal.getValue()));
     }
 
     return method == null ? expectedMethod : method;
