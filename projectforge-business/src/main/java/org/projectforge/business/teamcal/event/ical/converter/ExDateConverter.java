@@ -64,13 +64,15 @@ public class ExDateConverter extends PropertyConverter
       exDateProperties.forEach(exDateProp -> {
         // find timezone of exdate
         final Parameter tzidParam = exDateProp.getParameter(Parameter.TZID);
-        final String timezoneId;
+        TimeZone timezone = null;
         if (tzidParam != null && tzidParam.getValue() != null) {
-          timezoneId = tzidParam.getValue();
-        } else {
-          timezoneId = "UTC";
+          timezone = TimeZone.getTimeZone(tzidParam.getValue());
         }
-        TimeZone timezone = TimeZone.getTimeZone(timezoneId);
+
+        if (timezone == null) {
+          // ical4j uses the configured default timezone while parsing the ics file
+          timezone = TimeZone.getDefault();
+        }
 
         // parse ExDate with inherent timezone
         java.util.Date exDate = ICal4JUtils.parseICalDateString(exDateProp.getValue(), timezone);

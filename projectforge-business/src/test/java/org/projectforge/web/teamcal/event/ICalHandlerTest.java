@@ -38,6 +38,7 @@ import org.projectforge.framework.configuration.ConfigXml;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.time.DateHelper;
 import org.projectforge.mail.SendMail;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
@@ -71,6 +72,13 @@ public class ICalHandlerTest extends PowerMockTestCase
 
   @Mock
   private ConfigurationService configService;
+
+  @BeforeClass
+  public void init()
+  {
+    System.setProperty("user.timezone", "UTC");
+    TimeZone.setDefault(DateHelper.UTC);
+  }
 
   @BeforeMethod
   public void setUp()
@@ -555,7 +563,7 @@ public class ICalHandlerTest extends PowerMockTestCase
   }
 
   @Test
-  public void testICalHandlerInputAppleCalendarNormal() throws IOException
+  public void testInputAppleCalendarNormal() throws IOException
   {
     TeamCalDO calendar = new TeamCalDO();
     calendar.setId(100);
@@ -645,7 +653,7 @@ public class ICalHandlerTest extends PowerMockTestCase
   }
 
   @Test
-  public void testICalHandlerAppleCalendarRecurring() throws IOException
+  public void testAppleCalendarRecurring() throws IOException
   {
     TeamCalDO calendar = new TeamCalDO();
     calendar.setId(100);
@@ -777,6 +785,255 @@ public class ICalHandlerTest extends PowerMockTestCase
 
     // TODO apple_calendar_recurring_edit_futur_1
     // TODO apple_calendar_recurring_edit_futur_2
+  }
+
+  @Test
+  public void testInputThunderbirdLightningNormal() throws IOException
+  {
+    TeamCalDO calendar = new TeamCalDO();
+    calendar.setId(100);
+    ArgumentCaptor<TeamEventDO> savedEvent = ArgumentCaptor.forClass(TeamEventDO.class);
+    ArgumentCaptor<TeamEventDO> updatedEvent = ArgumentCaptor.forClass(TeamEventDO.class);
+
+    // invite --------------------------------------------------------------------------------------------------------------------
+    ICalHandler handler = eventService.getEventHandler(calendar);
+    Assert.assertNotNull(handler);
+
+    boolean result = handler.readICal(IOUtils.toString(this.getClass().getResourceAsStream("/ical/thunderbird_lightning_normal_create.ics"), "UTF-8"),
+        HandleMethod.ADD_UPDATE);
+    Assert.assertTrue(result);
+
+    result = handler.validate();
+    Assert.assertTrue(result);
+    handler.persist(true);
+
+    Mockito.verify(teamEventDao).save(savedEvent.capture());
+    TeamEventDO event = savedEvent.getValue();
+    Assert.assertNotNull(event);
+
+    Assert.assertEquals(calendar, event.getCalendar());
+    Assert.assertEquals("bc939c07-4128-1647-acea-46345412e2e4", event.getUid());
+    Assert.assertEquals(DateHelper.parseIsoTimestamp("2017-08-08 05:43:34.000", DateHelper.UTC).getTime(), event.getDtStamp().getTime());
+    Assert.assertEquals(DateHelper.parseIsoTimestamp("2017-08-12 12:00:00.000", DateHelper.EUROPE_BERLIN).getTime(), event.getStartDate().getTime());
+    Assert.assertEquals(DateHelper.parseIsoTimestamp("2017-08-12 13:00:00.000", DateHelper.EUROPE_BERLIN).getTime(), event.getEndDate().getTime());
+    Assert.assertEquals("Neuer Termin", event.getSubject());
+    Assert.assertEquals(Integer.valueOf(0), event.getSequence());
+    Assert.assertEquals(null, event.getOrganizer());
+    Assert.assertEquals(null, event.getLocation());
+    Assert.assertEquals(0, event.getAttendees().size());
+
+    when(eventService.findByUid(Mockito.eq(100), Mockito.eq("bc939c07-4128-1647-acea-46345412e2e4"), Mockito.anyBoolean())).thenReturn(event);
+
+    // edit 1 --------------------------------------------------------------------------------------------------------------------
+    handler = eventService.getEventHandler(calendar);
+    Assert.assertNotNull(handler);
+
+    result = handler.readICal(IOUtils.toString(this.getClass().getResourceAsStream("/ical/thunderbird_lightning_normal_edit_title.ics"), "UTF-8"),
+        HandleMethod.ADD_UPDATE);
+    Assert.assertTrue(result);
+
+    result = handler.validate();
+    Assert.assertTrue(result);
+    handler.persist(true);
+
+    Mockito.verify(teamEventDao).internalUpdate(updatedEvent.capture(), Mockito.eq(true));
+    event = updatedEvent.getValue();
+    Assert.assertNotNull(event);
+
+    Assert.assertEquals("bc939c07-4128-1647-acea-46345412e2e4", event.getUid());
+    Assert.assertEquals(DateHelper.parseIsoTimestamp("2017-08-08 05:44:22.000", DateHelper.UTC).getTime(), event.getDtStamp().getTime());
+    Assert.assertEquals(DateHelper.parseIsoTimestamp("2017-08-12 12:00:00.000", DateHelper.EUROPE_BERLIN).getTime(), event.getStartDate().getTime());
+    Assert.assertEquals(DateHelper.parseIsoTimestamp("2017-08-12 13:00:00.000", DateHelper.EUROPE_BERLIN).getTime(), event.getEndDate().getTime());
+    Assert.assertEquals("Test create", event.getSubject());
+    Assert.assertEquals(Integer.valueOf(0), event.getSequence());
+    Assert.assertEquals(null, event.getOrganizer());
+    Assert.assertEquals(null, event.getLocation());
+    Assert.assertEquals(0, event.getAttendees().size());
+
+    // edit 2 --------------------------------------------------------------------------------------------------------------------
+    handler = eventService.getEventHandler(calendar);
+    Assert.assertNotNull(handler);
+
+    result = handler.readICal(IOUtils.toString(this.getClass().getResourceAsStream("/ical/thunderbird_lightning_normal_edit_location.ics"), "UTF-8"),
+        HandleMethod.ADD_UPDATE);
+    Assert.assertTrue(result);
+
+    result = handler.validate();
+    Assert.assertTrue(result);
+    handler.persist(true);
+
+    Mockito.verify(teamEventDao, Mockito.times(2)).internalUpdate(updatedEvent.capture(), Mockito.eq(true));
+    event = updatedEvent.getValue();
+    Assert.assertNotNull(event);
+
+    Assert.assertEquals("bc939c07-4128-1647-acea-46345412e2e4", event.getUid());
+    Assert.assertEquals(DateHelper.parseIsoTimestamp("2017-08-08 05:44:37.000", DateHelper.UTC).getTime(), event.getDtStamp().getTime());
+    Assert.assertEquals(DateHelper.parseIsoTimestamp("2017-08-12 12:00:00.000", DateHelper.EUROPE_BERLIN).getTime(), event.getStartDate().getTime());
+    Assert.assertEquals(DateHelper.parseIsoTimestamp("2017-08-12 13:00:00.000", DateHelper.EUROPE_BERLIN).getTime(), event.getEndDate().getTime());
+    Assert.assertEquals("Test create", event.getSubject());
+    Assert.assertEquals(Integer.valueOf(2), event.getSequence());
+    Assert.assertEquals(null, event.getOrganizer());
+    Assert.assertEquals("adding location", event.getLocation());
+    Assert.assertEquals(0, event.getAttendees().size());
+
+    // edit 3 --------------------------------------------------------------------------------------------------------------------
+    handler = eventService.getEventHandler(calendar);
+    Assert.assertNotNull(handler);
+
+    result = handler.readICal(IOUtils.toString(this.getClass().getResourceAsStream("/ical/thunderbird_lightning_normal_edit_day.ics"), "UTF-8"),
+        HandleMethod.ADD_UPDATE);
+    Assert.assertTrue(result);
+
+    result = handler.validate();
+    Assert.assertTrue(result);
+    handler.persist(true);
+
+    Mockito.verify(teamEventDao, Mockito.times(3)).internalUpdate(updatedEvent.capture(), Mockito.eq(true));
+    event = updatedEvent.getValue();
+    Assert.assertNotNull(event);
+
+    Assert.assertEquals("bc939c07-4128-1647-acea-46345412e2e4", event.getUid());
+    Assert.assertEquals(DateHelper.parseIsoTimestamp("2017-08-08 05:44:53.000", DateHelper.UTC).getTime(), event.getDtStamp().getTime());
+    Assert.assertEquals(DateHelper.parseIsoTimestamp("2017-08-13 12:00:00.000", DateHelper.EUROPE_BERLIN).getTime(), event.getStartDate().getTime());
+    Assert.assertEquals(DateHelper.parseIsoTimestamp("2017-08-13 13:00:00.000", DateHelper.EUROPE_BERLIN).getTime(), event.getEndDate().getTime());
+    Assert.assertEquals("Test create", event.getSubject());
+    Assert.assertEquals(Integer.valueOf(4), event.getSequence());
+    Assert.assertEquals(null, event.getOrganizer());
+    Assert.assertEquals("adding location", event.getLocation());
+    Assert.assertEquals(0, event.getAttendees().size());
+  }
+
+  @Test
+  public void testThunderbirdLightningRecurring() throws IOException
+  {
+    TeamCalDO calendar = new TeamCalDO();
+    calendar.setId(100);
+    ArgumentCaptor<TeamEventDO> savedEvent = ArgumentCaptor.forClass(TeamEventDO.class);
+    ArgumentCaptor<TeamEventDO> updatedEvent = ArgumentCaptor.forClass(TeamEventDO.class);
+
+    // invite --------------------------------------------------------------------------------------------------------------------
+    ICalHandler handler = eventService.getEventHandler(calendar);
+    Assert.assertNotNull(handler);
+
+    boolean result = handler.readICal(IOUtils.toString(this.getClass().getResourceAsStream("/ical/thunderbird_lightning_recurring_create.ics"), "UTF-8"),
+        HandleMethod.ADD_UPDATE);
+    Assert.assertTrue(result);
+
+    result = handler.validate();
+    Assert.assertTrue(result);
+    handler.persist(true);
+
+    Mockito.verify(teamEventDao).save(savedEvent.capture());
+    TeamEventDO event = savedEvent.getValue();
+    Assert.assertNotNull(event);
+
+    Assert.assertEquals(calendar, event.getCalendar());
+    Assert.assertEquals("6c7950a6-209b-7343-bff7-e356b18bc4aa", event.getUid());
+    Assert.assertEquals(DateHelper.parseIsoTimestamp("2017-08-08 05:49:51.000", DateHelper.UTC).getTime(), event.getDtStamp().getTime());
+    Assert.assertEquals(DateHelper.parseIsoTimestamp("2017-08-12 13:15:00.000", DateHelper.EUROPE_BERLIN).getTime(), event.getStartDate().getTime());
+    Assert.assertEquals(DateHelper.parseIsoTimestamp("2017-08-12 14:15:00.000", DateHelper.EUROPE_BERLIN).getTime(), event.getEndDate().getTime());
+    Assert.assertEquals("Recurring Dayly", event.getSubject());
+    Assert.assertEquals(Integer.valueOf(0), event.getSequence());
+    Assert.assertEquals(null, event.getOrganizer());
+    Assert.assertEquals(null, event.getLocation());
+    Assert.assertEquals(null, event.getNote());
+    Assert.assertEquals(0, event.getAttendees().size());
+
+    Assert.assertEquals("FREQ=DAILY", event.getRecurrenceRule());
+    Assert.assertEquals(null, event.getRecurrenceUntil());
+    Assert.assertEquals(null, event.getRecurrenceExDate());
+    Assert.assertEquals(null, event.getRecurrenceReferenceId());
+
+    when(eventService.findByUid(Mockito.eq(100), Mockito.eq("6c7950a6-209b-7343-bff7-e356b18bc4aa"), Mockito.anyBoolean())).thenReturn(event);
+
+    // add exdate ----------------------------------------------------------------------------------------------------------------
+    handler = eventService.getEventHandler(calendar);
+    Assert.assertNotNull(handler);
+
+    result = handler.readICal(IOUtils.toString(this.getClass().getResourceAsStream("/ical/thunderbird_lightning_recurring_add_exdate.ics"), "UTF-8"),
+        HandleMethod.ADD_UPDATE);
+    Assert.assertTrue(result);
+
+    result = handler.validate();
+    Assert.assertTrue(result);
+    handler.persist(true);
+
+    Mockito.verify(teamEventDao).internalUpdate(updatedEvent.capture(), Mockito.eq(true));
+    event = updatedEvent.getValue();
+    Assert.assertNotNull(event);
+
+    Assert.assertEquals(calendar, event.getCalendar());
+    Assert.assertEquals("6c7950a6-209b-7343-bff7-e356b18bc4aa", event.getUid());
+    Assert.assertEquals(DateHelper.parseIsoTimestamp("2017-08-08 05:50:16.000", DateHelper.UTC).getTime(), event.getDtStamp().getTime());
+    Assert.assertEquals(DateHelper.parseIsoTimestamp("2017-08-12 13:15:00.000", DateHelper.EUROPE_BERLIN).getTime(), event.getStartDate().getTime());
+    Assert.assertEquals(DateHelper.parseIsoTimestamp("2017-08-12 14:15:00.000", DateHelper.EUROPE_BERLIN).getTime(), event.getEndDate().getTime());
+    Assert.assertEquals("Recurring Dayly", event.getSubject());
+    Assert.assertEquals(Integer.valueOf(1), event.getSequence());
+    Assert.assertEquals(null, event.getOrganizer());
+    Assert.assertEquals(null, event.getLocation());
+    Assert.assertEquals(null, event.getNote());
+    Assert.assertEquals(0, event.getAttendees().size());
+
+    Assert.assertEquals("FREQ=DAILY", event.getRecurrenceRule());
+    Assert.assertEquals(null, event.getRecurrenceUntil());
+    Assert.assertEquals("20170819T111500", event.getRecurrenceExDate());
+    Assert.assertEquals(null, event.getRecurrenceReferenceId());
+
+    // add exception -------------------------------------------------------------------------------------------------------------
+    handler = eventService.getEventHandler(calendar);
+    Assert.assertNotNull(handler);
+
+    result = handler.readICal(IOUtils.toString(this.getClass().getResourceAsStream("/ical/thunderbird_lightning_recurring_add_exception.ics"), "UTF-8"),
+        HandleMethod.ADD_UPDATE);
+    Assert.assertTrue(result);
+
+    result = handler.validate();
+    Assert.assertTrue(result);
+    handler.persist(true);
+
+    Mockito.verify(teamEventDao, Mockito.times(2)).internalUpdate(updatedEvent.capture(), Mockito.eq(true));
+    event = updatedEvent.getValue();
+    Assert.assertNotNull(event);
+
+    Assert.assertEquals(calendar, event.getCalendar());
+    Assert.assertEquals("6c7950a6-209b-7343-bff7-e356b18bc4aa", event.getUid());
+    Assert.assertEquals(DateHelper.parseIsoTimestamp("2017-08-08 05:50:42.000", DateHelper.UTC).getTime(), event.getDtStamp().getTime());
+    Assert.assertEquals(DateHelper.parseIsoTimestamp("2017-08-12 13:15:00.000", DateHelper.EUROPE_BERLIN).getTime(), event.getStartDate().getTime());
+    Assert.assertEquals(DateHelper.parseIsoTimestamp("2017-08-12 14:15:00.000", DateHelper.EUROPE_BERLIN).getTime(), event.getEndDate().getTime());
+    Assert.assertEquals("Recurring Dayly", event.getSubject());
+    Assert.assertEquals(Integer.valueOf(2), event.getSequence());
+    Assert.assertEquals(null, event.getOrganizer());
+    Assert.assertEquals(null, event.getLocation());
+    Assert.assertEquals(null, event.getNote());
+    Assert.assertEquals(0, event.getAttendees().size());
+
+    Assert.assertEquals("FREQ=DAILY", event.getRecurrenceRule());
+    Assert.assertEquals(null, event.getRecurrenceUntil());
+    Assert.assertEquals("20170819T111500,20170820T111500", event.getRecurrenceExDate());
+    Assert.assertEquals(null, event.getRecurrenceReferenceId());
+
+    Mockito.verify(teamEventDao, Mockito.times(2)).save(savedEvent.capture());
+    event = savedEvent.getValue();
+    Assert.assertNotNull(event);
+
+    Assert.assertEquals(calendar, event.getCalendar());
+    Assert.assertEquals(null, event.getUid());
+    Assert.assertEquals(DateHelper.parseIsoTimestamp("2017-08-08 05:50:42.000", DateHelper.UTC).getTime(), event.getDtStamp().getTime());
+    Assert.assertEquals(DateHelper.parseIsoTimestamp("2017-08-20 12:00:00.000", DateHelper.EUROPE_BERLIN).getTime(), event.getStartDate().getTime());
+    Assert.assertEquals(DateHelper.parseIsoTimestamp("2017-08-20 13:00:00.000", DateHelper.EUROPE_BERLIN).getTime(), event.getEndDate().getTime());
+    Assert.assertEquals("Recurring Dayly", event.getSubject());
+    Assert.assertEquals(Integer.valueOf(3), event.getSequence());
+    Assert.assertEquals(null, event.getOrganizer());
+    Assert.assertEquals(null, event.getLocation());
+    Assert.assertEquals(null, event.getNote());
+    Assert.assertEquals(0, event.getAttendees().size());
+
+    Assert.assertEquals(null, event.getRecurrenceRule());
+    Assert.assertEquals(null, event.getRecurrenceUntil());
+    Assert.assertEquals(null, event.getRecurrenceExDate());
+    Assert.assertEquals("20170820T111500", event.getRecurrenceReferenceId());
+
+    // TODO thunderbird_lightning_recurring_edit_all.ics
   }
 
   void validateAttendee(final TeamEventAttendeeDO attendee, final CuType cuType, final TeamEventAttendeeStatus status,

@@ -27,44 +27,53 @@ public class OrganizerConverter extends PropertyConverter
   @Override
   public Property toVEvent(final TeamEventDO event)
   {
-    // TODO improve ownership handling
-    try {
-      if (event.isOwnership() != null && event.isOwnership()) {
-        ParameterList param = new ParameterList();
-        param.add(new Cn(event.getCreator().getFullname()));
-        param.add(CuType.INDIVIDUAL);
-        param.add(Role.CHAIR);
-        param.add(PartStat.ACCEPTED);
+    // organizer is only required if attendees are present
+    if (event.getAttendees() == null || event.getAttendees().isEmpty()) {
+      return null;
+    }
+    
+    final ParameterList param = new ParameterList();
+    final String organizerMail;
 
-        if (this.useBlankOrganizer) {
-          return new Organizer(param, "mailto:null");
-        } else {
-          return new Organizer(param, "mailto:" + event.getCreator().getEmail());
-        }
-      } else if (event.getOrganizer() != null) {
-        // read owner from
-        ParameterList param = new ParameterList();
-        this.parseAdditionalParameters(param, event.getOrganizerAdditionalParams());
-        if (param.getParameter(Parameter.CUTYPE) == null) {
-          param.add(CuType.INDIVIDUAL);
-        }
-        if (param.getParameter(Parameter.ROLE) == null) {
-          param.add(Role.CHAIR);
-        }
-        if (param.getParameter(Parameter.PARTSTAT) == null) {
-          param.add(PartStat.ACCEPTED);
-        }
-        return new Organizer(param, event.getOrganizer());
+    if (event.isOwnership() != null && event.isOwnership()) {
+      // TODO improve ownership handling
+      param.add(new Cn(event.getCreator().getFullname()));
+      param.add(CuType.INDIVIDUAL);
+      param.add(Role.CHAIR);
+      param.add(PartStat.ACCEPTED);
+
+      if (this.useBlankOrganizer) {
+        organizerMail = "mailto:null";
       } else {
-        // TODO use better default value here
-        return new Organizer("mailto:null");
+        organizerMail = "mailto:" + event.getCreator().getEmail();
       }
-    } catch (URISyntaxException e) {
-      // TODO handle exception, write default?
-      // e.printStackTrace();
+    } else if (event.getOrganizer() != null) {
+      // read owner from
+      this.parseAdditionalParameters(param, event.getOrganizerAdditionalParams());
+      if (param.getParameter(Parameter.CUTYPE) == null) {
+        param.add(CuType.INDIVIDUAL);
+      }
+      if (param.getParameter(Parameter.ROLE) == null) {
+        param.add(Role.CHAIR);
+      }
+      if (param.getParameter(Parameter.PARTSTAT) == null) {
+        param.add(PartStat.ACCEPTED);
+      }
+      organizerMail = event.getOrganizer();
+    } else {
+      return null;
     }
 
-    return null;
+    try {
+      return new Organizer(param, organizerMail);
+    } catch (URISyntaxException e) {
+      // TODO handle exception and use better default
+      try {
+        return new Organizer(new ParameterList(), "mailto:null");
+      } catch (URISyntaxException e1) {
+        return null;
+      }
+    }
   }
 
   @Override
