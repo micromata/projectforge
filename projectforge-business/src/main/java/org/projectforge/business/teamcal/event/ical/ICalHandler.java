@@ -327,7 +327,7 @@ public class ICalHandler
     } else if (Method.REPLY.equals(methodIcal)) {
       method = null;
     } else {
-      if (methodIcal == null) {
+      if (methodIcal != null) {
         log.warn(String.format("Unknown method in ICal: '%s'", methodIcal));
       }
       method = null;
