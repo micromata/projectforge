@@ -28,8 +28,10 @@ import java.util.List;
 import org.projectforge.continuousdb.UpdateEntry;
 import org.projectforge.plugins.core.AbstractPlugin;
 import org.projectforge.plugins.plugintemplate.repository.PluginTemplateDao;
+import org.projectforge.plugins.plugintemplate.rest.PluginTemplateRest;
 import org.projectforge.plugins.plugintemplate.service.PluginTemplateService;
 import org.projectforge.plugins.plugintemplate.wicket.PluginTemplateListPage;
+import org.projectforge.rest.JerseyConfiguration;
 import org.projectforge.web.MenuItemDef;
 import org.projectforge.web.MenuItemDefId;
 import org.projectforge.web.MenuItemRegistry;
@@ -54,6 +56,9 @@ public class PluginTemplatePlugin extends AbstractPlugin
   @Autowired
   private PluginTemplateService pluginTemplateService;
 
+  @Autowired
+  private JerseyConfiguration jerseyConfiguration;
+
   /**
    * @see org.projectforge.plugins.core.AbstractPlugin#initialize()
    */
@@ -67,6 +72,9 @@ public class PluginTemplatePlugin extends AbstractPlugin
 
     // Register the web part:
     pluginWicketRegistrationService.registerWeb(ID);
+
+    //Register the Rest Service
+    jerseyConfiguration.register(PluginTemplateRest.class);
 
     final MenuItemDef parentMenu = menuItemRegistry.get(MenuItemDefId.MISC);
 

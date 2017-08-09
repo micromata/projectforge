@@ -16,6 +16,11 @@
     </dependency>
     <dependency>
       <groupId>org.projectforge</groupId>
+      <artifactId>projectforge-jax-rs</artifactId>
+      <version>${projectforge.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.projectforge</groupId>
       <artifactId>projectforge-business</artifactId>
       <version>${projectforge.version}</version>
       <scope>test</scope>
