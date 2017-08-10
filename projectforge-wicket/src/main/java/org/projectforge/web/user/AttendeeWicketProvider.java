@@ -124,8 +124,10 @@ public class AttendeeWicketProvider extends ChoiceProvider<TeamEventAttendeeDO>
       } else {
         name = "[" + I18nHelper.getLocalizedMessage("address.addressText") + "] " + choice.getAddress().getFullName();
       }
+    } else if (choice.getUser() != null) {
+      name = "[" + I18nHelper.getLocalizedMessage("user") + "] " + choice.getUser().getFullname();
     }
-    String mail = choice.getAddress() != null ? choice.getAddress().getEmail() : choice.getUrl();
+    String mail = choice.getEMailAddress() != null ? choice.getEMailAddress() : choice.getUrl();
     if (mail == null) {
       mail = "";
     }
