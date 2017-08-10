@@ -36,6 +36,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.UUID;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
@@ -312,6 +313,15 @@ public class AddressDao extends BaseDao<AddressDO>
   protected void onSaveOrModify(final AddressDO obj)
   {
     beforeSaveOrModify(obj);
+  }
+
+  @Override
+  protected void onSave(final AddressDO obj)
+  {
+    // create uid if empty
+    if (StringUtils.isBlank(obj.getUid())) {
+      obj.setUid(UUID.randomUUID().toString());
+    }
   }
 
   private String getNormalizedFullname(final AddressDO address)
