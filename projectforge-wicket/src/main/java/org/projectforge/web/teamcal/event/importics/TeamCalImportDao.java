@@ -29,8 +29,9 @@ import java.util.List;
 
 import org.apache.commons.lang.Validate;
 import org.projectforge.business.teamcal.event.TeamEventDao;
+import org.projectforge.business.teamcal.event.TeamEventService;
+import org.projectforge.business.teamcal.event.ical.ICalParser;
 import org.projectforge.business.teamcal.event.model.TeamEventDO;
-import org.projectforge.business.teamcal.service.TeamCalServiceImpl;
 import org.projectforge.framework.persistence.api.HibernateUtils;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.utils.ImportStatus;
@@ -52,7 +53,7 @@ import net.fortuna.ical4j.model.component.VEvent;
 public class TeamCalImportDao
 {
   @Autowired
-  private TeamCalServiceImpl teamEventConverter;
+  private TeamEventService eventService;
 
   /**
    * Size of bulk inserts. If this value is too large, exceptions are expected and as more small the value is so as more
@@ -69,16 +70,26 @@ public class TeamCalImportDao
   @Autowired
   private TeamEventDao teamEventDao;
 
-  public ImportStorage<TeamEventDO> importEvents(final Calendar calendar, final String filename,
-      final ActionLog actionLog)
+  public ImportStorage<TeamEventDO> importEvents(final Calendar calendar, final String filename, final ActionLog actionLog)
   {
-    final List<TeamEventDO> events = teamEventConverter.getTeamEvents(calendar);
+    ICalParser parser = ICalParser.parseAllFields();
+    parser.parse(calendar);
+    final List<TeamEventDO> events = parser.getExtractedEvents();
+    events.forEach(teamEventDO -> eventService.fixAttendees(teamEventDO));
+
     return importEvents(events, filename, actionLog);
   }
 
   public ImportStorage<TeamEventDO> importEvents(final List<VEvent> vEvents, final ActionLog actionLog)
   {
-    final List<TeamEventDO> events = teamEventConverter.convert(vEvents);
+    final Calendar calendar = new Calendar();
+    vEvents.forEach(event -> calendar.getComponents().add(event));
+
+    ICalParser parser = ICalParser.parseAllFields();
+    parser.parse(calendar);
+    final List<TeamEventDO> events = parser.getExtractedEvents();
+    events.forEach(teamEventDO -> eventService.fixAttendees(teamEventDO));
+
     return importEvents(events, "none", actionLog);
   }
 

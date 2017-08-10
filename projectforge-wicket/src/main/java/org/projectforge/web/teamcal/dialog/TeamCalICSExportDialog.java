@@ -34,10 +34,9 @@ import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
 import org.apache.wicket.markup.html.form.CheckBox;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
-import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.multitenancy.TenantRegistryMap;
 import org.projectforge.business.teamcal.admin.model.TeamCalDO;
-import org.projectforge.business.teamcal.service.TeamCalServiceImpl;
+import org.projectforge.business.teamcal.servlet.CalendarAboServlet;
 import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
@@ -57,9 +56,6 @@ public class TeamCalICSExportDialog extends AbstractICSExportDialog
   private static final long serialVersionUID = -3840971062603541903L;
 
   private TeamCalDO teamCal;
-
-  @SpringBean
-  private TeamCalServiceImpl teamCalService;
 
   private boolean exportReminders;
 
@@ -180,8 +176,7 @@ public class TeamCalICSExportDialog extends AbstractICSExportDialog
   @Override
   protected String getUrl()
   {
-    return teamCalService.getUrl(teamCal.getId(),
-        "&" + teamCalService.PARAM_EXPORT_REMINDER + "=" + exportReminders);
+    return "&teamCals=" + teamCal.getId() + "&" + CalendarAboServlet.PARAM_EXPORT_REMINDER + "=" + exportReminders;
   }
 
 }
