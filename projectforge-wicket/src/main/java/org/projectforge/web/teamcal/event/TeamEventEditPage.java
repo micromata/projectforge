@@ -46,6 +46,7 @@ import org.projectforge.business.teamcal.event.model.TeamEventDO;
 import org.projectforge.business.teamcal.service.TeamCalServiceImpl;
 import org.projectforge.business.timesheet.TimesheetDO;
 import org.projectforge.business.timesheet.TimesheetDao;
+import org.projectforge.framework.i18n.UserException;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.time.DateHelper;
 import org.projectforge.web.calendar.CalendarPage;
@@ -333,6 +334,11 @@ public class TeamEventEditPage extends AbstractEditPage<TeamEventDO, TeamEventEd
       this.isNew = true;
     }
 
+    // check uid before saving
+    if (getData().getUid() != null && getData().getUid().length() > 0) {
+      checkUID();
+    }
+
     getData().setRecurrence(form.recurrenceData);
     if (recurrencyChangeType == null || recurrencyChangeType == RecurrencyChangeType.ALL) {
       return null;
@@ -377,6 +383,30 @@ public class TeamEventEditPage extends AbstractEditPage<TeamEventDO, TeamEventEd
       return null;
     }
     return null;
+  }
+
+  private void checkUID()
+  {
+    final TeamEventDO event = this.getData();
+    final TeamEventDO eventDB = this.teamEventService.findByUid(event.getCalendarId(), event.getUid(), false);
+
+    // an event already exists
+    if (eventDB == null) {
+      return;
+    }
+
+    if (eventDB.isDeleted() || this.isNew) {
+      if (eventDB.isDeleted()) {
+        // TODO restore
+      }
+
+      // override values with new data
+      // TODO
+      return;
+    }
+
+    // an event already exists, move not possible
+    throw new UserException(""); // TODO
   }
 
   /**
