@@ -327,14 +327,14 @@ public class ICalHandler
     } else if (Method.REPLY.equals(methodIcal)) {
       method = null;
     } else {
-      if (methodIcal == null) {
+      if (methodIcal != null) {
         log.warn(String.format("Unknown method in ICal: '%s'", methodIcal));
       }
       method = null;
     }
 
     if (expectedMethod != null && method != null && expectedMethod != method) {
-      log.warn(String.format("Expected method '%s' is overritten by method from iCal '%s'", expectedMethod.name(), methodIcal.getValue()));
+      log.warn(String.format("Expected method '%s' is overridden by method from iCal '%s'", expectedMethod.name(), methodIcal.getValue()));
     }
 
     return method == null ? expectedMethod : method;

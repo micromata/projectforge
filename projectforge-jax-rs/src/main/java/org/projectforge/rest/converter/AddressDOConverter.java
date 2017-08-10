@@ -46,6 +46,7 @@ public class AddressDOConverter
     }
     final AddressObject address = new AddressObject();
     DOConverter.copyFields(address, addressDO);
+    address.setUid(addressDO.getUid());
     address.setAddressStatus(addressDO.getAddressStatus() != null ? addressDO.getAddressStatus().toString() : null);
     address.setAddressText(addressDO.getAddressText());
     address.setBirthday(addressDO.getBirthday());

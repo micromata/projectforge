@@ -713,9 +713,9 @@ public class TeamEventServiceImpl implements TeamEventService
     for (TeamEventAttendeeDO attendeeDO : event.getAttendees()) {
       found = false;
 
-      //    search for eMail in DB as possible attendee
+      // search for eMail in DB as possible attendee
       for (TeamEventAttendeeDO dBAttendee : attendeesFromDbList) {
-        if (dBAttendee.getAddress().getEmail().equals(attendeeDO.getUrl())) {
+        if (dBAttendee.getEMailAddress() != null && dBAttendee.getEMailAddress().equals(attendeeDO.getUrl())) {
           attendeeDO = dBAttendee;
           attendeeDO.setId(internalNewAttendeeSequence--);
           found = true;

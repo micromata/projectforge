@@ -35,6 +35,8 @@ import org.projectforge.common.StringHelper;
  */
 public class AddressObject extends AbstractBaseObject
 {
+  private String uid;
+
   private String contactStatus;
 
   private String addressStatus;
@@ -112,6 +114,16 @@ public class AddressObject extends AbstractBaseObject
   private String image;
 
   private String vCardData;
+
+  public String getUid()
+  {
+    return uid;
+  }
+
+  public void setUid(final String uid)
+  {
+    this.uid = uid;
+  }
 
   public String getContactStatus()
   {

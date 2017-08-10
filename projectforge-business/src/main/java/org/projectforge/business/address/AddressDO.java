@@ -88,6 +88,8 @@ public class AddressDO extends DefaultBaseWithAttrDO<AddressDO>
 
   private AddressStatus addressStatus = AddressStatus.UPTODATE;
 
+  private String uid;
+
   @Field()
   private String name; // 255 not null
 
@@ -247,6 +249,18 @@ public class AddressDO extends DefaultBaseWithAttrDO<AddressDO>
   public AddressDO setBusinessPhone(final String businessPhone)
   {
     this.businessPhone = businessPhone;
+    return this;
+  }
+
+  @Column(name = "uid")
+  public String getUid()
+  {
+    return uid;
+  }
+
+  public AddressDO setUid(final String uid)
+  {
+    this.uid = uid;
     return this;
   }
 

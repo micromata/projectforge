@@ -43,8 +43,6 @@ import org.projectforge.business.teamcal.event.ical.ICalParser;
 import org.projectforge.business.teamcal.event.model.TeamEventDO;
 import org.projectforge.framework.time.DateHelper;
 
-import net.fortuna.ical4j.data.CalendarBuilder;
-
 /**
  * Holds and updates events of a subscribed calendar.
  *
@@ -118,7 +116,6 @@ public class TeamEventSubscription implements Serializable
     url = StringUtils.replace(url, "webcal", "http");
     final String displayUrl = teamCalDO.getExternalSubscriptionUrlAnonymized();
     log.info("Getting subscribed calendar #" + teamCalDO.getId() + " from: " + displayUrl);
-    final CalendarBuilder builder = new CalendarBuilder();
     byte[] bytes = null;
     try {
 

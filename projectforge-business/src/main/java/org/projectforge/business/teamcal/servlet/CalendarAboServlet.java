@@ -177,8 +177,7 @@ public class CalendarAboServlet extends HttpServlet
 
       // create ical generator
       ICalGenerator generator = ICalGenerator.exportAllFields();
-      final boolean exportReminders = "true".equals(params.get(PARAM_EXPORT_REMINDER));
-      generator.exportVEventAlarm(exportReminders);
+      generator.exportVEventAlarm("true".equals(params.get(PARAM_EXPORT_REMINDER)));
 
       // read events
       readEventsFromCalendars(generator, params);
