@@ -45,6 +45,7 @@ import javax.persistence.MapKey;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.persistence.Transient;
+import javax.persistence.UniqueConstraint;
 
 import org.apache.commons.lang.StringUtils;
 import org.hibernate.search.annotations.Analyze;
@@ -74,9 +75,12 @@ import de.micromata.genome.db.jpa.tabattr.entities.JpaTabAttrDataBaseDO;
  */
 @Entity
 @Indexed
-@Table(name = "T_ADDRESS", indexes = {
-    @javax.persistence.Index(name = "idx_fk_t_address_tenant_id", columnList = "tenant_id")
-})
+@Table(name = "T_ADDRESS",
+    uniqueConstraints = { @UniqueConstraint(name = "unique_t_address_uid_tenant", columnNames = { "uid", "tenant_id" }) },
+    indexes = {
+        @javax.persistence.Index(name = "idx_fk_t_address_tenant_id", columnList = "tenant_id"),
+        @javax.persistence.Index(name = "idx_fk_t_address_uid_tenant_id", columnList = "uid, tenant_id")
+    })
 @NoHistory
 public class AddressDO extends DefaultBaseWithAttrDO<AddressDO>
 {

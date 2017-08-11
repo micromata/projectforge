@@ -42,6 +42,7 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Restrictions;
+import org.projectforge.business.multitenancy.TenantService;
 import org.projectforge.business.user.UserRightId;
 import org.projectforge.framework.access.AccessException;
 import org.projectforge.framework.access.OperationType;
@@ -53,6 +54,7 @@ import org.projectforge.framework.persistence.api.QueryFilter;
 import org.projectforge.framework.persistence.api.UserRightService;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
+import org.projectforge.framework.persistence.user.entities.TenantDO;
 import org.projectforge.framework.time.DateHelper;
 import org.projectforge.framework.time.DateHolder;
 import org.projectforge.framework.utils.NumberHelper;
@@ -79,6 +81,9 @@ public class AddressDao extends BaseDao<AddressDO>
 
   @Autowired
   private PersonalAddressDao personalAddressDao;
+
+  @Autowired
+  private TenantService tenantService;
 
   public AddressDao()
   {
@@ -693,5 +698,14 @@ public class AddressDao extends BaseDao<AddressDO>
   public List<AddressDO> findAll()
   {
     return internalLoadAll();
+  }
+
+  public AddressDO findByUid(final String uid)
+  {
+    final TenantDO tenant =
+        ThreadLocalUserContext.getUser().getTenant() != null ? ThreadLocalUserContext.getUser().getTenant() : tenantService.getDefaultTenant();
+    return emgrFactory.runRoTrans(emgr -> {
+      return emgr.selectSingleAttached(AddressDO.class, "SELECT a FROM AddressDO a WHERE a.uid = :uid AND tenant = :tenant", "uid", uid, "tenant", tenant);
+    });
   }
 }

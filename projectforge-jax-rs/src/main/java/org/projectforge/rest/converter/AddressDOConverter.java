@@ -27,8 +27,12 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 
 import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.lang.StringUtils;
 import org.projectforge.business.address.AddressDO;
 import org.projectforge.business.address.AddressDao;
+import org.projectforge.business.address.AddressStatus;
+import org.projectforge.business.address.ContactStatus;
+import org.projectforge.business.address.FormOfAddress;
 import org.projectforge.business.converter.DOConverter;
 import org.projectforge.model.rest.AddressObject;
 
@@ -91,6 +95,57 @@ public class AddressDOConverter
       final StringWriter writer = new StringWriter();
       addressDao.exportVCard(new PrintWriter(writer), addressDO);
       address.setVCardData(Base64.encodeBase64String(writer.toString().getBytes()));
+    }
+    return address;
+  }
+
+  public static AddressDO getAddressDO(final AddressObject addressObject)
+  {
+    if (addressObject == null) {
+      return null;
+    }
+    final AddressDO address = new AddressDO();
+    DOConverter.copyFields(address, addressObject);
+    address.setUid(addressObject.getUid());
+    address.setAddressStatus(addressObject.getAddressStatus() != null ? AddressStatus.valueOf(addressObject.getAddressStatus()) : null);
+    address.setAddressText(addressObject.getAddressText());
+    address.setBirthday(addressObject.getBirthday());
+    address.setBusinessPhone(addressObject.getBusinessPhone());
+    address.setCity(addressObject.getCity());
+    address.setComment(addressObject.getComment());
+    address.setCommunicationLanguage(addressObject.getCommunicationLanguage());
+    address.setContactStatus(addressObject.getContactStatus() != null ? ContactStatus.valueOf(addressObject.getContactStatus()) : null);
+    address.setCountry(addressObject.getCountry());
+    address.setDivision(addressObject.getDivision());
+    address.setEmail(addressObject.getEmail());
+    address.setFax(addressObject.getFax());
+    address.setFingerprint(addressObject.getFingerprint());
+    address.setFirstName(addressObject.getFirstName());
+    address.setForm(addressObject.getForm() != null ? FormOfAddress.valueOf(addressObject.getForm()) : null);
+    address.setMobilePhone(addressObject.getMobilePhone());
+    address.setName(addressObject.getName());
+    address.setOrganization(addressObject.getOrganization());
+    address.setPositionText(addressObject.getPositionText());
+    address.setPostalAddressText(addressObject.getPostalAddressText());
+    address.setPostalCity(addressObject.getPostalCity());
+    address.setPostalCountry(addressObject.getPostalCountry());
+    address.setPostalState(addressObject.getPostalState());
+    address.setPostalZipCode(addressObject.getPostalZipCode());
+    address.setPrivateAddressText(addressObject.getPrivateAddressText());
+    address.setPrivateCity(addressObject.getPrivateCity());
+    address.setPrivateCountry(addressObject.getPrivateCountry());
+    address.setPrivateEmail(addressObject.getPrivateEmail());
+    address.setPrivateMobilePhone(addressObject.getPrivateMobilePhone());
+    address.setPrivatePhone(addressObject.getPrivatePhone());
+    address.setPrivateState(addressObject.getPrivateState());
+    address.setPrivateZipCode(addressObject.getPrivateZipCode());
+    address.setPublicKey(addressObject.getPublicKey());
+    address.setState(addressObject.getState());
+    address.setTitle(addressObject.getTitle());
+    address.setWebsite(addressObject.getWebsite());
+    address.setZipCode(addressObject.getZipCode());
+    if (StringUtils.isEmpty(addressObject.getImage()) == false) {
+      address.setImageData(Base64.decodeBase64(addressObject.getImage()));
     }
     return address;
   }

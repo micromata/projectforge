@@ -29,7 +29,9 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
+import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
+import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
@@ -39,9 +41,12 @@ import javax.ws.rs.core.Response;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.PredicateUtils;
 import org.apache.commons.lang.BooleanUtils;
+import org.apache.commons.lang.StringUtils;
 import org.projectforge.business.address.AddressDO;
 import org.projectforge.business.address.AddressDao;
 import org.projectforge.business.address.AddressFilter;
+import org.projectforge.business.address.AddressbookDO;
+import org.projectforge.business.address.AddressbookDao;
 import org.projectforge.business.address.PersonalAddressDO;
 import org.projectforge.business.address.PersonalAddressDao;
 import org.projectforge.business.user.ProjectForgeGroup;
@@ -72,6 +77,9 @@ public class AddressDaoRest
 
   @Autowired
   private PersonalAddressDao personalAddressDao;
+
+  @Autowired
+  private AddressbookDao addressbookDao;
 
   /**
    * Rest-Call for {@link AddressDao#getFavoriteVCards()}. <br/>
@@ -161,5 +169,37 @@ public class AddressDaoRest
     final String json = JsonUtils.toJson(uniqResult);
     log.info("Rest call finished (" + result.size() + " addresses)...");
     return Response.ok(json).build();
+  }
+
+  @PUT
+  @Path(RestPaths.SAVE_OR_UDATE)
+  @Consumes(MediaType.APPLICATION_JSON)
+  @Produces(MediaType.APPLICATION_JSON)
+  public Response saveOrUpdateAddressObject(final AddressObject addressObject)
+  {
+    AddressDO addressDORequest = AddressDOConverter.getAddressDO(addressObject);
+    AddressDO addressDOOrig = null;
+    if (StringUtils.isEmpty(addressObject.getUid()) == false) {
+      if (addressObject.getUid().contains("urn:uuid:")) {
+        addressObject.setUid(addressObject.getUid().replace("urn:uuid:", ""));
+      }
+      addressDOOrig = addressDao.findByUid(addressObject.getUid());
+    }
+
+    if (addressDOOrig != null) {
+      addressDORequest.setId(addressDOOrig.getId());
+      addressDORequest.setCreated(addressDOOrig.getCreated());
+      addressDORequest.setAddressbookList(addressDOOrig.getAddressbookList());
+    }
+
+    if (addressDORequest.getAddressbookList() == null || addressDORequest.getAddressbookList().size() < 1) {
+      Set<AddressbookDO> addressbooks = new HashSet<>();
+      addressbooks.add(addressbookDao.getGlobalAddressbook());
+      addressDORequest.setAddressbookList(addressbooks);
+    }
+
+    addressDao.save(addressDORequest);
+    
+    return null;
   }
 }
