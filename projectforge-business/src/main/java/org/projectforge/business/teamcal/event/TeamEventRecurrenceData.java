@@ -38,8 +38,8 @@ public class TeamEventRecurrenceData implements Serializable
 
   private RecurrenceFrequency frequency = RecurrenceFrequency.NONE;
 
-  private RecurrenceFrequencyModeOne modeOneMonth = RecurrenceFrequencyModeOne.FIFTH;
-  private RecurrenceFrequencyModeOne modeOneYear = RecurrenceFrequencyModeOne.FIFTH;
+  private RecurrenceFrequencyModeOne modeOneMonth = RecurrenceFrequencyModeOne.FIRST;
+  private RecurrenceFrequencyModeOne modeOneYear = RecurrenceFrequencyModeOne.FIRST;
 
   private RecurrenceFrequencyModeTwo modeTwoMonth = RecurrenceFrequencyModeTwo.MONDAY;
   private RecurrenceFrequencyModeTwo modeTwoYear = RecurrenceFrequencyModeTwo.MONDAY;
@@ -47,18 +47,28 @@ public class TeamEventRecurrenceData implements Serializable
   private boolean customized = false;
 
   private boolean yearMode = false;
-  private boolean monthMode = false;
-  private boolean monthDays = false;
+  private RecurrenceMonthMode monthMode = RecurrenceMonthMode.NONE;
 
   private boolean weekdays[] = new boolean[7];
   private boolean monthdays[] = new boolean[31];
   private boolean months[] = new boolean[12];
 
   private Date until;
+  private int untilDays;
 
   private int interval = 1;
 
   private TimeZone timeZone;
+
+  public int getUntilDays()
+  {
+    return untilDays;
+  }
+
+  public void setUntilDays(final int untilDays)
+  {
+    this.untilDays = untilDays;
+  }
 
   public void setCustomized(final boolean customized)
   {
@@ -95,24 +105,14 @@ public class TeamEventRecurrenceData implements Serializable
     this.yearMode = yearMode;
   }
 
-  public boolean isMonthMode()
+  public RecurrenceMonthMode getMonthMode()
   {
     return monthMode;
   }
 
-  public void setMonthMode(final boolean monthMode)
+  public void setMonthMode(final RecurrenceMonthMode monthMode)
   {
     this.monthMode = monthMode;
-  }
-
-  public boolean isMonthDays()
-  {
-    return monthDays;
-  }
-
-  public void setMonthDays(final boolean monthDays)
-  {
-    this.monthDays = monthDays;
   }
 
   public boolean[] getWeekdays()

@@ -44,6 +44,7 @@ import org.projectforge.business.teamcal.admin.model.TeamCalDO;
 import org.projectforge.business.teamcal.event.AttendeeComparator;
 import org.projectforge.business.teamcal.event.RecurrenceFrequencyModeOne;
 import org.projectforge.business.teamcal.event.RecurrenceFrequencyModeTwo;
+import org.projectforge.business.teamcal.event.RecurrenceMonthMode;
 import org.projectforge.business.teamcal.event.TeamEventDao;
 import org.projectforge.business.teamcal.event.TeamEventRecurrenceData;
 import org.projectforge.business.teamcal.event.TeamEventService;
@@ -124,7 +125,7 @@ public class TeamEventEditForm extends AbstractEditForm<TeamEventDO, TeamEventEd
   private WebMarkupContainer recurrencePanel;
 
   private FieldsetPanel recurrenceFieldset, recurrenceUntilDateFieldset, recurrenceIntervalFieldset, recurrenceExDateFieldset;
-  private FieldsetPanel recurrenceWeekIntervalFieldset, recurrenceMonthIntervalFieldset, recurrenceYearIntervalFieldset;
+  private FieldsetPanel recurrenceWeekIntervalFieldset, recurrenceMonthIntervalFieldset, recurrenceMonthModeFirstFieldset, recurrenceMonthModeSecondFieldset, recurrenceYearIntervalFieldset, recurrenceYearModeFieldset;
 
   private DropDownChoice<RecurrenceFrequencyModeOne> modeOneDropDownChoiceMonth, modeOneDropDownChoiceYear;
   private DropDownChoice<RecurrenceFrequencyModeTwo> modeTwoDropDownChoiceMonth, modeTwoDropDownChoiceYear;
@@ -356,7 +357,8 @@ public class TeamEventEditForm extends AbstractEditForm<TeamEventDO, TeamEventEd
     {
       //WeekSet
       recurrenceWeekIntervalFieldset = gridBuilder.newFieldset("");
-      DivTextPanel panel = new DivTextPanel(recurrenceWeekIntervalFieldset.newChildId(), HtmlHelper.escapeHtml("Am :", false));
+      DivTextPanel panel = new DivTextPanel(recurrenceWeekIntervalFieldset.newChildId(),
+          HtmlHelper.escapeHtml(getString("plugins.teamcal.event.recurrence.atthe") + ":", false));
       panel.getLabel().setEscapeModelStrings(false);
       recurrenceWeekIntervalFieldset.add(panel);
       recurrenceWeekIntervalFieldset.getFieldset().setOutputMarkupId(true);
@@ -365,88 +367,80 @@ public class TeamEventEditForm extends AbstractEditForm<TeamEventDO, TeamEventEd
     {
       //MonthSet
       recurrenceMonthIntervalFieldset = gridBuilder.newFieldset("");
-      final DivPanel newRadioBoxButtonDiv1 = recurrenceMonthIntervalFieldset.addNewRadioBoxButtonDiv();
 
-      final CheckBoxButton checkBox1 = new CheckBoxButton(newRadioBoxButtonDiv1.newChildId(),
-          new PropertyModel<>(recurrenceData, "monthDays"), "Jeden: ");
-      checkBox1.setOutputMarkupId(true);
-
-      checkBox1.getCheckBox().add(new AjaxFormComponentUpdatingBehavior("change")
+      //Selecet für (erster, zweiter, dritter, vierter, letzter)
+      final RecurrenceMonthMode[] supportedModes = new RecurrenceMonthMode[] { RecurrenceMonthMode.NONE, RecurrenceMonthMode.ATTHE,
+          RecurrenceMonthMode.EACH };
+      final LabelValueChoiceRenderer<RecurrenceMonthMode> frequencyModeChoiceRenderer = new LabelValueChoiceRenderer<>(
+          recurrenceMonthIntervalFieldset, supportedModes);
+      final DropDownChoice modeDropDownChoiceMonth = new DropDownChoice<>(recurrenceMonthIntervalFieldset.getDropDownChoiceId(),
+          new PropertyModel<>(recurrenceData, "monthMode"),
+          frequencyModeChoiceRenderer.getValues(), frequencyModeChoiceRenderer);
+      modeDropDownChoiceMonth.setNullValid(false).setOutputMarkupId(true);
+      modeDropDownChoiceMonth.add(new AjaxFormComponentUpdatingBehavior("change")
       {
         @Override
         protected void onUpdate(final AjaxRequestTarget target)
         {
-          if (checkBox1.getCheckBox().getConvertedInput()) {
-            recurrenceData.setMonthMode(false);
-          }
+          setRecurrenceComponentsVisibility(target);
         }
       });
-      newRadioBoxButtonDiv1.add(checkBox1);
+      recurrenceMonthIntervalFieldset.add(modeDropDownChoiceMonth);
       recurrenceMonthIntervalFieldset.getFieldset().setOutputMarkupId(true);
 
+      recurrenceMonthModeFirstFieldset = gridBuilder.newFieldset("");
+      recurrenceMonthModeFirstFieldset.setOutputMarkupId(true);
       addDayMonthButtons();
 
-      DivPanel newRadioBoxButtonDiv2 = recurrenceMonthIntervalFieldset.addNewRadioBoxButtonDiv();
-      final CheckBoxButton checkBox2 = new CheckBoxButton(newRadioBoxButtonDiv2.newChildId(),
-          new PropertyModel<>(recurrenceData, "monthMode"), "Am: ");
-      checkBox2.setOutputMarkupId(true);
-      checkBox2.getCheckBox().add(new AjaxFormComponentUpdatingBehavior("change")
-      {
-        @Override
-        protected void onUpdate(final AjaxRequestTarget target)
-        {
-          if (checkBox2.getCheckBox().getConvertedInput()) {
-            modeOneDropDownChoiceMonth.setEnabled(true);
-            modeTwoDropDownChoiceMonth.setEnabled(true);
-            recurrenceData.setMonthDays(false);
-          } else {
-            modeOneDropDownChoiceMonth.setEnabled(false);
-            modeTwoDropDownChoiceMonth.setEnabled(false);
-          }
-          target.add(modeOneDropDownChoiceMonth, modeTwoDropDownChoiceMonth);
-        }
-      });
-      newRadioBoxButtonDiv2.add(checkBox2);
+      recurrenceMonthModeSecondFieldset = gridBuilder.newFieldset("");
+      recurrenceMonthModeSecondFieldset.setOutputMarkupId(true);
+      DivTextPanel panel = new DivTextPanel(recurrenceMonthModeSecondFieldset.newChildId(),
+          HtmlHelper.escapeHtml(getString("plugins.teamcal.event.recurrence.atthe") + ":", false));
+      panel.getLabel().setEscapeModelStrings(false);
+      recurrenceMonthModeSecondFieldset.add(panel);
 
       //Selecet für (erster, zweiter, dritter, vierter, letzter)
       final RecurrenceFrequencyModeOne[] supportedFrequenciesModeOne = TeamCalServiceImpl.getSupportedRecurrenceFrequenciesModeOne();
       final LabelValueChoiceRenderer<RecurrenceFrequencyModeOne> frequencyModeOneChoiceRenderer = new LabelValueChoiceRenderer<>(
-          recurrenceMonthIntervalFieldset, supportedFrequenciesModeOne);
+          recurrenceMonthModeSecondFieldset, supportedFrequenciesModeOne);
       modeOneDropDownChoiceMonth = new DropDownChoice<>(
-          recurrenceMonthIntervalFieldset.getDropDownChoiceId(), new PropertyModel<>(recurrenceData, "modeOneMonth"),
+          recurrenceMonthModeSecondFieldset.getDropDownChoiceId(), new PropertyModel<>(recurrenceData, "modeOneMonth"),
           frequencyModeOneChoiceRenderer.getValues(), frequencyModeOneChoiceRenderer);
       modeOneDropDownChoiceMonth.setNullValid(false).setOutputMarkupId(true);
-      recurrenceMonthIntervalFieldset.add(modeOneDropDownChoiceMonth);
-      recurrenceMonthIntervalFieldset.getFieldset().setOutputMarkupId(true);
+      recurrenceMonthModeSecondFieldset.add(modeOneDropDownChoiceMonth);
+      recurrenceMonthModeSecondFieldset.getFieldset().setOutputMarkupId(true);
 
       //Select für (Wochentage, Tag, Wochentag, Wochenende)
       final RecurrenceFrequencyModeTwo[] supportedFrequenciesModeTwo = TeamCalServiceImpl.getSupportedRecurrenceFrequenciesModeTwo();
       final LabelValueChoiceRenderer<RecurrenceFrequencyModeTwo> frequencyModeTwoChoiceRenderer = new LabelValueChoiceRenderer<>(
-          recurrenceMonthIntervalFieldset, supportedFrequenciesModeTwo);
+          recurrenceMonthModeSecondFieldset, supportedFrequenciesModeTwo);
       modeTwoDropDownChoiceMonth = new DropDownChoice<>(
-          recurrenceMonthIntervalFieldset.getDropDownChoiceId(), new PropertyModel<>(recurrenceData, "modeTwoMonth"),
+          recurrenceMonthModeSecondFieldset.getDropDownChoiceId(), new PropertyModel<>(recurrenceData, "modeTwoMonth"),
           frequencyModeTwoChoiceRenderer.getValues(), frequencyModeTwoChoiceRenderer);
       modeTwoDropDownChoiceMonth.setNullValid(false).setOutputMarkupId(true);
-      recurrenceMonthIntervalFieldset.add(modeTwoDropDownChoiceMonth);
-      recurrenceMonthIntervalFieldset.getFieldset().setOutputMarkupId(true);
+      recurrenceMonthModeSecondFieldset.add(modeTwoDropDownChoiceMonth);
+      recurrenceMonthModeSecondFieldset.getFieldset().setOutputMarkupId(true);
 
-      DivTextPanel panel = new DivTextPanel(recurrenceMonthIntervalFieldset.newChildId(), HtmlHelper.escapeHtml("des Monats", false));
+      panel = new DivTextPanel(recurrenceMonthModeSecondFieldset.newChildId(),
+          HtmlHelper.escapeHtml(getString("plugins.teamcal.event.recurrence.ofmonth"), false));
       panel.getLabel().setEscapeModelStrings(false);
-      recurrenceMonthIntervalFieldset.add(panel);
+      recurrenceMonthModeSecondFieldset.add(panel);
     }
     {
       //YearSet
       recurrenceYearIntervalFieldset = gridBuilder.newFieldset("");
-      DivTextPanel panel = new DivTextPanel(recurrenceYearIntervalFieldset.newChildId(), HtmlHelper.escapeHtml("Im :", false));
+      DivTextPanel panel = new DivTextPanel(recurrenceYearIntervalFieldset.newChildId(),
+          HtmlHelper.escapeHtml(getString("plugins.teamcal.event.recurrence.in") + " :", false));
       panel.getLabel().setEscapeModelStrings(false);
       recurrenceYearIntervalFieldset.add(panel);
       recurrenceYearIntervalFieldset.getFieldset().setOutputMarkupId(true);
 
       addMonthYearButtons();
 
-      DivPanel components = recurrenceYearIntervalFieldset.addNewCheckBoxButtonDiv();
+      recurrenceYearModeFieldset = gridBuilder.newFieldset("");
+      DivPanel components = recurrenceYearModeFieldset.addNewCheckBoxButtonDiv();
       final CheckBoxButton checkBox = new CheckBoxButton(components.newChildId(),
-          new PropertyModel<>(recurrenceData, "yearMode"), "Am");
+          new PropertyModel<>(recurrenceData, "yearMode"), getString("plugins.teamcal.event.recurrence.atthe"));
       checkBox.getCheckBox().add(new AjaxFormComponentUpdatingBehavior("change")
       {
         @Override
@@ -466,30 +460,32 @@ public class TeamEventEditForm extends AbstractEditForm<TeamEventDO, TeamEventEd
       //Selecet für (erster, zweiter, dritter, vierter, letzter)
       final RecurrenceFrequencyModeOne[] supportedFrequenciesModeOne = TeamCalServiceImpl.getSupportedRecurrenceFrequenciesModeOne();
       final LabelValueChoiceRenderer<RecurrenceFrequencyModeOne> frequencyModeOneChoiceRenderer = new LabelValueChoiceRenderer<>(
-          recurrenceYearIntervalFieldset, supportedFrequenciesModeOne);
+          recurrenceYearModeFieldset, supportedFrequenciesModeOne);
       modeOneDropDownChoiceYear = new DropDownChoice<>(
-          recurrenceYearIntervalFieldset.getDropDownChoiceId(), new PropertyModel<>(recurrenceData, "modeOneYear"),
+          recurrenceYearModeFieldset.getDropDownChoiceId(), new PropertyModel<>(recurrenceData, "modeOneYear"),
           frequencyModeOneChoiceRenderer.getValues(), frequencyModeOneChoiceRenderer);
       modeOneDropDownChoiceYear.setNullValid(false).setOutputMarkupId(true);
-      recurrenceYearIntervalFieldset.add(modeOneDropDownChoiceYear);
-      recurrenceYearIntervalFieldset.getFieldset().setOutputMarkupId(true);
-      modeOneDropDownChoiceYear.setEnabled(false);
+      recurrenceYearModeFieldset.add(modeOneDropDownChoiceYear);
+      recurrenceYearModeFieldset.getFieldset().setOutputMarkupId(true);
+      if (recurrenceData.isYearMode() == false)
+        modeOneDropDownChoiceYear.setEnabled(false);
 
       //Select für (Wochentage, Tag, Wochentag, Wochenende)
       final RecurrenceFrequencyModeTwo[] supportedFrequenciesModeTwo = TeamCalServiceImpl.getSupportedRecurrenceFrequenciesModeTwo();
       final LabelValueChoiceRenderer<RecurrenceFrequencyModeTwo> frequencyModeTwoChoiceRenderer = new LabelValueChoiceRenderer<>(
-          recurrenceYearIntervalFieldset, supportedFrequenciesModeTwo);
+          recurrenceYearModeFieldset, supportedFrequenciesModeTwo);
       modeTwoDropDownChoiceYear = new DropDownChoice<>(
-          recurrenceYearIntervalFieldset.getDropDownChoiceId(), new PropertyModel<>(recurrenceData, "modeTwoYear"),
+          recurrenceYearModeFieldset.getDropDownChoiceId(), new PropertyModel<>(recurrenceData, "modeTwoYear"),
           frequencyModeTwoChoiceRenderer.getValues(), frequencyModeTwoChoiceRenderer);
       modeTwoDropDownChoiceYear.setNullValid(false).setOutputMarkupId(true);
-      recurrenceYearIntervalFieldset.add(modeTwoDropDownChoiceYear);
-      modeTwoDropDownChoiceYear.setEnabled(false);
+      recurrenceYearModeFieldset.add(modeTwoDropDownChoiceYear);
+      if (recurrenceData.isYearMode() == false)
+        modeTwoDropDownChoiceYear.setEnabled(false);
 
-      recurrenceYearIntervalFieldset.getFieldset().setOutputMarkupId(true);
-      panel = new DivTextPanel(recurrenceYearIntervalFieldset.newChildId(), HtmlHelper.escapeHtml("des Jahres", false));
+      recurrenceYearModeFieldset.getFieldset().setOutputMarkupId(true);
+      panel = new DivTextPanel(recurrenceYearModeFieldset.newChildId(), HtmlHelper.escapeHtml(getString("plugins.teamcal.event.recurrence.oftheyear"), false));
       panel.getLabel().setEscapeModelStrings(false);
-      recurrenceYearIntervalFieldset.add(panel);
+      recurrenceYearModeFieldset.add(panel);
     }
     {
       // Until. Only visible if recurrenceData.interval != NONE.
@@ -566,46 +562,110 @@ public class TeamEventEditForm extends AbstractEditForm<TeamEventDO, TeamEventEd
 
   private void addDayMonthButtons()
   {
+    DivTextPanel panel = new DivTextPanel(recurrenceMonthModeFirstFieldset.newChildId(),
+        HtmlHelper.escapeHtml(getString("plugins.teamcal.event.recurrence.each") + ":", false));
+    panel.getLabel().setEscapeModelStrings(false);
+    recurrenceMonthModeFirstFieldset.add(panel);
     for (int i = 0; i < 31; i++) {
-      DivPanel newCheckBoxButtonDiv = recurrenceMonthIntervalFieldset.addNewCheckBoxButtonDiv();
+      DivPanel newCheckBoxButtonDiv = recurrenceMonthModeFirstFieldset.addNewCheckBoxButtonDiv();
       final CheckBoxButton checkBox = new CheckBoxButton(newCheckBoxButtonDiv.newChildId(),
-          new PropertyModel<>(recurrenceData, "monthdays[" + i + "]"), "Tag" + i);
+          new PropertyModel<>(recurrenceData, "monthdays[" + i + "]"), "" + (i + 1));
       newCheckBoxButtonDiv.add(checkBox);
     }
   }
 
   private void addMonthYearButtons()
   {
-    for (int i = 0; i < 12; i++) {
-      DivPanel newCheckBoxButtonDiv = recurrenceYearIntervalFieldset.addNewCheckBoxButtonDiv();
-      final CheckBoxButton checkBox = new CheckBoxButton(newCheckBoxButtonDiv.newChildId(),
-          new PropertyModel<>(recurrenceData, "months[" + i + "]"), "Monat" + i);
-      newCheckBoxButtonDiv.add(checkBox);
-    }
+    DivPanel newCheckBoxButtonDiv = recurrenceYearIntervalFieldset.addNewCheckBoxButtonDiv();
+    CheckBoxButton checkBox = new CheckBoxButton(newCheckBoxButtonDiv.newChildId(),
+        new PropertyModel<>(recurrenceData, "months[0]"), getString("calendar.month.january"));
+    newCheckBoxButtonDiv.add(checkBox);
+
+    newCheckBoxButtonDiv = recurrenceYearIntervalFieldset.addNewCheckBoxButtonDiv();
+    checkBox = new CheckBoxButton(newCheckBoxButtonDiv.newChildId(),
+        new PropertyModel<>(recurrenceData, "months[1]"), getString("calendar.month.february"));
+    newCheckBoxButtonDiv.add(checkBox);
+
+    newCheckBoxButtonDiv = recurrenceYearIntervalFieldset.addNewCheckBoxButtonDiv();
+    checkBox = new CheckBoxButton(newCheckBoxButtonDiv.newChildId(),
+        new PropertyModel<>(recurrenceData, "months[2]"), getString("calendar.month.march"));
+    newCheckBoxButtonDiv.add(checkBox);
+
+    newCheckBoxButtonDiv = recurrenceYearIntervalFieldset.addNewCheckBoxButtonDiv();
+    checkBox = new CheckBoxButton(newCheckBoxButtonDiv.newChildId(),
+        new PropertyModel<>(recurrenceData, "months[3]"), getString("calendar.month.may"));
+    newCheckBoxButtonDiv.add(checkBox);
+
+    newCheckBoxButtonDiv = recurrenceYearIntervalFieldset.addNewCheckBoxButtonDiv();
+    checkBox = new CheckBoxButton(newCheckBoxButtonDiv.newChildId(),
+        new PropertyModel<>(recurrenceData, "months[4]"), getString("calendar.month.april"));
+    newCheckBoxButtonDiv.add(checkBox);
+
+    newCheckBoxButtonDiv = recurrenceYearIntervalFieldset.addNewCheckBoxButtonDiv();
+    checkBox = new CheckBoxButton(newCheckBoxButtonDiv.newChildId(),
+        new PropertyModel<>(recurrenceData, "months[5]"), getString("calendar.month.june"));
+    newCheckBoxButtonDiv.add(checkBox);
+
+    newCheckBoxButtonDiv = recurrenceYearIntervalFieldset.addNewCheckBoxButtonDiv();
+    checkBox = new CheckBoxButton(newCheckBoxButtonDiv.newChildId(),
+        new PropertyModel<>(recurrenceData, "months[6]"), getString("calendar.month.july"));
+    newCheckBoxButtonDiv.add(checkBox);
+
+    newCheckBoxButtonDiv = recurrenceYearIntervalFieldset.addNewCheckBoxButtonDiv();
+    checkBox = new CheckBoxButton(newCheckBoxButtonDiv.newChildId(),
+        new PropertyModel<>(recurrenceData, "months[7]"), getString("calendar.month.august"));
+    newCheckBoxButtonDiv.add(checkBox);
+
+    newCheckBoxButtonDiv = recurrenceYearIntervalFieldset.addNewCheckBoxButtonDiv();
+    checkBox = new CheckBoxButton(newCheckBoxButtonDiv.newChildId(),
+        new PropertyModel<>(recurrenceData, "months[8]"), getString("calendar.month.september"));
+    newCheckBoxButtonDiv.add(checkBox);
+
+    newCheckBoxButtonDiv = recurrenceYearIntervalFieldset.addNewCheckBoxButtonDiv();
+    checkBox = new CheckBoxButton(newCheckBoxButtonDiv.newChildId(),
+        new PropertyModel<>(recurrenceData, "months[9]"), getString("calendar.month.october"));
+    newCheckBoxButtonDiv.add(checkBox);
+
+    newCheckBoxButtonDiv = recurrenceYearIntervalFieldset.addNewCheckBoxButtonDiv();
+    checkBox = new CheckBoxButton(newCheckBoxButtonDiv.newChildId(),
+        new PropertyModel<>(recurrenceData, "months[10]"), getString("calendar.month.november"));
+    newCheckBoxButtonDiv.add(checkBox);
+
+    newCheckBoxButtonDiv = recurrenceYearIntervalFieldset.addNewCheckBoxButtonDiv();
+    checkBox = new CheckBoxButton(newCheckBoxButtonDiv.newChildId(),
+        new PropertyModel<>(recurrenceData, "months[11]"), getString("calendar.month.december"));
+    newCheckBoxButtonDiv.add(checkBox);
   }
 
   private void addNewDayButtons()
   {
     DivPanel newCheckBoxButtonDiv = recurrenceWeekIntervalFieldset.addNewCheckBoxButtonDiv();
-    CheckBoxButton checkBox = new CheckBoxButton(newCheckBoxButtonDiv.newChildId(), new PropertyModel<>(recurrenceData, "weekdays[0]"), "Montag");
+    CheckBoxButton checkBox = new CheckBoxButton(newCheckBoxButtonDiv.newChildId(), new PropertyModel<>(recurrenceData, "weekdays[0]"),
+        getString("plugins.teamcal.event.recurrence.monday"));
     newCheckBoxButtonDiv.add(checkBox);
     newCheckBoxButtonDiv = recurrenceWeekIntervalFieldset.addNewCheckBoxButtonDiv();
-    checkBox = new CheckBoxButton(newCheckBoxButtonDiv.newChildId(), new PropertyModel<>(recurrenceData, "weekdays[1]"), "Dienstag");
+    checkBox = new CheckBoxButton(newCheckBoxButtonDiv.newChildId(), new PropertyModel<>(recurrenceData, "weekdays[1]"),
+        getString("plugins.teamcal.event.recurrence.tuesday"));
     newCheckBoxButtonDiv.add(checkBox);
     newCheckBoxButtonDiv = recurrenceWeekIntervalFieldset.addNewCheckBoxButtonDiv();
-    checkBox = new CheckBoxButton(newCheckBoxButtonDiv.newChildId(), new PropertyModel<>(recurrenceData, "weekdays[2]"), "Mitwoch");
+    checkBox = new CheckBoxButton(newCheckBoxButtonDiv.newChildId(), new PropertyModel<>(recurrenceData, "weekdays[2]"),
+        getString("plugins.teamcal.event.recurrence.wednesday"));
     newCheckBoxButtonDiv.add(checkBox);
     newCheckBoxButtonDiv = recurrenceWeekIntervalFieldset.addNewCheckBoxButtonDiv();
-    checkBox = new CheckBoxButton(newCheckBoxButtonDiv.newChildId(), new PropertyModel<>(recurrenceData, "weekdays[3]"), "Donnerstag");
+    checkBox = new CheckBoxButton(newCheckBoxButtonDiv.newChildId(), new PropertyModel<>(recurrenceData, "weekdays[3]"),
+        getString("plugins.teamcal.event.recurrence.thursday"));
     newCheckBoxButtonDiv.add(checkBox);
     newCheckBoxButtonDiv = recurrenceWeekIntervalFieldset.addNewCheckBoxButtonDiv();
-    checkBox = new CheckBoxButton(newCheckBoxButtonDiv.newChildId(), new PropertyModel<>(recurrenceData, "weekdays[4]"), "Freitag");
+    checkBox = new CheckBoxButton(newCheckBoxButtonDiv.newChildId(), new PropertyModel<>(recurrenceData, "weekdays[4]"),
+        getString("plugins.teamcal.event.recurrence.friday"));
     newCheckBoxButtonDiv.add(checkBox);
     newCheckBoxButtonDiv = recurrenceWeekIntervalFieldset.addNewCheckBoxButtonDiv();
-    checkBox = new CheckBoxButton(newCheckBoxButtonDiv.newChildId(), new PropertyModel<>(recurrenceData, "weekdays[5]"), "Samstag");
+    checkBox = new CheckBoxButton(newCheckBoxButtonDiv.newChildId(), new PropertyModel<>(recurrenceData, "weekdays[5]"),
+        getString("plugins.teamcal.event.recurrence.saturday"));
     newCheckBoxButtonDiv.add(checkBox);
     newCheckBoxButtonDiv = recurrenceWeekIntervalFieldset.addNewCheckBoxButtonDiv();
-    checkBox = new CheckBoxButton(newCheckBoxButtonDiv.newChildId(), new PropertyModel<>(recurrenceData, "weekdays[6]"), "Sonntag");
+    checkBox = new CheckBoxButton(newCheckBoxButtonDiv.newChildId(), new PropertyModel<>(recurrenceData, "weekdays[6]"),
+        getString("plugins.teamcal.event.recurrence.sunday"));
     newCheckBoxButtonDiv.add(checkBox);
   }
 
@@ -619,21 +679,37 @@ public class TeamEventEditForm extends AbstractEditForm<TeamEventDO, TeamEventEd
       recurrenceWeekIntervalFieldset.setVisible(false);
       recurrenceMonthIntervalFieldset.setVisible(false);
       recurrenceYearIntervalFieldset.setVisible(false);
+      recurrenceYearModeFieldset.setVisible(false);
+      recurrenceMonthModeFirstFieldset.setVisible(false);
+      recurrenceMonthModeSecondFieldset.setVisible(false);
     } else {
       customizedCheckBoxButton.setVisible(true);
       recurrenceUntilDateFieldset.setVisible(true);
       recurrenceExDateFieldset.setVisible(true);
       recurrenceIntervalFieldset.setVisible(recurrenceData.isCustomized());
-
       recurrenceWeekIntervalFieldset.setVisible(false);
       recurrenceMonthIntervalFieldset.setVisible(false);
       recurrenceYearIntervalFieldset.setVisible(false);
+      recurrenceYearModeFieldset.setVisible(false);
+      recurrenceMonthModeFirstFieldset.setVisible(false);
+      recurrenceMonthModeSecondFieldset.setVisible(false);
       if (recurrenceData.getFrequency() == RecurrenceFrequency.WEEKLY) {
         recurrenceWeekIntervalFieldset.setVisible(recurrenceData.isCustomized());
       } else if (recurrenceData.getFrequency() == RecurrenceFrequency.MONTHLY) {
         recurrenceMonthIntervalFieldset.setVisible(recurrenceData.isCustomized());
+        if (recurrenceData.getMonthMode() == RecurrenceMonthMode.NONE) {
+          recurrenceMonthModeFirstFieldset.setVisible(false);
+          recurrenceMonthModeSecondFieldset.setVisible(false);
+        } else if (recurrenceData.getMonthMode() == RecurrenceMonthMode.EACH) {
+          recurrenceMonthModeFirstFieldset.setVisible(recurrenceData.isCustomized());
+          recurrenceMonthModeSecondFieldset.setVisible(false);
+        } else if (recurrenceData.getMonthMode() == RecurrenceMonthMode.ATTHE) {
+          recurrenceMonthModeSecondFieldset.setVisible(recurrenceData.isCustomized());
+          recurrenceMonthModeFirstFieldset.setVisible(false);
+        }
       } else if (recurrenceData.getFrequency() == RecurrenceFrequency.YEARLY) {
         recurrenceYearIntervalFieldset.setVisible(recurrenceData.isCustomized());
+        recurrenceYearModeFieldset.setVisible(recurrenceData.isCustomized());
       }
     }
     if (target != null) {

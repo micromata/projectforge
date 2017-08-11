@@ -112,7 +112,8 @@ public class TeamCalServiceImpl
       RecurrenceFrequency.DAILY, RecurrenceFrequency.WEEKLY, RecurrenceFrequency.MONTHLY, RecurrenceFrequency.YEARLY };
 
   private static final RecurrenceFrequencyModeOne[] SUPPORTED_MODE_ONE = new RecurrenceFrequencyModeOne[] {
-      RecurrenceFrequencyModeOne.FIRST, RecurrenceFrequencyModeOne.SECOND, RecurrenceFrequencyModeOne.THIRD, RecurrenceFrequencyModeOne.FOURTH,
+      RecurrenceFrequencyModeOne.LAST, RecurrenceFrequencyModeOne.FIRST, RecurrenceFrequencyModeOne.SECOND, RecurrenceFrequencyModeOne.THIRD,
+      RecurrenceFrequencyModeOne.FOURTH,
       RecurrenceFrequencyModeOne.FIFTH };
 
   private static final RecurrenceFrequencyModeTwo[] SUPPORTED_MODE_TWO = new RecurrenceFrequencyModeTwo[] {

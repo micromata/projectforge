@@ -3,11 +3,11 @@ package org.projectforge.business.teamcal.event;
 import org.projectforge.common.i18n.I18nEnum;
 
 /**
- * Created by fdesel on 03.08.17.
+ * Created by fdesel on 11.08.17.
  */
-public enum RecurrenceFrequencyModeOne implements I18nEnum
+public enum RecurrenceMonthMode implements I18nEnum
 {
-  FIRST("first"), SECOND("second"), THIRD("third"), FOURTH("fourth"), FIFTH("fifth"), LAST("last");
+  ATTHE("atthe"), EACH("each"), NONE("none");
 
   private String key;
 
@@ -22,8 +22,9 @@ public enum RecurrenceFrequencyModeOne implements I18nEnum
     return key;
   }
 
-  RecurrenceFrequencyModeOne(String key)
+  RecurrenceMonthMode(String key)
   {
     this.key = key;
   }
+
 }
