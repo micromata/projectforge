@@ -225,8 +225,10 @@ public class DatabaseCoreUpdates
 
       private boolean isImageDataPreviewMissing()
       {
-        return databaseUpdateService.doesTableAttributeExist("t_address", "image_data_preview") == false
-            || databaseUpdateService.query("select pk from t_address where image_data_preview is not null LIMIT 1").size() < 1;
+        return databaseUpdateService.doesTableAttributeExist("t_address", "image_data_preview") == false ||
+            ((int) databaseUpdateService.query("select count(*) from t_address where imagedata is not null AND imagedata != ''").get(0).getEntry(0).getValue())
+                > 0
+                && databaseUpdateService.query("select pk from t_address where imagedata is not null AND image_data_preview is not null LIMIT 1").size() < 1;
       }
 
       private boolean oldUniqueConstraint()
