@@ -37,6 +37,8 @@ import org.projectforge.plugins.ffp.wicket.FFPEventListPage;
 import org.projectforge.web.MenuBuilderContext;
 import org.projectforge.web.MenuEntry;
 import org.projectforge.web.MenuItemDef;
+import org.projectforge.web.MenuItemDefId;
+import org.projectforge.web.MenuItemRegistry;
 import org.projectforge.web.plugin.PluginWicketRegistrationService;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -58,6 +60,9 @@ public class FinancialFairPlayPlugin extends AbstractPlugin
   private PluginWicketRegistrationService pluginWicketRegistrationService;
 
   @Autowired
+  private MenuItemRegistry menuItemRegistry;
+
+  @Autowired
   private FFPEventService eventService;
 
   @Autowired
@@ -77,8 +82,10 @@ public class FinancialFairPlayPlugin extends AbstractPlugin
     // Register the web part:
     pluginWicketRegistrationService.registerWeb(ID);
 
-    final MenuItemDef parentMenu = new MenuItemDef(null, "FINANCIALFAIRPLAY", 120, "plugins.ffp.menu.financialfairplay");
-    pluginWicketRegistrationService.registerMenuItem(parentMenu);
+    //    final MenuItemDef parentMenu = new MenuItemDef(null, "FINANCIALFAIRPLAY", 120, "plugins.ffp.menu.financialfairplay");
+    //    pluginWicketRegistrationService.registerMenuItem(parentMenu);
+
+    final MenuItemDef parentMenu = menuItemRegistry.get(MenuItemDefId.MISC);
 
     pluginWicketRegistrationService
         .registerMenuItem(

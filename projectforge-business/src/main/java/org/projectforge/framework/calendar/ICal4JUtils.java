@@ -31,8 +31,11 @@ import java.util.Date;
 import java.util.List;
 
 import org.apache.commons.lang.StringUtils;
+<<<<<<< HEAD
 import org.projectforge.business.teamcal.event.RecurrenceFrequencyModeOne;
 import org.projectforge.business.teamcal.event.RecurrenceFrequencyModeTwo;
+=======
+>>>>>>> develop
 import org.projectforge.common.StringHelper;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.time.DateFormats;
@@ -47,7 +50,6 @@ import net.fortuna.ical4j.model.WeekDay;
 import net.fortuna.ical4j.model.WeekDayList;
 import net.fortuna.ical4j.model.component.VEvent;
 import net.fortuna.ical4j.model.property.RRule;
-import net.fortuna.ical4j.model.property.Uid;
 import net.fortuna.ical4j.util.Dates;
 
 /**
@@ -82,6 +84,7 @@ public class ICal4JUtils
     return registry.getTimeZone("UTC");
   }
 
+<<<<<<< HEAD
   public static VEvent createVEvent(final Date startDate, final Date endDate, final String uid, final String summary)
   {
     return createVEvent(startDate, endDate, uid, summary, false);
@@ -222,6 +225,8 @@ public class ICal4JUtils
       return -1;
   }
 
+=======
+>>>>>>> develop
   /**
    * @param rruleString
    * @return null if rruleString is empty, otherwise new RRule object.

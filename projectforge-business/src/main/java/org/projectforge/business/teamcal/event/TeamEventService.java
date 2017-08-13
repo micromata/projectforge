@@ -6,6 +6,7 @@ import java.util.Set;
 
 import org.projectforge.business.teamcal.admin.model.TeamCalDO;
 import org.projectforge.business.teamcal.event.diff.TeamEventDiffType;
+import org.projectforge.business.teamcal.event.ical.ICalHandler;
 import org.projectforge.business.teamcal.event.model.TeamEvent;
 import org.projectforge.business.teamcal.event.model.TeamEventAttendeeDO;
 import org.projectforge.business.teamcal.event.model.TeamEventDO;
@@ -56,4 +57,14 @@ public interface TeamEventService
   void updateAttendee(TeamEventAttendeeDO attendee, boolean accessCheck);
 
   List<Integer> getCalIdList(Collection<TeamCalDO> teamCals);
+
+  ICalHandler getEventHandler(final TeamCalDO defaultCalendar);
+
+  /**
+   * This method should be moved to ICalHandler after a rework of import ical in web ui!
+   *
+   * @param event
+   */
+  @Deprecated
+  void fixAttendees(final TeamEventDO event);
 }

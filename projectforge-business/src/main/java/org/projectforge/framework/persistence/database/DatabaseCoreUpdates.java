@@ -225,7 +225,10 @@ public class DatabaseCoreUpdates
 
       private boolean isImageDataPreviewMissing()
       {
-        return databaseUpdateService.doesTableAttributeExist("t_address", "image_data_preview") == false;
+        return databaseUpdateService.doesTableAttributeExist("t_address", "image_data_preview") == false ||
+            ((Long) databaseUpdateService.query("select count(*) from t_address where imagedata is not null AND imagedata != ''").get(0).getEntry(0).getValue())
+                > 0L
+                && databaseUpdateService.query("select pk from t_address where imagedata is not null AND image_data_preview is not null LIMIT 1").size() < 1;
       }
 
       private boolean oldUniqueConstraint()
@@ -236,7 +239,7 @@ public class DatabaseCoreUpdates
 
       private boolean checkForAddresses()
       {
-        return databaseUpdateService.doesTableExist("T_ADDRESSBOOK");
+        return databaseUpdateService.doesTableExist("T_ADDRESSBOOK") && databaseUpdateService.query("select * from t_addressbook where pk = 1").size() > 0;
       }
     });
 
@@ -348,8 +351,8 @@ public class DatabaseCoreUpdates
       private void migrateCustomerRef()
       {
         //Migrate customer ref 1 & 2
-        List<DatabaseResultRow> resultSet = databaseUpdateService
-            .query("SELECT pk, customerref1, customerref2 FROM t_fibu_rechnung");
+        List<DatabaseResultRow> resultSet = databaseUpdateService.query("SELECT pk, customerref1, customerref2 FROM t_fibu_rechnung");
+
         for (DatabaseResultRow row : resultSet) {
           String pk = row.getEntry(0) != null && row.getEntry(0).getValue() != null ? row.getEntry(0).getValue().toString() : null;
           if (pk != null) {
@@ -497,7 +500,7 @@ public class DatabaseCoreUpdates
       public UpdatePreCheckStatus runPreCheck()
       {
         log.info("Running pre-check for ProjectForge version 6.12.0");
-        if (hasISODates() || databaseUpdateService.doesTableAttributeExist("T_ADDRESS", "imagedata") == false) {
+        if (hasISODates() || hasOldImageData()) {
           return UpdatePreCheckStatus.READY_FOR_UPDATE;
         }
         return UpdatePreCheckStatus.ALREADY_UPDATED;
@@ -506,7 +509,7 @@ public class DatabaseCoreUpdates
       @Override
       public UpdateRunningStatus runUpdate()
       {
-        if (databaseUpdateService.doesTableAttributeExist("T_ADDRESS", "imagedata") == false) {
+        if (hasOldImageData()) {
           initDatabaseDao.updateSchema();
           migrateImageData();
           deleteImageHistoryData();
@@ -563,6 +566,13 @@ public class DatabaseCoreUpdates
           log.info("Exdate migration DONE.");
         }
         return UpdateRunningStatus.DONE;
+      }
+
+      private boolean hasOldImageData()
+      {
+        return databaseUpdateService.doesTableAttributeExist("T_ADDRESS", "imagedata") == false
+            || databaseUpdateService.query("SELECT pk FROM t_address_attr WHERE propertyname = 'profileImageData' limit 1").size() > 0
+            || databaseUpdateService.query("SELECT pk FROM t_pf_history_attr WHERE propertyname LIKE '%attrs.profileImageData%' limit 1").size() > 0;
       }
 
       private boolean hasISODates()
@@ -1178,8 +1188,7 @@ public class DatabaseCoreUpdates
                 .map(localDateTime -> localDateTime.get(ChronoField.SECOND_OF_DAY))
                 .allMatch(seconds -> seconds == 0));
 
-        return timeFieldsOfAllEmployeeTimedDOsStartTimeAreZero ? UpdatePreCheckStatus.ALREADY_UPDATED
-            : UpdatePreCheckStatus.READY_FOR_UPDATE;
+        return timeFieldsOfAllEmployeeTimedDOsStartTimeAreZero ? UpdatePreCheckStatus.ALREADY_UPDATED : UpdatePreCheckStatus.READY_FOR_UPDATE;
       }
 
       @Override

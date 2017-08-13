@@ -8,6 +8,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.TreeSet;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
@@ -15,6 +16,7 @@ import org.projectforge.business.configuration.ConfigurationService;
 import org.projectforge.business.login.Login;
 import org.projectforge.business.login.PasswordCheckResult;
 import org.projectforge.business.multitenancy.TenantRegistryMap;
+import org.projectforge.business.multitenancy.TenantService;
 import org.projectforge.business.password.PasswordQualityService;
 import org.projectforge.business.user.UserDao;
 import org.projectforge.business.user.UserGroupCache;
@@ -27,6 +29,7 @@ import org.projectforge.framework.persistence.api.ModificationStatus;
 import org.projectforge.framework.persistence.history.HistoryBaseDaoAdapter;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
+import org.projectforge.framework.persistence.user.entities.TenantDO;
 import org.projectforge.framework.utils.Crypt;
 import org.projectforge.framework.utils.NumberHelper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -55,6 +58,9 @@ public class UserServiceImpl implements UserService
 
   @Autowired
   private AccessChecker accessChecker;
+
+  @Autowired
+  private TenantService tenantService;
 
   @Autowired
   private PasswordQualityService passwordQualityService;
@@ -150,7 +156,8 @@ public class UserServiceImpl implements UserService
   public List<PFUserDO> getAllUsers()
   {
     try {
-      return userDao.internalLoadAll();
+      TenantDO tenant = ThreadLocalUserContext.getUser().getTenant() != null ? ThreadLocalUserContext.getUser().getTenant() : tenantService.getDefaultTenant();
+      return userDao.internalLoadAll(tenant);
     } catch (final Exception ex) {
       log.fatal(
           "******* Exception while getting users from data-base (OK only in case of migration from older versions): "
@@ -158,6 +165,12 @@ public class UserServiceImpl implements UserService
           ex);
       return new ArrayList<PFUserDO>();
     }
+  }
+
+  @Override
+  public List<PFUserDO> getAllActiveUsers()
+  {
+    return getAllUsers().stream().filter(u -> u.isDeactivated() == false && u.isDeleted() == false).collect(Collectors.toList());
   }
 
   /**

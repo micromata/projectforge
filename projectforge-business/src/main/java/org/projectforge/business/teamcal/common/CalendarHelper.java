@@ -20,15 +20,6 @@ public class CalendarHelper
     final StringBuffer b2 = new StringBuffer();
     final ProjektDO projekt = kost2.getProjekt();
     if (projekt != null) {
-      // final KundeDO kunde = projekt.getKunde();
-      // if (kunde != null) {
-      // if (StringUtils.isNotBlank(kunde.getIdentifier()) == true) {
-      // b2.append(kunde.getIdentifier());
-      // } else {
-      // b2.append(kunde.getName());
-      // }
-      // b2.append(" - ");
-      // }
       if (StringUtils.isNotBlank(projekt.getIdentifier()) == true) {
         b2.append(projekt.getIdentifier());
       } else {

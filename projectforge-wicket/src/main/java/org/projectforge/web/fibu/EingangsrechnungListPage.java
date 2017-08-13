@@ -328,11 +328,7 @@ public class EingangsrechnungListPage
   private void exportInvoicesAsXML()
   {
     refresh();
-    final RechnungFilter filter = new RechnungFilter();
-    final RechnungFilter src = form.getSearchFilter();
-    filter.setFromDate(src.getFromDate());
-    filter.setToDate(src.getToDate());
-    final List<EingangsrechnungDO> invoices = eingangsrechnungDao.getList(filter);
+    final List<EingangsrechnungDO> invoices = eingangsrechnungDao.getList(form.getSearchFilter());
 
     if (invoices == null || invoices.size() == 0) {
       // Nothing to export.
@@ -348,7 +344,7 @@ public class EingangsrechnungListPage
     if (result.isSuccessful() == false) {
       if (result.getErrors().isEmpty()) {
         // unknown error
-        this.log.error("Oups, xml has zero size. Filename: " + filename);
+        log.error("Oups, xml has zero size. Filename: " + filename);
         this.form.addError("fibu.rechnung.transferExport.error");
         return;
       }

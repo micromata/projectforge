@@ -157,16 +157,13 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
   private String organizer;
   private String organizer_additional_params;
 
+  // See RFC 2445 section 4.8.7.4
+  private Integer sequence = 0;
   private String uid;
 
   private Integer reminderDuration;
-
   private ReminderDurationUnit reminderDurationType;
-
   private ReminderActionType reminderActionType;
-
-  // See RFC 2445 section 4.8.7.4
-  private Integer sequence = 0;
 
   @PFPersistancyBehavior(autoUpdateCollectionEntries = true)
   private Set<TeamEventAttachmentDO> attachments;

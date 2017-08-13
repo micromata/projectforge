@@ -281,19 +281,21 @@ public class ForecastExport
     }
 
     // handle diff
-    switch (pos.getPaymentType()) {
-      case TIME_AND_MATERIALS:
-        fillMonthColumnsDistributed(diff, mapping, order, pos, startDate, beginDistribute);
-        break;
-      case PAUSCHALE:
-        if (order.getProbabilityOfOccurrence() != null) {
+    if (pos.getPaymentType() != null) {
+      switch (pos.getPaymentType()) {
+        case TIME_AND_MATERIALS:
           fillMonthColumnsDistributed(diff, mapping, order, pos, startDate, beginDistribute);
-        }
-        break;
-      case FESTPREISPAKET:
-        // fill reset at end of project time
-        this.addEndAtPeriodOfPerformance(diff, mapping, order, pos, startDate);
-        break;
+          break;
+        case PAUSCHALE:
+          if (order.getProbabilityOfOccurrence() != null) {
+            fillMonthColumnsDistributed(diff, mapping, order, pos, startDate, beginDistribute);
+          }
+          break;
+        case FESTPREISPAKET:
+          // fill reset at end of project time
+          this.addEndAtPeriodOfPerformance(diff, mapping, order, pos, startDate);
+          break;
+      }
     }
   }
 
@@ -460,7 +462,7 @@ public class ForecastExport
   private Calendar getStartLeistungszeitraumNextMonthEnd(final AuftragDO order, final AuftragsPositionDO pos)
   {
     Calendar cal = Calendar.getInstance();
-    if (pos.getPeriodOfPerformanceType().equals(PeriodOfPerformanceType.OWN)) {
+    if (PeriodOfPerformanceType.OWN.equals(pos.getPeriodOfPerformanceType())) {
       if (pos.getPeriodOfPerformanceBegin() != null) {
         cal.setTime(pos.getPeriodOfPerformanceBegin());
         cal.add(Calendar.MONTH, 1);
@@ -479,7 +481,7 @@ public class ForecastExport
   private Calendar getEndLeistungszeitraumNextMonthEnd(final AuftragDO order, final AuftragsPositionDO pos)
   {
     Calendar cal = Calendar.getInstance();
-    if (pos.getPeriodOfPerformanceType().equals(PeriodOfPerformanceType.OWN)) {
+    if (PeriodOfPerformanceType.OWN.equals(pos.getPeriodOfPerformanceType())) {
       if (pos.getPeriodOfPerformanceEnd() != null) {
         cal.setTime(pos.getPeriodOfPerformanceEnd());
         cal.add(Calendar.MONTH, 1);
@@ -501,7 +503,7 @@ public class ForecastExport
     Calendar startCalendar = Calendar.getInstance();
     Calendar endCalendar = Calendar.getInstance();
     SimpleDateFormat sdf = new SimpleDateFormat("dd.MM.yyyy");
-    if (pos.getPeriodOfPerformanceType().equals(PeriodOfPerformanceType.OWN)) {
+    if (PeriodOfPerformanceType.OWN.equals(pos.getPeriodOfPerformanceType())) {
       if (pos.getPeriodOfPerformanceEnd() != null && pos.getPeriodOfPerformanceBegin() != null) {
         startCalendar.setTime(pos.getPeriodOfPerformanceBegin());
         endCalendar.setTime(pos.getPeriodOfPerformanceEnd());
