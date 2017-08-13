@@ -600,7 +600,7 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
         boolean[] monthdays = recurrenceData.getMonthdays();
         for (int i = 0; i < 31; i++) {
           if (monthdays[i]) {
-            recur.getMonthDayList().add(i);
+            recur.getMonthDayList().add(i + 1);
           }
         }
       } else if (recurrenceData.getMonthMode() == RecurrenceMonthMode.ATTHE) {
@@ -614,7 +614,7 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
       boolean[] months = recurrenceData.getMonths();
       for (int i = 0; i < 12; i++) {
         if (months[i]) {
-          recur.getMonthDayList().add(i + 1);
+          recur.getMonthList().add(i + 1);
         }
       }
       if (recurrenceData.isYearMode()) {
@@ -772,7 +772,7 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
       for (Integer day : recur.getMonthDayList()) {
         recurrenceData.setCustomized(true);
         recurrenceData.setMonthMode(RecurrenceMonthMode.EACH);
-        monthdays[day] = true;
+        monthdays[day-1] = true;
       }
       recurrenceData.setMonthdays(monthdays);
 
