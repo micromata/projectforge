@@ -705,7 +705,7 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
       return recurrenceData;
     }
 
-    recurrenceData.setInterval(recur.getInterval());
+    recurrenceData.setInterval(recur.getInterval() == -1 ? 1 : recur.getInterval());
 
     if (this.recurrenceUntil != null) {
       // transform until to timezone
