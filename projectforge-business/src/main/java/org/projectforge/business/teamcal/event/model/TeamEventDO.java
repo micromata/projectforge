@@ -772,7 +772,7 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
       for (Integer day : recur.getMonthDayList()) {
         recurrenceData.setCustomized(true);
         recurrenceData.setMonthMode(RecurrenceMonthMode.EACH);
-        monthdays[day-1] = true;
+        monthdays[day - 1] = true;
       }
       recurrenceData.setMonthdays(monthdays);
 
@@ -801,16 +801,14 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
       int offset = 0;
       if (recur.getDayList().size() == 1) {
         offset = recur.getDayList().get(0).getOffset();
-      } else if (recur.getDayList().size() > 1) {
-        if (recur.getSetPosList().size() == 0)
-          offset = recur.getDayList().get(0).getOffset();
-        else
-          offset = recur.getSetPosList().get(0);
-      } else if (recur.getDayList().size() != 0) {
+      } else if (recur.getDayList().size() > 1 && recur.getSetPosList().size() != 0) {
+        offset = recur.getSetPosList().get(0);
+      }
+      if (recur.getDayList().size() != 0) {
         recurrenceData.setCustomized(true);
         recurrenceData.setYearMode(true);
-        recurrenceData.setModeOneMonth(ICal4JUtils.getRecurrenceFrequencyModeOneByOffset(offset));
-        recurrenceData.setModeTwoMonth(ICal4JUtils.getRecurrenceFrequencyModeTwoForDay(recur.getDayList()));
+        recurrenceData.setModeOneYear(ICal4JUtils.getRecurrenceFrequencyModeOneByOffset(offset));
+        recurrenceData.setModeTwoYear(ICal4JUtils.getRecurrenceFrequencyModeTwoForDay(recur.getDayList()));
       }
     }
     return recurrenceData;

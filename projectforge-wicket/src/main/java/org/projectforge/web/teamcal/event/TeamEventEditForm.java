@@ -126,6 +126,7 @@ public class TeamEventEditForm extends AbstractEditForm<TeamEventDO, TeamEventEd
 
   private FieldsetPanel recurrenceFieldset, recurrenceUntilDateFieldset, recurrenceIntervalFieldset, recurrenceExDateFieldset;
   private FieldsetPanel recurrenceWeekIntervalFieldset, recurrenceMonthIntervalFieldset, recurrenceMonthModeFirstFieldset, recurrenceMonthModeSecondFieldset, recurrenceYearIntervalFieldset, recurrenceYearModeFieldset;
+  private FieldsetPanel[] recurrenceMonthDayFieldsets = new FieldsetPanel[5];
 
   private DropDownChoice<RecurrenceFrequencyModeOne> modeOneDropDownChoiceMonth, modeOneDropDownChoiceYear;
   private DropDownChoice<RecurrenceFrequencyModeTwo> modeTwoDropDownChoiceMonth, modeTwoDropDownChoiceYear;
@@ -390,7 +391,6 @@ public class TeamEventEditForm extends AbstractEditForm<TeamEventDO, TeamEventEd
       recurrenceMonthIntervalFieldset.getFieldset().setOutputMarkupId(true);
 
       recurrenceMonthModeFirstFieldset = gridBuilder.newFieldset("");
-      recurrenceMonthModeFirstFieldset.setOutputMarkupId(true);
       addDayMonthButtons();
 
       recurrenceMonthModeSecondFieldset = gridBuilder.newFieldset("");
@@ -567,11 +567,17 @@ public class TeamEventEditForm extends AbstractEditForm<TeamEventDO, TeamEventEd
         HtmlHelper.escapeHtml(getString("plugins.teamcal.event.recurrence.each") + ":", false));
     panel.getLabel().setEscapeModelStrings(false);
     recurrenceMonthModeFirstFieldset.add(panel);
-    for (int i = 0; i < 31; i++) {
-      DivPanel newCheckBoxButtonDiv = recurrenceMonthModeFirstFieldset.addNewCheckBoxButtonDiv();
-      final CheckBoxButton checkBox = new CheckBoxButton(newCheckBoxButtonDiv.newChildId(),
-          new PropertyModel<>(recurrenceData, "monthdays[" + i + "]"), "" + (i + 1));
-      newCheckBoxButtonDiv.add(checkBox);
+
+    for (int e = 0; e < 5; e++) {
+      recurrenceMonthDayFieldsets[e] = gridBuilder.newFieldset("");
+      DivPanel newCheckBoxButtonDiv = recurrenceMonthDayFieldsets[e].addNewCheckBoxButtonDiv();
+      for (int i = 0; i < 7; i++) {
+        if ((i + (e * 7) + 1) == 32)
+          break;
+        final CheckBoxButton checkBox = new CheckBoxButton(newCheckBoxButtonDiv.newChildId(),
+            new PropertyModel<>(recurrenceData, "monthdays[" + (i + (e * 7)) + "]"), (i + (e * 7) + 1) < 10 ? "0" + (i + (e * 7) + 1) : "" + (i + (e * 7) + 1));
+        newCheckBoxButtonDiv.add(checkBox);
+      }
     }
   }
 
@@ -683,6 +689,9 @@ public class TeamEventEditForm extends AbstractEditForm<TeamEventDO, TeamEventEd
       recurrenceYearModeFieldset.setVisible(false);
       recurrenceMonthModeFirstFieldset.setVisible(false);
       recurrenceMonthModeSecondFieldset.setVisible(false);
+      for (int i = 0; i < 5; i++) {
+        recurrenceMonthDayFieldsets[i].setVisible(false);
+      }
     } else {
       customizedCheckBoxButton.setVisible(true);
       recurrenceUntilDateFieldset.setVisible(true);
@@ -694,19 +703,31 @@ public class TeamEventEditForm extends AbstractEditForm<TeamEventDO, TeamEventEd
       recurrenceYearModeFieldset.setVisible(false);
       recurrenceMonthModeFirstFieldset.setVisible(false);
       recurrenceMonthModeSecondFieldset.setVisible(false);
+      for (int i = 0; i < 5; i++) {
+        recurrenceMonthDayFieldsets[i].setVisible(false);
+      }
       if (recurrenceData.getFrequency() == RecurrenceFrequency.WEEKLY) {
         recurrenceWeekIntervalFieldset.setVisible(recurrenceData.isCustomized());
       } else if (recurrenceData.getFrequency() == RecurrenceFrequency.MONTHLY) {
         recurrenceMonthIntervalFieldset.setVisible(recurrenceData.isCustomized());
         if (recurrenceData.getMonthMode() == RecurrenceMonthMode.NONE) {
           recurrenceMonthModeFirstFieldset.setVisible(false);
+          for (int i = 0; i < 5; i++) {
+            recurrenceMonthDayFieldsets[i].setVisible(false);
+          }
           recurrenceMonthModeSecondFieldset.setVisible(false);
         } else if (recurrenceData.getMonthMode() == RecurrenceMonthMode.EACH) {
           recurrenceMonthModeFirstFieldset.setVisible(recurrenceData.isCustomized());
+          for (int i = 0; i < 5; i++) {
+            recurrenceMonthDayFieldsets[i].setVisible(recurrenceData.isCustomized());
+          }
           recurrenceMonthModeSecondFieldset.setVisible(false);
         } else if (recurrenceData.getMonthMode() == RecurrenceMonthMode.ATTHE) {
           recurrenceMonthModeSecondFieldset.setVisible(recurrenceData.isCustomized());
           recurrenceMonthModeFirstFieldset.setVisible(false);
+          for (int i = 0; i > 5; i++) {
+            recurrenceMonthDayFieldsets[i].setVisible(false);
+          }
         }
       } else if (recurrenceData.getFrequency() == RecurrenceFrequency.YEARLY) {
         recurrenceYearIntervalFieldset.setVisible(recurrenceData.isCustomized());
