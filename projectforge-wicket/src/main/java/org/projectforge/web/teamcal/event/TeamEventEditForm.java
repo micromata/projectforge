@@ -51,7 +51,6 @@ import org.projectforge.business.teamcal.event.TeamEventService;
 import org.projectforge.business.teamcal.event.model.TeamEventAttendeeDO;
 import org.projectforge.business.teamcal.event.model.TeamEventDO;
 import org.projectforge.business.teamcal.event.right.TeamEventRight;
-import org.projectforge.business.teamcal.service.TeamCalServiceImpl;
 import org.projectforge.business.utils.HtmlHelper;
 import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
@@ -143,6 +142,16 @@ public class TeamEventEditForm extends AbstractEditForm<TeamEventDO, TeamEventEd
   protected MultiChoiceListHelper<TeamEventAttendeeDO> assignAttendeesListHelper;
 
   protected AttendeeWicketProvider attendeeWicketProvider;
+
+  private static final RecurrenceFrequencyModeOne[] SUPPORTED_MODE_ONE = new RecurrenceFrequencyModeOne[] {
+      RecurrenceFrequencyModeOne.LAST, RecurrenceFrequencyModeOne.FIRST, RecurrenceFrequencyModeOne.SECOND, RecurrenceFrequencyModeOne.THIRD,
+      RecurrenceFrequencyModeOne.FOURTH,
+      RecurrenceFrequencyModeOne.FIFTH };
+
+  private static final RecurrenceFrequencyModeTwo[] SUPPORTED_MODE_TWO = new RecurrenceFrequencyModeTwo[] {
+      RecurrenceFrequencyModeTwo.MONDAY, RecurrenceFrequencyModeTwo.TUESDAY, RecurrenceFrequencyModeTwo.WEDNESDAY, RecurrenceFrequencyModeTwo.THURSDAY,
+      RecurrenceFrequencyModeTwo.FRIDAY, RecurrenceFrequencyModeTwo.SATURDAY, RecurrenceFrequencyModeTwo.SUNDAY,
+      RecurrenceFrequencyModeTwo.DAY, RecurrenceFrequencyModeTwo.WEEKDAY, RecurrenceFrequencyModeTwo.WEEKEND };
 
   /**
    * @param parentPage
@@ -401,9 +410,8 @@ public class TeamEventEditForm extends AbstractEditForm<TeamEventDO, TeamEventEd
       recurrenceMonthModeSecondFieldset.add(panel);
 
       //Selecet für (erster, zweiter, dritter, vierter, letzter)
-      final RecurrenceFrequencyModeOne[] supportedFrequenciesModeOne = TeamCalServiceImpl.getSupportedRecurrenceFrequenciesModeOne();
       final LabelValueChoiceRenderer<RecurrenceFrequencyModeOne> frequencyModeOneChoiceRenderer = new LabelValueChoiceRenderer<>(
-          recurrenceMonthModeSecondFieldset, supportedFrequenciesModeOne);
+          recurrenceMonthModeSecondFieldset, SUPPORTED_MODE_ONE);
       modeOneDropDownChoiceMonth = new DropDownChoice<>(
           recurrenceMonthModeSecondFieldset.getDropDownChoiceId(), new PropertyModel<>(recurrenceData, "modeOneMonth"),
           frequencyModeOneChoiceRenderer.getValues(), frequencyModeOneChoiceRenderer);
@@ -412,9 +420,8 @@ public class TeamEventEditForm extends AbstractEditForm<TeamEventDO, TeamEventEd
       recurrenceMonthModeSecondFieldset.getFieldset().setOutputMarkupId(true);
 
       //Select für (Wochentage, Tag, Wochentag, Wochenende)
-      final RecurrenceFrequencyModeTwo[] supportedFrequenciesModeTwo = TeamCalServiceImpl.getSupportedRecurrenceFrequenciesModeTwo();
       final LabelValueChoiceRenderer<RecurrenceFrequencyModeTwo> frequencyModeTwoChoiceRenderer = new LabelValueChoiceRenderer<>(
-          recurrenceMonthModeSecondFieldset, supportedFrequenciesModeTwo);
+          recurrenceMonthModeSecondFieldset, SUPPORTED_MODE_TWO);
       modeTwoDropDownChoiceMonth = new DropDownChoice<>(
           recurrenceMonthModeSecondFieldset.getDropDownChoiceId(), new PropertyModel<>(recurrenceData, "modeTwoMonth"),
           frequencyModeTwoChoiceRenderer.getValues(), frequencyModeTwoChoiceRenderer);
@@ -459,9 +466,8 @@ public class TeamEventEditForm extends AbstractEditForm<TeamEventDO, TeamEventEd
       });
       components.add(checkBox);
       //Selecet für (erster, zweiter, dritter, vierter, letzter)
-      final RecurrenceFrequencyModeOne[] supportedFrequenciesModeOne = TeamCalServiceImpl.getSupportedRecurrenceFrequenciesModeOne();
       final LabelValueChoiceRenderer<RecurrenceFrequencyModeOne> frequencyModeOneChoiceRenderer = new LabelValueChoiceRenderer<>(
-          recurrenceYearModeFieldset, supportedFrequenciesModeOne);
+          recurrenceYearModeFieldset, SUPPORTED_MODE_ONE);
       modeOneDropDownChoiceYear = new DropDownChoice<>(
           recurrenceYearModeFieldset.getDropDownChoiceId(), new PropertyModel<>(recurrenceData, "modeOneYear"),
           frequencyModeOneChoiceRenderer.getValues(), frequencyModeOneChoiceRenderer);
@@ -472,9 +478,8 @@ public class TeamEventEditForm extends AbstractEditForm<TeamEventDO, TeamEventEd
         modeOneDropDownChoiceYear.setEnabled(false);
 
       //Select für (Wochentage, Tag, Wochentag, Wochenende)
-      final RecurrenceFrequencyModeTwo[] supportedFrequenciesModeTwo = TeamCalServiceImpl.getSupportedRecurrenceFrequenciesModeTwo();
       final LabelValueChoiceRenderer<RecurrenceFrequencyModeTwo> frequencyModeTwoChoiceRenderer = new LabelValueChoiceRenderer<>(
-          recurrenceYearModeFieldset, supportedFrequenciesModeTwo);
+          recurrenceYearModeFieldset, SUPPORTED_MODE_TWO);
       modeTwoDropDownChoiceYear = new DropDownChoice<>(
           recurrenceYearModeFieldset.getDropDownChoiceId(), new PropertyModel<>(recurrenceData, "modeTwoYear"),
           frequencyModeTwoChoiceRenderer.getValues(), frequencyModeTwoChoiceRenderer);
