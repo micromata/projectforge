@@ -252,41 +252,41 @@ public class AddressDao extends BaseDao<AddressDO>
           if (addressbookRight.hasSelectAccess(user, ab)) {
             return true;
           }
-          if (throwException) {
-            throw new AccessException(user, "access.exception.userHasNotRight", addressbookRight, operationType);
-          }
-          return false;
         }
+        if (throwException) {
+          throw new AccessException(user, "access.exception.userHasNotRight", addressbookRight, operationType);
+        }
+        return false;
       case INSERT:
         for (AddressbookDO ab : obj.getAddressbookList()) {
           if (addressbookRight.hasInsertAccess(user, ab)) {
             return true;
           }
-          if (throwException) {
-            throw new AccessException(user, "access.exception.userHasNotRight", addressbookRight, operationType);
-          }
-          return false;
         }
+        if (throwException) {
+          throw new AccessException(user, "access.exception.userHasNotRight", addressbookRight, operationType);
+        }
+        return false;
       case UPDATE:
         for (AddressbookDO ab : obj.getAddressbookList()) {
           if (addressbookRight.hasUpdateAccess(user, ab, ab)) {
             return true;
           }
-          if (throwException) {
-            throw new AccessException(user, "access.exception.userHasNotRight", addressbookRight, operationType);
-          }
-          return false;
         }
+        if (throwException) {
+          throw new AccessException(user, "access.exception.userHasNotRight", addressbookRight, operationType);
+        }
+        return false;
       case DELETE:
         for (AddressbookDO ab : obj.getAddressbookList()) {
           if (addressbookRight.hasDeleteAccess(user, ab, ab)) {
             return true;
           }
-          if (throwException) {
-            throw new AccessException(user, "access.exception.userHasNotRight", addressbookRight, operationType);
-          }
-          return false;
         }
+        if (throwException) {
+          throw new AccessException(user, "access.exception.userHasNotRight", addressbookRight, operationType);
+        }
+        return false;
       default:
         if (throwException) {
           throw new AccessException(user, "access.exception.userHasNotRight", addressbookRight, operationType);

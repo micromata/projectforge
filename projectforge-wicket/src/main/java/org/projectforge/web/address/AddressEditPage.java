@@ -35,10 +35,15 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.address.AddressDO;
 import org.projectforge.business.address.AddressDao;
+import org.projectforge.business.address.AddressbookDO;
+import org.projectforge.business.address.AddressbookRight;
 import org.projectforge.business.address.PersonalAddressDO;
 import org.projectforge.business.address.PersonalAddressDao;
 import org.projectforge.business.configuration.ConfigurationService;
 import org.projectforge.business.image.ImageService;
+import org.projectforge.business.user.UserRightId;
+import org.projectforge.framework.persistence.api.UserRightService;
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.time.DateHelper;
 import org.projectforge.web.wicket.AbstractEditForm;
 import org.projectforge.web.wicket.AbstractEditPage;
@@ -67,6 +72,9 @@ public class AddressEditPage extends AbstractEditPage<AddressDO, AddressEditForm
 
   @SpringBean
   private ImageService imageService;
+
+  @SpringBean
+  private UserRightService userRights;
 
   private boolean cloneFlag = false;
 
@@ -194,6 +202,19 @@ public class AddressEditPage extends AbstractEditPage<AddressDO, AddressEditForm
       }
       cloneFlag = false;
     }
+    //Check addressbook changes
+    if (getData().getId() != null) {
+      AddressDO dbAddress = addressDao.internalGetById(getData().getId());
+      AddressbookRight addressbookRight = (AddressbookRight) userRights.getRight(UserRightId.MISC_ADDRESSBOOK);
+      for (AddressbookDO dbAddressbook : dbAddress.getAddressbookList()) {
+        //If user has no right for assigned addressbook, it could not be removed
+        if (addressbookRight.hasSelectAccess(ThreadLocalUserContext.getUser(), dbAddressbook) == false
+            && getData().getAddressbookList().contains(dbAddressbook) == false) {
+          getData().getAddressbookList().add(dbAddressbook);
+        }
+      }
+    }
+
     byte[] image = null;
     if (getData().getImageData() != null) {
       image = imageService.resizeImage(getData().getImageData());
