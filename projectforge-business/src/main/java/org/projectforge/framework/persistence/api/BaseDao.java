@@ -52,6 +52,7 @@ import org.hibernate.search.Search;
 import org.projectforge.business.multitenancy.TenantChecker;
 import org.projectforge.business.multitenancy.TenantRegistry;
 import org.projectforge.business.multitenancy.TenantRegistryMap;
+import org.projectforge.business.multitenancy.TenantService;
 import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.business.user.UserRight;
 import org.projectforge.business.user.UserRightId;
@@ -66,6 +67,7 @@ import org.projectforge.framework.persistence.history.HibernateSearchDependentOb
 import org.projectforge.framework.persistence.history.HistoryBaseDaoAdapter;
 import org.projectforge.framework.persistence.history.SimpleHistoryEntry;
 import org.projectforge.framework.persistence.history.entities.PfHistoryMasterDO;
+import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
 import org.projectforge.framework.persistence.jpa.impl.BaseDaoJpaAdapter;
 import org.projectforge.framework.persistence.jpa.impl.HibernateSearchFilterUtils;
 import org.projectforge.framework.persistence.search.BaseDaoReindexRegistry;
@@ -135,6 +137,9 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
   protected TenantChecker tenantChecker;
 
   @Autowired
+  protected TenantService tenantService;
+
+  @Autowired
   protected SearchService searchService;
 
   protected String[] searchFields;
@@ -158,6 +163,9 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
 
   @Autowired
   private SessionFactory sessionFactory;
+
+  @Autowired
+  protected PfEmgrFactory emgrFactory;
 
   @Autowired
   private UserRightService userRights;
@@ -981,6 +989,7 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
   @Transactional(readOnly = false, propagation = Propagation.REQUIRED, isolation = Isolation.REPEATABLE_READ)
   public ModificationStatus internalUpdate(final O obj, final boolean checkAccess)
   {
+    tenantChecker.isTenantSet(obj, true);
     onSaveOrModify(obj);
     if (checkAccess == true) {
       accessChecker.checkRestrictedOrDemoUser();
