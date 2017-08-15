@@ -28,6 +28,7 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
@@ -41,7 +42,6 @@ import javax.ws.rs.core.Response;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.PredicateUtils;
 import org.apache.commons.lang.BooleanUtils;
-import org.apache.commons.lang.StringUtils;
 import org.projectforge.business.address.AddressDO;
 import org.projectforge.business.address.AddressDao;
 import org.projectforge.business.address.AddressFilter;
@@ -177,18 +177,29 @@ public class AddressDaoRest
   @Produces(MediaType.APPLICATION_JSON)
   public Response saveOrUpdateAddressObject(final AddressObject addressObject)
   {
+    String uid = addressObject.getUid() != null ? addressObject.getUid().replace("urn:uuid:", "") : UUID.randomUUID().toString();
+    addressObject.setUid(uid);
     AddressDO addressDORequest = AddressDOConverter.getAddressDO(addressObject);
     AddressDO addressDOOrig = null;
-    if (StringUtils.isEmpty(addressObject.getUid()) == false) {
-      if (addressObject.getUid().contains("urn:uuid:")) {
-        addressObject.setUid(addressObject.getUid().replace("urn:uuid:", ""));
-      }
+    try {
       addressDOOrig = addressDao.findByUid(addressObject.getUid());
+    } catch (javax.persistence.NoResultException e) {
+      log.info("No address with given uid found: " + uid);
+      log.info("Continoue creating new address.");
     }
 
     if (addressDOOrig != null) {
+      //Metadata
       addressDORequest.setId(addressDOOrig.getId());
       addressDORequest.setCreated(addressDOOrig.getCreated());
+      //addressDORequest.setTenant(addressDOOrig.getTenant());
+      //Data, which is not in vcard
+      addressDORequest.setAddressStatus(addressDOOrig.getAddressStatus());
+      addressDORequest.setContactStatus(addressDOOrig.getContactStatus());
+      addressDORequest.setForm(addressDOOrig.getForm());
+      addressDORequest.setPublicKey(addressDOOrig.getPublicKey());
+      addressDORequest.setFingerprint(addressDOOrig.getFingerprint());
+      //Addressbooks
       addressDORequest.setAddressbookList(addressDOOrig.getAddressbookList());
     }
 
@@ -198,8 +209,11 @@ public class AddressDaoRest
       addressDORequest.setAddressbookList(addressbooks);
     }
 
-    addressDao.save(addressDORequest);
+    addressDao.saveOrUpdate(addressDORequest);
     
-    return null;
+    final String json = JsonUtils.toJson(AddressDOConverter.getAddressObject(addressDao, addressDao.findByUid(uid),
+        false, true));
+    log.info("Save or update address REST call finished.");
+    return Response.ok(json).build();
   }
 }

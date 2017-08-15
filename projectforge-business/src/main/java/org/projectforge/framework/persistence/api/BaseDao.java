@@ -52,6 +52,7 @@ import org.hibernate.search.Search;
 import org.projectforge.business.multitenancy.TenantChecker;
 import org.projectforge.business.multitenancy.TenantRegistry;
 import org.projectforge.business.multitenancy.TenantRegistryMap;
+import org.projectforge.business.multitenancy.TenantService;
 import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.business.user.UserRight;
 import org.projectforge.business.user.UserRightId;
@@ -134,6 +135,9 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
 
   @Autowired
   protected TenantChecker tenantChecker;
+
+  @Autowired
+  protected TenantService tenantService;
 
   @Autowired
   protected SearchService searchService;
@@ -985,6 +989,7 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
   @Transactional(readOnly = false, propagation = Propagation.REQUIRED, isolation = Isolation.REPEATABLE_READ)
   public ModificationStatus internalUpdate(final O obj, final boolean checkAccess)
   {
+    tenantChecker.isTenantSet(obj, true);
     onSaveOrModify(obj);
     if (checkAccess == true) {
       accessChecker.checkRestrictedOrDemoUser();

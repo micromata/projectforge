@@ -28,6 +28,7 @@ import java.io.Serializable;
 import org.projectforge.framework.access.AccessException;
 import org.projectforge.framework.configuration.GlobalConfiguration;
 import org.projectforge.framework.persistence.api.BaseDO;
+import org.projectforge.framework.persistence.api.ExtendedBaseDO;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.api.UserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
@@ -169,11 +170,23 @@ public class TenantChecker implements Serializable
    * @return true in multi-tenancy environments if the given user (may be initialized by Hibernate or not) has the
    * read-write right of {@link TenantDao#USER_RIGHT_ID}.
    */
-  public static boolean isSuperAdmin(final PFUserDO user)
+  public static <O extends ExtendedBaseDO<Integer>> boolean isSuperAdmin(final PFUserDO user)
   {
     if (user == null) {
       return false;
     }
     return GlobalConfiguration.getInstance().isMultiTenancyConfigured() == true && user.isSuperAdmin() == true;
+  }
+
+  public void isTenantSet(final BaseDO obj, final boolean setTenantIfNotExist)
+  {
+    if (obj.getTenant() == null && setTenantIfNotExist) {
+      //TODO FB: IS this the correct tenant?
+      TenantDO tenant = ThreadLocalUserContext.getUser().getTenant();
+      if (tenant == null) {
+        tenant = tenantService.getDefaultTenant();
+      }
+      obj.setTenant(tenant);
+    }
   }
 }
