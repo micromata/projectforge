@@ -144,22 +144,23 @@ public class AddressbookDO extends BaseUserGroupRightsDO
     return hcb.hashCode();
   }
 
+  @Override
+  public boolean equals(final Object o)
+  {
+    if (this == o) return true;
+    if (o instanceof AddressbookDO == false) {
+      return false;
+    }
+    AddressbookDO other = (AddressbookDO) o;
+    if (this.getId() != null && other.getId() != null && this.getId().equals(other.getId())) {
+      return true;
+    }
+    if (title != null ? !title.equals(other.title) : other.title != null) return false;
+    if (owner != null ? !owner.equals(other.owner) : other.owner != null) return false;
+    return description != null ? description.equals(other.description) : other.description == null;
+  }
+
   /**
-   * }
-   * if (obj instanceof AddressbookDO == false) {
-   * return false;
-   * }
-   * final AddressbookDO other = (AddressbookDO) obj;
-   * if (this.getId().equals(other.getId())) {
-   * return true;
-   * }
-   * return StringUtils.equals(title, other.title);
-   * }
-   * <p>
-   * /**
-   * Returns string containing all fields (except the externalSubscriptionCalendarBinary) of given object (via
-   * ReflectionToStringBuilder).
-   *
    * @param user
    * @return
    */
