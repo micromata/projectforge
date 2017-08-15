@@ -23,6 +23,8 @@
 
 package org.projectforge.rest;
 
+import static org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.getUserId;
+
 import java.util.Date;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -45,8 +47,11 @@ import org.apache.commons.lang.BooleanUtils;
 import org.projectforge.business.address.AddressDO;
 import org.projectforge.business.address.AddressDao;
 import org.projectforge.business.address.AddressFilter;
+import org.projectforge.business.address.AddressStatus;
 import org.projectforge.business.address.AddressbookDO;
 import org.projectforge.business.address.AddressbookDao;
+import org.projectforge.business.address.ContactStatus;
+import org.projectforge.business.address.FormOfAddress;
 import org.projectforge.business.address.PersonalAddressDO;
 import org.projectforge.business.address.PersonalAddressDao;
 import org.projectforge.business.user.ProjectForgeGroup;
@@ -181,6 +186,7 @@ public class AddressDaoRest
     addressObject.setUid(uid);
     AddressDO addressDORequest = AddressDOConverter.getAddressDO(addressObject);
     AddressDO addressDOOrig = null;
+    boolean isNew = false;
     try {
       addressDOOrig = addressDao.findByUid(addressObject.getUid());
     } catch (javax.persistence.NoResultException e) {
@@ -192,7 +198,6 @@ public class AddressDaoRest
       //Metadata
       addressDORequest.setId(addressDOOrig.getId());
       addressDORequest.setCreated(addressDOOrig.getCreated());
-      //addressDORequest.setTenant(addressDOOrig.getTenant());
       //Data, which is not in vcard
       addressDORequest.setAddressStatus(addressDOOrig.getAddressStatus());
       addressDORequest.setContactStatus(addressDOOrig.getContactStatus());
@@ -201,19 +206,60 @@ public class AddressDaoRest
       addressDORequest.setFingerprint(addressDOOrig.getFingerprint());
       //Addressbooks
       addressDORequest.setAddressbookList(addressDOOrig.getAddressbookList());
+    } else {
+      addressDORequest.setAddressStatus(AddressStatus.UPTODATE);
+      addressDORequest.setContactStatus(ContactStatus.ACTIVE);
+      isNew = true;
     }
 
     if (addressDORequest.getAddressbookList() == null || addressDORequest.getAddressbookList().size() < 1) {
       Set<AddressbookDO> addressbooks = new HashSet<>();
       addressbooks.add(addressbookDao.getGlobalAddressbook());
       addressDORequest.setAddressbookList(addressbooks);
+      addressDORequest.setForm(FormOfAddress.UNKNOWN);
     }
 
     addressDao.saveOrUpdate(addressDORequest);
-    
-    final String json = JsonUtils.toJson(AddressDOConverter.getAddressObject(addressDao, addressDao.findByUid(uid),
+
+    AddressDO dbAddress = addressDao.findByUid(uid);
+
+    if (isNew) {
+      PersonalAddressDO personalAddress = null;
+      personalAddress = new PersonalAddressDO();
+      personalAddress.setAddress(dbAddress);
+      personalAddress.setFavoriteCard(true);
+      personalAddressDao.setOwner(personalAddress, getUserId());
+      personalAddressDao.saveOrUpdate(personalAddress);
+    }
+
+    final String json = JsonUtils.toJson(AddressDOConverter.getAddressObject(addressDao, dbAddress,
         false, true));
     log.info("Save or update address REST call finished.");
     return Response.ok(json).build();
   }
+
+  //  @DELETE
+  //  @Path(RestPaths.DELETE)
+  //  @Consumes(MediaType.APPLICATION_JSON)
+  //  public Response removeFavoriteAddressObject(final AddressObject addressObject)
+  //  {
+  //    String uid = addressObject.getUid() != null ? addressObject.getUid().replace("urn:uuid:", "") : UUID.randomUUID().toString();
+  //    addressObject.setUid(uid);
+  //    AddressDO addressDOOrig = null;
+  //    try {
+  //      addressDOOrig = addressDao.findByUid(addressObject.getUid());
+  //    } catch (javax.persistence.NoResultException e) {
+  //      log.info("No address with given uid found: " + uid);
+  //      log.info("Serving error response.");
+  //    }
+  //    if (addressDOOrig == null) {
+  //      return Response.serverError().build();
+  //    }
+  //    PersonalAddressDO personalAddress = personalAddressDao.getByAddressId(addressDOOrig.getId());
+  //    if (personalAddress != null) {
+  //      personalAddress.setFavoriteCard(false);
+  //      personalAddressDao.saveOrUpdate(personalAddress);
+  //    }
+  //    return Response.ok().build();
+  //  }
 }
