@@ -33,6 +33,7 @@ import java.util.Set;
 import java.util.UUID;
 
 import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
@@ -238,28 +239,28 @@ public class AddressDaoRest
     return Response.ok(json).build();
   }
 
-  //  @DELETE
-  //  @Path(RestPaths.DELETE)
-  //  @Consumes(MediaType.APPLICATION_JSON)
-  //  public Response removeFavoriteAddressObject(final AddressObject addressObject)
-  //  {
-  //    String uid = addressObject.getUid() != null ? addressObject.getUid().replace("urn:uuid:", "") : UUID.randomUUID().toString();
-  //    addressObject.setUid(uid);
-  //    AddressDO addressDOOrig = null;
-  //    try {
-  //      addressDOOrig = addressDao.findByUid(addressObject.getUid());
-  //    } catch (javax.persistence.NoResultException e) {
-  //      log.info("No address with given uid found: " + uid);
-  //      log.info("Serving error response.");
-  //    }
-  //    if (addressDOOrig == null) {
-  //      return Response.serverError().build();
-  //    }
-  //    PersonalAddressDO personalAddress = personalAddressDao.getByAddressId(addressDOOrig.getId());
-  //    if (personalAddress != null) {
-  //      personalAddress.setFavoriteCard(false);
-  //      personalAddressDao.saveOrUpdate(personalAddress);
-  //    }
-  //    return Response.ok().build();
-  //  }
+  @DELETE
+  @Path(RestPaths.DELETE)
+  @Consumes(MediaType.APPLICATION_JSON)
+  public Response removeFavoriteAddressObject(final AddressObject addressObject)
+  {
+    String uid = addressObject.getUid() != null ? addressObject.getUid().replace("urn:uuid:", "") : UUID.randomUUID().toString();
+    addressObject.setUid(uid);
+    AddressDO addressDOOrig = null;
+    try {
+      addressDOOrig = addressDao.findByUid(addressObject.getUid());
+    } catch (javax.persistence.NoResultException e) {
+      log.info("No address with given uid found: " + uid);
+      log.info("Serving error response.");
+    }
+    if (addressDOOrig == null) {
+      return Response.serverError().build();
+    }
+    PersonalAddressDO personalAddress = personalAddressDao.getByAddressId(addressDOOrig.getId());
+    if (personalAddress != null) {
+      personalAddress.setFavoriteCard(false);
+      personalAddressDao.saveOrUpdate(personalAddress);
+    }
+    return Response.ok().build();
+  }
 }
