@@ -37,6 +37,7 @@ import org.hibernate.search.annotations.Indexed;
 import org.hibernate.search.annotations.IndexedEmbedded;
 import org.hibernate.search.annotations.Store;
 import org.projectforge.common.anots.PropertyInfo;
+import org.projectforge.framework.persistence.api.AUserRightId;
 import org.projectforge.framework.persistence.api.Constants;
 import org.projectforge.framework.persistence.entities.DefaultBaseDO;
 import org.projectforge.framework.persistence.user.api.UserPrefParameter;
@@ -45,9 +46,8 @@ import de.micromata.genome.jpa.impl.ATableTruncater;
 
 /**
  * A skill usable for a skill-matrix.
- * 
+ *
  * @author Billy Duong (b.duong@micromata.de)
- * 
  */
 @Entity
 @Indexed
@@ -57,6 +57,7 @@ import de.micromata.genome.jpa.impl.ATableTruncater;
         @javax.persistence.Index(name = "idx_fk_t_plugin_skill_tenant_id", columnList = "tenant_id")
     })
 @ATableTruncater(value = org.projectforge.plugins.skillmatrix.SkillTableTruncater.class)
+@AUserRightId(value = "SKILL", checkAccess = false)
 public class SkillDO extends DefaultBaseDO
 {
   private static final long serialVersionUID = 6102127905651011282L;
@@ -178,7 +179,7 @@ public class SkillDO extends DefaultBaseDO
 
   /**
    * Members of these groups have full read/write access to this skill and related trainings.
-   * 
+   *
    * @return the fullAccessGroupIds
    */
   @Column(name = "full_access_group_ids", length = 4000, nullable = true)
@@ -189,7 +190,7 @@ public class SkillDO extends DefaultBaseDO
 
   /**
    * These users have full read/write access to this skill.
-   * 
+   *
    * @param fullAccessGroupIds the fullAccessGroupIds to set
    * @return this for chaining.
    */
@@ -201,7 +202,7 @@ public class SkillDO extends DefaultBaseDO
 
   /**
    * Members of these groups have full read-only access to this skill.
-   * 
+   *
    * @return the readOnlyAccessGroupIds
    */
   @Column(name = "readonly_access_group_ids", length = 4000, nullable = true)
@@ -222,7 +223,7 @@ public class SkillDO extends DefaultBaseDO
 
   /**
    * Members of these groups have full read/write access to trainings of this skill.
-   * 
+   *
    * @return the trainingGroupsIds
    */
   @Column(name = "training_access_group_ids", length = 4000, nullable = true)
@@ -233,7 +234,7 @@ public class SkillDO extends DefaultBaseDO
 
   /**
    * These users have full read/write access to trainings of this skill.
-   * 
+   *
    * @param trainingGroupsIds the trainingGroupsIds to set
    * @return this for chaining.
    */
