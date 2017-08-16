@@ -213,7 +213,6 @@ public class AddressDaoRest
 
       addressDORequest.setPublicKey(addressDOOrig.getPublicKey());
       addressDORequest.setFingerprint(addressDOOrig.getFingerprint());
-      addressDORequest.setComment(addressDOOrig.getComment());
       //Addressbooks
       addressDORequest.setAddressbookList(addressDOOrig.getAddressbookList());
     } else {
