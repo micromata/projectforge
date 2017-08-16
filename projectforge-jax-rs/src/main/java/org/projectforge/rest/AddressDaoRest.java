@@ -203,8 +203,17 @@ public class AddressDaoRest
       addressDORequest.setAddressStatus(addressDOOrig.getAddressStatus());
       addressDORequest.setContactStatus(addressDOOrig.getContactStatus());
       addressDORequest.setForm(addressDOOrig.getForm());
+      addressDORequest.setCommunicationLanguage(addressDOOrig.getCommunicationLanguage());
+
+      addressDORequest.setPostalAddressText(addressDOOrig.getPostalAddressText());
+      addressDORequest.setPostalCity(addressDOOrig.getPostalCity());
+      addressDORequest.setPostalCountry(addressDOOrig.getPostalCountry());
+      addressDORequest.setPostalZipCode(addressDOOrig.getPostalZipCode());
+      addressDORequest.setPostalState(addressDOOrig.getPostalState());
+
       addressDORequest.setPublicKey(addressDOOrig.getPublicKey());
       addressDORequest.setFingerprint(addressDOOrig.getFingerprint());
+      addressDORequest.setComment(addressDOOrig.getComment());
       //Addressbooks
       addressDORequest.setAddressbookList(addressDOOrig.getAddressbookList());
     } else {
