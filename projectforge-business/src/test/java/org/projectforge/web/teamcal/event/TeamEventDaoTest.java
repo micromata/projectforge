@@ -163,7 +163,7 @@ public class TeamEventDaoTest extends AbstractTestBase
     assertNull(event.getRecurrenceObject());
 
     event = createEvent(timeZone, "2012-12-21 8:30", "2012-12-21 9:00", RecurrenceFrequency.WEEKLY, 1, null, null);
-    assertEquals("FREQ=WEEKLY", event.getRecurrenceRule());
+    assertEquals("FREQ=WEEKLY;INTERVAL=1", event.getRecurrenceRule());
     Collection<TeamEvent> events = getRecurrenceEvents("2012-12-01", "2013-01-31", timeZone, event);
     assertEvents(events, timeZone, "2012-12-21 08:30", "2012-12-28 08:30", "2013-01-04 08:30", "2013-01-11 08:30",
         "2013-01-18 08:30", "2013-01-25 08:30");
@@ -218,11 +218,7 @@ public class TeamEventDaoTest extends AbstractTestBase
       return;
     }
     assertEquals(frequency, ICal4JUtils.getFrequency(recur));
-    if (recur.getInterval() > 1) {
-      assertEquals(interval, recur.getInterval());
-    } else {
-      assertEquals(-1, recur.getInterval());
-    }
+    assertEquals(interval, recur.getInterval());
     if (utcRecurrenceUntil == null) {
       assertNull(event.getRecurrenceUntil());
     } else {
