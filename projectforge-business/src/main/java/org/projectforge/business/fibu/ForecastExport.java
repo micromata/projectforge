@@ -281,19 +281,21 @@ public class ForecastExport
     }
 
     // handle diff
-    switch (pos.getPaymentType()) {
-      case TIME_AND_MATERIALS:
-        fillMonthColumnsDistributed(diff, mapping, order, pos, startDate, beginDistribute);
-        break;
-      case PAUSCHALE:
-        if (order.getProbabilityOfOccurrence() != null) {
+    if (pos.getPaymentType() != null) {
+      switch (pos.getPaymentType()) {
+        case TIME_AND_MATERIALS:
           fillMonthColumnsDistributed(diff, mapping, order, pos, startDate, beginDistribute);
-        }
-        break;
-      case FESTPREISPAKET:
-        // fill reset at end of project time
-        this.addEndAtPeriodOfPerformance(diff, mapping, order, pos, startDate);
-        break;
+          break;
+        case PAUSCHALE:
+          if (order.getProbabilityOfOccurrence() != null) {
+            fillMonthColumnsDistributed(diff, mapping, order, pos, startDate, beginDistribute);
+          }
+          break;
+        case FESTPREISPAKET:
+          // fill reset at end of project time
+          this.addEndAtPeriodOfPerformance(diff, mapping, order, pos, startDate);
+          break;
+      }
     }
   }
 

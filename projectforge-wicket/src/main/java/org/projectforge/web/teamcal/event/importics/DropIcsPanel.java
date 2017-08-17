@@ -23,18 +23,14 @@
 
 package org.projectforge.web.teamcal.event.importics;
 
-import java.io.StringReader;
-
-import net.fortuna.ical4j.data.CalendarBuilder;
-import net.fortuna.ical4j.model.Calendar;
-
-import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.projectforge.web.wicket.components.DropFileContainer;
+
+import net.fortuna.ical4j.model.Calendar;
 
 /**
  * Adaption of {@link DropFileContainer} for dropped {@link Calendar} files.
+ *
  * @author Johannes Unterstein (j.unterstein@micromata.de)
- * 
  */
 public abstract class DropIcsPanel extends DropFileContainer
 {
@@ -49,24 +45,4 @@ public abstract class DropIcsPanel extends DropFileContainer
   {
     super(id, "text/calendar");
   }
-
-  /**
-   * @see org.projectforge.web.wicket.components.DropFileContainer#onStringImport(org.apache.wicket.ajax.AjaxRequestTarget,
-   *      java.lang.String, java.lang.String)
-   */
-  @Override
-  protected void onStringImport(final AjaxRequestTarget target, final String fileName, final String content)
-  {
-
-    try {
-      final CalendarBuilder builder = new CalendarBuilder();
-      final Calendar calendar = builder.build(new StringReader(content));
-      onIcsImport(target, calendar);
-    } catch (final Exception ex) {
-      // TODO ju: handle exception
-      log.fatal("unable to import dropped calendar", ex);
-    }
-  }
-
-  protected abstract void onIcsImport(final AjaxRequestTarget target, final Calendar calendar);
 }

@@ -4,11 +4,12 @@
   <parent>
     <groupId>org.projectforge</groupId>
     <artifactId>projectforge-parent</artifactId>
-    <version>6.16.1</version>
+    <version>6.17.0</version>
   </parent>
   <artifactId>org.projectforge.plugins</artifactId>
   <packaging>pom</packaging>
   <modules>
+    <module>org.projectforge.plugins.plugintemplate</module>
     <module>org.projectforge.plugins.memo</module>
     <module>org.projectforge.plugins.todo</module>
     <module>org.projectforge.plugins.skillmatrix</module>

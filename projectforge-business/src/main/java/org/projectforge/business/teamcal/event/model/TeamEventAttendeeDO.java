@@ -95,6 +95,17 @@ public class TeamEventAttendeeDO extends DefaultBaseDO implements Comparable<Tea
     NON_HISTORIZABLE_ATTRIBUTES.add("loginToken");
   }
 
+  @Transient
+  public String getEMailAddress()
+  {
+    if (address != null) {
+      return address.getEmail();
+    } else if (user != null) {
+      return user.getEmail();
+    }
+    return null;
+  }
+
   /**
    * Is set if the attendee is a ProjectForge user.
    *
