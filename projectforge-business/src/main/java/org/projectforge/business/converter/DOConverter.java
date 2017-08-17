@@ -40,4 +40,12 @@ public class DOConverter
     dest.setCreated(src.getCreated());
     dest.setLastUpdate(src.getLastUpdate());
   }
+
+  public static void copyFields(final DefaultBaseDO dest, final AbstractBaseObject src)
+  {
+    dest.setId(src.getId());
+    dest.setDeleted(src.isDeleted());
+    dest.setCreated(src.getCreated());
+    dest.setLastUpdate(src.getLastUpdate());
+  }
 }
