@@ -31,6 +31,8 @@ import java.util.Date;
 import java.util.List;
 
 import org.apache.commons.lang.StringUtils;
+import org.projectforge.business.teamcal.event.RecurrenceFrequencyModeOne;
+import org.projectforge.business.teamcal.event.RecurrenceFrequencyModeTwo;
 import org.projectforge.common.StringHelper;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.time.DateFormats;
@@ -41,7 +43,11 @@ import net.fortuna.ical4j.model.Recur;
 import net.fortuna.ical4j.model.TimeZone;
 import net.fortuna.ical4j.model.TimeZoneRegistry;
 import net.fortuna.ical4j.model.TimeZoneRegistryFactory;
+import net.fortuna.ical4j.model.WeekDay;
+import net.fortuna.ical4j.model.WeekDayList;
+import net.fortuna.ical4j.model.component.VEvent;
 import net.fortuna.ical4j.model.property.RRule;
+import net.fortuna.ical4j.model.property.Uid;
 import net.fortuna.ical4j.util.Dates;
 
 /**
@@ -74,6 +80,147 @@ public class ICal4JUtils
   public static TimeZone getUTCTimeZone()
   {
     return registry.getTimeZone("UTC");
+  }
+
+
+  public static VEvent createVEvent(final Date startDate, final Date endDate, final String uid, final String summary)
+  {
+    return createVEvent(startDate, endDate, uid, summary, false);
+  }
+
+  public static VEvent createVEvent(final Date startDate, final Date endDate, final String uid, final String summary,
+      final boolean allDay)
+  {
+    final TimeZone timezone = getUserTimeZone();
+    return createVEvent(startDate, endDate, uid, summary, allDay, timezone);
+  }
+
+  public static VEvent createVEvent(final Date startDate, final Date endDate, final String uid, final String summary,
+      final boolean allDay,
+      final TimeZone timezone)
+  {
+    VEvent vEvent;
+    if (allDay == true) {
+      final Date startUtc = CalendarUtils.getUTCMidnightDate(startDate);
+      final Date endUtc = CalendarUtils.getUTCMidnightDate(endDate);
+      final net.fortuna.ical4j.model.Date fortunaStartDate = new net.fortuna.ical4j.model.Date(startUtc);
+      final org.joda.time.DateTime jodaTime = new org.joda.time.DateTime(endUtc);
+      // requires plus 1 because one day will be omitted by calendar.
+      final net.fortuna.ical4j.model.Date fortunaEndDate = new net.fortuna.ical4j.model.Date(
+          jodaTime.plusDays(1).toDate());
+      vEvent = new VEvent(fortunaStartDate, fortunaEndDate, summary);
+    } else {
+      final net.fortuna.ical4j.model.DateTime fortunaStartDate = new net.fortuna.ical4j.model.DateTime(startDate);
+      fortunaStartDate.setTimeZone(timezone);
+      final net.fortuna.ical4j.model.DateTime fortunaEndDate = new net.fortuna.ical4j.model.DateTime(endDate);
+      fortunaEndDate.setTimeZone(timezone);
+      vEvent = new VEvent(fortunaStartDate, fortunaEndDate, summary);
+      vEvent.getProperties().add(timezone.getVTimeZone().getTimeZoneId());
+    }
+    vEvent.getProperties().add(new Uid(uid));
+    return vEvent;
+  }
+
+  public static WeekDayList getDayListForRecurrenceFrequencyModeTwo(RecurrenceFrequencyModeTwo mode)
+  {
+    WeekDayList weekDays = new WeekDayList();
+    if (mode == RecurrenceFrequencyModeTwo.MONDAY)
+      weekDays.add(WeekDay.MO);
+    else if (mode == RecurrenceFrequencyModeTwo.TUESDAY)
+      weekDays.add(WeekDay.TU);
+    else if (mode == RecurrenceFrequencyModeTwo.WEDNESDAY)
+      weekDays.add(WeekDay.WE);
+    else if (mode == RecurrenceFrequencyModeTwo.THURSDAY)
+      weekDays.add(WeekDay.TH);
+    else if (mode == RecurrenceFrequencyModeTwo.FRIDAY)
+      weekDays.add(WeekDay.FR);
+    else if (mode == RecurrenceFrequencyModeTwo.SATURDAY)
+      weekDays.add(WeekDay.SA);
+    else if (mode == RecurrenceFrequencyModeTwo.SUNDAY)
+      weekDays.add(WeekDay.SU);
+    else if (mode == RecurrenceFrequencyModeTwo.WEEKDAY) {
+      weekDays.add(WeekDay.MO);
+      weekDays.add(WeekDay.TU);
+      weekDays.add(WeekDay.WE);
+      weekDays.add(WeekDay.TH);
+      weekDays.add(WeekDay.FR);
+    } else if (mode == RecurrenceFrequencyModeTwo.WEEKEND) {
+      weekDays.add(WeekDay.SA);
+      weekDays.add(WeekDay.SU);
+    } else if (mode == RecurrenceFrequencyModeTwo.DAY) {
+      weekDays.add(WeekDay.SA);
+      weekDays.add(WeekDay.SU);
+      weekDays.add(WeekDay.MO);
+      weekDays.add(WeekDay.TU);
+      weekDays.add(WeekDay.WE);
+      weekDays.add(WeekDay.TH);
+      weekDays.add(WeekDay.FR);
+    }
+    return weekDays;
+  }
+
+  public static RecurrenceFrequencyModeTwo getRecurrenceFrequencyModeTwoForDay(WeekDayList dayList)
+  {
+    if (dayList.size() == 1) {
+      for (WeekDay wd : dayList) {
+        if (wd.getDay() == WeekDay.MO.getDay()) {
+          return RecurrenceFrequencyModeTwo.MONDAY;
+        } else if (wd.getDay() == WeekDay.TU.getDay()) {
+          return RecurrenceFrequencyModeTwo.TUESDAY;
+        } else if (wd.getDay() == WeekDay.WE.getDay()) {
+          return RecurrenceFrequencyModeTwo.WEDNESDAY;
+        } else if (wd.getDay() == WeekDay.TH.getDay()) {
+          return RecurrenceFrequencyModeTwo.THURSDAY;
+        } else if (wd.getDay() == WeekDay.FR.getDay()) {
+          return RecurrenceFrequencyModeTwo.FRIDAY;
+        } else if (wd.getDay() == WeekDay.SA.getDay()) {
+          return RecurrenceFrequencyModeTwo.SATURDAY;
+        } else if (wd.getDay() == WeekDay.SU.getDay()) {
+          return RecurrenceFrequencyModeTwo.SUNDAY;
+        }
+      }
+    } else if (dayList.size() == 2) {
+      return RecurrenceFrequencyModeTwo.WEEKEND;
+    } else if (dayList.size() == 5) {
+      return RecurrenceFrequencyModeTwo.WEEKDAY;
+    } else if (dayList.size() == 7) {
+      return RecurrenceFrequencyModeTwo.DAY;
+    }
+    return null;
+  }
+
+  public static RecurrenceFrequencyModeOne getRecurrenceFrequencyModeOneByOffset(int offset)
+  {
+    if (offset == 1 || offset == 0) {
+      return RecurrenceFrequencyModeOne.FIRST;
+    } else if (offset == 2) {
+      return RecurrenceFrequencyModeOne.SECOND;
+    } else if (offset == 3) {
+      return RecurrenceFrequencyModeOne.THIRD;
+    } else if (offset == 4) {
+      return RecurrenceFrequencyModeOne.FOURTH;
+    } else if (offset == 5) {
+      return RecurrenceFrequencyModeOne.FIFTH;
+    } else if (offset == -1) {
+      return RecurrenceFrequencyModeOne.LAST;
+    }
+    return null;
+  }
+
+  public static int getOffsetForRecurrenceFrequencyModeOne(RecurrenceFrequencyModeOne mode)
+  {
+    if (mode == RecurrenceFrequencyModeOne.FIRST)
+      return 1;
+    else if (mode == RecurrenceFrequencyModeOne.SECOND)
+      return 2;
+    else if (mode == RecurrenceFrequencyModeOne.THIRD)
+      return 3;
+    else if (mode == RecurrenceFrequencyModeOne.FOURTH)
+      return 3;
+    else if (mode == RecurrenceFrequencyModeOne.FIFTH)
+      return 5;
+    else
+      return -1;
   }
 
   /**
