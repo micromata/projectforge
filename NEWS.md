@@ -1,13 +1,12 @@
-Release 6.16.0
-* Upgrade to Wicket 7
-* Improvment for kreditor invoices filter
-* Update forecast functionality
-* Add addressbooks and refactoring rights for adresses
+Release 6.17.0
+* Extend address REST for creating/updating/deleting addresses
+* Major refactorings for calendar and events
 * Bugfixes for:
-    * Timesheet filter
-    * Future events in ics export
-    * Editing employees
+    * Addresses and addressbooks
     * Invoice export
-    * Special characters in export
-    * Image size of address list page
-    * Address campaign change history 
+    * Finding event attendees
+    * Payment-deadline of debitors
+    * Migration problems
+    * Export bank transfers
+    * Forecast export
+    * Skilltree expand
