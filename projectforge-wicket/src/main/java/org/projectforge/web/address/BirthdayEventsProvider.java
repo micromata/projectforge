@@ -26,25 +26,25 @@ package org.projectforge.web.address;
 import java.util.Calendar;
 import java.util.Set;
 
-import net.ftlines.wicket.fullcalendar.Event;
-
 import org.apache.wicket.Component;
 import org.joda.time.DateTime;
 import org.projectforge.business.address.AddressDO;
 import org.projectforge.business.address.AddressDao;
 import org.projectforge.business.address.BirthdayAddress;
 import org.projectforge.business.teamcal.filter.ICalendarFilter;
+import org.projectforge.common.DateFormatType;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
-import org.projectforge.framework.time.DateFormatType;
 import org.projectforge.framework.time.DateFormats;
 import org.projectforge.framework.time.DateTimeFormatter;
 import org.projectforge.web.WebConfiguration;
 import org.projectforge.web.calendar.MyFullCalendarEventsProvider;
 
+import net.ftlines.wicket.fullcalendar.Event;
+
 /**
  * Creates events for FullCalendar.
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
  */
 public class BirthdayEventsProvider extends MyFullCalendarEventsProvider
 {
@@ -64,7 +64,7 @@ public class BirthdayEventsProvider extends MyFullCalendarEventsProvider
   public static final String EVENT_CLASS_NAME = "birth";
 
   /**
-   * @param parent For i18n.
+   * @param parent         For i18n.
    * @param addressDao
    * @param dataProtection If true (default) then no ages will be shown, only the names.
    * @see Component#getString(String)

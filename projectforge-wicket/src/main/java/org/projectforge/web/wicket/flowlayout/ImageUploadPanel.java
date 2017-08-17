@@ -164,7 +164,7 @@ public class ImageUploadPanel extends Panel implements ComponentWrapperPanel
         ImageUploadPanel.this.fileUploadField.clearInput();
 
         // return form
-        target.add(form.getFeedbackPanel());
+        target.add(form);
       }
     });
 

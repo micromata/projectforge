@@ -41,7 +41,6 @@ import org.projectforge.business.fibu.RechnungDao;
 import org.projectforge.business.fibu.RechnungStatus;
 import org.projectforge.business.fibu.RechnungTyp;
 import org.projectforge.business.fibu.RechnungsPositionDO;
-import org.projectforge.framework.time.DateTimeFormatter;
 import org.projectforge.framework.time.DayHolder;
 import org.projectforge.web.wicket.AbstractEditPage;
 import org.projectforge.web.wicket.AbstractSecuredBasePage;
@@ -84,18 +83,7 @@ public class RechnungEditPage extends AbstractEditPage<RechnungDO, RechnungEditF
           log.debug("Export invoice.");
           ByteArrayOutputStream baos = invoiceService.getInvoiceWordDocument(getData());
           if (baos != null) {
-            //Rechnungsnummer_Kunde_Projekt_Beschreibung_Leistungszeitraum_Rechnungsdatum(2017-MM-TT)
-            final String number = getData().getNummer() != null ? getData().getNummer().toString() + "_" : "";
-            final String sanitizedCustomer = getData().getKunde() != null ? getData().getKunde().getName().replaceAll("\\W+", "_") + "_" : "";
-            final String sanitizedProject = getData().getProjekt() != null ? getData().getProjekt().getName().replaceAll("\\W+", "_") + "_" : "";
-            final String sanitizedBetreff = getData().getBetreff().replaceAll("\\W+", "_") + "_";
-            final String periodOfPerformance =
-                DateTimeFormatter.instance().getFormattedDate(getData().getPeriodOfPerformanceBegin()).replaceAll("\\W+", "_") + "_-_" + DateTimeFormatter
-                    .instance()
-                    .getFormattedDate(getData().getPeriodOfPerformanceEnd()).replaceAll("\\W+", "_") + "_";
-            final String invoiceDate = DateTimeFormatter.instance().getFormattedDate(getData().getDatum()).replaceAll("\\W+", "_");
-            final String filename =
-                number + sanitizedCustomer + sanitizedProject + sanitizedBetreff + periodOfPerformance + invoiceDate + "_invoice.docx";
+            String filename = invoiceService.getInvoiceFilename(getData());
             DownloadUtils.setDownloadTarget(baos.toByteArray(), filename);
           }
         }
@@ -109,7 +97,8 @@ public class RechnungEditPage extends AbstractEditPage<RechnungDO, RechnungEditF
   @Override
   public AbstractSecuredBasePage onSaveOrUpdate()
   {
-    if (isNew() == true && getData().getNummer() == null && getData().getTyp() != RechnungTyp.GUTSCHRIFTSANZEIGE_DURCH_KUNDEN) {
+    if (isNew() == true && getData().getNummer() == null && getData().getTyp() != RechnungTyp.GUTSCHRIFTSANZEIGE_DURCH_KUNDEN
+        && RechnungStatus.GEPLANT.equals(getData().getStatus()) == false) {
       getData().setNummer(rechnungDao.getNextNumber(getData()));
     }
     return null;

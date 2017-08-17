@@ -12,14 +12,11 @@ import javax.persistence.InheritanceType;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
-import javax.persistence.UniqueConstraint;
 
 import de.micromata.genome.db.jpa.tabattr.entities.JpaTabAttrBaseDO;
 
 @Entity
-@Table(name = "T_PLUGIN_EMPLOYEE_CONFIGURATION_TIMEDATTR", uniqueConstraints = {
-    @UniqueConstraint(columnNames = { "parent", "propertyName" })
-})
+@Table(name = "T_PLUGIN_EMPLOYEE_CONFIGURATION_TIMEDATTR")
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @DiscriminatorColumn(name = "withdata", discriminatorType = DiscriminatorType.CHAR)
 @DiscriminatorValue("0")

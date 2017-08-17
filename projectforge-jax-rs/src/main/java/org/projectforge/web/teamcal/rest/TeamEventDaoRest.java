@@ -24,15 +24,13 @@
 package org.projectforge.web.teamcal.rest;
 
 import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+import java.sql.Timestamp;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -46,33 +44,28 @@ import javax.ws.rs.core.Response;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang.StringUtils;
+import org.projectforge.business.converter.DOConverter;
 import org.projectforge.business.teamcal.admin.TeamCalCache;
 import org.projectforge.business.teamcal.admin.model.TeamCalDO;
 import org.projectforge.business.teamcal.event.TeamEventDao;
 import org.projectforge.business.teamcal.event.TeamEventFilter;
 import org.projectforge.business.teamcal.event.TeamEventService;
+import org.projectforge.business.teamcal.event.TeamRecurrenceEvent;
+import org.projectforge.business.teamcal.event.ical.HandleMethod;
+import org.projectforge.business.teamcal.event.ical.ICalGenerator;
+import org.projectforge.business.teamcal.event.ical.ICalHandler;
+import org.projectforge.business.teamcal.event.model.ReminderDurationUnit;
 import org.projectforge.business.teamcal.event.model.TeamEvent;
-import org.projectforge.business.teamcal.event.model.TeamEventAttendeeDO;
 import org.projectforge.business.teamcal.event.model.TeamEventDO;
-import org.projectforge.business.teamcal.service.TeamCalServiceImpl;
 import org.projectforge.common.StringHelper;
-import org.projectforge.framework.persistence.api.ModificationStatus;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
-import org.projectforge.framework.time.DateHelper;
+import org.projectforge.framework.time.DateHolder;
 import org.projectforge.framework.time.DayHolder;
 import org.projectforge.model.rest.CalendarEventObject;
 import org.projectforge.model.rest.RestPaths;
 import org.projectforge.rest.JsonUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
-
-import net.fortuna.ical4j.data.CalendarBuilder;
-import net.fortuna.ical4j.model.Component;
-import net.fortuna.ical4j.model.ComponentList;
-import net.fortuna.ical4j.model.TimeZone;
-import net.fortuna.ical4j.model.component.CalendarComponent;
-import net.fortuna.ical4j.model.component.VEvent;
-import net.fortuna.ical4j.model.property.Uid;
 
 /**
  * REST interface for {@link TeamEventDao}
@@ -84,9 +77,6 @@ import net.fortuna.ical4j.model.property.Uid;
 public class TeamEventDaoRest
 {
   private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(TeamEventDaoRest.class);
-
-  @Autowired
-  private TeamCalServiceImpl teamCalService;
 
   @Autowired
   private TeamEventService teamEventService;
@@ -116,7 +106,7 @@ public class TeamEventDaoRest
     }
 
     final Collection<Integer> cals = getCalendarIds(calendarIds);
-    final List<CalendarEventObject> result = new LinkedList<CalendarEventObject>();
+    final List<CalendarEventObject> result = new LinkedList<>();
     if (cals.size() > 0) {
       final TeamEventFilter filter = new TeamEventFilter().setTeamCals(cals);
       if (start != null) {
@@ -127,7 +117,7 @@ public class TeamEventDaoRest
       }
       final List<TeamEventDO> list = teamEventService.getTeamEventDOList(filter);
       if (list != null && list.size() > 0) {
-        list.forEach(event -> result.add(teamCalService.getEventObject(event, true, true)));
+        list.forEach(event -> result.add(this.getEventObject(event)));
       }
     } else {
       log.warn("No calendar ids are given, so can't find any events.");
@@ -156,16 +146,15 @@ public class TeamEventDaoRest
     }
     day.add(Calendar.DAY_OF_YEAR, days);
     final Collection<Integer> cals = getCalendarIds(calendarIds);
-    final List<CalendarEventObject> result = new LinkedList<CalendarEventObject>();
+    final List<CalendarEventObject> result = new LinkedList<>();
     if (cals.size() > 0) {
       final Date now = new Date();
-      final TeamEventFilter filter = new TeamEventFilter().setStartDate(now).setEndDate(day.getDate())
-          .setTeamCals(cals);
+      final TeamEventFilter filter = new TeamEventFilter().setStartDate(now).setEndDate(day.getDate()).setTeamCals(cals);
       final List<TeamEvent> list = teamEventService.getEventList(filter, true);
       if (list != null && list.size() > 0) {
         for (final TeamEvent event : list) {
           if (event.getStartDate().after(now) == true) {
-            result.add(teamCalService.getEventObject(event, true, true));
+            result.add(this.getEventObject(event));
           } else {
             log.info("Start date not in future:" + event.getStartDate() + ", " + event.getSubject());
           }
@@ -184,65 +173,7 @@ public class TeamEventDaoRest
   @Produces(MediaType.APPLICATION_JSON)
   public Response saveTeamEvent(final CalendarEventObject calendarEvent)
   {
-    try {
-      //Getting the calender at which the event will created/updated
-      TeamCalDO teamCalDO = teamCalCache.getCalendar(calendarEvent.getCalendarId());
-      //ICal4J CalendarBuilder for building calendar events from ics
-      final CalendarBuilder builder = new CalendarBuilder();
-      //Build the event from ics
-      final net.fortuna.ical4j.model.Calendar calendar = builder.build(new ByteArrayInputStream(Base64.decodeBase64(calendarEvent.getIcsData())));
-      //Getting the VEvent from ics
-      final VEvent event = (VEvent) calendar.getComponent(Component.VEVENT);
-      if (event.getUid() != null) {
-        //Getting the origin team event from database by uid if exist
-        TeamEventDO teamEventOrigin = teamEventService.findByUid(event.getUid().getValue());
-        //Check if db event exists
-        if (teamEventOrigin != null && teamEventOrigin.getCalendar().getId().equals(teamCalDO.getId())) {
-          return updateTeamEvent(calendarEvent);
-        } else {
-          event.getUid().setValue("");
-          return saveVEvent(event, teamCalDO, true);
-        }
-      }
-      return Response.serverError().build();
-    } catch (Exception e) {
-      log.error("Exception while creating team event", e);
-      return Response.serverError().build();
-    }
-  }
-
-  private Response saveVEvent(VEvent event, TeamCalDO teamCalDO, boolean withUid)
-  {
-    //The result for returning
-    CalendarEventObject result = null;
-    //Building TeamEventDO from VEvent
-    final TeamEventDO teamEvent = teamCalService.createTeamEventDO(event,
-        TimeZone.getTimeZone(teamCalDO.getOwner().getTimeZone()), withUid);
-    //Setting the calendar
-    teamEvent.setCalendar(teamCalDO);
-    //Save attendee list, because assignment later
-    Set<TeamEventAttendeeDO> attendees = new HashSet<>();
-    teamEvent.getAttendees().forEach(att -> {
-      attendees.add(att.clone());
-    });
-    teamEvent.setAttendees(null);
-    //Save or update the generated event
-    teamEventService.save(teamEvent);
-    //Update attendees
-    teamEventService.assignAttendees(teamEvent, attendees, null);
-
-    if (attendees.size() > 0) {
-      teamEventService.sendTeamEventToAttendees(teamEvent, true, false, false, null);
-    }
-    result = teamCalService.getEventObject(teamEvent, true, true);
-    log.info("Team event: " + teamEvent.getSubject() + " for calendar #" + teamCalDO.getId() + " successfully created.");
-    if (result != null) {
-      final String json = JsonUtils.toJson(result);
-      return Response.ok(json).build();
-    } else {
-      log.error("Something went wrong while creating team event");
-      return Response.serverError().build();
-    }
+    return handleICal(calendarEvent);
   }
 
   @PUT
@@ -251,89 +182,36 @@ public class TeamEventDaoRest
   @Produces(MediaType.APPLICATION_JSON)
   public Response updateTeamEvent(final CalendarEventObject calendarEvent)
   {
-    //The result for returning
-    CalendarEventObject result = null;
+    return this.handleICal(calendarEvent);
+  }
+
+  private Response handleICal(final CalendarEventObject calendarEvent)
+  {
     try {
       //Getting the calender at which the event will created/updated
       TeamCalDO teamCalDO = teamCalCache.getCalendar(calendarEvent.getCalendarId());
-      //ICal4J CalendarBuilder for building calendar events from ics
-      final CalendarBuilder builder = new CalendarBuilder();
-      //Build the event from ics
-      final net.fortuna.ical4j.model.Calendar calendar = builder.build(new ByteArrayInputStream(Base64.decodeBase64(calendarEvent.getIcsData())));
-      //Getting the VEvent from ics
-      final ComponentList<CalendarComponent> vevents = calendar.getComponents(Component.VEVENT);
-      final VEvent event = (VEvent) vevents.get(0);
-      //Geting the event uid
-      Uid eventUid = event.getUid();
-      //Building TeamEventDO from VEvent
-      final TeamEventDO teamEvent = teamCalService.createTeamEventDO(event,
-          TimeZone.getTimeZone(teamCalDO.getOwner().getTimeZone()));
-      if (vevents.size() > 1) {
-        VEvent event2 = (VEvent) vevents.get(1);
-        if (event.getUid().equals(event2.getUid())) {
-          //Set ExDate in event1
-          // ical4j handles timezone internally, no actions required
-          teamEvent.addRecurrenceExDate(event2.getRecurrenceId().getDate());
-          //Create new Event from event2
-          saveVEvent(event2, teamCalDO, false);
-        }
-      }
-      //Getting the origin team event from database by uid if exist
-      TeamEventDO teamEventOrigin = teamEventService.findByUid(eventUid.getValue());
-      //Check if db event exists
-      if (teamEventOrigin == null) {
-        log.error("No team event found with uid " + eventUid.getValue());
-        log.info("Creating new team event!");
-        return saveTeamEvent(calendarEvent);
-      }
-      //Set for origin attendees from db event
-      final Set<TeamEventAttendeeDO> originAttendees;
-      //Setting the existing DB id, created timestamp, tenant
-      teamEvent.setId(teamEventOrigin.getPk());
-      teamEvent.setCreator(teamEventOrigin.getCreator());
-      teamEvent.setCreated(teamEventOrigin.getCreated());
-      teamEvent.setLastUpdate();
-      teamEvent.setTenant(teamEventOrigin.getTenant());
-      //Save existing attendees from the db event
-      originAttendees = teamEventOrigin.getAttendees();
-      //Setting the calendar
-      teamEvent.setCalendar(teamCalDO);
-      //Setting uid
-      teamEvent.setUid(eventUid.getValue());
-      //Decide which attendees are new, which has to be deleted, which has to be updated
-      Set<TeamEventAttendeeDO> attendeesToAssignMap = new HashSet<>();
-      Set<TeamEventAttendeeDO> attendeesToUnassignMap = new HashSet<>();
-      if (teamEvent.getAttendees() != null && teamEvent.getAttendees().size() > 0) {
-        attendeesToAssignMap = getAttendeesToAssign(teamEvent, teamEventOrigin);
-        attendeesToUnassignMap = getAttendeesToUnassign(teamEvent, teamEventOrigin);
-        teamEvent.setAttendees(originAttendees);
-      }
-      //Save or update the generated event
-      teamEventService.update(teamEvent);
 
-      TeamEventDO teamEventAfterSaveOrUpdate = teamEventService.getById(teamEvent.getPk());
-      ModificationStatus modificationStatus = ModificationStatus.NONE;
-      modificationStatus = TeamEventDO.copyValues(teamEventOrigin, teamEventAfterSaveOrUpdate, "attendees");
-      TeamEventDO teamEventAfterModificationTest = teamEventService.getById(teamEvent.getPk());
-      //Update attendees
-      teamEventService.assignAttendees(teamEventAfterModificationTest, attendeesToAssignMap, attendeesToUnassignMap);
+      // Get handler
+      final ICalHandler handler = this.teamEventService.getEventHandler(teamCalDO);
+      final InputStream iCalStream = new ByteArrayInputStream(Base64.decodeBase64(calendarEvent.getIcsData()));
 
-      TeamEventDO teamEventAfterAssignAttendees = teamEventService.getById(teamEventAfterSaveOrUpdate.getPk());
-      if ((attendeesToAssignMap != null && attendeesToAssignMap.size() > 0) || (modificationStatus != null && modificationStatus != ModificationStatus.NONE)) {
-        teamEventService.sendTeamEventToAttendees(teamEventAfterAssignAttendees, false,
-            true && modificationStatus != ModificationStatus.NONE, false, attendeesToAssignMap);
+      if (handler.readICal(iCalStream, HandleMethod.ADD_UPDATE) == false || handler.isEmpty()) {
+        return Response.serverError().build();
       }
-      result = teamCalService.getEventObject(teamEventAfterAssignAttendees, true, true);
-      log.info("Team event: " + teamEventAfterAssignAttendees.getSubject() + " for calendar #" + teamCalDO.getId() + " successfully updated.");
-    } catch (Exception e) {
-      log.error("Exception while updating team event", e);
-      return Response.serverError().build();
-    }
-    if (result != null) {
+
+      if (handler.validate() == false) {
+        return Response.serverError().build();
+      }
+
+      handler.persist(true);
+
+      final CalendarEventObject result = this.getEventObject(handler.getFirstResult());
+      log.info("Team event: " + result.getSubject() + " for calendar #" + teamCalDO.getId() + " successfully created.");
+
       final String json = JsonUtils.toJson(result);
       return Response.ok(json).build();
-    } else {
-      log.error("Something went wrong while updating team event");
+    } catch (Exception e) {
+      log.error("Exception while creating team event", e);
       return Response.serverError().build();
     }
   }
@@ -342,25 +220,103 @@ public class TeamEventDaoRest
   @Consumes(MediaType.APPLICATION_JSON)
   public Response deleteTeamEvent(final CalendarEventObject calendarEvent)
   {
-    try {
-      final CalendarBuilder builder = new CalendarBuilder();
-      final net.fortuna.ical4j.model.Calendar calendar = builder.build(new ByteArrayInputStream(Base64.decodeBase64(calendarEvent.getIcsData())));
-      final VEvent event = (VEvent) calendar.getComponent(Component.VEVENT);
-      Uid eventUid = event.getUid();
-      TeamEventDO teamEventOrigin = teamEventService.findByUid(eventUid.getValue());
-      if (teamEventOrigin != null) {
-        teamEventService.markAsDeleted(teamEventOrigin);
-        teamEventService.sendTeamEventToAttendees(teamEventOrigin, false, false, true, null);
-        log.info("Team event with the id: " + eventUid.getValue() + " for calendar #" + calendarEvent.getCalendarId() + " successfully marked as deleted.");
-      } else {
-        log.warn("Team event with uid: " + eventUid.getValue() + " not found");
-        return Response.serverError().build();
-      }
-    } catch (Exception e) {
-      log.error("Exception while deleting team event", e);
+    //Getting the calender at which the event will created/updated
+    TeamCalDO teamCalDO = teamCalCache.getCalendar(calendarEvent.getCalendarId());
+
+    // Get handler
+    final ICalHandler handler = this.teamEventService.getEventHandler(teamCalDO);
+    final InputStream iCalStream = new ByteArrayInputStream(Base64.decodeBase64(calendarEvent.getIcsData()));
+
+    if (handler.readICal(iCalStream, HandleMethod.CANCEL) == false || handler.eventCount() != 1) {
       return Response.serverError().build();
     }
+
+    if (handler.validate() == false) {
+      return Response.serverError().build();
+    }
+
+    handler.persist(true);
+
     return Response.ok().build();
+  }
+
+  private CalendarEventObject getEventObject(final TeamEvent src)
+  {
+    if (src == null) {
+      return null;
+    }
+
+    final ICalGenerator generator = ICalGenerator.exportAllFields();
+    generator.editableVEvent(true);
+
+    final CalendarEventObject event = new CalendarEventObject();
+    event.setUid(src.getUid());
+    event.setStartDate(src.getStartDate());
+    event.setEndDate(src.getEndDate());
+    event.setLocation(src.getLocation());
+    event.setNote(src.getNote());
+    event.setSubject(src.getSubject());
+
+    if (src instanceof TeamEventDO) {
+      copyFields(event, (TeamEventDO) src);
+      generator.addEvent((TeamEventDO) src);
+      event.setIcsData(Base64.encodeBase64String(generator.getCalendarAsByteStream().toByteArray()));
+
+      return event;
+    }
+
+    if (src instanceof TeamRecurrenceEvent) {
+      final TeamEventDO master = ((TeamRecurrenceEvent) src).getMaster();
+      if (master != null) {
+        copyFields(event, master);
+      }
+    }
+
+    TeamEventDO eventDO = new TeamEventDO();
+
+    eventDO.setEndDate(new Timestamp(src.getEndDate().getTime()));
+    eventDO.setLocation(src.getLocation());
+    eventDO.setNote(src.getNote());
+    eventDO.setStartDate(new Timestamp(src.getStartDate().getTime()));
+    eventDO.setSubject(src.getSubject());
+    eventDO.setUid(src.getUid());
+    eventDO.setAllDay(src.isAllDay());
+
+    generator.addEvent(eventDO);
+
+    event.setIcsData(Base64.encodeBase64String(generator.getCalendarAsByteStream().toByteArray()));
+
+    return event;
+  }
+
+  private void copyFields(final CalendarEventObject event, final TeamEventDO src)
+  {
+    event.setCalendarId(src.getCalendarId());
+    event.setRecurrenceRule(src.getRecurrenceRule());
+    event.setRecurrenceExDate(src.getRecurrenceExDate());
+    event.setRecurrenceUntil(src.getRecurrenceUntil());
+    DOConverter.copyFields(event, src);
+    event.setLastUpdate(src.getDtStamp());
+    if (src.getReminderActionType() != null && src.getReminderDuration() != null
+        && src.getReminderDurationUnit() != null) {
+      event.setReminderType(src.getReminderActionType().toString());
+      event.setReminderDuration(src.getReminderDuration());
+      final ReminderDurationUnit unit = src.getReminderDurationUnit();
+      event.setReminderUnit(unit.toString());
+      final DateHolder date = new DateHolder(src.getStartDate());
+      if (unit == ReminderDurationUnit.MINUTES) {
+        date.add(Calendar.MINUTE, -src.getReminderDuration());
+        event.setReminder(date.getDate());
+      } else if (unit == ReminderDurationUnit.HOURS) {
+        date.add(Calendar.HOUR, -src.getReminderDuration());
+        event.setReminder(date.getDate());
+      } else if (unit == ReminderDurationUnit.DAYS) {
+        date.add(Calendar.DAY_OF_YEAR, -src.getReminderDuration());
+        event.setReminder(date.getDate());
+      } else {
+        log.warn("ReminderDurationUnit '" + src.getReminderDurationUnit() + "' not yet implemented.");
+      }
+    }
   }
 
   private Collection<Integer> getCalendarIds(String calendarIds)
@@ -384,50 +340,6 @@ public class TeamEventDaoRest
       }
     }
     return cals;
-  }
-
-  private Set<TeamEventAttendeeDO> getAttendeesToUnassign(TeamEventDO newTeamEvent, TeamEventDO originTeamEvent)
-  {
-    Set<TeamEventAttendeeDO> result = new HashSet<>();
-    if (originTeamEvent == null || originTeamEvent.getAttendees() == null || originTeamEvent.getAttendees().size() < 1) {
-      return result;
-    } else {
-      Set<String> newEmailAdresses = new HashSet<>();
-      newTeamEvent.getAttendees().forEach(att -> newEmailAdresses.add(att.getAddress() != null ? att.getAddress().getEmail() : att.getUrl()));
-      Map<String, TeamEventAttendeeDO> originEmailAttendeeMap = new HashMap<>();
-      originTeamEvent.getAttendees().forEach(att -> originEmailAttendeeMap.put(att.getAddress() != null ? att.getAddress().getEmail() : att.getUrl(), att));
-      originEmailAttendeeMap.forEach((k, v) -> {
-        if (newEmailAdresses.contains(k) == false) {
-          result.add(v);
-        }
-      });
-    }
-    return result;
-  }
-
-  private Set<TeamEventAttendeeDO> getAttendeesToAssign(TeamEventDO newTeamEvent, TeamEventDO originTeamEvent)
-  {
-    Set<TeamEventAttendeeDO> result = new HashSet<>();
-    if (originTeamEvent == null || originTeamEvent.getAttendees() == null || originTeamEvent.getAttendees().size() < 1) {
-      for (TeamEventAttendeeDO newAttendee : newTeamEvent.getAttendees()) {
-        newAttendee.setPk(null);
-        result.add(newAttendee);
-      }
-      return result;
-    } else {
-      Set<String> originEmailAdresses = new HashSet<>();
-      originTeamEvent.getAttendees().forEach(att -> originEmailAdresses.add(att.getAddress() != null ? att.getAddress().getEmail() : att.getUrl()));
-      Map<String, TeamEventAttendeeDO> newEmailAttendeeMap = new HashMap<>();
-      newTeamEvent.getAttendees().forEach(att -> newEmailAttendeeMap.put(att.getAddress() != null ? att.getAddress().getEmail() : att.getUrl(), att));
-      for (Map.Entry<String, TeamEventAttendeeDO> newAttendeeEmail : newEmailAttendeeMap.entrySet()) {
-        if (originEmailAdresses.contains(newAttendeeEmail.getKey()) == false) {
-          final TeamEventAttendeeDO newTeamEventAttendeeDO = newAttendeeEmail.getValue();
-          newTeamEventAttendeeDO.setPk(null);
-          result.add(newTeamEventAttendeeDO);
-        }
-      }
-      return result;
-    }
   }
 
 }

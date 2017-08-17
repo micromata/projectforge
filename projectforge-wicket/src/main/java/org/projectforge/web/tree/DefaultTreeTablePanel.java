@@ -39,13 +39,11 @@ import org.apache.wicket.markup.html.link.AbstractLink;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.Model;
-import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.web.fibu.ISelectCallerPage;
 import org.projectforge.web.wicket.WicketAjaxUtils;
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
  */
 public abstract class DefaultTreeTablePanel<T extends TreeTableNode> extends Panel implements TreeTablePanel
 {
@@ -148,7 +146,7 @@ public abstract class DefaultTreeTablePanel<T extends TreeTableNode> extends Pan
 
   }
 
-  protected abstract TreeIconsActionPanel< ? extends TreeTableNode> createTreeIconsActionPanel(final T node);
+  protected abstract TreeIconsActionPanel<? extends TreeTableNode> createTreeIconsActionPanel(final T node);
 
   protected Label createColHead(final String i18nKey)
   {
@@ -161,16 +159,16 @@ public abstract class DefaultTreeTablePanel<T extends TreeTableNode> extends Pan
     final WebMarkupContainer row = new WebMarkupContainer(rowRepeater.newChildId(), new Model<TreeTableNode>(node));
     row.setOutputMarkupId(true);
     row.add(AttributeModifier.replace("class", "even"));
-    if (clickRows == true) {
-      WicketUtils.addRowClick(row);
-    }
+    //    if (clickRows == true) {
+    //      WicketUtils.addRowClick(row);
+    //    }
     rowRepeater.add(row);
     final RepeatingView colBodyRepeater = new RepeatingView("cols");
     row.add(colBodyRepeater);
     final String cssStyle = getCssStyle(node);
 
     // Column: browse icons
-    final TreeIconsActionPanel< ? extends TreeTableNode> treeIconsActionPanel = createTreeIconsActionPanel(node);
+    final TreeIconsActionPanel<? extends TreeTableNode> treeIconsActionPanel = createTreeIconsActionPanel(node);
     addColumn(row, treeIconsActionPanel, cssStyle);
     treeIconsActionPanel.init(this, node);
     treeIconsActionPanel.add(AttributeModifier.append("style", new Model<String>("white-space: nowrap;")));
@@ -196,6 +194,7 @@ public abstract class DefaultTreeTablePanel<T extends TreeTableNode> extends Pan
 
   /**
    * Should be used in tree table view. The current tree will be returned for tree navigation.
+   *
    * @return
    */
   protected List<T> getTreeList()
@@ -244,6 +243,7 @@ public abstract class DefaultTreeTablePanel<T extends TreeTableNode> extends Pan
 
   /**
    * Return the row after the row with the given id. If the row is the last row then null is returned.
+   *
    * @param hashId
    * @return
    */
@@ -269,6 +269,7 @@ public abstract class DefaultTreeTablePanel<T extends TreeTableNode> extends Pan
   /**
    * Overload method should be return false if the call setEvent(AjaxRequestTarget, TreeTableEvent, TreeTableNode) should stop further
    * processing.
+   *
    * @param target
    * @param event
    * @param node
@@ -279,6 +280,7 @@ public abstract class DefaultTreeTablePanel<T extends TreeTableNode> extends Pan
     return true;
   }
 
+  @Override
   @SuppressWarnings("unchecked")
   public void setEvent(final AjaxRequestTarget target, final TreeTableEvent event, final TreeTableNode node)
   {
@@ -367,12 +369,14 @@ public abstract class DefaultTreeTablePanel<T extends TreeTableNode> extends Pan
   {
   }
 
+  @Override
   public void setEventNode(final Serializable hashId)
   {
     onSetEventNode(hashId);
     setHighlightedRowId((Integer) hashId);
   }
 
+  @Override
   public Serializable getEventNode()
   {
     return this.highlightedRowId;

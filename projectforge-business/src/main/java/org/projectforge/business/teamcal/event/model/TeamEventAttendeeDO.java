@@ -80,6 +80,12 @@ public class TeamEventAttendeeDO extends DefaultBaseDO implements Comparable<Tea
 
   private String commentOfAttendee;
 
+  private String commonName;
+  private String cuType;
+  private Boolean rsvp;
+  private String role;
+  private String additionalParams;
+
   private static final Set<String> NON_HISTORIZABLE_ATTRIBUTES;
 
   public static final int URL_MAX_LENGTH = 255;
@@ -87,6 +93,17 @@ public class TeamEventAttendeeDO extends DefaultBaseDO implements Comparable<Tea
   static {
     NON_HISTORIZABLE_ATTRIBUTES = new HashSet<String>();
     NON_HISTORIZABLE_ATTRIBUTES.add("loginToken");
+  }
+
+  @Transient
+  public String getEMailAddress()
+  {
+    if (address != null) {
+      return address.getEmail();
+    } else if (user != null) {
+      return user.getEmail();
+    }
+    return null;
   }
 
   /**
@@ -270,6 +287,67 @@ public class TeamEventAttendeeDO extends DefaultBaseDO implements Comparable<Tea
     return this;
   }
 
+  @Column(length = 256, name = "common_name")
+  public String getCommonName()
+  {
+    return commonName;
+  }
+
+  public TeamEventAttendeeDO setCommonName(final String commonName)
+  {
+    this.commonName = commonName;
+    return this;
+  }
+
+  @Column(length = 20, name = "cu_type")
+  public String getCuType()
+  {
+    return cuType;
+  }
+
+  public TeamEventAttendeeDO setCuType(final String cuType)
+  {
+    this.cuType = cuType;
+    return this;
+  }
+
+  @Column
+  public Boolean getRsvp()
+  {
+    return rsvp;
+  }
+
+  public TeamEventAttendeeDO setRsvp(final Boolean rscp)
+  {
+    this.rsvp = rscp;
+    return this;
+  }
+
+  @Column
+  public String getRole()
+  {
+    return role;
+  }
+
+  public TeamEventAttendeeDO setRole(final String role)
+  {
+    this.role = role;
+
+    return this;
+  }
+
+  @Column(length = 1000, name = "additional_params")
+  public String getAdditionalParams()
+  {
+    return additionalParams;
+  }
+
+  public TeamEventAttendeeDO setAdditionalParams(final String additionalParams)
+  {
+    this.additionalParams = additionalParams;
+    return this;
+  }
+
   /**
    * @see java.lang.Comparable#compareTo(java.lang.Object)
    */
@@ -367,6 +445,11 @@ public class TeamEventAttendeeDO extends DefaultBaseDO implements Comparable<Tea
     cloneAttendee.setStatus(this.getStatus());
     cloneAttendee.setUrl(this.getUrl());
     cloneAttendee.setUser(this.getUser());
+    cloneAttendee.setCommonName(this.getCommonName());
+    cloneAttendee.setCuType(this.getCuType());
+    cloneAttendee.setRsvp(this.getRsvp());
+    cloneAttendee.setAdditionalParams(this.getAdditionalParams());
+    cloneAttendee.setRole(this.getRole());
 
     return cloneAttendee;
   }

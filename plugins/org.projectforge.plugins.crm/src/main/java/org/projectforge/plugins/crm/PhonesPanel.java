@@ -116,7 +116,7 @@ public class PhonesPanel extends Panel
             newPhoneValue, "phoneType"),
         phoneChoiceRenderer.getValues(), phoneChoiceRenderer);
     item.add(dropdownChoice);
-    dropdownChoice.add(new AjaxFormComponentUpdatingBehavior("onchange")
+    dropdownChoice.add(new AjaxFormComponentUpdatingBehavior("change")
     {
       @Override
       protected void onUpdate(final AjaxRequestTarget target)
@@ -183,7 +183,7 @@ public class PhonesPanel extends Panel
               "phoneType"),
           phoneChoiceRenderer.getValues(), phoneChoiceRenderer);
       item.add(dropdownChoice);
-      dropdownChoice.add(new AjaxFormComponentUpdatingBehavior("onchange")
+      dropdownChoice.add(new AjaxFormComponentUpdatingBehavior("change")
       {
         @Override
         protected void onUpdate(final AjaxRequestTarget target)

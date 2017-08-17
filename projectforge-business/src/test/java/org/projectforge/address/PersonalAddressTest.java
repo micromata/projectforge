@@ -23,9 +23,7 @@
 
 package org.projectforge.address;
 
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertFalse;
-import static org.testng.AssertJUnit.assertTrue;
+import static org.testng.AssertJUnit.*;
 
 import org.projectforge.business.address.AddressDO;
 import org.projectforge.business.address.AddressDao;
@@ -57,6 +55,7 @@ public class PersonalAddressTest extends AbstractTestBase
     txTemplate.setPropagationBehavior(TransactionTemplate.PROPAGATION_REQUIRES_NEW);
     txTemplate.execute(new TransactionCallback()
     {
+      @Override
       public Object doInTransaction(TransactionStatus status)
       {
         AddressDO address = new AddressDO();
@@ -66,7 +65,6 @@ public class PersonalAddressTest extends AbstractTestBase
         address.setFax("+49 561 316793-11");
         address.setBusinessPhone("+49 561 316793-0");
         address.setPrivatePhone("+49 561 12345678");
-        addressDao.setTask(address, getTask("1.1").getId());
         addressIds[0] = (Integer) addressDao.save(address);
 
         PersonalAddressDO personalAddress = new PersonalAddressDO();
@@ -84,6 +82,7 @@ public class PersonalAddressTest extends AbstractTestBase
     txTemplate.setPropagationBehavior(TransactionTemplate.PROPAGATION_REQUIRES_NEW);
     txTemplate.execute(new TransactionCallback()
     {
+      @Override
       public Object doInTransaction(TransactionStatus status)
       {
         PersonalAddressDO personalAddress = personalAddressDao.getByAddressId(addressIds[0]);

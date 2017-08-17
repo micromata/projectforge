@@ -23,15 +23,12 @@
 
 package org.projectforge.business.teamcal.event.model;
 
-import java.sql.Time;
 import java.sql.Timestamp;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.GregorianCalendar;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 import java.util.TimeZone;
 import java.util.TreeSet;
@@ -60,6 +57,7 @@ import org.hibernate.search.annotations.IndexedEmbedded;
 import org.hibernate.search.annotations.Resolution;
 import org.hibernate.search.annotations.Store;
 import org.projectforge.business.teamcal.admin.model.TeamCalDO;
+import org.projectforge.business.teamcal.event.RecurrenceMonthMode;
 import org.projectforge.business.teamcal.event.TeamEventRecurrenceData;
 import org.projectforge.framework.calendar.ICal4JUtils;
 import org.projectforge.framework.persistence.api.AUserRightId;
@@ -74,10 +72,10 @@ import org.projectforge.framework.time.TimePeriod;
 
 import de.micromata.genome.db.jpa.history.api.NoHistory;
 import de.micromata.genome.db.jpa.history.api.WithHistory;
-import net.fortuna.ical4j.model.DateList;
 import net.fortuna.ical4j.model.DateTime;
 import net.fortuna.ical4j.model.Recur;
-import net.fortuna.ical4j.model.parameter.Value;
+import net.fortuna.ical4j.model.WeekDay;
+import net.fortuna.ical4j.model.WeekDayList;
 import net.fortuna.ical4j.model.property.RRule;
 
 /**
@@ -103,7 +101,7 @@ import net.fortuna.ical4j.model.property.RRule;
 @Entity
 @Indexed
 @Table(name = "T_PLUGIN_CALENDAR_EVENT",
-    uniqueConstraints = { @UniqueConstraint(name = "unique_t_plugin_calendar_event_uid", columnNames = { "uid" }) },
+    uniqueConstraints = { @UniqueConstraint(name = "unique_t_plugin_calendar_event_uid_calendar_fk", columnNames = { "uid", "calendar_fk" }) },
     indexes = {
         @javax.persistence.Index(name = "idx_fk_t_plugin_calendar_event_calendar_fk", columnList = "calendar_fk"),
         @javax.persistence.Index(name = "idx_fk_t_plugin_calendar_event_tenant_id", columnList = "tenant_id"),
@@ -138,6 +136,8 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
   @NoHistory
   private Timestamp lastEmail;
 
+  private Timestamp dtStamp;
+
   @IndexedEmbedded(depth = 1)
   private TeamCalDO calendar;
 
@@ -152,18 +152,18 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
 
   private Set<TeamEventAttendeeDO> attendees;
 
+  private Boolean ownership;
+
   private String organizer;
-
-  private String uid;
-
-  private Integer reminderDuration;
-
-  private ReminderDurationUnit reminderDurationType;
-
-  private ReminderActionType reminderActionType;
+  private String organizer_additional_params;
 
   // See RFC 2445 section 4.8.7.4
   private Integer sequence = 0;
+  private String uid;
+
+  private Integer reminderDuration;
+  private ReminderDurationUnit reminderDurationType;
+  private ReminderActionType reminderActionType;
 
   @PFPersistancyBehavior(autoUpdateCollectionEntries = true)
   private Set<TeamEventAttachmentDO> attachments;
@@ -175,16 +175,19 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
    */
   public TeamEventDO clearFields()
   {
+    ownership = null;
     subject = location = note = null;
     if (attendees != null) {
       attendees.clear();
     }
     organizer = null;
+    organizer_additional_params = null;
     reminderDuration = null;
     reminderDurationType = null;
     reminderActionType = null;
     lastEmail = null;
     sequence = null;
+    dtStamp = null;
     if (attachments != null) {
       attachments.clear();
     }
@@ -196,6 +199,12 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
   public TeamEventDO()
   {
 
+  }
+
+  @Override
+  public void setLastUpdate()
+  {
+    super.setLastUpdate();
   }
 
   /**
@@ -360,6 +369,25 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
   }
 
   /**
+   * @return the DTSTAMP
+   */
+  @Column(name = "dt_stamp")
+  public Timestamp getDtStamp()
+  {
+    return dtStamp;
+  }
+
+  /**
+   * @param dtStamp the DTSTAMP to set
+   * @return this for chaining.
+   */
+  public TeamEventDO setDtStamp(final Timestamp dtStamp)
+  {
+    this.dtStamp = dtStamp;
+    return this;
+  }
+
+  /**
    * @return the note
    */
   @Override
@@ -428,6 +456,18 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
     return this;
   }
 
+  @Column
+  public Boolean isOwnership()
+  {
+    return this.ownership;
+  }
+
+  public TeamEventDO setOwnership(final Boolean ownership)
+  {
+    this.ownership = ownership;
+    return this;
+  }
+
   /**
    * @return the organizer
    */
@@ -444,6 +484,18 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
   public TeamEventDO setOrganizer(final String organizer)
   {
     this.organizer = organizer;
+    return this;
+  }
+
+  @Column(length = 1000, name = "organizer_additional_params")
+  public String getOrganizerAdditionalParams()
+  {
+    return organizer_additional_params;
+  }
+
+  public TeamEventDO setOrganizerAdditionalParams(final String organizer_additional_params)
+  {
+    this.organizer_additional_params = organizer_additional_params;
     return this;
   }
 
@@ -475,7 +527,7 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
    * @return this for chaining.
    */
   @Transient
-  public TeamEventDO setRecurrence(final RRule rRule, TimeZone timezone)
+  public TeamEventDO setRecurrence(final RRule rRule)
   {
     if (rRule == null || rRule.getRecur() == null) {
       this.recurrenceRuleObject = null;
@@ -504,9 +556,9 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
    * @return this for chaining.
    */
   @Transient
-  public TeamEventDO setRecurrence(final TeamEventRecurrenceData recurData)
+  public TeamEventDO setRecurrence(final TeamEventRecurrenceData recurrenceData)
   {
-    if (recurData == null || recurData.getFrequency() == null || recurData.getFrequency() == RecurrenceFrequency.NONE) {
+    if (recurrenceData == null || recurrenceData.getFrequency() == null || recurrenceData.getFrequency() == RecurrenceFrequency.NONE) {
       this.recurrenceRuleObject = null;
       this.recurrenceRule = null;
       this.recurrenceUntil = null;
@@ -514,23 +566,74 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
       return this;
     }
 
-    if (recurData.isCustomized() == false) {
-      recurData.setInterval(1);
+    if (recurrenceData.isCustomized() == false) {
+      recurrenceData.setInterval(1);
     }
 
     final Recur recur = new Recur();
-    recur.setInterval(recurData.getInterval());
-    recur.setFrequency(ICal4JUtils.getCal4JFrequencyString(recurData.getFrequency()));
+    recur.setInterval(recurrenceData.getInterval());
+    recur.setFrequency(ICal4JUtils.getCal4JFrequencyString(recurrenceData.getFrequency()));
 
+    if (recurrenceData.getFrequency() == RecurrenceFrequency.WEEKLY) {
+      boolean[] weekdays = recurrenceData.getWeekdays();
+      for (int i = 0; i < 7; i++) {
+        if (weekdays[i]) {
+          if (i == 0) {
+            recur.getDayList().add(WeekDay.MO);
+          } else if (i == 1) {
+            recur.getDayList().add(WeekDay.TU);
+          } else if (i == 2) {
+            recur.getDayList().add(WeekDay.WE);
+          } else if (i == 3) {
+            recur.getDayList().add(WeekDay.TH);
+          } else if (i == 4) {
+            recur.getDayList().add(WeekDay.FR);
+          } else if (i == 5) {
+            recur.getDayList().add(WeekDay.SA);
+          } else if (i == 6) {
+            recur.getDayList().add(WeekDay.SU);
+          }
+        }
+      }
+    } else if (recurrenceData.getFrequency() == RecurrenceFrequency.MONTHLY) {
+      if (recurrenceData.getMonthMode() == RecurrenceMonthMode.EACH) {
+        boolean[] monthdays = recurrenceData.getMonthdays();
+        for (int i = 0; i < 31; i++) {
+          if (monthdays[i]) {
+            recur.getMonthDayList().add(i + 1);
+          }
+        }
+      } else if (recurrenceData.getMonthMode() == RecurrenceMonthMode.ATTHE) {
+        int offset = ICal4JUtils.getOffsetForRecurrenceFrequencyModeOne(recurrenceData.getModeOneMonth());
+        WeekDayList weekDays = ICal4JUtils.getDayListForRecurrenceFrequencyModeTwo(recurrenceData.getModeTwoMonth());
+        for (WeekDay weekDay : weekDays) {
+          recur.getDayList().add(new WeekDay(weekDay, offset));
+        }
+      }
+    } else if (recurrenceData.getFrequency() == RecurrenceFrequency.YEARLY) {
+      boolean[] months = recurrenceData.getMonths();
+      for (int i = 0; i < 12; i++) {
+        if (months[i]) {
+          recur.getMonthList().add(i + 1);
+        }
+      }
+      if (recurrenceData.isYearMode()) {
+        int offset = ICal4JUtils.getOffsetForRecurrenceFrequencyModeOne(recurrenceData.getModeOneYear());
+        WeekDayList weekDays = ICal4JUtils.getDayListForRecurrenceFrequencyModeTwo(recurrenceData.getModeTwoYear());
+        for (WeekDay weekDay : weekDays) {
+          recur.getDayList().add(new WeekDay(weekDay, offset));
+        }
+      }
+    }
     // Set until
-    if (recurData.getUntil() != null) {
+    if (recurrenceData.getUntil() != null) {
       if (this.allDay) {
         // just use date, no time
-        final net.fortuna.ical4j.model.Date untilICal4J = new net.fortuna.ical4j.model.Date(recurData.getUntil());
+        final net.fortuna.ical4j.model.Date untilICal4J = new net.fortuna.ical4j.model.Date(recurrenceData.getUntil());
         recur.setUntil(untilICal4J);
-        this.recurrenceUntil = recurData.getUntil();
+        this.recurrenceUntil = recurrenceData.getUntil();
       } else {
-        this.recurrenceUntil = this.fixUntilInRecur(recur, recurData.getUntil(), recurData.getTimeZone());
+        this.recurrenceUntil = this.fixUntilInRecur(recur, recurrenceData.getUntil(), recurrenceData.getTimeZone());
       }
     } else {
       this.recurrenceUntil = null;
@@ -602,7 +705,7 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
       return recurrenceData;
     }
 
-    recurrenceData.setInterval(recur.getInterval() < 1 ? 1 : recur.getInterval());
+    recurrenceData.setInterval(recur.getInterval() == -1 ? 1 : recur.getInterval());
 
     if (this.recurrenceUntil != null) {
       // transform until to timezone
@@ -641,6 +744,73 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
     }
     recurrenceData.setFrequency(ICal4JUtils.getFrequency(recur));
 
+    if (recurrenceData.getFrequency() == RecurrenceFrequency.WEEKLY) {
+      boolean[] weekdays = recurrenceData.getWeekdays();
+      for (WeekDay wd : recur.getDayList()) {
+        recurrenceData.setCustomized(true);
+        if (wd.getDay() == WeekDay.MO.getDay()) {
+          weekdays[0] = true;
+        } else if (wd.getDay() == WeekDay.TU.getDay()) {
+          weekdays[1] = true;
+        } else if (wd.getDay() == WeekDay.WE.getDay()) {
+          weekdays[2] = true;
+        } else if (wd.getDay() == WeekDay.TH.getDay()) {
+          weekdays[3] = true;
+        } else if (wd.getDay() == WeekDay.FR.getDay()) {
+          weekdays[4] = true;
+        } else if (wd.getDay() == WeekDay.SA.getDay()) {
+          weekdays[5] = true;
+        } else if (wd.getDay() == WeekDay.SU.getDay()) {
+          weekdays[6] = true;
+        }
+      }
+      recurrenceData.setWeekdays(weekdays);
+    }
+    if (recurrenceData.getFrequency() == RecurrenceFrequency.MONTHLY) {
+      recurrenceData.setMonthMode(RecurrenceMonthMode.NONE);
+      boolean[] monthdays = recurrenceData.getMonthdays();
+      for (Integer day : recur.getMonthDayList()) {
+        recurrenceData.setCustomized(true);
+        recurrenceData.setMonthMode(RecurrenceMonthMode.EACH);
+        monthdays[day - 1] = true;
+      }
+      recurrenceData.setMonthdays(monthdays);
+
+      int offset = 0;
+      if (recur.getDayList().size() == 1) {
+        offset = recur.getDayList().get(0).getOffset();
+      } else if (recur.getDayList().size() > 1 && recur.getSetPosList().size() != 0) {
+        offset = recur.getSetPosList().get(0);
+      }
+      if (recur.getDayList().size() != 0) {
+        recurrenceData.setCustomized(true);
+        recurrenceData.setMonthMode(RecurrenceMonthMode.ATTHE);
+        recurrenceData.setModeOneMonth(ICal4JUtils.getRecurrenceFrequencyModeOneByOffset(offset));
+        recurrenceData.setModeTwoMonth(ICal4JUtils.getRecurrenceFrequencyModeTwoForDay(recur.getDayList()));
+      }
+    }
+    if (recurrenceData.getFrequency() == RecurrenceFrequency.YEARLY) {
+      boolean[] months = recurrenceData.getMonths();
+      for (Integer day : recur.getMonthList()) {
+        recurrenceData.setCustomized(true);
+
+        months[day - 1] = true;
+      }
+      recurrenceData.setMonths(months);
+
+      int offset = 0;
+      if (recur.getDayList().size() == 1) {
+        offset = recur.getDayList().get(0).getOffset();
+      } else if (recur.getDayList().size() > 1 && recur.getSetPosList().size() != 0) {
+        offset = recur.getSetPosList().get(0);
+      }
+      if (recur.getDayList().size() != 0) {
+        recurrenceData.setCustomized(true);
+        recurrenceData.setYearMode(true);
+        recurrenceData.setModeOneYear(ICal4JUtils.getRecurrenceFrequencyModeOneByOffset(offset));
+        recurrenceData.setModeTwoYear(ICal4JUtils.getRecurrenceFrequencyModeTwoForDay(recur.getDayList()));
+      }
+    }
     return recurrenceData;
   }
 
@@ -690,6 +860,7 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
    * @param recurrenceExDate the recurrenceExDate to set
    * @return this for chaining.
    */
+
   public TeamEventDO setRecurrenceExDate(final String recurrenceExDate)
   {
     this.recurrenceExDate = recurrenceExDate;
@@ -909,11 +1080,6 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
     return this;
   }
 
-  public void incSequence()
-  {
-    sequence++;
-  }
-
   /**
    * @return the attachments
    */
@@ -989,6 +1155,9 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
     result = prime * result + ((recurrenceUntil == null) ? 0 : recurrenceUntil.hashCode());
     result = prime * result + ((startDate == null) ? 0 : startDate.hashCode());
     result = prime * result + ((subject == null) ? 0 : subject.hashCode());
+    result = prime * result + ((organizer == null) ? 0 : organizer.hashCode());
+    result = prime * result + ((organizer_additional_params == null) ? 0 : organizer_additional_params.hashCode());
+    result = prime * result + ((dtStamp == null) ? 0 : dtStamp.hashCode());
     return result;
   }
 
@@ -1011,6 +1180,13 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
     if (allDay != other.allDay) {
       return false;
     }
+
+    if (ownership == null && other.ownership != null) {
+      return false;
+    } else if (ownership != other.ownership) {
+      return false;
+    }
+
     if (attendees == null) {
       if (other.attendees != null) {
         return false;
@@ -1067,11 +1243,32 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
     } else if (recurrenceUntil.equals(other.recurrenceUntil) == false) {
       return false;
     }
+    if (organizer == null) {
+      if (other.organizer != null) {
+        return false;
+      }
+    } else if (organizer.equals(other.organizer) == false) {
+      return false;
+    }
+    if (organizer_additional_params == null) {
+      if (other.organizer_additional_params != null) {
+        return false;
+      }
+    } else if (organizer_additional_params.equals(other.organizer_additional_params) == false) {
+      return false;
+    }
     if (startDate == null) {
       if (other.startDate != null) {
         return false;
       }
     } else if (startDate.equals(other.startDate) == false) {
+      return false;
+    }
+    if (dtStamp == null) {
+      if (other.dtStamp != null) {
+        return false;
+      }
+    } else if (dtStamp.equals(other.dtStamp) == false) {
       return false;
     }
     if (subject == null) {
@@ -1091,50 +1288,98 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
     return true;
   }
 
+  @Transient
   public boolean mustIncSequence(final TeamEventDO other)
   {
-    if (location == null) {
-      if (other.location != null) {
-        return true;
-      }
-    } else if (!location.equals(other.location)) {
+    if (allDay != other.allDay) {
       return true;
     }
-    if (startDate == null) {
-      if (other.startDate != null) {
-        return true;
-      }
-    } else if (!startDate.equals(other.startDate)) {
-      return true;
-    }
+
     if (endDate == null) {
       if (other.endDate != null) {
         return true;
       }
-    } else if (!endDate.equals(other.endDate)) {
+    } else if (endDate.equals(other.endDate) == false) {
+      return true;
+    }
+    if (location == null) {
+      if (other.location != null) {
+        return true;
+      }
+    } else if (location.equals(other.location) == false) {
+      return true;
+    }
+    if (note == null) {
+      if (other.note != null) {
+        return true;
+      }
+    } else if (note.equals(other.note) == false) {
       return true;
     }
     if (recurrenceExDate == null) {
       if (other.recurrenceExDate != null) {
         return true;
       }
-    } else if (!recurrenceExDate.equals(other.recurrenceExDate)) {
+    } else if (recurrenceExDate.equals(other.recurrenceExDate) == false) {
       return true;
     }
     if (recurrenceRule == null) {
       if (other.recurrenceRule != null) {
         return true;
       }
-    } else if (!recurrenceRule.equals(other.recurrenceRule)) {
+    } else if (recurrenceRule.equals(other.recurrenceRule) == false) {
       return true;
     }
     if (recurrenceUntil == null) {
       if (other.recurrenceUntil != null) {
         return true;
       }
-    } else if (!recurrenceUntil.equals(other.recurrenceUntil)) {
+    } else if (recurrenceUntil.equals(other.recurrenceUntil) == false) {
       return true;
     }
+    if (organizer == null) {
+      if (other.organizer != null) {
+        return true;
+      }
+    } else if (organizer.equals(other.organizer) == false) {
+      return true;
+    }
+    if (organizer_additional_params == null) {
+      if (other.organizer_additional_params != null) {
+        return true;
+      }
+    } else if (organizer_additional_params.equals(other.organizer_additional_params) == false) {
+      return true;
+    }
+    if (startDate == null) {
+      if (other.startDate != null) {
+        return true;
+      }
+    } else if (startDate.equals(other.startDate) == false) {
+      return true;
+    }
+    if (subject == null) {
+      if (other.subject != null) {
+        return true;
+      }
+    } else if (subject.equals(other.subject) == false) {
+      return true;
+    }
+    if (attendees == null || attendees.isEmpty()) {
+      if (other.attendees != null && other.attendees.isEmpty() == false) {
+        return true;
+      }
+    } else if (attendees.equals(other.attendees) == false) {
+      return true;
+    }
+    if (attachments == null || attachments.isEmpty()) {
+      if (other.attachments != null && other.attachments.isEmpty() == false) {
+        return true;
+      }
+    } else if (attachments.equals(other.attachments) == false) {
+      return true;
+    }
+
     return false;
   }
 
@@ -1157,11 +1402,13 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
     clone.recurrenceReferenceDate = this.recurrenceReferenceDate;
     clone.recurrenceReferenceId = this.recurrenceReferenceId;
     clone.recurrenceUntil = this.recurrenceUntil;
+    clone.ownership = this.ownership;
     clone.organizer = this.organizer;
+    clone.organizer_additional_params = this.organizer_additional_params;
     clone.note = this.note;
     clone.lastEmail = this.lastEmail;
+    clone.dtStamp = this.dtStamp;
     clone.sequence = this.sequence;
-    // clone.status = this.status;
     clone.reminderDuration = this.reminderDuration;
     clone.reminderDurationType = this.reminderDurationType;
     clone.reminderActionType = this.reminderActionType;
@@ -1192,6 +1439,7 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
     return clone;
   }
 
+  @Transient
   public TeamEventDO createMinimalCopy()
   {
     final TeamEventDO result = new TeamEventDO();
@@ -1199,6 +1447,7 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
     result.setCalendar(this.getCalendar());
     result.startDate = this.startDate;
     result.endDate = this.endDate;
+    result.dtStamp = this.dtStamp;
     result.allDay = this.allDay;
     result.recurrenceExDate = this.recurrenceExDate;
     result.recurrenceRule = this.recurrenceRule;
@@ -1206,13 +1455,16 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
     result.recurrenceReferenceId = this.recurrenceReferenceId;
     result.recurrenceUntil = this.recurrenceUntil;
     result.sequence = this.sequence;
+    result.ownership = this.ownership;
+    result.organizer = this.organizer;
+    result.organizer_additional_params = this.organizer_additional_params;
     return result;
   }
 
   /**
-   * Returns the events owner time zone.
+   * Returns time zone of event owner.
    *
-   * @return Returns the events owner time zone.
+   * @return Returns time zone of event owner.
    */
   @Transient
   public TimeZone getTimeZone()

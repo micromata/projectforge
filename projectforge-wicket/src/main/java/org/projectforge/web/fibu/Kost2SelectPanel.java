@@ -37,8 +37,8 @@ import org.projectforge.web.wicket.components.TooltipImage;
 
 /**
  * This panel show the actual kost2 and buttons for select/unselect kost2s.
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
  */
 public class Kost2SelectPanel extends AbstractSelectPanel<Kost2DO>
 {
@@ -57,7 +57,8 @@ public class Kost2SelectPanel extends AbstractSelectPanel<Kost2DO>
   public Kost2SelectPanel init()
   {
     super.init();
-    final Label kost2AsStringLabel = new Label("kost2AsString", new Model<String>() {
+    final Label kost2AsStringLabel = new Label("kost2AsString", new Model<String>()
+    {
 
       @Override
       public String getObject()
@@ -70,7 +71,8 @@ public class Kost2SelectPanel extends AbstractSelectPanel<Kost2DO>
       }
     });
     add(kost2AsStringLabel);
-    final SubmitLink selectButton = new SubmitLink("select") {
+    final SubmitLink selectButton = new SubmitLink("select")
+    {
       @Override
       public void onSubmit()
       {
@@ -78,7 +80,7 @@ public class Kost2SelectPanel extends AbstractSelectPanel<Kost2DO>
         beforeSelectPage(parameters);
         final Kost2ListPage page = new Kost2ListPage(parameters, caller, selectProperty);
         setResponsePage(page);
-      };
+      }
     };
     selectButton.setDefaultFormProcessing(false);
     add(selectButton);
@@ -87,7 +89,8 @@ public class Kost2SelectPanel extends AbstractSelectPanel<Kost2DO>
       selectButton.setVisible(false);
     }
     selectButton.add(new TooltipImage("selectHelp", WebConstants.IMAGE_KOST2_SELECT, getString("fibu.tooltip.selectKost2")));
-    final SubmitLink unselectButton = new SubmitLink("unselect") {
+    final SubmitLink unselectButton = new SubmitLink("unselect")
+    {
       @Override
       public void onSubmit()
       {
@@ -111,7 +114,7 @@ public class Kost2SelectPanel extends AbstractSelectPanel<Kost2DO>
   }
 
   @Override
-  protected void convertInput()
+  public void convertInput()
   {
     setConvertedInput(getModelObject());
   }

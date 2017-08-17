@@ -33,9 +33,7 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.group.service.GroupService;
-import org.projectforge.business.multitenancy.TenantRegistryMap;
 import org.projectforge.business.user.GroupsComparator;
-import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.framework.persistence.api.UserRightService;
 import org.projectforge.framework.persistence.user.entities.GroupDO;
 import org.projectforge.web.common.MultiChoiceListHelper;
@@ -48,12 +46,10 @@ import org.projectforge.web.wicket.components.MaxLengthTextArea;
 import org.projectforge.web.wicket.components.RequiredMaxLengthTextField;
 import org.projectforge.web.wicket.flowlayout.DivTextPanel;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
-
-import com.vaynberg.wicket.select2.Select2MultiChoice;
+import org.wicketstuff.select2.Select2MultiChoice;
 
 /**
  * @author Billy Duong (b.duong@micromata.de)
- * 
  */
 public class SkillEditForm extends AbstractEditForm<SkillDO, SkillEditPage>
 {

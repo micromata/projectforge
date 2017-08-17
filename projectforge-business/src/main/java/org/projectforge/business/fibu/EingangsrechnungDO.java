@@ -39,6 +39,7 @@ import javax.persistence.Transient;
 import org.apache.commons.lang.StringUtils;
 import org.hibernate.annotations.IndexColumn;
 import org.hibernate.search.annotations.Field;
+import org.hibernate.search.annotations.FieldBridge;
 import org.hibernate.search.annotations.Index;
 import org.hibernate.search.annotations.Indexed;
 import org.hibernate.search.annotations.Store;
@@ -54,10 +55,10 @@ import de.micromata.genome.db.jpa.history.api.WithHistory;
 @Entity
 @Indexed
 @Table(name = "t_fibu_eingangsrechnung",
-       indexes = {
-           @javax.persistence.Index(name = "idx_fk_t_fibu_eingangsrechnung_konto_id", columnList = "konto_id"),
-           @javax.persistence.Index(name = "idx_fk_t_fibu_eingangsrechnung_tenant_id", columnList = "tenant_id")
-       })
+    indexes = {
+        @javax.persistence.Index(name = "idx_fk_t_fibu_eingangsrechnung_konto_id", columnList = "konto_id"),
+        @javax.persistence.Index(name = "idx_fk_t_fibu_eingangsrechnung_tenant_id", columnList = "tenant_id")
+    })
 // @AssociationOverride(name="positionen", joinColumns=@JoinColumn(name="eingangsrechnung_fk"))
 @WithHistory(noHistoryProperties = { "lastUpdate", "created" }, nestedEntities = { EingangsrechnungsPositionDO.class })
 public class EingangsrechnungDO extends AbstractRechnungDO<EingangsrechnungsPositionDO>
@@ -74,6 +75,9 @@ public class EingangsrechnungDO extends AbstractRechnungDO<EingangsrechnungsPosi
   private String kreditor;
 
   @PropertyInfo(i18nKey = "fibu.payment.type")
+  @Field(bridge = @FieldBridge(impl = HibernateSearchPaymentTypeBridge.class))
+  //  @Field(index = Index.YES /* TOKENIZED */, store = Store.NO)
+  @Enumerated(EnumType.STRING)
   private PaymentType paymentType;
 
   @PropertyInfo(i18nKey = "fibu.rechnung.customernr")
@@ -108,7 +112,7 @@ public class EingangsrechnungDO extends AbstractRechnungDO<EingangsrechnungsPosi
   }
 
   @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER, mappedBy = "eingangsrechnung",
-             targetEntity = EingangsrechnungsPositionDO.class)
+      targetEntity = EingangsrechnungsPositionDO.class)
   @IndexColumn(name = "number", base = 1)
   @Override
   public List<EingangsrechnungsPositionDO> getPositionen()

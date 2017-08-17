@@ -40,7 +40,7 @@ import org.apache.wicket.request.Request;
 import org.apache.wicket.request.Response;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.resource.loader.BundleStringResourceLoader;
-import org.apache.wicket.settings.IResourceSettings;
+import org.apache.wicket.settings.ResourceSettings;
 import org.apache.wicket.spring.injection.annot.SpringComponentInjector;
 import org.apache.wicket.util.tester.FormTester;
 import org.apache.wicket.util.tester.WicketTester;
@@ -87,7 +87,7 @@ public class WicketPageTestBase extends AbstractTestBase
   /**
    * don't know why, but we chache it...
    */
-  private static IResourceSettings resourceSettings;
+  private static ResourceSettings resourceSettings;
 
   private class WicketTestApplication extends WebApplication implements WicketApplicationInterface
   {

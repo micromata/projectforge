@@ -35,11 +35,10 @@ import org.projectforge.business.teamcal.event.model.TeamEventAttendeeStatus;
 import org.projectforge.business.teamcal.event.model.TeamEventDO;
 import org.projectforge.framework.i18n.I18nHelper;
 import org.projectforge.framework.utils.NumberHelper;
+import org.wicketstuff.select2.ChoiceProvider;
+import org.wicketstuff.select2.Response;
 
-import com.vaynberg.wicket.select2.Response;
-import com.vaynberg.wicket.select2.TextChoiceProvider;
-
-public class AttendeeWicketProvider extends TextChoiceProvider<TeamEventAttendeeDO>
+public class AttendeeWicketProvider extends ChoiceProvider<TeamEventAttendeeDO>
 {
   private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(AttendeeWicketProvider.class);
 
@@ -115,11 +114,8 @@ public class AttendeeWicketProvider extends TextChoiceProvider<TeamEventAttendee
     return customAttendees;
   }
 
-  /**
-   * @see com.vaynberg.wicket.select2.TextChoiceProvider#getDisplayText(java.lang.Object)
-   */
   @Override
-  protected String getDisplayText(final TeamEventAttendeeDO choice)
+  public String getDisplayValue(final TeamEventAttendeeDO choice)
   {
     String name = "";
     if (choice.getAddress() != null) {
@@ -128,33 +124,30 @@ public class AttendeeWicketProvider extends TextChoiceProvider<TeamEventAttendee
       } else {
         name = "[" + I18nHelper.getLocalizedMessage("address.addressText") + "] " + choice.getAddress().getFullName();
       }
+    } else if (choice.getUser() != null) {
+      name = "[" + I18nHelper.getLocalizedMessage("user") + "] " + choice.getUser().getFullname();
     }
-    String mail = choice.getAddress() != null ? choice.getAddress().getEmail() : choice.getUrl();
+    String mail = choice.getEMailAddress() != null ? choice.getEMailAddress() : choice.getUrl();
     if (mail == null) {
       mail = "";
     }
-    String status = choice.getStatus() != null ? "[" + choice.getStatus().getI18nValue() + "]" : "";
+    String status = choice.getStatus() != null ? " [" + choice.getStatus().getI18nValue() + "]" : "";
     return name + " (" + mail + ")" + status;
   }
 
-  /**
-   * @see com.vaynberg.wicket.select2.TextChoiceProvider#getId(java.lang.Object)
-   */
   @Override
-  protected Object getId(final TeamEventAttendeeDO choice)
+  public String getIdValue(final TeamEventAttendeeDO choice)
   {
-    return choice.getId();
+    return String.valueOf(choice.getId());
   }
 
-  /**
-   * @see com.vaynberg.wicket.select2.ChoiceProvider#query(java.lang.String, int, com.vaynberg.wicket.select2.Response)
-   */
   @Override
   public void query(String term, final int page, final Response<TeamEventAttendeeDO> response)
   {
     initSortedAttendees();
+
     final List<TeamEventAttendeeDO> result = new ArrayList<>();
-    term = term.toLowerCase();
+    term = term != null ? term.toLowerCase() : "";
     String[] splitTerm = term.split(" ");
 
     final int offset = page * pageSize;
@@ -180,7 +173,7 @@ public class AttendeeWicketProvider extends TextChoiceProvider<TeamEventAttendee
 
     if (result.size() == 0) {
       TeamEventAttendeeDO newAttendee = new TeamEventAttendeeDO().setUrl(term);
-      newAttendee.setStatus(TeamEventAttendeeStatus.NEW);
+      newAttendee.setStatus(TeamEventAttendeeStatus.IN_PROCESS);
       newAttendee.setId(getAndDecreaseInternalNewAttendeeSequence());
       customAttendees.add(newAttendee);
       result.add(newAttendee);
@@ -190,9 +183,6 @@ public class AttendeeWicketProvider extends TextChoiceProvider<TeamEventAttendee
     response.setHasMore(hasMore);
   }
 
-  /**
-   * @see com.vaynberg.wicket.select2.ChoiceProvider#toChoices(java.util.Collection)
-   */
   @Override
   public Collection<TeamEventAttendeeDO> toChoices(final Collection<String> ids)
   {

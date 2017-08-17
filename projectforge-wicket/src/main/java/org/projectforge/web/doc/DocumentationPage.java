@@ -43,27 +43,23 @@ public class DocumentationPage extends AbstractSecuredPage
     boolean isGerman = false;
     String docroot = "http://www.projectforge.org/";
 
-    addDocLink(body, "newsLink", docroot + "pf-common/News");
-    addDocLink(body, "tutorialLink", docroot + "pf-common/Projectforge_Quickstart");
-    addDocLink(body, "handbookLink", docroot + "pf-common/User_guide");
-    if (isGerman == true) {
-      addDocLink(body, "faqLink", "doc/FAQ_de.html");
-    } else {
-      addDocLink(body, "faqLink", docroot + "pf-common/FAQ");
-    }
-    addDocLink(body, "licenseLink", docroot + "pf-en/License");
+    addDocLink(body, "newsLink", docroot + "projectforge-news.html");
+    addDocLink(body, "quickstartLink", docroot + "documentation/quickstart.html");
+    addDocLink(body, "userGuideLink", docroot + "documentation/user-guide.html");
+    addDocLink(body, "faqLink", docroot + "projectforge-faq.html");
+    addDocLink(body, "licenseLink", docroot + "application/terms-of-use.html");
 
+    addDocLink(body, "adminGuideLink", docroot + "documentation/administration-guide.html");
+    addDocLink(body, "developerGuideLink", docroot + "documentation/developer-guide.html");
+    //addDocLink(body, "projectDocLink", "site/index.html");
+    //addDocLink(body, "javaDocLink", "site/apidocs/index.html");
     //addDocLink(body, "adminLogbuchLink", docroot + "pf-common/AdminLogbuch");
-    addDocLink(body, "adminGuideLink", docroot + "pf-common/Administration_Guide");
-    addDocLink(body, "developerGuideLink", docroot + "pf-common/DeveloperGuide");
-    //    addDocLink(body, "projectDocLink", "site/index.html");
-    //    addDocLink(body, "javaDocLink", "site/apidocs/index.html");
   }
 
   /**
    * Adds BookmarkablePageLink with given id to the given parentContainer.
    *
-   * @param id id of the link (shouldn't bee "newsLink" in body, because it's already used by DocumentationPage).
+   * @param id              id of the link (shouldn't bee "newsLink" in body, because it's already used by DocumentationPage).
    * @param parentContainer Page (normally body)
    */
   public static final AbstractLink addNewsLink(final WebMarkupContainer parentContainer, final String id)

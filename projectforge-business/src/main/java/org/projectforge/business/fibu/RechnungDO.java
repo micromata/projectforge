@@ -104,14 +104,14 @@ public class RechnungDO extends AbstractRechnungDO<RechnungsPositionDO> implemen
   @PropertyInfo(i18nKey = "fibu.rechnung.typ")
   @Field(index = Index.YES /* TOKENIZED */, store = Store.NO)
   private RechnungTyp typ;
-  
+
   @PropertyInfo(i18nKey = "fibu.customerref1")
   @Field(index = Index.YES /* TOKENIZED */, store = Store.NO)
   private String customerref1;
 
-  @PropertyInfo(i18nKey = "fibu.customerref2")
+  @PropertyInfo(i18nKey = "fibu.attachment")
   @Field(index = Index.YES /* TOKENIZED */, store = Store.NO)
-  private String customerref2;
+  private String attachment;
 
   @PropertyInfo(i18nKey = "fibu.customer.address")
   @Field(index = Index.YES /* TOKENIZED */, store = Store.NO)
@@ -179,15 +179,15 @@ public class RechnungDO extends AbstractRechnungDO<RechnungsPositionDO> implemen
     return this;
   }
 
-  @Column(name = "customerref2")
-  public String getCustomerref2()
+  @Column(name = "attachment")
+  public String getAttachment()
   {
-    return customerref2;
+    return attachment;
   }
 
-  public RechnungDO setCustomerref2(final String customerref2)
+  public RechnungDO setAttachment(final String attachment)
   {
-    this.customerref2 = customerref2;
+    this.attachment = attachment;
     return this;
   }
 

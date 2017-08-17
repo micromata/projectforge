@@ -51,12 +51,10 @@ import org.projectforge.web.common.MultiChoiceListHelper;
 import org.projectforge.web.user.GroupsWicketProvider;
 import org.projectforge.web.user.UsersProvider;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
-
-import com.vaynberg.wicket.select2.Select2MultiChoice;
+import org.wicketstuff.select2.Select2MultiChoice;
 
 /**
  * @author M. Lauterbach (m.lauterbach@micromata.de)
- * 
  */
 public class PollAttendeePage extends PollBasePage
 {

@@ -24,6 +24,7 @@
 package org.projectforge.web.teamcal.admin;
 
 import java.util.Collection;
+import java.util.List;
 
 import org.apache.commons.lang.ObjectUtils;
 import org.apache.log4j.Logger;
@@ -32,6 +33,7 @@ import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.IChoiceRenderer;
 import org.apache.wicket.markup.html.form.TextField;
+import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.ResourceModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
@@ -62,8 +64,7 @@ import org.projectforge.web.wicket.flowlayout.CheckBoxPanel;
 import org.projectforge.web.wicket.flowlayout.DropDownChoicePanel;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
 import org.projectforge.web.wicket.flowlayout.IconType;
-
-import com.vaynberg.wicket.select2.Select2MultiChoice;
+import org.wicketstuff.select2.Select2MultiChoice;
 
 /**
  * Creates a top form-panel to add filter functions or other options.
@@ -203,7 +204,6 @@ public class TeamCalEditForm extends AbstractEditForm<TeamCalDO, TeamCalEditPage
           icsExportDialog.open(target);
         }
 
-        ;
       });
     }
     if (access == true) {
@@ -263,7 +263,24 @@ public class TeamCalEditForm extends AbstractEditForm<TeamCalDO, TeamCalEditPage
         @Override
         public String getIdValue(final Integer object, final int index)
         {
-          return "" + object;
+          return object.toString();
+        }
+
+        @Override
+        public Integer getObject(final String s, final IModel<? extends List<? extends Integer>> iModel)
+        {
+          if (s == null) {
+            return null;
+          }
+
+          for (Integer instance : iModel.getObject()) {
+            // TODO sn migration
+            if (s.equals(instance.toString())) {
+              return instance;
+            }
+          }
+
+          return null;
         }
       };
       final DropDownChoicePanel<Integer> intervalField = new DropDownChoicePanel<Integer>(

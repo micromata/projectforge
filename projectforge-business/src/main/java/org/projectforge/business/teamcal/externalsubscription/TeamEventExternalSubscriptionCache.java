@@ -33,16 +33,14 @@ import java.util.Map;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.hibernate.criterion.Restrictions;
+import org.projectforge.business.common.DataobjectAccessType;
 import org.projectforge.business.teamcal.admin.TeamCalCache;
 import org.projectforge.business.teamcal.admin.TeamCalDao;
-import org.projectforge.business.teamcal.admin.model.TeamCalAccessType;
 import org.projectforge.business.teamcal.admin.model.TeamCalDO;
 import org.projectforge.business.teamcal.admin.right.TeamCalRight;
 import org.projectforge.business.teamcal.event.TeamEventFilter;
 import org.projectforge.business.teamcal.event.model.TeamEventDO;
-import org.projectforge.business.teamcal.service.TeamCalServiceImpl;
 import org.projectforge.business.user.UserRightId;
-import org.projectforge.framework.configuration.ApplicationContextProvider;
 import org.projectforge.framework.persistence.api.QueryFilter;
 import org.projectforge.framework.persistence.api.UserRightService;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
@@ -75,8 +73,6 @@ public class TeamEventExternalSubscriptionCache
 
   @Autowired
   private UserRightService userRights;
-
-  private TeamCalServiceImpl teamEventConverter;
 
   public void updateCache()
   {
@@ -123,9 +119,8 @@ public class TeamEventExternalSubscriptionCache
   }
 
   /**
-   * @param teamCalDao
    * @param calendar
-   * @param force      If true then update is forced (independent of last update time and refresh interval).
+   * @param force    If true then update is forced (independent of last update time and refresh interval).
    */
   public void updateCache(final TeamCalDO calendar, final boolean force)
   {
@@ -143,7 +138,7 @@ public class TeamEventExternalSubscriptionCache
       // First update of subscribed calendar:
       teamEventSubscription = new TeamEventSubscription();
       subscriptions.put(calendar.getId(), teamEventSubscription);
-      teamEventSubscription.update(teamCalDao, calendar, getTeamEventConverter());
+      teamEventSubscription.update(teamCalDao, calendar);
     } else if (force == true || teamEventSubscription.getLastUpdated() == null
         || teamEventSubscription.getLastUpdated() + addedTime <= now) {
       if (force == false && teamEventSubscription.getNumberOfFailedUpdates() > 0) {
@@ -153,7 +148,7 @@ public class TeamEventExternalSubscriptionCache
           lastRun = teamEventSubscription.getLastFailedUpdate();
         }
         if (lastRun == null || lastRun + teamEventSubscription.getNumberOfFailedUpdates() * addedTime <= now) {
-          teamEventSubscription.update(teamCalDao, calendar, getTeamEventConverter());
+          teamEventSubscription.update(teamCalDao, calendar);
         } else if (lastRun + MAX_WAIT_MS_AFTER_FAILED_UPDATE > now) {
           log.info("Try to update subscribed calendar after "
               + (MAX_WAIT_MS_AFTER_FAILED_UPDATE / 1000 / 60 / 60)
@@ -163,11 +158,11 @@ public class TeamEventExternalSubscriptionCache
               + (teamEventSubscription.getLastUpdated() != null
               ? DateHelper.formatAsUTC(new Date(teamEventSubscription.getLastUpdated()))
               : "-"));
-          teamEventSubscription.update(teamCalDao, calendar, getTeamEventConverter());
+          teamEventSubscription.update(teamCalDao, calendar);
         }
       } else {
         // update the calendar
-        teamEventSubscription.update(teamCalDao, calendar, getTeamEventConverter());
+        teamEventSubscription.update(teamCalDao, calendar);
       }
     }
   }
@@ -184,11 +179,11 @@ public class TeamEventExternalSubscriptionCache
       return null;
     }
     final Integer userId = ThreadLocalUserContext.getUserId();
-    final TeamCalAccessType accessType = getAccessType(eventSubscription.getTeamCalId(), userId);
-    if (accessType == TeamCalAccessType.NONE) {
+    final DataobjectAccessType accessType = getAccessType(eventSubscription.getTeamCalId(), userId);
+    if (accessType == DataobjectAccessType.NONE) {
       return null;
     }
-    return eventSubscription.getEvents(startTime, endTime, accessType == TeamCalAccessType.MINIMAL);
+    return eventSubscription.getEvents(startTime, endTime, accessType == DataobjectAccessType.MINIMAL);
   }
 
   public List<TeamEventDO> getRecurrenceEvents(final TeamEventFilter filter)
@@ -204,8 +199,8 @@ public class TeamEventExternalSubscriptionCache
           continue;
         }
         final TeamCalDO calendar = teamCalCache.getCalendar(calendarId);
-        if (getTeamCalRight().getAccessType(calendar, userId).isIn(TeamCalAccessType.FULL, TeamCalAccessType.READONLY,
-            TeamCalAccessType.MINIMAL) == false) {
+        if (getTeamCalRight().getAccessType(calendar, userId).isIn(DataobjectAccessType.FULL, DataobjectAccessType.READONLY,
+            DataobjectAccessType.MINIMAL) == false) {
           continue;
         }
         teamCals.add(calendarId);
@@ -216,7 +211,7 @@ public class TeamEventExternalSubscriptionCache
       if (eventSubscription != null) {
         final TeamCalDO cal = teamCalCache.getCalendar(filter.getTeamCalId());
         if (getTeamCalRight().getAccessType(cal, userId)
-            .isIn(TeamCalAccessType.FULL, TeamCalAccessType.READONLY, TeamCalAccessType.MINIMAL) == true) {
+            .isIn(DataobjectAccessType.FULL, DataobjectAccessType.READONLY, DataobjectAccessType.MINIMAL) == true) {
           teamCals.add(filter.getTeamCalId());
         }
       }
@@ -229,7 +224,7 @@ public class TeamEventExternalSubscriptionCache
           if (recurrenceEvents != null && recurrenceEvents.size() > 0) {
             for (final TeamEventDO event : recurrenceEvents) {
               final TeamCalDO calendar = teamCalCache.getCalendar(calendarId);
-              if (getTeamCalRight().getAccessType(calendar, userId) == TeamCalAccessType.MINIMAL) {
+              if (getTeamCalRight().getAccessType(calendar, userId) == DataobjectAccessType.MINIMAL) {
                 result.add(event.createMinimalCopy());
               } else {
                 result.add(event);
@@ -242,7 +237,7 @@ public class TeamEventExternalSubscriptionCache
     return result;
   }
 
-  private TeamCalAccessType getAccessType(final Integer calendarId, final Integer userId)
+  private DataobjectAccessType getAccessType(final Integer calendarId, final Integer userId)
   {
     final TeamCalDO cal = teamCalCache.getCalendar(calendarId);
     return getTeamCalRight().getAccessType(cal, userId);
@@ -257,13 +252,5 @@ public class TeamEventExternalSubscriptionCache
       teamCalRight = (TeamCalRight) userRights.getRight(UserRightId.PLUGIN_CALENDAR);
     }
     return teamCalRight;
-  }
-
-  private TeamCalServiceImpl getTeamEventConverter()
-  {
-    if (teamEventConverter == null) {
-      teamEventConverter = ApplicationContextProvider.getApplicationContext().getBean(TeamCalServiceImpl.class);
-    }
-    return teamEventConverter;
   }
 }

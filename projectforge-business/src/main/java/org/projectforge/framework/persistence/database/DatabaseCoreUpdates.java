@@ -24,6 +24,8 @@
 package org.projectforge.framework.persistence.database;
 
 import java.math.BigDecimal;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.temporal.ChronoField;
@@ -38,10 +40,13 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.TimeZone;
+import java.util.UUID;
 import java.util.function.Predicate;
 
+import org.apache.commons.lang3.StringUtils;
 import org.projectforge.business.address.AddressDO;
 import org.projectforge.business.address.AddressDao;
+import org.projectforge.business.address.AddressbookDao;
 import org.projectforge.business.fibu.AuftragDO;
 import org.projectforge.business.fibu.AuftragsPositionDO;
 import org.projectforge.business.fibu.AuftragsPositionsStatus;
@@ -58,6 +63,7 @@ import org.projectforge.business.fibu.ProjektDO;
 import org.projectforge.business.fibu.RechnungDO;
 import org.projectforge.business.fibu.RechnungsPositionDO;
 import org.projectforge.business.fibu.api.EmployeeService;
+import org.projectforge.business.image.ImageService;
 import org.projectforge.business.multitenancy.TenantDao;
 import org.projectforge.business.multitenancy.TenantRegistryMap;
 import org.projectforge.business.multitenancy.TenantService;
@@ -135,6 +141,284 @@ public class DatabaseCoreUpdates
     final TenantDao tenantDao = applicationContext.getBean(TenantDao.class);
 
     final List<UpdateEntry> list = new ArrayList<>();
+
+    ////////////////////////////////////////////////////////////////////
+    // 6.17.0
+    // /////////////////////////////////////////////////////////////////
+    list.add(new UpdateEntryImpl(CORE_REGION_ID, "6.17.0", "2017-08-16",
+        "Add uid to addresses.")
+    {
+      @Override
+      public UpdatePreCheckStatus runPreCheck()
+      {
+        log.info("Running pre-check for ProjectForge version 6.16.0");
+        if (addressHasUid() == false) {
+          return UpdatePreCheckStatus.READY_FOR_UPDATE;
+        }
+
+        return UpdatePreCheckStatus.ALREADY_UPDATED;
+      }
+
+      @Override
+      public UpdateRunningStatus runUpdate()
+      {
+        if (addressHasUid() == false) {
+          initDatabaseDao.updateSchema();
+          List<DatabaseResultRow> resultList = databaseUpdateService.query("select pk from t_address where uid is null");
+          for (DatabaseResultRow row : resultList) {
+            Integer id = (Integer) row.getEntry(0).getValue();
+            UUID uid = UUID.randomUUID();
+            String sql = "UPDATE t_address SET uid = '" + uid.toString() + "' WHERE pk = " + id;
+            databaseUpdateService.execute(sql);
+          }
+        }
+        return UpdateRunningStatus.DONE;
+      }
+
+      private boolean addressHasUid()
+      {
+        return databaseUpdateService.doesTableAttributeExist("t_address", "uid") == true
+            && databaseUpdateService.query("select * from t_address where uid is not null LIMIT 1").size() > 0;
+      }
+    });
+
+    ////////////////////////////////////////////////////////////////////
+    // 6.16.0
+    // /////////////////////////////////////////////////////////////////
+    list.add(new UpdateEntryImpl(CORE_REGION_ID, "6.16.0", "2017-08-01",
+        "Remove unique constraints from EmployeeTimedAttrDO and EmployeeConfigurationTimedAttrDO. Add thumbnail for address images. Add addressbooks, remove tasks from addresses.")
+    {
+      @Override
+      public UpdatePreCheckStatus runPreCheck()
+      {
+        log.info("Running pre-check for ProjectForge version 6.16.0");
+        if (oldUniqueConstraint() || isImageDataPreviewMissing() || checkForAddresses() == false) {
+          return UpdatePreCheckStatus.READY_FOR_UPDATE;
+        }
+
+        return UpdatePreCheckStatus.ALREADY_UPDATED;
+      }
+
+      @Override
+      public UpdateRunningStatus runUpdate()
+      {
+        // update unique constraint
+        if (oldUniqueConstraint()) {
+          String uniqueConstraint1 = databaseUpdateService.getUniqueConstraintName("t_fibu_employee_timedattr", "parent", "propertyName");
+          String uniqueConstraint2 = databaseUpdateService.getUniqueConstraintName("T_PLUGIN_EMPLOYEE_CONFIGURATION_TIMEDATTR", "parent", "propertyName");
+
+          if (uniqueConstraint1 != null) {
+            databaseUpdateService.execute("ALTER TABLE t_fibu_employee_timedattr DROP CONSTRAINT " + uniqueConstraint1);
+          }
+
+          if (uniqueConstraint2 != null) {
+            databaseUpdateService.execute("ALTER TABLE T_PLUGIN_EMPLOYEE_CONFIGURATION_TIMEDATTR DROP CONSTRAINT " + uniqueConstraint2);
+          }
+        }
+        if (isImageDataPreviewMissing()) {
+          final ImageService imageService = applicationContext.getBean(ImageService.class);
+          initDatabaseDao.updateSchema();
+          List<DatabaseResultRow> resultList = databaseUpdateService.query("select pk, imagedata from t_address where imagedata is not null");
+          log.info("Found: " + resultList.size() + " event entries to update imagedata.");
+
+          String sql = "UPDATE t_address SET image_data_preview = ? WHERE pk = ?";
+          PreparedStatement ps = null;
+          try {
+            ps = databaseUpdateService.getDataSource().getConnection().prepareStatement(sql);
+
+            for (DatabaseResultRow row : resultList) {
+              Integer id = (Integer) row.getEntry(0).getValue();
+              byte[] imageDataPreview = imageService.resizeImage((byte[]) row.getEntry(1).getValue());
+              try {
+                ps.setInt(2, id);
+                ps.setBytes(1, imageDataPreview);
+                ps.executeUpdate();
+              } catch (Exception e) {
+                log.error(String.format("Error while updating event with id '%s' and new imageData. Ignoring it.", id, imageDataPreview));
+              }
+            }
+            ps.close();
+          } catch (SQLException e) {
+            log.error("Error while updating imageDataPreview in Database : " + e.getMessage());
+          }
+        }
+
+        //Add addressbook, remove task from addresses
+        if (checkForAddresses() == false) {
+          initDatabaseDao.updateSchema();
+          String taskUniqueConstraint = databaseUpdateService.getUniqueConstraintName("t_address", "task_id");
+          if (StringUtils.isBlank(taskUniqueConstraint) == false) {
+            databaseUpdateService.execute("ALTER TABLE t_address DROP CONSTRAINT " + taskUniqueConstraint);
+          }
+          databaseUpdateService.execute("ALTER TABLE t_address DROP COLUMN task_id");
+          initDatabaseDao.insertGlobalAddressbook();
+          List<DatabaseResultRow> addressIds = databaseUpdateService.query("SELECT pk FROM t_address");
+          addressIds.forEach(addressId -> {
+            databaseUpdateService
+                .execute("INSERT INTO t_addressbook_address (address_id, addressbook_id) VALUES (" + addressId.getEntry(0).getValue() + ", "
+                    + AddressbookDao.GLOBAL_ADDRESSBOOK_ID + ")");
+          });
+          databaseUpdateService.execute("DELETE FROM t_configuration WHERE parameter = 'defaultTask4Addresses'");
+        }
+
+        return UpdateRunningStatus.DONE;
+      }
+
+      private boolean isImageDataPreviewMissing()
+      {
+        return databaseUpdateService.doesTableAttributeExist("t_address", "image_data_preview") == false ||
+            ((Long) databaseUpdateService.query("select count(*) from t_address where imagedata is not null AND imagedata != ''").get(0).getEntry(0).getValue())
+                > 0L
+                && databaseUpdateService.query("select pk from t_address where imagedata is not null AND image_data_preview is not null LIMIT 1").size() < 1;
+      }
+
+      private boolean oldUniqueConstraint()
+      {
+        return databaseUpdateService.doesUniqueConstraintExists("t_fibu_employee_timedattr", "parent", "propertyName")
+            || databaseUpdateService.doesUniqueConstraintExists("T_PLUGIN_EMPLOYEE_CONFIGURATION_TIMEDATTR", "parent", "propertyName");
+      }
+
+      private boolean checkForAddresses()
+      {
+        return databaseUpdateService.doesTableExist("T_ADDRESSBOOK") && databaseUpdateService.query("select * from t_addressbook where pk = 1").size() > 0;
+      }
+    });
+
+    ////////////////////////////////////////////////////////////////////
+    // 6.15.0
+    // /////////////////////////////////////////////////////////////////
+    list.add(new UpdateEntryImpl(CORE_REGION_ID, "6.15.0", "2017-07-19",
+        "Add fields to event and event attendee table. Change unique constraint in event table. Refactoring invoice template.")
+    {
+      @Override
+      public UpdatePreCheckStatus runPreCheck()
+      {
+        log.info("Running pre-check for ProjectForge version 6.15.0");
+        if (hasRefactoredInvoiceFields() == false) {
+          return UpdatePreCheckStatus.READY_FOR_UPDATE;
+        }
+        if (this.missingFields() || oldUniqueConstraint() || noOwnership() || dtStampMissing()) {
+          return UpdatePreCheckStatus.READY_FOR_UPDATE;
+        }
+        return UpdatePreCheckStatus.ALREADY_UPDATED;
+      }
+
+      @Override
+      public UpdateRunningStatus runUpdate()
+      {
+        if (hasRefactoredInvoiceFields() == false) {
+          initDatabaseDao.updateSchema();
+          migrateCustomerRef();
+        }
+
+        // update unique constraint
+        if (oldUniqueConstraint()) {
+          databaseUpdateService.execute("ALTER TABLE T_PLUGIN_CALENDAR_EVENT DROP CONSTRAINT unique_t_plugin_calendar_event_uid");
+          initDatabaseDao.updateSchema();
+        }
+
+        // add missing fields
+        if (missingFields()) {
+          initDatabaseDao.updateSchema();
+        }
+
+        // check ownership
+        if (noOwnership()) {
+          List<DatabaseResultRow> resultList = databaseUpdateService.query("select e.pk, e.organizer from t_plugin_calendar_event e");
+          log.info("Found: " + resultList.size() + " event entries to update ownership.");
+
+          for (DatabaseResultRow row : resultList) {
+            Integer id = (Integer) row.getEntry(0).getValue();
+            String organizer = (String) row.getEntry(1).getValue();
+            Boolean ownership = Boolean.TRUE;
+
+            if (organizer != null && organizer.equals("mailto:null") == false) {
+              ownership = Boolean.FALSE;
+            }
+
+            try {
+              databaseUpdateService.execute(String.format("UPDATE t_plugin_calendar_event SET ownership = '%s' WHERE pk = %s", ownership, id));
+            } catch (Exception e) {
+              log.error(String.format("Error while updating event with id '%s' and new ownership. Ignoring it.", id, ownership));
+            }
+
+            log.info(String.format("Updated event with id '%s' set ownership to '%s'", id, ownership));
+          }
+          log.info("Ownership computation DONE.");
+        }
+
+        // update DT_STAMP
+        if (dtStampMissing()) {
+          try {
+            databaseUpdateService.execute("UPDATE t_plugin_calendar_event SET dt_stamp = last_update");
+            log.info("Creating DT_STAMP values successful");
+          } catch (Exception e) {
+            log.error("Error while creating DT_STAMP values");
+          }
+        }
+
+        return UpdateRunningStatus.DONE;
+      }
+
+      private boolean missingFields()
+      {
+        return databaseUpdateService.doesTableAttributeExist("T_PLUGIN_CALENDAR_EVENT_ATTENDEE", "COMMON_NAME") == false
+            || databaseUpdateService.doesTableAttributeExist("T_PLUGIN_CALENDAR_EVENT_ATTENDEE", "CU_TYPE") == false
+            || databaseUpdateService.doesTableAttributeExist("T_PLUGIN_CALENDAR_EVENT_ATTENDEE", "RSVP") == false
+            || databaseUpdateService.doesTableAttributeExist("T_PLUGIN_CALENDAR_EVENT_ATTENDEE", "ROLE") == false
+            || databaseUpdateService.doesTableAttributeExist("T_PLUGIN_CALENDAR_EVENT_ATTENDEE", "ADDITIONAL_PARAMS") == false
+            || databaseUpdateService.doesTableAttributeExist("T_PLUGIN_CALENDAR_EVENT", "OWNERSHIP") == false
+            || databaseUpdateService.doesTableAttributeExist("T_PLUGIN_CALENDAR_EVENT", "ORGANIZER_ADDITIONAL_PARAMS") == false
+            || databaseUpdateService.doesTableAttributeExist("T_PLUGIN_CALENDAR_EVENT", "DT_STAMP") == false;
+      }
+
+      private boolean oldUniqueConstraint()
+      {
+        return databaseUpdateService.doesUniqueConstraintExists("T_PLUGIN_CALENDAR_EVENT", "unique_t_plugin_calendar_event_uid");
+      }
+
+      private boolean noOwnership()
+      {
+        List<DatabaseResultRow> result = databaseUpdateService.query("select pk from t_plugin_calendar_event where ownership is not null LIMIT 1");
+        return result.size() == 0;
+      }
+
+      private boolean dtStampMissing()
+      {
+        List<DatabaseResultRow> result = databaseUpdateService.query("select pk from t_plugin_calendar_event where dt_stamp is not null LIMIT 1");
+        return result.size() == 0;
+      }
+
+      private void migrateCustomerRef()
+      {
+        //Migrate customer ref 1 & 2
+        List<DatabaseResultRow> resultSet = databaseUpdateService.query("SELECT pk, customerref1, customerref2 FROM t_fibu_rechnung");
+
+        for (DatabaseResultRow row : resultSet) {
+          String pk = row.getEntry(0) != null && row.getEntry(0).getValue() != null ? row.getEntry(0).getValue().toString() : null;
+          if (pk != null) {
+            String cr1 = row.getEntry(1) != null && row.getEntry(1).getValue() != null ? row.getEntry(1).getValue().toString() : "";
+            String cr2 = row.getEntry(2) != null && row.getEntry(2).getValue() != null ? row.getEntry(2).getValue().toString() : "";
+            String newCr = "";
+            if (StringUtils.isEmpty(cr1) == false && StringUtils.isEmpty(cr2) == false) {
+              newCr = cr1 + "\r\n" + cr2;
+            } else if (StringUtils.isEmpty(cr1) == false && StringUtils.isEmpty(cr2) == true) {
+              newCr = cr1;
+            } else if (StringUtils.isEmpty(cr1) == true && StringUtils.isEmpty(cr2) == false) {
+              newCr = cr2;
+            }
+            databaseUpdateService.execute("UPDATE t_fibu_rechnung SET customerref1 = '" + newCr + "' WHERE pk = " + pk);
+          }
+        }
+        databaseUpdateService.execute("ALTER TABLE t_fibu_rechnung DROP COLUMN customerref2");
+      }
+
+      private boolean hasRefactoredInvoiceFields()
+      {
+        return databaseUpdateService.doesTableAttributeExist("t_fibu_rechnung", "attachment")
+            && databaseUpdateService.doesTableAttributeExist("t_fibu_rechnung", "customerref2") == false;
+      }
+    });
 
     ////////////////////////////////////////////////////////////////////
     // 6.13.0
@@ -236,7 +520,6 @@ public class DatabaseCoreUpdates
       private boolean hasNewInvoiceFields()
       {
         return databaseUpdateService.doesTableAttributeExist("t_fibu_rechnung", "customerref1") &&
-            databaseUpdateService.doesTableAttributeExist("t_fibu_rechnung", "customerref2") &&
             databaseUpdateService.doesTableAttributeExist("t_fibu_rechnung", "customeraddress");
       }
 
@@ -258,7 +541,7 @@ public class DatabaseCoreUpdates
       public UpdatePreCheckStatus runPreCheck()
       {
         log.info("Running pre-check for ProjectForge version 6.12.0");
-        if (hasISODates() || databaseUpdateService.doesTableAttributeExist("T_ADDRESS", "imagedata") == false) {
+        if (hasISODates() || hasOldImageData()) {
           return UpdatePreCheckStatus.READY_FOR_UPDATE;
         }
         return UpdatePreCheckStatus.ALREADY_UPDATED;
@@ -267,7 +550,7 @@ public class DatabaseCoreUpdates
       @Override
       public UpdateRunningStatus runUpdate()
       {
-        if (databaseUpdateService.doesTableAttributeExist("T_ADDRESS", "imagedata") == false) {
+        if (hasOldImageData()) {
           initDatabaseDao.updateSchema();
           migrateImageData();
           deleteImageHistoryData();
@@ -324,6 +607,13 @@ public class DatabaseCoreUpdates
           log.info("Exdate migration DONE.");
         }
         return UpdateRunningStatus.DONE;
+      }
+
+      private boolean hasOldImageData()
+      {
+        return databaseUpdateService.doesTableAttributeExist("T_ADDRESS", "imagedata") == false
+            || databaseUpdateService.query("SELECT pk FROM t_address_attr WHERE propertyname = 'profileImageData' limit 1").size() > 0
+            || databaseUpdateService.query("SELECT pk FROM t_pf_history_attr WHERE propertyname LIKE '%attrs.profileImageData%' limit 1").size() > 0;
       }
 
       private boolean hasISODates()
@@ -447,7 +737,7 @@ public class DatabaseCoreUpdates
         log.info("Running pre-check for ProjectForge version 6.9.0");
         if (databaseUpdateService.doesTableExist("t_employee_vacation_substitution") == false ||
             databaseUpdateService.doesTableAttributeExist("t_employee_vacation", "substitution_id") ||
-            databaseUpdateService.doesUniqueConstraintExists("T_PLUGIN_CALENDAR_EVENT", "unique_t_plugin_calendar_event_uid") == false) {
+            uniqueConstraintMissing()) {
           return UpdatePreCheckStatus.READY_FOR_UPDATE;
         }
 
@@ -462,8 +752,7 @@ public class DatabaseCoreUpdates
       @Override
       public UpdateRunningStatus runUpdate()
       {
-        if (databaseUpdateService.doesTableExist("t_employee_vacation_substitution") == false
-            || databaseUpdateService.doesUniqueConstraintExists("T_PLUGIN_CALENDAR_EVENT", "unique_t_plugin_calendar_event_uid") == false) {
+        if (databaseUpdateService.doesTableExist("t_employee_vacation_substitution") == false || uniqueConstraintMissing()) {
           if (doesDuplicateUidsExists()) {
             handleDuplicateUids();
           }
@@ -526,6 +815,12 @@ public class DatabaseCoreUpdates
           vacation.getSubstitutions().add(substitution);
           vacationDao.internalUpdate(vacation);
         }
+      }
+
+      private boolean uniqueConstraintMissing()
+      {
+        return (databaseUpdateService.doesUniqueConstraintExists("T_PLUGIN_CALENDAR_EVENT", "unique_t_plugin_calendar_event_uid")
+            || databaseUpdateService.doesUniqueConstraintExists("T_PLUGIN_CALENDAR_EVENT", "unique_t_plugin_calendar_event_uid_calendar_fk")) == false;
       }
     });
 
@@ -934,8 +1229,7 @@ public class DatabaseCoreUpdates
                 .map(localDateTime -> localDateTime.get(ChronoField.SECOND_OF_DAY))
                 .allMatch(seconds -> seconds == 0));
 
-        return timeFieldsOfAllEmployeeTimedDOsStartTimeAreZero ? UpdatePreCheckStatus.ALREADY_UPDATED
-            : UpdatePreCheckStatus.READY_FOR_UPDATE;
+        return timeFieldsOfAllEmployeeTimedDOsStartTimeAreZero ? UpdatePreCheckStatus.ALREADY_UPDATED : UpdatePreCheckStatus.READY_FOR_UPDATE;
       }
 
       @Override

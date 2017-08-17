@@ -86,7 +86,7 @@ public class EmployeeSelectPanel extends AbstractSelectPanel<EmployeeDO>
   /**
    * @param id
    * @param model
-   * @param label Only needed for validation messages (feed back).
+   * @param label          Only needed for validation messages (feed back).
    * @param caller
    * @param selectProperty
    */
@@ -139,7 +139,7 @@ public class EmployeeSelectPanel extends AbstractSelectPanel<EmployeeDO>
       }
 
       @Override
-      protected void convertInput()
+      public void convertInput()
       {
         final EmployeeDO employee = (EmployeeDO) getConverter(getType()).convertToObject(getInput(), getLocale());
         setConvertedInput(employee);
@@ -266,7 +266,7 @@ public class EmployeeSelectPanel extends AbstractSelectPanel<EmployeeDO>
   }
 
   @Override
-  protected void convertInput()
+  public void convertInput()
   {
     setConvertedInput(getModelObject());
   }

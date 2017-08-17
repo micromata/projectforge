@@ -67,6 +67,8 @@ public enum UserRightId implements IUserRightId
 
   MISC_MEB("MISC_MEB", "misc1", "access.right.misc.meb"),
 
+  MISC_ADDRESSBOOK("MISC_ADDRESSBOOK", "misc2", "access.right.misc.addressbook"),
+
   PM_GANTT("PM_GANTT", "pm1", "access.right.pm.gantt"),
 
   PM_ORDER_BOOK("PM_ORDER_BOOK", "pm2", "access.right.pm.orderbook"),

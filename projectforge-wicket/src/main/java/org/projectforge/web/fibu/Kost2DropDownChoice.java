@@ -28,8 +28,7 @@ import java.util.List;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.model.Model;
-import org.apache.wicket.validation.IValidatable;
-import org.apache.wicket.validation.validator.AbstractValidator;
+import org.apache.wicket.validation.INullAcceptingValidator;
 import org.projectforge.business.fibu.KostFormatter;
 import org.projectforge.business.fibu.kost.Kost2DO;
 import org.projectforge.business.task.TaskTree;
@@ -75,25 +74,14 @@ public abstract class Kost2DropDownChoice extends DropDownChoice<Integer>
     this.taskId = taskId;
     refreshChoiceRenderer();
     setNullValid(true);
-    add(new AbstractValidator<Integer>()
-    {
-      @Override
-      protected void onValidate(final IValidatable<Integer> validatable)
-      {
-        final Integer value = validatable.getValue();
-        if (value != null && value >= 0) {
-          return;
-        }
-        if (CollectionUtils.isNotEmpty(kost2List) == true) {
-          // Kost2 available but not selected.
-          error(validatable);
-        }
+    add((INullAcceptingValidator<Integer>) validatable -> {
+      final Integer value = validatable.getValue();
+      if (value != null && value >= 0) {
+        return;
       }
-
-      @Override
-      protected String resourceKey()
-      {
-        return "timesheet.error.kost2Required";
+      if (CollectionUtils.isNotEmpty(kost2List) == true) {
+        // Kost2 available but not selected.
+        error("timesheet.error.kost2Required");
       }
     });
   }

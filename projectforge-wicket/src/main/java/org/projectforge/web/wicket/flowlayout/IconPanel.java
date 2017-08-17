@@ -35,14 +35,13 @@ import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.cycle.RequestCycle;
-import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.web.CSSColor;
+import org.projectforge.web.wicket.WicketUtils;
 
 /**
  * Represents an icon. Supports Ajax onclick behavior if {@link #enableAjaxOnClick()} is called.
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
  */
 public class IconPanel extends Panel
 {
@@ -129,7 +128,7 @@ public class IconPanel extends Panel
   public IconPanel enableAjaxOnClick()
   {
     appendAttribute("style", "cursor: pointer;");
-    final AjaxEventBehavior behavior = new AjaxEventBehavior("onclick")
+    final AjaxEventBehavior behavior = new AjaxEventBehavior("click")
     {
       @Override
       protected void onEvent(final AjaxRequestTarget target)
@@ -143,7 +142,7 @@ public class IconPanel extends Panel
 
   /**
    * Appends attribute onclick and changes the cursor to pointer.
-   * 
+   *
    * @return
    */
   public IconPanel setOnClick(final String onclick)
@@ -155,8 +154,8 @@ public class IconPanel extends Panel
 
   /**
    * Appends attribute onclick and changes the cursor to pointer. onclick results in location.href.
-   * 
-   * @param location url to go on click.
+   *
+   * @param location  url to go on click.
    * @param newWindow If true then a new browser with the given url is opened.
    * @return
    */
@@ -191,7 +190,6 @@ public class IconPanel extends Panel
   }
 
   /**
-   * 
    * @param attributeName
    * @param value
    * @return this for chaining.

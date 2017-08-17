@@ -36,12 +36,13 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.teamcal.admin.TeamCalCache;
 import org.projectforge.business.teamcal.event.TeamEventDao;
+import org.projectforge.business.teamcal.event.TeamEventService;
+import org.projectforge.business.teamcal.event.ical.ICalParser;
 import org.projectforge.business.teamcal.event.model.TeamEventAttendeeDO;
 import org.projectforge.business.teamcal.event.model.TeamEventDO;
 import org.projectforge.business.teamcal.filter.ICalendarFilter;
 import org.projectforge.business.teamcal.filter.TeamCalCalendarFilter;
 import org.projectforge.business.teamcal.filter.TemplateEntry;
-import org.projectforge.business.teamcal.service.TeamCalServiceImpl;
 import org.projectforge.common.StringHelper;
 import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
@@ -63,9 +64,7 @@ import org.projectforge.web.wicket.flowlayout.DropDownChoicePanel;
 import org.projectforge.web.wicket.flowlayout.IconButtonPanel;
 import org.projectforge.web.wicket.flowlayout.IconType;
 
-import net.fortuna.ical4j.model.Calendar;
 import net.fortuna.ical4j.model.component.VEvent;
-import net.fortuna.ical4j.model.property.Uid;
 
 /**
  * @author Johannes Unterstein (j.unterstein@micromata.de)
@@ -83,13 +82,13 @@ public class TeamCalCalendarForm extends CalendarForm
   private transient TeamEventDao teamEventDao;
 
   @SpringBean
+  private transient TeamEventService teamEventService;
+
+  @SpringBean
   transient TeamCalCache teamCalCache;
 
   @SpringBean
   transient AccessChecker accessChecker;
-
-  @SpringBean
-  transient TeamCalServiceImpl teamEventConverter;
 
   @SuppressWarnings("unused")
   private TemplateEntry activeTemplate;
@@ -192,7 +191,7 @@ public class TeamCalCalendarForm extends CalendarForm
     templateChoice.setTooltip(getString("plugins.teamcal.calendar.filter.choose"));
     templateChoice.getDropDownChoice().setOutputMarkupId(true);
 
-    templateChoice.getDropDownChoice().add(new AjaxFormComponentUpdatingBehavior("onchange")
+    templateChoice.getDropDownChoice().add(new AjaxFormComponentUpdatingBehavior("change")
     {
       private static final long serialVersionUID = 8999698636114154230L;
 
@@ -222,8 +221,7 @@ public class TeamCalCalendarForm extends CalendarForm
     });
 
     final IconButtonPanel calendarButtonPanel = new AjaxIconButtonPanel(buttonGroupPanel.newChildId(), IconType.EDIT,
-        new ResourceModel(
-            "plugins.teamcal.calendar.filter.edit"))
+        new ResourceModel("plugins.teamcal.calendar.filter.edit"))
     {
       /**
        * @see org.projectforge.web.wicket.flowlayout.AjaxIconButtonPanel#onSubmit(org.apache.wicket.ajax.AjaxRequestTarget)
@@ -241,53 +239,63 @@ public class TeamCalCalendarForm extends CalendarForm
 
     fieldset.add(new DropIcsPanel(fieldset.newChildId())
     {
-
       @Override
-      protected void onIcsImport(final AjaxRequestTarget target, final Calendar calendar)
+      protected void onStringImport(final AjaxRequestTarget target, final String fileName, final String content)
       {
-        final List<VEvent> events = TeamCalServiceImpl.getVEvents(calendar);
-        if (events == null || events.size() == 0) {
+        // TODO sn remake the import of ical with drag & drop
+        ICalParser parser = ICalParser.parseAllFields();
+
+        parser.parse(content);
+
+        if (parser.getExtractedEvents().isEmpty()) {
           errorDialog.setMessage(getString("plugins.teamcal.import.ics.noEventsGiven")).open(target);
           return;
         }
-        if (events.size() > 1) {
+
+        if (parser.getExtractedEvents().size() > 1) {
           // Can't import multiple entries, redirect to import page:
-          redirectToImportPage(events, activeModel.getObject());
+          redirectToImportPage(parser.getVEvents(), activeModel.getObject());
           return;
         }
 
         // Here we have just one event.
-        final VEvent event = events.get(0);
-        final Uid uid = event.getUid();
-        // 1. Check id/external id. If not yet given, create new entry and ask for calendar to add: Redirect to TeamEventEditPage.
-        final TeamEventDO dbEvent = (uid == null) ? null : teamEventDao.getByUid(uid.getValue());
-        if (dbEvent != null && ThreadLocalUserContext.getUserId().equals(dbEvent.getCreator().getPk())) {
-          // The event was created by this user, redirect to import page:
-          redirectToImportPage(events, activeModel.getObject());
-          return;
+        final TeamEventDO event = parser.getExtractedEvents().get(0);
+        final TemplateEntry activeTemplateEntry = ((TeamCalCalendarFilter) filter).getActiveTemplateEntry();
+        // check id/external id. If not yet given, create new entry and ask for calendar to add: Redirect to TeamEventEditPage.
+
+        if (event.getUid() != null && activeTemplateEntry != null) {
+          final TeamEventDO dbEvent = teamEventDao.getByUid(activeTemplateEntry.getDefaultCalendarId(), event.getUid(), false);
+
+          if (dbEvent != null) {
+            if (ThreadLocalUserContext.getUserId().equals(dbEvent.getCreator().getPk()) || dbEvent.isDeleted()) {
+              event.setId(dbEvent.getPk());
+              event.setCreated(dbEvent.getCreated());
+              event.setTenant(dbEvent.getTenant());
+              event.setCreator(dbEvent.getCreator());
+              event.setDeleted(dbEvent.isDeleted());
+            } else {
+              // Can't import event with existing uid in selected calendar, redirect to import page:
+              redirectToImportPage(parser.getVEvents(), activeModel.getObject());
+              return;
+            }
+          }
         }
 
-        // The event was not created by this user, create a new event.
-        final TeamEventDO teamEvent;
-        if (dbEvent != null) {
-          // There is an event in the DB with the same UID. -> Create a new UID.
-          teamEvent = teamEventConverter.createTeamEventDO(event, ThreadLocalUserContext.getTimeZone(), false);
-        } else {
-          // There is no event in the DB with the same UID. -> Use this UID for the event.
-          teamEvent = teamEventConverter.createTeamEventDO(event, ThreadLocalUserContext.getTimeZone(), true);
-        }
-        final TemplateEntry activeTemplateEntry = ((TeamCalCalendarFilter) filter).getActiveTemplateEntry();
+        // set calendar
         if (activeTemplateEntry != null && activeTemplateEntry.getDefaultCalendarId() != null) {
-          teamEventDao.setCalendar(teamEvent, activeTemplateEntry.getDefaultCalendarId());
+          teamEventDao.setCalendar(event, activeTemplateEntry.getDefaultCalendarId());
         }
+
+        // fix attendees
+        teamEventService.fixAttendees(event);
 
         final Set<TeamEventAttendeeDO> originAssignedAttendees = new HashSet<>();
-        teamEvent.getAttendees().forEach(attendee -> {
+        event.getAttendees().forEach(attendee -> {
           attendee.setPk(null);
           originAssignedAttendees.add(attendee);
         });
-        teamEvent.setAttendees(new HashSet<>());
-        final TeamEventEditPage editPage = new TeamEventEditPage(new PageParameters(), teamEvent);
+        event.setAttendees(new HashSet<>());
+        final TeamEventEditPage editPage = new TeamEventEditPage(new PageParameters(), event);
         final TeamEventEditForm form = editPage.getForm();
         originAssignedAttendees.forEach(attendee -> {
           if (attendee.getAddress() != null) {
@@ -327,8 +335,7 @@ public class TeamCalCalendarForm extends CalendarForm
   @Override
   protected void onInitialize()
   {
-    errorDialog = new ModalMessageDialog(parentPage.newModalDialogId(),
-        new ResourceModel("plugins.teamcal.import.ics.error"));
+    errorDialog = new ModalMessageDialog(parentPage.newModalDialogId(), new ResourceModel("plugins.teamcal.import.ics.error"));
     errorDialog.setType(DivType.ALERT_ERROR);
     parentPage.add(errorDialog);
     errorDialog.init();

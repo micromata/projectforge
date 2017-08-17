@@ -32,6 +32,7 @@ import java.util.Map;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.markup.html.form.IChoiceRenderer;
+import org.apache.wicket.model.IModel;
 import org.projectforge.common.i18n.I18nEnum;
 import org.projectforge.framework.persistence.api.BaseDO;
 import org.projectforge.framework.utils.ILabelValueBean;
@@ -57,8 +58,9 @@ public class LabelValueChoiceRenderer<T> implements IChoiceRenderer<T>
 
   /**
    * Creates already entries from the given enum. Works only if T is from type I18nEnum.
+   *
    * @param parent Only needed for internationalization.
-   * @param i18nEnum if not enum and not from type T a class cast exception will be thrown.
+   * @param values if not enum and not from type T a class cast exception will be thrown.
    * @see Component#getString(String)
    */
   @SuppressWarnings("unchecked")
@@ -72,6 +74,7 @@ public class LabelValueChoiceRenderer<T> implements IChoiceRenderer<T>
 
   /**
    * Works only if T is from type String.
+   *
    * @param values if the elements are not from type ILabelValueBean<String, T> a class cast exception will be thrown.
    * @see Component#getString(String)
    */
@@ -86,6 +89,7 @@ public class LabelValueChoiceRenderer<T> implements IChoiceRenderer<T>
 
   /**
    * Creates already entries from the given enum.
+   *
    * @param values if the elements are not from type ILabelValueBean<String, T> a class cast exception will be thrown.
    * @see Component#getString(String)
    */
@@ -131,7 +135,8 @@ public class LabelValueChoiceRenderer<T> implements IChoiceRenderer<T>
   /**
    * @return This for chaining.
    */
-  public LabelValueChoiceRenderer<T> clear() {
+  public LabelValueChoiceRenderer<T> clear()
+  {
     this.values.clear();
     this.displayValues.clear();
     return this;
@@ -153,11 +158,13 @@ public class LabelValueChoiceRenderer<T> implements IChoiceRenderer<T>
 
   /**
    * Sort the entries by label.
+   *
    * @return This for chaining.
    */
   public LabelValueChoiceRenderer<T> sortLabels()
   {
-    Collections.sort(values, new Comparator<T>() {
+    Collections.sort(values, new Comparator<T>()
+    {
       @Override
       public int compare(final T value1, final T value2)
       {
@@ -177,23 +184,47 @@ public class LabelValueChoiceRenderer<T> implements IChoiceRenderer<T>
 
   /**
    * Please note: This method does not check wether the given object is an entry of the year list or not.
+   *
    * @return given integer as String or "[minYear]-[maxYear]" if value is -1.
    * @see org.apache.wicket.markup.html.form.IChoiceRenderer#getDisplayValue(java.lang.Object)
    */
+  @Override
   public Object getDisplayValue(final T object)
   {
     return this.displayValues.get(object);
   }
 
+  @Override
   public String getIdValue(final T object, final int index)
   {
     if (object == null) {
       return "";
     }
     if (object instanceof BaseDO) {
-      return String.valueOf(((BaseDO<?>)object).getId());
+      return String.valueOf(((BaseDO<?>) object).getId());
     }
     return object.toString();
+  }
+
+  @Override
+  public T getObject(final String s, final IModel<? extends List<? extends T>> iModel)
+  {
+    if (s == null) {
+      return null;
+    }
+
+    for (T instance : iModel.getObject()) {
+      // TODO sn migration
+      if (instance instanceof BaseDO) {
+        if (s.equals(String.valueOf(((BaseDO<?>) instance).getId())))
+          return instance;
+      }
+      if (s.equals(instance.toString())) {
+        return instance;
+      }
+    }
+
+    return null;
   }
 
 }

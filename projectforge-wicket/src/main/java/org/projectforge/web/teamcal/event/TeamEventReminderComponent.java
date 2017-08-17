@@ -46,9 +46,8 @@ import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
 
 /**
  * Component renders DropDown to select reminder action, TextField to set duration and DropDown to select duration type.
- * 
+ *
  * @author M. Lauterbach (m.lauterbach@micromata.de)
- * 
  */
 public class TeamEventReminderComponent extends Component
 {
@@ -136,7 +135,7 @@ public class TeamEventReminderComponent extends Component
           }
         });
     reminderActionTypeChoice.setNullValid(true);
-    reminderActionTypeChoice.getDropDownChoice().add(new AjaxFormComponentUpdatingBehavior("onchange")
+    reminderActionTypeChoice.getDropDownChoice().add(new AjaxFormComponentUpdatingBehavior("change")
     {
 
       @Override
@@ -198,6 +197,23 @@ public class TeamEventReminderComponent extends Component
       public String getIdValue(final I18nEnum object, final int index)
       {
         return object.toString();
+      }
+
+      @Override
+      public I18nEnum getObject(final String s, final IModel<? extends List<? extends I18nEnum>> iModel)
+      {
+        if (s == null) {
+          return null;
+        }
+
+        for (I18nEnum instance : iModel.getObject()) {
+          // TODO sn migration
+          if (s.equals(instance.toString())) {
+            return instance;
+          }
+        }
+
+        return null;
       }
     };
     return reminderActionTypeRenderer;

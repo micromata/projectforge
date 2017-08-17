@@ -21,30 +21,29 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.web.address;
+package org.projectforge.business.teamcal.event.diff;
 
-import org.projectforge.business.address.AddressFilter;
-
-/**
- */
-public class AddressListFilter extends AddressFilter
+public enum TeamEventField
 {
-  private static final long serialVersionUID = -2433725695846528675L;
-
-  @Override
-  public AddressListFilter reset()
-  {
-    super.reset();
-    setUptodate(true);
-    setOutdated(false);
-    setLeaved(false);
-    setFilter();
-
-    setActive(true);
-    setNonActive(false);
-    setUninteresting(false);
-    setPersonaIngrata(false);
-    setDeparted(false);
-    return this;
-  }
+  CALENDAR,
+  CREATOR,
+  START_DATE,
+  END_DATE,
+  DT_STAMP,
+  ALL_DAY,
+  SUBJECT,
+  LOCATION,
+  RECURRENCE_EX_DATES,
+  RECURRENCE_RULE,
+  RECURRENCE_REFERENCE_DATE,
+  RECURRENCE_REFERENCE_ID,
+  RECURRENCE_UNTIL,
+  ORGANIZER,
+  ORGANIZER_ADDITIONAL_PARAMS,
+  NOTE,
+  LAST_MAIL,
+  SEQUENCE,
+  REMINDER_DURATION,
+  REMINDER_DURATION_TYPE,
+  REMINDER_ACTION_TYPE
 }

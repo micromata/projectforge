@@ -25,10 +25,12 @@ package org.projectforge.web.fibu;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
@@ -47,11 +49,14 @@ import org.projectforge.business.fibu.AuftragDO;
 import org.projectforge.business.fibu.AuftragDao;
 import org.projectforge.business.fibu.AuftragsPositionDO;
 import org.projectforge.business.fibu.AuftragsStatus;
+import org.projectforge.business.fibu.ForecastExport;
 import org.projectforge.business.fibu.OrderExport;
 import org.projectforge.business.fibu.RechnungCache;
 import org.projectforge.business.task.formatter.WicketTaskFormatter;
 import org.projectforge.business.user.UserFormatter;
 import org.projectforge.business.utils.CurrencyFormatter;
+import org.projectforge.framework.i18n.UserException;
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.time.DateHelper;
 import org.projectforge.framework.utils.NumberFormatter;
 import org.projectforge.web.wicket.AbstractListPage;
@@ -72,6 +77,8 @@ public class AuftragListPage extends AbstractListPage<AuftragListForm, AuftragDa
 {
   private static final long serialVersionUID = -8406452960003792763L;
 
+  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(AuftragListPage.class);
+
   private static final String[] MY_BOOKMARKABLE_INITIAL_PROPERTIES = mergeStringArrays(
       BOOKMARKABLE_INITIAL_PROPERTIES, new String[] { "f.year|y", "f.listType|lt", "f.auftragsPositionsArt|art" }
   );
@@ -81,6 +88,9 @@ public class AuftragListPage extends AbstractListPage<AuftragListForm, AuftragDa
 
   @SpringBean
   private OrderExport orderExport;
+
+  @SpringBean
+  private ForecastExport forecastExport;
 
   @SpringBean
   private UserFormatter userFormatter;
@@ -252,6 +262,7 @@ public class AuftragListPage extends AbstractListPage<AuftragListForm, AuftragDa
   {
     dataTable = createDataTable(createColumns(this, true), "nummer", SortOrder.DESCENDING);
     form.add(dataTable);
+
     final ContentMenuEntryPanel exportExcelButton = new ContentMenuEntryPanel(getNewContentMenuChildId(),
         new Link<Object>("link")
         {
@@ -271,6 +282,36 @@ public class AuftragListPage extends AbstractListPage<AuftragListForm, AuftragDa
         }, getString("exportAsXls")).setTooltip(getString("tooltip.export.excel"));
     addContentMenuEntry(exportExcelButton);
 
+    final ContentMenuEntryPanel forecastExportButton = new ContentMenuEntryPanel(getNewContentMenuChildId(),
+        new Link<Object>("link")
+        {
+          @Override
+          public void onClick()
+          {
+            final List<AuftragDO> list = getList();
+            Calendar startDate = Calendar.getInstance(ThreadLocalUserContext.getTimeZone());
+            if (form != null && form.getSearchFilter() != null && form.getSearchFilter().getPeriodOfPerformanceStartDate() != null) {
+              startDate.setTime(form.getSearchFilter().getPeriodOfPerformanceStartDate());
+            } else {
+              startDate.set(Calendar.MONTH, 0);
+            }
+            byte[] xls = null;
+            try {
+              xls = forecastExport.export(list, startDate);
+            } catch (Exception e) {
+              log.error("Exception while creating forecast report: " + e.getMessage(), e);
+              throw new UserException("error", e.getMessage() + "\n" + ExceptionUtils.getStackTrace(e));
+            }
+            if (xls == null || xls.length == 0) {
+              form.addError("datatable.no-records-found");
+              return;
+            }
+            final String filename = "ProjectForge-Forecast_" + DateHelper.getDateAsFilenameSuffix(new Date())
+                + ".xls";
+            DownloadUtils.setDownloadTarget(xls, filename);
+          }
+        }, getString("fibu.auftrag.forecastExportAsXls")).setTooltip(getString("fibu.auftrag.forecastExportAsXls.tooltip"));
+    addContentMenuEntry(forecastExportButton);
   }
 
   @Override

@@ -2,12 +2,14 @@ package org.projectforge.plugins.eed.wicket;
 
 import java.util.Arrays;
 import java.util.Calendar;
+import java.util.List;
 
 import org.apache.log4j.Logger;
 import org.apache.wicket.markup.html.form.Button;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.IChoiceRenderer;
 import org.apache.wicket.markup.html.panel.Panel;
+import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
@@ -108,6 +110,23 @@ public class EmployeeListEditForm extends AbstractListForm<EmployeeFilter, Emplo
           public String getIdValue(ExtendEmployeeDataEnum eede, int index)
           {
             return String.valueOf(index);
+          }
+
+          @Override
+          public ExtendEmployeeDataEnum getObject(final String s, final IModel<? extends List<? extends ExtendEmployeeDataEnum>> iModel)
+          {
+            if (s == null) {
+              return null;
+            }
+
+            for (int i = iModel.getObject().size() - 1; i >= 0; --i) {
+              // TODO sn migration
+              if (s.equals(String.valueOf(i))) {
+                return iModel.getObject().get(i);
+              }
+            }
+
+            return null;
           }
         }));
     fsOption.add(ddcOption);

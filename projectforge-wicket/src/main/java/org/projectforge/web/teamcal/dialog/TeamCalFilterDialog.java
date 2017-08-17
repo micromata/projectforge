@@ -72,15 +72,13 @@ import org.projectforge.web.wicket.flowlayout.DivPanel;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
 import org.projectforge.web.wicket.flowlayout.Heading3Panel;
 import org.projectforge.web.wicket.flowlayout.SelectPanel;
-
-import com.vaynberg.wicket.select2.Select2MultiChoice;
+import org.wicketstuff.select2.Select2MultiChoice;
 
 import de.micromata.wicket.ajax.AjaxCallback;
 
 /**
  * @author M. Lauterbach (m.lauterbach@micromata.de)
  * @author K. Reinhard (k.reinhard@micromata.de)
- * 
  */
 public class TeamCalFilterDialog extends ModalDialog
 {
@@ -363,7 +361,7 @@ public class TeamCalFilterDialog extends ModalDialog
             TeamCalFilterDialog.this, "selectedCalendars"),
         teamProvider);
     teamCalsChoice.setOutputMarkupId(true);
-    teamCalsChoice.add(new AjaxFormComponentUpdatingBehavior("onchange")
+    teamCalsChoice.add(new AjaxFormComponentUpdatingBehavior("change")
     {
       private static final long serialVersionUID = 1L;
 

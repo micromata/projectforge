@@ -52,6 +52,7 @@ import org.hibernate.search.Search;
 import org.projectforge.business.multitenancy.TenantChecker;
 import org.projectforge.business.multitenancy.TenantRegistry;
 import org.projectforge.business.multitenancy.TenantRegistryMap;
+import org.projectforge.business.multitenancy.TenantService;
 import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.business.user.UserRight;
 import org.projectforge.business.user.UserRightId;
@@ -66,6 +67,7 @@ import org.projectforge.framework.persistence.history.HibernateSearchDependentOb
 import org.projectforge.framework.persistence.history.HistoryBaseDaoAdapter;
 import org.projectforge.framework.persistence.history.SimpleHistoryEntry;
 import org.projectforge.framework.persistence.history.entities.PfHistoryMasterDO;
+import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
 import org.projectforge.framework.persistence.jpa.impl.BaseDaoJpaAdapter;
 import org.projectforge.framework.persistence.jpa.impl.HibernateSearchFilterUtils;
 import org.projectforge.framework.persistence.search.BaseDaoReindexRegistry;
@@ -135,6 +137,9 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
   protected TenantChecker tenantChecker;
 
   @Autowired
+  protected TenantService tenantService;
+
+  @Autowired
   protected SearchService searchService;
 
   protected String[] searchFields;
@@ -158,6 +163,9 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
 
   @Autowired
   private SessionFactory sessionFactory;
+
+  @Autowired
+  protected PfEmgrFactory emgrFactory;
 
   @Autowired
   private UserRightService userRights;
@@ -293,9 +301,22 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
     }
     final Session session = getSession();
     final Criteria criteria = session.createCriteria(clazz).add(Restrictions.in("id", idList));
+
+    return selectUnique(criteria.list());
+  }
+
+  @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
+  public List<O> getListByIds(final Collection<? extends Serializable> idList)
+  {
+    if (idList == null) {
+      return null;
+    }
+    final Session session = getSession();
+    final Criteria criteria = session.createCriteria(clazz).add(Restrictions.in("id", idList));
     @SuppressWarnings("unchecked")
     final List<O> list = selectUnique(criteria.list());
-    return list;
+
+    return extractEntriesWithSelectAccess(list);
   }
 
   /**
@@ -381,20 +402,35 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
     List<O> list = null;
     Session session = getSession();
     {
-      final Criteria criteria = filter.buildCriteria(session, clazz);
-      setCacheRegion(criteria);
       if (searchFilter.isSearchNotEmpty() == true) {
         final String searchString = HibernateSearchFilterUtils.modifySearchString(searchFilter.getSearchString());
-        final String[] searchFields = searchFilter.getSearchFields() != null ? searchFilter.getSearchFields()
-            : getSearchFields();
+        final String[] searchFields = searchFilter.getSearchFields() != null ? searchFilter.getSearchFields() : getSearchFields();
         try {
-          //          String nsearch = StringUtils.replace(searchString, "*", "");
-          FullTextSession fullTextSession = Search.getFullTextSession(session);
-          final org.apache.lucene.search.Query query = HibernateSearchFilterUtils.createFullTextQuery(fullTextSession,
-              searchFields, filter, searchString, clazz);
-          final FullTextQuery fullTextQuery = fullTextSession.createFullTextQuery(query, clazz);
-          fullTextQuery.setCriteriaQuery(criteria);
-          list = fullTextQuery.list(); // return a list of managed objects
+
+          int firstIndex = 0;
+          int maxIndex = 32000; // maximum numbers of values in IN statements in postgres
+          List<O> result;
+          final List<O> allResult = new ArrayList<>();
+
+          do {
+            final Criteria criteria = filter.buildCriteria(session, clazz);
+            setCacheRegion(criteria);
+
+            FullTextSession fullTextSession = Search.getFullTextSession(session);
+            org.apache.lucene.search.Query query = HibernateSearchFilterUtils.createFullTextQuery(fullTextSession, searchFields, filter, searchString, clazz);
+            FullTextQuery fullTextQuery = fullTextSession.createFullTextQuery(query, clazz);
+
+            fullTextQuery.setCriteriaQuery(criteria);
+            fullTextQuery.setFirstResult(firstIndex);
+            fullTextQuery.setMaxResults(maxIndex);
+
+            firstIndex += maxIndex;
+
+            result = fullTextQuery.list(); // return a list of managed objects
+            allResult.addAll(result);
+          } while (result.isEmpty() == false);
+
+          list = allResult;
         } catch (final Exception ex) {
           final String errorMsg = "Lucene error message: "
               + ex.getMessage()
@@ -407,6 +443,8 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
           log.info(errorMsg);
         }
       } else {
+        final Criteria criteria = filter.buildCriteria(session, clazz);
+        setCacheRegion(criteria);
         list = criteria.list();
       }
       if (list != null) {
@@ -690,6 +728,7 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
     if (avoidNullIdCheckBeforeSave == false) {
       Validate.isTrue(obj.getId() == null);
     }
+    beforeSaveOrModify(obj);
     checkPartOfCurrentTenant(obj, OperationType.INSERT);
     checkLoggedInUserInsertAccess(obj);
     accessChecker.checkRestrictedOrDemoUser();
@@ -744,6 +783,14 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
    * at default.
    */
   protected void onSaveOrModify(final O obj)
+  {
+  }
+
+  /**
+   * This method will be called before access check of inserting and updating the object. Does nothing
+   * at default.
+   */
+  protected void beforeSaveOrModify(final O obj)
   {
   }
 
@@ -942,6 +989,7 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
   @Transactional(readOnly = false, propagation = Propagation.REQUIRED, isolation = Isolation.REPEATABLE_READ)
   public ModificationStatus internalUpdate(final O obj, final boolean checkAccess)
   {
+    tenantChecker.isTenantSet(obj, true);
     onSaveOrModify(obj);
     if (checkAccess == true) {
       accessChecker.checkRestrictedOrDemoUser();

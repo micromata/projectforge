@@ -67,7 +67,6 @@ public class RestServicesTest extends AbstractTestBase
     addressDO.setPrivateMobilePhone("007");
     addressDO.setPrivatePhone("I forgot my number");
     addressDO.setImageData(new byte[] { 0, 1, 3 });
-    addressDO.setTask(getTask("1.1"));
     addressDao.save(addressDO);
 
     Response response = addressDaoRest.getList("Marcel", 0l, true, true, true);
@@ -91,6 +90,6 @@ public class RestServicesTest extends AbstractTestBase
     Response response = taskDaoRest.getList("ProjectForge", true, false, false, false);
     Assert.assertTrue(response.getStatus() == SUCCESS_STATUS);
     Assert.assertTrue(
-        ((String) response.getEntity()).contains("\"shortDescription\":\"ProjectForge root task\""));
+        ((String) response.getEntity()).contains("\"shortDescription\":\"ProjectForge root task"));
   }
 }

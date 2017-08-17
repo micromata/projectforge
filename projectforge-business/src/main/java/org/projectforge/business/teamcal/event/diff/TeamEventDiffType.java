@@ -21,24 +21,9 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.business.teamcal.admin.model;
+package org.projectforge.business.teamcal.event.diff;
 
-
-
-/**
- * @author Kai Reinhard (k.reinhard@me.de)
- * 
- */
-public enum TeamCalAccessType
+public enum TeamEventDiffType
 {
-  FULL, READONLY, MINIMAL, NONE;
-
-  public boolean isIn(final TeamCalAccessType... types) {
-    for (final TeamCalAccessType type : types) {
-      if (this == type) {
-        return true;
-      }
-    }
-    return false;
-  }
+  NEW, UPDATED, DELETED, RESTORED, ATTENDEES, NONE
 }

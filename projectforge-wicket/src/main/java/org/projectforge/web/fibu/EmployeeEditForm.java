@@ -34,6 +34,8 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
+import org.apache.wicket.validation.IValidator;
+import org.apache.wicket.validation.ValidationError;
 import org.apache.wicket.validation.validator.PatternValidator;
 import org.projectforge.business.fibu.EmployeeDO;
 import org.projectforge.business.fibu.EmployeeTimedDO;
@@ -45,6 +47,7 @@ import org.projectforge.business.vacation.service.VacationService;
 import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.i18n.I18nHelper;
 import org.projectforge.framework.persistence.attr.impl.GuiAttrSchemaService;
+import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.web.common.BicValidator;
 import org.projectforge.web.common.IbanValidator;
 import org.projectforge.web.common.timeattr.AttrModel;
@@ -221,6 +224,15 @@ public class EmployeeEditForm extends AbstractEditForm<EmployeeDO, EmployeeEditP
           "userId");
       userSelectPanel.getWrappedComponent().setMarkupId("user").setOutputMarkupId(true);
       userSelectPanel.setShowSelectMeButton(false).setRequired(true);
+      userSelectPanel.add((IValidator<PFUserDO>) validatable -> {
+        PFUserDO user = validatable.getModel().getObject();
+        if (user != null && user.getId() != null) {
+          EmployeeDO employeeByUserId = employeeService.getEmployeeByUserId(user.getId());
+          if (employeeByUserId != null && employeeByUserId.getId().equals(data.getId()) == false) {
+            validatable.error(new ValidationError().addKey("fibu.employee.error.employeWithUserExists"));
+          }
+        }
+      });
       fs.add(userSelectPanel);
       userSelectPanel.init();
     }
@@ -275,7 +287,8 @@ public class EmployeeEditForm extends AbstractEditForm<EmployeeDO, EmployeeEditP
       // Holidays from previous year
       final FieldsetPanel fsPreviousYear = gridBuilder.newFieldset(I18nHelper.getLocalizedMessage("vacation.previousyearleave"));
       IModel<BigDecimal> modelPreviousYear = new AttrModel<>(data, VacationAttrProperty.PREVIOUSYEARLEAVE.getPropertyName(), BigDecimal.class);
-      MinMaxNumberField<BigDecimal> fieldPreviousYear = new MinMaxNumberField<>(InputPanel.WICKET_ID, modelPreviousYear, BigDecimal.ZERO, new BigDecimal(366));
+      MinMaxNumberField<BigDecimal> fieldPreviousYear = new MinMaxNumberField<>(InputPanel.WICKET_ID, modelPreviousYear, BigDecimal.ZERO,
+          new BigDecimal(366));
       validator.getDependentFormComponents()[0] = fieldPreviousYear;
       fsPreviousYear.add(fieldPreviousYear);
 

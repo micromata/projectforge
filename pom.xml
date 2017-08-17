@@ -4,7 +4,7 @@
   <groupId>org.projectforge</groupId>
   <artifactId>projectforge-parent</artifactId>
   <packaging>pom</packaging>
-  <version>6.15.0-SNAPSHOT</version>
+  <version>6.18.0-SNAPSHOT</version>
 
   <parent>
     <groupId>org.springframework.boot</groupId>
@@ -243,8 +243,8 @@
     <cglib-nodep.version>3.2.0</cglib-nodep.version>
     <groovy.version>2.4.4</groovy.version>
     <poi.version>3.16</poi.version>
-    <wicket.version>6.8.0</wicket.version>
-    <wicket-select2.version>2.2</wicket-select2.version>
+    <wicket.version>7.8.0</wicket.version>
+    <wicket-select2.version>3.0</wicket-select2.version>
 
     <javax.jsp-api.version>2.3.1</javax.jsp-api.version>
     <javax.servlet-api.version>3.1.0</javax.servlet-api.version>
@@ -559,22 +559,6 @@
     </plugins>
   </reporting>
   <repositories>
-    <!--
-    <repository>
-      <id>de.micromata.nexus.public</id>
-      <name>Micromata Nexus
-        Public
-      </name>
-      <url>https://repo.micromata.de/nexus/content/groups/public</url>
-    </repository>
-    <repository>
-      <id>de.micromata.nexus.snapshots</id>
-      <name>Micromata
-        Nexus Snapshots
-      </name>
-      <url>https://repo.micromata.de/nexus/content/groups/public-snapshots</url>
-    </repository>
-    -->
     <repository>
       <id>MGC</id>
       <name>Micromata Labs MGC</name>

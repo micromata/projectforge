@@ -52,9 +52,8 @@ import org.projectforge.web.wicket.flowlayout.ComponentWrapperPanel;
 
 /**
  * This panel shows the actual customer.
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
  */
 public class NewProjektSelectPanel extends AbstractSelectPanel<ProjektDO> implements ComponentWrapperPanel
 {
@@ -142,7 +141,7 @@ public class NewProjektSelectPanel extends AbstractSelectPanel<ProjektDO> implem
       }
 
       @Override
-      protected void convertInput()
+      public void convertInput()
       {
         final ProjektDO project = getConverter(getType()).convertToObject(getInput(), getLocale());
         setConvertedInput(project);
@@ -198,7 +197,7 @@ public class NewProjektSelectPanel extends AbstractSelectPanel<ProjektDO> implem
 
   /**
    * Should be called before init() method. If true, then the validation will be done after submitting.
-   * 
+   *
    * @param defaultFormProcessing
    */
   public void setDefaultFormProcessing(final boolean defaultFormProcessing)
@@ -218,7 +217,7 @@ public class NewProjektSelectPanel extends AbstractSelectPanel<ProjektDO> implem
       public void onSubmit()
       {
         setResponsePage(new ProjektListPage(caller, selectProperty));
-      };
+      }
     };
 
     selectButton.setDefaultFormProcessing(false);
@@ -284,7 +283,7 @@ public class NewProjektSelectPanel extends AbstractSelectPanel<ProjektDO> implem
 
   /**
    * Will be called if the user has chosen an entry of the projekt favorites drop down choice.
-   * 
+   *
    * @param projekt
    */
   protected void selectProjekt(final ProjektDO projekt)
@@ -306,7 +305,7 @@ public class NewProjektSelectPanel extends AbstractSelectPanel<ProjektDO> implem
   }
 
   @Override
-  protected void convertInput()
+  public void convertInput()
   {
     setConvertedInput(getModelObject());
   }

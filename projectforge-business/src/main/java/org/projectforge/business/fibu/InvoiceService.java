@@ -68,7 +68,6 @@ public class InvoiceService
       replacementMap.put("Rechnungsadresse", data.getCustomerAddress());
       replacementMap.put("Typ", data.getTyp() != null ? I18nHelper.getLocalizedMessage(data.getTyp().getI18nKey()) : "");
       replacementMap.put("Kundenreferenz", data.getCustomerref1());
-      replacementMap.put("Kundenreferenz2", data.getCustomerref2());
       replacementMap.put("Auftragsnummer", data.getPositionen().stream()
           .filter(pos -> pos.getAuftragsPosition() != null && pos.getAuftragsPosition().getAuftrag() != null)
           .map(pos -> String.valueOf(pos.getAuftragsPosition().getAuftrag().getNummer()))
@@ -80,6 +79,7 @@ public class InvoiceService
       replacementMap.put("Rechnungsnummer", data.getNummer() != null ? data.getNummer().toString() : "");
       replacementMap.put("Rechnungsdatum", DateTimeFormatter.instance().getFormattedDate(data.getDatum()));
       replacementMap.put("Faelligkeit", DateTimeFormatter.instance().getFormattedDate(data.getFaelligkeit()));
+      replacementMap.put("Anlage", getReplacementForAttachment(data));
       if (isSkonto) {
         replacementMap.put("Skonto", formatBigDecimal(data.getDiscountPercent()) + " %");
         replacementMap.put("Faelligkeit_Skonto", DateTimeFormatter.instance().getFormattedDate(data.getDiscountMaturity()));
@@ -99,6 +99,15 @@ public class InvoiceService
       log.error("Could not read invoice template", e);
     }
     return result;
+  }
+
+  private String getReplacementForAttachment(final RechnungDO data)
+  {
+    if (StringUtils.isEmpty(data.getAttachment()) == false) {
+      return I18nHelper.getLocalizedMessage("fibu.attachment") + ":\r\n" + data.getAttachment();
+    } else {
+      return "";
+    }
   }
 
   private void replaceInWholeDocument(XWPFDocument document, Map<String, String> map)
@@ -159,7 +168,10 @@ public class InvoiceService
               CTRPr rPr = newRun.getCTR().isSetRPr() ? newRun.getCTR().getRPr() : newRun.getCTR().addNewRPr();
               rPr.set(run.getCTR().getRPr());
               newRun.setText(textForLine);
-              newRun.addCarriageReturn();
+              //If last line, no cr
+              if (i < (replacementLines.length - 1)) {
+                newRun.addCarriageReturn();
+              }
               runNum++;
               lastRunNum++;
             }
@@ -241,7 +253,7 @@ public class InvoiceService
       return "";
     }
     DecimalFormat df = new DecimalFormat("#,###.00");
-    return df.format(value.setScale(2));
+    return df.format(value.setScale(2, BigDecimal.ROUND_HALF_DOWN));
   }
 
   private void replacePosDataInTable(final XWPFTable posTbl, final RechnungDO invoice)
@@ -323,4 +335,29 @@ public class InvoiceService
     return null;
   }
 
+  public String getInvoiceFilename(RechnungDO invoice)
+  {
+    final String suffix = "invoice.docx";
+
+    if (invoice == null) {
+      return suffix;
+    }
+    //Rechnungsnummer_Kunde_Projekt_Betreff(mit Unterstrichen statt Leerzeichen)_Datum(2017-07-04)
+    final String number = invoice.getNummer() != null ? invoice.getNummer().toString() + "_" : "";
+    final String sanitizedCustomer = invoice.getKunde() != null ? invoice.getKunde().getName().replaceAll("\\W+", "_") + "_" : "";
+    final String sanitizedProject = invoice.getProjekt() != null ? invoice.getProjekt().getName().replaceAll("\\W+", "_") + "_" : "";
+    final String sanitizedBetreff = invoice.getBetreff() != null ? invoice.getBetreff().replaceAll("\\W+", "_") + "_" : "";
+    final String invoiceDate = DateTimeFormatter.instance().getFormattedDate(invoice.getDatum()).replaceAll("\\W+", "_");
+    String filename =
+        number + sanitizedCustomer + sanitizedProject + sanitizedBetreff + invoiceDate;
+    if (filename.length() > (255 - suffix.length())) {
+      filename = filename.substring(0, (245 - suffix.length()));
+      filename = filename + "[more]" + "_" + suffix;
+    } else if (StringUtils.isEmpty(filename)) {
+      filename = suffix;
+    } else {
+      filename = filename + "_" + suffix;
+    }
+    return filename;
+  }
 }

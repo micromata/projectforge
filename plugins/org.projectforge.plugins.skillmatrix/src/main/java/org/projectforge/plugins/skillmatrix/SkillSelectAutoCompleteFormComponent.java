@@ -41,7 +41,6 @@ import org.projectforge.web.wicket.autocompletion.PFAutoCompleteTextField;
 
 /**
  * @author Billy Duong (b.duong@micromata.de)
- * 
  */
 public abstract class SkillSelectAutoCompleteFormComponent extends PFAutoCompleteTextField<SkillDO>
 {
@@ -75,7 +74,7 @@ public abstract class SkillSelectAutoCompleteFormComponent extends PFAutoComplet
 
     add(AttributeModifier.append("class", "mm_delayBlur"));
 
-    add(new AjaxFormComponentUpdatingBehavior("onchange")
+    add(new AjaxFormComponentUpdatingBehavior("change")
     {
       private static final long serialVersionUID = 5394951486514219126L;
 
@@ -117,7 +116,7 @@ public abstract class SkillSelectAutoCompleteFormComponent extends PFAutoComplet
 
   /**
    * create path to root
-   * 
+   *
    * @return
    */
   private String createPath(final Integer skillId)
@@ -155,7 +154,7 @@ public abstract class SkillSelectAutoCompleteFormComponent extends PFAutoComplet
 
   /**
    * Hook method which is called when the model is changed with a valid durin an ajax call
-   * 
+   *
    * @param target
    * @param taskDo
    */
