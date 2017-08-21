@@ -178,8 +178,8 @@ public abstract class TestPageBase<T extends TestPageBase>
     ArrayList<String> groupsToAdd1 = new ArrayList<String>();
     Collections.addAll(groupsToAdd1, groupsToAdd);
 
-    String input = "//div[input/@id='" + selectInputId + "']/div/ul";
-    String autocompletions = "//div[@id='select2-drop']/ul/li/div";
+    String input = "//div[select[@id='" + selectInputId + "']]/span/span/span/ul";
+    String autocompletions = "//ul[@class='select2-results__options']/li";
 
     driver.findElement(By.xpath(input)).click();
     int beginSize;
