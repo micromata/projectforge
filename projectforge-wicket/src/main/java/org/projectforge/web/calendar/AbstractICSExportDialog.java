@@ -30,6 +30,7 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.configuration.ConfigurationService;
+import org.projectforge.business.teamcal.service.CalendarFeedService;
 import org.projectforge.web.dialog.ModalDialog;
 import org.projectforge.web.wicket.components.SingleButtonPanel;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
@@ -46,10 +47,13 @@ public abstract class AbstractICSExportDialog extends ModalDialog
 
   protected TextArea<String> urlTextArea;
 
-  protected QRCodeDivAppenderBehavior qrCodeDivAppenderBehavior = new QRCodeDivAppenderBehavior();;
+  protected QRCodeDivAppenderBehavior qrCodeDivAppenderBehavior = new QRCodeDivAppenderBehavior();
 
   @SpringBean
   private ConfigurationService configurationService;
+
+  @SpringBean
+  protected CalendarFeedService calendarFeedService;
 
   /**
    * @param id
