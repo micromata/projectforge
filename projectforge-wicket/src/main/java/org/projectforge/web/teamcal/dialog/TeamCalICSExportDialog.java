@@ -36,7 +36,6 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.projectforge.business.multitenancy.TenantRegistryMap;
 import org.projectforge.business.teamcal.admin.model.TeamCalDO;
-import org.projectforge.business.teamcal.servlet.CalendarAboServlet;
 import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
@@ -58,6 +57,8 @@ public class TeamCalICSExportDialog extends AbstractICSExportDialog
   private TeamCalDO teamCal;
 
   private boolean exportReminders;
+
+  private static final String PARAM_EXPORT_REMINDER = "exportReminders";
 
   private String calendarTitle = "-";
 
@@ -176,7 +177,7 @@ public class TeamCalICSExportDialog extends AbstractICSExportDialog
   @Override
   protected String getUrl()
   {
-    return "&teamCals=" + teamCal.getId() + "&" + CalendarAboServlet.PARAM_EXPORT_REMINDER + "=" + exportReminders;
+    return calendarFeedService.getUrl("&teamCals=" + teamCal.getId() + "&" + PARAM_EXPORT_REMINDER + "=" + exportReminders);
   }
 
 }

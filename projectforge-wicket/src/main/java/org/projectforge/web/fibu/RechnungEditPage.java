@@ -131,13 +131,22 @@ public class RechnungEditPage extends AbstractEditPage<RechnungDO, RechnungEditF
     super.cloneData();
     final RechnungDO rechnung = getData();
     rechnung.setNummer(null);
+
     final Integer zahlungsZielInTagen = rechnung.getZahlungsZielInTagen();
-    final DayHolder day = new DayHolder();
-    rechnung.setDatum(day.getSQLDate());
+    final DayHolder dayZahlungsziel = new DayHolder();
+    rechnung.setDatum(dayZahlungsziel.getSQLDate());
     if (zahlungsZielInTagen != null) {
-      day.add(Calendar.DAY_OF_MONTH, zahlungsZielInTagen);
+      dayZahlungsziel.add(Calendar.DAY_OF_MONTH, zahlungsZielInTagen);
     }
-    rechnung.setFaelligkeit(day.getSQLDate());
+    rechnung.setFaelligkeit(dayZahlungsziel.getSQLDate());
+
+    final Integer skontoInTagen = rechnung.getDiscountZahlungsZielInTagen();
+    final DayHolder daySkonto = new DayHolder();
+    if (skontoInTagen != null) {
+      daySkonto.add(Calendar.DAY_OF_MONTH, skontoInTagen);
+    }
+    rechnung.setDiscountMaturity(daySkonto.getSQLDate());
+
     rechnung.setZahlBetrag(null);
     rechnung.setBezahlDatum(null);
     rechnung.setStatus(RechnungStatus.GESTELLT);

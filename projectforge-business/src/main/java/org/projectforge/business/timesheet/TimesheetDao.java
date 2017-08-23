@@ -892,10 +892,11 @@ public class TimesheetDao extends BaseDao<TimesheetDO>
     }
     if (master.getKost2Id() != null) {
       setKost2(entry, master.getKost2Id());
-    } else if (store == null) {
-      // clear destination kost2 if master has no kost2 and there is no kost2List
-      entry.setKost2(null);
     }
+    //    } else if (store == null) {
+    //      // clear destination kost2 if master has no kost2 and there is no kost2List
+    //      entry.setKost2(null);
+    //    }
     if (StringUtils.isNotBlank(master.getLocation()) == true) {
       entry.setLocation(master.getLocation());
     }

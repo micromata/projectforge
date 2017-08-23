@@ -52,7 +52,6 @@ import org.projectforge.business.systeminfo.SystemInfoCache;
 import org.projectforge.business.task.TaskDO;
 import org.projectforge.business.task.TaskTree;
 import org.projectforge.business.tasktree.TaskTreeHelper;
-import org.projectforge.business.teamcal.service.CalendarFeedService;
 import org.projectforge.business.timesheet.TimesheetDO;
 import org.projectforge.business.timesheet.TimesheetDao;
 import org.projectforge.business.timesheet.TimesheetExport;
@@ -136,9 +135,6 @@ public class TimesheetListPage extends AbstractListPage<TimesheetListForm, Times
 
   @SpringBean
   private UserFormatter userFormatter;
-
-  @SpringBean
-  private CalendarFeedService calendarFeedService;
 
   private TimesheetsICSExportDialog icsExportDialog;
 
@@ -225,7 +221,7 @@ public class TimesheetListPage extends AbstractListPage<TimesheetListForm, Times
           new ContentMenuEntryPanel(exportMenu.newSubMenuChildId(), exportExcelButton, getString("exportAsXls"))
               .setTooltip(getString("tooltip.export.excel")));
     }
-    icsExportDialog = new TimesheetsICSExportDialog(calendarFeedService, newModalDialogId(),
+    icsExportDialog = new TimesheetsICSExportDialog(newModalDialogId(),
         new ResourceModel("timesheet.iCalSubscription"));
     add(icsExportDialog);
     icsExportDialog.init(ThreadLocalUserContext.getUserId());

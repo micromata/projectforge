@@ -175,6 +175,9 @@ public class TimesheetMassUpdatePage extends AbstractMassEditPage implements ISe
     if (form.updateTask == false) {
       form.data.setTask(null);
     }
+    if (form.updateKost2 == false) {
+      form.data.setKost2(null);
+    }
     timesheetDao.massUpdate(timesheets, form.data);
     super.updateAll();
   }
