@@ -57,6 +57,8 @@ public class TimesheetMassUpdateForm extends AbstractMassEditForm<TimesheetDO, T
 
   protected boolean updateTask;
 
+  protected boolean updateKost2;
+
   private TimesheetPageSupport timesheetPageSupport;
 
   public TimesheetMassUpdateForm(final TimesheetMassUpdatePage parentPage)
@@ -91,6 +93,8 @@ public class TimesheetMassUpdateForm extends AbstractMassEditForm<TimesheetDO, T
           return CollectionUtils.isNotEmpty(kost2List);
         }
       };
+      kost2Fieldset.addCheckBox(new PropertyModel<Boolean>(this, "updateKost2"), getString("update") + ":",
+          getString("massupdate.updateKost2"));
       kost2List = timesheetDao.getKost2List(data);
       final LabelValueChoiceRenderer<Integer> kost2ChoiceRenderer = getKost2LabelValueChoiceRenderer();
       kost2Choice = TimesheetEditForm.createCost2ChoiceRenderer(kost2Fieldset.getDropDownChoiceId(), timesheetDao,
