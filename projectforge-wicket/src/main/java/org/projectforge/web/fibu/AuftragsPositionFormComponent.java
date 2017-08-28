@@ -129,8 +129,8 @@ public class AuftragsPositionFormComponent extends PFAutoCompleteTextField<Auftr
     });
     final List<AuftragsPositionDO> result = new ArrayList<AuftragsPositionDO>();
     for (final AuftragDO auftrag : list) {
-      if (auftrag.getPositionenIncludingDeleted() != null) {
-        for (final AuftragsPositionDO pos : auftrag.getPositionenIncludingDeleted()) {
+      if (auftrag.getPositionenExcludingDeleted() != null) {
+        for (final AuftragsPositionDO pos : auftrag.getPositionenExcludingDeleted()) {
           result.add(pos);
         }
       }
