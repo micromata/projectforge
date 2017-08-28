@@ -13,134 +13,171 @@ public class SeleniumAddressEditPage extends EditPage<SeleniumAddressEditPage>
   public static final String STATE_OUTDATED = "OUTDATED";
   public static final String STATE_LEAVED = "LEAVED";
 
-
   @Override
   protected String urlPostfix()
   {
     return "wa/addressEdit?";
   }
 
-  public SeleniumAddressEditPage setName(String value) {
-    return setStringElementById("name",value);
+  public SeleniumAddressEditPage setOderbook(String value)
+  {
+    return chooseOptionsOfSelect2("addressbook-select", value);
   }
 
-  public SeleniumAddressEditPage setFirstName(String value) {
-    return setStringElementById("firstName",value);
-  }
-  public SeleniumAddressEditPage setOrganization(String value) {
-    return setStringElementById("organization",value);
+  public SeleniumAddressEditPage setName(String value)
+  {
+    return setStringElementById("name", value);
   }
 
-  public SeleniumAddressEditPage setDivision(String value) {
-    return setStringElementById("division",value);
+  public SeleniumAddressEditPage setFirstName(String value)
+  {
+    return setStringElementById("firstName", value);
   }
 
-  public SeleniumAddressEditPage setPosition(String value) {
-    return setStringElementById("position",value);
-  }
-  public SeleniumAddressEditPage setEmail(String value) {
-    return setStringElementById("email",value);
+  public SeleniumAddressEditPage setOrganization(String value)
+  {
+    return setStringElementById("organization", value);
   }
 
-  public SeleniumAddressEditPage setTitle(String value) {
-    return setStringElementById("title",value);
+  public SeleniumAddressEditPage setDivision(String value)
+  {
+    return setStringElementById("division", value);
   }
 
-  public SeleniumAddressEditPage setWebsite(String value) {
-    return setStringElementById("website",value);
+  public SeleniumAddressEditPage setPosition(String value)
+  {
+    return setStringElementById("position", value);
   }
 
-  public SeleniumAddressEditPage setPrivateEmail(String value) {
-    return setStringElementById("privateEmail",value);
+  public SeleniumAddressEditPage setEmail(String value)
+  {
+    return setStringElementById("email", value);
   }
 
-  public SeleniumAddressEditPage setFingerprint(String value) {
-    return setStringElementById("fingerprint",value);
+  public SeleniumAddressEditPage setTitle(String value)
+  {
+    return setStringElementById("title", value);
   }
 
-  public SeleniumAddressEditPage setPublicKey(String value) {
-    return setStringElementById("publicKey",value);
+  public SeleniumAddressEditPage setWebsite(String value)
+  {
+    return setStringElementById("website", value);
   }
 
-  public SeleniumAddressEditPage setBirthday(String value) {
-    return setStringElementById("birthday",value);
+  public SeleniumAddressEditPage setPrivateEmail(String value)
+  {
+    return setStringElementById("privateEmail", value);
   }
 
-  public SeleniumAddressEditPage setLanguage(String value) {
-    return setStringElementById("language",value);
+  public SeleniumAddressEditPage setFingerprint(String value)
+  {
+    return setStringElementById("fingerprint", value);
   }
 
-  public SeleniumAddressEditPage setForm(String value) {
+  public SeleniumAddressEditPage setPublicKey(String value)
+  {
+    return setStringElementById("publicKey", value);
+  }
+
+  public SeleniumAddressEditPage setBirthday(String value)
+  {
+    return setStringElementById("birthday", value);
+  }
+
+  public SeleniumAddressEditPage setLanguage(String value)
+  {
+    return setStringElementById("language", value);
+  }
+
+  public SeleniumAddressEditPage setForm(String value)
+  {
     return selectDropdownListByValue("form", value);
   }
 
-  public SeleniumAddressEditPage setContactStatus(String value) {
-    return selectDropdownListByValue("contactStatus",value);
+  public SeleniumAddressEditPage setContactStatus(String value)
+  {
+    return selectDropdownListByValue("contactStatus", value);
   }
 
-  public SeleniumAddressEditPage setAddressStatus(String value) {
-    return selectDropdownListByValue("addressStatus",value);
+  public SeleniumAddressEditPage setAddressStatus(String value)
+  {
+    return selectDropdownListByValue("addressStatus", value);
   }
 
-  public String getName() {
+  public String getName()
+  {
     return getStringElementById("name");
   }
 
-  public String getFirstName() {
+  public String getFirstName()
+  {
     return getStringElementById("firstName");
   }
 
-  public String getOrganization() {
+  public String getOrganization()
+  {
     return getStringElementById("organization");
   }
 
-  public String getDivision() {
+  public String getDivision()
+  {
     return getStringElementById("division");
   }
 
-  public String getPosition() {
+  public String getPosition()
+  {
     return getStringElementById("position");
   }
 
-  public String getEmail() {
+  public String getEmail()
+  {
     return getStringElementById("email");
   }
 
-  public String getTitle() {
+  public String getTitle()
+  {
     return getStringElementById("title");
   }
 
-  public String getPrivateEmail() {
+  public String getPrivateEmail()
+  {
     return getStringElementById("privateEmail");
   }
 
-  public String getWebsite() {
+  public String getWebsite()
+  {
     return getStringElementById("website");
   }
 
-  public String getBirthday() {
+  public String getBirthday()
+  {
     return getStringElementById("birthday");
   }
 
-  public String getFingerprint() {
+  public String getFingerprint()
+  {
     return getStringElementById("fingerprint");
   }
 
-  public String getPublicKey() {
+  public String getPublicKey()
+  {
     return getStringElementById("publicKey");
   }
 
-  public String getForm() {
+  public String getForm()
+  {
     String form = "form";
     return getSelectedOption(form);
   }
 
-  public String getContactStatus() {
+  public String getContactStatus()
+  {
     return getSelectedOption("contactStatus");
   }
 
-  public String getAddressStatus() {
-    return  getSelectedOption("addressStatus");
+  public String getAddressStatus()
+  {
+    return getSelectedOption("addressStatus");
   }
 
 }

@@ -21,7 +21,6 @@ public class MyAccountTest extends SeleniumSuiteTestBase
     System.out.println("  - new SeleniumEmployeeListPage");
     SeleniumEmployeeListPage seleniumEmployeeListPage = new SeleniumEmployeeListPage();
 
-
     try {
       System.out.println("  - try seleniumEmployeeListPage");
       seleniumEmployeeListPage
@@ -181,7 +180,7 @@ public class MyAccountTest extends SeleniumSuiteTestBase
     String state = "state";
     String zipcode = "123";
     String street = "street";
-    String birthday = "01/02/1980";
+    String birthday = "01.02.1980";
     seleniumMyAccountPage
         .callPage()
         .setFirstName(firstName)

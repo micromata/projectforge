@@ -8,22 +8,23 @@ import java.util.List;
 import java.util.Locale;
 
 import org.openqa.selenium.By;
-import org.openqa.selenium.Keys;
 import org.openqa.selenium.StaleElementReferenceException;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
+import org.openqa.selenium.support.ui.FluentWait;
 import org.openqa.selenium.support.ui.Select;
-import org.openqa.selenium.support.ui.WebDriverWait;
 import org.projectforge.framework.i18n.I18nService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
 
+import com.google.common.base.Predicate;
+
 public abstract class TestPageBase<T extends TestPageBase>
 {
 
   protected static WebDriver driver;
-  protected static WebDriverWait wait;
+  protected static FluentWait<WebDriver> wait;
   protected static String baseUrl;
 
   @Autowired
@@ -34,7 +35,7 @@ public abstract class TestPageBase<T extends TestPageBase>
 
   }
 
-  public static void setWait(WebDriverWait wait)
+  public static void setWait(FluentWait<WebDriver> wait)
   {
     TestPageBase.wait = wait;
   }
@@ -72,14 +73,20 @@ public abstract class TestPageBase<T extends TestPageBase>
    */
   public void waitForPageReload(WebElement element)
   {
-    wait.until((WebDriver webDriver) -> {
-      try {
-        String s = element.getTagName();
-        return s != null;
-      } catch (StaleElementReferenceException e) {
-        return true;
+    Predicate<WebDriver> pageLoaded = new Predicate<WebDriver>()
+    {
+      @Override
+      public boolean apply(WebDriver input)
+      {
+        try {
+          String s = element.getTagName();
+          return s != null;
+        } catch (StaleElementReferenceException e) {
+          return true;
+        }
       }
-    });
+    };
+    wait.until(pageLoaded);
   }
 
   /**
@@ -179,7 +186,7 @@ public abstract class TestPageBase<T extends TestPageBase>
     Collections.addAll(groupsToAdd1, groupsToAdd);
 
     String input = "//div[select[@id='" + selectInputId + "']]/span/span/span/ul";
-    String autocompletions = "//ul[@class='select2-results__options']/li";
+    String autocompletions = "//ul[@id='select2-" + selectInputId + "-results']/li";
 
     driver.findElement(By.xpath(input)).click();
     int beginSize;
@@ -192,7 +199,7 @@ public abstract class TestPageBase<T extends TestPageBase>
           if (groupsToAdd1.contains(text)) {
             webElement.click();
             groupsToAdd1.remove(text);
-            driver.findElement(By.xpath(input)).click();
+            //driver.findElement(By.xpath(input)).click();
             break;
           }
         }
@@ -200,7 +207,7 @@ public abstract class TestPageBase<T extends TestPageBase>
         Assert.fail(e.getMessage());
       }
     } while (groupsToAdd1.size() != beginSize);
-    driver.findElement(By.xpath(input)).sendKeys(Keys.ESCAPE);
+    driver.findElement(By.xpath(input)).click();
     return (T) this;
   }
 

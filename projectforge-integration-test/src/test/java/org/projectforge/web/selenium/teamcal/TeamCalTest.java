@@ -1,14 +1,15 @@
 package org.projectforge.web.selenium.teamcal;
 
+import java.util.Date;
+
 import org.projectforge.web.selenium.SeleniumSuiteTestBase;
 import org.projectforge.web.selenium.administration.SeleniumGroupEditPage;
 import org.projectforge.web.selenium.administration.SeleniumUserEditPage;
+import org.projectforge.web.selenium.common.SeleniumCalendarEditPage;
 import org.projectforge.web.selenium.common.SeleniumCalendarListPage;
 import org.projectforge.web.selenium.login.SeleniumLoginPage;
 import org.testng.Assert;
 import org.testng.annotations.Test;
-
-import java.util.Date;
 
 public class TeamCalTest extends SeleniumSuiteTestBase
 {
@@ -56,6 +57,7 @@ public class TeamCalTest extends SeleniumSuiteTestBase
       try {
         Assert.assertEquals(seleniumCalendarListPage
             .callPage()
+            .setOptionPanel(true)
             .clickRowWhereColumnLike(calendarName)
             .getTitle(), calendarName);
       } catch (Exception e) {
@@ -144,7 +146,7 @@ public class TeamCalTest extends SeleniumSuiteTestBase
         "K" + " " + "NoAccessUser", "A" + " " + "OwnerUser");
     addGroup(prefix + "FullGroup1", "B" + " " + "FullUser1", "A" + " " + "OwnerUser");
     addGroup(prefix + "ReadonlyGroup1", "E" + " " + "ReadonlyUser1", "A" + " " + "OwnerUser");
-    addGroup(prefix + "MinimalGroup", "H" + " " + "MinimalUser1", "A" + " " + "OwnerUser");
+    addGroup(prefix + "MinimalGroup1", "H" + " " + "MinimalUser1", "A" + " " + "OwnerUser");
 
     SeleniumLoginPage seleniumLoginPage = new SeleniumLoginPage();
     seleniumLoginPage.logout();
@@ -154,21 +156,20 @@ public class TeamCalTest extends SeleniumSuiteTestBase
 
     calendarName = new Date().toString();
     SeleniumCalendarListPage seleniumCalendarListPage = new SeleniumCalendarListPage();
-    seleniumCalendarListPage
+    SeleniumCalendarEditPage seleniumCalendarEditPage = seleniumCalendarListPage
         .callPage()
-        .addEntry()
-        .setTitle(calendarName)
-        .setOwner("teamCalteamCalAOwnerUser")
-        .setFullAccessGroups(prefix + "FullGroup1")
-        .setReadOnlyAccessGroups(prefix + "ReadonlyGroup1")
-        .setMinimalAccessGroups(prefix + "MinimalGroup")
-        .setFullAccessUsers("D" + " " + "FullUser3")
-        .setReadOnlyAccessUsers("G" + " " + "ReadonlyUser3")
-        .setMinimalAccessUsers("J" + " " + "MinimalUser3")
-        .clickCreateOrUpdate();
+        .addEntry();
+    seleniumCalendarEditPage.setTitle(calendarName);
+    seleniumCalendarEditPage.setOwner("teamCalteamCalAOwnerUser");
+    seleniumCalendarEditPage.setMinimalAccessGroups(prefix + "MinimalGroup1");
+    seleniumCalendarEditPage.setReadOnlyAccessGroups(prefix + "ReadonlyGroup1");
+    seleniumCalendarEditPage.setFullAccessGroups(prefix + "FullGroup1");
+    seleniumCalendarEditPage.setMinimalAccessUsers("J" + " " + "MinimalUser3");
+    seleniumCalendarEditPage.setReadOnlyAccessUsers("G" + " " + "ReadonlyUser3");
+    seleniumCalendarEditPage.setFullAccessUsers("D" + " " + "FullUser3");
+    seleniumCalendarEditPage.clickCreateOrUpdate();
 
     seleniumLoginPage.logout();
-
   }
 
   private void addGroup(String groupName, String... userNames)
