@@ -27,11 +27,6 @@ public class OrganizerConverter extends PropertyConverter
   @Override
   public Property toVEvent(final TeamEventDO event)
   {
-    // organizer is only required if attendees are present
-    if (event.getAttendees() == null || event.getAttendees().isEmpty()) {
-      return null;
-    }
-    
     final ParameterList param = new ParameterList();
     final String organizerMail;
 
