@@ -53,7 +53,6 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.ResourceModel;
 import org.projectforge.web.fibu.ISelectCallerPage;
-import org.projectforge.web.wicket.AbstractListPage;
 import org.projectforge.web.wicket.AbstractSecuredPage;
 import org.projectforge.web.wicket.CellItemListener;
 import org.projectforge.web.wicket.CellItemListenerPropertyColumn;
@@ -61,7 +60,6 @@ import org.projectforge.web.wicket.ListSelectActionPanel;
 
 /**
  * @author Billy Duong (b.duong@micromata.de)
- * 
  */
 public class SkillTreeBuilder implements Serializable
 {
@@ -141,6 +139,7 @@ public class SkillTreeBuilder implements Serializable
   {
     final CellItemListener<SkillNode> cellItemListener = new CellItemListener<SkillNode>()
     {
+      @Override
       public void populateItem(final Item<ICellPopulator<SkillNode>> item, final String componentId,
           final IModel<SkillNode> rowModel)
       {
@@ -168,7 +167,7 @@ public class SkillTreeBuilder implements Serializable
           view.add(
               new ListSelectActionPanel(view.newChildId(), rowModel, caller, selectProperty, skillNode.getId(), ""));
         }
-        AbstractListPage.addRowClick(cellItem);
+        //AbstractListPage.addRowClick(cellItem);
         final NodeModel<SkillNode> nodeModel = (NodeModel<SkillNode>) rowModel;
         final Component nodeComponent = getTree().newNodeComponent(view.newChildId(), nodeModel.getWrappedModel());
         nodeComponent.add(new NodeBorder(nodeModel.getBranches()));

@@ -40,10 +40,10 @@ import org.projectforge.business.teamcal.event.TeamEventDao;
 import org.projectforge.business.teamcal.event.TeamEventService;
 import org.projectforge.business.teamcal.event.TeamRecurrenceEvent;
 import org.projectforge.business.teamcal.event.diff.TeamEventDiffType;
+import org.projectforge.business.teamcal.event.ical.ICalGenerator;
 import org.projectforge.business.teamcal.event.model.TeamEvent;
 import org.projectforge.business.teamcal.event.model.TeamEventAttendeeDO;
 import org.projectforge.business.teamcal.event.model.TeamEventDO;
-import org.projectforge.business.teamcal.service.TeamCalServiceImpl;
 import org.projectforge.business.timesheet.TimesheetDO;
 import org.projectforge.business.timesheet.TimesheetDao;
 import org.projectforge.framework.i18n.UserException;
@@ -69,9 +69,6 @@ public class TeamEventEditPage extends AbstractEditPage<TeamEventDO, TeamEventEd
 
   @SpringBean
   private TimesheetDao timesheetDao;
-
-  @SpringBean
-  private TeamCalServiceImpl teamEventConverter;
 
   @SpringBean
   private TeamEventService teamEventService;
@@ -169,9 +166,6 @@ public class TeamEventEditPage extends AbstractEditPage<TeamEventDO, TeamEventEd
     init(teamEventDO);
   }
 
-  /**
-   * @see org.projectforge.web.wicket.AbstractEditPage#init(org.projectforge.core.AbstractBaseDO)
-   */
   @Override
   protected void init(final TeamEventDO data)
   {
@@ -228,17 +222,20 @@ public class TeamEventEditPage extends AbstractEditPage<TeamEventDO, TeamEventEd
       addContentMenuEntry(menu);
     } else {
       @SuppressWarnings("serial")
-      final ContentMenuEntryPanel menu = new ContentMenuEntryPanel(getNewContentMenuChildId(), new SubmitLink(
-          ContentMenuEntryPanel.LINK_ID, form)
+      final ContentMenuEntryPanel menu = new ContentMenuEntryPanel(getNewContentMenuChildId(), new SubmitLink(ContentMenuEntryPanel.LINK_ID, form)
       {
         @Override
         public void onSubmit()
         {
           final TeamEventDO event = getData();
           log.info("Export ics for: " + event.getSubject());
-          ByteArrayOutputStream baos = teamEventConverter.getIcsFile(event, false, false, null);
-          if (baos != null) {
-            DownloadUtils.setDownloadTarget(baos.toByteArray(), event.getSubject().replace(" ", "") + ".ics");
+
+          final ICalGenerator generator = ICalGenerator.exportAllFields();
+          generator.addEvent(event);
+          ByteArrayOutputStream icsFile = generator.getCalendarAsByteStream();
+
+          if (icsFile != null) {
+            DownloadUtils.setDownloadTarget(icsFile.toByteArray(), event.getSubject().replace(" ", "") + ".ics");
           }
         }
 
@@ -489,10 +486,6 @@ public class TeamEventEditPage extends AbstractEditPage<TeamEventDO, TeamEventEd
     return log;
   }
 
-  /**
-   * @see org.projectforge.web.wicket.AbstractEditPage#newEditForm(org.projectforge.web.wicket.AbstractEditPage,
-   * org.projectforge.core.AbstractBaseDO)
-   */
   @Override
   protected TeamEventEditForm newEditForm(final AbstractEditPage<?, ?, ?> parentPage, final TeamEventDO data)
   {

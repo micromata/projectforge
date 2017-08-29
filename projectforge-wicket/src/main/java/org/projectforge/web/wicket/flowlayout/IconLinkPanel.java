@@ -31,13 +31,13 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.link.AbstractLink;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
-import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.web.CSSColor;
+import org.projectforge.web.wicket.WicketUtils;
 
 /**
  * Represents an icon.
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
  */
 public class IconLinkPanel extends Panel
 {
@@ -72,7 +72,7 @@ public class IconLinkPanel extends Panel
   /**
    * @param id
    * @param type
-   * @param link Must have component id {@link #LINK_ID}
+   * @param link    Must have component id {@link #LINK_ID}
    * @param tooltip
    */
   public IconLinkPanel(final String id, final IconType type, final IModel<String> tooltip, final AbstractLink link)
@@ -84,7 +84,7 @@ public class IconLinkPanel extends Panel
   /**
    * @param id
    * @param type
-   * @param link Must have component id {@link #LINK_ID}
+   * @param link    Must have component id {@link #LINK_ID}
    * @param tooltip
    */
   public IconLinkPanel(final String id, final IconType type, final IModel<String> tooltip)
@@ -98,6 +98,7 @@ public class IconLinkPanel extends Panel
   public IconLinkPanel setLink(final AbstractLink link)
   {
     this.link = link;
+    this.link.add(AttributeModifier.append("class", "icon-link-panel-link"));
     add(link);
     icon = new WebMarkupContainer("icon");
     icon.add(AttributeModifier.append("class", type.getClassAttrValue()));
@@ -130,6 +131,7 @@ public class IconLinkPanel extends Panel
 
   /**
    * The css class "btn" will be added, so the link looks like a button.
+   *
    * @return this for chaining.
    */
   public IconLinkPanel setButtonStyle()
@@ -139,7 +141,6 @@ public class IconLinkPanel extends Panel
   }
 
   /**
-   * 
    * @param attributeName
    * @param value
    * @return this for chaining.

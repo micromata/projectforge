@@ -29,7 +29,6 @@ import org.apache.wicket.model.IModel;
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
  */
 public class AjaxIconLinkPanel extends IconLinkPanel
 {
@@ -53,7 +52,8 @@ public class AjaxIconLinkPanel extends IconLinkPanel
   public AjaxIconLinkPanel(final String id, final IconType type, final IModel<String> tooltip)
   {
     super(id, type, tooltip);
-    setLink(new AjaxLink<Void>(IconLinkPanel.LINK_ID) {
+    setLink(new AjaxLink<Void>(IconLinkPanel.LINK_ID)
+    {
       /**
        * @see org.apache.wicket.ajax.markup.html.AjaxLink#onClick(org.apache.wicket.ajax.AjaxRequestTarget)
        */

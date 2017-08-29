@@ -9,8 +9,6 @@ import org.projectforge.framework.persistence.api.BaseDO;
 import org.projectforge.framework.persistence.api.IUserRightId;
 import org.projectforge.framework.persistence.api.JpaPfGenericPersistenceService;
 import org.projectforge.framework.persistence.jpa.PfEmgr;
-import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
-import org.projectforge.framework.persistence.user.entities.TenantDO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -54,18 +52,11 @@ public class BeforeModifyEventHandler implements EmgrEventHandler<EmgrInitForMod
     if ((rec instanceof BaseDO) == false) {
       return;
     }
+    BaseDO baseDo = (BaseDO) rec;
+    tenantChecker.isTenantSet(baseDo, true);
     PfEmgr emgr = (PfEmgr) event.getEmgr();
     if (emgr.isCheckAccess() == false) {
       return;
-    }
-    BaseDO baseDo = (BaseDO) rec;
-    if (baseDo.getTenant() == null) {
-      //TODO FB: IS this the correct tenant?
-      TenantDO tenant = ThreadLocalUserContext.getUser().getTenant();
-      if (tenant == null) {
-        tenant = tenantService.getDefaultTenant();
-      }
-      baseDo.setTenant(tenant);
     }
     AUserRightId aUserRightId = rec.getClass().getAnnotation(AUserRightId.class);
     if (aUserRightId != null && aUserRightId.checkAccess() == false) {

@@ -40,6 +40,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.TimeZone;
+import java.util.UUID;
 import java.util.function.Predicate;
 
 import org.apache.commons.lang3.StringUtils;
@@ -142,6 +143,46 @@ public class DatabaseCoreUpdates
     final List<UpdateEntry> list = new ArrayList<>();
 
     ////////////////////////////////////////////////////////////////////
+    // 6.17.0
+    // /////////////////////////////////////////////////////////////////
+    list.add(new UpdateEntryImpl(CORE_REGION_ID, "6.17.0", "2017-08-16",
+        "Add uid to addresses.")
+    {
+      @Override
+      public UpdatePreCheckStatus runPreCheck()
+      {
+        log.info("Running pre-check for ProjectForge version 6.16.0");
+        if (addressHasUid() == false) {
+          return UpdatePreCheckStatus.READY_FOR_UPDATE;
+        }
+
+        return UpdatePreCheckStatus.ALREADY_UPDATED;
+      }
+
+      @Override
+      public UpdateRunningStatus runUpdate()
+      {
+        if (addressHasUid() == false) {
+          initDatabaseDao.updateSchema();
+          List<DatabaseResultRow> resultList = databaseUpdateService.query("select pk from t_address where uid is null");
+          for (DatabaseResultRow row : resultList) {
+            Integer id = (Integer) row.getEntry(0).getValue();
+            UUID uid = UUID.randomUUID();
+            String sql = "UPDATE t_address SET uid = '" + uid.toString() + "' WHERE pk = " + id;
+            databaseUpdateService.execute(sql);
+          }
+        }
+        return UpdateRunningStatus.DONE;
+      }
+
+      private boolean addressHasUid()
+      {
+        return databaseUpdateService.doesTableAttributeExist("t_address", "uid") == true
+            && databaseUpdateService.query("select * from t_address where uid is not null LIMIT 1").size() > 0;
+      }
+    });
+
+    ////////////////////////////////////////////////////////////////////
     // 6.16.0
     // /////////////////////////////////////////////////////////////////
     list.add(new UpdateEntryImpl(CORE_REGION_ID, "6.16.0", "2017-08-01",
@@ -225,8 +266,10 @@ public class DatabaseCoreUpdates
 
       private boolean isImageDataPreviewMissing()
       {
-        return databaseUpdateService.doesTableAttributeExist("t_address", "image_data_preview") == false
-            || databaseUpdateService.query("select pk from t_address where image_data_preview is not null LIMIT 1").size() < 1;
+        return databaseUpdateService.doesTableAttributeExist("t_address", "image_data_preview") == false ||
+            ((Long) databaseUpdateService.query("select count(*) from t_address where imagedata is not null AND imagedata != ''").get(0).getEntry(0).getValue())
+                > 0L
+                && databaseUpdateService.query("select pk from t_address where imagedata is not null AND image_data_preview is not null LIMIT 1").size() < 1;
       }
 
       private boolean oldUniqueConstraint()

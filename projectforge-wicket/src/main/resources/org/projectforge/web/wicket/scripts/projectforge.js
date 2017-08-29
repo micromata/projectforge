@@ -29,6 +29,16 @@ $(function () {
     });
 });
 
+$(function () {
+    $('.icon-link-panel-link').on('click', function (e) {
+        // console.group('click')
+        // console.log(e.target);
+        // console.log(e.currentTarget);
+        // console.groupEnd();
+        e.stopPropagation();
+    });
+});
+
 function rowClick(row) {
     if (suppressRowClick != 'true') {
         link = $(row).find("a:first");

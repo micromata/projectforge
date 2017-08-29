@@ -23,15 +23,12 @@
 
 package org.projectforge.business.teamcal.event.model;
 
-import java.sql.Time;
 import java.sql.Timestamp;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.GregorianCalendar;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 import java.util.TimeZone;
 import java.util.TreeSet;
@@ -48,10 +45,8 @@ import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.persistence.Transient;
 import javax.persistence.UniqueConstraint;
-import javax.validation.constraints.NotNull;
 
 import org.apache.commons.lang.StringUtils;
-import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.search.annotations.Analyze;
 import org.hibernate.search.annotations.DateBridge;
 import org.hibernate.search.annotations.EncodingType;
@@ -62,6 +57,7 @@ import org.hibernate.search.annotations.IndexedEmbedded;
 import org.hibernate.search.annotations.Resolution;
 import org.hibernate.search.annotations.Store;
 import org.projectforge.business.teamcal.admin.model.TeamCalDO;
+import org.projectforge.business.teamcal.event.RecurrenceMonthMode;
 import org.projectforge.business.teamcal.event.TeamEventRecurrenceData;
 import org.projectforge.framework.calendar.ICal4JUtils;
 import org.projectforge.framework.persistence.api.AUserRightId;
@@ -76,10 +72,10 @@ import org.projectforge.framework.time.TimePeriod;
 
 import de.micromata.genome.db.jpa.history.api.NoHistory;
 import de.micromata.genome.db.jpa.history.api.WithHistory;
-import net.fortuna.ical4j.model.DateList;
 import net.fortuna.ical4j.model.DateTime;
 import net.fortuna.ical4j.model.Recur;
-import net.fortuna.ical4j.model.parameter.Value;
+import net.fortuna.ical4j.model.WeekDay;
+import net.fortuna.ical4j.model.WeekDayList;
 import net.fortuna.ical4j.model.property.RRule;
 
 /**
@@ -161,16 +157,13 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
   private String organizer;
   private String organizer_additional_params;
 
+  // See RFC 2445 section 4.8.7.4
+  private Integer sequence = 0;
   private String uid;
 
   private Integer reminderDuration;
-
   private ReminderDurationUnit reminderDurationType;
-
   private ReminderActionType reminderActionType;
-
-  // See RFC 2445 section 4.8.7.4
-  private Integer sequence = 0;
 
   @PFPersistancyBehavior(autoUpdateCollectionEntries = true)
   private Set<TeamEventAttachmentDO> attachments;
@@ -563,9 +556,9 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
    * @return this for chaining.
    */
   @Transient
-  public TeamEventDO setRecurrence(final TeamEventRecurrenceData recurData)
+  public TeamEventDO setRecurrence(final TeamEventRecurrenceData recurrenceData)
   {
-    if (recurData == null || recurData.getFrequency() == null || recurData.getFrequency() == RecurrenceFrequency.NONE) {
+    if (recurrenceData == null || recurrenceData.getFrequency() == null || recurrenceData.getFrequency() == RecurrenceFrequency.NONE) {
       this.recurrenceRuleObject = null;
       this.recurrenceRule = null;
       this.recurrenceUntil = null;
@@ -573,23 +566,74 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
       return this;
     }
 
-    if (recurData.isCustomized() == false) {
-      recurData.setInterval(1);
+    if (recurrenceData.isCustomized() == false) {
+      recurrenceData.setInterval(1);
     }
 
     final Recur recur = new Recur();
-    recur.setInterval(recurData.getInterval());
-    recur.setFrequency(ICal4JUtils.getCal4JFrequencyString(recurData.getFrequency()));
+    recur.setInterval(recurrenceData.getInterval());
+    recur.setFrequency(ICal4JUtils.getCal4JFrequencyString(recurrenceData.getFrequency()));
 
+    if (recurrenceData.getFrequency() == RecurrenceFrequency.WEEKLY) {
+      boolean[] weekdays = recurrenceData.getWeekdays();
+      for (int i = 0; i < 7; i++) {
+        if (weekdays[i]) {
+          if (i == 0) {
+            recur.getDayList().add(WeekDay.MO);
+          } else if (i == 1) {
+            recur.getDayList().add(WeekDay.TU);
+          } else if (i == 2) {
+            recur.getDayList().add(WeekDay.WE);
+          } else if (i == 3) {
+            recur.getDayList().add(WeekDay.TH);
+          } else if (i == 4) {
+            recur.getDayList().add(WeekDay.FR);
+          } else if (i == 5) {
+            recur.getDayList().add(WeekDay.SA);
+          } else if (i == 6) {
+            recur.getDayList().add(WeekDay.SU);
+          }
+        }
+      }
+    } else if (recurrenceData.getFrequency() == RecurrenceFrequency.MONTHLY) {
+      if (recurrenceData.getMonthMode() == RecurrenceMonthMode.EACH) {
+        boolean[] monthdays = recurrenceData.getMonthdays();
+        for (int i = 0; i < 31; i++) {
+          if (monthdays[i]) {
+            recur.getMonthDayList().add(i + 1);
+          }
+        }
+      } else if (recurrenceData.getMonthMode() == RecurrenceMonthMode.ATTHE) {
+        int offset = ICal4JUtils.getOffsetForRecurrenceFrequencyModeOne(recurrenceData.getModeOneMonth());
+        WeekDayList weekDays = ICal4JUtils.getDayListForRecurrenceFrequencyModeTwo(recurrenceData.getModeTwoMonth());
+        for (WeekDay weekDay : weekDays) {
+          recur.getDayList().add(new WeekDay(weekDay, offset));
+        }
+      }
+    } else if (recurrenceData.getFrequency() == RecurrenceFrequency.YEARLY) {
+      boolean[] months = recurrenceData.getMonths();
+      for (int i = 0; i < 12; i++) {
+        if (months[i]) {
+          recur.getMonthList().add(i + 1);
+        }
+      }
+      if (recurrenceData.isYearMode()) {
+        int offset = ICal4JUtils.getOffsetForRecurrenceFrequencyModeOne(recurrenceData.getModeOneYear());
+        WeekDayList weekDays = ICal4JUtils.getDayListForRecurrenceFrequencyModeTwo(recurrenceData.getModeTwoYear());
+        for (WeekDay weekDay : weekDays) {
+          recur.getDayList().add(new WeekDay(weekDay, offset));
+        }
+      }
+    }
     // Set until
-    if (recurData.getUntil() != null) {
+    if (recurrenceData.getUntil() != null) {
       if (this.allDay) {
         // just use date, no time
-        final net.fortuna.ical4j.model.Date untilICal4J = new net.fortuna.ical4j.model.Date(recurData.getUntil());
+        final net.fortuna.ical4j.model.Date untilICal4J = new net.fortuna.ical4j.model.Date(recurrenceData.getUntil());
         recur.setUntil(untilICal4J);
-        this.recurrenceUntil = recurData.getUntil();
+        this.recurrenceUntil = recurrenceData.getUntil();
       } else {
-        this.recurrenceUntil = this.fixUntilInRecur(recur, recurData.getUntil(), recurData.getTimeZone());
+        this.recurrenceUntil = this.fixUntilInRecur(recur, recurrenceData.getUntil(), recurrenceData.getTimeZone());
       }
     } else {
       this.recurrenceUntil = null;
@@ -661,7 +705,7 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
       return recurrenceData;
     }
 
-    recurrenceData.setInterval(recur.getInterval() < 1 ? 1 : recur.getInterval());
+    recurrenceData.setInterval(recur.getInterval() == -1 ? 1 : recur.getInterval());
 
     if (this.recurrenceUntil != null) {
       // transform until to timezone
@@ -700,6 +744,73 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
     }
     recurrenceData.setFrequency(ICal4JUtils.getFrequency(recur));
 
+    if (recurrenceData.getFrequency() == RecurrenceFrequency.WEEKLY) {
+      boolean[] weekdays = recurrenceData.getWeekdays();
+      for (WeekDay wd : recur.getDayList()) {
+        recurrenceData.setCustomized(true);
+        if (wd.getDay() == WeekDay.MO.getDay()) {
+          weekdays[0] = true;
+        } else if (wd.getDay() == WeekDay.TU.getDay()) {
+          weekdays[1] = true;
+        } else if (wd.getDay() == WeekDay.WE.getDay()) {
+          weekdays[2] = true;
+        } else if (wd.getDay() == WeekDay.TH.getDay()) {
+          weekdays[3] = true;
+        } else if (wd.getDay() == WeekDay.FR.getDay()) {
+          weekdays[4] = true;
+        } else if (wd.getDay() == WeekDay.SA.getDay()) {
+          weekdays[5] = true;
+        } else if (wd.getDay() == WeekDay.SU.getDay()) {
+          weekdays[6] = true;
+        }
+      }
+      recurrenceData.setWeekdays(weekdays);
+    }
+    if (recurrenceData.getFrequency() == RecurrenceFrequency.MONTHLY) {
+      recurrenceData.setMonthMode(RecurrenceMonthMode.NONE);
+      boolean[] monthdays = recurrenceData.getMonthdays();
+      for (Integer day : recur.getMonthDayList()) {
+        recurrenceData.setCustomized(true);
+        recurrenceData.setMonthMode(RecurrenceMonthMode.EACH);
+        monthdays[day - 1] = true;
+      }
+      recurrenceData.setMonthdays(monthdays);
+
+      int offset = 0;
+      if (recur.getDayList().size() == 1) {
+        offset = recur.getDayList().get(0).getOffset();
+      } else if (recur.getDayList().size() > 1 && recur.getSetPosList().size() != 0) {
+        offset = recur.getSetPosList().get(0);
+      }
+      if (recur.getDayList().size() != 0) {
+        recurrenceData.setCustomized(true);
+        recurrenceData.setMonthMode(RecurrenceMonthMode.ATTHE);
+        recurrenceData.setModeOneMonth(ICal4JUtils.getRecurrenceFrequencyModeOneByOffset(offset));
+        recurrenceData.setModeTwoMonth(ICal4JUtils.getRecurrenceFrequencyModeTwoForDay(recur.getDayList()));
+      }
+    }
+    if (recurrenceData.getFrequency() == RecurrenceFrequency.YEARLY) {
+      boolean[] months = recurrenceData.getMonths();
+      for (Integer day : recur.getMonthList()) {
+        recurrenceData.setCustomized(true);
+
+        months[day - 1] = true;
+      }
+      recurrenceData.setMonths(months);
+
+      int offset = 0;
+      if (recur.getDayList().size() == 1) {
+        offset = recur.getDayList().get(0).getOffset();
+      } else if (recur.getDayList().size() > 1 && recur.getSetPosList().size() != 0) {
+        offset = recur.getSetPosList().get(0);
+      }
+      if (recur.getDayList().size() != 0) {
+        recurrenceData.setCustomized(true);
+        recurrenceData.setYearMode(true);
+        recurrenceData.setModeOneYear(ICal4JUtils.getRecurrenceFrequencyModeOneByOffset(offset));
+        recurrenceData.setModeTwoYear(ICal4JUtils.getRecurrenceFrequencyModeTwoForDay(recur.getDayList()));
+      }
+    }
     return recurrenceData;
   }
 
@@ -749,6 +860,7 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
    * @param recurrenceExDate the recurrenceExDate to set
    * @return this for chaining.
    */
+
   public TeamEventDO setRecurrenceExDate(final String recurrenceExDate)
   {
     this.recurrenceExDate = recurrenceExDate;

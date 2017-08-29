@@ -36,14 +36,14 @@ import org.apache.log4j.Logger;
 import org.projectforge.business.multitenancy.TenantRegistryMap;
 import org.projectforge.business.user.ProjectForgeGroup;
 import org.projectforge.framework.cache.AbstractCache;
+import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.orm.hibernate5.HibernateTemplate;
 import org.springframework.stereotype.Component;
 
 /**
  * Holds the complete skill list as a tree. It will be initialized by the values read from the database. Any changes
  * will be written to this tree and to the database.
- * 
+ *
  * @author Billy Duong (b.duong@micromata.de)
  */
 @Component
@@ -56,15 +56,21 @@ public class SkillTree extends AbstractCache implements Serializable
   private static final List<SkillNode> EMPTY_LIST = new ArrayList<SkillNode>();
 
   @Autowired
-  HibernateTemplate hibernateTemplate;
+  private PfEmgrFactory emgrFactory;
 
-  /** For faster searching of entries. */
+  /**
+   * For faster searching of entries.
+   */
   private Map<Integer, SkillNode> skillMap;
 
-  /** The root node of all skills. The only node with parent null. */
+  /**
+   * The root node of all skills. The only node with parent null.
+   */
   private SkillNode root = null;
 
-  /** Time of last modification in milliseconds from 1970-01-01. */
+  /**
+   * Time of last modification in milliseconds from 1970-01-01.
+   */
   private long timeOfLastModification = 0;
 
   public SkillNode getRootSkillNode()
@@ -73,7 +79,9 @@ public class SkillTree extends AbstractCache implements Serializable
     return this.root;
   }
 
-  /** Adds the given node as child of the given parent. */
+  /**
+   * Adds the given node as child of the given parent.
+   */
   private synchronized SkillNode addSkillNode(final SkillNode node, final SkillNode parent)
   {
     checkRefresh();
@@ -126,7 +134,7 @@ public class SkillTree extends AbstractCache implements Serializable
 
   /**
    * Returns the path to the root node in an ArrayList.
-   * 
+   *
    * @see #getPath(Integer, Integer)
    */
   public List<SkillNode> getPathToRoot(final Integer skillId)
@@ -134,7 +142,9 @@ public class SkillTree extends AbstractCache implements Serializable
     return getPath(skillId, null);
   }
 
-  /** All skill nodes are stored in an HashMap for faster searching. */
+  /**
+   * All skill nodes are stored in an HashMap for faster searching.
+   */
   public SkillNode getSkillNodeById(final Integer id)
   {
     if (id == null) {
@@ -170,7 +180,7 @@ public class SkillTree extends AbstractCache implements Serializable
 
   /**
    * After changing a skill this method will be called by SkillDao for updating the skill and the skill tree.
-   * 
+   *
    * @param skill Updating the existing skill in the SkillTree. If not exist, a new skill will be added.
    */
   SkillNode addOrUpdateSkillNode(final SkillDO skill)
@@ -239,7 +249,7 @@ public class SkillTree extends AbstractCache implements Serializable
    * read from database and will be cached in this tree (implicit access' will be created too).<br/>
    * The generation of the skill tree will be done manually, not by Hibernate because the skill hierarchy is very
    * sensible. Manipulations of the skill tree should be done carefully for single skill nodes.
-   * 
+   *
    * @see org.projectforge.framework.cache.AbstractCache#refresh()
    */
   @Override
@@ -248,8 +258,9 @@ public class SkillTree extends AbstractCache implements Serializable
     log.info("Initializing skill tree ...");
     SkillNode newRoot = null;
     skillMap = new HashMap<Integer, SkillNode>();
-    final List<SkillDO> skillList = (List<SkillDO>) hibernateTemplate
-        .find("from " + SkillDO.class.getSimpleName() + " t");
+    final List<SkillDO> skillList = emgrFactory.runRoTrans(emgr -> {
+      return emgr.select(SkillDO.class, "SELECT s FROM SkillDO s");
+    });
     SkillNode node;
     log.debug("Loading list of skills ...");
     for (final SkillDO skill : skillList) {
@@ -327,23 +338,24 @@ public class SkillTree extends AbstractCache implements Serializable
 
   /**
    * Creates a root node for the skill tree and saves it in the database.
-   * 
+   *
    * @return a "dummy" skill node.
    */
   private SkillNode createRootNode()
   {
     final SkillNode newRoot = new SkillNode();
-    final SkillDO rootSkill = new SkillDO();
-    rootSkill.setTitle("root");
-    rootSkill.setDescription("ProjectForge root skill");
-    rootSkill.setRateable(false);
-    final String s = TenantRegistryMap.getInstance().getTenantRegistry().getUserGroupCache()
-        .getGroup(ProjectForgeGroup.ADMIN_GROUP).getId().toString();
-    rootSkill.setFullAccessGroupIds(s).setReadOnlyAccessGroupIds(s).setTrainingAccessGroupIds(s);
-    // TODO internalSave gives a no hibernate session bound to thread warning, this workaround should probably exchanged for a better solution
-    // skillDao.internalSave(rootSkill);
-    hibernateTemplate.save(rootSkill);
-    newRoot.setSkill(rootSkill);
+    final SkillDO newSkill = emgrFactory.runInTrans(emgr -> {
+      final SkillDO rootSkill = new SkillDO();
+      rootSkill.setTitle("root");
+      rootSkill.setDescription("ProjectForge root skill");
+      rootSkill.setRateable(false);
+      final String s = TenantRegistryMap.getInstance().getTenantRegistry().getUserGroupCache()
+          .getGroup(ProjectForgeGroup.ADMIN_GROUP).getId().toString();
+      rootSkill.setFullAccessGroupIds(s).setReadOnlyAccessGroupIds(s).setTrainingAccessGroupIds(s);
+      Integer rootId = emgr.insert(rootSkill);
+      return emgr.selectByPk(SkillDO.class, rootId);
+    });
+    newRoot.setSkill(newSkill);
     return newRoot;
   }
 }
