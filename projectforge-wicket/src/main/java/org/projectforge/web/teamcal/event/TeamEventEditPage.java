@@ -46,6 +46,7 @@ import org.projectforge.business.teamcal.event.model.TeamEventAttendeeDO;
 import org.projectforge.business.teamcal.event.model.TeamEventDO;
 import org.projectforge.business.timesheet.TimesheetDO;
 import org.projectforge.business.timesheet.TimesheetDao;
+import org.projectforge.framework.i18n.MessageParam;
 import org.projectforge.framework.i18n.UserException;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.time.DateHelper;
@@ -324,16 +325,12 @@ public class TeamEventEditPage extends AbstractEditPage<TeamEventDO, TeamEventEd
     if (getData().getCreator() == null) {
       getData().setCreator(ThreadLocalUserContext.getUser());
     }
+
     if (getData() != null && getData().getId() != null) {
       this.teamEventBeforeSaveOrUpdate = teamEventService.getById(getData().getPk());
       this.isNew = false;
     } else {
       this.isNew = true;
-    }
-
-    // check uid before saving
-    if (getData().getUid() != null && getData().getUid().length() > 0) {
-      checkUID();
     }
 
     getData().setRecurrence(form.recurrenceData);
@@ -382,28 +379,64 @@ public class TeamEventEditPage extends AbstractEditPage<TeamEventDO, TeamEventEd
     return null;
   }
 
-  private void checkUID()
+  @Override
+  protected void create()
+  {
+    boolean isNew = true;
+
+    // check uid before saving
+    if (getData().getUid() != null && getData().getUid().length() > 0) {
+      isNew = checkUID();
+    }
+
+    if (isNew) {
+      this.editPageSupport.create();
+    } else {
+      this.editPageSupport.update();
+    }
+  }
+
+  @Override
+  protected void update()
+  {
+    boolean isNew = false;
+
+    // check uid before saving
+    if (getData().getUid() != null && getData().getUid().length() > 0) {
+      isNew = checkUID();
+    }
+
+    if (isNew) {
+      this.editPageSupport.create();
+    } else {
+      this.editPageSupport.update();
+    }
+  }
+
+  private boolean checkUID()
   {
     final TeamEventDO event = this.getData();
     final TeamEventDO eventDB = this.teamEventService.findByUid(event.getCalendarId(), event.getUid(), false);
 
     // an event already exists
     if (eventDB == null) {
-      return;
+      return true;
     }
 
-    if (eventDB.isDeleted() || this.isNew) {
-      if (eventDB.isDeleted()) {
-        // TODO restore
-      }
-
-      // override values with new data
-      // TODO
-      return;
+    if (eventDB.isDeleted() == false && ThreadLocalUserContext.getUserId().equals(eventDB.getCreator().getPk()) == false) {
+      // an event already exists from a different user, can not be changed
+      throw new UserException("plugins.teamcal.event.duplicatedUidFromDifferentUser", new MessageParam(event.getUid()),
+          new MessageParam(event.getCalendar().getTitle()));
     }
 
-    // an event already exists, move not possible
-    throw new UserException(""); // TODO
+    event.setId(eventDB.getId());
+
+    // override values
+    if (eventDB.isDeleted()) {
+      event.setDeleted(false);
+    }
+
+    return false;
   }
 
   /**
