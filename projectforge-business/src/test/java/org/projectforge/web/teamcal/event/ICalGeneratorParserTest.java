@@ -292,6 +292,7 @@ public class ICalGeneratorParserTest extends AbstractTestBase
   {
     final List<TeamEventDO> events = new ArrayList<>();
 
+    // simple event
     TeamEventDO event = new TeamEventDO();
 
     event.setReminderActionType(ReminderActionType.MESSAGE);
@@ -313,6 +314,20 @@ public class ICalGeneratorParserTest extends AbstractTestBase
     event.setOrganizer("organizer");
     event.setSequence(5);
     event.setNote("summary");
+    event.setUid("uid string");
+
+    events.add(event);
+
+    // all day event
+    event = new TeamEventDO();
+
+    event.setAllDay(true);
+    event.setSubject("subject");
+    event.setEndDate(new Timestamp(DateHelper.parseIsoTimestamp("2017-07-31 00:00:00.000", DateHelper.UTC).getTime()));
+    event.setDtStamp(new Timestamp(DateHelper.parseIsoTimestamp("2017-07-30 12:00:00.000", DateHelper.UTC).getTime()));
+    event.setStartDate(new Timestamp(DateHelper.parseIsoTimestamp("2017-08-31 00:00:00.000", DateHelper.UTC).getTime()));
+    event.setOrganizer("organizer");
+    event.setSequence(5);
     event.setUid("uid string");
 
     events.add(event);
