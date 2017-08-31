@@ -104,7 +104,7 @@ public class ICalParser
   @Deprecated
   public boolean parse(final Calendar calendar)
   {
-    this.method = this.calendar.getMethod();
+    this.method = calendar.getMethod();
 
     final List<CalendarComponent> list = calendar.getComponents(Component.VEVENT);
     if (list == null || list.size() == 0) {
