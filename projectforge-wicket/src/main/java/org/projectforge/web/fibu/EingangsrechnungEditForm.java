@@ -23,6 +23,7 @@
 
 package org.projectforge.web.fibu;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
@@ -32,6 +33,7 @@ import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
+import org.apache.wicket.validation.IValidator;
 import org.projectforge.business.fibu.AbstractRechnungDO;
 import org.projectforge.business.fibu.EingangsrechnungDO;
 import org.projectforge.business.fibu.EingangsrechnungDao;
@@ -40,6 +42,7 @@ import org.projectforge.business.fibu.KontoCache;
 import org.projectforge.business.fibu.KontoDO;
 import org.projectforge.business.fibu.PaymentType;
 import org.projectforge.business.fibu.kost.AccountingConfig;
+import org.projectforge.framework.i18n.I18nHelper;
 import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.web.wicket.autocompletion.PFAutoCompleteTextField;
 import org.projectforge.web.wicket.bootstrap.GridSize;
@@ -169,6 +172,14 @@ public class EingangsrechnungEditForm extends
           new PropertyModel<PaymentType>(data, "paymentType"), paymentTypeChoiceRenderer.getValues(),
           paymentTypeChoiceRenderer);
       paymentTypeChoice.setNullValid(true);
+      paymentTypeChoice.add((IValidator<PaymentType>) validatable -> {
+        PaymentType pt = validatable.getValue();
+        if (PaymentType.BANK_TRANSFER.equals(pt)) {
+          if (data.getGrossSum() != null && data.getGrossSum().compareTo(BigDecimal.ZERO) < 0) {
+            error(I18nHelper.getLocalizedMessage("fibu.rechnung.error.negativAmount"));
+          }
+        }
+      });
       fs.add(paymentTypeChoice);
     }
     {
