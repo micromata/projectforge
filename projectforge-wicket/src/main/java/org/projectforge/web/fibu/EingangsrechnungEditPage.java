@@ -81,6 +81,9 @@ public class EingangsrechnungEditPage
             EingangsrechnungEditPage.this.exportInvoiceAsXML();
           }
         }, getString("fibu.rechnung.transferExport")).setTooltip(getString("fibu.rechnung.transferExport.tootlip"));
+    if (isNew()) {
+      exportInvoiceButton.setVisible(false);
+    }
     addContentMenuEntry(exportInvoiceButton);
   }
 
