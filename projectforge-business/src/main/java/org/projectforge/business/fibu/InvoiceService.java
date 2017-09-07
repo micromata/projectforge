@@ -344,7 +344,10 @@ public class InvoiceService
     }
     //Rechnungsnummer_Kunde_Projekt_Betreff(mit Unterstrichen statt Leerzeichen)_Datum(2017-07-04)
     final String number = invoice.getNummer() != null ? invoice.getNummer().toString() + "_" : "";
-    final String sanitizedCustomer = invoice.getKunde() != null ? invoice.getKunde().getName().replaceAll("\\W+", "_") + "_" : "";
+    String sanitizedCustomer = invoice.getKunde() != null ? invoice.getKunde().getName().replaceAll("\\W+", "_") + "_" : "";
+    if (StringUtils.isEmpty(sanitizedCustomer)) {
+      sanitizedCustomer = invoice.getKundeText() != null ? invoice.getKundeText().replaceAll("\\W+", "_") + "_" : "";
+    }
     final String sanitizedProject = invoice.getProjekt() != null ? invoice.getProjekt().getName().replaceAll("\\W+", "_") + "_" : "";
     final String sanitizedBetreff = invoice.getBetreff() != null ? invoice.getBetreff().replaceAll("\\W+", "_") + "_" : "";
     final String invoiceDate = DateTimeFormatter.instance().getFormattedDate(invoice.getDatum()).replaceAll("\\W+", "_");
