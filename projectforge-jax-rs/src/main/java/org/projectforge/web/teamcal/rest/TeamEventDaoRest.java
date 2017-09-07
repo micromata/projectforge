@@ -91,9 +91,10 @@ public class TeamEventDaoRest
    */
   @GET
   @Produces(MediaType.APPLICATION_JSON)
-  public Response getReminderList(@QueryParam("calendarIds") final String calendarIds, @QueryParam("daysInPast") final Integer daysInPast,
+  public Response getReminderListPastAndFuture(@QueryParam("calendarIds") final String calendarIds, @QueryParam("daysInPast") final Integer daysInPast,
       @QueryParam("daysInFuture") final Integer daysInFuture)
   {
+    log.info("Call rest interface TeamEventDaoRest.getReminderListPastAndFuture - BEGIN");
     Calendar start = null;
     if (daysInPast != null && daysInPast > 0) {
       start = Calendar.getInstance(ThreadLocalUserContext.getTimeZone());
@@ -123,6 +124,7 @@ public class TeamEventDaoRest
       log.warn("No calendar ids are given, so can't find any events.");
     }
     final String json = JsonUtils.toJson(result);
+    log.info("Call rest interface TeamEventDaoRest.getReminderList - END");
     return Response.ok(json).build();
   }
 
@@ -136,9 +138,10 @@ public class TeamEventDaoRest
   @GET
   @Path(RestPaths.LIST)
   @Produces(MediaType.APPLICATION_JSON)
-  public Response getReminderList(@QueryParam("calendarIds") final String calendarIds,
+  public Response getReminderListFuture(@QueryParam("calendarIds") final String calendarIds,
       @QueryParam("modifiedSince") final Integer daysInFuture)
   {
+    log.info("Call rest interface TeamEventDaoRest.getReminderListFuture - BEGIN");
     final DayHolder day = new DayHolder();
     int days = daysInFuture != null ? daysInFuture : 30;
     if (days <= 0 || days > 90) {
@@ -164,6 +167,7 @@ public class TeamEventDaoRest
       log.warn("No calendar ids are given, so can't find any events.");
     }
     final String json = JsonUtils.toJson(result);
+    log.info("Call rest interface TeamEventDaoRest.getReminderListFuture - END");
     return Response.ok(json).build();
   }
 
@@ -173,6 +177,7 @@ public class TeamEventDaoRest
   @Produces(MediaType.APPLICATION_JSON)
   public Response saveTeamEvent(final CalendarEventObject calendarEvent)
   {
+    log.info("Call rest interface TeamEventDaoRest.saveTeamEvent");
     return handleICal(calendarEvent);
   }
 
@@ -182,6 +187,7 @@ public class TeamEventDaoRest
   @Produces(MediaType.APPLICATION_JSON)
   public Response updateTeamEvent(final CalendarEventObject calendarEvent)
   {
+    log.info("Call rest interface TeamEventDaoRest.updateTeamEvent");
     return this.handleICal(calendarEvent);
   }
 
