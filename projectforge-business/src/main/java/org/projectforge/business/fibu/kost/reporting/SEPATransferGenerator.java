@@ -25,7 +25,6 @@ package org.projectforge.business.fibu.kost.reporting;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.File;
 import java.io.InputStream;
 import java.math.BigDecimal;
 import java.net.URL;
@@ -34,9 +33,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.GregorianCalendar;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.regex.Pattern;
 
 import javax.xml.XMLConstants;
@@ -89,7 +86,7 @@ public class SEPATransferGenerator
 {
   public enum SEPATransferError
   {
-    JAXB_CONTEXT_MISSING, NO_INPUT, SUM, BANK_TRANSFER, BIC, IBAN, RECEIVER, REFERENCE
+    JAXB_CONTEXT_MISSING, NO_INPUT, SUM, BANK_TRANSFER, BIC, IBAN, RECEIVER, REFERENCE, INVOICE_OR_DEBITOR_NOTEXISTING
   }
 
   final private static String PAIN_001_003_03_XSD = "misc/pain.001.003.03.xsd";
@@ -148,14 +145,25 @@ public class SEPATransferGenerator
   {
     final SEPATransferResult result = new SEPATransferResult();
 
-    // if jaxb context is missing, generation is not possible
-    if (this.jaxbContext == null) {
-      log.error("Transfer export not possible, jaxb context is missing. Please check your pain.001.003.03.xsd file.");
-      return result;
-    }
-
-    if (invoices == null || invoices.isEmpty()) {
-      return result;
+    if (this.jaxbContext == null || invoices == null || invoices.isEmpty() || invoices.get(0).getTenant() == null) {
+      String errorPrefix = "A problem accured while exporting invoices: ";
+      String error = "";
+      // if jaxb context is missing, generation is not possible
+      if (this.jaxbContext == null) {
+        error = "Transfer export not possible, jaxb context is missing. Please check your pain.001.003.03.xsd file.";
+        log.error(errorPrefix + error);
+      }
+      if (invoices == null || invoices.isEmpty()) {
+        error = "Invoices are null or empty";
+        log.warn(errorPrefix + error);
+      }
+      if (invoices.get(0).getTenant() == null) {
+        error = "No debitor could be determined of the first invoice [" + (invoices.get(0).getBetreff() != null ?
+            invoices.get(0).getBetreff() :
+            "empty") + "]. Maybe it's not saved?";
+        log.warn(errorPrefix + error);
+      }
+      throw new UserException("error", errorPrefix + error);
     }
 
     // Generate structure

@@ -27,6 +27,7 @@ import java.util.List;
 import java.util.Locale;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.form.SubmitLink;
@@ -39,6 +40,7 @@ import org.projectforge.business.fibu.KundeDO;
 import org.projectforge.business.fibu.KundeDao;
 import org.projectforge.business.fibu.KundeFavorite;
 import org.projectforge.business.fibu.KundeFormatter;
+import org.projectforge.framework.i18n.I18nHelper;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.persistence.user.api.UserPrefArea;
 import org.projectforge.framework.utils.NumberHelper;
@@ -217,10 +219,12 @@ public class NewCustomerSelectPanel extends AbstractSelectPanel<KundeDO> impleme
               .getModelObject().getId()) == false);
         }
       };
+      kundeTextField.add(AttributeModifier.append("placeholder", I18nHelper.getLocalizedMessage("fibu.kunde.text")));
       add(kundeTextField);
     } else {
       add(AbstractForm.createInvisibleDummyComponent("kundeText"));
     }
+    customerTextField.add(AttributeModifier.append("placeholder", I18nHelper.getLocalizedMessage("fibu.kunde.select")));
     add(customerTextField);
     final SubmitLink selectButton = new SubmitLink("select")
     {
