@@ -37,6 +37,7 @@ import java.util.Set;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.Validate;
+import org.apache.commons.lang3.StringUtils;
 import org.hibernate.FetchMode;
 import org.hibernate.criterion.Order;
 import org.projectforge.business.fibu.kost.KostZuweisungDO;
@@ -197,7 +198,7 @@ public class RechnungDao extends BaseDao<RechnungDO>
 
         final DayHolder day = new DayHolder();
         rechnung.setDatum(day.getSQLDate());
-        
+
         Integer zahlungsZielInTagen = rechnung.getZahlungsZielInTagen();
         if (zahlungsZielInTagen != null) {
           day.add(Calendar.DAY_OF_MONTH, zahlungsZielInTagen);
@@ -267,7 +268,8 @@ public class RechnungDao extends BaseDao<RechnungDO>
 
     final Integer projektId = rechnung.getProjektId();
     final Integer kundeId = rechnung.getKundeId();
-    if (projektId == null && kundeId == null) {
+    final String kundeText = rechnung.getKundeText();
+    if (projektId == null && kundeId == null && StringUtils.isEmpty(kundeText)) {
       throw new UserException("fibu.rechnung.error.kundeTextOderProjektRequired");
     }
   }

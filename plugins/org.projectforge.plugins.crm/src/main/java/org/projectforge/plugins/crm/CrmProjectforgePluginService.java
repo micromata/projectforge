@@ -4,9 +4,7 @@ import org.projectforge.plugins.core.AbstractPlugin;
 import org.projectforge.plugins.core.ProjectforgePluginService;
 
 /**
- * 
  * @author Roger Rene Kommer (r.kommer.extern@micromata.de)
- *
  */
 public class CrmProjectforgePluginService implements ProjectforgePluginService
 {
@@ -27,7 +25,7 @@ public class CrmProjectforgePluginService implements ProjectforgePluginService
   @Override
   public String getPluginDescription()
   {
-    return "blah";
+    return "crm plugin";
   }
 
   @Override

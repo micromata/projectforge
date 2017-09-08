@@ -6,6 +6,7 @@ import java.sql.Date;
 import java.util.Calendar;
 
 import org.projectforge.test.AbstractTestBase;
+import org.projectforge.web.session.UserAgentBrowser;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.testng.annotations.Test;
 
@@ -18,7 +19,7 @@ public class InvoiceServiceTest extends AbstractTestBase
   public void invoiceFilenameEmptyTest()
   {
     RechnungDO data = new RechnungDO();
-    String filename = invoiceService.getInvoiceFilename(data);
+    String filename = invoiceService.getInvoiceFilename(data, UserAgentBrowser.UNKNOWN);
     assertNotNull(filename);
     assertTrue(filename.length() < 256);
     assertEquals("invoice.docx", filename);
@@ -40,7 +41,7 @@ public class InvoiceServiceTest extends AbstractTestBase
     calendar.set(2017, Calendar.AUGUST, 4);
     data.setDatum(new Date(calendar.getTimeInMillis()));
 
-    String filename = invoiceService.getInvoiceFilename(data);
+    String filename = invoiceService.getInvoiceFilename(data, UserAgentBrowser.UNKNOWN);
     assertNotNull(filename);
     assertTrue(filename.length() < 256);
     assertEquals("12345_Kunde_Projekt_Betreff_08_04_2017_invoice.docx", filename);
@@ -62,7 +63,7 @@ public class InvoiceServiceTest extends AbstractTestBase
     calendar.set(2017, Calendar.AUGUST, 4);
     data.setDatum(new Date(calendar.getTimeInMillis()));
 
-    String filename = invoiceService.getInvoiceFilename(data);
+    String filename = invoiceService.getInvoiceFilename(data, UserAgentBrowser.UNKNOWN);
     assertNotNull(filename);
     assertTrue(filename.length() < 256);
     assertEquals("12345_Kunde_Kunde_Projekt_Titel_Betreff_nderung__08_04_2017_invoice.docx", filename);
@@ -83,7 +84,7 @@ public class InvoiceServiceTest extends AbstractTestBase
     for (int i = 1; i < 85; i++) {
       data.setBetreff((data.getBetreff() != null ? data.getBetreff() : "") + character);
     }
-    String filename = invoiceService.getInvoiceFilename(data);
+    String filename = invoiceService.getInvoiceFilename(data, UserAgentBrowser.UNKNOWN);
     assertNotNull(filename);
     assertTrue(filename.length() < 256);
     assertEquals(

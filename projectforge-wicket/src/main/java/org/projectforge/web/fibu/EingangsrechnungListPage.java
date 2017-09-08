@@ -59,6 +59,7 @@ import org.projectforge.business.utils.CurrencyFormatter;
 import org.projectforge.export.DOListExcelExporter;
 import org.projectforge.export.MyXlsContentProvider;
 import org.projectforge.framework.configuration.Configuration;
+import org.projectforge.framework.i18n.UserException;
 import org.projectforge.framework.time.DateHelper;
 import org.projectforge.framework.time.DateTimeFormatter;
 import org.projectforge.framework.utils.NumberHelper;
@@ -339,35 +340,38 @@ public class EingangsrechnungListPage
     this.form.getFeedbackMessages().clear();
 
     final String filename = String.format("transfer-%s.xml", DateHelper.getTimestampAsFilenameSuffix(new Date()));
-    SEPATransferResult result = this.SEPATransferGenerator.format(invoices);
+    try {
+      SEPATransferResult result = this.SEPATransferGenerator.format(invoices);
 
-    if (result.isSuccessful() == false) {
-      if (result.getErrors().isEmpty()) {
-        // unknown error
-        log.error("Oups, xml has zero size. Filename: " + filename);
-        this.form.addError("fibu.rechnung.transferExport.error");
+      if (result.isSuccessful() == false) {
+        if (result.getErrors().isEmpty()) {
+          // unknown error
+          log.error("Oups, xml has zero size. Filename: " + filename);
+          this.form.addError("fibu.rechnung.transferExport.error");
+          return;
+        }
+
+        List<String> brokenInvoices = new ArrayList<>();
+        DateTimeFormatter formatter = DateTimeFormatter.instance();
+
+        // check invoice
+        for (EingangsrechnungDO invoice : result.getErrors().keySet()) {
+          if (invoice.getReferenz() != null) {
+            brokenInvoices.add("[" + invoice.getKreditor() + ", " + invoice.getReferenz() + ", " + formatter.getFormattedDate(invoice.getDatum()) + "]");
+          } else {
+            brokenInvoices.add("[" + invoice.getKreditor() + ", " + formatter.getFormattedDate(invoice.getDatum()) + "]");
+          }
+        }
+
+        String brokenInvoicesStr = String.join("; ", brokenInvoices);
+        this.form.addError("fibu.rechnung.transferExport.error.entries", brokenInvoicesStr);
+
         return;
       }
-
-      List<String> brokenInvoices = new ArrayList<>();
-      DateTimeFormatter formatter = DateTimeFormatter.instance();
-
-      // check invoice
-      for (EingangsrechnungDO invoice : result.getErrors().keySet()) {
-        if (invoice.getReferenz() != null) {
-          brokenInvoices.add(invoice.getKreditor() + ", " + invoice.getReferenz() + ", " + formatter.getFormattedDate(invoice.getDatum()));
-        } else {
-          brokenInvoices.add(invoice.getKreditor() + ", " + formatter.getFormattedDate(invoice.getDatum()));
-        }
-      }
-
-      String brokenInvoicesStr = String.join("; ", brokenInvoices);
-      this.form.addError("fibu.rechnung.transferExport.error.entries", brokenInvoicesStr);
-
-      return;
+      DownloadUtils.setDownloadTarget(result.getXml(), filename);
+    } catch (UserException e) {
+      this.form.addError("error", e.getParams()[0]);
     }
-
-    DownloadUtils.setDownloadTarget(result.getXml(), filename);
   }
 
   protected void exportExcelWithCostAssignments()

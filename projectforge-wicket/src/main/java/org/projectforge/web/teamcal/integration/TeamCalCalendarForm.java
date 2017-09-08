@@ -242,7 +242,6 @@ public class TeamCalCalendarForm extends CalendarForm
       @Override
       protected void onStringImport(final AjaxRequestTarget target, final String fileName, final String content)
       {
-        // TODO sn remake the import of ical with drag & drop
         ICalParser parser = ICalParser.parseAllFields();
 
         parser.parse(content);
