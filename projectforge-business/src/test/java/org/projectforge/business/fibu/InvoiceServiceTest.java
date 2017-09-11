@@ -22,7 +22,7 @@ public class InvoiceServiceTest extends AbstractTestBase
     String filename = invoiceService.getInvoiceFilename(data, UserAgentBrowser.UNKNOWN);
     assertNotNull(filename);
     assertTrue(filename.length() < 256);
-    assertEquals("invoice.docx", filename);
+    assertEquals(".docx", filename);
   }
 
   @Test
@@ -44,7 +44,7 @@ public class InvoiceServiceTest extends AbstractTestBase
     String filename = invoiceService.getInvoiceFilename(data, UserAgentBrowser.UNKNOWN);
     assertNotNull(filename);
     assertTrue(filename.length() < 256);
-    assertEquals("12345_Kunde_Projekt_Betreff_08_04_2017_invoice.docx", filename);
+    assertEquals("12345_Kunde_Projekt_Betreff_08_04_2017.docx", filename);
   }
 
   @Test
@@ -66,7 +66,7 @@ public class InvoiceServiceTest extends AbstractTestBase
     String filename = invoiceService.getInvoiceFilename(data, UserAgentBrowser.UNKNOWN);
     assertNotNull(filename);
     assertTrue(filename.length() < 256);
-    assertEquals("12345_Kunde_Kunde_Projekt_Titel_Betreff_nderung__08_04_2017_invoice.docx", filename);
+    assertEquals("12345_Kunde_Kunde_Projekt_Titel_Betreff_nderung__08_04_2017.docx", filename);
   }
 
   @Test
@@ -88,7 +88,7 @@ public class InvoiceServiceTest extends AbstractTestBase
     assertNotNull(filename);
     assertTrue(filename.length() < 256);
     assertEquals(
-        "12345_Kunde_Projekt_abcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabc[more]_invoice.docx",
+        "12345_Kunde_Projekt_abcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabc[more].docx",
         filename);
   }
 
