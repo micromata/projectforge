@@ -363,8 +363,8 @@ public class TeamEventServiceImpl implements TeamEventService
     final Map<String, Object> dataMap = createData(event, diff, sender, attendee, mailType);
 
     // add attendee as receiver
-    if (attendee.getAddress() != null) {
-      msg.addTo(attendee.getAddress().getEmail());
+    if (StringUtils.isNotBlank(attendee.getEMailAddress())) {
+      msg.addTo(attendee.getEMailAddress());
     } else if (StringUtils.isNotBlank(attendee.getUrl())) {
       msg.addTo(attendee.getUrl());
     }
