@@ -37,7 +37,7 @@ public class MyAccountTest extends SeleniumSuiteTestBase
           .addEntry()
           .callPage()
           .setKost1("3.000.00.00")
-          .setStatus(SeleniumEmployeeEditPage.status_FEST_ANGESTELLTER)
+          .setStatus("10.12.1999", SeleniumEmployeeEditPage.status_FEST_ANGESTELLTER)
           .setAssociatedUsername(Const.ADMIN_USERNAME)
           .setGender(SeleniumEmployeeEditPage.gender_MALE)
           .setStaffNumber("1234")

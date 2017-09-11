@@ -38,6 +38,17 @@ public class TeamCalTest extends SeleniumSuiteTestBase
         "teamCalHMinimalUser1",
         "teamCalJMinimalUser3");
 
+    seleniumLoginPage
+        .callPage()
+        .login("teamCalteamCalAOwnerUser", "admin1");
+    SeleniumCalendarListPage seleniumCalendarListPage = new SeleniumCalendarListPage();
+    seleniumCalendarListPage
+        .callPage()
+        .setOptionPanel(true)
+        .clickRowWhereColumnLike(calendarName)
+        .clickmarkAsDeleted();
+    seleniumLoginPage
+        .logout();
   }
 
   private void checkSelectAccess(boolean accessAllowed, String... userNames)
