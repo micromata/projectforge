@@ -115,7 +115,9 @@ import net.fortuna.ical4j.model.property.RRule;
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @deprecated Since version 6.18.0 please use flyway db migration.
  */
+@Deprecated
 public class DatabaseCoreUpdates
 {
   private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(DatabaseCoreUpdates.class);
