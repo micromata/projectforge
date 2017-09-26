@@ -31,7 +31,7 @@ import org.projectforge.plugins.plugintemplate.repository.PluginTemplateDao;
 import org.projectforge.plugins.plugintemplate.rest.PluginTemplateRest;
 import org.projectforge.plugins.plugintemplate.service.PluginTemplateService;
 import org.projectforge.plugins.plugintemplate.wicket.PluginTemplateListPage;
-import org.projectforge.rest.JerseyConfiguration;
+import org.projectforge.rest.config.RestPrivateConfiguration;
 import org.projectforge.web.MenuItemDef;
 import org.projectforge.web.MenuItemDefId;
 import org.projectforge.web.MenuItemRegistry;
@@ -57,7 +57,7 @@ public class PluginTemplatePlugin extends AbstractPlugin
   private PluginTemplateService pluginTemplateService;
 
   @Autowired
-  private JerseyConfiguration jerseyConfiguration;
+  private RestPrivateConfiguration jerseyConfiguration;
 
   /**
    * @see org.projectforge.plugins.core.AbstractPlugin#initialize()

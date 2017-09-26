@@ -14,6 +14,7 @@ import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
@@ -22,6 +23,7 @@ import org.springframework.orm.hibernate5.HibernateTransactionManager;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.transaction.support.TransactionTemplate;
+import org.springframework.web.client.RestTemplate;
 
 import de.micromata.genome.db.jpa.history.api.HistoryServiceManager;
 import de.micromata.genome.db.jpa.history.entities.HistoryMasterBaseDO;
@@ -128,6 +130,12 @@ public class ProjectforgeSpringConfiguration
   public TimeableService timeableService()
   {
     return new TimeableServiceImpl();
+  }
+
+  @Bean
+  public RestTemplate restTemplate(RestTemplateBuilder builder)
+  {
+    return builder.build();
   }
 
   @PostConstruct

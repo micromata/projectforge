@@ -87,4 +87,6 @@ public class RestPaths
 
   public static final String TEAMEVENTS = "teamevents";
 
+  public static final String VERSION_CHECK = "versionCheck";
+
 }
