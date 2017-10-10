@@ -1,5 +1,7 @@
 package org.projectforge.business.jsonRest;
 
+import java.util.Arrays;
+
 import org.apache.commons.lang.StringUtils;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -48,10 +50,13 @@ public class RestCallService
     T response = null;
     try {
       HttpHeaders headers = new HttpHeaders();
+      headers.setAccept(Arrays.asList(MediaType.APPLICATION_JSON));
       headers.setContentType(MediaType.APPLICATION_JSON);
       UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(url);
+
       HttpEntity<T> entity = new HttpEntity<>(bodyObject, headers);
       HttpEntity<T> responseEntity = restTemplate.exchange(builder.build().encode().toUri(), hm != null ? hm : HttpMethod.GET, entity, objectClass);
+
       response = responseEntity.getBody();
       log.debug("Result of rest call: " + url + "\nRESPONSE JSON: " + response.toString());
 

@@ -15,6 +15,8 @@ import org.projectforge.model.rest.RestPaths;
 import org.projectforge.model.rest.VersionCheck;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 @Controller
 @Path(RestPaths.VERSION_CHECK)
@@ -31,7 +33,7 @@ public class PFVersionCheckRest
   @POST
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
-  public VersionCheck checkVersion(final VersionCheck versionCheck)
+  public @ResponseBody VersionCheck checkVersion(@RequestBody VersionCheck versionCheck)
   {
     log.info("Checking version...");
     synchronizeWithProjectforgeGithub(versionCheck);

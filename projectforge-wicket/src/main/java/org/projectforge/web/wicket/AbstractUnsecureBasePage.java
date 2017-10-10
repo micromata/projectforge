@@ -146,6 +146,13 @@ public abstract class AbstractUnsecureBasePage extends WebPage
         .setRenderBodyOnly(true));
     link.setOutputMarkupId(true);
     link.setMarkupId("pf_footerNewsLink");
+
+    AbstractLink newVersionlink;
+    newVersionlink = new ExternalLink("footerNewVersionLink", "https://sourceforge.net/projects/pforge/files/ProjectForge/");
+    body.add(newVersionlink);
+    newVersionlink.add(new Label("newVersion", "New version available | ").setRenderBodyOnly(true));
+    newVersionlink.setOutputMarkupId(true);
+    newVersionlink.setMarkupId("pf_footerNewVersionLink");
   }
 
   @Override
