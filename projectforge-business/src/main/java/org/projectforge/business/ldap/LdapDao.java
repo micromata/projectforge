@@ -84,7 +84,7 @@ public abstract class LdapDao<I extends Serializable, T extends LdapObject<I>>
   /**
    * @param ctx
    * @param ouBase If organizational units are given by the given obj then this parameter will be ignored, otherwise
-   *          this is the ou where the new object will be inserted.
+   *               this is the ou where the new object will be inserted.
    * @param obj
    * @param args
    * @throws NamingException
@@ -120,7 +120,7 @@ public abstract class LdapDao<I extends Serializable, T extends LdapObject<I>>
   /**
    * Please do not use this method for bulk updates, use {@link #createOrUpdate(Set, Object, Object...)} instead! Calls
    * {@link #getSetOfAllObjects()} before creation or update.
-   * 
+   *
    * @param obj
    * @see #createOrUpdate(Set, Object, Object...)
    */
@@ -132,7 +132,7 @@ public abstract class LdapDao<I extends Serializable, T extends LdapObject<I>>
   /**
    * Please do not use this method for bulk updates, use {@link #createOrUpdate(Set, Object, Object...)} instead! Calls
    * {@link #getSetOfAllObjects()} before creation or update.
-   * 
+   *
    * @param obj
    * @throws NamingException
    * @see #createOrUpdate(Set, Object, Object...)
@@ -145,7 +145,7 @@ public abstract class LdapDao<I extends Serializable, T extends LdapObject<I>>
 
   /**
    * Calls {@link #create(Object)} if the object isn't part of the given set, otherwise {@link #update(Object)}.
-   * 
+   *
    * @param setOfAllLdapObjects List generated before via {@link #getSetOfAllObjects()}.
    * @param obj
    */
@@ -161,7 +161,7 @@ public abstract class LdapDao<I extends Serializable, T extends LdapObject<I>>
 
   /**
    * Calls {@link #create(Object)} if the object isn't part of the given set, otherwise {@link #update(Object)}.
-   * 
+   *
    * @param setOfAllLdapObjects List generated before via {@link #getSetOfAllObjects()}.
    * @param obj
    * @throws NamingException
@@ -200,7 +200,7 @@ public abstract class LdapDao<I extends Serializable, T extends LdapObject<I>>
 
   /**
    * Helper method.
-   * 
+   *
    * @param attrId
    * @param attrValue
    * @return
@@ -212,9 +212,9 @@ public abstract class LdapDao<I extends Serializable, T extends LdapObject<I>>
 
   /**
    * Helper method.
-   * 
-   * @param {@link DirContext#REPLACE_ATTRIBUTE}, {@link DirContext#ADD_ATTRIBUTE} or
-   *          {@link DirContext#REMOVE_ATTRIBUTE}.
+   *
+   * @param {@link    DirContext#REPLACE_ATTRIBUTE}, {@link DirContext#ADD_ATTRIBUTE} or
+   *                  {@link DirContext#REMOVE_ATTRIBUTE}.
    * @param attrId
    * @param attrValue
    * @return
@@ -227,11 +227,11 @@ public abstract class LdapDao<I extends Serializable, T extends LdapObject<I>>
   /**
    * Helper method for appending modification item(s) to a given list. At least one entry will be added if no attrValue
    * is given.
-   * 
+   *
    * @param list
    * @param attrId
    * @param attrValues If null then a null-value will be assumed. If more than one string is given, multiple
-   *          modification items will be added.
+   *                   modification items will be added.
    * @return
    */
   protected void createAndAddModificationItems(final List<ModificationItem> list, final String attrId,
@@ -259,11 +259,11 @@ public abstract class LdapDao<I extends Serializable, T extends LdapObject<I>>
   /**
    * Helper method for appending modification item(s) to a given list. At least one entry will be added if no attrValue
    * is given.
-   * 
+   *
    * @param list
    * @param attrId
    * @param attrValues If null then a null-value will be assumed. If more than one string is given, multiple
-   *          modification items will be added.
+   *                   modification items will be added.
    * @return
    */
   protected void createAndAddModificationItems(final List<ModificationItem> list, final String attrId,
@@ -317,6 +317,14 @@ public abstract class LdapDao<I extends Serializable, T extends LdapObject<I>>
     }
     final String dn = origObject.getDn();
     log.info("Modify attributes of " + getObjectClass() + ": " + dn + ": " + getLogInfo(obj));
+
+    if (log.isDebugEnabled()) {
+      for (ModificationItem mi : modificationItems) {
+        if (mi != null)
+          log.debug("\t" + mi.toString());
+      }
+    }
+
     final ModificationItem[] items = modificationItems.toArray(new ModificationItem[modificationItems.size()]);
     ctx.modifyAttributes(dn, items);
     // Don't move object.
@@ -481,7 +489,7 @@ public abstract class LdapDao<I extends Serializable, T extends LdapObject<I>>
   /**
    * The given id is modified if the id in id-attr is stored e. g. with a prefix. See implementation of
    * {@link LdapUserDao#buildId(Object)} as an example.
-   * 
+   *
    * @param id
    */
   protected String buildId(final Object id)
@@ -507,7 +515,7 @@ public abstract class LdapDao<I extends Serializable, T extends LdapObject<I>>
 
   /**
    * Set of all objects (the string is built from the method {@link #buildDn(Object)}).
-   * 
+   *
    * @throws NamingException
    */
   public SetOfAllLdapObjects getSetOfAllObjects(final DirContext ctx, final String organizationalUnit)
@@ -527,7 +535,7 @@ public abstract class LdapDao<I extends Serializable, T extends LdapObject<I>>
   /**
    * At default the identifier in dn is cn (cn=xxx,ou=yyy,ou=zzz). But for users the dn is may-be
    * (uid=xxx,ou=yyy,ou=zzz).
-   * 
+   *
    * @param obj
    * @return
    */
@@ -538,9 +546,9 @@ public abstract class LdapDao<I extends Serializable, T extends LdapObject<I>>
 
   /**
    * Sets dn of object and organizationalUnit if not already given.
-   * 
+   *
    * @param ouBase If {@link T#getOrganizationalUnit()} is not given, ouBase is used for building dn, otherwise ouBase
-   *          is ignored.
+   *               is ignored.
    * @param obj
    * @return
    */
@@ -577,7 +585,6 @@ public abstract class LdapDao<I extends Serializable, T extends LdapObject<I>>
   }
 
   /**
-   * 
    * @param dn
    * @param attributes
    * @return
@@ -587,7 +594,7 @@ public abstract class LdapDao<I extends Serializable, T extends LdapObject<I>>
 
   /**
    * Used by {@link #findById(DirContext, Object, String...)} etc. for setting search-base if not given.
-   * 
+   *
    * @return
    */
   protected abstract String getOuBase();

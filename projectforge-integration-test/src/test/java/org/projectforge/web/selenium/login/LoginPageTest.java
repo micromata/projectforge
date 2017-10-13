@@ -34,5 +34,4 @@ public class LoginPageTest extends SeleniumSuiteTestBase
         .login("admin", "gjghjghj")
         .assertWeAreOnThisPage();
   }
-
 }
