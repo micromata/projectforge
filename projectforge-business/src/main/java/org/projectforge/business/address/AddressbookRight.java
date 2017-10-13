@@ -108,7 +108,7 @@ public class AddressbookRight extends UserRightAccessCheck<AddressbookDO>
   public boolean hasInsertAccess(final PFUserDO user, final AddressbookDO obj)
   {
     return isOwner(user, obj) == true || accessChecker.isUserMemberOfAdminGroup(user) == true || checkGlobal(obj) || accessChecker.isLoggedInUserMemberOfGroup(
-        ProjectForgeGroup.ORGA_TEAM  || hasFullAccess(obj, user.getId()));
+        ProjectForgeGroup.ORGA_TEAM)  || hasFullAccess(obj, user.getId());
   }
 
   /**
