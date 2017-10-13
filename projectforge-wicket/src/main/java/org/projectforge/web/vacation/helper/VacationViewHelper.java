@@ -124,7 +124,7 @@ public class VacationViewHelper
         String.valueOf(vacationService.getSpecialVacationCount(currentEmployee, now.get(Calendar.YEAR), VacationStatus.APPROVED)));
 
     //student leave
-    if (true) {
+    if (false) {
       GridBuilder sectionRightGridBuilder = gridBuilder.newSplitPanel(GridSize.COL25);
       DivPanel sectionRight = sectionRightGridBuilder.getPanel();
       sectionRight.add(new Heading1Panel(sectionRight.newChildId(), I18nHelper.getLocalizedMessage("vacation.Days")));
