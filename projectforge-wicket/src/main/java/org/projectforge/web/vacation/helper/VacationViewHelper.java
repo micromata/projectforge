@@ -104,24 +104,33 @@ public class VacationViewHelper
     appendFieldset(sectionLeftGridBuilder, "vacation.availablevacation", availableVacation.toString());
 
     //middel
-    GridBuilder sectionMiddleGridBuilder = gridBuilder.newSplitPanel(GridSize.COL25);
-    DivPanel sectionMiddle = sectionMiddleGridBuilder.getPanel();
-    sectionMiddle.add(new Heading1Panel(sectionMiddle.newChildId(), I18nHelper.getLocalizedMessage("menu.vacation.lastyear")));
+    GridBuilder sectionMiddleLeftGridBuilder = gridBuilder.newSplitPanel(GridSize.COL25);
+    DivPanel sectionMiddleLeft = sectionMiddleLeftGridBuilder.getPanel();
+    sectionMiddleLeft.add(new Heading1Panel(sectionMiddleLeft.newChildId(), I18nHelper.getLocalizedMessage("menu.vacation.lastyear")));
 
-    appendFieldset(sectionMiddleGridBuilder, "vacation.previousyearleaveused", vacationdaysPreviousYearUsed.toString());
+    appendFieldset(sectionMiddleLeftGridBuilder, "vacation.previousyearleaveused", vacationdaysPreviousYearUsed.toString());
 
-    appendFieldset(sectionMiddleGridBuilder, "vacation.previousyearleaveunused", vacationdaysPreviousYearUnused.toString(),
+    appendFieldset(sectionMiddleLeftGridBuilder, "vacation.previousyearleaveunused", vacationdaysPreviousYearUnused.toString(),
         endDatePreviousYearVacationString);
 
     // special leave
-    GridBuilder sectionRightGridBuilder = gridBuilder.newSplitPanel(GridSize.COL33);
-    DivPanel sectionRight = sectionRightGridBuilder.getPanel();
-    sectionRight.add(new Heading1Panel(sectionRight.newChildId(), I18nHelper.getLocalizedMessage("vacation.isSpecial")));
-    appendFieldset(sectionRightGridBuilder, "vacation.isSpecialPlaned",
+    GridBuilder sectionMiddleRightGridBuilder = gridBuilder.newSplitPanel(GridSize.COL25);
+    DivPanel sectionMiddleRight = sectionMiddleRightGridBuilder.getPanel();
+    sectionMiddleRight.add(new Heading1Panel(sectionMiddleRight.newChildId(), I18nHelper.getLocalizedMessage("vacation.isSpecial")));
+    appendFieldset(sectionMiddleRightGridBuilder, "vacation.isSpecialPlaned",
         String.valueOf(vacationService.getSpecialVacationCount(currentEmployee, now.get(Calendar.YEAR), VacationStatus.IN_PROGRESS)));
 
-    appendFieldset(sectionRightGridBuilder, "vacation.isSpecialApproved",
+    appendFieldset(sectionMiddleRightGridBuilder, "vacation.isSpecialApproved",
         String.valueOf(vacationService.getSpecialVacationCount(currentEmployee, now.get(Calendar.YEAR), VacationStatus.APPROVED)));
+
+    //student leave
+    if (false) {
+      GridBuilder sectionRightGridBuilder = gridBuilder.newSplitPanel(GridSize.COL25);
+      DivPanel sectionRight = sectionRightGridBuilder.getPanel();
+      sectionRight.add(new Heading1Panel(sectionRight.newChildId(), I18nHelper.getLocalizedMessage("vacation.Days")));
+      appendFieldset(sectionRightGridBuilder, "vacation.countPerDay",
+          String.valueOf("0"));
+    }
 
     // bottom list
     GridBuilder sectionBottomGridBuilder = gridBuilder.newSplitPanel(GridSize.COL100);
