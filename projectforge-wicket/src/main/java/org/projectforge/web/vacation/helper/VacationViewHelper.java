@@ -6,6 +6,7 @@ import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.List;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -23,13 +24,21 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.ResourceModel;
 import org.projectforge.business.configuration.ConfigurationService;
 import org.projectforge.business.fibu.EmployeeDO;
+import org.projectforge.business.fibu.EmployeeStatus;
+import org.projectforge.business.fibu.MonthlyEmployeeReport;
+import org.projectforge.business.fibu.api.EmployeeService;
+import org.projectforge.business.timesheet.TimesheetDO;
+import org.projectforge.business.timesheet.TimesheetDao;
+import org.projectforge.business.timesheet.TimesheetFilter;
 import org.projectforge.business.vacation.model.VacationAttrProperty;
 import org.projectforge.business.vacation.model.VacationDO;
 import org.projectforge.business.vacation.model.VacationStatus;
 import org.projectforge.business.vacation.service.VacationService;
 import org.projectforge.framework.i18n.I18nHelper;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
+import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.time.DateTimeFormatter;
+import org.projectforge.framework.utils.NumberHelper;
 import org.projectforge.web.vacation.VacationEditPage;
 import org.projectforge.web.vacation.VacationViewPageSortableDataProvider;
 import org.projectforge.web.wicket.CellItemListener;
@@ -58,6 +67,13 @@ public class VacationViewHelper
 
   @Autowired
   private ConfigurationService configService;
+
+  @Autowired
+  private EmployeeService employeeService;
+
+  @Autowired
+  private TimesheetDao timesheetDao;
+
 
   public void createVacationView(GridBuilder gridBuilder, EmployeeDO currentEmployee, boolean showAddButton, final WebPage returnToPage)
   {
@@ -124,13 +140,33 @@ public class VacationViewHelper
         String.valueOf(vacationService.getSpecialVacationCount(currentEmployee, now.get(Calendar.YEAR), VacationStatus.APPROVED)));
 
     //student leave
-    if (false) {
+    if (EmployeeStatus.STUD_ABSCHLUSSARBEIT.equals(employeeService.getEmployeeStatus(currentEmployee)) ||
+        EmployeeStatus.STUDENTISCHE_HILFSKRAFT.equals(employeeService.getEmployeeStatus(currentEmployee))) {
+      String vacationCount = "";
+      Calendar eintrittsDatum = new GregorianCalendar(ThreadLocalUserContext.getTimeZone());
+      eintrittsDatum.setTime(currentEmployee.getEintrittsDatum());
+      Calendar DDay = now;
+      DDay.add(Calendar.MONTH, 6);
+      if (eintrittsDatum.before(DDay)) {
+        if (now.get(Calendar.MONTH) >= 5) {
+          vacationCount = getVacationCount(now.get(Calendar.YEAR), now.get(Calendar.MONTH) - 5, now.get(Calendar.YEAR), now.get(Calendar.MONTH),
+              currentEmployee.getUser());
+        } else {
+          vacationCount = getVacationCount(now.get(Calendar.YEAR) - 1, 12 - (6 - now.get(Calendar.MONTH) + 1), now.get(Calendar.YEAR), now.get(Calendar.MONTH),
+              currentEmployee.getUser());
+        }
+      } else {
+        vacationCount = getVacationCount(eintrittsDatum.get(Calendar.YEAR), eintrittsDatum.get(Calendar.MONTH), now.get(Calendar.YEAR), now.get(Calendar.MONTH),
+            currentEmployee.getUser());
+      }
+
       GridBuilder sectionRightGridBuilder = gridBuilder.newSplitPanel(GridSize.COL25);
       DivPanel sectionRight = sectionRightGridBuilder.getPanel();
       sectionRight.add(new Heading1Panel(sectionRight.newChildId(), I18nHelper.getLocalizedMessage("vacation.Days")));
       appendFieldset(sectionRightGridBuilder, "vacation.countPerDay",
-          String.valueOf("0"));
+          vacationCount);
     }
+
 
     // bottom list
     GridBuilder sectionBottomGridBuilder = gridBuilder.newSplitPanel(GridSize.COL100);
@@ -236,6 +272,53 @@ public class VacationViewHelper
     }
     fs.add(divTextPanel);
     return true;
+  }
+
+  private String getVacationCount(int fromYear, int fromMonth, int toYear, int toMonth, PFUserDO user)
+  {
+    long hours = 0;
+    BigDecimal days = BigDecimal.ZERO;
+    if (fromYear == toYear) {
+      for (int i = fromMonth; i <= toMonth; i++) {
+        MonthlyEmployeeReport reportOfMonth = getReportOfMonth(fromYear, i, user);
+        hours += reportOfMonth.getTotalNetDuration();
+        days = days.add(reportOfMonth.getNumberOfWorkingDays());
+      }
+    } else {
+      for (int i = fromMonth; i <= 11; i++) {
+        MonthlyEmployeeReport reportOfMonth = getReportOfMonth(fromYear, i, user);
+        hours += reportOfMonth.getTotalNetDuration();
+        days = days.add(reportOfMonth.getNumberOfWorkingDays());
+      }
+      for (int i = 0; i <= toMonth; i++) {
+        MonthlyEmployeeReport reportOfMonth = getReportOfMonth(toYear, i, user);
+        hours += reportOfMonth.getTotalNetDuration();
+        days = days.add(reportOfMonth.getNumberOfWorkingDays());
+      }
+    }
+    final BigDecimal big_hours = new BigDecimal(hours).divide(new BigDecimal(1000 * 60 * 60), 2,
+        BigDecimal.ROUND_HALF_UP);
+
+    return NumberHelper.formatFraction2(big_hours.doubleValue() / days.doubleValue());
+  }
+
+  private MonthlyEmployeeReport getReportOfMonth(int year, int month, PFUserDO user)
+  {
+    MonthlyEmployeeReport monthlyEmployeeReport = new MonthlyEmployeeReport(employeeService, vacationService, user, year, month);
+    monthlyEmployeeReport.init();
+    TimesheetFilter filter = new TimesheetFilter();
+    filter.setDeleted(false);
+    filter.setStartTime(monthlyEmployeeReport.getFromDate());
+    filter.setStopTime(monthlyEmployeeReport.getToDate());
+    filter.setUserId(user.getId());
+    List<TimesheetDO> list = timesheetDao.getList(filter);
+    if (CollectionUtils.isNotEmpty(list) == true) {
+      for (TimesheetDO sheet : list) {
+        monthlyEmployeeReport.addTimesheet(sheet);
+      }
+    }
+    monthlyEmployeeReport.calculate();
+    return monthlyEmployeeReport;
   }
 
 }
