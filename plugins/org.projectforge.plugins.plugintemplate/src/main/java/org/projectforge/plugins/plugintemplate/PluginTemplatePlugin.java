@@ -24,7 +24,6 @@
 package org.projectforge.plugins.plugintemplate;
 
 import java.util.List;
-
 import org.projectforge.continuousdb.UpdateEntry;
 import org.projectforge.plugins.core.AbstractPlugin;
 import org.projectforge.plugins.plugintemplate.repository.PluginTemplateDao;

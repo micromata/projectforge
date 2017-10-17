@@ -53,6 +53,8 @@ public class RestPaths
 
   public static final String REST = "rest";
 
+  public static final String PUBLIC_REST = "publicRest";
+
   public static final String ADDRESS = "address";
 
   public static final String AUTHENTICATE = "authenticate";

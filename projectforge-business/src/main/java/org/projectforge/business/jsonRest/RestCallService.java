@@ -20,7 +20,7 @@ public class RestCallService
   private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(RestCallService.class);
 
   @Autowired
-  RestTemplate restTemplate;
+  private RestTemplate restTemplate;
 
   public JSONObject callRestInterfaceForUrl(String url)
   {

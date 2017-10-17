@@ -150,7 +150,11 @@ public abstract class AbstractUnsecureBasePage extends WebPage
     AbstractLink newVersionlink;
     newVersionlink = new ExternalLink("footerNewVersionLink", "https://sourceforge.net/projects/pforge/files/ProjectForge/");
     body.add(newVersionlink);
-    newVersionlink.add(new Label("newVersion", "New version available | ").setRenderBodyOnly(true));
+    String label = "";
+    if(false) {
+      label = "New version available  | ";
+    }
+    newVersionlink.add(new Label("newVersion", label).setRenderBodyOnly(true));
     newVersionlink.setOutputMarkupId(true);
     newVersionlink.setMarkupId("pf_footerNewVersionLink");
   }
