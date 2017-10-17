@@ -7,11 +7,16 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+
 import org.json.simple.JSONObject;
 import org.projectforge.business.jsonRest.RestCallService;
 import org.projectforge.business.systeminfo.SystemService;
 import org.projectforge.model.rest.RestPaths;
 import org.projectforge.model.rest.VersionCheck;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Marker;
+import org.slf4j.MarkerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -21,7 +26,9 @@ import org.springframework.web.bind.annotation.ResponseBody;
 @Path(RestPaths.VERSION_CHECK)
 public class PFVersionCheckRest
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(PFVersionCheckRest.class);
+  private static final Logger log = LoggerFactory.getLogger(PFVersionCheckRest.class);
+
+  final Marker marker = MarkerFactory.getDetachedMarker("VersionCheck");
 
   @Autowired
   private RestCallService restCallService;
@@ -34,7 +41,7 @@ public class PFVersionCheckRest
   @Produces(MediaType.APPLICATION_JSON)
   public @ResponseBody VersionCheck checkVersion(@RequestBody VersionCheck versionCheck)
   {
-    log.info("Checking version...");
+    log.info(marker, "Checking version...");
     synchronizeWithProjectforgeGithub(versionCheck);
     return versionCheck;
   }
@@ -42,7 +49,7 @@ public class PFVersionCheckRest
   @GET
   public Response getMethod()
   {
-    log.info("Call of PFVersionCheckRest GET method!");
+    log.info(marker, "Call of PFVersionCheckRest GET method!");
     VersionCheck vc = systemService.getVersionCheckInformations();
     return Response.ok(JsonUtils.toJson(vc)).build();
   }
@@ -52,7 +59,7 @@ public class PFVersionCheckRest
     String url = "https://api.github.com/repos/micromata/projectforge/releases/latest";
     try {
       JSONObject jsonObject = restCallService.callRestInterfaceForUrl(url);
-      log.debug(jsonObject);
+      log.debug(jsonObject.toJSONString());
       String tag_name = (String) jsonObject.get("tag_name");
       log.debug(tag_name);
       String githubVersion = tag_name.split("-")[0];
