@@ -23,6 +23,7 @@
 
 package org.projectforge.business.fibu;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.persistence.NoResultException;
@@ -31,14 +32,18 @@ import org.apache.commons.collections.CollectionUtils;
 import org.hibernate.Hibernate;
 import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Restrictions;
+import org.projectforge.business.multitenancy.TenantChecker;
 import org.projectforge.business.task.TaskDO;
 import org.projectforge.business.task.TaskDao;
 import org.projectforge.business.user.GroupDao;
 import org.projectforge.business.user.UserRightId;
+import org.projectforge.business.user.UserRightServiceImpl;
+import org.projectforge.business.user.UserRightValue;
 import org.projectforge.framework.persistence.api.BaseDao;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.persistence.api.QueryFilter;
 import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.GroupDO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
@@ -55,6 +60,8 @@ public class ProjektDao extends BaseDao<ProjektDO>
 
   @Autowired
   private KundeDao kundeDao;
+
+  UserRightServiceImpl
 
   @Autowired
   private GroupDao groupDao;
@@ -183,6 +190,50 @@ public class ProjektDao extends BaseDao<ProjektDO>
     }
     queryFilter.addOrder(Order.asc("internKost2_4")).addOrder(Order.asc("kunde.id")).addOrder(Order.asc("nummer"));
     return getList(queryFilter);
+  }
+
+  @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
+  public List<ProjektDO> getListForDropdown(final BaseSearchFilter filter)
+  {
+    checkLoggedInUserSelectAccess();
+    if (accessChecker.isRestrictedUser() == true) {
+      return new ArrayList<>();
+    }
+    final ProjektFilter myFilter;
+    if (filter instanceof ProjektFilter) {
+      myFilter = (ProjektFilter) filter;
+    } else {
+      myFilter = new ProjektFilter(filter);
+    }
+    final QueryFilter queryFilter = new QueryFilter(myFilter);
+    if (myFilter.isEnded() == true) {
+      queryFilter.add(Restrictions.eq("status", ProjektStatus.ENDED));
+    } else if (myFilter.isNotEnded() == true) {
+      queryFilter.add(Restrictions.or(Restrictions.ne("status", ProjektStatus.ENDED), Restrictions.isNull("status")));
+    }
+    queryFilter.addOrder(Order.asc("internKost2_4")).addOrder(Order.asc("kunde.id")).addOrder(Order.asc("nummer"));
+
+    if (USE_SEARCH_SERVIVE == true) {
+      return searchService.getList(queryFilter, getEntityClass());
+    }
+
+    List<ProjektDO> list = internalGetList(queryFilter);
+    if (list == null || list.size() == 0) {
+      return list;
+    }
+
+    List<ProjektDO> result = new ArrayList<ProjektDO>();
+    for (final ProjektDO obj : list) {
+      if ((TenantChecker.isSuperAdmin(ThreadLocalUserContext.getUser()) == true
+          || tenantChecker.isPartOfCurrentTenant(obj) == true)
+          && (hasLoggedInUserSelectAccess(obj, false) == true || accessChecker
+          .hasRight(ThreadLocalUserContext.getUser(), UserRightId.PM_HR_PLANNING, UserRightValue.READONLY, UserRightValue.READWRITE))) {
+        result.add(obj);
+        afterLoad(obj);
+      }
+    }
+    List<ProjektDO> result1 = sort(result);
+    return result1;
   }
 
   @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
