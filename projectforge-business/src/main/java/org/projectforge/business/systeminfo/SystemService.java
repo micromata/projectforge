@@ -25,6 +25,7 @@ package org.projectforge.business.systeminfo;
 
 import java.io.File;
 import java.io.IOException;
+import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -43,7 +44,6 @@ import org.projectforge.business.task.TaskDao;
 import org.projectforge.framework.persistence.database.SchemaExport;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.model.rest.VersionCheck;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Service;
@@ -61,29 +61,39 @@ public class SystemService
 {
   private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(SystemService.class);
 
-  @Autowired
   private TaskDao taskDao;
 
-  @Autowired
   private SystemInfoCache systemInfoCache;
 
-  @Autowired
   private RechnungCache rechnungCache;
 
-  @Autowired
   private KontoCache kontoCache;
 
-  @Autowired
   private KostCache kostCache;
 
-  @Value("${projectforge.versioncheck.enable:true}")
   private boolean enableVersionCheck;
 
-  @Value("${projectforge.versioncheck.url:https://projectforge.micromata.de/publicRest/versionCheck}")
+  private LocalDate lastVersionCheckDate;
+
   private String versionCheckUrl;
 
-  @Autowired
+  private Boolean newPFVersionAvailable;
+
   private RestCallService restCallService;
+
+  public SystemService(final TaskDao taskDao, final SystemInfoCache systemInfoCache, final RechnungCache rechnungCache, final KontoCache kontoCache,
+      final KostCache kostCache, final RestCallService restCallService, @Value("${projectforge.versioncheck.enable:true}") final boolean enableVersionCheck,
+      @Value("${projectforge.versioncheck.url:https://projectforge.micromata.de/publicRest/versionCheck}") final String versionCheckUrl)
+  {
+    this.taskDao = taskDao;
+    this.systemInfoCache = systemInfoCache;
+    this.rechnungCache = rechnungCache;
+    this.kontoCache = kontoCache;
+    this.kostCache = kostCache;
+    this.restCallService = restCallService;
+    this.enableVersionCheck = enableVersionCheck;
+    this.versionCheckUrl = versionCheckUrl;
+  }
 
   public VersionCheck getVersionCheckInformations()
   {
@@ -94,7 +104,13 @@ public class SystemService
 
   public boolean isNewPFVersionAvailable()
   {
-    if (enableVersionCheck) {
+    LocalDate now = LocalDate.now();
+    if (lastVersionCheckDate == null) {
+      lastVersionCheckDate = LocalDate.now().minusDays(1);
+    }
+    if (enableVersionCheck && (now.isAfter(lastVersionCheckDate) || newPFVersionAvailable == null)) {
+      lastVersionCheckDate = LocalDate.now();
+      newPFVersionAvailable = Boolean.FALSE;
       try {
         VersionCheck versionCheckInformations = getVersionCheckInformations();
         if (versionCheckInformations != null && StringUtils.isNotEmpty(versionCheckInformations.getSourceVersion()) && StringUtils
@@ -102,31 +118,47 @@ public class SystemService
           String[] sourceVersionPartsWithoutMinus = versionCheckInformations.getSourceVersion().split("-");
           String[] targetVersionPartsWithoutMinus = versionCheckInformations.getTargetVersion().split("-");
           if (sourceVersionPartsWithoutMinus.length > 0 && targetVersionPartsWithoutMinus.length > 0) {
-            String[] sourceVersionParts = sourceVersionPartsWithoutMinus[0].split("\\.");
-            String[] targetVersionParts = targetVersionPartsWithoutMinus[0].split("\\.");
-            if (sourceVersionParts.length > 0 && targetVersionParts.length > 0) {
-              if (Integer.parseInt(sourceVersionParts[0]) < Integer.parseInt(targetVersionParts[0])) {
-                return true;
+            int[] sourceVersionPartsInteger = getIntegerVersionArray(sourceVersionPartsWithoutMinus[0].split("\\."));
+            int[] targetVersionPartsInteger = getIntegerVersionArray(targetVersionPartsWithoutMinus[0].split("\\."));
+            for (int i = 0; i < 4; i++) {
+              if (sourceVersionPartsInteger[i] < targetVersionPartsInteger[i]) {
+                newPFVersionAvailable = Boolean.TRUE;
+                return newPFVersionAvailable;
               }
-            }
-            if (sourceVersionParts.length > 1 && targetVersionParts.length > 1) {
-              if (Integer.parseInt(sourceVersionParts[1]) < Integer.parseInt(targetVersionParts[1])) {
-                return true;
-              }
-            }
-            if (sourceVersionParts.length > 2 && targetVersionParts.length > 2) {
-              if (Integer.parseInt(sourceVersionParts[2]) < Integer.parseInt(targetVersionParts[2])) {
-                return true;
+              if (sourceVersionPartsInteger[i] > targetVersionPartsInteger[i]) {
+                newPFVersionAvailable = Boolean.FALSE;
+                return newPFVersionAvailable;
               }
             }
           }
         }
       } catch (Exception e) {
         log.error("An exception occured while checkin PF version: " + e.getMessage(), e);
-        return false;
+        return Boolean.FALSE;
       }
     }
-    return false;
+    if (newPFVersionAvailable == null) {
+      newPFVersionAvailable = Boolean.FALSE;
+    }
+    return newPFVersionAvailable;
+  }
+
+  private int[] getIntegerVersionArray(final String[] sourceVersionParts)
+  {
+    int[] result = new int[4];
+    for (int i = 0; i < 4; i++) {
+      try {
+        result[i] = Integer.parseInt(sourceVersionParts[i]);
+      } catch (Exception e) {
+        result[i] = 0;
+      }
+    }
+    return result;
+  }
+
+  public void setLastVersionCheckDate(LocalDate newDateValue)
+  {
+    lastVersionCheckDate = newDateValue;
   }
 
   public String exportSchema()
