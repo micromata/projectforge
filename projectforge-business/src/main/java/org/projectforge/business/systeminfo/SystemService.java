@@ -44,6 +44,7 @@ import org.projectforge.business.task.TaskDao;
 import org.projectforge.framework.persistence.database.SchemaExport;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.model.rest.VersionCheck;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Service;
@@ -81,6 +82,7 @@ public class SystemService
 
   private RestCallService restCallService;
 
+  @Autowired
   public SystemService(final TaskDao taskDao, final SystemInfoCache systemInfoCache, final RechnungCache rechnungCache, final KontoCache kontoCache,
       final KostCache kostCache, final RestCallService restCallService, @Value("${projectforge.versioncheck.enable:true}") final boolean enableVersionCheck,
       @Value("${projectforge.versioncheck.url:https://projectforge.micromata.de/publicRest/versionCheck}") final String versionCheckUrl)
