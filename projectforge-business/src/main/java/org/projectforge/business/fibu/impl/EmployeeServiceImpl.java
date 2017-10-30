@@ -9,26 +9,34 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.projectforge.business.fibu.EmployeeDO;
 import org.projectforge.business.fibu.EmployeeDao;
 import org.projectforge.business.fibu.EmployeeFilter;
 import org.projectforge.business.fibu.EmployeeStatus;
 import org.projectforge.business.fibu.EmployeeTimedDO;
+import org.projectforge.business.fibu.MonthlyEmployeeReport;
 import org.projectforge.business.fibu.api.EmployeeService;
 import org.projectforge.business.fibu.kost.Kost1DO;
 import org.projectforge.business.fibu.kost.Kost1Dao;
 import org.projectforge.business.multitenancy.TenantRegistryMap;
+import org.projectforge.business.timesheet.TimesheetDO;
+import org.projectforge.business.timesheet.TimesheetDao;
+import org.projectforge.business.timesheet.TimesheetFilter;
 import org.projectforge.business.user.UserDao;
+import org.projectforge.business.vacation.service.VacationService;
 import org.projectforge.framework.access.AccessException;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.persistence.api.ModificationStatus;
 import org.projectforge.framework.persistence.attr.impl.InternalAttrSchemaConstants;
 import org.projectforge.framework.persistence.history.DisplayHistoryEntry;
 import org.projectforge.framework.persistence.jpa.impl.CorePersistenceServiceImpl;
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -64,6 +72,13 @@ public class EmployeeServiceImpl extends CorePersistenceServiceImpl<Integer, Emp
 
   @Autowired
   private TimeableService timeableService;
+
+  @Autowired
+  private VacationService vacationService;
+
+
+  @Autowired
+  private TimesheetDao timesheetDao;
 
   @Override
   public ModificationStatus update(EmployeeDO obj) throws AccessException
@@ -269,6 +284,52 @@ public class EmployeeServiceImpl extends CorePersistenceServiceImpl<Integer, Emp
       return EmployeeStatus.findByi18nKey(attrRow.getStringAttribute(InternalAttrSchemaConstants.EMPLOYEE_STATUS_DESC_NAME));
     }
     return null;
+  }
+
+  @Override
+  public String getStudentVacationCountPerDay(EmployeeDO currentEmployee)
+  {
+    String vacationCountPerDay = "";
+    Calendar now = new GregorianCalendar(ThreadLocalUserContext.getTimeZone());
+    Calendar eintrittsDatum = new GregorianCalendar(ThreadLocalUserContext.getTimeZone());
+    Calendar deadline = new GregorianCalendar(ThreadLocalUserContext.getTimeZone());
+
+    eintrittsDatum.setTime(currentEmployee.getEintrittsDatum());
+    deadline.add(Calendar.MONTH, 6);
+
+    if (eintrittsDatum.before(deadline)) {
+      if (now.get(Calendar.MONTH) >= 5) {
+        vacationCountPerDay = vacationService.getVacationCount(now.get(Calendar.YEAR), now.get(Calendar.MONTH) - 5, now.get(Calendar.YEAR), now.get(Calendar.MONTH),
+            currentEmployee.getUser());
+      } else {
+        vacationCountPerDay = vacationService.getVacationCount(now.get(Calendar.YEAR) - 1, 12 - (6 - now.get(Calendar.MONTH) + 1), now.get(Calendar.YEAR), now.get(Calendar.MONTH),
+            currentEmployee.getUser());
+      }
+    } else {
+      vacationCountPerDay = vacationService.getVacationCount(eintrittsDatum.get(Calendar.YEAR), eintrittsDatum.get(Calendar.MONTH), now.get(Calendar.YEAR), now.get(Calendar.MONTH),
+          currentEmployee.getUser());
+    }
+    return vacationCountPerDay;
+  }
+
+  @Override
+  public MonthlyEmployeeReport getReportOfMonth(final int year, final int month, final PFUserDO user)
+  {
+    MonthlyEmployeeReport monthlyEmployeeReport = new MonthlyEmployeeReport(this, vacationService, user, year, month);
+    monthlyEmployeeReport.init();
+    TimesheetFilter filter = new TimesheetFilter();
+    filter.setDeleted(false);
+    filter.setStartTime(monthlyEmployeeReport.getFromDate());
+    filter.setStopTime(monthlyEmployeeReport.getToDate());
+    filter.setUserId(user.getId());
+    List<TimesheetDO> list = timesheetDao.getList(filter);
+    if (CollectionUtils.isNotEmpty(list) == true) {
+      for (TimesheetDO sheet : list) {
+        monthlyEmployeeReport.addTimesheet(sheet);
+      }
+    }
+    monthlyEmployeeReport.calculate();
+    return monthlyEmployeeReport;
   }
 
   @Override

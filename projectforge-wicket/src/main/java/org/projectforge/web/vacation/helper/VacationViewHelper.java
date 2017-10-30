@@ -71,8 +71,6 @@ public class VacationViewHelper
   @Autowired
   private EmployeeService employeeService;
 
-  @Autowired
-  private TimesheetDao timesheetDao;
 
 
   public void createVacationView(GridBuilder gridBuilder, EmployeeDO currentEmployee, boolean showAddButton, final WebPage returnToPage)
@@ -142,29 +140,12 @@ public class VacationViewHelper
     //student leave
     if (EmployeeStatus.STUD_ABSCHLUSSARBEIT.equals(employeeService.getEmployeeStatus(currentEmployee)) ||
         EmployeeStatus.STUDENTISCHE_HILFSKRAFT.equals(employeeService.getEmployeeStatus(currentEmployee))) {
-      String vacationCount = "";
-      Calendar eintrittsDatum = new GregorianCalendar(ThreadLocalUserContext.getTimeZone());
-      eintrittsDatum.setTime(currentEmployee.getEintrittsDatum());
-      Calendar DDay = now;
-      DDay.add(Calendar.MONTH, 6);
-      if (eintrittsDatum.before(DDay)) {
-        if (now.get(Calendar.MONTH) >= 5) {
-          vacationCount = getVacationCount(now.get(Calendar.YEAR), now.get(Calendar.MONTH) - 5, now.get(Calendar.YEAR), now.get(Calendar.MONTH),
-              currentEmployee.getUser());
-        } else {
-          vacationCount = getVacationCount(now.get(Calendar.YEAR) - 1, 12 - (6 - now.get(Calendar.MONTH) + 1), now.get(Calendar.YEAR), now.get(Calendar.MONTH),
-              currentEmployee.getUser());
-        }
-      } else {
-        vacationCount = getVacationCount(eintrittsDatum.get(Calendar.YEAR), eintrittsDatum.get(Calendar.MONTH), now.get(Calendar.YEAR), now.get(Calendar.MONTH),
-            currentEmployee.getUser());
-      }
 
       GridBuilder sectionRightGridBuilder = gridBuilder.newSplitPanel(GridSize.COL25);
       DivPanel sectionRight = sectionRightGridBuilder.getPanel();
       sectionRight.add(new Heading1Panel(sectionRight.newChildId(), I18nHelper.getLocalizedMessage("vacation.Days")));
       appendFieldset(sectionRightGridBuilder, "vacation.countPerDay",
-          vacationCount);
+          employeeService.getStudentVacationCountPerDay(currentEmployee));
     }
 
 
@@ -273,52 +254,4 @@ public class VacationViewHelper
     fs.add(divTextPanel);
     return true;
   }
-
-  private String getVacationCount(int fromYear, int fromMonth, int toYear, int toMonth, PFUserDO user)
-  {
-    long hours = 0;
-    BigDecimal days = BigDecimal.ZERO;
-    if (fromYear == toYear) {
-      for (int i = fromMonth; i <= toMonth; i++) {
-        MonthlyEmployeeReport reportOfMonth = getReportOfMonth(fromYear, i, user);
-        hours += reportOfMonth.getTotalNetDuration();
-        days = days.add(reportOfMonth.getNumberOfWorkingDays());
-      }
-    } else {
-      for (int i = fromMonth; i <= 11; i++) {
-        MonthlyEmployeeReport reportOfMonth = getReportOfMonth(fromYear, i, user);
-        hours += reportOfMonth.getTotalNetDuration();
-        days = days.add(reportOfMonth.getNumberOfWorkingDays());
-      }
-      for (int i = 0; i <= toMonth; i++) {
-        MonthlyEmployeeReport reportOfMonth = getReportOfMonth(toYear, i, user);
-        hours += reportOfMonth.getTotalNetDuration();
-        days = days.add(reportOfMonth.getNumberOfWorkingDays());
-      }
-    }
-    final BigDecimal big_hours = new BigDecimal(hours).divide(new BigDecimal(1000 * 60 * 60), 2,
-        BigDecimal.ROUND_HALF_UP);
-
-    return NumberHelper.formatFraction2(big_hours.doubleValue() / days.doubleValue());
-  }
-
-  private MonthlyEmployeeReport getReportOfMonth(int year, int month, PFUserDO user)
-  {
-    MonthlyEmployeeReport monthlyEmployeeReport = new MonthlyEmployeeReport(employeeService, vacationService, user, year, month);
-    monthlyEmployeeReport.init();
-    TimesheetFilter filter = new TimesheetFilter();
-    filter.setDeleted(false);
-    filter.setStartTime(monthlyEmployeeReport.getFromDate());
-    filter.setStopTime(monthlyEmployeeReport.getToDate());
-    filter.setUserId(user.getId());
-    List<TimesheetDO> list = timesheetDao.getList(filter);
-    if (CollectionUtils.isNotEmpty(list) == true) {
-      for (TimesheetDO sheet : list) {
-        monthlyEmployeeReport.addTimesheet(sheet);
-      }
-    }
-    monthlyEmployeeReport.calculate();
-    return monthlyEmployeeReport;
-  }
-
 }
