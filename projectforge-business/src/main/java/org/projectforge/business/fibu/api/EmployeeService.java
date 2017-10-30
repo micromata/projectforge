@@ -8,9 +8,11 @@ import java.util.List;
 import org.projectforge.business.fibu.EmployeeDO;
 import org.projectforge.business.fibu.EmployeeStatus;
 import org.projectforge.business.fibu.EmployeeTimedDO;
+import org.projectforge.business.fibu.MonthlyEmployeeReport;
 import org.projectforge.framework.persistence.api.IDao;
 import org.projectforge.framework.persistence.api.IPersistenceService;
 import org.projectforge.framework.persistence.api.ModificationStatus;
+import org.projectforge.framework.persistence.user.entities.PFUserDO;
 
 /**
  * Access to employee.
@@ -40,6 +42,10 @@ public interface EmployeeService extends IPersistenceService<EmployeeDO>, IDao<E
   List<EmployeeDO> getAll(boolean checkAccess);
 
   EmployeeStatus getEmployeeStatus(EmployeeDO employee);
+
+  String getStudentVacationCountPerDay(EmployeeDO currentEmployee);
+
+  MonthlyEmployeeReport getReportOfMonth(int year, int month, PFUserDO user);
 
   /**
    * Checks if the employee was full time some day at the beginning of the month or within the month.
