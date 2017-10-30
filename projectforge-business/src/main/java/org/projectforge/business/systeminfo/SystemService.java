@@ -30,30 +30,34 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.io.FileUtils;
+import org.projectforge.AppVersion;
 import org.projectforge.business.fibu.KontoCache;
 import org.projectforge.business.fibu.RechnungCache;
 import org.projectforge.business.fibu.kost.KostCache;
+import org.projectforge.business.jsonRest.RestCallService;
 import org.projectforge.business.multitenancy.TenantRegistry;
 import org.projectforge.business.multitenancy.TenantRegistryMap;
 import org.projectforge.business.task.TaskDO;
 import org.projectforge.business.task.TaskDao;
 import org.projectforge.framework.persistence.database.SchemaExport;
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
+import org.projectforge.model.rest.VersionCheck;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Repository;
+import org.springframework.http.HttpMethod;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Provides some system routines.
- * 
- * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
+ *
+ * @author Kai Reinhard (k.reinhard@micromata.de), Florian Blumenstein
  */
-@Repository
+@Service
 @Transactional(readOnly = false, propagation = Propagation.REQUIRED)
-public class SystemDao
+public class SystemService
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(SystemDao.class);
+  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(SystemService.class);
 
   @Autowired
   private TaskDao taskDao;
@@ -69,6 +73,17 @@ public class SystemDao
 
   @Autowired
   KostCache kostCache;
+
+  @Autowired
+  private RestCallService restCallService;
+
+  public VersionCheck getVersionCheckInformations()
+  {
+    VersionCheck versionCheck = new VersionCheck(AppVersion.VERSION.toString(), ThreadLocalUserContext.getLocale(), ThreadLocalUserContext.getTimeZone());
+    String url = "http://localhost:8080/publicRest/versionCheck";
+    versionCheck = restCallService.callRestInterfaceForUrl(url, HttpMethod.POST, VersionCheck.class, versionCheck);
+    return versionCheck;
+  }
 
   public String exportSchema()
   {
@@ -94,7 +109,7 @@ public class SystemDao
 
   /**
    * Search for abandoned tasks (task outside the task hierarchy, unaccessible and unavailable for the users).
-   * 
+   *
    * @return
    */
   public String checkSystemIntegrity()
@@ -155,7 +170,7 @@ public class SystemDao
 
   /**
    * Refreshes the caches: TaskTree, userGroupCache and kost2.
-   * 
+   *
    * @return the name of the refreshed caches.
    */
   public String refreshCaches()

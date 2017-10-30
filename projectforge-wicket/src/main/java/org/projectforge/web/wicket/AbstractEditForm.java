@@ -287,6 +287,9 @@ public abstract class AbstractEditForm<O extends AbstractBaseDO<Integer>, P exte
           }
         }
       };
+
+      undeleteButton.setMarkupId("undelete").setOutputMarkupId(true);
+
       undeleteButtonPanel = new SingleButtonPanel(actionButtons.newChildId(), undeleteButton, getString("undelete"));
       actionButtons.add(undeleteButtonPanel);
     }

@@ -261,6 +261,7 @@
     <xmlgraphics-batik-codec.version>1.9</xmlgraphics-batik-codec.version>
     <!-- HIBERNATE5 -->
     <ehcache-core.version>2.6.11</ehcache-core.version>
+    <flyway-core.version>4.2.0</flyway-core.version>
     <postgresql.version>9.4.1211</postgresql.version>
     <hsqldb.version>2.4.0</hsqldb.version>
     <codehaus-jackson.version>1.9.13</codehaus-jackson.version>
@@ -307,6 +308,11 @@
     </dependency>
 
     <!-- DB -->
+    <dependency>
+      <groupId>org.flywaydb</groupId>
+      <artifactId>flyway-core</artifactId>
+      <version>${flyway-core.version}</version>
+    </dependency>
     <dependency>
       <groupId>org.postgresql</groupId>
       <artifactId>postgresql</artifactId>

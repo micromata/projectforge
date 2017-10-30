@@ -236,7 +236,9 @@ public abstract class AbstractPlugin
    *
    * @return null at default.
    * @see ToDoPlugin
+   * @deprecated Since version 6.18.0 please use flyway db migration.
    */
+  @Deprecated
   public UpdateEntry getInitializationUpdateEntry()
   {
     return null;
@@ -246,7 +248,9 @@ public abstract class AbstractPlugin
    * Override this method if update entries does exist for this plugin.
    *
    * @return null at default.
+   * @deprecated Since version 6.18.0 please use flyway db migration.
    */
+  @Deprecated
   public List<UpdateEntry> getUpdateEntries()
   {
     return null;
