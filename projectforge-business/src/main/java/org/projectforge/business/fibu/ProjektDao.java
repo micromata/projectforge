@@ -37,7 +37,6 @@ import org.projectforge.business.task.TaskDO;
 import org.projectforge.business.task.TaskDao;
 import org.projectforge.business.user.GroupDao;
 import org.projectforge.business.user.UserRightId;
-import org.projectforge.business.user.UserRightServiceImpl;
 import org.projectforge.business.user.UserRightValue;
 import org.projectforge.framework.persistence.api.BaseDao;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
@@ -60,8 +59,6 @@ public class ProjektDao extends BaseDao<ProjektDO>
 
   @Autowired
   private KundeDao kundeDao;
-
-  UserRightServiceImpl
 
   @Autowired
   private GroupDao groupDao;
