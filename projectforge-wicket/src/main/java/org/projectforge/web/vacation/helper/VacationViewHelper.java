@@ -6,6 +6,7 @@ import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.List;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -23,13 +24,21 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.ResourceModel;
 import org.projectforge.business.configuration.ConfigurationService;
 import org.projectforge.business.fibu.EmployeeDO;
+import org.projectforge.business.fibu.EmployeeStatus;
+import org.projectforge.business.fibu.MonthlyEmployeeReport;
+import org.projectforge.business.fibu.api.EmployeeService;
+import org.projectforge.business.timesheet.TimesheetDO;
+import org.projectforge.business.timesheet.TimesheetDao;
+import org.projectforge.business.timesheet.TimesheetFilter;
 import org.projectforge.business.vacation.model.VacationAttrProperty;
 import org.projectforge.business.vacation.model.VacationDO;
 import org.projectforge.business.vacation.model.VacationStatus;
 import org.projectforge.business.vacation.service.VacationService;
 import org.projectforge.framework.i18n.I18nHelper;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
+import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.time.DateTimeFormatter;
+import org.projectforge.framework.utils.NumberHelper;
 import org.projectforge.web.vacation.VacationEditPage;
 import org.projectforge.web.vacation.VacationViewPageSortableDataProvider;
 import org.projectforge.web.wicket.CellItemListener;
@@ -58,6 +67,11 @@ public class VacationViewHelper
 
   @Autowired
   private ConfigurationService configService;
+
+  @Autowired
+  private EmployeeService employeeService;
+
+
 
   public void createVacationView(GridBuilder gridBuilder, EmployeeDO currentEmployee, boolean showAddButton, final WebPage returnToPage)
   {
@@ -124,13 +138,16 @@ public class VacationViewHelper
         String.valueOf(vacationService.getSpecialVacationCount(currentEmployee, now.get(Calendar.YEAR), VacationStatus.APPROVED)));
 
     //student leave
-    if (false) {
+    if (EmployeeStatus.STUD_ABSCHLUSSARBEIT.equals(employeeService.getEmployeeStatus(currentEmployee)) ||
+        EmployeeStatus.STUDENTISCHE_HILFSKRAFT.equals(employeeService.getEmployeeStatus(currentEmployee))) {
+
       GridBuilder sectionRightGridBuilder = gridBuilder.newSplitPanel(GridSize.COL25);
       DivPanel sectionRight = sectionRightGridBuilder.getPanel();
       sectionRight.add(new Heading1Panel(sectionRight.newChildId(), I18nHelper.getLocalizedMessage("vacation.Days")));
       appendFieldset(sectionRightGridBuilder, "vacation.countPerDay",
-          String.valueOf("0"));
+          employeeService.getStudentVacationCountPerDay(currentEmployee));
     }
+
 
     // bottom list
     GridBuilder sectionBottomGridBuilder = gridBuilder.newSplitPanel(GridSize.COL100);
@@ -237,5 +254,4 @@ public class VacationViewHelper
     fs.add(divTextPanel);
     return true;
   }
-
 }

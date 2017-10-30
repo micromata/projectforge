@@ -261,4 +261,17 @@ public interface VacationService extends IPersistenceService<VacationDO>, IDao<V
    * @return
    */
   void undeleteTeamEventsOfVacation(VacationDO vacation);
+
+
+  /**
+   * Get VacationCount for PFUser
+   *
+   * @param fromYear
+   * @param fromMonth
+   * @param toYear
+   * @param toMonth
+   * @param user
+   * @return
+   */
+  String getVacationCount(int fromYear, int fromMonth, int toYear, int toMonth, PFUserDO user);
 }
