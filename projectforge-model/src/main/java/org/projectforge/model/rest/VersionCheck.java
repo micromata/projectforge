@@ -53,4 +53,15 @@ public class VersionCheck implements Serializable
   {
     this.targetVersion = targetVersion;
   }
+
+  @Override
+  public String toString()
+  {
+    return "VersionCheck{" +
+        "sourceVersion='" + sourceVersion + '\'' +
+        ", targetVersion='" + targetVersion + '\'' +
+        ", locale=" + locale +
+        ", timezone=" + timezone +
+        '}';
+  }
 }

@@ -25,11 +25,13 @@ package org.projectforge.business.systeminfo;
 
 import java.io.File;
 import java.io.IOException;
+import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.projectforge.AppVersion;
 import org.projectforge.business.fibu.KontoCache;
 import org.projectforge.business.fibu.RechnungCache;
@@ -43,6 +45,7 @@ import org.projectforge.framework.persistence.database.SchemaExport;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.model.rest.VersionCheck;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -59,30 +62,105 @@ public class SystemService
 {
   private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(SystemService.class);
 
-  @Autowired
   private TaskDao taskDao;
 
-  @Autowired
   private SystemInfoCache systemInfoCache;
 
-  @Autowired
-  RechnungCache rechnungCache;
+  private RechnungCache rechnungCache;
 
-  @Autowired
-  KontoCache kontoCache;
+  private KontoCache kontoCache;
 
-  @Autowired
-  KostCache kostCache;
+  private KostCache kostCache;
 
-  @Autowired
+  private boolean enableVersionCheck;
+
+  private LocalDate lastVersionCheckDate;
+
+  private String versionCheckUrl;
+
+  private Boolean newPFVersionAvailable;
+
   private RestCallService restCallService;
+
+  @Autowired
+  public SystemService(final TaskDao taskDao, final SystemInfoCache systemInfoCache, final RechnungCache rechnungCache, final KontoCache kontoCache,
+      final KostCache kostCache, final RestCallService restCallService, @Value("${projectforge.versioncheck.enable:true}") final boolean enableVersionCheck,
+      @Value("${projectforge.versioncheck.url:https://projectforge.micromata.de/publicRest/versionCheck}") final String versionCheckUrl)
+  {
+    this.taskDao = taskDao;
+    this.systemInfoCache = systemInfoCache;
+    this.rechnungCache = rechnungCache;
+    this.kontoCache = kontoCache;
+    this.kostCache = kostCache;
+    this.restCallService = restCallService;
+    this.enableVersionCheck = enableVersionCheck;
+    this.versionCheckUrl = versionCheckUrl;
+  }
 
   public VersionCheck getVersionCheckInformations()
   {
     VersionCheck versionCheck = new VersionCheck(AppVersion.VERSION.toString(), ThreadLocalUserContext.getLocale(), ThreadLocalUserContext.getTimeZone());
-    String url = "http://localhost:8080/publicRest/versionCheck";
-    versionCheck = restCallService.callRestInterfaceForUrl(url, HttpMethod.POST, VersionCheck.class, versionCheck);
+    versionCheck = restCallService.callRestInterfaceForUrl(versionCheckUrl, HttpMethod.POST, VersionCheck.class, versionCheck);
     return versionCheck;
+  }
+
+  public boolean isNewPFVersionAvailable()
+  {
+    LocalDate now = LocalDate.now();
+    if (lastVersionCheckDate == null) {
+      lastVersionCheckDate = LocalDate.now().minusDays(1);
+    }
+    if (enableVersionCheck && (now.isAfter(lastVersionCheckDate) || newPFVersionAvailable == null)) {
+      lastVersionCheckDate = LocalDate.now();
+      newPFVersionAvailable = Boolean.FALSE;
+      try {
+        VersionCheck versionCheckInformations = getVersionCheckInformations();
+        if (versionCheckInformations != null && StringUtils.isNotEmpty(versionCheckInformations.getSourceVersion()) && StringUtils
+            .isNotEmpty(versionCheckInformations.getTargetVersion())) {
+          String[] sourceVersionPartsWithoutMinus = versionCheckInformations.getSourceVersion().split("-");
+          String[] targetVersionPartsWithoutMinus = versionCheckInformations.getTargetVersion().split("-");
+          if (sourceVersionPartsWithoutMinus.length > 0 && targetVersionPartsWithoutMinus.length > 0) {
+            int[] sourceVersionPartsInteger = getIntegerVersionArray(sourceVersionPartsWithoutMinus[0].split("\\."));
+            int[] targetVersionPartsInteger = getIntegerVersionArray(targetVersionPartsWithoutMinus[0].split("\\."));
+            for (int i = 0; i < 4; i++) {
+              if (sourceVersionPartsInteger[i] < targetVersionPartsInteger[i]) {
+                newPFVersionAvailable = Boolean.TRUE;
+                return newPFVersionAvailable;
+              }
+              if (sourceVersionPartsInteger[i] > targetVersionPartsInteger[i]) {
+                newPFVersionAvailable = Boolean.FALSE;
+                return newPFVersionAvailable;
+              }
+            }
+          }
+        }
+      } catch (Exception e) {
+        log.error("An exception occured while checkin PF version: " + e.getMessage(), e);
+        return Boolean.FALSE;
+      }
+    }
+    if (newPFVersionAvailable == null) {
+      newPFVersionAvailable = Boolean.FALSE;
+    }
+    return newPFVersionAvailable;
+  }
+
+  private int[] getIntegerVersionArray(final String[] sourceVersionParts)
+  {
+    int[] result = new int[4];
+    for (int i = 0; i < 4; i++) {
+      try {
+        result[i] = Integer.parseInt(sourceVersionParts[i]);
+      } catch (Exception e) {
+        result[i] = 0;
+      }
+    }
+    return result;
+  }
+
+  public void setLastVersionCheckDate(LocalDate newDateValue)
+  {
+    lastVersionCheckDate = newDateValue;
   }
 
   public String exportSchema()
@@ -184,5 +262,4 @@ public class SystemService
     systemInfoCache.forceReload();
     return "UserGroupCache, TaskTree, KontoCache, KostCache, RechnungCache, SystemInfoCache";
   }
-
 }
