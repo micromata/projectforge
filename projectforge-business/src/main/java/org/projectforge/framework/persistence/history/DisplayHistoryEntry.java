@@ -37,6 +37,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.builder.ReflectionToStringBuilder;
 import org.hibernate.Session;
 import org.jfree.util.Log;
+import org.projectforge.business.address.AddressbookDO;
 import org.projectforge.business.fibu.EmployeeDO;
 import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.framework.persistence.api.ShortDisplayNameCapable;
@@ -177,12 +178,16 @@ public class DisplayHistoryEntry implements Serializable
         return user;
       }
     }
-    if (EmployeeDO.class.getName().equals(type) == true) {
+    if (EmployeeDO.class.getName().equals(type) == true || AddressbookDO.class.getName().equals(type) == true) {
       StringBuffer sb = new StringBuffer();
-      getDBObjects(session, prop).forEach(emp -> {
-        if (emp instanceof EmployeeDO) {
-          EmployeeDO employee = (EmployeeDO) emp;
+      getDBObjects(session, prop).forEach(dbObject -> {
+        if (dbObject instanceof EmployeeDO) {
+          EmployeeDO employee = (EmployeeDO) dbObject;
           sb.append(employee.getUser().getFullname() + ";");
+        }
+        if (dbObject instanceof AddressbookDO) {
+          AddressbookDO addressbook = (AddressbookDO) dbObject;
+          sb.append(addressbook.getTitle() + ";");
         }
       });
       sb.deleteCharAt(sb.length() - 1);
