@@ -4,9 +4,7 @@ import org.projectforge.plugins.core.AbstractPlugin;
 import org.projectforge.plugins.core.ProjectforgePluginService;
 
 /**
- * 
  * @author Roger Rene Kommer (r.kommer.extern@micromata.de)
- *
  */
 public class MarketingProjectforgePluginService implements ProjectforgePluginService
 {
@@ -27,7 +25,7 @@ public class MarketingProjectforgePluginService implements ProjectforgePluginSer
   @Override
   public String getPluginDescription()
   {
-    return "blah";
+    return "Marketing plugin";
   }
 
   @Override

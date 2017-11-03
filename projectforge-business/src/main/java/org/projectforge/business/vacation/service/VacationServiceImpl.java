@@ -16,6 +16,7 @@ import org.apache.log4j.Logger;
 import org.projectforge.business.configuration.ConfigurationService;
 import org.projectforge.business.fibu.EmployeeDO;
 import org.projectforge.business.fibu.EmployeeDao;
+import org.projectforge.business.fibu.MonthlyEmployeeReport;
 import org.projectforge.business.fibu.api.EmployeeService;
 import org.projectforge.business.teamcal.admin.model.TeamCalDO;
 import org.projectforge.business.teamcal.event.TeamEventDao;
@@ -35,6 +36,7 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.time.DateHelper;
 import org.projectforge.framework.time.DateTimeFormatter;
 import org.projectforge.framework.time.DayHolder;
+import org.projectforge.framework.utils.NumberHelper;
 import org.projectforge.mail.Mail;
 import org.projectforge.mail.SendMail;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -675,6 +677,35 @@ public class VacationServiceImpl extends CorePersistenceServiceImpl<Integer, Vac
         vacationDao.markAsUndeleted(vacationCalendarDO);
       }
     }
+  }
+
+  @Override
+  public String getVacationCount(final int fromYear, final int fromMonth, final int toYear, final int toMonth, final PFUserDO user)
+  {
+    long hours = 0;
+    BigDecimal days = BigDecimal.ZERO;
+    if (fromYear == toYear) {
+      for (int i = fromMonth; i <= toMonth; i++) {
+        MonthlyEmployeeReport reportOfMonth = employeeService.getReportOfMonth(fromYear, i, user);
+        hours += reportOfMonth.getTotalNetDuration();
+        days = days.add(reportOfMonth.getNumberOfWorkingDays());
+      }
+    } else {
+      for (int i = fromMonth; i <= 11; i++) {
+        MonthlyEmployeeReport reportOfMonth = employeeService.getReportOfMonth(fromYear, i, user);
+        hours += reportOfMonth.getTotalNetDuration();
+        days = days.add(reportOfMonth.getNumberOfWorkingDays());
+      }
+      for (int i = 0; i <= toMonth; i++) {
+        MonthlyEmployeeReport reportOfMonth = employeeService.getReportOfMonth(toYear, i, user);
+        hours += reportOfMonth.getTotalNetDuration();
+        days = days.add(reportOfMonth.getNumberOfWorkingDays());
+      }
+    }
+    final BigDecimal big_hours = new BigDecimal(hours).divide(new BigDecimal(1000 * 60 * 60), 2,
+        BigDecimal.ROUND_HALF_UP);
+
+    return NumberHelper.formatFraction2(big_hours.doubleValue() / days.doubleValue());
   }
 
   @Override

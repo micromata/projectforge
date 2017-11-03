@@ -25,6 +25,7 @@ package org.projectforge.business.teamcal.event;
 
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Collections;
@@ -59,6 +60,7 @@ import org.projectforge.framework.calendar.CalendarUtils;
 import org.projectforge.framework.calendar.ICal4JUtils;
 import org.projectforge.framework.persistence.api.BaseDao;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
+import org.projectforge.framework.persistence.api.ModificationStatus;
 import org.projectforge.framework.persistence.api.QueryFilter;
 import org.projectforge.framework.persistence.history.DisplayHistoryEntry;
 import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
@@ -117,6 +119,56 @@ public class TeamEventDao extends BaseDao<TeamEventDO>
   {
     super(TeamEventDO.class);
     userRightId = UserRightId.PLUGIN_CALENDAR_EVENT;
+  }
+
+  @Override
+  public ModificationStatus internalUpdate(final TeamEventDO obj, final boolean checkAccess)
+  {
+    logReminderChange(obj);
+    return super.internalUpdate(obj, checkAccess);
+  }
+
+  private void logReminderChange(final TeamEventDO newObj)
+  {
+    boolean reminderHasChanged = false;
+    StringBuilder message = new StringBuilder();
+    final TeamEventDO dbObj = emgrFac.runRoTrans(emgr -> emgr.selectByPk(TeamEventDO.class, newObj.getId()));
+    if ((dbObj.getReminderActionType() == null && newObj.getReminderActionType() != null)
+        || (dbObj.getReminderDuration() == null && newObj.getReminderDuration() != null)
+        || (dbObj.getReminderDurationUnit() == null && newObj.getReminderDurationUnit() != null)) {
+      reminderHasChanged = true;
+      message.append("DBObj was null -> new values were set; ");
+    }
+    if (dbObj.getReminderActionType() != null) {
+      if (dbObj.getReminderActionType().equals(newObj.getReminderActionType()) == false) {
+        reminderHasChanged = true;
+        message.append(
+            "DBObj.getReminderActionType() was " + dbObj.getReminderActionType() + " NewObj.getReminderActionType() is " + newObj.getReminderActionType()
+                + "; ");
+      }
+    }
+    if (dbObj.getReminderDuration() != null) {
+      if (dbObj.getReminderDuration().equals(newObj.getReminderDuration()) == false) {
+        reminderHasChanged = true;
+        message.append(
+            "DBObj.getReminderDuration() was " + dbObj.getReminderActionType() + " NewObj.getReminderDuration() is " + newObj.getReminderActionType() + "; ");
+      }
+    }
+    if (dbObj.getReminderDurationUnit() != null) {
+      if (dbObj.getReminderDurationUnit().equals(newObj.getReminderDurationUnit()) == false) {
+        reminderHasChanged = true;
+        message.append(
+            "DBObj.getReminderDurationUnit() was " + dbObj.getReminderActionType() + " NewObj.getReminderDurationUnit() is " + newObj.getReminderActionType()
+                + "; ");
+      }
+    }
+    if (reminderHasChanged) {
+      StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
+      boolean changedByWebView =
+          Arrays.stream(stackTrace).filter(ste -> ste.getClassName().contains("org.projectforge.web.wicket.EditPageSupport")).count() > 0;
+      log.info("TeamEventDao.internalUpdate -> Changed reminder of team event. Changed by: " + (changedByWebView ? "WebView" : "REST") + " Message: " + message
+          .toString());
+    }
   }
 
   public List<Integer> getCalIdList(final Collection<TeamCalDO> teamCals)
