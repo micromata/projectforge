@@ -155,7 +155,7 @@ public class RechnungEditForm extends AbstractRechnungEditForm<RechnungDO, Rechn
         @Override
         protected void onUpdate(final AjaxRequestTarget target)
         {
-          if (getData().getKundeId() == null && StringUtils.isBlank(getData().getKundeText()) == true) {
+          if (getData().getKundeId() == null && StringUtils.isBlank(getData().getKundeText()) == true && projektSelectPanel.getModelObject() != null) {
             getData().setKunde(projektSelectPanel.getModelObject().getKunde());
           }
           target.add(customerSelectPanel.getTextField());

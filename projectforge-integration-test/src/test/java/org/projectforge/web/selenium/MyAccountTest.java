@@ -21,7 +21,6 @@ public class MyAccountTest extends SeleniumSuiteTestBase
     System.out.println("  - new SeleniumEmployeeListPage");
     SeleniumEmployeeListPage seleniumEmployeeListPage = new SeleniumEmployeeListPage();
 
-
     try {
       System.out.println("  - try seleniumEmployeeListPage");
       seleniumEmployeeListPage
@@ -38,7 +37,7 @@ public class MyAccountTest extends SeleniumSuiteTestBase
           .addEntry()
           .callPage()
           .setKost1("3.000.00.00")
-          .setStatus(SeleniumEmployeeEditPage.status_FEST_ANGESTELLTER)
+          .setStatus("10.12.1999", SeleniumEmployeeEditPage.status_FEST_ANGESTELLTER)
           .setAssociatedUsername(Const.ADMIN_USERNAME)
           .setGender(SeleniumEmployeeEditPage.gender_MALE)
           .setStaffNumber("1234")
@@ -181,7 +180,7 @@ public class MyAccountTest extends SeleniumSuiteTestBase
     String state = "state";
     String zipcode = "123";
     String street = "street";
-    String birthday = "01/02/1980";
+    String birthday = "01.02.1980";
     seleniumMyAccountPage
         .callPage()
         .setFirstName(firstName)

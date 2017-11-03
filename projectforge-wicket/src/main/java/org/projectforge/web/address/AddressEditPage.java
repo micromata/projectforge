@@ -186,6 +186,7 @@ public class AddressEditPage extends AbstractEditPage<AddressDO, AddressEditForm
       personalAddress.setAddress(clonedAddress);
 
       clonedAddress.setId(null);
+      clonedAddress.setUid(null);
       addressDao.save(clonedAddress);
       for (Map.Entry<String, JpaTabAttrBaseDO<AddressDO, Integer>> entry : getData().getAttrs().entrySet()) {
         clonedAddress.putAttribute(entry.getKey(), entry.getValue().getStringData());

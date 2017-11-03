@@ -31,6 +31,8 @@ import java.util.List;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.apache.wicket.markup.html.form.SubmitLink;
+import org.apache.wicket.protocol.http.WebSession;
+import org.apache.wicket.protocol.http.request.WebClientInfo;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.fibu.InvoiceService;
@@ -42,6 +44,7 @@ import org.projectforge.business.fibu.RechnungStatus;
 import org.projectforge.business.fibu.RechnungTyp;
 import org.projectforge.business.fibu.RechnungsPositionDO;
 import org.projectforge.framework.time.DayHolder;
+import org.projectforge.web.session.UserAgentBrowser;
 import org.projectforge.web.wicket.AbstractEditPage;
 import org.projectforge.web.wicket.AbstractSecuredBasePage;
 import org.projectforge.web.wicket.DownloadUtils;
@@ -83,7 +86,15 @@ public class RechnungEditPage extends AbstractEditPage<RechnungDO, RechnungEditF
           log.debug("Export invoice.");
           ByteArrayOutputStream baos = invoiceService.getInvoiceWordDocument(getData());
           if (baos != null) {
-            String filename = invoiceService.getInvoiceFilename(getData());
+            UserAgentBrowser browser = UserAgentBrowser.UNKNOWN;
+            WebClientInfo clientInfo = WebSession.get().getClientInfo();
+            if (clientInfo != null) {
+              String userAgent = clientInfo.getUserAgent();
+              if (StringUtils.isNotEmpty(userAgent)) {
+                browser = UserAgentBrowser.getBrowserFromUserAgentString(userAgent);
+              }
+            }
+            String filename = invoiceService.getInvoiceFilename(getData(), browser);
             DownloadUtils.setDownloadTarget(baos.toByteArray(), filename);
           }
         }

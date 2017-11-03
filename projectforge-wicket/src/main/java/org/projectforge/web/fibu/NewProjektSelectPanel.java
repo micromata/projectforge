@@ -57,8 +57,9 @@ import org.projectforge.web.wicket.flowlayout.ComponentWrapperPanel;
  */
 public class NewProjektSelectPanel extends AbstractSelectPanel<ProjektDO> implements ComponentWrapperPanel
 {
-
   private static final long serialVersionUID = -7461448790487855518L;
+
+  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(NewProjektSelectPanel.class);
 
   private static final String USER_PREF_KEY_RECENT_PROJECTS = "ProjectSelectPanel:recentProjects";
 
@@ -112,7 +113,7 @@ public class NewProjektSelectPanel extends AbstractSelectPanel<ProjektDO> implem
         final BaseSearchFilter filter = new BaseSearchFilter();
         filter.setSearchFields("id", "name", "identifier", "nummer");
         filter.setSearchString(input);
-        final List<ProjektDO> list = projektDao.getList(filter);
+        final List<ProjektDO> list = projektDao.getListForDropdown(filter);
         return list;
       }
 
@@ -353,38 +354,42 @@ public class NewProjektSelectPanel extends AbstractSelectPanel<ProjektDO> implem
 
   private ProjektDO getProjekt(final String input)
   {
-    int kundeId, kost2;
-    String nummernkreis, kId, nummer;
-    kundeId = kost2 = -1;
-    nummernkreis = kId = nummer = "";
-    final int ind1 = input.indexOf(".");
-    if (ind1 < 0) {
-      return null;
-    }
-    nummernkreis = input.substring(0, ind1);
-    final int ind2 = input.indexOf(".", ind1 + 1);
-    if (ind2 < 0) {
-      return null;
-    }
-    kId = input.substring(ind1 + 1, ind2);
-    final int ind3 = input.indexOf(" -", ind2 + 1);
-    if (ind3 < 0) {
-      return null;
-    }
-    nummer = input.substring(ind2 + 1, ind3);
-    kundeId = Integer.parseInt(kId);
-    kost2 = Integer.parseInt(nummer);
-    if (kundeId < 0 || kost2 < 0) {
-      return null;
-    }
-    if (nummernkreis.equals("4") == true) {
-      return projektDao.getProjekt(kundeId, kost2);
-    } else if (nummernkreis.equals("5") == true) {
-      final KundeDO kunde = kundeDao.getById(kundeId);
-      if (kunde == null) {
+    try {
+      int kundeId, kost2;
+      String nummernkreis, kId, nummer;
+      kundeId = kost2 = -1;
+      nummernkreis = kId = nummer = "";
+      final int ind1 = input.indexOf(".");
+      if (ind1 < 0) {
         return null;
       }
-      return projektDao.getProjekt(kunde, kost2);
+      nummernkreis = input.substring(0, ind1);
+      final int ind2 = input.indexOf(".", ind1 + 1);
+      if (ind2 < 0) {
+        return null;
+      }
+      kId = input.substring(ind1 + 1, ind2);
+      final int ind3 = input.indexOf(" -", ind2 + 1);
+      if (ind3 < 0) {
+        return null;
+      }
+      nummer = input.substring(ind2 + 1, ind3);
+      kundeId = Integer.parseInt(kId);
+      kost2 = Integer.parseInt(nummer);
+      if (kundeId < 0 || kost2 < 0) {
+        return null;
+      }
+      if (nummernkreis.equals("4") == true) {
+        return projektDao.getProjekt(kundeId, kost2);
+      } else if (nummernkreis.equals("5") == true) {
+        final KundeDO kunde = kundeDao.getById(kundeId);
+        if (kunde == null) {
+          return null;
+        }
+        return projektDao.getProjekt(kunde, kost2);
+      }
+    } catch (Exception e) {
+      log.error("An exception accured while parsing customer id and kost2.", e);
     }
     return null;
   }

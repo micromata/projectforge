@@ -30,6 +30,8 @@ public class LiquidityForecastSettings implements Serializable
 {
   private static final long serialVersionUID = -6429410479048275707L;
 
+  static final int MAX_FORECAST_DAYS = 600;
+
   private BigDecimal startAmount = BigDecimal.ZERO;
 
   private int nextDays = 30;
@@ -58,11 +60,11 @@ public class LiquidityForecastSettings implements Serializable
   }
 
   /**
-   * @return the nextDays (1-365)
+   * @return the nextDays (1-MAX_FORECAST_DAYS)
    */
   public int getNextDays()
   {
-    if (nextDays < 1 || nextDays > 365) {
+    if (nextDays < 1 || nextDays > MAX_FORECAST_DAYS) {
       return 30;
     }
     return nextDays;
@@ -80,6 +82,7 @@ public class LiquidityForecastSettings implements Serializable
 
   /**
    * For calculating the expected date of payment all paid invoices of an debitor of the last n month are analyzed.
+   *
    * @return the expectencyForRecentMonths
    */
   public int getExpectencyForRecentMonths()

@@ -115,7 +115,9 @@ import net.fortuna.ical4j.model.property.RRule;
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @deprecated Since version 6.18.0 please use flyway db migration.
  */
+@Deprecated
 public class DatabaseCoreUpdates
 {
   private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(DatabaseCoreUpdates.class);
@@ -177,8 +179,15 @@ public class DatabaseCoreUpdates
 
       private boolean addressHasUid()
       {
-        return databaseUpdateService.doesTableAttributeExist("t_address", "uid") == true
-            && databaseUpdateService.query("select * from t_address where uid is not null LIMIT 1").size() > 0;
+        if (databaseUpdateService.doesTableAttributeExist("t_address", "uid") == false) {
+          return false;
+        }
+
+        if (databaseUpdateService.query("select * from t_address LIMIT 1").size() == 0) {
+          return true;
+        }
+
+        return databaseUpdateService.query("select * from t_address where uid is not null LIMIT 1").size() > 0;
       }
     });
 
@@ -379,12 +388,24 @@ public class DatabaseCoreUpdates
 
       private boolean noOwnership()
       {
+        List<DatabaseResultRow> resultAll = databaseUpdateService.query("select pk from t_plugin_calendar_event LIMIT 1");
+
+        if (resultAll.size() == 0) {
+          return false;
+        }
+
         List<DatabaseResultRow> result = databaseUpdateService.query("select pk from t_plugin_calendar_event where ownership is not null LIMIT 1");
         return result.size() == 0;
       }
 
       private boolean dtStampMissing()
       {
+        List<DatabaseResultRow> resultAll = databaseUpdateService.query("select pk from t_plugin_calendar_event LIMIT 1");
+
+        if (resultAll.size() == 0) {
+          return false;
+        }
+
         List<DatabaseResultRow> result = databaseUpdateService.query("select pk from t_plugin_calendar_event where dt_stamp is not null LIMIT 1");
         return result.size() == 0;
       }

@@ -24,6 +24,7 @@ import org.projectforge.business.configuration.ConfigurationService;
 import org.projectforge.framework.i18n.I18nHelper;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.time.DateTimeFormatter;
+import org.projectforge.web.session.UserAgentBrowser;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
@@ -40,11 +41,20 @@ public class InvoiceService
 {
   private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(InvoiceService.class);
 
+  private static final int CONTEXTPATH_LENGTH = 50;
+
+  private static final int DOWNLOAD_MAXLENGTH_SAFARI = 170;
+
+  private static final int DOWNLOAD_MAXLENGTH_OTHER = 255;
+
   @Autowired
   private ConfigurationService configurationService;
 
   @Autowired
   private ApplicationContext applicationContext;
+
+  @Value("${projectforge.domain}")
+  private String domain;
 
   @Value("${projectforge.invoiceTemplate}")
   private String customInvoiceTemplateName;
@@ -335,28 +345,37 @@ public class InvoiceService
     return null;
   }
 
-  public String getInvoiceFilename(RechnungDO invoice)
+  public String getInvoiceFilename(RechnungDO invoice, final UserAgentBrowser browser)
   {
-    final String suffix = "invoice.docx";
-
+    int DOWNLOAD_MAX_LENGTH = DOWNLOAD_MAXLENGTH_OTHER;
+    if (UserAgentBrowser.SAFARI.equals(browser)) {
+      DOWNLOAD_MAX_LENGTH = DOWNLOAD_MAXLENGTH_SAFARI;
+    }
+    final String suffix = ".docx";
     if (invoice == null) {
       return suffix;
     }
     //Rechnungsnummer_Kunde_Projekt_Betreff(mit Unterstrichen statt Leerzeichen)_Datum(2017-07-04)
     final String number = invoice.getNummer() != null ? invoice.getNummer().toString() + "_" : "";
-    final String sanitizedCustomer = invoice.getKunde() != null ? invoice.getKunde().getName().replaceAll("\\W+", "_") + "_" : "";
+    String sanitizedCustomer = invoice.getKunde() != null ? invoice.getKunde().getName().replaceAll("\\W+", "_") + "_" : "";
+    if (StringUtils.isEmpty(sanitizedCustomer)) {
+      sanitizedCustomer = invoice.getKundeText() != null ? invoice.getKundeText().replaceAll("\\W+", "_") + "_" : "";
+    }
     final String sanitizedProject = invoice.getProjekt() != null ? invoice.getProjekt().getName().replaceAll("\\W+", "_") + "_" : "";
     final String sanitizedBetreff = invoice.getBetreff() != null ? invoice.getBetreff().replaceAll("\\W+", "_") + "_" : "";
     final String invoiceDate = DateTimeFormatter.instance().getFormattedDate(invoice.getDatum()).replaceAll("\\W+", "_");
     String filename =
         number + sanitizedCustomer + sanitizedProject + sanitizedBetreff + invoiceDate;
-    if (filename.length() > (255 - suffix.length())) {
-      filename = filename.substring(0, (245 - suffix.length()));
-      filename = filename + "[more]" + "_" + suffix;
+    final int downloadCompleteLength = domain.length() + CONTEXTPATH_LENGTH + filename.length() + suffix.length();
+    if (downloadCompleteLength > DOWNLOAD_MAX_LENGTH) {
+      int diff = downloadCompleteLength - DOWNLOAD_MAX_LENGTH;
+      String more = "[more]";
+      filename = filename.substring(0, filename.length() - diff - more.length());
+      filename = filename + more + suffix;
     } else if (StringUtils.isEmpty(filename)) {
       filename = suffix;
     } else {
-      filename = filename + "_" + suffix;
+      filename = filename + suffix;
     }
     return filename;
   }

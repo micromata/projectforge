@@ -79,7 +79,7 @@ public class LiquidityForecastForm extends AbstractStandardForm<Object, Liquidit
       final FieldsetPanel fs = gridBuilder.newFieldset(getString("plugins.liquidityplanning.forecast"))
           .setUnit(getString("days"));
       final RequiredMinMaxNumberField<Integer> nextDays = new RequiredMinMaxNumberField<Integer>(fs.getTextFieldId(),
-          new PropertyModel<Integer>(getSettings(), "nextDays"), 3, 365);
+          new PropertyModel<Integer>(getSettings(), "nextDays"), 3, LiquidityForecastSettings.MAX_FORECAST_DAYS);
       WicketUtils.setSize(nextDays, 4);
       fs.add(nextDays);
     }

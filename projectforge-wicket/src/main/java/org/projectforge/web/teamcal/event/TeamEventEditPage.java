@@ -323,6 +323,7 @@ public class TeamEventEditPage extends AbstractEditPage<TeamEventDO, TeamEventEd
     if (getData().getCreator() == null) {
       getData().setCreator(ThreadLocalUserContext.getUser());
     }
+
     if (getData() != null && getData().getId() != null) {
       this.teamEventBeforeSaveOrUpdate = teamEventService.getById(getData().getPk());
       this.isNew = false;

@@ -38,7 +38,9 @@ import org.projectforge.framework.persistence.user.api.UserContext;
  * Checks whether the database is up-to-date or not.
  *
  * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @deprecated Since version 6.18.0 please use flyway db migration.
  */
+@Deprecated
 public class SystemUpdater
 {
   private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(SystemUpdater.class);
