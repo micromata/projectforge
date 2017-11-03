@@ -350,7 +350,6 @@ public abstract class AbstractListPage<F extends AbstractListForm<?, ?>, D exten
           redirectToEditPage(null);
         }
 
-        ;
       }, IconType.PLUS);
       newItemMenuEntry.setAccessKey(WebConstants.ACCESS_KEY_ADD).setTooltip(
           getString(WebConstants.ACCESS_KEY_ADD_TOOLTIP_TITLE),
@@ -375,7 +374,6 @@ public abstract class AbstractListPage<F extends AbstractListForm<?, ?>, D exten
           setMassUpdateMode(true);
         }
 
-        ;
       }, getString("massUpdate"));
       contentMenuBarPanel.addMenuEntry(massUpdateMenuEntry);
 
@@ -485,6 +483,7 @@ public abstract class AbstractListPage<F extends AbstractListForm<?, ?>, D exten
       WicketUtils.setResponsePage(this, caller);
       caller.cancelSelection(selectProperty);
     } else if (isMassUpdateMode() == true) {
+      selectedItems = new HashSet<Integer>();
       setMassUpdateMode(false);
     }
   }
@@ -767,7 +766,6 @@ public abstract class AbstractListPage<F extends AbstractListForm<?, ?>, D exten
             exportExcel(filenameIdentifier, sheetTitle);
           }
 
-          ;
         }, getString("exportAsXls")).setTooltip(getString("tooltip.export.excel"));
     addContentMenuEntry(exportExcelButton);
   }
