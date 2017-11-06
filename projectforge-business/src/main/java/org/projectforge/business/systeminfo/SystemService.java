@@ -25,50 +25,143 @@ package org.projectforge.business.systeminfo;
 
 import java.io.File;
 import java.io.IOException;
+import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.projectforge.AppVersion;
 import org.projectforge.business.fibu.KontoCache;
 import org.projectforge.business.fibu.RechnungCache;
 import org.projectforge.business.fibu.kost.KostCache;
+import org.projectforge.business.jsonRest.RestCallService;
 import org.projectforge.business.multitenancy.TenantRegistry;
 import org.projectforge.business.multitenancy.TenantRegistryMap;
 import org.projectforge.business.task.TaskDO;
 import org.projectforge.business.task.TaskDao;
 import org.projectforge.framework.persistence.database.SchemaExport;
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
+import org.projectforge.model.rest.VersionCheck;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Repository;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpMethod;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Provides some system routines.
- * 
- * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
+ *
+ * @author Kai Reinhard (k.reinhard@micromata.de), Florian Blumenstein
  */
-@Repository
+@Service
 @Transactional(readOnly = false, propagation = Propagation.REQUIRED)
-public class SystemDao
+public class SystemService
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(SystemDao.class);
+  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(SystemService.class);
 
-  @Autowired
   private TaskDao taskDao;
 
-  @Autowired
   private SystemInfoCache systemInfoCache;
 
-  @Autowired
-  RechnungCache rechnungCache;
+  private RechnungCache rechnungCache;
+
+  private KontoCache kontoCache;
+
+  private KostCache kostCache;
+
+  private boolean enableVersionCheck;
+
+  private LocalDate lastVersionCheckDate;
+
+  private String versionCheckUrl;
+
+  private Boolean newPFVersionAvailable;
+
+  private RestCallService restCallService;
 
   @Autowired
-  KontoCache kontoCache;
+  public SystemService(final TaskDao taskDao, final SystemInfoCache systemInfoCache, final RechnungCache rechnungCache, final KontoCache kontoCache,
+      final KostCache kostCache, final RestCallService restCallService, @Value("${projectforge.versioncheck.enable:true}") final boolean enableVersionCheck,
+      @Value("${projectforge.versioncheck.url:https://projectforge.micromata.de/publicRest/versionCheck}") final String versionCheckUrl)
+  {
+    this.taskDao = taskDao;
+    this.systemInfoCache = systemInfoCache;
+    this.rechnungCache = rechnungCache;
+    this.kontoCache = kontoCache;
+    this.kostCache = kostCache;
+    this.restCallService = restCallService;
+    this.enableVersionCheck = enableVersionCheck;
+    this.versionCheckUrl = versionCheckUrl;
+  }
 
-  @Autowired
-  KostCache kostCache;
+  public VersionCheck getVersionCheckInformations()
+  {
+    VersionCheck versionCheck = new VersionCheck(AppVersion.VERSION.toString(), ThreadLocalUserContext.getLocale(), ThreadLocalUserContext.getTimeZone());
+    versionCheck = restCallService.callRestInterfaceForUrl(versionCheckUrl, HttpMethod.POST, VersionCheck.class, versionCheck);
+    return versionCheck;
+  }
+
+  public boolean isNewPFVersionAvailable()
+  {
+    LocalDate now = LocalDate.now();
+    if (lastVersionCheckDate == null) {
+      lastVersionCheckDate = LocalDate.now().minusDays(1);
+    }
+    if (enableVersionCheck && (now.isAfter(lastVersionCheckDate) || newPFVersionAvailable == null)) {
+      lastVersionCheckDate = LocalDate.now();
+      newPFVersionAvailable = Boolean.FALSE;
+      try {
+        VersionCheck versionCheckInformations = getVersionCheckInformations();
+        if (versionCheckInformations != null && StringUtils.isNotEmpty(versionCheckInformations.getSourceVersion()) && StringUtils
+            .isNotEmpty(versionCheckInformations.getTargetVersion())) {
+          String[] sourceVersionPartsWithoutMinus = versionCheckInformations.getSourceVersion().split("-");
+          String[] targetVersionPartsWithoutMinus = versionCheckInformations.getTargetVersion().split("-");
+          if (sourceVersionPartsWithoutMinus.length > 0 && targetVersionPartsWithoutMinus.length > 0) {
+            int[] sourceVersionPartsInteger = getIntegerVersionArray(sourceVersionPartsWithoutMinus[0].split("\\."));
+            int[] targetVersionPartsInteger = getIntegerVersionArray(targetVersionPartsWithoutMinus[0].split("\\."));
+            for (int i = 0; i < 4; i++) {
+              if (sourceVersionPartsInteger[i] < targetVersionPartsInteger[i]) {
+                newPFVersionAvailable = Boolean.TRUE;
+                return newPFVersionAvailable;
+              }
+              if (sourceVersionPartsInteger[i] > targetVersionPartsInteger[i]) {
+                newPFVersionAvailable = Boolean.FALSE;
+                return newPFVersionAvailable;
+              }
+            }
+          }
+        }
+      } catch (Exception e) {
+        log.error("An exception occured while checkin PF version: " + e.getMessage(), e);
+        return Boolean.FALSE;
+      }
+    }
+    if (newPFVersionAvailable == null) {
+      newPFVersionAvailable = Boolean.FALSE;
+    }
+    return newPFVersionAvailable;
+  }
+
+  private int[] getIntegerVersionArray(final String[] sourceVersionParts)
+  {
+    int[] result = new int[4];
+    for (int i = 0; i < 4; i++) {
+      try {
+        result[i] = Integer.parseInt(sourceVersionParts[i]);
+      } catch (Exception e) {
+        result[i] = 0;
+      }
+    }
+    return result;
+  }
+
+  public void setLastVersionCheckDate(LocalDate newDateValue)
+  {
+    lastVersionCheckDate = newDateValue;
+  }
 
   public String exportSchema()
   {
@@ -94,7 +187,7 @@ public class SystemDao
 
   /**
    * Search for abandoned tasks (task outside the task hierarchy, unaccessible and unavailable for the users).
-   * 
+   *
    * @return
    */
   public String checkSystemIntegrity()
@@ -155,7 +248,7 @@ public class SystemDao
 
   /**
    * Refreshes the caches: TaskTree, userGroupCache and kost2.
-   * 
+   *
    * @return the name of the refreshed caches.
    */
   public String refreshCaches()
@@ -169,5 +262,4 @@ public class SystemDao
     systemInfoCache.forceReload();
     return "UserGroupCache, TaskTree, KontoCache, KostCache, RechnungCache, SystemInfoCache";
   }
-
 }

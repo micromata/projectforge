@@ -8,16 +8,17 @@ import org.testng.annotations.Test;
 public class AddressPagesTest extends SeleniumSuiteTestBase
 {
   @Test
-  public void test() {
+  public void test()
+  {
     SeleniumLoginPage seleniumLoginPage = new SeleniumLoginPage();
     seleniumLoginPage
         .callPage()
         .loginAsAdmin();
-
     SeleniumAddressListPage seleniumAddressListPage = new SeleniumAddressListPage();
     seleniumAddressListPage
         .callPage()
         .addEntry()
+        .setOderbook("Global")
         .setFirstName("First")
         .setName("Second")
         .setEmail("Third")
@@ -26,7 +27,7 @@ public class AddressPagesTest extends SeleniumSuiteTestBase
         .setPosition("Sixth")
         .setPrivateEmail("Seventh")
         .setWebsite("Eighth")
-        .setBirthday("01/02/2003")
+        .setBirthday("01.02.2003")
         .setFingerprint("tenth")
         .setPublicKey("eleventh")
         .setAddressStatus(SeleniumAddressEditPage.STATE_UPTODATE)
@@ -48,6 +49,5 @@ public class AddressPagesTest extends SeleniumSuiteTestBase
     }
 
     Assert.assertTrue(failed);
-
   }
 }

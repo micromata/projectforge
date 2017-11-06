@@ -50,6 +50,7 @@ import org.projectforge.AppVersion;
 import org.projectforge.business.configuration.ConfigurationService;
 import org.projectforge.business.multitenancy.TenantRegistry;
 import org.projectforge.business.multitenancy.TenantRegistryMap;
+import org.projectforge.business.systeminfo.SystemService;
 import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
@@ -74,6 +75,9 @@ public abstract class AbstractUnsecureBasePage extends WebPage
 
   @SpringBean
   private ConfigurationService configService;
+
+  @SpringBean
+  private SystemService systemService;
 
   /**
    * Convenience method for creating a component which is in the mark-up file but should not be visible.
@@ -146,6 +150,17 @@ public abstract class AbstractUnsecureBasePage extends WebPage
         .setRenderBodyOnly(true));
     link.setOutputMarkupId(true);
     link.setMarkupId("pf_footerNewsLink");
+
+    AbstractLink newVersionlink;
+    newVersionlink = new ExternalLink("footerNewVersionLink", "https://sourceforge.net/projects/pforge/files/ProjectForge/");
+    body.add(newVersionlink);
+    String label = "";
+    if(systemService.isNewPFVersionAvailable()) {
+      label = "New version available  | ";
+    }
+    newVersionlink.add(new Label("newVersion", label).setRenderBodyOnly(true));
+    newVersionlink.setOutputMarkupId(true);
+    newVersionlink.setMarkupId("pf_footerNewVersionLink");
   }
 
   @Override

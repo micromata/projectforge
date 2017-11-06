@@ -309,7 +309,9 @@ public class EmployeeEditForm extends AbstractEditForm<EmployeeDO, EmployeeEditP
     {
       // End date
       final FieldsetPanel fs = gridBuilder.newFieldset(EmployeeDO.class, "austrittsDatum");
-      fs.add(new DatePanel(fs.newChildId(), new PropertyModel<>(data, "austrittsDatum"), new DatePanelSettings()));
+      DatePanel austrittsDatum = new DatePanel(fs.newChildId(), new PropertyModel<>(data, "austrittsDatum"), new DatePanelSettings());
+      austrittsDatum.getDateField().setMarkupId("endDate").setOutputMarkupId(true);
+      fs.add(austrittsDatum);
     }
 
     gridBuilder.newSplitPanel(GridSize.COL50, true);

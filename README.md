@@ -35,7 +35,7 @@ Please visit: https://www.projectforge.org/pf-en/New_Developer_Guide
    https://github.com/micromata/projectforge.git
 
 2. Build ProjectForge:  
-   ```mvn clean install -DskipTests=true```
+   ```mvn clean install -DskipTests```
 
 3. Open the directory of the compiled jar file: ```projectforge-launcher/target```
 
@@ -66,7 +66,7 @@ Please note, that Java version 8 is needed for developing and running ProjectFor
 ProjectForge support plugins. The existing menu can be modified and own entities and functionalities can be added.
 
 The menu is customizable (you can add or remove menu entries in the config.xml file).
-Deploy your plugins by adding your(r) jar(s) to the plugin directory next to the jar file. In eclipse you have to add the plugin project to the run configuration classpath. The jars contains both, the Java classes and the web pages (Wicket-pages). Nothing more is needed.
+Deploy your plugins by adding your jar(s) to the plugin directory next to the jar file. In eclipse you have to add the plugin project to the run configuration classpath. The jars contains both, the Java classes and the web pages (Wicket-pages). Nothing more is needed.
 Register your plugins in the administration menu at the web gui. You need to restart the server.
 One advantage is that your own plugins are independent from new releases of the ProjectForge core system. In one of the next releases an example plugin will show you how easy it is to extend ProjectForge!
 

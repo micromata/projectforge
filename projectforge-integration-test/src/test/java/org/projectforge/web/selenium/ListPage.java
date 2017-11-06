@@ -9,9 +9,11 @@ public abstract class ListPage<O extends TestPageBase, EditPage extends TestPage
 
   /**
    * clicks the "+" symbol at the top of the site
+   *
    * @return
    */
-  public EditPage addEntry() {
+  public EditPage addEntry()
+  {
     WebElement element = driver.findElement(By.xpath("//li[@id='addEntry']/a/i[contains(@data-original-title,'N')]"));
     clickAndWaitForFullPageReload(element);
 
@@ -19,7 +21,6 @@ public abstract class ListPage<O extends TestPageBase, EditPage extends TestPage
   }
 
   /**
-   *
    * @return a new instance of the used EditPage for this ListPage
    */
   public abstract EditPage getEditPage();

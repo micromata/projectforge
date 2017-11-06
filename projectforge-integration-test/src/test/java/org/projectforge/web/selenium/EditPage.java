@@ -8,11 +8,20 @@ public abstract class EditPage<O extends TestPageBase> extends TestPageBase<O>
 {
   private int id;
 
-  public O clickmarkAsDeleted() {
+  public O clickmarkAsDeleted()
+  {
     WebElement markAsDeleted = driver.findElement(By.id("markAsDeleted"));
-    ((JavascriptExecutor)driver).executeScript("showDeleteQuestionDialog = function(){return true;}");
+    ((JavascriptExecutor) driver).executeScript("showDeleteQuestionDialog = function(){return true;}");
     markAsDeleted.click();
     waitForPageReload(markAsDeleted);
+    return (O) this;
+  }
+
+  public O clickmarkAsUnDeleted()
+  {
+    WebElement markAsUnDeleted = driver.findElement(By.id("undelete"));
+    markAsUnDeleted.click();
+    waitForPageReload(markAsUnDeleted);
     return (O) this;
   }
 
@@ -26,11 +35,13 @@ public abstract class EditPage<O extends TestPageBase> extends TestPageBase<O>
     return (O) this;
   }
 
-  public EditPage() {
+  public EditPage()
+  {
     id = -666;
   }
 
-  public EditPage(int id) {
+  public EditPage(int id)
+  {
     this.id = id;
   }
 

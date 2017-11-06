@@ -23,6 +23,8 @@
 
 package org.projectforge.web.admin;
 
+import de.micromata.genome.db.jpa.xmldump.api.JpaXmlDumpService;
+import de.micromata.genome.util.runtime.RuntimeIOException;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -35,7 +37,6 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.zip.GZIPOutputStream;
-
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.wicket.markup.html.link.Link;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
@@ -44,7 +45,7 @@ import org.projectforge.business.book.BookDO;
 import org.projectforge.business.book.BookDao;
 import org.projectforge.business.book.BookStatus;
 import org.projectforge.business.meb.MebMailClient;
-import org.projectforge.business.systeminfo.SystemDao;
+import org.projectforge.business.systeminfo.SystemService;
 import org.projectforge.business.task.TaskDO;
 import org.projectforge.business.task.TaskTree;
 import org.projectforge.business.tasktree.TaskTreeHelper;
@@ -72,9 +73,6 @@ import org.projectforge.web.wicket.WicketApplication;
 import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.web.wicket.components.ContentMenuEntryPanel;
 
-import de.micromata.genome.db.jpa.xmldump.api.JpaXmlDumpService;
-import de.micromata.genome.util.runtime.RuntimeIOException;
-
 public class AdminPage extends AbstractStandardFormPage implements ISelectCallerPage
 {
   private static final long serialVersionUID = 8345068133036236305L;
@@ -90,7 +88,7 @@ public class AdminPage extends AbstractStandardFormPage implements ISelectCaller
   private JpaXmlDumpService jpaXmlDumpService;
 
   @SpringBean
-  private SystemDao systemDao;
+  private SystemService systemService;
 
   @SpringBean
   private DatabaseUpdateService myDatabaseUpdater;
@@ -407,7 +405,7 @@ public class AdminPage extends AbstractStandardFormPage implements ISelectCaller
   {
     log.info("Administration: check integrity of tasks.");
     checkAccess();
-    final String result = systemDao.checkSystemIntegrity();
+    final String result = systemService.checkSystemIntegrity();
     final String filename = "projectforge_check_report" + DateHelper.getDateAsFilenameSuffix(new Date()) + ".txt";
     DownloadUtils.setDownloadTarget(result.getBytes(), filename);
   }
@@ -416,7 +414,7 @@ public class AdminPage extends AbstractStandardFormPage implements ISelectCaller
   {
     log.info("Administration: refresh of caches.");
     checkAccess();
-    String refreshedCaches = systemDao.refreshCaches();
+    String refreshedCaches = systemService.refreshCaches();
     userXmlPreferencesCache.forceReload();
     refreshedCaches += ", UserXmlPreferencesCache";
     menuBuilder.refreshAllMenus();
@@ -538,7 +536,7 @@ public class AdminPage extends AbstractStandardFormPage implements ISelectCaller
   {
     log.info("Administration: schema export.");
     checkAccess();
-    final String result = systemDao.exportSchema();
+    final String result = systemService.exportSchema();
     final String filename = "projectforge_schema" + DateHelper.getDateAsFilenameSuffix(new Date()) + ".sql";
     DownloadUtils.setDownloadTarget(result.getBytes(), filename);
   }

@@ -78,13 +78,14 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import de.micromata.genome.db.jpa.tabattr.api.TimeableAttrRow;
-import javafx.util.Pair;
 
 /**
  * For manipulating the database (patching data etc.)
  *
  * @author Kai Reinhard (k.reinhard@micromata.de)
+ * @deprecated Since version 6.18.0 please use flyway db migration.
  */
+@Deprecated
 @Service
 public class DatabaseUpdateService
 {
