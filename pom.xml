@@ -4,12 +4,12 @@
   <groupId>org.projectforge</groupId>
   <artifactId>projectforge-parent</artifactId>
   <packaging>pom</packaging>
-  <version>6.17.3</version>
+  <version>6.18.0</version>
 
   <parent>
     <groupId>org.springframework.boot</groupId>
     <artifactId>spring-boot-starter-parent</artifactId>
-    <version>1.5.4.RELEASE</version>
+    <version>1.5.8.RELEASE</version>
   </parent>
 
   <name>ProjectForge</name>
@@ -261,6 +261,7 @@
     <xmlgraphics-batik-codec.version>1.9</xmlgraphics-batik-codec.version>
     <!-- HIBERNATE5 -->
     <ehcache-core.version>2.6.11</ehcache-core.version>
+    <flyway-core.version>4.2.0</flyway-core.version>
     <postgresql.version>9.4.1211</postgresql.version>
     <hsqldb.version>2.4.0</hsqldb.version>
     <codehaus-jackson.version>1.9.13</codehaus-jackson.version>
@@ -307,6 +308,11 @@
     </dependency>
 
     <!-- DB -->
+    <dependency>
+      <groupId>org.flywaydb</groupId>
+      <artifactId>flyway-core</artifactId>
+      <version>${flyway-core.version}</version>
+    </dependency>
     <dependency>
       <groupId>org.postgresql</groupId>
       <artifactId>postgresql</artifactId>
