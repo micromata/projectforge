@@ -3409,7 +3409,6 @@
     <uid>38ff8f7b-beb6-42ef-bec0-31b920ec5afa</uid>
     <stringConverter class="de.micromata.genome.util.strings.converter.StandardStringConverter" id="708"/>
     <attributes class="java.util.HashMap" id="709"/>
-    <task reference="671"/>
     <contactStatus>ACTIVE</contactStatus>
     <addressStatus>UPTODATE</addressStatus>
     <name>Reinhard</name>
@@ -3460,7 +3459,6 @@
     <uid>1ba2b809-fe72-4aaf-b8b5-130c5d5e172d</uid>
     <stringConverter class="de.micromata.genome.util.strings.converter.StandardStringConverter" reference="708"/>
     <attributes class="java.util.HashMap" id="713"/>
-    <task reference="671"/>
     <contactStatus>ACTIVE</contactStatus>
     <addressStatus>UPTODATE</addressStatus>
     <name>Martens</name>
