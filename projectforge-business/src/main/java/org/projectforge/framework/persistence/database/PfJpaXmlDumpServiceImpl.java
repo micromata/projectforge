@@ -222,7 +222,7 @@ public class PfJpaXmlDumpServiceImpl extends JpaXmlDumpServiceImpl implements In
       Set<AddressbookDO> globalSet = new HashSet<>();
       globalSet.add(addressbookDao.getGlobalAddressbook());
       add.setAddressbookList(globalSet);
-      addressDao.internalSave(add);
+      addressDao.internalUpdate(add);
     }
   }
 
