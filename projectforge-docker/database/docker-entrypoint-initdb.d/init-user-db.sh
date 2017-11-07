@@ -1,6 +1,8 @@
 #!/bin/bash
 set -e
 
+
+
 echo
 echo 'Creating custom user and database...'
 echo
