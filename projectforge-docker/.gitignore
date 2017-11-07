@@ -1,1 +1,2 @@
-/database/data
+/database/.env
+/Projectforge/**

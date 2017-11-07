@@ -6,7 +6,7 @@ MAINTAINER Micromata
 RUN adduser -D pf
 
 # Add the projectforge jar
-COPY ./target/extra-resources/projectforge-application-6.15.0-SNAPSHOT.jar /home/pf/projectforge-application.jar
+COPY ./target/extra-resources/projectforge-application-6.19.0-SNAPSHOT.jar /home/pf/projectforge-application.jar
 
 # Add the properties
 COPY ./target/extra-resources/application.properties /home/pf/
@@ -18,6 +18,4 @@ WORKDIR /home/pf
 
 EXPOSE 8080
 
-# Use /home/pf/config as projectforge base directory.
-# You can use this as mount point for external configuration.
-CMD ["java", "-Dprojectforge.base.dir=/home/pf/config", "-jar", "projectforge-application.jar", "--spring.config.location=file:/home/pf/config/"]
+CMD ["java", "-jar", "projectforge-application.jar"]

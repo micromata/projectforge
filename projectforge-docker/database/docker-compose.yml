@@ -1,0 +1,20 @@
+version: '3'
+services:
+  postgres:
+    image: postgres:10.0
+    container_name: projectforge-db
+    ports:
+      - ${HOST_PORT}:5432
+    volumes:
+      - db-data:/var/lib/postgresql/data
+      - ./docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d
+    networks:
+      - projectforge-network
+    environment:
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_USER: postgres
+      PGDATA : /var/lib/postgresql/data/pgdata
+volumes:
+  db-data:
+networks:
+  projectforge-network:
