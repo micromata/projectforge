@@ -1,2 +1,2 @@
-/database/.env
+/database/postgres/.env
 /Projectforge/**

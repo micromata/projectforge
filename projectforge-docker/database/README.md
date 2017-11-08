@@ -4,7 +4,7 @@
 
 ##### Auf dem Mac muss das Verzeichnis database/docker-entrypoint-initdb mountbar sein.
 
-./StartDatabase.sh 15432
+./StartDatabase.sh postgres 15432
 
 ### Um die Datenbank zu verwerfen Docker Container entfernen und docker Volume löschen
 
