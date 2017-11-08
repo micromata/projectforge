@@ -18,3 +18,5 @@ volumes:
   db-data:
 networks:
   projectforge-network:
+    external:
+      name: projectforge_network

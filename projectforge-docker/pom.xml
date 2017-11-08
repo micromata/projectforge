@@ -6,7 +6,7 @@
   <parent>
     <groupId>org.projectforge</groupId>
     <artifactId>projectforge-parent</artifactId>
-    <version>6.15.0-SNAPSHOT</version>
+    <version>6.19.0-SNAPSHOT</version>
   </parent>
   <licenses>
     <license>
@@ -48,6 +48,60 @@
                   </includes>
                 </resource>
                 <resource>
+                  <directory>${basedir}/../plugins/org.projectforge.plugins.extendemployeedata/target</directory>
+                  <includes>
+                    <include>org.projectforge.plugins.extendemployeedata-${project.version}.jar</include>
+                  </includes>
+                </resource>
+                <resource>
+                  <directory>${basedir}/../plugins/org.projectforge.plugins.financialfairplay/target</directory>
+                  <includes>
+                    <include>org.projectforge.plugins.financialfairplay-${project.version}.jar</include>
+                  </includes>
+                </resource>
+                <resource>
+                  <directory>${basedir}/../plugins/org.projectforge.plugins.ihkexport/target</directory>
+                  <includes>
+                    <include>org.projectforge.plugins.ihkexport-${project.version}.jar</include>
+                  </includes>
+                </resource>
+                <resource>
+                  <directory>${basedir}/../plugins/org.projectforge.plugins.licensemanagement/target</directory>
+                  <includes>
+                    <include>org.projectforge.plugins.licensemanagement-${project.version}.jar</include>
+                  </includes>
+                </resource>
+                <resource>
+                  <directory>${basedir}/../plugins/org.projectforge.plugins.liquidityplanning/target</directory>
+                  <includes>
+                    <include>org.projectforge.plugins.liquidityplanning-${project.version}.jar</include>
+                  </includes>
+                </resource>
+                <resource>
+                  <directory>${basedir}/../plugins/org.projectforge.plugins.marketing/target</directory>
+                  <includes>
+                    <include>org.projectforge.plugins.marketing-${project.version}.jar</include>
+                  </includes>
+                </resource>
+                <resource>
+                  <directory>${basedir}/../plugins/org.projectforge.plugins.memo/target</directory>
+                  <includes>
+                    <include>org.projectforge.plugins.memo-${project.version}.jar</include>
+                  </includes>
+                </resource>
+                <resource>
+                  <directory>${basedir}/../plugins/org.projectforge.plugins.skillmatrix/target</directory>
+                  <includes>
+                    <include>org.projectforge.plugins.skillmatrix-${project.version}.jar</include>
+                  </includes>
+                </resource>
+                <resource>
+                  <directory>${basedir}/../plugins/org.projectforge.plugins.todo/target</directory>
+                  <includes>
+                    <include>org.projectforge.plugins.todo-${project.version}.jar</include>
+                  </includes>
+                </resource>
+                <resource>
                   <directory>${basedir}/../projectforge-application/</directory>
                   <includes>
                     <include>application.properties</include>
@@ -62,7 +116,7 @@
       <plugin>
         <groupId>com.spotify</groupId>
         <artifactId>dockerfile-maven-plugin</artifactId>
-        <version>1.3.1</version>
+        <version>1.3.6</version>
         <executions>
           <execution>
             <id>default</id>
@@ -75,6 +129,9 @@
         <configuration>
           <repository>micromata/projectforge</repository>
           <tag>${project.version}</tag>
+          <buildArgs>
+            <PF_VERSION>${project.version}</PF_VERSION>
+          </buildArgs>
         </configuration>
       </plugin>
     </plugins>
