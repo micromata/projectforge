@@ -205,7 +205,9 @@
     <module>plugins</module>
     <module>projectforge-application</module>
     <module>projectforge-launcher</module>
+    <module>projectforge-docker</module>
   </modules>
+
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
