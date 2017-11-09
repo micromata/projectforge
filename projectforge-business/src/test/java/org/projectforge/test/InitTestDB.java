@@ -69,7 +69,9 @@ import org.projectforge.framework.persistence.user.entities.TenantDO;
 import org.projectforge.framework.persistence.user.entities.UserRightDO;
 import org.projectforge.framework.time.DateHelper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
+@Component
 public class InitTestDB
 {
   private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(InitTestDB.class);
