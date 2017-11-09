@@ -178,10 +178,10 @@ public class LoginService
   }
 
   public void logout(final MySession mySession, final WebRequest request, final WebResponse response,
-      final UserXmlPreferencesCache userXmlPreferencesCache, MenuBuilder menuBuilder)
+      final UserXmlPreferencesCache userXmlPreferencesCache)
   {
     final Cookie stayLoggedInCookie = cookieService.getStayLoggedInCookie(WicketUtils.getHttpServletRequest(request));
-    logout(mySession, stayLoggedInCookie, userXmlPreferencesCache, menuBuilder);
+    logout(mySession, stayLoggedInCookie, userXmlPreferencesCache);
     if (stayLoggedInCookie != null) {
       response.addCookie(stayLoggedInCookie);
     }
@@ -189,25 +189,22 @@ public class LoginService
 
   public void logout(final MySession mySession, final HttpServletRequest request,
       final HttpServletResponse response,
-      final UserXmlPreferencesCache userXmlPreferencesCache, MenuBuilder menuBuilder)
+      final UserXmlPreferencesCache userXmlPreferencesCache)
   {
     final Cookie stayLoggedInCookie = cookieService.getStayLoggedInCookie(request);
-    logout(mySession, stayLoggedInCookie, userXmlPreferencesCache, menuBuilder);
+    logout(mySession, stayLoggedInCookie, userXmlPreferencesCache);
     if (stayLoggedInCookie != null) {
       response.addCookie(stayLoggedInCookie);
     }
   }
 
   private void logout(final MySession mySession, final Cookie stayLoggedInCookie,
-      final UserXmlPreferencesCache userXmlPreferencesCache, MenuBuilder menuBuilder)
+      final UserXmlPreferencesCache userXmlPreferencesCache)
   {
     final PFUserDO user = mySession.getUser();
     if (user != null) {
       userXmlPreferencesCache.flushToDB(user.getId());
       userXmlPreferencesCache.clear(user.getId());
-      if (menuBuilder != null) {
-        menuBuilder.expireMenu(user.getId());
-      }
     }
     mySession.logout();
     if (stayLoggedInCookie != null) {
