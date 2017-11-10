@@ -25,9 +25,12 @@ package org.projectforge.business.fibu;
 
 import java.util.List;
 
+import javax.persistence.NoResultException;
+
 import org.hibernate.criterion.Order;
 import org.projectforge.business.user.ProjectForgeGroup;
 import org.projectforge.framework.access.OperationType;
+import org.projectforge.framework.i18n.UserException;
 import org.projectforge.framework.persistence.api.BaseDao;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.persistence.api.QueryFilter;
@@ -114,5 +117,31 @@ public class KundeDao extends BaseDao<KundeDO>
   public KundeDO newInstance()
   {
     return new KundeDO();
+  }
+
+  @Override
+  protected void onSave(final KundeDO customer)
+  {
+    if (customer != null && customer.getId() != null) {
+      KundeDO existingCustomer = internalGetById(customer.getId());
+      if (existingCustomer != null) {
+        throw new UserException("fibu.kunde.validation.existingCustomerNr");
+      }
+    }
+  }
+
+  public KundeDO findByIdAndNameAndStatus(final KundeDO data)
+  {
+    return emgrFactory.runInTrans(emgr -> {
+      try {
+        KundeDO existingCustomer = emgr
+            .selectSingleAttached(KundeDO.class, "SELECT c FROM KundeDO c WHERE c.id = :id AND c.name = :name AND c.status = :status", "id", data.getId(),
+                "name",
+                data.getName(), "status", data.getStatus());
+        return existingCustomer;
+      } catch (NoResultException e) {
+        return null;
+      }
+    });
   }
 }
