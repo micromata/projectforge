@@ -6,7 +6,6 @@ import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.List;
 
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -22,23 +21,18 @@ import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.ResourceModel;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.projectforge.business.configuration.ConfigurationService;
 import org.projectforge.business.fibu.EmployeeDO;
 import org.projectforge.business.fibu.EmployeeStatus;
-import org.projectforge.business.fibu.MonthlyEmployeeReport;
 import org.projectforge.business.fibu.api.EmployeeService;
-import org.projectforge.business.timesheet.TimesheetDO;
-import org.projectforge.business.timesheet.TimesheetDao;
-import org.projectforge.business.timesheet.TimesheetFilter;
 import org.projectforge.business.vacation.model.VacationAttrProperty;
 import org.projectforge.business.vacation.model.VacationDO;
 import org.projectforge.business.vacation.model.VacationStatus;
 import org.projectforge.business.vacation.service.VacationService;
 import org.projectforge.framework.i18n.I18nHelper;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
-import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.time.DateTimeFormatter;
-import org.projectforge.framework.utils.NumberHelper;
 import org.projectforge.web.vacation.VacationEditPage;
 import org.projectforge.web.vacation.VacationViewPageSortableDataProvider;
 import org.projectforge.web.wicket.CellItemListener;
@@ -155,7 +149,9 @@ public class VacationViewHelper
     sectionBottom.add(new Heading3Panel(sectionBottom.newChildId(),
         I18nHelper.getLocalizedMessage("vacation.title.list") + " " + now.get(Calendar.YEAR)));
     if (showAddButton) {
-      LinkPanel addLink = new LinkPanel(sectionBottom.newChildId(), I18nHelper.getLocalizedMessage("add"), VacationEditPage.class, returnToPage);
+      final PageParameters pageParameter = new PageParameters();
+      pageParameter.add("employeeId", currentEmployee.getId());
+      LinkPanel addLink = new LinkPanel(sectionBottom.newChildId(), I18nHelper.getLocalizedMessage("add"), VacationEditPage.class, returnToPage, pageParameter);
       addLink.addLinkAttribute("class", "btn btn-sm btn-success bottom-xs-gap");
       sectionBottom.add(addLink);
     }
