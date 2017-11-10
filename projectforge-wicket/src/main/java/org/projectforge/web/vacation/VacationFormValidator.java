@@ -3,6 +3,7 @@ package org.projectforge.web.vacation;
 import java.math.BigDecimal;
 import java.util.Calendar;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -91,6 +92,19 @@ public class VacationFormValidator implements IFormValidator
       endDate.setTime(data.getEndDate());
     }
 
+    //Getting selected calendars from form component or direct from data
+    final Collection<TeamCalDO> selectedCalendars = new HashSet<>();
+    if (calendars != null && calendars.getConvertedInput() != null) {
+      selectedCalendars.addAll(calendars.getConvertedInput());
+    } else {
+      selectedCalendars.addAll(vacationService.getCalendarsForVacation(this.data));
+    }
+
+    if (startDate == null || endDate == null) {
+      form.error(I18nHelper.getLocalizedMessage("vacation.validate.datenotset"));
+      return;
+    }
+
     //Check, if start date is before end date
     if (endDate.before(startDate)) {
       form.error(I18nHelper.getLocalizedMessage("vacation.validate.endbeforestart"));
@@ -130,7 +144,6 @@ public class VacationFormValidator implements IFormValidator
     // check Vacation Calender
     final TeamCalDO configuredVacationCalendar = configService.getVacationCalendar();
     if (configuredVacationCalendar != null) {
-      final Collection<TeamCalDO> selectedCalendars = calendars.getConvertedInput();
       if (selectedCalendars == null || selectedCalendars.contains(configuredVacationCalendar) == false) {
         form.error(I18nHelper.getLocalizedMessage("vacation.validate.noCalender", configuredVacationCalendar.getTitle()));
       }
@@ -169,28 +182,28 @@ public class VacationFormValidator implements IFormValidator
 
     //Need
     final BigDecimal neededVacationDays = vacationService
-        .getVacationDays(startDatePanel.getConvertedInput(), endDatePanel.getConvertedInput(), isHalfDayCheckbox.getConvertedInput());
+        .getVacationDays(startDate.getTime(), endDate.getTime(), isHalfDayCheckbox.getConvertedInput());
 
     //Vacation after end days from last year
-    if (startDatePanel.getConvertedInput().after(endDateVacationFromLastYear.getTime())) {
+    if (startDate.after(endDateVacationFromLastYear)) {
       if (availableVacationDays.subtract(neededVacationDays).compareTo(BigDecimal.ZERO) < 0) {
         enoughDaysLeft = false;
       }
     }
     //Vacation before end days from last year
-    if (endDatePanel.getConvertedInput().before(endDateVacationFromLastYear.getTime())
-        || endDatePanel.getConvertedInput().equals(endDateVacationFromLastYear.getTime())) {
+    if (endDate.before(endDateVacationFromLastYear)
+        || endDate.equals(endDateVacationFromLastYear)) {
       if (availableVacationDays.add(availableVacationDaysFromLastYear).subtract(neededVacationDays)
           .compareTo(BigDecimal.ZERO) < 0) {
         enoughDaysLeft = false;
       }
     }
     //Vacation over end days from last year
-    if ((startDatePanel.getConvertedInput().before(endDateVacationFromLastYear.getTime())
-        || startDatePanel.getConvertedInput().equals(endDateVacationFromLastYear.getTime()))
-        && endDatePanel.getConvertedInput().after(endDateVacationFromLastYear.getTime())) {
+    if ((startDate.before(endDateVacationFromLastYear)
+        || startDate.equals(endDateVacationFromLastYear))
+        && endDate.after(endDateVacationFromLastYear)) {
       final BigDecimal neededVacationDaysBeforeEndFromLastYear = vacationService
-          .getVacationDays(startDatePanel.getConvertedInput(), endDateVacationFromLastYear.getTime(),
+          .getVacationDays(startDate.getTime(), endDateVacationFromLastYear.getTime(),
               false); // here we are sure that it is no half day vacation
 
       final BigDecimal restFromLastYear = availableVacationDaysFromLastYear.subtract(neededVacationDaysBeforeEndFromLastYear);
