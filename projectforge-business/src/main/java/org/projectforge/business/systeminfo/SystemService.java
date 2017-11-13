@@ -28,7 +28,9 @@ import java.io.IOException;
 import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import java.util.TimeZone;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -99,7 +101,13 @@ public class SystemService
 
   public VersionCheck getVersionCheckInformations()
   {
-    VersionCheck versionCheck = new VersionCheck(AppVersion.VERSION.toString(), ThreadLocalUserContext.getLocale(), ThreadLocalUserContext.getTimeZone());
+    Locale locale = ThreadLocalUserContext.getUser() != null && ThreadLocalUserContext.getUser().getLocale() != null ?
+        ThreadLocalUserContext.getUser().getLocale() :
+        ThreadLocalUserContext.getLocale();
+    TimeZone timeZone = ThreadLocalUserContext.getUser() != null && ThreadLocalUserContext.getUser().getTimeZone() != null ?
+        TimeZone.getTimeZone(ThreadLocalUserContext.getUser().getTimeZone()) :
+        ThreadLocalUserContext.getTimeZone();
+    VersionCheck versionCheck = new VersionCheck(AppVersion.VERSION.toString(), locale, timeZone);
     versionCheck = restCallService.callRestInterfaceForUrl(versionCheckUrl, HttpMethod.POST, VersionCheck.class, versionCheck);
     return versionCheck;
   }
