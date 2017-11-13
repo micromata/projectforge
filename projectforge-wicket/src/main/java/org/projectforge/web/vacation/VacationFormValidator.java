@@ -94,7 +94,7 @@ public class VacationFormValidator implements IFormValidator
 
     //Getting selected calendars from form component or direct from data
     final Collection<TeamCalDO> selectedCalendars = new HashSet<>();
-    if (calendars != null && calendars.getConvertedInput() != null) {
+    if (calendars != null && calendars.getConvertedInput() != null && calendars.getConvertedInput().size() > 0) {
       selectedCalendars.addAll(calendars.getConvertedInput());
     } else {
       selectedCalendars.addAll(vacationService.getCalendarsForVacation(this.data));
