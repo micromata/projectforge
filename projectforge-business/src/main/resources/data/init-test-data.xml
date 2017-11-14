@@ -2930,6 +2930,15 @@
     <name>PF_ProjectManager</name>
     <localGroup>false</localGroup>
   </org.projectforge.framework.persistence.user.entities.GroupDO>
+  <org.projectforge.framework.persistence.user.entities.GroupDO id="1173">
+    <created class="sql-timestamp" id="586">2009-01-05 23:00:42.43</created>
+    <lastUpdate class="sql-timestamp" id="587">2013-04-07 16:11:55.557</lastUpdate>
+    <deleted>false</deleted>
+    <minorChange>false</minorChange>
+    <id>224</id>
+    <name>PF_ProjectAssistant</name>
+    <localGroup>false</localGroup>
+  </org.projectforge.framework.persistence.user.entities.GroupDO>
   <org.projectforge.framework.persistence.user.entities.GroupDO id="1172">
     <created class="sql-timestamp" id="1173">2016-11-14 23:00:42.43</created>
     <lastUpdate class="sql-timestamp" id="1174">2016-11-14 23:00:42.43</lastUpdate>
