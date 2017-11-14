@@ -19,20 +19,20 @@
   <url>http://www.projectforge.org</url>
   <organization>
     <name>Kai Reinhard</name>
-    <url>http://www.projectforge.org</url>
+    <url>https://www.projectforge.org</url>
   </organization>
   <issueManagement>
-    <system>JIRA</system>
-    <url>https://www.projectforge.org/jira</url>
+    <system>Github</system>
+    <url>https://github.com/micromata/projectforge/issues</url>
   </issueManagement>
   <ciManagement>
-    <system>Bamboo</system>
-    <url>http://www.projectforge.org</url>
+    <system>Jenkins</system>
+    <url>https://www.projectforge.org</url>
   </ciManagement>
   <scm>
-    <connection>scm:svn:https://pforge.svn.sourceforge.net/svnroot/pforge</connection>
-    <developerConnection>scm:svn:https://pforge.svn.sourceforge.net/svnroot/pforge</developerConnection>
-    <url>https://pforge.svn.sourceforge.net/svnroot/pforge</url>
+    <connection>https://github.com/micromata/projectforge.git</connection>
+    <developerConnection>https://github.com/micromata/projectforge.git</developerConnection>
+    <url>https://github.com/micromata/projectforge.git</url>
   </scm>
   <developers>
     <developer>
@@ -363,7 +363,7 @@
       <plugin>
         <groupId>org.sonarsource.scanner.maven</groupId>
         <artifactId>sonar-maven-plugin</artifactId>
-        <version>3.2</version>
+        <version>3.3.0.603</version>
       </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
@@ -374,7 +374,6 @@
               <name>configfailurepolicy</name>
               <value>continue</value> 
             </property>
-             
           </systemProperties>
         </configuration>
       </plugin>
