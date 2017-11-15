@@ -30,9 +30,9 @@
     <url>https://www.projectforge.org</url>
   </ciManagement>
   <scm>
-    <connection>https://github.com/micromata/projectforge.git</connection>
-    <developerConnection>https://github.com/micromata/projectforge.git</developerConnection>
-    <url>https://github.com/micromata/projectforge.git</url>
+    <url>https://github.com/micromata/projectforge</url>
+    <connection>scm:git:git://github.com/micromata/projectforge.git</connection>
+    <developerConnection>scm:git:git@github.com:micromata/projectforge.git</developerConnection>
   </scm>
   <developers>
     <developer>
