@@ -196,6 +196,7 @@
       <distribution>manual</distribution>
     </license>
   </licenses>
+
   <modules>
     <module>projectforge-common</module>
     <module>projectforge-model</module>
@@ -205,8 +206,25 @@
     <module>plugins</module>
     <module>projectforge-application</module>
     <module>projectforge-launcher</module>
-    <module>projectforge-docker</module>
   </modules>
+
+  <profiles>
+    <profile>
+      <id>docker</id>
+      <modules>
+        <module>projectforge-common</module>
+        <module>projectforge-model</module>
+        <module>projectforge-business</module>
+        <module>projectforge-jax-rs</module>
+        <module>projectforge-wicket</module>
+        <module>plugins</module>
+        <module>projectforge-application</module>
+        <module>projectforge-launcher</module>
+        <module>projectforge-docker</module>
+      </modules>
+    </profile>
+
+  </profiles>
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -369,6 +387,7 @@
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
         <configuration>
+          <argLine>-Xms1024m -Xmx4096m</argLine>
           <systemProperties>
             <property>
               <name>configfailurepolicy</name>
@@ -387,59 +406,32 @@
             add up information in the same report, so that, it will give the cross-module
             code coverage. -->
           <destFile>${sonar.jacoco.reportPath}</destFile>
+          <append>true</append>
         </configuration>
+        <executions>
+          <execution>
+            <id>agent-for-ut</id>
+            <goals>
+              <goal>prepare-agent</goal>
+            </goals>
+          </execution>
+          <execution>
+            <id>agent-for-it</id>
+            <goals>
+              <goal>prepare-agent-integration</goal>
+            </goals>
+          </execution>
+          <execution>
+            <id>jacoco-site</id>
+            <phase>verify</phase>
+            <goals>
+              <goal>report</goal>
+            </goals>
+          </execution>
+        </executions>
       </plugin>
     </plugins>
   </build>
-  <profiles>
-    <profile>
-      <id>sonar-coverage</id>
-      <activation>
-        <activeByDefault>true</activeByDefault>
-      </activation>
-      <build>
-        <pluginManagement>
-          <plugins>
-            <plugin>
-              <groupId>org.jacoco</groupId>
-              <artifactId>jacoco-maven-plugin</artifactId>
-            </plugin>
-          </plugins>
-        </pluginManagement>
-        <plugins>
-          <plugin>
-            <groupId>org.jacoco</groupId>
-            <artifactId>jacoco-maven-plugin</artifactId>
-            <version>0.7.9</version>
-            <configuration>
-              <append>true</append>
-            </configuration>
-            <executions>
-              <execution>
-                <id>agent-for-ut</id>
-                <goals>
-                  <goal>prepare-agent</goal>
-                </goals>
-              </execution>
-              <execution>
-                <id>agent-for-it</id>
-                <goals>
-                  <goal>prepare-agent-integration</goal>
-                </goals>
-              </execution>
-              <execution>
-                <id>jacoco-site</id>
-                <phase>verify</phase>
-                <goals>
-                  <goal>report</goal>
-                </goals>
-              </execution>
-            </executions>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-  </profiles>
   <reporting>
     <outputDirectory>target/site</outputDirectory>
     <plugins>
