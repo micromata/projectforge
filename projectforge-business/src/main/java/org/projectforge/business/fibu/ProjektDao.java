@@ -23,7 +23,6 @@
 
 package org.projectforge.business.fibu;
 
-import java.util.Collection;
 import java.util.List;
 
 import javax.persistence.NoResultException;
@@ -41,7 +40,6 @@ import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.persistence.api.QueryFilter;
 import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
 import org.projectforge.framework.persistence.user.entities.GroupDO;
-import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Propagation;
@@ -186,37 +184,6 @@ public class ProjektDao extends BaseDao<ProjektDO>
     queryFilter.addOrder(Order.asc("internKost2_4")).addOrder(Order.asc("kunde.id")).addOrder(Order.asc("nummer"));
     return getList(queryFilter);
   }
-
-  @Override
-  public boolean hasSelectAccess(final PFUserDO user, final ProjektDO obj, final boolean throwException)
-  {
-    final boolean hasSelectAccess = super.hasSelectAccess(user, obj, throwException);
-    if (hasSelectAccess == false) {
-      if (user == null || user.getId() == null || obj == null) {
-        return false;
-      }
-
-      Integer userId = user.getId();
-      Integer headOfBusinessManagerId = obj.getHeadOfBusinessManager() != null ? obj.getHeadOfBusinessManager().getId() : null;
-      Integer projectManagerId = obj.getProjectManager() != null ? obj.getProjectManager().getId() : null;
-      Integer salesManageId = obj.getSalesManager() != null ? obj.getSalesManager().getId() : null;
-
-      if (userId.equals(headOfBusinessManagerId) || userId.equals(projectManagerId) || userId.equals(salesManageId)) {
-        return true;
-      }
-
-      GroupDO projektManagerGroup = obj.getProjektManagerGroup();
-      Collection<Integer> userGroups = getUserGroupCache().getUserGroups(user);
-      if (userGroups != null && userGroups.size() > 0) {
-        if (userGroups.contains(projektManagerGroup.getId())) {
-          return true;
-        }
-      }
-    }
-    return hasSelectAccess;
-  }
-
-
 
   @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
   public List<ProjektDO> getKundenProjekte(final Integer kundeId)
