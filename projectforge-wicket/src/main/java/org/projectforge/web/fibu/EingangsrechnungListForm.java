@@ -87,4 +87,16 @@ public class EingangsrechnungListForm extends AbstractRechnungListForm<Eingangsr
         new I18nEnumChoiceProvider<>(PaymentType.class)
     );
   }
+
+  @Override
+  protected String getCancelButtonLabel()
+  {
+    return getString("back");
+  }
+
+  @Override
+  protected String getNextButtonLabel()
+  {
+    return getString("export");
+  }
 }
