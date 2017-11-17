@@ -23,8 +23,6 @@
 
 package org.projectforge.web.admin;
 
-import de.micromata.genome.db.jpa.xmldump.api.JpaXmlDumpService;
-import de.micromata.genome.util.runtime.RuntimeIOException;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -37,6 +35,7 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.zip.GZIPOutputStream;
+
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.wicket.markup.html.link.Link;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
@@ -54,6 +53,7 @@ import org.projectforge.business.user.UserXmlPreferencesMigrationDao;
 import org.projectforge.framework.configuration.ConfigXml;
 import org.projectforge.framework.configuration.Configuration;
 import org.projectforge.framework.configuration.ConfigurationParam;
+import org.projectforge.framework.configuration.GlobalConfiguration;
 import org.projectforge.framework.i18n.I18nHelper;
 import org.projectforge.framework.persistence.api.ReindexSettings;
 import org.projectforge.framework.persistence.database.DatabaseUpdateService;
@@ -72,6 +72,9 @@ import org.projectforge.web.wicket.WebConstants;
 import org.projectforge.web.wicket.WicketApplication;
 import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.web.wicket.components.ContentMenuEntryPanel;
+
+import de.micromata.genome.db.jpa.xmldump.api.JpaXmlDumpService;
+import de.micromata.genome.util.runtime.RuntimeIOException;
 
 public class AdminPage extends AbstractStandardFormPage implements ISelectCallerPage
 {
@@ -424,8 +427,13 @@ public class AdminPage extends AbstractStandardFormPage implements ISelectCaller
 
   protected void rereadConfiguration()
   {
-    log.info("Administration: reread configuration file config.xml.");
+    log.info("Administration: Reload all configurations (DB, XML)");
     checkAccess();
+    log.info("Administration: reload global configuration.");
+    GlobalConfiguration.getInstance().forceReload();
+    log.info("Administration: reload configuration.");
+    Configuration.getInstance().forceReload();
+    log.info("Administration: reread configuration file config.xml.");
     String result = ConfigXml.getInstance().readConfiguration();
     if (result != null) {
       result = result.replaceAll("\n", "<br/>\n");
