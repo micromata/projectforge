@@ -27,6 +27,7 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.Link;
+import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
@@ -97,6 +98,22 @@ public abstract class AbstractSecuredPage extends AbstractSecuredBasePage
     body.add(alertMessageContainer);
     final Label alertMessageLabel = new Label("alertMessage", alertMessageModel);
     alertMessageContainer.add(alertMessageLabel.setRenderBodyOnly(true));
+
+    body.add(getSnowEffectPanel(parameters));
+  }
+
+  private Panel getSnowEffectPanel(final PageParameters parameters)
+  {
+    boolean enableSnowEffect = configurationService.isSnowEffectEnabled();
+    enableSnowEffect = (enableSnowEffect && parameters.get("snowEffectEnable") != null && parameters.get("snowEffectEnable").isEmpty() == false) ?
+        parameters.get("snowEffectEnable").toBoolean() :
+        enableSnowEffect;
+    //enableSnowEffect = new Random().nextInt(100) >= 50;
+    if (enableSnowEffect) {
+      return new SnowEffectPanel("snowEffect");
+    } else {
+      return new DivPanel("snowEffect");
+    }
   }
 
   /**
