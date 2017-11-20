@@ -44,6 +44,7 @@ import org.projectforge.web.teamcal.admin.TeamCalsProvider;
 import org.projectforge.web.wicket.AbstractEditForm;
 import org.projectforge.web.wicket.bootstrap.GridBuilder;
 import org.projectforge.web.wicket.bootstrap.GridSize;
+import org.projectforge.web.wicket.flowlayout.CheckBoxPanel;
 import org.projectforge.web.wicket.flowlayout.DivTextPanel;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
 import org.wicketstuff.select2.Select2MultiChoice;
@@ -74,6 +75,8 @@ public class MyAccountEditForm extends AbstractEditForm<PFUserDO, MyAccountEditP
   private UserXmlPreferencesDao userXmlPreferencesDao;
 
   private Collection<TeamCalDO> teamCalRestWhiteList;
+
+  private Boolean disableSnowEffectPermant;
 
   public MyAccountEditForm(final MyAccountEditPage parentPage, final PFUserDO data)
   {
@@ -138,6 +141,14 @@ public class MyAccountEditForm extends AbstractEditForm<PFUserDO, MyAccountEditP
     calendars.setMarkupId("calenders").setOutputMarkupId(true);
     fieldSet.add(calendars);
 
+    // Snow effect disable permanent
+    disableSnowEffectPermant = userXmlPreferencesDao
+        .getDeserializedUserPreferencesByUserId(ThreadLocalUserContext.getUserId(), "disableSnowEffectPermant", Boolean.class);
+    final FieldsetPanel snowFieldSetSnow = gridBuilder.newFieldset(getString("user.myAccount.snow"));
+    snowFieldSetSnow
+        .add(new CheckBoxPanel(snowFieldSetSnow.newChildId(), new PropertyModel<Boolean>(this, "disableSnowEffectPermant"),
+            getString("user.myAccount.snow.removePermanent"), false));
+
     employeeData = employeeService.getEmployeeByUserId(data.getId());
 
     // If this user has no employee object then th employee form part must not be displayed.
@@ -182,5 +193,10 @@ public class MyAccountEditForm extends AbstractEditForm<PFUserDO, MyAccountEditP
   public Collection<TeamCalDO> getTeamCalRestWhiteList()
   {
     return teamCalRestWhiteList;
+  }
+
+  public Boolean getDisableSnowEffectPermant()
+  {
+    return disableSnowEffectPermant;
   }
 }

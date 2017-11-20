@@ -35,6 +35,7 @@ import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.Const;
 import org.projectforge.business.configuration.ConfigurationService;
 import org.projectforge.business.user.filter.UserFilter;
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.web.core.MenuBarPanel;
 import org.projectforge.web.core.NavTopPanel;
 import org.projectforge.web.dialog.ModalDialog;
@@ -105,6 +106,10 @@ public abstract class AbstractSecuredPage extends AbstractSecuredBasePage
   private Panel getSnowEffectPanel(final PageParameters parameters)
   {
     boolean enableSnowEffect = configurationService.isSnowEffectEnabled();
+    Boolean disableSnowEffectPermant = (Boolean) userXmlPreferencesCache.getEntry(ThreadLocalUserContext.getUserId(), "disableSnowEffectPermant");
+    if (disableSnowEffectPermant != null) {
+      enableSnowEffect = disableSnowEffectPermant ? false : enableSnowEffect;
+    }
     enableSnowEffect = (enableSnowEffect && parameters.get("snowEffectEnable") != null && parameters.get("snowEffectEnable").isEmpty() == false) ?
         parameters.get("snowEffectEnable").toBoolean() :
         enableSnowEffect;
