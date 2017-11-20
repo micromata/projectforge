@@ -23,7 +23,7 @@
 
 package org.projectforge._garbage;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * Stores the expressions and settings for creating a hibernate criteria object. This template is useful for avoiding the need of a

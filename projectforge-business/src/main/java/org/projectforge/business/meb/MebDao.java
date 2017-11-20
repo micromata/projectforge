@@ -33,7 +33,7 @@ import java.util.List;
 
 import javax.sql.DataSource;
 
-import org.apache.commons.lang.Validate;
+import org.apache.commons.lang3.Validate;
 import org.projectforge.business.user.UserDao;
 import org.projectforge.business.user.UserRightId;
 import org.projectforge.common.StringHelper;
