@@ -29,15 +29,21 @@ import org.apache.wicket.markup.html.form.Button;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.apache.wicket.spring.injection.annot.SpringBean;
+import org.projectforge.business.user.UserXmlPreferencesDao;
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 
 /**
  * Div panel for snow effect
  *
  * @author F. Blumenstein
  */
-@SuppressWarnings("serial")
 public class SnowEffectPanel extends Panel
 {
+
+  @SpringBean
+  private UserXmlPreferencesDao userXmlPreferencesDao;
+
   /**
    * Constructor the panel
    *
@@ -55,6 +61,14 @@ public class SnowEffectPanel extends Panel
         setResponsePage(getPage().getPageClass(), new PageParameters().add("snowEffectEnable", false));
       }
     }));
-    add(new Button("removePermant", new Model<>("XX")));
+    add(new Button("removePermanent", new Model<>("XX")).add(new AjaxEventBehavior("click")
+    {
+      @Override
+      protected void onEvent(final AjaxRequestTarget target)
+      {
+        userXmlPreferencesDao.saveOrUpdate(ThreadLocalUserContext.getUserId(), "disableSnowEffectPermant", Boolean.FALSE, true);
+        setResponsePage(getPage().getPageClass());
+      }
+    }));
   }
 }
