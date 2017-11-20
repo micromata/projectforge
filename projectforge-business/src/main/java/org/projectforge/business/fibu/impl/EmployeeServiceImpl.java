@@ -295,12 +295,12 @@ public class EmployeeServiceImpl extends CorePersistenceServiceImpl<Integer, Emp
     Calendar deadline = new GregorianCalendar(ThreadLocalUserContext.getTimeZone());
 
     eintrittsDatum.setTime(currentEmployee.getEintrittsDatum());
-    deadline.add(Calendar.MONTH, 7);
-    now.add(Calendar.MONTH, 1);
+    deadline.add(Calendar.MONTH, -7);
+    now.add(Calendar.MONTH, -1);
 
     if (eintrittsDatum.before(now)) {
       if (eintrittsDatum.before(deadline)) {
-        if (now.get(Calendar.MONTH) >= 5) {
+        if (now.get(Calendar.MONTH) >= Calendar.JUNE) {
           vacationCountPerDay = vacationService
               .getVacationCount(now.get(Calendar.YEAR), now.get(Calendar.MONTH) - 5, now.get(Calendar.YEAR), now.get(Calendar.MONTH),
                   currentEmployee.getUser());
