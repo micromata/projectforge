@@ -705,7 +705,7 @@ public class VacationServiceImpl extends CorePersistenceServiceImpl<Integer, Vac
     final BigDecimal big_hours = new BigDecimal(hours).divide(new BigDecimal(1000 * 60 * 60), 2,
         BigDecimal.ROUND_HALF_UP);
 
-    return big_hours.doubleValue() + " / " + days.doubleValue() + " = " + NumberHelper.formatFraction2(big_hours.doubleValue() / days.doubleValue());
+    return NumberHelper.formatFraction2(big_hours.doubleValue() / days.doubleValue());
   }
 
   @Override
