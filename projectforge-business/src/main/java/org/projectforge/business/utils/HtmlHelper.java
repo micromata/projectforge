@@ -26,8 +26,8 @@ package org.projectforge.business.utils;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 
-import org.apache.commons.lang.StringEscapeUtils;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringEscapeUtils;
+import org.apache.commons.lang3.StringUtils;
 
 public class HtmlHelper
 {
@@ -57,7 +57,7 @@ public class HtmlHelper
     if (str == null) {
       return null;
     }
-    final String result = StringEscapeUtils.escapeHtml(str);
+    final String result = StringEscapeUtils.escapeHtml4(str);
     if (createLineBreaks == false) {
       return result;
     } else {

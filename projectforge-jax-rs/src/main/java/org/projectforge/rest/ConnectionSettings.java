@@ -25,7 +25,7 @@ package org.projectforge.rest;
 
 import java.util.Locale;
 
-import org.apache.commons.lang.builder.ReflectionToStringBuilder;
+import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.projectforge.rest.converter.DateTimeFormat;
 
 /**

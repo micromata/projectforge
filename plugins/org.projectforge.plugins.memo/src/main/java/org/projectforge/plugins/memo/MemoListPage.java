@@ -26,7 +26,7 @@ package org.projectforge.plugins.memo;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
@@ -65,12 +65,14 @@ public class MemoListPage extends AbstractListPage<MemoListForm, MemoDao, MemoDO
     super(parameters, "plugins.memo");
   }
 
+  @Override
   @SuppressWarnings("serial")
   public List<IColumn<MemoDO, String>> createColumns(final WebPage returnToPage, final boolean sortable)
   {
     final List<IColumn<MemoDO, String>> columns = new ArrayList<IColumn<MemoDO, String>>();
     final CellItemListener<MemoDO> cellItemListener = new CellItemListener<MemoDO>()
     {
+      @Override
       public void populateItem(final Item<ICellPopulator<MemoDO>> item, final String componentId,
           final IModel<MemoDO> rowModel)
       {

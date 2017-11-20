@@ -23,7 +23,7 @@
 
 package org.projectforge.framework.persistence.database;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.projectforge.business.user.UserRightId;
 import org.projectforge.framework.persistence.api.IUserRightId;
 import org.projectforge.framework.persistence.api.UserRightService;

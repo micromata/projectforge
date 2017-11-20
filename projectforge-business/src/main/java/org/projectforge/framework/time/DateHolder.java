@@ -30,8 +30,8 @@ import java.util.Date;
 import java.util.Locale;
 import java.util.TimeZone;
 
-import org.apache.commons.lang.Validate;
-import org.apache.commons.lang.builder.HashCodeBuilder;
+import org.apache.commons.lang3.Validate;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 
 /**
@@ -839,6 +839,7 @@ public class DateHolder implements Serializable, Cloneable, Comparable<DateHolde
   /**
    * @see java.lang.Comparable#compareTo(java.lang.Object)
    */
+  @Override
   public int compareTo(final DateHolder o)
   {
     return calendar.compareTo(o.calendar);
