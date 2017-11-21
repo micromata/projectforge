@@ -117,8 +117,11 @@ public class AuftragAndRechnungDaoHelper
     final BigDecimal zahlBetrag = rechnung.getZahlBetrag();
     final boolean zahlBetragExists = (zahlBetrag != null && zahlBetrag.compareTo(BigDecimal.ZERO) != 0);
 
-    if ((bezahlDatum != null && zahlBetragExists == false) || (bezahlDatum == null && zahlBetragExists == true)) {
-      throw new UserException("fibu.rechnung.error.bezahlDatumUndZahlbetragRequired");
+    if (bezahlDatum != null && zahlBetragExists == false) {
+      throw new UserException("fibu.rechnung.error.zahlbetragRequired");
+    }
+    if (bezahlDatum == null && zahlBetragExists == true) {
+      throw new UserException("fibu.rechnung.error.bezahlDatumRequired");
     }
   }
 }
