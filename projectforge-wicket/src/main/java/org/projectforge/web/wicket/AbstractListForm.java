@@ -254,7 +254,7 @@ public abstract class AbstractListForm<F extends BaseSearchFilter, P extends Abs
       }
     };
     cancelButton.setDefaultFormProcessing(false);
-    cancelButtonPanel = new SingleButtonPanel(getNewActionButtonChildId(), cancelButton, getString("cancel"),
+    cancelButtonPanel = new SingleButtonPanel(getNewActionButtonChildId(), cancelButton, getCancelButtonLabel(),
         SingleButtonPanel.CANCEL);
     addActionButton(cancelButtonPanel);
 
@@ -279,7 +279,7 @@ public abstract class AbstractListForm<F extends BaseSearchFilter, P extends Abs
         getParentPage().onNextSubmit();
       }
     };
-    nextButtonPanel = new SingleButtonPanel(getNewActionButtonChildId(), nextButton, getString("next"),
+    nextButtonPanel = new SingleButtonPanel(getNewActionButtonChildId(), nextButton, getNextButtonLabel(),
         SingleButtonPanel.DEFAULT_SUBMIT);
     addActionButton(nextButtonPanel);
 
@@ -296,6 +296,16 @@ public abstract class AbstractListForm<F extends BaseSearchFilter, P extends Abs
     addActionButton(searchButtonPanel);
 
     setComponentsVisibility();
+  }
+
+  protected String getCancelButtonLabel()
+  {
+    return getString("cancel");
+  }
+
+  protected String getNextButtonLabel()
+  {
+    return getString("next");
   }
 
   protected String getOptionsLabel()
