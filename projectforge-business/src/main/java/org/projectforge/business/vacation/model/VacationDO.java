@@ -211,10 +211,12 @@ public class VacationDO extends DefaultBaseDO
   public VacationMode getVacationmode()
   {
     final Integer currentUserId = ThreadLocalUserContext.getUserId();
-    if (currentUserId.equals(employee.getUser().getPk())) {
+    final Integer employeeUserId = (employee != null && employee.getUser() != null) ? employee.getUser().getPk() : null;
+    final Integer managerUserId = (manager != null && manager.getUser() != null) ? manager.getUser().getPk() : null;
+    if (currentUserId.equals(employeeUserId)) {
       return VacationMode.OWN;
     }
-    if (currentUserId.equals(manager.getUser().getPk())) {
+    if (currentUserId.equals(managerUserId)) {
       return VacationMode.MANAGER;
     }
     if (isSubstitution(currentUserId)) {

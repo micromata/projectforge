@@ -32,7 +32,7 @@ import java.util.regex.Pattern;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.Predicate;
-import org.apache.commons.lang.ObjectUtils;
+import org.apache.commons.lang3.ObjectUtils;
 import org.projectforge.business.fibu.KostFormatter;
 import org.projectforge.business.fibu.kost.AccountingConfig;
 import org.projectforge.business.fibu.kost.BuchungssatzDO;
@@ -365,6 +365,7 @@ public class Report implements Serializable
   public void select(final List<BuchungssatzDO> list)
   {
     final Predicate regExpPredicate = new Predicate() {
+      @Override
       public boolean evaluate(final Object obj)
       {
         final BuchungssatzDO satz = (BuchungssatzDO) obj;

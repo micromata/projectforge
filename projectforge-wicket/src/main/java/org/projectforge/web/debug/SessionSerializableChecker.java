@@ -35,7 +35,7 @@ import javax.servlet.http.HttpSession;
 import javax.servlet.http.HttpSessionAttributeListener;
 import javax.servlet.http.HttpSessionBindingEvent;
 
-import org.apache.commons.lang.ClassUtils;
+import org.apache.commons.lang3.ClassUtils;
 import org.projectforge.web.WebConfiguration;
 import org.projectforge.web.wicket.WicketApplication;
 
@@ -54,6 +54,7 @@ public class SessionSerializableChecker implements HttpSessionAttributeListener
   /**
    * @see javax.servlet.http.HttpSessionAttributeListener#attributeAdded(javax.servlet.http.HttpSessionBindingEvent)
    */
+  @Override
   public void attributeAdded(final HttpSessionBindingEvent evt)
   {
     if (WebConfiguration.isDevelopmentMode() == true) {
@@ -64,6 +65,7 @@ public class SessionSerializableChecker implements HttpSessionAttributeListener
   /**
    * @see javax.servlet.http.HttpSessionAttributeListener#attributeRemoved(javax.servlet.http.HttpSessionBindingEvent)
    */
+  @Override
   public void attributeRemoved(final HttpSessionBindingEvent evt)
   {
   }
@@ -71,6 +73,7 @@ public class SessionSerializableChecker implements HttpSessionAttributeListener
   /**
    * @see javax.servlet.http.HttpSessionAttributeListener#attributeReplaced(javax.servlet.http.HttpSessionBindingEvent)
    */
+  @Override
   public void attributeReplaced(final HttpSessionBindingEvent evt)
   {
     if (WebConfiguration.isDevelopmentMode() == true) {

@@ -4,7 +4,6 @@ import javax.annotation.PostConstruct;
 import javax.persistence.EntityManagerFactory;
 import javax.sql.DataSource;
 
-import org.apache.commons.dbcp.BasicDataSource;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.projectforge.continuousdb.DatabaseSupport;
@@ -16,6 +15,7 @@ import org.projectforge.web.servlet.SMSReceiverServlet;
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.jdbc.DataSourceBuilder;
 import org.springframework.boot.autoconfigure.web.ServerProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -82,12 +82,13 @@ public class TestConfiguration
   @Bean
   public DataSource dataSource()
   {
-    BasicDataSource dataSource = new BasicDataSource();
-    dataSource.setDriverClassName(datasourceDriver);
-    dataSource.setUrl(datasourceUrl);
-    dataSource.setUsername(datasourceUsername);
-    dataSource.setPassword(datasourcePassword);
-    return dataSource;
+    return DataSourceBuilder
+        .create()
+        .username(datasourceUsername)
+        .password(datasourcePassword)
+        .url(datasourceUrl)
+        .driverClassName(datasourceDriver)
+        .build();
   }
 
   @Bean

@@ -28,7 +28,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.TreeSet;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.projectforge.business.multitenancy.TenantService;
 import org.projectforge.business.multitenancy.TenantsComparator;
 import org.projectforge.common.StringHelper;

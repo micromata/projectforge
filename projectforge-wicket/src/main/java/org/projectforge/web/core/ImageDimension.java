@@ -23,9 +23,9 @@
 
 package org.projectforge.web.core;
 
-import java.awt.Dimension;
+import java.awt.*;
 
-import org.apache.commons.lang.builder.ReflectionToStringBuilder;
+import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.projectforge.framework.xstream.XmlField;
 import org.projectforge.framework.xstream.XmlObject;
 

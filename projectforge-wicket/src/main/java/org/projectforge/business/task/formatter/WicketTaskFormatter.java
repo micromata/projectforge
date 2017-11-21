@@ -25,7 +25,7 @@ package org.projectforge.business.task.formatter;
 
 import java.util.List;
 
-import org.apache.commons.lang.Validate;
+import org.apache.commons.lang3.Validate;
 import org.apache.wicket.request.cycle.RequestCycle;
 import org.hibernate.Hibernate;
 import org.projectforge.business.task.TaskDO;
