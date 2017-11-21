@@ -14,7 +14,7 @@ import java.util.Queue;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-import org.apache.commons.lang.ObjectUtils;
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.log4j.Logger;
 import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.framework.configuration.ApplicationContextProvider;
@@ -65,7 +65,7 @@ public class HistoryBaseDaoAdapter
     long begin = System.currentTimeMillis();
     HistoryService histservice = HistoryServiceManager.get().getHistoryService();
     PfEmgrFactory emf = ApplicationContextProvider.getApplicationContext().getBean(PfEmgrFactory.class);
-    List<? extends HistoryEntry> ret = emf.runWoTrans((emgr) -> {
+    List<? extends HistoryEntry> ret = emf.runInTrans((emgr) -> {
       return histservice.getHistoryEntries(emgr, ob);
     });
     List<? extends HistoryEntry> nret = ret.stream()

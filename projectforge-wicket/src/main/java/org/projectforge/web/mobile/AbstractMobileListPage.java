@@ -25,7 +25,7 @@ package org.projectforge.web.mobile;
 
 import java.util.List;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.projectforge.framework.persistence.api.BaseDO;

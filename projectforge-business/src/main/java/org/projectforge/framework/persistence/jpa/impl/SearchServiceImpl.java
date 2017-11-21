@@ -100,7 +100,7 @@ public class SearchServiceImpl implements SearchService
   public <ENT extends ExtendedBaseDO<Integer>> List<ENT> internalGetList(QueryFilter filter, Class<ENT> entClazz)
       throws AccessException
   {
-    return emf.runWoTrans((emgr) -> getListInternal(emgr, filter, entClazz));
+    return emf.runInTrans((emgr) -> getListInternal(emgr, filter, entClazz));
 
   }
 

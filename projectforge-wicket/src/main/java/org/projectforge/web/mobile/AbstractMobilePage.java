@@ -25,7 +25,7 @@ package org.projectforge.web.mobile;
 
 import java.text.MessageFormat;
 
-import org.apache.commons.lang.StringEscapeUtils;
+import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.wicket.Application;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.markup.head.CssReferenceHeaderItem;
@@ -196,7 +196,7 @@ public abstract class AbstractMobilePage extends WebPage
    */
   protected String escapeHtml(final String str)
   {
-    return StringEscapeUtils.escapeHtml(str);
+    return StringEscapeUtils.escapeHtml4(str);
   }
 
   /**

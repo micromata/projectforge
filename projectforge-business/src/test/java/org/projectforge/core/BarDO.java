@@ -23,7 +23,7 @@
 
 package org.projectforge.core;
 
-import org.apache.commons.lang.builder.HashCodeBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.projectforge.framework.persistence.entities.DefaultBaseDO;
 
 

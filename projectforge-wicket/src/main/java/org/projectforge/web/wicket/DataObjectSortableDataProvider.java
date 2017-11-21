@@ -31,8 +31,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.function.Supplier;
 
-import org.apache.commons.lang.ObjectUtils;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.ObjectUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
 import org.apache.wicket.extensions.markup.html.repeater.util.SortParam;
@@ -44,9 +44,8 @@ import org.projectforge.framework.utils.MyBeanComparator;
 
 /**
  * Stores list of result sets (id's) for pagination and provides iterator of data-base objects on demand.
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
  */
 public class DataObjectSortableDataProvider<T extends IdObject<?>> extends SortableDataProvider<T, String>
 {

@@ -38,9 +38,9 @@ import javax.persistence.Table;
 import javax.persistence.Transient;
 import javax.persistence.UniqueConstraint;
 
-import org.apache.commons.lang.ObjectUtils;
-import org.apache.commons.lang.builder.HashCodeBuilder;
-import org.apache.commons.lang.builder.ToStringBuilder;
+import org.apache.commons.lang3.ObjectUtils;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.hibernate.search.annotations.Indexed;
 import org.projectforge.framework.persistence.api.BaseDO;
 import org.projectforge.framework.persistence.api.ModificationStatus;
@@ -83,6 +83,7 @@ public class AccessEntryDO implements Comparable<AccessEntryDO>, Serializable, B
 
   private Integer id;
 
+  @Override
   @Id
   @GeneratedValue
   @Column(name = "pk")
@@ -91,6 +92,7 @@ public class AccessEntryDO implements Comparable<AccessEntryDO>, Serializable, B
     return id;
   }
 
+  @Override
   public void setId(final Integer id)
   {
     this.id = id;
@@ -131,6 +133,7 @@ public class AccessEntryDO implements Comparable<AccessEntryDO>, Serializable, B
    * @return Always false.
    * @see org.projectforge.framework.persistence.api.BaseDO#isMinorChange()
    */
+  @Override
   @Transient
   public boolean isMinorChange()
   {
@@ -142,6 +145,7 @@ public class AccessEntryDO implements Comparable<AccessEntryDO>, Serializable, B
    * 
    * @see org.projectforge.framework.persistence.api.BaseDO#setMinorChange(boolean)
    */
+  @Override
   public void setMinorChange(final boolean value)
   {
     throw new UnsupportedOperationException();
@@ -249,6 +253,7 @@ public class AccessEntryDO implements Comparable<AccessEntryDO>, Serializable, B
   /*
    * @see java.lang.Comparable#compareTo(java.lang.Object)
    */
+  @Override
   public int compareTo(final AccessEntryDO o)
   {
     return this.accessType.compareTo(o.accessType);
@@ -297,16 +302,19 @@ public class AccessEntryDO implements Comparable<AccessEntryDO>, Serializable, B
    * 
    * @param src
    */
+  @Override
   public ModificationStatus copyValuesFrom(final BaseDO<? extends Serializable> src, final String... ignoreFields)
   {
     return AbstractBaseDO.copyValues(src, this, ignoreFields);
   }
 
+  @Override
   public Object getTransientAttribute(final String key)
   {
     throw new UnsupportedOperationException();
   }
 
+  @Override
   public void setTransientAttribute(final String key, final Object value)
   {
     throw new UnsupportedOperationException();

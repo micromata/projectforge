@@ -28,7 +28,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.form.TextField;
@@ -604,5 +604,5 @@ class AddressPageSupport implements Serializable
     }
 
     final String addressType, addressTextProperty, zipCodeProperty, cityProperty, countryProperty, stateProperty;
-  };
+  }
 }

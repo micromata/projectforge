@@ -25,7 +25,7 @@ package org.projectforge.mail;
 
 import javax.annotation.PostConstruct;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.projectforge.business.configuration.ConfigurationService;
 import org.projectforge.framework.configuration.ConfigurationData;
 import org.springframework.beans.factory.annotation.Autowired;

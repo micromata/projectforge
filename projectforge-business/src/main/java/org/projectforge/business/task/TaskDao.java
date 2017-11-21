@@ -29,9 +29,9 @@ import java.util.Collection;
 import java.util.List;
 
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang.ObjectUtils;
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.Validate;
+import org.apache.commons.lang3.ObjectUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Validate;
 import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Restrictions;
 import org.projectforge.business.fibu.ProjektDO;
@@ -57,9 +57,7 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- *
  */
 @Repository
 @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
@@ -96,7 +94,7 @@ public class TaskDao extends BaseDao<TaskDO>
 
   /**
    * Checks constraint violation.
-   * 
+   *
    * @see org.projectforge.framework.persistence.api.BaseDao#onSaveOrModify(org.projectforge.core.ExtendedBaseDO)
    */
   @Override
@@ -143,7 +141,7 @@ public class TaskDao extends BaseDao<TaskDO>
 
   /**
    * Gets the total duration of all time sheets of all tasks (excluding the child tasks).
-   * 
+   *
    * @param node
    * @return
    */
@@ -189,7 +187,7 @@ public class TaskDao extends BaseDao<TaskDO>
 
   /**
    * Gets the total duration of all time sheets of the given task (excluding the child tasks).
-   * 
+   *
    * @param node
    * @return
    */
@@ -270,7 +268,7 @@ public class TaskDao extends BaseDao<TaskDO>
 
   /**
    * Checks if the given task has already a sister task with the same title.
-   * 
+   *
    * @param task
    * @throws UserException
    */
@@ -311,7 +309,7 @@ public class TaskDao extends BaseDao<TaskDO>
 
   /**
    * Must be visible for TaskTree.
-   * 
+   *
    * @see org.projectforge.framework.persistence.api.BaseDao#hasSelectAccess(java.lang.Object, boolean)
    */
   @Override
@@ -544,7 +542,7 @@ public class TaskDao extends BaseDao<TaskDO>
 
   /**
    * Checks only root task (can't be deleted).
-   * 
+   *
    * @see org.projectforge.framework.persistence.api.BaseDao#onDelete(org.projectforge.core.ExtendedBaseDO)
    */
   @Override
@@ -569,9 +567,9 @@ public class TaskDao extends BaseDao<TaskDO>
 
   /**
    * Re-index all dependent objects only if the title was changed.
-   * 
+   *
    * @see org.projectforge.framework.persistence.api.BaseDao#wantsReindexAllDependentObjects(org.projectforge.core.ExtendedBaseDO,
-   *      org.projectforge.core.ExtendedBaseDO)
+   * org.projectforge.core.ExtendedBaseDO)
    */
   @Override
   protected boolean wantsReindexAllDependentObjects(final TaskDO obj, final TaskDO dbObj)
