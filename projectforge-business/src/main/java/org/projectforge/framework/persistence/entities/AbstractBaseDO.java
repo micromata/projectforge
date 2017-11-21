@@ -38,7 +38,7 @@ import javax.persistence.ManyToOne;
 import javax.persistence.MappedSuperclass;
 import javax.persistence.Transient;
 
-import org.apache.commons.lang.ClassUtils;
+import org.apache.commons.lang3.ClassUtils;
 import org.projectforge.common.anots.PropertyInfo;
 import org.projectforge.framework.persistence.api.BaseDO;
 import org.projectforge.framework.persistence.api.ExtendedBaseDO;

@@ -28,13 +28,13 @@ import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.apache.wicket.util.convert.IConverter;
-import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.business.fibu.KontoCache;
 import org.projectforge.business.fibu.KontoDO;
 import org.projectforge.business.fibu.KundeDO;
 import org.projectforge.business.fibu.KundeStatus;
 import org.projectforge.business.fibu.kost.AccountingConfig;
 import org.projectforge.web.wicket.AbstractEditForm;
+import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.web.wicket.components.LabelValueChoiceRenderer;
 import org.projectforge.web.wicket.components.MaxLengthTextArea;
 import org.projectforge.web.wicket.components.MaxLengthTextField;
@@ -79,6 +79,7 @@ public class CustomerEditForm extends AbstractEditForm<KundeDO, CustomerEditPage
           return new IntegerConverter(3);
         }
       };
+      number.setRequired(true);
       WicketUtils.setSize(number, 7);
       fs.add(number);
       if (isNew() == true) {
@@ -136,5 +137,11 @@ public class CustomerEditForm extends AbstractEditForm<KundeDO, CustomerEditPage
   protected Logger getLogger()
   {
     return log;
+  }
+
+  @Override
+  public boolean isNew()
+  {
+    return parentPage.isNew();
   }
 }

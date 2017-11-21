@@ -26,7 +26,7 @@ package org.projectforge.plugins.crm;
 import java.util.List;
 import java.util.Locale;
 
-import org.apache.commons.lang.Validate;
+import org.apache.commons.lang3.Validate;
 import org.projectforge.business.task.TaskDO;
 import org.projectforge.business.task.TaskDao;
 import org.projectforge.framework.access.AccessType;

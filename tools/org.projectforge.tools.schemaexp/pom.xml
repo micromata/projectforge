@@ -29,12 +29,6 @@
       <type>test-jar</type>
     </dependency>
     <dependency>
-      <groupId>de.micromata.mgc</groupId>
-      <artifactId>de.micromata.mgc.common.test</artifactId>
-      <version>${mgc.version}</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
       <groupId>org.postgresql</groupId>
       <artifactId>postgresql</artifactId>
       <version>${postgresql.version}</version>

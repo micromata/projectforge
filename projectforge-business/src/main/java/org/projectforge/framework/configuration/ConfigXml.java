@@ -35,11 +35,11 @@ import java.util.Locale;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang.ArrayUtils;
-import org.apache.commons.lang.ClassUtils;
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.Validate;
-import org.apache.commons.lang.builder.ReflectionToStringBuilder;
+import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.ClassUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Validate;
+import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.dom4j.Element;
 import org.projectforge.business.excel.ExportConfig;
 import org.projectforge.business.fibu.kost.AccountingConfig;
@@ -706,7 +706,6 @@ public class ConfigXml
         return super.getValue(field);
       }
 
-      ;
     }.toString();
   }
 }

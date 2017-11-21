@@ -11,8 +11,8 @@ import java.util.TreeSet;
 
 import javax.persistence.Id;
 
-import org.apache.commons.lang.ArrayUtils;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.apache.lucene.analysis.standard.ClassicAnalyzer;
 import org.apache.lucene.queryparser.classic.MultiFieldQueryParser;
@@ -38,9 +38,8 @@ import de.micromata.genome.util.runtime.ClassUtils;
 
 /**
  * Some methods pulled out of BaseDao.
- * 
- * @author Roger Rene Kommer (r.kommer.extern@micromata.de)
  *
+ * @author Roger Rene Kommer (r.kommer.extern@micromata.de)
  */
 public class HibernateSearchFilterUtils
 {
@@ -59,8 +58,6 @@ public class HibernateSearchFilterUtils
    * Additional allowed characters (at first position) for search string modification with wildcards. Do not forget to
    * update I18nResources.properties and the user documentation after any changes. <br/>
    * ALLOWED_BEGINNING_CHARS =
-   * 
-   * @._
    */
   private static final String ALLOWED_BEGINNING_CHARS = "@._*";
   /**
@@ -72,13 +69,13 @@ public class HibernateSearchFilterUtils
    * If the search string starts with "'" then the searchString will be returned without leading "'". If the search
    * string consists only of alphanumeric characters and allowed chars and spaces the wild card character '*' will be
    * appended for enable ...* search. Otherwise the searchString itself will be returned.
-   * 
+   *
    * @param searchString
-   * @param andSearch If true then all terms must match (AND search), otherwise OR will used (default)
+   * @param andSearch    If true then all terms must match (AND search), otherwise OR will used (default)
+   * @return The modified search string or the original one if no modification was done.
    * @see #ALLOWED_CHARS
    * @see #ALLOWED_BEGINNING_CHARS
    * @see #ESCAPE_CHARS
-   * @return The modified search string or the original one if no modification was done.
    */
   public static String modifySearchString(final String searchString, final boolean andSearch)
   {
@@ -136,7 +133,7 @@ public class HibernateSearchFilterUtils
 
   /**
    * Does nothing (because it seems to be work better in most times). Quotes special Lucene characters: '-' -> "\-"
-   * 
+   *
    * @param searchToken One word / token of the search string (one entry of StringUtils.split(searchString, ' ')).
    * @return
    */

@@ -29,7 +29,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;

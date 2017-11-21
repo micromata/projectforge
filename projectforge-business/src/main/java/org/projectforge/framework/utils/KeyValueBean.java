@@ -25,7 +25,7 @@ package org.projectforge.framework.utils;
 
 import java.io.Serializable;
 
-import org.apache.commons.lang.builder.ToStringBuilder;
+import org.apache.commons.lang3.builder.ToStringBuilder;
 
 /**
  * Simply an holder for a key value property.
@@ -74,6 +74,7 @@ public class KeyValueBean<KeyType, ValueType extends Comparable<ValueType>> impl
   /*
    * @see java.lang.Comparable#compareTo(java.lang.Object)
    */
+  @Override
   public int compareTo(KeyValueBean<KeyType, ValueType> o)
   {
     return this.value.compareTo(o.value);

@@ -30,7 +30,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.projectforge.business.login.LoginResult;
 import org.projectforge.business.login.LoginResultStatus;
 import org.projectforge.business.multitenancy.TenantRegistryMap;
