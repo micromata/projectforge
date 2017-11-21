@@ -21,6 +21,7 @@ import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.ResourceModel;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.projectforge.business.configuration.ConfigurationService;
 import org.projectforge.business.fibu.EmployeeDO;
 import org.projectforge.business.fibu.EmployeeStatus;
@@ -145,7 +146,9 @@ public class VacationViewHelper
     sectionBottom.add(new Heading3Panel(sectionBottom.newChildId(),
         I18nHelper.getLocalizedMessage("vacation.title.list") + " " + now.get(Calendar.YEAR)));
     if (showAddButton) {
-      LinkPanel addLink = new LinkPanel(sectionBottom.newChildId(), I18nHelper.getLocalizedMessage("add"), VacationEditPage.class, returnToPage);
+      final PageParameters pageParameter = new PageParameters();
+      pageParameter.add("employeeId", currentEmployee.getId());
+      LinkPanel addLink = new LinkPanel(sectionBottom.newChildId(), I18nHelper.getLocalizedMessage("add"), VacationEditPage.class, returnToPage, pageParameter);
       addLink.addLinkAttribute("class", "btn btn-sm btn-success bottom-xs-gap");
       sectionBottom.add(addLink);
     }
