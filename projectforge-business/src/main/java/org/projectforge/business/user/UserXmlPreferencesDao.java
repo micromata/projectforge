@@ -29,9 +29,9 @@ import java.util.Map;
 
 import javax.annotation.PostConstruct;
 
-import org.apache.commons.lang.ObjectUtils;
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.Validate;
+import org.apache.commons.lang3.ObjectUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Validate;
 import org.projectforge.business.multitenancy.TenantDao;
 import org.projectforge.business.refactoring.RefactoringService;
 import org.projectforge.business.scripting.xstream.RecentScriptCalls;

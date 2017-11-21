@@ -25,7 +25,7 @@ package org.projectforge.model.rest;
 
 import java.lang.reflect.Field;
 
-import org.apache.commons.lang.builder.ReflectionToStringBuilder;
+import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 
 /**
  * For documentation please refer the ProjectForge-API: TeamCalDO object.

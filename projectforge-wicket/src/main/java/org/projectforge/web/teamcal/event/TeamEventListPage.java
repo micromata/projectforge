@@ -28,7 +28,7 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
@@ -112,6 +112,7 @@ public class TeamEventListPage extends AbstractListPage<TeamEventListForm, TeamE
 
     final CellItemListener<TeamEventDO> cellItemListener = new CellItemListener<TeamEventDO>()
     {
+      @Override
       public void populateItem(final Item<ICellPopulator<TeamEventDO>> item, final String componentId,
           final IModel<TeamEventDO> rowModel)
       {

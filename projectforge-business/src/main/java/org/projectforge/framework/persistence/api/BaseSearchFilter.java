@@ -26,7 +26,7 @@ package org.projectforge.framework.persistence.api;
 import java.io.Serializable;
 import java.util.Date;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * Base search filter supported by the DAO's for filtering the result lists. The search filter will be translated via

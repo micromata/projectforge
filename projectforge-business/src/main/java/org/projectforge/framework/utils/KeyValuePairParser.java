@@ -29,7 +29,7 @@ import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * Simple key value parser
@@ -135,7 +135,6 @@ public class KeyValuePairParser
         buf.append(cval);
       }
     }
-    ;
     return buf.toString();
   }
 

@@ -27,24 +27,23 @@ import java.math.BigDecimal;
 import java.util.Iterator;
 import java.util.Set;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.Link;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.business.fibu.AuftragsPositionVO;
 import org.projectforge.framework.utils.NumberFormatter;
 import org.projectforge.web.wicket.AbstractEditPage;
 import org.projectforge.web.wicket.AbstractSecuredPage;
-
+import org.projectforge.web.wicket.WicketUtils;
 
 /**
  * This panel shows order positions including links to the corresponding order pages.
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
  */
 public class OrderPositionsPanel extends Panel
 {
@@ -84,7 +83,8 @@ public class OrderPositionsPanel extends Panel
           }
           previousOrderPosition = orderPosition;
           item.add(separatorLabel);
-          link = new Link<String>("link") {
+          link = new Link<String>("link")
+          {
             @Override
             public void onClick()
             {
@@ -93,7 +93,7 @@ public class OrderPositionsPanel extends Panel
               final AuftragEditPage page = new AuftragEditPage(params);
               page.setReturnToPage((AbstractSecuredPage) getPage());
               setResponsePage(page);
-            };
+            }
           };
           item.add(link);
           link.add(new Label("label", String.valueOf(orderPosition.getAuftragNummer())));
