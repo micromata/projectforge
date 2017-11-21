@@ -1,0 +1,1 @@
+DELETE FROM t_user_xml_prefs WHERE key = 'usersMenu';

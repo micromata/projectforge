@@ -40,7 +40,6 @@ import org.projectforge.web.FavoritesMenu;
 import org.projectforge.web.Menu;
 import org.projectforge.web.MenuBuilder;
 import org.projectforge.web.MenuEntry;
-import org.projectforge.web.wicket.AbstractSecuredPage;
 import org.projectforge.web.wicket.WicketUtils;
 
 /**
@@ -50,8 +49,6 @@ public abstract class NavAbstractPanel extends Panel
 {
   private static final long serialVersionUID = -1019454504282157440L;
 
-  public static final String USER_PREF_MENU_KEY = "usersMenu";
-
   private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(NavAbstractPanel.class);
 
   protected Menu menu;
@@ -59,7 +56,7 @@ public abstract class NavAbstractPanel extends Panel
   protected FavoritesMenu favoritesMenu;
 
   @SpringBean
-  MenuBuilder menuBuilder;
+  private MenuBuilder menuBuilder;
 
   public NavAbstractPanel(final String id)
   {
@@ -125,23 +122,8 @@ public abstract class NavAbstractPanel extends Panel
 
   public Menu getMenu()
   {
-    if (menu != null) {
-      return menu;
-    }
-    AbstractSecuredPage securedPage = null;
-    if (getPage() instanceof AbstractSecuredPage) {
-      securedPage = ((AbstractSecuredPage) getPage());
-      menu = (Menu) securedPage.getUserPrefEntry(USER_PREF_MENU_KEY);
-      if (menu != null) {
-        return menu;
-      }
-    }
-    if (log.isDebugEnabled() == true) {
-      log.debug("Build new menu.");
-    }
-    menu = menuBuilder.getMenu(ThreadLocalUserContext.getUser());
-    if (securedPage != null) {
-      securedPage.putUserPrefEntry(USER_PREF_MENU_KEY, menu, false);
+    if (menu == null) {
+      menu = menuBuilder.getMenu(ThreadLocalUserContext.getUser());
     }
     return menu;
   }
