@@ -76,7 +76,6 @@ public class EmployeeServiceImpl extends CorePersistenceServiceImpl<Integer, Emp
   @Autowired
   private VacationService vacationService;
 
-
   @Autowired
   private TimesheetDao timesheetDao;
 
@@ -276,7 +275,8 @@ public class EmployeeServiceImpl extends CorePersistenceServiceImpl<Integer, Emp
     return checkAccess ? employeeDao.getList(new EmployeeFilter()) : employeeDao.internalLoadAll();
   }
 
-  @Override public EmployeeStatus getEmployeeStatus(final EmployeeDO employee)
+  @Override
+  public EmployeeStatus getEmployeeStatus(final EmployeeDO employee)
   {
     final EmployeeTimedDO attrRow = timeableService
         .getAttrRowValidAtDate(employee, InternalAttrSchemaConstants.EMPLOYEE_STATUS_GROUP_NAME, new Date());
@@ -295,19 +295,25 @@ public class EmployeeServiceImpl extends CorePersistenceServiceImpl<Integer, Emp
     Calendar deadline = new GregorianCalendar(ThreadLocalUserContext.getTimeZone());
 
     eintrittsDatum.setTime(currentEmployee.getEintrittsDatum());
-    deadline.add(Calendar.MONTH, 6);
+    deadline.add(Calendar.MONTH, -7);
+    now.add(Calendar.MONTH, -1);
 
-    if (eintrittsDatum.before(deadline)) {
-      if (now.get(Calendar.MONTH) >= 5) {
-        vacationCountPerDay = vacationService.getVacationCount(now.get(Calendar.YEAR), now.get(Calendar.MONTH) - 5, now.get(Calendar.YEAR), now.get(Calendar.MONTH),
-            currentEmployee.getUser());
+    if (eintrittsDatum.before(now)) {
+      if (eintrittsDatum.before(deadline)) {
+        if (now.get(Calendar.MONTH) >= Calendar.JUNE) {
+          vacationCountPerDay = vacationService
+              .getVacationCount(now.get(Calendar.YEAR), now.get(Calendar.MONTH) - 5, now.get(Calendar.YEAR), now.get(Calendar.MONTH),
+                  currentEmployee.getUser());
+        } else {
+          vacationCountPerDay = vacationService
+              .getVacationCount(now.get(Calendar.YEAR) - 1, 12 - (6 - now.get(Calendar.MONTH) + 1), now.get(Calendar.YEAR), now.get(Calendar.MONTH),
+                  currentEmployee.getUser());
+        }
       } else {
-        vacationCountPerDay = vacationService.getVacationCount(now.get(Calendar.YEAR) - 1, 12 - (6 - now.get(Calendar.MONTH) + 1), now.get(Calendar.YEAR), now.get(Calendar.MONTH),
-            currentEmployee.getUser());
+        vacationCountPerDay = vacationService
+            .getVacationCount(eintrittsDatum.get(Calendar.YEAR), eintrittsDatum.get(Calendar.MONTH), now.get(Calendar.YEAR), now.get(Calendar.MONTH),
+                currentEmployee.getUser());
       }
-    } else {
-      vacationCountPerDay = vacationService.getVacationCount(eintrittsDatum.get(Calendar.YEAR), eintrittsDatum.get(Calendar.MONTH), now.get(Calendar.YEAR), now.get(Calendar.MONTH),
-          currentEmployee.getUser());
     }
     return vacationCountPerDay;
   }
