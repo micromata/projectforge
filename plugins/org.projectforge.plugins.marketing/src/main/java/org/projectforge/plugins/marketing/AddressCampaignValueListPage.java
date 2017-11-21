@@ -31,7 +31,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
@@ -103,6 +103,7 @@ public class AddressCampaignValueListPage extends AbstractListPage<AddressCampai
     newItemMenuEntry.setVisibilityAllowed(false);
   }
 
+  @Override
   public List<IColumn<AddressDO, String>> createColumns(final WebPage returnToPage, final boolean sortable)
   {
     return createColumns(returnToPage, sortable, false);
@@ -125,6 +126,7 @@ public class AddressCampaignValueListPage extends AbstractListPage<AddressCampai
     final List<IColumn<AddressDO, String>> columns = new ArrayList<IColumn<AddressDO, String>>();
     final CellItemListener<AddressDO> cellItemListener = new CellItemListener<AddressDO>()
     {
+      @Override
       public void populateItem(final Item<ICellPopulator<AddressDO>> item, final String componentId,
           final IModel<AddressDO> rowModel)
       {
@@ -144,8 +146,8 @@ public class AddressCampaignValueListPage extends AbstractListPage<AddressCampai
         }
         if (address.getAddressStatus().isIn(AddressStatus.LEAVED, AddressStatus.OUTDATED) == true
             || address.getContactStatus().isIn(ContactStatus.DEPARTED, ContactStatus.NON_ACTIVE,
-                ContactStatus.PERSONA_INGRATA,
-                ContactStatus.UNINTERESTING, ContactStatus.DEPARTED) == true) {
+            ContactStatus.PERSONA_INGRATA,
+            ContactStatus.UNINTERESTING, ContactStatus.DEPARTED) == true) {
           appendCssClasses(item, RowCssClass.MARKED_AS_DELETED);
         }
       }

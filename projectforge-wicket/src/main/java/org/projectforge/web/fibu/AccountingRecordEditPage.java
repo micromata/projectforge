@@ -28,6 +28,8 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.fibu.kost.BuchungssatzDO;
 import org.projectforge.business.fibu.kost.BuchungssatzDao;
+import org.projectforge.business.user.UserRightId;
+import org.projectforge.business.user.UserRightValue;
 import org.projectforge.web.wicket.AbstractEditPage;
 import org.projectforge.web.wicket.EditPage;
 
@@ -45,7 +47,14 @@ public class AccountingRecordEditPage
   public AccountingRecordEditPage(final PageParameters parameters)
   {
     super(parameters, "fibu.buchungssatz");
+    checkAccess();
     init();
+  }
+
+  private void checkAccess()
+  {
+    accessChecker.checkLoggedInUserRight(UserRightId.FIBU_DATEV_IMPORT, UserRightValue.TRUE);
+    accessChecker.checkRestrictedOrDemoUser();
   }
 
   @Override

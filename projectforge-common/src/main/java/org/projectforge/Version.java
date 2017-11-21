@@ -25,7 +25,7 @@ package org.projectforge;
 
 import java.io.Serializable;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * Represents a version number (major-release, minor-release, patch-level and build-number).

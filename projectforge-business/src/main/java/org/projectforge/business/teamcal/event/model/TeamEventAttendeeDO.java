@@ -36,8 +36,8 @@ import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import javax.persistence.Transient;
 
-import org.apache.commons.lang.ObjectUtils;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.ObjectUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.hibernate.search.annotations.Indexed;
 import org.projectforge.business.address.AddressDO;
 import org.projectforge.framework.persistence.entities.DefaultBaseDO;

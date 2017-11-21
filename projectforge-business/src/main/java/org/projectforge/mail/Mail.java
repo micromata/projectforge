@@ -31,8 +31,8 @@ import javax.mail.Message;
 import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
 
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.builder.ToStringBuilder;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 
 /**
@@ -312,6 +312,7 @@ public class Mail implements Comparable<Mail>
     return sb.toString();
   }
 
+  @Override
   public int compareTo(Mail o)
   {
     if (this.messageNumber < o.messageNumber) {

@@ -26,7 +26,7 @@ package org.projectforge.framework.utils;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * Some helper methods ...

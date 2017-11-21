@@ -25,7 +25,7 @@ package org.projectforge.business.user;
 
 import java.util.List;
 
-import org.apache.commons.lang.Validate;
+import org.apache.commons.lang3.Validate;
 import org.hibernate.Query;
 import org.projectforge.business.multitenancy.TenantRegistryMap;
 import org.projectforge.framework.access.AccessChecker;

@@ -15,7 +15,7 @@
 package de.micromata.hibernate.history.delta;
 
 import org.apache.commons.beanutils.ConvertUtils;
-import org.apache.commons.lang.ClassUtils;
+import org.apache.commons.lang3.ClassUtils;
 import org.hibernate.HibernateException;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;

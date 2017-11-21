@@ -13,7 +13,7 @@ import java.util.stream.Collectors;
 import java.util.zip.GZIPInputStream;
 
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.projectforge.business.address.AddressDO;
 import org.projectforge.business.address.AddressDao;

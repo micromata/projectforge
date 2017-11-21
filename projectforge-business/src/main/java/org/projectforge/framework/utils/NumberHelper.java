@@ -30,8 +30,8 @@ import java.text.ParseException;
 import java.util.Locale;
 
 import org.apache.commons.codec.binary.Base64;
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.math.NumberUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.log4j.Logger;
 import org.projectforge.framework.configuration.Configuration;
 import org.projectforge.framework.configuration.ConfigurationParam;

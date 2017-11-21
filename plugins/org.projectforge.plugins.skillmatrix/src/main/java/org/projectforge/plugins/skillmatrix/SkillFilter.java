@@ -26,8 +26,8 @@ package org.projectforge.plugins.skillmatrix;
 import java.util.HashMap;
 import java.util.HashSet;
 
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.Validate;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Validate;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 

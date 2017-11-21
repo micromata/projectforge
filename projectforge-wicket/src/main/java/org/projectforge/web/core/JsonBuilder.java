@@ -25,7 +25,7 @@ package org.projectforge.web.core;
 
 import java.util.Collection;
 
-import org.apache.commons.lang.ObjectUtils;
+import org.apache.commons.lang3.ObjectUtils;
 
 public class JsonBuilder
 {

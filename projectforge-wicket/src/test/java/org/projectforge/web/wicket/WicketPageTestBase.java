@@ -25,7 +25,7 @@ package org.projectforge.web.wicket;
 
 import java.util.MissingResourceException;
 
-import org.apache.commons.lang.ClassUtils;
+import org.apache.commons.lang3.ClassUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.MarkupContainer;
