@@ -23,7 +23,7 @@
 
 package org.projectforge.business.scripting;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.projectforge.common.i18n.I18nEnum;
 
 
@@ -78,6 +78,7 @@ public enum ScriptParameterType implements I18nEnum
     return key;
   }
 
+  @Override
   public String getI18nKey()
   {
     return "scripting.script.parameterType." + key;

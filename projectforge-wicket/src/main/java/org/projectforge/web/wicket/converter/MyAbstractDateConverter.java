@@ -31,8 +31,8 @@ import java.util.Date;
 import java.util.Locale;
 import java.util.TimeZone;
 
-import org.apache.commons.lang.ClassUtils;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.ClassUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.datetime.DateConverter;
 import org.apache.wicket.util.convert.ConversionException;
 import org.projectforge.common.DateFormatType;

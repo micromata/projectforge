@@ -23,7 +23,7 @@
 
 package org.projectforge.plugins.licensemanagement;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.projectforge.business.user.UserRightAccessCheck;
 import org.projectforge.business.user.UserRightCategory;
 import org.projectforge.business.user.UserRightValue;

@@ -28,7 +28,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.commons.collections.MapUtils;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -390,8 +390,7 @@ public class MonthlyEmployeeReportPage extends AbstractStandardFormPage implemen
       tdContainer.add(AttributeModifier.replace("style", "font-weight: bold; text-align: right;"));
       final RepeatingView colWeekRepeater = new RepeatingView("colWeekRepeater");
       row.add(colWeekRepeater);
-      for (@SuppressWarnings("unused")
-      final MonthlyEmployeeReportWeek week : report.getWeeks()) {
+      for (@SuppressWarnings("unused") final MonthlyEmployeeReportWeek week : report.getWeeks()) {
         colWeekRepeater.add(new Label(colWeekRepeater.newChildId(), ""));
       }
       row.add(new Label("sum", report.getFormattedTotalGrossDuration()).add(AttributeModifier.replace("style",

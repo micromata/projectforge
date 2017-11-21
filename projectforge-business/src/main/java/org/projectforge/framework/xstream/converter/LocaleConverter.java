@@ -25,7 +25,7 @@ package org.projectforge.framework.xstream.converter;
 
 import java.util.Locale;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 public class LocaleConverter extends AbstractValueConverter<Locale>
 {

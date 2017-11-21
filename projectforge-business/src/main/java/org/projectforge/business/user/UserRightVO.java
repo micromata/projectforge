@@ -25,7 +25,7 @@ package org.projectforge.business.user;
 
 import java.io.Serializable;
 
-import org.apache.commons.lang.builder.ToStringBuilder;
+import org.apache.commons.lang3.builder.ToStringBuilder;
 
 /**
  * Only used e. g. for editing the user rights (especially for the case if the user has no UserRightDO entry in the data base but this right
