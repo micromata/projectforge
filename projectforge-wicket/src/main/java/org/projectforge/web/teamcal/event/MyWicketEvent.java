@@ -23,7 +23,7 @@
 
 package org.projectforge.web.teamcal.event;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.joda.time.Duration;
 import org.joda.time.Period;
 import org.projectforge.business.utils.HtmlHelper;

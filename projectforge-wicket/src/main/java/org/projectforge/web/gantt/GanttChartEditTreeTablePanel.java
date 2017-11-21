@@ -33,8 +33,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.commons.lang.ObjectUtils;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.ObjectUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.behavior.Behavior;
@@ -191,6 +191,7 @@ public class GanttChartEditTreeTablePanel extends DefaultTreeTablePanel<GanttTre
     return this;
   }
 
+  @Override
   public String getImageUrl(final String image)
   {
     return ((AbstractUnsecureBasePage) getPage()).getImageUrl(image);
@@ -215,6 +216,7 @@ public class GanttChartEditTreeTablePanel extends DefaultTreeTablePanel<GanttTre
     }
     final TreeTableFilter<TreeTableNode> filter = new TreeTableFilter<TreeTableNode>()
     {
+      @Override
       public boolean match(final TreeTableNode name)
       {
         return true;
@@ -1111,6 +1113,7 @@ public class GanttChartEditTreeTablePanel extends DefaultTreeTablePanel<GanttTre
         "Please, don't use ajax for tree browsing (otherwise user inputs will be lost if you close trees");
   }
 
+  @Override
   public void cancelSelection(final String property)
   {
   }
@@ -1135,6 +1138,7 @@ public class GanttChartEditTreeTablePanel extends DefaultTreeTablePanel<GanttTre
     }
   }
 
+  @Override
   public void select(final String property, final Object selectedValue)
   {
     if (property.startsWith("startDate:") == true) {
@@ -1180,6 +1184,7 @@ public class GanttChartEditTreeTablePanel extends DefaultTreeTablePanel<GanttTre
     }
   }
 
+  @Override
   public void unselect(final String property)
   {
   }

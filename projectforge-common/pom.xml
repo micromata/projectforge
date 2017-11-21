@@ -35,17 +35,6 @@
       <artifactId>spring-boot-starter-logging</artifactId>
     </dependency>
     <dependency>
-      <groupId>de.micromata.mgc</groupId>
-      <artifactId>de.micromata.mgc.common</artifactId>
-      <version>${mgc.version}</version>
-      <exclusions>
-        <exclusion>
-          <groupId>log4j</groupId>
-          <artifactId>log4j</artifactId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-    <dependency>
       <groupId>com.google.code.gson</groupId>
       <artifactId>gson</artifactId>
       <version>${gson.version}</version>
