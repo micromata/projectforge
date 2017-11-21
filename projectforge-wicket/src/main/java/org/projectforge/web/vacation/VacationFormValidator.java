@@ -61,59 +61,17 @@ public class VacationFormValidator implements IFormValidator
       employee = data.getEmployee();
     }
 
-    //Check, if is only a status change
-    if (statusChoice != null && statusChoice.getConvertedInput() != null && data.getStatus() != null) {
-      if (
-        //Changes from IN_PROGRESS to APPROVED or REJECTED
-          (VacationStatus.IN_PROGRESS.equals(data.getStatus()) && (VacationStatus.APPROVED.equals(statusChoice.getConvertedInput()) || VacationStatus.REJECTED
-              .equals(statusChoice.getConvertedInput())))
-              ||
-              //Changes from REJECTED to APPROVED or IN_PROGRESS
-              (VacationStatus.REJECTED.equals(data.getStatus()) && (VacationStatus.APPROVED.equals(statusChoice.getConvertedInput())
-                  || VacationStatus.IN_PROGRESS.equals(statusChoice.getConvertedInput())))
-          ) {
-        return;
-      }
+    if (checkOnlyStatusChange(statusChoice)) {
+      return;
     }
 
-    //Getting start date from form component or direct from data
-    final Calendar startDate = Calendar.getInstance(ThreadLocalUserContext.getTimeZone());
-    if (startDatePanel != null && startDatePanel.getConvertedInput() != null) {
-      startDate.setTime(startDatePanel.getConvertedInput());
-    } else {
-      startDate.setTime(data.getStartDate());
-    }
-
-    //Getting end date from form component or direct from data
-    final Calendar endDate = Calendar.getInstance(ThreadLocalUserContext.getTimeZone());
-    if (endDatePanel != null && endDatePanel.getConvertedInput() != null) {
-      endDate.setTime(endDatePanel.getConvertedInput());
-    } else {
-      endDate.setTime(data.getEndDate());
-    }
+    final Calendar startDate = getValueFromFormOrData(startDatePanel);
+    final Calendar endDate = getValueFromFormOrData(endDatePanel);
 
     //Getting selected calendars from form component or direct from data
-    final Collection<TeamCalDO> selectedCalendars = new HashSet<>();
-    if (calendars != null && calendars.getConvertedInput() != null && calendars.getConvertedInput().size() > 0) {
-      selectedCalendars.addAll(calendars.getConvertedInput());
-    } else {
-      selectedCalendars.addAll(vacationService.getCalendarsForVacation(this.data));
-    }
+    final Collection<TeamCalDO> selectedCalendars = getSelectedCalendars(calendars);
 
-    if (startDate == null || endDate == null) {
-      form.error(I18nHelper.getLocalizedMessage("vacation.validate.datenotset"));
-      return;
-    }
-
-    //Check, if start date is before end date
-    if (endDate.before(startDate)) {
-      form.error(I18nHelper.getLocalizedMessage("vacation.validate.endbeforestart"));
-      return;
-    }
-
-    //Check, if both dates are in same year
-    if (endDate.get(Calendar.YEAR) > startDate.get(Calendar.YEAR)) {
-      form.error(I18nHelper.getLocalizedMessage("vacation.validate.vacationIn2Years"));
+    if (validateStartAndEndDate(form, startDate, endDate)) {
       return;
     }
 
@@ -123,22 +81,14 @@ public class VacationFormValidator implements IFormValidator
       return;
     }
 
-    // check if there is already a leave application in the period
-    List<VacationDO> vacationListForPeriod = vacationService
-        .getVacationForDate(employee, startDate.getTime(), endDate.getTime(), true);
-    if (vacationListForPeriod != null && data.getPk() != null) {
-      vacationListForPeriod = vacationListForPeriod
-          .stream()
-          .filter(vac -> vac.getPk().equals(data.getPk()) == false) // remove current vacation from list in case this is an update
-          .collect(Collectors.toList());
-    }
-    if (vacationListForPeriod != null && vacationListForPeriod.size() > 0) {
-      form.error(I18nHelper.getLocalizedMessage("vacation.validate.leaveapplicationexists"));
+    if (validateOnlyOneVacationPerPeriod(form, employee, startDate, endDate)) {
+      return;
     }
 
     //vacationdays < 0.5 days
     if (vacationService.getVacationDays(startDate.getTime(), endDate.getTime(), isOn(isHalfDayCheckbox)).compareTo(new BigDecimal(0.5)) < 0) {
       form.error(I18nHelper.getLocalizedMessage("vacation.validate.daysarenull"));
+      return;
     }
 
     // check Vacation Calender
@@ -146,6 +96,7 @@ public class VacationFormValidator implements IFormValidator
     if (configuredVacationCalendar != null) {
       if (selectedCalendars == null || selectedCalendars.contains(configuredVacationCalendar) == false) {
         form.error(I18nHelper.getLocalizedMessage("vacation.validate.noCalender", configuredVacationCalendar.getTitle()));
+        return;
       }
     }
 
@@ -153,6 +104,14 @@ public class VacationFormValidator implements IFormValidator
       return;
     }
 
+    if (isEnoughDaysLeft(isHalfDayCheckbox, employee, startDate, endDate) == false) {
+      form.error(I18nHelper.getLocalizedMessage("vacation.validate.notEnoughVacationDaysLeft"));
+      return;
+    }
+  }
+
+  private boolean isEnoughDaysLeft(final CheckBox isHalfDayCheckbox, final EmployeeDO employee, final Calendar startDate, final Calendar endDate)
+  {
     boolean enoughDaysLeft = true;
     final Calendar endDateVacationFromLastYear = vacationService.getEndDateVacationFromLastYear();
 
@@ -218,9 +177,87 @@ public class VacationFormValidator implements IFormValidator
         }
       }
     }
-    if (enoughDaysLeft == false) {
-      form.error(I18nHelper.getLocalizedMessage("vacation.validate.notEnoughVacationDaysLeft"));
+    return enoughDaysLeft;
+  }
+
+  private boolean validateOnlyOneVacationPerPeriod(final Form<?> form, final EmployeeDO employee, final Calendar startDate, final Calendar endDate)
+  {
+    // check if there is already a leave application in the period
+    List<VacationDO> vacationListForPeriod = vacationService
+        .getVacationForDate(employee, startDate.getTime(), endDate.getTime(), true);
+    if (vacationListForPeriod != null && data.getPk() != null) {
+      vacationListForPeriod = vacationListForPeriod
+          .stream()
+          .filter(vac -> vac.getPk().equals(data.getPk()) == false) // remove current vacation from list in case this is an update
+          .collect(Collectors.toList());
     }
+    if (vacationListForPeriod != null && vacationListForPeriod.size() > 0) {
+      form.error(I18nHelper.getLocalizedMessage("vacation.validate.leaveapplicationexists"));
+      return true;
+    }
+    return false;
+  }
+
+  private boolean validateStartAndEndDate(final Form<?> form, final Calendar startDate, final Calendar endDate)
+  {
+    if (startDate == null || endDate == null) {
+      form.error(I18nHelper.getLocalizedMessage("vacation.validate.datenotset"));
+      return true;
+    }
+
+    //Check, if start date is before end date
+    if (endDate.before(startDate)) {
+      form.error(I18nHelper.getLocalizedMessage("vacation.validate.endbeforestart"));
+      return true;
+    }
+
+    //Check, if both dates are in same year
+    if (endDate.get(Calendar.YEAR) > startDate.get(Calendar.YEAR)) {
+      form.error(I18nHelper.getLocalizedMessage("vacation.validate.vacationIn2Years"));
+      return true;
+    }
+    return false;
+  }
+
+  private Collection<TeamCalDO> getSelectedCalendars(final Select2MultiChoice<TeamCalDO> calendars)
+  {
+    final Collection<TeamCalDO> selectedCalendars = new HashSet<>();
+    if (calendars != null && calendars.getConvertedInput() != null && calendars.getConvertedInput().size() > 0) {
+      selectedCalendars.addAll(calendars.getConvertedInput());
+    } else {
+      selectedCalendars.addAll(vacationService.getCalendarsForVacation(this.data));
+    }
+    return selectedCalendars;
+  }
+
+  private Calendar getValueFromFormOrData(final DatePanel datePanel)
+  {
+    final Calendar date = Calendar.getInstance(ThreadLocalUserContext.getTimeZone());
+    Calendar.getInstance(ThreadLocalUserContext.getTimeZone());
+    if (datePanel != null && datePanel.getConvertedInput() != null) {
+      date.setTime(datePanel.getConvertedInput());
+    } else {
+      date.setTime(data.getStartDate());
+    }
+    return date;
+  }
+
+  private boolean checkOnlyStatusChange(final DropDownChoice<VacationStatus> statusChoice)
+  {
+    if (statusChoice != null && statusChoice.getConvertedInput() != null && data.getStatus() != null) {
+      if (
+        //Changes from IN_PROGRESS to APPROVED or REJECTED
+          (VacationStatus.IN_PROGRESS.equals(data.getStatus()) && (VacationStatus.APPROVED.equals(statusChoice.getConvertedInput()) || VacationStatus.REJECTED
+              .equals(statusChoice.getConvertedInput())))
+              ||
+              //Changes from REJECTED to APPROVED or IN_PROGRESS
+              (VacationStatus.REJECTED.equals(data.getStatus()) && (VacationStatus.APPROVED.equals(statusChoice.getConvertedInput())
+                  || VacationStatus.IN_PROGRESS.equals(statusChoice.getConvertedInput())))
+          ) {
+        return true;
+      }
+    }
+    return false;
   }
 
   private boolean isOn(final CheckBox checkBox)
