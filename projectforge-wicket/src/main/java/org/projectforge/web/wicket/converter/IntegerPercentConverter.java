@@ -25,7 +25,7 @@ package org.projectforge.web.wicket.converter;
 
 import java.util.Locale;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * Supports text fields with % symbol.

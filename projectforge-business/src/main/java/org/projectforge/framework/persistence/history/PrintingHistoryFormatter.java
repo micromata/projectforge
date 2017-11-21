@@ -25,7 +25,7 @@ package org.projectforge.framework.persistence.history;
 
 import java.util.Locale;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.hibernate.HibernateException;
 import org.hibernate.Session;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;

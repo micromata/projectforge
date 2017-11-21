@@ -23,7 +23,7 @@
 
 package org.projectforge.export;
 
-import org.apache.commons.lang.BooleanUtils;
+import org.apache.commons.lang3.BooleanUtils;
 import org.projectforge.business.excel.CellFormat;
 import org.projectforge.business.excel.ContentProvider;
 import org.projectforge.business.excel.ExportCell;

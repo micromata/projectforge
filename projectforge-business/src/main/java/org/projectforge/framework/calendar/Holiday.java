@@ -25,7 +25,7 @@ package org.projectforge.framework.calendar;
 
 import java.math.BigDecimal;
 
-import org.apache.commons.lang.builder.ReflectionToStringBuilder;
+import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 
 /**
  * 
@@ -34,7 +34,7 @@ import org.apache.commons.lang.builder.ReflectionToStringBuilder;
  */
 public class Holiday
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(Holiday.class);;
+  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(Holiday.class);
 
   private boolean workingDay;
 

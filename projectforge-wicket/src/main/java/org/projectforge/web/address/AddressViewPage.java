@@ -23,7 +23,7 @@
 
 package org.projectforge.web.address;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.markup.html.link.Link;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
@@ -86,7 +86,7 @@ public class AddressViewPage extends AbstractSecuredPage
         public void onClick()
         {
           setResponsePage(returnToPage);
-        };
+        }
       }, getString("back"));
       addContentMenuEntry(back);
     }
@@ -101,7 +101,7 @@ public class AddressViewPage extends AbstractSecuredPage
           final AddressEditPage addressEditPage = new AddressEditPage(params);
           addressEditPage.setReturnToPage(AddressViewPage.this);
           setResponsePage(addressEditPage);
-        };
+        }
       }, getString("edit"));
       addContentMenuEntry(edit);
     }
@@ -116,7 +116,7 @@ public class AddressViewPage extends AbstractSecuredPage
               final PageParameters params = new PageParameters();
               params.add(PhoneCallPage.PARAMETER_KEY_ADDRESS_ID, addressId);
               setResponsePage(new PhoneCallPage(params));
-            };
+            }
           }, getString("address.directCall.call"));
       addContentMenuEntry(menu);
     }
@@ -137,7 +137,7 @@ public class AddressViewPage extends AbstractSecuredPage
                 params.add(SendSmsPage.PARAMETER_KEY_PHONE_TYPE, PhoneType.MOBILE.toString());
               }
               setResponsePage(new SendSmsPage(params));
-            };
+            }
           }, getString("address.sendSms.title"));
       addContentMenuEntry(menu);
     }

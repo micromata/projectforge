@@ -27,7 +27,7 @@ import java.math.BigDecimal;
 import java.util.Date;
 import java.util.function.Function;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.model.IModel;

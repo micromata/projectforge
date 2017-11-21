@@ -26,7 +26,7 @@ package org.projectforge.framework.access;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.commons.lang.Validate;
+import org.apache.commons.lang3.Validate;
 import org.hibernate.Hibernate;
 import org.hibernate.criterion.Restrictions;
 import org.projectforge.business.task.TaskDO;
