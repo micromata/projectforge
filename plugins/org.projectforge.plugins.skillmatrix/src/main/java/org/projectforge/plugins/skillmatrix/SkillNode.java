@@ -27,7 +27,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.commons.lang.builder.ToStringBuilder;
+import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.log4j.Logger;
 import org.projectforge.framework.i18n.UserException;
 import org.projectforge.framework.persistence.api.IdObject;
@@ -75,6 +75,7 @@ public class SkillNode implements IdObject<Integer>, Serializable
   }
 
   /** The id of this skill given by the database. */
+  @Override
   public Integer getId()
   {
     return skill.getId();

@@ -3,7 +3,7 @@ package org.projectforge.framework.access;
 import java.io.Serializable;
 import java.util.Collection;
 
-import org.apache.commons.lang.Validate;
+import org.apache.commons.lang3.Validate;
 import org.projectforge.business.fibu.EmployeeDO;
 import org.projectforge.business.multitenancy.TenantRegistry;
 import org.projectforge.business.multitenancy.TenantRegistryMap;

@@ -6,10 +6,10 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import org.apache.commons.lang.StringEscapeUtils;
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.builder.ToStringBuilder;
-import org.apache.commons.lang.builder.ToStringStyle;
+import org.apache.commons.lang3.StringEscapeUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.apache.commons.lang3.builder.ToStringStyle;
 import org.apache.lucene.analysis.standard.ClassicAnalyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.IndexReader;
@@ -49,7 +49,7 @@ public class LuceneServiceImpl
 
   public Set<Class<?>> getSearchClasses()
   {
-    return emf.runWoTrans((emgr) -> {
+    return emf.runInTrans((emgr) -> {
       FullTextEntityManager femg = emgr.getFullTextEntityManager();
       SearchFactory sf = femg.getSearchFactory();
       Set<Class<?>> itypes = sf.getIndexedTypes();
@@ -71,7 +71,7 @@ public class LuceneServiceImpl
   public String searchViaHibernateSearch(Class<?> entityClass, String search, String fieldList)
   {
 
-    List<?> list = emf.runWoTrans((emgr) -> {
+    List<?> list = emf.runInTrans((emgr) -> {
       String[] fl = StringUtils.split(fieldList, ", ");
       if (fl == null) {
         fl = new String[] {};
@@ -99,7 +99,7 @@ public class LuceneServiceImpl
     StringBuilder sb = new StringBuilder();
     String rsearch = StringUtils.isBlank(search) ? "*" : search;
 
-    return emf.runWoTrans((emgr) -> {
+    return emf.runInTrans((emgr) -> {
 
       FullTextEntityManager femg = emgr.getFullTextEntityManager();
       SearchFactory sf = femg.getSearchFactory();
@@ -123,7 +123,7 @@ public class LuceneServiceImpl
 
           for (ScoreDoc sdoc : ret.scoreDocs) {
             sb.append("===================================================================").append("<br/>\n");
-            sb.append(StringEscapeUtils.escapeHtml(sdoc.toString())).append("  ");
+            sb.append(StringEscapeUtils.escapeHtml4(sdoc.toString())).append("  ");
             Document document = is.doc(sdoc.doc);
             sb.append("LuceneDocument: ");
             renderDocument(document, sb);
@@ -142,7 +142,7 @@ public class LuceneServiceImpl
             }
             Object entity = emgr.findByPkDetached(entityClass, entityPk);
             String osdesc = ToStringBuilder.reflectionToString(entity, ToStringStyle.MULTI_LINE_STYLE, false);
-            osdesc = StringEscapeUtils.escapeHtml(osdesc);
+            osdesc = StringEscapeUtils.escapeHtml4(osdesc);
             osdesc = StringUtils.replace(osdesc, "\n", "<br/>\n<nbsp/><nbsp/>");
             sb.append(osdesc).append("<br/>\n");
             sb.append("<br/>\n");
@@ -161,7 +161,7 @@ public class LuceneServiceImpl
   private void renderDocument(Document document, StringBuilder sb)
   {
     sb.append("<br/>\n").append("----------------------------------------------------------").append("<br/>\n");
-    sb.append(StringEscapeUtils.escapeHtml(document.toString())).append("<br/>\n");
+    sb.append(StringEscapeUtils.escapeHtml4(document.toString())).append("<br/>\n");
     for (IndexableField field : document.getFields()) {
       sb.append("  ").append(field.name()).append(": ").append(field.stringValue()).append("<br/>\n");
     }
@@ -172,7 +172,7 @@ public class LuceneServiceImpl
   {
     String[] ret = emf.getSearchFieldsForEntity(entityClass).keySet().toArray(new String[] {});
 
-    List<String> list = emf.runWoTrans((emgr) -> {
+    List<String> list = emf.runInTrans((emgr) -> {
       FullTextEntityManager femg = emgr.getFullTextEntityManager();
       SearchFactory sf = femg.getSearchFactory();
       IndexedTypeDescriptor itd = sf.getIndexedTypeDescriptor(entityClass);
@@ -187,7 +187,7 @@ public class LuceneServiceImpl
   public String getIndexDescription(Class<?> entityClass)
   {
     StringBuilder sb = new StringBuilder();
-    emf.runWoTrans((emgr) -> {
+    emf.runInTrans((emgr) -> {
       sb.append("class: ").append(entityClass.getName()).append("\n");
 
       FullTextEntityManager femg = emgr.getFullTextEntityManager();

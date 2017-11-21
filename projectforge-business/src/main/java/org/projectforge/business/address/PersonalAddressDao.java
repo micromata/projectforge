@@ -33,8 +33,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import org.apache.commons.lang.ObjectUtils;
-import org.apache.commons.lang.Validate;
+import org.apache.commons.lang3.ObjectUtils;
+import org.apache.commons.lang3.Validate;
 import org.hibernate.LockMode;
 import org.projectforge.business.user.UserDao;
 import org.projectforge.business.user.UserRightId;

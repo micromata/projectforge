@@ -31,8 +31,8 @@ import java.util.List;
 import java.util.Locale;
 
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang.Validate;
-import org.apache.commons.lang.builder.ToStringBuilder;
+import org.apache.commons.lang3.Validate;
+import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.log4j.Logger;
 import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Restrictions;
@@ -295,6 +295,7 @@ public class HRPlanningDao extends BaseDao<HRPlanningDO>
     }
     Collections.sort(list, new Comparator<DisplayHistoryEntry>()
     {
+      @Override
       public int compare(final DisplayHistoryEntry o1, final DisplayHistoryEntry o2)
       {
         return (o2.getTimestamp().compareTo(o1.getTimestamp()));

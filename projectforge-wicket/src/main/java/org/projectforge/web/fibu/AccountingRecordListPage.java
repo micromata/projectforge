@@ -26,7 +26,7 @@ package org.projectforge.web.fibu;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
@@ -137,6 +137,7 @@ public class AccountingRecordListPage
     final List<IColumn<BuchungssatzDO, String>> columns = new ArrayList<IColumn<BuchungssatzDO, String>>();
     final CellItemListener<BuchungssatzDO> cellItemListener = new CellItemListener<BuchungssatzDO>()
     {
+      @Override
       public void populateItem(final Item<ICellPopulator<BuchungssatzDO>> item, final String componentId,
           final IModel<BuchungssatzDO> rowModel)
       {

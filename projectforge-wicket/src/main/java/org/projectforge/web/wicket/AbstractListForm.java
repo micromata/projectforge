@@ -28,8 +28,8 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
 
-import org.apache.commons.lang.StringEscapeUtils;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringEscapeUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -638,7 +638,7 @@ public abstract class AbstractListForm<F extends BaseSearchFilter, P extends Abs
   public static String getModifiedSearchExpressionLabel(final Component component, final String searchString)
   {
     return component.getString("search.lucene.expression") + " "
-        + StringEscapeUtils.escapeHtml(HibernateSearchFilterUtils.modifySearchString(searchString));
+        + StringEscapeUtils.escapeHtml4(HibernateSearchFilterUtils.modifySearchString(searchString));
   }
 
   /**
