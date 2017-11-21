@@ -23,7 +23,7 @@
 
 package org.projectforge.business.user;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.projectforge.framework.persistence.api.BaseDO;
 import org.projectforge.framework.persistence.api.BaseDao;
 import org.springframework.context.ApplicationContext;

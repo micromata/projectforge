@@ -29,7 +29,7 @@ import java.util.Date;
 
 import javax.servlet.ServletException;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.panel.FeedbackPanel;
 import org.apache.wicket.protocol.http.PageExpiredException;
@@ -49,9 +49,8 @@ import org.projectforge.web.SendFeedbackData;
 
 /**
  * Standard error page should be shown in production mode.
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
  */
 public class ErrorPage extends AbstractSecuredPage
 {
@@ -77,10 +76,10 @@ public class ErrorPage extends AbstractSecuredPage
 
   /**
    * Get internationalized message inclusive the message params if exists.
-   * 
+   *
    * @param securedPage Needed for localization.
    * @param exception
-   * @param doLog If true, then a log entry with level INFO will be produced.
+   * @param doLog       If true, then a log entry with level INFO will be produced.
    * @return
    */
   public static String getExceptionMessage(final AbstractSecuredBasePage securedPage,

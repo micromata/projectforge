@@ -23,6 +23,11 @@
 
 package org.projectforge.business.fibu;
 
+import java.util.ArrayList;
+import java.util.Collection;
+
+import org.projectforge.framework.persistence.api.BaseSearchFilter;
+
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 
 @XStreamAlias("EingangsrechnungFilter")
@@ -31,6 +36,22 @@ public class EingangsrechnungListFilter extends RechnungFilter
   private static final long serialVersionUID = -9163400923075871920L;
 
   private boolean showKostZuweisungStatus;
+
+  private Collection<PaymentType> paymentTypes = new ArrayList<>();
+
+  public EingangsrechnungListFilter()
+  {
+  }
+
+  public EingangsrechnungListFilter(final BaseSearchFilter filter)
+  {
+    super(filter);
+
+    if (filter instanceof EingangsrechnungListFilter) {
+      this.showKostZuweisungStatus = ((EingangsrechnungListFilter) filter).isShowKostZuweisungStatus();
+      this.paymentTypes = ((EingangsrechnungListFilter) filter).getPaymentTypes();
+    }
+  }
 
   /**
    * Zeige Fehlbeträge in der Liste.
@@ -45,6 +66,24 @@ public class EingangsrechnungListFilter extends RechnungFilter
   public void setShowKostZuweisungStatus(final boolean showKostZuweisungStatus)
   {
     this.showKostZuweisungStatus = showKostZuweisungStatus;
+  }
+
+  public Collection<PaymentType> getPaymentTypes()
+  {
+    return paymentTypes;
+  }
+
+  public void setPaymentTypes(final Collection<PaymentType> paymentTypes)
+  {
+    this.paymentTypes = paymentTypes;
+  }
+
+  @Override
+  public RechnungFilter reset()
+  {
+    showKostZuweisungStatus = false;
+    paymentTypes = new ArrayList<>();
+    return super.reset();
   }
 
 }

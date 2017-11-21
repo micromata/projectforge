@@ -26,7 +26,7 @@ package org.projectforge.web.admin;
 import java.io.InputStream;
 import java.util.zip.GZIPInputStream;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.markup.html.form.upload.FileUpload;
 import org.apache.wicket.request.mapper.parameter.PageParameters;

@@ -51,7 +51,6 @@ public abstract class AbstractRechnungListForm<F extends RechnungFilter, P exten
   protected int[] years;
 
   @Override
-  @SuppressWarnings("serial")
   protected void init()
   {
     super.init(false);

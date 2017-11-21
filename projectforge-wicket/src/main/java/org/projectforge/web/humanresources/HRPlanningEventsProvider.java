@@ -26,9 +26,7 @@ package org.projectforge.web.humanresources;
 import java.math.BigDecimal;
 import java.util.List;
 
-import net.ftlines.wicket.fullcalendar.Event;
-
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.projectforge.business.humanresources.HRPlanningDO;
 import org.projectforge.business.humanresources.HRPlanningDao;
@@ -38,6 +36,8 @@ import org.projectforge.business.teamcal.filter.ICalendarFilter;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.utils.NumberHelper;
 import org.projectforge.web.calendar.MyFullCalendarEventsProvider;
+
+import net.ftlines.wicket.fullcalendar.Event;
 
 /**
  * Creates events corresponding to the hr planning entries.

@@ -1243,7 +1243,7 @@ public class DatabaseCoreUpdates
         }
 
         final boolean timeFieldsOfAllEmployeeTimedDOsStartTimeAreZero = emf
-            .runWoTrans(emgr -> emgr.selectAllAttached(EmployeeTimedDO.class)
+            .runInTrans(emgr -> emgr.selectAllAttached(EmployeeTimedDO.class)
                 .stream()
                 .map(EmployeeTimedDO::getStartTime)
                 .map(DateHelper::convertDateToLocalDateTimeInUTC)
