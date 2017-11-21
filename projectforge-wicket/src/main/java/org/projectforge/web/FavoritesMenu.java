@@ -40,7 +40,6 @@ import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.i18n.UserException;
 import org.projectforge.framework.persistence.api.UserRightService;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
-import org.projectforge.web.core.NavAbstractPanel;
 import org.projectforge.web.user.UserPreferencesHelper;
 
 /**
@@ -66,14 +65,14 @@ public class FavoritesMenu implements Serializable
 
   private UserRightService userRights;
 
-  public static FavoritesMenu get(MenuItemRegistry menuItemRegistry, AccessChecker accessChecker,
+  public static FavoritesMenu get(MenuItemRegistry menuItemRegistry, MenuBuilder menuBuilder, AccessChecker accessChecker,
       UserRightService userRights)
   {
     FavoritesMenu favoritesMenu = (FavoritesMenu) UserPreferencesHelper.getEntry(USER_PREF_FAVORITES_MENU_KEY);
     if (favoritesMenu != null) {
       return favoritesMenu;
     }
-    favoritesMenu = new FavoritesMenu(menuItemRegistry, accessChecker, userRights);
+    favoritesMenu = new FavoritesMenu(menuItemRegistry, menuBuilder, accessChecker, userRights);
     UserPreferencesHelper.putEntry(USER_PREF_FAVORITES_MENU_KEY, favoritesMenu, false);
     return favoritesMenu;
   }
@@ -82,11 +81,12 @@ public class FavoritesMenu implements Serializable
    * @param userXmlPreferencesCache For storing and getting the persisted favorites menu.
    * @param accessChecker For building the menu entries regarding the access rights of the logged-in user.
    */
-  FavoritesMenu(MenuItemRegistry registry, AccessChecker accessChecker, UserRightService userRights)
+  FavoritesMenu(MenuItemRegistry registry, MenuBuilder menuBuilder, AccessChecker accessChecker, UserRightService userRights)
   {
-    this.menu = (Menu) UserPreferencesHelper.getEntry(NavAbstractPanel.USER_PREF_MENU_KEY);
+    this.menu = menuBuilder.getMenu(ThreadLocalUserContext.getUser());
     this.registry = registry;
     this.accessChecker = accessChecker;
+    this.userRights = userRights;
     init();
   }
 
