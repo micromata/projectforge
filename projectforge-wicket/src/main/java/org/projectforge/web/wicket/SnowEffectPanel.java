@@ -23,6 +23,7 @@
 
 package org.projectforge.web.wicket;
 
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.form.Button;
@@ -30,7 +31,9 @@ import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
+import org.projectforge.business.user.UserXmlPreferencesCache;
 import org.projectforge.business.user.UserXmlPreferencesDao;
+import org.projectforge.framework.i18n.I18nHelper;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 
 /**
@@ -40,9 +43,11 @@ import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
  */
 public class SnowEffectPanel extends Panel
 {
-
   @SpringBean
   private UserXmlPreferencesDao userXmlPreferencesDao;
+
+  @SpringBean
+  private UserXmlPreferencesCache userXmlPreferencesCache;
 
   /**
    * Constructor the panel
@@ -52,8 +57,10 @@ public class SnowEffectPanel extends Panel
    */
   public SnowEffectPanel(final String id)
   {
+
     super(id);
-    add(new Button("remove", new Model<>("X")).add(new AjaxEventBehavior("click")
+    add(new Button("remove", new Model<>("\u2744\uFE0F \uD83D\uDEAB"))
+        .add(AttributeModifier.append("title", I18nHelper.getLocalizedMessage("common.snowpanel.deactivate"))).add(new AjaxEventBehavior("click")
     {
       @Override
       protected void onEvent(final AjaxRequestTarget target)
@@ -61,12 +68,15 @@ public class SnowEffectPanel extends Panel
         setResponsePage(getPage().getPageClass(), new PageParameters().add("snowEffectEnable", false));
       }
     }));
-    add(new Button("removePermanent", new Model<>("XX")).add(new AjaxEventBehavior("click")
+    add(new Button("removePermanent", new Model<>("\u2744\uFE0F \uD83D\uDEAB \u2757"))
+        .add(AttributeModifier.append("title", I18nHelper.getLocalizedMessage("common.snowpanel.deactivatePermanent")))
+        .add(new AjaxEventBehavior("click")
     {
       @Override
       protected void onEvent(final AjaxRequestTarget target)
       {
-        userXmlPreferencesDao.saveOrUpdate(ThreadLocalUserContext.getUserId(), "disableSnowEffectPermant", Boolean.FALSE, true);
+        userXmlPreferencesDao.saveOrUpdate(ThreadLocalUserContext.getUserId(), "disableSnowEffectPermant", Boolean.TRUE, true);
+        userXmlPreferencesCache.putEntry(ThreadLocalUserContext.getUserId(), "disableSnowEffectPermant", Boolean.TRUE, true);
         setResponsePage(getPage().getPageClass());
       }
     }));

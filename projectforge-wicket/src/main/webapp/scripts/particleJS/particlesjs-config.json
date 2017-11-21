@@ -8,25 +8,25 @@
       }
     },
     "color": {
-      "value": "#fff"
+      "value": "#f4f2ff"
     },
     "shape": {
-      "type": "circle",
+      "type": "star",
       "stroke": {
         "width": 0,
         "color": "#000000"
       },
       "polygon": {
-        "nb_sides": 5
+        "nb_sides": 7
       },
       "image": {
         "src": "img/github.svg",
-        "width": 100,
-        "height": 100
+        "width": 20,
+        "height": 20
       }
     },
     "opacity": {
-      "value": 0.5,
+      "value": 0.8017060304327615,
       "random": true,
       "anim": {
         "enable": false,
@@ -36,7 +36,7 @@
       }
     },
     "size": {
-      "value": 10,
+      "value": 4.008530152163807,
       "random": true,
       "anim": {
         "enable": false,
@@ -71,11 +71,11 @@
     "detect_on": "canvas",
     "events": {
       "onhover": {
-        "enable": false,
+        "enable": true,
         "mode": "bubble"
       },
       "onclick": {
-        "enable": false,
+        "enable": true,
         "mode": "repulse"
       },
       "resize": true
