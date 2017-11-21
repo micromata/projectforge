@@ -29,6 +29,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
@@ -73,6 +74,7 @@ import org.projectforge.web.wicket.ListPage;
 import org.projectforge.web.wicket.ListSelectActionPanel;
 import org.projectforge.web.wicket.RowCssClass;
 import org.projectforge.web.wicket.components.ContentMenuEntryPanel;
+import org.projectforge.web.wicket.flowlayout.CheckBoxPanel;
 
 @ListPage(editPage = EingangsrechnungEditPage.class)
 public class EingangsrechnungListPage
@@ -87,15 +89,17 @@ public class EingangsrechnungListPage
   private EingangsrechnungDao eingangsrechnungDao;
 
   @SpringBean
-  KostZuweisungExport kostZuweisungExport;
+  private KostZuweisungExport kostZuweisungExport;
 
   @SpringBean
-  KontoCache kontoCache;
+  private KontoCache kontoCache;
 
   @SpringBean
   private SEPATransferGenerator SEPATransferGenerator;
 
   private EingangsrechnungsStatistik eingangsrechnungsStatistik;
+
+  private ContentMenuEntryPanel exportKostzuweisungButton;
 
   EingangsrechnungsStatistik getEingangsrechnungsStatistik()
   {
@@ -127,9 +131,13 @@ public class EingangsrechnungListPage
     this.eingangsrechnungsStatistik = null;
   }
 
-  @SuppressWarnings("serial")
   @Override
   public List<IColumn<EingangsrechnungDO, String>> createColumns(final WebPage returnToPage, final boolean sortable)
+  {
+    return createColumns(returnToPage, sortable, false);
+  }
+
+  public List<IColumn<EingangsrechnungDO, String>> createColumns(final WebPage returnToPage, final boolean sortable, final boolean isMassUpdateMode)
   {
     final List<IColumn<EingangsrechnungDO, String>> columns = new ArrayList<>();
     final CellItemListener<EingangsrechnungDO> cellItemListener = new CellItemListener<EingangsrechnungDO>()
@@ -149,6 +157,22 @@ public class EingangsrechnungListPage
         }
       }
     };
+    if (isMassUpdateMode == true) {
+      columns.add(new CellItemListenerPropertyColumn<EingangsrechnungDO>("", null, "selected", cellItemListener)
+      {
+        @Override
+        public void populateItem(final Item<ICellPopulator<EingangsrechnungDO>> item, final String componentId,
+            final IModel<EingangsrechnungDO> rowModel)
+        {
+          final EingangsrechnungDO incomingInvoice = rowModel.getObject();
+          final CheckBoxPanel checkBoxPanel = new CheckBoxPanel(componentId, new SelectItemModel(incomingInvoice.getId()),
+              null);
+          item.add(checkBoxPanel);
+          cellItemListener.populateItem(item, componentId, rowModel);
+          addRowClick(item, isMassUpdateMode);
+        }
+      });
+    }
     columns.add(new CellItemListenerPropertyColumn<EingangsrechnungDO>(
         new Model<String>(getString("fibu.common.creditor")), getSortable(
         "kreditor", sortable),
@@ -172,7 +196,7 @@ public class EingangsrechnungListPage
             eingangsrechnung.getId(), returnToPage,
             kreditorLabel));
         cellItemListener.populateItem(item, componentId, rowModel);
-        addRowClick(item);
+        addRowClick(item, isMassUpdateMode);
       }
     });
     columns.add(new CellItemListenerPropertyColumn<EingangsrechnungDO>(new Model<String>(getString("fibu.konto")), getSortable("konto", sortable),
@@ -222,23 +246,9 @@ public class EingangsrechnungListPage
   @Override
   protected void init()
   {
-    dataTable = createDataTable(createColumns(this, true), "datum", SortOrder.DESCENDING);
-    form.add(dataTable);
-
-    final ContentMenuEntryPanel exportInvoiceButton = new ContentMenuEntryPanel(getNewContentMenuChildId(),
-        new Link<Object>("link")
-        {
-          @Override
-          public void onClick()
-          {
-            EingangsrechnungListPage.this.exportInvoicesAsXML();
-          }
-        }, getString("fibu.rechnung.transferExport")).setTooltip(getString("fibu.rechnung.transferExport.tootlip"));
-    addContentMenuEntry(exportInvoiceButton);
-
     addExcelExport(getString("fibu.common.creditor"), getString("fibu.eingangsrechnungen"));
     if (Configuration.getInstance().isCostConfigured() == true) {
-      final ContentMenuEntryPanel exportExcelButton = new ContentMenuEntryPanel(getNewContentMenuChildId(),
+      exportKostzuweisungButton = new ContentMenuEntryPanel(getNewContentMenuChildId(),
           new Link<Object>("link")
           {
             @Override
@@ -248,7 +258,7 @@ public class EingangsrechnungListPage
             }
 
           }, getString("fibu.rechnung.kostExcelExport")).setTooltip(getString("fibu.rechnung.kostExcelExport.tootlip"));
-      addContentMenuEntry(exportExcelButton);
+      addContentMenuEntry(exportKostzuweisungButton);
     }
   }
 
@@ -326,11 +336,46 @@ public class EingangsrechnungListPage
     };
   }
 
-  private void exportInvoicesAsXML()
+  @Override
+  public boolean isSupportsMassUpdate()
   {
-    refresh();
-    final List<EingangsrechnungDO> invoices = eingangsrechnungDao.getList(form.getSearchFilter());
+    return true;
+  }
 
+  @Override
+  protected String getMassUpdateLabel()
+  {
+    return getString("fibu.rechnung.transferExport");
+  }
+
+  @Override
+  public void setMassUpdateMode(final boolean mode)
+  {
+    super.setMassUpdateMode(mode);
+    exportExcelButton.setVisible(!mode);
+    exportKostzuweisungButton.setVisible(!mode);
+  }
+
+  @Override
+  public void onNextSubmit()
+  {
+    if (CollectionUtils.isEmpty(this.selectedItems) == true) {
+      form.addError("validation.error.nothingToExport");
+      return;
+    }
+    final List<EingangsrechnungDO> list = eingangsrechnungDao.internalLoad(this.selectedItems);
+    exportInvoicesAsXML(list);
+  }
+
+  @Override
+  protected void createDataTable()
+  {
+    dataTable = createDataTable(createColumns(this, true, isMassUpdateMode()), "datum", SortOrder.DESCENDING);
+    form.add(dataTable);
+  }
+
+  private void exportInvoicesAsXML(final List<EingangsrechnungDO> invoices)
+  {
     if (invoices == null || invoices.size() == 0) {
       // Nothing to export.
       form.addError("validation.error.nothingToExport");

@@ -37,9 +37,7 @@ import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 
 /**
- * 
  * @author Kai Reinhard (k.reinhard@me.de)
- * 
  */
 public class ProjektRight extends UserRightAccessCheck<ProjektDO>
 {
@@ -60,9 +58,9 @@ public class ProjektRight extends UserRightAccessCheck<ProjektDO>
 
   /**
    * @return True, if {@link UserRightId#PM_PROJECT} is potentially available for the user (independent from the
-   *         configured value).
+   * configured value).
    * @see org.projectforge.business.user.UserRightAccessCheck#hasSelectAccess(org.projectforge.framework.access.AccessChecker,
-   *      org.projectforge.framework.persistence.user.entities.PFUserDO)
+   * org.projectforge.framework.persistence.user.entities.PFUserDO)
    */
   @Override
   public boolean hasSelectAccess(final PFUserDO user)
@@ -81,10 +79,18 @@ public class ProjektRight extends UserRightAccessCheck<ProjektDO>
     }
     if (accessChecker.isUserMemberOfGroup(user, ProjectForgeGroup.PROJECT_MANAGER,
         ProjectForgeGroup.PROJECT_ASSISTANT) == true) {
+      Integer userId = user.getId();
+      Integer headOfBusinessManagerId = obj.getHeadOfBusinessManager() != null ? obj.getHeadOfBusinessManager().getId() : null;
+      Integer projectManagerId = obj.getProjectManager() != null ? obj.getProjectManager().getId() : null;
+      Integer salesManageId = obj.getSalesManager() != null ? obj.getSalesManager().getId() : null;
+      if (userId != null && (userId.equals(headOfBusinessManagerId) || userId.equals(projectManagerId) || userId.equals(salesManageId))) {
+        return true;
+      }
+
       final UserGroupCache userGroupCache = TenantRegistryMap.getInstance().getTenantRegistry().getUserGroupCache();
       if (obj.getProjektManagerGroup() != null
           && userGroupCache.isUserMemberOfGroup(ThreadLocalUserContext.getUserId(),
-              obj.getProjektManagerGroupId()) == true) {
+          obj.getProjektManagerGroupId()) == true) {
         if ((obj.getStatus() == null || obj.getStatus().isIn(ProjektStatus.ENDED) == false)
             && obj.isDeleted() == false) {
           // Ein Projektleiter sieht keine nicht aktiven oder gelöschten Projekte.
@@ -110,7 +116,7 @@ public class ProjektRight extends UserRightAccessCheck<ProjektDO>
 
   /**
    * History access only allowed for users with read and/or write access.
-   * 
+   *
    * @see org.projectforge.business.user.UserRightAccessCheck#hasHistoryAccess(java.lang.Object)
    */
   @Override

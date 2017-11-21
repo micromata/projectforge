@@ -113,7 +113,7 @@ public class NewProjektSelectPanel extends AbstractSelectPanel<ProjektDO> implem
         final BaseSearchFilter filter = new BaseSearchFilter();
         filter.setSearchFields("id", "name", "identifier", "nummer");
         filter.setSearchString(input);
-        final List<ProjektDO> list = projektDao.getListForDropdown(filter);
+        final List<ProjektDO> list = projektDao.getList(filter);
         return list;
       }
 

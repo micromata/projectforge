@@ -34,6 +34,7 @@ import javax.persistence.TypedQuery;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.hibernate.criterion.Order;
+import org.hibernate.criterion.Restrictions;
 import org.projectforge.business.fibu.kost.KostZuweisungDO;
 import org.projectforge.business.user.UserRightId;
 import org.projectforge.framework.i18n.UserException;
@@ -150,14 +151,19 @@ public class EingangsrechnungDao extends BaseDao<EingangsrechnungDO>
   @Override
   public List<EingangsrechnungDO> getList(final BaseSearchFilter filter)
   {
-    final RechnungFilter myFilter;
-    if (filter instanceof RechnungFilter) {
-      myFilter = (RechnungFilter) filter;
+    final EingangsrechnungListFilter myFilter;
+    if (filter instanceof EingangsrechnungListFilter) {
+      myFilter = (EingangsrechnungListFilter) filter;
     } else {
-      myFilter = new RechnungFilter(filter);
+      myFilter = new EingangsrechnungListFilter(filter);
     }
 
     final QueryFilter queryFilter = AuftragAndRechnungDaoHelper.createQueryFilterWithDateRestriction(myFilter);
+
+    if (myFilter.getPaymentTypes() != null && myFilter.getPaymentTypes().size() > 0) {
+      queryFilter.add(Restrictions.in("paymentType", myFilter.getPaymentTypes()));
+    }
+
     queryFilter.addOrder(Order.desc("datum"));
     queryFilter.addOrder(Order.desc("kreditor"));
 
