@@ -23,6 +23,8 @@
 
 package org.projectforge.web.wicket;
 
+import java.util.Random;
+
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.html.basic.Label;
@@ -113,7 +115,7 @@ public abstract class AbstractSecuredPage extends AbstractSecuredBasePage
     enableSnowEffect = (enableSnowEffect && parameters.get("snowEffectEnable") != null && parameters.get("snowEffectEnable").isEmpty() == false) ?
         parameters.get("snowEffectEnable").toBoolean() :
         enableSnowEffect;
-    //enableSnowEffect = new Random().nextInt(100) >= 50;
+    enableSnowEffect = new Random().nextInt(100) >= 50;
     if (enableSnowEffect) {
       return new SnowEffectPanel("snowEffect");
     } else {
