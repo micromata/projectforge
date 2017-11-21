@@ -35,7 +35,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang.Validate;
+import org.apache.commons.lang3.Validate;
 import org.apache.poi.hssf.util.HSSFColor;
 import org.projectforge.business.excel.CellFormat;
 import org.projectforge.business.excel.ContentProvider;

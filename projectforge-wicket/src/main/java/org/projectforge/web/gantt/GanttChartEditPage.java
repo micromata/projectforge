@@ -24,12 +24,11 @@
 package org.projectforge.web.gantt;
 
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang.ObjectUtils;
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.log4j.Logger;
 import org.apache.wicket.Component;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
-import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.business.gantt.ExportMSProject;
 import org.projectforge.business.gantt.GanttChart;
 import org.projectforge.business.gantt.GanttChartDO;
@@ -49,6 +48,7 @@ import org.projectforge.web.wicket.AbstractSecuredBasePage;
 import org.projectforge.web.wicket.BatikImage;
 import org.projectforge.web.wicket.DownloadUtils;
 import org.projectforge.web.wicket.EditPage;
+import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.web.wicket.flowlayout.ImagePanel;
 import org.w3c.dom.Document;
 
@@ -186,11 +186,13 @@ public class GanttChartEditPage extends AbstractEditPage<GanttChartDO, GanttChar
     return getData().getSettings();
   }
 
+  @Override
   public void cancelSelection(final String property)
   {
     // Do nothing.
   }
 
+  @Override
   public void select(final String property, final Object selectedValue)
   {
     if ("taskId".equals(property) == true) {
@@ -219,10 +221,11 @@ public class GanttChartEditPage extends AbstractEditPage<GanttChartDO, GanttChar
     }
   }
 
+  @Override
   public void unselect(final String property)
   {
     throw new UnsupportedOperationException();
-  };
+  }
 
   protected void refresh()
   {

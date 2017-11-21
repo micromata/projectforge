@@ -25,7 +25,7 @@ package org.projectforge.framework.xstream.converter;
 
 import java.math.BigDecimal;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.projectforge.framework.xstream.XmlConstants;
 
 public class BigDecimalConverter extends AbstractValueConverter<BigDecimal>

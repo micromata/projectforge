@@ -30,8 +30,8 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.apache.commons.lang.ObjectUtils;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.ObjectUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.projectforge.common.StringHelper;
 import org.projectforge.framework.time.DateHolder;
 import org.projectforge.framework.utils.NumberHelper;
@@ -41,6 +41,7 @@ public class GanttUtils
   private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(GanttUtils.class);
 
   public static Comparator<GanttTask> GANTT_OBJECT_COMPARATOR = new Comparator<GanttTask>() {
+    @Override
     public int compare(final GanttTask o1, final GanttTask o2)
     {
       if (ObjectUtils.equals(o1.getId(), o2.getId()) == true) {

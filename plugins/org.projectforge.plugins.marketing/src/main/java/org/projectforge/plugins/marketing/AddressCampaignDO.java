@@ -23,18 +23,18 @@
 
 package org.projectforge.plugins.marketing;
 
-import org.apache.commons.lang.StringUtils;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.Table;
+import javax.persistence.Transient;
+
+import org.apache.commons.lang3.StringUtils;
 import org.hibernate.search.annotations.Field;
 import org.hibernate.search.annotations.Index;
 import org.hibernate.search.annotations.Indexed;
 import org.hibernate.search.annotations.Store;
 import org.projectforge.framework.persistence.api.Constants;
 import org.projectforge.framework.persistence.entities.DefaultBaseDO;
-
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Table;
-import javax.persistence.Transient;
 
 /**
  * A marketing campaign for addresses (eg. mailings).

@@ -25,7 +25,7 @@ package org.projectforge.model.rest;
 
 import java.lang.reflect.Field;
 
-import org.apache.commons.lang.builder.ReflectionToStringBuilder;
+import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 
 /**
  * This object stores a user preference of ProjectForge used for adding new time-sheets. The user may choose this templates for pre-filling

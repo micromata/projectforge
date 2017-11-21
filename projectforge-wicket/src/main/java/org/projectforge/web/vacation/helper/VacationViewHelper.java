@@ -6,7 +6,7 @@ import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.List;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
@@ -64,8 +64,6 @@ public class VacationViewHelper
 
   @Autowired
   private EmployeeService employeeService;
-
-
 
   public void createVacationView(GridBuilder gridBuilder, EmployeeDO currentEmployee, boolean showAddButton, final WebPage returnToPage)
   {
@@ -141,7 +139,6 @@ public class VacationViewHelper
       appendFieldset(sectionRightGridBuilder, "vacation.countPerDay",
           employeeService.getStudentVacationCountPerDay(currentEmployee));
     }
-
 
     // bottom list
     GridBuilder sectionBottomGridBuilder = gridBuilder.newSplitPanel(GridSize.COL100);

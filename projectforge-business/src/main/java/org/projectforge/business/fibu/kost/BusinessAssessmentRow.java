@@ -23,8 +23,6 @@
 
 package org.projectforge.business.fibu.kost;
 
-import groovy.lang.Script;
-
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -33,13 +31,15 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.projectforge.business.scripting.GroovyExecutor;
 import org.projectforge.business.scripting.GroovyResult;
 import org.projectforge.business.utils.CurrencyFormatter;
 import org.projectforge.common.i18n.Priority;
 import org.projectforge.framework.configuration.ConfigXml;
 import org.projectforge.framework.utils.IntRanges;
+
+import groovy.lang.Script;
 
 /**
  * Used in config.xml for the definition of the used business assessment schema. This object represents a single row of the business

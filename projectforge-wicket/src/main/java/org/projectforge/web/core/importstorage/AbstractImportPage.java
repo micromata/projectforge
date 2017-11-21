@@ -23,7 +23,7 @@
 
 package org.projectforge.web.core.importstorage;
 
-import org.apache.commons.lang.Validate;
+import org.apache.commons.lang3.Validate;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.projectforge.business.common.SupplierWithException;
 import org.projectforge.business.excel.ExcelImportException;
