@@ -31,7 +31,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.TimeZone;
 
-import org.apache.commons.lang.Validate;
+import org.apache.commons.lang3.Validate;
 import org.projectforge.framework.calendar.Holidays;
 import org.projectforge.framework.i18n.UserException;
 

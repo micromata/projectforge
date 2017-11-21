@@ -26,7 +26,7 @@ package org.projectforge.framework.utils;
 import java.lang.annotation.Annotation;
 import java.util.Comparator;
 
-import org.apache.commons.lang.ClassUtils;
+import org.apache.commons.lang3.ClassUtils;
 import org.projectforge.common.BeanHelper;
 import org.projectforge.common.anots.StringAlphanumericSort;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
@@ -62,6 +62,7 @@ public class MyBeanComparator<T> implements Comparator<T>
     this.secondAscending = secondAscending;
   }
 
+  @Override
   public int compare(final T o1, final T o2)
   {
     final int result = compare(o1, o2, property, ascending);

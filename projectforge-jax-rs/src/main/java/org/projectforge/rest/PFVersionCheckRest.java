@@ -55,12 +55,14 @@ public class PFVersionCheckRest
     String url = "https://api.github.com/repos/micromata/projectforge/releases/latest";
     try {
       JSONObject jsonObject = restCallService.callRestInterfaceForUrl(url);
-      log.debug(marker, jsonObject.toJSONString());
-      String tag_name = (String) jsonObject.get("tag_name");
-      log.debug(marker, tag_name);
-      String githubVersion = tag_name.split("-")[0];
-      log.debug(marker, githubVersion);
-      versionCheck.setTargetVersion(githubVersion);
+      if (jsonObject != null) {
+        log.debug(marker, jsonObject.toJSONString());
+        String tag_name = (String) jsonObject.get("tag_name");
+        log.debug(marker, tag_name);
+        String githubVersion = tag_name.split("-")[0];
+        log.debug(marker, githubVersion);
+        versionCheck.setTargetVersion(githubVersion);
+      }
     } catch (Exception e) {
       log.error(marker, "Exception while synchronize with github projectforge version", e);
     }

@@ -28,7 +28,7 @@ import java.io.IOException;
 import java.io.StringWriter;
 import java.util.Map;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.codehaus.groovy.control.CompilationFailedException;
 import org.projectforge.business.refactoring.RefactoringService;
 import org.projectforge.framework.access.AccessException;

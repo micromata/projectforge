@@ -29,7 +29,7 @@ import java.util.List;
 
 import javax.naming.NameNotFoundException;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.projectforge.business.login.LoginDefaultHandler;
 import org.projectforge.business.login.LoginResult;
 import org.projectforge.business.login.LoginResultStatus;

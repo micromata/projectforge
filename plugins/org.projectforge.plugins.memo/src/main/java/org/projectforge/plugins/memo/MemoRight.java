@@ -23,7 +23,7 @@
 
 package org.projectforge.plugins.memo;
 
-import org.apache.commons.lang.ObjectUtils;
+import org.apache.commons.lang3.ObjectUtils;
 import org.projectforge.business.user.UserRightAccessCheck;
 import org.projectforge.business.user.UserRightCategory;
 import org.projectforge.business.user.UserRightValue;

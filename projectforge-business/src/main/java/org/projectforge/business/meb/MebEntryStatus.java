@@ -23,7 +23,7 @@
 
 package org.projectforge.business.meb;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.projectforge.common.i18n.I18nEnum;
 
 /**
@@ -69,6 +69,7 @@ public enum MebEntryStatus implements I18nEnum
     return key;
   }
 
+  @Override
   public String getI18nKey()
   {
     return "meb.entry.status." + key;

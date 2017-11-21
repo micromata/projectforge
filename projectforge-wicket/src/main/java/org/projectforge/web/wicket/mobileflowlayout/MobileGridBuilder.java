@@ -23,7 +23,7 @@
 
 package org.projectforge.web.wicket.mobileflowlayout;
 
-import org.apache.commons.lang.Validate;
+import org.apache.commons.lang3.Validate;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.projectforge.web.mobile.CollapsiblePanel;

@@ -23,7 +23,7 @@
 
 package org.projectforge.web.core;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.extensions.ajax.markup.html.AjaxLazyLoadPanel;
 import org.apache.wicket.markup.head.IHeaderResponse;
@@ -78,6 +78,7 @@ public class SearchPage extends AbstractStandardFormPage implements ISelectCalle
   {
   }
 
+  @Override
   public void select(final String property, final Object selectedValue)
   {
     if ("userId".equals(property) == true) {
@@ -88,6 +89,7 @@ public class SearchPage extends AbstractStandardFormPage implements ISelectCalle
     }
   }
 
+  @Override
   public void unselect(final String property)
   {
     log.error("Property '" + property + "' not supported for unselection.");
