@@ -26,7 +26,7 @@ package org.projectforge.model.rest;
 import java.util.Collection;
 import java.util.TreeSet;
 
-import org.apache.commons.lang.builder.ReflectionToStringBuilder;
+import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.projectforge.common.i18n.Priority;
 import org.projectforge.common.task.TaskStatus;
 import org.projectforge.common.task.TimesheetBookingStatus;

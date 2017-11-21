@@ -23,7 +23,7 @@
 
 package org.projectforge.plugins.crm;
 
-import org.apache.commons.lang.Validate;
+import org.apache.commons.lang3.Validate;
 import org.projectforge.framework.access.AccessType;
 import org.projectforge.framework.access.OperationType;
 import org.projectforge.framework.persistence.api.BaseDao;

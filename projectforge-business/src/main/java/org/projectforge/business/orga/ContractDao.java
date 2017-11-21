@@ -25,7 +25,7 @@ package org.projectforge.business.orga;
 
 import java.util.List;
 
-import org.apache.commons.lang.Validate;
+import org.apache.commons.lang3.Validate;
 import org.hibernate.criterion.Restrictions;
 import org.projectforge.business.fibu.RechnungDO;
 import org.projectforge.business.user.UserRightId;
@@ -43,7 +43,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
- *
  */
 @Repository
 public class ContractDao extends BaseDao<ContractDO>
@@ -86,7 +85,7 @@ public class ContractDao extends BaseDao<ContractDO>
 
   /**
    * List of all years with contracts: select min(date), max(date) from t_contract.
-   * 
+   *
    * @return
    */
   @SuppressWarnings("unchecked")
@@ -98,7 +97,7 @@ public class ContractDao extends BaseDao<ContractDO>
 
   /**
    * A given contract number must be consecutively numbered.
-   * 
+   *
    * @see org.projectforge.framework.persistence.api.BaseDao#onSaveOrModify(org.projectforge.core.ExtendedBaseDO)
    */
   @SuppressWarnings("unchecked")
@@ -127,9 +126,9 @@ public class ContractDao extends BaseDao<ContractDO>
 
   /**
    * Gets the highest contract number.
-   * 
+   *
    * @param contract is needed to check wether the contract does already exist or not. If already exist it will be
-   *          assured that this contract has an unchanged number.
+   *                 assured that this contract has an unchanged number.
    */
   @SuppressWarnings("unchecked")
   @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)

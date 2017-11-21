@@ -25,7 +25,7 @@ package org.projectforge.web.wicket.components;
 
 import java.lang.reflect.Field;
 
-import org.apache.commons.lang.ClassUtils;
+import org.apache.commons.lang3.ClassUtils;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.model.ChainingModel;

@@ -27,7 +27,7 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collection;
 
-import org.apache.commons.lang.Validate;
+import org.apache.commons.lang3.Validate;
 import org.hibernate.LockMode;
 import org.projectforge.business.excel.ExcelImportException;
 import org.projectforge.business.fibu.KontoDO;

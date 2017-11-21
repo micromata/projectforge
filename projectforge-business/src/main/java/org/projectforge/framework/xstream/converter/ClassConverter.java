@@ -23,7 +23,7 @@
 
 package org.projectforge.framework.xstream.converter;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.projectforge.framework.xstream.XmlConstants;
 
 /**
