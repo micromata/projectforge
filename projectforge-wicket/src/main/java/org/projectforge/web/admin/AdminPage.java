@@ -420,8 +420,6 @@ public class AdminPage extends AbstractStandardFormPage implements ISelectCaller
     String refreshedCaches = systemService.refreshCaches();
     userXmlPreferencesCache.forceReload();
     refreshedCaches += ", UserXmlPreferencesCache";
-    menuBuilder.refreshAllMenus();
-    refreshedCaches += ", MenuCache";
     setResponsePage(new MessagePage("administration.refreshCachesDone", refreshedCaches));
   }
 

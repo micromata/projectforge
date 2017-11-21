@@ -47,6 +47,8 @@ import org.projectforge.business.fibu.kost.Kost1DO;
 import org.projectforge.business.fibu.kost.Kost2DO;
 import org.projectforge.business.fibu.kost.reporting.Report;
 import org.projectforge.business.fibu.kost.reporting.ReportStorage;
+import org.projectforge.business.user.UserRightId;
+import org.projectforge.business.user.UserRightValue;
 import org.projectforge.web.wicket.AbstractListPage;
 import org.projectforge.web.wicket.CellItemListener;
 import org.projectforge.web.wicket.CellItemListenerPropertyColumn;
@@ -110,6 +112,13 @@ public class AccountingRecordListPage
   public AccountingRecordListPage(final PageParameters parameters)
   {
     super(parameters, "fibu.buchungssatz");
+    checkAccess();
+  }
+
+  private void checkAccess()
+  {
+    accessChecker.checkLoggedInUserRight(UserRightId.FIBU_DATEV_IMPORT, UserRightValue.TRUE);
+    accessChecker.checkRestrictedOrDemoUser();
   }
 
   @Override
