@@ -23,7 +23,7 @@
 
 package org.projectforge.business.orga;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.projectforge.common.i18n.I18nEnum;
 
 /**
@@ -71,6 +71,7 @@ public enum ContractStatus implements I18nEnum
     return key;
   }
 
+  @Override
   public String getI18nKey()
   {
     return "legalAffaires.contract.status." + key;

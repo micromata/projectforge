@@ -23,7 +23,7 @@
 
 package org.projectforge.business.fibu.kost.reporting;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 public enum ReportOutputType
 {
@@ -59,6 +59,7 @@ public enum ReportOutputType
 
   /**
    * The key will be used e. g. for i18n.
+   *
    * @return
    */
   public String getKey()

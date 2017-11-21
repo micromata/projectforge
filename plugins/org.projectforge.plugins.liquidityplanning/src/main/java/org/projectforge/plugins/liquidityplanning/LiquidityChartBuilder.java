@@ -23,11 +23,11 @@
 
 package org.projectforge.plugins.liquidityplanning;
 
-import java.awt.Color;
+import java.awt.*;
 import java.util.Calendar;
 import java.util.Date;
 
-import org.apache.commons.lang.Validate;
+import org.apache.commons.lang3.Validate;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.plot.PlotOrientation;

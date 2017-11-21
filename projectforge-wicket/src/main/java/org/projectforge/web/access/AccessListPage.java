@@ -26,7 +26,7 @@ package org.projectforge.web.access;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
@@ -82,6 +82,7 @@ public class AccessListPage extends AbstractListPage<AccessListForm, AccessDao, 
     final List<IColumn<GroupTaskAccessDO, String>> columns = new ArrayList<IColumn<GroupTaskAccessDO, String>>();
     final CellItemListener<GroupTaskAccessDO> cellItemListener = new CellItemListener<GroupTaskAccessDO>()
     {
+      @Override
       public void populateItem(final Item<ICellPopulator<GroupTaskAccessDO>> item, final String componentId,
           final IModel<GroupTaskAccessDO> rowModel)
       {

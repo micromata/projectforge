@@ -23,7 +23,7 @@
 
 package org.projectforge.plugins.todo;
 
-import org.apache.commons.lang.ObjectUtils;
+import org.apache.commons.lang3.ObjectUtils;
 import org.projectforge.business.multitenancy.TenantRegistryMap;
 import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.business.user.UserRightAccessCheck;

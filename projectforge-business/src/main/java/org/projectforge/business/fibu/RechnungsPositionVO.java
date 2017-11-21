@@ -27,8 +27,8 @@ import java.io.Serializable;
 import java.math.BigDecimal;
 import java.sql.Date;
 
-import org.apache.commons.lang.ObjectUtils;
-import org.apache.commons.lang.builder.HashCodeBuilder;
+import org.apache.commons.lang3.ObjectUtils;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 /**
  * Repräsentiert einee Position innerhalb einer Rechnung als Übersichtsobject (value object) zur Verwendung z. B. in Listen.
@@ -150,6 +150,7 @@ public class RechnungsPositionVO implements Comparable<RechnungsPositionVO>, Ser
     return hcb.toHashCode();
   }
 
+  @Override
   public int compareTo(final RechnungsPositionVO o)
   {
     if (this.rechnungNummer.equals(o.rechnungNummer) == false) {

@@ -10,8 +10,8 @@ import java.util.List;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
 
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.Validate;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Validate;
 import org.projectforge.business.configuration.ConfigurationService;
 import org.projectforge.business.login.Login;
 import org.projectforge.business.login.PasswordCheckResult;

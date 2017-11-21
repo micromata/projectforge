@@ -23,7 +23,7 @@
 
 package org.projectforge.business.ldap;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.projectforge.framework.configuration.ConfigXml;
 import org.projectforge.framework.configuration.ConfigXmlSecretField;
 import org.projectforge.framework.xstream.XmlField;

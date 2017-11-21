@@ -23,7 +23,7 @@
 
 package org.projectforge.plugins.crm;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.projectforge.common.i18n.I18nEnum;
 
 /**

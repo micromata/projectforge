@@ -26,7 +26,7 @@ package org.projectforge.framework.persistence.user.api;
 import java.util.Locale;
 import java.util.TimeZone;
 
-import org.apache.commons.lang.ObjectUtils;
+import org.apache.commons.lang3.ObjectUtils;
 import org.joda.time.DateTimeZone;
 import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.framework.configuration.ConfigXml;
