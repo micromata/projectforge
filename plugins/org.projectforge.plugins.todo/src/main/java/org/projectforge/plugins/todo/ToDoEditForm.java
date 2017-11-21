@@ -25,7 +25,7 @@ package org.projectforge.plugins.todo;
 
 import java.util.Date;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -353,7 +353,7 @@ public class ToDoEditForm extends AbstractEditForm<ToDoDO, ToDoEditPage>
         getData().setStatus(ToDoStatus.CLOSED);
         parentPage.updateAndClose();
         return true;
-      };
+      }
     };
     parentPage.add(closeToDoDialog);
     closeToDoDialog.setCloseButtonLabel(getString("plugins.todo.button.close")).init();

@@ -26,7 +26,7 @@ package org.projectforge.business.task.formatter;
 import java.util.List;
 
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang.StringEscapeUtils;
+import org.apache.commons.lang3.StringEscapeUtils;
 import org.projectforge.business.common.OutputType;
 import org.projectforge.business.task.TaskDO;
 import org.projectforge.business.task.TaskNode;
@@ -93,7 +93,7 @@ public class TaskFormatter extends AbstractFormatter
       buf.append(StringEscapeUtils.escapeXml(task.getTitle()));
     }
     if (outputType == OutputType.HTML) {
-      return StringEscapeUtils.escapeHtml(buf.toString());
+      return StringEscapeUtils.escapeHtml4(buf.toString());
     } else if (outputType == OutputType.XML) {
       return StringEscapeUtils.escapeXml(buf.toString());
     } else {

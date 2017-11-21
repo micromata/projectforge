@@ -26,7 +26,7 @@ package org.projectforge.web.wicket.converter;
 import java.util.Locale;
 import java.util.TimeZone;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.util.convert.IConverter;
 
 /**

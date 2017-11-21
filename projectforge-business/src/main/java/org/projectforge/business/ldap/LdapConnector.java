@@ -31,7 +31,7 @@ import javax.naming.NamingException;
 import javax.naming.ldap.InitialLdapContext;
 import javax.naming.ldap.LdapContext;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.projectforge.framework.configuration.ConfigXml;
 import org.projectforge.framework.configuration.ConfigurationListener;
 import org.springframework.beans.factory.annotation.Autowired;

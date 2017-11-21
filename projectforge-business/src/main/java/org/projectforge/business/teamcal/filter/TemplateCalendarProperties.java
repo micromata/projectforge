@@ -25,7 +25,7 @@ package org.projectforge.business.teamcal.filter;
 
 import java.io.Serializable;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.projectforge.framework.utils.NumberHelper;
 
 /**

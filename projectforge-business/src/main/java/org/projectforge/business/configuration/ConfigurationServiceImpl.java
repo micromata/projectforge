@@ -21,7 +21,7 @@ import javax.net.ssl.TrustManagerFactory;
 import javax.net.ssl.X509TrustManager;
 
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.projectforge.business.meb.MebMailClient;
 import org.projectforge.business.orga.ContractType;
 import org.projectforge.business.teamcal.admin.TeamCalCache;

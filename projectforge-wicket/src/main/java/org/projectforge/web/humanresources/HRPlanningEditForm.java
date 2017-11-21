@@ -31,7 +31,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.markup.html.form.Button;
@@ -44,7 +44,6 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
-import org.apache.wicket.validation.IValidatable;
 import org.apache.wicket.validation.IValidator;
 import org.hibernate.Hibernate;
 import org.projectforge.business.fibu.ProjektDO;

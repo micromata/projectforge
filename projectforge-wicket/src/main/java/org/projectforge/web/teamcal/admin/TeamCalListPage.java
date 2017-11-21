@@ -26,7 +26,7 @@ package org.projectforge.web.teamcal.admin;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
@@ -99,6 +99,7 @@ public class TeamCalListPage extends AbstractListPage<TeamCalListForm, TeamCalDa
 
     final CellItemListener<TeamCalDO> cellItemListener = new CellItemListener<TeamCalDO>()
     {
+      @Override
       public void populateItem(final Item<ICellPopulator<TeamCalDO>> item, final String componentId,
           final IModel<TeamCalDO> rowModel)
       {
@@ -208,7 +209,7 @@ public class TeamCalListPage extends AbstractListPage<TeamCalListForm, TeamCalDa
                 icsExportDialog.addContent(target);
                 icsExportDialog.setCalendarTitle(target, teamCal.getTitle());
                 icsExportDialog.open(target);
-              };
+              }
             });
           }
         }
@@ -259,7 +260,7 @@ public class TeamCalListPage extends AbstractListPage<TeamCalListForm, TeamCalDa
             {
               openExportICSDialog(exportDialog, target, "plugins.teamcal.export.timesheets",
                   calendarFeedService.getUrl4Timesheets(getUserId()));
-            };
+            }
           }, getString("plugins.teamcal.export.timesheets"));
       menuEntry.setMarkupId("exportTimesheets").setOutputMarkupId(true);
       addContentMenuEntry(menuEntry);
@@ -273,7 +274,7 @@ public class TeamCalListPage extends AbstractListPage<TeamCalListForm, TeamCalDa
             {
               openExportICSDialog(exportDialog, target, "plugins.teamcal.export.holidays",
                   calendarFeedService.getUrl4Holidays());
-            };
+            }
           }, getString("plugins.teamcal.export.holidays"))
               .setTooltip(getString("plugins.teamcal.export.holidays.tooltip"));
       menuEntry.setMarkupId("exportHolidays").setOutputMarkupId(true);
@@ -288,7 +289,7 @@ public class TeamCalListPage extends AbstractListPage<TeamCalListForm, TeamCalDa
             {
               openExportICSDialog(exportDialog, target, "plugins.teamcal.export.weekOfYears",
                   calendarFeedService.getUrl4WeekOfYears());
-            };
+            }
           }, getString("plugins.teamcal.export.weekOfYears"))
               .setTooltip(getString("plugins.teamcal.export.weekOfYears.tooltip"));
       menuEntry.setMarkupId("exportWeekOfYears").setOutputMarkupId(true);
@@ -346,5 +347,5 @@ public class TeamCalListPage extends AbstractListPage<TeamCalListForm, TeamCalDa
     {
       return url;
     }
-  };
+  }
 }

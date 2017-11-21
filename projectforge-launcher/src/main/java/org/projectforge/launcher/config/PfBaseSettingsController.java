@@ -2,7 +2,7 @@ package org.projectforge.launcher.config;
 
 import java.io.File;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import de.micromata.mgc.javafx.ModelGuiField;
 import de.micromata.mgc.javafx.launcher.gui.AbstractConfigTabController;

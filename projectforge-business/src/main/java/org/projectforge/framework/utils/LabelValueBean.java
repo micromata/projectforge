@@ -25,7 +25,7 @@ package org.projectforge.framework.utils;
 
 import java.io.Serializable;
 
-import org.apache.commons.lang.builder.ToStringBuilder;
+import org.apache.commons.lang3.builder.ToStringBuilder;
 
 /**
  * Simply an holder for a key value property.
@@ -54,6 +54,7 @@ public class LabelValueBean<L extends Comparable<L>, V> implements Comparable<La
     this.value = value;
   }
 
+  @Override
   public V getValue()
   {
     return this.value;
@@ -63,7 +64,8 @@ public class LabelValueBean<L extends Comparable<L>, V> implements Comparable<La
   {
     this.value = value;
   }
-  
+
+  @Override
   public L getLabel()
   {
     return this.label;
@@ -79,6 +81,7 @@ public class LabelValueBean<L extends Comparable<L>, V> implements Comparable<La
   /*
    * @see java.lang.Comparable#compareTo(java.lang.Object)
    */
+  @Override
   public int compareTo(LabelValueBean<L, V> o)
   {
     return this.label.compareTo(o.label);

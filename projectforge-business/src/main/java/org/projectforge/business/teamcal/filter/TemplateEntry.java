@@ -31,9 +31,9 @@ import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 
-import org.apache.commons.lang.ObjectUtils;
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.Validate;
+import org.apache.commons.lang3.ObjectUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Validate;
 import org.projectforge.Const;
 import org.projectforge.business.teamcal.admin.TeamCalCache;
 import org.projectforge.business.teamcal.admin.model.TeamCalDO;

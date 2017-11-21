@@ -23,7 +23,7 @@
 
 package org.projectforge.business.task;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.projectforge.business.fibu.ProjektDO;
 import org.projectforge.business.fibu.kost.Kost2DO;
 import org.projectforge.common.StringHelper;
