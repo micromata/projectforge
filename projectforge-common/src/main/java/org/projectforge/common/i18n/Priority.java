@@ -23,7 +23,7 @@
 
 package org.projectforge.common.i18n;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * Needed for example to give tasks a priority.
@@ -72,6 +72,7 @@ public enum Priority implements I18nEnum
     return key;
   }
 
+  @Override
   public String getI18nKey()
   {
     return "priority." + key;

@@ -30,7 +30,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
-import org.apache.commons.lang.ObjectUtils;
+import org.apache.commons.lang3.ObjectUtils;
 import org.hibernate.LockMode;
 import org.projectforge.business.user.UserRightId;
 import org.projectforge.continuousdb.Table;

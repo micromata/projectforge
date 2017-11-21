@@ -23,7 +23,7 @@
 
 package org.projectforge.web.wicket;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.behavior.Behavior;
 import org.apache.wicket.markup.ComponentTag;
@@ -32,7 +32,7 @@ import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
 
 /**
  * Set class attribute of tag to error or appends " error" if class attribute does already exist.
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 public class ErrorHighlightBehavior extends Behavior
@@ -42,9 +42,9 @@ public class ErrorHighlightBehavior extends Behavior
   @Override
   public void onComponentTag(final Component component, final ComponentTag tag)
   {
-    if (component instanceof FormComponent< ? >) {
-      final FormComponent< ? > fc = (FormComponent< ? >) component;
-      if (fc instanceof AbstractSelectPanel< ? > == true) {
+    if (component instanceof FormComponent<?>) {
+      final FormComponent<?> fc = (FormComponent<?>) component;
+      if (fc instanceof AbstractSelectPanel<?> == true) {
         // Do ignore the AbstractSelectPanels, otherwise the icons looks not very pretty on colored background.
         return;
       }

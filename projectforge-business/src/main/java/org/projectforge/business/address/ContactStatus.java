@@ -23,7 +23,7 @@
 
 package org.projectforge.business.address;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.projectforge.common.i18n.I18nEnum;
 
 /**
@@ -74,6 +74,7 @@ public enum ContactStatus implements I18nEnum
   /**
    * @return The full i18n key including the i18n prefix "fibu.auftrag.status.".
    */
+  @Override
   public String getI18nKey()
   {
     return "address.contactStatus." + key;

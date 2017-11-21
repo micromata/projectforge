@@ -29,11 +29,11 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import org.apache.commons.lang.ObjectUtils;
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.Validate;
-import org.apache.commons.lang.builder.HashCodeBuilder;
-import org.apache.commons.lang.builder.ToStringBuilder;
+import org.apache.commons.lang3.ObjectUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Validate;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.log4j.Logger;
 import org.dom4j.Element;
 import org.projectforge.business.fibu.ProjektDO;
@@ -46,22 +46,28 @@ import org.projectforge.framework.persistence.api.IdObject;
 
 /**
  * Represents a single task as part of the TaskTree. The data of a task node is stored in the database.
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 public class TaskNode implements IdObject<Integer>, Serializable
 {
   private static final long serialVersionUID = -3759574521842841341L;
 
-  /** For log messages. */
+  /**
+   * For log messages.
+   */
   private static final Logger log = Logger.getLogger(TaskNode.class);
 
-  /** Reference to the parent task node with the parentTaskID. */
+  /**
+   * Reference to the parent task node with the parentTaskID.
+   */
   TaskNode parent = null;
 
   ProjektDO projekt;
 
-  /** Total duration of all time sheets of this task (excluding the child tasks) in seconds. */
+  /**
+   * Total duration of all time sheets of this task (excluding the child tasks) in seconds.
+   */
   long totalDuration = 0;
 
   /**
@@ -75,7 +81,9 @@ public class TaskNode implements IdObject<Integer>, Serializable
    */
   List<TaskNode> childs = null;
 
-  /** The data of this TaskNode. */
+  /**
+   * The data of this TaskNode.
+   */
   TaskDO task = null;
 
   boolean bookableForTimesheets;
@@ -107,13 +115,18 @@ public class TaskNode implements IdObject<Integer>, Serializable
     return this.task;
   }
 
-  /** The id of this task given by the database. */
+  /**
+   * The id of this task given by the database.
+   */
+  @Override
   public Integer getId()
   {
     return task.getId();
   }
 
-  /** The id of this task given by the database. */
+  /**
+   * The id of this task given by the database.
+   */
   public Integer getTaskId()
   {
     return task.getId();
@@ -127,7 +140,9 @@ public class TaskNode implements IdObject<Integer>, Serializable
     return parent.getId();
   }
 
-  /** Returns the parent task. */
+  /**
+   * Returns the parent task.
+   */
   public TaskNode getParent()
   {
     return this.parent;
@@ -143,7 +158,7 @@ public class TaskNode implements IdObject<Integer>, Serializable
 
   /**
    * @return The reference of the assigned task, or if not given or blank of the parent task node. If the parent task
-   *         node has no reference the grand parent task reference will be assumed and so on.
+   * node has no reference the grand parent task reference will be assumed and so on.
    */
   public String getReference()
   {
@@ -158,7 +173,7 @@ public class TaskNode implements IdObject<Integer>, Serializable
 
   /**
    * Gets the project, which is assigned to the task or if not found to the parent task or grand parent task etc.
-   * 
+   *
    * @param taskId
    * @return null, if now project is assigned to this task or ancestor tasks.
    * @see ProjektDO#getTask()
@@ -170,7 +185,7 @@ public class TaskNode implements IdObject<Integer>, Serializable
 
   /**
    * Gets the project, which is assigned to the task or if not found to the parent task or grand parent task etc.
-   * 
+   *
    * @param taskId
    * @param recursive If true then search the ancestor nodes for a given project.
    * @return null, if now project is assigned to this task or ancestor tasks.
@@ -263,13 +278,17 @@ public class TaskNode implements IdObject<Integer>, Serializable
     return this.childs;
   }
 
-  /** Has this task any childs? */
+  /**
+   * Has this task any childs?
+   */
   public boolean hasChilds()
   {
     return this.childs != null && this.childs.size() > 0 ? true : false;
   }
 
-  /** Checks if the given node is a child / descendant of this node. */
+  /**
+   * Checks if the given node is a child / descendant of this node.
+   */
   public boolean isParentOf(final TaskNode node)
   {
     if (this.childs == null) {
@@ -360,10 +379,10 @@ public class TaskNode implements IdObject<Integer>, Serializable
   /**
    * Checks the desired permission for the given group to this task. If no GroupTaskAccess is defined for this task for
    * the given group, hasPermission will be called of the parent task.
-   * 
-   * @param groupId The id of the group to check.
+   *
+   * @param groupId    The id of the group to check.
    * @param accessType TASK_ACCESS, ...
-   * @param opType Select, insert, update or delete.
+   * @param opType     Select, insert, update or delete.
    * @see AccessType
    * @see OperationType
    */
@@ -388,7 +407,7 @@ public class TaskNode implements IdObject<Integer>, Serializable
 
   /**
    * Gets the GroupTaskAccessDO for the given group.
-   * 
+   *
    * @param groupId
    * @return The GroupTaskAccessDO or null if not exists.
    */
@@ -406,7 +425,7 @@ public class TaskNode implements IdObject<Integer>, Serializable
   /**
    * Sets the task group access to this task node for the given group. Removes any previous stored GroupTaskAccessDO for
    * the same group if exists. Multiple GroupTaskAccessDO entries for one group will be avoided.
-   * 
+   *
    * @param GroupTaskAccessDO
    */
   void setGroupTaskAccess(final GroupTaskAccessDO groupTaskAccess)
@@ -424,7 +443,7 @@ public class TaskNode implements IdObject<Integer>, Serializable
 
   /**
    * Removes the GroupTaskAccessDO for the given group if exists.
-   * 
+   *
    * @param groupId
    * @return true if an entry was found and removed, otherwise false.
    */
@@ -448,7 +467,7 @@ public class TaskNode implements IdObject<Integer>, Serializable
 
   /**
    * Gets the total duration of all time sheets in seconds.
-   * 
+   *
    * @param recursive If true, then the durations of all time sheets of the sub tasks will be added.
    * @return
    */

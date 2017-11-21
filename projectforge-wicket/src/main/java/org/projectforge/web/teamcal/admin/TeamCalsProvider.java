@@ -28,7 +28,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.TreeSet;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.projectforge.business.teamcal.admin.TeamCalCache;
 import org.projectforge.business.teamcal.admin.TeamCalsComparator;
 import org.projectforge.business.teamcal.admin.model.TeamCalDO;

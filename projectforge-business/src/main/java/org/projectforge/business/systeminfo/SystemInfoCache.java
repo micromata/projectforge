@@ -98,7 +98,7 @@ public class SystemInfoCache extends AbstractCache
 
   private boolean hasTableEntries(final Class<?> entity)
   {
-    return PfEmgrFactory.get().runWoTrans((emgr) -> {
+    return PfEmgrFactory.get().runInTrans((emgr) -> {
       return emgr.createQuery(Long.class, "select count(e) from " + entity.getName() + " e").getSingleResult() != 0;
     });
   }

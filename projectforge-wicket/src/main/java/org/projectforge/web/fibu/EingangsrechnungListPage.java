@@ -29,8 +29,12 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+<<<<<<< HEAD
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang.StringEscapeUtils;
+=======
+import org.apache.commons.lang3.StringEscapeUtils;
+>>>>>>> develop
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
@@ -183,7 +187,7 @@ public class EingangsrechnungListPage
       public void populateItem(final Item item, final String componentId, final IModel rowModel)
       {
         final EingangsrechnungDO eingangsrechnung = (EingangsrechnungDO) rowModel.getObject();
-        String kreditor = StringEscapeUtils.escapeHtml(eingangsrechnung.getKreditor());
+        String kreditor = StringEscapeUtils.escapeHtml4(eingangsrechnung.getKreditor());
         if (form.getSearchFilter().isShowKostZuweisungStatus() == true) {
           final BigDecimal fehlBetrag = eingangsrechnung.getKostZuweisungFehlbetrag();
           if (NumberHelper.isNotZero(fehlBetrag) == true) {

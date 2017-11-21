@@ -36,8 +36,8 @@ import java.util.Set;
 import java.util.TreeMap;
 
 import org.apache.commons.collections.MapUtils;
-import org.apache.commons.lang.StringEscapeUtils;
-import org.apache.commons.lang.Validate;
+import org.apache.commons.lang3.StringEscapeUtils;
+import org.apache.commons.lang3.Validate;
 import org.projectforge.business.common.OutputType;
 import org.projectforge.business.fibu.api.EmployeeService;
 import org.projectforge.business.fibu.kost.Kost2DO;

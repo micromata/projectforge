@@ -1,6 +1,6 @@
 package org.projectforge.business.teamcal.event.ical.converter;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.projectforge.business.teamcal.event.model.TeamEventDO;
 
 import net.fortuna.ical4j.model.Property;

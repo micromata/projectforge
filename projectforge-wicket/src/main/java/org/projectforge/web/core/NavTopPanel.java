@@ -25,7 +25,7 @@ package org.projectforge.web.core;
 
 import java.util.Collection;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.RestartResponseAtInterceptPageException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -57,6 +57,7 @@ import org.projectforge.framework.persistence.user.entities.TenantDO;
 import org.projectforge.web.FavoritesMenu;
 import org.projectforge.web.LoginPage;
 import org.projectforge.web.LoginService;
+import org.projectforge.web.MenuBuilder;
 import org.projectforge.web.MenuEntry;
 import org.projectforge.web.MenuItemRegistry;
 import org.projectforge.web.core.menuconfig.MenuConfig;
@@ -109,6 +110,9 @@ public class NavTopPanel extends NavAbstractPanel
   @SpringBean
   private LoginService loginService;
 
+  @SpringBean
+  private MenuBuilder menuBilder;
+
   /**
    * Cross site request forgery token.
    */
@@ -123,7 +127,7 @@ public class NavTopPanel extends NavAbstractPanel
   public void init(final AbstractSecuredPage page)
   {
     getMenu();
-    this.favoritesMenu = FavoritesMenu.get(menuItemRegistry, accessChecker, userRights);
+    this.favoritesMenu = FavoritesMenu.get(menuItemRegistry, menuBilder, accessChecker, userRights);
     final WebMarkupContainer goMobile = new WebMarkupContainer("goMobile");
     add(goMobile);
     if (page.getMySession().isMobileUserAgent() == true) {
@@ -238,7 +242,7 @@ public class NavTopPanel extends NavAbstractPanel
         @Override
         public void onClick()
         {
-          loginService.logout((MySession) getSession(), (WebRequest) getRequest(), (WebResponse) getResponse(), userXmlPreferencesCache, menuBuilder);
+          loginService.logout((MySession) getSession(), (WebRequest) getRequest(), (WebResponse) getResponse(), userXmlPreferencesCache);
           setResponsePage(LoginPage.class);
         }
 

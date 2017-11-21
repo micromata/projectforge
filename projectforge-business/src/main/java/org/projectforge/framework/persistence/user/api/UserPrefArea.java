@@ -25,7 +25,7 @@ package org.projectforge.framework.persistence.user.api;
 
 import java.io.Serializable;
 
-import org.apache.commons.lang.Validate;
+import org.apache.commons.lang3.Validate;
 import org.projectforge.business.fibu.KundeFavorite;
 import org.projectforge.business.fibu.ProjektFavorite;
 import org.projectforge.business.task.TaskFavorite;

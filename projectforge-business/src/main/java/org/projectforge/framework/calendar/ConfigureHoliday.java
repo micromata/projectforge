@@ -25,7 +25,7 @@ package org.projectforge.framework.calendar;
 
 import java.math.BigDecimal;
 
-import org.apache.commons.lang.builder.ReflectionToStringBuilder;
+import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.projectforge.framework.xstream.XmlField;
 import org.projectforge.framework.xstream.XmlObject;
 
