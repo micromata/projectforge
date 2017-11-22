@@ -75,6 +75,38 @@ public class AddressCampaignValueListForm
     super.init();
     this.addressCampaignId = searchFilter.getAddressCampaignId();
     this.addressCampaignValue = searchFilter.getAddressCampaignValue();
+    gridBuilder.newSplitPanel(GridSize.COL100);
+    {
+      final FieldsetPanel fs = gridBuilder.newFieldset(getString("value"));
+      final LabelValueChoiceRenderer<String> choiceRenderer = getValueLabelValueChoiceRenderer();
+      addressCampaignValueDropDownChoice = new DropDownChoice<String>(fs.getDropDownChoiceId(),
+          new PropertyModel<String>(this,
+              "addressCampaignValue"),
+          choiceRenderer.getValues(), choiceRenderer)
+      {
+        @Override
+        protected void onSelectionChanged(final String newSelection)
+        {
+          searchFilter.setAddressCampaignValue(newSelection);
+          parentPage.refresh();
+        }
+
+        @Override
+        protected boolean wantOnSelectionChangedNotifications()
+        {
+          return true;
+        }
+
+      };
+      addressCampaignValueDropDownChoice.setNullValid(true);
+      fs.add(addressCampaignValueDropDownChoice);
+    }
+    AddressListForm.addFilter(parentPage, this, gridBuilder, getSearchFilter(), addressbookDao);
+  }
+
+  @Override
+  protected void onBeforeSearchFilter()
+  {
     final List<AddressCampaignDO> addressCampaignList = addressCampaignDao.getList(new AddressCampaignValueFilter());
     gridBuilder.newSplitPanel(GridSize.COL66);
     {
@@ -124,33 +156,6 @@ public class AddressCampaignValueListForm
       };
       fs.add(addressCampaignChoice);
     }
-    {
-      gridBuilder.newSplitPanel(GridSize.COL33);
-      final FieldsetPanel fs = gridBuilder.newFieldset(getString("value"));
-      final LabelValueChoiceRenderer<String> choiceRenderer = getValueLabelValueChoiceRenderer();
-      addressCampaignValueDropDownChoice = new DropDownChoice<String>(fs.getDropDownChoiceId(),
-          new PropertyModel<String>(this,
-              "addressCampaignValue"),
-          choiceRenderer.getValues(), choiceRenderer)
-      {
-        @Override
-        protected void onSelectionChanged(final String newSelection)
-        {
-          searchFilter.setAddressCampaignValue(newSelection);
-          parentPage.refresh();
-        }
-
-        @Override
-        protected boolean wantOnSelectionChangedNotifications()
-        {
-          return true;
-        }
-
-      };
-      addressCampaignValueDropDownChoice.setNullValid(true);
-      fs.add(addressCampaignValueDropDownChoice);
-    }
-    AddressListForm.addFilter(parentPage, this, gridBuilder, getSearchFilter(), addressbookDao);
   }
 
   /**
