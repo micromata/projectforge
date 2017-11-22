@@ -154,8 +154,10 @@ public abstract class AbstractListForm<F extends BaseSearchFilter, P extends Abs
 
     gridBuilder = newGridBuilder(this, "filter");
     if (isFilterVisible() == true) {
+      onBeforeSearchFilter();
       {
         // Fieldset search filter
+        gridBuilder.newSplitPanel(GridSize.COL100);
         final FieldsetPanel fs = gridBuilder.newFieldset(getString("searchFilter"));
         if (parentPage.getBaseDao().isHistorizable() == true) {
           IconPanel icon = new IconPanel(fs.newIconChildId(), IconType.PLUS_SIGN, getString("filter.extendedSearch"))
@@ -296,6 +298,13 @@ public abstract class AbstractListForm<F extends BaseSearchFilter, P extends Abs
     addActionButton(searchButtonPanel);
 
     setComponentsVisibility();
+  }
+
+  /**
+   * Is used to create elements before search filter on list pages.
+   */
+  protected void onBeforeSearchFilter()
+  {
   }
 
   protected String getCancelButtonLabel()
