@@ -123,7 +123,7 @@ public class InitDatabaseDao
   {
     log.info("Init admin user and root task.");
     DatabaseUpdateService ser = applicationContext.getBean(DatabaseUpdateService.class);
-    if (ser.databaseTablesWithEntriesExists() == false) {
+    if (ser.databaseTablesWithEntriesExists() == true) {
       databaseNotEmpty();
     }
 

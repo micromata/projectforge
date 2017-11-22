@@ -238,34 +238,4 @@ public class KundeDO extends AbstractHistorizableBaseDO<Integer> implements Shor
   {
     return konto != null ? konto.getId() : null;
   }
-
-  @Transient
-  public boolean equals(final KundeDO other)
-  {
-    if (this.getId() != null && this.getId().equals(other.getId()) == false) {
-      return false;
-    }
-    if (this.getCreated() != null && this.getCreated().equals(other.getCreated()) == false) {
-      return false;
-    }
-    if (this.getName() != null && this.getName().equals(other.getName()) == false) {
-      return false;
-    }
-    if (this.getIdentifier() != null && this.getIdentifier().equals(other.getIdentifier()) == false) {
-      return false;
-    }
-    if (this.getDivision() != null && this.getDivision().equals(other.getDivision()) == false) {
-      return false;
-    }
-    if (this.getStatus() != null && this.getStatus().equals(other.getStatus()) == false) {
-      return false;
-    }
-    if (this.getDescription() != null && this.getDescription().equals(other.getDescription()) == false) {
-      return false;
-    }
-    if (this.getKontoId() != null && this.getKontoId().equals(other.getKontoId()) == false) {
-      return false;
-    }
-    return true;
-  }
 }

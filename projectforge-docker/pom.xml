@@ -21,7 +21,7 @@
     <dependency>
       <groupId>org.projectforge</groupId>
       <artifactId>projectforge-application</artifactId>
-      <version>${projectforge.version}</version>
+      <version>${project.version}</version>
     </dependency>
   </dependencies>
 

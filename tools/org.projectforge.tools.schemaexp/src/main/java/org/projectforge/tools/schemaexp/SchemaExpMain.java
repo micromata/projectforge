@@ -8,7 +8,6 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
 import de.micromata.genome.db.jpa.xmldump.api.JpaXmlDumpService.RestoreMode;
-import de.micromata.genome.util.runtime.LocalSettingsEnv;
 
 /**
  * 
@@ -72,7 +71,6 @@ public class SchemaExpMain
       help();
       return;
     }
-    LocalSettingsEnv.get();
     ApplicationContext context = initApplicatinContext();
     SchemaExpService ms = context.getBean(SchemaExpService.class);
 
