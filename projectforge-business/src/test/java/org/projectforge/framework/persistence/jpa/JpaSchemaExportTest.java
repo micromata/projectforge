@@ -19,14 +19,12 @@ import org.projectforge.test.AbstractTestBase;
 import org.testng.annotations.Test;
 
 import de.micromata.genome.util.bean.PrivateBeanUtils;
-import de.micromata.genome.util.runtime.LocalSettingsEnv;
 
 public class JpaSchemaExportTest extends AbstractTestBase
 {
   @Test
   public void testExport()
   {
-    LocalSettingsEnv.get();
     Map<String, String> props = new HashMap<>();
     props.put("javax.persistence.schema-generation.scripts.action", "drop-and-create");
     props.put("javax.persistence.schema-generation.scripts.create-target", "target/pfcreate.sql");

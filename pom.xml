@@ -237,8 +237,6 @@
 
     <downloadSources>true</downloadSources>
 
-    <projectforge.version>${project.version}</projectforge.version>
-
     <maven-compile-plugin-version>3.3</maven-compile-plugin-version>
     <java.version>1.8</java.version>
 

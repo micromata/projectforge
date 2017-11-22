@@ -12,12 +12,12 @@
     <dependency>
       <groupId>org.projectforge</groupId>
       <artifactId>projectforge-wicket</artifactId>
-      <version>${projectforge.version}</version>
+      <version>${project.version}</version>
     </dependency>
     <dependency>
       <groupId>org.projectforge</groupId>
       <artifactId>projectforge-business</artifactId>
-      <version>${projectforge.version}</version>
+      <version>${project.version}</version>
       <scope>test</scope>
       <type>test-jar</type>
     </dependency>

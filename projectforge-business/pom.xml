@@ -19,12 +19,12 @@
     <dependency>
       <groupId>org.projectforge</groupId>
       <artifactId>projectforge-common</artifactId>
-      <version>${projectforge.version}</version>
+      <version>${project.version}</version>
     </dependency>
     <dependency>
       <groupId>org.projectforge</groupId>
       <artifactId>projectforge-model</artifactId>
-      <version>${projectforge.version}</version>
+      <version>${project.version}</version>
     </dependency>
     <dependency>
       <groupId>de.micromata.mgc</groupId>

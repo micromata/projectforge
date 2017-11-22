@@ -123,6 +123,7 @@ public class KundeDao extends BaseDao<KundeDO>
     if (customer != null && customer.getId() != null) {
       KundeDO existingCustomer = internalGetById(customer.getId());
       if (existingCustomer != null) {
+        customer.setCreated(null);
         throw new UserException("fibu.kunde.validation.existingCustomerNr");
       }
     }

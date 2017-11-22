@@ -93,15 +93,6 @@ public class SetupPage extends AbstractUnsecureBasePage
     importForm = new SetupImportForm(this);
     body.add(importForm);
     importForm.init();
-    // final StringBuffer js = new StringBuffer("<script>\n") //
-    // .append("$(function() {") //
-    // .append("  $('input:file').uniform({\n") //
-    // .append("    fileDefaultText : '- No file selected',\n") //
-    // .append("    fileBtnText : 'Choose - File'\n") //
-    // .append("  }); });\n") //
-    // .append("alert('Hurzel');") //
-    // .append("</script>\n");
-    // body.add(new Label("uploadScript", js.toString()).setEscapeModelStrings(false));
   }
 
   protected void finishSetup()
@@ -111,8 +102,6 @@ public class SetupPage extends AbstractUnsecureBasePage
     PFUserDO adminUser = setupForm.getAdminUser();
     final String message;
 
-    //Generating the schema
-    initDatabaseDao.updateSchema();
     //Init default tenant
     initDatabaseDao.insertDefaultTenant();
     //Init global addressbook
@@ -246,7 +235,7 @@ public class SetupPage extends AbstractUnsecureBasePage
 
   private void checkAccess()
   {
-    if (myDatabaseUpdater.databaseTablesWithEntriesExists() == false) {
+    if (myDatabaseUpdater.databaseTablesWithEntriesExists() == true) {
       log.error("Couldn't call set-up page, because the data-base isn't empty!");
       ((MySession) getSession()).logout();
       throw new RestartResponseException(WicketUtils.getDefaultPage());
