@@ -686,7 +686,7 @@ public class AuftragDO extends DefaultBaseDO
         if (pos.isDeleted()) {
           continue;
         }
-        if (pos.getPersonDays() != null) {
+        if (pos.getPersonDays() != null && pos.getStatus() != AuftragsPositionsStatus.ABGELEHNT && pos.getStatus() != AuftragsPositionsStatus.ERSETZT) {
           result = result.add(pos.getPersonDays());
         }
       }
