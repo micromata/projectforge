@@ -31,10 +31,8 @@ import org.projectforge.business.systeminfo.SystemInfoCache;
 import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.business.user.UserXmlPreferencesCache;
 import org.projectforge.continuousdb.DatabaseSupport;
-import org.projectforge.continuousdb.UpdateEntry;
 import org.projectforge.export.MyXlsExportContext;
 import org.projectforge.framework.persistence.api.HibernateUtils;
-import org.projectforge.framework.persistence.database.DatabaseCoreInitial;
 import org.projectforge.framework.persistence.database.DatabaseUpdateService;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.api.UserContext;
@@ -156,43 +154,18 @@ public class ProjectForgeApp
       DatabaseSupport.setInstance(new DatabaseSupport(HibernateUtils.getDialect()));
     }
 
-    final UserContext internalSystemAdminUserContext = UserContext
-        .__internalCreateWithSpecialUser(DatabaseUpdateService
-            .__internalGetSystemAdminPseudoUser(), getUserGroupCache());
-    final boolean missingDatabaseSchema = databaseUpdater.databaseTablesWithEntriesExists();
-    if (missingDatabaseSchema == true) {
-      try {
-        ThreadLocalUserContext.setUserContext(internalSystemAdminUserContext); // Logon admin user.
-        final UpdateEntry updateEntry = DatabaseCoreInitial.getInitializationUpdateEntry(databaseUpdater);
-        updateEntry.runUpdate();
-      } finally {
-        ThreadLocalUserContext.clear();
-      }
-    }
-    //    if (initDatabaseDao.databaseTablesWithEntriesExists() == false) {
-    //      pluginAdminService.initializeActivePlugins();
-    //      //    pluginsRegistry = PluginsRegistry.instance();
-    //      //    pluginsRegistry.set(myDatabaseUpdater.getSystemUpdater());
-    //      //    pluginsRegistry.loadPlugins(applicationContext);
-    //      //    applicationContext.getBean(PluginAdminService.class).initializeActivePlugins();
-    //      //    pluginsRegistry.initialize();
-    //      // TODO RK 6.1 pf update mechanism.
-    //      boolean runUpdates = false;
-    //      if (runUpdates == true && missingDatabaseSchema == true) {
-    //        try {
-    //          ThreadLocalUserContext.setUserContext(internalSystemAdminUserContext); // Logon admin user.
-    //          for (final AbstractPlugin plugin : pluginAdminService.getActivePlugin()) {
-    //            final UpdateEntry updateEntry = plugin.getInitializationUpdateEntry();
-    //            if (updateEntry != null) {
-    //              updateEntry.runUpdate();
-    //            }
-    //          }
-    //        } finally {
-    //          ThreadLocalUserContext.clear();
-    //        }
+    //    final UserContext internalSystemAdminUserContext = UserContext
+    //        .__internalCreateWithSpecialUser(DatabaseUpdateService
+    //            .__internalGetSystemAdminPseudoUser(), getUserGroupCache());
+    //    final boolean missingDatabaseSchema = databaseUpdater.databaseTablesWithEntriesExists();
+    //    if (missingDatabaseSchema == true) {
+    //      try {
+    //        ThreadLocalUserContext.setUserContext(internalSystemAdminUserContext); // Logon admin user.
+    //        final UpdateEntry updateEntry = DatabaseCoreInitial.getInitializationUpdateEntry(databaseUpdater);
+    //        updateEntry.runUpdate();
+    //      } finally {
+    //        ThreadLocalUserContext.clear();
     //      }
-    //    } else {
-    //      log.info("Data-base is empty: no Plugins are loaded...");
     //    }
 
     SystemInfoCache.internalInitialize(systemInfoCache);
