@@ -115,7 +115,7 @@ public abstract class AbstractSecuredPage extends AbstractSecuredBasePage
     enableSnowEffect = (enableSnowEffect && parameters.get("snowEffectEnable") != null && parameters.get("snowEffectEnable").isEmpty() == false) ?
         parameters.get("snowEffectEnable").toBoolean() :
         enableSnowEffect;
-    enableSnowEffect = new Random().nextInt(100) >= 50;
+    enableSnowEffect = enableSnowEffect && new Random().nextInt(100) >= 50;
     if (enableSnowEffect) {
       return new SnowEffectPanel("snowEffect");
     } else {
