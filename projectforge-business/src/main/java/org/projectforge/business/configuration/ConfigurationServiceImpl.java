@@ -709,4 +709,10 @@ public class ConfigurationServiceImpl implements ConfigurationService
   {
     return this.maxFileSizeXmlDumpImport;
   }
+
+  @Override
+  public boolean isSnowEffectEnabled()
+  {
+    return GlobalConfiguration.getInstance().getBooleanValue(ConfigurationParam.SNOW_EFFECT_ENABLED);
+  }
 }

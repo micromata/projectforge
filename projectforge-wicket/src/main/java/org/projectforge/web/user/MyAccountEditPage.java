@@ -106,6 +106,9 @@ public class MyAccountEditPage extends AbstractEditPage<PFUserDO, MyAccountEditF
     Integer[] blackListIds = teamCalRestBlackList.stream().map(cal -> cal.getId()).toArray(size -> new Integer[size]);
     userXmlPreferencesDao.saveOrUpdate(ThreadLocalUserContext.getUserId(), TeamCalDO.TEAMCALRESTBLACKLIST, blackListIds, true);
 
+    userXmlPreferencesDao.saveOrUpdate(ThreadLocalUserContext.getUserId(), "disableSnowEffectPermant", form.getDisableSnowEffectPermant(), true);
+    userXmlPreferencesCache.putEntry(ThreadLocalUserContext.getUserId(), "disableSnowEffectPermant", form.getDisableSnowEffectPermant(), true);
+
     final HttpServletRequest request = WicketUtils.getHttpServletRequest(getRequest());
     // Don't trust the form data, use logged in user from the data base instead.
     UserFilter.refreshUser(request);
