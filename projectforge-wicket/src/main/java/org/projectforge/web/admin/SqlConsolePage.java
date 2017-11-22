@@ -33,7 +33,7 @@ import org.projectforge.continuousdb.DatabaseResultRow;
 import org.projectforge.continuousdb.DatabaseResultRowEntry;
 import org.projectforge.framework.access.AccessException;
 import org.projectforge.framework.configuration.SecurityConfig;
-import org.projectforge.framework.persistence.database.DatabaseUpdateService;
+import org.projectforge.framework.persistence.database.DatabaseService;
 import org.projectforge.framework.utils.ExceptionHelper;
 import org.projectforge.web.WebConfiguration;
 import org.projectforge.web.wicket.AbstractStandardFormPage;
@@ -45,7 +45,7 @@ public class SqlConsolePage extends AbstractStandardFormPage
   private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(SqlConsolePage.class);
 
   @SpringBean
-  private DatabaseUpdateService myDatabaseUpdater;
+  private DatabaseService myDatabaseUpdater;
 
   @SpringBean
   private ConfigurationService configurationService;
