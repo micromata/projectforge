@@ -39,8 +39,7 @@ import org.projectforge.framework.configuration.ConfigurationDao;
 import org.projectforge.framework.configuration.ConfigurationParam;
 import org.projectforge.framework.configuration.entities.ConfigurationDO;
 import org.projectforge.framework.persistence.database.DatabaseCoreUpdates;
-import org.projectforge.framework.persistence.database.DatabaseUpdateService;
-import org.projectforge.framework.persistence.database.InitDatabaseDao;
+import org.projectforge.framework.persistence.database.DatabaseService;
 import org.projectforge.framework.persistence.database.PfJpaXmlDumpService;
 import org.projectforge.framework.persistence.history.HibernateSearchReindexer;
 import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
@@ -62,16 +61,13 @@ public class SetupPage extends AbstractUnsecureBasePage
   private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(SetupPage.class);
 
   @SpringBean
-  private InitDatabaseDao initDatabaseDao;
-
-  @SpringBean
   private ConfigurationDao configurationDao;
 
   @SpringBean
   private HibernateSearchReindexer hibernateSearchReindexer;
 
   @SpringBean
-  private DatabaseUpdateService myDatabaseUpdater;
+  private DatabaseService databaseService;
 
   @SpringBean
   private PfJpaXmlDumpService jpaXmlDumpService;
@@ -103,18 +99,18 @@ public class SetupPage extends AbstractUnsecureBasePage
     final String message;
 
     //Init default tenant
-    initDatabaseDao.insertDefaultTenant();
+    databaseService.insertDefaultTenant();
     //Init global addressbook
-    initDatabaseDao.insertGlobalAddressbook();
+    databaseService.insertGlobalAddressbook();
 
     if (setupForm.getSetupMode() == SetupTarget.EMPTY_DATABASE) {
       //Init default data (admin user, groups and root task)
-      initDatabaseDao.initializeDefaultData(adminUser, setupForm.getTimeZone());
+      databaseService.initializeDefaultData(adminUser, setupForm.getTimeZone());
       message = "administration.setup.message.emptyDatabase";
     } else {
       jpaXmlDumpService.createTestDatabase();
-      adminUser = initDatabaseDao.updateAdminUser(adminUser, setupForm.getTimeZone());
-      initDatabaseDao.afterCreatedTestDb(false);
+      adminUser = databaseService.updateAdminUser(adminUser, setupForm.getTimeZone());
+      databaseService.afterCreatedTestDb(false);
       message = "administration.setup.message.testdata";
       // refreshes the visibility of the costConfigured dependent menu items:
       menuItemRegistry.refresh();
@@ -138,7 +134,7 @@ public class SetupPage extends AbstractUnsecureBasePage
     configure(ConfigurationParam.CALENDAR_DOMAIN, setupForm.getCalendarDomain());
     configure(ConfigurationParam.SYSTEM_ADMIN_E_MAIL, setupForm.getSysopEMail());
     configure(ConfigurationParam.FEEDBACK_E_MAIL, setupForm.getFeedbackEMail());
-    if (myDatabaseUpdater.getSystemUpdater().isUpdated() == true) {
+    if (databaseService.getSystemUpdater().isUpdated() == true) {
       // Update status:
       UserFilter.setUpdateRequiredFirst(false);
     }
@@ -200,7 +196,7 @@ public class SetupPage extends AbstractUnsecureBasePage
       //      configurationDao.checkAndUpdateDatabaseEntries();
 
       // intialize DB schema
-      this.initDatabaseDao.updateSchema();
+      this.databaseService.updateSchema();
 
       int counter = jpaXmlDumpService.restoreDb(PfEmgrFactory.get(), is, RestoreMode.InsertAll);
       Configuration.getInstance().setExpired();
@@ -235,7 +231,7 @@ public class SetupPage extends AbstractUnsecureBasePage
 
   private void checkAccess()
   {
-    if (myDatabaseUpdater.databaseTablesWithEntriesExists() == true) {
+    if (databaseService.databaseTablesWithEntriesExists() == true) {
       log.error("Couldn't call set-up page, because the data-base isn't empty!");
       ((MySession) getSession()).logout();
       throw new RestartResponseException(WicketUtils.getDefaultPage());

@@ -33,7 +33,7 @@ import org.projectforge.business.user.UserXmlPreferencesCache;
 import org.projectforge.continuousdb.DatabaseSupport;
 import org.projectforge.export.MyXlsExportContext;
 import org.projectforge.framework.persistence.api.HibernateUtils;
-import org.projectforge.framework.persistence.database.DatabaseUpdateService;
+import org.projectforge.framework.persistence.database.DatabaseService;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.api.UserContext;
 import org.projectforge.registry.Registry;
@@ -61,7 +61,7 @@ public class ProjectForgeApp
 
   private ApplicationContext applicationContext;
 
-  private DatabaseUpdateService databaseUpdater;
+  private DatabaseService databaseUpdater;
 
   private UserXmlPreferencesCache userXmlPreferencesCache;
 
@@ -126,7 +126,7 @@ public class ProjectForgeApp
   {
     log.info("Initializing...");
     this.applicationContext = applicationContext;
-    this.databaseUpdater = applicationContext.getBean(DatabaseUpdateService.class);
+    this.databaseUpdater = applicationContext.getBean(DatabaseService.class);
     this.userXmlPreferencesCache = applicationContext.getBean(UserXmlPreferencesCache.class);
     this.systemInfoCache = applicationContext.getBean(SystemInfoCache.class);
 
@@ -176,7 +176,7 @@ public class ProjectForgeApp
     upAndRunning = false;
     try {
       final UserContext internalSystemAdminUserContext = UserContext
-          .__internalCreateWithSpecialUser(DatabaseUpdateService
+          .__internalCreateWithSpecialUser(DatabaseService
               .__internalGetSystemAdminPseudoUser(), getUserGroupCache());
       ThreadLocalUserContext.setUserContext(internalSystemAdminUserContext); // Logon admin user.
       databaseUpdater.shutdownDatabase();
