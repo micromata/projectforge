@@ -122,7 +122,7 @@ public class DatabaseCoreUpdates
 {
   private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(DatabaseCoreUpdates.class);
 
-  public static final String CORE_REGION_ID = DatabaseCoreInitial.CORE_REGION_ID;
+  public static final String CORE_REGION_ID = "ProjectForge";
 
   private static final String VERSION_5_0 = "5.0";
 

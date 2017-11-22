@@ -154,20 +154,6 @@ public class ProjectForgeApp
       DatabaseSupport.setInstance(new DatabaseSupport(HibernateUtils.getDialect()));
     }
 
-    //    final UserContext internalSystemAdminUserContext = UserContext
-    //        .__internalCreateWithSpecialUser(DatabaseUpdateService
-    //            .__internalGetSystemAdminPseudoUser(), getUserGroupCache());
-    //    final boolean missingDatabaseSchema = databaseUpdater.databaseTablesWithEntriesExists();
-    //    if (missingDatabaseSchema == true) {
-    //      try {
-    //        ThreadLocalUserContext.setUserContext(internalSystemAdminUserContext); // Logon admin user.
-    //        final UpdateEntry updateEntry = DatabaseCoreInitial.getInitializationUpdateEntry(databaseUpdater);
-    //        updateEntry.runUpdate();
-    //      } finally {
-    //        ThreadLocalUserContext.clear();
-    //      }
-    //    }
-
     SystemInfoCache.internalInitialize(systemInfoCache);
 
     this.initialized = true;
