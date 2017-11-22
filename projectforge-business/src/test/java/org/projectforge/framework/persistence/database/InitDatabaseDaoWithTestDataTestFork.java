@@ -102,7 +102,7 @@ public class InitDatabaseDaoWithTestDataTestFork extends AbstractTestBase
     final UserGroupCache userGroupCache = TenantRegistryMap.getInstance().getTenantRegistry().getUserGroupCache();
     final String testPassword = "demo123";
     TenantRegistryMap.getInstance().setAllUserGroupCachesAsExpired(); // Force reload (because it's may be expired due to previous tests).
-    assertTrue(myDatabaseUpdateService.databaseTablesWithEntriesExists());
+    assertFalse(myDatabaseUpdateService.databaseTablesWithEntriesExists());
     PFUserDO admin = new PFUserDO();
     admin.setUsername("myadmin");
     userService.createEncryptedPassword(admin, testPassword);

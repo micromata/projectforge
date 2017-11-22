@@ -102,7 +102,7 @@ public class LoginPage extends AbstractUnsecureBasePage
   public LoginPage(final PageParameters parameters)
   {
     super(parameters);
-    if (myDatabaseUpdateService.databaseTablesWithEntriesExists() == true) {
+    if (myDatabaseUpdateService.databaseTablesWithEntriesExists() == false) {
       log.info("Data-base is empty: redirect to SetupPage...");
       throw new RestartResponseException(SetupPage.class);
     }

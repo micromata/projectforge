@@ -902,8 +902,7 @@ public class DatabaseUpdateService
   {
     try {
       final Table userTable = new Table(PFUserDO.class);
-      return internalDoesTableExist(userTable.getName()) == false
-          || internalIsTableEmpty(userTable.getName()) == true;
+      return internalDoesTableExist(userTable.getName()) && internalIsTableEmpty(userTable.getName()) == false;
     } catch (final Exception ex) {
       log.error("Error while checking existing of user table with entries.", ex);
     }

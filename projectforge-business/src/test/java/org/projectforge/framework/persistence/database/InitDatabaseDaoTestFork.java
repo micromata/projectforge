@@ -23,10 +23,7 @@
 
 package org.projectforge.framework.persistence.database;
 
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertNotNull;
-import static org.testng.AssertJUnit.assertTrue;
-import static org.testng.AssertJUnit.fail;
+import static org.testng.AssertJUnit.*;
 
 import java.util.Collection;
 
@@ -64,7 +61,7 @@ public class InitDatabaseDaoTestFork extends AbstractTestBase
     final UserGroupCache userGroupCache = TenantRegistryMap.getInstance().getTenantRegistry().getUserGroupCache();
     TenantRegistryMap.getInstance().setAllUserGroupCachesAsExpired(); // Force reload (because it's may be expired due to previous tests).
     getUserGroupCache().setExpired();
-    assertTrue(myDatabaseUpdateService.databaseTablesWithEntriesExists());
+    assertFalse(myDatabaseUpdateService.databaseTablesWithEntriesExists());
     final PFUserDO admin = new PFUserDO();
     admin.setUsername(InitDatabaseDao.DEFAULT_ADMIN_USER);
     admin.setId(1);

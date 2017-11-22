@@ -124,7 +124,7 @@ public class EmployeeServiceTest extends AbstractTestBase
     assertFalse(result);
   }
 
-  @Test
+  @Test(enabled = false)
   public void testGetStudentVacationCountPerDay()
   {
     MockitoAnnotations.initMocks(this);
