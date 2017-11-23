@@ -37,8 +37,8 @@ import org.projectforge.business.user.filter.UserFilter;
 import org.projectforge.framework.configuration.Configuration;
 import org.projectforge.framework.configuration.ConfigurationDao;
 import org.projectforge.framework.configuration.ConfigurationParam;
+import org.projectforge.framework.configuration.GlobalConfiguration;
 import org.projectforge.framework.configuration.entities.ConfigurationDO;
-import org.projectforge.framework.persistence.database.DatabaseCoreUpdates;
 import org.projectforge.framework.persistence.database.DatabaseService;
 import org.projectforge.framework.persistence.database.PfJpaXmlDumpService;
 import org.projectforge.framework.persistence.history.HibernateSearchReindexer;
@@ -51,6 +51,7 @@ import org.projectforge.web.session.MySession;
 import org.projectforge.web.wicket.AbstractUnsecureBasePage;
 import org.projectforge.web.wicket.MessagePage;
 import org.projectforge.web.wicket.WicketUtils;
+import org.springframework.jdbc.datasource.init.ScriptUtils;
 
 import de.micromata.genome.db.jpa.xmldump.api.JpaXmlDumpService.RestoreMode;
 
@@ -108,7 +109,13 @@ public class SetupPage extends AbstractUnsecureBasePage
       databaseService.initializeDefaultData(adminUser, setupForm.getTimeZone());
       message = "administration.setup.message.emptyDatabase";
     } else {
-      jpaXmlDumpService.createTestDatabase();
+      try {
+        ScriptUtils.executeSqlScript(databaseService.getDataSource().getConnection(),
+            configurationDao.getApplicationContext().getResource("classpath:data/pfTestdata.sql"));
+      } catch (Exception e) {
+        log.error("Exception occured while running test data insert script. Message: " + e.getMessage());
+      }
+      GlobalConfiguration.getInstance().forceReload();
       adminUser = databaseService.updateAdminUser(adminUser, setupForm.getTimeZone());
       databaseService.afterCreatedTestDb(false);
       message = "administration.setup.message.testdata";
@@ -117,11 +124,6 @@ public class SetupPage extends AbstractUnsecureBasePage
     }
 
     loginAdminUser(adminUser);
-
-    if (setupForm.getSetupMode() == SetupTarget.TEST_DATA) {
-      // migrate old employee status to new attr employee status
-      DatabaseCoreUpdates.migrateEmployeeStatusToAttr();
-    }
 
     configurationDao.checkAndUpdateDatabaseEntries();
     if (setupForm.getTimeZone() != null) {
