@@ -56,7 +56,7 @@ import org.projectforge.framework.configuration.ConfigurationParam;
 import org.projectforge.framework.configuration.GlobalConfiguration;
 import org.projectforge.framework.i18n.I18nHelper;
 import org.projectforge.framework.persistence.api.ReindexSettings;
-import org.projectforge.framework.persistence.database.DatabaseUpdateService;
+import org.projectforge.framework.persistence.database.DatabaseService;
 import org.projectforge.framework.persistence.history.HibernateSearchReindexer;
 import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
 import org.projectforge.framework.time.DateHelper;
@@ -94,7 +94,7 @@ public class AdminPage extends AbstractStandardFormPage implements ISelectCaller
   private SystemService systemService;
 
   @SpringBean
-  private DatabaseUpdateService myDatabaseUpdater;
+  private DatabaseService myDatabaseUpdater;
 
   @SpringBean
   private HibernateSearchReindexer hibernateSearchReindexer;

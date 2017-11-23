@@ -47,7 +47,7 @@ import org.projectforge.framework.access.AccessType;
 import org.projectforge.framework.access.OperationType;
 import org.projectforge.framework.configuration.ConfigXmlTest;
 import org.projectforge.framework.configuration.GlobalConfiguration;
-import org.projectforge.framework.persistence.database.InitDatabaseDao;
+import org.projectforge.framework.persistence.database.DatabaseService;
 import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.GroupDO;
@@ -159,7 +159,7 @@ public class AbstractTestBase extends AbstractTestNGSpringContextTests
   private ConfigurationService configurationService;
 
   @Autowired
-  private InitDatabaseDao initDatabaseDao;
+  private DatabaseService initDatabaseDao;
 
   protected int mCount = 0;
 

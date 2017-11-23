@@ -39,8 +39,7 @@ import org.projectforge.business.user.filter.UserFilter;
 import org.projectforge.business.utils.HtmlHelper;
 import org.projectforge.framework.configuration.ConfigurationParam;
 import org.projectforge.framework.configuration.GlobalConfiguration;
-import org.projectforge.framework.persistence.database.DatabaseUpdateService;
-import org.projectforge.framework.persistence.database.InitDatabaseDao;
+import org.projectforge.framework.persistence.database.DatabaseService;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.web.admin.SetupPage;
 import org.projectforge.web.admin.SystemUpdatePage;
@@ -60,7 +59,7 @@ public class LoginPage extends AbstractUnsecureBasePage
   private static final String PARAMETER_KEY_FORCE_NON_MOBILE = "forceNonMobile";
 
   @SpringBean
-  private DatabaseUpdateService myDatabaseUpdateService;
+  private DatabaseService databaseService;
 
   @SpringBean
   private UserDao userDao;
@@ -70,9 +69,6 @@ public class LoginPage extends AbstractUnsecureBasePage
 
   @SpringBean
   private CookieService cookieService;
-
-  @SpringBean
-  private InitDatabaseDao initDatabaseDao;
 
   private WebMarkupContainer errorsContainer;
 
@@ -102,7 +98,7 @@ public class LoginPage extends AbstractUnsecureBasePage
   public LoginPage(final PageParameters parameters)
   {
     super(parameters);
-    if (myDatabaseUpdateService.databaseTablesWithEntriesExists() == false) {
+    if (databaseService.databaseTablesWithEntriesExists() == false) {
       log.info("Data-base is empty: redirect to SetupPage...");
       throw new RestartResponseException(SetupPage.class);
     }
