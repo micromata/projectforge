@@ -3,43 +3,28 @@ package org.projectforge.framework.persistence.database;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.zip.GZIPInputStream;
 
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
-import org.projectforge.business.address.AddressDO;
 import org.projectforge.business.address.AddressDao;
-import org.projectforge.business.address.AddressbookDO;
 import org.projectforge.business.address.AddressbookDao;
 import org.projectforge.business.multitenancy.TenantDao;
 import org.projectforge.business.multitenancy.TenantService;
 import org.projectforge.business.task.TaskDO;
 import org.projectforge.business.task.TaskDao;
 import org.projectforge.business.teamcal.admin.TeamCalDao;
-import org.projectforge.business.teamcal.admin.model.TeamCalDO;
-import org.projectforge.business.teamcal.filter.TeamCalCalendarFilter;
-import org.projectforge.business.teamcal.filter.TemplateCalendarProperties;
-import org.projectforge.business.teamcal.filter.TemplateEntry;
 import org.projectforge.business.user.GroupDao;
 import org.projectforge.business.user.UserDao;
 import org.projectforge.business.user.UserXmlPreferencesDO;
 import org.projectforge.business.user.UserXmlPreferencesDao;
 import org.projectforge.framework.configuration.ConfigurationDao;
-import org.projectforge.framework.configuration.ConfigurationParam;
-import org.projectforge.framework.configuration.GlobalConfiguration;
-import org.projectforge.framework.configuration.entities.ConfigurationDO;
 import org.projectforge.framework.persistence.entities.DefaultBaseDO;
 import org.projectforge.framework.persistence.history.entities.PfHistoryMasterDO;
 import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
-import org.projectforge.framework.persistence.user.entities.GroupDO;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.persistence.user.entities.TenantDO;
 import org.springframework.beans.factory.InitializingBean;
@@ -76,10 +61,6 @@ import de.micromata.mgc.jpa.hibernatesearch.impl.SearchEmgr;
 @Service
 public class PfJpaXmlDumpServiceImpl extends JpaXmlDumpServiceImpl implements InitializingBean, PfJpaXmlDumpService
 {
-  public static final String TEST_CONFIGURATION_BASE_DUMP_FILE = "/data/init-test-configuration.xml";
-
-  public static final String TEST_DATA_BASE_DUMP_FILE = "/data/init-test-data.xml";
-
   private static final Logger LOG = Logger.getLogger(PfJpaXmlDumpServiceImpl.class);
 
   @Autowired
@@ -196,143 +177,6 @@ public class PfJpaXmlDumpServiceImpl extends JpaXmlDumpServiceImpl implements In
   }
 
   @Override
-  public int createTestDatabase()
-  {
-    LOG.info("User wants to initialize database with test data.");
-    //Insert test configuration
-    InputStream is = openCpInputStream(TEST_CONFIGURATION_BASE_DUMP_FILE);
-    int ret = restoreDb(emfac, is, RestoreMode.InsertAll);
-    IOUtils.closeQuietly(is);
-    GlobalConfiguration.getInstance().setExpired();
-    //Insert test data
-    is = openCpInputStream(TEST_DATA_BASE_DUMP_FILE);
-    ret = restoreDb(emfac, is, RestoreMode.InsertAll);
-    IOUtils.closeQuietly(is);
-    GlobalConfiguration.getInstance().forceReload();
-    assignUserToGroups();
-    correctTeamCalIds();
-    correctAddressAndBookTaskId();
-    connectAddressbook();
-    return ret;
-  }
-
-  private void connectAddressbook()
-  {
-    for (AddressDO add : addressDao.internalLoadAll()) {
-      Set<AddressbookDO> globalSet = new HashSet<>();
-      globalSet.add(addressbookDao.getGlobalAddressbook());
-      add.setAddressbookList(globalSet);
-      addressDao.internalUpdate(add);
-    }
-  }
-
-  private void assignUserToGroups()
-  {
-    Map<String, PFUserDO> userNameToUserMap = userDao.internalLoadAll().stream()
-        .collect(Collectors.toMap(PFUserDO::getUsername,
-            Function.identity()));
-    groupDao.setDoHistoryUpdate(false);
-    for (GroupDO group : groupDao.internalLoadAll()) {
-      switch (group.getName()) {
-        case "Yellow web portal-managers":
-          group.addUser(userNameToUserMap.get("ann"));
-          break;
-        case "ProjectForge Projectmanagers":
-          group.addUser(userNameToUserMap.get("kai"));
-          break;
-        case "ACME Projectmanagers":
-          group.addUser(userNameToUserMap.get("kai"));
-          break;
-        case "PF_Admin":
-          group.addUser(userNameToUserMap.get("admin"));
-          group.addUser(userNameToUserMap.get("kai"));
-          group.addUser(userNameToUserMap.get("demo"));
-          break;
-        case "PF_Finance":
-          group.addUser(userNameToUserMap.get("admin"));
-          group.addUser(userNameToUserMap.get("kai"));
-          group.addUser(userNameToUserMap.get("demo"));
-          break;
-        case "PF_Controlling":
-          group.addUser(userNameToUserMap.get("admin"));
-          break;
-        case "PF_HR":
-          group.addUser(userNameToUserMap.get("admin"));
-          break;
-        case "PF_Marketing":
-          group.addUser(userNameToUserMap.get("admin"));
-          break;
-        case "PF_ProjectManager":
-          group.addUser(userNameToUserMap.get("admin"));
-          group.addUser(userNameToUserMap.get("ann"));
-          group.addUser(userNameToUserMap.get("alex"));
-          break;
-        case "ACME Developers":
-          group.addUser(userNameToUserMap.get("kai"));
-          group.addUser(userNameToUserMap.get("demo"));
-          break;
-        case "ProjectForge Developers":
-          group.addUser(userNameToUserMap.get("kai"));
-          break;
-        case "My Company":
-          group.addUser(userNameToUserMap.get("ann"));
-          group.addUser(userNameToUserMap.get("michael"));
-          group.addUser(userNameToUserMap.get("joe"));
-          group.addUser(userNameToUserMap.get("kai"));
-          group.addUser(userNameToUserMap.get("alex"));
-          group.addUser(userNameToUserMap.get("chris"));
-          group.addUser(userNameToUserMap.get("max"));
-          group.addUser(userNameToUserMap.get("julia"));
-          group.addUser(userNameToUserMap.get("mona"));
-          group.addUser(userNameToUserMap.get("demo"));
-          break;
-        case "ProjectForge":
-          group.addUser(userNameToUserMap.get("joe"));
-          group.addUser(userNameToUserMap.get("kai"));
-          group.addUser(userNameToUserMap.get("max"));
-          break;
-        case "ProjectForge-managers":
-          group.addUser(userNameToUserMap.get("joe"));
-          group.addUser(userNameToUserMap.get("kai"));
-          break;
-        case "Yellow web portal":
-          group.addUser(userNameToUserMap.get("ann"));
-          group.addUser(userNameToUserMap.get("joe"));
-          group.addUser(userNameToUserMap.get("kai"));
-          group.addUser(userNameToUserMap.get("max"));
-          group.addUser(userNameToUserMap.get("julia"));
-          break;
-        case "Yellow track & trace":
-          group.addUser(userNameToUserMap.get("ann"));
-          group.addUser(userNameToUserMap.get("michael"));
-          group.addUser(userNameToUserMap.get("alex"));
-          break;
-        case "Yellow track & trace-managers":
-          group.addUser(userNameToUserMap.get("ann"));
-          break;
-      }
-      groupDao.internalUpdate(group, false);
-    }
-    groupDao.setDoHistoryUpdate(true);
-  }
-
-  private void correctAddressAndBookTaskId()
-  {
-    Integer rootTaskId = 1;
-    for (TaskDO tDO : taskDao.internalLoadAll()) {
-      if (tDO.getTitle().equals("Root")) {
-        rootTaskId = tDO.getId();
-      }
-    }
-    for (ConfigurationDO cDO : configDao.internalLoadAll()) {
-      if (cDO.getParameter().equals(ConfigurationParam.DEFAULT_TASK_ID_4_BOOKS.getKey())) {
-        cDO.setTaskId(rootTaskId);
-        configDao.internalUpdate(cDO);
-      }
-    }
-  }
-
-  @Override
   public int restoreDb(EmgrFactory<?> fac, InputStream inputStream, RestoreMode restoreMode)
   {
     XStream xstream = new XStream();
@@ -419,97 +263,6 @@ public class PfJpaXmlDumpServiceImpl extends JpaXmlDumpServiceImpl implements In
     return objects.size();
   }
 
-  private void correctTeamCalIds()
-  {
-    LOG.info("Correcting TeamCal ids!");
-
-    List<TeamCalDO> calList = teamCalDao.internalLoadAll();
-    List<GroupDO> groupDOList = groupDao.internalLoadAll();
-
-    updateGroupIdsInCalendar(calList, groupDOList);
-
-    updateUserXmlPreferences(calList);
-  }
-
-  private void updateUserXmlPreferences(List<TeamCalDO> calList)
-  {
-    Map<Integer, String> nameIdMap = new HashMap<>();
-    nameIdMap.put(1, "kai@work");
-    nameIdMap.put(2, "Yellow web portal team");
-    nameIdMap.put(3, "kai@home");
-    nameIdMap.put(4, "ProjectForge team");
-
-    final List<UserXmlPreferencesDO> list = (List<UserXmlPreferencesDO>) hibernateTemplate.find(
-        "from UserXmlPreferencesDO u where u.key = ?",
-        new Object[] { "TeamCalendarPage.userPrefs" });
-
-    for (UserXmlPreferencesDO uxp : list) {
-      Object deserialize = userXmlPrefDao.deserialize(null, uxp, true);
-      if (deserialize instanceof TeamCalCalendarFilter) {
-        TeamCalCalendarFilter filter = (TeamCalCalendarFilter) deserialize;
-        for (TemplateEntry te : filter.getTemplateEntries()) {
-          Set<TemplateCalendarProperties> calendarProperties = te.getCalendarProperties();
-          for (TemplateCalendarProperties property : calendarProperties) {
-            String calName = nameIdMap.get(property.getCalId());
-            for (TeamCalDO cal : calList) {
-              if (cal.getTitle().equals(calName)) {
-                property.setCalId(cal.getId());
-              }
-            }
-          }
-        }
-        userXmlPrefDao.saveOrUpdate(uxp.getUserId(), uxp.getKey(), filter, false);
-      }
-
-    }
-
-  }
-
-  private void updateGroupIdsInCalendar(List<TeamCalDO> calList, List<GroupDO> groupDOList)
-  {
-    for (TeamCalDO cal : calList) {
-      List<String> newGroupIds = convertGroupIds(groupDOList, cal.getMinimalAccessGroupIds());
-      if (newGroupIds.size() > 0) {
-        cal.setMinimalAccessGroupIds(String.join(",", newGroupIds));
-      }
-
-      newGroupIds = convertGroupIds(groupDOList, cal.getReadonlyAccessGroupIds());
-      if (newGroupIds.size() > 0) {
-        cal.setReadonlyAccessGroupIds(String.join(",", newGroupIds));
-      }
-
-      newGroupIds = convertGroupIds(groupDOList, cal.getFullAccessGroupIds());
-      if (newGroupIds.size() > 0) {
-        cal.setFullAccessGroupIds(String.join(",", newGroupIds));
-      }
-
-      teamCalDao.internalUpdate(cal);
-    }
-  }
-
-  private List<String> convertGroupIds(List<GroupDO> groupDOList, String groups)
-  {
-    Map<Integer, String> groupIdMap = new HashMap<>();
-    groupIdMap.put(8, "PF_ProjectManager");
-    groupIdMap.put(11, "My Company");
-    groupIdMap.put(12, "ProjectForge");
-    groupIdMap.put(14, "Yellow web portal");
-
-    List<String> newGroupIds = new ArrayList<>();
-    String[] groupIds = groups.split(",");
-    for (String group : groupIds) {
-      if (StringUtils.isBlank(group) == false) {
-        String groupName = groupIdMap.get(Integer.parseInt(group));
-        for (GroupDO groupDO : groupDOList) {
-          if (groupDO.getName().equals(groupName)) {
-            newGroupIds.add(String.valueOf(groupDO.getId()));
-          }
-        }
-      }
-    }
-    return newGroupIds;
-  }
-
   public static InputStream openCpInputStream(String path)
   {
     final ClassPathResource cpres = new ClassPathResource(path);
@@ -527,4 +280,17 @@ public class PfJpaXmlDumpServiceImpl extends JpaXmlDumpServiceImpl implements In
     }
   }
 
+  /**
+   * Create test database from xml file.
+   *
+   * @return
+   * @deprecated Changed to sql insert script. See SetupPage.java in projectforge-wicket module.
+   */
+  @Override
+  @Deprecated
+  public int createTestDatabase()
+  {
+    LOG.warn("PfJpaXmlDumpServiceImpl.createTestDatabase() not implemented because of deprcation.");
+    return -1;
+  }
 }

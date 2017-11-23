@@ -15,7 +15,7 @@ import org.projectforge.framework.configuration.ConfigurationDao;
 import org.projectforge.framework.configuration.ConfigurationParam;
 import org.projectforge.framework.configuration.GlobalConfiguration;
 import org.projectforge.framework.configuration.entities.ConfigurationDO;
-import org.projectforge.framework.persistence.database.DatabaseUpdateService;
+import org.projectforge.framework.persistence.database.DatabaseService;
 import org.projectforge.plugins.core.AbstractPlugin;
 import org.projectforge.plugins.core.AvailablePlugin;
 import org.projectforge.plugins.core.PluginAdminService;
@@ -43,7 +43,7 @@ public class PluginAdminServiceImpl implements PluginAdminService
   private ApplicationContext applicationContext;
 
   @Autowired
-  private DatabaseUpdateService myDatabaseUpdater;
+  private DatabaseService myDatabaseUpdater;
 
   private List<PluginCallback> afterCreatedActivePluginsCallback = new ArrayList<>();
 

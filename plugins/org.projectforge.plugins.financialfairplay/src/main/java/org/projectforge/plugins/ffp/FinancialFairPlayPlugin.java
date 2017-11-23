@@ -27,7 +27,6 @@ import java.util.List;
 
 import org.apache.wicket.model.Model;
 import org.projectforge.continuousdb.UpdateEntry;
-import org.projectforge.framework.persistence.database.InitDatabaseDao;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.plugins.core.AbstractPlugin;
 import org.projectforge.plugins.ffp.repository.FFPEventDao;
@@ -64,9 +63,6 @@ public class FinancialFairPlayPlugin extends AbstractPlugin
 
   @Autowired
   private FFPEventService eventService;
-
-  @Autowired
-  private InitDatabaseDao initDatabaseDao;
 
   /**
    * @see org.projectforge.plugins.core.AbstractPlugin#initialize()

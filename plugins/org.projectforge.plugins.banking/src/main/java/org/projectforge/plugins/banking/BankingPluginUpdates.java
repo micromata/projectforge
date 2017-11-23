@@ -28,7 +28,7 @@ import org.projectforge.continuousdb.UpdateEntry;
 import org.projectforge.continuousdb.UpdateEntryImpl;
 import org.projectforge.continuousdb.UpdatePreCheckStatus;
 import org.projectforge.continuousdb.UpdateRunningStatus;
-import org.projectforge.framework.persistence.database.DatabaseUpdateService;
+import org.projectforge.framework.persistence.database.DatabaseService;
 
 /**
  * Contains the initial data-base set-up script and later all update scripts if any data-base schema updates are
@@ -40,7 +40,7 @@ import org.projectforge.framework.persistence.database.DatabaseUpdateService;
  */
 public class BankingPluginUpdates
 {
-  static DatabaseUpdateService dao;
+  static DatabaseService dao;
 
   final static Class<?>[] doClasses = new Class<?>[] { //
       BankAccountDO.class, BankAccountBalanceDO.class, BankAccountRecordDO.class };

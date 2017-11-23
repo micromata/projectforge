@@ -61,7 +61,7 @@ import org.projectforge.framework.access.GroupTaskAccessDO;
 import org.projectforge.framework.configuration.ConfigurationDao;
 import org.projectforge.framework.configuration.ConfigurationParam;
 import org.projectforge.framework.configuration.entities.ConfigurationDO;
-import org.projectforge.framework.persistence.database.InitDatabaseDao;
+import org.projectforge.framework.persistence.database.DatabaseService;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.GroupDO;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
@@ -83,7 +83,7 @@ public class InitTestDB
   private AccessDao accessDao;
 
   @Autowired
-  private InitDatabaseDao initDatabaseDao;
+  private DatabaseService initDatabaseDao;
 
   @Autowired
   private TenantService tenantService;

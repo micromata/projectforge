@@ -43,7 +43,7 @@ import org.projectforge.framework.configuration.Configuration;
 import org.projectforge.framework.configuration.entities.ConfigurationDO;
 import org.projectforge.framework.i18n.I18nHelper;
 import org.projectforge.framework.i18n.I18nKeyAndParams;
-import org.projectforge.framework.persistence.database.InitDatabaseDao;
+import org.projectforge.framework.persistence.database.DatabaseService;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.web.wicket.AbstractForm;
 import org.projectforge.web.wicket.CsrfTokenHandler;
@@ -99,7 +99,7 @@ public class SetupForm extends AbstractForm<SetupForm, SetupPage>
   public SetupForm(final SetupPage parentPage)
   {
     super(parentPage, "setupform");
-    adminUser.setUsername(InitDatabaseDao.DEFAULT_ADMIN_USER);
+    adminUser.setUsername(DatabaseService.DEFAULT_ADMIN_USER);
   }
 
   @Override

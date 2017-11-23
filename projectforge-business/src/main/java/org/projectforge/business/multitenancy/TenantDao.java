@@ -39,7 +39,7 @@ import org.projectforge.framework.i18n.UserException;
 import org.projectforge.framework.persistence.api.BaseDao;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.persistence.api.QueryFilter;
-import org.projectforge.framework.persistence.database.InitDatabaseDao;
+import org.projectforge.framework.persistence.database.DatabaseService;
 import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
@@ -68,7 +68,7 @@ public class TenantDao extends BaseDao<TenantDO>
       "assignedUsers.lastname" };
 
   @Autowired
-  private InitDatabaseDao initDatabaseDao;
+  private DatabaseService initDatabaseDao;
 
   @Autowired
   private JdbcTemplate jdbc;

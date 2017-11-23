@@ -12,7 +12,7 @@ import org.testng.annotations.Test;
 public class ImportTestDataTest extends AbstractTestBase
 {
   @Autowired
-  private InitDatabaseDao initDatabaseDao;
+  private DatabaseService initDatabaseDao;
 
   @Autowired
   private InitTestDB initTestDB;

@@ -280,4 +280,8 @@ public class ConfigurationDao extends BaseDao<ConfigurationDO>
     }
   }
 
+  public ApplicationContext getApplicationContext()
+  {
+    return applicationContext;
+  }
 }
