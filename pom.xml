@@ -241,7 +241,7 @@
     <java.version>1.8</java.version>
 
     <hibernate.version>5.0.5.Final</hibernate.version>
-    <mgc.version>3.0.0-SNAPSHOT</mgc.version>
+    <mgc.version>3.0.0</mgc.version>
 
     <commons-lang.version>2.6</commons-lang.version>
     <commons-fileupload.version>1.3.1</commons-fileupload.version>

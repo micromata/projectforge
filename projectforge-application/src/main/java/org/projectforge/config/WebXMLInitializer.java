@@ -1,4 +1,4 @@
-package org.projectforge.start;
+package org.projectforge.config;
 
 import javax.servlet.FilterRegistration;
 import javax.servlet.ServletContext;

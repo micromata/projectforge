@@ -1,4 +1,4 @@
-package org.projectforge.start;
+package org.projectforge.config;
 
 import org.apache.catalina.connector.Connector;
 import org.apache.commons.lang3.StringUtils;
