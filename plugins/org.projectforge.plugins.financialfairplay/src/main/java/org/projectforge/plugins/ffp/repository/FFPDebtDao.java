@@ -42,9 +42,11 @@ public class FFPDebtDao extends BaseDao<FFPDebtDO>
 
   public List<FFPDebtDO> getDebtList(PFUserDO user)
   {
-    return emgrFactory.runRoTrans(emgr -> 
-      emgr.select(FFPDebtDO.class, "SELECT d FROM FFPDebtDO d WHERE d.from = :from OR d.to = :to", "from", user, "to", user)
+    List<FFPDebtDO> debtList = emgrFactory.runRoTrans(emgr ->
+        emgr.select(FFPDebtDO.class, "SELECT d FROM FFPDebtDO d WHERE d.from = :from OR d.to = :to", "from", user, "to", user)
     );
+    debtList.removeIf(this::checkRemoveUser);
+    return debtList;
   }
 
   public Integer getOpenFromDebts(PFUserDO user)
@@ -112,6 +114,16 @@ public class FFPDebtDao extends BaseDao<FFPDebtDO>
         SimpleExpression notApprovedByTo = Restrictions.eq("approvedByTo", false);
         queryFilter.add(Restrictions.or(notApprovedByFrom, notApprovedByTo));
       }
-    return getList(queryFilter);
+    List<FFPDebtDO> debtList = getList(queryFilter);
+    debtList.removeIf(this::checkRemoveUser);
+    return debtList;
+  }
+
+  private boolean checkRemoveUser(final FFPDebtDO debt)
+  {
+    return debt.getFrom().isDeactivated()
+        || debt.getFrom().isDeleted()
+        || debt.getTo().isDeactivated()
+        || debt.getTo().isDeleted();
   }
 }
