@@ -2,77 +2,25 @@ CREATE SEQUENCE hibernate_sequence
 START WITH 1
 INCREMENT BY 1
 NO MINVALUE
-NO MAXVALUE
-CACHE 1;
+NO MAXVALUE;
 
 CREATE SEQUENCE sq_base_ghistory_attr_data_pk
 START WITH 1
 INCREMENT BY 50
 NO MINVALUE
-NO MAXVALUE
-CACHE 1;
+NO MAXVALUE;
 
 CREATE SEQUENCE sq_base_ghistory_attr_pk
 START WITH 1
 INCREMENT BY 50
 NO MINVALUE
-NO MAXVALUE
-CACHE 1;
+NO MAXVALUE;
 
 CREATE SEQUENCE sq_base_ghistory_pk
 START WITH 1
 INCREMENT BY 50
 NO MINVALUE
-NO MAXVALUE
-CACHE 1;
-
-CREATE TABLE t_address (
-  pk                     INTEGER               NOT NULL,
-  created                TIMESTAMP WITHOUT TIME ZONE,
-  deleted                BOOLEAN               NOT NULL,
-  last_update            TIMESTAMP WITHOUT TIME ZONE,
-  address_status         CHARACTER VARYING(20) NOT NULL,
-  addresstext            CHARACTER VARYING(255),
-  birthday               DATE,
-  business_phone         CHARACTER VARYING(255),
-  city                   CHARACTER VARYING(255),
-  comment                CHARACTER VARYING(5000),
-  communication_language CHARACTER VARYING(255),
-  contact_status         CHARACTER VARYING(20) NOT NULL,
-  country                CHARACTER VARYING(255),
-  division               CHARACTER VARYING(255),
-  email                  CHARACTER VARYING(255),
-  fax                    CHARACTER VARYING(255),
-  fingerprint            CHARACTER VARYING(255),
-  first_name             CHARACTER VARYING(255),
-  form                   CHARACTER VARYING(10),
-  mobile_phone           CHARACTER VARYING(255),
-  name                   CHARACTER VARYING(255),
-  organization           CHARACTER VARYING(255),
-  positiontext           CHARACTER VARYING(255),
-  postal_addresstext     CHARACTER VARYING(255),
-  postal_city            CHARACTER VARYING(255),
-  postal_country         CHARACTER VARYING(255),
-  postal_state           CHARACTER VARYING(255),
-  postal_zip_code        CHARACTER VARYING(255),
-  private_addresstext    CHARACTER VARYING(255),
-  private_city           CHARACTER VARYING(255),
-  private_country        CHARACTER VARYING(255),
-  private_email          CHARACTER VARYING(255),
-  private_mobile_phone   CHARACTER VARYING(255),
-  private_phone          CHARACTER VARYING(255),
-  private_state          CHARACTER VARYING(255),
-  private_zip_code       CHARACTER VARYING(255),
-  public_key             CHARACTER VARYING(20000),
-  state                  CHARACTER VARYING(255),
-  title                  CHARACTER VARYING(255),
-  website                CHARACTER VARYING(255),
-  zip_code               CHARACTER VARYING(255),
-  tenant_id              INTEGER,
-  imagedata              BYTEA,
-  image_data_preview     BYTEA,
-  uid                    CHARACTER VARYING(255)
-);
+NO MAXVALUE;
 
 CREATE TABLE t_address_attr (
   withdata      CHARACTER(1)                NOT NULL,
@@ -1012,28 +960,6 @@ CREATE TABLE t_plugin_bank_account_record (
   account_fk  INTEGER        NOT NULL
 );
 
-CREATE TABLE t_plugin_calendar (
-  pk                               INTEGER               NOT NULL,
-  created                          TIMESTAMP WITHOUT TIME ZONE,
-  deleted                          BOOLEAN               NOT NULL,
-  last_update                      TIMESTAMP WITHOUT TIME ZONE,
-  description                      CHARACTER VARYING(4000),
-  ext_subscription                 BOOLEAN DEFAULT FALSE NOT NULL,
-  ext_subscription_calendar_binary BYTEA,
-  ext_subscription_hash            CHARACTER VARYING(255),
-  ext_subscription_update_interval INTEGER,
-  ext_subscription_url             CHARACTER VARYING(255),
-  full_access_group_ids            CHARACTER VARYING(255),
-  full_access_user_ids             CHARACTER VARYING(255),
-  minimal_access_group_ids         CHARACTER VARYING(255),
-  minimal_access_user_ids          CHARACTER VARYING(255),
-  readonly_access_group_ids        CHARACTER VARYING(255),
-  readonly_access_user_ids         CHARACTER VARYING(255),
-  title                            CHARACTER VARYING(1000),
-  tenant_id                        INTEGER,
-  owner_fk                         INTEGER
-);
-
 CREATE TABLE t_plugin_calendar_event (
   pk                          INTEGER                NOT NULL,
   created                     TIMESTAMP WITHOUT TIME ZONE,
@@ -1064,17 +990,6 @@ CREATE TABLE t_plugin_calendar_event (
   dt_stamp                    TIMESTAMP WITHOUT TIME ZONE,
   organizer_additional_params CHARACTER VARYING(1000),
   ownership                   BOOLEAN
-);
-
-CREATE TABLE t_plugin_calendar_event_attachment (
-  pk             INTEGER NOT NULL,
-  created        TIMESTAMP WITHOUT TIME ZONE,
-  deleted        BOOLEAN NOT NULL,
-  last_update    TIMESTAMP WITHOUT TIME ZONE,
-  content        BYTEA,
-  filename       CHARACTER VARYING(255),
-  tenant_id      INTEGER,
-  team_event_fk2 INTEGER
 );
 
 CREATE TABLE t_plugin_calendar_event_attendee (
@@ -1228,31 +1143,6 @@ CREATE TABLE t_plugin_liqui_entry (
   paid            BOOLEAN,
   subject         CHARACTER VARYING(1000),
   tenant_id       INTEGER
-);
-
-CREATE TABLE t_plugin_lm_license (
-  pk                  INTEGER NOT NULL,
-  created             TIMESTAMP WITHOUT TIME ZONE,
-  deleted             BOOLEAN NOT NULL,
-  last_update         TIMESTAMP WITHOUT TIME ZONE,
-  comment             CHARACTER VARYING(4000),
-  device              CHARACTER VARYING(4000),
-  file1               BYTEA,
-  file2               BYTEA,
-  file_name1          CHARACTER VARYING(255),
-  file_name2          CHARACTER VARYING(255),
-  key                 CHARACTER VARYING(10000),
-  license_holder      CHARACTER VARYING(10000),
-  number_of_licenses  INTEGER,
-  organization        CHARACTER VARYING(1000),
-  ownerids            CHARACTER VARYING(4000),
-  product             CHARACTER VARYING(1000),
-  status              CHARACTER VARYING(20),
-  update_from_version CHARACTER VARYING(1000),
-  valid_since         DATE,
-  valid_until         DATE,
-  version             CHARACTER VARYING(1000),
-  tenant_id           INTEGER
 );
 
 CREATE TABLE t_plugin_marketing_address_campaign (
@@ -1431,32 +1321,6 @@ CREATE TABLE t_plugin_todo (
   task_id      INTEGER
 );
 
-CREATE TABLE t_script (
-  pk             INTEGER                NOT NULL,
-  created        TIMESTAMP WITHOUT TIME ZONE,
-  deleted        BOOLEAN                NOT NULL,
-  last_update    TIMESTAMP WITHOUT TIME ZONE,
-  description    CHARACTER VARYING(4000),
-  file           BYTEA,
-  file_name      CHARACTER VARYING(255),
-  name           CHARACTER VARYING(255) NOT NULL,
-  parameter1name CHARACTER VARYING(100),
-  parameter1type CHARACTER VARYING(20),
-  parameter2name CHARACTER VARYING(100),
-  parameter2type CHARACTER VARYING(20),
-  parameter3name CHARACTER VARYING(100),
-  parameter3type CHARACTER VARYING(20),
-  parameter4name CHARACTER VARYING(100),
-  parameter4type CHARACTER VARYING(20),
-  parameter5name CHARACTER VARYING(100),
-  parameter5type CHARACTER VARYING(20),
-  parameter6name CHARACTER VARYING(100),
-  parameter6type CHARACTER VARYING(20),
-  script         BYTEA,
-  script_backup  BYTEA,
-  tenant_id      INTEGER
-);
-
 CREATE TABLE t_task (
   pk                       INTEGER               NOT NULL,
   created                  TIMESTAMP WITHOUT TIME ZONE,
@@ -1604,1684 +1468,1596 @@ CREATE TABLE tb_base_ghistory_attr_data (
   parent_pk               BIGINT                      NOT NULL
 );
 
-ALTER TABLE ONLY t_address_attr
+ALTER TABLE t_address_attr
   ADD CONSTRAINT t_address_attr_pkey PRIMARY KEY (pk);
 
-ALTER TABLE ONLY t_address_attrdata
+ALTER TABLE t_address_attrdata
   ADD CONSTRAINT t_address_attrdata_pkey PRIMARY KEY (pk);
 
-ALTER TABLE ONLY t_address
-  ADD CONSTRAINT t_address_pkey PRIMARY KEY (pk);
-
-ALTER TABLE ONLY t_addressbook_address
+ALTER TABLE t_addressbook_address
   ADD CONSTRAINT t_addressbook_address_pkey PRIMARY KEY (address_id, addressbook_id);
 
-ALTER TABLE ONLY t_addressbook
+ALTER TABLE t_addressbook
   ADD CONSTRAINT t_addressbook_pkey PRIMARY KEY (pk);
 
-ALTER TABLE ONLY t_book
+ALTER TABLE t_book
   ADD CONSTRAINT t_book_pkey PRIMARY KEY (pk);
 
-ALTER TABLE ONLY t_configuration
+ALTER TABLE t_configuration
   ADD CONSTRAINT t_configuration_pkey PRIMARY KEY (pk);
 
-ALTER TABLE ONLY t_contact
+ALTER TABLE t_contact
   ADD CONSTRAINT t_contact_pkey PRIMARY KEY (pk);
 
-ALTER TABLE ONLY t_contactentry
+ALTER TABLE t_contactentry
   ADD CONSTRAINT t_contactentry_pkey PRIMARY KEY (pk);
 
-ALTER TABLE ONLY t_contract
+ALTER TABLE t_contract
   ADD CONSTRAINT t_contract_pkey PRIMARY KEY (pk);
 
-ALTER TABLE ONLY t_database_update
+ALTER TABLE t_database_update
   ADD CONSTRAINT t_database_update_pkey PRIMARY KEY (update_date);
 
-ALTER TABLE ONLY t_employee_vacation_calendar
+ALTER TABLE t_employee_vacation_calendar
   ADD CONSTRAINT t_employee_vacation_calendar_pkey PRIMARY KEY (pk);
 
-ALTER TABLE ONLY t_employee_vacation
+ALTER TABLE t_employee_vacation
   ADD CONSTRAINT t_employee_vacation_pkey PRIMARY KEY (pk);
 
-ALTER TABLE ONLY t_employee_vacation_substitution
+ALTER TABLE t_employee_vacation_substitution
   ADD CONSTRAINT t_employee_vacation_substitution_pkey PRIMARY KEY (vacation_id, substitution_id);
 
-ALTER TABLE ONLY t_fibu_auftrag
+ALTER TABLE t_fibu_auftrag
   ADD CONSTRAINT t_fibu_auftrag_pkey PRIMARY KEY (pk);
 
-ALTER TABLE ONLY t_fibu_auftrag_position
+ALTER TABLE t_fibu_auftrag_position
   ADD CONSTRAINT t_fibu_auftrag_position_pkey PRIMARY KEY (pk);
 
-ALTER TABLE ONLY t_fibu_buchungssatz
+ALTER TABLE t_fibu_buchungssatz
   ADD CONSTRAINT t_fibu_buchungssatz_pkey PRIMARY KEY (pk);
 
-ALTER TABLE ONLY t_fibu_eingangsrechnung
+ALTER TABLE t_fibu_eingangsrechnung
   ADD CONSTRAINT t_fibu_eingangsrechnung_pkey PRIMARY KEY (pk);
 
-ALTER TABLE ONLY t_fibu_eingangsrechnung_position
+ALTER TABLE t_fibu_eingangsrechnung_position
   ADD CONSTRAINT t_fibu_eingangsrechnung_position_pkey PRIMARY KEY (pk);
 
-ALTER TABLE ONLY t_fibu_employee_attr
+ALTER TABLE t_fibu_employee_attr
   ADD CONSTRAINT t_fibu_employee_attr_pkey PRIMARY KEY (pk);
 
-ALTER TABLE ONLY t_fibu_employee_attrdata
+ALTER TABLE t_fibu_employee_attrdata
   ADD CONSTRAINT t_fibu_employee_attrdata_pkey PRIMARY KEY (pk);
 
-ALTER TABLE ONLY t_fibu_employee
+ALTER TABLE t_fibu_employee
   ADD CONSTRAINT t_fibu_employee_pkey PRIMARY KEY (pk);
 
-ALTER TABLE ONLY t_fibu_employee_salary
+ALTER TABLE t_fibu_employee_salary
   ADD CONSTRAINT t_fibu_employee_salary_pkey PRIMARY KEY (pk);
 
-ALTER TABLE ONLY t_fibu_employee_timed
+ALTER TABLE t_fibu_employee_timed
   ADD CONSTRAINT t_fibu_employee_timed_pkey PRIMARY KEY (pk);
 
-ALTER TABLE ONLY t_fibu_employee_timedattr
+ALTER TABLE t_fibu_employee_timedattr
   ADD CONSTRAINT t_fibu_employee_timedattr_pkey PRIMARY KEY (pk);
 
-ALTER TABLE ONLY t_fibu_employee_timedattrdata
+ALTER TABLE t_fibu_employee_timedattrdata
   ADD CONSTRAINT t_fibu_employee_timedattrdata_pkey PRIMARY KEY (pk);
 
-ALTER TABLE ONLY t_fibu_konto
+ALTER TABLE t_fibu_konto
   ADD CONSTRAINT t_fibu_konto_pkey PRIMARY KEY (pk);
 
-ALTER TABLE ONLY t_fibu_kost1
+ALTER TABLE t_fibu_kost1
   ADD CONSTRAINT t_fibu_kost1_pkey PRIMARY KEY (pk);
 
-ALTER TABLE ONLY t_fibu_kost2
+ALTER TABLE t_fibu_kost2
   ADD CONSTRAINT t_fibu_kost2_pkey PRIMARY KEY (pk);
 
-ALTER TABLE ONLY t_fibu_kost2art
+ALTER TABLE t_fibu_kost2art
   ADD CONSTRAINT t_fibu_kost2art_pkey PRIMARY KEY (pk);
 
-ALTER TABLE ONLY t_fibu_kost_zuweisung
+ALTER TABLE t_fibu_kost_zuweisung
   ADD CONSTRAINT t_fibu_kost_zuweisung_pkey PRIMARY KEY (pk);
 
-ALTER TABLE ONLY t_fibu_kunde
+ALTER TABLE t_fibu_kunde
   ADD CONSTRAINT t_fibu_kunde_pkey PRIMARY KEY (pk);
 
-ALTER TABLE ONLY t_fibu_payment_schedule
+ALTER TABLE t_fibu_payment_schedule
   ADD CONSTRAINT t_fibu_payment_schedule_pkey PRIMARY KEY (pk);
 
-ALTER TABLE ONLY t_fibu_projekt
+ALTER TABLE t_fibu_projekt
   ADD CONSTRAINT t_fibu_projekt_pkey PRIMARY KEY (pk);
 
-ALTER TABLE ONLY t_fibu_rechnung
+ALTER TABLE t_fibu_rechnung
   ADD CONSTRAINT t_fibu_rechnung_pkey PRIMARY KEY (pk);
 
-ALTER TABLE ONLY t_fibu_rechnung_position
+ALTER TABLE t_fibu_rechnung_position
   ADD CONSTRAINT t_fibu_rechnung_position_pkey PRIMARY KEY (pk);
 
-ALTER TABLE ONLY t_gantt_chart
+ALTER TABLE t_gantt_chart
   ADD CONSTRAINT t_gantt_chart_pkey PRIMARY KEY (pk);
 
-ALTER TABLE ONLY t_group
+ALTER TABLE t_group
   ADD CONSTRAINT t_group_pkey PRIMARY KEY (pk);
 
-ALTER TABLE ONLY t_group_task_access_entry
+ALTER TABLE t_group_task_access_entry
   ADD CONSTRAINT t_group_task_access_entry_pkey PRIMARY KEY (pk);
 
-ALTER TABLE ONLY t_group_task_access
+ALTER TABLE t_group_task_access
   ADD CONSTRAINT t_group_task_access_pkey PRIMARY KEY (pk);
 
-ALTER TABLE ONLY t_group_user
+ALTER TABLE t_group_user
   ADD CONSTRAINT t_group_user_pkey PRIMARY KEY (group_id, user_id);
 
-ALTER TABLE ONLY t_hr_planning_entry
+ALTER TABLE t_hr_planning_entry
   ADD CONSTRAINT t_hr_planning_entry_pkey PRIMARY KEY (pk);
 
-ALTER TABLE ONLY t_hr_planning
+ALTER TABLE t_hr_planning
   ADD CONSTRAINT t_hr_planning_pkey PRIMARY KEY (pk);
 
-ALTER TABLE ONLY t_imported_meb_entry
+ALTER TABLE t_imported_meb_entry
   ADD CONSTRAINT t_imported_meb_entry_pkey PRIMARY KEY (pk);
 
-ALTER TABLE ONLY t_meb_entry
+ALTER TABLE t_meb_entry
   ADD CONSTRAINT t_meb_entry_pkey PRIMARY KEY (pk);
 
-ALTER TABLE ONLY t_orga_postausgang
+ALTER TABLE t_orga_postausgang
   ADD CONSTRAINT t_orga_postausgang_pkey PRIMARY KEY (pk);
 
-ALTER TABLE ONLY t_orga_posteingang
+ALTER TABLE t_orga_posteingang
   ADD CONSTRAINT t_orga_posteingang_pkey PRIMARY KEY (pk);
 
-ALTER TABLE ONLY t_orga_visitorbook_employee
+ALTER TABLE t_orga_visitorbook_employee
   ADD CONSTRAINT t_orga_visitorbook_employee_pkey PRIMARY KEY (visitorbook_id, employee_id);
 
-ALTER TABLE ONLY t_orga_visitorbook
+ALTER TABLE t_orga_visitorbook
   ADD CONSTRAINT t_orga_visitorbook_pkey PRIMARY KEY (pk);
 
-ALTER TABLE ONLY t_orga_visitorbook_timed
+ALTER TABLE t_orga_visitorbook_timed
   ADD CONSTRAINT t_orga_visitorbook_timed_pkey PRIMARY KEY (pk);
 
-ALTER TABLE ONLY t_orga_visitorbook_timedattr
+ALTER TABLE t_orga_visitorbook_timedattr
   ADD CONSTRAINT t_orga_visitorbook_timedattr_pkey PRIMARY KEY (pk);
 
-ALTER TABLE ONLY t_orga_visitorbook_timedattrdata
+ALTER TABLE t_orga_visitorbook_timedattrdata
   ADD CONSTRAINT t_orga_visitorbook_timedattrdata_pkey PRIMARY KEY (pk);
 
-ALTER TABLE ONLY t_personal_address
+ALTER TABLE t_personal_address
   ADD CONSTRAINT t_personal_address_pkey PRIMARY KEY (pk);
 
-ALTER TABLE ONLY t_personal_contact
+ALTER TABLE t_personal_contact
   ADD CONSTRAINT t_personal_contact_pkey PRIMARY KEY (pk);
 
-ALTER TABLE ONLY t_pf_history_attr_data
+ALTER TABLE t_pf_history_attr_data
   ADD CONSTRAINT t_pf_history_attr_data_pkey PRIMARY KEY (pk);
 
-ALTER TABLE ONLY t_pf_history_attr
+ALTER TABLE t_pf_history_attr
   ADD CONSTRAINT t_pf_history_attr_pkey PRIMARY KEY (pk);
 
-ALTER TABLE ONLY t_pf_history
+ALTER TABLE t_pf_history
   ADD CONSTRAINT t_pf_history_pkey PRIMARY KEY (pk);
 
-ALTER TABLE ONLY t_pf_user
+ALTER TABLE t_pf_user
   ADD CONSTRAINT t_pf_user_pkey PRIMARY KEY (pk);
 
-ALTER TABLE ONLY t_plugin_bank_account_balance
+ALTER TABLE t_plugin_bank_account_balance
   ADD CONSTRAINT t_plugin_bank_account_balance_pkey PRIMARY KEY (pk);
 
-ALTER TABLE ONLY t_plugin_bank_account
+ALTER TABLE t_plugin_bank_account
   ADD CONSTRAINT t_plugin_bank_account_pkey PRIMARY KEY (pk);
 
-ALTER TABLE ONLY t_plugin_bank_account_record
+ALTER TABLE t_plugin_bank_account_record
   ADD CONSTRAINT t_plugin_bank_account_record_pkey PRIMARY KEY (pk);
 
-ALTER TABLE ONLY t_plugin_calendar_event_attachment
-  ADD CONSTRAINT t_plugin_calendar_event_attachment_pkey PRIMARY KEY (pk);
-
-ALTER TABLE ONLY t_plugin_calendar_event_attendee
+ALTER TABLE t_plugin_calendar_event_attendee
   ADD CONSTRAINT t_plugin_calendar_event_attendee_pkey PRIMARY KEY (pk);
 
-ALTER TABLE ONLY t_plugin_calendar_event
+ALTER TABLE t_plugin_calendar_event
   ADD CONSTRAINT t_plugin_calendar_event_pkey PRIMARY KEY (pk);
 
-ALTER TABLE ONLY t_plugin_calendar
-  ADD CONSTRAINT t_plugin_calendar_pkey PRIMARY KEY (pk);
-
-ALTER TABLE ONLY t_plugin_employee_configuration_attr
+ALTER TABLE t_plugin_employee_configuration_attr
   ADD CONSTRAINT t_plugin_employee_configuration_attr_pkey PRIMARY KEY (pk);
 
-ALTER TABLE ONLY t_plugin_employee_configuration_attrdata
+ALTER TABLE t_plugin_employee_configuration_attrdata
   ADD CONSTRAINT t_plugin_employee_configuration_attrdata_pkey PRIMARY KEY (pk);
 
-ALTER TABLE ONLY t_plugin_employee_configuration
+ALTER TABLE t_plugin_employee_configuration
   ADD CONSTRAINT t_plugin_employee_configuration_pkey PRIMARY KEY (pk);
 
-ALTER TABLE ONLY t_plugin_employee_configuration_timed
+ALTER TABLE t_plugin_employee_configuration_timed
   ADD CONSTRAINT t_plugin_employee_configuration_timed_pkey PRIMARY KEY (pk);
 
-ALTER TABLE ONLY t_plugin_employee_configuration_timedattr
+ALTER TABLE t_plugin_employee_configuration_timedattr
   ADD CONSTRAINT t_plugin_employee_configuration_timedattr_pkey PRIMARY KEY (pk);
 
-ALTER TABLE ONLY t_plugin_employee_configuration_timedattrdata
+ALTER TABLE t_plugin_employee_configuration_timedattrdata
   ADD CONSTRAINT t_plugin_employee_configuration_timedattrdata_pkey PRIMARY KEY (pk);
 
-ALTER TABLE ONLY t_plugin_financialfairplay_accounting
+ALTER TABLE t_plugin_financialfairplay_accounting
   ADD CONSTRAINT t_plugin_financialfairplay_accounting_pkey PRIMARY KEY (pk);
 
-ALTER TABLE ONLY t_plugin_financialfairplay_debt
+ALTER TABLE t_plugin_financialfairplay_debt
   ADD CONSTRAINT t_plugin_financialfairplay_debt_pkey PRIMARY KEY (pk);
 
-ALTER TABLE ONLY t_plugin_financialfairplay_event
+ALTER TABLE t_plugin_financialfairplay_event
   ADD CONSTRAINT t_plugin_financialfairplay_event_pkey PRIMARY KEY (pk);
 
-ALTER TABLE ONLY t_plugin_liqui_entry
+ALTER TABLE t_plugin_liqui_entry
   ADD CONSTRAINT t_plugin_liqui_entry_pkey PRIMARY KEY (pk);
 
-ALTER TABLE ONLY t_plugin_lm_license
-  ADD CONSTRAINT t_plugin_lm_license_pkey PRIMARY KEY (pk);
-
-ALTER TABLE ONLY t_plugin_marketing_address_campaign
+ALTER TABLE t_plugin_marketing_address_campaign
   ADD CONSTRAINT t_plugin_marketing_address_campaign_pkey PRIMARY KEY (pk);
 
-ALTER TABLE ONLY t_plugin_marketing_address_campaign_value
+ALTER TABLE t_plugin_marketing_address_campaign_value
   ADD CONSTRAINT t_plugin_marketing_address_campaign_value_pkey PRIMARY KEY (pk);
 
-ALTER TABLE ONLY t_plugin_memo
+ALTER TABLE t_plugin_memo
   ADD CONSTRAINT t_plugin_memo_pkey PRIMARY KEY (pk);
 
-ALTER TABLE ONLY t_plugin_plugintemplate
+ALTER TABLE t_plugin_plugintemplate
   ADD CONSTRAINT t_plugin_plugintemplate_pkey PRIMARY KEY (pk);
 
-ALTER TABLE ONLY t_plugin_poll_attendee
+ALTER TABLE t_plugin_poll_attendee
   ADD CONSTRAINT t_plugin_poll_attendee_pkey PRIMARY KEY (pk);
 
-ALTER TABLE ONLY t_plugin_poll_event
+ALTER TABLE t_plugin_poll_event
   ADD CONSTRAINT t_plugin_poll_event_pkey PRIMARY KEY (pk);
 
 
-ALTER TABLE ONLY t_plugin_poll
+ALTER TABLE t_plugin_poll
   ADD CONSTRAINT t_plugin_poll_pkey PRIMARY KEY (pk);
 
 
-ALTER TABLE ONLY t_plugin_poll_result
+ALTER TABLE t_plugin_poll_result
   ADD CONSTRAINT t_plugin_poll_result_pkey PRIMARY KEY (pk);
 
 
-ALTER TABLE ONLY t_plugin_skill
+ALTER TABLE t_plugin_skill
   ADD CONSTRAINT t_plugin_skill_pkey PRIMARY KEY (pk);
 
 
-ALTER TABLE ONLY t_plugin_skill_rating
+ALTER TABLE t_plugin_skill_rating
   ADD CONSTRAINT t_plugin_skill_rating_pkey PRIMARY KEY (pk);
 
 
-ALTER TABLE ONLY t_plugin_skill_training_attendee
+ALTER TABLE t_plugin_skill_training_attendee
   ADD CONSTRAINT t_plugin_skill_training_attendee_pkey PRIMARY KEY (pk);
 
 
-ALTER TABLE ONLY t_plugin_skill_training
+ALTER TABLE t_plugin_skill_training
   ADD CONSTRAINT t_plugin_skill_training_pkey PRIMARY KEY (pk);
 
 
-ALTER TABLE ONLY t_plugin_todo
+ALTER TABLE t_plugin_todo
   ADD CONSTRAINT t_plugin_todo_pkey PRIMARY KEY (pk);
 
 
-ALTER TABLE ONLY t_script
-  ADD CONSTRAINT t_script_pkey PRIMARY KEY (pk);
-
-
-ALTER TABLE ONLY t_task
+ALTER TABLE t_task
   ADD CONSTRAINT t_task_pkey PRIMARY KEY (pk);
 
 
-ALTER TABLE ONLY t_tenant
+ALTER TABLE t_tenant
   ADD CONSTRAINT t_tenant_pkey PRIMARY KEY (pk);
 
 
-ALTER TABLE ONLY t_tenant_user
+ALTER TABLE t_tenant_user
   ADD CONSTRAINT t_tenant_user_pkey PRIMARY KEY (tenant_id, user_id);
 
 
-ALTER TABLE ONLY t_timesheet
+ALTER TABLE t_timesheet
   ADD CONSTRAINT t_timesheet_pkey PRIMARY KEY (pk);
 
 
-ALTER TABLE ONLY t_user_pref_entry
+ALTER TABLE t_user_pref_entry
   ADD CONSTRAINT t_user_pref_entry_pkey PRIMARY KEY (pk);
 
 
-ALTER TABLE ONLY t_user_pref
+ALTER TABLE t_user_pref
   ADD CONSTRAINT t_user_pref_pkey PRIMARY KEY (pk);
 
 
-ALTER TABLE ONLY t_user_right
+ALTER TABLE t_user_right
   ADD CONSTRAINT t_user_right_pkey PRIMARY KEY (pk);
 
 
-ALTER TABLE ONLY t_user_xml_prefs
+ALTER TABLE t_user_xml_prefs
   ADD CONSTRAINT t_user_xml_prefs_pkey PRIMARY KEY (pk);
 
 
-ALTER TABLE ONLY tb_base_ghistory_attr_data
+ALTER TABLE tb_base_ghistory_attr_data
   ADD CONSTRAINT tb_base_ghistory_attr_data_pkey PRIMARY KEY (base_ghistory_attr_data);
 
 
-ALTER TABLE ONLY tb_base_ghistory_attr
+ALTER TABLE tb_base_ghistory_attr
   ADD CONSTRAINT tb_base_ghistory_attr_pkey PRIMARY KEY (base_ghistory_attr);
 
 
-ALTER TABLE ONLY tb_base_ghistory
+ALTER TABLE tb_base_ghistory
   ADD CONSTRAINT tb_base_ghistory_pkey PRIMARY KEY (base_ghistory);
 
 
-ALTER TABLE ONLY t_fibu_auftrag
+ALTER TABLE t_fibu_auftrag
   ADD CONSTRAINT uk13cp590ny6so721hxtxg3ywe8 UNIQUE (nummer, tenant_id);
 
 
-ALTER TABLE ONLY t_plugin_financialfairplay_debt
+ALTER TABLE t_plugin_financialfairplay_debt
   ADD CONSTRAINT uk18n5qocxv8v83v6pmwbyrg97y UNIQUE (event_id, attendee_user_id_from, attendee_user_id_to);
 
 
-ALTER TABLE ONLY t_contract
+ALTER TABLE t_contract
   ADD CONSTRAINT uk1csljbvfcyc95uawchy475pyq UNIQUE (number, tenant_id);
 
 
-ALTER TABLE ONLY t_group
+ALTER TABLE t_group
   ADD CONSTRAINT uk20gfd8dmh2ts1tqpbfsbf3k5y UNIQUE (name, tenant_id);
 
 
-ALTER TABLE ONLY t_imported_meb_entry
+ALTER TABLE t_imported_meb_entry
   ADD CONSTRAINT uk40iwr152inguwed6ndbffekdb UNIQUE (sender, date, check_sum);
 
 
-ALTER TABLE ONLY t_group_task_access
+ALTER TABLE t_group_task_access
   ADD CONSTRAINT uk5a3nsfk0dvmf7l0edi1x24i3d UNIQUE (group_id, task_id);
 
 
-ALTER TABLE ONLY t_fibu_employee_timed
+ALTER TABLE t_fibu_employee_timed
   ADD CONSTRAINT uk685q8bvv04e67aein01mnmdep UNIQUE (employee_id, group_name, start_time);
 
 
-ALTER TABLE ONLY t_orga_visitorbook_timedattr
+ALTER TABLE t_orga_visitorbook_timedattr
   ADD CONSTRAINT uk6ie2k7d9c4jjymbinuj3p0dtr UNIQUE (parent, propertyname);
 
 
-ALTER TABLE ONLY t_fibu_auftrag_position
+ALTER TABLE t_fibu_auftrag_position
   ADD CONSTRAINT uk8iarwe4lp7hso7looh8o84ffm UNIQUE (auftrag_fk, number);
 
 
-ALTER TABLE ONLY t_user_right
+ALTER TABLE t_user_right
   ADD CONSTRAINT uk8iittd1cevoi4qhsen4rwaq4j UNIQUE (user_fk, right_id, tenant_id);
 
 
-ALTER TABLE ONLY t_task
+ALTER TABLE t_task
   ADD CONSTRAINT uka9iebxxdhoviessjiqs0ggd3c UNIQUE (parent_task_id, title);
 
 
-ALTER TABLE ONLY t_hr_planning
+ALTER TABLE t_hr_planning
   ADD CONSTRAINT ukaefphlrt2w0ekpr8jley6ej9w UNIQUE (user_fk, week, tenant_id);
 
 
-ALTER TABLE ONLY t_fibu_kost2
+ALTER TABLE t_fibu_kost2
   ADD CONSTRAINT ukb00lwresusebpmcjprp2i5smo UNIQUE (nummernkreis, bereich, teilbereich, kost2_art_id, tenant_id);
 
 
-ALTER TABLE ONLY t_configuration
+ALTER TABLE t_configuration
   ADD CONSTRAINT ukbrlhedvthe0dosbwnqeciyoxo UNIQUE (parameter, tenant_id);
 
 
-ALTER TABLE ONLY t_pf_user
+ALTER TABLE t_pf_user
   ADD CONSTRAINT ukc0pygxqm81s78xkx23jdm44rv UNIQUE (username);
 
 
-ALTER TABLE ONLY t_employee_vacation_calendar
+ALTER TABLE t_employee_vacation_calendar
   ADD CONSTRAINT ukdfpxew48ev9ivdgm56p3iys5c UNIQUE (vacation_id, calendar_id);
 
 
-ALTER TABLE ONLY t_plugin_employee_configuration
+ALTER TABLE t_plugin_employee_configuration
   ADD CONSTRAINT uke140imnwc71t9mi4pjeysesr7 UNIQUE (tenant_id);
 
 
-ALTER TABLE ONLY t_orga_visitorbook_timed
+ALTER TABLE t_orga_visitorbook_timed
   ADD CONSTRAINT ukegcjr73jyarc2uloafisx3udo UNIQUE (visitor_id, group_name, start_time);
 
 
-ALTER TABLE ONLY t_fibu_projekt
+ALTER TABLE t_fibu_projekt
   ADD CONSTRAINT ukel80a4o5nfg3hgymq39s44oi7 UNIQUE (nummer, kunde_id, tenant_id);
 
 
-ALTER TABLE ONLY t_personal_address
+ALTER TABLE t_personal_address
   ADD CONSTRAINT ukfug33gy9pdwl0mhso3pql8kys UNIQUE (owner_id, address_id);
 
 
-ALTER TABLE ONLY t_fibu_buchungssatz
+ALTER TABLE t_fibu_buchungssatz
   ADD CONSTRAINT ukg8teoe5ckqgta8cehbml2tujs UNIQUE (year, month, satznr, tenant_id);
 
 
-ALTER TABLE ONLY t_fibu_rechnung
+ALTER TABLE t_fibu_rechnung
   ADD CONSTRAINT ukge3olaat4a0f7jdie8ae6em68 UNIQUE (nummer, tenant_id);
 
 
-ALTER TABLE ONLY t_group_task_access_entry
+ALTER TABLE t_group_task_access_entry
   ADD CONSTRAINT ukgl5r4qk9tektks4ctybp9dfd6 UNIQUE (group_task_access_fk, access_type);
 
 
-ALTER TABLE ONLY t_book
+ALTER TABLE t_book
   ADD CONSTRAINT ukhcx59fnglysya535rwswhxjlx UNIQUE (signature, tenant_id);
 
 
-ALTER TABLE ONLY t_personal_contact
+ALTER TABLE t_personal_contact
   ADD CONSTRAINT ukiv076q5faseh0bji90eiiac6n UNIQUE (owner_id, contact_id);
 
 
-ALTER TABLE ONLY t_fibu_kost1
+ALTER TABLE t_fibu_kost1
   ADD CONSTRAINT ukk0vmq8380vd3vykfvg97tdi7b UNIQUE (nummernkreis, bereich, teilbereich, endziffer, tenant_id);
 
 
-ALTER TABLE ONLY t_contactentry
+ALTER TABLE t_contactentry
   ADD CONSTRAINT ukk1qew3uptx8jdr8ejbsc9ql3d UNIQUE (contact_id, number);
 
 
-ALTER TABLE ONLY t_user_pref
+ALTER TABLE t_user_pref
   ADD CONSTRAINT ukkxu311uovq47d3712rfoei47u UNIQUE (user_fk, area, name, tenant_id);
 
 
-ALTER TABLE ONLY t_fibu_kost_zuweisung
+ALTER TABLE t_fibu_kost_zuweisung
   ADD CONSTRAINT ukkyctj07ir12bwl9r7rmdapdeo UNIQUE (index, rechnungs_pos_fk, kost1_fk, kost2_fk);
 
 
-ALTER TABLE ONLY t_fibu_rechnung_position
+ALTER TABLE t_fibu_rechnung_position
   ADD CONSTRAINT ukm26g9mdosl7lhyp2yl9lmegxo UNIQUE (rechnung_fk, number);
 
 
-ALTER TABLE ONLY t_user_xml_prefs
+ALTER TABLE t_user_xml_prefs
   ADD CONSTRAINT ukmmakqkkhqacgaer01nfc33ed4 UNIQUE (user_id, key, tenant_id);
 
 
-ALTER TABLE ONLY t_fibu_eingangsrechnung_position
+ALTER TABLE t_fibu_eingangsrechnung_position
   ADD CONSTRAINT ukmw77ceaek67y2kb4k7xnsomnw UNIQUE (eingangsrechnung_fk, number);
 
 
-ALTER TABLE ONLY t_fibu_kost_zuweisung
+ALTER TABLE t_fibu_kost_zuweisung
   ADD CONSTRAINT uknbb1uv9p1susfv6j4vj5i2b5j UNIQUE (index, employee_salary_fk, kost1_fk, kost2_fk);
 
 
-ALTER TABLE ONLY t_plugin_bank_account
+ALTER TABLE t_plugin_bank_account
   ADD CONSTRAINT uknc8vsd8dm94yliqrd84rateyx UNIQUE (account_number, tenant_id);
 
 
-ALTER TABLE ONLY t_fibu_payment_schedule
+ALTER TABLE t_fibu_payment_schedule
   ADD CONSTRAINT uknel6luw7jvwv07t0csv09rs3h UNIQUE (auftrag_id, number);
 
 
-ALTER TABLE ONLY t_fibu_employee_salary
+ALTER TABLE t_fibu_employee_salary
   ADD CONSTRAINT ukny6ovd5xylf8557h77srbariv UNIQUE (employee_id, year, month);
 
 
-ALTER TABLE ONLY t_plugin_employee_configuration_timed
+ALTER TABLE t_plugin_employee_configuration_timed
   ADD CONSTRAINT ukoenjbbnawcktc10pyq2rfke4k UNIQUE (employee_configuration_id, group_name, start_time);
 
 
-ALTER TABLE ONLY t_user_pref_entry
+ALTER TABLE t_user_pref_entry
   ADD CONSTRAINT ukoqjhg6yc238io26jsoyryxvwg UNIQUE (user_pref_fk, parameter, tenant_id);
 
 
-ALTER TABLE ONLY t_fibu_konto
+ALTER TABLE t_fibu_konto
   ADD CONSTRAINT ukp1b0cyh606mpuuvfe4a0ueegl UNIQUE (nummer, tenant_id);
 
 
-ALTER TABLE ONLY t_fibu_projekt
+ALTER TABLE t_fibu_projekt
   ADD CONSTRAINT ukpjcnxhlqkhto34uxocoef78q7 UNIQUE (nummer, intern_kost2_4, tenant_id);
 
 
-ALTER TABLE ONLY t_fibu_employee
+ALTER TABLE t_fibu_employee
   ADD CONSTRAINT ukr59qqfs9h7kh1hybfs2kros2c UNIQUE (user_id, tenant_id);
 
 
-ALTER TABLE ONLY t_fibu_kost_zuweisung
+ALTER TABLE t_fibu_kost_zuweisung
   ADD CONSTRAINT ukrb91hgk05pj49dbht6qmjt072 UNIQUE (index, eingangsrechnungs_pos_fk, kost1_fk, kost2_fk);
 
 
-ALTER TABLE ONLY t_plugin_marketing_address_campaign_value
+ALTER TABLE t_plugin_marketing_address_campaign_value
   ADD CONSTRAINT uktc7a5jtxuta0nyhhq6c3rdbmq UNIQUE (address_fk, address_campaign_fk);
 
 
-ALTER TABLE ONLY t_address
-  ADD CONSTRAINT unique_t_address_uid_tenant UNIQUE (uid, tenant_id);
-
-
-ALTER TABLE ONLY t_plugin_calendar_event
+ALTER TABLE t_plugin_calendar_event
   ADD CONSTRAINT unique_t_plugin_calendar_event_uid_calendar_fk UNIQUE (uid, calendar_fk);
 
 
 CREATE INDEX idx_fibu_employee_timed_start_time
-  ON t_fibu_employee_timed USING BTREE (start_time);
-
-
-CREATE INDEX idx_fk_t_address_tenant_id
-  ON t_address USING BTREE (tenant_id);
-
-
-CREATE INDEX idx_fk_t_address_uid_tenant_id
-  ON t_address USING BTREE (uid, tenant_id);
+  ON t_fibu_employee_timed (start_time);
 
 
 CREATE INDEX idx_fk_t_addressbook_address_address_id
-  ON t_addressbook_address USING BTREE (address_id);
+  ON t_addressbook_address (address_id);
 
 CREATE INDEX idx_fk_t_addressbook_address_addressbook_id
-  ON t_addressbook_address USING BTREE (addressbook_id);
+  ON t_addressbook_address (addressbook_id);
 
 CREATE INDEX idx_fk_t_addressbook_tenant_id
-  ON t_addressbook USING BTREE (tenant_id);
+  ON t_addressbook (tenant_id);
 
 CREATE INDEX idx_fk_t_book_lend_out_by
-  ON t_book USING BTREE (lend_out_by);
+  ON t_book (lend_out_by);
 
 CREATE INDEX idx_fk_t_book_task_id
-  ON t_book USING BTREE (task_id);
+  ON t_book (task_id);
 
 CREATE INDEX idx_fk_t_book_tenant_id
-  ON t_book USING BTREE (tenant_id);
+  ON t_book (tenant_id);
 
 CREATE INDEX idx_fk_t_configuration_tenant_id
-  ON t_configuration USING BTREE (tenant_id);
+  ON t_configuration (tenant_id);
 
 CREATE INDEX idx_fk_t_contact_tenant_id
-  ON t_contact USING BTREE (tenant_id);
+  ON t_contact (tenant_id);
 
 CREATE INDEX idx_fk_t_contactentry_tenant_id
-  ON t_contactentry USING BTREE (tenant_id);
+  ON t_contactentry (tenant_id);
 
 CREATE INDEX idx_fk_t_contract_tenant_id
-  ON t_contract USING BTREE (tenant_id);
+  ON t_contract (tenant_id);
 
 CREATE INDEX idx_fk_t_database_update_executed_by_user_fk
-  ON t_database_update USING BTREE (executed_by_user_fk);
+  ON t_database_update (executed_by_user_fk);
 
 CREATE INDEX idx_fk_t_employee_vacation_substitution_substitution_id
-  ON t_employee_vacation_substitution USING BTREE (substitution_id);
+  ON t_employee_vacation_substitution (substitution_id);
 
 CREATE INDEX idx_fk_t_employee_vacation_substitution_vacation_id
-  ON t_employee_vacation_substitution USING BTREE (vacation_id);
+  ON t_employee_vacation_substitution (vacation_id);
 
 CREATE INDEX idx_fk_t_fibu_auftrag_contact_person_fk
-  ON t_fibu_auftrag USING BTREE (contact_person_fk);
+  ON t_fibu_auftrag (contact_person_fk);
 
 CREATE INDEX idx_fk_t_fibu_auftrag_headofbusinessmanager_fk
-  ON t_fibu_auftrag USING BTREE (headofbusinessmanager_fk);
+  ON t_fibu_auftrag (headofbusinessmanager_fk);
 
 CREATE INDEX idx_fk_t_fibu_auftrag_kunde_fk
-  ON t_fibu_auftrag USING BTREE (kunde_fk);
+  ON t_fibu_auftrag (kunde_fk);
 
 CREATE INDEX idx_fk_t_fibu_auftrag_position_auftrag_fk
-  ON t_fibu_auftrag_position USING BTREE (auftrag_fk);
+  ON t_fibu_auftrag_position (auftrag_fk);
 
 CREATE INDEX idx_fk_t_fibu_auftrag_position_task_fk
-  ON t_fibu_auftrag_position USING BTREE (task_fk);
+  ON t_fibu_auftrag_position (task_fk);
 
 CREATE INDEX idx_fk_t_fibu_auftrag_position_tenant_id
-  ON t_fibu_auftrag_position USING BTREE (tenant_id);
+  ON t_fibu_auftrag_position (tenant_id);
 
 CREATE INDEX idx_fk_t_fibu_auftrag_projectmanager_fk
-  ON t_fibu_auftrag USING BTREE (projectmanager_fk);
+  ON t_fibu_auftrag (projectmanager_fk);
 
 CREATE INDEX idx_fk_t_fibu_auftrag_projekt_fk
-  ON t_fibu_auftrag USING BTREE (projekt_fk);
+  ON t_fibu_auftrag (projekt_fk);
 
 CREATE INDEX idx_fk_t_fibu_auftrag_salesmanager_fk
-  ON t_fibu_auftrag USING BTREE (salesmanager_fk);
+  ON t_fibu_auftrag (salesmanager_fk);
 
 CREATE INDEX idx_fk_t_fibu_auftrag_tenant_id
-  ON t_fibu_auftrag USING BTREE (tenant_id);
+  ON t_fibu_auftrag (tenant_id);
 
 CREATE INDEX idx_fk_t_fibu_buchungssatz_gegenkonto_id
-  ON t_fibu_buchungssatz USING BTREE (gegenkonto_id);
+  ON t_fibu_buchungssatz (gegenkonto_id);
 
 CREATE INDEX idx_fk_t_fibu_buchungssatz_konto_id
-  ON t_fibu_buchungssatz USING BTREE (konto_id);
+  ON t_fibu_buchungssatz (konto_id);
 
 CREATE INDEX idx_fk_t_fibu_buchungssatz_kost1_id
-  ON t_fibu_buchungssatz USING BTREE (kost1_id);
+  ON t_fibu_buchungssatz (kost1_id);
 
 CREATE INDEX idx_fk_t_fibu_buchungssatz_kost2_id
-  ON t_fibu_buchungssatz USING BTREE (kost2_id);
+  ON t_fibu_buchungssatz (kost2_id);
 
 CREATE INDEX idx_fk_t_fibu_buchungssatz_tenant_id
-  ON t_fibu_buchungssatz USING BTREE (tenant_id);
+  ON t_fibu_buchungssatz (tenant_id);
 
 CREATE INDEX idx_fk_t_fibu_eingangsrechnung_konto_id
-  ON t_fibu_eingangsrechnung USING BTREE (konto_id);
+  ON t_fibu_eingangsrechnung (konto_id);
 
 CREATE INDEX idx_fk_t_fibu_eingangsrechnung_position_eingangsrechnung_fk
-  ON t_fibu_eingangsrechnung_position USING BTREE (eingangsrechnung_fk);
+  ON t_fibu_eingangsrechnung_position (eingangsrechnung_fk);
 
 CREATE INDEX idx_fk_t_fibu_eingangsrechnung_position_tenant_id
-  ON t_fibu_eingangsrechnung_position USING BTREE (tenant_id);
+  ON t_fibu_eingangsrechnung_position (tenant_id);
 
 CREATE INDEX idx_fk_t_fibu_eingangsrechnung_tenant_id
-  ON t_fibu_eingangsrechnung USING BTREE (tenant_id);
+  ON t_fibu_eingangsrechnung (tenant_id);
 
 CREATE INDEX idx_fk_t_fibu_employee_kost1_id
-  ON t_fibu_employee USING BTREE (kost1_id);
+  ON t_fibu_employee (kost1_id);
 
 CREATE INDEX idx_fk_t_fibu_employee_salary_employee_id
-  ON t_fibu_employee_salary USING BTREE (employee_id);
+  ON t_fibu_employee_salary (employee_id);
 
 CREATE INDEX idx_fk_t_fibu_employee_salary_tenant_id
-  ON t_fibu_employee_salary USING BTREE (tenant_id);
+  ON t_fibu_employee_salary (tenant_id);
 
 CREATE INDEX idx_fk_t_fibu_employee_tenant_id
-  ON t_fibu_employee USING BTREE (tenant_id);
+  ON t_fibu_employee (tenant_id);
 
 CREATE INDEX idx_fk_t_fibu_employee_user_id
-  ON t_fibu_employee USING BTREE (user_id);
+  ON t_fibu_employee (user_id);
 
 CREATE INDEX idx_fk_t_fibu_konto_tenant_id
-  ON t_fibu_konto USING BTREE (tenant_id);
+  ON t_fibu_konto (tenant_id);
 
 CREATE INDEX idx_fk_t_fibu_kost1_tenant_id
-  ON t_fibu_kost1 USING BTREE (tenant_id);
+  ON t_fibu_kost1 (tenant_id);
 
 CREATE INDEX idx_fk_t_fibu_kost2_kost2_art_id
-  ON t_fibu_kost2 USING BTREE (kost2_art_id);
+  ON t_fibu_kost2 (kost2_art_id);
 
 CREATE INDEX idx_fk_t_fibu_kost2_projekt_id
-  ON t_fibu_kost2 USING BTREE (projekt_id);
+  ON t_fibu_kost2 (projekt_id);
 
 CREATE INDEX idx_fk_t_fibu_kost2_tenant_id
-  ON t_fibu_kost2 USING BTREE (tenant_id);
+  ON t_fibu_kost2 (tenant_id);
 
 CREATE INDEX idx_fk_t_fibu_kost2art_tenant_id
-  ON t_fibu_kost2art USING BTREE (tenant_id);
+  ON t_fibu_kost2art (tenant_id);
 
 CREATE INDEX idx_fk_t_fibu_kost_zuweisung_eingangsrechnungs_pos_fk
-  ON t_fibu_kost_zuweisung USING BTREE (eingangsrechnungs_pos_fk);
+  ON t_fibu_kost_zuweisung (eingangsrechnungs_pos_fk);
 
 CREATE INDEX idx_fk_t_fibu_kost_zuweisung_employee_salary_fk
-  ON t_fibu_kost_zuweisung USING BTREE (employee_salary_fk);
+  ON t_fibu_kost_zuweisung (employee_salary_fk);
 
 CREATE INDEX idx_fk_t_fibu_kost_zuweisung_kost1_fk
-  ON t_fibu_kost_zuweisung USING BTREE (kost1_fk);
+  ON t_fibu_kost_zuweisung (kost1_fk);
 
 CREATE INDEX idx_fk_t_fibu_kost_zuweisung_kost2_fk
-  ON t_fibu_kost_zuweisung USING BTREE (kost2_fk);
+  ON t_fibu_kost_zuweisung (kost2_fk);
 
 CREATE INDEX idx_fk_t_fibu_kost_zuweisung_rechnungs_pos_fk
-  ON t_fibu_kost_zuweisung USING BTREE (rechnungs_pos_fk);
+  ON t_fibu_kost_zuweisung (rechnungs_pos_fk);
 
 CREATE INDEX idx_fk_t_fibu_kost_zuweisung_tenant_id
-  ON t_fibu_kost_zuweisung USING BTREE (tenant_id);
+  ON t_fibu_kost_zuweisung (tenant_id);
 
 CREATE INDEX idx_fk_t_fibu_kunde_konto_id
-  ON t_fibu_kunde USING BTREE (konto_id);
+  ON t_fibu_kunde (konto_id);
 
 CREATE INDEX idx_fk_t_fibu_kunde_tenant_id
-  ON t_fibu_kunde USING BTREE (tenant_id);
+  ON t_fibu_kunde (tenant_id);
 
 CREATE INDEX idx_fk_t_fibu_payment_schedule_auftrag_id
-  ON t_fibu_payment_schedule USING BTREE (auftrag_id);
+  ON t_fibu_payment_schedule (auftrag_id);
 
 CREATE INDEX idx_fk_t_fibu_payment_schedule_tenant_id
-  ON t_fibu_payment_schedule USING BTREE (tenant_id);
+  ON t_fibu_payment_schedule (tenant_id);
 
 CREATE INDEX idx_fk_t_fibu_projekt_headofbusinessmanager_fk
-  ON t_fibu_projekt USING BTREE (headofbusinessmanager_fk);
+  ON t_fibu_projekt (headofbusinessmanager_fk);
 
 CREATE INDEX idx_fk_t_fibu_projekt_konto_id
-  ON t_fibu_projekt USING BTREE (konto_id);
+  ON t_fibu_projekt (konto_id);
 
 CREATE INDEX idx_fk_t_fibu_projekt_kunde_id
-  ON t_fibu_projekt USING BTREE (kunde_id);
+  ON t_fibu_projekt (kunde_id);
 
 CREATE INDEX idx_fk_t_fibu_projekt_projectmanager_fk
-  ON t_fibu_projekt USING BTREE (projectmanager_fk);
+  ON t_fibu_projekt (projectmanager_fk);
 
 CREATE INDEX idx_fk_t_fibu_projekt_projektmanager_group_fk
-  ON t_fibu_projekt USING BTREE (projektmanager_group_fk);
+  ON t_fibu_projekt (projektmanager_group_fk);
 
 CREATE INDEX idx_fk_t_fibu_projekt_salesmanager_fk
-  ON t_fibu_projekt USING BTREE (salesmanager_fk);
+  ON t_fibu_projekt (salesmanager_fk);
 
 CREATE INDEX idx_fk_t_fibu_projekt_task_fk
-  ON t_fibu_projekt USING BTREE (task_fk);
+  ON t_fibu_projekt (task_fk);
 
 CREATE INDEX idx_fk_t_fibu_projekt_tenant_id
-  ON t_fibu_projekt USING BTREE (tenant_id);
+  ON t_fibu_projekt (tenant_id);
 
 CREATE INDEX idx_fk_t_fibu_rechnung_konto_id
-  ON t_fibu_rechnung USING BTREE (konto_id);
+  ON t_fibu_rechnung (konto_id);
 
 CREATE INDEX idx_fk_t_fibu_rechnung_kunde_id
-  ON t_fibu_rechnung USING BTREE (kunde_id);
+  ON t_fibu_rechnung (kunde_id);
 
 CREATE INDEX idx_fk_t_fibu_rechnung_position_auftrags_position_fk
-  ON t_fibu_rechnung_position USING BTREE (auftrags_position_fk);
+  ON t_fibu_rechnung_position (auftrags_position_fk);
 
 CREATE INDEX idx_fk_t_fibu_rechnung_position_rechnung_fk
-  ON t_fibu_rechnung_position USING BTREE (rechnung_fk);
+  ON t_fibu_rechnung_position (rechnung_fk);
 
 CREATE INDEX idx_fk_t_fibu_rechnung_position_tenant_id
-  ON t_fibu_rechnung_position USING BTREE (tenant_id);
+  ON t_fibu_rechnung_position (tenant_id);
 
 CREATE INDEX idx_fk_t_fibu_rechnung_projekt_id
-  ON t_fibu_rechnung USING BTREE (projekt_id);
+  ON t_fibu_rechnung (projekt_id);
 
 CREATE INDEX idx_fk_t_fibu_rechnung_tenant_id
-  ON t_fibu_rechnung USING BTREE (tenant_id);
+  ON t_fibu_rechnung (tenant_id);
 
 CREATE INDEX idx_fk_t_gantt_chart_owner_fk
-  ON t_gantt_chart USING BTREE (owner_fk);
+  ON t_gantt_chart (owner_fk);
 
 CREATE INDEX idx_fk_t_gantt_chart_task_fk
-  ON t_gantt_chart USING BTREE (task_fk);
+  ON t_gantt_chart (task_fk);
 
 CREATE INDEX idx_fk_t_gantt_chart_tenant_id
-  ON t_gantt_chart USING BTREE (tenant_id);
+  ON t_gantt_chart (tenant_id);
 
 CREATE INDEX idx_fk_t_group_task_access_entry_group_task_access_fk
-  ON t_group_task_access_entry USING BTREE (group_task_access_fk);
+  ON t_group_task_access_entry (group_task_access_fk);
 
 CREATE INDEX idx_fk_t_group_task_access_entry_tenant_id
-  ON t_group_task_access_entry USING BTREE (tenant_id);
+  ON t_group_task_access_entry (tenant_id);
 
 CREATE INDEX idx_fk_t_group_task_access_group_id
-  ON t_group_task_access USING BTREE (group_id);
+  ON t_group_task_access (group_id);
 
 CREATE INDEX idx_fk_t_group_task_access_task_id
-  ON t_group_task_access USING BTREE (task_id);
+  ON t_group_task_access (task_id);
 
 CREATE INDEX idx_fk_t_group_task_access_tenant_id
-  ON t_group_task_access USING BTREE (tenant_id);
+  ON t_group_task_access (tenant_id);
 
 CREATE INDEX idx_fk_t_group_tenant_id
-  ON t_group USING BTREE (tenant_id);
+  ON t_group (tenant_id);
 
 CREATE INDEX idx_fk_t_group_user_group_id
-  ON t_group_user USING BTREE (group_id);
+  ON t_group_user (group_id);
 
 CREATE INDEX idx_fk_t_group_user_user_id
-  ON t_group_user USING BTREE (user_id);
+  ON t_group_user (user_id);
 
 CREATE INDEX idx_fk_t_hr_planning_entry_planning_fk
-  ON t_hr_planning_entry USING BTREE (planning_fk);
+  ON t_hr_planning_entry (planning_fk);
 
 CREATE INDEX idx_fk_t_hr_planning_entry_projekt_fk
-  ON t_hr_planning_entry USING BTREE (projekt_fk);
+  ON t_hr_planning_entry (projekt_fk);
 
 CREATE INDEX idx_fk_t_hr_planning_entry_tenant_id
-  ON t_hr_planning_entry USING BTREE (tenant_id);
+  ON t_hr_planning_entry (tenant_id);
 
 CREATE INDEX idx_fk_t_hr_planning_tenant_id
-  ON t_hr_planning USING BTREE (tenant_id);
+  ON t_hr_planning (tenant_id);
 
 CREATE INDEX idx_fk_t_hr_planning_user_fk
-  ON t_hr_planning USING BTREE (user_fk);
+  ON t_hr_planning (user_fk);
 
 CREATE INDEX idx_fk_t_imported_meb_entry_tenant_id
-  ON t_imported_meb_entry USING BTREE (tenant_id);
+  ON t_imported_meb_entry (tenant_id);
 
 CREATE INDEX idx_fk_t_meb_entry_owner_fk
-  ON t_meb_entry USING BTREE (owner_fk);
+  ON t_meb_entry (owner_fk);
 
 CREATE INDEX idx_fk_t_meb_entry_tenant_id
-  ON t_meb_entry USING BTREE (tenant_id);
+  ON t_meb_entry (tenant_id);
 
 CREATE INDEX idx_fk_t_orga_employee_employee_id
-  ON t_orga_visitorbook_employee USING BTREE (employee_id);
+  ON t_orga_visitorbook_employee (employee_id);
 
 CREATE INDEX idx_fk_t_orga_postausgang_tenant_id
-  ON t_orga_postausgang USING BTREE (tenant_id);
+  ON t_orga_postausgang (tenant_id);
 
 CREATE INDEX idx_fk_t_orga_posteingang_tenant_id
-  ON t_orga_posteingang USING BTREE (tenant_id);
+  ON t_orga_posteingang (tenant_id);
 
 CREATE INDEX idx_fk_t_orga_visitorbook_employee_id
-  ON t_orga_visitorbook_employee USING BTREE (visitorbook_id);
+  ON t_orga_visitorbook_employee (visitorbook_id);
 
 CREATE INDEX idx_fk_t_orga_visitorbook_tenant_id
-  ON t_orga_visitorbook USING BTREE (tenant_id);
+  ON t_orga_visitorbook (tenant_id);
 
 CREATE INDEX idx_fk_t_personal_address_address_id
-  ON t_personal_address USING BTREE (address_id);
+  ON t_personal_address (address_id);
 
 CREATE INDEX idx_fk_t_personal_address_owner_id
-  ON t_personal_address USING BTREE (owner_id);
+  ON t_personal_address (owner_id);
 
 CREATE INDEX idx_fk_t_personal_address_tenant_id
-  ON t_personal_address USING BTREE (tenant_id);
+  ON t_personal_address (tenant_id);
 
 CREATE INDEX idx_fk_t_personal_contact_tenant_id
-  ON t_personal_contact USING BTREE (tenant_id);
+  ON t_personal_contact (tenant_id);
 
 CREATE INDEX idx_fk_t_pf_user_tenant_id
-  ON t_pf_user USING BTREE (tenant_id);
+  ON t_pf_user (tenant_id);
 
 CREATE INDEX idx_fk_t_plugin_bank_account_balance_tenant_id
-  ON t_plugin_bank_account_balance USING BTREE (tenant_id);
+  ON t_plugin_bank_account_balance (tenant_id);
 
 CREATE INDEX idx_fk_t_plugin_bank_account_record_tenant_id
-  ON t_plugin_bank_account_record USING BTREE (tenant_id);
+  ON t_plugin_bank_account_record (tenant_id);
 
 CREATE INDEX idx_fk_t_plugin_bank_account_tenant_id
-  ON t_plugin_bank_account USING BTREE (tenant_id);
-
-CREATE INDEX idx_fk_t_plugin_calendar_event_attachment_team_event_fk2
-  ON t_plugin_calendar_event_attachment USING BTREE (team_event_fk2);
-
-CREATE INDEX idx_fk_t_plugin_calendar_event_attachment_tenant_id
-  ON t_plugin_calendar_event_attachment USING BTREE (tenant_id);
+  ON t_plugin_bank_account (tenant_id);
 
 CREATE INDEX idx_fk_t_plugin_calendar_event_attendee_address_id
-  ON t_plugin_calendar_event_attendee USING BTREE (address_id);
+  ON t_plugin_calendar_event_attendee (address_id);
 
 CREATE INDEX idx_fk_t_plugin_calendar_event_attendee_team_event_fk
-  ON t_plugin_calendar_event_attendee USING BTREE (team_event_fk);
+  ON t_plugin_calendar_event_attendee (team_event_fk);
 
 CREATE INDEX idx_fk_t_plugin_calendar_event_attendee_tenant_id
-  ON t_plugin_calendar_event_attendee USING BTREE (tenant_id);
+  ON t_plugin_calendar_event_attendee (tenant_id);
 
 CREATE INDEX idx_fk_t_plugin_calendar_event_attendee_user_id
-  ON t_plugin_calendar_event_attendee USING BTREE (user_id);
+  ON t_plugin_calendar_event_attendee (user_id);
 
 CREATE INDEX idx_fk_t_plugin_calendar_event_calendar_fk
-  ON t_plugin_calendar_event USING BTREE (calendar_fk);
+  ON t_plugin_calendar_event (calendar_fk);
 
 CREATE INDEX idx_fk_t_plugin_calendar_event_tenant_id
-  ON t_plugin_calendar_event USING BTREE (tenant_id);
-
-CREATE INDEX idx_fk_t_plugin_calendar_owner_fk
-  ON t_plugin_calendar USING BTREE (owner_fk);
-
-CREATE INDEX idx_fk_t_plugin_calendar_tenant_id
-  ON t_plugin_calendar USING BTREE (tenant_id);
+  ON t_plugin_calendar_event (tenant_id);
 
 CREATE INDEX idx_fk_t_plugin_financialfairplay_debt_event_id
-  ON t_plugin_financialfairplay_debt USING BTREE (event_id);
+  ON t_plugin_financialfairplay_debt (event_id);
 
 CREATE INDEX idx_fk_t_plugin_financialfairplay_debt_from_id
-  ON t_plugin_financialfairplay_debt USING BTREE (attendee_user_id_from);
+  ON t_plugin_financialfairplay_debt (attendee_user_id_from);
 
 CREATE INDEX idx_fk_t_plugin_financialfairplay_debt_to_id
-  ON t_plugin_financialfairplay_debt USING BTREE (attendee_user_id_to);
+  ON t_plugin_financialfairplay_debt (attendee_user_id_to);
 
 CREATE INDEX idx_fk_t_plugin_liqui_entry_tenant_id
-  ON t_plugin_liqui_entry USING BTREE (tenant_id);
-
-CREATE INDEX idx_fk_t_plugin_lm_license_tenant_id
-  ON t_plugin_lm_license USING BTREE (tenant_id);
+  ON t_plugin_liqui_entry (tenant_id);
 
 CREATE INDEX idx_fk_t_plugin_marketing_address_campaign_tenant_id
-  ON t_plugin_marketing_address_campaign USING BTREE (tenant_id);
+  ON t_plugin_marketing_address_campaign (tenant_id);
 
 CREATE INDEX idx_fk_t_plugin_marketing_address_campaign_value_address_campai
-  ON t_plugin_marketing_address_campaign_value USING BTREE (address_campaign_fk);
+  ON t_plugin_marketing_address_campaign_value (address_campaign_fk);
 
 CREATE INDEX idx_fk_t_plugin_marketing_address_campaign_value_address_fk
-  ON t_plugin_marketing_address_campaign_value USING BTREE (address_fk);
+  ON t_plugin_marketing_address_campaign_value (address_fk);
 
 CREATE INDEX idx_fk_t_plugin_marketing_address_campaign_value_tenant_id
-  ON t_plugin_marketing_address_campaign_value USING BTREE (tenant_id);
+  ON t_plugin_marketing_address_campaign_value (tenant_id);
 
 CREATE INDEX idx_fk_t_plugin_memo_owner_fk
-  ON t_plugin_memo USING BTREE (owner_fk);
+  ON t_plugin_memo (owner_fk);
 
 CREATE INDEX idx_fk_t_plugin_memo_tenant_id
-  ON t_plugin_memo USING BTREE (tenant_id);
+  ON t_plugin_memo (tenant_id);
 
 CREATE INDEX idx_fk_t_plugin_poll_attendee_tenant_id
-  ON t_plugin_poll_attendee USING BTREE (tenant_id);
+  ON t_plugin_poll_attendee (tenant_id);
 
 CREATE INDEX idx_fk_t_plugin_poll_event_tenant_id
-  ON t_plugin_poll_event USING BTREE (tenant_id);
+  ON t_plugin_poll_event (tenant_id);
 
 CREATE INDEX idx_fk_t_plugin_poll_result_tenant_id
-  ON t_plugin_poll_result USING BTREE (tenant_id);
+  ON t_plugin_poll_result (tenant_id);
 
 CREATE INDEX idx_fk_t_plugin_poll_tenant_id
-  ON t_plugin_poll USING BTREE (tenant_id);
+  ON t_plugin_poll (tenant_id);
 
 CREATE INDEX idx_fk_t_plugin_skill_parent_fk
-  ON t_plugin_skill USING BTREE (parent_fk);
+  ON t_plugin_skill (parent_fk);
 
 CREATE INDEX idx_fk_t_plugin_skill_rating_skill_fk
-  ON t_plugin_skill_rating USING BTREE (skill_fk);
+  ON t_plugin_skill_rating (skill_fk);
 
 CREATE INDEX idx_fk_t_plugin_skill_rating_tenant_id
-  ON t_plugin_skill_rating USING BTREE (tenant_id);
+  ON t_plugin_skill_rating (tenant_id);
 
 CREATE INDEX idx_fk_t_plugin_skill_rating_user_fk
-  ON t_plugin_skill_rating USING BTREE (user_fk);
+  ON t_plugin_skill_rating (user_fk);
 
 CREATE INDEX idx_fk_t_plugin_skill_tenant_id
-  ON t_plugin_skill USING BTREE (tenant_id);
+  ON t_plugin_skill (tenant_id);
 
 CREATE INDEX idx_fk_t_plugin_skill_training_attendee_attendee_fk
-  ON t_plugin_skill_training_attendee USING BTREE (attendee_fk);
+  ON t_plugin_skill_training_attendee (attendee_fk);
 
 CREATE INDEX idx_fk_t_plugin_skill_training_attendee_tenant_id
-  ON t_plugin_skill_training_attendee USING BTREE (tenant_id);
+  ON t_plugin_skill_training_attendee (tenant_id);
 
 CREATE INDEX idx_fk_t_plugin_skill_training_attendee_training_fk
-  ON t_plugin_skill_training_attendee USING BTREE (training_fk);
+  ON t_plugin_skill_training_attendee (training_fk);
 
 CREATE INDEX idx_fk_t_plugin_skill_training_skill_fk
-  ON t_plugin_skill_training USING BTREE (skill_fk);
+  ON t_plugin_skill_training (skill_fk);
 
 CREATE INDEX idx_fk_t_plugin_skill_training_tenant_id
-  ON t_plugin_skill_training USING BTREE (tenant_id);
+  ON t_plugin_skill_training (tenant_id);
 
 CREATE INDEX idx_fk_t_plugin_todo_assignee_fk
-  ON t_plugin_todo USING BTREE (assignee_fk);
+  ON t_plugin_todo (assignee_fk);
 
 CREATE INDEX idx_fk_t_plugin_todo_group_id
-  ON t_plugin_todo USING BTREE (group_id);
+  ON t_plugin_todo (group_id);
 
 CREATE INDEX idx_fk_t_plugin_todo_reporter_fk
-  ON t_plugin_todo USING BTREE (reporter_fk);
+  ON t_plugin_todo (reporter_fk);
 
 CREATE INDEX idx_fk_t_plugin_todo_task_id
-  ON t_plugin_todo USING BTREE (task_id);
+  ON t_plugin_todo (task_id);
 
 CREATE INDEX idx_fk_t_plugin_todo_tenant_id
-  ON t_plugin_todo USING BTREE (tenant_id);
-
-CREATE INDEX idx_fk_t_script_tenant_id
-  ON t_script USING BTREE (tenant_id);
+  ON t_plugin_todo (tenant_id);
 
 CREATE INDEX idx_fk_t_task_gantt_predecessor_fk
-  ON t_task USING BTREE (gantt_predecessor_fk);
+  ON t_task (gantt_predecessor_fk);
 
 CREATE INDEX idx_fk_t_task_parent_task_id
-  ON t_task USING BTREE (parent_task_id);
+  ON t_task (parent_task_id);
 
 CREATE INDEX idx_fk_t_task_responsible_user_id
-  ON t_task USING BTREE (responsible_user_id);
+  ON t_task (responsible_user_id);
 
 CREATE INDEX idx_fk_t_task_tenant_id
-  ON t_task USING BTREE (tenant_id);
+  ON t_task (tenant_id);
 
 CREATE INDEX idx_fk_t_timesheet_kost2_id
-  ON t_timesheet USING BTREE (kost2_id);
+  ON t_timesheet (kost2_id);
 
 CREATE INDEX idx_fk_t_timesheet_task_id
-  ON t_timesheet USING BTREE (task_id);
+  ON t_timesheet (task_id);
 
 CREATE INDEX idx_fk_t_timesheet_tenant_id
-  ON t_timesheet USING BTREE (tenant_id);
+  ON t_timesheet (tenant_id);
 
 CREATE INDEX idx_fk_t_timesheet_user_id
-  ON t_timesheet USING BTREE (user_id);
+  ON t_timesheet (user_id);
 
 CREATE INDEX idx_fk_t_user_pref_entry_tenant_id
-  ON t_user_pref_entry USING BTREE (tenant_id);
+  ON t_user_pref_entry (tenant_id);
 
 CREATE INDEX idx_fk_t_user_pref_entry_user_pref_fk
-  ON t_user_pref_entry USING BTREE (user_pref_fk);
+  ON t_user_pref_entry (user_pref_fk);
 
 CREATE INDEX idx_fk_t_user_pref_tenant_id
-  ON t_user_pref USING BTREE (tenant_id);
+  ON t_user_pref (tenant_id);
 
 CREATE INDEX idx_fk_t_user_pref_user_fk
-  ON t_user_pref USING BTREE (user_fk);
+  ON t_user_pref (user_fk);
 
 CREATE INDEX idx_fk_t_user_right_tenant_id
-  ON t_user_right USING BTREE (tenant_id);
+  ON t_user_right (tenant_id);
 
 CREATE INDEX idx_fk_t_user_right_user_fk
-  ON t_user_right USING BTREE (user_fk);
+  ON t_user_right (user_fk);
 
 CREATE INDEX idx_fk_t_user_xml_prefs_tenant_id
-  ON t_user_xml_prefs USING BTREE (tenant_id);
+  ON t_user_xml_prefs (tenant_id);
 
 CREATE INDEX idx_fk_t_user_xml_prefs_user_id
-  ON t_user_xml_prefs USING BTREE (user_id);
+  ON t_user_xml_prefs (user_id);
 
 CREATE INDEX idx_fk_t_vacation_employee_id
-  ON t_employee_vacation USING BTREE (employee_id);
+  ON t_employee_vacation (employee_id);
 
 CREATE INDEX idx_fk_t_vacation_manager_id
-  ON t_employee_vacation USING BTREE (manager_id);
+  ON t_employee_vacation (manager_id);
 
 CREATE INDEX idx_fk_t_vacation_tenant_id
-  ON t_employee_vacation USING BTREE (tenant_id);
+  ON t_employee_vacation (tenant_id);
 
 CREATE INDEX idx_orga_visitorbook_timed_start_time
-  ON t_orga_visitorbook_timed USING BTREE (start_time);
+  ON t_orga_visitorbook_timed (start_time);
 
 CREATE INDEX idx_plugin_employee_configuration_timed_start_time
-  ON t_plugin_employee_configuration_timed USING BTREE (start_time);
+  ON t_plugin_employee_configuration_timed (start_time);
 
 CREATE INDEX idx_plugin_team_cal_end_date
-  ON t_plugin_calendar_event USING BTREE (calendar_fk, end_date);
+  ON t_plugin_calendar_event (calendar_fk, end_date);
 
 CREATE INDEX idx_plugin_team_cal_start_date
-  ON t_plugin_calendar_event USING BTREE (calendar_fk, start_date);
+  ON t_plugin_calendar_event (calendar_fk, start_date);
 
 CREATE INDEX idx_plugin_team_cal_time
-  ON t_plugin_calendar_event USING BTREE (calendar_fk, start_date, end_date);
+  ON t_plugin_calendar_event (calendar_fk, start_date, end_date);
 
 CREATE INDEX idx_timesheet_user_time
-  ON t_timesheet USING BTREE (user_id, start_time);
+  ON t_timesheet (user_id, start_time);
 
 CREATE INDEX ix_base_ghistory_a_d_modat
-  ON tb_base_ghistory_attr_data USING BTREE (modifiedat);
+  ON tb_base_ghistory_attr_data (modifiedat);
 
 CREATE INDEX ix_base_ghistory_a_d_parent
-  ON tb_base_ghistory_attr_data USING BTREE (parent_pk);
+  ON tb_base_ghistory_attr_data (parent_pk);
 
 CREATE INDEX ix_base_ghistory_attr_modat
-  ON tb_base_ghistory_attr USING BTREE (modifiedat);
+  ON tb_base_ghistory_attr (modifiedat);
 
 CREATE INDEX ix_base_ghistory_attr_mst_fk
-  ON tb_base_ghistory_attr USING BTREE (master_fk);
+  ON tb_base_ghistory_attr (master_fk);
 
 CREATE INDEX ix_base_ghistory_ent
-  ON tb_base_ghistory USING BTREE (entity_id, entity_name);
+  ON tb_base_ghistory (entity_id, entity_name);
 
 CREATE INDEX ix_base_ghistory_mod
-  ON tb_base_ghistory USING BTREE (modifiedat);
+  ON tb_base_ghistory (modifiedat);
 
 CREATE INDEX ix_pf_history_a_d_modat
-  ON t_pf_history_attr_data USING BTREE (modifiedat);
+  ON t_pf_history_attr_data (modifiedat);
 
 CREATE INDEX ix_pf_history_a_d_parent
-  ON t_pf_history_attr_data USING BTREE (parent_pk);
+  ON t_pf_history_attr_data (parent_pk);
 
 CREATE INDEX ix_pf_history_attr_masterpk
-  ON t_pf_history_attr USING BTREE (master_fk);
+  ON t_pf_history_attr (master_fk);
 
 CREATE INDEX ix_pf_history_attr_mod
-  ON t_pf_history_attr USING BTREE (modifiedat);
+  ON t_pf_history_attr (modifiedat);
 
 CREATE INDEX ix_pf_history_ent
-  ON t_pf_history USING BTREE (entity_id, entity_name);
+  ON t_pf_history (entity_id, entity_name);
 
 CREATE INDEX ix_pf_history_mod
-  ON t_pf_history USING BTREE (modifiedat);
+  ON t_pf_history (modifiedat);
 
-ALTER TABLE ONLY t_plugin_skill_rating
+ALTER TABLE t_plugin_skill_rating
   ADD CONSTRAINT fk10doyvde45sc5v8leo13nfrpx FOREIGN KEY (user_fk) REFERENCES t_pf_user (pk);
 
-ALTER TABLE ONLY t_plugin_skill_rating
+ALTER TABLE t_plugin_skill_rating
   ADD CONSTRAINT fk124usepbwwtb0ctdmkwjlmxt3 FOREIGN KEY (skill_fk) REFERENCES t_plugin_skill (pk);
 
-ALTER TABLE ONLY t_tenant_user
+ALTER TABLE t_tenant_user
   ADD CONSTRAINT fk1bonq67qbnpjhsjil549uq754 FOREIGN KEY (tenant_id) REFERENCES t_tenant (pk);
 
-ALTER TABLE ONLY t_fibu_auftrag_position
+ALTER TABLE t_fibu_auftrag_position
   ADD CONSTRAINT fk1hgrfsui035jiky2y1fw9234w FOREIGN KEY (auftrag_fk) REFERENCES t_fibu_auftrag (pk);
 
-ALTER TABLE ONLY t_contactentry
+ALTER TABLE t_contactentry
   ADD CONSTRAINT fk1vfu1tv4ldtutelc9ubldxhk9 FOREIGN KEY (contact_id) REFERENCES t_contact (pk);
 
-ALTER TABLE ONLY t_plugin_marketing_address_campaign_value
+ALTER TABLE t_plugin_marketing_address_campaign_value
   ADD CONSTRAINT fk1yonmeymp3m0gclycm8vw22dj FOREIGN KEY (tenant_id) REFERENCES t_tenant (pk);
 
-ALTER TABLE ONLY t_fibu_auftrag_position
+ALTER TABLE t_fibu_auftrag_position
   ADD CONSTRAINT fk28ka3b6ouqv84610scuxwj6ed FOREIGN KEY (task_fk) REFERENCES t_task (pk);
 
-ALTER TABLE ONLY t_fibu_auftrag
+ALTER TABLE t_fibu_auftrag
   ADD CONSTRAINT fk2rrqm09vxnsvlowhjakbcs0m8 FOREIGN KEY (projekt_fk) REFERENCES t_fibu_projekt (pk);
 
-ALTER TABLE ONLY t_plugin_marketing_address_campaign_value
-  ADD CONSTRAINT fk2t7kbiaiidsonilvvnkbscqwo FOREIGN KEY (address_fk) REFERENCES t_address (pk);
-
-ALTER TABLE ONLY t_fibu_buchungssatz
+ALTER TABLE t_fibu_buchungssatz
   ADD CONSTRAINT fk30b0ahte2wyc73qlh6yu0o3yy FOREIGN KEY (kost2_id) REFERENCES t_fibu_kost2 (pk);
 
-ALTER TABLE ONLY t_addressbook
+ALTER TABLE t_addressbook
   ADD CONSTRAINT fk30sea3bbjy5ilwop79vrsigg FOREIGN KEY (tenant_id) REFERENCES t_tenant (pk);
 
-ALTER TABLE ONLY t_orga_visitorbook_timed
+ALTER TABLE t_orga_visitorbook_timed
   ADD CONSTRAINT fk319is9ttk265y6t4t2enaow81 FOREIGN KEY (visitor_id) REFERENCES t_orga_visitorbook (pk);
 
-ALTER TABLE ONLY t_plugin_skill_training_attendee
+ALTER TABLE t_plugin_skill_training_attendee
   ADD CONSTRAINT fk33arexyvwg7kgdw8fi8uqgwjc FOREIGN KEY (attendee_fk) REFERENCES t_pf_user (pk);
 
-ALTER TABLE ONLY t_plugin_poll_result
+ALTER TABLE t_plugin_poll_result
   ADD CONSTRAINT fk38at8w8yv249du6mm8eoc9xat FOREIGN KEY (poll_attendee_fk) REFERENCES t_plugin_poll_attendee (pk);
 
-ALTER TABLE ONLY t_fibu_auftrag
+ALTER TABLE t_fibu_auftrag
   ADD CONSTRAINT fk3bllndn9bfet6e9vd4fatutl4 FOREIGN KEY (headofbusinessmanager_fk) REFERENCES t_pf_user (pk);
 
-ALTER TABLE ONLY t_fibu_kost_zuweisung
+ALTER TABLE t_fibu_kost_zuweisung
   ADD CONSTRAINT fk3ecaqtyama1a4mk5gsjnmwlfl FOREIGN KEY (tenant_id) REFERENCES t_tenant (pk);
 
-ALTER TABLE ONLY t_plugin_skill_rating
+ALTER TABLE t_plugin_skill_rating
   ADD CONSTRAINT fk3fl84khjsy2ev180lqehm19yb FOREIGN KEY (tenant_id) REFERENCES t_tenant (pk);
 
-ALTER TABLE ONLY t_personal_address
+ALTER TABLE t_personal_address
   ADD CONSTRAINT fk3ivee56sxs7pvypw50vpmcggx FOREIGN KEY (tenant_id) REFERENCES t_tenant (pk);
 
-ALTER TABLE ONLY t_fibu_kost_zuweisung
+ALTER TABLE t_fibu_kost_zuweisung
   ADD CONSTRAINT fk3jd7gr0ctlx0gl94po8tj8aag FOREIGN KEY (kost1_fk) REFERENCES t_fibu_kost1 (pk);
 
-ALTER TABLE ONLY t_fibu_employee_timed
+ALTER TABLE t_fibu_employee_timed
   ADD CONSTRAINT fk3jux4mav7fjfj31oicy05y40r FOREIGN KEY (employee_id) REFERENCES t_fibu_employee (pk);
 
-ALTER TABLE ONLY t_fibu_kost2art
+ALTER TABLE t_fibu_kost2art
   ADD CONSTRAINT fk3l68een25nk9b0mccbjsv6nh6 FOREIGN KEY (tenant_id) REFERENCES t_tenant (pk);
 
-ALTER TABLE ONLY t_plugin_financialfairplay_accounting
+ALTER TABLE t_plugin_financialfairplay_accounting
   ADD CONSTRAINT fk3tbha24mfscy3q0pfw1jcikft FOREIGN KEY (tenant_id) REFERENCES t_tenant (pk);
 
-ALTER TABLE ONLY t_plugin_todo
+ALTER TABLE t_plugin_todo
   ADD CONSTRAINT fk3wxji6rw963q8l25cqmqmhc69 FOREIGN KEY (group_id) REFERENCES t_group (pk);
 
-ALTER TABLE ONLY t_fibu_rechnung
+ALTER TABLE t_fibu_rechnung
   ADD CONSTRAINT fk43qnmkepikn3vop7f1p955031 FOREIGN KEY (projekt_id) REFERENCES t_fibu_projekt (pk);
 
-ALTER TABLE ONLY t_plugin_financialfairplay_event_attendee
+ALTER TABLE t_plugin_financialfairplay_event_attendee
   ADD CONSTRAINT fk4c8pa8tnygkina1c81g12ru94 FOREIGN KEY (attendee_user_pk) REFERENCES t_pf_user (pk);
 
-ALTER TABLE ONLY t_employee_vacation_substitution
+ALTER TABLE t_employee_vacation_substitution
   ADD CONSTRAINT fk4caln86jndtvybgj6aqdb81a2 FOREIGN KEY (substitution_id) REFERENCES t_fibu_employee (pk);
 
-ALTER TABLE ONLY t_plugin_employee_configuration_timedattr
+ALTER TABLE t_plugin_employee_configuration_timedattr
   ADD CONSTRAINT fk4eyxqu1ef1siut63hx4kp8yfl FOREIGN KEY (parent) REFERENCES t_plugin_employee_configuration_timed (pk);
 
-ALTER TABLE ONLY t_addressbook_address
+ALTER TABLE t_addressbook_address
   ADD CONSTRAINT fk4g1mkloy7jfnlqxxjyr9sp2i5 FOREIGN KEY (addressbook_id) REFERENCES t_addressbook (pk);
 
-ALTER TABLE ONLY t_plugin_bank_account_balance
+ALTER TABLE t_plugin_bank_account_balance
   ADD CONSTRAINT fk4mf93488nnj3b2r93kwkvj5jw FOREIGN KEY (tenant_id) REFERENCES t_tenant (pk);
 
-ALTER TABLE ONLY t_plugin_liqui_entry
+ALTER TABLE t_plugin_liqui_entry
   ADD CONSTRAINT fk4uqmo8qoi4u9sd36ckl6cf2uu FOREIGN KEY (tenant_id) REFERENCES t_tenant (pk);
 
-ALTER TABLE ONLY t_plugin_bank_account_record
+ALTER TABLE t_plugin_bank_account_record
   ADD CONSTRAINT fk4vhn56y9u7eohypx6tv2xlucc FOREIGN KEY (account_fk) REFERENCES t_plugin_bank_account (pk);
 
-ALTER TABLE ONLY t_contact
+ALTER TABLE t_contact
   ADD CONSTRAINT fk4w9pwm48kr6v3wchq3hj0g887 FOREIGN KEY (task_id) REFERENCES t_task (pk);
 
-ALTER TABLE ONLY t_fibu_projekt
+ALTER TABLE t_fibu_projekt
   ADD CONSTRAINT fk54uw3v35p5c3r7lgpx8e7u3h2 FOREIGN KEY (tenant_id) REFERENCES t_tenant (pk);
 
-ALTER TABLE ONLY t_database_update
+ALTER TABLE t_database_update
   ADD CONSTRAINT fk59tolnnihv7wfdjoolsn05o55 FOREIGN KEY (executed_by_user_fk) REFERENCES t_pf_user (pk);
 
-ALTER TABLE ONLY t_fibu_employee_timedattrdata
+ALTER TABLE t_fibu_employee_timedattrdata
   ADD CONSTRAINT fk5fmd25gexukvykjff57sibdrq FOREIGN KEY (parent_id) REFERENCES t_fibu_employee_timedattr (pk);
 
-ALTER TABLE ONLY t_fibu_projekt
+ALTER TABLE t_fibu_projekt
   ADD CONSTRAINT fk5hqka33xb4vi917lr8mi70yxo FOREIGN KEY (projektmanager_group_fk) REFERENCES t_group (pk);
 
-ALTER TABLE ONLY t_plugin_calendar_event_attendee
-  ADD CONSTRAINT fk5ls645xe5uhxcq8iqq1h8dtmn FOREIGN KEY (address_id) REFERENCES t_address (pk);
-
-ALTER TABLE ONLY t_contactentry
+ALTER TABLE t_contactentry
   ADD CONSTRAINT fk5mywvrw692l2wn3utcxgv3y8c FOREIGN KEY (tenant_id) REFERENCES t_tenant (pk);
 
-ALTER TABLE ONLY t_timesheet
+ALTER TABLE t_timesheet
   ADD CONSTRAINT fk5njybgbq5hecwhvhvtc7sbb95 FOREIGN KEY (kost2_id) REFERENCES t_fibu_kost2 (pk);
 
-ALTER TABLE ONLY t_fibu_kost_zuweisung
+ALTER TABLE t_fibu_kost_zuweisung
   ADD CONSTRAINT fk5p683famfq17b405rbeaxrvn2 FOREIGN KEY (eingangsrechnungs_pos_fk) REFERENCES t_fibu_eingangsrechnung_position (pk);
 
-ALTER TABLE ONLY t_plugin_financialfairplay_accounting
+ALTER TABLE t_plugin_financialfairplay_accounting
   ADD CONSTRAINT fk5vv8ol898uyvakfsf7ynqmpfv FOREIGN KEY (event_id) REFERENCES t_plugin_financialfairplay_event (pk);
 
-ALTER TABLE ONLY t_plugin_calendar
-  ADD CONSTRAINT fk65ntyj5d14w3jx85bnlqy5ple FOREIGN KEY (owner_fk) REFERENCES t_pf_user (pk);
-
-ALTER TABLE ONLY t_fibu_employee_salary
+ALTER TABLE t_fibu_employee_salary
   ADD CONSTRAINT fk6hl8c2jaf8buda007p0kj1iht FOREIGN KEY (employee_id) REFERENCES t_fibu_employee (pk);
 
-ALTER TABLE ONLY t_plugin_todo
+ALTER TABLE t_plugin_todo
   ADD CONSTRAINT fk6i9ejerk8iig97rhy5csdbs5b FOREIGN KEY (assignee_fk) REFERENCES t_pf_user (pk);
 
-ALTER TABLE ONLY t_fibu_payment_schedule
+ALTER TABLE t_fibu_payment_schedule
   ADD CONSTRAINT fk6ixfa3ht63mym6n3gbinv63jl FOREIGN KEY (tenant_id) REFERENCES t_tenant (pk);
 
-ALTER TABLE ONLY t_employee_vacation
+ALTER TABLE t_employee_vacation
   ADD CONSTRAINT fk6lhr9vq8bdjqmc7in83tsu41j FOREIGN KEY (tenant_id) REFERENCES t_tenant (pk);
 
-ALTER TABLE ONLY t_orga_visitorbook_timedattr
+ALTER TABLE t_orga_visitorbook_timedattr
   ADD CONSTRAINT fk6sa7fc7xv71ommc0cma0gn5a4 FOREIGN KEY (parent) REFERENCES t_orga_visitorbook_timed (pk);
 
-ALTER TABLE ONLY t_group_task_access
+ALTER TABLE t_group_task_access
   ADD CONSTRAINT fk6ycgo8abhgo2amtcjdj1exh7b FOREIGN KEY (group_id) REFERENCES t_group (pk);
 
-ALTER TABLE ONLY t_group
+ALTER TABLE t_group
   ADD CONSTRAINT fk70s5xmw1krvdbl1691nla6wv9 FOREIGN KEY (tenant_id) REFERENCES t_tenant (pk);
 
-ALTER TABLE ONLY t_orga_postausgang
+ALTER TABLE t_orga_postausgang
   ADD CONSTRAINT fk7apgd9a6vfvy8qud3dwsi8ya9 FOREIGN KEY (tenant_id) REFERENCES t_tenant (pk);
 
-ALTER TABLE ONLY t_user_pref_entry
+ALTER TABLE t_user_pref_entry
   ADD CONSTRAINT fk7e3q5u89o98sa4lc4x6p55786 FOREIGN KEY (tenant_id) REFERENCES t_tenant (pk);
 
-ALTER TABLE ONLY t_plugin_bank_account_record
+ALTER TABLE t_plugin_bank_account_record
   ADD CONSTRAINT fk7w0wam5rq9nkdpe2veinh67xq FOREIGN KEY (tenant_id) REFERENCES t_tenant (pk);
 
-ALTER TABLE ONLY t_user_pref
+ALTER TABLE t_user_pref
   ADD CONSTRAINT fk86jowtxvhil4e4y18e429x60j FOREIGN KEY (user_fk) REFERENCES t_pf_user (pk);
 
-ALTER TABLE ONLY t_group_task_access
+ALTER TABLE t_group_task_access
   ADD CONSTRAINT fk8h5ohrq1fm9kysgw69dho0hdd FOREIGN KEY (task_id) REFERENCES t_task (pk);
 
-ALTER TABLE ONLY t_gantt_chart
+ALTER TABLE t_gantt_chart
   ADD CONSTRAINT fk8n7nx53990pjae5cvmvk6rk61 FOREIGN KEY (task_fk) REFERENCES t_task (pk);
 
-ALTER TABLE ONLY t_fibu_eingangsrechnung_position
+ALTER TABLE t_fibu_eingangsrechnung_position
   ADD CONSTRAINT fk8ogbe5ereu6h3h9ctdxol74tc FOREIGN KEY (tenant_id) REFERENCES t_tenant (pk);
 
-ALTER TABLE ONLY t_fibu_employee
+ALTER TABLE t_fibu_employee
   ADD CONSTRAINT fk8qnqg72miq6gwldcuq381cag2 FOREIGN KEY (kost1_id) REFERENCES t_fibu_kost1 (pk);
 
-ALTER TABLE ONLY t_address
-  ADD CONSTRAINT fk8vfxjobsyhxsvk7fd6284sy3o FOREIGN KEY (tenant_id) REFERENCES t_tenant (pk);
-
-ALTER TABLE ONLY t_group_task_access_entry
+ALTER TABLE t_group_task_access_entry
   ADD CONSTRAINT fk8wou34jvi8io7ii3iy1cn528k FOREIGN KEY (tenant_id) REFERENCES t_tenant (pk);
 
-ALTER TABLE ONLY t_plugin_skill_training_attendee
+ALTER TABLE t_plugin_skill_training_attendee
   ADD CONSTRAINT fk95q95y49h4eramfm3f026ytyd FOREIGN KEY (training_fk) REFERENCES t_plugin_skill_training (pk);
 
-ALTER TABLE ONLY t_plugin_marketing_address_campaign_value
+ALTER TABLE t_plugin_marketing_address_campaign_value
   ADD CONSTRAINT fk9gwnb9sudgftfhxm0m9ax7y2r FOREIGN KEY (address_campaign_fk) REFERENCES t_plugin_marketing_address_campaign (pk);
 
-ALTER TABLE ONLY t_plugin_calendar_event_attachment
-  ADD CONSTRAINT fk9jiskfrkuhy916dwkxcgfjrpw FOREIGN KEY (team_event_fk2) REFERENCES t_plugin_calendar_event (pk);
-
-ALTER TABLE ONLY t_plugin_skill
+ALTER TABLE t_plugin_skill
   ADD CONSTRAINT fk9pxmshy73nc3n9yg057rf6my FOREIGN KEY (parent_fk) REFERENCES t_plugin_skill (pk);
 
-ALTER TABLE ONLY t_timesheet
+ALTER TABLE t_timesheet
   ADD CONSTRAINT fk9qw4krb40bbcjiravax5mlrgt FOREIGN KEY (task_id) REFERENCES t_task (pk);
 
-ALTER TABLE ONLY t_task
+ALTER TABLE t_task
   ADD CONSTRAINT fka293ef8l4h74fqkbkhygjt76p FOREIGN KEY (tenant_id) REFERENCES t_tenant (pk);
 
-ALTER TABLE ONLY t_pf_history_attr
+ALTER TABLE t_pf_history_attr
   ADD CONSTRAINT fka4vlagongwjibr2ckp9eujc8x FOREIGN KEY (master_fk) REFERENCES t_pf_history (pk);
 
-ALTER TABLE ONLY t_fibu_eingangsrechnung_position
+ALTER TABLE t_fibu_eingangsrechnung_position
   ADD CONSTRAINT fka572jv88e5g6crhx60ekb8f0l FOREIGN KEY (eingangsrechnung_fk) REFERENCES t_fibu_eingangsrechnung (pk);
 
-ALTER TABLE ONLY t_fibu_projekt
+ALTER TABLE t_fibu_projekt
   ADD CONSTRAINT fka6s1winlipu6cifxnpt5183bf FOREIGN KEY (headofbusinessmanager_fk) REFERENCES t_pf_user (pk);
 
-ALTER TABLE ONLY t_fibu_rechnung
+ALTER TABLE t_fibu_rechnung
   ADD CONSTRAINT fkaauopc6sv9csw59h7ndmknhlb FOREIGN KEY (konto_id) REFERENCES t_fibu_konto (pk);
 
-ALTER TABLE ONLY t_fibu_auftrag
+ALTER TABLE t_fibu_auftrag
   ADD CONSTRAINT fkai2ubya0spb7f1o6dfaoeucoq FOREIGN KEY (contact_person_fk) REFERENCES t_pf_user (pk);
 
-ALTER TABLE ONLY t_group_user
+ALTER TABLE t_group_user
   ADD CONSTRAINT fkalajxj9b4h48bmj5vqm1683sl FOREIGN KEY (group_id) REFERENCES t_group (pk);
 
-ALTER TABLE ONLY t_meb_entry
+ALTER TABLE t_meb_entry
   ADD CONSTRAINT fkb5bq9nb0gsokoq7se3d13uf9g FOREIGN KEY (tenant_id) REFERENCES t_tenant (pk);
 
-ALTER TABLE ONLY t_fibu_eingangsrechnung
+ALTER TABLE t_fibu_eingangsrechnung
   ADD CONSTRAINT fkb8a76u9dth3adh00eyewru26f FOREIGN KEY (tenant_id) REFERENCES t_tenant (pk);
 
-ALTER TABLE ONLY tb_base_ghistory_attr_data
+ALTER TABLE tb_base_ghistory_attr_data
   ADD CONSTRAINT fkb8qu5w3xfsmglru81ys3o9nkq FOREIGN KEY (parent_pk) REFERENCES tb_base_ghistory_attr (base_ghistory_attr);
 
-ALTER TABLE ONLY t_fibu_kost2
+ALTER TABLE t_fibu_kost2
   ADD CONSTRAINT fkbc9br3ehxi77kqb6hjohcnixp FOREIGN KEY (kost2_art_id) REFERENCES t_fibu_kost2art (pk);
 
-ALTER TABLE ONLY t_tenant
+ALTER TABLE t_tenant
   ADD CONSTRAINT fkbn8j4gf8e48nsppwap97stv7q FOREIGN KEY (tenant_id) REFERENCES t_tenant (pk);
 
-ALTER TABLE ONLY t_orga_visitorbook_employee
+ALTER TABLE t_orga_visitorbook_employee
   ADD CONSTRAINT fkbt7cwtrlh1nrub7ca41na635s FOREIGN KEY (visitorbook_id) REFERENCES t_orga_visitorbook (pk);
 
-ALTER TABLE ONLY t_plugin_poll_attendee
+ALTER TABLE t_plugin_poll_attendee
   ADD CONSTRAINT fkbvsey6s87hoj631aobkbjosfh FOREIGN KEY (user_fk) REFERENCES t_pf_user (pk);
 
-ALTER TABLE ONLY t_group_user
+ALTER TABLE t_group_user
   ADD CONSTRAINT fkbwl4duslng18xk133in8l6jw5 FOREIGN KEY (user_id) REFERENCES t_pf_user (pk);
 
-ALTER TABLE ONLY t_meb_entry
+ALTER TABLE t_meb_entry
   ADD CONSTRAINT fkc675k5cbebvbwobvxsviqpofr FOREIGN KEY (owner_fk) REFERENCES t_pf_user (pk);
 
-ALTER TABLE ONLY t_plugin_todo
+ALTER TABLE t_plugin_todo
   ADD CONSTRAINT fkc937e53dfcb7h2ki5b03iyn1q FOREIGN KEY (reporter_fk) REFERENCES t_pf_user (pk);
 
-ALTER TABLE ONLY t_fibu_eingangsrechnung
+ALTER TABLE t_fibu_eingangsrechnung
   ADD CONSTRAINT fkccyd03alt7ir28od4yo6mcbvn FOREIGN KEY (konto_id) REFERENCES t_fibu_konto (pk);
 
-ALTER TABLE ONLY t_fibu_payment_schedule
+ALTER TABLE t_fibu_payment_schedule
   ADD CONSTRAINT fkcmmxhs80ro6nrxilcy8kheo5j FOREIGN KEY (auftrag_id) REFERENCES t_fibu_auftrag (pk);
 
-ALTER TABLE ONLY t_imported_meb_entry
+ALTER TABLE t_imported_meb_entry
   ADD CONSTRAINT fkcn55ey8xd14ldbx38d74tl4r9 FOREIGN KEY (tenant_id) REFERENCES t_tenant (pk);
 
-ALTER TABLE ONLY t_hr_planning
+ALTER TABLE t_hr_planning
   ADD CONSTRAINT fkcvhk0bo0y2amh0xbkhnss56yt FOREIGN KEY (user_fk) REFERENCES t_pf_user (pk);
 
-ALTER TABLE ONLY t_plugin_plugintemplate
+ALTER TABLE t_plugin_plugintemplate
   ADD CONSTRAINT fkcwdgdh2orl7uv8ubmqwbiopwi FOREIGN KEY (tenant_id) REFERENCES t_tenant (pk);
 
-ALTER TABLE ONLY t_fibu_buchungssatz
+ALTER TABLE t_fibu_buchungssatz
   ADD CONSTRAINT fkcydfdtpxnflg4fx52ywapfvkd FOREIGN KEY (gegenkonto_id) REFERENCES t_fibu_konto (pk);
 
-ALTER TABLE ONLY t_hr_planning_entry
+ALTER TABLE t_hr_planning_entry
   ADD CONSTRAINT fkd2jtgn0vxn2dpkcd8rbo5ab9w FOREIGN KEY (projekt_fk) REFERENCES t_fibu_projekt (pk);
 
-ALTER TABLE ONLY t_orga_posteingang
+ALTER TABLE t_orga_posteingang
   ADD CONSTRAINT fkd39yiep17ocm0xulyvcq5u62r FOREIGN KEY (tenant_id) REFERENCES t_tenant (pk);
 
-ALTER TABLE ONLY t_task
+ALTER TABLE t_task
   ADD CONSTRAINT fkd8m6pwtt15iq4xsy7s2asibjj FOREIGN KEY (responsible_user_id) REFERENCES t_pf_user (pk);
 
-ALTER TABLE ONLY t_fibu_employee_attrdata
+ALTER TABLE t_fibu_employee_attrdata
   ADD CONSTRAINT fkdcae11vuhbns5ij7e7b8dq7xf FOREIGN KEY (parent_id) REFERENCES t_fibu_employee_attr (pk);
 
-ALTER TABLE ONLY t_plugin_financialfairplay_event_attendee
+ALTER TABLE t_plugin_financialfairplay_event_attendee
   ADD CONSTRAINT fkdcsig8dlf38m46xabmou9r9r FOREIGN KEY (event_pk) REFERENCES t_plugin_financialfairplay_event (pk);
 
-ALTER TABLE ONLY t_fibu_kunde
+ALTER TABLE t_fibu_kunde
   ADD CONSTRAINT fkdgyqfvkgfbid3eui7gq9lofuj FOREIGN KEY (konto_id) REFERENCES t_fibu_konto (pk);
 
-ALTER TABLE ONLY t_task
+ALTER TABLE t_task
   ADD CONSTRAINT fkdol3ek0ikpjruyoxr1dq7xgxw FOREIGN KEY (gantt_predecessor_fk) REFERENCES t_task (pk);
 
-ALTER TABLE ONLY t_timesheet
+ALTER TABLE t_timesheet
   ADD CONSTRAINT fkdp2ljb6dkp8tfe1tm8s1sv60p FOREIGN KEY (user_id) REFERENCES t_pf_user (pk);
 
-ALTER TABLE ONLY t_plugin_skill
+ALTER TABLE t_plugin_skill
   ADD CONSTRAINT fkdr8bqd18d61yvbths71a73649 FOREIGN KEY (tenant_id) REFERENCES t_tenant (pk);
 
-ALTER TABLE ONLY t_address_attrdata
+ALTER TABLE t_address_attrdata
   ADD CONSTRAINT fkdwvdtrnof18mscry8rikbynxs FOREIGN KEY (parent_id) REFERENCES t_address_attr (pk);
 
-ALTER TABLE ONLY t_plugin_financialfairplay_accounting
+ALTER TABLE t_plugin_financialfairplay_accounting
   ADD CONSTRAINT fke8jbl631wb6dh6q144823g0uf FOREIGN KEY (attendee_user_id) REFERENCES t_pf_user (pk);
 
-ALTER TABLE ONLY t_gantt_chart
+ALTER TABLE t_gantt_chart
   ADD CONSTRAINT fkeah2ckofd4ombh31d60ubmfr FOREIGN KEY (tenant_id) REFERENCES t_tenant (pk);
 
-ALTER TABLE ONLY t_book
+ALTER TABLE t_book
   ADD CONSTRAINT fkeah2udupkpmj5m6h10sgf6vi9 FOREIGN KEY (lend_out_by) REFERENCES t_pf_user (pk);
 
-ALTER TABLE ONLY t_employee_vacation_calendar
+ALTER TABLE t_employee_vacation_calendar
   ADD CONSTRAINT fkeb7q4hm9s8aca8eqkqatb3ktk FOREIGN KEY (tenant_id) REFERENCES t_tenant (pk);
 
-ALTER TABLE ONLY t_plugin_lm_license
-  ADD CONSTRAINT fkeh16e02wshfwpjfmhyjmfyvjn FOREIGN KEY (tenant_id) REFERENCES t_tenant (pk);
-
-ALTER TABLE ONLY t_fibu_auftrag_position
+ALTER TABLE t_fibu_auftrag_position
   ADD CONSTRAINT fkejbwghmdlcvrmc9f23eg6fqcc FOREIGN KEY (tenant_id) REFERENCES t_tenant (pk);
 
-ALTER TABLE ONLY t_fibu_auftrag
+ALTER TABLE t_fibu_auftrag
   ADD CONSTRAINT fkekqtgs9o8e2uskghn464nrexx FOREIGN KEY (projectmanager_fk) REFERENCES t_pf_user (pk);
 
-ALTER TABLE ONLY t_plugin_calendar_event
+ALTER TABLE t_plugin_calendar_event
   ADD CONSTRAINT fkel9ep4vmsx32lm1m4o8w2nnjs FOREIGN KEY (tenant_id) REFERENCES t_tenant (pk);
 
-ALTER TABLE ONLY t_plugin_poll_event
+ALTER TABLE t_plugin_poll_event
   ADD CONSTRAINT fkeshk2l3y1wllkl9h4rkdifo39 FOREIGN KEY (poll_fk) REFERENCES t_plugin_poll (pk);
 
-ALTER TABLE ONLY t_fibu_kost2
+ALTER TABLE t_fibu_kost2
   ADD CONSTRAINT fkeun1s5bsmu5yyuqnwi8omxva5 FOREIGN KEY (tenant_id) REFERENCES t_tenant (pk);
 
-ALTER TABLE ONLY t_plugin_calendar_event
-  ADD CONSTRAINT fkf1wmirbbeqct28l5s66qdgqvf FOREIGN KEY (calendar_fk) REFERENCES t_plugin_calendar (pk);
-
-ALTER TABLE ONLY t_plugin_calendar_event_attendee
+ALTER TABLE t_plugin_calendar_event_attendee
   ADD CONSTRAINT fkfc9dphgb8d1pmts1fcbaooqgl FOREIGN KEY (tenant_id) REFERENCES t_tenant (pk);
 
-ALTER TABLE ONLY t_fibu_projekt
+ALTER TABLE t_fibu_projekt
   ADD CONSTRAINT fkfpchu797or19swbel4sx108c5 FOREIGN KEY (kunde_id) REFERENCES t_fibu_kunde (pk);
 
-ALTER TABLE ONLY t_plugin_financialfairplay_debt
+ALTER TABLE t_plugin_financialfairplay_debt
   ADD CONSTRAINT fkfr76jrom2wfmc87th06wmn6b8 FOREIGN KEY (tenant_id) REFERENCES t_tenant (pk);
 
-ALTER TABLE ONLY t_fibu_rechnung
+ALTER TABLE t_fibu_rechnung
   ADD CONSTRAINT fkg03ybnijdma4jqofhhtrglhho FOREIGN KEY (tenant_id) REFERENCES t_tenant (pk);
 
-ALTER TABLE ONLY t_fibu_konto
+ALTER TABLE t_fibu_konto
   ADD CONSTRAINT fkg7jftbeaym5bb4jlhp87ijpuu FOREIGN KEY (tenant_id) REFERENCES t_tenant (pk);
 
-ALTER TABLE ONLY t_book
+ALTER TABLE t_book
   ADD CONSTRAINT fkg9fla5hy57ctrcbs28irnkbfn FOREIGN KEY (task_id) REFERENCES t_task (pk);
 
-ALTER TABLE ONLY t_plugin_financialfairplay_event
+ALTER TABLE t_plugin_financialfairplay_event
   ADD CONSTRAINT fkg9hnim958ql4qsvd7wvnoofsj FOREIGN KEY (organizer_user_id) REFERENCES t_pf_user (pk);
 
-ALTER TABLE ONLY t_employee_vacation
+ALTER TABLE t_employee_vacation
   ADD CONSTRAINT fkganncxt6ddh9bleu5g8jqbfw8 FOREIGN KEY (employee_id) REFERENCES t_fibu_employee (pk);
 
-ALTER TABLE ONLY t_fibu_rechnung_position
+ALTER TABLE t_fibu_rechnung_position
   ADD CONSTRAINT fkgf8csujq7mha93fbvb4be0j0q FOREIGN KEY (rechnung_fk) REFERENCES t_fibu_rechnung (pk);
 
-ALTER TABLE ONLY t_plugin_memo
+ALTER TABLE t_plugin_memo
   ADD CONSTRAINT fkgj72ignhv3m4spo048i722roy FOREIGN KEY (tenant_id) REFERENCES t_tenant (pk);
 
-ALTER TABLE ONLY t_plugin_poll_attendee
+ALTER TABLE t_plugin_poll_attendee
   ADD CONSTRAINT fkgoi46ds8idsbjg80t1xojctd8 FOREIGN KEY (tenant_id) REFERENCES t_tenant (pk);
 
-ALTER TABLE ONLY t_user_right
+ALTER TABLE t_user_right
   ADD CONSTRAINT fkgumtciv7d1n5nupol4by60v5b FOREIGN KEY (user_fk) REFERENCES t_pf_user (pk);
 
-ALTER TABLE ONLY t_plugin_poll_result
+ALTER TABLE t_plugin_poll_result
   ADD CONSTRAINT fkgyflm266npueo6mw3md1hbndt FOREIGN KEY (poll_event_fk) REFERENCES t_plugin_poll_event (pk);
 
-ALTER TABLE ONLY t_fibu_projekt
+ALTER TABLE t_fibu_projekt
   ADD CONSTRAINT fkhbcvg0rb51dugcy8kgp17a0uh FOREIGN KEY (task_fk) REFERENCES t_task (pk);
 
-ALTER TABLE ONLY t_address_attr
-  ADD CONSTRAINT fkhfq0wdwdl0j26s0i207ix2teg FOREIGN KEY (parent) REFERENCES t_address (pk);
-
-ALTER TABLE ONLY t_contact
+ALTER TABLE t_contact
   ADD CONSTRAINT fki861594sl8ac41bbgq7bi14xj FOREIGN KEY (tenant_id) REFERENCES t_tenant (pk);
 
-ALTER TABLE ONLY t_pf_user
+ALTER TABLE t_pf_user
   ADD CONSTRAINT fkial73db4guuxaeord33g35fkx FOREIGN KEY (tenant_id) REFERENCES t_tenant (pk);
 
-ALTER TABLE ONLY t_employee_vacation_calendar
+ALTER TABLE t_employee_vacation_calendar
   ADD CONSTRAINT fkibo4j8pc4ddbe00c9fm8hoglc FOREIGN KEY (vacation_id) REFERENCES t_employee_vacation (pk);
 
-ALTER TABLE ONLY t_plugin_employee_configuration_timed
+ALTER TABLE t_plugin_employee_configuration_timed
   ADD CONSTRAINT fkicc9gyn6xvffu7to8rp07jbkl FOREIGN KEY (employee_configuration_id) REFERENCES t_plugin_employee_configuration (pk);
 
-ALTER TABLE ONLY t_pf_history_attr_data
+ALTER TABLE t_pf_history_attr_data
   ADD CONSTRAINT fkiegugji0jn9x63d3ptua531ha FOREIGN KEY (parent_pk) REFERENCES t_pf_history_attr (pk);
 
-ALTER TABLE ONLY t_user_xml_prefs
+ALTER TABLE t_user_xml_prefs
   ADD CONSTRAINT fkihr7nyxl6qtnxgdhpq7gy1245 FOREIGN KEY (user_id) REFERENCES t_pf_user (pk);
 
-ALTER TABLE ONLY t_personal_contact
+ALTER TABLE t_personal_contact
   ADD CONSTRAINT fkivudm19oeofjaxccpa1t0ea2d FOREIGN KEY (contact_id) REFERENCES t_contact (pk);
 
-ALTER TABLE ONLY t_plugin_bank_account_balance
+ALTER TABLE t_plugin_bank_account_balance
   ADD CONSTRAINT fkj5iiq7v72udvn7n02phsvam62 FOREIGN KEY (account_fk) REFERENCES t_plugin_bank_account (pk);
 
-ALTER TABLE ONLY t_timesheet
+ALTER TABLE t_timesheet
   ADD CONSTRAINT fkj7erjh4mvhqpcctqnr4ri26ge FOREIGN KEY (tenant_id) REFERENCES t_tenant (pk);
 
-ALTER TABLE ONLY t_plugin_skill_training
+ALTER TABLE t_plugin_skill_training
   ADD CONSTRAINT fkj8ij7dci7mw0aktrr6fady9m6 FOREIGN KEY (tenant_id) REFERENCES t_tenant (pk);
 
-ALTER TABLE ONLY t_personal_address
-  ADD CONSTRAINT fkjxldx7k4brci3utrao5lab5bb FOREIGN KEY (address_id) REFERENCES t_address (pk);
-
-ALTER TABLE ONLY t_contract
+ALTER TABLE t_contract
   ADD CONSTRAINT fkk6l3hexl5xsdp9d4n1f7u43v9 FOREIGN KEY (tenant_id) REFERENCES t_tenant (pk);
 
-ALTER TABLE ONLY t_task
+ALTER TABLE t_task
   ADD CONSTRAINT fkkgwgdk280drb8eepwdjddsd6c FOREIGN KEY (parent_task_id) REFERENCES t_task (pk);
 
-ALTER TABLE ONLY t_fibu_kost_zuweisung
+ALTER TABLE t_fibu_kost_zuweisung
   ADD CONSTRAINT fkkkpbq5ocj226s8otkohwqs26q FOREIGN KEY (kost2_fk) REFERENCES t_fibu_kost2 (pk);
 
-ALTER TABLE ONLY t_fibu_buchungssatz
+ALTER TABLE t_fibu_buchungssatz
   ADD CONSTRAINT fkkuum3ms168cm3ha7byb9xbs52 FOREIGN KEY (tenant_id) REFERENCES t_tenant (pk);
 
-ALTER TABLE ONLY t_hr_planning_entry
+ALTER TABLE t_hr_planning_entry
   ADD CONSTRAINT fkl0qfro9eeh4ggdktquw95r7k7 FOREIGN KEY (planning_fk) REFERENCES t_hr_planning (pk);
 
-ALTER TABLE ONLY t_fibu_projekt
+ALTER TABLE t_fibu_projekt
   ADD CONSTRAINT fkl1ba3gbkpol368ua16bquau2l FOREIGN KEY (konto_id) REFERENCES t_fibu_konto (pk);
 
-ALTER TABLE ONLY t_fibu_kost_zuweisung
+ALTER TABLE t_fibu_kost_zuweisung
   ADD CONSTRAINT fkl5ut39wg20lahylhdyie4okhp FOREIGN KEY (rechnungs_pos_fk) REFERENCES t_fibu_rechnung_position (pk);
 
-ALTER TABLE ONLY t_fibu_kost_zuweisung
+ALTER TABLE t_fibu_kost_zuweisung
   ADD CONSTRAINT fkl9opsf0tcqeythihyhyfenowr FOREIGN KEY (employee_salary_fk) REFERENCES t_fibu_employee_salary (pk);
 
-ALTER TABLE ONLY tb_base_ghistory_attr
+ALTER TABLE tb_base_ghistory_attr
   ADD CONSTRAINT fkla63htvpvsdx5cqj0ymg90fdx FOREIGN KEY (master_fk) REFERENCES tb_base_ghistory (base_ghistory);
 
-ALTER TABLE ONLY t_plugin_poll
+ALTER TABLE t_plugin_poll
   ADD CONSTRAINT fklbao6n6lk8irqfwqq9renkmk6 FOREIGN KEY (tenant_id) REFERENCES t_tenant (pk);
 
-ALTER TABLE ONLY t_user_xml_prefs
+ALTER TABLE t_user_xml_prefs
   ADD CONSTRAINT fklbw8fm2hu8jfh167dj54s765w FOREIGN KEY (tenant_id) REFERENCES t_tenant (pk);
 
-ALTER TABLE ONLY t_gantt_chart
+ALTER TABLE t_gantt_chart
   ADD CONSTRAINT fkljqgiuns8obaaud6iten8l8cg FOREIGN KEY (owner_fk) REFERENCES t_pf_user (pk);
 
-ALTER TABLE ONLY t_group_task_access_entry
+ALTER TABLE t_group_task_access_entry
   ADD CONSTRAINT fkllygaoxkkw2pctqn1ewxp8m8t FOREIGN KEY (group_task_access_fk) REFERENCES t_group_task_access (pk);
 
-ALTER TABLE ONLY t_plugin_todo
+ALTER TABLE t_plugin_todo
   ADD CONSTRAINT fklmlfuy69hr9byx1iu8u1ftbhv FOREIGN KEY (tenant_id) REFERENCES t_tenant (pk);
 
-ALTER TABLE ONLY t_plugin_employee_configuration_attr
+ALTER TABLE t_plugin_employee_configuration_attr
   ADD CONSTRAINT fkm0p9h71xd4un0b1f3of3yxani FOREIGN KEY (parent) REFERENCES t_plugin_employee_configuration (pk);
 
-ALTER TABLE ONLY t_orga_visitorbook_employee
+ALTER TABLE t_orga_visitorbook_employee
   ADD CONSTRAINT fkm3gjnouqv4ntb0fb1mjygssuw FOREIGN KEY (employee_id) REFERENCES t_fibu_employee (pk);
 
-ALTER TABLE ONLY t_plugin_calendar_event_attendee
+ALTER TABLE t_plugin_calendar_event_attendee
   ADD CONSTRAINT fkm7b18u3drw8nnyusv6o7snve1 FOREIGN KEY (team_event_fk) REFERENCES t_plugin_calendar_event (pk);
 
-ALTER TABLE ONLY t_fibu_kunde
+ALTER TABLE t_fibu_kunde
   ADD CONSTRAINT fkm825qbtcasusa4jdqthq4yxsp FOREIGN KEY (tenant_id) REFERENCES t_tenant (pk);
 
-ALTER TABLE ONLY t_fibu_auftrag
+ALTER TABLE t_fibu_auftrag
   ADD CONSTRAINT fkm951yiv5axhq63ynwddmdalns FOREIGN KEY (tenant_id) REFERENCES t_tenant (pk);
 
-ALTER TABLE ONLY t_user_right
+ALTER TABLE t_user_right
   ADD CONSTRAINT fkmdw3ayfdlvorvbbnqu374ig5m FOREIGN KEY (tenant_id) REFERENCES t_tenant (pk);
 
-ALTER TABLE ONLY t_plugin_marketing_address_campaign
+ALTER TABLE t_plugin_marketing_address_campaign
   ADD CONSTRAINT fkmf8nosv7lo4vc9vgauvcl242p FOREIGN KEY (tenant_id) REFERENCES t_tenant (pk);
 
-ALTER TABLE ONLY t_fibu_employee
+ALTER TABLE t_fibu_employee
   ADD CONSTRAINT fkmfs1jm21rbo1u0vxn429pd0at FOREIGN KEY (tenant_id) REFERENCES t_tenant (pk);
 
-ALTER TABLE ONLY t_orga_visitorbook
+ALTER TABLE t_orga_visitorbook
   ADD CONSTRAINT fkmhrkrry5fiu6ilxjudo0bvm1g FOREIGN KEY (tenant_id) REFERENCES t_tenant (pk);
 
-ALTER TABLE ONLY t_user_pref
+ALTER TABLE t_user_pref
   ADD CONSTRAINT fkmptnfrguxsevivu7hfpsr8esx FOREIGN KEY (tenant_id) REFERENCES t_tenant (pk);
 
-ALTER TABLE ONLY t_plugin_skill_training_attendee
+ALTER TABLE t_plugin_skill_training_attendee
   ADD CONSTRAINT fkmrjnuqk26rf2plcy9yx8vaunv FOREIGN KEY (tenant_id) REFERENCES t_tenant (pk);
 
-ALTER TABLE ONLY t_fibu_kost2
+ALTER TABLE t_fibu_kost2
   ADD CONSTRAINT fkmtpd28tj3olkblpw8jrvl0tsm FOREIGN KEY (projekt_id) REFERENCES t_fibu_projekt (pk);
 
-ALTER TABLE ONLY t_employee_vacation_substitution
+ALTER TABLE t_employee_vacation_substitution
   ADD CONSTRAINT fkmyquxvs3hqhx6hdhgi2s6rim9 FOREIGN KEY (vacation_id) REFERENCES t_employee_vacation (pk);
 
-ALTER TABLE ONLY t_fibu_kost1
+ALTER TABLE t_fibu_kost1
   ADD CONSTRAINT fkn5agvsedakdwjs01olhxyx6c7 FOREIGN KEY (tenant_id) REFERENCES t_tenant (pk);
 
-ALTER TABLE ONLY t_fibu_auftrag
+ALTER TABLE t_fibu_auftrag
   ADD CONSTRAINT fkn7vnx3jexem05ak7f808oygcg FOREIGN KEY (kunde_fk) REFERENCES t_fibu_kunde (pk);
 
-ALTER TABLE ONLY t_fibu_buchungssatz
+ALTER TABLE t_fibu_buchungssatz
   ADD CONSTRAINT fknevxk2si050ss6dxotxdpcqmi FOREIGN KEY (konto_id) REFERENCES t_fibu_konto (pk);
 
-ALTER TABLE ONLY t_fibu_employee_salary
+ALTER TABLE t_fibu_employee_salary
   ADD CONSTRAINT fkneycgjos15k5wqi3k2x1pt0go FOREIGN KEY (tenant_id) REFERENCES t_tenant (pk);
 
-ALTER TABLE ONLY t_plugin_calendar_event_attendee
+ALTER TABLE t_plugin_calendar_event_attendee
   ADD CONSTRAINT fknoqv6rc28lmv29nl9joxd8loc FOREIGN KEY (user_id) REFERENCES t_pf_user (pk);
 
-ALTER TABLE ONLY t_plugin_financialfairplay_event
+ALTER TABLE t_plugin_financialfairplay_event
   ADD CONSTRAINT fknso1qxr3v2kt0v5ryt9b2s91t FOREIGN KEY (tenant_id) REFERENCES t_tenant (pk);
 
-ALTER TABLE ONLY t_personal_address
+ALTER TABLE t_personal_address
   ADD CONSTRAINT fknux21a4rx6rn0x5n5pf3maohv FOREIGN KEY (owner_id) REFERENCES t_pf_user (pk);
 
-ALTER TABLE ONLY t_plugin_calendar
-  ADD CONSTRAINT fknxcrji5h9y862nhk4plhosaqm FOREIGN KEY (tenant_id) REFERENCES t_tenant (pk);
-
-ALTER TABLE ONLY t_orga_visitorbook_timedattrdata
+ALTER TABLE t_orga_visitorbook_timedattrdata
   ADD CONSTRAINT fknxdf86k0y9okbp9e1c21rgytn FOREIGN KEY (parent_id) REFERENCES t_orga_visitorbook_timedattr (pk);
 
-ALTER TABLE ONLY t_plugin_employee_configuration
+ALTER TABLE t_plugin_employee_configuration
   ADD CONSTRAINT fko05jp5ihj00643avp3mw0ody FOREIGN KEY (tenant_id) REFERENCES t_tenant (pk);
 
-ALTER TABLE ONLY t_plugin_todo
+ALTER TABLE t_plugin_todo
   ADD CONSTRAINT fko296sbdijr6l3luhnnm0llede FOREIGN KEY (task_id) REFERENCES t_task (pk);
 
-ALTER TABLE ONLY t_plugin_memo
+ALTER TABLE t_plugin_memo
   ADD CONSTRAINT fko6ub13xpknmrxc8402idlxw0d FOREIGN KEY (owner_fk) REFERENCES t_pf_user (pk);
 
-ALTER TABLE ONLY t_plugin_calendar_event
+ALTER TABLE t_plugin_calendar_event
   ADD CONSTRAINT fko9lj06ubf7g0cun9kv6hx7cje FOREIGN KEY (team_event_fk_creator) REFERENCES t_pf_user (pk);
 
-ALTER TABLE ONLY t_fibu_employee_timedattr
+ALTER TABLE t_fibu_employee_timedattr
   ADD CONSTRAINT fkoncm1oec6ku9rxnfo6m96iag0 FOREIGN KEY (parent) REFERENCES t_fibu_employee_timed (pk);
 
-ALTER TABLE ONLY t_hr_planning_entry
+ALTER TABLE t_hr_planning_entry
   ADD CONSTRAINT fkp7yycvp096km666uo43mvt27q FOREIGN KEY (tenant_id) REFERENCES t_tenant (pk);
 
-ALTER TABLE ONLY t_user_pref_entry
+ALTER TABLE t_user_pref_entry
   ADD CONSTRAINT fkpffo6p7c2w2t1l3vpnqrgn14n FOREIGN KEY (user_pref_fk) REFERENCES t_user_pref (pk);
 
-ALTER TABLE ONLY t_fibu_rechnung_position
+ALTER TABLE t_fibu_rechnung_position
   ADD CONSTRAINT fkphb6sjhmprf2bbexxoy56mm9c FOREIGN KEY (auftrags_position_fk) REFERENCES t_fibu_auftrag_position (pk);
 
-ALTER TABLE ONLY t_fibu_auftrag
+ALTER TABLE t_fibu_auftrag
   ADD CONSTRAINT fkpl3tr1v1xyx71j6l0ct2thlq6 FOREIGN KEY (salesmanager_fk) REFERENCES t_pf_user (pk);
 
-ALTER TABLE ONLY t_fibu_rechnung
+ALTER TABLE t_fibu_rechnung
   ADD CONSTRAINT fkppeyvne5bxoxlu4hrl15ruev8 FOREIGN KEY (kunde_id) REFERENCES t_fibu_kunde (pk);
 
-ALTER TABLE ONLY t_group_task_access
+ALTER TABLE t_group_task_access
   ADD CONSTRAINT fkptk99nywlblnvx59i9y01b3yp FOREIGN KEY (tenant_id) REFERENCES t_tenant (pk);
 
-ALTER TABLE ONLY t_plugin_poll_attendee
+ALTER TABLE t_plugin_poll_attendee
   ADD CONSTRAINT fkqa55vla8htmhx3ts8e7p8ixq0 FOREIGN KEY (poll_fk) REFERENCES t_plugin_poll (pk);
 
-ALTER TABLE ONLY t_plugin_poll_result
+ALTER TABLE t_plugin_poll_result
   ADD CONSTRAINT fkqiffsk0kebsh6ljvs2a0pcmgv FOREIGN KEY (tenant_id) REFERENCES t_tenant (pk);
 
-ALTER TABLE ONLY t_employee_vacation_calendar
+ALTER TABLE t_employee_vacation_calendar
   ADD CONSTRAINT fkqjgb7ru1uk5q1mns9w623dwcj FOREIGN KEY (event_id) REFERENCES t_plugin_calendar_event (pk);
 
-ALTER TABLE ONLY t_employee_vacation
+ALTER TABLE t_employee_vacation
   ADD CONSTRAINT fkqlnhnc4cgyymcyohtdxy9gjn0 FOREIGN KEY (manager_id) REFERENCES t_fibu_employee (pk);
 
-ALTER TABLE ONLY t_script
-  ADD CONSTRAINT fkqo1egipssw1h00diuwrk2yu7s FOREIGN KEY (tenant_id) REFERENCES t_tenant (pk);
-
-ALTER TABLE ONLY t_personal_contact
+ALTER TABLE t_personal_contact
   ADD CONSTRAINT fkqpqenrw1qh8vkighel6t81c70 FOREIGN KEY (owner_id) REFERENCES t_pf_user (pk);
 
-ALTER TABLE ONLY t_fibu_employee
+ALTER TABLE t_fibu_employee
   ADD CONSTRAINT fkquspdhdh4p0ruix99xc8e7o79 FOREIGN KEY (user_id) REFERENCES t_pf_user (pk);
 
-ALTER TABLE ONLY t_employee_vacation_calendar
-  ADD CONSTRAINT fkquvj60f7obiyo6khuebfb3srj FOREIGN KEY (calendar_id) REFERENCES t_plugin_calendar (pk);
-
-ALTER TABLE ONLY t_plugin_employee_configuration_timedattrdata
+ALTER TABLE t_plugin_employee_configuration_timedattrdata
   ADD CONSTRAINT fkqvvnrk9s2fmhr08n2ig5lu6v0 FOREIGN KEY (parent_id) REFERENCES t_plugin_employee_configuration_timedattr (pk);
 
-ALTER TABLE ONLY t_fibu_projekt
+ALTER TABLE t_fibu_projekt
   ADD CONSTRAINT fkr7q530pbwf3gfdjj01ucesnja FOREIGN KEY (projectmanager_fk) REFERENCES t_pf_user (pk);
 
-ALTER TABLE ONLY t_plugin_financialfairplay_debt
+ALTER TABLE t_plugin_financialfairplay_debt
   ADD CONSTRAINT fkrbma5seuqx5cppiwvsp710k4h FOREIGN KEY (attendee_user_id_to) REFERENCES t_pf_user (pk);
 
-ALTER TABLE ONLY t_book
+ALTER TABLE t_book
   ADD CONSTRAINT fkrc77oyb84c7y6tvh5mkhldol5 FOREIGN KEY (tenant_id) REFERENCES t_tenant (pk);
 
-ALTER TABLE ONLY t_plugin_financialfairplay_debt
+ALTER TABLE t_plugin_financialfairplay_debt
   ADD CONSTRAINT fkrgkmxgc3ggxwqh6knlgtmkxy2 FOREIGN KEY (attendee_user_id_from) REFERENCES t_pf_user (pk);
 
-ALTER TABLE ONLY t_addressbook_address
-  ADD CONSTRAINT fkrifs3n41q95o6s4ykhljb2ghq FOREIGN KEY (address_id) REFERENCES t_address (pk);
-
-ALTER TABLE ONLY t_fibu_projekt
+ALTER TABLE t_fibu_projekt
   ADD CONSTRAINT fks1ewyx39y163jyf409vnyrsmn FOREIGN KEY (salesmanager_fk) REFERENCES t_pf_user (pk);
 
-ALTER TABLE ONLY t_personal_contact
+ALTER TABLE t_personal_contact
   ADD CONSTRAINT fks1qqtx3e4putvmruw6lj8tvab FOREIGN KEY (tenant_id) REFERENCES t_tenant (pk);
 
-ALTER TABLE ONLY t_configuration
+ALTER TABLE t_configuration
   ADD CONSTRAINT fks2wharbcljkwm4n60e67bg47l FOREIGN KEY (tenant_id) REFERENCES t_tenant (pk);
 
-ALTER TABLE ONLY t_fibu_employee_attr
+ALTER TABLE t_fibu_employee_attr
   ADD CONSTRAINT fks4kpshe7cjwk30doa9jhmn593 FOREIGN KEY (parent) REFERENCES t_fibu_employee (pk);
 
-ALTER TABLE ONLY t_hr_planning
+ALTER TABLE t_hr_planning
   ADD CONSTRAINT fks8ne51fwfd2jvbdl3nynrretm FOREIGN KEY (tenant_id) REFERENCES t_tenant (pk);
 
-ALTER TABLE ONLY t_plugin_poll
+ALTER TABLE t_plugin_poll
   ADD CONSTRAINT fkshnin439klc5hplao29fht2jr FOREIGN KEY (owner_fk) REFERENCES t_pf_user (pk);
 
-ALTER TABLE ONLY t_tenant_user
+ALTER TABLE t_tenant_user
   ADD CONSTRAINT fksojiftkoqimltkv0ceq5ko716 FOREIGN KEY (user_id) REFERENCES t_pf_user (pk);
 
-ALTER TABLE ONLY t_plugin_financialfairplay_debt
+ALTER TABLE t_plugin_financialfairplay_debt
   ADD CONSTRAINT fksorc8lxk7y238oxx0bakenf8w FOREIGN KEY (event_id) REFERENCES t_plugin_financialfairplay_event (pk);
 
-ALTER TABLE ONLY t_plugin_calendar_event_attachment
-  ADD CONSTRAINT fksp4avg4xxshri06ko17sk5mn7 FOREIGN KEY (tenant_id) REFERENCES t_tenant (pk);
-
-ALTER TABLE ONLY t_addressbook
+ALTER TABLE t_addressbook
   ADD CONSTRAINT fksq4tvahtx6tpk3wir7xi3k4vw FOREIGN KEY (owner_fk) REFERENCES t_pf_user (pk);
 
-ALTER TABLE ONLY t_fibu_rechnung_position
+ALTER TABLE t_fibu_rechnung_position
   ADD CONSTRAINT fkst7lprxqdpog1c8q572sa1yv1 FOREIGN KEY (tenant_id) REFERENCES t_tenant (pk);
 
-ALTER TABLE ONLY t_plugin_skill_training
+ALTER TABLE t_plugin_skill_training
   ADD CONSTRAINT fksxstl65rj3q7uffpb4sxhy49e FOREIGN KEY (skill_fk) REFERENCES t_plugin_skill (pk);
 
-ALTER TABLE ONLY t_plugin_bank_account
+ALTER TABLE t_plugin_bank_account
   ADD CONSTRAINT fkt1cjaklcxh979kuuisp9bgj76 FOREIGN KEY (tenant_id) REFERENCES t_tenant (pk);
 
-ALTER TABLE ONLY t_plugin_poll_event
+ALTER TABLE t_plugin_poll_event
   ADD CONSTRAINT fkt36yh6v7pqpsd4lotnu9qpaff FOREIGN KEY (tenant_id) REFERENCES t_tenant (pk);
 
-ALTER TABLE ONLY t_plugin_employee_configuration_attrdata
+ALTER TABLE t_plugin_employee_configuration_attrdata
   ADD CONSTRAINT fkt8jt3v41bmtw8fpao2d7ue1ri FOREIGN KEY (parent_id) REFERENCES t_plugin_employee_configuration_attr (pk);
 
-ALTER TABLE ONLY t_fibu_buchungssatz
+ALTER TABLE t_fibu_buchungssatz
   ADD CONSTRAINT fktje88nabtn5lhkowpe2otl15a FOREIGN KEY (kost1_id) REFERENCES t_fibu_kost1 (pk);
