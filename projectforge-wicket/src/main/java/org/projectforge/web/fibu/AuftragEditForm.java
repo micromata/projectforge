@@ -387,19 +387,22 @@ public class AuftragEditForm extends AbstractEditForm<AuftragDO, AuftragEditPage
       final DivPanel dp = innerGridBuilder.getPanel();
       dp.add(paymentSchedulePanel = new PaymentSchedulePanel(dp.newChildId(), new CompoundPropertyModel<AuftragDO>(data), getUser()));
       paymentSchedulePanel.setVisible(data.getPaymentSchedules() != null && data.getPaymentSchedules().isEmpty() == false);
-      final Button addPositionButton = new Button(SingleButtonPanel.WICKET_ID)
-      {
-        @Override
-        public final void onSubmit()
+
+      if (getBaseDao().hasLoggedInUserInsertAccess(data, false) == true) {
+        final Button addPositionButton = new Button(SingleButtonPanel.WICKET_ID)
         {
-          data.addPaymentSchedule(new PaymentScheduleDO());
-          paymentSchedulePanel.rebuildEntries();
-          paymentSchedulePanel.setVisible(true);
-        }
-      };
-      final SingleButtonPanel addPositionButtonPanel = new SingleButtonPanel(dp.newChildId(), addPositionButton, getString("add"));
-      addPositionButtonPanel.setTooltip(getString("fibu.auftrag.tooltip.addPaymentschedule"));
-      dp.add(addPositionButtonPanel);
+          @Override
+          public final void onSubmit()
+          {
+            data.addPaymentSchedule(new PaymentScheduleDO());
+            paymentSchedulePanel.rebuildEntries();
+            paymentSchedulePanel.setVisible(true);
+          }
+        };
+        final SingleButtonPanel addPositionButtonPanel = new SingleButtonPanel(dp.newChildId(), addPositionButton, getString("add"));
+        addPositionButtonPanel.setTooltip(getString("fibu.auftrag.tooltip.addPaymentschedule"));
+        dp.add(addPositionButtonPanel);
+      }
     }
     gridBuilder.newSplitPanel(GridSize.COL50);
     {
@@ -711,26 +714,30 @@ public class AuftragEditForm extends AbstractEditForm<AuftragDO, AuftragEditPage
         final FieldsetPanel fs = posGridBuilder.newFieldset(getString("comment"));
         fs.add(new MaxLengthTextArea(TextAreaPanel.WICKET_ID, new PropertyModel<String>(position, "bemerkung")));
       }
-      GridBuilder removeButtonGridBuilder = posGridBuilder.newGridPanel();
-      {
-        // Remove Position
-        DivPanel divPanel = removeButtonGridBuilder.getPanel();
-        final Button removePositionButton = new Button(SingleButtonPanel.WICKET_ID)
+
+      if (getBaseDao().hasLoggedInUserInsertAccess(data, false) == true) {
+        GridBuilder removeButtonGridBuilder = posGridBuilder.newGridPanel();
         {
-          @Override
-          public final void onSubmit()
+          // Remove Position
+          DivPanel divPanel = removeButtonGridBuilder.getPanel();
+          final Button removePositionButton = new Button(SingleButtonPanel.WICKET_ID)
           {
-            position.setDeleted(true);
-            refreshPositions();
-            paymentSchedulePanel.rebuildEntries();
-          }
-        };
-        removePositionButton.add(AttributeModifier.append("class", ButtonType.DELETE.getClassAttrValue()));
-        final SingleButtonPanel removePositionButtonPanel = new SingleButtonPanel(divPanel.newChildId(), removePositionButton,
-            getString("delete"));
-        removePositionButtonPanel.setVisible(positionInInvoiceExists(position) == false);
-        divPanel.add(removePositionButtonPanel);
+            @Override
+            public final void onSubmit()
+            {
+              position.setDeleted(true);
+              refreshPositions();
+              paymentSchedulePanel.rebuildEntries();
+            }
+          };
+          removePositionButton.add(AttributeModifier.append("class", ButtonType.DELETE.getClassAttrValue()));
+          final SingleButtonPanel removePositionButtonPanel = new SingleButtonPanel(divPanel.newChildId(), removePositionButton,
+              getString("delete"));
+          removePositionButtonPanel.setVisible(positionInInvoiceExists(position) == false);
+          divPanel.add(removePositionButtonPanel);
+        }
       }
+
       if (position.isDeleted()) {
         positionsPanel.setVisible(false);
       }
