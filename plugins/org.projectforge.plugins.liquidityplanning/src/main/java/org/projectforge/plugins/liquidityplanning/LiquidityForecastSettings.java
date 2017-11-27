@@ -30,7 +30,7 @@ public class LiquidityForecastSettings implements Serializable
 {
   private static final long serialVersionUID = -6429410479048275707L;
 
-  static final int MAX_FORECAST_DAYS = 600;
+  public static final int MAX_FORECAST_DAYS = 600;
 
   private BigDecimal startAmount = BigDecimal.ZERO;
 
