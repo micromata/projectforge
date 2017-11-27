@@ -26,6 +26,7 @@ package org.projectforge.business.user;
 import static org.testng.AssertJUnit.*;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -74,8 +75,9 @@ public class UserRightTest extends AbstractTestBase
 
     final List<UserRightDO> userRights = new ArrayList<>(user.getRights());
     user.getRights().clear();
-    user = userService.getById(userService.save(user));
+    Integer userId = userService.save(user);
     userRightDao.save(userRights);
+    user = userService.getById(userId);
 
     assignToDefaultTenant(user);
     Set<UserRightDO> rights = user.getRights();
@@ -144,10 +146,11 @@ public class UserRightTest extends AbstractTestBase
     user = userService.getById(userService.save(user));
     userRightDao.save(userRights);
 
-    assignToDefaultTenant(user);
     final GroupDO group = getGroup(ProjectForgeGroup.CONTROLLING_GROUP.toString());
-    group.getAssignedUsers().add(user);
-    groupDao.update(group);
+    groupDao.assignGroups(user, Collections.singleton(group), null, false);
+
+    assignToDefaultTenant(user);
+
     logon(user.getUsername());
     user = userService.getById(user.getId());
     final Set<UserRightDO> rights = user.getRights();
