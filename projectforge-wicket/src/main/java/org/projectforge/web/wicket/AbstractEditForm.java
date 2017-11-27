@@ -363,7 +363,9 @@ public abstract class AbstractEditForm<O extends AbstractBaseDO<Integer>, P exte
             deleteButtonPanel.setVisible(baseDao.hasLoggedInUserDeleteAccess(origData, origData, false));
             markAsDeletedButtonPanel.setVisible(false);
           }
-          cloneButtonPanel.setVisible(baseDao.hasLoggedInUserInsertAccess());
+          if (cloneButtonPanel != null) {
+            cloneButtonPanel.setVisible(baseDao.hasLoggedInUserInsertAccess());
+          }
           updateButtonPanel.setVisible(baseDao.hasLoggedInUserUpdateAccess(origData, origData, false));
           if (parentPage.isUpdateAndNextSupported() == true) {
             updateAndNextButtonPanel.setVisible(updateButtonPanel.isVisible());
