@@ -34,7 +34,7 @@ import java.util.List;
 import javax.annotation.PostConstruct;
 
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Page;
 import org.projectforge.business.configuration.ConfigurationService;
 import org.projectforge.business.fibu.AuftragDao;
@@ -180,17 +180,6 @@ public class MenuItemRegistry implements Serializable
    */
   public MenuItemDef register(final MenuItemDef menuItemDef)
   {
-    //    final MenuEntryConfig root = configXml.getMenuConfig();
-    //    if (root != null) {
-    //      final MenuEntryConfig entry = root.findMenuEntry(menuItemDef); //
-    //      if (entry != null) {
-    //        if (entry.isVisible() != menuItemDef.isVisible()) {
-    //          log.info("Menu item's visibility changed by config.xml for item '" + menuItemDef.getId() + "'.");
-    //          menuItemDef.setVisible(entry.isVisible());
-    //        }
-    //      }
-    //    }
-
     // Check if ID already exists
     if (get(menuItemDef.getId()) != null) {
       throw (new IllegalArgumentException(String.format("Duplicated menu ID '%s' for entry '%s'", menuItemDef.getId(), menuItemDef.getI18nKey())));
@@ -414,20 +403,18 @@ public class MenuItemRegistry implements Serializable
     }
 
     // REPORTING
+    reg.register(reporting, MenuItemDefId.SCRIPT_LIST, 10, ScriptListPage.class, FINANCE_GROUP, CONTROLLING_GROUP);
+    reg.register(reporting, MenuItemDefId.SCRIPTING, 20, ScriptingPage.class, FINANCE_GROUP, CONTROLLING_GROUP);
+    reg.register(reporting, MenuItemDefId.REPORT_OBJECTIVES, 30, ReportObjectivesPage.class, FINANCE_GROUP,
+        CONTROLLING_GROUP);
     {
-      // Only visible if cost is configured:
-      reg.register(reporting, MenuItemDefId.ACCOUNTING_RECORD_LIST, 10, AccountingRecordListPage.class, FINANCE_GROUP,
-          CONTROLLING_GROUP);
-      reg.register(reporting, MenuItemDefId.REPORT_OBJECTIVES, 20, ReportObjectivesPage.class, FINANCE_GROUP,
-          CONTROLLING_GROUP);
-    }
-    reg.register(reporting, MenuItemDefId.SCRIPTING, 30, ScriptingPage.class, FINANCE_GROUP, CONTROLLING_GROUP);
-    reg.register(reporting, MenuItemDefId.SCRIPT_LIST, 40, ScriptListPage.class, FINANCE_GROUP, CONTROLLING_GROUP);
-    {
-      // Only visible if cost is configured:
+      // Only visible if cost is configured and DATEV-Import right is given:
+      reg.register(reporting, MenuItemDefId.ACCOUNTING_RECORD_LIST, 40, AccountingRecordListPage.class, DatevImportDao.USER_RIGHT_ID,
+          UserRightValue.TRUE);
       reg.register(reporting, MenuItemDefId.DATEV_IMPORT, 50, DatevImportPage.class, DatevImportDao.USER_RIGHT_ID,
           UserRightValue.TRUE);
     }
+
     // ORGA
     reg.register(orga, MenuItemDefId.OUTBOX_LIST, 10, PostausgangListPage.class, PostausgangDao.USER_RIGHT_ID,
         READONLY_READWRITE);

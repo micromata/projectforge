@@ -1,6 +1,6 @@
 package org.projectforge.plugins.ihkexport;
 
-import org.apache.commons.lang.ObjectUtils;
+import org.apache.commons.lang3.ObjectUtils;
 import org.projectforge.business.timesheet.TimesheetDO;
 import org.projectforge.business.user.UserRightAccessCheck;
 import org.projectforge.business.user.UserRightCategory;

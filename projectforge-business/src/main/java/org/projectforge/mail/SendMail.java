@@ -43,8 +43,8 @@ import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMultipart;
 import javax.mail.util.ByteArrayDataSource;
 
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.math.RandomUtils;
+import org.apache.commons.lang3.RandomUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.projectforge.business.configuration.ConfigurationService;
 import org.projectforge.business.scripting.GroovyEngine;
 import org.projectforge.framework.i18n.InternalErrorException;
@@ -201,7 +201,7 @@ public class SendMail
       icalBodyPart.setHeader("Content-ID", "calendar_message");
       icalBodyPart.setDataHandler(new DataHandler(
           new ByteArrayDataSource(icalContent.getBytes(), "text/calendar")));
-      final String s = Integer.toString(RandomUtils.nextInt());
+      final String s = Integer.toString(RandomUtils.nextInt(Integer.MIN_VALUE, Integer.MAX_VALUE));
       icalBodyPart.setFileName("ICal-" + s + ".ics");
       mp.addBodyPart(icalBodyPart);
     }

@@ -23,7 +23,7 @@
 
 package org.projectforge.web.teamcal.rest;
 
-import org.apache.commons.lang.ObjectUtils;
+import org.apache.commons.lang3.ObjectUtils;
 import org.projectforge.business.converter.DOConverter;
 import org.projectforge.business.teamcal.admin.model.TeamCalDO;
 import org.projectforge.business.teamcal.admin.right.TeamCalRight;

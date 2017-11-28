@@ -43,7 +43,7 @@ import javax.persistence.Table;
 import javax.persistence.Transient;
 import javax.persistence.UniqueConstraint;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.hibernate.annotations.IndexColumn;
 import org.hibernate.search.annotations.Analyze;
 import org.hibernate.search.annotations.DateBridge;
@@ -686,7 +686,7 @@ public class AuftragDO extends DefaultBaseDO
         if (pos.isDeleted()) {
           continue;
         }
-        if (pos.getPersonDays() != null) {
+        if (pos.getPersonDays() != null && pos.getStatus() != AuftragsPositionsStatus.ABGELEHNT && pos.getStatus() != AuftragsPositionsStatus.ERSETZT) {
           result = result.add(pos.getPersonDays());
         }
       }

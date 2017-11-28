@@ -27,9 +27,9 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Table;
 
-import org.apache.commons.lang.ObjectUtils;
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.builder.HashCodeBuilder;
+import org.apache.commons.lang3.ObjectUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.hibernate.annotations.Type;
 import org.hibernate.search.annotations.Indexed;
 import org.projectforge.framework.persistence.entities.DefaultBaseDO;
@@ -55,6 +55,7 @@ public class TeamEventAttachmentDO extends DefaultBaseDO implements Comparable<T
 
   private byte[] content;
 
+  @Override
   @Column
   public String getFilename()
   {
@@ -67,6 +68,7 @@ public class TeamEventAttachmentDO extends DefaultBaseDO implements Comparable<T
     return this;
   }
 
+  @Override
   @Column
   @Type(type = "binary")
   public byte[] getContent()

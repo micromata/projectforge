@@ -103,4 +103,6 @@ public interface ConfigurationService
   String getMaxFileSizeDatev();
 
   String getMaxFileSizeXmlDumpImport();
+
+  boolean isSnowEffectEnabled();
 }

@@ -41,7 +41,7 @@ public class SQLHelperTest
     try {
       SQLHelper.getYears(null);
       fail("Validate exception should be thrown.");
-    } catch (IllegalArgumentException ex) {
+    } catch (NullPointerException ex) {
       // OK
     } catch (Throwable ex) {
       fail("Unexpected exception was thrown: " + ex.getMessage());

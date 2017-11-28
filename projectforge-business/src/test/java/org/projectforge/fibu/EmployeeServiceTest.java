@@ -1,19 +1,28 @@
 package org.projectforge.fibu;
 
+import static org.mockito.Mockito.when;
 import static org.testng.Assert.*;
 
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.List;
 
 import javax.persistence.NoResultException;
 
+import org.mockito.InjectMocks;
+import org.mockito.MockitoAnnotations;
 import org.projectforge.business.fibu.EmployeeDO;
 import org.projectforge.business.fibu.api.EmployeeService;
 import org.projectforge.business.user.service.UserService;
+import org.projectforge.business.vacation.service.VacationService;
+import org.projectforge.business.vacation.service.VacationServiceImpl;
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.test.AbstractTestBase;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.testng.Assert;
 import org.testng.annotations.Test;
 
 public class EmployeeServiceTest extends AbstractTestBase
@@ -23,6 +32,9 @@ public class EmployeeServiceTest extends AbstractTestBase
 
   @Autowired
   private UserService userService;
+
+  @InjectMocks
+  private VacationService vacationService = new VacationServiceImpl();
 
   @Test
   public void testInsertDelete()
@@ -110,6 +122,32 @@ public class EmployeeServiceTest extends AbstractTestBase
     employee.setAustrittsDatum(cal.getTime());
     boolean result = employeeService.isEmployeeActive(employee);
     assertFalse(result);
+  }
+
+  @Test(enabled = false)
+  public void testGetStudentVacationCountPerDay()
+  {
+    MockitoAnnotations.initMocks(this);
+    when(vacationService.getVacationCount(2017, Calendar.MAY, 2017, Calendar.OCTOBER, new PFUserDO())).thenReturn("TestCase 1");
+    when(vacationService.getVacationCount(2016, Calendar.JULY, 2017, Calendar.OCTOBER, new PFUserDO())).thenReturn("TestCase 2");
+    when(vacationService.getVacationCount(2017, Calendar.JULY, 2017, Calendar.OCTOBER, new PFUserDO())).thenReturn("TestCase 3");
+
+    Calendar testCase1 = new GregorianCalendar(ThreadLocalUserContext.getTimeZone());
+    testCase1.set(Calendar.YEAR, 2017);
+    testCase1.set(Calendar.MONTH, Calendar.OCTOBER);
+    when(new GregorianCalendar(ThreadLocalUserContext.getTimeZone())).thenReturn((GregorianCalendar) testCase1);
+    Assert.assertEquals("TestCase 1", employeeService.getStudentVacationCountPerDay(new EmployeeDO()));
+
+    Calendar testCase2 = new GregorianCalendar(ThreadLocalUserContext.getTimeZone());
+    testCase2.set(Calendar.YEAR, 2017);
+    testCase2.set(Calendar.MONTH, Calendar.FEBRUARY);
+    when(new GregorianCalendar(ThreadLocalUserContext.getTimeZone())).thenReturn((GregorianCalendar) testCase2);
+
+    Date testCase3 = new Date();
+    testCase3.setMonth(7);
+    testCase3.setYear(2017);
+    when(new GregorianCalendar(ThreadLocalUserContext.getTimeZone())).thenReturn((GregorianCalendar) testCase1);
+    when(new EmployeeDO().getEintrittsDatum()).thenReturn(testCase3);
   }
 
 }

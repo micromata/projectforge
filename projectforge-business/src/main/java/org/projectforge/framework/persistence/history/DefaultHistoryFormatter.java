@@ -23,8 +23,8 @@ import java.util.MissingResourceException;
 import java.util.ResourceBundle;
 import java.util.Set;
 
-import org.apache.commons.lang.StringEscapeUtils;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringEscapeUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.hibernate.Session;
 
@@ -60,12 +60,13 @@ public class DefaultHistoryFormatter implements HistoryFormatter
    */
   public String escapeHtml(Object value)
   {
-    return value == null ? "" : StringEscapeUtils.escapeHtml(String.valueOf(value));
+    return value == null ? "" : StringEscapeUtils.escapeHtml4(String.valueOf(value));
   }
 
   /**
    * @see de.micromata.hibernate.history.web.HistoryFormatter#getResourceBundle(java.util.Locale)
    */
+  @Override
   public ResourceBundle getResourceBundle(final Locale locale)
   {
     return ResourceBundle.getBundle(resourceBundleName, locale, getClass().getClassLoader());
@@ -78,6 +79,7 @@ public class DefaultHistoryFormatter implements HistoryFormatter
    * @see de.micromata.hibernate.history.web.HistoryFormatter#formatUser(org.hibernate.Session, java.util.Locale,
    *      de.micromata.hibernate.history.HistoryEntry)
    */
+  @Override
   public String formatUser(Session session, final Locale locale, Object changed, HistoryEntry historyEntry,
       PropertyDelta delta)
   {
@@ -88,6 +90,7 @@ public class DefaultHistoryFormatter implements HistoryFormatter
    * @see de.micromata.hibernate.history.web.HistoryFormatter#formatTimestamp(org.hibernate.Session, java.util.Locale,
    *      de.micromata.hibernate.history.HistoryEntry)
    */
+  @Override
   public String formatTimestamp(Session session, final Locale locale, Object changed, HistoryEntry historyEntry,
       PropertyDelta delta)
   {
@@ -128,6 +131,7 @@ public class DefaultHistoryFormatter implements HistoryFormatter
    * @see de.micromata.hibernate.history.web.HistoryFormatter#formatAction(org.hibernate.Session, java.util.Locale,
    *      de.micromata.hibernate.history.HistoryEntry)
    */
+  @Override
   public String formatAction(Session session, final Locale locale, Object changed, HistoryEntry historyEntry,
       PropertyDelta delta)
   {
@@ -153,6 +157,7 @@ public class DefaultHistoryFormatter implements HistoryFormatter
    *      java.lang.Object, de.micromata.hibernate.history.HistoryEntry,
    *      de.micromata.hibernate.history.delta.PropertyDelta)
    */
+  @Override
   public String formatProperty(Session session, final Locale locale, Object changed, HistoryEntry historyEntry,
       PropertyDelta delta)
   {
@@ -212,6 +217,7 @@ public class DefaultHistoryFormatter implements HistoryFormatter
    *      java.lang.Object, de.micromata.hibernate.history.HistoryEntry,
    *      de.micromata.hibernate.history.delta.PropertyDelta)
    */
+  @Override
   public String formatOldValue(Session session, final Locale locale, Object changed, HistoryEntry historyEntry,
       PropertyDelta delta)
   {
@@ -226,6 +232,7 @@ public class DefaultHistoryFormatter implements HistoryFormatter
    *      java.lang.Object, de.micromata.hibernate.history.HistoryEntry,
    *      de.micromata.hibernate.history.delta.PropertyDelta)
    */
+  @Override
   public String formatNewValue(Session session, final Locale locale, Object changed, HistoryEntry historyEntry,
       PropertyDelta delta)
   {
@@ -238,6 +245,7 @@ public class DefaultHistoryFormatter implements HistoryFormatter
    *      java.lang.Object, de.micromata.hibernate.history.HistoryEntry,
    *      de.micromata.hibernate.history.delta.PropertyDelta)
    */
+  @Override
   public boolean isVisible(Session session, final Locale locale, Object changed, HistoryEntry historyEntry,
       PropertyDelta delta)
   {

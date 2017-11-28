@@ -26,8 +26,8 @@ package org.projectforge.business.fibu;
 import java.io.Serializable;
 import java.math.BigDecimal;
 
-import org.apache.commons.lang.ObjectUtils;
-import org.apache.commons.lang.builder.HashCodeBuilder;
+import org.apache.commons.lang3.ObjectUtils;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 /**
  * Repräsentiert einee Position innerhalb eines Auftrags als Übersichtsobject (value object) zur Verwendung z. B. im TaskTree.
@@ -183,6 +183,7 @@ public class AuftragsPositionVO implements Comparable<AuftragsPositionVO>, Seria
     return hcb.toHashCode();
   }
 
+  @Override
   public int compareTo(final AuftragsPositionVO o)
   {
     if (this.auftragNummer.equals(o.auftragNummer) == false) {

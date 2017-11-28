@@ -82,7 +82,7 @@ public class LiquidityPlanningPlugin extends AbstractPlugin
     // Register the menu entry as sub menu entry of the reporting menu:
     final MenuItemDef parentMenu = pluginWicketRegistrationService.getMenuItemDef(MenuItemDefId.REPORTING);
     pluginWicketRegistrationService.registerMenuItem(
-        new MenuItemDef(parentMenu, ID, 10, "plugins.liquidityplanning.menu", LiquidityEntryListPage.class,
+        new MenuItemDef(parentMenu, ID, 100, "plugins.liquidityplanning.menu", LiquidityEntryListPage.class,
             LiquidityplanningPluginUserRightId.PLUGIN_LIQUIDITY_PLANNING, UserRightValue.READONLY,
             UserRightValue.READWRITE));
 

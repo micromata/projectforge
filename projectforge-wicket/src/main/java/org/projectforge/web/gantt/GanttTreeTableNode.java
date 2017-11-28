@@ -25,7 +25,7 @@ package org.projectforge.web.gantt;
 
 import java.io.Serializable;
 
-import org.apache.commons.lang.builder.ToStringBuilder;
+import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.projectforge.business.gantt.GanttTask;
 import org.projectforge.business.gantt.GanttUtils;
 import org.projectforge.common.StringHelper;

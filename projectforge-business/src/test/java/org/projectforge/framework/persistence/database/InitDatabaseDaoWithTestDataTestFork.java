@@ -61,10 +61,7 @@ public class InitDatabaseDaoWithTestDataTestFork extends AbstractTestBase
   // old format.
 
   @Autowired
-  private DatabaseUpdateService myDatabaseUpdateService;
-
-  @Autowired
-  private InitDatabaseDao initDatabaseDao;
+  private DatabaseService databaseService;
 
   @Autowired
   private PfJpaXmlDumpService pfJpaXmlDumpService;
@@ -102,16 +99,16 @@ public class InitDatabaseDaoWithTestDataTestFork extends AbstractTestBase
     final UserGroupCache userGroupCache = TenantRegistryMap.getInstance().getTenantRegistry().getUserGroupCache();
     final String testPassword = "demo123";
     TenantRegistryMap.getInstance().setAllUserGroupCachesAsExpired(); // Force reload (because it's may be expired due to previous tests).
-    assertTrue(myDatabaseUpdateService.databaseTablesWithEntriesExists());
+    assertFalse(databaseService.databaseTablesWithEntriesExists());
     PFUserDO admin = new PFUserDO();
     admin.setUsername("myadmin");
     userService.createEncryptedPassword(admin, testPassword);
     pfJpaXmlDumpService.createTestDatabase();
-    admin = initDatabaseDao.updateAdminUser(admin, null);
+    admin = databaseService.updateAdminUser(admin, null);
     Set<TenantDO> tenantsToAssign = new HashSet<>();
     tenantsToAssign.add(tenantService.getDefaultTenant());
     tenantDao.internalAssignTenants(admin, tenantsToAssign, null, false, false);
-    initDatabaseDao.afterCreatedTestDb(true);
+    databaseService.afterCreatedTestDb(true);
     final PFUserDO initialAdminUser = userService.authenticateUser("myadmin", testPassword);
     assertNotNull(initialAdminUser);
     assertEquals("myadmin", initialAdminUser.getUsername());
@@ -158,11 +155,11 @@ public class InitDatabaseDaoWithTestDataTestFork extends AbstractTestBase
 
     log.error("****> Next exception and error message are OK (part of the test).");
     boolean exception = false;
-    admin.setUsername(InitDatabaseDao.DEFAULT_ADMIN_USER);
+    admin.setUsername(DatabaseService.DEFAULT_ADMIN_USER);
     try {
       pfJpaXmlDumpService.createTestDatabase();
-      initDatabaseDao.updateAdminUser(admin, null);
-      initDatabaseDao.afterCreatedTestDb(false);
+      databaseService.updateAdminUser(admin, null);
+      databaseService.afterCreatedTestDb(false);
       fail("AccessException expected.");
     } catch (final AccessException | ConstraintPersistenceException ex) {
       exception = true;
@@ -175,8 +172,8 @@ public class InitDatabaseDaoWithTestDataTestFork extends AbstractTestBase
     exception = false;
     try {
       pfJpaXmlDumpService.createTestDatabase();
-      initDatabaseDao.updateAdminUser(admin, null);
-      initDatabaseDao.afterCreatedTestDb(true);
+      databaseService.updateAdminUser(admin, null);
+      databaseService.afterCreatedTestDb(true);
       fail("AccessException expected.");
     } catch (AccessException | ConstraintPersistenceException ex) {
       exception = true;

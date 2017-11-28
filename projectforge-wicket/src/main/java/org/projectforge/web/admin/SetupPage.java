@@ -26,7 +26,7 @@ package org.projectforge.web.admin;
 import java.io.InputStream;
 import java.util.zip.GZIPInputStream;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.markup.html.form.upload.FileUpload;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
@@ -37,10 +37,9 @@ import org.projectforge.business.user.filter.UserFilter;
 import org.projectforge.framework.configuration.Configuration;
 import org.projectforge.framework.configuration.ConfigurationDao;
 import org.projectforge.framework.configuration.ConfigurationParam;
+import org.projectforge.framework.configuration.GlobalConfiguration;
 import org.projectforge.framework.configuration.entities.ConfigurationDO;
-import org.projectforge.framework.persistence.database.DatabaseCoreUpdates;
-import org.projectforge.framework.persistence.database.DatabaseUpdateService;
-import org.projectforge.framework.persistence.database.InitDatabaseDao;
+import org.projectforge.framework.persistence.database.DatabaseService;
 import org.projectforge.framework.persistence.database.PfJpaXmlDumpService;
 import org.projectforge.framework.persistence.history.HibernateSearchReindexer;
 import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
@@ -52,6 +51,7 @@ import org.projectforge.web.session.MySession;
 import org.projectforge.web.wicket.AbstractUnsecureBasePage;
 import org.projectforge.web.wicket.MessagePage;
 import org.projectforge.web.wicket.WicketUtils;
+import org.springframework.jdbc.datasource.init.ScriptUtils;
 
 import de.micromata.genome.db.jpa.xmldump.api.JpaXmlDumpService.RestoreMode;
 
@@ -62,16 +62,13 @@ public class SetupPage extends AbstractUnsecureBasePage
   private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(SetupPage.class);
 
   @SpringBean
-  private InitDatabaseDao initDatabaseDao;
-
-  @SpringBean
   private ConfigurationDao configurationDao;
 
   @SpringBean
   private HibernateSearchReindexer hibernateSearchReindexer;
 
   @SpringBean
-  private DatabaseUpdateService myDatabaseUpdater;
+  private DatabaseService databaseService;
 
   @SpringBean
   private PfJpaXmlDumpService jpaXmlDumpService;
@@ -93,15 +90,6 @@ public class SetupPage extends AbstractUnsecureBasePage
     importForm = new SetupImportForm(this);
     body.add(importForm);
     importForm.init();
-    // final StringBuffer js = new StringBuffer("<script>\n") //
-    // .append("$(function() {") //
-    // .append("  $('input:file').uniform({\n") //
-    // .append("    fileDefaultText : '- No file selected',\n") //
-    // .append("    fileBtnText : 'Choose - File'\n") //
-    // .append("  }); });\n") //
-    // .append("alert('Hurzel');") //
-    // .append("</script>\n");
-    // body.add(new Label("uploadScript", js.toString()).setEscapeModelStrings(false));
   }
 
   protected void finishSetup()
@@ -111,32 +99,31 @@ public class SetupPage extends AbstractUnsecureBasePage
     PFUserDO adminUser = setupForm.getAdminUser();
     final String message;
 
-    //Generating the schema
-    initDatabaseDao.updateSchema();
     //Init default tenant
-    initDatabaseDao.insertDefaultTenant();
+    databaseService.insertDefaultTenant();
     //Init global addressbook
-    initDatabaseDao.insertGlobalAddressbook();
+    databaseService.insertGlobalAddressbook();
 
     if (setupForm.getSetupMode() == SetupTarget.EMPTY_DATABASE) {
       //Init default data (admin user, groups and root task)
-      initDatabaseDao.initializeDefaultData(adminUser, setupForm.getTimeZone());
+      databaseService.initializeDefaultData(adminUser, setupForm.getTimeZone());
       message = "administration.setup.message.emptyDatabase";
     } else {
-      jpaXmlDumpService.createTestDatabase();
-      adminUser = initDatabaseDao.updateAdminUser(adminUser, setupForm.getTimeZone());
-      initDatabaseDao.afterCreatedTestDb(false);
+      try {
+        ScriptUtils.executeSqlScript(databaseService.getDataSource().getConnection(),
+            configurationDao.getApplicationContext().getResource("classpath:data/pfTestdata.sql"));
+      } catch (Exception e) {
+        log.error("Exception occured while running test data insert script. Message: " + e.getMessage());
+      }
+      GlobalConfiguration.getInstance().forceReload();
+      adminUser = databaseService.updateAdminUser(adminUser, setupForm.getTimeZone());
+      databaseService.afterCreatedTestDb(false);
       message = "administration.setup.message.testdata";
       // refreshes the visibility of the costConfigured dependent menu items:
       menuItemRegistry.refresh();
     }
 
     loginAdminUser(adminUser);
-
-    if (setupForm.getSetupMode() == SetupTarget.TEST_DATA) {
-      // migrate old employee status to new attr employee status
-      DatabaseCoreUpdates.migrateEmployeeStatusToAttr();
-    }
 
     configurationDao.checkAndUpdateDatabaseEntries();
     if (setupForm.getTimeZone() != null) {
@@ -149,7 +136,7 @@ public class SetupPage extends AbstractUnsecureBasePage
     configure(ConfigurationParam.CALENDAR_DOMAIN, setupForm.getCalendarDomain());
     configure(ConfigurationParam.SYSTEM_ADMIN_E_MAIL, setupForm.getSysopEMail());
     configure(ConfigurationParam.FEEDBACK_E_MAIL, setupForm.getFeedbackEMail());
-    if (myDatabaseUpdater.getSystemUpdater().isUpdated() == true) {
+    if (databaseService.getSystemUpdater().isUpdated() == true) {
       // Update status:
       UserFilter.setUpdateRequiredFirst(false);
     }
@@ -211,7 +198,7 @@ public class SetupPage extends AbstractUnsecureBasePage
       //      configurationDao.checkAndUpdateDatabaseEntries();
 
       // intialize DB schema
-      this.initDatabaseDao.updateSchema();
+      this.databaseService.updateSchema();
 
       int counter = jpaXmlDumpService.restoreDb(PfEmgrFactory.get(), is, RestoreMode.InsertAll);
       Configuration.getInstance().setExpired();
@@ -246,7 +233,7 @@ public class SetupPage extends AbstractUnsecureBasePage
 
   private void checkAccess()
   {
-    if (myDatabaseUpdater.databaseTablesWithEntriesExists() == false) {
+    if (databaseService.databaseTablesWithEntriesExists() == true) {
       log.error("Couldn't call set-up page, because the data-base isn't empty!");
       ((MySession) getSession()).logout();
       throw new RestartResponseException(WicketUtils.getDefaultPage());

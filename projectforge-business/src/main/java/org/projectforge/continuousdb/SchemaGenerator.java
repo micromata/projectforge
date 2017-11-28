@@ -33,7 +33,7 @@ import javax.persistence.OneToMany;
 import javax.persistence.OrderColumn;
 
 import org.apache.commons.collections.CollectionUtils;
-import org.projectforge.framework.persistence.database.DatabaseUpdateService;
+import org.projectforge.framework.persistence.database.DatabaseService;
 
 /**
  * 
@@ -44,11 +44,11 @@ public class SchemaGenerator
 {
   private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(SchemaGenerator.class);
 
-  private final DatabaseUpdateService dao;
+  private final DatabaseService dao;
 
   private final List<Table> tables = new LinkedList<Table>();
 
-  public SchemaGenerator(final DatabaseUpdateService dao)
+  public SchemaGenerator(final DatabaseService dao)
   {
     this.dao = dao;
   }

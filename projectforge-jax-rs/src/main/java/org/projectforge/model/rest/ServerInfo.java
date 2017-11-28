@@ -23,7 +23,7 @@
 
 package org.projectforge.model.rest;
 
-import org.apache.commons.lang.builder.ReflectionToStringBuilder;
+import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 
 /**
  * REST object for system info for initial contact.

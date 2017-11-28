@@ -46,6 +46,15 @@ public class DatabaseExecutorImpl implements DatabaseExecutor
 {
   private DataSource dataSource;
 
+  public DatabaseExecutorImpl()
+  {
+  }
+
+  public DatabaseExecutorImpl(final DataSource dataSource)
+  {
+    this.dataSource = dataSource;
+  }
+
   @Override
   public DataSource getDataSource()
   {

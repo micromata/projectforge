@@ -4,7 +4,7 @@
   <parent>
     <groupId>org.projectforge</groupId>
     <artifactId>projectforge-parent</artifactId>
-    <version>6.18.0</version>
+    <version>6.19.0</version>
   </parent>
   <artifactId>projectforge-launcher</artifactId>
   <packaging>jar</packaging>
@@ -17,9 +17,6 @@
     </license>
   </licenses>
   <properties>
-    <projectforge.version>${project.version}</projectforge.version>
-    <hibernate.version>5.0.5.Final</hibernate.version>
-    <java.version>1.8</java.version>
     <start-class>org.projectforge.launcher.PfiLauncherMain</start-class>
     <jar.final.name>${project.artifactId}-${project.version}</jar.final.name>
   </properties>
@@ -41,7 +38,7 @@
     <dependency>
       <groupId>org.projectforge</groupId>
       <artifactId>projectforge-wicket</artifactId>
-      <version>${projectforge.version}</version>
+      <version>${project.version}</version>
       <exclusions>
         <exclusion>
           <groupId>org.slf4j</groupId>
@@ -52,18 +49,13 @@
     <dependency>
       <groupId>org.projectforge</groupId>
       <artifactId>projectforge-jax-rs</artifactId>
-      <version>${projectforge.version}</version>
+      <version>${project.version}</version>
     </dependency>
 
     <dependency>
       <groupId>org.hibernate</groupId>
       <artifactId>hibernate-entitymanager</artifactId>
       <version>${hibernate.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>de.micromata.mgc</groupId>
-      <artifactId>de.micromata.mgc.common</artifactId>
-      <version>${mgc.version}</version>
     </dependency>
     <dependency>
       <groupId>de.micromata.mgc</groupId>

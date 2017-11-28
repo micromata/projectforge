@@ -26,7 +26,7 @@ package org.projectforge.web.fibu;
 import java.util.List;
 import java.util.Locale;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.form.SubmitLink;
@@ -113,7 +113,7 @@ public class NewProjektSelectPanel extends AbstractSelectPanel<ProjektDO> implem
         final BaseSearchFilter filter = new BaseSearchFilter();
         filter.setSearchFields("id", "name", "identifier", "nummer");
         filter.setSearchString(input);
-        final List<ProjektDO> list = projektDao.getListForDropdown(filter);
+        final List<ProjektDO> list = projektDao.getList(filter);
         return list;
       }
 

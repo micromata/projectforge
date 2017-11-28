@@ -27,6 +27,12 @@ import org.apache.log4j.Logger;
 import org.projectforge.business.fibu.EingangsrechnungDao;
 import org.projectforge.business.fibu.EingangsrechnungListFilter;
 import org.projectforge.business.fibu.EingangsrechnungsStatistik;
+import org.projectforge.business.fibu.PaymentType;
+import org.projectforge.web.common.I18nEnumChoiceProvider;
+import org.projectforge.web.wicket.LambdaModel;
+import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
+import org.projectforge.web.wicket.flowlayout.Select2MultiChoicePanel;
+import org.wicketstuff.select2.Select2MultiChoice;
 
 public class EingangsrechnungListForm extends AbstractRechnungListForm<EingangsrechnungListFilter, EingangsrechnungListPage>
 {
@@ -40,6 +46,14 @@ public class EingangsrechnungListForm extends AbstractRechnungListForm<Eingangsr
     final EingangsrechnungDao eingangsrechnungDao = getParentPage().getBaseDao();
     this.years = eingangsrechnungDao.getYears();
     super.init();
+  }
+
+  @Override
+  protected void onBeforeAddStatistics()
+  {
+    gridBuilder.newGridPanel();
+    final FieldsetPanel fs = gridBuilder.newFieldset(getString("fibu.payment.type")).suppressLabelForWarning();
+    fs.add(createPaymentTypeMultiChoice());
   }
 
   @Override
@@ -63,5 +77,26 @@ public class EingangsrechnungListForm extends AbstractRechnungListForm<Eingangsr
   protected Logger getLogger()
   {
     return log;
+  }
+
+  private Select2MultiChoice<PaymentType> createPaymentTypeMultiChoice()
+  {
+    return new Select2MultiChoice<>(
+        Select2MultiChoicePanel.WICKET_ID,
+        LambdaModel.of(getSearchFilter()::getPaymentTypes, getSearchFilter()::setPaymentTypes),
+        new I18nEnumChoiceProvider<>(PaymentType.class)
+    );
+  }
+
+  @Override
+  protected String getCancelButtonLabel()
+  {
+    return getString("back");
+  }
+
+  @Override
+  protected String getNextButtonLabel()
+  {
+    return getString("export");
   }
 }
