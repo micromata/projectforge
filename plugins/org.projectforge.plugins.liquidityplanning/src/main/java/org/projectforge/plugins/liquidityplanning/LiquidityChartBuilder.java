@@ -38,7 +38,6 @@ import org.jfree.data.time.TimeSeries;
 import org.jfree.data.time.TimeSeriesCollection;
 import org.projectforge.business.scripting.I18n;
 import org.projectforge.charting.XYChartBuilder;
-import org.projectforge.framework.i18n.UserException;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.time.DayHolder;
 
@@ -57,8 +56,8 @@ public class LiquidityChartBuilder
    */
   public JFreeChart createXYPlot(final LiquidityForecast forecast, final LiquidityForecastSettings settings)
   {
-    if (settings.getNextDays() > 0 && settings.getNextDays() <= LiquidityForecastSettings.MAX_FORECAST_DAYS) {
-      throw new UserException("plugins.liquidityplanning.validate.maxForecastDays");
+    if ((settings.getNextDays() > 0 && settings.getNextDays() <= LiquidityForecastSettings.MAX_FORECAST_DAYS) == false) {
+      settings.setNextDays(LiquidityForecastSettings.DEFAULT_FORECAST_DAYS);
     }
 
     final LiquidityForecastCashFlow cashFlow = new LiquidityForecastCashFlow(forecast, settings.getNextDays());
@@ -123,8 +122,8 @@ public class LiquidityChartBuilder
    */
   public JFreeChart createBarChart(final LiquidityForecast forecast, final LiquidityForecastSettings settings)
   {
-    if (settings.getNextDays() > 0 && settings.getNextDays() <= LiquidityForecastSettings.MAX_FORECAST_DAYS) {
-      throw new UserException("plugins.liquidityplanning.validate.maxForecastDays");
+    if ((settings.getNextDays() > 0 && settings.getNextDays() <= LiquidityForecastSettings.MAX_FORECAST_DAYS) == false) {
+      settings.setNextDays(LiquidityForecastSettings.DEFAULT_FORECAST_DAYS);
     }
     final LiquidityForecastCashFlow cashFlow = new LiquidityForecastCashFlow(forecast, settings.getNextDays());
     final TimeSeries accumulatedSeriesExpected = new TimeSeries(I18n.getString("plugins.liquidityplanning.forecast.expected"));
