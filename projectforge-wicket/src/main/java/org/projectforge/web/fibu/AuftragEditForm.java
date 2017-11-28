@@ -388,7 +388,7 @@ public class AuftragEditForm extends AbstractEditForm<AuftragDO, AuftragEditPage
       dp.add(paymentSchedulePanel = new PaymentSchedulePanel(dp.newChildId(), new CompoundPropertyModel<AuftragDO>(data), getUser()));
       paymentSchedulePanel.setVisible(data.getPaymentSchedules() != null && data.getPaymentSchedules().isEmpty() == false);
 
-      if (getBaseDao().hasLoggedInUserInsertAccess(data, false) == true) {
+      if (getBaseDao().hasLoggedInUserUpdateAccess(data, data, false) == true) {
         final Button addPositionButton = new Button(SingleButtonPanel.WICKET_ID)
         {
           @Override
@@ -715,7 +715,7 @@ public class AuftragEditForm extends AbstractEditForm<AuftragDO, AuftragEditPage
         fs.add(new MaxLengthTextArea(TextAreaPanel.WICKET_ID, new PropertyModel<String>(position, "bemerkung")));
       }
 
-      if (getBaseDao().hasLoggedInUserInsertAccess(data, false) == true) {
+      if (getBaseDao().hasLoggedInUserUpdateAccess(data, data, false) == true) {
         GridBuilder removeButtonGridBuilder = posGridBuilder.newGridPanel();
         {
           // Remove Position
