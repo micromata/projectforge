@@ -32,6 +32,8 @@ public class LiquidityForecastSettings implements Serializable
 
   public static final int MAX_FORECAST_DAYS = 600;
 
+  public static final int DEFAULT_FORECAST_DAYS = 600;
+
   private BigDecimal startAmount = BigDecimal.ZERO;
 
   private int nextDays = 30;
