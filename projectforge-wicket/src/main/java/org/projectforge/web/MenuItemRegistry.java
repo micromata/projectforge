@@ -180,17 +180,6 @@ public class MenuItemRegistry implements Serializable
    */
   public MenuItemDef register(final MenuItemDef menuItemDef)
   {
-    //    final MenuEntryConfig root = configXml.getMenuConfig();
-    //    if (root != null) {
-    //      final MenuEntryConfig entry = root.findMenuEntry(menuItemDef); //
-    //      if (entry != null) {
-    //        if (entry.isVisible() != menuItemDef.isVisible()) {
-    //          log.info("Menu item's visibility changed by config.xml for item '" + menuItemDef.getId() + "'.");
-    //          menuItemDef.setVisible(entry.isVisible());
-    //        }
-    //      }
-    //    }
-
     // Check if ID already exists
     if (get(menuItemDef.getId()) != null) {
       throw (new IllegalArgumentException(String.format("Duplicated menu ID '%s' for entry '%s'", menuItemDef.getId(), menuItemDef.getI18nKey())));

@@ -31,7 +31,6 @@ import java.util.List;
 import java.util.Set;
 
 import org.apache.commons.lang3.ObjectUtils;
-import org.hibernate.LockMode;
 import org.projectforge.business.user.UserRightId;
 import org.projectforge.continuousdb.Table;
 import org.projectforge.framework.access.AccessException;
@@ -95,6 +94,12 @@ public class TenantDao extends BaseDao<TenantDO>
           "There are more than one tenent object declared as default! No or only one tenant should be defined as default!");
     }
     return list.get(0);
+  }
+
+  @Override
+  public boolean hasSelectAccess(final PFUserDO user, final TenantDO obj, final boolean throwException)
+  {
+    return true;
   }
 
   /**
@@ -238,7 +243,6 @@ public class TenantDao extends BaseDao<TenantDO>
       final Set<TenantDO> tenantsToUnassign, boolean checkAccess, boolean createHistoryEntry)
       throws AccessException
   {
-    getHibernateTemplate().refresh(user, LockMode.READ);
     if (checkAccess) {
       if (TenantChecker.isSuperAdmin(ThreadLocalUserContext.getUser()) == false) {
         log.warn("User has now access right to change assigned users of a tenant! Skipping assignment.");
@@ -248,39 +252,47 @@ public class TenantDao extends BaseDao<TenantDO>
     final List<TenantDO> assignedTenants = new ArrayList<TenantDO>();
     if (tenantsToAssign != null) {
       for (final TenantDO tenant : tenantsToAssign) {
-        final TenantDO dbTenant = getHibernateTemplate().get(clazz, tenant.getId(), LockMode.PESSIMISTIC_WRITE);
-        Set<PFUserDO> assignedUsers = dbTenant.getAssignedUsers();
-        if (assignedUsers == null) {
-          assignedUsers = new HashSet<PFUserDO>();
-          dbTenant.setAssignedUsers(assignedUsers);
-        }
-        if (assignedUsers.contains(user) == false) {
-          log.info("Assigning user '" + user.getUsername() + "' to tenant '" + dbTenant.getName() + "'.");
-          assignedUsers.add(user);
-          assignedTenants.add(dbTenant);
-          dbTenant.setLastUpdate(); // Needed, otherwise TenantDO is not detected for hibernate history!
-        } else {
-          log.info("User '" + user.getUsername() + "' already assigned to tenant '" + dbTenant.getName() + "'.");
-        }
+        emgrFactory.runInTrans(emgr -> {
+          final TenantDO dbTenant = emgr.selectByPkAttached(TenantDO.class, tenant.getId());
+          final PFUserDO dbUser = emgr.selectByPkAttached(PFUserDO.class, user.getId());
+          Set<PFUserDO> assignedUsers = dbTenant.getAssignedUsers();
+          if (assignedUsers == null) {
+            assignedUsers = new HashSet<PFUserDO>();
+            dbTenant.setAssignedUsers(assignedUsers);
+          }
+          if (assignedUsers.contains(dbUser) == false) {
+            log.info("Assigning user '" + dbUser.getUsername() + "' to tenant '" + dbTenant.getName() + "'.");
+            assignedUsers.add(dbUser);
+            assignedTenants.add(dbTenant);
+            dbTenant.setLastUpdate(); // Needed, otherwise TenantDO is not detected for hibernate history!
+          } else {
+            log.info("User '" + user.getUsername() + "' already assigned to tenant '" + dbTenant.getName() + "'.");
+          }
+          emgr.update(dbTenant);
+          return null;
+        });
       }
     }
     final List<TenantDO> unassignedTenants = new ArrayList<TenantDO>();
     if (tenantsToUnassign != null) {
       for (final TenantDO tenant : tenantsToUnassign) {
-        final TenantDO dbTenant = getHibernateTemplate().get(clazz, tenant.getId(), LockMode.PESSIMISTIC_WRITE);
-        final Set<PFUserDO> assignedUsers = dbTenant.getAssignedUsers();
-        if (assignedUsers != null && assignedUsers.contains(user) == true) {
-          log.info("Unassigning user '" + user.getUsername() + "' from tenant '" + dbTenant.getName() + "'.");
-          assignedUsers.remove(user);
-          unassignedTenants.add(dbTenant);
-          dbTenant.setLastUpdate(); // Needed, otherwise TenantDO is not detected for hibernate history!
-        } else {
-          log.info("User '" + user.getUsername() + "' is not assigned to tenant '" + dbTenant.getName()
-              + "' (can't unassign).");
-        }
+        emgrFactory.runInTrans(emgr -> {
+          final TenantDO dbTenant = emgr.selectByPkAttached(TenantDO.class, tenant.getId());
+          final PFUserDO dbUser = emgr.selectByPkAttached(PFUserDO.class, user.getId());
+          final Set<PFUserDO> assignedUsers = dbTenant.getAssignedUsers();
+          if (assignedUsers != null && assignedUsers.contains(dbUser) == true) {
+            log.info("Unassigning user '" + user.getUsername() + "' from tenant '" + dbTenant.getName() + "'.");
+            assignedUsers.remove(dbUser);
+            unassignedTenants.add(dbTenant);
+            dbTenant.setLastUpdate(); // Needed, otherwise TenantDO is not detected for hibernate history!
+          } else {
+            log.info("User '" + user.getUsername() + "' is not assigned to tenant '" + dbTenant.getName()
+                + "' (can't unassign).");
+          }
+          return null;
+        });
       }
     }
-    flushSession();
     if (createHistoryEntry) {
       createHistoryEntry(user, unassignedTenants, assignedTenants);
     }
