@@ -31,7 +31,7 @@ import org.projectforge.business.fibu.EmployeeDao;
 import org.projectforge.business.user.UserRightId;
 import org.projectforge.business.user.UserRightValue;
 import org.projectforge.continuousdb.UpdateEntry;
-import org.projectforge.framework.persistence.database.InitDatabaseDao;
+import org.projectforge.framework.persistence.database.DatabaseService;
 import org.projectforge.plugins.core.AbstractPlugin;
 import org.projectforge.plugins.eed.wicket.EmployeeBillingImportPage;
 import org.projectforge.plugins.eed.wicket.EmployeeConfigurationPage;
@@ -64,7 +64,7 @@ public class ExtendEmployeeDataPlugin extends AbstractPlugin
   private EmployeeDao employeeDao;
 
   @Autowired
-  private InitDatabaseDao initDatabaseDao;
+  private DatabaseService databaseService;
 
   /**
    * @see org.projectforge.plugins.core.AbstractPlugin#initialize()
@@ -72,8 +72,7 @@ public class ExtendEmployeeDataPlugin extends AbstractPlugin
   @Override
   protected void initialize()
   {
-    ExtendedEmployeeDataPluginUpdates.databaseUpdateService = myDatabaseUpdater;
-    ExtendedEmployeeDataPluginUpdates.initDatabaseDao = initDatabaseDao;
+    ExtendedEmployeeDataPluginUpdates.databaseService = databaseService;
     // Register it:
     register(ID, EmployeeDao.class, employeeDao, "plugins.extendemployeedata");
 

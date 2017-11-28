@@ -23,7 +23,7 @@
 
 package org.projectforge.business.teamcal.admin.right;
 
-import org.apache.commons.lang.ObjectUtils;
+import org.apache.commons.lang3.ObjectUtils;
 import org.projectforge.business.common.DataobjectAccessType;
 import org.projectforge.business.multitenancy.TenantRegistryMap;
 import org.projectforge.business.teamcal.admin.model.TeamCalDO;

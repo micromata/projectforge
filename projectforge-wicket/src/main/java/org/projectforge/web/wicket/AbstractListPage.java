@@ -29,8 +29,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import org.apache.commons.lang.ObjectUtils;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.ObjectUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
@@ -119,6 +119,8 @@ public abstract class AbstractListPage<F extends AbstractListForm<?, ?>, D exten
   protected String selectProperty;
 
   protected String i18nPrefix;
+
+  protected ContentMenuEntryPanel exportExcelButton;
 
   protected ContentMenuEntryPanel newItemMenuEntry;
 
@@ -374,7 +376,7 @@ public abstract class AbstractListPage<F extends AbstractListForm<?, ?>, D exten
           setMassUpdateMode(true);
         }
 
-      }, getString("massUpdate"));
+      }, getMassUpdateLabel());
       contentMenuBarPanel.addMenuEntry(massUpdateMenuEntry);
 
       ExternalLink link = new ExternalLink("link", "#");
@@ -396,6 +398,11 @@ public abstract class AbstractListPage<F extends AbstractListForm<?, ?>, D exten
     addBottomPanel("bottomPanel");
     init();
     createDataTable();
+  }
+
+  protected String getMassUpdateLabel()
+  {
+    return getString("massUpdate");
   }
 
   /**
@@ -756,8 +763,7 @@ public abstract class AbstractListPage<F extends AbstractListForm<?, ?>, D exten
    */
   public void addExcelExport(final String filenameIdentifier, final String sheetTitle)
   {
-    @SuppressWarnings("serial")
-    final ContentMenuEntryPanel exportExcelButton = new ContentMenuEntryPanel(getNewContentMenuChildId(),
+    exportExcelButton = new ContentMenuEntryPanel(getNewContentMenuChildId(),
         new Link<Object>("link")
         {
           @Override

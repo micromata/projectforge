@@ -28,8 +28,8 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
 
-import org.apache.commons.lang.StringEscapeUtils;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringEscapeUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -154,8 +154,10 @@ public abstract class AbstractListForm<F extends BaseSearchFilter, P extends Abs
 
     gridBuilder = newGridBuilder(this, "filter");
     if (isFilterVisible() == true) {
+      onBeforeSearchFilter();
       {
         // Fieldset search filter
+        gridBuilder.newSplitPanel(GridSize.COL100);
         final FieldsetPanel fs = gridBuilder.newFieldset(getString("searchFilter"));
         if (parentPage.getBaseDao().isHistorizable() == true) {
           IconPanel icon = new IconPanel(fs.newIconChildId(), IconType.PLUS_SIGN, getString("filter.extendedSearch"))
@@ -254,7 +256,7 @@ public abstract class AbstractListForm<F extends BaseSearchFilter, P extends Abs
       }
     };
     cancelButton.setDefaultFormProcessing(false);
-    cancelButtonPanel = new SingleButtonPanel(getNewActionButtonChildId(), cancelButton, getString("cancel"),
+    cancelButtonPanel = new SingleButtonPanel(getNewActionButtonChildId(), cancelButton, getCancelButtonLabel(),
         SingleButtonPanel.CANCEL);
     addActionButton(cancelButtonPanel);
 
@@ -279,7 +281,7 @@ public abstract class AbstractListForm<F extends BaseSearchFilter, P extends Abs
         getParentPage().onNextSubmit();
       }
     };
-    nextButtonPanel = new SingleButtonPanel(getNewActionButtonChildId(), nextButton, getString("next"),
+    nextButtonPanel = new SingleButtonPanel(getNewActionButtonChildId(), nextButton, getNextButtonLabel(),
         SingleButtonPanel.DEFAULT_SUBMIT);
     addActionButton(nextButtonPanel);
 
@@ -296,6 +298,23 @@ public abstract class AbstractListForm<F extends BaseSearchFilter, P extends Abs
     addActionButton(searchButtonPanel);
 
     setComponentsVisibility();
+  }
+
+  /**
+   * Is used to create elements before search filter on list pages.
+   */
+  protected void onBeforeSearchFilter()
+  {
+  }
+
+  protected String getCancelButtonLabel()
+  {
+    return getString("cancel");
+  }
+
+  protected String getNextButtonLabel()
+  {
+    return getString("next");
   }
 
   protected String getOptionsLabel()
@@ -638,7 +657,7 @@ public abstract class AbstractListForm<F extends BaseSearchFilter, P extends Abs
   public static String getModifiedSearchExpressionLabel(final Component component, final String searchString)
   {
     return component.getString("search.lucene.expression") + " "
-        + StringEscapeUtils.escapeHtml(HibernateSearchFilterUtils.modifySearchString(searchString));
+        + StringEscapeUtils.escapeHtml4(HibernateSearchFilterUtils.modifySearchString(searchString));
   }
 
   /**

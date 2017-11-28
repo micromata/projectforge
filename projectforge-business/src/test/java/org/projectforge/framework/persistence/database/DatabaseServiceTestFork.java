@@ -23,10 +23,7 @@
 
 package org.projectforge.framework.persistence.database;
 
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertNotNull;
-import static org.testng.AssertJUnit.assertTrue;
-import static org.testng.AssertJUnit.fail;
+import static org.testng.AssertJUnit.*;
 
 import java.util.Collection;
 
@@ -39,15 +36,12 @@ import org.projectforge.test.AbstractTestBase;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.testng.annotations.Test;
 
-public class InitDatabaseDaoTestFork extends AbstractTestBase
+public class DatabaseServiceTestFork extends AbstractTestBase
 {
   static final String DEFAULT_ADMIN_PASSWORD = "manage";
 
   @Autowired
-  private DatabaseUpdateService myDatabaseUpdateService;
-
-  @Autowired
-  private InitDatabaseDao initDatabaseDao;
+  private DatabaseService databaseService;
 
   @Autowired
   private PfJpaXmlDumpService pfJpaXmlDumpService;
@@ -64,18 +58,18 @@ public class InitDatabaseDaoTestFork extends AbstractTestBase
     final UserGroupCache userGroupCache = TenantRegistryMap.getInstance().getTenantRegistry().getUserGroupCache();
     TenantRegistryMap.getInstance().setAllUserGroupCachesAsExpired(); // Force reload (because it's may be expired due to previous tests).
     getUserGroupCache().setExpired();
-    assertTrue(myDatabaseUpdateService.databaseTablesWithEntriesExists());
+    assertFalse(databaseService.databaseTablesWithEntriesExists());
     final PFUserDO admin = new PFUserDO();
-    admin.setUsername(InitDatabaseDao.DEFAULT_ADMIN_USER);
+    admin.setUsername(DatabaseService.DEFAULT_ADMIN_USER);
     admin.setId(1);
     userService.createEncryptedPassword(admin, DEFAULT_ADMIN_PASSWORD);
     ThreadLocalUserContext.setUser(getUserGroupCache(), admin);
     pfJpaXmlDumpService.createTestDatabase();
-    initDatabaseDao.updateAdminUser(admin, null);
-    initDatabaseDao.afterCreatedTestDb(true);
-    final PFUserDO user = userService.authenticateUser(InitDatabaseDao.DEFAULT_ADMIN_USER, DEFAULT_ADMIN_PASSWORD);
+    databaseService.updateAdminUser(admin, null);
+    databaseService.afterCreatedTestDb(true);
+    final PFUserDO user = userService.authenticateUser(DatabaseService.DEFAULT_ADMIN_USER, DEFAULT_ADMIN_PASSWORD);
     assertNotNull(user);
-    assertEquals(InitDatabaseDao.DEFAULT_ADMIN_USER, user.getUsername());
+    assertEquals(DatabaseService.DEFAULT_ADMIN_USER, user.getUsername());
     final Collection<Integer> col = userGroupCache.getUserGroups(user);
     assertEquals(6, col.size());
     assertTrue(userGroupCache.isUserMemberOfAdminGroup(user.getId()));
@@ -83,24 +77,12 @@ public class InitDatabaseDaoTestFork extends AbstractTestBase
 
     boolean exception = false;
     try {
-      initDatabaseDao.initializeDefaultData(admin, null);
+      databaseService.initializeDefaultData(admin, null);
       fail("AccessException expected.");
     } catch (final AccessException ex) {
       exception = true;
       // Everything fine.
     }
     assertTrue(exception);
-    //clearDatabase();
-    // don't know, what to test here
-    //    exception = false;
-    //    try {
-    //      pfJpaXmlDumpService.createTestDatabase();
-    //      initDatabaseDao.afterCreatedTestDb(admin, null);
-    //      fail("AccessException expected.");
-    //    } catch (final AccessException ex) {
-    //      exception = true;
-    //      // Everything fine.
-    //    }
-    //    assertTrue(exception);
   }
 }

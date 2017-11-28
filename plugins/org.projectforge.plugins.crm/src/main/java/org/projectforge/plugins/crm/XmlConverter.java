@@ -26,7 +26,7 @@ package org.projectforge.plugins.crm;
 import java.util.Iterator;
 import java.util.List;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.projectforge.framework.xstream.AliasMap;
 import org.projectforge.framework.xstream.XmlObjectReader;
 import org.projectforge.framework.xstream.XmlObjectWriter;
@@ -50,7 +50,7 @@ public class XmlConverter<T>
     final XmlObjectReader reader = new XmlObjectReader();
     final AliasMap aliasMap = new AliasMap();
     aliasMap.put(List.class, ENCLOSING_ENTITY);
-    reader.setAliasMap(aliasMap).initialize(this.value.getClass());;
+    reader.setAliasMap(aliasMap).initialize(this.value.getClass());
     @SuppressWarnings("unchecked")
     final List<T> list = (List<T>) reader.read(valuesAsXml);
     return list;

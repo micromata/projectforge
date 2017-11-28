@@ -3,7 +3,7 @@ package org.projectforge.business.teamcal.service;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.projectforge.business.configuration.ConfigurationService;
 import org.projectforge.framework.utils.Crypt;
 import org.springframework.beans.factory.annotation.Autowired;

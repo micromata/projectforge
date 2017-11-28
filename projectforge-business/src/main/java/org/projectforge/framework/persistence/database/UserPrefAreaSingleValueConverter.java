@@ -23,7 +23,7 @@
 
 package org.projectforge.framework.persistence.database;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.projectforge.business.user.UserPrefAreaRegistry;
 import org.projectforge.framework.persistence.user.api.UserPrefArea;
 

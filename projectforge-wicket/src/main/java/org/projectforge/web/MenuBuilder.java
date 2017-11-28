@@ -23,18 +23,9 @@
 
 package org.projectforge.web;
 
-import java.io.Serializable;
-
-import javax.annotation.PostConstruct;
-
-import org.projectforge.business.user.UserChangedListener;
-import org.projectforge.business.user.UserDao;
-import org.projectforge.business.user.UserXmlPreferencesCache;
 import org.projectforge.framework.access.AccessChecker;
-import org.projectforge.framework.access.OperationType;
 import org.projectforge.framework.persistence.api.UserRightService;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
-import org.projectforge.web.core.NavAbstractPanel;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -45,48 +36,23 @@ import org.springframework.stereotype.Service;
  * 
  */
 @Service
-public class MenuBuilder implements Serializable, UserChangedListener
+public class MenuBuilder
 {
-  private static final long serialVersionUID = -924049082728488113L;
+  @Autowired
+  private AccessChecker accessChecker;
 
   @Autowired
-  UserDao userDao;
+  private UserRightService userRights;
 
   @Autowired
-  AccessChecker accessChecker;
+  private MenuItemRegistry registry;
 
-  @Autowired
-  UserRightService userRights;
-
-  @Autowired
-  MenuItemRegistry registry;
-
-  @Autowired
-  UserXmlPreferencesCache userXmlPreferencesCache;
-
-  private final MenuCache menuCache = new MenuCache();
-
-  @PostConstruct
-  public void init()
-  {
-    userDao.register(this);
-  }
-
-  public void expireMenu(final Integer userId)
-  {
-    menuCache.removeMenu(userId);
-  }
-
-  public void refreshAllMenus()
-  {
-    menuCache.setExpired();
-  }
-
-  private void buildMenuTree(final Menu menu, final PFUserDO user, final boolean mobileMenu)
+  private Menu buildMenuTree(final PFUserDO user, final boolean mobileMenu)
   {
     if (user == null) {
-      return;
+      return null;
     }
+    final Menu menu = new Menu();
     final MenuBuilderContext context = new MenuBuilderContext(menu, user, mobileMenu, accessChecker, userRights);
     for (final MenuItemDef menuItemDef : registry.getMenuItemList()) {
       if (menuItemDef.isVisible(context) == false) {
@@ -99,6 +65,7 @@ public class MenuBuilder implements Serializable, UserChangedListener
       }
       // Nothing needed to be done.
     }
+    return menu;
   }
 
   public Menu getMenu(final PFUserDO user)
@@ -113,40 +80,6 @@ public class MenuBuilder implements Serializable, UserChangedListener
 
   private Menu getMenu(final PFUserDO user, final boolean mobileMenu)
   {
-    Menu menu = null;
-    if (user != null) {
-      if (mobileMenu == true) {
-        menu = menuCache.getMobileMenu(user.getId());
-      } else {
-        menu = menuCache.getMenu(user.getId());
-      }
-      if (menu != null) {
-        return menu;
-      }
-    }
-    menu = new Menu();
-    buildMenuTree(menu, user, mobileMenu);
-    if (user != null) {
-      if (mobileMenu == true) {
-        menuCache.putMobileMenu(user.getId(), menu);
-      } else {
-        menuCache.putMenu(user.getId(), menu);
-      }
-    }
-    return menu;
-  }
-
-  /**
-   * @see org.projectforge.business.user.UserChangedListener#afterUserChanged(org.projectforge.framework.persistence.user.entities.PFUserDO,
-   *      org.projectforge.framework.access.OperationType)
-   */
-  @Override
-  public void afterUserChanged(final PFUserDO user, final OperationType operationType)
-  {
-    if (user != null) {
-      expireMenu(user.getId());
-      // Force reloading the users menu from cache:
-      userXmlPreferencesCache.removeEntry(user.getId(), NavAbstractPanel.USER_PREF_MENU_KEY);
-    }
+    return buildMenuTree(user, mobileMenu);
   }
 }

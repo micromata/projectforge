@@ -31,7 +31,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.markup.html.form.Button;
@@ -44,7 +44,6 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
-import org.apache.wicket.validation.IValidatable;
 import org.apache.wicket.validation.IValidator;
 import org.hibernate.Hibernate;
 import org.projectforge.business.fibu.ProjektDO;
@@ -53,7 +52,10 @@ import org.projectforge.business.humanresources.HRPlanningDao;
 import org.projectforge.business.humanresources.HRPlanningEntryDO;
 import org.projectforge.business.humanresources.HRPlanningEntryDao;
 import org.projectforge.business.humanresources.HRPlanningEntryStatus;
+import org.projectforge.business.multitenancy.TenantRegistryMap;
+import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.common.i18n.Priority;
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.time.DateTimeFormatter;
 import org.projectforge.framework.time.DayHolder;
@@ -161,6 +163,25 @@ public class HRPlanningEditForm extends AbstractEditForm<HRPlanningDO, HRPlannin
             projektSelectPanel.error(getString("hr.planning.entry.error.statusOrProjektRequired"));
           } else if (projekt != null && status != null) {
             projektSelectPanel.error(getString("hr.planning.entry.error.statusAndProjektNotAllowed"));
+          }
+          if (projekt != null) {
+            boolean userHasRightForProject = false;
+            Integer userId = ThreadLocalUserContext.getUser().getId();
+            Integer headOfBusinessManagerId = projekt.getHeadOfBusinessManager() != null ? projekt.getHeadOfBusinessManager().getId() : null;
+            Integer projectManagerId = projekt.getProjectManager() != null ? projekt.getProjectManager().getId() : null;
+            Integer salesManageId = projekt.getSalesManager() != null ? projekt.getSalesManager().getId() : null;
+            if (userId != null && (userId.equals(headOfBusinessManagerId) || userId.equals(projectManagerId) || userId.equals(salesManageId))) {
+              userHasRightForProject = true;
+            }
+
+            final UserGroupCache userGroupCache = TenantRegistryMap.getInstance().getTenantRegistry().getUserGroupCache();
+            if (projekt.getProjektManagerGroup() != null
+                && userGroupCache.isUserMemberOfGroup(userId, projekt.getProjektManagerGroupId()) == true) {
+              userHasRightForProject = true;
+            }
+            if (userHasRightForProject == false) {
+              projektSelectPanel.error(getString("hr.planning.entry.error.noRightForProject"));
+            }
           }
         }
       }

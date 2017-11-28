@@ -4,7 +4,7 @@
   <parent>
     <groupId>org.projectforge</groupId>
     <artifactId>org.projectforge.plugins</artifactId>
-    <version>6.18.0</version>
+    <version>6.19.0</version>
   </parent>
   <artifactId>org.projectforge.plugins.marketing</artifactId>
   <packaging>jar</packaging>
@@ -12,12 +12,12 @@
     <dependency>
       <groupId>org.projectforge</groupId>
       <artifactId>projectforge-wicket</artifactId>
-      <version>${projectforge.version}</version>
+      <version>${project.version}</version>
     </dependency>
     <dependency>
       <groupId>org.projectforge</groupId>
       <artifactId>projectforge-business</artifactId>
-      <version>${projectforge.version}</version>
+      <version>${project.version}</version>
       <scope>test</scope>
       <type>test-jar</type>
     </dependency>

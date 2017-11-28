@@ -6,7 +6,7 @@
   <parent>
     <groupId>org.projectforge</groupId>
     <artifactId>projectforge-parent</artifactId>
-    <version>6.18.0</version>
+    <version>6.19.0</version>
   </parent>
   <licenses>
     <license>
@@ -31,7 +31,7 @@
     <dependency>
       <groupId>org.projectforge</groupId>
       <artifactId>projectforge-common</artifactId>
-      <version>${projectforge.version}</version>
+      <version>${project.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -42,7 +42,7 @@
     <dependency>
       <groupId>org.projectforge</groupId>
       <artifactId>projectforge-business</artifactId>
-      <version>${projectforge.version}</version>
+      <version>${project.version}</version>
       <scope>test</scope>
       <type>test-jar</type>
     </dependency>

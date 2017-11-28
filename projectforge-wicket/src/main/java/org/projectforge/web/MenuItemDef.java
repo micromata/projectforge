@@ -25,7 +25,7 @@ package org.projectforge.web;
 
 import java.io.Serializable;
 
-import org.apache.commons.lang.Validate;
+import org.apache.commons.lang3.Validate;
 import org.apache.wicket.Page;
 import org.projectforge.business.user.ProjectForgeGroup;
 import org.projectforge.business.user.UserRight;

@@ -25,7 +25,7 @@ package org.projectforge.web.wicket.converter;
 
 import java.util.Locale;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * Format digits, e. g. "001" instead of "1".

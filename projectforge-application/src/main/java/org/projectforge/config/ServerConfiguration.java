@@ -1,7 +1,7 @@
-package org.projectforge.start;
+package org.projectforge.config;
 
 import org.apache.catalina.connector.Connector;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.embedded.ConfigurableEmbeddedServletContainer;
 import org.springframework.boot.context.embedded.EmbeddedServletContainerCustomizer;

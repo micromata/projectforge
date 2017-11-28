@@ -9,8 +9,7 @@ import org.projectforge.continuousdb.UpdateEntry;
 import org.projectforge.continuousdb.UpdateEntryImpl;
 import org.projectforge.continuousdb.UpdatePreCheckStatus;
 import org.projectforge.continuousdb.UpdateRunningStatus;
-import org.projectforge.framework.persistence.database.DatabaseUpdateService;
-import org.projectforge.framework.persistence.database.InitDatabaseDao;
+import org.projectforge.framework.persistence.database.DatabaseService;
 import org.projectforge.plugins.eed.model.EmployeeConfigurationAttrDO;
 import org.projectforge.plugins.eed.model.EmployeeConfigurationAttrDataDO;
 import org.projectforge.plugins.eed.model.EmployeeConfigurationDO;
@@ -20,8 +19,7 @@ import org.projectforge.plugins.eed.model.EmployeeConfigurationTimedDO;
 
 public class ExtendedEmployeeDataPluginUpdates
 {
-  static DatabaseUpdateService databaseUpdateService;
-  static InitDatabaseDao initDatabaseDao;
+  static DatabaseService databaseService;
 
   @SuppressWarnings("serial")
   public static List<UpdateEntry> getUpdateEntries()
@@ -34,7 +32,7 @@ public class ExtendedEmployeeDataPluginUpdates
       public UpdatePreCheckStatus runPreCheck()
       {
         // Does the data-base table already exist?
-        if (databaseUpdateService
+        if (databaseService
             .doTablesExist(EmployeeConfigurationAttrDO.class, EmployeeConfigurationAttrDataDO.class, EmployeeConfigurationTimedAttrWithDataDO.class) == true) {
           return UpdatePreCheckStatus.ALREADY_UPDATED;
         } else {
@@ -45,9 +43,9 @@ public class ExtendedEmployeeDataPluginUpdates
       @Override
       public UpdateRunningStatus runUpdate()
       {
-        if (databaseUpdateService
+        if (databaseService
             .doTablesExist(EmployeeConfigurationAttrDO.class, EmployeeConfigurationAttrDataDO.class, EmployeeConfigurationTimedAttrWithDataDO.class) == false) {
-          initDatabaseDao.updateSchema();
+          databaseService.updateSchema();
         }
         return UpdateRunningStatus.DONE;
       }
@@ -65,7 +63,7 @@ public class ExtendedEmployeeDataPluginUpdates
       public UpdatePreCheckStatus runPreCheck()
       {
         // Does the data-base table already exist?
-        if (databaseUpdateService.doTablesExist(EmployeeConfigurationDO.class, EmployeeConfigurationTimedAttrDO.class,
+        if (databaseService.doTablesExist(EmployeeConfigurationDO.class, EmployeeConfigurationTimedAttrDO.class,
             EmployeeConfigurationTimedDO.class, EmployeeTimedAttrWithDataDO.class, EmployeeTimedAttrDataDO.class)) {
           return UpdatePreCheckStatus.ALREADY_UPDATED;
         } else {
@@ -77,7 +75,7 @@ public class ExtendedEmployeeDataPluginUpdates
       public UpdateRunningStatus runUpdate()
       {
         // Updating the schema
-        initDatabaseDao.updateSchema();
+        databaseService.updateSchema();
         return UpdateRunningStatus.DONE;
       }
     };

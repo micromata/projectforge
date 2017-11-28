@@ -23,7 +23,7 @@
 
 package org.projectforge.plugins.poll;
 
-import org.apache.commons.lang.ObjectUtils;
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.user.UserRightAccessCheck;
 import org.projectforge.business.user.UserRightCategory;

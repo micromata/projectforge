@@ -64,4 +64,14 @@ public class CustomerEditPage extends AbstractEditPage<KundeDO, CustomerEditForm
   {
     return log;
   }
+
+  @Override
+  public boolean isNew()
+  {
+    boolean isNew = super.isNew();
+    if (isNew == false) {
+      isNew = getData().getCreated() == null;
+    }
+    return isNew;
+  }
 }

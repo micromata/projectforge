@@ -23,8 +23,15 @@
 
 package org.projectforge.business.fibu.kost;
 
-import de.micromata.genome.db.jpa.history.api.WithHistory;
-import org.apache.commons.lang.builder.HashCodeBuilder;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
+import javax.persistence.Table;
+import javax.persistence.Transient;
+import javax.persistence.UniqueConstraint;
+
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.hibernate.search.annotations.Analyze;
 import org.hibernate.search.annotations.ClassBridge;
 import org.hibernate.search.annotations.Field;
@@ -35,13 +42,7 @@ import org.projectforge.business.fibu.KostFormatter;
 import org.projectforge.framework.persistence.api.ShortDisplayNameCapable;
 import org.projectforge.framework.persistence.entities.DefaultBaseDO;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
-import javax.persistence.Table;
-import javax.persistence.Transient;
-import javax.persistence.UniqueConstraint;
+import de.micromata.genome.db.jpa.history.api.WithHistory;
 
 @Entity
 @Indexed

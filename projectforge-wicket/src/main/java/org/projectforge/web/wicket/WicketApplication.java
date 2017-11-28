@@ -67,7 +67,7 @@ import org.projectforge.business.multitenancy.TenantsCache;
 import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.business.user.filter.UserFilter;
 import org.projectforge.framework.i18n.I18nHelper;
-import org.projectforge.framework.persistence.database.DatabaseUpdateService;
+import org.projectforge.framework.persistence.database.DatabaseService;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.api.UserContext;
 import org.projectforge.framework.utils.ExceptionHelper;
@@ -119,7 +119,7 @@ public class WicketApplication extends WebApplication implements WicketApplicati
   private ApplicationContext applicationContext;
 
   @Autowired
-  private DatabaseUpdateService databaseUpdater;
+  private DatabaseService databaseUpdater;
 
   @Autowired
   private PluginAdminService pluginAdminService;
@@ -397,7 +397,7 @@ public class WicketApplication extends WebApplication implements WicketApplicati
     }
     try {
       final UserContext internalSystemAdminUserContext = UserContext
-          .__internalCreateWithSpecialUser(DatabaseUpdateService.__internalGetSystemAdminPseudoUser(),
+          .__internalCreateWithSpecialUser(DatabaseService.__internalGetSystemAdminPseudoUser(),
               getUserGroupCache());
       ThreadLocalUserContext.setUserContext(internalSystemAdminUserContext); // Logon admin user.
       if (databaseUpdater.getSystemUpdater().isUpdated() == false) {
@@ -543,47 +543,5 @@ public class WicketApplication extends WebApplication implements WicketApplicati
     converterLocator.set(java.sql.Date.class, new MyDateConverter(java.sql.Date.class, "S-"));
     return converterLocator;
   }
-
-  //TODO: PROJECTFORGE-1715 - Hatte sonst Probleme beim Shutdown. Wenn wieder auftritt, dann Interface und diesen Code ausprobieren.
-  // http://docs.spring.io/autorepo/docs/spring-framework/3.2.6.RELEASE/javadoc-api/org/springframework/context/SmartLifecycle.html
-  //  private boolean isRunning;
-  //
-  //  @Override
-  //  public void start()
-  //  {
-  //    log.info("WicketApplication Spring Bean start");
-  //    isRunning = true;
-  //  }
-  //
-  //  @Override
-  //  public void stop()
-  //  {
-  //    log.info("WicketApplication Spring Bean stop");
-  //    isRunning = false;
-  //  }
-  //
-  //  @Override
-  //  public boolean isRunning()
-  //  {
-  //    return isRunning;
-  //  }
-  //
-  //  @Override
-  //  public int getPhase()
-  //  {
-  //    return -1;
-  //  }
-  //
-  //  @Override
-  //  public boolean isAutoStartup()
-  //  {
-  //    return true;
-  //  }
-  //
-  //  @Override
-  //  public void stop(Runnable callback)
-  //  {
-  //    log.info("WicketApplication Spring Bean stop");
-  //    isRunning = false;
-  //  }
+  
 }

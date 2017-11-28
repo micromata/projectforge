@@ -74,6 +74,10 @@ public abstract class AbstractEditForm<O extends AbstractBaseDO<Integer>, P exte
 
   protected SingleButtonPanel undeleteButtonPanel;
 
+  protected Button cloneButton;
+
+  protected SingleButtonPanel cloneButtonPanel;
+
   protected FeedbackPanel feedbackPanel;
 
   protected GridBuilder gridBuilder;
@@ -359,6 +363,9 @@ public abstract class AbstractEditForm<O extends AbstractBaseDO<Integer>, P exte
             deleteButtonPanel.setVisible(baseDao.hasLoggedInUserDeleteAccess(origData, origData, false));
             markAsDeletedButtonPanel.setVisible(false);
           }
+          if (cloneButtonPanel != null) {
+            cloneButtonPanel.setVisible(baseDao.hasLoggedInUserInsertAccess());
+          }
           updateButtonPanel.setVisible(baseDao.hasLoggedInUserUpdateAccess(origData, origData, false));
           if (parentPage.isUpdateAndNextSupported() == true) {
             updateAndNextButtonPanel.setVisible(updateButtonPanel.isVisible());
@@ -394,7 +401,7 @@ public abstract class AbstractEditForm<O extends AbstractBaseDO<Integer>, P exte
   {
     if (isNew() == false) {
       // Clone button for existing and not deleted invoices:
-      final Button cloneButton = new Button(SingleButtonPanel.WICKET_ID, new Model<String>("clone"))
+      cloneButton = new Button(SingleButtonPanel.WICKET_ID, new Model<String>("clone"))
       {
         @Override
         public final void onSubmit()
@@ -410,7 +417,7 @@ public abstract class AbstractEditForm<O extends AbstractBaseDO<Integer>, P exte
           }
         }
       };
-      final SingleButtonPanel cloneButtonPanel = new SingleButtonPanel(actionButtons.newChildId(), cloneButton,
+      cloneButtonPanel = new SingleButtonPanel(actionButtons.newChildId(), cloneButton,
           getString("clone"))
       {
         /**

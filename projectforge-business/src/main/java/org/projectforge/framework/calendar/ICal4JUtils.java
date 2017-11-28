@@ -30,7 +30,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.projectforge.business.teamcal.event.RecurrenceFrequencyModeOne;
 import org.projectforge.business.teamcal.event.RecurrenceFrequencyModeTwo;
 import org.projectforge.common.StringHelper;

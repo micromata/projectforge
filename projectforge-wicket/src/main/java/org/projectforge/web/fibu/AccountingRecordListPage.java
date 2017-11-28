@@ -26,7 +26,7 @@ package org.projectforge.web.fibu;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
@@ -47,6 +47,8 @@ import org.projectforge.business.fibu.kost.Kost1DO;
 import org.projectforge.business.fibu.kost.Kost2DO;
 import org.projectforge.business.fibu.kost.reporting.Report;
 import org.projectforge.business.fibu.kost.reporting.ReportStorage;
+import org.projectforge.business.user.UserRightId;
+import org.projectforge.business.user.UserRightValue;
 import org.projectforge.web.wicket.AbstractListPage;
 import org.projectforge.web.wicket.CellItemListener;
 import org.projectforge.web.wicket.CellItemListenerPropertyColumn;
@@ -110,6 +112,13 @@ public class AccountingRecordListPage
   public AccountingRecordListPage(final PageParameters parameters)
   {
     super(parameters, "fibu.buchungssatz");
+    checkAccess();
+  }
+
+  private void checkAccess()
+  {
+    accessChecker.checkLoggedInUserRight(UserRightId.FIBU_DATEV_IMPORT, UserRightValue.TRUE);
+    accessChecker.checkRestrictedOrDemoUser();
   }
 
   @Override
@@ -137,6 +146,7 @@ public class AccountingRecordListPage
     final List<IColumn<BuchungssatzDO, String>> columns = new ArrayList<IColumn<BuchungssatzDO, String>>();
     final CellItemListener<BuchungssatzDO> cellItemListener = new CellItemListener<BuchungssatzDO>()
     {
+      @Override
       public void populateItem(final Item<ICellPopulator<BuchungssatzDO>> item, final String componentId,
           final IModel<BuchungssatzDO> rowModel)
       {

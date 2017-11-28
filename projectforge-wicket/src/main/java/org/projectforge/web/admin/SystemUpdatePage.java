@@ -36,8 +36,8 @@ import org.projectforge.business.user.ProjectForgeGroup;
 import org.projectforge.continuousdb.UpdateEntry;
 import org.projectforge.framework.access.AccessCheckerImpl;
 import org.projectforge.framework.access.AccessException;
+import org.projectforge.framework.persistence.database.DatabaseService;
 import org.projectforge.framework.persistence.database.DatabaseUpdateDO;
-import org.projectforge.framework.persistence.database.DatabaseUpdateService;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.time.DateHelper;
 import org.projectforge.web.wicket.AbstractSecuredPage;
@@ -49,7 +49,7 @@ public class SystemUpdatePage extends AbstractSecuredPage
   private static final long serialVersionUID = -7624191773850329338L;
 
   @SpringBean
-  protected DatabaseUpdateService myDatabaseUpdater;
+  protected DatabaseService myDatabaseUpdater;
 
   private final SystemUpdateForm form;
 
@@ -85,7 +85,6 @@ public class SystemUpdatePage extends AbstractSecuredPage
             DownloadUtils.setDownloadTarget(xls, filename);
           }
 
-          ;
         }, getString("system.update.downloadUpdateHistoryAsXls"));
     addContentMenuEntry(menu);
   }

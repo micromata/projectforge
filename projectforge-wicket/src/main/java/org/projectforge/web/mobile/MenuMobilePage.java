@@ -112,7 +112,7 @@ public class MenuMobilePage extends AbstractSecuredMobilePage
       @Override
       public void onClick()
       {
-        loginService.logout((MySession) getSession(), (WebRequest) getRequest(), (WebResponse) getResponse(), userXmlPreferencesCache, menuBuilder);
+        loginService.logout((MySession) getSession(), (WebRequest) getRequest(), (WebResponse) getResponse(), userXmlPreferencesCache);
         setResponsePage(LoginMobilePage.class);
       }
 
