@@ -28,6 +28,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Random;
 
 import javax.activation.DataHandler;
 import javax.activation.DataSource;
@@ -43,7 +44,6 @@ import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMultipart;
 import javax.mail.util.ByteArrayDataSource;
 
-import org.apache.commons.lang3.RandomUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.projectforge.business.configuration.ConfigurationService;
 import org.projectforge.business.scripting.GroovyEngine;
@@ -72,6 +72,8 @@ public class SendMail
 
   @Autowired
   private ConfigurationService configurationService;
+
+  private Random random = new Random();
 
   /**
    * Get the ProjectForge standard subject: "[ProjectForge] ..."
@@ -201,8 +203,9 @@ public class SendMail
       icalBodyPart.setHeader("Content-ID", "calendar_message");
       icalBodyPart.setDataHandler(new DataHandler(
           new ByteArrayDataSource(icalContent.getBytes(), "text/calendar")));
-      final String s = Integer.toString(RandomUtils.nextInt(Integer.MIN_VALUE, Integer.MAX_VALUE));
+      final String s = Integer.toString(random.nextInt(Integer.MAX_VALUE));
       icalBodyPart.setFileName("ICal-" + s + ".ics");
+
       mp.addBodyPart(icalBodyPart);
     }
 
