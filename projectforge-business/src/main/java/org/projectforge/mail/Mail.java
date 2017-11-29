@@ -198,6 +198,10 @@ public class Mail implements Comparable<Mail>
 
   public void setTo(PFUserDO user)
   {
+    if (user == null || user.getEmail() == null) {
+      log.warn("Could not set email receiver for PFUserDO. User or email is null.");
+      return;
+    }
     addTo(user.getEmail());
     if (StringUtils.isBlank(getToRealname())) {
       setToRealname(user.getFullname());
