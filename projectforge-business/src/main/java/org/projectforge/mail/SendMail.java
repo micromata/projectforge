@@ -86,7 +86,9 @@ public class SendMail
   }
 
   /**
-   * @param composedMessage
+   * @param composedMessage the message to send
+   * @param icalContent the ical content to add
+   * @param attachments other attachments to add
    * @return true for successful sending, otherwise an exception will be thrown.
    * @throws UserException          if to address is not given.
    * @throws InternalErrorException due to technical failures.
@@ -94,18 +96,33 @@ public class SendMail
   public boolean send(final Mail composedMessage, final String icalContent,
       final Collection<? extends MailAttachment> attachments)
   {
+    return send(composedMessage, icalContent, attachments, true);
+  }
+
+  public boolean send(final Mail composedMessage, final String icalContent,
+      final Collection<? extends MailAttachment> attachments, boolean async)
+  {
+    if (composedMessage == null) {
+      log.error("No message object of type org.projectforge.mail.Mail given. E-Mail not sent.");
+      return false;
+    }
     final List<InternetAddress> to = composedMessage.getTo();
     if (to == null || to.size() == 0) {
       log.error("No to address given. Sending of mail cancelled: " + composedMessage.toString());
       throw new UserException("mail.error.missingToAddress");
     }
     MailSessionLocalSettingsConfigModel cf = configurationService.createMailSessionLocalSettingsConfigModel();
-    if (cf.isEmailEnabled() == false) {
+    if (cf == null || cf.isEmailEnabled() == false) {
       log.error("No e-mail host configured. E-Mail not sent: " + composedMessage.toString());
       return false;
     }
-    new Thread(
-        () -> sendIt(composedMessage, icalContent, attachments)).start();
+
+    if (async) {
+      //CompletableFuture.runAsync(() -> sendIt(composedMessage, icalContent, attachments));
+    } else {
+      sendIt(composedMessage, icalContent, attachments);
+    }
+
     return true;
   }
 
@@ -165,7 +182,7 @@ public class SendMail
       message.saveChanges(); // don't forget this
       Transport.send(message);
 
-    } catch (final MessagingException ex) {
+    } catch (final Exception ex) {
       log.error("While creating and sending message: " + composedMessage.toString(), ex);
       throw new InternalErrorException("mail.error.exception");
     }
