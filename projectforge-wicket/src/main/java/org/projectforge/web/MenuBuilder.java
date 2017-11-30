@@ -59,11 +59,7 @@ public class MenuBuilder
         // Menu entry isn't visible for the user:
         continue;
       }
-      final MenuEntry menuEntry = menuItemDef.createMenuEntry(menu, context);
-      if (menuEntry == null) {
-        continue;
-      }
-      // Nothing needed to be done.
+      menuItemDef.createMenuEntry(menu, context);
     }
     return menu;
   }

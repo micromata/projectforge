@@ -24,6 +24,7 @@
 package org.projectforge.web.core;
 
 import java.util.Collection;
+import java.util.Optional;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
@@ -117,6 +118,7 @@ public class NavTopPanel extends NavAbstractPanel
    * Cross site request forgery token.
    */
   private CsrfTokenHandler csrfTokenHandler;
+  private RepeatingView menuRepeater;
 
   public NavTopPanel(final String id)
   {
@@ -127,7 +129,8 @@ public class NavTopPanel extends NavAbstractPanel
   public void init(final AbstractSecuredPage page)
   {
     getMenu();
-    this.favoritesMenu = FavoritesMenu.get(menuItemRegistry, menuBilder, accessChecker, userRights);
+    favoritesMenu = FavoritesMenu.get(menuItemRegistry, menuBilder, accessChecker, userRights);
+    this.setVersioned(false);
     final WebMarkupContainer goMobile = new WebMarkupContainer("goMobile");
     add(goMobile);
     if (page.getMySession().isMobileUserAgent() == true) {
@@ -135,7 +138,7 @@ public class NavTopPanel extends NavAbstractPanel
     } else {
       goMobile.setVisible(false);
     }
-    add(new MenuConfig("menuconfig", getMenu(), favoritesMenu));
+    add(new MenuConfig("menuconfig", getMenu()));
     final Form<String> searchForm = new Form<String>("searchForm")
     {
       private String searchString;
@@ -157,7 +160,7 @@ public class NavTopPanel extends NavAbstractPanel
     csrfTokenHandler = new CsrfTokenHandler(searchForm);
     add(searchForm);
     final TextField<String> searchField = new TextField<String>("searchField",
-        new PropertyModel<String>(searchForm, "searchString"));
+        new PropertyModel<>(searchForm, "searchString"));
     WicketUtils.setPlaceHolderAttribute(searchField, getString("search.search"));
     searchForm.add(searchField);
     add(new BookmarkablePageLink<Void>("feedbackLink", FeedbackPage.class));
@@ -251,7 +254,6 @@ public class NavTopPanel extends NavAbstractPanel
       add(logoutLink);
     }
     addCompleteMenu();
-    addFavoriteMenu();
   }
 
   private void addVacationViewLink()
@@ -338,7 +340,7 @@ public class NavTopPanel extends NavAbstractPanel
   private void addFavoriteMenu()
   {
     // Favorite menu:
-    final RepeatingView menuRepeater = new RepeatingView("menuRepeater");
+    menuRepeater = new RepeatingView("menuRepeater");
     add(menuRepeater);
     final Collection<MenuEntry> menuEntries = favoritesMenu.getMenuEntries();
     if (menuEntries != null) {
@@ -411,6 +413,15 @@ public class NavTopPanel extends NavAbstractPanel
         }
       }
     }
+  }
+
+
+  @Override
+  protected void onBeforeRender()
+  {
+    super.onBeforeRender();
+    Optional.ofNullable(menuRepeater).ifPresent(this::remove);
+    addFavoriteMenu();
   }
 
   private void addBookmarkDialog()
