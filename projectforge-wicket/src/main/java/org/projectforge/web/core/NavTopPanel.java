@@ -51,7 +51,6 @@ import org.projectforge.business.multitenancy.TenantService;
 import org.projectforge.business.user.UserXmlPreferencesCache;
 import org.projectforge.business.vacation.service.VacationService;
 import org.projectforge.framework.access.AccessChecker;
-import org.projectforge.framework.persistence.api.UserRightService;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.api.UserContext;
 import org.projectforge.framework.persistence.user.entities.TenantDO;
@@ -100,9 +99,6 @@ public class NavTopPanel extends NavAbstractPanel
   private AccessChecker accessChecker;
 
   @SpringBean
-  private UserRightService userRights;
-
-  @SpringBean
   private TenantService tenantService;
 
   @SpringBean
@@ -129,8 +125,7 @@ public class NavTopPanel extends NavAbstractPanel
   public void init(final AbstractSecuredPage page)
   {
     getMenu();
-    favoritesMenu = FavoritesMenu.get(menuItemRegistry, menuBilder, accessChecker, userRights);
-    this.setVersioned(false);
+    favoritesMenu = FavoritesMenu.get(menuItemRegistry, menuBilder, accessChecker);
     final WebMarkupContainer goMobile = new WebMarkupContainer("goMobile");
     add(goMobile);
     if (page.getMySession().isMobileUserAgent() == true) {

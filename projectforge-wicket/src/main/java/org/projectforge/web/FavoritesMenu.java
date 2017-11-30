@@ -63,14 +63,13 @@ public class FavoritesMenu implements Serializable
 
   private AccessChecker accessChecker;
 
-  public static FavoritesMenu get(MenuItemRegistry menuItemRegistry, MenuBuilder menuBuilder, AccessChecker accessChecker,
-      UserRightService userRights)
+  public static FavoritesMenu get(MenuItemRegistry menuItemRegistry, MenuBuilder menuBuilder, AccessChecker accessChecker)
   {
     FavoritesMenu favoritesMenu = (FavoritesMenu) UserPreferencesHelper.getEntry(USER_PREF_FAVORITES_MENU_KEY);
     if (favoritesMenu != null) {
       return favoritesMenu;
     }
-    favoritesMenu = new FavoritesMenu(menuItemRegistry, menuBuilder, accessChecker, userRights);
+    favoritesMenu = new FavoritesMenu(menuItemRegistry, menuBuilder, accessChecker);
     UserPreferencesHelper.putEntry(USER_PREF_FAVORITES_MENU_KEY, favoritesMenu, false);
     return favoritesMenu;
   }
@@ -78,12 +77,11 @@ public class FavoritesMenu implements Serializable
   /**
    * @param accessChecker For building the menu entries regarding the access rights of the logged-in user.
    */
-  FavoritesMenu(MenuItemRegistry registry, MenuBuilder menuBuilder, AccessChecker accessChecker, UserRightService userRights)
+  FavoritesMenu(MenuItemRegistry registry, MenuBuilder menuBuilder, AccessChecker accessChecker)
   {
     this.menu = menuBuilder.getMenu(ThreadLocalUserContext.getUser());
     this.registry = registry;
     this.accessChecker = accessChecker;
-    UserRightService userRights1 = userRights;
     init();
   }
 
@@ -296,7 +294,6 @@ public class FavoritesMenu implements Serializable
     }
     UserPreferencesHelper.putEntry(USER_PREF_FAVORITES_MENU_ENTRIES_KEY, xml, true);
     UserPreferencesHelper.putEntry(USER_PREF_FAVORITES_MENU_KEY, this, false);
-    log.debug("Favorites menu stored: " + xml);
     log.info("Favorites menu stored: " + xml);
   }
 

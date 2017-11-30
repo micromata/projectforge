@@ -3,7 +3,6 @@ package org.projectforge.controller;
 
 import lombok.extern.slf4j.Slf4j;
 import org.projectforge.framework.access.AccessChecker;
-import org.projectforge.framework.persistence.api.UserRightService;
 import org.projectforge.web.FavoritesMenu;
 import org.projectforge.web.MenuBuilder;
 import org.projectforge.web.MenuItemRegistry;
@@ -28,17 +27,13 @@ public class MenuCustomizationController
   @Autowired
   private AccessChecker accessChecker;
 
-  @Autowired
-  private UserRightService userRights;
-
-
 
 
   @PostMapping("/customize")
   @ResponseBody
   public String customize(@RequestParam("configuration") String configuration) {
     log.debug(configuration);
-    FavoritesMenu favoritesMenu = FavoritesMenu.get(menuItemRegistry, menuBilder, accessChecker, userRights);
+    FavoritesMenu favoritesMenu = FavoritesMenu.get(menuItemRegistry, menuBilder, accessChecker);
 
     favoritesMenu.readFromXml(configuration);
     favoritesMenu.storeAsUserPref();
