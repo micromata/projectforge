@@ -63,8 +63,6 @@ public class FavoritesMenu implements Serializable
 
   private AccessChecker accessChecker;
 
-  private UserRightService userRights;
-
   public static FavoritesMenu get(MenuItemRegistry menuItemRegistry, MenuBuilder menuBuilder, AccessChecker accessChecker,
       UserRightService userRights)
   {
@@ -78,7 +76,6 @@ public class FavoritesMenu implements Serializable
   }
 
   /**
-   * @param userXmlPreferencesCache For storing and getting the persisted favorites menu.
    * @param accessChecker For building the menu entries regarding the access rights of the logged-in user.
    */
   FavoritesMenu(MenuItemRegistry registry, MenuBuilder menuBuilder, AccessChecker accessChecker, UserRightService userRights)
@@ -86,7 +83,7 @@ public class FavoritesMenu implements Serializable
     this.menu = menuBuilder.getMenu(ThreadLocalUserContext.getUser());
     this.registry = registry;
     this.accessChecker = accessChecker;
-    this.userRights = userRights;
+    UserRightService userRights1 = userRights;
     init();
   }
 
@@ -123,18 +120,16 @@ public class FavoritesMenu implements Serializable
       log.error("Exception encountered " + ex, ex);
       return;
     }
-    final MenuBuilderContext context = new MenuBuilderContext(menu, ThreadLocalUserContext.getUser(), false,
-        accessChecker, userRights);
     final Element root = document.getRootElement();
-    menuEntries = new ArrayList<MenuEntry>();
+    menuEntries = new ArrayList<>();
     for (final Iterator<?> it = root.elementIterator("item"); it.hasNext();) {
       final Element item = (Element) it.next();
-      final MenuEntry menuEntry = readFromXml(item, context);
+      final MenuEntry menuEntry = readFromXml(item);
       menuEntries.add(menuEntry);
     }
   }
 
-  private MenuEntry readFromXml(final Element item, final MenuBuilderContext context)
+  private MenuEntry readFromXml(final Element item)
   {
     if ("item".equals(item.getName()) == false) {
       log.error("Tag 'item' expected instead of '" + item.getName() + "'. Ignoring this tag.");
@@ -172,7 +167,7 @@ public class FavoritesMenu implements Serializable
         log.warn("Menu entry shouldn't have children, because it's a leaf node.");
       }
       final Element child = (Element) it.next();
-      final MenuEntry childMenuEntry = readFromXml(child, context);
+      final MenuEntry childMenuEntry = readFromXml(child);
       if (childMenuEntry != null) {
         menuEntry.addMenuEntry(childMenuEntry);
       }
@@ -182,7 +177,7 @@ public class FavoritesMenu implements Serializable
 
   private void init()
   {
-    this.menuEntries = new ArrayList<MenuEntry>();
+    this.menuEntries = new ArrayList<>();
     final String userPrefString = (String) UserPreferencesHelper.getEntry(USER_PREF_FAVORITES_MENU_ENTRIES_KEY);
     if (StringUtils.isBlank(userPrefString) == false) {
       if (userPrefString.contains("<root>") == false) {
@@ -224,6 +219,7 @@ public class FavoritesMenu implements Serializable
     }
   }
 
+
   private void addFavoriteMenuEntry(final MenuEntry parent, final MenuItemDef menuItemDef)
   {
     if (menu == null) {
@@ -257,9 +253,9 @@ public class FavoritesMenu implements Serializable
   /**
    * @param userPrefEntry coma separated list of MenuItemDefs.
    */
-  void buildFromOldUserPrefFormat(final String userPrefEntry)
+  private void buildFromOldUserPrefFormat(final String userPrefEntry)
   {
-    this.menuEntries = new ArrayList<MenuEntry>();
+    this.menuEntries = new ArrayList<>();
     if (userPrefEntry == null) {
       return;
     }
@@ -300,9 +296,7 @@ public class FavoritesMenu implements Serializable
     }
     UserPreferencesHelper.putEntry(USER_PREF_FAVORITES_MENU_ENTRIES_KEY, xml, true);
     UserPreferencesHelper.putEntry(USER_PREF_FAVORITES_MENU_KEY, this, false);
-    if (log.isDebugEnabled() == true) {
-      log.debug("Favorites menu stored: " + xml);
-    }
+    log.debug("Favorites menu stored: " + xml);
     log.info("Favorites menu stored: " + xml);
   }
 
