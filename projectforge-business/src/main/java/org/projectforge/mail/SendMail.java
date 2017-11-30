@@ -29,6 +29,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Random;
+import java.util.concurrent.CompletableFuture;
 
 import javax.activation.DataHandler;
 import javax.activation.DataSource;
@@ -118,7 +119,7 @@ public class SendMail
     }
 
     if (async) {
-      //CompletableFuture.runAsync(() -> sendIt(composedMessage, icalContent, attachments));
+      CompletableFuture.runAsync(() -> sendIt(composedMessage, icalContent, attachments));
     } else {
       sendIt(composedMessage, icalContent, attachments);
     }
@@ -151,6 +152,7 @@ public class SendMail
   private void sendIt(final Mail composedMessage, final String icalContent,
       final Collection<? extends MailAttachment> attachments)
   {
+    log.info("Start sending em-mail message.");
     try {
       final Session session = getSession();
       final MimeMessage message = new MimeMessage(session);
