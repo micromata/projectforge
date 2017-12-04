@@ -358,84 +358,92 @@ public class HRPlanningEntryDO extends DefaultBaseDO implements ShortDisplayName
       if (this.getId() != null || other.getId() != null) {
         return ObjectUtils.equals(this.getId(), other.getId());
       } else {
-        if ((this.getStatus() != null && other.getStatus() == null) || (this.getStatus() == null && other.getStatus() != null)) {
-          return false;
-        }
-        if (this.getStatus() != null && other.getStatus() != null) {
-          if (this.getStatus().equals(other.getStatus()) == false) {
-            return false;
-          }
-        }
-        if ((this.getProjektId() != null && other.getProjektId() == null) || (this.getProjektId() == null && other.getProjektId() != null)) {
-          return false;
-        }
-        if (this.getProjektId() != null && other.getProjektId() != null) {
-          if (this.getProjektId().equals(other.getProjektId()) == false) {
-            return false;
-          }
-        }
-        if ((this.getUnassignedHours() != null && other.getUnassignedHours() == null) || (this.getUnassignedHours() == null
-            && other.getUnassignedHours() != null)) {
-          return false;
-        }
-        if (this.getUnassignedHours() != null && other.getUnassignedHours() != null) {
-          if (this.getUnassignedHours().equals(other.getUnassignedHours()) == false) {
-            return false;
-          }
-        }
-        if ((this.getMondayHours() != null && other.getMondayHours() == null) || (this.getMondayHours() == null && other.getMondayHours() != null)) {
-          return false;
-        }
-        if (this.getMondayHours() != null && other.getMondayHours() != null) {
-          if (this.getMondayHours().equals(other.getMondayHours()) == false) {
-            return false;
-          }
-        }
-        if ((this.getTuesdayHours() != null && other.getTuesdayHours() == null) || (this.getTuesdayHours() == null && other.getTuesdayHours() != null)) {
-          return false;
-        }
-        if (this.getTuesdayHours() != null && other.getTuesdayHours() != null) {
-          if (this.getTuesdayHours().equals(other.getTuesdayHours()) == false) {
-            return false;
-          }
-        }
-        if ((this.getWednesdayHours() != null && other.getWednesdayHours() == null) || (this.getWednesdayHours() == null
-            && other.getWednesdayHours() != null)) {
-          return false;
-        }
-        if (this.getWednesdayHours() != null && other.getWednesdayHours() != null) {
-          if (this.getWednesdayHours().equals(other.getWednesdayHours()) == false) {
-            return false;
-          }
-        }
-        if ((this.getThursdayHours() != null && other.getThursdayHours() == null) || (this.getThursdayHours() == null && other.getThursdayHours() != null)) {
-          return false;
-        }
-        if (this.getThursdayHours() != null && other.getThursdayHours() != null) {
-          if (this.getThursdayHours().equals(other.getThursdayHours()) == false) {
-            return false;
-          }
-        }
-        if ((this.getFridayHours() != null && other.getFridayHours() == null) || (this.getFridayHours() == null && other.getFridayHours() != null)) {
-          return false;
-        }
-        if (this.getFridayHours() != null && other.getFridayHours() != null) {
-          if (this.getFridayHours().equals(other.getFridayHours()) == false) {
-            return false;
-          }
-        }
-        if ((this.getWeekendHours() != null && other.getWeekendHours() == null) || (this.getWeekendHours() == null && other.getWeekendHours() != null)) {
-          return false;
-        }
-        if (this.getWeekendHours() != null && other.getWeekendHours() != null) {
-          if (this.getWeekendHours().equals(other.getWeekendHours()) == false) {
-            return false;
-          }
-        }
-        return true;
+        return hasNoFieldChanges(other);
       }
     }
     return false;
+  }
+
+  public boolean hasNoFieldChanges(final HRPlanningEntryDO other)
+  {
+    if ((this.getStatus() != null && other.getStatus() == null) || (this.getStatus() == null && other.getStatus() != null)) {
+      return false;
+    }
+    if (this.getStatus() != null && other.getStatus() != null) {
+      if (this.getStatus().equals(other.getStatus()) == false) {
+        return false;
+      }
+    }
+    if ((this.getProjektId() != null && other.getProjektId() == null) || (this.getProjektId() == null && other.getProjektId() != null)) {
+      return false;
+    }
+    if (this.getProjektId() != null && other.getProjektId() != null) {
+      if (this.getProjektId().equals(other.getProjektId()) == false) {
+        return false;
+      }
+    }
+    if ((this.getUnassignedHours() != null && other.getUnassignedHours() == null) || (this.getUnassignedHours() == null
+        && other.getUnassignedHours() != null)) {
+      return false;
+    }
+    if (this.getUnassignedHours() != null && other.getUnassignedHours() != null) {
+      if (this.getUnassignedHours().compareTo(other.getUnassignedHours()) != 0) {
+        return false;
+      }
+    }
+    if ((this.getMondayHours() != null && other.getMondayHours() == null) || (this.getMondayHours() == null && other.getMondayHours() != null)) {
+      return false;
+    }
+    if (this.getMondayHours() != null && other.getMondayHours() != null) {
+      if (this.getMondayHours().compareTo(other.getMondayHours()) != 0) {
+        return false;
+      }
+    }
+    if ((this.getTuesdayHours() != null && other.getTuesdayHours() == null) || (this.getTuesdayHours() == null && other.getTuesdayHours() != null)) {
+      return false;
+    }
+    if (this.getTuesdayHours() != null && other.getTuesdayHours() != null) {
+      if (this.getTuesdayHours().compareTo(other.getTuesdayHours()) != 0) {
+        return false;
+      }
+    }
+    if ((this.getWednesdayHours() != null && other.getWednesdayHours() == null) || (this.getWednesdayHours() == null
+        && other.getWednesdayHours() != null)) {
+      return false;
+    }
+    if (this.getWednesdayHours() != null && other.getWednesdayHours() != null) {
+      if (this.getWednesdayHours().compareTo(other.getWednesdayHours()) != 0) {
+        return false;
+      }
+    }
+    if ((this.getThursdayHours() != null && other.getThursdayHours() == null) || (this.getThursdayHours() == null && other.getThursdayHours() != null)) {
+      return false;
+    }
+    if (this.getThursdayHours() != null && other.getThursdayHours() != null) {
+      if (this.getThursdayHours().compareTo(other.getThursdayHours()) != 0) {
+        return false;
+      }
+    }
+    if ((this.getFridayHours() != null && other.getFridayHours() == null) || (this.getFridayHours() == null && other.getFridayHours() != null)) {
+      return false;
+    }
+    if (this.getFridayHours() != null && other.getFridayHours() != null) {
+      if (this.getFridayHours().compareTo(other.getFridayHours()) != 0) {
+        return false;
+      }
+    }
+    if ((this.getWeekendHours() != null && other.getWeekendHours() == null) || (this.getWeekendHours() == null && other.getWeekendHours() != null)) {
+      return false;
+    }
+    if (this.getWeekendHours() != null && other.getWeekendHours() != null) {
+      if (this.getWeekendHours().compareTo(other.getWeekendHours()) != 0) {
+        return false;
+      }
+    }
+    if (this.isDeleted() != other.isDeleted()) {
+      return false;
+    }
+    return true;
   }
 
   @Override
