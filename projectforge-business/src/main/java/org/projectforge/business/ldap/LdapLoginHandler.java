@@ -36,7 +36,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 public abstract class LdapLoginHandler implements LoginHandler
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(LdapSlaveLoginHandler.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(LdapSlaveLoginHandler.class);
 
   @Autowired
   protected LdapConnector ldapConnector;
@@ -121,6 +121,7 @@ public abstract class LdapLoginHandler implements LoginHandler
     // Do nothing. The wlan password input field is not visible if this handler is used.
   }
 
+  @Override
   public boolean isAdminUser(final PFUserDO user)
   {
     return loginDefaultHandler.isAdminUser(user);

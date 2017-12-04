@@ -23,16 +23,16 @@
 
 package org.projectforge.web.fibu;
 
-import org.apache.log4j.Logger;
 import org.apache.wicket.model.PropertyModel;
 import org.projectforge.business.fibu.EmployeeFilter;
 import org.projectforge.web.wicket.AbstractListForm;
 import org.projectforge.web.wicket.flowlayout.DivPanel;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
+import org.slf4j.Logger;
 
 public class EmployeeListForm extends AbstractListForm<EmployeeFilter, EmployeeListPage>
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(EmployeeListForm.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(EmployeeListForm.class);
 
   private static final long serialVersionUID = -5969136444233092172L;
 

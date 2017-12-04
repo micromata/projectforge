@@ -42,7 +42,7 @@ import org.projectforge.framework.persistence.database.DatabaseService;
  */
 public class SchemaGenerator
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(SchemaGenerator.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(SchemaGenerator.class);
 
   private final DatabaseService dao;
 

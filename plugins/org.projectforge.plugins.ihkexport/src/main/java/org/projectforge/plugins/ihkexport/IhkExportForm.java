@@ -23,7 +23,7 @@ import org.projectforge.web.wicket.flowlayout.IconType;
 
 public class IhkExportForm extends AbstractStandardForm<Object, IhkExportPage>
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(IhkExportForm.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(IhkExportForm.class);
 
   private TimePeriod timePeriod = new TimePeriod();
 

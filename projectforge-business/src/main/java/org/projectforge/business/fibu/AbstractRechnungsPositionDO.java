@@ -53,7 +53,7 @@ public abstract class AbstractRechnungsPositionDO extends DefaultBaseDO implemen
 {
   private static final long serialVersionUID = 4132530394057069876L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory
       .getLogger(AbstractRechnungsPositionDO.class);
 
   protected short number;

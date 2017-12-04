@@ -9,7 +9,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.zip.GZIPInputStream;
 
-import org.apache.log4j.Logger;
 import org.projectforge.business.address.AddressDao;
 import org.projectforge.business.address.AddressbookDao;
 import org.projectforge.business.multitenancy.TenantDao;
@@ -27,6 +26,8 @@ import org.projectforge.framework.persistence.history.entities.PfHistoryMasterDO
 import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.persistence.user.entities.TenantDO;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
@@ -61,7 +62,7 @@ import de.micromata.mgc.jpa.hibernatesearch.impl.SearchEmgr;
 @Service
 public class PfJpaXmlDumpServiceImpl extends JpaXmlDumpServiceImpl implements InitializingBean, PfJpaXmlDumpService
 {
-  private static final Logger LOG = Logger.getLogger(PfJpaXmlDumpServiceImpl.class);
+  private static final Logger LOG = LoggerFactory.getLogger(PfJpaXmlDumpServiceImpl.class);
 
   @Autowired
   private PfEmgrFactory emfac;

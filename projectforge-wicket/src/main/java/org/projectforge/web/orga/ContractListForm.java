@@ -26,7 +26,7 @@ package org.projectforge.web.orga;
 import java.util.List;
 
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
@@ -45,7 +45,7 @@ public class ContractListForm extends AbstractListForm<ContractFilter, ContractL
 {
   private static final long serialVersionUID = -2813402079364322428L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(ContractListForm.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ContractListForm.class);
 
   @SpringBean
   private ConfigurationService configurationService;

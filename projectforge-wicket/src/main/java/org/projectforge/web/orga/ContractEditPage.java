@@ -23,7 +23,7 @@
 
 package org.projectforge.web.orga;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.orga.ContractDO;
@@ -38,7 +38,7 @@ public class ContractEditPage extends AbstractEditPage<ContractDO, ContractEditF
 {
   private static final long serialVersionUID = 4375220914096256551L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(ContractEditPage.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ContractEditPage.class);
 
   @SpringBean
   private ContractDao contractDao;

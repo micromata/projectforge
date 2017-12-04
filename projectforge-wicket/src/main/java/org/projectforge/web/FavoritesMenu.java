@@ -51,7 +51,7 @@ public class FavoritesMenu implements Serializable
 
   static final String USER_PREF_FAVORITES_MENU_ENTRIES_KEY = "usersFavoriteMenuEntries";
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(FavoritesMenu.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(FavoritesMenu.class);
 
   private static final long serialVersionUID = -4954464926815538198L;
 

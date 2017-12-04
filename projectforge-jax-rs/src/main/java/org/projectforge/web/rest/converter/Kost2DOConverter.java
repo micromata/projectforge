@@ -41,7 +41,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class Kost2DOConverter
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(Kost2DOConverter.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(Kost2DOConverter.class);
 
   @Autowired
   private Kost2Dao kost2Dao;

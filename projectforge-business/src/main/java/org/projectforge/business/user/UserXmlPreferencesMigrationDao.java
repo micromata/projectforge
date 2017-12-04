@@ -45,7 +45,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Repository
 public class UserXmlPreferencesMigrationDao
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory
       .getLogger(UserXmlPreferencesMigrationDao.class);
 
   @Autowired

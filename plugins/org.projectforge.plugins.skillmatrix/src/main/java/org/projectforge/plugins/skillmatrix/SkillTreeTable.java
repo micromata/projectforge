@@ -26,11 +26,12 @@ package org.projectforge.plugins.skillmatrix;
 import java.util.Date;
 import java.util.List;
 
-import org.apache.log4j.Logger;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.web.tree.TreeTable;
 import org.projectforge.web.tree.TreeTableFilter;
 import org.projectforge.web.tree.TreeTableNode;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * The implementation of TreeTable for skills. Used for browsing the skills (tree view).
@@ -43,7 +44,7 @@ public class SkillTreeTable extends TreeTable<SkillTreeTableNode>
 
   private static final long serialVersionUID = 2448799447532237904L;
 
-  private static final Logger log = Logger.getLogger(SkillTreeTable.class);
+  private static final Logger log = LoggerFactory.getLogger(SkillTreeTable.class);
 
   @SpringBean
   private SkillDao skillDao;

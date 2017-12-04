@@ -39,7 +39,6 @@ import javax.persistence.Transient;
 import javax.persistence.UniqueConstraint;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.log4j.Logger;
 import org.hibernate.search.annotations.Analyze;
 import org.hibernate.search.annotations.DateBridge;
 import org.hibernate.search.annotations.EncodingType;
@@ -52,6 +51,8 @@ import org.hibernate.search.annotations.Store;
 import org.projectforge.business.fibu.KontoDO;
 import org.projectforge.common.StringHelper;
 import org.projectforge.framework.persistence.entities.DefaultBaseDO;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import de.micromata.genome.db.jpa.history.api.WithHistory;
 
@@ -77,7 +78,7 @@ public class BuchungssatzDO extends DefaultBaseDO implements Comparable<Buchungs
 {
   private static final long serialVersionUID = 8634592782531883482L;
 
-  private static final Logger log = Logger.getLogger(BuchungssatzDO.class);
+  private static final Logger log = LoggerFactory.getLogger(BuchungssatzDO.class);
 
   @Field(index = Index.YES, analyze = Analyze.NO /* UN_TOKENIZED */, store = Store.NO)
   private Integer year;

@@ -23,11 +23,11 @@
 
 package org.projectforge.plugins.memo;
 
-import org.apache.log4j.Logger;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.web.wicket.AbstractEditPage;
 import org.projectforge.web.wicket.EditPage;
+import org.slf4j.Logger;
 
 /**
  * The controller of the edit formular page. Most functionality such as insert, update, delete etc. is done by the super
@@ -40,7 +40,7 @@ public class MemoEditPage extends AbstractEditPage<MemoDO, MemoEditForm, MemoDao
 {
   private static final long serialVersionUID = -5058143025817192156L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(MemoEditPage.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(MemoEditPage.class);
 
   @SpringBean
   private MemoDao memoDao;

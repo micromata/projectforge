@@ -15,7 +15,6 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.ObjectUtils;
-import org.apache.log4j.Logger;
 import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.framework.configuration.ApplicationContextProvider;
 import org.projectforge.framework.persistence.api.BaseDO;
@@ -23,6 +22,8 @@ import org.projectforge.framework.persistence.api.ExtendedBaseDO;
 import org.projectforge.framework.persistence.api.ModificationStatus;
 import org.projectforge.framework.persistence.api.PFPersistancyBehavior;
 import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import de.micromata.genome.db.jpa.history.api.DiffEntry;
 import de.micromata.genome.db.jpa.history.api.HistProp;
@@ -47,7 +48,7 @@ import de.micromata.hibernate.history.delta.SimplePropertyDelta;
  */
 public class HistoryBaseDaoAdapter
 {
-  private static final Logger log = Logger.getLogger(HistoryBaseDaoAdapter.class);
+  private static final Logger log = LoggerFactory.getLogger(HistoryBaseDaoAdapter.class);
 
   private static final HistoryEntry[] HISTORY_ARR_TEMPL = new HistoryEntry[] {};
 

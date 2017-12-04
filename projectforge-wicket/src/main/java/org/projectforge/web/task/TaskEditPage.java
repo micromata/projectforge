@@ -23,7 +23,7 @@
 
 package org.projectforge.web.task;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
 import org.apache.wicket.markup.html.link.BookmarkablePageLink;
 import org.apache.wicket.markup.html.link.Link;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
@@ -53,7 +53,7 @@ public class TaskEditPage extends AbstractEditPage<TaskDO, TaskEditForm, TaskDao
 
   private static final long serialVersionUID = 5176663429783524587L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(TaskEditPage.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(TaskEditPage.class);
 
   @SpringBean
   private TaskDao taskDao;

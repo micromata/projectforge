@@ -44,7 +44,7 @@ import org.wicketstuff.select2.Response;
  */
 public class TeamCalChoiceProvider extends ChoiceProvider<TeamCalDO>
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(TeamCalChoiceProvider.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(TeamCalChoiceProvider.class);
 
   private static final long serialVersionUID = -8310756569504320965L;
 

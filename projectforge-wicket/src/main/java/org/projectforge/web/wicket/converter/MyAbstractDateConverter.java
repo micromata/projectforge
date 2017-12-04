@@ -50,7 +50,7 @@ public abstract class MyAbstractDateConverter extends DateConverter
 {
   private static final long serialVersionUID = 8019686218512218256L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(MyAbstractDateConverter.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(MyAbstractDateConverter.class);
 
   private final Class<? extends Date> targetType;
 

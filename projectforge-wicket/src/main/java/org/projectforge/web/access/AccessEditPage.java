@@ -23,7 +23,6 @@
 
 package org.projectforge.web.access;
 
-import org.apache.log4j.Logger;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.framework.access.AccessDao;
@@ -31,6 +30,7 @@ import org.projectforge.framework.access.GroupTaskAccessDO;
 import org.projectforge.web.fibu.ISelectCallerPage;
 import org.projectforge.web.wicket.AbstractEditPage;
 import org.projectforge.web.wicket.EditPage;
+import org.slf4j.Logger;
 
 @EditPage(defaultReturnPage = AccessListPage.class)
 public class AccessEditPage extends AbstractEditPage<GroupTaskAccessDO, AccessEditForm, AccessDao>
@@ -38,7 +38,7 @@ public class AccessEditPage extends AbstractEditPage<GroupTaskAccessDO, AccessEd
 {
   private static final long serialVersionUID = 4636922408954211544L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(AccessEditPage.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(AccessEditPage.class);
 
   @SpringBean
   private AccessDao accessDao;
@@ -60,11 +60,13 @@ public class AccessEditPage extends AbstractEditPage<GroupTaskAccessDO, AccessEd
     super.init();
   }
 
+  @Override
   public void cancelSelection(final String property)
   {
     // Do nothing.
   }
 
+  @Override
   public void select(final String property, final Object selectedValue)
   {
     if ("taskId".equals(property) == true) {
@@ -77,6 +79,7 @@ public class AccessEditPage extends AbstractEditPage<GroupTaskAccessDO, AccessEd
     }
   }
 
+  @Override
   public void unselect(final String property)
   {
     if ("taskId".equals(property) == true) {

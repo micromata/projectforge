@@ -23,15 +23,12 @@
 
 package org.projectforge.business.ldap;
 
-import org.projectforge.business.ldap.LdapOrganizationalUnitDao;
-import org.testng.Assert;
-import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 @Test(enabled=false)
 public class LdapOrganizationalUnitDaoTest
 {
-  /*  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger
+  /*  private static final org.slf4j.Logger log = org.slf4j.Logger
       .getLogger(LdapOrganizationalUnitDaoTest.class);
 
   private LdapOrganizationalUnitDao ldapOrganizationalUnitDao;

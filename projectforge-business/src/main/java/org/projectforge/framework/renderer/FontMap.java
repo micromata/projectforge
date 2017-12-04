@@ -41,7 +41,7 @@ import com.lowagie.text.pdf.BaseFont;
  */
 public class FontMap
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(FontMap.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(FontMap.class);
   
   private Map<String, BaseFont> fontMap = new HashMap<String, BaseFont>();
 

@@ -38,7 +38,7 @@ import org.projectforge.framework.i18n.I18nHelper;
  */
 public class HibernateSearchPaymentTypeBridge implements FieldBridge
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory
       .getLogger(HibernateSearchPaymentTypeBridge.class);
 
   /**
@@ -50,7 +50,7 @@ public class HibernateSearchPaymentTypeBridge implements FieldBridge
   {
     final PaymentType paymentType = (PaymentType) value;
     if (paymentType == null) {
-      log.fatal("PaymentType object is null.");
+      log.error("PaymentType object is null.");
       return;
     }
 

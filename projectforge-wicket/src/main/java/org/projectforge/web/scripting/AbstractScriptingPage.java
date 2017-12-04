@@ -38,7 +38,7 @@ import org.projectforge.web.wicket.DownloadUtils;
 public abstract class AbstractScriptingPage extends AbstractStandardFormPage
 {
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(AbstractScriptingPage.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(AbstractScriptingPage.class);
 
   protected GroovyResult groovyResult;
 

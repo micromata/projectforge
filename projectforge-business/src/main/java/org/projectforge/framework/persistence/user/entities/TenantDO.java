@@ -36,7 +36,6 @@ import javax.persistence.ManyToMany;
 import javax.persistence.Table;
 import javax.persistence.Transient;
 
-import org.apache.log4j.Logger;
 import org.hibernate.Hibernate;
 import org.hibernate.search.annotations.ContainedIn;
 import org.hibernate.search.annotations.Indexed;
@@ -44,6 +43,8 @@ import org.hibernate.search.annotations.IndexedEmbedded;
 import org.projectforge.business.multitenancy.TenantTableTruncater;
 import org.projectforge.framework.persistence.api.ShortDisplayNameCapable;
 import org.projectforge.framework.persistence.entities.DefaultBaseDO;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import de.micromata.genome.jpa.impl.ATableTruncater;
 
@@ -58,7 +59,7 @@ import de.micromata.genome.jpa.impl.ATableTruncater;
 @ATableTruncater(TenantTableTruncater.class)
 public class TenantDO extends DefaultBaseDO implements ShortDisplayNameCapable
 {
-  private static final Logger log = Logger.getLogger(TenantDO.class);
+  private static final Logger log = LoggerFactory.getLogger(TenantDO.class);
   private static final long serialVersionUID = -2242576370698028282L;
 
   private String shortName;

@@ -37,7 +37,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class MebJobExecutor
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(MebJobExecutor.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(MebJobExecutor.class);
 
   @Autowired
   private MebMailClient mebMailClient;

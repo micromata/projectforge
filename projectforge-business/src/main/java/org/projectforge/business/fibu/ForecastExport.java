@@ -65,7 +65,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class ForecastExport
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(ForecastExport.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ForecastExport.class);
 
   @Autowired
   private AuftragDao orderBookDao;

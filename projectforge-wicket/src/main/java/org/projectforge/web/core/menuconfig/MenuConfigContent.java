@@ -43,7 +43,7 @@ public class MenuConfigContent extends Panel
 {
   private static final long serialVersionUID = 7330216552642637129L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(MenuConfigContent.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(MenuConfigContent.class);
 
   public MenuConfigContent(final String id, final Menu menu)
   {

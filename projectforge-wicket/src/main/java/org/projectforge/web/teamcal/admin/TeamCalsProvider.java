@@ -41,7 +41,7 @@ public class TeamCalsProvider extends ChoiceProvider<TeamCalDO>
 {
   private static final long serialVersionUID = -7219524032951522997L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(TeamCalsProvider.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(TeamCalsProvider.class);
 
   private int pageSize = 20;
 

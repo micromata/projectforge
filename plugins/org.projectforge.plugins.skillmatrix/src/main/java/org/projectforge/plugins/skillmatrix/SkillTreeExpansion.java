@@ -37,7 +37,7 @@ import org.projectforge.web.wicket.tree.TableTreeExpansion;
 public class SkillTreeExpansion extends TableTreeExpansion<Integer, SkillNode>
 {
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(SkillTreeExpansion.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(SkillTreeExpansion.class);
 
   private static final long serialVersionUID = 5151537746424532422L;
 

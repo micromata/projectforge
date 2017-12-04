@@ -23,7 +23,6 @@
 
 package org.projectforge.web.orga;
 
-import org.apache.log4j.Logger;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.orga.PostType;
@@ -32,6 +31,7 @@ import org.projectforge.business.orga.PosteingangDao;
 import org.projectforge.framework.time.DayHolder;
 import org.projectforge.web.wicket.AbstractEditPage;
 import org.projectforge.web.wicket.EditPage;
+import org.slf4j.Logger;
 
 
 @EditPage(defaultReturnPage = PosteingangListPage.class)
@@ -39,7 +39,7 @@ public class PosteingangEditPage extends AbstractEditPage<PosteingangDO, Postein
 {
   private static final long serialVersionUID = 4375220914096256551L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(PosteingangEditPage.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(PosteingangEditPage.class);
 
   @SpringBean
   private PosteingangDao posteingangDao;

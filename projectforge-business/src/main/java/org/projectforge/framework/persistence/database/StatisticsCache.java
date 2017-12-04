@@ -28,12 +28,13 @@ import java.util.Map;
 
 import javax.sql.DataSource;
 
-import org.apache.log4j.Logger;
 import org.projectforge.framework.cache.AbstractCache;
 import org.projectforge.framework.persistence.api.BaseDO;
 import org.projectforge.framework.persistence.api.HibernateUtils;
 import org.projectforge.registry.Registry;
 import org.projectforge.registry.RegistryEntry;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
@@ -46,7 +47,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class StatisticsCache extends AbstractCache
 {
-  private static Logger log = Logger.getLogger(StatisticsCache.class);
+  private static Logger log = LoggerFactory.getLogger(StatisticsCache.class);
 
   /** The key is the entity class and the value the number of entries in the table. */
   private Map<Class<? extends BaseDO<?>>, Integer> numberOfEntitiesMap;

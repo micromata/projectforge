@@ -23,7 +23,6 @@
 
 package org.projectforge.plugins.skillmatrix;
 
-import org.apache.log4j.Logger;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.Form;
@@ -45,6 +44,8 @@ import org.projectforge.web.wicket.components.MinMaxNumberField;
 import org.projectforge.web.wicket.flowlayout.DivTextPanel;
 import org.projectforge.web.wicket.flowlayout.DropDownChoicePanel;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author Billy Duong (b.duong@micromata.de)
@@ -54,7 +55,7 @@ public class SkillRatingEditForm extends AbstractEditForm<SkillRatingDO, SkillRa
 {
   private static final long serialVersionUID = -4997909992117525036L;
 
-  private static final Logger log = Logger.getLogger(SkillRatingEditForm.class);
+  private static final Logger log = LoggerFactory.getLogger(SkillRatingEditForm.class);
 
   public static final String I18N_KEY_ERROR_RATEABLE_SKILL_WITH_NULL_RATING = "plugins.skillmatrix.error.rateableSkillWithNullRating";
 

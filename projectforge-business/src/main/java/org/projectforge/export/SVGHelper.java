@@ -35,7 +35,7 @@ import org.w3c.dom.Element;
 
 public class SVGHelper
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(SVGHelper.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(SVGHelper.class);
 
   private static final String SVG_NS = SVGDOMImplementation.SVG_NAMESPACE_URI;
 
@@ -43,7 +43,7 @@ public class SVGHelper
 
   public enum ArrowDirection
   {
-    LEFT, RIGHT;
+    LEFT, RIGHT
   }
 
   public static Document createDocument(final double width, final double height)

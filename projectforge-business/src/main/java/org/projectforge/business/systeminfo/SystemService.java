@@ -62,7 +62,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(readOnly = false, propagation = Propagation.REQUIRED)
 public class SystemService
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(SystemService.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(SystemService.class);
 
   private TaskDao taskDao;
 

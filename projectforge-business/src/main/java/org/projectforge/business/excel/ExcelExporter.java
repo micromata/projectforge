@@ -34,7 +34,7 @@ import org.projectforge.common.props.PropertyType;
 
 public class ExcelExporter
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(ExportWorkbook.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ExportWorkbook.class);
 
   private final ExportWorkbook workBook;
 

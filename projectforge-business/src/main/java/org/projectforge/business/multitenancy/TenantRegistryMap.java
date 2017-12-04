@@ -44,7 +44,7 @@ public class TenantRegistryMap extends AbstractCache
 {
   private static final long serialVersionUID = -7062742437818230657L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(TenantRegistryMap.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(TenantRegistryMap.class);
 
   private static final long EXPIRE_TIME = AbstractCache.TICKS_PER_DAY;
 

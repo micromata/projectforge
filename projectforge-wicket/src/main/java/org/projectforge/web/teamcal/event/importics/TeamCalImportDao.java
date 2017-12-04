@@ -65,7 +65,7 @@ public class TeamCalImportDao
       "recurrenceRule",
       "recurrenceUntil" };
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(TeamCalImportDao.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(TeamCalImportDao.class);
 
   @Autowired
   private TeamEventDao teamEventDao;

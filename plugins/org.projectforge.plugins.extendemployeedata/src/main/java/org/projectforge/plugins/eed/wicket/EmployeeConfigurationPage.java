@@ -2,7 +2,7 @@ package org.projectforge.plugins.eed.wicket;
 
 import java.util.List;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.plugins.eed.model.EmployeeConfigurationDO;
@@ -13,7 +13,7 @@ import org.projectforge.web.wicket.AbstractSecuredBasePage;
 public class EmployeeConfigurationPage
     extends AbstractEditPage<EmployeeConfigurationDO, EmployeeConfigurationForm, EmployeeConfigurationService>
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(EmployeeConfigurationPage.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(EmployeeConfigurationPage.class);
 
   @SpringBean
   private EmployeeConfigurationService employeeConfigurationService;

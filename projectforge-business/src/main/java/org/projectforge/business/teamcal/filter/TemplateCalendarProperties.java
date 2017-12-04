@@ -37,7 +37,7 @@ import org.projectforge.framework.utils.NumberHelper;
  */
 public class TemplateCalendarProperties implements Serializable, Comparable<TemplateCalendarProperties>, Cloneable
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory
       .getLogger(TemplateCalendarProperties.class);
 
   private static final long serialVersionUID = 6173766812848285792L;

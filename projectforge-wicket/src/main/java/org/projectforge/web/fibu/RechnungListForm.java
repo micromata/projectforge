@@ -23,17 +23,17 @@
 
 package org.projectforge.web.fibu;
 
-import org.apache.log4j.Logger;
 import org.projectforge.business.fibu.RechnungDao;
 import org.projectforge.business.fibu.RechnungListFilter;
 import org.projectforge.business.fibu.RechnungsStatistik;
 import org.projectforge.web.wicket.LambdaModel;
+import org.slf4j.Logger;
 
 public class RechnungListForm extends AbstractRechnungListForm<RechnungListFilter, RechnungListPage>
 {
   private static final long serialVersionUID = 1657084619520768905L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(RechnungListForm.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(RechnungListForm.class);
 
   @Override
   protected void init()

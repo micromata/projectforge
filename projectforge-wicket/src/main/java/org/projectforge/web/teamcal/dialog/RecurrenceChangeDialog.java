@@ -50,7 +50,7 @@ import de.micromata.wicket.ajax.AjaxCallback;
  */
 public class RecurrenceChangeDialog extends ModalDialog
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(RecurrenceChangeDialog.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(RecurrenceChangeDialog.class);
 
   private static final long serialVersionUID = 7266725860088619248L;
 

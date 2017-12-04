@@ -78,7 +78,7 @@ import org.projectforge.web.wicket.components.ContentMenuEntryPanel;
 public class RechnungListPage extends AbstractListPage<RechnungListForm, RechnungDao, RechnungDO> implements
     IListPageColumnsCreator<RechnungDO>
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(RechnungListPage.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(RechnungListPage.class);
 
   private static final long serialVersionUID = -8406452960003792763L;
 

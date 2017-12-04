@@ -39,7 +39,7 @@ import org.wicketstuff.select2.Response;
 
 public class DefaultEmployeeWicketProvider extends AbstractEmployeeWicketProvider
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(DefaultEmployeeWicketProvider.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(DefaultEmployeeWicketProvider.class);
 
   private static final long serialVersionUID = 6228672123966093257L;
 

@@ -35,7 +35,7 @@ import com.thoughtworks.xstream.io.xml.DomDriver;
 public class XStreamHelper
 {
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(XStreamHelper.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(XStreamHelper.class);
 
   /**
    * @return new XStream initialized with UTF-8 DomDriver.

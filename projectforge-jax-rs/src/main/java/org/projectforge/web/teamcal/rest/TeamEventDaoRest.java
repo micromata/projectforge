@@ -76,7 +76,7 @@ import org.springframework.stereotype.Controller;
 @Path(RestPaths.TEAMEVENTS)
 public class TeamEventDaoRest
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(TeamEventDaoRest.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(TeamEventDaoRest.class);
 
   @Autowired
   private TeamEventService teamEventService;

@@ -23,7 +23,6 @@
 
 package org.projectforge.web.fibu;
 
-import org.apache.log4j.Logger;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.fibu.ProjektDO;
@@ -34,13 +33,14 @@ import org.projectforge.reporting.Kost2Art;
 import org.projectforge.web.wicket.AbstractEditPage;
 import org.projectforge.web.wicket.AbstractSecuredBasePage;
 import org.projectforge.web.wicket.EditPage;
+import org.slf4j.Logger;
 
 @EditPage(defaultReturnPage = ProjektListPage.class)
 public class ProjektEditPage extends AbstractEditPage<ProjektDO, ProjektEditForm, ProjektDao> implements ISelectCallerPage
 {
   private static final long serialVersionUID = 8763884579951937296L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(ProjektEditPage.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ProjektEditPage.class);
 
   @SpringBean
   private Kost2Dao kost2Dao;
@@ -88,17 +88,18 @@ public class ProjektEditPage extends AbstractEditPage<ProjektDO, ProjektEditForm
     return log;
   }
 
+  @Override
   public void cancelSelection(final String property)
   {
     // Do nothing.
   }
 
+  @Override
   public void select(final String property, final Object selectedValue)
   {
     if ("kundeId".equals(property) == true) {
       projektDao.setKunde(getData(), (Integer) selectedValue);
       form.kundeSelectPanel.getTextField().modelChanged();
-      ;
     } else if ("taskId".equals(property) == true) {
       projektDao.setTask(getData(), (Integer) selectedValue);
     } else if ("projektManagerGroupId".equals(property) == true) {
@@ -109,6 +110,7 @@ public class ProjektEditPage extends AbstractEditPage<ProjektDO, ProjektEditForm
     }
   }
 
+  @Override
   public void unselect(final String property)
   {
     if ("kundeId".equals(property) == true) {

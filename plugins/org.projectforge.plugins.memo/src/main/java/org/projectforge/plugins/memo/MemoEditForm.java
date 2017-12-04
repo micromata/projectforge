@@ -23,7 +23,6 @@
 
 package org.projectforge.plugins.memo;
 
-import org.apache.log4j.Logger;
 import org.apache.wicket.model.PropertyModel;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.web.wicket.AbstractEditForm;
@@ -31,6 +30,7 @@ import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.web.wicket.components.MaxLengthTextArea;
 import org.projectforge.web.wicket.components.RequiredMaxLengthTextField;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
+import org.slf4j.Logger;
 
 /**
  * This is the edit formular page.
@@ -42,7 +42,7 @@ public class MemoEditForm extends AbstractEditForm<MemoDO, MemoEditPage>
 {
   private static final long serialVersionUID = -6208809585214296635L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(MemoEditForm.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(MemoEditForm.class);
 
   public MemoEditForm(final MemoEditPage parentPage, final MemoDO data)
   {

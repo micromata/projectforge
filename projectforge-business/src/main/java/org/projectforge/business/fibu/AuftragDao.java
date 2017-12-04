@@ -79,7 +79,7 @@ public class AuftragDao extends BaseDao<AuftragDO>
 
   public final static int START_NUMBER = 1;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(AuftragDao.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(AuftragDao.class);
 
   private static final Class<?>[] ADDITIONAL_HISTORY_SEARCH_DOS = new Class[] { AuftragsPositionDO.class };
 

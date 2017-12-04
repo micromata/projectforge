@@ -37,7 +37,7 @@ import org.projectforge.framework.utils.NumberHelper;
  */
 public class TotalNewCounterModel extends Model<Integer>
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(TotalNewCounterModel.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(TotalNewCounterModel.class);
 
   private static final long serialVersionUID = -900845361698793144L;
 

@@ -31,7 +31,7 @@ import org.jfree.chart.JFreeChart;
 
 public class ExportJFreeChart
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(ExportJFreeChart.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ExportJFreeChart.class);
 
   private final JFreeChart jFreeChart;
 

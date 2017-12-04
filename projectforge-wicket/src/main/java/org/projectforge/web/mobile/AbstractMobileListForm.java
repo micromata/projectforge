@@ -35,7 +35,7 @@ public abstract class AbstractMobileListForm<F extends BaseSearchFilter, P exten
 {
   private static final long serialVersionUID = -2521426347126048630L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(AbstractMobileListForm.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(AbstractMobileListForm.class);
 
   protected F filter;
 

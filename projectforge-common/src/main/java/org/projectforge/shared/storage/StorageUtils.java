@@ -39,7 +39,7 @@ import java.io.Reader;
  */
 public class StorageUtils
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(StorageUtils.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(StorageUtils.class);
 
   public static void writeDefaultStorageConfig(final File file, final String authenticationToken)
   {

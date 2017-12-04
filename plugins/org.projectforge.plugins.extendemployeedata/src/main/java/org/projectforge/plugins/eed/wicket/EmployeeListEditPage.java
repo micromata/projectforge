@@ -40,7 +40,7 @@ public class EmployeeListEditPage extends AbstractListPage<EmployeeListEditForm,
 {
   private static final long serialVersionUID = -9117648731994041528L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(EmployeeListEditPage.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(EmployeeListEditPage.class);
 
   @SpringBean
   private EmployeeService employeeService;

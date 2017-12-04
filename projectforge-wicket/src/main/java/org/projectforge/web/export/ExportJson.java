@@ -23,20 +23,21 @@
 
 package org.projectforge.web.export;
 
-import com.google.gson.Gson;
+import java.io.IOException;
+import java.io.OutputStream;
+
 import org.apache.commons.io.IOUtils;
 import org.apache.wicket.util.resource.AbstractResourceStreamWriter;
 import org.apache.wicket.util.resource.IResourceStream;
 
-import java.io.IOException;
-import java.io.OutputStream;
+import com.google.gson.Gson;
 
 /**
  * @author Johannes Unterstein (j.unterstein@micromata.de)
  */
 public class ExportJson
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(ExportJson.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ExportJson.class);
 
   private String jsonName;
 

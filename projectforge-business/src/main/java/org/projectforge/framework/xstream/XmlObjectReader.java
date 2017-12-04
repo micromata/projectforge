@@ -50,7 +50,7 @@ import org.projectforge.framework.xstream.converter.IConverter;
  */
 public class XmlObjectReader
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(XmlObjectReader.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(XmlObjectReader.class);
 
   private static final int ABBREVIATE_WARNING = 500;
 
@@ -444,7 +444,7 @@ public class XmlObjectReader
     try {
       field.set(obj, value);
     } catch (final IllegalArgumentException ex) {
-      log.fatal("Exception encountered "
+      log.error("Exception encountered "
           + ex
           + ". Ignoring field '"
           + field.getName()
@@ -454,7 +454,7 @@ public class XmlObjectReader
           + obj.getClass()
           + "'.", ex);
     } catch (final IllegalAccessException ex) {
-      log.fatal("Exception encountered "
+      log.error("Exception encountered "
           + ex
           + ". Ignoring field '"
           + field.getName()

@@ -23,7 +23,7 @@
 
 package org.projectforge.web.access;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
@@ -46,7 +46,7 @@ public class AccessListForm extends AbstractListForm<AccessFilter, AccessListPag
 {
   private static final long serialVersionUID = 7972009688251087219L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(AccessListForm.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(AccessListForm.class);
 
   private transient TaskTree taskTree;
 

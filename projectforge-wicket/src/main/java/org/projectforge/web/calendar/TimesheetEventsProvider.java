@@ -58,7 +58,7 @@ import net.ftlines.wicket.fullcalendar.Event;
  */
 public class TimesheetEventsProvider extends MyFullCalendarEventsProvider
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(TimesheetEventsProvider.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(TimesheetEventsProvider.class);
 
   private static final long serialVersionUID = 2241430630558260146L;
 

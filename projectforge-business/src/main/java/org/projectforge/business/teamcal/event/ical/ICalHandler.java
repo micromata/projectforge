@@ -21,7 +21,7 @@ import net.fortuna.ical4j.model.property.Method;
 
 public class ICalHandler
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(ICalHandler.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ICalHandler.class);
 
   private TeamEventService eventService;
   private ICalParser parser;

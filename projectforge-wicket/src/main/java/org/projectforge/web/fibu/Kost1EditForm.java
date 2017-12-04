@@ -23,15 +23,14 @@
 
 package org.projectforge.web.fibu;
 
-import org.apache.log4j.Logger;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.util.convert.IConverter;
-import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.business.fibu.kost.Kost1DO;
 import org.projectforge.business.fibu.kost.KostentraegerStatus;
 import org.projectforge.web.wicket.AbstractEditForm;
+import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.web.wicket.components.LabelValueChoiceRenderer;
 import org.projectforge.web.wicket.components.MaxLengthTextArea;
 import org.projectforge.web.wicket.components.RequiredMinMaxNumberField;
@@ -40,12 +39,13 @@ import org.projectforge.web.wicket.flowlayout.DivTextPanel;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
 import org.projectforge.web.wicket.flowlayout.InputPanel;
 import org.projectforge.web.wicket.flowlayout.TextAreaPanel;
+import org.slf4j.Logger;
 
 public class Kost1EditForm extends AbstractEditForm<Kost1DO, Kost1EditPage>
 {
   private static final long serialVersionUID = 7867840580460197749L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(Kost1EditForm.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(Kost1EditForm.class);
 
   protected TextField<Integer> nummernkreisField, bereichField, teilbereichField, endzifferField;
 

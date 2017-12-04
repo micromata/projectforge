@@ -58,7 +58,7 @@ public class SMSReceiverServlet extends HttpServlet
   private static final long serialVersionUID = 5382567744977121735L;
 
   // Should not be final because this logger is replaced by a Mockito spy object in test class.
-  private static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(SMSReceiverServlet.class);
+  private static org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(SMSReceiverServlet.class);
 
   @Autowired
   private MebDao mebDao;

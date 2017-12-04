@@ -52,7 +52,7 @@ import org.projectforge.web.wicket.WebConstants;
  */
 public class CreateImageDimensions
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(CreateImageDimensions.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(CreateImageDimensions.class);
 
   private static final String PATH = "src/main/webapp/";
 

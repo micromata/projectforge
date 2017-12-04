@@ -29,7 +29,6 @@ import java.lang.reflect.Field;
 import java.util.Date;
 import java.util.Map;
 
-import org.apache.log4j.Logger;
 import org.apache.wicket.markup.html.link.Link;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
@@ -51,6 +50,7 @@ import org.projectforge.web.wicket.AbstractSecuredBasePage;
 import org.projectforge.web.wicket.DownloadUtils;
 import org.projectforge.web.wicket.EditPage;
 import org.projectforge.web.wicket.components.ContentMenuEntryPanel;
+import org.slf4j.Logger;
 
 import de.micromata.genome.db.jpa.tabattr.entities.JpaTabAttrBaseDO;
 
@@ -59,7 +59,7 @@ public class AddressEditPage extends AbstractEditPage<AddressDO, AddressEditForm
 {
   private static final long serialVersionUID = 7091721062661400435L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(AddressEditPage.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(AddressEditPage.class);
 
   @SpringBean
   private AddressDao addressDao;

@@ -47,7 +47,7 @@ import de.micromata.genome.util.types.DateUtils;
 
 public class TimedAttributePanel<PK extends Serializable, T extends TimeableAttrRow<PK>> extends BaseAttributePanel
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(TimedAttributePanel.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(TimedAttributePanel.class);
 
   private static final MyDateConverter dateConverter = new MyDateConverter("M-"); // same style as the date panel
 

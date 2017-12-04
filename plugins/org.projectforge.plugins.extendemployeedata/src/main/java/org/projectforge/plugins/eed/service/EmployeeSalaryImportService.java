@@ -32,7 +32,7 @@ public class EmployeeSalaryImportService
   @Autowired
   private EmployeeConfigurationService employeeConfigService;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(EmployeeSalaryImportService.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(EmployeeSalaryImportService.class);
 
   public ImportStorage<EmployeeSalaryDO> importData(final InputStream is, final String filename, final Date dateToSelectAttrRow) throws IOException
   {

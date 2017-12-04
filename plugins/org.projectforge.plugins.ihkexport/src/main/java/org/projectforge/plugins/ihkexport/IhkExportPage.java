@@ -23,7 +23,7 @@ public class IhkExportPage extends AbstractStandardFormPage implements ISelectCa
 {
   private static final long serialVersionUID = -7157440416517271655L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(IhkExportPage.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(IhkExportPage.class);
 
   @SpringBean
   private transient TimesheetDao timesheetDao;

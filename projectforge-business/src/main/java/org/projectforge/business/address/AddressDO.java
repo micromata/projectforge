@@ -84,7 +84,7 @@ import de.micromata.genome.db.jpa.tabattr.entities.JpaTabAttrDataBaseDO;
 @NoHistory
 public class AddressDO extends DefaultBaseWithAttrDO<AddressDO>
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(AddressDO.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(AddressDO.class);
 
   private static final long serialVersionUID = 974064367925158463L;
 

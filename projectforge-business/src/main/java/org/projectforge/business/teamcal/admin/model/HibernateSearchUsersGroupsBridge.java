@@ -50,7 +50,7 @@ import org.springframework.context.ApplicationContext;
  */
 public class HibernateSearchUsersGroupsBridge implements FieldBridge
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory
       .getLogger(HibernateSearchUsersGroupsBridge.class);
 
   private final GroupsComparator groupsComparator = new GroupsComparator();

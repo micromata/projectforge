@@ -58,7 +58,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Repository
 public class HRDao implements IDao<HRViewData>
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(HRDao.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(HRDao.class);
 
   @Autowired
   private TimesheetDao timesheetDao;
@@ -245,11 +245,13 @@ public class HRDao implements IDao<HRViewData>
    * 
    * @see org.projectforge.framework.persistence.api.IDao#getList(org.projectforge.framework.persistence.api.BaseSearchFilter)
    */
+  @Override
   public List<HRViewData> getList(final BaseSearchFilter filter)
   {
     throw new UnsupportedOperationException();
   }
 
+  @Override
   public String[] getSearchFields()
   {
     return null;
@@ -259,6 +261,7 @@ public class HRDao implements IDao<HRViewData>
    * @return false.
    * @see org.projectforge.framework.persistence.api.IDao#isHistorizable()
    */
+  @Override
   public boolean isHistorizable()
   {
     return false;
@@ -268,6 +271,7 @@ public class HRDao implements IDao<HRViewData>
    * @return true.
    * @see org.projectforge.framework.persistence.api.IDao#hasInsertAccess()
    */
+  @Override
   public boolean hasInsertAccess(final PFUserDO user)
   {
     return hrPlanningDao.hasInsertAccess(user);

@@ -25,7 +25,6 @@ package org.projectforge.plugins.skillmatrix;
 
 import java.util.Date;
 
-import org.apache.log4j.Logger;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.hibernate.Hibernate;
@@ -38,6 +37,8 @@ import org.projectforge.web.wicket.components.DatePanelSettings;
 import org.projectforge.web.wicket.components.LabelValueChoiceRenderer;
 import org.projectforge.web.wicket.components.MaxLengthTextArea;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * This is the edit formular page.
@@ -49,7 +50,7 @@ public class TrainingAttendeeEditForm extends AbstractEditForm<TrainingAttendeeD
 
   private static final long serialVersionUID = 6814668114853472909L;
 
-  private static final Logger log = Logger.getLogger(TrainingAttendeeEditForm.class);
+  private static final Logger log = LoggerFactory.getLogger(TrainingAttendeeEditForm.class);
 
   private FieldsetPanel ratingFs, certificateFs;
 
