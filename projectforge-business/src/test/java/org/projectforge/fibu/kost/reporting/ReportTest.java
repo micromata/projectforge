@@ -23,9 +23,7 @@
 
 package org.projectforge.fibu.kost.reporting;
 
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertFalse;
-import static org.testng.AssertJUnit.assertTrue;
+import static org.testng.AssertJUnit.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -40,7 +38,7 @@ import org.testng.annotations.Test;
 
 public class ReportTest extends AbstractTestBase
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(ReportTest.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ReportTest.class);
 
   @Autowired
   private ReportDao reportDao;

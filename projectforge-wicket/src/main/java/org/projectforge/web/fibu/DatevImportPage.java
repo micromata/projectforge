@@ -45,7 +45,7 @@ public class DatevImportPage extends AbstractImportPage<DatevImportForm>
 {
   private static final long serialVersionUID = 3158445617725488919L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(DatevImportPage.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(DatevImportPage.class);
 
   @SpringBean
   private DatevImportDao datevImportDao;

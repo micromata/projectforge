@@ -31,13 +31,13 @@ import org.projectforge.framework.i18n.InternalErrorException;
 
 /**
  * Proxy of TaskNode for scripting.
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
  */
 public class ScriptingTaskNode
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(ScriptingTaskNode.class);
-  
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ScriptingTaskNode.class);
+
   TaskNode __baseObject;
 
   private TaskDO task;
@@ -45,11 +45,11 @@ public class ScriptingTaskNode
   ScriptingTaskNode(final TaskNode node)
   {
     __baseObject = node;
-    
+
     try {
-      task = (TaskDO)node.getTask().clone();
+      task = (TaskDO) node.getTask().clone();
     } catch (CloneNotSupportedException ex) {
-      log.fatal("Exception encountered " + ex, ex);
+      log.error("Exception encountered " + ex, ex);
       throw new InternalErrorException();
     }
   }

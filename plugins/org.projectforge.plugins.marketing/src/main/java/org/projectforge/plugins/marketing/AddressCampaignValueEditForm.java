@@ -23,7 +23,6 @@
 
 package org.projectforge.plugins.marketing;
 
-import org.apache.log4j.Logger;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.web.wicket.AbstractEditForm;
@@ -32,6 +31,7 @@ import org.projectforge.web.wicket.components.MaxLengthTextArea;
 import org.projectforge.web.wicket.flowlayout.DivTextPanel;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
 import org.projectforge.web.wicket.flowlayout.TextAreaPanel;
+import org.slf4j.Logger;
 
 /**
  * This is the edit formular page.
@@ -43,7 +43,7 @@ public class AddressCampaignValueEditForm extends AbstractEditForm<AddressCampai
 {
   private static final long serialVersionUID = -6208809585214296635L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory
       .getLogger(AddressCampaignValueEditForm.class);
 
   @SpringBean

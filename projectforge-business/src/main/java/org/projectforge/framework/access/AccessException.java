@@ -45,7 +45,7 @@ import org.projectforge.framework.persistence.user.entities.TenantDO;
  */
 public class AccessException extends UserException
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(AccessException.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(AccessException.class);
 
   private static final long serialVersionUID = 147795804616526958L;
 

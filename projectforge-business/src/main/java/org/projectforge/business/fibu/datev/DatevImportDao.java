@@ -85,7 +85,7 @@ public class DatevImportDao
       "datum",
       "gegenKonto", "text", "kost1", "comment" };
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(DatevImportDao.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(DatevImportDao.class);
 
   @Autowired
   private AccessChecker accessChecker;

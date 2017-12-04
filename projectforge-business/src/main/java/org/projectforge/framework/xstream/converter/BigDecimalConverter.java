@@ -30,7 +30,7 @@ import org.projectforge.framework.xstream.XmlConstants;
 
 public class BigDecimalConverter extends AbstractValueConverter<BigDecimal>
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(BigDecimalConverter.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(BigDecimalConverter.class);
 
   @Override
   public BigDecimal fromString(final String str)

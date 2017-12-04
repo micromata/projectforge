@@ -25,7 +25,7 @@ package org.projectforge.web.user;
 
 import java.util.List;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.web.wicket.WicketUtils;
@@ -46,7 +46,7 @@ public class UserPrefEditPage extends AbstractEditPage<UserPrefDO, UserPrefEditF
 {
   private static final long serialVersionUID = 3405518532401481456L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(UserPrefEditPage.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(UserPrefEditPage.class);
 
   public static final String PARAMETER_AREA = "area";
 

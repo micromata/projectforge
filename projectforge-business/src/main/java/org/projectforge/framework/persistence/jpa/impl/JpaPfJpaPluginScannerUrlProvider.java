@@ -7,8 +7,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.ServiceLoader;
 
-import org.apache.log4j.Logger;
 import org.projectforge.plugins.core.ProjectforgePluginService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import de.micromata.genome.jpa.impl.JpaExtScannerUrlProvider;
 import de.micromata.genome.util.matcher.CommonMatchers;
@@ -23,7 +24,7 @@ import de.micromata.genome.util.matcher.StringMatchers;
  */
 public class JpaPfJpaPluginScannerUrlProvider implements JpaExtScannerUrlProvider
 {
-  private static final Logger LOG = Logger.getLogger(JpaPfJpaPluginScannerUrlProvider.class);
+  private static final Logger LOG = LoggerFactory.getLogger(JpaPfJpaPluginScannerUrlProvider.class);
 
   @Override
   public Collection<URL> getScannUrls()

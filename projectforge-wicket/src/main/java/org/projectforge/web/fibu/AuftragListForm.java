@@ -25,7 +25,6 @@ package org.projectforge.web.fibu;
 
 import java.math.BigDecimal;
 
-import org.apache.log4j.Logger;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.spring.injection.annot.SpringBean;
@@ -50,11 +49,12 @@ import org.projectforge.web.wicket.flowlayout.DropDownChoicePanel;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
 import org.projectforge.web.wicket.flowlayout.Select2MultiChoicePanel;
 import org.projectforge.web.wicket.flowlayout.TextStyle;
+import org.slf4j.Logger;
 import org.wicketstuff.select2.Select2MultiChoice;
 
 public class AuftragListForm extends AbstractListForm<AuftragFilter, AuftragListPage>
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(AuftragListForm.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(AuftragListForm.class);
 
   private static final long serialVersionUID = -5969136444233092172L;
 

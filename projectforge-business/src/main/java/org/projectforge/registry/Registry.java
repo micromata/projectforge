@@ -85,7 +85,7 @@ import org.springframework.context.ApplicationContext;
  */
 public class Registry
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(Registry.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(Registry.class);
 
   public static final Registry instance = new Registry();
 

@@ -64,7 +64,7 @@ public class AccountingRecordListPage
     extends AbstractListPage<AccountingRecordListForm, BuchungssatzDao, BuchungssatzDO> implements
     IListPageColumnsCreator<BuchungssatzDO>
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(AccountingRecordListPage.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(AccountingRecordListPage.class);
 
   private static final long serialVersionUID = -34213362189153025L;
 

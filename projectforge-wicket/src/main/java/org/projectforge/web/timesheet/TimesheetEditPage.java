@@ -33,7 +33,7 @@ import java.util.List;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.CompareToBuilder;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.fibu.ProjektDO;
@@ -62,7 +62,7 @@ import org.projectforge.web.wicket.WicketUtils;
 public class TimesheetEditPage extends AbstractEditPage<TimesheetDO, TimesheetEditForm, TimesheetDao>
     implements ISelectCallerPage
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(TimesheetEditPage.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(TimesheetEditPage.class);
 
   protected static final String[] BOOKMARKABLE_SELECT_PROPERTIES = new String[] { "p.taskId|task", "p.userId|user",
       "p.kost2Id|kost2" };

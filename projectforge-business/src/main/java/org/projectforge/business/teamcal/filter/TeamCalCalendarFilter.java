@@ -41,7 +41,7 @@ public class TeamCalCalendarFilter extends AbstractCalendarFilter
 {
   private static final long serialVersionUID = 7361308619781209753L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(TeamCalCalendarFilter.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(TeamCalCalendarFilter.class);
 
   public static final String DEFAULT_COLOR = "#FAAF26";
 

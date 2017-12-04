@@ -2,7 +2,7 @@ package org.projectforge.plugins.eed.wicket;
 
 import java.util.function.Function;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.user.UserRightId;
 import org.projectforge.business.user.UserRightValue;
@@ -19,7 +19,7 @@ import de.micromata.genome.db.jpa.tabattr.api.AttrGroup;
 
 public class EmployeeConfigurationForm extends AbstractEditForm<EmployeeConfigurationDO, EmployeeConfigurationPage>
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(EmployeeConfigurationForm.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(EmployeeConfigurationForm.class);
 
   @SpringBean
   private GuiAttrSchemaService attrSchemaService;

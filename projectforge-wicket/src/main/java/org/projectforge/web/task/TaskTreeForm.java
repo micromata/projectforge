@@ -49,7 +49,7 @@ public class TaskTreeForm extends AbstractSecuredForm<TaskFilter, TaskTreePage>
 {
   private static final long serialVersionUID = -203572415793301622L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(TaskTreeForm.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(TaskTreeForm.class);
 
   private TaskFilter searchFilter;
 

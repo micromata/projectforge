@@ -23,16 +23,12 @@
 
 package org.projectforge.access;
 
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertFalse;
-import static org.testng.AssertJUnit.assertNotNull;
-import static org.testng.AssertJUnit.assertTrue;
+import static org.testng.AssertJUnit.*;
 
 import java.io.Serializable;
 import java.sql.Timestamp;
 import java.util.List;
 
-import org.apache.log4j.Logger;
 import org.projectforge.business.multitenancy.TenantRegistryMap;
 import org.projectforge.business.task.TaskDO;
 import org.projectforge.business.task.TaskDao;
@@ -45,12 +41,14 @@ import org.projectforge.framework.access.AccessType;
 import org.projectforge.framework.access.GroupTaskAccessDO;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.test.AbstractTestBase;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.testng.annotations.Test;
 
 public class AccessTestFork extends AbstractTestBase
 {
-  private static final Logger log = Logger.getLogger(AccessTestFork.class);
+  private static final Logger log = LoggerFactory.getLogger(AccessTestFork.class);
 
   @Autowired
   private AccessDao accessDao;
@@ -67,7 +65,7 @@ public class AccessTestFork extends AbstractTestBase
     logon(TEST_ADMIN_USER);
     final List<GroupTaskAccessDO> list = accessDao.internalLoadAll();
     for (final GroupTaskAccessDO access : list) {
-      log.info(access);
+      log.info(access.toString());
     }
     initTestDB.addTask("accesstest", "root");
     GroupTaskAccessDO groupTaskAccess = new GroupTaskAccessDO();

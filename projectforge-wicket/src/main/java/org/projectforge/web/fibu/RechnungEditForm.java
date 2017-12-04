@@ -24,7 +24,6 @@
 package org.projectforge.web.fibu;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.log4j.Logger;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -56,12 +55,13 @@ import org.projectforge.web.wicket.components.RequiredMaxLengthTextField;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
 import org.projectforge.web.wicket.flowlayout.InputPanel;
 import org.projectforge.web.wicket.flowlayout.TextAreaPanel;
+import org.slf4j.Logger;
 
 public class RechnungEditForm extends AbstractRechnungEditForm<RechnungDO, RechnungsPositionDO, RechnungEditPage>
 {
   private static final long serialVersionUID = -6018131069720611834L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(RechnungEditForm.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(RechnungEditForm.class);
 
   private final PeriodOfPerformanceHelper periodOfPerformanceHelper = new PeriodOfPerformanceHelper();
 

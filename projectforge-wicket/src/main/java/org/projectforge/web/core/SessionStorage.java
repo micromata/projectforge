@@ -29,26 +29,27 @@ import java.util.Iterator;
 
 import javax.servlet.http.HttpSession;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 /**
  * Handler for storing objects in the user's http session. Use this handler instead of session.setAttribute(String,
  * Object);
- * 
+ *
  * @author kai
  */
 @Component
 public class SessionStorage
 {
-  private final static Logger log = Logger.getLogger(SessionStorage.class);
+  private final static Logger log = LoggerFactory.getLogger(SessionStorage.class);
 
   /**
    * Wrapper for HttpSession.setAttribute
-   * 
+   *
    * @param session The user's session.
-   * @param key The key for storing the object.
-   * @param obj The object to store.
+   * @param key     The key for storing the object.
+   * @param obj     The object to store.
    */
   public void putObject(final HttpSession session, final String key, final Object obj)
   {
@@ -62,9 +63,9 @@ public class SessionStorage
 
   /**
    * Wrapper for HttpSession.getAttribute
-   * 
+   *
    * @param session The user's session.
-   * @param key The key of the stored object.
+   * @param key     The key of the stored object.
    */
   public Object getObject(final HttpSession session, final String key)
   {
@@ -81,9 +82,9 @@ public class SessionStorage
 
   /**
    * Wrapper for HttpSession.getAttribute
-   * 
+   *
    * @param session The user's session.
-   * @param key The key of the stored object.
+   * @param key     The key of the stored object.
    */
   public void removeAttribute(final HttpSession session, final String key)
   {
@@ -112,7 +113,7 @@ public class SessionStorage
         list.add((String) en.nextElement());
       }
       String attrName = null;
-      for (final Iterator it = list.iterator(); it.hasNext() == true;) {
+      for (final Iterator it = list.iterator(); it.hasNext() == true; ) {
         attrName = (String) it.next();
         session.removeAttribute(attrName);
         if (log.isDebugEnabled() == true) {

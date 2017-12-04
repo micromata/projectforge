@@ -57,7 +57,7 @@ public class CreateI18nKeys
 {
   // TODO: I18nEnums
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(CreateI18nKeys.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(CreateI18nKeys.class);
 
   private static final String PATH = "src/main/";
 

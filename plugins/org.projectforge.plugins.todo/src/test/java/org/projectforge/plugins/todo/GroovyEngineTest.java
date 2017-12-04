@@ -46,7 +46,7 @@ import org.testng.annotations.Test;
 
 public class GroovyEngineTest extends AbstractTestBase
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(GroovyEngineTest.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(GroovyEngineTest.class);
 
   @Autowired
   private ConfigurationService configurationService;

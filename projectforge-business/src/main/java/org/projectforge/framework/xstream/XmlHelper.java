@@ -51,7 +51,7 @@ public class XmlHelper
 {
   public static final String XML_HEADER = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>";
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(XmlHelper.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(XmlHelper.class);
 
   /**
    * Replace all single quotes by quotation marks. This is use-ful for writing xml string constants e. g. in test cases.

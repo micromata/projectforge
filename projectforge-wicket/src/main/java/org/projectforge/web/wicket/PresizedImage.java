@@ -43,7 +43,7 @@ import org.projectforge.web.core.ImageDimension;
 
 public class PresizedImage extends ContextImage
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(PresizedImage.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(PresizedImage.class);
 
   private static final long serialVersionUID = -1456397971086283625L;
 

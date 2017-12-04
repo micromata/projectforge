@@ -79,7 +79,7 @@ public class HRPlanningDO extends DefaultBaseDO
 {
   private static final long serialVersionUID = 6413788186422319573L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(HRPlanningDO.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(HRPlanningDO.class);
 
   @IndexedEmbedded(depth = 1)
   private PFUserDO user;

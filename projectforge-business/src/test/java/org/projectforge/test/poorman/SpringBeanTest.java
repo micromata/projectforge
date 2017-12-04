@@ -12,7 +12,7 @@ import org.testng.annotations.Test;
 public class SpringBeanTest extends AbstractTestBase
 {
 
-  private static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(SpringBeanTest.class);
+  private static org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(SpringBeanTest.class);
 
   @Autowired
   AbstractApplicationContext abstractApplicationContext;

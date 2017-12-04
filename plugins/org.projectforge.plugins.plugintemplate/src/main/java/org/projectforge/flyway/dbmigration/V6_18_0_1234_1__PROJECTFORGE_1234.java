@@ -5,7 +5,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 
 public class V6_18_0_1234_1__PROJECTFORGE_1234 implements SpringJdbcMigration
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(V6_18_0_1234_1__PROJECTFORGE_1234.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(V6_18_0_1234_1__PROJECTFORGE_1234.class);
 
   @Override
   public void migrate(final JdbcTemplate jdbcTemplate) throws Exception

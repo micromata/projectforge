@@ -23,37 +23,12 @@
 
 package org.projectforge.business.ldap;
 
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertFalse;
-import static org.testng.AssertJUnit.assertNotNull;
-import static org.testng.AssertJUnit.assertNull;
-import static org.testng.AssertJUnit.assertTrue;
-
-import org.mockito.Mockito;
-import org.projectforge.business.ldap.LdapConfig;
-import org.projectforge.business.ldap.LdapOrganizationalUnitDao;
-import org.projectforge.business.ldap.LdapSlaveLoginHandler;
-import org.projectforge.business.ldap.LdapUser;
-import org.projectforge.business.ldap.LdapUserDao;
-import org.projectforge.business.login.Login;
-import org.projectforge.business.login.LoginHandler;
-import org.projectforge.business.login.LoginResult;
-import org.projectforge.business.login.LoginResultStatus;
-import org.projectforge.business.login.PasswordCheckResult;
-import org.projectforge.business.multitenancy.TenantRegistryMap;
-import org.projectforge.business.user.UserGroupCache;
-import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.test.AbstractTestBase;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.testng.annotations.AfterMethod;
-import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 @Test(enabled=false)
 public class LdapSlaveLoginHandlerTest extends AbstractTestBase
 {/*
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(LdapSlaveLoginHandlerTest.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(LdapSlaveLoginHandlerTest.class);
 
   @Autowired
   LdapSlaveLoginHandler loginHandler;

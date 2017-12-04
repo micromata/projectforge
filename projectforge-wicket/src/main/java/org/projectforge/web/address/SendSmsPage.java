@@ -59,7 +59,7 @@ public class SendSmsPage extends AbstractStandardFormPage
   protected static final String[] BOOKMARKABLE_SELECT_PROPERTIES = new String[] { PARAMETER_KEY_ADDRESS_ID + "|address",
       PARAMETER_KEY_PHONE_TYPE + "|phone", PARAMETER_KEY_NUMBER + "|no" };
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(SendSmsPage.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(SendSmsPage.class);
 
   @SpringBean
   private AddressDao addressDao;
@@ -197,12 +197,12 @@ public class SendSmsPage extends AbstractStandardFormPage
       }
     } catch (final HttpException ex) {
       errorKey = "Call failed. Please contact administrator.";
-      log.fatal(errorKey + ": " + configurationService.getSmsUrl()
+      log.error(errorKey + ": " + configurationService.getSmsUrl()
           + StringHelper.hideStringEnding(String.valueOf(number), 'x', 3));
       throw new RuntimeException(ex);
     } catch (final IOException ex) {
       errorKey = "Call failed. Please contact administrator.";
-      log.fatal(errorKey + ": " + configurationService.getSmsUrl()
+      log.error(errorKey + ": " + configurationService.getSmsUrl()
           + StringHelper.hideStringEnding(String.valueOf(number), 'x', 3));
       throw new RuntimeException(ex);
     }

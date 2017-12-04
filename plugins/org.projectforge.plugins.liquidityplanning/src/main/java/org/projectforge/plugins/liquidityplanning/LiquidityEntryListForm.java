@@ -23,7 +23,7 @@
 
 package org.projectforge.plugins.liquidityplanning;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
@@ -50,7 +50,7 @@ public class LiquidityEntryListForm extends AbstractListForm<LiquidityFilter, Li
 {
   private static final long serialVersionUID = 2040255193023406307L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(LiquidityEntryListForm.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(LiquidityEntryListForm.class);
 
   public LiquidityEntryListForm(final LiquidityEntryListPage parentPage)
   {

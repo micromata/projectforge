@@ -45,7 +45,7 @@ public class JodaDateConverter implements IConverter<DateMidnight>
 
   private static final long serialVersionUID = 8665928904693938793L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(JodaDateConverter.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(JodaDateConverter.class);
 
   private String userDateFormat;
 

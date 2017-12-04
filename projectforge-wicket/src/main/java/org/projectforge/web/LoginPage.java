@@ -53,7 +53,7 @@ public class LoginPage extends AbstractUnsecureBasePage
 
   public static final String REQUEST_PARAM_LOGOUT = "logout";
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(LoginPage.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(LoginPage.class);
 
   // Used by LoginMobilePage
   private static final String PARAMETER_KEY_FORCE_NON_MOBILE = "forceNonMobile";

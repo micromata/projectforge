@@ -35,7 +35,7 @@ import org.apache.wicket.util.string.Strings;
 
 public class ClientIpResolver extends WebClientInfo
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(ClientIpResolver.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ClientIpResolver.class);
 
   private static final long serialVersionUID = -1001665111323720357L;
 

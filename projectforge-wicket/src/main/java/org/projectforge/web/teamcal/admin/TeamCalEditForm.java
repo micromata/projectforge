@@ -27,7 +27,7 @@ import java.util.Collection;
 import java.util.List;
 
 import org.apache.commons.lang3.ObjectUtils;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.markup.html.basic.Label;
@@ -73,7 +73,7 @@ import org.wicketstuff.select2.Select2MultiChoice;
  */
 public class TeamCalEditForm extends AbstractEditForm<TeamCalDO, TeamCalEditPage>
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(TeamCalEditForm.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(TeamCalEditForm.class);
 
   private static final long serialVersionUID = 1379614008604844519L;
 

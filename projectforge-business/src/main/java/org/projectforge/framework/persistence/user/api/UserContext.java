@@ -37,7 +37,7 @@ import org.projectforge.framework.persistence.user.entities.TenantDO;
  */
 public class UserContext implements Serializable
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(UserContext.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(UserContext.class);
 
   private static final long serialVersionUID = 4934701869144478233L;
 

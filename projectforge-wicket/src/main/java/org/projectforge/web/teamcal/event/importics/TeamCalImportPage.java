@@ -44,7 +44,7 @@ public class TeamCalImportPage extends AbstractImportPage<TeamCalImportForm>
 {
   private static final long serialVersionUID = 4717760936874814502L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(TeamCalImportPage.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(TeamCalImportPage.class);
 
   public static String PARAM_KEY_TEAM_CAL_ID = "teamCalId";
 

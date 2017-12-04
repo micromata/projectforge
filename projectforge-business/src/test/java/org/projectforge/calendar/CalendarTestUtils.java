@@ -39,7 +39,7 @@ import org.projectforge.framework.time.DateHelper;
  */
 public class CalendarTestUtils
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(CalendarTestUtils.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(CalendarTestUtils.class);
 
   public static java.util.Date createDate(final String isoDateString, final TimeZone timeZone)
   {

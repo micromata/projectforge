@@ -26,7 +26,6 @@ package org.projectforge.plugins.todo;
 import java.util.Date;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.log4j.Logger;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.form.AjaxButton;
@@ -64,12 +63,13 @@ import org.projectforge.web.wicket.flowlayout.CheckBoxButton;
 import org.projectforge.web.wicket.flowlayout.DivPanel;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
 import org.projectforge.web.wicket.flowlayout.TextAreaPanel;
+import org.slf4j.Logger;
 
 public class ToDoEditForm extends AbstractEditForm<ToDoDO, ToDoEditPage>
 {
   private static final long serialVersionUID = -6208809585214296635L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(ToDoEditForm.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ToDoEditForm.class);
 
   @SpringBean
   private UserPrefDao userPrefDao;

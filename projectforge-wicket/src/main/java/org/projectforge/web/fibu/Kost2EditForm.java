@@ -25,7 +25,6 @@ package org.projectforge.web.fibu;
 
 import java.math.BigDecimal;
 
-import org.apache.log4j.Logger;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.model.PropertyModel;
@@ -49,12 +48,13 @@ import org.projectforge.web.wicket.flowlayout.DivTextPanel;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
 import org.projectforge.web.wicket.flowlayout.InputPanel;
 import org.projectforge.web.wicket.flowlayout.TextAreaPanel;
+import org.slf4j.Logger;
 
 public class Kost2EditForm extends AbstractEditForm<Kost2DO, Kost2EditPage>
 {
   private static final long serialVersionUID = -2138017238114715368L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(Kost2EditForm.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(Kost2EditForm.class);
 
   @SpringBean
   private Kost2ArtDao kost2ArtDao;

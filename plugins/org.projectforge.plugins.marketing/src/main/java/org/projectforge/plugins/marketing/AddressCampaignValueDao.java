@@ -56,7 +56,7 @@ import de.micromata.genome.db.jpa.history.api.HistoryEntry;
 @Repository
 public class AddressCampaignValueDao extends BaseDao<AddressCampaignValueDO>
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(AddressCampaignValueDao.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(AddressCampaignValueDao.class);
 
   @Autowired
   private AddressDao addressDao;

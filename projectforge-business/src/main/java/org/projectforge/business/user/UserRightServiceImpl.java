@@ -56,7 +56,7 @@ public class UserRightServiceImpl implements UserRightService, Serializable
 {
   private static final long serialVersionUID = 7745893362798312310L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(UserRightServiceImpl.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(UserRightServiceImpl.class);
 
   @Autowired
   AccessChecker accessChecker;

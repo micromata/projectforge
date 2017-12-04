@@ -33,7 +33,7 @@ import org.hibernate.metadata.ClassMetadata;
  */
 public abstract class PropertyDelta
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(PropertyDelta.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(PropertyDelta.class);
 
   private Integer id;
 

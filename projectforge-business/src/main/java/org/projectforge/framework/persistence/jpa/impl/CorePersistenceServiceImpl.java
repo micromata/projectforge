@@ -5,7 +5,6 @@ import java.util.Collections;
 import java.util.List;
 
 import org.apache.commons.lang3.Validate;
-import org.apache.log4j.Logger;
 import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.access.AccessException;
 import org.projectforge.framework.access.OperationType;
@@ -19,6 +18,8 @@ import org.projectforge.framework.persistence.api.UserRightService;
 import org.projectforge.framework.persistence.history.HistoryBaseDaoAdapter;
 import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import de.micromata.genome.jpa.EntityCopyStatus;
@@ -36,7 +37,7 @@ public class CorePersistenceServiceImpl<PK extends Serializable, ENT extends Mar
     implements ICorePersistenceService<PK, ENT>, IDao<ENT>
 {
 
-  private static final Logger LOG = Logger.getLogger(JpaPfPersistenceServiceImpl.class);
+  private static final Logger LOG = LoggerFactory.getLogger(JpaPfPersistenceServiceImpl.class);
   @Autowired
   private PfEmgrFactory emf;
 

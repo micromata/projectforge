@@ -26,7 +26,6 @@ package org.projectforge.web.address;
 import java.util.Collection;
 
 import org.apache.commons.lang3.ObjectUtils;
-import org.apache.log4j.Logger;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
@@ -51,6 +50,8 @@ import org.projectforge.web.wicket.components.JodaDatePanel;
 import org.projectforge.web.wicket.components.MaxLengthTextArea;
 import org.projectforge.web.wicket.components.RequiredMaxLengthTextField;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.wicketstuff.select2.Select2MultiChoice;
 
 /**
@@ -60,7 +61,7 @@ import org.wicketstuff.select2.Select2MultiChoice;
  */
 public class AddressbookEditForm extends AbstractEditForm<AddressbookDO, AddressbookEditPage>
 {
-  private static final Logger log = Logger.getLogger(AddressbookEditForm.class);
+  private static final Logger log = LoggerFactory.getLogger(AddressbookEditForm.class);
 
   private static final long serialVersionUID = 137912345678844519L;
 

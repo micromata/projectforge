@@ -46,7 +46,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class GroupDOConverter
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(GroupDOConverter.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(GroupDOConverter.class);
 
   @Autowired
   LdapService ldapService;

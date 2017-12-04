@@ -46,7 +46,7 @@ import com.thoughtworks.xstream.annotations.Annotations;
 @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
 public class ReportDao
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(ReportDao.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ReportDao.class);
 
   private XStream xstream;
 

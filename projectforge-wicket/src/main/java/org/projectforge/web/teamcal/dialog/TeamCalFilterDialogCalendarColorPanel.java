@@ -49,7 +49,7 @@ public class TeamCalFilterDialogCalendarColorPanel extends Panel
 {
   private static final long serialVersionUID = -4596590985776103813L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory
       .getLogger(TeamCalFilterDialogCalendarColorPanel.class);
 
   private RepeatingView columnRepeater;

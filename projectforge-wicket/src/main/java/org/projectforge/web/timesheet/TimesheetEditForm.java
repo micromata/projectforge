@@ -29,7 +29,7 @@ import java.util.List;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
 import org.apache.wicket.markup.html.form.DropDownChoice;
@@ -90,7 +90,7 @@ public class TimesheetEditForm extends AbstractEditForm<TimesheetDO, TimesheetEd
 {
   private static final long serialVersionUID = 3150725003240437752L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(TimesheetEditForm.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(TimesheetEditForm.class);
 
   private static final String USERPREF_KEY = "TimesheetEditForm.userPrefs";
 

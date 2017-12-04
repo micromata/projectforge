@@ -37,7 +37,7 @@ public abstract class AbstractImportPage<F extends AbstractImportForm<?, ?, ?>> 
 {
   private static final long serialVersionUID = -7206460665473795739L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(AbstractImportPage.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(AbstractImportPage.class);
 
   protected F form;
 

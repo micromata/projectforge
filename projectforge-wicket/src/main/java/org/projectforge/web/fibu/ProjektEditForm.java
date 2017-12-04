@@ -25,7 +25,6 @@ package org.projectforge.web.fibu;
 
 import java.util.List;
 
-import org.apache.log4j.Logger;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.FormComponent;
@@ -59,12 +58,13 @@ import org.projectforge.web.wicket.flowlayout.DivTextPanel;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
 import org.projectforge.web.wicket.flowlayout.InputPanel;
 import org.projectforge.web.wicket.flowlayout.TextAreaPanel;
+import org.slf4j.Logger;
 
 public class ProjektEditForm extends AbstractEditForm<ProjektDO, ProjektEditPage>
 {
   private static final long serialVersionUID = -6018131069720611834L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(ProjektEditForm.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ProjektEditForm.class);
 
   List<Kost2Art> kost2Arts;
 

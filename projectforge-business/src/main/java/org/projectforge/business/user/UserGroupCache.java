@@ -33,7 +33,6 @@ import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
-import org.apache.log4j.Logger;
 import org.projectforge.business.fibu.EmployeeDO;
 import org.projectforge.business.fibu.ProjektDO;
 import org.projectforge.business.login.Login;
@@ -47,6 +46,8 @@ import org.projectforge.framework.persistence.user.entities.GroupDO;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.persistence.user.entities.TenantDO;
 import org.projectforge.framework.persistence.user.entities.UserRightDO;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.orm.hibernate5.HibernateTemplate;
 
@@ -59,7 +60,7 @@ public class UserGroupCache extends AbstractCache
 {
   private static final long serialVersionUID = -6501106088529363341L;
 
-  private static Logger log = Logger.getLogger(UserGroupCache.class);
+  private static Logger log = LoggerFactory.getLogger(UserGroupCache.class);
 
   private final TenantDO tenant;
 
@@ -585,7 +586,7 @@ public class UserGroupCache extends AbstractCache
     try {
       rights = (List<UserRightDO>) hibernateTemplate.find("from UserRightDO t order by user.id, right_id");
     } catch (final Exception ex) {
-      log.fatal(
+      log.error(
           "******* Exception while getting user rights from data-base (only OK for migration from older versions): "
               + ex.getMessage(),
           ex);

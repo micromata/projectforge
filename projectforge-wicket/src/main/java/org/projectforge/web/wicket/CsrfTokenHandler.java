@@ -42,7 +42,7 @@ public class CsrfTokenHandler implements Serializable
 {
   private static final long serialVersionUID = -9129345307409567900L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(CsrfTokenHandler.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(CsrfTokenHandler.class);
 
   private String csrfToken;
 

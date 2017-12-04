@@ -77,7 +77,7 @@ public class HRListPage extends AbstractListPage<HRListForm, HRDao, HRViewUserDa
 {
   private static final long serialVersionUID = -718881597957595460L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(HRListPage.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(HRListPage.class);
 
   @SpringBean
   private HRDao hrDao;
@@ -117,6 +117,7 @@ public class HRListPage extends AbstractListPage<HRListForm, HRDao, HRViewUserDa
     final List<IColumn<HRViewUserData, String>> columns = new ArrayList<IColumn<HRViewUserData, String>>();
     final CellItemListener<HRViewUserData> cellItemListener = new CellItemListener<HRViewUserData>()
     {
+      @Override
       public void populateItem(final Item<ICellPopulator<HRViewUserData>> item, final String componentId,
           final IModel<HRViewUserData> rowModel)
       {
@@ -309,7 +310,7 @@ public class HRListPage extends AbstractListPage<HRListForm, HRDao, HRViewUserDa
       public boolean isVisible()
       {
         return form.getSearchFilter().isOnlyMyProjects() == false;
-      };
+      }
     };
     panel.add(resourceLinkPanel);
     recreateBottomPanel();

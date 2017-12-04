@@ -37,7 +37,7 @@ public class Version implements Comparable<Version>, Serializable
 {
   private static final long serialVersionUID = 1446772593211999270L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(Version.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(Version.class);
 
   private int majorRelease, minorRelease, patchLevel, buildNumber, betaVersion = Integer.MAX_VALUE,
       releaseCandidateVersion = Integer.MAX_VALUE;

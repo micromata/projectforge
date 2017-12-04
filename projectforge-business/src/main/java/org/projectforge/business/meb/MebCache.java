@@ -26,8 +26,9 @@ package org.projectforge.business.meb;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.log4j.Logger;
 import org.projectforge.framework.cache.AbstractCache;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * The number of recent MEB entries is cached. Accessible via MebDao.
@@ -35,7 +36,7 @@ import org.projectforge.framework.cache.AbstractCache;
  */
 public class MebCache extends AbstractCache
 {
-  private static Logger log = Logger.getLogger(MebCache.class);
+  private static Logger log = LoggerFactory.getLogger(MebCache.class);
 
   /** The key is the user id and the value is the number of recent MEB entries. */
   private Map<Integer, Integer> recentEntriesMap;
@@ -68,6 +69,7 @@ public class MebCache extends AbstractCache
   /**
    * This method will be called by CacheHelper and is synchronized via getData();
    */
+  @Override
   protected void refresh()
   {
     log.info("Clearing MebCache.");

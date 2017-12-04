@@ -37,7 +37,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
 public class SearchDao
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(SearchDao.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(SearchDao.class);
 
   public List<SearchResultData> getEntries(final BaseSearchFilter filter, final Class clazz, final BaseDao baseDao)
   {

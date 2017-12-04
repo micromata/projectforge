@@ -75,7 +75,7 @@ import de.micromata.genome.db.jpa.history.entities.EntityOpType;
     loader = AnnotationConfigContextLoader.class)
 public class AbstractTestBase extends AbstractTestNGSpringContextTests
 {
-  protected static final org.apache.log4j.Logger log = org.apache.log4j.Logger
+  protected static final org.slf4j.Logger log = org.slf4j.LoggerFactory
       .getLogger(AbstractTestBase.class);
 
   public static final String ADMIN = "PFAdmin";

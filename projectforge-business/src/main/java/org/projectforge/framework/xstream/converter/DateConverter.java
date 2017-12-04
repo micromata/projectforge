@@ -35,7 +35,7 @@ import org.projectforge.framework.xstream.XmlConstants;
 
 public class DateConverter extends AbstractValueConverter<Date>
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(DateConverter.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(DateConverter.class);
 
   protected static final String FORMAT_ISO_DATE = "yyyy-MM-dd";
 

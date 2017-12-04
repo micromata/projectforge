@@ -59,7 +59,7 @@ import de.micromata.genome.db.jpa.tabattr.api.TimeableService;
  */
 public class GuiAttrSchemaServiceImpl extends AttrSchemaServiceSpringBeanImpl implements GuiAttrSchemaService
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(TimedAttributePanel.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(TimedAttributePanel.class);
 
   @Autowired
   private TimeableService timeableService;
@@ -82,6 +82,7 @@ public class GuiAttrSchemaServiceImpl extends AttrSchemaServiceSpringBeanImpl im
     return factory.createComponents(id, group, desc, entity);
   }
 
+  @Override
   public <PK extends Serializable, T extends TimeableAttrRow<PK>, U extends EntityWithTimeableAttr<PK, T> & EntityWithConfigurableAttr>
   Optional<IModel<String>> getStringAttribute(final U entity, final Date date, final String groupName, final String descName)
   {
@@ -121,6 +122,7 @@ public class GuiAttrSchemaServiceImpl extends AttrSchemaServiceSpringBeanImpl im
     }
   }
 
+  @Override
   public <PK extends Serializable, T extends TimeableAttrRow<PK>, U extends EntityWithConfigurableAttr & EntityWithTimeableAttr<PK, T>> void createTimedAttrPanels(
       final DivPanel divPanel, final U entity, final AbstractEditPage<?, ?, ?> parentPage,
       final Function<AttrGroup, T> addNewEntryFunction)

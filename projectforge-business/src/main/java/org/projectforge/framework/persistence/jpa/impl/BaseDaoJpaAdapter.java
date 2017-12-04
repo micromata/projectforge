@@ -21,7 +21,6 @@ import org.apache.commons.lang3.ClassUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
-import org.apache.log4j.Logger;
 import org.projectforge.framework.configuration.ApplicationContextProvider;
 import org.projectforge.framework.persistence.api.BaseDO;
 import org.projectforge.framework.persistence.api.ExtendedBaseDO;
@@ -34,6 +33,8 @@ import org.projectforge.framework.persistence.hibernate.HibernateCompatUtils;
 import org.projectforge.framework.persistence.history.HistoryBaseDaoAdapter;
 import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
 import org.projectforge.framework.time.DayHolder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import de.micromata.genome.db.jpa.history.api.HistoryService;
 import de.micromata.genome.db.jpa.history.api.HistoryServiceManager;
@@ -60,7 +61,7 @@ import de.micromata.genome.util.matcher.MatcherBase;
  */
 public class BaseDaoJpaAdapter
 {
-  private static final Logger log = Logger.getLogger(BaseDaoJpaAdapter.class);
+  private static final Logger log = LoggerFactory.getLogger(BaseDaoJpaAdapter.class);
 
   public static void prepareInsert(ExtendedBaseDO<?> dbObj)
   {

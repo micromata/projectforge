@@ -37,7 +37,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class MebPollingJob
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(MebPollingJob.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(MebPollingJob.class);
 
   @Autowired
   private MebJobExecutor mebJobExecutor;

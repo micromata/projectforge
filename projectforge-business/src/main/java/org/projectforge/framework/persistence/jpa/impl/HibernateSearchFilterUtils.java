@@ -13,7 +13,6 @@ import javax.persistence.Id;
 
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.log4j.Logger;
 import org.apache.lucene.analysis.standard.ClassicAnalyzer;
 import org.apache.lucene.queryparser.classic.MultiFieldQueryParser;
 import org.hibernate.Criteria;
@@ -32,6 +31,8 @@ import org.projectforge.framework.persistence.history.entities.PfHistoryMasterDO
 import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
 import org.projectforge.framework.time.DateFormats;
 import org.projectforge.framework.time.DateHelper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import de.micromata.genome.db.jpa.history.api.WithHistory;
 import de.micromata.genome.util.runtime.ClassUtils;
@@ -43,7 +44,7 @@ import de.micromata.genome.util.runtime.ClassUtils;
  */
 public class HibernateSearchFilterUtils
 {
-  private static final Logger LOG = Logger.getLogger(HibernateSearchFilterUtils.class);
+  private static final Logger LOG = LoggerFactory.getLogger(HibernateSearchFilterUtils.class);
   private static final String[] HISTORY_SEARCH_FIELDS = { "NEW_VALUE", "OLD_VALUE" };
   private static final String[] luceneReservedWords = { "AND", "OR", "NOT" };
 

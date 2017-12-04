@@ -26,7 +26,7 @@ package org.projectforge.web.teamcal.event;
 import java.util.Date;
 import java.util.List;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -93,7 +93,7 @@ public class TeamEventEditForm extends AbstractEditForm<TeamEventDO, TeamEventEd
 {
   private static final long serialVersionUID = -8378262684943803495L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(TeamEventEditForm.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(TeamEventEditForm.class);
 
   @SpringBean
   private transient TeamCalDao teamCalDao;

@@ -49,7 +49,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class LoginDefaultHandler implements LoginHandler
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(LoginDefaultHandler.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(LoginDefaultHandler.class);
 
   @Autowired
   private UserService userService;
@@ -187,6 +187,7 @@ public class LoginDefaultHandler implements LoginHandler
     return user;
   }
 
+  @Override
   public boolean isAdminUser(final PFUserDO user)
   {
     final JdbcTemplate jdbc = new JdbcTemplate(dataSource);
@@ -235,7 +236,7 @@ public class LoginDefaultHandler implements LoginHandler
       return list;
     } catch (final Exception ex) {
       //Needed for migration, when tenant table not available.
-      log.fatal(
+      log.error(
           "******* Exception while getting groups from data-base (OK only in case of migration from older versions): "
               + ex.getMessage(),
           ex);
@@ -253,7 +254,7 @@ public class LoginDefaultHandler implements LoginHandler
       return userService.loadAll();
     } catch (final Exception ex) {
       //Needed for migration, when tenant table not available.
-      log.fatal(
+      log.error(
           "******* Exception while getting users from data-base (OK only in case of migration from older versions): "
               + ex.getMessage(),
           ex);

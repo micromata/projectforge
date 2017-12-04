@@ -23,7 +23,6 @@
 
 package org.projectforge.web.fibu;
 
-import org.apache.log4j.Logger;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.fibu.kost.BuchungssatzDO;
@@ -32,6 +31,7 @@ import org.projectforge.business.user.UserRightId;
 import org.projectforge.business.user.UserRightValue;
 import org.projectforge.web.wicket.AbstractEditPage;
 import org.projectforge.web.wicket.EditPage;
+import org.slf4j.Logger;
 
 @EditPage(defaultReturnPage = AccountingRecordListPage.class)
 public class AccountingRecordEditPage
@@ -39,7 +39,7 @@ public class AccountingRecordEditPage
 {
   private static final long serialVersionUID = -3899191243765232906L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(AccountingRecordEditPage.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(AccountingRecordEditPage.class);
 
   @SpringBean
   private BuchungssatzDao buchungssatzDao;

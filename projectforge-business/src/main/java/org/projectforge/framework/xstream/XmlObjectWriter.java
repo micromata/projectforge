@@ -51,7 +51,7 @@ import org.projectforge.framework.xstream.converter.IConverter;
  */
 public class XmlObjectWriter
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(XmlObjectWriter.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(XmlObjectWriter.class);
 
   public static final String ATTR_ID = "o-id";
 

@@ -23,7 +23,7 @@
 
 package org.projectforge.web.teamcal.admin;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
@@ -43,7 +43,7 @@ public class TeamCalListForm extends AbstractListForm<TeamCalFilter, TeamCalList
 {
   private static final long serialVersionUID = 3659495003810851072L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(TeamCalListForm.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(TeamCalListForm.class);
 
   @SpringBean
   private AccessChecker accessChecker;

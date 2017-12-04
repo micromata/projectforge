@@ -23,13 +23,13 @@
 
 package org.projectforge.business.user;
 
-import groovy.lang.Binding;
-import groovy.lang.Script;
-
 import java.io.Serializable;
 
 import org.projectforge.business.scripting.GroovyExecutor;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
+
+import groovy.lang.Binding;
+import groovy.lang.Script;
 
 /**
  * Rights which can be implemented dynamically with Groovy scripts.<br/>
@@ -43,7 +43,7 @@ public class UserGroovyRight extends UserRight implements Serializable
 {
   private static final long serialVersionUID = 8001414492148781276L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(UserGroovyRight.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(UserGroovyRight.class);
 
   private static final GroovyExecutor groovyExecutor = new GroovyExecutor();
 
