@@ -49,7 +49,7 @@ import org.projectforge.common.StringHelper;
  */
 public abstract class LdapDao<I extends Serializable, T extends LdapObject<I>>
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(LdapDao.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(LdapDao.class);
 
   protected LdapConnector ldapConnector;
 

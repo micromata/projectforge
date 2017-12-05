@@ -53,7 +53,7 @@ public class ExcelImport<T>
   /**
    * The logger
    */
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(ExcelImport.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ExcelImport.class);
 
   /**
    * the workbook containing the values.
@@ -304,10 +304,10 @@ public class ExcelImport<T>
             "Setting property=" + propName + " to " + value + " class=" + ClassUtils.getShortClassName(value, "null"));
         PropertyUtils.setProperty(o, propName, value);
       } catch (final ConversionException e) {
-        log.warn(e);
+        log.warn(e.toString());
         throw new ExcelImportException("Falscher Datentyp beim Excelimport", new Integer(row.getRowNum()), columnName);
       } catch (final Exception e) {
-        log.warn(e);
+        log.warn(e.toString());
         throw new ExcelImportException("Falscher Datentyp beim Excelimport", new Integer(row.getRowNum()), columnName);
       }
     }

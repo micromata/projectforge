@@ -51,14 +51,12 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- *
  */
 @Repository
 public class TenantDao extends BaseDao<TenantDO>
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(TenantDao.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(TenantDao.class);
 
   public static final UserRightId USER_RIGHT_ID = UserRightId.ADMIN_TENANT;
 
@@ -135,7 +133,7 @@ public class TenantDao extends BaseDao<TenantDO>
 
   /**
    * Please note: Any existing assigned user in tenant object is ignored!
-   * 
+   *
    * @param tenant
    * @param assignedUsers Full list of all users which have to assigned to this tenant.
    * @return
@@ -162,7 +160,7 @@ public class TenantDao extends BaseDao<TenantDO>
   /**
    * Creates ProjectForge's system groups for the new tenant.<br/>
    * Creates for every user an history entry if the user is part of this new tenant.
-   * 
+   *
    * @param tenant
    * @see org.projectforge.framework.persistence.api.BaseDao#afterSave(org.projectforge.core.ExtendedBaseDO)
    */
@@ -189,7 +187,7 @@ public class TenantDao extends BaseDao<TenantDO>
 
   /**
    * Creates for every user an history if the user is assigned or unassigned from this updated tenant.
-   * 
+   *
    * @param tenant
    * @param dbTenant
    * @see org.projectforge.framework.persistence.api.BaseDao#afterUpdate(TenantDO, TenantDO)
@@ -225,9 +223,9 @@ public class TenantDao extends BaseDao<TenantDO>
 
   /**
    * Assigns tenants to and unassigns tenants from given user.
-   * 
+   *
    * @param user
-   * @param tenantsToAssign Tenants to assign (nullable).
+   * @param tenantsToAssign   Tenants to assign (nullable).
    * @param tenantsToUnassign Tenants to unassign (nullable).
    * @throws AccessException
    */

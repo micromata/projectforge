@@ -25,10 +25,8 @@ package org.projectforge.web.humanresources;
 
 import java.sql.Date;
 
-import org.apache.log4j.Logger;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
-import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.business.humanresources.HRPlanningDO;
 import org.projectforge.business.humanresources.HRPlanningDao;
 import org.projectforge.business.humanresources.HRPlanningEntryDO;
@@ -41,6 +39,8 @@ import org.projectforge.web.wicket.AbstractEditPage;
 import org.projectforge.web.wicket.AbstractSecuredBasePage;
 import org.projectforge.web.wicket.EditPage;
 import org.projectforge.web.wicket.WebConstants;
+import org.projectforge.web.wicket.WicketUtils;
+import org.slf4j.Logger;
 
 /**
  * 
@@ -51,7 +51,7 @@ import org.projectforge.web.wicket.WebConstants;
 @EditPage(defaultReturnPage = HRPlanningListPage.class)
 public class HRPlanningEditPage extends AbstractEditPage<HRPlanningDO, HRPlanningEditForm, HRPlanningDao> implements ISelectCallerPage
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(HRPlanningEditPage.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(HRPlanningEditPage.class);
 
   private static final long serialVersionUID = -8192471994161712577L;
 
@@ -124,6 +124,7 @@ public class HRPlanningEditPage extends AbstractEditPage<HRPlanningDO, HRPlannin
   /**
    * @see org.projectforge.web.fibu.ISelectCallerPage#select(java.lang.String, java.lang.Integer)
    */
+  @Override
   public void select(final String property, final Object selectedValue)
   {
     if (property.startsWith("projektId:") == true) {
@@ -147,6 +148,7 @@ public class HRPlanningEditPage extends AbstractEditPage<HRPlanningDO, HRPlannin
   /**
    * @see org.projectforge.web.fibu.ISelectCallerPage#unselect(java.lang.String)
    */
+  @Override
   public void unselect(final String property)
   {
     if (property.startsWith("projektId:") == true) {
@@ -163,6 +165,7 @@ public class HRPlanningEditPage extends AbstractEditPage<HRPlanningDO, HRPlannin
   /**
    * @see org.projectforge.web.fibu.ISelectCallerPage#cancelSelection(java.lang.String)
    */
+  @Override
   public void cancelSelection(final String property)
   {
     // Do nothing.

@@ -31,7 +31,6 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.beanutils.PropertyUtils;
-import org.apache.log4j.Logger;
 import org.hibernate.Hibernate;
 import org.hibernate.HibernateException;
 import org.hibernate.QueryException;
@@ -40,6 +39,8 @@ import org.hibernate.collection.spi.PersistentCollection;
 import org.hibernate.engine.spi.SessionFactoryImplementor;
 import org.hibernate.metadata.ClassMetadata;
 import org.hibernate.type.CollectionType;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Legacy used for XML persistence of DB.
@@ -49,7 +50,7 @@ import org.hibernate.type.CollectionType;
  */
 public class DeltaSetCalculator
 {
-  private static final Logger log = Logger.getLogger(DeltaSetCalculator.class);
+  private static final Logger log = LoggerFactory.getLogger(DeltaSetCalculator.class);
 
   private DeltaSetCalculator()
   {
@@ -240,7 +241,7 @@ public class DeltaSetCalculator
         return classMetadata.getIdentifier(element/* , EntityMode.POJO */);
       }
     } catch (HibernateException ex) {
-      log.fatal("Exception encountered " + ex, ex);
+      log.error("Exception encountered " + ex, ex);
       return null;
     }
     return element;

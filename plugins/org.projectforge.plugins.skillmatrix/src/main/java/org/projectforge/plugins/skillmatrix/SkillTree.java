@@ -32,11 +32,12 @@ import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
-import org.apache.log4j.Logger;
 import org.projectforge.business.multitenancy.TenantRegistryMap;
 import org.projectforge.business.user.ProjectForgeGroup;
 import org.projectforge.framework.cache.AbstractCache;
 import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -51,7 +52,7 @@ public class SkillTree extends AbstractCache implements Serializable
 {
   private static final long serialVersionUID = 8331566269626909676L;
 
-  private static final Logger log = Logger.getLogger(SkillTree.class);
+  private static final Logger log = LoggerFactory.getLogger(SkillTree.class);
 
   private static final List<SkillNode> EMPTY_LIST = new ArrayList<SkillNode>();
 
@@ -281,7 +282,7 @@ public class SkillTree extends AbstractCache implements Serializable
     }
 
     if (newRoot == null) {
-      log.fatal("OUPS, no skill found (ProjectForge database not initialized?) OK, initialize it ...");
+      log.error("OUPS, no skill found (ProjectForge database not initialized?) OK, initialize it ...");
       newRoot = createRootNode();
       skillMap.put(newRoot.getId(), newRoot);
     }
@@ -307,7 +308,7 @@ public class SkillTree extends AbstractCache implements Serializable
     }
 
     if (log.isDebugEnabled() == true) {
-      log.debug(this.root);
+      log.error(this.root.toString());
     }
     if (log.isDebugEnabled() == true) {
       log.debug(this.toString());

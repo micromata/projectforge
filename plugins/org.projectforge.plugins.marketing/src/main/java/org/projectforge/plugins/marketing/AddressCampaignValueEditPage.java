@@ -26,7 +26,6 @@ package org.projectforge.plugins.marketing;
 import java.io.Serializable;
 import java.util.Iterator;
 
-import org.apache.log4j.Logger;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.apache.wicket.util.string.StringValue;
@@ -35,6 +34,7 @@ import org.projectforge.business.address.AddressDao;
 import org.projectforge.framework.i18n.UserException;
 import org.projectforge.web.wicket.AbstractEditPage;
 import org.projectforge.web.wicket.EditPage;
+import org.slf4j.Logger;
 
 /**
  * The controler of the edit formular page. Most functionality such as insert, update, delete etc. is done by the super
@@ -52,8 +52,7 @@ public class AddressCampaignValueEditPage extends
 
   private static final long serialVersionUID = -5058143025817192156L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger
-      .getLogger(AddressCampaignValueEditPage.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(AddressCampaignValueEditPage.class);
 
   @SpringBean
   private AddressCampaignValueDao addressCampaignValueDao;

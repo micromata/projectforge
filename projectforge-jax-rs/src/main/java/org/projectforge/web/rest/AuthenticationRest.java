@@ -66,7 +66,7 @@ import org.springframework.stereotype.Controller;
 @Path(RestPaths.AUTHENTICATE)
 public class AuthenticationRest
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(AuthenticationRest.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(AuthenticationRest.class);
 
   @Autowired
   private UserDao userDao;

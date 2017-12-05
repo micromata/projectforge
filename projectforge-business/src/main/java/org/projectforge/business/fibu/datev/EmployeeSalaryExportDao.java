@@ -118,8 +118,8 @@ public class EmployeeSalaryExportDao
       return new MyContentProvider(this.workbook);
     }
   }
-  
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(EmployeeSalaryExportDao.class);
+
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(EmployeeSalaryExportDao.class);
 
   @Autowired
   private MonthlyEmployeeReportDao monthlyEmployeeReportDao;
@@ -345,7 +345,7 @@ public class EmployeeSalaryExportDao
     try {
       xls.write(baos);
     } catch (final IOException ex) {
-      log.fatal("Exception encountered " + ex, ex);
+      log.error("Exception encountered " + ex, ex);
       throw new RuntimeException(ex);
     }
     return baos.toByteArray();

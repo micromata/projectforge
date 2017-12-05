@@ -23,18 +23,18 @@
 
 package org.projectforge.plugins.banking;
 
-import org.apache.log4j.Logger;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.web.wicket.AbstractEditPage;
 import org.projectforge.web.wicket.EditPage;
+import org.slf4j.Logger;
 
 @EditPage(defaultReturnPage = BankAccountListPage.class)
 public class BankAccountEditPage extends AbstractEditPage<BankAccountDO, BankAccountEditForm, BankAccountDao>
 {
   private static final long serialVersionUID = -5058143025817192156L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(BankAccountEditPage.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(BankAccountEditPage.class);
 
   @SpringBean
   private BankAccountDao bankAccountDao;

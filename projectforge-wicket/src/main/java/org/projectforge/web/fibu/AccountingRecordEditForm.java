@@ -26,15 +26,14 @@ package org.projectforge.web.fibu;
 import java.math.BigDecimal;
 import java.util.Date;
 
-import org.apache.log4j.Logger;
 import org.apache.wicket.model.PropertyModel;
-import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.business.fibu.KontoDO;
 import org.projectforge.business.fibu.kost.BuchungssatzDO;
 import org.projectforge.business.fibu.kost.Kost1DO;
 import org.projectforge.business.fibu.kost.Kost2DO;
 import org.projectforge.business.fibu.kost.SHType;
 import org.projectforge.web.wicket.AbstractEditForm;
+import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.web.wicket.autocompletion.I18nEnumAutoCompleteTextField;
 import org.projectforge.web.wicket.bootstrap.GridSize;
 import org.projectforge.web.wicket.components.DatePanel;
@@ -49,12 +48,13 @@ import org.projectforge.web.wicket.converter.MonthConverter;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
 import org.projectforge.web.wicket.flowlayout.InputPanel;
 import org.projectforge.web.wicket.flowlayout.TextAreaPanel;
+import org.slf4j.Logger;
 
 public class AccountingRecordEditForm extends AbstractEditForm<BuchungssatzDO, AccountingRecordEditPage>
 {
   private static final long serialVersionUID = 8746545908106124484L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(AccountingRecordEditForm.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(AccountingRecordEditForm.class);
 
   public AccountingRecordEditForm(final AccountingRecordEditPage parentPage, final BuchungssatzDO data)
   {

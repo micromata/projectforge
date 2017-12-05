@@ -39,7 +39,7 @@ import org.projectforge.Version;
  */
 public abstract class UpdateEntryImpl extends UpdateEntry
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(UpdateEntryImpl.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(UpdateEntryImpl.class);
 
   private static final long serialVersionUID = -1178486631632477422L;
 

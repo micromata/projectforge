@@ -25,7 +25,6 @@ package org.projectforge.web.fibu;
 
 import java.math.BigDecimal;
 
-import org.apache.log4j.Logger;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.util.convert.IConverter;
@@ -39,12 +38,13 @@ import org.projectforge.web.wicket.converter.IntegerConverter;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
 import org.projectforge.web.wicket.flowlayout.InputPanel;
 import org.projectforge.web.wicket.flowlayout.TextAreaPanel;
+import org.slf4j.Logger;
 
 public class Kost2ArtEditForm extends AbstractEditForm<Kost2ArtDO, Kost2ArtEditPage>
 {
   private static final long serialVersionUID = 1207258100682337083L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(Kost2ArtEditForm.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(Kost2ArtEditForm.class);
 
   public Kost2ArtEditForm(final Kost2ArtEditPage parentPage, final Kost2ArtDO data)
   {

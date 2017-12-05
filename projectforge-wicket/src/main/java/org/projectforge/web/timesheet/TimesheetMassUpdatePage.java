@@ -52,7 +52,7 @@ public class TimesheetMassUpdatePage extends AbstractMassEditPage implements ISe
 {
   private static final long serialVersionUID = -5549904132530779884L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(TimesheetMassUpdatePage.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(TimesheetMassUpdatePage.class);
 
   @SpringBean
   private HtmlDateTimeFormatter dateTimeFormatter;

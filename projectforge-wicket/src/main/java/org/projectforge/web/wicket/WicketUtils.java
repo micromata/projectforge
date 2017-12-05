@@ -82,7 +82,7 @@ import org.projectforge.web.wicket.flowlayout.IconType;
 
 public class WicketUtils
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(WicketUtils.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(WicketUtils.class);
 
   private static String APPLICATION_CONTEXT = "/ProjectForge";
 

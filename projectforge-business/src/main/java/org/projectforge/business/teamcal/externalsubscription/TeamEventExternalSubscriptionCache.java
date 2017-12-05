@@ -54,7 +54,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class TeamEventExternalSubscriptionCache
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory
       .getLogger(TeamEventExternalSubscriptionCache.class);
 
   private static final long MAX_WAIT_MS_AFTER_FAILED_UPDATE = 1000 * 60 * 60 * 24; // 24 h

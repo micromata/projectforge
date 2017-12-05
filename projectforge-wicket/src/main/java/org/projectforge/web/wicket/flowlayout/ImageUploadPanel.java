@@ -55,7 +55,7 @@ import org.wicketstuff.html5.fileapi.FileList;
  */
 public class ImageUploadPanel extends Panel implements ComponentWrapperPanel
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(ImageUploadPanel.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ImageUploadPanel.class);
 
   private static final long serialVersionUID = -4126462093466172226L;
 

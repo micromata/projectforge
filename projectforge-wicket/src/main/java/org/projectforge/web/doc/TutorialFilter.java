@@ -48,18 +48,21 @@ import org.projectforge.web.wicket.WicketUtils;
  */
 public class TutorialFilter implements Filter
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(TutorialFilter.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(TutorialFilter.class);
 
+  @Override
   public void destroy()
   {
     // do nothing
   }
 
+  @Override
   public void init(final FilterConfig cfg) throws ServletException
   {
     // do nothing
   }
 
+  @Override
   public void doFilter(final ServletRequest req, final ServletResponse resp, final FilterChain chain) throws IOException, ServletException
   {
     final String uri = ((HttpServletRequest) req).getRequestURI();
@@ -139,6 +142,7 @@ public class TutorialFilter implements Filter
       output = new CharArrayWriter();
     }
 
+    @Override
     public PrintWriter getWriter()
     {
       return new PrintWriter(output);

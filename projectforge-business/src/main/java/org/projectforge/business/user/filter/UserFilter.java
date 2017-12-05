@@ -40,7 +40,6 @@ import javax.servlet.http.HttpServletRequestWrapper;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.apache.log4j.MDC;
 import org.projectforge.Const;
 import org.projectforge.common.StringHelper;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
@@ -48,6 +47,7 @@ import org.projectforge.framework.persistence.user.api.UserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.web.servlet.LogoServlet;
 import org.projectforge.web.servlet.SMSReceiverServlet;
+import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.web.context.WebApplicationContext;
@@ -60,7 +60,7 @@ import org.springframework.web.context.support.WebApplicationContextUtils;
  */
 public class UserFilter implements Filter
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(UserFilter.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(UserFilter.class);
 
   private final static String SESSION_KEY_USER = "UserFilter.user";
 
@@ -175,8 +175,8 @@ public class UserFilter implements Filter
     final HttpServletResponse response = (HttpServletResponse) resp;
     UserContext userContext = null;
     try {
-      MDC.put("ip", (Object) request.getRemoteAddr());
-      MDC.put("session", (Object) request.getSession().getId());
+      MDC.put("ip", request.getRemoteAddr());
+      MDC.put("session", request.getSession().getId());
       if (ignoreFilterFor(request) == true) {
         // Ignore the filter for this request:
         if (log.isDebugEnabled() == true) {
@@ -208,7 +208,7 @@ public class UserFilter implements Filter
         }
         final PFUserDO user = userContext != null ? userContext.getUser() : null;
         if (user != null) {
-          MDC.put("user", (Object) user.getUsername());
+          MDC.put("user", user.getUsername());
           ThreadLocalUserContext.setUserContext(userContext);
           request = decorateWithLocale(request);
           chain.doFilter(request, response);

@@ -58,7 +58,6 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.ClassUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.Validate;
-import org.apache.log4j.Logger;
 import org.hibernate.EmptyInterceptor;
 import org.hibernate.FlushMode;
 import org.hibernate.Hibernate;
@@ -105,6 +104,8 @@ import org.projectforge.framework.persistence.xstream.XStreamSavingConverter;
 import org.projectforge.framework.xstream.XStreamHelper;
 import org.projectforge.plugins.core.AbstractPlugin;
 import org.projectforge.plugins.core.PluginAdminService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.orm.hibernate5.HibernateTemplate;
@@ -126,7 +127,7 @@ import de.micromata.genome.jpa.metainf.EntityMetadata;
 @Deprecated
 public class XmlDump
 {
-  private static final Logger log = Logger.getLogger(XmlDump.class);
+  private static final Logger log = LoggerFactory.getLogger(XmlDump.class);
 
   private static final String XML_DUMP_FILENAME = System.getProperty("user.home") + "/tmp/database-dump.xml.gz";
 
@@ -472,7 +473,7 @@ public class XmlDump
         ++counter;
       }
       if (hasError == true) {
-        log.fatal(
+        log.error(
             "*********** A inconsistency in the import was found! This may result in a data loss or corrupted data! Please retry the import. "
                 + counter
                 + " entries checked.");

@@ -46,7 +46,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class LdapConnector implements ConfigurationListener
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(LdapConnector.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(LdapConnector.class);
 
   @Autowired
   LdapService ldapService;

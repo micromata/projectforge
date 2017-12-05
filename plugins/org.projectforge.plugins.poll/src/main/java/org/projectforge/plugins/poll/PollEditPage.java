@@ -23,11 +23,11 @@
 
 package org.projectforge.plugins.poll;
 
-import org.apache.log4j.Logger;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.web.wicket.AbstractEditPage;
 import org.projectforge.web.wicket.EditPage;
+import org.slf4j.Logger;
 
 /**
  * 
@@ -38,7 +38,7 @@ import org.projectforge.web.wicket.EditPage;
 @EditPage(defaultReturnPage = PollListPage.class)
 public class PollEditPage extends AbstractEditPage<PollDO, PollEditForm, PollDao>
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(PollEditPage.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(PollEditPage.class);
 
   private static final long serialVersionUID = -3352981782657771662L;
 

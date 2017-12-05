@@ -23,7 +23,7 @@
 
 package org.projectforge.web.user;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.projectforge.framework.persistence.user.api.UserPrefArea;
 import org.projectforge.web.wicket.AbstractListForm;
@@ -34,7 +34,7 @@ public class UserPrefListForm extends AbstractListForm<UserPrefListFilter, UserP
 {
   private static final long serialVersionUID = 3750000537686305181L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(UserPrefListForm.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(UserPrefListForm.class);
 
   public UserPrefListForm(final UserPrefListPage parentPage)
   {

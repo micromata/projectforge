@@ -85,7 +85,7 @@ import de.micromata.genome.db.jpa.tabattr.api.TimeableAttrRow;
 @Service
 public class DatabaseService
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(DatabaseService.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(DatabaseService.class);
 
   public static final String DEFAULT_ADMIN_USER = "admin";
 
@@ -1281,7 +1281,7 @@ public class DatabaseService
       final boolean isNullable = columns.getInt(11) == ResultSetMetaData.columnNullable;
       return Optional.of(isNullable);
     } catch (SQLException e) {
-      log.error(e);
+      log.error(e.toString());
       return Optional.empty();
     }
   }

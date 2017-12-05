@@ -8,7 +8,6 @@ import java.util.Set;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.PredicateUtils;
-import org.apache.log4j.Logger;
 import org.hibernate.Criteria;
 import org.hibernate.Session;
 import org.hibernate.criterion.Restrictions;
@@ -29,6 +28,8 @@ import org.projectforge.framework.persistence.api.SearchService;
 import org.projectforge.framework.persistence.jpa.PfEmgr;
 import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -41,7 +42,7 @@ import org.springframework.stereotype.Service;
 @Deprecated
 public class SearchServiceImpl implements SearchService
 {
-  private static final Logger log = Logger.getLogger(SearchServiceImpl.class);
+  private static final Logger log = LoggerFactory.getLogger(SearchServiceImpl.class);
   @Autowired
   private AccessChecker accessChecker;
 

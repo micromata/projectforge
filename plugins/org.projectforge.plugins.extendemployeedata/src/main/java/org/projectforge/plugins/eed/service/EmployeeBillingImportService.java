@@ -33,7 +33,7 @@ public class EmployeeBillingImportService
 
   private List<AttrColumnDescription> attrColumnsInSheet;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(EmployeeBillingImportService.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(EmployeeBillingImportService.class);
 
   public ImportStorage<EmployeeDO> importData(final InputStream is, final String filename, final Date dateToSelectAttrRow) throws IOException
   {

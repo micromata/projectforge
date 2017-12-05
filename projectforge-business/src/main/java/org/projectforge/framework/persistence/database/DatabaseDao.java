@@ -70,7 +70,7 @@ public class DatabaseDao
 {
   private static final int MIN_REINDEX_ENTRIES_4_USE_SCROLL_MODE = 2000;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(DatabaseDao.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(DatabaseDao.class);
 
   private Date currentReindexRun = null;
 

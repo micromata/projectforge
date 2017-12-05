@@ -27,7 +27,6 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 
-import org.apache.log4j.Logger;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.user.UserDao;
@@ -52,6 +51,7 @@ import org.projectforge.web.wicket.flowlayout.FileUploadPanel;
 import org.projectforge.web.wicket.flowlayout.IconButtonPanel;
 import org.projectforge.web.wicket.flowlayout.IconType;
 import org.projectforge.web.wicket.flowlayout.InputPanel;
+import org.slf4j.Logger;
 import org.wicketstuff.select2.Select2MultiChoice;
 
 /**
@@ -63,7 +63,7 @@ public class LicenseEditForm extends AbstractEditForm<LicenseDO, LicenseEditPage
 {
   private static final long serialVersionUID = -6208809585214296635L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(LicenseEditForm.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(LicenseEditForm.class);
 
   MultiChoiceListHelper<PFUserDO> assignOwnersListHelper;
 

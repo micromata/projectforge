@@ -68,7 +68,7 @@ import org.springframework.stereotype.Repository;
 @Repository
 public class UserPrefDao extends BaseDao<UserPrefDO>
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(UserPrefDao.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(UserPrefDao.class);
 
   private static final String[] ADDITIONAL_SEARCH_FIELDS = new String[] { "user.username", "user.firstname",
       "user.lastname" };

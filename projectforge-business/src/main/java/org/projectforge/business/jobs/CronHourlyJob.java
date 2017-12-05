@@ -42,7 +42,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class CronHourlyJob
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(CronHourlyJob.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(CronHourlyJob.class);
 
   @Autowired
   private DatabaseService databaseUpdateDao;

@@ -23,7 +23,6 @@
 
 package org.projectforge.web.orga;
 
-import org.apache.log4j.Logger;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.orga.PosteingangDao;
@@ -33,12 +32,13 @@ import org.projectforge.web.wicket.components.LabelValueChoiceRenderer;
 import org.projectforge.web.wicket.components.YearListCoiceRenderer;
 import org.projectforge.web.wicket.flowlayout.DivPanel;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
+import org.slf4j.Logger;
 
 public class PosteingangListForm extends AbstractListForm<PosteingangListFilter, PosteingangListPage>
 {
   private static final long serialVersionUID = 5594012692306669398L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(PosteingangListForm.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(PosteingangListForm.class);
 
   @SpringBean
   private PosteingangDao posteingangDao;

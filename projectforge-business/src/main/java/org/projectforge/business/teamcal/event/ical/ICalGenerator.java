@@ -32,7 +32,7 @@ import net.fortuna.ical4j.model.property.Version;
 
 public class ICalGenerator
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(ICalGenerator.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ICalGenerator.class);
 
   //------------------------------------------------------------------------------------------------------------
   // Static part

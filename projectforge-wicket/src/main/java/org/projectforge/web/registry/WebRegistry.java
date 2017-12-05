@@ -140,7 +140,7 @@ public class WebRegistry
 
   public static final String BOOKMARK_MOBILE_LOGIN = BOOKMARK_MOBILE_PREFIX + BOOKMARK_LOGIN;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(WebRegistry.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(WebRegistry.class);
 
   private final Map<String, WebRegistryEntry> map = new HashMap<String, WebRegistryEntry>();
 

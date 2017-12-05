@@ -31,7 +31,7 @@ import org.apache.commons.lang3.StringUtils;
 
 public class HtmlHelper
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(HtmlHelper.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(HtmlHelper.class);
 
   private static final int TAB_WIDTH = 8;
 
@@ -100,7 +100,7 @@ public class HtmlHelper
     try {
       return URLEncoder.encode(url, "UTF-8");
     } catch (final UnsupportedEncodingException ex) {
-      log.warn(ex);
+      log.warn(ex.toString());
       return url;
     }
   }

@@ -59,7 +59,7 @@ public class NewProjektSelectPanel extends AbstractSelectPanel<ProjektDO> implem
 {
   private static final long serialVersionUID = -7461448790487855518L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(NewProjektSelectPanel.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(NewProjektSelectPanel.class);
 
   private static final String USER_PREF_KEY_RECENT_PROJECTS = "ProjectSelectPanel:recentProjects";
 

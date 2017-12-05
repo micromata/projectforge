@@ -37,7 +37,7 @@ import com.thoughtworks.xstream.converters.SingleValueConverter;
  */
 public class UserXmlPreferencesBaseDOSingleValueConverter implements SingleValueConverter
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory
       .getLogger(UserXmlPreferencesBaseDOSingleValueConverter.class);
 
   private final Class<? extends BaseDao<?>> daoClass;

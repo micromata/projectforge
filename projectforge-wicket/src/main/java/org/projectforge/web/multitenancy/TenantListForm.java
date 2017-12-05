@@ -23,17 +23,17 @@
 
 package org.projectforge.web.multitenancy;
 
-import org.apache.log4j.Logger;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.multitenancy.TenantDao;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.web.wicket.AbstractListForm;
+import org.slf4j.Logger;
 
 public class TenantListForm extends AbstractListForm<BaseSearchFilter, TenantListPage>
 {
   private static final long serialVersionUID = -7136808109586845027L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(TenantListForm.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(TenantListForm.class);
 
   @SpringBean
   private TenantDao tenantDao;

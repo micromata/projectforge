@@ -42,7 +42,7 @@ import org.testng.annotations.Test;
 
 public class GanttTest
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(GanttTest.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(GanttTest.class);
 
   @BeforeClass
   public static void setUp()

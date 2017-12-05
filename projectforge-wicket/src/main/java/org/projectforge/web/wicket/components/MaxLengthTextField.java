@@ -38,7 +38,7 @@ import org.projectforge.framework.persistence.api.HibernateUtils;
 
 public class MaxLengthTextField extends TextField<String>
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(MaxLengthTextField.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(MaxLengthTextField.class);
 
   private static final long serialVersionUID = -6577192527741433068L;
 

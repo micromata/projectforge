@@ -29,7 +29,7 @@ import org.projectforge.business.task.TaskTree;
 
 public class Task2GanttTaskConverter
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(Task2GanttTaskConverter.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(Task2GanttTaskConverter.class);
 
   /**
    * Maximum depth of predecessors for avoiding circular predecessor settings..

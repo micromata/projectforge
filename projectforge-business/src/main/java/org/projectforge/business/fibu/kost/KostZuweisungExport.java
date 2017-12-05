@@ -63,7 +63,7 @@ import org.springframework.stereotype.Component;
 public class KostZuweisungExport
 {
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(KostZuweisungExport.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(KostZuweisungExport.class);
 
   @Autowired
   KontoDao kontoDao;
@@ -81,8 +81,6 @@ public class KostZuweisungExport
       return new MyContentProvider(this.workbook);
     }
   }
-
-  ;
 
   private enum InvoicesCol
   {

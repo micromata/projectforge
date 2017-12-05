@@ -39,7 +39,7 @@ import org.projectforge.framework.persistence.xstream.XStreamSavingConverter;
 @Deprecated
 public class UserXmlPreferencesXmlDumpHook implements XmlDumpHook
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory
       .getLogger(UserXmlPreferencesXmlDumpHook.class);
 
   /**

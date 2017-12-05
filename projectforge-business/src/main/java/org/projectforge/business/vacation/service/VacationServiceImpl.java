@@ -12,7 +12,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.log4j.Logger;
 import org.projectforge.business.configuration.ConfigurationService;
 import org.projectforge.business.fibu.EmployeeDO;
 import org.projectforge.business.fibu.EmployeeDao;
@@ -39,6 +38,8 @@ import org.projectforge.framework.time.DayHolder;
 import org.projectforge.framework.utils.NumberHelper;
 import org.projectforge.mail.Mail;
 import org.projectforge.mail.SendMail;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -51,7 +52,7 @@ import org.springframework.stereotype.Service;
 public class VacationServiceImpl extends CorePersistenceServiceImpl<Integer, VacationDO>
     implements VacationService
 {
-  private static final Logger log = Logger.getLogger(VacationServiceImpl.class);
+  private static final Logger log = LoggerFactory.getLogger(VacationServiceImpl.class);
 
   @Autowired
   private VacationDao vacationDao;

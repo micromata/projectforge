@@ -31,7 +31,6 @@ import java.util.LinkedList;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.log4j.Logger;
 import org.apache.wicket.markup.html.form.upload.FileUpload;
 import org.apache.wicket.markup.html.form.upload.FileUploadField;
 import org.apache.wicket.model.PropertyModel;
@@ -44,6 +43,7 @@ import org.projectforge.web.wicket.AbstractEditForm;
 import org.projectforge.web.wicket.bootstrap.GridSize;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
 import org.projectforge.web.wicket.flowlayout.FileUploadPanel;
+import org.slf4j.Logger;
 
 import net.fortuna.ical4j.vcard.Parameter;
 import net.fortuna.ical4j.vcard.Parameter.Id;
@@ -58,7 +58,7 @@ public class AddressImportForm extends AbstractEditForm<AddressDO, AddressImport
 {
   private static final long serialVersionUID = -1691614676645602272L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(AddressImportForm.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(AddressImportForm.class);
 
   private final List<FileUpload> uploads = new LinkedList<FileUpload>();
 
@@ -212,7 +212,7 @@ public class AddressImportForm extends AbstractEditForm<AddressDO, AddressImport
           //            setResponsePage(new AddressComparePage(getPage().getPageParameters(), data, list.get(0)));
           //          }
         } catch (final Exception ex) {
-          log.fatal("Exception encountered " + ex, ex);
+          log.error("Exception encountered " + ex, ex);
         }
       }
     } else

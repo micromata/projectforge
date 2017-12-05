@@ -55,7 +55,7 @@ package org.projectforge.business.login;
  */
 public class LoginProtection
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(LoginProtection.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(LoginProtection.class);
 
   /**
    * After this given number of failed logins (for one specific user id) the account penalty counter will be incremented.

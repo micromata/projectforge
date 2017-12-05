@@ -25,8 +25,9 @@ package org.projectforge.plugins.crm;
 
 import java.io.Serializable;
 
-import org.apache.log4j.Logger;
 import org.projectforge.web.wicket.AbstractListForm;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * The list formular for the list view.
@@ -38,7 +39,7 @@ public class ContactListForm extends AbstractListForm<ContactFilter, ContactList
 
   private static final long serialVersionUID = 2352857862306753080L;
 
-  private static final Logger log = Logger.getLogger(ContactListForm.class);
+  private static final Logger log = LoggerFactory.getLogger(ContactListForm.class);
 
   /**
    * @param parentPage

@@ -43,7 +43,7 @@ public class LuceneConsolePage extends AbstractStandardFormPage
 {
   private static final long serialVersionUID = -8866862318651809124L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(LuceneConsolePage.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(LuceneConsolePage.class);
 
   @SpringBean
   LuceneServiceImpl luceneService;

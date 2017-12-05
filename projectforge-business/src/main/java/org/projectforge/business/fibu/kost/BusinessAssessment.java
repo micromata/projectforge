@@ -32,7 +32,6 @@ import java.util.Map;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.log4j.Logger;
 import org.projectforge.business.fibu.KontoDO;
 import org.projectforge.business.fibu.KostFormatter;
 import org.projectforge.business.fibu.kost.reporting.Report;
@@ -40,6 +39,8 @@ import org.projectforge.business.utils.CurrencyFormatter;
 import org.projectforge.business.utils.HtmlHelper;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.utils.NumberHelper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Used in config.xml for the definition of the used business assessment schema. The business assessment is displayed in
@@ -56,7 +57,7 @@ public class BusinessAssessment implements Serializable
 
   private final List<BusinessAssessmentRow> rows = new ArrayList<BusinessAssessmentRow>();
 
-  private static final Logger log = Logger.getLogger(BusinessAssessment.class);
+  private static final Logger log = LoggerFactory.getLogger(BusinessAssessment.class);
 
   private String title;
 

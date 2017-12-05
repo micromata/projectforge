@@ -52,7 +52,7 @@ public class TeamEventSubscription implements Serializable
 {
   private static final long serialVersionUID = -9200146874015146227L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(TeamEventSubscription.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(TeamEventSubscription.class);
 
   private Integer teamCalId;
 
