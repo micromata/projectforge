@@ -7,8 +7,9 @@ import org.springframework.stereotype.Component;
 public class MyTestComponent implements MyTestInterface
 {
 
-  private static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(MyTestComponent.class);
+  private static org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(MyTestComponent.class);
 
+  @Override
   public void sayHello()
   {
     log.info("######## HELLO!!! ########");

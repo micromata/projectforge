@@ -40,7 +40,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class UserServiceImpl implements UserService
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(UserService.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(UserService.class);
 
   private static final short STAY_LOGGED_IN_KEY_LENGTH = 20;
 
@@ -159,7 +159,7 @@ public class UserServiceImpl implements UserService
       TenantDO tenant = ThreadLocalUserContext.getUser().getTenant() != null ? ThreadLocalUserContext.getUser().getTenant() : tenantService.getDefaultTenant();
       return userDao.internalLoadAll(tenant);
     } catch (final Exception ex) {
-      log.fatal(
+      log.error(
           "******* Exception while getting users from data-base (OK only in case of migration from older versions): "
               + ex.getMessage(),
           ex);

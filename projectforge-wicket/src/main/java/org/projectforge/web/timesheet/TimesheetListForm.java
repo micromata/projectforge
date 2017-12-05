@@ -25,7 +25,7 @@ package org.projectforge.web.timesheet;
 
 import java.util.Date;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.form.validation.IFormValidator;
@@ -55,7 +55,7 @@ public class TimesheetListForm extends AbstractListForm<TimesheetListFilter, Tim
 {
   private static final long serialVersionUID = 3167681159669386691L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(TimesheetListForm.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(TimesheetListForm.class);
 
   private transient TaskTree taskTree;
 

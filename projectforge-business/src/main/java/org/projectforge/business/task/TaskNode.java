@@ -34,7 +34,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
-import org.apache.log4j.Logger;
 import org.dom4j.Element;
 import org.projectforge.business.fibu.ProjektDO;
 import org.projectforge.common.task.TaskStatus;
@@ -43,6 +42,8 @@ import org.projectforge.framework.access.GroupTaskAccessDO;
 import org.projectforge.framework.access.OperationType;
 import org.projectforge.framework.i18n.UserException;
 import org.projectforge.framework.persistence.api.IdObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Represents a single task as part of the TaskTree. The data of a task node is stored in the database.
@@ -56,7 +57,7 @@ public class TaskNode implements IdObject<Integer>, Serializable
   /**
    * For log messages.
    */
-  private static final Logger log = Logger.getLogger(TaskNode.class);
+  private static final Logger log = LoggerFactory.getLogger(TaskNode.class);
 
   /**
    * Reference to the parent task node with the parentTaskID.

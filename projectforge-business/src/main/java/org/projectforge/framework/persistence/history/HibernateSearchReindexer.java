@@ -52,7 +52,7 @@ import org.springframework.transaction.support.TransactionTemplate;
 @Service
 public class HibernateSearchReindexer
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(HibernateSearchReindexer.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(HibernateSearchReindexer.class);
 
   private static final String ERROR_MSG = "Error while re-indexing data base: found lock files while re-indexing data-base. "
       + "Try to run re-index manually in the web administration menu and if occured again, "
@@ -81,7 +81,7 @@ public class HibernateSearchReindexer
     }
     final String result = rebuildDatabaseSearchIndices();
     if (result.contains("*") == true) {
-      log.fatal(ERROR_MSG);
+      log.error(ERROR_MSG);
       final String recipients = GlobalConfiguration.getInstance()
           .getStringValue(ConfigurationParam.SYSTEM_ADMIN_E_MAIL);
       if (StringUtils.isNotBlank(recipients) == true) {

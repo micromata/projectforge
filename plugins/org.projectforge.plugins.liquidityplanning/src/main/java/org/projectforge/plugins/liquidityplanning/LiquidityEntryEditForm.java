@@ -26,7 +26,7 @@ package org.projectforge.plugins.liquidityplanning;
 import java.math.BigDecimal;
 import java.util.Date;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.util.convert.IConverter;
 import org.projectforge.framework.utils.Constants;
@@ -50,7 +50,7 @@ public class LiquidityEntryEditForm extends AbstractEditForm<LiquidityEntryDO, L
 {
   private static final long serialVersionUID = -6208809585214296635L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(LiquidityEntryEditForm.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(LiquidityEntryEditForm.class);
 
   public LiquidityEntryEditForm(final LiquidityEntryEditPage parentPage, final LiquidityEntryDO data)
   {

@@ -4,7 +4,6 @@ import java.io.Serializable;
 import java.util.List;
 
 import org.apache.commons.lang3.Validate;
-import org.apache.log4j.Logger;
 import org.projectforge.framework.access.AccessException;
 import org.projectforge.framework.persistence.api.AUserRightId;
 import org.projectforge.framework.persistence.api.BaseDO;
@@ -13,6 +12,8 @@ import org.projectforge.framework.persistence.api.JpaPfGenericPersistenceService
 import org.projectforge.framework.persistence.api.ModificationStatus;
 import org.projectforge.framework.persistence.api.UserRightService;
 import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -30,7 +31,7 @@ import de.micromata.genome.util.runtime.ClassUtils;
 @Service
 public class JpaPfPersistenceServiceImpl implements JpaPfGenericPersistenceService
 {
-  private static final Logger LOG = Logger.getLogger(JpaPfPersistenceServiceImpl.class);
+  private static final Logger LOG = LoggerFactory.getLogger(JpaPfPersistenceServiceImpl.class);
   @Autowired
   private PfEmgrFactory emf;
 

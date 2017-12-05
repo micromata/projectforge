@@ -70,7 +70,7 @@ import com.thoughtworks.xstream.XStream;
 @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
 public class UserXmlPreferencesDao
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(UserXmlPreferencesDao.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(UserXmlPreferencesDao.class);
 
   @Autowired
   private AccessChecker accessChecker;

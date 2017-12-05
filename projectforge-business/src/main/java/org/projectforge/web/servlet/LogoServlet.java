@@ -52,7 +52,7 @@ public class LogoServlet extends HttpServlet implements ConfigurationListener
 
   private static final long serialVersionUID = 4091672008912713345L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(LogoServlet.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(LogoServlet.class);
 
   private static boolean initialized = false;
 

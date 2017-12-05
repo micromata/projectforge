@@ -23,7 +23,7 @@
 
 package org.projectforge.web.vacation;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
@@ -43,7 +43,7 @@ import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
 
 public class VacationListForm extends AbstractListForm<VacationFilter, VacationListPage>
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(VacationListForm.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(VacationListForm.class);
 
   private static final long serialVersionUID = -5969136444233092172L;
 

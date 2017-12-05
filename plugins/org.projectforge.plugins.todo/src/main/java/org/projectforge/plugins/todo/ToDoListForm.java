@@ -23,7 +23,6 @@
 
 package org.projectforge.plugins.todo;
 
-import org.apache.log4j.Logger;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.projectforge.business.task.TaskDO;
@@ -36,12 +35,13 @@ import org.projectforge.web.wicket.AbstractListForm;
 import org.projectforge.web.wicket.bootstrap.GridSize;
 import org.projectforge.web.wicket.flowlayout.DivPanel;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
+import org.slf4j.Logger;
 
 public class ToDoListForm extends AbstractListForm<ToDoFilter, ToDoListPage>
 {
   private static final long serialVersionUID = -8310609149068611648L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(ToDoListForm.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ToDoListForm.class);
 
   private transient TaskTree taskTree;
 

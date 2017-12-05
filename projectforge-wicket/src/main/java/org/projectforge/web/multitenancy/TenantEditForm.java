@@ -26,7 +26,6 @@ package org.projectforge.web.multitenancy;
 import java.util.Collection;
 import java.util.Set;
 
-import org.apache.log4j.Logger;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.multitenancy.TenantDao;
@@ -44,13 +43,14 @@ import org.projectforge.web.wicket.flowlayout.DivTextPanel;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
 import org.projectforge.web.wicket.flowlayout.InputPanel;
 import org.projectforge.web.wicket.flowlayout.TextAreaPanel;
+import org.slf4j.Logger;
 import org.wicketstuff.select2.Select2MultiChoice;
 
 public class TenantEditForm extends AbstractEditForm<TenantDO, TenantEditPage>
 {
   private static final long serialVersionUID = -1813583013436792979L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(TenantEditForm.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(TenantEditForm.class);
 
   @SpringBean
   private TenantDao tenantDao;

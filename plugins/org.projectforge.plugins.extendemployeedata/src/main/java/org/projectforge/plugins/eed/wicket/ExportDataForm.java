@@ -17,7 +17,7 @@ import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
 
 public class ExportDataForm extends AbstractStandardForm<Object, ExportDataPage>
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(ExportDataForm.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ExportDataForm.class);
 
   @SpringBean
   private EEDHelper eedHelper;

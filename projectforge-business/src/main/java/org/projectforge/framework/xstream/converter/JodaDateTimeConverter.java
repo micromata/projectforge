@@ -44,7 +44,7 @@ import com.thoughtworks.xstream.io.HierarchicalStreamWriter;
  */
 public class JodaDateTimeConverter implements Converter
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(JodaDateTimeConverter.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(JodaDateTimeConverter.class);
 
   protected static final String ISO_FORMAT = "yyyy-MM-dd HH:mm:ss";
 
@@ -82,6 +82,7 @@ public class JodaDateTimeConverter implements Converter
     }
   }
 
+  @Override
   @SuppressWarnings("rawtypes")
   public boolean canConvert(final Class clazz)
   {

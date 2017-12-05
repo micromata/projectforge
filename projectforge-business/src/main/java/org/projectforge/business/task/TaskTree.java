@@ -39,7 +39,6 @@ import java.util.TreeSet;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.Validate;
-import org.apache.log4j.Logger;
 import org.dom4j.Document;
 import org.dom4j.DocumentHelper;
 import org.dom4j.Element;
@@ -63,6 +62,8 @@ import org.projectforge.framework.persistence.user.entities.TenantDO;
 import org.projectforge.framework.time.DateHelper;
 import org.projectforge.framework.utils.NumberHelper;
 import org.projectforge.framework.utils.StackTraceHolder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Holds the complete task list in a tree. It will be initialized by the values read from the database. Any changes will
@@ -95,7 +96,7 @@ public class TaskTree extends AbstractCache implements Serializable
   /**
    * For log messages.
    */
-  private static final Logger log = Logger.getLogger(TaskTree.class);
+  private static final Logger log = LoggerFactory.getLogger(TaskTree.class);
 
   /**
    * Time of last modification in milliseconds from 1970-01-01.
@@ -843,7 +844,7 @@ public class TaskTree extends AbstractCache implements Serializable
       log.info("Can't initialize task tree, taskDao isn't set yet (shouldn't occur):");
       // Stack trace for debugging refresh() call without TaskDao (does only occur in productive mode):
       final StackTraceHolder sth = new StackTraceHolder();
-      log.info(sth);
+      log.info(sth.toString());
       return;
     }
     TaskNode newRoot = null;
@@ -876,7 +877,7 @@ public class TaskTree extends AbstractCache implements Serializable
     if (newRoot == null) {
       final TaskDO rootTask = new TaskDO();
       if (tenant == null) {
-        log.fatal("OUPS, no task found (ProjectForge database not initialized?) OK, initialize it ...");
+        log.error("OUPS, no task found (ProjectForge database not initialized?) OK, initialize it ...");
         rootTask.setShortDescription("ProjectForge root task");
       } else {
         log.info("No task yet given for tenant: " + tenant.getId() + ". Creating root task.");
@@ -912,7 +913,7 @@ public class TaskTree extends AbstractCache implements Serializable
     }
 
     if (log.isDebugEnabled() == true) {
-      log.debug(this.root);
+      log.debug(this.root.toString());
     }
 
     // Now read all explicit group task access' from the database:

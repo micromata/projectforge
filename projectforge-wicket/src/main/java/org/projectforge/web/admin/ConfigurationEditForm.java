@@ -26,7 +26,6 @@ package org.projectforge.web.admin;
 import java.math.BigDecimal;
 import java.util.TimeZone;
 
-import org.apache.log4j.Logger;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.model.PropertyModel;
@@ -57,6 +56,7 @@ import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
 import org.projectforge.web.wicket.flowlayout.InputPanel;
 import org.projectforge.web.wicket.flowlayout.Select2SingleChoicePanel;
 import org.projectforge.web.wicket.flowlayout.TextAreaPanel;
+import org.slf4j.Logger;
 import org.wicketstuff.select2.Select2Choice;
 
 public class ConfigurationEditForm extends AbstractEditForm<ConfigurationDO, ConfigurationEditPage>
@@ -68,7 +68,7 @@ public class ConfigurationEditForm extends AbstractEditForm<ConfigurationDO, Con
 
   private static final long serialVersionUID = 6156899763199729949L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(ConfigurationEditForm.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ConfigurationEditForm.class);
 
   private TaskDO task;
 

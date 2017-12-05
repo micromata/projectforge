@@ -32,7 +32,6 @@ import java.util.List;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.log4j.Logger;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.markup.html.form.Button;
 import org.apache.wicket.markup.html.form.DropDownChoice;
@@ -76,6 +75,7 @@ import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
 import org.projectforge.web.wicket.flowlayout.HtmlCodePanel;
 import org.projectforge.web.wicket.flowlayout.TextAreaPanel;
 import org.projectforge.web.wicket.flowlayout.ToggleContainerPanel;
+import org.slf4j.Logger;
 
 /**
  * @author Mario Groß (m.gross@micromata.de)
@@ -84,7 +84,7 @@ public class HRPlanningEditForm extends AbstractEditForm<HRPlanningDO, HRPlannin
 {
   private static final long serialVersionUID = 3150725003240437752L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(HRPlanningEditForm.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(HRPlanningEditForm.class);
 
   @SpringBean
   private HRPlanningEntryDao hrPlanningEntryDao;

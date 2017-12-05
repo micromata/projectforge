@@ -28,7 +28,7 @@ import java.net.URLEncoder;
 
 public class URLHelper
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(URLHelper.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(URLHelper.class);
 
   /**
    * Uses UTF-8

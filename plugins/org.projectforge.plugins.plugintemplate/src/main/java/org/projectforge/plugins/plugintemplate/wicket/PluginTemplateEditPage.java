@@ -23,7 +23,6 @@
 
 package org.projectforge.plugins.plugintemplate.wicket;
 
-import org.apache.log4j.Logger;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.plugins.plugintemplate.model.PluginTemplateDO;
@@ -32,6 +31,7 @@ import org.projectforge.plugins.plugintemplate.service.PluginTemplateService;
 import org.projectforge.web.fibu.ISelectCallerPage;
 import org.projectforge.web.wicket.AbstractEditPage;
 import org.projectforge.web.wicket.EditPage;
+import org.slf4j.Logger;
 
 @EditPage(defaultReturnPage = PluginTemplateListPage.class)
 public class PluginTemplateEditPage extends AbstractEditPage<PluginTemplateDO, PluginTemplateEditForm, PluginTemplateDao>
@@ -39,7 +39,7 @@ public class PluginTemplateEditPage extends AbstractEditPage<PluginTemplateDO, P
 {
   private static final long serialVersionUID = -3899191243765232906L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(PluginTemplateEditPage.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(PluginTemplateEditPage.class);
 
   @SpringBean
   private PluginTemplateService pluginTemplateService;

@@ -54,7 +54,7 @@ import org.projectforge.framework.utils.LabelValueBean;
  */
 public class DateHelper implements Serializable
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(DateHelper.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(DateHelper.class);
 
   private static final long serialVersionUID = -94010735614402146L;
 

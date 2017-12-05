@@ -90,15 +90,13 @@ public class HRPlanningExport
     }
   }
 
-  ;
-
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(HRPlanningExport.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(HRPlanningExport.class);
 
   final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.instance();
 
   private enum Col
   {
-    USER, PROJEKT, WEEK_OF_YEAR, PRIORITY, PROBABILITY, UNASSIGNEDHOURS, MONDAYHOURS, TUESDAYHOURS, WEDNESDAYHOURS, THURSDAYHOURS, FRIDAYHOURS, WEEKENDHOURS, DESCRIPTION, TOTAL_DURATION, WORKDAYS;
+    USER, PROJEKT, WEEK_OF_YEAR, PRIORITY, PROBABILITY, UNASSIGNEDHOURS, MONDAYHOURS, TUESDAYHOURS, WEDNESDAYHOURS, THURSDAYHOURS, FRIDAYHOURS, WEEKENDHOURS, DESCRIPTION, TOTAL_DURATION, WORKDAYS
   }
 
   /**

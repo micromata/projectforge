@@ -134,7 +134,7 @@ public class MenuItemRegistry implements Serializable
 {
   private static final long serialVersionUID = -6988615451822648295L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(MenuItemRegistry.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(MenuItemRegistry.class);
 
   private final List<MenuItemDef> menuItemList = new ArrayList<MenuItemDef>();
   private final List<MenuItemDef> favoritesItemList = new ArrayList<MenuItemDef>();

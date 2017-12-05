@@ -33,12 +33,13 @@ import java.util.TreeSet;
 import javax.annotation.PostConstruct;
 
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.log4j.Logger;
 import org.projectforge.business.configuration.ConfigurationService;
 import org.projectforge.framework.cache.AbstractCache;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.persistence.user.entities.TenantDO;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.orm.hibernate5.HibernateTemplate;
@@ -54,7 +55,7 @@ public class TenantsCache extends AbstractCache
 {
   private static final long serialVersionUID = 8692234056373706543L;
 
-  private static Logger log = Logger.getLogger(TenantsCache.class);
+  private static Logger log = LoggerFactory.getLogger(TenantsCache.class);
 
   @Autowired
   private ApplicationContext applicationContext;

@@ -32,7 +32,7 @@ import org.projectforge.framework.xstream.XmlConstants;
 
 public class ByteArrayConverter implements IConverter<byte[]>
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(ByteArrayConverter.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ByteArrayConverter.class);
 
   @Override
   public byte[] fromString(final String str)

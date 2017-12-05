@@ -36,7 +36,7 @@ import org.apache.poi.ss.util.CellRangeAddress;
 
 public class ExportSheet
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(ExportWorkbook.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ExportWorkbook.class);
 
   /**
    * Sheet names are limited to this length

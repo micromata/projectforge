@@ -35,7 +35,7 @@ public abstract class AbstractCache implements Serializable
 {
   private static final long serialVersionUID = 7148463321579100086L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(AbstractCache.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(AbstractCache.class);
 
   public static final long TICKS_PER_SECOND = 1000;
 

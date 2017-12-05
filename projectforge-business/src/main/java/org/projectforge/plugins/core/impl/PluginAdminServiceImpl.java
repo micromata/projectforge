@@ -8,7 +8,6 @@ import java.util.Set;
 import java.util.TreeSet;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.log4j.Logger;
 import org.projectforge.continuousdb.SystemUpdater;
 import org.projectforge.continuousdb.UpdateEntry;
 import org.projectforge.framework.configuration.ConfigurationDao;
@@ -21,6 +20,8 @@ import org.projectforge.plugins.core.AvailablePlugin;
 import org.projectforge.plugins.core.PluginAdminService;
 import org.projectforge.plugins.core.PluginsRegistry;
 import org.projectforge.plugins.core.ProjectforgePluginService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.context.ApplicationContext;
@@ -34,7 +35,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class PluginAdminServiceImpl implements PluginAdminService
 {
-  private static final Logger LOG = Logger.getLogger(PluginAdminServiceImpl.class);
+  private static final Logger LOG = LoggerFactory.getLogger(PluginAdminServiceImpl.class);
 
   @Autowired
   private ConfigurationDao configurationDao;

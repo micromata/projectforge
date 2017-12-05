@@ -25,7 +25,6 @@ package org.projectforge.web.meb;
 
 import java.util.Date;
 
-import org.apache.log4j.Logger;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.meb.MebDao;
@@ -36,13 +35,14 @@ import org.projectforge.web.fibu.ISelectCallerPage;
 import org.projectforge.web.timesheet.TimesheetEditPage;
 import org.projectforge.web.wicket.AbstractEditPage;
 import org.projectforge.web.wicket.EditPage;
+import org.slf4j.Logger;
 
 @EditPage(defaultReturnPage = MebListPage.class)
 public class MebEditPage extends AbstractEditPage<MebEntryDO, MebEditForm, MebDao> implements ISelectCallerPage
 {
   private static final long serialVersionUID = -652121498646785007L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(MebEditPage.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(MebEditPage.class);
 
   @SpringBean
   private MebDao mebDao;

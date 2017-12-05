@@ -47,7 +47,7 @@ import de.micromata.genome.util.runtime.config.MailSessionLocalSettingsConfigMod
 public class ConfigurationServiceImpl implements ConfigurationService
 {
 
-  private static transient final org.apache.log4j.Logger log = org.apache.log4j.Logger
+  private static transient final org.slf4j.Logger log = org.slf4j.LoggerFactory
       .getLogger(ConfigurationServiceImpl.class);
 
   private static transient final Set<String> nonExistingResources = new HashSet<>();
@@ -524,7 +524,7 @@ public class ConfigurationServiceImpl implements ConfigurationService
       dir.mkdir();
     }
     if (dir.canRead() == false) {
-      log.fatal("Can't create directory: " + dir);
+      log.error("Can't create directory: " + dir);
       return false;
     }
     return true;

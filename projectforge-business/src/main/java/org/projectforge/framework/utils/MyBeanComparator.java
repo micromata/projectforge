@@ -35,7 +35,7 @@ import se.sawano.java.text.AlphanumericComparator;
 
 public class MyBeanComparator<T> implements Comparator<T>
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(MyBeanComparator.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(MyBeanComparator.class);
 
   private String property, secondProperty;
 

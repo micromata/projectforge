@@ -23,7 +23,6 @@
 
 package org.projectforge.web.fibu;
 
-import org.apache.log4j.Logger;
 import org.projectforge.business.fibu.EingangsrechnungDao;
 import org.projectforge.business.fibu.EingangsrechnungListFilter;
 import org.projectforge.business.fibu.EingangsrechnungsStatistik;
@@ -32,13 +31,14 @@ import org.projectforge.web.common.I18nEnumChoiceProvider;
 import org.projectforge.web.wicket.LambdaModel;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
 import org.projectforge.web.wicket.flowlayout.Select2MultiChoicePanel;
+import org.slf4j.Logger;
 import org.wicketstuff.select2.Select2MultiChoice;
 
 public class EingangsrechnungListForm extends AbstractRechnungListForm<EingangsrechnungListFilter, EingangsrechnungListPage>
 {
   private static final long serialVersionUID = 2678813484329104564L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(EingangsrechnungListForm.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(EingangsrechnungListForm.class);
 
   @Override
   protected void init()

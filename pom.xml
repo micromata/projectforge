@@ -246,7 +246,6 @@
     <commons-lang.version>2.6</commons-lang.version>
     <commons-fileupload.version>1.3.1</commons-fileupload.version>
     <commons-httpclient.version>3.1</commons-httpclient.version>
-    <commons-logging.version>1.2</commons-logging.version>
     <commons-collections.version>3.2.2</commons-collections.version>
     <commons-dbcp.version>1.4</commons-dbcp.version>
     <commons-beanutils.version>1.9.2</commons-beanutils.version>
@@ -286,9 +285,7 @@
     <testng.versionj>6.9.9</testng.versionj>
     <powermock.version>1.6.5</powermock.version>
     <mockito2.version>2.0.42-beta</mockito2.version>
-    <log4j.version>1.2.17</log4j.version>
     <gson.version>2.5</gson.version>
-    <slf4j.version>1.7.13</slf4j.version>
     <joda-time.version>2.0</joda-time.version>
     <commons-cli.version>1.3.1</commons-cli.version>
     <apacheds.version>1.5.7</apacheds.version>

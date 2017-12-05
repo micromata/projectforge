@@ -28,7 +28,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
 
-import org.apache.log4j.Logger;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
@@ -51,13 +50,14 @@ import org.projectforge.web.wicket.flowlayout.DivPanelVisibility;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
 import org.projectforge.web.wicket.flowlayout.InputPanel;
 import org.projectforge.web.wicket.flowlayout.RadioGroupPanel;
+import org.slf4j.Logger;
 import org.wicketstuff.select2.Select2MultiChoice;
 
 public class AddressListForm extends AbstractListForm<AddressFilter, AddressListPage>
 {
   private static final long serialVersionUID = 8124796579658957116L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(AddressListForm.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(AddressListForm.class);
 
   @SpringBean
   private AddressDao addressDao;

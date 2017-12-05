@@ -41,7 +41,7 @@ public class SearchPage extends AbstractStandardFormPage implements ISelectCalle
 {
   private static final long serialVersionUID = -8416731462457080883L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(SearchPage.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(SearchPage.class);
 
   private final SearchForm form;
 

@@ -69,7 +69,7 @@ public class SendMail
 {
   private static final String STANDARD_SUBJECT_PREFIX = "[ProjectForge] ";
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(SendMail.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(SendMail.class);
 
   @Autowired
   private ConfigurationService configurationService;
@@ -139,7 +139,7 @@ public class SendMail
     if (ctx.hasErrors() == true) {
       log.error("SMPT configuration has validation errors");
       for (ValMessage msg : ctx.getMessages()) {
-        log.error(msg);
+        log.error(msg.toString());
       }
       throw new InternalErrorException("mail.error.exception");
     }

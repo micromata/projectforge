@@ -39,7 +39,7 @@ import org.springframework.stereotype.Component;
 @Component()
 public class SystemInfoCache extends AbstractCache
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(SystemInfoCache.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(SystemInfoCache.class);
 
   private boolean cost2EntriesExists, projectEntriesExists, customerEntriesExists;
 

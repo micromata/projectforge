@@ -29,14 +29,15 @@ import java.util.Date;
 import java.util.Locale;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.log4j.Logger;
 import org.projectforge.framework.time.DayHolder;
 import org.projectforge.framework.utils.ActionLog;
 import org.projectforge.framework.utils.NumberHelper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class BuchungssatzImportRow
 {
-  private static final Logger log = Logger.getLogger(BuchungssatzImportRow.class);
+  private static final Logger log = LoggerFactory.getLogger(BuchungssatzImportRow.class);
 
   Integer satzNr;
 

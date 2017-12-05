@@ -37,7 +37,7 @@ import org.projectforge.web.wicket.MessagePage;
 
 public class ChangeWlanPasswordPage extends AbstractStandardFormPage
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(ChangeWlanPasswordPage.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ChangeWlanPasswordPage.class);
 
   @SpringBean
   private UserService userService;

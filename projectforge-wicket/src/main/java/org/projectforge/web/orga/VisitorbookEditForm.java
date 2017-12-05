@@ -26,7 +26,6 @@ package org.projectforge.web.orga;
 import java.util.Collection;
 import java.util.function.Function;
 
-import org.apache.log4j.Logger;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
@@ -45,6 +44,8 @@ import org.projectforge.web.wicket.components.LabelValueChoiceRenderer;
 import org.projectforge.web.wicket.components.MaxLengthTextField;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
 import org.projectforge.web.wicket.flowlayout.InputPanel;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.wicketstuff.select2.Select2MultiChoice;
 
 import de.micromata.genome.db.jpa.tabattr.api.AttrGroup;
@@ -53,7 +54,7 @@ public class VisitorbookEditForm extends AbstractEditForm<VisitorbookDO, Visitor
 {
   private static final long serialVersionUID = 8746545908106124484L;
 
-  private static final Logger log = Logger.getLogger(VisitorbookEditForm.class);
+  private static final Logger log = LoggerFactory.getLogger(VisitorbookEditForm.class);
 
   @SpringBean
   private VisitorbookService visitorbookService;

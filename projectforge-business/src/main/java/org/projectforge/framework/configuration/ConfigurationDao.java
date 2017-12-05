@@ -58,7 +58,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Repository
 public class ConfigurationDao extends BaseDao<ConfigurationDO>
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(ConfigurationDao.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ConfigurationDao.class);
 
   @Autowired
   private ApplicationContext applicationContext;

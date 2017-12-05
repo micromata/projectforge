@@ -49,7 +49,7 @@ import org.apache.commons.lang3.StringUtils;
  */
 public class BeanHelper
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(BeanHelper.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(BeanHelper.class);
 
   private static boolean TEST_MODE = false;
 
@@ -258,10 +258,10 @@ public class BeanHelper
           return clazz.getMethod(setterName, new Class[] { parameterType });
         }
       } catch (final SecurityException ex) {
-        log.fatal("Could not determine setter for '" + name + "': " + ex, ex);
+        log.error("Could not determine setter for '" + name + "': " + ex, ex);
         throw new RuntimeException(ex);
       } catch (final NoSuchMethodException ex) {
-        log.fatal("Could not determine setter for '" + name + "': " + ex, ex);
+        log.error("Could not determine setter for '" + name + "': " + ex, ex);
         throw new RuntimeException(ex);
       }
     }
@@ -292,15 +292,15 @@ public class BeanHelper
     try {
       return method.invoke(obj, args);
     } catch (final IllegalArgumentException ex) {
-      log.fatal("Could not invoke '" + method.getName() + "': " + ex + " for object [" + obj + "] with args: " + args,
+      log.error("Could not invoke '" + method.getName() + "': " + ex + " for object [" + obj + "] with args: " + args,
           ex);
       throw new RuntimeException(ex);
     } catch (final IllegalAccessException ex) {
-      log.fatal("Could not invoke '" + method.getName() + "': " + ex + " for object [" + obj + "] with args: " + args,
+      log.error("Could not invoke '" + method.getName() + "': " + ex + " for object [" + obj + "] with args: " + args,
           ex);
       throw new RuntimeException(ex);
     } catch (final InvocationTargetException ex) {
-      log.fatal("Could not invoke '" + method.getName() + "': " + ex + " for object [" + obj + "] with args: " + args,
+      log.error("Could not invoke '" + method.getName() + "': " + ex + " for object [" + obj + "] with args: " + args,
           ex);
       throw new RuntimeException(ex);
     }

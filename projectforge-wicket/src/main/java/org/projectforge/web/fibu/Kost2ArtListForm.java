@@ -23,14 +23,14 @@
 
 package org.projectforge.web.fibu;
 
-import org.apache.log4j.Logger;
 import org.projectforge.web.wicket.AbstractListForm;
+import org.slf4j.Logger;
 
 public class Kost2ArtListForm extends AbstractListForm<Kost2ArtListFilter, Kost2ArtListPage>
 {
   private static final long serialVersionUID = -4055796963328089970L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(Kost2ArtListForm.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(Kost2ArtListForm.class);
 
   public Kost2ArtListForm(final Kost2ArtListPage parentPage)
   {

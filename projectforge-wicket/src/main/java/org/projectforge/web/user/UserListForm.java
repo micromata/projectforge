@@ -23,7 +23,7 @@
 
 package org.projectforge.web.user;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.model.PropertyModel;
 import org.projectforge.business.login.Login;
@@ -37,7 +37,7 @@ public class UserListForm extends AbstractListForm<PFUserFilter, UserListPage>
 {
   private static final long serialVersionUID = 7625173316784007696L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(UserListForm.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(UserListForm.class);
 
   public UserListForm(final UserListPage parentPage)
   {

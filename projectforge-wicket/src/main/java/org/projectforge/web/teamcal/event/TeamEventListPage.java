@@ -60,7 +60,7 @@ import org.projectforge.web.wicket.WicketUtils;
 public class TeamEventListPage extends AbstractListPage<TeamEventListForm, TeamEventDao, TeamEventDO> implements
     IListPageColumnsCreator<TeamEventDO>
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(TeamEventListPage.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(TeamEventListPage.class);
 
   public static final String PARAM_CALENDARS = "cals";
 

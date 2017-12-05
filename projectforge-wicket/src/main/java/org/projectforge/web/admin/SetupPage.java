@@ -59,7 +59,7 @@ public class SetupPage extends AbstractUnsecureBasePage
 {
   private static final long serialVersionUID = 9174903871130640690L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(SetupPage.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(SetupPage.class);
 
   @SpringBean
   private ConfigurationDao configurationDao;

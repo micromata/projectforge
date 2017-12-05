@@ -78,7 +78,7 @@ public class MonthlyEmployeeReportPage extends AbstractStandardFormPage implemen
 {
   private static final long serialVersionUID = -136398850032685654L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(MonthlyEmployeeReportPage.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(MonthlyEmployeeReportPage.class);
 
   private static final String USER_PREF_KEY_FILTER = "monthlyEmployeeReportFilter";
 

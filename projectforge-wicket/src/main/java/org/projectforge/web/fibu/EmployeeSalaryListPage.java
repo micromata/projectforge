@@ -60,7 +60,7 @@ import org.projectforge.web.wicket.components.ContentMenuEntryPanel;
 public class EmployeeSalaryListPage
     extends AbstractListPage<EmployeeSalaryListForm, EmployeeSalaryDao, EmployeeSalaryDO>
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(EmployeeSalaryListPage.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(EmployeeSalaryListPage.class);
 
   private static final long serialVersionUID = -8406452960003792763L;
 
@@ -87,6 +87,7 @@ public class EmployeeSalaryListPage
 
     final CellItemListener<EmployeeSalaryDO> cellItemListener = new CellItemListener<EmployeeSalaryDO>()
     {
+      @Override
       public void populateItem(final Item<ICellPopulator<EmployeeSalaryDO>> item, final String componentId,
           final IModel<EmployeeSalaryDO> rowModel)
       {

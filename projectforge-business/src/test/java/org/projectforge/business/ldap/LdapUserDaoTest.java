@@ -23,33 +23,13 @@
 
 package org.projectforge.business.ldap;
 
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertFalse;
-import static org.testng.AssertJUnit.assertNotNull;
-import static org.testng.AssertJUnit.assertNull;
-import static org.testng.AssertJUnit.assertTrue;
-import static org.testng.internal.junit.ArrayAsserts.assertArrayEquals;
-
-import org.projectforge.business.ldap.LdapPosixAccountsConfig;
-import org.projectforge.business.ldap.LdapSambaAccountsConfig;
-import org.projectforge.business.ldap.LdapService;
-import org.projectforge.business.ldap.LdapUser;
-import org.projectforge.business.ldap.LdapUserDao;
-import org.projectforge.business.ldap.LdapUtils;
-import org.projectforge.business.ldap.PFUserDOConverter;
-import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.test.AbstractTestBase;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.testng.annotations.AfterMethod;
-import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
-
-import arlut.csd.crypto.SmbEncrypt;
 
 @Test(enabled=false)
 public class LdapUserDaoTest extends AbstractTestBase
 {/*
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(LdapUserDaoTest.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(LdapUserDaoTest.class);
 
   @Autowired
   private LdapUserDao ldapUserDao;

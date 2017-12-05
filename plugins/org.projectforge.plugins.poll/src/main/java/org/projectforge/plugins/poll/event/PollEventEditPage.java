@@ -57,7 +57,7 @@ public class PollEventEditPage extends AbstractSecuredPage
 {
   private static final long serialVersionUID = 2988767055605267801L;
 
-  // private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(PollEventEditPage.class);
+  // private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(PollEventEditPage.class);
 
   private MyFullCalendarConfig config;
 

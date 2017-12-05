@@ -28,7 +28,6 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
-import org.apache.log4j.Logger;
 import org.apache.wicket.markup.html.link.Link;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
@@ -45,6 +44,7 @@ import org.projectforge.web.wicket.AbstractEditPage;
 import org.projectforge.web.wicket.DownloadUtils;
 import org.projectforge.web.wicket.EditPage;
 import org.projectforge.web.wicket.components.ContentMenuEntryPanel;
+import org.slf4j.Logger;
 
 @EditPage(defaultReturnPage = EingangsrechnungListPage.class)
 public class EingangsrechnungEditPage
@@ -53,7 +53,7 @@ public class EingangsrechnungEditPage
 {
   private static final long serialVersionUID = 6847624027377867591L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(EingangsrechnungEditPage.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(EingangsrechnungEditPage.class);
 
   @SpringBean
   private EingangsrechnungDao eingangsrechnungDao;

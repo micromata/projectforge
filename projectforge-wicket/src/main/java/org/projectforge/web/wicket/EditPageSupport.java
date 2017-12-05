@@ -38,7 +38,7 @@ public class EditPageSupport<O extends AbstractBaseDO<Integer>, D extends ICoreP
 {
   private static final long serialVersionUID = 5504452697069803264L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(EditPageSupport.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(EditPageSupport.class);
 
   public final P editPage;
 

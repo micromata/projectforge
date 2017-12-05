@@ -32,7 +32,6 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.PredicateUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.ToStringBuilder;
-import org.apache.log4j.Logger;
 import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Restrictions;
 import org.projectforge.business.fibu.ProjektDO;
@@ -44,6 +43,8 @@ import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.persistence.api.QueryFilter;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.time.DateHolder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
@@ -57,7 +58,7 @@ public class HRPlanningEntryDao extends BaseDao<HRPlanningEntryDO>
 {
   public static final UserRightId USER_RIGHT_ID = UserRightId.PM_HR_PLANNING;
 
-  private static final Logger log = Logger.getLogger(HRPlanningEntryDao.class);
+  private static final Logger log = LoggerFactory.getLogger(HRPlanningEntryDao.class);
 
   @Autowired
   private ProjektDao projektDao;

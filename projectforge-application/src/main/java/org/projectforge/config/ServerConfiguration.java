@@ -11,7 +11,7 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class ServerConfiguration implements EmbeddedServletContainerCustomizer
 {
-  static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(ServerConfiguration.class);
+  static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ServerConfiguration.class);
 
   @Value("${projectforge.servletContextPath}")
   private String servletContextPath;

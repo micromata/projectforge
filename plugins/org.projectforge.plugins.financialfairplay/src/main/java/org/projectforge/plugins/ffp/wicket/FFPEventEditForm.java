@@ -37,7 +37,6 @@ import java.util.Set;
 
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.log4j.Logger;
 import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
@@ -87,13 +86,14 @@ import org.projectforge.web.wicket.flowlayout.DivTextPanel;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
 import org.projectforge.web.wicket.flowlayout.InputPanel;
 import org.projectforge.web.wicket.flowlayout.TablePanel;
+import org.slf4j.Logger;
 import org.wicketstuff.select2.Select2MultiChoice;
 
 public class FFPEventEditForm extends AbstractEditForm<FFPEventDO, FFPEventEditPage>
 {
   private static final long serialVersionUID = 8746545908106124484L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(FFPEventEditForm.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(FFPEventEditForm.class);
 
   @SpringBean
   private UserDao userDao;

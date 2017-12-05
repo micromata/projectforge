@@ -52,7 +52,7 @@ import org.apache.commons.io.IOUtils;
  */
 public class MyTrustManager implements X509TrustManager
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(MyTrustManager.class);;
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(MyTrustManager.class);
 
   private X509TrustManager trustManager;
 
@@ -129,11 +129,13 @@ public class MyTrustManager implements X509TrustManager
     }
   }
 
+  @Override
   public void checkClientTrusted(final X509Certificate[] chain, final String authType) throws CertificateException
   {
     trustManager.checkClientTrusted(chain, authType);
   }
 
+  @Override
   public void checkServerTrusted(final X509Certificate[] chain, final String authType) throws CertificateException
   {
     if (certificate != null) {
@@ -157,6 +159,7 @@ public class MyTrustManager implements X509TrustManager
     }
   }
 
+  @Override
   public X509Certificate[] getAcceptedIssuers()
   {
     return trustManager.getAcceptedIssuers();

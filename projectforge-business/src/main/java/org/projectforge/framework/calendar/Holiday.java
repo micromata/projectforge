@@ -34,7 +34,7 @@ import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
  */
 public class Holiday
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(Holiday.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(Holiday.class);
 
   private boolean workingDay;
 

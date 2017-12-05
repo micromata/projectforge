@@ -30,7 +30,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
-import org.apache.log4j.Logger;
 import org.projectforge.business.teamcal.admin.model.TeamCalDO;
 import org.projectforge.business.teamcal.admin.right.TeamCalRight;
 import org.projectforge.business.user.UserRightId;
@@ -39,6 +38,8 @@ import org.projectforge.framework.configuration.ApplicationContextProvider;
 import org.projectforge.framework.persistence.api.UserRightService;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -52,7 +53,7 @@ public class TeamCalCache extends AbstractCache
 {
   private static final long serialVersionUID = 1742102774636598280L;
 
-  private static Logger log = Logger.getLogger(TeamCalCache.class);
+  private static Logger log = LoggerFactory.getLogger(TeamCalCache.class);
 
   @Autowired
   UserRightService userRights;

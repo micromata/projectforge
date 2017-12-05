@@ -69,7 +69,7 @@ public abstract class AbstractListPage<F extends AbstractListForm<?, ?>, D exten
 {
   private static final long serialVersionUID = 622509418161777195L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(AbstractListPage.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(AbstractListPage.class);
 
   public static final String PARAMETER_KEY_STORE_FILTER = "storeFilter";
 

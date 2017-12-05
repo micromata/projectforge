@@ -40,7 +40,7 @@ import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
  */
 public class I18nHelper
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(I18nHelper.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(I18nHelper.class);
 
   private static final Set<String> BUNDLE_NAMES = new HashSet<>();
 

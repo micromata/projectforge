@@ -23,7 +23,7 @@
 
 package org.projectforge.plugins.marketing;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.validation.IValidator;
@@ -41,7 +41,7 @@ public class AddressCampaignEditForm extends AbstractEditForm<AddressCampaignDO,
 {
   private static final long serialVersionUID = -6208809585214296635L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(AddressCampaignEditForm.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(AddressCampaignEditForm.class);
 
   private TextField<String> valuesField;
 

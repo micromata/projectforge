@@ -23,7 +23,7 @@
 
 package org.projectforge.plugins.marketing;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.web.wicket.AbstractListForm;
 
@@ -38,7 +38,7 @@ public class AddressCampaignListForm extends AbstractListForm<BaseSearchFilter, 
 {
   private static final long serialVersionUID = 6190615904711764514L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(AddressCampaignListForm.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(AddressCampaignListForm.class);
 
   public AddressCampaignListForm(final AddressCampaignListPage parentPage)
   {

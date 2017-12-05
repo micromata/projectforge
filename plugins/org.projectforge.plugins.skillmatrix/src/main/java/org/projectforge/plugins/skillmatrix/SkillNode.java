@@ -28,9 +28,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.lang3.builder.ToStringBuilder;
-import org.apache.log4j.Logger;
 import org.projectforge.framework.i18n.UserException;
 import org.projectforge.framework.persistence.api.IdObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Represents a single skill as part of the SkillTree. The data of a skill node is stored in the database.
@@ -38,7 +39,7 @@ import org.projectforge.framework.persistence.api.IdObject;
  */
 public class SkillNode implements IdObject<Integer>, Serializable
 {
-  private static final Logger log = Logger.getLogger(SkillNode.class);
+  private static final Logger log = LoggerFactory.getLogger(SkillNode.class);
 
   private static final long serialVersionUID = 8016231590126097371L;
 

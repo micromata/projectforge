@@ -69,7 +69,7 @@ public class AddressDao extends BaseDao<AddressDO>
 {
   private static final DateFormat V_CARD_DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd");
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(AddressDao.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(AddressDao.class);
 
   @Autowired
   private AddressbookDao addressbookDao;
@@ -438,7 +438,7 @@ public class AddressDao extends BaseDao<AddressDO>
   public void exportVCard(final PrintWriter pw, final AddressDO addressDO)
   {
     if (log.isDebugEnabled() == true) {
-      log.debug("Exporting vCard for addressDo : " + addressDO != null ? addressDO.getId() : null);
+      log.debug("Exporting vCard for addressDo : " + (addressDO != null ? addressDO.getId() : null));
     }
     pw.println("BEGIN:VCARD");
     pw.println("VERSION:3.0");

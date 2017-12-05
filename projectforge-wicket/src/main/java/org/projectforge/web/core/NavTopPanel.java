@@ -81,7 +81,7 @@ import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
  */
 public class NavTopPanel extends NavAbstractPanel
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(NavTopPanel.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(NavTopPanel.class);
 
   private static final long serialVersionUID = -7858806882044188339L;
 

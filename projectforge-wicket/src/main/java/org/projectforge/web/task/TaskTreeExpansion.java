@@ -41,7 +41,7 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
 @XStreamAlias("TaskTreeExpansion")
 public class TaskTreeExpansion extends TableTreeExpansion<Integer, TaskNode>
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(TaskTreeExpansion.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(TaskTreeExpansion.class);
 
   private static final long serialVersionUID = 5151537746424532422L;
 
