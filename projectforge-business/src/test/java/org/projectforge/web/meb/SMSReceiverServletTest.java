@@ -61,7 +61,7 @@ public class SMSReceiverServletTest extends AbstractTestBase
   @Autowired
   private ConfigurationService configService;
 
-  @Test(enabled = false)
+  @Test
   public void receiveSMS() throws Exception
   {
     final String origKey = (String) TestHelper.getDeclaredFieldValue(configService, "receiveSmsKey");
@@ -99,13 +99,13 @@ public class SMSReceiverServletTest extends AbstractTestBase
     TestHelper.setDeclaredField(configService, "receiveSmsKey", origKey);
   }
 
-  @Test(enabled = false)
+  @Test
   public void receiveSMSWithWrongRequest() throws Exception
   {
     init();
     final String origKey = (String) TestHelper.getDeclaredFieldValue(configService, "receiveSmsKey");
     TestHelper.setDeclaredField(configService, "receiveSmsKey", null);
-    final Logger mebDaoLoggerSpy = spy(LoggerFactory.getLogger(MebDao.class));
+    final Logger mebDaoLoggerSpy = mock(Logger.class);
     TestHelper.setDeclaredStaticField(MebDao.class, "log", mebDaoLoggerSpy);
     HttpServletRequest request = mockRequest("wrongKey", null, null, null);
     final HttpServletResponse response = mockResponse("");
@@ -174,7 +174,7 @@ public class SMSReceiverServletTest extends AbstractTestBase
   public void init()
   {
     if (loggerSpy == null) {
-      loggerSpy = spy(LoggerFactory.getLogger(SMSReceiverServlet.class));
+      loggerSpy = mock(Logger.class);
       TestHelper.setDeclaredField(configService, "receiveSmsKey", "otieZae9Aiphai5o");
       TestHelper.setDeclaredStaticField(SMSReceiverServlet.class, "log", loggerSpy);
     }
