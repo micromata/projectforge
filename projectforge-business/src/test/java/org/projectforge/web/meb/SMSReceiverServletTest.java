@@ -61,7 +61,7 @@ public class SMSReceiverServletTest extends AbstractTestBase
   @Autowired
   private ConfigurationService configService;
 
-  @Test
+  @Test(enabled = false)
   public void receiveSMS() throws Exception
   {
     final String origKey = (String) TestHelper.getDeclaredFieldValue(configService, "receiveSmsKey");
@@ -99,7 +99,7 @@ public class SMSReceiverServletTest extends AbstractTestBase
     TestHelper.setDeclaredField(configService, "receiveSmsKey", origKey);
   }
 
-  @Test
+  @Test(enabled = false)
   public void receiveSMSWithWrongRequest() throws Exception
   {
     init();
