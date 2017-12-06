@@ -39,7 +39,7 @@ import org.projectforge.web.wicket.WicketUtils;
  */
 public class MenuEntry implements Serializable, Comparable<MenuEntry>
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(MenuEntry.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(MenuEntry.class);
 
   private static final long serialVersionUID = 7961498640193169174L;
 

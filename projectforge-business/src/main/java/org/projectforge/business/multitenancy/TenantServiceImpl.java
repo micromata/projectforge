@@ -16,7 +16,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class TenantServiceImpl implements TenantService
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(TenantService.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(TenantService.class);
 
   private static final int DEFAULT_TENANT_ID = 1;
 

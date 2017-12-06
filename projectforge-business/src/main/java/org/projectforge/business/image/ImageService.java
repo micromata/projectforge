@@ -17,7 +17,7 @@ import org.springframework.stereotype.Service;
 public class ImageService
 {
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(ImageService.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ImageService.class);
 
   public byte[] resizeImage(byte[] originalImage)
   {

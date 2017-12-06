@@ -76,7 +76,7 @@ import de.micromata.genome.jpa.CriteriaUpdate;
 @Repository
 public class UserDao extends BaseDao<PFUserDO>
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(UserDao.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(UserDao.class);
 
   private static final short AUTHENTICATION_TOKEN_LENGTH = 20;
 

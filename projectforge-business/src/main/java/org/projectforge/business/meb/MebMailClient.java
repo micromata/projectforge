@@ -53,7 +53,7 @@ import de.micromata.mgc.email.MailReceiverLocalSettingsConfigModel;
 @Controller
 public class MebMailClient
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(MebMailClient.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(MebMailClient.class);
 
   @Autowired
   private ApplicationContext applicationContext;
@@ -224,7 +224,7 @@ public class MebMailClient
             entry.setMessage(buf.substring(0, min).toString().trim());
           }
         } catch (IOException ex) {
-          log.fatal("Exception encountered " + ex, ex);
+          log.error("Exception encountered " + ex, ex);
         }
         if (mebDao.checkAndAddEntry(entry, "MAIL") == true) {
           counter++;

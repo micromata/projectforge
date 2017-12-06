@@ -23,7 +23,6 @@
 
 package org.projectforge.web.admin;
 
-import org.apache.log4j.Logger;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.framework.configuration.ConfigurationDao;
@@ -33,13 +32,14 @@ import org.projectforge.web.fibu.ISelectCallerPage;
 import org.projectforge.web.wicket.AbstractEditPage;
 import org.projectforge.web.wicket.AbstractSecuredBasePage;
 import org.projectforge.web.wicket.EditPage;
+import org.slf4j.Logger;
 
 @EditPage(defaultReturnPage = ConfigurationListPage.class)
 public class ConfigurationEditPage extends AbstractEditPage<ConfigurationDO, ConfigurationEditForm, ConfigurationDao>
     implements
     ISelectCallerPage
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(ConfigurationEditPage.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ConfigurationEditPage.class);
 
   private static final long serialVersionUID = -8192471994161712577L;
 
@@ -89,10 +89,12 @@ public class ConfigurationEditPage extends AbstractEditPage<ConfigurationDO, Con
     return log;
   }
 
+  @Override
   public void cancelSelection(final String property)
   {
   }
 
+  @Override
   public void select(final String property, final Object selectedValue)
   {
     if (property == null) {
@@ -106,6 +108,7 @@ public class ConfigurationEditPage extends AbstractEditPage<ConfigurationDO, Con
     }
   }
 
+  @Override
   public void unselect(final String property)
   {
     if (property == null) {

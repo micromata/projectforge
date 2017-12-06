@@ -40,7 +40,7 @@ import de.micromata.hibernate.history.delta.PropertyDelta;
 public class PrintingHistoryFormatter extends DefaultHistoryFormatter
 {
   /** The logger */
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(PrintingHistoryFormatter.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(PrintingHistoryFormatter.class);
 
   public PrintingHistoryFormatter(final String resourceBundleName)
   {

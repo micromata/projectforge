@@ -35,7 +35,7 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO;
  */
 public class Login
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(Login.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(Login.class);
 
   private static final Login instance = new Login();
 

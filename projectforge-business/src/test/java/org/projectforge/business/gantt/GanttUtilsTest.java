@@ -23,9 +23,7 @@
 
 package org.projectforge.business.gantt;
 
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertNull;
-import static org.testng.AssertJUnit.assertTrue;
+import static org.testng.AssertJUnit.*;
 
 import java.math.BigDecimal;
 import java.util.Calendar;
@@ -40,7 +38,7 @@ import org.testng.annotations.Test;
 
 public class GanttUtilsTest extends AbstractTestBase
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(GanttUtilsTest.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(GanttUtilsTest.class);
 
   private static int counter = 0;
 

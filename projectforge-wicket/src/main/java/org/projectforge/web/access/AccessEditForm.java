@@ -23,7 +23,6 @@
 
 package org.projectforge.web.access;
 
-import org.apache.log4j.Logger;
 import org.apache.wicket.markup.html.form.Button;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
@@ -36,12 +35,13 @@ import org.projectforge.web.wicket.AbstractEditForm;
 import org.projectforge.web.wicket.components.MaxLengthTextArea;
 import org.projectforge.web.wicket.components.SingleButtonPanel;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
+import org.slf4j.Logger;
 
 public class AccessEditForm extends AbstractEditForm<GroupTaskAccessDO, AccessEditPage>
 {
   private static final long serialVersionUID = 1949792988059857771L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(AccessEditForm.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(AccessEditForm.class);
 
   protected NewGroupSelectPanel groupSelectPanel;
 

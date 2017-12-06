@@ -61,7 +61,7 @@ import org.springframework.util.CollectionUtils;
 @Component
 public class HibernateSearchDependentObjectsReindexer
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory
       .getLogger(HibernateSearchDependentObjectsReindexer.class);
 
   @Autowired

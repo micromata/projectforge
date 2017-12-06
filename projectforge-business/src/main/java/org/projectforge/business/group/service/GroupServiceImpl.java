@@ -44,7 +44,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class GroupServiceImpl implements GroupService
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(GroupServiceImpl.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(GroupServiceImpl.class);
 
   private UserGroupCache userGroupCache;
 

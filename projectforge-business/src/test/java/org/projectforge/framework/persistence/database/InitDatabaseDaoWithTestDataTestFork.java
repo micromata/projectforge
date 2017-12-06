@@ -56,7 +56,7 @@ import de.micromata.genome.jpa.ConstraintPersistenceException;
 
 public class InitDatabaseDaoWithTestDataTestFork extends AbstractTestBase
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory
       .getLogger(InitDatabaseDaoWithTestDataTestFork.class);
   // old format.
 

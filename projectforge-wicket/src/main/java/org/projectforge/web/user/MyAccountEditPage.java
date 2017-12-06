@@ -27,7 +27,7 @@ import java.util.Collection;
 
 import javax.servlet.http.HttpServletRequest;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
 import org.apache.wicket.markup.html.link.BookmarkablePageLink;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
@@ -53,7 +53,7 @@ public class MyAccountEditPage extends AbstractEditPage<PFUserDO, MyAccountEditF
 {
   private static final long serialVersionUID = 4636922408954211544L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(MyAccountEditPage.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(MyAccountEditPage.class);
 
   @SpringBean
   private UserService userService;

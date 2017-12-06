@@ -23,11 +23,12 @@
 
 package org.projectforge.plugins.crm;
 
-import org.apache.log4j.Logger;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.web.fibu.ISelectCallerPage;
 import org.projectforge.web.wicket.AbstractEditPage;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * The controller of the edit formular page. Most functionality such as insert, update, delete etc. is done by the super
@@ -41,7 +42,7 @@ public class ContactEditPage extends AbstractEditPage<ContactDO, ContactEditForm
 
   private static final long serialVersionUID = -4584335798024587418L;
 
-  private static final Logger log = Logger.getLogger(ContactEditPage.class);
+  private static final Logger log = LoggerFactory.getLogger(ContactEditPage.class);
 
   public static final String I18N_KEY_PREFIX = "address";
 

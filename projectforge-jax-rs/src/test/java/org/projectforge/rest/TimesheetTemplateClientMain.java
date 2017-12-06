@@ -38,7 +38,7 @@ import com.google.gson.reflect.TypeToken;
 
 public class TimesheetTemplateClientMain
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory
       .getLogger(TimesheetTemplateClientMain.class);
 
   public static void main(final String[] args)
@@ -60,7 +60,7 @@ public class TimesheetTemplateClientMain
         {
         }.getType());
     for (final TimesheetTemplateObject template : col) {
-      log.info(template);
+      log.info(template.toString());
     }
   }
 }

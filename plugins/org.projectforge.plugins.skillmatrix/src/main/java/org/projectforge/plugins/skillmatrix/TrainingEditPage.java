@@ -23,7 +23,6 @@
 
 package org.projectforge.plugins.skillmatrix;
 
-import org.apache.log4j.Logger;
 import org.apache.wicket.markup.html.link.Link;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
@@ -33,6 +32,8 @@ import org.projectforge.web.wicket.AbstractEditPage;
 import org.projectforge.web.wicket.AbstractSecuredBasePage;
 import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.web.wicket.components.ContentMenuEntryPanel;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * The controller of the edit formular page. Most functionality such as insert, update, delete etc. is done by the super
@@ -46,7 +47,7 @@ public class TrainingEditPage extends AbstractEditPage<TrainingDO, TrainingEditF
 
   private static final long serialVersionUID = 2710329392704763921L;
 
-  private static final Logger log = Logger.getLogger(TrainingEditPage.class);
+  private static final Logger log = LoggerFactory.getLogger(TrainingEditPage.class);
 
   public static final String I18N_KEY_PREFIX = "plugins.skillmatrix.skilltraining";
 
@@ -157,7 +158,7 @@ public class TrainingEditPage extends AbstractEditPage<TrainingDO, TrainingEditF
               final TrainingAttendeeListPage page = new TrainingAttendeeListPage(params);
               page.setReturnToPage(TrainingEditPage.this);
               setResponsePage(page);
-            };
+            }
           }, getString("plugins.skillmatrix.skilltraining.attendee.menu"));
       addContentMenuEntry(menu);
     }

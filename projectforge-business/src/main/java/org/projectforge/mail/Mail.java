@@ -42,7 +42,7 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO;
  */
 public class Mail implements Comparable<Mail>
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(Mail.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(Mail.class);
 
   public static final String CONTENTTYPE_HTML = "html";
 
@@ -198,6 +198,10 @@ public class Mail implements Comparable<Mail>
 
   public void setTo(PFUserDO user)
   {
+    if (user == null || user.getEmail() == null) {
+      log.warn("Could not set email receiver for PFUserDO. User or email is null.");
+      return;
+    }
     addTo(user.getEmail());
     if (StringUtils.isBlank(getToRealname())) {
       setToRealname(user.getFullname());

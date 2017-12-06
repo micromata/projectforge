@@ -23,7 +23,6 @@
 
 package org.projectforge.plugins.skillmatrix;
 
-import org.apache.log4j.Logger;
 import org.apache.wicket.markup.html.link.Link;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
@@ -35,6 +34,8 @@ import org.projectforge.web.wicket.AbstractEditPage;
 import org.projectforge.web.wicket.AbstractSecuredBasePage;
 import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.web.wicket.components.ContentMenuEntryPanel;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author Billy Duong (b.duong@micromata.de)
@@ -44,7 +45,7 @@ public class SkillEditPage extends AbstractEditPage<SkillDO, SkillEditForm, Skil
 {
   private static final long serialVersionUID = 4317454400876214258L;
 
-  private static final Logger log = Logger.getLogger(SkillEditPage.class);
+  private static final Logger log = LoggerFactory.getLogger(SkillEditPage.class);
 
   public static final String I18N_KEY_PREFIX = "plugins.skillmatrix.skill";
 
@@ -171,7 +172,7 @@ public class SkillEditPage extends AbstractEditPage<SkillDO, SkillEditForm, Skil
                 final SkillEditPage skillEditPage = new SkillEditPage(params);
                 skillEditPage.setReturnToPage(SkillEditPage.this);
                 setResponsePage(skillEditPage);
-              };
+              }
             }, getString("plugins.skillmatrix.skill.menu.addSubSkill"));
         addContentMenuEntry(menu);
       }
@@ -199,7 +200,7 @@ public class SkillEditPage extends AbstractEditPage<SkillDO, SkillEditForm, Skil
                 final TrainingEditPage trainingEditPage = new TrainingEditPage(params);
                 trainingEditPage.setReturnToPage(SkillEditPage.this);
                 setResponsePage(trainingEditPage);
-              };
+              }
             }, getString("plugins.skillmatrix.skilltraining.menu"));
         addContentMenuEntry(menu);
       }
@@ -216,7 +217,7 @@ public class SkillEditPage extends AbstractEditPage<SkillDO, SkillEditForm, Skil
                 final SkillRatingListPage skillRatingListPage = new SkillRatingListPage(params);
                 skillRatingListPage.setReturnToPage(SkillEditPage.this);
                 setResponsePage(skillRatingListPage);
-              };
+              }
             }, getString("plugins.skillmatrix.skill.menu.addRating"));
         addContentMenuEntry(menu);
       }

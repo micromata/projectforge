@@ -27,7 +27,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.log4j.Logger;
 import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Restrictions;
 import org.projectforge.business.user.UserRightId;
@@ -37,6 +36,8 @@ import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.persistence.api.QueryFilter;
 import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
 import org.projectforge.framework.persistence.utils.SQLHelper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
@@ -46,7 +47,7 @@ import org.springframework.stereotype.Repository;
 @Repository
 public class EmployeeSalaryDao extends BaseDao<EmployeeSalaryDO>
 {
-  private static final Logger log = Logger.getLogger(EmployeeSalaryDao.class);
+  private static final Logger log = LoggerFactory.getLogger(EmployeeSalaryDao.class);
 
   public static final UserRightId USER_RIGHT_ID = UserRightId.HR_EMPLOYEE_SALARY;
 

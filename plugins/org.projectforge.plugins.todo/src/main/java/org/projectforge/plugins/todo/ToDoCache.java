@@ -26,8 +26,9 @@ package org.projectforge.plugins.todo;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.log4j.Logger;
 import org.projectforge.framework.cache.AbstractCache;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * The number of open to-do entries is cached. Accessible via ToDoDao.
@@ -35,7 +36,7 @@ import org.projectforge.framework.cache.AbstractCache;
  */
 public class ToDoCache extends AbstractCache
 {
-  private static Logger log = Logger.getLogger(ToDoCache.class);
+  private static Logger log = LoggerFactory.getLogger(ToDoCache.class);
 
   /** The key is the user id and the value is the number of open to-do entries. */
   private Map<Integer, Integer> openEntriesMap;
@@ -68,6 +69,7 @@ public class ToDoCache extends AbstractCache
   /**
    * This method will be called by CacheHelper and is synchronized via getData();
    */
+  @Override
   protected void refresh()
   {
     log.info("Clearing cache with open to-do entries.");

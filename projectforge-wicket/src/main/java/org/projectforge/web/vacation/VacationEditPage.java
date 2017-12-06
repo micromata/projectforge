@@ -23,7 +23,7 @@
 
 package org.projectforge.web.vacation;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
@@ -44,7 +44,7 @@ public class VacationEditPage extends AbstractEditPage<VacationDO, VacationEditF
 {
   private static final long serialVersionUID = -3899191243765232906L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(VacationEditPage.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(VacationEditPage.class);
 
   @SpringBean
   private VacationService vacationService;

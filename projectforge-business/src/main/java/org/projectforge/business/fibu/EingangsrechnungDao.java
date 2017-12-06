@@ -53,7 +53,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
 public class EingangsrechnungDao extends BaseDao<EingangsrechnungDO>
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(EingangsrechnungDao.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(EingangsrechnungDao.class);
 
   public static final UserRightId USER_RIGHT_ID = UserRightId.FIBU_EINGANGSRECHNUNGEN;
 

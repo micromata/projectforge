@@ -23,8 +23,6 @@
 
 package org.projectforge.business.ldap;
 
-import org.springframework.stereotype.Service;
-
 import javax.naming.NameNotFoundException;
 import javax.naming.NamingEnumeration;
 import javax.naming.NamingException;
@@ -34,13 +32,15 @@ import javax.naming.directory.BasicAttributes;
 import javax.naming.directory.DirContext;
 import javax.naming.directory.SearchControls;
 
+import org.springframework.stereotype.Service;
+
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 @Service
 public class LdapOrganizationalUnitDao
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(LdapOrganizationalUnitDao.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(LdapOrganizationalUnitDao.class);
 
   private static final String OBJECT_CLASS = "organizationalUnit";
 

@@ -39,7 +39,7 @@ import org.testng.annotations.Test;
 
 public class MultiTenancyTestFork extends AbstractTestBase
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(MultiTenancyTestFork.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(MultiTenancyTestFork.class);
 
   @Autowired
   private ConfigurationDao configurationDao;

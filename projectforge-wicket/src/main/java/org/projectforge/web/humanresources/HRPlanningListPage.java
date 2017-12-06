@@ -67,7 +67,7 @@ public class HRPlanningListPage extends AbstractListPage<HRPlanningListForm, HRP
     implements
     ISelectCallerPage
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(HRPlanningListPage.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(HRPlanningListPage.class);
 
   private static final long serialVersionUID = 8582874051700734977L;
 
@@ -97,6 +97,7 @@ public class HRPlanningListPage extends AbstractListPage<HRPlanningListForm, HRP
     final List<IColumn<HRPlanningEntryDO, String>> columns = new ArrayList<IColumn<HRPlanningEntryDO, String>>();
     final CellItemListener<HRPlanningEntryDO> cellItemListener = new CellItemListener<HRPlanningEntryDO>()
     {
+      @Override
       public void populateItem(final Item<ICellPopulator<HRPlanningEntryDO>> item, final String componentId,
           final IModel<HRPlanningEntryDO> rowModel)
       {

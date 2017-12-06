@@ -23,7 +23,6 @@
 
 package org.projectforge.web.fibu;
 
-import org.apache.log4j.Logger;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
@@ -32,6 +31,7 @@ import org.projectforge.business.fibu.api.EmployeeService;
 import org.projectforge.framework.utils.NumberHelper;
 import org.projectforge.web.wicket.AbstractEditPage;
 import org.projectforge.web.wicket.EditPage;
+import org.slf4j.Logger;
 
 @EditPage(defaultReturnPage = EmployeeListPage.class)
 public class EmployeeEditPage extends AbstractEditPage<EmployeeDO, EmployeeEditForm, EmployeeService>
@@ -39,7 +39,7 @@ public class EmployeeEditPage extends AbstractEditPage<EmployeeDO, EmployeeEditF
 {
   private static final long serialVersionUID = -3899191243765232906L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(EmployeeEditPage.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(EmployeeEditPage.class);
 
   @SpringBean
   private EmployeeService employeeService;

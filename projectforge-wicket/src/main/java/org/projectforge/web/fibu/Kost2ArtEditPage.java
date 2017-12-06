@@ -23,13 +23,13 @@
 
 package org.projectforge.web.fibu;
 
-import org.apache.log4j.Logger;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.fibu.kost.Kost2ArtDO;
 import org.projectforge.business.fibu.kost.Kost2ArtDao;
 import org.projectforge.web.wicket.AbstractEditPage;
 import org.projectforge.web.wicket.EditPage;
+import org.slf4j.Logger;
 
 
 @EditPage(defaultReturnPage = Kost2ArtListPage.class)
@@ -37,7 +37,7 @@ public class Kost2ArtEditPage extends AbstractEditPage<Kost2ArtDO, Kost2ArtEditF
 {
   private static final long serialVersionUID = -6455634137929376315L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(Kost2ArtEditPage.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(Kost2ArtEditPage.class);
 
   @SpringBean
   private Kost2ArtDao kost2ArtDao;

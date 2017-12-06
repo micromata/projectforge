@@ -20,9 +20,10 @@ import org.apache.commons.fileupload.FileItemHeaders;
 import org.apache.commons.fileupload.FileUploadException;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.log4j.Logger;
 import org.apache.wicket.protocol.http.servlet.MultipartServletWebRequest;
 import org.apache.wicket.util.lang.Bytes;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import de.micromata.genome.util.runtime.RuntimeIOException;
 
@@ -33,7 +34,7 @@ import de.micromata.genome.util.runtime.RuntimeIOException;
  */
 public class Servlet3MultipartServletWebRequest extends MultipartServletWebRequest
 {
-  private static final Logger LOG = Logger.getLogger(Servlet3MultipartServletWebRequest.class);
+  private static final Logger LOG = LoggerFactory.getLogger(Servlet3MultipartServletWebRequest.class);
 
   private long maxSize;
   private String upload;

@@ -23,13 +23,14 @@
 
 package org.projectforge.plugins.skillmatrix;
 
-import org.apache.log4j.Logger;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.framework.utils.NumberHelper;
 import org.projectforge.web.fibu.ISelectCallerPage;
 import org.projectforge.web.wicket.AbstractEditPage;
 import org.projectforge.web.wicket.WicketUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author Billy Duong (b.duong@micromata.de)
@@ -40,7 +41,7 @@ public class SkillRatingEditPage extends AbstractEditPage<SkillRatingDO, SkillRa
 {
   private static final long serialVersionUID = 1403978551875901644L;
 
-  private static final Logger log = Logger.getLogger(SkillRatingEditPage.class);
+  private static final Logger log = LoggerFactory.getLogger(SkillRatingEditPage.class);
 
   public static final String I18N_KEY_PREFIX = "plugins.skillmatrix.rating";
 

@@ -23,7 +23,6 @@
 
 package org.projectforge.plugins.plugintemplate.wicket;
 
-import org.apache.log4j.Logger;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.plugins.plugintemplate.model.PluginTemplateDO;
@@ -33,12 +32,13 @@ import org.projectforge.web.wicket.bootstrap.GridSize;
 import org.projectforge.web.wicket.components.MaxLengthTextField;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
 import org.projectforge.web.wicket.flowlayout.InputPanel;
+import org.slf4j.Logger;
 
 public class PluginTemplateEditForm extends AbstractEditForm<PluginTemplateDO, PluginTemplateEditPage>
 {
   private static final long serialVersionUID = 8746545908106124484L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(PluginTemplateEditForm.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(PluginTemplateEditForm.class);
 
   @SpringBean
   private PluginTemplateService pluginTemplateService;

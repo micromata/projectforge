@@ -49,7 +49,7 @@ import org.projectforge.web.wicket.autocompletion.PFAutoCompleteTextField;
  */
 public abstract class TaskSelectAutoCompleteFormComponent extends PFAutoCompleteTextField<TaskDO>
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory
       .getLogger(TaskSelectAutoCompleteFormComponent.class);
 
   private static final long serialVersionUID = 2278347191215880396L;

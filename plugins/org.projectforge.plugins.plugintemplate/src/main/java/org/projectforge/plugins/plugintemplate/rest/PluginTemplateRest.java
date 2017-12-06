@@ -41,7 +41,7 @@ import org.springframework.stereotype.Controller;
 @Path("plugintemplate")
 public class PluginTemplateRest
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(PluginTemplateRest.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(PluginTemplateRest.class);
 
   @GET
   @Path(RestPaths.LIST)

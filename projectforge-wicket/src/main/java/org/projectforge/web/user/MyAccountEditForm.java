@@ -26,7 +26,7 @@ package org.projectforge.web.user;
 import java.util.Arrays;
 import java.util.Collection;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.fibu.EmployeeDO;
@@ -53,7 +53,7 @@ public class MyAccountEditForm extends AbstractEditForm<PFUserDO, MyAccountEditP
 {
   private static final long serialVersionUID = 4137560623244324454L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(MyAccountEditForm.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(MyAccountEditForm.class);
 
   boolean invalidateAllStayLoggedInSessions;
 

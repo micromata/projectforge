@@ -25,8 +25,9 @@ import java.util.Set;
 
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.log4j.Logger;
 import org.hibernate.Session;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import de.micromata.genome.db.jpa.history.api.HistoryEntry;
 import de.micromata.hibernate.history.delta.PropertyDelta;
@@ -35,7 +36,7 @@ public class DefaultHistoryFormatter implements HistoryFormatter
 {
   private static final long serialVersionUID = 3232226958091599564L;
 
-  private static final Logger log = Logger.getLogger(DefaultHistoryFormatter.class);
+  private static final Logger log = LoggerFactory.getLogger(DefaultHistoryFormatter.class);
 
   private static SimpleDateFormat sdf = new SimpleDateFormat("dd.MM.yyyy HH:mm:ss");
 

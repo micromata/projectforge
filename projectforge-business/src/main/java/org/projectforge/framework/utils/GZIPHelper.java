@@ -33,7 +33,7 @@ import org.apache.commons.io.IOUtils;
 
 public class GZIPHelper
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(GZIPHelper.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(GZIPHelper.class);
 
   /**
    * @param str

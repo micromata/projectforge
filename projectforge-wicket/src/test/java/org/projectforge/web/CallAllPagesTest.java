@@ -44,7 +44,7 @@ import org.testng.annotations.Test;
 
 public class CallAllPagesTest extends WicketPageTestBase
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(CallAllPagesTest.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(CallAllPagesTest.class);
 
   static int counter;
 

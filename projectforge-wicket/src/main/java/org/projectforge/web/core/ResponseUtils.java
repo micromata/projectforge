@@ -29,24 +29,24 @@ import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.io.FilenameUtils;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author Wolfgang Jung (w.jung@micromata.de)
- *
  */
 public class ResponseUtils
 {
-  private static final Logger log = Logger.getLogger(ResponseUtils.class);
-  
+  private static final Logger log = LoggerFactory.getLogger(ResponseUtils.class);
+
   /**
    * Startet im Browser den Download einer Datei. Anhand des Dateinamen wird automatisch der Content-Type ermittelt.
    *
    * @param filename Virtueller Name der Datei. Bei Pfadangaben werden diese abgeschnitten.
-   * @param content Inhalt der Datei
+   * @param content  Inhalt der Datei
    * @param response
-   * @param ctx der Servletcontext
-   * @param attach Download as Attachment
+   * @param ctx      der Servletcontext
+   * @param attach   Download as Attachment
    * @throws IOException
    */
   public static void streamToOut(String filename, byte[] content, HttpServletResponse response, ServletContext ctx, boolean attach)
@@ -57,14 +57,14 @@ public class ResponseUtils
     response.getOutputStream().write(content);
     response.getOutputStream().flush();
   }
-  
+
   /**
    * Prepares download of a file. The content type will be detected automatically by the file name.
    *
    * @param filename Virtual file name. Any path infos will be truncated.
    * @param response
-   * @param ctx der Servletcontext
-   * @param attach Download as Attachment
+   * @param ctx      der Servletcontext
+   * @param attach   Download as Attachment
    */
   public static void prepareDownload(String filename, HttpServletResponse response, ServletContext ctx, boolean attach)
   {

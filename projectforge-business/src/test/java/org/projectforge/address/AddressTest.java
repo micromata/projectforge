@@ -29,7 +29,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import org.apache.log4j.Logger;
 import org.hibernate.criterion.Order;
 import org.projectforge.business.address.AddressDO;
 import org.projectforge.business.address.AddressDao;
@@ -41,12 +40,14 @@ import org.projectforge.framework.access.AccessException;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.persistence.api.QueryFilter;
 import org.projectforge.test.AbstractTestBase;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.testng.annotations.Test;
 
 public class AddressTest extends AbstractTestBase
 {
-  private final static Logger log = Logger.getLogger(AddressTest.class);
+  private final static Logger log = LoggerFactory.getLogger(AddressTest.class);
 
   @Autowired
   private AddressDao addressDao;
@@ -61,7 +62,7 @@ public class AddressTest extends AbstractTestBase
     AddressDO a1 = new AddressDO();
     a1.setName("Kai Reinhard");
     addressDao.save(a1);
-    log.debug(a1);
+    log.debug(a1.toString());
 
     a1.setName("Hurzel");
     addressDao.update(a1);
@@ -71,11 +72,11 @@ public class AddressTest extends AbstractTestBase
     assertEquals("Hurzel", a2.getName());
     a2.setName("Micromata GmbH");
     addressDao.update(a2);
-    log.debug(a2);
+    log.debug(a2.toString());
 
     AddressDO a3 = addressDao.getById(a1.getId());
     assertEquals("Micromata GmbH", a3.getName());
-    log.debug(a3);
+    log.debug(a3.toString());
   }
 
   @Test

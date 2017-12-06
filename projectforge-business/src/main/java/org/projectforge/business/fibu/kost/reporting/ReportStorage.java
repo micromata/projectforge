@@ -28,7 +28,7 @@ import java.util.Set;
 
 public class ReportStorage
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(ReportStorage.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ReportStorage.class);
 
   private Report root;
 

@@ -37,7 +37,7 @@ import org.projectforge.rest.converter.DateTimeFormat;
  */
 public class ConnectionSettings
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(ConnectionSettings.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ConnectionSettings.class);
 
   private static final DateTimeFormat DEFAULT_DATE_TIME_FORMAT = DateTimeFormat.ISO_DATE_TIME_MILLIS;
 

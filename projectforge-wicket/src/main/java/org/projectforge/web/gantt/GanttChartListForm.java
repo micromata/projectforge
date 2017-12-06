@@ -23,14 +23,14 @@
 
 package org.projectforge.web.gantt;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
 import org.projectforge.web.wicket.AbstractListForm;
 
 public class GanttChartListForm extends AbstractListForm<GanttChartListFilter, GanttChartListPage>
 {
   private static final long serialVersionUID = 80462620378178721L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(GanttChartListForm.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(GanttChartListForm.class);
 
   public GanttChartListForm(final GanttChartListPage parentPage)
   {

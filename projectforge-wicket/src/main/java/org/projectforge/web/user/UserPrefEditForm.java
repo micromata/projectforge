@@ -27,7 +27,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
 import org.apache.wicket.Component;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.model.Model;
@@ -68,7 +68,7 @@ public class UserPrefEditForm extends AbstractEditForm<UserPrefDO, UserPrefEditP
 {
   private static final long serialVersionUID = 6647201995353615498L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(UserPrefEditForm.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(UserPrefEditForm.class);
 
   @SpringBean
   private UserPrefDao userPrefDao;

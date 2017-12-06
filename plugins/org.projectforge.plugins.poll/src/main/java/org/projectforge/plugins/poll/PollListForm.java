@@ -23,9 +23,9 @@
 
 package org.projectforge.plugins.poll;
 
-import org.apache.log4j.Logger;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.web.wicket.AbstractListForm;
+import org.slf4j.Logger;
 
 /**
  * 
@@ -37,7 +37,7 @@ public class PollListForm extends AbstractListForm<BaseSearchFilter, PollListPag
 {
   private static final long serialVersionUID = 3659495003810851072L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(PollListForm.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(PollListForm.class);
 
   public PollListForm(final PollListPage parentPage)
   {

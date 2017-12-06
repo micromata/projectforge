@@ -23,20 +23,19 @@
 
 package org.projectforge.web.scripting;
 
-import org.apache.log4j.Logger;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.upload.FileUpload;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.apache.wicket.util.lang.Bytes;
-import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.business.scripting.ScriptDO;
 import org.projectforge.business.scripting.ScriptParameterType;
 import org.projectforge.business.user.ProjectForgeGroup;
 import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.web.dialog.ModalDialog;
 import org.projectforge.web.wicket.AbstractEditForm;
+import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.web.wicket.bootstrap.GridSize;
 import org.projectforge.web.wicket.components.AceEditorPanel;
 import org.projectforge.web.wicket.components.LabelValueChoiceRenderer;
@@ -44,12 +43,13 @@ import org.projectforge.web.wicket.components.MaxLengthTextArea;
 import org.projectforge.web.wicket.components.MaxLengthTextField;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
 import org.projectforge.web.wicket.flowlayout.FileUploadPanel;
+import org.slf4j.Logger;
 
 public class ScriptEditForm extends AbstractEditForm<ScriptDO, ScriptEditPage>
 {
   private static final long serialVersionUID = 9088102999434892079L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(ScriptEditForm.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ScriptEditForm.class);
 
   @SpringBean
   private AccessChecker accessChecker;

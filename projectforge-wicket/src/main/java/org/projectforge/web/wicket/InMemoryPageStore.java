@@ -8,10 +8,11 @@ import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
-import org.apache.log4j.Logger;
 import org.apache.wicket.Application;
 import org.apache.wicket.page.IManageablePage;
 import org.apache.wicket.pageStore.IPageStore;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * A custom IPageStore implementation, that keeps pages in memory without serialization.
@@ -25,7 +26,7 @@ public class InMemoryPageStore implements IPageStore
   /**
    * The logger.
    */
-  private static final Logger logger = Logger.getLogger(InMemoryPageStore.class);
+  private static final Logger logger = LoggerFactory.getLogger(InMemoryPageStore.class);
 
   /**
    * The configured cache size (per session).

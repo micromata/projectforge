@@ -49,7 +49,7 @@ public abstract class DefaultTreeTablePanel<T extends TreeTableNode> extends Pan
 {
   private static final long serialVersionUID = 380527812338260483L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(DefaultTreeTablePanel.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(DefaultTreeTablePanel.class);
 
   protected ISelectCallerPage caller;
 

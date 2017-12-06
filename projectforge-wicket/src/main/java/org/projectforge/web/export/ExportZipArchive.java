@@ -44,7 +44,7 @@ import org.projectforge.export.ExportZipFile;
  */
 public class ExportZipArchive
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(ExportZipArchive.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ExportZipArchive.class);
 
   private final Collection<ExportZipFile> zipFiles = new LinkedList<ExportZipFile>();
 

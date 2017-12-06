@@ -22,7 +22,7 @@
 /////////////////////////////////////////////////////////////////////////////
 
 /**
- * 
+ *
  */
 package org.projectforge.web.debug;
 
@@ -39,17 +39,18 @@ import org.apache.commons.lang3.ClassUtils;
 import org.projectforge.web.WebConfiguration;
 import org.projectforge.web.wicket.WicketApplication;
 
-
 /**
  * In production environment this checker does nothing.
+ *
  * @author wolle
  * @see WicketApplication#isDevelopmentMode()
- * 
  */
 public class SessionSerializableChecker implements HttpSessionAttributeListener
 {
-  /** The logger */
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(SessionSerializableChecker.class);
+  /**
+   * The logger
+   */
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(SessionSerializableChecker.class);
 
   /**
    * @see javax.servlet.http.HttpSessionAttributeListener#attributeAdded(javax.servlet.http.HttpSessionBindingEvent)
@@ -88,12 +89,12 @@ public class SessionSerializableChecker implements HttpSessionAttributeListener
       try {
         if (log.isDebugEnabled()) {
           log
-          .debug("Storing "
-              + ClassUtils.getShortClassName(value, "null")
-              + " under the name "
-              + name
-              + " in session "
-              + session.getId());
+              .debug("Storing "
+                  + ClassUtils.getShortClassName(value, "null")
+                  + " under the name "
+                  + name
+                  + " in session "
+                  + session.getId());
         }
         final ByteArrayOutputStream baos = new ByteArrayOutputStream();
         final ObjectOutputStream oos = new ObjectOutputStream(baos);

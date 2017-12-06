@@ -28,7 +28,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 public class XmlDumpTestFork extends AbstractTestBase
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(XmlDumpTestFork.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(XmlDumpTestFork.class);
 
   @Autowired
   private DatabaseService initDatabaseDao;

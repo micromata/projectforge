@@ -23,7 +23,7 @@
 
 package org.projectforge.web.teamcal.admin;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
 import org.apache.wicket.markup.html.link.Link;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
@@ -46,7 +46,7 @@ import org.projectforge.web.wicket.components.ContentMenuEntryPanel;
 public class TeamCalEditPage extends AbstractEditPage<TeamCalDO, TeamCalEditForm, TeamCalDao>
     implements ISelectCallerPage
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(TeamCalEditPage.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(TeamCalEditPage.class);
 
   private static final long serialVersionUID = -3352981782657771662L;
 

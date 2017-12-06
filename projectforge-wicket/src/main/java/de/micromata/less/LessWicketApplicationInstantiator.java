@@ -49,7 +49,7 @@ public class LessWicketApplicationInstantiator implements Serializable
 {
   private static final long serialVersionUID = 243362344112860106L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory
       .getLogger(LessWicketApplicationInstantiator.class);
 
   private static LessWicketApplicationInstantiator instance;

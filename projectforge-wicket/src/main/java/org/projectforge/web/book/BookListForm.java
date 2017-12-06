@@ -27,7 +27,7 @@ import java.io.Serializable;
 import java.util.List;
 import java.util.Locale;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
@@ -47,7 +47,7 @@ public class BookListForm extends AbstractListForm<BookListFilter, BookListPage>
 {
   private static final long serialVersionUID = 7055486163615227688L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(BookListForm.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(BookListForm.class);
 
   @SpringBean
   private BookDao bookDao;

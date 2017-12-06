@@ -37,7 +37,7 @@ import org.w3c.dom.Document;
 
 public class BatikImageRenderer
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(BatikImageRenderer.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(BatikImageRenderer.class);
 
   /**
    * Renders a png image from the SVG document.
@@ -83,7 +83,7 @@ public class BatikImageRenderer
     try {
       t.transcode(input, output);
     } catch (TranscoderException ex) {
-      log.fatal("Exception encountered " + ex, ex);
+      log.error("Exception encountered " + ex, ex);
     }
     return baos.toByteArray();
   }
@@ -107,7 +107,7 @@ public class BatikImageRenderer
     try {
       t.transcode(input, output);
     } catch (TranscoderException ex) {
-      log.fatal("Exception encountered " + ex, ex);
+      log.error("Exception encountered " + ex, ex);
     }
     return baos.toByteArray();
   }

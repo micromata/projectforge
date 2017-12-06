@@ -23,15 +23,12 @@
 
 package org.projectforge.plugins.crm;
 
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertTrue;
-import static org.testng.AssertJUnit.fail;
+import static org.testng.AssertJUnit.*;
 
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 
-import org.apache.log4j.Logger;
 import org.hibernate.criterion.Order;
 import org.projectforge.business.address.PhoneType;
 import org.projectforge.framework.access.AccessException;
@@ -40,11 +37,13 @@ import org.projectforge.framework.access.OperationType;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.persistence.api.QueryFilter;
 import org.projectforge.test.AbstractTestBase;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 public class ContactTest extends AbstractTestBase
 {
-  private final static Logger log = Logger.getLogger(ContactTest.class);
+  private final static Logger log = LoggerFactory.getLogger(ContactTest.class);
 
   @Autowired
   private ContactDao contactDao;
@@ -77,7 +76,7 @@ public class ContactTest extends AbstractTestBase
     a1.setPhoneValues(contactDao.getPhoneValuesAsXml(phone1, phone2));
 
     contactDao.save(a1);
-    log.debug(a1);
+    log.debug(a1.toString());
 
     final ContactDO a1a = contactDao.getById(a1.getId());
 
@@ -107,12 +106,12 @@ public class ContactTest extends AbstractTestBase
     a2.setName("Micromata GmbH");
     contactDao.setTask(a2, getTask("1").getId());
     contactDao.update(a2);
-    log.debug(a2);
+    log.debug(a2.toString());
 
     final ContactDO a3 = contactDao.getById(a1.getId());
     assertEquals("Micromata GmbH", a3.getName());
     assertEquals(getTask("1").getId(), a3.getTaskId());
-    log.debug(a3);
+    log.debug(a3.toString());
   }
 
   //@Test

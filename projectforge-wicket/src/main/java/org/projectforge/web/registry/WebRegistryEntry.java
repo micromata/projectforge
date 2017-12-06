@@ -42,7 +42,7 @@ public class WebRegistryEntry implements Serializable
 {
   private static final long serialVersionUID = 8289071922222570636L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(WebRegistryEntry.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(WebRegistryEntry.class);
 
   private final RegistryEntry registryEntry;
 

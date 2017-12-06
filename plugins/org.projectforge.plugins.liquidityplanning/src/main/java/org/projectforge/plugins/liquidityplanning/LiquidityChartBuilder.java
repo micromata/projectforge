@@ -47,7 +47,7 @@ import org.projectforge.framework.time.DayHolder;
  */
 public class LiquidityChartBuilder
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(LiquidityChartBuilder.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(LiquidityChartBuilder.class);
 
   /**
    * @param forecast
