@@ -34,7 +34,7 @@ public abstract class UpdateEntry implements Comparable<UpdateEntry>
 {
   private static final long serialVersionUID = -8205244215928531249L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(UpdateEntry.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(UpdateEntry.class);
 
   protected transient UpdatePreCheckStatus preCheckStatus = UpdatePreCheckStatus.UNKNOWN;
 

@@ -47,7 +47,6 @@ import org.apache.fop.apps.FOUserAgent;
 import org.apache.fop.apps.Fop;
 import org.apache.fop.apps.FopFactory;
 import org.apache.fop.apps.MimeConstants;
-import org.apache.log4j.Logger;
 import org.projectforge.AppVersion;
 import org.projectforge.business.configuration.ConfigurationService;
 import org.projectforge.business.scripting.GroovyEngine;
@@ -56,6 +55,8 @@ import org.projectforge.framework.configuration.ConfigurationParam;
 import org.projectforge.framework.i18n.InternalErrorException;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -65,13 +66,13 @@ import org.springframework.stereotype.Service;
  * will be given in xml format and the transformation will be done via xslt-scripts. For a better ease of use a meta
  * language similiar to html will be used instead of plain xsl-fo. The html file with jelly script elements will be
  * rendered via xslt-scripts into xsl-fo and afterwards to pdf.
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 @Service
 public class PdfRenderer
 {
-  private static final Logger log = Logger.getLogger(PdfRenderer.class);
+  private static final Logger log = LoggerFactory.getLogger(PdfRenderer.class);
 
   public final static String DEFAULT_FO_STYLE = "default-style-fo.xsl";
 

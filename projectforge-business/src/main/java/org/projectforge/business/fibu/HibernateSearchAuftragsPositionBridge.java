@@ -36,24 +36,25 @@ import org.hibernate.search.bridge.LuceneOptions;
  */
 public class HibernateSearchAuftragsPositionBridge implements FieldBridge
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory
       .getLogger(HibernateSearchAuftragsPositionBridge.class);
 
   /**
    * @see org.hibernate.search.bridge.FieldBridge#set(java.lang.String, java.lang.Object,
    *      org.apache.lucene.document.Document, org.hibernate.search.bridge.LuceneOptions)
    */
+  @Override
   public void set(final String name, final Object value, final Document document, final LuceneOptions luceneOptions)
   {
     final AuftragsPositionDO position = (AuftragsPositionDO) value;
     if (position == null) {
-      log.fatal("AuftragsPositionDO object is null.");
+      log.error("AuftragsPositionDO object is null.");
       return;
     }
     final AuftragDO auftrag = position.getAuftrag();
     final StringBuffer buf = new StringBuffer();
     if (auftrag == null || auftrag.getNummer() == null) {
-      log.fatal("AuftragDO for AuftragsPositionDO: " + position.getId() + "  is null.");
+      log.error("AuftragDO for AuftragsPositionDO: " + position.getId() + "  is null.");
       return;
     }
     buf.append(auftrag.getNummer()).append(".").append(position.getNumber());

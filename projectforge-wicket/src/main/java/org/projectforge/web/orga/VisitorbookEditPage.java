@@ -23,7 +23,6 @@
 
 package org.projectforge.web.orga;
 
-import org.apache.log4j.Logger;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.orga.VisitorbookDO;
@@ -32,6 +31,8 @@ import org.projectforge.web.fibu.ISelectCallerPage;
 import org.projectforge.web.wicket.AbstractEditPage;
 import org.projectforge.web.wicket.AbstractSecuredBasePage;
 import org.projectforge.web.wicket.EditPage;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @EditPage(defaultReturnPage = VisitorbookListPage.class)
 public class VisitorbookEditPage extends AbstractEditPage<VisitorbookDO, VisitorbookEditForm, VisitorbookService>
@@ -39,7 +40,7 @@ public class VisitorbookEditPage extends AbstractEditPage<VisitorbookDO, Visitor
 {
   private static final long serialVersionUID = -3899191243765232906L;
 
-  private static final Logger log = Logger.getLogger(VisitorbookEditPage.class);
+  private static final Logger log = LoggerFactory.getLogger(VisitorbookEditPage.class);
 
   @SpringBean
   private VisitorbookService visitorbookService;

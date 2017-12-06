@@ -51,7 +51,7 @@ public class ContractDao extends BaseDao<ContractDO>
 
   public static final UserRightId USER_RIGHT_ID = UserRightId.ORGA_CONTRACTS;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(ContractDao.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ContractDao.class);
 
   public ContractDao()
   {

@@ -40,7 +40,7 @@ import com.google.gson.reflect.TypeToken;
 
 public class AddressDaoClientMain
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(AddressDaoClientMain.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(AddressDaoClientMain.class);
 
   @SuppressWarnings("unused")
   public static void main(final String[] args)

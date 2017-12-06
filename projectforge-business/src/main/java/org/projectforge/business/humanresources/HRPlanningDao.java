@@ -33,21 +33,28 @@ import java.util.Locale;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.Validate;
 import org.apache.commons.lang3.builder.ToStringBuilder;
-import org.apache.log4j.Logger;
 import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Restrictions;
 import org.projectforge.business.fibu.ProjektDO;
 import org.projectforge.business.fibu.ProjektDao;
+import org.projectforge.business.multitenancy.TenantRegistryMap;
+import org.projectforge.business.user.ProjectForgeGroup;
 import org.projectforge.business.user.UserDao;
+import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.business.user.UserRightId;
+import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.access.OperationType;
+import org.projectforge.framework.i18n.UserException;
 import org.projectforge.framework.persistence.api.BaseDao;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.persistence.api.QueryFilter;
 import org.projectforge.framework.persistence.history.DisplayHistoryEntry;
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.time.DateHelper;
 import org.projectforge.framework.time.DateHolder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
@@ -61,7 +68,7 @@ public class HRPlanningDao extends BaseDao<HRPlanningDO>
 {
   public static final UserRightId USER_RIGHT_ID = UserRightId.PM_HR_PLANNING;
 
-  private static final Logger log = Logger.getLogger(HRPlanningDao.class);
+  private static final Logger log = LoggerFactory.getLogger(HRPlanningDao.class);
 
   private static final Class<?>[] ADDITIONAL_SEARCH_DOS = new Class[] { HRPlanningEntryDO.class };
 
@@ -70,6 +77,9 @@ public class HRPlanningDao extends BaseDao<HRPlanningDO>
 
   @Autowired
   private UserDao userDao;
+
+  @Autowired
+  private AccessChecker accessChecker;
 
   protected HRPlanningDao()
   {
@@ -107,7 +117,7 @@ public class HRPlanningDao extends BaseDao<HRPlanningDO>
 
   /**
    * Does an entry with the same user and week of year already exist?
-   * 
+   *
    * @param planning
    * @return If week or user id is not given, return false.
    */
@@ -119,7 +129,7 @@ public class HRPlanningDao extends BaseDao<HRPlanningDO>
 
   /**
    * Does an entry with the same user and week of year already exist?
-   * 
+   *
    * @param planningId Id of the current planning or null if new.
    * @param userId
    * @param week
@@ -189,6 +199,21 @@ public class HRPlanningDao extends BaseDao<HRPlanningDO>
     return result;
   }
 
+  private boolean entryHasUpdates(final HRPlanningEntryDO entry, final HRPlanningDO existingPlanning)
+  {
+    if (entry.getId() == null) {
+      return true;
+    }
+    if (existingPlanning != null) {
+      for (HRPlanningEntryDO existingEntry : existingPlanning.getEntries()) {
+        if (existingEntry.isDeleted() == false && existingEntry.getId().equals(entry.getId())) {
+          return existingEntry.hasNoFieldChanges(entry) == false;
+        }
+      }
+    }
+    return false;
+  }
+
   public QueryFilter buildQueryFilter(final HRPlanningFilter filter)
   {
     final QueryFilter queryFilter = new QueryFilter(filter);
@@ -219,7 +244,7 @@ public class HRPlanningDao extends BaseDao<HRPlanningDO>
    * <li>Checks week date on: monday, 0:00:00.000 and if check fails then the date will be set to.</li>
    * <li>Check deleted entries and re-adds them instead of inserting a new entry, if exist.</li>
    * <ul>
-   * 
+   *
    * @see org.projectforge.framework.persistence.api.BaseDao#onSaveOrModify(org.projectforge.core.ExtendedBaseDO)
    */
   @Override
@@ -231,6 +256,36 @@ public class HRPlanningDao extends BaseDao<HRPlanningDO>
       log.error("Date is not begin of week, try to change date: " + DateHelper.formatAsUTC(date.getDate()));
       obj.setFirstDayOfWeek(date.getSQLDate());
     }
+
+    if (accessChecker.isLoggedInUserMemberOfGroup(ProjectForgeGroup.HR_GROUP, ProjectForgeGroup.FINANCE_GROUP, ProjectForgeGroup.CONTROLLING_GROUP) == false) {
+      HRPlanningDO existingPlanning = null;
+      if (obj.getId() != null) {
+        existingPlanning = internalGetById(obj.getId());
+      }
+      for (HRPlanningEntryDO entry : obj.getEntries()) {
+        ProjektDO projekt = entry.getProjekt();
+        if (entryHasUpdates(entry, existingPlanning) && projekt != null) {
+          boolean userHasRightForProject = false;
+          Integer userId = ThreadLocalUserContext.getUser().getId();
+          Integer headOfBusinessManagerId = projekt.getHeadOfBusinessManager() != null ? projekt.getHeadOfBusinessManager().getId() : null;
+          Integer projectManagerId = projekt.getProjectManager() != null ? projekt.getProjectManager().getId() : null;
+          Integer salesManageId = projekt.getSalesManager() != null ? projekt.getSalesManager().getId() : null;
+          if (userId != null && (userId.equals(headOfBusinessManagerId) || userId.equals(projectManagerId) || userId.equals(salesManageId))) {
+            userHasRightForProject = true;
+          }
+
+          final UserGroupCache userGroupCache = TenantRegistryMap.getInstance().getTenantRegistry().getUserGroupCache();
+          if (projekt.getProjektManagerGroup() != null
+              && userGroupCache.isUserMemberOfGroup(userId, projekt.getProjektManagerGroupId()) == true) {
+            userHasRightForProject = true;
+          }
+          if (userHasRightForProject == false) {
+            throw new UserException("hr.planning.entry.error.noRightForProject", projekt.getName());
+          }
+        }
+      }
+    }
+
     super.onSaveOrModify(obj);
   }
 
@@ -261,7 +316,7 @@ public class HRPlanningDao extends BaseDao<HRPlanningDO>
 
   /**
    * Gets history entries of super and adds all history entries of the HRPlanningEntryDO childs.
-   * 
+   *
    * @see org.projectforge.framework.persistence.api.BaseDao#getDisplayHistoryEntries(org.projectforge.core.ExtendedBaseDO)
    */
   @Override

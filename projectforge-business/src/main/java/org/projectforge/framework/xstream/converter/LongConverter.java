@@ -28,7 +28,7 @@ import org.projectforge.framework.xstream.XmlConstants;
 
 public class LongConverter extends AbstractValueConverter<Long>
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(LongConverter.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(LongConverter.class);
 
   @Override
   public Long fromString(String str)

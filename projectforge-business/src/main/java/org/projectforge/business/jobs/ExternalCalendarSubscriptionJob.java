@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class ExternalCalendarSubscriptionJob
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory
       .getLogger(ExternalCalendarSubscriptionJob.class);
 
   @Autowired

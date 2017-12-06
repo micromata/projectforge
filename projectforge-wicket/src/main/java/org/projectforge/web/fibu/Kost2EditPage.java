@@ -23,13 +23,13 @@
 
 package org.projectforge.web.fibu;
 
-import org.apache.log4j.Logger;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.fibu.kost.Kost2DO;
 import org.projectforge.business.fibu.kost.Kost2Dao;
 import org.projectforge.web.wicket.AbstractEditPage;
 import org.projectforge.web.wicket.EditPage;
+import org.slf4j.Logger;
 
 
 @EditPage(defaultReturnPage = Kost2ListPage.class)
@@ -37,7 +37,7 @@ public class Kost2EditPage extends AbstractEditPage<Kost2DO, Kost2EditForm, Kost
 {
   private static final long serialVersionUID = 1622932678249306556L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(Kost2EditPage.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(Kost2EditPage.class);
 
   @SpringBean
   private Kost2Dao kost2Dao;
@@ -63,6 +63,7 @@ public class Kost2EditPage extends AbstractEditPage<Kost2DO, Kost2EditForm, Kost
   /**
    * @see org.projectforge.web.fibu.ISelectCallerPage#select(java.lang.String, java.lang.Integer)
    */
+  @Override
   public void select(final String property, final Object selectedValue)
   {
     if ("projektId".equals(property) == true) {
@@ -80,6 +81,7 @@ public class Kost2EditPage extends AbstractEditPage<Kost2DO, Kost2EditForm, Kost
   /**
    * @see org.projectforge.web.fibu.ISelectCallerPage#unselect(java.lang.String)
    */
+  @Override
   public void unselect(final String property)
   {
     if ("projektId".equals(property) == true) {
@@ -93,6 +95,7 @@ public class Kost2EditPage extends AbstractEditPage<Kost2DO, Kost2EditForm, Kost
   /**
    * @see org.projectforge.web.fibu.ISelectCallerPage#cancelSelection(java.lang.String)
    */
+  @Override
   public void cancelSelection(final String property)
   {
     // Do nothing.

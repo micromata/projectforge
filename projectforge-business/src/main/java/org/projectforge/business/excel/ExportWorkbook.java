@@ -46,7 +46,7 @@ import org.apache.poi.ss.usermodel.Workbook;
 
 public class ExportWorkbook
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(ExportWorkbook.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ExportWorkbook.class);
 
   private Workbook poiWorkbook;
 
@@ -165,7 +165,7 @@ public class ExportWorkbook
     try {
       write(baos);
     } catch (final IOException ex) {
-      log.fatal("Exception encountered " + ex, ex);
+      log.error("Exception encountered " + ex, ex);
       throw new RuntimeException(ex);
     }
     return baos.toByteArray();

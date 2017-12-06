@@ -85,7 +85,7 @@ import org.projectforge.web.wicket.flowlayout.ImagePanel;
 public class AddressListPage extends AbstractListPage<AddressListForm, AddressDao, AddressDO>
     implements IListPageColumnsCreator<AddressDO>
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(AddressListPage.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(AddressListPage.class);
 
   private static final long serialVersionUID = 5168079498385464639L;
 

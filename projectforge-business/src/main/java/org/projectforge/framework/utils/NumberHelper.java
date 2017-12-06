@@ -32,13 +32,15 @@ import java.util.Locale;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
-import org.apache.log4j.Logger;
 import org.projectforge.framework.configuration.Configuration;
 import org.projectforge.framework.configuration.ConfigurationParam;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Some helper methods ...
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 public class NumberHelper
@@ -71,7 +73,7 @@ public class NumberHelper
 
   public static final BigDecimal BILLION = new BigDecimal(1000000000);
 
-  private static final Logger log = Logger.getLogger(NumberHelper.class);
+  private static final Logger log = LoggerFactory.getLogger(NumberHelper.class);
 
   public static NumberFormat getCurrencyFormat(final Locale locale)
   {
@@ -96,6 +98,7 @@ public class NumberHelper
 
   /**
    * Pretty output of bytes, "1023 bytes", "1.1 kb", "523 kb", "1.7 Mb", "143 Gb" etc.
+   *
    * @param bytes
    * @return
    */
@@ -164,6 +167,7 @@ public class NumberHelper
 
   /**
    * Parses the given string as integer value.
+   *
    * @param value The string representation of the integer value to parse.
    * @return Integer value or null if an empty string was given or a syntax error occurs.
    */
@@ -187,6 +191,7 @@ public class NumberHelper
 
   /**
    * Parses the given string as short value.
+   *
    * @param value The string representation of the short value to parse.
    * @return Short value or null if an empty string was given or a syntax error occurs.
    */
@@ -302,6 +307,7 @@ public class NumberHelper
 
   /**
    * Returns the given integer value as String representation.
+   *
    * @param value The integer value to convert.
    * @return The String representation or empty String, if value is null.
    */
@@ -316,7 +322,8 @@ public class NumberHelper
 
   /**
    * Returns the given number value as String representation.
-   * @param value The number value to convert.
+   *
+   * @param value  The number value to convert.
    * @param format The format to use.
    * @return The String representation or empty String, if value is null.
    */
@@ -341,6 +348,7 @@ public class NumberHelper
 
   /**
    * Uses the default country phone prefix from the configuration.
+   *
    * @see #extractPhonenumber(String, String)
    */
   public static String extractPhonenumber(final String str)
@@ -354,9 +362,10 @@ public class NumberHelper
    * Extracts the phone number of the given string. All characters of the set "+-/()." and white spaces will be deleted and +## will be
    * replaced by 00##. Example: +49 561 / 316793-0 -> 00495613167930 <br/>
    * Ignores any characters after the first occurence of ':' or any letter.
+   *
    * @param str
    * @param countryPrefix If country prefix is given, for all numbers beginning with the country prefix the country prefix will be replaced
-   *          by 0. Example: ("+49 561 / 316793-0", "+49") -> 05613167930; ("+39 123456", "+49") -> 0039123456.
+   *                      by 0. Example: ("+49 561 / 316793-0", "+49") -> 05613167930; ("+39 123456", "+49") -> 0039123456.
    * @return
    */
   public static String extractPhonenumber(String str, final String countryPrefix)
@@ -394,6 +403,7 @@ public class NumberHelper
   /**
    * Compares two given BigDecimals. They are equal if the value is equal independent of the scale (5.70 is equals to 5.7 and null is equals
    * null, but null is not equals to 0).
+   *
    * @param value1
    * @param value2
    * @return
@@ -426,6 +436,7 @@ public class NumberHelper
 
   /**
    * Compares two given Integers using compareTo method.
+   *
    * @param value1
    * @param value
    * @return
@@ -447,6 +458,7 @@ public class NumberHelper
    * NumberHelper.splitToInts(11110511, 1, 3, 2, 2) = {1, 111, 5, 11}<br/>
    * NumberHelper.splitToInts(10000511, 1, 3, 2, 2) = { 1, 0, 5, 11}<br/>
    * NumberHelper.splitToInts(511, 1, 3, 2, 2) = { 0, 0, 5, 11}
+   *
    * @param value
    * @param split
    * @return
@@ -471,6 +483,7 @@ public class NumberHelper
   /**
    * If given string is an number (NumberUtils.isNumber(String)) then it will be converted to a plain string via BigDecimal.toPlainString().
    * Any exponent such as 1E7 will be avoided.
+   *
    * @param str
    * @return Converted string if number, otherwise the origin string.
    * @see NumberUtils#isNumber(String)
@@ -489,6 +502,7 @@ public class NumberHelper
 
   /**
    * Sets scale 0 for numbers greater 100, 1 for numbers greater 20 and 2 as default.
+   *
    * @param number
    * @return
    */
@@ -508,6 +522,7 @@ public class NumberHelper
   /**
    * Generates secure random bytes of the given length and return base 64 encoded bytes as url safe String. This is not the length of the
    * resulting string!
+   *
    * @param numberOfBytes
    * @return
    */
@@ -522,6 +537,7 @@ public class NumberHelper
   /**
    * Generates secure random bytes of the given length and return base 64 encoded bytes as url safe String. This is not the length of the
    * resulting string!
+   *
    * @param numberOfBytes
    * @return
    */

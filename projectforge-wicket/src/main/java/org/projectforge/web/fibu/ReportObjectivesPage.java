@@ -25,7 +25,6 @@ package org.projectforge.web.fibu;
 
 import java.io.InputStream;
 
-import org.apache.wicket.feedback.FeedbackMessage;
 import org.apache.wicket.markup.html.form.upload.FileUpload;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
@@ -40,7 +39,7 @@ public class ReportObjectivesPage extends AbstractStandardFormPage
 {
   private static final long serialVersionUID = 5880523229854750164L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(ReportObjectivesPage.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ReportObjectivesPage.class);
 
   public static final String KEY_REPORT_STORAGE = "ReportObjectivesPage:storage";
 

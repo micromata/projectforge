@@ -45,7 +45,7 @@ import de.micromata.genome.db.jpa.tabattr.impl.AttrSchemaServiceBaseImpl;
 public class AttrSchemaServiceSpringBeanImpl extends AttrSchemaServiceBaseImpl
 {
 
-  private static transient final org.apache.log4j.Logger log = org.apache.log4j.Logger
+  private static transient final org.slf4j.Logger log = org.slf4j.LoggerFactory
       .getLogger(AttrSchemaServiceSpringBeanImpl.class);
 
   private Map<String, AttrSchema> attrSchemata;

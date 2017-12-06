@@ -25,7 +25,6 @@ package org.projectforge.web.orga;
 
 import java.util.Date;
 
-import org.apache.log4j.Logger;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.form.SubmitLink;
@@ -47,10 +46,12 @@ import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
 import org.projectforge.web.wicket.flowlayout.HtmlCommentPanel;
 import org.projectforge.web.wicket.flowlayout.IconLinkPanel;
 import org.projectforge.web.wicket.flowlayout.IconType;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class VisitorbookListForm extends AbstractListForm<VisitorbookFilter, VisitorbookListPage>
 {
-  private static final Logger log = Logger.getLogger(VisitorbookListForm.class);
+  private static final Logger log = LoggerFactory.getLogger(VisitorbookListForm.class);
 
   private static final long serialVersionUID = -5969136444233092172L;
 

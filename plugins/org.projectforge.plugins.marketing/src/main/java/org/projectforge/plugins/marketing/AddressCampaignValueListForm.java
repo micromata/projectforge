@@ -25,7 +25,6 @@ package org.projectforge.plugins.marketing;
 
 import java.util.List;
 
-import org.apache.log4j.Logger;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
@@ -36,6 +35,7 @@ import org.projectforge.web.wicket.bootstrap.GridSize;
 import org.projectforge.web.wicket.components.LabelValueChoiceRenderer;
 import org.projectforge.web.wicket.flowlayout.DivPanel;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
+import org.slf4j.Logger;
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
@@ -45,7 +45,7 @@ public class AddressCampaignValueListForm
 {
   private static final long serialVersionUID = 6190615904711764514L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory
       .getLogger(AddressCampaignValueListForm.class);
 
   static final String ADDRESS_CAMPAIGN_VALUE_UNDEFINED = "-(null)-";

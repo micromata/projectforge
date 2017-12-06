@@ -51,7 +51,7 @@ import net.fortuna.ical4j.util.CompatibilityHints;
 
 public class ProjectForgeApp
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(ProjectForgeApp.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ProjectForgeApp.class);
 
   private static ProjectForgeApp instance;
 
@@ -136,7 +136,7 @@ public class ProjectForgeApp
     log.info("Default TimeZone is: " + TimeZone.getDefault());
     if ("UTC".equals(TimeZone.getDefault().getID()) == false) {
       for (final String str : UTC_RECOMMENDED) {
-        log.fatal(str);
+        log.error(str);
       }
       for (final String str : UTC_RECOMMENDED) {
         System.err.println(str);

@@ -25,7 +25,7 @@ package org.projectforge.framework.utils;
 
 public class ClassHelper
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(ClassHelper.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ClassHelper.class);
 
   /**
    * Returns the default values of primitive types (if given). Boolean: false, Integer: 0.

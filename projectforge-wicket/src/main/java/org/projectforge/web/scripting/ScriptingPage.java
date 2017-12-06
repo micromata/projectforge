@@ -63,7 +63,7 @@ public class ScriptingPage extends AbstractScriptingPage
 {
   private static final long serialVersionUID = -1910145309628761662L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(ScriptingPage.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ScriptingPage.class);
 
   private transient ReportScriptingStorage reportScriptingStorage;
 

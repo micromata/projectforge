@@ -49,7 +49,7 @@ public abstract class NavAbstractPanel extends Panel
 {
   private static final long serialVersionUID = -1019454504282157440L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(NavAbstractPanel.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(NavAbstractPanel.class);
 
   protected Menu menu;
 

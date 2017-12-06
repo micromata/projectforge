@@ -44,7 +44,7 @@ public class UsersProvider extends ChoiceProvider<PFUserDO>
 {
   private static final long serialVersionUID = 6228672635966093252L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(UsersProvider.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(UsersProvider.class);
 
   private transient UserGroupCache userGroupCache;
 

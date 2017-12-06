@@ -56,7 +56,7 @@ public class ContactEntryDO extends DefaultBaseDO
 {
   private static final long serialVersionUID = -8141697905834021747L;
 
-  //private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(ContactEntryDO.class);
+  //private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ContactEntryDO.class);
 
   private short number;
 

@@ -45,7 +45,7 @@ import net.fortuna.ical4j.vcard.Property.Id;
  */
 public class VCardItemElementHandler
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(VCardItemElementHandler.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(VCardItemElementHandler.class);
 
   private final ArrayList<Property> itemList;
 

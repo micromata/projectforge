@@ -25,19 +25,19 @@ package org.projectforge.web.humanresources;
 
 import java.util.Date;
 
-import org.apache.log4j.Logger;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
-import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.business.humanresources.HRFilter;
 import org.projectforge.web.calendar.QuickSelectWeekPanel;
 import org.projectforge.web.wicket.AbstractListForm;
+import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.web.wicket.components.DatePanel;
 import org.projectforge.web.wicket.components.DatePanelSettings;
 import org.projectforge.web.wicket.flowlayout.DivPanel;
 import org.projectforge.web.wicket.flowlayout.DivTextPanel;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
 import org.projectforge.web.wicket.flowlayout.HtmlCommentPanel;
+import org.slf4j.Logger;
 
 /**
  * 
@@ -48,7 +48,7 @@ public class HRListForm extends AbstractListForm<HRFilter, HRListPage>
 {
   private static final long serialVersionUID = -5511800187080680095L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(HRListForm.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(HRListForm.class);
 
   protected DatePanel startDate;
 

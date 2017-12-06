@@ -26,12 +26,13 @@ package org.projectforge.web.task;
 import java.util.Date;
 import java.util.List;
 
-import org.apache.log4j.Logger;
 import org.projectforge.business.task.TaskNode;
 import org.projectforge.business.task.TaskTree;
 import org.projectforge.web.tree.TreeTable;
 import org.projectforge.web.tree.TreeTableFilter;
 import org.projectforge.web.tree.TreeTableNode;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * The implementation of TreeTable for tasks. Used for browsing the tasks (tree view).
@@ -40,7 +41,7 @@ public class TaskTreeTable extends TreeTable<TaskTreeTableNode>
 {
   private static final long serialVersionUID = -4776489786818696163L;
 
-  private static final Logger log = Logger.getLogger(TaskTreeTable.class);
+  private static final Logger log = LoggerFactory.getLogger(TaskTreeTable.class);
 
   private TaskTree taskTree;
 

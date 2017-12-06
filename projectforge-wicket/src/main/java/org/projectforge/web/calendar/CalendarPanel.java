@@ -54,7 +54,6 @@ import org.projectforge.web.wicket.AbstractEditPage;
 import org.projectforge.web.wicket.components.DatePickerUtils;
 import org.projectforge.web.wicket.components.JodaDatePanel;
 
-import name.fraser.neil.plaintext.DiffMatchPatch;
 import net.ftlines.wicket.fullcalendar.CalendarResponse;
 import net.ftlines.wicket.fullcalendar.Event;
 import net.ftlines.wicket.fullcalendar.EventProvider;
@@ -70,7 +69,7 @@ public class CalendarPanel extends Panel
 {
   private static final long serialVersionUID = -8491059902148238143L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(CalendarPanel.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(CalendarPanel.class);
 
   @SpringBean
   protected transient AccessChecker accessChecker;

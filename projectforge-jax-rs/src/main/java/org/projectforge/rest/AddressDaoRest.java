@@ -73,7 +73,7 @@ import org.springframework.stereotype.Controller;
 @Path(RestPaths.ADDRESS)
 public class AddressDaoRest
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(AddressDaoRest.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(AddressDaoRest.class);
 
   @Autowired
   private AccessChecker accessChecker;

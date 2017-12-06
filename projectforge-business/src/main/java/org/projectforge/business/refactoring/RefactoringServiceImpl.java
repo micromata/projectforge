@@ -16,7 +16,7 @@ import org.springframework.stereotype.Service;
 public class RefactoringServiceImpl implements RefactoringService
 {
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(RefactoringServiceImpl.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(RefactoringServiceImpl.class);
 
   Map<String, String> refactoredClasses;
 

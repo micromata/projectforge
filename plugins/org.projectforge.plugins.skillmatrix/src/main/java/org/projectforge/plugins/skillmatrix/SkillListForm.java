@@ -23,11 +23,12 @@
 
 package org.projectforge.plugins.skillmatrix;
 
-import org.apache.log4j.Logger;
 import org.apache.wicket.markup.html.form.Button;
 import org.apache.wicket.model.Model;
 import org.projectforge.web.wicket.AbstractListForm;
 import org.projectforge.web.wicket.components.SingleButtonPanel;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author Billy Duong (b.duong@micromata.de)
@@ -37,7 +38,7 @@ public class SkillListForm extends AbstractListForm<SkillFilter, SkillListPage>
 {
   private static final long serialVersionUID = 5333752125044497290L;
 
-  private static final Logger log = Logger.getLogger(SkillListForm.class);
+  private static final Logger log = LoggerFactory.getLogger(SkillListForm.class);
 
   /**
    * @param parentPage

@@ -40,7 +40,7 @@ import org.testng.annotations.Test;
 
 public class GroupTest extends AbstractTestBase
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(GroupTest.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(GroupTest.class);
 
   @Autowired
   private GroupDao groupDao;

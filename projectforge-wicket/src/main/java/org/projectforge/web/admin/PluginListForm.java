@@ -44,7 +44,7 @@ public class PluginListForm extends AbstractStandardForm<PluginListForm, PluginL
 {
   private static final long serialVersionUID = 5241668711103233356L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(PluginListForm.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(PluginListForm.class);
   private PluginAdminService pluginAdminService;
 
   public PluginListForm(PluginListPage parentPage, PluginAdminService pluginAdminService)

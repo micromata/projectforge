@@ -58,7 +58,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Repository
 public class PersonalAddressDao
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(PersonalAddressDao.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(PersonalAddressDao.class);
 
   @Autowired
   private AccessChecker accessChecker;

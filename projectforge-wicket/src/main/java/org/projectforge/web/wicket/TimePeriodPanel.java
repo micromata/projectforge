@@ -2,7 +2,6 @@ package org.projectforge.web.wicket;
 
 import java.util.Date;
 
-import org.apache.log4j.Logger;
 import org.apache.wicket.markup.html.form.FormComponentPanel;
 import org.apache.wicket.markup.html.form.SubmitLink;
 import org.apache.wicket.model.IModel;
@@ -19,6 +18,8 @@ import org.projectforge.web.wicket.flowlayout.DivTextPanel;
 import org.projectforge.web.wicket.flowlayout.HtmlCommentPanel;
 import org.projectforge.web.wicket.flowlayout.IconLinkPanel;
 import org.projectforge.web.wicket.flowlayout.IconType;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * This Panel consists of two date pickers (start and end date) and a quick select for month and week.
@@ -28,7 +29,7 @@ import org.projectforge.web.wicket.flowlayout.IconType;
  */
 public class TimePeriodPanel extends FormComponentPanel<TimePeriod> implements ISelectCallerPage
 {
-  private static final Logger log = Logger.getLogger(TimePeriodPanel.class);
+  private static final Logger log = LoggerFactory.getLogger(TimePeriodPanel.class);
 
   private final IModel<Date> startDateModel;
 

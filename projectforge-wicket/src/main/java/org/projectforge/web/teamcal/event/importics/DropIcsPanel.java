@@ -36,7 +36,7 @@ public abstract class DropIcsPanel extends DropFileContainer
 {
   private static final long serialVersionUID = 1094945928912822172L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(DropIcsPanel.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(DropIcsPanel.class);
 
   /**
    * @param id

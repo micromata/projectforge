@@ -45,7 +45,7 @@ import org.testng.annotations.Test;
 
 public class UserTest extends AbstractTestBase
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(UserTest.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(UserTest.class);
   private static final String STRONGOLDPW = "ja6gieyai8quie0Eey!ooS8eMonah:";
 
   private static final String MESSAGE_KEY_PASSWORD_QUALITY_ERROR = "user.changePassword.error.passwordQualityCheck";

@@ -38,7 +38,7 @@ import org.springframework.stereotype.Repository;
 @Repository
 public class KundeDao extends BaseDao<KundeDO>
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(KundeDao.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(KundeDao.class);
 
   public KundeDao()
   {

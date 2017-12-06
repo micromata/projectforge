@@ -80,7 +80,7 @@ import de.micromata.genome.jpa.metainf.EntityDependencies;
 @EntityDependencies(referencedBy = TenantDO.class)
 public class PFUserDO extends DefaultBaseDO implements ShortDisplayNameCapable
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(PFUserDO.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(PFUserDO.class);
 
   private static final long serialVersionUID = 6680346054753032534L;
 

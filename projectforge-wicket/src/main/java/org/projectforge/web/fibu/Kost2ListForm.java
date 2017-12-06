@@ -23,16 +23,16 @@
 
 package org.projectforge.web.fibu;
 
-import org.apache.log4j.Logger;
 import org.apache.wicket.model.PropertyModel;
 import org.projectforge.web.wicket.AbstractListForm;
 import org.projectforge.web.wicket.components.LabelValueChoiceRenderer;
 import org.projectforge.web.wicket.flowlayout.DivPanel;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
+import org.slf4j.Logger;
 
 public class Kost2ListForm extends AbstractListForm<Kost2ListFilter, Kost2ListPage>
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(Kost2ListForm.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(Kost2ListForm.class);
 
   private static final long serialVersionUID = -5969136444233092172L;
 

@@ -47,7 +47,7 @@ import org.projectforge.web.user.UserPreferencesHelper;
 
 public class MySession extends WebSession
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(MySession.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(MySession.class);
 
   private static final long serialVersionUID = -1783696379234637066L;
 

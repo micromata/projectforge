@@ -28,7 +28,7 @@ import org.projectforge.framework.xstream.XmlConstants;
 
 public class DoubleConverter extends AbstractValueConverter<Double>
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(DoubleConverter.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(DoubleConverter.class);
 
   @Override
   public Double fromString(String str)

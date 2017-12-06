@@ -42,7 +42,6 @@ import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.persistence.Transient;
 
-import org.apache.log4j.Logger;
 import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
 import org.hibernate.search.annotations.Field;
@@ -59,6 +58,8 @@ import org.projectforge.framework.persistence.api.ModificationStatus;
 import org.projectforge.framework.persistence.attr.impl.HibernateSearchAttrSchemaFieldInfoProvider;
 import org.projectforge.framework.persistence.entities.DefaultBaseDO;
 import org.projectforge.framework.persistence.jpa.impl.BaseDaoJpaAdapter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import de.micromata.genome.db.jpa.history.api.HistoryProperty;
 import de.micromata.genome.db.jpa.history.impl.TimependingHistoryPropertyConverter;
@@ -78,7 +79,7 @@ public class VisitorbookDO extends DefaultBaseDO implements EntityWithTimeableAt
 {
   private static final long serialVersionUID = -1208597049289694757L;
 
-  private static final Logger LOG = Logger.getLogger(VisitorbookDO.class);
+  private static final Logger LOG = LoggerFactory.getLogger(VisitorbookDO.class);
 
   @Field(index = Index.YES /* TOKENIZED */, store = Store.NO)
   @PropertyInfo(i18nKey = "orga.visitorbook.lastname")

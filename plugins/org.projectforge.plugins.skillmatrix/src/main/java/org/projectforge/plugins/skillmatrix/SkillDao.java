@@ -60,7 +60,7 @@ public class SkillDao extends BaseDao<SkillDO>
   @Autowired
   GroupService groupService;
 
-  // private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(SkillDao.class);
+  // private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(SkillDao.class);
 
   public SkillDao()
   {

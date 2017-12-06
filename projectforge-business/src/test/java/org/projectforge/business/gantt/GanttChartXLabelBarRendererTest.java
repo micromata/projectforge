@@ -30,8 +30,6 @@ import java.io.IOException;
 import java.util.Calendar;
 import java.util.Date;
 
-import org.projectforge.business.gantt.GanttChartStyle;
-import org.projectforge.business.gantt.GanttChartXLabelBarRenderer;
 import org.projectforge.export.SVGHelper;
 import org.projectforge.framework.configuration.ConfigXmlTest;
 import org.projectforge.framework.renderer.BatikImageRenderer;
@@ -45,7 +43,7 @@ import org.w3c.dom.Element;
 
 public class GanttChartXLabelBarRendererTest
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory
       .getLogger(GanttChartXLabelBarRendererTest.class);
 
   private static final int ROW_HEIGHT = 50;
@@ -82,9 +80,9 @@ public class GanttChartXLabelBarRendererTest
       out.write(ba);
       out.close();
     } catch (final FileNotFoundException ex) {
-      log.fatal("Exception encountered " + ex, ex);
+      log.error("Exception encountered " + ex, ex);
     } catch (final IOException ex) {
-      log.fatal("Exception encountered " + ex, ex);
+      log.error("Exception encountered " + ex, ex);
     }
   }
 

@@ -23,7 +23,7 @@ import de.micromata.mgc.jpa.hibernatesearch.impl.SearchColumnMetadataBean;
 public class HibernateSearchAttrSchemaFieldInfoProvider implements HibernateSearchFieldInfoProvider
 {
 
-  private static transient final org.apache.log4j.Logger log = org.apache.log4j.Logger
+  private static transient final org.slf4j.Logger log = org.slf4j.LoggerFactory
       .getLogger(HibernateSearchAttrSchemaFieldInfoProvider.class);
 
   private ColumnMetadata getColumnMetadataFromColumnDesc(EntityMetadata entm, AttrDescription ad)

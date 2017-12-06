@@ -26,7 +26,6 @@ package org.projectforge.plugins.skillmatrix;
 import java.util.Collection;
 import java.util.HashSet;
 
-import org.apache.log4j.Logger;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.Model;
@@ -46,6 +45,8 @@ import org.projectforge.web.wicket.components.MaxLengthTextArea;
 import org.projectforge.web.wicket.components.RequiredMaxLengthTextField;
 import org.projectforge.web.wicket.flowlayout.DivTextPanel;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.wicketstuff.select2.Select2MultiChoice;
 
 /**
@@ -55,7 +56,7 @@ public class SkillEditForm extends AbstractEditForm<SkillDO, SkillEditPage>
 {
   private static final long serialVersionUID = 7795854215943696332L;
 
-  private static final Logger log = Logger.getLogger(SkillEditForm.class);
+  private static final Logger log = LoggerFactory.getLogger(SkillEditForm.class);
 
   @SpringBean
   private SkillDao skillDao;

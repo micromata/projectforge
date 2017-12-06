@@ -93,7 +93,7 @@ public class AuftragDO extends DefaultBaseDO
 {
   private static final long serialVersionUID = -3114903689890703366L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(AuftragDO.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(AuftragDO.class);
 
   private Integer nummer;
 

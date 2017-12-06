@@ -27,7 +27,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 
-import org.apache.log4j.Logger;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.model.PropertyModel;
@@ -51,6 +50,8 @@ import org.projectforge.web.wicket.components.DatePanelSettings;
 import org.projectforge.web.wicket.components.MaxLengthTextArea;
 import org.projectforge.web.wicket.components.RequiredMaxLengthTextField;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.wicketstuff.select2.Select2MultiChoice;
 
 /**
@@ -63,7 +64,7 @@ public class TrainingEditForm extends AbstractEditForm<TrainingDO, TrainingEditP
 
   private static final long serialVersionUID = 359682752123823685L;
 
-  private static final Logger log = Logger.getLogger(TrainingEditForm.class);
+  private static final Logger log = LoggerFactory.getLogger(TrainingEditForm.class);
 
   @SpringBean
   private TrainingDao trainingDao;

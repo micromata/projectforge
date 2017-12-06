@@ -32,7 +32,6 @@ import java.util.List;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.log4j.Logger;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.markup.html.form.Button;
 import org.apache.wicket.markup.html.form.DropDownChoice;
@@ -52,10 +51,7 @@ import org.projectforge.business.humanresources.HRPlanningDao;
 import org.projectforge.business.humanresources.HRPlanningEntryDO;
 import org.projectforge.business.humanresources.HRPlanningEntryDao;
 import org.projectforge.business.humanresources.HRPlanningEntryStatus;
-import org.projectforge.business.multitenancy.TenantRegistryMap;
-import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.common.i18n.Priority;
-import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.time.DateTimeFormatter;
 import org.projectforge.framework.time.DayHolder;
@@ -79,6 +75,7 @@ import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
 import org.projectforge.web.wicket.flowlayout.HtmlCodePanel;
 import org.projectforge.web.wicket.flowlayout.TextAreaPanel;
 import org.projectforge.web.wicket.flowlayout.ToggleContainerPanel;
+import org.slf4j.Logger;
 
 /**
  * @author Mario Groß (m.gross@micromata.de)
@@ -87,7 +84,7 @@ public class HRPlanningEditForm extends AbstractEditForm<HRPlanningDO, HRPlannin
 {
   private static final long serialVersionUID = 3150725003240437752L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(HRPlanningEditForm.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(HRPlanningEditForm.class);
 
   @SpringBean
   private HRPlanningEntryDao hrPlanningEntryDao;
@@ -163,25 +160,6 @@ public class HRPlanningEditForm extends AbstractEditForm<HRPlanningDO, HRPlannin
             projektSelectPanel.error(getString("hr.planning.entry.error.statusOrProjektRequired"));
           } else if (projekt != null && status != null) {
             projektSelectPanel.error(getString("hr.planning.entry.error.statusAndProjektNotAllowed"));
-          }
-          if (projekt != null) {
-            boolean userHasRightForProject = false;
-            Integer userId = ThreadLocalUserContext.getUser().getId();
-            Integer headOfBusinessManagerId = projekt.getHeadOfBusinessManager() != null ? projekt.getHeadOfBusinessManager().getId() : null;
-            Integer projectManagerId = projekt.getProjectManager() != null ? projekt.getProjectManager().getId() : null;
-            Integer salesManageId = projekt.getSalesManager() != null ? projekt.getSalesManager().getId() : null;
-            if (userId != null && (userId.equals(headOfBusinessManagerId) || userId.equals(projectManagerId) || userId.equals(salesManageId))) {
-              userHasRightForProject = true;
-            }
-
-            final UserGroupCache userGroupCache = TenantRegistryMap.getInstance().getTenantRegistry().getUserGroupCache();
-            if (projekt.getProjektManagerGroup() != null
-                && userGroupCache.isUserMemberOfGroup(userId, projekt.getProjektManagerGroupId()) == true) {
-              userHasRightForProject = true;
-            }
-            if (userHasRightForProject == false) {
-              projektSelectPanel.error(getString("hr.planning.entry.error.noRightForProject"));
-            }
           }
         }
       }

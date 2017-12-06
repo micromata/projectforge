@@ -42,7 +42,7 @@ public class SqlConsolePage extends AbstractStandardFormPage
 {
   private static final long serialVersionUID = -8866862318651809124L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(SqlConsolePage.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(SqlConsolePage.class);
 
   @SpringBean
   private DatabaseService myDatabaseUpdater;

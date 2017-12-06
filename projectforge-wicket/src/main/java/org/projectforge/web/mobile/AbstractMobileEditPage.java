@@ -23,7 +23,6 @@
 
 package org.projectforge.web.mobile;
 
-import org.apache.log4j.Logger;
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.projectforge.framework.persistence.api.BaseDao;
@@ -35,6 +34,7 @@ import org.projectforge.web.wicket.AbstractListPage;
 import org.projectforge.web.wicket.EditPageSupport;
 import org.projectforge.web.wicket.IEditPage;
 import org.projectforge.web.wicket.WicketUtils;
+import org.slf4j.Logger;
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
@@ -42,7 +42,7 @@ import org.projectforge.web.wicket.WicketUtils;
 public abstract class AbstractMobileEditPage<O extends AbstractBaseDO<Integer>, F extends AbstractMobileEditForm<O, ?>, D extends BaseDao<O>>
     extends AbstractSecuredMobilePage implements IEditPage<O, D>
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(AbstractMobileEditPage.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(AbstractMobileEditPage.class);
 
   private static final long serialVersionUID = -2264060989458529585L;
 

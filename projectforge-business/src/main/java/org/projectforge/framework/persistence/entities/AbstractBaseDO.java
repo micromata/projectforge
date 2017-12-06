@@ -59,7 +59,7 @@ public abstract class AbstractBaseDO<I extends Serializable> implements Extended
 {
   private static final long serialVersionUID = -2225460450662176301L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(AbstractBaseDO.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(AbstractBaseDO.class);
 
   private TenantDO tenant;
 

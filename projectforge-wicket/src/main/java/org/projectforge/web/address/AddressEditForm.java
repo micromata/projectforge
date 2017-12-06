@@ -23,7 +23,7 @@
 
 package org.projectforge.web.address;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.address.AddressDO;
@@ -46,7 +46,7 @@ public class AddressEditForm extends AbstractEditForm<AddressDO, AddressEditPage
 {
   private static final long serialVersionUID = 3881031215413525517L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(AddressEditForm.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(AddressEditForm.class);
 
   private static final String PHONE_NUMBER_FAVORITE_LABEL = "*";
 

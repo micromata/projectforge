@@ -38,7 +38,7 @@ import org.projectforge.export.JFreeChartImageType;
 
 public class JFreeChartImage extends Image
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(JFreeChartImage.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(JFreeChartImage.class);
 
   private static final long serialVersionUID = 7083627817914127250L;
 

@@ -40,7 +40,7 @@ public class ImportStorage<T> implements Serializable
 {
   private static final long serialVersionUID = 3744632935997632321L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(ImportStorage.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ImportStorage.class);
 
   private List<ImportedSheet<T>> sheets;
 

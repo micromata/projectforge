@@ -99,7 +99,7 @@ public class WicketApplication extends WebApplication implements WicketApplicati
 {
   public static final String RESOURCE_BUNDLE_NAME = "I18nResources";
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(WicketApplication.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(WicketApplication.class);
 
   private static final Map<Class<? extends Page>, String> mountedPages = new HashMap<>();
 
@@ -313,7 +313,7 @@ public class WicketApplication extends WebApplication implements WicketApplicati
 
         // log StalePageException but do not redirect to error page
         if (ex instanceof StalePageException) {
-          log.warn(ex);
+          log.warn(ex.toString());
           return super.onException(cycle, ex);
         }
 
@@ -543,5 +543,5 @@ public class WicketApplication extends WebApplication implements WicketApplicati
     converterLocator.set(java.sql.Date.class, new MyDateConverter(java.sql.Date.class, "S-"));
     return converterLocator;
   }
-  
+
 }

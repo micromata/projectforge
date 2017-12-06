@@ -54,7 +54,7 @@ import net.sf.mpxj.writer.ProjectWriter;
  */
 public class ExportMSProject
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(ExportMSProject.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ExportMSProject.class);
 
   public static byte[] exportXml(final GanttChart ganttChart)
   {

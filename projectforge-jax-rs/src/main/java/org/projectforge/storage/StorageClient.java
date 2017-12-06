@@ -41,7 +41,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class StorageClient implements ConfigurationListener
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(StorageClient.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(StorageClient.class);
 
   private StorageConfig config;
 
@@ -84,7 +84,7 @@ public class StorageClient implements ConfigurationListener
       response = webResource.request(MediaType.TEXT_PLAIN).get();
       if (response.getStatus() == Response.Status.OK.getStatusCode()) {
         final String message = "Security alert: storage is available without any authentication!!!!!!!!!!!!!!!!";
-        log.fatal(message);
+        log.error(message);
         throw new RuntimeException(message);
       }
       webResource = client.target(getUrl("/securityCheck"));
@@ -98,7 +98,7 @@ public class StorageClient implements ConfigurationListener
       }
       if (output.equals("authenticated") == false) {
         final String message = "Authentication didn't work. Storage isn't available.";
-        log.fatal(message);
+        log.error(message);
         throw new RuntimeException(message);
       }
       initialized = true;

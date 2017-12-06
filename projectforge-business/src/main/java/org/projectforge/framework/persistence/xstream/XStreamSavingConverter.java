@@ -63,7 +63,7 @@ import de.micromata.hibernate.history.delta.PropertyDelta;
 public class XStreamSavingConverter implements Converter
 {
   /** The logger */
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(XStreamSavingConverter.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(XStreamSavingConverter.class);
 
   private final ConverterLookup defaultConv;
 
@@ -274,19 +274,19 @@ public class XStreamSavingConverter implements Converter
       method.invoke(entry, value);
     } catch (final IllegalArgumentException ex) {
       log.error("Can't modify id of history entry. This results in a corrupted history: " + entry);
-      log.fatal("Exception encountered " + ex, ex);
+      log.error("Exception encountered " + ex, ex);
     } catch (final IllegalAccessException ex) {
       log.error("Can't modify id of history entry. This results in a corrupted history: " + entry);
-      log.fatal("Exception encountered " + ex, ex);
+      log.error("Exception encountered " + ex, ex);
     } catch (final InvocationTargetException ex) {
       log.error("Can't modify id of history entry. This results in a corrupted history: " + entry);
-      log.fatal("Exception encountered " + ex, ex);
+      log.error("Exception encountered " + ex, ex);
     } catch (final SecurityException ex) {
       log.error("Can't modify id of history entry. This results in a corrupted history: " + entry);
-      log.fatal("Exception encountered " + ex, ex);
+      log.error("Exception encountered " + ex, ex);
     } catch (final NoSuchMethodException ex) {
       log.error("Can't modify id of history entry. This results in a corrupted history: " + entry);
-      log.fatal("Exception encountered " + ex, ex);
+      log.error("Exception encountered " + ex, ex);
     }
   }
 
@@ -329,9 +329,9 @@ public class XStreamSavingConverter implements Converter
           log.debug("wrote object " + obj + " under id " + id);
         }
       } catch (final HibernateException ex) {
-        log.fatal("Failed to write " + obj + " ex=" + ex, ex);
+        log.error("Failed to write " + obj + " ex=" + ex, ex);
       } catch (final NullPointerException ex) {
-        log.fatal("Failed to write " + obj + " ex=" + ex, ex);
+        log.error("Failed to write " + obj + " ex=" + ex, ex);
       }
     }
   }
@@ -459,9 +459,9 @@ public class XStreamSavingConverter implements Converter
         registerObject(result);
       }
     } catch (final HibernateException ex) {
-      log.fatal("Failed to write " + result + " ex=" + ex, ex);
+      log.error("Failed to write " + result + " ex=" + ex, ex);
     } catch (final NullPointerException ex) {
-      log.fatal("Failed to write " + result + " ex=" + ex, ex);
+      log.error("Failed to write " + result + " ex=" + ex, ex);
     }
     return result;
   }

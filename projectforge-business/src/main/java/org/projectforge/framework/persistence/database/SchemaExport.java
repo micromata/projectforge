@@ -39,7 +39,7 @@ import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
  */
 public class SchemaExport
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(SchemaExport.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(SchemaExport.class);
 
   /**
    * Generates the database schema for the current configured database.

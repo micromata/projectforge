@@ -29,7 +29,6 @@ import java.util.Calendar;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.log4j.Logger;
 import org.apache.wicket.markup.html.form.SubmitLink;
 import org.apache.wicket.protocol.http.WebSession;
 import org.apache.wicket.protocol.http.request.WebClientInfo;
@@ -50,13 +49,14 @@ import org.projectforge.web.wicket.AbstractSecuredBasePage;
 import org.projectforge.web.wicket.DownloadUtils;
 import org.projectforge.web.wicket.EditPage;
 import org.projectforge.web.wicket.components.ContentMenuEntryPanel;
+import org.slf4j.Logger;
 
 @EditPage(defaultReturnPage = RechnungListPage.class)
 public class RechnungEditPage extends AbstractEditPage<RechnungDO, RechnungEditForm, RechnungDao> implements ISelectCallerPage
 {
   private static final long serialVersionUID = 2561721641251015056L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(RechnungEditPage.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(RechnungEditPage.class);
 
   @SpringBean
   private RechnungDao rechnungDao;

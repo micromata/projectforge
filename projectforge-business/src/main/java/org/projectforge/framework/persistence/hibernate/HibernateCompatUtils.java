@@ -2,7 +2,6 @@ package org.projectforge.framework.persistence.hibernate;
 
 import java.util.Collection;
 
-import org.apache.log4j.Logger;
 import org.hibernate.CacheMode;
 import org.hibernate.EmptyInterceptor;
 import org.hibernate.EntityMode;
@@ -14,6 +13,8 @@ import org.hibernate.collection.internal.PersistentSet;
 import org.hibernate.collection.spi.PersistentCollection;
 import org.hibernate.metadata.ClassMetadata;
 import org.hibernate.search.FullTextSession;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import de.micromata.genome.util.bean.PrivateBeanUtils;
 
@@ -25,7 +26,7 @@ import de.micromata.genome.util.bean.PrivateBeanUtils;
  */
 public class HibernateCompatUtils
 {
-  private static final Logger log = Logger.getLogger(HibernateCompatUtils.class);
+  private static final Logger log = LoggerFactory.getLogger(HibernateCompatUtils.class);
 
   public static Session openSession(SessionFactory sessionFactory, Interceptor interceptor)
   {

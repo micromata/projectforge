@@ -36,7 +36,7 @@ import org.wicketstuff.select2.Response;
 
 public class GroupsWicketProvider extends ChoiceProvider<GroupDO>
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(GroupsWicketProvider.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(GroupsWicketProvider.class);
 
   private static final long serialVersionUID = 6228672635966093252L;
 

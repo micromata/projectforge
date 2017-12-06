@@ -25,7 +25,7 @@ package org.projectforge.web.book;
 
 import java.util.Date;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.book.BookDO;
@@ -39,7 +39,7 @@ public class BookEditPage extends AbstractEditPage<BookDO, BookEditForm, BookDao
 {
   private static final long serialVersionUID = 7091721062661400435L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(BookEditPage.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(BookEditPage.class);
 
   @SpringBean
   private BookDao bookDao;

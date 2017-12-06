@@ -91,7 +91,7 @@ public class SEPATransferGenerator
 
   final private static String PAIN_001_003_03_XSD = "misc/pain.001.003.03.xsd";
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(SEPATransferGenerator.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(SEPATransferGenerator.class);
 
   private Schema painSchema;
   private JAXBContext jaxbContext;

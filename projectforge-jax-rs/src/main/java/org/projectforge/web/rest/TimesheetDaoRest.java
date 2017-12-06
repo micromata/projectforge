@@ -55,7 +55,7 @@ import org.springframework.stereotype.Controller;
 @Path(RestPaths.TIMESHEET)
 public class TimesheetDaoRest
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(TimesheetDaoRest.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(TimesheetDaoRest.class);
 
   @Autowired
   private TaskDao taskDao;

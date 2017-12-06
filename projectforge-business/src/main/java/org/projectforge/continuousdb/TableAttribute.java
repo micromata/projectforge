@@ -51,7 +51,7 @@ public class TableAttribute implements Serializable
 {
   private static final long serialVersionUID = -8369835632981780449L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(TableAttribute.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(TableAttribute.class);
 
   private static List<TableAttributeHook> hooks = new LinkedList<TableAttributeHook>();
 

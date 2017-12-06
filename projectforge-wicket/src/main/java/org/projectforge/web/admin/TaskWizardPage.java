@@ -40,7 +40,7 @@ public class TaskWizardPage extends AbstractStandardFormPage implements ISelectC
 {
   private static final long serialVersionUID = -297781176304100445L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(TaskWizardPage.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(TaskWizardPage.class);
 
   boolean managerGroupCreated;
 
