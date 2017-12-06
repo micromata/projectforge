@@ -362,6 +362,10 @@ public abstract class AbstractRechnungEditForm<O extends AbstractRechnungDO<T>, 
       data.addPosition(position);
     }
 
+    if (data.getPositionen() != null && data.getPositionen().size() > 0) {
+      data.getPositionen().removeIf(pos -> pos.isDeleted());
+    }
+
     for (final T position : data.getPositionen()) {
       // Fetch all kostZuweisungen:
       if (CollectionUtils.isNotEmpty(position.getKostZuweisungen()) == true) {
@@ -633,6 +637,31 @@ public abstract class AbstractRechnungEditForm<O extends AbstractRechnungDO<T>, 
             }
           }, TextStyle.RED));
         }
+      }
+      if (getBaseDao().hasLoggedInUserUpdateAccess(data, data, false) == true) {
+        GridBuilder removeButtonGridBuilder = posGridBuilder.newGridPanel();
+        {
+          // Remove Position
+          DivPanel divPanel = removeButtonGridBuilder.getPanel();
+          final Button removePositionButton = new Button(SingleButtonPanel.WICKET_ID)
+          {
+            @Override
+            public final void onSubmit()
+            {
+              position.setDeleted(true);
+              refreshPositions();
+            }
+          };
+          removePositionButton.add(AttributeModifier.append("class", ButtonType.DELETE.getClassAttrValue()));
+          final SingleButtonPanel removePositionButtonPanel = new SingleButtonPanel(divPanel.newChildId(), removePositionButton,
+              getString("delete"));
+          removePositionButtonPanel.setVisible(isNew() == true);
+          divPanel.add(removePositionButtonPanel);
+        }
+      }
+
+      if (position.isDeleted()) {
+        positionsPanel.setVisible(false);
       }
       onRenderPosition(posGridBuilder, position);
     }
