@@ -55,6 +55,7 @@ import org.projectforge.common.StringHelper;
 import org.projectforge.framework.configuration.Configuration;
 import org.projectforge.framework.configuration.ConfigurationParam;
 import org.projectforge.framework.i18n.I18nHelper;
+import org.projectforge.framework.persistence.entities.AbstractBaseDO;
 import org.projectforge.framework.utils.NumberHelper;
 import org.projectforge.web.dialog.ModalDialog;
 import org.projectforge.web.wicket.AbstractEditForm;
@@ -362,9 +363,7 @@ public abstract class AbstractRechnungEditForm<O extends AbstractRechnungDO<T>, 
       data.addPosition(position);
     }
 
-    if (data.getPositionen() != null && data.getPositionen().size() > 0) {
-      data.getPositionen().removeIf(pos -> pos.isDeleted());
-    }
+    data.getPositionen().removeIf(AbstractBaseDO::isDeleted);
 
     for (final T position : data.getPositionen()) {
       // Fetch all kostZuweisungen:
