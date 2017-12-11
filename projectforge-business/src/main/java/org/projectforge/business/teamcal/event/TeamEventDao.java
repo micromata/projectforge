@@ -122,6 +122,7 @@ public class TeamEventDao extends BaseDao<TeamEventDO>
   }
 
   @Override
+  @Transactional(readOnly = false, propagation = Propagation.SUPPORTS)
   public ModificationStatus internalUpdate(final TeamEventDO obj, final boolean checkAccess)
   {
     logReminderChange(obj);
