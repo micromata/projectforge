@@ -45,7 +45,6 @@ import javax.persistence.Table;
 import javax.persistence.Transient;
 import javax.persistence.UniqueConstraint;
 
-import org.apache.log4j.Logger;
 import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
 import org.hibernate.search.annotations.Analyze;
@@ -70,6 +69,8 @@ import org.projectforge.framework.persistence.history.ToStringFieldBridge;
 import org.projectforge.framework.persistence.jpa.impl.BaseDaoJpaAdapter;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.utils.Constants;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import de.micromata.genome.db.jpa.history.api.HistoryProperty;
 import de.micromata.genome.db.jpa.history.impl.TabAttrHistoryPropertyConverter;
@@ -107,7 +108,7 @@ public class EmployeeDO extends DefaultBaseWithAttrDO<EmployeeDO>
 {
 
   private static final long serialVersionUID = -1208597049289694757L;
-  private static final Logger LOG = Logger.getLogger(EmployeeDO.class);
+  private static final Logger LOG = LoggerFactory.getLogger(EmployeeDO.class);
 
   @PropertyInfo(i18nKey = "fibu.employee.user")
   @IndexedEmbedded(depth = 1, includePaths = { "firstname", "lastname", "description", "organization" })

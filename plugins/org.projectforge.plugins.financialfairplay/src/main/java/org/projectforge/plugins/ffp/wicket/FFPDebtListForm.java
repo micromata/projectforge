@@ -23,7 +23,6 @@
 
 package org.projectforge.plugins.ffp.wicket;
 
-import org.apache.log4j.Logger;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.fibu.api.EmployeeService;
@@ -31,10 +30,12 @@ import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.web.wicket.AbstractListForm;
 import org.projectforge.web.wicket.flowlayout.DivPanel;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class FFPDebtListForm extends AbstractListForm<FFPDebtFilter, FFPDebtListPage>
 {
-  private static final Logger log = Logger.getLogger(FFPDebtListForm.class);
+  private static final Logger log = LoggerFactory.getLogger(FFPDebtListForm.class);
 
   private static final long serialVersionUID = -5969136444233092172L;
 

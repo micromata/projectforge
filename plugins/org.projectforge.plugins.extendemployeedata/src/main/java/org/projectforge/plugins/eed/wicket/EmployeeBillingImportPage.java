@@ -16,7 +16,7 @@ import org.projectforge.web.core.importstorage.AbstractImportPage;
 
 public class EmployeeBillingImportPage extends AbstractImportPage<EmployeeBillingImportForm>
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(EmployeeBillingImportPage.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(EmployeeBillingImportPage.class);
 
   @SpringBean
   private EmployeeBillingImportService employeeBillingImportService;

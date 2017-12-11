@@ -34,7 +34,8 @@ import javax.crypto.Cipher;
 import javax.crypto.spec.SecretKeySpec;
 
 import org.apache.commons.codec.binary.Base64;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * 
@@ -44,7 +45,7 @@ import org.apache.log4j.Logger;
  */
 public class Crypt
 {
-  private final static Logger log = Logger.getLogger(Crypt.class);
+  private final static Logger log = LoggerFactory.getLogger(Crypt.class);
 
   private static final String CRYPTO_ALGORITHM = "AES/ECB/PKCS5Padding";
 
@@ -173,7 +174,7 @@ public class Crypt
       }
       return md.getAlgorithm() + '{' + ret + '}';
     } catch (final NoSuchAlgorithmException ex) {
-      log.fatal(ex);
+      log.error(ex.toString());
       return "NONE{" + s + "}";
     }
   }

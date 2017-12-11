@@ -25,7 +25,6 @@ package org.projectforge.web.gantt;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.ObjectUtils;
-import org.apache.log4j.Logger;
 import org.apache.wicket.Component;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
@@ -50,6 +49,7 @@ import org.projectforge.web.wicket.DownloadUtils;
 import org.projectforge.web.wicket.EditPage;
 import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.web.wicket.flowlayout.ImagePanel;
+import org.slf4j.Logger;
 import org.w3c.dom.Document;
 
 @EditPage(defaultReturnPage = GanttChartListPage.class)
@@ -57,7 +57,7 @@ public class GanttChartEditPage extends AbstractEditPage<GanttChartDO, GanttChar
 {
   private static final long serialVersionUID = 6994391085420314366L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(GanttChartEditPage.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(GanttChartEditPage.class);
 
   public static final String PARAM_KEY_TASK = "task";
 

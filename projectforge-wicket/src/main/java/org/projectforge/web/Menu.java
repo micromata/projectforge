@@ -31,7 +31,7 @@ import java.util.Collection;
  */
 public class Menu implements Serializable
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(Menu.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(Menu.class);
 
   private static final long serialVersionUID = -4954464926815538198L;
 

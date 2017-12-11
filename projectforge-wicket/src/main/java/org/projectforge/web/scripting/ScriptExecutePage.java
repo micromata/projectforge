@@ -62,7 +62,7 @@ public class ScriptExecutePage extends AbstractScriptingPage implements ISelectC
 {
   private static final long serialVersionUID = -183858142939207911L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(ScriptExecutePage.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ScriptExecutePage.class);
 
   @SpringBean
   private ScriptDao scriptDao;
@@ -101,7 +101,6 @@ public class ScriptExecutePage extends AbstractScriptingPage implements ISelectC
             setResponsePage(editPage);
           }
 
-          ;
         }, getString("edit"));
     addContentMenuEntry(editMenuEntryPanel);
     form = new ScriptExecuteForm(this, loadScript());
@@ -259,11 +258,13 @@ public class ScriptExecutePage extends AbstractScriptingPage implements ISelectC
     return form.data;
   }
 
+  @Override
   public void cancelSelection(final String property)
   {
     // Do nothing.
   }
 
+  @Override
   public void select(final String property, final Object selectedValue)
   {
     if (property == null) {
@@ -309,6 +310,7 @@ public class ScriptExecutePage extends AbstractScriptingPage implements ISelectC
     }
   }
 
+  @Override
   public void unselect(final String property)
   {
     // Do nothing.

@@ -68,7 +68,7 @@ public class RechnungDao extends BaseDao<RechnungDO>
 
   public final static int START_NUMBER = 1000;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(RechnungDao.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(RechnungDao.class);
 
   private static final Class<?>[] ADDITIONAL_SEARCH_DOS = new Class[] { RechnungsPositionDO.class };
 

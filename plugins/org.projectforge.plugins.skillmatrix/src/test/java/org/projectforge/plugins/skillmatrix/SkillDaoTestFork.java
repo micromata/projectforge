@@ -39,7 +39,7 @@ import org.testng.annotations.Test;
 
 public class SkillDaoTestFork extends AbstractTestBase
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(SkillDaoTestFork.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(SkillDaoTestFork.class);
 
   @Autowired
   private SkillDao skillDao;

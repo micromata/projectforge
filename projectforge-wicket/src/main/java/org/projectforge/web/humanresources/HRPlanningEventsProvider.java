@@ -41,14 +41,14 @@ import net.ftlines.wicket.fullcalendar.Event;
 
 /**
  * Creates events corresponding to the hr planning entries.
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
  */
 public class HRPlanningEventsProvider extends MyFullCalendarEventsProvider
 {
   private static final long serialVersionUID = -8614136730204759894L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(HRPlanningEventsProvider.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(HRPlanningEventsProvider.class);
 
   private final HRPlanningDao hrPlanningDao;
 
@@ -80,7 +80,7 @@ public class HRPlanningEventsProvider extends MyFullCalendarEventsProvider
       return;
     }
     final HRPlanningFilter filter = new HRPlanningFilter();
-    Integer timesheetUserId = calendarFilter.getTimesheetUserId() ;
+    Integer timesheetUserId = calendarFilter.getTimesheetUserId();
     if (timesheetUserId == null) {
       timesheetUserId = ThreadLocalUserContext.getUserId();
     }
@@ -132,7 +132,7 @@ public class HRPlanningEventsProvider extends MyFullCalendarEventsProvider
     }
     final StringBuffer buf = new StringBuffer();
     buf.append(NumberHelper.formatFraction2(hours)).append(getString("calendar.unit.hour")).append(" ")
-    .append(entry.getProjektNameOrStatus());
+        .append(entry.getProjektNameOrStatus());
     if (StringUtils.isNotBlank(entry.getDescription()) == true) {
       buf.append(": ");
       if (durationDays > 2) {

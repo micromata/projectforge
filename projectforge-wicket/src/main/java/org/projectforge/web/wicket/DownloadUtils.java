@@ -34,7 +34,7 @@ import org.projectforge.common.MimeType;
 
 public class DownloadUtils
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(DownloadUtils.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(DownloadUtils.class);
 
   public static void setCharacterEncoding(final Response response, final String encoding)
   {

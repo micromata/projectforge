@@ -49,8 +49,9 @@ import org.testng.annotations.Test;
 
 public class ExportWorkbookTest extends AbstractTestBase
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(ExportWorkbookTest.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ExportWorkbookTest.class);
 
+  @Override
   @BeforeClass
   public void setUp()
   {

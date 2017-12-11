@@ -30,7 +30,6 @@ import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.fileupload.FileUploadException;
-import org.apache.log4j.Logger;
 import org.apache.wicket.Component;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
@@ -45,12 +44,14 @@ import org.projectforge.framework.i18n.I18nKeyAndParams;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.web.session.MySession;
 import org.projectforge.web.wicket.bootstrap.GridBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public abstract class AbstractForm<F, P extends AbstractUnsecureBasePage> extends Form<F>
 {
   private static final long serialVersionUID = -5703197102062729288L;
 
-  private static final Logger LOG = Logger.getLogger(AbstractForm.class);
+  private static final Logger LOG = LoggerFactory.getLogger(AbstractForm.class);
 
   protected final P parentPage;
 

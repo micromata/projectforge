@@ -32,7 +32,7 @@ import java.util.Locale;
 import java.util.TimeZone;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.form.AjaxButton;
@@ -109,7 +109,7 @@ public class UserEditForm extends AbstractEditForm<PFUserDO, UserEditPage>
 {
   private static final long serialVersionUID = 7872294377838461659L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(UserEditForm.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(UserEditForm.class);
 
   @SpringBean
   private AccessChecker accessChecker;

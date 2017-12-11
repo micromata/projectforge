@@ -36,7 +36,7 @@ public class CalendarPage extends AbstractStandardFormPage implements ISelectCal
 {
   private static final long serialVersionUID = 8710165041912824126L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(CalendarPage.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(CalendarPage.class);
 
   private static final String USERPREF_KEY = "CalendarPage.userPrefs";
 

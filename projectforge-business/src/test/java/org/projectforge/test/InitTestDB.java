@@ -74,7 +74,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class InitTestDB
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(InitTestDB.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(InitTestDB.class);
 
   @Autowired
   private UserService userService;

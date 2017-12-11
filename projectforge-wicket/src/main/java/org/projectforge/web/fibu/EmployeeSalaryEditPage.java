@@ -25,7 +25,6 @@ package org.projectforge.web.fibu;
 
 import java.util.Calendar;
 
-import org.apache.log4j.Logger;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.fibu.EmployeeSalaryDO;
@@ -36,6 +35,7 @@ import org.projectforge.framework.utils.NumberHelper;
 import org.projectforge.web.wicket.AbstractEditPage;
 import org.projectforge.web.wicket.AbstractSecuredBasePage;
 import org.projectforge.web.wicket.EditPage;
+import org.slf4j.Logger;
 
 @EditPage(defaultReturnPage = EmployeeSalaryListPage.class)
 public class EmployeeSalaryEditPage
@@ -44,7 +44,7 @@ public class EmployeeSalaryEditPage
 {
   private static final long serialVersionUID = -3899191243765232906L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(EmployeeSalaryEditPage.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(EmployeeSalaryEditPage.class);
 
   @SpringBean
   private EmployeeSalaryDao employeeSalaryDao;
@@ -104,6 +104,7 @@ public class EmployeeSalaryEditPage
   /**
    * @see org.projectforge.web.fibu.ISelectCallerPage#select(java.lang.String, java.lang.Integer)
    */
+  @Override
   public void select(final String property, final Object selectedValue)
   {
     if ("userId".equals(property) == true) {
@@ -122,6 +123,7 @@ public class EmployeeSalaryEditPage
   /**
    * @see org.projectforge.web.fibu.ISelectCallerPage#unselect(java.lang.String)
    */
+  @Override
   public void unselect(final String property)
   {
     log.error("Property '" + property + "' not supported for selection.");
@@ -130,6 +132,7 @@ public class EmployeeSalaryEditPage
   /**
    * @see org.projectforge.web.fibu.ISelectCallerPage#cancelSelection(java.lang.String)
    */
+  @Override
   public void cancelSelection(final String property)
   {
     // Do nothing.

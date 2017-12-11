@@ -27,7 +27,7 @@ import java.math.BigDecimal;
 import java.util.Date;
 import java.util.List;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.FormComponent;
@@ -78,7 +78,7 @@ public class TaskEditForm extends AbstractEditForm<TaskDO, TaskEditPage>
 {
   private static final long serialVersionUID = -3784956996856970327L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(TaskEditForm.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(TaskEditForm.class);
 
   public static final BigDecimal MAX_DURATION_DAYS = new BigDecimal(10000);
 

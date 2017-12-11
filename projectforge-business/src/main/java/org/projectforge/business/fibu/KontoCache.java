@@ -28,9 +28,10 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.collections.MapUtils;
-import org.apache.log4j.Logger;
 import org.hibernate.LazyInitializationException;
 import org.projectforge.framework.cache.AbstractCache;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.orm.hibernate5.HibernateTemplate;
 import org.springframework.stereotype.Component;
@@ -43,7 +44,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class KontoCache extends AbstractCache
 {
-  private static Logger log = Logger.getLogger(KontoCache.class);
+  private static Logger log = LoggerFactory.getLogger(KontoCache.class);
 
   @Autowired
   private HibernateTemplate hibernateTemplate;

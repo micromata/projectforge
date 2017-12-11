@@ -8,9 +8,10 @@ import java.util.List;
 import javax.sql.DataSource;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.log4j.Logger;
 import org.projectforge.framework.persistence.history.entities.PfHistoryMasterDO;
 import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
@@ -31,7 +32,7 @@ import de.micromata.genome.util.types.Holder;
 @Service
 public class HistoryMigrateService
 {
-  private static final Logger LOG = Logger.getLogger(HistoryMigrateService.class);
+  private static final Logger LOG = LoggerFactory.getLogger(HistoryMigrateService.class);
 
   @Autowired
   private TransactionTemplate txTemplate;

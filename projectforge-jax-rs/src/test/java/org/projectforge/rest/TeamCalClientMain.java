@@ -39,7 +39,7 @@ import com.google.gson.reflect.TypeToken;
 
 public class TeamCalClientMain
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(TeamCalClientMain.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(TeamCalClientMain.class);
 
   public static void main(final String[] args)
   {
@@ -57,7 +57,7 @@ public class TeamCalClientMain
     {
     }.getType());
     for (final CalendarObject calendar : calendars) {
-      log.info(calendar);
+      log.info(calendar.toString());
     }
 
     webResource = client.target(RestClientMain.getUrl() + RestPaths.buildListPath(RestPaths.TEAMEVENTS))
@@ -74,7 +74,7 @@ public class TeamCalClientMain
         {
         }.getType());
     for (final CalendarEventObject event : events) {
-      log.info(event);
+      log.info(event.toString());
     }
   }
 }

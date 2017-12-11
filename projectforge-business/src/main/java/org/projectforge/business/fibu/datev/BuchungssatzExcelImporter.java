@@ -29,7 +29,6 @@ import java.util.Locale;
 import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.log4j.Logger;
 import org.apache.poi.hssf.usermodel.HSSFCell;
 import org.apache.poi.hssf.usermodel.HSSFRow;
 import org.apache.poi.hssf.usermodel.HSSFSheet;
@@ -50,10 +49,12 @@ import org.projectforge.framework.persistence.utils.ImportedSheet;
 import org.projectforge.framework.time.DateHolder;
 import org.projectforge.framework.time.DatePrecision;
 import org.projectforge.framework.utils.ActionLog;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class BuchungssatzExcelImporter
 {
-  private static final Logger log = Logger.getLogger(BuchungssatzExcelImporter.class);
+  private static final Logger log = LoggerFactory.getLogger(BuchungssatzExcelImporter.class);
 
   /**
    * In dieser Zeile stehen die Überschriften der Spalten für die Buchungssätze.
@@ -192,7 +193,7 @@ public class BuchungssatzExcelImporter
       satz.setYear(year);
       satz.setMonth(month);
       importedSheet.addElement(element);
-      log.debug(satz);
+      log.debug(satz.toString());
     }
     importedSheet.setName(KostFormatter.formatBuchungsmonat(year, month));
     importedSheet.setProperty("year", year);

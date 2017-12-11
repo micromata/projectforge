@@ -23,7 +23,6 @@
 
 package org.projectforge.plugins.banking;
 
-import org.apache.log4j.Logger;
 import org.apache.wicket.model.PropertyModel;
 import org.projectforge.web.wicket.AbstractEditForm;
 import org.projectforge.web.wicket.bootstrap.GridSize;
@@ -31,6 +30,7 @@ import org.projectforge.web.wicket.components.MaxLengthTextArea;
 import org.projectforge.web.wicket.components.MaxLengthTextField;
 import org.projectforge.web.wicket.components.RequiredMaxLengthTextField;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
+import org.slf4j.Logger;
 
 /**
  * This is the edit formular page.
@@ -42,7 +42,7 @@ public class BankAccountEditForm extends AbstractEditForm<BankAccountDO, BankAcc
 {
   private static final long serialVersionUID = -6208809585214296635L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(BankAccountEditForm.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(BankAccountEditForm.class);
 
   public BankAccountEditForm(final BankAccountEditPage parentPage, final BankAccountDO data)
   {

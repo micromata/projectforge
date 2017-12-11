@@ -34,7 +34,6 @@ import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.log4j.MDC;
 import org.projectforge.business.login.LoginProtection;
 import org.projectforge.business.multitenancy.TenantRegistry;
 import org.projectforge.business.multitenancy.TenantRegistryMap;
@@ -46,6 +45,7 @@ import org.projectforge.framework.utils.NumberHelper;
 import org.projectforge.rest.Authentication;
 import org.projectforge.rest.ConnectionSettings;
 import org.projectforge.rest.converter.DateTimeFormat;
+import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.web.context.WebApplicationContext;
@@ -59,7 +59,7 @@ import org.springframework.web.context.support.WebApplicationContextUtils;
  */
 public class RestUserFilter implements Filter
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(RestUserFilter.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(RestUserFilter.class);
 
   private WebApplicationContext springContext;
 

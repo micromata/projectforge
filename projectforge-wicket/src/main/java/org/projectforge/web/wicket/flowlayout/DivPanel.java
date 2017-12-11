@@ -42,7 +42,7 @@ import org.projectforge.web.wicket.bootstrap.GridType;
  */
 public class DivPanel extends Panel
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(DivPanel.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(DivPanel.class);
 
   private static final long serialVersionUID = 6130552547273354134L;
 

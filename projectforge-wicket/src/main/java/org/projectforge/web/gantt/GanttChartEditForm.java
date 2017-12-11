@@ -26,7 +26,6 @@ package org.projectforge.web.gantt;
 import java.util.Date;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.log4j.Logger;
 import org.apache.wicket.markup.html.form.Button;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.model.Model;
@@ -52,10 +51,11 @@ import org.projectforge.web.wicket.flowlayout.CheckBoxButton;
 import org.projectforge.web.wicket.flowlayout.DivPanel;
 import org.projectforge.web.wicket.flowlayout.DivTextPanel;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
+import org.slf4j.Logger;
 
 public class GanttChartEditForm extends AbstractEditForm<GanttChartDO, GanttChartEditPage>
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(GanttChartEditForm.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(GanttChartEditForm.class);
 
   private static final long serialVersionUID = 3199820655287750358L;
 

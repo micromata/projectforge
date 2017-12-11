@@ -23,7 +23,6 @@
 
 package org.projectforge.web.fibu;
 
-import org.apache.log4j.Logger;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.projectforge.business.fibu.AbstractRechnungsStatistik;
@@ -40,13 +39,14 @@ import org.projectforge.web.wicket.flowlayout.DivTextPanel;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
 import org.projectforge.web.wicket.flowlayout.RadioGroupPanel;
 import org.projectforge.web.wicket.flowlayout.TextStyle;
+import org.slf4j.Logger;
 
 public abstract class AbstractRechnungListForm<F extends RechnungFilter, P extends AbstractListPage<?, ?, ?>> extends
     AbstractListForm<F, P>
 {
   private static final long serialVersionUID = 2678813484329104564L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(AbstractRechnungListForm.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(AbstractRechnungListForm.class);
 
   protected int[] years;
 

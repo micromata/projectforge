@@ -68,7 +68,7 @@ import org.testng.Assert;
 //</ldapConfig>
 public class LdapMasterLoginHandlerTest extends AbstractTestBase
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory
       .getLogger(LdapMasterLoginHandlerTest.class);
 
   @Autowired
@@ -96,6 +96,7 @@ public class LdapMasterLoginHandlerTest extends AbstractTestBase
   }
 
   //@BeforeClass
+  @Override
   public void setUp()
   {
     super.setUp();

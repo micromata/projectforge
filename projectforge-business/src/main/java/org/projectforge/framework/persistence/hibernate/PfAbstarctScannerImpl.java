@@ -28,7 +28,7 @@ import org.hibernate.boot.archive.spi.ArchiveEntryHandler;
 @Deprecated
 public class PfAbstarctScannerImpl implements Scanner
 {
-  static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(PfAbstarctScannerImpl.class);
+  static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(PfAbstarctScannerImpl.class);
 
   private final ArchiveDescriptorFactory archiveDescriptorFactory;
   private final Map<String, ArchiveDescriptorInfo> archiveDescriptorCache = new HashMap<String, ArchiveDescriptorInfo>();

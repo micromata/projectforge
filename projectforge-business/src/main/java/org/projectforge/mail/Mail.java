@@ -42,7 +42,7 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO;
  */
 public class Mail implements Comparable<Mail>
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(Mail.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(Mail.class);
 
   public static final String CONTENTTYPE_HTML = "html";
 

@@ -48,7 +48,7 @@ import org.projectforge.framework.xstream.XmlObject;
 @XmlObject(alias = "config")
 public abstract class AbstractConfiguration extends AbstractCache
 {
-  private static transient final org.apache.log4j.Logger log = org.apache.log4j.Logger
+  private static transient final org.slf4j.Logger log = org.slf4j.LoggerFactory
       .getLogger(AbstractConfiguration.class);
 
   protected ConfigurationService configurationService;
@@ -149,7 +149,7 @@ public abstract class AbstractConfiguration extends AbstractCache
     try {
       list = loadParameters();
     } catch (final Exception ex) {
-      log.fatal(
+      log.error(
           "******* Exception while getting configuration parameters from data-base (only OK for migration from older versions): "
               + ex.getMessage(),
           ex);

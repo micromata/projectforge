@@ -42,7 +42,7 @@ import org.projectforge.framework.time.DateHelper;
  */
 public class ThreadLocalUserContext
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(ThreadLocalUserContext.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ThreadLocalUserContext.class);
 
   private static ThreadLocal<UserContext> threadLocalUserContext = new ThreadLocal<UserContext>();
 

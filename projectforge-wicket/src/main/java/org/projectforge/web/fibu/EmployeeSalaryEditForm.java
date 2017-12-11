@@ -25,17 +25,16 @@ package org.projectforge.web.fibu;
 
 import java.math.BigDecimal;
 
-import org.apache.log4j.Logger;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.util.convert.IConverter;
-import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.business.fibu.EmployeeDO;
 import org.projectforge.business.fibu.EmployeeSalaryDO;
 import org.projectforge.business.fibu.EmployeeSalaryType;
 import org.projectforge.common.StringHelper;
 import org.projectforge.web.wicket.AbstractEditForm;
+import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.web.wicket.components.LabelValueChoiceRenderer;
 import org.projectforge.web.wicket.components.MaxLengthTextArea;
 import org.projectforge.web.wicket.components.MinMaxNumberField;
@@ -43,12 +42,13 @@ import org.projectforge.web.wicket.converter.CurrencyConverter;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
 import org.projectforge.web.wicket.flowlayout.InputPanel;
 import org.projectforge.web.wicket.flowlayout.TextAreaPanel;
+import org.slf4j.Logger;
 
 public class EmployeeSalaryEditForm extends AbstractEditForm<EmployeeSalaryDO, EmployeeSalaryEditPage>
 {
   private static final long serialVersionUID = 8746545908106124484L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(EmployeeSalaryEditForm.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(EmployeeSalaryEditForm.class);
 
   public EmployeeSalaryEditForm(final EmployeeSalaryEditPage parentPage, final EmployeeSalaryDO data)
   {

@@ -23,7 +23,6 @@
 
 package org.projectforge.web.fibu;
 
-import org.apache.log4j.Logger;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
@@ -36,12 +35,13 @@ import org.projectforge.web.wicket.components.YearListCoiceRenderer;
 import org.projectforge.web.wicket.flowlayout.DivPanel;
 import org.projectforge.web.wicket.flowlayout.DivTextPanel;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
+import org.slf4j.Logger;
 
 public class AccountingRecordListForm extends AbstractListForm<AccountingRecordListFilter, AccountingRecordListPage>
 {
   private static final long serialVersionUID = -1669760774183582053L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(AccountingRecordListForm.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(AccountingRecordListForm.class);
 
   @SpringBean
   private BuchungssatzDao buchungssatzDao;

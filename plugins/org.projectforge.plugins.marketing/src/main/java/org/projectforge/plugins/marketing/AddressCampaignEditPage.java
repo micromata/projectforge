@@ -23,7 +23,7 @@
 
 package org.projectforge.plugins.marketing;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.web.wicket.AbstractEditPage;
@@ -41,7 +41,7 @@ public class AddressCampaignEditPage
 {
   private static final long serialVersionUID = -5058143025817192156L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(AddressCampaignEditPage.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(AddressCampaignEditPage.class);
 
   @SpringBean
   private AddressCampaignDao addressCampaignDao;

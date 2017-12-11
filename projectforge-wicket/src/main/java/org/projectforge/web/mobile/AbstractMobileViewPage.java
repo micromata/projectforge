@@ -23,16 +23,16 @@
 
 package org.projectforge.web.mobile;
 
-import org.apache.log4j.Logger;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.framework.persistence.api.BaseDao;
 import org.projectforge.framework.persistence.entities.AbstractBaseDO;
 import org.projectforge.framework.utils.NumberHelper;
 import org.projectforge.web.address.AddressMobileEditPage;
 import org.projectforge.web.wicket.AbstractEditPage;
+import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.web.wicket.mobileflowlayout.MobileGridBuilder;
+import org.slf4j.Logger;
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)

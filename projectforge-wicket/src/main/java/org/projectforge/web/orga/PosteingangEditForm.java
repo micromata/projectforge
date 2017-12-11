@@ -26,17 +26,15 @@ package org.projectforge.web.orga;
 import java.util.Date;
 import java.util.List;
 
-import org.apache.log4j.Logger;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.model.PropertyModel;
-import org.apache.wicket.validation.INullAcceptingValidator;
 import org.apache.wicket.validation.IValidator;
 import org.apache.wicket.validation.ValidationError;
-import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.business.orga.PostType;
 import org.projectforge.business.orga.PosteingangDO;
 import org.projectforge.framework.time.DayHolder;
 import org.projectforge.web.wicket.AbstractEditForm;
+import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.web.wicket.autocompletion.PFAutoCompleteMaxLengthTextField;
 import org.projectforge.web.wicket.bootstrap.GridSize;
 import org.projectforge.web.wicket.components.DatePanel;
@@ -46,12 +44,13 @@ import org.projectforge.web.wicket.components.MaxLengthTextArea;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
 import org.projectforge.web.wicket.flowlayout.InputPanel;
 import org.projectforge.web.wicket.flowlayout.TextAreaPanel;
+import org.slf4j.Logger;
 
 public class PosteingangEditForm extends AbstractEditForm<PosteingangDO, PosteingangEditPage>
 {
   private static final long serialVersionUID = -2138017238114715368L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(PosteingangEditForm.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(PosteingangEditForm.class);
 
   public PosteingangEditForm(final PosteingangEditPage parentPage, final PosteingangDO data)
   {

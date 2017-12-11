@@ -6,7 +6,6 @@ import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 
-import org.apache.log4j.Logger;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
@@ -33,6 +32,8 @@ import org.projectforge.web.wicket.ListPage;
 import org.projectforge.web.wicket.ListSelectActionPanel;
 import org.projectforge.web.wicket.MyListPageSortableDataProvider;
 import org.projectforge.web.wicket.flowlayout.TextPanel;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import de.micromata.genome.db.jpa.tabattr.api.TimeableService;
 
@@ -43,7 +44,7 @@ import de.micromata.genome.db.jpa.tabattr.api.TimeableService;
 public class VisitorbookListPage extends AbstractListPage<VisitorbookListForm, VisitorbookService, VisitorbookDO> implements
     IListPageColumnsCreator<VisitorbookDO>
 {
-  private static final Logger log = Logger.getLogger(VisitorbookListPage.class);
+  private static final Logger log = LoggerFactory.getLogger(VisitorbookListPage.class);
 
   private static final long serialVersionUID = -8406451234003792763L;
 

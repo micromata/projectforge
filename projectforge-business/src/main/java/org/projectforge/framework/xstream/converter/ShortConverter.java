@@ -28,7 +28,7 @@ import org.projectforge.framework.xstream.XmlConstants;
 
 public class ShortConverter extends AbstractValueConverter<Short>
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(ShortConverter.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ShortConverter.class);
 
   @Override
   public Short fromString(final String str)

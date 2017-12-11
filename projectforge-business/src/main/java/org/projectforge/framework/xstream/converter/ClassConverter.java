@@ -33,7 +33,7 @@ import org.projectforge.framework.xstream.XmlConstants;
  */
 public class ClassConverter implements IConverter<Class< ? >>
 {
-  static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(ClassConverter.class);
+  static org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ClassConverter.class);
 
   /**
    * Returns the Class represented by the given string, otherwise null if the class can't be instantiated or the given string is null.

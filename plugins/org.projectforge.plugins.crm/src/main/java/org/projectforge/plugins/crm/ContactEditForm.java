@@ -23,7 +23,6 @@
 
 package org.projectforge.plugins.crm;
 
-import org.apache.log4j.Logger;
 import org.apache.wicket.model.CompoundPropertyModel;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
@@ -31,6 +30,8 @@ import org.projectforge.web.wicket.AbstractEditForm;
 import org.projectforge.web.wicket.bootstrap.GridSize;
 import org.projectforge.web.wicket.flowlayout.DivPanel;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * This is the edit formular page.
@@ -42,7 +43,7 @@ public class ContactEditForm extends AbstractEditForm<ContactDO, ContactEditPage
 
   private static final long serialVersionUID = 7930242750045989712L;
 
-  private static final Logger log = Logger.getLogger(ContactEditForm.class);
+  private static final Logger log = LoggerFactory.getLogger(ContactEditForm.class);
 
   @SpringBean
   private ContactDao contactDao;

@@ -23,17 +23,17 @@
 
 package org.projectforge.web.address;
 
-import org.apache.log4j.Logger;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.address.AddressDO;
 import org.projectforge.business.address.AddressDao;
 import org.projectforge.web.mobile.AbstractMobileEditPage;
 import org.projectforge.web.mobile.AbstractMobileListPage;
+import org.slf4j.Logger;
 
 public class AddressMobileEditPage extends AbstractMobileEditPage<AddressDO, AddressMobileEditForm, AddressDao>
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(AddressMobileEditPage.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(AddressMobileEditPage.class);
 
   private static final long serialVersionUID = 4478785262257939098L;
 

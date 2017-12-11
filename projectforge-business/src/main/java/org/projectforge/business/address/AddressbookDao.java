@@ -42,7 +42,6 @@ import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.GroupDO;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -63,9 +62,6 @@ public class AddressbookDao extends BaseDao<AddressbookDO>
 
   @Autowired
   private UserDao userDao;
-
-  @Autowired
-  private ApplicationContext applicationContext;
 
   @Autowired
   private GroupService groupService;
@@ -283,4 +279,23 @@ public class AddressbookDao extends BaseDao<AddressbookDO>
   {
     return true;
   }
+
+  @Override
+  protected void onDelete(final AddressbookDO obj)
+  {
+    super.onDelete(obj);
+    emgrFactory.runInTrans(emgr -> {
+      List<AddressDO> addressList = emgr
+          .selectAttached(AddressDO.class, "SELECT a FROM AddressDO a WHERE :addressbook MEMBER OF a.addressbookList", "addressbook", obj);
+      for (AddressDO address : addressList) {
+        if (address.getAddressbookList().size() == 1 && address.getAddressbookList().contains(obj)) {
+          address.getAddressbookList().add(getGlobalAddressbook());
+        }
+        address.getAddressbookList().remove(obj);
+        emgr.update(address);
+      }
+      return addressList;
+    });
+  }
+
 }

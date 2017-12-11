@@ -64,7 +64,7 @@ import org.projectforge.web.wicket.components.ContentMenuEntryPanel;
 public class Kost2ListPage extends AbstractListPage<Kost2ListForm, Kost2Dao, Kost2DO>
     implements IListPageColumnsCreator<Kost2DO>
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(Kost2ListPage.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(Kost2ListPage.class);
 
   private static final long serialVersionUID = -8406452960003792763L;
 
@@ -93,6 +93,7 @@ public class Kost2ListPage extends AbstractListPage<Kost2ListForm, Kost2Dao, Kos
     final List<IColumn<Kost2DO, String>> columns = new ArrayList<IColumn<Kost2DO, String>>();
     final CellItemListener<Kost2DO> cellItemListener = new CellItemListener<Kost2DO>()
     {
+      @Override
       public void populateItem(final Item<ICellPopulator<Kost2DO>> item, final String componentId,
           final IModel<Kost2DO> rowModel)
       {
@@ -199,7 +200,7 @@ public class Kost2ListPage extends AbstractListPage<Kost2ListForm, Kost2Dao, Kos
 
   private enum Col
   {
-    STATUS, KOST, ART, FAKTURIERT, PROJEKT, DESCRIPTION, COMMENT;
+    STATUS, KOST, ART, FAKTURIERT, PROJEKT, DESCRIPTION, COMMENT
   }
 
   protected void exportExcel()

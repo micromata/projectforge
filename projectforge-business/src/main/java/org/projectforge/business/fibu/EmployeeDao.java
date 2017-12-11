@@ -59,7 +59,7 @@ public class EmployeeDao extends BaseDao<EmployeeDO>
 {
   public static final UserRightId USER_RIGHT_ID = UserRightId.HR_EMPLOYEE;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(EmployeeDao.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(EmployeeDao.class);
 
   private static final String[] ADDITIONAL_SEARCH_FIELDS = new String[] { "user.firstname", "user.lastname",
       "user.description",

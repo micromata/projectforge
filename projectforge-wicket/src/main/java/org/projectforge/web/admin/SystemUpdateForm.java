@@ -60,7 +60,7 @@ public class SystemUpdateForm extends AbstractForm<SystemUpdateForm, SystemUpdat
 {
   private static final long serialVersionUID = 2492737003121592489L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(SystemUpdateForm.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(SystemUpdateForm.class);
 
   private static final String IS_RUNNING = "isRunning";
 

@@ -38,7 +38,6 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.httpclient.HttpStatus;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.log4j.MDC;
 import org.joda.time.DateMidnight;
 import org.joda.time.DateTime;
 import org.projectforge.ProjectForgeApp;
@@ -64,6 +63,7 @@ import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.time.DayHolder;
 import org.projectforge.framework.utils.NumberHelper;
+import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.web.context.WebApplicationContext;
@@ -82,7 +82,7 @@ import net.fortuna.ical4j.model.property.Location;
 @WebServlet("/export/ProjectForge.ics")
 public class CalendarAboServlet extends HttpServlet
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(CalendarAboServlet.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(CalendarAboServlet.class);
 
   private static final long serialVersionUID = 1480433876190009435L;
 
@@ -127,8 +127,8 @@ public class CalendarAboServlet extends HttpServlet
 
     try {
       // add logging stuff
-      MDC.put("ip", (Object) req.getRemoteAddr());
-      MDC.put("session", (Object) req.getSession().getId());
+      MDC.put("ip", req.getRemoteAddr());
+      MDC.put("session", req.getSession().getId());
 
       // read user
       if (StringUtils.isBlank(req.getParameter("user")) || StringUtils.isBlank(req.getParameter("q"))) {
@@ -161,7 +161,7 @@ public class CalendarAboServlet extends HttpServlet
         return;
       }
       ThreadLocalUserContext.setUser(getUserGroupCache(), user);
-      MDC.put("user", (Object) user.getUsername());
+      MDC.put("user", user.getUsername());
 
       // check timesheet user
       String timesheetUserParam = params.get(CalendarFeedConst.PARAM_NAME_TIMESHEET_USER);

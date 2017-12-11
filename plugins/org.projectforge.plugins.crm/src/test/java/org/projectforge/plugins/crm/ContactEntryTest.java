@@ -23,15 +23,16 @@
 
 package org.projectforge.plugins.crm;
 
-import static org.testng.AssertJUnit.*;
+import static org.testng.AssertJUnit.assertEquals;
 
-import org.apache.log4j.Logger;
 import org.projectforge.test.AbstractTestBase;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 public class ContactEntryTest extends AbstractTestBase
 {
-  private final static Logger log = Logger.getLogger(ContactEntryTest.class);
+  private final static Logger log = LoggerFactory.getLogger(ContactEntryTest.class);
 
   @Autowired
   private ContactEntryDao contactEntryDao;
@@ -58,14 +59,14 @@ public class ContactEntryTest extends AbstractTestBase
     a1.setName("Kai Reinhard");
     a1.setTask(getTask("1.1"));
     contactDao.save(a1);
-    log.debug(a1);
+    log.debug(a1.toString());
 
     final ContactEntryDO ae1 = new ContactEntryDO();
     ae1.setContact(a1);
     ae1.setContactType(ContactType.BUSINESS);
     ae1.setStreet("Marie-Calm-Straße 1-5");
     contactEntryDao.save(ae1);
-    log.debug(ae1);
+    log.debug(ae1.toString());
 
     final ContactEntryDO ae2 = contactEntryDao.getById(ae1.getId());
     assertEquals("Marie-Calm-Straße 1-5", ae2.getStreet());
@@ -74,12 +75,12 @@ public class ContactEntryTest extends AbstractTestBase
     ae2.setStreet("Teststrasse 42");
 
     contactEntryDao.update(ae2);
-    log.debug(ae2);
+    log.debug(ae2.toString());
 
     final ContactEntryDO ae3 = contactEntryDao.getById(ae2.getId());
     assertEquals("Teststrasse 42", ae3.getStreet());
     assertEquals(ContactType.POSTAL, ae3.getContactType());
-    log.debug(ae3);
+    log.debug(ae3.toString());
   }
 
   //@Test
@@ -96,7 +97,7 @@ public class ContactEntryTest extends AbstractTestBase
     ae1.setContactType(ContactType.BUSINESS);
     ae1.setStreet("Marie-Calm-Straße 1-5");
     contactEntryDao.save(ae1);
-    log.debug(ae1);
+    log.debug(ae1.toString());
 
     final Integer id = ae1.getId();
     ae1 = contactEntryDao.getById(id);

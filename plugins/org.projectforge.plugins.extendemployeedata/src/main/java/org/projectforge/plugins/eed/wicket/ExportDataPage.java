@@ -19,7 +19,7 @@ public class ExportDataPage extends AbstractStandardFormPage implements ISelectC
 {
   private static final long serialVersionUID = -7157440416517271655L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(ExportDataPage.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ExportDataPage.class);
 
   private final ExportDataForm form;
 

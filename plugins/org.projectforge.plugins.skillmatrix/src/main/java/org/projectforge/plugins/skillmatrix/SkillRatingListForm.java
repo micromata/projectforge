@@ -23,7 +23,6 @@
 
 package org.projectforge.plugins.skillmatrix;
 
-import org.apache.log4j.Logger;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
@@ -34,6 +33,8 @@ import org.projectforge.web.wicket.bootstrap.GridSize;
 import org.projectforge.web.wicket.components.LabelValueChoiceRenderer;
 import org.projectforge.web.wicket.flowlayout.DropDownChoicePanel;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author Billy Duong (b.duong@micromata.de)
@@ -43,7 +44,7 @@ public class SkillRatingListForm extends AbstractListForm<SkillRatingFilter, Ski
 {
   private static final long serialVersionUID = 5333752125044497290L;
 
-  private static final Logger log = Logger.getLogger(SkillRatingListForm.class);
+  private static final Logger log = LoggerFactory.getLogger(SkillRatingListForm.class);
 
   public static final String I18N_KEY_REQUIRED_EXPERIENCE = "plugins.skillmatrix.search.reqiuredExperience";
 

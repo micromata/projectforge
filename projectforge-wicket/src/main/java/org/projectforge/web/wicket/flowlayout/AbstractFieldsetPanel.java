@@ -59,7 +59,7 @@ public abstract class AbstractFieldsetPanel<T extends AbstractFieldsetPanel<?>> 
 {
   private static final long serialVersionUID = -4215154959282166107L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(AbstractFieldsetPanel.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(AbstractFieldsetPanel.class);
 
   protected WebMarkupContainer fieldset;
 

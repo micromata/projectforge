@@ -23,7 +23,7 @@
 
 package org.projectforge.web.admin;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.web.wicket.AbstractListForm;
 
@@ -32,7 +32,7 @@ public class ConfigurationListForm extends AbstractListForm<BaseSearchFilter, Co
 {
   private static final long serialVersionUID = 5241668711103233356L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(ConfigurationListForm.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ConfigurationListForm.class);
 
   public ConfigurationListForm(ConfigurationListPage parentPage)
   {

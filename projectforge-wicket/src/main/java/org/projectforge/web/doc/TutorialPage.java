@@ -64,7 +64,7 @@ public class TutorialPage extends AbstractSecuredPage
 {
   private static final long serialVersionUID = 6326263860561990911L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(TutorialPage.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(TutorialPage.class);
 
   private static final String KEY_TYPE = "type";
 

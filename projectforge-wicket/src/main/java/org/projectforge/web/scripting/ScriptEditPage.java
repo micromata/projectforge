@@ -24,7 +24,6 @@
 package org.projectforge.web.scripting;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.log4j.Logger;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
@@ -35,13 +34,14 @@ import org.projectforge.web.fibu.ISelectCallerPage;
 import org.projectforge.web.wicket.AbstractEditPage;
 import org.projectforge.web.wicket.EditPage;
 import org.projectforge.web.wicket.components.ContentMenuEntryPanel;
+import org.slf4j.Logger;
 
 @EditPage(defaultReturnPage = ScriptListPage.class)
 public class ScriptEditPage extends AbstractEditPage<ScriptDO, ScriptEditForm, ScriptDao> implements ISelectCallerPage
 {
   private static final long serialVersionUID = 4156917767160708873L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(ScriptEditPage.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ScriptEditPage.class);
 
   @SpringBean
   private ScriptDao scriptDao;

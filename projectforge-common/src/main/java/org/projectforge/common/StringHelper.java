@@ -46,7 +46,7 @@ import org.apache.commons.lang3.Validate;
  */
 public class StringHelper
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(StringHelper.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(StringHelper.class);
 
   /**
    * Usage: final StringBuffer buf = new StringBuffer();<br/>

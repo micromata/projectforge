@@ -23,13 +23,13 @@
 
 package org.projectforge.web.fibu;
 
-import org.apache.log4j.Logger;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.fibu.KontoDO;
 import org.projectforge.business.fibu.KontoDao;
 import org.projectforge.web.wicket.AbstractEditPage;
 import org.projectforge.web.wicket.EditPage;
+import org.slf4j.Logger;
 
 
 @EditPage(defaultReturnPage = KontoListPage.class)
@@ -37,7 +37,7 @@ public class KontoEditPage extends AbstractEditPage<KontoDO, KontoEditForm, Kont
 {
   private static final long serialVersionUID = 8763884579951937296L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(KontoEditPage.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(KontoEditPage.class);
 
   @SpringBean
   private KontoDao kontoDao;

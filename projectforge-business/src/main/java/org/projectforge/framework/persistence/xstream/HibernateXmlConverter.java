@@ -69,7 +69,7 @@ import com.thoughtworks.xstream.mapper.MapperWrapper;
 public class HibernateXmlConverter
 {
   /** The logger */
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(HibernateXmlConverter.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(HibernateXmlConverter.class);
 
   /** the wrapper to hibernate */
   private HibernateTemplate hibernate;
@@ -195,7 +195,7 @@ public class HibernateXmlConverter
         final Class<?> targetClass = HibernateProxyHelper.getClassWithoutInitializingProxy(obj);
         final ClassMetadata classMetadata = session.getSessionFactory().getClassMetadata(targetClass);
         if (classMetadata == null) {
-          log.fatal("Can't init " + obj + " of type " + targetClass);
+          log.error("Can't init " + obj + " of type " + targetClass);
           continue;
         }
         // initalisierung des Objekts...

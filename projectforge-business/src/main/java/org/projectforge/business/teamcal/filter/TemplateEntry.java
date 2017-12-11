@@ -51,7 +51,7 @@ import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
  */
 public class TemplateEntry implements Serializable, Comparable<TemplateEntry>, Cloneable
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(TemplateEntry.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(TemplateEntry.class);
 
   private static final long serialVersionUID = 409057949195992116L;
 

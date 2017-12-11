@@ -23,20 +23,20 @@
 
 package org.projectforge.web.fibu;
 
-import org.apache.log4j.Logger;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.fibu.kost.Kost1DO;
 import org.projectforge.business.fibu.kost.Kost1Dao;
 import org.projectforge.web.wicket.AbstractEditPage;
 import org.projectforge.web.wicket.EditPage;
+import org.slf4j.Logger;
 
 @EditPage(defaultReturnPage = Kost1ListPage.class)
 public class Kost1EditPage extends AbstractEditPage<Kost1DO, Kost1EditForm, Kost1Dao>
 {
   private static final long serialVersionUID = 1029345943027440760L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(Kost1EditPage.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(Kost1EditPage.class);
 
   @SpringBean
   private Kost1Dao kost1Dao;

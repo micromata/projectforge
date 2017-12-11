@@ -58,7 +58,7 @@ public class PhoneLookUpServlet extends HttpServlet
 {
   private static final long serialVersionUID = 8042634752943344080L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(PhoneLookUpServlet.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(PhoneLookUpServlet.class);
 
   @Autowired
   private AddressDao addressDao;

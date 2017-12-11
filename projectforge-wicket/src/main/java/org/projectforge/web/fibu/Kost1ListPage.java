@@ -63,7 +63,7 @@ public class Kost1ListPage extends AbstractListPage<Kost1ListForm, Kost1Dao, Kos
 {
   private static final long serialVersionUID = 2432908214495492575L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(Kost1ListPage.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(Kost1ListPage.class);
 
   @SpringBean
   private Kost1Dao kost1Dao;
@@ -85,6 +85,7 @@ public class Kost1ListPage extends AbstractListPage<Kost1ListForm, Kost1Dao, Kos
     final List<IColumn<Kost1DO, String>> columns = new ArrayList<IColumn<Kost1DO, String>>();
     final CellItemListener<Kost1DO> cellItemListener = new CellItemListener<Kost1DO>()
     {
+      @Override
       public void populateItem(final Item<ICellPopulator<Kost1DO>> item, final String componentId,
           final IModel<Kost1DO> rowModel)
       {
@@ -156,7 +157,7 @@ public class Kost1ListPage extends AbstractListPage<Kost1ListForm, Kost1Dao, Kos
 
   private enum Col
   {
-    STATUS, KOST, DESCRIPTION;
+    STATUS, KOST, DESCRIPTION
   }
 
   protected void exportExcel()

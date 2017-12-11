@@ -37,7 +37,7 @@ import org.w3c.dom.Element;
 
 public class GanttChartXLabelBarRenderer
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(GanttChartXLabelBarRenderer.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(GanttChartXLabelBarRenderer.class);
 
   private static final double MIN_PIXEL_PER_UNIT = 10.0;
 

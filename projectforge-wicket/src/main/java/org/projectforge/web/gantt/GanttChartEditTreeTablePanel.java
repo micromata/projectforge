@@ -111,7 +111,7 @@ public class GanttChartEditTreeTablePanel extends DefaultTreeTablePanel<GanttTre
 
   private static final int NUMBER_OF_REJECT_SAVE_COLS = 9;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory
       .getLogger(GanttChartEditTreeTablePanel.class);
 
   @SpringBean

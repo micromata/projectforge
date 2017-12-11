@@ -23,7 +23,6 @@
 
 package org.projectforge.web.address;
 
-import org.apache.log4j.Logger;
 import org.apache.wicket.markup.html.link.Link;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
@@ -34,6 +33,8 @@ import org.projectforge.web.wicket.AbstractEditPage;
 import org.projectforge.web.wicket.AbstractSecuredBasePage;
 import org.projectforge.web.wicket.EditPage;
 import org.projectforge.web.wicket.components.ContentMenuEntryPanel;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author Florian Blumenstein
@@ -42,7 +43,7 @@ import org.projectforge.web.wicket.components.ContentMenuEntryPanel;
 public class AddressbookEditPage extends AbstractEditPage<AddressbookDO, AddressbookEditForm, AddressbookDao>
     implements ISelectCallerPage
 {
-  private static final Logger log = Logger.getLogger(AddressbookEditPage.class);
+  private static final Logger log = LoggerFactory.getLogger(AddressbookEditPage.class);
 
   private static final long serialVersionUID = -3352981712347771662L;
 

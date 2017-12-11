@@ -47,7 +47,7 @@ public class SystemStatisticsPage extends AbstractSecuredPage
 {
   private static final long serialVersionUID = 8587252641914110851L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(SystemStatisticsPage.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(SystemStatisticsPage.class);
 
   @SpringBean
   private DataSource dataSource;

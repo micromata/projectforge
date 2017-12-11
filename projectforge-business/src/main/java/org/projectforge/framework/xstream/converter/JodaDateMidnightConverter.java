@@ -45,7 +45,7 @@ public class JodaDateMidnightConverter implements Converter
 {
   protected static final String ISO_FORMAT = "yyyy-MM-dd";
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(JodaDateMidnightConverter.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(JodaDateMidnightConverter.class);
 
   @Override
   public void marshal(final Object source, final HierarchicalStreamWriter writer, final MarshallingContext context)

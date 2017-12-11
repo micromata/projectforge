@@ -26,7 +26,7 @@ package org.projectforge.web.teamcal.event;
 import java.util.Collection;
 import java.util.Date;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
 import org.apache.wicket.markup.html.form.Button;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.FormComponent;
@@ -64,7 +64,7 @@ public class TeamEventListForm extends AbstractListForm<TeamEventFilter, TeamEve
 {
   private static final long serialVersionUID = 3659495003810851072L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(TeamEventListForm.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(TeamEventListForm.class);
 
   @SpringBean
   TeamCalCache teamCalCache;

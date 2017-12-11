@@ -52,7 +52,7 @@ import groovy.text.TemplateEngine;
 @Service
 public class GroovyExecutor
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(GroovyExecutor.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(GroovyExecutor.class);
 
   @Autowired
   private RefactoringService refService;

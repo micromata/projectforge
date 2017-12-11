@@ -23,17 +23,17 @@
 
 package org.projectforge.plugins.todo;
 
-import org.apache.log4j.Logger;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.web.mobile.AbstractMobileEditPage;
 import org.projectforge.web.mobile.AbstractMobileListPage;
+import org.slf4j.Logger;
 
 public class ToDoMobileEditPage extends AbstractMobileEditPage<ToDoDO, ToDoMobileEditForm, ToDoDao>
 {
   private static final long serialVersionUID = 3060701092253890337L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(ToDoMobileEditPage.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ToDoMobileEditPage.class);
 
   @SpringBean
   private ToDoDao toDoDao;

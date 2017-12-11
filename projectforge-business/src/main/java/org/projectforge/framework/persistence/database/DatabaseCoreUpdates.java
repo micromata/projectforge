@@ -120,7 +120,7 @@ import net.fortuna.ical4j.model.property.RRule;
 @Deprecated
 public class DatabaseCoreUpdates
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(DatabaseCoreUpdates.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(DatabaseCoreUpdates.class);
 
   public static final String CORE_REGION_ID = "ProjectForge";
 

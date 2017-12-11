@@ -59,7 +59,7 @@ import de.micromata.genome.util.bean.PrivateBeanUtils;
  */
 public class HibernateUtils
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(HibernateUtils.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(HibernateUtils.class);
 
   private static final HibernateUtils instance = new HibernateUtils();
 

@@ -44,7 +44,7 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO;
  */
 public class GanttChartRight extends UserRightAccessCheck<GanttChartDO>
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(GanttChartRight.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(GanttChartRight.class);
 
   private static final long serialVersionUID = -1711148447929915434L;
 

@@ -39,7 +39,7 @@ public class ChangePasswordPage extends AbstractStandardFormPage
 {
   private static final long serialVersionUID = -2506732790809310722L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(ChangePasswordPage.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ChangePasswordPage.class);
 
   @SpringBean
   private UserService userService;

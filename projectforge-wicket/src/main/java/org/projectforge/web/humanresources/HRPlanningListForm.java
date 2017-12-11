@@ -26,13 +26,11 @@ package org.projectforge.web.humanresources;
 import java.math.BigDecimal;
 import java.util.Date;
 
-import org.apache.log4j.Logger;
 import org.apache.wicket.markup.html.form.SubmitLink;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.ResourceModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
-import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.business.fibu.ProjektDO;
 import org.projectforge.business.fibu.ProjektDao;
 import org.projectforge.business.humanresources.HRPlanningEntryDO;
@@ -44,6 +42,7 @@ import org.projectforge.web.calendar.QuickSelectPanel;
 import org.projectforge.web.fibu.NewProjektSelectPanel;
 import org.projectforge.web.user.UserSelectPanel;
 import org.projectforge.web.wicket.AbstractListForm;
+import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.web.wicket.bootstrap.GridSize;
 import org.projectforge.web.wicket.components.DatePanel;
 import org.projectforge.web.wicket.components.DatePanelSettings;
@@ -54,6 +53,7 @@ import org.projectforge.web.wicket.flowlayout.HtmlCommentPanel;
 import org.projectforge.web.wicket.flowlayout.IconLinkPanel;
 import org.projectforge.web.wicket.flowlayout.IconType;
 import org.projectforge.web.wicket.flowlayout.TextPanel;
+import org.slf4j.Logger;
 
 /**
  * 
@@ -64,7 +64,7 @@ public class HRPlanningListForm extends AbstractListForm<HRPlanningListFilter, H
 {
   private static final long serialVersionUID = 3167681159669386691L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(HRPlanningListForm.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(HRPlanningListForm.class);
 
   @SpringBean
   private ProjektDao projektDao;
@@ -108,7 +108,7 @@ public class HRPlanningListForm extends AbstractListForm<HRPlanningListFilter, H
             getSearchFilter().setStopTime(null);
             clearInput();
             parentPage.refresh();
-          };
+          }
         }).setColor(CSSColor.RED));
       }
       final QuickSelectPanel quickSelectPanel = new QuickSelectPanel(fs.newChildId(), parentPage, "quickSelect", startDate);
