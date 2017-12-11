@@ -23,19 +23,19 @@
 
 package org.projectforge.web.meb;
 
-import org.apache.log4j.Logger;
 import org.projectforge.framework.configuration.Configuration;
 import org.projectforge.framework.configuration.ConfigurationParam;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.web.wicket.AbstractListForm;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
 import org.projectforge.web.wicket.flowlayout.TextPanel;
+import org.slf4j.Logger;
 
 public class MebListForm extends AbstractListForm<MebListFilter, MebListPage>
 {
   private static final long serialVersionUID = -2464526434762283874L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(MebListForm.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(MebListForm.class);
 
   @Override
   protected void init()

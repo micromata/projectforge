@@ -56,7 +56,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
 public class MebDao extends BaseDao<MebEntryDO>
 {
-  private static org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(MebDao.class);
+  private static org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(MebDao.class);
 
   public static final UserRightId USER_RIGHT_ID = UserRightId.MISC_MEB;
 

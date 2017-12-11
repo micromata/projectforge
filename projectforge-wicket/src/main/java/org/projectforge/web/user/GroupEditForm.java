@@ -29,7 +29,7 @@ import java.util.List;
 import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.form.AjaxButton;
 import org.apache.wicket.markup.html.form.Button;
@@ -70,7 +70,7 @@ public class GroupEditForm extends AbstractEditForm<GroupDO, GroupEditPage>
 {
   private static final long serialVersionUID = 3044732844606748738L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(GroupEditForm.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(GroupEditForm.class);
 
   @SpringBean
   private AccessChecker accessChecker;

@@ -25,7 +25,6 @@ package org.projectforge.web.fibu;
 
 import java.time.LocalDate;
 
-import org.apache.log4j.Logger;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.fibu.AuftragDO;
@@ -42,12 +41,13 @@ import org.projectforge.web.wicket.AbstractEditPage;
 import org.projectforge.web.wicket.AbstractSecuredBasePage;
 import org.projectforge.web.wicket.EditPage;
 import org.projectforge.web.wicket.WicketUtils;
+import org.slf4j.Logger;
 
 @EditPage(defaultReturnPage = AuftragListPage.class)
 public class AuftragEditPage extends AbstractEditPage<AuftragDO, AuftragEditForm, AuftragDao>
     implements ISelectCallerPage
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(AuftragEditPage.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(AuftragEditPage.class);
 
   private static final long serialVersionUID = -8192471994161712577L;
 

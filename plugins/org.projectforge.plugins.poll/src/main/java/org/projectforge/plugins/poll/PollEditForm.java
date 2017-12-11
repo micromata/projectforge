@@ -27,7 +27,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import org.apache.log4j.Logger;
 import org.apache.wicket.markup.html.form.RequiredTextField;
 import org.apache.wicket.markup.html.form.TextArea;
 import org.apache.wicket.model.PropertyModel;
@@ -44,6 +43,7 @@ import org.projectforge.web.wicket.AbstractEditForm;
 import org.projectforge.web.wicket.autocompletion.PFAutoCompleteTextField;
 import org.projectforge.web.wicket.bootstrap.GridSize;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
+import org.slf4j.Logger;
 import org.wicketstuff.select2.Select2MultiChoice;
 
 /**
@@ -54,7 +54,7 @@ public class PollEditForm extends AbstractEditForm<PollDO, PollEditPage>
 {
   private static final long serialVersionUID = 1268981578238971117L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(PollEditForm.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(PollEditForm.class);
 
   @SpringBean
   protected AccessChecker accessChecker;

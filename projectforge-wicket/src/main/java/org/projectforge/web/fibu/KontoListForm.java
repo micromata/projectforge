@@ -23,14 +23,14 @@
 
 package org.projectforge.web.fibu;
 
-import org.apache.log4j.Logger;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.web.wicket.AbstractListForm;
+import org.slf4j.Logger;
 
 
 public class KontoListForm extends AbstractListForm<BaseSearchFilter, KontoListPage>
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(KontoListForm.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(KontoListForm.class);
 
   private static final long serialVersionUID = -5969136444233092172L;
 

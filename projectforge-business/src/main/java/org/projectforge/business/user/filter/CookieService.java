@@ -18,7 +18,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class CookieService
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(CookieService.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(CookieService.class);
 
   private static final int COOKIE_MAX_AGE = 30 * 24 * 3600; // 30 days.
 

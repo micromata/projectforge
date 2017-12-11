@@ -58,7 +58,7 @@ import de.micromata.genome.db.jpa.history.api.NoHistory;
 public class ScriptDO extends DefaultBaseDO
 {
   public static final int PARAMETER_NAME_MAX_LENGTH = 100;
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(ScriptDO.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ScriptDO.class);
   private static final long serialVersionUID = 7069806875752038860L;
   @Field(index = Index.YES /* TOKENIZED */, store = Store.NO)
   private String name; // 255 not null
@@ -141,7 +141,7 @@ public class ScriptDO extends DefaultBaseDO
     try {
       str = new String(bytes, "UTF-8");
     } catch (final UnsupportedEncodingException ex) {
-      log.fatal("Exception encountered while convering byte[] to String: " + ex.getMessage(), ex);
+      log.error("Exception encountered while convering byte[] to String: " + ex.getMessage(), ex);
     }
     return str;
   }
@@ -155,7 +155,7 @@ public class ScriptDO extends DefaultBaseDO
     try {
       bytes = str.getBytes("UTF-8");
     } catch (final UnsupportedEncodingException ex) {
-      log.fatal("Exception encountered while convering String to bytes: " + ex.getMessage(), ex);
+      log.error("Exception encountered while convering String to bytes: " + ex.getMessage(), ex);
     }
     return bytes;
   }

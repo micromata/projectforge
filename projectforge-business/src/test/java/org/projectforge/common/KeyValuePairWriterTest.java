@@ -36,7 +36,7 @@ import org.testng.annotations.Test;
 public class KeyValuePairWriterTest extends AbstractTestBase
 {
 
-  private static transient final org.apache.log4j.Logger log = org.apache.log4j.Logger
+  private static transient final org.slf4j.Logger log = org.slf4j.LoggerFactory
       .getLogger(KeyValuePairWriterTest.class);
 
   @Test

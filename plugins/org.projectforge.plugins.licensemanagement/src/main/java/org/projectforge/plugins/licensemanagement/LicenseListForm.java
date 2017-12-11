@@ -23,7 +23,7 @@
 
 package org.projectforge.plugins.licensemanagement;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.web.wicket.AbstractListForm;
 
@@ -38,7 +38,7 @@ public class LicenseListForm extends AbstractListForm<BaseSearchFilter, LicenseL
 {
   private static final long serialVersionUID = -8159930022688216785L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(LicenseListForm.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(LicenseListForm.class);
 
   public LicenseListForm(final LicenseListPage parentPage)
   {

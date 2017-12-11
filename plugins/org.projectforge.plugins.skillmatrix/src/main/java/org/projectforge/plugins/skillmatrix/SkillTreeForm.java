@@ -48,7 +48,7 @@ public class SkillTreeForm extends AbstractSecuredForm<SkillFilter, SkillTreePag
 
   private static final long serialVersionUID = 1227686732149287124L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(SkillTreeForm.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(SkillTreeForm.class);
 
   private MyComponentsRepeater<Component> actionButtons;
 

@@ -55,7 +55,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Repository
 public class AccessDao extends BaseDao<GroupTaskAccessDO>
 {
-  // private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(AccessDao.class);
+  // private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(AccessDao.class);
 
   private static final String[] ADDITIONAL_SEARCH_FIELDS = new String[] { "task.title", "group.name" };
 

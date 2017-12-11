@@ -23,7 +23,7 @@
 
 package org.projectforge.web.task;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
 import org.apache.wicket.markup.html.form.Button;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
@@ -37,7 +37,7 @@ public class TaskListForm extends AbstractListForm<TaskFilter, TaskListPage>
 {
   private static final long serialVersionUID = 153015604624697061L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(TaskListForm.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(TaskListForm.class);
 
   @Override
   protected void init()

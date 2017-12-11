@@ -70,7 +70,7 @@ public class ConfigXml
 {
   private static final String SECRET_PROPERTY_STRING = "******";
 
-  private static transient final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(ConfigXml.class);
+  private static transient final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ConfigXml.class);
 
   private static transient ConfigXml instance;
 
@@ -177,7 +177,7 @@ public class ConfigXml
       dir.mkdir();
     }
     if (dir.canRead() == false) {
-      log.fatal("Can't create directory: " + dir);
+      log.error("Can't create directory: " + dir);
       return false;
     }
     return true;
@@ -234,7 +234,7 @@ public class ConfigXml
         xml = FileUtils.readFileToString(configFile, "UTF-8");
       } catch (final IOException ex) {
         msg = "Cannot read config file '" + getConfigFilePath() + "' properly: " + ex;
-        log.fatal(msg, ex);
+        log.error(msg, ex);
       }
       if (xml != null) {
         try {
@@ -257,7 +257,7 @@ public class ConfigXml
           log.info(msg);
         } catch (final Throwable ex) {
           msg = "Cannot read config file '" + getConfigFilePath() + "' properly: " + ex;
-          log.fatal(msg, ex);
+          log.error(msg, ex);
         }
       }
     }

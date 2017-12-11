@@ -25,7 +25,6 @@ package org.projectforge.plugins.todo;
 
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.ObjectUtils;
-import org.apache.log4j.Logger;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
@@ -35,13 +34,14 @@ import org.projectforge.web.wicket.AbstractEditPage;
 import org.projectforge.web.wicket.AbstractSecuredBasePage;
 import org.projectforge.web.wicket.EditPage;
 import org.projectforge.web.wicket.WicketUtils;
+import org.slf4j.Logger;
 
 @EditPage(defaultReturnPage = ToDoListPage.class)
 public class ToDoEditPage extends AbstractEditPage<ToDoDO, ToDoEditForm, ToDoDao> implements ISelectCallerPage
 {
   private static final long serialVersionUID = -5058143025817192156L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(ToDoEditPage.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ToDoEditPage.class);
 
   @SpringBean
   private ToDoDao toDoDao;

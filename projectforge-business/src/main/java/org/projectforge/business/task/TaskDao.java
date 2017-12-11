@@ -63,7 +63,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
 public class TaskDao extends BaseDao<TaskDO>
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(TaskDao.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(TaskDao.class);
 
   private static final String[] ADDITIONAL_SEARCH_FIELDS = new String[] { "responsibleUser.username",
       "responsibleUser.firstname",

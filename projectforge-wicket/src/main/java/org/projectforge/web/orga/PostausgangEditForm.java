@@ -26,7 +26,6 @@ package org.projectforge.web.orga;
 import java.util.Date;
 import java.util.List;
 
-import org.apache.log4j.Logger;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.validation.IValidator;
@@ -45,12 +44,13 @@ import org.projectforge.web.wicket.components.MaxLengthTextArea;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
 import org.projectforge.web.wicket.flowlayout.InputPanel;
 import org.projectforge.web.wicket.flowlayout.TextAreaPanel;
+import org.slf4j.Logger;
 
 public class PostausgangEditForm extends AbstractEditForm<PostausgangDO, PostausgangEditPage>
 {
   private static final long serialVersionUID = -2138017238114715368L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(PostausgangEditForm.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(PostausgangEditForm.class);
 
   public PostausgangEditForm(final PostausgangEditPage parentPage, final PostausgangDO data)
   {

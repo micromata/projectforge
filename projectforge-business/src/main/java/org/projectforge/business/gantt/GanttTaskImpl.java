@@ -38,7 +38,7 @@ import org.projectforge.framework.utils.NumberHelper;
 
 public class GanttTaskImpl implements GanttTask, Serializable
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(GanttTaskImpl.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(GanttTaskImpl.class);
 
   private static final long serialVersionUID = -2948691380516113581L;
 

@@ -51,7 +51,7 @@ import org.projectforge.web.wicket.DownloadUtils;
  */
 public class FileUploadPanel extends Panel implements ComponentWrapperPanel
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(FileUploadPanel.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(FileUploadPanel.class);
 
   public static final String WICKET_ID = "input";
 

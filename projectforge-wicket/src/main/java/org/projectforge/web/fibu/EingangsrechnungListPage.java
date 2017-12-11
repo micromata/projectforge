@@ -81,7 +81,7 @@ public class EingangsrechnungListPage
     extends AbstractListPage<EingangsrechnungListForm, EingangsrechnungDao, EingangsrechnungDO> implements
     IListPageColumnsCreator<EingangsrechnungDO>
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(EingangsrechnungListPage.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(EingangsrechnungListPage.class);
 
   private static final long serialVersionUID = 4417254962066648504L;
 

@@ -27,12 +27,12 @@ import java.util.Locale;
 import java.util.TimeZone;
 
 import org.hibernate.Hibernate;
+import org.projectforge.business.converter.DOConverter;
 import org.projectforge.business.multitenancy.TenantRegistryMap;
 import org.projectforge.framework.configuration.ConfigXml;
 import org.projectforge.framework.configuration.Configuration;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.model.rest.UserObject;
-import org.projectforge.business.converter.DOConverter;
 
 /**
  * For conversion of PFUserDO to user object.
@@ -41,7 +41,7 @@ import org.projectforge.business.converter.DOConverter;
  */
 public class PFUserDOConverter
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(PFUserDOConverter.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(PFUserDOConverter.class);
 
   public static UserObject getUserObject(PFUserDO userDO)
   {

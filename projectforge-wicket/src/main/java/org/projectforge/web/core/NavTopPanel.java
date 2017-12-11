@@ -24,6 +24,7 @@
 package org.projectforge.web.core;
 
 import java.util.Collection;
+import java.util.Optional;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
@@ -50,7 +51,6 @@ import org.projectforge.business.multitenancy.TenantService;
 import org.projectforge.business.user.UserXmlPreferencesCache;
 import org.projectforge.business.vacation.service.VacationService;
 import org.projectforge.framework.access.AccessChecker;
-import org.projectforge.framework.persistence.api.UserRightService;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.api.UserContext;
 import org.projectforge.framework.persistence.user.entities.TenantDO;
@@ -81,7 +81,7 @@ import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
  */
 public class NavTopPanel extends NavAbstractPanel
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(NavTopPanel.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(NavTopPanel.class);
 
   private static final long serialVersionUID = -7858806882044188339L;
 
@@ -99,9 +99,6 @@ public class NavTopPanel extends NavAbstractPanel
   private AccessChecker accessChecker;
 
   @SpringBean
-  private UserRightService userRights;
-
-  @SpringBean
   private TenantService tenantService;
 
   @SpringBean
@@ -117,6 +114,7 @@ public class NavTopPanel extends NavAbstractPanel
    * Cross site request forgery token.
    */
   private CsrfTokenHandler csrfTokenHandler;
+  private RepeatingView menuRepeater;
 
   public NavTopPanel(final String id)
   {
@@ -127,7 +125,7 @@ public class NavTopPanel extends NavAbstractPanel
   public void init(final AbstractSecuredPage page)
   {
     getMenu();
-    this.favoritesMenu = FavoritesMenu.get(menuItemRegistry, menuBilder, accessChecker, userRights);
+    favoritesMenu = FavoritesMenu.get(menuItemRegistry, menuBilder, accessChecker);
     final WebMarkupContainer goMobile = new WebMarkupContainer("goMobile");
     add(goMobile);
     if (page.getMySession().isMobileUserAgent() == true) {
@@ -135,7 +133,7 @@ public class NavTopPanel extends NavAbstractPanel
     } else {
       goMobile.setVisible(false);
     }
-    add(new MenuConfig("menuconfig", getMenu(), favoritesMenu));
+    add(new MenuConfig("menuconfig", getMenu()));
     final Form<String> searchForm = new Form<String>("searchForm")
     {
       private String searchString;
@@ -157,7 +155,7 @@ public class NavTopPanel extends NavAbstractPanel
     csrfTokenHandler = new CsrfTokenHandler(searchForm);
     add(searchForm);
     final TextField<String> searchField = new TextField<String>("searchField",
-        new PropertyModel<String>(searchForm, "searchString"));
+        new PropertyModel<>(searchForm, "searchString"));
     WicketUtils.setPlaceHolderAttribute(searchField, getString("search.search"));
     searchForm.add(searchField);
     add(new BookmarkablePageLink<Void>("feedbackLink", FeedbackPage.class));
@@ -251,7 +249,6 @@ public class NavTopPanel extends NavAbstractPanel
       add(logoutLink);
     }
     addCompleteMenu();
-    addFavoriteMenu();
   }
 
   private void addVacationViewLink()
@@ -338,7 +335,7 @@ public class NavTopPanel extends NavAbstractPanel
   private void addFavoriteMenu()
   {
     // Favorite menu:
-    final RepeatingView menuRepeater = new RepeatingView("menuRepeater");
+    menuRepeater = new RepeatingView("menuRepeater");
     add(menuRepeater);
     final Collection<MenuEntry> menuEntries = favoritesMenu.getMenuEntries();
     if (menuEntries != null) {
@@ -411,6 +408,15 @@ public class NavTopPanel extends NavAbstractPanel
         }
       }
     }
+  }
+
+
+  @Override
+  protected void onBeforeRender()
+  {
+    super.onBeforeRender();
+    Optional.ofNullable(menuRepeater).ifPresent(this::remove);
+    addFavoriteMenu();
   }
 
   private void addBookmarkDialog()

@@ -38,7 +38,7 @@ import org.projectforge.framework.utils.NumberHelper;
 
 public class GanttUtils
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(GanttUtils.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(GanttUtils.class);
 
   public static Comparator<GanttTask> GANTT_OBJECT_COMPARATOR = new Comparator<GanttTask>() {
     @Override

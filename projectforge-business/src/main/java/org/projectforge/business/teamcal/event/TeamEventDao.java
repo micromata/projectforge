@@ -42,7 +42,6 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.apache.commons.lang3.builder.ToStringBuilder;
-import org.apache.log4j.Logger;
 import org.hibernate.Query;
 import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Restrictions;
@@ -67,6 +66,7 @@ import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.time.DateHelper;
 import org.projectforge.framework.time.DateHolder;
+import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Propagation;
@@ -88,7 +88,7 @@ public class TeamEventDao extends BaseDao<TeamEventDO>
 
   public static final long MAX_DATE_3000 = 32535216000000L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(TeamEventDao.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(TeamEventDao.class);
 
   private static final long ONE_DAY = 1000 * 60 * 60 * 24;
 
@@ -122,6 +122,7 @@ public class TeamEventDao extends BaseDao<TeamEventDO>
   }
 
   @Override
+  @Transactional(readOnly = false, propagation = Propagation.SUPPORTS)
   public ModificationStatus internalUpdate(final TeamEventDO obj, final boolean checkAccess)
   {
     logReminderChange(obj);

@@ -63,7 +63,7 @@ public class TeamCalResponseServlet extends HttpServlet
 
   private static final long serialVersionUID = 8042634572943344080L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(TeamCalResponseServlet.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(TeamCalResponseServlet.class);
 
   @Autowired
   private TeamEventService teamEventService;

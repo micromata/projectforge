@@ -9,7 +9,6 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.log4j.Logger;
 import org.projectforge.business.excel.ExcelImport;
 import org.projectforge.business.fibu.EmployeeDO;
 import org.projectforge.business.fibu.EmployeeTimedDO;
@@ -21,13 +20,15 @@ import org.projectforge.framework.persistence.utils.ImportedElement;
 import org.projectforge.framework.persistence.utils.ImportedElementWithAttrs;
 import org.projectforge.framework.persistence.utils.ImportedSheet;
 import org.projectforge.plugins.eed.ExtendEmployeeDataEnum;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import de.micromata.genome.db.jpa.tabattr.api.TimeableService;
 import de.micromata.genome.util.bean.PrivateBeanUtils;
 
 public class EmployeeBillingExcelImporter
 {
-  private static final Logger log = Logger.getLogger(EmployeeBillingExcelRow.class);
+  private static final Logger log = LoggerFactory.getLogger(EmployeeBillingExcelRow.class);
 
   private static final String NAME_OF_EXCEL_SHEET = "employees";
 

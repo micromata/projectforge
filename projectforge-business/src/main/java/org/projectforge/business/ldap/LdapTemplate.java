@@ -35,7 +35,7 @@ import javax.naming.directory.SearchResult;
  */
 public abstract class LdapTemplate
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(LdapTemplate.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(LdapTemplate.class);
 
   private final LdapConnector ldapConnector;
 

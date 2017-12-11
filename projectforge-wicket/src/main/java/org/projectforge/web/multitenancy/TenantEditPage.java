@@ -23,7 +23,6 @@
 
 package org.projectforge.web.multitenancy;
 
-import org.apache.log4j.Logger;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.multitenancy.TenantDao;
@@ -31,13 +30,14 @@ import org.projectforge.framework.persistence.user.entities.TenantDO;
 import org.projectforge.web.wicket.AbstractEditPage;
 import org.projectforge.web.wicket.AbstractSecuredBasePage;
 import org.projectforge.web.wicket.EditPage;
+import org.slf4j.Logger;
 
 @EditPage(defaultReturnPage = TenantListPage.class)
 public class TenantEditPage extends AbstractEditPage<TenantDO, TenantEditForm, TenantDao>
 {
   private static final long serialVersionUID = 6062988112398925025L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(TenantEditPage.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(TenantEditPage.class);
 
   @SpringBean
   private TenantDao tenantDao;

@@ -43,7 +43,7 @@ import org.w3c.dom.Element;
 @XmlObject(alias = "ganttChart")
 public class GanttChart
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(GanttChart.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(GanttChart.class);
 
   @SuppressWarnings("unused")
   private String name;

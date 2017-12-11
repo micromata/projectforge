@@ -27,7 +27,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.log4j.Logger;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.form.AjaxButton;
 import org.apache.wicket.markup.html.form.Button;
@@ -57,12 +56,13 @@ import org.projectforge.web.wicket.components.SingleButtonPanel;
 import org.projectforge.web.wicket.flowlayout.DivTextPanel;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
 import org.projectforge.web.wicket.flowlayout.TextAreaPanel;
+import org.slf4j.Logger;
 
 public class MebEditForm extends AbstractEditForm<MebEntryDO, MebEditPage>
 {
   private static final long serialVersionUID = -1447905028243511191L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(MebEditForm.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(MebEditForm.class);
 
   private static final String USER_PREF_KEY_JIRA_PROJECT = "meb.edit.recentJiraProject";
 

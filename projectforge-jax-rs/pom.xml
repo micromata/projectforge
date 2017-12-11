@@ -3,11 +3,13 @@
   <modelVersion>4.0.0</modelVersion>
   <artifactId>projectforge-jax-rs</artifactId>
   <packaging>jar</packaging>
+
   <parent>
     <groupId>org.projectforge</groupId>
     <artifactId>projectforge-parent</artifactId>
-    <version>6.19.3</version>
+    <version>6.20.0</version>
   </parent>
+
   <licenses>
     <license>
       <name>Dual license</name>
@@ -16,15 +18,18 @@
       <distribution>manual</distribution>
     </license>
   </licenses>
+
   <build>
     <finalName>projectforge-jax-rs</finalName>
   </build>
+
   <dependencies>
     <dependency>
       <groupId>org.projectforge</groupId>
       <artifactId>projectforge-business</artifactId>
       <version>${project.version}</version>
     </dependency>
+
     <dependency>
       <groupId>org.projectforge</groupId>
       <artifactId>projectforge-business</artifactId>
@@ -32,10 +37,12 @@
       <scope>test</scope>
       <type>test-jar</type>
     </dependency>
+
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-jersey</artifactId>
     </dependency>
+
     <!-- Is needed because of ClassNotFound exception: -->
     <!-- java.lang.ClassNotFoundException: com.sun.el.ExpressionFactoryImpl -->
     <dependency>
@@ -44,4 +51,5 @@
       <version>1.0</version>
     </dependency>
   </dependencies>
+
 </project>

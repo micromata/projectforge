@@ -52,7 +52,7 @@ import net.fortuna.ical4j.model.property.RRule;
 @Service
 public class TeamEventServiceImpl implements TeamEventService
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(TeamEventServiceImpl.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(TeamEventServiceImpl.class);
 
   private enum EventMailType
   {

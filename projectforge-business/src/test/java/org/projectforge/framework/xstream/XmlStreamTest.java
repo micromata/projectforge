@@ -23,11 +23,7 @@
 
 package org.projectforge.framework.xstream;
 
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertFalse;
-import static org.testng.AssertJUnit.assertNotNull;
-import static org.testng.AssertJUnit.assertNull;
-import static org.testng.AssertJUnit.assertTrue;
+import static org.testng.AssertJUnit.*;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -42,20 +38,13 @@ import org.dom4j.Element;
 import org.projectforge.common.BeanHelper;
 import org.projectforge.framework.time.DateHelper;
 import org.projectforge.framework.time.DateHolder;
-import org.projectforge.framework.xstream.AliasMap;
-import org.projectforge.framework.xstream.ProjectForgeRootElement;
-import org.projectforge.framework.xstream.XmlConstants;
-import org.projectforge.framework.xstream.XmlObject;
-import org.projectforge.framework.xstream.XmlObjectReader;
-import org.projectforge.framework.xstream.XmlObjectWriter;
-import org.projectforge.framework.xstream.XmlRegistry;
 import org.projectforge.framework.xstream.converter.ISODateConverter;
 import org.projectforge.test.AbstractTestBase;
 import org.testng.annotations.Test;
 
 public class XmlStreamTest extends AbstractTestBase
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(XmlStreamTest.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(XmlStreamTest.class);
 
   @Test
   public void testWrite()
@@ -354,7 +343,7 @@ public class XmlStreamTest extends AbstractTestBase
           return true;
         }
         return super.ignoreField(obj, field);
-      };
+      }
     };
     TestObject obj = new TestObject();
     obj.s1 = "should be ignored.";

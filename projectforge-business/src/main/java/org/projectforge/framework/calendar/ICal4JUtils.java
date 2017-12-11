@@ -55,7 +55,7 @@ import net.fortuna.ical4j.util.Dates;
  */
 public class ICal4JUtils
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(ICal4JUtils.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ICal4JUtils.class);
 
   private static TimeZoneRegistry registry = TimeZoneRegistryFactory.getInstance().createRegistry();
 

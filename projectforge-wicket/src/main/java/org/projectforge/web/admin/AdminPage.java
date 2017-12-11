@@ -80,7 +80,7 @@ public class AdminPage extends AbstractStandardFormPage implements ISelectCaller
 {
   private static final long serialVersionUID = 8345068133036236305L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(AdminPage.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(AdminPage.class);
 
   static final int NUMBER_OF_TEST_OBJECTS_TO_CREATE = 100;
 

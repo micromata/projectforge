@@ -77,7 +77,7 @@ public class AuftragListPage extends AbstractListPage<AuftragListForm, AuftragDa
 {
   private static final long serialVersionUID = -8406452960003792763L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(AuftragListPage.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(AuftragListPage.class);
 
   private static final String[] MY_BOOKMARKABLE_INITIAL_PROPERTIES = mergeStringArrays(
       BOOKMARKABLE_INITIAL_PROPERTIES, new String[] { "f.year|y", "f.listType|lt", "f.auftragsPositionsArt|art" }

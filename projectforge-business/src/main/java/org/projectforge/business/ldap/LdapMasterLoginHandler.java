@@ -63,7 +63,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class LdapMasterLoginHandler extends LdapLoginHandler
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(LdapMasterLoginHandler.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(LdapMasterLoginHandler.class);
 
   private boolean refreshInProgress;
 

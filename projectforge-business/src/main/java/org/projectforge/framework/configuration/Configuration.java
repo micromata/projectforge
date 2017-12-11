@@ -48,7 +48,7 @@ import org.projectforge.framework.xstream.XmlObject;
 @XmlObject(alias = "config")
 public class Configuration extends AbstractConfiguration
 {
-  private static transient final org.apache.log4j.Logger log = org.apache.log4j.Logger
+  private static transient final org.slf4j.Logger log = org.slf4j.LoggerFactory
       .getLogger(Configuration.class);
 
   private final TenantDO tenant;

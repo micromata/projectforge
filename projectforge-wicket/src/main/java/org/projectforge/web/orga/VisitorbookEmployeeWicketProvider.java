@@ -36,7 +36,7 @@ import org.wicketstuff.select2.Response;
 
 public class VisitorbookEmployeeWicketProvider extends AbstractEmployeeWicketProvider
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(VisitorbookEmployeeWicketProvider.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(VisitorbookEmployeeWicketProvider.class);
 
   private static final long serialVersionUID = 6228672635966093257L;
 

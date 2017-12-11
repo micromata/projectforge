@@ -92,7 +92,7 @@ import org.springframework.util.CollectionUtils;
 public class TimesheetListPage extends AbstractListPage<TimesheetListForm, TimesheetDao, TimesheetDO> implements
     IListPageColumnsCreator<TimesheetDO>
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(TimesheetListPage.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(TimesheetListPage.class);
 
   private static final String[] MY_BOOKMARKABLE_INITIAL_PROPERTIES = mergeStringArrays(
       BOOKMARKABLE_INITIAL_PROPERTIES, new String[] {

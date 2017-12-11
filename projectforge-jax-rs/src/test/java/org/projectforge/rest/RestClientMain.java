@@ -41,7 +41,7 @@ import org.projectforge.model.rest.UserObject;
 
 public class RestClientMain
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(RestClientMain.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(RestClientMain.class);
 
   private static String url, username, password;
 

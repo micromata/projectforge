@@ -46,7 +46,7 @@ import de.micromata.mgc.jpa.spring.factories.JpaToSessionSpringBeanFactory;
 @EnableAspectJAutoProxy(proxyTargetClass = true)
 public class ProjectforgeSpringConfiguration
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(ProjectforgeSpringConfiguration.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ProjectforgeSpringConfiguration.class);
 
   @Value("${projectforge.base.dir}")
   private String applicationDir;

@@ -17,7 +17,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 @Service
 public class RestCallService
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(RestCallService.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(RestCallService.class);
 
   @Autowired
   private RestTemplate restTemplate;

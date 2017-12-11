@@ -48,7 +48,7 @@ public class BusinessAssessmentRowConfig implements Serializable
 {
   private static final long serialVersionUID = -8441226359103634737L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(BusinessAssessmentRowConfig.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(BusinessAssessmentRowConfig.class);
 
   // <row no="1051" id="gesamtleistung" value="umsatzErloese+bestVerdg+aktEigenleistungen" priority="high" title="Gesamtleistung" />
 

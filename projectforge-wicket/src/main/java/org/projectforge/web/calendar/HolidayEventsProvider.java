@@ -40,7 +40,7 @@ import net.ftlines.wicket.fullcalendar.Event;
  */
 public class HolidayEventsProvider extends MyFullCalendarEventsProvider
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(HolidayEventsProvider.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(HolidayEventsProvider.class);
 
   private static final long serialVersionUID = 6514836533889643685L;
 

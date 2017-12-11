@@ -57,7 +57,7 @@ public class PhoneCallPage extends AbstractStandardFormPage
 
   private static final String USER_PREF_KEY_MY_RECENT_PHONE_ID = "PhoneCall:recentPhoneId";
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(PhoneCallPage.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(PhoneCallPage.class);
 
   @SpringBean
   private AddressDao addressDao;

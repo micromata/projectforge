@@ -49,7 +49,7 @@ public class UserXmlPreferencesCache extends AbstractCache
 {
   private static final long serialVersionUID = 248972660689793455L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(UserXmlPreferencesCache.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(UserXmlPreferencesCache.class);
 
   private final Map<Integer, UserXmlPreferencesMap> allPreferences = new HashMap<Integer, UserXmlPreferencesMap>();
 

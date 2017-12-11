@@ -25,7 +25,6 @@ package org.projectforge.plugins.skillmatrix;
 
 import java.io.Serializable;
 
-import org.apache.log4j.Logger;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
@@ -33,6 +32,8 @@ import org.projectforge.web.user.UserSelectPanel;
 import org.projectforge.web.wicket.AbstractListForm;
 import org.projectforge.web.wicket.bootstrap.GridSize;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * The list formular for the list view.
@@ -45,7 +46,7 @@ public class TrainingAttendeeListForm extends AbstractListForm<TrainingAttendeeF
 
   private static final long serialVersionUID = 314512845221133499L;
 
-  private static final Logger log = Logger.getLogger(TrainingAttendeeListForm.class);
+  private static final Logger log = LoggerFactory.getLogger(TrainingAttendeeListForm.class);
 
   @SpringBean
   private TrainingDao trainingDao;

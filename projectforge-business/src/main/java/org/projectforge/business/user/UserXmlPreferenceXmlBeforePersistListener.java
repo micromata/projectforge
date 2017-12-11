@@ -3,9 +3,10 @@ package org.projectforge.business.user;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.apache.log4j.Logger;
 import org.projectforge.business.task.TaskDO;
 import org.projectforge.business.task.TaskTree;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import de.micromata.genome.db.jpa.xmldump.api.JpaXmlBeforePersistListener;
@@ -20,7 +21,7 @@ import de.micromata.genome.jpa.metainf.EntityMetadata;
  */
 public class UserXmlPreferenceXmlBeforePersistListener implements JpaXmlBeforePersistListener
 {
-  private static final Logger LOG = Logger.getLogger(UserXmlPreferenceXmlBeforePersistListener.class);
+  private static final Logger LOG = LoggerFactory.getLogger(UserXmlPreferenceXmlBeforePersistListener.class);
 
   @Autowired
   private UserXmlPreferencesDao userXmlPreferencesDao;

@@ -56,7 +56,7 @@ public class ErrorPage extends AbstractSecuredPage
 {
   private static final long serialVersionUID = -637809894879133209L;
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(ErrorPage.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ErrorPage.class);
 
   public static final String ONLY4NAMESPACE = "org.projectforge";
 

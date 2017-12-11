@@ -66,7 +66,7 @@ import org.springframework.stereotype.Service;
 public class TimesheetExport
 {
 
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(TimesheetExport.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(TimesheetExport.class);
 
   @Autowired
   private DateTimeFormatter dateTimeFormatter;

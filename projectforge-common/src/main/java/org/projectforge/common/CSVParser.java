@@ -40,7 +40,7 @@ import org.apache.commons.lang3.StringUtils;
  */
 public class CSVParser
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(CSVParser.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(CSVParser.class);
 
   private char csvSeparatorChar = CSVWriter.DEFAULT_CSV_SEPARATOR_CHAR;
 

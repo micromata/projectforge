@@ -28,7 +28,7 @@ import org.projectforge.framework.xstream.XmlConstants;
 
 public class IntConverter extends AbstractValueConverter<Integer>
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(IntConverter.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(IntConverter.class);
 
   @Override
   public Integer fromString(String str)

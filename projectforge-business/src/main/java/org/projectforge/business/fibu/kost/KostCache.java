@@ -32,11 +32,12 @@ import java.util.TreeSet;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.ObjectUtils;
-import org.apache.log4j.Logger;
 import org.projectforge.framework.cache.AbstractCache;
 import org.projectforge.framework.utils.NumberHelper;
 import org.projectforge.reporting.Kost2Art;
 import org.projectforge.reporting.impl.Kost2ArtImpl;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.orm.hibernate5.HibernateTemplate;
 import org.springframework.stereotype.Component;
@@ -49,7 +50,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class KostCache extends AbstractCache
 {
-  private static Logger log = Logger.getLogger(KostCache.class);
+  private static Logger log = LoggerFactory.getLogger(KostCache.class);
 
   @Autowired
   private HibernateTemplate hibernateTemplate;

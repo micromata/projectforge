@@ -32,7 +32,7 @@ import org.apache.wicket.model.Model;
  */
 public class MenuSuffixLabel extends Label
 {
-  private static final org.apache.log4j.Logger log = org.apache.log4j.Logger.getLogger(MenuSuffixLabel.class);
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(MenuSuffixLabel.class);
 
   private Integer counter;
 
