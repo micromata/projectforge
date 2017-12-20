@@ -15,6 +15,8 @@
 /////////////////////////////////////////////////////////////////////////////
 package org.projectforge.framework.persistence.xstream;
 
+import org.springframework.cglib.proxy.Enhancer;
+
 import com.thoughtworks.xstream.converters.Converter;
 import com.thoughtworks.xstream.converters.ConverterLookup;
 import com.thoughtworks.xstream.core.ReferenceByIdMarshaller;
@@ -23,7 +25,6 @@ import com.thoughtworks.xstream.core.util.ObjectIdDictionary;
 import com.thoughtworks.xstream.io.HierarchicalStreamWriter;
 import com.thoughtworks.xstream.mapper.Mapper;
 
-import net.sf.cglib.proxy.Enhancer;
 
 public class ProxyIdRefMarshaller extends ReferenceByIdMarshaller
 {
