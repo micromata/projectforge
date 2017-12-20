@@ -59,17 +59,6 @@
       <artifactId>wicket-spring</artifactId>
       <version>${wicket.version}</version>
     </dependency>
-    <!--<dependency>-->
-    <!--<groupId>com.vaynberg.wicket.select2</groupId>-->
-    <!--<artifactId>wicket-select2</artifactId>-->
-    <!--<version>${wicket-select2.version}</version>-->
-    <!--<exclusions>-->
-    <!--<exclusion>-->
-    <!--<artifactId>wicket-core</artifactId>-->
-    <!--<groupId>org.apache.wicket</groupId>-->
-    <!--</exclusion>-->
-    <!--</exclusions>-->
-    <!--</dependency>-->
     <dependency>
       <groupId>javax.servlet.jsp</groupId>
       <artifactId>javax.servlet.jsp-api</artifactId>

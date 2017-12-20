@@ -29,7 +29,7 @@ import org.testng.annotations.Test;
 public class SystemServiceTest extends PowerMockTestCase
 {
   @InjectMocks
-  SystemService systemService = new SystemService(null, null, null, null, null, null, true, "");
+  SystemService systemService = new SystemService();
 
   @Mock
   private RestCallService restCallService;
@@ -50,6 +50,7 @@ public class SystemServiceTest extends PowerMockTestCase
     PowerMockito.when(ThreadLocalUserContext.getLocale()).thenReturn(locale);
     PowerMockito.when(ThreadLocalUserContext.getTimeZone()).thenReturn(timeZone);
     PowerMockito.when(ConfigXml.getInstance()).thenReturn(configXml);
+    systemService.setEnableVersionCheck(true);
   }
 
   @Test

@@ -64,40 +64,33 @@ public class SystemService
 {
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(SystemService.class);
 
+  @Autowired
   private TaskDao taskDao;
 
+  @Autowired
   private SystemInfoCache systemInfoCache;
 
+  @Autowired
   private RechnungCache rechnungCache;
 
+  @Autowired
   private KontoCache kontoCache;
 
+  @Autowired
   private KostCache kostCache;
 
+  @Value("${projectforge.versioncheck.enable:true}")
   private boolean enableVersionCheck;
 
   private LocalDate lastVersionCheckDate;
 
+  @Value("${projectforge.versioncheck.url:https://projectforge.micromata.de/publicRest/versionCheck}")
   private String versionCheckUrl;
 
   private Boolean newPFVersionAvailable;
 
-  private RestCallService restCallService;
-
   @Autowired
-  public SystemService(final TaskDao taskDao, final SystemInfoCache systemInfoCache, final RechnungCache rechnungCache, final KontoCache kontoCache,
-      final KostCache kostCache, final RestCallService restCallService, @Value("${projectforge.versioncheck.enable:true}") final boolean enableVersionCheck,
-      @Value("${projectforge.versioncheck.url:https://projectforge.micromata.de/publicRest/versionCheck}") final String versionCheckUrl)
-  {
-    this.taskDao = taskDao;
-    this.systemInfoCache = systemInfoCache;
-    this.rechnungCache = rechnungCache;
-    this.kontoCache = kontoCache;
-    this.kostCache = kostCache;
-    this.restCallService = restCallService;
-    this.enableVersionCheck = enableVersionCheck;
-    this.versionCheckUrl = versionCheckUrl;
-  }
+  private RestCallService restCallService;
 
   public VersionCheck getVersionCheckInformations()
   {
@@ -269,5 +262,10 @@ public class SystemService
     rechnungCache.forceReload();
     systemInfoCache.forceReload();
     return "UserGroupCache, TaskTree, KontoCache, KostCache, RechnungCache, SystemInfoCache";
+  }
+
+  public void setEnableVersionCheck(final boolean enableVersionCheck)
+  {
+    this.enableVersionCheck = enableVersionCheck;
   }
 }
