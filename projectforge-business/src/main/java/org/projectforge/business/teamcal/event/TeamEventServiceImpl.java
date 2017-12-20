@@ -17,6 +17,8 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.TimeZone;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.apache.commons.lang3.StringUtils;
 import org.projectforge.business.address.AddressDO;
@@ -45,7 +47,6 @@ import org.projectforge.mail.SendMail;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import jersey.repackaged.com.google.common.collect.Sets;
 import net.fortuna.ical4j.model.property.Method;
 import net.fortuna.ical4j.model.property.RRule;
 
@@ -81,7 +82,7 @@ public class TeamEventServiceImpl implements TeamEventService
   private ConfigurationService configService;
 
   // Set TeamCalEvent fields used for computing a diff in order to send notification mails
-  private static final Set<TeamEventField> TEAM_EVENT_FIELD_FILTER = Sets.newHashSet(
+  private static final Set<TeamEventField> TEAM_EVENT_FIELD_FILTER = Stream.of(
       TeamEventField.START_DATE,
       TeamEventField.END_DATE,
       TeamEventField.ALL_DAY,
@@ -91,7 +92,7 @@ public class TeamEventServiceImpl implements TeamEventService
       TeamEventField.RECURRENCE_EX_DATES,
       TeamEventField.RECURRENCE_RULE,
       TeamEventField.RECURRENCE_REFERENCE_DATE
-  );
+  ).collect(Collectors.toCollection(HashSet::new));
 
   @Override
   public List<Integer> getAssignedAttendeeIds(TeamEventDO data)

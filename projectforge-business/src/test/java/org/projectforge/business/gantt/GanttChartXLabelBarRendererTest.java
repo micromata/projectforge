@@ -31,29 +31,21 @@ import java.util.Calendar;
 import java.util.Date;
 
 import org.projectforge.export.SVGHelper;
-import org.projectforge.framework.configuration.ConfigXmlTest;
 import org.projectforge.framework.renderer.BatikImageRenderer;
 import org.projectforge.framework.renderer.ImageFormat;
 import org.projectforge.framework.time.DayHolder;
+import org.projectforge.test.AbstractTestBase;
 import org.projectforge.test.WorkFileHelper;
-import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
-public class GanttChartXLabelBarRendererTest
+public class GanttChartXLabelBarRendererTest extends AbstractTestBase
 {
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory
       .getLogger(GanttChartXLabelBarRendererTest.class);
 
   private static final int ROW_HEIGHT = 50;
-
-  @BeforeClass
-  public static void setUp()
-  {
-    // Needed if this tests runs before the ConfigurationTest.
-    ConfigXmlTest.createTestConfiguration();
-  }
 
   @Test
   public void test()
