@@ -42,12 +42,15 @@ import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
+import javax.xml.datatype.DatatypeConfigurationException;
+import javax.xml.datatype.DatatypeFactory;
 import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
 
 import org.projectforge.business.fibu.EingangsrechnungDO;
 import org.projectforge.business.fibu.PaymentType;
 import org.projectforge.framework.i18n.UserException;
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.generated.AccountIdentificationSEPA;
 import org.projectforge.generated.ActiveOrHistoricCurrencyAndAmountSEPA;
 import org.projectforge.generated.ActiveOrHistoricCurrencyCodeEUR;
@@ -73,8 +76,6 @@ import org.projectforge.generated.RemittanceInformationSEPA1Choice;
 import org.projectforge.generated.ServiceLevelSEPA;
 import org.springframework.stereotype.Component;
 import org.xml.sax.SAXException;
-
-import com.sun.org.apache.xerces.internal.jaxp.datatype.XMLGregorianCalendarImpl;
 
 /**
  * This component generates and reads transfer files in pain.001.003.03 format.
@@ -167,6 +168,7 @@ public class SEPATransferGenerator
     }
 
     // Generate structure
+    GregorianCalendar gc = new GregorianCalendar(ThreadLocalUserContext.getTimeZone());
     ObjectFactory factory = new ObjectFactory();
     String msgID = String.format("transfer-%s", this.formatter.format(new Date()));
     String debitor = invoices.get(0).getTenant().getName(); // use tenant of first invoice
@@ -183,7 +185,11 @@ public class SEPATransferGenerator
     cstmrCdtTrfInitn.setGrpHdr(grpHdr);
 
     grpHdr.setMsgId(msgID);
-    grpHdr.setCreDtTm(new XMLGregorianCalendarImpl((GregorianCalendar) GregorianCalendar.getInstance()));
+    try {
+      grpHdr.setCreDtTm(DatatypeFactory.newInstance().newXMLGregorianCalendar(gc));
+    } catch (DatatypeConfigurationException e) {
+      log.error("Exception occured while setting creDtTm property.", e);
+    }
     grpHdr.setNbOfTxs(String.valueOf(1));
     final PartyIdentificationSEPA1 partyIdentificationSEPA1 = factory.createPartyIdentificationSEPA1();
     grpHdr.setInitgPty(partyIdentificationSEPA1);
@@ -199,7 +205,11 @@ public class SEPATransferGenerator
     pmtInf.setNbOfTxs("1");
     // the default value for most HBCI/FinTS is 01/01/1999 or the current date
     // pmtInf.setReqdExctnDt(XMLGregorianCalendarImpl.createDate(1999, 1, 1, 0));
-    pmtInf.setReqdExctnDt(new XMLGregorianCalendarImpl((GregorianCalendar) GregorianCalendar.getInstance()));
+    try {
+      pmtInf.setReqdExctnDt(DatatypeFactory.newInstance().newXMLGregorianCalendar(gc));
+    } catch (DatatypeConfigurationException e) {
+      log.error("Exception occured while setting reqdExctnDt property.", e);
+    }
     // pmtInf.setChrgBr(ChargeBearerTypeSEPACode.SLEV); // TODO check if this is required
 
     // set payment type information

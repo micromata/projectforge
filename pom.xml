@@ -255,10 +255,9 @@
     <hibernate-search.version>5.5.2.Final</hibernate-search.version>
     <hibernate-history.version>3.4.13</hibernate-history.version>
     <aspectjtools.version>1.8.7</aspectjtools.version>
-    <cglib-nodep.version>3.2.0</cglib-nodep.version>
-    <groovy.version>2.4.4</groovy.version>
+    <groovy.version>2.4.13</groovy.version>
     <poi.version>3.16</poi.version>
-    <wicket.version>7.8.0</wicket.version>
+    <wicket.version>7.9.0</wicket.version>
     <wicket-select2.version>3.0</wicket-select2.version>
 
     <javax.jsp-api.version>2.3.1</javax.jsp-api.version>
@@ -278,8 +277,7 @@
     <xmlgraphics-batik-codec.version>1.9</xmlgraphics-batik-codec.version>
     <!-- HIBERNATE5 -->
     <ehcache-core.version>2.6.11</ehcache-core.version>
-    <flyway-core.version>4.2.0</flyway-core.version>
-    <postgresql.version>9.4.1211</postgresql.version>
+    <postgresql.version>42.1.4</postgresql.version>
     <hsqldb.version>2.4.0</hsqldb.version>
     <codehaus-jackson.version>1.9.13</codehaus-jackson.version>
     <testng.versionj>6.9.9</testng.versionj>
@@ -337,7 +335,6 @@
     <dependency>
       <groupId>org.flywaydb</groupId>
       <artifactId>flyway-core</artifactId>
-      <version>${flyway-core.version}</version>
     </dependency>
     <dependency>
       <groupId>org.postgresql</groupId>

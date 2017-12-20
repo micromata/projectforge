@@ -30,8 +30,7 @@ import java.util.Set;
 
 import org.projectforge.framework.persistence.api.BaseDO;
 import org.projectforge.framework.persistence.api.BaseDao;
-
-import net.sf.cglib.proxy.Enhancer;
+import org.springframework.cglib.proxy.Enhancer;
 
 /**
  * Hotfix: Hibernate-search does not update index of dependent objects.
