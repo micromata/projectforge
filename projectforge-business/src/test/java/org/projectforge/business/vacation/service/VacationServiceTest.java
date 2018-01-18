@@ -187,6 +187,11 @@ public class VacationServiceTest extends PowerMockTestCase
   @Test
   public void testUpdateUsedVacationDaysFromLastYearFillUpRest()
   {
+    endLastYear.set(Calendar.YEAR, Calendar.getInstance().get(Calendar.YEAR));
+    endLastYear.set(Calendar.MONTH, Calendar.MARCH);
+    endLastYear.set(Calendar.DAY_OF_MONTH, 31);
+    when(configService.getEndDateVacationFromLastYear()).thenReturn(endLastYear);
+
     VacationDO vacationData = new VacationDO();
     vacationData.setIsSpecial(false);
     when(employee.getAttribute(VacationAttrProperty.PREVIOUSYEARLEAVE.getPropertyName(), BigDecimal.class)).thenReturn(new BigDecimal(10));
@@ -207,6 +212,11 @@ public class VacationServiceTest extends PowerMockTestCase
   @Test
   public void testUpdateUsedVacationDaysFromLastYearSomeRest()
   {
+    endLastYear.set(Calendar.YEAR, Calendar.getInstance().get(Calendar.YEAR));
+    endLastYear.set(Calendar.MONTH, Calendar.MARCH);
+    endLastYear.set(Calendar.DAY_OF_MONTH, 31);
+    when(configService.getEndDateVacationFromLastYear()).thenReturn(endLastYear);
+
     VacationDO vacationData = new VacationDO();
     vacationData.setIsSpecial(false);
     when(employee.getAttribute(VacationAttrProperty.PREVIOUSYEARLEAVE.getPropertyName(), BigDecimal.class)).thenReturn(new BigDecimal(20));
@@ -261,6 +271,11 @@ public class VacationServiceTest extends PowerMockTestCase
   @Test
   public void testUpdateUsedVacationDaysFromLastYearFirstNormalAfterIsSpecial()
   {
+    endLastYear.set(Calendar.YEAR, Calendar.getInstance().get(Calendar.YEAR));
+    endLastYear.set(Calendar.MONTH, Calendar.MARCH);
+    endLastYear.set(Calendar.DAY_OF_MONTH, 31);
+    when(configService.getEndDateVacationFromLastYear()).thenReturn(endLastYear);
+
     final VacationDO vacationData = new VacationDO();
     final VacationDO vacationDataOld = new VacationDO();
     when(employee.getAttribute(VacationAttrProperty.PREVIOUSYEARLEAVE.getPropertyName(), BigDecimal.class)).thenReturn(new BigDecimal(20));
