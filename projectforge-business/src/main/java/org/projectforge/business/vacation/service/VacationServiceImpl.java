@@ -283,7 +283,7 @@ public class VacationServiceImpl extends CorePersistenceServiceImpl<Integer, Vac
     final BigDecimal usedDays = availableVacationdays.compareTo(usedInNewYear) < 1 ? availableVacationdays : usedInNewYear;
 
     employee.putAttribute(VacationAttrProperty.PREVIOUSYEARLEAVEUSED.getPropertyName(), usedDays);
-    employeeDao.internalSave(employee);
+    employeeDao.internalUpdate(employee);
   }
 
   @Override
