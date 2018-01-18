@@ -11,7 +11,7 @@ public class UpdateVacationFromLastYearJobCronCheckTest
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory
       .getLogger(UpdateVacationFromLastYearJobCronCheckTest.class);
 
-  @Test
+  @Test(enabled = false)
   public void testCronExpression()
   {
     CronSequenceGenerator cron1 = new CronSequenceGenerator("0 0 23 31 12 *");

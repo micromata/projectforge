@@ -390,7 +390,7 @@ public class VacationServiceImpl extends CorePersistenceServiceImpl<Integer, Vac
   @Override
   public BigDecimal getAvailableVacationdaysForYear(final EmployeeDO employee, final int year, final boolean checkLastYear)
   {
-    if (employee == null) {
+    if (employee == null || employee.getUrlaubstage() == null) {
       return BigDecimal.ZERO;
     }
     final BigDecimal vacationDays = new BigDecimal(employee.getUrlaubstage());
@@ -434,6 +434,10 @@ public class VacationServiceImpl extends CorePersistenceServiceImpl<Integer, Vac
   @Override
   public BigDecimal getAvailableVacationDaysForYearAtDate(final EmployeeDO employee, final Date queryDate)
   {
+    if (employee == null || employee.getUrlaubstage() == null) {
+      return BigDecimal.ZERO;
+    }
+
     final Calendar startDate = Calendar.getInstance();
     startDate.setTime(queryDate);
     startDate.set(Calendar.MONTH, Calendar.JANUARY);
