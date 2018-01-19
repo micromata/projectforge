@@ -31,7 +31,6 @@ import de.micromata.genome.db.jpa.history.impl.HistoryServiceImpl;
 import de.micromata.genome.db.jpa.tabattr.api.TimeableService;
 import de.micromata.genome.db.jpa.tabattr.impl.TimeableServiceImpl;
 import de.micromata.mgc.jpa.spring.SpringEmgrFilterBean;
-import de.micromata.mgc.jpa.spring.factories.JpaToSessionFactorySpringBeanFactory;
 import de.micromata.mgc.jpa.spring.factories.JpaToSessionSpringBeanFactory;
 
 /**
@@ -76,18 +75,9 @@ public class ProjectforgeSpringConfiguration
   }
 
   @Bean
-  public FactoryBean<SessionFactory> sessionFactory()
+  public SessionFactory sessionFactory()
   {
-    return new JpaToSessionFactorySpringBeanFactory()
-    {
-
-      @Override
-      protected EntityManagerFactory getEntityManagerFactory()
-      {
-        return pfEmgrFactory.getEntityManagerFactory();
-      }
-    };
-
+    return entityManagerFactory().unwrap(SessionFactory.class);
   }
 
   /**
@@ -105,7 +95,7 @@ public class ProjectforgeSpringConfiguration
   @Bean
   public HibernateTransactionManager transactionManager() throws Exception
   {
-    HibernateTransactionManager ret = new HibernateTransactionManager(sessionFactory().getObject());
+    HibernateTransactionManager ret = new HibernateTransactionManager(sessionFactory());
     ret.setAutodetectDataSource(false);
     ret.setDataSource(dataSource);
     return ret;
@@ -122,7 +112,7 @@ public class ProjectforgeSpringConfiguration
   @Bean
   public HibernateTemplate hibernateTemplate() throws Exception
   {
-    HibernateTemplate ht = new HibernateTemplate(sessionFactory().getObject());
+    HibernateTemplate ht = new HibernateTemplate(sessionFactory());
     if (DatabaseSupport.getInstance() == null) {
       DatabaseSupport.setInstance(new DatabaseSupport(HibernateUtils.getDialect()));
     }

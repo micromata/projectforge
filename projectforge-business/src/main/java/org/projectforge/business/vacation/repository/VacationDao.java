@@ -50,6 +50,7 @@ import org.projectforge.framework.persistence.api.QueryFilter;
 import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
+import org.projectforge.framework.persistence.user.entities.TenantDO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
@@ -96,7 +97,7 @@ public class VacationDao extends BaseDao<VacationDO>
       String baseSQL = "SELECT v FROM VacationDO v WHERE v.employee = :employee AND v.endDate >= :startDate AND v.startDate <= :endDate";
       List<VacationDO> dbResultList = emgr.selectDetached(VacationDO.class, baseSQL + (withSpecial ? META_SQL_WITH_SPECIAL : META_SQL), "employee", employee,
           "startDate", startVacationDate, "endDate", endVacationDate, "deleted", false, "tenant",
-          ThreadLocalUserContext.getUser().getTenant());
+          getTenant());
       return dbResultList;
     });
     return result;
@@ -142,10 +143,17 @@ public class VacationDao extends BaseDao<VacationDO>
       String baseSQL = "SELECT v FROM VacationDO v WHERE v.employee = :employee AND v.startDate >= :startDate AND v.startDate <= :endDate";
       List<VacationDO> dbResultList = emgr.selectDetached(VacationDO.class, baseSQL + (withSpecial ? META_SQL_WITH_SPECIAL : META_SQL), "employee", employee,
           "startDate", startYear.getTime(), "endDate", endYear.getTime(),
-          "deleted", false, "tenant", ThreadLocalUserContext.getUser().getTenant());
+          "deleted", false, "tenant", getTenant());
       return dbResultList;
     });
     return result;
+  }
+
+  private TenantDO getTenant()
+  {
+    return ThreadLocalUserContext.getUser() != null && ThreadLocalUserContext.getUser().getTenant() != null ?
+        ThreadLocalUserContext.getUser().getTenant() :
+        tenantService.getDefaultTenant();
   }
 
   public List<VacationDO> getAllActiveVacation(EmployeeDO employee, boolean withSpecial)
@@ -154,7 +162,7 @@ public class VacationDao extends BaseDao<VacationDO>
       String baseSQL = "SELECT v FROM VacationDO v WHERE v.employee = :employee";
       List<VacationDO> dbResultList = emgr
           .selectDetached(VacationDO.class, baseSQL + (withSpecial ? META_SQL_WITH_SPECIAL : META_SQL), "employee", employee, "deleted", false, "tenant",
-              ThreadLocalUserContext.getUser().getTenant());
+              getTenant());
       return dbResultList;
     });
     return result;
@@ -167,7 +175,7 @@ public class VacationDao extends BaseDao<VacationDO>
       String baseSQL = "SELECT v FROM VacationDO v WHERE v.manager = :employee AND v.status = :status";
       List<VacationDO> dbResultList = emgr
           .selectDetached(VacationDO.class, baseSQL + META_SQL_WITH_SPECIAL, "employee", employee, "status", VacationStatus.IN_PROGRESS, "deleted", false,
-              "tenant", ThreadLocalUserContext.getUser().getTenant());
+              "tenant", getTenant());
       return dbResultList;
     });
     if (resultList != null) {
@@ -184,7 +192,7 @@ public class VacationDao extends BaseDao<VacationDO>
       final String baseSQL = "SELECT v FROM VacationDO v WHERE v.employee = :employee AND v.startDate >= :startDate AND v.startDate <= :endDate AND v.status = :status AND v.isSpecial = :isSpecial";
       return emgr
           .selectDetached(VacationDO.class, baseSQL + META_SQL_WITH_SPECIAL, "employee", employee, "startDate", startYear.getTime(), "endDate",
-              endYear.getTime(), "status", status, "isSpecial", true, "deleted", false, "tenant", ThreadLocalUserContext.getUser().getTenant());
+              endYear.getTime(), "status", status, "isSpecial", true, "deleted", false, "tenant", getTenant());
     });
     return resultList != null ? resultList : Collections.emptyList();
   }
