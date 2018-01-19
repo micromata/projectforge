@@ -257,8 +257,8 @@ public class VacationServiceImpl extends CorePersistenceServiceImpl<Integer, Vac
   @Override
   public void updateUsedNewVacationDaysFromLastYear(final EmployeeDO employee, final int year)
   {
-    final BigDecimal availableVacationdays = getAvailableVacationdaysForYear(employee, year, false);
-    employee.putAttribute(VacationAttrProperty.PREVIOUSYEARLEAVE.getPropertyName(), availableVacationdays);
+    final BigDecimal availableVacationdaysFromActualYear = getAvailableVacationdaysFromActualYear(employee, year, false);
+    employee.putAttribute(VacationAttrProperty.PREVIOUSYEARLEAVE.getPropertyName(), availableVacationdaysFromActualYear);
 
     // find approved vacations in new year
     Calendar from = Calendar.getInstance();
@@ -280,10 +280,37 @@ public class VacationServiceImpl extends CorePersistenceServiceImpl<Integer, Vac
     }
 
     // compute used days
-    final BigDecimal usedDays = availableVacationdays.compareTo(usedInNewYear) < 1 ? availableVacationdays : usedInNewYear;
+    final BigDecimal usedDays = availableVacationdaysFromActualYear.compareTo(usedInNewYear) < 1 ? availableVacationdaysFromActualYear : usedInNewYear;
 
     employee.putAttribute(VacationAttrProperty.PREVIOUSYEARLEAVEUSED.getPropertyName(), usedDays);
     employeeDao.internalUpdate(employee);
+  }
+
+  private BigDecimal getAvailableVacationdaysFromActualYear(final EmployeeDO currentEmployee, final int year, final boolean b)
+  {
+    Calendar endDatePreviousYearVacation = configService.getEndDateVacationFromLastYear();
+
+    BigDecimal vacationdays = currentEmployee.getUrlaubstage() != null ? new BigDecimal(currentEmployee.getUrlaubstage()) : BigDecimal.ZERO;
+    BigDecimal vacationdaysPreviousYear = currentEmployee.getAttribute(VacationAttrProperty.PREVIOUSYEARLEAVE.getPropertyName(), BigDecimal.class) != null
+        ? currentEmployee.getAttribute(VacationAttrProperty.PREVIOUSYEARLEAVE.getPropertyName(), BigDecimal.class) : BigDecimal.ZERO;
+    BigDecimal subtotal1 = vacationdays.add(vacationdaysPreviousYear);
+    BigDecimal approvedVacationdays = getApprovedVacationdaysForYear(currentEmployee, year);
+    BigDecimal plannedVacation = getPlannedVacationdaysForYear(currentEmployee, year);
+    BigDecimal availableVacation = subtotal1.subtract(plannedVacation).subtract(approvedVacationdays);
+
+    //Needed for left and middle part
+    BigDecimal vacationdaysPreviousYearUsed =
+        currentEmployee.getAttribute(VacationAttrProperty.PREVIOUSYEARLEAVEUSED.getPropertyName(), BigDecimal.class) != null ?
+            currentEmployee.getAttribute(VacationAttrProperty.PREVIOUSYEARLEAVEUSED.getPropertyName(), BigDecimal.class) : BigDecimal.ZERO;
+    BigDecimal vacationdaysPreviousYearUnused = vacationdaysPreviousYear.subtract(vacationdaysPreviousYearUsed);
+    String endDatePreviousYearVacationString =
+        endDatePreviousYearVacation.get(Calendar.DAY_OF_MONTH) + "." + (endDatePreviousYearVacation.get(Calendar.MONTH) + 1) + ".";
+
+    //If previousyearleaveunused > 0, then extend left area and display new row
+    if (vacationdaysPreviousYearUnused.compareTo(BigDecimal.ZERO) > 0) {
+      availableVacation = availableVacation.subtract(vacationdaysPreviousYearUnused);
+    }
+    return availableVacation;
   }
 
   @Override
