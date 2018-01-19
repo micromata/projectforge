@@ -26,12 +26,11 @@ import org.testng.annotations.Test;
 
 public class OrderExportTest extends AbstractTestBase
 {
-
   @Autowired
   private OrderExport orderExport;
 
   @Test
-  public void testExportPeriodAndStatusComment()
+  public void testExportPeriodAndStatusComment() throws IOException
   {
     List<AuftragDO> auftragDOList = new ArrayList<>();
 
@@ -53,32 +52,30 @@ public class OrderExportTest extends AbstractTestBase
     auftragDOList.add(e);
     byte[] export = orderExport.export(auftragDOList);
     boolean hasperformaceBegin = false, hasPerformanceEnd = false, hasStatusBeschreibung = false;
-    try {
-      ExcelImport excelImport = new ExcelImport(new ByteArrayInputStream(export));
-      for (Row row : excelImport.getWorkbook().getSheetAt(0)) {
-        for (Cell cell : row) {
-          if (cell.toString().equals("02-Okt-2020")) {
-            hasperformaceBegin = true;
-          }
+    ExcelImport excelImport = new ExcelImport(new ByteArrayInputStream(export));
+    for (Row row : excelImport.getWorkbook().getSheetAt(0)) {
+      for (Cell cell : row) {
+        if (cell.toString().equals("02-Okt-2020")) {
+          hasperformaceBegin = true;
+        }
 
-          if (cell.toString().equals("02-Okt-2030")) {
-            hasPerformanceEnd = true;
-          }
+        if (cell.toString().equals("02-Okt-2030")) {
+          hasPerformanceEnd = true;
+        }
 
-          if (cell.getCellType() == Cell.CELL_TYPE_STRING && cell.getRichStringCellValue().getString().trim()
-              .equals("TESTBESCHREIBUNG")) {
-            hasStatusBeschreibung = true;
-          }
+        if (cell.getCellType() == Cell.CELL_TYPE_STRING && cell.getRichStringCellValue().getString().trim()
+            .equals("TESTBESCHREIBUNG")) {
+          hasStatusBeschreibung = true;
         }
       }
-    } catch (IOException e1) {
-      e1.printStackTrace();
     }
-    Assert.assertTrue(hasperformaceBegin && hasPerformanceEnd && hasStatusBeschreibung);
+    Assert.assertTrue(hasperformaceBegin);
+    Assert.assertTrue(hasPerformanceEnd);
+    Assert.assertTrue(hasStatusBeschreibung);
   }
 
   @Test
-  public void testExportPaymentSchedule()
+  public void testExportPaymentSchedule() throws IOException
   {
     List<AuftragDO> auftragDOList = new ArrayList<>();
 
@@ -126,53 +123,55 @@ public class OrderExportTest extends AbstractTestBase
     boolean hasFirstScheduleDate = false, hasSecondScheduleDate = false, hasCommentfirstSchedule = false,
         hasCommentSecondSchedule = false, hasScheduleNumber = false, hasSetBoolean = false,
         hasAmount1 = false, hasAmount2 = false;
-    try {
-      ExcelImport excelImport = new ExcelImport(new ByteArrayInputStream(export));
-      for (Row row : excelImport.getWorkbook().getSheetAt(2)) {
-        for (Cell cell : row) {
-          if (cell.toString().equals("02-Okt-2020")) {
-            hasFirstScheduleDate = true;
-          }
+    ExcelImport excelImport = new ExcelImport(new ByteArrayInputStream(export));
+    for (Row row : excelImport.getWorkbook().getSheetAt(2)) {
+      for (Cell cell : row) {
+        if (cell.toString().equals("02-Okt-2020")) {
+          hasFirstScheduleDate = true;
+        }
 
-          if (cell.toString().equals("02-Okt-2030")) {
-            hasSecondScheduleDate = true;
-          }
+        if (cell.toString().equals("02-Okt-2030")) {
+          hasSecondScheduleDate = true;
+        }
 
-          if (cell.getCellType() == Cell.CELL_TYPE_STRING && cell.getRichStringCellValue().getString().trim()
-              .equals("SCHEDULE1")) {
-            hasCommentfirstSchedule = true;
-          }
+        if (cell.getCellType() == Cell.CELL_TYPE_STRING && cell.getRichStringCellValue().getString().trim()
+            .equals("SCHEDULE1")) {
+          hasCommentfirstSchedule = true;
+        }
 
-          if (cell.getCellType() == Cell.CELL_TYPE_STRING && cell.getRichStringCellValue().getString().trim()
-              .equals("SCHEDULE2")) {
-            hasCommentSecondSchedule = true;
-          }
+        if (cell.getCellType() == Cell.CELL_TYPE_STRING && cell.getRichStringCellValue().getString().trim()
+            .equals("SCHEDULE2")) {
+          hasCommentSecondSchedule = true;
+        }
 
-          if (cell.getCellType() == Cell.CELL_TYPE_STRING && cell.getRichStringCellValue().toString().trim()
-              .equals("#2") && excelImport.getWorkbook().getSheetAt(2).getRow(2) == row) {
-            hasScheduleNumber = true;
-          }
+        if (cell.getCellType() == Cell.CELL_TYPE_STRING && cell.getRichStringCellValue().toString().trim()
+            .equals("#2") && excelImport.getWorkbook().getSheetAt(2).getRow(2) == row) {
+          hasScheduleNumber = true;
+        }
 
-          if (cell.getCellType() == Cell.CELL_TYPE_STRING && cell.getRichStringCellValue().getString().trim()
-              .equals("x")) {
-            hasSetBoolean = true;
-          }
+        if (cell.getCellType() == Cell.CELL_TYPE_STRING && cell.getRichStringCellValue().getString().trim()
+            .equals("x")) {
+          hasSetBoolean = true;
+        }
 
-          if (cell.getCellType() == Cell.CELL_TYPE_NUMERIC && cell.toString().trim()
-              .equals("111.0")) {
-            hasAmount1 = true;
-          }
+        if (cell.getCellType() == Cell.CELL_TYPE_NUMERIC && cell.toString().trim()
+            .equals("111.0")) {
+          hasAmount1 = true;
+        }
 
-          if (cell.getCellType() == Cell.CELL_TYPE_NUMERIC && cell.toString().trim()
-              .equals("222.0")) {
-            hasAmount2 = true;
-          }
+        if (cell.getCellType() == Cell.CELL_TYPE_NUMERIC && cell.toString().trim()
+            .equals("222.0")) {
+          hasAmount2 = true;
         }
       }
-    } catch (IOException e1) {
-      e1.printStackTrace();
     }
-    Assert.assertTrue(hasFirstScheduleDate && hasSecondScheduleDate && hasCommentfirstSchedule
-        && hasAmount1 && hasAmount2 && hasCommentSecondSchedule && hasScheduleNumber && hasSetBoolean);
+    Assert.assertTrue(hasFirstScheduleDate);
+    Assert.assertTrue(hasSecondScheduleDate);
+    Assert.assertTrue(hasCommentfirstSchedule);
+    Assert.assertTrue(hasAmount1);
+    Assert.assertTrue(hasAmount2);
+    Assert.assertTrue(hasCommentSecondSchedule);
+    Assert.assertTrue(hasScheduleNumber);
+    Assert.assertTrue(hasSetBoolean);
   }
 }

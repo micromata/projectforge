@@ -15,7 +15,7 @@ import org.projectforge.web.filter.SpringThreadLocalFilter;
 import org.projectforge.web.rest.RestUserFilter;
 import org.springframework.boot.web.servlet.ServletContextInitializer;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.orm.hibernate3.support.OpenSessionInViewFilter;
+import org.springframework.orm.hibernate5.support.OpenSessionInViewFilter;
 
 /**
  * This class is the replacement of the web.xml. It registers the wicket filter in the spring aware configuration style.

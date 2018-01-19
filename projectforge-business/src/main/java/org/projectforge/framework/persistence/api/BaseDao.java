@@ -37,7 +37,6 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.PredicateUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
-import org.apache.lucene.util.Version;
 import org.hibernate.Criteria;
 import org.hibernate.HibernateException;
 import org.hibernate.LockMode;
@@ -97,11 +96,7 @@ public abstract class BaseDao<O extends ExtendedBaseDO<Integer>>
 {
 
   public static final String EXCEPTION_HISTORIZABLE_NOTDELETABLE = "Could not delete of Historizable objects (contact your software developer): ";
-  /**
-   * @see Version#LUCENE_31
-   */
-  // HIBERNATE5  public static final Version LUCENE_VERSION = Version.LUCENE_31;
-  public static final Version LUCENE_VERSION = Version.LUCENE_5_3_1;
+
   /**
    * Maximum allowed mass updates within one massUpdate call.
    */

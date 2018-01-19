@@ -5,7 +5,7 @@
   <parent>
     <groupId>org.projectforge</groupId>
     <artifactId>projectforge-parent</artifactId>
-    <version>6.20.0</version>
+    <version>6.21.0</version>
   </parent>
   <licenses>
     <license>
@@ -92,11 +92,6 @@
       <groupId>com.googlecode.json-simple</groupId>
       <artifactId>json-simple</artifactId>
       <version>1.1.1</version>
-    </dependency>
-    <dependency>
-      <groupId>cglib</groupId>
-      <artifactId>cglib-nodep</artifactId>
-      <version>${cglib-nodep.version}</version>
     </dependency>
     <dependency>
       <groupId>org.aspectj</groupId>
