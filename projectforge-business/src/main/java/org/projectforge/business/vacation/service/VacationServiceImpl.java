@@ -255,7 +255,7 @@ public class VacationServiceImpl extends CorePersistenceServiceImpl<Integer, Vac
   }
 
   @Override
-  public void updateUsedNewVacationDaysFromLastYear(final EmployeeDO employee, final int year)
+  public void updateVacationDaysFromLastYearForNewYear(final EmployeeDO employee, final int year)
   {
     final BigDecimal availableVacationdaysFromActualYear = getAvailableVacationdaysForGivenYear(employee, year, false);
     employee.putAttribute(VacationAttrProperty.PREVIOUSYEARLEAVE.getPropertyName(), availableVacationdaysFromActualYear);
@@ -264,8 +264,9 @@ public class VacationServiceImpl extends CorePersistenceServiceImpl<Integer, Vac
     Calendar from = Calendar.getInstance();
     from.setTimeZone(DateHelper.UTC);
     from.set(year + 1, Calendar.JANUARY, 1, 0, 0, 0);
-    Date to = getEndDateVacationFromLastYear().getTime();
-    List<VacationDO> vacationNewYear = vacationDao.getVacationForPeriod(employee, from.getTime(), to, false);
+    Calendar to = getEndDateVacationFromLastYear();
+    to.set(Calendar.YEAR, year + 1);
+    List<VacationDO> vacationNewYear = vacationDao.getVacationForPeriod(employee, from.getTime(), to.getTime(), false);
 
     BigDecimal usedInNewYear = BigDecimal.ZERO;
 
@@ -275,7 +276,8 @@ public class VacationServiceImpl extends CorePersistenceServiceImpl<Integer, Vac
       }
 
       // compute used days until EndDateVacationFromLastYear
-      BigDecimal days = this.getVacationDays(vacation.getStartDate(), vacation.getEndDate().after(to) ? to : vacation.getEndDate(), vacation.getHalfDay());
+      BigDecimal days = this
+          .getVacationDays(vacation.getStartDate(), vacation.getEndDate().after(to.getTime()) ? to.getTime() : vacation.getEndDate(), vacation.getHalfDay());
       usedInNewYear = usedInNewYear.add(days);
     }
 

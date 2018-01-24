@@ -441,7 +441,7 @@ public class VacationServiceTest extends PowerMockTestCase
   {
     when(employee.getUrlaubstage()).thenReturn(30);
 
-    vacationService.updateUsedNewVacationDaysFromLastYear(employee, 2016);
+    vacationService.updateVacationDaysFromLastYearForNewYear(employee, 2016);
 
     // get values from mock
     ArgumentCaptor<BigDecimal> prevYearLeave = ArgumentCaptor.forClass(BigDecimal.class);
@@ -468,7 +468,7 @@ public class VacationServiceTest extends PowerMockTestCase
     when(employee.getUrlaubstage()).thenReturn(30);
     when(vacationDao.getVacationForPeriod(same(employee), any(Date.class), any(Date.class), eq(false))).thenReturn(vacationList);
 
-    vacationService.updateUsedNewVacationDaysFromLastYear(employee, 2016);
+    vacationService.updateVacationDaysFromLastYearForNewYear(employee, 2016);
 
     // get values from mock
     ArgumentCaptor<BigDecimal> prevYearLeave = ArgumentCaptor.forClass(BigDecimal.class);
@@ -495,7 +495,7 @@ public class VacationServiceTest extends PowerMockTestCase
     when(employee.getUrlaubstage()).thenReturn(20);
     when(vacationDao.getVacationForPeriod(same(employee), any(Date.class), any(Date.class), eq(false))).thenReturn(vacationList);
 
-    vacationService.updateUsedNewVacationDaysFromLastYear(employee, 2016);
+    vacationService.updateVacationDaysFromLastYearForNewYear(employee, 2016);
 
     // get values from mock
     ArgumentCaptor<BigDecimal> prevYearLeave = ArgumentCaptor.forClass(BigDecimal.class);
@@ -522,7 +522,7 @@ public class VacationServiceTest extends PowerMockTestCase
     when(employee.getUrlaubstage()).thenReturn(15);
     when(vacationDao.getVacationForPeriod(same(employee), any(Date.class), any(Date.class), eq(false))).thenReturn(vacationList);
 
-    vacationService.updateUsedNewVacationDaysFromLastYear(employee, 2016);
+    vacationService.updateVacationDaysFromLastYearForNewYear(employee, 2016);
 
     // get values from mock
     ArgumentCaptor<BigDecimal> prevYearLeave = ArgumentCaptor.forClass(BigDecimal.class);
@@ -547,7 +547,7 @@ public class VacationServiceTest extends PowerMockTestCase
     when(employee.getUrlaubstage()).thenReturn(30);
     when(vacationDao.getVacationForPeriod(same(employee), any(Date.class), any(Date.class), eq(false))).thenReturn(vacationList);
 
-    vacationService.updateUsedNewVacationDaysFromLastYear(employee, 2016);
+    vacationService.updateVacationDaysFromLastYearForNewYear(employee, 2016);
 
     // get values from mock
     ArgumentCaptor<BigDecimal> prevYearLeave = ArgumentCaptor.forClass(BigDecimal.class);
