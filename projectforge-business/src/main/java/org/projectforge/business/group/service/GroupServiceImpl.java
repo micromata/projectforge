@@ -35,6 +35,7 @@ import org.projectforge.business.user.GroupDao;
 import org.projectforge.business.user.GroupsComparator;
 import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.common.StringHelper;
+import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.GroupDO;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
@@ -50,6 +51,9 @@ public class GroupServiceImpl implements GroupService
 
   @Autowired
   private GroupDao groupDao;
+
+  @Autowired
+  private PfEmgrFactory pfEmgrFactory;
 
   private final GroupsComparator groupsComparator = new GroupsComparator();
 
@@ -195,7 +199,7 @@ public class GroupServiceImpl implements GroupService
   @Override
   public List<GroupDO> getAllGroups()
   {
-    return groupDao.internalLoadAll();
+    return pfEmgrFactory.runInTrans(emgr -> emgr.selectAllAttached(GroupDO.class));
   }
 
 }

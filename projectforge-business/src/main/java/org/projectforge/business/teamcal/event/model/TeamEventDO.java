@@ -1087,6 +1087,7 @@ public class TeamEventDO extends DefaultBaseDO implements TeamEvent, Cloneable
   @JoinColumn(name = "team_event_fk2")
   public Set<TeamEventAttachmentDO> getAttachments()
   {
+    ensureAttachments();
     return attachments;
   }
 
