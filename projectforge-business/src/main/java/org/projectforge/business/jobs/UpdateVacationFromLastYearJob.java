@@ -31,7 +31,7 @@ public class UpdateVacationFromLastYearJob
     Collection<EmployeeDO> activeEmployees = employeeService.findAllActive(false);
     activeEmployees.forEach(emp -> {
       try {
-        vacationService.updateUsedNewVacationDaysFromLastYear(emp, now.get(Calendar.YEAR));
+        vacationService.updateVacationDaysFromLastYearForNewYear(emp, now.get(Calendar.YEAR));
       } catch (Exception e) {
         log.error("Exception while updating vacation from last year for employee: " + emp.getUser().getFullname(), e);
       }

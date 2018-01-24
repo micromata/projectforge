@@ -505,6 +505,7 @@ public class UserGroupCache extends AbstractCache
     // This method must not be synchronized because it works with a new copy of maps.
     final Map<Integer, PFUserDO> uMap = new HashMap<Integer, PFUserDO>();
     // Could not autowire UserDao because of cyclic reference with AccessChecker.
+    log.info("Loading all users ...");
     final List<PFUserDO> users = Login.getInstance().getAllUsers();
     for (final PFUserDO user : users) {
       if (tenant != null) {
@@ -516,6 +517,7 @@ public class UserGroupCache extends AbstractCache
       final PFUserDO copiedUser = PFUserDO.createCopyWithoutSecretFields(user);
       uMap.put(user.getId(), copiedUser);
     }
+    log.info("Loading all groups ...");
     final List<GroupDO> groups = Login.getInstance().getAllGroups();
     final Map<Integer, GroupDO> gMap = new HashMap<Integer, GroupDO>();
     final Map<Integer, Set<Integer>> ugIdMap = new HashMap<Integer, Set<Integer>>();

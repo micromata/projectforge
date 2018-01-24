@@ -165,7 +165,7 @@ public interface VacationService extends IPersistenceService<VacationDO>, IDao<V
    * @param emp
    * @param year
    */
-  void updateUsedNewVacationDaysFromLastYear(EmployeeDO emp, int year);
+  void updateVacationDaysFromLastYearForNewYear(EmployeeDO emp, int year);
 
   /**
    * Check, if user is able to use vacation services.
