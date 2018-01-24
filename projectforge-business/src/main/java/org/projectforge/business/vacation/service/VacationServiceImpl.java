@@ -257,7 +257,7 @@ public class VacationServiceImpl extends CorePersistenceServiceImpl<Integer, Vac
   @Override
   public void updateUsedNewVacationDaysFromLastYear(final EmployeeDO employee, final int year)
   {
-    final BigDecimal availableVacationdaysFromActualYear = getAvailableVacationdaysFromActualYear(employee, year, false);
+    final BigDecimal availableVacationdaysFromActualYear = getAvailableVacationdaysForGivenYear(employee, year, false);
     employee.putAttribute(VacationAttrProperty.PREVIOUSYEARLEAVE.getPropertyName(), availableVacationdaysFromActualYear);
 
     // find approved vacations in new year
@@ -286,25 +286,23 @@ public class VacationServiceImpl extends CorePersistenceServiceImpl<Integer, Vac
     employeeDao.internalUpdate(employee);
   }
 
-  private BigDecimal getAvailableVacationdaysFromActualYear(final EmployeeDO currentEmployee, final int year, final boolean b)
+  private BigDecimal getAvailableVacationdaysForGivenYear(final EmployeeDO currentEmployee, final int year, final boolean b)
   {
     Calendar endDatePreviousYearVacation = configService.getEndDateVacationFromLastYear();
+    endDatePreviousYearVacation.set(Calendar.YEAR, year);
 
     BigDecimal vacationdays = currentEmployee.getUrlaubstage() != null ? new BigDecimal(currentEmployee.getUrlaubstage()) : BigDecimal.ZERO;
     BigDecimal vacationdaysPreviousYear = currentEmployee.getAttribute(VacationAttrProperty.PREVIOUSYEARLEAVE.getPropertyName(), BigDecimal.class) != null
         ? currentEmployee.getAttribute(VacationAttrProperty.PREVIOUSYEARLEAVE.getPropertyName(), BigDecimal.class) : BigDecimal.ZERO;
     BigDecimal subtotal1 = vacationdays.add(vacationdaysPreviousYear);
     BigDecimal approvedVacationdays = getApprovedVacationdaysForYear(currentEmployee, year);
-    BigDecimal plannedVacation = getPlannedVacationdaysForYear(currentEmployee, year);
-    BigDecimal availableVacation = subtotal1.subtract(plannedVacation).subtract(approvedVacationdays);
+    BigDecimal availableVacation = subtotal1.subtract(approvedVacationdays);
 
     //Needed for left and middle part
     BigDecimal vacationdaysPreviousYearUsed =
         currentEmployee.getAttribute(VacationAttrProperty.PREVIOUSYEARLEAVEUSED.getPropertyName(), BigDecimal.class) != null ?
             currentEmployee.getAttribute(VacationAttrProperty.PREVIOUSYEARLEAVEUSED.getPropertyName(), BigDecimal.class) : BigDecimal.ZERO;
     BigDecimal vacationdaysPreviousYearUnused = vacationdaysPreviousYear.subtract(vacationdaysPreviousYearUsed);
-    String endDatePreviousYearVacationString =
-        endDatePreviousYearVacation.get(Calendar.DAY_OF_MONTH) + "." + (endDatePreviousYearVacation.get(Calendar.MONTH) + 1) + ".";
 
     //If previousyearleaveunused > 0, then extend left area and display new row
     if (vacationdaysPreviousYearUnused.compareTo(BigDecimal.ZERO) > 0) {
