@@ -94,7 +94,7 @@ public class CookieService
    */
   private Boolean isSecureCookieConfigured()
   {
-    final Boolean secure = serverProperties.getSession().getCookie().getSecure();
+    final Boolean secure = serverProperties.getServlet().getSession().getCookie().getSecure();
     return secure != null && secure == true;
   }
 
