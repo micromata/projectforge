@@ -3,13 +3,13 @@ package org.projectforge.config;
 import org.apache.catalina.connector.Connector;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.context.embedded.ConfigurableEmbeddedServletContainer;
-import org.springframework.boot.context.embedded.EmbeddedServletContainerCustomizer;
-import org.springframework.boot.context.embedded.tomcat.TomcatEmbeddedServletContainerFactory;
+import org.springframework.boot.web.embedded.tomcat.TomcatServletWebServerFactory;
+import org.springframework.boot.web.servlet.server.ServletWebServerFactory;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-public class ServerConfiguration implements EmbeddedServletContainerCustomizer
+public class ServerConfiguration
 {
   static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ServerConfiguration.class);
 
@@ -22,24 +22,27 @@ public class ServerConfiguration implements EmbeddedServletContainerCustomizer
   @Value("${tomcat.ajp.enabled:false}")
   private boolean tomcatAjpEnabled;
 
-  @Override
-  public void customize(final ConfigurableEmbeddedServletContainer container)
+  @Bean
+  public ServletWebServerFactory servletContainer()
   {
+    TomcatServletWebServerFactory tomcat = new TomcatServletWebServerFactory();
     if (StringUtils.isNotBlank(servletContextPath)) {
-      container.setContextPath(servletContextPath);
+      tomcat.setContextPath(servletContextPath);
     }
+    if (tomcatAjpEnabled) {
+      tomcat.addAdditionalTomcatConnectors(createAJPConnector());
+    }
+    return tomcat;
+  }
 
-    if (container instanceof TomcatEmbeddedServletContainerFactory) {
-      final TomcatEmbeddedServletContainerFactory tomcatContainer = (TomcatEmbeddedServletContainerFactory) container;
-      if (tomcatAjpEnabled) {
-        final Connector ajpConnector = new Connector("AJP/1.3");
-        ajpConnector.setPort(ajpPort);
-        ajpConnector.setAttribute("address", "127.0.0.1");
-        ajpConnector.setSecure(false);
-        ajpConnector.setAllowTrace(false);
-        ajpConnector.setScheme("http");
-        tomcatContainer.getAdditionalTomcatConnectors().add(ajpConnector);
-      }
-    }
+  private Connector createAJPConnector()
+  {
+    final Connector ajpConnector = new Connector("AJP/1.3");
+    ajpConnector.setPort(ajpPort);
+    ajpConnector.setAttribute("address", "127.0.0.1");
+    ajpConnector.setSecure(false);
+    ajpConnector.setAllowTrace(false);
+    ajpConnector.setScheme("http");
+    return ajpConnector;
   }
 }
