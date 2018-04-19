@@ -66,6 +66,8 @@ import org.projectforge.generated.FinancialInstitutionIdentificationSEPA1;
 import org.projectforge.generated.FinancialInstitutionIdentificationSEPA3;
 import org.projectforge.generated.GroupHeaderSCT;
 import org.projectforge.generated.ObjectFactory;
+import org.projectforge.generated.OthrIdentification;
+import org.projectforge.generated.OthrIdentificationCode;
 import org.projectforge.generated.PartyIdentificationSEPA1;
 import org.projectforge.generated.PartyIdentificationSEPA2;
 import org.projectforge.generated.PaymentIdentificationSEPA;
@@ -335,11 +337,17 @@ public class SEPATransferGenerator
     cdtTrfTxInf.setCdtrAcct(cdtrAcct);
 
     // set creditor bic
-    BranchAndFinancialInstitutionIdentificationSEPA1 cdtrAgt = factory.createBranchAndFinancialInstitutionIdentificationSEPA1();
-    FinancialInstitutionIdentificationSEPA1 finInstId = factory.createFinancialInstitutionIdentificationSEPA1();
+    /*
+    BranchAndFinancialInstitutionIdentificationSEPA3 cdtrAgt = factory
+      .createBranchAndFinancialInstitutionIdentificationSEPA3();
+    FinancialInstitutionIdentificationSEPA3 finInstId = factory.createFinancialInstitutionIdentificationSEPA3();
     cdtrAgt.setFinInstnId(finInstId);
-    finInstId.setBIC(invoice.getBic().toUpperCase());
+    //finInstId.setBIC(invoice.getBic().toUpperCase());
+    OthrIdentification othr = new OthrIdentification();
+    othr.setId(OthrIdentificationCode.NOTPROVIDED);
+    finInstId.setOthr(othr);
     cdtTrfTxInf.setCdtrAgt(cdtrAgt);
+*/
 
     // set remittance information (bemerkung/purpose)
     RemittanceInformationSEPA1Choice rmtInf = factory.createRemittanceInformationSEPA1Choice();
