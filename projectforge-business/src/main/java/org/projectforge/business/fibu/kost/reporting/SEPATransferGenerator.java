@@ -290,8 +290,10 @@ public class SEPATransferGenerator
     if (invoice.getPaymentType() != PaymentType.BANK_TRANSFER) {
       errors.add(SEPATransferError.BANK_TRANSFER);
     }
-    if (invoice.getBic() == null || this.patternBic.matcher(invoice.getBic().toUpperCase()).matches() == false) {
-      errors.add(SEPATransferError.BIC);
+    if(invoice.getIban().toUpperCase().startsWith("DE") == false) {
+      if (invoice.getBic() == null || this.patternBic.matcher(invoice.getBic().toUpperCase()).matches() == false) {
+        errors.add(SEPATransferError.BIC);
+      }
     }
     if (invoice.getIban() == null || this.patternIBAN.matcher(invoice.getIban().toUpperCase()).matches() == false) {
       errors.add(SEPATransferError.IBAN);
@@ -337,17 +339,14 @@ public class SEPATransferGenerator
     cdtTrfTxInf.setCdtrAcct(cdtrAcct);
 
     // set creditor bic
-    /*
-    BranchAndFinancialInstitutionIdentificationSEPA3 cdtrAgt = factory
-      .createBranchAndFinancialInstitutionIdentificationSEPA3();
-    FinancialInstitutionIdentificationSEPA3 finInstId = factory.createFinancialInstitutionIdentificationSEPA3();
-    cdtrAgt.setFinInstnId(finInstId);
-    //finInstId.setBIC(invoice.getBic().toUpperCase());
-    OthrIdentification othr = new OthrIdentification();
-    othr.setId(OthrIdentificationCode.NOTPROVIDED);
-    finInstId.setOthr(othr);
-    cdtTrfTxInf.setCdtrAgt(cdtrAgt);
-*/
+    if(invoice.getIban().toUpperCase().startsWith("DE") == false) {
+      BranchAndFinancialInstitutionIdentificationSEPA3 cdtrAgt = factory
+        .createBranchAndFinancialInstitutionIdentificationSEPA3();
+      FinancialInstitutionIdentificationSEPA3 finInstId = factory.createFinancialInstitutionIdentificationSEPA3();
+      cdtrAgt.setFinInstnId(finInstId);
+      finInstId.setBIC(invoice.getBic().toUpperCase());
+      cdtTrfTxInf.setCdtrAgt(cdtrAgt);
+    }
 
     // set remittance information (bemerkung/purpose)
     RemittanceInformationSEPA1Choice rmtInf = factory.createRemittanceInformationSEPA1Choice();
