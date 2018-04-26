@@ -340,9 +340,9 @@ public class SEPATransferGenerator
 
     // set creditor bic
     if(invoice.getIban().toUpperCase().startsWith("DE") == false) {
-      BranchAndFinancialInstitutionIdentificationSEPA3 cdtrAgt = factory
-        .createBranchAndFinancialInstitutionIdentificationSEPA3();
-      FinancialInstitutionIdentificationSEPA3 finInstId = factory.createFinancialInstitutionIdentificationSEPA3();
+      BranchAndFinancialInstitutionIdentificationSEPA1 cdtrAgt = factory
+        .createBranchAndFinancialInstitutionIdentificationSEPA1();
+      FinancialInstitutionIdentificationSEPA1 finInstId = factory.createFinancialInstitutionIdentificationSEPA1();
       cdtrAgt.setFinInstnId(finInstId);
       finInstId.setBIC(invoice.getBic().toUpperCase());
       cdtTrfTxInf.setCdtrAgt(cdtrAgt);
