@@ -41,7 +41,7 @@ public class CurrencyHelper
     if (NumberHelper.isZeroOrNull(vat) == true) {
       return net;
     }
-    return net.multiply(BigDecimal.ONE.add(vat)).setScale(2, RoundingMode.HALF_UP);
+    return net.multiply(BigDecimal.ONE.add(vat));
   }
 
   public static final BigDecimal multiply(final BigDecimal val1, final BigDecimal val2)
@@ -55,7 +55,7 @@ public class CurrencyHelper
     } else if (val2 == null) {
       return val1;
     } else {
-      return val1.multiply(val2).setScale(2, RoundingMode.HALF_UP);
+      return val1.multiply(val2);
     }
   }
 }
