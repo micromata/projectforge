@@ -24,6 +24,9 @@
 package org.projectforge.web.address;
 
 import org.apache.wicket.AttributeModifier;
+import org.apache.wicket.ajax.AjaxEventBehavior;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.attributes.AjaxRequestAttributes;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.Link;
@@ -58,6 +61,22 @@ public class AddressListPhoneNumberPanel extends Panel
           setResponsePage(new PhoneCallPage(params));
         }
       };
+      linkOrSpan.add(new AjaxEventBehavior("click")
+      {
+
+        @Override
+        protected void updateAjaxAttributes(AjaxRequestAttributes attributes)
+        {
+          super.updateAjaxAttributes(attributes);
+          attributes.setEventPropagation(AjaxRequestAttributes.EventPropagation.STOP);
+        }
+
+        @Override
+        protected void onEvent(AjaxRequestTarget ajaxRequestTarget)
+        {
+
+        }
+      });
       add(WicketUtils.getInvisibleComponent("phoneNumber"));
     } else {
       linkOrSpan = new WebMarkupContainer("phoneNumber");
