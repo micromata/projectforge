@@ -66,6 +66,8 @@ import org.projectforge.generated.FinancialInstitutionIdentificationSEPA1;
 import org.projectforge.generated.FinancialInstitutionIdentificationSEPA3;
 import org.projectforge.generated.GroupHeaderSCT;
 import org.projectforge.generated.ObjectFactory;
+import org.projectforge.generated.OthrIdentification;
+import org.projectforge.generated.OthrIdentificationCode;
 import org.projectforge.generated.PartyIdentificationSEPA1;
 import org.projectforge.generated.PartyIdentificationSEPA2;
 import org.projectforge.generated.PaymentIdentificationSEPA;
@@ -288,8 +290,10 @@ public class SEPATransferGenerator
     if (invoice.getPaymentType() != PaymentType.BANK_TRANSFER) {
       errors.add(SEPATransferError.BANK_TRANSFER);
     }
-    if (invoice.getBic() == null || this.patternBic.matcher(invoice.getBic().toUpperCase()).matches() == false) {
-      errors.add(SEPATransferError.BIC);
+    if(invoice.getIban().toUpperCase().startsWith("DE") == false) {
+      if (invoice.getBic() == null || this.patternBic.matcher(invoice.getBic().toUpperCase()).matches() == false) {
+        errors.add(SEPATransferError.BIC);
+      }
     }
     if (invoice.getIban() == null || this.patternIBAN.matcher(invoice.getIban().toUpperCase()).matches() == false) {
       errors.add(SEPATransferError.IBAN);
@@ -335,11 +339,14 @@ public class SEPATransferGenerator
     cdtTrfTxInf.setCdtrAcct(cdtrAcct);
 
     // set creditor bic
-    BranchAndFinancialInstitutionIdentificationSEPA1 cdtrAgt = factory.createBranchAndFinancialInstitutionIdentificationSEPA1();
-    FinancialInstitutionIdentificationSEPA1 finInstId = factory.createFinancialInstitutionIdentificationSEPA1();
-    cdtrAgt.setFinInstnId(finInstId);
-    finInstId.setBIC(invoice.getBic().toUpperCase());
-    cdtTrfTxInf.setCdtrAgt(cdtrAgt);
+    if(invoice.getIban().toUpperCase().startsWith("DE") == false) {
+      BranchAndFinancialInstitutionIdentificationSEPA1 cdtrAgt = factory
+        .createBranchAndFinancialInstitutionIdentificationSEPA1();
+      FinancialInstitutionIdentificationSEPA1 finInstId = factory.createFinancialInstitutionIdentificationSEPA1();
+      cdtrAgt.setFinInstnId(finInstId);
+      finInstId.setBIC(invoice.getBic().toUpperCase());
+      cdtTrfTxInf.setCdtrAgt(cdtrAgt);
+    }
 
     // set remittance information (bemerkung/purpose)
     RemittanceInformationSEPA1Choice rmtInf = factory.createRemittanceInformationSEPA1Choice();
