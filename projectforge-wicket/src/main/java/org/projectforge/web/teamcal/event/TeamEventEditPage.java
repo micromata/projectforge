@@ -325,7 +325,7 @@ public class TeamEventEditPage extends AbstractEditPage<TeamEventDO, TeamEventEd
     }
 
     if (getData() != null && getData().getId() != null) {
-      this.teamEventBeforeSaveOrUpdate = teamEventService.getById(getData().getPk());
+      this.teamEventBeforeSaveOrUpdate = teamEventService.getById(getData().getPk()).clone();
       this.isNew = false;
     } else {
       this.isNew = true;
