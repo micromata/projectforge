@@ -291,9 +291,7 @@ public class TeamCalCalendarPanel extends CalendarPanel
       return;
     }
 
-    teamEventDO = teamEventDao.getById(teamEventDO.getId()).clone();
-    teamEventDO.setId(((TeamEventDO)teamEvent).getId());
-    teamEventDO.setUid(teamEvent.getUid());
+    teamEventDO = teamEventDao.getById(teamEventDO.getId());
 
     // update start and end date
     if (newStartDate != null) {

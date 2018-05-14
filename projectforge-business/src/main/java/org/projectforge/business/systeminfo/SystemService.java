@@ -105,6 +105,7 @@ public class SystemService
     return versionCheck;
   }
 
+  @Transactional(propagation = Propagation.SUPPORTS)
   public boolean isNewPFVersionAvailable()
   {
     LocalDate now = LocalDate.now();
