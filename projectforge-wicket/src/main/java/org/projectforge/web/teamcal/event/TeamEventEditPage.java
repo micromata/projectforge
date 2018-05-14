@@ -325,6 +325,7 @@ public class TeamEventEditPage extends AbstractEditPage<TeamEventDO, TeamEventEd
     }
 
     if (getData() != null && getData().getId() != null) {
+      //Clone Object to evaluate the sendMail()
       this.teamEventBeforeSaveOrUpdate = teamEventService.getById(getData().getPk()).clone();
       this.isNew = false;
     } else {
