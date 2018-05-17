@@ -29,6 +29,7 @@ import org.projectforge.framework.access.AccessDao;
 import org.projectforge.framework.access.GroupTaskAccessDO;
 import org.projectforge.web.fibu.ISelectCallerPage;
 import org.projectforge.web.wicket.AbstractEditPage;
+import org.projectforge.web.wicket.AbstractSecuredBasePage;
 import org.projectforge.web.wicket.EditPage;
 import org.slf4j.Logger;
 
@@ -64,6 +65,21 @@ public class AccessEditPage extends AbstractEditPage<GroupTaskAccessDO, AccessEd
   public void cancelSelection(final String property)
   {
     // Do nothing.
+  }
+
+  //Create Or Update
+  @Override
+  protected void create()
+  {
+    GroupTaskAccessDO accessDaoEntry = accessDao.getEntry(getData().getTask(), getData().getGroup());
+    if(accessDaoEntry != null && accessDaoEntry.isDeleted()) {
+      getData().setId(accessDaoEntry.getId());
+      getData().setDeleted(false);
+      super.update();
+    }
+    else {
+      super.create();
+    }
   }
 
   @Override
