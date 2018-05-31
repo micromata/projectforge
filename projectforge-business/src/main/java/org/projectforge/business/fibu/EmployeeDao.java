@@ -40,6 +40,7 @@ import org.projectforge.business.user.UserRightId;
 import org.projectforge.framework.persistence.api.BaseDao;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.persistence.api.QueryFilter;
+import org.projectforge.framework.persistence.attr.impl.InternalAttrSchemaConstants;
 import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
@@ -179,6 +180,21 @@ public class EmployeeDao extends BaseDao<EmployeeDO>
           return true;
         }
       });
+    }
+    for(EmployeeDO employeeDO : list)
+    {
+      for(EmployeeTimedDO employeeTimedDO : employeeDO.getTimeableAttributes())
+      {
+        if(employeeTimedDO.getGroupName().equals(InternalAttrSchemaConstants.EMPLOYEE_STATUS_GROUP_NAME))
+        {
+          try {
+            employeeDO.setStatus(EmployeeStatus.findByi18nKey((String)employeeTimedDO.getAttribute("status")));
+          }
+          catch (Exception e) {
+
+          }
+        }
+      }
     }
     return list;
   }
