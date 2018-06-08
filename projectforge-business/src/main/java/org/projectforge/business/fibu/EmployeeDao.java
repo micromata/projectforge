@@ -191,7 +191,7 @@ public class EmployeeDao extends BaseDao<EmployeeDO>
             employeeDO.setStatus(EmployeeStatus.findByi18nKey((String)employeeTimedDO.getAttribute("status")));
           }
           catch (Exception e) {
-
+            log.error("Exception while setting timeable status to deprecated status employee field. Message: " + e.getMessage());
           }
         }
       }
