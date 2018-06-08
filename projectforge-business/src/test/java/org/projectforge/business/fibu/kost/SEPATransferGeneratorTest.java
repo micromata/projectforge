@@ -55,16 +55,16 @@ public class SEPATransferGeneratorTest extends AbstractTestBase
     // Test error cases
     this.testInvoice("Test debitor", null, "DE12341234123412341234", "abcdefg1234", "Do stuff", new BigDecimal(100.0), false);
     this.testInvoice("Test debitor", "Test creditor", null, "abcdefg1234", "Do stuff", new BigDecimal(100.0), false);
-    this.testInvoice("Test debitor", "Test creditor", "DE12341234123412341234", null, "", new BigDecimal(100.0), false);
     this.testInvoice("Test debitor", "Test creditor", "DE12341234123412341234", "abcdefg1234", null, new BigDecimal(100.0), false);
     this.testInvoice("Test debitor", "Test creditor", "DE12341234123412341234", "abcdefg1234", "Do stuff", new BigDecimal(0.0), false);
     this.testInvoice("Test debitor", "Test creditor", "41234", "abcdefg1234", "Do stuff", new BigDecimal(100.0), false);
-    this.testInvoice("Test debitor", "Test creditor", "DE12341234123412341234", "abcde", "Do stuff", new BigDecimal(100.0), false);
+    this.testInvoice("Test debitor", "Test creditor", "AB12341234123412341234", "abcde", "Do stuff", new BigDecimal(100.0), false);
+    this.testInvoice("Test debitor", "Test creditor", "AB12341234123412341234", null, "Do stuff", new BigDecimal(100.0), false);
 
     // Test success cases
     this.testInvoice("Test debitor", "Test creditor", "DE12341234123412341234", "abcdefg1234", "Do stuff", new BigDecimal(100.0), true);
     this.testInvoice("Test debitor", "Test creditor", "DE12341234123412341234", "abcdefg1234", "Do stuff", new BigDecimal(123456.56), true);
-
+    this.testInvoice("Test debitor", "Test creditor", "DE12341234123412341234", null, "Do stuff", new BigDecimal(100.0), true);
   }
 
   private void testInvoice(final String debitor, final String creditor, final String iban, final String bic, final String purpose, final BigDecimal amount,
@@ -116,7 +116,9 @@ public class SEPATransferGeneratorTest extends AbstractTestBase
     // check creditor
     Assert.assertEquals(creditor, cdtTrfTxInf.getCdtr().getNm());
     Assert.assertEquals(iban, cdtTrfTxInf.getCdtrAcct().getId().getIBAN());
-    Assert.assertEquals(bic.toUpperCase(), cdtTrfTxInf.getCdtrAgt().getFinInstnId().getBIC());
+    if(iban.toUpperCase().startsWith("DE") == false) {
+      Assert.assertEquals(bic.toUpperCase(), cdtTrfTxInf.getCdtrAgt().getFinInstnId().getBIC());
+    }
     Assert.assertEquals(purpose, cdtTrfTxInf.getRmtInf().getUstrd());
 
     // check sum

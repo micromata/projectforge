@@ -27,6 +27,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -47,8 +48,10 @@ import javax.xml.datatype.DatatypeFactory;
 import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
 
+import org.apache.poi.hssf.record.crypto.Biff8DecryptingStream;
 import org.projectforge.business.fibu.EingangsrechnungDO;
 import org.projectforge.business.fibu.PaymentType;
+import org.projectforge.business.utils.CurrencyFormatter;
 import org.projectforge.framework.i18n.UserException;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.generated.AccountIdentificationSEPA;
@@ -66,6 +69,8 @@ import org.projectforge.generated.FinancialInstitutionIdentificationSEPA1;
 import org.projectforge.generated.FinancialInstitutionIdentificationSEPA3;
 import org.projectforge.generated.GroupHeaderSCT;
 import org.projectforge.generated.ObjectFactory;
+import org.projectforge.generated.OthrIdentification;
+import org.projectforge.generated.OthrIdentificationCode;
 import org.projectforge.generated.PartyIdentificationSEPA1;
 import org.projectforge.generated.PartyIdentificationSEPA2;
 import org.projectforge.generated.PaymentIdentificationSEPA;
@@ -245,6 +250,7 @@ public class SEPATransferGenerator
       this.createTransaction(result, factory, invoice, msgID, pmtInf, ++index);
       amount = amount.add(invoice.getGrossSum());
     }
+    amount = amount.setScale(2, RoundingMode.HALF_UP);
 
     if (result.getErrors().isEmpty() == false) {
       return result;
@@ -288,8 +294,10 @@ public class SEPATransferGenerator
     if (invoice.getPaymentType() != PaymentType.BANK_TRANSFER) {
       errors.add(SEPATransferError.BANK_TRANSFER);
     }
-    if (invoice.getBic() == null || this.patternBic.matcher(invoice.getBic().toUpperCase()).matches() == false) {
-      errors.add(SEPATransferError.BIC);
+    if(invoice.getIban() != null && invoice.getIban().toUpperCase().startsWith("DE") == false) {
+      if (invoice.getBic() == null || this.patternBic.matcher(invoice.getBic().toUpperCase()).matches() == false) {
+        errors.add(SEPATransferError.BIC);
+      }
     }
     if (invoice.getIban() == null || this.patternIBAN.matcher(invoice.getIban().toUpperCase()).matches() == false) {
       errors.add(SEPATransferError.IBAN);
@@ -319,7 +327,7 @@ public class SEPATransferGenerator
     ActiveOrHistoricCurrencyAndAmountSEPA instdAmt = factory.createActiveOrHistoricCurrencyAndAmountSEPA();
     amt.setInstdAmt(instdAmt);
     instdAmt.setCcy(ActiveOrHistoricCurrencyCodeEUR.EUR);
-    instdAmt.setValue(invoice.getGrossSum());
+    instdAmt.setValue(invoice.getGrossSum().setScale(2, RoundingMode.HALF_UP));
     cdtTrfTxInf.setAmt(amt);
 
     // set creditor
@@ -335,11 +343,14 @@ public class SEPATransferGenerator
     cdtTrfTxInf.setCdtrAcct(cdtrAcct);
 
     // set creditor bic
-    BranchAndFinancialInstitutionIdentificationSEPA1 cdtrAgt = factory.createBranchAndFinancialInstitutionIdentificationSEPA1();
-    FinancialInstitutionIdentificationSEPA1 finInstId = factory.createFinancialInstitutionIdentificationSEPA1();
-    cdtrAgt.setFinInstnId(finInstId);
-    finInstId.setBIC(invoice.getBic().toUpperCase());
-    cdtTrfTxInf.setCdtrAgt(cdtrAgt);
+    if(invoice.getIban().toUpperCase().startsWith("DE") == false) {
+      BranchAndFinancialInstitutionIdentificationSEPA1 cdtrAgt = factory
+        .createBranchAndFinancialInstitutionIdentificationSEPA1();
+      FinancialInstitutionIdentificationSEPA1 finInstId = factory.createFinancialInstitutionIdentificationSEPA1();
+      cdtrAgt.setFinInstnId(finInstId);
+      finInstId.setBIC(invoice.getBic().toUpperCase());
+      cdtTrfTxInf.setCdtrAgt(cdtrAgt);
+    }
 
     // set remittance information (bemerkung/purpose)
     RemittanceInformationSEPA1Choice rmtInf = factory.createRemittanceInformationSEPA1Choice();

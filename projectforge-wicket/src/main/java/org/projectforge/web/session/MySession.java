@@ -235,7 +235,7 @@ public class MySession extends WebSession
 
   /**
    * The user wants to ignore the mobile agent and wants to get the PC version (normal web version).
-   * 
+   *
    * @return
    */
   public boolean isIgnoreMobileUserAgent()
@@ -285,6 +285,7 @@ public class MySession extends WebSession
 
   public void login(final UserContext userContext, final Request request)
   {
+    super.replaceSession();
     this.userContext = userContext;
     final PFUserDO user = userContext != null ? userContext.getUser() : null;
     if (user == null) {
@@ -299,7 +300,7 @@ public class MySession extends WebSession
   /**
    * Sets or updates the locale of the user's session. Takes the locale of the user account or if not given the locale
    * of the given request.
-   * 
+   *
    * @param request
    */
   public void setLocale(final Request request)
