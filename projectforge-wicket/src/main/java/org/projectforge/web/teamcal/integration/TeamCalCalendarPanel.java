@@ -290,7 +290,9 @@ public class TeamCalCalendarPanel extends CalendarPanel
           newEndTimeMillis != null ? new Timestamp(newEndTimeMillis) : null);
       return;
     }
+
     teamEventDO = teamEventDao.getById(teamEventDO.getId());
+
     // update start and end date
     if (newStartDate != null) {
       teamEventDO.setStartDate(new Timestamp(newStartTimeMillis));

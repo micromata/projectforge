@@ -15,6 +15,9 @@
 		<properties>
 			<property name="hibernate.current_session_context_class"
 				value="org.springframework.orm.hibernate5.SpringSessionContext" />
+			<!-- To disable logoutput: https://hibernate.atlassian.net/browse/HHH-12368 -->
+			<property name="hibernate.jdbc.lob.non_contextual_creation" value="true"/>
+
 			<property name="hibernate.archive.scanner"
 				value="de.micromata.genome.jpa.impl.JpaWithExtLibrariesScanner" />
 			<property name="de.micromata.genome.jpa.extlibrary.urlprovider"

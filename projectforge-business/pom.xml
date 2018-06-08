@@ -5,7 +5,7 @@
   <parent>
     <groupId>org.projectforge</groupId>
     <artifactId>projectforge-parent</artifactId>
-    <version>6.21.1</version>
+    <version>6.22.0</version>
   </parent>
   <licenses>
     <license>
@@ -30,56 +30,26 @@
       <groupId>de.micromata.mgc</groupId>
       <artifactId>de.micromata.mgc.jpa.tabattr</artifactId>
       <version>${mgc.version}</version>
-      <exclusions>
-        <exclusion>
-          <groupId>log4j</groupId>
-          <artifactId>log4j</artifactId>
-        </exclusion>
-      </exclusions>
     </dependency>
     <dependency>
       <groupId>de.micromata.mgc</groupId>
       <artifactId>de.micromata.mgc.jpa.hibernatesearch</artifactId>
       <version>${mgc.version}</version>
-      <exclusions>
-        <exclusion>
-          <groupId>log4j</groupId>
-          <artifactId>log4j</artifactId>
-        </exclusion>
-      </exclusions>
     </dependency>
     <dependency>
       <groupId>de.micromata.mgc</groupId>
       <artifactId>de.micromata.mgc.jpa.xmldump</artifactId>
       <version>${mgc.version}</version>
-      <exclusions>
-        <exclusion>
-          <groupId>log4j</groupId>
-          <artifactId>log4j</artifactId>
-        </exclusion>
-      </exclusions>
     </dependency>
     <dependency>
       <groupId>de.micromata.mgc</groupId>
       <artifactId>de.micromata.mgc.jpa.spring</artifactId>
       <version>${mgc.version}</version>
-      <exclusions>
-        <exclusion>
-          <groupId>log4j</groupId>
-          <artifactId>log4j</artifactId>
-        </exclusion>
-      </exclusions>
     </dependency>
     <dependency>
       <groupId>de.micromata.mgc</groupId>
       <artifactId>de.micromata.mgc.email</artifactId>
       <version>${mgc.version}</version>
-      <exclusions>
-        <exclusion>
-          <groupId>log4j</groupId>
-          <artifactId>log4j</artifactId>
-        </exclusion>
-      </exclusions>
     </dependency>
     <dependency>
       <groupId>javax.servlet</groupId>
