@@ -28,31 +28,31 @@ public class PfJdbcLocalSettingsConfigModel extends JdbcLocalSettingsConfigModel
         return "spring.datasource.driver-class-name";
 
       case "defaultCatalog":
-        return "spring.datasource.dbcp.default-catalog";
+        return "spring.datasource.dbcp2.default-catalog";
 
       case "validationQuery":
-        return "spring.datasource.dbcp.validation-query";
+        return "spring.datasource.dbcp2.validation-query";
 
       case "validationQueryTimeout":
-        return "spring.datasource.dbcp.validation-query-timeout";
+        return "spring.datasource.dbcp2.validation-query-timeout";
 
       case "maxActive":
-        return "spring.datasource.dbcp.max-active";
+        return "spring.datasource.dbcp2.max-active";
 
       case "maxIdle":
-        return "spring.datasource.dbcp.max-idle";
+        return "spring.datasource.dbcp2.max-idle";
 
       case "minIdle":
-        return "spring.datasource.dbcp.min-idle";
+        return "spring.datasource.dbcp2.min-idle";
 
       case "maxWait":
-        return "spring.datasource.dbcp.max-wait";
+        return "spring.datasource.dbcp2.max-wait";
 
       case "intialSize": // "intial" -> typo in JdbcLocalSettingsConfigModel
-        return "spring.datasource.dbcp.initial-size";
+        return "spring.datasource.dbcp2.initial-size";
 
       case "defaultAutoCommit":
-        return "spring.datasource.dbcp.default-auto-commit";
+        return "spring.datasource.dbcp2.default-auto-commit";
 
       default:
         // only for keys that are the same in spring (except the prefix)
