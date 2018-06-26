@@ -79,9 +79,9 @@ public class PfBasicLocalSettingsConfigModel extends AbstractLocalSettingsConfig
   {
     super.toProperties(writer);
     LocalSettingsWriter sw = writer.newSection(" \"HttpOnly\" flag for the session cookie.");
-    sw.put("server.session.cookie.http-only", "true");
-    sw.put("server.session.tracking-modes", "cookie", " this avoids session fixation via jsessionid in URL");
-    sw.put("server.session.timeout", "3600", " Session timeout in seconds.");
+    sw.put("server.servlet.session.cookie.http-only", "true");
+    sw.put("server.servlet.session.tracking-modes", "cookie", " this avoids session fixation via jsessionid in URL");
+    sw.put("server.servlet.session.timeout", "3600", " Session timeout in seconds.");
 
     sw.put("spring.http.multipart.max-file-size", "10Mb", "Upload sizes");
     sw.put("spring.http.multipart.max-request-size", "11Mb");
