@@ -205,7 +205,6 @@
     <module>projectforge-wicket</module>
     <module>plugins</module>
     <module>projectforge-application</module>
-    <module>projectforge-launcher</module>
   </modules>
 
   <profiles>
@@ -219,7 +218,6 @@
         <module>projectforge-wicket</module>
         <module>plugins</module>
         <module>projectforge-application</module>
-        <module>projectforge-launcher</module>
         <module>projectforge-docker</module>
       </modules>
     </profile>
