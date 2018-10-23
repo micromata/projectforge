@@ -62,6 +62,8 @@ public class ExportSheet
 
   private boolean imported;
 
+  private CellStyle cellStyle;
+
   public ExportSheet(final ContentProvider contentProvider, final String name, final Sheet poiSheet)
   {
     this.contentProvider = contentProvider;
@@ -243,9 +245,6 @@ public class ExportSheet
     return propertyNames;
   }
 
-  /**
-   * @see ExportRow#updateStyles(StyleProvider)
-   */
   public void updateStyles()
   {
     if (contentProvider != null) {
@@ -345,7 +344,7 @@ public class ExportSheet
     this.imported = imported;
   }
 
-  private static Row copyRow(Sheet worksheet, int rowNum)
+  private Row copyRow(Sheet worksheet, int rowNum)
   {
     Row sourceRow = worksheet.getRow(rowNum);
 
@@ -360,6 +359,9 @@ public class ExportSheet
     Row newRow = sourceRow; //Now sourceRow is the empty line, so let's rename it
     sourceRow = worksheet.getRow(rowNum + 1); //Now the source row is at rowNum+1
 
+    // Copy style from old cell and apply to new cell
+    CellStyle newCellStyle = createOrGetCellStyle(worksheet);
+
     // Loop through source columns to add to new row
     for (int i = 0; i < sourceRow.getLastCellNum(); i++) {
       // Grab a copy of the old/new cell
@@ -373,8 +375,6 @@ public class ExportSheet
         newCell = newRow.createCell(i);
       }
 
-      // Copy style from old cell and apply to new cell
-      CellStyle newCellStyle = worksheet.getWorkbook().createCellStyle();
       newCellStyle.cloneStyleFrom(oldCell.getCellStyle());
       newCell.setCellStyle(newCellStyle);
 
@@ -428,5 +428,12 @@ public class ExportSheet
       }
     }
     return newRow;
+  }
+
+  private CellStyle createOrGetCellStyle(Sheet worksheet) {
+    if(cellStyle == null) {
+      cellStyle = worksheet.getWorkbook().createCellStyle();
+    }
+    return cellStyle;
   }
 }
