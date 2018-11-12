@@ -26,27 +26,7 @@ Please visit: https://www.projectforge.org/pf-en/New_Developer_Guide
 5. Open your browser:  
    http://localhost:8080
    
-## Quickstart with launcher
-
-> Please note: You only need the following steps for developing ProjectForge.
-> If you just want to run it, please download it from https://sourceforge.net/projects/pforge/
-
-1. Checkout:  
-   https://github.com/micromata/projectforge.git
-
-2. Build ProjectForge:  
-   ```mvn clean install -DskipTests```
-
-3. Open the directory of the compiled jar file: ```projectforge-launcher/target```
-
-4. Run ProjectForge:  
-   double click on ```projectforge-launcher-X.X.X.jar```
-
-5. Open your browser:  
-   ```Start Server. Open Browser```
-
-
-## Quickstart with Eclipse and maven
+### Quickstart with Eclipse and maven
 
 1. Launch eclipse
 
