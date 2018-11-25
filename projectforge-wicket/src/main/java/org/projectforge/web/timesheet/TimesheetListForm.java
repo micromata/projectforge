@@ -25,7 +25,6 @@ package org.projectforge.web.timesheet;
 
 import java.util.Date;
 
-import org.slf4j.Logger;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.form.validation.IFormValidator;
@@ -50,6 +49,7 @@ import org.projectforge.web.wicket.flowlayout.CheckBoxButton;
 import org.projectforge.web.wicket.flowlayout.DivPanel;
 import org.projectforge.web.wicket.flowlayout.DivTextPanel;
 import org.projectforge.web.wicket.flowlayout.FieldsetPanel;
+import org.slf4j.Logger;
 
 public class TimesheetListForm extends AbstractListForm<TimesheetListFilter, TimesheetListPage>
 {
@@ -201,6 +201,12 @@ public class TimesheetListForm extends AbstractListForm<TimesheetListFilter, Tim
         optionsCheckBoxesPanel.newChildId(),
         new PropertyModel<>(getSearchFilter(), "recursive"),
         getString("task.recursive")
+    ));
+
+    optionsCheckBoxesPanel.add(new CheckBoxButton(
+        optionsCheckBoxesPanel.newChildId(),
+        new PropertyModel<>(getSearchFilter(), "onlyBillable"),
+        getString("task.onlyBillable")
     ));
 
     final CheckBoxButton markedButton = new CheckBoxButton(

@@ -281,6 +281,15 @@ public class TimesheetDao extends BaseDao<TimesheetDO>
         }
       }
     }
+    if (myFilter.isOnlyBillable() == true) {
+      final List<TimesheetDO> list = result;
+      result = new ArrayList<TimesheetDO>();
+      for (final TimesheetDO entry : list) {
+        if (entry.getKost2() != null && entry.getKost2().getKost2Art() != null && entry.getKost2().getKost2Art().isFakturiert()) {
+          result.add(entry);
+        }
+      }
+    }
     return result;
   }
 

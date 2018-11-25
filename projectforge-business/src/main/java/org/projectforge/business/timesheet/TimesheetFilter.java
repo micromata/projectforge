@@ -24,7 +24,6 @@
 package org.projectforge.business.timesheet;
 
 import java.io.Serializable;
-import java.sql.Time;
 import java.util.Date;
 
 import org.projectforge.business.task.TaskDependentFilter;
@@ -50,6 +49,8 @@ public class TimesheetFilter extends BaseSearchFilter implements Serializable, T
 
   private boolean recursive = true;
 
+  private boolean onlyBillable = false;
+
   private OrderDirection orderType = OrderDirection.DESC;
 
   public TimesheetFilter()
@@ -68,6 +69,7 @@ public class TimesheetFilter extends BaseSearchFilter implements Serializable, T
       this.marked = tf.marked;
       this.longFormat = tf.longFormat;
       this.recursive = tf.recursive;
+      this.onlyBillable = tf.onlyBillable;
       this.orderType = tf.orderType;
     }
   }
@@ -182,6 +184,21 @@ public class TimesheetFilter extends BaseSearchFilter implements Serializable, T
   public void setRecursive(final boolean recursive)
   {
     this.recursive = recursive;
+  }
+
+  /**
+   * If only billable flag is true then only the time sheets with billable kost2 elements are selected.
+   *
+   * @return
+   */
+  public boolean isOnlyBillable()
+  {
+    return onlyBillable;
+  }
+
+  public void setOnlyBillable(final boolean onlyBillable)
+  {
+    this.onlyBillable = onlyBillable;
   }
 
   /**
