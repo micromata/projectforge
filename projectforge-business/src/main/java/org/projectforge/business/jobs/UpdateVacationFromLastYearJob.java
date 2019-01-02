@@ -22,7 +22,7 @@ public class UpdateVacationFromLastYearJob
   @Autowired
   private EmployeeService employeeService;
 
-  @Scheduled(cron = "0 0 23 31 12 *")
+  @Scheduled(cron = "0 0 21 31 12 *")
   @Scheduled(cron = "${projectforge.cron.updateVacationLastYear}")
   public void updateNewVacationDaysFromLastYear()
   {
