@@ -226,8 +226,14 @@ public class EmployeeDao extends BaseDao<EmployeeDO>
     try {
       result = emgrFactory.runRoTrans(emgr -> {
         String baseSQL = "SELECT e FROM EmployeeDO e WHERE e.staffNumber = :staffNumber";
+        TenantDO tenant;
+        if (ThreadLocalUserContext.getUser() == null || ThreadLocalUserContext.getUser().getTenant() == null) {
+          tenant = tenantService.getDefaultTenant();
+        } else {
+          tenant = ThreadLocalUserContext.getUser().getTenant();
+        }
         return emgr.selectSingleDetached(EmployeeDO.class, baseSQL + META_SQL, "staffNumber", staffnumber, "deleted", false, "tenant",
-            ThreadLocalUserContext.getUser().getTenant());
+            tenant);
       });
     } catch (NoResultException ex) {
       log.warn("No employee found for staffnumber: " + staffnumber);
