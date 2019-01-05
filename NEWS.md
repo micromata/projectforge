@@ -1,3 +1,4 @@
-Release 6.23.0
-* Update spring boot version
-* Fix excel export bug
+Release 6.24.0
+* Add not billable filter
+* Fix timesheet protection
+* Fix vacation job
