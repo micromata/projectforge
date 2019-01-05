@@ -281,6 +281,15 @@ public class TimesheetDao extends BaseDao<TimesheetDO>
         }
       }
     }
+    if (myFilter.isOnlyBillable() == true) {
+      final List<TimesheetDO> list = result;
+      result = new ArrayList<TimesheetDO>();
+      for (final TimesheetDO entry : list) {
+        if (entry.getKost2() != null && entry.getKost2().getKost2Art() != null && entry.getKost2().getKost2Art().isFakturiert()) {
+          result.add(entry);
+        }
+      }
+    }
     return result;
   }
 
@@ -769,7 +778,8 @@ public class TimesheetDao extends BaseDao<TimesheetDO>
       }
       final DateHolder dh = new DateHolder(date);
       dh.setEndOfDay();
-      if (timesheet.getStartTime().before(dh.getDate()) == true) {
+      //New and existing startdate have to be checked for protection
+      if ((oldTimesheet != null && oldTimesheet.getStartTime().before(dh.getDate()) == true) || timesheet.getStartTime().before(dh.getDate()) == true) {
         if (throwException == true) {
           throw new AccessException("timesheet.error.timesheetProtectionVioloation", node.getTask().getTitle()
               + " (#"
