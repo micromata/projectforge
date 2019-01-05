@@ -779,7 +779,7 @@ public class TimesheetDao extends BaseDao<TimesheetDO>
       final DateHolder dh = new DateHolder(date);
       dh.setEndOfDay();
       //New and existing startdate have to be checked for protection
-      if (oldTimesheet.getStartTime().before(dh.getDate()) == true || timesheet.getStartTime().before(dh.getDate()) == true) {
+      if ((oldTimesheet != null && oldTimesheet.getStartTime().before(dh.getDate()) == true) || timesheet.getStartTime().before(dh.getDate()) == true) {
         if (throwException == true) {
           throw new AccessException("timesheet.error.timesheetProtectionVioloation", node.getTask().getTitle()
               + " (#"
