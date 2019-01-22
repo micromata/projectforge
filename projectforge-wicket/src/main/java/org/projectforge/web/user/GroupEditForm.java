@@ -120,7 +120,7 @@ public class GroupEditForm extends AbstractEditForm<GroupDO, GroupEditPage>
         final String groupname = validatable.getValue();
         getData().setName(groupname);
         if (groupDao.doesGroupnameAlreadyExist(getData()) == true) {
-          validatable.error(new ValidationError().addKey("fibu.kost.error.invalidKost"));
+          validatable.error(new ValidationError().addKey("group.error.groupnameAlreadyExists"));
         }
       });
       fs.add(name);
