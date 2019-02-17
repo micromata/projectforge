@@ -4,7 +4,7 @@ ProjectForge is a web-based solution for project management including time track
 controlling and managing work-break-down-structures (e. g. together with JIRA as issue management system).
 
 Full documentation on: http://www.projectforge.org/pf-en/Documentation
-Please visit: https://www.projectforge.org/pf-en/New_Developer_Guide
+Please visit: https://www.projectforge.org/documentation/developer-guide.html
 
 ## Quickstart from command line
 
@@ -13,27 +13,21 @@ Please visit: https://www.projectforge.org/pf-en/New_Developer_Guide
 
 1. Checkout:  
    https://github.com/micromata/projectforge.git
-
 2. Build ProjectForge:  
-   ```mvn clean install -DskipTests=true```
-   
+   `mvn clean install -DskipTests=true`
 3. Change Directory:  
-    ```cd projectforge-application```
-
+    `cd projectforge-application`
 4. Run ProjectForge:  
-   ```java -jar target/projectforge-application-X.X.X.jar```
-
+   `java -jar target/projectforge-application-X.X.X.jar`
 5. Open your browser:  
    http://localhost:8080
-   
+
+Start with own config location: `java -jar target/projectforge-application-X.X.X.jar --spring.config.additional-location=/Users/kai/ProjectForge/application.properties`
 ### Quickstart with Eclipse and maven
 
 1. Launch eclipse
-
 2. Import Maven project -> pom.xml in projectforge git root dir
-
 3. Import Maven project -> pom.xml in projectforge-application dir
-
 3. Start by simply running main (in projectforge-application/src/main/java):  
    org.projectforge.start.ProjectForgeApplication.java
 
@@ -52,5 +46,17 @@ One advantage is that your own plugins are independent from new releases of the 
 
 ## Quickstart with PostgreSQL
 
-1. ```docker run --name projectforge-postgres -e POSTGRES_PASSWORD=mypassword -d postgres:11.2```
-2. ```docker run -it --rm --link projectforge-postgres:postgres postgres:11.2 psql -h postgres -U postgres```
+### Using PostgresSQL (Docker)
+
+Choose and set a database password: `export PGPASSWORD=mypassword`
+
+.Table Install PostgreSQL
+|===
+|Initialize and run|`docker run --name projectforge-postgres -p 127.0.0.1:15432:5432 -e POSTGRES_PASSWORD=$PGPASSWORD -d postgres:11.2`
+|Stop|`docker stop projectforge-postgres`
+|Start|`docker start projectforge-postgres`
+|Import dump|`docker run -v ~/ProjectForgeBackup/pf.sql:/mnt/pf.sql -e PGPASSWORD=$PGPASSWORD -it --rm --link projectforge-postgres:postgres postgres:11.2 psql -h postgres -U postgres -q -f /mnt/pf.sql  2>&1 > log.txt`
+|PSQL|`docker run -e PGPASSWORD=$PGPASSWORD -it --rm --link projectforge-postgres:postgres postgres:11.2 psql -h postgres -U postgres`
+|Uninstall|`docker rm projectforge-postgres`
+|===
+
