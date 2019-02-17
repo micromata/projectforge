@@ -50,3 +50,7 @@ Deploy your plugins by adding your jar(s) to the plugin directory next to the ja
 Register your plugins in the administration menu at the web gui. You need to restart the server.
 One advantage is that your own plugins are independent from new releases of the ProjectForge core system. In one of the next releases an example plugin will show you how easy it is to extend ProjectForge!
 
+## Quickstart with PostgreSQL
+
+1. ```docker run --name projectforge-postgres -e POSTGRES_PASSWORD=mypassword -d postgres:11.2```
+2. ```docker run -it --rm --link projectforge-postgres:postgres postgres:11.2 psql -h postgres -U postgres```
