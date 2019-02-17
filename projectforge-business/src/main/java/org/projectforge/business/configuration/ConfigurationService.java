@@ -75,6 +75,11 @@ public interface ConfigurationService {
   String getSmsReturnPatternSuccess();
 
   /**
+   * @return The maximum length of a message (default is 160).
+   */
+  int getSmsMaxMessageLength();
+
+  /**
    * @return The pattern of the response string for service calls with error in phone number (receiver).
    */
   String getSmsReturnPatternNumberError();

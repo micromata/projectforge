@@ -154,10 +154,10 @@ public class SendSmsPage extends AbstractStandardFormPage {
       log.error("Servlet url for sending sms not configured. SMS not supported.");
       return;
     }
-    log.info("User sends message to destination number: '" + StringHelper.hideStringEnding(number, 'x', 3));
     SMSSender smsSender = new SMSSender(configurationService.getSmsHttpMethod(),
             configurationService.getSmsUrl(),
             configurationService.getSmsHttpParameters())
+            .setSmsMaxMessageLength(configurationService.getSmsMaxMessageLength())
             .setSmsReturnPatternSuccess(configurationService.getSmsReturnPatternSuccess())
             .setSmsReturnPatternError(configurationService.getSmsReturnPatternError())
             .setSmsReturnPatternMessageError(configurationService.getSmsReturnPatternMessageError())

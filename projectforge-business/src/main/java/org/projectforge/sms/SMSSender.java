@@ -30,6 +30,7 @@ public class SMSSender {
   private String smsReturnPatternMessageToLargeError;
   private String smsReturnPatternMessageError;
   private String smsReturnPatternError;
+  private int smsMaxMessageLength = 160;
 
   /**
    * @param httpMethodType Uses {@link HttpMethodType#GET} for String "get" (ignore case), otherwise {@link HttpMethodType#POST}.
@@ -48,6 +49,16 @@ public class SMSSender {
    * @return
    */
   public HttpResponseCode send(String phoneNumber, String message) {
+    if (message == null) {
+      log.error("Failed to send message to destination number: '" + StringHelper.hideStringEnding(phoneNumber, 'x', 3)
+              + ". Message is null!");
+      return HttpResponseCode.MESSAGE_ERROR;
+    }
+    if (message.length() > smsMaxMessageLength) {
+      log.error("Failed to send message to destination number: '" + StringHelper.hideStringEnding(phoneNumber, 'x', 3)
+              + ". Message is to large, max length is " + smsMaxMessageLength + ", but current message size is " + message.length());
+      return HttpResponseCode.MESSAGE_TO_LARGE;
+    }
     String proceededUrl = replaceVariables(this.url, phoneNumber, message, true);
     HttpMethodBase method = createHttpMethod(proceededUrl);
     if (httpMethodType == HttpMethodType.GET) {
@@ -72,6 +83,8 @@ public class SMSSender {
     try {
       int responseCode = client.executeMethod(method);
       final String response = method.getResponseBodyAsString();
+      log.info("Tried to send message to destination number: '" + StringHelper.hideStringEnding(phoneNumber, 'x', 3)
+              + ". Response from service: " + response);
       if (response == null) {
         return HttpResponseCode.UNKNOWN_ERROR;
       } else if (matches(response, this.smsReturnPatternSuccess) == true) {
@@ -159,6 +172,11 @@ public class SMSSender {
 
   protected HttpClient createHttpClient() {
     return new HttpClient();
+  }
+
+  public SMSSender setSmsMaxMessageLength(int smsMaxMessageLength) {
+    this.smsMaxMessageLength = smsMaxMessageLength;
+    return this;
   }
 
   public SMSSender setSmsReturnPatternSuccess(String smsReturnPatternSuccess) {

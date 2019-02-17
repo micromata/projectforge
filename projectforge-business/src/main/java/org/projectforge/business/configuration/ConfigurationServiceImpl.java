@@ -96,6 +96,9 @@ public class ConfigurationServiceImpl implements ConfigurationService
   @Value("${projectforge.sms.httpParameters}")
   private Map<String, String> smsHttpParameters = new HashMap<>();
 
+  @Value("${projectforge.sms.smsMaxMessageLength}")
+  private int smsMaxMessageLength = 160;
+
   @Value("${projectforge.sms.returnCodePattern.success}")
   private String smsReturnPatternSuccess;
 
@@ -432,6 +435,11 @@ public class ConfigurationServiceImpl implements ConfigurationService
   @Override
   public String getSmsHttpMethod() {
     return smsHttpMethod;
+  }
+
+  @Override
+  public int getSmsMaxMessageLength() {
+    return smsMaxMessageLength;
   }
 
   /**
