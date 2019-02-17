@@ -29,16 +29,21 @@ import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.commons.httpclient.methods.PostMethod;
 import org.testng.Assert;
 import org.testng.annotations.Test;
+import org.yaml.snakeyaml.Yaml;
 
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
 import static org.mockito.Mockito.*;
 
 public class SMSSenderTest {
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(SMSSenderTest.class);
 
   @Test
-  public void test() throws Exception {
+  public void testSmsService() throws Exception {
     Assert.assertEquals(SMSSender.HttpResponseCode.SUCCESS,
             testGetCall("hurzel", "0123456", "Hello_world", 200, "OK. Perfect."));
     Assert.assertEquals(SMSSender.HttpResponseCode.UNKNOWN_ERROR,
@@ -48,6 +53,60 @@ public class SMSSenderTest {
 
     Assert.assertEquals(SMSSender.HttpResponseCode.UNKNOWN_ERROR,
             testPostCall("hurzel", "0123456", "Hello_world", 100, "Ingore this message."));
+  }
+
+  /**
+   * Configuration of live test in ~/ProjectForge/smsTestConfig.yaml
+   * <pre>
+   *   projectforge:
+   *     sms:
+   *         httpMethod: POST
+   *         httpParameters:
+   *             mode: 'number'
+   *             password: 'mypassword'
+   *             text: '#message'
+   *             to: '#number'
+   *             username: 'projectforge'
+   *         returnCodePattern:
+   *             error: ''
+   *             messageError: ''
+   *             messageToLargeError: ''
+   *             numberError: ''
+   *             success: ''
+   *         url: 'http://smsgateway.acme.com/api.php'
+   *         testNumber: '0123456789'
+   * </pre>
+   *
+   * @throws IOException
+   */
+  @Test
+  public void liveTest() throws IOException {
+    // ~/ProjectForge/smsTestConfig.yaml
+    File configFile = new File(System.getProperty("user.home"), "ProjectForge" + File.separatorChar + "smsTestConfig.yaml");
+    if (!configFile.exists()) {
+      log.info("Skipping live testing of sms service (OK). For live testing, please refer this code for the required config file: " + configFile.getAbsolutePath());
+      return;
+    }
+    Yaml yaml = new Yaml();
+    Map<String, Object> map = yaml.load(new FileReader(configFile));
+    String httpMethodType = (String) getFromMap(map, "projectforge", "sms", "httpMethod");
+    String url = (String) getFromMap(map, "projectforge", "sms", "url");
+    String testNumber = (String) getFromMap(map, "projectforge", "sms", "testNumber");
+    Map<String, String> httpParams = (Map<String, String>) getFromMap(map, "projectforge", "sms", "httpParameters");
+    SMSSender sender = new SMSSender(httpMethodType, url, httpParams);
+    sender.send(testNumber, "Hello world! With love by ProjectForge.");
+  }
+
+  private Object getFromMap(Map<String, Object> map, String... keys) {
+    for (String key : keys) {
+      Object obj = map.get(key);
+      if (obj instanceof Map) {
+        map = (Map) obj;
+      } else {
+        return obj;
+      }
+    }
+    return map;
   }
 
   private SMSSender.HttpResponseCode testPostCall(String url, String phoneNumber, String message, int fakedReturnCode, String fakedResponseString) throws Exception {

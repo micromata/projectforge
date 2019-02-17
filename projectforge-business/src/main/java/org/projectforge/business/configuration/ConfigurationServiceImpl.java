@@ -93,7 +93,7 @@ public class ConfigurationServiceImpl implements ConfigurationService
    * Variables #number and #message will be replaced by the user's form input.
    * @return Optional parameters for sms service (user, password.
    */
-  @Value("${projectforge.sms.parameters}")
+  @Value("${projectforge.sms.httpParameters}")
   private Map<String, String> smsHttpParameters = new HashMap<>();
 
   @Value("${projectforge.sms.returnCodePattern.success}")
