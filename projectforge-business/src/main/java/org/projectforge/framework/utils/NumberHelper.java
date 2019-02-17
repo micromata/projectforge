@@ -392,10 +392,6 @@ public class NumberHelper
       final char ch = str.charAt(i);
       if (Character.isDigit(str.charAt(i)) == true) {
         buf.append(ch);
-      } else if (Character.isWhitespace(ch) == true) {
-        // continue.
-      } else if (ALLOWED_PHONE_NUMBER_CHARS.indexOf(ch) < 0) {
-        break;
       }
     }
     return buf.toString();
