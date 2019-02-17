@@ -22,7 +22,8 @@ Please visit: https://www.projectforge.org/documentation/developer-guide.html
 5. Open your browser:  
    http://localhost:8080
 
-Start with own config location: `java -jar target/projectforge-application-X.X.X.jar --spring.config.additional-location=/Users/kai/ProjectForge/application.properties`
+Start with own config location: `java -jar target/projectforge-application-X.X.X.jar --spring.config.additional-location=file:~/ProjectForge/application.properties`
+
 ### Quickstart with Eclipse and maven
 
 1. Launch eclipse
@@ -52,10 +53,10 @@ Choose and set a database password: `export PGPASSWORD=mypassword`
 
 .Table Install PostgreSQL
 |===
-|Initialize and run|`docker run --name projectforge-postgres -p 127.0.0.1:15432:5432 -e POSTGRES_PASSWORD=$PGPASSWORD -d postgres:11.2`
+|Initialize and run|`docker run --name projectforge-postgres -p 127.0.0.1:15432:5432 -e POSTGRES_PASSWORD=$PGPASSWORD -e POSTGRES_USER=projectforge -d postgres:11.2`
 |Stop|`docker stop projectforge-postgres`
 |Start|`docker start projectforge-postgres`
-|Import dump|`docker run -v ~/ProjectForgeBackup/pf.sql:/mnt/pf.sql -e PGPASSWORD=$PGPASSWORD -it --rm --link projectforge-postgres:postgres postgres:11.2 psql -h postgres -U postgres -q -f /mnt/pf.sql  2>&1 > log.txt`
+|Import dump|`docker run -v ~/ProjectForgeBackup/pf.sql:/mnt/pf.sql -e PGPASSWORD=$PGPASSWORD -it --rm --link projectforge-postgres:postgres postgres:11.2 psql -h postgres -U projectforge -q -f /mnt/pf.sql  2>&1 > log.txt`
 |PSQL|`docker run -e PGPASSWORD=$PGPASSWORD -it --rm --link projectforge-postgres:postgres postgres:11.2 psql -h postgres -U postgres`
 |Uninstall|`docker rm projectforge-postgres`
 |===
