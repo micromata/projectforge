@@ -27,7 +27,6 @@ import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpMethod;
 import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.commons.httpclient.methods.PostMethod;
-import org.projectforge.framework.time.DateHelper;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 import org.yaml.snakeyaml.Yaml;
@@ -95,15 +94,16 @@ public class SMSSenderTest {
     String testNumber = (String) getFromMap(map, "projectforge", "sms", "testNumber");
     Map<String, String> httpParams = (Map<String, String>) getFromMap(map, "projectforge", "sms", "httpParameters");
     SMSSender sender = new SMSSender(httpMethodType, url, httpParams);
-    sender.setSmsMaxMessageLength((int)getFromMap(map, "projectforge", "sms", "smsMaxMessageLength"));
-    sender.setSmsReturnPatternSuccess((String)getFromMap(map, "projectforge", "sms", "returnCodePattern", "success"));
-    sender.setSmsReturnPatternNumberError((String)getFromMap(map, "projectforge", "sms", "returnCodePattern", "numberError"));
-    sender.setSmsReturnPatternMessageToLargeError((String)getFromMap(map, "projectforge", "sms", "returnCodePattern", "messageToLargeError"));
-    sender.setSmsReturnPatternMessageError((String)getFromMap(map, "projectforge", "sms", "returnCodePattern", "messageError"));
-    sender.setSmsReturnPatternError((String)getFromMap(map, "projectforge", "sms", "returnCodePattern", "error"));
+    sender.setSmsMaxMessageLength((int) getFromMap(map, "projectforge", "sms", "smsMaxMessageLength"));
+    sender.setSmsReturnPatternSuccess((String) getFromMap(map, "projectforge", "sms", "returnCodePattern", "success"));
+    sender.setSmsReturnPatternNumberError((String) getFromMap(map, "projectforge", "sms", "returnCodePattern", "numberError"));
+    sender.setSmsReturnPatternMessageToLargeError((String) getFromMap(map, "projectforge", "sms", "returnCodePattern", "messageToLargeError"));
+    sender.setSmsReturnPatternMessageError((String) getFromMap(map, "projectforge", "sms", "returnCodePattern", "messageError"));
+    sender.setSmsReturnPatternError((String) getFromMap(map, "projectforge", "sms", "returnCodePattern", "error"));
     sender.send(testNumber, "Hello world! With love by ProjectForge: " + new Date());
   }
 
+  // Helper for getting variables from YAML object map.
   private Object getFromMap(Map<String, Object> map, String... keys) {
     for (String key : keys) {
       Object obj = map.get(key);

@@ -63,6 +63,7 @@ public class SMSSender {
     HttpMethodBase method = createHttpMethod(proceededUrl);
     if (httpMethodType == HttpMethodType.GET) {
       if (MapUtils.isNotEmpty(httpParams)) {
+        // Now build the query params list from the configured httpParams:
         NameValuePair[] params = new NameValuePair[httpParams.size()];
         int index = 0;
         for (Map.Entry<String, String> entry : httpParams.entrySet()) {
@@ -71,8 +72,9 @@ public class SMSSender {
         }
         ((GetMethod) method).setQueryString(params);
       }
-    } else {
+    } else { // HTTP POST
       if (MapUtils.isNotEmpty(httpParams)) {
+        // Now add all post params from the configured httpParams:
         for (Map.Entry<String, String> entry : httpParams.entrySet()) {
           String value = replaceVariables(entry.getValue(), phoneNumber, message, false);
           ((PostMethod) method).addParameter(entry.getKey(), value);
