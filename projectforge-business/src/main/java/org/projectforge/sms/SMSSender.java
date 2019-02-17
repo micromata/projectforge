@@ -81,28 +81,30 @@ public class SMSSender {
     }
     final HttpClient client = createHttpClient();
     try {
-      int responseCode = client.executeMethod(method);
+      int responseNumber = client.executeMethod(method);
       final String response = method.getResponseBodyAsString();
       log.info("Tried to send message to destination number: '" + StringHelper.hideStringEnding(phoneNumber, 'x', 3)
               + ". Response from service: " + response);
-      if (response == null) {
-        return HttpResponseCode.UNKNOWN_ERROR;
-      } else if (matches(response, this.smsReturnPatternSuccess) == true) {
-        return HttpResponseCode.SUCCESS;
+      HttpResponseCode responseCode = null;
+      if (response == null || responseNumber != 200) {
+        responseCode = HttpResponseCode.UNKNOWN_ERROR;
       } else if (matches(response, this.smsReturnPatternNumberError) == true) {
-        return HttpResponseCode.NUMBER_ERROR;
+        responseCode = HttpResponseCode.NUMBER_ERROR;
       } else if (matches(response, this.smsReturnPatternMessageToLargeError) == true) {
-        return HttpResponseCode.MESSAGE_TO_LARGE;
+        responseCode = HttpResponseCode.MESSAGE_TO_LARGE;
       } else if (matches(response, this.smsReturnPatternMessageError) == true) {
-        return HttpResponseCode.MESSAGE_ERROR;
+        responseCode = HttpResponseCode.MESSAGE_ERROR;
       } else if (matches(response, this.smsReturnPatternError) == true) {
-        return HttpResponseCode.UNKNOWN_ERROR;
+        responseCode = HttpResponseCode.UNKNOWN_ERROR;
+      } else if (matches(response, this.smsReturnPatternSuccess) == true) {
+        responseCode = HttpResponseCode.SUCCESS;
       } else {
-        if (responseCode != 200) {
-          return HttpResponseCode.UNKNOWN_ERROR;
-        }
-        return HttpResponseCode.SUCCESS;
+        responseCode = HttpResponseCode.UNKNOWN_ERROR;
       }
+      if (responseCode != HttpResponseCode.SUCCESS) {
+        log.error("Unexpected response from sms gateway: " + responseNumber + ": " + response + " (if this call was successful, did you configured projectforge.sms.returnCodePattern.success?).");
+      }
+      return responseCode;
     } catch (final HttpException ex) {
       String errorKey = "Call failed. Please contact administrator.";
       log.error(errorKey + ": " + proceededUrl
