@@ -1,23 +1,23 @@
 package org.projectforge.business.fibu;
 
-import static org.testng.AssertJUnit.*;
-
-import java.sql.Date;
-import java.util.Calendar;
-
 import org.projectforge.test.AbstractTestBase;
 import org.projectforge.web.session.UserAgentBrowser;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.testng.annotations.Test;
 
-public class InvoiceServiceTest extends AbstractTestBase
-{
+import java.sql.Date;
+import java.time.LocalDate;
+import java.time.Month;
+import java.util.Calendar;
+
+import static org.testng.AssertJUnit.*;
+
+public class InvoiceServiceTest extends AbstractTestBase {
   @Autowired
   private InvoiceService invoiceService;
 
   @Test
-  public void invoiceFilenameEmptyTest()
-  {
+  public void invoiceFilenameEmptyTest() {
     RechnungDO data = new RechnungDO();
     String filename = invoiceService.getInvoiceFilename(data, UserAgentBrowser.UNKNOWN);
     assertNotNull(filename);
@@ -26,8 +26,7 @@ public class InvoiceServiceTest extends AbstractTestBase
   }
 
   @Test
-  public void invoiceFilenameStandardTest()
-  {
+  public void invoiceFilenameStandardTest() {
     RechnungDO data = new RechnungDO();
     data.setNummer(12345);
     KundeDO kunde = new KundeDO();
@@ -37,9 +36,8 @@ public class InvoiceServiceTest extends AbstractTestBase
     projekt.setName("Projekt");
     data.setProjekt(projekt);
     data.setBetreff("Betreff");
-    Calendar calendar = Calendar.getInstance();
-    calendar.set(2017, Calendar.AUGUST, 4);
-    data.setDatum(new Date(calendar.getTimeInMillis()));
+    LocalDate date = LocalDate.of(2017, Month.AUGUST, 4);
+    data.setDatum(java.sql.Date.valueOf(date));
 
     String filename = invoiceService.getInvoiceFilename(data, UserAgentBrowser.UNKNOWN);
     assertNotNull(filename);
@@ -48,8 +46,7 @@ public class InvoiceServiceTest extends AbstractTestBase
   }
 
   @Test
-  public void invoiceFilenameSpecialCharacterTest()
-  {
+  public void invoiceFilenameSpecialCharacterTest() {
     RechnungDO data = new RechnungDO();
     data.setNummer(12345);
     KundeDO kunde = new KundeDO();
@@ -59,9 +56,8 @@ public class InvoiceServiceTest extends AbstractTestBase
     projekt.setName("Projekt-Titel");
     data.setProjekt(projekt);
     data.setBetreff("Betreff/Änderung?");
-    Calendar calendar = Calendar.getInstance();
-    calendar.set(2017, Calendar.AUGUST, 4);
-    data.setDatum(new Date(calendar.getTimeInMillis()));
+    LocalDate date = LocalDate.of(2017, Month.AUGUST, 4);
+    data.setDatum(java.sql.Date.valueOf(date));
 
     String filename = invoiceService.getInvoiceFilename(data, UserAgentBrowser.UNKNOWN);
     assertNotNull(filename);
@@ -70,8 +66,7 @@ public class InvoiceServiceTest extends AbstractTestBase
   }
 
   @Test
-  public void invoiceFilenameTooLongTest()
-  {
+  public void invoiceFilenameTooLongTest() {
     RechnungDO data = new RechnungDO();
     data.setNummer(12345);
     KundeDO kunde = new KundeDO();
@@ -88,8 +83,8 @@ public class InvoiceServiceTest extends AbstractTestBase
     assertNotNull(filename);
     assertTrue(filename.length() < 256);
     assertEquals(
-        "12345_Kunde_Projekt_abcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabc[more].docx",
-        filename);
+            "12345_Kunde_Projekt_abcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabc[more].docx",
+            filename);
   }
 
 }
