@@ -29,10 +29,12 @@ import java.util.Calendar;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.projectforge.business.teamcal.common.CalendarHelper;
 import org.slf4j.Logger;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
@@ -167,9 +169,11 @@ public class VacationEditForm extends AbstractEditForm<VacationDO, VacationEditP
         @Override
         protected void onUpdate(final AjaxRequestTarget target)
         {
-          BigDecimal availableVacationDays = getAvailableVacationDays(data);
-          availableVacationDaysModel.setObject(availableVacationDays.toString());
-          target.add(availableVacationDaysLabel);
+          if(CalendarHelper.getCalenderData(data.getEndDate(), Calendar.YEAR) == new GregorianCalendar().get(Calendar.YEAR)) {
+            BigDecimal availableVacationDays = getAvailableVacationDays(data);
+            availableVacationDaysModel.setObject(availableVacationDays.toString());
+            target.add(availableVacationDaysLabel);
+          }
         }
       });
       formValidator.getDependentFormComponents()[3] = employeeSelect;
@@ -213,13 +217,14 @@ public class VacationEditForm extends AbstractEditForm<VacationDO, VacationEditP
         @Override
         protected void onUpdate(final AjaxRequestTarget target)
         {
-          // needed days
-          BigDecimal availableVacationDays = getAvailableVacationDays(data);
-          availableVacationDaysModel.setObject(availableVacationDays.toString());
-          target.add(availableVacationDaysLabel);
+          if(CalendarHelper.getCalenderData(data.getEndDate(), Calendar.YEAR) == new GregorianCalendar().get(Calendar.YEAR)) {
+            // needed days
+            BigDecimal availableVacationDays = getAvailableVacationDays(data);
+            availableVacationDaysModel.setObject(availableVacationDays.toString());
+            target.add(availableVacationDaysLabel);
 
-          updateNeededVacationDaysLabel(target);
-
+            updateNeededVacationDaysLabel(target);
+          }
           // end date
           final long selectedDate = startDatePanel.getDateField().getModelObject().getTime();
 
@@ -261,9 +266,14 @@ public class VacationEditForm extends AbstractEditForm<VacationDO, VacationEditP
       fs.add(checkboxPanel);
     }
 
-    // Available vacation days - only visible for the creator and manager
-    if (data.getVacationmode() == VacationMode.OWN || data.getVacationmode() == VacationMode.MANAGER || data.getVacationmode() == VacationMode.OTHER)
-
+    // Available vacation days - only visible for the creator and manager and from this Year
+    if ( (  data.getVacationmode() == VacationMode.OWN ||
+            data.getVacationmode() == VacationMode.MANAGER ||
+            data.getVacationmode() == VacationMode.OTHER)
+          &&
+          ( CalendarHelper.getCalenderData(data.getEndDate(), Calendar.YEAR) == new GregorianCalendar().get(Calendar.YEAR) ||
+            CalendarHelper.getCalenderData(data.getEndDate(), Calendar.YEAR) == -1)
+       )
     {
       final FieldsetPanel fs = gridBuilder.newFieldset(I18nHelper.getLocalizedMessage("vacation.availabledays"));
       BigDecimal availableVacationDays = getAvailableVacationDays(data);
