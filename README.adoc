@@ -38,9 +38,9 @@ You may specify another config location: +
 === Quickstart with Eclipse and maven
 
 1. Launch eclipse
-2. Import Maven project -> pom.xml in projectforge git root dir`
+2. Import Maven project -> pom.xml in projectforge git root dir
 3. Import Maven project -> pom.xml in projectforge-application dir
-4. Start by simply running main (in `projectforge-application/src/main/java): +
+4. Start by simply running main (in `projectforge-application/src/main/java`): +
    `org.projectforge.start.ProjectForgeApplication.java`
 
 
@@ -51,7 +51,7 @@ Please note, that Java version 8 is needed for developing and running ProjectFor
 
 === Quickstart with IntelliJ
 
-Start by simply running main (in projectforge-application/src/main/java`): +
+Start by simply running main (in `projectforge-application/src/main/java`): +
    `org.projectforge.start.ProjectForgeApplication.java`
 
 == Adding your own plugins
@@ -88,7 +88,8 @@ spring.datasource.driver-class-name=org.postgresql.Driver
 |Stop|`docker stop projectforge-postgres`
 |Start|`docker start projectforge-postgres`
 |Import dump (optional)|`docker run -v ~/ProjectForgeBackup/pf.sql:/mnt/pf.sql -e PGPASSWORD=$PGPASSWORD -it --rm --link projectforge-postgres:postgres postgres:11.2 psql -h postgres -U projectforge -q -f /mnt/pf.sql  2>&1 > log.txt`
-|Reset passwords (optional)|`update t_pf_user SET password='SHA{BC871652288E56E306CFA093BEFC3FFCD0ED8872}', password_salt=null, email='m.developer@acme.com';`
+|Reset passwords (optional)|`update t_pf_user SET password='SHA{BC871652288E56E306CFA093BEFC3FFCD0ED8872}', password_salt=null, email='m.developer@acme.com';` +
+password is now `test123`.
 |PSQL|`docker run -e PGPASSWORD=$PGPASSWORD -it --rm --link projectforge-postgres:postgres postgres:11.2 psql -h postgres -U postgres`
 |Uninstall|`docker rm projectforge-postgres`
 |===
