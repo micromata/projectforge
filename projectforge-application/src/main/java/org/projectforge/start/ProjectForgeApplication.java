@@ -36,6 +36,19 @@ public class ProjectForgeApplication {
    * @return The main args extended by the new --spring.config.additional-location if not already given.
    */
   static String[] addDefaultAdditionalLocation(String[] args) {
+    boolean configFound = false;
+    if (checkConfiguration("config", "application-default.properties")) configFound = true;
+    if (checkConfiguration("config", "application.properties")) configFound = true;
+    if (checkConfiguration(".", "application-default.properties")) configFound = true;
+    if (checkConfiguration(".", "application.properties")) configFound = true;
+    if (configFound) {
+      File propertiesFile = getAddtionLocation();
+      if (propertiesFile.exists()) {
+        log.warn("Ignoring configuration '" + propertiesFile.getAbsolutePath() + "', configuration in current directory already found (see messages above).");
+      }
+      // Do nothing (configuration found in current directory:
+      return args;
+    }
     boolean additionalLocationFound = false;
     if (args == null || args.length == 0) {
       args = new String[]{getAddtionalLocationArg()};
@@ -52,8 +65,9 @@ public class ProjectForgeApplication {
       }
     }
     if (!additionalLocationFound) {
-      if (getAddtionLocation().exists()) {
-        log.info("Using config file: " + getAddtionLocation().getAbsolutePath());
+      File file = getAddtionLocation();
+      if (file.exists()) {
+        log.info("Configuration from '" + file.getAbsolutePath() + "' will be used.");
       }
     }
     return args;
@@ -69,5 +83,14 @@ public class ProjectForgeApplication {
 
   static File getAddtionLocation() {
     return Paths.get(System.getProperty("user.home"), "ProjectForge", "projectforge.properties").toFile();
+  }
+
+  private static boolean checkConfiguration(String dir, String filename) {
+    File file = new File(dir, filename);
+    if (file.exists()) {
+      log.info("Configuration from '" + file.getAbsolutePath() + "' will be used.");
+      return true;
+    }
+    return false;
   }
 }
