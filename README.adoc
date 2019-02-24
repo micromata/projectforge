@@ -30,7 +30,8 @@ If you just want to run it, please download it from https://sourceforge.net/proj
 projectforge.base.dir=${user.home}/ProjectForge
 ----
 
-Start with Your own config: `java -jar target/projectforge-application-X.X.X.jar --spring.config.additional-location=file:$HOME/ProjectForge/projectforge.properties`
+ProjectForge searches automatically for `$HOME/ProjectForge/projectforge.properties`. You may specify another location:
+Start with Your own config: `java -jar target/projectforge-application-X.X.X.jar --spring.config.additional-location=file:**mypath**/projectforge.properties`
 
 === Quickstart with Eclipse and maven
 
@@ -48,9 +49,7 @@ Please note, that Java version 8 is needed for developing and running ProjectFor
 
 === Quickstart with IntelliJ
 
-1. Edit configurations of Run (Program arguments, optional): +
-   `--spring.config.additional-location=file:/home/kai/ProjectForge/projectforge.properties`
-2. Start by simply running main (in projectforge-application/src/main/java`): +
+Start by simply running main (in projectforge-application/src/main/java`): +
    `org.projectforge.start.ProjectForgeApplication.java`
 
 == Adding your own plugins
@@ -73,12 +72,11 @@ One advantage is that your own plugins are independent from new releases of the 
 
 .$HOME/ProjectForge/projectforge.properties
 ----
+projectforge.base.dir=${user.home}/ProjectForge
 spring.datasource.url=jdbc:postgresql://localhost:15432/projectforge
 spring.datasource.username=projectforge
 spring.datasource.password=${PGPASSWORD}
 spring.datasource.driver-class-name=org.postgresql.Driver
-
-projectforge.base.dir=${user.home}/ProjectForge
 ----
 
 * Run ProjectForge and enjoy it.
