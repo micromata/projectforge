@@ -10,7 +10,7 @@ Please visit: https://www.projectforge.org/documentation/developer-guide.html
 
 [NOTE]
 ====
-Please note: You only need the following steps for developing ProjectForge.
+You only need the following steps for developing ProjectForge.
 If you just want to run it, please download it from https://sourceforge.net/projects/pforge/
 ====
 
@@ -50,9 +50,12 @@ One advantage is that your own plugins are independent from new releases of the 
 
 === Using PostgresSQL (Docker)
 
-* Choose and set a database password: `export PGPASSWORD=mypassword`
-* Run PostgreSQL: `docker run --name projectforge-postgres -p 127.0.0.1:15432:5432 -e POSTGRES_PASSWORD=$PGPASSWORD -e POSTGRES_USER=projectforge -d postgres:11.2`
+* Choose and set a database password: +
+ `export PGPASSWORD=mypassword`
+* Run PostgreSQL: +
+`docker run --name projectforge-postgres -p 127.0.0.1:15432:5432 -e POSTGRES_PASSWORD=$PGPASSWORD -e POSTGRES_USER=projectforge -d postgres:11.2`
 * Configure ProjectForge
+
 .$HOME/ProjectForge/projectforge.properties
 ----
 spring.datasource.url=jdbc:postgresql://localhost:15432/projectforge
@@ -65,7 +68,7 @@ projectforge.wicket.developmentMode=true
 projectforge.testsystemMode=true
 ----
 
-* Start ProjectForge
+* Start ProjectForge +
 `java -jar target/projectforge-application-X.X.X.jar --spring.config.additional-location=file:$HOME/ProjectForge/projectforge.properties`
 
 .Some helpful docker commands
