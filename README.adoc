@@ -32,10 +32,10 @@ projectforge.base.dir=${user.home}/ProjectForge
 
 ProjectForge searches automatically for configurations in the following order:
 
-1. Searches for `application-default.properties` in current directory.
-2. Searches for `application.properties` in current directory.
-3. Searches for `application-default.properties` in sub directory `config` of the current directory.
-4. Searches for `application.properties` in sub directory `config` of the current directory.
+1. Searches for `./config/application-default.properties` (in current directory).
+2. Searches for `./config/application.properties` (in current directory).
+3. Searches for `./application-default.properties` (in current directory).
+4. Searches for `./application.properties` (in current directory).
 5. Searches for `$HOME/ProjectForge/projectforge.properties`.
 
 You may specify another config location: +
