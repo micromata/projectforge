@@ -23,23 +23,12 @@
 
 package org.projectforge.common;
 
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Array;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-
 import org.apache.commons.lang3.ArrayUtils;
-import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
+
+import java.lang.annotation.Annotation;
+import java.lang.reflect.*;
+import java.util.*;
 
 /**
  * Some useful methods for determing and converting property, getter and setter names.
@@ -702,7 +691,7 @@ public class BeanHelper
           BeanHelper.setProperty(dest, property, srcValue);
         }
       } else {
-        if (ObjectUtils.equals(srcValue, destValue) == false) {
+        if (Objects.equals(srcValue, destValue) == false) {
           if (whitespaceEqualsNull == true && (srcValue instanceof String || destValue instanceof String)) {
             if (StringUtils.isEmpty((String) srcValue) == false || StringUtils.isEmpty((String) destValue) == false) {
               // Do not copy this property if srcValue and destValue are empty ("" or null):
