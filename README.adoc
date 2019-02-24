@@ -15,14 +15,12 @@ Please visit: https://www.projectforge.org/documentation/developer-guide.html
    https://github.com/micromata/projectforge.git
 2. Build ProjectForge:  
    `mvn clean install -DskipTests=true`
-3. Change Directory:  
-    `cd projectforge-application`
-4. Run ProjectForge:  
-   `java -jar target/projectforge-application-X.X.X.jar`
-5. Open your browser:  
+3. Run ProjectForge:
+   `java -jar projectforge-application/target/projectforge-application-X.X.X.jar`
+4. Open your browser:
    http://localhost:8080
 
-Start with own config location: `java -jar target/projectforge-application-X.X.X.jar --spring.config.additional-location=file:~/ProjectForge/application-default.properties`
+Start with Your own config: `java -jar target/projectforge-application-X.X.X.jar --spring.config.additional-location=file:$HOME/ProjectForge/projectforge.properties`
 
 ### Quickstart with Eclipse and maven
 
@@ -62,4 +60,20 @@ Choose and set a database password: `export PGPASSWORD=mypassword`
 |Uninstall|`docker rm projectforge-postgres`
 |===
 
+Start with Your own minimial config : `java -jar target/projectforge-application-X.X.X.jar --spring.config.additional-location=file:$HOME/ProjectForge/projectforge.properties`
 
+.$HOME/ProjectForge/projectforge.properties
+----
+spring.datasource.url=jdbc:postgresql://localhost:15432/projectforge
+spring.datasource.username=projectforge
+spring.datasource.password=*****
+spring.datasource.driver-class-name=org.postgresql.Driver
+
+projectforge.base.dir=${user.home}/ProjectForge
+projectforge.wicket.developmentMode=true
+projectforge.testsystemMode=true
+----
+
+### Further configurations
+
+Please have a lock at all available config parameters: https://github.com/micromata/projectforge/blob/develop/projectforge-application/src/main/resources/application.properties[application.properties]
