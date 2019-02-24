@@ -83,6 +83,8 @@ projectforge.wicket.developmentMode=true
 projectforge.testsystemMode=true
 ----
 
+* Run ProjectForge and enjoy it.
+
 .Some helpful docker commands
 |===
 |Stop|`docker stop projectforge-postgres`
