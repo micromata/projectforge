@@ -30,8 +30,10 @@ If you just want to run it, please download it from https://sourceforge.net/proj
 projectforge.base.dir=${user.home}/ProjectForge
 ----
 
-ProjectForge searches automatically for `$HOME/ProjectForge/projectforge.properties`. You may specify another location:
-Start with Your own config: `java -jar target/projectforge-application-X.X.X.jar --spring.config.additional-location=file:**mypath**/projectforge.properties`
+ProjectForge searches automatically for `$HOME/ProjectForge/projectforge.properties`.
+
+You may specify another config location: +
+`java -jar target/projectforge-application-X.X.X.jar --spring.config.additional-location=file:/mypath/projectforge.properties`
 
 === Quickstart with Eclipse and maven
 
