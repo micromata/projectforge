@@ -652,8 +652,6 @@ public class AdminPage extends AbstractStandardFormPage implements ISelectCaller
     accessChecker.checkIsLoggedInUserMemberOfAdminGroup();
     accessChecker.checkRestrictedOrDemoUser();
     final TaskTree taskTree = TaskTreeHelper.getTaskTree();
-    final TaskDO task = taskTree
-        .getTaskById(Configuration.getInstance().getTaskIdValue(ConfigurationParam.DEFAULT_TASK_ID_4_BOOKS));
     final List<BookDO> list = new ArrayList<BookDO>();
     int number = 1;
     while (myDatabaseUpdater
@@ -666,7 +664,7 @@ public class AdminPage extends AbstractStandardFormPage implements ISelectCaller
           .setEditor(get("editor", number, i))
           .setIsbn(get("isbn", number, i)).setKeywords(get("keywords", number, i))
           .setPublisher(get("publisher", number, i))
-          .setSignature(get("signature", number, i)).setStatus(BookStatus.PRESENT).setTask(task)
+          .setSignature(get("signature", number, i)).setStatus(BookStatus.PRESENT)
           .setYearOfPublishing("2001"));
     }
     bookDao.save(list);

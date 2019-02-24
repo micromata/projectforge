@@ -48,7 +48,6 @@ import org.hibernate.search.annotations.Indexed;
 import org.hibernate.search.annotations.IndexedEmbedded;
 import org.hibernate.search.annotations.Resolution;
 import org.hibernate.search.annotations.Store;
-import org.projectforge.business.task.TaskDO;
 import org.projectforge.framework.persistence.entities.DefaultBaseDO;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 
@@ -64,17 +63,12 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO;
     },
     indexes = {
         @javax.persistence.Index(name = "idx_fk_t_book_lend_out_by", columnList = "lend_out_by"),
-        @javax.persistence.Index(name = "idx_fk_t_book_task_id", columnList = "task_id"),
         @javax.persistence.Index(name = "idx_fk_t_book_tenant_id", columnList = "tenant_id"),
         @javax.persistence.Index(name = "t_book_pkey", columnList = "pk")
     })
 public class BookDO extends DefaultBaseDO
 {
-  // private static final Logger log = Logger.getLogger(TaskDO.class);
-
   private static final long serialVersionUID = 8036741307214351813L;
-  @IndexedEmbedded(depth = 1, includePaths = { "title" })
-  private TaskDO task;
 
   @Field(index = Index.YES /* TOKENIZED */, store = Store.NO)
   private String title; // 255 not null
@@ -295,33 +289,6 @@ public class BookDO extends DefaultBaseDO
   {
     this.abstractText = abstractText;
     return this;
-  }
-
-  /**
-   * Not used as object due to performance reasons.
-   * 
-   * @return
-   */
-  @ManyToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = "task_id", nullable = false)
-  public TaskDO getTask()
-  {
-    return task;
-  }
-
-  public BookDO setTask(final TaskDO task)
-  {
-    this.task = task;
-    return this;
-  }
-
-  @Transient
-  public Integer getTaskId()
-  {
-    if (this.task == null) {
-      return null;
-    }
-    return task.getId();
   }
 
   @Column(length = 255)

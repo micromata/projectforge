@@ -23,28 +23,23 @@
 
 package org.projectforge.business.book;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.Validate;
 import org.hibernate.criterion.Criterion;
 import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Restrictions;
-import org.projectforge.business.task.TaskDO;
-import org.projectforge.business.task.TaskDao;
 import org.projectforge.business.user.UserDao;
-import org.projectforge.framework.access.AccessType;
 import org.projectforge.framework.access.OperationType;
-import org.projectforge.framework.configuration.Configuration;
-import org.projectforge.framework.configuration.ConfigurationParam;
 import org.projectforge.framework.persistence.api.BaseDao;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.persistence.api.QueryFilter;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
@@ -55,25 +50,14 @@ public class BookDao extends BaseDao<BookDO>
   // private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(BookDao.class);
 
   private static final String[] ADDITIONAL_SEARCH_FIELDS = new String[] { "lendOutBy.username", "lendOutBy.firstname",
-      "lendOutBy.lastname", "task.title" };
+      "lendOutBy.lastname" };
 
   @Autowired
   private UserDao userDao;
 
-  @Autowired
-  private TaskDao taskDao;
-
   public BookDao()
   {
     super(BookDO.class);
-  }
-
-  /**
-   * Books will be assigned to a default task.
-   */
-  public Integer getDefaultTaskId()
-  {
-    return Configuration.getInstance().getTaskIdValue(ConfigurationParam.DEFAULT_TASK_ID_4_BOOKS);
   }
 
   @Override
@@ -118,7 +102,7 @@ public class BookDao extends BaseDao<BookDO>
   /**
    * Does the book's signature already exists? If signature is null, then return always false.
    *
-   * @param signature
+   * @param book
    * @return
    */
   @SuppressWarnings("unchecked")
@@ -143,28 +127,9 @@ public class BookDao extends BaseDao<BookDO>
     return false;
   }
 
-  @Override
-  protected void onSaveOrModify(final BookDO obj)
-  {
-    if (obj.getTaskId() == null) {
-      setTask(obj, getDefaultTaskId());
-    }
-  }
-
   /**
    * @param book
-   * @param taskId If null, then task will be set to null;
-   * @see BaseDao#getOrLoad(Integer)
-   */
-  public void setTask(final BookDO book, final Integer taskId)
-  {
-    final TaskDO task = taskDao.getOrLoad(taskId);
-    book.setTask(task);
-  }
-
-  /**
-   * @param book
-   * @param lendOutById If null, then task will be set to null;
+   * @param lendOutById
    * @see BaseDao#getOrLoad(Integer)
    */
   public void setLendOutBy(final BookDO book, final Integer lendOutById)
@@ -174,9 +139,7 @@ public class BookDao extends BaseDao<BookDO>
   }
 
   /**
-   * return Always true, no generic select access needed for book objects.
-   *
-   * @see org.projectforge.framework.persistence.api.BaseDao#hasSelectAccess()
+   * @return Always true, no generic select access needed for book objects.
    */
   @Override
   public boolean hasSelectAccess(final PFUserDO user, final boolean throwException)
@@ -185,44 +148,13 @@ public class BookDao extends BaseDao<BookDO>
   }
 
   /**
-   * @see org.projectforge.framework.persistence.api.BaseDao#hasAccess(Object, OperationType)
+   * @return Always true.
    */
   @Override
   public boolean hasAccess(final PFUserDO user, final BookDO obj, final BookDO oldObj,
       final OperationType operationType,
       final boolean throwException)
   {
-    return accessChecker.hasPermission(user, obj.getTaskId(), AccessType.TASKS, operationType, throwException);
-  }
-
-  /**
-   * @see org.projectforge.framework.persistence.api.BaseDao#hasUpdateAccess(Object, Object)
-   */
-  @Override
-  public boolean hasUpdateAccess(final PFUserDO user, final BookDO obj, final BookDO dbObj,
-      final boolean throwException)
-  {
-    Validate.notNull(dbObj);
-    Validate.notNull(obj);
-    Validate.notNull(dbObj.getTaskId());
-    Validate.notNull(obj.getTaskId());
-    if (accessChecker.hasPermission(user, obj.getTaskId(), AccessType.TASKS, OperationType.UPDATE,
-        throwException) == false) {
-      return false;
-    }
-    if (dbObj.getTaskId().equals(obj.getTaskId()) == false) {
-      // User moves the object to another task:
-      if (accessChecker.hasPermission(user, obj.getTaskId(), AccessType.TASKS, OperationType.INSERT,
-          throwException) == false) {
-        // Inserting of object under new task not allowed.
-        return false;
-      }
-      if (accessChecker.hasPermission(user, dbObj.getTaskId(), AccessType.TASKS, OperationType.DELETE,
-          throwException) == false) {
-        // Deleting of object under old task not allowed.
-        return false;
-      }
-    }
     return true;
   }
 

@@ -114,11 +114,6 @@ public abstract class AbstractConfiguration extends AbstractCache
     return null;
   }
 
-  public boolean isBookManagementConfigured()
-  {
-    return getTaskIdValue(ConfigurationParam.DEFAULT_TASK_ID_4_BOOKS) != null;
-  }
-
   public boolean isCostConfigured()
   {
     return getBooleanValue(ConfigurationParam.COST_CONFIGURED);
