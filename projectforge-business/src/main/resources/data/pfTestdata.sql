@@ -306,8 +306,6 @@ VALUES (12, '2011-03-18 06:18:53.383', FALSE, '2011-03-18 06:19:57.347', 'BOOLEA
 INSERT INTO t_configuration (pk, created, deleted, last_update, configurationtype, floatvalue, is_global, intvalue, parameter, stringvalue, tenant_id)
 VALUES (13, '2012-05-02 22:42:13.084', FALSE, '2012-05-02 22:42:13.084', 'TEXT', NULL, FALSE, NULL, 'organization', NULL, 1);
 INSERT INTO t_configuration (pk, created, deleted, last_update, configurationtype, floatvalue, is_global, intvalue, parameter, stringvalue, tenant_id)
-VALUES (6, '2010-04-21 00:12:07.605', FALSE, '2017-11-23 12:56:36.354', 'TASK', NULL, FALSE, 47, 'defaultTask4Books', NULL, 1);
-INSERT INTO t_configuration (pk, created, deleted, last_update, configurationtype, floatvalue, is_global, intvalue, parameter, stringvalue, tenant_id)
 VALUES (1, '2010-04-21 00:12:07.576', FALSE, '2011-02-07 21:22:17.164', 'STRING', NULL, TRUE, NULL, 'systemAdministratorEMail', 'admin@dev-null.com', 1);
 INSERT INTO t_configuration (pk, created, deleted, last_update, configurationtype, floatvalue, is_global, intvalue, parameter, stringvalue, tenant_id) VALUES
   (2, '2010-04-21 00:12:07.599', FALSE, '2013-04-01 12:21:20.99', 'TEXT', NULL, TRUE, NULL, 'messageOfTheDay',
