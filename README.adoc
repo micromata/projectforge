@@ -16,11 +16,12 @@ If you just want to run it, please download it from https://sourceforge.net/proj
 
 1. Checkout:  
    https://github.com/micromata/projectforge.git
-2. Build ProjectForge:  
+2. Ensure running *Java 1.8* (*not* 1.9+): `java -version`.
+3. Build ProjectForge:  
    `mvn clean install -DskipTests=true`
-3. Run ProjectForge:
+4. Run ProjectForge:
    `java -jar projectforge-application/target/projectforge-application-X.X.X.jar`
-4. Open your browser:
+5. Open your browser:
    http://localhost:8080
 
 === Configuration of ProjectForge
