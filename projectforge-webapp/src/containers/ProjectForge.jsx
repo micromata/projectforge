@@ -3,6 +3,7 @@ import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import TopBar from '../components/base/topbar';
 import Footer from '../components/base/footer';
+import LoginView from '../components/authentication/LoginView';
 
 function ProjectForge({ loggedIn }) {
     let content;
@@ -10,7 +11,12 @@ function ProjectForge({ loggedIn }) {
     if (loggedIn) {
         content = 'Logged In';
     } else {
-        content = 'Login Screen';
+        content = (
+            <LoginView
+                // TODO: EXAMPLE DATA, REPLACE WITH REAL DATA FROM REST API
+                motd="Please try user demo with password demo123. Have a lot of fun!"
+            />
+        );
     }
 
     return (
