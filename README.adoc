@@ -98,22 +98,24 @@ Please have a lock at all available config parameters: https://github.com/microm
 
 == Building a new release
 
-Draft (to be reviewed):
-
-1. `mvn clean site` (Check test results and reports in all modules). If all tests are OK, continue with next step.
-2. Tag a new release on GitHub.
-3. Change version number of all `pom.xml` files: +
+1. Create new release GIT branch (e.g. /release/6.25.0-RELEASE) -> Recommondation: Use Git Flow
+2. `mvn clean site` (Check test results and reports in all modules). If all tests are OK, continue with next step.
+3. Modify NEWS.md with updated release informations
+4. Change version number of all `pom.xml` files: +
    `export PF_NEW_VERSION=6.26.0` +
    `find . -name pom.xml | xargs perl -pi -e 's|<version>.*</version><!-- projectforge.version -\->|<version>$ENV{PF_NEW_VERSION}</version><!-- projectforge.version -\->|g'`
 4. Check git-modifications: all `pom.xml` files should have the new ProjectForge-Version.
 5. `mvn clean install`
 6. If all tests are finished successfully and the test of the ProjectForge-Application works for new and existing databases), proceeed:
-7. Upload the jar to SourceForge.
-8. Commit and publish the modified pom.xml files.
-9. Create new SNAPSHOT-Release by increasing version number of all `pom.xml`files: +
+7. Copy executable jar file from projectforge-application/target (and plugins) dir to seperate folder
+8. Merge the release branch into the master and develop branch (Git Flow: Finish release)
+9. Tag master branch with version number
+9. Change to develop branch
+10. Create new SNAPSHOT-Release by increasing version number of all `pom.xml`files: +
    `export PF_NEW_VERSION=6.27.0-SNAPSHOT` +
    `find . -name pom.xml | xargs perl -pi -e 's|<version>.*</version><!-- projectforge.version -\->|<version>$ENV{PF_NEW_VERSION}</version><!-- projectforge.version -\->|g'`
-10. Commit and publish the modified pom.xml files.
+11. Commit everything to master and develop branch and push it to Github 
+12. Upload the saved jar files to Github (Create release from taged version) and SourceForge (e.g. as zip (see previous versions as example)).
 
 == Adding your own plugins
 ProjectForge support plugins. The existing menu can be modified and own entities and functionalities can be added.
