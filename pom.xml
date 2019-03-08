@@ -239,7 +239,7 @@
     <java.version>1.8</java.version>
 
     <hibernate.version>5.0.5.Final</hibernate.version>
-    <mgc.version>3.0.4</mgc.version>
+    <mgc.version>3.0.9</mgc.version>
 
     <commons-lang.version>2.6</commons-lang.version>
     <commons-httpclient.version>3.1</commons-httpclient.version>
@@ -590,18 +590,4 @@
       </plugin>
     </plugins>
   </reporting>
-  <repositories>
-    <repository>
-      <id>MGC</id>
-      <name>Micromata Labs MGC</name>
-      <url>https://labs.micromata.de/nexus/content/repositories/MGC/</url>
-    </repository>
-    <repository>
-      <id>MGC-snapshot</id>
-      <name>Micromata Labs MGC
-        Snapshot
-      </name>
-      <url>https://labs.micromata.de/nexus/content/repositories/MGC-snapshot/</url>
-    </repository>
-  </repositories>
 </project>
