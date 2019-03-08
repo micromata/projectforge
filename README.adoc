@@ -16,11 +16,12 @@ If you just want to run it, please download it from https://sourceforge.net/proj
 
 1. Checkout:  
    https://github.com/micromata/projectforge.git
-2. Build ProjectForge:  
+2. Ensure running *Java 1.8* (*not* 1.9+): `java -version`.
+3. Build ProjectForge:  
    `mvn clean install -DskipTests=true`
-3. Run ProjectForge:
+4. Run ProjectForge:
    `java -jar projectforge-application/target/projectforge-application-X.X.X.jar`
-4. Open your browser:
+5. Open your browser:
    http://localhost:8080
 
 === Configuration of ProjectForge
@@ -32,11 +33,9 @@ projectforge.base.dir=${user.home}/ProjectForge
 
 ProjectForge searches automatically for configurations in the following order:
 
-1. Searches for `./config/application-default.properties` (in current directory).
-2. Searches for `./config/application.properties` (in current directory).
-3. Searches for `./application-default.properties` (in current directory).
-4. Searches for `./application.properties` (in current directory).
-5. Searches for `$HOME/ProjectForge/projectforge.properties`.
+1. Searches for `./config/application.properties` (in current directory).
+2. Searches for `./application.properties` (in current directory).
+3. Searches for `$HOME/ProjectForge/projectforge.properties`.
 
 You may specify another config location: +
 `java -jar target/projectforge-application-X.X.X.jar --spring.config.additional-location=file:/mypath/projectforge.properties`
@@ -59,14 +58,6 @@ Please note, that Java version 8 is needed for developing and running ProjectFor
 
 Start by simply running main (in `projectforge-application/src/main/java`): +
    `org.projectforge.start.ProjectForgeApplication.java`
-
-== Adding your own plugins
-ProjectForge support plugins. The existing menu can be modified and own entities and functionalities can be added.
-
-The menu is customizable (you can add or remove menu entries in the config.xml file).
-Deploy your plugins by adding your jar(s) to the plugin directory next to the jar file. In eclipse you have to add the plugin project to the run configuration classpath. The jars contains both, the Java classes and the web pages (Wicket-pages). Nothing more is needed.
-Register your plugins in the administration menu at the web gui. You need to restart the server.
-One advantage is that your own plugins are independent from new releases of the ProjectForge core system. In one of the next releases an example plugin will show you how easy it is to extend ProjectForge!
 
 == Quickstart with PostgreSQL
 
@@ -103,7 +94,7 @@ password is now `test123`.
 
 == Further configurations
 
-Please have a lock at all available config parameters: https://github.com/micromata/projectforge/blob/develop/projectforge-application/src/main/resources/application.properties[application.properties]
+Please have a lock at all available config parameters: https://github.com/micromata/projectforge/blob/develop/projectforge-business/src/main/resources/application.properties[application.properties]
 
 == Building a new release
 
@@ -123,3 +114,11 @@ Draft (to be reviewed):
    `export PF_NEW_VERSION=6.27.0-SNAPSHOT` +
    `find . -name pom.xml | xargs perl -pi -e 's|<version>.*</version><!-- projectforge.version -\->|<version>$ENV{PF_NEW_VERSION}</version><!-- projectforge.version -\->|g'`
 10. Commit and publish the modified pom.xml files.
+
+== Adding your own plugins
+ProjectForge support plugins. The existing menu can be modified and own entities and functionalities can be added.
+
+The menu is customizable (you can add or remove menu entries in the config.xml file).
+Deploy your plugins by adding your jar(s) to the plugin directory next to the jar file. In eclipse you have to add the plugin project to the run configuration classpath. The jars contains both, the Java classes and the web pages (Wicket-pages). Nothing more is needed.
+Register your plugins in the administration menu at the web gui. You need to restart the server.
+One advantage is that your own plugins are independent from new releases of the ProjectForge core system. In one of the next releases an example plugin will show you how easy it is to extend ProjectForge!
