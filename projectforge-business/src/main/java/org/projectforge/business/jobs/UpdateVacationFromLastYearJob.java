@@ -21,9 +21,8 @@ public class UpdateVacationFromLastYearJob
 
   @Autowired
   private EmployeeService employeeService;
-
-  @Scheduled(cron = "0 0 21 31 12 *")
-  @Scheduled(cron = "${projectforge.cron.updateVacationLastYear}")
+  
+  @Scheduled(cron = "${projectforge.cron.updateVacationLastYear:0 0 20 31 12 *}")
   public void updateNewVacationDaysFromLastYear()
   {
     log.info("Update vacation days from last year job started.");
