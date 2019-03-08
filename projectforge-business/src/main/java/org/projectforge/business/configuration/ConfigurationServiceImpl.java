@@ -1,37 +1,13 @@
 package org.projectforge.business.configuration;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URL;
-import java.security.KeyStore;
-import java.util.Calendar;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.TimeZone;
-
-import javax.annotation.PostConstruct;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLSocketFactory;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.TrustManagerFactory;
-import javax.net.ssl.X509TrustManager;
-
+import de.micromata.genome.util.runtime.config.MailSessionLocalSettingsConfigModel;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.projectforge.business.meb.MebMailClient;
 import org.projectforge.business.orga.ContractType;
 import org.projectforge.business.teamcal.admin.TeamCalCache;
 import org.projectforge.business.teamcal.admin.model.TeamCalDO;
-import org.projectforge.framework.configuration.ConfigXml;
-import org.projectforge.framework.configuration.ConfigurationDao;
-import org.projectforge.framework.configuration.ConfigurationParam;
-import org.projectforge.framework.configuration.GlobalConfiguration;
-import org.projectforge.framework.configuration.IConfigurationParam;
-import org.projectforge.framework.configuration.SecurityConfig;
+import org.projectforge.framework.configuration.*;
 import org.projectforge.framework.configuration.entities.ConfigurationDO;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.TenantDO;
@@ -41,7 +17,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import de.micromata.genome.util.runtime.config.MailSessionLocalSettingsConfigModel;
+import javax.annotation.PostConstruct;
+import javax.net.ssl.*;
+import java.io.*;
+import java.net.URL;
+import java.security.KeyStore;
+import java.util.*;
 
 @Service
 public class ConfigurationServiceImpl implements ConfigurationService
@@ -95,8 +76,43 @@ public class ConfigurationServiceImpl implements ConfigurationService
   @Value("${projectforge.telephoneSystemNumber}")
   private String telephoneSystemNumber;
 
-  @Value("${projectforge.smsUrl}")
+  /**
+   * Variables #number and #message will be replaced by the user's form input.
+   * @return The url to call the sms service.
+   */
+  @Value("${projectforge.sms.url}")
   private String smsUrl;
+
+  /**
+   * POST or GET (default).
+   */
+  @Value("${projectforge.sms.httpMethod}")
+  private String smsHttpMethod;
+
+  /**
+   * Variables #number and #message will be replaced by the user's form input.
+   * @return Optional parameters for sms service (user, password.
+   */
+  @Value("#{${projectforge.sms.httpParameters}}")
+  private Map<String, String> smsHttpParameters = new HashMap<>();
+
+  @Value("${projectforge.sms.smsMaxMessageLength}")
+  private int smsMaxMessageLength = 160;
+
+  @Value("${projectforge.sms.returnCodePattern.success}")
+  private String smsReturnPatternSuccess;
+
+  @Value("${projectforge.sms.returnCodePattern.numberError}")
+  private String smsReturnPatternNumberError;
+
+  @Value("${projectforge.sms.returnCodePattern.messageToLargeError}")
+  private String smsReturnPatternMessageToLargeError;
+
+  @Value("${projectforge.sms.returnCodePattern.messageError}")
+  private String smsReturnPatternMessageError;
+
+  @Value("${projectforge.sms.returnCodePattern.error}")
+  private String smsReturnPatternError;
 
   @Value("${projectforge.receiveSmsKey}")
   private String receiveSmsKey;
@@ -409,6 +425,61 @@ public class ConfigurationServiceImpl implements ConfigurationService
   public String getSmsUrl()
   {
     return smsUrl;
+  }
+
+  @Override
+  public Map<String, String> getSmsHttpParameters() {
+    return smsHttpParameters;
+  }
+
+  @Override
+  public String getSmsHttpMethod() {
+    return smsHttpMethod;
+  }
+
+  @Override
+  public int getSmsMaxMessageLength() {
+    return smsMaxMessageLength;
+  }
+
+  /**
+   * @return The pattern of the response string for successful service calls.
+   */
+  @Override
+  public String getSmsReturnPatternSuccess() {
+    return smsReturnPatternSuccess;
+  }
+
+  /**
+   * @return The pattern of the response string for service calls with error in phone number (receiver).
+   */
+  @Override
+  public String getSmsReturnPatternNumberError() {
+    return smsReturnPatternNumberError;
+  }
+
+  /**
+   * @return The pattern of the response string for service calls with error caused by a to large message to send.
+   */
+  @Override
+  public String getSmsReturnPatternMessageToLargeError() {
+    return smsReturnPatternMessageToLargeError;
+  }
+
+  /**
+   * @return The pattern of the response string for service calls with error in message to send.
+   */
+  @Override
+  public String getSmsReturnPatternMessageError() {
+    return smsReturnPatternMessageError;
+  }
+
+  /**
+   * @return The pattern of the response string for service calls with errors.
+   */
+  @Override
+  public String getSmsReturnPatternError() {
+    return smsReturnPatternError;
   }
 
   /**

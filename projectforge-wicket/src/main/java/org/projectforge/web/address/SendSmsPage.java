@@ -23,12 +23,6 @@
 
 package org.projectforge.web.address;
 
-import java.io.IOException;
-import java.util.Date;
-
-import org.apache.commons.httpclient.HttpClient;
-import org.apache.commons.httpclient.HttpException;
-import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.PropertyModel;
@@ -43,11 +37,12 @@ import org.projectforge.framework.configuration.Configuration;
 import org.projectforge.framework.configuration.ConfigurationParam;
 import org.projectforge.framework.time.DateTimeFormatter;
 import org.projectforge.framework.utils.NumberHelper;
-import org.projectforge.web.URLHelper;
+import org.projectforge.sms.SMSSender;
 import org.projectforge.web.wicket.AbstractStandardFormPage;
 
-public class SendSmsPage extends AbstractStandardFormPage
-{
+import java.util.Date;
+
+public class SendSmsPage extends AbstractStandardFormPage {
   private static final long serialVersionUID = -1677859643101866297L;
 
   public final static String PARAMETER_KEY_ADDRESS_ID = "addressId";
@@ -56,8 +51,8 @@ public class SendSmsPage extends AbstractStandardFormPage
 
   public final static String PARAMETER_KEY_NUMBER = "number";
 
-  protected static final String[] BOOKMARKABLE_SELECT_PROPERTIES = new String[] { PARAMETER_KEY_ADDRESS_ID + "|address",
-      PARAMETER_KEY_PHONE_TYPE + "|phone", PARAMETER_KEY_NUMBER + "|no" };
+  protected static final String[] BOOKMARKABLE_SELECT_PROPERTIES = new String[]{PARAMETER_KEY_ADDRESS_ID + "|address",
+          PARAMETER_KEY_PHONE_TYPE + "|phone", PARAMETER_KEY_NUMBER + "|no"};
 
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(SendSmsPage.class);
 
@@ -74,53 +69,47 @@ public class SendSmsPage extends AbstractStandardFormPage
   String result;
 
   @SuppressWarnings("serial")
-  public SendSmsPage(final PageParameters parameters)
-  {
+  public SendSmsPage(final PageParameters parameters) {
     super(parameters);
     form = new SendSmsForm(this);
     body.add(form);
     evaluateInitialPageParameters(getPageParameters());
     form.init();
     final String javaScript = "function showSendQuestionDialog() {\n  return window.confirm('"
-        + getString("address.sendSms.sendMessageQuestion")
-        + "');\n}\n"
-        + " $(document).ready(function() {\n"
-        + "    var onEditCallback = function(remaining) {\n"
-        + "        $('#charsRemaining').text(remaining + ' "
-        + getString("charactersLeft")
-        + "');\n"
-        + "    }\n"
-        // TODO: Doesn't work with autocompletion!
-        //        + "    $('textarea[maxlength]').limitMaxlength({\n"
-        //        + "        onEdit: onEditCallback,\n"
-        //        + "    });\n"
-        + " });\n";
+            + getString("address.sendSms.sendMessageQuestion")
+            + "');\n}\n"
+            + " $(document).ready(function() {\n"
+            + "    var onEditCallback = function(remaining) {\n"
+            + "        $('#charsRemaining').text(remaining + ' "
+            + getString("charactersLeft")
+            + "');\n"
+            + "    }\n"
+            // TODO: Doesn't work with autocompletion!
+            //        + "    $('textarea[maxlength]').limitMaxlength({\n"
+            //        + "        onEdit: onEditCallback,\n"
+            //        + "    });\n"
+            + " });\n";
 
     body.add(new Label("javascript", javaScript).setEscapeModelStrings(false));
-    form.add(new Label("result", new PropertyModel<String>(this, "result"))
-    {
+    form.add(new Label("result", new PropertyModel<String>(this, "result")) {
       @Override
-      public boolean isVisible()
-      {
+      public boolean isVisible() {
         return StringUtils.isNotBlank(result);
       }
     });
   }
 
-  public Integer getAddressId()
-  {
+  public Integer getAddressId() {
     return null;
   }
 
-  public void setAddressId(final Integer addressId)
-  {
+  public void setAddressId(final Integer addressId) {
     if (addressId != null) {
       address = addressDao.getById(addressId);
     }
   }
 
-  public String getNumber()
-  {
+  public String getNumber() {
     final String number = getData().getPhoneNumber();
     final int pos = number != null ? number.indexOf(':') : -1;
     if (pos > 0) {
@@ -129,20 +118,17 @@ public class SendSmsPage extends AbstractStandardFormPage
     return number;
   }
 
-  public void setNumber(final String number)
-  {
+  public void setNumber(final String number) {
     if (StringUtils.isNotBlank(number) == true) {
       getData().setPhoneNumber(number);
     }
   }
 
-  public String getPhoneType()
-  {
+  public String getPhoneType() {
     return null;
   }
 
-  public void setPhoneType(final String phoneType)
-  {
+  public void setPhoneType(final String phoneType) {
     PhoneType type = null;
     try {
       type = PhoneType.valueOf(phoneType);
@@ -156,55 +142,45 @@ public class SendSmsPage extends AbstractStandardFormPage
     }
     if (number != null) {
       getData().setPhoneNumber(
-          SendSmsForm.getPhoneNumberAndPerson(address, number,
-              Configuration.getInstance().getStringValue(ConfigurationParam.DEFAULT_COUNTRY_PHONE_PREFIX)));
+              SendSmsForm.getPhoneNumberAndPerson(address, number,
+                      Configuration.getInstance().getStringValue(ConfigurationParam.DEFAULT_COUNTRY_PHONE_PREFIX)));
     }
   }
 
-  protected void send()
-  {
+  protected void send() {
     final String number = NumberHelper.extractPhonenumber(getData().getPhoneNumber(),
-        Configuration.getInstance().getStringValue(ConfigurationParam.DEFAULT_COUNTRY_PHONE_PREFIX));
+            Configuration.getInstance().getStringValue(ConfigurationParam.DEFAULT_COUNTRY_PHONE_PREFIX));
     if (StringUtils.isBlank(configurationService.getSmsUrl()) == true) {
       log.error("Servlet url for sending sms not configured. SMS not supported.");
       return;
     }
-    log.info("User sends message to destination number: '" + StringHelper.hideStringEnding(number, 'x', 3));
-    final HttpClient client = new HttpClient();
-    String url = configurationService.getSmsUrl();
-    url = StringUtils.replaceOnce(url, "#number", number);
-    url = StringUtils.replaceOnce(url, "#message", URLHelper.encode(getData().getMessage()));
-    final GetMethod method = new GetMethod(url);
+    SMSSender smsSender = new SMSSender(configurationService.getSmsHttpMethod(),
+            configurationService.getSmsUrl(),
+            configurationService.getSmsHttpParameters())
+            .setSmsMaxMessageLength(configurationService.getSmsMaxMessageLength())
+            .setSmsReturnPatternSuccess(configurationService.getSmsReturnPatternSuccess())
+            .setSmsReturnPatternError(configurationService.getSmsReturnPatternError())
+            .setSmsReturnPatternMessageError(configurationService.getSmsReturnPatternMessageError())
+            .setSmsReturnPatternMessageToLargeError(configurationService.getSmsReturnPatternMessageToLargeError())
+            .setSmsReturnPatternNumberError(configurationService.getSmsReturnPatternNumberError());
+
     String errorKey = null;
     result = "";
-    try {
-      client.executeMethod(method);
-      final String response = method.getResponseBodyAsString();
-      if (response == null) {
-        errorKey = "address.sendSms.sendMessage.result.unknownError";
-      } else if (response.startsWith("0") == true) {
-        result = getLocalizedMessage("address.sendSms.sendMessage.result.successful", number,
-            DateTimeFormatter.instance()
-                .getFormattedDateTime(new Date()));
-      } else if (response.startsWith("1") == true) {
-        errorKey = "address.sendSms.sendMessage.result.messageMissed";
-      } else if (response.startsWith("2") == true) {
-        errorKey = "address.sendSms.sendMessage.result.wrongOrMissingNumber";
-      } else if (response.startsWith("3") == true) {
-        errorKey = "address.sendSms.sendMessage.result.messageToLarge";
-      } else {
-        errorKey = "address.sendSms.sendMessage.result.unknownError";
-      }
-    } catch (final HttpException ex) {
-      errorKey = "Call failed. Please contact administrator.";
-      log.error(errorKey + ": " + configurationService.getSmsUrl()
-          + StringHelper.hideStringEnding(String.valueOf(number), 'x', 3));
-      throw new RuntimeException(ex);
-    } catch (final IOException ex) {
-      errorKey = "Call failed. Please contact administrator.";
-      log.error(errorKey + ": " + configurationService.getSmsUrl()
-          + StringHelper.hideStringEnding(String.valueOf(number), 'x', 3));
-      throw new RuntimeException(ex);
+    SMSSender.HttpResponseCode response = smsSender.send(number, getData().getMessage());
+    if (response == null) {
+      errorKey = "address.sendSms.sendMessage.result.unknownError";
+    } else if (response == SMSSender.HttpResponseCode.SUCCESS) {
+      result = getLocalizedMessage("address.sendSms.sendMessage.result.successful", number,
+              DateTimeFormatter.instance()
+                      .getFormattedDateTime(new Date()));
+    } else if (response == SMSSender.HttpResponseCode.MESSAGE_ERROR) {
+      errorKey = "address.sendSms.sendMessage.result.messageError";
+    } else if (response == SMSSender.HttpResponseCode.NUMBER_ERROR) {
+      errorKey = "address.sendSms.sendMessage.result.wrongOrMissingNumber";
+    } else if (response == SMSSender.HttpResponseCode.MESSAGE_TO_LARGE) {
+      errorKey = "address.sendSms.sendMessage.result.messageToLarge";
+    } else {
+      errorKey = "address.sendSms.sendMessage.result.unknownError";
     }
     if (errorKey != null) {
       form.addError(errorKey);
@@ -212,14 +188,12 @@ public class SendSmsPage extends AbstractStandardFormPage
   }
 
   @Override
-  protected void onAfterRender()
-  {
+  protected void onAfterRender() {
     super.onAfterRender();
     result = null;
   }
 
-  private SendSmsData getData()
-  {
+  private SendSmsData getData() {
     return form.data;
   }
 
@@ -227,20 +201,17 @@ public class SendSmsPage extends AbstractStandardFormPage
    * @return This page as link with the page parameters of this page.
    */
   @Override
-  public String getPageAsLink()
-  {
+  public String getPageAsLink() {
     return getPageAsLink(new PageParameters());
   }
 
   @Override
-  protected String[] getBookmarkableInitialProperties()
-  {
+  protected String[] getBookmarkableInitialProperties() {
     return BOOKMARKABLE_SELECT_PROPERTIES;
   }
 
   @Override
-  protected String getTitle()
-  {
+  protected String getTitle() {
     return getString("address.sendSms.title");
   }
 }

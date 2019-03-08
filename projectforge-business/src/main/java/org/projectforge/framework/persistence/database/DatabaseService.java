@@ -154,6 +154,7 @@ public class DatabaseService
    * @param adminUser The admin user with the desired username and the salted password (salt string included). All other
    *                  attributes and groups of the user are set by this method.
    */
+  @Transactional(readOnly = false)
   public void initializeDefaultData(final PFUserDO adminUser, final TimeZone adminUserTimezone)
   {
     log.info("Init admin user and root task.");
