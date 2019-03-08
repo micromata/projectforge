@@ -1,4 +1,5 @@
-Release 6.24.0
-* Add not billable filter
-* Fix timesheet protection
-* Fix vacation job
+Release 6.25.0
+* Update SMS Gateway functinality 
+* Update MGC version
+* Project setup refactorings
+* Some bugfixes
