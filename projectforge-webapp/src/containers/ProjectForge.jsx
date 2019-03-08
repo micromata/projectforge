@@ -4,8 +4,9 @@ import PropTypes from 'prop-types';
 import TopBar from '../components/base/topbar';
 import Footer from '../components/base/footer';
 import LoginView from '../components/authentication/LoginView';
+import { loginUser } from '../actions';
 
-function ProjectForge({ loggedIn }) {
+function ProjectForge({ loggedIn, loginUser: login }) {
     let content;
 
     if (loggedIn) {
@@ -15,6 +16,7 @@ function ProjectForge({ loggedIn }) {
             <LoginView
                 // TODO: EXAMPLE DATA, REPLACE WITH REAL DATA FROM REST API
                 motd="Please try user demo with password demo123. Have a lot of fun!"
+                login={login}
             />
         );
     }
@@ -29,15 +31,16 @@ function ProjectForge({ loggedIn }) {
 }
 
 ProjectForge.propTypes = {
-    loggedIn: PropTypes.bool,
-};
-
-ProjectForge.defaultProps = {
-    loggedIn: false,
+    loginUser: PropTypes.func.isRequired,
+    loggedIn: PropTypes.bool.isRequired,
 };
 
 const mapStateToProps = state => ({
     loggedIn: state.authentication.user !== null,
 });
 
-export default connect(mapStateToProps)(ProjectForge);
+const actions = {
+    loginUser,
+};
+
+export default connect(mapStateToProps, actions)(ProjectForge);
