@@ -1,17 +1,18 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import { createStore } from 'redux';
+import { applyMiddleware, createStore } from 'redux';
 import { Provider } from 'react-redux';
+import thunk from 'redux-thunk';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './assets/style/projectforge.scss';
 import reducer from './reducers';
 import ProjectForge from './containers/ProjectForge';
 import * as serviceWorker from './serviceWorker';
 
-const store = createStore(reducer);
+const store = createStore(reducer, applyMiddleware(thunk));
 
 ReactDOM.render(
-    /* eslint-disable-next-line */
+    /* eslint-disable-next-line react/jsx-filename-extension */
     <Provider store={store}>
         <ProjectForge />
     </Provider>,
