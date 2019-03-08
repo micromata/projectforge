@@ -48,6 +48,7 @@ import javax.xml.datatype.DatatypeFactory;
 import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.hssf.record.crypto.Biff8DecryptingStream;
 import org.projectforge.business.fibu.EingangsrechnungDO;
 import org.projectforge.business.fibu.PaymentType;
@@ -294,12 +295,16 @@ public class SEPATransferGenerator
     if (invoice.getPaymentType() != PaymentType.BANK_TRANSFER) {
       errors.add(SEPATransferError.BANK_TRANSFER);
     }
-    if(invoice.getIban() != null && invoice.getIban().toUpperCase().startsWith("DE") == false) {
+    String iban = invoice.getIban();
+    if (StringUtils.isNotBlank(iban)) {
+      iban = iban.replaceAll("\\s","").toUpperCase();
+    }
+    if(iban != null && iban.startsWith("DE") == false) {
       if (invoice.getBic() == null || this.patternBic.matcher(invoice.getBic().toUpperCase()).matches() == false) {
         errors.add(SEPATransferError.BIC);
       }
     }
-    if (invoice.getIban() == null || this.patternIBAN.matcher(invoice.getIban().toUpperCase()).matches() == false) {
+    if (iban == null || this.patternIBAN.matcher(iban).matches() == false) {
       errors.add(SEPATransferError.IBAN);
     }
     if (invoice.getReceiver() == null || invoice.getReceiver().length() < 1 || invoice.getReceiver().length() > 70) {
@@ -338,12 +343,12 @@ public class SEPATransferGenerator
     // set creditor iban
     CashAccountSEPA2 cdtrAcct = factory.createCashAccountSEPA2();
     AccountIdentificationSEPA cdtrAcctId = factory.createAccountIdentificationSEPA();
-    cdtrAcctId.setIBAN(invoice.getIban().toUpperCase());
+    cdtrAcctId.setIBAN(iban);
     cdtrAcct.setId(cdtrAcctId);
     cdtTrfTxInf.setCdtrAcct(cdtrAcct);
 
     // set creditor bic
-    if(invoice.getIban().toUpperCase().startsWith("DE") == false) {
+    if(iban.startsWith("DE") == false) {
       BranchAndFinancialInstitutionIdentificationSEPA1 cdtrAgt = factory
         .createBranchAndFinancialInstitutionIdentificationSEPA1();
       FinancialInstitutionIdentificationSEPA1 finInstId = factory.createFinancialInstitutionIdentificationSEPA1();

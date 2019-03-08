@@ -1,11 +1,6 @@
 package org.projectforge.business.configuration;
 
-import java.util.Calendar;
-import java.util.List;
-import java.util.TimeZone;
-
-import javax.net.ssl.SSLSocketFactory;
-
+import de.micromata.genome.util.runtime.config.MailSessionLocalSettingsConfigModel;
 import org.projectforge.business.orga.ContractType;
 import org.projectforge.business.teamcal.admin.model.TeamCalDO;
 import org.projectforge.framework.configuration.IConfigurationParam;
@@ -14,10 +9,13 @@ import org.projectforge.framework.configuration.entities.ConfigurationDO;
 import org.projectforge.framework.persistence.user.entities.TenantDO;
 import org.projectforge.mail.SendMailConfig;
 
-import de.micromata.genome.util.runtime.config.MailSessionLocalSettingsConfigModel;
+import javax.net.ssl.SSLSocketFactory;
+import java.util.Calendar;
+import java.util.List;
+import java.util.Map;
+import java.util.TimeZone;
 
-public interface ConfigurationService
-{
+public interface ConfigurationService {
   Object[] getResourceContentAsString(String filename);
 
   Object[] getResourceAsInputStream(String filename);
@@ -52,7 +50,54 @@ public interface ConfigurationService
 
   boolean isSmsConfigured();
 
+  /**
+   * Variables #number and #message will be replaced by the user's form input.
+   *
+   * @return The url to call the sms service.
+   */
   String getSmsUrl();
+
+  /**
+   * @return POST or GET (default).
+   */
+  String getSmsHttpMethod();
+
+  /**
+   * Variables #number and #message will be replaced by the user's form input.
+   *
+   * @return Optional parameters for sms service (user, password.
+   */
+  Map<String, String> getSmsHttpParameters();
+
+  /**
+   * @return The pattern of the response string for successful service calls.
+   */
+  String getSmsReturnPatternSuccess();
+
+  /**
+   * @return The maximum length of a message (default is 160).
+   */
+  int getSmsMaxMessageLength();
+
+  /**
+   * @return The pattern of the response string for service calls with error in phone number (receiver).
+   */
+  String getSmsReturnPatternNumberError();
+
+  /**
+   * @return The pattern of the response string for service calls with error in message to send.
+   */
+  String getSmsReturnPatternMessageError();
+
+  /**
+   * @return The pattern of the response string for service calls with error caused by a to large message to send.
+   */
+  String getSmsReturnPatternMessageToLargeError();
+
+  /**
+   * @return The pattern of the response string for service calls with errors.
+   */
+  String getSmsReturnPatternError();
 
   String getReceiveSmsKey();
 

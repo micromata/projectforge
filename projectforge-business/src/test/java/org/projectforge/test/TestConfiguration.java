@@ -27,6 +27,7 @@ import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.orm.hibernate5.HibernateTemplate;
 import org.springframework.orm.hibernate5.HibernateTransactionManager;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.web.client.RestTemplate;
@@ -45,7 +46,7 @@ import de.micromata.mgc.jpa.spring.factories.JpaToSessionSpringBeanFactory;
         pattern = "org.projectforge.framework.configuration.ProjectforgeSpringConfiguration"),
         @ComponentScan.Filter(type = FilterType.ASPECTJ,
             pattern = "org.projectforge.web.configuration.ProjectforgeWebConfiguration") })
-@PropertySource("projectforgeTest.properties")
+@PropertySource({"classpath:/application.properties", "classpath:/application-test.properties"})
 @EnableTransactionManagement
 //Needed, because not only interfaces are used as injection points
 @EnableAspectJAutoProxy(proxyTargetClass = true)

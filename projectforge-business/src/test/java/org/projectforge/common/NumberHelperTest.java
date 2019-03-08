@@ -70,8 +70,9 @@ public class NumberHelperTest extends AbstractTestBase
     assertEquals("00495613167930", NumberHelper.extractPhonenumber("+49 561 / 316793-0", null));
     assertEquals("05613167930", NumberHelper.extractPhonenumber("+49 561 / 316793-0", "+49"));
     assertEquals("00445613167930", NumberHelper.extractPhonenumber("+44 561 / 316793-0", "+49"));
-    assertEquals("004456131", NumberHelper.extractPhonenumber("+44 561 / 31:6793-0", "+49"));
-    assertEquals("004456131", NumberHelper.extractPhonenumber("+44 561 / 31 h6793-0", "+49"));
+    assertEquals("00445613167930", NumberHelper.extractPhonenumber("+44 561 / 31:6793-0", "+49"));
+    assertEquals("00445613167930", NumberHelper.extractPhonenumber("+44 561 / 31 h6793-0", "+49"));
+    assertEquals("1234567890", NumberHelper.extractPhonenumber("\u202D1234567890\u202C")); // Apple white spaces from contacts.
   }
 
   @Test

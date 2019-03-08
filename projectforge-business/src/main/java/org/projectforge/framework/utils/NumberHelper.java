@@ -374,6 +374,7 @@ public class NumberHelper
       return null;
     }
     str = str.trim();
+    str = str.replaceAll("\\p{C}", ""); // Replace UTF controls chars, such as UTF-202C or UTF-202D (from Apple contacts app).
     final StringBuffer buf = new StringBuffer();
     if (StringUtils.isNotEmpty(countryPrefix) == true && str.startsWith(countryPrefix) == true) {
       buf.append('0');
@@ -391,10 +392,6 @@ public class NumberHelper
       final char ch = str.charAt(i);
       if (Character.isDigit(str.charAt(i)) == true) {
         buf.append(ch);
-      } else if (Character.isWhitespace(ch) == true) {
-        // continue.
-      } else if (ALLOWED_PHONE_NUMBER_CHARS.indexOf(ch) < 0) {
-        break;
       }
     }
     return buf.toString();
