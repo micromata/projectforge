@@ -1,13 +1,18 @@
-import {USER_LOGIN_BEGIN, USER_LOGIN_FAILURE, USER_LOGIN_SUCCESS, USER_LOGOUT} from '../actions/authentication';
+import {
+    USER_LOGIN_BEGIN,
+    USER_LOGIN_FAILURE,
+    USER_LOGIN_SUCCESS,
+    USER_LOGOUT,
+} from '../actions/authentication';
 
 const initialState = {
     keepSignedIn: false,
     loading: false,
     error: null,
-    user: null
+    user: null,
 };
 
-const reducer = (state = initialState, {type, payload}) => {
+const reducer = (state = initialState, { type, payload }) => {
     switch (type) {
         case USER_LOGIN_BEGIN:
             return {
@@ -15,7 +20,7 @@ const reducer = (state = initialState, {type, payload}) => {
                 loading: true,
                 error: null,
                 user: null,
-                keepSignedIn: payload.keepSignedIn
+                keepSignedIn: payload.keepSignedIn,
             };
         case USER_LOGIN_SUCCESS:
             return {
@@ -23,19 +28,19 @@ const reducer = (state = initialState, {type, payload}) => {
                 loading: false,
                 user: {
                     id: payload.userId,
-                    token: payload.authenticationToken
-                }
+                    token: payload.authenticationToken,
+                },
             };
         case USER_LOGIN_FAILURE:
             return {
                 ...state,
                 loading: false,
-                error: payload.error
+                error: payload.error,
             };
         case USER_LOGOUT:
             return {
                 ...state,
-                user: null
+                user: null,
             };
         default:
             return state;

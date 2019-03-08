@@ -6,25 +6,25 @@ export const USER_LOGOUT = 'USER_LOGOUT';
 export const userLoginBegin = keepSignedIn => ({
     type: USER_LOGIN_BEGIN,
     payload: {
-        keepSignedIn
-    }
+        keepSignedIn,
+    },
 });
 
 export const userLoginSuccess = (userId, authenticationToken) => ({
     type: USER_LOGIN_SUCCESS,
     payload: {
         userId,
-        authenticationToken
-    }
+        authenticationToken,
+    },
 });
 
 export const userLoginFailure = error => ({
     type: USER_LOGIN_FAILURE,
     payload: {
-        error
-    }
+        error,
+    },
 });
 
 export const userLogout = () => ({
-    type: USER_LOGOUT
+    type: USER_LOGOUT,
 });
