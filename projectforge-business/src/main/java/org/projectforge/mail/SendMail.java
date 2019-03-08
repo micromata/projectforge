@@ -145,7 +145,9 @@ public class SendMail
     }
     Properties addp = new Properties();
     addp.put("mail.mime.charset", "UTF-8");
-    addp.put("mail.from", cf.getStandardEmailSender());
+    if (cf.getStandardEmailSender() != null) {
+      addp.put("mail.from", cf.getStandardEmailSender());
+    }
     return cf.createMailSession(addp);
   }
 

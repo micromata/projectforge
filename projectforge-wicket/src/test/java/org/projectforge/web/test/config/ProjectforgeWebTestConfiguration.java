@@ -19,7 +19,7 @@ import de.micromata.genome.db.jpa.tabattr.api.TimeableService;
 import de.micromata.genome.db.jpa.tabattr.impl.TimeableServiceImpl;
 
 @Configuration
-@PropertySource("projectforgeTest.properties")
+@PropertySource({"classpath:/application.properties", "classpath:/application-test.properties"})
 public class ProjectforgeWebTestConfiguration
 {
   @Value("${projectforge.base.dir}")
