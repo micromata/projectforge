@@ -1,18 +1,26 @@
-import { getServiceURL } from '../utilities/rest';
+import cookies from 'react-cookies';
+
+import {
+    getAuthenticationHeaders,
+    getLoginHeaders,
+    getServiceURL,
+    handleHTTPErrors,
+} from '../utilities/rest';
 
 export const USER_LOGIN_BEGIN = 'USER_LOGIN_BEGIN';
 export const USER_LOGIN_SUCCESS = 'USER_LOGIN_SUCCESS';
 export const USER_LOGIN_FAILURE = 'USER_LOGIN_FAILURE';
+
 export const USER_LOGOUT = 'USER_LOGOUT';
 
-export const userLoginBegin = keepSignedIn => ({
+const userLoginBegin = keepSignedIn => ({
     type: USER_LOGIN_BEGIN,
     payload: {
         keepSignedIn,
     },
 });
 
-export const userLoginSuccess = (userId, authenticationToken) => ({
+const userLoginSuccess = (userId, authenticationToken) => ({
     type: USER_LOGIN_SUCCESS,
     payload: {
         userId,
@@ -20,38 +28,68 @@ export const userLoginSuccess = (userId, authenticationToken) => ({
     },
 });
 
-export const userLoginFailure = error => ({
+const userLoginFailure = error => ({
     type: USER_LOGIN_FAILURE,
     payload: {
         error,
     },
 });
 
-export const userLogout = () => ({
+const userLogout = () => ({
     type: USER_LOGOUT,
 });
 
-const authenticationUsername = 'Authentication-Username';
-const authenticationPassword = 'Authentication-Password';
+const USER_ID_COOKIE = 'USER_ID';
+const TOKEN_COOKIE = 'TOKEN';
 
 export const login = (username, password, keepSignedIn) => (dispatch) => {
     dispatch(userLoginBegin(keepSignedIn));
     return fetch(
         getServiceURL('authenticate/getToken'),
-        // 'https://httpbin.org/get',
         {
             method: 'GET',
-            headers: {
-                [authenticationUsername]: username,
-                [authenticationPassword]: password,
-            },
+            headers: getLoginHeaders(username, password),
         },
     )
-    // TODO: HANDLE HTTPS ERRORS?
+        .then(handleHTTPErrors)
         .then(response => response.json())
-        .then((json) => {
-            // TODO: SAVE ID AND TOKEN AS COOKIES WHEN KEEPSIGNEDIN IS SET
-            dispatch(userLoginSuccess(json.id, json.token));
+        .then(({ id, authenticationToken }) => {
+            if (keepSignedIn) {
+                cookies.save(USER_ID_COOKIE, id);
+                cookies.save(TOKEN_COOKIE, authenticationToken);
+            }
+
+            dispatch(userLoginSuccess(id, authenticationToken));
         })
+        .catch(error => dispatch(userLoginFailure(error)));
+};
+
+export const logout = () => (dispatch) => {
+    cookies.remove(USER_ID_COOKIE);
+    cookies.remove(TOKEN_COOKIE);
+
+    dispatch(userLogout());
+};
+
+export const loadSessionIfAvailable = () => (dispatch) => {
+    const userID = cookies.load(USER_ID_COOKIE);
+    const token = cookies.load(TOKEN_COOKIE);
+
+    if (!userID || !token) {
+        return;
+    }
+
+    dispatch(userLoginBegin(true));
+
+    fetch(
+        getServiceURL('authenticate/initialContact'),
+        {
+            method: 'GET',
+            headers: getAuthenticationHeaders(userID, token),
+        },
+    )
+        .then(handleHTTPErrors)
+        .then(response => response.json)
+        .then(() => dispatch(userLoginSuccess(userID, token)))
         .catch(error => dispatch(userLoginFailure(error)));
 };
