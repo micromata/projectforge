@@ -106,6 +106,7 @@ class LoginView extends React.Component {
                                         placeholder="[Username]"
                                         onChange={this.handleInputChange}
                                         value={username}
+                                        autocomplete="username"
                                     />
                                 </Col>
                             </FormGroup>
@@ -119,6 +120,7 @@ class LoginView extends React.Component {
                                         placeholder="[Password]"
                                         onChange={this.handleInputChange}
                                         value={password}
+                                        autocomplete="current-password"
                                     />
                                 </Col>
                             </FormGroup>
