@@ -15,7 +15,7 @@ class ProjectForge extends Component {
 
 
     render() {
-        const { loggedIn, loginUser: login } = this.props;
+        const { loggedIn, loginUser: login, loginInProgress } = this.props;
         let content;
 
         if (loggedIn) {
@@ -26,6 +26,7 @@ class ProjectForge extends Component {
                     // TODO: EXAMPLE DATA, REPLACE WITH REAL DATA FROM REST API
                     motd="Please try user demo with password demo123. Have a lot of fun!"
                     login={login}
+                    loading={loginInProgress}
                 />
             );
         }
@@ -44,10 +45,12 @@ ProjectForge.propTypes = {
     loginUser: PropTypes.func.isRequired,
     loggedIn: PropTypes.bool.isRequired,
     loadSessionIfAvailable: PropTypes.func.isRequired,
+    loginInProgress: PropTypes.bool.isRequired,
 };
 
 const mapStateToProps = state => ({
     loggedIn: state.authentication.user !== null,
+    loginInProgress: state.authentication.loading,
 });
 
 const actions = {

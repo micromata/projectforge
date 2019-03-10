@@ -15,6 +15,7 @@ import {
     Label,
 } from '../design';
 import style from './Authentication.module.scss';
+import LoadingContainer from '../design/loading-container';
 
 // TODO: INCLUDE TRANSLATION
 class LoginView extends React.Component {
@@ -53,11 +54,16 @@ class LoginView extends React.Component {
     }
 
     render() {
-        const { motd, administratorLoginNeeded, error } = this.props;
+        const {
+            motd,
+            administratorLoginNeeded,
+            error,
+            loading,
+        } = this.props;
         const { username, password, keepSignedIn } = this.state;
 
         return (
-            <div className={style.loginPanel}>
+            <LoadingContainer className={style.loginPanel} loading={loading}>
                 <Card>
                     <CardBody>
                         <CardTitle className={style.cardTitle}>[login.title]</CardTitle>
@@ -140,12 +146,13 @@ class LoginView extends React.Component {
                         </Form>
                     </CardBody>
                 </Card>
-            </div>
+            </LoadingContainer>
         );
     }
 }
 
 LoginView.propTypes = {
+    loading: PropTypes.bool.isRequired,
     login: PropTypes.func.isRequired,
     administratorLoginNeeded: PropTypes.bool,
     error: PropTypes.string,
