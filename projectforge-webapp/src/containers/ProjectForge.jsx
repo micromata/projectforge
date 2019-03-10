@@ -5,6 +5,8 @@ import TopBar from '../components/base/topbar';
 import Footer from '../components/base/footer';
 import LoginView from '../components/authentication/LoginView';
 import { loadSessionIfAvailable, loginUser } from '../actions';
+import Navigation from '../components/base/navigation';
+import style from './ProjectForge.module.scss';
 
 class ProjectForge extends Component {
     componentDidMount() {
@@ -19,7 +21,93 @@ class ProjectForge extends Component {
         let content;
 
         if (loggedIn) {
-            content = 'Logged In';
+            content = (
+                <div className={style.content}>
+                    <Navigation
+                        // TODO: REMOVE EXAMPLE CATEGORIES
+                        categories={[
+                            {
+                                name: 'Allgemein',
+                                items: [
+                                    { name: 'Kalender' },
+                                    { name: 'Kalenderliste' },
+                                    { name: 'Urlaubsantrag' },
+                                    { name: 'Bücher' },
+                                    { name: 'Adressbücher' },
+                                    { name: 'Adressen' },
+                                    { name: 'Direktwahl' },
+                                    { name: 'SMS senden' },
+                                    { name: 'Suche' },
+                                ],
+                            },
+                            {
+                                name: 'Projektmanagement',
+                                items: [
+                                    { name: 'Strukturbaum' },
+                                    { name: 'Zeitberichte' },
+                                    { name: 'Monatsbericht' },
+                                    { name: 'Meine Statistiken' },
+                                    { name: 'Personalplanung' },
+                                    { name: 'Personalplanungsliste' },
+                                    { name: 'Gantt' },
+                                ],
+                            },
+                            {
+                                name: 'FiBu',
+                                items: [
+                                    { name: 'Debitorenrechnungen' },
+                                    { name: 'Kreditorenrechnungen' },
+                                    { name: 'Kunden' },
+                                    { name: 'Projekte' },
+                                    { name: 'Auftragsbuch' },
+                                ],
+                            },
+                            {
+                                name: 'Kost',
+                                items: [
+                                    { name: 'Kost1' },
+                                    { name: 'Kost2' },
+                                    { name: 'Kost2-Arten' },
+                                ],
+                            },
+                            {
+                                name: 'Reporting',
+                                items: [
+                                    { name: 'Scriptliste' },
+                                    { name: 'Scripting' },
+                                    { name: 'Report-Objectives' },
+                                    { name: 'Buchungssätze' },
+                                    { name: 'Datev-Import' },
+                                ],
+                            },
+                            {
+                                name: 'Organisation',
+                                items: [
+                                    { name: 'Postausgang' },
+                                    { name: 'Posteingang' },
+                                ],
+                            },
+                            {
+                                name: 'Administration',
+                                items: [
+                                    { name: 'Mein Zugang' },
+                                    { name: 'Urlaubskonto' },
+                                    { name: 'Meine Einstellungen' },
+                                    { name: 'Passwort ändern' },
+                                    { name: 'Benutzer' },
+                                    { name: 'Gruppen' },
+                                    { name: 'Zugriffsverwaltung' },
+                                    { name: 'System' },
+                                    { name: 'Systemupdate' },
+                                    { name: 'Systemstatistik' },
+                                    { name: 'Konfiguration' },
+                                    { name: 'Plugins' },
+                                ],
+                            },
+                        ]}
+                    />
+                </div>
+            );
         } else {
             content = (
                 <LoginView

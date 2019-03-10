@@ -1,3 +1,9 @@
+@import "../../../assets/style/mixins";
+
+.categoryContainer {
+  padding: 10px 0;
+}
+
 .categoryTitle {
   position: relative;
   display: block;
@@ -5,7 +11,6 @@
   font-weight: 900;
   letter-spacing: .15em;
   color: #031b4e;
-  padding-top: 20px;
   font-size: 11px;
 }
 
@@ -22,5 +27,23 @@ ul.categoryLinks {
     color: #5b6987;
     text-decoration: none;
     cursor: pointer;
+  }
+}
+
+.categoryColumn {
+  border-right: 1px solid #eee;
+
+  &:last-child {
+    border-right: none;
+  }
+}
+
+.categoryListDropdownMenu {
+  @media #{$mediumMediaQuery} {
+    width: 730px;
+  }
+
+  @media #{$largeMediaQuery} {
+    width: 980px;
   }
 }
