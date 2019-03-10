@@ -9,4 +9,5 @@ export {
     FormGroup,
     Input,
     Label,
+    Spinner,
 } from 'reactstrap';
