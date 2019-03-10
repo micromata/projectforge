@@ -13,11 +13,8 @@ export const USER_LOGIN_FAILURE = 'USER_LOGIN_FAILURE';
 
 export const USER_LOGOUT = 'USER_LOGOUT';
 
-const userLoginBegin = keepSignedIn => ({
+const userLoginBegin = () => ({
     type: USER_LOGIN_BEGIN,
-    payload: {
-        keepSignedIn,
-    },
 });
 
 const userLoginSuccess = (userId, authenticationToken) => ({
@@ -43,7 +40,7 @@ const USER_ID_COOKIE = 'USER_ID';
 const TOKEN_COOKIE = 'TOKEN';
 
 export const login = (username, password, keepSignedIn) => (dispatch) => {
-    dispatch(userLoginBegin(keepSignedIn));
+    dispatch(userLoginBegin());
     return fetch(
         getServiceURL('authenticate/getToken'),
         {
@@ -79,7 +76,7 @@ export const loadSessionIfAvailable = () => (dispatch) => {
         return;
     }
 
-    dispatch(userLoginBegin(true));
+    dispatch(userLoginBegin());
 
     fetch(
         getServiceURL('authenticate/initialContact'),
