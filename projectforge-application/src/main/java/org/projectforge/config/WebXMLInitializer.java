@@ -25,18 +25,19 @@ import javax.servlet.ServletException;
  * @author Florian Blumenstein
  */
 @Configuration
-public class WebXMLInitializer implements ServletContextInitializer
-{
+public class WebXMLInitializer implements ServletContextInitializer {
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(WebXMLInitializer.class);
 
   @Value("${projectforge.security.csp-header-value:}") // defaults to empty string
   private String cspHeaderValue;
 
+  @Value("${projectforge.web.development.enableCORSFilter:false}")
+  private boolean webDevelopmentEnableCORSFilter;
+
   private static final String PARAM_APP_BEAN = "applicationBean";
 
   @Override
-  public void onStartup(ServletContext sc) throws ServletException
-  {
+  public void onStartup(ServletContext sc) throws ServletException {
     final FilterRegistration securityHeaderFilter = sc.addFilter("SecurityHeaderFilter", SecurityHeaderFilter.class);
     securityHeaderFilter.addMappingForUrlPatterns(null, false, "/*");
     securityHeaderFilter.setInitParameter(SecurityHeaderFilter.PARAM_CSP_HEADER_VALUE, cspHeaderValue);
@@ -61,7 +62,7 @@ public class WebXMLInitializer implements ServletContextInitializer
     wicketApp.setInitParameter(WicketFilter.FILTER_MAPPING_PARAM, "/wa/*");
     wicketApp.addMappingForUrlPatterns(null, filterAfterInternal, "/wa/*");
 
-    //if (WebConfiguration.isDevelopmentMode()) {
+    if (webDevelopmentEnableCORSFilter) {
       log.warn("*********************************");
       log.warn("***********            **********");
       log.warn("*********** ATTENTION! **********");
@@ -72,7 +73,8 @@ public class WebXMLInitializer implements ServletContextInitializer
       log.warn("*********************************");
       log.warn("Don't deliver this app in dev mode due to security reasons (cross origin allowed)!");
       sc.addFilter("cors", new CORSFilter()).addMappingForUrlPatterns(null, false, "/rest/*");
-    //}
+    }
+
     final FilterRegistration restUserFilter = sc.addFilter("restUserFilter", RestUserFilter.class);
     restUserFilter.addMappingForUrlPatterns(null, false, "/rest/*");
 
