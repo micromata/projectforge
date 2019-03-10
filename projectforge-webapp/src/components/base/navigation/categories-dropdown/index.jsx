@@ -1,5 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faListUl } from '@fortawesome/free-solid-svg-icons';
 import {
     Col,
     Container,
@@ -10,6 +12,8 @@ import {
 } from '../../../design';
 import Category from './Category';
 import { categoryPropType } from '../../../../utilities/propTypes';
+import revisedRandomId from '../../../../utilities/revisedRandomId';
+import style from '../Navigation.module.scss';
 
 function countColumnSize(column) {
     return column.reduce((accumulator, currentValue) => accumulator + currentValue.items.length, 0);
@@ -42,20 +46,25 @@ function CategoriesDropdown({ categories }) {
     return (
         <UncontrolledDropdown>
             <DropdownToggle nav caret>
-                [Categories]
+                <FontAwesomeIcon icon={faListUl} />
             </DropdownToggle>
-            <DropdownMenu style={{ width: '960px' }}>
+            <DropdownMenu className={style.categoryListDropdownMenu}>
                 <Container>
                     <Row>
-                        {
-                            columns.map(chest => (
-                                <Col md={3}>
-                                    {chest.map(category => (
-                                        <Category category={category} />
-                                    ))}
-                                </Col>
-                            ))
-                        }
+                        {columns.map(chest => (
+                            <Col
+                                md={3}
+                                key={`column-${revisedRandomId()}`}
+                                className={style.categoryColumn}
+                            >
+                                {chest.map(category => (
+                                    <Category
+                                        category={category}
+                                        key={`category-${category.name}`}
+                                    />
+                                ))}
+                            </Col>
+                        ))}
                     </Row>
                 </Container>
             </DropdownMenu>
