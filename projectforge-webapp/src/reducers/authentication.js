@@ -6,7 +6,6 @@ import {
 } from '../actions/authentication';
 
 const initialState = {
-    keepSignedIn: false,
     loading: false,
     error: null,
     user: null,
@@ -20,7 +19,6 @@ const reducer = (state = initialState, { type, payload }) => {
                 loading: true,
                 error: null,
                 user: null,
-                keepSignedIn: payload.keepSignedIn,
             };
         case USER_LOGIN_SUCCESS:
             return {
