@@ -1,0 +1,26 @@
+.categoryTitle {
+  position: relative;
+  display: block;
+  text-transform: uppercase;
+  font-weight: 900;
+  letter-spacing: .15em;
+  color: #031b4e;
+  padding-top: 20px;
+  font-size: 11px;
+}
+
+ul.categoryLinks {
+  list-style: none;
+  padding-inline-start: 0;
+  padding-left: 8px;
+  margin: 8px 0;
+  font-size: 16px;
+
+  li.categoryLink {
+    line-height: 30px;
+    font-size: 14px;
+    color: #5b6987;
+    text-decoration: none;
+    cursor: pointer;
+  }
+}
