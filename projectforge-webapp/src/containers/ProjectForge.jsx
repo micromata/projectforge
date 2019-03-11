@@ -17,7 +17,12 @@ class ProjectForge extends Component {
 
 
     render() {
-        const { loggedIn, loginUser: login, loginInProgress } = this.props;
+        const {
+            loggedIn,
+            loginUser: login,
+            loginInProgress,
+            loginError,
+        } = this.props;
         let content;
 
         if (loggedIn) {
@@ -115,6 +120,7 @@ class ProjectForge extends Component {
                     motd="Please try user demo with password demo123. Have a lot of fun!"
                     login={login}
                     loading={loginInProgress}
+                    error={loginError}
                 />
             );
         }
@@ -134,11 +140,17 @@ ProjectForge.propTypes = {
     loggedIn: PropTypes.bool.isRequired,
     loadSessionIfAvailable: PropTypes.func.isRequired,
     loginInProgress: PropTypes.bool.isRequired,
+    loginError: PropTypes.oneOfType([PropTypes.string, PropTypes.object]),
+};
+
+ProjectForge.defaultProps = {
+    loginError: undefined,
 };
 
 const mapStateToProps = state => ({
     loggedIn: state.authentication.user !== null,
     loginInProgress: state.authentication.loading,
+    loginError: state.authentication.error,
 });
 
 const actions = {
