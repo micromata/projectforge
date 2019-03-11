@@ -31,10 +31,13 @@ ul.categoryLinks {
 }
 
 .categoryColumn {
-  border-right: 1px solid #eee;
 
-  &:last-child {
-    border-right: none;
+  @media #{$mediumMediaQuery} {
+    border-right: 1px solid #ddd;
+
+    &:last-child {
+      border-right: none;
+    }
   }
 }
 
