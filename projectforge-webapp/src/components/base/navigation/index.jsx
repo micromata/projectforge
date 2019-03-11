@@ -1,6 +1,23 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import { Collapse, Nav, Navbar, NavbarToggler, } from '../../design';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faSearch } from '@fortawesome/free-solid-svg-icons';
+import { Link } from 'react-router-dom';
+import {
+    Button,
+    Collapse,
+    DropdownItem,
+    DropdownMenu,
+    DropdownToggle,
+    Input,
+    InputGroup,
+    InputGroupAddon,
+    Nav,
+    Navbar,
+    NavbarToggler,
+    NavItem,
+    UncontrolledDropdown,
+} from '../../design';
 import { categoryPropType } from '../../../utilities/propTypes';
 import CategoriesDropdown from './categories-dropdown';
 import Entry from './Entry';
@@ -27,7 +44,7 @@ class Navigation extends Component {
 
     render() {
         const { mobileIsOpen } = this.state;
-        const { categories, entries } = this.props;
+        const { categories, entries, username } = this.props;
 
         return (
             <Navbar color="light" light expand="md" className={style.navigation}>
@@ -44,6 +61,46 @@ class Navigation extends Component {
                             ))
                             : undefined
                         }
+                        <NavItem>
+                            <InputGroup>
+                                <InputGroupAddon addonType="append">
+                                    <Input type="text" placeholder="[Suche]" />
+                                    <Button color="success">
+                                        <FontAwesomeIcon icon={faSearch} />
+                                    </Button>
+                                </InputGroupAddon>
+                            </InputGroup>
+                        </NavItem>
+                    </Nav>
+                    <Nav className="ml-auto" navbar>
+                        <UncontrolledDropdown nav inNavbar>
+                            <DropdownToggle nav caret>
+                                {username}
+                            </DropdownToggle>
+                            <DropdownMenu right>
+                                <DropdownItem className={style.entryItem}>
+                                    <Link to="/">
+                                        [Feedback senden]
+                                    </Link>
+                                </DropdownItem>
+                                <DropdownItem divider />
+                                <DropdownItem className={style.entryItem}>
+                                    <Link to="/">
+                                        [Seite als Link]
+                                    </Link>
+                                </DropdownItem>
+                                <DropdownItem className={style.entryItem}>
+                                    <Link to="/">
+                                        [Dokumentation]
+                                    </Link>
+                                </DropdownItem>
+                                <DropdownItem className={style.entryItem}>
+                                    <Link to="/">
+                                        [Abmelden]
+                                    </Link>
+                                </DropdownItem>
+                            </DropdownMenu>
+                        </UncontrolledDropdown>
                     </Nav>
                 </Collapse>
             </Navbar>
@@ -54,11 +111,13 @@ class Navigation extends Component {
 Navigation.propTypes = {
     categories: PropTypes.arrayOf(categoryPropType),
     entries: PropTypes.arrayOf(categoryPropType),
+    username: PropTypes.string,
 };
 
 Navigation.defaultProps = {
     categories: [],
     entries: [],
+    username: 'You',
 };
 
 export default Navigation;

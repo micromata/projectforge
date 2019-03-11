@@ -14,6 +14,8 @@ export {
     Form,
     FormGroup,
     Input,
+    InputGroup,
+    InputGroupAddon,
     Label,
     Nav,
     Navbar,
