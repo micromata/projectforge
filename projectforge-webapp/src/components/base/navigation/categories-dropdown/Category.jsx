@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import PropTypes from 'prop-types';
 import classNames from 'classnames';
 import { Collapse } from '../../../design';
 import { categoryPropType } from '../../../../utilities/propTypes';
@@ -88,6 +89,11 @@ class Category extends Component {
 
 Category.propTypes = {
     category: categoryPropType.isRequired,
+    className: PropTypes.string,
+};
+
+Category.defaultProps = {
+    className: undefined,
 };
 
 export default Category;
