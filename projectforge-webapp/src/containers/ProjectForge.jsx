@@ -5,7 +5,7 @@ import { BrowserRouter as Router } from 'react-router-dom';
 import TopBar from '../components/base/topbar';
 import Footer from '../components/base/footer';
 import LoginView from '../components/authentication/LoginView';
-import { loadSessionIfAvailable, loginUser } from '../actions';
+import { loadSessionIfAvailable, loginUser, logoutUser } from '../actions';
 import Navigation from '../components/base/navigation';
 import style from './ProjectForge.module.scss';
 
@@ -21,6 +21,7 @@ class ProjectForge extends Component {
         const {
             loggedIn,
             loginUser: login,
+            logoutUser: logout,
             loginInProgress,
             loginError,
         } = this.props;
@@ -31,6 +32,7 @@ class ProjectForge extends Component {
                 <Router>
                     <div className={style.content}>
                         <Navigation
+                            logout={logout}
                             // TODO: REMOVE EXAMPLE CATEGORIES
                             username="Demo User"
                             entries={[
@@ -298,6 +300,7 @@ class ProjectForge extends Component {
 ProjectForge.propTypes = {
     loginUser: PropTypes.func.isRequired,
     loggedIn: PropTypes.bool.isRequired,
+    logoutUser: PropTypes.func.isRequired,
     loadSessionIfAvailable: PropTypes.func.isRequired,
     loginInProgress: PropTypes.bool.isRequired,
     loginError: PropTypes.oneOfType([PropTypes.string, PropTypes.object]),
@@ -316,6 +319,7 @@ const mapStateToProps = state => ({
 const actions = {
     loginUser,
     loadSessionIfAvailable,
+    logoutUser,
 };
 
 export default connect(mapStateToProps, actions)(ProjectForge);
