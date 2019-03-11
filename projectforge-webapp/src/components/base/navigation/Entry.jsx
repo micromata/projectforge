@@ -17,7 +17,7 @@ function Entry({ entry }) {
 
     if (entry.items) {
         content = (
-            <UncontrolledDropdown>
+            <UncontrolledDropdown nav inNavbar>
                 <DropdownToggle nav caret>
                     {entry.name}
                 </DropdownToggle>

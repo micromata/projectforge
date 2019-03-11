@@ -32,6 +32,7 @@ class ProjectForge extends Component {
                     <div className={style.content}>
                         <Navigation
                             // TODO: REMOVE EXAMPLE CATEGORIES
+                            username="Demo User"
                             entries={[
                                 {
                                     name: 'Administration',
