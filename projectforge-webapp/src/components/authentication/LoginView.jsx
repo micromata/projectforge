@@ -157,7 +157,7 @@ LoginView.propTypes = {
     loading: PropTypes.bool.isRequired,
     login: PropTypes.func.isRequired,
     administratorLoginNeeded: PropTypes.bool,
-    error: PropTypes.string,
+    error: PropTypes.oneOfType([PropTypes.string, PropTypes.object]),
     motd: PropTypes.string,
 };
 
