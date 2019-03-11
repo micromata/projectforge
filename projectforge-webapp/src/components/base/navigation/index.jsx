@@ -1,6 +1,11 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import { Collapse, Nav, Navbar, NavbarToggler, } from '../../design';
+import {
+    Collapse,
+    Nav,
+    Navbar,
+    NavbarToggler,
+} from '../../design';
 import { categoryPropType } from '../../../utilities/propTypes';
 import CategoriesDropdown from './categories-dropdown';
 
@@ -32,11 +37,11 @@ class Navigation extends Component {
                 <NavbarToggler onClick={this.toggleMobile} className="ml-auto" />
                 <Collapse isOpen={mobileIsOpen} navbar>
                     <Nav className="mr-auto" navbar>
-                        {
-                            categories !== null && categories.length > 0
-                                ? <CategoriesDropdown categories={categories} />
-                                : undefined
+                        {categories !== null && categories.length > 0
+                            ? <CategoriesDropdown categories={categories} />
+                            : undefined
                         }
+
                     </Nav>
                 </Collapse>
             </Navbar>

@@ -39,6 +39,17 @@ const userLogout = () => ({
 const USER_ID_COOKIE = 'USER_ID';
 const TOKEN_COOKIE = 'TOKEN';
 
+const removeCookies = () => {
+    cookies.remove(USER_ID_COOKIE);
+    cookies.remove(TOKEN_COOKIE);
+};
+
+const catchError = dispatch => (error) => {
+    removeCookies();
+
+    dispatch(userLoginFailure(error));
+};
+
 export const login = (username, password, keepSignedIn) => (dispatch) => {
     dispatch(userLoginBegin());
     return fetch(
@@ -54,16 +65,17 @@ export const login = (username, password, keepSignedIn) => (dispatch) => {
             if (keepSignedIn) {
                 cookies.save(USER_ID_COOKIE, id);
                 cookies.save(TOKEN_COOKIE, authenticationToken);
+            } else {
+                removeCookies();
             }
 
             dispatch(userLoginSuccess(id, authenticationToken));
         })
-        .catch(error => dispatch(userLoginFailure(error)));
+        .catch(catchError(dispatch));
 };
 
 export const logout = () => (dispatch) => {
-    cookies.remove(USER_ID_COOKIE);
-    cookies.remove(TOKEN_COOKIE);
+    removeCookies();
 
     dispatch(userLogout());
 };
@@ -88,5 +100,5 @@ export const loadSessionIfAvailable = () => (dispatch) => {
         .then(handleHTTPErrors)
         .then(response => response.json)
         .then(() => dispatch(userLoginSuccess(userID, token)))
-        .catch(error => dispatch(userLoginFailure(error)));
+        .catch(catchError(dispatch));
 };
