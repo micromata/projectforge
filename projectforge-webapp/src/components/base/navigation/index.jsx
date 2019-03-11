@@ -44,7 +44,12 @@ class Navigation extends Component {
 
     render() {
         const { mobileIsOpen } = this.state;
-        const { categories, entries, username, logout } = this.props;
+        const {
+            categories,
+            entries,
+            username,
+            logout,
+        } = this.props;
 
         return (
             <Navbar color="light" light expand="md" className={style.navigation}>
