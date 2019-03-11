@@ -42,7 +42,6 @@ function CategoriesDropdown({ categories }) {
             // Add the category to the smallest column.
             .push(category));
 
-    // TODO: ADD STYLE FOR DROPDOWN MENU
     return (
         <UncontrolledDropdown>
             <DropdownToggle nav caret>
