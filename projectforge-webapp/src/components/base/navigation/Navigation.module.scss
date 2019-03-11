@@ -4,13 +4,16 @@
   font-size: 1.1em;
   padding: 10px 5px;
 
-  .entryItem a {
+  .entryItem {
     font-size: 1.2em;
     color: #4c5766;
 
-    &:hover {
-      text-decoration: none;
-      color: #34373c;
+    a {
+      color: inherit;
+      &:hover {
+        text-decoration: none;
+        color: #34373c;
+      }
     }
   }
 }

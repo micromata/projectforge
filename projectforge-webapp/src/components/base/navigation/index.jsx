@@ -44,7 +44,7 @@ class Navigation extends Component {
 
     render() {
         const { mobileIsOpen } = this.state;
-        const { categories, entries, username } = this.props;
+        const { categories, entries, username, logout } = this.props;
 
         return (
             <Navbar color="light" light expand="md" className={style.navigation}>
@@ -94,10 +94,8 @@ class Navigation extends Component {
                                         [Dokumentation]
                                     </Link>
                                 </DropdownItem>
-                                <DropdownItem className={style.entryItem}>
-                                    <Link to="/">
-                                        [Abmelden]
-                                    </Link>
+                                <DropdownItem className={style.entryItem} onClick={logout}>
+                                    [Abmelden]
                                 </DropdownItem>
                             </DropdownMenu>
                         </UncontrolledDropdown>
@@ -109,12 +107,14 @@ class Navigation extends Component {
 }
 
 Navigation.propTypes = {
+    logout: PropTypes.func,
     categories: PropTypes.arrayOf(categoryPropType),
     entries: PropTypes.arrayOf(categoryPropType),
     username: PropTypes.string,
 };
 
 Navigation.defaultProps = {
+    logout: undefined,
     categories: [],
     entries: [],
     username: 'You',
