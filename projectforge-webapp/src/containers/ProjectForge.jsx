@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
+import { BrowserRouter as Router } from 'react-router-dom';
 import TopBar from '../components/base/topbar';
 import Footer from '../components/base/footer';
 import LoginView from '../components/authentication/LoginView';
@@ -27,91 +28,249 @@ class ProjectForge extends Component {
 
         if (loggedIn) {
             content = (
-                <div className={style.content}>
-                    <Navigation
-                        // TODO: REMOVE EXAMPLE CATEGORIES
-                        categories={[
-                            {
-                                name: 'Allgemein',
-                                items: [
-                                    { name: 'Kalender' },
-                                    { name: 'Kalenderliste' },
-                                    { name: 'Urlaubsantrag' },
-                                    { name: 'Bücher' },
-                                    { name: 'Adressbücher' },
-                                    { name: 'Adressen' },
-                                    { name: 'Direktwahl' },
-                                    { name: 'SMS senden' },
-                                    { name: 'Suche' },
-                                ],
-                            },
-                            {
-                                name: 'Projektmanagement',
-                                items: [
-                                    { name: 'Strukturbaum' },
-                                    { name: 'Zeitberichte' },
-                                    { name: 'Monatsbericht' },
-                                    { name: 'Meine Statistiken' },
-                                    { name: 'Personalplanung' },
-                                    { name: 'Personalplanungsliste' },
-                                    { name: 'Gantt' },
-                                ],
-                            },
-                            {
-                                name: 'FiBu',
-                                items: [
-                                    { name: 'Debitorenrechnungen' },
-                                    { name: 'Kreditorenrechnungen' },
-                                    { name: 'Kunden' },
-                                    { name: 'Projekte' },
-                                    { name: 'Auftragsbuch' },
-                                ],
-                            },
-                            {
-                                name: 'Kost',
-                                items: [
-                                    { name: 'Kost1' },
-                                    { name: 'Kost2' },
-                                    { name: 'Kost2-Arten' },
-                                ],
-                            },
-                            {
-                                name: 'Reporting',
-                                items: [
-                                    { name: 'Scriptliste' },
-                                    { name: 'Scripting' },
-                                    { name: 'Report-Objectives' },
-                                    { name: 'Buchungssätze' },
-                                    { name: 'Datev-Import' },
-                                ],
-                            },
-                            {
-                                name: 'Organisation',
-                                items: [
-                                    { name: 'Postausgang' },
-                                    { name: 'Posteingang' },
-                                ],
-                            },
-                            {
-                                name: 'Administration',
-                                items: [
-                                    { name: 'Mein Zugang' },
-                                    { name: 'Urlaubskonto' },
-                                    { name: 'Meine Einstellungen' },
-                                    { name: 'Passwort ändern' },
-                                    { name: 'Benutzer' },
-                                    { name: 'Gruppen' },
-                                    { name: 'Zugriffsverwaltung' },
-                                    { name: 'System' },
-                                    { name: 'Systemupdate' },
-                                    { name: 'Systemstatistik' },
-                                    { name: 'Konfiguration' },
-                                    { name: 'Plugins' },
-                                ],
-                            },
-                        ]}
-                    />
-                </div>
+                <Router>
+                    <div className={style.content}>
+                        <Navigation
+                            // TODO: REMOVE EXAMPLE CATEGORIES
+                            entries={[
+                                {
+                                    name: 'Administration',
+                                    items: [
+                                        {
+                                            name: 'Benutzer',
+                                            url: '/',
+                                        },
+                                        {
+                                            name: 'Gruppen',
+                                            url: '/',
+                                        },
+                                        {
+                                            name: 'Zugriffsverwaltung',
+                                            url: '/',
+                                        },
+                                        {
+                                            name: 'System',
+                                            url: '/',
+                                        },
+                                    ],
+                                },
+                                {
+                                    name: 'Passwort ändern',
+                                    url: '/',
+                                },
+                            ]}
+                            categories={[
+                                {
+                                    name: 'Allgemein',
+                                    items: [
+                                        {
+                                            name: 'Kalender',
+                                            url: '/',
+                                        },
+                                        {
+                                            name: 'Kalenderliste',
+                                            url: '/',
+                                        },
+                                        {
+                                            name: 'Urlaubsantrag',
+                                            url: '/',
+                                        },
+                                        {
+                                            name: 'Bücher',
+                                            url: '/',
+                                        },
+                                        {
+                                            name: 'Adressbücher',
+                                            url: '/',
+                                        },
+                                        {
+                                            name: 'Adressen',
+                                            url: '/',
+                                        },
+                                        {
+                                            name: 'Direktwahl',
+                                            url: '/',
+                                        },
+                                        {
+                                            name: 'SMS senden',
+                                            url: '/',
+                                        },
+                                        {
+                                            name: 'Suche',
+                                            url: '/',
+                                        },
+                                    ],
+                                },
+                                {
+                                    name: 'Projektmanagement',
+                                    items: [
+                                        {
+                                            name: 'Strukturbaum',
+                                            url: '/',
+                                        },
+                                        {
+                                            name: 'Zeitberichte',
+                                            url: '/',
+                                        },
+                                        {
+                                            name: 'Monatsbericht',
+                                            url: '/',
+                                        },
+                                        {
+                                            name: 'Meine Statistiken',
+                                            url: '/',
+                                        },
+                                        {
+                                            name: 'Personalplanung',
+                                            url: '/',
+                                        },
+                                        {
+                                            name: 'Personalplanungsliste',
+                                            url: '/',
+                                        },
+                                        {
+                                            name: 'Gantt',
+                                            url: '/',
+                                        },
+                                    ],
+                                },
+                                {
+                                    name: 'FiBu',
+                                    items: [
+                                        {
+                                            name: 'Debitorenrechnungen',
+                                            url: '/',
+                                        },
+                                        {
+                                            name: 'Kreditorenrechnungen',
+                                            url: '/',
+                                        },
+                                        {
+                                            name: 'Kunden',
+                                            url: '/',
+                                        },
+                                        {
+                                            name: 'Projekte',
+                                            url: '/',
+                                        },
+                                        {
+                                            name: 'Auftragsbuch',
+                                            url: '/',
+                                        },
+                                    ],
+                                },
+                                {
+                                    name: 'Kost',
+                                    items: [
+                                        {
+                                            name: 'Kost1',
+                                            url: '/',
+                                        },
+                                        {
+                                            name: 'Kost2',
+                                            url: '/',
+                                        },
+                                        {
+                                            name: 'Kost2-Arten',
+                                            url: '/',
+                                        },
+                                    ],
+                                },
+                                {
+                                    name: 'Reporting',
+                                    items: [
+                                        {
+                                            name: 'Scriptliste',
+                                            url: '/',
+                                        },
+                                        {
+                                            name: 'Scripting',
+                                            url: '/',
+                                        },
+                                        {
+                                            name: 'Report-Objectives',
+                                            url: '/',
+                                        },
+                                        {
+                                            name: 'Buchungssätze',
+                                            url: '/',
+                                        },
+                                        {
+                                            name: 'Datev-Import',
+                                            url: '/',
+                                        },
+                                    ],
+                                },
+                                {
+                                    name: 'Organisation',
+                                    items: [
+                                        {
+                                            name: 'Postausgang',
+                                            url: '/',
+                                        },
+                                        {
+                                            name: 'Posteingang',
+                                            url: '/',
+                                        },
+                                    ],
+                                },
+                                {
+                                    name: 'Administration',
+                                    items: [
+                                        {
+                                            name: 'Mein Zugang',
+                                            url: '/',
+                                        },
+                                        {
+                                            name: 'Urlaubskonto',
+                                            url: '/',
+                                        },
+                                        {
+                                            name: 'Meine Einstellungen',
+                                            url: '/',
+                                        },
+                                        {
+                                            name: 'Passwort ändern',
+                                            url: '/',
+                                        },
+                                        {
+                                            name: 'Benutzer',
+                                            url: '/',
+                                        },
+                                        {
+                                            name: 'Gruppen',
+                                            url: '/',
+                                        },
+                                        {
+                                            name: 'Zugriffsverwaltung',
+                                            url: '/',
+                                        },
+                                        {
+                                            name: 'System',
+                                            url: '/',
+                                        },
+                                        {
+                                            name: 'Systemupdate',
+                                            url: '/',
+                                        },
+                                        {
+                                            name: 'Systemstatistik',
+                                            url: '/',
+                                        },
+                                        {
+                                            name: 'Konfiguration',
+                                            url: '/',
+                                        },
+                                        {
+                                            name: 'Plugins',
+                                            url: '/',
+                                        },
+                                    ],
+                                },
+                            ]}
+                        />
+                    </div>
+                </Router>
             );
         } else {
             content = (

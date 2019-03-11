@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import classNames from 'classnames';
+import { Link } from 'react-router-dom';
 import { Collapse } from '../../../design';
 import { categoryPropType } from '../../../../utilities/propTypes';
 import style from '../Navigation.module.scss';
@@ -10,7 +11,7 @@ class Category extends Component {
         super(props);
 
         this.state = {
-            collapse: false,
+            collapse: window.innerWidth > 735,
             viewportWidth: 0,
         };
 
@@ -31,10 +32,10 @@ class Category extends Component {
         const { innerWidth: viewportWidth } = window;
 
 
-        let collapse = false;
+        let collapse = true;
 
-        if (viewportWidth > 735) {
-            collapse = true;
+        if (viewportWidth < 735) {
+            collapse = false;
         }
 
         this.setState({
@@ -77,7 +78,7 @@ class Category extends Component {
                                 className={style.categoryLink}
                                 key={`category-link-${category.name}-${item.name}`}
                             >
-                                {item.name}
+                                <Link to={item.url}>{item.name}</Link>
                             </li>
                         ))}
                     </ul>
