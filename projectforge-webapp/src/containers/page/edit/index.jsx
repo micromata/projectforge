@@ -1,12 +1,18 @@
-import React from 'react';
 import PropTypes from 'prop-types';
+import React from 'react';
 import { connect } from 'react-redux';
-import { Container, TabContent, TabPane } from '../../../components/design';
-import PageNavigation from '../../../components/base/page/Navigation';
-import LoadingContainer from '../../../components/design/loading-container';
-import TabNavigation from '../../../components/base/page/edit/TabNavigation';
-import { getAuthenticationHeaders, handleHTTPErrors } from '../../../utilities/rest';
 import LayoutGroup from '../../../components/base/page/edit/layout/Group';
+import TabNavigation from '../../../components/base/page/edit/TabNavigation';
+import PageNavigation from '../../../components/base/page/Navigation';
+import {
+    Alert,
+    Button,
+    Container,
+    TabContent,
+    TabPane,
+} from '../../../components/design';
+import LoadingContainer from '../../../components/design/loading-container';
+import { getAuthenticationHeaders, handleHTTPErrors } from '../../../utilities/rest';
 
 class EditPage extends React.Component {
     constructor(props) {
@@ -20,9 +26,20 @@ class EditPage extends React.Component {
         };
 
         this.toggleTab = this.toggleTab.bind(this);
+        this.fetchLayout = this.fetchLayout.bind(this);
     }
 
     componentDidMount() {
+        this.fetchLayout();
+    }
+
+    fetchLayout() {
+        this.setState({
+            loading: true,
+            error: undefined,
+            layout: [],
+        });
+
         const { userId, token } = this.props;
 
         fetch(
@@ -57,13 +74,25 @@ class EditPage extends React.Component {
     }
 
     render() {
-        const { loading, activeTab, layout } = this.state;
+        const {
+            loading,
+            activeTab,
+            layout,
+            error,
+        } = this.state;
 
-        // TODO: CATCH ERROR
+        let content;
 
-        return (
-            <React.Fragment>
-                <PageNavigation />
+        if (error) {
+            content = (
+                <Alert color="danger">
+                    <h4>[Failed to Fetch Design]</h4>
+                    <p>[Description Here]</p>
+                    <Button onClick={this.fetchLayout}>[Retry]</Button>
+                </Alert>
+            );
+        } else {
+            content = (
                 <LoadingContainer loading={loading}>
                     <TabNavigation
                         tabs={{
@@ -77,7 +106,7 @@ class EditPage extends React.Component {
                         activeTab={activeTab}
                         style={{
                             background: '#fff',
-                            padding: '15px 0',
+                            padding: '15px',
                         }}
                     >
                         <TabPane tabId="edit">
@@ -87,6 +116,14 @@ class EditPage extends React.Component {
                         </TabPane>
                     </TabContent>
                 </LoadingContainer>
+            );
+        }
+        // TODO: CATCH ERROR
+
+        return (
+            <React.Fragment>
+                <PageNavigation />
+                {content}
             </React.Fragment>
         );
     }
