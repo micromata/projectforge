@@ -62,6 +62,7 @@ import org.projectforge.framework.configuration.SecurityConfig;
 import org.projectforge.framework.persistence.api.UserRightService;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
+import org.projectforge.sms.SMSSenderConfig;
 import org.projectforge.web.access.AccessListPage;
 import org.projectforge.web.address.AddressListPage;
 import org.projectforge.web.address.AddressMobileListPage;
@@ -141,6 +142,9 @@ public class MenuItemRegistry implements Serializable
 
   @Autowired
   private ConfigurationService configurationService;
+
+  @Autowired
+  private SMSSenderConfig smsSenderConfig;
 
   @Autowired
   private VacationService vacationService;
@@ -319,7 +323,9 @@ public class MenuItemRegistry implements Serializable
         .setMobileMenu(AddressMobileListPage.class, 100); // Visible
     // for all.
     reg.register(common, MenuItemDefId.PHONE_CALL, 50, PhoneCallPage.class);
-    reg.register(common, MenuItemDefId.SEND_SMS, 60, SendSmsPage.class);
+    if (smsSenderConfig.isSmsConfigured()) {
+      reg.register(common, MenuItemDefId.SEND_SMS, 60, SendSmsPage.class);
+    }
     final MenuItemDef meb = new MenuItemDef(common, MenuItemDefId.MEB.getId(), 70, MenuItemDefId.MEB.getI18nKey(),
         MebListPage.class)
     {
