@@ -4,16 +4,11 @@ import { connect } from 'react-redux';
 import LayoutGroup from '../../../components/base/page/edit/layout/Group';
 import TabNavigation from '../../../components/base/page/edit/TabNavigation';
 import PageNavigation from '../../../components/base/page/Navigation';
-import {
-    Alert,
-    Button,
-    Container,
-    TabContent,
-    TabPane,
-} from '../../../components/design';
+import { Alert, Button, Container, TabContent, TabPane, } from '../../../components/design';
 import LoadingContainer from '../../../components/design/loading-container';
 import { getAuthenticationHeaders, handleHTTPErrors } from '../../../utilities/rest';
 import style from '../../ProjectForge.module.scss';
+import ActionGroup from './ActionGroup';
 
 class EditPage extends React.Component {
     constructor(props) {
@@ -24,6 +19,7 @@ class EditPage extends React.Component {
             activeTab: 'edit',
             error: undefined,
             layout: [],
+            actions: [],
         };
 
         this.toggleTab = this.toggleTab.bind(this);
@@ -39,6 +35,7 @@ class EditPage extends React.Component {
             loading: true,
             error: undefined,
             layout: [],
+            actions: [],
         });
 
         const { userId, token } = this.props;
@@ -55,6 +52,7 @@ class EditPage extends React.Component {
             .then(json => this.setState({
                 loading: false,
                 layout: json.layout,
+                actions: json.actions,
             }))
             .catch(error => this.setState({
                 error,
@@ -79,6 +77,7 @@ class EditPage extends React.Component {
             loading,
             activeTab,
             layout,
+            actions,
             error,
         } = this.state;
 
@@ -110,6 +109,7 @@ class EditPage extends React.Component {
                         <TabPane tabId="edit">
                             <Container fluid>
                                 <LayoutGroup content={layout} />
+                                <ActionGroup actions={actions} />
                             </Container>
                         </TabPane>
                     </TabContent>

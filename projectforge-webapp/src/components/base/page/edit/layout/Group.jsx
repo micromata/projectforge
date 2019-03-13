@@ -25,7 +25,7 @@ function LayoutGroup({ content, type, length }) {
             groupProperties.sm = length;
             break;
         default:
-            GroupTag = React.Fragment;
+            GroupTag = 'div';
     }
 
     return (
