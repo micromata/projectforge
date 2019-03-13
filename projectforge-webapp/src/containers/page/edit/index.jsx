@@ -118,7 +118,6 @@ class EditPage extends React.Component {
                 </LoadingContainer>
             );
         }
-        // TODO: CATCH ERROR
 
         return (
             <React.Fragment>
