@@ -34,6 +34,7 @@ import org.projectforge.business.configuration.ConfigurationService;
 import org.projectforge.business.utils.HtmlHelper;
 import org.projectforge.common.StringHelper;
 import org.projectforge.framework.time.DateTimeFormatter;
+import org.projectforge.sms.SmsSenderConfig;
 import org.projectforge.web.wicket.AbstractEditPage;
 import org.projectforge.web.wicket.AbstractSecuredPage;
 import org.projectforge.web.wicket.bootstrap.GridBuilder;
@@ -56,6 +57,9 @@ public class AddressViewPage extends AbstractSecuredPage
 
   @SpringBean
   private ConfigurationService configurationService;
+
+  @SpringBean
+  private SmsSenderConfig smsSenderConfig;
 
   private AddressDO address;
 
@@ -120,7 +124,7 @@ public class AddressViewPage extends AbstractSecuredPage
           }, getString("address.directCall.call"));
       addContentMenuEntry(menu);
     }
-    if (configurationService.isSmsConfigured() == true
+    if (smsSenderConfig.isSmsConfigured() == true
         && StringHelper.isNotBlank(address.getMobilePhone(), address.getPrivateMobilePhone()) == true) {
       final ContentMenuEntryPanel menu = new ContentMenuEntryPanel(getNewContentMenuChildId(),
           new Link<Void>(ContentMenuEntryPanel.LINK_ID)

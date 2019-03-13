@@ -1,4 +1,4 @@
-package org.projectforge.sms;
+package org.projectforge.messaging;
 
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.httpclient.HttpClient;
@@ -9,38 +9,22 @@ import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.lang3.StringUtils;
 import org.projectforge.common.StringHelper;
+import org.projectforge.sms.SmsSenderConfig;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.Map;
 
-public class SMSSender {
-  private static transient final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(SMSSender.class);
-
-  public enum HttpMethodType {POST, GET}
+public class SmsSender {
+  private static transient final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(SmsSender.class);
 
   public enum HttpResponseCode {SUCCESS, NUMBER_ERROR, MESSAGE_TO_LARGE, MESSAGE_ERROR, UNKNOWN_ERROR}
 
-  private HttpMethodType httpMethodType;
-  private String url;
-  private Map<String, String> httpParams;
-  private String smsReturnPatternSuccess;
-  private String smsReturnPatternNumberError;
-  private String smsReturnPatternMessageToLargeError;
-  private String smsReturnPatternMessageError;
-  private String smsReturnPatternError;
-  private int smsMaxMessageLength = 160;
+  private SmsSenderConfig config;
 
-  /**
-   * @param httpMethodType Uses {@link HttpMethodType#GET} for String "get" (ignore case), otherwise {@link HttpMethodType#POST}.
-   * @param url
-   * @param httpParams
-   */
-  public SMSSender(String httpMethodType, String url, Map<String, String> httpParams) {
-    this.httpMethodType = StringUtils.equalsIgnoreCase("get", httpMethodType) ? HttpMethodType.GET : HttpMethodType.POST;
-    this.url = url;
-    this.httpParams = httpParams;
+  public SmsSender(SmsSenderConfig config) {
+    this.config = config;
   }
 
   /**
@@ -54,28 +38,28 @@ public class SMSSender {
               + ". Message is null!");
       return HttpResponseCode.MESSAGE_ERROR;
     }
-    if (message.length() > smsMaxMessageLength) {
+    if (message.length() > config.getSmsMaxMessageLength()) {
       log.error("Failed to send message to destination number: '" + StringHelper.hideStringEnding(phoneNumber, 'x', 3)
-              + ". Message is to large, max length is " + smsMaxMessageLength + ", but current message size is " + message.length());
+              + ". Message is to large, max length is " + config.getSmsMaxMessageLength() + ", but current message size is " + message.length());
       return HttpResponseCode.MESSAGE_TO_LARGE;
     }
-    String proceededUrl = replaceVariables(this.url, phoneNumber, message, true);
+    String proceededUrl = replaceVariables(config.getUrl(), phoneNumber, message, true);
     HttpMethodBase method = createHttpMethod(proceededUrl);
-    if (httpMethodType == HttpMethodType.GET) {
-      if (MapUtils.isNotEmpty(httpParams)) {
+    if (config.getHttpMethodType() == SmsSenderConfig.HttpMethodType.GET) {
+      if (MapUtils.isNotEmpty(config.getHttpParams())) {
         // Now build the query params list from the configured httpParams:
-        NameValuePair[] params = new NameValuePair[httpParams.size()];
+        NameValuePair[] params = new NameValuePair[config.getHttpParams().size()];
         int index = 0;
-        for (Map.Entry<String, String> entry : httpParams.entrySet()) {
+        for (Map.Entry<String, String> entry : config.getHttpParams().entrySet()) {
           String value = replaceVariables(entry.getValue(), phoneNumber, message, true);
           params[index++] = new NameValuePair(entry.getKey(), value);
         }
         ((GetMethod) method).setQueryString(params);
       }
     } else { // HTTP POST
-      if (MapUtils.isNotEmpty(httpParams)) {
+      if (MapUtils.isNotEmpty(config.getHttpParams())) {
         // Now add all post params from the configured httpParams:
-        for (Map.Entry<String, String> entry : httpParams.entrySet()) {
+        for (Map.Entry<String, String> entry : config.getHttpParams().entrySet()) {
           String value = replaceVariables(entry.getValue(), phoneNumber, message, false);
           ((PostMethod) method).addParameter(entry.getKey(), value);
         }
@@ -90,15 +74,15 @@ public class SMSSender {
       HttpResponseCode responseCode = null;
       if (response == null || responseNumber != 200) {
         responseCode = HttpResponseCode.UNKNOWN_ERROR;
-      } else if (matches(response, this.smsReturnPatternNumberError) == true) {
+      } else if (matches(response, config.getSmsReturnPatternNumberError()) == true) {
         responseCode = HttpResponseCode.NUMBER_ERROR;
-      } else if (matches(response, this.smsReturnPatternMessageToLargeError) == true) {
+      } else if (matches(response, config.getSmsReturnPatternMessageToLargeError()) == true) {
         responseCode = HttpResponseCode.MESSAGE_TO_LARGE;
-      } else if (matches(response, this.smsReturnPatternMessageError) == true) {
+      } else if (matches(response, config.getSmsReturnPatternMessageError()) == true) {
         responseCode = HttpResponseCode.MESSAGE_ERROR;
-      } else if (matches(response, this.smsReturnPatternError) == true) {
+      } else if (matches(response, config.getSmsReturnPatternError()) == true) {
         responseCode = HttpResponseCode.UNKNOWN_ERROR;
-      } else if (matches(response, this.smsReturnPatternSuccess) == true) {
+      } else if (matches(response, config.getSmsReturnPatternSuccess()) == true) {
         responseCode = HttpResponseCode.SUCCESS;
       } else {
         responseCode = HttpResponseCode.UNKNOWN_ERROR;
@@ -168,7 +152,7 @@ public class SMSSender {
    * @return
    */
   protected HttpMethodBase createHttpMethod(String url) {
-    if (httpMethodType == HttpMethodType.GET) {
+    if (config.getHttpMethodType() == SmsSenderConfig.HttpMethodType.GET) {
       return new GetMethod(url);
     }
     return new PostMethod(url);
@@ -178,33 +162,8 @@ public class SMSSender {
     return new HttpClient();
   }
 
-  public SMSSender setSmsMaxMessageLength(int smsMaxMessageLength) {
-    this.smsMaxMessageLength = smsMaxMessageLength;
-    return this;
-  }
-
-  public SMSSender setSmsReturnPatternSuccess(String smsReturnPatternSuccess) {
-    this.smsReturnPatternSuccess = smsReturnPatternSuccess;
-    return this;
-  }
-
-  public SMSSender setSmsReturnPatternError(String smsReturnPatternError) {
-    this.smsReturnPatternError = smsReturnPatternError;
-    return this;
-  }
-
-  public SMSSender setSmsReturnPatternMessageError(String smsReturnPatternMessageError) {
-    this.smsReturnPatternMessageError = smsReturnPatternMessageError;
-    return this;
-  }
-
-  public SMSSender setSmsReturnPatternMessageToLargeError(String smsReturnPatternMessageToLargeError) {
-    this.smsReturnPatternMessageToLargeError = smsReturnPatternMessageToLargeError;
-    return this;
-  }
-
-  public SMSSender setSmsReturnPatternNumberError(String smsReturnPatternNumberError) {
-    this.smsReturnPatternNumberError = smsReturnPatternNumberError;
+  public SmsSender setConfig(SmsSenderConfig config) {
+    this.config = config;
     return this;
   }
 }

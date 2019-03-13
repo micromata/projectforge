@@ -28,7 +28,7 @@ public class ProjectForgeApplication {
 
   /**
    * For easier configuration, ProjectForge adds ${user.home}/ProjectForge/projectforge.properties as
-   * --spring.config.additional-location. If this files exists, also the value projectforge.base.dir to ${user.home}/ProjectForge.
+   * --spring.config.additional-location.
    * <br/>
    * If the additional-location is already given in the args, nothing will done by this method.
    *

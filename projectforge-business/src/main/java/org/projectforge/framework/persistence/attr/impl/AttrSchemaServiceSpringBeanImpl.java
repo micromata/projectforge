@@ -108,9 +108,10 @@ public class AttrSchemaServiceSpringBeanImpl extends AttrSchemaServiceBaseImpl
     final String location = "file:" + applicationDir + "/attrschema.xml";
     try {
       final ApplicationContext context = new FileSystemXmlApplicationContext(location);
+      log.info("AttrSchema config file loaded from '" + location + "'");
       return context.getBean("attrSchemataMap", Map.class);
     } catch (Exception e) {
-      log.info("Can't load/parse external AttrSchema config file. Message: " + e.getMessage());
+      log.info("Can't load/parse external AttrSchema config file, using default values. Message: " + e.getMessage());
       return null;
     }
   }
