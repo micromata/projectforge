@@ -27,15 +27,15 @@ package org.projectforge.rest;
 /**
  * Serialization and deserialization for rest calls.
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
+ *
  */
 public class Authentication
 {
-  public static final String AUTHENTICATION_USER_ID = "authenticationUserId";
+  public static final String AUTHENTICATION_USER_ID = "Authentication-User-Id";
 
-  public static final String AUTHENTICATION_TOKEN = "authenticationToken";
+  public static final String AUTHENTICATION_TOKEN = "Authentication-Token";
 
-  public static final String AUTHENTICATION_USERNAME = "authenticationUsername";
+  public static final String AUTHENTICATION_USERNAME = "Authentication-Username";
 
-  public static final String AUTHENTICATION_PASSWORD = "authenticationPassword";
+  public static final String AUTHENTICATION_PASSWORD = "Authentication-Password";
 }
