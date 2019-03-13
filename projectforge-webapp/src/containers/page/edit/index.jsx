@@ -13,6 +13,7 @@ import {
 } from '../../../components/design';
 import LoadingContainer from '../../../components/design/loading-container';
 import { getAuthenticationHeaders, handleHTTPErrors } from '../../../utilities/rest';
+import style from '../../ProjectForge.module.scss';
 
 class EditPage extends React.Component {
     constructor(props) {
@@ -104,10 +105,7 @@ class EditPage extends React.Component {
                     />
                     <TabContent
                         activeTab={activeTab}
-                        style={{
-                            background: '#fff',
-                            padding: '15px',
-                        }}
+                        className={style.tabContent}
                     >
                         <TabPane tabId="edit">
                             <Container fluid>

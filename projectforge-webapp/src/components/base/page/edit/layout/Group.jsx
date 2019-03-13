@@ -1,9 +1,11 @@
-import React from 'react';
+import classNames from 'classnames';
 import PropTypes from 'prop-types';
-import { Col, FormGroup, Row } from '../../../../design';
+import React from 'react';
 import revisedRandomId from '../../../../../utilities/revisedRandomId';
-import LayoutLabel from './Label';
+import { Col, FormGroup, Row } from '../../../../design';
+import style from '../../Page.module.scss';
 import LayoutInput from './Input';
+import LayoutLabel from './Label';
 
 // TODO: COLLECT INPUT IN PARENT
 function LayoutGroup({ content, type, length }) {
@@ -27,7 +29,10 @@ function LayoutGroup({ content, type, length }) {
     }
 
     return (
-        <GroupTag {...groupProperties}>
+        <GroupTag
+            {...groupProperties}
+            className={classNames(style.group, groupProperties.className)}
+        >
             {content.map((component) => {
                 let Tag;
 
