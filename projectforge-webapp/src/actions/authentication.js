@@ -98,7 +98,7 @@ export const loadSessionIfAvailable = () => (dispatch) => {
         },
     )
         .then(handleHTTPErrors)
-        .then(response => response.json)
+        .then(response => response.json())
         .then(() => dispatch(userLoginSuccess(userID, token)))
         .catch(catchError(dispatch));
 };
