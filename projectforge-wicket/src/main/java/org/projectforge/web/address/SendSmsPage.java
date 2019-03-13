@@ -31,13 +31,12 @@ import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.address.AddressDO;
 import org.projectforge.business.address.AddressDao;
 import org.projectforge.business.address.PhoneType;
-import org.projectforge.business.configuration.ConfigurationService;
-import org.projectforge.common.StringHelper;
 import org.projectforge.framework.configuration.Configuration;
 import org.projectforge.framework.configuration.ConfigurationParam;
 import org.projectforge.framework.time.DateTimeFormatter;
 import org.projectforge.framework.utils.NumberHelper;
-import org.projectforge.sms.SMSSender;
+import org.projectforge.messaging.SmsSender;
+import org.projectforge.sms.SmsSenderConfig;
 import org.projectforge.web.wicket.AbstractStandardFormPage;
 
 import java.util.Date;
@@ -60,7 +59,7 @@ public class SendSmsPage extends AbstractStandardFormPage {
   private AddressDao addressDao;
 
   @SpringBean
-  private ConfigurationService configurationService;
+  private SmsSenderConfig smsSenderConfig;
 
   private AddressDO address;
 
@@ -150,34 +149,25 @@ public class SendSmsPage extends AbstractStandardFormPage {
   protected void send() {
     final String number = NumberHelper.extractPhonenumber(getData().getPhoneNumber(),
             Configuration.getInstance().getStringValue(ConfigurationParam.DEFAULT_COUNTRY_PHONE_PREFIX));
-    if (StringUtils.isBlank(configurationService.getSmsUrl()) == true) {
+    if (!smsSenderConfig.isSmsConfigured()) {
       log.error("Servlet url for sending sms not configured. SMS not supported.");
       return;
     }
-    SMSSender smsSender = new SMSSender(configurationService.getSmsHttpMethod(),
-            configurationService.getSmsUrl(),
-            configurationService.getSmsHttpParameters())
-            .setSmsMaxMessageLength(configurationService.getSmsMaxMessageLength())
-            .setSmsReturnPatternSuccess(configurationService.getSmsReturnPatternSuccess())
-            .setSmsReturnPatternError(configurationService.getSmsReturnPatternError())
-            .setSmsReturnPatternMessageError(configurationService.getSmsReturnPatternMessageError())
-            .setSmsReturnPatternMessageToLargeError(configurationService.getSmsReturnPatternMessageToLargeError())
-            .setSmsReturnPatternNumberError(configurationService.getSmsReturnPatternNumberError());
-
     String errorKey = null;
     result = "";
-    SMSSender.HttpResponseCode response = smsSender.send(number, getData().getMessage());
+    SmsSender smsSender = new SmsSender(smsSenderConfig);
+    SmsSender.HttpResponseCode response = smsSender.send(number, getData().getMessage());
     if (response == null) {
       errorKey = "address.sendSms.sendMessage.result.unknownError";
-    } else if (response == SMSSender.HttpResponseCode.SUCCESS) {
+    } else if (response == SmsSender.HttpResponseCode.SUCCESS) {
       result = getLocalizedMessage("address.sendSms.sendMessage.result.successful", number,
               DateTimeFormatter.instance()
                       .getFormattedDateTime(new Date()));
-    } else if (response == SMSSender.HttpResponseCode.MESSAGE_ERROR) {
+    } else if (response == SmsSender.HttpResponseCode.MESSAGE_ERROR) {
       errorKey = "address.sendSms.sendMessage.result.messageError";
-    } else if (response == SMSSender.HttpResponseCode.NUMBER_ERROR) {
+    } else if (response == SmsSender.HttpResponseCode.NUMBER_ERROR) {
       errorKey = "address.sendSms.sendMessage.result.wrongOrMissingNumber";
-    } else if (response == SMSSender.HttpResponseCode.MESSAGE_TO_LARGE) {
+    } else if (response == SmsSender.HttpResponseCode.MESSAGE_TO_LARGE) {
       errorKey = "address.sendSms.sendMessage.result.messageToLarge";
     } else {
       errorKey = "address.sendSms.sendMessage.result.unknownError";
