@@ -76,44 +76,6 @@ public class ConfigurationServiceImpl implements ConfigurationService
   @Value("${projectforge.telephoneSystemNumber}")
   private String telephoneSystemNumber;
 
-  /**
-   * Variables #number and #message will be replaced by the user's form input.
-   * @return The url to call the sms service.
-   */
-  @Value("${projectforge.sms.url}")
-  private String smsUrl;
-
-  /**
-   * POST or GET (default).
-   */
-  @Value("${projectforge.sms.httpMethod}")
-  private String smsHttpMethod;
-
-  /**
-   * Variables #number and #message will be replaced by the user's form input.
-   * @return Optional parameters for sms service (user, password.
-   */
-  @Value("#{${projectforge.sms.httpParameters}}")
-  private Map<String, String> smsHttpParameters = new HashMap<>();
-
-  @Value("${projectforge.sms.smsMaxMessageLength}")
-  private int smsMaxMessageLength = 160;
-
-  @Value("${projectforge.sms.returnCodePattern.success}")
-  private String smsReturnPatternSuccess;
-
-  @Value("${projectforge.sms.returnCodePattern.numberError}")
-  private String smsReturnPatternNumberError;
-
-  @Value("${projectforge.sms.returnCodePattern.messageToLargeError}")
-  private String smsReturnPatternMessageToLargeError;
-
-  @Value("${projectforge.sms.returnCodePattern.messageError}")
-  private String smsReturnPatternMessageError;
-
-  @Value("${projectforge.sms.returnCodePattern.error}")
-  private String smsReturnPatternError;
-
   @Value("${projectforge.receiveSmsKey}")
   private String receiveSmsKey;
 
@@ -409,77 +371,6 @@ public class ConfigurationServiceImpl implements ConfigurationService
   public String getTelephoneSystemNumber()
   {
     return telephoneSystemNumber;
-  }
-
-  @Override
-  public boolean isSmsConfigured()
-  {
-    return StringUtils.isNotEmpty(smsUrl);
-  }
-
-  /**
-   * Format "http://asterisk.acme.com/sms.php?number=#number&amp;text=#text".<br/>
-   * #number will be replaced by the chosen mobile phone number and #text by the sms text (url encoded).
-   */
-  @Override
-  public String getSmsUrl()
-  {
-    return smsUrl;
-  }
-
-  @Override
-  public Map<String, String> getSmsHttpParameters() {
-    return smsHttpParameters;
-  }
-
-  @Override
-  public String getSmsHttpMethod() {
-    return smsHttpMethod;
-  }
-
-  @Override
-  public int getSmsMaxMessageLength() {
-    return smsMaxMessageLength;
-  }
-
-  /**
-   * @return The pattern of the response string for successful service calls.
-   */
-  @Override
-  public String getSmsReturnPatternSuccess() {
-    return smsReturnPatternSuccess;
-  }
-
-  /**
-   * @return The pattern of the response string for service calls with error in phone number (receiver).
-   */
-  @Override
-  public String getSmsReturnPatternNumberError() {
-    return smsReturnPatternNumberError;
-  }
-
-  /**
-   * @return The pattern of the response string for service calls with error caused by a to large message to send.
-   */
-  @Override
-  public String getSmsReturnPatternMessageToLargeError() {
-    return smsReturnPatternMessageToLargeError;
-  }
-
-  /**
-   * @return The pattern of the response string for service calls with error in message to send.
-   */
-  @Override
-  public String getSmsReturnPatternMessageError() {
-    return smsReturnPatternMessageError;
-  }
-
-  /**
-   * @return The pattern of the response string for service calls with errors.
-   */
-  @Override
-  public String getSmsReturnPatternError() {
-    return smsReturnPatternError;
   }
 
   /**
