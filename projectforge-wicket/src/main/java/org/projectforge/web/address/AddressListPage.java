@@ -51,8 +51,7 @@ import org.projectforge.business.address.*;
 import org.projectforge.business.configuration.ConfigurationService;
 import org.projectforge.framework.time.DateHelper;
 import org.projectforge.framework.time.DateTimeFormatter;
-import org.projectforge.sms.SMSSender;
-import org.projectforge.sms.SMSSenderConfig;
+import org.projectforge.sms.SmsSenderConfig;
 import org.projectforge.web.WebConfiguration;
 import org.projectforge.web.wicket.*;
 import org.projectforge.web.wicket.components.ContentMenuEntryPanel;
@@ -101,7 +100,7 @@ public class AddressListPage extends AbstractListPage<AddressListForm, AddressDa
   private ConfigurationService configurationService;
 
   @SpringBean
-  private SMSSenderConfig smsSenderConfig;
+  private SmsSenderConfig smsSenderConfig;
 
   Map<Integer, PersonalAddressDO> personalAddressMap;
 

@@ -62,7 +62,7 @@ import org.projectforge.framework.configuration.SecurityConfig;
 import org.projectforge.framework.persistence.api.UserRightService;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
-import org.projectforge.sms.SMSSenderConfig;
+import org.projectforge.sms.SmsSenderConfig;
 import org.projectforge.web.access.AccessListPage;
 import org.projectforge.web.address.AddressListPage;
 import org.projectforge.web.address.AddressMobileListPage;
@@ -144,7 +144,7 @@ public class MenuItemRegistry implements Serializable
   private ConfigurationService configurationService;
 
   @Autowired
-  private SMSSenderConfig smsSenderConfig;
+  private SmsSenderConfig smsSenderConfig;
 
   @Autowired
   private VacationService vacationService;
