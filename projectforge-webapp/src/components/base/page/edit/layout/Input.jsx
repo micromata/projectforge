@@ -1,7 +1,8 @@
-import React from 'react';
 import PropTypes from 'prop-types';
-import { Col, Input } from '../../../../design';
+import React from 'react';
 import revisedRandomId from '../../../../../utilities/revisedRandomId';
+import { Col, Input } from '../../../../design';
+import style from '../../Page.module.scss';
 
 function LayoutInput({ id, type, values }) {
     // TODO: VALIDATION
@@ -15,6 +16,12 @@ function LayoutInput({ id, type, values }) {
                 {value}
             </option>
         ));
+
+        return (
+            <Input type={type} name={id} id={id} className={style.select}>
+                {children}
+            </Input>
+        );
     }
 
     return (
