@@ -1,6 +1,7 @@
 export {
     Alert,
     Button,
+    ButtonGroup,
     Card,
     CardBody,
     CardTitle,
