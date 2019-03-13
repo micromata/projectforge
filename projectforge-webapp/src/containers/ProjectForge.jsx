@@ -8,7 +8,7 @@ import LoginView from '../components/authentication/LoginView';
 import { loadSessionIfAvailable, loginUser, logoutUser } from '../actions';
 import Navigation from '../components/base/navigation';
 import style from './ProjectForge.module.scss';
-import Page from '../components/base/page';
+import EditPage from './page/edit';
 
 class ProjectForge extends Component {
     componentDidMount() {
@@ -273,7 +273,7 @@ class ProjectForge extends Component {
                                 },
                             ]}
                         />
-                        <Page />
+                        <EditPage />
                     </div>
                 </Router>
             );

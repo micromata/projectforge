@@ -1,5 +1,6 @@
 div.loadingContainer {
   position: relative;
+  min-height: 100px;
 
   div.loadingOverlay {
     z-index: 9999;
