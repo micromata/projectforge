@@ -24,5 +24,7 @@ export {
     NavLink,
     Row,
     Spinner,
+    TabContent,
+    TabPane,
     UncontrolledDropdown,
 } from 'reactstrap';
