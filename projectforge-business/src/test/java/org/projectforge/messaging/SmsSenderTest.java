@@ -21,12 +21,13 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.sms;
+package org.projectforge.messaging;
 
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpMethod;
 import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.commons.httpclient.methods.PostMethod;
+import org.projectforge.sms.SmsSenderConfig;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 import org.yaml.snakeyaml.Yaml;
@@ -40,18 +41,18 @@ import java.util.Map;
 
 import static org.mockito.Mockito.*;
 
-public class SMSSenderTest {
-  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(SMSSenderTest.class);
+public class SmsSenderTest {
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(SmsSenderTest.class);
 
   @Test
   public void testSmsService() throws Exception {
-    Assert.assertEquals(SMSSender.HttpResponseCode.SUCCESS,
+    Assert.assertEquals(SmsSender.HttpResponseCode.SUCCESS,
             testGetCall("hurzel", "0123456", "Hello_world", 200, "OK. Perfect."));
-    Assert.assertEquals(SMSSender.HttpResponseCode.UNKNOWN_ERROR,
+    Assert.assertEquals(SmsSender.HttpResponseCode.UNKNOWN_ERROR,
             testGetCall("hurzel", "0123456", "Hello_world", 200, "ERROR"));
-    Assert.assertEquals(SMSSender.HttpResponseCode.MESSAGE_TO_LARGE,
+    Assert.assertEquals(SmsSender.HttpResponseCode.MESSAGE_TO_LARGE,
             testGetCall("hurzel", "0123456", "Hello_world", 200, "MESSAGE TO LARGE"));
-    Assert.assertEquals(SMSSender.HttpResponseCode.UNKNOWN_ERROR,
+    Assert.assertEquals(SmsSender.HttpResponseCode.UNKNOWN_ERROR,
             testPostCall("hurzel", "0123456", "Hello_world", 100, "Ingore this message."));
   }
 
@@ -93,15 +94,16 @@ public class SMSSenderTest {
     String url = (String) getFromMap(map, "projectforge", "sms", "url");
     String testNumber = (String) getFromMap(map, "projectforge", "sms", "testNumber");
     Map<String, String> httpParams = (Map<String, String>) getFromMap(map, "projectforge", "sms", "httpParameters");
-    SMSSenderConfig config = new SMSSenderConfig();
-    config.setHttpMethodType(httpMethodType).setUrl(url).setHttpParams(httpParams);
+    SmsSenderConfig config = new SmsSenderConfig();
+    config.setHttpMethodType(httpMethodType).setUrl(url);
+    config.setHttpParams(httpParams);
     config.setSmsMaxMessageLength((int) getFromMap(map, "projectforge", "sms", "smsMaxMessageLength"));
     config.setSmsReturnPatternSuccess((String) getFromMap(map, "projectforge", "sms", "returnCodePattern", "success"));
     config.setSmsReturnPatternNumberError((String) getFromMap(map, "projectforge", "sms", "returnCodePattern", "numberError"));
     config.setSmsReturnPatternMessageToLargeError((String) getFromMap(map, "projectforge", "sms", "returnCodePattern", "messageToLargeError"));
     config.setSmsReturnPatternMessageError((String) getFromMap(map, "projectforge", "sms", "returnCodePattern", "messageError"));
     config.setSmsReturnPatternError((String) getFromMap(map, "projectforge", "sms", "returnCodePattern", "error"));
-    SMSSender sender = new SMSSender(config);
+    SmsSender sender = new SmsSender(config);
     sender.send(testNumber, "Hello world! With love by ProjectForge: " + new Date());
   }
 
@@ -118,10 +120,10 @@ public class SMSSenderTest {
     return map;
   }
 
-  private SMSSender.HttpResponseCode testPostCall(String url, String phoneNumber, String message, int fakedReturnCode, String fakedResponseString) throws Exception {
+  private SmsSender.HttpResponseCode testPostCall(String url, String phoneNumber, String message, int fakedReturnCode, String fakedResponseString) throws Exception {
     PostMethod httpMethod = spy(new PostMethod(url));
-    SMSSender sender = createSender(url, httpMethod, fakedReturnCode, fakedResponseString);
-    SMSSender.HttpResponseCode responseCode = sender.send(phoneNumber, message);
+    SmsSender sender = createSender(url, httpMethod, fakedReturnCode, fakedResponseString);
+    SmsSender.HttpResponseCode responseCode = sender.send(phoneNumber, message);
     Assert.assertEquals("smsUser", httpMethod.getParameter("user").getValue());
     Assert.assertEquals("smsPassword", httpMethod.getParameter("password").getValue());
     Assert.assertEquals(message, httpMethod.getParameter("message").getValue());
@@ -130,10 +132,10 @@ public class SMSSenderTest {
     return responseCode;
   }
 
-  private SMSSender.HttpResponseCode testGetCall(String url, String phoneNumber, String message, int fakedReturnCode, String fakedResponseString) throws Exception {
+  private SmsSender.HttpResponseCode testGetCall(String url, String phoneNumber, String message, int fakedReturnCode, String fakedResponseString) throws Exception {
     GetMethod httpMethod = spy(new GetMethod(url));
-    SMSSender sender = createSender(url, httpMethod, fakedReturnCode, fakedResponseString);
-    SMSSender.HttpResponseCode responseCode = sender.send(phoneNumber, message);
+    SmsSender sender = createSender(url, httpMethod, fakedReturnCode, fakedResponseString);
+    SmsSender.HttpResponseCode responseCode = sender.send(phoneNumber, message);
     String queryString = httpMethod.getQueryString();
     assertContains(queryString, "user=smsUser");
     assertContains(queryString, "password=smsPassword");
@@ -143,18 +145,18 @@ public class SMSSenderTest {
     return responseCode;
   }
 
-  private SMSSender createSender(String url, HttpMethod httpMethod, int fakedReturnCode, String fakedResponseString) throws Exception {
+  private SmsSender createSender(String url, HttpMethod httpMethod, int fakedReturnCode, String fakedResponseString) throws Exception {
     Map<String, String> params = createParams("user", "smsUser", "password", "smsPassword", "message", "#message", "to", "#number");
-    SMSSenderConfig config = new SMSSenderConfig();
+    SmsSenderConfig config = new SmsSenderConfig();
     config.setHttpMethodType(httpMethod instanceof GetMethod ? "get" : "post")
-            .setUrl(url)
-            .setHttpParams(params)
-            .setSmsReturnPatternSuccess("^OK.*")
-            .setSmsReturnPatternError("ERROR")
-            .setSmsReturnPatternMessageError("MESSAGE ERROR")
-            .setSmsReturnPatternMessageToLargeError(".*LARGE.*")
-            .setSmsReturnPatternNumberError("NUMBER FORMAT ERROR");
-    SMSSender sender = spy(new SMSSender(config));
+            .setUrl(url);
+    config.setHttpParams(params);
+    config.setSmsReturnPatternSuccess("^OK.*");
+    config.setSmsReturnPatternError("ERROR");
+    config.setSmsReturnPatternMessageError("MESSAGE ERROR");
+    config.setSmsReturnPatternMessageToLargeError(".*LARGE.*");
+    config.setSmsReturnPatternNumberError("NUMBER FORMAT ERROR");
+    SmsSender sender = spy(new SmsSender(config));
     doReturn(httpMethod)
             .when(sender)
             .createHttpMethod(anyString());

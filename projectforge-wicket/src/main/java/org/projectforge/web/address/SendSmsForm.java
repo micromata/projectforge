@@ -42,7 +42,7 @@ import org.projectforge.framework.configuration.Configuration;
 import org.projectforge.framework.configuration.ConfigurationParam;
 import org.projectforge.framework.utils.NumberHelper;
 import org.projectforge.framework.utils.RecentQueue;
-import org.projectforge.sms.SMSSenderConfig;
+import org.projectforge.sms.SmsSenderConfig;
 import org.projectforge.web.wicket.AbstractStandardForm;
 import org.projectforge.web.wicket.autocompletion.PFAutoCompleteTextField;
 import org.projectforge.web.wicket.components.MaxLengthTextArea;
@@ -64,7 +64,7 @@ public class SendSmsForm extends AbstractStandardForm<SendSmsData, SendSmsPage>
   private ConfigurationService configurationService;
 
   @SpringBean
-  private SMSSenderConfig smsSenderConfig;
+  private SmsSenderConfig smsSenderConfig;
 
   @SpringBean
   private AddressDao addressDao;

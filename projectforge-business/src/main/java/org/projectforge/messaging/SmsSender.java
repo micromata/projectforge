@@ -1,4 +1,4 @@
-package org.projectforge.sms;
+package org.projectforge.messaging;
 
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.httpclient.HttpClient;
@@ -9,21 +9,21 @@ import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.lang3.StringUtils;
 import org.projectforge.common.StringHelper;
-import org.springframework.beans.factory.annotation.Value;
+import org.projectforge.sms.SmsSenderConfig;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.Map;
 
-public class SMSSender {
-  private static transient final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(SMSSender.class);
+public class SmsSender {
+  private static transient final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(SmsSender.class);
 
   public enum HttpResponseCode {SUCCESS, NUMBER_ERROR, MESSAGE_TO_LARGE, MESSAGE_ERROR, UNKNOWN_ERROR}
 
-  private SMSSenderConfig config;
+  private SmsSenderConfig config;
 
-  public SMSSender(SMSSenderConfig config) {
+  public SmsSender(SmsSenderConfig config) {
     this.config = config;
   }
 
@@ -45,7 +45,7 @@ public class SMSSender {
     }
     String proceededUrl = replaceVariables(config.getUrl(), phoneNumber, message, true);
     HttpMethodBase method = createHttpMethod(proceededUrl);
-    if (config.getHttpMethodType() == SMSSenderConfig.HttpMethodType.GET) {
+    if (config.getHttpMethodType() == SmsSenderConfig.HttpMethodType.GET) {
       if (MapUtils.isNotEmpty(config.getHttpParams())) {
         // Now build the query params list from the configured httpParams:
         NameValuePair[] params = new NameValuePair[config.getHttpParams().size()];
@@ -152,7 +152,7 @@ public class SMSSender {
    * @return
    */
   protected HttpMethodBase createHttpMethod(String url) {
-    if (config.getHttpMethodType() == SMSSenderConfig.HttpMethodType.GET) {
+    if (config.getHttpMethodType() == SmsSenderConfig.HttpMethodType.GET) {
       return new GetMethod(url);
     }
     return new PostMethod(url);
@@ -162,7 +162,7 @@ public class SMSSender {
     return new HttpClient();
   }
 
-  public SMSSender setConfig(SMSSenderConfig config) {
+  public SmsSender setConfig(SmsSenderConfig config) {
     this.config = config;
     return this;
   }
