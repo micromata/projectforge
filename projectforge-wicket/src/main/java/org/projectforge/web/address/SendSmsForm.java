@@ -42,6 +42,7 @@ import org.projectforge.framework.configuration.Configuration;
 import org.projectforge.framework.configuration.ConfigurationParam;
 import org.projectforge.framework.utils.NumberHelper;
 import org.projectforge.framework.utils.RecentQueue;
+import org.projectforge.sms.SMSSenderConfig;
 import org.projectforge.web.wicket.AbstractStandardForm;
 import org.projectforge.web.wicket.autocompletion.PFAutoCompleteTextField;
 import org.projectforge.web.wicket.components.MaxLengthTextArea;
@@ -61,6 +62,9 @@ public class SendSmsForm extends AbstractStandardForm<SendSmsData, SendSmsPage>
 
   @SpringBean
   private ConfigurationService configurationService;
+
+  @SpringBean
+  private SMSSenderConfig smsSenderConfig;
 
   @SpringBean
   private AddressDao addressDao;
@@ -127,14 +131,14 @@ public class SendSmsForm extends AbstractStandardForm<SendSmsData, SendSmsPage>
     fs = gridBuilder.newFieldset(getString("address.sendSms.message"));
     final MaxLengthTextArea messageTextArea = new MaxLengthTextArea(TextAreaPanel.WICKET_ID,
         new PropertyModel<String>(data, "message"),
-        configurationService.getSmsMaxMessageLength());
+            smsSenderConfig.getSmsMaxMessageLength());
     // messageTextArea.add(AttributeModifier.append("onKeyDown", "limitText(this.form.limitedtextarea,this.form.countdown,"
     // + MAX_MESSAGE_LENGTH
     // + ")"));
     // messageTextArea.add(AttributeModifier.append("onKeyUp", "limitText(this.form.limitedtextarea,this.form.countdown,"
     // + MAX_MESSAGE_LENGTH
     // + ")"));
-    messageTextArea.add(AttributeModifier.append("maxlength", configurationService.getSmsMaxMessageLength()));
+    messageTextArea.add(AttributeModifier.append("maxlength", smsSenderConfig.getSmsMaxMessageLength()));
     fs.add(messageTextArea);
     fs = gridBuilder.newFieldset("");
     final DivTextPanel charsRemaining = new DivTextPanel(fs.newChildId(), "");

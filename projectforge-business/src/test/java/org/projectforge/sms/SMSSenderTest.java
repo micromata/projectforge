@@ -93,13 +93,15 @@ public class SMSSenderTest {
     String url = (String) getFromMap(map, "projectforge", "sms", "url");
     String testNumber = (String) getFromMap(map, "projectforge", "sms", "testNumber");
     Map<String, String> httpParams = (Map<String, String>) getFromMap(map, "projectforge", "sms", "httpParameters");
-    SMSSender sender = new SMSSender(httpMethodType, url, httpParams);
-    sender.setSmsMaxMessageLength((int) getFromMap(map, "projectforge", "sms", "smsMaxMessageLength"));
-    sender.setSmsReturnPatternSuccess((String) getFromMap(map, "projectforge", "sms", "returnCodePattern", "success"));
-    sender.setSmsReturnPatternNumberError((String) getFromMap(map, "projectforge", "sms", "returnCodePattern", "numberError"));
-    sender.setSmsReturnPatternMessageToLargeError((String) getFromMap(map, "projectforge", "sms", "returnCodePattern", "messageToLargeError"));
-    sender.setSmsReturnPatternMessageError((String) getFromMap(map, "projectforge", "sms", "returnCodePattern", "messageError"));
-    sender.setSmsReturnPatternError((String) getFromMap(map, "projectforge", "sms", "returnCodePattern", "error"));
+    SMSSenderConfig config = new SMSSenderConfig();
+    config.setHttpMethodType(httpMethodType).setUrl(url).setHttpParams(httpParams);
+    config.setSmsMaxMessageLength((int) getFromMap(map, "projectforge", "sms", "smsMaxMessageLength"));
+    config.setSmsReturnPatternSuccess((String) getFromMap(map, "projectforge", "sms", "returnCodePattern", "success"));
+    config.setSmsReturnPatternNumberError((String) getFromMap(map, "projectforge", "sms", "returnCodePattern", "numberError"));
+    config.setSmsReturnPatternMessageToLargeError((String) getFromMap(map, "projectforge", "sms", "returnCodePattern", "messageToLargeError"));
+    config.setSmsReturnPatternMessageError((String) getFromMap(map, "projectforge", "sms", "returnCodePattern", "messageError"));
+    config.setSmsReturnPatternError((String) getFromMap(map, "projectforge", "sms", "returnCodePattern", "error"));
+    SMSSender sender = new SMSSender(config);
     sender.send(testNumber, "Hello world! With love by ProjectForge: " + new Date());
   }
 
@@ -143,12 +145,16 @@ public class SMSSenderTest {
 
   private SMSSender createSender(String url, HttpMethod httpMethod, int fakedReturnCode, String fakedResponseString) throws Exception {
     Map<String, String> params = createParams("user", "smsUser", "password", "smsPassword", "message", "#message", "to", "#number");
-    SMSSender sender = spy(new SMSSender(httpMethod instanceof GetMethod ? "get" : "post", url, params));
-    sender.setSmsReturnPatternSuccess("^OK.*")
+    SMSSenderConfig config = new SMSSenderConfig();
+    config.setHttpMethodType(httpMethod instanceof GetMethod ? "get" : "post")
+            .setUrl(url)
+            .setHttpParams(params)
+            .setSmsReturnPatternSuccess("^OK.*")
             .setSmsReturnPatternError("ERROR")
             .setSmsReturnPatternMessageError("MESSAGE ERROR")
             .setSmsReturnPatternMessageToLargeError(".*LARGE.*")
             .setSmsReturnPatternNumberError("NUMBER FORMAT ERROR");
+    SMSSender sender = spy(new SMSSender(config));
     doReturn(httpMethod)
             .when(sender)
             .createHttpMethod(anyString());
