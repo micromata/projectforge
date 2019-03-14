@@ -1,8 +1,9 @@
-import React, { Component } from 'react';
-import PropTypes from 'prop-types';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSearch } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import PropTypes from 'prop-types';
+import React, { Component } from 'react';
 import { Link } from 'react-router-dom';
+import { categoryPropType } from '../../../utilities/propTypes';
 import {
     Button,
     Collapse,
@@ -18,7 +19,6 @@ import {
     NavItem,
     UncontrolledDropdown,
 } from '../../design';
-import { categoryPropType } from '../../../utilities/propTypes';
 import CategoriesDropdown from './categories-dropdown';
 import Entry from './Entry';
 import style from './Navigation.module.scss';
@@ -35,11 +35,9 @@ class Navigation extends Component {
     }
 
     toggleMobile() {
-        const { mobileIsOpen } = this.state;
-
-        this.setState({
-            mobileIsOpen: !mobileIsOpen,
-        });
+        this.setState(state => ({
+            mobileIsOpen: !state.mobileIsOpen,
+        }));
     }
 
     render() {
