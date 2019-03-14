@@ -1,6 +1,7 @@
 import PropTypes from 'prop-types';
 import React from 'react';
 import { connect } from 'react-redux';
+import ActionGroup from '../../../components/base/page/edit/ActionGroup';
 import LayoutGroup from '../../../components/base/page/edit/layout/Group';
 import TabNavigation from '../../../components/base/page/edit/TabNavigation';
 import PageNavigation from '../../../components/base/page/Navigation';
@@ -8,7 +9,6 @@ import { Alert, Button, Container, TabContent, TabPane, } from '../../../compone
 import LoadingContainer from '../../../components/design/loading-container';
 import { getAuthenticationHeaders, handleHTTPErrors } from '../../../utilities/rest';
 import style from '../../ProjectForge.module.scss';
-import ActionGroup from '../../../components/base/page/edit/ActionGroup';
 
 class EditPage extends React.Component {
     constructor(props) {
@@ -20,6 +20,7 @@ class EditPage extends React.Component {
             error: undefined,
             layout: [],
             actions: [],
+            title: 'Edit',
         };
 
         this.toggleTab = this.toggleTab.bind(this);
@@ -36,6 +37,7 @@ class EditPage extends React.Component {
             error: undefined,
             layout: [],
             actions: [],
+            title: '',
         });
 
         const { userId, token } = this.props;
@@ -53,6 +55,7 @@ class EditPage extends React.Component {
                 loading: false,
                 layout: json.layout,
                 actions: json.actions,
+                title: json.title,
             }))
             .catch(error => this.setState({
                 error,
@@ -74,54 +77,47 @@ class EditPage extends React.Component {
 
     render() {
         const {
-            loading,
-            activeTab,
-            layout,
             actions,
+            activeTab,
             error,
+            layout,
+            loading,
+            title,
         } = this.state;
 
-        let content;
-
         if (error) {
-            content = (
+            return (
                 <Alert color="danger">
                     <h4>[Failed to Fetch Design]</h4>
                     <p>[Description Here]</p>
                     <Button onClick={this.fetchLayout}>[Retry]</Button>
                 </Alert>
             );
-        } else {
-            content = (
-                <LoadingContainer loading={loading}>
-                    <TabNavigation
-                        tabs={{
-                            edit: '[Bearbeiten]',
-                            history: '[History]',
-                        }}
-                        toggleTab={this.toggleTab}
-                        activeTab={activeTab}
-                    />
-                    <TabContent
-                        activeTab={activeTab}
-                        className={style.tabContent}
-                    >
-                        <TabPane tabId="edit">
-                            <Container fluid>
-                                <LayoutGroup content={layout} />
-                                <ActionGroup actions={actions} />
-                            </Container>
-                        </TabPane>
-                    </TabContent>
-                </LoadingContainer>
-            );
         }
 
         return (
-            <React.Fragment>
-                <PageNavigation />
-                {content}
-            </React.Fragment>
+            <LoadingContainer loading={loading}>
+                <PageNavigation current={title} />
+                <TabNavigation
+                    tabs={{
+                        edit: title,
+                        history: '[History]',
+                    }}
+                    toggleTab={this.toggleTab}
+                    activeTab={activeTab}
+                />
+                <TabContent
+                    activeTab={activeTab}
+                    className={style.tabContent}
+                >
+                    <TabPane tabId="edit">
+                        <Container fluid>
+                            <LayoutGroup content={layout} />
+                            <ActionGroup actions={actions} />
+                        </Container>
+                    </TabPane>
+                </TabContent>
+            </LoadingContainer>
         );
     }
 }

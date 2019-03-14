@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types';
 import React from 'react';
 import {
     Collapse,
@@ -27,6 +28,7 @@ class PageNavigation extends React.Component {
 
     render() {
         const { mobileIsOpen } = this.state;
+        const { current } = this.props;
 
         return (
             <Navbar expand="md" color="light" light className={style.navigation}>
@@ -34,7 +36,7 @@ class PageNavigation extends React.Component {
                 <Collapse isOpen={mobileIsOpen} navbar>
                     <Nav className="mr-auto" navbar>
                         <NavItem className={style.title}>
-                            TODO: INSERT TITLE TREE AND ADDITIONAL COMPONENTS
+                            {current}
                         </NavItem>
                     </Nav>
                 </Collapse>
@@ -42,5 +44,13 @@ class PageNavigation extends React.Component {
         );
     }
 }
+
+PageNavigation.propTypes = {
+    current: PropTypes.string,
+};
+
+PageNavigation.defaultProps = {
+    current: 'Loading',
+};
 
 export default PageNavigation;
