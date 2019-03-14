@@ -7,36 +7,39 @@ import style from '../../Page.module.scss';
 function LayoutInput({ id, type, values }) {
     // TODO: VALIDATION
     let children;
+    let ColTag = Col;
+    const inputProps = {};
 
     if (type === 'select') {
-        children = values.map(value => (
+        children = values.map(option => (
             <option
+                value={option.value}
                 key={`input-select-value-${revisedRandomId()}`}
             >
-                {value}
+                {option.title}
             </option>
         ));
 
-        return (
-            <Input type={type} name={id} id={id} className={style.select}>
-                {children}
-            </Input>
-        );
+        ColTag = React.Fragment;
+        inputProps.className = style.select;
     }
 
     return (
-        <Col>
-            <Input type={type} name={id} id={id}>
+        <ColTag>
+            <Input type={type} name={id} id={id} {...inputProps}>
                 {children}
             </Input>
-        </Col>
+        </ColTag>
     );
 }
 
 LayoutInput.propTypes = {
     id: PropTypes.string,
     type: PropTypes.string,
-    values: PropTypes.arrayOf(PropTypes.string),
+    values: PropTypes.arrayOf(PropTypes.shape({
+        value: PropTypes.string,
+        title: PropTypes.string,
+    })),
 };
 
 LayoutInput.defaultProps = {
