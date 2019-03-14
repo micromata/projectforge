@@ -1,174 +1,226 @@
 {
   "layout": [
     {
-      "type": "group",
       "content": [
         {
-          "type": "label",
           "value": "Titel",
-          "for": "title"
+          "for": "title",
+          "type": "label"
         },
         {
-          "type": "text",
           "id": "title",
-          "required": true,
           "max-length": 255,
-          "focus": true
+          "required": true,
+          "focus": true,
+          "type": "input"
         }
-      ]
+      ],
+      "type": "group"
     },
     {
-      "type": "group",
       "content": [
         {
-          "type": "label",
-          "value": "Typ",
-          "for": "typ"
+          "value": "Autoren",
+          "for": "authors",
+          "type": "label"
         },
         {
-          "type": "select",
-          "id": "type",
-          "values": [
-            "Magazin",
-            "Buch"
-          ]
-        },
-        {
-          "type": "checkbox",
-          "id": "favorite",
-          "comment": "Dies ist ein Beispiel aus Adressen"
-        }
-      ]
-    },
-    {
-      "type": "group",
-      "content": [
-        {
-          "type": "label",
-          "value": "Authors",
-          "for": "authors"
-        },
-        {
-          "type": "text",
           "id": "authors",
-          "max-length": 255
+          "max-length": 255,
+          "type": "input"
         }
-      ]
+      ],
+      "type": "group"
     },
     {
-      "type": "row",
       "content": [
         {
-          "type": "col",
           "length": 6,
           "content": [
             {
-              "type": "group",
               "content": [
                 {
-                  "type": "label",
                   "value": "Typ",
-                  "for": "type"
+                  "for": "type",
+                  "type": "label"
                 },
                 {
-                  "type": "select",
                   "id": "type",
                   "values": [
-                    "Buch",
-                    "Magazin"
-                  ]
-                }
-              ]
-            },
-            {
-              "type": "group",
-              "content": [
-                {
-                  "type": "label",
-                  "value": "Signature",
-                  "for": "signature"
+                    {
+                      "value": "book",
+                      "title": "Buch"
+                    },
+                    {
+                      "value": "magazine",
+                      "title": "Magazin"
+                    }
+                  ],
+                  "type": "select"
                 },
                 {
-                  "type": "text",
-                  "id": "signature",
-                  "max-length": 255
+                  "id": "favorite",
+                  "type": "checkbox"
                 }
-              ]
+              ],
+              "type": "group"
+            },
+            {
+              "content": [
+                {
+                  "value": "Veröffentlichungsjahr",
+                  "for": "yearOfPublishing",
+                  "type": "label"
+                },
+                {
+                  "id": "yearOfPublishing",
+                  "max-length": 255,
+                  "type": "input"
+                }
+              ],
+              "type": "group"
+            },
+            {
+              "content": [
+                {
+                  "value": "Status",
+                  "for": "status",
+                  "type": "label"
+                },
+                {
+                  "id": "status",
+                  "values": [
+                    {
+                      "value": "present",
+                      "title": "vorhanden"
+                    },
+                    {
+                      "value": "missed",
+                      "title": "vermisst"
+                    }
+                  ],
+                  "type": "select"
+                }
+              ],
+              "type": "group"
+            },
+            {
+              "content": [
+                {
+                  "value": "Signatur",
+                  "for": "signature",
+                  "type": "label"
+                },
+                {
+                  "id": "signature",
+                  "max-length": 255,
+                  "type": "input"
+                }
+              ],
+              "type": "group"
             }
-          ]
+          ],
+          "type": "col"
         },
         {
-          "type": "col",
           "length": 6,
           "content": [
             {
-              "type": "group",
               "content": [
                 {
-                  "type": "label",
                   "value": "ISBN",
-                  "for": "isbn"
+                  "for": "isbn",
+                  "type": "label"
                 },
                 {
-                  "type": "text",
                   "id": "isbn",
-                  "max-length": 255
+                  "max-length": 255,
+                  "type": "input"
                 }
-              ]
+              ],
+              "type": "group"
             },
             {
-              "type": "group",
               "content": [
                 {
-                  "type": "label",
-                  "value": "Keywords",
-                  "for": "keywords"
+                  "value": "Schlüsselwörter",
+                  "for": "keywords",
+                  "type": "label"
                 },
                 {
-                  "type": "text",
                   "id": "keywords",
-                  "max-length": 255
+                  "max-length": 255,
+                  "type": "input"
                 }
-              ]
+              ],
+              "type": "group"
+            },
+            {
+              "content": [
+                {
+                  "value": "Verlag",
+                  "for": "publisher",
+                  "type": "label"
+                },
+                {
+                  "id": "publisher",
+                  "max-length": 255,
+                  "type": "input"
+                }
+              ],
+              "type": "group"
+            },
+            {
+              "content": [
+                {
+                  "value": "Herausgeber",
+                  "for": "editor",
+                  "type": "label"
+                },
+                {
+                  "id": "editor",
+                  "max-length": 255,
+                  "type": "input"
+                }
+              ],
+              "type": "group"
             }
-          ]
+          ],
+          "type": "col"
         }
-      ]
+      ],
+      "type": "row"
     },
     {
-      "type": "group",
       "content": [
         {
-          "type": "label",
-          "value": "Ausleihe",
-          "for": "lendout"
+          "value": "Zusammenfassung",
+          "for": "abstract",
+          "type": "label"
         },
         {
-          "type": "customized",
-          "id": "lendout",
-          "reference": "book.lendoutfield"
+          "id": "abstact",
+          "max-length": 4000,
+          "type": "textarea"
         }
-      ]
+      ],
+      "type": "group"
+    },
+    {
+      "content": [
+        {
+          "value": "Bemerkung",
+          "for": "comment",
+          "type": "label"
+        },
+        {
+          "id": "comment",
+          "max-length": 4000,
+          "type": "textarea"
+        }
+      ],
+      "type": "group"
     }
   ],
-  "actions": [
-    {
-      "type": "button",
-      "style": "danger",
-      "title": "Abbrechen",
-      "action": "cancel"
-    },
-    {
-      "type": "button",
-      "style": "warning",
-      "title": "Als gelöscht markieren",
-      "action": "markAsDeleted"
-    },
-    {
-      "type": "button",
-      "style": "success",
-      "title": "Speichern",
-      "action": "save"
-    }
-  ]
+  "title": "Buch bearbeiten"
 }
