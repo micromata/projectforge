@@ -40,7 +40,7 @@ function LayoutGroup({ content, type, length }) {
                     case 'label':
                         Tag = LayoutLabel;
                         break;
-                    case 'text':
+                    case 'input':
                     case 'select':
                     case 'checkbox':
                         Tag = LayoutInput;
