@@ -43,6 +43,7 @@ function LayoutGroup({ content, type, length }) {
                     case 'input':
                     case 'select':
                     case 'checkbox':
+                    case 'textarea':
                         Tag = LayoutInput;
                         break;
                     case 'group':

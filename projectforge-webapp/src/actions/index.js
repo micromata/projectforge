@@ -7,3 +7,8 @@ export {
     logout as logoutUser,
     loadSessionIfAvailable,
 } from './authentication';
+
+export {
+    EDIT_FORM_FIELD_CHANGED,
+    changeField as changeEditFormField,
+} from './editPage';

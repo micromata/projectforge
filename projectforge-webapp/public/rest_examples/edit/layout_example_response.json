@@ -57,10 +57,6 @@
                     }
                   ],
                   "type": "select"
-                },
-                {
-                  "id": "favorite",
-                  "type": "checkbox"
                 }
               ],
               "type": "group"
@@ -194,12 +190,28 @@
     {
       "content": [
         {
+          "value": "Ausleihe",
+          "type": "label"
+        },
+        {
+          "id": "lendOut",
+          "values": {
+            "lendOutBy": "kai"
+          },
+          "type": "customized"
+        }
+      ],
+      "type": "group"
+    },
+    {
+      "content": [
+        {
           "value": "Zusammenfassung",
           "for": "abstract",
           "type": "label"
         },
         {
-          "id": "abstact",
+          "id": "abstract",
           "max-length": 4000,
           "type": "textarea"
         }
@@ -220,6 +232,26 @@
         }
       ],
       "type": "group"
+    }
+  ],
+  "actions": [
+    {
+      "id": "cancel",
+      "title": "Abbrechen",
+      "style": "cancel",
+      "type": "button"
+    },
+    {
+      "id": "markAsDeleted",
+      "title": "Als gelöscht markieren",
+      "style": "warn",
+      "type": "button"
+    },
+    {
+      "id": "update",
+      "title": "Ändern",
+      "style": "default",
+      "type": "button"
     }
   ],
   "title": "Buch bearbeiten"

@@ -3,7 +3,7 @@ import {
     USER_LOGIN_FAILURE,
     USER_LOGIN_SUCCESS,
     USER_LOGOUT,
-} from '../actions/authentication';
+} from '../actions';
 
 const initialState = {
     loading: false,
