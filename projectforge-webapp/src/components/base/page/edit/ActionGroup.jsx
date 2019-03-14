@@ -1,8 +1,8 @@
 import PropTypes from 'prop-types';
 import React from 'react';
-import { Button, ButtonGroup, Row } from '../../../components/design';
-import { buttonPropType } from '../../../utilities/propTypes';
-import revisedRandomId from '../../../utilities/revisedRandomId';
+import { Button, ButtonGroup, Row } from '../../../design';
+import { buttonPropType } from '../../../../utilities/propTypes';
+import revisedRandomId from '../../../../utilities/revisedRandomId';
 
 // TODO: ADD FUNCTION
 function ActionGroup({ actions }) {
