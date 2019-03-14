@@ -8,7 +8,7 @@ import { Alert, Button, Container, TabContent, TabPane, } from '../../../compone
 import LoadingContainer from '../../../components/design/loading-container';
 import { getAuthenticationHeaders, handleHTTPErrors } from '../../../utilities/rest';
 import style from '../../ProjectForge.module.scss';
-import ActionGroup from './ActionGroup';
+import ActionGroup from '../../../components/base/page/edit/ActionGroup';
 
 class EditPage extends React.Component {
     constructor(props) {
