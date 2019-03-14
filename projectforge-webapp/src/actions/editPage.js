@@ -1,8 +1,8 @@
-export const EDIT_PAGE_FIELD_CHANGED = 'EDIT_PAGE_FIELD_CHANGED';
+export const EDIT_PAGE_FIELD_CHANGE = 'EDIT_PAGE_FIELD_CHANGE';
 export const EDIT_PAGE_ALL_FIELDS_SET = 'EDIT_PAGE_ALL_FIELDS_SET';
 
 const fieldChanged = (id, newValue) => ({
-    type: EDIT_PAGE_FIELD_CHANGED,
+    type: EDIT_PAGE_FIELD_CHANGE,
     payload: {
         id,
         newValue,

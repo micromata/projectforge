@@ -9,7 +9,7 @@ export {
 } from './authentication';
 
 export {
-    EDIT_PAGE_FIELD_CHANGED,
+    EDIT_PAGE_FIELD_CHANGE,
     EDIT_PAGE_ALL_FIELDS_SET,
     changeField as changeEditFormField,
     setAllFields as setAllEditPageFields,
