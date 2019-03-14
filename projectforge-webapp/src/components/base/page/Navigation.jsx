@@ -20,11 +20,9 @@ class PageNavigation extends React.Component {
     }
 
     toggleMobile() {
-        const { mobileIsOpen } = this.state;
-
-        this.setState({
-            mobileIsOpen: !mobileIsOpen,
-        });
+        this.setState(state => ({
+            mobileIsOpen: !state.mobileIsOpen,
+        }));
     }
 
     render() {

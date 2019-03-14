@@ -1,12 +1,12 @@
-import React, { Component } from 'react';
-import PropTypes from 'prop-types';
 import classNames from 'classnames';
+import PropTypes from 'prop-types';
+import React from 'react';
 import { Link } from 'react-router-dom';
-import { Collapse } from '../../../design';
 import { categoryPropType } from '../../../../utilities/propTypes';
+import { Collapse } from '../../../design';
 import style from '../Navigation.module.scss';
 
-class Category extends Component {
+class Category extends React.Component {
     constructor(props) {
         super(props);
 
@@ -47,15 +47,15 @@ class Category extends Component {
     toggle(event) {
         event.preventDefault();
 
-        const { collapse, viewportWidth } = this.state;
+        const { viewportWidth } = this.state;
 
         if (viewportWidth > 735) {
             return;
         }
 
-        this.setState({
-            collapse: !collapse,
-        });
+        this.setState(state => ({
+            collapse: !state.collapse,
+        }));
     }
 
     render() {
