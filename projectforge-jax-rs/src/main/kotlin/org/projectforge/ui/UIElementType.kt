@@ -17,6 +17,12 @@ enum class UIElementType {
     INPUT,
     @SerializedName("select")
     SELECT,
+    @SerializedName("multi-select")
+    MULTI_SELECT,
     @SerializedName("checkbox")
-    CHECKBOX
+    CHECKBOX,
+    @SerializedName("button")
+    BUTTON,
+    @SerializedName("customized")
+    CUSTOMIZED
 }
