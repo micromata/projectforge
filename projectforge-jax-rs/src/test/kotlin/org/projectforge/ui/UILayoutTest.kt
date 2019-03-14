@@ -2,10 +2,11 @@ package org.projectforge.ui
 
 import com.google.gson.GsonBuilder
 import org.junit.jupiter.api.Test
+import java.io.File
 
 class UILayoutTest {
     @Test
-    fun testBook() {
+    fun testBookEdit() {
         var layout = UILayout("Buch bearbeiten")
                 .add(UIGroup()
                         .add(UILabel("Titel", "title"))
@@ -19,8 +20,7 @@ class UILayoutTest {
                                         .add(UILabel("Typ", "type"))
                                         .add(UISelect("type")
                                                 .add(UISelectValue("book", "Buch"))
-                                                .add(UISelectValue("magazine", "Magazin")))
-                                        .add(UICheckbox("favorite")))
+                                                .add(UISelectValue("magazine", "Magazin"))))
                                 .add(UIGroup()
                                         .add(UILabel("Veröffentlichungsjahr", "yearOfPublishing"))
                                         .add(UIInput("yearOfPublishing", 255)))
@@ -46,13 +46,78 @@ class UILayoutTest {
                                         .add(UILabel("Herausgeber", "editor"))
                                         .add(UIInput("editor", 255)))))
                 .add(UIGroup()
+                        .add(UILabel("Ausleihe"))
+                        .add(UICustomized("lendOut")
+                                .add("lendOutBy", "kai")))
+                .add(UIGroup()
                         .add(UILabel("Zusammenfassung", "abstract"))
                         .add(UITextarea("abstact", 4000)))
                 .add(UIGroup()
                         .add(UILabel("Bemerkung", "comment"))
                         .add(UITextarea("comment", 4000)))
-        var gson = GsonBuilder().setPrettyPrinting().create()
-        var jsonString = gson.toJson(layout)
-        println(jsonString)
+                .addAction(UIButton("cancel", "Abbrechen", UIButtonStyle.CANCEL))
+                .addAction(UIButton("markAsDeleted", "Als gelöscht markieren", UIButtonStyle.WARN))
+                .addAction(UIButton("update", "Ändern", UIButtonStyle.DEFAULT))
+        val gson = GsonBuilder().setPrettyPrinting().create()
+        val jsonString = gson.toJson(layout)
+        val file = File("target", "bookEdit.json");
+        file.writeText(jsonString);
+        println("Output written to ${file.absolutePath}")
+    }
+
+    @Test
+    fun testAddressEdit() {
+        var layout = UILayout("Adresse bearbeiten")
+                .add(UIGroup()
+                        .add(UILabel("Adressbücher", "addressbooks"))
+                        .add(UIMultiSelect("addressbooks")))
+                .add(UIRow()
+                        .add(UICol(6)
+                                .add(UIGroup()
+                                        .add(UILabel("Name", "name"))
+                                        .add(UIInput("name", 255, required = true, focus = true)))
+                                .add(UIGroup()
+                                        .add(UILabel("Vorname", "firstName"))
+                                        .add(UIInput("firstName", 255)))
+                                .add(UIGroup()
+                                        .add(UILabel("Anrede", "gender"))
+                                        .add(UISelect("gender")
+                                                .add(UISelectValue("male", "Herr"))
+                                                .add(UISelectValue("male", "Herr"))
+                                                .add(UISelectValue("divers", "divers"))
+                                                .add(UISelectValue("unkown", "unbekannt"))
+                                                .add(UISelectValue("company", "Firma"))))
+                                .add(UIGroup()
+                                        .add(UILabel("Titel", "title"))
+                                        .add(UIInput("title", 255))))
+                        .add(UICol(6)
+                                .add(UIGroup()
+                                        .add(UILabel("Kontaktstatus", "contactstatus"))
+                                        .add(UISelect("gender")
+                                                .add(UISelectValue("active", "aktiv"))
+                                                .add(UISelectValue("inactive", "inaktiv"))))
+                                .add(UIGroup()
+                                        .add(UILabel("Adressstatus", "addressstatus"))
+                                        .add(UISelect("gender")
+                                                .add(UISelectValue("uptodate", "aktuell"))
+                                                .add(UISelectValue("outdated", "veraltet"))
+                                                .add(UISelectValue("leaved", "Unternehmen verlassen"))))
+                                .add(UIGroup()
+                                        .add(UILabel("Firma", "company"))
+                                        .add(UIInput("company", 255)))
+                                .add(UIGroup()
+                                        .add(UILabel("Abteilung", "division"))
+                                        .add(UIInput("division", 255)))
+                                .add(UIGroup()
+                                        .add(UILabel("Position", "position"))
+                                        .add(UIInput("position", 255)))))
+                .add(UIGroup()
+                        .add(UILabel("Bemerkung", "comment"))
+                        .add(UITextarea("comment", 4000)))
+        val gson = GsonBuilder().setPrettyPrinting().create()
+        val jsonString = gson.toJson(layout)
+        val file = File("target", "addressEdit.json");
+        file.writeText(jsonString);
+        println("Output written to ${file.absolutePath}")
     }
 }
