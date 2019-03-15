@@ -2,6 +2,7 @@ package org.projectforge.rest
 
 import org.projectforge.business.book.BookDO
 import org.projectforge.business.book.BookDao
+import org.projectforge.business.book.BookFilter
 import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.model.rest.AddressObject
@@ -27,8 +28,30 @@ open class BookRest {
     @Path(RestPaths.LIST)
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    fun getList(filter : BaseSearchFilter): Response {
-        return RestHelper.getList(bookDao, filter)
+    fun getList(filter: BaseSearchFilter): Response {
+        var list = RestHelper.getList(bookDao, filter)
+        return RestHelper.buildResponse(list)
+    }
+
+    @GET
+    @Path("list-test")
+    @Produces(MediaType.APPLICATION_JSON)
+    fun getListTest(@QueryParam("search") search: String?): Response {
+        val filter: BookFilter = BookFilter()
+        filter.searchString = search
+        var list = RestHelper.getList(bookDao, filter)
+        //list.forEach {
+        //    it.comment = "Test comment" // You may manipulate the Book.
+        //}
+        return RestHelper.buildResponse(list)
+    }
+
+    @GET
+    @Path("{id}")
+    @Produces(MediaType.APPLICATION_JSON)
+    fun getItem(@PathParam("id") id: Int?): Response {
+        val book = bookDao!!.getById(id)
+        return RestHelper.buildResponse(book)
     }
 
     /**
