@@ -78,6 +78,7 @@ public class WebXMLInitializer implements ServletContextInitializer {
     final FilterRegistration restUserFilter = sc.addFilter("restUserFilter", RestUserFilter.class);
     restUserFilter.addMappingForUrlPatterns(null, false, "/rest/*");
 
+
     final FilterRegistration expire = sc.addFilter("expire", ResponseHeaderFilter.class);
     expire.setInitParameter("Cache-Control", "public, max-age=7200");
     expire.addMappingForUrlPatterns(null, false, "*.css");
