@@ -21,8 +21,14 @@ enum class UIElementType {
     MULTI_SELECT,
     @SerializedName("checkbox")
     CHECKBOX,
+    @SerializedName("table")
+    TABLE,
+    @SerializedName("table-column")
+    TABLE_COLUMN,
     @SerializedName("button")
     BUTTON,
+    @SerializedName("named-container")
+    NAMED_CONTAINER,
     @SerializedName("customized")
     CUSTOMIZED
 }
