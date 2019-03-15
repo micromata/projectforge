@@ -71,13 +71,6 @@ class UILayoutTest {
     @Test
     fun testListBook() {
         var layout = UILayout("Bücherliste")
-                .add(UINamedContainer("filter-options")
-                        .add(UIGroup()
-                                .add(UICheckbox("filter.present", label = "vorhanden"))
-                                .add(UICheckbox("filter.missed", label = "vermisst"))
-                                .add(UICheckbox("filter.disposed", label = "entsorgt"))
-                                .add(UICheckbox("filter.onlyDeleted", label = "nur gelöscht"))
-                                .add(UICheckbox("filter.searchHistory", label = "Historie"))))
                 .add(UITable("result-set")
                         .add(UITableColumn("created", "angelegt", dataType = UIDataType.DATE))
                         .add(UITableColumn("year", "Jahr"))
@@ -89,6 +82,13 @@ class UILayoutTest {
                         .add(UITableColumn("year", "Jahr")))
                 .addAction(UIButton("reset", "Rücksetzen", UIButtonStyle.DANGER))
                 .addAction(UIButton("search", "Suchen", UIButtonStyle.PRIMARY))
+                .add(UINamedContainer("filter-options")
+                        .add(UIGroup()
+                                .add(UICheckbox("filter.present", label = "vorhanden"))
+                                .add(UICheckbox("filter.missed", label = "vermisst"))
+                                .add(UICheckbox("filter.disposed", label = "entsorgt"))
+                                .add(UICheckbox("filter.onlyDeleted", label = "nur gelöscht"))
+                                .add(UICheckbox("filter.searchHistory", label = "Historie"))))
         val gson = GsonBuilder().setPrettyPrinting().create()
         val jsonString = gson.toJson(layout)
         val file = File("target", "listBooks.json");
