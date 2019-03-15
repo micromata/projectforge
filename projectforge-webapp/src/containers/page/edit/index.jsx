@@ -123,7 +123,7 @@ class EditPage extends React.Component {
 }
 
 EditPage.propTypes = {
-    userId: PropTypes.string.isRequired,
+    userId: PropTypes.number.isRequired,
     token: PropTypes.string.isRequired,
 };
 

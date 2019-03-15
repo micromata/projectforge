@@ -9,6 +9,7 @@
     "bootstrap": "^4.3.1",
     "classnames": "^2.2.6",
     "eslint-config-airbnb": "^17.1.0",
+    "fetch-mock": "^7.3.1",
     "node-sass": "^4.11.0",
     "prop-types": "^15.7.2",
     "react": "^16.8.3",
@@ -19,6 +20,7 @@
     "react-scripts": "2.1.5",
     "reactstrap": "^7.1.0",
     "redux": "^4.0.1",
+    "redux-mock-store": "^1.5.3",
     "redux-thunk": "^2.3.0"
   },
   "scripts": {
@@ -29,6 +31,13 @@
   },
   "eslintConfig": {
     "extends": "react-app"
+  },
+  "jest": {
+    "collectCoverageFrom": [
+      "src/**/*.{js,jsx}",
+      "!src/index.js",
+      "!src/serviceWorker.js"
+    ]
   },
   "browserslist": [
     ">0.2%",
