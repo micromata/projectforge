@@ -1,7 +1,7 @@
-import React from 'react';
-import PropTypes from 'prop-types';
 import { faBell, faExclamationTriangle } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import PropTypes from 'prop-types';
+import React from 'react';
 import {
     Alert,
     Button,
@@ -14,8 +14,8 @@ import {
     Input,
     Label,
 } from '../design';
-import style from './Authentication.module.scss';
 import LoadingContainer from '../design/loading-container';
+import style from './Authentication.module.scss';
 
 // TODO: INCLUDE TRANSLATION
 class LoginView extends React.Component {
@@ -69,7 +69,11 @@ class LoginView extends React.Component {
                         <CardTitle className={style.cardTitle}>[login.title]</CardTitle>
                         {administratorLoginNeeded
                             ? (
-                                <Alert color="danger" className={style.alert}>
+                                <Alert
+                                    color="danger"
+                                    className={style.alert}
+                                    aria-label="administratorLoginNeededAlert"
+                                >
                                     <FontAwesomeIcon icon={faBell} />
                                     [login.adminLoginRequired]
                                 </Alert>
@@ -78,7 +82,11 @@ class LoginView extends React.Component {
                         }
                         {error
                             ? (
-                                <Alert color="danger" className={style.alert}>
+                                <Alert
+                                    color="danger"
+                                    className={style.alert}
+                                    aria-label="errorAlert"
+                                >
                                     <FontAwesomeIcon icon={faBell} />
                                     {` ${error}`}
                                 </Alert>
@@ -88,7 +96,11 @@ class LoginView extends React.Component {
                         }
                         {motd
                             ? (
-                                <Alert color="primary" className={style.alert}>
+                                <Alert
+                                    color="primary"
+                                    className={style.alert}
+                                    aria-label="motdAlert"
+                                >
                                     <FontAwesomeIcon icon={faExclamationTriangle} />
                                     {` ${motd}`}
                                 </Alert>
@@ -107,6 +119,7 @@ class LoginView extends React.Component {
                                         onChange={this.handleInputChange}
                                         value={username}
                                         autoComplete="username"
+                                        aria-label="username"
                                     />
                                 </Col>
                             </FormGroup>
@@ -121,6 +134,7 @@ class LoginView extends React.Component {
                                         onChange={this.handleInputChange}
                                         value={password}
                                         autoComplete="current-password"
+                                        aria-label="password"
                                     />
                                 </Col>
                             </FormGroup>
@@ -135,16 +149,20 @@ class LoginView extends React.Component {
                                         <Label check>
                                             <Input
                                                 type="checkbox"
+                                                name="checkbox"
                                                 id="keepSignedIn"
-                                                onChange={this.handleInputChange}
-                                                value={keepSignedIn}
+                                                onChange={() => {
+                                                }}
+                                                onClick={this.handleInputChange}
+                                                aria-label="keepSignedIn"
+                                                checked={keepSignedIn}
                                             />
                                             <strong>[Keep Signed In]</strong>
                                         </Label>
                                     </FormGroup>
                                 </Col>
                             </FormGroup>
-                            <Button color="success" block>[Login]</Button>
+                            <Button color="success" block aria-label="login">[Login]</Button>
                         </Form>
                     </CardBody>
                 </Card>
