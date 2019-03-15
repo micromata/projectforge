@@ -1,7 +1,7 @@
 export const EDIT_PAGE_FIELD_CHANGE = 'EDIT_PAGE_FIELD_CHANGE';
 export const EDIT_PAGE_ALL_FIELDS_SET = 'EDIT_PAGE_ALL_FIELDS_SET';
 
-const fieldChanged = (id, newValue) => ({
+export const fieldChanged = (id, newValue) => ({
     type: EDIT_PAGE_FIELD_CHANGE,
     payload: {
         id,
@@ -9,7 +9,7 @@ const fieldChanged = (id, newValue) => ({
     },
 });
 
-const allFieldsSet = values => ({
+export const allFieldsSet = values => ({
     type: EDIT_PAGE_ALL_FIELDS_SET,
     payload: {
         values,
