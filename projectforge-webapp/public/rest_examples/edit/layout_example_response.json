@@ -1,0 +1,258 @@
+{
+  "layout": [
+    {
+      "content": [
+        {
+          "value": "Titel",
+          "for": "title",
+          "type": "label"
+        },
+        {
+          "id": "title",
+          "max-length": 255,
+          "required": true,
+          "focus": true,
+          "type": "input"
+        }
+      ],
+      "type": "group"
+    },
+    {
+      "content": [
+        {
+          "value": "Autoren",
+          "for": "authors",
+          "type": "label"
+        },
+        {
+          "id": "authors",
+          "max-length": 255,
+          "type": "input"
+        }
+      ],
+      "type": "group"
+    },
+    {
+      "content": [
+        {
+          "length": 6,
+          "content": [
+            {
+              "content": [
+                {
+                  "value": "Typ",
+                  "for": "type",
+                  "type": "label"
+                },
+                {
+                  "id": "type",
+                  "values": [
+                    {
+                      "value": "book",
+                      "title": "Buch"
+                    },
+                    {
+                      "value": "magazine",
+                      "title": "Magazin"
+                    }
+                  ],
+                  "type": "select"
+                }
+              ],
+              "type": "group"
+            },
+            {
+              "content": [
+                {
+                  "value": "Veröffentlichungsjahr",
+                  "for": "yearOfPublishing",
+                  "type": "label"
+                },
+                {
+                  "id": "yearOfPublishing",
+                  "max-length": 255,
+                  "type": "input"
+                }
+              ],
+              "type": "group"
+            },
+            {
+              "content": [
+                {
+                  "value": "Status",
+                  "for": "status",
+                  "type": "label"
+                },
+                {
+                  "id": "status",
+                  "values": [
+                    {
+                      "value": "present",
+                      "title": "vorhanden"
+                    },
+                    {
+                      "value": "missed",
+                      "title": "vermisst"
+                    }
+                  ],
+                  "type": "select"
+                }
+              ],
+              "type": "group"
+            },
+            {
+              "content": [
+                {
+                  "value": "Signatur",
+                  "for": "signature",
+                  "type": "label"
+                },
+                {
+                  "id": "signature",
+                  "max-length": 255,
+                  "type": "input"
+                }
+              ],
+              "type": "group"
+            }
+          ],
+          "type": "col"
+        },
+        {
+          "length": 6,
+          "content": [
+            {
+              "content": [
+                {
+                  "value": "ISBN",
+                  "for": "isbn",
+                  "type": "label"
+                },
+                {
+                  "id": "isbn",
+                  "max-length": 255,
+                  "type": "input"
+                }
+              ],
+              "type": "group"
+            },
+            {
+              "content": [
+                {
+                  "value": "Schlüsselwörter",
+                  "for": "keywords",
+                  "type": "label"
+                },
+                {
+                  "id": "keywords",
+                  "max-length": 255,
+                  "type": "input"
+                }
+              ],
+              "type": "group"
+            },
+            {
+              "content": [
+                {
+                  "value": "Verlag",
+                  "for": "publisher",
+                  "type": "label"
+                },
+                {
+                  "id": "publisher",
+                  "max-length": 255,
+                  "type": "input"
+                }
+              ],
+              "type": "group"
+            },
+            {
+              "content": [
+                {
+                  "value": "Herausgeber",
+                  "for": "editor",
+                  "type": "label"
+                },
+                {
+                  "id": "editor",
+                  "max-length": 255,
+                  "type": "input"
+                }
+              ],
+              "type": "group"
+            }
+          ],
+          "type": "col"
+        }
+      ],
+      "type": "row"
+    },
+    {
+      "content": [
+        {
+          "value": "Ausleihe",
+          "type": "label"
+        },
+        {
+          "id": "lendOut",
+          "values": {
+            "lendOutBy": "kai"
+          },
+          "type": "customized"
+        }
+      ],
+      "type": "group"
+    },
+    {
+      "content": [
+        {
+          "value": "Zusammenfassung",
+          "for": "abstract",
+          "type": "label"
+        },
+        {
+          "id": "abstract",
+          "max-length": 4000,
+          "type": "textarea"
+        }
+      ],
+      "type": "group"
+    },
+    {
+      "content": [
+        {
+          "value": "Bemerkung",
+          "for": "comment",
+          "type": "label"
+        },
+        {
+          "id": "comment",
+          "max-length": 4000,
+          "type": "textarea"
+        }
+      ],
+      "type": "group"
+    }
+  ],
+  "actions": [
+    {
+      "id": "cancel",
+      "title": "Abbrechen",
+      "style": "cancel",
+      "type": "button"
+    },
+    {
+      "id": "markAsDeleted",
+      "title": "Als gelöscht markieren",
+      "style": "warn",
+      "type": "button"
+    },
+    {
+      "id": "update",
+      "title": "Ändern",
+      "style": "default",
+      "type": "button"
+    }
+  ],
+  "title": "Buch bearbeiten"
+}

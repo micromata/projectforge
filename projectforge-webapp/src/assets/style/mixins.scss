@@ -1,0 +1,10 @@
+$mediumMediaQuery: 'only screen and (min-width: 735px)';
+$largeMediaQuery: 'only screen and (min-width: 1068px)';
+
+@mixin linear-gradient-background($arguments...) {
+  background-image: -webkit-linear-gradient($arguments);
+  background-image: -moz-linear-gradient($arguments);
+  background-image: -ms-linear-gradient($arguments);
+  background-image: -o-linear-gradient($arguments);
+  background-image: linear-gradient($arguments);
+}

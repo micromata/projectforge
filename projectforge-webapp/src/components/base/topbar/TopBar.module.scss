@@ -1,0 +1,17 @@
+.topbar {
+  border-bottom: 1px solid #D9DFE1;
+  padding: 1em 2em;
+  text-align: right;
+  background-color: #fff;
+}
+
+.logo {
+  border: none;
+
+  &.left {
+    float: left;
+  }
+
+  &.right {
+  }
+}
