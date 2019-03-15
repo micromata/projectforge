@@ -51,14 +51,18 @@ class Navigation extends Component {
 
         return (
             <Navbar color="light" light expand="md" className={style.navigation}>
-                <NavbarToggler onClick={this.toggleMobile} className="ml-auto" />
-                <Collapse isOpen={mobileIsOpen} navbar>
+                <NavbarToggler
+                    onClick={this.toggleMobile}
+                    className="ml-auto"
+                    aria-label="toggleMobileNavbar"
+                />
+                <Collapse isOpen={mobileIsOpen} navbar aria-label="navbar-collapse">
                     <Nav className="mr-auto" navbar>
                         {categories !== null && categories.length > 0
                             ? <CategoriesDropdown categories={categories} />
                             : undefined
                         }
-                        {entries !== null
+                        {entries !== null && entries.length > 0
                             ? entries.map(entry => (
                                 <Entry key={`navigation-entry-${entry.name}`} entry={entry} />
                             ))
