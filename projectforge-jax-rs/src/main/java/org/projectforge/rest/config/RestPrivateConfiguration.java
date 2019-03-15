@@ -4,6 +4,8 @@ import org.glassfish.jersey.server.ResourceConfig;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.rest.AddressDaoRest;
 import org.projectforge.rest.JsonUtils;
+import org.projectforge.rest.BookRest;
+import org.projectforge.rest.ui.LayoutRest;
 import org.projectforge.web.rest.AuthenticationRest;
 import org.projectforge.web.rest.TaskDaoRest;
 import org.projectforge.web.rest.TimesheetDaoRest;
@@ -27,5 +29,9 @@ public class RestPrivateConfiguration extends ResourceConfig
     register(TimesheetDaoRest.class);
     register(TimesheetTemplatesRest.class);
     JsonUtils.add(PFUserDO.class, new PFUserDOTypeAdapter());
+
+    // Kotlin stuff:
+    register(BookRest.class);
+    register(LayoutRest.class);
   }
 }
