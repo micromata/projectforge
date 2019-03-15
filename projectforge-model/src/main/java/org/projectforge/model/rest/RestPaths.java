@@ -67,8 +67,6 @@ public class RestPaths
 
   public static final String AUTHENTICATE_INITIAL_CONTACT = AUTHENTICATE + "/" + AUTHENTICATE_INITIAL_CONTACT_METHOD;
 
-  public static final String BOOKS = "books";
-
   public static final String TASK = "task";
 
   public static final String TIMESHEET = "timesheet";
@@ -92,5 +90,4 @@ public class RestPaths
   public static final String TEAMEVENTS = "teamevents";
 
   public static final String VERSION_CHECK = "versionCheck";
-
 }
