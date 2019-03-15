@@ -23,21 +23,11 @@
 
 package org.projectforge.web.rest;
 
-import java.io.IOException;
-
-import javax.servlet.Filter;
-import javax.servlet.FilterChain;
-import javax.servlet.FilterConfig;
-import javax.servlet.ServletException;
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
 import org.projectforge.business.login.LoginProtection;
 import org.projectforge.business.multitenancy.TenantRegistry;
 import org.projectforge.business.multitenancy.TenantRegistryMap;
 import org.projectforge.business.user.UserGroupCache;
+import org.projectforge.business.user.filter.UserFilter;
 import org.projectforge.business.user.service.UserService;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
@@ -51,14 +41,18 @@ import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.support.WebApplicationContextUtils;
 
+import javax.servlet.*;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+
 /**
  * Does the authentication stuff for restfull requests.
  *
  * @author Daniel Ludwig (d.ludwig@micromata.de)
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-public class RestUserFilter implements Filter
-{
+public class RestUserFilter implements Filter {
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(RestUserFilter.class);
 
   private WebApplicationContext springContext;
@@ -67,8 +61,7 @@ public class RestUserFilter implements Filter
   private UserService userService;
 
   @Override
-  public void init(final FilterConfig filterConfig) throws ServletException
-  {
+  public void init(final FilterConfig filterConfig) throws ServletException {
     springContext = WebApplicationContextUtils.getRequiredWebApplicationContext(filterConfig.getServletContext());
     final AutowireCapableBeanFactory beanFactory = springContext.getAutowireCapableBeanFactory();
     beanFactory.autowireBean(this);
@@ -86,9 +79,8 @@ public class RestUserFilter implements Filter
    */
   @Override
   public void doFilter(final ServletRequest request, final ServletResponse response, final FilterChain chain)
-      throws IOException,
-      ServletException
-  {
+          throws IOException,
+          ServletException {
     final HttpServletRequest req = (HttpServletRequest) request;
     String userString = getAttribute(req, Authentication.AUTHENTICATION_USER_ID);
     final LoginProtection loginProtection = LoginProtection.instance();
@@ -112,7 +104,7 @@ public class RestUserFilter implements Filter
           log.error(Authentication.AUTHENTICATION_TOKEN + " not given for userId '" + userId + "'. Rest call forbidden.");
         } else if (authenticationToken.equals(cachedAuthenticationToken) == false) {
           log.error(
-              Authentication.AUTHENTICATION_TOKEN + " doesn't match for " + Authentication.AUTHENTICATION_USER_ID + " '" + userId + "'. Rest call forbidden.");
+                  Authentication.AUTHENTICATION_TOKEN + " doesn't match for " + Authentication.AUTHENTICATION_USER_ID + " '" + userId + "'. Rest call forbidden.");
         } else {
           user = userService.getUser(userId);
         }
@@ -125,25 +117,28 @@ public class RestUserFilter implements Filter
         // access denied
         return;
       }
-
       final String password = getAttribute(req, Authentication.AUTHENTICATION_PASSWORD);
       if (userString != null && password != null) {
         user = userService.authenticateUser(userString, password);
         if (user == null) {
           log.error("Authentication failed for "
-              + Authentication.AUTHENTICATION_USERNAME
-              + "='"
-              + userString
-              + "' with given password. Rest call forbidden.");
+                  + Authentication.AUTHENTICATION_USERNAME
+                  + "='"
+                  + userString
+                  + "' with given password. Rest call forbidden.");
         }
       } else {
-        log.error("Neither "
-            + Authentication.AUTHENTICATION_USER_ID
-            + " nor "
-            + Authentication.AUTHENTICATION_USERNAME
-            + "/"
-            + Authentication.AUTHENTICATION_PASSWORD
-            + " is given for rest call: " + ((HttpServletRequest) request).getRequestURI() + " . Rest call forbidden.");
+        // Try to get the user by session id:
+        user = UserFilter.getUser(req);
+        if (user == null) {
+          log.error("Neither "
+                  + Authentication.AUTHENTICATION_USER_ID
+                  + " nor "
+                  + Authentication.AUTHENTICATION_USERNAME
+                  + "/"
+                  + Authentication.AUTHENTICATION_PASSWORD
+                  + " is given for rest call: " + ((HttpServletRequest) request).getRequestURI() + " . Rest call forbidden.");
+        }
       }
     }
 
@@ -168,8 +163,8 @@ public class RestUserFilter implements Filter
       }
       MDC.put("user", user.getUsername());
       log.info("User: " + user.getUsername() + " calls RestURL: " + ((HttpServletRequest) request).getRequestURI()
-          + " with ip: "
-          + clientIpAddress);
+              + " with ip: "
+              + clientIpAddress);
       chain.doFilter(request, response);
     } finally {
       ThreadLocalUserContext.setUser(getUserGroupCache(), null);
@@ -180,24 +175,22 @@ public class RestUserFilter implements Filter
   }
 
   private boolean checkLoginProtection(final HttpServletResponse response, final String userString, final LoginProtection loginProtection,
-      final String clientIpAddress) throws IOException
-  {
+                                       final String clientIpAddress) throws IOException {
     final long offset = loginProtection.getFailedLoginTimeOffsetIfExists(userString, clientIpAddress);
     if (offset > 0) {
       final String seconds = String.valueOf(offset / 1000);
       log.warn("The account for '"
-          + userString
-          + "' is locked for "
-          + seconds
-          + " seconds due to failed login attempts (ip=" + clientIpAddress + ").");
+              + userString
+              + "' is locked for "
+              + seconds
+              + " seconds due to failed login attempts (ip=" + clientIpAddress + ").");
       response.sendError(HttpServletResponse.SC_FORBIDDEN);
       return true;
     }
     return false;
   }
 
-  private ConnectionSettings getConnectionSettings(final HttpServletRequest req)
-  {
+  private ConnectionSettings getConnectionSettings(final HttpServletRequest req) {
     final ConnectionSettings settings = new ConnectionSettings();
     final String dateTimeFormatString = getAttribute(req, ConnectionSettings.DATE_TIME_FORMAT);
     if (dateTimeFormatString != null) {
@@ -209,8 +202,7 @@ public class RestUserFilter implements Filter
     return settings;
   }
 
-  private String getAttribute(final HttpServletRequest req, final String key)
-  {
+  private String getAttribute(final HttpServletRequest req, final String key) {
     String value = req.getHeader(key);
     if (value == null) {
       value = req.getParameter(key);
@@ -219,26 +211,22 @@ public class RestUserFilter implements Filter
   }
 
   @Override
-  public void destroy()
-  {
+  public void destroy() {
     // NOOP
   }
 
   /**
    * Only for tests
    */
-  void setUserService(UserService userService)
-  {
+  void setUserService(UserService userService) {
     this.userService = userService;
   }
 
-  private TenantRegistry getTenantRegistry()
-  {
+  private TenantRegistry getTenantRegistry() {
     return TenantRegistryMap.getInstance().getTenantRegistry();
   }
 
-  private UserGroupCache getUserGroupCache()
-  {
+  private UserGroupCache getUserGroupCache() {
     return getTenantRegistry().getUserGroupCache();
   }
 
