@@ -13,11 +13,11 @@ export const USER_LOGIN_FAILURE = 'USER_LOGIN_FAILURE';
 
 export const USER_LOGOUT = 'USER_LOGOUT';
 
-const userLoginBegin = () => ({
+export const userLoginBegin = () => ({
     type: USER_LOGIN_BEGIN,
 });
 
-const userLoginSuccess = (userId, authenticationToken) => ({
+export const userLoginSuccess = (userId, authenticationToken) => ({
     type: USER_LOGIN_SUCCESS,
     payload: {
         userId,
@@ -25,14 +25,14 @@ const userLoginSuccess = (userId, authenticationToken) => ({
     },
 });
 
-const userLoginFailure = error => ({
+export const userLoginFailure = error => ({
     type: USER_LOGIN_FAILURE,
     payload: {
         error,
     },
 });
 
-const userLogout = () => ({
+export const userLogout = () => ({
     type: USER_LOGOUT,
 });
 
@@ -47,7 +47,7 @@ const removeCookies = () => {
 const catchError = dispatch => (error) => {
     removeCookies();
 
-    dispatch(userLoginFailure(error));
+    dispatch(userLoginFailure(error.message));
 };
 
 export const login = (username, password, keepSignedIn) => (dispatch) => {
@@ -85,12 +85,12 @@ export const loadSessionIfAvailable = () => (dispatch) => {
     const token = cookies.load(TOKEN_COOKIE);
 
     if (!userID || !token) {
-        return;
+        return null;
     }
 
     dispatch(userLoginBegin());
 
-    fetch(
+    return fetch(
         getServiceURL('authenticate/initialContact'),
         {
             method: 'GET',
@@ -98,7 +98,6 @@ export const loadSessionIfAvailable = () => (dispatch) => {
         },
     )
         .then(handleHTTPErrors)
-        .then(response => response.json())
         .then(() => dispatch(userLoginSuccess(userID, token)))
         .catch(catchError(dispatch));
 };

@@ -1,16 +1,16 @@
-import React, { Component } from 'react';
-import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
+import React from 'react';
+import { connect } from 'react-redux';
 import { BrowserRouter as Router } from 'react-router-dom';
-import TopBar from '../components/base/topbar';
-import Footer from '../components/base/footer';
-import LoginView from '../components/authentication/LoginView';
 import { loadSessionIfAvailable, loginUser, logoutUser } from '../actions';
+import LoginView from '../components/authentication/LoginView';
+import Footer from '../components/base/footer';
 import Navigation from '../components/base/navigation';
-import style from './ProjectForge.module.scss';
+import TopBar from '../components/base/topbar';
 import EditPage from './page/edit';
+import style from './ProjectForge.module.scss';
 
-class ProjectForge extends Component {
+class ProjectForge extends React.Component {
     componentDidMount() {
         const { loadSessionIfAvailable: loadSession } = this.props;
 
