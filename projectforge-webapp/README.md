@@ -1,8 +1,12 @@
-# Building the WebApp
+# Setup WebApp locally
+1. Ensure that `yarn` or `npm` is installed.
+2. Install the dependencies with `yarn install` or `npm install`.
 
-## Building with yarn/npm
-1. Before running the app you need to install the dependencies with `yarn install` or `npm install`.
-2. Then you can build the webapp via `yarn build` or `npm run build`.
+## Testing
+You can test the webapp via `yarn test` or `npm run tests`. It will run all tests and check the test coverage.
+
+## Building
+You can build the webapp via `yarn build` or `npm run build`.
 
 ## Development with hot-code-replacement (recommended)
 1. Start ProjectForge. See [ProjectForge ReadMe](../README.adoc)
