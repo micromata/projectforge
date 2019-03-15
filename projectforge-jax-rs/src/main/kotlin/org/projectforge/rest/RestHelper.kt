@@ -13,15 +13,33 @@ class RestHelper {
             return list
         }
 
-        fun buildResponse(obj : Any): Response {
+        fun buildResponse(obj: Any): Response {
             val json = JsonUtils.toJson(obj)
             return Response.ok(json).build()
         }
 
-        fun buildResponse(obj : ExtendedBaseDO<Int>): Response {
+        fun buildResponse(obj: ExtendedBaseDO<Int>): Response {
             obj.tenant = null
             val json = JsonUtils.toJson(obj)
             return Response.ok(json).build()
+        }
+
+        fun <O : ExtendedBaseDO<Int>> saveOrUpdate(baseDao: BaseDao<O>?, obj: O): Response {
+            var id = baseDao!!.saveOrUpdate(obj)
+            val json = JsonUtils.toJson(id)
+            return Response.ok(json).build()
+        }
+
+        fun <O : ExtendedBaseDO<Int>> undelete(baseDao: BaseDao<O>?, obj: O): Response {
+            var id = baseDao!!.undelete(obj)
+            val json = JsonUtils.toJson(id)
+            return Response.ok(json).build()
+        }
+
+        fun <O : ExtendedBaseDO<Int>> markAsDeleted(baseDao: BaseDao<O>?, obj: O): Response {
+            baseDao!!.markAsDeleted(obj)
+            val json = JsonUtils.toJson(obj)
+            return Response.ok().build()
         }
     }
 }

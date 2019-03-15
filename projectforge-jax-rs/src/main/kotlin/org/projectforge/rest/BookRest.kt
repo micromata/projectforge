@@ -63,15 +63,23 @@ open class BookRest {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     fun saveOrUpdate(bookDO: BookDO): Response {
-        val origBook = bookDao!!.getById(bookDO.id)
+        return RestHelper.saveOrUpdate(bookDao, bookDO)
+    }
 
-        val json = ""
-        log.info("Save or update address REST call finished.")
-        return Response.ok(json).build()
+    /**
+     * @param bookDO
+     * @return
+     */
+    @PUT
+    @Path(RestPaths.UNDELETE)
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    fun undelete(bookDO: BookDO): Response {
+        return RestHelper.undelete(bookDao, bookDO)
     }
 
     @DELETE
-    @Path(RestPaths.DELETE)
+    @Path(RestPaths.MARK_AS_DELETED)
     @Consumes(MediaType.APPLICATION_JSON)
     fun delete(addressObject: AddressObject): Response {
         return Response.ok().build()

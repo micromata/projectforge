@@ -83,6 +83,10 @@ public class RestPaths
 
   public static final String DELETE = "delete";
 
+  public static final String MARK_AS_DELETED = "markAsDeleted";
+
+  public static final String UNDELETE = "undelete";
+
   public static final String TREE = "tree";
 
   public static final String TEAMCAL = "teamcal";
