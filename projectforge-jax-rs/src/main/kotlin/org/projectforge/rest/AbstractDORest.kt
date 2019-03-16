@@ -1,5 +1,7 @@
 package org.projectforge.rest
 
+import org.bouncycastle.asn1.x509.X509ObjectIdentifiers
+import org.bouncycastle.asn1.x509.X509ObjectIdentifiers.id
 import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.BaseSearchFilter
@@ -56,20 +58,28 @@ abstract open class AbstractDORest<O : ExtendedBaseDO<Int>, B : BaseDao<O>> {
     @GET
     @Path("{id}")
     @Produces(MediaType.APPLICATION_JSON)
-    fun getItem(@PathParam("id") id: Int?, @QueryParam("layout") layout: Boolean?): Response {
-        val result = _getItem(id, layout)
-        return RestHelper.buildResponse(result)
+    fun getItem(@PathParam("id") id: Int): Response {
+        val item = getBaseDao()!!.getById(id)
+        return RestHelper.buildResponse(item)
     }
 
-    internal fun _getItem(id: Int?, layout: Boolean?) : Any {
-        val item: O
+    /**
+     * Gets the item including the layout data at default.
+     * @param id Id of the item to get or null, for new items (null  will be returned)
+     * @param layout If given, layout definitions will be returned, otherwise only the item will be returned. The
+     * layout will be also included if the id is not given.
+     */
+    @GET
+    @Path("edit")
+    @Produces(MediaType.APPLICATION_JSON)
+    fun getItemAndLayout(@QueryParam("id") id: Int?): Response {
+        val item : O
         if (id != null) {
             item = getBaseDao()!!.getById(id)
             processItemBeforeExport(item)
-            if (layout == null)
-                return item
         } else item = newBaseDO()
-        return EditLayoutData(item, Layout.getEditLayout(item))
+        val result = EditLayoutData(item, Layout.getEditLayout(item))
+        return RestHelper.buildResponse(result)
     }
 
     open protected fun processItemBeforeExport(item: O) {
