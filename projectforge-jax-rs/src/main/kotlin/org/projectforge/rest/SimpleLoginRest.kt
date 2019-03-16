@@ -52,6 +52,10 @@ open class SimpleLoginRest {
                   @QueryParam("username") username: String?,
                   @QueryParam("password") password: String?)
             : Response {
+        if (getClientIp(request) != "127.0.0.1") {
+            log.warn("****** This simple login service (as GET) is only available for localhost authentication for development purposes due to security reasons.")
+            return Response.status(Response.Status.FORBIDDEN).build()
+        }
         val loginResultStatus = _login(request, response, LoginData(username, password))
         if (loginResultStatus == LoginResultStatus.SUCCESS)
             return Response.ok().build()
