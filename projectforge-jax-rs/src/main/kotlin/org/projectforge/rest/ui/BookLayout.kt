@@ -1,6 +1,8 @@
 package org.projectforge.rest.ui
 
 import org.projectforge.business.book.BookDO
+import org.projectforge.business.book.BookStatus
+import org.projectforge.business.book.BookType
 import org.projectforge.ui.*
 
 /**
@@ -41,15 +43,11 @@ class BookLayout {
                             .add(UICol(6)
                                     .add(UIGroup()
                                             .add(".",
-                                                    UISelect("type")
-                                                            .add(UISelectValue("book", "."))
-                                                            .add(UISelectValue("magazine", "."))))
+                                                    UISelect("type", i18nEnum = BookType::class.java)))
                                     .add(UIGroup().add(".", UIInput("yearOfPublishing", 0)))
                                     .add(UIGroup()
                                             .add(".",
-                                                    UISelect("status")
-                                                            .add(UISelectValue("present", "."))
-                                                            .add(UISelectValue("missed", "."))))
+                                                    UISelect("status", i18nEnum = BookStatus::class.java)))
                                     .add(UIGroup().add(".", UIInput("signature", 0))))
                             .add(UICol(6)
                                     .add(UIGroup().add(".", UIInput("isbn", 0)))

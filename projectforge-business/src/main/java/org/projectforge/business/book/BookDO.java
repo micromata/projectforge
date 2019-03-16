@@ -124,7 +124,7 @@ public class BookDO extends DefaultBaseDO
   @Field(index = Index.YES /* TOKENIZED */, store = Store.NO)
   private String comment; // 4000;
 
-  @PropertyInfo(i18nKey = "book.status")
+  @PropertyInfo(i18nKey = "status")
   @Field(index = Index.YES, analyze = Analyze.NO /* UN_TOKENIZED */, store = Store.NO)
   private BookStatus status;
 

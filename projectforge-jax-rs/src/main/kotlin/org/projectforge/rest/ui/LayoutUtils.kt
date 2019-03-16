@@ -1,8 +1,12 @@
 package org.projectforge.rest.ui
 
+import org.apache.poi.ss.formula.functions.T
+import org.projectforge.business.excel.ExportConfig
+import org.projectforge.common.i18n.I18nEnum
 import org.projectforge.common.props.PropUtils
 import org.projectforge.framework.persistence.api.HibernateUtils
 import org.projectforge.ui.*
+import kotlin.reflect.KClass
 
 class LayoutUtils {
 
@@ -30,9 +34,27 @@ class LayoutUtils {
                             if (translation != null) it.value = translation
                         }
                     }
+                    is UISelect -> {
+                        if (it.i18nEnum != null) {
+                            getEnumValues(it.i18nEnum).forEach {value ->
+                                if (value is I18nEnum) {
+                                    val translation = ExportConfig.getInstance().getDefaultExportContext().getLocalizedString(value.i18nKey)
+                                    it.add(UISelectValue(value.name, translation))
+                                } else {
+                                    log.error("UISelect supports only enums of type I18nEnum, not '${value}': '${it}'")
+                                }
+                            }
+                        }
+                    }
+                    is UISelectValue -> {
+
+                    }
                 }
             }
         }
+
+        // fun getEnumValues(enumClass: KClass<out Enum<*>>): Array<out Enum<*>> = enumClass.java.enumConstants
+        fun getEnumValues(enumClass: Class<out Enum<*>>): Array<out Enum<*>> = enumClass.enumConstants
 
         private fun getMaxLength(clazz: Class<*>, current: Int?, property: String, element: UIElement): Int? {
             if (current == null || current != 0) return null;
@@ -52,7 +74,7 @@ class LayoutUtils {
                 log.error("PropertyInfo not found in Entity '${clazz}' for UI element '${element}'.")
                 return null
             }
-            return propInfo.i18nKey
+            return ExportConfig.getInstance().getDefaultExportContext().getLocalizedString(propInfo.i18nKey)
         }
 
         private fun getProperty(element: UIElement?): String? {
