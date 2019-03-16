@@ -1,154 +1,42 @@
 package org.projectforge.ui
 
 import com.google.gson.GsonBuilder
+import org.junit.jupiter.api.Assertions.assertFalse
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
+import org.projectforge.business.book.BookDO
+import org.projectforge.rest.ui.Layout
 import java.io.File
 
 class UILayoutTest {
     @Test
     fun testEditBook() {
-        var layout = UILayout("Buch bearbeiten")
-                .add(UIGroup()
-                        .add(UILabel("Titel", "title"))
-                        .add(UIInput("title", 255, required = true, focus = true)))
-                .add(UIGroup()
-                        .add(UILabel("Autoren", "authors"))
-                        .add(UIInput("authors", 255)))
-                .add(UIRow()
-                        .add(UICol(6)
-                                .add(UIGroup()
-                                        .add(UILabel("Typ", "type"))
-                                        .add(UISelect("type")
-                                                .add(UISelectValue("book", "Buch"))
-                                                .add(UISelectValue("magazine", "Magazin"))))
-                                .add(UIGroup()
-                                        .add(UILabel("Veröffentlichungsjahr", "yearOfPublishing"))
-                                        .add(UIInput("yearOfPublishing", 255)))
-                                .add(UIGroup()
-                                        .add(UILabel("Status", "status"))
-                                        .add(UISelect("status")
-                                                .add(UISelectValue("present", "vorhanden"))
-                                                .add(UISelectValue("missed", "vermisst"))))
-                                .add(UIGroup()
-                                        .add(UILabel("Signatur", "signature"))
-                                        .add(UIInput("signature", 255))))
-                        .add(UICol(6)
-                                .add(UIGroup()
-                                        .add(UILabel("ISBN", "isbn"))
-                                        .add(UIInput("isbn", 255)))
-                                .add(UIGroup()
-                                        .add(UILabel("Schlüsselwörter", "keywords"))
-                                        .add(UIInput("keywords", 255)))
-                                .add(UIGroup()
-                                        .add(UILabel("Verlag", "publisher"))
-                                        .add(UIInput("publisher", 255)))
-                                .add(UIGroup()
-                                        .add(UILabel("Herausgeber", "editor"))
-                                        .add(UIInput("editor", 255)))))
-                .add(UIGroup()
-                        .add(UILabel("Ausleihe"))
-                        .add(UICustomized("lendOut")
-                                .add("lendOutBy", "kai")))
-                .add(UIGroup()
-                        .add(UILabel("Ausleihnotiz (optional)", "lendOutRemark"))
-                        .add(UITextarea("lendOutRemark", 4000)))
-                .add(UIGroup()
-                        .add(UILabel("Zusammenfassung", "abstract"))
-                        .add(UITextarea("abstact", 4000)))
-                .add(UIGroup()
-                        .add(UILabel("Bemerkung", "comment"))
-                        .add(UITextarea("comment", 4000)))
-                .addAction(UIButton("cancel", "Abbrechen", UIButtonStyle.DANGER))
-                .addAction(UIButton("markAsDeleted", "Als gelöscht markieren", UIButtonStyle.WARNING))
-                .addAction(UIButton("update", "Ändern", UIButtonStyle.PRIMARY))
         val gson = GsonBuilder().setPrettyPrinting().create()
-        val jsonString = gson.toJson(layout)
+
+        val book = BookDO()
+        var jsonString = gson.toJson(Layout.getEditLayout(book))
+        testButtonsPresent(jsonString, "cancel", "create");
+        testButtonsAbsent(jsonString, "markAsDeleted", "undelete", "save")
+
+        book.pk = 42
+        jsonString = gson.toJson(Layout.getEditLayout(book))
+        testButtonsPresent(jsonString, "cancel", "markAsDeleted", "save");
+        testButtonsAbsent(jsonString, "undelete", "create")
+
+        book.isDeleted = true
+        jsonString = gson.toJson(Layout.getEditLayout(book))
+        testButtonsPresent(jsonString, "cancel", "undelete", "save");
+        testButtonsAbsent(jsonString, "markAsDeleted", "create")
         val file = File("target", "editBook.json");
         file.writeText(jsonString);
         println("Output written to ${file.absolutePath}")
     }
 
-    @Test
-    fun testListBook() {
-        var layout = UILayout("Bücherliste")
-                .add(UITable("result-set")
-                        .add(UITableColumn("created", "angelegt", dataType = UIDataType.DATE))
-                        .add(UITableColumn("year", "Jahr"))
-                        .add(UITableColumn("signature", "Signatur"))
-                        .add(UITableColumn("authors", "Autoren"))
-                        .add(UITableColumn("title", "Titel"))
-                        .add(UITableColumn("keywords", "Schlüsselworte"))
-                        .add(UITableColumn("lendOutBy", "Ausgeliehen von"))
-                        .add(UITableColumn("year", "Jahr")))
-                .addAction(UIButton("reset", "Rücksetzen", UIButtonStyle.DANGER))
-                .addAction(UIButton("search", "Suchen", UIButtonStyle.PRIMARY))
-                .add(UINamedContainer("filter-options")
-                        .add(UIGroup()
-                                .add(UICheckbox("filter.present", label = "vorhanden"))
-                                .add(UICheckbox("filter.missed", label = "vermisst"))
-                                .add(UICheckbox("filter.disposed", label = "entsorgt"))
-                                .add(UICheckbox("filter.onlyDeleted", label = "nur gelöscht"))
-                                .add(UICheckbox("filter.searchHistory", label = "Historie"))))
-        val gson = GsonBuilder().setPrettyPrinting().create()
-        val jsonString = gson.toJson(layout)
-        val file = File("target", "listBooks.json");
-        file.writeText(jsonString);
-        println("Output written to ${file.absolutePath}")
+    private fun testButtonsPresent(jsonString: String, vararg buttons: String) {
+        buttons.forEach { assertTrue(jsonString.contains(it), "Button '${it}' not found, but expected.") }
     }
 
-    @Test
-    fun testEditAddress() {
-        var layout = UILayout("Adresse bearbeiten")
-                .add(UIGroup()
-                        .add(UILabel("Adressbücher", "addressbooks"))
-                        .add(UIMultiSelect("addressbooks")))
-                .add(UIRow()
-                        .add(UICol(6)
-                                .add(UIGroup()
-                                        .add(UILabel("Name", "name"))
-                                        .add(UIInput("name", 255, required = true, focus = true)))
-                                .add(UIGroup()
-                                        .add(UILabel("Vorname", "firstName"))
-                                        .add(UIInput("firstName", 255)))
-                                .add(UIGroup()
-                                        .add(UILabel("Anrede", "gender"))
-                                        .add(UISelect("gender")
-                                                .add(UISelectValue("male", "Herr"))
-                                                .add(UISelectValue("male", "Herr"))
-                                                .add(UISelectValue("divers", "divers"))
-                                                .add(UISelectValue("unkown", "unbekannt"))
-                                                .add(UISelectValue("company", "Firma"))))
-                                .add(UIGroup()
-                                        .add(UILabel("Titel", "title"))
-                                        .add(UIInput("title", 255))))
-                        .add(UICol(6)
-                                .add(UIGroup()
-                                        .add(UILabel("Kontaktstatus", "contactstatus"))
-                                        .add(UISelect("gender")
-                                                .add(UISelectValue("active", "aktiv"))
-                                                .add(UISelectValue("inactive", "inaktiv"))))
-                                .add(UIGroup()
-                                        .add(UILabel("Adressstatus", "addressstatus"))
-                                        .add(UISelect("gender")
-                                                .add(UISelectValue("uptodate", "aktuell"))
-                                                .add(UISelectValue("outdated", "veraltet"))
-                                                .add(UISelectValue("leaved", "Unternehmen verlassen"))))
-                                .add(UIGroup()
-                                        .add(UILabel("Firma", "company"))
-                                        .add(UIInput("company", 255)))
-                                .add(UIGroup()
-                                        .add(UILabel("Abteilung", "division"))
-                                        .add(UIInput("division", 255)))
-                                .add(UIGroup()
-                                        .add(UILabel("Position", "position"))
-                                        .add(UIInput("position", 255)))))
-                .add(UIGroup()
-                        .add(UILabel("Bemerkung", "comment"))
-                        .add(UITextarea("comment", 4000)))
-        val gson = GsonBuilder().setPrettyPrinting().create()
-        val jsonString = gson.toJson(layout)
-        val file = File("target", "editAddress.json");
-        file.writeText(jsonString);
-        println("Output written to ${file.absolutePath}")
+    private fun testButtonsAbsent(jsonString: String, vararg buttons: String) {
+        buttons.forEach { assertFalse(jsonString.contains(it), "Button '${it}' found, but not allowed.") }
     }
 }

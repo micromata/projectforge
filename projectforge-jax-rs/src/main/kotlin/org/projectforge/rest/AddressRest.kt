@@ -18,6 +18,10 @@ open class AddressRest() : AbstractDORest<AddressDO, AddressDao>() {
         return addressDao!!
     }
 
+    override fun newBaseDO(): AddressDO {
+        return AddressDO()
+    }
+
     override fun processItemBeforeExport(item: AddressDO) {
         super.processItemBeforeExport(item)
         item.addressbookList = null

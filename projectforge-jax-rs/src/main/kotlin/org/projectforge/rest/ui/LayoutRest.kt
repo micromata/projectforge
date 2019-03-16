@@ -21,17 +21,4 @@ open class LayoutRest {
         val json = JsonUtils.toJson(layout)
         return Response.ok(json).build()
     }
-
-    @GET
-    @Path("edit/{id}")
-    @Produces(MediaType.APPLICATION_JSON)
-    fun getEditLayout(@PathParam("id") id: String?, @QueryParam("newItem") newItem : Boolean?): Response {
-        var layout = when (id) {
-            "address" -> AddressLayout.createEditLayout()
-            "book" -> BookLayout.createEditLayout(newItem)
-            else -> null
-        }
-        val json = JsonUtils.toJson(layout)
-        return Response.ok(json).build()
-    }
 }

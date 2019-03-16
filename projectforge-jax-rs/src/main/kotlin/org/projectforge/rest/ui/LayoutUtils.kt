@@ -4,6 +4,7 @@ import org.projectforge.business.excel.ExportConfig
 import org.projectforge.common.i18n.I18nEnum
 import org.projectforge.common.props.PropUtils
 import org.projectforge.framework.persistence.api.HibernateUtils
+import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import org.projectforge.ui.*
 
 fun translate(i18nKey: String?): String {
@@ -16,10 +17,34 @@ class LayoutUtils {
     companion object {
         private val log = org.slf4j.LoggerFactory.getLogger(LayoutUtils::class.java)
 
+        /**
+         * Auto-detects max-length of input fields (by referring the @Column annotations of clazz) and
+         * i18n-keys (by referring the [org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn] annotations of clazz).
+         */
         fun process(layout: UILayout, clazz: Class<*>): UILayout {
             processAllElements(layout.getAllElements(), clazz)
             layout.title = translate(layout.title)
             return layout
+        }
+
+        /**
+         * Auto-detects max-length of input fields (by referring the @Column annotations of clazz) and
+         * i18n-keys (by referring the @PropertColumn annotations of clazz).<br>
+         * Adds the action buttons (cancel, undelete, markAsDeleted, update and/or add dependent on the given data.<br>
+         * Calls also fun [process].
+         * @see LayoutUtils.process
+         */
+        fun processEditPage(layout: UILayout, clazz: Class<*>, data: DefaultBaseDO?): UILayout {
+            layout.addAction(UIButton("cancel", "@", UIButtonStyle.DANGER))
+            if (data != null && data.id != null) {
+                if (data.isDeleted) layout.add(UIButton("undelete", "@", UIButtonStyle.WARNING))
+                else layout.addAction(UIButton("markAsDeleted", "@", UIButtonStyle.WARNING))
+                layout.addAction(UIButton("update", "@", UIButtonStyle.PRIMARY))
+            } else {
+                layout.addAction(UIButton("create", "@", UIButtonStyle.PRIMARY))
+            }
+            process(layout, clazz)
+            return layout;
         }
 
         /**
@@ -59,6 +84,7 @@ class LayoutUtils {
                         if (it.title == "@") {
                             val i18nKey = when (it.id) {
                                 "cancel" -> "cancel"
+                                "create" -> "create"
                                 "markAsDeleted" -> "markAsDeleted"
                                 "reset" -> "reset"
                                 "search" -> "search"
@@ -66,7 +92,11 @@ class LayoutUtils {
                                 "update" -> "save"
                                 else -> null
                             }
-                            if (it.title != null) it.title = translate(i18nKey!!)
+                            if (i18nKey == null) {
+                                log.error("i18nKey not found for action button '${it.id}'.")
+                            } else {
+                                if (it.title != null) it.title = translate(i18nKey)
+                            }
                         }
                     }
                 }

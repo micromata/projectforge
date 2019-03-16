@@ -1,11 +1,12 @@
 package org.projectforge.rest
 
-import org.projectforge.business.book.BookFilter
 import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
 import org.projectforge.model.rest.RestPaths
+import org.projectforge.rest.ui.Layout
+import org.projectforge.ui.UILayout
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Controller
 import javax.ws.rs.*
@@ -16,10 +17,14 @@ import javax.ws.rs.core.Response
 abstract open class AbstractDORest<O : ExtendedBaseDO<Int>, B : BaseDao<O>> {
     private val log = org.slf4j.LoggerFactory.getLogger(AbstractDORest::class.java)
 
+    private data class EditLayoutData(val data: Any?, val ui: UILayout?)
+
     @Autowired
     open var accessChecker: AccessChecker? = null
 
     abstract fun getBaseDao(): BaseDao<O>
+
+    abstract fun newBaseDO(): O
 
     @POST
     @Path(RestPaths.LIST)
@@ -42,16 +47,32 @@ abstract open class AbstractDORest<O : ExtendedBaseDO<Int>, B : BaseDao<O>> {
         return RestHelper.buildResponse(list)
     }
 
+    /**
+     * Gets the item including the layout data at default.
+     * @param id Id of the item to get or null, for new items (null  will be returned)
+     * @param layout If given, layout definitions will be returned, otherwise only the item will be returned. The
+     * layout will be also included if the id is not given.
+     */
     @GET
     @Path("{id}")
     @Produces(MediaType.APPLICATION_JSON)
-    fun getItem(@PathParam("id") id: Int?): Response {
-        val item = getBaseDao()!!.getById(id)
-        processItemBeforeExport(item)
-        return RestHelper.buildResponse(item)
+    fun getItem(@PathParam("id") id: Int?, @QueryParam("layout") layout: Boolean?): Response {
+        val result = _getItem(id, layout)
+        return RestHelper.buildResponse(result)
     }
 
-    open protected fun processItemBeforeExport(item : O) {
+    internal fun _getItem(id: Int?, layout: Boolean?) : Any {
+        val item: O
+        if (id != null) {
+            item = getBaseDao()!!.getById(id)
+            processItemBeforeExport(item)
+            if (layout == null)
+                return item
+        } else item = newBaseDO()
+        return EditLayoutData(item, Layout.getEditLayout(item))
+    }
+
+    open protected fun processItemBeforeExport(item: O) {
         item.tenant = null
     }
 
