@@ -75,7 +75,7 @@ public class WebXMLInitializer implements ServletContextInitializer {
       log.warn("Don't deliver this app in dev mode due to security reasons (cross origin allowed)!");
       sc.addFilter("cors", new CORSFilter()).addMappingForUrlPatterns(null, false,
               "/" + RestPaths.REST + "/*",
-              "/" + RestPaths.PUBLIC_REST + "/*");
+              "/" + RestPaths.PUBLIC_REST + "/*"); // Needed for login service.
     }
 
     final FilterRegistration restUserFilter = sc.addFilter("restUserFilter", RestUserFilter.class);
