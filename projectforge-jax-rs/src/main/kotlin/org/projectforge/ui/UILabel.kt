@@ -2,6 +2,7 @@ package org.projectforge.ui
 
 import com.google.gson.annotations.SerializedName
 
-data class UILabel(val value: String,
+data class UILabel(var value: String,
                    @SerializedName("for")
-                   val labelFor:String? = null) : UIElement(UIElementType.LABEL)
+                   val labelFor:String? = null,
+                   @Transient var reference : UIElement? = null) : UIElement(UIElementType.LABEL)

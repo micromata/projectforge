@@ -48,6 +48,7 @@ import org.hibernate.search.annotations.Indexed;
 import org.hibernate.search.annotations.IndexedEmbedded;
 import org.hibernate.search.annotations.Resolution;
 import org.hibernate.search.annotations.Store;
+import org.projectforge.common.anots.PropertyInfo;
 import org.projectforge.framework.persistence.entities.DefaultBaseDO;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 
@@ -70,49 +71,64 @@ public class BookDO extends DefaultBaseDO
 {
   private static final long serialVersionUID = 8036741307214351813L;
 
+  @PropertyInfo(i18nKey = "book.title")
   @Field(index = Index.YES /* TOKENIZED */, store = Store.NO)
   private String title; // 255 not null
 
+  @PropertyInfo(i18nKey = "book.keywords")
   @Field(index = Index.YES /* TOKENIZED */, store = Store.NO)
   private String keywords; // 1024
 
+  @PropertyInfo(i18nKey = "book.lendOutBy")
   @IndexedEmbedded(depth = 1, includePaths = { "username", "firstname", "lastname" })
   private PFUserDO lendOutBy;
 
+  @PropertyInfo(i18nKey = "date")
   @Field(index = Index.YES, analyze = Analyze.NO /* UN_TOKENIZED */)
   @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
   private Date lendOutDate;
 
+  @PropertyInfo(i18nKey = "book.lendOutNote")
   @Field(index = Index.YES /* TOKENIZED */, store = Store.NO)
   private String lendOutComment; // 1024
 
+  @PropertyInfo(i18nKey = "book.isbn")
   @Field(index = Index.YES /* TOKENIZED */, store = Store.NO)
   private String isbn; // 255
 
+  @PropertyInfo(i18nKey = "book.signature")
   @Field(index = Index.YES /* TOKENIZED */, store = Store.NO)
   private String signature; // 255
 
+  @PropertyInfo(i18nKey = "book.publisher")
   @Field(index = Index.YES /* TOKENIZED */, store = Store.NO)
   private String publisher; // 255
 
+  @PropertyInfo(i18nKey = "book.editor")
   @Field(index = Index.YES /* TOKENIZED */, store = Store.NO)
   private String editor; // 255
 
+  @PropertyInfo(i18nKey = "book.yearOfPublishing")
   @Field(index = Index.YES /* TOKENIZED */, store = Store.NO, name = "year")
   private String yearOfPublishing; // 4
 
+  @PropertyInfo(i18nKey = "book.authors")
   @Field(index = Index.YES /* TOKENIZED */, store = Store.NO)
   private String authors; // 1000
 
+  @PropertyInfo(i18nKey = "book.abstract")
   @Field(index = Index.YES /* TOKENIZED */, store = Store.NO, name = "abstract")
   private String abstractText; // 4000
 
+  @PropertyInfo(i18nKey = "comment")
   @Field(index = Index.YES /* TOKENIZED */, store = Store.NO)
   private String comment; // 4000;
 
+  @PropertyInfo(i18nKey = "book.status")
   @Field(index = Index.YES, analyze = Analyze.NO /* UN_TOKENIZED */, store = Store.NO)
   private BookStatus status;
 
+  @PropertyInfo(i18nKey = "book.type")
   @Field(index = Index.YES, analyze = Analyze.NO /* UN_TOKENIZED */, store = Store.NO)
   private BookType type;
 

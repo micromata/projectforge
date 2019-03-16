@@ -13,7 +13,7 @@ data class UIGroup(val content: MutableList<UIElement> = mutableListOf()) : UIEl
      * Adds a UILabel and the given UIInput. UILabel.labelFor is set with id of given input.
      */
     fun add(label: String, input: UIInput): UIGroup {
-        content.add(UILabel(label, input.id))
+        content.add(UILabel(label, input.id, reference = input))
         content.add(input)
         return this;
     }
@@ -22,7 +22,7 @@ data class UIGroup(val content: MutableList<UIElement> = mutableListOf()) : UIEl
      * Adds a UILabel and the given UISelect. UILabel.labelFor is set with id of given input.
      */
     fun add(label: String, textArea: UITextarea): UIGroup {
-        content.add(UILabel(label, textArea.id))
+        content.add(UILabel(label, textArea.id, reference = textArea))
         content.add(textArea)
         return this;
     }
@@ -31,7 +31,7 @@ data class UIGroup(val content: MutableList<UIElement> = mutableListOf()) : UIEl
      * Adds a UILabel and the given UISelect. UILabel.labelFor is set with id of given input.
      */
     fun add(label: String, select: UISelect): UIGroup {
-        content.add(UILabel(label, select.id))
+        content.add(UILabel(label, select.id, reference = select))
         content.add(select)
         return this;
     }
