@@ -3,6 +3,7 @@ package org.projectforge.rest.config;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.rest.AddressDaoRest;
+import org.projectforge.rest.AddressRest;
 import org.projectforge.rest.JsonUtils;
 import org.projectforge.rest.BookRest;
 import org.projectforge.rest.ui.LayoutRest;
@@ -31,6 +32,7 @@ public class RestPrivateConfiguration extends ResourceConfig
     JsonUtils.add(PFUserDO.class, new PFUserDOTypeAdapter());
 
     // Kotlin stuff:
+    register(AddressRest.class);
     register(BookRest.class);
     register(LayoutRest.class);
   }
