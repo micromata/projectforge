@@ -30,7 +30,7 @@ import javax.ws.rs.core.Response
 @Controller
 @Path("login")
 open class SimpleLoginRest {
-    data class LoginData(val username: String?, val password: String?, val stayLoggedIn: Boolean? = null)
+    data class LoginData(var username: String? = null, var password: String? = null, var stayLoggedIn: Boolean? = null)
 
     private val log = org.slf4j.LoggerFactory.getLogger(SimpleLoginRest::class.java)
 
