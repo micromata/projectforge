@@ -29,8 +29,7 @@ class AddressLayout {
                                     .add(UICheckbox("filter.newest", label = "die neuesten"))
                                     .add(UICheckbox("filter.favorites", label = "meine Favoriten"))
                                     .add(UICheckbox("filter.dublets", label = "Dupletten"))))
-            LayoutUtils.processAllElements(layout.getAllElements(), AddressDO::class.java)
-            return layout
+            return LayoutUtils.process(layout, AddressDO::class.java)
         }
 
         fun createEditLayout(): UILayout {
@@ -84,8 +83,7 @@ class AddressLayout {
                     .addAction(UIButton("cancel", "Abbrechen", UIButtonStyle.DANGER))
                     .addAction(UIButton("markAsDeleted", "Als gelöscht markieren", UIButtonStyle.WARNING))
                     .addAction(UIButton("update", "Ändern", UIButtonStyle.PRIMARY))
-            LayoutUtils.processAllElements(layout.getAllElements(), AddressDO::class.java)
-            return layout
+            return LayoutUtils.process(layout, AddressDO::class.java)
         }
     }
 }

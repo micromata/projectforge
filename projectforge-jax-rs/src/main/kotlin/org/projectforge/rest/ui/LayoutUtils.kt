@@ -1,23 +1,27 @@
 package org.projectforge.rest.ui
 
-import org.apache.poi.ss.formula.functions.T
 import org.projectforge.business.excel.ExportConfig
 import org.projectforge.common.i18n.I18nEnum
 import org.projectforge.common.props.PropUtils
 import org.projectforge.framework.persistence.api.HibernateUtils
 import org.projectforge.ui.*
-import kotlin.reflect.KClass
 
 class LayoutUtils {
 
     companion object {
         private val log = org.slf4j.LoggerFactory.getLogger(LayoutUtils::class.java)
 
+        fun process(layout: UILayout, clazz: Class<*>): UILayout {
+            processAllElements(layout.getAllElements(), clazz)
+            layout.title = translate(layout.title)
+            return layout
+        }
+
         /**
          * Sets all length of input fields and text areas with maxLength 0 to the Hibernate JPA definition (@Column).
          * @see HibernateUtils.getPropertyLength
          */
-        fun processAllElements(elements: List<Any>, clazz: Class<*>) {
+        private fun processAllElements(elements: List<Any>, clazz: Class<*>) {
             elements.forEach {
                 when (it) {
                     is UIInput -> {
@@ -36,9 +40,9 @@ class LayoutUtils {
                     }
                     is UISelect -> {
                         if (it.i18nEnum != null) {
-                            getEnumValues(it.i18nEnum).forEach {value ->
+                            getEnumValues(it.i18nEnum).forEach { value ->
                                 if (value is I18nEnum) {
-                                    val translation = ExportConfig.getInstance().getDefaultExportContext().getLocalizedString(value.i18nKey)
+                                    val translation = translate(value.i18nKey)
                                     it.add(UISelectValue(value.name, translation))
                                 } else {
                                     log.error("UISelect supports only enums of type I18nEnum, not '${value}': '${it}'")
@@ -46,8 +50,19 @@ class LayoutUtils {
                             }
                         }
                     }
-                    is UISelectValue -> {
-
+                    is UIButton -> {
+                        if (it.title == ".") {
+                            val i18nKey = when (it.id) {
+                                "cancel" -> "cancel"
+                                "markAsDeleted" -> "markAsDeleted"
+                                "reset" -> "reset"
+                                "search" -> "search"
+                                "undelete" -> "undelete"
+                                "update" -> "save"
+                                else -> null
+                            }
+                            if (it.title != null) it.title = translate(i18nKey!!)
+                        }
                     }
                 }
             }
@@ -74,7 +89,7 @@ class LayoutUtils {
                 log.error("PropertyInfo not found in Entity '${clazz}' for UI element '${element}'.")
                 return null
             }
-            return ExportConfig.getInstance().getDefaultExportContext().getLocalizedString(propInfo.i18nKey)
+            return translate(propInfo.i18nKey)
         }
 
         private fun getProperty(element: UIElement?): String? {
@@ -85,6 +100,11 @@ class LayoutUtils {
                 is UITextarea -> element.id
                 else -> null
             }
+        }
+
+        private fun translate(i18nKey: String?): String {
+            if (i18nKey == null) return "???"
+            return ExportConfig.getInstance().getDefaultExportContext().getLocalizedString(i18nKey)
         }
     }
 }
