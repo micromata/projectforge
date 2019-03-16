@@ -1,28 +1,27 @@
 package org.projectforge.rest.ui
 
-import org.projectforge.business.address.AddressDO
 import org.projectforge.business.book.BookDO
 import org.projectforge.business.book.BookStatus
 import org.projectforge.business.book.BookType
 import org.projectforge.ui.*
 
 /**
- * maxLength = 0 is replace by @Column(length=...) of JPA definition.
- * label = "." will be replaced by @PropertyColumn setting in BookDO.
+ * maxLength is automatically set by @Column(length=...) of JPA definition.
+ * label = "@" will be replaced by @PropertyColumn setting in BookDO.
  */
 class BookLayout {
     companion object {
         fun createListLayout(): UILayout {
             val layout = UILayout("book.title.list")
                     .add(UITable("result-set")
-                            .add(UITableColumn("created", ".", dataType = UIDataType.DATE))
-                            .add(UITableColumn("year", "."))
-                            .add(UITableColumn("signature", "."))
-                            .add(UITableColumn("authors", "."))
-                            .add(UITableColumn("title", "."))
-                            .add(UITableColumn("keywords", "."))
-                            .add(UITableColumn("lendOutBy", "."))
-                            .add(UITableColumn("year", ".")))
+                            .add(UITableColumn("created", "@", dataType = UIDataType.DATE))
+                            .add(UITableColumn("year", "@"))
+                            .add(UITableColumn("signature", "@"))
+                            .add(UITableColumn("authors", "@"))
+                            .add(UITableColumn("title", "@"))
+                            .add(UITableColumn("keywords", "@"))
+                            .add(UITableColumn("lendOutBy", "@"))
+                            .add(UITableColumn("year", "@")))
                     .addAction(UIButton("reset", "Rücksetzen", UIButtonStyle.DANGER))
                     .addAction(UIButton("search", "Suchen", UIButtonStyle.PRIMARY))
                     .add(UINamedContainer("filter-options")
@@ -37,36 +36,36 @@ class BookLayout {
 
         fun createEditLayout(): UILayout {
             val layout = UILayout("book.title.edit") // TODO: book.title.add for new books.
-                    .add(UIGroup().add(".", UIInput("title", 0, required = true, focus = true)))
-                    .add(UIGroup().add(".", UIInput("authors", 0)))
+                    .add(UIGroup().add("@", UIInput("title", required = true, focus = true)))
+                    .add(UIGroup().add("@", UIInput("authors")))
                     .add(UIRow()
                             .add(UICol(6)
                                     .add(UIGroup()
-                                            .add(".",
+                                            .add("@",
                                                     UISelect("type", i18nEnum = BookType::class.java)))
-                                    .add(UIGroup().add(".", UIInput("yearOfPublishing", 0)))
+                                    .add(UIGroup().add("@", UIInput("yearOfPublishing")))
                                     .add(UIGroup()
-                                            .add(".",
+                                            .add("@",
                                                     UISelect("status", i18nEnum = BookStatus::class.java)))
-                                    .add(UIGroup().add(".", UIInput("signature", 0))))
+                                    .add(UIGroup().add("@", UIInput("signature"))))
                             .add(UICol(6)
-                                    .add(UIGroup().add(".", UIInput("isbn", 0)))
-                                    .add(UIGroup().add(".", UIInput("keywords", 0)))
-                                    .add(UIGroup().add(".", UIInput("publisher", 0)))
-                                    .add(UIGroup().add(".", UIInput("editor", 0)))))
+                                    .add(UIGroup().add("@", UIInput("isbn")))
+                                    .add(UIGroup().add("@", UIInput("keywords"))
+                                            .add(UIGroup().add("@", UIInput("publisher")))
+                                            .add(UIGroup().add("@", UIInput("editor"))))))
                     .add(UIGroup()
-                            .add(UILabel("Ausleihe"))
+                            .add(UILabel(translate("book.lending")))
                             .add(UICustomized("lendOut")
                                     .add("lendOutBy", "kai")))
                     .add(UIGroup()
-                            .add(".", UITextarea("lendOutComment", 0)))
+                            .add("@", UITextarea("lendOutComment")))
                     .add(UIGroup()
-                            .add(".", UITextarea("abstractText", 0)))
+                            .add("@", UITextarea("abstractText")))
                     .add(UIGroup()
-                            .add(".", UITextarea("comment", 0)))
-                    .addAction(UIButton("cancel", ".", UIButtonStyle.DANGER))
-                    .addAction(UIButton("markAsDeleted", ".", UIButtonStyle.WARNING))
-                    .addAction(UIButton("update", ".", UIButtonStyle.PRIMARY))
+                            .add("@", UITextarea("comment")))
+                    .addAction(UIButton("cancel", "@", UIButtonStyle.DANGER))
+                    .addAction(UIButton("markAsDeleted", "@", UIButtonStyle.WARNING))
+                    .addAction(UIButton("update", "@", UIButtonStyle.PRIMARY))
             return LayoutUtils.process(layout, BookDO::class.java)
         }
     }

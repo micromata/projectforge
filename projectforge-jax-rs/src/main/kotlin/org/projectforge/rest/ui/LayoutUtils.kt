@@ -6,6 +6,11 @@ import org.projectforge.common.props.PropUtils
 import org.projectforge.framework.persistence.api.HibernateUtils
 import org.projectforge.ui.*
 
+fun translate(i18nKey: String?): String {
+    if (i18nKey == null) return "???"
+    return ExportConfig.getInstance().getDefaultExportContext().getLocalizedString(i18nKey)
+}
+
 class LayoutUtils {
 
     companion object {
@@ -33,7 +38,7 @@ class LayoutUtils {
                         if (maxLength != null) it.maxLength = maxLength
                     }
                     is UILabel -> {
-                        if (it.value == ".") {
+                        if (it.value == "@") {
                             val translation = getI18nKey(clazz, it.value, getProperty(it.reference), it)
                             if (translation != null) it.value = translation
                         }
@@ -51,7 +56,7 @@ class LayoutUtils {
                         }
                     }
                     is UIButton -> {
-                        if (it.title == ".") {
+                        if (it.title == "@") {
                             val i18nKey = when (it.id) {
                                 "cancel" -> "cancel"
                                 "markAsDeleted" -> "markAsDeleted"
@@ -69,21 +74,19 @@ class LayoutUtils {
         }
 
         // fun getEnumValues(enumClass: KClass<out Enum<*>>): Array<out Enum<*>> = enumClass.java.enumConstants
-        fun getEnumValues(enumClass: Class<out Enum<*>>): Array<out Enum<*>> = enumClass.enumConstants
+        private fun getEnumValues(enumClass: Class<out Enum<*>>): Array<out Enum<*>> = enumClass.enumConstants
 
         private fun getMaxLength(clazz: Class<*>, current: Int?, property: String, element: UIElement): Int? {
-            if (current == null || current != 0) return null;
+            if (current != 0) return null;
             val maxLength = HibernateUtils.getPropertyLength(clazz, property)
-            if (maxLength != null) {
-                return maxLength
-            } else {
+            if (maxLength == null) {
                 log.error("Length not found in Entity '${clazz}' for UI element '${element}'.")
-                return null;
             }
+            return maxLength
         }
 
         private fun getI18nKey(clazz: Class<*>, current: String?, property: String?, element: UIElement): String? {
-            if (current != ".") return null;
+            if (current != "@") return null;
             val propInfo = PropUtils.get(clazz, property)
             if (propInfo == null || propInfo.i18nKey == null) {
                 log.error("PropertyInfo not found in Entity '${clazz}' for UI element '${element}'.")
@@ -102,9 +105,5 @@ class LayoutUtils {
             }
         }
 
-        private fun translate(i18nKey: String?): String {
-            if (i18nKey == null) return "???"
-            return ExportConfig.getInstance().getDefaultExportContext().getLocalizedString(i18nKey)
-        }
     }
 }
