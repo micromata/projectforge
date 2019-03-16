@@ -1,10 +1,8 @@
 package org.projectforge.rest.ui
 
-import org.apache.xalan.xsltc.runtime.CallFunction.clazz
+import org.projectforge.common.props.PropUtils
 import org.projectforge.framework.persistence.api.HibernateUtils
-import org.projectforge.ui.UIElement
-import org.projectforge.ui.UIInput
-import org.projectforge.ui.UITextarea
+import org.projectforge.ui.*
 
 class LayoutUtils {
 
@@ -26,6 +24,12 @@ class LayoutUtils {
                         val maxLength = getMaxLength(clazz, it.maxLength, it.id, it)
                         if (maxLength != null) it.maxLength = maxLength
                     }
+                    is UILabel -> {
+                        if (it.value == ".") {
+                            val translation = getI18nKey(clazz, it.value, getProperty(it.reference), it)
+                            if (translation != null) it.value = translation
+                        }
+                    }
                 }
             }
         }
@@ -36,8 +40,28 @@ class LayoutUtils {
             if (maxLength != null) {
                 return maxLength
             } else {
-                log.error("Length not found in Entity '${clazz}' for UIInput '${element}'.")
+                log.error("Length not found in Entity '${clazz}' for UI element '${element}'.")
                 return null;
+            }
+        }
+
+        private fun getI18nKey(clazz: Class<*>, current: String?, property: String?, element: UIElement): String? {
+            if (current != ".") return null;
+            val propInfo = PropUtils.get(clazz, property)
+            if (propInfo == null || propInfo.i18nKey == null) {
+                log.error("PropertyInfo not found in Entity '${clazz}' for UI element '${element}'.")
+                return null
+            }
+            return propInfo.i18nKey
+        }
+
+        private fun getProperty(element: UIElement?): String? {
+            if (element == null) return null
+            return when (element) {
+                is UIInput -> element.id
+                is UISelect -> element.id
+                is UITextarea -> element.id
+                else -> null
             }
         }
     }
