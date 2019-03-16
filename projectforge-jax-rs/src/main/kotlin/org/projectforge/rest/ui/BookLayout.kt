@@ -1,11 +1,15 @@
 package org.projectforge.rest.ui
 
+import org.projectforge.business.book.BookDO
 import org.projectforge.ui.*
 
+/**
+ * maxLength = 0 is replace by @Column(length=...) of JPA definition.
+ */
 class BookLayout {
     companion object {
         fun createListLayout(): UILayout {
-            return UILayout("Bücherliste")
+            val layout = UILayout("Bücherliste")
                     .add(UITable("result-set")
                             .add(UITableColumn("created", "angelegt", dataType = UIDataType.DATE))
                             .add(UITableColumn("year", "Jahr"))
@@ -24,63 +28,52 @@ class BookLayout {
                                     .add(UICheckbox("filter.disposed", label = "entsorgt"))
                                     .add(UICheckbox("filter.onlyDeleted", label = "nur gelöscht"))
                                     .add(UICheckbox("filter.searchHistory", label = "Historie"))))
+            LayoutUtils.processAllElements(layout.getAllElements(), BookDO::class.java)
+            return layout
         }
 
         fun createEditLayout(): UILayout {
-            return UILayout("Buch bearbeiten")
-                    .add(UIGroup()
-                            .add(UILabel("Titel", "title"))
-                            .add(UIInput("title", 255, required = true, focus = true)))
-                    .add(UIGroup()
-                            .add(UILabel("Autoren", "authors"))
-                            .add(UIInput("authors", 255)))
+            val layout = UILayout("Buch bearbeiten")
+                    .add(UIGroup().add("Titel", UIInput("title", 0, required = true, focus = true)))
+                    .add(UIGroup().add("Autoren", UIInput("authors", 0)))
                     .add(UIRow()
                             .add(UICol(6)
                                     .add(UIGroup()
-                                            .add(UILabel("Typ", "type"))
-                                            .add(UISelect("type")
-                                                    .add(UISelectValue("book", "Buch"))
-                                                    .add(UISelectValue("magazine", "Magazin"))))
+                                            .add("Typ",
+                                                    UISelect("type")
+                                                            .add(UISelectValue("book", "Buch"))
+                                                            .add(UISelectValue("magazine", "Magazin"))))
+                                    .add(UIGroup().add("Veröffentlichungsjahr", UIInput("yearOfPublishing", 0)))
                                     .add(UIGroup()
-                                            .add(UILabel("Veröffentlichungsjahr", "yearOfPublishing"))
-                                            .add(UIInput("yearOfPublishing", 255)))
-                                    .add(UIGroup()
-                                            .add(UILabel("Status", "status"))
-                                            .add(UISelect("status")
-                                                    .add(UISelectValue("present", "vorhanden"))
-                                                    .add(UISelectValue("missed", "vermisst"))))
-                                    .add(UIGroup()
-                                            .add(UILabel("Signatur", "signature"))
-                                            .add(UIInput("signature", 255))))
+                                            .add("Status",
+                                                    UISelect("status")
+                                                            .add(UISelectValue("present", "vorhanden"))
+                                                            .add(UISelectValue("missed", "vermisst"))))
+                                    .add(UIGroup().add("Signatur", UIInput("signature", 0))))
                             .add(UICol(6)
-                                    .add(UIGroup()
-                                            .add(UILabel("ISBN", "isbn"))
-                                            .add(UIInput("isbn", 255)))
-                                    .add(UIGroup()
-                                            .add(UILabel("Schlüsselwörter", "keywords"))
-                                            .add(UIInput("keywords", 255)))
+                                    .add(UIGroup().add("ISBN", UIInput("isbn", 0)))
+                                    .add(UIGroup().add("Schlüsselwörter", UIInput("keywords", 0)))
                                     .add(UIGroup()
                                             .add(UILabel("Verlag", "publisher"))
-                                            .add(UIInput("publisher", 255)))
+                                            .add(UIInput("publisher", 0)))
                                     .add(UIGroup()
                                             .add(UILabel("Herausgeber", "editor"))
-                                            .add(UIInput("editor", 255)))))
+                                            .add(UIInput("editor", 0)))))
                     .add(UIGroup()
                             .add(UILabel("Ausleihe"))
                             .add(UICustomized("lendOut")
                                     .add("lendOutBy", "kai")))
                     .add(UIGroup()
-                            .add(UILabel("Ausleihnotiz (optional)", "lendOutRemark"))
-                            .add(UITextarea("lendOutRemark", 4000)))
+                            .add("Ausleihnotiz (optional)", UITextarea("lendOutComment", 0)))
                     .add(UIGroup()
-                            .add(UILabel("Zusammenfassung", "abstract"))
-                            .add(UITextarea("abstact", 4000)))
+                            .add("Zusammenfassung", UITextarea("abstractText", 0)))
                     .add(UIGroup()
-                            .add(UILabel("Bemerkung", "comment"))
-                            .add(UITextarea("comment", 4000)))
+                            .add("Bemerkung", UITextarea("comment", 0)))
                     .addAction(UIButton("cancel", "Abbrechen", UIButtonStyle.DANGER))
                     .addAction(UIButton("markAsDeleted", "Als gelöscht markieren", UIButtonStyle.WARNING))
                     .addAction(UIButton("update", "Ändern", UIButtonStyle.PRIMARY))
+            LayoutUtils.processAllElements(layout.getAllElements(), BookDO::class.java)
+            return layout
         }
     }
 }

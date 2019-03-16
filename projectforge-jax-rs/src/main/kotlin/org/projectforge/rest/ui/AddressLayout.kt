@@ -1,11 +1,17 @@
 package org.projectforge.rest.ui
 
+import org.projectforge.business.address.AddressDO
+import org.projectforge.framework.persistence.api.HibernateUtils
 import org.projectforge.ui.*
 
 class AddressLayout {
     companion object {
+        private fun propLength(propertyName: String): Int {
+            return HibernateUtils.getPropertyLength(AddressDO::class.java, propertyName)
+        }
+
         fun createListLayout(): UILayout {
-            return UILayout("Addressen")
+            val layout = UILayout("Addressen")
                     .add(UITable("result-set")
                             .add(UITableColumn("lastUpdate", "geändert", dataType = UIDataType.DATE))
                             .add(UITableColumn("imageDataPreview", "Bild"))
@@ -23,10 +29,12 @@ class AddressLayout {
                                     .add(UICheckbox("filter.newest", label = "die neuesten"))
                                     .add(UICheckbox("filter.favorites", label = "meine Favoriten"))
                                     .add(UICheckbox("filter.dublets", label = "Dupletten"))))
+            LayoutUtils.processAllElements(layout.getAllElements(), AddressDO::class.java)
+            return layout
         }
 
         fun createEditLayout(): UILayout {
-            return UILayout("Adresse bearbeiten")
+            val layout = UILayout("Adresse bearbeiten")
                     .add(UIGroup()
                             .add(UILabel("Adressbücher", "addressbooks"))
                             .add(UIMultiSelect("addressbooks")))
@@ -34,13 +42,13 @@ class AddressLayout {
                             .add(UICol(6)
                                     .add(UIGroup()
                                             .add(UILabel("Name", "name"))
-                                            .add(UIInput("name", 255, required = true, focus = true)))
+                                            .add(UIInput("name", propLength("name"), required = true, focus = true)))
                                     .add(UIGroup()
                                             .add(UILabel("Vorname", "firstName"))
-                                            .add(UIInput("firstName", 255)))
+                                            .add(UIInput("firstName", propLength("firstName"))))
                                     .add(UIGroup()
-                                            .add(UILabel("Anrede", "gender"))
-                                            .add(UISelect("gender")
+                                            .add(UILabel("Anrede", "form"))
+                                            .add(UISelect("form")
                                                     .add(UISelectValue("male", "Herr"))
                                                     .add(UISelectValue("male", "Herr"))
                                                     .add(UISelectValue("divers", "divers"))
@@ -76,6 +84,8 @@ class AddressLayout {
                     .addAction(UIButton("cancel", "Abbrechen", UIButtonStyle.DANGER))
                     .addAction(UIButton("markAsDeleted", "Als gelöscht markieren", UIButtonStyle.WARNING))
                     .addAction(UIButton("update", "Ändern", UIButtonStyle.PRIMARY))
+            LayoutUtils.processAllElements(layout.getAllElements(), AddressDO::class.java)
+            return layout
         }
     }
 }
