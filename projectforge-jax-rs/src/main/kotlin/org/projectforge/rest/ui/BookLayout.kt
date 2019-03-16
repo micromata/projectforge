@@ -35,7 +35,7 @@ class BookLayout {
         }
 
         fun createEditLayout(book: BookDO?): UILayout {
-            val titleKey = if (book != null) "book.title.edit" else "book.title.add"
+            val titleKey = if (book?.id != null) "book.title.edit" else "book.title.add"
             val layout = UILayout(titleKey)
                     .add(UIGroup().add("@", UIInput("title", required = true, focus = true)))
                     .add(UIGroup().add("@", UIInput("authors")))
