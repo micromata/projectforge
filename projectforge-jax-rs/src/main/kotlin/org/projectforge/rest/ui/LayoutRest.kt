@@ -2,10 +2,7 @@ package org.projectforge.rest.ui
 
 import org.projectforge.rest.JsonUtils
 import org.springframework.stereotype.Controller
-import javax.ws.rs.GET
-import javax.ws.rs.Path
-import javax.ws.rs.PathParam
-import javax.ws.rs.Produces
+import javax.ws.rs.*
 import javax.ws.rs.core.MediaType
 import javax.ws.rs.core.Response
 
@@ -28,10 +25,10 @@ open class LayoutRest {
     @GET
     @Path("edit/{id}")
     @Produces(MediaType.APPLICATION_JSON)
-    fun getEditLayout(@PathParam("id") id: String?): Response {
+    fun getEditLayout(@PathParam("id") id: String?, @QueryParam("newItem") newItem : Boolean?): Response {
         var layout = when (id) {
             "address" -> AddressLayout.createEditLayout()
-            "book" -> BookLayout.createEditLayout()
+            "book" -> BookLayout.createEditLayout(newItem)
             else -> null
         }
         val json = JsonUtils.toJson(layout)
