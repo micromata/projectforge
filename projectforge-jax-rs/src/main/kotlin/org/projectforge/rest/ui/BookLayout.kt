@@ -1,5 +1,6 @@
 package org.projectforge.rest.ui
 
+import org.projectforge.business.address.AddressDO
 import org.projectforge.business.book.BookDO
 import org.projectforge.business.book.BookStatus
 import org.projectforge.business.book.BookType
@@ -12,7 +13,7 @@ import org.projectforge.ui.*
 class BookLayout {
     companion object {
         fun createListLayout(): UILayout {
-            val layout = UILayout("Bücherliste")
+            val layout = UILayout("book.title.list")
                     .add(UITable("result-set")
                             .add(UITableColumn("created", ".", dataType = UIDataType.DATE))
                             .add(UITableColumn("year", "."))
@@ -31,12 +32,11 @@ class BookLayout {
                                     .add(UICheckbox("filter.disposed", label = "entsorgt"))
                                     .add(UICheckbox("filter.onlyDeleted", label = "nur gelöscht"))
                                     .add(UICheckbox("filter.searchHistory", label = "Historie"))))
-            LayoutUtils.processAllElements(layout.getAllElements(), BookDO::class.java)
-            return layout
+            return LayoutUtils.process(layout, BookDO::class.java)
         }
 
         fun createEditLayout(): UILayout {
-            val layout = UILayout("Buch bearbeiten")
+            val layout = UILayout("book.title.edit") // TODO: book.title.add for new books.
                     .add(UIGroup().add(".", UIInput("title", 0, required = true, focus = true)))
                     .add(UIGroup().add(".", UIInput("authors", 0)))
                     .add(UIRow()
@@ -67,8 +67,7 @@ class BookLayout {
                     .addAction(UIButton("cancel", ".", UIButtonStyle.DANGER))
                     .addAction(UIButton("markAsDeleted", ".", UIButtonStyle.WARNING))
                     .addAction(UIButton("update", ".", UIButtonStyle.PRIMARY))
-            LayoutUtils.processAllElements(layout.getAllElements(), BookDO::class.java)
-            return layout
+            return LayoutUtils.process(layout, BookDO::class.java)
         }
     }
 }
