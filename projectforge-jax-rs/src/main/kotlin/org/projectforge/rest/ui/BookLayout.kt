@@ -34,8 +34,9 @@ class BookLayout {
             return LayoutUtils.process(layout, BookDO::class.java)
         }
 
-        fun createEditLayout(): UILayout {
-            val layout = UILayout("book.title.edit") // TODO: book.title.add for new books.
+        fun createEditLayout(addNewItem : Boolean?): UILayout {
+            val titleKey = if (addNewItem != null) "book.title.add" else "book.title.edit"
+            val layout = UILayout(titleKey) // TODO: book.title.add for new books.
                     .add(UIGroup().add("@", UIInput("title", required = true, focus = true)))
                     .add(UIGroup().add("@", UIInput("authors")))
                     .add(UIRow()
@@ -55,8 +56,7 @@ class BookLayout {
                                             .add(UIGroup().add("@", UIInput("editor"))))))
                     .add(UIGroup()
                             .add(UILabel(translate("book.lending")))
-                            .add(UICustomized("lendOut")
-                                    .add("lendOutBy", "kai")))
+                            .add(UICustomized("lendOutComponent")))
                     .add(UIGroup()
                             .add("@", UITextarea("lendOutComment")))
                     .add(UIGroup()
