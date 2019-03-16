@@ -17,6 +17,7 @@ open class LayoutRest {
     @Produces(MediaType.APPLICATION_JSON)
     fun getListLayout(@PathParam("id") id: String?): Response {
         var layout = when (id) {
+            "address" -> AddressLayout.createListLayout()
             "book" -> BookLayout.createListLayout()
             else -> null
         }
@@ -29,6 +30,7 @@ open class LayoutRest {
     @Produces(MediaType.APPLICATION_JSON)
     fun getEditLayout(@PathParam("id") id: String?): Response {
         var layout = when (id) {
+            "address" -> AddressLayout.createEditLayout()
             "book" -> BookLayout.createEditLayout()
             else -> null
         }

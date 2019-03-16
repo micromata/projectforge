@@ -9,7 +9,6 @@ class RestHelper {
     companion object {
         fun <O : ExtendedBaseDO<Int>> getList(baseDao: BaseDao<O>?, filter: BaseSearchFilter): List<O> {
             val list = baseDao!!.getList(filter)
-            list.forEach { it.tenant = null }
             return list
         }
 
@@ -19,7 +18,6 @@ class RestHelper {
         }
 
         fun buildResponse(obj: ExtendedBaseDO<Int>): Response {
-            obj.tenant = null
             val json = JsonUtils.toJson(obj)
             return Response.ok(json).build()
         }
