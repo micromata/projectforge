@@ -6,5 +6,9 @@ enum class UIDataType {
     @SerializedName("string")
     STRING,
     @SerializedName("date")
-    DATE
+    DATE,
+    @SerializedName("picture")
+    PICTURE,
+    @SerializedName("customized")
+    CUSTOMIZED
 }
