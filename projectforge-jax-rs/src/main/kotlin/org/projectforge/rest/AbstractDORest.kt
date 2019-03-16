@@ -6,6 +6,7 @@ import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
+import org.projectforge.framework.persistence.user.entities.TenantDO
 import org.projectforge.model.rest.RestPaths
 import org.projectforge.rest.ui.Layout
 import org.projectforge.ui.UILayout
@@ -16,7 +17,7 @@ import javax.ws.rs.core.MediaType
 import javax.ws.rs.core.Response
 
 @Controller
-abstract open class AbstractDORest<O : ExtendedBaseDO<Int>, B : BaseDao<O>> {
+abstract class AbstractDORest<O : ExtendedBaseDO<Int>, B : BaseDao<O>> {
     private val log = org.slf4j.LoggerFactory.getLogger(AbstractDORest::class.java)
 
     private data class EditLayoutData(val data: Any?, val ui: UILayout?)
@@ -59,7 +60,8 @@ abstract open class AbstractDORest<O : ExtendedBaseDO<Int>, B : BaseDao<O>> {
     @Path("{id}")
     @Produces(MediaType.APPLICATION_JSON)
     fun getItem(@PathParam("id") id: Int): Response {
-        val item = getBaseDao()!!.getById(id)
+        val item = getBaseDao().getById(id)
+        processItemBeforeExport(item)
         return RestHelper.buildResponse(item)
     }
 
@@ -75,7 +77,7 @@ abstract open class AbstractDORest<O : ExtendedBaseDO<Int>, B : BaseDao<O>> {
     fun getItemAndLayout(@QueryParam("id") id: Int?): Response {
         val item : O
         if (id != null) {
-            item = getBaseDao()!!.getById(id)
+            item = getBaseDao().getById(id)
             processItemBeforeExport(item)
         } else item = newBaseDO()
         val result = EditLayoutData(item, Layout.getEditLayout(item))
@@ -83,7 +85,9 @@ abstract open class AbstractDORest<O : ExtendedBaseDO<Int>, B : BaseDao<O>> {
     }
 
     open protected fun processItemBeforeExport(item: O) {
-        item.tenant = null
+        val tenantId = item.tenantId
+        item.tenant = TenantDO()
+        item.tenant.pk = tenantId
     }
 
     @PUT
