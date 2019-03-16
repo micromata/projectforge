@@ -34,9 +34,9 @@ class BookLayout {
             return LayoutUtils.process(layout, BookDO::class.java)
         }
 
-        fun createEditLayout(addNewItem : Boolean?): UILayout {
-            val titleKey = if (addNewItem != null) "book.title.add" else "book.title.edit"
-            val layout = UILayout(titleKey) // TODO: book.title.add for new books.
+        fun createEditLayout(book: BookDO?): UILayout {
+            val titleKey = if (book != null) "book.title.edit" else "book.title.add"
+            val layout = UILayout(titleKey)
                     .add(UIGroup().add("@", UIInput("title", required = true, focus = true)))
                     .add(UIGroup().add("@", UIInput("authors")))
                     .add(UIRow()
@@ -63,10 +63,7 @@ class BookLayout {
                             .add("@", UITextarea("abstractText")))
                     .add(UIGroup()
                             .add("@", UITextarea("comment")))
-                    .addAction(UIButton("cancel", "@", UIButtonStyle.DANGER))
-                    .addAction(UIButton("markAsDeleted", "@", UIButtonStyle.WARNING))
-                    .addAction(UIButton("update", "@", UIButtonStyle.PRIMARY))
-            return LayoutUtils.process(layout, BookDO::class.java)
+            return LayoutUtils.processEditPage(layout, BookDO::class.java, book)
         }
     }
 }
