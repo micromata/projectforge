@@ -20,6 +20,12 @@ public class ProjectForgeApplication {
   private static final String ADDITIONAL_LOCATION_ARG = "--spring.config.additional-location=";
 
   public static void main(String[] args) throws Exception {
+    String javaVersion = System.getProperty("java.version");
+    if (javaVersion != null && javaVersion.compareTo("1.9") >= 0) {
+      log.error("******************************************************************************************************************************************");
+      log.error("***** ProjectForge doesn't support versions higher than Java 1.8!!!! Please downgrade. Sorry, we're working on newer Java versions. ******");
+      log.error("******************************************************************************************************************************************");
+    }
     args = addDefaultAdditionalLocation(args);
     System.setProperty("user.timezone", "UTC");
     TimeZone.setDefault(DateHelper.UTC);
