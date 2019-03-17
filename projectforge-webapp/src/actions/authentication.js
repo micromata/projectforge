@@ -1,11 +1,6 @@
 import cookies from 'react-cookies';
 
-import {
-    getAuthenticationHeaders,
-    getLoginHeaders,
-    getServiceURL,
-    handleHTTPErrors,
-} from '../utilities/rest';
+import { getServiceURL, handleHTTPErrors, } from '../utilities/rest';
 
 export const USER_LOGIN_BEGIN = 'USER_LOGIN_BEGIN';
 export const USER_LOGIN_SUCCESS = 'USER_LOGIN_SUCCESS';
@@ -17,12 +12,8 @@ export const userLoginBegin = () => ({
     type: USER_LOGIN_BEGIN,
 });
 
-export const userLoginSuccess = (userId, authenticationToken) => ({
+export const userLoginSuccess = () => ({
     type: USER_LOGIN_SUCCESS,
-    payload: {
-        userId,
-        authenticationToken,
-    },
 });
 
 export const userLoginFailure = error => ({
@@ -36,12 +27,10 @@ export const userLogout = () => ({
     type: USER_LOGOUT,
 });
 
-const USER_ID_COOKIE = 'USER_ID';
-const TOKEN_COOKIE = 'TOKEN';
+const KEEP_SIGNED_IN_COOKIE = 'KEEP_SIGNED_IN';
 
 const removeCookies = () => {
-    cookies.remove(USER_ID_COOKIE);
-    cookies.remove(TOKEN_COOKIE);
+    cookies.remove(KEEP_SIGNED_IN_COOKIE);
 };
 
 const catchError = dispatch => (error) => {
@@ -53,23 +42,27 @@ const catchError = dispatch => (error) => {
 export const login = (username, password, keepSignedIn) => (dispatch) => {
     dispatch(userLoginBegin());
     return fetch(
-        getServiceURL('authenticate/getToken'),
+        getServiceURL('../publicRest/login'),
         {
-            method: 'GET',
-            headers: getLoginHeaders(username, password),
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                username,
+                password,
+                stayLoggedIn: keepSignedIn,
+            }),
+            credentials: 'include',
         },
     )
         .then(handleHTTPErrors)
-        .then(response => response.json())
-        .then(({ id, authenticationToken }) => {
+        .then(() => {
             if (keepSignedIn) {
-                cookies.save(USER_ID_COOKIE, id);
-                cookies.save(TOKEN_COOKIE, authenticationToken);
-            } else {
-                removeCookies();
+                cookies.save(KEEP_SIGNED_IN_COOKIE, true);
             }
 
-            dispatch(userLoginSuccess(id, authenticationToken));
+            dispatch(userLoginSuccess());
         })
         .catch(catchError(dispatch));
 };
@@ -81,23 +74,23 @@ export const logout = () => (dispatch) => {
 };
 
 export const loadSessionIfAvailable = () => (dispatch) => {
-    const userID = cookies.load(USER_ID_COOKIE);
-    const token = cookies.load(TOKEN_COOKIE);
+    const keepSignedIn = cookies.load(KEEP_SIGNED_IN_COOKIE);
 
-    if (!userID || !token) {
+    if (!keepSignedIn) {
         return null;
     }
 
     dispatch(userLoginBegin());
 
     return fetch(
+        // TODO: ADD AUTHENTICATION TEST ENDPOINT
         getServiceURL('authenticate/initialContact'),
         {
             method: 'GET',
-            headers: getAuthenticationHeaders(userID, token),
+            credentials: 'include',
         },
     )
         .then(handleHTTPErrors)
-        .then(() => dispatch(userLoginSuccess(userID, token)))
+        .then(() => dispatch(userLoginSuccess()))
         .catch(catchError(dispatch));
 };

@@ -19,13 +19,9 @@ import {
 describe('login', () => {
     const username = 'demo';
     const password = 'demo123';
-    const token = 'ABCDEF';
-    const userId = 123;
 
     Object.freeze(username);
     Object.freeze(password);
-    Object.freeze(token);
-    Object.freeze(userId);
 
     const mockStore = configureMockStore([thunk]);
 
@@ -43,13 +39,9 @@ describe('login', () => {
     it('should create an action to mark the login as success', () => {
         const expectedAction = {
             type: USER_LOGIN_SUCCESS,
-            payload: {
-                userId,
-                authenticationToken: token,
-            },
         };
 
-        expect(userLoginSuccess(userId, token))
+        expect(userLoginSuccess())
             .toEqual(expectedAction);
     });
 
@@ -66,32 +58,30 @@ describe('login', () => {
     });
 
     it('creates USER_LOGIN_SUCCESS when fetching login has been done without keepSignedIn', () => {
+
         fetchMock
-            .getOnce('/rest/authenticate/getToken', {
-                status: 200,
-                body: {
-                    id: userId,
-                    authenticationToken: token,
+            .mock(
+                (url, options) => {
+                    if (url !== '/publicRest/login' || options.method !== 'POST') {
+                        return false;
+                    }
+
+                    const body = JSON.parse(options.body);
+
+                    return body.username === username
+                        && body.password === password
+                        && !body.stayLoggedIn;
                 },
-            }, {
-                headers: {
-                    'Authentication-Username': username,
-                    'Authentication-Password': password,
+                {
+                    status: 200,
+                    headers: { 'Set-Cookie': 'JSESSIONID=ABCDEF0123456789' },
                 },
-            })
-            .catch(() => {
-                throw new Error('mock failed');
-            });
+            )
+            .catch({ throws: new Error('mock failed') });
 
         const expectedActions = [
             { type: USER_LOGIN_BEGIN },
-            {
-                type: USER_LOGIN_SUCCESS,
-                payload: {
-                    userId,
-                    authenticationToken: token,
-                },
-            },
+            { type: USER_LOGIN_SUCCESS },
         ];
 
         const store = mockStore({});
@@ -107,32 +97,30 @@ describe('login', () => {
     });
 
     it('creates USER_LOGIN_SUCCESS when fetching login has been done with keepSignedIn', () => {
+
         fetchMock
-            .getOnce('/rest/authenticate/getToken', {
-                status: 200,
-                body: {
-                    id: userId,
-                    authenticationToken: token,
+            .mock(
+                (url, options) => {
+                    if (url !== '/publicRest/login' || options.method !== 'POST') {
+                        return false;
+                    }
+
+                    const body = JSON.parse(options.body);
+
+                    return body.username === username
+                        && body.password === password
+                        && body.stayLoggedIn;
                 },
-            }, {
-                headers: {
-                    'Authentication-Username': username,
-                    'Authentication-Password': password,
+                {
+                    status: 200,
+                    headers: { 'Set-Cookie': 'JSESSIONID=ABCDEF0123456789' },
                 },
-            })
-            .catch(() => {
-                throw new Error('mock failed');
-            });
+            )
+            .catch({ throws: new Error('mock failed') });
 
         const expectedActions = [
             { type: USER_LOGIN_BEGIN },
-            {
-                type: USER_LOGIN_SUCCESS,
-                payload: {
-                    userId,
-                    authenticationToken: token,
-                },
-            },
+            { type: USER_LOGIN_SUCCESS },
         ];
 
         const store = mockStore({});
@@ -144,15 +132,14 @@ describe('login', () => {
 
                 expect(cookies.loadAll())
                     .toEqual({
-                        TOKEN: token,
-                        USER_ID: userId,
+                        KEEP_SIGNED_IN: true,
                     });
             });
     });
 
     it('creates USER_LOGIN_FAILURE when fetching login has been failed', () => {
         fetchMock
-            .getOnce('/rest/authenticate/getToken', 401)
+            .mock('/publicRest/login', 401)
             .catch(() => {
                 throw new Error('mock failed');
             });
@@ -161,9 +148,7 @@ describe('login', () => {
             { type: USER_LOGIN_BEGIN },
             {
                 type: USER_LOGIN_FAILURE,
-                payload: {
-                    error: 'Unauthorized',
-                },
+                payload: { error: 'Unauthorized' },
             },
         ];
 
@@ -196,7 +181,7 @@ describe('logout', () => {
 
         const store = mockStore({});
 
-        cookies.save('TOKEN', 'ABCDEF');
+        cookies.save('KEEP_SIGNED_IN', 'ABCDEF');
 
         store.dispatch(logout());
 
@@ -209,12 +194,6 @@ describe('logout', () => {
 });
 
 describe('check session', () => {
-    const userId = 123;
-    const token = 'ABCDEF';
-
-    Object.freeze(userId);
-    Object.freeze(token);
-
     const mockStore = configureMockStore([thunk]);
 
     afterEach(() => fetchMock.restore());
@@ -230,10 +209,10 @@ describe('check session', () => {
 
     it('creates USER_LOGIN_SUCCESS', () => {
         fetchMock
+        // TODO: ADD AUTHENTICATION TEST ENDPOINT
             .getOnce('/rest/authenticate/initialContact', 200, {
                 headers: {
-                    'Authentication-User-Id': userId,
-                    'Authentication-Token': token,
+                    Cookies: 'JSESSIONID=ABCDEF0123456789',
                 },
             })
             .catch(() => {
@@ -242,17 +221,10 @@ describe('check session', () => {
 
         const expectedActions = [
             { type: USER_LOGIN_BEGIN },
-            {
-                type: USER_LOGIN_SUCCESS,
-                payload: {
-                    userId,
-                    authenticationToken: token,
-                },
-            },
+            { type: USER_LOGIN_SUCCESS },
         ];
 
-        cookies.save('TOKEN', token);
-        cookies.save('USER_ID', userId);
+        cookies.save('KEEP_SIGNED_IN', true);
 
         const store = mockStore({});
 
@@ -263,8 +235,7 @@ describe('check session', () => {
 
                 expect(cookies.loadAll())
                     .toEqual({
-                        TOKEN: token,
-                        USER_ID: userId,
+                        KEEP_SIGNED_ID: true,
                     });
             });
     });
