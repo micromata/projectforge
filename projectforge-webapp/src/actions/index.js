@@ -13,4 +13,5 @@ export {
     EDIT_PAGE_ALL_FIELDS_SET,
     changeField as changeEditFormField,
     setAllFields as setAllEditPageFields,
+    updatePageData as updateEditPageData,
 } from './editPage';

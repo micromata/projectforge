@@ -86,6 +86,11 @@ LayoutInput.propTypes = {
         PropTypes.string,
         PropTypes.number,
         PropTypes.bool,
+        PropTypes.objectOf(PropTypes.oneOfType([
+            PropTypes.string,
+            PropTypes.number,
+            PropTypes.bool,
+        ])),
     ])).isRequired,
     id: PropTypes.string,
     type: PropTypes.string,
