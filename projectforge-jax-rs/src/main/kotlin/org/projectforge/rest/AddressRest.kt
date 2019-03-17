@@ -1,7 +1,10 @@
 package org.projectforge.rest
 
+import org.projectforge.business.DOUtils
 import org.projectforge.business.address.AddressDO
 import org.projectforge.business.address.AddressDao
+import org.projectforge.business.address.AddressbookDO
+import org.springframework.beans.BeanUtils
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Controller
 import javax.ws.rs.Path
@@ -24,6 +27,10 @@ open class AddressRest() : AbstractDORest<AddressDO, AddressDao>() {
 
     override fun processItemBeforeExport(item: AddressDO) {
         super.processItemBeforeExport(item)
-        item.addressbookList = null
+        val addressbookList : MutableSet<AddressbookDO> = mutableSetOf();
+        item.addressbookList.forEach {
+            addressbookList.add(DOUtils.cloneMinimal(it))
+        }
+        item.addressbookList = addressbookList
     }
 }
