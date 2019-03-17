@@ -1,5 +1,7 @@
 package org.projectforge.rest.pub
 
+import com.google.gson.annotations.SerializedName
+import org.projectforge.ProjectForgeVersion
 import org.projectforge.business.user.filter.CookieService
 import org.projectforge.business.user.filter.UserFilter
 import org.projectforge.business.user.service.UserService
@@ -26,8 +28,22 @@ open class UserStatusRest {
                         var organization: String? = null,
                         var fullname: String? = null,
                         var locale: Locale? = null,
+                        @SerializedName("timezone")
                         var timeZone: String? = null,
+                        @SerializedName("timezone-displayname")
                         var timeZoneDisplayName: String? = null)
+
+    data class SystemData(var appname: String? = null,
+                          var version: String? = null,
+                          @SerializedName("release-timestamp")
+                          var releaseTimestamp: String? = null,
+                          @SerializedName("release-date")
+                          var releaseDate: String? = null)
+
+    data class Result(@SerializedName("user-data")
+                      val userData: UserData,
+                      @SerializedName("system-data")
+                      val systemData: SystemData)
 
     private val log = org.slf4j.LoggerFactory.getLogger(UserStatusRest::class.java)
 
@@ -53,6 +69,10 @@ open class UserStatusRest {
                 locale = user.locale,
                 timeZone = user.timeZone,
                 timeZoneDisplayName = user.timeZoneDisplayName)
-        return RestHelper.buildResponse(userData)
+        val systemData = SystemData(appname = ProjectForgeVersion.APP_ID,
+                version = ProjectForgeVersion.VERSION_STRING,
+                releaseTimestamp = ProjectForgeVersion.RELEASE_TIMESTAMP,
+                releaseDate = ProjectForgeVersion.RELEASE_DATE)
+        return RestHelper.buildResponse(Result(userData, systemData))
     }
 }
