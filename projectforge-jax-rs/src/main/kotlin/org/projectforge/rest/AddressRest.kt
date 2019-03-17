@@ -4,7 +4,6 @@ import org.projectforge.business.DOUtils
 import org.projectforge.business.address.AddressDO
 import org.projectforge.business.address.AddressDao
 import org.projectforge.business.address.AddressbookDO
-import org.springframework.beans.BeanUtils
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Controller
 import javax.ws.rs.Path
@@ -17,7 +16,7 @@ open class AddressRest() : AbstractDORest<AddressDO, AddressDao>() {
     @Autowired
     open var addressDao: AddressDao? = null
 
-    override fun getBaseDao() : AddressDao {
+    override fun getBaseDao(): AddressDao {
         return addressDao!!
     }
 
@@ -27,9 +26,11 @@ open class AddressRest() : AbstractDORest<AddressDO, AddressDao>() {
 
     override fun processItemBeforeExport(item: AddressDO) {
         super.processItemBeforeExport(item)
-        val addressbookList : MutableSet<AddressbookDO> = mutableSetOf();
+        val addressbookList: MutableSet<AddressbookDO> = mutableSetOf();
         item.addressbookList.forEach {
-            addressbookList.add(DOUtils.cloneMinimal(it))
+            val addressbook = DOUtils.cloneMinimal(it)
+            if (!addressbook.isDeleted) // Don't proceed deleted addressbooks...
+                addressbookList.add(addressbook)
         }
         item.addressbookList = addressbookList
     }
