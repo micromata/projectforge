@@ -1,12 +1,7 @@
 import reducer from './authentication';
 
-const exampleUser = {
-    id: 123,
-    token: 'ABCDEF',
-};
 const exampleError = 'Uncool error message.';
 
-Object.freeze(exampleUser);
 Object.freeze(exampleError);
 
 describe('reducer', () => {
@@ -15,7 +10,7 @@ describe('reducer', () => {
             .toEqual({
                 loading: false,
                 error: null,
-                user: null,
+                loggedIn: false,
             });
     });
 
@@ -23,7 +18,7 @@ describe('reducer', () => {
         const state = {
             loading: true,
             error: null,
-            user: null,
+            loggedIn: false,
         };
 
         Object.freeze(state);
@@ -40,7 +35,7 @@ describe('handles USER_LOGIN_BEGIN', () => {
         const state = {
             loading: false,
             error: null,
-            user: null,
+            loggedIn: false,
         };
 
         Object.freeze(state);
@@ -51,7 +46,7 @@ describe('handles USER_LOGIN_BEGIN', () => {
             .toEqual({
                 loading: true,
                 error: null,
-                user: null,
+                loggedIn: false,
             });
     });
 
@@ -59,7 +54,7 @@ describe('handles USER_LOGIN_BEGIN', () => {
         const state = {
             loading: false,
             error: exampleError,
-            user: null,
+            loggedIn: false,
         };
 
         Object.freeze(state);
@@ -70,7 +65,7 @@ describe('handles USER_LOGIN_BEGIN', () => {
             .toEqual({
                 loading: true,
                 error: null,
-                user: null,
+                loggedIn: false,
             });
     });
 
@@ -78,7 +73,7 @@ describe('handles USER_LOGIN_BEGIN', () => {
         const state = {
             loading: false,
             error: null,
-            user: exampleUser,
+            loggedIn: false,
         };
 
         Object.freeze(state);
@@ -89,7 +84,7 @@ describe('handles USER_LOGIN_BEGIN', () => {
             .toEqual({
                 loading: true,
                 error: null,
-                user: null,
+                loggedIn: false,
             });
     });
 });
@@ -99,22 +94,18 @@ describe('handles USER_LOGIN_SUCCESS', () => {
         const state = {
             loading: true,
             error: null,
-            user: null,
+            loggedIn: false,
         };
 
         Object.freeze(state);
 
         expect(reducer(state, {
             type: 'USER_LOGIN_SUCCESS',
-            payload: {
-                userId: exampleUser.id,
-                authenticationToken: exampleUser.token,
-            },
         }))
             .toEqual({
                 loading: false,
                 error: null,
-                user: exampleUser,
+                loggedIn: true,
             });
     });
 
@@ -122,25 +113,18 @@ describe('handles USER_LOGIN_SUCCESS', () => {
         const state = {
             loading: false,
             error: exampleError,
-            user: {
-                not: 'even',
-                a: 'user',
-            },
+            loggedIn: true,
         };
 
         Object.freeze(state);
 
         expect(reducer(state, {
             type: 'USER_LOGIN_SUCCESS',
-            payload: {
-                userId: exampleUser.id,
-                authenticationToken: exampleUser.token,
-            },
         }))
             .toEqual({
                 loading: false,
                 error: null,
-                user: exampleUser,
+                loggedIn: true,
             });
     });
 });
@@ -150,7 +134,7 @@ describe('handles USER_LOGIN_FAILURE', () => {
         const state = {
             loading: true,
             error: null,
-            user: null,
+            loggedIn: false,
         };
 
         Object.freeze(state);
@@ -164,7 +148,7 @@ describe('handles USER_LOGIN_FAILURE', () => {
             .toEqual({
                 loading: false,
                 error: exampleError,
-                user: null,
+                loggedIn: false,
             });
     });
 
@@ -172,10 +156,7 @@ describe('handles USER_LOGIN_FAILURE', () => {
         const state = {
             loading: false,
             error: exampleError,
-            user: {
-                not: 'even',
-                a: 'user',
-            },
+            loggedIn: true,
         };
 
         Object.freeze(state);
@@ -189,7 +170,7 @@ describe('handles USER_LOGIN_FAILURE', () => {
             .toEqual({
                 loading: false,
                 error: exampleError,
-                user: null,
+                loggedIn: false,
             });
     });
 });
@@ -198,7 +179,7 @@ describe('handles USER_LOGOUT', () => {
     const expectedState = {
         loading: false,
         error: null,
-        user: null,
+        loggedIn: false,
     };
 
     Object.freeze(expectedState);
@@ -207,7 +188,7 @@ describe('handles USER_LOGOUT', () => {
         const state = {
             loading: false,
             error: null,
-            user: exampleUser,
+            loggedIn: true,
         };
 
         Object.freeze(state);
@@ -222,7 +203,7 @@ describe('handles USER_LOGOUT', () => {
         const state = {
             loading: true,
             error: exampleError,
-            user: null,
+            loggedIn: false,
         };
 
         Object.freeze(state);

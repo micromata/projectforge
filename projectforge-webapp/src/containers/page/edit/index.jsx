@@ -1,13 +1,11 @@
-import PropTypes from 'prop-types';
 import React from 'react';
-import { connect } from 'react-redux';
 import ActionGroup from '../../../components/base/page/edit/ActionGroup';
 import LayoutGroup from '../../../components/base/page/edit/layout/Group';
 import TabNavigation from '../../../components/base/page/edit/TabNavigation';
 import PageNavigation from '../../../components/base/page/Navigation';
 import { Alert, Button, Container, TabContent, TabPane, } from '../../../components/design';
 import LoadingContainer from '../../../components/design/loading-container';
-import { getAuthenticationHeaders, handleHTTPErrors } from '../../../utilities/rest';
+import { getServiceURL, handleHTTPErrors } from '../../../utilities/rest';
 import style from '../../ProjectForge.module.scss';
 
 class EditPage extends React.Component {
@@ -40,22 +38,18 @@ class EditPage extends React.Component {
             title: '',
         });
 
-        const { userId, token } = this.props;
-
         fetch(
-            '/rest_examples/edit/layout_example_response.json',
+            getServiceURL('books/edit', { id: 170 }),
             {
                 method: 'GET',
-                headers: getAuthenticationHeaders(userId, token),
+                credentials: 'include',
             },
         )
             .then(handleHTTPErrors)
             .then(response => response.json())
             .then(json => this.setState({
                 loading: false,
-                layout: json.layout,
-                actions: json.actions,
-                title: json.title,
+                ...json.ui,
             }))
             .catch(error => this.setState({
                 error,
@@ -122,14 +116,4 @@ class EditPage extends React.Component {
     }
 }
 
-EditPage.propTypes = {
-    userId: PropTypes.number.isRequired,
-    token: PropTypes.string.isRequired,
-};
-
-const mapStateToProps = state => ({
-    userId: state.authentication.user.id,
-    token: state.authentication.user.token,
-});
-
-export default connect(mapStateToProps)(EditPage);
+export default EditPage;

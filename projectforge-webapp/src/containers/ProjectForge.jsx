@@ -313,7 +313,7 @@ ProjectForge.defaultProps = {
 };
 
 const mapStateToProps = state => ({
-    loggedIn: state.authentication.user !== null,
+    loggedIn: state.authentication.loggedIn,
     loginInProgress: state.authentication.loading,
     loginError: state.authentication.error,
 });

@@ -1,9 +1,14 @@
-import { USER_LOGIN_BEGIN, USER_LOGIN_FAILURE, USER_LOGIN_SUCCESS, USER_LOGOUT, } from '../actions';
+import {
+    USER_LOGIN_BEGIN,
+    USER_LOGIN_FAILURE,
+    USER_LOGIN_SUCCESS,
+    USER_LOGOUT,
+} from '../actions';
 
 const initialState = {
     loading: false,
     error: null,
-    user: null,
+    loggedIn: false,
 };
 
 const reducer = (state = initialState, { type, payload }) => {
@@ -13,22 +18,19 @@ const reducer = (state = initialState, { type, payload }) => {
                 ...state,
                 loading: true,
                 error: null,
-                user: null,
+                loggedIn: false,
             };
         case USER_LOGIN_SUCCESS:
             return {
                 ...state,
                 loading: false,
                 error: null,
-                user: {
-                    id: payload.userId,
-                    token: payload.authenticationToken,
-                },
+                loggedIn: true,
             };
         case USER_LOGIN_FAILURE:
             return {
                 ...state,
-                user: null,
+                loggedIn: false,
                 loading: false,
                 error: payload.error,
             };
@@ -37,7 +39,7 @@ const reducer = (state = initialState, { type, payload }) => {
                 ...state,
                 loading: false,
                 error: null,
-                user: null,
+                loggedIn: false,
             };
         default:
             return state;
