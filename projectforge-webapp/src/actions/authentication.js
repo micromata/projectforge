@@ -83,8 +83,7 @@ export const loadSessionIfAvailable = () => (dispatch) => {
     dispatch(userLoginBegin());
 
     return fetch(
-        // TODO: ADD AUTHENTICATION TEST ENDPOINT
-        getServiceURL('authenticate/initialContact'),
+        getServiceURL('../publicRest/userStatus'),
         {
             method: 'GET',
             credentials: 'include',
