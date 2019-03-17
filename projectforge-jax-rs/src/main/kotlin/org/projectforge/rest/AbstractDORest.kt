@@ -1,12 +1,10 @@
 package org.projectforge.rest
 
-import org.bouncycastle.asn1.x509.X509ObjectIdentifiers
-import org.bouncycastle.asn1.x509.X509ObjectIdentifiers.id
+import org.projectforge.business.DOUtils
 import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
-import org.projectforge.framework.persistence.user.entities.TenantDO
 import org.projectforge.model.rest.RestPaths
 import org.projectforge.rest.ui.Layout
 import org.projectforge.ui.UILayout
@@ -60,9 +58,14 @@ abstract class AbstractDORest<O : ExtendedBaseDO<Int>, B : BaseDao<O>> {
     @Path("{id}")
     @Produces(MediaType.APPLICATION_JSON)
     fun getItem(@PathParam("id") id: Int): Response {
+        val item = getById(id)
+        return RestHelper.buildResponse(item)
+    }
+
+    private fun getById(id: Int): O {
         val item = getBaseDao().getById(id)
         processItemBeforeExport(item)
-        return RestHelper.buildResponse(item)
+        return item
     }
 
     /**
@@ -75,19 +78,16 @@ abstract class AbstractDORest<O : ExtendedBaseDO<Int>, B : BaseDao<O>> {
     @Path("edit")
     @Produces(MediaType.APPLICATION_JSON)
     fun getItemAndLayout(@QueryParam("id") id: Int?): Response {
-        val item : O
+        val item: O
         if (id != null) {
-            item = getBaseDao().getById(id)
-            processItemBeforeExport(item)
+            item = getById(id)
         } else item = newBaseDO()
         val result = EditLayoutData(item, Layout.getEditLayout(item))
         return RestHelper.buildResponse(result)
     }
 
     open protected fun processItemBeforeExport(item: O) {
-        val tenantId = item.tenantId
-        item.tenant = TenantDO()
-        item.tenant.pk = tenantId
+        item.tenant = DOUtils.cloneMinimal(item.tenant)
     }
 
     @PUT
