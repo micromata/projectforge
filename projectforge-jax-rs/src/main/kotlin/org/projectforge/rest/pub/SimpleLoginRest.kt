@@ -1,4 +1,4 @@
-package org.projectforge.rest
+package org.projectforge.rest.pub
 
 import org.projectforge.Const
 import org.projectforge.business.login.LoginDefaultHandler
@@ -27,6 +27,9 @@ import javax.ws.rs.core.Context
 import javax.ws.rs.core.MediaType
 import javax.ws.rs.core.Response
 
+/**
+ * This rest service should be available without login (public).
+ */
 @Controller
 @Path("login")
 open class SimpleLoginRest {
@@ -100,7 +103,7 @@ open class SimpleLoginRest {
         return LoginResultStatus.SUCCESS
     }
 
-    private fun checkLogin(request: HttpServletRequest, loginData: SimpleLoginRest.LoginData): LoginResult {
+    private fun checkLogin(request: HttpServletRequest, loginData: LoginData): LoginResult {
         if (loginData.username == null || loginData.password == null) {
             return LoginResult().setLoginResultStatus(LoginResultStatus.FAILED)
         }
