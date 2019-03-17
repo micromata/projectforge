@@ -1,4 +1,7 @@
+import PropTypes from 'prop-types';
 import React from 'react';
+import { connect } from 'react-redux';
+import { setAllEditPageFields } from '../../../actions';
 import ActionGroup from '../../../components/base/page/edit/ActionGroup';
 import LayoutGroup from '../../../components/base/page/edit/layout/Group';
 import TabNavigation from '../../../components/base/page/edit/TabNavigation';
@@ -47,10 +50,19 @@ class EditPage extends React.Component {
         )
             .then(handleHTTPErrors)
             .then(response => response.json())
-            .then(json => this.setState({
-                loading: false,
-                ...json.ui,
-            }))
+            .then((json) => {
+                const { updateValues } = this.props;
+
+                updateValues({
+                    id: 170,
+                    ...json.data,
+                });
+
+                this.setState({
+                    loading: false,
+                    ...json.ui,
+                });
+            })
             .catch(error => this.setState({
                 error,
                 loading: false,
@@ -116,4 +128,14 @@ class EditPage extends React.Component {
     }
 }
 
-export default EditPage;
+EditPage.propTypes = {
+    updateValues: PropTypes.func.isRequired,
+};
+
+const mapStateToProps = () => ({});
+
+const actions = {
+    updateValues: setAllEditPageFields,
+};
+
+export default connect(mapStateToProps, actions)(EditPage);

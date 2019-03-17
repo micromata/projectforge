@@ -1,3 +1,5 @@
+import { getServiceURL, handleHTTPErrors } from '../utilities/rest';
+
 export const EDIT_PAGE_FIELD_CHANGE = 'EDIT_PAGE_FIELD_CHANGE';
 export const EDIT_PAGE_ALL_FIELDS_SET = 'EDIT_PAGE_ALL_FIELDS_SET';
 
@@ -15,6 +17,27 @@ export const allFieldsSet = values => ({
         values,
     },
 });
+
+export const updatePageData = () => (dispatch, getState) => {
+    const { values } = getState().editPage;
+    console.log(values);
+
+    fetch(
+        getServiceURL('books/saveorupdate'),
+        {
+            method: 'PUT',
+            credentials: 'include',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(values),
+        },
+    )
+        .then(handleHTTPErrors)
+        .then(response => response.json())
+        .then(json => console.log(json))
+        .catch(error => console.error(error));
+};
 
 export const changeField = (id, newValue) => dispatch => dispatch(fieldChanged(id, newValue));
 

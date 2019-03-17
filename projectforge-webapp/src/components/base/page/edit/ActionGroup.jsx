@@ -1,29 +1,53 @@
 import PropTypes from 'prop-types';
-import React from 'react';
-import { Button, ButtonGroup, Row } from '../../../design';
+import React, { Component } from 'react';
+import { connect } from 'react-redux';
+import { updateEditPageData } from '../../../../actions';
 import { buttonPropType } from '../../../../utilities/propTypes';
 import revisedRandomId from '../../../../utilities/revisedRandomId';
+import { Button, ButtonGroup, Row } from '../../../design';
 
 // TODO: ADD FUNCTION
-function ActionGroup({ actions }) {
-    return (
-        <Row>
-            <ButtonGroup>
-                {actions.map(action => (
-                    <Button
-                        key={`action-button-${action.title}-${revisedRandomId()}`}
-                        color={action.style}
-                    >
-                        {action.title}
-                    </Button>
-                ))
-                }
-            </ButtonGroup>
-        </Row>
-    );
+class ActionGroup extends Component {
+    constructor(props) {
+        super(props);
+
+        this.handleClick = this.handleClick.bind(this);
+    }
+
+    handleClick(event) {
+        const { ...props } = this.props;
+
+        const actionFunction = props[event.target.dataset.action];
+
+        if (actionFunction) {
+            actionFunction();
+        }
+    }
+
+    render() {
+        const { actions } = this.props;
+        return (
+            <Row>
+                <ButtonGroup>
+                    {actions.map(action => (
+                        <Button
+                            key={`action-button-${action.title}-${revisedRandomId()}`}
+                            color={action.style}
+                            onClick={this.handleClick}
+                            data-action={action.id}
+                        >
+                            {action.title}
+                        </Button>
+                    ))
+                    }
+                </ButtonGroup>
+            </Row>
+        );
+    }
 }
 
 ActionGroup.propTypes = {
+    update: PropTypes.func.isRequired,
     actions: PropTypes.arrayOf(buttonPropType),
 };
 
@@ -31,4 +55,10 @@ ActionGroup.defaultProps = {
     actions: [],
 };
 
-export default ActionGroup;
+const mapStateToProps = () => ({});
+
+const actions = {
+    update: updateEditPageData,
+};
+
+export default connect(mapStateToProps, actions)(ActionGroup);
