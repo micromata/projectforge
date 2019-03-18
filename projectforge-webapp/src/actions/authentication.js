@@ -90,6 +90,7 @@ export const loadSessionIfAvailable = () => (dispatch) => {
         },
     )
         .then(handleHTTPErrors)
+        // TODO: LOAD USER DATA TO STATE
         .then(() => dispatch(userLoginSuccess()))
         .catch(catchError(dispatch));
 };
