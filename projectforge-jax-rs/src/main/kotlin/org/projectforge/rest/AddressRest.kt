@@ -3,6 +3,7 @@ package org.projectforge.rest
 import org.projectforge.business.DOUtils
 import org.projectforge.business.address.AddressDO
 import org.projectforge.business.address.AddressDao
+import org.projectforge.business.address.AddressFilter
 import org.projectforge.business.address.AddressbookDO
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Controller
@@ -22,6 +23,10 @@ open class AddressRest() : AbstractDORest<AddressDO, AddressDao>() {
 
     override fun newBaseDO(): AddressDO {
         return AddressDO()
+    }
+
+    override fun getFilterClass(): Class<AddressFilter> {
+        return AddressFilter::class.java
     }
 
     override fun processItemBeforeExport(item: AddressDO) {
