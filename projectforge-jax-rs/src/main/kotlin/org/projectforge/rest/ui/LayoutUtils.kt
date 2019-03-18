@@ -80,6 +80,13 @@ class LayoutUtils {
                             }
                         }
                     }
+                    is UITableColumn -> {
+                        if (it.title == "@") {
+                            val translation = getI18nKey(clazz, it.title, it.id, it)
+                            if (translation != null) it.title = translation
+                        }
+
+                    }
                     is UIButton -> {
                         if (it.title == "@") {
                             val i18nKey = when (it.id) {
@@ -115,6 +122,12 @@ class LayoutUtils {
             return maxLength
         }
 
+        /**
+         * @param clazz of the DO object.
+         * @param current The current label.
+         * @param property The name of the property (field) of the DO object.
+         * @param elemnent The current proceeded element.
+         */
         private fun getI18nKey(clazz: Class<*>, current: String?, property: String?, element: UIElement): String? {
             if (current != "@") return null;
             val propInfo = PropUtils.get(clazz, property)
@@ -131,6 +144,7 @@ class LayoutUtils {
                 is UIInput -> element.id
                 is UISelect -> element.id
                 is UITextarea -> element.id
+                is UITableColumn -> element.id
                 else -> null
             }
         }
