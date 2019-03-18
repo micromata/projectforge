@@ -83,7 +83,7 @@ class HistoryService {
                     } catch (ex: NoSuchFieldException) {
                         log.warn("No such field '${it.entityName}.${de.propertyName}': ${ex.message}.")
                     }
-                    de.propertyName = translateProperty(de, clazz)
+                    diffEntry.property = translateProperty(de, clazz)
                 }
                 entry.diffEntries.add(diffEntry)
             }
