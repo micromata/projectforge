@@ -107,7 +107,7 @@ class LayoutUtils {
         private fun getEnumValues(enumClass: Class<out Enum<*>>): Array<out Enum<*>> = enumClass.enumConstants
 
         private fun getMaxLength(clazz: Class<*>, current: Int?, property: String, element: UIElement): Int? {
-            if (current != 0) return null;
+            if (current != null) return null;
             val maxLength = HibernateUtils.getPropertyLength(clazz, property)
             if (maxLength == null) {
                 log.error("Length not found in Entity '${clazz}' for UI element '${element}'.")
