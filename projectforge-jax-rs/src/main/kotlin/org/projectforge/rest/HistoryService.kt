@@ -28,14 +28,17 @@ class HistoryService {
             var modfiedByUserId: String? = null,
             @SerializedName("modified-by-user")
             var modfiedByUser: String? = null,
-            @SerializedName("entity-op-type")
-            var entityOpType: EntityOpType? = null,
+            @SerializedName("operation-type")
+            var operationType: EntityOpType? = null,
+            @SerializedName("operation")
+            var operation: String? = null,
             @SerializedName("diff-entries")
             var diffEntries: MutableList<DisplayHistoryDiffEntry> = mutableListOf())
 
     data class DisplayHistoryDiffEntry(
-            @SerializedName("property-op-type")
-            var propertyOpType: PropertyOpType? = null,
+            @SerializedName("operation-type")
+            var operationType: PropertyOpType? = null,
+            var operation: String? = null,
             var property: String? = null,
             @SerializedName("old-value")
             var oldValue: String? = null,
@@ -59,7 +62,8 @@ class HistoryService {
                     modifiedAt = it.modifiedAt,
                     modfiedByUserId = it.modifiedBy,
                     modfiedByUser = user?.fullname,
-                    entityOpType = it.entityOpType)
+                    operationType = it.entityOpType,
+                    operation = translate(it.entityOpType))
             var clazz: Class<*>? = null
             try {
                 clazz = Class.forName(it.entityName)
@@ -68,7 +72,8 @@ class HistoryService {
             }
             it.diffEntries?.forEach { de ->
                 val diffEntry = DisplayHistoryDiffEntry(
-                        propertyOpType = de.propertyOpType,
+                        operationType = de.propertyOpType,
+                        operation = translate(de.propertyOpType),
                         property = de.propertyName,
                         oldValue = de.oldValue,
                         newValue = de.newValue)
@@ -117,5 +122,26 @@ class HistoryService {
             propertyName = diffEntry.propertyName
         }
         return propertyName
+    }
+
+    private fun translate(opType: EntityOpType?): String {
+        when (opType) {
+            EntityOpType.Insert -> return translate("operation.inserted")
+            EntityOpType.Update -> return translate("operation.updated")
+            EntityOpType.Deleted -> return translate("operation.deleted")
+            EntityOpType.MarkDeleted -> return translate("operation.markAsDeleted")
+            EntityOpType.UmarkDeleted -> return translate("operation.undeleted")
+            else -> return ""
+        }
+    }
+
+    private fun translate(opType: PropertyOpType?): String {
+        when (opType) {
+            PropertyOpType.Insert -> return translate("operation.inserted")
+            PropertyOpType.Update -> return translate("operation.updated")
+            PropertyOpType.Delete -> return translate("operation.deleted")
+            PropertyOpType.Undefined -> return translate("operation.undefined")
+            else -> return ""
+        }
     }
 }
