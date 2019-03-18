@@ -28,7 +28,7 @@ class Layout {
 
         fun getEditLayout(data: ExtendedBaseDO<Int>): UILayout? {
             var layout = when (data) {
-                is AddressDO -> AddressLayout.createEditLayout()
+                is AddressDO -> AddressLayout.createEditLayout(data)
                 is BookDO -> BookLayout.createEditLayout(data)
                 else -> null
             }
