@@ -1,7 +1,7 @@
-const testServer = 'http://localhost:8080/rest';
+const testServer = 'http://localhost:8080/rs';
 
 // Cannot achieve coverage of 100% because of testing environment.
-export const baseURL = (process.env.NODE_ENV === 'development' ? testServer : '/rest');
+export const baseURL = (process.env.NODE_ENV === 'development' ? testServer : '/rs');
 
 export const createQueryParams = params => Object.keys(params)
     .map(key => `${key}=${encodeURI(params[key])}`)
