@@ -2,10 +2,7 @@ package org.projectforge.rest.ui
 
 import org.bouncycastle.asn1.x509.X509ObjectIdentifiers.id
 import org.projectforge.business.address.AddressDO
-import org.projectforge.business.address.AddressDao
 import org.projectforge.business.book.BookDO
-import org.projectforge.business.book.BookDao
-import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import org.projectforge.rest.JsonUtils
@@ -17,10 +14,10 @@ import javax.ws.rs.core.Response
 
 class Layout {
     companion object {
-        fun getListLayout(baseDao: BaseDao<*>): UILayout? {
-            var layout = when (baseDao) {
-                is AddressDao -> AddressLayout.createListLayout()
-                is BookDao -> BookLayout.createListLayout()
+        fun getListLayout(id: String): UILayout? {
+            var layout = when (id) {
+                "address" -> AddressLayout.createListLayout()
+                "book" -> BookLayout.createListLayout()
                 else -> null
             }
             return layout

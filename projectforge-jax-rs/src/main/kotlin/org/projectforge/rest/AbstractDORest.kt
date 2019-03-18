@@ -10,9 +10,7 @@ import org.projectforge.rest.ui.Layout
 import org.projectforge.ui.UILayout
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Controller
-import javax.servlet.http.HttpServletRequest
 import javax.ws.rs.*
-import javax.ws.rs.core.Context
 import javax.ws.rs.core.MediaType
 import javax.ws.rs.core.Response
 
@@ -22,36 +20,15 @@ abstract class AbstractDORest<O : ExtendedBaseDO<Int>, B : BaseDao<O>> {
 
     private data class EditLayoutData(val data: Any?, val ui: UILayout?)
 
-    private data class InitialListData<O : ExtendedBaseDO<Int>>(val layout: UILayout?, val dataList : List<O>, val filter : BaseSearchFilter)
-
     @Autowired
     open var accessChecker: AccessChecker? = null
 
     @Autowired
     open var historyService : HistoryService? = null
 
-    @Autowired
-    open var listFilterService : ListFilterService? = null
-
     abstract fun getBaseDao(): BaseDao<O>
 
     abstract fun newBaseDO(): O
-
-    abstract fun getFilterClass() : Class<out BaseSearchFilter>
-
-    /**
-     * Get the current filter from the server, all matching items and the layout of the list page.
-     */
-    @GET
-    @Path("initial-list")
-    @Produces(MediaType.APPLICATION_JSON)
-    fun getInitialList(@Context request : HttpServletRequest): Response {
-        val filter = listFilterService!!.getSearchFilter(request.session, getFilterClass())
-        val list = RestHelper.getList(getBaseDao(), filter)
-        list.forEach { processItemBeforeExport(it) }
-        val layout = Layout.getListLayout(getBaseDao())
-        return RestHelper.buildResponse(InitialListData(layout = layout, dataList = list, filter = filter))
-    }
 
     /**
      * Get the list of all items matching the given filter.
@@ -61,7 +38,7 @@ abstract class AbstractDORest<O : ExtendedBaseDO<Int>, B : BaseDao<O>> {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     fun getList(filter: BaseSearchFilter): Response {
-        val list = RestHelper.getList(getBaseDao(), filter)
+        var list = RestHelper.getList(getBaseDao(), filter)
         list.forEach { processItemBeforeExport(it) }
         return RestHelper.buildResponse(list)
     }
@@ -72,7 +49,7 @@ abstract class AbstractDORest<O : ExtendedBaseDO<Int>, B : BaseDao<O>> {
     fun getListTest(@QueryParam("search") search: String?): Response {
         val filter: BaseSearchFilter = BaseSearchFilter()
         filter.searchString = search
-        val list = RestHelper.getList(getBaseDao(), filter)
+        var list = RestHelper.getList(getBaseDao(), filter)
         list.forEach { processItemBeforeExport(it) }
         return RestHelper.buildResponse(list)
     }
