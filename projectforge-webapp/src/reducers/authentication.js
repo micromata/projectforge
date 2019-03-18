@@ -8,7 +8,7 @@ import {
 const initialState = {
     loading: false,
     error: null,
-    loggedIn: false,
+    user: null,
 };
 
 const reducer = (state = initialState, { type, payload }) => {
@@ -18,19 +18,20 @@ const reducer = (state = initialState, { type, payload }) => {
                 ...state,
                 loading: true,
                 error: null,
-                loggedIn: false,
+                user: null,
             };
         case USER_LOGIN_SUCCESS:
             return {
                 ...state,
                 loading: false,
                 error: null,
-                loggedIn: true,
+                user: payload.user,
+                version: payload.version,
             };
         case USER_LOGIN_FAILURE:
             return {
                 ...state,
-                loggedIn: false,
+                user: null,
                 loading: false,
                 error: payload.error,
             };
@@ -39,7 +40,7 @@ const reducer = (state = initialState, { type, payload }) => {
                 ...state,
                 loading: false,
                 error: null,
-                loggedIn: false,
+                user: null,
             };
         default:
             return state;

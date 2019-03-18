@@ -2,40 +2,40 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import { connect } from 'react-redux';
 import { BrowserRouter as Router } from 'react-router-dom';
-import { loadSessionIfAvailable, loginUser, logoutUser } from '../actions';
+import { loadUserStatusIfSignedIn, loginUser, logoutUser } from '../actions';
 import LoginView from '../components/authentication/LoginView';
 import Footer from '../components/base/footer';
 import Navigation from '../components/base/navigation';
 import TopBar from '../components/base/topbar';
-import EditPage from './page/edit';
+import ListPage from './page/list';
 import style from './ProjectForge.module.scss';
 
 class ProjectForge extends React.Component {
     componentDidMount() {
-        const { loadSessionIfAvailable: loadSession } = this.props;
+        const { loadUserStatusIfSignedIn: loadUserStatus } = this.props;
 
-        loadSession();
+        loadUserStatus();
     }
-
 
     render() {
         const {
-            loggedIn,
+            user,
             loginUser: login,
             logoutUser: logout,
             loginInProgress,
             loginError,
+            version,
         } = this.props;
         let content;
 
-        if (loggedIn) {
+        if (user) {
             content = (
                 <Router>
                     <div className={style.content}>
                         <Navigation
                             logout={logout}
+                            username={user.fullname}
                             // TODO: REMOVE EXAMPLE CATEGORIES
-                            username="Demo User"
                             entries={[
                                 {
                                     name: 'Administration',
@@ -273,7 +273,7 @@ class ProjectForge extends React.Component {
                                 },
                             ]}
                         />
-                        <EditPage />
+                        <ListPage />
                     </div>
                 </Router>
             );
@@ -293,7 +293,7 @@ class ProjectForge extends React.Component {
             <React.Fragment>
                 <TopBar />
                 {content}
-                <Footer version="Version 6.25-SNAPSHOT, 2019-02-26" updateAvailable />
+                <Footer version={version} />
             </React.Fragment>
         );
     }
@@ -301,26 +301,30 @@ class ProjectForge extends React.Component {
 
 ProjectForge.propTypes = {
     loginUser: PropTypes.func.isRequired,
-    loggedIn: PropTypes.bool.isRequired,
     logoutUser: PropTypes.func.isRequired,
-    loadSessionIfAvailable: PropTypes.func.isRequired,
+    loadUserStatusIfSignedIn: PropTypes.func.isRequired,
     loginInProgress: PropTypes.bool.isRequired,
     loginError: PropTypes.oneOfType([PropTypes.string, PropTypes.object]),
+    user: PropTypes.shape({}),
+    version: PropTypes.string,
 };
 
 ProjectForge.defaultProps = {
     loginError: undefined,
+    user: undefined,
+    version: 'Version unknown',
 };
 
 const mapStateToProps = state => ({
-    loggedIn: state.authentication.loggedIn,
     loginInProgress: state.authentication.loading,
     loginError: state.authentication.error,
+    user: state.authentication.user,
+    version: state.authentication.version,
 });
 
 const actions = {
     loginUser,
-    loadSessionIfAvailable,
+    loadUserStatusIfSignedIn,
     logoutUser,
 };
 

@@ -210,12 +210,8 @@ describe('check session', () => {
     it('creates USER_LOGIN_SUCCESS', () => {
         fetchMock
         // TODO: ADD AUTHENTICATION TEST ENDPOINT
-            .getOnce('/rest/authenticate/initialContact', 200, {
-                headers: {
-                    Cookies: 'JSESSIONID=ABCDEF0123456789',
-                },
-            })
-            .catch(() => {
+            .getOnce('/publicRest/userStatus', 200)
+            .catch((url, a, b) => {
                 throw new Error('mock failed');
             });
 
@@ -235,7 +231,7 @@ describe('check session', () => {
 
                 expect(cookies.loadAll())
                     .toEqual({
-                        KEEP_SIGNED_ID: true,
+                        KEEP_SIGNED_IN: true,
                     });
             });
     });
