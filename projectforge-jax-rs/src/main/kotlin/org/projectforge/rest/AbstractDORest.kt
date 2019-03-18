@@ -22,7 +22,7 @@ abstract class AbstractDORest<O : ExtendedBaseDO<Int>, B : BaseDao<O>> {
 
     private data class EditLayoutData(val data: Any?, val ui: UILayout?)
 
-    private data class InitialListData<O : ExtendedBaseDO<Int>>(val layout: UILayout?, val dataList : List<O>, val filter : BaseSearchFilter)
+    private data class InitialListData<O : ExtendedBaseDO<Int>>(val ui: UILayout?, val dataList : List<O>, val filter : BaseSearchFilter)
 
     @Autowired
     open var accessChecker: AccessChecker? = null
@@ -47,10 +47,11 @@ abstract class AbstractDORest<O : ExtendedBaseDO<Int>, B : BaseDao<O>> {
     @Produces(MediaType.APPLICATION_JSON)
     fun getInitialList(@Context request : HttpServletRequest): Response {
         val filter = listFilterService!!.getSearchFilter(request.session, getFilterClass())
+        filter.maxRows = 10
         val list = RestHelper.getList(getBaseDao(), filter)
         list.forEach { processItemBeforeExport(it) }
         val layout = Layout.getListLayout(getBaseDao())
-        return RestHelper.buildResponse(InitialListData(layout = layout, dataList = list, filter = filter))
+        return RestHelper.buildResponse(InitialListData(ui = layout, dataList = list, filter = filter))
     }
 
     /**
