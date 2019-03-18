@@ -63,10 +63,10 @@ class LayoutUtils {
                         if (maxLength != null) it.maxLength = maxLength
                     }
                     is UILabel -> {
-                        if (it.value == "@") {
-                            val translation = getI18nKey(clazz, it.value, getProperty(it.reference), it)
-                            if (translation != null) it.value = translation
-                        }
+                        var translation = processLabelString(it.value, clazz, getProperty(it.reference), it)
+                        if (translation != null) it.value = translation
+                        translation = processLabelString(it.additionalValue, clazz, getProperty(it.reference), it, true)
+                        if (translation != null) it.additionalValue = translation
                     }
                     is UISelect -> {
                         if (it.i18nEnum != null) {
@@ -81,11 +81,8 @@ class LayoutUtils {
                         }
                     }
                     is UITableColumn -> {
-                        if (it.title == "@") {
-                            val translation = getI18nKey(clazz, it.title, it.id, it)
-                            if (translation != null) it.title = translation
-                        }
-
+                        val translation = processLabelString(it.title, clazz, it.id, it)
+                        if (translation != null) it.title = translation
                     }
                     is UIButton -> {
                         if (it.title == "@") {
@@ -102,12 +99,33 @@ class LayoutUtils {
                             if (i18nKey == null) {
                                 log.error("i18nKey not found for action button '${it.id}'.")
                             } else {
-                                if (it.title != null) it.title = translate(i18nKey)
+                                it.title = translate(i18nKey)
                             }
                         }
                     }
                 }
             }
+        }
+
+        /**
+         * @ -> will be replaced by the translation of the property key.<br>
+         *     labels starting with '^' indicates a i18n key and will be translated: "^address.email" -> "E-Mail"
+         */
+        private fun processLabelString(labelString: String?, clazz: Class<*>, property: String?, uiElement: UIElement,
+                                       useAdditionalI18nKey: Boolean = false): String? {
+            if (labelString == null || labelString == "@") {
+                if (property == null) {
+                    // This may occur for UILabels without reference to property.
+                    if (labelString == "@")
+                        log.error("Can't find null property, element ${uiElement}.")
+                    return null
+                }
+                return getI18nKey(clazz, "@", property, uiElement, useAdditionalI18nKey)
+            } else if (labelString.isEmpty() || labelString.startsWith("^")) {
+                // labelString starts with '^' (followed by i18n key), so translate it:
+                return translate(labelString.substring(1))
+            }
+            return null
         }
 
         // fun getEnumValues(enumClass: KClass<out Enum<*>>): Array<out Enum<*>> = enumClass.java.enumConstants
@@ -128,11 +146,16 @@ class LayoutUtils {
          * @param property The name of the property (field) of the DO object.
          * @param elemnent The current proceeded element.
          */
-        private fun getI18nKey(clazz: Class<*>, current: String?, property: String?, element: UIElement): String? {
+        private fun getI18nKey(clazz: Class<*>, current: String?, property: String?, element: UIElement,
+                               useAdditionalI18nKey: Boolean = false): String? {
             if (current != "@") return null;
             val propInfo = PropUtils.get(clazz, property)
-            if (propInfo == null || propInfo.i18nKey == null) {
+            if (propInfo == null) {
                 log.error("PropertyInfo not found in Entity '${clazz}' for UI element '${element}'.")
+                return null
+            }
+            if (useAdditionalI18nKey) {
+                if (propInfo.additionalI18nKey.isNotEmpty()) return translate(propInfo.additionalI18nKey)
                 return null
             }
             return translate(propInfo.i18nKey)
@@ -143,6 +166,7 @@ class LayoutUtils {
             return when (element) {
                 is UIInput -> element.id
                 is UISelect -> element.id
+                is UIMultiSelect -> element.id
                 is UITextarea -> element.id
                 is UITableColumn -> element.id
                 else -> null

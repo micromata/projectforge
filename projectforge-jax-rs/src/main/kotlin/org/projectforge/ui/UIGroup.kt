@@ -37,6 +37,7 @@ data class UIGroup(val content: MutableList<UIElement> = mutableListOf()) : UIEl
                     is UIInput -> input.id
                     is UITextarea -> input.id
                     is UISelect -> input.id
+                    is UIMultiSelect -> input.id
                     else -> null
                 }
         if (label.labelFor == null)

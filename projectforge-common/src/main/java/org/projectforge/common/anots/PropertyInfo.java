@@ -44,6 +44,11 @@ public @interface PropertyInfo {
   String i18nKey();
 
   /**
+   * i18n key of additional key. Used e. g. by phone number to specify business or private number.
+   */
+  String additionalI18nKey() default "";
+
+  /**
    * @see PropertyType
    */
   PropertyType type() default PropertyType.UNSPECIFIED;

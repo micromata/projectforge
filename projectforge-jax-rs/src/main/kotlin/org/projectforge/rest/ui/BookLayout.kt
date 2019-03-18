@@ -40,13 +40,9 @@ class BookLayout {
                     .add(UIGroup().add("@", UIInput("authors")))
                     .add(UIRow()
                             .add(UICol(6)
-                                    .add(UIGroup()
-                                            .add("@",
-                                                    UISelect("type", i18nEnum = BookType::class.java)))
+                                    .add(UIGroup().add("@", UISelect("type", i18nEnum = BookType::class.java)))
                                     .add(UIGroup().add("@", UIInput("yearOfPublishing")))
-                                    .add(UIGroup()
-                                            .add("@",
-                                                    UISelect("status", i18nEnum = BookStatus::class.java)))
+                                    .add(UIGroup().add("@", UISelect("status", i18nEnum = BookStatus::class.java)))
                                     .add(UIGroup().add("@", UIInput("signature"))))
                             .add(UICol(6)
                                     .add(UIGroup().add("@", UIInput("isbn")))
@@ -56,12 +52,9 @@ class BookLayout {
                     .add(UIGroup()
                             .add(UILabel(translate("book.lending")))
                             .add(UICustomized("lendOutComponent")))
-                    .add(UIGroup()
-                            .add("@", UITextarea("lendOutComment")))
-                    .add(UIGroup()
-                            .add("@", UITextarea("abstractText")))
-                    .add(UIGroup()
-                            .add("@", UITextarea("comment")))
+                    .add(UIGroup().add("@", UITextarea("lendOutComment")))
+                    .add(UIGroup().add("@", UITextarea("abstractText")))
+                    .add(UIGroup().add("@", UITextarea("comment")))
             return LayoutUtils.processEditPage(layout, BookDO::class.java, book)
         }
     }
