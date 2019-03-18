@@ -5,7 +5,7 @@ export {
     USER_LOGOUT,
     login as loginUser,
     logout as logoutUser,
-    loadSessionIfAvailable,
+    loadUserStatusIfSignedIn,
 } from './authentication';
 
 export {
@@ -15,3 +15,7 @@ export {
     setAllFields as setAllEditPageFields,
     updatePageData as updateEditPageData,
 } from './editPage';
+
+export {
+    loadList,
+} from './listPage';

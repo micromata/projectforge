@@ -26,10 +26,7 @@ describe('renders without crashing', () => {
                 authentication: {
                     loading: false,
                     error: null,
-                    user: {
-                        id: 123,
-                        token: 'ABCDEF',
-                    },
+                    loggedIn: true,
                 },
             },
             applyMiddleware(thunk),
