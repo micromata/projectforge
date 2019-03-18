@@ -23,6 +23,9 @@ abstract class AbstractDORest<O : ExtendedBaseDO<Int>, B : BaseDao<O>> {
     @Autowired
     open var accessChecker: AccessChecker? = null
 
+    @Autowired
+    open var historyService : HistoryService? = null
+
     abstract fun getBaseDao(): BaseDao<O>
 
     abstract fun newBaseDO(): O
@@ -85,6 +88,28 @@ abstract class AbstractDORest<O : ExtendedBaseDO<Int>, B : BaseDao<O>> {
         val result = EditLayoutData(item, Layout.getEditLayout(item))
         return RestHelper.buildResponse(result)
     }
+
+    /**
+     * Gets the item including the layout data at default.
+     * @param id Id of the item to get or null, for new items (null  will be returned)
+     * @param layout If given, layout definitions will be returned, otherwise only the item will be returned. The
+     * layout will be also included if the id is not given.
+     */
+    @GET
+    @Path("history/{id}")
+    @Produces(MediaType.APPLICATION_JSON)
+    fun getHistory(@PathParam("id") id: Int?): Response {
+        if (id == null) {
+            return Response.status(Response.Status.BAD_REQUEST).build();
+        }
+        val item = getById(id)
+        if (item == null) {
+            return Response.status(Response.Status.BAD_REQUEST).build();
+        }
+        val historyEntries = getBaseDao().getHistoryEntries(item);
+        return RestHelper.buildResponse(historyService!!.format(historyEntries))
+    }
+
 
     open protected fun processItemBeforeExport(item: O) {
         item.tenant = DOUtils.cloneMinimal(item.tenant)
