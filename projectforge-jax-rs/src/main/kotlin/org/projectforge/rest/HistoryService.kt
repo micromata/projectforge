@@ -23,9 +23,16 @@ class HistoryService {
             var modfiedByUser: String? = null,
             @SerializedName("entity-op-type")
             var entityOpType: EntityOpType? = null,
+            @SerializedName("diff-entries")
+            var diffEntries: MutableList<DisplayHistoryDiffEntry> = mutableListOf())
+
+    data class DisplayHistoryDiffEntry(
+            @SerializedName("property-op-type")
             var propertyOpType: PropertyOpType? = null,
             var property: String? = null,
+            @SerializedName("old-value")
             var oldValue: String? = null,
+            @SerializedName("new-value")
             var newValue: String? = null)
 
     /**
@@ -41,27 +48,20 @@ class HistoryService {
             } catch (e: NumberFormatException) {
                 // Ignore error.
             }
-            if (it.diffEntries.isEmpty()) {
-                val entry = DisplayHistoryEntry(
-                        modifiedAt = it.modifiedAt,
-                        modfiedByUserId = it.modifiedBy,
-                        modfiedByUser = user?.fullname,
-                        entityOpType = it.entityOpType)
-                entries.add(entry)
-            } else {
-                it.diffEntries.forEach { de ->
-                    val entry = DisplayHistoryEntry(
-                            modifiedAt = it.modifiedAt,
-                            modfiedByUserId = it.modifiedBy,
-                            modfiedByUser = user?.fullname,
-                            entityOpType = it.entityOpType,
-                            propertyOpType = de.propertyOpType,
-                            property = de.propertyName,
-                            oldValue = de.oldValue,
-                            newValue = de.newValue)
-                    entries.add(entry)
-                }
+            val entry = DisplayHistoryEntry(
+                    modifiedAt = it.modifiedAt,
+                    modfiedByUserId = it.modifiedBy,
+                    modfiedByUser = user?.fullname,
+                    entityOpType = it.entityOpType)
+            it.diffEntries?.forEach { de ->
+                val diffEntry = DisplayHistoryDiffEntry(
+                        propertyOpType = de.propertyOpType,
+                        property = de.propertyName,
+                        oldValue = de.oldValue,
+                        newValue = de.newValue)
+                entry.diffEntries.add(diffEntry)
             }
+            entries.add(entry)
         }
         return entries
     }
