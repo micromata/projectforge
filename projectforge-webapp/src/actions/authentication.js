@@ -12,8 +12,12 @@ export const userLoginBegin = () => ({
     type: USER_LOGIN_BEGIN,
 });
 
-export const userLoginSuccess = () => ({
+export const userLoginSuccess = (user, version) => ({
     type: USER_LOGIN_SUCCESS,
+    payload: {
+        user,
+        version,
+    },
 });
 
 export const userLoginFailure = error => ({
@@ -39,6 +43,25 @@ const catchError = dispatch => (error) => {
     dispatch(userLoginFailure(error.message));
 };
 
+const loadUserStatus = (dispatch) => {
+    dispatch(userLoginBegin());
+
+    return fetch(
+        getServiceURL('../publicRest/userStatus'),
+        {
+            method: 'GET',
+            credentials: 'include',
+        },
+    )
+        .then(handleHTTPErrors)
+        .then(response => response.json())
+        .then((json) => {
+            console.log(json);
+            dispatch(userLoginSuccess(json['user-data'], json['system-data'].version));
+        })
+        .catch(catchError(dispatch));
+};
+
 export const login = (username, password, keepSignedIn) => (dispatch) => {
     dispatch(userLoginBegin());
     return fetch(
@@ -62,7 +85,7 @@ export const login = (username, password, keepSignedIn) => (dispatch) => {
                 cookies.save(KEEP_SIGNED_IN_COOKIE, true);
             }
 
-            dispatch(userLoginSuccess());
+            loadUserStatus(dispatch);
         })
         .catch(catchError(dispatch));
 };
@@ -73,24 +96,12 @@ export const logout = () => (dispatch) => {
     dispatch(userLogout());
 };
 
-export const loadSessionIfAvailable = () => (dispatch) => {
+export const loadUserStatusIfSignedIn = () => (dispatch) => {
     const keepSignedIn = cookies.load(KEEP_SIGNED_IN_COOKIE);
 
     if (!keepSignedIn) {
         return null;
     }
 
-    dispatch(userLoginBegin());
-
-    return fetch(
-        getServiceURL('../publicRest/userStatus'),
-        {
-            method: 'GET',
-            credentials: 'include',
-        },
-    )
-        .then(handleHTTPErrors)
-        // TODO: LOAD USER DATA TO STATE
-        .then(() => dispatch(userLoginSuccess()))
-        .catch(catchError(dispatch));
+    return loadUserStatus(dispatch);
 };
