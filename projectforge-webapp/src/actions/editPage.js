@@ -30,12 +30,17 @@ export const updatePageData = () => (dispatch, getState) => {
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify(values),
+            body: JSON.stringify({
+                ...values,
+                // TODO: REMOVE DATE IGNORANCE
+                created: undefined,
+                lastUpdate: undefined,
+            }),
         },
     )
         .then(handleHTTPErrors)
-        .then(response => response.json())
-        .then(json => console.log(json))
+        // TODO: HANDLE FAILURE AND SUCCESS
+        .then(response => console.log(response))
         .catch(error => console.error(error));
 };
 
