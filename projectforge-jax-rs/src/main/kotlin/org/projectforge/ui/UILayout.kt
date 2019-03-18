@@ -46,6 +46,7 @@ class UILayout(open var title: String? = null) {
             is UIRow -> addAllCols(list, element.content)
             is UICol -> addAllElements(list, element.content)
             is UISelect -> element.values.forEach { list.add(it) }
+            is UITable -> element.columns.forEach { list.add(it) }
         }
     }
 }
