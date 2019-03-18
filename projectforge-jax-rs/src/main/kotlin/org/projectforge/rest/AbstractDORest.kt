@@ -30,6 +30,9 @@ abstract class AbstractDORest<O : ExtendedBaseDO<Int>, B : BaseDao<O>> {
 
     abstract fun newBaseDO(): O
 
+    /**
+     * Get the list of all items matching the given filter.
+     */
     @POST
     @Path(RestPaths.LIST)
     @Consumes(MediaType.APPLICATION_JSON)
@@ -52,9 +55,8 @@ abstract class AbstractDORest<O : ExtendedBaseDO<Int>, B : BaseDao<O>> {
     }
 
     /**
-     * Gets the item including the layout data at default.
+     * Gets the item from the database.
      * @param id Id of the item to get or null, for new items (null  will be returned)
-     * @param layout If given, layout definitions will be returned, otherwise only the item will be returned. The
      * layout will be also included if the id is not given.
      */
     @GET
@@ -74,7 +76,6 @@ abstract class AbstractDORest<O : ExtendedBaseDO<Int>, B : BaseDao<O>> {
     /**
      * Gets the item including the layout data at default.
      * @param id Id of the item to get or null, for new items (null  will be returned)
-     * @param layout If given, layout definitions will be returned, otherwise only the item will be returned. The
      * layout will be also included if the id is not given.
      */
     @GET
@@ -90,10 +91,8 @@ abstract class AbstractDORest<O : ExtendedBaseDO<Int>, B : BaseDao<O>> {
     }
 
     /**
-     * Gets the item including the layout data at default.
-     * @param id Id of the item to get or null, for new items (null  will be returned)
-     * @param layout If given, layout definitions will be returned, otherwise only the item will be returned. The
-     * layout will be also included if the id is not given.
+     * Gets the history items of the given entity.
+     * @param id Id of the item to get the history entries for.
      */
     @GET
     @Path("history/{id}")
@@ -115,6 +114,9 @@ abstract class AbstractDORest<O : ExtendedBaseDO<Int>, B : BaseDao<O>> {
         item.tenant = DOUtils.cloneMinimal(item.tenant)
     }
 
+    /**
+     * Use this service for adding new items as well as updating existing items (id isn't null).
+     */
     @PUT
     @Path(RestPaths.SAVE_OR_UDATE)
     @Consumes(MediaType.APPLICATION_JSON)
@@ -123,6 +125,9 @@ abstract class AbstractDORest<O : ExtendedBaseDO<Int>, B : BaseDao<O>> {
         return RestHelper.saveOrUpdate(getBaseDao(), obj)
     }
 
+    /**
+     * The given object (marked as deleted) will be undeleted.
+     */
     @PUT
     @Path(RestPaths.UNDELETE)
     @Consumes(MediaType.APPLICATION_JSON)
@@ -131,6 +136,9 @@ abstract class AbstractDORest<O : ExtendedBaseDO<Int>, B : BaseDao<O>> {
         return RestHelper.undelete(getBaseDao(), obj)
     }
 
+    /**
+     * The given object is marked as deleted.
+     */
     @DELETE
     @Path(RestPaths.MARK_AS_DELETED)
     @Consumes(MediaType.APPLICATION_JSON)
