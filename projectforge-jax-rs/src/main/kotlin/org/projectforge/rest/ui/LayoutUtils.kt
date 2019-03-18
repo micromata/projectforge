@@ -108,12 +108,12 @@ class LayoutUtils {
         }
 
         /**
-         * @ -> will be replaced by the translation of the property key.<br>
-         *     labels starting with '^' indicates a i18n key and will be translated: "^address.email" -> "E-Mail"
+         * @ -> will be replaced by the translation of the property key.
          */
         private fun processLabelString(labelString: String?, clazz: Class<*>, property: String?, uiElement: UIElement,
                                        useAdditionalI18nKey: Boolean = false): String? {
-            if (labelString == null || labelString == "@") {
+            // additionalI18nKey may be null or '@'
+            if ((useAdditionalI18nKey && labelString == null) || labelString == "@") {
                 if (property == null) {
                     // This may occur for UILabels without reference to property.
                     if (labelString == "@")
@@ -121,9 +121,6 @@ class LayoutUtils {
                     return null
                 }
                 return getI18nKey(clazz, "@", property, uiElement, useAdditionalI18nKey)
-            } else if (labelString.isEmpty() || labelString.startsWith("^")) {
-                // labelString starts with '^' (followed by i18n key), so translate it:
-                return translate(labelString.substring(1))
             }
             return null
         }
