@@ -22,10 +22,9 @@ class EditPage extends React.Component {
     }
 
     componentDidMount() {
-        const { load } = this.props;
+        const { load, match } = this.props;
 
-        // TODO ADD ID
-        load(170);
+        load(match.params.category, match.params.id);
     }
 
     toggleTab(event) {
@@ -92,6 +91,7 @@ class EditPage extends React.Component {
 
 EditPage.propTypes = {
     changeDataField: PropTypes.func.isRequired,
+    match: PropTypes.shape({}).isRequired,
     load: PropTypes.func.isRequired,
     ui: PropTypes.shape({}).isRequired,
     error: PropTypes.string,
