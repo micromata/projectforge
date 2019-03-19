@@ -1,12 +1,16 @@
 package org.projectforge.rest
 
+import org.projectforge.Const
 import org.projectforge.business.DOUtils
 import org.projectforge.framework.access.AccessChecker
+import org.projectforge.framework.i18n.I18nHelper
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
 import org.projectforge.model.rest.RestPaths
 import org.projectforge.rest.ui.Layout
+import org.projectforge.rest.ui.ValidationError
+import org.projectforge.rest.ui.translate
 import org.projectforge.ui.UILayout
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Controller
@@ -22,22 +26,26 @@ abstract class AbstractDORest<O : ExtendedBaseDO<Int>, B : BaseDao<O>> {
 
     private data class EditLayoutData(val data: Any?, val ui: UILayout?)
 
-    private data class InitialListData<O : ExtendedBaseDO<Int>>(val ui: UILayout?, val dataList : List<O>, val filter : BaseSearchFilter)
+    private data class InitialListData<O : ExtendedBaseDO<Int>>(val ui: UILayout?, val dataList: List<O>, val filter: BaseSearchFilter)
 
     @Autowired
     open var accessChecker: AccessChecker? = null
 
     @Autowired
-    open var historyService : HistoryService? = null
+    open var historyService: HistoryService? = null
 
     @Autowired
-    open var listFilterService : ListFilterService? = null
+    open var listFilterService: ListFilterService? = null
 
     abstract fun getBaseDao(): BaseDao<O>
 
     abstract fun newBaseDO(): O
 
-    abstract fun getFilterClass() : Class<out BaseSearchFilter>
+    abstract fun getFilterClass(): Class<out BaseSearchFilter>
+
+    open protected fun validate(obj: O): List<ValidationError>? {
+        return null
+    }
 
     /**
      * Get the current filter from the server, all matching items and the layout of the list page.
@@ -45,7 +53,7 @@ abstract class AbstractDORest<O : ExtendedBaseDO<Int>, B : BaseDao<O>> {
     @GET
     @Path("initial-list")
     @Produces(MediaType.APPLICATION_JSON)
-    fun getInitialList(@Context request : HttpServletRequest): Response {
+    fun getInitialList(@Context request: HttpServletRequest): Response {
         val filter = listFilterService!!.getSearchFilter(request.session, getFilterClass())
         filter.maxRows = 10
         val list = RestHelper.getList(getBaseDao(), filter)
@@ -146,7 +154,7 @@ abstract class AbstractDORest<O : ExtendedBaseDO<Int>, B : BaseDao<O>> {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     fun saveOrUpdate(obj: O): Response {
-        return RestHelper.saveOrUpdate(getBaseDao(), obj)
+        return RestHelper.saveOrUpdate(getBaseDao(), obj, validate(obj))
     }
 
     /**
@@ -157,7 +165,7 @@ abstract class AbstractDORest<O : ExtendedBaseDO<Int>, B : BaseDao<O>> {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     fun undelete(obj: O): Response {
-        return RestHelper.undelete(getBaseDao(), obj)
+        return RestHelper.undelete(getBaseDao(), obj, validate(obj))
     }
 
     /**
@@ -167,6 +175,6 @@ abstract class AbstractDORest<O : ExtendedBaseDO<Int>, B : BaseDao<O>> {
     @Path(RestPaths.MARK_AS_DELETED)
     @Consumes(MediaType.APPLICATION_JSON)
     fun markAsDeleted(obj: O): Response {
-        return RestHelper.markAsDeleted(getBaseDao(), obj)
+        return RestHelper.markAsDeleted(getBaseDao(), obj, validate(obj))
     }
 }
