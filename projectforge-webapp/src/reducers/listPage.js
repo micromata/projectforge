@@ -1,4 +1,6 @@
 import {
+    LIST_PAGE_FILTER_RESET_BEGIN,
+    LIST_PAGE_FILTER_RESET_SUCCESS,
     LIST_PAGE_FILTER_SET,
     LIST_PAGE_LOAD_BEGIN,
     LIST_PAGE_LOAD_FAILURE,
@@ -40,6 +42,18 @@ const reducer = (state = initialState, { type, payload }) => {
                     ...state.filter,
                     [payload.id]: payload.newValue,
                 },
+            };
+        case LIST_PAGE_FILTER_RESET_BEGIN:
+            return {
+                ...state,
+                loading: true,
+                error: undefined,
+            };
+        case LIST_PAGE_FILTER_RESET_SUCCESS:
+            return {
+                ...state,
+                loading: false,
+                filter: payload.filter,
             };
         default:
             return state;

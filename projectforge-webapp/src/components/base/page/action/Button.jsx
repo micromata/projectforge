@@ -1,7 +1,7 @@
 import PropTypes from 'prop-types';
 import React from 'react';
 import { connect } from 'react-redux';
-import { updateEditPageData } from '../../../../actions';
+import { resetListFilter, updateEditPageData } from '../../../../actions';
 import { buttonPropType } from '../../../../utilities/propTypes';
 import { Button } from '../../../design';
 
@@ -50,8 +50,9 @@ class ActionButton extends React.Component {
 }
 
 ActionButton.propTypes = {
-    update: PropTypes.func.isRequired,
     action: buttonPropType.isRequired,
+    reset: PropTypes.func.isRequired,
+    update: PropTypes.func.isRequired,
 };
 
 const mapStateToProps = () => ({});
@@ -59,6 +60,7 @@ const mapStateToProps = () => ({});
 // TODO: ADD FUNCTIONS
 const actions = {
     update: updateEditPageData,
+    reset: resetListFilter,
 };
 
 export default connect(mapStateToProps, actions)(ActionButton);
