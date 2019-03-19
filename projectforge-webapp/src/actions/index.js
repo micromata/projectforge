@@ -20,5 +20,7 @@ export {
     LIST_PAGE_LOAD_BEGIN,
     LIST_PAGE_LOAD_SUCCESS,
     LIST_PAGE_LOAD_FAILURE,
+    LIST_PAGE_FILTER_SET,
     loadList,
+    setFilter as setListFilter,
 } from './listPage';

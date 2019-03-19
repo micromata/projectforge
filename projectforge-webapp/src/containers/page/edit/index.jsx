@@ -2,7 +2,7 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import { connect } from 'react-redux';
 import { setAllEditPageFields } from '../../../actions';
-import ActionGroup from '../../../components/base/page/edit/ActionGroup';
+import ActionGroup from '../../../components/base/page/action/ActionGroup';
 import LayoutGroup from '../../../components/base/page/edit/layout/Group';
 import TabNavigation from '../../../components/base/page/edit/TabNavigation';
 import PageNavigation from '../../../components/base/page/Navigation';
