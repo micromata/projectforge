@@ -1,14 +1,15 @@
 import PropTypes from 'prop-types';
 import React from 'react';
 import { connect } from 'react-redux';
-import { BrowserRouter as Router } from 'react-router-dom';
+import { BrowserRouter as Router, Switch, Route } from 'react-router-dom';
 import { loadUserStatusIfSignedIn, loginUser, logoutUser } from '../actions';
 import LoginView from '../components/authentication/LoginView';
 import Footer from '../components/base/footer';
 import Navigation from '../components/base/navigation';
 import TopBar from '../components/base/topbar';
+import { Container } from '../components/design';
+import EditPage from './page/edit';
 import ListPage from './page/list';
-import style from './ProjectForge.module.scss';
 
 class ProjectForge extends React.Component {
     componentDidMount() {
@@ -31,36 +32,19 @@ class ProjectForge extends React.Component {
         if (user) {
             content = (
                 <Router>
-                    <div className={style.content}>
+                    <React.Fragment>
                         <Navigation
                             logout={logout}
                             username={user.fullname}
                             // TODO: REMOVE EXAMPLE CATEGORIES
                             entries={[
                                 {
-                                    name: 'Administration',
-                                    items: [
-                                        {
-                                            name: 'Benutzer',
-                                            url: '/',
-                                        },
-                                        {
-                                            name: 'Gruppen',
-                                            url: '/',
-                                        },
-                                        {
-                                            name: 'Zugriffsverwaltung',
-                                            url: '/',
-                                        },
-                                        {
-                                            name: 'System',
-                                            url: '/',
-                                        },
-                                    ],
+                                    name: 'Bücher',
+                                    url: '/books',
                                 },
                                 {
-                                    name: 'Passwort ändern',
-                                    url: '/',
+                                    name: 'Buch bearbeiten',
+                                    url: '/books/edit',
                                 },
                             ]}
                             categories={[
@@ -81,7 +65,7 @@ class ProjectForge extends React.Component {
                                         },
                                         {
                                             name: 'Bücher',
-                                            url: '/',
+                                            url: '/books',
                                         },
                                         {
                                             name: 'Adressbücher',
@@ -273,8 +257,19 @@ class ProjectForge extends React.Component {
                                 },
                             ]}
                         />
-                        <ListPage />
-                    </div>
+                        <Container fluid>
+                            <Switch>
+                                <Route
+                                    path="/:category/edit"
+                                    component={EditPage}
+                                />
+                                <Route
+                                    path="/:category"
+                                    component={ListPage}
+                                />
+                            </Switch>
+                        </Container>
+                    </React.Fragment>
                 </Router>
             );
         } else {
