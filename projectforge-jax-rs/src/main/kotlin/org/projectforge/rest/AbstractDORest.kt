@@ -177,4 +177,11 @@ abstract class AbstractDORest<O : ExtendedBaseDO<Int>, B : BaseDao<O>> {
     fun markAsDeleted(obj: O): Response {
         return RestHelper.markAsDeleted(getBaseDao(), obj, validate(obj))
     }
+
+    @GET
+    @Path(RestPaths.FILTER_RESET)
+    @Produces(MediaType.APPLICATION_JSON)
+    fun filterReset(@Context request: HttpServletRequest): Response {
+        return RestHelper.buildResponse(listFilterService!!.getSearchFilter(request.session, getFilterClass()).reset())
+    }
 }
