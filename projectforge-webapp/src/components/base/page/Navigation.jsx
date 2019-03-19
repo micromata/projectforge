@@ -1,12 +1,6 @@
 import PropTypes from 'prop-types';
 import React from 'react';
-import {
-    Collapse,
-    Nav,
-    Navbar,
-    NavbarToggler,
-    NavItem,
-} from '../../design';
+import { Collapse, Nav, Navbar, NavbarToggler, NavItem, } from '../../design';
 import style from './Page.module.scss';
 
 class PageNavigation extends React.Component {
@@ -28,7 +22,7 @@ class PageNavigation extends React.Component {
 
     render() {
         const { mobileIsOpen } = this.state;
-        const { current } = this.props;
+        const { current, children } = this.props;
 
         return (
             <Navbar expand="md" color="light" light className={style.navigation}>
@@ -38,6 +32,7 @@ class PageNavigation extends React.Component {
                         <NavItem className={style.title}>
                             {current}
                         </NavItem>
+                        {children}
                     </Nav>
                 </Collapse>
             </Navbar>
@@ -47,10 +42,12 @@ class PageNavigation extends React.Component {
 
 PageNavigation.propTypes = {
     current: PropTypes.string,
+    children: PropTypes.node,
 };
 
 PageNavigation.defaultProps = {
     current: 'Loading',
+    children: undefined,
 };
 
 export default PageNavigation;
