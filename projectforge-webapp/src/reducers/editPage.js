@@ -1,23 +1,51 @@
-import { EDIT_PAGE_ALL_FIELDS_SET, EDIT_PAGE_FIELD_CHANGE } from '../actions';
+import {
+    EDIT_PAGE_ALL_FIELDS_SET,
+    EDIT_PAGE_FIELD_CHANGE,
+    EDIT_PAGE_LOAD_BEGIN,
+    EDIT_PAGE_LOAD_FAILURE,
+    EDIT_PAGE_LOAD_SUCCESS
+} from '../actions';
 
 const initialState = {
-    values: {},
+    loading: false,
+    error: undefined,
+    ui: {},
+    data: {},
 };
 
 const reducer = (state = initialState, { type, payload }) => {
     switch (type) {
+        case EDIT_PAGE_LOAD_BEGIN:
+            return {
+                ...state,
+                loading: true,
+                error: undefined,
+            };
+        case EDIT_PAGE_LOAD_SUCCESS:
+            return {
+                ...state,
+                loading: false,
+                data: payload.data,
+                ui: payload.ui,
+            };
+        case EDIT_PAGE_LOAD_FAILURE:
+            return {
+                ...state,
+                loading: false,
+                error: payload.error,
+            };
         case EDIT_PAGE_FIELD_CHANGE:
             return {
                 ...state,
-                values: {
-                    ...state.values,
+                data: {
+                    ...state.data,
                     [payload.id]: payload.newValue,
                 },
             };
         case EDIT_PAGE_ALL_FIELDS_SET:
             return {
                 ...state,
-                values: payload.values,
+                data: payload.data,
             };
         default:
             return state;
