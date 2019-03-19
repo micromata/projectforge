@@ -12,7 +12,10 @@ export const LIST_PAGE_FILTER_RESET_SUCCESS = 'LIST_PAGE_FILTER_RESET_SUCCESS';
 export const LIST_PAGE_DATA_UPDATE_BEGIN = 'LIST_PAGE_DATA_UPDATE_BEGIN';
 export const LIST_PAGE_DATA_UPDATE_SUCCESS = 'LIST_PAGE_DATA_UPDATE_SUCCESS';
 
-export const loadBegin = () => ({ type: LIST_PAGE_LOAD_BEGIN });
+export const loadBegin = category => ({
+    type: LIST_PAGE_LOAD_BEGIN,
+    payload: { category },
+});
 
 export const loadSuccess = (filter, ui, data) => ({
     type: LIST_PAGE_LOAD_SUCCESS,
@@ -50,11 +53,11 @@ export const dataUpdateSuccess = data => ({
     payload: { data },
 });
 
-export const loadList = () => (dispatch) => {
-    dispatch(loadBegin());
+export const loadList = category => (dispatch) => {
+    dispatch(loadBegin(category));
 
     return fetch(
-        getServiceURL('books/initial-list'),
+        getServiceURL(`${category}/initial-list`),
         {
             method: 'GET',
             credentials: 'include',
@@ -70,11 +73,13 @@ export const setFilter = (id, newValue) => (dispatch) => {
     dispatch(filterSet(id, newValue));
 };
 
-export const resetFilter = () => (dispatch) => {
+export const resetFilter = () => (dispatch, getState) => {
+    const { category } = getState().listPage;
+
     dispatch(filterResetBegin());
 
     return fetch(
-        getServiceURL('books/filterReset'),
+        getServiceURL(`${category}/filterReset`),
         {
             method: 'GET',
             credentials: 'include',
@@ -87,17 +92,18 @@ export const resetFilter = () => (dispatch) => {
 };
 
 export const updateData = () => (dispatch, getState) => {
+    const { category, filter } = getState().listPage;
     dispatch(dataUpdateBegin());
 
     return fetch(
-        getServiceURL('books/list'),
+        getServiceURL(`${category}/list`),
         {
             method: 'POST',
             credentials: 'include',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify(getState().listPage.filter),
+            body: JSON.stringify(filter),
         },
     )
         .then(handleHTTPErrors)

@@ -8,9 +8,9 @@ import SearchFilter from './SearchFilter';
 
 class ListPage extends Component {
     componentDidMount() {
-        const { load } = this.props;
+        const { load, match } = this.props;
 
-        load();
+        load(match.params.category);
     }
 
     render() {
@@ -18,8 +18,6 @@ class ListPage extends Component {
 
         /*
         TODO:
-        - Move state to redux
-        - Add Filters
         - Add List
         - (Add EditPage Actions)
          */
@@ -34,6 +32,7 @@ class ListPage extends Component {
 }
 
 ListPage.propTypes = {
+    match: PropTypes.shape({}).isRequired,
     loading: PropTypes.bool.isRequired,
     load: PropTypes.func.isRequired,
     ui: PropTypes.shape({

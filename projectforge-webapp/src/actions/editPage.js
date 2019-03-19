@@ -7,7 +7,10 @@ export const EDIT_PAGE_LOAD_FAILURE = 'EDIT_PAGE_LOAD_FAILURE';
 export const EDIT_PAGE_FIELD_CHANGE = 'EDIT_PAGE_FIELD_CHANGE';
 export const EDIT_PAGE_ALL_FIELDS_SET = 'EDIT_PAGE_ALL_FIELDS_SET';
 
-export const loadBegin = () => ({ type: EDIT_PAGE_LOAD_BEGIN });
+export const loadBegin = category => ({
+    type: EDIT_PAGE_LOAD_BEGIN,
+    payload: { category },
+});
 
 export const loadSuccess = (data, ui) => ({
     type: EDIT_PAGE_LOAD_SUCCESS,
@@ -37,8 +40,8 @@ export const allFieldsSet = values => ({
     },
 });
 
-export const loadEdit = id => (dispatch) => {
-    dispatch(loadBegin());
+export const loadEdit = (category, id) => (dispatch) => {
+    dispatch(loadBegin(category));
 
     const params = {};
 
@@ -47,7 +50,7 @@ export const loadEdit = id => (dispatch) => {
     }
 
     return fetch(
-        getServiceURL('books/edit', params),
+        getServiceURL(`${category}/edit`, params),
         {
             method: 'GET',
             credentials: 'include',
@@ -60,11 +63,10 @@ export const loadEdit = id => (dispatch) => {
 };
 
 export const updatePageData = () => (dispatch, getState) => {
-    const { values } = getState().editPage;
-    console.log(values);
+    const { values, category } = getState().editPage;
 
     fetch(
-        getServiceURL('books/saveorupdate'),
+        getServiceURL(`${category}/saveorupdate`),
         {
             method: 'PUT',
             credentials: 'include',

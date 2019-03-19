@@ -46,6 +46,10 @@ class ProjectForge extends React.Component {
                                     name: 'Buch bearbeiten',
                                     url: '/books/edit',
                                 },
+                                {
+                                    name: 'Adressbücher',
+                                    url: '/addresses',
+                                },
                             ]}
                             categories={[
                                 {
@@ -260,7 +264,7 @@ class ProjectForge extends React.Component {
                         <Container fluid>
                             <Switch>
                                 <Route
-                                    path="/:category/edit"
+                                    path="/:category/edit/:id?"
                                     component={EditPage}
                                 />
                                 <Route
