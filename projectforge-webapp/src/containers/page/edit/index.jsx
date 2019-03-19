@@ -1,7 +1,7 @@
 import PropTypes from 'prop-types';
 import React from 'react';
 import { connect } from 'react-redux';
-import { loadEditPage, setAllEditPageFields } from '../../../actions';
+import { changeEditFormField, loadEditPage } from '../../../actions';
 import ActionGroup from '../../../components/base/page/action/Group';
 import TabNavigation from '../../../components/base/page/edit/TabNavigation';
 import LayoutGroup from '../../../components/base/page/layout/Group';
@@ -42,7 +42,13 @@ class EditPage extends React.Component {
 
     render() {
         const { activeTab } = this.state;
-        const { loading, error, ui, data } = this.props;
+        const {
+            changeDataField,
+            data,
+            error,
+            loading,
+            ui,
+        } = this.props;
 
         if (error) {
             return (
@@ -70,7 +76,11 @@ class EditPage extends React.Component {
                 >
                     <TabPane tabId="edit">
                         <Container fluid>
-                            <LayoutGroup content={ui.layout} data={data} />
+                            <LayoutGroup
+                                content={ui.layout}
+                                data={data}
+                                changeDataField={changeDataField}
+                            />
                             <ActionGroup actions={ui.actions} />
                         </Container>
                     </TabPane>
@@ -81,6 +91,7 @@ class EditPage extends React.Component {
 }
 
 EditPage.propTypes = {
+    changeDataField: PropTypes.func.isRequired,
     load: PropTypes.func.isRequired,
     ui: PropTypes.shape({}).isRequired,
     error: PropTypes.string,
@@ -103,7 +114,7 @@ const mapStateToProps = state => ({
 
 const actions = {
     load: loadEditPage,
-    updateValues: setAllEditPageFields,
+    changeDataField: changeEditFormField,
 };
 
 export default connect(mapStateToProps, actions)(EditPage);
