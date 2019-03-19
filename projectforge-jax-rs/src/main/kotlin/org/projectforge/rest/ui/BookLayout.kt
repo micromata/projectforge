@@ -25,11 +25,11 @@ class BookLayout {
                     .addAction(UIButton("search", "Suchen", UIButtonStyle.PRIMARY))
                     .add(UINamedContainer("filter-options")
                             .add(UIGroup()
-                                    .add(UICheckbox("present", label = "vorhanden"))
-                                    .add(UICheckbox("missed", label = "vermisst"))
-                                    .add(UICheckbox("disposed", label = "entsorgt"))
-                                    .add(UICheckbox("onlyDeleted", label = "nur gelöscht"))
-                                    .add(UICheckbox("searchHistory", label = "Historie"))))
+                                    .add(UICheckbox("filter.present", label = "vorhanden"))
+                                    .add(UICheckbox("filter.missed", label = "vermisst"))
+                                    .add(UICheckbox("filter.disposed", label = "entsorgt"))
+                                    .add(UICheckbox("filter.onlyDeleted", label = "nur gelöscht"))
+                                    .add(UICheckbox("filter.searchHistory", label = "Historie"))))
             return LayoutUtils.process(layout, BookDO::class.java)
         }
 

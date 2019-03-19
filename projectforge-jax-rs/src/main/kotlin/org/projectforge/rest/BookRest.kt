@@ -17,7 +17,7 @@ import javax.ws.rs.core.Response
 
 @Controller
 @Path("books")
-open class BookRest() : AbstractDORest<BookDO, BookDao>() {
+open class BookRest() : AbstractDORest<BookDO, BookDao, BookFilter>() {
     private val log = org.slf4j.LoggerFactory.getLogger(BookRest::class.java)
 
     @Autowired
@@ -35,10 +35,6 @@ open class BookRest() : AbstractDORest<BookDO, BookDao>() {
 
     override fun getBaseDao(): BookDao {
         return bookDao!!
-    }
-
-    override fun getFilterClass(): Class<BookFilter> {
-        return BookFilter::class.java
     }
 
     override fun validate(obj: BookDO): List<ValidationError>? {

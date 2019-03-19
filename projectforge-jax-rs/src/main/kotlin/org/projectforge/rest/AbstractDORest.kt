@@ -18,7 +18,7 @@ import javax.ws.rs.core.MediaType
 import javax.ws.rs.core.Response
 
 @Controller
-abstract class AbstractDORest<O : ExtendedBaseDO<Int>, B : BaseDao<O>> {
+abstract class AbstractDORest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F : BaseSearchFilter> {
     private val log = org.slf4j.LoggerFactory.getLogger(AbstractDORest::class.java)
 
     private data class EditLayoutData(val data: Any?, val ui: UILayout?)
@@ -38,10 +38,21 @@ abstract class AbstractDORest<O : ExtendedBaseDO<Int>, B : BaseDao<O>> {
 
     abstract fun newBaseDO(): O
 
-    abstract fun getFilterClass(): Class<out BaseSearchFilter>
+    inline fun <reified F> getFilterClass(): Class<F> {
+      return F::class.java
+    }
 
     open protected fun validate(obj: O): List<ValidationError>? {
         return null
+    }
+
+    /**
+     * Will be called by clone service. Override this method, if your edit page
+     * should support the clone functionality.
+     * @return false at default, if clone is not supported, otherwise true.
+     */
+    open fun prepareClone(obj: O) : Boolean {
+        return false
     }
 
     /**
@@ -66,7 +77,7 @@ abstract class AbstractDORest<O : ExtendedBaseDO<Int>, B : BaseDao<O>> {
     @Path(RestPaths.LIST)
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    fun getList(filter: BaseSearchFilter): Response {
+    fun <O>getList(filter: F): Response {
         val list = RestHelper.getList(getBaseDao(), filter)
         list.forEach { processItemBeforeExport(it) }
         return RestHelper.buildResponse(list)
@@ -141,6 +152,22 @@ abstract class AbstractDORest<O : ExtendedBaseDO<Int>, B : BaseDao<O>> {
 
     open protected fun processItemBeforeExport(item: O) {
         item.tenant = DOUtils.cloneMinimal(item.tenant)
+    }
+
+    /**
+     * Will be called by clone button. Sets the id of the form data object to null and deleted to false.
+     * @return The clone object (id is null and deleted = false)
+     */
+    @POST
+    @Path("clone")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    fun clone(obj: O): Response {
+        obj.id = null
+        obj.isDeleted = false
+        obj.id = null
+        val json = JsonUtils.toJson(obj)
+        return Response.ok(json).build()
     }
 
     /**

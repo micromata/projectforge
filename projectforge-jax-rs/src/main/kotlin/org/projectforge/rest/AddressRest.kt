@@ -11,7 +11,7 @@ import javax.ws.rs.Path
 
 @Controller
 @Path("addresses")
-open class AddressRest() : AbstractDORest<AddressDO, AddressDao>() {
+open class AddressRest() : AbstractDORest<AddressDO, AddressDao, AddressFilter>() {
     private val log = org.slf4j.LoggerFactory.getLogger(AddressRest::class.java)
 
     @Autowired
@@ -25,10 +25,6 @@ open class AddressRest() : AbstractDORest<AddressDO, AddressDao>() {
         return AddressDO()
     }
 
-    override fun getFilterClass(): Class<AddressFilter> {
-        return AddressFilter::class.java
-    }
-
     override fun processItemBeforeExport(item: AddressDO) {
         super.processItemBeforeExport(item)
         val addressbookList: MutableSet<AddressbookDO> = mutableSetOf();
@@ -38,5 +34,13 @@ open class AddressRest() : AbstractDORest<AddressDO, AddressDao>() {
                 addressbookList.add(addressbook)
         }
         item.addressbookList = addressbookList
+    }
+
+    /**
+     * Clone is supported by addresses.
+     */
+    override fun prepareClone(obj: AddressDO): Boolean {
+        // TODO: Enter here the PersonalAddressDO stuff etc.
+        return true
     }
 }

@@ -1,6 +1,5 @@
 package org.projectforge.rest.ui
 
-import org.projectforge.business.excel.ExportConfig
 import org.projectforge.common.i18n.I18nEnum
 import org.projectforge.common.props.PropUtils
 import org.projectforge.framework.i18n.I18nHelper
@@ -40,11 +39,20 @@ class LayoutUtils {
          * Calls also fun [process].
          * @see LayoutUtils.process
          */
-        fun processEditPage(layout: UILayout, clazz: Class<*>, data: DefaultBaseDO?): UILayout {
+        fun processEditPage(layout: UILayout,
+                //restService: AbstractDORest<ExtendedBaseDO<Int>,
+                // BaseDao<ExtendedBaseDO<Int>>>,
+                            clazz: Class<*>,
+                            data: DefaultBaseDO?): UILayout {
             layout.addAction(UIButton("cancel", "@", UIButtonStyle.DANGER))
             if (data != null && data.id != null) {
                 if (data.isDeleted) layout.add(UIButton("undelete", "@", UIButtonStyle.WARNING))
                 else layout.addAction(UIButton("markAsDeleted", "@", UIButtonStyle.WARNING))
+            }
+            //if (restService.prepareClone(restService.newBaseDO())) {
+            //    layout.addAction(UIButton("clone", "@", UIButtonStyle.PRIMARY))
+            //}
+            if (data != null && data.id != null) {
                 layout.addAction(UIButton("update", "@", UIButtonStyle.PRIMARY))
             } else {
                 layout.addAction(UIButton("create", "@", UIButtonStyle.PRIMARY))
@@ -94,6 +102,7 @@ class LayoutUtils {
                         if (it.title == "@") {
                             val i18nKey = when (it.id) {
                                 "cancel" -> "cancel"
+                                "clone" -> "clone"
                                 "create" -> "create"
                                 "markAsDeleted" -> "markAsDeleted"
                                 "reset" -> "reset"

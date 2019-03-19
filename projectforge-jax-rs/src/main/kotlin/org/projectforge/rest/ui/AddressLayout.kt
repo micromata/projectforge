@@ -5,6 +5,7 @@ import org.projectforge.business.address.AddressStatus
 import org.projectforge.business.address.ContactStatus
 import org.projectforge.business.address.FormOfAddress
 import org.projectforge.framework.persistence.api.HibernateUtils
+import org.projectforge.rest.AddressRest
 import org.projectforge.ui.*
 
 class AddressLayout {
