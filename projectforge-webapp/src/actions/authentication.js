@@ -56,7 +56,6 @@ const loadUserStatus = (dispatch) => {
         .then(handleHTTPErrors)
         .then(response => response.json())
         .then((json) => {
-            console.log(json);
             dispatch(userLoginSuccess(json['user-data'], json['system-data'].version));
         })
         .catch(catchError(dispatch));

@@ -1,9 +1,14 @@
-import { LIST_PAGE_LOAD_BEGIN, LIST_PAGE_LOAD_FAILURE, LIST_PAGE_LOAD_SUCCESS } from '../actions';
+import {
+    LIST_PAGE_FILTER_SET,
+    LIST_PAGE_LOAD_BEGIN,
+    LIST_PAGE_LOAD_FAILURE,
+    LIST_PAGE_LOAD_SUCCESS,
+} from '../actions';
 
 const initialState = {
     loading: false,
     error: undefined,
-    layout: {},
+    ui: {},
     filter: {},
     data: [],
 };
@@ -19,8 +24,8 @@ const reducer = (state = initialState, { type, payload }) => {
             return {
                 ...initialState,
                 loading: false,
-                layout: payload.layout,
                 filter: payload.filter,
+                ui: payload.ui,
                 data: payload.data,
             };
         case LIST_PAGE_LOAD_FAILURE:
@@ -28,6 +33,14 @@ const reducer = (state = initialState, { type, payload }) => {
                 ...initialState,
                 loading: false,
                 error: payload.error,
+            };
+        case LIST_PAGE_FILTER_SET:
+            return {
+                ...state,
+                filter: {
+                    ...state.filter,
+                    [payload.id]: payload.newValue,
+                },
             };
         default:
             return state;
