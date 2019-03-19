@@ -9,7 +9,6 @@ const initialState = {
     loading: false,
     error: undefined,
     ui: {},
-    filter: {},
     data: [],
 };
 
