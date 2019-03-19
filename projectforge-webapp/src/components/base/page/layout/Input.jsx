@@ -12,9 +12,9 @@ class LayoutInput extends Component {
     }
 
     handleInputChange(event) {
-        const { id, changeValue, type } = this.props;
+        const { id, changeDataField, type } = this.props;
 
-        if (!id || !changeValue) {
+        if (!id || !changeDataField) {
             return;
         }
 
@@ -28,7 +28,7 @@ class LayoutInput extends Component {
                 newValue = event.target.value;
         }
 
-        changeValue(id, newValue);
+        changeDataField(id, newValue);
     }
 
     render() {
@@ -79,7 +79,7 @@ class LayoutInput extends Component {
 }
 
 LayoutInput.propTypes = {
-    changeValue: PropTypes.func,
+    changeDataField: PropTypes.func,
     data: PropTypes.objectOf(PropTypes.oneOfType([
         PropTypes.string,
         PropTypes.number,
@@ -99,7 +99,7 @@ LayoutInput.propTypes = {
 };
 
 LayoutInput.defaultProps = {
-    changeValue: undefined,
+    changeDataField: undefined,
     id: undefined,
     type: 'text',
     values: [],

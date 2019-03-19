@@ -10,10 +10,11 @@ import LayoutLabel from './Label';
 // TODO: COLLECT INPUT IN PARENT
 function LayoutGroup(
     {
+        changeDataField,
         content,
-        type,
-        length,
         data,
+        length,
+        type,
     },
 ) {
     let GroupTag;
@@ -65,6 +66,7 @@ function LayoutGroup(
                 return (
                     <Tag
                         key={`layout-group-component-${revisedRandomId()}`}
+                        changeDataField={changeDataField}
                         data={data}
                         {...component}
                     />
@@ -75,6 +77,7 @@ function LayoutGroup(
 }
 
 LayoutGroup.propTypes = {
+    changeDataField: PropTypes.func,
     // PropType validation with type array has to be allowed here.
     // Otherwise it will create an endless loop of groups.
     /* eslint-disable-next-line react/forbid-prop-types */
@@ -85,6 +88,7 @@ LayoutGroup.propTypes = {
 };
 
 LayoutGroup.defaultProps = {
+    changeDataField: undefined,
     content: [],
     type: 'container',
     length: undefined,
