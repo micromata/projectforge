@@ -1,12 +1,14 @@
 import PropTypes from 'prop-types';
-import React, { Component } from 'react';
+import React from 'react';
 import { connect } from 'react-redux';
+import { Link } from 'react-router-dom';
 import { loadList } from '../../../actions';
 import PageNavigation from '../../../components/base/page/Navigation';
+import { Button, NavItem } from '../../../components/design';
 import LoadingContainer from '../../../components/design/loading-container';
 import SearchFilter from './SearchFilter';
 
-class ListPage extends Component {
+class ListPage extends React.Component {
     componentDidMount() {
         const { load, match } = this.props;
 
@@ -14,7 +16,7 @@ class ListPage extends Component {
     }
 
     render() {
-        const { loading, ui } = this.props;
+        const { loading, ui, match } = this.props;
 
         /*
         TODO:
@@ -24,7 +26,13 @@ class ListPage extends Component {
 
         return (
             <LoadingContainer loading={loading}>
-                <PageNavigation current={ui.title} />
+                <PageNavigation current={ui.title}>
+                    <NavItem>
+                        <Button tag={Link} to={`${match.params.category}/edit`}>
+                            +
+                        </Button>
+                    </NavItem>
+                </PageNavigation>
                 <SearchFilter />
             </LoadingContainer>
         );
