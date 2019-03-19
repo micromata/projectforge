@@ -53,6 +53,16 @@ public class BookFilter extends BaseSearchFilter implements Serializable
     missed = disposed = true;
   }
 
+  @Override
+  public BookFilter reset()
+  {
+    super.reset();
+    setPresent(true);
+    setMissed(false);
+    setDisposed(false);
+    return this;
+  }
+
   public boolean isPresent()
   {
     return present;
