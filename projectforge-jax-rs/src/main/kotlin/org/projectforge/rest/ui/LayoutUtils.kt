@@ -3,13 +3,19 @@ package org.projectforge.rest.ui
 import org.projectforge.business.excel.ExportConfig
 import org.projectforge.common.i18n.I18nEnum
 import org.projectforge.common.props.PropUtils
+import org.projectforge.framework.i18n.I18nHelper
 import org.projectforge.framework.persistence.api.HibernateUtils
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import org.projectforge.ui.*
 
 fun translate(i18nKey: String?): String {
     if (i18nKey == null) return "???"
-    return ExportConfig.getInstance().getDefaultExportContext().getLocalizedString(i18nKey)
+    return I18nHelper.getLocalizedMessage(i18nKey)
+}
+
+fun translate(i18nKey: String?, vararg params: Any): String {
+    if (i18nKey == null) return "???"
+    return I18nHelper.getLocalizedMessage(i18nKey, params)
 }
 
 class LayoutUtils {
