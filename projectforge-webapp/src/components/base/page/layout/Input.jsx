@@ -1,10 +1,10 @@
 import PropTypes from 'prop-types';
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
-import { changeEditFormField } from '../../../../../actions';
-import revisedRandomId from '../../../../../utilities/revisedRandomId';
-import { Col, Input } from '../../../../design';
-import style from '../../Page.module.scss';
+import { changeEditFormField } from '../../../../actions';
+import revisedRandomId from '../../../../utilities/revisedRandomId';
+import { Col, Input } from '../../../design';
+import style from '../Page.module.scss';
 
 class LayoutInput extends Component {
     constructor(props) {
