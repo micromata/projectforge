@@ -23,7 +23,10 @@ export {
     LIST_PAGE_FILTER_SET,
     LIST_PAGE_FILTER_RESET_BEGIN,
     LIST_PAGE_FILTER_RESET_SUCCESS,
+    LIST_PAGE_DATA_UPDATE_BEGIN,
+    LIST_PAGE_DATA_UPDATE_SUCCESS,
     loadList,
     setFilter as setListFilter,
     resetFilter as resetListFilter,
+    updateData as updateList,
 } from './listPage';
