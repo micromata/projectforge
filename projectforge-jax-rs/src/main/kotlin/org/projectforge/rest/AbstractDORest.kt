@@ -1,16 +1,13 @@
 package org.projectforge.rest
 
-import org.projectforge.Const
 import org.projectforge.business.DOUtils
 import org.projectforge.framework.access.AccessChecker
-import org.projectforge.framework.i18n.I18nHelper
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
 import org.projectforge.model.rest.RestPaths
 import org.projectforge.rest.ui.Layout
 import org.projectforge.rest.ui.ValidationError
-import org.projectforge.rest.ui.translate
 import org.projectforge.ui.UILayout
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Controller
@@ -178,6 +175,9 @@ abstract class AbstractDORest<O : ExtendedBaseDO<Int>, B : BaseDao<O>> {
         return RestHelper.markAsDeleted(getBaseDao(), obj, validate(obj))
     }
 
+    /**
+     * The filters are reset and the default returned.
+     */
     @GET
     @Path(RestPaths.FILTER_RESET)
     @Produces(MediaType.APPLICATION_JSON)
