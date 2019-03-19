@@ -4,7 +4,6 @@ import { connect } from 'react-redux';
 import { loadList } from '../../../actions';
 import PageNavigation from '../../../components/base/page/Navigation';
 import LoadingContainer from '../../../components/design/loading-container';
-import { buttonPropType } from '../../../utilities/propTypes';
 import SearchFilter from './SearchFilter';
 
 class ListPage extends Component {
@@ -15,7 +14,7 @@ class ListPage extends Component {
     }
 
     render() {
-        const { loading, title } = this.props;
+        const { loading, ui } = this.props;
 
         /*
         TODO:
@@ -27,7 +26,7 @@ class ListPage extends Component {
 
         return (
             <LoadingContainer loading={loading}>
-                <PageNavigation current={title} />
+                <PageNavigation current={ui.title} />
                 <SearchFilter />
             </LoadingContainer>
         );
@@ -37,8 +36,7 @@ class ListPage extends Component {
 ListPage.propTypes = {
     loading: PropTypes.bool.isRequired,
     load: PropTypes.func.isRequired,
-    layout: PropTypes.shape({
-        actions: PropTypes.arrayOf(PropTypes.shape(buttonPropType)),
+    ui: PropTypes.shape({
         layout: PropTypes.arrayOf(PropTypes.shape({
 
         })),
@@ -48,7 +46,7 @@ ListPage.propTypes = {
 
 const mapStateToProps = state => ({
     loading: state.listPage.loading,
-    layout: state.listPage.layout,
+    ui: state.listPage.ui,
 });
 
 const actions = {
