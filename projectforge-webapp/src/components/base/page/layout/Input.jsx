@@ -14,7 +14,7 @@ class LayoutInput extends Component {
     handleInputChange(event) {
         const { id, changeValue, type } = this.props;
 
-        if (!id) {
+        if (!id || !changeValue) {
             return;
         }
 
@@ -79,7 +79,7 @@ class LayoutInput extends Component {
 }
 
 LayoutInput.propTypes = {
-    changeValue: PropTypes.func.isRequired,
+    changeValue: PropTypes.func,
     data: PropTypes.objectOf(PropTypes.oneOfType([
         PropTypes.string,
         PropTypes.number,
@@ -99,6 +99,7 @@ LayoutInput.propTypes = {
 };
 
 LayoutInput.defaultProps = {
+    changeValue: undefined,
     id: undefined,
     type: 'text',
     values: [],

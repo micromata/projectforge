@@ -84,8 +84,7 @@ EditPage.propTypes = {
     load: PropTypes.func.isRequired,
     ui: PropTypes.shape({}).isRequired,
     error: PropTypes.string,
-    /* eslint-disable-next-line react/forbid-prop-types */
-    data: PropTypes.array,
+    data: PropTypes.shape({}),
     loading: PropTypes.bool,
 };
 
