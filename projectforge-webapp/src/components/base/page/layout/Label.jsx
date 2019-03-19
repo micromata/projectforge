@@ -1,7 +1,7 @@
 import PropTypes from 'prop-types';
 import React from 'react';
-import { Label } from '../../../../design';
-import style from '../../Page.module.scss';
+import { Label } from '../../../design';
+import style from '../Page.module.scss';
 
 function LayoutLabel({ value, for: forComponent }) {
     return <Label for={forComponent} className={style.inputLabel}>{value}</Label>;

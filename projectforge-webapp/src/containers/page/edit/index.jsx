@@ -2,9 +2,9 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import { connect } from 'react-redux';
 import { setAllEditPageFields } from '../../../actions';
-import ActionGroup from '../../../components/base/page/action/ActionGroup';
-import LayoutGroup from '../../../components/base/page/edit/layout/Group';
+import ActionGroup from '../../../components/base/page/action/Group';
 import TabNavigation from '../../../components/base/page/edit/TabNavigation';
+import LayoutGroup from '../../../components/base/page/layout/Group';
 import PageNavigation from '../../../components/base/page/Navigation';
 import { Alert, Button, Container, TabContent, TabPane, } from '../../../components/design';
 import LoadingContainer from '../../../components/design/loading-container';
@@ -91,6 +91,8 @@ class EditPage extends React.Component {
             title,
         } = this.state;
 
+        const { values } = this.props;
+
         if (error) {
             return (
                 <Alert color="danger">
@@ -118,7 +120,7 @@ class EditPage extends React.Component {
                 >
                     <TabPane tabId="edit">
                         <Container fluid>
-                            <LayoutGroup content={layout} />
+                            <LayoutGroup content={layout} values={values} />
                             <ActionGroup actions={actions} />
                         </Container>
                     </TabPane>
@@ -130,9 +132,16 @@ class EditPage extends React.Component {
 
 EditPage.propTypes = {
     updateValues: PropTypes.func.isRequired,
+    values: PropTypes.shape,
 };
 
-const mapStateToProps = () => ({});
+EditPage.defaultProps = {
+    values: {},
+};
+
+const mapStateToProps = state => ({
+    values: state.listPage.values,
+});
 
 const actions = {
     updateValues: setAllEditPageFields,

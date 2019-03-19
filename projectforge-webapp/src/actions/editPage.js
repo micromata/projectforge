@@ -1,7 +1,26 @@
 import { getServiceURL, handleHTTPErrors } from '../utilities/rest';
 
+export const EDIT_PAGE_LOAD_BEGIN = 'EDIT_PAGE_LOAD_BEGIN';
+export const EDIT_PAGE_LOAD_SUCCESS = 'EDIT_PAGE_LOAD_SUCCESS';
+export const EDIT_PAGE_LOAD_FAILURE = 'EDIT_PAGE_LOAD_FAILURE';
+
 export const EDIT_PAGE_FIELD_CHANGE = 'EDIT_PAGE_FIELD_CHANGE';
 export const EDIT_PAGE_ALL_FIELDS_SET = 'EDIT_PAGE_ALL_FIELDS_SET';
+
+export const loadBegin = () => ({ type: EDIT_PAGE_LOAD_BEGIN });
+
+export const loadSuccess = (data, ui) => ({
+    type: EDIT_PAGE_LOAD_SUCCESS,
+    payload: {
+        data,
+        ui,
+    },
+});
+
+export const loadFailure = error => ({
+    type: EDIT_PAGE_LOAD_FAILURE,
+    payload: { error },
+});
 
 export const fieldChanged = (id, newValue) => ({
     type: EDIT_PAGE_FIELD_CHANGE,
@@ -17,6 +36,28 @@ export const allFieldsSet = values => ({
         values,
     },
 });
+
+export const loadEdit = id => (dispatch) => {
+    dispatch(loadBegin());
+
+    const params = {};
+
+    if (id) {
+        params.id = id;
+    }
+
+    return fetch(
+        getServiceURL('books/edit', params),
+        {
+            method: 'GET',
+            credentials: 'include',
+        },
+    )
+        .then(handleHTTPErrors)
+        .then(response => response.json())
+        .then(json => dispatch(loadSuccess(json.data, json.ui)))
+        .catch(error => dispatch(loadFailure(error.message)));
+};
 
 export const updatePageData = () => (dispatch, getState) => {
     const { values } = getState().editPage;

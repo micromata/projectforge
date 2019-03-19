@@ -1,14 +1,21 @@
 import classNames from 'classnames';
 import PropTypes from 'prop-types';
 import React from 'react';
-import revisedRandomId from '../../../../../utilities/revisedRandomId';
-import { Col, FormGroup, Row } from '../../../../design';
-import style from '../../Page.module.scss';
+import revisedRandomId from '../../../../utilities/revisedRandomId';
+import { Col, FormGroup, Row } from '../../../design';
+import style from '../Page.module.scss';
 import LayoutInput from './Input';
 import LayoutLabel from './Label';
 
 // TODO: COLLECT INPUT IN PARENT
-function LayoutGroup({ content, type, length }) {
+function LayoutGroup(
+    {
+        content,
+        type,
+        length,
+        values,
+    },
+) {
     let GroupTag;
     const groupProperties = {};
 
@@ -58,6 +65,7 @@ function LayoutGroup({ content, type, length }) {
                 return (
                     <Tag
                         key={`layout-group-component-${revisedRandomId()}`}
+                        values={values}
                         {...component}
                     />
                 );
@@ -73,12 +81,14 @@ LayoutGroup.propTypes = {
     content: PropTypes.array,
     type: PropTypes.string,
     length: PropTypes.number,
+    values: PropTypes.shape,
 };
 
 LayoutGroup.defaultProps = {
     content: [],
     type: 'container',
     length: undefined,
+    values: {},
 };
 
 export default LayoutGroup;
