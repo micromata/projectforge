@@ -13,7 +13,7 @@ export const categoryPropType = PropTypes.shape({
 export const buttonPropType = PropTypes.shape({
     style: PropTypes.oneOf(['primary', 'secondary', 'success', 'info', 'warning', 'danger', 'link']),
     title: PropTypes.string,
-    id: PropTypes.oneOf(['cancel', 'markAsDeleted', 'save', 'reset', 'search']),
+    id: PropTypes.string,
     handleClick: PropTypes.func,
     type: PropTypes.oneOf(['button', 'checkbox']),
     checked: PropTypes.bool,

@@ -81,7 +81,7 @@ LayoutGroup.propTypes = {
     content: PropTypes.array,
     type: PropTypes.string,
     length: PropTypes.number,
-    data: PropTypes.shape,
+    data: PropTypes.shape({}),
 };
 
 LayoutGroup.defaultProps = {
