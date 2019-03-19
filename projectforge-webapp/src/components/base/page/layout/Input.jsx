@@ -1,7 +1,5 @@
 import PropTypes from 'prop-types';
 import React, { Component } from 'react';
-import { connect } from 'react-redux';
-import { changeEditFormField } from '../../../../actions';
 import revisedRandomId from '../../../../utilities/revisedRandomId';
 import { Col, Input } from '../../../design';
 import style from '../Page.module.scss';
@@ -35,7 +33,7 @@ class LayoutInput extends Component {
 
     render() {
         const {
-            id, type, values, formFieldValues,
+            id, type, values, data,
         } = this.props;
 
         // TODO: VALIDATION
@@ -59,9 +57,9 @@ class LayoutInput extends Component {
         }
 
         if (type === 'checkbox') {
-            inputProps.checked = formFieldValues[id] || false;
+            inputProps.checked = data[id] || false;
         } else {
-            inputProps.value = formFieldValues[id] || '';
+            inputProps.value = data[id] || '';
         }
 
         return (
@@ -82,7 +80,7 @@ class LayoutInput extends Component {
 
 LayoutInput.propTypes = {
     changeValue: PropTypes.func.isRequired,
-    formFieldValues: PropTypes.objectOf(PropTypes.oneOfType([
+    data: PropTypes.objectOf(PropTypes.oneOfType([
         PropTypes.string,
         PropTypes.number,
         PropTypes.bool,
@@ -106,12 +104,4 @@ LayoutInput.defaultProps = {
     values: [],
 };
 
-const mapStateToProps = state => ({
-    formFieldValues: state.editPage.values,
-});
-
-const actions = {
-    changeValue: changeEditFormField,
-};
-
-export default connect(mapStateToProps, actions)(LayoutInput);
+export default LayoutInput;

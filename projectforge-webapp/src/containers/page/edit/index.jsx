@@ -1,14 +1,13 @@
 import PropTypes from 'prop-types';
 import React from 'react';
 import { connect } from 'react-redux';
-import { setAllEditPageFields } from '../../../actions';
+import { loadEditPage, setAllEditPageFields } from '../../../actions';
 import ActionGroup from '../../../components/base/page/action/Group';
 import TabNavigation from '../../../components/base/page/edit/TabNavigation';
 import LayoutGroup from '../../../components/base/page/layout/Group';
 import PageNavigation from '../../../components/base/page/Navigation';
-import { Alert, Button, Container, TabContent, TabPane, } from '../../../components/design';
+import { Alert, Container, TabContent, TabPane, } from '../../../components/design';
 import LoadingContainer from '../../../components/design/loading-container';
-import { getServiceURL, handleHTTPErrors } from '../../../utilities/rest';
 import style from '../../ProjectForge.module.scss';
 
 class EditPage extends React.Component {
@@ -16,57 +15,17 @@ class EditPage extends React.Component {
         super(props);
 
         this.state = {
-            loading: true,
             activeTab: 'edit',
-            error: undefined,
-            layout: [],
-            actions: [],
-            title: 'Edit',
         };
 
         this.toggleTab = this.toggleTab.bind(this);
-        this.fetchLayout = this.fetchLayout.bind(this);
     }
 
     componentDidMount() {
-        this.fetchLayout();
-    }
+        const { load } = this.props;
 
-    fetchLayout() {
-        this.setState({
-            loading: true,
-            error: undefined,
-            layout: [],
-            actions: [],
-            title: '',
-        });
-
-        fetch(
-            getServiceURL('books/edit', { id: 170 }),
-            {
-                method: 'GET',
-                credentials: 'include',
-            },
-        )
-            .then(handleHTTPErrors)
-            .then(response => response.json())
-            .then((json) => {
-                const { updateValues } = this.props;
-
-                updateValues({
-                    id: 170,
-                    ...json.data,
-                });
-
-                this.setState({
-                    loading: false,
-                    ...json.ui,
-                });
-            })
-            .catch(error => this.setState({
-                error,
-                loading: false,
-            }));
+        // TODO ADD ID
+        load(170);
     }
 
     toggleTab(event) {
@@ -82,33 +41,24 @@ class EditPage extends React.Component {
     }
 
     render() {
-        const {
-            actions,
-            activeTab,
-            error,
-            layout,
-            loading,
-            title,
-        } = this.state;
-
-        const { values } = this.props;
+        const { activeTab } = this.state;
+        const { loading, error, ui, data } = this.props;
 
         if (error) {
             return (
                 <Alert color="danger">
                     <h4>[Failed to Fetch Design]</h4>
                     <p>[Description Here]</p>
-                    <Button onClick={this.fetchLayout}>[Retry]</Button>
                 </Alert>
             );
         }
 
         return (
             <LoadingContainer loading={loading}>
-                <PageNavigation current={title} />
+                <PageNavigation current={ui.title} />
                 <TabNavigation
                     tabs={{
-                        edit: title,
+                        edit: ui.title,
                         history: '[History]',
                     }}
                     toggleTab={this.toggleTab}
@@ -120,8 +70,8 @@ class EditPage extends React.Component {
                 >
                     <TabPane tabId="edit">
                         <Container fluid>
-                            <LayoutGroup content={layout} values={values} />
-                            <ActionGroup actions={actions} />
+                            <LayoutGroup content={ui.layout} data={data} />
+                            <ActionGroup actions={ui.actions} />
                         </Container>
                     </TabPane>
                 </TabContent>
@@ -131,19 +81,29 @@ class EditPage extends React.Component {
 }
 
 EditPage.propTypes = {
-    updateValues: PropTypes.func.isRequired,
-    values: PropTypes.shape,
+    load: PropTypes.func.isRequired,
+    ui: PropTypes.shape({}).isRequired,
+    error: PropTypes.string,
+    /* eslint-disable-next-line react/forbid-prop-types */
+    data: PropTypes.array,
+    loading: PropTypes.bool,
 };
 
 EditPage.defaultProps = {
-    values: {},
+    data: [],
+    error: undefined,
+    loading: false,
 };
 
 const mapStateToProps = state => ({
-    values: state.listPage.values,
+    ui: state.editPage.ui,
+    error: state.editPage.error,
+    loading: state.editPage.loading,
+    data: state.editPage.data,
 });
 
 const actions = {
+    load: loadEditPage,
     updateValues: setAllEditPageFields,
 };
 

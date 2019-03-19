@@ -13,7 +13,7 @@ function LayoutGroup(
         content,
         type,
         length,
-        values,
+        data,
     },
 ) {
     let GroupTag;
@@ -65,7 +65,7 @@ function LayoutGroup(
                 return (
                     <Tag
                         key={`layout-group-component-${revisedRandomId()}`}
-                        values={values}
+                        data={data}
                         {...component}
                     />
                 );
@@ -81,14 +81,14 @@ LayoutGroup.propTypes = {
     content: PropTypes.array,
     type: PropTypes.string,
     length: PropTypes.number,
-    values: PropTypes.shape,
+    data: PropTypes.shape,
 };
 
 LayoutGroup.defaultProps = {
     content: [],
     type: 'container',
     length: undefined,
-    values: {},
+    data: {},
 };
 
 export default LayoutGroup;
