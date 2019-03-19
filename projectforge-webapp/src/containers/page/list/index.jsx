@@ -9,7 +9,25 @@ import LoadingContainer from '../../../components/design/loading-container';
 import SearchFilter from './SearchFilter';
 
 class ListPage extends React.Component {
+    constructor(props) {
+        super(props);
+
+        this.loadInitialList = this.loadInitialList.bind(this);
+    }
+
     componentDidMount() {
+        this.loadInitialList();
+    }
+
+    componentDidUpdate({ match: prevMatch }) {
+        const { match } = this.props;
+
+        if (prevMatch.params.category !== match.params.category) {
+            this.loadInitialList();
+        }
+    }
+
+    loadInitialList() {
         const { load, match } = this.props;
 
         load(match.params.category);
