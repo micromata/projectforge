@@ -27,7 +27,7 @@ const reducer = (state = initialState, { type, payload }) => {
             };
         case LIST_PAGE_LOAD_SUCCESS:
             return {
-                ...initialState,
+                ...state,
                 loading: false,
                 filter: payload.filter,
                 ui: payload.ui,
@@ -35,7 +35,7 @@ const reducer = (state = initialState, { type, payload }) => {
             };
         case LIST_PAGE_LOAD_FAILURE:
             return {
-                ...initialState,
+                ...state,
                 loading: false,
                 error: payload.error,
             };
