@@ -1,7 +1,6 @@
 import classNames from 'classnames';
 import PropTypes from 'prop-types';
 import React from 'react';
-import revisedRandomId from '../../../../utilities/revisedRandomId';
 import { Col, FormGroup, Row } from '../../../design';
 import style from '../Page.module.scss';
 import LayoutInput from './Input';
@@ -69,10 +68,10 @@ function LayoutGroup(
 
                 return (
                     <Tag
-                        key={`layout-group-component-${revisedRandomId()}`}
                         changeDataField={changeDataField}
                         data={data}
                         {...component}
+                        key={`layout-group-component-${component.key}`}
                     />
                 );
             })}
