@@ -1,5 +1,6 @@
 package org.projectforge.rest
 
+import com.google.gson.annotations.SerializedName
 import org.projectforge.business.DOUtils
 import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.persistence.api.BaseDao
@@ -17,13 +18,34 @@ import javax.ws.rs.core.Context
 import javax.ws.rs.core.MediaType
 import javax.ws.rs.core.Response
 
+/**
+ * This is the base class for all fronted functionality regarding query, editing etc. It also serves layout
+ * data for the frontend.
+ * <br>
+ * For each entity type such as users, addresses, timesheets etc. an own class is inherited for doing customizations.
+ * It's recommended for the frontend to develop generic list and edit pages by using the layout information served
+ * by these rest services.
+ */
 @Controller
 abstract class AbstractDORest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F : BaseSearchFilter> {
     private val log = org.slf4j.LoggerFactory.getLogger(AbstractDORest::class.java)
 
+    /**
+     * Contains the layout data returned for the frontend regarding edit pages.
+     */
     private data class EditLayoutData(val data: Any?, val ui: UILayout?)
 
-    private data class InitialListData<O : ExtendedBaseDO<Int>>(val ui: UILayout?, val dataList: List<O>, val filter: BaseSearchFilter)
+    /**
+     * Contains the data including the result list (matching the filter) served by getList methods ([getInitialList] and [getList]).
+     */
+    private data class ListData<O : ExtendedBaseDO<Int>>(
+            @SerializedName("result-set")
+            val resultSet: List<O>)
+
+    /**
+     * Contains the data, layout and filter settings served by [getInitialList].
+     */
+    private data class InitialListData<O : ExtendedBaseDO<Int>>(val ui: UILayout?, val data: ListData<O>, val filter: BaseSearchFilter)
 
     @Autowired
     open var accessChecker: AccessChecker? = null
@@ -39,7 +61,7 @@ abstract class AbstractDORest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F : BaseS
     abstract fun newBaseDO(): O
 
     inline fun <reified F> getFilterClass(): Class<F> {
-      return F::class.java
+        return F::class.java
     }
 
     open protected fun validate(obj: O): List<ValidationError>? {
@@ -51,7 +73,7 @@ abstract class AbstractDORest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F : BaseS
      * should support the clone functionality.
      * @return false at default, if clone is not supported, otherwise true.
      */
-    open fun prepareClone(obj: O) : Boolean {
+    open fun prepareClone(obj: O): Boolean {
         return false
     }
 
@@ -67,7 +89,8 @@ abstract class AbstractDORest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F : BaseS
         val list = RestHelper.getList(getBaseDao(), filter)
         list.forEach { processItemBeforeExport(it) }
         val layout = Layout.getListLayout(getBaseDao())
-        return RestHelper.buildResponse(InitialListData(ui = layout, dataList = list, filter = filter))
+        val listData = ListData(resultSet = list)
+        return RestHelper.buildResponse(InitialListData(ui = layout, data = listData, filter = filter))
     }
 
     /**
@@ -77,10 +100,11 @@ abstract class AbstractDORest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F : BaseS
     @Path(RestPaths.LIST)
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    fun <O>getList(filter: F): Response {
+    fun <O> getList(filter: F): Response {
         val list = RestHelper.getList(getBaseDao(), filter)
         list.forEach { processItemBeforeExport(it) }
-        return RestHelper.buildResponse(list)
+        val listData = ListData(resultSet = list)
+        return RestHelper.buildResponse(listData)
     }
 
     /**
@@ -145,7 +169,7 @@ abstract class AbstractDORest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F : BaseS
 
     /**
      * Will be called by clone button. Sets the id of the form data object to null and deleted to false.
-     * @return The clone object (id is null and deleted = false)
+     * @return The clone object ([BaseDO.getId] is null and [ExtendedBaseDO.isDeleted] = false)
      */
     @POST
     @Path("clone")
