@@ -66,7 +66,9 @@ class LayoutUtils {
          * @see HibernateUtils.getPropertyLength
          */
         private fun processAllElements(elements: List<Any>, clazz: Class<*>) {
+            var counter = 0
             elements.forEach {
+                if (it is UIElement) it.key = ++counter
                 when (it) {
                     is UIInput -> {
                         val maxLength = getMaxLength(clazz, it.maxLength, it.id, it)

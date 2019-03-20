@@ -1,4 +1,11 @@
 package org.projectforge.ui
 
-open class UIElement(val type: UIElementType) {
+/**
+ * Base class of most UI elements.
+ */
+open class UIElement(val type: UIElementType,
+                     /**
+                      * The key is an unique id, used e. g. by React for lists.
+                      */
+                     var key : Int? = null) {
 }
