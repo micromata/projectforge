@@ -7,5 +7,5 @@ open class UIElement(val type: UIElementType,
                      /**
                       * The key is an unique id, used e. g. by React for lists.
                       */
-                     var key : Int? = null) {
+                     var key : String? = null) {
 }
