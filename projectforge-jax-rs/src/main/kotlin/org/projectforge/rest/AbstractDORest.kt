@@ -83,17 +83,6 @@ abstract class AbstractDORest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F : BaseS
         return RestHelper.buildResponse(list)
     }
 
-    @GET
-    @Path("list-test")
-    @Produces(MediaType.APPLICATION_JSON)
-    fun getListTest(@QueryParam("search") search: String?): Response {
-        val filter: BaseSearchFilter = BaseSearchFilter()
-        filter.searchString = search
-        val list = RestHelper.getList(getBaseDao(), filter)
-        list.forEach { processItemBeforeExport(it) }
-        return RestHelper.buildResponse(list)
-    }
-
     /**
      * Gets the item from the database.
      * @param id Id of the item to get or null, for new items (null  will be returned)
