@@ -33,7 +33,7 @@ const catchError = dispatch => error => dispatch(userLoginFailure(error.message)
 
 export const loadUserStatus = () => (dispatch) => {
     dispatch(userLoginBegin());
-console.log('hurzel')
+
     return fetch(
         getServiceURL('../rs/userStatus'),
         {
