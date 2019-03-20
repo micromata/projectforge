@@ -3,6 +3,7 @@ import React from 'react';
 import { connect } from 'react-redux';
 import { Link } from 'react-router-dom';
 import { loadList } from '../../../actions';
+import LayoutGroup from '../../../components/base/page/layout/Group';
 import PageNavigation from '../../../components/base/page/Navigation';
 import { Button, NavItem } from '../../../components/design';
 import LoadingContainer from '../../../components/design/loading-container';
@@ -34,7 +35,12 @@ class ListPage extends React.Component {
     }
 
     render() {
-        const { loading, ui, match } = this.props;
+        const {
+            loading,
+            ui,
+            match,
+            data,
+        } = this.props;
 
         /*
         TODO:
@@ -46,12 +52,16 @@ class ListPage extends React.Component {
             <LoadingContainer loading={loading}>
                 <PageNavigation current={ui.title}>
                     <NavItem>
-                        <Button tag={Link} to={`${match.params.category}/edit`}>
+                        <Button tag={Link} to={`/${match.params.category}/edit`}>
                             +
                         </Button>
                     </NavItem>
                 </PageNavigation>
                 <SearchFilter />
+                <LayoutGroup
+                    content={ui.layout}
+                    data={data}
+                />
             </LoadingContainer>
         );
     }
@@ -67,11 +77,13 @@ ListPage.propTypes = {
         })),
         title: PropTypes.string,
     }).isRequired,
+    data: PropTypes.shape({}).isRequired,
 };
 
 const mapStateToProps = state => ({
     loading: state.listPage.loading,
     ui: state.listPage.ui,
+    data: state.listPage.data,
 });
 
 const actions = {

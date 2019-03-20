@@ -65,7 +65,7 @@ export const loadList = category => (dispatch) => {
     )
         .then(handleHTTPErrors)
         .then(response => response.json())
-        .then(json => dispatch(loadSuccess(json.filter, json.ui, json.dataList)))
+        .then(json => dispatch(loadSuccess(json.filter, json.ui, json.data)))
         .catch(error => dispatch(loadFailure(error.message)));
 };
 
