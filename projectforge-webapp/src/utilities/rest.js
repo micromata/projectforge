@@ -15,18 +15,6 @@ export const getServiceURL = (serviceURL, params) => {
     return `${baseURL}/${serviceURL}`;
 };
 
-// ATTENTION: Only for the Login Process.
-export const getLoginHeaders = (username, password) => ({
-    'Authentication-Username': username,
-    'Authentication-Password': password,
-});
-
-// ATTENTION: For everything except the Login Process.
-export const getAuthenticationHeaders = (userId, token) => ({
-    'Authentication-User-Id': userId,
-    'Authentication-Token': token,
-});
-
 export const handleHTTPErrors = (response) => {
     if (!response.ok) {
         throw Error(response.statusText);
