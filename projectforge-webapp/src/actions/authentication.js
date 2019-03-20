@@ -1,5 +1,3 @@
-import cookies from 'react-cookies';
-
 import { getServiceURL, handleHTTPErrors, } from '../utilities/rest';
 
 export const USER_LOGIN_BEGIN = 'USER_LOGIN_BEGIN';
@@ -31,19 +29,9 @@ export const userLogout = () => ({
     type: USER_LOGOUT,
 });
 
-const KEEP_SIGNED_IN_COOKIE = 'KEEP_SIGNED_IN';
+const catchError = dispatch => error => dispatch(userLoginFailure(error.message));
 
-const removeCookies = () => {
-    cookies.remove(KEEP_SIGNED_IN_COOKIE);
-};
-
-const catchError = dispatch => (error) => {
-    removeCookies();
-
-    dispatch(userLoginFailure(error.message));
-};
-
-const loadUserStatus = (dispatch) => {
+export const loadUserStatus = () => (dispatch) => {
     dispatch(userLoginBegin());
 
     return fetch(
@@ -79,28 +67,8 @@ export const login = (username, password, keepSignedIn) => (dispatch) => {
         },
     )
         .then(handleHTTPErrors)
-        .then(() => {
-            if (keepSignedIn) {
-                cookies.save(KEEP_SIGNED_IN_COOKIE, true);
-            }
-
-            loadUserStatus(dispatch);
-        })
+        .then(() => loadUserStatus()(dispatch))
         .catch(catchError(dispatch));
 };
 
-export const logout = () => (dispatch) => {
-    removeCookies();
-
-    dispatch(userLogout());
-};
-
-export const loadUserStatusIfSignedIn = () => (dispatch) => {
-    const keepSignedIn = cookies.load(KEEP_SIGNED_IN_COOKIE);
-
-    if (!keepSignedIn) {
-        return null;
-    }
-
-    return loadUserStatus(dispatch);
-};
+export const logout = () => dispatch => dispatch(userLogout());

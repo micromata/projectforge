@@ -2,7 +2,7 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import { connect } from 'react-redux';
 import { Router, Route, Switch } from 'react-router-dom';
-import { loadUserStatusIfSignedIn, loginUser, logoutUser } from '../actions';
+import { loadUserStatus, loginUser, logoutUser } from '../actions';
 import LoginView from '../components/authentication/LoginView';
 import Footer from '../components/base/footer';
 import Navigation from '../components/base/navigation';
@@ -14,9 +14,9 @@ import ListPage from './page/list';
 
 class ProjectForge extends React.Component {
     componentDidMount() {
-        const { loadUserStatusIfSignedIn: loadUserStatus } = this.props;
+        const { loadUserStatus: checkAuthentication } = this.props;
 
-        loadUserStatus();
+        checkAuthentication();
     }
 
     render() {
@@ -302,7 +302,7 @@ class ProjectForge extends React.Component {
 ProjectForge.propTypes = {
     loginUser: PropTypes.func.isRequired,
     logoutUser: PropTypes.func.isRequired,
-    loadUserStatusIfSignedIn: PropTypes.func.isRequired,
+    loadUserStatus: PropTypes.func.isRequired,
     loginInProgress: PropTypes.bool.isRequired,
     loginError: PropTypes.oneOfType([PropTypes.string, PropTypes.object]),
     user: PropTypes.shape({}),
@@ -324,7 +324,7 @@ const mapStateToProps = state => ({
 
 const actions = {
     loginUser,
-    loadUserStatusIfSignedIn,
+    loadUserStatus,
     logoutUser,
 };
 
