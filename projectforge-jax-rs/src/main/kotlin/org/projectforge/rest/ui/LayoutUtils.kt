@@ -28,6 +28,10 @@ class LayoutUtils {
          */
         fun process(layout: UILayout, clazz: Class<*>): UILayout {
             processAllElements(layout.getAllElements(), clazz)
+            var counter = 0
+            layout.namedContainers.forEach {
+                it.key = "nc-${++counter}"
+            }
             layout.title = translate(layout.title)
             return layout
         }
@@ -68,7 +72,7 @@ class LayoutUtils {
         private fun processAllElements(elements: List<Any>, clazz: Class<*>) {
             var counter = 0
             elements.forEach {
-                if (it is UIElement) it.key = ++counter
+                if (it is UIElement) it.key = "el-${++counter}"
                 when (it) {
                     is UIInput -> {
                         val maxLength = getMaxLength(clazz, it.maxLength, it.id, it)
