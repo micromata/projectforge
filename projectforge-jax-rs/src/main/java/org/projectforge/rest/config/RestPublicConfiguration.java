@@ -16,6 +16,5 @@ public class RestPublicConfiguration extends ResourceConfig
 
     // Kotlin stuff:
     register(SimpleLoginRest.class);
-    register(UserStatusRest.class);
   }
 }
