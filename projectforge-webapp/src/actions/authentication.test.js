@@ -210,7 +210,7 @@ describe('check session', () => {
     it('creates USER_LOGIN_SUCCESS', () => {
         fetchMock
         // TODO: ADD AUTHENTICATION TEST ENDPOINT
-            .getOnce('/publicRest/userStatus', 200)
+            .getOnce('/rs/userStatus', 200)
             .catch((url, a, b) => {
                 throw new Error('mock failed');
             });

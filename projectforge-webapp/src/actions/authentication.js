@@ -45,9 +45,9 @@ const catchError = dispatch => (error) => {
 
 const loadUserStatus = (dispatch) => {
     dispatch(userLoginBegin());
-
+console.log('hurzel')
     return fetch(
-        getServiceURL('../publicRest/userStatus'),
+        getServiceURL('../rs/userStatus'),
         {
             method: 'GET',
             credentials: 'include',

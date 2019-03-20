@@ -27,9 +27,11 @@ import org.projectforge.business.login.LoginProtection;
 import org.projectforge.business.multitenancy.TenantRegistry;
 import org.projectforge.business.multitenancy.TenantRegistryMap;
 import org.projectforge.business.user.UserGroupCache;
+import org.projectforge.business.user.filter.CookieService;
 import org.projectforge.business.user.filter.UserFilter;
 import org.projectforge.business.user.service.UserService;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
+import org.projectforge.framework.persistence.user.api.UserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.utils.NumberHelper;
 import org.projectforge.rest.Authentication;
@@ -60,6 +62,9 @@ public class RestUserFilter implements Filter {
   @Autowired
   private UserService userService;
 
+  @Autowired
+  private CookieService cookieService;
+
   @Override
   public void init(final FilterConfig filterConfig) throws ServletException {
     springContext = WebApplicationContextUtils.getRequiredWebApplicationContext(filterConfig.getServletContext());
@@ -81,7 +86,12 @@ public class RestUserFilter implements Filter {
   public void doFilter(final ServletRequest request, final ServletResponse response, final FilterChain chain)
           throws IOException,
           ServletException {
-    final HttpServletRequest req = (HttpServletRequest) request;
+    if (UserFilter.isUpdateRequiredFirst() == true) {
+      log.warn("Update of the system is required first. Login via Rest not available. Administrators login required.");
+      return;
+    }
+    HttpServletRequest req = (HttpServletRequest) request;
+    HttpServletResponse resp = (HttpServletResponse) response;
     String userString = getAttribute(req, Authentication.AUTHENTICATION_USER_ID);
     final LoginProtection loginProtection = LoginProtection.instance();
     final String clientIpAddress = request.getRemoteAddr();
@@ -131,6 +141,15 @@ public class RestUserFilter implements Filter {
         // Try to get the user by session id:
         user = UserFilter.getUser(req);
         if (user == null) {
+          UserContext userContext = cookieService.checkStayLoggedIn(req, resp);
+          if (userContext != null) {
+            if (log.isDebugEnabled() == true) {
+              log.debug("User's stay logged-in cookie found: " + req.getRequestURI());
+            }
+            user = userContext.getUser();
+          }
+        }
+        if (user == null) {
           log.error("Neither "
                   + Authentication.AUTHENTICATION_USER_ID
                   + " nor "
@@ -144,7 +163,6 @@ public class RestUserFilter implements Filter {
 
     if (user == null) {
       loginProtection.incrementFailedLoginTimeOffset(userString, clientIpAddress);
-      final HttpServletResponse resp = (HttpServletResponse) response;
       resp.sendError(HttpServletResponse.SC_UNAUTHORIZED);
       return;
     }
