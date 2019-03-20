@@ -13,7 +13,7 @@ const initialState = {
     loading: false,
     error: undefined,
     ui: {},
-    data: [],
+    data: {},
     category: '',
 };
 

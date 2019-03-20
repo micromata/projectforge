@@ -6,6 +6,7 @@ import { Col, FormGroup, Row } from '../../../design';
 import style from '../Page.module.scss';
 import LayoutInput from './Input';
 import LayoutLabel from './Label';
+import LayoutTable from './Table';
 
 // TODO: COLLECT INPUT IN PARENT
 function LayoutGroup(
@@ -58,6 +59,9 @@ function LayoutGroup(
                     case 'row':
                     case 'col':
                         Tag = LayoutGroup;
+                        break;
+                    case 'table':
+                        Tag = LayoutTable;
                         break;
                     default:
                         Tag = LayoutGroup;
