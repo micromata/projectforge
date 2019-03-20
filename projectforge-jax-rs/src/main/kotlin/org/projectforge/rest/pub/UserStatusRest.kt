@@ -5,6 +5,9 @@ import org.projectforge.ProjectForgeVersion
 import org.projectforge.business.user.filter.CookieService
 import org.projectforge.business.user.filter.UserFilter
 import org.projectforge.business.user.service.UserService
+import org.projectforge.framework.time.DateFormats
+import org.projectforge.framework.time.DateTimeFormatter
+import org.projectforge.framework.time.TimeNotation
 import org.projectforge.rest.RestHelper
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationContext
@@ -27,11 +30,21 @@ open class UserStatusRest {
     data class UserData(var username: String? = null,
                         var organization: String? = null,
                         var fullname: String? = null,
+                        @SerializedName("last-name")
+                        var lastName: String? = null,
+                        @SerializedName("first-name")
+                        var firstName: String? = null,
                         var locale: Locale? = null,
                         @SerializedName("timezone")
                         var timeZone: String? = null,
                         @SerializedName("timezone-displayname")
-                        var timeZoneDisplayName: String? = null)
+                        var timeZoneDisplayName: String? = null,
+                        @SerializedName("date-format")
+                        var dateFormat: String? = null,
+                        @SerializedName("first-day-of-week")
+                        var firstDayOfWeek : Int? = null,
+                        @SerializedName("time-notation")
+                        var timeNotation : TimeNotation? = null)
 
     data class SystemData(var appname: String? = null,
                           var version: String? = null,
@@ -66,9 +79,15 @@ open class UserStatusRest {
         val userData = UserData(username = user.username,
                 organization = user.organization,
                 fullname = user.fullname,
+                firstName = user.firstname,
+                lastName = user.lastname,
                 locale = user.locale,
                 timeZone = user.timeZone,
-                timeZoneDisplayName = user.timeZoneDisplayName)
+                timeZoneDisplayName = user.timeZoneDisplayName,
+                timeNotation = user.timeNotation,
+                dateFormat = user.dateFormat,
+                firstDayOfWeek = user.firstDayOfWeek)
+
         val systemData = SystemData(appname = ProjectForgeVersion.APP_ID,
                 version = ProjectForgeVersion.VERSION_STRING,
                 releaseTimestamp = ProjectForgeVersion.RELEASE_TIMESTAMP,
