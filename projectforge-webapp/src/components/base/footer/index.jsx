@@ -14,10 +14,8 @@ function Footer({ version, updateAvailable }) {
                         target="_blank"
                         rel="noopener noreferrer"
                     >
-                        &copy;2001-2019 by Kai Reinhard
+                        &copy;2001-2019{' '}
                     </a>
-                </li>
-                <li>
                     <a
                         href="https://www.micromata.com"
                         title="Micromata GmbH"
@@ -25,6 +23,16 @@ function Footer({ version, updateAvailable }) {
                         rel="noopener noreferrer"
                     >
                         Micromata GmbH
+                    </a>
+                </li>
+                <li>
+                    <a
+                        href="https://www.projectforge.org"
+                        title="www.projectforge.org"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                    >
+                        www.projectforge.org
                     </a>
                 </li>
             </ul>

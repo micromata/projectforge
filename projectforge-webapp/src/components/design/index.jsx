@@ -26,6 +26,7 @@ export {
     Row,
     Spinner,
     TabContent,
+    Table,
     TabPane,
     UncontrolledDropdown,
 } from 'reactstrap';

@@ -21,16 +21,11 @@ class BookLayout {
                             .add(UITableColumn("title", "@"))
                             .add(UITableColumn("keywords", "@"))
                             .add(UITableColumn("lendOutBy", "@")))
-                    .addAction(UIButton("reset", "Rücksetzen", UIButtonStyle.DANGER))
-                    .addAction(UIButton("search", "Suchen", UIButtonStyle.PRIMARY))
-                    .add(UINamedContainer("filter-options")
-                            .add(UIGroup()
-                                    .add(UICheckbox("filter.present", label = "vorhanden"))
-                                    .add(UICheckbox("filter.missed", label = "vermisst"))
-                                    .add(UICheckbox("filter.disposed", label = "entsorgt"))
-                                    .add(UICheckbox("filter.onlyDeleted", label = "nur gelöscht"))
-                                    .add(UICheckbox("filter.searchHistory", label = "Historie"))))
-            return LayoutUtils.process(layout, BookDO::class.java)
+            LayoutUtils.addListFilterContainer(layout,
+                    UICheckbox("filter.present", label = "book.status.present"),
+                    UICheckbox("filter.missed", label = "book.status.missed"),
+                    UICheckbox("filter.disposed", label = "book.status.disposed"))
+            return LayoutUtils.processListPage(layout, BookDO::class.java)
         }
 
         fun createEditLayout(book: BookDO?): UILayout {
@@ -50,7 +45,7 @@ class BookLayout {
                                     .add(UIGroup().add("@", UIInput("publisher")))
                                     .add(UIGroup().add("@", UIInput("editor")))))
                     .add(UIGroup()
-                            .add(UILabel(translate("book.lending")))
+                            .add(UILabel("book.lending"))
                             .add(UICustomized("lendOutComponent")))
                     .add(UIGroup().add("@", UITextarea("lendOutComment")))
                     .add(UIGroup().add("@", UITextarea("abstractText")))
