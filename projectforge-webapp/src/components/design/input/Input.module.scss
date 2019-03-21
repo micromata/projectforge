@@ -31,6 +31,7 @@
       outline: none;
 
       @include transition(border-bottom .3s);
+
     }
 
     &.active {
@@ -44,6 +45,41 @@
         border-bottom: 1px solid #000;
       }
     }
+
+    @mixin color($color) {
+      .text {
+        color: $color;
+      }
+
+      .input {
+        border-bottom-color: $color;
+      }
+    }
+
+    &.primary {
+      @include color(#007bff);
+    }
+
+    &.secondary {
+      @include color(#6c757d);
+    }
+
+    &.success {
+      @include color(#28a745);
+    }
+
+    &.danger {
+      @include color(#dc3545);
+    }
+
+    &.warning {
+      @include color(#ffc107);
+    }
+
+    &.info {
+      @include color(#17a2b8);
+    }
+
   }
 
   .subLine {

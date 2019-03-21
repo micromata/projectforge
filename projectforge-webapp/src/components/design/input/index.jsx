@@ -10,6 +10,7 @@ function Input(
         type,
         className,
         additionalLabel,
+        color,
         ...props
     },
 ) {
@@ -20,7 +21,7 @@ function Input(
     return (
         <div className={classNames(style.formGroup, className)}>
             <label
-                className={classNames(style.label, { [style.active]: active })}
+                className={classNames(style.label, { [style.active]: active }, style[color])}
                 htmlFor={id}
             >
                 <input
@@ -47,6 +48,8 @@ Input.propTypes = {
     type: PropTypes.string,
     className: PropTypes.string,
     additionalLabel: PropTypes.string,
+    color: PropTypes.oneOf(['primary', 'secondary', 'success', 'danger', 'warning', 'info']),
+    validationMessage: PropTypes.string,
 };
 
 Input.defaultProps = {
@@ -54,6 +57,8 @@ Input.defaultProps = {
     value: undefined,
     className: undefined,
     additionalLabel: undefined,
+    color: undefined,
+    validationMessage: undefined,
 };
 
 export default Input;
