@@ -45,32 +45,30 @@ class LayoutUtils {
          * Auto-detects max-length of input fields (by referring the @Column annotations of clazz) and
          * i18n-keys (by referring the [org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn] annotations of clazz).
          * <br>
-         * Searches for named container "filter-options" and call [addListDefaultOptions] for the first group of this container if found.
-         * If no named container called "filter-options" is found, it will be attached automatically.
+         * If no named container called "filter-options" is found, it will be attached automatically by calling [addListFilterContainer]
          */
         fun processListPage(layout: UILayout, clazz: Class<*>): UILayout {
             var found = false
             layout.namedContainers.forEach {
                 if (it.id == "filter-options") {
                     found = true // Container found. Don't attach it automatically.
-                    if (it.content.size > 0) {
-                        val child = it.content[0]
-                        if (child is UIGroup) {
-                            addListDefaultOptions(child)
-                        }
-                    }
                 }
             }
             if (!found) {
-                val filterGroup = UIGroup()
-                addListDefaultOptions(filterGroup)
-                layout.add(UINamedContainer("filter-options").add(filterGroup))
+                addListFilterContainer(layout)
             }
             layout
                     .addAction(UIButton("reset", style = UIButtonStyle.DANGER))
                     .addAction(UIButton("search", style = UIButtonStyle.PRIMARY))
             process(layout, clazz)
             return layout
+        }
+
+        fun addListFilterContainer(layout: UILayout, vararg elements: UIElement, autoAppendDefaultSettings: Boolean? = true) {
+            val filterGroup = UIGroup()
+            elements.forEach { filterGroup.add(it) }
+            if (autoAppendDefaultSettings == true) addListDefaultOptions(filterGroup)
+            layout.add(UINamedContainer("filter-options").add(filterGroup))
         }
 
         /**

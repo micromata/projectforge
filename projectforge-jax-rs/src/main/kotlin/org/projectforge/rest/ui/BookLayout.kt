@@ -21,11 +21,10 @@ class BookLayout {
                             .add(UITableColumn("title", "@"))
                             .add(UITableColumn("keywords", "@"))
                             .add(UITableColumn("lendOutBy", "@")))
-                    .add(UINamedContainer("filter-options")
-                            .add(UIGroup()
-                                    .add(UICheckbox("filter.present", label = "book.status.present"))
-                                    .add(UICheckbox("filter.missed", label = "book.status.missed"))
-                                    .add(UICheckbox("filter.disposed", label = "book.status.disposed"))))
+            LayoutUtils.addListFilterContainer(layout,
+                    UICheckbox("filter.present", label = "book.status.present"),
+                    UICheckbox("filter.missed", label = "book.status.missed"),
+                    UICheckbox("filter.disposed", label = "book.status.disposed"))
             return LayoutUtils.processListPage(layout, BookDO::class.java)
         }
 
