@@ -1,11 +1,11 @@
 import classNames from 'classnames';
 import PropTypes from 'prop-types';
 import React from 'react';
-import revisedRandomId from '../../../../utilities/revisedRandomId';
 import { Col, FormGroup, Row } from '../../../design';
 import style from '../Page.module.scss';
 import LayoutInput from './Input';
 import LayoutLabel from './Label';
+import LayoutTable from './Table';
 
 // TODO: COLLECT INPUT IN PARENT
 function LayoutGroup(
@@ -59,16 +59,19 @@ function LayoutGroup(
                     case 'col':
                         Tag = LayoutGroup;
                         break;
+                    case 'table':
+                        Tag = LayoutTable;
+                        break;
                     default:
                         Tag = LayoutGroup;
                 }
 
                 return (
                     <Tag
-                        key={`layout-group-component-${revisedRandomId()}`}
                         changeDataField={changeDataField}
                         data={data}
                         {...component}
+                        key={`layout-group-component-${component.key}`}
                     />
                 );
             })}

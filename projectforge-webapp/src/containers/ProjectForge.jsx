@@ -1,21 +1,22 @@
 import PropTypes from 'prop-types';
 import React from 'react';
 import { connect } from 'react-redux';
-import { BrowserRouter as Router, Switch, Route } from 'react-router-dom';
-import { loadUserStatusIfSignedIn, loginUser, logoutUser } from '../actions';
+import { Router, Route, Switch } from 'react-router-dom';
+import { loadUserStatus, loginUser, logoutUser } from '../actions';
 import LoginView from '../components/authentication/LoginView';
 import Footer from '../components/base/footer';
 import Navigation from '../components/base/navigation';
 import TopBar from '../components/base/topbar';
 import { Container } from '../components/design';
+import history from '../utilities/history';
 import EditPage from './page/edit';
 import ListPage from './page/list';
 
 class ProjectForge extends React.Component {
     componentDidMount() {
-        const { loadUserStatusIfSignedIn: loadUserStatus } = this.props;
+        const { loadUserStatus: checkAuthentication } = this.props;
 
-        loadUserStatus();
+        checkAuthentication();
     }
 
     render() {
@@ -31,7 +32,7 @@ class ProjectForge extends React.Component {
 
         if (user) {
             content = (
-                <Router>
+                <Router history={history}>
                     <React.Fragment>
                         <Navigation
                             logout={logout}
@@ -40,7 +41,7 @@ class ProjectForge extends React.Component {
                             entries={[
                                 {
                                     name: 'Bücher',
-                                    url: '/books',
+                                    url: '/books/',
                                 },
                                 {
                                     name: 'Buch bearbeiten',
@@ -48,7 +49,7 @@ class ProjectForge extends React.Component {
                                 },
                                 {
                                     name: 'Adressbücher',
-                                    url: '/addresses',
+                                    url: '/addresses/',
                                 },
                             ]}
                             categories={[
@@ -69,11 +70,11 @@ class ProjectForge extends React.Component {
                                         },
                                         {
                                             name: 'Bücher',
-                                            url: '/books',
+                                            url: '/books/',
                                         },
                                         {
                                             name: 'Adressbücher',
-                                            url: '/',
+                                            url: '/addresses/',
                                         },
                                         {
                                             name: 'Adressen',
@@ -268,7 +269,7 @@ class ProjectForge extends React.Component {
                                     component={EditPage}
                                 />
                                 <Route
-                                    path="/:category"
+                                    path="/:category/"
                                     component={ListPage}
                                 />
                             </Switch>
@@ -301,7 +302,7 @@ class ProjectForge extends React.Component {
 ProjectForge.propTypes = {
     loginUser: PropTypes.func.isRequired,
     logoutUser: PropTypes.func.isRequired,
-    loadUserStatusIfSignedIn: PropTypes.func.isRequired,
+    loadUserStatus: PropTypes.func.isRequired,
     loginInProgress: PropTypes.bool.isRequired,
     loginError: PropTypes.oneOfType([PropTypes.string, PropTypes.object]),
     user: PropTypes.shape({}),
@@ -323,7 +324,7 @@ const mapStateToProps = state => ({
 
 const actions = {
     loginUser,
-    loadUserStatusIfSignedIn,
+    loadUserStatus,
     logoutUser,
 };
 

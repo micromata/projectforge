@@ -2,7 +2,7 @@ package org.projectforge.ui
 
 import com.google.gson.annotations.SerializedName
 
-class UILayout(open var title: String? = null) {
+class UILayout(var title: String? = null) {
     val layout: MutableList<UIElement> = mutableListOf()
     @SerializedName("named-containers")
     val namedContainers: MutableList<UINamedContainer> = mutableListOf()

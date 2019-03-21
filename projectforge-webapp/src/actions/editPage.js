@@ -5,7 +5,7 @@ export const EDIT_PAGE_LOAD_SUCCESS = 'EDIT_PAGE_LOAD_SUCCESS';
 export const EDIT_PAGE_LOAD_FAILURE = 'EDIT_PAGE_LOAD_FAILURE';
 
 export const EDIT_PAGE_FIELD_CHANGE = 'EDIT_PAGE_FIELD_CHANGE';
-export const EDIT_PAGE_ALL_FIELDS_SET = 'EDIT_PAGE_ALL_FIELDS_SET';
+export const EDIT_PAGE_VALIDATION_HINTS_ENABLE = 'EDIT_PAGE_VALIDATION_HINTS_ENABLE';
 
 export const loadBegin = category => ({
     type: EDIT_PAGE_LOAD_BEGIN,
@@ -33,12 +33,7 @@ export const fieldChanged = (id, newValue) => ({
     },
 });
 
-export const allFieldsSet = values => ({
-    type: EDIT_PAGE_ALL_FIELDS_SET,
-    payload: {
-        values,
-    },
-});
+export const validationHintsEnabled = () => ({ type: EDIT_PAGE_VALIDATION_HINTS_ENABLE });
 
 export const loadEdit = (category, id) => (dispatch) => {
     dispatch(loadBegin(category));
@@ -89,4 +84,4 @@ export const updatePageData = () => (dispatch, getState) => {
 
 export const changeField = (id, newValue) => dispatch => dispatch(fieldChanged(id, newValue));
 
-export const setAllFields = values => dispatch => dispatch(allFieldsSet(values));
+export const enableValidationHints = () => dispatch => dispatch(validationHintsEnabled());

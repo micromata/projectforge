@@ -5,7 +5,7 @@ export {
     USER_LOGOUT,
     login as loginUser,
     logout as logoutUser,
-    loadUserStatusIfSignedIn,
+    loadUserStatus,
 } from './authentication';
 
 export {
@@ -13,10 +13,8 @@ export {
     EDIT_PAGE_LOAD_SUCCESS,
     EDIT_PAGE_LOAD_FAILURE,
     EDIT_PAGE_FIELD_CHANGE,
-    EDIT_PAGE_ALL_FIELDS_SET,
     loadEdit as loadEditPage,
     changeField as changeEditFormField,
-    setAllFields as setAllEditPageFields,
     updatePageData as updateEditPageData,
 } from './editPage';
 
