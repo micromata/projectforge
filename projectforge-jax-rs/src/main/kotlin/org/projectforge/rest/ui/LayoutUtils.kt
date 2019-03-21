@@ -119,6 +119,7 @@ class LayoutUtils {
          */
         private fun processAllElements(elements: List<Any>, clazz: Class<*>): List<Any?> {
             var counter = 0
+            var referencedElementsSet = mutableSetOf<UIElement>()
             elements.forEach {
                 if (it is UIElement) it.key = "el-${++counter}"
                 when (it) {
@@ -131,6 +132,10 @@ class LayoutUtils {
                         if (maxLength != null) it.maxLength = maxLength
                     }
                     is UILabel -> {
+                        val reference = it.reference
+                        if (reference != null) {
+                            referencedElementsSet.add(reference)
+                        }
                     }
                     is UISelect -> {
                         if (it.i18nEnum != null) {
@@ -174,14 +179,17 @@ class LayoutUtils {
                     }
                 }
                 if (it is UILabelledElement && it is UIElement) {
-                    var translation = processLabelString(it.label, clazz, getId(it), it)
+                    var label = it.label
+                    if (label.isNullOrEmpty() && !referencedElementsSet.contains(it))
+                        label = "@" // UIElement is not referenced by label
+                    var translation = processLabelString(label, clazz, getId(it), it)
                     if (translation != null)
                         it.label = translation
                     else {
                         if (it is UILabel)
-                            it.label = getLabelTransformation(it.label)
+                            it.label = getLabelTransformation(label)
                         else
-                            it.label = getLabelTransformationNullable(it.label)
+                            it.label = getLabelTransformationNullable(label)
                     }
                     translation = processLabelString(it.additionalLabel, clazz, getId(it), it, true)
                     if (translation != null)
