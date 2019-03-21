@@ -1,14 +1,11 @@
-package org.projectforge.rest.pub
+package org.projectforge.rest
 
 import com.google.gson.annotations.SerializedName
 import org.projectforge.ProjectForgeVersion
 import org.projectforge.business.user.filter.CookieService
 import org.projectforge.business.user.filter.UserFilter
 import org.projectforge.business.user.service.UserService
-import org.projectforge.framework.time.DateFormats
-import org.projectforge.framework.time.DateTimeFormatter
 import org.projectforge.framework.time.TimeNotation
-import org.projectforge.rest.RestHelper
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationContext
 import org.springframework.stereotype.Controller
