@@ -12,9 +12,10 @@ function InputTestPage() {
     return (
         <Card>
             <CardBody>
+                <h1>Neue Input Felder</h1>
                 <Row>
                     <Col>
-                        <h1>New Input Fields</h1>
+                        <h2>Farben</h2>
                         <Input
                             type="text"
                             label="Primary"
@@ -57,8 +58,24 @@ function InputTestPage() {
                             id="default"
                         />
                     </Col>
+                    <Col sm>
+                        <h2>Zusätzlicher Titel</h2>
+                        <Input
+                            type="text"
+                            label="Haupttitel"
+                            id="subLine"
+                            additionalLabel="Zusätzlicher Titel"
+                        />
+                        <Input
+                            type="text"
+                            label="Haupttitel mit Farbe"
+                            id="subLineColor"
+                            color="primary"
+                            additionalLabel="Zusätzlicher Titel ist nicht betroffen"
+                        />
+                    </Col>
                     <Col sm style={{ fontSize: '14px' }}>
-                        <h1>Old Bootstrap Inputs</h1>
+                        <h1>Alte Bootstrap Inputs</h1>
                         <FormGroup row>
                             <Col sm={2}>
                                 <BootstrapLabel>
