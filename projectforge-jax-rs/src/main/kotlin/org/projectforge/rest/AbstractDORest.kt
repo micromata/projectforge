@@ -1,7 +1,6 @@
 package org.projectforge.rest
 
 import com.google.gson.annotations.SerializedName
-import org.projectforge.business.DOUtils
 import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.BaseSearchFilter
@@ -165,7 +164,6 @@ abstract class AbstractDORest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F : BaseS
 
 
     open protected fun processItemBeforeExport(item: O) {
-        item.tenant = DOUtils.cloneMinimal(item.tenant)
     }
 
     /**

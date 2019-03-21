@@ -1,7 +1,6 @@
 package org.projectforge.rest
 
 import org.projectforge.Const
-import org.projectforge.business.address.AddressFilter
 import org.projectforge.business.book.*
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.getUserId
 import org.projectforge.rest.ui.ValidationError
@@ -19,6 +18,7 @@ import javax.ws.rs.core.Response
 @Controller
 @Path("books")
 open class BookRest() : AbstractDORest<BookDO, BookDao, BookFilter>() {
+
     private val log = org.slf4j.LoggerFactory.getLogger(BookRest::class.java)
 
     @Autowired
