@@ -24,12 +24,11 @@ class AddressLayout {
                             .add(UITableColumn("email", "E-Mail"))
                             .add(UITableColumn("phoneNumbers", "Telefonnummern", dataType = UIDataType.CUSTOMIZED))
                             .add(UITableColumn("addressBooks", "Addressbücher")))
-                    .add(UINamedContainer("filter-options")
-                            .add(UIGroup()
-                                    .add(UICheckbox("filter.filter", label = "Filter"))
-                                    .add(UICheckbox("filter.newest", label = "die neuesten"))
-                                    .add(UICheckbox("filter.favorites", label = "meine Favoriten"))
-                                    .add(UICheckbox("filter.dublets", label = "Dupletten"))))
+            LayoutUtils.addListFilterContainer(layout,
+                    UICheckbox("filter.filter", label = "filter"),
+                    UICheckbox("filter.newest", label = "filter.newest"),
+                    UICheckbox("filter.favorites", label = "address.filter.myFavorites"),
+                    UICheckbox("filter.dublets", label = "address.filter.doublets"))
             return LayoutUtils.processListPage(layout, AddressDO::class.java)
         }
 
