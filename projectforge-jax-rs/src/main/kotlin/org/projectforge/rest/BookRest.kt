@@ -1,6 +1,7 @@
 package org.projectforge.rest
 
 import org.projectforge.Const
+import org.projectforge.business.address.AddressFilter
 import org.projectforge.business.book.*
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.getUserId
 import org.projectforge.rest.ui.ValidationError
@@ -35,6 +36,10 @@ open class BookRest() : AbstractDORest<BookDO, BookDao, BookFilter>() {
 
     override fun getBaseDao(): BookDao {
         return bookDao!!
+    }
+
+    override fun getFilterClass(): Class<BookFilter> {
+        return BookFilter::class.java
     }
 
     override fun validate(obj: BookDO): List<ValidationError>? {

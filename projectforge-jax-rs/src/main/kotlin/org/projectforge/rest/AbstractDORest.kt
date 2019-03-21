@@ -10,6 +10,7 @@ import org.projectforge.model.rest.RestPaths
 import org.projectforge.rest.ui.Layout
 import org.projectforge.rest.ui.ValidationError
 import org.projectforge.ui.UILayout
+import org.springframework.beans.BeanUtils
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Controller
 import javax.servlet.http.HttpServletRequest
@@ -60,9 +61,7 @@ abstract class AbstractDORest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F : BaseS
 
     abstract fun newBaseDO(): O
 
-    inline fun <reified F> getFilterClass(): Class<F> {
-        return F::class.java
-    }
+    abstract fun getFilterClass(): Class<F>;
 
     open protected fun validate(obj: O): List<ValidationError>? {
         return null
@@ -100,10 +99,12 @@ abstract class AbstractDORest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F : BaseS
     @Path(RestPaths.LIST)
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    fun <O> getList(filter: F): Response {
+    fun <O> getList(@Context request: HttpServletRequest, filter: F): Response {
         val list = RestHelper.getList(getBaseDao(), filter)
         list.forEach { processItemBeforeExport(it) }
         val listData = ListData(resultSet = list)
+        val storedFilter = listFilterService!!.getSearchFilter(request.session, getFilterClass())
+        BeanUtils.copyProperties(filter, storedFilter)
         return RestHelper.buildResponse(listData)
     }
 

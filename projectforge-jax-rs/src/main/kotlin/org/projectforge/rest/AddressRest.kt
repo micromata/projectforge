@@ -25,6 +25,10 @@ open class AddressRest() : AbstractDORest<AddressDO, AddressDao, AddressFilter>(
         return AddressDO()
     }
 
+    override fun getFilterClass(): Class<AddressFilter> {
+        return AddressFilter::class.java
+    }
+
     override fun processItemBeforeExport(item: AddressDO) {
         super.processItemBeforeExport(item)
         val addressbookList: MutableSet<AddressbookDO> = mutableSetOf();
