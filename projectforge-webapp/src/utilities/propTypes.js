@@ -27,3 +27,13 @@ export const colorPropType = PropTypes.oneOf([
     'warning',
     'info',
 ]);
+
+export const uncontrolledSelectProps = {
+    id: PropTypes.string.isRequired,
+    color: colorPropType,
+    label: PropTypes.string,
+    options: PropTypes.arrayOf(PropTypes.shape({
+        value: PropTypes.string,
+        title: PropTypes.string,
+    })).isRequired,
+};
