@@ -13,6 +13,7 @@ export {
     EDIT_PAGE_LOAD_SUCCESS,
     EDIT_PAGE_LOAD_FAILURE,
     EDIT_PAGE_FIELD_CHANGE,
+    EDIT_PAGE_VALIDATION_HINTS_ENABLE,
     loadEdit as loadEditPage,
     changeField as changeEditFormField,
     updatePageData as updateEditPageData,

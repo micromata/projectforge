@@ -2,9 +2,9 @@ import {
     EDIT_PAGE_FIELD_CHANGE,
     EDIT_PAGE_LOAD_BEGIN,
     EDIT_PAGE_LOAD_FAILURE,
-    EDIT_PAGE_LOAD_SUCCESS
+    EDIT_PAGE_LOAD_SUCCESS,
+    EDIT_PAGE_VALIDATION_HINTS_ENABLE,
 } from '../actions';
-import { EDIT_PAGE_VALIDATION_HINTS_ENABLE } from '../actions/editPage';
 
 const initialState = {
     loading: false,

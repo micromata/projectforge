@@ -1,5 +1,29 @@
 $mediumMediaQuery: 'only screen and (min-width: 735px)';
 $largeMediaQuery: 'only screen and (min-width: 1068px)';
+$defaultTransitionTime: 0.5s cubic-bezier(0.28, 0.11, 0.32, 1);
+
+@mixin transition($value...) {
+  -webkit-transition: $value;
+  -moz-transition: $value;
+  -o-transition: $value;
+  transition: $value;
+}
+
+@mixin transform($value...) {
+  -webkit-transform: $value;
+  -moz-transform: $value;
+  -ms-transform: $value;
+  -o-transform: $value;
+  transform: $value;
+}
+
+@mixin transition-transform-extra($time, $transform, $extra...) {
+  -webkit-transition: -webkit-transform $time, $extra;
+  -moz-transition: -moz-transform $time, $extra;
+  -o-transition: -o-transform $time, $extra;
+  transition: transform $time, $extra;
+  @include transform($transform);
+}
 
 @mixin linear-gradient-background($arguments...) {
   background-image: -webkit-linear-gradient($arguments);
