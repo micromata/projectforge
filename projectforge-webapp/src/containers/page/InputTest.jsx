@@ -7,6 +7,7 @@ import BootstrapInput from 'reactstrap/es/Input';
 import BootstrapLabel from 'reactstrap/es/Label';
 import Row from 'reactstrap/es/Row';
 import Input from '../../components/design/input';
+import CheckBox from '../../components/design/input/CheckBox';
 
 function InputTestPage() {
     return (
@@ -72,6 +73,41 @@ function InputTestPage() {
                             id="subLineColor"
                             color="primary"
                             additionalLabel="Zusätzlicher Titel ist nicht betroffen"
+                        />
+                        <h2>CheckBox</h2>
+                        <CheckBox
+                            id="checkbox-primary"
+                            label="Primary"
+                            color="primary"
+                        />
+                        <CheckBox
+                            id="checkbox-secondary"
+                            label="Secondary"
+                            color="secondary"
+                        />
+                        <CheckBox
+                            id="checkbox-success"
+                            label="Success"
+                            color="success"
+                        />
+                        <CheckBox
+                            id="checkbox-danger"
+                            label="Danger"
+                            color="danger"
+                        />
+                        <CheckBox
+                            id="checkbox-warning"
+                            label="Warning"
+                            color="warning"
+                        />
+                        <CheckBox
+                            id="checkbox-info"
+                            label="Info"
+                            color="info"
+                        />
+                        <CheckBox
+                            id="checkbox-default"
+                            label="Default"
                         />
                     </Col>
                     <Col sm style={{ fontSize: '14px' }}>

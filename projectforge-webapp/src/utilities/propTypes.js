@@ -18,3 +18,12 @@ export const buttonPropType = PropTypes.shape({
     type: PropTypes.oneOf(['button', 'checkbox']),
     checked: PropTypes.bool,
 });
+
+export const colorPropType = PropTypes.oneOf([
+    'primary',
+    'secondary',
+    'success',
+    'danger',
+    'warning',
+    'info',
+]);
