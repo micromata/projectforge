@@ -88,7 +88,7 @@ abstract class AbstractDORest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F : BaseS
         list.forEach { processItemBeforeExport(it) }
         val layout = Layout.getListLayout(getBaseDao())
         val listData = ListData(resultSet = list)
-        return RestHelper.buildResponse(InitialListData(ui = layout, data = listData, filter = filter))
+        return RestHelper.buildResponse(InitialListData(ui = layout, data = listData, filter = filter), true)
     }
 
     /**

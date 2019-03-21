@@ -14,13 +14,13 @@ class BookLayout {
         fun createListLayout(): UILayout {
             val layout = UILayout("book.title.list")
                     .add(UITable("result-set")
-                            .add(UITableColumn("created", "@", dataType = UIDataType.DATE))
-                            .add(UITableColumn("yearOfPublishing", "@"))
-                            .add(UITableColumn("signature", "@"))
-                            .add(UITableColumn("authors", "@"))
-                            .add(UITableColumn("title", "@"))
-                            .add(UITableColumn("keywords", "@"))
-                            .add(UITableColumn("lendOutBy", "@")))
+                            .add(UITableColumn("created",  dataType = UIDataType.DATE, formatter = Formatter.TIMESTAMP_MINUTES))
+                            .add(UITableColumn("yearOfPublishing"))
+                            .add(UITableColumn("signature"))
+                            .add(UITableColumn("authors"))
+                            .add(UITableColumn("title"))
+                            .add(UITableColumn("keywords"))
+                            .add(UITableColumn("lendOutBy")))
             LayoutUtils.addListFilterContainer(layout,
                     UICheckbox("filter.present", label = "book.status.present"),
                     UICheckbox("filter.missed", label = "book.status.missed"),
@@ -36,7 +36,7 @@ class BookLayout {
                     .add(UIRow()
                             .add(UICol(6)
                                     .add(UIGroup().add(UISelect("type", i18nEnum = BookType::class.java, required = true)))
-                                    .add(UIGroup().add(UIInput("yearOfPublishing", label = "@")))
+                                    .add(UIGroup().add(UIInput("yearOfPublishing")))
                                     .add(UIGroup().add( UISelect("status", i18nEnum = BookStatus::class.java, required = true)))
                                     .add(UIGroup().add(UIInput("signature"))))
                             .add(UICol(6)

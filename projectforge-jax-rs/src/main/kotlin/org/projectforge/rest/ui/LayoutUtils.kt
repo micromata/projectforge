@@ -154,7 +154,8 @@ class LayoutUtils {
                         it.tooltip = getLabelTransformationNullable(it.tooltip)
                     }
                     is UITableColumn -> {
-                        val translation = processLabelString(it.title, clazz, it.id, it)
+                        var title = it.title ?: "@"
+                        val translation = processLabelString(title, clazz, it.id, it)
                         if (translation != null) it.title = translation
                     }
                     is UIButton -> {
