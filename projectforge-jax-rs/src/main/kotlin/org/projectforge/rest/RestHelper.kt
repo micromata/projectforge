@@ -14,8 +14,8 @@ class RestHelper {
             return list
         }
 
-        fun buildResponse(obj: Any): Response {
-            val json = JsonCreator.toJson(obj)
+        fun buildResponse(obj: Any, minimizeDataObjects: Boolean = false): Response {
+            val json = JsonCreator.toJson(obj, minimizeDataObjects)
             return Response.ok(json).build()
         }
 
