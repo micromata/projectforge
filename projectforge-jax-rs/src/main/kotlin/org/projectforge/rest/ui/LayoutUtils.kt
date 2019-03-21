@@ -131,12 +131,6 @@ class LayoutUtils {
                         if (maxLength != null) it.maxLength = maxLength
                     }
                     is UILabel -> {
-                        var translation = processLabelString(it.value, clazz, getId(it.reference), it)
-                        if (translation != null) it.value = translation
-                        else it.value = getLabelTransformation(it.value)
-                        translation = processLabelString(it.additionalValue, clazz, getId(it.reference), it, true)
-                        if (translation != null) it.additionalValue = translation
-                        else it.additionalValue = getLabelTransformationNullable(it.additionalValue)
                     }
                     is UISelect -> {
                         if (it.i18nEnum != null) {
@@ -178,6 +172,22 @@ class LayoutUtils {
                             }
                         }
                     }
+                }
+                if (it is UILabelledElement && it is UIElement) {
+                    var translation = processLabelString(it.label, clazz, getId(it), it)
+                    if (translation != null)
+                        it.label = translation
+                    else {
+                        if (it is UILabel)
+                            it.label = getLabelTransformation(it.label)
+                        else
+                            it.label = getLabelTransformationNullable(it.label)
+                    }
+                    translation = processLabelString(it.additionalLabel, clazz, getId(it), it, true)
+                    if (translation != null)
+                        it.additionalLabel = translation
+                    else
+                        it.additionalLabel = getLabelTransformationNullable(it.additionalLabel)
                 }
             }
             return elements
@@ -265,6 +275,9 @@ class LayoutUtils {
          */
         private fun getId(element: UIElement?): String? {
             if (element == null) return null
+            if (element is UILabel) {
+                return getId(element.reference)
+            }
             return when (element) {
                 is UIInput -> element.id
                 is UISelect -> element.id
@@ -274,6 +287,5 @@ class LayoutUtils {
                 else -> null
             }
         }
-
     }
 }
