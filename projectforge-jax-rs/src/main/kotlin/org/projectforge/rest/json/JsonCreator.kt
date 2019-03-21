@@ -21,12 +21,10 @@ object JsonCreator {
         typeAdapterMap[cls] = typeAdapter
     }
 
-    fun toJson(obj: Any, minimizeDataObjects: Boolean = false): String {
+    fun toJson(obj: Any): String {
         val builder = GsonBuilder()
-        if (minimizeDataObjects == true) {
-            for ((key, value) in typeAdapterMap) {
-                builder.registerTypeHierarchyAdapter(key, value)
-            }
+        for ((key, value) in typeAdapterMap) {
+            builder.registerTypeHierarchyAdapter(key, value)
         }
         val gson = builder.create()
         return gson.toJson(obj)
