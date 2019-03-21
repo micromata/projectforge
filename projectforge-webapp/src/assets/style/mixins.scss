@@ -17,6 +17,14 @@ $defaultTransitionTime: 0.5s cubic-bezier(0.28, 0.11, 0.32, 1);
   transform: $value;
 }
 
+@mixin transition-transform($time, $transform) {
+  -webkit-transition: -webkit-transform $time;
+  -moz-transition: -moz-transform $time;
+  -o-transition: -o-transform $time;
+  transition: transform $time;
+  @include transform($transform);
+}
+
 @mixin transition-transform-extra($time, $transform, $extra...) {
   -webkit-transition: -webkit-transform $time, $extra;
   -moz-transition: -moz-transform $time, $extra;
