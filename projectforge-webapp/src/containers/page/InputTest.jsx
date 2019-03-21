@@ -8,6 +8,7 @@ import BootstrapLabel from 'reactstrap/es/Label';
 import Row from 'reactstrap/es/Row';
 import Input from '../../components/design/input';
 import CheckBox from '../../components/design/input/CheckBox';
+import UncontrolledSelect from '../../components/design/input/UncontrolledSelect';
 
 function InputTestPage() {
     return (
@@ -108,6 +109,47 @@ function InputTestPage() {
                         <CheckBox
                             id="checkbox-default"
                             label="Default"
+                        />
+                    </Col>
+                    <Col sm>
+                        <h2>Select</h2>
+                        <UncontrolledSelect
+                            id="select"
+                            label="Typ"
+                            options={[
+                                {
+                                    value: 'book',
+                                    title: 'Buch',
+                                },
+                                {
+                                    value: 'magazine',
+                                    title: 'Magazin',
+                                },
+                                {
+                                    value: 'article',
+                                    title: 'Artikel',
+                                },
+                                {
+                                    value: 'newspaper',
+                                    title: 'Zeitung',
+                                },
+                                {
+                                    value: 'periodical',
+                                    title: 'Periodika',
+                                },
+                                {
+                                    value: 'film',
+                                    title: 'Film (Datenträger)',
+                                },
+                                {
+                                    value: 'software',
+                                    title: 'Software (Datenträger)',
+                                },
+                                {
+                                    value: 'misc',
+                                    title: 'Sonstiges',
+                                },
+                            ]}
                         />
                     </Col>
                     <Col sm style={{ fontSize: '14px' }}>
