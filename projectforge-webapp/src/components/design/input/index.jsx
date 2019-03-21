@@ -1,16 +1,17 @@
 import classNames from 'classnames';
 import PropTypes from 'prop-types';
 import React from 'react';
+import { colorPropType } from '../../../utilities/propTypes';
 import style from './Input.module.scss';
 
 function Input(
     {
-        label,
-        id,
-        type,
-        className,
         additionalLabel,
+        className,
         color,
+        id,
+        label,
+        type,
         ...props
     },
 ) {
@@ -42,22 +43,20 @@ function Input(
 }
 
 Input.propTypes = {
-    label: PropTypes.string.isRequired,
     id: PropTypes.string.isRequired,
-    value: PropTypes.string,
-    type: PropTypes.string,
-    className: PropTypes.string,
+    label: PropTypes.string.isRequired,
     additionalLabel: PropTypes.string,
-    color: PropTypes.oneOf(['primary', 'secondary', 'success', 'danger', 'warning', 'info']),
+    className: PropTypes.string,
+    color: colorPropType,
+    type: PropTypes.string,
     validationMessage: PropTypes.string,
 };
 
 Input.defaultProps = {
-    type: 'text',
-    value: undefined,
-    className: undefined,
     additionalLabel: undefined,
+    className: undefined,
     color: undefined,
+    type: 'text',
     validationMessage: undefined,
 };
 
