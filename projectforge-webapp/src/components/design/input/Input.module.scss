@@ -10,6 +10,7 @@
     margin: 0 0 0 0;
     height: 2.8em;
     width: 100%;
+    cursor: text;
 
     .text {
       position: absolute;
@@ -84,6 +85,7 @@
 
   .checkboxLabel {
     position: relative;
+    margin-left: 5px;
 
     .checkbox {
       position: absolute;

@@ -49,7 +49,6 @@ Input.propTypes = {
     className: PropTypes.string,
     color: colorPropType,
     type: PropTypes.string,
-    validationMessage: PropTypes.string,
 };
 
 Input.defaultProps = {
@@ -57,7 +56,6 @@ Input.defaultProps = {
     className: undefined,
     color: undefined,
     type: 'text',
-    validationMessage: undefined,
 };
 
 export default Input;

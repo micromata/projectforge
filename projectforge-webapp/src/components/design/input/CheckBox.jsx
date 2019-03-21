@@ -4,7 +4,14 @@ import React from 'react';
 import { colorPropType } from '../../../utilities/propTypes';
 import style from './Input.module.scss';
 
-function CheckBox({ id, label, className, color }) {
+function CheckBox(
+    {
+        className,
+        color,
+        id,
+        label,
+    },
+) {
     return (
         <div className={classNames(style.formGroup, className)}>
             <label
