@@ -65,6 +65,11 @@ public class RestUserFilter implements Filter {
   @Autowired
   private CookieService cookieService;
 
+  public static void executeLogin(HttpServletRequest request, UserContext userContext) {
+    // Wicket part: (page.getSession() as MySession).login(userContext, page.getRequest())
+    UserFilter.login(request, userContext);
+  }
+
   @Override
   public void init(final FilterConfig filterConfig) throws ServletException {
     springContext = WebApplicationContextUtils.getRequiredWebApplicationContext(filterConfig.getServletContext());
@@ -146,6 +151,7 @@ public class RestUserFilter implements Filter {
             if (log.isDebugEnabled() == true) {
               log.debug("User's stay logged-in cookie found: " + req.getRequestURI());
             }
+            executeLogin(req, userContext);
             user = userContext.getUser();
           }
         }

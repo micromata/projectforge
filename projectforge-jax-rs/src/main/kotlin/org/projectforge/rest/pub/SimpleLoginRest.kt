@@ -13,6 +13,7 @@ import org.projectforge.business.user.filter.UserFilter
 import org.projectforge.business.user.service.UserService
 import org.projectforge.framework.persistence.user.api.UserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
+import org.projectforge.web.rest.RestUserFilter.executeLogin
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationContext
 import org.springframework.stereotype.Controller
@@ -81,8 +82,7 @@ open class SimpleLoginRest {
         }
         // Execute login:
         val userContext = UserContext(PFUserDO.createCopyWithoutSecretFields(user), getUserGroupCache())
-        // Wicket part: (page.getSession() as MySession).login(userContext, page.getRequest())
-        UserFilter.login(request, userContext)
+        executeLogin(request, userContext)
         return LoginResultStatus.SUCCESS
     }
 
