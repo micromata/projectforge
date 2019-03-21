@@ -5,7 +5,6 @@ import org.projectforge.business.address.AddressStatus
 import org.projectforge.business.address.ContactStatus
 import org.projectforge.business.address.FormOfAddress
 import org.projectforge.framework.persistence.api.HibernateUtils
-import org.projectforge.rest.AddressRest
 import org.projectforge.ui.*
 
 class AddressLayout {
@@ -15,7 +14,7 @@ class AddressLayout {
         }
 
         fun createListLayout(): UILayout {
-            val layout = UILayout("Addressen")
+            val layout = UILayout("address.title.list")
                     .add(UITable("result-set")
                             .add(UITableColumn("lastUpdate", "geändert", dataType = UIDataType.DATE))
                             .add(UITableColumn("imageDataPreview", "Bild"))
@@ -25,15 +24,13 @@ class AddressLayout {
                             .add(UITableColumn("email", "E-Mail"))
                             .add(UITableColumn("phoneNumbers", "Telefonnummern", dataType = UIDataType.CUSTOMIZED))
                             .add(UITableColumn("addressBooks", "Addressbücher")))
-                    .addAction(UIButton("reset", "Rücksetzen", UIButtonStyle.DANGER))
-                    .addAction(UIButton("search", "Suchen", UIButtonStyle.PRIMARY))
                     .add(UINamedContainer("filter-options")
                             .add(UIGroup()
                                     .add(UICheckbox("filter.filter", label = "Filter"))
                                     .add(UICheckbox("filter.newest", label = "die neuesten"))
                                     .add(UICheckbox("filter.favorites", label = "meine Favoriten"))
                                     .add(UICheckbox("filter.dublets", label = "Dupletten"))))
-            return LayoutUtils.process(layout, AddressDO::class.java)
+            return LayoutUtils.processListPage(layout, AddressDO::class.java)
         }
 
         fun createEditLayout(address: AddressDO?): UILayout {
@@ -51,7 +48,7 @@ class AddressLayout {
                                     .add(UIGroup().add("@", UIInput("name", required = true, focus = true)))
                                     .add(UIGroup().add("@", UIInput("firstName")))
                                     .add(UIGroup().add("@", UISelect("form", i18nEnum = FormOfAddress::class.java))
-                                            .add(UICheckbox("favorite", label = translate("favorite"))))
+                                            .add(UICheckbox("favorite", label = "favorite")))
                                     .add(UIGroup().add("@", UIInput("title")))
                                     .add(UIGroup().add("@", UIInput("email")))
                                     .add(UIGroup().add("@", UIInput("privateEmail"))))
@@ -72,7 +69,7 @@ class AddressLayout {
                                     .add(UIGroup().add("@", UIInput("privateMobilePhone")))))
                     .add(UIRow()
                             .add(UICol(6)
-                                    .add(UILabel(translate("address.heading.businessAddress")))
+                                    .add(UILabel("address.heading.businessAddress"))
                                     .add(UIGroup().add("@", UIInput("addressText")))
                                     .add(UIGroup().add("@", UIInput("zipCode")))
                                     .add(UIGroup().add("@", UIInput("city")))
@@ -80,7 +77,7 @@ class AddressLayout {
                                     .add(UIGroup().add("@", UIInput("state")))
                                     .add(UIGroup().add("@", UIInput("zipCode"))))
                             .add(UICol(6)
-                                    .add(UILabel(translate("address.heading.postalAddress")))
+                                    .add(UILabel("address.heading.postalAddress"))
                                     .add(UIGroup().add("@", UIInput("postalAddressText")))
                                     .add(UIGroup().add("@", UIInput("postalZipCode")))
                                     .add(UIGroup().add("@", UIInput("postalCity")))
@@ -89,7 +86,7 @@ class AddressLayout {
                                     .add(UIGroup().add("@", UIInput("postalZipCode")))))
                     .add(UIRow()
                             .add(UICol(6)
-                                    .add(UILabel(translate("address.heading.privateAddress")))
+                                    .add(UILabel("address.heading.privateAddress"))
                                     .add(UIGroup().add("@", UIInput("privateAddressText")))
                                     .add(UIGroup().add("@", UIInput("privateZipCode")))
                                     .add(UIGroup().add("@", UIInput("privateCity")))
