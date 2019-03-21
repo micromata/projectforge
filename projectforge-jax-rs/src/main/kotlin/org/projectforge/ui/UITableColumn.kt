@@ -12,5 +12,6 @@ data class UITableColumn(val id: String,
 
 enum class Formatter {
     @SerializedName("timestamp-minutes")
-    TIMESTAMP_MINUTES
+    TIMESTAMP_MINUTES,
+    USER
 }

@@ -20,7 +20,7 @@ class BookLayout {
                             .add(UITableColumn("authors"))
                             .add(UITableColumn("title"))
                             .add(UITableColumn("keywords"))
-                            .add(UITableColumn("lendOutBy")))
+                            .add(UITableColumn("lendOutBy", formatter = Formatter.USER)))
             LayoutUtils.addListFilterContainer(layout,
                     UICheckbox("filter.present", label = "book.status.present"),
                     UICheckbox("filter.missed", label = "book.status.missed"),
