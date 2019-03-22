@@ -87,7 +87,7 @@ open class UserStatusRest {
                 fullname = user.fullname,
                 firstName = user.firstname,
                 lastName = user.lastname,
-                locale = user.locale,
+                locale = ThreadLocalUserContext.getLocale(),
                 timeZone = ThreadLocalUserContext.getTimeZone().id,
                 timeNotation = DateFormats.ensureAndGetDefaultTimeNotation(),
                 dateFormat = DateFormats.getFormatString(DateFormatType.DATE),
