@@ -18,3 +18,22 @@ export const buttonPropType = PropTypes.shape({
     type: PropTypes.oneOf(['button', 'checkbox']),
     checked: PropTypes.bool,
 });
+
+export const colorPropType = PropTypes.oneOf([
+    'primary',
+    'secondary',
+    'success',
+    'danger',
+    'warning',
+    'info',
+]);
+
+export const uncontrolledSelectProps = {
+    id: PropTypes.string.isRequired,
+    color: colorPropType,
+    label: PropTypes.string,
+    options: PropTypes.arrayOf(PropTypes.shape({
+        value: PropTypes.string,
+        title: PropTypes.string,
+    })).isRequired,
+};

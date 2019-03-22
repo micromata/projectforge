@@ -17,11 +17,9 @@ import javax.ws.rs.core.Response
 
 @Controller
 @Path("books")
-open class BookRest() : AbstractDORest<BookDO, BookDao, BookFilter>() {
-    private val log = org.slf4j.LoggerFactory.getLogger(BookRest::class.java)
+open class BookRest() : AbstractDORest<BookDO, BookDao, BookFilter>(BookDao::class.java, BookFilter::class.java) {
 
-    @Autowired
-    open var bookDao: BookDao? = null
+    private val log = org.slf4j.LoggerFactory.getLogger(BookRest::class.java)
 
     /**
      * Initializes new books for adding.
@@ -31,10 +29,6 @@ open class BookRest() : AbstractDORest<BookDO, BookDao, BookFilter>() {
         book.status = BookStatus.PRESENT
         book.type = BookType.BOOK
         return book
-    }
-
-    override fun getBaseDao(): BookDao {
-        return bookDao!!
     }
 
     override fun validate(obj: BookDO): List<ValidationError>? {
@@ -47,7 +41,7 @@ open class BookRest() : AbstractDORest<BookDO, BookDao, BookFilter>() {
         } catch (ex: NumberFormatException) {
             errorsList.add(ValidationError(translate("book.error.number"), fieldId = "yearOfPublishing"))
         }
-        if (bookDao!!.doesSignatureAlreadyExist(obj)) {
+        if (baseDao!!.doesSignatureAlreadyExist(obj)) {
             errorsList.add(ValidationError(translate("book.error.signatureAlreadyExists"), fieldId = "signature"))
         }
         if (errorsList.isEmpty()) return null
@@ -63,8 +57,8 @@ open class BookRest() : AbstractDORest<BookDO, BookDao, BookFilter>() {
     @Produces(MediaType.APPLICATION_JSON)
     fun lendOut(book: BookDO): Response {
         book.setLendOutDate(Date())
-        bookDao!!.setLendOutBy(book, getUserId())
-        return RestHelper.saveOrUpdate(getBaseDao(), book, validate(book))
+        baseDao!!.setLendOutBy(book, getUserId())
+        return RestHelper.saveOrUpdate(baseDao, book, validate(book))
     }
 
     /**
@@ -78,7 +72,7 @@ open class BookRest() : AbstractDORest<BookDO, BookDao, BookFilter>() {
         book.lendOutBy = null
         book.lendOutDate = null
         book.lendOutComment = null
-        return RestHelper.saveOrUpdate(getBaseDao(), book, validate(book))
+        return RestHelper.saveOrUpdate(baseDao, book, validate(book))
     }
 
 }

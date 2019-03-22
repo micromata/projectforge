@@ -5,7 +5,6 @@ import org.projectforge.rest.AddressRest;
 import org.projectforge.rest.BookRest;
 import org.projectforge.rest.LogoutRest;
 import org.projectforge.rest.UserStatusRest;
-import org.projectforge.rest.ui.LayoutRest;
 
 /**
  * This class configures all rest services available for the React client.
@@ -21,6 +20,5 @@ public class RestWebAppConfiguration extends ResourceConfig
 
     register(AddressRest.class);
     register(BookRest.class);
-    register(LayoutRest.class);
   }
 }
