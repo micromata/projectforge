@@ -6,4 +6,15 @@ data class UICol(val length: Int,
         content.add(element)
         return this
     }
+
+    /**
+     * Convenient method for adding a bunch of UIInput fields with the given ids.
+     */
+    fun add(vararg ids: String): UICol {
+        ids.forEach {
+            val group = UIGroup()
+            group.add(it, UIInput(it))
+        }
+        return this
+    }
 }

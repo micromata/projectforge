@@ -5,4 +5,14 @@ data class UITable(val id : String, val columns : MutableList<UITableColumn> = m
         columns.add(column)
         return this
     }
+
+    /**
+     * For adding columns with the given ids
+     */
+    fun add(vararg columnIds: String): UITable {
+        columnIds.forEach {
+            add(UITableColumn(it))
+        }
+        return this
+    }
 }
