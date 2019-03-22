@@ -281,6 +281,9 @@ public class DateFormats
       case DATE_TIME_SECONDS:
         return getFormatString(defaultDateFormat, timeNotation, DateFormatType.DATE)
             + (timeNotation == TimeNotation.H24 ? " HH:mm:ss" : " hh:mm:ss aa");
+      case DATE_TIME_MILLIS:
+        return getFormatString(defaultDateFormat, timeNotation, DateFormatType.DATE)
+                + (timeNotation == TimeNotation.H24 ? " HH:mm:ss.SSS" : " hh:mm:ss.SSS aa");
       case DATE_TIME_SHORT_MINUTES:
         return getFormatString(defaultDateFormat, timeNotation, DateFormatType.DATE_SHORT)
             + (timeNotation == TimeNotation.H24 ? " HH:mm" : " hh:mm aa");
