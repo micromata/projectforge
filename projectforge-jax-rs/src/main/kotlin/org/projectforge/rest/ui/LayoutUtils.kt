@@ -64,9 +64,22 @@ class LayoutUtils {
             return layout
         }
 
-        fun addListFilterContainer(layout: UILayout, vararg elements: UIElement, autoAppendDefaultSettings: Boolean? = true) {
+        fun addListFilterContainer(layout: UILayout, vararg elements: UIElement, filterClass: Class<*>? = null, autoAppendDefaultSettings: Boolean? = true) {
             val filterGroup = UIGroup()
-            elements.forEach { filterGroup.add(it) }
+            elements.forEach {
+                filterGroup.add(it)
+                if (filterClass != null && it is UILabelledElement) {
+                    val property = getId(it)
+                    if (property != null) {
+                        val translation = getI18nKeyTranslation(filterClass, it.label, property, it, replaceNullLabels = true)
+                        if (translation != null) {
+                            it.label = translation
+                            if (it is UICheckbox)
+                                it.protectLabel = true // Don't process this label later.
+                        }
+                    }
+                }
+            }
             if (autoAppendDefaultSettings == true) addListDefaultOptions(filterGroup)
             layout.add(UINamedContainer("filter-options").add(filterGroup))
         }
@@ -77,8 +90,8 @@ class LayoutUtils {
          */
         fun addListDefaultOptions(group: UIGroup) {
             group
-                    .add(UICheckbox("filter.onlyDeleted", label = "onlyDeleted", tooltip = "onlyDeleted.tooltip"))
-                    .add(UICheckbox("filter.searchHistory", label = "search.searchHistory", tooltip = "search.searchHistory.additional.tooltip"))
+                    .add(UICheckbox("onlyDeleted", label = "onlyDeleted", tooltip = "onlyDeleted.tooltip"))
+                    .add(UICheckbox("searchHistory", label = "search.searchHistory", tooltip = "search.searchHistory.additional.tooltip"))
         }
 
         /**
@@ -150,7 +163,9 @@ class LayoutUtils {
                         }
                     }
                     is UICheckbox -> {
-                        it.label = getLabelTransformation(it.label)
+                        if (it.protectLabel != true) {
+                            it.label = getLabelTransformation(it.label)
+                        }
                         it.tooltip = getLabelTransformationNullable(it.tooltip)
                     }
                     is UITableColumn -> {
@@ -189,8 +204,6 @@ class LayoutUtils {
                     else {
                         if (it is UILabel)
                             it.label = getLabelTransformation(label)
-                        else
-                            it.label = getLabelTransformationNullable(label)
                     }
                     translation = processLabelString(it.additionalLabel, clazz, getId(it), it, true)
                     if (translation != null)
@@ -218,7 +231,7 @@ class LayoutUtils {
                         log.error("Can't find null property, element ${uiElement}.")
                     return null
                 }
-                return getI18nKey(clazz, "@", property, uiElement, useAdditionalI18nKey)
+                return getI18nKeyTranslation(clazz, "@", property, uiElement, useAdditionalI18nKey)
             }
             return null
         }
@@ -264,9 +277,12 @@ class LayoutUtils {
          * @param property The name of the property (field) of the DO object.
          * @param elemnent The current proceeded element.
          */
-        private fun getI18nKey(clazz: Class<*>, current: String?, property: String?, element: UIElement,
-                               useAdditionalI18nKey: Boolean = false): String? {
-            if (current != "@") return null;
+        private fun getI18nKeyTranslation(clazz: Class<*>, current: String?, property: String?, element: UIElement,
+                                          useAdditionalI18nKey: Boolean = false, replaceNullLabels: Boolean = false): String? {
+            if (current == null && replaceNullLabels == false)
+                return null // Don't replace null labels at default, only if replaceNullLabels is true.
+            if (current != null && current != "@")
+                return null; // Don't replace given labels if not equals to "@"
             val propInfo = PropUtils.get(clazz, property)
             if (propInfo == null) {
                 log.error("PropertyInfo not found in Entity '${clazz}' for UI element '${element}'.")
@@ -289,6 +305,7 @@ class LayoutUtils {
             }
             return when (element) {
                 is UIInput -> element.id
+                is UICheckbox -> element.id
                 is UISelect -> element.id
                 is UIMultiSelect -> element.id
                 is UITextarea -> element.id

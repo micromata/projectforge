@@ -1,7 +1,5 @@
 package org.projectforge.ui
 
-import org.projectforge.rest.ui.LayoutUtils
-
 /**
  * A group represents a group of UI elements, such as a pair of a Label and an Input field.
  */

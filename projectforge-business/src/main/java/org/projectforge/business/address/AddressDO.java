@@ -248,6 +248,7 @@ public class AddressDO extends DefaultBaseWithAttrDO<AddressDO>
   @PropertyInfo(i18nKey = "address.addressbooks")
   private Set<AddressbookDO> addressbookList = new HashSet<>();
 
+  @PropertyInfo(i18nKey = "address.image")
   @NoHistory
   private byte[] imageDataPreview;
 
