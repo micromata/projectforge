@@ -1,7 +1,7 @@
 import PropTypes from 'prop-types';
 import React from 'react';
 import { connect } from 'react-redux';
-import { Router, Route, Switch } from 'react-router-dom';
+import { Route, Router, Switch } from 'react-router-dom';
 import { loadUserStatus, loginUser, logoutUser } from '../actions';
 import LoginView from '../components/authentication/LoginView';
 import Footer from '../components/base/footer';
@@ -10,6 +10,7 @@ import TopBar from '../components/base/topbar';
 import { Container } from '../components/design';
 import history from '../utilities/history';
 import EditPage from './page/edit';
+import InputTestPage from './page/InputTest';
 import ListPage from './page/list';
 
 class ProjectForge extends React.Component {
@@ -44,12 +45,12 @@ class ProjectForge extends React.Component {
                                     url: '/books/',
                                 },
                                 {
-                                    name: 'Buch bearbeiten',
-                                    url: '/books/edit',
-                                },
-                                {
                                     name: 'Adressbücher',
                                     url: '/addresses/',
+                                },
+                                {
+                                    name: 'Input Test',
+                                    url: '/inputTest',
                                 },
                             ]}
                             categories={[
@@ -264,6 +265,10 @@ class ProjectForge extends React.Component {
                         />
                         <Container fluid>
                             <Switch>
+                                <Route
+                                    path="/inputTest"
+                                    component={InputTestPage}
+                                />
                                 <Route
                                     path="/:category/edit/:id?"
                                     component={EditPage}

@@ -119,6 +119,7 @@ class LayoutUtils {
          */
         private fun processAllElements(elements: List<Any>, clazz: Class<*>): List<Any?> {
             var counter = 0
+            var referencedElementsSet = mutableSetOf<UIElement>()
             elements.forEach {
                 if (it is UIElement) it.key = "el-${++counter}"
                 when (it) {
@@ -131,12 +132,10 @@ class LayoutUtils {
                         if (maxLength != null) it.maxLength = maxLength
                     }
                     is UILabel -> {
-                        var translation = processLabelString(it.value, clazz, getId(it.reference), it)
-                        if (translation != null) it.value = translation
-                        else it.value = getLabelTransformation(it.value)
-                        translation = processLabelString(it.additionalValue, clazz, getId(it.reference), it, true)
-                        if (translation != null) it.additionalValue = translation
-                        else it.additionalValue = getLabelTransformationNullable(it.additionalValue)
+                        val reference = it.reference
+                        if (reference != null) {
+                            referencedElementsSet.add(reference)
+                        }
                     }
                     is UISelect -> {
                         if (it.i18nEnum != null) {
@@ -155,7 +154,8 @@ class LayoutUtils {
                         it.tooltip = getLabelTransformationNullable(it.tooltip)
                     }
                     is UITableColumn -> {
-                        val translation = processLabelString(it.title, clazz, it.id, it)
+                        var title = it.title ?: "@"
+                        val translation = processLabelString(title, clazz, it.id, it)
                         if (translation != null) it.title = translation
                     }
                     is UIButton -> {
@@ -178,6 +178,25 @@ class LayoutUtils {
                             }
                         }
                     }
+                }
+                if (it is UILabelledElement && it is UIElement) {
+                    var label = it.label
+                    if (label.isNullOrEmpty() && !referencedElementsSet.contains(it))
+                        label = "@" // UIElement is not referenced by label
+                    var translation = processLabelString(label, clazz, getId(it), it)
+                    if (translation != null)
+                        it.label = translation
+                    else {
+                        if (it is UILabel)
+                            it.label = getLabelTransformation(label)
+                        else
+                            it.label = getLabelTransformationNullable(label)
+                    }
+                    translation = processLabelString(it.additionalLabel, clazz, getId(it), it, true)
+                    if (translation != null)
+                        it.additionalLabel = translation
+                    else
+                        it.additionalLabel = getLabelTransformationNullable(it.additionalLabel)
                 }
             }
             return elements
@@ -265,6 +284,9 @@ class LayoutUtils {
          */
         private fun getId(element: UIElement?): String? {
             if (element == null) return null
+            if (element is UILabel) {
+                return getId(element.reference)
+            }
             return when (element) {
                 is UIInput -> element.id
                 is UISelect -> element.id
@@ -274,6 +296,5 @@ class LayoutUtils {
                 else -> null
             }
         }
-
     }
 }

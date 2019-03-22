@@ -21,7 +21,7 @@ data class UIGroup(val content: MutableList<UIElement> = mutableListOf()) : UIEl
      * @param input The element (of type UIInput, UITextArea or UISelect).
      */
     fun add(label: String, input: UIElement): UIGroup {
-        return add(UILabel(label), input)
+        return add(UILabel(label = label), input)
     }
 
     /**
