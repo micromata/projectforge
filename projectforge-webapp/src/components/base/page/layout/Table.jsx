@@ -1,5 +1,6 @@
 import PropTypes from 'prop-types';
 import React from 'react';
+import format from '../../../../utilities/format';
 import history from '../../../../utilities/history';
 import { Card, CardBody, Table } from '../../../design';
 
@@ -36,11 +37,23 @@ class LayoutTable extends React.Component {
                                     onClick={this.handleRowClick}
                                     data-id={row.id}
                                 >
-                                    {columns.map(column => (
-                                        <td key={`table-body-row-${row.id}-column-${column.id}`}>
-                                            {row[column.id]}
-                                        </td>
-                                    ))}
+                                    {columns.map((column) => {
+                                        let value;
+
+                                        if (row[column.id] === undefined) {
+                                            value = '';
+                                        } else if (column.formatter) {
+                                            value = format(column.formatter, row[column.id]);
+                                        } else {
+                                            value = row[column.id];
+                                        }
+
+                                        return (
+                                            <td key={`table-body-row-${row.id}-column-${column.id}`}>
+                                                {value}
+                                            </td>
+                                        );
+                                    })}
                                 </tr>
                             ))}
                         </tbody>
