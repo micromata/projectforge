@@ -7,9 +7,7 @@ import org.projectforge.business.user.filter.UserFilter
 import org.projectforge.business.user.service.UserService
 import org.projectforge.common.DateFormatType
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
-import org.projectforge.framework.persistence.user.api.UserContext
 import org.projectforge.framework.time.DateFormats
-import org.projectforge.framework.time.DateTimeFormatter
 import org.projectforge.framework.time.TimeNotation
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationContext
@@ -43,12 +41,12 @@ open class UserStatusRest {
                         var dateFormat: String? = null,
                         @SerializedName("date-format-short")
                         var dateFormatShort: String? = null,
-                        @SerializedName("date-format-minutes")
-                        var dateFormatMinutes: String? = null,
-                        @SerializedName("date-format-seconds")
-                        var dateFormatSeconds: String? = null,
-                        @SerializedName("date-format-millis")
-                        var dateFormatMillis: String? = null,
+                        @SerializedName("timestamp-format-minutes")
+                        var timestampFormatMinutes: String? = null,
+                        @SerializedName("timestamp-format-seconds")
+                        var timestampFormatSeconds: String? = null,
+                        @SerializedName("timestamp-format-millis")
+                        var timestampFormatMillis: String? = null,
                         @SerializedName("first-day-of-week")
                         var firstDayOfWeek : Int? = null,
                         @SerializedName("time-notation")
@@ -94,9 +92,9 @@ open class UserStatusRest {
                 timeNotation = DateFormats.ensureAndGetDefaultTimeNotation(),
                 dateFormat = DateFormats.getFormatString(DateFormatType.DATE),
                 dateFormatShort = DateFormats.getFormatString(DateFormatType.DATE_SHORT),
-                dateFormatMinutes = DateFormats.getFormatString(DateFormatType.DATE_TIME_MINUTES),
-                dateFormatSeconds = DateFormats.getFormatString(DateFormatType.DATE_TIME_SECONDS),
-                dateFormatMillis = DateFormats.getFormatString(DateFormatType.DATE_TIME_MILLIS),
+                timestampFormatMinutes = DateFormats.getFormatString(DateFormatType.DATE_TIME_MINUTES),
+                timestampFormatSeconds = DateFormats.getFormatString(DateFormatType.DATE_TIME_SECONDS),
+                timestampFormatMillis = DateFormats.getFormatString(DateFormatType.DATE_TIME_MILLIS),
                 firstDayOfWeek = user.firstDayOfWeek)
 
         val systemData = SystemData(appname = ProjectForgeVersion.APP_ID,
