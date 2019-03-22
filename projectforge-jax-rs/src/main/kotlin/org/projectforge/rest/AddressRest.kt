@@ -13,7 +13,9 @@ import javax.ws.rs.Path
 
 @Controller
 @Path("addresses")
-open class AddressRest() : AbstractDORest<AddressDO, AddressDao, AddressFilter>() {
+open class AddressRest()
+    : AbstractDORest<AddressDO, AddressDao, AddressFilter>(AddressDao::class.java, AddressFilter::class.java) {
+
     private val log = org.slf4j.LoggerFactory.getLogger(AddressRest::class.java)
 
     companion object {
@@ -22,19 +24,8 @@ open class AddressRest() : AbstractDORest<AddressDO, AddressDao, AddressFilter>(
         }
     }
 
-    @Autowired
-    open var addressDao: AddressDao? = null
-
-    override fun getBaseDao(): AddressDao {
-        return addressDao!!
-    }
-
     override fun newBaseDO(): AddressDO {
         return AddressDO()
-    }
-
-    override fun getFilterClass(): Class<AddressFilter> {
-        return AddressFilter::class.java
     }
 
     /**

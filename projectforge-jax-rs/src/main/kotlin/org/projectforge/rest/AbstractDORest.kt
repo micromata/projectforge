@@ -11,6 +11,7 @@ import org.projectforge.rest.ui.ValidationError
 import org.projectforge.ui.UILayout
 import org.springframework.beans.BeanUtils
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.context.ApplicationContext
 import org.springframework.stereotype.Controller
 import javax.servlet.http.HttpServletRequest
 import javax.ws.rs.*
@@ -28,6 +29,12 @@ import javax.ws.rs.core.Response
  */
 @Controller
 abstract class AbstractDORest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F : BaseSearchFilter> {
+    constructor(baseDaoClazz: Class<B>,
+                filterClazz: Class<F>) {
+        this.baseDaoClazz = baseDaoClazz
+        this.filterClazz = filterClazz
+    }
+
     private val log = org.slf4j.LoggerFactory.getLogger(AbstractDORest::class.java)
 
     /**
@@ -47,8 +54,27 @@ abstract class AbstractDORest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F : BaseS
      */
     private data class InitialListData<O : ExtendedBaseDO<Int>>(val ui: UILayout?, val data: ListData<O>, val filter: BaseSearchFilter)
 
+    private var initialized = false
+
+    private var _baseDao: B? = null
+
+    val baseDao: B
+        get() {
+            if (_baseDao == null) {
+                _baseDao = applicationContext!!.getBean(baseDaoClazz)
+            }
+            return _baseDao ?: throw AssertionError("Set to null by another thread")
+        }
+
+    var baseDaoClazz: Class<B>
+
+    var filterClazz: Class<F>
+
     @Autowired
     open var accessChecker: AccessChecker? = null
+
+    @Autowired
+    open var applicationContext: ApplicationContext? = null
 
     @Autowired
     open var historyService: HistoryService? = null
@@ -56,11 +82,7 @@ abstract class AbstractDORest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F : BaseS
     @Autowired
     open var listFilterService: ListFilterService? = null
 
-    abstract fun getBaseDao(): BaseDao<O>
-
     abstract fun newBaseDO(): O
-
-    abstract fun getFilterClass(): Class<F>;
 
     open protected fun validate(obj: O): List<ValidationError>? {
         return null
@@ -82,11 +104,11 @@ abstract class AbstractDORest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F : BaseS
     @Path("initial-list")
     @Produces(MediaType.APPLICATION_JSON)
     fun getInitialList(@Context request: HttpServletRequest): Response {
-        val filter = listFilterService!!.getSearchFilter(request.session, getFilterClass())
+        val filter = listFilterService!!.getSearchFilter(request.session, filterClazz)
         filter.maxRows = 10
-        val list = RestHelper.getList(getBaseDao(), filter)
+        val list = RestHelper.getList(baseDao, filter)
         list.forEach { processItemBeforeExport(it) }
-        val layout = Layout.getListLayout(getBaseDao())
+        val layout = Layout.getListLayout(baseDao)
         val listData = ListData(resultSet = list)
         return RestHelper.buildResponse(InitialListData(ui = layout, data = listData, filter = filter))
     }
@@ -99,10 +121,10 @@ abstract class AbstractDORest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F : BaseS
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     fun <O> getList(@Context request: HttpServletRequest, filter: F): Response {
-        val list = RestHelper.getList(getBaseDao(), filter)
+        val list = RestHelper.getList(baseDao, filter)
         list.forEach { processItemBeforeExport(it) }
         val listData = ListData(resultSet = list)
-        val storedFilter = listFilterService!!.getSearchFilter(request.session, getFilterClass())
+        val storedFilter = listFilterService!!.getSearchFilter(request.session, filterClazz)
         BeanUtils.copyProperties(filter, storedFilter)
         return RestHelper.buildResponse(listData)
     }
@@ -121,7 +143,7 @@ abstract class AbstractDORest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F : BaseS
     }
 
     private fun getById(id: Int): O {
-        val item = getBaseDao().getById(id)
+        val item = baseDao!!.getById(id)
         processItemBeforeExport(item)
         return item
     }
@@ -158,7 +180,7 @@ abstract class AbstractDORest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F : BaseS
         if (item == null) {
             return Response.status(Response.Status.BAD_REQUEST).build();
         }
-        val historyEntries = getBaseDao().getHistoryEntries(item);
+        val historyEntries = baseDao!!.getHistoryEntries(item);
         return RestHelper.buildResponse(historyService!!.format(historyEntries))
     }
 
@@ -190,7 +212,7 @@ abstract class AbstractDORest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F : BaseS
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     fun saveOrUpdate(obj: O): Response {
-        return RestHelper.saveOrUpdate(getBaseDao(), obj, validate(obj))
+        return RestHelper.saveOrUpdate(baseDao, obj, validate(obj))
     }
 
     /**
@@ -201,7 +223,7 @@ abstract class AbstractDORest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F : BaseS
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     fun undelete(obj: O): Response {
-        return RestHelper.undelete(getBaseDao(), obj, validate(obj))
+        return RestHelper.undelete(baseDao, obj, validate(obj))
     }
 
     /**
@@ -211,7 +233,7 @@ abstract class AbstractDORest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F : BaseS
     @Path(RestPaths.MARK_AS_DELETED)
     @Consumes(MediaType.APPLICATION_JSON)
     fun markAsDeleted(obj: O): Response {
-        return RestHelper.markAsDeleted(getBaseDao(), obj, validate(obj))
+        return RestHelper.markAsDeleted(baseDao, obj, validate(obj))
     }
 
     /**
@@ -221,6 +243,6 @@ abstract class AbstractDORest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F : BaseS
     @Path(RestPaths.FILTER_RESET)
     @Produces(MediaType.APPLICATION_JSON)
     fun filterReset(@Context request: HttpServletRequest): Response {
-        return RestHelper.buildResponse(listFilterService!!.getSearchFilter(request.session, getFilterClass()).reset())
+        return RestHelper.buildResponse(listFilterService!!.getSearchFilter(request.session, filterClazz).reset())
     }
 }
