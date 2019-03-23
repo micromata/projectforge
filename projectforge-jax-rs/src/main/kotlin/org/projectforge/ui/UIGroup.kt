@@ -25,7 +25,7 @@ data class UIGroup(val content: MutableList<UIElement> = mutableListOf()) : UIEl
             is UILabelledElement -> element.label
             else -> "??? ${id} ???"
         }
-        return add(UILabel(label = label, protectLabel = true), element)
+        return add(UILabel(label = label, protectLabels = true), element)
     }
 
     /**

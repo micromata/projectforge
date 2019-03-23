@@ -22,8 +22,8 @@ class AddressLayout {
             LayoutUtils.addListFilterContainer(layout,
                     UICheckbox("filter", label = "filter"),
                     UICheckbox("newest", label = "filter.newest"),
-                    UICheckbox("filter.favorites", label = "address.filter.myFavorites"),
-                    UICheckbox("filter.dublets", label = "address.filter.doublets"))
+                    UICheckbox("favorites", label = "address.filter.myFavorites"),
+                    UICheckbox("dublets", label = "address.filter.doublets"))
             return LayoutUtils.processListPage(layout)
         }
 

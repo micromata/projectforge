@@ -8,7 +8,10 @@ data class UISelect(val id: String,
                     val required: Boolean? = null,
                     override var label: String? = null,
                     @SerializedName("additional-label")
-                    override var additionalLabel: String? = null)
+                    override var additionalLabel: String? = null,
+                    override var tooltip: String? = null,
+                    @Transient
+                    override var protectLabels: Boolean = false)
     : UIElement(UIElementType.SELECT), UILabelledElement {
     @Transient
     private val log = org.slf4j.LoggerFactory.getLogger(LayoutUtils::class.java)

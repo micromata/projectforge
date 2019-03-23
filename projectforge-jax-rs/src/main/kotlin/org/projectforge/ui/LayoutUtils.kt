@@ -70,10 +70,7 @@ class LayoutUtils {
                             val property = getId(it)
                             if (property != null) {
                                 val elementInfo = UIElementsRegistry.getElementInfo(filterClass, property)
-                                val translation = getLabelTransformation(elementInfo?.i18nKey)
-                                if (translation != null) {
-                                    it.label = translation
-                                }
+                                it.label = elementInfo?.i18nKey
                             }
                         }
                     }
@@ -135,7 +132,7 @@ class LayoutUtils {
                 return element
             }
             val group = UIGroup()
-            val label = UILabel(protectLabel = true)
+            val label = UILabel(protectLabels = true)
             val elementInfo = UIElementsRegistry.getElementInfo(layoutSettings, id)
             setLabels(elementInfo, label)
             group.add(label, element)
@@ -149,6 +146,7 @@ class LayoutUtils {
                 element.label = translate(elementInfo.i18nKey)
             if (!elementInfo.additionalI18nKey.isNullOrEmpty())
                 element.additionalLabel = translate(elementInfo.additionalI18nKey)
+            element.protectLabels = true
         }
 
         /**
@@ -163,10 +161,11 @@ class LayoutUtils {
             elements.forEach {
                 if (it is UIElement) it.key = "el-${++counter}"
                 when (it) {
-                    is UILabel -> {
-                        if (!it.protectLabel) {
+                    is UILabelledElement -> {
+                        if (!it.protectLabels) {
                             it.label = getLabelTransformation(it.label)
                             it.additionalLabel = getLabelTransformation(it.additionalLabel)
+                            it.tooltip = getLabelTransformation(it.tooltip)
                         }
                     }
                     is UITableColumn -> {
