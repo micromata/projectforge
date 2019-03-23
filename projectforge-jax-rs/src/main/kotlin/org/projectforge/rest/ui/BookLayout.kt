@@ -22,7 +22,7 @@ class BookLayout {
             return LayoutUtils.processListPage(layout, BookDO::class.java)
         }
 
-        fun createEditLayout(book: BookDO?, inlineLabels : Boolean): UILayout {
+        fun createEditLayout(book: BookDO?, inlineLabels: Boolean): UILayout {
             val titleKey = if (book?.id != null) "book.title.edit" else "book.title.add"
             val ls = LayoutSettings(BookDO::class.java, inlineLabels)
             val layout = UILayout(titleKey)
@@ -35,9 +35,7 @@ class BookLayout {
                     .add(UIGroup()
                             .add(UILabel("book.lending"))
                             .add(UICustomized("lendOutComponent")))
-                    .add(UIGroup().add(UITextarea("lendOutComment")))
-                    .add(UIGroup().add(UITextarea("abstractText")))
-                    .add(UIGroup().add(UITextarea("comment")))
+                    .add(ls, "lendOutComment", "abstractText", "comment")
             (layout.getElementById("title") as UIInput).focus = true
             return LayoutUtils.processEditPage(layout, BookDO::class.java, book)
         }

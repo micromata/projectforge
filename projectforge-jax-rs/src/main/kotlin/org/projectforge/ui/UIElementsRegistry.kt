@@ -1,5 +1,6 @@
 package org.projectforge.ui
 
+import com.zaxxer.hikari.util.UtilityElf.getNullIfEmpty
 import de.micromata.genome.jpa.metainf.ColumnMetadata
 import org.projectforge.common.i18n.I18nEnum
 import org.projectforge.common.props.PropUtils
@@ -8,6 +9,8 @@ import org.springframework.beans.BeanUtils
 
 /**
  * Registry holds properties of UIElements...
+ * Builds elements automatically dependent on their property type. For Strings with maxLength > 255 a [UITextarea] will be created instead
+ * of an [UIInput].
  */
 internal object UIElementsRegistry {
     private val log = org.slf4j.LoggerFactory.getLogger(LayoutUtils::class.java)
@@ -27,7 +30,7 @@ internal object UIElementsRegistry {
      */
     private val unavailableElementsSet = mutableSetOf<String>()
 
-    inline fun buildElement(layoutSettings: LayoutSettings, property: String): UIElement? {
+    internal fun buildElement(layoutSettings: LayoutSettings, property: String): UIElement? {
         val mapKey = getMapKey(layoutSettings.dataObjectClazz, property)
         if (mapKey == null) {
             return null
@@ -40,7 +43,14 @@ internal object UIElementsRegistry {
 
         var element: UIElement? =
                 when (elementInfo.propertyType) {
-                    String::class.java -> UIInput(property, maxLength = elementInfo.maxLength, required = elementInfo.required)
+                    String::class.java -> {
+                        val maxLength = elementInfo.maxLength
+                        if (maxLength != null && maxLength > 255) {
+                            UITextarea(property, maxLength = elementInfo.maxLength)
+                        } else {
+                            UIInput(property, maxLength = elementInfo.maxLength, required = elementInfo.required)
+                        }
+                    }
                     Boolean::class.java -> UICheckbox(property)
                     else -> null
                 }
