@@ -1,7 +1,6 @@
 package org.projectforge.rest.ui
 
 import org.projectforge.common.i18n.I18nEnum
-import org.projectforge.common.props.PropUtils
 import org.projectforge.framework.i18n.I18nHelper
 import org.projectforge.framework.persistence.api.HibernateUtils
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
@@ -37,7 +36,6 @@ class LayoutUtils {
             layout.namedContainers.forEach {
                 it.key = "nc-${++counter}"
             }
-            layout.title = getLabelTransformation(layout.title)
             return elements
         }
 
@@ -66,20 +64,6 @@ class LayoutUtils {
 
         fun addListFilterContainer(layout: UILayout, vararg elements: UIElement, filterClass: Class<*>? = null, autoAppendDefaultSettings: Boolean? = true) {
             val filterGroup = UIGroup()
-            elements.forEach {
-                filterGroup.add(it)
-                if (filterClass != null && it is UILabelledElement) {
-                    val property = getId(it)
-                    if (property != null) {
-                        val translation = getI18nKeyTranslation(filterClass, it.label, property, it, replaceNullLabels = true)
-                        if (translation != null) {
-                            it.label = translation
-                            if (it is UICheckbox)
-                                it.protectLabel = true // Don't process this label later.
-                        }
-                    }
-                }
-            }
             if (autoAppendDefaultSettings == true) addListDefaultOptions(filterGroup)
             layout.add(UINamedContainer("filter-options").add(filterGroup))
         }
@@ -132,24 +116,9 @@ class LayoutUtils {
          */
         private fun processAllElements(elements: List<Any>, clazz: Class<*>): List<Any?> {
             var counter = 0
-            var referencedElementsSet = mutableSetOf<UIElement>()
             elements.forEach {
                 if (it is UIElement) it.key = "el-${++counter}"
                 when (it) {
-                    is UIInput -> {
-                        val maxLength = getMaxLength(clazz, it.maxLength, it.id, it)
-                        if (maxLength != null) it.maxLength = maxLength
-                    }
-                    is UITextarea -> {
-                        val maxLength = getMaxLength(clazz, it.maxLength, it.id, it)
-                        if (maxLength != null) it.maxLength = maxLength
-                    }
-                    is UILabel -> {
-                        val reference = it.reference
-                        if (reference != null) {
-                            referencedElementsSet.add(reference)
-                        }
-                    }
                     is UISelect -> {
                         if (it.i18nEnum != null) {
                             getEnumValues(it.i18nEnum).forEach { value ->
@@ -161,17 +130,6 @@ class LayoutUtils {
                                 }
                             }
                         }
-                    }
-                    is UICheckbox -> {
-                        if (it.protectLabel != true) {
-                            it.label = getLabelTransformation(it.label)
-                        }
-                        it.tooltip = getLabelTransformationNullable(it.tooltip)
-                    }
-                    is UITableColumn -> {
-                        var title = it.title ?: "@"
-                        val translation = processLabelString(title, clazz, it.id, it)
-                        if (translation != null) it.title = translation
                     }
                     is UIButton -> {
                         if (it.title == null) {
@@ -194,111 +152,17 @@ class LayoutUtils {
                         }
                     }
                 }
-                if (it is UILabelledElement && it is UIElement) {
-                    var label = it.label
-                    if (label.isNullOrEmpty() && !referencedElementsSet.contains(it))
-                        label = "@" // UIElement is not referenced by label
-                    var translation = processLabelString(label, clazz, getId(it), it)
-                    if (translation != null)
-                        it.label = translation
-                    else {
-                        if (it is UILabel)
-                            it.label = getLabelTransformation(label)
-                    }
-                    translation = processLabelString(it.additionalLabel, clazz, getId(it), it, true)
-                    if (translation != null)
-                        it.additionalLabel = translation
-                    else
-                        it.additionalLabel = getLabelTransformationNullable(it.additionalLabel)
-                }
             }
             return elements
-        }
-
-        /**
-         * @ -> will be replaced by the translation of the property key.
-         */
-        private fun processLabelString(labelString: String?, clazz: Class<*>, property: String?, uiElement: UIElement,
-                                       useAdditionalI18nKey: Boolean = false): String? {
-            if (labelString?.startsWith("'") == true) {
-                return labelString.substring(1)
-            }
-            // additionalI18nKey may be null or '@'
-            if ((useAdditionalI18nKey && labelString == null) || labelString == "@") {
-                if (property == null) {
-                    // This may occur for UILabels without reference to property.
-                    if (labelString == "@")
-                        log.error("Can't find null property, element ${uiElement}.")
-                    return null
-                }
-                return getI18nKeyTranslation(clazz, "@", property, uiElement, useAdditionalI18nKey)
-            }
-            return null
         }
 
         // fun getEnumValues(enumClass: KClass<out Enum<*>>): Array<out Enum<*>> = enumClass.java.enumConstants
         private fun getEnumValues(enumClass: Class<out Enum<*>>): Array<out Enum<*>> = enumClass.enumConstants
 
-        private fun getMaxLength(clazz: Class<*>, current: Int?, property: String, element: UIElement): Int? {
-            if (current != null) return null;
-            val maxLength = HibernateUtils.getPropertyLength(clazz, property)
-            if (maxLength == null) {
-                log.error("Length not found in Entity '${clazz}' for UI element '${element}'.")
-            }
-            return maxLength
-        }
-
-        /**
-         * If the given label starts with "'" the label itself as substring after "'" will be returned: "'This is an text." -> "This is an text"<br>
-         * Otherwise method [translate] will be called and the result returned.
-         * @param label to process
-         * @return Modified label or unmodified label.
-         */
-        private fun getLabelTransformation(label: String? = null): String {
-            if (label?.startsWith("'") == true) return label.substring(1)
-            return translate(label)
-        }
-
-        /**
-         * If the given label starts with "'" the label itself as substring after "'" will be returned: "'This is an text." -> "This is an text"<br>
-         * Otherwise method [translate] will be called and the result returned.
-         * @param label to process
-         * @return Modified label or unmodified label.
-         */
-        private fun getLabelTransformationNullable(label: String? = null): String? {
-            if (label?.startsWith("'") == true) return label.substring(1)
-            if (label == null) return null
-            return translate(label)
-        }
-
-        /**
-         * @param clazz of the DO object.
-         * @param current The current label.
-         * @param property The name of the property (field) of the DO object.
-         * @param elemnent The current proceeded element.
-         */
-        private fun getI18nKeyTranslation(clazz: Class<*>, current: String?, property: String?, element: UIElement,
-                                          useAdditionalI18nKey: Boolean = false, replaceNullLabels: Boolean = false): String? {
-            if (current == null && replaceNullLabels == false)
-                return null // Don't replace null labels at default, only if replaceNullLabels is true.
-            if (current != null && current != "@")
-                return null; // Don't replace given labels if not equals to "@"
-            val propInfo = PropUtils.get(clazz, property)
-            if (propInfo == null) {
-                log.error("PropertyInfo not found in Entity '${clazz}' for UI element '${element}'.")
-                return null
-            }
-            if (useAdditionalI18nKey) {
-                if (propInfo.additionalI18nKey.isNotEmpty()) return translate(propInfo.additionalI18nKey)
-                return null
-            }
-            return translate(propInfo.i18nKey)
-        }
-
         /**
          * @return The id of the given element if supported.
          */
-        internal fun getId(element: UIElement?, followLabelReference : Boolean = true): String? {
+        internal fun getId(element: UIElement?, followLabelReference: Boolean = true): String? {
             if (element == null) return null
             if (followLabelReference == true && element is UILabel) {
                 return getId(element.reference)
@@ -313,5 +177,20 @@ class LayoutUtils {
                 else -> null
             }
         }
+
+        /**
+         * If the given label starts with "'" the label itself as substring after "'" will be returned: "'This is an text." -> "This is an text"<br>
+         * Otherwise method [translate] will be called and the result returned.
+         * @param label to process
+         * @return Modified label or unmodified label.
+         */
+        internal fun getLabelTransformation(label: String?): String? {
+            if (label == null)
+                return null
+            if (label.startsWith("'") == true)
+                return label.substring(1)
+            return translate(label)
+        }
+
     }
 }
