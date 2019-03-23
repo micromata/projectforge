@@ -1,7 +1,6 @@
 package org.projectforge.ui
 
 import com.google.gson.annotations.SerializedName
-import org.projectforge.rest.ui.LayoutUtils
 
 class UILayout {
     constructor(title: String) {

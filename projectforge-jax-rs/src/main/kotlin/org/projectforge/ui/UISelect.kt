@@ -2,8 +2,6 @@ package org.projectforge.ui
 
 import com.google.gson.annotations.SerializedName
 import org.projectforge.common.i18n.I18nEnum
-import org.projectforge.rest.ui.LayoutUtils
-import org.projectforge.rest.ui.translate
 
 data class UISelect(val id: String,
                     val values: MutableList<UISelectValue> = mutableListOf(),
@@ -12,6 +10,7 @@ data class UISelect(val id: String,
                     @SerializedName("additional-label")
                     override var additionalLabel: String? = null)
     : UIElement(UIElementType.SELECT), UILabelledElement {
+    @Transient
     private val log = org.slf4j.LoggerFactory.getLogger(LayoutUtils::class.java)
 
 

@@ -1,4 +1,4 @@
-package org.projectforge.rest.ui
+package org.projectforge.ui
 
 data class LayoutSettings(
         /**

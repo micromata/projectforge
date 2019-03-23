@@ -9,7 +9,7 @@ import org.projectforge.business.multitenancy.TenantRegistryMap
 import org.projectforge.common.i18n.I18nEnum
 import org.projectforge.common.props.PropUtils
 import org.projectforge.framework.persistence.user.entities.PFUserDO
-import org.projectforge.rest.ui.translate
+import org.projectforge.ui.translate
 import org.springframework.stereotype.Service
 import java.lang.reflect.Field
 import java.util.*

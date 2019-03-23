@@ -1,10 +1,8 @@
-package org.projectforge.rest.ui
+package org.projectforge.ui
 
-import org.projectforge.common.i18n.I18nEnum
 import org.projectforge.framework.i18n.I18nHelper
 import org.projectforge.framework.persistence.api.HibernateUtils
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
-import org.projectforge.ui.*
 
 fun translate(i18nKey: String?): String {
     if (i18nKey == null) return "???"
@@ -108,7 +106,7 @@ class LayoutUtils {
         }
 
         /**
-         * Sets all length of input fields and text areas with maxLength 0 to the Hibernate JPA definition (@Column).
+         * Does translation of buttons and UILabels
          * @param elements List of all elements used in the layout.
          * @param clazz The class of the property to search for annotations [@PropertyInfo]
          * @return The unmodified parameter elements.
@@ -119,6 +117,12 @@ class LayoutUtils {
             elements.forEach {
                 if (it is UIElement) it.key = "el-${++counter}"
                 when (it) {
+                    is UILabel -> {
+                        if (!it.protectLabel) {
+                            it.label = getLabelTransformation(it.label)
+                            it.additionalLabel = getLabelTransformation(it.label)
+                        }
+                    }
                     is UIButton -> {
                         if (it.title == null) {
                             val i18nKey = when (it.id) {

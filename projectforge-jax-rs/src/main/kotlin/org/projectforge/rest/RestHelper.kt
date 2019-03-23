@@ -4,7 +4,7 @@ import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
 import org.projectforge.rest.json.JsonCreator
-import org.projectforge.rest.ui.ValidationError
+import org.projectforge.ui.ValidationError
 import javax.ws.rs.core.Response
 
 class RestHelper {

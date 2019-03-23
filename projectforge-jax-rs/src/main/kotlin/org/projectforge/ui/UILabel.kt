@@ -7,6 +7,8 @@ data class UILabel(override var label: String? = null,
                    var labelFor: String? = null,
                    @Transient
                    var reference: UIElement? = null,
+                   @Transient
+                   var protectLabel: Boolean = false,
                    @SerializedName("additional-label")
                    override var additionalLabel: String? = null)
     : UIElement(UIElementType.LABEL), UILabelledElement
