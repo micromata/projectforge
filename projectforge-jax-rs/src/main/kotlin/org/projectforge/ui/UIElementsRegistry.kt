@@ -30,15 +30,15 @@ internal object UIElementsRegistry {
      */
     private val unavailableElementsSet = mutableSetOf<String>()
 
-    internal fun buildElement(layoutSettings: LayoutSettings, property: String): UIElement? {
+    internal fun buildElement(layoutSettings: LayoutSettings, property: String): UIElement {
         val mapKey = getMapKey(layoutSettings.dataObjectClazz, property)
         if (mapKey == null) {
-            return null
+            return UILabel(property)
         }
         val elementInfo = getElementInfo(layoutSettings.dataObjectClazz, property)
         if (elementInfo == null) {
             log.info("Can't build UIElement from ${mapKey}.")
-            return null
+            return UILabel("??? ${mapKey} ???")
         }
 
         var element: UIElement? =
@@ -57,18 +57,19 @@ internal object UIElementsRegistry {
         if (element == null) {
             if (elementInfo.propertyType.isEnum) {
                 if (I18nEnum::class.java.isAssignableFrom(elementInfo.propertyType)) {
-                    element = UISelect(property).buildValues(elementInfo.propertyType as Class<out Enum<*>>)
+                    @Suppress("UNCHECKED_CAST")
+                    element = UISelect(property).buildValues(i18nEnum = elementInfo.propertyType as Class<out Enum<*>>)
                 } else {
                     log.warn("Properties of enum not implementing I18nEnum not yet supported: ${mapKey}.")
                     unavailableElementsSet.add(mapKey)
-                    return null
+                    return UILabel("??? ${mapKey} ???")
                 }
             }
         }
         if ((layoutSettings.useInlineLabels || element is UILabel) && element is UILabelledElement) {
             LayoutUtils.setLabels(elementInfo, element)
         }
-        return element
+        return element ?: UILabel(property)
     }
 
     internal fun getElementInfo(layoutSettings: LayoutSettings, property: String): ElementInfo? {

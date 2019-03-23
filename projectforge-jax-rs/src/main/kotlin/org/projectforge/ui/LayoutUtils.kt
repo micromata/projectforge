@@ -124,8 +124,6 @@ class LayoutUtils {
          */
         internal fun buildLabelInputElement(layoutSettings: LayoutSettings, id: String): UIElement? {
             val element = UIElementsRegistry.buildElement(layoutSettings, id)
-            if (element == null)
-                return null
             if (layoutSettings.useInlineLabels) {
                 return element
             }
