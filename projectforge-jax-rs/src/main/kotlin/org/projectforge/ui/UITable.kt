@@ -1,7 +1,5 @@
 package org.projectforge.ui
 
-import org.apache.xalan.xsltc.runtime.CallFunction.clazz
-
 data class UITable(val id : String, val columns : MutableList<UITableColumn> = mutableListOf()) : UIElement(UIElementType.TABLE) {
     fun add(column: UITableColumn): UITable {
         columns.add(column)
@@ -15,10 +13,9 @@ data class UITable(val id : String, val columns : MutableList<UITableColumn> = m
         columnIds.forEach {
             val col = UITableColumn(it)
             col.protectTitle = true
-            val elementInfo = UIElementsRegistry.getElementInfo(layoutSettings.dataObjectClazz, it)
+            val elementInfo = ElementsRegistry.getElementInfo(layoutSettings.dataObjectClazz, it)
             if (elementInfo != null) {
-                val translation = LayoutUtils.getLabelTransformation(elementInfo?.i18nKey)
-                if (translation != null) col.title = translation
+                col.title = elementInfo.i18nKey
                 col.dataType = UIDataTypeUtils.getDataType(elementInfo)
             }
             add(col)

@@ -69,7 +69,7 @@ class LayoutUtils {
                         if (filterClass != null && it is UILabelledElement) {
                             val property = getId(it)
                             if (property != null) {
-                                val elementInfo = UIElementsRegistry.getElementInfo(filterClass, property)
+                                val elementInfo = ElementsRegistry.getElementInfo(filterClass, property)
                                 it.label = elementInfo?.i18nKey
                             }
                         }
@@ -127,26 +127,25 @@ class LayoutUtils {
          * the label (e. g. UIInput). If don't use inline labels, a group containing a label and an input field is returned.
          */
         internal fun buildLabelInputElement(layoutSettings: LayoutSettings, id: String): UIElement? {
-            val element = UIElementsRegistry.buildElement(layoutSettings, id)
+            val element = ElementsRegistry.buildElement(layoutSettings, id)
             if (layoutSettings.useInlineLabels) {
                 return element
             }
             val group = UIGroup()
-            val label = UILabel(protectLabels = true)
-            val elementInfo = UIElementsRegistry.getElementInfo(layoutSettings, id)
+            val label = UILabel()
+            val elementInfo = ElementsRegistry.getElementInfo(layoutSettings, id)
             setLabels(elementInfo, label)
             group.add(label, element)
             return group
         }
 
-        internal fun setLabels(elementInfo: UIElementsRegistry.ElementInfo?, element: UILabelledElement) {
+        internal fun setLabels(elementInfo: ElementsRegistry.ElementInfo?, element: UILabelledElement) {
             if (elementInfo == null)
                 return
             if (!elementInfo.i18nKey.isNullOrEmpty())
-                element.label = translate(elementInfo.i18nKey)
+                element.label = elementInfo.i18nKey
             if (!elementInfo.additionalI18nKey.isNullOrEmpty())
-                element.additionalLabel = translate(elementInfo.additionalI18nKey)
-            element.protectLabels = true
+                element.additionalLabel = elementInfo.additionalI18nKey
         }
 
         /**
@@ -162,17 +161,13 @@ class LayoutUtils {
                 if (it is UIElement) it.key = "el-${++counter}"
                 when (it) {
                     is UILabelledElement -> {
-                        if (!it.protectLabels) {
-                            it.label = getLabelTransformation(it.label)
-                            it.additionalLabel = getLabelTransformation(it.additionalLabel)
-                            it.tooltip = getLabelTransformation(it.tooltip)
-                        }
+                        it.label = getLabelTransformation(it.label)
+                        it.additionalLabel = getLabelTransformation(it.additionalLabel)
+                        it.tooltip = getLabelTransformation(it.tooltip)
                     }
                     is UITableColumn -> {
-                        if (!it.protectTitle) {
-                            val translation = getLabelTransformation(it.title)
-                            if (translation != null) it.title = translation
-                        }
+                        val translation = getLabelTransformation(it.title)
+                        if (translation != null) it.title = translation
                     }
                     is UIButton -> {
                         if (it.title == null) {

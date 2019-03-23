@@ -4,7 +4,7 @@ import java.util.*
 
 class UIDataTypeUtils {
     companion object {
-        internal fun getDataType(elementInfo: UIElementsRegistry.ElementInfo?): UIDataType {
+        internal fun getDataType(elementInfo: ElementsRegistry.ElementInfo?): UIDataType {
             if (elementInfo == null)
                 return UIDataType.STRING
             return when (elementInfo.propertyType) {
