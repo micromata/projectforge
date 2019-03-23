@@ -33,7 +33,7 @@ class BookLayout {
                             .add(UICol(6)
                                     .add(ls, "isbn", "keywords", "publisher", "editor")))
                     .add(UIGroup()
-                            .add(UILabel("lendOutComponent", label = "book.lending"))
+                            .add(UILabel( "book.lending", "lendOutComponent"))
                             .add(UICustomized("lendOutComponent")))
                     .add(ls, "lendOutComment", "abstractText", "comment")
             layout.getInputById("title").focus = true

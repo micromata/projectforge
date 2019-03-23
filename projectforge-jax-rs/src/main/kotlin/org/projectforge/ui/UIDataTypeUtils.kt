@@ -9,6 +9,7 @@ class UIDataTypeUtils {
                 return UIDataType.STRING
             return when (elementInfo.propertyType) {
                 Date::class.java -> UIDataType.DATE
+                Locale::class.java -> UIDataType.LOCALE
                 else -> UIDataType.STRING
             }
         }
