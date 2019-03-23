@@ -10,6 +10,8 @@ data class UILabel(
         @SerializedName("for")
         var labelFor: String? = null,
         @Transient
+        override val layoutSettings: LayoutSettings? = null,
+        @Transient
         var reference: UIElement? = null,
         override var label: String? = null,
         @SerializedName("additional-label")

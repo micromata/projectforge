@@ -45,9 +45,9 @@ internal object ElementsRegistry {
                     String::class.java -> {
                         val maxLength = elementInfo.maxLength
                         if (maxLength != null && maxLength > 255) {
-                            UITextarea(property, maxLength = elementInfo.maxLength)
+                            UITextarea(property, maxLength = elementInfo.maxLength, layoutSettings = layoutSettings)
                         } else {
-                            UIInput(property, maxLength = elementInfo.maxLength, required = elementInfo.required)
+                            UIInput(property, maxLength = elementInfo.maxLength, required = elementInfo.required, layoutSettings = layoutSettings)
                         }
                     }
                     Boolean::class.java -> UICheckbox(property)
@@ -57,7 +57,8 @@ internal object ElementsRegistry {
             if (elementInfo.propertyType.isEnum) {
                 if (I18nEnum::class.java.isAssignableFrom(elementInfo.propertyType)) {
                     @Suppress("UNCHECKED_CAST")
-                    element = UISelect(property).buildValues(i18nEnum = elementInfo.propertyType as Class<out Enum<*>>)
+                    element = UISelect(property, layoutSettings = layoutSettings)
+                            .buildValues(i18nEnum = elementInfo.propertyType as Class<out Enum<*>>)
                 } else {
                     log.warn("Properties of enum not implementing I18nEnum not yet supported: ${mapKey}.")
                     unavailableElementsSet.add(mapKey)
