@@ -56,6 +56,14 @@ class UILayout {
         return null
     }
 
+    fun getTableColumnById(id: String): UITableColumn {
+        return getElementById(id) as UITableColumn
+    }
+
+    fun getInputById(id: String): UIInput {
+        return getElementById(id) as UIInput
+    }
+
     private fun getElementById(id: String, elements: List<UIElement>): UIElement? {
         elements.forEach {
             if (LayoutUtils.getId(it, followLabelReference = false) == id)

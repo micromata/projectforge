@@ -1,6 +1,7 @@
 package org.projectforge.rest.ui
 
 import org.projectforge.business.address.AddressDO
+import org.projectforge.business.address.AddressFilter
 import org.projectforge.business.address.FormOfAddress
 import org.projectforge.framework.persistence.api.HibernateUtils
 import org.projectforge.ui.*
@@ -12,12 +13,12 @@ class AddressLayout {
         }
 
         fun createListLayout(): UILayout {
+            val ls = LayoutSettings(AddressDO::class.java)
             val layout = UILayout("address.title.list")
                     .add(UITable("result-set")
-                            .add(UITableColumn("lastUpdate", dataType = UIDataType.DATE))
-                            .add("imageDataPreview", "name", "firstName", "organization", "email")
-                            .add(UITableColumn("phoneNumbers", "Telefonnummern", dataType = UIDataType.CUSTOMIZED))
-                            .add("addressBooks"))
+                            .add(ls, "lastUpdate","imageDataPreview", "name", "firstName", "organization", "email")
+                            .add(UITableColumn("phoneNumbers", "address.phoneNumbers", dataType = UIDataType.CUSTOMIZED))
+                            .add(ls, "addressBooks"))
             LayoutUtils.addListFilterContainer(layout,
                     UICheckbox("filter", label = "filter"),
                     UICheckbox("newest", label = "filter.newest"),
@@ -63,7 +64,7 @@ class AddressLayout {
                                     .add(UILabel("address.image"))
                                     .add(UICustomized("address-image"))))
                     .add(ls, "comment")
-            (layout.getElementById("name") as UIInput).focus = true
+            layout.getInputById("name").focus = true
             return LayoutUtils.processEditPage(layout, AddressDO::class.java, address)
         }
     }

@@ -11,11 +11,12 @@ import org.projectforge.ui.*
 class BookLayout {
     companion object {
         fun createListLayout(): UILayout {
+            val ls = LayoutSettings(BookDO::class.java)
             val layout = UILayout("book.title.list")
                     .add(UITable("result-set")
-                            .add(UITableColumn("created", dataType = UIDataType.DATE, formatter = Formatter.TIMESTAMP_MINUTES))
-                            .add("yearOfPublishing", "signature", "authors", "title", "keywords")
-                            .add(UITableColumn("lendOutBy", formatter = Formatter.USER)))
+                            .add(ls, "created", "yearOfPublishing", "signature", "authors", "title", "keywords", "lendOutBy"))
+            layout.getTableColumnById("created").formatter = Formatter.TIMESTAMP_MINUTES
+            layout.getTableColumnById("lendOutBy").formatter = Formatter.USER
             LayoutUtils.addListFilterContainer(layout,
                     UICheckbox("present"), UICheckbox("missed"), UICheckbox("disposed"),
                     filterClass = BookFilter::class.java)
@@ -36,7 +37,7 @@ class BookLayout {
                             .add(UILabel("book.lending"))
                             .add(UICustomized("lendOutComponent")))
                     .add(ls, "lendOutComment", "abstractText", "comment")
-            (layout.getElementById("title") as UIInput).focus = true
+            layout.getInputById("title").focus = true
             return LayoutUtils.processEditPage(layout, BookDO::class.java, book)
         }
     }
