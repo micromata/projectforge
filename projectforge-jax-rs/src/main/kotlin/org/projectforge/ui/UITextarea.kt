@@ -3,6 +3,8 @@ package org.projectforge.ui
 import com.google.gson.annotations.SerializedName
 
 data class UITextarea(val id: String,
+                      @Transient
+                      override val layoutSettings: LayoutSettings? = null,
                       @SerializedName("max-length")
                       var maxLength: Int? = null,
                       override var label: String? = null,

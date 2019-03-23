@@ -4,6 +4,8 @@ import com.google.gson.annotations.SerializedName
 import org.projectforge.common.i18n.I18nEnum
 
 data class UISelect(val id: String,
+                    @Transient
+                    override val layoutSettings: LayoutSettings? = null,
                     val values: MutableList<UISelectValue> = mutableListOf(),
                     val required: Boolean? = null,
                     override var label: String? = null,

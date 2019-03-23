@@ -1,7 +1,6 @@
 package org.projectforge.rest.ui
 
 import org.projectforge.business.address.AddressDO
-import org.projectforge.business.address.AddressFilter
 import org.projectforge.business.address.FormOfAddress
 import org.projectforge.framework.persistence.api.HibernateUtils
 import org.projectforge.ui.*
@@ -16,7 +15,7 @@ class AddressLayout {
             val ls = LayoutSettings(AddressDO::class.java)
             val layout = UILayout("address.title.list")
                     .add(UITable("result-set")
-                            .add(ls, "lastUpdate","imageDataPreview", "name", "firstName", "organization", "email")
+                            .add(ls, "lastUpdate", "imageDataPreview", "name", "firstName", "organization", "email")
                             .add(UITableColumn("phoneNumbers", "address.phoneNumbers", dataType = UIDataType.CUSTOMIZED))
                             .add(ls, "addressBooks"))
             LayoutUtils.addListFilterContainer(layout,
@@ -27,19 +26,19 @@ class AddressLayout {
             return LayoutUtils.processListPage(layout)
         }
 
-        fun createEditLayout(address: AddressDO?, inlineLabels : Boolean): UILayout {
+        fun createEditLayout(address: AddressDO?, inlineLabels: Boolean): UILayout {
             val titleKey = if (address?.id != null) "address.title.edit" else "address.title.add"
             val ls = LayoutSettings(AddressDO::class.java, inlineLabels)
             val layout = UILayout(titleKey)
                     .add(UIGroup()
-                            .add(UIMultiSelect("addressbookList")))
+                            .add(UIMultiSelect("addressbookList", ls)))
                     .add(UIRow()
                             .add(UICol(6).add(ls, "contactStatus"))
                             .add(UICol(6).add(ls, "addressStatus")))
                     .add(UIRow()
                             .add(UICol(6)
                                     .add(ls, "name", "firstName")
-                                    .add(UIGroup().add(UISelect("form").buildValues(FormOfAddress::class.java))
+                                    .add(UIGroup().add(UISelect("form", ls).buildValues(FormOfAddress::class.java))
                                             .add(UICheckbox("favorite", label = "favorite")))
                                     .add(ls, "title", "email", "privateEmail"))
                             .add(UICol(6)

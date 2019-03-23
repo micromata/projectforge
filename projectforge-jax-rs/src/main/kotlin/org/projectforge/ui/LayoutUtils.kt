@@ -161,8 +161,8 @@ class LayoutUtils {
                 if (it is UIElement) it.key = "el-${++counter}"
                 when (it) {
                     is UILabelledElement -> {
-                        it.label = getLabelTransformation(it.label)
-                        it.additionalLabel = getLabelTransformation(it.additionalLabel)
+                        it.label = getLabelTransformation(it.label, it as UIElement)
+                        it.additionalLabel = getLabelTransformation(it.additionalLabel, it, additionalLabel = true)
                         it.tooltip = getLabelTransformation(it.tooltip)
                     }
                     is UITableColumn -> {
@@ -219,9 +219,25 @@ class LayoutUtils {
          * @param label to process
          * @return Modified label or unmodified label.
          */
-        internal fun getLabelTransformation(label: String?): String? {
-            if (label == null)
+        internal fun getLabelTransformation(label: String?, labelledElement: UIElement? = null, additionalLabel: Boolean = false): String? {
+            if (label == null) {
+                if (labelledElement is UILabelledElement) {
+                    val layoutSettings = labelledElement.layoutSettings
+                    if (layoutSettings != null) {
+                        val id = getId(labelledElement)
+                        if (id != null) {
+                            var elementInfo = ElementsRegistry.getElementInfo(layoutSettings, id)
+                            if (!additionalLabel && elementInfo?.i18nKey != null) {
+                                return translate(elementInfo.i18nKey)
+                            }
+                            if (additionalLabel && elementInfo?.additionalI18nKey != null) {
+                                return translate(elementInfo.additionalI18nKey)
+                            }
+                        }
+                    }
+                }
                 return null
+            }
             if (label.startsWith("'") == true)
                 return label.substring(1)
             return translate(label)
