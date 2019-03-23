@@ -11,7 +11,7 @@ import org.springframework.beans.BeanUtils
  * Builds elements automatically dependent on their property type. For Strings with maxLength > 255 a [UITextarea] will be created instead
  * of an [UIInput].
  */
-internal object UIElementsRegistry {
+internal object ElementsRegistry {
     private val log = org.slf4j.LoggerFactory.getLogger(LayoutUtils::class.java)
 
     internal class ElementInfo(val propertyType: Class<*>,
@@ -72,7 +72,7 @@ internal object UIElementsRegistry {
     }
 
     internal fun getElementInfo(layoutSettings: LayoutSettings, property: String): ElementInfo? {
-        return UIElementsRegistry.getElementInfo(layoutSettings.dataObjectClazz, property)
+        return ElementsRegistry.getElementInfo(layoutSettings.dataObjectClazz, property)
     }
 
     internal fun getElementInfo(clazz: Class<*>?, property: String): ElementInfo? {
