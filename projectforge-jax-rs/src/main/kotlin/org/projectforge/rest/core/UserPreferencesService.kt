@@ -1,4 +1,4 @@
-package org.projectforge.rest
+package org.projectforge.rest.core
 
 import org.projectforge.business.user.UserXmlPreferencesCache
 import org.projectforge.framework.access.AccessChecker

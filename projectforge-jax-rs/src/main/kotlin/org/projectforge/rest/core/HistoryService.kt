@@ -1,4 +1,4 @@
-package org.projectforge.rest
+package org.projectforge.rest.core
 
 import com.google.gson.annotations.SerializedName
 import de.micromata.genome.db.jpa.history.api.DiffEntry

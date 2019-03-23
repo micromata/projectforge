@@ -1,4 +1,4 @@
-package org.projectforge.rest.ui
+package org.projectforge.rest
 
 import org.projectforge.business.address.AddressDO
 import org.projectforge.business.address.AddressDao
@@ -11,12 +11,12 @@ import org.projectforge.ui.UILayout
 /**
  * Here all layouts of list and edit pages are registered.
  */
-class Layout {
+class LayoutRegistry {
     companion object {
         fun getListLayout(baseDao: BaseDao<*>): UILayout? {
             var layout = when (baseDao) {
-                is AddressDao -> AddressLayout.createListLayout()
-                is BookDao -> BookLayout.createListLayout()
+                is AddressDao -> AddressRest.createListLayout()
+                is BookDao -> BookRest.createListLayout()
                 else -> null
             }
             return layout
@@ -24,8 +24,8 @@ class Layout {
 
         fun getEditLayout(data: ExtendedBaseDO<Int>, inlineLabels : Boolean = true): UILayout? {
             var layout = when (data) {
-                is AddressDO -> AddressLayout.createEditLayout(data, inlineLabels)
-                is BookDO -> BookLayout.createEditLayout(data, inlineLabels)
+                is AddressDO -> AddressRest.createEditLayout(data, inlineLabels)
+                is BookDO -> BookRest.createEditLayout(data, inlineLabels)
                 else -> null
             }
             return layout
