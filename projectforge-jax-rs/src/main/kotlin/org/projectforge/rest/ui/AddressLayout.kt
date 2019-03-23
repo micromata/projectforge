@@ -26,9 +26,9 @@ class AddressLayout {
             return LayoutUtils.processListPage(layout, AddressDO::class.java)
         }
 
-        fun createEditLayout(address: AddressDO?): UILayout {
+        fun createEditLayout(address: AddressDO?, inlineLabels : Boolean): UILayout {
             val titleKey = if (address?.id != null) "address.title.edit" else "address.title.add"
-            val ls = LayoutSettings(AddressDO::class.java)
+            val ls = LayoutSettings(AddressDO::class.java, inlineLabels)
             val layout = UILayout(titleKey)
                     .add(UIGroup()
                             .add(UIMultiSelect("addressbookList")))

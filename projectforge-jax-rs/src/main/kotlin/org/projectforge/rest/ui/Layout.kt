@@ -22,10 +22,10 @@ class Layout {
             return layout
         }
 
-        fun getEditLayout(data: ExtendedBaseDO<Int>): UILayout? {
+        fun getEditLayout(data: ExtendedBaseDO<Int>, inlineLabels : Boolean = true): UILayout? {
             var layout = when (data) {
-                is AddressDO -> AddressLayout.createEditLayout(data)
-                is BookDO -> BookLayout.createEditLayout(data)
+                is AddressDO -> AddressLayout.createEditLayout(data, inlineLabels)
+                is BookDO -> BookLayout.createEditLayout(data, inlineLabels)
                 else -> null
             }
             return layout

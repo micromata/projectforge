@@ -7,8 +7,8 @@ import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
 import org.projectforge.model.rest.RestPaths
 import org.projectforge.rest.ui.Layout
-import org.projectforge.ui.ValidationError
 import org.projectforge.ui.UILayout
+import org.projectforge.ui.ValidationError
 import org.springframework.beans.BeanUtils
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationContext
@@ -151,17 +151,19 @@ abstract class AbstractDORest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F : BaseS
     /**
      * Gets the item including the layout data at default.
      * @param id Id of the item to get or null, for new items (null  will be returned)
+     * @param inlineLabels If true (default) all labels and additionalLabels will be attached to the input fields, otherwise
+     * a group with a separate label and input field will be generated.
      * layout will be also included if the id is not given.
      */
     @GET
     @Path("edit")
     @Produces(MediaType.APPLICATION_JSON)
-    fun getItemAndLayout(@QueryParam("id") id: Int?): Response {
+    fun getItemAndLayout(@QueryParam("id") id: Int?, @QueryParam("inlineLabels") inlineLabels : Boolean?): Response {
         val item: O
         if (id != null) {
             item = getById(id)
         } else item = newBaseDO()
-        val result = EditLayoutData(item, Layout.getEditLayout(item))
+        val result = EditLayoutData(item, Layout.getEditLayout(item, inlineLabels = !(inlineLabels == false)))
         return RestHelper.buildResponse(result)
     }
 
