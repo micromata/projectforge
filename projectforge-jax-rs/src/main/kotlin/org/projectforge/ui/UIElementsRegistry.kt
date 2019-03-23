@@ -1,6 +1,5 @@
 package org.projectforge.ui
 
-import com.zaxxer.hikari.util.UtilityElf.getNullIfEmpty
 import de.micromata.genome.jpa.metainf.ColumnMetadata
 import org.projectforge.common.i18n.I18nEnum
 import org.projectforge.common.props.PropUtils
@@ -90,13 +89,13 @@ internal object UIElementsRegistry {
         if (unavailableElementsSet.contains(mapKey)) {
             return null // Element can't be determined (a previous try failed)
         }
-        val propertyDescriptor = BeanUtils.getPropertyDescriptor(clazz, property)
-        if (propertyDescriptor == null || propertyDescriptor.propertyType == null) {
+        val propertyType = getPropertyType(clazz, property)
+        if (propertyType == null) {
             log.info("Property ${clazz}.${property} not found. Can't autodetect layout.")
             unavailableElementsSet.add(mapKey)
             return null
         }
-        elementInfo = ElementInfo(propertyDescriptor.propertyType)
+        elementInfo = ElementInfo(propertyType)
         val propertyInfo = PropUtils.get(clazz, property)
         val colinfo = getColumnMetadata(clazz, property)
 
@@ -108,6 +107,17 @@ internal object UIElementsRegistry {
 
         registryMap.put(mapKey, elementInfo)
         return elementInfo
+    }
+
+    private fun getPropertyType(clazz: Class<*>?, property: String): Class<*>? {
+        if (clazz == null)
+            return null
+        val desc = BeanUtils.getPropertyDescriptor(clazz, property)
+        if (desc != null)
+            return desc.propertyType
+        if (clazz.superclass != Object::class.java)
+            return getPropertyType(clazz.superclass, property)
+        return null
     }
 
     private fun getMapKey(clazz: Class<*>?, property: String?): String? {

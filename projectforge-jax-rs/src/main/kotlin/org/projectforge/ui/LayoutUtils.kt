@@ -163,9 +163,10 @@ class LayoutUtils {
                         }
                     }
                     is UITableColumn -> {
-                        val elementInfo = UIElementsRegistry.getElementInfo(clazz, it.id)
-                        val translation = getLabelTransformation(elementInfo?.i18nKey)
-                        if (translation != null) it.title = translation
+                        if (!it.protectTitle) {
+                            val translation = getLabelTransformation(it.title)
+                            if (translation != null) it.title = translation
+                        }
                     }
                     is UIButton -> {
                         if (it.title == null) {
