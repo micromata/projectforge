@@ -62,6 +62,19 @@ class LayoutUtils {
 
         fun addListFilterContainer(layout: UILayout, vararg elements: UIElement, filterClass: Class<*>? = null, autoAppendDefaultSettings: Boolean? = true) {
             val filterGroup = UIGroup()
+            elements.forEach {
+                filterGroup.add(it)
+                if (filterClass != null && it is UILabelledElement) {
+                    val property = getId(it)
+                    if (property != null) {
+                        val elementInfo = UIElementsRegistry.getElementInfo(filterClass, property)
+                        val translation = getLabelTransformation(elementInfo?.i18nKey)
+                        if (translation != null) {
+                            it.label = translation
+                        }
+                    }
+                }
+            }
             if (autoAppendDefaultSettings == true) addListDefaultOptions(filterGroup)
             layout.add(UINamedContainer("filter-options").add(filterGroup))
         }
@@ -110,11 +123,22 @@ class LayoutUtils {
          * the label (e. g. UIInput). If don't use inline labels, a group containing a label and an input field is returned.
          */
         internal fun buildLabelInputElement(layoutSettings: LayoutSettings, id: String): UIElement? {
+            val element = UIElementsRegistry.buildElement(layoutSettings, id)
+            if (element == null)
+                return null
             if (layoutSettings.useInlineLabels) {
-                return UIElementsRegistry.buildElement(layoutSettings, id)
+                return element
             }
             val group = UIGroup()
-            group.add(id, UIElementsRegistry.buildElement(layoutSettings, id))
+            val label = UILabel(protectLabel = true)
+            val elementInfo = UIElementsRegistry.getElementInfo(layoutSettings, id)
+            if (elementInfo != null) {
+                if (!elementInfo.i18nKey.isNullOrEmpty())
+                    label.label = translate(elementInfo.i18nKey)
+                if (!elementInfo.additionalI18nKey.isNullOrEmpty())
+                    label.additionalLabel = translate(elementInfo.additionalI18nKey)
+            }
+            group.add(label, element)
             return group
         }
 

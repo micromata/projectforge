@@ -64,7 +64,11 @@ internal object UIElementsRegistry {
         return element
     }
 
-    private fun getElementInfo(clazz: Class<*>?, property: String): ElementInfo? {
+    internal fun getElementInfo(layoutSettings: LayoutSettings, property: String): ElementInfo? {
+        return UIElementsRegistry.getElementInfo(layoutSettings.dataObjectClazz, property)
+    }
+
+    internal fun getElementInfo(clazz: Class<*>?, property: String): ElementInfo? {
         if (clazz == null)
             return null
         val mapKey = getMapKey(clazz, property)

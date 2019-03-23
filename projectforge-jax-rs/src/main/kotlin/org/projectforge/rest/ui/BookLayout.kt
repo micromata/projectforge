@@ -22,9 +22,9 @@ class BookLayout {
             return LayoutUtils.processListPage(layout, BookDO::class.java)
         }
 
-        fun createEditLayout(book: BookDO?): UILayout {
+        fun createEditLayout(book: BookDO?, inlineLabels : Boolean): UILayout {
             val titleKey = if (book?.id != null) "book.title.edit" else "book.title.add"
-            val ls = LayoutSettings(BookDO::class.java)
+            val ls = LayoutSettings(BookDO::class.java, inlineLabels)
             val layout = UILayout(titleKey)
                     .add(ls, "title", "authors")
                     .add(UIRow()
