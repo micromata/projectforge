@@ -5,6 +5,7 @@ import org.projectforge.common.i18n.I18nEnum
 import org.projectforge.common.props.PropUtils
 import org.projectforge.framework.persistence.jpa.PfEmgrFactory
 import org.springframework.beans.BeanUtils
+import java.util.*
 
 /**
  * Registry holds properties of UIElements...
@@ -16,7 +17,7 @@ internal object ElementsRegistry {
 
     internal class ElementInfo(val propertyType: Class<*>,
                                var maxLength: Int? = null,
-                               var required: Boolean = false,
+                               var required: Boolean? = null,
                                var i18nKey: String? = null,
                                var additionalI18nKey: String? = null)
 
@@ -51,6 +52,9 @@ internal object ElementsRegistry {
                         }
                     }
                     Boolean::class.java -> UICheckbox(property)
+                    Date::class.java -> UIInput(property, required = elementInfo.required, layoutSettings = layoutSettings, dataType = UIDataType.DATE)
+                    java.sql.Date::class.java -> UIInput(property, required = elementInfo.required, layoutSettings = layoutSettings, dataType = UIDataType.DATE)
+                    Locale::class.java -> UIInput(property, required = elementInfo.required, layoutSettings = layoutSettings, dataType = UIDataType.LOCALE)
                     else -> null
                 }
         if (element == null) {
