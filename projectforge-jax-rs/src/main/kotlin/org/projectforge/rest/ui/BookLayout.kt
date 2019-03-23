@@ -2,8 +2,6 @@ package org.projectforge.rest.ui
 
 import org.projectforge.business.book.BookDO
 import org.projectforge.business.book.BookFilter
-import org.projectforge.business.book.BookStatus
-import org.projectforge.business.book.BookType
 import org.projectforge.ui.*
 
 /**
@@ -28,14 +26,10 @@ class BookLayout {
             val titleKey = if (book?.id != null) "book.title.edit" else "book.title.add"
             val ls = LayoutSettings(BookDO::class.java)
             val layout = UILayout(titleKey)
-                    .add(UIGroup().add(UIInput("title", required = true, focus = true)))
-                    .add(UIGroup().add(UIInput("authors")))
+                    .add(ls, "title", "authors")
                     .add(UIRow()
                             .add(UICol(6)
-                                    .add(UIGroup().add(UISelect("type", required = true).buildValues(BookType::class.java)))
-                                    .add(ls, "yearOfPublishing")
-                                    .add(UIGroup().add(UISelect("status", required = true).buildValues(BookStatus::class.java)))
-                                    .add(ls, "signature"))
+                                    .add(ls, "type", "yearOfPublishing", "status", "signature"))
                             .add(UICol(6)
                                     .add(ls, "isbn", "keywords", "publisher", "editor")))
                     .add(UIGroup()
@@ -44,6 +38,7 @@ class BookLayout {
                     .add(UIGroup().add(UITextarea("lendOutComment")))
                     .add(UIGroup().add(UITextarea("abstractText")))
                     .add(UIGroup().add(UITextarea("comment")))
+            (layout.getElementById("title") as UIInput).focus = true
             return LayoutUtils.processEditPage(layout, BookDO::class.java, book)
         }
     }

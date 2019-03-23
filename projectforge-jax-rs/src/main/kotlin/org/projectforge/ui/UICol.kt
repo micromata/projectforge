@@ -12,9 +12,9 @@ data class UICol(val length: Int,
      */
     fun add(layoutSettings: LayoutSettings, vararg ids: String): UICol {
         ids.forEach {
-            val group = UIGroup()
-            group.add(it, UIElementsRegistry.buildElement(layoutSettings, it))
-            add(group)
+            val element = LayoutUtils.buildLabelInputElement(layoutSettings, it)
+            if (element != null)
+                add(element)
         }
         return this
     }

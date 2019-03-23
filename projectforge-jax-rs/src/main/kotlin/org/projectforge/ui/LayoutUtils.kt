@@ -106,6 +106,19 @@ class LayoutUtils {
         }
 
         /**
+         * @param layoutSettings If [layoutSettings.useInLineLabels] is true, one element is returned including
+         * the label (e. g. UIInput). If don't use inline labels, a group containing a label and an input field is returned.
+         */
+        internal fun buildLabelInputElement(layoutSettings: LayoutSettings, id: String): UIElement? {
+            if (layoutSettings.useInlineLabels) {
+                return UIElementsRegistry.buildElement(layoutSettings, id)
+            }
+            val group = UIGroup()
+            group.add(id, UIElementsRegistry.buildElement(layoutSettings, id))
+            return group
+        }
+
+        /**
          * Does translation of buttons and UILabels
          * @param elements List of all elements used in the layout.
          * @param clazz The class of the property to search for annotations [@PropertyInfo]
