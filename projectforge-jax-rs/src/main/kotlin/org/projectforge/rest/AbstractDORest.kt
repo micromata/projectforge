@@ -143,7 +143,7 @@ abstract class AbstractDORest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F : BaseS
     }
 
     private fun getById(id: Int): O {
-        val item = baseDao!!.getById(id)
+        val item = baseDao.getById(id)
         processItemBeforeExport(item)
         return item
     }
@@ -180,7 +180,7 @@ abstract class AbstractDORest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F : BaseS
         if (item == null) {
             return Response.status(Response.Status.BAD_REQUEST).build();
         }
-        val historyEntries = baseDao!!.getHistoryEntries(item);
+        val historyEntries = baseDao.getHistoryEntries(item);
         return RestHelper.buildResponse(historyService!!.format(historyEntries))
     }
 
