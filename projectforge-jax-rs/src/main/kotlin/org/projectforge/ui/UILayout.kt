@@ -64,6 +64,15 @@ class UILayout {
         return getElementById(id) as UIInput
     }
 
+    fun getNamedContainerById(id: String): UINamedContainer? {
+        namedContainers.forEach{
+            if (it.id == id) {
+                return it
+            }
+        }
+        return null
+    }
+
     private fun getElementById(id: String, elements: List<UIElement>): UIElement? {
         elements.forEach {
             if (LayoutUtils.getId(it, followLabelReference = false) == id)
