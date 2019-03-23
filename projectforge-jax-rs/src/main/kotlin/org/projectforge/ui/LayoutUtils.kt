@@ -132,14 +132,18 @@ class LayoutUtils {
             val group = UIGroup()
             val label = UILabel(protectLabel = true)
             val elementInfo = UIElementsRegistry.getElementInfo(layoutSettings, id)
-            if (elementInfo != null) {
-                if (!elementInfo.i18nKey.isNullOrEmpty())
-                    label.label = translate(elementInfo.i18nKey)
-                if (!elementInfo.additionalI18nKey.isNullOrEmpty())
-                    label.additionalLabel = translate(elementInfo.additionalI18nKey)
-            }
+            setLabels(elementInfo, label)
             group.add(label, element)
             return group
+        }
+
+        internal fun setLabels(elementInfo: UIElementsRegistry.ElementInfo?, element: UILabelledElement) {
+            if (elementInfo == null)
+                return
+            if (!elementInfo.i18nKey.isNullOrEmpty())
+                element.label = translate(elementInfo.i18nKey)
+            if (!elementInfo.additionalI18nKey.isNullOrEmpty())
+                element.additionalLabel = translate(elementInfo.additionalI18nKey)
         }
 
         /**
@@ -159,6 +163,11 @@ class LayoutUtils {
                             it.label = getLabelTransformation(it.label)
                             it.additionalLabel = getLabelTransformation(it.additionalLabel)
                         }
+                    }
+                    is UITableColumn -> {
+                        val elementInfo = UIElementsRegistry.getElementInfo(clazz, it.id)
+                        val translation = getLabelTransformation(elementInfo?.i18nKey)
+                        if (translation != null) it.title = translation
                     }
                     is UIButton -> {
                         if (it.title == null) {
