@@ -62,7 +62,7 @@ class AddressLayout {
                             .add(UICol(6)
                                     .add(UILabel("address.image"))
                                     .add(UICustomized("address-image"))))
-                    .add(UIGroup().add(UITextarea("comment")))
+                    .add(ls, "comment")
             (layout.getElementById("name") as UIInput).focus = true
             return LayoutUtils.processEditPage(layout, AddressDO::class.java, address)
         }
