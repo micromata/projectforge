@@ -115,7 +115,7 @@ internal object UIElementsRegistry {
         val desc = BeanUtils.getPropertyDescriptor(clazz, property)
         if (desc != null)
             return desc.propertyType
-        if (clazz.superclass != Object::class.java)
+        if (clazz.superclass != null && clazz.superclass != Object::class.java)
             return getPropertyType(clazz.superclass, property)
         return null
     }

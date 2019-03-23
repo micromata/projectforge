@@ -7,5 +7,8 @@ data class UITextarea(val id: String,
                       var maxLength: Int? = null,
                       override var label: String? = null,
                       @SerializedName("additional-label")
-                      override var additionalLabel: String? = null)
+                      override var additionalLabel: String? = null,
+                      override var tooltip: String? = null,
+                      @Transient
+                      override var protectLabels: Boolean = false)
     : UIElement(UIElementType.TEXTAREA), UILabelledElement
