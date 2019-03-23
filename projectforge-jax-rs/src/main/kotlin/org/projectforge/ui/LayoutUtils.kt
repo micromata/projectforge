@@ -120,7 +120,7 @@ class LayoutUtils {
                     is UILabel -> {
                         if (!it.protectLabel) {
                             it.label = getLabelTransformation(it.label)
-                            it.additionalLabel = getLabelTransformation(it.label)
+                            it.additionalLabel = getLabelTransformation(it.additionalLabel)
                         }
                     }
                     is UIButton -> {
