@@ -1,6 +1,7 @@
 package org.projectforge.ui
 
 import com.google.gson.annotations.SerializedName
+import org.projectforge.rest.ui.LayoutUtils
 
 class UILayout(var title: String? = null) {
     val layout: MutableList<UIElement> = mutableListOf()
@@ -29,6 +30,30 @@ class UILayout(var title: String? = null) {
         namedContainers.forEach { addAllElements(list, it.content) }
         addAllElements(list, actions)
         return list
+    }
+
+    fun getElementById(id: String): UIElement? {
+        var element = getElementById(id, layout)
+        if (element != null)
+            return element
+        return null
+    }
+
+    private fun getElementById(id: String, elements: List<UIElement>): UIElement? {
+        elements.forEach {
+            if (LayoutUtils.getId(it, followLabelReference = false) == id)
+                return it
+            val element = when (it) {
+                is UIGroup -> getElementById(id, it.content)
+                is UIRow -> getElementById(id, it.content)
+                is UICol -> getElementById(id, it.content)
+                is UITable -> getElementById(id, it.columns)
+                else -> null
+            }
+            if (element != null)
+                return element
+        }
+        return null
     }
 
     private fun addAllElements(list: MutableList<Any>, elements: MutableList<UIElement>) {

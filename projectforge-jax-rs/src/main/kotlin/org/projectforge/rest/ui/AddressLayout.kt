@@ -1,8 +1,6 @@
 package org.projectforge.rest.ui
 
 import org.projectforge.business.address.AddressDO
-import org.projectforge.business.address.AddressStatus
-import org.projectforge.business.address.ContactStatus
 import org.projectforge.business.address.FormOfAddress
 import org.projectforge.framework.persistence.api.HibernateUtils
 import org.projectforge.ui.*
@@ -30,43 +28,42 @@ class AddressLayout {
 
         fun createEditLayout(address: AddressDO?): UILayout {
             val titleKey = if (address?.id != null) "address.title.edit" else "address.title.add"
+            val ls = LayoutSettings(AddressDO::class.java)
             val layout = UILayout(titleKey)
                     .add(UIGroup()
                             .add(UIMultiSelect("addressbookList")))
                     .add(UIRow()
-                            .add(UICol(6)
-                                    .add(UIGroup().add(UISelect("contactStatus", i18nEnum = ContactStatus::class.java))))
-                            .add(UICol(6)
-                                    .add(UIGroup().add(UISelect("addressStatus", i18nEnum = AddressStatus::class.java)))))
+                            .add(UICol(6).add(ls, "contactStatus"))
+                            .add(UICol(6).add(ls, "addressStatus")))
                     .add(UIRow()
                             .add(UICol(6)
-                                    .add(UIGroup().add(UIInput("name", required = true, focus = true)))
-                                    .add(UIGroup().add(UIInput("firstName")))
+                                    .add(ls, "name", "firstName")
                                     .add(UIGroup().add(UISelect("form", i18nEnum = FormOfAddress::class.java))
                                             .add(UICheckbox("favorite", label = "favorite")))
-                                    .add("title", "email", "privateEmail"))
+                                    .add(ls, "title", "email", "privateEmail"))
                             .add(UICol(6)
-                                    .add("birthday", "communicationLanguage", "organization", "division", "positionText", "website")))
+                                    .add(ls, "birthday", "communicationLanguage", "organization", "division", "positionText", "website")))
                     .add(UIRow()
                             .add(UICol(6)
-                                    .add("businessPhone", "mobilePhone", "fax"))
+                                    .add(ls, "businessPhone", "mobilePhone", "fax"))
                             .add(UICol(6)
-                                    .add("privatePhone", "privateMobilePhone")))
+                                    .add(ls, "privatePhone", "privateMobilePhone")))
                     .add(UIRow()
                             .add(UICol(6)
                                     .add(UILabel("address.heading.businessAddress"))
-                                    .add("addressText", "zipCode", "city", "country", "state", "zipCode"))
+                                    .add(ls, "addressText", "zipCode", "city", "country", "state", "zipCode"))
                             .add(UICol(6)
                                     .add(UILabel("address.heading.postalAddress"))
-                                    .add("postalAddressText", "postalZipCode", "postalCity", "postalCountry", "postalState", "postalZipCode")))
+                                    .add(ls, "postalAddressText", "postalZipCode", "postalCity", "postalCountry", "postalState", "postalZipCode")))
                     .add(UIRow()
                             .add(UICol(6)
                                     .add(UILabel("address.heading.privateAddress"))
-                                    .add("privateAddressText","privateZipCode","privateCity","privateCountry","privateState","privateZipCode"))
+                                    .add(ls, "privateAddressText", "privateZipCode", "privateCity", "privateCountry", "privateState", "privateZipCode"))
                             .add(UICol(6)
                                     .add(UILabel("address.image"))
                                     .add(UICustomized("address-image"))))
-                    .add(UIGroup().add( UITextarea("comment")))
+                    .add(UIGroup().add(UITextarea("comment")))
+            (layout.getElementById("name") as UIInput).focus = true
             return LayoutUtils.processEditPage(layout, AddressDO::class.java, address)
         }
     }
