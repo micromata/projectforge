@@ -38,7 +38,7 @@ class AddressLayout {
                     .add(UIRow()
                             .add(UICol(6)
                                     .add(ls, "name", "firstName")
-                                    .add(UIGroup().add(UISelect("form", i18nEnum = FormOfAddress::class.java))
+                                    .add(UIGroup().add(UISelect("form").buildValues(FormOfAddress::class.java))
                                             .add(UICheckbox("favorite", label = "favorite")))
                                     .add(ls, "title", "email", "privateEmail"))
                             .add(UICol(6)

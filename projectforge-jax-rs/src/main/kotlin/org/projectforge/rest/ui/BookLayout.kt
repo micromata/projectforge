@@ -1,6 +1,5 @@
 package org.projectforge.rest.ui
 
-import org.projectforge.business.address.AddressDO
 import org.projectforge.business.book.BookDO
 import org.projectforge.business.book.BookFilter
 import org.projectforge.business.book.BookStatus
@@ -33,9 +32,9 @@ class BookLayout {
                     .add(UIGroup().add(UIInput("authors")))
                     .add(UIRow()
                             .add(UICol(6)
-                                    .add(UIGroup().add(UISelect("type", i18nEnum = BookType::class.java, required = true)))
+                                    .add(UIGroup().add(UISelect("type", required = true).buildValues(BookType::class.java)))
                                     .add(ls, "yearOfPublishing")
-                                    .add(UIGroup().add(UISelect("status", i18nEnum = BookStatus::class.java, required = true)))
+                                    .add(UIGroup().add(UISelect("status", required = true).buildValues(BookStatus::class.java)))
                                     .add(ls, "signature"))
                             .add(UICol(6)
                                     .add(ls, "isbn", "keywords", "publisher", "editor")))
