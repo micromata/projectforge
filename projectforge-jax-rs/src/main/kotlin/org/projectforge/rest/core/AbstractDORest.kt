@@ -1,4 +1,4 @@
-package org.projectforge.rest
+package org.projectforge.rest.core
 
 import com.google.gson.annotations.SerializedName
 import org.projectforge.framework.access.AccessChecker
@@ -6,7 +6,8 @@ import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
 import org.projectforge.model.rest.RestPaths
-import org.projectforge.rest.ui.Layout
+import org.projectforge.rest.JsonUtils
+import org.projectforge.rest.LayoutRegistry
 import org.projectforge.ui.UILayout
 import org.projectforge.ui.ValidationError
 import org.springframework.beans.BeanUtils
@@ -108,7 +109,7 @@ abstract class AbstractDORest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F : BaseS
         filter.maxRows = 10
         val list = RestHelper.getList(baseDao, filter)
         list.forEach { processItemBeforeExport(it) }
-        val layout = Layout.getListLayout(baseDao)
+        val layout = LayoutRegistry.getListLayout(baseDao)
         val listData = ListData(resultSet = list)
         return RestHelper.buildResponse(InitialListData(ui = layout, data = listData, filter = filter))
     }
@@ -163,7 +164,7 @@ abstract class AbstractDORest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F : BaseS
         if (id != null) {
             item = getById(id)
         } else item = newBaseDO()
-        val result = EditLayoutData(item, Layout.getEditLayout(item, inlineLabels = !(inlineLabels == false)))
+        val result = EditLayoutData(item, LayoutRegistry.getEditLayout(item, inlineLabels = !(inlineLabels == false)))
         return RestHelper.buildResponse(result)
     }
 
