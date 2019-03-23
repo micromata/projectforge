@@ -1,5 +1,6 @@
 package org.projectforge.rest.ui
 
+import org.projectforge.business.address.AddressDO
 import org.projectforge.business.book.BookDO
 import org.projectforge.business.book.BookFilter
 import org.projectforge.business.book.BookStatus
@@ -26,17 +27,18 @@ class BookLayout {
 
         fun createEditLayout(book: BookDO?): UILayout {
             val titleKey = if (book?.id != null) "book.title.edit" else "book.title.add"
+            val ls = LayoutSettings(BookDO::class.java)
             val layout = UILayout(titleKey)
                     .add(UIGroup().add(UIInput("title", required = true, focus = true)))
                     .add(UIGroup().add(UIInput("authors")))
                     .add(UIRow()
                             .add(UICol(6)
                                     .add(UIGroup().add(UISelect("type", i18nEnum = BookType::class.java, required = true)))
-                                    .add("yearOfPublishing")
+                                    .add(ls, "yearOfPublishing")
                                     .add(UIGroup().add(UISelect("status", i18nEnum = BookStatus::class.java, required = true)))
-                                    .add("signature"))
+                                    .add(ls, "signature"))
                             .add(UICol(6)
-                                    .add("isbn", "keywords", "publisher", "editor")))
+                                    .add(ls, "isbn", "keywords", "publisher", "editor")))
                     .add(UIGroup()
                             .add(UILabel("book.lending"))
                             .add(UICustomized("lendOutComponent")))

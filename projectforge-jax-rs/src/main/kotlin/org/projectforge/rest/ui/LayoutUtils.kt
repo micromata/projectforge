@@ -298,9 +298,9 @@ class LayoutUtils {
         /**
          * @return The id of the given element if supported.
          */
-        private fun getId(element: UIElement?): String? {
+        internal fun getId(element: UIElement?, followLabelReference : Boolean = true): String? {
             if (element == null) return null
-            if (element is UILabel) {
+            if (followLabelReference == true && element is UILabel) {
                 return getId(element.reference)
             }
             return when (element) {

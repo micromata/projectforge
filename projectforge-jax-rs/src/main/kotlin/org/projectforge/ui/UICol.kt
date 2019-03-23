@@ -1,5 +1,9 @@
 package org.projectforge.ui
 
+import org.apache.xalan.xsltc.runtime.CallFunction.clazz
+import org.projectforge.rest.ui.LayoutSettings
+import org.projectforge.rest.ui.UIElementsRegistry
+
 data class UICol(val length: Int,
                  val content: MutableList<UIElement> = mutableListOf()) : UIElement(UIElementType.COL) {
     fun add(element: UIElement): UICol {
@@ -10,10 +14,11 @@ data class UICol(val length: Int,
     /**
      * Convenient method for adding a bunch of UIInput fields with the given ids.
      */
-    fun add(vararg ids: String): UICol {
+    fun add(layoutSettings: LayoutSettings, vararg ids: String): UICol {
         ids.forEach {
             val group = UIGroup()
-            group.add(it, UIInput(it))
+            group.add(it, UIElementsRegistry.getElement(layoutSettings.dataObjectClazz, it))
+            add(group)
         }
         return this
     }
