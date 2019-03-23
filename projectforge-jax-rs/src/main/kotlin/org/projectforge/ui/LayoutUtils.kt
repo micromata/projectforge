@@ -28,8 +28,8 @@ class LayoutUtils {
          * i18n-keys (by referring the [org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn] annotations of clazz).
          * @return List of all elements used in the layout.
          */
-        fun process(layout: UILayout, clazz: Class<*>): List<Any?> {
-            val elements = processAllElements(layout.getAllElements(), clazz)
+        fun process(layout: UILayout): List<Any?> {
+            val elements = processAllElements(layout.getAllElements())
             var counter = 0
             layout.namedContainers.forEach {
                 it.key = "nc-${++counter}"
@@ -43,7 +43,7 @@ class LayoutUtils {
          * <br>
          * If no named container called "filter-options" is found, it will be attached automatically by calling [addListFilterContainer]
          */
-        fun processListPage(layout: UILayout, clazz: Class<*>): UILayout {
+        fun processListPage(layout: UILayout): UILayout {
             var found = false
             layout.namedContainers.forEach {
                 if (it.id == "filter-options") {
@@ -56,26 +56,37 @@ class LayoutUtils {
             layout
                     .addAction(UIButton("reset", style = UIButtonStyle.DANGER))
                     .addAction(UIButton("search", style = UIButtonStyle.PRIMARY))
-            process(layout, clazz)
+            process(layout)
             return layout
         }
 
-        fun addListFilterContainer(layout: UILayout, vararg elements: UIElement, filterClass: Class<*>? = null, autoAppendDefaultSettings: Boolean? = true) {
+        fun addListFilterContainer(layout: UILayout, vararg elements: Any, filterClass: Class<*>? = null, autoAppendDefaultSettings: Boolean? = true) {
             val filterGroup = UIGroup()
             elements.forEach {
-                filterGroup.add(it)
-                if (filterClass != null && it is UILabelledElement) {
-                    val property = getId(it)
-                    if (property != null) {
-                        val elementInfo = UIElementsRegistry.getElementInfo(filterClass, property)
-                        val translation = getLabelTransformation(elementInfo?.i18nKey)
-                        if (translation != null) {
-                            it.label = translation
+                when (it) {
+                    is UIElement -> {
+                        filterGroup.add(it)
+                        if (filterClass != null && it is UILabelledElement) {
+                            val property = getId(it)
+                            if (property != null) {
+                                val elementInfo = UIElementsRegistry.getElementInfo(filterClass, property)
+                                val translation = getLabelTransformation(elementInfo?.i18nKey)
+                                if (translation != null) {
+                                    it.label = translation
+                                }
+                            }
                         }
                     }
+                    is String -> {
+                        val element = LayoutUtils.buildLabelInputElement(LayoutSettings(filterClass), it)
+                        if (element != null)
+                            filterGroup.add(element)
+                    }
+                    else -> log.error("Element of type '${it::class.java}' not supported as child of filterContainer.")
                 }
             }
-            if (autoAppendDefaultSettings == true) addListDefaultOptions(filterGroup)
+            if (autoAppendDefaultSettings == true)
+                addListDefaultOptions(filterGroup)
             layout.add(UINamedContainer("filter-options").add(filterGroup))
         }
 
@@ -96,11 +107,7 @@ class LayoutUtils {
          * Calls also fun [process].
          * @see LayoutUtils.process
          */
-        fun processEditPage(layout: UILayout,
-                //restService: AbstractDORest<ExtendedBaseDO<Int>,
-                // BaseDao<ExtendedBaseDO<Int>>>,
-                            clazz: Class<*>,
-                            data: DefaultBaseDO?): UILayout {
+        fun processEditPage(layout: UILayout, data: DefaultBaseDO?): UILayout {
             layout.addAction(UIButton("cancel", style = UIButtonStyle.DANGER))
             if (data != null && data.id != null) {
                 if (data.isDeleted) layout.add(UIButton("undelete", style = UIButtonStyle.WARNING))
@@ -114,7 +121,7 @@ class LayoutUtils {
             } else {
                 layout.addAction(UIButton("create", style = UIButtonStyle.PRIMARY))
             }
-            process(layout, clazz)
+            process(layout)
             return layout
         }
 
@@ -151,7 +158,7 @@ class LayoutUtils {
          * @return The unmodified parameter elements.
          * @see HibernateUtils.getPropertyLength
          */
-        private fun processAllElements(elements: List<Any>, clazz: Class<*>): List<Any?> {
+        private fun processAllElements(elements: List<Any>): List<Any?> {
             var counter = 0
             elements.forEach {
                 if (it is UIElement) it.key = "el-${++counter}"

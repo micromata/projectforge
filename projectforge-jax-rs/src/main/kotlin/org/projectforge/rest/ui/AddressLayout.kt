@@ -24,7 +24,7 @@ class AddressLayout {
                     UICheckbox("newest", label = "filter.newest"),
                     UICheckbox("filter.favorites", label = "address.filter.myFavorites"),
                     UICheckbox("filter.dublets", label = "address.filter.doublets"))
-            return LayoutUtils.processListPage(layout, AddressDO::class.java)
+            return LayoutUtils.processListPage(layout)
         }
 
         fun createEditLayout(address: AddressDO?, inlineLabels : Boolean): UILayout {
@@ -65,7 +65,7 @@ class AddressLayout {
                                     .add(UICustomized("address-image"))))
                     .add(ls, "comment")
             layout.getInputById("name").focus = true
-            return LayoutUtils.processEditPage(layout, AddressDO::class.java, address)
+            return LayoutUtils.processEditPage(layout, address)
         }
     }
 }

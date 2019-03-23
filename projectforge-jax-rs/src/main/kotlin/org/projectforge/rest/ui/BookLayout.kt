@@ -17,10 +17,9 @@ class BookLayout {
                             .add(ls, "created", "yearOfPublishing", "signature", "authors", "title", "keywords", "lendOutBy"))
             layout.getTableColumnById("created").formatter = Formatter.TIMESTAMP_MINUTES
             layout.getTableColumnById("lendOutBy").formatter = Formatter.USER
-            LayoutUtils.addListFilterContainer(layout,
-                    UICheckbox("present"), UICheckbox("missed"), UICheckbox("disposed"),
+            LayoutUtils.addListFilterContainer(layout, "present", "missed", "disposed",
                     filterClass = BookFilter::class.java)
-            return LayoutUtils.processListPage(layout, BookDO::class.java)
+            return LayoutUtils.processListPage(layout)
         }
 
         fun createEditLayout(book: BookDO?, inlineLabels: Boolean): UILayout {
@@ -38,7 +37,7 @@ class BookLayout {
                             .add(UICustomized("lendOutComponent")))
                     .add(ls, "lendOutComment", "abstractText", "comment")
             layout.getInputById("title").focus = true
-            return LayoutUtils.processEditPage(layout, BookDO::class.java, book)
+            return LayoutUtils.processEditPage(layout, book)
         }
     }
 }
