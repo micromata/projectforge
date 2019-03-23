@@ -1,10 +1,9 @@
-package org.projectforge.rest.ui
+package org.projectforge.ui
 
 import de.micromata.genome.jpa.metainf.ColumnMetadata
 import org.projectforge.common.i18n.I18nEnum
 import org.projectforge.common.props.PropUtils
 import org.projectforge.framework.persistence.jpa.PfEmgrFactory
-import org.projectforge.ui.*
 import org.springframework.beans.BeanUtils
 
 /**

@@ -1,9 +1,5 @@
 package org.projectforge.ui
 
-import org.apache.xalan.xsltc.runtime.CallFunction.clazz
-import org.projectforge.rest.ui.LayoutSettings
-import org.projectforge.rest.ui.UIElementsRegistry
-
 data class UICol(val length: Int,
                  val content: MutableList<UIElement> = mutableListOf()) : UIElement(UIElementType.COL) {
     fun add(element: UIElement): UICol {

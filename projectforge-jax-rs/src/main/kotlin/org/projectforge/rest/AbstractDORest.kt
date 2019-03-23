@@ -7,7 +7,7 @@ import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
 import org.projectforge.model.rest.RestPaths
 import org.projectforge.rest.ui.Layout
-import org.projectforge.rest.ui.ValidationError
+import org.projectforge.ui.ValidationError
 import org.projectforge.ui.UILayout
 import org.springframework.beans.BeanUtils
 import org.springframework.beans.factory.annotation.Autowired

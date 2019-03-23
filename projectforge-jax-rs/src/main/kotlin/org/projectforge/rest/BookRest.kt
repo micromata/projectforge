@@ -3,9 +3,8 @@ package org.projectforge.rest
 import org.projectforge.Const
 import org.projectforge.business.book.*
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.getUserId
-import org.projectforge.rest.ui.ValidationError
-import org.projectforge.rest.ui.translate
-import org.springframework.beans.factory.annotation.Autowired
+import org.projectforge.ui.ValidationError
+import org.projectforge.ui.translate
 import org.springframework.stereotype.Controller
 import java.util.*
 import javax.ws.rs.Consumes
