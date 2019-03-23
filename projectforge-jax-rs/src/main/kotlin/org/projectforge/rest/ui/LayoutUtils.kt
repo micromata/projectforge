@@ -119,18 +119,6 @@ class LayoutUtils {
             elements.forEach {
                 if (it is UIElement) it.key = "el-${++counter}"
                 when (it) {
-                    is UISelect -> {
-                        if (it.i18nEnum != null) {
-                            getEnumValues(it.i18nEnum).forEach { value ->
-                                if (value is I18nEnum) {
-                                    val translation = translate(value.i18nKey)
-                                    it.add(UISelectValue(value.name, translation))
-                                } else {
-                                    log.error("UISelect supports only enums of type I18nEnum, not '${value}': '${it}'")
-                                }
-                            }
-                        }
-                    }
                     is UIButton -> {
                         if (it.title == null) {
                             val i18nKey = when (it.id) {
@@ -155,9 +143,6 @@ class LayoutUtils {
             }
             return elements
         }
-
-        // fun getEnumValues(enumClass: KClass<out Enum<*>>): Array<out Enum<*>> = enumClass.java.enumConstants
-        private fun getEnumValues(enumClass: Class<out Enum<*>>): Array<out Enum<*>> = enumClass.enumConstants
 
         /**
          * @return The id of the given element if supported.

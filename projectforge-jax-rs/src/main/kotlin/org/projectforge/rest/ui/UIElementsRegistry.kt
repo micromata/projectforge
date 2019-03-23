@@ -48,7 +48,7 @@ internal object UIElementsRegistry {
         if (element == null) {
             if (elementInfo.propertyType.isEnum) {
                 if (I18nEnum::class.java.isAssignableFrom(elementInfo.propertyType)) {
-                    element = UISelect(property, i18nEnum = elementInfo.propertyType as Class<out Enum<*>>)
+                    element = UISelect(property).buildValues(elementInfo.propertyType as Class<out Enum<*>>)
                 } else {
                     log.warn("Properties of enum not implementing I18nEnum not yet supported: ${mapKey}.")
                     unavailableElementsSet.add(mapKey)
@@ -56,7 +56,7 @@ internal object UIElementsRegistry {
                 }
             }
         }
-        if ((layoutSettings.useInlineLabels || element is UILabel) && element is UILabelledElement) {
+        if ((!layoutSettings.useInlineLabels || element is UILabel) && element is UILabelledElement) {
             if (!elementInfo.i18nKey.isNullOrEmpty())
                 element.label = translate(elementInfo.i18nKey)
             if (!elementInfo.additionalI18nKey.isNullOrEmpty())
