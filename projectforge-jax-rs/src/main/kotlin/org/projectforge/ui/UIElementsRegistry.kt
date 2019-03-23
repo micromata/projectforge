@@ -55,7 +55,7 @@ internal object UIElementsRegistry {
                 }
             }
         }
-        if ((!layoutSettings.useInlineLabels || element is UILabel) && element is UILabelledElement) {
+        if ((layoutSettings.useInlineLabels || element is UILabel) && element is UILabelledElement) {
             if (!elementInfo.i18nKey.isNullOrEmpty())
                 element.label = translate(elementInfo.i18nKey)
             if (!elementInfo.additionalI18nKey.isNullOrEmpty())
