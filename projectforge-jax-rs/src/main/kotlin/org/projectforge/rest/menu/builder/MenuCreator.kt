@@ -204,7 +204,7 @@ class MenuCreator() {
         menu.menuItems.forEach { menuItemDef ->
             build(root, menuItemDef, menuBuilderContext)
         }
-        return root.childs!!
+        return root.subMenu!!
     }
 
     private fun build(parent: MenuItem, menuItemDef : MenuItemDef, menuBuilderContext: MenuCreatorContext) {

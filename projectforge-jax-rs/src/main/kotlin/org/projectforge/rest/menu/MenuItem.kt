@@ -1,15 +1,18 @@
 package org.projectforge.rest.menu
 
+import com.google.gson.annotations.SerializedName
+
 class MenuItem(val title: String,
                var url : String? = null,
                var badge : MenuBadge? = null) {
 
-    var childs: MutableList<MenuItem>? = null
+    @SerializedName("sub-menu")
+    var subMenu: MutableList<MenuItem>? = null
 
     fun add(menuItem: MenuItem) {
-        if (childs == null) {
-            childs = mutableListOf()
+        if (subMenu == null) {
+            subMenu = mutableListOf()
         }
-        childs?.add(menuItem)
+        subMenu?.add(menuItem)
     }
 }
