@@ -25,6 +25,26 @@ class JsonValidator {
         throw java.lang.IllegalArgumentException("Requested element of path '${path}' isn't of type String: '${result::class.java}'.")
     }
 
+    fun getDouble(path: String): Double? {
+        val result = getElement(path)
+        if (result == null)
+            return null
+        if (result is Double) {
+            return result
+        }
+        throw java.lang.IllegalArgumentException("Requested element of path '${path}' isn't of type Double: '${result::class.java}'.")
+    }
+
+    fun getBoolean(path: String): Boolean? {
+        val result = getElement(path)
+        if (result == null)
+            return null
+        if (result is Boolean) {
+            return result
+        }
+        throw java.lang.IllegalArgumentException("Requested element of path '${path}' isn't of type Boolean: '${result::class.java}'.")
+    }
+
     fun getList(path: String): List<*>? {
         val result = getElement(path)
         if (result == null)
@@ -48,8 +68,7 @@ class JsonValidator {
 
     fun getElement(path: String): Any? {
         var currentMap: Map<*, *>? = map
-        var result: String? = null
-        var listResult: List<*>? = null
+        var result: Any? = null
         val pathValues = path.split('.')
         pathValues.forEach {
             if (currentMap == null) {
@@ -83,25 +102,16 @@ class JsonValidator {
             }
             if (value == null) {
                 currentMap = null
-                result = null
             } else {
                 if (value is Map<*, *>) {
                     @Suppress("UNCHECKED_CAST")
                     currentMap = value as Map<String, Any?>
-                } else if (value is String) {
-                    result = value
-                    currentMap = null
-                } else if (value is List<*>) {
-                    // List is selected (should be the last attr of the path)
-                    currentMap = null
-                    listResult = value
                 } else {
-                    throw IllegalArgumentException("Found unexpected type '${value::class.java}' in path '${path}'. Current element is '${it}'")
+                    currentMap = null
                 }
             }
+            result = value
         }
-        if (listResult != null)
-            return listResult
         return result
     }
 
