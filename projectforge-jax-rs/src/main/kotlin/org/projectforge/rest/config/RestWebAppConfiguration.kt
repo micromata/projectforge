@@ -1,10 +1,7 @@
 package org.projectforge.rest.config
 
 import org.glassfish.jersey.server.ResourceConfig
-import org.projectforge.rest.AddressRest
-import org.projectforge.rest.BookRest
-import org.projectforge.rest.LogoutRest
-import org.projectforge.rest.UserStatusRest
+import org.projectforge.rest.*
 
 /**
  * This class configures all rest services available for the React client.
@@ -12,9 +9,9 @@ import org.projectforge.rest.UserStatusRest
  */
 class RestWebAppConfiguration : ResourceConfig() {
     init {
-        // Kotlin stuff:
-        register(UserStatusRest::class.java)
         register(LogoutRest::class.java)
+        register(MenuRest::class.java)
+        register(UserStatusRest::class.java)
 
         register(AddressRest::class.java)
         register(BookRest::class.java)
