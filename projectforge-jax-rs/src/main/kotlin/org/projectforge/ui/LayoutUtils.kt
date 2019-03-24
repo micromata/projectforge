@@ -107,14 +107,17 @@ class LayoutUtils {
         fun processEditPage(layout: UILayout, data: DefaultBaseDO?): UILayout {
             layout.addAction(UIButton("cancel", style = UIButtonStyle.DANGER))
             if (data != null && data.id != null) {
-                if (data.isDeleted) layout.add(UIButton("undelete", style = UIButtonStyle.WARNING))
-                else layout.addAction(UIButton("markAsDeleted", style = UIButtonStyle.WARNING))
+                if (data.isDeleted)
+                    layout.addAction(UIButton("undelete", style = UIButtonStyle.WARNING))
+                else
+                    layout.addAction(UIButton("markAsDeleted", style = UIButtonStyle.WARNING))
             }
             //if (restService.prepareClone(restService.newBaseDO())) {
             //    layout.addAction(UIButton("clone", style = UIButtonStyle.PRIMARY))
             //}
             if (data != null && data.id != null) {
-                layout.addAction(UIButton("update", style = UIButtonStyle.PRIMARY))
+                if (!data.isDeleted)
+                    layout.addAction(UIButton("update", style = UIButtonStyle.PRIMARY))
             } else {
                 layout.addAction(UIButton("create", style = UIButtonStyle.PRIMARY))
             }
