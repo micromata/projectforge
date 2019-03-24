@@ -69,10 +69,6 @@ import static org.junit.jupiter.api.Assertions.*;
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-//@ExtendWith(SpringExtension.class)
-//@ContextConfiguration(
-//        classes = { TestConfiguration.class },
-//        loader = AnnotationConfigContextLoader.class)
 @RunWith(SpringRunner.class)
 @SpringJUnitConfig(TestConfiguration.class)
 public abstract class AbstractTestBase {
