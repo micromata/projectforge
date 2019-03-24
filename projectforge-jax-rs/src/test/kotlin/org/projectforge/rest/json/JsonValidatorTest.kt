@@ -9,7 +9,7 @@ class JsonValidatorTest {
 
     @Test
     fun parseJson() {
-        val jsonValidator = JsonValidator("{'fruit1':'apple','fruit2':'orange','basket':{'fruit3':'cherry','fruit4':'banana'}}")
+        val jsonValidator = JsonValidator("{'fruit1':'apple','fruit2':'orange','basket':{'fruit3':'cherry','fruit4':'banana'},'actions':[{'id':'cancel','title':'Abbrechen','style':'danger','type':'button','key':'el-20'},{'id':'create','title':'Anlegen','style':'primary','type':'button','key':'el-21'}]}")
         jsonValidator.assert("apple", "fruit1")
         jsonValidator.assert("orange", "fruit2")
         jsonValidator.assert("cherry", "basket.fruit3")
@@ -27,5 +27,8 @@ class JsonValidatorTest {
             jsonValidator.assert("...", "basket.unknown")
         }
         assertEquals("Expected '...' but found null for path 'basket.unknown'. ==> expected: <null> but was: <...>", ex2.message)
+
+        jsonValidator.assert("cancel", "actions[0].id")
+        jsonValidator.assert("Anlegen", "actions[1].title")
     }
 }
