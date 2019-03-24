@@ -36,7 +36,7 @@ import org.projectforge.business.fibu.kost.Kost2ArtDao;
 import org.projectforge.business.fibu.kost.Kost2DO;
 import org.projectforge.business.fibu.kost.Kost2Dao;
 import org.projectforge.framework.access.AccessDao;
-import org.projectforge.test.AbstractBase;
+import org.projectforge.test.AbstractTestBase;
 import org.projectforge.test.AbstractTestNGBase;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.testng.annotations.Test;
@@ -63,7 +63,7 @@ public class TaskKostTest extends AbstractTestNGBase
   @Test
   public void checkKost2()
   {
-    logon(getUser(AbstractBase.TEST_FINANCE_USER));
+    logon(getUser(AbstractTestBase.TEST_FINANCE_USER));
     final TaskTree taskTree = taskDao.getTaskTree();
     final Kost2DO kost2a = kost2Dao
         .getById(kost2Dao.save(new Kost2DO().setNummernkreis(1).setBereich(137).setTeilbereich(05).setKost2Art(
@@ -98,7 +98,7 @@ public class TaskKostTest extends AbstractTestNGBase
   @Test
   public void checkProjektKost2()
   {
-    logon(getUser(AbstractBase.TEST_FINANCE_USER));
+    logon(getUser(AbstractTestBase.TEST_FINANCE_USER));
     final TaskTree taskTree = taskDao.getTaskTree();
     final TaskDO task = initTestDB.addTask("kost2test1", "root");
     final ProjektDO projekt = projektDao

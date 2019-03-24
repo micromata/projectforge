@@ -36,7 +36,7 @@ import org.projectforge.framework.access.AccessType;
 import org.projectforge.framework.access.OperationType;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.persistence.api.QueryFilter;
-import org.projectforge.test.AbstractBase;
+import org.projectforge.test.AbstractTestBase;
 import org.projectforge.test.AbstractTestNGBase;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -52,7 +52,7 @@ public class ContactTest extends AbstractTestNGBase
   //  @Test
   public void testSaveAndUpdate()
   {
-    logon(AbstractBase.ADMIN);
+    logon(AbstractTestBase.ADMIN);
 
     final ContactDO a1 = new ContactDO();
     a1.setName("Kai Reinhard");
@@ -118,7 +118,7 @@ public class ContactTest extends AbstractTestNGBase
   //@Test
   public void testDeleteAndUndelete()
   {
-    logon(AbstractBase.ADMIN);
+    logon(AbstractTestBase.ADMIN);
     ContactDO a1 = new ContactDO();
     a1.setName("Test");
     a1.setTask(getTask("1.1"));
@@ -246,7 +246,7 @@ public class ContactTest extends AbstractTestNGBase
     a4.setName("testa4");
     a4.setTask(getTask("ta_4_xxxx"));
     contactDao.internalSave(a4);
-    logon(AbstractBase.TEST_USER);
+    logon(AbstractTestBase.TEST_USER);
 
     // Select
     try {

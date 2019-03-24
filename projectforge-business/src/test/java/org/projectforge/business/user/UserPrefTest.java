@@ -39,7 +39,7 @@ import org.projectforge.framework.persistence.user.api.UserPrefArea;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.persistence.user.entities.UserPrefDO;
 import org.projectforge.framework.persistence.user.entities.UserPrefEntryDO;
-import org.projectforge.test.AbstractBase;
+import org.projectforge.test.AbstractTestBase;
 import org.projectforge.test.AbstractTestNGBase;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.testng.annotations.Test;
@@ -52,9 +52,9 @@ public class UserPrefTest extends AbstractTestNGBase
   @Test
   public void convertPrefParameters()
   {
-    final PFUserDO user = getUser(AbstractBase.TEST_USER);
+    final PFUserDO user = getUser(AbstractTestBase.TEST_USER);
     logon(user);
-    final PFUserDO user2 = getUser(AbstractBase.TEST_USER2);
+    final PFUserDO user2 = getUser(AbstractTestBase.TEST_USER2);
     final TaskDO task = initTestDB.addTask("UserPrefTest", "root");
     UserPrefDO userPref = createUserPref(user, UserPrefArea.TIMESHEET_TEMPLATE, "test");
     TimesheetDO timesheet = createTimesheet(user2, task, "Micromata", "Wrote a test case...");

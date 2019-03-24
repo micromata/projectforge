@@ -44,7 +44,7 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.persistence.user.entities.UserRightDO;
 import org.projectforge.framework.time.DateHelper;
 import org.projectforge.framework.time.DateHolder;
-import org.projectforge.test.AbstractBase;
+import org.projectforge.test.AbstractTestBase;
 import org.projectforge.test.AbstractTestNGBase;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.testng.annotations.Test;
@@ -70,7 +70,7 @@ public class AuftragDaoTest extends AbstractTestNGBase
   @Test
   public void getNextNumber()
   {
-    logon(AbstractBase.TEST_FINANCE_USER);
+    logon(AbstractTestBase.TEST_FINANCE_USER);
     AuftragDO auftrag = new AuftragDO();
     auftrag.setNummer(auftragDao.getNextNumber(auftrag));
     auftrag.addPosition(new AuftragsPositionDO());
@@ -86,10 +86,10 @@ public class AuftragDaoTest extends AbstractTestNGBase
   @Test
   public void checkAccess()
   {
-    logon(AbstractBase.TEST_FINANCE_USER);
+    logon(AbstractTestBase.TEST_FINANCE_USER);
     AuftragDO auftrag1 = new AuftragDO();
     auftrag1.setNummer(auftragDao.getNextNumber(auftrag1));
-    auftragDao.setContactPerson(auftrag1, getUserId(AbstractBase.TEST_FINANCE_USER));
+    auftragDao.setContactPerson(auftrag1, getUserId(AbstractTestBase.TEST_FINANCE_USER));
     Serializable id1;
     try {
       id1 = auftragDao.save(auftrag1);
@@ -104,14 +104,14 @@ public class AuftragDaoTest extends AbstractTestNGBase
 
     AuftragDO auftrag2 = new AuftragDO();
     auftrag2.setNummer(auftragDao.getNextNumber(auftrag2));
-    auftragDao.setContactPerson(auftrag2, getUserId(AbstractBase.TEST_PROJECT_MANAGER_USER));
+    auftragDao.setContactPerson(auftrag2, getUserId(AbstractTestBase.TEST_PROJECT_MANAGER_USER));
     auftrag2.addPosition(new AuftragsPositionDO());
     final Serializable id2 = auftragDao.save(auftrag2);
     dbNumber++; // Needed for getNextNumber test;
 
     AuftragDO auftrag3 = new AuftragDO();
     auftrag3.setNummer(auftragDao.getNextNumber(auftrag3));
-    auftragDao.setContactPerson(auftrag3, getUserId(AbstractBase.TEST_PROJECT_MANAGER_USER));
+    auftragDao.setContactPerson(auftrag3, getUserId(AbstractTestBase.TEST_PROJECT_MANAGER_USER));
     final DateHolder date = new DateHolder();
     date.add(Calendar.YEAR, -6); // 6 years old.
     auftrag3.setAngebotsDatum(date.getSQLDate());
@@ -123,7 +123,7 @@ public class AuftragDaoTest extends AbstractTestNGBase
     final Serializable id3 = auftragDao.save(auftrag3);
     dbNumber++; // Needed for getNextNumber test;
 
-    logon(AbstractBase.TEST_PROJECT_MANAGER_USER);
+    logon(AbstractTestBase.TEST_PROJECT_MANAGER_USER);
     try {
       auftragDao.getById(id1);
       fail("AccessException expected: Projectmanager should not have access to foreign orders.");
@@ -138,23 +138,23 @@ public class AuftragDaoTest extends AbstractTestNGBase
       // OK
     }
 
-    logon(AbstractBase.TEST_CONTROLLING_USER);
+    logon(AbstractTestBase.TEST_CONTROLLING_USER);
     auftrag1 = auftragDao.getById(id1);
     checkNoWriteAccess(id1, auftrag1, "Controller");
 
-    logon(AbstractBase.TEST_USER);
+    logon(AbstractTestBase.TEST_USER);
     checkNoAccess(id1, auftrag1, "Other");
 
-    logon(AbstractBase.TEST_ADMIN_USER);
+    logon(AbstractTestBase.TEST_ADMIN_USER);
     checkNoAccess(id1, auftrag1, "Admin ");
   }
 
   @Test
   public void checkAccess2()
   {
-    logon(AbstractBase.TEST_FINANCE_USER);
-    final GroupDO group1 = initTestDB.addGroup("AuftragDaoTest.ProjectManagers1", AbstractBase.TEST_PROJECT_ASSISTANT_USER);
-    final GroupDO group2 = initTestDB.addGroup("AuftragDaoTest.ProjectManagers2", AbstractBase.TEST_PROJECT_MANAGER_USER);
+    logon(AbstractTestBase.TEST_FINANCE_USER);
+    final GroupDO group1 = initTestDB.addGroup("AuftragDaoTest.ProjectManagers1", AbstractTestBase.TEST_PROJECT_ASSISTANT_USER);
+    final GroupDO group2 = initTestDB.addGroup("AuftragDaoTest.ProjectManagers2", AbstractTestBase.TEST_PROJECT_MANAGER_USER);
     ProjektDO projekt1 = new ProjektDO();
     projekt1.setName("ACME - Webportal 1");
     projekt1.setProjektManagerGroup(group1);
@@ -181,42 +181,42 @@ public class AuftragDaoTest extends AbstractTestNGBase
     dbNumber++; // Needed for getNextNumber test;
     auftrag2 = auftragDao.getById(id);
 
-    logon(AbstractBase.TEST_CONTROLLING_USER);
+    logon(AbstractTestBase.TEST_CONTROLLING_USER);
     checkNoWriteAccess(id, auftrag1, "Controlling");
 
-    logon(AbstractBase.TEST_USER);
+    logon(AbstractTestBase.TEST_USER);
     checkNoAccess(id, auftrag1, "Other");
 
-    logon(AbstractBase.TEST_PROJECT_MANAGER_USER);
+    logon(AbstractTestBase.TEST_PROJECT_MANAGER_USER);
     projektDao.getList(new ProjektFilter());
     checkNoAccess(auftrag1.getId(), "Project manager");
     checkNoWriteAccess(auftrag1.getId(), auftrag1, "Project manager");
     checkHasUpdateAccess(auftrag2.getId());
 
-    logon(AbstractBase.TEST_PROJECT_ASSISTANT_USER);
+    logon(AbstractTestBase.TEST_PROJECT_ASSISTANT_USER);
     projektDao.getList(new ProjektFilter());
     checkHasUpdateAccess(auftrag1.getId());
     checkNoAccess(auftrag2.getId(), "Project assistant");
     checkNoWriteAccess(auftrag2.getId(), auftrag2, "Project assistant");
 
-    logon(AbstractBase.TEST_ADMIN_USER);
+    logon(AbstractTestBase.TEST_ADMIN_USER);
     checkNoAccess(id, auftrag1, "Admin ");
   }
 
   @Test
   public void checkPartlyReadwriteAccess()
   {
-    logon(AbstractBase.TEST_ADMIN_USER);
+    logon(AbstractTestBase.TEST_ADMIN_USER);
     PFUserDO user = initTestDB.addUser("AuftragDaoCheckPartlyReadWriteAccess");
-    GroupDO financeGroup = getGroup(AbstractBase.FINANCE_GROUP);
+    GroupDO financeGroup = getGroup(AbstractTestBase.FINANCE_GROUP);
     financeGroup.getSafeAssignedUsers().add(user);
     groupDao.update(financeGroup);
-    final GroupDO projectAssistants = getGroup(AbstractBase.PROJECT_ASSISTANT);
+    final GroupDO projectAssistants = getGroup(AbstractTestBase.PROJECT_ASSISTANT);
     projectAssistants.getSafeAssignedUsers().add(user);
     groupDao.update(projectAssistants);
 
     final GroupDO group = initTestDB.addGroup("AuftragDaoTest.checkPartlyReadwriteAccess");
-    logon(AbstractBase.TEST_FINANCE_USER);
+    logon(AbstractTestBase.TEST_FINANCE_USER);
     ProjektDO projekt = new ProjektDO();
     projekt.setName("ACME - Webportal checkPartlyReadwriteAccess");
     projekt.setProjektManagerGroup(group);
@@ -238,7 +238,7 @@ public class AuftragDaoTest extends AbstractTestNGBase
     } catch (final AccessException ex) {
       assertEquals("access.exception.userHasNotRight", ex.getI18nKey());
     }
-    logon(AbstractBase.TEST_ADMIN_USER);
+    logon(AbstractTestBase.TEST_ADMIN_USER);
     user.addRight(new UserRightDO(UserRightId.PM_ORDER_BOOK, UserRightValue.PARTLYREADWRITE)); //
     userService.update(user);
     userRightDao.save(new ArrayList<>(user.getRights()));
@@ -250,13 +250,13 @@ public class AuftragDaoTest extends AbstractTestNGBase
     } catch (final AccessException ex) {
       assertEquals("access.exception.userHasNotRight", ex.getI18nKey());
     }
-    logon(AbstractBase.TEST_ADMIN_USER);
+    logon(AbstractTestBase.TEST_ADMIN_USER);
     final UserRightDO right = user.getRight(UserRightId.PM_ORDER_BOOK);
     right.setValue(UserRightValue.READWRITE); // Full access
     userRightDao.update(right);
     logon(user);
     auftrag = auftragDao.getById(id);
-    logon(AbstractBase.TEST_ADMIN_USER);
+    logon(AbstractTestBase.TEST_ADMIN_USER);
     right.setValue(UserRightValue.PARTLYREADWRITE);
     userRightDao.update(right);
     group.getAssignedUsers().add(user);
@@ -326,10 +326,10 @@ public class AuftragDaoTest extends AbstractTestNGBase
   @Test
   public void checkVollstaendigFakturiert()
   {
-    logon(AbstractBase.TEST_FINANCE_USER);
+    logon(AbstractTestBase.TEST_FINANCE_USER);
     AuftragDO auftrag1 = new AuftragDO();
     auftrag1.setNummer(auftragDao.getNextNumber(auftrag1));
-    auftragDao.setContactPerson(auftrag1, getUserId(AbstractBase.TEST_PROJECT_MANAGER_USER));
+    auftragDao.setContactPerson(auftrag1, getUserId(AbstractTestBase.TEST_PROJECT_MANAGER_USER));
     auftrag1.addPosition(new AuftragsPositionDO());
     final Serializable id1 = auftragDao.save(auftrag1);
     dbNumber++; // Needed for getNextNumber test;
@@ -350,7 +350,7 @@ public class AuftragDaoTest extends AbstractTestNGBase
     auftragDao.update(auftrag1);
     auftrag1 = auftragDao.getById(id1);
 
-    logon(AbstractBase.TEST_PROJECT_MANAGER_USER);
+    logon(AbstractTestBase.TEST_PROJECT_MANAGER_USER);
     position = auftrag1.getPositionenIncludingDeleted().get(0);
     position.setStatus(AuftragsPositionsStatus.ABGESCHLOSSEN);
     position.setVollstaendigFakturiert(true);
@@ -362,7 +362,7 @@ public class AuftragDaoTest extends AbstractTestNGBase
       assertEquals("fibu.auftrag.error.vollstaendigFakturiertProtection", ex.getI18nKey());
     }
 
-    logon(AbstractBase.TEST_FINANCE_USER);
+    logon(AbstractTestBase.TEST_FINANCE_USER);
     position = auftrag1.getPositionenIncludingDeleted().get(0);
     position.setStatus(AuftragsPositionsStatus.ABGESCHLOSSEN);
     position.setVollstaendigFakturiert(true);
@@ -372,7 +372,7 @@ public class AuftragDaoTest extends AbstractTestNGBase
   @Test
   public void checkEmptyAuftragsPositionen()
   {
-    logon(AbstractBase.TEST_FINANCE_USER);
+    logon(AbstractTestBase.TEST_FINANCE_USER);
     AuftragDO auftrag = new AuftragDO();
     auftrag.setNummer(auftragDao.getNextNumber(auftrag));
     auftrag.addPosition(new AuftragsPositionDO());
@@ -481,7 +481,7 @@ public class AuftragDaoTest extends AbstractTestNGBase
   @Test
   public void testPeriodOfPerformanceFilter()
   {
-    logon(AbstractBase.TEST_FINANCE_USER);
+    logon(AbstractTestBase.TEST_FINANCE_USER);
 
     auftragDao.save(createAuftragWithPeriodOfPerformance(2017, 4, 1, 2017, 4, 30));
     auftragDao.save(createAuftragWithPeriodOfPerformance(2017, 4, 3, 2017, 4, 5));

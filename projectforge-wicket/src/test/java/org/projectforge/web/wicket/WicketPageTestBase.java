@@ -51,7 +51,7 @@ import org.projectforge.business.user.UserXmlPreferencesCache;
 import org.projectforge.framework.i18n.I18nHelper;
 import org.projectforge.plugins.core.AbstractPlugin;
 import org.projectforge.plugins.core.PluginAdminService;
-import org.projectforge.test.AbstractBase;
+import org.projectforge.test.AbstractTestBase;
 import org.projectforge.test.AbstractTestNGBase;
 import org.projectforge.web.LoginPage;
 import org.projectforge.web.LoginService;
@@ -201,7 +201,7 @@ public class WicketPageTestBase extends AbstractTestNGBase
 
   public void loginTestAdmin()
   {
-    login(AbstractBase.TEST_ADMIN_USER, AbstractBase.TEST_ADMIN_USER_PASSWORD);
+    login(AbstractTestBase.TEST_ADMIN_USER, AbstractTestBase.TEST_ADMIN_USER_PASSWORD);
   }
 
   /**

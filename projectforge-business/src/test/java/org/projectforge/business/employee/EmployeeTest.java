@@ -11,7 +11,7 @@ import org.projectforge.business.fibu.EmployeeDao;
 import org.projectforge.business.fibu.Gender;
 import org.projectforge.business.fibu.GenderConverter;
 import org.projectforge.framework.persistence.history.DisplayHistoryEntry;
-import org.projectforge.test.AbstractBase;
+import org.projectforge.test.AbstractTestBase;
 import org.projectforge.test.AbstractTestNGBase;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.testng.annotations.AfterMethod;
@@ -29,7 +29,7 @@ public class EmployeeTest extends AbstractTestNGBase
   @BeforeClass
   public void init()
   {
-    logon(AbstractBase.TEST_FULL_ACCESS_USER);
+    logon(AbstractTestBase.TEST_FULL_ACCESS_USER);
     employeeList = employeeDao.internalLoadAll();
     assertTrue(employeeList.size() > 0, "Keine Mitarbeiter in der Test DB!");
   }

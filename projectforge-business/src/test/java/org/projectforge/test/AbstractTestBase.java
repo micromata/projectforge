@@ -26,6 +26,7 @@ package org.projectforge.test;
 import de.micromata.genome.db.jpa.history.api.HistoryEntry;
 import de.micromata.genome.db.jpa.history.entities.EntityOpType;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.runner.RunWith;
 import org.projectforge.business.configuration.ConfigurationService;
 import org.projectforge.business.login.Login;
 import org.projectforge.business.login.LoginDefaultHandler;
@@ -54,6 +55,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.orm.hibernate5.HibernateTemplate;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
+import org.springframework.test.context.junit4.SpringRunner;
 
 import javax.sql.DataSource;
 import java.math.BigDecimal;
@@ -61,17 +63,21 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.TimeZone;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
+//@ExtendWith(SpringExtension.class)
+//@ContextConfiguration(
+//        classes = { TestConfiguration.class },
+//        loader = AnnotationConfigContextLoader.class)
+@RunWith(SpringRunner.class)
 @SpringJUnitConfig(TestConfiguration.class)
-public class AbstractBase
-{
+public abstract class AbstractTestBase {
   protected static final org.slf4j.Logger log = org.slf4j.LoggerFactory
-      .getLogger(AbstractBase.class);
+          .getLogger(AbstractTestBase.class);
 
   public static final String ADMIN = "PFAdmin";
 
@@ -156,11 +162,15 @@ public class AbstractBase
   @Autowired
   private DatabaseService initDatabaseDao;
 
+  private static boolean initialized;
+
   protected int mCount = 0;
 
   @BeforeEach
-  public void setUp()
-  {
+  public void setUp() {
+    if (initialized)
+      return;
+    initialized = true;
     System.setProperty("user.timezone", "UTC");
     TimeZone.setDefault(DateHelper.UTC);
     log.info("user.timezone is: " + System.getProperty("user.timezone"));
@@ -188,16 +198,14 @@ public class AbstractBase
     }
   }
 
-  protected void initDb()
-  {
+  protected void initDb() {
     init(true);
   }
 
   /**
    * Init and reinitialise context before each run
    */
-  public void init(final boolean createTestData)
-  {
+  public void init(final boolean createTestData) {
     final LoginDefaultHandler loginHandler = applicationContext.getBean(LoginDefaultHandler.class);
     loginHandler.initialize();
     Login.getInstance().setLoginHandler(loginHandler);
@@ -206,18 +214,15 @@ public class AbstractBase
     }
   }
 
-  protected TenantRegistry getTenantRegistry()
-  {
+  protected TenantRegistry getTenantRegistry() {
     return TenantRegistryMap.getInstance().getTenantRegistry();
   }
 
-  protected UserGroupCache getUserGroupCache()
-  {
+  protected UserGroupCache getUserGroupCache() {
     return getTenantRegistry().getUserGroupCache();
   }
 
-  protected void clearDatabase()
-  {
+  protected void clearDatabase() {
     log.info("clearDatabase...");
     emf.getJpaSchemaService().clearDatabase();
     TenantRegistryMap.getInstance().setAllUserGroupCachesAsExpired();
@@ -225,8 +230,7 @@ public class AbstractBase
     TenantRegistryMap.getInstance().clear();
   }
 
-  public PFUserDO logon(final String username)
-  {
+  public PFUserDO logon(final String username) {
     final PFUserDO user = userService.getByUsername(username);
     if (user == null) {
       fail("User not found: " + username);
@@ -235,94 +239,77 @@ public class AbstractBase
     return user;
   }
 
-  public void logon(final PFUserDO user)
-  {
+  public void logon(final PFUserDO user) {
     ThreadLocalUserContext.setUser(getUserGroupCache(), user);
   }
 
-  protected void logoff()
-  {
+  protected void logoff() {
     ThreadLocalUserContext.setUser(getUserGroupCache(), null);
   }
 
-  public GroupDO getGroup(final String groupName)
-  {
+  public GroupDO getGroup(final String groupName) {
     return initTestDB.getGroup(groupName);
   }
 
-  public Integer getGroupId(final String groupName)
-  {
+  public Integer getGroupId(final String groupName) {
     return initTestDB.getGroup(groupName).getId();
   }
 
-  public TaskDO getTask(final String taskName)
-  {
+  public TaskDO getTask(final String taskName) {
     return initTestDB.getTask(taskName);
   }
 
-  public PFUserDO getUser(final String userName)
-  {
+  public PFUserDO getUser(final String userName) {
     return initTestDB.getUser(userName);
   }
 
-  public Integer getUserId(final String userName)
-  {
+  public Integer getUserId(final String userName) {
     return initTestDB.getUser(userName).getId();
   }
 
-  protected void logStart(final String name)
-  {
+  protected void logStart(final String name) {
     logStartPublic(name);
     mCount = 0;
   }
 
-  protected void logEnd()
-  {
+  protected void logEnd() {
     logEndPublic();
     mCount = 0;
   }
 
-  protected void logDot()
-  {
+  protected void logDot() {
     log(".");
   }
 
-  protected void log(final String string)
-  {
+  protected void log(final String string) {
     logPublic(string);
     if (++mCount % 40 == 0) {
       System.out.println("");
     }
   }
 
-  public static void logStartPublic(final String name)
-  {
+  public static void logStartPublic(final String name) {
     System.out.print(name + ": ");
   }
 
-  public static void logEndPublic()
-  {
+  public static void logEndPublic() {
     System.out.println(" (OK)");
   }
 
-  public static void logDotPublic()
-  {
+  public static void logDotPublic() {
     logPublic(".");
   }
 
-  public static void logPublic(final String string)
-  {
+  public static void logPublic(final String string) {
     System.out.print(string);
   }
 
-  public static void logSingleEntryPublic(final String string)
-  {
+  public static void logSingleEntryPublic(final String string) {
     System.out.println(string);
   }
 
   protected void assertAccessException(final AccessException ex, final Integer taskId, final AccessType accessType,
-      final OperationType operationType)
-  {
+                                       final OperationType operationType) {
     assertEquals(accessType, ex.getAccessType());
     assertEquals(operationType, ex.getOperationType());
     assertEquals(taskId, ex.getTaskId());
@@ -330,16 +317,14 @@ public class AbstractBase
 
   @SuppressWarnings("rawtypes")
   protected void assertHistoryEntry(final HistoryEntry entry, final Integer entityId, final PFUserDO user,
-      final EntityOpType type)
-  {
+                                    final EntityOpType type) {
     assertHistoryEntry(entry, entityId, user, type, null, null, null, null);
   }
 
   @SuppressWarnings("rawtypes")
   protected void assertHistoryEntry(final HistoryEntry entry, final Integer entityId, final PFUserDO user,
-      final EntityOpType type,
-      final String propertyName, final Class<?> classType, final Object oldValue, final Object newValue)
-  {
+                                    final EntityOpType type,
+                                    final String propertyName, final Class<?> classType, final Object oldValue, final Object newValue) {
     assertEquals(user.getId().toString(), entry.getUserName());
     // assertEquals(AddressDO.class.getSimpleName(), entry.getClassName());
     assertEquals(null, entry.getUserComment());
@@ -350,20 +335,17 @@ public class AbstractBase
     }
   }
 
-  protected void assertBigDecimal(final int v1, final BigDecimal v2)
-  {
+  protected void assertBigDecimal(final int v1, final BigDecimal v2) {
     assertBigDecimal(new BigDecimal(v1), v2);
   }
 
-  protected void assertBigDecimal(final BigDecimal v1, final BigDecimal v2)
-  {
-    assertTrue("BigDecimal values are not equal.", v1.compareTo(v2) == 0);
+  protected void assertBigDecimal(final BigDecimal v1, final BigDecimal v2) {
+    assertTrue(v1.compareTo(v2) == 0, "BigDecimal values are not equal.");
   }
 
   protected Calendar assertUTCDate(final Date date, final int year, final int month, final int day, final int hour,
-      final int minute,
-      final int second)
-  {
+                                   final int minute,
+                                   final int second) {
     final Calendar cal = Calendar.getInstance(DateHelper.UTC);
     cal.setTime(date);
     assertEquals(year, cal.get(Calendar.YEAR));
@@ -376,9 +358,8 @@ public class AbstractBase
   }
 
   protected Calendar assertUTCDate(final Date date, final int year, final int month, final int day, final int hour,
-      final int minute,
-      final int second, final int millis)
-  {
+                                   final int minute,
+                                   final int second, final int millis) {
     final Calendar cal = assertUTCDate(date, year, month, day, hour, minute, second);
     assertEquals(millis, cal.get(Calendar.MILLISECOND));
     return cal;

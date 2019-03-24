@@ -25,7 +25,7 @@ package org.projectforge.plugins.crm;
 
 import static org.testng.AssertJUnit.assertEquals;
 
-import org.projectforge.test.AbstractBase;
+import org.projectforge.test.AbstractTestBase;
 import org.projectforge.test.AbstractTestNGBase;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -53,7 +53,7 @@ public class ContactEntryTest extends AbstractTestNGBase
   //  @Test
   public void testSaveAndUpdate()
   {
-    logon(AbstractBase.ADMIN);
+    logon(AbstractTestBase.ADMIN);
 
     //final ContactDao contactDao = new ContactDao();
     final ContactDO a1 = new ContactDO();
@@ -87,7 +87,7 @@ public class ContactEntryTest extends AbstractTestNGBase
   //@Test
   public void testDeleteAndUndelete()
   {
-    logon(AbstractBase.ADMIN);
+    logon(AbstractTestBase.ADMIN);
     final ContactDO a1 = new ContactDO();
     a1.setName("Test");
     a1.setTask(getTask("1.1"));

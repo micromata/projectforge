@@ -43,7 +43,7 @@ import org.projectforge.framework.access.GroupTaskAccessDO;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.time.DateHolder;
 import org.projectforge.framework.time.DatePrecision;
-import org.projectforge.test.AbstractBase;
+import org.projectforge.test.AbstractTestBase;
 import org.projectforge.test.AbstractTestNGBase;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.testng.annotations.Test;
@@ -93,15 +93,15 @@ public class TimesheetBookingTest extends AbstractTestNGBase
     }
     initialized = true;
     date = new DateHolder(DatePrecision.MINUTE_15);
-    logon(getUser(AbstractBase.TEST_ADMIN_USER));
+    logon(getUser(AbstractTestBase.TEST_ADMIN_USER));
     TaskDO task;
     task = initTestDB.addTask("TimesheetBookingTest", "root");
-    final GroupTaskAccessDO access = new GroupTaskAccessDO().setGroup(initTestDB.addGroup("TBT", AbstractBase.TEST_USER))
+    final GroupTaskAccessDO access = new GroupTaskAccessDO().setGroup(initTestDB.addGroup("TBT", AbstractTestBase.TEST_USER))
         .addAccessEntry(
             new AccessEntryDO(AccessType.OWN_TIMESHEETS, true, true, true, true))
         .setTask(task);
     accessDao.save(access);
-    logon(getUser(AbstractBase.TEST_FINANCE_USER));
+    logon(getUser(AbstractTestBase.TEST_FINANCE_USER));
     taskDao.update(initTestDB.addTask("TBT-1", "TimesheetBookingTest"));
     taskDao.update(initTestDB.addTask("TBT-1.1", "TBT-1").setStatus(TaskStatus.C));
     taskDao.markAsDeleted(initTestDB.addTask("TBT-1.2", "TBT-1"));
@@ -132,7 +132,7 @@ public class TimesheetBookingTest extends AbstractTestNGBase
   public void testTimesheetBookingStatus()
   {
     initialize();
-    logon(getUser(AbstractBase.TEST_USER));
+    logon(getUser(AbstractTestBase.TEST_USER));
     TimesheetDO sheet = createNewSheet().setTask(getTask("TBT-2"));
     save(sheet, "timesheet.error.taskNotBookable.treeClosedForBooking");
     save(sheet.setTask(getTask("TBT-2.1")), "timesheet.error.taskNotBookable.treeClosedForBooking");
@@ -151,12 +151,12 @@ public class TimesheetBookingTest extends AbstractTestNGBase
   public void testOrderPositions()
   {
     initialize();
-    logon(getUser(AbstractBase.TEST_FINANCE_USER));
+    logon(getUser(AbstractTestBase.TEST_FINANCE_USER));
     final AuftragDO auftrag = new AuftragDO()
         .addPosition(new AuftragsPositionDO().setTask(getTask("TBT-5.1")).setTitel("Pos 1"))
         .addPosition(new AuftragsPositionDO().setTask(getTask("TBT-5.2.1.1")).setTitel("Pos 2"));
     auftragDao.save(auftrag.setNummer(auftragDao.getNextNumber(auftrag)));
-    logon(getUser(AbstractBase.TEST_USER));
+    logon(getUser(AbstractTestBase.TEST_USER));
     TimesheetDO sheet = createNewSheet();
     save(sheet.setTask(getTask("TBT-5")), "timesheet.error.taskNotBookable.orderPositionsFoundInSubTasks");
     timesheetDao.save(sheet.setTask(getTask("TBT-5.1")));
@@ -172,7 +172,7 @@ public class TimesheetBookingTest extends AbstractTestNGBase
   public void testTaskStatus()
   {
     initialize();
-    final PFUserDO user = getUser(AbstractBase.TEST_USER);
+    final PFUserDO user = getUser(AbstractTestBase.TEST_USER);
     logon(user);
     TimesheetDO sheet = createNewSheet().setTask(getTask("TBT-1"));
     timesheetDao.save(sheet);
@@ -184,7 +184,7 @@ public class TimesheetBookingTest extends AbstractTestNGBase
 
   private TimesheetDO createNewSheet()
   {
-    return new TimesheetDO().setUser(getUser(AbstractBase.TEST_USER)).setStartDate(date.getDate()).setStopTime(
+    return new TimesheetDO().setUser(getUser(AbstractTestBase.TEST_USER)).setStartDate(date.getDate()).setStopTime(
         date.add(Calendar.MINUTE, 15).getTimestamp());
   }
 

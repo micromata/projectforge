@@ -36,7 +36,7 @@ import org.projectforge.business.password.PasswordQualityService;
 import org.projectforge.framework.i18n.I18nKeyAndParams;
 import org.projectforge.framework.persistence.user.entities.GroupDO;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
-import org.projectforge.test.AbstractBase;
+import org.projectforge.test.AbstractTestBase;
 import org.projectforge.test.AbstractTestNGBase;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.TransactionStatus;
@@ -71,9 +71,9 @@ public class UserTest extends AbstractTestNGBase
   @Test
   public void testUserDO()
   {
-    logon(AbstractBase.TEST_ADMIN_USER);
-    final PFUserDO user = userService.getByUsername(AbstractBase.TEST_ADMIN_USER);
-    assertEquals(user.getUsername(), AbstractBase.TEST_ADMIN_USER);
+    logon(AbstractTestBase.TEST_ADMIN_USER);
+    final PFUserDO user = userService.getByUsername(AbstractTestBase.TEST_ADMIN_USER);
+    assertEquals(user.getUsername(), AbstractTestBase.TEST_ADMIN_USER);
     final UserGroupCache userGroupCache = TenantRegistryMap.getInstance().getTenantRegistry().getUserGroupCache();
     final PFUserDO user1 = getUser("user1");
     final String groupnames = groupService.getGroupnames(user1.getId());
@@ -82,7 +82,7 @@ public class UserTest extends AbstractTestNGBase
     assertEquals(false, userGroupCache.isUserMemberOfGroup(user1.getId(), getGroupId("group3")));
     final GroupDO group = groupService.getGroup(getGroupId("group1"));
     assertEquals("group1", group.getName());
-    final PFUserDO admin = getUser(AbstractBase.ADMIN);
+    final PFUserDO admin = getUser(AbstractTestBase.ADMIN);
     assertEquals("Administrator", true, userGroupCache.isUserMemberOfAdminGroup(admin.getId()));
     assertEquals("Not administrator", false, userGroupCache.isUserMemberOfAdminGroup(user1.getId()));
   }
@@ -104,7 +104,7 @@ public class UserTest extends AbstractTestNGBase
   @Test
   public void testSaveAndUpdate()
   {
-    logon(AbstractBase.TEST_ADMIN_USER);
+    logon(AbstractTestBase.TEST_ADMIN_USER);
     PFUserDO user = new PFUserDO();
     user.setUsername("UserTest");
     user.setPassword("Hurzel");

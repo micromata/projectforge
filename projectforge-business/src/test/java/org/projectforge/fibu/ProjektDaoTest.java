@@ -33,7 +33,7 @@ import org.projectforge.business.fibu.ProjektDao;
 import org.projectforge.business.fibu.ProjektFilter;
 import org.projectforge.framework.access.AccessException;
 import org.projectforge.framework.persistence.user.entities.GroupDO;
-import org.projectforge.test.AbstractBase;
+import org.projectforge.test.AbstractTestBase;
 import org.projectforge.test.AbstractTestNGBase;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.testng.annotations.Test;
@@ -46,8 +46,8 @@ public class ProjektDaoTest extends AbstractTestNGBase
   @Test
   public void checkAccess()
   {
-    logon(AbstractBase.TEST_FINANCE_USER);
-    final GroupDO group = initTestDB.addGroup("ProjektDaoTest.ProjectManagers", AbstractBase.TEST_PROJECT_ASSISTANT_USER);
+    logon(AbstractTestBase.TEST_FINANCE_USER);
+    final GroupDO group = initTestDB.addGroup("ProjektDaoTest.ProjectManagers", AbstractTestBase.TEST_PROJECT_ASSISTANT_USER);
     ProjektDO projekt = new ProjektDO();
     projekt.setName("ACME - Webportal");
     projekt.setProjektManagerGroup(group);
@@ -56,23 +56,23 @@ public class ProjektDaoTest extends AbstractTestNGBase
     projekt.setDescription("Test");
     projektDao.update(projekt);
 
-    logon(AbstractBase.TEST_CONTROLLING_USER);
+    logon(AbstractTestBase.TEST_CONTROLLING_USER);
     checkNoWriteAccess(id, projekt, "Controlling");
 
-    logon(AbstractBase.TEST_USER);
+    logon(AbstractTestBase.TEST_USER);
     checkNoAccess(id, "Other");
     checkNoAccess(id, projekt, "Other");
 
-    logon(AbstractBase.TEST_PROJECT_MANAGER_USER);
+    logon(AbstractTestBase.TEST_PROJECT_MANAGER_USER);
     projektDao.getList(new ProjektFilter());
     checkNoAccess(id, projekt, "Project manager");
 
-    logon(AbstractBase.TEST_PROJECT_ASSISTANT_USER);
+    logon(AbstractTestBase.TEST_PROJECT_ASSISTANT_USER);
     projektDao.getList(new ProjektFilter());
     checkNoWriteAccess(id, projekt, "Project assistant");
     checkNoHistoryAccess(id, projekt, "Project assistant");
 
-    logon(AbstractBase.TEST_ADMIN_USER);
+    logon(AbstractTestBase.TEST_ADMIN_USER);
     checkNoAccess(id, projekt, "Admin ");
     checkNoAccess(id, projekt, "Project manager");
   }
