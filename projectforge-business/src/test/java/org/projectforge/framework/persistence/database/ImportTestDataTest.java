@@ -1,6 +1,7 @@
 package org.projectforge.framework.persistence.database;
 
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
+import org.projectforge.test.AbstractBase;
 import org.projectforge.test.AbstractTestNGBase;
 import org.projectforge.test.InitTestDB;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,7 +33,7 @@ public class ImportTestDataTest extends AbstractTestNGBase
   {
     clearDatabase();
     initDatabaseDao.insertDefaultTenant();
-    PFUserDO admin = initTestDB.addUser(AbstractTestNGBase.ADMIN);
+    PFUserDO admin = initTestDB.addUser(AbstractBase.ADMIN);
     initDatabaseDao.insertGlobalAddressbook(admin);
     jpaXmlDumpService.createTestDatabase();
   }

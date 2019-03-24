@@ -29,6 +29,7 @@ import org.projectforge.business.address.AddressDO;
 import org.projectforge.business.address.AddressDao;
 import org.projectforge.business.address.PersonalAddressDO;
 import org.projectforge.business.address.PersonalAddressDao;
+import org.projectforge.test.AbstractBase;
 import org.projectforge.test.AbstractTestNGBase;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.TransactionStatus;
@@ -50,7 +51,7 @@ public class PersonalAddressTest extends AbstractTestNGBase
   @Test
   public void testSaveAndUpdate()
   {
-    logon(ADMIN);
+    logon(AbstractBase.ADMIN);
     final Integer[] addressIds = new Integer[1];
     txTemplate.setPropagationBehavior(TransactionTemplate.PROPAGATION_REQUIRES_NEW);
     txTemplate.execute(new TransactionCallback()
@@ -70,7 +71,7 @@ public class PersonalAddressTest extends AbstractTestNGBase
         PersonalAddressDO personalAddress = new PersonalAddressDO();
         AddressDO a = addressDao.getOrLoad(addressIds[0]);
         personalAddress.setAddress(a);
-        personalAddress.setOwner(getUser(ADMIN));
+        personalAddress.setOwner(getUser(AbstractBase.ADMIN));
         personalAddress.setFavoriteCard(true);
         personalAddress.setFavoriteBusinessPhone(true);
         personalAddress.setFavoriteMobilePhone(true);
@@ -87,7 +88,7 @@ public class PersonalAddressTest extends AbstractTestNGBase
       {
         PersonalAddressDO personalAddress = personalAddressDao.getByAddressId(addressIds[0]);
         assertEquals(personalAddress.getAddressId(), addressIds[0]);
-        assertEquals(personalAddress.getOwnerId(), getUser(ADMIN).getId());
+        assertEquals(personalAddress.getOwnerId(), getUser(AbstractBase.ADMIN).getId());
         assertTrue(personalAddress.isFavoriteCard());
         assertTrue(personalAddress.isFavoriteBusinessPhone());
         assertTrue(personalAddress.isFavoriteMobilePhone());

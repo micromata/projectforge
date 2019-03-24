@@ -37,6 +37,7 @@ import org.projectforge.business.fibu.RechnungTyp;
 import org.projectforge.business.fibu.RechnungsPositionDO;
 import org.projectforge.framework.access.AccessException;
 import org.projectforge.framework.i18n.UserException;
+import org.projectforge.test.AbstractBase;
 import org.projectforge.test.AbstractTestNGBase;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.testng.annotations.Test;
@@ -51,7 +52,7 @@ public class RechnungDaoTest extends AbstractTestNGBase
   @Test
   public void getNextNumber()
   {
-    logon(TEST_FINANCE_USER);
+    logon(AbstractBase.TEST_FINANCE_USER);
     final RechnungDO rechnung1 = new RechnungDO();
     int number = rechnungDao.getNextNumber(rechnung1);
     rechnung1.setDatum(new Date(System.currentTimeMillis()));
@@ -106,7 +107,7 @@ public class RechnungDaoTest extends AbstractTestNGBase
   @Test
   public void checkAccess()
   {
-    logon(TEST_FINANCE_USER);
+    logon(AbstractBase.TEST_FINANCE_USER);
     RechnungDO rechnung = new RechnungDO();
     int number = rechnungDao.getNextNumber(rechnung);
     rechnung.setDatum(new Date(System.currentTimeMillis()));
@@ -121,17 +122,17 @@ public class RechnungDaoTest extends AbstractTestNGBase
     dbNumber++;
     rechnung = rechnungDao.getById(id);
 
-    logon(TEST_CONTROLLING_USER);
+    logon(AbstractBase.TEST_CONTROLLING_USER);
     rechnungDao.getById(id);
     checkNoWriteAccess(id, rechnung, "Controlling");
 
-    logon(TEST_USER);
+    logon(AbstractBase.TEST_USER);
     checkNoAccess(id, rechnung, "Other");
 
-    logon(TEST_PROJECT_MANAGER_USER);
+    logon(AbstractBase.TEST_PROJECT_MANAGER_USER);
     checkNoAccess(id, rechnung, "Project manager");
 
-    logon(TEST_ADMIN_USER);
+    logon(AbstractBase.TEST_ADMIN_USER);
     checkNoAccess(id, rechnung, "Admin ");
   }
 

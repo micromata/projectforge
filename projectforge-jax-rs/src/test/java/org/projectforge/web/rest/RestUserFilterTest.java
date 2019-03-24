@@ -39,6 +39,7 @@ import org.mockito.Mockito;
 import org.projectforge.business.user.service.UserService;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.rest.Authentication;
+import org.projectforge.test.AbstractBase;
 import org.projectforge.test.AbstractTestNGBase;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.testng.annotations.BeforeClass;
@@ -59,7 +60,7 @@ public class RestUserFilterTest extends AbstractTestNGBase
   @BeforeClass
   public void init()
   {
-    PFUserDO user = getUserGroupCache().getUser(TEST_USER);
+    PFUserDO user = getUserGroupCache().getUser(AbstractBase.TEST_USER);
     this.userId = user.getId();
     this.userToken = userService.getAuthenticationToken(this.userId);
     this.filter.setUserService(userService);
@@ -71,13 +72,13 @@ public class RestUserFilterTest extends AbstractTestNGBase
     final HttpServletResponse response = mock(HttpServletResponse.class);
 
     // Wrong password
-    HttpServletRequest request = mockRequest(TEST_USER, "failed", null, null);
+    HttpServletRequest request = mockRequest(AbstractBase.TEST_USER, "failed", null, null);
     FilterChain chain = mock(FilterChain.class);
     filter.doFilter(request, response, chain);
     verify(chain, never()).doFilter(Mockito.any(HttpServletRequest.class), Mockito.any(HttpServletResponse.class));
     Thread.sleep(1100); // Login penalty.
     // Correct user name and password
-    request = mockRequest(TEST_USER, TEST_USER_PASSWORD, null, null);
+    request = mockRequest(AbstractBase.TEST_USER, AbstractBase.TEST_USER_PASSWORD, null, null);
     chain = mock(FilterChain.class);
     filter.doFilter(request, response, chain);
 

@@ -35,6 +35,7 @@ import java.util.regex.Pattern;
 import org.projectforge.business.task.TaskDO;
 import org.projectforge.business.task.TaskDao;
 import org.projectforge.framework.time.DayHolder;
+import org.projectforge.test.AbstractBase;
 import org.projectforge.test.AbstractTestNGBase;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.testng.annotations.Test;
@@ -50,7 +51,7 @@ public class Task2GanttTaskConverterTest extends AbstractTestNGBase
   @Test
   public void testConvertingTaskTree()
   {
-    logon(TEST_ADMIN_USER);
+    logon(AbstractBase.TEST_ADMIN_USER);
     final String prefix = "task2Gantt";
     initTestDB.addTask(prefix, "root");
     initTestDB.addTask(prefix + "1", prefix);

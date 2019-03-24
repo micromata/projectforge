@@ -54,6 +54,7 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.persistence.user.entities.UserRightDO;
 import org.projectforge.framework.time.DateHelper;
 import org.projectforge.framework.time.DateHolder;
+import org.projectforge.test.AbstractBase;
 import org.projectforge.test.AbstractTestNGBase;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.testng.annotations.BeforeClass;
@@ -82,7 +83,7 @@ public class HRPlanningTest extends AbstractTestNGBase
   public void createProjects()
   {
     super.setUp();
-    logon(AbstractTestNGBase.TEST_FINANCE_USER);
+    logon(AbstractBase.TEST_FINANCE_USER);
     final KundeDO kunde = new KundeDO();
     kunde.setName("ACME ltd.");
     kunde.setId(59);
@@ -98,7 +99,7 @@ public class HRPlanningTest extends AbstractTestNGBase
     PFUserDO user1 = initTestDB.addUser("HRPlanningTestUser1");
     final HRPlanningRight right = (HRPlanningRight) userRights.getRight(UserRightId.PM_HR_PLANNING);
     assertFalse(right.isAvailable(userGroupCache, user1));
-    final HRPlanningDO planning = new HRPlanningDO().setUser(getUser(AbstractTestNGBase.TEST_USER));
+    final HRPlanningDO planning = new HRPlanningDO().setUser(getUser(AbstractBase.TEST_USER));
     logon(user1);
     assertFalse(hrPlanningDao.hasLoggedInUserAccess(planning, null, OperationType.SELECT, false));
     try {
@@ -107,8 +108,8 @@ public class HRPlanningTest extends AbstractTestNGBase
     } catch (final AccessException ex) {
       // OK
     }
-    logon(AbstractTestNGBase.TEST_ADMIN_USER);
-    final GroupDO group = initTestDB.getGroup(ORGA_GROUP);
+    logon(AbstractBase.TEST_ADMIN_USER);
+    final GroupDO group = initTestDB.getGroup(AbstractBase.ORGA_GROUP);
     group.getAssignedUsers().add(user1);
     groupDao.update(group);
     assertTrue(right.isAvailable(userGroupCache, user1));
@@ -118,7 +119,7 @@ public class HRPlanningTest extends AbstractTestNGBase
     assertFalse(accessChecker.hasLoggedInUserSelectAccess(UserRightId.PM_HR_PLANNING, planning, false));
     assertFalse(accessChecker.hasLoggedInUserHistoryAccess(UserRightId.PM_HR_PLANNING, planning, false));
     assertFalse(accessChecker.hasLoggedInUserInsertAccess(UserRightId.PM_HR_PLANNING, planning, false));
-    logon(AbstractTestNGBase.TEST_ADMIN_USER);
+    logon(AbstractBase.TEST_ADMIN_USER);
     user1.addRight(new UserRightDO(user1, UserRightId.PM_HR_PLANNING, UserRightValue.READONLY));
     userService.update(user1);
     userRightDao.save(new ArrayList<>(user1.getRights()));
@@ -127,7 +128,7 @@ public class HRPlanningTest extends AbstractTestNGBase
     assertTrue(accessChecker.hasLoggedInUserSelectAccess(UserRightId.PM_HR_PLANNING, planning, false));
     assertTrue(accessChecker.hasLoggedInUserHistoryAccess(UserRightId.PM_HR_PLANNING, planning, false));
     assertFalse(accessChecker.hasLoggedInUserInsertAccess(UserRightId.PM_HR_PLANNING, planning, false));
-    logon(AbstractTestNGBase.TEST_ADMIN_USER);
+    logon(AbstractBase.TEST_ADMIN_USER);
     user1 = userService.getById(user1.getId());
     final UserRightDO userRight = user1.getRight(UserRightId.PM_HR_PLANNING);
     userRight.setValue(UserRightValue.READWRITE);
@@ -149,7 +150,7 @@ public class HRPlanningTest extends AbstractTestNGBase
   @Test
   public void testBeginOfWeek()
   {
-    logon(AbstractTestNGBase.TEST_FINANCE_USER);
+    logon(AbstractBase.TEST_FINANCE_USER);
     HRPlanningDO planning = new HRPlanningDO();
     final java.sql.Date date = createDate(2010, Calendar.JANUARY, 9, 1, 10, 57, 456);
     final DateHolder firstDayOfWeek = new DateHolder(DateHelper.UTC);
@@ -159,7 +160,7 @@ public class HRPlanningTest extends AbstractTestNGBase
     assertEquals("2010-01-04 00:00:00.000 +0000", DateHelper.formatAsUTC(planning.getWeek()));
     assertEquals(millis, planning.getWeek().getTime());
     // planning.setWeek(date);
-    planning.setUser(getUser(AbstractTestNGBase.TEST_USER));
+    planning.setUser(getUser(AbstractBase.TEST_USER));
     assertEquals("2010-01-04 00:00:00.000 +0000", DateHelper.formatAsUTC(planning.getWeek()));
     final Serializable id = hrPlanningDao.save(planning);
     planning = hrPlanningDao.getById(id);
@@ -169,10 +170,10 @@ public class HRPlanningTest extends AbstractTestNGBase
   @Test
   public void overwriteDeletedEntries()
   {
-    logon(AbstractTestNGBase.TEST_FINANCE_USER);
+    logon(AbstractBase.TEST_FINANCE_USER);
     // Create planning:
     HRPlanningDO planning = new HRPlanningDO();
-    planning.setUser(getUser(TEST_USER));
+    planning.setUser(getUser(AbstractBase.TEST_USER));
     planning.setWeek(createDate(2010, Calendar.JANUARY, 11, 0, 0, 0, 0));
     assertUTCDate(planning.getWeek(), 2010, Calendar.JANUARY, 11, 0, 0, 0);
     HRPlanningEntryDO entry = new HRPlanningEntryDO();

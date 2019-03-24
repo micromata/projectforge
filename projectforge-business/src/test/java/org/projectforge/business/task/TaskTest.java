@@ -46,6 +46,7 @@ import org.projectforge.framework.access.OperationType;
 import org.projectforge.framework.i18n.UserException;
 import org.projectforge.framework.persistence.user.entities.GroupDO;
 import org.projectforge.framework.time.DateHolder;
+import org.projectforge.test.AbstractBase;
 import org.projectforge.test.AbstractTestNGBase;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.testng.annotations.Test;
@@ -81,7 +82,7 @@ public class TaskTest extends AbstractTestNGBase
       }
     }
     final TaskDO task = super.getTask("1.1");
-    logon(ADMIN);
+    logon(AbstractBase.ADMIN);
     final TaskDO dbTask = taskDao.getById(task.getId());
     assertEquals(task.getId(), dbTask.getId());
     assertEquals(task.getTitle(), dbTask.getTitle());
@@ -268,13 +269,13 @@ public class TaskTest extends AbstractTestNGBase
   @Test
   public void checkAccess()
   {
-    logon(TEST_ADMIN_USER);
+    logon(AbstractBase.TEST_ADMIN_USER);
     final TaskDO task = initTestDB.addTask("checkAccessTestTask", "root");
-    initTestDB.addGroup("checkAccessTestGroup", new String[] { TEST_USER });
+    initTestDB.addGroup("checkAccessTestGroup", new String[] { AbstractBase.TEST_USER });
     initTestDB.createGroupTaskAccess(getGroup("checkAccessTestGroup"), getTask("checkAccessTestTask"), AccessType.TASKS,
         true, true, true,
         true);
-    logon(TEST_FINANCE_USER);
+    logon(AbstractBase.TEST_FINANCE_USER);
     final Kost2ArtDO kost2Art = new Kost2ArtDO();
     kost2Art.setId(42);
     kost2Art.setName("Test");
@@ -289,26 +290,26 @@ public class TaskTest extends AbstractTestNGBase
     projekt.setInternKost2_4(123);
     projekt.setName("Testprojekt");
     projektDao.save(projekt);
-    checkAccess(TEST_ADMIN_USER, task.getId(), projekt, kost2);
-    checkAccess(TEST_USER, task.getId(), projekt, kost2);
+    checkAccess(AbstractBase.TEST_ADMIN_USER, task.getId(), projekt, kost2);
+    checkAccess(AbstractBase.TEST_USER, task.getId(), projekt, kost2);
   }
 
   @Test
   public void checkKost2AndTimesheetBookingStatusAccess()
   {
-    logon(TEST_FINANCE_USER);
+    logon(AbstractBase.TEST_FINANCE_USER);
     final TaskDO task = initTestDB.addTask("checkKost2AndTimesheetStatusAccessTask", "root");
     final String groupName = "checkKost2AndTimesheetBookingStatusAccessGroup";
     // Please note: TEST_USER is no project manager or assistant!
     final GroupDO projectManagers = initTestDB.addGroup(groupName,
-        new String[] { TEST_PROJECT_MANAGER_USER, TEST_PROJECT_ASSISTANT_USER,
-            TEST_USER });
+        new String[] { AbstractBase.TEST_PROJECT_MANAGER_USER, AbstractBase.TEST_PROJECT_ASSISTANT_USER,
+                AbstractBase.TEST_USER });
     initTestDB.createGroupTaskAccess(projectManagers, task, AccessType.TASKS, true, true, true, true); // All rights.
     final ProjektDO projekt = new ProjektDO().setName("checkKost2AndTimesheetBookingStatusAccess").setInternKost2_4(764)
         .setNummer(1)
         .setProjektManagerGroup(projectManagers).setTask(task);
     projektDao.save(projekt);
-    logon(TEST_USER);
+    logon(AbstractBase.TEST_USER);
     TaskDO task1 = new TaskDO().setParentTask(task).setTitle("Task 1").setKost2BlackWhiteList("Hurzel");
     try {
       taskDao.save(task1);
@@ -332,11 +333,11 @@ public class TaskTest extends AbstractTestNGBase
     } catch (final AccessException ex) {
       assertEquals("task.error.timesheetBookingStatus2Readonly", ex.getI18nKey()); // OK
     }
-    logon(TEST_PROJECT_MANAGER_USER);
+    logon(AbstractBase.TEST_PROJECT_MANAGER_USER);
     task1.setKost2IsBlackList(true);
     task1.setTimesheetBookingStatus(TimesheetBookingStatus.ONLY_LEAFS);
     task1 = taskDao.getById(taskDao.save(task1));
-    logon(TEST_USER);
+    logon(AbstractBase.TEST_USER);
     task1.setKost2BlackWhiteList("123456");
     try {
       taskDao.update(task1);
@@ -360,7 +361,7 @@ public class TaskTest extends AbstractTestNGBase
     } catch (final AccessException ex) {
       assertEquals("task.error.timesheetBookingStatus2Readonly", ex.getI18nKey()); // OK
     }
-    logon(TEST_PROJECT_MANAGER_USER);
+    logon(AbstractBase.TEST_PROJECT_MANAGER_USER);
     task1.setKost2BlackWhiteList("123456");
     task1.setKost2IsBlackList(false);
     task1.setTimesheetBookingStatus(TimesheetBookingStatus.INHERIT);
@@ -453,7 +454,7 @@ public class TaskTest extends AbstractTestNGBase
   @Test
   public void readTotalDuration()
   {
-    logon(getUser(TEST_ADMIN_USER));
+    logon(getUser(AbstractBase.TEST_ADMIN_USER));
     final TaskDO task = initTestDB.addTask("totalDurationTask", "root");
     final TaskDO subTask1 = initTestDB.addTask("totalDurationTask.subtask1", "totalDurationTask");
     final TaskDO subTask2 = initTestDB.addTask("totalDurationTask.subtask2", "totalDurationTask");
@@ -461,17 +462,17 @@ public class TaskTest extends AbstractTestNGBase
     assertEquals(0, taskDao.readTotalDuration(task.getId()));
     final DateHolder dh = new DateHolder();
     dh.setDate(2010, Calendar.APRIL, 20, 8, 0);
-    TimesheetDO ts = new TimesheetDO().setUser(getUser(TEST_USER)).setStartDate(dh.getDate())
+    TimesheetDO ts = new TimesheetDO().setUser(getUser(AbstractBase.TEST_USER)).setStartDate(dh.getDate())
         .setStopTime(dh.add(Calendar.HOUR_OF_DAY, 4).getTimestamp()).setTask(task);
     timesheetDao.save(ts);
     assertEquals(4 * 3600, taskDao.readTotalDuration(task.getId()));
     assertEquals(4 * 3600, getTotalDuration(taskTree, task.getId()));
-    ts = new TimesheetDO().setUser(getUser(TEST_USER)).setStartDate(dh.add(Calendar.HOUR_OF_DAY, 1).getDate())
+    ts = new TimesheetDO().setUser(getUser(AbstractBase.TEST_USER)).setStartDate(dh.add(Calendar.HOUR_OF_DAY, 1).getDate())
         .setStopTime(dh.add(Calendar.HOUR_OF_DAY, 4).getTimestamp()).setTask(task);
     timesheetDao.save(ts);
     assertEquals(8 * 3600, taskDao.readTotalDuration(task.getId()));
     assertEquals(8 * 3600, getTotalDuration(taskTree, task.getId()));
-    ts = new TimesheetDO().setUser(getUser(TEST_USER)).setStartDate(dh.add(Calendar.HOUR_OF_DAY, 1).getDate())
+    ts = new TimesheetDO().setUser(getUser(AbstractBase.TEST_USER)).setStartDate(dh.add(Calendar.HOUR_OF_DAY, 1).getDate())
         .setStopTime(dh.add(Calendar.HOUR_OF_DAY, 4).getTimestamp()).setTask(subTask1);
     timesheetDao.save(ts);
     final List<Object[]> list = taskDao.readTotalDurations();

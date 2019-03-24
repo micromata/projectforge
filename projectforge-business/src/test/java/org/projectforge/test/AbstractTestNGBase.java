@@ -78,60 +78,6 @@ public class AbstractTestNGBase extends AbstractTestNGSpringContextTests
   protected static final org.slf4j.Logger log = org.slf4j.LoggerFactory
       .getLogger(AbstractTestNGBase.class);
 
-  public static final String ADMIN = "PFAdmin";
-
-  public static final String TEST_ADMIN_USER = "testSysAdmin";
-
-  public static final String TEST_EMPLOYEE_USER = "testEmployee";
-
-  public static final String TEST_EMPLOYEE_USER_PASSWORD = "testEmployee42";
-
-  public static final String TEST_ADMIN_USER_PASSWORD = "testSysAdmin42";
-
-  public static final String TEST_FINANCE_USER = "testFinanceUser";
-
-  public static final String TEST_HR_USER = "testHRUser";
-
-  public static final String TEST_FULL_ACCESS_USER = "testFullAccessUser";
-
-  public static final String TEST_FULL_ACCESS_USER_PASSWORD = "testFullAccessUser42";
-
-  public static final String TEST_GROUP = "testGroup";
-
-  public static final String TEST_USER = "testUser";
-
-  public static final String TEST_USER_PASSWORD = "testUser42";
-
-  public static final String TEST_USER2 = "testUser2";
-
-  public static final String TEST_DELETED_USER = "deletedTestUser";
-
-  public static final String TEST_DELETED_USER_PASSWORD = "deletedTestUser42";
-
-  public static final String TEST_PROJECT_MANAGER_USER = "testProjectManager";
-
-  public static final String TEST_PROJECT_ASSISTANT_USER = "testProjectAssistant";
-
-  public static final String TEST_CONTROLLING_USER = "testController";
-
-  public static final String TEST_MARKETING_USER = "testMarketingUser";
-
-  public static final String ADMIN_GROUP = ProjectForgeGroup.ADMIN_GROUP.toString();
-
-  public static final String FINANCE_GROUP = ProjectForgeGroup.FINANCE_GROUP.toString();
-
-  public static final String CONTROLLING_GROUP = ProjectForgeGroup.CONTROLLING_GROUP.toString();
-
-  public static final String PROJECT_MANAGER = ProjectForgeGroup.PROJECT_MANAGER.toString();
-
-  public static final String PROJECT_ASSISTANT = ProjectForgeGroup.PROJECT_ASSISTANT.toString();
-
-  public static final String MARKETING_GROUP = ProjectForgeGroup.MARKETING_GROUP.toString();
-
-  public static final String ORGA_GROUP = ProjectForgeGroup.ORGA_TEAM.toString();
-
-  public static final String HR_GROUP = ProjectForgeGroup.HR_GROUP.toString();
-
   @Autowired
   protected ApplicationContext applicationContext;
 
