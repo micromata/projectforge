@@ -41,7 +41,7 @@ import org.projectforge.business.teamcal.event.model.TeamEventDO;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.time.DateHelper;
-import org.projectforge.test.AbstractTestBase;
+import org.projectforge.test.AbstractTestNGBase;
 import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
@@ -50,7 +50,7 @@ import net.fortuna.ical4j.model.parameter.CuType;
 import net.fortuna.ical4j.model.parameter.Role;
 import net.fortuna.ical4j.model.property.Method;
 
-public class ICalGeneratorParserTest extends AbstractTestBase
+public class ICalGeneratorParserTest extends AbstractTestNGBase
 {
 
   @Override

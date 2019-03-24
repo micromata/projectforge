@@ -29,7 +29,7 @@ import org.projectforge.business.fibu.PaymentType;
 import org.projectforge.business.fibu.kost.reporting.SEPATransferGenerator;
 import org.projectforge.business.fibu.kost.reporting.SEPATransferResult;
 import org.projectforge.framework.persistence.user.entities.TenantDO;
-import org.projectforge.test.AbstractTestBase;
+import org.projectforge.test.AbstractTestNGBase;
 import org.testng.annotations.Test;
 
 import java.math.BigDecimal;
@@ -37,7 +37,7 @@ import java.nio.charset.StandardCharsets;
 
 import static org.testng.AssertJUnit.*;
 
-public class SEPATransferGeneratorTest extends AbstractTestBase {
+public class SEPATransferGeneratorTest extends AbstractTestNGBase {
   @Test
   public void testIban() {
     String iban = "DE12 3456 7890 1234 5678 90";

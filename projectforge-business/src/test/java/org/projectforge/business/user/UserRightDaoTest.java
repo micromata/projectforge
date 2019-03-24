@@ -31,18 +31,14 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import org.projectforge.business.user.GroupDao;
-import org.projectforge.business.user.UserRightDao;
-import org.projectforge.business.user.UserRightId;
-import org.projectforge.business.user.UserRightVO;
-import org.projectforge.business.user.UserRightValue;
 import org.projectforge.framework.persistence.user.entities.GroupDO;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.test.AbstractTestBase;
+import org.projectforge.test.AbstractTestNGBase;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.testng.annotations.Test;
 
-public class UserRightDaoTest extends AbstractTestBase
+public class UserRightDaoTest extends AbstractTestNGBase
 {
   @Autowired
   private GroupDao groupDao;
@@ -53,10 +49,10 @@ public class UserRightDaoTest extends AbstractTestBase
   @Test
   public void testUpdateUserRights()
   {
-    logon(ADMIN);
+    logon(AbstractTestBase.ADMIN);
     final PFUserDO user = initTestDB.addUser("testUserRightDaoTest");
     final Set<GroupDO> groupsToAssign = new HashSet<GroupDO>();
-    groupsToAssign.add(getGroup(FINANCE_GROUP));
+    groupsToAssign.add(getGroup(AbstractTestBase.FINANCE_GROUP));
     groupDao.assignGroups(user, groupsToAssign, null);
     List<UserRightVO> list = userRightDao.getUserRights(user);
     UserRightVO right1 = null;

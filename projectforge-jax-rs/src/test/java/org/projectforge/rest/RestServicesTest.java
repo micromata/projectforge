@@ -10,13 +10,14 @@ import org.projectforge.business.address.AddressDO;
 import org.projectforge.business.address.AddressDao;
 import org.projectforge.business.address.AddressStatus;
 import org.projectforge.test.AbstractTestBase;
+import org.projectforge.test.AbstractTestNGBase;
 import org.projectforge.web.rest.TaskDaoRest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
-public class RestServicesTest extends AbstractTestBase
+public class RestServicesTest extends AbstractTestNGBase
 {
 
   @Autowired
@@ -33,7 +34,7 @@ public class RestServicesTest extends AbstractTestBase
   @BeforeClass
   public void init()
   {
-    logon(TEST_FULL_ACCESS_USER);
+    logon(AbstractTestBase.TEST_FULL_ACCESS_USER);
   }
 
   @Test

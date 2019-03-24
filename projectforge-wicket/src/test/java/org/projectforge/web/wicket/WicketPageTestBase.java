@@ -52,6 +52,7 @@ import org.projectforge.framework.i18n.I18nHelper;
 import org.projectforge.plugins.core.AbstractPlugin;
 import org.projectforge.plugins.core.PluginAdminService;
 import org.projectforge.test.AbstractTestBase;
+import org.projectforge.test.AbstractTestNGBase;
 import org.projectforge.web.LoginPage;
 import org.projectforge.web.LoginService;
 import org.projectforge.web.session.MySession;
@@ -65,7 +66,7 @@ import org.testng.annotations.BeforeClass;
  *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-public class WicketPageTestBase extends AbstractTestBase
+public class WicketPageTestBase extends AbstractTestNGBase
 {
   protected static final String KEY_LOGINPAGE_BUTTON_LOGIN = "loginButton:button";
 

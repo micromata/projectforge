@@ -37,10 +37,10 @@ import org.joda.time.DateTimeZone;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.time.DateHelper;
-import org.projectforge.test.AbstractTestBase;
+import org.projectforge.test.AbstractTestNGBase;
 import org.testng.annotations.Test;
 
-public class JodaDateConverterTest extends AbstractTestBase
+public class JodaDateConverterTest extends AbstractTestNGBase
 {
   private final static DateTimeZone EUROPE_BERLIN = DateTimeZone.forID("Europe/Berlin");
 

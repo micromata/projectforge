@@ -37,11 +37,12 @@ import org.projectforge.framework.access.OperationType;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.persistence.api.QueryFilter;
 import org.projectforge.test.AbstractTestBase;
+import org.projectforge.test.AbstractTestNGBase;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
-public class ContactTest extends AbstractTestBase
+public class ContactTest extends AbstractTestNGBase
 {
   private final static Logger log = LoggerFactory.getLogger(ContactTest.class);
 
@@ -51,7 +52,7 @@ public class ContactTest extends AbstractTestBase
   //  @Test
   public void testSaveAndUpdate()
   {
-    logon(ADMIN);
+    logon(AbstractTestBase.ADMIN);
 
     final ContactDO a1 = new ContactDO();
     a1.setName("Kai Reinhard");
@@ -117,7 +118,7 @@ public class ContactTest extends AbstractTestBase
   //@Test
   public void testDeleteAndUndelete()
   {
-    logon(ADMIN);
+    logon(AbstractTestBase.ADMIN);
     ContactDO a1 = new ContactDO();
     a1.setName("Test");
     a1.setTask(getTask("1.1"));

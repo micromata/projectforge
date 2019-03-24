@@ -30,10 +30,10 @@ import java.util.Calendar;
 import java.util.Date;
 
 import org.projectforge.framework.utils.KeyValuePairWriter;
-import org.projectforge.test.AbstractTestBase;
+import org.projectforge.test.AbstractTestNGBase;
 import org.testng.annotations.Test;
 
-public class KeyValuePairWriterTest extends AbstractTestBase
+public class KeyValuePairWriterTest extends AbstractTestNGBase
 {
 
   private static transient final org.slf4j.Logger log = org.slf4j.LoggerFactory
