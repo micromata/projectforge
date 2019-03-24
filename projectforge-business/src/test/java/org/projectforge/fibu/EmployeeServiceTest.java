@@ -20,12 +20,12 @@ import org.projectforge.business.vacation.service.VacationService;
 import org.projectforge.business.vacation.service.VacationServiceImpl;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
-import org.projectforge.test.AbstractTestBase;
+import org.projectforge.test.AbstractTestNGBase;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
-public class EmployeeServiceTest extends AbstractTestBase
+public class EmployeeServiceTest extends AbstractTestNGBase
 {
   @Autowired
   private EmployeeService employeeService;

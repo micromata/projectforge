@@ -30,7 +30,7 @@ import org.projectforge.business.fibu.EmployeeDO;
 import org.projectforge.business.fibu.EmployeeDao;
 import org.projectforge.business.fibu.EmployeeTimedDO;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
-import org.projectforge.test.AbstractTestBase;
+import org.projectforge.test.AbstractTestNGBase;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.testng.Assert;
 import org.testng.annotations.Test;
@@ -41,7 +41,7 @@ import org.testng.annotations.Test;
  * @author Roger Kommer (r.kommer.extern@micromata.de)
  *
  */
-public class EmployeeAttrTest extends AbstractTestBase
+public class EmployeeAttrTest extends AbstractTestNGBase
 {
   @Autowired
   private EmployeeDao employeeDao;

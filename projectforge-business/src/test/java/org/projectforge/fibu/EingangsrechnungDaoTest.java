@@ -34,11 +34,11 @@ import org.projectforge.business.fibu.EingangsrechnungDao;
 import org.projectforge.business.fibu.EingangsrechnungsPositionDO;
 import org.projectforge.business.fibu.RechnungFilter;
 import org.projectforge.framework.access.AccessException;
-import org.projectforge.test.AbstractTestBase;
+import org.projectforge.test.AbstractTestNGBase;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.testng.annotations.Test;
 
-public class EingangsrechnungDaoTest extends AbstractTestBase
+public class EingangsrechnungDaoTest extends AbstractTestNGBase
 {
   @Autowired
   private EingangsrechnungDao eingangsrechnungDao;

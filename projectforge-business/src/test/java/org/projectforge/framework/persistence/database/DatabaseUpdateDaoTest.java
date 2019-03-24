@@ -34,13 +34,13 @@ import org.projectforge.continuousdb.Table;
 import org.projectforge.continuousdb.TableAttribute;
 import org.projectforge.continuousdb.TableAttributeType;
 import org.projectforge.framework.persistence.api.HibernateUtils;
-import org.projectforge.test.AbstractTestBase;
+import org.projectforge.test.AbstractTestNGBase;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
-public class DatabaseUpdateDaoTest extends AbstractTestBase
+public class DatabaseUpdateDaoTest extends AbstractTestNGBase
 {
   @Autowired
   private DatabaseService myDatabaseUpdater;

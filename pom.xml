@@ -269,6 +269,7 @@
     <xstream.version>1.4.8</xstream.version>
     <itext.version>2.1.7</itext.version>
     <jfreechart.version>1.0.19</jfreechart.version>
+    <junit.jupiter.version>5.4.1</junit.jupiter.version>
     <rhino.version>1.7.7</rhino.version>
     <quartz.version>1.8.6</quartz.version>
     <mpxj.version>4.3.0</mpxj.version>
@@ -356,6 +357,19 @@
       <version>${testng.versionj}</version>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-api</artifactId>
+      <version>${junit.jupiter.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-engine</artifactId>
+      <version>${junit.jupiter.version}</version>
+      <scope>test</scope>
+    </dependency>
+
     <dependency>
       <groupId>org.mockito</groupId>
       <artifactId>mockito-core</artifactId>

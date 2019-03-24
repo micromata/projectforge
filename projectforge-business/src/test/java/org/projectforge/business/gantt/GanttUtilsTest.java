@@ -32,11 +32,11 @@ import java.util.Date;
 import org.projectforge.framework.configuration.ConfigXmlTest;
 import org.projectforge.framework.time.DateHelper;
 import org.projectforge.framework.time.DayHolder;
-import org.projectforge.test.AbstractTestBase;
+import org.projectforge.test.AbstractTestNGBase;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
-public class GanttUtilsTest extends AbstractTestBase
+public class GanttUtilsTest extends AbstractTestNGBase
 {
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(GanttUtilsTest.class);
 

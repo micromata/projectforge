@@ -33,22 +33,16 @@ import java.util.Calendar;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.projectforge.business.gantt.GanttChartDO;
-import org.projectforge.business.gantt.GanttChartDao;
-import org.projectforge.business.gantt.GanttChartData;
-import org.projectforge.business.gantt.GanttTask;
-import org.projectforge.business.gantt.GanttTaskImpl;
-import org.projectforge.business.gantt.Task2GanttTaskConverter;
 import org.projectforge.business.task.TaskDO;
 import org.projectforge.business.task.TaskDao;
 import org.projectforge.business.task.TaskTree;
 import org.projectforge.framework.time.DateHolder;
 import org.projectforge.framework.utils.NumberHelper;
-import org.projectforge.test.AbstractTestBase;
+import org.projectforge.test.AbstractTestNGBase;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.testng.annotations.Test;
 
-public class GanttChartTest extends AbstractTestBase
+public class GanttChartTest extends AbstractTestNGBase
 {
   @Autowired
   private GanttChartDao ganttChartDao;

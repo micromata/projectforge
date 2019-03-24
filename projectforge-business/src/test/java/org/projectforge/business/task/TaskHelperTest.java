@@ -31,11 +31,11 @@ import org.projectforge.business.fibu.ProjektDao;
 import org.projectforge.business.fibu.kost.Kost2ArtDO;
 import org.projectforge.business.fibu.kost.Kost2DO;
 import org.projectforge.business.tasktree.TaskTreeHelper;
-import org.projectforge.test.AbstractTestBase;
+import org.projectforge.test.AbstractTestNGBase;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.testng.annotations.Test;
 
-public class TaskHelperTest extends AbstractTestBase
+public class TaskHelperTest extends AbstractTestNGBase
 {
   @Autowired
   private ProjektDao projektDao;

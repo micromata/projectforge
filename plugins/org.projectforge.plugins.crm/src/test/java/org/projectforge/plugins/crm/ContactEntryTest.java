@@ -25,12 +25,12 @@ package org.projectforge.plugins.crm;
 
 import static org.testng.AssertJUnit.assertEquals;
 
-import org.projectforge.test.AbstractTestBase;
+import org.projectforge.test.AbstractTestNGBase;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
-public class ContactEntryTest extends AbstractTestBase
+public class ContactEntryTest extends AbstractTestNGBase
 {
   private final static Logger log = LoggerFactory.getLogger(ContactEntryTest.class);
 

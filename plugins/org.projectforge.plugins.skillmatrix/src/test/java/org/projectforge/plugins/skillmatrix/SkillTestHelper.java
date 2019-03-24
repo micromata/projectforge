@@ -25,7 +25,7 @@ package org.projectforge.plugins.skillmatrix;
 
 import org.projectforge.framework.persistence.user.entities.GroupDO;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
-import org.projectforge.test.AbstractTestBase;
+import org.projectforge.test.AbstractTestNGBase;
 import org.projectforge.test.InitTestDB;
 
 /**
@@ -48,7 +48,7 @@ public class SkillTestHelper
     this.initTestDB = iniTestDB;
   }
 
-  public SkillDO prepareUsersAndGroups(final String prefix, final AbstractTestBase AbstractTestBase,
+  public SkillDO prepareUsersAndGroups(final String prefix, final AbstractTestNGBase AbstractTestBase,
       final SkillDao skillDao)
   {
     AbstractTestBase.logon(AbstractTestBase.TEST_ADMIN_USER);

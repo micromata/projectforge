@@ -32,12 +32,11 @@ import java.util.List;
 import org.projectforge.framework.configuration.ConfigurationDao;
 import org.projectforge.framework.configuration.ConfigurationParam;
 import org.projectforge.framework.configuration.ConfigurationType;
-import org.projectforge.framework.configuration.entities.ConfigurationDO;
-import org.projectforge.test.AbstractTestBase;
+import org.projectforge.test.AbstractTestNGBase;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.testng.annotations.Test;
 
-public class ConfigurationDOTest extends AbstractTestBase
+public class ConfigurationDOTest extends AbstractTestNGBase
 {
 
   @Autowired

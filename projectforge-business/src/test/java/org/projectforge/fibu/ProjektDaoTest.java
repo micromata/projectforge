@@ -33,11 +33,11 @@ import org.projectforge.business.fibu.ProjektDao;
 import org.projectforge.business.fibu.ProjektFilter;
 import org.projectforge.framework.access.AccessException;
 import org.projectforge.framework.persistence.user.entities.GroupDO;
-import org.projectforge.test.AbstractTestBase;
+import org.projectforge.test.AbstractTestNGBase;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.testng.annotations.Test;
 
-public class ProjektDaoTest extends AbstractTestBase
+public class ProjektDaoTest extends AbstractTestNGBase
 {
   @Autowired
   private ProjektDao projektDao;

@@ -40,13 +40,13 @@ import org.projectforge.framework.access.AccessEntryDO;
 import org.projectforge.framework.access.AccessType;
 import org.projectforge.framework.access.GroupTaskAccessDO;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
-import org.projectforge.test.AbstractTestBase;
+import org.projectforge.test.AbstractTestNGBase;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.testng.annotations.Test;
 
-public class AccessTestFork extends AbstractTestBase
+public class AccessTestFork extends AbstractTestNGBase
 {
   private static final Logger log = LoggerFactory.getLogger(AccessTestFork.class);
 

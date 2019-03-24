@@ -29,10 +29,10 @@ import static org.testng.AssertJUnit.assertTrue;
 
 import org.projectforge.framework.xstream.XmlHelper;
 import org.projectforge.framework.xstream.XmlObjectReader;
-import org.projectforge.test.AbstractTestBase;
+import org.projectforge.test.AbstractTestNGBase;
 import org.testng.annotations.Test;
 
-public class MenuBuilderTest extends AbstractTestBase
+public class MenuBuilderTest extends AbstractTestNGBase
 {
   private final static String xml = XmlHelper.replaceQuotes(XmlHelper.XML_HEADER
       + "\n"

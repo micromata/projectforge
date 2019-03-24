@@ -11,13 +11,13 @@ import org.projectforge.business.fibu.EmployeeDao;
 import org.projectforge.business.fibu.Gender;
 import org.projectforge.business.fibu.GenderConverter;
 import org.projectforge.framework.persistence.history.DisplayHistoryEntry;
-import org.projectforge.test.AbstractTestBase;
+import org.projectforge.test.AbstractTestNGBase;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
-public class EmployeeTest extends AbstractTestBase
+public class EmployeeTest extends AbstractTestNGBase
 {
 
   @Autowired

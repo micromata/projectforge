@@ -39,12 +39,12 @@ import org.mockito.Mockito;
 import org.projectforge.business.user.service.UserService;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.rest.Authentication;
-import org.projectforge.test.AbstractTestBase;
+import org.projectforge.test.AbstractTestNGBase;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
-public class RestUserFilterTest extends AbstractTestBase
+public class RestUserFilterTest extends AbstractTestNGBase
 {
 
   @Autowired

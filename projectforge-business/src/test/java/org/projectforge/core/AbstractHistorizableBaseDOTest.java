@@ -28,14 +28,14 @@ import java.util.Set;
 import org.projectforge.business.fibu.AuftragDO;
 import org.projectforge.business.task.TaskDO;
 import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
-import org.projectforge.test.AbstractTestBase;
+import org.projectforge.test.AbstractTestNGBase;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
 import de.micromata.genome.db.jpa.history.api.HistoryServiceManager;
 
-public class AbstractHistorizableBaseDOTest extends AbstractTestBase
+public class AbstractHistorizableBaseDOTest extends AbstractTestNGBase
 {
   @Autowired
   private PfEmgrFactory emf;

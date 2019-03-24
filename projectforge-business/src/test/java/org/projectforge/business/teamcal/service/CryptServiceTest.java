@@ -27,11 +27,11 @@ import static org.testng.AssertJUnit.assertEquals;
 
 import java.util.Map;
 
-import org.projectforge.test.AbstractTestBase;
+import org.projectforge.test.AbstractTestNGBase;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.testng.annotations.Test;
 
-public class CryptServiceTest extends AbstractTestBase
+public class CryptServiceTest extends AbstractTestNGBase
 {
   @Autowired
   private CryptService cryptService;

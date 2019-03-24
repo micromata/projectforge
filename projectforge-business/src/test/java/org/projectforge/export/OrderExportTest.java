@@ -19,12 +19,12 @@ import org.projectforge.business.fibu.KundeDO;
 import org.projectforge.business.fibu.OrderExport;
 import org.projectforge.business.fibu.PaymentScheduleDO;
 import org.projectforge.framework.i18n.I18nHelper;
-import org.projectforge.test.AbstractTestBase;
+import org.projectforge.test.AbstractTestNGBase;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
-public class OrderExportTest extends AbstractTestBase
+public class OrderExportTest extends AbstractTestNGBase
 {
   @Autowired
   private OrderExport orderExport;

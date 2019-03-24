@@ -37,11 +37,11 @@ import org.projectforge.business.fibu.RechnungTyp;
 import org.projectforge.business.fibu.RechnungsPositionDO;
 import org.projectforge.framework.access.AccessException;
 import org.projectforge.framework.i18n.UserException;
-import org.projectforge.test.AbstractTestBase;
+import org.projectforge.test.AbstractTestNGBase;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.testng.annotations.Test;
 
-public class RechnungDaoTest extends AbstractTestBase
+public class RechnungDaoTest extends AbstractTestNGBase
 {
   @Autowired
   private RechnungDao rechnungDao;

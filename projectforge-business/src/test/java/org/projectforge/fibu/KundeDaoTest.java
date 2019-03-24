@@ -32,11 +32,11 @@ import org.projectforge.business.fibu.KundeDO;
 import org.projectforge.business.fibu.KundeDao;
 import org.projectforge.framework.access.AccessException;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
-import org.projectforge.test.AbstractTestBase;
+import org.projectforge.test.AbstractTestNGBase;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.testng.annotations.Test;
 
-public class KundeDaoTest extends AbstractTestBase
+public class KundeDaoTest extends AbstractTestNGBase
 {
   @Autowired
   private KundeDao kundeDao;

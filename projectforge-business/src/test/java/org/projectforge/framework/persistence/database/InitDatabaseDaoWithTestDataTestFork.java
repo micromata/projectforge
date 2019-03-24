@@ -48,13 +48,13 @@ import org.projectforge.framework.access.GroupTaskAccessDO;
 import org.projectforge.framework.persistence.history.entities.PfHistoryMasterDO;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.persistence.user.entities.TenantDO;
-import org.projectforge.test.AbstractTestBase;
+import org.projectforge.test.AbstractTestNGBase;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.testng.annotations.Test;
 
 import de.micromata.genome.jpa.ConstraintPersistenceException;
 
-public class InitDatabaseDaoWithTestDataTestFork extends AbstractTestBase
+public class InitDatabaseDaoWithTestDataTestFork extends AbstractTestNGBase
 {
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory
       .getLogger(InitDatabaseDaoWithTestDataTestFork.class);
