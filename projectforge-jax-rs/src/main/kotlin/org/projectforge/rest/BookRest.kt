@@ -8,7 +8,6 @@ import org.projectforge.rest.core.RestHelper
 import org.projectforge.ui.*
 import org.projectforge.ui.Formatter
 import org.springframework.stereotype.Component
-import org.springframework.stereotype.Controller
 import java.util.*
 import javax.ws.rs.Consumes
 import javax.ws.rs.POST
@@ -43,7 +42,7 @@ open class BookRest() : AbstractDORest<BookDO, BookDao, BookFilter>(BookDao::cla
         } catch (ex: NumberFormatException) {
             errorsList.add(ValidationError(translate("book.error.number"), fieldId = "yearOfPublishing"))
         }
-        if (baseDao!!.doesSignatureAlreadyExist(obj)) {
+        if (baseDao.doesSignatureAlreadyExist(obj)) {
             errorsList.add(ValidationError(translate("book.error.signatureAlreadyExists"), fieldId = "signature"))
         }
         if (errorsList.isEmpty()) return null
@@ -59,7 +58,7 @@ open class BookRest() : AbstractDORest<BookDO, BookDao, BookFilter>(BookDao::cla
     @Produces(MediaType.APPLICATION_JSON)
     fun lendOut(book: BookDO): Response {
         book.setLendOutDate(Date())
-        baseDao!!.setLendOutBy(book, getUserId())
+        baseDao.setLendOutBy(book, getUserId())
         return RestHelper.saveOrUpdate(baseDao, book, validate(book))
     }
 
@@ -82,10 +81,10 @@ open class BookRest() : AbstractDORest<BookDO, BookDao, BookFilter>(BookDao::cla
      * LAYOUT List page
      */
     override fun createListLayout(): UILayout {
-        val ls = LayoutSettings(BookDO::class.java)
+        val lc = LayoutContext(BookDO::class.java)
         val layout = UILayout("book.title.list")
                 .add(UITable("result-set")
-                        .add(ls, "created", "yearOfPublishing", "signature", "authors", "title", "keywords", "lendOutBy"))
+                        .add(lc, "created", "yearOfPublishing", "signature", "authors", "title", "keywords", "lendOutBy"))
         layout.getTableColumnById("created").formatter = Formatter.TIMESTAMP_MINUTES
         layout.getTableColumnById("lendOutBy").formatter = Formatter.USER
         LayoutUtils.addListFilterContainer(layout, "present", "missed", "disposed",
@@ -96,21 +95,21 @@ open class BookRest() : AbstractDORest<BookDO, BookDao, BookFilter>(BookDao::cla
     /**
      * LAYOUT Edit page
      */
-    override fun createEditLayout(book: BookDO?, inlineLabels: Boolean): UILayout {
-        val titleKey = if (book?.id != null) "book.title.edit" else "book.title.add"
-        val ls = LayoutSettings(BookDO::class.java, inlineLabels)
+    override fun createEditLayout(dataObject: BookDO?, inlineLabels: Boolean): UILayout {
+        val titleKey = if (dataObject?.id != null) "book.title.edit" else "book.title.add"
+        val lc = LayoutContext(BookDO::class.java, inlineLabels)
         val layout = UILayout(titleKey)
-                .add(ls, "title", "authors")
+                .add(lc, "title", "authors")
                 .add(UIRow()
                         .add(UICol(6)
-                                .add(ls, "type", "yearOfPublishing", "status", "signature"))
+                                .add(lc, "type", "yearOfPublishing", "status", "signature"))
                         .add(UICol(6)
-                                .add(ls, "isbn", "keywords", "publisher", "editor")))
+                                .add(lc, "isbn", "keywords", "publisher", "editor")))
                 .add(UIGroup()
                         .add(UILabel("book.lending", "lendOutComponent"))
                         .add(UICustomized("lendOutComponent")))
-                .add(ls, "lendOutComment", "abstractText", "comment")
+                .add(lc, "lendOutComment", "abstractText", "comment")
         layout.getInputById("title").focus = true
-        return LayoutUtils.processEditPage(layout, book)
+        return LayoutUtils.processEditPage(layout, dataObject)
     }
 }

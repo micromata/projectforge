@@ -10,6 +10,7 @@ import org.projectforge.common.i18n.I18nEnum
 import org.projectforge.common.props.PropUtils
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.ui.translate
+import org.springframework.stereotype.Component
 import org.springframework.stereotype.Service
 import java.lang.reflect.Field
 import java.util.*
@@ -17,7 +18,7 @@ import java.util.*
 /**
  * History entries will be transformed into human readable formats.
  */
-@Service
+@Component
 class HistoryService {
     private val log = org.slf4j.LoggerFactory.getLogger(HistoryService::class.java)
 

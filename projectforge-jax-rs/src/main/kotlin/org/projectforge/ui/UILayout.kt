@@ -31,7 +31,7 @@ class UILayout {
     /**
      * Convenient method for adding a bunch of UIInput fields with the given ids.
      */
-    fun add(layoutSettings: LayoutSettings, vararg ids: String): UILayout {
+    fun add(layoutSettings: LayoutContext, vararg ids: String): UILayout {
         ids.forEach {
             val element = LayoutUtils.buildLabelInputElement(layoutSettings, it)
             if (element != null)

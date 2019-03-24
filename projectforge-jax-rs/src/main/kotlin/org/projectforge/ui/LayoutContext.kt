@@ -1,6 +1,6 @@
 package org.projectforge.ui
 
-data class LayoutSettings(
+data class LayoutContext(
         /**
          * Data class for auto-detecting JPA-property (@Column), PropertyInfo and property type.
          */

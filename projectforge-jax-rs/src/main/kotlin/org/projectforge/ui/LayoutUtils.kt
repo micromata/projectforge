@@ -75,7 +75,7 @@ class LayoutUtils {
                         }
                     }
                     is String -> {
-                        val element = LayoutUtils.buildLabelInputElement(LayoutSettings(filterClass), it)
+                        val element = LayoutUtils.buildLabelInputElement(LayoutContext(filterClass), it)
                         if (element != null)
                             filterGroup.add(element)
                     }
@@ -129,7 +129,7 @@ class LayoutUtils {
          * @param layoutSettings If [layoutSettings.useInLineLabels] is true, one element is returned including
          * the label (e. g. UIInput). If don't use inline labels, a group containing a label and an input field is returned.
          */
-        internal fun buildLabelInputElement(layoutSettings: LayoutSettings, id: String): UIElement? {
+        internal fun buildLabelInputElement(layoutSettings: LayoutContext, id: String): UIElement? {
             val element = ElementsRegistry.buildElement(layoutSettings, id)
             if (layoutSettings.useInlineLabels) {
                 return element
