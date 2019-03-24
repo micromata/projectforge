@@ -38,10 +38,10 @@ import org.projectforge.framework.xstream.converter.DateConverter;
 import org.projectforge.framework.xstream.converter.ISODateConverter;
 import org.projectforge.framework.xstream.converter.LocaleConverter;
 import org.projectforge.framework.xstream.converter.TimeZoneConverter;
-import org.projectforge.test.AbstractTestBase;
+import org.projectforge.test.AbstractTestNGBase;
 import org.testng.annotations.Test;
 
-public class ConverterTest extends AbstractTestBase
+public class ConverterTest extends AbstractTestNGBase
 {
 
   @Test

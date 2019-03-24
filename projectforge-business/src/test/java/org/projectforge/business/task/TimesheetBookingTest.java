@@ -31,8 +31,6 @@ import java.util.Calendar;
 import org.projectforge.business.fibu.AuftragDO;
 import org.projectforge.business.fibu.AuftragDao;
 import org.projectforge.business.fibu.AuftragsPositionDO;
-import org.projectforge.business.task.TaskDO;
-import org.projectforge.business.task.TaskDao;
 import org.projectforge.business.timesheet.TimesheetDO;
 import org.projectforge.business.timesheet.TimesheetDao;
 import org.projectforge.common.task.TaskStatus;
@@ -46,10 +44,11 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.time.DateHolder;
 import org.projectforge.framework.time.DatePrecision;
 import org.projectforge.test.AbstractTestBase;
+import org.projectforge.test.AbstractTestNGBase;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.testng.annotations.Test;
 
-public class TimesheetBookingTest extends AbstractTestBase
+public class TimesheetBookingTest extends AbstractTestNGBase
 {
   @Autowired
   private TaskDao taskDao;
@@ -94,15 +93,15 @@ public class TimesheetBookingTest extends AbstractTestBase
     }
     initialized = true;
     date = new DateHolder(DatePrecision.MINUTE_15);
-    logon(getUser(TEST_ADMIN_USER));
+    logon(getUser(AbstractTestBase.TEST_ADMIN_USER));
     TaskDO task;
     task = initTestDB.addTask("TimesheetBookingTest", "root");
-    final GroupTaskAccessDO access = new GroupTaskAccessDO().setGroup(initTestDB.addGroup("TBT", TEST_USER))
+    final GroupTaskAccessDO access = new GroupTaskAccessDO().setGroup(initTestDB.addGroup("TBT", AbstractTestBase.TEST_USER))
         .addAccessEntry(
             new AccessEntryDO(AccessType.OWN_TIMESHEETS, true, true, true, true))
         .setTask(task);
     accessDao.save(access);
-    logon(getUser(TEST_FINANCE_USER));
+    logon(getUser(AbstractTestBase.TEST_FINANCE_USER));
     taskDao.update(initTestDB.addTask("TBT-1", "TimesheetBookingTest"));
     taskDao.update(initTestDB.addTask("TBT-1.1", "TBT-1").setStatus(TaskStatus.C));
     taskDao.markAsDeleted(initTestDB.addTask("TBT-1.2", "TBT-1"));
@@ -133,7 +132,7 @@ public class TimesheetBookingTest extends AbstractTestBase
   public void testTimesheetBookingStatus()
   {
     initialize();
-    logon(getUser(TEST_USER));
+    logon(getUser(AbstractTestBase.TEST_USER));
     TimesheetDO sheet = createNewSheet().setTask(getTask("TBT-2"));
     save(sheet, "timesheet.error.taskNotBookable.treeClosedForBooking");
     save(sheet.setTask(getTask("TBT-2.1")), "timesheet.error.taskNotBookable.treeClosedForBooking");
@@ -152,12 +151,12 @@ public class TimesheetBookingTest extends AbstractTestBase
   public void testOrderPositions()
   {
     initialize();
-    logon(getUser(TEST_FINANCE_USER));
+    logon(getUser(AbstractTestBase.TEST_FINANCE_USER));
     final AuftragDO auftrag = new AuftragDO()
         .addPosition(new AuftragsPositionDO().setTask(getTask("TBT-5.1")).setTitel("Pos 1"))
         .addPosition(new AuftragsPositionDO().setTask(getTask("TBT-5.2.1.1")).setTitel("Pos 2"));
     auftragDao.save(auftrag.setNummer(auftragDao.getNextNumber(auftrag)));
-    logon(getUser(TEST_USER));
+    logon(getUser(AbstractTestBase.TEST_USER));
     TimesheetDO sheet = createNewSheet();
     save(sheet.setTask(getTask("TBT-5")), "timesheet.error.taskNotBookable.orderPositionsFoundInSubTasks");
     timesheetDao.save(sheet.setTask(getTask("TBT-5.1")));
@@ -173,7 +172,7 @@ public class TimesheetBookingTest extends AbstractTestBase
   public void testTaskStatus()
   {
     initialize();
-    final PFUserDO user = getUser(TEST_USER);
+    final PFUserDO user = getUser(AbstractTestBase.TEST_USER);
     logon(user);
     TimesheetDO sheet = createNewSheet().setTask(getTask("TBT-1"));
     timesheetDao.save(sheet);
@@ -185,7 +184,7 @@ public class TimesheetBookingTest extends AbstractTestBase
 
   private TimesheetDO createNewSheet()
   {
-    return new TimesheetDO().setUser(getUser(TEST_USER)).setStartDate(date.getDate()).setStopTime(
+    return new TimesheetDO().setUser(getUser(AbstractTestBase.TEST_USER)).setStartDate(date.getDate()).setStopTime(
         date.add(Calendar.MINUTE, 15).getTimestamp());
   }
 

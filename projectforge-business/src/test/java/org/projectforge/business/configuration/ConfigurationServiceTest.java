@@ -5,11 +5,11 @@ import static org.testng.AssertJUnit.assertEquals;
 import org.projectforge.framework.configuration.ConfigurationDao;
 import org.projectforge.framework.configuration.ConfigurationParam;
 import org.projectforge.framework.configuration.entities.ConfigurationDO;
-import org.projectforge.test.AbstractTestBase;
+import org.projectforge.test.AbstractTestNGBase;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.testng.annotations.Test;
 
-public class ConfigurationServiceTest extends AbstractTestBase
+public class ConfigurationServiceTest extends AbstractTestNGBase
 {
   @Autowired
   private ConfigurationService configurationService;

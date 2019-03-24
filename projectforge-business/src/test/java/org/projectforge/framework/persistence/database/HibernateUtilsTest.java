@@ -27,10 +27,10 @@ import static org.testng.AssertJUnit.*;
 
 import org.projectforge.business.task.TaskDO;
 import org.projectforge.framework.persistence.api.HibernateUtils;
-import org.projectforge.test.AbstractTestBase;
+import org.projectforge.test.AbstractTestNGBase;
 import org.testng.annotations.Test;
 
-public class HibernateUtilsTest extends AbstractTestBase
+public class HibernateUtilsTest extends AbstractTestNGBase
 {
   @Test
   public void propertyLengthTest()

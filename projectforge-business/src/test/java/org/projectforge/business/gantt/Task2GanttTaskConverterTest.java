@@ -32,19 +32,15 @@ import java.util.Date;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.projectforge.business.gantt.GanttChartDO;
-import org.projectforge.business.gantt.GanttChartDao;
-import org.projectforge.business.gantt.GanttChartData;
-import org.projectforge.business.gantt.GanttTask;
-import org.projectforge.business.gantt.Task2GanttTaskConverter;
 import org.projectforge.business.task.TaskDO;
 import org.projectforge.business.task.TaskDao;
 import org.projectforge.framework.time.DayHolder;
 import org.projectforge.test.AbstractTestBase;
+import org.projectforge.test.AbstractTestNGBase;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.testng.annotations.Test;
 
-public class Task2GanttTaskConverterTest extends AbstractTestBase
+public class Task2GanttTaskConverterTest extends AbstractTestNGBase
 {
   @Autowired
   private GanttChartDao ganttChartDao;
@@ -55,7 +51,7 @@ public class Task2GanttTaskConverterTest extends AbstractTestBase
   @Test
   public void testConvertingTaskTree()
   {
-    logon(TEST_ADMIN_USER);
+    logon(AbstractTestBase.TEST_ADMIN_USER);
     final String prefix = "task2Gantt";
     initTestDB.addTask(prefix, "root");
     initTestDB.addTask(prefix + "1", prefix);

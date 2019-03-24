@@ -35,10 +35,10 @@ import org.projectforge.business.book.BookStatus;
 import org.projectforge.framework.time.DateHelper;
 import org.projectforge.framework.time.DateHolder;
 import org.projectforge.framework.time.DatePrecision;
-import org.projectforge.test.AbstractTestBase;
+import org.projectforge.test.AbstractTestNGBase;
 import org.testng.annotations.Test;
 
-public class AbstractBaseDOTest extends AbstractTestBase
+public class AbstractBaseDOTest extends AbstractTestNGBase
 {
   @Override
   protected void initDb()

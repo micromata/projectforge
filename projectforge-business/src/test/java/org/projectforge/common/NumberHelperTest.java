@@ -31,10 +31,10 @@ import java.util.Locale;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.utils.NumberHelper;
-import org.projectforge.test.AbstractTestBase;
+import org.projectforge.test.AbstractTestNGBase;
 import org.testng.annotations.Test;
 
-public class NumberHelperTest extends AbstractTestBase
+public class NumberHelperTest extends AbstractTestNGBase
 {
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(NumberHelperTest.class);
 

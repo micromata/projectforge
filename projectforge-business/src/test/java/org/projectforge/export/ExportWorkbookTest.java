@@ -42,12 +42,12 @@ import org.projectforge.framework.time.DateHelper;
 import org.projectforge.framework.time.DateHolder;
 import org.projectforge.framework.time.DatePrecision;
 import org.projectforge.framework.time.DayHolder;
-import org.projectforge.test.AbstractTestBase;
+import org.projectforge.test.AbstractTestNGBase;
 import org.projectforge.test.WorkFileHelper;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
-public class ExportWorkbookTest extends AbstractTestBase
+public class ExportWorkbookTest extends AbstractTestNGBase
 {
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ExportWorkbookTest.class);
 

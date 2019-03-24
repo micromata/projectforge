@@ -1,18 +1,16 @@
 package org.projectforge.business.fibu;
 
-import org.projectforge.test.AbstractTestBase;
+import org.projectforge.test.AbstractTestNGBase;
 import org.projectforge.web.session.UserAgentBrowser;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.testng.annotations.Test;
 
-import java.sql.Date;
 import java.time.LocalDate;
 import java.time.Month;
-import java.util.Calendar;
 
 import static org.testng.AssertJUnit.*;
 
-public class InvoiceServiceTest extends AbstractTestBase {
+public class InvoiceServiceTest extends AbstractTestNGBase {
   @Autowired
   private InvoiceService invoiceService;
 

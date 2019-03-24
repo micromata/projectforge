@@ -34,10 +34,11 @@ import org.projectforge.business.meb.MebEntryDO;
 import org.projectforge.business.meb.MebEntryStatus;
 import org.projectforge.framework.access.AccessException;
 import org.projectforge.test.AbstractTestBase;
+import org.projectforge.test.AbstractTestNGBase;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.testng.annotations.Test;
 
-public class MebDaoTest extends AbstractTestBase
+public class MebDaoTest extends AbstractTestNGBase
 {
   @Autowired
   private MebDao mebDao;

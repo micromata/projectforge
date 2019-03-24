@@ -47,6 +47,7 @@ import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.framework.persistence.user.entities.GroupDO;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.test.AbstractTestBase;
+import org.projectforge.test.AbstractTestNGBase;
 import org.projectforge.test.JUnitLDAPTestWrapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.CollectionUtils;
@@ -66,7 +67,7 @@ import org.testng.Assert;
 //    <managerPassword>test</managerPassword>
 //    <sslCertificateFile>/Users/kai/ProjectForge/testldap.cert</sslCertificateFile>
 //</ldapConfig>
-public class LdapMasterLoginHandlerTest extends AbstractTestBase
+public class LdapMasterLoginHandlerTest extends AbstractTestNGBase
 {
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory
       .getLogger(LdapMasterLoginHandlerTest.class);
@@ -217,7 +218,7 @@ public class LdapMasterLoginHandlerTest extends AbstractTestBase
     loginHandler.ldapOrganizationalUnitDao = mock(LdapOrganizationalUnitDao.class);
     loginHandler.initialize();
     Login.getInstance().setLoginHandler(loginHandler);
-    logon(TEST_ADMIN_USER);
+    logon(AbstractTestBase.TEST_ADMIN_USER);
     final PFUserDO user = new PFUserDO().setUsername("kai").setFirstname("Kai").setLastname("Reinhard");
     userService.createEncryptedPassword(user, "successful");
     userService.save(user);

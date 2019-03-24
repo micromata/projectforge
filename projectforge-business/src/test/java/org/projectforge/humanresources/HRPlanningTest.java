@@ -55,11 +55,12 @@ import org.projectforge.framework.persistence.user.entities.UserRightDO;
 import org.projectforge.framework.time.DateHelper;
 import org.projectforge.framework.time.DateHolder;
 import org.projectforge.test.AbstractTestBase;
+import org.projectforge.test.AbstractTestNGBase;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
-public class HRPlanningTest extends AbstractTestBase
+public class HRPlanningTest extends AbstractTestNGBase
 {
   private static ProjektDO projekt1, projekt2;
 
@@ -108,7 +109,7 @@ public class HRPlanningTest extends AbstractTestBase
       // OK
     }
     logon(AbstractTestBase.TEST_ADMIN_USER);
-    final GroupDO group = initTestDB.getGroup(ORGA_GROUP);
+    final GroupDO group = initTestDB.getGroup(AbstractTestBase.ORGA_GROUP);
     group.getAssignedUsers().add(user1);
     groupDao.update(group);
     assertTrue(right.isAvailable(userGroupCache, user1));
@@ -172,7 +173,7 @@ public class HRPlanningTest extends AbstractTestBase
     logon(AbstractTestBase.TEST_FINANCE_USER);
     // Create planning:
     HRPlanningDO planning = new HRPlanningDO();
-    planning.setUser(getUser(TEST_USER));
+    planning.setUser(getUser(AbstractTestBase.TEST_USER));
     planning.setWeek(createDate(2010, Calendar.JANUARY, 11, 0, 0, 0, 0));
     assertUTCDate(planning.getWeek(), 2010, Calendar.JANUARY, 11, 0, 0, 0);
     HRPlanningEntryDO entry = new HRPlanningEntryDO();

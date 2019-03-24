@@ -38,11 +38,11 @@ import org.projectforge.framework.time.DateHelper;
 import org.projectforge.framework.time.DateHolder;
 import org.projectforge.framework.time.DatePrecision;
 import org.projectforge.framework.time.DayHolder;
-import org.projectforge.test.AbstractTestBase;
+import org.projectforge.test.AbstractTestNGBase;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
-public class MonthHolderTest extends AbstractTestBase
+public class MonthHolderTest extends AbstractTestNGBase
 {
 
   @Test

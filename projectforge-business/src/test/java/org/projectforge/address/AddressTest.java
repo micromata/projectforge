@@ -23,18 +23,9 @@
 
 package org.projectforge.address;
 
-import static org.testng.AssertJUnit.*;
-
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
 import org.hibernate.criterion.Order;
-import org.projectforge.business.address.AddressDO;
-import org.projectforge.business.address.AddressDao;
-import org.projectforge.business.address.AddressbookDO;
-import org.projectforge.business.address.AddressbookDao;
-import org.projectforge.business.address.InstantMessagingType;
+import org.junit.jupiter.api.Test;
+import org.projectforge.business.address.*;
 import org.projectforge.business.user.UserRightId;
 import org.projectforge.framework.access.AccessException;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
@@ -43,10 +34,14 @@ import org.projectforge.test.AbstractTestBase;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.testng.annotations.Test;
 
-public class AddressTest extends AbstractTestBase
-{
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+public class AddressTest extends AbstractTestBase {
   private final static Logger log = LoggerFactory.getLogger(AddressTest.class);
 
   @Autowired
@@ -56,9 +51,8 @@ public class AddressTest extends AbstractTestBase
   private AddressbookDao addressbookDao;
 
   @Test
-  public void testSaveAndUpdate()
-  {
-    logon(ADMIN);
+  public void testSaveAndUpdate() {
+    logon(AbstractTestBase.ADMIN);
     AddressDO a1 = new AddressDO();
     a1.setName("Kai Reinhard");
     addressDao.save(a1);
@@ -80,9 +74,8 @@ public class AddressTest extends AbstractTestBase
   }
 
   @Test
-  public void testDeleteAndUndelete()
-  {
-    logon(ADMIN);
+  public void testDeleteAndUndelete() {
+    logon(AbstractTestBase.ADMIN);
     AddressDO a1 = new AddressDO();
     a1.setName("Test");
     addressDao.save(a1);
@@ -91,27 +84,27 @@ public class AddressTest extends AbstractTestBase
     a1 = addressDao.getById(id);
     addressDao.markAsDeleted(a1);
     a1 = addressDao.getById(id);
-    assertEquals("Should be marked as deleted.", true, a1.isDeleted());
+    assertEquals(true, a1.isDeleted(), "Should be marked as deleted.");
 
     addressDao.undelete(a1);
     a1 = addressDao.getById(id);
-    assertEquals("Should be undeleted.", false, a1.isDeleted());
+    assertEquals(false, a1.isDeleted(), "Should be undeleted.");
   }
 
-  @Test(expectedExceptions = RuntimeException.class)
-  public void testDelete()
-  {
-    AddressDO a1 = new AddressDO();
-    a1.setName("Not deletable");
-    addressDao.save(a1);
-    Integer id = a1.getId();
-    a1 = addressDao.getById(id);
-    addressDao.delete(a1);
+  public void testDelete() {
+    assertThrows(RuntimeException.class,
+            () -> {
+              AddressDO a1 = new AddressDO();
+              a1.setName("Not deletable");
+              addressDao.save(a1);
+              Integer id = a1.getId();
+              a1 = addressDao.getById(id);
+              addressDao.delete(a1);
+            });
   }
 
   @Test
-  public void checkStandardAccess()
-  {
+  public void checkStandardAccess() {
     AddressbookDO testAddressbook = new AddressbookDO();
     testAddressbook.setTitle("testAddressbook");
     addressbookDao.internalSave(testAddressbook);
@@ -151,14 +144,14 @@ public class AddressTest extends AbstractTestBase
     QueryFilter filter = new QueryFilter(searchFilter);
     filter.addOrder(Order.asc("name"));
     List<AddressDO> result = addressDao.getList(filter);
-    assertEquals("Should found 3 address'.", 3, result.size());
+    assertEquals(3, result.size(), "Should found 3 address'.");
     HashSet<String> set = new HashSet<String>();
     set.add("testa1");
     set.add("testa2");
     set.add("testa3");
-    assertTrue("Hit first entry", set.remove(result.get(0).getName()));
-    assertTrue("Hit second entry", set.remove(result.get(1).getName()));
-    assertTrue("Hit third entry", set.remove(result.get(2).getName()));
+    assertTrue(set.remove(result.get(0).getName()), "Hit first entry");
+    assertTrue(set.remove(result.get(1).getName()), "Hit second entry");
+    assertTrue(set.remove(result.get(2).getName()), "Hit third entry");
     // test_a4 should not be included in result list (no select access)
 
     // Insert
@@ -210,8 +203,7 @@ public class AddressTest extends AbstractTestBase
   }
 
   @Test
-  public void testInstantMessagingField() throws Exception
-  {
+  public void testInstantMessagingField() throws Exception {
     AddressDO address = new AddressDO();
     assertNull(address.getInstantMessaging4DB());
     address.setInstantMessaging(InstantMessagingType.SKYPE, "skype-name");

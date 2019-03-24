@@ -23,19 +23,8 @@
 
 package org.projectforge.test;
 
-import java.io.Serializable;
-import java.sql.Timestamp;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-
 import org.apache.commons.lang3.Validate;
-import org.projectforge.business.fibu.EmployeeDO;
-import org.projectforge.business.fibu.EmployeeDao;
-import org.projectforge.business.fibu.KundeDO;
-import org.projectforge.business.fibu.ProjektDO;
-import org.projectforge.business.fibu.ProjektDao;
+import org.projectforge.business.fibu.*;
 import org.projectforge.business.fibu.kost.Kost2ArtDO;
 import org.projectforge.business.fibu.kost.Kost2ArtDao;
 import org.projectforge.business.fibu.kost.Kost2DO;
@@ -48,11 +37,7 @@ import org.projectforge.business.task.TaskDO;
 import org.projectforge.business.task.TaskDao;
 import org.projectforge.business.timesheet.TimesheetDO;
 import org.projectforge.business.timesheet.TimesheetDao;
-import org.projectforge.business.user.GroupDao;
-import org.projectforge.business.user.UserGroupCache;
-import org.projectforge.business.user.UserRightDao;
-import org.projectforge.business.user.UserRightId;
-import org.projectforge.business.user.UserRightValue;
+import org.projectforge.business.user.*;
 import org.projectforge.business.user.service.UserService;
 import org.projectforge.framework.access.AccessDao;
 import org.projectforge.framework.access.AccessEntryDO;
@@ -70,6 +55,13 @@ import org.projectforge.framework.persistence.user.entities.UserRightDO;
 import org.projectforge.framework.time.DateHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import java.io.Serializable;
+import java.sql.Timestamp;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 @Component
 public class InitTestDB

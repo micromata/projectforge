@@ -33,14 +33,14 @@ import java.io.Serializable;
 import org.projectforge.business.book.BookDO;
 import org.projectforge.business.book.BookDao;
 import org.projectforge.business.book.BookStatus;
-import org.projectforge.test.AbstractTestBase;
+import org.projectforge.test.AbstractTestNGBase;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionCallback;
 import org.springframework.transaction.support.TransactionTemplate;
 import org.testng.annotations.Test;
 
-public class BookTest extends AbstractTestBase
+public class BookTest extends AbstractTestNGBase
 {
   @Autowired
   private BookDao bookDao;

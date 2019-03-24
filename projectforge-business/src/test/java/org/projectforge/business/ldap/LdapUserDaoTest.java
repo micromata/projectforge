@@ -23,11 +23,11 @@
 
 package org.projectforge.business.ldap;
 
-import org.projectforge.test.AbstractTestBase;
+import org.projectforge.test.AbstractTestNGBase;
 import org.testng.annotations.Test;
 
 @Test(enabled=false)
-public class LdapUserDaoTest extends AbstractTestBase
+public class LdapUserDaoTest extends AbstractTestNGBase
 {/*
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(LdapUserDaoTest.class);
 

@@ -27,10 +27,10 @@ import static org.testng.AssertJUnit.assertEquals;
 
 import org.projectforge.framework.time.DateHolder;
 import org.projectforge.framework.utils.FileHelper;
-import org.projectforge.test.AbstractTestBase;
+import org.projectforge.test.AbstractTestNGBase;
 import org.testng.annotations.Test;
 
-public class FileHelperTest extends AbstractTestBase
+public class FileHelperTest extends AbstractTestNGBase
 {
   @Test
   public void createSafeFilename()
