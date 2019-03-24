@@ -2,9 +2,6 @@ package org.projectforge.rest.json
 
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
-import org.aspectj.weaver.tools.cache.SimpleCacheFactory.path
-import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertNull
 
 class JsonValidator {
     private val map: Map<String, Any?>
@@ -18,7 +15,38 @@ class JsonValidator {
         map = parseJson(json)
     }
 
-    fun assert(expected: String?, path: String) {
+    fun get(path: String): String? {
+        val result = getElement(path)
+        if (result == null)
+            return null
+        if (result is String) {
+            return result
+        }
+        throw java.lang.IllegalArgumentException("Requested element of path '${path}' isn't of type String: '${result::class.java}'.")
+    }
+
+    fun getList(path: String): List<*>? {
+        val result = getElement(path)
+        if (result == null)
+            return null
+        if (result is List<*>) {
+            return result
+        }
+        throw java.lang.IllegalArgumentException("Requested element of path '${path}' isn't of type List<?>: '${result::class.java}'.")
+    }
+
+    fun getMap(path: String): Map<String, *>? {
+        val result = getElement(path)
+        if (result == null)
+            return null
+        if (result is Map<*, *>) {
+            @Suppress("UNCHECKED_CAST")
+            return result as Map<String, *>
+        }
+        throw java.lang.IllegalArgumentException("Requested element of path '${path}' isn't of type Map<?,?>: '${result::class.java}'.")
+    }
+
+    fun getElement(path: String): Any? {
         var currentMap: Map<*, *>? = map
         var result: String? = null
         val pathValues = path.split('.')
@@ -31,7 +59,7 @@ class JsonValidator {
 
             var idx: Int? = null;
             var attr = it
-            var value: Any? = null
+            var value: Any?
             if (it.indexOf('[') > 0) {
                 // Array found:
                 if (!it.matches(attrRegexWithIndex)) {
@@ -57,6 +85,7 @@ class JsonValidator {
                 result = null
             } else {
                 if (value is Map<*, *>) {
+                    @Suppress("UNCHECKED_CAST")
                     currentMap = value as Map<String, Any?>
                 } else if (value is String) {
                     result = value
@@ -70,13 +99,7 @@ class JsonValidator {
                 }
             }
         }
-        if (result == null) {
-            assertNull(expected, "Expected '${expected}' but found null for path '${path}'.")
-        } else if (result is String) {
-            assertEquals(expected, result, "Expected '${expected}' but found '${result}' for path '${path}'.")
-        } else {
-            throw IllegalArgumentException("Can't step so deep: '${path}'")
-        }
+        return result
     }
 
     private fun parseJson(json: String): Map<String, Any?> {
