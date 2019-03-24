@@ -3,7 +3,6 @@ package org.projectforge.rest.core
 import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
-import org.springframework.stereotype.Service
 import javax.servlet.http.HttpSession
 
 /**
@@ -14,10 +13,10 @@ class ListFilterService {
     private val log = org.slf4j.LoggerFactory.getLogger(ListFilterService::class.java)
 
     @Autowired
-    private val userPreferencesService: UserPreferencesService? = null
+    private lateinit var userPreferencesService: UserPreferencesService
 
     fun getSearchFilter(session: HttpSession, filterClazz: Class<out BaseSearchFilter>): BaseSearchFilter {
-        val filter = userPreferencesService!!.getEntry(session, filterClazz.name + ":Filter")
+        val filter = userPreferencesService.getEntry(session, filterClazz.name + ":Filter")
         if (filter != null) {
             if (filter.javaClass == filterClazz) {
                 try {

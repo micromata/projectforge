@@ -30,7 +30,7 @@ internal object ElementsRegistry {
      */
     private val unavailableElementsSet = mutableSetOf<String>()
 
-    internal fun buildElement(layoutSettings: LayoutSettings, property: String): UIElement {
+    internal fun buildElement(layoutSettings: LayoutContext, property: String): UIElement {
         val mapKey = getMapKey(layoutSettings.dataObjectClazz, property)
         if (mapKey == null) {
             return UILabel(property)
@@ -76,7 +76,7 @@ internal object ElementsRegistry {
         return element ?: UILabel(property)
     }
 
-    internal fun getElementInfo(layoutSettings: LayoutSettings, property: String): ElementInfo? {
+    internal fun getElementInfo(layoutSettings: LayoutContext, property: String): ElementInfo? {
         return ElementsRegistry.getElementInfo(layoutSettings.dataObjectClazz, property)
     }
 

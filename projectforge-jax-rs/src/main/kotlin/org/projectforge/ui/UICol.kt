@@ -10,7 +10,7 @@ data class UICol(val length: Int,
     /**
      * Convenient method for adding a bunch of UIInput fields with the given ids.
      */
-    fun add(layoutSettings: LayoutSettings, vararg ids: String): UICol {
+    fun add(layoutSettings: LayoutContext, vararg ids: String): UICol {
         ids.forEach {
             val element = LayoutUtils.buildLabelInputElement(layoutSettings, it)
             if (element != null)

@@ -9,7 +9,7 @@ data class UITable(val id : String, val columns : MutableList<UITableColumn> = m
     /**
      * For adding columns with the given ids
      */
-    fun add(layoutSettings: LayoutSettings, vararg columnIds: String): UITable {
+    fun add(layoutSettings: LayoutContext, vararg columnIds: String): UITable {
         columnIds.forEach {
             val col = UITableColumn(it)
             col.protectTitle = true

@@ -71,16 +71,16 @@ abstract class AbstractDORest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F : BaseS
     var filterClazz: Class<F>
 
     @Autowired
-    lateinit var accessChecker: AccessChecker
+    private lateinit var accessChecker: AccessChecker
 
     @Autowired
-    lateinit var applicationContext: ApplicationContext
+    private lateinit var applicationContext: ApplicationContext
 
     @Autowired
-    lateinit var historyService: HistoryService
+    private lateinit var historyService: HistoryService
 
     @Autowired
-    lateinit var listFilterService: ListFilterService
+    private lateinit var listFilterService: ListFilterService
 
     abstract fun newBaseDO(): O
 

@@ -5,16 +5,16 @@ import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.utils.CloneHelper
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.stereotype.Service
+import org.springframework.stereotype.Component
 import java.io.Serializable
 import javax.servlet.http.HttpSession
 
-@Service
+@Component
 class UserPreferencesService {
     private val log = org.slf4j.LoggerFactory.getLogger(UserPreferencesService::class.java)
 
     @Autowired
-    private val userXmlPreferencesCache: UserXmlPreferencesCache? = null
+    private lateinit var userXmlPreferencesCache: UserXmlPreferencesCache
 
     /**
      * Stores the given value for the current user.
@@ -37,7 +37,7 @@ class UserPreferencesService {
             return
         }
         try {
-            userXmlPreferencesCache!!.putEntry(user.id, key, value, persistent)
+            userXmlPreferencesCache.putEntry(user.id, key, value, persistent)
         } catch (ex: Exception) {
             log.error("Should only occur in maintenance mode: " + ex.message, ex)
         }
@@ -64,7 +64,7 @@ class UserPreferencesService {
             if (value != null) {
                 return value
             }
-            value = userXmlPreferencesCache!!.getEntry(userId, key)
+            value = userXmlPreferencesCache.getEntry(userId, key)
             if (value == null || value is Serializable == false) {
                 return null
             }
@@ -73,7 +73,7 @@ class UserPreferencesService {
             return value
         }
         try {
-            return userXmlPreferencesCache!!.getEntry(userId, key)
+            return userXmlPreferencesCache.getEntry(userId, key)
         } catch (ex: Exception) {
             log.error("Should only occur in maintenance mode: " + ex.message, ex)
             return null
@@ -120,6 +120,6 @@ class UserPreferencesService {
         if (AccessChecker.isDemoUser(user) == true) {
             session.removeAttribute(key)
         }
-        return userXmlPreferencesCache!!.removeEntry(user.id, key)
+        return userXmlPreferencesCache.removeEntry(user.id, key)
     }
 }

@@ -19,9 +19,4 @@ class RestWebAppConfiguration : ResourceConfig() {
         register(AddressRest::class.java)
         register(BookRest::class.java)
     }
-
-    override fun register(component: Class<*>?): ResourceConfig {
-        return super.register(component)
-    }
-
 }
