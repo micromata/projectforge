@@ -33,7 +33,7 @@ import org.projectforge.framework.configuration.ConfigurationParam;
 import org.projectforge.framework.configuration.entities.ConfigurationDO;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.persistence.user.entities.TenantDO;
-import org.projectforge.test.AbstractBase;
+import org.projectforge.test.AbstractTestBase;
 import org.projectforge.test.AbstractTestNGBase;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.testng.annotations.Test;
@@ -63,7 +63,7 @@ public class MultiTenancyTestFork extends AbstractTestNGBase
       return;
     }
     defaultTenant = tenantService.getDefaultTenant();
-    logon(AbstractBase.TEST_ADMIN_USER);
+    logon(AbstractTestBase.TEST_ADMIN_USER);
     final ConfigurationDO configurationDO = configurationDao.getEntry(ConfigurationParam.MULTI_TENANCY_ENABLED);
     configurationDO.setBooleanValue(true);
     configurationDao.internalUpdate(configurationDO);

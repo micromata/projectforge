@@ -31,7 +31,7 @@ import org.projectforge.business.fibu.ProjektDao;
 import org.projectforge.business.fibu.kost.Kost2ArtDO;
 import org.projectforge.business.fibu.kost.Kost2DO;
 import org.projectforge.business.tasktree.TaskTreeHelper;
-import org.projectforge.test.AbstractBase;
+import org.projectforge.test.AbstractTestBase;
 import org.projectforge.test.AbstractTestNGBase;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.testng.annotations.Test;
@@ -61,7 +61,7 @@ public class TaskHelperTest extends AbstractTestNGBase
   @Test
   public void addKost2()
   {
-    logon(AbstractBase.TEST_FINANCE_USER);
+    logon(AbstractTestBase.TEST_FINANCE_USER);
     final TaskTree taskTree = TaskTreeHelper.getTaskTree();
     final TaskDO task1 = initTestDB.addTask("addKost2", "root");
     final ProjektDO projekt = new ProjektDO().setName("addKost2").setInternKost2_4(128).setNummer(5).setTask(task1);

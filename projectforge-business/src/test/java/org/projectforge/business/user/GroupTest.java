@@ -31,7 +31,7 @@ import java.util.Set;
 
 import org.projectforge.framework.persistence.user.entities.GroupDO;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
-import org.projectforge.test.AbstractBase;
+import org.projectforge.test.AbstractTestBase;
 import org.projectforge.test.AbstractTestNGBase;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.TransactionStatus;
@@ -58,24 +58,24 @@ public class GroupTest extends AbstractTestNGBase
       @Override
       public Object doInTransaction(final TransactionStatus status)
       {
-        logon(AbstractBase.TEST_ADMIN_USER);
+        logon(AbstractTestBase.TEST_ADMIN_USER);
         GroupDO group = new GroupDO();
         group.setName("testgroup");
         final Set<PFUserDO> assignedUsers = new HashSet<PFUserDO>();
         group.setAssignedUsers(assignedUsers);
-        assignedUsers.add(getUser(AbstractBase.TEST_USER));
+        assignedUsers.add(getUser(AbstractTestBase.TEST_USER));
         final Serializable id = groupDao.save(group);
         group = groupDao.getById(id);
         assertEquals("testgroup", group.getName());
         assertEquals(1, group.getAssignedUsers().size());
-        assertTrue(group.getAssignedUsers().contains(getUser(AbstractBase.TEST_USER)));
-        final PFUserDO user = getUser(AbstractBase.TEST_USER2);
+        assertTrue(group.getAssignedUsers().contains(getUser(AbstractTestBase.TEST_USER)));
+        final PFUserDO user = getUser(AbstractTestBase.TEST_USER2);
         assertNotNull(user);
         group.getAssignedUsers().add(user);
         groupDao.update(group);
         group = groupDao.getById(id);
         assertEquals(2, group.getAssignedUsers().size());
-        assertTrue(group.getAssignedUsers().contains(getUser(AbstractBase.TEST_USER)));
+        assertTrue(group.getAssignedUsers().contains(getUser(AbstractTestBase.TEST_USER)));
         assertTrue(group.getAssignedUsers().contains(user));
         return null;
       }

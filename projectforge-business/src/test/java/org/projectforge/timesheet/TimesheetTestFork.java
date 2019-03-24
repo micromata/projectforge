@@ -41,7 +41,7 @@ import org.projectforge.framework.access.AccessException;
 import org.projectforge.framework.i18n.UserException;
 import org.projectforge.framework.time.DateHolder;
 import org.projectforge.framework.time.DatePrecision;
-import org.projectforge.test.AbstractBase;
+import org.projectforge.test.AbstractTestBase;
 import org.projectforge.test.AbstractTestNGBase;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.TransactionStatus;
@@ -151,7 +151,7 @@ public class TimesheetTestFork extends AbstractTestNGBase
   @Test
   public void testOverlap()
   {
-    logon(AbstractBase.ADMIN);
+    logon(AbstractTestBase.ADMIN);
     initTestDB.addTask("timesheet", "root");
     initTestDB.addUser("timesheet-user");
     TimesheetDO ts1 = new TimesheetDO().setTask(getTask("timesheet")).setUser(getUser("timesheet-user"));
@@ -207,7 +207,7 @@ public class TimesheetTestFork extends AbstractTestNGBase
   @Test
   public void testTimesheetProtection()
   {
-    logon(AbstractBase.ADMIN);
+    logon(AbstractTestBase.ADMIN);
     // Create test tasks:
     initTestDB.addUser("tpt-user");
     TaskDO task;

@@ -33,7 +33,7 @@ import java.util.Set;
 import org.projectforge.business.multitenancy.TenantRegistryMap;
 import org.projectforge.framework.persistence.user.entities.GroupDO;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
-import org.projectforge.test.AbstractBase;
+import org.projectforge.test.AbstractTestBase;
 import org.projectforge.test.AbstractTestNGBase;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.testng.annotations.Test;
@@ -46,12 +46,12 @@ public class UserGroupCacheTest extends AbstractTestNGBase
   @Test
   public void testUserMemberOfAtLeastOneGroup()
   {
-    logon(AbstractBase.TEST_ADMIN_USER);
+    logon(AbstractTestBase.TEST_ADMIN_USER);
     GroupDO group1 = new GroupDO();
     group1.setName("testusergroupcache1");
     Set<PFUserDO> assignedUsers = new HashSet<PFUserDO>();
     group1.setAssignedUsers(assignedUsers);
-    assignedUsers.add(getUser(AbstractBase.TEST_USER));
+    assignedUsers.add(getUser(AbstractTestBase.TEST_USER));
     Serializable id = groupDao.save(group1);
     group1 = groupDao.getById(id);
 
@@ -59,21 +59,21 @@ public class UserGroupCacheTest extends AbstractTestNGBase
     group2.setName("testusergroupcache2");
     assignedUsers = new HashSet<PFUserDO>();
     group2.setAssignedUsers(assignedUsers);
-    assignedUsers.add(getUser(AbstractBase.TEST_ADMIN_USER));
+    assignedUsers.add(getUser(AbstractTestBase.TEST_ADMIN_USER));
     id = groupDao.save(group2);
     group2 = groupDao.getById(id);
 
     final UserGroupCache userGroupCache = TenantRegistryMap.getInstance().getTenantRegistry().getUserGroupCache();
-    assertFalse(userGroupCache.isUserMemberOfAtLeastOneGroup(getUser(AbstractBase.TEST_ADMIN_USER).getId()));
-    assertFalse(userGroupCache.isUserMemberOfAtLeastOneGroup(getUser(AbstractBase.TEST_ADMIN_USER).getId(), group1.getId()));
-    assertTrue(userGroupCache.isUserMemberOfAtLeastOneGroup(getUser(AbstractBase.TEST_ADMIN_USER).getId(), group2.getId()));
+    assertFalse(userGroupCache.isUserMemberOfAtLeastOneGroup(getUser(AbstractTestBase.TEST_ADMIN_USER).getId()));
+    assertFalse(userGroupCache.isUserMemberOfAtLeastOneGroup(getUser(AbstractTestBase.TEST_ADMIN_USER).getId(), group1.getId()));
+    assertTrue(userGroupCache.isUserMemberOfAtLeastOneGroup(getUser(AbstractTestBase.TEST_ADMIN_USER).getId(), group2.getId()));
     assertTrue(
-        userGroupCache.isUserMemberOfAtLeastOneGroup(getUser(AbstractBase.TEST_ADMIN_USER).getId(), group1.getId(), group2.getId()));
-    assertTrue(userGroupCache.isUserMemberOfAtLeastOneGroup(getUser(AbstractBase.TEST_ADMIN_USER).getId(), null, group1.getId(),
+        userGroupCache.isUserMemberOfAtLeastOneGroup(getUser(AbstractTestBase.TEST_ADMIN_USER).getId(), group1.getId(), group2.getId()));
+    assertTrue(userGroupCache.isUserMemberOfAtLeastOneGroup(getUser(AbstractTestBase.TEST_ADMIN_USER).getId(), null, group1.getId(),
         group2.getId()));
-    assertTrue(userGroupCache.isUserMemberOfAtLeastOneGroup(getUser(AbstractBase.TEST_ADMIN_USER).getId(), null, group1.getId(),
+    assertTrue(userGroupCache.isUserMemberOfAtLeastOneGroup(getUser(AbstractTestBase.TEST_ADMIN_USER).getId(), null, group1.getId(),
         null, group2.getId(), null));
     assertTrue(
-        userGroupCache.isUserMemberOfAtLeastOneGroup(getUser(AbstractBase.TEST_ADMIN_USER).getId(), group2.getId(), group1.getId()));
+        userGroupCache.isUserMemberOfAtLeastOneGroup(getUser(AbstractTestBase.TEST_ADMIN_USER).getId(), group2.getId(), group1.getId()));
   }
 }

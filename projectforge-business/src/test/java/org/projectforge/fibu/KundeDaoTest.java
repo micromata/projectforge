@@ -32,7 +32,7 @@ import org.projectforge.business.fibu.KundeDO;
 import org.projectforge.business.fibu.KundeDao;
 import org.projectforge.framework.access.AccessException;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
-import org.projectforge.test.AbstractBase;
+import org.projectforge.test.AbstractTestBase;
 import org.projectforge.test.AbstractTestNGBase;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.testng.annotations.Test;
@@ -45,7 +45,7 @@ public class KundeDaoTest extends AbstractTestNGBase
   @Test
   public void checkAccess()
   {
-    logon(AbstractBase.TEST_FINANCE_USER);
+    logon(AbstractTestBase.TEST_FINANCE_USER);
     KundeDO kunde = new KundeDO();
     kunde.setName("ACME");
     kunde.setId(42);
@@ -54,18 +54,18 @@ public class KundeDaoTest extends AbstractTestNGBase
     kunde.setDescription("Test");
     kundeDao.update(kunde);
 
-    logon(AbstractBase.TEST_CONTROLLING_USER);
+    logon(AbstractTestBase.TEST_CONTROLLING_USER);
     kundeDao.getById(id);
     checkNoWriteAccess(id, kunde, "Controlling");
 
-    logon(AbstractBase.TEST_USER);
+    logon(AbstractTestBase.TEST_USER);
     checkNoAccess(id, kunde, "Other");
 
-    logon(AbstractBase.TEST_PROJECT_MANAGER_USER);
+    logon(AbstractTestBase.TEST_PROJECT_MANAGER_USER);
     checkNoWriteAccess(id, kunde, "Project manager");
     checkNoHistoryAccess(id, kunde, "Project manager");
 
-    logon(AbstractBase.TEST_ADMIN_USER);
+    logon(AbstractTestBase.TEST_ADMIN_USER);
     checkNoAccess(id, kunde, "Admin ");
   }
 

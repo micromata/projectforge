@@ -40,7 +40,7 @@ import org.projectforge.framework.access.AccessEntryDO;
 import org.projectforge.framework.access.AccessType;
 import org.projectforge.framework.access.GroupTaskAccessDO;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
-import org.projectforge.test.AbstractBase;
+import org.projectforge.test.AbstractTestBase;
 import org.projectforge.test.AbstractTestNGBase;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -63,7 +63,7 @@ public class AccessTestFork extends AbstractTestNGBase
   @Test
   public void testAccessDO()
   {
-    logon(AbstractBase.TEST_ADMIN_USER);
+    logon(AbstractTestBase.TEST_ADMIN_USER);
     final List<GroupTaskAccessDO> list = accessDao.internalLoadAll();
     for (final GroupTaskAccessDO access : list) {
       log.info(access.toString());
@@ -71,7 +71,7 @@ public class AccessTestFork extends AbstractTestNGBase
     initTestDB.addTask("accesstest", "root");
     GroupTaskAccessDO groupTaskAccess = new GroupTaskAccessDO();
     accessDao.setTask(groupTaskAccess, getTask("accesstest").getId());
-    groupTaskAccess.setGroup(getGroup(AbstractBase.TEST_GROUP));
+    groupTaskAccess.setGroup(getGroup(AbstractTestBase.TEST_GROUP));
     final AccessEntryDO taskEntry = groupTaskAccess.ensureAndGetAccessEntry(AccessType.TASKS);
     taskEntry.setAccess(true, true, true, true);
     final AccessEntryDO timesheetEntry = groupTaskAccess.ensureAndGetAccessEntry(AccessType.TIMESHEETS);
@@ -93,7 +93,7 @@ public class AccessTestFork extends AbstractTestNGBase
   @Test
   public void checkTaskMoves()
   {
-    logon(AbstractBase.TEST_ADMIN_USER);
+    logon(AbstractTestBase.TEST_ADMIN_USER);
     final UserGroupCache userGroupCache = TenantRegistryMap.getInstance().getTenantRegistry().getUserGroupCache();
     // First check initialization:
     final PFUserDO user1 = getUser("user1");

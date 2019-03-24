@@ -9,7 +9,7 @@ import org.apache.commons.codec.binary.Base64;
 import org.projectforge.business.address.AddressDO;
 import org.projectforge.business.address.AddressDao;
 import org.projectforge.business.address.AddressStatus;
-import org.projectforge.test.AbstractBase;
+import org.projectforge.test.AbstractTestBase;
 import org.projectforge.test.AbstractTestNGBase;
 import org.projectforge.web.rest.TaskDaoRest;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,7 +34,7 @@ public class RestServicesTest extends AbstractTestNGBase
   @BeforeClass
   public void init()
   {
-    logon(AbstractBase.TEST_FULL_ACCESS_USER);
+    logon(AbstractTestBase.TEST_FULL_ACCESS_USER);
   }
 
   @Test

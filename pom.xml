@@ -357,6 +357,14 @@
       <version>${testng.versionj}</version>
       <scope>test</scope>
     </dependency>
+
+    <!-- JUnit -->
+    <dependency>
+      <groupId>org.junit.platform</groupId>
+      <artifactId>junit-platform-launcher</artifactId> <!-- Needed by Intellij: https://junit.org/junit5/docs/current/user-guide/#running-tests-ide-intellij-idea -->
+      <version>1.4.1</version>
+      <scope>test</scope>
+    </dependency>
     <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter-api</artifactId>

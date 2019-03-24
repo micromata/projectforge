@@ -8,7 +8,7 @@ import org.projectforge.business.fibu.EmployeeDao;
 import org.projectforge.business.fibu.EmployeeSalaryDO;
 import org.projectforge.business.user.UserDao;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
-import org.projectforge.test.AbstractBase;
+import org.projectforge.test.AbstractTestBase;
 import org.projectforge.test.AbstractTestNGBase;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.testng.Assert;
@@ -34,7 +34,7 @@ public class EmployeeSelectFilterTest extends AbstractTestNGBase
   @BeforeClass
   public void init()
   {
-    logon(AbstractBase.TEST_FULL_ACCESS_USER);
+    logon(AbstractTestBase.TEST_FULL_ACCESS_USER);
   }
 
   @Test

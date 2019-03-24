@@ -28,7 +28,7 @@ import java.util.Map;
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.projectforge.business.systeminfo.SystemInfoCache;
-import org.projectforge.test.AbstractBase;
+import org.projectforge.test.AbstractTestBase;
 import org.projectforge.web.address.AddressMobileViewPage;
 import org.projectforge.web.address.AddressViewPage;
 import org.projectforge.web.admin.SetupPage;
@@ -78,7 +78,7 @@ public class CallAllPagesTest extends WicketPageTestBase
   private void _testAllMountedPages()
   {
     log.info("Test all web pages with.");
-    login(AbstractBase.TEST_FULL_ACCESS_USER, AbstractBase.TEST_FULL_ACCESS_USER_PASSWORD);
+    login(AbstractTestBase.TEST_FULL_ACCESS_USER, AbstractTestBase.TEST_FULL_ACCESS_USER_PASSWORD);
     SystemInfoCache.internalInitialize(systemInfoCache);
     final Map<String, Class<? extends WebPage>> pages = WebRegistry.getInstance().getMountPages();
     counter = 0;

@@ -46,7 +46,7 @@ import org.projectforge.business.user.GroupDao;
 import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.framework.persistence.user.entities.GroupDO;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
-import org.projectforge.test.AbstractBase;
+import org.projectforge.test.AbstractTestBase;
 import org.projectforge.test.AbstractTestNGBase;
 import org.projectforge.test.JUnitLDAPTestWrapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -218,7 +218,7 @@ public class LdapMasterLoginHandlerTest extends AbstractTestNGBase
     loginHandler.ldapOrganizationalUnitDao = mock(LdapOrganizationalUnitDao.class);
     loginHandler.initialize();
     Login.getInstance().setLoginHandler(loginHandler);
-    logon(AbstractBase.TEST_ADMIN_USER);
+    logon(AbstractTestBase.TEST_ADMIN_USER);
     final PFUserDO user = new PFUserDO().setUsername("kai").setFirstname("Kai").setLastname("Reinhard");
     userService.createEncryptedPassword(user, "successful");
     userService.save(user);

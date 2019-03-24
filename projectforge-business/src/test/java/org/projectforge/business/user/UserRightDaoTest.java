@@ -33,7 +33,7 @@ import java.util.Set;
 
 import org.projectforge.framework.persistence.user.entities.GroupDO;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
-import org.projectforge.test.AbstractBase;
+import org.projectforge.test.AbstractTestBase;
 import org.projectforge.test.AbstractTestNGBase;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.testng.annotations.Test;
@@ -49,10 +49,10 @@ public class UserRightDaoTest extends AbstractTestNGBase
   @Test
   public void testUpdateUserRights()
   {
-    logon(AbstractBase.ADMIN);
+    logon(AbstractTestBase.ADMIN);
     final PFUserDO user = initTestDB.addUser("testUserRightDaoTest");
     final Set<GroupDO> groupsToAssign = new HashSet<GroupDO>();
-    groupsToAssign.add(getGroup(AbstractBase.FINANCE_GROUP));
+    groupsToAssign.add(getGroup(AbstractTestBase.FINANCE_GROUP));
     groupDao.assignGroups(user, groupsToAssign, null);
     List<UserRightVO> list = userRightDao.getUserRights(user);
     UserRightVO right1 = null;
