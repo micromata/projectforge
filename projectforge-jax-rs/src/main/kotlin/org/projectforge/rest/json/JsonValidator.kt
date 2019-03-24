@@ -49,6 +49,7 @@ class JsonValidator {
     fun getElement(path: String): Any? {
         var currentMap: Map<*, *>? = map
         var result: String? = null
+        var listResult: List<*>? = null
         val pathValues = path.split('.')
         pathValues.forEach {
             if (currentMap == null) {
@@ -91,14 +92,16 @@ class JsonValidator {
                     result = value
                     currentMap = null
                 } else if (value is List<*>) {
-                    if (idx == null) {
-
-                    }
+                    // List is selected (should be the last attr of the path)
+                    currentMap = null
+                    listResult = value
                 } else {
                     throw IllegalArgumentException("Found unexpected type '${value::class.java}' in path '${path}'. Current element is '${it}'")
                 }
             }
         }
+        if (listResult != null)
+            return listResult
         return result
     }
 
