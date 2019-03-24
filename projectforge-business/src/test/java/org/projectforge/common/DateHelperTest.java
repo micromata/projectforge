@@ -38,10 +38,10 @@ import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.time.DateHelper;
 import org.projectforge.framework.time.DateHolder;
 import org.projectforge.framework.time.DatePrecision;
-import org.projectforge.test.AbstractTestBase;
+import org.projectforge.test.AbstractTestNGBase;
 import org.testng.annotations.Test;
 
-public class DateHelperTest extends AbstractTestBase
+public class DateHelperTest extends AbstractTestNGBase
 {
   private static transient final org.slf4j.Logger log = org.slf4j.LoggerFactory
       .getLogger(KeyValuePairWriterTest.class);

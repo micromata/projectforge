@@ -26,11 +26,11 @@ package org.projectforge.meb;
 import static org.testng.AssertJUnit.assertEquals;
 
 import org.projectforge.business.meb.MebMailClient;
-import org.projectforge.test.AbstractTestBase;
+import org.projectforge.test.AbstractTestNGBase;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.testng.annotations.Test;
 
-public class MebMailClientTest extends AbstractTestBase
+public class MebMailClientTest extends AbstractTestNGBase
 {
   @Autowired
   private MebMailClient mebMailClient;

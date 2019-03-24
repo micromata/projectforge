@@ -39,11 +39,11 @@ import org.projectforge.framework.persistence.user.entities.TenantDO;
 import org.projectforge.generated.CreditTransferTransactionInformationSCT;
 import org.projectforge.generated.Document;
 import org.projectforge.generated.PaymentInstructionInformationSCT;
-import org.projectforge.test.AbstractTestBase;
+import org.projectforge.test.AbstractTestNGBase;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.testng.annotations.Test;
 
-public class SEPATransferGeneratorTest extends AbstractTestBase
+public class SEPATransferGeneratorTest extends AbstractTestNGBase
 {
 
   @Autowired

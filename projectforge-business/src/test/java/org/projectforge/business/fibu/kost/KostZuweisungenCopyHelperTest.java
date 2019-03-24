@@ -28,10 +28,10 @@ import static org.testng.AssertJUnit.assertEquals;
 import java.math.BigDecimal;
 
 import org.projectforge.business.fibu.RechnungsPositionDO;
-import org.projectforge.test.AbstractTestBase;
+import org.projectforge.test.AbstractTestNGBase;
 import org.testng.annotations.Test;
 
-public class KostZuweisungenCopyHelperTest extends AbstractTestBase
+public class KostZuweisungenCopyHelperTest extends AbstractTestNGBase
 {
   @Test
   public void copy()

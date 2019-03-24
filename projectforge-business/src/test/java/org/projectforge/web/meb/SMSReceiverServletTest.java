@@ -41,14 +41,13 @@ import org.projectforge.business.meb.MebDao;
 import org.projectforge.business.meb.MebEntryDO;
 import org.projectforge.common.TestHelper;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
-import org.projectforge.test.AbstractTestBase;
+import org.projectforge.test.AbstractTestNGBase;
 import org.projectforge.web.servlet.SMSReceiverServlet;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.testng.annotations.Test;
 
-public class SMSReceiverServletTest extends AbstractTestBase
+public class SMSReceiverServletTest extends AbstractTestNGBase
 {
   private static Logger loggerSpy;
 

@@ -30,10 +30,10 @@ import java.util.Locale;
 
 import org.projectforge.common.TestHelper;
 import org.projectforge.framework.utils.NumberFormatter;
-import org.projectforge.test.AbstractTestBase;
+import org.projectforge.test.AbstractTestNGBase;
 import org.testng.annotations.Test;
 
-public class NumberFormatterTest extends AbstractTestBase
+public class NumberFormatterTest extends AbstractTestNGBase
 {
   @Test
   public void formatPercentage()

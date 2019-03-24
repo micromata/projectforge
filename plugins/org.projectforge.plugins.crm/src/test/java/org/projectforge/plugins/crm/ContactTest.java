@@ -36,12 +36,12 @@ import org.projectforge.framework.access.AccessType;
 import org.projectforge.framework.access.OperationType;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.persistence.api.QueryFilter;
-import org.projectforge.test.AbstractTestBase;
+import org.projectforge.test.AbstractTestNGBase;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
-public class ContactTest extends AbstractTestBase
+public class ContactTest extends AbstractTestNGBase
 {
   private final static Logger log = LoggerFactory.getLogger(ContactTest.class);
 
@@ -245,7 +245,7 @@ public class ContactTest extends AbstractTestBase
     a4.setName("testa4");
     a4.setTask(getTask("ta_4_xxxx"));
     contactDao.internalSave(a4);
-    logon(AbstractTestBase.TEST_USER);
+    logon(AbstractTestNGBase.TEST_USER);
 
     // Select
     try {

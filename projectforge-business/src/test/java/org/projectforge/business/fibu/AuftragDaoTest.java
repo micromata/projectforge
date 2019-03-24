@@ -44,11 +44,11 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.persistence.user.entities.UserRightDO;
 import org.projectforge.framework.time.DateHelper;
 import org.projectforge.framework.time.DateHolder;
-import org.projectforge.test.AbstractTestBase;
+import org.projectforge.test.AbstractTestNGBase;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.testng.annotations.Test;
 
-public class AuftragDaoTest extends AbstractTestBase
+public class AuftragDaoTest extends AbstractTestNGBase
 {
   private int dbNumber = AuftragDao.START_NUMBER;
 

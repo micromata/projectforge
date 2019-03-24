@@ -154,8 +154,8 @@ public class InitTestDB
     tenantsToAssign.add(tenantService.getDefaultTenant());
     tenantDao.internalAssignTenants(user, tenantsToAssign, null, false, false);
     putUser(user);
-    if (user.getUsername().equals(AbstractTestBase.ADMIN) == true) {
-      AbstractTestBase.ADMIN_USER = user;
+    if (user.getUsername().equals(AbstractTestNGBase.ADMIN) == true) {
+      AbstractTestNGBase.ADMIN_USER = user;
     }
     return user;
   }
@@ -283,7 +283,7 @@ public class InitTestDB
     ThreadLocalUserContext.setUser(getUserGroupCache(), initUser);
     initConfiguration();
     initUsers();
-    initDatabaseDao.insertGlobalAddressbook(AbstractTestBase.ADMIN_USER);
+    initDatabaseDao.insertGlobalAddressbook(AbstractTestNGBase.ADMIN_USER);
     initGroups();
     initTaskTree();
     initAccess();
@@ -294,7 +294,7 @@ public class InitTestDB
 
   private void initEmployees()
   {
-    PFUserDO user = addUser(AbstractTestBase.TEST_EMPLOYEE_USER, AbstractTestBase.TEST_EMPLOYEE_USER_PASSWORD);
+    PFUserDO user = addUser(AbstractTestNGBase.TEST_EMPLOYEE_USER, AbstractTestNGBase.TEST_EMPLOYEE_USER_PASSWORD);
     EmployeeDO e = new EmployeeDO();
     e.setUser(user);
     employeeDao.internalSave(e);
@@ -310,10 +310,10 @@ public class InitTestDB
 
   private void initUsers()
   {
-    addUser(AbstractTestBase.ADMIN);
-    addUser(AbstractTestBase.TEST_ADMIN_USER, AbstractTestBase.TEST_ADMIN_USER_PASSWORD);
+    addUser(AbstractTestNGBase.ADMIN);
+    addUser(AbstractTestNGBase.TEST_ADMIN_USER, AbstractTestNGBase.TEST_ADMIN_USER_PASSWORD);
     PFUserDO user = new PFUserDO();
-    user.setUsername(AbstractTestBase.TEST_FINANCE_USER);
+    user.setUsername(AbstractTestNGBase.TEST_FINANCE_USER);
     user//
         .addRight(new UserRightDO(UserRightId.FIBU_AUSGANGSRECHNUNGEN, UserRightValue.READWRITE)) //
         .addRight(new UserRightDO(UserRightId.FIBU_EINGANGSRECHNUNGEN, UserRightValue.READWRITE)) //
@@ -324,13 +324,13 @@ public class InitTestDB
         .addRight(new UserRightDO(UserRightId.PM_HR_PLANNING, UserRightValue.READWRITE)); //
     addUser(user);
     user = new PFUserDO();
-    user.setUsername(AbstractTestBase.TEST_HR_USER);
+    user.setUsername(AbstractTestNGBase.TEST_HR_USER);
     user//
         .addRight(new UserRightDO(UserRightId.HR_EMPLOYEE, UserRightValue.READWRITE)) //
         .addRight(new UserRightDO(UserRightId.HR_EMPLOYEE_SALARY, UserRightValue.READWRITE)); //
     addUser(user);
     user = new PFUserDO();
-    user.setUsername(AbstractTestBase.TEST_FULL_ACCESS_USER);
+    user.setUsername(AbstractTestNGBase.TEST_FULL_ACCESS_USER);
     user//
         .addRight(new UserRightDO(UserRightId.FIBU_AUSGANGSRECHNUNGEN, UserRightValue.READWRITE)) //
         .addRight(new UserRightDO(UserRightId.FIBU_EINGANGSRECHNUNGEN, UserRightValue.READWRITE)) //
@@ -341,41 +341,41 @@ public class InitTestDB
         .addRight(new UserRightDO(UserRightId.PM_ORDER_BOOK, UserRightValue.READWRITE)) //
         .addRight(new UserRightDO(UserRightId.PM_PROJECT, UserRightValue.READWRITE)) //
         .addRight(new UserRightDO(UserRightId.PM_HR_PLANNING, UserRightValue.READWRITE)); //
-    userService.createEncryptedPassword(user, AbstractTestBase.TEST_FULL_ACCESS_USER_PASSWORD);
+    userService.createEncryptedPassword(user, AbstractTestNGBase.TEST_FULL_ACCESS_USER_PASSWORD);
     addUser(user);
-    addUser(AbstractTestBase.TEST_USER, AbstractTestBase.TEST_USER_PASSWORD);
-    addUser(AbstractTestBase.TEST_USER2);
-    user = addUser(AbstractTestBase.TEST_DELETED_USER, AbstractTestBase.TEST_DELETED_USER_PASSWORD);
+    addUser(AbstractTestNGBase.TEST_USER, AbstractTestNGBase.TEST_USER_PASSWORD);
+    addUser(AbstractTestNGBase.TEST_USER2);
+    user = addUser(AbstractTestNGBase.TEST_DELETED_USER, AbstractTestNGBase.TEST_DELETED_USER_PASSWORD);
     userService.markAsDeleted(user);
     addUser("user1");
     addUser("user2");
     addUser("user3");
-    addUser(AbstractTestBase.TEST_CONTROLLING_USER);
-    addUser(AbstractTestBase.TEST_MARKETING_USER);
-    addUser(AbstractTestBase.TEST_PROJECT_MANAGER_USER);
+    addUser(AbstractTestNGBase.TEST_CONTROLLING_USER);
+    addUser(AbstractTestNGBase.TEST_MARKETING_USER);
+    addUser(AbstractTestNGBase.TEST_PROJECT_MANAGER_USER);
     user = new PFUserDO();
-    user.setUsername(AbstractTestBase.TEST_PROJECT_ASSISTANT_USER);
+    user.setUsername(AbstractTestNGBase.TEST_PROJECT_ASSISTANT_USER);
     user.addRight(new UserRightDO(UserRightId.PM_ORDER_BOOK, UserRightValue.PARTLYREADWRITE));
     addUser(user);
   }
 
   private void initGroups()
   {
-    addGroup(AbstractTestBase.ADMIN_GROUP,
-        new String[] { "PFAdmin", AbstractTestBase.TEST_ADMIN_USER, AbstractTestBase.TEST_FULL_ACCESS_USER });
-    addGroup(AbstractTestBase.FINANCE_GROUP,
-        new String[] { AbstractTestBase.TEST_FINANCE_USER, AbstractTestBase.TEST_FULL_ACCESS_USER });
-    addGroup(AbstractTestBase.CONTROLLING_GROUP,
-        new String[] { AbstractTestBase.TEST_CONTROLLING_USER, AbstractTestBase.TEST_FULL_ACCESS_USER });
-    addGroup(AbstractTestBase.HR_GROUP, new String[] { AbstractTestBase.TEST_FULL_ACCESS_USER });
-    addGroup(AbstractTestBase.ORGA_GROUP, new String[] { AbstractTestBase.TEST_FULL_ACCESS_USER });
-    addGroup(AbstractTestBase.PROJECT_MANAGER,
-        new String[] { AbstractTestBase.TEST_PROJECT_MANAGER_USER, AbstractTestBase.TEST_FULL_ACCESS_USER });
-    addGroup(AbstractTestBase.PROJECT_ASSISTANT,
-        new String[] { AbstractTestBase.TEST_PROJECT_ASSISTANT_USER, AbstractTestBase.TEST_FULL_ACCESS_USER });
-    addGroup(AbstractTestBase.MARKETING_GROUP,
-        new String[] { AbstractTestBase.TEST_MARKETING_USER, AbstractTestBase.TEST_FULL_ACCESS_USER });
-    addGroup(AbstractTestBase.TEST_GROUP, new String[] { AbstractTestBase.TEST_USER });
+    addGroup(AbstractTestNGBase.ADMIN_GROUP,
+        new String[] { "PFAdmin", AbstractTestNGBase.TEST_ADMIN_USER, AbstractTestNGBase.TEST_FULL_ACCESS_USER });
+    addGroup(AbstractTestNGBase.FINANCE_GROUP,
+        new String[] { AbstractTestNGBase.TEST_FINANCE_USER, AbstractTestNGBase.TEST_FULL_ACCESS_USER });
+    addGroup(AbstractTestNGBase.CONTROLLING_GROUP,
+        new String[] { AbstractTestNGBase.TEST_CONTROLLING_USER, AbstractTestNGBase.TEST_FULL_ACCESS_USER });
+    addGroup(AbstractTestNGBase.HR_GROUP, new String[] { AbstractTestNGBase.TEST_FULL_ACCESS_USER });
+    addGroup(AbstractTestNGBase.ORGA_GROUP, new String[] { AbstractTestNGBase.TEST_FULL_ACCESS_USER });
+    addGroup(AbstractTestNGBase.PROJECT_MANAGER,
+        new String[] { AbstractTestNGBase.TEST_PROJECT_MANAGER_USER, AbstractTestNGBase.TEST_FULL_ACCESS_USER });
+    addGroup(AbstractTestNGBase.PROJECT_ASSISTANT,
+        new String[] { AbstractTestNGBase.TEST_PROJECT_ASSISTANT_USER, AbstractTestNGBase.TEST_FULL_ACCESS_USER });
+    addGroup(AbstractTestNGBase.MARKETING_GROUP,
+        new String[] { AbstractTestNGBase.TEST_MARKETING_USER, AbstractTestNGBase.TEST_FULL_ACCESS_USER });
+    addGroup(AbstractTestNGBase.TEST_GROUP, new String[] { AbstractTestNGBase.TEST_USER });
     addGroup("group1", new String[] { "user1", "user2" });
     addGroup("group2", new String[] { "user1" });
     addGroup("group3", new String[] {});
@@ -454,23 +454,23 @@ public class InitTestDB
     addTask("testAccess", "root");
     addTask("ta_1_siud", "testAccess", "Testuser has all access rights: select, insert, update, delete");
     addTask("ta_1_1", "ta_1_siud");
-    access = createGroupTaskAccess(getGroup(AbstractTestBase.TEST_GROUP), getTask("ta_1_siud"));
+    access = createGroupTaskAccess(getGroup(AbstractTestNGBase.TEST_GROUP), getTask("ta_1_siud"));
     setAllAccessEntries(access, true, true, true, true);
     addTask("ta_2_siux", "testAccess", "Testuser has the access rights: select, insert, update");
     addTask("ta_2_1", "ta_2_siux");
-    access = createGroupTaskAccess(getGroup(AbstractTestBase.TEST_GROUP), getTask("ta_2_siux"));
+    access = createGroupTaskAccess(getGroup(AbstractTestNGBase.TEST_GROUP), getTask("ta_2_siux"));
     setAllAccessEntries(access, true, true, true, false);
     addTask("ta_3_sxxx", "testAccess", "Testuser has only select rights: select");
     addTask("ta_3_1", "ta_3_sxxx");
-    access = createGroupTaskAccess(getGroup(AbstractTestBase.TEST_GROUP), getTask("ta_3_sxxx"));
+    access = createGroupTaskAccess(getGroup(AbstractTestNGBase.TEST_GROUP), getTask("ta_3_sxxx"));
     setAllAccessEntries(access, true, false, false, false);
     addTask("ta_4_xxxx", "testAccess", "Testuser has no rights.");
     addTask("ta_4_1", "ta_4_xxxx");
-    access = createGroupTaskAccess(getGroup(AbstractTestBase.TEST_GROUP), getTask("ta_4_xxxx"));
+    access = createGroupTaskAccess(getGroup(AbstractTestNGBase.TEST_GROUP), getTask("ta_4_xxxx"));
     setAllAccessEntries(access, false, false, false, false);
     addTask("ta_5_sxux", "testAccess", "Testuser has select and update rights.");
     addTask("ta_5_1", "ta_5_sxux");
-    access = createGroupTaskAccess(getGroup(AbstractTestBase.TEST_GROUP), getTask("ta_5_sxux"));
+    access = createGroupTaskAccess(getGroup(AbstractTestNGBase.TEST_GROUP), getTask("ta_5_sxux"));
     setAllAccessEntries(access, true, false, true, false);
   }
 

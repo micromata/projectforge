@@ -33,11 +33,11 @@ import org.projectforge.business.meb.MebDao;
 import org.projectforge.business.meb.MebEntryDO;
 import org.projectforge.business.meb.MebEntryStatus;
 import org.projectforge.framework.access.AccessException;
-import org.projectforge.test.AbstractTestBase;
+import org.projectforge.test.AbstractTestNGBase;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.testng.annotations.Test;
 
-public class MebDaoTest extends AbstractTestBase
+public class MebDaoTest extends AbstractTestNGBase
 {
   @Autowired
   private MebDao mebDao;
@@ -53,28 +53,28 @@ public class MebDaoTest extends AbstractTestBase
   public void testMebDaoAccess()
   {
     MebEntryDO entry = new MebEntryDO().setDate(new Date()).setSender("1234567890").setStatus(MebEntryStatus.RECENT);
-    logon(AbstractTestBase.TEST_USER);
+    logon(AbstractTestNGBase.TEST_USER);
     try {
       mebDao.save(entry);
       fail("Exception expected because only administrators can insert entries without an owner.");
     } catch (final AccessException ex) {
       // OK.
     }
-    logon(AbstractTestBase.ADMIN);
+    logon(AbstractTestNGBase.ADMIN);
     mebDao.save(entry); // Allowed for admins
-    logon(AbstractTestBase.TEST_USER);
+    logon(AbstractTestNGBase.TEST_USER);
     entry = new MebEntryDO().setDate(new Date()).setSender("1234567890").setStatus(MebEntryStatus.RECENT);
-    entry.setOwner(getUser(AbstractTestBase.TEST_USER));
+    entry.setOwner(getUser(AbstractTestNGBase.TEST_USER));
     Serializable id = mebDao.save(entry);
     mebDao.getById(id);
-    logon(AbstractTestBase.TEST_USER2);
+    logon(AbstractTestNGBase.TEST_USER2);
     try {
       mebDao.getById(id);
       fail("Exception expected because user shouldn't have access to foreign entries.");
     } catch (final AccessException ex) {
       // OK.
     }
-    entry = new MebEntryDO().setDate(new Date()).setOwner(getUser(AbstractTestBase.TEST_USER)).setSender("1234567890")
+    entry = new MebEntryDO().setDate(new Date()).setOwner(getUser(AbstractTestNGBase.TEST_USER)).setSender("1234567890")
         .setStatus(MebEntryStatus.RECENT);
     try {
       mebDao.save(entry);
@@ -82,13 +82,13 @@ public class MebDaoTest extends AbstractTestBase
     } catch (final AccessException ex) {
       // OK.
     }
-    logon(AbstractTestBase.TEST_USER);
+    logon(AbstractTestNGBase.TEST_USER);
     mebDao.save(entry);
-    logon(AbstractTestBase.ADMIN);
+    logon(AbstractTestNGBase.ADMIN);
     entry = new MebEntryDO().setDate(new Date()).setSender("1234567890").setStatus(MebEntryStatus.RECENT);
     id = mebDao.save(entry);
     entry = mebDao.getById(id);
-    entry.setOwner(getUser(AbstractTestBase.TEST_USER));
+    entry.setOwner(getUser(AbstractTestNGBase.TEST_USER));
     mebDao.update(entry);
     try {
       entry = mebDao.getById(id);

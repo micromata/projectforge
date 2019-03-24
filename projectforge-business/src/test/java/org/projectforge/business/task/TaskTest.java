@@ -46,11 +46,11 @@ import org.projectforge.framework.access.OperationType;
 import org.projectforge.framework.i18n.UserException;
 import org.projectforge.framework.persistence.user.entities.GroupDO;
 import org.projectforge.framework.time.DateHolder;
-import org.projectforge.test.AbstractTestBase;
+import org.projectforge.test.AbstractTestNGBase;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.testng.annotations.Test;
 
-public class TaskTest extends AbstractTestBase
+public class TaskTest extends AbstractTestNGBase
 {
   // private static final Logger log = Logger.getLogger(TaskTest.class);
 

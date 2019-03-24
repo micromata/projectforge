@@ -39,10 +39,10 @@ import org.projectforge.business.timesheet.TimesheetUtils;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.time.DateHelper;
-import org.projectforge.test.AbstractTestBase;
+import org.projectforge.test.AbstractTestNGBase;
 import org.testng.annotations.Test;
 
-public class TimesheetUtilsTest extends AbstractTestBase
+public class TimesheetUtilsTest extends AbstractTestNGBase
 {
   private TimeZone timeZone;
 

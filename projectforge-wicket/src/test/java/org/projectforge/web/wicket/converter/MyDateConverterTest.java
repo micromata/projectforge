@@ -36,10 +36,10 @@ import org.apache.wicket.util.convert.ConversionException;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.time.DateHelper;
-import org.projectforge.test.AbstractTestBase;
+import org.projectforge.test.AbstractTestNGBase;
 import org.testng.annotations.Test;
 
-public class MyDateConverterTest extends AbstractTestBase
+public class MyDateConverterTest extends AbstractTestNGBase
 {
   @Test
   public void preProcessInput()

@@ -39,13 +39,13 @@ import org.projectforge.business.user.UserRightId;
 import org.projectforge.framework.access.AccessException;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.persistence.api.QueryFilter;
-import org.projectforge.test.AbstractTestBase;
+import org.projectforge.test.AbstractTestNGBase;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.testng.annotations.Test;
 
-public class AddressTest extends AbstractTestBase
+public class AddressTest extends AbstractTestNGBase
 {
   private final static Logger log = LoggerFactory.getLogger(AddressTest.class);
 
@@ -131,7 +131,7 @@ public class AddressTest extends AbstractTestBase
     a4.setName("testa4");
     a4.setAddressbookList(addressbookSet);
     addressDao.internalSave(a4);
-    logon(AbstractTestBase.TEST_USER);
+    logon(AbstractTestNGBase.TEST_USER);
 
     // Select
     try {

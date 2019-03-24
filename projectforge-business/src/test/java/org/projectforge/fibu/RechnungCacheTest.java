@@ -39,11 +39,11 @@ import org.projectforge.business.fibu.RechnungDao;
 import org.projectforge.business.fibu.RechnungsPositionDO;
 import org.projectforge.business.fibu.RechnungsPositionVO;
 import org.projectforge.framework.time.DayHolder;
-import org.projectforge.test.AbstractTestBase;
+import org.projectforge.test.AbstractTestNGBase;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.testng.annotations.Test;
 
-public class RechnungCacheTest extends AbstractTestBase
+public class RechnungCacheTest extends AbstractTestNGBase
 {
   @Autowired
   private AuftragDao auftragDao;

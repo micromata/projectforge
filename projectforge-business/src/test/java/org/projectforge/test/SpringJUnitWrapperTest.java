@@ -1,6 +1,6 @@
 package org.projectforge.test;
 
-public class SpringJUnitWrapperTest extends AbstractTestBase
+public class SpringJUnitWrapperTest extends AbstractTestNGBase
 {
 
   //    @Autowired

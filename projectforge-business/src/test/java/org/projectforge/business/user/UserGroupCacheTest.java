@@ -33,11 +33,11 @@ import java.util.Set;
 import org.projectforge.business.multitenancy.TenantRegistryMap;
 import org.projectforge.framework.persistence.user.entities.GroupDO;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
-import org.projectforge.test.AbstractTestBase;
+import org.projectforge.test.AbstractTestNGBase;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.testng.annotations.Test;
 
-public class UserGroupCacheTest extends AbstractTestBase
+public class UserGroupCacheTest extends AbstractTestNGBase
 {
   @Autowired
   private GroupDao groupDao;
