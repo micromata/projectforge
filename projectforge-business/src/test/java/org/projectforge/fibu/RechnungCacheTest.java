@@ -39,6 +39,7 @@ import org.projectforge.business.fibu.RechnungDao;
 import org.projectforge.business.fibu.RechnungsPositionDO;
 import org.projectforge.business.fibu.RechnungsPositionVO;
 import org.projectforge.framework.time.DayHolder;
+import org.projectforge.test.AbstractBase;
 import org.projectforge.test.AbstractTestNGBase;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.testng.annotations.Test;
@@ -55,7 +56,7 @@ public class RechnungCacheTest extends AbstractTestNGBase
   public void baseTest()
   {
     final DayHolder today = new DayHolder();
-    logon(getUser(TEST_FINANCE_USER));
+    logon(getUser(AbstractBase.TEST_FINANCE_USER));
     final AuftragDO auftrag = new AuftragDO();
     AuftragsPositionDO auftragsPosition = new AuftragsPositionDO();
     auftragsPosition.setTitel("Pos 1");

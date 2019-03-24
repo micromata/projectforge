@@ -25,6 +25,7 @@ package org.projectforge.plugins.skillmatrix;
 
 import org.projectforge.framework.persistence.user.entities.GroupDO;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
+import org.projectforge.test.AbstractBase;
 import org.projectforge.test.AbstractTestNGBase;
 import org.projectforge.test.InitTestDB;
 
@@ -51,7 +52,7 @@ public class SkillTestHelper
   public SkillDO prepareUsersAndGroups(final String prefix, final AbstractTestNGBase AbstractTestBase,
       final SkillDao skillDao)
   {
-    AbstractTestBase.logon(AbstractTestBase.TEST_ADMIN_USER);
+    AbstractTestBase.logon(AbstractBase.TEST_ADMIN_USER);
     owner = initTestDB.addUser(prefix + "OwnerUser");
     fullUser1 = initTestDB.addUser(prefix + "FullUser1");
     fullUser2 = initTestDB.addUser(prefix + "FullUser2");

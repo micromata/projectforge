@@ -34,6 +34,7 @@ import org.projectforge.business.fibu.EingangsrechnungDao;
 import org.projectforge.business.fibu.EingangsrechnungsPositionDO;
 import org.projectforge.business.fibu.RechnungFilter;
 import org.projectforge.framework.access.AccessException;
+import org.projectforge.test.AbstractBase;
 import org.projectforge.test.AbstractTestNGBase;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.testng.annotations.Test;
@@ -46,7 +47,7 @@ public class EingangsrechnungDaoTest extends AbstractTestNGBase
   @Test
   public void checkAccess()
   {
-    logon(TEST_FINANCE_USER);
+    logon(AbstractBase.TEST_FINANCE_USER);
     EingangsrechnungDO eingangsrechnung = new EingangsrechnungDO();
     eingangsrechnung.setDatum(new Date(System.currentTimeMillis()));
     eingangsrechnung.addPosition(new EingangsrechnungsPositionDO());
@@ -54,17 +55,17 @@ public class EingangsrechnungDaoTest extends AbstractTestNGBase
     Serializable id = eingangsrechnungDao.save(eingangsrechnung);
     eingangsrechnung = eingangsrechnungDao.getById(id);
 
-    logon(TEST_CONTROLLING_USER);
+    logon(AbstractBase.TEST_CONTROLLING_USER);
     eingangsrechnungDao.getById(id);
     checkNoWriteAccess(id, eingangsrechnung, "Controlling");
 
-    logon(TEST_USER);
+    logon(AbstractBase.TEST_USER);
     checkNoAccess(id, eingangsrechnung, "Other");
 
-    logon(TEST_PROJECT_MANAGER_USER);
+    logon(AbstractBase.TEST_PROJECT_MANAGER_USER);
     checkNoAccess(id, eingangsrechnung, "Project manager");
 
-    logon(TEST_ADMIN_USER);
+    logon(AbstractBase.TEST_ADMIN_USER);
     checkNoAccess(id, eingangsrechnung, "Admin ");
   }
 

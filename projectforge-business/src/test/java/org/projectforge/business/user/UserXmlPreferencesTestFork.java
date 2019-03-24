@@ -28,6 +28,7 @@ import static org.testng.AssertJUnit.fail;
 
 import org.projectforge.framework.access.AccessException;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
+import org.projectforge.test.AbstractBase;
 import org.projectforge.test.AbstractTestNGBase;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.testng.annotations.Test;
@@ -63,7 +64,7 @@ public class UserXmlPreferencesTestFork extends AbstractTestNGBase
     } catch (AccessException ex) {
       // OK
     }
-    logon(TEST_ADMIN_USER);
+    logon(AbstractBase.TEST_ADMIN_USER);
     userXmlPreferencesCache.putEntry(user2.getId(), "msg", "Hurzel2", true);
     assertEquals("Hurzel", userXmlPreferencesCache.getEntry(user1.getId(), "msg"));
     logon(user2);

@@ -39,6 +39,7 @@ import org.projectforge.business.user.UserRightId;
 import org.projectforge.framework.access.AccessException;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.persistence.api.QueryFilter;
+import org.projectforge.test.AbstractBase;
 import org.projectforge.test.AbstractTestNGBase;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -58,7 +59,7 @@ public class AddressTest extends AbstractTestNGBase
   @Test
   public void testSaveAndUpdate()
   {
-    logon(ADMIN);
+    logon(AbstractBase.ADMIN);
     AddressDO a1 = new AddressDO();
     a1.setName("Kai Reinhard");
     addressDao.save(a1);
@@ -82,7 +83,7 @@ public class AddressTest extends AbstractTestNGBase
   @Test
   public void testDeleteAndUndelete()
   {
-    logon(ADMIN);
+    logon(AbstractBase.ADMIN);
     AddressDO a1 = new AddressDO();
     a1.setName("Test");
     addressDao.save(a1);
@@ -131,7 +132,7 @@ public class AddressTest extends AbstractTestNGBase
     a4.setName("testa4");
     a4.setAddressbookList(addressbookSet);
     addressDao.internalSave(a4);
-    logon(AbstractTestNGBase.TEST_USER);
+    logon(AbstractBase.TEST_USER);
 
     // Select
     try {

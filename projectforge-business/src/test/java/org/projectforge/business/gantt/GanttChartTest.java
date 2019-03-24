@@ -38,6 +38,7 @@ import org.projectforge.business.task.TaskDao;
 import org.projectforge.business.task.TaskTree;
 import org.projectforge.framework.time.DateHolder;
 import org.projectforge.framework.utils.NumberHelper;
+import org.projectforge.test.AbstractBase;
 import org.projectforge.test.AbstractTestNGBase;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.testng.annotations.Test;
@@ -53,7 +54,7 @@ public class GanttChartTest extends AbstractTestNGBase
   @Test
   public void testReadWriteGanttObjects()
   {
-    logon(TEST_ADMIN_USER);
+    logon(AbstractBase.TEST_ADMIN_USER);
     final String prefix = "GantChartTest";
     final TaskTree taskTree = taskDao.getTaskTree();
     final TaskDO rootTask = initTestDB.addTask(prefix, "root");
@@ -140,7 +141,7 @@ public class GanttChartTest extends AbstractTestNGBase
   @Test
   public void testIgnoringOfNumberFields()
   {
-    logon(TEST_ADMIN_USER);
+    logon(AbstractBase.TEST_ADMIN_USER);
     final String prefix = "GanttTest3";
     final TaskTree taskTree = taskDao.getTaskTree();
     final TaskDO rootTask = initTestDB.addTask(prefix, "root");

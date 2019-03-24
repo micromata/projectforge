@@ -68,10 +68,10 @@ import static org.junit.Assert.*;
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 @SpringJUnitConfig(TestConfiguration.class)
-public class AbstractJunitBase
+public class AbstractBase
 {
   protected static final org.slf4j.Logger log = org.slf4j.LoggerFactory
-      .getLogger(AbstractJunitBase.class);
+      .getLogger(AbstractBase.class);
 
   public static final String ADMIN = "PFAdmin";
 

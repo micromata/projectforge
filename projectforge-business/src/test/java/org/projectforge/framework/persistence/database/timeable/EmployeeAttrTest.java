@@ -30,6 +30,7 @@ import org.projectforge.business.fibu.EmployeeDO;
 import org.projectforge.business.fibu.EmployeeDao;
 import org.projectforge.business.fibu.EmployeeTimedDO;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
+import org.projectforge.test.AbstractBase;
 import org.projectforge.test.AbstractTestNGBase;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.testng.Assert;
@@ -59,7 +60,7 @@ public class EmployeeAttrTest extends AbstractTestNGBase
   @Test
   public void persistTimeAttr()
   {
-    logon(TEST_FULL_ACCESS_USER);
+    logon(AbstractBase.TEST_FULL_ACCESS_USER);
     final PFUserDO user = initTestDB.addUser("EmployeeAttrTest");
     final EmployeeDO e = employeeDao.newInstance();
     e.setUser(user);
