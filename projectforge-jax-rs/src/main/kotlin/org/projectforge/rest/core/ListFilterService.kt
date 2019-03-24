@@ -2,13 +2,14 @@ package org.projectforge.rest.core
 
 import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.stereotype.Component
 import org.springframework.stereotype.Service
 import javax.servlet.http.HttpSession
 
 /**
  * For persisting list filters.
  */
-@Service
+@Component
 class ListFilterService {
     private val log = org.slf4j.LoggerFactory.getLogger(ListFilterService::class.java)
 
