@@ -4,6 +4,10 @@ import com.google.gson.annotations.SerializedName
 
 class MenuItem(val title: String,
                var url : String? = null,
+               /**
+                * Unique key usable by React. It's also unique for multiple menu items (in different main categories).
+                */
+               var key: String? = null,
                var badge : MenuBadge? = null) {
 
     @SerializedName("sub-menu")
