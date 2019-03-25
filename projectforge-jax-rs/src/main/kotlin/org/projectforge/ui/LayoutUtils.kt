@@ -55,7 +55,7 @@ class LayoutUtils {
             }
             layout
                     .addAction(UIButton("reset", style = UIButtonStyle.DANGER))
-                    .addAction(UIButton("search", style = UIButtonStyle.PRIMARY))
+                    .addAction(UIButton("search", style = UIButtonStyle.PRIMARY, default = true))
             process(layout)
             return layout
         }
@@ -117,9 +117,9 @@ class LayoutUtils {
             //}
             if (data != null && data.id != null) {
                 if (!data.isDeleted)
-                    layout.addAction(UIButton("update", style = UIButtonStyle.PRIMARY))
+                    layout.addAction(UIButton("update", style = UIButtonStyle.PRIMARY, default = true))
             } else {
-                layout.addAction(UIButton("create", style = UIButtonStyle.PRIMARY))
+                layout.addAction(UIButton("create", style = UIButtonStyle.PRIMARY, default = true))
             }
             process(layout)
             return layout
