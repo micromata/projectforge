@@ -1,8 +1,6 @@
-package org.projectforge.rest.menu
-
-import org.projectforge.ui.UIStyle
+package org.projectforge.menu
 
 class MenuBadge(var counter: Int? = null,
                 var value: String? = null,
                 var tooltip: String? = null,
-                var style: UIStyle? = null)
+                var style: String? = null)

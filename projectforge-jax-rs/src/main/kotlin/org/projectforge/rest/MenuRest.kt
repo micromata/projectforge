@@ -2,8 +2,8 @@ package org.projectforge.rest
 
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.rest.core.RestHelper
-import org.projectforge.rest.menu.builder.MenuCreator
-import org.projectforge.rest.menu.builder.MenuCreatorContext
+import org.projectforge.menu.builder.MenuCreator
+import org.projectforge.menu.builder.MenuCreatorContext
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import javax.ws.rs.GET

@@ -21,7 +21,7 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.rest.menu.builder
+package org.projectforge.menu.builder
 
 enum class MenuItemDefId private constructor(private val i18nKey: String) {
     // Main menus in alphabetical order

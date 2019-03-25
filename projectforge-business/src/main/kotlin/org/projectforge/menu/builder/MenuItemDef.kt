@@ -1,12 +1,11 @@
-package org.projectforge.rest.menu.builder
+package org.projectforge.menu.builder
 
 import org.projectforge.business.user.ProjectForgeGroup
 import org.projectforge.business.user.UserRight
-import org.projectforge.business.user.UserRightId
 import org.projectforge.business.user.UserRightValue
+import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.api.IUserRightId
-import org.projectforge.rest.menu.MenuItem
-import org.projectforge.ui.translate
+import org.projectforge.menu.MenuItem
 
 /**
  * Defines one menu item once. The [MenuCreator] creates the user menu item from this definition dynamically dependent

@@ -8,10 +8,9 @@ import de.micromata.genome.db.jpa.history.entities.PropertyOpType
 import org.projectforge.business.multitenancy.TenantRegistryMap
 import org.projectforge.common.i18n.I18nEnum
 import org.projectforge.common.props.PropUtils
+import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.user.entities.PFUserDO
-import org.projectforge.ui.translate
 import org.springframework.stereotype.Component
-import org.springframework.stereotype.Service
 import java.lang.reflect.Field
 import java.util.*
 

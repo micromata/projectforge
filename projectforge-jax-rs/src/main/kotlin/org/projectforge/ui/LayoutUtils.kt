@@ -1,18 +1,8 @@
 package org.projectforge.ui
 
-import org.projectforge.framework.i18n.I18nHelper
+import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.api.HibernateUtils
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
-
-fun translate(i18nKey: String?): String {
-    if (i18nKey == null) return "???"
-    return I18nHelper.getLocalizedMessage(i18nKey)
-}
-
-fun translate(i18nKey: String?, vararg params: Any): String {
-    if (i18nKey == null) return "???"
-    return I18nHelper.getLocalizedMessage(i18nKey, params)
-}
 
 /**
  * Utils for the Layout classes for handling auto max-length (get from JPA entities) and translations as well as
