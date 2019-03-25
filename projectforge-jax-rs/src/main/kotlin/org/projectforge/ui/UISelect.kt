@@ -2,6 +2,7 @@ package org.projectforge.ui
 
 import com.google.gson.annotations.SerializedName
 import org.projectforge.common.i18n.I18nEnum
+import org.projectforge.framework.i18n.translate
 
 data class UISelect(val id: String,
                     @Transient

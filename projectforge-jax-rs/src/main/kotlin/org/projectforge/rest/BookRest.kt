@@ -2,6 +2,7 @@ package org.projectforge.rest
 
 import org.projectforge.Const
 import org.projectforge.business.book.*
+import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.getUserId
 import org.projectforge.rest.core.AbstractDORest
 import org.projectforge.rest.core.RestHelper

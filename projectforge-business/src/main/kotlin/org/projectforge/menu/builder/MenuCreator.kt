@@ -1,4 +1,4 @@
-package org.projectforge.rest.menu.builder
+package org.projectforge.menu.builder
 
 import org.projectforge.business.configuration.ConfigurationService
 import org.projectforge.business.fibu.*
@@ -15,13 +15,13 @@ import org.projectforge.business.user.UserRightValue
 import org.projectforge.business.vacation.service.VacationService
 import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.configuration.Configuration
+import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.api.IUserRightId
 import org.projectforge.framework.persistence.api.UserRightService.*
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
-import org.projectforge.rest.menu.MenuBadge
-import org.projectforge.rest.menu.MenuItem
+import org.projectforge.menu.MenuBadge
+import org.projectforge.menu.MenuItem
 import org.projectforge.sms.SmsSenderConfig
-import org.projectforge.ui.translate
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 

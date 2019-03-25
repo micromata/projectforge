@@ -1,4 +1,4 @@
-package org.projectforge.rest.menu
+package org.projectforge.menu
 
 import com.google.gson.annotations.SerializedName
 
