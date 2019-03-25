@@ -1,10 +1,16 @@
 package org.projectforge.rest.menu.builder
 
 import org.projectforge.business.configuration.ConfigurationService
+import org.projectforge.business.fibu.*
+import org.projectforge.business.fibu.datev.DatevImportDao.hasRight
+import org.projectforge.business.fibu.kost.Kost2Dao
 import org.projectforge.business.humanresources.HRPlanningDao
+import org.projectforge.business.user.ProjectForgeGroup
+import org.projectforge.business.user.UserRightId
 import org.projectforge.business.user.UserRightValue
 import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.configuration.Configuration
+import org.projectforge.framework.persistence.api.UserRightService.*
 import org.projectforge.rest.menu.MenuItem
 import org.projectforge.sms.SmsSenderConfig
 import org.springframework.beans.factory.annotation.Autowired
@@ -57,74 +63,87 @@ class MenuCreator() {
                 .add(MenuItemDef(MenuItemDefId.MONTHLY_EMPLOYEE_REPORT, "wa/monthlyEmployeeReport"))
                 .add(MenuItemDef(MenuItemDefId.PERSONAL_STATISTICS, "wa/personalStatistics"))
                 .add(MenuItemDef(MenuItemDefId.HR_VIEW, "wa/hrList",
-                        checkAccess = {
-                            accessChecker.hasLoggedInUserRight(HRPlanningDao.USER_RIGHT_ID, false, UserRightValue.READONLY,
-                                    UserRightValue.READWRITE)
-                        }))
+                        checkAccess = { hasRight(HRPlanningDao.USER_RIGHT_ID, *READONLY_READWRITE) }))
                 // HRPlanningDao.USER_RIGHT_ID, *READONLY_READWRITE
                 .add(MenuItemDef(MenuItemDefId.HR_PLANNING_LIST, "wa/hrPlanningList"))
                 .add(MenuItemDef(MenuItemDefId.GANTT, "wa/ganttList"))
                 // MenuNewCounterOrder, tooltip = "menu.fibu.orderbook.htmlSuffixTooltip"
-                .add(MenuItemDef(MenuItemDefId.ORDER_LIST, "wa/orderBookList")) // AuftragDao.USER_RIGHT_ID, *READONLY_PARTLYREADWRITE_READWRITE
+                .add(MenuItemDef(MenuItemDefId.ORDER_LIST, "wa/orderBookList",
+                        checkAccess = {
+                            hasRight(AuftragDao.USER_RIGHT_ID, *READONLY_PARTLYREADWRITE_READWRITE) &&
+                                    !isInGroup(*FIBU_ORGA_GROUPS) // Orderbook is shown under menu FiBu for FiBu users
+                        }))
 
-        var htMenu = menu.add(MenuItemDef(MenuItemDefId.HR)) // HR_GROUP
+        var hrMenu = menu.add(MenuItemDef(MenuItemDefId.HR,
+                checkAccess = { isInGroup(ProjectForgeGroup.HR_GROUP) }))
+                .add(MenuItemDef(MenuItemDefId.EMPLOYEE_LIST, "wa/employeeList",
+                        checkAccess = {
+                            hasRight(EmployeeDao.USER_RIGHT_ID, *READONLY_READWRITE)
+                        }))
+                .add(MenuItemDef(MenuItemDefId.EMPLOYEE_SALARY_LIST, "wa/employeeSalaryList",
+                        checkAccess = {
+                            hasRight(EmployeeSalaryDao.USER_RIGHT_ID, *READONLY_READWRITE)
+                        }))
 
-        var fibuMenu = menu.add(MenuItemDef(MenuItemDefId.FIBU)) // UserRightService.FIBU_ORGA_HR_GROUP
-                .add(MenuItemDef(MenuItemDefId.OUTGOING_INVOICE_LIST, "wa/outgoingInvoiceList")) // RechnungDao.USER_RIGHT_ID, *READONLY_READWRITE
-                .add(MenuItemDef(MenuItemDefId.INCOMING_INVOICE_LIST, "wa/incomingInvoiceList")) // EingangsrechnungDao.USER_RIGHT_ID, *READONLY_READWRITE
+        var fibuMenu = menu.add(MenuItemDef(MenuItemDefId.FIBU,
+                checkAccess = { isInGroup(*FIBU_ORGA_GROUPS) }))
+                .add(MenuItemDef(MenuItemDefId.OUTGOING_INVOICE_LIST, "wa/outgoingInvoiceList",
+                        checkAccess = {
+                            hasRight(RechnungDao.USER_RIGHT_ID, *READONLY_READWRITE) ||
+                                    isInGroup(ProjectForgeGroup.CONTROLLING_GROUP)
+                        }))
+                .add(MenuItemDef(MenuItemDefId.INCOMING_INVOICE_LIST, "wa/incomingInvoiceList",
+                        checkAccess = {
+                            hasRight(EingangsrechnungDao.USER_RIGHT_ID, *READONLY_READWRITE) ||
+                                    isInGroup(ProjectForgeGroup.CONTROLLING_GROUP)
+                        }))
+        if (Configuration.getInstance().isCostConfigured()) {
+            fibuMenu.add(MenuItemDef(MenuItemDefId.CUSTOMER_LIST, "wa/customerList",
+                    checkAccess = { isInGroup(ProjectForgeGroup.FINANCE_GROUP, ProjectForgeGroup.CONTROLLING_GROUP) }))
+                    .add(MenuItemDef(MenuItemDefId.PROJECT_LIST, "wa/projectList",
+                            checkAccess = {
+                                hasRight(ProjektDao.USER_RIGHT_ID, *READONLY_READWRITE) ||
+                                        isInGroup(ProjectForgeGroup.CONTROLLING_GROUP)
+                            }))
+        }
+        // MenuNewCounterOrder, tooltip = "menu.fibu.orderbook.htmlSuffixTooltip"
+        fibuMenu.add(MenuItemDef(MenuItemDefId.ORDER_LIST, "wa/orderBookList",
+                checkAccess = { isInGroup(*FIBU_ORGA_GROUPS) }))
 
         if (Configuration.getInstance().isCostConfigured()) {
-            fibuMenu.add(MenuItemDef(MenuItemDefId.CUSTOMER_LIST, "wa/customerList")) // FINANCE_GROUP, CONTROLLING_GROUP
-                    .add(MenuItemDef(MenuItemDefId.PROJECT_LIST, "wa/projectList")) // ProjektDao.USER_RIGHT_ID, *READONLY_READWRITE
+            menu.add(MenuItemDef(MenuItemDefId.COST,
+                    checkAccess = {
+                        isInGroup(*FIBU_ORGA_HR_GROUPS, ProjectForgeGroup.CONTROLLING_GROUP)
+                    }))
+                    .add(MenuItemDef(MenuItemDefId.ACCOUNT_LIST, "wa/accountList",
+                            checkAccess = {
+                                hasRight(KontoDao.USER_RIGHT_ID, *READONLY_READWRITE) ||
+                                        isInGroup(ProjectForgeGroup.CONTROLLING_GROUP)
+                            }))
+                    .add(MenuItemDef(MenuItemDefId.COST1_LIST, "wa/cost1List",
+                            checkAccess = {
+                                hasRight(Kost2Dao.USER_RIGHT_ID, *READONLY_READWRITE) ||
+                                        isInGroup(ProjectForgeGroup.CONTROLLING_GROUP)
+                            }))
+                    .add(MenuItemDef(MenuItemDefId.COST2_LIST, "wa/cost2List",
+                            checkAccess = {
+                                hasRight(Kost2Dao.USER_RIGHT_ID, *READONLY_READWRITE) ||
+                                        isInGroup(ProjectForgeGroup.CONTROLLING_GROUP)
+                            }))
         }
-        fibuMenu.add(MenuItemDef(MenuItemDefId.ORDER_LIST, "wa/orderBookList")) // AuftragDao.USER_RIGHT_ID, *READONLY_PARTLYREADWRITE_READWRITE
-
-        menu.add(MenuItemDef(MenuItemDefId.COST)) // UserRightService.FIBU_ORGA_HR_GROUPS
-        menu.add(MenuItemDef(MenuItemDefId.REPORTING)) // FINANCE_GROUP, CONTROLLING_GROUP, HR_GROUP
-        menu.add(MenuItemDef(MenuItemDefId.ORGA)) // UserRightService.FIBU_ORGA_HR_GROUPS
-        menu.add(MenuItemDef(MenuItemDefId.ADMINISTRATION)) // .setVisibleForRestrictedUsers(true);
+        menu.add(MenuItemDef(MenuItemDefId.REPORTING,
+                checkAccess = {
+                    isInGroup(*FIBU_ORGA_HR_GROUPS)
+                }))
+        menu.add(MenuItemDef(MenuItemDefId.ORGA,
+                checkAccess = {
+                    isInGroup(*FIBU_ORGA_HR_GROUPS)
+                })) // UserRightService.FIBU_ORGA_HR_GROUPS
+        menu.add(MenuItemDef(MenuItemDefId.ADMINISTRATION)) // .setVisibleForRestrictedUsers(true)
         menu.add(MenuItemDef(MenuItemDefId.MISC))
-
-        // COMMON
 
 
 /*
-        // PROJECT_MANAGEMENT
-        // Order book 80 (if user isn't member of FIBU groups.
-        // Projects 90 (if user isn't member of FIBU groups.
-
-        run {
-
-            reg.register(hr, MenuItemDefId.EMPLOYEE_LIST, 10, EmployeeListPage::class.java, EmployeeDao.USER_RIGHT_ID,
-                    *READONLY_READWRITE)
-            reg.register(hr, MenuItemDefId.EMPLOYEE_SALARY_LIST, 11, EmployeeSalaryListPage::class.java,
-                    EmployeeSalaryDao.USER_RIGHT_ID, *READONLY_READWRITE)
-        }
-        val orderBook = object : MenuItemDef(fibu, MenuItemDefId..getId(), 80,
-                MenuItemDefId.ORDER_LIST.getI18nKey(),
-                AuftragListPage::class.java, ) {
-            protected override fun afterMenuEntryCreation(createdMenuEntry: MenuEntry, context: MenuBuilderContext) {
-                if (context.getAccessChecker().isLoggedInUserMemberOfGroup(*UserRightService.FIBU_ORGA_HR_GROUPS) == true) {
-                    createdMenuEntry.setNewCounterModel(MenuNewCounterOrder())
-                    createdMenuEntry.setNewCounterTooltip("menu.fibu.orderbook.htmlSuffixTooltip")
-                } else {
-                    // Setting project management as parent because fibu isn't visible for this user:
-                    createdMenuEntry.setParent(context.getMenu(), pm.getId())
-                }
-            }
-        }
-        reg.register(orderBook)
-
-        run {
-            // COST
-            // Only visible if cost is configured:
-            reg.register(cost, MenuItemDefId.ACCOUNT_LIST, 10, KontoListPage::class.java, KontoDao.USER_RIGHT_ID,
-                    *READONLY_READWRITE)
-            reg.register(cost, MenuItemDefId.COST1_LIST, 20, Kost1ListPage::class.java, Kost2Dao.USER_RIGHT_ID, *READONLY_READWRITE)
-            reg.register(cost, MenuItemDefId.COST2_LIST, 30, Kost2ListPage::class.java, Kost2Dao.USER_RIGHT_ID, *READONLY_READWRITE)
-            reg.register(cost, MenuItemDefId.COST2_TYPE_LIST, 40, Kost2ArtListPage::class.java, Kost2Dao.USER_RIGHT_ID,
-                    *READONLY_READWRITE)
-        }
 
         // REPORTING
         reg.register(reporting, MenuItemDefId.SCRIPT_LIST, 10, ScriptListPage::class.java, FINANCE_GROUP, CONTROLLING_GROUP)
@@ -227,5 +246,13 @@ class MenuCreator() {
         menuItemDef.childs?.forEach { childMenuItemDef ->
             build(menuItem, childMenuItemDef, menuBuilderContext)
         }
+    }
+
+    private fun hasRight(rightId: UserRightId, vararg values: UserRightValue): Boolean {
+        return accessChecker.hasLoggedInUserRight(rightId, false, *values)
+    }
+
+    private fun isInGroup(vararg groups: ProjectForgeGroup): Boolean {
+        return accessChecker.isLoggedInUserMemberOfGroup(*groups)
     }
 }
