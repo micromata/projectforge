@@ -1,5 +1,6 @@
 package org.projectforge.rest
 
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.rest.core.RestHelper
 import org.projectforge.rest.menu.builder.MenuCreator
 import org.projectforge.rest.menu.builder.MenuCreatorContext
@@ -20,7 +21,7 @@ class MenuRest {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     fun logout(): Response {
-        val menuItems = menuCreator.build(MenuCreatorContext())
+        val menuItems = menuCreator.build(MenuCreatorContext(ThreadLocalUserContext.getUser()))
         return RestHelper.buildResponse(menuItems)
     }
 }
