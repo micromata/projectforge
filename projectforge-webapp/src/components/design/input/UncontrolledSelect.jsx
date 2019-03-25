@@ -1,5 +1,5 @@
 import React from 'react';
-import { uncontrolledSelectProps } from '../../../utilities/propTypes';
+import { selectProps } from '../../../utilities/propTypes';
 import Select from './Select';
 
 // A Wrapper around Select to automatically handle changes.
@@ -14,7 +14,7 @@ function UncontrolledSelect(props) {
 }
 
 UncontrolledSelect.propTypes = {
-    ...uncontrolledSelectProps,
+    ...selectProps,
 };
 
 export default UncontrolledSelect;

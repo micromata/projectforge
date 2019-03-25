@@ -1,14 +1,14 @@
 import PropTypes from 'prop-types';
 import React, { Component } from 'react';
-import revisedRandomId from '../../../../utilities/revisedRandomId';
-import { Col, Input } from '../../../design';
-import style from '../Page.module.scss';
+import { dataPropType } from '../../../../utilities/propTypes';
+import { CheckBox, Input, TextArea } from '../../../design';
 
 class LayoutInput extends Component {
     constructor(props) {
         super(props);
 
         this.handleInputChange = this.handleInputChange.bind(this);
+        this.handleSelectChange = this.handleSelectChange.bind(this);
     }
 
     handleInputChange(event) {
@@ -31,84 +31,65 @@ class LayoutInput extends Component {
         changeDataField(id, newValue);
     }
 
+    handleSelectChange(value) {
+        const { id, changeDataField } = this.props;
+
+        changeDataField(id, value);
+    }
+
     render() {
         const {
             id,
-            type,
-            values,
             data,
+            label,
             'max-length': maxLength,
             required,
+            type,
         } = this.props;
 
-        // TODO: VALIDATION
+        let Tag;
+        const properties = {};
+        const value = data[id] || '';
 
-        let children;
-        let ColTag = Col;
-        const inputProps = {};
 
-        if (type === 'input') {
-            inputProps.type = 'text';
+        switch (type) {
+            case 'input':
+                Tag = Input;
+                break;
+            case 'textarea':
+                Tag = TextArea;
+                break;
+            case 'checkbox':
+                Tag = CheckBox;
+                properties.checked = value || false;
+                break;
+            default:
+                Tag = 'div';
         }
 
-        if (type === 'select') {
-            children = values.map(option => (
-                <option
-                    value={option.value}
-                    key={`input-select-value-${revisedRandomId()}`}
-                >
-                    {option.title}
-                </option>
-            ));
-
-            ColTag = React.Fragment;
-            inputProps.className = style.select;
-        }
-
-        if (type === 'checkbox') {
-            inputProps.checked = data[id] || false;
-        } else {
-            inputProps.value = data[id] || '';
-        }
-
-        if (type !== 'checkbox' && type !== 'select') {
-            if (required && !inputProps.value) {
-                inputProps.invalid = true;
-            }
-
-            if (maxLength && inputProps.value.length > maxLength) {
-                inputProps.invalid = true;
-            }
+        if (
+            type !== 'checkbox'
+            && ((required && value) || (maxLength && value.length > maxLength))
+        ) {
+            properties.color = 'danger';
         }
 
         return (
-            <ColTag>
-                <Input
-                    type={type}
-                    name={id}
-                    id={id}
-                    {...inputProps}
-                    onChange={this.handleInputChange}
-                >
-                    {children}
-                </Input>
-            </ColTag>
+            <Tag
+                label={label}
+                id={id}
+                {...properties}
+                onChange={this.handleInputChange}
+                value={data[id] || ''}
+            />
         );
     }
 }
 
 LayoutInput.propTypes = {
+    label: PropTypes.string.isRequired,
     changeDataField: PropTypes.func,
-    data: PropTypes.objectOf(PropTypes.oneOfType([
-        PropTypes.string,
-        PropTypes.number,
-        PropTypes.bool,
-        PropTypes.objectOf(PropTypes.oneOfType([
-            PropTypes.string,
-            PropTypes.number,
-            PropTypes.bool,
-        ])),
-    ])).isRequired,
+    data: dataPropType.isRequired,
     id: PropTypes.string,
     type: PropTypes.string,
     values: PropTypes.arrayOf(PropTypes.shape({

@@ -1,22 +1,15 @@
-import { faSearch } from '@fortawesome/free-solid-svg-icons';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import PropTypes from 'prop-types';
 import React, { Component } from 'react';
 import { Link } from 'react-router-dom';
 import { categoryPropType } from '../../../utilities/propTypes';
 import {
-    Button,
     Collapse,
     DropdownItem,
     DropdownMenu,
     DropdownToggle,
-    Input,
-    InputGroup,
-    InputGroupAddon,
     Nav,
     Navbar,
     NavbarToggler,
-    NavItem,
     UncontrolledDropdown,
 } from '../../design';
 import CategoriesDropdown from './categories-dropdown';
@@ -68,16 +61,6 @@ class Navigation extends Component {
                             ))
                             : undefined
                         }
-                        <NavItem>
-                            <InputGroup>
-                                <InputGroupAddon addonType="append">
-                                    <Input type="text" placeholder="[Suche]" />
-                                    <Button color="success">
-                                        <FontAwesomeIcon icon={faSearch} />
-                                    </Button>
-                                </InputGroupAddon>
-                            </InputGroup>
-                        </NavItem>
                     </Nav>
                     <Nav className="ml-auto" navbar>
                         <UncontrolledDropdown nav inNavbar>
