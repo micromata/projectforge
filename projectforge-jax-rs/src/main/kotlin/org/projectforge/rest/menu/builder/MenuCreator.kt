@@ -2,14 +2,22 @@ package org.projectforge.rest.menu.builder
 
 import org.projectforge.business.configuration.ConfigurationService
 import org.projectforge.business.fibu.*
+import org.projectforge.business.fibu.datev.DatevImportDao
 import org.projectforge.business.fibu.kost.Kost2Dao
 import org.projectforge.business.humanresources.HRPlanningDao
+import org.projectforge.business.login.Login
+import org.projectforge.business.orga.ContractDao
+import org.projectforge.business.orga.PostausgangDao
+import org.projectforge.business.orga.PosteingangDao
+import org.projectforge.business.orga.VisitorbookDao
 import org.projectforge.business.user.ProjectForgeGroup
-import org.projectforge.business.user.UserRightId
 import org.projectforge.business.user.UserRightValue
+import org.projectforge.business.vacation.service.VacationService
 import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.configuration.Configuration
+import org.projectforge.framework.persistence.api.IUserRightId
 import org.projectforge.framework.persistence.api.UserRightService.*
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.rest.menu.MenuBadge
 import org.projectforge.rest.menu.MenuItem
 import org.projectforge.sms.SmsSenderConfig
@@ -19,6 +27,8 @@ import org.springframework.stereotype.Component
 
 @Component
 class MenuCreator() {
+    private val log = org.slf4j.LoggerFactory.getLogger(MenuCreator::class.java)
+
     internal class MenuHolder() {
         internal val menuItems: MutableList<MenuItemDef> = mutableListOf()
         fun add(menuItem: MenuItemDef): MenuItemDef {
@@ -40,9 +50,17 @@ class MenuCreator() {
     @Autowired
     private lateinit var configurationService: ConfigurationService
 
+    @Autowired
+    private lateinit var vacationService: VacationService
+
     @Synchronized
     private fun initialize() {
         if (initialized) return
+
+        //////////////////////////////////////
+        //
+        // COMMON
+        //
         val commonMenu = menu.add(MenuItemDef(MenuItemDefId.COMMON))
                 .add(MenuItemDef(MenuItemDefId.CALENDAR, "wa/teamCalendar"))
                 .add(MenuItemDef(MenuItemDefId.TEAMCALENDAR, "wa/wicket/bookmarkable/org.projectforge.web.teamcal.admin.TeamCalListPage"))
@@ -58,35 +76,44 @@ class MenuCreator() {
             commonMenu.add(MenuItemDef(MenuItemDefId.MEB, "wa/mebList")) // MenuNewCounterMeb
         commonMenu.add(MenuItemDef(MenuItemDefId.SEARCH, "wa/search"))
 
-        var pmMenu = menu.add(MenuItemDef(MenuItemDefId.PROJECT_MANAGEMENT))
+        //////////////////////////////////////
+        //
+        // Project management
+        //
+        menu.add(MenuItemDef(MenuItemDefId.PROJECT_MANAGEMENT))
                 .add(MenuItemDef(MenuItemDefId.TASK_TREE, "wa/taskTree"))
                 .add(MenuItemDef(MenuItemDefId.TIMESHEET_LIST, "wa/timesheetList"))
                 .add(MenuItemDef(MenuItemDefId.MONTHLY_EMPLOYEE_REPORT, "wa/monthlyEmployeeReport"))
                 .add(MenuItemDef(MenuItemDefId.PERSONAL_STATISTICS, "wa/personalStatistics"))
                 .add(MenuItemDef(MenuItemDefId.HR_VIEW, "wa/hrList",
-                        checkAccess = { hasRight(HRPlanningDao.USER_RIGHT_ID, *READONLY_READWRITE) }))
-                // HRPlanningDao.USER_RIGHT_ID, *READONLY_READWRITE
+                        requiredUserRightId = HRPlanningDao.USER_RIGHT_ID, requiredUserRightValues = READONLY_READWRITE))
                 .add(MenuItemDef(MenuItemDefId.HR_PLANNING_LIST, "wa/hrPlanningList"))
                 .add(MenuItemDef(MenuItemDefId.GANTT, "wa/ganttList"))
                 // MenuNewCounterOrder, tooltip = "menu.fibu.orderbook.htmlSuffixTooltip"
                 .add(MenuItemDef(MenuItemDefId.ORDER_LIST, "wa/orderBookList",
-                        checkAccess = {
+                        checkAccess =
+                        {
                             hasRight(AuftragDao.USER_RIGHT_ID, *READONLY_PARTLYREADWRITE_READWRITE) &&
                                     !isInGroup(*FIBU_ORGA_GROUPS) // Orderbook is shown under menu FiBu for FiBu users
                         }))
 
-        var hrMenu = menu.add(MenuItemDef(MenuItemDefId.HR,
-                checkAccess = { isInGroup(ProjectForgeGroup.HR_GROUP) }))
+        //////////////////////////////////////
+        //
+        // Human resources
+        //
+        menu.add(MenuItemDef(MenuItemDefId.HR,
+                checkAccess =
+                { isInGroup(ProjectForgeGroup.HR_GROUP) }))
                 .add(MenuItemDef(MenuItemDefId.EMPLOYEE_LIST, "wa/employeeList",
-                        checkAccess = {
-                            hasRight(EmployeeDao.USER_RIGHT_ID, *READONLY_READWRITE)
-                        }))
+                        requiredUserRightId = EmployeeDao.USER_RIGHT_ID, requiredUserRightValues = READONLY_READWRITE))
                 .add(MenuItemDef(MenuItemDefId.EMPLOYEE_SALARY_LIST, "wa/employeeSalaryList",
-                        checkAccess = {
-                            hasRight(EmployeeSalaryDao.USER_RIGHT_ID, *READONLY_READWRITE)
-                        }))
+                        requiredUserRightId = EmployeeSalaryDao.USER_RIGHT_ID, requiredUserRightValues = READONLY_READWRITE))
 
-        var fibuMenu = menu.add(MenuItemDef(MenuItemDefId.FIBU,
+        //////////////////////////////////////
+        //
+        // Financial and administrative
+        //
+        val fibuMenu = menu.add(MenuItemDef(MenuItemDefId.FIBU,
                 checkAccess = { isInGroup(*FIBU_ORGA_GROUPS) }))
                 .add(MenuItemDef(MenuItemDefId.OUTGOING_INVOICE_LIST, "wa/outgoingInvoiceList",
                         checkAccess = {
@@ -108,14 +135,14 @@ class MenuCreator() {
                             }))
         }
         // MenuNewCounterOrder, tooltip = "menu.fibu.orderbook.htmlSuffixTooltip"
-        fibuMenu.add(MenuItemDef(MenuItemDefId.ORDER_LIST, "wa/orderBookList",
-                checkAccess = { isInGroup(*FIBU_ORGA_GROUPS) }))
+        fibuMenu.add(MenuItemDef(MenuItemDefId.ORDER_LIST, "wa/orderBookList", requiredGroups = *FIBU_ORGA_GROUPS))
 
+        //////////////////////////////////////
+        //
+        // COST
+        //
         if (Configuration.getInstance().isCostConfigured()) {
-            menu.add(MenuItemDef(MenuItemDefId.COST,
-                    checkAccess = {
-                        isInGroup(*FIBU_ORGA_HR_GROUPS, ProjectForgeGroup.CONTROLLING_GROUP)
-                    }))
+            menu.add(MenuItemDef(MenuItemDefId.COST, requiredGroups = *FIBU_ORGA_HR_GROUPS))
                     .add(MenuItemDef(MenuItemDefId.ACCOUNT_LIST, "wa/accountList",
                             checkAccess = {
                                 hasRight(KontoDao.USER_RIGHT_ID, *READONLY_READWRITE) ||
@@ -132,101 +159,99 @@ class MenuCreator() {
                                         isInGroup(ProjectForgeGroup.CONTROLLING_GROUP)
                             }))
         }
-        menu.add(MenuItemDef(MenuItemDefId.REPORTING,
+
+
+        //////////////////////////////////////
+        //
+        // REPORTING
+        //
+        val reportingMenu = menu.add(MenuItemDef(MenuItemDefId.REPORTING,
                 checkAccess = {
                     isInGroup(*FIBU_ORGA_HR_GROUPS)
                 }))
+                .add(MenuItemDef(MenuItemDefId.SCRIPT_LIST, "wa/scriptList",
+                        requiredGroups = *arrayOf(ProjectForgeGroup.FINANCE_GROUP, ProjectForgeGroup.CONTROLLING_GROUP)))
+                .add(MenuItemDef(MenuItemDefId.SCRIPTING, "wa/scripting",
+                        requiredGroups = *arrayOf(ProjectForgeGroup.FINANCE_GROUP, ProjectForgeGroup.CONTROLLING_GROUP)))
+                .add(MenuItemDef(MenuItemDefId.REPORT_OBJECTIVES, "wa/reportObjectives",
+                        requiredGroups = *arrayOf(ProjectForgeGroup.FINANCE_GROUP, ProjectForgeGroup.CONTROLLING_GROUP)))
+                .add(MenuItemDef(MenuItemDefId.REPORT_OBJECTIVES, "wa/reportObjectives",
+                        requiredGroups = *arrayOf(ProjectForgeGroup.FINANCE_GROUP, ProjectForgeGroup.CONTROLLING_GROUP)))
+        if (Configuration.getInstance().isCostConfigured()) {
+            // Only visible if cost is configured:
+            reportingMenu.add(MenuItemDef(MenuItemDefId.ACCOUNTING_RECORD_LIST, "wa/accountingRecordList",
+                    requiredGroups = *arrayOf(ProjectForgeGroup.FINANCE_GROUP, ProjectForgeGroup.CONTROLLING_GROUP)))
+                    .add(MenuItemDef(MenuItemDefId.DATEV_IMPORT, "wa/datevImport",
+                            requiredUserRightId = DatevImportDao.USER_RIGHT_ID, requiredUserRightValues = arrayOf(UserRightValue.TRUE)))
+        }
+        // TODO: Liquidity injected by Plugin.
+
+        //////////////////////////////////////
+        //
+        // ORGA
+        //
         menu.add(MenuItemDef(MenuItemDefId.ORGA,
-                checkAccess = {
-                    isInGroup(*FIBU_ORGA_HR_GROUPS)
-                })) // UserRightService.FIBU_ORGA_HR_GROUPS
-        menu.add(MenuItemDef(MenuItemDefId.ADMINISTRATION)) // .setVisibleForRestrictedUsers(true)
+                requiredGroups = *FIBU_ORGA_HR_GROUPS))
+                .add(MenuItemDef(MenuItemDefId.OUTBOX_LIST, "wa/outgoingMailList",
+                        requiredUserRightId = PostausgangDao.USER_RIGHT_ID, requiredUserRightValues = READONLY_READWRITE))
+                .add(MenuItemDef(MenuItemDefId.INBOX_LIST, "wa/incomingMailList",
+                        requiredUserRightId = PosteingangDao.USER_RIGHT_ID, requiredUserRightValues = READONLY_READWRITE))
+                .add(MenuItemDef(MenuItemDefId.CONTRACTS, "wa/contractList",
+                        requiredUserRightId = ContractDao.USER_RIGHT_ID, requiredUserRightValues = READONLY_READWRITE))
+                .add(MenuItemDef(MenuItemDefId.VISITORBOOK, "wa/wa/wicket/bookmarkable/org.projectforge.web.orga.VisitorbookListPage",
+                        requiredUserRightId = VisitorbookDao.USER_RIGHT_ID, requiredUserRightValues = READONLY_READWRITE))
+
+        //////////////////////////////////////
+        //
+        // ADMINISTRATION
+        //
+        val adminMenu = menu.add(MenuItemDef(MenuItemDefId.ADMINISTRATION, visibleForRestrictedUsers = true))
+                .add(MenuItemDef(MenuItemDefId.MY_ACCOUNT, "wa/myAccount"))
+                .add(MenuItemDef(MenuItemDefId.MY_PREFERENCES, "wa/userPrefList"))
+                .add(MenuItemDef(MenuItemDefId.VACATION_VIEW, "wa/wicket/bookmarkable/org.projectforge.web.vacation.VacationViewPage",
+                        checkAccess =
+                        {
+                            vacationService.couldUserUseVacationService(ThreadLocalUserContext.getUser(), false)
+                        }))
+                .add(MenuItemDef(MenuItemDefId.CHANGE_PASSWORD, "wa/changePassword",
+                        checkAccess =
+                        {
+                            // The visibility of this menu entry is evaluated by the login handler implementation.
+                            Login.getInstance().isPasswordChangeSupported(ThreadLocalUserContext.getUser())
+                        }))
+                .add(MenuItemDef(MenuItemDefId.CHANGE_WLAN_PASSWORD, "wa/wicket/bookmarkable/org.projectforge.web.user.ChangeWlanPasswordPage",
+                        checkAccess =
+                        {
+                            // The visibility of this menu entry is evaluated by the login handler implementation.
+                            Login.getInstance().isWlanPasswordChangeSupported(ThreadLocalUserContext.getUser())
+                        }))
+                .add(MenuItemDef(MenuItemDefId.USER_LIST, "wa/userList")) // Visible for all.
+                .add(MenuItemDef(MenuItemDefId.GROUP_LIST, "wa/groupList")) // Visible for all.
+                .add(MenuItemDef(MenuItemDefId.ACCESS_LIST, "wa/accessList")) // Visible for all.
+                .add(MenuItemDef(MenuItemDefId.SYSTEM, "wa/admin", requiredGroups = *arrayOf(ProjectForgeGroup.ADMIN_GROUP)))
+
+        if (configurationService.securityConfig?.isSqlConsoleAvailable == true) {
+            // Only available in development mode or if SQL console is configured in SecurityConfig.
+            adminMenu.add(MenuItemDef(MenuItemDefId.SQL_CONSOLE, "wa/wicket/bookmarkable/org.projectforge.web.admin.SqlConsolePage",
+                    requiredGroups = *arrayOf(ProjectForgeGroup.ADMIN_GROUP)))
+                    .add(MenuItemDef(MenuItemDefId.GROOVY_CONSOLE, "wa/wicket/bookmarkable/org.projectforge.web.admin.GroovyConsolePage",
+                            requiredGroups = *arrayOf(ProjectForgeGroup.ADMIN_GROUP)))
+                    .add(MenuItemDef(MenuItemDefId.LUCENE_CONSOLE, "wa/wicket/bookmarkable/org.projectforge.web.admin.LuceneConsolePage",
+                            requiredGroups = *arrayOf(ProjectForgeGroup.ADMIN_GROUP)))
+        }
+        adminMenu.add(MenuItemDef(MenuItemDefId.SYSTEM_UPDATE, "wa/systemUpdate", requiredGroups = *arrayOf(ProjectForgeGroup.ADMIN_GROUP)))
+                .add(MenuItemDef(MenuItemDefId.SYSTEM_STATISTICS, "wa/systemStatistics")) // Visible for all.
+                .add(MenuItemDef(MenuItemDefId.CONFIGURATION, "wa/configuration", requiredGroups = *arrayOf(ProjectForgeGroup.ADMIN_GROUP)))
+                .add(MenuItemDef(MenuItemDefId.PLUGIN_ADMIN, "wa/wicket/bookmarkable/org.projectforge.web.admin.PluginListPage",
+                        requiredGroups = *arrayOf(ProjectForgeGroup.ADMIN_GROUP)))
+
+
+        //////////////////////////////////////
+        //
+        // MISC
+        //
         menu.add(MenuItemDef(MenuItemDefId.MISC))
 
-
-/*
-
-        // REPORTING
-        reg.register(reporting, MenuItemDefId.SCRIPT_LIST, 10, ScriptListPage::class.java, FINANCE_GROUP, CONTROLLING_GROUP)
-        reg.register(reporting, MenuItemDefId.SCRIPTING, 20, ScriptingPage::class.java, FINANCE_GROUP, CONTROLLING_GROUP)
-        reg.register(reporting, MenuItemDefId.REPORT_OBJECTIVES, 30, ReportObjectivesPage::class.java, FINANCE_GROUP,
-                CONTROLLING_GROUP)
-        run {
-            // Only visible if cost is configured and DATEV-Import right is given:
-            reg.register(reporting, MenuItemDefId.ACCOUNTING_RECORD_LIST, 40, AccountingRecordListPage::class.java, DatevImportDao.USER_RIGHT_ID,
-                    UserRightValue.TRUE)
-            reg.register(reporting, MenuItemDefId.DATEV_IMPORT, 50, DatevImportPage::class.java, DatevImportDao.USER_RIGHT_ID,
-                    UserRightValue.TRUE)
-        }
-
-        // ORGA
-        reg.register(orga, MenuItemDefId.OUTBOX_LIST, 10, PostausgangListPage::class.java, PostausgangDao.USER_RIGHT_ID,
-                *READONLY_READWRITE)
-        reg.register(orga, MenuItemDefId.INBOX_LIST, 20, PosteingangListPage::class.java, PosteingangDao.USER_RIGHT_ID,
-                *READONLY_READWRITE)
-        reg.register(orga, MenuItemDefId.CONTRACTS, 30, ContractListPage::class.java, ContractDao.USER_RIGHT_ID,
-                *READONLY_READWRITE)
-        reg.register(orga, MenuItemDefId.VISITORBOOK, 30, VisitorbookListPage::class.java, VisitorbookDao.USER_RIGHT_ID,
-                *READONLY_READWRITE)
-
-        // ADMINISTRATION
-        reg.register(admin, MenuItemDefId.MY_ACCOUNT, 10, MyAccountEditPage::class.java)
-        reg.register(
-                object : MenuItemDef(admin, MenuItemDefId.VACATION_VIEW.getId(), 11, MenuItemDefId.VACATION_VIEW.getI18nKey(),
-                        VacationViewPage::class.java) {
-                    protected override fun isVisible(context: MenuBuilderContext): Boolean {
-                        return vacationService.couldUserUseVacationService(ThreadLocalUserContext.getUser(), false)
-                    }
-                }
-        )
-        reg.register(admin, MenuItemDefId.MY_PREFERENCES, 20, UserPrefListPage::class.java)
-        reg.register(
-                object : MenuItemDef(admin, MenuItemDefId.CHANGE_PASSWORD.getId(), 30, MenuItemDefId.CHANGE_PASSWORD.getI18nKey(),
-                        ChangePasswordPage::class.java) {
-                    /**
-                     * @see org.projectforge.web.MenuItemDef.isVisible
-                     */
-                    protected override fun isVisible(context: MenuBuilderContext): Boolean {
-                        // The visibility of this menu entry is evaluated by the login handler implementation.
-                        val user = context.getLoggedInUser()
-                        return Login.getInstance().isPasswordChangeSupported(user)
-                    }
-                })
-
-        reg.register(
-                object : MenuItemDef(admin, MenuItemDefId.CHANGE_WLAN_PASSWORD.getId(), 32, MenuItemDefId.CHANGE_WLAN_PASSWORD.getI18nKey(),
-                        ChangeWlanPasswordPage::class.java) {
-                    protected override fun isVisible(context: MenuBuilderContext): Boolean {
-                        // The visibility of this menu entry is evaluated by the login handler implementation.
-                        val user = context.getLoggedInUser()
-                        return Login.getInstance().isWlanPasswordChangeSupported(user)
-                    }
-                })
-
-        reg.register(object : MenuItemDef(admin, MenuItemDefId.TENANT_LIST.getId(), 35, MenuItemDefId.TENANT_LIST.getI18nKey(),
-                TenantListPage::class.java) {
-            /**
-             * @see org.projectforge.web.MenuItemDef.isVisible
-             */
-            protected override fun isVisible(context: MenuBuilderContext): Boolean {
-                val user = context.getLoggedInUser()
-                return TenantChecker.isSuperAdmin<ExtendedBaseDO<Int>>(user)
-            }
-        })
-        // reg.register(admin, MenuItemDefId.TENANT_LIST, 35, TenantListPage.class, TenantDao.USER_RIGHT_ID, READONLY_READWRITE);
-        reg.register(admin, MenuItemDefId.USER_LIST, 40, UserListPage::class.java)
-        reg.register(admin, MenuItemDefId.GROUP_LIST, 50, GroupListPage::class.java) // Visible for all.
-        reg.register(admin, MenuItemDefId.ACCESS_LIST, 60, AccessListPage::class.java) // Visible for all.
-        reg.register(admin, MenuItemDefId.SYSTEM, 70, AdminPage::class.java, ADMIN_GROUP)
-        // Only available in development mode or if SQL console is configured in SecurityConfig.
-        reg.register(admin, MenuItemDefId.SQL_CONSOLE, 71, SqlConsolePage::class.java, ADMIN_GROUP)
-        reg.register(admin, MenuItemDefId.GROOVY_CONSOLE, 72, GroovyConsolePage::class.java, ADMIN_GROUP)
-        reg.register(admin, MenuItemDefId.LUCENE_CONSOLE, 72, LuceneConsolePage::class.java, ADMIN_GROUP)
-        reg.register(admin, MenuItemDefId.SYSTEM_UPDATE, 80, SystemUpdatePage::class.java, ADMIN_GROUP)
-        reg.register(admin, MenuItemDefId.SYSTEM_STATISTICS, 90, SystemStatisticsPage::class.java)
-        reg.register(admin, MenuItemDefId.CONFIGURATION, 100, ConfigurationListPage::class.java, ADMIN_GROUP)
-        reg.register(admin, MenuItemDefId.PLUGIN_ADMIN, 110, PluginListPage::class.java, ADMIN_GROUP)
-*/
         initialized = true
     }
 
@@ -240,8 +265,9 @@ class MenuCreator() {
     }
 
     private fun build(parent: MenuItem, menuItemDef: MenuItemDef, menuBuilderContext: MenuCreatorContext) {
-        if (menuItemDef.checkAccess?.invoke() == false)
-            return
+        if (!checkAccess(menuBuilderContext, menuItemDef))
+            return // No access
+
         val menuItem = menuItemDef.createMenu(parent, menuBuilderContext)
         menuItem.badge =
                 when (menuItemDef.key) {
@@ -256,8 +282,37 @@ class MenuCreator() {
         }
     }
 
-    private fun hasRight(rightId: UserRightId, vararg values: UserRightValue): Boolean {
+    private fun checkAccess(menuBuilderContext: MenuCreatorContext, menuItemDef: MenuItemDef): Boolean {
+        if (menuItemDef.checkAccess?.invoke() == false)
+            return false
+        if (accessChecker.isRestrictedUser && menuItemDef.visibleForRestrictedUsers == false)
+            return false
+        if (!menuItemDef.requiredGroups.isNullOrEmpty() && !isInGroup(menuBuilderContext, menuItemDef.requiredGroups!!)) {
+            return false
+        }
+        var userRightId = menuItemDef.requiredUserRightId
+        if (userRightId == null && menuItemDef.requiredUserRight != null)
+            userRightId = menuItemDef.requiredUserRight?.id
+        if (userRightId != null && !hasRight(menuBuilderContext, userRightId, menuItemDef.requiredUserRightValues)) {
+            return false
+        }
+        return true;
+    }
+
+    private fun hasRight(menuBuilderContext: MenuCreatorContext, rightId: IUserRightId, values: Array<UserRightValue>?): Boolean {
+        if (values.isNullOrEmpty()) {
+            log.warn("Can't check user right '${rightId}' against null values.")
+            return false
+        }
+        return accessChecker.hasRight(menuBuilderContext.user, rightId, false, *values)
+    }
+
+    private fun hasRight(rightId: IUserRightId, vararg values: UserRightValue): Boolean {
         return accessChecker.hasLoggedInUserRight(rightId, false, *values)
+    }
+
+    private fun isInGroup(menuBuilderContext: MenuCreatorContext, groups: Array<ProjectForgeGroup>): Boolean {
+        return accessChecker.isUserMemberOfGroup(menuBuilderContext.user, *groups)
     }
 
     private fun isInGroup(vararg groups: ProjectForgeGroup): Boolean {

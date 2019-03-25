@@ -1,6 +1,10 @@
 package org.projectforge.rest.menu.builder
 
 import org.projectforge.business.user.ProjectForgeGroup
+import org.projectforge.business.user.UserRight
+import org.projectforge.business.user.UserRightId
+import org.projectforge.business.user.UserRightValue
+import org.projectforge.framework.persistence.api.IUserRightId
 import org.projectforge.rest.menu.MenuItem
 import org.projectforge.ui.translate
 
@@ -15,11 +19,23 @@ class MenuItemDef {
      * @param url The target url.
      * @param checkAccess Dynamic check access for the logged in user. The menu is visible if [checkAccess] is null or returns true.
      */
-    constructor(defId: MenuItemDefId, url: String? = null, checkAccess: (() -> Boolean)? = null) {
+    constructor(defId: MenuItemDefId,
+                url: String? = null,
+                checkAccess: (() -> Boolean)? = null,
+                visibleForRestrictedUsers: Boolean = false,
+                requiredUserRightId: IUserRightId? = null,
+                requiredUserRight: UserRight? = null,
+                requiredUserRightValues: Array<UserRightValue>? = null,
+                vararg requiredGroups : ProjectForgeGroup) {
         this.key = defId.id
         this.i18nKey = defId.getI18nKey()
         this.url = url
         this.checkAccess = checkAccess
+        this.visibleForRestrictedUsers = visibleForRestrictedUsers
+        this.requiredGroups = arrayOf(*requiredGroups)
+        this.requiredUserRightId = requiredUserRightId
+        this.requiredUserRight = requiredUserRight
+        this.requiredUserRightValues = requiredUserRightValues
     }
 
     /**
@@ -29,11 +45,23 @@ class MenuItemDef {
      * @param url The target url.
      * @param checkAccess Dynamic check access for the logged in user. The menu is visible if [checkAccess] is null or returns true.
      */
-    constructor(key : String, i18nKey: String, url: String? = null, checkAccess: (() -> Boolean)? = null) {
+    constructor(key: String, i18nKey: String,
+                url: String? = null,
+                checkAccess: (() -> Boolean)? = null,
+                visibleForRestrictedUsers: Boolean = false,
+                requiredUserRightId: IUserRightId? = null,
+                requiredUserRight: UserRight? = null,
+                requiredUserRightValues: Array<UserRightValue>? = null,
+                vararg requiredGroups : ProjectForgeGroup) {
         this.key = key
         this.i18nKey = i18nKey
         this.url = url
         this.checkAccess = checkAccess
+        this.visibleForRestrictedUsers = visibleForRestrictedUsers
+        this.requiredGroups = arrayOf(*requiredGroups)
+        this.requiredUserRightId = requiredUserRightId
+        this.requiredUserRight = requiredUserRight
+        this.requiredUserRightValues = requiredUserRightValues
     }
 
     /**
@@ -43,9 +71,13 @@ class MenuItemDef {
     var title: String? = null
     var i18nKey: String? = null
     var url: String? = null
-    var allowedGroups: List<ProjectForgeGroup>? = null
+    var visibleForRestrictedUsers: Boolean = false
 
     var checkAccess: (() -> Boolean)? = null
+    var requiredGroups: Array<ProjectForgeGroup>? = null
+    var requiredUserRightId: IUserRightId? = null
+    var requiredUserRight: UserRight? = null
+    var requiredUserRightValues: Array<UserRightValue>? = null
 
     internal var childs: MutableList<MenuItemDef>? = null
 
@@ -77,7 +109,7 @@ class MenuItemDef {
      */
     internal fun createMenu(parentMenu: MenuItem, menuBuilderContext: MenuCreatorContext): MenuItem {
         val menuItem = MenuItem(translate(i18nKey), url = this.url)
-        if (parentMenu?.title != "root")
+        if (parentMenu.title != "root")
             menuItem.key = "${parentMenu.key}.${key}"
         else
             menuItem.key = "${key}"
