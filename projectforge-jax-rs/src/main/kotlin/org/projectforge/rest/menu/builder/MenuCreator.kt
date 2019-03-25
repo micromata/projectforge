@@ -241,7 +241,7 @@ class MenuCreator() {
     private fun build(parent: MenuItem, menuItemDef: MenuItemDef, menuBuilderContext: MenuCreatorContext) {
         if (menuItemDef.checkAccess?.invoke() == false)
             return
-        val menuItem = menuItemDef.createMenu(menuBuilderContext)
+        val menuItem = menuItemDef.createMenu(parent, menuBuilderContext)
         parent.add(menuItem)
         menuItemDef.childs?.forEach { childMenuItemDef ->
             build(menuItem, childMenuItemDef, menuBuilderContext)
