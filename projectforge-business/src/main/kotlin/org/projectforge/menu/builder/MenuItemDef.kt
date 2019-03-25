@@ -39,12 +39,13 @@ class MenuItemDef {
 
     /**
      * Usable for e. g. plugins without [MenuItemDef] available.
-     * @param key Should be unique inside one top menu.
+     * @param id Should be unique inside one top menu.
      * @param i18nKey Used for translation.
      * @param url The target url.
      * @param checkAccess Dynamic check access for the logged in user. The menu is visible if [checkAccess] is null or returns true.
      */
-    constructor(key: String, i18nKey: String,
+    constructor(id: String,
+                i18nKey: String,
                 url: String? = null,
                 checkAccess: (() -> Boolean)? = null,
                 visibleForRestrictedUsers: Boolean = false,
@@ -52,7 +53,7 @@ class MenuItemDef {
                 requiredUserRight: UserRight? = null,
                 requiredUserRightValues: Array<UserRightValue>? = null,
                 vararg requiredGroups : ProjectForgeGroup) {
-        this.key = key
+        this.key = id
         this.i18nKey = i18nKey
         this.url = url
         this.checkAccess = checkAccess
@@ -77,6 +78,11 @@ class MenuItemDef {
     var requiredUserRightId: IUserRightId? = null
     var requiredUserRight: UserRight? = null
     var requiredUserRightValues: Array<UserRightValue>? = null
+
+    /**
+     * For alternative url references (used by Wicket for referring Wicket page classes instead of urls as string.
+     */
+    var link : Any? = null
 
     internal var childs: MutableList<MenuItemDef>? = null
 
