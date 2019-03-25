@@ -2,7 +2,6 @@ package org.projectforge.rest.menu.builder
 
 import org.projectforge.business.configuration.ConfigurationService
 import org.projectforge.business.fibu.*
-import org.projectforge.business.fibu.datev.DatevImportDao.hasRight
 import org.projectforge.business.fibu.kost.Kost2Dao
 import org.projectforge.business.humanresources.HRPlanningDao
 import org.projectforge.business.user.ProjectForgeGroup
@@ -11,8 +10,10 @@ import org.projectforge.business.user.UserRightValue
 import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.configuration.Configuration
 import org.projectforge.framework.persistence.api.UserRightService.*
+import org.projectforge.rest.menu.MenuBadge
 import org.projectforge.rest.menu.MenuItem
 import org.projectforge.sms.SmsSenderConfig
+import org.projectforge.ui.translate
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
@@ -242,6 +243,13 @@ class MenuCreator() {
         if (menuItemDef.checkAccess?.invoke() == false)
             return
         val menuItem = menuItemDef.createMenu(parent, menuBuilderContext)
+        menuItem.badge =
+                when (menuItemDef.key) {
+                    "FIBU" -> MenuBadge(12)
+                    "ORDER_LIST" -> MenuBadge(9, tooltip = translate("menu.fibu.orderbook.htmlSuffixTooltip"))
+                    "OUTGOING_INVOICE_LIST" -> MenuBadge(3)
+                    else -> null
+                }
         parent.add(menuItem)
         menuItemDef.childs?.forEach { childMenuItemDef ->
             build(menuItem, childMenuItemDef, menuBuilderContext)
