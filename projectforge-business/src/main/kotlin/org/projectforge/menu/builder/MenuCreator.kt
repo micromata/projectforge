@@ -1,5 +1,6 @@
 package org.projectforge.menu.builder
 
+import jdk.nashorn.internal.objects.NativeArray.forEach
 import org.projectforge.business.configuration.ConfigurationService
 import org.projectforge.business.fibu.*
 import org.projectforge.business.fibu.datev.DatevImportDao
@@ -61,20 +62,20 @@ class MenuCreator() {
         menu.menuItems.forEach {
             if (it.key == id)
                 return it
-            it.childs?.forEach {
-                val menuItemDef = findById(it, id)
-                if (menuItemDef != null)
-                    return menuItemDef
-            }
+            val menuItemDef = findById(it, id)
+            if (menuItemDef != null)
+                return menuItemDef
         }
         return null
     }
 
     private fun findById(parent: MenuItemDef, id: String): MenuItemDef? {
-        menu.menuItems.forEach {
+        parent.childs?.forEach {
             if (it.key == id)
                 return it
-
+            val menuItemDef = findById(it, id)
+            if (menuItemDef != null)
+                return menuItemDef
         }
         return null
     }
@@ -292,7 +293,7 @@ class MenuCreator() {
         if (!checkAccess(menuBuilderContext, menuItemDef))
             return // No access
 
-        val menuItem = menuItemDef.createMenu(parent, menuBuilderContext)
+        val menuItem = menuItemDef.createMenu(parent)
         menuItem.badge =
                 when (menuItemDef.key) {
                     "FIBU" -> MenuBadge(12)
