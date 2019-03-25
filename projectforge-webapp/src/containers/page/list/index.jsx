@@ -42,12 +42,6 @@ class ListPage extends React.Component {
             data,
         } = this.props;
 
-        /*
-        TODO:
-        - Add List
-        - (Add EditPage Actions)
-         */
-
         return (
             <LoadingContainer loading={loading}>
                 <PageNavigation current={ui.title}>

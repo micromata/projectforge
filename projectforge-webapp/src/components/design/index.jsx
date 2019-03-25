@@ -1,3 +1,15 @@
+import Input from './input';
+import CheckBox from './input/CheckBox';
+import Select from './input/Select';
+import TextArea from './input/TextArea';
+
+export {
+    Input,
+    TextArea,
+    CheckBox,
+    Select,
+};
+
 export {
     Alert,
     Button,
@@ -14,7 +26,6 @@ export {
     DropdownItem,
     Form,
     FormGroup,
-    Input,
     InputGroup,
     InputGroupAddon,
     Label,

@@ -5,6 +5,7 @@ import { Col, FormGroup, Row } from '../../../design';
 import style from '../Page.module.scss';
 import LayoutInput from './Input';
 import LayoutLabel from './Label';
+import LayoutSelect from './Select';
 import LayoutTable from './Table';
 
 // TODO: COLLECT INPUT IN PARENT
@@ -49,10 +50,12 @@ function LayoutGroup(
                         Tag = LayoutLabel;
                         break;
                     case 'input':
-                    case 'select':
                     case 'checkbox':
                     case 'textarea':
                         Tag = LayoutInput;
+                        break;
+                    case 'select':
+                        Tag = LayoutSelect;
                         break;
                     case 'group':
                     case 'row':

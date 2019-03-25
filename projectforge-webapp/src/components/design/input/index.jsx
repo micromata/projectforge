@@ -12,12 +12,13 @@ function Input(
         id,
         label,
         type,
+        value,
         ...props
     },
 ) {
     // Use new React Hook Feature
     // https://reactjs.org/docs/hooks-intro.html
-    const [active, setActive] = React.useState(false);
+    const [active, setActive] = React.useState(value);
 
     return (
         <div className={classNames(style.formGroup, className)}>
@@ -32,6 +33,7 @@ function Input(
                     {...props}
                     onFocus={() => setActive(true)}
                     onBlur={event => setActive(event.target.value !== '')}
+                    value={value}
                 />
                 <span className={style.text}>{label}</span>
             </label>
@@ -49,6 +51,7 @@ Input.propTypes = {
     className: PropTypes.string,
     color: colorPropType,
     type: PropTypes.string,
+    value: PropTypes.string,
 };
 
 Input.defaultProps = {
@@ -56,6 +59,7 @@ Input.defaultProps = {
     className: undefined,
     color: undefined,
     type: 'text',
+    value: undefined,
 };
 
 export default Input;

@@ -10,6 +10,7 @@ function CheckBox(
         color,
         id,
         label,
+        props
     },
 ) {
     return (
@@ -22,6 +23,7 @@ function CheckBox(
                     type="checkbox"
                     className={style.checkbox}
                     id={id}
+                    {...props}
                 />
                 <span className={classNames(style.text, style[color])}>{label}</span>
             </label>

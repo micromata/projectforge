@@ -8,11 +8,9 @@ import {
     Card,
     CardBody,
     CardTitle,
-    Col,
+    CheckBox,
     Form,
-    FormGroup,
     Input,
-    Label,
 } from '../design';
 import LoadingContainer from '../design/loading-container';
 import style from './Authentication.module.scss';
@@ -108,60 +106,34 @@ class LoginView extends React.Component {
                             : undefined
                         }
                         <Form onSubmit={this.handleFormSubmit}>
-                            <FormGroup row className={style.formGroup}>
-                                <Label for="username" sm={3}><strong>[Username]</strong></Label>
-                                <Col sm={9}>
-                                    <Input
-                                        type="text"
-                                        name="username"
-                                        id="username"
-                                        placeholder="[Username]"
-                                        onChange={this.handleInputChange}
-                                        value={username}
-                                        autoComplete="username"
-                                        aria-label="username"
-                                    />
-                                </Col>
-                            </FormGroup>
-                            <FormGroup row className={style.formGroup}>
-                                <Label for="password" sm={3}><strong>[Password]</strong></Label>
-                                <Col sm={9}>
-                                    <Input
-                                        type="password"
-                                        name="password"
-                                        id="password"
-                                        placeholder="[Password]"
-                                        onChange={this.handleInputChange}
-                                        value={password}
-                                        autoComplete="current-password"
-                                        aria-label="password"
-                                    />
-                                </Col>
-                            </FormGroup>
-                            <FormGroup row className={style.formGroup}>
-                                <Col
-                                    sm={{
-                                        size: 9,
-                                        offset: 3,
-                                    }}
-                                >
-                                    <FormGroup check>
-                                        <Label check>
-                                            <Input
-                                                type="checkbox"
-                                                name="checkbox"
-                                                id="keepSignedIn"
-                                                onChange={() => {
-                                                }}
-                                                onClick={this.handleInputChange}
-                                                aria-label="keepSignedIn"
-                                                checked={keepSignedIn}
-                                            />
-                                            <strong>[Keep Signed In]</strong>
-                                        </Label>
-                                    </FormGroup>
-                                </Col>
-                            </FormGroup>
+                            <Input
+                                label="[Username]"
+                                id="username"
+                                onChange={this.handleInputChange}
+                                value={username}
+                                autoComplete="username"
+                                aria-label="username"
+                                className={style.formGroup}
+                            />
+                            <Input
+                                label="[Passwort]"
+                                id="password"
+                                onChange={this.handleInputChange}
+                                value={password}
+                                autoComplete="current-password"
+                                aria-label="password"
+                                type="password"
+                                className={style.formGroup}
+                            />
+                            <CheckBox
+                                id="keepSignedIn"
+                                label="[angemeldet bleiben]"
+                                checked={keepSignedIn}
+                                onClick={this.handleInputChange}
+                                aria-label="keepSignedIn"
+                                color="primary"
+                                className={style.formGroup}
+                            />
                             <Button color="success" block aria-label="login">[Login]</Button>
                         </Form>
                     </CardBody>
