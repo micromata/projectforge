@@ -53,6 +53,33 @@ class MenuCreator() {
     @Autowired
     private lateinit var vacationService: VacationService
 
+    fun findById(menuItemDefId: MenuItemDefId): MenuItemDef? {
+        return findById(menuItemDefId.id)
+    }
+
+    fun findById(id: String): MenuItemDef? {
+        menu.menuItems.forEach {
+            if (it.key == id)
+                return it
+            it.childs?.forEach {
+                val menuItemDef = findById(it, id)
+                if (menuItemDef != null)
+                    return menuItemDef
+            }
+        }
+        return null
+    }
+
+    private fun findById(parent: MenuItemDef, id: String): MenuItemDef? {
+        menu.menuItems.forEach {
+            if (it.key == id)
+                return it
+
+        }
+        return null
+    }
+
+
     @Synchronized
     private fun initialize() {
         if (initialized) return
@@ -141,25 +168,23 @@ class MenuCreator() {
         //
         // COST
         //
-        if (Configuration.getInstance().isCostConfigured()) {
-            menu.add(MenuItemDef(MenuItemDefId.COST, requiredGroups = *FIBU_ORGA_HR_GROUPS))
-                    .add(MenuItemDef(MenuItemDefId.ACCOUNT_LIST, "wa/accountList",
-                            checkAccess = {
-                                hasRight(KontoDao.USER_RIGHT_ID, *READONLY_READWRITE) ||
-                                        isInGroup(ProjectForgeGroup.CONTROLLING_GROUP)
-                            }))
-                    .add(MenuItemDef(MenuItemDefId.COST1_LIST, "wa/cost1List",
-                            checkAccess = {
-                                hasRight(Kost2Dao.USER_RIGHT_ID, *READONLY_READWRITE) ||
-                                        isInGroup(ProjectForgeGroup.CONTROLLING_GROUP)
-                            }))
-                    .add(MenuItemDef(MenuItemDefId.COST2_LIST, "wa/cost2List",
-                            checkAccess = {
-                                hasRight(Kost2Dao.USER_RIGHT_ID, *READONLY_READWRITE) ||
-                                        isInGroup(ProjectForgeGroup.CONTROLLING_GROUP)
-                            }))
-        }
-
+        menu.add(MenuItemDef(MenuItemDefId.COST, requiredGroups = *FIBU_ORGA_HR_GROUPS,
+                checkAccess = { Configuration.getInstance().isCostConfigured() }))
+                .add(MenuItemDef(MenuItemDefId.ACCOUNT_LIST, "wa/accountList",
+                        checkAccess = {
+                            hasRight(KontoDao.USER_RIGHT_ID, *READONLY_READWRITE) ||
+                                    isInGroup(ProjectForgeGroup.CONTROLLING_GROUP)
+                        }))
+                .add(MenuItemDef(MenuItemDefId.COST1_LIST, "wa/cost1List",
+                        checkAccess = {
+                            hasRight(Kost2Dao.USER_RIGHT_ID, *READONLY_READWRITE) ||
+                                    isInGroup(ProjectForgeGroup.CONTROLLING_GROUP)
+                        }))
+                .add(MenuItemDef(MenuItemDefId.COST2_LIST, "wa/cost2List",
+                        checkAccess = {
+                            hasRight(Kost2Dao.USER_RIGHT_ID, *READONLY_READWRITE) ||
+                                    isInGroup(ProjectForgeGroup.CONTROLLING_GROUP)
+                        }))
 
         //////////////////////////////////////
         //
@@ -177,14 +202,13 @@ class MenuCreator() {
                         requiredGroups = *arrayOf(ProjectForgeGroup.FINANCE_GROUP, ProjectForgeGroup.CONTROLLING_GROUP)))
                 .add(MenuItemDef(MenuItemDefId.REPORT_OBJECTIVES, "wa/reportObjectives",
                         requiredGroups = *arrayOf(ProjectForgeGroup.FINANCE_GROUP, ProjectForgeGroup.CONTROLLING_GROUP)))
-        if (Configuration.getInstance().isCostConfigured()) {
-            // Only visible if cost is configured:
-            reportingMenu.add(MenuItemDef(MenuItemDefId.ACCOUNTING_RECORD_LIST, "wa/accountingRecordList",
-                    requiredGroups = *arrayOf(ProjectForgeGroup.FINANCE_GROUP, ProjectForgeGroup.CONTROLLING_GROUP)))
-                    .add(MenuItemDef(MenuItemDefId.DATEV_IMPORT, "wa/datevImport",
-                            requiredUserRightId = DatevImportDao.USER_RIGHT_ID, requiredUserRightValues = arrayOf(UserRightValue.TRUE)))
-        }
-        // TODO: Liquidity injected by Plugin.
+        // Only visible if cost is configured:
+        reportingMenu.add(MenuItemDef(MenuItemDefId.ACCOUNTING_RECORD_LIST, "wa/accountingRecordList",
+                requiredGroups = *arrayOf(ProjectForgeGroup.FINANCE_GROUP, ProjectForgeGroup.CONTROLLING_GROUP),
+                checkAccess = { Configuration.getInstance().isCostConfigured() }))
+                .add(MenuItemDef(MenuItemDefId.DATEV_IMPORT, "wa/datevImport",
+                        requiredUserRightId = DatevImportDao.USER_RIGHT_ID, requiredUserRightValues = arrayOf(UserRightValue.TRUE),
+                        checkAccess = { Configuration.getInstance().isCostConfigured() }))
 
         //////////////////////////////////////
         //
