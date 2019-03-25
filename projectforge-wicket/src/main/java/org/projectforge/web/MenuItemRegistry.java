@@ -407,8 +407,7 @@ public class MenuItemRegistry implements Serializable
         CONTROLLING_GROUP);
     {
       // Only visible if cost is configured and DATEV-Import right is given:
-      reg.register(reporting, MenuItemDefId.ACCOUNTING_RECORD_LIST, 40, AccountingRecordListPage.class, DatevImportDao.USER_RIGHT_ID,
-          UserRightValue.TRUE);
+      reg.register(reporting, MenuItemDefId.ACCOUNTING_RECORD_LIST, 40, AccountingRecordListPage.class, CONTROLLING_GROUP);
       reg.register(reporting, MenuItemDefId.DATEV_IMPORT, 50, DatevImportPage.class, DatevImportDao.USER_RIGHT_ID,
           UserRightValue.TRUE);
     }
