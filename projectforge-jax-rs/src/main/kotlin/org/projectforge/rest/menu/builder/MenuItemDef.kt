@@ -5,17 +5,20 @@ import org.projectforge.rest.menu.MenuItem
 import org.projectforge.ui.translate
 
 internal class MenuItemDef {
-    constructor(defId: MenuItemDefId, url: String? = null) {
+    constructor(defId: MenuItemDefId, url: String? = null, checkAccess : (() -> Boolean)? = null) {
         this.id = defId.id
         this.i18nKey = defId.getI18nKey()
         this.url = url
+        this.checkAccess = checkAccess
     }
 
     val id: String
     var title: String? = null
     var i18nKey: String? = null
     var url: String? = null
-    var allowedGroups : List<ProjectForgeGroup>? = null
+    var allowedGroups: List<ProjectForgeGroup>? = null
+
+    var checkAccess: (() -> Boolean)? = null
 
     internal var childs: MutableList<MenuItemDef>? = null
 
@@ -41,7 +44,7 @@ internal class MenuItemDef {
         return null
     }
 
-    fun createMenu(menuBuilderContext: MenuCreatorContext) : MenuItem {
+    fun createMenu(menuBuilderContext: MenuCreatorContext): MenuItem {
         val menuItem = MenuItem(translate(i18nKey), url = this.url)
         return menuItem
     }
