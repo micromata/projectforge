@@ -4,10 +4,34 @@ import org.projectforge.business.user.ProjectForgeGroup
 import org.projectforge.rest.menu.MenuItem
 import org.projectforge.ui.translate
 
-internal class MenuItemDef {
+/**
+ * Defines one menu item once. The [MenuCreator] creates the user menu item from this definition dynamically dependent
+ * e. g. on the user's access.
+ */
+class MenuItemDef {
+    /**
+     * Usable for e. g. plugins without [MenuItemDef] available.
+     * @param defId For getting the key and i18nKey.
+     * @param url The target url.
+     * @param checkAccess Dynamic check access for the logged in user. The menu is visible if [checkAccess] is null or returns true.
+     */
     constructor(defId: MenuItemDefId, url: String? = null, checkAccess: (() -> Boolean)? = null) {
         this.key = defId.id
         this.i18nKey = defId.getI18nKey()
+        this.url = url
+        this.checkAccess = checkAccess
+    }
+
+    /**
+     * Usable for e. g. plugins without [MenuItemDef] available.
+     * @param key Should be unique inside one top menu.
+     * @param i18nKey Used for translation.
+     * @param url The target url.
+     * @param checkAccess Dynamic check access for the logged in user. The menu is visible if [checkAccess] is null or returns true.
+     */
+    constructor(key : String, i18nKey: String, url: String? = null, checkAccess: (() -> Boolean)? = null) {
+        this.key = key
+        this.i18nKey = i18nKey
         this.url = url
         this.checkAccess = checkAccess
     }
