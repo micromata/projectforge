@@ -10,7 +10,7 @@ function CheckBox(
         color,
         id,
         label,
-        props
+        ...props
     },
 ) {
     return (
