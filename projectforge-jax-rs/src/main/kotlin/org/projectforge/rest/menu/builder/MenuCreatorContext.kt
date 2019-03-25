@@ -1,4 +1,5 @@
 package org.projectforge.rest.menu.builder
 
-class MenuCreatorContext {
-}
+import org.projectforge.framework.persistence.user.entities.PFUserDO
+
+class MenuCreatorContext()

@@ -1,6 +1,9 @@
 package org.projectforge.rest.menu.builder
 
 import org.projectforge.business.configuration.ConfigurationService
+import org.projectforge.business.humanresources.HRPlanningDao
+import org.projectforge.business.user.UserRightValue
+import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.configuration.Configuration
 import org.projectforge.rest.menu.MenuItem
 import org.projectforge.sms.SmsSenderConfig
@@ -18,7 +21,11 @@ class MenuCreator() {
     }
 
     private val menu = MenuHolder()
+
     private var initialized = false
+
+    @Autowired
+    private lateinit var accessChecker: AccessChecker
 
     @Autowired
     private lateinit var smsSenderConfig: SmsSenderConfig
@@ -49,7 +56,12 @@ class MenuCreator() {
                 .add(MenuItemDef(MenuItemDefId.TIMESHEET_LIST, "wa/timesheetList"))
                 .add(MenuItemDef(MenuItemDefId.MONTHLY_EMPLOYEE_REPORT, "wa/monthlyEmployeeReport"))
                 .add(MenuItemDef(MenuItemDefId.PERSONAL_STATISTICS, "wa/personalStatistics"))
-                .add(MenuItemDef(MenuItemDefId.HR_VIEW, "wa/hrList")) // HRPlanningDao.USER_RIGHT_ID, *READONLY_READWRITE
+                .add(MenuItemDef(MenuItemDefId.HR_VIEW, "wa/hrList",
+                        checkAccess = {
+                            accessChecker.hasLoggedInUserRight(HRPlanningDao.USER_RIGHT_ID, false, UserRightValue.READONLY,
+                                    UserRightValue.READWRITE)
+                        }))
+                // HRPlanningDao.USER_RIGHT_ID, *READONLY_READWRITE
                 .add(MenuItemDef(MenuItemDefId.HR_PLANNING_LIST, "wa/hrPlanningList"))
                 .add(MenuItemDef(MenuItemDefId.GANTT, "wa/ganttList"))
                 // MenuNewCounterOrder, tooltip = "menu.fibu.orderbook.htmlSuffixTooltip"
@@ -207,7 +219,9 @@ class MenuCreator() {
         return root.subMenu!!
     }
 
-    private fun build(parent: MenuItem, menuItemDef : MenuItemDef, menuBuilderContext: MenuCreatorContext) {
+    private fun build(parent: MenuItem, menuItemDef: MenuItemDef, menuBuilderContext: MenuCreatorContext) {
+        if (menuItemDef.checkAccess?.invoke() == false)
+            return
         val menuItem = menuItemDef.createMenu(menuBuilderContext)
         parent.add(menuItem)
         menuItemDef.childs?.forEach { childMenuItemDef ->
