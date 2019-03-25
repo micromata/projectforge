@@ -8,7 +8,7 @@ function LayoutLabel({ label, for: forComponent }) {
 }
 
 LayoutLabel.propTypes = {
-    value: PropTypes.string.isRequired,
+    label: PropTypes.string.isRequired,
     for: PropTypes.string,
 };
 
