@@ -30,6 +30,8 @@ class ActionButton extends React.Component {
 
         const actionFunction = props[action.id];
 
+        console.log(action.id);
+
         if (actionFunction) {
             actionFunction();
         }
@@ -67,6 +69,7 @@ const mapStateToProps = () => ({});
 
 // TODO: ADD FUNCTIONS
 const actions = {
+    create: updateEditPageData,
     update: updateEditPageData,
     cancel: abortEditPage,
     reset: resetListFilter,
