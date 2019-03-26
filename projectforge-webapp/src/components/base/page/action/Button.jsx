@@ -3,10 +3,12 @@ import React from 'react';
 import { connect } from 'react-redux';
 import {
     abortEditPage,
+    clone,
+    markAsDeleted,
     resetListFilter,
+    undelete,
     updateEditPageData,
     updateList,
-    markAsDeleted,
 } from '../../../../actions';
 import { buttonPropType } from '../../../../utilities/propTypes';
 import { Button } from '../../../design';
@@ -70,6 +72,8 @@ const actions = {
     reset: resetListFilter,
     search: updateList,
     markAsDeleted,
+    undelete,
+    clone,
 };
 
 export default connect(mapStateToProps, actions)(ActionButton);
