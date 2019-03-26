@@ -71,8 +71,6 @@ export const updatePageData = () => (dispatch, getState) => {
 
     const { data, category } = getState().editPage;
 
-    console.log(data);
-
     fetch(
         getServiceURL(`${category}/saveorupdate`),
         {
@@ -101,11 +99,9 @@ export const updatePageData = () => (dispatch, getState) => {
                 return;
             }
 
-            console.log(response);
-
             throw new Error(response.status);
         })
-        .catch(error => dispatch(loadFailure()));
+        .catch(error => dispatch(loadFailure(error)));
 };
 
 export const changeField = (id, newValue) => dispatch => dispatch(fieldChanged(id, newValue));
