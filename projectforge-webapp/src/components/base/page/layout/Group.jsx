@@ -16,6 +16,7 @@ function LayoutGroup(
         data,
         length,
         type,
+        validation,
     },
 ) {
     let GroupTag;
@@ -73,6 +74,7 @@ function LayoutGroup(
                     <Tag
                         changeDataField={changeDataField}
                         data={data}
+                        validation={validation}
                         {...component}
                         key={`layout-group-component-${component.key}`}
                     />
@@ -91,6 +93,7 @@ LayoutGroup.propTypes = {
     type: PropTypes.string,
     length: PropTypes.number,
     data: PropTypes.shape({}),
+    validation: PropTypes.shape({}),
 };
 
 LayoutGroup.defaultProps = {
@@ -99,6 +102,7 @@ LayoutGroup.defaultProps = {
     type: 'container',
     length: undefined,
     data: {},
+    validation: {},
 };
 
 export default LayoutGroup;

@@ -3,7 +3,8 @@ import {
     EDIT_PAGE_LOAD_BEGIN,
     EDIT_PAGE_LOAD_FAILURE,
     EDIT_PAGE_LOAD_SUCCESS,
-    EDIT_PAGE_VALIDATION_HINTS_ENABLE,
+    EDIT_PAGE_UPDATE_BEGIN,
+    EDIT_PAGE_UPDATE_FAILURE,
 } from '../actions';
 
 const initialState = {
@@ -22,6 +23,7 @@ const reducer = (state = initialState, { type, payload }) => {
                 loading: true,
                 error: undefined,
                 category: payload.category,
+                validation: undefined,
             };
         case EDIT_PAGE_LOAD_SUCCESS:
             return {
@@ -44,12 +46,16 @@ const reducer = (state = initialState, { type, payload }) => {
                     [payload.id]: payload.newValue,
                 },
             };
-        case EDIT_PAGE_VALIDATION_HINTS_ENABLE:
+        case EDIT_PAGE_UPDATE_BEGIN:
             return {
                 ...state,
-                validation: {
-                    hintsEnabled: true,
-                },
+                loading: true,
+            };
+        case EDIT_PAGE_UPDATE_FAILURE:
+            return {
+                ...state,
+                loading: false,
+                validation: payload.validationMessages,
             };
         default:
             return state;
