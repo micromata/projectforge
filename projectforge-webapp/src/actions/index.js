@@ -19,6 +19,7 @@ export {
     changeField as changeEditFormField,
     updatePageData as updateEditPageData,
     abort as abortEditPage,
+    markAsDeleted,
 } from './editPage';
 
 export {
