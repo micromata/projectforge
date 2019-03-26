@@ -1,5 +1,5 @@
-import { getServiceURL, handleHTTPErrors } from '../utilities/rest';
 import history from '../utilities/history';
+import { getServiceURL, handleHTTPErrors } from '../utilities/rest';
 
 export const EDIT_PAGE_LOAD_BEGIN = 'EDIT_PAGE_LOAD_BEGIN';
 export const EDIT_PAGE_LOAD_SUCCESS = 'EDIT_PAGE_LOAD_SUCCESS';
@@ -64,6 +64,8 @@ export const loadEdit = (category, id) => (dispatch) => {
         .catch(error => dispatch(loadFailure(error.message)));
 };
 
+const redirectToCategory = category => history.push(`/${category}/`);
+
 export const updatePageData = () => (dispatch, getState) => {
     dispatch(updateBegin());
 
@@ -88,19 +90,21 @@ export const updatePageData = () => (dispatch, getState) => {
         // TODO: HANDLE FAILURE AND SUCCESS
         .then((response) => {
             if (response.status === 200) {
-                // TODO: ADD REDIRECT WHEN SUCCEED
+                redirectToCategory(category);
+                return;
             }
 
             if (response.status === 406) {
-                return response.json();
+                response.json()
+                    .then(json => dispatch(updateFailure(json.reduce((map, obj) => ({
+                        ...map,
+                        [obj['field-id']]: obj.message,
+                    }), {}))));
+                return;
             }
 
             throw new Error(response.statusText);
         })
-        .then(json => dispatch(updateFailure(json.reduce((map, obj) => ({
-            ...map,
-            [obj['field-id']]: obj.message,
-        }), {}))))
         .catch(error => console.error(error));
 };
 
@@ -109,5 +113,5 @@ export const changeField = (id, newValue) => dispatch => dispatch(fieldChanged(i
 export const abort = () => (dispatch, getState) => {
     const { category } = getState().editPage;
 
-    history.push(`/${category}/`);
+    redirectToCategory(category);
 };
