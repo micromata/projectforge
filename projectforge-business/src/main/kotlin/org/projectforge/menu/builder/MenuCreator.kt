@@ -1,5 +1,6 @@
 package org.projectforge.menu.builder
 
+import com.sun.tools.doclets.internal.toolkit.util.DocPath.parent
 import org.projectforge.business.configuration.ConfigurationService
 import org.projectforge.business.fibu.*
 import org.projectforge.business.fibu.datev.DatevImportDao
@@ -24,9 +25,10 @@ import org.projectforge.menu.MenuItem
 import org.projectforge.sms.SmsSenderConfig
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
+import javax.annotation.PostConstruct
 
 @Component
-class MenuCreator() {
+open class MenuCreator() {
     private val log = org.slf4j.LoggerFactory.getLogger(MenuCreator::class.java)
 
     internal class MenuHolder() {
@@ -38,8 +40,6 @@ class MenuCreator() {
     }
 
     private val menu = MenuHolder()
-
-    private var initialized = false
 
     @Autowired
     private lateinit var accessChecker: AccessChecker
@@ -55,6 +55,22 @@ class MenuCreator() {
 
     fun refresh() {
         log.error("Refreshing of menu not yet supported.")
+    }
+
+    /**
+     * Registers menu entry definition. It's important that a parent menu entry item definition is registered before its
+     * sub menu entry items.
+     *
+     * @param menuItemDef
+     * @return this for chaining.
+     */
+    fun addTopLevelMenu(menuItemDef: MenuItemDef) {
+        // Check if ID already exists
+        menu.menuItems.forEach {
+            if (it.id == menuItemDef.id)
+                throw IllegalArgumentException(("Duplicated menu ID '${menuItemDef.id}' for entry '${menuItemDef.i18nKey}'"))
+        }
+        menu.add(menuItemDef)
     }
 
     /**
@@ -105,10 +121,8 @@ class MenuCreator() {
     }
 
 
-    @Synchronized
+    @PostConstruct
     private fun initialize() {
-        if (initialized) return
-
         //////////////////////////////////////
         //
         // COMMON
@@ -300,12 +314,9 @@ class MenuCreator() {
         // MISC
         //
         menu.add(MenuItemDef(MenuItemDefId.MISC))
-
-        initialized = true
     }
 
     fun build(menuCreatorContext: MenuCreatorContext): List<MenuItem> {
-        initialize()
         val root = MenuItem("root", "root")
         menu.menuItems.forEach { menuItemDef ->
             build(root, menuItemDef, menuCreatorContext)

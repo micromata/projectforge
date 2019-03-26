@@ -75,11 +75,9 @@ public class ToDoPlugin extends AbstractPlugin
     pluginWicketRegistrationService.registerWeb(ID, ToDoListPage.class, ToDoEditPage.class, ADDRESS, false); // Insert at second position after Address entry (for SearchPage).
 
     // Register the menu entry as sub menu entry of the misc menu:
-    final MenuItemDef parentMenu = pluginWicketRegistrationService.getMenuItemDef(MenuItemDefId.MISC);
     MenuItemDef todomenu = new MenuItemDef( ID, "plugins.todo.menu");
-    todomenu.setWicketPageClass(ToDoListPage.class);
     todomenu.setBadgeCounter(() -> new MenuCounterOpenToDos().getObject());
-    pluginWicketRegistrationService.registerMenuItem(MenuItemDefId.MISC, todomenu);
+    pluginWicketRegistrationService.registerMenuItem(MenuItemDefId.MISC, todomenu, ToDoListPage.class);
 
     // Define the access management:
     registerRight(new ToDoRight(accessChecker));

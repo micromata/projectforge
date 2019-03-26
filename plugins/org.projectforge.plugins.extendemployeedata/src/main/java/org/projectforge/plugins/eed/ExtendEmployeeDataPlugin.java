@@ -23,15 +23,16 @@
 
 package org.projectforge.plugins.eed;
 
+import org.apache.wicket.Page;
 import org.projectforge.business.fibu.EmployeeDao;
 import org.projectforge.business.user.UserRightId;
 import org.projectforge.business.user.UserRightValue;
 import org.projectforge.continuousdb.UpdateEntry;
 import org.projectforge.framework.persistence.database.DatabaseService;
+import org.projectforge.menu.builder.MenuItemDef;
 import org.projectforge.menu.builder.MenuItemDefId;
 import org.projectforge.plugins.core.AbstractPlugin;
 import org.projectforge.plugins.eed.wicket.*;
-import org.projectforge.web.MenuItemDef;
 import org.projectforge.web.plugin.PluginWicketRegistrationService;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -42,8 +43,7 @@ import static org.projectforge.framework.persistence.api.UserRightService.READON
 /**
  * @author Florian Blumenstein
  */
-public class ExtendEmployeeDataPlugin extends AbstractPlugin
-{
+public class ExtendEmployeeDataPlugin extends AbstractPlugin {
   public static final String ID = "extendemployeedata";
 
   public static final String RESOURCE_BUNDLE_NAME = "ExtendEmployeeDataI18nResources";
@@ -51,7 +51,7 @@ public class ExtendEmployeeDataPlugin extends AbstractPlugin
   // The order of the entities is important for xml dump and imports as well as for test cases (order for deleting objects at the end of
   // each test).
   // The entities are inserted in ascending order and deleted in descending order.
-  private static final Class<?>[] PERSISTENT_ENTITIES = new Class<?>[] {};
+  private static final Class<?>[] PERSISTENT_ENTITIES = new Class<?>[]{};
 
   @Autowired
   private PluginWicketRegistrationService pluginWicketRegistrationService;
@@ -66,8 +66,7 @@ public class ExtendEmployeeDataPlugin extends AbstractPlugin
    * @see org.projectforge.plugins.core.AbstractPlugin#initialize()
    */
   @Override
-  protected void initialize()
-  {
+  protected void initialize() {
     ExtendedEmployeeDataPluginUpdates.databaseService = databaseService;
     // Register it:
     register(ID, EmployeeDao.class, employeeDao, "plugins.extendemployeedata");
@@ -76,24 +75,11 @@ public class ExtendEmployeeDataPlugin extends AbstractPlugin
     pluginWicketRegistrationService.registerWeb(ID);
 
     // Register the menu entry as sub menu entry of the misc menu:
-    final MenuItemDef parentMenu = pluginWicketRegistrationService.getMenuItemDef(MenuItemDefId.HR);
-    pluginWicketRegistrationService
-        .registerMenuItem(new MenuItemDef(parentMenu, "eed_listcare", 21, "plugins.eed.menu.listcare", EmployeeListEditPage.class,
-            UserRightId.HR_EMPLOYEE, READONLY_READWRITE));
-    pluginWicketRegistrationService
-        .registerMenuItem(
-            new MenuItemDef(parentMenu, "eed_listcareimport", 22, "plugins.eed.menu.listcareimport", EmployeeBillingImportPage.class,
-                UserRightId.HR_EMPLOYEE, READONLY_READWRITE));
-    pluginWicketRegistrationService
-        .registerMenuItem(new MenuItemDef(parentMenu, "eed_export", 23, "plugins.eed.menu.export", ExportDataPage.class,
-            UserRightId.HR_EMPLOYEE_SALARY, READONLY_READWRITE));
-    pluginWicketRegistrationService
-        .registerMenuItem(new MenuItemDef(parentMenu, "eed_import", 23, "plugins.eed.menu.import", EmployeeSalaryImportPage.class,
-            UserRightId.HR_EMPLOYEE_SALARY, UserRightValue.READWRITE));
-    pluginWicketRegistrationService
-        .registerMenuItem(
-            new MenuItemDef(parentMenu, "eed_config", 24, "plugins.eed.menu.config", EmployeeConfigurationPage.class,
-                UserRightId.HR_EMPLOYEE_SALARY, READONLY_READWRITE));
+    register("eed_listcare", "plugins.eed.menu.listcare", EmployeeListEditPage.class, UserRightId.HR_EMPLOYEE, READONLY_READWRITE);
+    register("eed_listcareimport", "plugins.eed.menu.listcareimport", EmployeeBillingImportPage.class, UserRightId.HR_EMPLOYEE, READONLY_READWRITE);
+    register("eed_export", "plugins.eed.menu.export", ExportDataPage.class, UserRightId.HR_EMPLOYEE_SALARY, READONLY_READWRITE);
+    register("eed_import", "plugins.eed.menu.import", EmployeeSalaryImportPage.class, UserRightId.HR_EMPLOYEE_SALARY, UserRightValue.READWRITE);
+    register("eed_config", "plugins.eed.menu.config", EmployeeConfigurationPage.class, UserRightId.HR_EMPLOYEE_SALARY, READONLY_READWRITE);
 
     // Define the access management:
     registerRight(new ExtendEmployeeDataRight(accessChecker));
@@ -102,12 +88,18 @@ public class ExtendEmployeeDataPlugin extends AbstractPlugin
     addResourceBundle(RESOURCE_BUNDLE_NAME);
   }
 
+  private void register(String menuId, String i18nKey, Class<? extends Page> pageClass, UserRightId userRightId, UserRightValue... userRightValues) {
+    MenuItemDef menuEntry = new MenuItemDef(menuId, i18nKey);
+    menuEntry.setRequiredUserRightId(userRightId);
+    menuEntry.setRequiredUserRightValues(userRightValues);
+    pluginWicketRegistrationService.registerMenuItem(MenuItemDefId.HR, menuEntry, pageClass);
+  }
+
   /**
    * @see org.projectforge.plugins.core.AbstractPlugin#getInitializationUpdateEntry()
    */
   @Override
-  public UpdateEntry getInitializationUpdateEntry()
-  {
+  public UpdateEntry getInitializationUpdateEntry() {
     return ExtendedEmployeeDataPluginUpdates.getInitializationUpdateEntry();
   }
 
@@ -115,8 +107,7 @@ public class ExtendEmployeeDataPlugin extends AbstractPlugin
    * @see org.projectforge.plugins.core.AbstractPlugin#getUpdateEntries()
    */
   @Override
-  public List<UpdateEntry> getUpdateEntries()
-  {
+  public List<UpdateEntry> getUpdateEntries() {
     return ExtendedEmployeeDataPluginUpdates.getUpdateEntries();
   }
 

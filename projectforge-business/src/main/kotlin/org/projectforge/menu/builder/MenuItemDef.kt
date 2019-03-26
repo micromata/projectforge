@@ -67,9 +67,6 @@ class MenuItemDef {
 
     var badgeCounter : (() -> Int?)? = null
 
-    @Deprecated("Wicket will be replaced by ReactJS")
-    var wicketPageClass: Class<*>? = null
-
     internal var childs: MutableList<MenuItemDef>? = null
 
     @Synchronized

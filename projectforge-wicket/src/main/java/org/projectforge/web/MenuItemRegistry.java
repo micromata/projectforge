@@ -25,7 +25,6 @@ package org.projectforge.web;
 
 import org.apache.wicket.Page;
 import org.projectforge.menu.builder.MenuCreator;
-import org.projectforge.menu.builder.MenuItemDef;
 import org.projectforge.menu.builder.MenuItemDefId;
 import org.projectforge.web.access.AccessListPage;
 import org.projectforge.web.address.AddressListPage;
@@ -60,9 +59,7 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -157,7 +154,11 @@ public class MenuItemRegistry implements Serializable {
     register(MenuItemDefId.PLUGIN_ADMIN, PluginListPage.class);
   }
 
-  private void register(MenuItemDefId defId, Class<? extends Page> pageClass) {
-    this.wicketClassesMap.put(defId.getId(), pageClass);
+  public void register(MenuItemDefId defId, Class<? extends Page> pageClass) {
+    register(defId.getId(), pageClass);
+  }
+
+  public void register(String menuItemId, Class<? extends Page> pageClass) {
+    this.wicketClassesMap.put(menuItemId, pageClass);
   }
 }
