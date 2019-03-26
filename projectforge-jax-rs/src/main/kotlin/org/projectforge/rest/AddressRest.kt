@@ -1,7 +1,9 @@
 package org.projectforge.rest
 
 import com.google.gson.*
+import org.apache.commons.lang3.StringUtils
 import org.projectforge.business.address.*
+import org.projectforge.framework.i18n.translate
 import org.projectforge.rest.core.AbstractDORest
 import org.projectforge.rest.json.JsonCreator
 import org.projectforge.ui.*
@@ -26,6 +28,17 @@ open class AddressRest()
     override fun prepareClone(obj: AddressDO): Boolean {
         // TODO: Enter here the PersonalAddressDO stuff etc.
         return true
+    }
+
+    override fun validate(obj: AddressDO): List<ValidationError>? {
+        val errorsList = mutableListOf<ValidationError>()
+        if (StringUtils.isBlank(obj.name) == true
+                && StringUtils.isBlank(obj.firstName) == true
+                && StringUtils.isBlank(obj.organization) == true) {
+            errorsList.add(ValidationError(translate("address.form.error.toFewFields"), fieldId = "name"))
+        }
+        if (errorsList.isEmpty()) return null
+        return errorsList
     }
 
     /**
