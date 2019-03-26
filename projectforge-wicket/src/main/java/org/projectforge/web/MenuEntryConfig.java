@@ -31,6 +31,7 @@ import org.projectforge.framework.configuration.ConfigXml;
 import org.projectforge.framework.xstream.XmlField;
 import org.projectforge.framework.xstream.XmlObject;
 import org.projectforge.framework.xstream.XmlOmitField;
+import org.projectforge.menu.builder.MenuItemDef;
 
 /**
  * Defining a new menu entry or modify the existing tree by config.xml or configures an existing menu entry as invisible. Any access

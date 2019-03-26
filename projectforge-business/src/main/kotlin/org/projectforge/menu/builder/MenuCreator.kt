@@ -1,6 +1,5 @@
 package org.projectforge.menu.builder
 
-import jdk.nashorn.internal.objects.NativeArray.forEach
 import org.projectforge.business.configuration.ConfigurationService
 import org.projectforge.business.fibu.*
 import org.projectforge.business.fibu.datev.DatevImportDao
@@ -54,13 +53,38 @@ class MenuCreator() {
     @Autowired
     private lateinit var vacationService: VacationService
 
+    fun refresh() {
+        log.error("Refreshing of menu not yet supported.")
+    }
+
+    /**
+     * Registers menu entry definition. It's important that a parent menu entry item definition is registered before its
+     * sub menu entry items.
+     *
+     * @param menuItemDef
+     * @return this for chaining.
+     */
+    fun add(parentId: MenuItemDefId, menuItemDef: MenuItemDef): MenuItemDef {
+        val parent = findById(parentId)
+        if (parent == null) {
+            throw java.lang.IllegalArgumentException("Can't append menu '${menuItemDef.id}' to parent '${parentId}'. Parent not found.")
+        }
+        // Check if ID already exists
+        if (findById(parent, menuItemDef.id) != null) {
+            throw IllegalArgumentException(("Duplicated menu ID '${menuItemDef.id}' for entry '${menuItemDef.i18nKey}'"))
+        }
+        parent.add(menuItemDef)
+        return menuItemDef
+    }
+
+
     fun findById(menuItemDefId: MenuItemDefId): MenuItemDef? {
         return findById(menuItemDefId.id)
     }
 
     fun findById(id: String): MenuItemDef? {
         menu.menuItems.forEach {
-            if (it.key == id)
+            if (it.id == id)
                 return it
             val menuItemDef = findById(it, id)
             if (menuItemDef != null)
@@ -71,7 +95,7 @@ class MenuCreator() {
 
     private fun findById(parent: MenuItemDef, id: String): MenuItemDef? {
         parent.childs?.forEach {
-            if (it.key == id)
+            if (it.id == id)
                 return it
             val menuItemDef = findById(it, id)
             if (menuItemDef != null)
@@ -280,22 +304,22 @@ class MenuCreator() {
         initialized = true
     }
 
-    fun build(menuBuilderContext: MenuCreatorContext): List<MenuItem> {
+    fun build(menuCreatorContext: MenuCreatorContext): List<MenuItem> {
         initialize()
-        val root = MenuItem("root")
+        val root = MenuItem("root", "root")
         menu.menuItems.forEach { menuItemDef ->
-            build(root, menuItemDef, menuBuilderContext)
+            build(root, menuItemDef, menuCreatorContext)
         }
         return root.subMenu!!
     }
 
-    private fun build(parent: MenuItem, menuItemDef: MenuItemDef, menuBuilderContext: MenuCreatorContext) {
-        if (!checkAccess(menuBuilderContext, menuItemDef))
+    private fun build(parent: MenuItem, menuItemDef: MenuItemDef, menuCreatorContext: MenuCreatorContext) {
+        if (!checkAccess(menuCreatorContext, menuItemDef))
             return // No access
 
-        val menuItem = menuItemDef.createMenu(parent)
+        val menuItem = menuItemDef.createMenu(parent, menuCreatorContext)
         menuItem.badge =
-                when (menuItemDef.key) {
+                when (menuItemDef.id) {
                     "FIBU" -> MenuBadge(12)
                     "ORDER_LIST" -> MenuBadge(9, tooltip = translate("menu.fibu.orderbook.htmlSuffixTooltip"))
                     "OUTGOING_INVOICE_LIST" -> MenuBadge(3)
@@ -303,7 +327,7 @@ class MenuCreator() {
                 }
         parent.add(menuItem)
         menuItemDef.childs?.forEach { childMenuItemDef ->
-            build(menuItem, childMenuItemDef, menuBuilderContext)
+            build(menuItem, childMenuItemDef, menuCreatorContext)
         }
     }
 

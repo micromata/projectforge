@@ -71,8 +71,6 @@ import org.projectforge.framework.utils.ClassHelper;
 import org.projectforge.framework.utils.NumberHelper;
 import org.projectforge.web.URLHelper;
 import org.projectforge.web.fibu.ISelectCallerPage;
-import org.projectforge.web.mobile.AbstractSecuredMobilePage;
-import org.projectforge.web.mobile.MenuMobilePage;
 import org.projectforge.web.wicket.components.DatePanel;
 import org.projectforge.web.wicket.components.LabelValueChoiceRenderer;
 import org.projectforge.web.wicket.flowlayout.ComponentWrapperPanel;
@@ -340,14 +338,6 @@ public class WicketUtils
   public static Class<? extends WebPage> getDefaultPage()
   {
     return WicketApplication.DEFAULT_PAGE;
-  }
-
-  /**
-   * @return MenuMobilePage.class.
-   */
-  public static Class<? extends AbstractSecuredMobilePage> getDefaultMobilePage()
-  {
-    return MenuMobilePage.class;
   }
 
   /**

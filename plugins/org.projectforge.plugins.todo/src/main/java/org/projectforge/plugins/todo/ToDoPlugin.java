@@ -25,10 +25,10 @@ package org.projectforge.plugins.todo;
 
 import org.projectforge.continuousdb.UpdateEntry;
 import org.projectforge.framework.persistence.user.api.UserPrefArea;
+import org.projectforge.menu.builder.MenuItemDef;
 import org.projectforge.menu.builder.MenuItemDefId;
 import org.projectforge.plugins.core.AbstractPlugin;
 import org.projectforge.registry.RegistryEntry;
-import org.projectforge.web.MenuItemDef;
 import org.projectforge.web.plugin.PluginWicketRegistrationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -78,7 +78,6 @@ public class ToDoPlugin extends AbstractPlugin
     final MenuItemDef parentMenu = pluginWicketRegistrationService.getMenuItemDef(MenuItemDefId.MISC);
     ToDoMenuItemDef todomenu = new ToDoMenuItemDef(parentMenu, ID, 5, "plugins.todo.menu", ToDoListPage.class);
     pluginWicketRegistrationService.registerMenuItem(todomenu);
-    pluginWicketRegistrationService.registerFavoritesMenuItem(todomenu);
     // .setMobileMenu(ToDoMobileListPage.class, 10));
 
     // Define the access management:

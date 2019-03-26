@@ -43,7 +43,6 @@ import org.projectforge.framework.persistence.database.DatabaseService;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.web.admin.SetupPage;
 import org.projectforge.web.admin.SystemUpdatePage;
-import org.projectforge.web.mobile.LoginMobilePage;
 import org.projectforge.web.wicket.AbstractUnsecureBasePage;
 import org.projectforge.web.wicket.WicketUtils;
 
@@ -101,11 +100,6 @@ public class LoginPage extends AbstractUnsecureBasePage
     if (databaseService.databaseTablesWithEntriesExists() == false) {
       log.info("Data-base is empty: redirect to SetupPage...");
       throw new RestartResponseException(SetupPage.class);
-    }
-    if (getMySession().isMobileUserAgent() == true
-        && UserFilter.isUpdateRequiredFirst() == false
-        && "true".equals(WicketUtils.getAsString(parameters, PARAMETER_KEY_FORCE_NON_MOBILE)) == false) {
-      throw new RestartResponseException(LoginMobilePage.class);
     }
     final PFUserDO wicketSessionUser = getMySession().getUser();
     final PFUserDO sessionUser = UserFilter.getUser(WicketUtils.getHttpServletRequest(getRequest()));

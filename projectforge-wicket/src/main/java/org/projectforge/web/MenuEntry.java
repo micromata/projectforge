@@ -23,22 +23,19 @@
 
 package org.projectforge.web;
 
+import org.apache.wicket.Page;
+import org.apache.wicket.model.IModel;
+import org.projectforge.menu.builder.MenuItemDef;
+import org.projectforge.web.wicket.WicketUtils;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.TreeSet;
-
-import org.apache.commons.lang3.Validate;
-import org.apache.commons.lang3.builder.ToStringBuilder;
-import org.apache.wicket.Page;
-import org.apache.wicket.model.IModel;
-import org.projectforge.web.wicket.WicketUtils;
 
 /**
  * Represents a single menu entry (of the user's individual menu).
  */
-public class MenuEntry implements Serializable, Comparable<MenuEntry>
-{
+public class MenuEntry implements Serializable {
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(MenuEntry.class);
 
   private static final long serialVersionUID = 7961498640193169174L;
@@ -47,7 +44,11 @@ public class MenuEntry implements Serializable, Comparable<MenuEntry>
 
   protected String url;
 
-  protected boolean opened = false;
+  protected String id;
+
+  protected String i18nKey;
+
+  protected Class<? extends Page> pageClass;
 
   protected IModel<Integer> newCounterModel;
 
@@ -57,37 +58,15 @@ public class MenuEntry implements Serializable, Comparable<MenuEntry>
 
   protected String newCounterTooltip;
 
-  protected MenuEntry parent;
-
-  protected Boolean visible;
-
-  protected MenuItemDef menuItemDef;
-
   protected String name;
 
   protected Menu menu;
 
-  private boolean mobileMenu;
-
-  private boolean sorted = true;
-
-  /**
-   * @param sorted if true (default) the entries are sorted, otherwise the order is the order of adding.
-   * @return this for chaining.
-   */
-  public MenuEntry setSorted(final boolean sorted)
-  {
-    this.sorted = sorted;
-    return this;
-  }
-
-  public IModel<Integer> getNewCounterModel()
-  {
+  public IModel<Integer> getNewCounterModel() {
     return getNewCounterModel(0);
   }
 
-  private IModel<Integer> getNewCounterModel(final int depth)
-  {
+  private IModel<Integer> getNewCounterModel(final int depth) {
     if (hasSubMenuEntries() == false || depth == 10) {
       // End less loop detection (depth == 10).
       return newCounterModel;
@@ -109,85 +88,35 @@ public class MenuEntry implements Serializable, Comparable<MenuEntry>
     return totalNewCounterModel;
   }
 
-  public void setNewCounterTooltip(final String newCounterTooltip)
-  {
+  public void setNewCounterTooltip(final String newCounterTooltip) {
     this.newCounterTooltip = newCounterTooltip;
   }
 
-  public String getNewCounterTooltip()
-  {
+  public String getNewCounterTooltip() {
     return newCounterTooltip;
   }
 
   /**
    * Needed as marker for modified css.
    */
-  public boolean isFirst()
-  {
+  public boolean isFirst() {
     return menu.isFirst(this);
-  }
-
-  public MenuEntry getParent()
-  {
-    return parent;
-  }
-
-  /**
-   * @param menu Needed because MenuEntry is perhaps under construction and menu member isn't set yet.
-   * @param id
-   */
-  public void setParent(final Menu menu, final String id)
-  {
-    final MenuEntry parentEntry = menu.findById(id);
-    if (parentEntry == null) {
-      log.error("Oups, menu entry '" + id + "' not found (ignoring setParent(...) of : " + getId());
-    } else {
-      setParent(parentEntry);
-    }
-  }
-
-  void setParent(final MenuEntry parent)
-  {
-    this.parent = parent;
-  }
-
-  public boolean hasParent()
-  {
-    return this.parent != null;
   }
 
   /**
    * Root menu entry.
    */
-  MenuEntry()
-  {
+  MenuEntry() {
   }
 
-  public MenuEntry(final MenuItemDef menuItem, final MenuBuilderContext context)
-  {
-    this.menuItemDef = menuItem;
-    if (context.isMobileMenu() == true) {
-      mobileMenu = true;
-      Validate.notNull(menuItem.getMobilePageClass());
-      this.url = WicketUtils.getBookmarkablePageUrl(menuItem.getMobilePageClass());
-    } else if (menuItem.isWicketPage() == true) {
-      this.url = WicketUtils.getBookmarkablePageUrl(menuItem.getPageClass());
-    } else if (menuItem.getUrl() != null) {
-      this.url = "../secure/" + menuItem.getUrl();
-    }
-  }
-
-  public void setMenu(final Menu menu)
-  {
+  public void setMenu(final Menu menu) {
     this.menu = menu;
-    menu.addMenuEntry(this);
   }
 
   /**
    * @return the name Only given for customized menu entries if the user renamed the menu.
    */
-  public String getName()
-  {
+  public String getName() {
     return name;
   }
 
@@ -195,28 +124,20 @@ public class MenuEntry implements Serializable, Comparable<MenuEntry>
    * @param name the name to set
    * @return this for chaining.
    */
-  public MenuEntry setName(final String name)
-  {
+  public MenuEntry setName(final String name) {
     this.name = name;
     return this;
   }
 
-  public void addMenuEntry(final MenuEntry subMenuEntry)
-  {
+  public void addMenuEntry(final MenuEntry subMenuEntry) {
     if (subMenuEntries == null) {
-      if (sorted == true) {
-        subMenuEntries = new TreeSet<MenuEntry>();
-      } else {
-        subMenuEntries = new ArrayList<MenuEntry>();
-      }
+      subMenuEntries = new ArrayList<MenuEntry>();
     }
     subMenuEntries.add(subMenuEntry);
-    subMenuEntry.setParent(this);
   }
 
-  public MenuEntry findById(final String id)
-  {
-    if (menuItemDef != null && menuItemDef.getId().equals(id) == true) {
+  public MenuEntry findById(final String id) {
+    if (id.equals(id) == true) {
       return this;
     }
     if (this.subMenuEntries == null) {
@@ -231,130 +152,45 @@ public class MenuEntry implements Serializable, Comparable<MenuEntry>
     return null;
   }
 
-  public boolean hasSubMenuEntries()
-  {
+  public boolean hasSubMenuEntries() {
     return (this.subMenuEntries != null && subMenuEntries.size() > 0);
   }
 
-  public boolean isOpened()
-  {
-    return this.opened;
+  public boolean isWicketPage() {
+    return pageClass != null;
   }
 
-  public MenuItemDef getParentMenuItemDef()
-  {
-    if (this.mobileMenu == true) {
-      return this.menuItemDef.getMobileParentMenu();
-    } else {
-      return this.menuItemDef.getParent();
-    }
-  }
-
-  public boolean isWicketPage()
-  {
-    return menuItemDef != null && menuItemDef.isWicketPage();
-  }
-
-  public Class<? extends Page> getPageClass()
-  {
-    return menuItemDef != null ? menuItemDef.getPageClass() : null;
-  }
-
-  public Class<? extends Page> getMobilePageClass()
-  {
-    return menuItemDef != null ? menuItemDef.getMobilePageClass() : null;
+  public Class<? extends Page> getPageClass() {
+    return pageClass;
   }
 
   /**
    * @return
    */
-  public Collection<MenuEntry> getSubMenuEntries()
-  {
+  public Collection<MenuEntry> getSubMenuEntries() {
     return subMenuEntries;
   }
 
-  public String getI18nKey()
-  {
-    return menuItemDef != null ? menuItemDef.getI18nKey() : null;
+  public String getI18nKey() {
+    return i18nKey;
   }
 
   /**
    * @return
    */
-  public String getUrl()
-  {
+  public String getUrl() {
     return url;
   }
 
-  public void setNewCounterModel(final IModel<Integer> newCounterModel)
-  {
+  public void setNewCounterModel(final IModel<Integer> newCounterModel) {
     this.newCounterModel = newCounterModel;
   }
 
-  public boolean isLink()
-  {
-    return menuItemDef.isWicketPage() == true || menuItemDef.hasUrl() == true;
+  public boolean isLink() {
+    return pageClass != null || url != null;
   }
 
-  /**
-   * @return True or false if variable visible is set. True, if no sub menu entries exists in this entry has an link. If
-   *         sub menu entries does exist then it's visible if any of the sub menu entries is visible. The variable
-   *         visible is set automatically after the first call of this method.
-   */
-  public boolean isVisible()
-  {
-    if (visible != null) {
-      return visible;
-    }
-    if (subMenuEntries == null || subMenuEntries.size() == 0) {
-      visible = isLink();
-    } else {
-      for (final MenuEntry subMenuEntry : subMenuEntries) {
-        if (subMenuEntry.isVisible() == true) {
-          visible = true;
-          break;
-        }
-      }
-    }
-    return visible;
-  }
-
-  public void setVisible(final boolean visible)
-  {
-    this.visible = visible;
-  }
-
-  public String getId()
-  {
-    return menuItemDef != null ? menuItemDef.getId() : null;
-  }
-
-  @Override
-  public int compareTo(final MenuEntry o)
-  {
-    final int orderNumber = menuItemDef != null ? menuItemDef.getOrderNumber() : 10000;
-    final int otherOrderNumber = o.menuItemDef != null ? o.menuItemDef.getOrderNumber() : 10000;
-    if (orderNumber < otherOrderNumber) {
-      return -1;
-    } else if (orderNumber > otherOrderNumber) {
-      return 1;
-    }
-    final String name = menuItemDef != null ? menuItemDef.getI18nKey() : getName();
-    final String otherName = o.menuItemDef != null ? o.menuItemDef.getI18nKey() : o.getName();
-    return name.compareTo(otherName);
-  }
-
-  /**
-   * @see java.lang.Object#toString()
-   */
-  @Override
-  public String toString()
-  {
-    final ToStringBuilder tos = new ToStringBuilder(this);
-    if (menuItemDef != null)
-      tos.append("menuItemDef", menuItemDef);
-    if (name != null)
-      tos.append("name", name);
-    return tos.toString();
+  public String getId() {
+    return id;
   }
 }
