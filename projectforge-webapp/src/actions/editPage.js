@@ -112,15 +112,13 @@ export const abort = () => (dispatch, getState) => {
     redirectToCategory(category);
 };
 
-export const markAsDeleted = () => (dispatch, getState) => {
+const callEndpointWithData = (category, endpoint, data, dispatch, method = 'POST') => {
     dispatch(updateBegin());
 
-    const { category, data } = getState().editPage;
-
     fetch(
-        getServiceURL(`${category}/markAsDeleted`),
+        getServiceURL(`${category}/${endpoint}`),
         {
-            method: 'DELETE',
+            method,
             credentials: 'include',
             headers: {
                 'Content-Type': 'application/json',
@@ -131,4 +129,22 @@ export const markAsDeleted = () => (dispatch, getState) => {
         .then(handleHTTPErrors)
         .then(() => redirectToCategory(category))
         .catch(error => dispatch(loadFailure(error)));
+};
+
+export const markAsDeleted = () => (dispatch, getState) => {
+    const { category, data } = getState().editPage;
+
+    callEndpointWithData(category, 'markAsDeleted', data, dispatch, 'DELETE');
+};
+
+export const undelete = () => (dispatch, getState) => {
+    const { category, data } = getState().editPage;
+
+    callEndpointWithData(category, 'undelete', data, dispatch, 'PUT');
+};
+
+export const clone = () => (dispatch, getState) => {
+    const { category, data } = getState().editPage;
+
+    callEndpointWithData(category, 'clone', data, dispatch);
 };

@@ -20,6 +20,8 @@ export {
     updatePageData as updateEditPageData,
     abort as abortEditPage,
     markAsDeleted,
+    undelete,
+    clone,
 } from './editPage';
 
 export {
