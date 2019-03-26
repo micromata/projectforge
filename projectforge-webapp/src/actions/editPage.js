@@ -111,3 +111,24 @@ export const abort = () => (dispatch, getState) => {
 
     redirectToCategory(category);
 };
+
+export const markAsDeleted = () => (dispatch, getState) => {
+    dispatch(updateBegin());
+
+    const { category, data } = getState().editPage;
+
+    fetch(
+        getServiceURL(`${category}/markAsDeleted`),
+        {
+            method: 'DELETE',
+            credentials: 'include',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data),
+        },
+    )
+        .then(handleHTTPErrors)
+        .then(() => redirectToCategory(category))
+        .catch(error => dispatch(loadFailure(error)));
+};

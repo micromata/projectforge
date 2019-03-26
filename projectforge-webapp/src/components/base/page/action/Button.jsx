@@ -5,7 +5,8 @@ import {
     abortEditPage,
     resetListFilter,
     updateEditPageData,
-    updateList
+    updateList,
+    markAsDeleted,
 } from '../../../../actions';
 import { buttonPropType } from '../../../../utilities/propTypes';
 import { Button } from '../../../design';
@@ -68,6 +69,7 @@ const actions = {
     cancel: abortEditPage,
     reset: resetListFilter,
     search: updateList,
+    markAsDeleted,
 };
 
 export default connect(mapStateToProps, actions)(ActionButton);
