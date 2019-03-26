@@ -36,6 +36,7 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.zip.GZIPOutputStream;
 
+import javafx.scene.control.MenuBuilder;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.wicket.markup.html.link.Link;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
@@ -60,8 +61,8 @@ import org.projectforge.framework.persistence.database.DatabaseService;
 import org.projectforge.framework.persistence.history.HibernateSearchReindexer;
 import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
 import org.projectforge.framework.time.DateHelper;
+import org.projectforge.menu.builder.MenuCreator;
 import org.projectforge.plugins.core.PluginAdminService;
-import org.projectforge.web.MenuBuilder;
 import org.projectforge.web.MenuItemRegistry;
 import org.projectforge.web.WebConfiguration;
 import org.projectforge.web.fibu.ISelectCallerPage;
@@ -115,7 +116,7 @@ public class AdminPage extends AbstractStandardFormPage implements ISelectCaller
   MenuBuilder menuBuilder;
 
   @SpringBean
-  MenuItemRegistry menuItemRegistry;
+  MenuCreator menuCreator;
 
   @SpringBean
   PluginAdminService pluginAdminService;
@@ -436,7 +437,7 @@ public class AdminPage extends AbstractStandardFormPage implements ISelectCaller
     if (result != null) {
       result = result.replaceAll("\n", "<br/>\n");
     }
-    menuItemRegistry.refresh();
+    menuCreator.refresh();
     setResponsePage(new MessagePage("administration.rereadConfiguration", result));
   }
 

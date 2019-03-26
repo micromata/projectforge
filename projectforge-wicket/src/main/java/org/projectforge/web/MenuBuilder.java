@@ -23,59 +23,62 @@
 
 package org.projectforge.web;
 
-import org.projectforge.framework.access.AccessChecker;
-import org.projectforge.framework.persistence.api.UserRightService;
+import org.apache.commons.collections.CollectionUtils;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
+import org.projectforge.menu.MenuItem;
+import org.projectforge.menu.builder.MenuCreator;
+import org.projectforge.menu.builder.MenuCreatorContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 /**
  * Build of the user's personal menu (depending on the access rights of the user).
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
- * 
  */
 @Service
-public class MenuBuilder
-{
+public class MenuBuilder {
   @Autowired
-  private AccessChecker accessChecker;
+  private MenuCreator menuCreator;
 
   @Autowired
-  private UserRightService userRights;
+  private MenuItemRegistry menuItemRegistry;
 
-  @Autowired
-  private MenuItemRegistry registry;
+  public Menu getMenu(final PFUserDO user) {
+    return buildMenuTree(user);
+  }
 
-  private Menu buildMenuTree(final PFUserDO user, final boolean mobileMenu)
-  {
+  private Menu buildMenuTree(final PFUserDO user) {
     if (user == null) {
       return null;
     }
     final Menu menu = new Menu();
-    final MenuBuilderContext context = new MenuBuilderContext(menu, user, mobileMenu, accessChecker, userRights);
-    for (final MenuItemDef menuItemDef : registry.getMenuItemList()) {
-      if (menuItemDef.isVisible(context) == false) {
-        // Menu entry isn't visible for the user:
-        continue;
+    List<MenuItem> topMenus = menuCreator.build(new MenuCreatorContext(user, false));
+    for (MenuItem item : topMenus) {
+      MenuEntry entry = createMenuEntry(item, menu);
+      menu.addMenuEntry(entry);
+      if (CollectionUtils.isNotEmpty(item.getSubMenu())) {
+        buildMenuTree(entry, item, menu);
       }
-      menuItemDef.createMenuEntry(menu, context);
     }
     return menu;
   }
 
-  public Menu getMenu(final PFUserDO user)
-  {
-    return getMenu(user, false);
+  private void buildMenuTree(MenuEntry parent, MenuItem parentItem, Menu menu) {
+    for (MenuItem item : parentItem.getSubMenu()) {
+      MenuEntry entry = createMenuEntry(item, menu);
+      parent.addMenuEntry(entry);
+    }
   }
 
-  public Menu getMobileMenu(final PFUserDO user)
-  {
-    return getMenu(user, true);
-  }
-
-  private Menu getMenu(final PFUserDO user, final boolean mobileMenu)
-  {
-    return buildMenuTree(user, mobileMenu);
+  private MenuEntry createMenuEntry(MenuItem item, Menu menu) {
+    MenuEntry entry = new MenuEntry();
+    entry.id = item.getKey();
+    entry.pageClass = menuItemRegistry.getPageClass(item.getId());
+    entry.i18nKey = item.getTitle();
+    entry.setMenu(menu);
+    return entry;
   }
 }

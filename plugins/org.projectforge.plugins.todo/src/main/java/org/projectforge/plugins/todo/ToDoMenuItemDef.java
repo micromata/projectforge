@@ -24,9 +24,8 @@
 package org.projectforge.plugins.todo;
 
 import org.apache.wicket.Page;
-import org.projectforge.web.MenuBuilderContext;
+import org.projectforge.menu.builder.MenuItemDef;
 import org.projectforge.web.MenuEntry;
-import org.projectforge.web.MenuItemDef;
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
@@ -35,10 +34,11 @@ public class ToDoMenuItemDef extends MenuItemDef
 {
   private static final long serialVersionUID = -7535509328303694730L;
 
-  ToDoMenuItemDef(final MenuItemDef parentMenu, final String id, final int order, final String i18nKey,
+  ToDoMenuItemDef(final MenuItemDef parentMenu, final String id, final String i18nKey,
       final Class<? extends Page> pageClass)
   {
-    super(parentMenu, id, order, i18nKey, pageClass);
+    super(parentMenu, id);
+    , i18nKey, pageClass);
   }
 
   @Override

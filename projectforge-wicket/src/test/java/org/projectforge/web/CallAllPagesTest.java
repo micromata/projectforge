@@ -29,11 +29,9 @@ import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.projectforge.business.systeminfo.SystemInfoCache;
 import org.projectforge.test.AbstractTestBase;
-import org.projectforge.web.address.AddressMobileViewPage;
 import org.projectforge.web.address.AddressViewPage;
 import org.projectforge.web.admin.SetupPage;
 import org.projectforge.web.doc.TutorialPage;
-import org.projectforge.web.mobile.LoginMobilePage;
 import org.projectforge.web.registry.WebRegistry;
 import org.projectforge.web.scripting.ScriptExecutePage;
 import org.projectforge.web.wicket.MessagePage;
@@ -53,9 +51,6 @@ public class CallAllPagesTest extends WicketPageTestBase
 
   @SuppressWarnings("unchecked")
   private final Class<? extends WebPage>[] skipPages = new Class[] { //
-      // Checked below:
-      LoginPage.class, LoginMobilePage.class, SetupPage.class, TutorialPage.class, //
-      AddressViewPage.class, AddressMobileViewPage.class, // Checked in AddressPagesTest
       // Not yet checked:
       ScriptExecutePage.class };
 
@@ -70,7 +65,6 @@ public class CallAllPagesTest extends WicketPageTestBase
   {
     _testAllMountedPages();
     testPage(LoginPage.class);
-    testPage(LoginMobilePage.class);
     clearDatabase();
     testPage(SetupPage.class);
   }

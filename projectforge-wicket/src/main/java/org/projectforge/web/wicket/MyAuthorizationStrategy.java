@@ -33,8 +33,6 @@ import org.apache.wicket.request.component.IRequestableComponent;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.request.resource.IResource;
 import org.projectforge.web.LoginPage;
-import org.projectforge.web.mobile.AbstractSecuredMobilePage;
-import org.projectforge.web.mobile.LoginMobilePage;
 import org.projectforge.web.session.MySession;
 
 /**
@@ -66,8 +64,7 @@ public class MyAuthorizationStrategy implements IAuthorizationStrategy, IUnautho
         return true;
       }
       if (AbstractSecuredBasePage.class.isAssignableFrom(componentClass) == true
-          || AbstractSecuredBasePage.class.isAssignableFrom(componentClass) == true
-          || AbstractSecuredMobilePage.class.isAssignableFrom(componentClass) == true) {
+          || AbstractSecuredBasePage.class.isAssignableFrom(componentClass) == true) {
         return false;
       }
     }
@@ -77,11 +74,6 @@ public class MyAuthorizationStrategy implements IAuthorizationStrategy, IUnautho
   @Override
   public void onUnauthorizedInstantiation(final Component component)
   {
-    if (MySession.get().isMobileUserAgent() == true) {
-      throw new RestartResponseAtInterceptPageException(LoginMobilePage.class);
-    } else {
       throw new RestartResponseAtInterceptPageException(LoginPage.class);
-    }
   }
-
 }
