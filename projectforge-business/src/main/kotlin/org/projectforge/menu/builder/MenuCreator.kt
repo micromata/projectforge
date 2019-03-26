@@ -64,7 +64,7 @@ class MenuCreator() {
      * @param menuItemDef
      * @return this for chaining.
      */
-    fun add(parentId: MenuItemDefId, menuItemDef: MenuItemDef): MenuItemDef {
+    fun add(parentId: String, menuItemDef: MenuItemDef): MenuItemDef {
         val parent = findById(parentId)
         if (parent == null) {
             throw java.lang.IllegalArgumentException("Can't append menu '${menuItemDef.id}' to parent '${parentId}'. Parent not found.")
