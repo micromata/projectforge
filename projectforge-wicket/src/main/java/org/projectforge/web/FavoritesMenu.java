@@ -136,15 +136,22 @@ public class FavoritesMenu implements Serializable
       return null;
     }
     String id = item.attributeValue("id");
-    MenuEntry menuEntry = null;
+    MenuEntry srcMenuEntry = null;
     if (id != null && id.startsWith("c-") == true) {
       id = id.substring(2);
     }
     if (id != null && menu != null) { // menu is only null for FavoritesMenuTest.
-      menuEntry = menu.findById(id);
+      srcMenuEntry = menu.findById(id);
     }
-    if (menuEntry == null) {
-      menuEntry = new MenuEntry();
+    final MenuEntry menuEntry=new MenuEntry();
+    if (srcMenuEntry != null) {
+      menuEntry.id = srcMenuEntry.id;
+      menuEntry.url = srcMenuEntry.url;
+      menuEntry.url = srcMenuEntry.url;
+      menuEntry.url = srcMenuEntry.url;
+      menuEntry.url = srcMenuEntry.url;
+      menuEntry.url = srcMenuEntry.url;
+      menuEntry.url = srcMenuEntry.url;
     }
     if (item != null) {
       final String trimmedTitle = item.getTextTrim();

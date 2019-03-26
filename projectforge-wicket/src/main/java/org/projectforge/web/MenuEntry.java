@@ -25,8 +25,6 @@ package org.projectforge.web;
 
 import org.apache.wicket.Page;
 import org.apache.wicket.model.IModel;
-import org.projectforge.menu.builder.MenuItemDef;
-import org.projectforge.web.wicket.WicketUtils;
 
 import java.io.Serializable;
 import java.util.ArrayList;
