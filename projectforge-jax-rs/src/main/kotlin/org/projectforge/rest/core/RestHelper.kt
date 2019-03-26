@@ -27,7 +27,7 @@ class RestHelper {
 
         fun <O : ExtendedBaseDO<Int>> saveOrUpdate(baseDao: BaseDao<O>?, obj: O, validationErrorsList: List<ValidationError>?): Response {
             if (validationErrorsList.isNullOrEmpty()) {
-                var id = baseDao!!.saveOrUpdate(obj)
+                var id = baseDao!!.saveOrUpdate(obj) ?: obj.id
                 val json = JsonCreator.toJson(id)
                 return Response.ok(json).build()
             }

@@ -1,7 +1,12 @@
 import PropTypes from 'prop-types';
 import React from 'react';
 import { connect } from 'react-redux';
-import { resetListFilter, updateEditPageData, updateList } from '../../../../actions';
+import {
+    abortEditPage,
+    resetListFilter,
+    updateEditPageData,
+    updateList
+} from '../../../../actions';
 import { buttonPropType } from '../../../../utilities/propTypes';
 import { Button } from '../../../design';
 
@@ -60,6 +65,7 @@ const mapStateToProps = () => ({});
 // TODO: ADD FUNCTIONS
 const actions = {
     update: updateEditPageData,
+    cancel: abortEditPage,
     reset: resetListFilter,
     search: updateList,
 };

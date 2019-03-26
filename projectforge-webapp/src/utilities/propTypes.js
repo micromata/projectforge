@@ -53,4 +53,5 @@ export const dataPropType = PropTypes.objectOf(PropTypes.oneOfType([
         PropTypes.number,
         PropTypes.bool,
     ])),
+    PropTypes.arrayOf(PropTypes.shape({})),
 ]));
