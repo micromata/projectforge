@@ -81,13 +81,9 @@ export const updatePageData = () => (dispatch, getState) => {
             },
             body: JSON.stringify({
                 ...values,
-                // TODO: REMOVE DATE IGNORANCE
-                created: undefined,
-                lastUpdate: undefined,
             }),
         },
     )
-        // TODO: HANDLE FAILURE AND SUCCESS
         .then((response) => {
             if (response.status === 200) {
                 redirectToCategory(category);
