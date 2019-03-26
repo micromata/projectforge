@@ -69,7 +69,7 @@ class LayoutInput extends Component {
 
         if (
             type !== 'checkbox'
-            && ((required && value) || (maxLength && value.length > maxLength))
+            && ((required && !value) || (maxLength && value.length > maxLength))
         ) {
             properties.color = 'danger';
         }
