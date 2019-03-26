@@ -2,6 +2,7 @@ package org.projectforge.rest.config;
 
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
@@ -29,6 +30,7 @@ public class ObjectMapperResolver implements ContextResolver<ObjectMapper> {
     SimpleModule module = new SimpleModule();
     module.addDeserializer(Date.class, new MyDateDeserializer());
     mapper.registerModule(module);
+   // mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
   }
 
   @Override

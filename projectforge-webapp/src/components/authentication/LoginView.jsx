@@ -129,7 +129,7 @@ class LoginView extends React.Component {
                                 id="keepSignedIn"
                                 label="[angemeldet bleiben]"
                                 checked={keepSignedIn}
-                                onClick={this.handleInputChange}
+                                onChange={this.handleInputChange}
                                 aria-label="keepSignedIn"
                                 color="primary"
                                 className={style.formGroup}

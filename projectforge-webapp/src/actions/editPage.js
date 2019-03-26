@@ -1,3 +1,4 @@
+import history from '../utilities/history';
 import { getServiceURL, handleHTTPErrors } from '../utilities/rest';
 
 export const EDIT_PAGE_LOAD_BEGIN = 'EDIT_PAGE_LOAD_BEGIN';
@@ -5,7 +6,9 @@ export const EDIT_PAGE_LOAD_SUCCESS = 'EDIT_PAGE_LOAD_SUCCESS';
 export const EDIT_PAGE_LOAD_FAILURE = 'EDIT_PAGE_LOAD_FAILURE';
 
 export const EDIT_PAGE_FIELD_CHANGE = 'EDIT_PAGE_FIELD_CHANGE';
-export const EDIT_PAGE_VALIDATION_HINTS_ENABLE = 'EDIT_PAGE_VALIDATION_HINTS_ENABLE';
+
+export const EDIT_PAGE_UPDATE_BEGIN = 'EDIT_PAGE_UPDATE_BEGIN';
+export const EDIT_PAGE_UPDATE_FAILURE = 'EDIT_PAGE_UPDATE_FAILURE';
 
 export const loadBegin = category => ({
     type: EDIT_PAGE_LOAD_BEGIN,
@@ -33,7 +36,11 @@ export const fieldChanged = (id, newValue) => ({
     },
 });
 
-export const validationHintsEnabled = () => ({ type: EDIT_PAGE_VALIDATION_HINTS_ENABLE });
+export const updateBegin = () => ({ type: EDIT_PAGE_UPDATE_BEGIN });
+export const updateFailure = validationMessages => ({
+    type: EDIT_PAGE_UPDATE_FAILURE,
+    payload: { validationMessages },
+});
 
 export const loadEdit = (category, id) => (dispatch) => {
     dispatch(loadBegin(category));
@@ -57,8 +64,14 @@ export const loadEdit = (category, id) => (dispatch) => {
         .catch(error => dispatch(loadFailure(error.message)));
 };
 
+const redirectToCategory = category => history.push(`/${category}/`);
+
 export const updatePageData = () => (dispatch, getState) => {
-    const { values, category } = getState().editPage;
+    dispatch(updateBegin());
+
+    const { data, category } = getState().editPage;
+
+    console.log(data);
 
     fetch(
         getServiceURL(`${category}/saveorupdate`),
@@ -69,19 +82,36 @@ export const updatePageData = () => (dispatch, getState) => {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-                ...values,
-                // TODO: REMOVE DATE IGNORANCE
-                created: undefined,
-                lastUpdate: undefined,
+                ...data,
             }),
         },
     )
-        .then(handleHTTPErrors)
-        // TODO: HANDLE FAILURE AND SUCCESS
-        .then(response => console.log(response))
-        .catch(error => console.error(error));
+        .then((response) => {
+            if (response.status === 200) {
+                redirectToCategory(category);
+                return;
+            }
+
+            if (response.status === 406) {
+                response.json()
+                    .then(json => dispatch(updateFailure(json.reduce((map, obj) => ({
+                        ...map,
+                        [obj['field-id']]: obj.message,
+                    }), {}))));
+                return;
+            }
+
+            console.log(response);
+
+            throw new Error(response.status);
+        })
+        .catch(error => dispatch(loadFailure()));
 };
 
 export const changeField = (id, newValue) => dispatch => dispatch(fieldChanged(id, newValue));
 
-export const enableValidationHints = () => dispatch => dispatch(validationHintsEnabled());
+export const abort = () => (dispatch, getState) => {
+    const { category } = getState().editPage;
+
+    redirectToCategory(category);
+};
