@@ -18,6 +18,7 @@ export {
     loadEdit as loadEditPage,
     changeField as changeEditFormField,
     updatePageData as updateEditPageData,
+    abort as abortEditPage,
 } from './editPage';
 
 export {

@@ -1,4 +1,5 @@
 import { getServiceURL, handleHTTPErrors } from '../utilities/rest';
+import history from '../utilities/history';
 
 export const EDIT_PAGE_LOAD_BEGIN = 'EDIT_PAGE_LOAD_BEGIN';
 export const EDIT_PAGE_LOAD_SUCCESS = 'EDIT_PAGE_LOAD_SUCCESS';
@@ -104,3 +105,9 @@ export const updatePageData = () => (dispatch, getState) => {
 };
 
 export const changeField = (id, newValue) => dispatch => dispatch(fieldChanged(id, newValue));
+
+export const abort = () => (dispatch, getState) => {
+    const { category } = getState().editPage;
+
+    history.push(`/${category}/`);
+};
