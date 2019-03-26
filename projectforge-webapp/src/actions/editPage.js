@@ -5,7 +5,9 @@ export const EDIT_PAGE_LOAD_SUCCESS = 'EDIT_PAGE_LOAD_SUCCESS';
 export const EDIT_PAGE_LOAD_FAILURE = 'EDIT_PAGE_LOAD_FAILURE';
 
 export const EDIT_PAGE_FIELD_CHANGE = 'EDIT_PAGE_FIELD_CHANGE';
-export const EDIT_PAGE_VALIDATION_HINTS_ENABLE = 'EDIT_PAGE_VALIDATION_HINTS_ENABLE';
+
+export const EDIT_PAGE_UPDATE_BEGIN = 'EDIT_PAGE_UPDATE_BEGIN';
+export const EDIT_PAGE_UPDATE_FAILURE = 'EDIT_PAGE_UPDATE_FAILURE';
 
 export const loadBegin = category => ({
     type: EDIT_PAGE_LOAD_BEGIN,
@@ -33,7 +35,11 @@ export const fieldChanged = (id, newValue) => ({
     },
 });
 
-export const validationHintsEnabled = () => ({ type: EDIT_PAGE_VALIDATION_HINTS_ENABLE });
+export const updateBegin = () => ({ type: EDIT_PAGE_UPDATE_BEGIN });
+export const updateFailure = validationMessages => ({
+    type: EDIT_PAGE_UPDATE_FAILURE,
+    payload: { validationMessages },
+});
 
 export const loadEdit = (category, id) => (dispatch) => {
     dispatch(loadBegin(category));
@@ -58,6 +64,8 @@ export const loadEdit = (category, id) => (dispatch) => {
 };
 
 export const updatePageData = () => (dispatch, getState) => {
+    dispatch(updateBegin());
+
     const { values, category } = getState().editPage;
 
     fetch(
@@ -76,12 +84,23 @@ export const updatePageData = () => (dispatch, getState) => {
             }),
         },
     )
-        .then(handleHTTPErrors)
         // TODO: HANDLE FAILURE AND SUCCESS
-        .then(response => console.log(response))
+        .then((response) => {
+            if (response.status === 200) {
+                // TODO: ADD REDIRECT WHEN SUCCEED
+            }
+
+            if (response.status === 406) {
+                return response.json();
+            }
+
+            throw new Error(response.statusText);
+        })
+        .then(json => dispatch(updateFailure(json.reduce((map, obj) => ({
+            ...map,
+            [obj['field-id']]: obj.message,
+        }), {}))))
         .catch(error => console.error(error));
 };
 
 export const changeField = (id, newValue) => dispatch => dispatch(fieldChanged(id, newValue));
-
-export const enableValidationHints = () => dispatch => dispatch(validationHintsEnabled());

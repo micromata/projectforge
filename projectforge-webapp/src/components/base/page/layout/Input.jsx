@@ -45,6 +45,7 @@ class LayoutInput extends Component {
             'max-length': maxLength,
             required,
             type,
+            validation,
         } = this.props;
 
         let Tag;
@@ -74,6 +75,12 @@ class LayoutInput extends Component {
             properties.color = 'danger';
         }
 
+
+        if (validation[id]) {
+            properties.color = 'danger';
+            properties.additionalLabel = validation[id];
+        }
+
         return (
             <Tag
                 label={label}
@@ -98,6 +105,7 @@ LayoutInput.propTypes = {
     })),
     'max-length': PropTypes.number,
     required: PropTypes.bool,
+    validation: PropTypes.shape({}),
 };
 
 LayoutInput.defaultProps = {
@@ -107,6 +115,7 @@ LayoutInput.defaultProps = {
     values: [],
     'max-length': 0,
     required: false,
+    validation: {},
 };
 
 export default LayoutInput;
