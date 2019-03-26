@@ -69,7 +69,9 @@ const redirectToCategory = category => history.push(`/${category}/`);
 export const updatePageData = () => (dispatch, getState) => {
     dispatch(updateBegin());
 
-    const { values, category } = getState().editPage;
+    const { data, category } = getState().editPage;
+
+    console.log(data);
 
     fetch(
         getServiceURL(`${category}/saveorupdate`),
@@ -80,7 +82,7 @@ export const updatePageData = () => (dispatch, getState) => {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-                ...values,
+                ...data,
             }),
         },
     )
@@ -99,9 +101,11 @@ export const updatePageData = () => (dispatch, getState) => {
                 return;
             }
 
-            throw new Error(response.statusText);
+            console.log(response);
+
+            throw new Error(response.status);
         })
-        .catch(error => console.error(error));
+        .catch(error => dispatch(loadFailure()));
 };
 
 export const changeField = (id, newValue) => dispatch => dispatch(fieldChanged(id, newValue));
