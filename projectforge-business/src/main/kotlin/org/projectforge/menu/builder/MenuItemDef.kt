@@ -11,7 +11,7 @@ import org.projectforge.menu.MenuItem
  * Defines one menu item once. The [MenuCreator] creates the user menu item from this definition dynamically dependent
  * e. g. on the user's access.
  */
-open class MenuItemDef {
+class MenuItemDef {
     /**
      * Usable for e. g. plugins without [MenuItemDef] available.
      * @param defId For getting the key and i18nKey.
@@ -64,6 +64,11 @@ open class MenuItemDef {
     var requiredUserRightId: IUserRightId? = null
     var requiredUserRight: UserRight? = null
     var requiredUserRightValues: Array<UserRightValue>? = null
+
+    var badgeCounter : (() -> Int?)? = null
+
+    @Deprecated("Wicket will be replaced by ReactJS")
+    var wicketPageClass: Class<*>? = null
 
     internal var childs: MutableList<MenuItemDef>? = null
 

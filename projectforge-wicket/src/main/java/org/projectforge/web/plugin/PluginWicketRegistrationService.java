@@ -23,9 +23,14 @@ public class PluginWicketRegistrationService
     return menuCreator.findById(menuItemDefId);
   }
 
-  public void registerMenuItem(final MenuItemDefId parentId, final MenuItemDef menuItemDef)
+  public void registerMenuItem(final String parentId, final MenuItemDef menuItemDef)
   {
     menuCreator.add(parentId, menuItemDef);
+  }
+
+  public void registerMenuItem(final MenuItemDefId parentId, final MenuItemDef menuItemDef)
+  {
+    registerMenuItem(parentId.getId(), menuItemDef);
   }
 
   /**
