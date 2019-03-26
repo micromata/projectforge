@@ -1,5 +1,6 @@
 package org.projectforge.web.plugin;
 
+import org.apache.wicket.Page;
 import org.apache.wicket.markup.html.WebPage;
 import org.projectforge.menu.builder.MenuCreator;
 import org.projectforge.menu.builder.MenuItemDef;
@@ -18,19 +19,42 @@ public class PluginWicketRegistrationService
   @Autowired
   public MenuCreator menuCreator;
 
+  @Autowired
+  public MenuItemRegistry menuItemRegistry;
+
   public MenuItemDef getMenuItemDef(final MenuItemDefId menuItemDefId)
   {
     return menuCreator.findById(menuItemDefId);
   }
 
-  public void registerMenuItem(final String parentId, final MenuItemDef menuItemDef)
-  {
-    menuCreator.add(parentId, menuItemDef);
-  }
-
   public void registerMenuItem(final MenuItemDefId parentId, final MenuItemDef menuItemDef)
   {
-    registerMenuItem(parentId.getId(), menuItemDef);
+    registerMenuItem(parentId, menuItemDef, null);
+  }
+
+  public void registerMenuItem(final MenuItemDefId parentId, final MenuItemDef menuItemDef, Class<? extends Page> pageClass)
+  {
+    registerMenuItem(parentId.getId(), menuItemDef, pageClass);
+  }
+
+
+  public void registerMenuItem(final String parentId, final MenuItemDef menuItemDef)
+  {
+    registerMenuItem(parentId, menuItemDef, null);
+  }
+
+  public void registerMenuItem(final String parentId, final MenuItemDef menuItemDef, Class<? extends Page> pageClass)
+  {
+    menuCreator.add(parentId, menuItemDef);
+    if (pageClass != null)
+      menuItemRegistry.register(menuItemDef.getId(), pageClass);
+  }
+
+  public void registerTopLevelMenuItem(final MenuItemDef menuItemDef, Class<? extends Page> pageClass)
+  {
+    menuCreator.addTopLevelMenu(menuItemDef);
+    if (pageClass != null)
+      menuItemRegistry.register(menuItemDef.getId(), pageClass);
   }
 
   /**
