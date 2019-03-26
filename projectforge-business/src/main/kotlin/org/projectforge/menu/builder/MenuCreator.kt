@@ -27,6 +27,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import javax.annotation.PostConstruct
 
+// open only needed for Wicket (for using proxies)
 @Component
 open class MenuCreator() {
     private val log = org.slf4j.LoggerFactory.getLogger(MenuCreator::class.java)

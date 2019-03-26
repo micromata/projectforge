@@ -91,8 +91,9 @@ public class MenuItemRegistry implements Serializable {
     return wicketClassesMap.get(menuItemDefId);
   }
 
-  // Needed as static method (because anonymous declared MenuItemDef are serialized).
-  @SuppressWarnings("serial")
+  /**
+   * Registers all Wicket page classes.
+   */
   private void initialize(final MenuItemRegistry reg) {
     register(MenuItemDefId.CALENDAR, TeamCalCalendarPage.class);
     register(MenuItemDefId.TEAMCALENDAR, TeamCalListPage.class);
