@@ -7,6 +7,8 @@ enum class UIDataType {
     STRING,
     @SerializedName("date")
     DATE,
+    @SerializedName("locale")
+    LOCALE,
     @SerializedName("picture")
     PICTURE,
     @SerializedName("customized")

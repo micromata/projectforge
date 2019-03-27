@@ -31,10 +31,10 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
-import org.projectforge.test.AbstractTestBase;
+import org.projectforge.test.AbstractTestNGBase;
 import org.testng.annotations.Test;
 
-public class MaxLenfthTextFieldTest extends AbstractTestBase
+public class MaxLenfthTextFieldTest extends AbstractTestNGBase
 {
   @Test
   public void maxLength()

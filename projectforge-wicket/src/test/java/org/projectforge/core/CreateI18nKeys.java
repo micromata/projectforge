@@ -23,19 +23,6 @@
 
 package org.projectforge.core;
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeSet;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.projectforge.business.address.FormOfAddress;
@@ -43,9 +30,16 @@ import org.projectforge.business.fibu.AuftragsStatus;
 import org.projectforge.common.i18n.Priority;
 import org.projectforge.framework.calendar.MonthHolder;
 import org.projectforge.framework.time.DayHolder;
+import org.projectforge.menu.builder.MenuItemDefId;
 import org.projectforge.web.MenuItemDef;
-import org.projectforge.web.MenuItemDefId;
 import org.projectforge.web.wicket.WebConstants;
+
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Tries to get all used i18n keys from the sources (java and html). As result a file is written which will be checked

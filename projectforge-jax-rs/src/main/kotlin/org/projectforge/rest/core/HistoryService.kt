@@ -1,4 +1,4 @@
-package org.projectforge.rest
+package org.projectforge.rest.core
 
 import com.google.gson.annotations.SerializedName
 import de.micromata.genome.db.jpa.history.api.DiffEntry
@@ -8,16 +8,16 @@ import de.micromata.genome.db.jpa.history.entities.PropertyOpType
 import org.projectforge.business.multitenancy.TenantRegistryMap
 import org.projectforge.common.i18n.I18nEnum
 import org.projectforge.common.props.PropUtils
+import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.user.entities.PFUserDO
-import org.projectforge.rest.ui.translate
-import org.springframework.stereotype.Service
+import org.springframework.stereotype.Component
 import java.lang.reflect.Field
 import java.util.*
 
 /**
  * History entries will be transformed into human readable formats.
  */
-@Service
+@Component
 class HistoryService {
     private val log = org.slf4j.LoggerFactory.getLogger(HistoryService::class.java)
 

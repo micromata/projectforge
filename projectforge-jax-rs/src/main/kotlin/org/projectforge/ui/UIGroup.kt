@@ -1,7 +1,5 @@
 package org.projectforge.ui
 
-import org.projectforge.rest.ui.LayoutUtils
-
 /**
  * A group represents a group of UI elements, such as a pair of a Label and an Input field.
  */
@@ -16,34 +14,42 @@ data class UIGroup(val content: MutableList<UIElement> = mutableListOf()) : UIEl
 
     /**
      * Convenient method:
-     * Adds a UILabel and the given input. UILabel.labelFor is set with id of given input.
+     * Adds a UILabel and the given element. UILabel.labelFor is set with id of given element.
      * @param label The value of the label to add as UILabel.
-     * @param input The element (of type UIInput, UITextArea or UISelect).
+     * @param element The element (of type UIInput, UITextArea or UISelect).
      */
-    fun add(label: String, input: UIElement): UIGroup {
-        return add(UILabel(label = label), input)
+    fun add(id: String, element: UIElement?): UIGroup? {
+        if (element == null)
+            return null
+        val label = when (element) {
+            is UILabelledElement -> element.label
+            else -> "??? ${id} ???"
+        }
+        return add(UILabel(label = label), element)
     }
 
     /**
      * Convenient method:
-     * Adds a UILabel and the given input. UILabel.labelFor is set with id of given input.
+     * Adds a UILabel and the given element. UILabel.labelFor is set with id of given element.
      * @param label The label to add.
-     * @param input The element (of type UIInput, UITextArea or UISelect).
+     * @param element The element (of type UIInput, UITextArea or UISelect).
      */
-    fun add(label: UILabel, input: UIElement): UIGroup {
-        label.reference = input
+    fun add(label: UILabel, element: UIElement?): UIGroup? {
+        if (element == null)
+            return null
+        label.reference = element
         label.labelFor =
-                when (input) {
-                    is UIInput -> input.id
-                    is UITextarea -> input.id
-                    is UISelect -> input.id
-                    is UIMultiSelect -> input.id
+                when (element) {
+                    is UIInput -> element.id
+                    is UITextarea -> element.id
+                    is UISelect -> element.id
+                    is UIMultiSelect -> element.id
                     else -> null
                 }
         if (label.labelFor == null)
-            log.error("Unsupported element for method add(UILabel, UIElement): '${input}'. Supported elements are UIInput, UISelect and UITextArea")
+            log.error("Unsupported element for method add(UILabel, UIElement): '${element}'. Supported elements are UIInput, UISelect and UITextArea")
         content.add(label)
-        content.add(input)
+        content.add(element)
         return this;
     }
 }

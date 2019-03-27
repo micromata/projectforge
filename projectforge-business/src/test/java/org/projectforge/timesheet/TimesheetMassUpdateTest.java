@@ -46,11 +46,12 @@ import org.projectforge.framework.persistence.api.BaseDao;
 import org.projectforge.framework.time.DateHolder;
 import org.projectforge.framework.time.DatePrecision;
 import org.projectforge.test.AbstractTestBase;
+import org.projectforge.test.AbstractTestNGBase;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
-public class TimesheetMassUpdateTest extends AbstractTestBase
+public class TimesheetMassUpdateTest extends AbstractTestNGBase
 {
   // private static final Logger log = Logger.getLogger(TaskTest.class);
 
@@ -89,7 +90,7 @@ public class TimesheetMassUpdateTest extends AbstractTestBase
     initTestDB.addTask(prefix + "1.2", prefix + "1");
     initTestDB.addTask(prefix + "2", "root");
     initTestDB.addUser(prefix + "user1");
-    logon(getUser(TEST_FINANCE_USER));
+    logon(getUser(AbstractTestBase.TEST_FINANCE_USER));
     list.add(
         createTimesheet(prefix, "1.1", "user1", 2009, 10, 21, 3, 0, 3, 15, "Office", "A lot of stuff done and more."));
     list.add(
@@ -104,7 +105,7 @@ public class TimesheetMassUpdateTest extends AbstractTestBase
   @Test
   public void massUpdateWithKost2Transformation()
   {
-    logon(getUser(TEST_FINANCE_USER));
+    logon(getUser(AbstractTestBase.TEST_FINANCE_USER));
     final String prefix = "ts-mu50-";
     final List<TimesheetDO> list = new ArrayList<TimesheetDO>();
     final KundeDO kunde = new KundeDO();
@@ -126,7 +127,7 @@ public class TimesheetMassUpdateTest extends AbstractTestBase
     projektDao.update(projekt2);
     initTestDB.addTask(prefix + "2.1", prefix + "2");
     initTestDB.addUser(prefix + "user1");
-    logon(getUser(TEST_ADMIN_USER));
+    logon(getUser(AbstractTestBase.TEST_ADMIN_USER));
 
     list.add(createTimesheet(prefix, "1.1", "user1", 2009, 10, 21, 3, 0, 3, 15, "Office",
         "A lot of stuff done and more.", 5, 50, 1, 0));
@@ -153,7 +154,7 @@ public class TimesheetMassUpdateTest extends AbstractTestBase
   @Test
   public void massUpdateWithKost2()
   {
-    logon(getUser(TEST_FINANCE_USER));
+    logon(getUser(AbstractTestBase.TEST_FINANCE_USER));
     final String prefix = "ts-mu51-";
     final List<TimesheetDO> list = new ArrayList<TimesheetDO>();
     final KundeDO kunde = new KundeDO();
@@ -175,7 +176,7 @@ public class TimesheetMassUpdateTest extends AbstractTestBase
     projektDao.update(projekt2);
     initTestDB.addTask(prefix + "2.1", prefix + "2");
     initTestDB.addUser(prefix + "user1");
-    logon(getUser(TEST_ADMIN_USER));
+    logon(getUser(AbstractTestBase.TEST_ADMIN_USER));
 
     list.add(createTimesheet(prefix, "1.1", "user1", 2009, 10, 21, 3, 0, 3, 15, "Office",
         "A lot of stuff done and more.", 5, 51, 1, 0));
@@ -214,7 +215,7 @@ public class TimesheetMassUpdateTest extends AbstractTestBase
   @Test
   public void massUpdateMixedKost2()
   {
-    logon(getUser(TEST_FINANCE_USER));
+    logon(getUser(AbstractTestBase.TEST_FINANCE_USER));
     final String prefix = "ts-mu52-";
     final List<TimesheetDO> list = new ArrayList<TimesheetDO>();
     final KundeDO kunde = new KundeDO();
@@ -233,7 +234,7 @@ public class TimesheetMassUpdateTest extends AbstractTestBase
     projektDao.update(projekt1);
     initTestDB.addTask(prefix + "2.1", prefix + "2");
     initTestDB.addUser(prefix + "user1");
-    logon(getUser(TEST_ADMIN_USER));
+    logon(getUser(AbstractTestBase.TEST_ADMIN_USER));
 
     list.add(
         createTimesheet(prefix, "1.1", "user1", 2009, 10, 21, 3, 0, 3, 15, "Office", "A lot of stuff done and more."));
@@ -269,7 +270,7 @@ public class TimesheetMassUpdateTest extends AbstractTestBase
   @Test
   public void checkMassUpdateWithTimesheetProtection()
   {
-    logon(getUser(TEST_FINANCE_USER));
+    logon(getUser(AbstractTestBase.TEST_FINANCE_USER));
     final String prefix = "ts-mu53-";
     final List<TimesheetDO> list = new ArrayList<TimesheetDO>();
     final KundeDO kunde = new KundeDO();
@@ -307,7 +308,7 @@ public class TimesheetMassUpdateTest extends AbstractTestBase
         "A lot of stuff done and more.",
         5, 53, 1, 1);
     list.add(ts3);
-    logon(getUser(TEST_ADMIN_USER));
+    logon(getUser(AbstractTestBase.TEST_ADMIN_USER));
 
     final TimesheetDO master = new TimesheetDO();
     master.setTask(initTestDB.getTask(prefix + "2.2"));

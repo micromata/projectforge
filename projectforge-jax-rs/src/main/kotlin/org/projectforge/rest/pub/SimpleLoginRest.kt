@@ -16,14 +16,16 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.web.rest.RestUserFilter.executeLogin
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationContext
-import org.springframework.stereotype.Controller
+import org.springframework.stereotype.Component
 import java.net.InetAddress
 import java.net.UnknownHostException
 import javax.servlet.ServletRequest
 import javax.servlet.http.Cookie
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
-import javax.ws.rs.*
+import javax.ws.rs.Consumes
+import javax.ws.rs.POST
+import javax.ws.rs.Path
 import javax.ws.rs.core.Context
 import javax.ws.rs.core.MediaType
 import javax.ws.rs.core.Response
@@ -31,7 +33,7 @@ import javax.ws.rs.core.Response
 /**
  * This rest service should be available without login (public).
  */
-@Controller
+@Component
 @Path("login")
 open class SimpleLoginRest {
     data class LoginData(var username: String? = null, var password: String? = null, var stayLoggedIn: Boolean? = null)

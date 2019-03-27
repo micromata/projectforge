@@ -3,7 +3,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import classNames from 'classnames';
 import PropTypes from 'prop-types';
 import React, { Component } from 'react';
-import { uncontrolledSelectProps } from '../../../utilities/propTypes';
+import { selectProps } from '../../../utilities/propTypes';
 import style from './Input.module.scss';
 
 class Select extends Component {
@@ -39,12 +39,19 @@ class Select extends Component {
         const {
             id,
             label,
-            options,
             selected,
         } = this.props;
+        let { options } = this.props;
         const { active } = this.state;
 
-        const value = options.find(option => option.value === selected);
+        if (typeof options[0] !== 'object') {
+            options = options.map(option => ({
+                value: option,
+                title: option,
+            }));
+        }
+
+        const value = options.find(option => option.value === selected) || options[0];
 
         return (
             <div className={style.formGroup}>
@@ -98,8 +105,8 @@ class Select extends Component {
 }
 
 Select.propTypes = {
-    ...uncontrolledSelectProps,
-    selected: PropTypes.string.isRequired,
+    ...selectProps,
+    selected: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
     setSelected: PropTypes.func.isRequired,
 };
 

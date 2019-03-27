@@ -23,12 +23,6 @@
 
 package org.projectforge.web;
 
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.StringTokenizer;
-
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.dom4j.Document;
@@ -38,9 +32,15 @@ import org.dom4j.Element;
 import org.projectforge.business.user.UserXmlPreferencesDO;
 import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.i18n.UserException;
-import org.projectforge.framework.persistence.api.UserRightService;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
+import org.projectforge.menu.builder.MenuItemDefId;
 import org.projectforge.web.user.UserPreferencesHelper;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.StringTokenizer;
 
 /**
  * The customizable menu of the user (stored in the data-base and customizable).

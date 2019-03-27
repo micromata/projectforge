@@ -1,18 +1,22 @@
-package org.projectforge.rest
+package org.projectforge.rest.core
 
 import com.google.gson.annotations.SerializedName
+import org.apache.commons.beanutils.PropertyUtils
 import org.projectforge.framework.access.AccessChecker
+import org.projectforge.framework.i18n.translate
+import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
 import org.projectforge.model.rest.RestPaths
-import org.projectforge.rest.ui.Layout
-import org.projectforge.rest.ui.ValidationError
+import org.projectforge.rest.JsonUtils
+import org.projectforge.ui.ElementsRegistry
 import org.projectforge.ui.UILayout
+import org.projectforge.ui.ValidationError
 import org.springframework.beans.BeanUtils
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationContext
-import org.springframework.stereotype.Controller
+import org.springframework.stereotype.Component
 import javax.servlet.http.HttpServletRequest
 import javax.ws.rs.*
 import javax.ws.rs.core.Context
@@ -27,7 +31,7 @@ import javax.ws.rs.core.Response
  * It's recommended for the frontend to develop generic list and edit pages by using the layout information served
  * by these rest services.
  */
-@Controller
+@Component
 abstract class AbstractDORest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F : BaseSearchFilter> {
     constructor(baseDaoClazz: Class<B>,
                 filterClazz: Class<F>) {
@@ -61,7 +65,7 @@ abstract class AbstractDORest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F : BaseS
     val baseDao: B
         get() {
             if (_baseDao == null) {
-                _baseDao = applicationContext!!.getBean(baseDaoClazz)
+                _baseDao = applicationContext.getBean(baseDaoClazz)
             }
             return _baseDao ?: throw AssertionError("Set to null by another thread")
         }
@@ -71,21 +75,54 @@ abstract class AbstractDORest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F : BaseS
     var filterClazz: Class<F>
 
     @Autowired
-    open var accessChecker: AccessChecker? = null
+    private lateinit var accessChecker: AccessChecker
 
     @Autowired
-    open var applicationContext: ApplicationContext? = null
+    private lateinit var applicationContext: ApplicationContext
 
     @Autowired
-    open var historyService: HistoryService? = null
+    private lateinit var historyService: HistoryService
 
     @Autowired
-    open var listFilterService: ListFilterService? = null
+    private lateinit var listFilterService: ListFilterService
 
     abstract fun newBaseDO(): O
 
-    open protected fun validate(obj: O): List<ValidationError>? {
-        return null
+    abstract fun createListLayout(): UILayout
+
+    abstract fun createEditLayout(dataObject: O?, inlineLabels: Boolean = true): UILayout
+
+    open fun validate(validationErrors: MutableList<ValidationError>, obj: O) {
+    }
+
+    protected fun validate(obj: O): List<ValidationError>? {
+        val validationErrors = mutableListOf<ValidationError>()
+        val propertiesMap = ElementsRegistry.getProperties(obj::class.java)!!
+        propertiesMap.forEach {
+            val property = it.key
+            val elementInfo = it.value
+            val value = PropertyUtils.getProperty(obj, property)
+            if (elementInfo.required == true) {
+                var error = false
+                if (value == null) {
+                    error = true
+                } else {
+                    when (value) {
+                        is String -> {
+                            if (value.isNullOrBlank()) {
+                                error = true
+                            }
+                        }
+                    }
+                }
+                if (error)
+                    validationErrors.add(ValidationError(translateMsg("validation.error.fieldRequired", translate(elementInfo.i18nKey)),
+                            fieldId = property))
+            }
+        }
+        validate(validationErrors, obj)
+        if (validationErrors.isEmpty()) return null
+        return validationErrors
     }
 
     /**
@@ -104,11 +141,11 @@ abstract class AbstractDORest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F : BaseS
     @Path("initial-list")
     @Produces(MediaType.APPLICATION_JSON)
     fun getInitialList(@Context request: HttpServletRequest): Response {
-        val filter = listFilterService!!.getSearchFilter(request.session, filterClazz)
+        val filter = listFilterService.getSearchFilter(request.session, filterClazz)
         filter.maxRows = 10
         val list = RestHelper.getList(baseDao, filter)
         list.forEach { processItemBeforeExport(it) }
-        val layout = Layout.getListLayout(baseDao)
+        val layout = createListLayout()
         val listData = ListData(resultSet = list)
         return RestHelper.buildResponse(InitialListData(ui = layout, data = listData, filter = filter))
     }
@@ -124,7 +161,7 @@ abstract class AbstractDORest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F : BaseS
         val list = RestHelper.getList(baseDao, filter)
         list.forEach { processItemBeforeExport(it) }
         val listData = ListData(resultSet = list)
-        val storedFilter = listFilterService!!.getSearchFilter(request.session, filterClazz)
+        val storedFilter = listFilterService.getSearchFilter(request.session, filterClazz)
         BeanUtils.copyProperties(filter, storedFilter)
         return RestHelper.buildResponse(listData)
     }
@@ -143,7 +180,7 @@ abstract class AbstractDORest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F : BaseS
     }
 
     private fun getById(id: Int): O {
-        val item = baseDao!!.getById(id)
+        val item = baseDao.getById(id)
         processItemBeforeExport(item)
         return item
     }
@@ -151,17 +188,19 @@ abstract class AbstractDORest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F : BaseS
     /**
      * Gets the item including the layout data at default.
      * @param id Id of the item to get or null, for new items (null  will be returned)
+     * @param inlineLabels If true (default) all labels and additionalLabels will be attached to the input fields, otherwise
+     * a group with a separate label and input field will be generated.
      * layout will be also included if the id is not given.
      */
     @GET
     @Path("edit")
     @Produces(MediaType.APPLICATION_JSON)
-    fun getItemAndLayout(@QueryParam("id") id: Int?): Response {
+    fun getItemAndLayout(@QueryParam("id") id: Int?, @QueryParam("inlineLabels") inlineLabels: Boolean?): Response {
         val item: O
         if (id != null) {
             item = getById(id)
         } else item = newBaseDO()
-        val result = EditLayoutData(item, Layout.getEditLayout(item))
+        val result = EditLayoutData(item, createEditLayout(item, inlineLabels = !(inlineLabels == false)))
         return RestHelper.buildResponse(result)
     }
 
@@ -180,8 +219,8 @@ abstract class AbstractDORest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F : BaseS
         if (item == null) {
             return Response.status(Response.Status.BAD_REQUEST).build();
         }
-        val historyEntries = baseDao!!.getHistoryEntries(item);
-        return RestHelper.buildResponse(historyService!!.format(historyEntries))
+        val historyEntries = baseDao.getHistoryEntries(item);
+        return RestHelper.buildResponse(historyService.format(historyEntries))
     }
 
 
@@ -243,6 +282,6 @@ abstract class AbstractDORest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F : BaseS
     @Path(RestPaths.FILTER_RESET)
     @Produces(MediaType.APPLICATION_JSON)
     fun filterReset(@Context request: HttpServletRequest): Response {
-        return RestHelper.buildResponse(listFilterService!!.getSearchFilter(request.session, filterClazz).reset())
+        return RestHelper.buildResponse(listFilterService.getSearchFilter(request.session, filterClazz).reset())
     }
 }

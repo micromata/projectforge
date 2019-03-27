@@ -13,10 +13,15 @@ export {
     EDIT_PAGE_LOAD_SUCCESS,
     EDIT_PAGE_LOAD_FAILURE,
     EDIT_PAGE_FIELD_CHANGE,
-    EDIT_PAGE_VALIDATION_HINTS_ENABLE,
+    EDIT_PAGE_UPDATE_BEGIN,
+    EDIT_PAGE_UPDATE_FAILURE,
     loadEdit as loadEditPage,
     changeField as changeEditFormField,
     updatePageData as updateEditPageData,
+    abort as abortEditPage,
+    markAsDeleted,
+    undelete,
+    clone,
 } from './editPage';
 
 export {

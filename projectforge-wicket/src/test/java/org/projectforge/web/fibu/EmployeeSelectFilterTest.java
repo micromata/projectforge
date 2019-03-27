@@ -9,6 +9,7 @@ import org.projectforge.business.fibu.EmployeeSalaryDO;
 import org.projectforge.business.user.UserDao;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.test.AbstractTestBase;
+import org.projectforge.test.AbstractTestNGBase;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
@@ -21,7 +22,7 @@ import java.time.Duration;
 import java.util.Date;
 import java.util.List;
 
-public class EmployeeSelectFilterTest extends AbstractTestBase
+public class EmployeeSelectFilterTest extends AbstractTestNGBase
 {
 
   @Autowired
@@ -33,7 +34,7 @@ public class EmployeeSelectFilterTest extends AbstractTestBase
   @BeforeClass
   public void init()
   {
-    logon(TEST_FULL_ACCESS_USER);
+    logon(AbstractTestBase.TEST_FULL_ACCESS_USER);
   }
 
   @Test

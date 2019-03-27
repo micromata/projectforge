@@ -5,6 +5,7 @@ import { Col, FormGroup, Row } from '../../../design';
 import style from '../Page.module.scss';
 import LayoutInput from './Input';
 import LayoutLabel from './Label';
+import LayoutSelect from './Select';
 import LayoutTable from './Table';
 
 // TODO: COLLECT INPUT IN PARENT
@@ -15,6 +16,7 @@ function LayoutGroup(
         data,
         length,
         type,
+        validation,
     },
 ) {
     let GroupTag;
@@ -49,10 +51,12 @@ function LayoutGroup(
                         Tag = LayoutLabel;
                         break;
                     case 'input':
-                    case 'select':
                     case 'checkbox':
                     case 'textarea':
                         Tag = LayoutInput;
+                        break;
+                    case 'select':
+                        Tag = LayoutSelect;
                         break;
                     case 'group':
                     case 'row':
@@ -70,8 +74,9 @@ function LayoutGroup(
                     <Tag
                         changeDataField={changeDataField}
                         data={data}
+                        validation={validation}
                         {...component}
-                        key={`layout-group-component-${component.key}`}
+                        key={`layout-group-component-${component.key}-${data.id}`}
                     />
                 );
             })}
@@ -88,6 +93,7 @@ LayoutGroup.propTypes = {
     type: PropTypes.string,
     length: PropTypes.number,
     data: PropTypes.shape({}),
+    validation: PropTypes.shape({}),
 };
 
 LayoutGroup.defaultProps = {
@@ -96,6 +102,7 @@ LayoutGroup.defaultProps = {
     type: 'container',
     length: undefined,
     data: {},
+    validation: {},
 };
 
 export default LayoutGroup;

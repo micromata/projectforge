@@ -26,15 +26,14 @@ package org.projectforge.business.user;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.fail;
 
-import org.projectforge.business.user.UserXmlPreferencesCache;
-import org.projectforge.business.user.UserXmlPreferencesMap;
 import org.projectforge.framework.access.AccessException;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.test.AbstractTestBase;
+import org.projectforge.test.AbstractTestNGBase;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.testng.annotations.Test;
 
-public class UserXmlPreferencesTestFork extends AbstractTestBase
+public class UserXmlPreferencesTestFork extends AbstractTestNGBase
 {
   @Autowired
   UserXmlPreferencesCache userXmlPreferencesCache;
@@ -65,7 +64,7 @@ public class UserXmlPreferencesTestFork extends AbstractTestBase
     } catch (AccessException ex) {
       // OK
     }
-    logon(TEST_ADMIN_USER);
+    logon(AbstractTestBase.TEST_ADMIN_USER);
     userXmlPreferencesCache.putEntry(user2.getId(), "msg", "Hurzel2", true);
     assertEquals("Hurzel", userXmlPreferencesCache.getEntry(user1.getId(), "msg"));
     logon(user2);

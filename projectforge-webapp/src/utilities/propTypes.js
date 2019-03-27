@@ -28,12 +28,30 @@ export const colorPropType = PropTypes.oneOf([
     'info',
 ]);
 
-export const uncontrolledSelectProps = {
+export const selectProps = {
     id: PropTypes.string.isRequired,
     color: colorPropType,
     label: PropTypes.string,
-    options: PropTypes.arrayOf(PropTypes.shape({
-        value: PropTypes.string,
-        title: PropTypes.string,
-    })).isRequired,
+    options: PropTypes.oneOfType([
+        PropTypes.arrayOf(PropTypes.shape({
+            value: PropTypes.string,
+            title: PropTypes.string,
+        })),
+        PropTypes.arrayOf(PropTypes.oneOfType([
+            PropTypes.string,
+            PropTypes.number,
+        ])),
+    ]).isRequired,
 };
+
+export const dataPropType = PropTypes.objectOf(PropTypes.oneOfType([
+    PropTypes.string,
+    PropTypes.number,
+    PropTypes.bool,
+    PropTypes.objectOf(PropTypes.oneOfType([
+        PropTypes.string,
+        PropTypes.number,
+        PropTypes.bool,
+    ])),
+    PropTypes.arrayOf(PropTypes.shape({})),
+]));

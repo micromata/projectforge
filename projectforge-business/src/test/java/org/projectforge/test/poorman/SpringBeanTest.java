@@ -2,14 +2,14 @@ package org.projectforge.test.poorman;
 
 import java.util.Map;
 
-import org.projectforge.test.AbstractTestBase;
+import org.projectforge.test.AbstractTestNGBase;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.AbstractApplicationContext;
 import org.testng.annotations.Test;
 
-public class SpringBeanTest extends AbstractTestBase
+public class SpringBeanTest extends AbstractTestNGBase
 {
 
   private static org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(SpringBeanTest.class);

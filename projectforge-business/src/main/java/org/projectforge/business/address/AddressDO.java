@@ -96,7 +96,7 @@ public class AddressDO extends DefaultBaseWithAttrDO<AddressDO>
 
   private String uid;
 
-  @PropertyInfo(i18nKey = "name")
+  @PropertyInfo(i18nKey = "name", required = true)
   @Field()
   private String name; // 255 not null
 
@@ -248,6 +248,7 @@ public class AddressDO extends DefaultBaseWithAttrDO<AddressDO>
   @PropertyInfo(i18nKey = "address.addressbooks")
   private Set<AddressbookDO> addressbookList = new HashSet<>();
 
+  @PropertyInfo(i18nKey = "address.image")
   @NoHistory
   private byte[] imageDataPreview;
 

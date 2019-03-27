@@ -48,6 +48,8 @@ public @interface PropertyInfo {
    */
   String additionalI18nKey() default "";
 
+  boolean required() default false;
+
   /**
    * @see PropertyType
    */

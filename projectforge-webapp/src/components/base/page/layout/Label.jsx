@@ -3,12 +3,12 @@ import React from 'react';
 import { Label } from '../../../design';
 import style from '../Page.module.scss';
 
-function LayoutLabel({ value, for: forComponent }) {
-    return <Label for={forComponent} className={style.inputLabel}>{value}</Label>;
+function LayoutLabel({ label, for: forComponent }) {
+    return <Label for={forComponent} className={style.inputLabel}>{label}</Label>;
 }
 
 LayoutLabel.propTypes = {
-    value: PropTypes.string.isRequired,
+    label: PropTypes.string.isRequired,
     for: PropTypes.string,
 };
 

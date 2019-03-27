@@ -39,10 +39,10 @@ import org.projectforge.common.BeanHelper;
 import org.projectforge.framework.time.DateHelper;
 import org.projectforge.framework.time.DateHolder;
 import org.projectforge.framework.xstream.converter.ISODateConverter;
-import org.projectforge.test.AbstractTestBase;
+import org.projectforge.test.AbstractTestNGBase;
 import org.testng.annotations.Test;
 
-public class XmlStreamTest extends AbstractTestBase
+public class XmlStreamTest extends AbstractTestNGBase
 {
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(XmlStreamTest.class);
 

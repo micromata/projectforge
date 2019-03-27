@@ -29,6 +29,8 @@ public class ObjectMapperResolver implements ContextResolver<ObjectMapper> {
     SimpleModule module = new SimpleModule();
     module.addDeserializer(Date.class, new MyDateDeserializer());
     mapper.registerModule(module);
+    // Deserialization should fail on unknown properties due to stronger validation checks of the rest api.
+    // mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
   }
 
   @Override

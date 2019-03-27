@@ -57,10 +57,6 @@ public class MenuItemDef implements Serializable
 
   private String url;
 
-  private String[] params;
-
-  private boolean newWindow;
-
   private Class<? extends Page> mobilePageClass;
 
   private boolean visible = true;
@@ -216,30 +212,11 @@ public class MenuItemDef implements Serializable
       final Class<? extends Page> pageClass, final IUserRightId requiredRightId,
       final UserRightValue... requiredRightValues)
   {
-    this(parent, id, orderNumber, i18nKey, pageClass, null, requiredRightId, requiredRightValues);
-  }
-
-  /**
-   * @param parent The parent menu entry
-   * @param id The unique id
-   * @param orderNumber The order of the sibling menu entries is done implemented by this order number (ascending
-   *          order).
-   * @param i18nKey For displaying the menu entry localized.
-   * @param pageClass The linked page class (if the user clicks on this menu entry).
-   * @param params Parameters used when calling the pageClass (PageParameters).
-   * @param requiredRightId Reduce the visibility of this menu entry (if wanted): which user right is required?
-   * @param requiredRightValues Reducing the visibility: which right values are required?
-   */
-  public MenuItemDef(final MenuItemDef parent, final String id, final int orderNumber, final String i18nKey,
-      final Class<? extends Page> pageClass, final String[] params, final IUserRightId requiredRightId,
-      final UserRightValue... requiredRightValues)
-  {
     this.parent = parent;
     this.id = id;
     this.orderNumber = orderNumber;
     this.i18nKey = i18nKey;
     this.pageClass = pageClass;
-    this.params = params;
     this.requiredRightId = requiredRightId;
     this.requiredRightValues = requiredRightValues;
   }
@@ -256,28 +233,11 @@ public class MenuItemDef implements Serializable
   public MenuItemDef(final MenuItemDef parent, final String id, final int orderNumber, final String i18nKey,
       final Class<? extends Page> pageClass, final ProjectForgeGroup... visibleForGroups)
   {
-    this(parent, id, orderNumber, i18nKey, pageClass, null, visibleForGroups);
-  }
-
-  /**
-   * @param parent The parent menu entry
-   * @param id The unique id
-   * @param orderNumber The order of the sibling menu entries is done implemented by this order number (ascending
-   *          order).
-   * @param i18nKey For displaying the menu entry localized.
-   * @param pageClass The linked page class (if the user clicks on this menu entry).
-   * @param params Parameters used when calling the pageClass (PageParameters).
-   * @param visibleForGroups Reduce the visibility of this menu entry (if wanted).
-   */
-  public MenuItemDef(final MenuItemDef parent, final String id, final int orderNumber, final String i18nKey,
-      final Class<? extends Page> pageClass, final String[] params, final ProjectForgeGroup... visibleForGroups)
-  {
     this.parent = parent;
     this.id = id;
     this.orderNumber = orderNumber;
     this.i18nKey = i18nKey;
     this.pageClass = pageClass;
-    this.params = params;
     this.visibleForGroups = visibleForGroups;
   }
 
@@ -291,32 +251,13 @@ public class MenuItemDef implements Serializable
    * @param visibleForGroups Reduce the visibility of this menu entry (if wanted).
    */
   public MenuItemDef(final MenuItemDef parent, final String id, final int orderNumber, final String i18nKey,
-      final String url,
-      final ProjectForgeGroup... visibleForGroups)
-  {
-    this(parent, id, orderNumber, i18nKey, url, false, visibleForGroups);
-  }
-
-  /**
-   * @param parent The parent menu entry
-   * @param id The unique id
-   * @param orderNumber The order of the sibling menu entries is done implemented by this order number (ascending
-   *          order).
-   * @param i18nKey For displaying the menu entry localized.
-   * @param url The linked url (if the user clicks on this menu entry).
-   * @param newWindow If true, then the link will be opened in a new browser window.
-   * @param visibleForGroups Reduce the visibility of this menu entry (if wanted).
-   */
-  public MenuItemDef(final MenuItemDef parent, final String id, final int orderNumber, final String i18nKey,
-      final String url,
-      final boolean newWindow, final ProjectForgeGroup... visibleForGroups)
+      final String url, final ProjectForgeGroup... visibleForGroups)
   {
     this.parent = parent;
     this.id = id;
     this.orderNumber = orderNumber;
     this.i18nKey = i18nKey;
     this.url = url;
-    this.newWindow = newWindow;
     this.visibleForGroups = visibleForGroups;
   }
 
@@ -351,33 +292,13 @@ public class MenuItemDef implements Serializable
    * @param requiredRightValues Reducing the visibility: which right values are required?
    */
   public MenuItemDef(final MenuItemDef parent, final String id, final int orderNumber, final String i18nKey,
-      final String url,
-      final IUserRightId requiredRightId, final UserRightValue... requiredRightValues)
-  {
-    this(parent, id, orderNumber, i18nKey, url, false, requiredRightId, requiredRightValues);
-  }
-
-  /**
-   * @param parent The parent menu entry
-   * @param id The unique id
-   * @param orderNumber The order of the sibling menu entries is done implemented by this order number (ascending
-   *          order).
-   * @param i18nKey For displaying the menu entry localized.
-   * @param url The linked url (if the user clicks on this menu entry).
-   * @param newWindow If true, then the link will be opened in a new browser window.
-   * @param requiredRightId Reduce the visibility of this menu entry (if wanted): which user right is required?
-   * @param requiredRightValues Reducing the visibility: which right values are required?
-   */
-  public MenuItemDef(final MenuItemDef parent, final String id, final int orderNumber, final String i18nKey,
-      final String url,
-      final boolean newWindow, final IUserRightId requiredRightId, final UserRightValue... requiredRightValues)
+      final String url, final IUserRightId requiredRightId, final UserRightValue... requiredRightValues)
   {
     this.parent = parent;
     this.id = id;
     this.orderNumber = orderNumber;
     this.i18nKey = i18nKey;
     this.url = url;
-    this.newWindow = newWindow;
     this.requiredRightId = requiredRightId;
     this.requiredRightValues = requiredRightValues;
   }
@@ -539,16 +460,6 @@ public class MenuItemDef implements Serializable
       this.url = WicketApplication.getBookmarkableMountPath(this.pageClass);
     }
     return url;
-  }
-
-  public String[] getParams()
-  {
-    return params;
-  }
-
-  public boolean isNewWindow()
-  {
-    return newWindow;
   }
 
   public ProjectForgeGroup[] getVisibleForGroups()

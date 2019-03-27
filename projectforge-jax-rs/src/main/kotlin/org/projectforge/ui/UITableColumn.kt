@@ -4,10 +4,12 @@ import com.google.gson.annotations.SerializedName
 
 data class UITableColumn(val id: String,
                          var title: String? = null,
+                         @Transient
+                         var protectTitle: Boolean = false,
                          @SerializedName("data-type")
-                         val dataType: UIDataType = UIDataType.STRING,
-                         val sortable: Boolean = true,
-                         val formatter: Formatter? = null)
+                         var dataType: UIDataType = UIDataType.STRING,
+                         var sortable: Boolean = true,
+                         var formatter: Formatter? = null)
     : UIElement(UIElementType.TABLE_COLUMN)
 
 enum class Formatter {
