@@ -10,10 +10,11 @@ function TextArea(
         color,
         id,
         label,
+        value,
         ...props
     },
 ) {
-    const [active, setActive] = React.useState(false);
+    const [active, setActive] = React.useState(value);
 
     return (
         <div className={classNames(style.formGroup, className)}>
@@ -31,6 +32,7 @@ function TextArea(
                     {...props}
                     onFocus={() => setActive(true)}
                     onBlur={event => setActive(event.target.value !== '')}
+                    value={value}
                 />
                 <span className={style.text}>{label}</span>
             </label>
@@ -43,11 +45,13 @@ TextArea.propTypes = {
     label: PropTypes.string.isRequired,
     className: PropTypes.string,
     color: colorPropType,
+    value: PropTypes.string,
 };
 
 TextArea.defaultProps = {
     className: undefined,
     color: undefined,
+    value: undefined,
 };
 
 export default TextArea;
