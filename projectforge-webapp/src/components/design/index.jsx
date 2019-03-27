@@ -40,4 +40,5 @@ export {
     Table,
     TabPane,
     UncontrolledDropdown,
+    UncontrolledTooltip,
 } from 'reactstrap';
