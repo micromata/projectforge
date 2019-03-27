@@ -87,7 +87,7 @@ class LayoutInput extends Component {
                 id={id}
                 {...properties}
                 onChange={this.handleInputChange}
-                value={data[id] || ''}
+                value={value}
             />
         );
     }

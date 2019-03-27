@@ -3,6 +3,7 @@ package org.projectforge.rest
 import org.projectforge.Const
 import org.projectforge.business.book.*
 import org.projectforge.framework.i18n.translate
+import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.getUserId
 import org.projectforge.rest.core.AbstractDORest
 import org.projectforge.rest.core.RestHelper
@@ -33,21 +34,20 @@ open class BookRest() : AbstractDORest<BookDO, BookDao, BookFilter>(BookDao::cla
         return book
     }
 
-    override fun validate(obj: BookDO): List<ValidationError>? {
-        val errorsList = mutableListOf<ValidationError>()
-        try {
-            val year = Integer.parseInt(obj.yearOfPublishing)
-            if (year < Const.MINYEAR || year > Const.MAXYEAR) {
-                errorsList.add(ValidationError(translate("error.yearOutOfRange", Const.MINYEAR, Const.MAXYEAR), fieldId = "yearOfPublishing"))
+    override fun validate(validationErrors : MutableList<ValidationError>, obj: BookDO) {
+        if (!obj.yearOfPublishing.isNullOrBlank()) {
+            try {
+                val year = Integer.parseInt(obj.yearOfPublishing)
+                if (year < Const.MINYEAR || year > Const.MAXYEAR) {
+                    validationErrors.add(ValidationError(translateMsg("error.yearOutOfRange", Const.MINYEAR, Const.MAXYEAR), fieldId = "yearOfPublishing"))
+                }
+            } catch (ex: NumberFormatException) {
+                validationErrors.add(ValidationError(translate("book.error.number"), fieldId = "yearOfPublishing"))
             }
-        } catch (ex: NumberFormatException) {
-            errorsList.add(ValidationError(translate("book.error.number"), fieldId = "yearOfPublishing"))
         }
         if (baseDao.doesSignatureAlreadyExist(obj)) {
-            errorsList.add(ValidationError(translate("book.error.signatureAlreadyExists"), fieldId = "signature"))
+            validationErrors.add(ValidationError(translate("book.error.signatureAlreadyExists"), fieldId = "signature"))
         }
-        if (errorsList.isEmpty()) return null
-        return errorsList
     }
 
     /**

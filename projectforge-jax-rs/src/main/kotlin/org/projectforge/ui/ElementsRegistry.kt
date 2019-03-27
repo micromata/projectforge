@@ -12,19 +12,23 @@ import java.util.*
  * Builds elements automatically dependent on their property type. For Strings with maxLength > 255 a [UITextarea] will be created instead
  * of an [UIInput].
  */
-internal object ElementsRegistry {
+object ElementsRegistry {
     private val log = org.slf4j.LoggerFactory.getLogger(LayoutUtils::class.java)
 
-    internal class ElementInfo(val propertyType: Class<*>,
+    class ElementInfo(val propertyType: Class<*>,
                                var maxLength: Int? = null,
                                var required: Boolean? = null,
                                var i18nKey: String? = null,
                                var additionalI18nKey: String? = null)
 
+    fun getProperties(clazz : Class<*>) : Map<String, ElementInfo>? {
+        return registryMap.get(clazz)
+    }
+
     /**
      * Contains all found and created UIElements named by class:property.
      */
-    private val registryMap = mutableMapOf<String, ElementInfo>()
+    private val registryMap = mutableMapOf<Class<*>, MutableMap<String, ElementInfo>>()
     /**
      * Contains all not found and unavailable UIElements named by class:property.
      */
@@ -81,13 +85,10 @@ internal object ElementsRegistry {
     }
 
     internal fun getElementInfo(clazz: Class<*>?, property: String): ElementInfo? {
-        if (clazz == null)
+        if (clazz == null || property == null)
             return null
-        val mapKey = getMapKey(clazz, property)
-        if (mapKey == null) {
-            return null
-        }
-        var elementInfo = registryMap.get(mapKey)
+        val mapKey = getMapKey(clazz, property)!!
+        var elementInfo = ensureClassMap(clazz).get(property)
         if (elementInfo != null) {
             return elementInfo // Element found
         }
@@ -110,7 +111,7 @@ internal object ElementsRegistry {
         elementInfo.i18nKey = getNullIfEmpty(propertyInfo?.i18nKey)
         elementInfo.additionalI18nKey = getNullIfEmpty(propertyInfo?.additionalI18nKey)
 
-        registryMap.put(mapKey, elementInfo)
+        ensureClassMap(clazz).put(property, elementInfo)
         return elementInfo
     }
 
@@ -123,6 +124,15 @@ internal object ElementsRegistry {
         if (clazz.superclass != null && clazz.superclass != Object::class.java)
             return getPropertyType(clazz.superclass, property)
         return null
+    }
+
+    private fun ensureClassMap(clazz: Class<*>): MutableMap<String, ElementInfo> {
+        var result = registryMap.get(clazz)
+        if (result == null) {
+            result = mutableMapOf()
+            registryMap.put(clazz, result)
+        }
+        return result
     }
 
     private fun getMapKey(clazz: Class<*>?, property: String?): String? {

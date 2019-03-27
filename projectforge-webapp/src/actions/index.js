@@ -19,6 +19,9 @@ export {
     changeField as changeEditFormField,
     updatePageData as updateEditPageData,
     abort as abortEditPage,
+    markAsDeleted,
+    undelete,
+    clone,
 } from './editPage';
 
 export {
