@@ -37,13 +37,14 @@ import org.projectforge.framework.i18n.I18nKeyAndParams;
 import org.projectforge.framework.persistence.user.entities.GroupDO;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.test.AbstractTestBase;
+import org.projectforge.test.AbstractTestNGBase;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionCallback;
 import org.springframework.transaction.support.TransactionTemplate;
 import org.testng.annotations.Test;
 
-public class UserTest extends AbstractTestBase
+public class UserTest extends AbstractTestNGBase
 {
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(UserTest.class);
   private static final String STRONGOLDPW = "ja6gieyai8quie0Eey!ooS8eMonah:";
@@ -70,9 +71,9 @@ public class UserTest extends AbstractTestBase
   @Test
   public void testUserDO()
   {
-    logon(TEST_ADMIN_USER);
-    final PFUserDO user = userService.getByUsername(TEST_ADMIN_USER);
-    assertEquals(user.getUsername(), TEST_ADMIN_USER);
+    logon(AbstractTestBase.TEST_ADMIN_USER);
+    final PFUserDO user = userService.getByUsername(AbstractTestBase.TEST_ADMIN_USER);
+    assertEquals(user.getUsername(), AbstractTestBase.TEST_ADMIN_USER);
     final UserGroupCache userGroupCache = TenantRegistryMap.getInstance().getTenantRegistry().getUserGroupCache();
     final PFUserDO user1 = getUser("user1");
     final String groupnames = groupService.getGroupnames(user1.getId());
@@ -81,7 +82,7 @@ public class UserTest extends AbstractTestBase
     assertEquals(false, userGroupCache.isUserMemberOfGroup(user1.getId(), getGroupId("group3")));
     final GroupDO group = groupService.getGroup(getGroupId("group1"));
     assertEquals("group1", group.getName());
-    final PFUserDO admin = getUser(ADMIN);
+    final PFUserDO admin = getUser(AbstractTestBase.ADMIN);
     assertEquals("Administrator", true, userGroupCache.isUserMemberOfAdminGroup(admin.getId()));
     assertEquals("Not administrator", false, userGroupCache.isUserMemberOfAdminGroup(user1.getId()));
   }
@@ -103,7 +104,7 @@ public class UserTest extends AbstractTestBase
   @Test
   public void testSaveAndUpdate()
   {
-    logon(TEST_ADMIN_USER);
+    logon(AbstractTestBase.TEST_ADMIN_USER);
     PFUserDO user = new PFUserDO();
     user.setUsername("UserTest");
     user.setPassword("Hurzel");

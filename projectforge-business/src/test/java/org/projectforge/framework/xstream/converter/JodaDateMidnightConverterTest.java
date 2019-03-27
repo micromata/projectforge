@@ -31,10 +31,10 @@ import org.joda.time.DateMidnight;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.time.DateHelper;
-import org.projectforge.test.AbstractTestBase;
+import org.projectforge.test.AbstractTestNGBase;
 import org.testng.annotations.Test;
 
-public class JodaDateMidnightConverterTest extends AbstractTestBase
+public class JodaDateMidnightConverterTest extends AbstractTestNGBase
 {
   @Test
   public void testConverter()

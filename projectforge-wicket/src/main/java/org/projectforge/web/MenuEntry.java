@@ -171,7 +171,7 @@ public class MenuEntry implements Serializable, Comparable<MenuEntry>
       Validate.notNull(menuItem.getMobilePageClass());
       this.url = WicketUtils.getBookmarkablePageUrl(menuItem.getMobilePageClass());
     } else if (menuItem.isWicketPage() == true) {
-      this.url = WicketUtils.getBookmarkablePageUrl(menuItem.getPageClass(), menuItem.getParams());
+      this.url = WicketUtils.getBookmarkablePageUrl(menuItem.getPageClass());
     } else if (menuItem.getUrl() != null) {
       this.url = "../secure/" + menuItem.getUrl();
     }
@@ -250,16 +250,6 @@ public class MenuEntry implements Serializable, Comparable<MenuEntry>
     }
   }
 
-  /**
-   * Should the link open a separate window (named 'pforge2')?
-   * 
-   * @return
-   */
-  public boolean isNewWindow()
-  {
-    return menuItemDef != null && menuItemDef.isNewWindow();
-  }
-
   public boolean isWicketPage()
   {
     return menuItemDef != null && menuItemDef.isWicketPage();
@@ -294,11 +284,6 @@ public class MenuEntry implements Serializable, Comparable<MenuEntry>
   public String getUrl()
   {
     return url;
-  }
-
-  public String[] getParams()
-  {
-    return menuItemDef.getParams();
   }
 
   public void setNewCounterModel(final IModel<Integer> newCounterModel)

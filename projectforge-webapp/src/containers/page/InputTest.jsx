@@ -8,6 +8,7 @@ import BootstrapLabel from 'reactstrap/es/Label';
 import Row from 'reactstrap/es/Row';
 import Input from '../../components/design/input';
 import CheckBox from '../../components/design/input/CheckBox';
+import TextArea from '../../components/design/input/TextArea';
 import UncontrolledSelect from '../../components/design/input/UncontrolledSelect';
 
 function InputTestPage() {
@@ -150,6 +151,26 @@ function InputTestPage() {
                                     title: 'Sonstiges',
                                 },
                             ]}
+                        />
+                        <h2>Text Area</h2>
+                        <TextArea label="Long Text" id="textarea-example" />
+                        <TextArea
+                            label="Primary with one row"
+                            id="textarea-example-primary"
+                            color="primary"
+                            rows={1}
+                        />
+                        <TextArea
+                            label="Success with one row"
+                            id="textarea-example-success"
+                            color="success"
+                            rows={1}
+                        />
+                        <TextArea
+                            label="Danger with one row"
+                            id="textarea-example-danger"
+                            color="danger"
+                            rows={1}
                         />
                     </Col>
                     <Col sm style={{ fontSize: '14px' }}>

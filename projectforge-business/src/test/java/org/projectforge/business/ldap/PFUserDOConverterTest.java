@@ -28,12 +28,12 @@ import static org.testng.AssertJUnit.*;
 import java.util.Date;
 
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
-import org.projectforge.test.AbstractTestBase;
+import org.projectforge.test.AbstractTestNGBase;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
-public class PFUserDOConverterTest extends AbstractTestBase
+public class PFUserDOConverterTest extends AbstractTestNGBase
 {
   @Autowired
   LdapServiceImpl ldapService;

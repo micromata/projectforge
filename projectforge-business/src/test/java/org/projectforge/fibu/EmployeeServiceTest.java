@@ -21,11 +21,12 @@ import org.projectforge.business.vacation.service.VacationServiceImpl;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.test.AbstractTestBase;
+import org.projectforge.test.AbstractTestNGBase;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
-public class EmployeeServiceTest extends AbstractTestBase
+public class EmployeeServiceTest extends AbstractTestNGBase
 {
   @Autowired
   private EmployeeService employeeService;
@@ -39,7 +40,7 @@ public class EmployeeServiceTest extends AbstractTestBase
   @Test
   public void testInsertDelete()
   {
-    logon(TEST_FULL_ACCESS_USER);
+    logon(AbstractTestBase.TEST_FULL_ACCESS_USER);
 
     PFUserDO pfUserDO = getPfUserDO();
 
@@ -69,7 +70,7 @@ public class EmployeeServiceTest extends AbstractTestBase
   @Test
   public void testUpdateAttribute()
   {
-    logon(TEST_FULL_ACCESS_USER);
+    logon(AbstractTestBase.TEST_FULL_ACCESS_USER);
     PFUserDO pfUserDO = getPfUserDO();
     EmployeeDO employeeDO = new EmployeeDO();
     employeeDO.setAccountHolder("Vorname Name");

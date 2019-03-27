@@ -37,14 +37,14 @@ import org.projectforge.framework.i18n.I18nHelper;
 import org.projectforge.framework.persistence.history.DisplayHistoryEntry;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.plugins.core.PluginAdminService;
-import org.projectforge.test.AbstractTestBase;
+import org.projectforge.test.AbstractTestNGBase;
 import org.projectforge.web.registry.WebRegistry;
 import org.projectforge.web.wicket.WicketApplication;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
-public class GroovyEngineTest extends AbstractTestBase
+public class GroovyEngineTest extends AbstractTestNGBase
 {
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(GroovyEngineTest.class);
 

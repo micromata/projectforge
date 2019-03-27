@@ -71,7 +71,7 @@ public class BookDO extends DefaultBaseDO
 {
   private static final long serialVersionUID = 8036741307214351813L;
 
-  @PropertyInfo(i18nKey = "book.title")
+  @PropertyInfo(i18nKey = "book.title", required = true)
   @Field(index = Index.YES /* TOKENIZED */, store = Store.NO)
   private String title; // 255 not null
 

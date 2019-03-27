@@ -23,25 +23,21 @@
 
 package org.projectforge.plugins.eed;
 
-import static org.projectforge.framework.persistence.api.UserRightService.READONLY_READWRITE;
-
-import java.util.List;
-
 import org.projectforge.business.fibu.EmployeeDao;
 import org.projectforge.business.user.UserRightId;
 import org.projectforge.business.user.UserRightValue;
 import org.projectforge.continuousdb.UpdateEntry;
 import org.projectforge.framework.persistence.database.DatabaseService;
+import org.projectforge.menu.builder.MenuItemDefId;
 import org.projectforge.plugins.core.AbstractPlugin;
-import org.projectforge.plugins.eed.wicket.EmployeeBillingImportPage;
-import org.projectforge.plugins.eed.wicket.EmployeeConfigurationPage;
-import org.projectforge.plugins.eed.wicket.EmployeeListEditPage;
-import org.projectforge.plugins.eed.wicket.EmployeeSalaryImportPage;
-import org.projectforge.plugins.eed.wicket.ExportDataPage;
+import org.projectforge.plugins.eed.wicket.*;
 import org.projectforge.web.MenuItemDef;
-import org.projectforge.web.MenuItemDefId;
 import org.projectforge.web.plugin.PluginWicketRegistrationService;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import java.util.List;
+
+import static org.projectforge.framework.persistence.api.UserRightService.READONLY_READWRITE;
 
 /**
  * @author Florian Blumenstein

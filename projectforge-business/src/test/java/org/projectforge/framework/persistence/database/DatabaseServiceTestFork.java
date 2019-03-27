@@ -32,11 +32,11 @@ import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.framework.access.AccessException;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
-import org.projectforge.test.AbstractTestBase;
+import org.projectforge.test.AbstractTestNGBase;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.testng.annotations.Test;
 
-public class DatabaseServiceTestFork extends AbstractTestBase
+public class DatabaseServiceTestFork extends AbstractTestNGBase
 {
   static final String DEFAULT_ADMIN_PASSWORD = "manage";
 

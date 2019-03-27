@@ -62,6 +62,7 @@ import org.projectforge.framework.configuration.SecurityConfig;
 import org.projectforge.framework.persistence.api.UserRightService;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
+import org.projectforge.menu.builder.MenuItemDefId;
 import org.projectforge.sms.SmsSenderConfig;
 import org.projectforge.web.access.AccessListPage;
 import org.projectforge.web.address.AddressListPage;
@@ -205,47 +206,10 @@ public class MenuItemRegistry implements Serializable
   @SuppressWarnings("serial")
   public void refresh()
   {
-    final MenuItemDefVisibility costConfiguredVisibility = new MenuItemDefVisibility()
-    {
-      @Override
-      public boolean isVisible()
-      {
-        return Configuration.getInstance().isCostConfigured();
-      }
-    };
-    get(MenuItemDefId.CUSTOMER_LIST).setVisibility(costConfiguredVisibility);
-    get(MenuItemDefId.PROJECT_LIST).setVisibility(costConfiguredVisibility);
-    get(MenuItemDefId.EMPLOYEE_LIST).setVisibility(costConfiguredVisibility);
-    get(MenuItemDefId.EMPLOYEE_SALARY_LIST).setVisibility(costConfiguredVisibility);
-    get(MenuItemDefId.ACCOUNT_LIST).setVisibility(costConfiguredVisibility);
-    get(MenuItemDefId.COST1_LIST).setVisibility(costConfiguredVisibility);
-    get(MenuItemDefId.COST2_LIST).setVisibility(costConfiguredVisibility);
-    get(MenuItemDefId.COST2_TYPE_LIST).setVisibility(costConfiguredVisibility);
-    get(MenuItemDefId.ACCOUNTING_RECORD_LIST).setVisibility(costConfiguredVisibility);
-    get(MenuItemDefId.REPORT_OBJECTIVES).setVisibility(costConfiguredVisibility);
-    get(MenuItemDefId.DATEV_IMPORT).setVisibility(costConfiguredVisibility);
-    get(MenuItemDefId.MEB).setVisibility(new MenuItemDefVisibility()
-    {
-      @Override
-      public boolean isVisible()
-      {
-        return Configuration.getInstance().isMebConfigured();
-      }
-    });
-    get(MenuItemDefId.PHONE_CALL).setVisible(StringUtils.isNotEmpty(configurationService.getTelephoneSystemUrl()));
-    get(MenuItemDefId.CONTRACTS).setVisible(CollectionUtils.isNotEmpty(configurationService.getContractTypes()));
-
-    final SecurityConfig securityConfig = configurationService.getSecurityConfig();
-    final boolean sqlConsoleAvailable = WebConfiguration.isDevelopmentMode() == true
-        || configurationService.isSqlConsoleAvailable() == true
-        || (securityConfig != null && securityConfig.isSqlConsoleAvailable() == true);
-    get(MenuItemDefId.SQL_CONSOLE).setVisible(sqlConsoleAvailable);
-    get(MenuItemDefId.LUCENE_CONSOLE).setVisible(sqlConsoleAvailable);
-    get(MenuItemDefId.GROOVY_CONSOLE).setVisible(sqlConsoleAvailable);
   }
 
   private MenuItemDef register(final MenuItemDef parent, final MenuItemDefId defId, final int orderNumber,
-      final ProjectForgeGroup... visibleForGroups)
+                               final ProjectForgeGroup... visibleForGroups)
   {
     return register(new MenuItemDef(parent, defId.getId(), orderNumber, defId.getI18nKey(), visibleForGroups));
   }
@@ -255,7 +219,7 @@ public class MenuItemRegistry implements Serializable
       final UserRightValue... requiredRightValues)
   {
     return register(
-        new MenuItemDef(parent, defId.getId(), orderNumber, defId.getI18nKey(), pageClass, null, requiredRightId,
+        new MenuItemDef(parent, defId.getId(), orderNumber, defId.getI18nKey(), pageClass, requiredRightId,
             requiredRightValues));
   }
 
@@ -268,16 +232,9 @@ public class MenuItemRegistry implements Serializable
   private MenuItemDef register(final MenuItemDef parent, final MenuItemDefId defId, final int orderNumber,
       final Class<? extends Page> pageClass, final String[] params, final ProjectForgeGroup... visibleForGroups)
   {
-    return register(parent, defId, orderNumber, pageClass, params, true, visibleForGroups);
-  }
-
-  private MenuItemDef register(final MenuItemDef parent, final MenuItemDefId defId, final int orderNumber,
-      final Class<? extends Page> pageClass, final String[] params, final boolean visible,
-      final ProjectForgeGroup... visibleForGroups)
-  {
     return register(
-        new MenuItemDef(parent, defId.getId(), orderNumber, defId.getI18nKey(), pageClass, params, visibleForGroups)
-            .setVisible(visible));
+        new MenuItemDef(parent, defId.getId(), orderNumber, defId.getI18nKey(), pageClass, visibleForGroups)
+            .setVisible(true));
   }
 
   // Needed as static method (because anonymous declared MenuItemDef are serialized).
@@ -407,8 +364,7 @@ public class MenuItemRegistry implements Serializable
         CONTROLLING_GROUP);
     {
       // Only visible if cost is configured and DATEV-Import right is given:
-      reg.register(reporting, MenuItemDefId.ACCOUNTING_RECORD_LIST, 40, AccountingRecordListPage.class, DatevImportDao.USER_RIGHT_ID,
-          UserRightValue.TRUE);
+      reg.register(reporting, MenuItemDefId.ACCOUNTING_RECORD_LIST, 40, AccountingRecordListPage.class, CONTROLLING_GROUP);
       reg.register(reporting, MenuItemDefId.DATEV_IMPORT, 50, DatevImportPage.class, DatevImportDao.USER_RIGHT_ID,
           UserRightValue.TRUE);
     }

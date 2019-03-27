@@ -45,7 +45,7 @@ import org.projectforge.framework.configuration.ConfigurationParam;
 import org.projectforge.framework.time.DateFormats;
 import org.projectforge.framework.time.DateHelper;
 import org.projectforge.framework.time.RecurrenceFrequency;
-import org.projectforge.test.AbstractTestBase;
+import org.projectforge.test.AbstractTestNGBase;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
@@ -53,7 +53,7 @@ import org.testng.annotations.Test;
 import net.fortuna.ical4j.model.Recur;
 import net.fortuna.ical4j.model.property.RRule;
 
-public class TeamEventDaoTest extends AbstractTestBase
+public class TeamEventDaoTest extends AbstractTestNGBase
 {
   @Autowired
   private TeamEventDao teamEventDao;

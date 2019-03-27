@@ -47,6 +47,7 @@ class EditPage extends React.Component {
             error,
             loading,
             ui,
+            validation,
         } = this.props;
 
         if (error) {
@@ -79,6 +80,7 @@ class EditPage extends React.Component {
                                 content={ui.layout}
                                 data={data}
                                 changeDataField={changeDataField}
+                                validation={validation}
                             />
                             <ActionGroup actions={ui.actions} />
                         </Container>
@@ -94,6 +96,7 @@ EditPage.propTypes = {
     match: PropTypes.shape({}).isRequired,
     load: PropTypes.func.isRequired,
     ui: PropTypes.shape({}).isRequired,
+    validation: PropTypes.shape({}),
     error: PropTypes.string,
     data: PropTypes.shape({}),
     loading: PropTypes.bool,
@@ -103,6 +106,7 @@ EditPage.defaultProps = {
     data: [],
     error: undefined,
     loading: false,
+    validation: {},
 };
 
 const mapStateToProps = state => ({
@@ -110,6 +114,7 @@ const mapStateToProps = state => ({
     error: state.editPage.error,
     loading: state.editPage.loading,
     data: state.editPage.data,
+    validation: state.editPage.validation,
 });
 
 const actions = {

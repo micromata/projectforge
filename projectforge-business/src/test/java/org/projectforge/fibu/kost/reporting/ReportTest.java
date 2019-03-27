@@ -33,10 +33,11 @@ import org.projectforge.business.fibu.kost.reporting.ReportDao;
 import org.projectforge.business.fibu.kost.reporting.ReportObjective;
 import org.projectforge.common.i18n.Priority;
 import org.projectforge.test.AbstractTestBase;
+import org.projectforge.test.AbstractTestNGBase;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.testng.annotations.Test;
 
-public class ReportTest extends AbstractTestBase
+public class ReportTest extends AbstractTestNGBase
 {
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ReportTest.class);
 
@@ -71,7 +72,7 @@ public class ReportTest extends AbstractTestBase
 
     String xml = reportDao.serializeToXML(reportObjective);
     log.info(xml);
-    logon(TEST_CONTROLLING_USER);
+    logon(AbstractTestBase.TEST_CONTROLLING_USER);
     Report report = reportDao.createReport(xml);
     assertEquals(report.getReportObjective().getId(), reportObjective.getId());
   }

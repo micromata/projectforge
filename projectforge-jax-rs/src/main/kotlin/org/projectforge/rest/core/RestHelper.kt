@@ -1,10 +1,11 @@
-package org.projectforge.rest
+package org.projectforge.rest.core
 
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
+import org.projectforge.rest.JsonUtils
 import org.projectforge.rest.json.JsonCreator
-import org.projectforge.rest.ui.ValidationError
+import org.projectforge.ui.ValidationError
 import javax.ws.rs.core.Response
 
 class RestHelper {
@@ -26,7 +27,7 @@ class RestHelper {
 
         fun <O : ExtendedBaseDO<Int>> saveOrUpdate(baseDao: BaseDao<O>?, obj: O, validationErrorsList: List<ValidationError>?): Response {
             if (validationErrorsList.isNullOrEmpty()) {
-                var id = baseDao!!.saveOrUpdate(obj)
+                var id = baseDao!!.saveOrUpdate(obj) ?: obj.id
                 val json = JsonCreator.toJson(id)
                 return Response.ok(json).build()
             }

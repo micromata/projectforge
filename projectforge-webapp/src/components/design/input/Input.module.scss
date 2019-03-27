@@ -185,11 +185,14 @@
       position: absolute;
       top: 1.6em;
       right: .5em;
+      cursor: pointer;
 
       @include transition-transform(.5s, rotate(0))
     }
 
     .options {
+      z-index: 99;
+      background-color: #fff;
       position: absolute;
       list-style: none;
       margin-block-start: 0;
@@ -204,6 +207,7 @@
 
       .option {
         position: relative;
+        cursor: pointer;
 
         &.selected {
           background-color: #eee;
@@ -229,6 +233,7 @@
 
       .options {
         max-height: 500px;
+        z-index: 100;
 
         .option {
           span:hover {
@@ -236,6 +241,79 @@
           }
         }
       }
+    }
+  }
+
+  .textAreaLabel {
+    width: 100%;
+
+    .text {
+      position: absolute;
+      top: 0;
+      left: .6em;
+      background-color: #fff;
+      font-size: .9em;
+      padding: 0 .5em;
+      letter-spacing: .05em;
+      color: #666;
+
+      @include transition(color $defaultTransitionTime);
+    }
+
+    .textArea {
+      position: relative;
+      margin-top: .55em;
+      outline: none;
+      border: 1px solid #ddd;
+      border-radius: 3px;
+      width: 100%;
+      line-height: 1em;
+      padding: .6em .5em .5em .5em;
+      @include transition(border-color $defaultTransitionTime);
+    }
+
+    &.active {
+      .text {
+        color: #000;
+      }
+
+      .textArea {
+        border-color: #000;
+      }
+    }
+
+    @mixin color($color) {
+      .text {
+        color: $color;
+      }
+
+      .textArea {
+        border-color: $color;
+      }
+    }
+
+    &.primary {
+      @include color(#007bff);
+    }
+
+    &.secondary {
+      @include color(#6c757d);
+    }
+
+    &.success {
+      @include color(#28a745);
+    }
+
+    &.danger {
+      @include color(#dc3545);
+    }
+
+    &.warning {
+      @include color(#ffc107);
+    }
+
+    &.info {
+      @include color(#17a2b8);
     }
   }
 

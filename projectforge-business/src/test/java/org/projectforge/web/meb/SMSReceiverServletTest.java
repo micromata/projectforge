@@ -42,13 +42,13 @@ import org.projectforge.business.meb.MebEntryDO;
 import org.projectforge.common.TestHelper;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.test.AbstractTestBase;
+import org.projectforge.test.AbstractTestNGBase;
 import org.projectforge.web.servlet.SMSReceiverServlet;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.testng.annotations.Test;
 
-public class SMSReceiverServletTest extends AbstractTestBase
+public class SMSReceiverServletTest extends AbstractTestNGBase
 {
   private static Logger loggerSpy;
 
@@ -67,7 +67,7 @@ public class SMSReceiverServletTest extends AbstractTestBase
     final String origKey = (String) TestHelper.getDeclaredFieldValue(configService, "receiveSmsKey");
     TestHelper.setDeclaredField(configService, "receiveSmsKey", "otieZae9Aiphai5o");
     init();
-    logon(TEST_ADMIN_USER);
+    logon(AbstractTestBase.TEST_ADMIN_USER);
     PFUserDO user = new PFUserDO();
     user.setUsername("MebTestUser");
     user.setPersonalMebMobileNumbers("(0170) 12345678, 0170/987654");

@@ -35,12 +35,13 @@ import org.projectforge.continuousdb.TableAttribute;
 import org.projectforge.continuousdb.TableAttributeType;
 import org.projectforge.framework.persistence.api.HibernateUtils;
 import org.projectforge.test.AbstractTestBase;
+import org.projectforge.test.AbstractTestNGBase;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
-public class DatabaseUpdateDaoTest extends AbstractTestBase
+public class DatabaseUpdateDaoTest extends AbstractTestNGBase
 {
   @Autowired
   private DatabaseService myDatabaseUpdater;
@@ -116,7 +117,7 @@ public class DatabaseUpdateDaoTest extends AbstractTestBase
   @Test
   public void createAndDropTable()
   {
-    logon(ADMIN);
+    logon(AbstractTestBase.ADMIN);
     final Table table = new Table("t_test") //
         .addAttribute(new TableAttribute("name", TableAttributeType.VARCHAR, 5).setPrimaryKey(true))//
         .addAttribute(new TableAttribute("counter", TableAttributeType.INT)) //
@@ -157,7 +158,7 @@ public class DatabaseUpdateDaoTest extends AbstractTestBase
   @Test
   public void buildAddTableColumn()
   {
-    logon(ADMIN);
+    logon(AbstractTestBase.ADMIN);
     final StringBuffer buf = new StringBuffer();
     myDatabaseUpdater.buildAddTableAttributesStatement(buf, "t_task",
         new TableAttribute("workpackage_code", TableAttributeType.VARCHAR,
@@ -172,7 +173,7 @@ public class DatabaseUpdateDaoTest extends AbstractTestBase
   @Test
   public void createAndDropTableColumn()
   {
-    logon(ADMIN);
+    logon(AbstractTestBase.ADMIN);
     myDatabaseUpdater.addTableAttributes("t_task", new TableAttribute("test1", TableAttributeType.DATE),
         new TableAttribute("test2",
             TableAttributeType.INT));

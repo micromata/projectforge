@@ -15,12 +15,12 @@ import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
 import org.hibernate.boot.registry.selector.spi.StrategySelector;
 import org.hibernate.boot.spi.MetadataImplementor;
 import org.hibernate.tool.hbm2ddl.SchemaExport;
-import org.projectforge.test.AbstractTestBase;
+import org.projectforge.test.AbstractTestNGBase;
 import org.testng.annotations.Test;
 
 import de.micromata.genome.util.bean.PrivateBeanUtils;
 
-public class JpaSchemaExportTest extends AbstractTestBase
+public class JpaSchemaExportTest extends AbstractTestNGBase
 {
   @Test
   public void testExport()

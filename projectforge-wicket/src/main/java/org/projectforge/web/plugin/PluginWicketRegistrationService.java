@@ -1,9 +1,9 @@
 package org.projectforge.web.plugin;
 
 import org.apache.wicket.markup.html.WebPage;
+import org.projectforge.menu.builder.MenuItemDefId;
 import org.projectforge.registry.Registry;
 import org.projectforge.web.MenuItemDef;
-import org.projectforge.web.MenuItemDefId;
 import org.projectforge.web.MenuItemRegistry;
 import org.projectforge.web.registry.WebRegistry;
 import org.projectforge.web.registry.WebRegistryEntry;

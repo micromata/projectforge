@@ -29,10 +29,10 @@ import java.io.StringWriter;
 import java.util.Calendar;
 import java.util.Date;
 
-import org.projectforge.test.AbstractTestBase;
+import org.projectforge.test.AbstractTestNGBase;
 import org.testng.annotations.Test;
 
-public class CSVWriterTest extends AbstractTestBase
+public class CSVWriterTest extends AbstractTestNGBase
 {
   @Test
   public void testWriteCSV() throws Exception
