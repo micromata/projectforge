@@ -76,7 +76,7 @@ function LayoutGroup(
                         data={data}
                         validation={validation}
                         {...component}
-                        key={`layout-group-component-${component.key}`}
+                        key={`layout-group-component-${component.key}-${data.id}`}
                     />
                 );
             })}
