@@ -270,7 +270,7 @@ class ProjectForge extends React.Component {
                                     component={InputTestPage}
                                 />
                                 <Route
-                                    path="/:category/edit/:id?"
+                                    path="/:category/edit/:id?/:tab?"
                                     component={EditPage}
                                 />
                                 <Route

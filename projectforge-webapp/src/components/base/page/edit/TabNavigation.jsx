@@ -1,45 +1,43 @@
-import React from 'react';
-import PropTypes from 'prop-types';
 import classNames from 'classnames';
-import { Nav, NavItem, NavLink, } from '../../../design';
+import PropTypes from 'prop-types';
+import React from 'react';
+import { Link } from 'react-router-dom';
+import { Nav, NavItem, NavLink } from '../../../design';
 import style from '../Page.module.scss';
 
-function TabNavigation({ tabs, toggleTab, activeTab }) {
+function TabNavigation({ tabs, activeTab }) {
     return (
         <Nav tabs>
-            {Object.keys(tabs)
-                .map(id => (
-                    <NavItem key={id}>
-                        <NavLink
-                            id={id}
-                            className={
-                                classNames(style.navTab, { [style.active]: activeTab === id })
-                            }
-                            onClick={toggleTab}
-                        >
-                            {tabs[id]}
-                        </NavLink>
-                    </NavItem>
-                ))}
+            {tabs.map(tab => (
+                <NavItem key={tab.id}>
+                    <NavLink
+                        id={tab.id}
+                        className={classNames(
+                            style.navTab,
+                            { [style.active]: activeTab === tab.id },
+                        )}
+                        tag={Link}
+                        to={tab.link}
+                    >
+                        {tab.title}
+                    </NavLink>
+                </NavItem>
+            ))}
         </Nav>
     );
 }
 
 TabNavigation.propTypes = {
-    tabs: PropTypes.objectOf(PropTypes.string),
-    /*
     tabs: PropTypes.arrayOf(PropTypes.shape({
         id: PropTypes.string,
         title: PropTypes.string,
+        link: PropTypes.string,
     })),
-    */
-    toggleTab: PropTypes.func,
     activeTab: PropTypes.string,
 };
 
 TabNavigation.defaultProps = {
     tabs: [],
-    toggleTab: undefined,
     activeTab: undefined,
 };
 
