@@ -12,14 +12,18 @@ import java.util.*
  * Builds elements automatically dependent on their property type. For Strings with maxLength > 255 a [UITextarea] will be created instead
  * of an [UIInput].
  */
-internal object ElementsRegistry {
+object ElementsRegistry {
     private val log = org.slf4j.LoggerFactory.getLogger(LayoutUtils::class.java)
 
-    internal class ElementInfo(val propertyType: Class<*>,
+    class ElementInfo(val propertyType: Class<*>,
                                var maxLength: Int? = null,
                                var required: Boolean? = null,
                                var i18nKey: String? = null,
                                var additionalI18nKey: String? = null)
+
+    fun getProperties(clazz : Class<*>) : Map<String, ElementInfo>? {
+        return registryMap.get(clazz)
+    }
 
     /**
      * Contains all found and created UIElements named by class:property.

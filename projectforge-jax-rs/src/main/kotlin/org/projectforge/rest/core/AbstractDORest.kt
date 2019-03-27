@@ -1,12 +1,16 @@
 package org.projectforge.rest.core
 
 import com.google.gson.annotations.SerializedName
+import org.apache.commons.beanutils.PropertyUtils
 import org.projectforge.framework.access.AccessChecker
+import org.projectforge.framework.i18n.translate
+import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
 import org.projectforge.model.rest.RestPaths
 import org.projectforge.rest.JsonUtils
+import org.projectforge.ui.ElementsRegistry
 import org.projectforge.ui.UILayout
 import org.projectforge.ui.ValidationError
 import org.springframework.beans.BeanUtils
@@ -88,12 +92,34 @@ abstract class AbstractDORest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F : BaseS
 
     abstract fun createEditLayout(dataObject: O?, inlineLabels: Boolean = true): UILayout
 
-    open fun validate(validationErrors : MutableList<ValidationError>, obj: O) {
+    open fun validate(validationErrors: MutableList<ValidationError>, obj: O) {
     }
 
     protected fun validate(obj: O): List<ValidationError>? {
         val validationErrors = mutableListOf<ValidationError>()
-
+        val propertiesMap = ElementsRegistry.getProperties(obj::class.java)!!
+        propertiesMap.forEach {
+            val property = it.key
+            val elementInfo = it.value
+            val value = PropertyUtils.getProperty(obj, property)
+            if (elementInfo.required == true) {
+                var error = false
+                if (value == null) {
+                    error = true
+                } else {
+                    when (value) {
+                        is String -> {
+                            if (value.isNullOrBlank()) {
+                                error = true
+                            }
+                        }
+                    }
+                }
+                if (error)
+                    validationErrors.add(ValidationError(translateMsg("validation.error.fieldRequired", translate(elementInfo.i18nKey)),
+                            fieldId = property))
+            }
+        }
         validate(validationErrors, obj)
         if (validationErrors.isEmpty()) return null
         return validationErrors
