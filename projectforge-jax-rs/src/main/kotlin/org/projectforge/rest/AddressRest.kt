@@ -30,15 +30,13 @@ open class AddressRest()
         return true
     }
 
-    override fun validate(obj: AddressDO): List<ValidationError>? {
-        val errorsList = mutableListOf<ValidationError>()
+    override fun validate(validationErrors: MutableList<ValidationError>, obj: AddressDO) {
+        val validationErrors = mutableListOf<ValidationError>()
         if (StringUtils.isBlank(obj.name) == true
                 && StringUtils.isBlank(obj.firstName) == true
                 && StringUtils.isBlank(obj.organization) == true) {
-            errorsList.add(ValidationError(translate("address.form.error.toFewFields"), fieldId = "name"))
+            validationErrors.add(ValidationError(translate("address.form.error.toFewFields"), fieldId = "name"))
         }
-        if (errorsList.isEmpty()) return null
-        return errorsList
     }
 
     /**

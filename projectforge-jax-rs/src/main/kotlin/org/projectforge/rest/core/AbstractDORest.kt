@@ -88,9 +88,15 @@ abstract class AbstractDORest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F : BaseS
 
     abstract fun createEditLayout(dataObject: O?, inlineLabels: Boolean = true): UILayout
 
+    open fun validate(validationErrors : MutableList<ValidationError>, obj: O) {
+    }
 
-    open protected fun validate(obj: O): List<ValidationError>? {
-        return null
+    protected fun validate(obj: O): List<ValidationError>? {
+        val validationErrors = mutableListOf<ValidationError>()
+
+        validate(validationErrors, obj)
+        if (validationErrors.isEmpty()) return null
+        return validationErrors
     }
 
     /**
