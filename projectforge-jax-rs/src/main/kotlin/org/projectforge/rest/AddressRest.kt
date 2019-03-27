@@ -31,7 +31,6 @@ open class AddressRest()
     }
 
     override fun validate(validationErrors: MutableList<ValidationError>, obj: AddressDO) {
-        val validationErrors = mutableListOf<ValidationError>()
         if (StringUtils.isBlank(obj.name) == true
                 && StringUtils.isBlank(obj.firstName) == true
                 && StringUtils.isBlank(obj.organization) == true) {
