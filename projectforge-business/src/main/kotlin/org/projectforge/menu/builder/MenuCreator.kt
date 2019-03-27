@@ -1,6 +1,5 @@
 package org.projectforge.menu.builder
 
-import com.sun.tools.doclets.internal.toolkit.util.DocPath.parent
 import org.projectforge.business.configuration.ConfigurationService
 import org.projectforge.business.fibu.*
 import org.projectforge.business.fibu.datev.DatevImportDao
