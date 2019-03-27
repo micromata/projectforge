@@ -47,7 +47,7 @@ class EditPage extends React.Component {
             error,
             loading,
             ui,
-            validation
+            validation,
         } = this.props;
 
         if (error) {

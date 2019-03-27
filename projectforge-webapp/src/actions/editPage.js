@@ -71,8 +71,6 @@ export const updatePageData = () => (dispatch, getState) => {
 
     const { data, category } = getState().editPage;
 
-    console.log(data);
-
     fetch(
         getServiceURL(`${category}/saveorupdate`),
         {
@@ -101,11 +99,9 @@ export const updatePageData = () => (dispatch, getState) => {
                 return;
             }
 
-            console.log(response);
-
             throw new Error(response.status);
         })
-        .catch(error => dispatch(loadFailure()));
+        .catch(error => dispatch(loadFailure(error)));
 };
 
 export const changeField = (id, newValue) => dispatch => dispatch(fieldChanged(id, newValue));
@@ -114,4 +110,41 @@ export const abort = () => (dispatch, getState) => {
     const { category } = getState().editPage;
 
     redirectToCategory(category);
+};
+
+const callEndpointWithData = (category, endpoint, data, dispatch, method = 'POST') => {
+    dispatch(updateBegin());
+
+    fetch(
+        getServiceURL(`${category}/${endpoint}`),
+        {
+            method,
+            credentials: 'include',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data),
+        },
+    )
+        .then(handleHTTPErrors)
+        .then(() => redirectToCategory(category))
+        .catch(error => dispatch(loadFailure(error)));
+};
+
+export const markAsDeleted = () => (dispatch, getState) => {
+    const { category, data } = getState().editPage;
+
+    callEndpointWithData(category, 'markAsDeleted', data, dispatch, 'DELETE');
+};
+
+export const undelete = () => (dispatch, getState) => {
+    const { category, data } = getState().editPage;
+
+    callEndpointWithData(category, 'undelete', data, dispatch, 'PUT');
+};
+
+export const clone = () => (dispatch, getState) => {
+    const { category, data } = getState().editPage;
+
+    callEndpointWithData(category, 'clone', data, dispatch);
 };

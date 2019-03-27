@@ -5,7 +5,6 @@ fun translate(i18nKey: String?): String {
     return I18nHelper.getLocalizedMessage(i18nKey)
 }
 
-fun translate(i18nKey: String?, vararg params: Any): String {
-    if (i18nKey == null) return "???"
-    return I18nHelper.getLocalizedMessage(i18nKey, params)
+fun translateMsg(i18nKey: String, vararg params: Any): String {
+    return I18nHelper.getLocalizedMessage(i18nKey, *params)
 }
