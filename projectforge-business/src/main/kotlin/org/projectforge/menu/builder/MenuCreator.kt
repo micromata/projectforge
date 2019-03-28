@@ -1,6 +1,5 @@
 package org.projectforge.menu.builder
 
-import de.micromata.mgc.javafx.launcher.gui.lf5.MgcLf5Appender.initialized
 import org.projectforge.business.configuration.ConfigurationService
 import org.projectforge.business.fibu.*
 import org.projectforge.business.fibu.datev.DatevImportDao
@@ -25,7 +24,6 @@ import org.projectforge.menu.MenuItem
 import org.projectforge.sms.SmsSenderConfig
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
-import org.springframework.stereotype.Service
 
 // open only needed for Wicket (for using proxies)
 @Component
@@ -54,7 +52,14 @@ open class MenuCreator() {
     @Autowired
     private lateinit var vacationService: VacationService
 
-    private var initialized = false;
+    private var initialized = false
+
+    companion object {
+        /**
+         * If test cases fails, try to set testCase to true.
+         */
+        var testCase = false
+    }
 
     fun refresh() {
         log.error("Refreshing of menu not yet supported.")
@@ -130,6 +135,13 @@ open class MenuCreator() {
         if (initialized == true)
             return
         initialized = true
+        if (!this::configurationService.isInitialized) {
+            if (testCase) {
+                menu.add(MenuItemDef(MenuItemDefId.COMMON))
+                return // This should only occur in test cases.
+            }
+            log.error("Oups, shouldn't occur. Spring bean not correctly initialized.")
+        }
         //////////////////////////////////////
         //
         // COMMON

@@ -28,6 +28,7 @@ import java.util.Map;
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.projectforge.business.systeminfo.SystemInfoCache;
+import org.projectforge.menu.builder.MenuCreator;
 import org.projectforge.test.AbstractTestBase;
 import org.projectforge.web.address.AddressViewPage;
 import org.projectforge.web.admin.SetupPage;
@@ -49,6 +50,9 @@ public class CallAllPagesTest extends WicketPageTestBase
   @Autowired
   private SystemInfoCache systemInfoCache;
 
+  @Autowired
+  private MenuCreator menuCreator;
+
   @SuppressWarnings("unchecked")
   private final Class<? extends WebPage>[] skipPages = new Class[] { //
       // Not yet checked:
@@ -63,6 +67,7 @@ public class CallAllPagesTest extends WicketPageTestBase
   @Test
   public void testAllMountedPages()
   {
+    MenuCreator.Companion.setTestCase(true);
     _testAllMountedPages();
     testPage(LoginPage.class);
     clearDatabase();

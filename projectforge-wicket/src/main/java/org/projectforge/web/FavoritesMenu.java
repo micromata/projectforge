@@ -210,7 +210,7 @@ public class FavoritesMenu implements Serializable {
 
 
   private void addFavoriteMenuEntry(final MenuEntry parent, final MenuItemDef menuItemDef) {
-    if (menu == null) {
+    if (menu == null || menuItemDef == null) {
       return;
     }
     final MenuEntry menuEntry = menu.findById(menuItemDef.getId());
@@ -221,7 +221,7 @@ public class FavoritesMenu implements Serializable {
   }
 
   private void addFavoriteMenuEntry(final MenuItemDef menuItemDef) {
-    if (menu == null) {
+    if (menu == null || menuItemDef == null) {
       return;
     }
     final MenuEntry menuEntry = menu.findById(menuItemDef.getId());
