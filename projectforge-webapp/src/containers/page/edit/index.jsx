@@ -9,38 +9,16 @@ import PageNavigation from '../../../components/base/page/Navigation';
 import { Alert, Container, TabContent, TabPane, } from '../../../components/design';
 import LoadingContainer from '../../../components/design/loading-container';
 import style from '../../ProjectForge.module.scss';
+import EditHistory from './history';
 
 class EditPage extends React.Component {
-    constructor(props) {
-        super(props);
-
-        this.state = {
-            activeTab: 'edit',
-        };
-
-        this.toggleTab = this.toggleTab.bind(this);
-    }
-
     componentDidMount() {
         const { load, match } = this.props;
 
         load(match.params.category, match.params.id);
     }
 
-    toggleTab(event) {
-        const { activeTab } = this.state;
-
-        if (activeTab === event.target.id) {
-            return;
-        }
-
-        this.setState({
-            activeTab: event.target.id,
-        });
-    }
-
     render() {
-        const { activeTab } = this.state;
         const {
             changeDataField,
             data,
@@ -48,7 +26,10 @@ class EditPage extends React.Component {
             loading,
             ui,
             validation,
+            match,
         } = this.props;
+
+        const { category, id } = match.params;
 
         if (error) {
             return (
@@ -59,15 +40,27 @@ class EditPage extends React.Component {
             );
         }
 
+        const activeTab = match.params.tab || 'edit';
+        const baseUrl = `/${category}/edit/${id}`;
+
+        // TODO: REMOVE HISTORY ON NEW BOOK
+
         return (
             <LoadingContainer loading={loading}>
                 <PageNavigation current={ui.title} />
                 <TabNavigation
-                    tabs={{
-                        edit: ui.title,
-                        history: '[History]',
-                    }}
-                    toggleTab={this.toggleTab}
+                    tabs={[
+                        {
+                            id: 'edit',
+                            title: ui.title,
+                            link: baseUrl,
+                        },
+                        {
+                            id: 'history',
+                            title: '[History]',
+                            link: `${baseUrl}/history`,
+                        },
+                    ]}
                     activeTab={activeTab}
                 />
                 <TabContent
@@ -85,6 +78,14 @@ class EditPage extends React.Component {
                             <ActionGroup actions={ui.actions} />
                         </Container>
                     </TabPane>
+                    <TabPane tabId="history">
+                        <Container fluid>
+                            <EditHistory
+                                category={category}
+                                id={id}
+                            />
+                        </Container>
+                    </TabPane>
                 </TabContent>
             </LoadingContainer>
         );
@@ -92,6 +93,7 @@ class EditPage extends React.Component {
 }
 
 EditPage.propTypes = {
+    category: PropTypes.string.isRequired,
     changeDataField: PropTypes.func.isRequired,
     match: PropTypes.shape({}).isRequired,
     load: PropTypes.func.isRequired,
@@ -115,6 +117,7 @@ const mapStateToProps = state => ({
     loading: state.editPage.loading,
     data: state.editPage.data,
     validation: state.editPage.validation,
+    category: state.editPage.category,
 });
 
 const actions = {
