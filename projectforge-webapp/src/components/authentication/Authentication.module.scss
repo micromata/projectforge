@@ -2,13 +2,16 @@ div.loginPanel {
   width: 95%;
   max-width: 498px;
   margin: 2em auto 0;
+
+  input:valid + span {
+   transform: translate(0, 0) scale(0.9, 0.9) !important;
+  }
 }
 
 .cardTitle {
   margin: 25px 0;
   font-size: 14px;
   font-weight: 600;
-  color: #555;
 }
 
 .alert {
@@ -17,4 +20,8 @@ div.loginPanel {
 
 .formGroup {
   padding-bottom: 14px;
+}
+
+button {
+	//font-size: 12px !important;
 }
