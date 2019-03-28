@@ -24,21 +24,21 @@
 package org.projectforge.plugins.banking;
 
 import org.projectforge.continuousdb.UpdateEntry;
+import org.projectforge.framework.persistence.api.UserRightService;
+import org.projectforge.menu.builder.MenuItemDef;
 import org.projectforge.menu.builder.MenuItemDefId;
 import org.projectforge.plugins.core.AbstractPlugin;
-import org.projectforge.web.MenuItemDef;
 import org.projectforge.web.plugin.PluginWicketRegistrationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
  * Your plugin initialization. Register all your components such as i18n files, data-access object etc.
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 @Component
-public class BankingPlugin extends AbstractPlugin
-{
+public class BankingPlugin extends AbstractPlugin {
   public static final String BANK_ACCOUNT_ID = "bankAccount";
 
   public static final String BANK_ACCOUNT_BALANCE_ID = "bankAccountBalance";
@@ -50,9 +50,9 @@ public class BankingPlugin extends AbstractPlugin
   // The order of the entities is important for xml dump and imports as well as for test cases (order for deleting objects at the end of
   // each test).
   // The entities are inserted in ascending order and deleted in descending order.
-  private static final Class<?>[] PERSISTENT_ENTITIES = new Class<?>[] { BankAccountDO.class,
-      BankAccountBalanceDO.class,
-      BankAccountRecordDO.class };
+  private static final Class<?>[] PERSISTENT_ENTITIES = new Class<?>[]{BankAccountDO.class,
+          BankAccountBalanceDO.class,
+          BankAccountRecordDO.class};
 
   @Autowired
   private BankAccountDao bankAccountDao;
@@ -63,26 +63,26 @@ public class BankingPlugin extends AbstractPlugin
   // private BankAccountBalanceDao addressCampaignValueDao;
 
   @Override
-  protected void initialize()
-  {
+  protected void initialize() {
     // DatabaseUpdateDao is needed by the updater:
     BankingPluginUpdates.dao = myDatabaseUpdater;
     // Register it:
     register(BANK_ACCOUNT_ID, BankAccountDao.class, bankAccountDao, "plugins.banking.account").setNestedDOClasses(
-        BankAccountRecordDO.class, BankAccountBalanceDO.class).setSearchable(false);
+            BankAccountRecordDO.class, BankAccountBalanceDO.class).setSearchable(false);
     // register(BANK_ACCOUNT_BALANCE_ID, BankAccountBalanceDao.class, addressCampaignValueDao, "plugins.banking.accountBalance");
     registerRight(new BankAccountRight(accessChecker));
     // Register the web part:
     pluginWicketRegistrationService.registerWeb(BANK_ACCOUNT_ID, BankAccountListPage.class, BankAccountEditPage.class);
     // registerWeb(BANK_ACCOUNT_BALANCE_ID, BankAccountBalanceListPage.class, BankAccountBalanceEditPage.class);
 
-    // Register the menu entry as sub menu entry of the misc menu:
-    final MenuItemDef parentMenu = pluginWicketRegistrationService.getMenuItemDef(MenuItemDefId.FIBU);
-    pluginWicketRegistrationService.registerMenuItem(
-        new MenuItemDef(parentMenu, BANK_ACCOUNT_ID, 100, "plugins.banking.account.menu", BankAccountListPage.class,
-            BankingPluginUserRightsId.PLUGIN_BANK_ACCOUNT));
-    // registerMenuItem(new MenuItemDef(parentMenu, BANK_ACCOUNT_BALANCE_ID, 30, "plugins.banking.bankAccountBalance.menu",
-    // BankAccountBalanceListPage.class));
+
+
+
+    MenuItemDef menuEntry = new MenuItemDef(BANK_ACCOUNT_ID, "plugins.banking.account.menu");
+    menuEntry.setRequiredUserRightId(BankingPluginUserRightsId.PLUGIN_BANK_ACCOUNT);
+    menuEntry.setRequiredUserRightValues(UserRightService.READONLY_READWRITE);
+    pluginWicketRegistrationService.registerMenuItem(MenuItemDefId.FIBU,menuEntry,
+            BankAccountListPage.class);
 
     // Define the access management:
     // registerRight(new BankAccountRight());
@@ -93,8 +93,7 @@ public class BankingPlugin extends AbstractPlugin
   }
 
   @Override
-  public UpdateEntry getInitializationUpdateEntry()
-  {
+  public UpdateEntry getInitializationUpdateEntry() {
     return BankingPluginUpdates.getInitializationUpdateEntry();
   }
 }
