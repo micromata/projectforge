@@ -21,7 +21,7 @@ function Input(
     const [active, setActive] = React.useState(value);
 
     return (
-        <div className={classNames(style.formGroup, className)}>
+        <div className={classNames(style.formGroup,"form-group", className)}>
             <label
                 className={classNames(style.label, { [style.active]: active }, style[color])}
                 htmlFor={id}
