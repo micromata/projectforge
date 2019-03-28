@@ -24,6 +24,7 @@
 package org.projectforge.plugins.banking;
 
 import org.projectforge.continuousdb.UpdateEntry;
+import org.projectforge.framework.persistence.api.UserRightService;
 import org.projectforge.menu.builder.MenuItemDef;
 import org.projectforge.menu.builder.MenuItemDefId;
 import org.projectforge.plugins.core.AbstractPlugin;
@@ -74,12 +75,14 @@ public class BankingPlugin extends AbstractPlugin {
     pluginWicketRegistrationService.registerWeb(BANK_ACCOUNT_ID, BankAccountListPage.class, BankAccountEditPage.class);
     // registerWeb(BANK_ACCOUNT_BALANCE_ID, BankAccountBalanceListPage.class, BankAccountBalanceEditPage.class);
 
-    MenuItemDef menuItemDef = new MenuItemDef(BANK_ACCOUNT_ID, "plugins.banking.account.menu");
-    menuItemDef.setWicketPageClass(BankAccountListPage.class);
-   // menuItemDef.setRequiredUserRight(BankingPluginUserRightsId.PLUGIN_BANK_ACCOUNT);
-    pluginWicketRegistrationService.registerMenuItem(MenuItemDefId.FIBU, menuItemDef);
-    // registerMenuItem(new MenuItemDef(parentMenu, BANK_ACCOUNT_BALANCE_ID, 30, "plugins.banking.bankAccountBalance.menu",
-    // BankAccountBalanceListPage.class));
+
+
+
+    MenuItemDef menuEntry = new MenuItemDef(BANK_ACCOUNT_ID, "plugins.banking.account.menu");
+    menuEntry.setRequiredUserRightId(BankingPluginUserRightsId.PLUGIN_BANK_ACCOUNT);
+    menuEntry.setRequiredUserRightValues(UserRightService.READONLY_READWRITE);
+    pluginWicketRegistrationService.registerMenuItem(MenuItemDefId.FIBU,menuEntry,
+            BankAccountListPage.class);
 
     // Define the access management:
     // registerRight(new BankAccountRight());
