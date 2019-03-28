@@ -24,21 +24,20 @@
 package org.projectforge.plugins.ihkexport;
 
 import org.projectforge.business.timesheet.TimesheetDao;
+import org.projectforge.menu.builder.MenuItemDef;
 import org.projectforge.menu.builder.MenuItemDefId;
 import org.projectforge.plugins.core.AbstractPlugin;
-import org.projectforge.web.MenuItemDef;
 import org.projectforge.web.plugin.PluginWicketRegistrationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
  * Your plugin initialization. Register all your components such as i18n files, data-access object etc.
- * 
+ *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 @Component
-public class IhkExportPlugin extends AbstractPlugin
-{
+public class IhkExportPlugin extends AbstractPlugin {
   public static final String ID = "ihkexport";
 
   public static final String RESOURCE_BUNDLE_NAME = "IhkExportI18nResources";
@@ -50,8 +49,7 @@ public class IhkExportPlugin extends AbstractPlugin
   private PluginWicketRegistrationService pluginWicketRegistrationService;
 
   @Override
-  protected void initialize()
-  {
+  protected void initialize() {
 
     // Register it:
     register(ID, TimesheetDao.class, ihkExportDao, "plugins.ihkexport");
@@ -60,9 +58,8 @@ public class IhkExportPlugin extends AbstractPlugin
     pluginWicketRegistrationService.registerWeb(ID);
 
     // Register the menu entry as sub menu entry of the misc menu:
-    final MenuItemDef parentMenu = pluginWicketRegistrationService.getMenuItemDef(MenuItemDefId.MISC);
-    pluginWicketRegistrationService
-        .registerMenuItem(new MenuItemDef(parentMenu, ID, 10, "plugins.ihkexport.menu", IhkExportPage.class));
+    pluginWicketRegistrationService.registerMenuItem(MenuItemDefId.MISC, new MenuItemDef(ID, "plugins.ihkexport.menu"),
+            IhkExportPage.class);
 
     // Define the access management:
     registerRight(new IhkExportRight(accessChecker));
