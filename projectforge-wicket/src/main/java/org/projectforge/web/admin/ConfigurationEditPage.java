@@ -27,6 +27,7 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.framework.configuration.ConfigurationDao;
 import org.projectforge.framework.configuration.entities.ConfigurationDO;
+import org.projectforge.menu.builder.MenuCreator;
 import org.projectforge.web.MenuItemRegistry;
 import org.projectforge.web.fibu.ISelectCallerPage;
 import org.projectforge.web.wicket.AbstractEditPage;
@@ -47,7 +48,7 @@ public class ConfigurationEditPage extends AbstractEditPage<ConfigurationDO, Con
   private ConfigurationDao configurationDao;
 
   @SpringBean
-  private MenuItemRegistry menuItemRegistry;
+  private MenuCreator menuCreator;
 
   public ConfigurationEditPage(final PageParameters parameters)
   {
@@ -67,7 +68,7 @@ public class ConfigurationEditPage extends AbstractEditPage<ConfigurationDO, Con
   @Override
   public AbstractSecuredBasePage afterSaveOrUpdate()
   {
-    menuItemRegistry.refresh();
+    menuCreator.refresh();
     return null;
   }
 

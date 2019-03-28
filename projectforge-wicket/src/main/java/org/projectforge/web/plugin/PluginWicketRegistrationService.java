@@ -1,9 +1,11 @@
 package org.projectforge.web.plugin;
 
+import org.apache.wicket.Page;
 import org.apache.wicket.markup.html.WebPage;
+import org.projectforge.menu.builder.MenuCreator;
+import org.projectforge.menu.builder.MenuItemDef;
 import org.projectforge.menu.builder.MenuItemDefId;
 import org.projectforge.registry.Registry;
-import org.projectforge.web.MenuItemDef;
 import org.projectforge.web.MenuItemRegistry;
 import org.projectforge.web.registry.WebRegistry;
 import org.projectforge.web.registry.WebRegistryEntry;
@@ -15,26 +17,44 @@ import org.springframework.stereotype.Service;
 public class PluginWicketRegistrationService
 {
   @Autowired
+  public MenuCreator menuCreator;
+
+  @Autowired
   public MenuItemRegistry menuItemRegistry;
 
   public MenuItemDef getMenuItemDef(final MenuItemDefId menuItemDefId)
   {
-    return menuItemRegistry.get(menuItemDefId);
+    return menuCreator.findById(menuItemDefId);
   }
 
-  public void getMenuItemDef(final String id)
+  public void registerMenuItem(final MenuItemDefId parentId, final MenuItemDef menuItemDef)
   {
-    menuItemRegistry.get(id);
+    registerMenuItem(parentId, menuItemDef, null);
   }
 
-  public void registerMenuItem(final MenuItemDef menuItemDef)
+  public void registerMenuItem(final MenuItemDefId parentId, final MenuItemDef menuItemDef, Class<? extends Page> pageClass)
   {
-    menuItemRegistry.register(menuItemDef);
+    registerMenuItem(parentId.getId(), menuItemDef, pageClass);
   }
 
-  public void registerFavoritesMenuItem(final MenuItemDef menuItemDef)
+
+  public void registerMenuItem(final String parentId, final MenuItemDef menuItemDef)
   {
-    menuItemRegistry.registerFavorites(menuItemDef);
+    registerMenuItem(parentId, menuItemDef, null);
+  }
+
+  public void registerMenuItem(final String parentId, final MenuItemDef menuItemDef, Class<? extends Page> pageClass)
+  {
+    menuCreator.add(parentId, menuItemDef);
+    if (pageClass != null)
+      menuItemRegistry.register(menuItemDef.getId(), pageClass);
+  }
+
+  public void registerTopLevelMenuItem(final MenuItemDef menuItemDef, Class<? extends Page> pageClass)
+  {
+    menuCreator.addTopLevelMenu(menuItemDef);
+    if (pageClass != null)
+      menuItemRegistry.register(menuItemDef.getId(), pageClass);
   }
 
   /**
