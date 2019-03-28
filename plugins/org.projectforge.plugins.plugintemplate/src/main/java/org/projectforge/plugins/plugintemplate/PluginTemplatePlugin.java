@@ -24,6 +24,7 @@
 package org.projectforge.plugins.plugintemplate;
 
 import org.projectforge.continuousdb.UpdateEntry;
+import org.projectforge.menu.builder.MenuItemDef;
 import org.projectforge.menu.builder.MenuItemDefId;
 import org.projectforge.plugins.core.AbstractPlugin;
 import org.projectforge.plugins.plugintemplate.repository.PluginTemplateDao;
@@ -31,7 +32,6 @@ import org.projectforge.plugins.plugintemplate.rest.PluginTemplateRest;
 import org.projectforge.plugins.plugintemplate.service.PluginTemplateService;
 import org.projectforge.plugins.plugintemplate.wicket.PluginTemplateListPage;
 import org.projectforge.rest.config.RestPrivateConfiguration;
-import org.projectforge.web.MenuItemDef;
 import org.projectforge.web.MenuItemRegistry;
 import org.projectforge.web.plugin.PluginWicketRegistrationService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,8 +41,7 @@ import java.util.List;
 /**
  * @author Florian Blumenstein
  */
-public class PluginTemplatePlugin extends AbstractPlugin
-{
+public class PluginTemplatePlugin extends AbstractPlugin {
   public static final String ID = "plugintemplate";
 
   public static final String RESOURCE_BUNDLE_NAME = "PluginTemplateI18nResources";
@@ -63,8 +62,7 @@ public class PluginTemplatePlugin extends AbstractPlugin
    * @see org.projectforge.plugins.core.AbstractPlugin#initialize()
    */
   @Override
-  protected void initialize()
-  {
+  protected void initialize() {
     PluginTemplatePluginUpdates.applicationContext = applicationContext;
 
     // Register it:
@@ -76,11 +74,9 @@ public class PluginTemplatePlugin extends AbstractPlugin
     //Register the Rest Service
     jerseyConfiguration.register(PluginTemplateRest.class);
 
-    final MenuItemDef parentMenu = menuItemRegistry.get(MenuItemDefId.MISC);
-
-    pluginWicketRegistrationService
-        .registerMenuItem(
-            new MenuItemDef(parentMenu, "plugintemplate", 130, "plugins.plugintemplate.submenu.plugintemplate.list", PluginTemplateListPage.class));
+    pluginWicketRegistrationService.registerMenuItem(MenuItemDefId.MISC,
+            new MenuItemDef("plugintemplate", "plugins.plugintemplate.submenu.plugintemplate.list"),
+            PluginTemplateListPage.class);
 
     // Define the access management:
     registerRight(new PluginTemplateRight(accessChecker));
@@ -93,8 +89,7 @@ public class PluginTemplatePlugin extends AbstractPlugin
    * @see org.projectforge.plugins.core.AbstractPlugin#getInitializationUpdateEntry()
    */
   @Override
-  public UpdateEntry getInitializationUpdateEntry()
-  {
+  public UpdateEntry getInitializationUpdateEntry() {
     return PluginTemplatePluginUpdates.getInitializationUpdateEntry();
   }
 
@@ -102,8 +97,7 @@ public class PluginTemplatePlugin extends AbstractPlugin
    * @see org.projectforge.plugins.core.AbstractPlugin#getUpdateEntries()
    */
   @Override
-  public List<UpdateEntry> getUpdateEntries()
-  {
+  public List<UpdateEntry> getUpdateEntries() {
     return PluginTemplatePluginUpdates.getUpdateEntries();
   }
 
