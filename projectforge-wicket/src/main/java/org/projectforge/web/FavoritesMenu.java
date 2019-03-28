@@ -47,8 +47,7 @@ import java.util.StringTokenizer;
 /**
  * The customizable menu of the user (stored in the data-base and customizable).
  */
-public class FavoritesMenu implements Serializable
-{
+public class FavoritesMenu implements Serializable {
   public static final String USER_PREF_FAVORITES_MENU_KEY = "usersFavoritesMenu";
 
   static final String USER_PREF_FAVORITES_MENU_ENTRIES_KEY = "usersFavoriteMenuEntries";
@@ -65,8 +64,7 @@ public class FavoritesMenu implements Serializable
 
   private AccessChecker accessChecker;
 
-  public static FavoritesMenu get(MenuCreator menuCreator, MenuBuilder menuBuilder, AccessChecker accessChecker)
-  {
+  public static FavoritesMenu get(MenuCreator menuCreator, MenuBuilder menuBuilder, AccessChecker accessChecker) {
     FavoritesMenu favoritesMenu = (FavoritesMenu) UserPreferencesHelper.getEntry(USER_PREF_FAVORITES_MENU_KEY);
     if (favoritesMenu != null) {
       return favoritesMenu;
@@ -79,33 +77,29 @@ public class FavoritesMenu implements Serializable
   /**
    * @param accessChecker For building the menu entries regarding the access rights of the logged-in user.
    */
-  FavoritesMenu(MenuCreator menuCreator, MenuBuilder menuBuilder, AccessChecker accessChecker)
-  {
+  FavoritesMenu(MenuCreator menuCreator, MenuBuilder menuBuilder, AccessChecker accessChecker) {
     this.menu = menuBuilder.getMenu(ThreadLocalUserContext.getUser());
     this.menuCreator = menuCreator;
     this.accessChecker = accessChecker;
     init();
   }
 
-  public List<MenuEntry> getMenuEntries()
-  {
+  public List<MenuEntry> getMenuEntries() {
     return this.menuEntries;
   }
 
   /**
    * Only for test cases.
-   * 
+   *
    * @param menu the menu to set
    * @return this for chaining.
    */
-  FavoritesMenu setMenu(final Menu menu)
-  {
+  FavoritesMenu setMenu(final Menu menu) {
     this.menu = menu;
     return this;
   }
 
-  public void readFromXml(final String menuAsXml)
-  {
+  public void readFromXml(final String menuAsXml) {
     if (menu == null) {
       log.error("User's menu is null, can't get FavoritesMenu!");
       return;
@@ -122,15 +116,14 @@ public class FavoritesMenu implements Serializable
     }
     final Element root = document.getRootElement();
     menuEntries = new ArrayList<>();
-    for (final Iterator<?> it = root.elementIterator("item"); it.hasNext();) {
+    for (final Iterator<?> it = root.elementIterator("item"); it.hasNext(); ) {
       final Element item = (Element) it.next();
       final MenuEntry menuEntry = readFromXml(item);
       menuEntries.add(menuEntry);
     }
   }
 
-  private MenuEntry readFromXml(final Element item)
-  {
+  private MenuEntry readFromXml(final Element item) {
     if ("item".equals(item.getName()) == false) {
       log.error("Tag 'item' expected instead of '" + item.getName() + "'. Ignoring this tag.");
       return null;
@@ -143,15 +136,13 @@ public class FavoritesMenu implements Serializable
     if (id != null && menu != null) { // menu is only null for FavoritesMenuTest.
       srcMenuEntry = menu.findById(id);
     }
-    final MenuEntry menuEntry=new MenuEntry();
+    final MenuEntry menuEntry = new MenuEntry();
     if (srcMenuEntry != null) {
       menuEntry.id = srcMenuEntry.id;
       menuEntry.url = srcMenuEntry.url;
-      menuEntry.url = srcMenuEntry.url;
-      menuEntry.url = srcMenuEntry.url;
-      menuEntry.url = srcMenuEntry.url;
-      menuEntry.url = srcMenuEntry.url;
-      menuEntry.url = srcMenuEntry.url;
+      menuEntry.pageClass = srcMenuEntry.pageClass;
+      menuEntry.i18nKey = srcMenuEntry.i18nKey;
+      menuEntry.newCounterModel = srcMenuEntry.newCounterModel;
     }
     if (item != null) {
       final String trimmedTitle = item.getTextTrim();
@@ -164,7 +155,7 @@ public class FavoritesMenu implements Serializable
         }
       }
     }
-    for (final Iterator<?> it = item.elementIterator("item"); it.hasNext();) {
+    for (final Iterator<?> it = item.elementIterator("item"); it.hasNext(); ) {
       if (menuEntry != null) {
         log.warn("Menu entry shouldn't have children, because it's a leaf node.");
       }
@@ -177,8 +168,7 @@ public class FavoritesMenu implements Serializable
     return menuEntry;
   }
 
-  private void init()
-  {
+  private void init() {
     this.menuEntries = new ArrayList<>();
     final String userPrefString = (String) UserPreferencesHelper.getEntry(USER_PREF_FAVORITES_MENU_ENTRIES_KEY);
     if (StringUtils.isBlank(userPrefString) == false) {
@@ -192,7 +182,7 @@ public class FavoritesMenu implements Serializable
     if (this.menuEntries.size() == 0) {
       if (accessChecker.isLoggedInUserMemberOfAdminGroup() == true) {
         final MenuEntry adminMenu = new MenuEntry()
-            .setName(ThreadLocalUserContext.getLocalizedString(MenuItemDefId.ADMINISTRATION.getI18nKey()));
+                .setName(ThreadLocalUserContext.getLocalizedString(MenuItemDefId.ADMINISTRATION.getI18nKey()));
         menuEntries.add(adminMenu);
         addFavoriteMenuEntry(adminMenu, menuCreator.findById(MenuItemDefId.ACCESS_LIST));
         addFavoriteMenuEntry(adminMenu, menuCreator.findById(MenuItemDefId.USER_LIST));
@@ -204,8 +194,8 @@ public class FavoritesMenu implements Serializable
         addFavoriteMenuEntry(menuCreator.findById(MenuItemDefId.CHANGE_PASSWORD));
       } else {
         final MenuEntry projectManagementMenu = new MenuEntry()
-            .setName(ThreadLocalUserContext.getLocalizedString(MenuItemDefId.PROJECT_MANAGEMENT
-                .getI18nKey()));
+                .setName(ThreadLocalUserContext.getLocalizedString(MenuItemDefId.PROJECT_MANAGEMENT
+                        .getI18nKey()));
         menuEntries.add(projectManagementMenu);
         addFavoriteMenuEntry(projectManagementMenu, menuCreator.findById(MenuItemDefId.MONTHLY_EMPLOYEE_REPORT));
         addFavoriteMenuEntry(projectManagementMenu, menuCreator.findById(MenuItemDefId.TIMESHEET_LIST));
@@ -219,8 +209,7 @@ public class FavoritesMenu implements Serializable
   }
 
 
-  private void addFavoriteMenuEntry(final MenuEntry parent, final MenuItemDef menuItemDef)
-  {
+  private void addFavoriteMenuEntry(final MenuEntry parent, final MenuItemDef menuItemDef) {
     if (menu == null) {
       return;
     }
@@ -231,8 +220,7 @@ public class FavoritesMenu implements Serializable
     parent.addMenuEntry(menuEntry);
   }
 
-  private void addFavoriteMenuEntry(final MenuItemDef menuItemDef)
-  {
+  private void addFavoriteMenuEntry(final MenuItemDef menuItemDef) {
     if (menu == null) {
       return;
     }
@@ -252,8 +240,7 @@ public class FavoritesMenu implements Serializable
   /**
    * @param userPrefEntry coma separated list of MenuItemDefs.
    */
-  private void buildFromOldUserPrefFormat(final String userPrefEntry)
-  {
+  private void buildFromOldUserPrefFormat(final String userPrefEntry) {
     this.menuEntries = new ArrayList<>();
     if (userPrefEntry == null) {
       return;
@@ -276,8 +263,7 @@ public class FavoritesMenu implements Serializable
     }
   }
 
-  public void storeAsUserPref()
-  {
+  public void storeAsUserPref() {
     if (CollectionUtils.isEmpty(menuEntries) == true) {
       UserPreferencesHelper.putEntry(USER_PREF_FAVORITES_MENU_ENTRIES_KEY, "", true);
       UserPreferencesHelper.removeEntry(USER_PREF_FAVORITES_MENU_KEY);
@@ -297,8 +283,7 @@ public class FavoritesMenu implements Serializable
     log.info("Favorites menu stored: " + xml);
   }
 
-  private void buildElement(final Element element, final MenuEntry menuEntry)
-  {
+  private void buildElement(final Element element, final MenuEntry menuEntry) {
     if (menuEntry.getId() != null) {
       element.addAttribute("id", menuEntry.getId());
     }

@@ -1,5 +1,6 @@
 package org.projectforge.menu.builder
 
+import de.micromata.mgc.javafx.launcher.gui.lf5.MgcLf5Appender.initialized
 import org.projectforge.business.configuration.ConfigurationService
 import org.projectforge.business.fibu.*
 import org.projectforge.business.fibu.datev.DatevImportDao
@@ -24,7 +25,7 @@ import org.projectforge.menu.MenuItem
 import org.projectforge.sms.SmsSenderConfig
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
-import javax.annotation.PostConstruct
+import org.springframework.stereotype.Service
 
 // open only needed for Wicket (for using proxies)
 @Component
@@ -53,6 +54,8 @@ open class MenuCreator() {
     @Autowired
     private lateinit var vacationService: VacationService
 
+    private var initialized = false;
+
     fun refresh() {
         log.error("Refreshing of menu not yet supported.")
     }
@@ -65,6 +68,7 @@ open class MenuCreator() {
      * @return this for chaining.
      */
     fun addTopLevelMenu(menuItemDef: MenuItemDef) {
+        initialize()
         // Check if ID already exists
         menu.menuItems.forEach {
             if (it.id == menuItemDef.id)
@@ -99,6 +103,7 @@ open class MenuCreator() {
     }
 
     fun findById(id: String): MenuItemDef? {
+        initialize()
         menu.menuItems.forEach {
             if (it.id == id)
                 return it
@@ -120,9 +125,11 @@ open class MenuCreator() {
         return null
     }
 
-
-    @PostConstruct
+    @Synchronized
     private fun initialize() {
+        if (initialized == true)
+            return
+        initialized = true
         //////////////////////////////////////
         //
         // COMMON
@@ -317,6 +324,7 @@ open class MenuCreator() {
     }
 
     fun build(menuCreatorContext: MenuCreatorContext): List<MenuItem> {
+        initialize()
         val root = MenuItem("root", "root")
         menu.menuItems.forEach { menuItemDef ->
             build(root, menuItemDef, menuCreatorContext)
