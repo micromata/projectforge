@@ -23,6 +23,7 @@
 
 package org.projectforge.web;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Page;
 import org.apache.wicket.model.IModel;
 
@@ -135,8 +136,14 @@ public class MenuEntry implements Serializable {
   }
 
   public MenuEntry findById(final String id) {
-    if (id.equals(id) == true) {
-      return this;
+    if (this.id != null) {
+      if (this.id.equals(id)) {
+        return this;
+      }
+      int pos = this.id.indexOf('.');
+      if (pos >= 0 && pos + 1 < this.id.length() && StringUtils.equals(this.id.substring(pos + 1), id)) {
+        return this;
+      }
     }
     if (this.subMenuEntries == null) {
       return null;
