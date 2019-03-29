@@ -34,7 +34,7 @@ open class BookRest() : AbstractDORest<BookDO, BookDao, BookFilter>(BookDao::cla
         return book
     }
 
-    override fun validate(validationErrors : MutableList<ValidationError>, obj: BookDO) {
+    override fun validate(validationErrors: MutableList<ValidationError>, obj: BookDO) {
         if (!obj.yearOfPublishing.isNullOrBlank()) {
             try {
                 val year = Integer.parseInt(obj.yearOfPublishing)
@@ -111,6 +111,8 @@ open class BookRest() : AbstractDORest<BookDO, BookDao, BookFilter>(BookDao::cla
                         .add(UICustomized("lendOutComponent")))
                 .add(lc, "lendOutComment", "abstractText", "comment")
         layout.getInputById("title").focus = true
+        layout.addTranslation("book.lendOut")
+                .addTranslation("book.returnBook")
         return LayoutUtils.processEditPage(layout, dataObject)
     }
 }

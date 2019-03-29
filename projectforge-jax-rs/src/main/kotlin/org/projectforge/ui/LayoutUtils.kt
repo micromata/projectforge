@@ -112,6 +112,7 @@ class LayoutUtils {
                 layout.addAction(UIButton("create", style = UIButtonStyle.PRIMARY, default = true))
             }
             process(layout)
+            layout.addTranslation("label.historyOfChanges")
             return layout
         }
 
