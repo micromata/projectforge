@@ -112,7 +112,7 @@ export const abort = () => (dispatch, getState) => {
     redirectToCategory(category);
 };
 
-const callEndpointWithData = (category, endpoint, data, dispatch, method = 'POST') => {
+export const callEndpointWithData = (category, endpoint, data, dispatch, method = 'POST') => {
     dispatch(updateBegin());
 
     fetch(

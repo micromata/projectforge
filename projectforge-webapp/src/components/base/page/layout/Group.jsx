@@ -3,12 +3,12 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import { Col, FormGroup, Row } from '../../../design';
 import style from '../Page.module.scss';
+import CustomizedLayout from './customized';
 import LayoutInput from './Input';
 import LayoutLabel from './Label';
 import LayoutSelect from './Select';
 import LayoutTable from './Table';
 
-// TODO: COLLECT INPUT IN PARENT
 function LayoutGroup(
     {
         changeDataField,
@@ -65,6 +65,9 @@ function LayoutGroup(
                         break;
                     case 'table':
                         Tag = LayoutTable;
+                        break;
+                    case 'customized':
+                        Tag = CustomizedLayout;
                         break;
                     default:
                         Tag = LayoutGroup;
