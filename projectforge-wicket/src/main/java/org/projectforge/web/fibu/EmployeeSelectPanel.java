@@ -40,10 +40,10 @@ import org.projectforge.business.fibu.KostFormatter;
 import org.projectforge.business.multitenancy.TenantRegistry;
 import org.projectforge.business.multitenancy.TenantRegistryMap;
 import org.projectforge.business.user.UserGroupCache;
+import org.projectforge.business.user.service.UserPreferencesService;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.utils.RecentQueue;
-import org.projectforge.web.user.UserPreferencesHelper;
 import org.projectforge.web.wicket.AbstractSelectPanel;
 import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.web.wicket.autocompletion.PFAutoCompleteTextField;
@@ -61,6 +61,9 @@ public class EmployeeSelectPanel extends AbstractSelectPanel<EmployeeDO>
 
   @SpringBean
   private EmployeeDao employeeDao;
+
+  @SpringBean
+  private UserPreferencesService userPreferencesService;
 
   private RecentQueue<String> recentEmployees;
 
@@ -275,11 +278,11 @@ public class EmployeeSelectPanel extends AbstractSelectPanel<EmployeeDO>
   private RecentQueue<String> getRecentEmployees()
   {
     if (this.recentEmployees == null) {
-      this.recentEmployees = (RecentQueue<String>) UserPreferencesHelper.getEntry(USER_PREF_KEY_RECENT_EMPLOYEES);
+      this.recentEmployees = (RecentQueue<String>) userPreferencesService.getEntry(USER_PREF_KEY_RECENT_EMPLOYEES);
     }
     if (this.recentEmployees == null) {
       this.recentEmployees = new RecentQueue<String>();
-      UserPreferencesHelper.putEntry(USER_PREF_KEY_RECENT_EMPLOYEES, this.recentEmployees, true);
+      userPreferencesService.putEntry(USER_PREF_KEY_RECENT_EMPLOYEES, this.recentEmployees, true);
     }
     return this.recentEmployees;
   }

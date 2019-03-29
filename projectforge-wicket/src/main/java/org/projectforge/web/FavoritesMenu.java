@@ -25,18 +25,20 @@ package org.projectforge.web;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.DocumentHelper;
 import org.dom4j.Element;
 import org.projectforge.business.user.UserXmlPreferencesDO;
+import org.projectforge.business.user.service.UserPreferencesService;
 import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.i18n.UserException;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.menu.builder.MenuCreator;
 import org.projectforge.menu.builder.MenuItemDef;
 import org.projectforge.menu.builder.MenuItemDefId;
-import org.projectforge.web.user.UserPreferencesHelper;
+import org.projectforge.business.user.service.UserPreferencesHelper;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -63,6 +65,8 @@ public class FavoritesMenu implements Serializable {
   private MenuCreator menuCreator;
 
   private AccessChecker accessChecker;
+
+  private UserPreferencesService userPreferencesService;
 
   public static FavoritesMenu get(MenuCreator menuCreator, MenuBuilder menuBuilder, AccessChecker accessChecker) {
     FavoritesMenu favoritesMenu = (FavoritesMenu) UserPreferencesHelper.getEntry(USER_PREF_FAVORITES_MENU_KEY);

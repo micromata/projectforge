@@ -29,7 +29,7 @@ import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.projectforge.business.task.TaskNode;
 import org.projectforge.business.task.TaskTree;
-import org.projectforge.web.user.UserPreferencesHelper;
+import org.projectforge.business.user.service.UserPreferencesHelper;
 import org.projectforge.web.wicket.tree.TableTreeExpansion;
 
 import com.thoughtworks.xstream.annotations.XStreamAlias;

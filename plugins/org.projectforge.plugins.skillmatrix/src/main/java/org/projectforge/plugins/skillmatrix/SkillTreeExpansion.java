@@ -27,7 +27,7 @@ import java.util.Set;
 
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
-import org.projectforge.web.user.UserPreferencesHelper;
+import org.projectforge.business.user.service.UserPreferencesHelper;
 import org.projectforge.web.wicket.tree.TableTreeExpansion;
 
 /**
