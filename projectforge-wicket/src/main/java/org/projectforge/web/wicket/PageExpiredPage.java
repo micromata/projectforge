@@ -25,7 +25,6 @@ package org.projectforge.web.wicket;
 
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.projectforge.web.mobile.MenuMobilePage;
 
 /**
  * Standard error page should be shown in production mode. Redirect for mobile user agents.
@@ -38,9 +37,6 @@ public class PageExpiredPage extends MessagePage
   public PageExpiredPage(final PageParameters params)
   {
     super(params);
-    if (getMySession().isMobileUserAgent() == true) {
-      throw new RestartResponseException(MenuMobilePage.class);
-    }
     setMessage(getString("message.wicket.pageExpired"));
   }
 }
