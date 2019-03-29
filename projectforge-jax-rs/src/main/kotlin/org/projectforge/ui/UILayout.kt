@@ -1,6 +1,7 @@
 package org.projectforge.ui
 
 import com.google.gson.annotations.SerializedName
+import org.projectforge.framework.i18n.translate
 
 class UILayout {
     constructor(title: String) {
@@ -11,7 +12,23 @@ class UILayout {
     val layout: MutableList<UIElement> = mutableListOf()
     @SerializedName("named-containers")
     val namedContainers: MutableList<UINamedContainer> = mutableListOf()
-    val actions: MutableList<UIElement> = mutableListOf()
+    /**
+     * The action buttons.
+     */
+    val actions = mutableListOf<UIElement>()
+    /**
+     * All required translations for the frontend dependent on the logged-in-user's language.
+     */
+    val translations = mutableMapOf<String, String>()
+
+    /**
+     * @param i18nKey The translation i18n key. The translation for the logged-in-user will be added.
+     * @return this for chaining.
+     */
+    fun addTranslation(i18nKey: String) :UILayout{
+        translations.put(i18nKey, translate(i18nKey))
+        return this
+    }
 
     fun add(element: UIElement): UILayout {
         layout.add(element)
@@ -65,7 +82,7 @@ class UILayout {
     }
 
     fun getNamedContainerById(id: String): UINamedContainer? {
-        namedContainers.forEach{
+        namedContainers.forEach {
             if (it.id == id) {
                 return it
             }
