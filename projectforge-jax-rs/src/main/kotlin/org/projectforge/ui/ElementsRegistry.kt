@@ -1,11 +1,13 @@
 package org.projectforge.ui
 
 import de.micromata.genome.jpa.metainf.ColumnMetadata
+import de.micromata.genome.jpa.metainf.ColumnMetadataBean
 import org.projectforge.common.i18n.I18nEnum
 import org.projectforge.common.props.PropUtils
 import org.projectforge.framework.persistence.jpa.PfEmgrFactory
 import org.springframework.beans.BeanUtils
 import java.util.*
+import javax.persistence.JoinColumn
 
 /**
  * Registry holds properties of UIElements...
@@ -16,12 +18,12 @@ object ElementsRegistry {
     private val log = org.slf4j.LoggerFactory.getLogger(LayoutUtils::class.java)
 
     class ElementInfo(val propertyType: Class<*>,
-                               var maxLength: Int? = null,
-                               var required: Boolean? = null,
-                               var i18nKey: String? = null,
-                               var additionalI18nKey: String? = null)
+                      var maxLength: Int? = null,
+                      var required: Boolean? = null,
+                      var i18nKey: String? = null,
+                      var additionalI18nKey: String? = null)
 
-    fun getProperties(clazz : Class<*>) : Map<String, ElementInfo>? {
+    fun getProperties(clazz: Class<*>): Map<String, ElementInfo>? {
         return registryMap.get(clazz)
     }
 
@@ -85,7 +87,7 @@ object ElementsRegistry {
     }
 
     internal fun getElementInfo(clazz: Class<*>?, property: String): ElementInfo? {
-        if (clazz == null || property == null)
+        if (clazz == null)
             return null
         val mapKey = getMapKey(clazz, property)!!
         var elementInfo = ensureClassMap(clazz).get(property)
@@ -104,10 +106,11 @@ object ElementsRegistry {
         elementInfo = ElementInfo(propertyType)
         val propertyInfo = PropUtils.get(clazz, property)
         val colinfo = getColumnMetadata(clazz, property)
-
-        elementInfo.maxLength = colinfo?.getMaxLength()
-        if (!(colinfo?.isNullable == true) || propertyInfo.required == true)
-            elementInfo.required = true
+        if (colinfo != null) {
+            elementInfo.maxLength = colinfo.getMaxLength()
+            if (!(colinfo.isNullable) || propertyInfo.required)
+                elementInfo.required = true
+        }
         elementInfo.i18nKey = getNullIfEmpty(propertyInfo?.i18nKey)
         elementInfo.additionalI18nKey = getNullIfEmpty(propertyInfo?.additionalI18nKey)
 
@@ -151,7 +154,17 @@ object ElementsRegistry {
         if (entity == null)
             return null
         val persistentClass = PfEmgrFactory.get().metadataRepository.findEntityMetadata(entity) ?: return null
-        return persistentClass.columns[property]
+        val columnMetaData = persistentClass.columns[property]
+        if (columnMetaData == null)
+            return null
+        if (!columnMetaData.isNullable) {
+            val annotation = columnMetaData.findAnnoation(JoinColumn::class.java)
+            if (annotation != null) {
+                // Fix for error in method findEntityMetadata: For @JoinColumn nullable is always false:
+                (columnMetaData as ColumnMetadataBean).isNullable = annotation.nullable
+            }
+        }
+        return columnMetaData
     }
 
     private fun getNullIfEmpty(value: String?): String? {
