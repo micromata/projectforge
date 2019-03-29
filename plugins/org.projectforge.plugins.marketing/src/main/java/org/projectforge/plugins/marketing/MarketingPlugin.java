@@ -25,9 +25,9 @@ package org.projectforge.plugins.marketing;
 
 import org.projectforge.business.address.AddressDao;
 import org.projectforge.continuousdb.UpdateEntry;
+import org.projectforge.menu.builder.MenuItemDef;
 import org.projectforge.menu.builder.MenuItemDefId;
 import org.projectforge.plugins.core.AbstractPlugin;
-import org.projectforge.web.MenuItemDef;
 import org.projectforge.web.plugin.PluginWicketRegistrationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -84,13 +84,8 @@ public class MarketingPlugin extends AbstractPlugin
         AddressCampaignValueEditPage.class);
 
     // Register the menu entry as sub menu entry of the misc menu:
-    final MenuItemDef parentMenu = pluginWicketRegistrationService.getMenuItemDef(MenuItemDefId.MISC);
-    pluginWicketRegistrationService
-        .registerMenuItem(new MenuItemDef(parentMenu, ADDRESS_CAMPAIGN_ID, 30, "plugins.marketing.addressCampaign.menu",
-            AddressCampaignListPage.class));
-    pluginWicketRegistrationService.registerMenuItem(
-        new MenuItemDef(parentMenu, ADDRESS_CAMPAIGN_VALUE_ID, 30, "plugins.marketing.addressCampaignValue.menu",
-            AddressCampaignValueListPage.class));
+    pluginWicketRegistrationService.registerMenuItem(MenuItemDefId.MISC, new MenuItemDef(ADDRESS_CAMPAIGN_ID, "plugins.marketing.addressCampaign.menu"), AddressCampaignListPage.class);
+    pluginWicketRegistrationService.registerMenuItem(MenuItemDefId.MISC, new MenuItemDef(ADDRESS_CAMPAIGN_VALUE_ID, "plugins.marketing.addressCampaignValue.menu"), AddressCampaignValueListPage.class);
 
     // Define the access management:
     registerRight(new AddressCampaignRight(accessChecker));

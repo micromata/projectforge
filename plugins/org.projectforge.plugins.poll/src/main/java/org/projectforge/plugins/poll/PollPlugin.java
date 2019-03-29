@@ -25,6 +25,7 @@ package org.projectforge.plugins.poll;
 
 import org.projectforge.continuousdb.UpdateEntry;
 import org.projectforge.framework.persistence.user.api.UserPrefArea;
+import org.projectforge.menu.builder.MenuItemDef;
 import org.projectforge.menu.builder.MenuItemDefId;
 import org.projectforge.plugins.core.AbstractPlugin;
 import org.projectforge.plugins.poll.attendee.PollAttendeeDO;
@@ -39,7 +40,6 @@ import org.projectforge.plugins.poll.result.PollResultDO;
 import org.projectforge.plugins.poll.result.PollResultDao;
 import org.projectforge.plugins.poll.result.PollResultPage;
 import org.projectforge.registry.RegistryEntry;
-import org.projectforge.web.MenuItemDef;
 import org.projectforge.web.plugin.PluginWicketRegistrationService;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -107,10 +107,9 @@ public class PollPlugin extends AbstractPlugin
     pluginWicketRegistrationService.addMountPage("pollResult", PollResultPage.class);
     pluginWicketRegistrationService.addMountPage("newPollOverview", NewPollOverviewPage.class);
     // Register the menu entry as sub menu entry of the misc menu:
-    final MenuItemDef parentMenu = pluginWicketRegistrationService.getMenuItemDef(MenuItemDefId.MISC);
-    pluginWicketRegistrationService
-        .registerMenuItem(new MenuItemDef(parentMenu, ID, 30, "plugins.poll.menu", PollListPage.class));
-    // registerMenuItem(new MenuItemDef(parentMenu, ID + "List", 8, "plugins.teamcal.title.list", TeamCalListPage.class));
+
+    pluginWicketRegistrationService.registerMenuItem(MenuItemDefId.MISC, new MenuItemDef(ID, "plugins.poll.menu"),
+            PollListPage.class);
 
     // Define the access management:
     registerRight(new PollRight(accessChecker));

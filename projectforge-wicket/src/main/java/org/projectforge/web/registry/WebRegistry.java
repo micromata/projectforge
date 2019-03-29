@@ -23,11 +23,6 @@
 
 package org.projectforge.web.registry;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import org.apache.commons.lang3.Validate;
 import org.apache.wicket.markup.html.WebPage;
 import org.projectforge.framework.persistence.DaoConst;
@@ -36,14 +31,7 @@ import org.projectforge.registry.Registry;
 import org.projectforge.web.LoginPage;
 import org.projectforge.web.access.AccessEditPage;
 import org.projectforge.web.access.AccessListPage;
-import org.projectforge.web.address.AddressEditPage;
-import org.projectforge.web.address.AddressListPage;
-import org.projectforge.web.address.AddressMobileEditPage;
-import org.projectforge.web.address.AddressMobileListPage;
-import org.projectforge.web.address.AddressMobileViewPage;
-import org.projectforge.web.address.AddressViewPage;
-import org.projectforge.web.address.PhoneCallPage;
-import org.projectforge.web.address.SendSmsPage;
+import org.projectforge.web.address.*;
 import org.projectforge.web.admin.AdminPage;
 import org.projectforge.web.admin.ConfigurationListPage;
 import org.projectforge.web.admin.SetupPage;
@@ -54,33 +42,7 @@ import org.projectforge.web.calendar.CalendarPage;
 import org.projectforge.web.core.SearchPage;
 import org.projectforge.web.doc.DocumentationPage;
 import org.projectforge.web.doc.TutorialPage;
-import org.projectforge.web.fibu.AccountingRecordEditPage;
-import org.projectforge.web.fibu.AccountingRecordListPage;
-import org.projectforge.web.fibu.AuftragEditPage;
-import org.projectforge.web.fibu.AuftragListPage;
-import org.projectforge.web.fibu.CustomerEditPage;
-import org.projectforge.web.fibu.CustomerListPage;
-import org.projectforge.web.fibu.DatevImportPage;
-import org.projectforge.web.fibu.EingangsrechnungEditPage;
-import org.projectforge.web.fibu.EingangsrechnungListPage;
-import org.projectforge.web.fibu.EmployeeEditPage;
-import org.projectforge.web.fibu.EmployeeListPage;
-import org.projectforge.web.fibu.EmployeeSalaryEditPage;
-import org.projectforge.web.fibu.EmployeeSalaryListPage;
-import org.projectforge.web.fibu.KontoEditPage;
-import org.projectforge.web.fibu.KontoListPage;
-import org.projectforge.web.fibu.Kost1EditPage;
-import org.projectforge.web.fibu.Kost1ListPage;
-import org.projectforge.web.fibu.Kost2ArtEditPage;
-import org.projectforge.web.fibu.Kost2ArtListPage;
-import org.projectforge.web.fibu.Kost2EditPage;
-import org.projectforge.web.fibu.Kost2ListPage;
-import org.projectforge.web.fibu.MonthlyEmployeeReportPage;
-import org.projectforge.web.fibu.ProjektEditPage;
-import org.projectforge.web.fibu.ProjektListPage;
-import org.projectforge.web.fibu.RechnungEditPage;
-import org.projectforge.web.fibu.RechnungListPage;
-import org.projectforge.web.fibu.ReportObjectivesPage;
+import org.projectforge.web.fibu.*;
 import org.projectforge.web.gantt.GanttChartEditPage;
 import org.projectforge.web.gantt.GanttChartListPage;
 import org.projectforge.web.humanresources.HRListPage;
@@ -88,16 +50,9 @@ import org.projectforge.web.humanresources.HRPlanningEditPage;
 import org.projectforge.web.humanresources.HRPlanningListPage;
 import org.projectforge.web.meb.MebEditPage;
 import org.projectforge.web.meb.MebListPage;
-import org.projectforge.web.mobile.LoginMobilePage;
-import org.projectforge.web.mobile.MenuMobilePage;
 import org.projectforge.web.multitenancy.TenantEditPage;
 import org.projectforge.web.multitenancy.TenantListPage;
-import org.projectforge.web.orga.ContractEditPage;
-import org.projectforge.web.orga.ContractListPage;
-import org.projectforge.web.orga.PostausgangEditPage;
-import org.projectforge.web.orga.PostausgangListPage;
-import org.projectforge.web.orga.PosteingangEditPage;
-import org.projectforge.web.orga.PosteingangListPage;
+import org.projectforge.web.orga.*;
 import org.projectforge.web.scripting.ScriptEditPage;
 import org.projectforge.web.scripting.ScriptExecutePage;
 import org.projectforge.web.scripting.ScriptListPage;
@@ -112,17 +67,15 @@ import org.projectforge.web.teamcal.event.TeamEventListPage;
 import org.projectforge.web.teamcal.integration.TeamCalCalendarPage;
 import org.projectforge.web.timesheet.TimesheetEditPage;
 import org.projectforge.web.timesheet.TimesheetListPage;
-import org.projectforge.web.user.ChangePasswordPage;
-import org.projectforge.web.user.GroupEditPage;
-import org.projectforge.web.user.GroupListPage;
-import org.projectforge.web.user.MyAccountEditPage;
-import org.projectforge.web.user.UserEditPage;
-import org.projectforge.web.user.UserListPage;
-import org.projectforge.web.user.UserPrefEditPage;
-import org.projectforge.web.user.UserPrefListPage;
+import org.projectforge.web.user.*;
 import org.projectforge.web.wicket.ErrorPage;
 import org.projectforge.web.wicket.FeedbackPage;
 import org.projectforge.web.wicket.IListPageColumnsCreator;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Registry for dao's. Here you can register additional daos and plugins (extensions of ProjectForge). This registry is
@@ -391,12 +344,6 @@ public class WebRegistry
     addMountPage("systemUpdate", SystemUpdatePage.class);
     addMountPage("taskTree", TaskTreePage.class);
     addMountPage("tutorial", TutorialPage.class);
-
-    addMountPages(BOOKMARK_MOBILE_PREFIX + "address", AddressMobileListPage.class, AddressMobileEditPage.class,
-        AddressMobileViewPage.class);
-
-    addMountPage(BOOKMARK_MOBILE_LOGIN, LoginMobilePage.class);
-    addMountPage(BOOKMARK_MOBILE_PREFIX + "menu", MenuMobilePage.class);
 
     register("teamCal", TeamCalListPage.class);
     register("teamEvent", TeamEventListPage.class);
