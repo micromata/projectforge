@@ -10,8 +10,8 @@ import java.io.Serializable
 import javax.servlet.http.HttpSession
 
 @Component
-class UserPreferencesService {
-    private val log = org.slf4j.LoggerFactory.getLogger(UserPreferencesService::class.java)
+class RestUserPreferencesService {
+    private val log = org.slf4j.LoggerFactory.getLogger(RestUserPreferencesService::class.java)
 
     @Autowired
     private lateinit var userXmlPreferencesCache: UserXmlPreferencesCache

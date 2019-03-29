@@ -38,6 +38,7 @@ import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.apache.wicket.util.convert.IConverter;
 import org.projectforge.business.multitenancy.TenantRegistryMap;
 import org.projectforge.business.user.UserDao;
+import org.projectforge.business.user.service.UserPreferencesService;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
@@ -66,6 +67,9 @@ public class UserSelectPanel extends AbstractSelectPanel<PFUserDO> implements Co
 
   @SpringBean
   private UserDao userDao;
+
+  @SpringBean
+  private UserPreferencesService userPreferencesService;
 
   private RecentQueue<String> recentUsers;
 
@@ -313,11 +317,11 @@ public class UserSelectPanel extends AbstractSelectPanel<PFUserDO> implements Co
   private RecentQueue<String> getRecentUsers()
   {
     if (this.recentUsers == null) {
-      this.recentUsers = (RecentQueue<String>) UserPreferencesHelper.getEntry(USER_PREF_KEY_RECENT_USERS);
+      this.recentUsers = (RecentQueue<String>) userPreferencesService.getEntry(USER_PREF_KEY_RECENT_USERS);
     }
     if (this.recentUsers == null) {
       this.recentUsers = new RecentQueue<String>();
-      UserPreferencesHelper.putEntry(USER_PREF_KEY_RECENT_USERS, this.recentUsers, true);
+      userPreferencesService.putEntry(USER_PREF_KEY_RECENT_USERS, this.recentUsers, true);
     }
     return this.recentUsers;
   }

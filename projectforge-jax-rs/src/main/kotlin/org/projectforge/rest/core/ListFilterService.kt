@@ -13,7 +13,7 @@ class ListFilterService {
     private val log = org.slf4j.LoggerFactory.getLogger(ListFilterService::class.java)
 
     @Autowired
-    private lateinit var userPreferencesService: UserPreferencesService
+    private lateinit var userPreferencesService: RestUserPreferencesService
 
     fun getSearchFilter(session: HttpSession, filterClazz: Class<out BaseSearchFilter>): BaseSearchFilter {
         val filter = userPreferencesService.getEntry(session, filterClazz.name + ":Filter")
