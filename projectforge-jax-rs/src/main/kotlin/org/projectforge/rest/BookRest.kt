@@ -3,10 +3,10 @@ package org.projectforge.rest
 import org.projectforge.Const
 import org.projectforge.business.book.*
 import org.projectforge.framework.i18n.translate
-import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.getUserId
 import org.projectforge.rest.core.AbstractDORest
 import org.projectforge.rest.core.RestHelper
+import org.projectforge.rest.core.Validation
 import org.projectforge.ui.*
 import org.projectforge.ui.Formatter
 import org.springframework.stereotype.Component
@@ -35,16 +35,7 @@ open class BookRest() : AbstractDORest<BookDO, BookDao, BookFilter>(BookDao::cla
     }
 
     override fun validate(validationErrors: MutableList<ValidationError>, obj: BookDO) {
-        if (!obj.yearOfPublishing.isNullOrBlank()) {
-            try {
-                val year = Integer.parseInt(obj.yearOfPublishing)
-                if (year < Const.MINYEAR || year > Const.MAXYEAR) {
-                    validationErrors.add(ValidationError(translateMsg("error.yearOutOfRange", Const.MINYEAR, Const.MAXYEAR), fieldId = "yearOfPublishing"))
-                }
-            } catch (ex: NumberFormatException) {
-                validationErrors.add(ValidationError(translate("book.error.number"), fieldId = "yearOfPublishing"))
-            }
-        }
+        Validation.validateInteger(validationErrors, "yearOfPublishing", obj.yearOfPublishing, Const.MINYEAR, Const.MAXYEAR)
         if (baseDao.doesSignatureAlreadyExist(obj)) {
             validationErrors.add(ValidationError(translate("book.error.signatureAlreadyExists"), fieldId = "signature"))
         }
