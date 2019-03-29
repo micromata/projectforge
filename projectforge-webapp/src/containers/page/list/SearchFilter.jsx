@@ -21,6 +21,7 @@ class SearchFilter extends Component {
         super(props);
 
         this.handleInputChange = this.handleInputChange.bind(this);
+        this.handleSelectChange = this.handleSelectChange.bind(this);
     }
 
     handleInputChange(event) {
@@ -76,7 +77,7 @@ class SearchFilter extends Component {
                                 setSelected={this.handleSelectChange}
                                 id="maxRows"
                                 label="[Seitengröße]"
-                                options={[25, 50, 100, 200, 500, 1000]}
+                                options={['25', '50', '100', '200', '500', '1000']}
                             />
                         </Col>
                     </Row>
