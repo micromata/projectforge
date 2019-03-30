@@ -43,24 +43,27 @@ class EditPage extends React.Component {
         const activeTab = match.params.tab || 'edit';
         const baseUrl = `/${category}/edit/${id}`;
 
+        const tabs = [];
+
+        if (id) {
+            tabs.push({
+                id: 'edit',
+                title: ui.title,
+                link: baseUrl,
+            }, {
+                id: 'history',
+                title: '[History]',
+                link: `${baseUrl}/history`,
+            });
+        }
+
         // TODO: REMOVE HISTORY ON NEW BOOK
 
         return (
             <LoadingContainer loading={loading}>
                 <PageNavigation current={ui.title} />
                 <TabNavigation
-                    tabs={[
-                        {
-                            id: 'edit',
-                            title: ui.title,
-                            link: baseUrl,
-                        },
-                        {
-                            id: 'history',
-                            title: '[History]',
-                            link: `${baseUrl}/history`,
-                        },
-                    ]}
+                    tabs={tabs}
                     activeTab={activeTab}
                 />
                 <TabContent
@@ -78,14 +81,18 @@ class EditPage extends React.Component {
                             <ActionGroup actions={ui.actions} />
                         </Container>
                     </TabPane>
-                    <TabPane tabId="history">
-                        <Container fluid>
-                            <EditHistory
-                                category={category}
-                                id={id}
-                            />
-                        </Container>
-                    </TabPane>
+                    {id
+                        ? (
+                            <TabPane tabId="history">
+                                <Container fluid>
+                                    <EditHistory
+                                        category={category}
+                                        id={id}
+                                    />
+                                </Container>
+                            </TabPane>
+                        )
+                        : undefined}
                 </TabContent>
             </LoadingContainer>
         );
@@ -93,7 +100,6 @@ class EditPage extends React.Component {
 }
 
 EditPage.propTypes = {
-    category: PropTypes.string.isRequired,
     changeDataField: PropTypes.func.isRequired,
     match: PropTypes.shape({}).isRequired,
     load: PropTypes.func.isRequired,
@@ -117,7 +123,6 @@ const mapStateToProps = state => ({
     loading: state.editPage.loading,
     data: state.editPage.data,
     validation: state.editPage.validation,
-    category: state.editPage.category,
 });
 
 const actions = {
