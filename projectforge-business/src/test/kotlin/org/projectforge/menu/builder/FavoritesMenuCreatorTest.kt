@@ -3,6 +3,7 @@ package org.projectforge.web
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.projectforge.framework.access.AccessChecker
+import org.projectforge.framework.utils.GZIPHelper
 import org.projectforge.menu.builder.FavoritesMenuCreator
 import org.projectforge.menu.builder.MenuCreator
 import org.projectforge.test.AbstractTestBase
@@ -26,7 +27,7 @@ class FavoritesMenuTest : AbstractTestBase() {
 
         menu = favoritesMenuCreator.getDefaultFavoriteMenu(XML)
         assertEquals("Administration", menu.menuItems[0]?.title)
-        assertEquals("ACCESS_LIST", menu.menuItems[0].subMenu!![0].title)
+        assertEquals("ACCESS_LIST", menu.menuItems[0].subMenu!![0].id)
     }
 
     companion object {

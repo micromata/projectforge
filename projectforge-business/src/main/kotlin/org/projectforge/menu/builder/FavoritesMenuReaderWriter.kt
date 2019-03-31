@@ -38,12 +38,6 @@ import java.util.*
  * Reads and writes favorite menus from and to the user's preferences.
  */
 class FavoritesMenuReaderWriter {
-    internal class FavoriteMenu(val childs: MutableList<FavoriteMenuItem> = mutableListOf())
-
-    internal class FavoriteMenuItem(var id: String? = null,
-                                    var title: String? = null,
-                                    var childs: MutableList<FavoriteMenuItem>? = null)
-
     companion object {
         private val log = org.slf4j.LoggerFactory.getLogger(FavoritesMenuReaderWriter::class.java)
 
@@ -51,71 +45,17 @@ class FavoritesMenuReaderWriter {
                 : Menu {
             if (favMenuAsString.isNullOrBlank())
                 return Menu()
-            if (favMenuAsString.trim().startsWith("{")) {
-                // Current json format (since 2019):
-                return Companion.readFromJson(menuCreator, favMenuAsString)
-            } else if (favMenuAsString.contains("<root>") == false) {
-                // CSV format (oldest)
+            if (favMenuAsString.contains("<root>") == false) {
+                // CSV format (old)
                 return FavoritesMenuReaderWriter.buildFromOldUserPrefFormat(menuCreator, favMenuAsString);
             } else {
-                // XML format (until 2019)
+                // XML format
                 return FavoritesMenuReaderWriter.readFromXml(menuCreator, favMenuAsString)
             }
         }
 
         /**
-         * New json format until 2019.
-         */
-        private fun readFromJson(menuCreator: MenuCreator, menuAsJson: String):Menu {
-            if (log.isDebugEnabled == true) {
-                log.debug("readFromXml: $menuAsJson")
-            }
-            val menu = Menu()
-            val favMenuDef = GsonBuilder().create().fromJson(menuAsJson, FavoriteMenu::class.java)
-            if (favMenuDef == null) {
-                log.error("Can't parse user's favorite menu: $menuAsJson.")
-                return menu
-            }
-            favMenuDef.childs?.forEach {
-                val menuItem = readFromJson(menuCreator, it)
-                if (menuItem != null)
-                    menu.add(menuItem)
-            }
-            return menu
-        }
-
-        /**
-         * New json format until 2019.
-         */
-        private fun readFromJson(menuCreator: MenuCreator, favMenuItem: FavoriteMenuItem): MenuItem? {
-            val menuItem = buildMenuItem(menuCreator, favMenuItem)
-            favMenuItem.childs?.forEach {
-                val child = buildMenuItem(menuCreator, it)
-                menuItem.add(child)
-            }
-            return menuItem
-        }
-
-        private fun buildMenuItem(menuCreator: MenuCreator, favMenuItem: FavoriteMenuItem): MenuItem {
-            var menuItemDef: MenuItemDef? = null
-            if (favMenuItem.id != null) {
-                menuItemDef = menuCreator.findById(favMenuItem.id!!)
-            }
-            var menuItem: MenuItem?
-            if (menuItemDef != null) {
-                menuItem = MenuItem(menuItemDef)
-            } else {
-                menuItem = MenuItem()
-                if (favMenuItem.title.isNullOrBlank())
-                    menuItem.title = "???"
-                else
-                    menuItem.title = favMenuItem.title
-            }
-            return menuItem
-        }
-
-        /**
-         * Old XML format until 2019.
+         * XML format.
          */
         fun readFromXml(menuCreator: MenuCreator, menuAsXml: String): Menu {
             if (log.isDebugEnabled == true) {
@@ -141,7 +81,7 @@ class FavoritesMenuReaderWriter {
         }
 
         /**
-         * Old XML format until 2019.
+         * XML format.
          */
         private fun readFromXml(menuCreator: MenuCreator, item: Element): MenuItem? {
             if (item.name != "item") {
