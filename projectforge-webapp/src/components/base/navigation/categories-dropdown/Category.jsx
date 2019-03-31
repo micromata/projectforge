@@ -2,7 +2,6 @@ import classNames from 'classnames';
 import PropTypes from 'prop-types';
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { categoryPropType } from '../../../../utilities/propTypes';
 import { Collapse } from '../../../design';
 import style from '../Navigation.module.scss';
 
@@ -69,16 +68,16 @@ class Category extends React.Component {
                     onClick={this.toggle}
                     role="presentation"
                 >
-                    {category.name}
+                    {category.title}
                 </div>
                 <Collapse isOpen={collapse}>
                     <ul className={style.categoryLinks}>
-                        {category.items.map(item => (
+                        {category['sub-menu'].map(item => (
                             <li
                                 className={style.categoryLink}
-                                key={`category-link-${category.name}-${item.name}`}
+                                key={`category-link-${category.title}-${item.title}`}
                             >
-                                <Link to={item.url}>{item.name}</Link>
+                                <Link to={`/${item.url}/`}>{item.title}</Link>
                             </li>
                         ))}
                     </ul>
@@ -89,7 +88,7 @@ class Category extends React.Component {
 }
 
 Category.propTypes = {
-    category: categoryPropType.isRequired,
+    category: PropTypes.shape({}).isRequired,
     className: PropTypes.string,
 };
 
