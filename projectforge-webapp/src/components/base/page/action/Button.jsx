@@ -30,8 +30,6 @@ class ActionButton extends React.Component {
 
         const actionFunction = props[action.id];
 
-        console.log(action.id);
-
         if (actionFunction) {
             actionFunction();
         }

@@ -72,10 +72,10 @@ class Category extends React.Component {
                 </div>
                 <Collapse isOpen={collapse}>
                     <ul className={style.categoryLinks}>
-                        {category['sub-menu'].map(item => (
+                        {category.subMenu.map(item => (
                             <li
                                 className={style.categoryLink}
-                                key={`category-link-${category.title}-${item.title}`}
+                                key={`category-link-${item.key}`}
                             >
                                 <Link to={`/${item.url}/`}>{item.title}</Link>
                             </li>

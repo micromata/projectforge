@@ -25,28 +25,28 @@ function getTypeSymbol(type) {
 function HistoryEntry(
     {
         entry: {
-            'diff-entries': entries,
-            'modified-at': date,
-            'modified-by-user': user,
+            diffEntries,
+            modifiedAt,
+            modifiedByUser,
         },
     },
 ) {
     const [active, setActive] = React.useState(false);
     const diffSummary = {};
 
-    entries.forEach(({ operation: diffOperation, 'operation-type': diffType }) => {
-        let diff = diffSummary[diffType];
+    diffEntries.forEach(({ operation, operationType }) => {
+        let diff = diffSummary[operationType];
 
         if (!diff) {
             diff = {
-                operation: diffOperation,
+                operation,
                 amount: 1,
             };
         } else {
             diff.amount += 1;
         }
 
-        diffSummary[diffType] = diff;
+        diffSummary[operationType] = diff;
     });
 
     const dateId = `history-date-${revisedRandomId()}`;
@@ -63,7 +63,7 @@ function HistoryEntry(
             <Row>
                 <Col>
                     <FontAwesomeIcon icon={faChevronRight} className={style.icon} />
-                    <span className={style.username}>{user}</span>
+                    <span className={style.username}>{modifiedByUser}</span>
                 </Col>
                 <Col>
                     <span className={style.changesAmount}>
@@ -71,7 +71,7 @@ function HistoryEntry(
                             .map(diffType => (
                                 <span
                                     className={style[diffType]}
-                                    key={`history-diff-at-${date}-${diffType}`}
+                                    key={`history-diff-at-${modifiedAt}-${diffType}`}
                                 >
                                     {`${diffSummary[diffType].amount} ${diffSummary[diffType].operation}`}
                                 </span>
@@ -82,19 +82,19 @@ function HistoryEntry(
                     <span>
                         Felder:
                         {' '}
-                        {entries
+                        {diffEntries
                             .map(diff => diff.property)
                             .join(', ')}
                     </span>
                 </Col>
                 <Col>
                     <span className={style.modifiedAt}>
-                        <i id={dateId}>{format(TEXT_SINCE_TIMESTAMP, date)}</i>
+                        <i id={dateId}>{format(TEXT_SINCE_TIMESTAMP, modifiedAt)}</i>
                         <UncontrolledTooltip
                             placement="left"
                             target={dateId}
                         >
-                            {date}
+                            {modifiedAt}
                         </UncontrolledTooltip>
                     </span>
                 </Col>
@@ -102,12 +102,12 @@ function HistoryEntry(
             <Collapse isOpen={active}>
                 <Container fluid className={style.details}>
                     <h5><strong>[Änderungen]:</strong></h5>
-                    {entries.map((
+                    {diffEntries.map((
                         {
-                            'operation-type': operationType,
+                            operationType,
                             property,
-                            'old-value': oldValue,
-                            'new-value': newValue,
+                            oldValue,
+                            newValue,
                         },
                     ) => {
                         let diff;
@@ -135,7 +135,7 @@ function HistoryEntry(
 
                         return (
                             <span
-                                key={`history-diff-at-${date}-details-${property}`}
+                                key={`history-diff-at-${modifiedAt}-details-${property}`}
                                 className={style.detail}
                             >
                                 <span className={style[operationType]}>
@@ -153,18 +153,18 @@ function HistoryEntry(
 
 HistoryEntry.propTypes = {
     entry: PropTypes.shape({
-        'diff-entries': PropTypes.arrayOf(PropTypes.shape({
-            'new-value': PropTypes.string,
-            'old-value': PropTypes.string,
+        diffEntries: PropTypes.arrayOf(PropTypes.shape({
+            newValue: PropTypes.string,
+            oldValue: PropTypes.string,
             operation: PropTypes.string,
-            'operation-type': PropTypes.string,
+            operationType: PropTypes.string,
             property: PropTypes.string,
         })),
-        'modified-at': PropTypes.string,
-        'modified-by-user': PropTypes.string,
-        'modified-by-user-id': PropTypes.string,
+        modifiedAt: PropTypes.string,
+        modifiedByUser: PropTypes.string,
+        modifiedByUserId: PropTypes.string,
         operation: PropTypes.string,
-        'operation-type': PropTypes.string,
+        operationType: PropTypes.string,
     }).isRequired,
 };
 
