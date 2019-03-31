@@ -1,7 +1,6 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import { Link } from 'react-router-dom';
-import { categoryItemPropType, categoryPropType } from '../../../utilities/propTypes';
+import { menuItemPropType } from '../../../utilities/propTypes';
 import {
     DropdownItem,
     DropdownMenu,
@@ -47,7 +46,7 @@ function Entry({ entry }) {
 }
 
 Entry.propTypes = {
-    entry: PropTypes.oneOfType([categoryItemPropType, categoryPropType]).isRequired,
+    entry: menuItemPropType.isRequired,
 };
 
 export default Entry;

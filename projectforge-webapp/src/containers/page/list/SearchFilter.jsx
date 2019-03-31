@@ -74,7 +74,7 @@ class SearchFilter extends Component {
                                 <Label sm={2}>[Optionen]</Label>
                                 <Col sm={10}>
                                     <LayoutGroup
-                                        {...getNamedContainer('filter-options', namedContainers)}
+                                        {...getNamedContainer('filterOptions', namedContainers)}
                                         data={filter}
                                         changeDataField={setFilter}
                                     />
@@ -126,7 +126,7 @@ SearchFilter.defaultProps = {
 const mapStateToProps = state => ({
     filter: state.listPage.filter,
     actions: state.listPage.ui.actions,
-    namedContainers: state.listPage.ui['named-containers'],
+    namedContainers: state.listPage.ui.namedContainers,
 });
 
 const actions = {

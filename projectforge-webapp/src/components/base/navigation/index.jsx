@@ -3,7 +3,7 @@ import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import { Link } from 'react-router-dom';
 import { loadMenu, logoutUser } from '../../../actions';
-import { categoryPropType } from '../../../utilities/propTypes';
+import { categoryPropType, menuItemPropType } from '../../../utilities/propTypes';
 import {
     Collapse,
     DropdownItem,
@@ -107,7 +107,7 @@ class Navigation extends Component {
 Navigation.propTypes = {
     loadNavigation: PropTypes.func.isRequired,
     logout: PropTypes.func.isRequired,
-    categories: PropTypes.arrayOf(PropTypes.shape({})).isRequired,
+    categories: PropTypes.arrayOf(menuItemPropType).isRequired,
     entries: PropTypes.arrayOf(categoryPropType),
     username: PropTypes.string,
 };

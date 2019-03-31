@@ -2,7 +2,7 @@ import { faListUl } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import PropTypes from 'prop-types';
 import React from 'react';
-import { categoryPropType } from '../../../../utilities/propTypes';
+import { menuItemPropType } from '../../../../utilities/propTypes';
 import revisedRandomId from '../../../../utilities/revisedRandomId';
 import {
     Col,
@@ -17,11 +17,10 @@ import Category from './Category';
 
 function countColumnSize(column) {
     return column
-        .reduce((accumulator, currentValue) => accumulator + currentValue['sub-menu'].length + 1, 0);
+        .reduce((accumulator, currentValue) => accumulator + currentValue.subMenu.length + 1, 0);
 }
 
 function CategoriesDropdown({ categories }) {
-    console.log(categories);
     // Creating an array of columns for the categories.
     const columns = [
         [], [], [], [],
@@ -35,9 +34,9 @@ function CategoriesDropdown({ categories }) {
     // Remove the first ('common') category.
         .slice(1)
         // Filter out empty categories
-        .filter(category => category['sub-menu'])
+        .filter(category => category.subMenu)
         // Sort the categories by their items size.
-        .sort((categoryA, categoryB) => categoryB['sub-menu'].length - categoryA['sub-menu'].length)
+        .sort((categoryA, categoryB) => categoryB.subMenu.length - categoryA.subMenu.length)
         // forEach through all categories.
         .forEach(category => columns
         // Compare all columns and get the smallest one.
@@ -76,7 +75,7 @@ function CategoriesDropdown({ categories }) {
 }
 
 CategoriesDropdown.propTypes = {
-    categories: PropTypes.arrayOf(categoryPropType).isRequired,
+    categories: PropTypes.arrayOf(menuItemPropType).isRequired,
 };
 
 export default CategoriesDropdown;
