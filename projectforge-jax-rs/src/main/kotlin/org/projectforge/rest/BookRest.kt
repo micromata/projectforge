@@ -75,7 +75,7 @@ open class BookRest() : AbstractDORest<BookDO, BookDao, BookFilter>(BookDao::cla
     override fun createListLayout(): UILayout {
         val lc = LayoutContext(BookDO::class.java)
         val layout = UILayout("book.title.list")
-                .add(UITable("result-set")
+                .add(UITable("resultSet")
                         .add(lc, "created", "yearOfPublishing", "signature", "authors", "title", "keywords", "lendOutBy"))
         layout.getTableColumnById("created").formatter = Formatter.TIMESTAMP_MINUTES
         layout.getTableColumnById("lendOutBy").formatter = Formatter.USER
