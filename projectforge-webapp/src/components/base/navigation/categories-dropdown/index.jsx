@@ -4,7 +4,14 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import { menuItemPropType } from '../../../../utilities/propTypes';
 import revisedRandomId from '../../../../utilities/revisedRandomId';
-import { Col, Container, Dropdown, DropdownMenu, DropdownToggle, Row, } from '../../../design';
+import {
+    Col,
+    Container,
+    Dropdown,
+    DropdownMenu,
+    DropdownToggle,
+    Row,
+} from '../../../design';
 import style from '../Navigation.module.scss';
 import Category from './Category';
 
