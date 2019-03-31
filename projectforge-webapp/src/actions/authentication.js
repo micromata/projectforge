@@ -71,4 +71,5 @@ export const login = (username, password, keepSignedIn) => (dispatch) => {
         .catch(catchError(dispatch));
 };
 
-export const logout = () => dispatch => dispatch(userLogout());
+export const logout = () => dispatch => fetch(getServiceURL('../rs/logout'))
+    .then(() => dispatch(userLogout()));
