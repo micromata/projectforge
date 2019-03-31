@@ -1,7 +1,5 @@
 package org.projectforge.menu
 
-import com.google.gson.annotations.SerializedName
-
 class MenuItem(@Transient
                var id: String?,
                val title: String,
@@ -12,7 +10,6 @@ class MenuItem(@Transient
                var key: String? = null,
                var badge: MenuBadge? = null) {
 
-    @SerializedName("sub-menu")
     var subMenu: MutableList<MenuItem>? = null
 
     fun add(menuItem: MenuItem) {

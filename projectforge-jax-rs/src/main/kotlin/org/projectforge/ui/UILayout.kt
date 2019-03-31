@@ -1,6 +1,5 @@
 package org.projectforge.ui
 
-import com.google.gson.annotations.SerializedName
 import org.projectforge.framework.i18n.translate
 
 class UILayout {
@@ -10,7 +9,6 @@ class UILayout {
 
     var title: String?
     val layout: MutableList<UIElement> = mutableListOf()
-    @SerializedName("named-containers")
     val namedContainers: MutableList<UINamedContainer> = mutableListOf()
     /**
      * The action buttons.
