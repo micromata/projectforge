@@ -7,12 +7,8 @@ package org.projectforge.ui
 data class UINamedContainer(
         /** The name of the container. */
         val id: String,
-        /**
-         * The key is an unique id, used e. g. by React for lists.
-         */
-        var key : String? = null,
-        val content: MutableList<UIElement> = mutableListOf()) {
-    val type : String = "named-container"
+        val content: MutableList<UIElement> = mutableListOf())
+    : UIElement(UIElementType.NAMED_CONTAINER) {
 
     fun add(element: UIElement): UINamedContainer {
         content.add(element)
