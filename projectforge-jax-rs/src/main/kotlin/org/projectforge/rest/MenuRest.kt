@@ -1,7 +1,8 @@
 package org.projectforge.rest
 
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
-import org.projectforge.menu.MenuItem
+import org.projectforge.menu.Menu
+import org.projectforge.menu.builder.FavoritesMenuCreator
 import org.projectforge.menu.builder.MenuCreator
 import org.projectforge.menu.builder.MenuCreatorContext
 import org.projectforge.rest.core.RestHelper
@@ -16,17 +17,20 @@ import javax.ws.rs.core.Response
 @Component
 @Path("menu")
 class MenuRest {
-    class Menu(val mainMenu : List<MenuItem>, val favoriteMenu : List<MenuItem>? = null)
+    class Menus(val mainMenu: Menu, val favoritesMenu: Menu? = null)
 
     @Autowired
     private lateinit var menuCreator: MenuCreator
 
+    @Autowired
+    private lateinit var favoritesMenuCreator: FavoritesMenuCreator
+
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     fun logout(): Response {
-        val mainMenuItems = menuCreator.build(MenuCreatorContext(ThreadLocalUserContext.getUser()))
-        //val favoriteMenuItems = menuCreator.
-        val menu = Menu(mainMenuItems)
+        val mainMenu = menuCreator.build(MenuCreatorContext(ThreadLocalUserContext.getUser()))
+        val favoritesMenu = favoritesMenuCreator.getDefaultFavoriteMenu()
+        val menu = Menus(mainMenu, favoritesMenu)
         return RestHelper.buildResponse(menu)
     }
 }

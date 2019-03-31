@@ -23,7 +23,6 @@
 
 package org.projectforge.plugins.ffp;
 
-import org.apache.wicket.model.Model;
 import org.projectforge.continuousdb.UpdateEntry;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.menu.builder.MenuItemDef;
@@ -33,7 +32,6 @@ import org.projectforge.plugins.ffp.repository.FFPEventDao;
 import org.projectforge.plugins.ffp.repository.FFPEventService;
 import org.projectforge.plugins.ffp.wicket.FFPDebtListPage;
 import org.projectforge.plugins.ffp.wicket.FFPEventListPage;
-import org.projectforge.web.MenuEntry;
 import org.projectforge.web.MenuItemRegistry;
 import org.projectforge.web.plugin.PluginWicketRegistrationService;
 import org.springframework.beans.factory.annotation.Autowired;

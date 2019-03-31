@@ -34,12 +34,12 @@ import java.util.Collection;
 /**
  * Represents a single menu entry (of the user's individual menu).
  */
-public class MenuEntry implements Serializable {
-  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(MenuEntry.class);
+public class WicketMenuEntry implements Serializable {
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(WicketMenuEntry.class);
 
   private static final long serialVersionUID = 7961498640193169174L;
 
-  protected Collection<MenuEntry> subMenuEntries;
+  protected Collection<WicketMenuEntry> subMenuEntries;
 
   protected String url;
 
@@ -59,8 +59,6 @@ public class MenuEntry implements Serializable {
 
   protected String name;
 
-  protected Menu menu;
-
   public IModel<Integer> getNewCounterModel() {
     return getNewCounterModel(0);
   }
@@ -73,7 +71,7 @@ public class MenuEntry implements Serializable {
     if (totalNewCounterModelEvaluated == true) {
       return totalNewCounterModel;
     }
-    for (final MenuEntry subEntry : subMenuEntries) {
+    for (final WicketMenuEntry subEntry : subMenuEntries) {
       final IModel<Integer> subSumModel = subEntry.getNewCounterModel(depth + 1);
       if (subSumModel == null) {
         continue;
@@ -96,20 +94,9 @@ public class MenuEntry implements Serializable {
   }
 
   /**
-   * Needed as marker for modified css.
-   */
-  public boolean isFirst() {
-    return menu.isFirst(this);
-  }
-
-  /**
    * Root menu entry.
    */
-  MenuEntry() {
-  }
-
-  public void setMenu(final Menu menu) {
-    this.menu = menu;
+  WicketMenuEntry() {
   }
 
   /**
@@ -123,19 +110,19 @@ public class MenuEntry implements Serializable {
    * @param name the name to set
    * @return this for chaining.
    */
-  public MenuEntry setName(final String name) {
+  public WicketMenuEntry setName(final String name) {
     this.name = name;
     return this;
   }
 
-  public void addMenuEntry(final MenuEntry subMenuEntry) {
+  public void addMenuEntry(final WicketMenuEntry subMenuEntry) {
     if (subMenuEntries == null) {
-      subMenuEntries = new ArrayList<MenuEntry>();
+      subMenuEntries = new ArrayList<WicketMenuEntry>();
     }
     subMenuEntries.add(subMenuEntry);
   }
 
-  public MenuEntry findById(final String id) {
+  public WicketMenuEntry findById(final String id) {
     if (this.id != null) {
       if (this.id.equals(id)) {
         return this;
@@ -148,8 +135,8 @@ public class MenuEntry implements Serializable {
     if (this.subMenuEntries == null) {
       return null;
     }
-    for (final MenuEntry subMenuEntry : this.subMenuEntries) {
-      final MenuEntry found = subMenuEntry.findById(id);
+    for (final WicketMenuEntry subMenuEntry : this.subMenuEntries) {
+      final WicketMenuEntry found = subMenuEntry.findById(id);
       if (found != null) {
         return found;
       }
@@ -172,7 +159,7 @@ public class MenuEntry implements Serializable {
   /**
    * @return
    */
-  public Collection<MenuEntry> getSubMenuEntries() {
+  public Collection<WicketMenuEntry> getSubMenuEntries() {
     return subMenuEntries;
   }
 

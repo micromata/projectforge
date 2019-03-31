@@ -95,10 +95,10 @@ class MenuItemDef {
      * @param parentMenu Only needed for building unique keys
      * @param menuBuilderContext
      */
-    internal fun createMenu(parentMenu: MenuItem, menuCreatorContext: MenuCreatorContext): MenuItem {
+    internal fun createMenu(parentMenu: MenuItem?, menuCreatorContext: MenuCreatorContext): MenuItem {
         val title = if (menuCreatorContext.translate) translate(i18nKey) else i18nKey
         val menuItem = MenuItem(id, title!!, url = this.url)
-        if (parentMenu.title != "root")
+        if (parentMenu != null)
             menuItem.key = "${parentMenu.key}.${id}"
         else
             menuItem.key = "${id}"
