@@ -36,7 +36,7 @@ class LayoutUtils {
         fun processListPage(layout: UILayout): UILayout {
             var found = false
             layout.namedContainers.forEach {
-                if (it.id == "filter-options") {
+                if (it.id == "filterOptions") {
                     found = true // Container found. Don't attach it automatically.
                 }
             }
@@ -74,7 +74,7 @@ class LayoutUtils {
             }
             if (autoAppendDefaultSettings == true)
                 addListDefaultOptions(filterGroup)
-            layout.add(UINamedContainer("filter-options").add(filterGroup))
+            layout.add(UINamedContainer("filterOptions").add(filterGroup))
         }
 
         /**
