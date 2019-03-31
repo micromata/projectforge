@@ -346,10 +346,11 @@ open class MenuCreator() {
         menuItemDefHolder.menuItems.forEach { menuItemDef ->
             menu.add(build(null, menuItemDef, menuCreatorContext))
         }
+        menu.postProcess()
         return menu
     }
 
-    private fun build(parent: MenuItem?, menuItemDef: MenuItemDef, menuCreatorContext: MenuCreatorContext) : MenuItem? {
+    private fun build(parent: MenuItem?, menuItemDef: MenuItemDef, menuCreatorContext: MenuCreatorContext): MenuItem? {
         if (!checkAccess(menuCreatorContext, menuItemDef))
             return null// No access
 
