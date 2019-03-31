@@ -6,6 +6,7 @@ import org.projectforge.menu.builder.MenuItemDef
 class MenuItem(@Transient
                var id: String? = null,
                var title: String? = null,
+               var i18nKey: String? = null,
                var url: String? = null,
                /**
                 * Unique key usable by React. It's also unique for multiple menu items (in different main categories).
@@ -17,6 +18,7 @@ class MenuItem(@Transient
             return
         id = menuItemDef.id
         title = translate(menuItemDef.i18nKey)
+        i18nKey = menuItemDef.i18nKey
         key = menuItemDef.id
         url = menuItemDef.url
         if (menuItemDef.badgeCounter != null) {

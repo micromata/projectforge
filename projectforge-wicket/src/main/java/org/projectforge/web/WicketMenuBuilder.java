@@ -24,6 +24,7 @@
 package org.projectforge.web;
 
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.menu.Menu;
 import org.projectforge.menu.MenuItem;
@@ -90,8 +91,10 @@ public class WicketMenuBuilder {
   private WicketMenuEntry createMenuEntry(MenuItem item, Menu menu) {
     WicketMenuEntry entry = new WicketMenuEntry();
     entry.id = item.getKey();
+    if (StringUtils.isNotBlank(item.getTitle()))
+      entry.name = item.getTitle();
     entry.pageClass = menuItemRegistry.getPageClass(item.getId());
-    entry.i18nKey = item.getTitle();
+    entry.i18nKey = item.getI18nKey();
     return entry;
   }
 }
