@@ -35,10 +35,9 @@ import org.apache.wicket.model.ResourceModel;
 import org.apache.wicket.request.cycle.RequestCycle;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
-import org.projectforge.web.FavoritesMenu;
-import org.projectforge.web.Menu;
-import org.projectforge.web.MenuBuilder;
-import org.projectforge.web.MenuEntry;
+import org.projectforge.web.WicketMenu;
+import org.projectforge.web.WicketMenuBuilder;
+import org.projectforge.web.WicketMenuEntry;
 import org.projectforge.web.wicket.WicketUtils;
 
 /**
@@ -49,18 +48,18 @@ public abstract class NavAbstractPanel extends Panel {
 
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(NavAbstractPanel.class);
 
-  protected Menu menu;
+  protected WicketMenu menu;
 
-  protected FavoritesMenu favoritesMenu;
+  protected WicketMenu favoritesMenu;
 
   @SpringBean
-  private MenuBuilder menuBuilder;
+  private WicketMenuBuilder menuBuilder;
 
   public NavAbstractPanel(final String id) {
     super(id);
   }
 
-  static public AbstractLink getMenuEntryLink(final MenuEntry menuEntry, final boolean showModifiedNames) {
+  static public AbstractLink getMenuEntryLink(final WicketMenuEntry menuEntry, final boolean showModifiedNames) {
     final AbstractLink link;
     if (menuEntry.isWicketPage() == true) {
       link = new BookmarkablePageLink<String>("link", menuEntry.getPageClass());
@@ -92,7 +91,7 @@ public abstract class NavAbstractPanel extends Panel {
     return link;
   }
 
-  static protected Label getSuffixLabel(final MenuEntry menuEntry) {
+  static protected Label getSuffixLabel(final WicketMenuEntry menuEntry) {
     final Label suffixLabel;
     final IModel<Integer> newCounterModel = menuEntry != null ? menuEntry.getNewCounterModel() : null;
     if (newCounterModel != null && newCounterModel.getObject() != null) {
@@ -107,7 +106,7 @@ public abstract class NavAbstractPanel extends Panel {
     return suffixLabel;
   }
 
-  public Menu getMenu() {
+  public WicketMenu getMenu() {
     if (menu == null) {
       menu = menuBuilder.getMenu(ThreadLocalUserContext.getUser());
     }
