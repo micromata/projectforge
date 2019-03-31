@@ -97,7 +97,7 @@ class MenuItemDef {
      */
     internal fun createMenu(parentMenu: MenuItem?, menuCreatorContext: MenuCreatorContext): MenuItem {
         val title = if (menuCreatorContext.translate) translate(i18nKey) else i18nKey
-        val menuItem = MenuItem(id, title!!, url = this.url)
+        val menuItem = MenuItem(id, title = title!!, i18nKey = i18nKey, url = this.url)
         if (parentMenu != null)
             menuItem.key = "${parentMenu.key}.${id}"
         else

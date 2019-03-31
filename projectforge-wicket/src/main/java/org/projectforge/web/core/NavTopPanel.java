@@ -120,9 +120,6 @@ public class NavTopPanel extends NavAbstractPanel {
   public void init(final AbstractSecuredPage page) {
     getMenu();
     favoritesMenu = menuBuilder.getFavoriteMenu();
-    final WebMarkupContainer goMobile = new WebMarkupContainer("goMobile");
-    add(goMobile);
-    goMobile.setVisible(false);
     add(new MenuConfig("menuconfig", getMenu()));
     final Form<String> searchForm = new Form<String>("searchForm") {
       private String searchString;
