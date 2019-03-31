@@ -4,6 +4,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { Collapse } from '../../../design';
 import style from '../Navigation.module.scss';
+import MenuBadge from './MenuBadge';
 
 class Category extends React.Component {
     constructor(props) {
@@ -69,6 +70,9 @@ class Category extends React.Component {
                     role="presentation"
                 >
                     {category.title}
+                    {category.badge
+                        ? <MenuBadge>{category.badge.counter}</MenuBadge>
+                        : undefined}
                 </div>
                 <Collapse isOpen={collapse}>
                     <ul className={style.categoryLinks}>
@@ -77,7 +81,12 @@ class Category extends React.Component {
                                 className={style.categoryLink}
                                 key={`category-link-${item.key}`}
                             >
-                                <Link to={`/${item.url}/`}>{item.title}</Link>
+                                <Link to={`/${item.url}/`}>
+                                    {item.title}
+                                    {item.badge
+                                        ? <MenuBadge>{item.badge.counter}</MenuBadge>
+                                        : undefined}
+                                </Link>
                             </li>
                         ))}
                     </ul>
