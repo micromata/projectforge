@@ -26,6 +26,10 @@ class MenuItem(@Transient
 
     var subMenu: MutableList<MenuItem>? = null
 
+    fun isLeaf(): Boolean {
+        return !url.isNullOrBlank()
+    }
+
     fun add(menuItem: MenuItem) {
         if (subMenu == null) {
             subMenu = mutableListOf()
@@ -37,5 +41,18 @@ class MenuItem(@Transient
         if (menuItemDef == null)
             return // Do nothing.
         add(MenuItem(menuItemDef))
+    }
+
+    /**
+     * Removes all super menu items without children. This will happen, if the user hasn't the user rights to see
+     * any children of a super menu item.
+     */
+    fun postProcess() {
+        if (subMenu.isNullOrEmpty())
+            return
+        subMenu?.forEach {
+            it.postProcess()
+        }
+        subMenu?.removeIf { !it.isLeaf() && it.subMenu.isNullOrEmpty() }
     }
 }
