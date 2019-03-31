@@ -4,14 +4,7 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import { menuItemPropType } from '../../../../utilities/propTypes';
 import revisedRandomId from '../../../../utilities/revisedRandomId';
-import {
-    Col,
-    Container,
-    DropdownMenu,
-    DropdownToggle,
-    Row,
-    UncontrolledDropdown,
-} from '../../../design';
+import { Col, Container, Dropdown, DropdownMenu, DropdownToggle, Row, } from '../../../design';
 import style from '../Navigation.module.scss';
 import Category from './Category';
 
@@ -21,6 +14,8 @@ function countColumnSize(column) {
 }
 
 function CategoriesDropdown({ categories }) {
+    const [open, setOpen] = React.useState(false);
+
     // Creating an array of columns for the categories.
     const columns = [
         [], [], [], [],
@@ -46,7 +41,7 @@ function CategoriesDropdown({ categories }) {
             .push(category));
 
     return (
-        <UncontrolledDropdown>
+        <Dropdown isOpen={open} toggle={() => setOpen(!open)}>
             <DropdownToggle nav caret>
                 <FontAwesomeIcon icon={faListUl} />
             </DropdownToggle>
@@ -63,6 +58,7 @@ function CategoriesDropdown({ categories }) {
                                     <Category
                                         category={category}
                                         key={`category-${category.title}`}
+                                        closeMenu={() => setOpen(false)}
                                     />
                                 ))}
                             </Col>
@@ -70,7 +66,7 @@ function CategoriesDropdown({ categories }) {
                     </Row>
                 </Container>
             </DropdownMenu>
-        </UncontrolledDropdown>
+        </Dropdown>
     );
 }
 

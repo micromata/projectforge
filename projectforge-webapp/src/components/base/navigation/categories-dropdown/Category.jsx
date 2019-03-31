@@ -17,6 +17,7 @@ class Category extends React.Component {
 
         this.handleWindowResize = this.handleWindowResize.bind(this);
         this.toggle = this.toggle.bind(this);
+        this.handleLinkClick = this.handleLinkClick.bind(this);
     }
 
     componentDidMount() {
@@ -58,6 +59,12 @@ class Category extends React.Component {
         }));
     }
 
+    handleLinkClick() {
+        const { closeMenu } = this.props;
+
+        closeMenu();
+    }
+
     render() {
         const { category, className, ...props } = this.props;
         const { collapse } = this.state;
@@ -81,7 +88,10 @@ class Category extends React.Component {
                                 className={style.categoryLink}
                                 key={`category-link-${item.key}`}
                             >
-                                <Link to={`/${item.url}/`}>
+                                <Link
+                                    onClick={this.handleLinkClick}
+                                    to={`/${item.url}/`}
+                                >
                                     {item.title}
                                     {item.badge
                                         ? <MenuBadge>{item.badge.counter}</MenuBadge>
@@ -99,10 +109,12 @@ class Category extends React.Component {
 Category.propTypes = {
     category: PropTypes.shape({}).isRequired,
     className: PropTypes.string,
+    closeMenu: PropTypes.func,
 };
 
 Category.defaultProps = {
     className: undefined,
+    closeMenu: undefined,
 };
 
 export default Category;
