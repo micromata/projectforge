@@ -262,8 +262,6 @@ open class MenuCreator() {
                         requiredGroups = *arrayOf(ProjectForgeGroup.FINANCE_GROUP, ProjectForgeGroup.CONTROLLING_GROUP)))
                 .add(MenuItemDef(MenuItemDefId.REPORT_OBJECTIVES, "wa/reportObjectives",
                         requiredGroups = *arrayOf(ProjectForgeGroup.FINANCE_GROUP, ProjectForgeGroup.CONTROLLING_GROUP)))
-                .add(MenuItemDef(MenuItemDefId.REPORT_OBJECTIVES, "wa/reportObjectives",
-                        requiredGroups = *arrayOf(ProjectForgeGroup.FINANCE_GROUP, ProjectForgeGroup.CONTROLLING_GROUP)))
         // Only visible if cost is configured:
         reportingMenu.add(MenuItemDef(MenuItemDefId.ACCOUNTING_RECORD_LIST, "wa/accountingRecordList",
                 requiredGroups = *arrayOf(ProjectForgeGroup.FINANCE_GROUP, ProjectForgeGroup.CONTROLLING_GROUP),
