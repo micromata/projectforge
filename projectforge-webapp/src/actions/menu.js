@@ -30,6 +30,6 @@ export const loadMenu = () => (dispatch) => {
     )
         .then(handleHTTPErrors)
         .then(response => response.json())
-        .then(({ mainMenu }) => dispatch(loadSuccess(mainMenu)))
+        .then(({ mainMenu }) => dispatch(loadSuccess(mainMenu.menuItems)))
         .catch(error => dispatch(loadFailure(error)));
 };
