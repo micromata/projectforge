@@ -21,16 +21,14 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.web.user;
+package org.projectforge.business.user.service;
 
-import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.user.UserXmlPreferencesCache;
-import org.projectforge.business.user.service.UserPreferencesService;
 import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.utils.CloneHelper;
-import org.projectforge.web.session.MySession;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.Serializable;
@@ -39,10 +37,10 @@ import java.io.Serializable;
 public class UserPreferencesServiceImpl implements UserPreferencesService {
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(UserPreferencesServiceImpl.class);
 
-  @SpringBean
+  @Autowired
   private AccessChecker accessChecker;
 
-  @SpringBean
+  @Autowired
   private UserXmlPreferencesCache userXmlPreferencesCache;
 
   /**
@@ -62,7 +60,7 @@ public class UserPreferencesServiceImpl implements UserPreferencesService {
     }
     if (AccessChecker.isDemoUser(user) == true && value instanceof Serializable) {
       // Store user pref for demo user only in user's session.
-      MySession.get().setAttribute(key, (Serializable) value);
+      // Do nothing for demo user: MySession.get().setAttribute(key, (Serializable) value);
       return;
     }
     try {
@@ -88,20 +86,6 @@ public class UserPreferencesServiceImpl implements UserPreferencesService {
       return null;
     }
     final Integer userId = user.getId();
-    if (AccessChecker.isDemoUser(user) == true) {
-      // Store user pref for demo user only in user's session.
-      Object value = MySession.get().getAttribute(key);
-      if (value != null) {
-        return value;
-      }
-      value = userXmlPreferencesCache.getEntry(userId, key);
-      if (value == null || value instanceof Serializable == false) {
-        return null;
-      }
-      value = CloneHelper.cloneBySerialization(value);
-      MySession.get().setAttribute(key, (Serializable) value);
-      return value;
-    }
     try {
       return userXmlPreferencesCache.getEntry(userId, key);
     } catch (final Exception ex) {
@@ -152,7 +136,7 @@ public class UserPreferencesServiceImpl implements UserPreferencesService {
       return null;
     }
     if (AccessChecker.isDemoUser(user) == true) {
-      MySession.get().removeAttribute(key);
+      return key; // Dummy return
     }
     return userXmlPreferencesCache.removeEntry(user.getId(), key);
   }
