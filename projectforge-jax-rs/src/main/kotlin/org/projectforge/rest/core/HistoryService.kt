@@ -22,8 +22,8 @@ class HistoryService {
 
     data class DisplayHistoryEntry(
             var modifiedAt: Date? = null,
-            var modfiedByUserId: String? = null,
-            var modfiedByUser: String? = null,
+            var modifiedByUserId: String? = null,
+            var modifiedByUser: String? = null,
             var operationType: EntityOpType? = null,
             var operation: String? = null,
             var diffEntries: MutableList<DisplayHistoryDiffEntry> = mutableListOf())
@@ -50,8 +50,8 @@ class HistoryService {
             }
             val entry = DisplayHistoryEntry(
                     modifiedAt = it.modifiedAt,
-                    modfiedByUserId = it.modifiedBy,
-                    modfiedByUser = user?.fullname,
+                    modifiedByUserId = it.modifiedBy,
+                    modifiedByUser = user?.fullname,
                     operationType = it.entityOpType,
                     operation = translate(it.entityOpType))
             var clazz: Class<*>? = null
