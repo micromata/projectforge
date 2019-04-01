@@ -91,10 +91,14 @@ public class WicketMenuBuilder {
   private WicketMenuEntry createMenuEntry(MenuItem item, Menu menu) {
     WicketMenuEntry entry = new WicketMenuEntry();
     entry.id = item.getKey();
+    if (item.getI18nKey() != null)
+      entry.i18nKey = item.getI18nKey();
+    else
     if (StringUtils.isNotBlank(item.getTitle()))
       entry.name = item.getTitle();
+    else
+      entry.name = "???";
     entry.pageClass = menuItemRegistry.getPageClass(item.getId());
-    entry.i18nKey = item.getI18nKey();
     return entry;
   }
 }
