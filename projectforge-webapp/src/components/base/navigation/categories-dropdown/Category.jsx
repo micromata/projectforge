@@ -66,7 +66,12 @@ class Category extends React.Component {
     }
 
     render() {
-        const { category, className, ...props } = this.props;
+        const {
+            category,
+            className,
+            closeMenu,
+            ...props
+        } = this.props;
         const { collapse } = this.state;
 
         return (
