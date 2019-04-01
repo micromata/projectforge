@@ -2,9 +2,6 @@ import React from 'react';
 import Card from 'reactstrap/es/Card';
 import CardBody from 'reactstrap/es/CardBody';
 import Col from 'reactstrap/es/Col';
-import FormGroup from 'reactstrap/es/FormGroup';
-import BootstrapInput from 'reactstrap/es/Input';
-import BootstrapLabel from 'reactstrap/es/Label';
 import Row from 'reactstrap/es/Row';
 import Input from '../../components/design/input';
 import CheckBox from '../../components/design/input/CheckBox';
@@ -197,7 +194,7 @@ function InputTestPage() {
                             additionalLabel="Zusätzlicher Titel"
                         />
                     </Col>
-                    <Col sm style={{ fontSize: '14px' }}>
+                    <Col sm>
                         <h2>Text Area</h2>
                         <TextArea label="Long Text" id="textarea-example" />
                         <TextArea
