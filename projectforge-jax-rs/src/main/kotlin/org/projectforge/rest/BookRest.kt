@@ -35,7 +35,7 @@ open class BookRest() : AbstractDORest<BookDO, BookDao, BookFilter>(BookDao::cla
     }
 
     override fun validate(validationErrors: MutableList<ValidationError>, obj: BookDO) {
-        Validation.validateInteger(validationErrors, "yearOfPublishing", obj.yearOfPublishing, Const.MINYEAR, Const.MAXYEAR)
+        Validation.validateInteger(validationErrors, "yearOfPublishing", obj.yearOfPublishing, Const.MINYEAR, Const.MAXYEAR, formatNumber = false)
         if (baseDao.doesSignatureAlreadyExist(obj)) {
             validationErrors.add(ValidationError(translate("book.error.signatureAlreadyExists"), fieldId = "signature"))
         }
@@ -73,9 +73,8 @@ open class BookRest() : AbstractDORest<BookDO, BookDao, BookFilter>(BookDao::cla
      * LAYOUT List page
      */
     override fun createListLayout(): UILayout {
-        val lc = LayoutContext(BookDO::class.java)
         val layout = UILayout("book.title.list")
-                .add(UITable("resultSet")
+                .add(UITable.UIResultSetTable()
                         .add(lc, "created", "yearOfPublishing", "signature", "authors", "title", "keywords", "lendOutBy"))
         layout.getTableColumnById("created").formatter = Formatter.TIMESTAMP_MINUTES
         layout.getTableColumnById("lendOutBy").formatter = Formatter.USER
@@ -87,10 +86,8 @@ open class BookRest() : AbstractDORest<BookDO, BookDao, BookFilter>(BookDao::cla
     /**
      * LAYOUT Edit page
      */
-    override fun createEditLayout(dataObject: BookDO?, inlineLabels: Boolean): UILayout {
-        val titleKey = if (dataObject?.id != null) "book.title.edit" else "book.title.add"
-        val lc = LayoutContext(BookDO::class.java, inlineLabels)
-        val layout = UILayout(titleKey)
+    override fun createEditLayout(dataObject: BookDO?): UILayout {
+        val layout = UILayout.UIEditLayout("book.title", dataObject)
                 .add(lc, "title", "authors")
                 .add(UIRow()
                         .add(UICol(6)

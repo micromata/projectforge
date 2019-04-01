@@ -42,9 +42,8 @@ open class AddressRest()
      * LAYOUT List page
      */
     override fun createListLayout(): UILayout {
-        val lc = LayoutContext(AddressDO::class.java)
         val layout = UILayout("address.title.list")
-                .add(UITable("resultSet")
+                .add(UITable.UIResultSetTable()
                         .add(lc, "lastUpdate", "imageDataPreview", "name", "firstName", "organization", "email")
                         .add(UITableColumn("phoneNumbers", "address.phoneNumbers", dataType = UIDataType.CUSTOMIZED))
                         .add(lc, "addressBooks"))
@@ -59,15 +58,8 @@ open class AddressRest()
     /**
      * LAYOUT Edit page
      */
-    override fun createEditLayout(dataObject: AddressDO?, inlineLabels: Boolean): UILayout {
-        val titleKey = if (dataObject?.id != null) "address.title.edit" else "address.title.add"
-        val lc = LayoutContext(AddressDO::class.java, inlineLabels)
-        val formFavoriteGroup = UIGroup().add(UISelect("form", lc).buildValues(FormOfAddress::class.java))
-                .add(UICheckbox("favorite", label = "favorite"))
-        val formFavoriteLabelValue =
-                if (inlineLabels) formFavoriteGroup
-                else UIGroup().add(UILabel("gender"), formFavoriteGroup)!!
-        val layout = UILayout(titleKey)
+    override fun createEditLayout(dataObject: AddressDO?): UILayout {
+        val layout = UILayout.UIEditLayout("address.title", dataObject)
                 .add(UIGroup()
                         .add(UIMultiSelect("addressbookList", lc)))
                 .add(UIRow()
@@ -76,7 +68,9 @@ open class AddressRest()
                 .add(UIRow()
                         .add(UICol(6)
                                 .add(lc, "name", "firstName")
-                                .add(formFavoriteLabelValue)
+                                .add(UIGroup()
+                                        .add(UISelect("form", lc).buildValues(FormOfAddress::class.java))
+                                        .add(UICheckbox("favorite", label = "favorite")))
                                 .add(lc, "title", "email", "privateEmail"))
                         .add(UICol(6)
                                 .add(lc, "birthday", "communicationLanguage", "organization", "division", "positionText", "website")))

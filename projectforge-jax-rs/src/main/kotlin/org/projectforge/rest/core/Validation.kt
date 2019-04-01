@@ -18,23 +18,26 @@ class Validation {
                             fieldId: String,
                             value: String,
                             minValue: Int? = null,
-                            maxValue: Int? = null) {
+                            maxValue: Int? = null,
+                            formatNumber: Boolean = true) {
             if (value.isNullOrBlank())
                 return
             try {
                 val number = Integer.parseInt(value)
+                val minValueParam: Any? = if (formatNumber) minValue else minValue?.toString()
+                val maxValueParam: Any? = if (formatNumber) maxValue else maxValue?.toString()
                 if (minValue != null) {
                     if (maxValue != null) {
                         if (number < minValue || number > maxValue)
-                            validationErrors.add(ValidationError(translateMsg(MSG_INT_OUT_OF_RANGE, minValue, maxValue),
+                            validationErrors.add(ValidationError(translateMsg(MSG_INT_OUT_OF_RANGE, minValueParam!!, maxValueParam!!),
                                     fieldId = fieldId,
                                     messageId = MSG_INT_OUT_OF_RANGE))
                     } else if (number < minValue)
-                        validationErrors.add(ValidationError(translateMsg(MSG_INT_TO_LOW, minValue),
+                        validationErrors.add(ValidationError(translateMsg(MSG_INT_TO_LOW, minValueParam!!),
                                 fieldId = fieldId,
                                 messageId = MSG_INT_TO_LOW))
                 } else if (maxValue != null && number > maxValue)
-                    validationErrors.add(ValidationError(translateMsg(MSG_INT_TO_HIGH, maxValue),
+                    validationErrors.add(ValidationError(translateMsg(MSG_INT_TO_HIGH, maxValueParam!!),
                             fieldId = fieldId,
                             messageId = MSG_INT_TO_HIGH))
             } catch (ex: NumberFormatException) {
