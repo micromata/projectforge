@@ -1,5 +1,9 @@
 import PropTypes from 'prop-types';
 
+export const menuItemPropType = PropTypes.shape({
+    title: PropTypes.string,
+});
+
 export const categoryItemPropType = PropTypes.shape({
     name: PropTypes.string,
     url: PropTypes.string,
@@ -15,7 +19,7 @@ export const buttonPropType = PropTypes.shape({
     title: PropTypes.string,
     id: PropTypes.string,
     handleClick: PropTypes.func,
-    type: PropTypes.oneOf(['button', 'checkbox']),
+    type: PropTypes.oneOf(['BUTTON', 'CHECKBOX']),
     checked: PropTypes.bool,
 });
 

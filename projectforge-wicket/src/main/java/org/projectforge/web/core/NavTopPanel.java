@@ -51,6 +51,7 @@ import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.api.UserContext;
 import org.projectforge.framework.persistence.user.entities.TenantDO;
+import org.projectforge.menu.builder.FavoritesMenuCreator;
 import org.projectforge.menu.builder.MenuCreator;
 import org.projectforge.web.*;
 import org.projectforge.web.core.menuconfig.MenuConfig;
@@ -79,7 +80,8 @@ public class NavTopPanel extends NavAbstractPanel {
 
   private static final long serialVersionUID = -7858806882044188339L;
 
-  private FavoritesMenu favoritesMenu;
+  @SpringBean
+  private FavoritesMenuCreator favoritesMenuCreator;
 
   @SpringBean
   private UserXmlPreferencesCache userXmlPreferencesCache;
@@ -102,7 +104,7 @@ public class NavTopPanel extends NavAbstractPanel {
   private LoginService loginService;
 
   @SpringBean
-  private MenuBuilder menuBilder;
+  private WicketMenuBuilder menuBuilder;
 
   /**
    * Cross site request forgery token.
@@ -117,10 +119,7 @@ public class NavTopPanel extends NavAbstractPanel {
   @SuppressWarnings("serial")
   public void init(final AbstractSecuredPage page) {
     getMenu();
-    favoritesMenu = FavoritesMenu.get(menuCreator, menuBilder, accessChecker);
-    final WebMarkupContainer goMobile = new WebMarkupContainer("goMobile");
-    add(goMobile);
-    goMobile.setVisible(false);
+    favoritesMenu = menuBuilder.getFavoriteMenu();
     add(new MenuConfig("menuconfig", getMenu()));
     final Form<String> searchForm = new Form<String>("searchForm") {
       private String searchString;
@@ -249,7 +248,7 @@ public class NavTopPanel extends NavAbstractPanel {
         if (menu.getMenuEntries() == null) {
           return counter;
         }
-        for (final MenuEntry menuEntry : menu.getMenuEntries()) {
+        for (final WicketMenuEntry menuEntry : menu.getMenuEntries()) {
           final IModel<Integer> newCounterModel = menuEntry.getNewCounterModel();
           if (newCounterModel != null && newCounterModel.getObject() != null) {
             counter += newCounterModel.getObject();
@@ -264,7 +263,7 @@ public class NavTopPanel extends NavAbstractPanel {
     final RepeatingView completeMenuCategoryRepeater = new RepeatingView("completeMenuCategoryRepeater");
     add(completeMenuCategoryRepeater);
     if (menu.getMenuEntries() != null) {
-      for (final MenuEntry menuEntry : menu.getMenuEntries()) {
+      for (final WicketMenuEntry menuEntry : menu.getMenuEntries()) {
         if (menuEntry.getSubMenuEntries() == null) {
           continue;
         }
@@ -284,7 +283,7 @@ public class NavTopPanel extends NavAbstractPanel {
 
         final RepeatingView completeSubMenuRepeater = new RepeatingView("completeSubMenuRepeater");
         categoryContainer.add(completeSubMenuRepeater);
-        for (final MenuEntry subMenuEntry : menuEntry.getSubMenuEntries()) {
+        for (final WicketMenuEntry subMenuEntry : menuEntry.getSubMenuEntries()) {
           if (subMenuEntry.getSubMenuEntries() != null) {
             log.error(
                     "Oups: sub sub menus not supported: " + menuEntry.getId() + " has child menus which are ignored.");
@@ -308,9 +307,9 @@ public class NavTopPanel extends NavAbstractPanel {
     // Favorite menu:
     menuRepeater = new RepeatingView("menuRepeater");
     add(menuRepeater);
-    final Collection<MenuEntry> menuEntries = favoritesMenu.getMenuEntries();
+    final Collection<WicketMenuEntry> menuEntries = favoritesMenu.getMenuEntries();
     if (menuEntries != null) {
-      for (final MenuEntry menuEntry : menuEntries) {
+      for (final WicketMenuEntry menuEntry : menuEntries) {
         // Now we add a new menu area (title with sub menus):
         final WebMarkupContainer menuItem = new WebMarkupContainer(menuRepeater.newChildId());
         menuRepeater.add(menuItem);
@@ -335,7 +334,7 @@ public class NavTopPanel extends NavAbstractPanel {
         link.add(AttributeModifier.append("data-toggle", "dropdown"));
         final RepeatingView subMenuRepeater = new RepeatingView("subMenuRepeater");
         subMenuContainer.add(subMenuRepeater);
-        for (final MenuEntry subMenuEntry : menuEntry.getSubMenuEntries()) {
+        for (final WicketMenuEntry subMenuEntry : menuEntry.getSubMenuEntries()) {
           // Now we add the next menu entry to the area:
           if (subMenuEntry.hasSubMenuEntries() == false) {
             final WebMarkupContainer subMenuItem = new WebMarkupContainer(subMenuRepeater.newChildId());
@@ -359,7 +358,7 @@ public class NavTopPanel extends NavAbstractPanel {
           // }
           // final RepeatingView subsubMenuRepeater = new RepeatingView("subsubMenuRepeater");
           // subsubMenuContainer.add(subsubMenuRepeater);
-          for (final MenuEntry subsubMenuEntry : subMenuEntry.getSubMenuEntries()) {
+          for (final WicketMenuEntry subsubMenuEntry : subMenuEntry.getSubMenuEntries()) {
             // Now we add the next menu entry to the sub menu:
             final WebMarkupContainer subMenuItem = new WebMarkupContainer(subMenuRepeater.newChildId());
             subMenuRepeater.add(subMenuItem);

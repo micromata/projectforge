@@ -1,7 +1,7 @@
 import moment from 'moment';
 
-const USER_FORMATTER = 'user';
-const TIMESTAMP_MINUTES_FORMATTER = 'timestamp-minutes';
+const USER_FORMATTER = 'USER';
+const TIMESTAMP_MINUTES_FORMATTER = 'TIMESTAMP_MINUTES';
 export const TEXT_SINCE_TIMESTAMP = 'TEXT_SINCE_TIMESTAMP';
 
 const format = (formatter, data) => {

@@ -40,12 +40,12 @@ import org.projectforge.business.fibu.KundeDO;
 import org.projectforge.business.fibu.KundeDao;
 import org.projectforge.business.fibu.KundeFavorite;
 import org.projectforge.business.fibu.KundeFormatter;
+import org.projectforge.business.user.service.UserPreferencesService;
 import org.projectforge.framework.i18n.I18nHelper;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.persistence.user.api.UserPrefArea;
 import org.projectforge.framework.utils.NumberHelper;
 import org.projectforge.framework.utils.RecentQueue;
-import org.projectforge.web.user.UserPreferencesHelper;
 import org.projectforge.web.wicket.AbstractForm;
 import org.projectforge.web.wicket.AbstractSelectPanel;
 import org.projectforge.web.wicket.WebConstants;
@@ -74,6 +74,9 @@ public class NewCustomerSelectPanel extends AbstractSelectPanel<KundeDO> impleme
 
   @SpringBean
   private KundeDao kundeDao;
+
+  @SpringBean
+  private UserPreferencesService userPreferencesService;
 
   private RecentQueue<String> recentCustomers;
 
@@ -312,11 +315,11 @@ public class NewCustomerSelectPanel extends AbstractSelectPanel<KundeDO> impleme
   private RecentQueue<String> getRecentCustomers()
   {
     if (this.recentCustomers == null) {
-      this.recentCustomers = (RecentQueue<String>) UserPreferencesHelper.getEntry(USER_PREF_KEY_RECENT_CUSTOMERS);
+      this.recentCustomers = (RecentQueue<String>) userPreferencesService.getEntry(USER_PREF_KEY_RECENT_CUSTOMERS);
     }
     if (this.recentCustomers == null) {
       this.recentCustomers = new RecentQueue<String>();
-      UserPreferencesHelper.putEntry(USER_PREF_KEY_RECENT_CUSTOMERS, this.recentCustomers, true);
+      userPreferencesService.putEntry(USER_PREF_KEY_RECENT_CUSTOMERS, this.recentCustomers, true);
     }
     return this.recentCustomers;
   }

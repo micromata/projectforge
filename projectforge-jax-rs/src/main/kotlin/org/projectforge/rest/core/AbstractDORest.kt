@@ -1,6 +1,5 @@
 package org.projectforge.rest.core
 
-import com.google.gson.annotations.SerializedName
 import org.apache.commons.beanutils.PropertyUtils
 import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.i18n.translate
@@ -50,7 +49,6 @@ abstract class AbstractDORest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F : BaseS
      * Contains the data including the result list (matching the filter) served by getList methods ([getInitialList] and [getList]).
      */
     private data class ListData<O : ExtendedBaseDO<Int>>(
-            @SerializedName("result-set")
             val resultSet: List<O>)
 
     /**

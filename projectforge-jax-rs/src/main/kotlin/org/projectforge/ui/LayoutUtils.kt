@@ -36,7 +36,7 @@ class LayoutUtils {
         fun processListPage(layout: UILayout): UILayout {
             var found = false
             layout.namedContainers.forEach {
-                if (it.id == "filter-options") {
+                if (it.id == "filterOptions") {
                     found = true // Container found. Don't attach it automatically.
                 }
             }
@@ -44,8 +44,8 @@ class LayoutUtils {
                 addListFilterContainer(layout)
             }
             layout
-                    .addAction(UIButton("reset", style = UIButtonStyle.DANGER))
-                    .addAction(UIButton("search", style = UIButtonStyle.PRIMARY, default = true))
+                    .addAction(UIButton("reset", style = UIStyle.DANGER))
+                    .addAction(UIButton("search", style = UIStyle.PRIMARY, default = true))
             process(layout)
             return layout
         }
@@ -74,7 +74,7 @@ class LayoutUtils {
             }
             if (autoAppendDefaultSettings == true)
                 addListDefaultOptions(filterGroup)
-            layout.add(UINamedContainer("filter-options").add(filterGroup))
+            layout.add(UINamedContainer("filterOptions").add(filterGroup))
         }
 
         /**
@@ -95,21 +95,21 @@ class LayoutUtils {
          * @see LayoutUtils.process
          */
         fun processEditPage(layout: UILayout, data: DefaultBaseDO?): UILayout {
-            layout.addAction(UIButton("cancel", style = UIButtonStyle.DANGER))
+            layout.addAction(UIButton("cancel", style = UIStyle.DANGER))
             if (data != null && data.id != null) {
                 if (data.isDeleted)
-                    layout.addAction(UIButton("undelete", style = UIButtonStyle.WARNING))
+                    layout.addAction(UIButton("undelete", style = UIStyle.WARNING))
                 else
-                    layout.addAction(UIButton("markAsDeleted", style = UIButtonStyle.WARNING))
+                    layout.addAction(UIButton("markAsDeleted", style = UIStyle.WARNING))
             }
             //if (restService.prepareClone(restService.newBaseDO())) {
             //    layout.addAction(UIButton("clone", style = UIButtonStyle.PRIMARY))
             //}
             if (data != null && data.id != null) {
                 if (!data.isDeleted)
-                    layout.addAction(UIButton("update", style = UIButtonStyle.PRIMARY, default = true))
+                    layout.addAction(UIButton("update", style = UIStyle.PRIMARY, default = true))
             } else {
-                layout.addAction(UIButton("create", style = UIButtonStyle.PRIMARY, default = true))
+                layout.addAction(UIButton("create", style = UIStyle.PRIMARY, default = true))
             }
             process(layout)
             layout.addTranslation("label.historyOfChanges")

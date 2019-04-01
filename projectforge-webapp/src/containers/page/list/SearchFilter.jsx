@@ -3,6 +3,7 @@ import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import { setListFilter } from '../../../actions';
 import ActionGroup from '../../../components/base/page/action/Group';
+import LayoutGroup from '../../../components/base/page/layout/Group';
 import {
     Card,
     CardBody,
@@ -13,8 +14,8 @@ import {
     Row,
     Select,
 } from '../../../components/design';
+import { getNamedContainer } from '../../../utilities/layout';
 import { buttonPropType } from '../../../utilities/propTypes';
-import FilterButtons from './FilterButtons';
 
 class SearchFilter extends Component {
     constructor(props) {
@@ -37,7 +38,12 @@ class SearchFilter extends Component {
     }
 
     render() {
-        const { filter, actions } = this.props;
+        const {
+            filter,
+            actions,
+            setFilter,
+            namedContainers,
+        } = this.props;
         // TODO: REPLACE DATE AND TIME WITH PICKERS
         return (
             <Card>
@@ -67,7 +73,11 @@ class SearchFilter extends Component {
                             <FormGroup row>
                                 <Label sm={2}>[Optionen]</Label>
                                 <Col sm={10}>
-                                    <FilterButtons />
+                                    <LayoutGroup
+                                        {...getNamedContainer('filterOptions', namedContainers)}
+                                        data={filter}
+                                        changeDataField={setFilter}
+                                    />
                                 </Col>
                             </FormGroup>
                         </Col>
@@ -96,11 +106,12 @@ class SearchFilter extends Component {
 
 SearchFilter.propTypes = {
     setFilter: PropTypes.func.isRequired,
+    actions: PropTypes.arrayOf(buttonPropType),
     filter: PropTypes.shape({
         searchString: PropTypes.string,
         maxRows: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
     }),
-    actions: PropTypes.arrayOf(buttonPropType),
+    namedContainers: PropTypes.arrayOf(PropTypes.shape({})),
 };
 
 SearchFilter.defaultProps = {
@@ -109,11 +120,13 @@ SearchFilter.defaultProps = {
         searchString: '',
         maxRows: 50,
     },
+    namedContainers: [],
 };
 
 const mapStateToProps = state => ({
     filter: state.listPage.filter,
     actions: state.listPage.ui.actions,
+    namedContainers: state.listPage.ui.namedContainers,
 });
 
 const actions = {

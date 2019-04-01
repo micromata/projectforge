@@ -24,8 +24,11 @@
 package org.projectforge.web;
 
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
+import org.projectforge.menu.Menu;
 import org.projectforge.menu.MenuItem;
+import org.projectforge.menu.builder.FavoritesMenuCreator;
 import org.projectforge.menu.builder.MenuCreator;
 import org.projectforge.menu.builder.MenuCreatorContext;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,46 +42,59 @@ import java.util.List;
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 @Service
-public class MenuBuilder {
+public class WicketMenuBuilder {
   @Autowired
   private MenuCreator menuCreator;
 
   @Autowired
+  private FavoritesMenuCreator favoritesMenuCreator;
+
+  @Autowired
   private MenuItemRegistry menuItemRegistry;
 
-  public Menu getMenu(final PFUserDO user) {
+  public WicketMenu getFavoriteMenu() {
+    Menu menu = favoritesMenuCreator.getDefaultFavoriteMenu();
+    return buildMenuTree(menu);
+  }
+
+  public WicketMenu getMenu(final PFUserDO user) {
     return buildMenuTree(user);
   }
 
-  private Menu buildMenuTree(final PFUserDO user) {
+  private WicketMenu buildMenuTree(final PFUserDO user) {
     if (user == null) {
       return null;
     }
-    final Menu menu = new Menu();
-    List<MenuItem> topMenus = menuCreator.build(new MenuCreatorContext(user, false));
-    for (MenuItem item : topMenus) {
-      MenuEntry entry = createMenuEntry(item, menu);
-      menu.addMenuEntry(entry);
+    Menu menu = menuCreator.build(new MenuCreatorContext(user, false));
+    return buildMenuTree(menu);
+  }
+
+  private WicketMenu buildMenuTree(Menu menu) {
+    WicketMenu wicketMenu = new WicketMenu();
+    for (MenuItem item : menu.getMenuItems()) {
+      WicketMenuEntry entry = createMenuEntry(item, menu);
+      wicketMenu.addMenuEntry(entry);
       if (CollectionUtils.isNotEmpty(item.getSubMenu())) {
         buildMenuTree(entry, item, menu);
       }
     }
-    return menu;
+    return wicketMenu;
   }
 
-  private void buildMenuTree(MenuEntry parent, MenuItem parentItem, Menu menu) {
+  private void buildMenuTree(WicketMenuEntry parent, MenuItem parentItem, Menu menu) {
     for (MenuItem item : parentItem.getSubMenu()) {
-      MenuEntry entry = createMenuEntry(item, menu);
+      WicketMenuEntry entry = createMenuEntry(item, menu);
       parent.addMenuEntry(entry);
     }
   }
 
-  private MenuEntry createMenuEntry(MenuItem item, Menu menu) {
-    MenuEntry entry = new MenuEntry();
+  private WicketMenuEntry createMenuEntry(MenuItem item, Menu menu) {
+    WicketMenuEntry entry = new WicketMenuEntry();
     entry.id = item.getKey();
+    if (StringUtils.isNotBlank(item.getTitle()))
+      entry.name = item.getTitle();
     entry.pageClass = menuItemRegistry.getPageClass(item.getId());
-    entry.i18nKey = item.getTitle();
-    entry.setMenu(menu);
+    entry.i18nKey = item.getI18nKey();
     return entry;
   }
 }
