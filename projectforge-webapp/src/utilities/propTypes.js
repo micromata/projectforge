@@ -34,6 +34,7 @@ export const colorPropType = PropTypes.oneOf([
 
 export const selectProps = {
     id: PropTypes.string.isRequired,
+    additionalLabel: PropTypes.string,
     color: colorPropType,
     label: PropTypes.string,
     options: PropTypes.oneOfType([
