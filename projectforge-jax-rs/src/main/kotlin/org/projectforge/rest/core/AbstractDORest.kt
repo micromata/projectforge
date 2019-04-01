@@ -10,6 +10,7 @@ import org.projectforge.framework.persistence.api.ExtendedBaseDO
 import org.projectforge.model.rest.RestPaths
 import org.projectforge.rest.JsonUtils
 import org.projectforge.ui.ElementsRegistry
+import org.projectforge.ui.LayoutContext
 import org.projectforge.ui.UILayout
 import org.projectforge.ui.ValidationError
 import org.springframework.beans.BeanUtils
@@ -36,6 +37,7 @@ abstract class AbstractDORest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F : BaseS
                 filterClazz: Class<F>) {
         this.baseDaoClazz = baseDaoClazz
         this.filterClazz = filterClazz
+        this.lc = LayoutContext(newBaseDO()::class.java)
     }
 
     private val log = org.slf4j.LoggerFactory.getLogger(AbstractDORest::class.java)
@@ -60,7 +62,12 @@ abstract class AbstractDORest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F : BaseS
 
     private var _baseDao: B? = null
 
-    val baseDao: B
+    /**
+     * The layout context is needed to examine the data objects for maxLength, nullable, dataType etc.
+     */
+    protected val lc : LayoutContext
+
+    protected val baseDao: B
         get() {
             if (_baseDao == null) {
                 _baseDao = applicationContext.getBean(baseDaoClazz)
@@ -68,9 +75,9 @@ abstract class AbstractDORest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F : BaseS
             return _baseDao ?: throw AssertionError("Set to null by another thread")
         }
 
-    var baseDaoClazz: Class<B>
+    protected var baseDaoClazz: Class<B>
 
-    var filterClazz: Class<F>
+    protected var filterClazz: Class<F>
 
     @Autowired
     private lateinit var accessChecker: AccessChecker
@@ -88,7 +95,7 @@ abstract class AbstractDORest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F : BaseS
 
     abstract fun createListLayout(): UILayout
 
-    abstract fun createEditLayout(dataObject: O?, inlineLabels: Boolean = true): UILayout
+    abstract fun createEditLayout(dataObject: O?): UILayout
 
     open fun validate(validationErrors: MutableList<ValidationError>, obj: O) {
     }
@@ -186,19 +193,18 @@ abstract class AbstractDORest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F : BaseS
     /**
      * Gets the item including the layout data at default.
      * @param id Id of the item to get or null, for new items (null  will be returned)
-     * @param inlineLabels If true (default) all labels and additionalLabels will be attached to the input fields, otherwise
      * a group with a separate label and input field will be generated.
      * layout will be also included if the id is not given.
      */
     @GET
     @Path("edit")
     @Produces(MediaType.APPLICATION_JSON)
-    fun getItemAndLayout(@QueryParam("id") id: Int?, @QueryParam("inlineLabels") inlineLabels: Boolean?): Response {
+    fun getItemAndLayout(@QueryParam("id") id: Int?): Response {
         val item: O
         if (id != null) {
             item = getById(id)
         } else item = newBaseDO()
-        val result = EditLayoutData(item, createEditLayout(item, inlineLabels = !(inlineLabels == false)))
+        val result = EditLayoutData(item, createEditLayout(item))
         return RestHelper.buildResponse(result)
     }
 
