@@ -157,6 +157,47 @@ function InputTestPage() {
                                 },
                             ]}
                         />
+                        <UncontrolledSelect
+                            id="select-with-additional-title"
+                            label="Zusätzlicher Titel"
+                            options={[
+                                {
+                                    value: 'book',
+                                    title: 'Buch',
+                                },
+                                {
+                                    value: 'magazine',
+                                    title: 'Magazin',
+                                },
+                                {
+                                    value: 'article',
+                                    title: 'Artikel',
+                                },
+                                {
+                                    value: 'newspaper',
+                                    title: 'Zeitung',
+                                },
+                                {
+                                    value: 'periodical',
+                                    title: 'Periodika',
+                                },
+                                {
+                                    value: 'film',
+                                    title: 'Film (Datenträger)',
+                                },
+                                {
+                                    value: 'software',
+                                    title: 'Software (Datenträger)',
+                                },
+                                {
+                                    value: 'misc',
+                                    title: 'Sonstiges',
+                                },
+                            ]}
+                            additionalLabel="Zusätzlicher Titel"
+                        />
+                    </Col>
+                    <Col sm style={{ fontSize: '14px' }}>
                         <h2>Text Area</h2>
                         <TextArea label="Long Text" id="textarea-example" />
                         <TextArea
@@ -177,49 +218,12 @@ function InputTestPage() {
                             color="danger"
                             rows={1}
                         />
-                    </Col>
-                    <Col sm style={{ fontSize: '14px' }}>
-                        <h1>Alte Bootstrap Inputs</h1>
-                        <FormGroup row>
-                            <Col sm={2}>
-                                <BootstrapLabel>
-                                    Mail
-                                </BootstrapLabel>
-                            </Col>
-                            <Col sm={10}>
-                                <BootstrapInput />
-                            </Col>
-                        </FormGroup>
-                        <FormGroup row>
-                            <Col sm={2}>
-                                <BootstrapLabel>
-                                    Passwort
-                                </BootstrapLabel>
-                            </Col>
-                            <Col sm={10}>
-                                <BootstrapInput />
-                            </Col>
-                        </FormGroup>
-                        <FormGroup row>
-                            <Col sm={2}>
-                                <BootstrapLabel>
-                                    Name
-                                </BootstrapLabel>
-                            </Col>
-                            <Col sm={10}>
-                                <BootstrapInput />
-                            </Col>
-                        </FormGroup>
-                        <FormGroup row>
-                            <Col sm={2}>
-                                <BootstrapLabel>
-                                    Telefon
-                                </BootstrapLabel>
-                            </Col>
-                            <Col sm={10}>
-                                <BootstrapInput />
-                            </Col>
-                        </FormGroup>
+                        <TextArea
+                            label="Default mit zusätzlichem Titel"
+                            id="textarea-example-additional-title"
+                            rows={1}
+                            additionalLabel="Zusätzlicher Titel"
+                        />
                     </Col>
                 </Row>
             </CardBody>
