@@ -39,8 +39,9 @@ class LayoutInput extends Component {
 
     render() {
         const {
-            id,
             data,
+            focus,
+            id,
             label,
             maxLength,
             required,
@@ -81,6 +82,10 @@ class LayoutInput extends Component {
             properties.additionalLabel = validation[id];
         }
 
+        if (focus) {
+            properties.autoFocus = true;
+        }
+
         return (
             <Tag
                 label={label}
@@ -94,28 +99,30 @@ class LayoutInput extends Component {
 }
 
 LayoutInput.propTypes = {
+    data: dataPropType.isRequired,
     label: PropTypes.string.isRequired,
     changeDataField: PropTypes.func,
-    data: dataPropType.isRequired,
+    focus: PropTypes.bool,
     id: PropTypes.string,
+    maxLength: PropTypes.number,
+    required: PropTypes.bool,
     type: PropTypes.string,
+    validation: PropTypes.shape({}),
     values: PropTypes.arrayOf(PropTypes.shape({
         value: PropTypes.string,
         title: PropTypes.string,
     })),
-    maxLength: PropTypes.number,
-    required: PropTypes.bool,
-    validation: PropTypes.shape({}),
 };
 
 LayoutInput.defaultProps = {
     changeDataField: undefined,
+    focus: false,
     id: undefined,
-    type: 'TEXT',
-    values: [],
     maxLength: 0,
     required: false,
+    type: 'TEXT',
     validation: {},
+    values: [],
 };
 
 export default LayoutInput;
