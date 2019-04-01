@@ -1,9 +1,17 @@
 import PropTypes from 'prop-types';
 import React from 'react';
 import { Card, CardBody, Table } from '../../../../design';
+import AnimatedChevron from '../../../../design/input/chevron/Animated';
 import TableRow from './Row';
 
-function LayoutTable({ columns, data, id }) {
+function LayoutTable(
+    {
+        columns,
+        data,
+        id,
+        sorting,
+    },
+) {
     let rows = data[id];
 
     if (rows === undefined) {
@@ -16,11 +24,20 @@ function LayoutTable({ columns, data, id }) {
                 <Table striped hover responsive>
                     <thead>
                         <tr>
-                            {columns.map(column => (
-                                <th key={`table-head-column-${column.id}`}>
-                                    {column.title}
-                                </th>
-                            ))}
+                            {columns.map((column) => {
+                                let sortingDirection = 'neutral';
+
+                                if (sorting.column === column.id) {
+                                    sortingDirection = sorting.direction === 'ASC' ? 'down' : 'up';
+                                }
+
+                                return (
+                                    <th key={`table-head-column-${column.id}`}>
+                                        <AnimatedChevron direction={sortingDirection} />
+                                        {column.title}
+                                    </th>
+                                );
+                            })}
                         </tr>
                     </thead>
                     <tbody>
@@ -45,11 +62,16 @@ LayoutTable.propTypes = {
     })).isRequired,
     data: PropTypes.shape({}),
     id: PropTypes.string,
+    sorting: PropTypes.shape({
+        column: PropTypes.string,
+        direction: PropTypes.oneOf(['ASC', 'DESC']),
+    }),
 };
 
 LayoutTable.defaultProps = {
     data: [],
     id: undefined,
+    sorting: undefined,
 };
 
 export default LayoutTable;
