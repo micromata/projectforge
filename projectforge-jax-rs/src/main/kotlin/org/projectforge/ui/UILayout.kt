@@ -8,13 +8,6 @@ class UILayout {
         this.title = LayoutUtils.getLabelTransformation(title)
     }
 
-    companion object {
-        fun UIEditLayout(i18nPrefix:String, dataObject: ExtendedBaseDO<Int>?): UILayout {
-            val titleKey = if (dataObject?.id != null) "$i18nPrefix.edit" else "$i18nPrefix.add"
-            return UILayout(titleKey)
-        }
-    }
-
     var title: String?
     val layout: MutableList<UIElement> = mutableListOf()
     val namedContainers: MutableList<UINamedContainer> = mutableListOf()

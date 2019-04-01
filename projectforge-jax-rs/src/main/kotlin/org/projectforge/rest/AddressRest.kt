@@ -14,7 +14,7 @@ import javax.ws.rs.Path
 @Component
 @Path("addresses")
 open class AddressRest()
-    : AbstractDORest<AddressDO, AddressDao, AddressFilter>(AddressDao::class.java, AddressFilter::class.java) {
+    : AbstractDORest<AddressDO, AddressDao, AddressFilter>(AddressDao::class.java, AddressFilter::class.java, "address.title") {
 
     private val log = org.slf4j.LoggerFactory.getLogger(AddressRest::class.java)
 
@@ -31,9 +31,7 @@ open class AddressRest()
     }
 
     override fun validate(validationErrors: MutableList<ValidationError>, obj: AddressDO) {
-        if (StringUtils.isBlank(obj.name) == true
-                && StringUtils.isBlank(obj.firstName) == true
-                && StringUtils.isBlank(obj.organization) == true) {
+        if (StringUtils.isAllBlank(obj.name, obj.firstName, obj.organization)) {
             validationErrors.add(ValidationError(translate("address.form.error.toFewFields"), fieldId = "name"))
         }
     }
@@ -42,7 +40,7 @@ open class AddressRest()
      * LAYOUT List page
      */
     override fun createListLayout(): UILayout {
-        val layout = UILayout("address.title.list")
+        val layout = super.createListLayout()
                 .add(UITable.UIResultSetTable()
                         .add(lc, "lastUpdate", "imageDataPreview", "name", "firstName", "organization", "email")
                         .add(UITableColumn("phoneNumbers", "address.phoneNumbers", dataType = UIDataType.CUSTOMIZED))
@@ -59,7 +57,7 @@ open class AddressRest()
      * LAYOUT Edit page
      */
     override fun createEditLayout(dataObject: AddressDO?): UILayout {
-        val layout = UILayout.UIEditLayout("address.title", dataObject)
+        val layout = super.createEditLayout(dataObject)
                 .add(UIGroup()
                         .add(UIMultiSelect("addressbookList", lc)))
                 .add(UIRow()
