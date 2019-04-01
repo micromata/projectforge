@@ -7,6 +7,7 @@ import de.micromata.genome.db.jpa.history.entities.PropertyOpType
 import org.projectforge.business.multitenancy.TenantRegistryMap
 import org.projectforge.common.i18n.I18nEnum
 import org.projectforge.common.props.PropUtils
+import org.projectforge.framework.i18n.TimeAgo
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.springframework.stereotype.Component
@@ -22,6 +23,7 @@ class HistoryService {
 
     data class DisplayHistoryEntry(
             var modifiedAt: Date? = null,
+            var timeAgo: String? = null,
             var modifiedByUserId: String? = null,
             var modifiedByUser: String? = null,
             var operationType: EntityOpType? = null,
@@ -50,6 +52,7 @@ class HistoryService {
             }
             val entry = DisplayHistoryEntry(
                     modifiedAt = it.modifiedAt,
+                    timeAgo = TimeAgo.getMessage(it.modifiedAt),
                     modifiedByUserId = it.modifiedBy,
                     modifiedByUser = user?.fullname,
                     operationType = it.entityOpType,
