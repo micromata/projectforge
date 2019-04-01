@@ -5,6 +5,10 @@ const TIMESTAMP_MINUTES_FORMATTER = 'TIMESTAMP_MINUTES';
 export const TEXT_SINCE_TIMESTAMP = 'TEXT_SINCE_TIMESTAMP';
 
 const format = (formatter, data) => {
+    if (!data) {
+        return '';
+    }
+
     switch (formatter) {
         case USER_FORMATTER:
             return data.fullname;

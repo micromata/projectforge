@@ -60,3 +60,8 @@ export const dataPropType = PropTypes.objectOf(PropTypes.oneOfType([
     ])),
     PropTypes.arrayOf(PropTypes.shape({})),
 ]));
+
+export const tableColumnsPropType = PropTypes.arrayOf(PropTypes.shape({
+    id: PropTypes.string,
+    title: PropTypes.string,
+}));
