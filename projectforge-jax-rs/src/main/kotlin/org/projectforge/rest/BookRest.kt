@@ -20,7 +20,7 @@ import javax.ws.rs.core.Response
 
 @Component
 @Path("books")
-open class BookRest() : AbstractDORest<BookDO, BookDao, BookFilter>(BookDao::class.java, BookFilter::class.java) {
+open class BookRest() : AbstractDORest<BookDO, BookDao, BookFilter>(BookDao::class.java, BookFilter::class.java, "book.title") {
 
     private val log = org.slf4j.LoggerFactory.getLogger(BookRest::class.java)
 
@@ -55,7 +55,7 @@ open class BookRest() : AbstractDORest<BookDO, BookDao, BookFilter>(BookDao::cla
     }
 
     /**
-     * Lends the given book out by the logged-in user.
+     * Returns the given book by the logged-in user.
      */
     @POST
     @Path("returnBook")
@@ -73,7 +73,7 @@ open class BookRest() : AbstractDORest<BookDO, BookDao, BookFilter>(BookDao::cla
      * LAYOUT List page
      */
     override fun createListLayout(): UILayout {
-        val layout = UILayout("book.title.list")
+        val layout = super.createListLayout()
                 .add(UITable.UIResultSetTable()
                         .add(lc, "created", "yearOfPublishing", "signature", "authors", "title", "keywords", "lendOutBy"))
         layout.getTableColumnById("created").formatter = Formatter.TIMESTAMP_MINUTES
@@ -87,7 +87,7 @@ open class BookRest() : AbstractDORest<BookDO, BookDao, BookFilter>(BookDao::cla
      * LAYOUT Edit page
      */
     override fun createEditLayout(dataObject: BookDO?): UILayout {
-        val layout = UILayout.UIEditLayout("book.title", dataObject)
+        val layout = super.createEditLayout( dataObject)
                 .add(lc, "title", "authors")
                 .add(UIRow()
                         .add(UICol(6)

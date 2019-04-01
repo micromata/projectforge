@@ -34,9 +34,11 @@ import javax.ws.rs.core.Response
 @Component
 abstract class AbstractDORest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F : BaseSearchFilter> {
     constructor(baseDaoClazz: Class<B>,
-                filterClazz: Class<F>) {
+                filterClazz: Class<F>,
+                i18nKeyPrefix: String) {
         this.baseDaoClazz = baseDaoClazz
         this.filterClazz = filterClazz
+        this.i18nKeyPrefix = i18nKeyPrefix
         this.lc = LayoutContext(newBaseDO()::class.java)
     }
 
@@ -65,7 +67,9 @@ abstract class AbstractDORest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F : BaseS
     /**
      * The layout context is needed to examine the data objects for maxLength, nullable, dataType etc.
      */
-    protected val lc : LayoutContext
+    protected val lc: LayoutContext
+
+    protected val i18nKeyPrefix: String
 
     protected val baseDao: B
         get() {
@@ -93,9 +97,14 @@ abstract class AbstractDORest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F : BaseS
 
     abstract fun newBaseDO(): O
 
-    abstract fun createListLayout(): UILayout
+    open fun createListLayout(): UILayout {
+        return UILayout("$i18nKeyPrefix.list")
+    }
 
-    abstract fun createEditLayout(dataObject: O?): UILayout
+    open fun createEditLayout(dataObject: O?): UILayout {
+        val titleKey = if (dataObject?.id != null) "$i18nKeyPrefix.edit" else "$i18nKeyPrefix.add"
+        return UILayout(titleKey)
+    }
 
     open fun validate(validationErrors: MutableList<ValidationError>, obj: O) {
     }
