@@ -26,6 +26,7 @@ function HistoryEntry(
     {
         entry: {
             diffEntries,
+            timeAgo,
             modifiedAt,
             modifiedByUser,
         },
@@ -89,7 +90,7 @@ function HistoryEntry(
                 </Col>
                 <Col>
                     <span className={style.modifiedAt}>
-                        <i id={dateId}>{format(TEXT_SINCE_TIMESTAMP, modifiedAt)}</i>
+                        <i id={dateId}>{timeAgo}</i>
                         <UncontrolledTooltip
                             placement="left"
                             target={dateId}
