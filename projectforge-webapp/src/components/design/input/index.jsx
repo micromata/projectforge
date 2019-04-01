@@ -2,6 +2,7 @@ import classNames from 'classnames';
 import PropTypes from 'prop-types';
 import React from 'react';
 import { colorPropType } from '../../../utilities/propTypes';
+import AdditionalLabel from './AdditionalLabel';
 import style from './Input.module.scss';
 
 function Input(
@@ -37,9 +38,7 @@ function Input(
                 />
                 <span className={style.text}>{label}</span>
             </label>
-            <div className={style.subLine}>
-                {additionalLabel ? <span>{additionalLabel}</span> : undefined}
-            </div>
+            <AdditionalLabel title={additionalLabel} />
         </div>
     );
 }

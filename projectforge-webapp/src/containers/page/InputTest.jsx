@@ -111,6 +111,11 @@ function InputTestPage() {
                             id="checkbox-default"
                             label="Default"
                         />
+                        <CheckBox
+                            id="checkbox-with-additional-label"
+                            label="Checkbox mit Additional Label"
+                            additionalLabel="Additional Label"
+                        />
                     </Col>
                     <Col sm>
                         <h2>Select</h2>
