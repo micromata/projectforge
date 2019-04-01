@@ -93,11 +93,11 @@ public abstract class NavAbstractPanel extends Panel {
 
   static protected Label getSuffixLabel(final WicketMenuEntry menuEntry) {
     final Label suffixLabel;
-    final IModel<Integer> newCounterModel = menuEntry != null ? menuEntry.getNewCounterModel() : null;
+    final IModel<Integer> newCounterModel = menuEntry != null ? menuEntry.getBadgeCounter() : null;
     if (newCounterModel != null && newCounterModel.getObject() != null) {
       suffixLabel = new MenuSuffixLabel(newCounterModel);
-      if (menuEntry != null && menuEntry.getNewCounterTooltip() != null) {
-        WicketUtils.addTooltip(suffixLabel, new ResourceModel(menuEntry.getNewCounterTooltip()));
+      if (menuEntry != null && menuEntry.getBadgeCounterTooltip() != null) {
+        WicketUtils.addTooltip(suffixLabel, new ResourceModel(menuEntry.getBadgeCounterTooltip()));
       }
     } else {
       suffixLabel = new Label("suffix");
