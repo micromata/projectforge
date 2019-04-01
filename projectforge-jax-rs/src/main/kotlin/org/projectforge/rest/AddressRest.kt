@@ -5,7 +5,6 @@ import org.apache.commons.lang3.StringUtils
 import org.projectforge.business.address.*
 import org.projectforge.framework.i18n.translate
 import org.projectforge.rest.core.AbstractDORest
-import org.projectforge.rest.json.JsonCreator
 import org.projectforge.ui.*
 import org.springframework.stereotype.Component
 import java.lang.reflect.Type
@@ -15,6 +14,10 @@ import javax.ws.rs.Path
 @Path("addresses")
 open class AddressRest()
     : AbstractDORest<AddressDO, AddressDao, AddressFilter>(AddressDao::class.java, AddressFilter::class.java, "address.title") {
+
+    init {
+        restHelper.add(AddressbookDO::class.java, AddressbookDOSerializer())
+    }
 
     private val log = org.slf4j.LoggerFactory.getLogger(AddressRest::class.java)
 
@@ -108,12 +111,6 @@ open class AddressRest()
             result.add("id", JsonPrimitive(obj.id))
             result.add("title", JsonPrimitive(obj.title))
             return result
-        }
-    }
-
-    companion object {
-        init {
-            JsonCreator.add(AddressbookDO::class.java, AddressbookDOSerializer())
         }
     }
 }

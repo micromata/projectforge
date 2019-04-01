@@ -31,6 +31,6 @@ class MenuRest {
         val mainMenu = menuCreator.build(MenuCreatorContext(ThreadLocalUserContext.getUser()))
         val favoritesMenu = favoritesMenuCreator.getDefaultFavoriteMenu()
         val menu = Menus(mainMenu, favoritesMenu)
-        return RestHelper.buildResponse(menu)
+        return RestHelper().buildResponse(menu)
     }
 }
