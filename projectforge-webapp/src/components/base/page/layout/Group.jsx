@@ -7,7 +7,7 @@ import CustomizedLayout from './customized';
 import LayoutInput from './Input';
 import LayoutLabel from './Label';
 import LayoutSelect from './Select';
-import LayoutTable from './Table';
+import LayoutTable from './table';
 
 function LayoutGroup(
     {
