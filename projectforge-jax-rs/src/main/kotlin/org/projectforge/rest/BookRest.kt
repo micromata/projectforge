@@ -5,7 +5,6 @@ import org.projectforge.business.book.*
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.getUserId
 import org.projectforge.rest.core.AbstractDORest
-import org.projectforge.rest.core.RestHelper
 import org.projectforge.rest.core.Validation
 import org.projectforge.ui.*
 import org.projectforge.ui.Formatter
@@ -51,7 +50,7 @@ open class BookRest() : AbstractDORest<BookDO, BookDao, BookFilter>(BookDao::cla
     fun lendOut(book: BookDO): Response {
         book.setLendOutDate(Date())
         baseDao.setLendOutBy(book, getUserId())
-        return RestHelper.saveOrUpdate(baseDao, book, validate(book))
+        return restHelper.saveOrUpdate(baseDao, book, validate(book))
     }
 
     /**
@@ -65,7 +64,7 @@ open class BookRest() : AbstractDORest<BookDO, BookDao, BookFilter>(BookDao::cla
         book.lendOutBy = null
         book.lendOutDate = null
         book.lendOutComment = null
-        return RestHelper.saveOrUpdate(baseDao, book, validate(book))
+        return restHelper.saveOrUpdate(baseDao, book, validate(book))
     }
 
 

@@ -74,6 +74,6 @@ open class UserStatusRest {
                 version = ProjectForgeVersion.VERSION_STRING,
                 releaseTimestamp = ProjectForgeVersion.RELEASE_TIMESTAMP,
                 releaseDate = ProjectForgeVersion.RELEASE_DATE)
-        return RestHelper.buildResponse(Result(userData, systemData))
+        return RestHelper().buildResponse(Result(userData, systemData))
     }
 }

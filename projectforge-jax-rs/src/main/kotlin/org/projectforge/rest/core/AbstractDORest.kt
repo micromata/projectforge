@@ -7,6 +7,7 @@ import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.model.rest.RestPaths
 import org.projectforge.rest.JsonUtils
 import org.projectforge.ui.ElementsRegistry
@@ -83,6 +84,11 @@ abstract class AbstractDORest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F : BaseS
 
     protected var filterClazz: Class<F>
 
+    /**
+     * The React frontend works with local dates.
+     */
+    protected val restHelper = RestHelper(ThreadLocalUserContext.getTimeZone())
+
     @Autowired
     private lateinit var accessChecker: AccessChecker
 
@@ -157,11 +163,11 @@ abstract class AbstractDORest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F : BaseS
     fun getInitialList(@Context request: HttpServletRequest): Response {
         val filter = listFilterService.getSearchFilter(request.session, filterClazz)
         filter.maxRows = 10
-        val list = RestHelper.getList(baseDao, filter)
+        val list = restHelper.getList(baseDao, filter)
         list.forEach { processItemBeforeExport(it) }
         val layout = createListLayout()
         val listData = ListData(resultSet = list)
-        return RestHelper.buildResponse(InitialListData(ui = layout, data = listData, filter = filter))
+        return restHelper.buildResponse(InitialListData(ui = layout, data = listData, filter = filter))
     }
 
     /**
@@ -172,12 +178,12 @@ abstract class AbstractDORest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F : BaseS
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     fun <O> getList(@Context request: HttpServletRequest, filter: F): Response {
-        val list = RestHelper.getList(baseDao, filter)
+        val list = restHelper.getList(baseDao, filter)
         list.forEach { processItemBeforeExport(it) }
         val listData = ListData(resultSet = list)
         val storedFilter = listFilterService.getSearchFilter(request.session, filterClazz)
         BeanUtils.copyProperties(filter, storedFilter)
-        return RestHelper.buildResponse(listData)
+        return restHelper.buildResponse(listData)
     }
 
     /**
@@ -190,7 +196,7 @@ abstract class AbstractDORest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F : BaseS
     @Produces(MediaType.APPLICATION_JSON)
     fun getItem(@PathParam("id") id: Int): Response {
         val item = getById(id)
-        return RestHelper.buildResponse(item)
+        return restHelper.buildResponse(item)
     }
 
     private fun getById(id: Int): O {
@@ -214,7 +220,7 @@ abstract class AbstractDORest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F : BaseS
             item = getById(id)
         } else item = newBaseDO()
         val result = EditLayoutData(item, createEditLayout(item))
-        return RestHelper.buildResponse(result)
+        return restHelper.buildResponse(result)
     }
 
     /**
@@ -233,7 +239,7 @@ abstract class AbstractDORest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F : BaseS
             return Response.status(Response.Status.BAD_REQUEST).build();
         }
         val historyEntries = baseDao.getHistoryEntries(item);
-        return RestHelper.buildResponse(historyService.format(historyEntries))
+        return restHelper.buildResponse(historyService.format(historyEntries))
     }
 
 
@@ -264,7 +270,7 @@ abstract class AbstractDORest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F : BaseS
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     fun saveOrUpdate(obj: O): Response {
-        return RestHelper.saveOrUpdate(baseDao, obj, validate(obj))
+        return restHelper.saveOrUpdate(baseDao, obj, validate(obj))
     }
 
     /**
@@ -275,7 +281,7 @@ abstract class AbstractDORest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F : BaseS
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     fun undelete(obj: O): Response {
-        return RestHelper.undelete(baseDao, obj, validate(obj))
+        return restHelper.undelete(baseDao, obj, validate(obj))
     }
 
     /**
@@ -285,7 +291,7 @@ abstract class AbstractDORest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F : BaseS
     @Path(RestPaths.MARK_AS_DELETED)
     @Consumes(MediaType.APPLICATION_JSON)
     fun markAsDeleted(obj: O): Response {
-        return RestHelper.markAsDeleted(baseDao, obj, validate(obj))
+        return restHelper.markAsDeleted(baseDao, obj, validate(obj))
     }
 
     /**
@@ -295,6 +301,6 @@ abstract class AbstractDORest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F : BaseS
     @Path(RestPaths.FILTER_RESET)
     @Produces(MediaType.APPLICATION_JSON)
     fun filterReset(@Context request: HttpServletRequest): Response {
-        return RestHelper.buildResponse(listFilterService.getSearchFilter(request.session, filterClazz).reset())
+        return restHelper.buildResponse(listFilterService.getSearchFilter(request.session, filterClazz).reset())
     }
 }
