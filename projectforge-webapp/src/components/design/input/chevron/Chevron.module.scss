@@ -1,0 +1,64 @@
+@import "../../../../assets/style/mixins";
+
+div.chevronContainer {
+  display: inline-block;
+  margin-right: .5em;
+
+  span.animatedChevron {
+    display: block;
+    position: relative;
+    height: 1em;
+    width: 1em;
+    $time: .3s cubic-bezier(.05, .45, .95, .55);
+    @include transition($time);
+    @include transform(translateY(.125em));
+
+    &::before, &::after {
+      content: '';
+      display: block;
+      position: absolute;
+      top: .5em;
+      height: 1px;
+      width: .5em;
+      background-color: #000;
+      @include transition($time);
+      @include transform(rotate(0) scaleY(1.5));
+    }
+
+    &::before {
+      right: 50%;
+    }
+
+    &::after {
+      left: 50%;
+    }
+
+    &.up {
+      @include transform(translateY(-.125em));
+
+      &::before {
+        @include transform(rotate(-40deg) scaleY(1.5));
+        transform-origin: 100% 0;
+      }
+
+      &::after {
+        @include transform(rotate(40deg) scaleY(1.5));
+        transform-origin: 0 0;
+      }
+    }
+
+    &.down {
+      @include transform(translateY(.25em));
+
+      &::before {
+        @include transform(rotate(40deg) scaleY(1.5));
+        transform-origin: 100% 100%;
+      }
+
+      &::after {
+        @include transform(rotate(-40deg) scaleY(1.5));
+        transform-origin: 0 100%;
+      }
+    }
+  }
+}

@@ -15,6 +15,7 @@ const initialState = {
     ui: {},
     data: {},
     category: '',
+    sorting: undefined,
 };
 
 const reducer = (state = initialState, { type, payload }) => {
@@ -32,6 +33,11 @@ const reducer = (state = initialState, { type, payload }) => {
                 filter: payload.filter,
                 ui: payload.ui,
                 data: payload.data,
+                sorting: {
+                    // TODO: MOVE TO SERVER
+                    column: payload.ui.layout[0].columns[0].id,
+                    direction: 'ASC',
+                },
             };
         case LIST_PAGE_LOAD_FAILURE:
             return {
