@@ -11,12 +11,12 @@ import LayoutTable from './table';
 
 function LayoutGroup(
     {
-        changeDataField,
         content,
         data,
         length,
         type,
         validation,
+        ...props
     },
 ) {
     let GroupTag;
@@ -75,9 +75,8 @@ function LayoutGroup(
 
                 return (
                     <Tag
-                        changeDataField={changeDataField}
                         data={data}
-                        validation={validation}
+                        {...props}
                         {...component}
                         key={`layout-group-component-${component.key}-${data.id}`}
                     />
