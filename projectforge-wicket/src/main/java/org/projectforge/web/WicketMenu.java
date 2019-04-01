@@ -29,30 +29,30 @@ import java.util.Collection;
 /**
  * Helper for the web menu.
  */
-public class Menu implements Serializable {
-  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(Menu.class);
+public class WicketMenu implements Serializable {
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(WicketMenu.class);
 
   private static final long serialVersionUID = -4954464926815538198L;
 
-  private final MenuEntry rootMenuEntry = new MenuEntry();
+  private final WicketMenuEntry rootMenuEntry = new WicketMenuEntry();
 
-  public Menu() {
+  public WicketMenu() {
   }
 
-  public Collection<MenuEntry> getMenuEntries() {
+  public Collection<WicketMenuEntry> getMenuEntries() {
     return rootMenuEntry.getSubMenuEntries();
   }
 
-  public MenuEntry findById(final String id) {
+  public WicketMenuEntry findById(final String id) {
     return rootMenuEntry.findById(id);
   }
 
-  public boolean isFirst(final MenuEntry entry) {
+  public boolean isFirst(final WicketMenuEntry entry) {
     return (rootMenuEntry.subMenuEntries != null && rootMenuEntry.subMenuEntries.size() > 0 && rootMenuEntry.subMenuEntries.iterator()
             .next() == entry);
   }
 
-  public void addMenuEntry(MenuEntry entry) {
+  public void addMenuEntry(WicketMenuEntry entry) {
     rootMenuEntry.addMenuEntry(entry);
   }
 }

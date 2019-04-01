@@ -36,6 +36,7 @@ import org.apache.wicket.protocol.http.request.WebClientInfo;
 import org.apache.wicket.request.Request;
 import org.projectforge.Version;
 import org.projectforge.business.multitenancy.TenantService;
+import org.projectforge.business.user.service.UserPreferencesHelper;
 import org.projectforge.framework.configuration.ApplicationContextProvider;
 import org.projectforge.framework.configuration.Configuration;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
@@ -43,7 +44,6 @@ import org.projectforge.framework.persistence.user.api.UserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.persistence.user.entities.TenantDO;
 import org.projectforge.framework.utils.NumberHelper;
-import org.projectforge.web.user.UserPreferencesHelper;
 
 public class MySession extends WebSession
 {

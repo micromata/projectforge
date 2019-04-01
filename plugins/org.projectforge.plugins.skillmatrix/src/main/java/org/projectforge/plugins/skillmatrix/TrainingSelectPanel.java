@@ -35,7 +35,7 @@ import org.apache.wicket.util.convert.IConverter;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.utils.RecentQueue;
 import org.projectforge.web.fibu.ISelectCallerPage;
-import org.projectforge.web.user.UserPreferencesHelper;
+import org.projectforge.business.user.service.UserPreferencesHelper;
 import org.projectforge.web.wicket.AbstractSelectPanel;
 import org.projectforge.web.wicket.WicketUtils;
 import org.projectforge.web.wicket.autocompletion.PFAutoCompleteTextField;

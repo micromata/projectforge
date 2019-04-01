@@ -1,7 +1,9 @@
 import PropTypes from 'prop-types';
 import React, { Component } from 'react';
+import { connect } from 'react-redux';
 import { Link } from 'react-router-dom';
-import { categoryPropType } from '../../../utilities/propTypes';
+import { loadMenu, logoutUser } from '../../../actions';
+import { categoryPropType, menuItemPropType } from '../../../utilities/propTypes';
 import {
     Collapse,
     DropdownItem,
@@ -25,6 +27,12 @@ class Navigation extends Component {
         };
 
         this.toggleMobile = this.toggleMobile.bind(this);
+    }
+
+    componentDidMount() {
+        const { loadNavigation } = this.props;
+
+        loadNavigation();
     }
 
     toggleMobile() {
@@ -97,17 +105,26 @@ class Navigation extends Component {
 }
 
 Navigation.propTypes = {
-    logout: PropTypes.func,
-    categories: PropTypes.arrayOf(categoryPropType),
+    loadNavigation: PropTypes.func.isRequired,
+    logout: PropTypes.func.isRequired,
+    categories: PropTypes.arrayOf(menuItemPropType).isRequired,
     entries: PropTypes.arrayOf(categoryPropType),
     username: PropTypes.string,
 };
 
 Navigation.defaultProps = {
-    logout: undefined,
-    categories: [],
     entries: [],
     username: 'You',
 };
 
-export default Navigation;
+const mapStateToProps = state => ({
+    username: state.authentication.user.fullname,
+    categories: state.menu.categories,
+});
+
+const actions = {
+    loadNavigation: loadMenu,
+    logout: logoutUser,
+};
+
+export default connect(mapStateToProps, actions)(Navigation);

@@ -1,39 +1,44 @@
-import React from 'react';
-import PropTypes from 'prop-types';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faListUl } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import PropTypes from 'prop-types';
+import React from 'react';
+import { menuItemPropType } from '../../../../utilities/propTypes';
+import revisedRandomId from '../../../../utilities/revisedRandomId';
 import {
     Col,
     Container,
+    Dropdown,
     DropdownMenu,
     DropdownToggle,
     Row,
-    UncontrolledDropdown,
 } from '../../../design';
-import Category from './Category';
-import { categoryPropType } from '../../../../utilities/propTypes';
-import revisedRandomId from '../../../../utilities/revisedRandomId';
 import style from '../Navigation.module.scss';
+import Category from './Category';
 
 function countColumnSize(column) {
-    return column.reduce((accumulator, currentValue) => accumulator + currentValue.items.length, 0);
+    return column
+        .reduce((accumulator, currentValue) => accumulator + currentValue.subMenu.length + 1, 0);
 }
 
 function CategoriesDropdown({ categories }) {
+    const [open, setOpen] = React.useState(false);
+
     // Creating an array of columns for the categories.
     const columns = [
         [], [], [], [],
     ];
 
-    // Add the 'General' category to the first column, so it will always be first.
+    // Add the 'Common' category to the first column, so it will always be first.
     columns[0].push(categories[0]);
 
     // Summarized: Balancing the categories to get less white space.
     categories
-    // Remove the first ('general') category.
+    // Remove the first ('common') category.
         .slice(1)
+        // Filter out empty categories
+        .filter(category => category.subMenu)
         // Sort the categories by their items size.
-        .sort((categoryA, categoryB) => categoryB.items.length - categoryA.items.length)
+        .sort((categoryA, categoryB) => categoryB.subMenu.length - categoryA.subMenu.length)
         // forEach through all categories.
         .forEach(category => columns
         // Compare all columns and get the smallest one.
@@ -43,23 +48,24 @@ function CategoriesDropdown({ categories }) {
             .push(category));
 
     return (
-        <UncontrolledDropdown>
+        <Dropdown isOpen={open} toggle={() => setOpen(!open)}>
             <DropdownToggle nav caret>
                 <FontAwesomeIcon icon={faListUl} />
             </DropdownToggle>
             <DropdownMenu className={style.categoryListDropdownMenu}>
                 <Container>
                     <Row>
-                        {columns.map(chest => (
+                        {columns.map(column => (
                             <Col
                                 md={3}
-                                key={`column-${revisedRandomId()}`}
+                                key={`menu-column-${revisedRandomId()}`}
                                 className={style.categoryColumn}
                             >
-                                {chest.map(category => (
+                                {column.map(category => (
                                     <Category
                                         category={category}
-                                        key={`category-${category.name}`}
+                                        key={`category-${category.title}`}
+                                        closeMenu={() => setOpen(false)}
                                     />
                                 ))}
                             </Col>
@@ -67,12 +73,12 @@ function CategoriesDropdown({ categories }) {
                     </Row>
                 </Container>
             </DropdownMenu>
-        </UncontrolledDropdown>
+        </Dropdown>
     );
 }
 
 CategoriesDropdown.propTypes = {
-    categories: PropTypes.arrayOf(categoryPropType).isRequired,
+    categories: PropTypes.arrayOf(menuItemPropType).isRequired,
 };
 
 export default CategoriesDropdown;

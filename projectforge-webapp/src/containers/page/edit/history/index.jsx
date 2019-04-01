@@ -64,7 +64,7 @@ class EditHistory extends React.Component {
             <LoadingContainer loading={loading}>
                 {history.map(entry => (
                     <HistoryEntry
-                        key={`history-entry-at-${entry['modified-at']}`}
+                        key={`history-entry-at-${entry.modifiedAt}`}
                         entry={entry}
                     />
                 ))}

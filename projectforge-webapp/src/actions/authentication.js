@@ -43,8 +43,8 @@ export const loadUserStatus = () => (dispatch) => {
     )
         .then(handleHTTPErrors)
         .then(response => response.json())
-        .then((json) => {
-            dispatch(userLoginSuccess(json['user-data'], json['system-data'].version));
+        .then(({ userData, systemData }) => {
+            dispatch(userLoginSuccess(userData, systemData.version));
         })
         .catch(catchError(dispatch));
 };
@@ -71,4 +71,5 @@ export const login = (username, password, keepSignedIn) => (dispatch) => {
         .catch(catchError(dispatch));
 };
 
-export const logout = () => dispatch => dispatch(userLogout());
+export const logout = () => dispatch => fetch(getServiceURL('../rs/logout'))
+    .then(() => dispatch(userLogout()));

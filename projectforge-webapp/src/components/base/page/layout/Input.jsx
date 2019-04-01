@@ -21,7 +21,7 @@ class LayoutInput extends Component {
         let newValue;
 
         switch (type) {
-            case 'checkbox':
+            case 'CHECKBOX':
                 newValue = event.target.checked;
                 break;
             default:
@@ -42,7 +42,7 @@ class LayoutInput extends Component {
             id,
             data,
             label,
-            'max-length': maxLength,
+            maxLength,
             required,
             type,
             validation,
@@ -54,13 +54,13 @@ class LayoutInput extends Component {
 
 
         switch (type) {
-            case 'input':
+            case 'INPUT':
                 Tag = Input;
                 break;
-            case 'textarea':
+            case 'TEXTAREA':
                 Tag = TextArea;
                 break;
-            case 'checkbox':
+            case 'CHECKBOX':
                 Tag = CheckBox;
                 properties.checked = value || false;
                 break;
@@ -69,7 +69,7 @@ class LayoutInput extends Component {
         }
 
         if (
-            type !== 'checkbox'
+            type !== 'CHECKBOX'
             && ((required && !value) || (maxLength && value.length > maxLength))
         ) {
             properties.color = 'danger';
@@ -103,7 +103,7 @@ LayoutInput.propTypes = {
         value: PropTypes.string,
         title: PropTypes.string,
     })),
-    'max-length': PropTypes.number,
+    maxLength: PropTypes.number,
     required: PropTypes.bool,
     validation: PropTypes.shape({}),
 };
@@ -111,9 +111,9 @@ LayoutInput.propTypes = {
 LayoutInput.defaultProps = {
     changeDataField: undefined,
     id: undefined,
-    type: 'text',
+    type: 'TEXT',
     values: [],
-    'max-length': 0,
+    maxLength: 0,
     required: false,
     validation: {},
 };

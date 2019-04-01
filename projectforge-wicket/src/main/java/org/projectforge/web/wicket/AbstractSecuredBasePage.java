@@ -29,6 +29,7 @@ import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.projectforge.business.multitenancy.TenantRegistry;
 import org.projectforge.business.multitenancy.TenantRegistryMap;
 import org.projectforge.business.user.UserXmlPreferencesCache;
+import org.projectforge.business.user.service.UserPreferencesService;
 import org.projectforge.framework.access.AccessChecker;
 import org.projectforge.framework.i18n.MessageParam;
 import org.projectforge.framework.i18n.UserException;
@@ -36,7 +37,6 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.web.LoginPage;
 import org.projectforge.web.session.MySession;
 import org.projectforge.web.user.ChangePasswordPage;
-import org.projectforge.web.user.UserPreferencesHelper;
 
 /**
  * All pages with required login should be derived from this page.
@@ -52,6 +52,9 @@ public abstract class AbstractSecuredBasePage extends AbstractUnsecureBasePage
 
   @SpringBean
   protected transient AccessChecker accessChecker;
+
+  @SpringBean
+  private UserPreferencesService userPreferencesService;
 
   private transient TenantRegistry tenantRegistry;
 
@@ -91,11 +94,11 @@ public abstract class AbstractSecuredBasePage extends AbstractUnsecureBasePage
    * @param key
    * @param value
    * @param persistent If true, the object will be persisted in the database.
-   * @see UserXmlPreferencesCache#putEntry(Integer, String, Object, boolean)
+   * @see UserPreferencesService#putEntry(Integer, String, Object, boolean)
    */
   public void putUserPrefEntry(final String key, final Object value, final boolean persistent)
   {
-    UserPreferencesHelper.putEntry(key, value, persistent);
+    userPreferencesService.putEntry(key, value, persistent);
   }
 
   /**
@@ -104,11 +107,11 @@ public abstract class AbstractSecuredBasePage extends AbstractUnsecureBasePage
    * @param key
    * @return Return a persistent object with this key, if existing, or if not a volatile object with this key, if
    *         existing, otherwise null;
-   * @see UserPreferencesHelper#getEntry(String)
+   * @see UserPreferencesService#getEntry(String)
    */
   public Object getUserPrefEntry(final String key)
   {
-    return UserPreferencesHelper.getEntry(key);
+    return userPreferencesService.getEntry(key);
   }
 
   /**
@@ -119,11 +122,11 @@ public abstract class AbstractSecuredBasePage extends AbstractUnsecureBasePage
    *          from the expected type, otherwise null is returned.
    * @return Return a persistent object with this key, if existing, or if not a volatile object with this key, if
    *         existing, otherwise null;
-   * @see UserPreferencesHelper#getEntry(String)
+   * @see UserPreferencesService#getEntry(String)
    */
   public Object getUserPrefEntry(final Class<?> expectedType, final String key)
   {
-    return UserPreferencesHelper.getEntry(expectedType, key);
+    return userPreferencesService.getEntry(expectedType, key);
   }
 
   /**
@@ -134,7 +137,7 @@ public abstract class AbstractSecuredBasePage extends AbstractUnsecureBasePage
    */
   public Object removeUserPrefEntry(final String key)
   {
-    return UserPreferencesHelper.removeEntry(key);
+    return userPreferencesService.removeEntry(key);
   }
 
   /**
@@ -199,9 +202,6 @@ public abstract class AbstractSecuredBasePage extends AbstractUnsecureBasePage
   }
 
   /**
-   * @param i18nKey key of the message
-   * @param msgParams localized and non-localized message params.
-   * @param params non localized message params (used if no msgParams given).
    * @return The params for the localized message if exist (prepared for using with MessageFormat), otherwise params
    *         will be returned.
    */

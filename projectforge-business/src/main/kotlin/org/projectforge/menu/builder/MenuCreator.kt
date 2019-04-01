@@ -19,18 +19,22 @@ import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.api.IUserRightId
 import org.projectforge.framework.persistence.api.UserRightService.*
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
+import org.projectforge.menu.Menu
 import org.projectforge.menu.MenuBadge
 import org.projectforge.menu.MenuItem
 import org.projectforge.sms.SmsSenderConfig
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
+/**
+ * The menu creator contain all menu entries and provides the method [build] for building the user's customized menu.
+ */
 // open only needed for Wicket (for using proxies)
 @Component
 open class MenuCreator() {
     private val log = org.slf4j.LoggerFactory.getLogger(MenuCreator::class.java)
 
-    internal class MenuHolder() {
+    internal class MenuItemDefHolder() {
         internal val menuItems: MutableList<MenuItemDef> = mutableListOf()
         fun add(menuItem: MenuItemDef): MenuItemDef {
             menuItems.add(menuItem)
@@ -38,7 +42,7 @@ open class MenuCreator() {
         }
     }
 
-    private val menu = MenuHolder()
+    private val menuItemDefHolder = MenuItemDefHolder()
 
     @Autowired
     private lateinit var accessChecker: AccessChecker
@@ -75,11 +79,11 @@ open class MenuCreator() {
     fun addTopLevelMenu(menuItemDef: MenuItemDef) {
         initialize()
         // Check if ID already exists
-        menu.menuItems.forEach {
+        menuItemDefHolder.menuItems.forEach {
             if (it.id == menuItemDef.id)
                 throw IllegalArgumentException(("Duplicated menu ID '${menuItemDef.id}' for entry '${menuItemDef.i18nKey}'"))
         }
-        menu.add(menuItemDef)
+        menuItemDefHolder.add(menuItemDef)
     }
 
     /**
@@ -109,7 +113,7 @@ open class MenuCreator() {
 
     fun findById(id: String): MenuItemDef? {
         initialize()
-        menu.menuItems.forEach {
+        menuItemDefHolder.menuItems.forEach {
             if (it.id == id)
                 return it
             val menuItemDef = findById(it, id)
@@ -137,7 +141,7 @@ open class MenuCreator() {
         initialized = true
         if (!this::configurationService.isInitialized) {
             if (testCase) {
-                menu.add(MenuItemDef(MenuItemDefId.COMMON))
+                menuItemDefHolder.add(MenuItemDef(MenuItemDefId.COMMON))
                 return // This should only occur in test cases.
             }
             log.error("Oups, shouldn't occur. Spring bean not correctly initialized.")
@@ -146,7 +150,7 @@ open class MenuCreator() {
         //
         // COMMON
         //
-        val commonMenu = menu.add(MenuItemDef(MenuItemDefId.COMMON))
+        val commonMenu = menuItemDefHolder.add(MenuItemDef(MenuItemDefId.COMMON))
                 .add(MenuItemDef(MenuItemDefId.CALENDAR, "wa/teamCalendar"))
                 .add(MenuItemDef(MenuItemDefId.TEAMCALENDAR, "wa/wicket/bookmarkable/org.projectforge.web.teamcal.admin.TeamCalListPage"))
                 .add(MenuItemDef(MenuItemDefId.VACATION, "wa/wicket/bookmarkable/org.projectforge.web.vacation.VacationListPage")) // MenuNewCounterVacation()
@@ -165,7 +169,7 @@ open class MenuCreator() {
         //
         // Project management
         //
-        menu.add(MenuItemDef(MenuItemDefId.PROJECT_MANAGEMENT))
+        menuItemDefHolder.add(MenuItemDef(MenuItemDefId.PROJECT_MANAGEMENT))
                 .add(MenuItemDef(MenuItemDefId.TASK_TREE, "wa/taskTree"))
                 .add(MenuItemDef(MenuItemDefId.TIMESHEET_LIST, "wa/timesheetList"))
                 .add(MenuItemDef(MenuItemDefId.MONTHLY_EMPLOYEE_REPORT, "wa/monthlyEmployeeReport"))
@@ -186,7 +190,7 @@ open class MenuCreator() {
         //
         // Human resources
         //
-        menu.add(MenuItemDef(MenuItemDefId.HR,
+        menuItemDefHolder.add(MenuItemDef(MenuItemDefId.HR,
                 checkAccess =
                 { isInGroup(ProjectForgeGroup.HR_GROUP) }))
                 .add(MenuItemDef(MenuItemDefId.EMPLOYEE_LIST, "wa/employeeList",
@@ -198,7 +202,7 @@ open class MenuCreator() {
         //
         // Financial and administrative
         //
-        val fibuMenu = menu.add(MenuItemDef(MenuItemDefId.FIBU,
+        val fibuMenu = menuItemDefHolder.add(MenuItemDef(MenuItemDefId.FIBU,
                 checkAccess = { isInGroup(*FIBU_ORGA_GROUPS) }))
                 .add(MenuItemDef(MenuItemDefId.OUTGOING_INVOICE_LIST, "wa/outgoingInvoiceList",
                         checkAccess = {
@@ -226,7 +230,7 @@ open class MenuCreator() {
         //
         // COST
         //
-        menu.add(MenuItemDef(MenuItemDefId.COST, requiredGroups = *FIBU_ORGA_HR_GROUPS,
+        menuItemDefHolder.add(MenuItemDef(MenuItemDefId.COST, requiredGroups = *FIBU_ORGA_HR_GROUPS,
                 checkAccess = { Configuration.getInstance().isCostConfigured() }))
                 .add(MenuItemDef(MenuItemDefId.ACCOUNT_LIST, "wa/accountList",
                         checkAccess = {
@@ -248,15 +252,13 @@ open class MenuCreator() {
         //
         // REPORTING
         //
-        val reportingMenu = menu.add(MenuItemDef(MenuItemDefId.REPORTING,
+        val reportingMenu = menuItemDefHolder.add(MenuItemDef(MenuItemDefId.REPORTING,
                 checkAccess = {
                     isInGroup(*FIBU_ORGA_HR_GROUPS)
                 }))
                 .add(MenuItemDef(MenuItemDefId.SCRIPT_LIST, "wa/scriptList",
                         requiredGroups = *arrayOf(ProjectForgeGroup.FINANCE_GROUP, ProjectForgeGroup.CONTROLLING_GROUP)))
                 .add(MenuItemDef(MenuItemDefId.SCRIPTING, "wa/scripting",
-                        requiredGroups = *arrayOf(ProjectForgeGroup.FINANCE_GROUP, ProjectForgeGroup.CONTROLLING_GROUP)))
-                .add(MenuItemDef(MenuItemDefId.REPORT_OBJECTIVES, "wa/reportObjectives",
                         requiredGroups = *arrayOf(ProjectForgeGroup.FINANCE_GROUP, ProjectForgeGroup.CONTROLLING_GROUP)))
                 .add(MenuItemDef(MenuItemDefId.REPORT_OBJECTIVES, "wa/reportObjectives",
                         requiredGroups = *arrayOf(ProjectForgeGroup.FINANCE_GROUP, ProjectForgeGroup.CONTROLLING_GROUP)))
@@ -272,7 +274,7 @@ open class MenuCreator() {
         //
         // ORGA
         //
-        menu.add(MenuItemDef(MenuItemDefId.ORGA,
+        menuItemDefHolder.add(MenuItemDef(MenuItemDefId.ORGA,
                 requiredGroups = *FIBU_ORGA_HR_GROUPS))
                 .add(MenuItemDef(MenuItemDefId.OUTBOX_LIST, "wa/outgoingMailList",
                         requiredUserRightId = PostausgangDao.USER_RIGHT_ID, requiredUserRightValues = READONLY_READWRITE))
@@ -287,7 +289,7 @@ open class MenuCreator() {
         //
         // ADMINISTRATION
         //
-        val adminMenu = menu.add(MenuItemDef(MenuItemDefId.ADMINISTRATION, visibleForRestrictedUsers = true))
+        val adminMenu = menuItemDefHolder.add(MenuItemDef(MenuItemDefId.ADMINISTRATION, visibleForRestrictedUsers = true))
                 .add(MenuItemDef(MenuItemDefId.MY_ACCOUNT, "wa/myAccount"))
                 .add(MenuItemDef(MenuItemDefId.MY_PREFERENCES, "wa/userPrefList"))
                 .add(MenuItemDef(MenuItemDefId.VACATION_VIEW, "wa/wicket/bookmarkable/org.projectforge.web.vacation.VacationViewPage",
@@ -332,21 +334,25 @@ open class MenuCreator() {
         //
         // MISC
         //
-        menu.add(MenuItemDef(MenuItemDefId.MISC))
+        menuItemDefHolder.add(MenuItemDef(MenuItemDefId.MISC))
     }
 
-    fun build(menuCreatorContext: MenuCreatorContext): List<MenuItem> {
+    /**
+     * Builds the user's menu.
+     */
+    fun build(menuCreatorContext: MenuCreatorContext): Menu {
         initialize()
-        val root = MenuItem("root", "root")
-        menu.menuItems.forEach { menuItemDef ->
-            build(root, menuItemDef, menuCreatorContext)
+        val menu = Menu()
+        menuItemDefHolder.menuItems.forEach { menuItemDef ->
+            menu.add(build(null, menuItemDef, menuCreatorContext))
         }
-        return root.subMenu!!
+        menu.postProcess()
+        return menu
     }
 
-    private fun build(parent: MenuItem, menuItemDef: MenuItemDef, menuCreatorContext: MenuCreatorContext) {
+    private fun build(parent: MenuItem?, menuItemDef: MenuItemDef, menuCreatorContext: MenuCreatorContext): MenuItem? {
         if (!checkAccess(menuCreatorContext, menuItemDef))
-            return // No access
+            return null// No access
 
         val menuItem = menuItemDef.createMenu(parent, menuCreatorContext)
         menuItem.badge =
@@ -356,10 +362,11 @@ open class MenuCreator() {
                     "OUTGOING_INVOICE_LIST" -> MenuBadge(3)
                     else -> null
                 }
-        parent.add(menuItem)
+        parent?.add(menuItem)
         menuItemDef.childs?.forEach { childMenuItemDef ->
             build(menuItem, childMenuItemDef, menuCreatorContext)
         }
+        return menuItem
     }
 
     private fun checkAccess(menuBuilderContext: MenuCreatorContext, menuItemDef: MenuItemDef): Boolean {

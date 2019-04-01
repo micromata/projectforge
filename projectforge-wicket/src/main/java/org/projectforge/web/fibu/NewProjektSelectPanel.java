@@ -39,10 +39,10 @@ import org.projectforge.business.fibu.ProjektDO;
 import org.projectforge.business.fibu.ProjektDao;
 import org.projectforge.business.fibu.ProjektFavorite;
 import org.projectforge.business.fibu.ProjektFormatter;
+import org.projectforge.business.user.service.UserPreferencesService;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 import org.projectforge.framework.persistence.user.api.UserPrefArea;
 import org.projectforge.framework.utils.RecentQueue;
-import org.projectforge.web.user.UserPreferencesHelper;
 import org.projectforge.web.wicket.AbstractSelectPanel;
 import org.projectforge.web.wicket.WebConstants;
 import org.projectforge.web.wicket.autocompletion.PFAutoCompleteTextField;
@@ -74,6 +74,9 @@ public class NewProjektSelectPanel extends AbstractSelectPanel<ProjektDO> implem
 
   @SpringBean
   private KundeDao kundeDao;
+
+  @SpringBean
+  private UserPreferencesService userPreferencesService;
 
   private RecentQueue<String> recentProjects;
 
@@ -315,11 +318,11 @@ public class NewProjektSelectPanel extends AbstractSelectPanel<ProjektDO> implem
   private RecentQueue<String> getRecentProjects()
   {
     if (this.recentProjects == null) {
-      this.recentProjects = (RecentQueue<String>) UserPreferencesHelper.getEntry(USER_PREF_KEY_RECENT_PROJECTS);
+      this.recentProjects = (RecentQueue<String>) userPreferencesService.getEntry(USER_PREF_KEY_RECENT_PROJECTS);
     }
     if (this.recentProjects == null) {
       this.recentProjects = new RecentQueue<String>();
-      UserPreferencesHelper.putEntry(USER_PREF_KEY_RECENT_PROJECTS, this.recentProjects, true);
+      userPreferencesService.putEntry(USER_PREF_KEY_RECENT_PROJECTS, this.recentProjects, true);
     }
     return this.recentProjects;
   }

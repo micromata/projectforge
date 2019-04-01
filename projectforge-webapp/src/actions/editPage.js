@@ -94,7 +94,7 @@ export const updatePageData = () => (dispatch, getState) => {
                 response.json()
                     .then(json => dispatch(updateFailure(json.reduce((map, obj) => ({
                         ...map,
-                        [obj['field-id']]: obj.message,
+                        [obj.fieldId]: obj.message,
                     }), {}))));
                 return;
             }

@@ -31,6 +31,10 @@
   letter-spacing: .15em;
   color: #031b4e;
   font-size: 11px;
+
+  span.badge {
+    background-color: #031b4e;
+  }
 }
 
 ul.categoryLinks {
@@ -47,8 +51,17 @@ ul.categoryLinks {
     text-decoration: none;
     cursor: pointer;
 
+    span.badge {
+      background-color: #5b6987;
+      font-size: 12px;
+    }
+
     &:hover {
       color: #1a293b;
+
+      span.badge {
+        background-color: #1a293b;
+      }
     }
   }
 }
@@ -72,4 +85,12 @@ ul.categoryLinks {
   @media #{$largeMediaQuery} {
     width: 980px;
   }
+}
+
+span.badge {
+  margin-left: .8em;
+  padding: .2em .5em;
+  background-color: #000;
+  border-radius: 10px;
+  color: #fff;
 }

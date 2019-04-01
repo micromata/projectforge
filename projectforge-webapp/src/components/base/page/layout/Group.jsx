@@ -23,14 +23,14 @@ function LayoutGroup(
     const groupProperties = {};
 
     switch (type) {
-        case 'group':
+        case 'GROUP':
             GroupTag = FormGroup;
             groupProperties.row = true;
             break;
-        case 'row':
+        case 'ROW':
             GroupTag = Row;
             break;
-        case 'col':
+        case 'COL':
             GroupTag = Col;
             groupProperties.sm = length;
             break;
@@ -47,26 +47,26 @@ function LayoutGroup(
                 let Tag;
 
                 switch (component.type) {
-                    case 'label':
+                    case 'LABEL':
                         Tag = LayoutLabel;
                         break;
-                    case 'input':
-                    case 'checkbox':
-                    case 'textarea':
+                    case 'INPUT':
+                    case 'CHECKBOX':
+                    case 'TEXTAREA':
                         Tag = LayoutInput;
                         break;
-                    case 'select':
+                    case 'SELECT':
                         Tag = LayoutSelect;
                         break;
-                    case 'group':
-                    case 'row':
-                    case 'col':
+                    case 'GROUP':
+                    case 'ROW':
+                    case 'COL':
                         Tag = LayoutGroup;
                         break;
-                    case 'table':
+                    case 'TABLE':
                         Tag = LayoutTable;
                         break;
-                    case 'customized':
+                    case 'CUSTOMIZED':
                         Tag = CustomizedLayout;
                         break;
                     default:
@@ -102,7 +102,7 @@ LayoutGroup.propTypes = {
 LayoutGroup.defaultProps = {
     changeDataField: undefined,
     content: [],
-    type: 'container',
+    type: 'CONTAINER',
     length: undefined,
     data: {},
     validation: {},
