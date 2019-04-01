@@ -5,6 +5,7 @@ import org.projectforge.business.user.UserRight
 import org.projectforge.business.user.UserRightValue
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.api.IUserRightId
+import org.projectforge.menu.MenuBadge
 import org.projectforge.menu.MenuItem
 
 /**
@@ -20,6 +21,7 @@ class MenuItemDef {
      */
     constructor(defId: MenuItemDefId,
                 url: String? = null,
+                badgeCounter: (() -> Int?)? = null,
                 checkAccess: (() -> Boolean)? = null,
                 visibleForRestrictedUsers: Boolean = false,
                 requiredUserRightId: IUserRightId? = null,
@@ -28,6 +30,8 @@ class MenuItemDef {
                 vararg requiredGroups: ProjectForgeGroup) {
         this.id = defId.id
         this.i18nKey = defId.getI18nKey()
+        this.badgeCounter = badgeCounter
+        this.badgeTooltipKey = badgeTooltipKey
         this.url = url
         this.checkAccess = checkAccess
         this.visibleForRestrictedUsers = visibleForRestrictedUsers
@@ -65,7 +69,8 @@ class MenuItemDef {
     var requiredUserRight: UserRight? = null
     var requiredUserRightValues: Array<UserRightValue>? = null
 
-    var badgeCounter : (() -> Int?)? = null
+    var badgeCounter: (() -> Int?)? = null
+    var badgeTooltipKey: String? = null
 
     internal var childs: MutableList<MenuItemDef>? = null
 
@@ -102,6 +107,12 @@ class MenuItemDef {
             menuItem.key = "${parentMenu.key}.${id}"
         else
             menuItem.key = "${id}"
+        val counter = badgeCounter?.invoke()
+        if (counter ?: -1 > 0) {
+            menuItem.badge = MenuBadge(counter, style = "danger")
+            if (badgeTooltipKey != null)
+                menuItem.badge?.tooltip = translate(badgeTooltipKey)
+        }
         return menuItem
     }
 }
