@@ -12,7 +12,7 @@ import java.lang.reflect.Type
 import javax.ws.rs.Path
 
 @Component
-@Path("addresses")
+@Path("address")
 open class AddressRest()
     : AbstractDORest<AddressDO, AddressDao, AddressFilter>(AddressDao::class.java, AddressFilter::class.java, "address.title") {
 
@@ -26,7 +26,8 @@ open class AddressRest()
         return AddressDO()
     }
 
-    // TODO Menus: print view, ical export, direct call
+    // TODO Menus: print view, ical export, direct call: see AddressEditPage
+    // TODO: onSaveOrUpdate: see AddressEditPage
 
     /**
      * Clone is supported by addresses.
@@ -43,7 +44,7 @@ open class AddressRest()
     }
 
     override fun afterSaveOrUpdate(obj: AddressDO) {
-        // TODO
+        // TODO: see AddressEditPage
         val address = baseDao.getOrLoad(obj.getId())
         //val personalAddress = form.addressEditSupport.personalAddress
         //personalAddress.setAddress(address)
