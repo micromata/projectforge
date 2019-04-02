@@ -161,6 +161,7 @@ abstract class AbstractDORest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F : BaseS
         val resultSet = restHelper.getList(this, baseDao, filter)
         processResultSetBeforeExport(resultSet)
         val layout = createListLayout()
+                .addTranslation("table.showing")
         return restHelper.buildResponse(InitialListData(ui = layout, data = resultSet, filter = filter))
     }
 
