@@ -14,19 +14,19 @@ import style from './Navigation.module.scss';
 function Entry({ entry }) {
     let content;
 
-    if (entry.items) {
+    if (entry.subMenu) {
         content = (
             <UncontrolledDropdown nav inNavbar>
                 <DropdownToggle nav caret>
-                    {entry.name}
+                    {entry.title}
                 </DropdownToggle>
                 <DropdownMenu>
-                    {entry.items.map(item => (
+                    {entry.subMenu.map(item => (
                         <DropdownItem
-                            key={`entry-item-${entry.name}-${item.name}`}
+                            key={`entry-item-${entry.key}-${item.key}`}
                             className={style.entryItem}
                         >
-                            <Link to={item.url}>{item.name}</Link>
+                            <Link to={`/${item.url}`}>{item.title}</Link>
                         </DropdownItem>
                     ))}
                 </DropdownMenu>
@@ -35,8 +35,8 @@ function Entry({ entry }) {
     } else {
         content = (
             <NavItem>
-                <NavLink tag={Link} to={entry.url}>
-                    {entry.name}
+                <NavLink tag={Link} to={`/${entry.url}`}>
+                    {entry.title}
                 </NavLink>
             </NavItem>
         );

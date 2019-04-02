@@ -3,7 +3,7 @@ import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import { Link } from 'react-router-dom';
 import { loadMenu, logoutUser } from '../../../actions';
-import { badgePropType, categoryPropType, menuItemPropType } from '../../../utilities/propTypes';
+import { badgePropType, menuItemPropType } from '../../../utilities/propTypes';
 import {
     Collapse,
     DropdownItem,
@@ -64,9 +64,9 @@ class Navigation extends Component {
                             ? <CategoriesDropdown categories={categories} badge={badge} />
                             : undefined
                         }
-                        {entries !== null && entries.length > 0
+                        {entries && entries.length > 0
                             ? entries.map(entry => (
-                                <Entry key={`navigation-entry-${entry.name}`} entry={entry} />
+                                <Entry key={`navigation-entry-${entry.key}`} entry={entry} />
                             ))
                             : undefined
                         }
@@ -109,14 +109,13 @@ Navigation.propTypes = {
     loadNavigation: PropTypes.func.isRequired,
     logout: PropTypes.func.isRequired,
     categories: PropTypes.arrayOf(menuItemPropType).isRequired,
+    entries: PropTypes.arrayOf(menuItemPropType).isRequired,
     badge: badgePropType,
-    entries: PropTypes.arrayOf(categoryPropType),
     username: PropTypes.string,
 };
 
 Navigation.defaultProps = {
     badge: undefined,
-    entries: [],
     username: 'You',
 };
 
@@ -124,6 +123,7 @@ const mapStateToProps = state => ({
     username: state.authentication.user.fullname,
     categories: state.menu.categories,
     badge: state.menu.badge,
+    entries: state.menu.favorites,
 });
 
 const actions = {

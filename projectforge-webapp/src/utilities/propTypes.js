@@ -4,16 +4,6 @@ export const menuItemPropType = PropTypes.shape({
     title: PropTypes.string,
 });
 
-export const categoryItemPropType = PropTypes.shape({
-    name: PropTypes.string,
-    url: PropTypes.string,
-});
-
-export const categoryPropType = PropTypes.shape({
-    name: PropTypes.string,
-    items: PropTypes.arrayOf(categoryItemPropType),
-});
-
 export const buttonPropType = PropTypes.shape({
     style: PropTypes.oneOf(['primary', 'secondary', 'success', 'info', 'warning', 'danger', 'link']),
     title: PropTypes.string,
