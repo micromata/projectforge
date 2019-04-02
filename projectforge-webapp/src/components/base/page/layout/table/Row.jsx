@@ -29,9 +29,7 @@ class TableRow extends React.Component {
             >
                 {columns.map(column => (
                     <td key={`table-body-row-${data.id}-column-${column.id}`}>
-                        {column.formatter
-                            ? format(column.formatter, data[column.id])
-                            : data[column.id]}
+                        {format(column.formatter, Object.getByString(data, column.id))}
                     </td>
                 ))}
             </tr>
