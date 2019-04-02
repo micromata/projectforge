@@ -3,7 +3,13 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import classNames from 'classnames';
 import PropTypes from 'prop-types';
 import React from 'react';
-import { Col, Collapse, Container, Row, UncontrolledTooltip, } from '../../../../components/design';
+import {
+    Col,
+    Collapse,
+    Container,
+    Row,
+    UncontrolledTooltip,
+} from '../../../../components/design';
 import DiffText from '../../../../components/design/DiffText';
 import revisedRandomId from '../../../../utilities/revisedRandomId';
 import style from './History.module.scss';
