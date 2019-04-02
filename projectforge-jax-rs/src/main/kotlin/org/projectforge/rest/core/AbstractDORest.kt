@@ -7,7 +7,6 @@ import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
-import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.model.rest.RestPaths
 import org.projectforge.rest.JsonUtils
 import org.projectforge.ui.ElementsRegistry
@@ -18,7 +17,6 @@ import org.springframework.beans.BeanUtils
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationContext
 import org.springframework.stereotype.Component
-import javax.annotation.PostConstruct
 import javax.servlet.http.HttpServletRequest
 import javax.ws.rs.*
 import javax.ws.rs.core.Context
@@ -162,9 +160,11 @@ abstract class AbstractDORest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F : BaseS
     @Path("initial-list")
     @Produces(MediaType.APPLICATION_JSON)
     fun getInitialList(@Context request: HttpServletRequest): Response {
-        val filter = listFilterService.getSearchFilter(request.session, filterClazz)
-        filter.maxRows = 10
-        val list = restHelper.getList(baseDao, filter)
+        val filter: F = listFilterService.getSearchFilter(request.session, filterClazz) as F
+        if (filter.maxRows <= 0)
+            filter.maxRows = 50
+        filter.setSortAndLimitMaxRowsWhileSelect(true)
+        val list = restHelper.getList(this, baseDao, filter)
         list.forEach { processItemBeforeExport(it) }
         val layout = createListLayout()
         val listData = ListData(resultSet = list)
@@ -179,7 +179,7 @@ abstract class AbstractDORest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F : BaseS
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     fun <O> getList(@Context request: HttpServletRequest, filter: F): Response {
-        val list = restHelper.getList(baseDao, filter)
+        val list = restHelper.getList(this, baseDao, filter)
         list.forEach { processItemBeforeExport(it) }
         val listData = ListData(resultSet = list)
         val storedFilter = listFilterService.getSearchFilter(request.session, filterClazz)
@@ -312,5 +312,12 @@ abstract class AbstractDORest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F : BaseS
     }
 
     internal open fun afterUpdate(obj: O) {
+    }
+
+    internal open fun filterList(resultSet: MutableList<O>, filter: F): List<O> {
+        if (filter.maxRows > 0 && resultSet.size > filter.maxRows) {
+            return resultSet.take(filter.maxRows)
+        }
+        return resultSet
     }
 }

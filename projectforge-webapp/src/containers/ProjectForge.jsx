@@ -39,11 +39,11 @@ class ProjectForge extends React.Component {
                             entries={[
                                 {
                                     name: 'Bücher',
-                                    url: '/books/',
+                                    url: '/book/',
                                 },
                                 {
                                     name: 'Adressbücher',
-                                    url: '/addresses/',
+                                    url: '/address/',
                                 },
                                 {
                                     name: 'Input Test',
