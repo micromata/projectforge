@@ -50,7 +50,7 @@ open class BookRest() : AbstractDORest<BookDO, BookDao, BookFilter>(BookDao::cla
     fun lendOut(book: BookDO): Response {
         book.setLendOutDate(Date())
         baseDao.setLendOutBy(book, getUserId())
-        return restHelper.saveOrUpdate(baseDao, book, validate(book))
+        return restHelper.saveOrUpdate(baseDao, book, this, validate(book))
     }
 
     /**
@@ -64,7 +64,7 @@ open class BookRest() : AbstractDORest<BookDO, BookDao, BookFilter>(BookDao::cla
         book.lendOutBy = null
         book.lendOutDate = null
         book.lendOutComment = null
-        return restHelper.saveOrUpdate(baseDao, book, validate(book))
+        return restHelper.saveOrUpdate(baseDao, book, this, validate(book))
     }
 
 

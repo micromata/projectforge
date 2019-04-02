@@ -270,7 +270,7 @@ abstract class AbstractDORest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F : BaseS
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     fun saveOrUpdate(obj: O): Response {
-        return restHelper.saveOrUpdate(baseDao, obj, validate(obj))
+        return restHelper.saveOrUpdate(baseDao, obj, this, validate(obj))
     }
 
     /**
@@ -302,5 +302,14 @@ abstract class AbstractDORest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F : BaseS
     @Produces(MediaType.APPLICATION_JSON)
     fun filterReset(@Context request: HttpServletRequest): Response {
         return restHelper.buildResponse(listFilterService.getSearchFilter(request.session, filterClazz).reset())
+    }
+
+    internal open fun afterSaveOrUpdate(obj: O) {
+    }
+
+    internal open fun afterSave(obj: O) {
+    }
+
+    internal open fun afterUpdate(obj: O) {
     }
 }
