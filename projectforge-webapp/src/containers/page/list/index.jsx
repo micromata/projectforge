@@ -66,6 +66,7 @@ class ListPage extends React.Component {
                     content={ui.layout}
                     data={data}
                     sorting={sorting}
+                    translations={ui.translations}
                 />
             </LoadingContainer>
         );
