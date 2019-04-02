@@ -17,6 +17,7 @@ open class AddressRest()
     : AbstractDORest<AddressDO, AddressDao, AddressFilter>(AddressDao::class.java, AddressFilter::class.java, "address.title") {
 
     private class Address(val address: AddressDO,
+                          val id : Int,
                           var imageUrl: String? = null,
                           var previewImageUrl: String? = null)
 
@@ -125,6 +126,7 @@ open class AddressRest()
     override fun processResultSetBeforeExport(resultSet: ResultSet<Any>) {
         val list: List<Address> = resultSet.resultSet.map { it ->
             Address(it as AddressDO,
+                    id = it.id,
                     imageUrl = if (it.imageData != null) "address/image/${it.id}" else null,
                     previewImageUrl = if (it.imageDataPreview != null) "address/imagePreview/${it.id}" else null)
         }
