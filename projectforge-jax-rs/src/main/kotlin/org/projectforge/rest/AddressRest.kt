@@ -4,6 +4,7 @@ import com.google.gson.*
 import org.apache.commons.lang3.StringUtils
 import org.projectforge.business.address.*
 import org.projectforge.framework.i18n.translate
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.getUserId
 import org.projectforge.rest.core.AbstractDORest
 import org.projectforge.ui.*
 import org.springframework.stereotype.Component
@@ -25,6 +26,8 @@ open class AddressRest()
         return AddressDO()
     }
 
+    // TODO Menus: print view, ical export, direct call
+
     /**
      * Clone is supported by addresses.
      */
@@ -38,6 +41,17 @@ open class AddressRest()
             validationErrors.add(ValidationError(translate("address.form.error.toFewFields"), fieldId = "name"))
         }
     }
+
+    override fun afterSaveOrUpdate(obj: AddressDO) {
+        // TODO
+        val address = baseDao.getOrLoad(obj.getId())
+        //val personalAddress = form.addressEditSupport.personalAddress
+        //personalAddress.setAddress(address)
+        //personalAddressDao.setOwner(personalAddress, getUserId()) // Set current logged in user as owner.
+        //personalAddressDao.saveOrUpdate(personalAddress)
+        //return null
+    }
+
 
     /**
      * LAYOUT List page

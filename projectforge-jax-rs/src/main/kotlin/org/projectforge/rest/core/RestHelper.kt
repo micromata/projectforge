@@ -32,9 +32,15 @@ class RestHelper(val timeZone: TimeZone = TimeZone.getTimeZone("UTC")) {
         return Response.ok(json).build()
     }
 
-    fun <O : ExtendedBaseDO<Int>> saveOrUpdate(baseDao: BaseDao<O>?, obj: O, validationErrorsList: List<ValidationError>?): Response {
+    fun <O : ExtendedBaseDO<Int>, B : BaseDao<O>, F : BaseSearchFilter> saveOrUpdate(baseDao: BaseDao<O>?, obj: O, dataObjectRest: AbstractDORest<O, B, F>, validationErrorsList: List<ValidationError>?): Response {
         if (validationErrorsList.isNullOrEmpty()) {
+            val isNew = obj.id != null
             var id = baseDao!!.saveOrUpdate(obj) ?: obj.id
+            dataObjectRest.afterSaveOrUpdate(obj)
+            if (isNew)
+                dataObjectRest.afterSave(obj)
+            else
+                dataObjectRest.afterUpdate(obj)
             val json = jsonCreator.toJson(id)
             return Response.ok(json).build()
         }
