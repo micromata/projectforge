@@ -9,7 +9,9 @@ import org.projectforge.rest.core.ResultSet
 import org.projectforge.ui.*
 import org.springframework.stereotype.Component
 import java.lang.reflect.Type
-import javax.ws.rs.Path
+import javax.ws.rs.*
+import javax.ws.rs.core.MediaType
+import javax.ws.rs.core.Response
 
 @Component
 @Path("address")
@@ -26,7 +28,34 @@ open class AddressRest()
     }
 
     private val log = org.slf4j.LoggerFactory.getLogger(AddressRest::class.java)
-    
+
+
+    @GET
+    @Path("image/{id}")
+    @Produces(MediaType.APPLICATION_OCTET_STREAM)
+    fun getImage(@PathParam("id") id: Int): Response {
+        val address = baseDao.getById(id)
+        if (address?.imageData == null)
+            return Response.status(Response.Status.NOT_FOUND).build()
+
+        val builder = Response.ok(address.imageData)
+        builder.header("Content-Disposition", "attachment; filename=ProjectForge-addressImage_$id.png")
+        return builder.build()
+    }
+
+    @GET
+    @Path("imagePreview/{id}")
+    @Produces(MediaType.APPLICATION_OCTET_STREAM)
+    fun getImagePreview(@PathParam("id") id: Int): Response {
+        val address = baseDao.getById(id)
+        if (address?.imageData == null)
+            return Response.status(Response.Status.NOT_FOUND).build()
+
+        val builder = Response.ok(address.imageDataPreview)
+        builder.header("Content-Disposition", "attachment; filename=ProjectForge-addressImagePreview_$id.png")
+        return builder.build()
+    }
+
     override fun newBaseDO(): AddressDO {
         return AddressDO()
     }
