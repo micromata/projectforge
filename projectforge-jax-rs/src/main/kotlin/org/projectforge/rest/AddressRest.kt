@@ -17,7 +17,7 @@ open class AddressRest()
     : AbstractDORest<AddressDO, AddressDao, AddressFilter>(AddressDao::class.java, AddressFilter::class.java, "address.title") {
 
     private class Address(val address: AddressDO,
-                          val id : Int,
+                          val id: Int,
                           var imageUrl: String? = null,
                           var previewImageUrl: String? = null)
 
@@ -71,7 +71,7 @@ open class AddressRest()
                         .add(lc, "imageDataPreview")
                         .add(addressLC, "name", "firstName", "organization", "email")
                         .add(UITableColumn("phoneNumbers", "address.phoneNumbers", dataType = UIDataType.CUSTOMIZED))
-                        .add(lc, "addressBooks"))
+                        .add(lc, "addressbookList"))
         LayoutUtils.addListFilterContainer(layout,
                 UICheckbox("filter", label = "filter"),
                 UICheckbox("newest", label = "filter.newest"),
