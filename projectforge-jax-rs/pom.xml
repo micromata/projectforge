@@ -105,6 +105,13 @@
       <artifactId>spring-boot-starter-jersey</artifactId>
     </dependency>
 
+    <!-- https://mvnrepository.com/artifact/org.glassfish.jersey.media/jersey-media-multipart -->
+    <dependency>
+      <groupId>org.glassfish.jersey.media</groupId>
+      <artifactId>jersey-media-multipart</artifactId>
+      <version>${jersey.version}</version>
+    </dependency>
+
     <!-- Is needed because of ClassNotFound exception: -->
     <!-- java.lang.ClassNotFoundException: com.sun.el.ExpressionFactoryImpl -->
     <dependency>

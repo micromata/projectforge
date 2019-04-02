@@ -2,16 +2,20 @@ package org.projectforge.rest
 
 import com.google.gson.*
 import org.apache.commons.lang3.StringUtils
+import org.bouncycastle.asn1.x509.X509ObjectIdentifiers.id
+import org.glassfish.jersey.media.multipart.FormDataMultiPart
 import org.projectforge.business.address.*
 import org.projectforge.framework.i18n.translate
 import org.projectforge.rest.core.AbstractDORest
 import org.projectforge.rest.core.ResultSet
 import org.projectforge.ui.*
 import org.springframework.stereotype.Component
+import java.io.InputStream
 import java.lang.reflect.Type
 import javax.ws.rs.*
 import javax.ws.rs.core.MediaType
 import javax.ws.rs.core.Response
+
 
 @Component
 @Path("address")
@@ -29,6 +33,26 @@ open class AddressRest()
 
     private val log = org.slf4j.LoggerFactory.getLogger(AddressRest::class.java)
 
+    @POST
+    @Path("/uploadImage/{id}")
+    @Consumes(MediaType.MULTIPART_FORM_DATA)
+    fun uploadFile(@PathParam("id") id: Int, form: FormDataMultiPart): Response {
+        val address = baseDao.getById(id)
+        if (address?.imageData == null)
+            return Response.status(Response.Status.NOT_FOUND).build()
+        val filePart = form.getField("file")
+        val headerOfFilePart = filePart.getContentDisposition()
+        val fileInputStream = filePart.getValueAs(InputStream::class.java)
+        val filename = headerOfFilePart.getFileName()
+        if (!filename.endsWith(".png", true)) {
+            return Response.status(Response.Status.BAD_REQUEST).entity("Unsupported file: ${filename}. Only png files supported").build()
+        }
+        val bytes = fileInputStream.readBytes()
+        address.imageData = bytes
+        baseDao.update(address)
+        log.info("New image for address $id saved.")
+        return Response.ok().build()
+    }
 
     @GET
     @Path("image/{id}")
