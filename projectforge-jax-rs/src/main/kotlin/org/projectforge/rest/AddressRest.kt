@@ -130,8 +130,8 @@ open class AddressRest()
         }
         resultSet.resultSet = list
         resultSet.resultSet.forEach { it ->
-            (it as Address).imageUrl = null
-            it.previewImageUrl = null
+            (it as Address).address.imageData = null
+            it.address.imageDataPreview = null
         }
     }
 
