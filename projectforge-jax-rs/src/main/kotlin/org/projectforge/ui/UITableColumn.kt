@@ -1,6 +1,6 @@
 package org.projectforge.ui
 
-data class UITableColumn(val id: String,
+data class UITableColumn(var id: String,
                          var title: String? = null,
                          @Transient
                          var protectTitle: Boolean = false,

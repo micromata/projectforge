@@ -4,8 +4,8 @@ import com.google.gson.*
 import org.apache.commons.lang3.StringUtils
 import org.projectforge.business.address.*
 import org.projectforge.framework.i18n.translate
-import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.getUserId
 import org.projectforge.rest.core.AbstractDORest
+import org.projectforge.rest.core.ResultSet
 import org.projectforge.ui.*
 import org.springframework.stereotype.Component
 import java.lang.reflect.Type
@@ -15,6 +15,10 @@ import javax.ws.rs.Path
 @Path("address")
 open class AddressRest()
     : AbstractDORest<AddressDO, AddressDao, AddressFilter>(AddressDao::class.java, AddressFilter::class.java, "address.title") {
+
+    private class Address(val address: AddressDO,
+                          var imageUrl: String? = null,
+                          var previewImageUrl: String? = null)
 
     init {
         restHelper.add(AddressbookDO::class.java, AddressbookDOSerializer())
@@ -58,9 +62,13 @@ open class AddressRest()
      * LAYOUT List page
      */
     override fun createListLayout(): UILayout {
+        val addressLC = LayoutContext(lc)
+        addressLC.idPrefix = "address."
         val layout = super.createListLayout()
                 .add(UITable.UIResultSetTable()
-                        .add(lc, "lastUpdate", "imageDataPreview", "name", "firstName", "organization", "email")
+                        .add(addressLC, "lastUpdate")
+                        .add(lc, "imageDataPreview")
+                        .add(addressLC, "name", "firstName", "organization", "email")
                         .add(UITableColumn("phoneNumbers", "address.phoneNumbers", dataType = UIDataType.CUSTOMIZED))
                         .add(lc, "addressBooks"))
         LayoutUtils.addListFilterContainer(layout,
@@ -114,6 +122,18 @@ open class AddressRest()
         return LayoutUtils.processEditPage(layout, dataObject)
     }
 
+    override fun processResultSetBeforeExport(resultSet: ResultSet<Any>) {
+        val list: List<Address> = resultSet.resultSet.map { it ->
+            Address(it as AddressDO,
+                    imageUrl = if (it.imageData != null) "address/image/${it.id}" else null,
+                    previewImageUrl = if (it.imageDataPreview != null) "address/imagePreview/${it.id}" else null)
+        }
+        resultSet.resultSet = list
+        resultSet.resultSet.forEach { it ->
+            (it as Address).imageUrl = null
+            it.previewImageUrl = null
+        }
+    }
 
     /**
      * Needed for json serialization

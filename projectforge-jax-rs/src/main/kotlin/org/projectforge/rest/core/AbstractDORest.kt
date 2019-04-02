@@ -52,7 +52,7 @@ abstract class AbstractDORest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F : BaseS
     /**
      * Contains the data, layout and filter settings served by [getInitialList].
      */
-    private data class InitialListData<O : ExtendedBaseDO<Int>>(val ui: UILayout?, val data: ResultSet<O>, val filter: BaseSearchFilter)
+    private data class InitialListData(val ui: UILayout?, val data: ResultSet<*>, val filter: BaseSearchFilter)
 
     private var initialized = false
 
@@ -159,7 +159,7 @@ abstract class AbstractDORest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F : BaseS
             filter.maxRows = 50
         filter.setSortAndLimitMaxRowsWhileSelect(true)
         val resultSet = restHelper.getList(this, baseDao, filter)
-        resultSet.resultSet.forEach { processItemBeforeExport(it) }
+        processResultSetBeforeExport(resultSet)
         val layout = createListLayout()
         return restHelper.buildResponse(InitialListData(ui = layout, data = resultSet, filter = filter))
     }
@@ -173,10 +173,14 @@ abstract class AbstractDORest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F : BaseS
     @Produces(MediaType.APPLICATION_JSON)
     fun <O> getList(@Context request: HttpServletRequest, filter: F): Response {
         val resultSet = restHelper.getList(this, baseDao, filter)
-        resultSet.resultSet.forEach { processItemBeforeExport(it) }
+        processResultSetBeforeExport(resultSet)
         val storedFilter = listFilterService.getSearchFilter(request.session, filterClazz)
         BeanUtils.copyProperties(filter, storedFilter)
         return restHelper.buildResponse(resultSet)
+    }
+
+    protected open fun processResultSetBeforeExport(resultSet : ResultSet<Any>) {
+        resultSet.resultSet.forEach { processItemBeforeExport(it) }
     }
 
     /**
@@ -236,7 +240,7 @@ abstract class AbstractDORest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F : BaseS
     }
 
 
-    open protected fun processItemBeforeExport(item: O) {
+    open protected fun processItemBeforeExport(item: Any) {
     }
 
     /**
