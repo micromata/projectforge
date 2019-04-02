@@ -3,9 +3,9 @@ import Card from 'reactstrap/es/Card';
 import CardBody from 'reactstrap/es/CardBody';
 import Col from 'reactstrap/es/Col';
 import Row from 'reactstrap/es/Row';
+import DropArea from '../../components/design/droparea';
 import Input from '../../components/design/input';
 import CheckBox from '../../components/design/input/CheckBox';
-import AnimatedChevron from '../../components/design/input/chevron/Animated';
 import TextArea from '../../components/design/input/TextArea';
 import UncontrolledSelect from '../../components/design/input/UncontrolledSelect';
 
@@ -222,7 +222,7 @@ function InputTestPage() {
                             rows={1}
                             additionalLabel="Zusätzlicher Titel"
                         />
-                        <AnimatedChevron />
+                        <DropArea />
                     </Col>
                 </Row>
             </CardBody>
