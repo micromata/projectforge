@@ -18,6 +18,7 @@ import org.springframework.beans.BeanUtils
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationContext
 import org.springframework.stereotype.Component
+import javax.annotation.PostConstruct
 import javax.servlet.http.HttpServletRequest
 import javax.ws.rs.*
 import javax.ws.rs.core.Context
@@ -87,7 +88,7 @@ abstract class AbstractDORest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F : BaseS
     /**
      * The React frontend works with local dates.
      */
-    protected val restHelper = RestHelper(ThreadLocalUserContext.getTimeZone())
+    protected var restHelper = RestHelper()
 
     @Autowired
     private lateinit var accessChecker: AccessChecker
