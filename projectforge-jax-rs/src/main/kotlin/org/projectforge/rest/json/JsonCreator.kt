@@ -3,16 +3,16 @@ package org.projectforge.rest.json
 import com.google.gson.GsonBuilder
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.persistence.user.entities.TenantDO
-import org.projectforge.rest.converter.UTCDateTimeTypeAdapter
-import org.projectforge.rest.converter.UTCDateTypeAdapter
+import org.projectforge.rest.converter.DateTimeTypeAdapter
+import org.projectforge.rest.converter.DateTypeAdapter
 import java.util.*
 
-object JsonCreator {
+class JsonCreator {
     private val typeAdapterMap = HashMap<Class<*>, Any>()
 
-    init {
-        add(java.sql.Date::class.java, UTCDateTypeAdapter())
-        add(java.util.Date::class.java, UTCDateTimeTypeAdapter())
+    constructor(timeZone : TimeZone = TimeZone.getTimeZone("UTC")) {
+        add(java.sql.Date::class.java, DateTypeAdapter())
+        add(java.util.Date::class.java, DateTimeTypeAdapter(timeZone))
         add(PFUserDO::class.java, PFUserDOSerializer())
         add(TenantDO::class.java, TenantDOSerializer())
     }

@@ -121,16 +121,7 @@ class LayoutUtils {
          * the label (e. g. UIInput). If don't use inline labels, a group containing a label and an input field is returned.
          */
         internal fun buildLabelInputElement(layoutSettings: LayoutContext, id: String): UIElement? {
-            val element = ElementsRegistry.buildElement(layoutSettings, id)
-            if (layoutSettings.useInlineLabels) {
-                return element
-            }
-            val group = UIGroup()
-            val label = UILabel()
-            val elementInfo = ElementsRegistry.getElementInfo(layoutSettings, id)
-            setLabels(elementInfo, label)
-            group.add(label, element)
-            return group
+            return ElementsRegistry.buildElement(layoutSettings, id)
         }
 
         internal fun setLabels(elementInfo: ElementsRegistry.ElementInfo?, element: UILabelledElement) {

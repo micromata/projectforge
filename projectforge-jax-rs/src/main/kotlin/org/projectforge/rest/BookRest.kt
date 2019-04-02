@@ -5,7 +5,6 @@ import org.projectforge.business.book.*
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.getUserId
 import org.projectforge.rest.core.AbstractDORest
-import org.projectforge.rest.core.RestHelper
 import org.projectforge.rest.core.Validation
 import org.projectforge.ui.*
 import org.projectforge.ui.Formatter
@@ -20,7 +19,7 @@ import javax.ws.rs.core.Response
 
 @Component
 @Path("books")
-open class BookRest() : AbstractDORest<BookDO, BookDao, BookFilter>(BookDao::class.java, BookFilter::class.java) {
+open class BookRest() : AbstractDORest<BookDO, BookDao, BookFilter>(BookDao::class.java, BookFilter::class.java, "book.title") {
 
     private val log = org.slf4j.LoggerFactory.getLogger(BookRest::class.java)
 
@@ -35,7 +34,7 @@ open class BookRest() : AbstractDORest<BookDO, BookDao, BookFilter>(BookDao::cla
     }
 
     override fun validate(validationErrors: MutableList<ValidationError>, obj: BookDO) {
-        Validation.validateInteger(validationErrors, "yearOfPublishing", obj.yearOfPublishing, Const.MINYEAR, Const.MAXYEAR)
+        Validation.validateInteger(validationErrors, "yearOfPublishing", obj.yearOfPublishing, Const.MINYEAR, Const.MAXYEAR, formatNumber = false)
         if (baseDao.doesSignatureAlreadyExist(obj)) {
             validationErrors.add(ValidationError(translate("book.error.signatureAlreadyExists"), fieldId = "signature"))
         }
@@ -51,11 +50,11 @@ open class BookRest() : AbstractDORest<BookDO, BookDao, BookFilter>(BookDao::cla
     fun lendOut(book: BookDO): Response {
         book.setLendOutDate(Date())
         baseDao.setLendOutBy(book, getUserId())
-        return RestHelper.saveOrUpdate(baseDao, book, validate(book))
+        return restHelper.saveOrUpdate(baseDao, book, this, validate(book))
     }
 
     /**
-     * Lends the given book out by the logged-in user.
+     * Returns the given book by the logged-in user.
      */
     @POST
     @Path("returnBook")
@@ -65,7 +64,7 @@ open class BookRest() : AbstractDORest<BookDO, BookDao, BookFilter>(BookDao::cla
         book.lendOutBy = null
         book.lendOutDate = null
         book.lendOutComment = null
-        return RestHelper.saveOrUpdate(baseDao, book, validate(book))
+        return restHelper.saveOrUpdate(baseDao, book, this, validate(book))
     }
 
 
@@ -73,9 +72,8 @@ open class BookRest() : AbstractDORest<BookDO, BookDao, BookFilter>(BookDao::cla
      * LAYOUT List page
      */
     override fun createListLayout(): UILayout {
-        val lc = LayoutContext(BookDO::class.java)
-        val layout = UILayout("book.title.list")
-                .add(UITable("resultSet")
+        val layout = super.createListLayout()
+                .add(UITable.UIResultSetTable()
                         .add(lc, "created", "yearOfPublishing", "signature", "authors", "title", "keywords", "lendOutBy"))
         layout.getTableColumnById("created").formatter = Formatter.TIMESTAMP_MINUTES
         layout.getTableColumnById("lendOutBy").formatter = Formatter.USER
@@ -87,10 +85,8 @@ open class BookRest() : AbstractDORest<BookDO, BookDao, BookFilter>(BookDao::cla
     /**
      * LAYOUT Edit page
      */
-    override fun createEditLayout(dataObject: BookDO?, inlineLabels: Boolean): UILayout {
-        val titleKey = if (dataObject?.id != null) "book.title.edit" else "book.title.add"
-        val lc = LayoutContext(BookDO::class.java, inlineLabels)
-        val layout = UILayout(titleKey)
+    override fun createEditLayout(dataObject: BookDO?): UILayout {
+        val layout = super.createEditLayout( dataObject)
                 .add(lc, "title", "authors")
                 .add(UIRow()
                         .add(UICol(6)

@@ -8,6 +8,7 @@ import LayoutGroup from '../../../components/base/page/layout/Group';
 import PageNavigation from '../../../components/base/page/Navigation';
 import { Alert, Container, TabContent, TabPane, } from '../../../components/design';
 import LoadingContainer from '../../../components/design/loading-container';
+import { getTranslation } from '../../../utilities/layout';
 import style from '../../ProjectForge.module.scss';
 import EditHistory from './history';
 
@@ -41,23 +42,22 @@ class EditPage extends React.Component {
         }
 
         const activeTab = match.params.tab || 'edit';
-        const baseUrl = `/${category}/edit/${id}`;
 
         const tabs = [];
 
         if (id) {
+            const baseUrl = `/${category}/edit/${id}`;
+
             tabs.push({
                 id: 'edit',
                 title: ui.title,
                 link: baseUrl,
             }, {
                 id: 'history',
-                title: '[History]',
+                title: getTranslation('label.historyOfChanges', ui.translations),
                 link: `${baseUrl}/history`,
             });
         }
-
-        // TODO: REMOVE HISTORY ON NEW BOOK
 
         return (
             <LoadingContainer loading={loading}>
@@ -75,6 +75,7 @@ class EditPage extends React.Component {
                             <LayoutGroup
                                 content={ui.layout}
                                 data={data}
+                                translation={ui.translations}
                                 changeDataField={changeDataField}
                                 validation={validation}
                             />
@@ -103,7 +104,9 @@ EditPage.propTypes = {
     changeDataField: PropTypes.func.isRequired,
     match: PropTypes.shape({}).isRequired,
     load: PropTypes.func.isRequired,
-    ui: PropTypes.shape({}).isRequired,
+    ui: PropTypes.shape({
+        translations: PropTypes.shape({}),
+    }).isRequired,
     validation: PropTypes.shape({}),
     error: PropTypes.string,
     data: PropTypes.shape({}),

@@ -36,6 +36,8 @@ public class WicketMenu implements Serializable {
 
   private final WicketMenuEntry rootMenuEntry = new WicketMenuEntry();
 
+  private int totalBadgeCounter = 0;
+
   public WicketMenu() {
   }
 
@@ -43,16 +45,15 @@ public class WicketMenu implements Serializable {
     return rootMenuEntry.getSubMenuEntries();
   }
 
-  public WicketMenuEntry findById(final String id) {
-    return rootMenuEntry.findById(id);
-  }
-
-  public boolean isFirst(final WicketMenuEntry entry) {
-    return (rootMenuEntry.subMenuEntries != null && rootMenuEntry.subMenuEntries.size() > 0 && rootMenuEntry.subMenuEntries.iterator()
-            .next() == entry);
-  }
-
   public void addMenuEntry(WicketMenuEntry entry) {
     rootMenuEntry.addMenuEntry(entry);
+  }
+
+  public int getTotalBadgeCounter() {
+    return totalBadgeCounter;
+  }
+
+  public void setTotalBadgeCounter(int totalBadgeCounter) {
+    this.totalBadgeCounter = totalBadgeCounter;
   }
 }

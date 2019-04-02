@@ -25,6 +25,7 @@ package org.projectforge.web;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.model.Model;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.menu.Menu;
 import org.projectforge.menu.MenuItem;
@@ -33,8 +34,6 @@ import org.projectforge.menu.builder.MenuCreator;
 import org.projectforge.menu.builder.MenuCreatorContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
 
 /**
  * Build of the user's personal menu (depending on the access rights of the user).
@@ -71,6 +70,10 @@ public class WicketMenuBuilder {
 
   private WicketMenu buildMenuTree(Menu menu) {
     WicketMenu wicketMenu = new WicketMenu();
+    if (menu.getBadge() != null)
+      wicketMenu.setTotalBadgeCounter(menu.getBadge().getCounter());
+    else
+      wicketMenu.setTotalBadgeCounter(0);
     for (MenuItem item : menu.getMenuItems()) {
       WicketMenuEntry entry = createMenuEntry(item, menu);
       wicketMenu.addMenuEntry(entry);
@@ -93,12 +96,19 @@ public class WicketMenuBuilder {
     entry.id = item.getKey();
     if (item.getI18nKey() != null)
       entry.i18nKey = item.getI18nKey();
-    else
-    if (StringUtils.isNotBlank(item.getTitle()))
+    else if (StringUtils.isNotBlank(item.getTitle()))
       entry.name = item.getTitle();
     else
       entry.name = "???";
     entry.pageClass = menuItemRegistry.getPageClass(item.getId());
+    if (item.getBadge() != null) {
+      entry.setBadgeCounter(new Model<Integer>() {
+        @Override
+        public Integer getObject() {
+          return item.getBadge().getCounter();
+        }
+      });
+    }
     return entry;
   }
 }

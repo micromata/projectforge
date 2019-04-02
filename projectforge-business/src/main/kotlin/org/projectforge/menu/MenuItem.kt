@@ -48,13 +48,20 @@ class MenuItem(@Transient
     /**
      * Removes all super menu items without children. This will happen, if the user hasn't the user rights to see
      * any children of a super menu item.
+     *
+     * Accumulates badge counter in parent menus by summarizing all badge counters from child menus.
      */
     fun postProcess() {
         if (subMenu.isNullOrEmpty())
             return
+        var badgeCounter = 0
         subMenu?.forEach {
+            if (it.badge?.counter ?: -1 > 0)
+                badgeCounter += it.badge?.counter ?: 0
             it.postProcess()
         }
+        if (badgeCounter > 0)
+           badge = MenuBadge(badgeCounter, style = "danger")
         subMenu?.removeIf { !it.isLeaf() && it.subMenu.isNullOrEmpty() }
     }
 }

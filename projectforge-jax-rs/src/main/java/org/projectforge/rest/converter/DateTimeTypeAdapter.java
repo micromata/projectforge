@@ -24,10 +24,11 @@
 package org.projectforge.rest.converter;
 
 import java.lang.reflect.Type;
-import java.sql.Date;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.TimeZone;
 
 import org.apache.commons.lang3.StringUtils;
 import org.projectforge.rest.ConnectionSettings;
@@ -45,22 +46,39 @@ import com.google.gson.JsonSyntaxException;
  * @author Kai Reinhard (k.reinhard@micromata.de)
  * 
  */
-public class UTCDateTypeAdapter implements JsonSerializer<Date>, JsonDeserializer<Date>
+public class DateTimeTypeAdapter implements JsonSerializer<Date>, JsonDeserializer<Date>
 {
-  private final DateFormat dateFormatter;
+  private final DateFormat dateTimeFormatter;
 
-  public UTCDateTypeAdapter()
+  private final DateTimeFormat dateTimeFormat;
+
+  public DateTimeTypeAdapter()
+  {
+    this(TimeZone.getTimeZone("UTC"));
+  }
+
+  public DateTimeTypeAdapter(TimeZone timeZone)
   {
     final ConnectionSettings settings = ConnectionSettings.get();
-    dateFormatter = new SimpleDateFormat("yyyy-MM-dd", settings.getLocale());
+    dateTimeFormat = settings.getDateTimeFormat();
+    if (dateTimeFormat != null && dateTimeFormat.getPattern() != null) {
+      dateTimeFormatter = new SimpleDateFormat(dateTimeFormat.getPattern(), settings.getLocale());
+      dateTimeFormatter.setTimeZone(timeZone);
+    } else {
+      dateTimeFormatter = null;
+    }
   }
 
   @Override
   public synchronized JsonElement serialize(final Date date, final Type type, final JsonSerializationContext jsonSerializationContext)
   {
-    synchronized (dateFormatter) {
-      final String dateFormatAsString = dateFormatter.format(date);
-      return new JsonPrimitive(dateFormatAsString);
+    synchronized (dateTimeFormat) {
+      if (dateTimeFormatter != null) {
+        final String dateFormatAsString = dateTimeFormatter.format(date);
+        return new JsonPrimitive(dateFormatAsString);
+      } else {
+        return new JsonPrimitive(String.valueOf(date.getTime()));
+      }
     }
   }
 
@@ -69,7 +87,7 @@ public class UTCDateTypeAdapter implements JsonSerializer<Date>, JsonDeserialize
       final JsonDeserializationContext jsonDeserializationContext)
   {
     try {
-      synchronized (dateFormatter) {
+      synchronized (dateTimeFormat) {
         final String element = jsonElement.getAsString();
         if (element == null) {
           return null;
@@ -78,8 +96,7 @@ public class UTCDateTypeAdapter implements JsonSerializer<Date>, JsonDeserialize
           final Date date = new Date(Long.parseLong(element));
           return date;
         }
-        final java.util.Date date = dateFormatter.parse(element);
-        return new Date(date.getTime());
+        return dateTimeFormatter.parse(element);
       }
     } catch (final ParseException e) {
       throw new JsonSyntaxException(jsonElement.getAsString(), e);

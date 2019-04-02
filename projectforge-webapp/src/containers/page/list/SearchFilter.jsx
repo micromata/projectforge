@@ -39,10 +39,10 @@ class SearchFilter extends Component {
 
     render() {
         const {
-            filter,
             actions,
-            setFilter,
+            filter,
             namedContainers,
+            setFilter,
         } = this.props;
         // TODO: REPLACE DATE AND TIME WITH PICKERS
         return (

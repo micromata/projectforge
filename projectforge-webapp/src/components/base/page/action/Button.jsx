@@ -65,7 +65,6 @@ ActionButton.propTypes = {
 
 const mapStateToProps = () => ({});
 
-// TODO: ADD FUNCTIONS
 const actions = {
     create: updateEditPageData,
     update: updateEditPageData,

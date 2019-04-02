@@ -49,49 +49,11 @@ public class WicketMenuEntry implements Serializable {
 
   protected Class<? extends Page> pageClass;
 
-  protected IModel<Integer> newCounterModel;
+  protected IModel<Integer> badgeCounter;
 
-  protected TotalNewCounterModel totalNewCounterModel;
-
-  protected boolean totalNewCounterModelEvaluated;
-
-  protected String newCounterTooltip;
+  protected String badgeCounterTooltip;
 
   protected String name;
-
-  public IModel<Integer> getNewCounterModel() {
-    return getNewCounterModel(0);
-  }
-
-  private IModel<Integer> getNewCounterModel(final int depth) {
-    if (hasSubMenuEntries() == false || depth == 10) {
-      // End less loop detection (depth == 10).
-      return newCounterModel;
-    }
-    if (totalNewCounterModelEvaluated == true) {
-      return totalNewCounterModel;
-    }
-    for (final WicketMenuEntry subEntry : subMenuEntries) {
-      final IModel<Integer> subSumModel = subEntry.getNewCounterModel(depth + 1);
-      if (subSumModel == null) {
-        continue;
-      }
-      if (totalNewCounterModel == null) {
-        totalNewCounterModel = new TotalNewCounterModel();
-      }
-      totalNewCounterModel.add(subSumModel);
-    }
-    totalNewCounterModelEvaluated = true;
-    return totalNewCounterModel;
-  }
-
-  public void setNewCounterTooltip(final String newCounterTooltip) {
-    this.newCounterTooltip = newCounterTooltip;
-  }
-
-  public String getNewCounterTooltip() {
-    return newCounterTooltip;
-  }
 
   /**
    * Root menu entry.
@@ -174,15 +136,27 @@ public class WicketMenuEntry implements Serializable {
     return url;
   }
 
-  public void setNewCounterModel(final IModel<Integer> newCounterModel) {
-    this.newCounterModel = newCounterModel;
-  }
-
   public boolean isLink() {
     return pageClass != null || url != null;
   }
 
   public String getId() {
     return id;
+  }
+
+  public IModel<Integer> getBadgeCounter() {
+    return badgeCounter;
+  }
+
+  public void setBadgeCounter(IModel<Integer> badgeCounter) {
+    this.badgeCounter = badgeCounter;
+  }
+
+  public String getBadgeCounterTooltip() {
+    return badgeCounterTooltip;
+  }
+
+  public void setBadgeCounterTooltip(String badgeCounterTooltip) {
+    this.badgeCounterTooltip = badgeCounterTooltip;
   }
 }

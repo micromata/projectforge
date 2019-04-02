@@ -76,7 +76,7 @@ object ElementsRegistry {
                 }
             }
         }
-        if ((layoutSettings.useInlineLabels || element is UILabel) && element is UILabelledElement) {
+        if (element is UILabelledElement) {
             LayoutUtils.setLabels(elementInfo, element)
         }
         return element ?: UILabel(property)

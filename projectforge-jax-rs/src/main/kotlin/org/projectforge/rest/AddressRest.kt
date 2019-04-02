@@ -4,8 +4,8 @@ import com.google.gson.*
 import org.apache.commons.lang3.StringUtils
 import org.projectforge.business.address.*
 import org.projectforge.framework.i18n.translate
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext.getUserId
 import org.projectforge.rest.core.AbstractDORest
-import org.projectforge.rest.json.JsonCreator
 import org.projectforge.ui.*
 import org.springframework.stereotype.Component
 import java.lang.reflect.Type
@@ -14,13 +14,19 @@ import javax.ws.rs.Path
 @Component
 @Path("addresses")
 open class AddressRest()
-    : AbstractDORest<AddressDO, AddressDao, AddressFilter>(AddressDao::class.java, AddressFilter::class.java) {
+    : AbstractDORest<AddressDO, AddressDao, AddressFilter>(AddressDao::class.java, AddressFilter::class.java, "address.title") {
+
+    init {
+        restHelper.add(AddressbookDO::class.java, AddressbookDOSerializer())
+    }
 
     private val log = org.slf4j.LoggerFactory.getLogger(AddressRest::class.java)
 
     override fun newBaseDO(): AddressDO {
         return AddressDO()
     }
+
+    // TODO Menus: print view, ical export, direct call
 
     /**
      * Clone is supported by addresses.
@@ -31,20 +37,28 @@ open class AddressRest()
     }
 
     override fun validate(validationErrors: MutableList<ValidationError>, obj: AddressDO) {
-        if (StringUtils.isBlank(obj.name) == true
-                && StringUtils.isBlank(obj.firstName) == true
-                && StringUtils.isBlank(obj.organization) == true) {
+        if (StringUtils.isAllBlank(obj.name, obj.firstName, obj.organization)) {
             validationErrors.add(ValidationError(translate("address.form.error.toFewFields"), fieldId = "name"))
         }
     }
+
+    override fun afterSaveOrUpdate(obj: AddressDO) {
+        // TODO
+        val address = baseDao.getOrLoad(obj.getId())
+        //val personalAddress = form.addressEditSupport.personalAddress
+        //personalAddress.setAddress(address)
+        //personalAddressDao.setOwner(personalAddress, getUserId()) // Set current logged in user as owner.
+        //personalAddressDao.saveOrUpdate(personalAddress)
+        //return null
+    }
+
 
     /**
      * LAYOUT List page
      */
     override fun createListLayout(): UILayout {
-        val lc = LayoutContext(AddressDO::class.java)
-        val layout = UILayout("address.title.list")
-                .add(UITable("resultSet")
+        val layout = super.createListLayout()
+                .add(UITable.UIResultSetTable()
                         .add(lc, "lastUpdate", "imageDataPreview", "name", "firstName", "organization", "email")
                         .add(UITableColumn("phoneNumbers", "address.phoneNumbers", dataType = UIDataType.CUSTOMIZED))
                         .add(lc, "addressBooks"))
@@ -59,15 +73,8 @@ open class AddressRest()
     /**
      * LAYOUT Edit page
      */
-    override fun createEditLayout(dataObject: AddressDO?, inlineLabels: Boolean): UILayout {
-        val titleKey = if (dataObject?.id != null) "address.title.edit" else "address.title.add"
-        val lc = LayoutContext(AddressDO::class.java, inlineLabels)
-        val formFavoriteGroup = UIGroup().add(UISelect("form", lc).buildValues(FormOfAddress::class.java))
-                .add(UICheckbox("favorite", label = "favorite"))
-        val formFavoriteLabelValue =
-                if (inlineLabels) formFavoriteGroup
-                else UIGroup().add(UILabel("gender"), formFavoriteGroup)!!
-        val layout = UILayout(titleKey)
+    override fun createEditLayout(dataObject: AddressDO?): UILayout {
+        val layout = super.createEditLayout(dataObject)
                 .add(UIGroup()
                         .add(UIMultiSelect("addressbookList", lc)))
                 .add(UIRow()
@@ -76,7 +83,9 @@ open class AddressRest()
                 .add(UIRow()
                         .add(UICol(6)
                                 .add(lc, "name", "firstName")
-                                .add(formFavoriteLabelValue)
+                                .add(UIGroup()
+                                        .add(UISelect("form", lc).buildValues(FormOfAddress::class.java))
+                                        .add(UICheckbox("favorite", label = "favorite")))
                                 .add(lc, "title", "email", "privateEmail"))
                         .add(UICol(6)
                                 .add(lc, "birthday", "communicationLanguage", "organization", "division", "positionText", "website")))
@@ -116,12 +125,6 @@ open class AddressRest()
             result.add("id", JsonPrimitive(obj.id))
             result.add("title", JsonPrimitive(obj.title))
             return result
-        }
-    }
-
-    companion object {
-        init {
-            JsonCreator.add(AddressbookDO::class.java, AddressbookDOSerializer())
         }
     }
 }
