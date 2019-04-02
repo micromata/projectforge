@@ -21,3 +21,12 @@ a {
   text-decoration: none;
   background: transparent;
 }
+
+
+ul {
+  font-size: 18px;
+
+  li.nav-item a.btn {
+      margin-left: 10px !important;
+  }
+}
