@@ -7,16 +7,16 @@ import CustomizedLayout from './customized';
 import LayoutInput from './Input';
 import LayoutLabel from './Label';
 import LayoutSelect from './Select';
-import LayoutTable from './Table';
+import LayoutTable from './table';
 
 function LayoutGroup(
     {
-        changeDataField,
         content,
         data,
         length,
         type,
         validation,
+        ...props
     },
 ) {
     let GroupTag;
@@ -75,9 +75,8 @@ function LayoutGroup(
 
                 return (
                     <Tag
-                        changeDataField={changeDataField}
                         data={data}
-                        validation={validation}
+                        {...props}
                         {...component}
                         key={`layout-group-component-${component.key}-${data.id}`}
                     />

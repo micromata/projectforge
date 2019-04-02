@@ -76,7 +76,7 @@ public class ToDoPlugin extends AbstractPlugin
 
     // Register the menu entry as sub menu entry of the misc menu:
     MenuItemDef todomenu = new MenuItemDef( ID, "plugins.todo.menu");
-    todomenu.setBadgeCounter(() -> new MenuCounterOpenToDos().getObject());
+    todomenu.setBadgeCounter(() -> toDoDao.getOpenToDoEntries(null));
     pluginWicketRegistrationService.registerMenuItem(MenuItemDefId.MISC, todomenu, ToDoListPage.class);
 
     // Define the access management:

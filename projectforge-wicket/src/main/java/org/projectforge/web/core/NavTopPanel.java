@@ -244,17 +244,7 @@ public class NavTopPanel extends NavAbstractPanel {
     final Label totalMenuSuffixLabel = new MenuSuffixLabel("totalMenuCounter", new Model<Integer>() {
       @Override
       public Integer getObject() {
-        int counter = 0;
-        if (menu.getMenuEntries() == null) {
-          return counter;
-        }
-        for (final WicketMenuEntry menuEntry : menu.getMenuEntries()) {
-          final IModel<Integer> newCounterModel = menuEntry.getNewCounterModel();
-          if (newCounterModel != null && newCounterModel.getObject() != null) {
-            counter += newCounterModel.getObject();
-          }
-        }
-        return counter;
+        return menu.getTotalBadgeCounter();
       }
 
     });

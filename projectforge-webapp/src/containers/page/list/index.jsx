@@ -36,10 +36,11 @@ class ListPage extends React.Component {
 
     render() {
         const {
-            loading,
-            ui,
-            match,
             data,
+            loading,
+            match,
+            sorting,
+            ui,
         } = this.props;
 
         return (
@@ -55,6 +56,7 @@ class ListPage extends React.Component {
                 <LayoutGroup
                     content={ui.layout}
                     data={data}
+                    sorting={sorting}
                 />
             </LoadingContainer>
         );
@@ -62,22 +64,31 @@ class ListPage extends React.Component {
 }
 
 ListPage.propTypes = {
-    match: PropTypes.shape({}).isRequired,
-    loading: PropTypes.bool.isRequired,
+    data: PropTypes.shape({}).isRequired,
     load: PropTypes.func.isRequired,
+    loading: PropTypes.bool.isRequired,
+    match: PropTypes.shape({}).isRequired,
     ui: PropTypes.shape({
         layout: PropTypes.arrayOf(PropTypes.shape({
 
         })),
         title: PropTypes.string,
     }).isRequired,
-    data: PropTypes.shape({}).isRequired,
+    sorting: PropTypes.shape({
+        column: PropTypes.string,
+        direction: PropTypes.oneOf(['ASC', 'DESC']),
+    }),
+};
+
+ListPage.defaultProps = {
+    sorting: undefined,
 };
 
 const mapStateToProps = state => ({
     loading: state.listPage.loading,
     ui: state.listPage.ui,
     data: state.listPage.data,
+    sorting: state.listPage.sorting,
 });
 
 const actions = {

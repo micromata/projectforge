@@ -9,6 +9,7 @@ function CustomizedLendOutComponent(
         data,
         handBack,
         lendOut,
+        translation,
         user,
     },
 ) {
@@ -19,7 +20,11 @@ function CustomizedLendOutComponent(
             <React.Fragment>
                 <span>{`${data.lendOutBy.fullname}, ${data.lendOutDate}`}</span>
                 {user.username === data.lendOutBy.username
-                    ? <Button color="danger" onClick={handBack}>[Zurückgeben]</Button>
+                    ? (
+                        <Button color="danger" onClick={handBack}>
+                            {translation['book.returnBook']}
+                        </Button>
+                    )
                     : undefined}
             </React.Fragment>
         );
@@ -29,13 +34,17 @@ function CustomizedLendOutComponent(
         <React.Fragment>
             {information}
             <Button color="link" onClick={lendOut}>
-                [Ausleihen]
+                {translation['book.lendOut']}
             </Button>
         </React.Fragment>
     );
 }
 
 CustomizedLendOutComponent.propTypes = {
+    translation: PropTypes.shape({
+        'book.lendOut': PropTypes.string,
+        'book.returnBook': PropTypes.string,
+    }).isRequired,
     handBack: PropTypes.func.isRequired,
     lendOut: PropTypes.func.isRequired,
     user: PropTypes.shape({}).isRequired,

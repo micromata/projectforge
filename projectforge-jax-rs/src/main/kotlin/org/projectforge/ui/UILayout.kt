@@ -1,6 +1,7 @@
 package org.projectforge.ui
 
 import org.projectforge.framework.i18n.translate
+import org.projectforge.framework.persistence.api.ExtendedBaseDO
 
 class UILayout {
     constructor(title: String) {
@@ -23,7 +24,7 @@ class UILayout {
      * @param i18nKey The translation i18n key. The translation for the logged-in-user will be added.
      * @return this for chaining.
      */
-    fun addTranslation(i18nKey: String) :UILayout{
+    fun addTranslation(i18nKey: String): UILayout {
         translations.put(i18nKey, translate(i18nKey))
         return this
     }
