@@ -69,6 +69,7 @@ class Category extends React.Component {
         const {
             category,
             className,
+            // destructuring is necessary. Otherwise its in the dom.
             closeMenu,
             ...props
         } = this.props;
