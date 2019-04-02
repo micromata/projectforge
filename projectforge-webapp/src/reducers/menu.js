@@ -19,7 +19,9 @@ const reducer = (state = initialState, { type, payload }) => {
             return {
                 ...state,
                 loading: false,
-                categories: payload.menu,
+                categories: payload.mainMenu.menuItems,
+                badge: payload.mainMenu.badge,
+                favorites: payload.favoritesMenu,
             };
         case MENU_LOAD_FAILURE:
             return {

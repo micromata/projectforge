@@ -14,13 +14,14 @@ import {
 } from '../../../design';
 import style from '../Navigation.module.scss';
 import Category from './Category';
+import MenuBadge from './MenuBadge';
 
 function countColumnSize(column) {
     return column
         .reduce((accumulator, currentValue) => accumulator + currentValue.subMenu.length + 1, 0);
 }
 
-function CategoriesDropdown({ categories }) {
+function CategoriesDropdown({ badge, categories }) {
     const [open, setOpen] = React.useState(false);
 
     // Creating an array of columns for the categories.
@@ -51,6 +52,9 @@ function CategoriesDropdown({ categories }) {
         <Dropdown isOpen={open} toggle={() => setOpen(!open)}>
             <DropdownToggle nav caret>
                 <FontAwesomeIcon icon={faListUl} />
+                {badge
+                    ? <MenuBadge flying color={badge.style}>{badge.counter}</MenuBadge>
+                    : undefined}
             </DropdownToggle>
             <DropdownMenu className={style.categoryListDropdownMenu}>
                 <Container>
@@ -79,6 +83,13 @@ function CategoriesDropdown({ categories }) {
 
 CategoriesDropdown.propTypes = {
     categories: PropTypes.arrayOf(menuItemPropType).isRequired,
+    badge: PropTypes.shape({
+        counter: PropTypes.number,
+    }),
+};
+
+CategoriesDropdown.defaultProps = {
+    badge: undefined,
 };
 
 export default CategoriesDropdown;

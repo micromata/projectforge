@@ -65,3 +65,7 @@ export const tableColumnsPropType = PropTypes.arrayOf(PropTypes.shape({
     id: PropTypes.string,
     title: PropTypes.string,
 }));
+
+export const badgePropType = PropTypes.shape({
+    counter: PropTypes.number,
+});
