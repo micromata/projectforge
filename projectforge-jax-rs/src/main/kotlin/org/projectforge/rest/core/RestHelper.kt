@@ -41,9 +41,9 @@ class RestHelper(
 
     fun <O : ExtendedBaseDO<Int>, B : BaseDao<O>, F : BaseSearchFilter>
             getList(dataObjectRest: AbstractDORest<O, B, F>, baseDao: BaseDao<O>?, filter: F)
-            : ResultSet<O> {
+            : ResultSet<Any> {
         val list = baseDao!!.getList(filter)
-        val resultSet = ResultSet<O>(dataObjectRest.filterList(list, filter), list.size)
+        val resultSet = ResultSet<Any>(dataObjectRest.filterList(list, filter), list.size)
         return resultSet
     }
 
