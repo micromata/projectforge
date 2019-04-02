@@ -26,7 +26,7 @@ open class AddressRest()
     }
 
     private val log = org.slf4j.LoggerFactory.getLogger(AddressRest::class.java)
-
+    
     override fun newBaseDO(): AddressDO {
         return AddressDO()
     }
@@ -68,7 +68,7 @@ open class AddressRest()
         val layout = super.createListLayout()
                 .add(UITable.UIResultSetTable()
                         .add(addressLC, "lastUpdate")
-                        .add(lc, "imageDataPreview")
+                        .add(UITableColumn("imageDataPreview", "address.image", dataType = UIDataType.CUSTOMIZED))
                         .add(addressLC, "name", "firstName", "organization", "email")
                         .add(UITableColumn("phoneNumbers", "address.phoneNumbers", dataType = UIDataType.CUSTOMIZED))
                         .add(lc, "addressbookList"))
