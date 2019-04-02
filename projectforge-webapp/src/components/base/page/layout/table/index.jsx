@@ -50,6 +50,9 @@ function LayoutTable(
                         ))}
                     </tbody>
                 </Table>
+                {data.size
+                    ? <span>{`[Showing] ${data.size}/${data.totalSize}`}</span>
+                    : undefined}
             </CardBody>
         </Card>
     );
