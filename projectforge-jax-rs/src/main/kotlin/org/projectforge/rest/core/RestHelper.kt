@@ -3,18 +3,40 @@ package org.projectforge.rest.core
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.rest.JsonUtils
 import org.projectforge.rest.json.JsonCreator
 import org.projectforge.ui.ValidationError
 import java.util.*
 import javax.ws.rs.core.Response
 
-class RestHelper(val timeZone: TimeZone = TimeZone.getTimeZone("UTC")) {
+class RestHelper(
+        /**
+         * If not set, the user's time zone will be used (from [ThreadLocalUserContext]).
+         */
+        var timeZone: TimeZone? = null) {
+    private var _jsonCreator: JsonCreator? = null
 
-    private val jsonCreator = JsonCreator(timeZone)
+    private val adapterMap = mutableMapOf<Class<*>, Any>()
+
+    /**
+     * Late initialization needed, because especially in test cases in [Configuration] the [TenantService]
+     * isn't available on start-up.
+     */
+    private fun getJsonCreator(): JsonCreator {
+        if (_jsonCreator == null) {
+            if (timeZone == null)
+                timeZone = ThreadLocalUserContext.getTimeZone()
+            _jsonCreator = JsonCreator(timeZone!!)
+            adapterMap.forEach {
+                _jsonCreator!!.add(it.key, it.value)
+            }
+        }
+        return _jsonCreator!!
+    }
 
     fun add(cls: Class<*>, typeAdapter: Any) {
-        jsonCreator.add(cls, typeAdapter)
+        adapterMap.put(cls, typeAdapter)
     }
 
     fun <O : ExtendedBaseDO<Int>> getList(baseDao: BaseDao<O>?, filter: BaseSearchFilter): List<O> {
@@ -23,12 +45,12 @@ class RestHelper(val timeZone: TimeZone = TimeZone.getTimeZone("UTC")) {
     }
 
     fun buildResponse(obj: Any): Response {
-        val json = jsonCreator.toJson(obj)
+        val json = getJsonCreator().toJson(obj)
         return Response.ok(json).build()
     }
 
     fun buildResponse(obj: ExtendedBaseDO<Int>): Response {
-        val json = jsonCreator.toJson(obj)
+        val json = getJsonCreator().toJson(obj)
         return Response.ok(json).build()
     }
 
@@ -41,18 +63,18 @@ class RestHelper(val timeZone: TimeZone = TimeZone.getTimeZone("UTC")) {
                 dataObjectRest.afterSave(obj)
             else
                 dataObjectRest.afterUpdate(obj)
-            val json = jsonCreator.toJson(id)
+            val json = getJsonCreator().toJson(id)
             return Response.ok(json).build()
         }
         // Validation error occurred:
-        val json = jsonCreator.toJson(validationErrorsList)
+        val json = getJsonCreator().toJson(validationErrorsList)
         return Response.status(Response.Status.NOT_ACCEPTABLE).entity(json).build()
     }
 
     fun <O : ExtendedBaseDO<Int>> undelete(baseDao: BaseDao<O>?, obj: O, validationErrorsList: List<ValidationError>?): Response {
         if (validationErrorsList.isNullOrEmpty()) {
             var id = baseDao!!.undelete(obj)
-            val json = jsonCreator.toJson(id)
+            val json = getJsonCreator().toJson(id)
             return Response.ok(json).build()
         }
         // Validation error occurred:
@@ -63,11 +85,11 @@ class RestHelper(val timeZone: TimeZone = TimeZone.getTimeZone("UTC")) {
     fun <O : ExtendedBaseDO<Int>> markAsDeleted(baseDao: BaseDao<O>?, obj: O, validationErrorsList: List<ValidationError>?): Response {
         if (validationErrorsList.isNullOrEmpty()) {
             baseDao!!.markAsDeleted(obj)
-            val json = jsonCreator.toJson(obj)
+            val json = getJsonCreator().toJson(obj)
             return Response.ok(json).build()
         }
         // Validation error occurred:
-        val json = jsonCreator.toJson(validationErrorsList)
+        val json = getJsonCreator().toJson(validationErrorsList)
         return Response.status(Response.Status.NOT_ACCEPTABLE).entity(json).build()
     }
 }
