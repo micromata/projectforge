@@ -15,7 +15,6 @@ function LayoutGroup(
         data,
         length,
         type,
-        validation,
         ...props
     },
 ) {
