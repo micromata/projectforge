@@ -31,6 +31,10 @@
       border-bottom: 1px solid #bbb;
       outline: none;
 
+      &:focus {
+        border-bottom: 1px solid #000;
+      }
+
       @include transition(border-bottom .3s);
 
     }
@@ -43,7 +47,7 @@
       }
 
       .input {
-        border-bottom: 1px solid #000;
+        //border-bottom: 1px solid #000;
       }
     }
 
@@ -330,5 +334,5 @@
 
 
 label > input {
-  border-bottom: 2px solid #dbdbdb !important;
+  //border-bottom: 2px solid #dbdbdb !important;
 }
