@@ -50,15 +50,9 @@ abstract class AbstractDORest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F : BaseS
     private data class EditLayoutData(val data: Any?, val ui: UILayout?)
 
     /**
-     * Contains the data including the result list (matching the filter) served by getList methods ([getInitialList] and [getList]).
-     */
-    private data class ListData<O : ExtendedBaseDO<Int>>(
-            val resultSet: List<O>)
-
-    /**
      * Contains the data, layout and filter settings served by [getInitialList].
      */
-    private data class InitialListData<O : ExtendedBaseDO<Int>>(val ui: UILayout?, val data: ListData<O>, val filter: BaseSearchFilter)
+    private data class InitialListData<O : ExtendedBaseDO<Int>>(val ui: UILayout?, val data: ResultSet<O>, val filter: BaseSearchFilter)
 
     private var initialized = false
 
@@ -164,11 +158,10 @@ abstract class AbstractDORest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F : BaseS
         if (filter.maxRows <= 0)
             filter.maxRows = 50
         filter.setSortAndLimitMaxRowsWhileSelect(true)
-        val list = restHelper.getList(this, baseDao, filter)
-        list.forEach { processItemBeforeExport(it) }
+        val resultSet = restHelper.getList(this, baseDao, filter)
+        resultSet.resultSet.forEach { processItemBeforeExport(it) }
         val layout = createListLayout()
-        val listData = ListData(resultSet = list)
-        return restHelper.buildResponse(InitialListData(ui = layout, data = listData, filter = filter))
+        return restHelper.buildResponse(InitialListData(ui = layout, data = resultSet, filter = filter))
     }
 
     /**
@@ -179,12 +172,11 @@ abstract class AbstractDORest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F : BaseS
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     fun <O> getList(@Context request: HttpServletRequest, filter: F): Response {
-        val list = restHelper.getList(this, baseDao, filter)
-        list.forEach { processItemBeforeExport(it) }
-        val listData = ListData(resultSet = list)
+        val resultSet = restHelper.getList(this, baseDao, filter)
+        resultSet.resultSet.forEach { processItemBeforeExport(it) }
         val storedFilter = listFilterService.getSearchFilter(request.session, filterClazz)
         BeanUtils.copyProperties(filter, storedFilter)
-        return restHelper.buildResponse(listData)
+        return restHelper.buildResponse(resultSet)
     }
 
     /**
