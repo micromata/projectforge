@@ -39,17 +39,7 @@ export const selectProps = {
     ]).isRequired,
 };
 
-export const dataPropType = PropTypes.objectOf(PropTypes.oneOfType([
-    PropTypes.string,
-    PropTypes.number,
-    PropTypes.bool,
-    PropTypes.objectOf(PropTypes.oneOfType([
-        PropTypes.string,
-        PropTypes.number,
-        PropTypes.bool,
-    ])),
-    PropTypes.arrayOf(PropTypes.shape({})),
-]));
+export const dataPropType = PropTypes.shape({});
 
 export const tableColumnsPropType = PropTypes.arrayOf(PropTypes.shape({
     id: PropTypes.string,

@@ -7,6 +7,7 @@ import LayoutGroup from '../../../components/base/page/layout/Group';
 import PageNavigation from '../../../components/base/page/Navigation';
 import { Alert, Button, NavItem } from '../../../components/design';
 import LoadingContainer from '../../../components/design/loading-container';
+import { dataPropType } from '../../../utilities/propTypes';
 import SearchFilter from './SearchFilter';
 
 class ListPage extends React.Component {
@@ -74,7 +75,7 @@ class ListPage extends React.Component {
 }
 
 ListPage.propTypes = {
-    data: PropTypes.shape({}).isRequired,
+    data: dataPropType.isRequired,
     load: PropTypes.func.isRequired,
     loading: PropTypes.bool.isRequired,
     match: PropTypes.shape({}).isRequired,
