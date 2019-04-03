@@ -6,6 +6,6 @@ data class UIMultiSelect(val id: String,
                          val required: Boolean? = null,
                          override var label: String? = null,
                          override var additionalLabel: String? = null,
-                         override var tooltip: String? = null)
-    : UIElement(UIElementType.MULTI_SELECT), UILabelledElement {
-}
+                         override var tooltip: String? = null,
+                         var autoCompletion : AutoCompletion? = null)
+    : UIElement(UIElementType.MULTI_SELECT), UILabelledElement
