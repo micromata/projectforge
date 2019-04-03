@@ -23,6 +23,10 @@ import javax.ws.rs.core.Response
 @Component
 @Path("userStatus")
 open class UserStatusRest {
+    companion object {
+        internal val WEEKDAYS = arrayOf("-", "SUNDAY", "MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY")
+    }
+
     data class UserData(var username: String? = null,
                         var organization: String? = null,
                         var fullname: String? = null,
@@ -35,8 +39,9 @@ open class UserStatusRest {
                         var timestampFormatMinutes: String? = null,
                         var timestampFormatSeconds: String? = null,
                         var timestampFormatMillis: String? = null,
-                        var firstDayOfWeek : Int? = null,
-                        var timeNotation : TimeNotation? = null)
+                        var firstDayOfWeekNo: Int? = null,
+                        var firstDayOfWeek: String? = null,
+                        var timeNotation: TimeNotation? = null)
 
     data class SystemData(var appname: String? = null,
                           var version: String? = null,
@@ -55,6 +60,7 @@ open class UserStatusRest {
         if (user == null) {
             return Response.status(Response.Status.UNAUTHORIZED).build()
         }
+        val firstDayOfWeekNo = ThreadLocalUserContext.getCalendarFirstDayOfWeek()
         val userData = UserData(username = user.username,
                 organization = user.organization,
                 fullname = user.fullname,
@@ -68,7 +74,8 @@ open class UserStatusRest {
                 timestampFormatMinutes = DateFormats.getFormatString(DateFormatType.DATE_TIME_MINUTES),
                 timestampFormatSeconds = DateFormats.getFormatString(DateFormatType.DATE_TIME_SECONDS),
                 timestampFormatMillis = DateFormats.getFormatString(DateFormatType.DATE_TIME_MILLIS),
-                firstDayOfWeek = user.firstDayOfWeek)
+                firstDayOfWeekNo = firstDayOfWeekNo,
+                firstDayOfWeek = WEEKDAYS[firstDayOfWeekNo])
 
         val systemData = SystemData(appname = ProjectForgeVersion.APP_ID,
                 version = ProjectForgeVersion.VERSION_STRING,
