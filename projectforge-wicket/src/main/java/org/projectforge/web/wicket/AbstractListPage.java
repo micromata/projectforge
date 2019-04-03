@@ -523,7 +523,7 @@ public abstract class AbstractListPage<F extends AbstractListForm<?, ?>, D exten
     this.resultList = null; // Force reload of list
     this.refreshResultList = true;
     final long itemsPerPage = dataTable.getItemsPerPage();
-    if (form.getPageSize() != null && form.getPageSize().longValue() != itemsPerPage) {
+    if (form.getPageSize() != itemsPerPage) {
       dataTable.setItemsPerPage(form.getPageSize());
     }
     addRecentSearchTerm();
@@ -674,7 +674,10 @@ public abstract class AbstractListPage<F extends AbstractListForm<?, ?>, D exten
   protected DataTable<O, String> createDataTable(final List<IColumn<O, String>> columns, final String sortProperty,
       final SortOrder sortOrder)
   {
-    final int pageSize = form.getPageSize();
+    int pageSize = form.getPageSize();
+    if (pageSize < 0) {
+      pageSize = 50;
+    }
     final SortParam<String> sortParam = sortProperty != null
         ? new SortParam<String>(sortProperty, sortOrder == SortOrder.ASCENDING) : null;
     return new DefaultDataTable<O, String>("table", columns, createSortableDataProvider(sortParam), pageSize);

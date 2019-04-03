@@ -100,7 +100,11 @@ class Category extends React.Component {
                                 >
                                     {item.title}
                                     {item.badge
-                                        ? <MenuBadge>{item.badge.counter}</MenuBadge>
+                                        ? (
+                                            <MenuBadge tooltip={item.badge.tooltip}>
+                                                {item.badge.counter}
+                                            </MenuBadge>
+                                        )
                                         : undefined}
                                 </Link>
                             </li>

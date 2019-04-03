@@ -81,8 +81,6 @@ public abstract class AbstractListForm<F extends BaseSearchFilter, P extends Abs
 
   protected abstract F newSearchFilterInstance();
 
-  protected Integer pageSize;
-
   protected GridBuilder gridBuilder;
 
   private DivPanel extendedFilter;
@@ -240,7 +238,7 @@ public abstract class AbstractListForm<F extends BaseSearchFilter, P extends Abs
     // DropDownChoice page size
     pageSizeFieldsetPanel = gridBuilder.newFieldset(getString("label.pageSize"));
     pageSizeFieldsetPanel.add(getPageSizeDropDownChoice(pageSizeFieldsetPanel.getDropDownChoiceId(), getLocale(),
-        new PropertyModel<Integer>(this, "pageSize"), 25, 1000));
+        new PropertyModel<Integer>(searchFilter, "maxRows"), 25, 1000));
 
     final WebMarkupContainer buttonCell = new WebMarkupContainer("buttonCell");
     add(buttonCell);
@@ -615,15 +613,12 @@ public abstract class AbstractListForm<F extends BaseSearchFilter, P extends Abs
   /**
    * The page size of display tag (result table).
    */
-  public Integer getPageSize()
+  public int getPageSize()
   {
-    if (pageSize == null) {
-      pageSize = (Integer) getParentPage().getUserPrefEntry(this.getClass().getName() + ":pageSize");
+    if (searchFilter.getMaxRows() < 0) {
+      searchFilter.setMaxRows(25);
     }
-    if (pageSize == null) {
-      pageSize = 50;
-    }
-    return pageSize;
+    return searchFilter.getMaxRows();
   }
 
   /**
@@ -637,14 +632,6 @@ public abstract class AbstractListForm<F extends BaseSearchFilter, P extends Abs
   public void setModificationSince(final String modificationSince)
   {
     this.modificationSince = modificationSince;
-  }
-
-  public void setPageSize(final Integer pageSize)
-  {
-    this.pageSize = pageSize;
-    if (getParentPage().isStoreFilter() == true) {
-      getParentPage().putUserPrefEntry(this.getClass().getName() + ":pageSize", this.pageSize, true);
-    }
   }
 
   /**

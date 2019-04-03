@@ -1,13 +1,14 @@
+import 'bootstrap/dist/css/bootstrap.min.css';
 import React from 'react';
 import ReactDOM from 'react-dom';
-import { applyMiddleware, createStore } from 'redux';
 import { Provider } from 'react-redux';
+import { applyMiddleware, createStore } from 'redux';
 import thunk from 'redux-thunk';
-import 'bootstrap/dist/css/bootstrap.min.css';
 import './assets/style/projectforge.scss';
-import reducer from './reducers';
 import ProjectForge from './containers/ProjectForge';
+import reducer from './reducers';
 import * as serviceWorker from './serviceWorker';
+import './utilities/global';
 
 const store = createStore(reducer, applyMiddleware(thunk));
 

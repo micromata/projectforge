@@ -39,9 +39,12 @@ class RestHelper(
         adapterMap.put(cls, typeAdapter)
     }
 
-    fun <O : ExtendedBaseDO<Int>> getList(baseDao: BaseDao<O>?, filter: BaseSearchFilter): List<O> {
+    fun <O : ExtendedBaseDO<Int>, B : BaseDao<O>, F : BaseSearchFilter>
+            getList(dataObjectRest: AbstractDORest<O, B, F>, baseDao: BaseDao<O>?, filter: F)
+            : ResultSet<Any> {
         val list = baseDao!!.getList(filter)
-        return list
+        val resultSet = ResultSet<Any>(dataObjectRest.filterList(list, filter), list.size)
+        return resultSet
     }
 
     fun buildResponse(obj: Any): Response {
@@ -54,7 +57,9 @@ class RestHelper(
         return Response.ok(json).build()
     }
 
-    fun <O : ExtendedBaseDO<Int>, B : BaseDao<O>, F : BaseSearchFilter> saveOrUpdate(baseDao: BaseDao<O>?, obj: O, dataObjectRest: AbstractDORest<O, B, F>, validationErrorsList: List<ValidationError>?): Response {
+    fun <O : ExtendedBaseDO<Int>, B : BaseDao<O>, F : BaseSearchFilter>
+            saveOrUpdate(baseDao: BaseDao<O>?, obj: O, dataObjectRest: AbstractDORest<O, B, F>, validationErrorsList: List<ValidationError>?)
+            : Response {
         if (validationErrorsList.isNullOrEmpty()) {
             val isNew = obj.id != null
             var id = baseDao!!.saveOrUpdate(obj) ?: obj.id
@@ -71,7 +76,9 @@ class RestHelper(
         return Response.status(Response.Status.NOT_ACCEPTABLE).entity(json).build()
     }
 
-    fun <O : ExtendedBaseDO<Int>> undelete(baseDao: BaseDao<O>?, obj: O, validationErrorsList: List<ValidationError>?): Response {
+    fun <O : ExtendedBaseDO<Int>>
+            undelete(baseDao: BaseDao<O>?, obj: O, validationErrorsList: List<ValidationError>?)
+            : Response {
         if (validationErrorsList.isNullOrEmpty()) {
             var id = baseDao!!.undelete(obj)
             val json = getJsonCreator().toJson(id)

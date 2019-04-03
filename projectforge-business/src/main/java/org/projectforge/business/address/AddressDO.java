@@ -1000,7 +1000,7 @@ public class AddressDO extends DefaultBaseWithAttrDO<AddressDO>
     return super.getAttrs();
   }
 
-  @Column(length = 4000)
+  @Column
   public byte[] getImageData()
   {
     return imageData;
@@ -1039,7 +1039,7 @@ public class AddressDO extends DefaultBaseWithAttrDO<AddressDO>
     this.addressbookList = addressbookList;
   }
 
-  @Column(name = "image_data_preview", length = 1000)
+  @Column(name = "image_data_preview")
   public byte[] getImageDataPreview()
   {
     return imageDataPreview;

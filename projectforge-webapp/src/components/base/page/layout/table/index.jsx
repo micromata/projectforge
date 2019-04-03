@@ -10,6 +10,7 @@ function LayoutTable(
         data,
         id,
         sorting,
+        translations,
     },
 ) {
     let rows = data[id];
@@ -50,6 +51,13 @@ function LayoutTable(
                         ))}
                     </tbody>
                 </Table>
+                {data.size
+                    ? (
+                        <span>
+                            {`${translations['table.showing']} ${data.size}/${data.totalSize}`}
+                        </span>
+                    )
+                    : undefined}
             </CardBody>
         </Card>
     );
@@ -60,6 +68,9 @@ LayoutTable.propTypes = {
         id: PropTypes.string,
         title: PropTypes.string,
     })).isRequired,
+    translations: PropTypes.shape({
+        'table.showing': PropTypes.string,
+    }).isRequired,
     data: PropTypes.shape({}),
     id: PropTypes.string,
     sorting: PropTypes.shape({

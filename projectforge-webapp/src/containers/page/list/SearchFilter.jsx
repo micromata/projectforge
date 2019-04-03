@@ -48,56 +48,58 @@ class SearchFilter extends Component {
         return (
             <Card>
                 <CardBody>
-                    <Input
-                        label="[Suchfilter]"
-                        id="searchString"
-                        value={filter.searchString}
-                        onChange={this.handleInputChange}
-                    />
-                    <Row>
-                        <Col sm={8}>
-                            <Input
-                                label="[Änderungszeitraum]"
-                                id="changePeriod"
-                            />
-                        </Col>
-                        <Col sm={4}>
-                            <Input
-                                label="[geändert durch]"
-                                id="user"
-                            />
-                        </Col>
-                    </Row>
-                    <Row>
-                        <Col sm={8}>
-                            <FormGroup row>
-                                <Label sm={2}>[Optionen]</Label>
-                                <Col sm={10}>
-                                    <LayoutGroup
-                                        {...getNamedContainer('filterOptions', namedContainers)}
-                                        data={filter}
-                                        changeDataField={setFilter}
-                                    />
-                                </Col>
-                            </FormGroup>
-                        </Col>
-                        <Col sm={4}>
-                            <Select
-                                selected={filter.maxRows}
-                                setSelected={this.handleSelectChange}
-                                id="maxRows"
-                                label="[Seitengröße]"
-                                options={['25', '50', '100', '200', '500', '1000']}
-                            />
-                        </Col>
-                    </Row>
-                    <FormGroup row>
-                        <Col>
-                            <ActionGroup
-                                actions={actions}
-                            />
-                        </Col>
-                    </FormGroup>
+                    <form>
+                        <Input
+                            label="[Suchfilter]"
+                            id="searchString"
+                            value={filter.searchString}
+                            onChange={this.handleInputChange}
+                        />
+                        <Row>
+                            <Col sm={8}>
+                                <Input
+                                    label="[Änderungszeitraum]"
+                                    id="changePeriod"
+                                />
+                            </Col>
+                            <Col sm={4}>
+                                <Input
+                                    label="[geändert durch]"
+                                    id="user"
+                                />
+                            </Col>
+                        </Row>
+                        <Row>
+                            <Col sm={8}>
+                                <FormGroup row>
+                                    <Label sm={2}>[Optionen]</Label>
+                                    <Col sm={10}>
+                                        <LayoutGroup
+                                            {...getNamedContainer('filterOptions', namedContainers)}
+                                            data={filter}
+                                            changeDataField={setFilter}
+                                        />
+                                    </Col>
+                                </FormGroup>
+                            </Col>
+                            <Col sm={4}>
+                                <Select
+                                    selected={filter.maxRows}
+                                    setSelected={this.handleSelectChange}
+                                    id="maxRows"
+                                    label="[Seitengröße]"
+                                    options={['25', '50', '100', '200', '500', '1000']}
+                                />
+                            </Col>
+                        </Row>
+                        <FormGroup row>
+                            <Col>
+                                <ActionGroup
+                                    actions={actions}
+                                />
+                            </Col>
+                        </FormGroup>
+                    </form>
                 </CardBody>
             </Card>
         );
