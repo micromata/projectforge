@@ -28,14 +28,15 @@
       top: 1.1em;
       background-color: transparent;
       border: none;
-      border-bottom: 1px solid #bbb;
+      border-bottom: 1px solid #cccacc;
       outline: none;
 
       &:focus {
-        border-bottom: 1px solid #000;
+        border-bottom: 1px solid #3e8387;
+        transition: border-bottom 1s;
       }
 
-      @include transition(border-bottom .3s);
+      //@include transition(border-bottom .3s);
 
     }
 
