@@ -8,6 +8,7 @@ import org.projectforge.framework.i18n.translate
 import org.projectforge.rest.core.AbstractDORest
 import org.projectforge.rest.core.ResultSet
 import org.projectforge.ui.*
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import java.io.InputStream
 import java.lang.reflect.Type
@@ -31,6 +32,9 @@ open class AddressRest()
     }
 
     private val log = org.slf4j.LoggerFactory.getLogger(AddressRest::class.java)
+
+    @Autowired
+    private lateinit var addressbookDao: AddressbookDao
 
     @POST
     @Path("/uploadImage/{id}")
@@ -136,9 +140,15 @@ open class AddressRest()
      * LAYOUT Edit page
      */
     override fun createEditLayout(dataObject: AddressDO?): UILayout {
+        val addressbookDOs = addressbookDao.allAddressbooksWithFullAccess
+        val addressbooks = mutableListOf<AutoCompletion.Entry>()
+        addressbookDOs.forEach {
+            addressbooks.add(AutoCompletion.Entry(it.id, it.title))
+        }
         val layout = super.createEditLayout(dataObject)
                 .add(UIGroup()
-                        .add(UIMultiSelect("addressbookList", lc)))
+                        .add(UIMultiSelect("addressbookList", lc,
+                                autoCompletion = AutoCompletion(values = addressbooks))))
                 .add(UIRow()
                         .add(UICol(6).add(lc, "contactStatus"))
                         .add(UICol(6).add(lc, "addressStatus")))
