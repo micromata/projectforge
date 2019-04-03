@@ -15,6 +15,7 @@ body {
   line-height: 1.428571429;
   color: #333;
   margin: 0;
+  font-family: Roboto, sans-serif;
 }
 
 a {
@@ -69,4 +70,9 @@ body {
 .footer {
   position: absolute;
   margin-top: -20px;
+}
+
+
+.form-group {
+  margin-bottom: 2.3rem;
 }
