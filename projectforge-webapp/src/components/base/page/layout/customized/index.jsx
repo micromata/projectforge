@@ -1,5 +1,7 @@
 import PropTypes from 'prop-types';
 import React from 'react';
+import CustomizedAddressImage from './components/AddressImage';
+import CustomizedImageDataPreview from './components/ImageDataPreview';
 import CustomizedLendOutComponent from './components/LendOut';
 
 function CustomizedLayout({ id, ...props }) {
@@ -8,6 +10,12 @@ function CustomizedLayout({ id, ...props }) {
     switch (id) {
         case 'lendOutComponent':
             Tag = CustomizedLendOutComponent;
+            break;
+        case 'addressImage':
+            Tag = CustomizedAddressImage;
+            break;
+        case 'imageDataPreview':
+            Tag = CustomizedImageDataPreview;
             break;
         default:
     }
