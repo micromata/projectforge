@@ -93,4 +93,15 @@ span.badge {
   background-color: #000;
   border-radius: 10px;
   color: #fff;
+
+  &.flying {
+    @include transform(scale(0.75));
+    position: absolute;
+    top: -.75em;
+    right: 0;
+  }
+
+  &.danger {
+    background-color: #dc3545;
+  }
 }

@@ -8,9 +8,12 @@ export const loadBegin = () => ({
     type: MENU_LOAD_BEGIN,
 });
 
-export const loadSuccess = menu => ({
+export const loadSuccess = (favoritesMenu, mainMenu) => ({
     type: MENU_LOAD_SUCCESS,
-    payload: { menu },
+    payload: {
+        favoritesMenu,
+        mainMenu,
+    },
 });
 
 export const loadFailure = error => ({
@@ -30,6 +33,6 @@ export const loadMenu = () => (dispatch) => {
     )
         .then(handleHTTPErrors)
         .then(response => response.json())
-        .then(({ mainMenu }) => dispatch(loadSuccess(mainMenu.menuItems)))
+        .then(({ favoritesMenu, mainMenu }) => dispatch(loadSuccess(favoritesMenu, mainMenu)))
         .catch(error => dispatch(loadFailure(error)));
 };

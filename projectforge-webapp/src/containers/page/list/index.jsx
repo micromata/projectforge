@@ -5,8 +5,9 @@ import { Link } from 'react-router-dom';
 import { loadList } from '../../../actions';
 import LayoutGroup from '../../../components/base/page/layout/Group';
 import PageNavigation from '../../../components/base/page/Navigation';
-import { Button, NavItem } from '../../../components/design';
+import { Alert, Button, NavItem } from '../../../components/design';
 import LoadingContainer from '../../../components/design/loading-container';
+import { dataPropType } from '../../../utilities/propTypes';
 import SearchFilter from './SearchFilter';
 
 class ListPage extends React.Component {
@@ -37,11 +38,20 @@ class ListPage extends React.Component {
     render() {
         const {
             data,
+            error,
             loading,
             match,
             sorting,
             ui,
         } = this.props;
+
+        if (error === '404') {
+            return (
+                <Alert color="warning">
+                    <h4>[Not found]</h4>
+                </Alert>
+            );
+        }
 
         return (
             <LoadingContainer loading={loading}>
@@ -57,6 +67,7 @@ class ListPage extends React.Component {
                     content={ui.layout}
                     data={data}
                     sorting={sorting}
+                    translations={ui.translations}
                 />
             </LoadingContainer>
         );
@@ -64,7 +75,7 @@ class ListPage extends React.Component {
 }
 
 ListPage.propTypes = {
-    data: PropTypes.shape({}).isRequired,
+    data: dataPropType.isRequired,
     load: PropTypes.func.isRequired,
     loading: PropTypes.bool.isRequired,
     match: PropTypes.shape({}).isRequired,
@@ -74,6 +85,7 @@ ListPage.propTypes = {
         })),
         title: PropTypes.string,
     }).isRequired,
+    error: PropTypes.string,
     sorting: PropTypes.shape({
         column: PropTypes.string,
         direction: PropTypes.oneOf(['ASC', 'DESC']),
@@ -82,13 +94,15 @@ ListPage.propTypes = {
 
 ListPage.defaultProps = {
     sorting: undefined,
+    error: undefined,
 };
 
 const mapStateToProps = state => ({
-    loading: state.listPage.loading,
-    ui: state.listPage.ui,
     data: state.listPage.data,
+    error: state.listPage.error,
+    loading: state.listPage.loading,
     sorting: state.listPage.sorting,
+    ui: state.listPage.ui,
 });
 
 const actions = {

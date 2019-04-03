@@ -18,7 +18,7 @@ import javax.ws.rs.core.MediaType
 import javax.ws.rs.core.Response
 
 @Component
-@Path("books")
+@Path("book")
 open class BookRest() : AbstractDORest<BookDO, BookDao, BookFilter>(BookDao::class.java, BookFilter::class.java, "book.title") {
 
     private val log = org.slf4j.LoggerFactory.getLogger(BookRest::class.java)

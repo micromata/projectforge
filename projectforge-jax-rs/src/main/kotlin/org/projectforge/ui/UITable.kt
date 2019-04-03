@@ -24,6 +24,8 @@ data class UITable(val id : String, val columns : MutableList<UITableColumn> = m
                 col.title = elementInfo.i18nKey
                 col.dataType = UIDataTypeUtils.getDataType(elementInfo)
             }
+            if (!layoutSettings.idPrefix.isNullOrBlank())
+                col.id = "${layoutSettings.idPrefix}${col.id}"
             add(col)
         }
         return this

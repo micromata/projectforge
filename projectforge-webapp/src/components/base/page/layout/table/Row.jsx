@@ -5,6 +5,7 @@ import format from '../../../../../utilities/format';
 import history from '../../../../../utilities/history';
 import { tableColumnsPropType } from '../../../../../utilities/propTypes';
 import style from '../../Page.module.scss';
+import CustomizedLayout from '../customized';
 
 class TableRow extends React.Component {
     constructor(props) {
@@ -27,13 +28,21 @@ class TableRow extends React.Component {
                 onClick={this.handleRowClick}
                 className={style.clickable}
             >
-                {columns.map(column => (
-                    <td key={`table-body-row-${data.id}-column-${column.id}`}>
-                        {column.formatter
-                            ? format(column.formatter, data[column.id])
-                            : data[column.id]}
-                    </td>
-                ))}
+                {columns.map(({ id, formatter, dataType }) => {
+                    let value = Object.getByString(data, id);
+
+                    if (formatter) {
+                        value = format(formatter, value);
+                    } else if (dataType === 'CUSTOMIZED') {
+                        value = <CustomizedLayout id={id} data={data} />;
+                    }
+
+                    return (
+                        <td key={`table-body-row-${data.id}-column-${id}`}>
+                            {value}
+                        </td>
+                    );
+                })}
             </tr>
         );
     }

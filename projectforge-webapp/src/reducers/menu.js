@@ -4,6 +4,7 @@ const initialState = {
     loading: false,
     error: undefined,
     categories: [],
+    favorites: [],
 };
 
 const reducer = (state = initialState, { type, payload }) => {
@@ -14,12 +15,15 @@ const reducer = (state = initialState, { type, payload }) => {
                 loading: true,
                 error: undefined,
                 categories: [],
+                favorites: [],
             };
         case MENU_LOAD_SUCCESS:
             return {
                 ...state,
                 loading: false,
-                categories: payload.menu,
+                categories: payload.mainMenu.menuItems,
+                badge: payload.mainMenu.badge,
+                favorites: payload.favoritesMenu.menuItems,
             };
         case MENU_LOAD_FAILURE:
             return {

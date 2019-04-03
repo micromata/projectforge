@@ -4,6 +4,7 @@ package org.projectforge.controller;
 import lombok.extern.slf4j.Slf4j;
 import org.projectforge.menu.Menu;
 import org.projectforge.menu.builder.FavoritesMenuCreator;
+import org.projectforge.menu.builder.FavoritesMenuReaderWriter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -27,7 +28,7 @@ public class MenuCustomizationController
   public String customize(@RequestParam("configuration") String configuration) {
     log.debug(configuration);
     Menu menu = favoritesMenuCreator.read(configuration);
-    favoritesMenuCreator.storeAsUserPref(menu);
+    FavoritesMenuReaderWriter.Companion.storeAsUserPref(menu);
     return "success";
   }
 }

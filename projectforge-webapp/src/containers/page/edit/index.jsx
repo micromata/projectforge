@@ -72,14 +72,16 @@ class EditPage extends React.Component {
                 >
                     <TabPane tabId="edit">
                         <Container fluid>
-                            <LayoutGroup
-                                content={ui.layout}
-                                data={data}
-                                translation={ui.translations}
-                                changeDataField={changeDataField}
-                                validation={validation}
-                            />
-                            <ActionGroup actions={ui.actions} />
+                            <form>
+                                <LayoutGroup
+                                    content={ui.layout}
+                                    data={data}
+                                    translation={ui.translations}
+                                    changeDataField={changeDataField}
+                                    validation={validation}
+                                />
+                                <ActionGroup actions={ui.actions} />
+                            </form>
                         </Container>
                     </TabPane>
                     {id
