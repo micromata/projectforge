@@ -86,17 +86,20 @@ open class BookRest() : AbstractDORest<BookDO, BookDao, BookFilter>(BookDao::cla
      * LAYOUT Edit page
      */
     override fun createEditLayout(dataObject: BookDO?): UILayout {
-        val layout = super.createEditLayout( dataObject)
+        val layout = super.createEditLayout(dataObject)
                 .add(lc, "title", "authors")
                 .add(UIRow()
                         .add(UICol(6)
                                 .add(lc, "type", "yearOfPublishing", "status", "signature"))
                         .add(UICol(6)
                                 .add(lc, "isbn", "keywords", "publisher", "editor")))
-                .add(UIGroup()
-                        .add(UILabel("book.lending", "lendOutComponent"))
-                        .add(UICustomized("lendOutComponent")))
-                .add(lc, "lendOutComment", "abstractText", "comment")
+
+        if (dataObject?.id != null) // Show lend out functionality only for existing books:
+            layout.add(UIGroup()
+                    .add(UILabel("book.lending", "lendOutComponent"))
+                    .add(UICustomized("lendOutComponent")))
+                    .add(lc, "lendOutComment")
+        layout.add(lc, "abstractText", "comment")
         layout.getInputById("title").focus = true
         layout.addTranslation("book.lendOut")
                 .addTranslation("book.returnBook")
