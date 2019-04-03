@@ -23,13 +23,8 @@
 
 package org.projectforge.menu.builder
 
-import org.dom4j.DocumentHelper
-import org.dom4j.Element
-import org.projectforge.business.user.UserXmlPreferencesDO
-import org.projectforge.business.user.service.UserPreferencesHelper
 import org.projectforge.business.user.service.UserPreferencesService
 import org.projectforge.framework.access.AccessChecker
-import org.projectforge.framework.i18n.UserException
 import org.projectforge.framework.i18n.translate
 import org.projectforge.menu.Menu
 import org.projectforge.menu.MenuItem
@@ -93,40 +88,6 @@ open class FavoritesMenuCreator {
         if (favMenuAsString.isNullOrBlank())
             return Menu()
         return FavoritesMenuReaderWriter.read(menuCreator, favMenuAsString)
-    }
-
-    fun storeAsUserPref(menu: Menu?) {
-        if (menu == null || menu.menuItems.isNullOrEmpty()) {
-            UserPreferencesHelper.putEntry(USER_PREF_FAVORITES_MENU_ENTRIES_KEY, "", true)
-            UserPreferencesHelper.removeEntry(USER_PREF_FAVORITES_MENU_KEY)
-            return
-        }
-        val document = DocumentHelper.createDocument()
-        val root = document.addElement("root")
-        for (menuItem in menu.menuItems) {
-            buildElement(root.addElement("item"), menuItem)
-        }
-        val xml = document.asXML()
-        if (xml.length > UserXmlPreferencesDO.MAX_SERIALIZED_LENGTH) {
-            throw UserException("menu.favorite.maxSizeExceeded")
-        }
-        UserPreferencesHelper.putEntry(USER_PREF_FAVORITES_MENU_ENTRIES_KEY, xml, true)
-        UserPreferencesHelper.putEntry(USER_PREF_FAVORITES_MENU_KEY, this, false)
-        log.info("Favorites menu stored: $xml")
-    }
-
-    private fun buildElement(element: Element, menuItem: MenuItem) {
-        if (menuItem.id != null) {
-            element.addAttribute("id", menuItem.id)
-        }
-        if (menuItem.title != null) {
-            element.addText(menuItem.title)
-        }
-        if (!menuItem.subMenu.isNullOrEmpty()) {
-            for (subItem in menuItem.subMenu!!) {
-                buildElement(element.addElement("item"), subItem)
-            }
-        }
     }
 
     companion object {

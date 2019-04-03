@@ -23,12 +23,14 @@
 
 package org.projectforge.menu.builder
 
-import com.google.gson.GsonBuilder
 import org.apache.commons.lang3.StringUtils
 import org.dom4j.Document
 import org.dom4j.DocumentException
 import org.dom4j.DocumentHelper
 import org.dom4j.Element
+import org.projectforge.business.user.UserXmlPreferencesDO
+import org.projectforge.business.user.service.UserPreferencesHelper
+import org.projectforge.framework.i18n.UserException
 import org.projectforge.menu.Menu
 import org.projectforge.menu.MenuItem
 import java.util.*
@@ -40,6 +42,27 @@ import java.util.*
 class FavoritesMenuReaderWriter {
     companion object {
         private val log = org.slf4j.LoggerFactory.getLogger(FavoritesMenuReaderWriter::class.java)
+
+        fun storeAsUserPref(menu: Menu?) {
+            if (menu == null || menu.menuItems.isNullOrEmpty()) {
+                UserPreferencesHelper.putEntry(FavoritesMenuCreator.USER_PREF_FAVORITES_MENU_ENTRIES_KEY, "", true)
+                UserPreferencesHelper.removeEntry(FavoritesMenuCreator.USER_PREF_FAVORITES_MENU_KEY)
+                return
+            }
+            val document = DocumentHelper.createDocument()
+            val root = document.addElement("root")
+            for (menuItem in menu.menuItems) {
+                buildElement(root.addElement("item"), menuItem)
+            }
+            val xml = document.asXML()
+            if (xml.length > UserXmlPreferencesDO.MAX_SERIALIZED_LENGTH) {
+                throw UserException("menu.favorite.maxSizeExceeded")
+            }
+            UserPreferencesHelper.putEntry(FavoritesMenuCreator.USER_PREF_FAVORITES_MENU_ENTRIES_KEY, xml, true)
+            UserPreferencesHelper.putEntry(FavoritesMenuCreator.USER_PREF_FAVORITES_MENU_KEY, this, false)
+            log.info("Favorites menu stored: $xml")
+        }
+
 
         internal fun read(menuCreator: MenuCreator, favMenuAsString: String?)
                 : Menu {
@@ -54,10 +77,24 @@ class FavoritesMenuReaderWriter {
             }
         }
 
+        private fun buildElement(element: Element, menuItem: MenuItem) {
+            if (menuItem.id != null) {
+                element.addAttribute("id", menuItem.id)
+            }
+            if (menuItem.title != null) {
+                element.addText(menuItem.title)
+            }
+            if (!menuItem.subMenu.isNullOrEmpty()) {
+                for (subItem in menuItem.subMenu!!) {
+                    buildElement(element.addElement("item"), subItem)
+                }
+            }
+        }
+
         /**
          * XML format.
          */
-        fun readFromXml(menuCreator: MenuCreator, menuAsXml: String): Menu {
+        private fun readFromXml(menuCreator: MenuCreator, menuAsXml: String): Menu {
             if (log.isDebugEnabled == true) {
                 log.debug("readFromXml: $menuAsXml")
             }
@@ -95,6 +132,10 @@ class FavoritesMenuReaderWriter {
             }
             if (id != null) {
                 menuItemDef = menuCreator.findById(id)
+                if (menuItemDef == null && id.contains('.')) {
+                    id = id.substring(id.lastIndexOf('.') + 1)
+                    menuItemDef = menuCreator.findById(id)
+                }
             }
             var menuItem: MenuItem?
             if (menuItemDef != null) {
