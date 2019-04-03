@@ -2,7 +2,6 @@ package org.projectforge.rest
 
 import com.google.gson.*
 import org.apache.commons.lang3.StringUtils
-import org.bouncycastle.asn1.x509.X509ObjectIdentifiers.id
 import org.glassfish.jersey.media.multipart.FormDataMultiPart
 import org.projectforge.business.address.*
 import org.projectforge.framework.i18n.translate
@@ -160,14 +159,26 @@ open class AddressRest()
                 .add(UIRow()
                         .add(UICol(6)
                                 .add(UILabel("address.heading.businessAddress"))
-                                .add(lc, "addressText", "zipCode", "city", "country", "state"))
+                                .add(lc, "addressText")
+                                .add(UIGroup()
+                                        .add(UIInput("zipCode", lc))
+                                        .add(UIInput("city", lc)))
+                                .add(lc, "country", "state"))
                         .add(UICol(6)
                                 .add(UILabel("address.heading.postalAddress"))
-                                .add(lc, "postalAddressText", "postalZipCode", "postalCity", "postalCountry", "postalState")))
+                                .add(lc, "postalAddressText")
+                                .add(UIGroup()
+                                        .add(UIInput("postalZipCode", lc))
+                                        .add(UIInput("postalCity", lc)))
+                                .add(lc, "postalCountry", "postalState")))
                 .add(UIRow()
                         .add(UICol(6)
                                 .add(UILabel("address.heading.privateAddress"))
-                                .add(lc, "privateAddressText", "privateZipCode", "privateCity", "privateCountry", "privateState"))
+                                .add(lc, "privateAddressText")
+                                .add(UIGroup()
+                                        .add(UIInput("privateZipCode", lc))
+                                        .add(UIInput("privateCity", lc)))
+                                .add(lc, "privateCountry", "privateState"))
                         .add(UICol(6)
                                 .add(UILabel("address.image"))
                                 .add(UICustomized("addressImage"))))
