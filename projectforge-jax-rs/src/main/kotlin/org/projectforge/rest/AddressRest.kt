@@ -190,6 +190,13 @@ open class AddressRest()
         }
     }
 
+    override fun processItemBeforeExport(item: Any) {
+        if ((item as AddressDO).imageData != null || item.imageDataPreview != null) {
+            item.imageData = byteArrayOf(1)
+            item.imageDataPreview = byteArrayOf(1)
+        }
+    }
+
     /**
      * Needed for json serialization
      */
