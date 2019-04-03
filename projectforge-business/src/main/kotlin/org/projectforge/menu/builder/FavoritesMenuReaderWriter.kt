@@ -43,6 +43,15 @@ class FavoritesMenuReaderWriter {
     companion object {
         private val log = org.slf4j.LoggerFactory.getLogger(FavoritesMenuReaderWriter::class.java)
 
+        /**
+         * For defining unique keys (needed by ReactJS frontend) for own menu entries without MenuItemDef]
+         */
+        private class KeyCounter(var value: Int = 0) {
+            fun increment(): Int {
+                return ++value
+            }
+        }
+
         fun storeAsUserPref(menu: Menu?) {
             if (menu == null || menu.menuItems.isNullOrEmpty()) {
                 UserPreferencesHelper.putEntry(FavoritesMenuCreator.USER_PREF_FAVORITES_MENU_ENTRIES_KEY, "", true)
@@ -108,9 +117,11 @@ class FavoritesMenuReaderWriter {
             }
             val root = document!!.rootElement
             val it = root.elementIterator("item")
+            var keyCounter = KeyCounter()
+
             while (it.hasNext()) {
                 val item = it.next() as Element
-                val menuItem = readFromXml(menuCreator, item)
+                val menuItem = readFromXml(menuCreator, item, keyCounter)
                 if (menuItem != null)
                     menu.add(menuItem)
             }
@@ -120,7 +131,7 @@ class FavoritesMenuReaderWriter {
         /**
          * XML format.
          */
-        private fun readFromXml(menuCreator: MenuCreator, item: Element): MenuItem? {
+        private fun readFromXml(menuCreator: MenuCreator, item: Element, keyCounter: KeyCounter): MenuItem? {
             if (item.name != "item") {
                 log.error("Tag 'item' expected instead of '" + item.name + "'. Ignoring this tag.")
                 return null
@@ -141,7 +152,7 @@ class FavoritesMenuReaderWriter {
             if (menuItemDef != null) {
                 menuItem = MenuItem(menuItemDef)
             } else {
-                menuItem = MenuItem()
+                menuItem = MenuItem(key = "menu-${keyCounter.increment()}")
                 val trimmedTitle = item.textTrim
                 if (trimmedTitle != null) {
                     // menuEntry.setName(StringEscapeUtils.escapeXml(trimmedTitle));
@@ -157,7 +168,7 @@ class FavoritesMenuReaderWriter {
                     log.warn("Menu entry shouldn't have children, because it's a leaf node.")
                 }
                 val child = it.next() as Element
-                val childMenuEntry = readFromXml(menuCreator, child)
+                val childMenuEntry = readFromXml(menuCreator, child, keyCounter)
                 if (childMenuEntry != null) {
                     menuItem.add(childMenuEntry)
                 }
