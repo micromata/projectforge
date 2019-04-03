@@ -20,13 +20,14 @@
       color: #555;
       @include transition-transform-extra(.3s, translate(2px, 1em) scale(1, 1), color .3s);
       transform-origin: top left;
+      color: #7c7c7d;
     }
 
     .input {
       padding-left: 5px;
       width: 100%;
       position: relative;
-      top: 1.1em;
+      top: 1.3em;
       background-color: transparent;
       border: none;
       border-bottom: 1px solid #cccacc;
@@ -45,7 +46,7 @@
 
       .text {
         color: #000;
-        @include transform(translate(0, 0) scale(.9,.9));
+        @include transform(translate(0, 0) scale(.8,.8));
       }
 
       .input {
@@ -328,10 +329,6 @@
     margin: .5em 0;
     font-size: .85em;
   }
-}
-
-.form-group {
-  margin-bottom: 20px !important;
 }
 
 
