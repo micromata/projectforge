@@ -23,11 +23,17 @@ a {
   background: transparent;
 }
 
+// Custom Styles
 
 ul {
-  font-size: 18px;
-
   li.nav-item a.btn {
       margin-left: 10px !important;
+      font-size: 16px;
+      font-weight: 500;
+      line-height: 1;
+      padding: 1px 5px;
+      border-radius: 3px;
+      position: relative;
+      top: -2px;
   }
 }
