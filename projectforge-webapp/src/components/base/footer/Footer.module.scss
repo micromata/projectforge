@@ -1,21 +1,22 @@
 @import '../../../assets/style/mixins';
 
 .footer {
-  //height: 1.3em;
+  height: 2em;
+  min-height: 2em;
   //text-shadow: 0 1px 0 #000;
   //@include linear-gradient-background(to bottom, #4c5766, #313841);
   border-top: 1px solid rgba(0,0,0,.1);
-  position: fixed;
+  //position: fixed;
   bottom: 0;
   color: #aaaaaa;
   width: 100%;
   z-index: 10;
   background-color: #fff;
-  padding: 10px 20px;
+  padding: 3px 15px;
 
   a {
     color: #7c8495;
-    font-size: 0.8em;
+    font-size: 0.75em;
 
     &:hover {
       color: #000;
