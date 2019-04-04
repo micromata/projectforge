@@ -12,6 +12,7 @@ export {
 
 export {
     Alert,
+    Badge,
     Button,
     ButtonGroup,
     Card,
