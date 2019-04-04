@@ -150,6 +150,9 @@ class LayoutUtils {
                         it.additionalLabel = getLabelTransformation(it.additionalLabel, it, additionalLabel = true)
                         it.tooltip = getLabelTransformation(it.tooltip)
                     }
+                    is UIFieldset -> {
+                        it.title = getLabelTransformation(it.title, it as UIElement)
+                    }
                     is UITableColumn -> {
                         val translation = getLabelTransformation(it.title)
                         if (translation != null) it.title = translation
