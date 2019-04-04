@@ -45,6 +45,17 @@ class MenuItem(@Transient
         add(MenuItem(menuItemDef))
     }
 
+    fun get(id: String): MenuItem? {
+        if (this.id == id)
+            return this
+        subMenu?.forEach {
+            val found = it.get(id)
+            if (found != null)
+                return found
+        }
+        return null
+    }
+
     /**
      * Removes all super menu items without children. This will happen, if the user hasn't the user rights to see
      * any children of a super menu item.
@@ -61,7 +72,7 @@ class MenuItem(@Transient
             it.postProcess()
         }
         if (badgeCounter > 0)
-           badge = MenuBadge(badgeCounter, style = "danger")
+            badge = MenuBadge(badgeCounter, style = "danger")
         subMenu?.removeIf { !it.isLeaf() && it.subMenu.isNullOrEmpty() }
     }
 }
