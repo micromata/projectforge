@@ -7,6 +7,7 @@ import org.projectforge.business.address.*
 import org.projectforge.business.image.ImageService
 import org.projectforge.framework.i18n.translate
 import org.projectforge.rest.core.AbstractDORest
+import org.projectforge.rest.core.ExpiringSessionAttributes
 import org.projectforge.rest.core.ResultSet
 import org.projectforge.ui.*
 import org.springframework.beans.factory.annotation.Autowired
@@ -24,6 +25,10 @@ import javax.ws.rs.core.Response
 @Path("address")
 open class AddressRest()
     : AbstractDORest<AddressDO, AddressDao, AddressFilter>(AddressDao::class.java, AddressFilter::class.java, "address.title") {
+
+    companion object {
+        private val SESSION_IMAGE_ATTR = "uploadedAddressImage"
+    }
 
     private class Address(val address: AddressDO,
                           val id: Int,
@@ -59,8 +64,8 @@ open class AddressRest()
         }
         val bytes = fileInputStream.readBytes()
         if (id == null || id < 0) {
-            val session = request.getSession()
-            session.setAttribute("addressImage", bytes)
+            val session = request.session
+            ExpiringSessionAttributes.setAttribute(session, SESSION_IMAGE_ATTR, bytes, 1)
         } else {
             val address = baseDao.getById(id)
             if (address == null)
@@ -107,8 +112,8 @@ open class AddressRest()
     @Path("deleteImage/{id}")
     fun deleteImage(@Context request: HttpServletRequest, @PathParam("id") id: Int): Response {
         if (id == null || id < 0) {
-            val session = request.getSession()
-            session.removeAttribute("addressImage")
+            val session = request.session
+            ExpiringSessionAttributes.removeAttribute(session, SESSION_IMAGE_ATTR)
         } else {
             val address = baseDao.getById(id)
             if (address == null)
@@ -119,6 +124,10 @@ open class AddressRest()
             log.info("Image for address $id (${address.fullName}) deleted.")
         }
         return Response.ok().build()
+    }
+
+    override fun onGetItemAndLayout(request: HttpServletRequest) {
+        ExpiringSessionAttributes.removeAttribute(request.session, SESSION_IMAGE_ATTR)
     }
 
     override fun newBaseDO(): AddressDO {
@@ -143,13 +152,21 @@ open class AddressRest()
     }
 
     override fun beforeSaveOrUpdate(request: HttpServletRequest, obj: AddressDO) {
-        val session = request.getSession()
-        val bytes = session.getAttribute("addressImage") as ByteArray
-        if (bytes != null) {
+        val session = request.session
+        val bytes = ExpiringSessionAttributes.getAttribute(session, SESSION_IMAGE_ATTR)
+        if (bytes != null && bytes is ByteArray) {
             obj.imageData = bytes
             obj.imageDataPreview = imageService.resizeImage(bytes)
+            ExpiringSessionAttributes.removeAttribute(session, SESSION_IMAGE_ATTR)
+        } else {
+            if (obj.imageData != null) {
+                val dbAddress = baseDao.getById(obj.id)
+                obj.imageData = dbAddress.imageData
+                obj.imageDataPreview = dbAddress.imageDataPreview
+            } else {
+                obj.imageDataPreview = null
+            }
         }
-        session.removeAttribute("addressImage")
     }
 
     override fun afterSaveOrUpdate(obj: AddressDO) {
