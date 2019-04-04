@@ -1,6 +1,7 @@
 package org.projectforge.rest.core
 
 import org.apache.commons.beanutils.PropertyUtils
+import org.bouncycastle.asn1.x509.X509ObjectIdentifiers.id
 import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.i18n.translateMsg
@@ -218,7 +219,8 @@ abstract class AbstractDORest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F : BaseS
     @GET
     @Path("edit")
     @Produces(MediaType.APPLICATION_JSON)
-    fun getItemAndLayout(@QueryParam("id") id: Int?): Response {
+    fun getItemAndLayout(@Context request: HttpServletRequest, @QueryParam("id") id: Int?): Response {
+        onGetItemAndLayout(request)
         val item: O
         if (id != null) {
             item = getById(id)
@@ -227,6 +229,9 @@ abstract class AbstractDORest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F : BaseS
         layout.addTranslations("changes")
         val result = EditLayoutData(item, layout)
         return restHelper.buildResponse(result)
+    }
+
+    internal open fun onGetItemAndLayout(request:HttpServletRequest) {
     }
 
     /**
