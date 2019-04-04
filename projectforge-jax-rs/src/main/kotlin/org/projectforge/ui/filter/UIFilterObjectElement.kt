@@ -10,16 +10,11 @@ open class UIFilterObjectElement(
         /**
          *  The id (property) of the filter to be defined.
          */
-        var id: String,
-        /**
-         * Dependent on this type the ui offers different options. For strings (default) a simple input
-         * text field is used, for date ranges date-picker etc.
-         */
-        var type: Type? = Type.STRING,
+        id: String,
         /**
          * This filter option is an autocompletion field.
          */
         var autoCompletion: AutoCompletion? = null
-) {
+) :UIFilterElement(id, FilterType.OBJECT) {
     enum class Type { STRING, DATE, CHOICE }
 }
