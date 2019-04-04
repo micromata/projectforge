@@ -3,8 +3,7 @@ package org.projectforge.menu
 import org.projectforge.framework.i18n.translate
 import org.projectforge.menu.builder.MenuItemDef
 
-class MenuItem(@Transient
-               var id: String? = null,
+class MenuItem(var id: String? = null,
                var title: String? = null,
                var i18nKey: String? = null,
                var url: String? = null,
