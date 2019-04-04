@@ -4,6 +4,7 @@ enum class UIElementType {
     GROUP,
     ROW,
     COL,
+    FIELDSET,
     LABEL,
     TEXTAREA,
     INPUT,
