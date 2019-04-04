@@ -90,9 +90,13 @@ open class BookRest() : AbstractDORest<BookDO, BookDao, BookFilter>(BookDao::cla
                 .add(lc, "title", "authors")
                 .add(UIRow()
                         .add(UICol(6)
-                                .add(lc, "type", "yearOfPublishing", "status", "signature"))
+                                .add(UIRow()
+                                        .add(UICol(6).add(lc, "type"))
+                                        .add(UICol(6).add(lc, "status")))
+                                .add(lc, "yearOfPublishing", "signature"))
                         .add(UICol(6)
-                                .add(lc, "isbn", "keywords", "publisher", "editor")))
+                                .add(lc, "isbn", "publisher", "editor")))
+                .add(lc, "keywords")
 
         if (dataObject?.id != null) // Show lend out functionality only for existing books:
             layout.add(UIGroup()
