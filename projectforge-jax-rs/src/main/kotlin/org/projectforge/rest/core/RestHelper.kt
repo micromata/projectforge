@@ -8,6 +8,7 @@ import org.projectforge.rest.JsonUtils
 import org.projectforge.rest.json.JsonCreator
 import org.projectforge.ui.ValidationError
 import java.util.*
+import javax.servlet.http.HttpServletRequest
 import javax.ws.rs.core.Response
 
 class RestHelper(
@@ -58,11 +59,14 @@ class RestHelper(
     }
 
     fun <O : ExtendedBaseDO<Int>, B : BaseDao<O>, F : BaseSearchFilter>
-            saveOrUpdate(baseDao: BaseDao<O>?, obj: O, dataObjectRest: AbstractDORest<O, B, F>, validationErrorsList: List<ValidationError>?)
+            saveOrUpdate(request: HttpServletRequest,
+                         baseDao: BaseDao<O>?, obj: O,
+                         dataObjectRest: AbstractDORest<O, B, F>,
+                         validationErrorsList: List<ValidationError>?)
             : Response {
         if (validationErrorsList.isNullOrEmpty()) {
             val isNew = obj.id != null
-            dataObjectRest.beforeSaveOrUpdate(obj)
+            dataObjectRest.beforeSaveOrUpdate(request, obj)
             var id = baseDao!!.saveOrUpdate(obj) ?: obj.id
             dataObjectRest.afterSaveOrUpdate(obj)
             if (isNew)

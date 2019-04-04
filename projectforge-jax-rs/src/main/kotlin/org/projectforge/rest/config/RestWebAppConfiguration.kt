@@ -1,5 +1,6 @@
 package org.projectforge.rest.config
 
+import org.glassfish.jersey.media.multipart.MultiPartFeature
 import org.glassfish.jersey.server.ResourceConfig
 import org.projectforge.rest.*
 import org.projectforge.web.rest.MyExceptionMapper
@@ -10,6 +11,7 @@ import org.projectforge.web.rest.MyExceptionMapper
  */
 class RestWebAppConfiguration : ResourceConfig() {
     init {
+        register(MultiPartFeature::class.java)
         register(MyExceptionMapper::class.java)
         register(LogoutRest::class.java)
         register(MenuRest::class.java)
