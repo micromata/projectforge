@@ -6,14 +6,15 @@ import InputPart from './base/InputPart';
 
 function Input(
     {
-        label,
-        id,
+        additionalLabel,
         color,
+        id,
+        label,
         ...props
     },
 ) {
     return (
-        <InputBase label={label} id={id} color={color}>
+        <InputBase label={label} id={id} color={color} additionalLabel={additionalLabel}>
             <InputPart id={id} {...props} />
         </InputBase>
     );
@@ -22,11 +23,13 @@ function Input(
 Input.propTypes = {
     label: PropTypes.string.isRequired,
     id: PropTypes.string.isRequired,
+    additionalLabel: PropTypes.string,
     color: colorPropType,
 };
 
 Input.defaultProps = {
-    value: undefined,
+    additionalLabel: undefined,
+    color: undefined,
 };
 
 export default Input;
