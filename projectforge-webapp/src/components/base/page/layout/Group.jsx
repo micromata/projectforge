@@ -14,11 +14,13 @@ function LayoutGroup(
         content,
         data,
         length,
+        title,
         type,
         ...props
     },
 ) {
     let GroupTag;
+    let SubGroupTag = React.Fragment;
     const groupProperties = {};
 
     switch (type) {
@@ -33,6 +35,11 @@ function LayoutGroup(
             GroupTag = Col;
             groupProperties.sm = length;
             break;
+        case 'FIELDSET':
+            GroupTag = Col;
+            groupProperties.sm = length;
+            SubGroupTag = 'fieldset';
+            break;
         default:
             GroupTag = 'div';
     }
@@ -42,45 +49,51 @@ function LayoutGroup(
             {...groupProperties}
             className={classNames(style.group, groupProperties.className)}
         >
-            {content.map((component) => {
-                let Tag;
+            <SubGroupTag>
+                {title
+                    ? <legend>{title}</legend>
+                    : undefined}
+                {content.map((component) => {
+                    let Tag;
 
-                switch (component.type) {
-                    case 'LABEL':
-                        Tag = LayoutLabel;
-                        break;
-                    case 'INPUT':
-                    case 'CHECKBOX':
-                    case 'TEXTAREA':
-                        Tag = LayoutInput;
-                        break;
-                    case 'SELECT':
-                        Tag = LayoutSelect;
-                        break;
-                    case 'GROUP':
-                    case 'ROW':
-                    case 'COL':
-                        Tag = LayoutGroup;
-                        break;
-                    case 'TABLE':
-                        Tag = LayoutTable;
-                        break;
-                    case 'CUSTOMIZED':
-                        Tag = CustomizedLayout;
-                        break;
-                    default:
-                        Tag = LayoutGroup;
-                }
+                    switch (component.type) {
+                        case 'LABEL':
+                            Tag = LayoutLabel;
+                            break;
+                        case 'INPUT':
+                        case 'CHECKBOX':
+                        case 'TEXTAREA':
+                            Tag = LayoutInput;
+                            break;
+                        case 'SELECT':
+                            Tag = LayoutSelect;
+                            break;
+                        case 'GROUP':
+                        case 'ROW':
+                        case 'COL':
+                        case 'FIELDSET':
+                            Tag = LayoutGroup;
+                            break;
+                        case 'TABLE':
+                            Tag = LayoutTable;
+                            break;
+                        case 'CUSTOMIZED':
+                            Tag = CustomizedLayout;
+                            break;
+                        default:
+                            Tag = LayoutGroup;
+                    }
 
-                return (
-                    <Tag
-                        data={data}
-                        {...props}
-                        {...component}
-                        key={`layout-group-component-${component.key}-${data.id}`}
-                    />
-                );
-            })}
+                    return (
+                        <Tag
+                            data={data}
+                            {...props}
+                            {...component}
+                            key={`layout-group-component-${component.key}-${data.id}`}
+                        />
+                    );
+                })}
+            </SubGroupTag>
         </GroupTag>
     );
 }
@@ -91,18 +104,20 @@ LayoutGroup.propTypes = {
     // Otherwise it will create an endless loop of groups.
     /* eslint-disable-next-line react/forbid-prop-types */
     content: PropTypes.array,
-    type: PropTypes.string,
-    length: PropTypes.number,
     data: PropTypes.shape({}),
+    length: PropTypes.number,
+    title: PropTypes.string,
+    type: PropTypes.string,
     validation: PropTypes.shape({}),
 };
 
 LayoutGroup.defaultProps = {
     changeDataField: undefined,
     content: [],
-    type: 'CONTAINER',
-    length: undefined,
     data: {},
+    length: undefined,
+    title: undefined,
+    type: 'CONTAINER',
     validation: {},
 };
 
