@@ -91,6 +91,7 @@ class EditPage extends React.Component {
                                     <EditHistory
                                         category={category}
                                         id={id}
+                                        translation={ui.translations}
                                     />
                                 </Container>
                             </TabPane>

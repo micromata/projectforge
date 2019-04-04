@@ -49,6 +49,7 @@ class EditHistory extends React.Component {
     }
 
     render() {
+        const { translation } = this.props;
         const { loading, error, history } = this.state;
 
         if (error) {
@@ -66,6 +67,7 @@ class EditHistory extends React.Component {
                     <HistoryEntry
                         key={`history-entry-at-${entry.modifiedAt}`}
                         entry={entry}
+                        translation={translation}
                     />
                 ))}
             </LoadingContainer>
@@ -76,6 +78,13 @@ class EditHistory extends React.Component {
 EditHistory.propTypes = {
     category: PropTypes.string.isRequired,
     id: PropTypes.string.isRequired,
+    translation: PropTypes.shape({
+        changes: PropTypes.string,
+    }),
+};
+
+EditHistory.defaultProps = {
+    translation: undefined,
 };
 
 export default EditHistory;

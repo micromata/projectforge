@@ -3,14 +3,9 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import classNames from 'classnames';
 import PropTypes from 'prop-types';
 import React from 'react';
-import {
-    Col,
-    Collapse,
-    Container,
-    Row,
-    UncontrolledTooltip,
-} from '../../../../components/design';
+import { Col, Collapse, Container, Row, UncontrolledTooltip, } from '../../../../components/design';
 import DiffText from '../../../../components/design/DiffText';
+import { getTranslation } from '../../../../utilities/layout';
 import revisedRandomId from '../../../../utilities/revisedRandomId';
 import style from './History.module.scss';
 
@@ -35,6 +30,7 @@ function HistoryEntry(
             modifiedAt,
             modifiedByUser,
         },
+        translation,
     },
 ) {
     const [active, setActive] = React.useState(false);
@@ -107,7 +103,14 @@ function HistoryEntry(
             </Row>
             <Collapse isOpen={active}>
                 <Container fluid className={style.details}>
-                    <h5><strong>[Änderungen]:</strong></h5>
+
+
+                    <h5>
+                        <strong>
+                            {getTranslation('changes', translation)}
+                            :
+                        </strong>
+                    </h5>
                     {diffEntries.map((
                         {
                             operationType,
@@ -172,6 +175,13 @@ HistoryEntry.propTypes = {
         operation: PropTypes.string,
         operationType: PropTypes.string,
     }).isRequired,
+    translation: PropTypes.shape({
+        changes: PropTypes.string,
+    }),
+};
+
+HistoryEntry.defaultProps = {
+    translation: undefined,
 };
 
 export default HistoryEntry;
