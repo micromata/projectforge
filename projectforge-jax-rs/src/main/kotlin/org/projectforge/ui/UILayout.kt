@@ -57,6 +57,12 @@ class UILayout {
         return this
     }
 
+    fun postProcessPageMenu() {
+        pageMenu.forEach {
+            it.postProcess()
+        }
+    }
+
     /**
      * Convenient method for adding a bunch of UIInput fields with the given ids.
      */
