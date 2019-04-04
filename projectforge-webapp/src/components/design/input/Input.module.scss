@@ -30,7 +30,7 @@
       top: 1.3em;
       background-color: transparent;
       border: none;
-      border-bottom: 1px solid #cccacc;
+      border-bottom: 1px solid #deddde;
       outline: none;
 
       &:focus {
@@ -45,7 +45,7 @@
     &.active {
 
       .text {
-        color: #000;
+        color: #a5a2a5;
         @include transform(translate(0, 0) scale(.8,.8));
       }
 
