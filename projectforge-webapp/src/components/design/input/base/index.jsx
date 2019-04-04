@@ -4,6 +4,7 @@ import React from 'react';
 import { colorPropType } from '../../../../utilities/propTypes';
 import AdditionalLabel from '../AdditionalLabel';
 import style from './Base.module.scss';
+import BaseDropdown from './Dropdown';
 
 class InputBase extends React.Component {
     constructor(props) {
@@ -37,6 +38,7 @@ class InputBase extends React.Component {
             additionalLabel,
             className,
             color,
+            dropdownContent,
             id,
             label,
         } = this.props;
@@ -58,7 +60,7 @@ class InputBase extends React.Component {
         let onlyInputs = true;
 
         React.Children.forEach(children, (child) => {
-            if (child.type.name !== 'input') {
+            if (child.type.name !== 'InputPart') {
                 onlyInputs = false;
             }
         });
@@ -83,6 +85,9 @@ class InputBase extends React.Component {
                     <ul className={style.parts}>
                         {children}
                     </ul>
+                    {dropdownContent
+                        ? <BaseDropdown>{dropdownContent}</BaseDropdown>
+                        : undefined}
                     <AdditionalLabel title={additionalLabel} />
                 </label>
             </React.Fragment>
@@ -97,12 +102,14 @@ InputBase.propTypes = {
     additionalLabel: PropTypes.string,
     className: PropTypes.string,
     color: colorPropType,
+    dropdownContent: PropTypes.node,
 };
 
 InputBase.defaultProps = {
     additionalLabel: undefined,
     className: undefined,
     color: undefined,
+    dropdownContent: undefined,
 };
 
 export default InputBase;
