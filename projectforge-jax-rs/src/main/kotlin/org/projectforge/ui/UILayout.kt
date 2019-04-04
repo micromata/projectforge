@@ -34,6 +34,15 @@ class UILayout {
         return this
     }
 
+    /**
+     * @param i18nKey The translation i18n key. The translation for the logged-in-user will be added.
+     * @return this for chaining.
+     */
+    fun addTranslation(i18nKey: String, translation: String): UILayout {
+        translations.put(i18nKey, translate(translation))
+        return this
+    }
+
     fun add(element: UIElement): UILayout {
         layout.add(element)
         return this
