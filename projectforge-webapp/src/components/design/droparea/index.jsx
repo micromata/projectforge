@@ -105,15 +105,13 @@ class DropArea extends React.Component {
                     onDropCapture={this.handleDropCapture}
                     className={style.background}
                 >
-                    <form encType="multipart/form-data">
-                        <input
-                            onChange={this.handleInputChange}
-                            type="file"
-                            className={style.file}
-                            ref={this.input}
-                            {...inputProps}
-                        />
-                    </form>
+                    <input
+                        onChange={this.handleInputChange}
+                        type="file"
+                        className={style.file}
+                        ref={this.input}
+                        {...inputProps}
+                    />
                     <span className={style.info}>
                         <FontAwesomeIcon icon={faUpload} className={style.icon} />
                         {children}
