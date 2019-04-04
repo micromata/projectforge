@@ -32,6 +32,7 @@ class AutoCompletion(
                  */
                 var allSearchableFields: String? = null)
 
+    @Transient
     private val log = org.slf4j.LoggerFactory.getLogger(AutoCompletion::class.java!!)
 
 
