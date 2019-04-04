@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
 import React from 'react';
-import style from './Base.module.scss';
+import style from '../Base.module.scss';
 
 function BaseDropdown({ children }) {
     return (
