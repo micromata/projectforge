@@ -11,7 +11,7 @@ import javax.persistence.JoinColumn
 
 /**
  * Registry holds properties of UIElements...
- * Builds elements automatically dependent on their property type. For Strings with maxLength > 255 a [UITextarea] will be created instead
+ * Builds elements automatically dependent on their property type. For Strings with maxLength > 255 a [UITextArea] will be created instead
  * of an [UIInput].
  */
 object ElementsRegistry {
@@ -52,7 +52,7 @@ object ElementsRegistry {
                     String::class.java -> {
                         val maxLength = elementInfo.maxLength
                         if (maxLength != null && maxLength > 255) {
-                            UITextarea(property, maxLength = elementInfo.maxLength, layoutSettings = layoutSettings)
+                            UITextArea(property, maxLength = elementInfo.maxLength, layoutSettings = layoutSettings)
                         } else {
                             UIInput(property, maxLength = elementInfo.maxLength, required = elementInfo.required, layoutSettings = layoutSettings)
                         }
