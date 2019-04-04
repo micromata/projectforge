@@ -1,7 +1,6 @@
 package org.projectforge.ui
 
 import org.projectforge.framework.i18n.translate
-import org.projectforge.framework.persistence.api.ExtendedBaseDO
 
 class UILayout {
     constructor(title: String) {
@@ -79,6 +78,11 @@ class UILayout {
     fun getInputById(id: String): UIInput {
         return getElementById(id) as UIInput
     }
+
+    fun getTextAreaById(id: String): UITextArea {
+        return getElementById(id) as UITextArea
+    }
+
 
     fun getNamedContainerById(id: String): UINamedContainer? {
         namedContainers.forEach {
