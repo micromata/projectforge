@@ -195,7 +195,7 @@ class LayoutUtils {
                 is UICheckbox -> element.id
                 is UISelect -> element.id
                 is UIMultiSelect -> element.id
-                is UITextarea -> element.id
+                is UITextArea -> element.id
                 is UITableColumn -> element.id
                 else -> null
             }
