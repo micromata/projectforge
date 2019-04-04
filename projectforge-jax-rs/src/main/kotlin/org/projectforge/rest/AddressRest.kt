@@ -153,12 +153,20 @@ open class AddressRest()
 
     override fun beforeSaveOrUpdate(request: HttpServletRequest, obj: AddressDO) {
         val session = request.session
-        val bytes = ExpiringSessionAttributes.getAttribute(session, SESSION_IMAGE_ATTR) as ByteArray
-        if (bytes != null) {
+        val bytes = ExpiringSessionAttributes.getAttribute(session, SESSION_IMAGE_ATTR)
+        if (bytes != null && bytes is ByteArray) {
             obj.imageData = bytes
             obj.imageDataPreview = imageService.resizeImage(bytes)
+            ExpiringSessionAttributes.removeAttribute(session, SESSION_IMAGE_ATTR)
+        } else {
+            if (obj.imageData != null) {
+                val dbAddress = baseDao.getById(obj.id)
+                obj.imageData = dbAddress.imageData
+                obj.imageDataPreview = dbAddress.imageDataPreview
+            } else {
+                obj.imageDataPreview = null
+            }
         }
-        ExpiringSessionAttributes.removeAttribute(session, SESSION_IMAGE_ATTR)
     }
 
     override fun afterSaveOrUpdate(obj: AddressDO) {
