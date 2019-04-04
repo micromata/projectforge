@@ -4,6 +4,7 @@ import com.google.gson.*
 import org.apache.commons.lang3.StringUtils
 import org.glassfish.jersey.media.multipart.FormDataMultiPart
 import org.projectforge.business.address.*
+import org.projectforge.business.image.ImageService
 import org.projectforge.framework.i18n.translate
 import org.projectforge.rest.core.AbstractDORest
 import org.projectforge.rest.core.ResultSet
@@ -38,6 +39,13 @@ open class AddressRest()
     @Autowired
     private lateinit var addressbookDao: AddressbookDao
 
+    @Autowired
+    private lateinit var imageService: ImageService
+
+    /**
+     * If given and greater 0, the image will be added to the address with the given id (pk), otherwise the image is
+     * stored in the user's session and will be used for the next update or save event.
+     */
     @POST
     @Path("uploadImage/{id}")
     @Consumes(MediaType.MULTIPART_FORM_DATA)
@@ -59,7 +67,7 @@ open class AddressRest()
                 return Response.status(Response.Status.NOT_FOUND).build()
             address.imageData = bytes
             baseDao.update(address)
-            log.info("New image for address $id saved.")
+            log.info("New image for address $id (${address.fullName}) saved.")
         }
         return Response.ok().build()
     }
@@ -90,6 +98,29 @@ open class AddressRest()
         return builder.build()
     }
 
+    /**
+     * If given and greater 0, the image will be deleted from the address with the given id (pk), otherwise the image is
+     * removed from the user's session and will not be used for the next update or save event anymore.
+     */
+
+    @DELETE
+    @Path("deleteImage/{id}")
+    fun deleteImage(@Context request: HttpServletRequest, @PathParam("id") id: Int): Response {
+        if (id == null || id < 0) {
+            val session = request.getSession()
+            session.removeAttribute("addressImage")
+        } else {
+            val address = baseDao.getById(id)
+            if (address == null)
+                return Response.status(Response.Status.NOT_FOUND).build()
+            address.imageData = null
+            address.imageDataPreview = null
+            baseDao.update(address)
+            log.info("Image for address $id (${address.fullName}) deleted.")
+        }
+        return Response.ok().build()
+    }
+
     override fun newBaseDO(): AddressDO {
         return AddressDO()
     }
@@ -116,7 +147,9 @@ open class AddressRest()
         val bytes = session.getAttribute("addressImage") as ByteArray
         if (bytes != null) {
             obj.imageData = bytes
+            obj.imageDataPreview = imageService.resizeImage(bytes)
         }
+        session.removeAttribute("addressImage")
     }
 
     override fun afterSaveOrUpdate(obj: AddressDO) {
@@ -128,7 +161,6 @@ open class AddressRest()
         //personalAddressDao.saveOrUpdate(personalAddress)
         //return null
     }
-
 
     /**
      * LAYOUT List page
@@ -228,6 +260,7 @@ open class AddressRest()
                 .add(UIFieldset(title = "address.image")
                         .add(lc, "comment"))
         layout.getInputById("name").focus = true
+        layout.addTranslations("delete", "file.upload.dropArea", "address.image.upload.error")
         return LayoutUtils.processEditPage(layout, dataObject)
     }
 

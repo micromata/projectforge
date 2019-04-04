@@ -1,6 +1,7 @@
 package org.projectforge.ui
 
 import org.projectforge.framework.i18n.translate
+import org.projectforge.menu.MenuItem
 
 class UILayout {
     constructor(title: String) {
@@ -14,6 +15,9 @@ class UILayout {
      * The action buttons.
      */
     val actions = mutableListOf<UIElement>()
+
+    val pageMenu = mutableListOf<MenuItem>()
+
     /**
      * All required translations for the frontend dependent on the logged-in-user's language.
      */
@@ -23,8 +27,10 @@ class UILayout {
      * @param i18nKey The translation i18n key. The translation for the logged-in-user will be added.
      * @return this for chaining.
      */
-    fun addTranslation(i18nKey: String): UILayout {
-        translations.put(i18nKey, translate(i18nKey))
+    fun addTranslations(vararg i18nKeys: String): UILayout {
+        i18nKeys.forEach {
+            translations.put(it, translate(it))
+        }
         return this
     }
 
@@ -40,6 +46,14 @@ class UILayout {
 
     fun add(namedContainer: UINamedContainer): UILayout {
         namedContainers.add(namedContainer)
+        return this
+    }
+
+    fun add(menu: MenuItem, index: Int? = null): UILayout {
+        if (index != null)
+            pageMenu.add(index, menu)
+        else
+            pageMenu.add(menu)
         return this
     }
 
@@ -83,11 +97,20 @@ class UILayout {
         return getElementById(id) as UITextArea
     }
 
-
     fun getNamedContainerById(id: String): UINamedContainer? {
         namedContainers.forEach {
             if (it.id == id) {
                 return it
+            }
+        }
+        return null
+    }
+
+    fun getMenuById(id: String): MenuItem? {
+        pageMenu.forEach {
+            val found = it.get(id)
+            if (found != null) {
+                return found
             }
         }
         return null

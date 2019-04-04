@@ -108,8 +108,8 @@ open class BookRest() : AbstractDORest<BookDO, BookDao, BookFilter>(BookDao::cla
         layout.add(lc, "abstractText", "comment")
         layout.getInputById("title").focus = true
         layout.getTextAreaById("authors").rows = 1
-        layout.addTranslation("book.lendOut")
-                .addTranslation("book.returnBook")
+        layout.addTranslations("book.lendOut")
+                .addTranslations("book.returnBook")
         return LayoutUtils.processEditPage(layout, dataObject)
     }
 }

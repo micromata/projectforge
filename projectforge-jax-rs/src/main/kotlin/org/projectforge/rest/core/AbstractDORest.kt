@@ -7,6 +7,7 @@ import org.projectforge.framework.i18n.translateMsg
 import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
+import org.projectforge.menu.MenuItem
 import org.projectforge.model.rest.RestPaths
 import org.projectforge.rest.JsonUtils
 import org.projectforge.ui.ElementsRegistry
@@ -162,8 +163,11 @@ abstract class AbstractDORest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F : BaseS
         val resultSet = restHelper.getList(this, baseDao, filter)
         processResultSetBeforeExport(resultSet)
         val layout = createListLayout()
-                .addTranslation("table.showing")
+                .addTranslations("table.showing")
         layout.add(LayoutListFilterUtils.createNamedContainer(baseDao, lc))
+        val menu = MenuItem("GEAR", title = "*")
+        menu.add(MenuItem("Rebuild index", title = "[Rebuild index]"))
+        layout.add(menu)
         return restHelper.buildResponse(InitialListData(ui = layout, data = resultSet, filter = filter))
     }
 
@@ -220,7 +224,7 @@ abstract class AbstractDORest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F : BaseS
             item = getById(id)
         } else item = newBaseDO()
         val layout = createEditLayout(item)
-        layout.addTranslation("changes")
+        layout.addTranslations("changes")
         val result = EditLayoutData(item, layout)
         return restHelper.buildResponse(result)
     }
