@@ -306,6 +306,9 @@ abstract class AbstractDORest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F : BaseS
         return restHelper.buildResponse(listFilterService.getSearchFilter(request.session, filterClazz).reset())
     }
 
+    internal open fun beforeSaveOrUpdate(obj: O) {
+    }
+
     internal open fun afterSaveOrUpdate(obj: O) {
     }
 

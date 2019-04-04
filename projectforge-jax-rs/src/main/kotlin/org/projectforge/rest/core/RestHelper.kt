@@ -62,6 +62,7 @@ class RestHelper(
             : Response {
         if (validationErrorsList.isNullOrEmpty()) {
             val isNew = obj.id != null
+            dataObjectRest.beforeSaveOrUpdate(obj)
             var id = baseDao!!.saveOrUpdate(obj) ?: obj.id
             dataObjectRest.afterSaveOrUpdate(obj)
             if (isNew)
