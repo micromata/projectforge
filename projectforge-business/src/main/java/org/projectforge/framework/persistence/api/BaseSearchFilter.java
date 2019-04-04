@@ -310,6 +310,7 @@ public class BaseSearchFilter implements Serializable {
   /**
    * @return the first sort order if available, otherwise null.
    */
+  @Transient
   public SortOrder getSortOrder() {
     return CollectionUtils.isNotEmpty(sortProperties) ? sortProperties.get(0).getSortOrder() : SortOrder.ASCENDING;
   }
@@ -317,8 +318,17 @@ public class BaseSearchFilter implements Serializable {
   /**
    * @return the first sort order if available, otherwise null.
    */
+  @Transient
   public String getSortProperty() {
     return CollectionUtils.isNotEmpty(sortProperties) ? sortProperties.get(0).getProperty() : null;
+  }
+
+  public List<SortProperty> getSortProperties() {
+    return sortProperties;
+  }
+
+  public void setSortProperties(List<SortProperty> sortProperties) {
+    this.sortProperties = sortProperties;
   }
 
   /**
