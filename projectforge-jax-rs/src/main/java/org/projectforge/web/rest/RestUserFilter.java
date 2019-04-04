@@ -195,6 +195,13 @@ public class RestUserFilter implements Filter {
       ConnectionSettings.set(null);
       MDC.remove("ip");
       MDC.remove("user");
+      if (((HttpServletResponse) response).getStatus() != HttpServletResponse.SC_OK) {
+        log.error("User: " + user.getUsername() + " calls RestURL: " + ((HttpServletRequest) request).getRequestURI()
+                + " with ip: "
+                + clientIpAddress
+                + ": Response status not OK: status=" + ((HttpServletResponse) response).getStatus()
+                + ".");
+      }
     }
   }
 

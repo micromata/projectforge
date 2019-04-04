@@ -2,6 +2,7 @@ package org.projectforge.rest.config
 
 import org.glassfish.jersey.server.ResourceConfig
 import org.projectforge.rest.*
+import org.projectforge.web.rest.MyExceptionMapper
 
 /**
  * This class configures all rest services available for the React client.
@@ -9,6 +10,7 @@ import org.projectforge.rest.*
  */
 class RestWebAppConfiguration : ResourceConfig() {
     init {
+        register(MyExceptionMapper::class.java)
         register(LogoutRest::class.java)
         register(MenuRest::class.java)
         register(UserStatusRest::class.java)
