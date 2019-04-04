@@ -12,7 +12,8 @@ open class UIFilterTimestampElement(id: String,
                                     /**
                                      * The provided quickselectors for time intervals.
                                      */
-                                    vararg selectors: QuickSelector) : UIFilterElement(id, filterType = FilterType.TIME_STAMP) {
+                                    var selectors: List<QuickSelector>? = null)
+    : UIFilterElement(id, filterType = FilterType.TIME_STAMP) {
     enum class QuickSelector {
         /**
          * Quick select of year (01/01/2019 0:00 until 31/12/2019 24:00) with scrolling buttons.

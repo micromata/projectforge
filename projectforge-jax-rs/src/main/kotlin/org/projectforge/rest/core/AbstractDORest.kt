@@ -10,7 +10,7 @@ import org.projectforge.framework.persistence.api.ExtendedBaseDO
 import org.projectforge.model.rest.RestPaths
 import org.projectforge.rest.JsonUtils
 import org.projectforge.ui.*
-import org.projectforge.ui.filter.LayoutFilterUtils
+import org.projectforge.ui.filter.LayoutListFilterUtils
 import org.springframework.beans.BeanUtils
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationContext
@@ -160,7 +160,7 @@ abstract class AbstractDORest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F : BaseS
         processResultSetBeforeExport(resultSet)
         val layout = createListLayout()
                 .addTranslation("table.showing")
-        layout.add(LayoutFilterUtils.createNamedContainer(baseDao, lc))
+        layout.add(LayoutListFilterUtils.createNamedContainer(baseDao, lc))
         return restHelper.buildResponse(InitialListData(ui = layout, data = resultSet, filter = filter))
     }
 
