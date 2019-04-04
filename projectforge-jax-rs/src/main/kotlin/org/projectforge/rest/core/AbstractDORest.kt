@@ -9,7 +9,10 @@ import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
 import org.projectforge.model.rest.RestPaths
 import org.projectforge.rest.JsonUtils
-import org.projectforge.ui.*
+import org.projectforge.ui.ElementsRegistry
+import org.projectforge.ui.LayoutContext
+import org.projectforge.ui.UILayout
+import org.projectforge.ui.ValidationError
 import org.projectforge.ui.filter.LayoutListFilterUtils
 import org.springframework.beans.BeanUtils
 import org.springframework.beans.factory.annotation.Autowired
@@ -179,7 +182,7 @@ abstract class AbstractDORest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F : BaseS
         return restHelper.buildResponse(resultSet)
     }
 
-    protected open fun processResultSetBeforeExport(resultSet : ResultSet<Any>) {
+    protected open fun processResultSetBeforeExport(resultSet: ResultSet<Any>) {
         resultSet.resultSet.forEach { processItemBeforeExport(it) }
     }
 
@@ -216,7 +219,9 @@ abstract class AbstractDORest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F : BaseS
         if (id != null) {
             item = getById(id)
         } else item = newBaseDO()
-        val result = EditLayoutData(item, createEditLayout(item))
+        val layout = createEditLayout(item)
+        layout.addTranslation("changes")
+        val result = EditLayoutData(item, layout)
         return restHelper.buildResponse(result)
     }
 
