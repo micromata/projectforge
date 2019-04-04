@@ -1,14 +1,14 @@
 import { callEndpointWithData } from '../editPage';
 
 export const returnBook = () => (dispatch, getState) => callEndpointWithData(
-    'books',
+    'book',
     'returnBook',
     getState().editPage.data,
     dispatch,
 );
 
 export const lendOutBook = () => (dispatch, getState) => callEndpointWithData(
-    'books',
+    'book',
     'lendOut',
     getState().editPage.data,
     dispatch,
