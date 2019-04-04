@@ -4,7 +4,7 @@ import React from 'react';
 import { colorPropType } from '../../../../utilities/propTypes';
 import AdditionalLabel from '../AdditionalLabel';
 import style from './Base.module.scss';
-import BaseDropdown from './Dropdown';
+import BaseDropdown from './dropdown';
 
 class InputBase extends React.Component {
     constructor(props) {
