@@ -1,0 +1,91 @@
+@import '../../../../assets/style/mixins.scss';
+
+label.label {
+  position: relative;
+  display: block;
+  width: 100%;
+  cursor: text;
+  padding-top: 1em;
+
+  span.title {
+    position: absolute;
+    z-index: 1;
+    top: 0;
+    left: 3px;
+    color: #7c7c7d;
+    transform-origin: top left;
+    @include transition-transform-extra(.3s, translate(2px, 1em) scale(1, 1), color .3s);
+  }
+
+  ul.parts {
+    list-style: none;
+    -webkit-padding-start: 0;
+    margin: 0 0 0 0;
+    display: flex;
+    flex-flow: row wrap;
+    border-bottom: 1px solid #cccacc;
+
+    @include transition(border-bottom .3s);
+
+    li.part {
+      position: relative;
+      .input {
+        width: 100%;
+        padding-left: 5px;
+        background-color: transparent;
+        border: none;
+        outline: none;
+      }
+    }
+  }
+
+  &.active {
+    span.title {
+      @include transform(translate(0, 0) scale(.8, .8));
+    }
+  }
+
+  &.focus {
+    span.title {
+      color: #000;
+    }
+
+    ul.parts {
+      border-bottom-color: #3e8387;
+    }
+  }
+
+  @mixin color($color) {
+    span.title {
+      color: $color;
+    }
+
+    ul.parts {
+      border-bottom-color: $color;
+    }
+  }
+
+  &.primary {
+    @include color(#007bff);
+  }
+
+  &.secondary {
+    @include color(#6c757d);
+  }
+
+  &.success {
+    @include color(#28a745);
+  }
+
+  &.danger {
+    @include color(#dc3545);
+  }
+
+  &.warning {
+    @include color(#ffc107);
+  }
+
+  &.info {
+    @include color(#17a2b8);
+  }
+}

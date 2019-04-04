@@ -6,6 +6,7 @@ import Row from 'reactstrap/es/Row';
 import DropArea from '../../components/design/droparea';
 import Input from '../../components/design/input';
 import CheckBox from '../../components/design/input/CheckBox';
+import NewInput from '../../components/design/input/Input';
 import TextArea from '../../components/design/input/TextArea';
 import UncontrolledSelect from '../../components/design/input/UncontrolledSelect';
 
@@ -193,6 +194,11 @@ function InputTestPage() {
                                 },
                             ]}
                             additionalLabel="Zusätzlicher Titel"
+                        />
+                        <NewInput
+                            label="Neuer Input"
+                            id="new-input-test"
+                            additionalLabel="Additional Value"
                         />
                     </Col>
                     <Col sm>
