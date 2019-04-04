@@ -1,11 +1,14 @@
 package org.projectforge.menu
 
+import org.projectforge.framework.i18n.autoTranslate
 import org.projectforge.framework.i18n.translate
 import org.projectforge.menu.builder.MenuItemDef
 
 class MenuItem(var id: String? = null,
                var title: String? = null,
                var i18nKey: String? = null,
+               var tooltip: String? = null,
+               var tooltipTitle: String? = null,
                var url: String? = null,
                /**
                 * Unique key usable by React. It's also unique for multiple menu items (in different main categories).
@@ -56,12 +59,19 @@ class MenuItem(var id: String? = null,
     }
 
     /**
+     * Translates the i18n as title if title isn't given.
      * Removes all super menu items without children. This will happen, if the user hasn't the user rights to see
      * any children of a super menu item.
      *
      * Accumulates badge counter in parent menus by summarizing all badge counters from child menus.
      */
     fun postProcess() {
+        if (title == null)
+            title = translate(i18nKey)
+        if (tooltip != null)
+            tooltip = autoTranslate(tooltip)
+        if (tooltipTitle != null)
+            tooltipTitle = autoTranslate(tooltipTitle)
         if (subMenu.isNullOrEmpty())
             return
         var badgeCounter = 0

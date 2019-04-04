@@ -1,7 +1,6 @@
 package org.projectforge.rest.core
 
 import org.apache.commons.beanutils.PropertyUtils
-import org.bouncycastle.asn1.x509.X509ObjectIdentifiers.id
 import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.i18n.translateMsg
@@ -167,9 +166,43 @@ abstract class AbstractDORest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F : BaseS
                 .addTranslations("table.showing")
         layout.add(LayoutListFilterUtils.createNamedContainer(baseDao, lc))
         val menu = MenuItem("GEAR", title = "*")
-        menu.add(MenuItem("Rebuild index", title = "[Rebuild index]"))
-        layout.add(menu)
+        val path = this::class.annotations.find{it is Path} as? Path
+        val p = path?.value
+        menu.add(MenuItem("reindexNewestDatabaseEntries",
+                i18nKey = "menu.reindexNewestDatabaseEntries",
+                tooltip = "menu.reindexNewestDatabaseEntries.tooltip.content",
+                tooltipTitle = "menu.reindexNewestDatabaseEntries.tooltip.title",
+                url = "$p/reindexNewest"))
+        if (accessChecker.isLoggedInUserMemberOfAdminGroup)
+            menu.add(MenuItem("reindexAllDatabaseEntries",
+                    i18nKey = "menu.reindexAllDatabaseEntries",
+                    tooltip = "menu.reindexAllDatabaseEntries.tooltip.content",
+                    tooltipTitle = "menu.reindexAllDatabaseEntries.tooltip.title",
+                    url = "$p/reindex"))
+        layout.add(menu).postProcessPageMenu()
         return restHelper.buildResponse(InitialListData(ui = layout, data = resultSet, filter = filter))
+    }
+
+    /**
+     * Rebuilds the index by the search engine for the newest entries.
+     * @see [BaseDao.rebuildDatabaseIndex4NewestEntries]
+     */
+    @GET
+    @Path("reindexNewest")
+    fun reindexNewest(@Context request: HttpServletRequest): Response {
+        baseDao.rebuildDatabaseIndex4NewestEntries()
+        return Response.ok().build()
+    }
+
+    /**
+     * Rebuilds the index by the search engine for all entries.
+     * @see [BaseDao.rebuildDatabaseIndex]
+     */
+    @GET
+    @Path("reindex")
+    fun reindex(@Context request: HttpServletRequest): Response {
+        baseDao.rebuildDatabaseIndex()
+        return Response.ok().build()
     }
 
     /**
@@ -231,7 +264,7 @@ abstract class AbstractDORest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F : BaseS
         return restHelper.buildResponse(result)
     }
 
-    internal open fun onGetItemAndLayout(request:HttpServletRequest) {
+    internal open fun onGetItemAndLayout(request: HttpServletRequest) {
     }
 
     /**
