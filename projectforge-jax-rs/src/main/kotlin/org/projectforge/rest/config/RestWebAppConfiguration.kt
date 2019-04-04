@@ -18,6 +18,7 @@ class RestWebAppConfiguration : ResourceConfig() {
         register(UserStatusRest::class.java)
 
         register(AddressRest::class.java)
+        register(AddressImageRest::class.java)
         register(BookRest::class.java)
     }
 }

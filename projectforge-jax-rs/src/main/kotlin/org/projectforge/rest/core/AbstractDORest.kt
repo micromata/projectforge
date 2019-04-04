@@ -44,7 +44,9 @@ abstract class AbstractDORest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F : BaseS
         this.lc = LayoutContext(newBaseDO()::class.java)
     }
 
-    private val log = org.slf4j.LoggerFactory.getLogger(AbstractDORest::class.java)
+    companion object {
+        val GEAR_MENU = "GEAR"
+    }
 
     /**
      * Contains the layout data returned for the frontend regarding edit pages.
@@ -99,7 +101,23 @@ abstract class AbstractDORest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F : BaseS
     abstract fun newBaseDO(): O
 
     open fun createListLayout(): UILayout {
-        return UILayout("$i18nKeyPrefix.list")
+        val layout = UILayout("$i18nKeyPrefix.list")
+        val path = this::class.annotations.find{it is Path} as? Path
+        val p = path?.value
+        val gearMenu = MenuItem(GEAR_MENU, title = "*")
+        gearMenu.add(MenuItem("reindexNewestDatabaseEntries",
+                i18nKey = "menu.reindexNewestDatabaseEntries",
+                tooltip = "menu.reindexNewestDatabaseEntries.tooltip.content",
+                tooltipTitle = "menu.reindexNewestDatabaseEntries.tooltip.title",
+                url = "$p/reindexNewest"))
+        if (accessChecker.isLoggedInUserMemberOfAdminGroup)
+            gearMenu.add(MenuItem("reindexAllDatabaseEntries",
+                    i18nKey = "menu.reindexAllDatabaseEntries",
+                    tooltip = "menu.reindexAllDatabaseEntries.tooltip.content",
+                    tooltipTitle = "menu.reindexAllDatabaseEntries.tooltip.title",
+                    url = "$p/reindex"))
+        layout.add(gearMenu)
+        return layout
     }
 
     open fun createEditLayout(dataObject: O?): UILayout {
@@ -165,21 +183,7 @@ abstract class AbstractDORest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F : BaseS
         val layout = createListLayout()
                 .addTranslations("table.showing")
         layout.add(LayoutListFilterUtils.createNamedContainer(baseDao, lc))
-        val menu = MenuItem("GEAR", title = "*")
-        val path = this::class.annotations.find{it is Path} as? Path
-        val p = path?.value
-        menu.add(MenuItem("reindexNewestDatabaseEntries",
-                i18nKey = "menu.reindexNewestDatabaseEntries",
-                tooltip = "menu.reindexNewestDatabaseEntries.tooltip.content",
-                tooltipTitle = "menu.reindexNewestDatabaseEntries.tooltip.title",
-                url = "$p/reindexNewest"))
-        if (accessChecker.isLoggedInUserMemberOfAdminGroup)
-            menu.add(MenuItem("reindexAllDatabaseEntries",
-                    i18nKey = "menu.reindexAllDatabaseEntries",
-                    tooltip = "menu.reindexAllDatabaseEntries.tooltip.content",
-                    tooltipTitle = "menu.reindexAllDatabaseEntries.tooltip.title",
-                    url = "$p/reindex"))
-        layout.add(menu).postProcessPageMenu()
+        layout.postProcessPageMenu()
         return restHelper.buildResponse(InitialListData(ui = layout, data = resultSet, filter = filter))
     }
 

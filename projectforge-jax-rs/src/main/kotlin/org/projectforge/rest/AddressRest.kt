@@ -6,9 +6,12 @@ import org.glassfish.jersey.media.multipart.FormDataMultiPart
 import org.projectforge.business.address.*
 import org.projectforge.business.image.ImageService
 import org.projectforge.framework.i18n.translate
+import org.projectforge.menu.MenuItem
+import org.projectforge.rest.AddressImageRest.Companion.SESSION_IMAGE_ATTR
 import org.projectforge.rest.core.AbstractDORest
 import org.projectforge.rest.core.ExpiringSessionAttributes
 import org.projectforge.rest.core.ResultSet
+import org.projectforge.sms.SmsSenderConfig
 import org.projectforge.ui.*
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
@@ -23,12 +26,8 @@ import javax.ws.rs.core.Response
 
 @Component
 @Path("address")
-open class AddressRest()
+class AddressRest()
     : AbstractDORest<AddressDO, AddressDao, AddressFilter>(AddressDao::class.java, AddressFilter::class.java, "address.title") {
-
-    companion object {
-        private val SESSION_IMAGE_ATTR = "uploadedAddressImage"
-    }
 
     private class Address(val address: AddressDO,
                           val id: Int,
@@ -47,84 +46,8 @@ open class AddressRest()
     @Autowired
     private lateinit var imageService: ImageService
 
-    /**
-     * If given and greater 0, the image will be added to the address with the given id (pk), otherwise the image is
-     * stored in the user's session and will be used for the next update or save event.
-     */
-    @POST
-    @Path("uploadImage/{id}")
-    @Consumes(MediaType.MULTIPART_FORM_DATA)
-    fun uploadFile(@PathParam("id") id: Int, @Context request: HttpServletRequest, form: FormDataMultiPart): Response {
-        val filePart = form.getField("file")
-        val headerOfFilePart = filePart.getContentDisposition()
-        val fileInputStream = filePart.getValueAs(InputStream::class.java)
-        val filename = headerOfFilePart.getFileName()
-        if (!filename.endsWith(".png", true)) {
-            return Response.status(Response.Status.BAD_REQUEST).entity("Unsupported file: ${filename}. Only png files supported").build()
-        }
-        val bytes = fileInputStream.readBytes()
-        if (id == null || id < 0) {
-            val session = request.session
-            ExpiringSessionAttributes.setAttribute(session, SESSION_IMAGE_ATTR, bytes, 1)
-        } else {
-            val address = baseDao.getById(id)
-            if (address == null)
-                return Response.status(Response.Status.NOT_FOUND).build()
-            address.imageData = bytes
-            baseDao.update(address)
-            log.info("New image for address $id (${address.fullName}) saved.")
-        }
-        return Response.ok().build()
-    }
-
-    @GET
-    @Path("image/{id}")
-    @Produces(MediaType.APPLICATION_OCTET_STREAM)
-    fun getImage(@PathParam("id") id: Int): Response {
-        val address = baseDao.getById(id)
-        if (address?.imageData == null)
-            return Response.status(Response.Status.NOT_FOUND).build()
-
-        val builder = Response.ok(address.imageData)
-        builder.header("Content-Disposition", "attachment; filename=ProjectForge-addressImage_$id.png")
-        return builder.build()
-    }
-
-    @GET
-    @Path("imagePreview/{id}")
-    @Produces(MediaType.APPLICATION_OCTET_STREAM)
-    fun getImagePreview(@PathParam("id") id: Int): Response {
-        val address = baseDao.getById(id)
-        if (address?.imageData == null)
-            return Response.status(Response.Status.NOT_FOUND).build()
-
-        val builder = Response.ok(address.imageDataPreview)
-        builder.header("Content-Disposition", "attachment; filename=ProjectForge-addressImagePreview_$id.png")
-        return builder.build()
-    }
-
-    /**
-     * If given and greater 0, the image will be deleted from the address with the given id (pk), otherwise the image is
-     * removed from the user's session and will not be used for the next update or save event anymore.
-     */
-
-    @DELETE
-    @Path("deleteImage/{id}")
-    fun deleteImage(@Context request: HttpServletRequest, @PathParam("id") id: Int): Response {
-        if (id == null || id < 0) {
-            val session = request.session
-            ExpiringSessionAttributes.removeAttribute(session, SESSION_IMAGE_ATTR)
-        } else {
-            val address = baseDao.getById(id)
-            if (address == null)
-                return Response.status(Response.Status.NOT_FOUND).build()
-            address.imageData = null
-            address.imageDataPreview = null
-            baseDao.update(address)
-            log.info("Image for address $id (${address.fullName}) deleted.")
-        }
-        return Response.ok().build()
-    }
+    @Autowired
+    private lateinit var smsSenderConfig: SmsSenderConfig
 
     override fun onGetItemAndLayout(request: HttpServletRequest) {
         ExpiringSessionAttributes.removeAttribute(request.session, SESSION_IMAGE_ATTR)
@@ -197,6 +120,32 @@ open class AddressRest()
                 UICheckbox("newest", label = "filter.newest"),
                 UICheckbox("favorites", label = "address.filter.myFavorites"),
                 UICheckbox("dublets", label = "address.filter.doublets"))
+        var menuIndex = 0
+        if (smsSenderConfig.isSmsConfigured()) {
+            layout.add(MenuItem("address.writeSMS", i18nKey = "address.tooltip.writeSMS", url = "wa/sendSms"), menuIndex++)
+        }
+        val exportMenu = MenuItem("address.export", i18nKey = "export")
+        exportMenu.add(MenuItem("address.vCardExport",
+                i18nKey = "address.book.vCardExport",
+                url="???",
+                tooltip = "address.book.vCardExport.tooltip.content",
+                tooltipTitle = "address.book.vCardExport.tooltip.title"))
+        exportMenu.add(MenuItem("address.export",
+                i18nKey = "address.book.export",
+                url="???",
+                tooltipTitle = "address.book.export",
+                tooltip = "address.book.export.tooltip"))
+        exportMenu.add(MenuItem("address.exportFavoritePhoneList",
+                i18nKey = "address.book.exportFavoritePhoneList",
+                url="???",
+                tooltipTitle = "address.book.exportFavoritePhoneList.tooltip.title",
+                tooltip = "address.book.exportFavoritePhoneList.tooltip.content"))
+        layout.add(exportMenu, menuIndex++)
+        layout.getMenuById(GEAR_MENU)?.add(MenuItem("address.exportAppleScript4Notes",
+                i18nKey = "address.book.export.appleScript4Notes",
+                url="???",
+                tooltipTitle = "address.book.export.appleScript4Notes",
+                tooltip = "address.book.export.appleScript4Notes.tooltip"))
         return LayoutUtils.processListPage(layout)
     }
 
@@ -271,8 +220,7 @@ open class AddressRest()
                                                 .add(UIInput("privateCountry", lc)))
                                         .add(UICol(length = 6)
                                                 .add(UIInput("privateState", lc)))))
-                        .add(UICol(6)
-                                .add(UILabel("address.image"))
+                        .add(UIFieldset(6,"address.image")
                                 .add(UICustomized("addressImage"))))
                 .add(UIFieldset(title = "address.image")
                         .add(lc, "comment"))
