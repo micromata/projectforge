@@ -18,7 +18,7 @@ class CustomizedAddressImage extends Component {
         this.state = {
             loading: false,
             error: undefined,
-            src: getServiceURL(`address/image/${data.id}`),
+            src: getServiceURL(`address/image/${data.id}?${new Date().getTime()}`),
         };
 
         this.handleFileChange = this.handleFileChange.bind(this);
