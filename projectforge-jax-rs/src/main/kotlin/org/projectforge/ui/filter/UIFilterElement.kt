@@ -18,7 +18,7 @@ open class UIFilterElement(
          */
         var filterType: FilterType? = FilterType.STRING
 ) : UIElement(UIElementType.FILTER_ELEMENT) {
-    enum class FilterType { STRING, DATE, TIME_STAMP, CHOICE }
+    enum class FilterType { STRING, DATE, TIME_STAMP, CHOICE, OBJECT }
 
     init {
         key = id
