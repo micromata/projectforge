@@ -39,6 +39,7 @@ class LayoutInput extends Component {
 
     render() {
         const {
+            additionalLabel,
             data,
             focus,
             id,
@@ -88,6 +89,7 @@ class LayoutInput extends Component {
 
         return (
             <Tag
+                additionalLabel={additionalLabel}
                 label={label}
                 id={id}
                 {...properties}
@@ -101,6 +103,7 @@ class LayoutInput extends Component {
 LayoutInput.propTypes = {
     data: dataPropType.isRequired,
     label: PropTypes.string.isRequired,
+    additionalLabel: PropTypes.string,
     changeDataField: PropTypes.func,
     focus: PropTypes.bool,
     id: PropTypes.string,
@@ -115,6 +118,7 @@ LayoutInput.propTypes = {
 };
 
 LayoutInput.defaultProps = {
+    additionalLabel: undefined,
     changeDataField: undefined,
     focus: false,
     id: undefined,
