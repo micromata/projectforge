@@ -226,6 +226,16 @@ class AddressRest()
                         .add(lc, "comment"))
         layout.getInputById("name").focus = true
         layout.addTranslations("delete", "file.upload.dropArea", "address.image.upload.error")
+        layout.add(MenuItem("address.printView",
+                i18nKey = "printView",
+                url="???"))
+        layout.add(MenuItem("address.vCardSingleExport",
+                i18nKey = "address.book.vCardSingleExport",
+                url="???"))
+        layout.add(MenuItem("address.directCall",
+                i18nKey = "address.directCall.call",
+                url="???"))
+
         return LayoutUtils.processEditPage(layout, dataObject)
     }
 

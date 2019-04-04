@@ -264,6 +264,7 @@ abstract class AbstractDORest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F : BaseS
         } else item = newBaseDO()
         val layout = createEditLayout(item)
         layout.addTranslations("changes")
+        layout.postProcessPageMenu()
         val result = EditLayoutData(item, layout)
         return restHelper.buildResponse(result)
     }
