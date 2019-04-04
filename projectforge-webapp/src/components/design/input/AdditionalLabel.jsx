@@ -8,7 +8,7 @@ function AdditionalLabel({ title }) {
     }
 
     return (
-        <div className={style.subLine}>
+        <div className={style.additionalLabel}>
             <span>{title}</span>
         </div>
     );
