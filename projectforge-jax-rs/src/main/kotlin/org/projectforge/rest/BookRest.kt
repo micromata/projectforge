@@ -10,10 +10,12 @@ import org.projectforge.ui.*
 import org.projectforge.ui.Formatter
 import org.springframework.stereotype.Component
 import java.util.*
+import javax.servlet.http.HttpServletRequest
 import javax.ws.rs.Consumes
 import javax.ws.rs.POST
 import javax.ws.rs.Path
 import javax.ws.rs.Produces
+import javax.ws.rs.core.Context
 import javax.ws.rs.core.MediaType
 import javax.ws.rs.core.Response
 
@@ -47,10 +49,10 @@ open class BookRest() : AbstractDORest<BookDO, BookDao, BookFilter>(BookDao::cla
     @Path("lendOut")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    fun lendOut(book: BookDO): Response {
+    fun lendOut(@Context request: HttpServletRequest, book: BookDO): Response {
         book.setLendOutDate(Date())
         baseDao.setLendOutBy(book, getUserId())
-        return restHelper.saveOrUpdate(baseDao, book, this, validate(book))
+        return restHelper.saveOrUpdate(request, baseDao, book, this, validate(book))
     }
 
     /**
@@ -60,11 +62,11 @@ open class BookRest() : AbstractDORest<BookDO, BookDao, BookFilter>(BookDao::cla
     @Path("returnBook")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    fun returnBook(book: BookDO): Response {
+    fun returnBook(@Context request: HttpServletRequest, book: BookDO): Response {
         book.lendOutBy = null
         book.lendOutDate = null
         book.lendOutComment = null
-        return restHelper.saveOrUpdate(baseDao, book, this, validate(book))
+        return restHelper.saveOrUpdate(request, baseDao, book, this, validate(book))
     }
 
 

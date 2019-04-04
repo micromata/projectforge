@@ -12,7 +12,9 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import java.io.InputStream
 import java.lang.reflect.Type
+import javax.servlet.http.HttpServletRequest
 import javax.ws.rs.*
+import javax.ws.rs.core.Context
 import javax.ws.rs.core.MediaType
 import javax.ws.rs.core.Response
 
@@ -37,12 +39,9 @@ open class AddressRest()
     private lateinit var addressbookDao: AddressbookDao
 
     @POST
-    @Path("/uploadImage/{id}")
+    @Path("uploadImage/{id}")
     @Consumes(MediaType.MULTIPART_FORM_DATA)
-    fun uploadFile(@PathParam("id") id: Int, form: FormDataMultiPart): Response {
-        val address = baseDao.getById(id)
-        if (address?.imageData == null)
-            return Response.status(Response.Status.NOT_FOUND).build()
+    fun uploadFile(@PathParam("id") id: Int, @Context request: HttpServletRequest, form: FormDataMultiPart): Response {
         val filePart = form.getField("file")
         val headerOfFilePart = filePart.getContentDisposition()
         val fileInputStream = filePart.getValueAs(InputStream::class.java)
@@ -51,9 +50,17 @@ open class AddressRest()
             return Response.status(Response.Status.BAD_REQUEST).entity("Unsupported file: ${filename}. Only png files supported").build()
         }
         val bytes = fileInputStream.readBytes()
-        address.imageData = bytes
-        baseDao.update(address)
-        log.info("New image for address $id saved.")
+        if (id == null || id < 0) {
+            val session = request.getSession()
+            session.setAttribute("addressImage", bytes)
+        } else {
+            val address = baseDao.getById(id)
+            if (address == null)
+                return Response.status(Response.Status.NOT_FOUND).build()
+            address.imageData = bytes
+            baseDao.update(address)
+            log.info("New image for address $id saved.")
+        }
         return Response.ok().build()
     }
 
@@ -101,6 +108,14 @@ open class AddressRest()
     override fun validate(validationErrors: MutableList<ValidationError>, obj: AddressDO) {
         if (StringUtils.isAllBlank(obj.name, obj.firstName, obj.organization)) {
             validationErrors.add(ValidationError(translate("address.form.error.toFewFields"), fieldId = "name"))
+        }
+    }
+
+    override fun beforeSaveOrUpdate(request: HttpServletRequest, obj: AddressDO) {
+        val session = request.getSession()
+        val bytes = session.getAttribute("addressImage") as ByteArray
+        if (bytes != null) {
+            obj.imageData = bytes
         }
     }
 
