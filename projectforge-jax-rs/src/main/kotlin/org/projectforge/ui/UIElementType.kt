@@ -14,5 +14,6 @@ enum class UIElementType {
     TABLE_COLUMN,
     BUTTON,
     NAMED_CONTAINER,
+    FILTER_ELEMENT,
     CUSTOMIZED
 }
