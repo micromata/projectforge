@@ -2,11 +2,11 @@ package org.projectforge.rest
 
 import com.google.gson.*
 import org.apache.commons.lang3.StringUtils
-import org.glassfish.jersey.media.multipart.FormDataMultiPart
 import org.projectforge.business.address.*
 import org.projectforge.business.image.ImageService
 import org.projectforge.framework.i18n.translate
 import org.projectforge.menu.MenuItem
+import org.projectforge.menu.MenuItemTargetType
 import org.projectforge.rest.AddressImageRest.Companion.SESSION_IMAGE_ATTR
 import org.projectforge.rest.core.AbstractDORest
 import org.projectforge.rest.core.ExpiringSessionAttributes
@@ -15,13 +15,9 @@ import org.projectforge.sms.SmsSenderConfig
 import org.projectforge.ui.*
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
-import java.io.InputStream
 import java.lang.reflect.Type
 import javax.servlet.http.HttpServletRequest
 import javax.ws.rs.*
-import javax.ws.rs.core.Context
-import javax.ws.rs.core.MediaType
-import javax.ws.rs.core.Response
 
 
 @Component
@@ -129,23 +125,27 @@ class AddressRest()
                 i18nKey = "address.book.vCardExport",
                 url="???",
                 tooltip = "address.book.vCardExport.tooltip.content",
-                tooltipTitle = "address.book.vCardExport.tooltip.title"))
+                tooltipTitle = "address.book.vCardExport.tooltip.title",
+                type = MenuItemTargetType.DOWNLOAD))
         exportMenu.add(MenuItem("address.export",
                 i18nKey = "address.book.export",
                 url="???",
                 tooltipTitle = "address.book.export",
-                tooltip = "address.book.export.tooltip"))
+                tooltip = "address.book.export.tooltip",
+                type = MenuItemTargetType.DOWNLOAD))
         exportMenu.add(MenuItem("address.exportFavoritePhoneList",
                 i18nKey = "address.book.exportFavoritePhoneList",
                 url="???",
                 tooltipTitle = "address.book.exportFavoritePhoneList.tooltip.title",
-                tooltip = "address.book.exportFavoritePhoneList.tooltip.content"))
+                tooltip = "address.book.exportFavoritePhoneList.tooltip.content",
+                type = MenuItemTargetType.DOWNLOAD))
         layout.add(exportMenu, menuIndex++)
         layout.getMenuById(GEAR_MENU)?.add(MenuItem("address.exportAppleScript4Notes",
                 i18nKey = "address.book.export.appleScript4Notes",
                 url="???",
                 tooltipTitle = "address.book.export.appleScript4Notes",
-                tooltip = "address.book.export.appleScript4Notes.tooltip"))
+                tooltip = "address.book.export.appleScript4Notes.tooltip",
+                type = MenuItemTargetType.DOWNLOAD))
         return LayoutUtils.processListPage(layout)
     }
 
@@ -228,13 +228,16 @@ class AddressRest()
         layout.addTranslations("delete", "file.upload.dropArea", "address.image.upload.error")
         layout.add(MenuItem("address.printView",
                 i18nKey = "printView",
-                url="???"))
+                url="???",
+                type = MenuItemTargetType.REDIRECT))
         layout.add(MenuItem("address.vCardSingleExport",
                 i18nKey = "address.book.vCardSingleExport",
-                url="???"))
+                url="???",
+                type = MenuItemTargetType.DOWNLOAD))
         layout.add(MenuItem("address.directCall",
                 i18nKey = "address.directCall.call",
-                url="???"))
+                url="???",
+                type = MenuItemTargetType.REDIRECT))
 
         return LayoutUtils.processEditPage(layout, dataObject)
     }

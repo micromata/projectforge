@@ -7,9 +7,11 @@ import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.rest.JsonUtils
 import org.projectforge.rest.json.JsonCreator
 import org.projectforge.ui.ValidationError
+import java.net.URI
 import java.util.*
 import javax.servlet.http.HttpServletRequest
 import javax.ws.rs.core.Response
+
 
 class RestHelper(
         /**
@@ -103,5 +105,15 @@ class RestHelper(
         // Validation error occurred:
         val json = getJsonCreator().toJson(validationErrorsList)
         return Response.status(Response.Status.NOT_ACCEPTABLE).entity(json).build()
+    }
+
+    fun buildUri(request : HttpServletRequest , path : String):URI {
+        return URI("${getRootUrl(request)}/$path")
+    }
+
+    fun getRootUrl(request : HttpServletRequest) :String {
+        val serverName = request.serverName
+        val portNumber = request.serverPort
+        return if (portNumber != 80 && portNumber != 443) "$serverName:$portNumber" else serverName
     }
 }
