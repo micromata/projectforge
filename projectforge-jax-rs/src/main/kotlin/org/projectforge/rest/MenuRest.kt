@@ -3,6 +3,7 @@ package org.projectforge.rest
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.menu.Menu
 import org.projectforge.menu.MenuItem
+import org.projectforge.menu.MenuItemTargetType
 import org.projectforge.menu.builder.FavoritesMenuCreator
 import org.projectforge.menu.builder.MenuCreator
 import org.projectforge.menu.builder.MenuCreatorContext
@@ -34,10 +35,10 @@ class MenuRest {
         val myAccountMenu = Menu()
         val item = MenuItem("username", ThreadLocalUserContext.getUser()?.fullname)
         myAccountMenu.add(item)
-        item.add(MenuItem("SendFeedback", i18nKey = "menu.gear.feedback", url="wa/feedback"))
-        item.add(MenuItem("MyAccount", i18nKey = "menu.myAccount", url="wa/myAccount"))
-        item.add(MenuItem("MyLeaveAccount", i18nKey = "menu.vacation.leaveaccount", url="wa/wicket/bookmarkable/org.projectforge.web.vacation.VacationViewPage"))
-        item.add(MenuItem("Logout", i18nKey = "menu.logout", url="rs/logout"))
+        item.add(MenuItem("SendFeedback", i18nKey = "menu.gear.feedback", url = "wa/feedback"))
+        item.add(MenuItem("MyAccount", i18nKey = "menu.myAccount", url = "wa/myAccount"))
+        item.add(MenuItem("MyLeaveAccount", i18nKey = "menu.vacation.leaveaccount", url = "wa/wicket/bookmarkable/org.projectforge.web.vacation.VacationViewPage"))
+        item.add(MenuItem("Logout", i18nKey = "menu.logout", url = "rs/logout", type = MenuItemTargetType.RESTCALL))
         item.subMenu?.forEach { it.postProcess() }
         val menu = Menus(mainMenu, favoritesMenu, myAccountMenu)
         return RestHelper().buildResponse(menu)

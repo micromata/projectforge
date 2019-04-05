@@ -8,6 +8,7 @@ import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
 import org.projectforge.menu.MenuItem
+import org.projectforge.menu.MenuItemTargetType
 import org.projectforge.model.rest.RestPaths
 import org.projectforge.rest.JsonUtils
 import org.projectforge.ui.ElementsRegistry
@@ -102,20 +103,22 @@ abstract class AbstractDORest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F : BaseS
 
     open fun createListLayout(): UILayout {
         val layout = UILayout("$i18nKeyPrefix.list")
-        val path = this::class.annotations.find{it is Path} as? Path
+        val path = this::class.annotations.find { it is Path } as? Path
         val p = path?.value
         val gearMenu = MenuItem(GEAR_MENU, title = "*")
         gearMenu.add(MenuItem("reindexNewestDatabaseEntries",
                 i18nKey = "menu.reindexNewestDatabaseEntries",
                 tooltip = "menu.reindexNewestDatabaseEntries.tooltip.content",
                 tooltipTitle = "menu.reindexNewestDatabaseEntries.tooltip.title",
-                url = "$p/reindexNewest"))
+                url = "$p/reindexNewest",
+                type = MenuItemTargetType.RESTCALL))
         if (accessChecker.isLoggedInUserMemberOfAdminGroup)
             gearMenu.add(MenuItem("reindexAllDatabaseEntries",
                     i18nKey = "menu.reindexAllDatabaseEntries",
                     tooltip = "menu.reindexAllDatabaseEntries.tooltip.content",
                     tooltipTitle = "menu.reindexAllDatabaseEntries.tooltip.title",
-                    url = "$p/reindex"))
+                    url = "$p/reindex",
+                    type = MenuItemTargetType.RESTCALL))
         layout.add(gearMenu)
         return layout
     }
