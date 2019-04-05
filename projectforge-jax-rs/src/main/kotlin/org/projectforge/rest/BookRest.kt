@@ -101,10 +101,9 @@ class BookRest() : AbstractDORest<BookDO, BookDao, BookFilter>(BookDao::class.ja
                 .add(lc, "keywords")
 
         if (dataObject?.id != null) // Show lend out functionality only for existing books:
-            layout.add(UIGroup()
-                    .add(UILabel("book.lending", "lendOutComponent"))
-                    .add(UICustomized("lendOutComponent")))
-                    .add(lc, "lendOutComment")
+            layout.add(UIFieldset(title = "book.lending")
+                    .add(UICustomized("lendOutComponent"))
+                    .add(lc, "lendOutComment"))
         layout.add(lc, "abstractText", "comment")
         layout.getInputById("title").focus = true
         layout.getTextAreaById("authors").rows = 1
