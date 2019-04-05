@@ -11,10 +11,9 @@ import org.projectforge.menu.MenuItem
 import org.projectforge.menu.MenuItemTargetType
 import org.projectforge.model.rest.RestPaths
 import org.projectforge.rest.JsonUtils
-import org.projectforge.ui.ElementsRegistry
-import org.projectforge.ui.LayoutContext
-import org.projectforge.ui.UILayout
-import org.projectforge.ui.ValidationError
+import org.projectforge.rest.MessageType
+import org.projectforge.rest.ResponseData
+import org.projectforge.ui.*
 import org.projectforge.ui.filter.LayoutListFilterUtils
 import org.springframework.beans.BeanUtils
 import org.springframework.beans.factory.annotation.Autowired
@@ -117,7 +116,7 @@ abstract class AbstractDORest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F : BaseS
                     i18nKey = "menu.reindexAllDatabaseEntries",
                     tooltip = "menu.reindexAllDatabaseEntries.tooltip.content",
                     tooltipTitle = "menu.reindexAllDatabaseEntries.tooltip.title",
-                    url = "$p/reindex",
+                    url = "$p/reindexFull",
                     type = MenuItemTargetType.RESTCALL))
         layout.add(gearMenu)
         return layout
@@ -198,7 +197,7 @@ abstract class AbstractDORest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F : BaseS
     @Path("reindexNewest")
     fun reindexNewest(@Context request: HttpServletRequest): Response {
         baseDao.rebuildDatabaseIndex4NewestEntries()
-        return Response.ok().build()
+        return restHelper.buildResponse(ResponseData("administration.reindexNewest.successful", messageType = MessageType.TOAST, style = UIStyle.SUCCESS))
     }
 
     /**
@@ -206,10 +205,10 @@ abstract class AbstractDORest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F : BaseS
      * @see [BaseDao.rebuildDatabaseIndex]
      */
     @GET
-    @Path("reindex")
-    fun reindex(@Context request: HttpServletRequest): Response {
+    @Path("reindexFull")
+    fun reindexFull(@Context request: HttpServletRequest): Response {
         baseDao.rebuildDatabaseIndex()
-        return Response.ok().build()
+        return restHelper.buildResponse(ResponseData("administration.reindexFull.successful", messageType = MessageType.TOAST, style = UIStyle.SUCCESS))
     }
 
     /**
