@@ -19,6 +19,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import java.io.IOException
 import java.io.InputStream
+import java.io.PrintWriter
 import java.io.StringWriter
 import java.lang.reflect.Type
 import java.util.*
@@ -143,6 +144,20 @@ class AddressServicesRest() {
         }
         val filename = (APPLE_SCRIPT_FOR_ADDRESS_BOOK)
         val builder = Response.ok(content)
+        builder.header("Content-Disposition", "attachment; filename=$filename")
+        return builder.build()
+    }
+
+    @GET
+    @Path("exportVCard/{id}")
+    @Produces(MediaType.APPLICATION_OCTET_STREAM)
+    fun exportVCard(@PathParam("id") id: Int): Response {
+        val address = addressDao.getById(id)
+        val filename = ("ProjectForge-" + ReplaceUtils.encodeFilename(address.getFullName()) + "_"
+                + DateHelper.getDateAsFilenameSuffix(Date()) + ".vcf")
+        val writer = StringWriter()
+        addressDao.exportVCard(PrintWriter(writer), address)
+        val builder = Response.ok(writer.toString())
         builder.header("Content-Disposition", "attachment; filename=$filename")
         return builder.build()
     }
