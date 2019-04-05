@@ -17,7 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import java.lang.reflect.Type
 import javax.servlet.http.HttpServletRequest
-import javax.ws.rs.*
+import javax.ws.rs.Path
 
 
 @Component
@@ -226,19 +226,20 @@ class AddressRest()
                         .add(lc, "comment"))
         layout.getInputById("name").focus = true
         layout.addTranslations("delete", "file.upload.dropArea", "address.image.upload.error")
-        layout.add(MenuItem("address.printView",
-                i18nKey = "printView",
-                url="???",
-                type = MenuItemTargetType.REDIRECT))
-        layout.add(MenuItem("address.vCardSingleExport",
-                i18nKey = "address.book.vCardSingleExport",
-                url="???",
-                type = MenuItemTargetType.DOWNLOAD))
-        layout.add(MenuItem("address.directCall",
-                i18nKey = "address.directCall.call",
-                url="???",
-                type = MenuItemTargetType.REDIRECT))
-
+        if (dataObject?.id != null) {
+            layout.add(MenuItem("address.printView",
+                    i18nKey = "printView",
+                    url = "wa/addressView?id=${dataObject.id}",
+                    type = MenuItemTargetType.REDIRECT))
+            layout.add(MenuItem("address.vCardSingleExport",
+                    i18nKey = "address.book.vCardSingleExport",
+                    url = "${getRestPath()}/exportVCard/${dataObject.id}",
+                    type = MenuItemTargetType.DOWNLOAD))
+            layout.add(MenuItem("address.directCall",
+                    i18nKey = "address.directCall.call",
+                    url = "wa/phoneCall?addressId=${dataObject.id}",
+                    type = MenuItemTargetType.REDIRECT))
+        }
         return LayoutUtils.processEditPage(layout, dataObject)
     }
 
