@@ -7,7 +7,7 @@ import org.projectforge.business.image.ImageService
 import org.projectforge.framework.i18n.translate
 import org.projectforge.menu.MenuItem
 import org.projectforge.menu.MenuItemTargetType
-import org.projectforge.rest.AddressImageRest.Companion.SESSION_IMAGE_ATTR
+import org.projectforge.rest.AddressImageServicesRest.Companion.SESSION_IMAGE_ATTR
 import org.projectforge.rest.core.AbstractDORest
 import org.projectforge.rest.core.ExpiringSessionAttributes
 import org.projectforge.rest.core.ResultSet
@@ -123,26 +123,26 @@ class AddressRest()
         val exportMenu = MenuItem("address.export", i18nKey = "export")
         exportMenu.add(MenuItem("address.vCardExport",
                 i18nKey = "address.book.vCardExport",
-                url="???",
+                url="${getRestPath()}/exportFavoritesVCards",
                 tooltip = "address.book.vCardExport.tooltip.content",
                 tooltipTitle = "address.book.vCardExport.tooltip.title",
                 type = MenuItemTargetType.DOWNLOAD))
         exportMenu.add(MenuItem("address.export",
                 i18nKey = "address.book.export",
-                url="???",
+                url="${getRestPath()}/exportAsExcel",
                 tooltipTitle = "address.book.export",
                 tooltip = "address.book.export.tooltip",
                 type = MenuItemTargetType.DOWNLOAD))
         exportMenu.add(MenuItem("address.exportFavoritePhoneList",
                 i18nKey = "address.book.exportFavoritePhoneList",
-                url="???",
+                url="${getRestPath()}/exportFavoritePhoneList",
                 tooltipTitle = "address.book.exportFavoritePhoneList.tooltip.title",
                 tooltip = "address.book.exportFavoritePhoneList.tooltip.content",
                 type = MenuItemTargetType.DOWNLOAD))
         layout.add(exportMenu, menuIndex++)
         layout.getMenuById(GEAR_MENU)?.add(MenuItem("address.exportAppleScript4Notes",
                 i18nKey = "address.book.export.appleScript4Notes",
-                url="???",
+                url="${getRestPath()}/downloadAppleScript",
                 tooltipTitle = "address.book.export.appleScript4Notes",
                 tooltip = "address.book.export.appleScript4Notes.tooltip",
                 type = MenuItemTargetType.DOWNLOAD))

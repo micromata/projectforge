@@ -62,6 +62,8 @@ abstract class AbstractDORest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F : BaseS
 
     private var _baseDao: B? = null
 
+    private var restPath: String? = null
+
     /**
      * The layout context is needed to examine the data objects for maxLength, nullable, dataType etc.
      */
@@ -102,24 +104,30 @@ abstract class AbstractDORest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F : BaseS
 
     open fun createListLayout(): UILayout {
         val layout = UILayout("$i18nKeyPrefix.list")
-        val path = this::class.annotations.find { it is Path } as? Path
-        val p = path?.value
         val gearMenu = MenuItem(GEAR_MENU, title = "*")
         gearMenu.add(MenuItem("reindexNewestDatabaseEntries",
                 i18nKey = "menu.reindexNewestDatabaseEntries",
                 tooltip = "menu.reindexNewestDatabaseEntries.tooltip.content",
                 tooltipTitle = "menu.reindexNewestDatabaseEntries.tooltip.title",
-                url = "$p/reindexNewest",
+                url = "${getRestPath()}/reindexNewest",
                 type = MenuItemTargetType.RESTCALL))
         if (accessChecker.isLoggedInUserMemberOfAdminGroup)
             gearMenu.add(MenuItem("reindexAllDatabaseEntries",
                     i18nKey = "menu.reindexAllDatabaseEntries",
                     tooltip = "menu.reindexAllDatabaseEntries.tooltip.content",
                     tooltipTitle = "menu.reindexAllDatabaseEntries.tooltip.title",
-                    url = "$p/reindexFull",
+                    url = "${getRestPath()}/reindexFull",
                     type = MenuItemTargetType.RESTCALL))
         layout.add(gearMenu)
         return layout
+    }
+
+    protected fun getRestPath(): String {
+        if (restPath == null) {
+            val path = this::class.annotations.find { it is Path } as? Path
+            restPath = path?.value
+        }
+        return restPath!!
     }
 
     open fun createEditLayout(dataObject: O?): UILayout {
@@ -226,7 +234,7 @@ abstract class AbstractDORest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F : BaseS
         return restHelper.buildResponse(resultSet)
     }
 
-    protected open fun processResultSetBeforeExport(resultSet: ResultSet<Any>) {
+    open fun processResultSetBeforeExport(resultSet: ResultSet<Any>) {
         resultSet.resultSet.forEach { processItemBeforeExport(it) }
     }
 
@@ -294,7 +302,7 @@ abstract class AbstractDORest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F : BaseS
     }
 
 
-    open protected fun processItemBeforeExport(item: Any) {
+    open fun processItemBeforeExport(item: Any) {
     }
 
     /**

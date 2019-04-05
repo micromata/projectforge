@@ -1,22 +1,12 @@
 package org.projectforge.rest
 
-import com.google.gson.*
-import org.apache.commons.lang3.StringUtils
 import org.glassfish.jersey.media.multipart.FormDataMultiPart
 import org.projectforge.business.address.*
 import org.projectforge.business.image.ImageService
-import org.projectforge.framework.i18n.translate
-import org.projectforge.menu.MenuItem
-import org.projectforge.rest.core.AbstractDORest
-import org.projectforge.rest.core.AbstractDORest.Companion.GEAR_MENU
 import org.projectforge.rest.core.ExpiringSessionAttributes
-import org.projectforge.rest.core.ResultSet
-import org.projectforge.sms.SmsSenderConfig
-import org.projectforge.ui.*
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import java.io.InputStream
-import java.lang.reflect.Type
 import javax.servlet.http.HttpServletRequest
 import javax.ws.rs.*
 import javax.ws.rs.core.Context
@@ -28,13 +18,13 @@ import javax.ws.rs.core.Response
  */
 @Component
 @Path("address")
-class AddressImageRest() {
+class AddressImageServicesRest() {
 
     companion object {
         internal val SESSION_IMAGE_ATTR = "uploadedAddressImage"
     }
 
-    private val log = org.slf4j.LoggerFactory.getLogger(AddressImageRest::class.java)
+    private val log = org.slf4j.LoggerFactory.getLogger(AddressImageServicesRest::class.java)
 
     @Autowired
     private lateinit var addressDao: AddressDao
