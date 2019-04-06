@@ -7,6 +7,7 @@ import org.projectforge.framework.utils.CloneHelper
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import java.io.Serializable
+import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpSession
 
 @Component
@@ -15,6 +16,10 @@ class RestUserPreferencesService {
 
     @Autowired
     private lateinit var userXmlPreferencesCache: UserXmlPreferencesCache
+
+    fun putEntry(request: HttpServletRequest, key: String, value: Any?, persistent: Boolean) {
+        putEntry(request.session, key, value, persistent)
+    }
 
     /**
      * Stores the given value for the current user.
@@ -42,6 +47,10 @@ class RestUserPreferencesService {
             log.error("Should only occur in maintenance mode: " + ex.message, ex)
         }
 
+    }
+
+    fun getEntry(request: HttpServletRequest, key: String): Any? {
+        return getEntry(request.session, key)
     }
 
     /**
@@ -81,6 +90,10 @@ class RestUserPreferencesService {
 
     }
 
+    fun <T : Class<*>> getEntry(request: HttpServletRequest, expectedType: T, key: String): T? {
+        return getEntry(request.session, expectedType, key)
+    }
+
     /**
      * Gets the stored user preference entry.
      *
@@ -92,8 +105,8 @@ class RestUserPreferencesService {
      * existing, otherwise null;
      * @see UserXmlPreferencesCache.getEntry
      */
-    fun getEntry(session: HttpSession, expectedType: Class<*>, key: String): Any? {
-        val entry = getEntry(session, key) ?: return null
+    fun <T : Class<*>> getEntry(session: HttpSession, expectedType: T, key: String): T? {
+        val entry = getEntry(session, expectedType, key) ?: return null
         if (expectedType.isAssignableFrom(entry.javaClass) == true) {
             return entry
         }
