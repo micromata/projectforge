@@ -1,17 +1,23 @@
 import React, { Component }  from 'react';
-import Calendar from 'react-big-calendar';
+import BigCalendar from 'react-big-calendar';
 import moment from 'moment';
-import withDragAndDrop from 'react-big-calendar/lib/addons/dragAndDrop';
+import withDragAndDrop from 'react-big-calendar/lib/addons/dragAndDrop'
+
 import 'react-big-calendar/lib/addons/dragAndDrop/styles.css';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
 
-//Calendar.setLocalizer(Calendar.momentLocalizer(moment));
+const localizer = BigCalendar.momentLocalizer(moment) // or globalizeLocalizer
 
-//const DnDCalendar = withDragAndDrop(Calendar);
+const DragAndDropCalendar = withDragAndDrop(BigCalendar)
 
 function CalendarTestPage() {
     return (
-        "let's rock!"
+        <DragAndDropCalendar
+            localizer={localizer}
+            events={[]}
+            startAccessor="start"
+            endAccessor="end"
+        />
     );
 }
 
