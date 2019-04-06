@@ -188,7 +188,7 @@ abstract class AbstractStandardRest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F :
      * Get the current filter from the server, all matching items and the layout of the list page.
      */
     @GET
-    @Path("initial-list")
+    @Path("initialList")
     @Produces(MediaType.APPLICATION_JSON)
     fun getInitialList(@Context request: HttpServletRequest): Response {
         val filter: F = listFilterService.getSearchFilter(request.session, filterClazz) as F
