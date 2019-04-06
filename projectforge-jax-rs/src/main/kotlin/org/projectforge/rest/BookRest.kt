@@ -24,9 +24,8 @@ class BookRest() : AbstractStandardRest<BookDO, BookDao, BookFilter>(BookDao::cl
 
     override fun validate(validationErrors: MutableList<ValidationError>, obj: BookDO) {
         Validation.validateInteger(validationErrors, "yearOfPublishing", obj.yearOfPublishing, Const.MINYEAR, Const.MAXYEAR, formatNumber = false)
-        if (baseDao.doesSignatureAlreadyExist(obj)) {
+        if (baseDao.doesSignatureAlreadyExist(obj))
             validationErrors.add(ValidationError(translate("book.error.signatureAlreadyExists"), fieldId = "signature"))
-        }
     }
 
     /**
