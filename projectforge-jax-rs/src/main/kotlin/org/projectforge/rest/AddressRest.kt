@@ -8,7 +8,7 @@ import org.projectforge.framework.i18n.translate
 import org.projectforge.menu.MenuItem
 import org.projectforge.menu.MenuItemTargetType
 import org.projectforge.rest.AddressImageServicesRest.Companion.SESSION_IMAGE_ATTR
-import org.projectforge.rest.core.AbstractDORest
+import org.projectforge.rest.core.AbstractStandardRest
 import org.projectforge.rest.core.ExpiringSessionAttributes
 import org.projectforge.rest.core.ResultSet
 import org.projectforge.sms.SmsSenderConfig
@@ -23,8 +23,11 @@ import javax.ws.rs.Path
 @Component
 @Path("address")
 class AddressRest()
-    : AbstractDORest<AddressDO, AddressDao, AddressFilter>(AddressDao::class.java, AddressFilter::class.java, "address.title") {
+    : AbstractStandardRest<AddressDO, AddressDao, AddressFilter>(AddressDao::class.java, AddressFilter::class.java, "address.title") {
 
+    /**
+     * For exporting list of addresses.
+     */
     private class Address(val address: AddressDO,
                           val id: Int,
                           var imageUrl: String? = null,
@@ -33,8 +36,6 @@ class AddressRest()
     init {
         restHelper.add(AddressbookDO::class.java, AddressbookDOSerializer())
     }
-
-    private val log = org.slf4j.LoggerFactory.getLogger(AddressRest::class.java)
 
     @Autowired
     private lateinit var addressbookDao: AddressbookDao
@@ -47,10 +48,6 @@ class AddressRest()
 
     override fun onGetItemAndLayout(request: HttpServletRequest) {
         ExpiringSessionAttributes.removeAttribute(request.session, SESSION_IMAGE_ATTR)
-    }
-
-    override fun newBaseDO(): AddressDO {
-        return AddressDO()
     }
 
     // TODO Menus: print view, ical export, direct call: see AddressEditPage

@@ -19,6 +19,7 @@ import org.springframework.beans.BeanUtils
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationContext
 import org.springframework.stereotype.Component
+import javax.annotation.PostConstruct
 import javax.servlet.http.HttpServletRequest
 import javax.ws.rs.*
 import javax.ws.rs.core.Context
@@ -29,19 +30,23 @@ import javax.ws.rs.core.Response
  * This is the base class for all fronted functionality regarding query, editing etc. It also serves layout
  * data for the frontend.
  * <br>
- * For each entity type such as users, addresses, timesheets etc. an own class is inherited for doing customizations.
+ * For each entity type such as users, addresses, time sheets etc. an own class is inherited for doing customizations.
  * It's recommended for the frontend to develop generic list and edit pages by using the layout information served
  * by these rest services.
  */
 @Component
-abstract class AbstractDORest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F : BaseSearchFilter> {
+abstract class AbstractStandardRest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F : BaseSearchFilter> {
     constructor(baseDaoClazz: Class<B>,
                 filterClazz: Class<F>,
                 i18nKeyPrefix: String) {
         this.baseDaoClazz = baseDaoClazz
         this.filterClazz = filterClazz
         this.i18nKeyPrefix = i18nKeyPrefix
-        this.lc = LayoutContext(newBaseDO()::class.java)
+    }
+
+    @PostConstruct
+    private fun postConstruct() {
+        this.lc = LayoutContext(baseDao.doClass)
     }
 
     companion object {
@@ -67,7 +72,7 @@ abstract class AbstractDORest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F : BaseS
     /**
      * The layout context is needed to examine the data objects for maxLength, nullable, dataType etc.
      */
-    protected val lc: LayoutContext
+    protected lateinit var lc: LayoutContext
 
     protected val i18nKeyPrefix: String
 
@@ -100,7 +105,9 @@ abstract class AbstractDORest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F : BaseS
     @Autowired
     private lateinit var listFilterService: ListFilterService
 
-    abstract fun newBaseDO(): O
+    open fun newBaseDO(): O {
+        return baseDao.doClass.newInstance()
+    }
 
     open fun createListLayout(): UILayout {
         val layout = UILayout("$i18nKeyPrefix.list")
@@ -138,7 +145,7 @@ abstract class AbstractDORest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F : BaseS
     open fun validate(validationErrors: MutableList<ValidationError>, obj: O) {
     }
 
-    protected fun validate(obj: O): List<ValidationError>? {
+    fun validate(obj: O): List<ValidationError>? {
         val validationErrors = mutableListOf<ValidationError>()
         val propertiesMap = ElementsRegistry.getProperties(obj::class.java)!!
         propertiesMap.forEach {
@@ -203,7 +210,7 @@ abstract class AbstractDORest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F : BaseS
      */
     @GET
     @Path("reindexNewest")
-    fun reindexNewest(@Context request: HttpServletRequest): Response {
+    fun reindexNewest(): Response {
         baseDao.rebuildDatabaseIndex4NewestEntries()
         return restHelper.buildResponse(ResponseData("administration.reindexNewest.successful", messageType = MessageType.TOAST, style = UIStyle.SUCCESS))
     }
@@ -214,7 +221,7 @@ abstract class AbstractDORest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F : BaseS
      */
     @GET
     @Path("reindexFull")
-    fun reindexFull(@Context request: HttpServletRequest): Response {
+    fun reindexFull(): Response {
         baseDao.rebuildDatabaseIndex()
         return restHelper.buildResponse(ResponseData("administration.reindexFull.successful", messageType = MessageType.TOAST, style = UIStyle.SUCCESS))
     }
