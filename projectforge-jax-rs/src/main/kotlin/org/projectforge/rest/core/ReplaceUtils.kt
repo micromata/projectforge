@@ -11,17 +11,18 @@ object ReplaceUtils {
     val PRESERVED_FILENAME_CHARS = "\"*/:<>?\\|"
     val FILENAME_REPLACE_CHAR = '_'
 
-    private var umlautReplacementMap: MutableMap<Char, String>? = null
+    private val umlautReplacementMap: MutableMap<Char, String>
 
     init {
         umlautReplacementMap = HashMap()
-        umlautReplacementMap!!['Ä'] = "Ae"
-        umlautReplacementMap!!['Ö'] = "Oe"
-        umlautReplacementMap!!['Ü'] = "Ue"
-        umlautReplacementMap!!['ä'] = "ae"
-        umlautReplacementMap!!['ö'] = "oe"
-        umlautReplacementMap!!['ü'] = "ue"
-        umlautReplacementMap!!['ß'] = "ss"
+        umlautReplacementMap['Ä'] = "Ae"
+        umlautReplacementMap['Ö'] = "Oe"
+        umlautReplacementMap['Ü'] = "Ue"
+        umlautReplacementMap['ä'] = "ae"
+        umlautReplacementMap['ö'] = "oe"
+        umlautReplacementMap['ü'] = "ue"
+        umlautReplacementMap['ß'] = "ss"
+
     }
 
     /**
@@ -73,16 +74,16 @@ object ReplaceUtils {
         } else result
     }
 
-    fun replaceGermanUmlauteAndAccents(text: String?): String? {
+    fun replaceGermanUmlauteAndAccents(text: String?): String {
         if (text == null) {
-            return null
+            return "untitled"
         }
         val sb = StringBuilder()
         val charArray = text.toCharArray()
         for (i in charArray.indices) {
             val ch = charArray[i]
-            if (umlautReplacementMap!!.containsKey(ch)) {
-                sb.append(umlautReplacementMap!![ch])
+            if (umlautReplacementMap.containsKey(ch)) {
+                sb.append(umlautReplacementMap[ch])
             } else {
                 sb.append(ch)
             }

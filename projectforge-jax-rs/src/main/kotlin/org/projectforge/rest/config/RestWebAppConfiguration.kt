@@ -21,5 +21,6 @@ class RestWebAppConfiguration : ResourceConfig() {
         register(AddressImageServicesRest::class.java)
         register(AddressServicesRest::class.java)
         register(BookRest::class.java)
+        register(BookServicesRest::class.java)
     }
 }

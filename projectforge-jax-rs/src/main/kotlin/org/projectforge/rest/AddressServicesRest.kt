@@ -1,27 +1,16 @@
 package org.projectforge.rest
 
-import com.google.gson.*
 import org.apache.commons.collections.CollectionUtils
 import org.apache.commons.io.IOUtils
-import org.apache.commons.lang3.StringUtils
-import org.glassfish.jersey.media.multipart.FormDataMultiPart
 import org.projectforge.business.address.*
-import org.projectforge.business.image.ImageService
-import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.time.DateHelper
-import org.projectforge.menu.MenuItem
 import org.projectforge.rest.core.*
-import org.projectforge.rest.core.AbstractDORest.Companion.GEAR_MENU
-import org.projectforge.sms.SmsSenderConfig
 import org.projectforge.ui.*
-import org.springframework.beans.BeanUtils
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import java.io.IOException
-import java.io.InputStream
 import java.io.PrintWriter
 import java.io.StringWriter
-import java.lang.reflect.Type
 import java.util.*
 import javax.servlet.http.HttpServletRequest
 import javax.ws.rs.*
@@ -81,7 +70,7 @@ class AddressServicesRest() {
 
     /**
      * Exports all the addresses with the last used filter. If the user works with different browser windows and devices, the result may not match
-     * the current displayed list. The recent search result is used (stored in [AbstractDORest.getList] or [AbstractDORest.getInitialList].
+     * the current displayed list. The recent search result is used (stored in [AbstractStandardRest.getList] or [AbstractStandardRest.getInitialList].
      */
     @GET
     @Path("exportFavoritesExcel")

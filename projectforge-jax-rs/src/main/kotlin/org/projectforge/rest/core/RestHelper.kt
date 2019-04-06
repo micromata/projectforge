@@ -43,9 +43,9 @@ class RestHelper(
     }
 
     fun <O : ExtendedBaseDO<Int>, B : BaseDao<O>, F : BaseSearchFilter>
-            getList(dataObjectRest: AbstractDORest<O, B, F>, baseDao: BaseDao<O>?, filter: F)
+            getList(dataObjectRest: AbstractStandardRest<O, B, F>, baseDao: BaseDao<O>, filter: F)
             : ResultSet<Any> {
-        val list = baseDao!!.getList(filter)
+        val list = baseDao.getList(filter)
         val resultSet = ResultSet<Any>(dataObjectRest.filterList(list, filter), list.size)
         return resultSet
     }
@@ -62,14 +62,14 @@ class RestHelper(
 
     fun <O : ExtendedBaseDO<Int>, B : BaseDao<O>, F : BaseSearchFilter>
             saveOrUpdate(request: HttpServletRequest,
-                         baseDao: BaseDao<O>?, obj: O,
-                         dataObjectRest: AbstractDORest<O, B, F>,
+                         baseDao: BaseDao<O>, obj: O,
+                         dataObjectRest: AbstractStandardRest<O, B, F>,
                          validationErrorsList: List<ValidationError>?)
             : Response {
         if (validationErrorsList.isNullOrEmpty()) {
             val isNew = obj.id != null
             dataObjectRest.beforeSaveOrUpdate(request, obj)
-            var id = baseDao!!.saveOrUpdate(obj) ?: obj.id
+            var id = baseDao.saveOrUpdate(obj) ?: obj.id
             dataObjectRest.afterSaveOrUpdate(obj)
             if (isNew)
                 dataObjectRest.afterSave(obj)
@@ -84,10 +84,10 @@ class RestHelper(
     }
 
     fun <O : ExtendedBaseDO<Int>>
-            undelete(baseDao: BaseDao<O>?, obj: O, validationErrorsList: List<ValidationError>?)
+            undelete(baseDao: BaseDao<O>, obj: O, validationErrorsList: List<ValidationError>?)
             : Response {
         if (validationErrorsList.isNullOrEmpty()) {
-            var id = baseDao!!.undelete(obj)
+            var id = baseDao.undelete(obj)
             val json = getJsonCreator().toJson(id)
             return Response.ok(json).build()
         }
@@ -96,9 +96,9 @@ class RestHelper(
         return Response.status(Response.Status.NOT_ACCEPTABLE).entity(json).build()
     }
 
-    fun <O : ExtendedBaseDO<Int>> markAsDeleted(baseDao: BaseDao<O>?, obj: O, validationErrorsList: List<ValidationError>?): Response {
+    fun <O : ExtendedBaseDO<Int>> markAsDeleted(baseDao: BaseDao<O>, obj: O, validationErrorsList: List<ValidationError>?): Response {
         if (validationErrorsList.isNullOrEmpty()) {
-            baseDao!!.markAsDeleted(obj)
+            baseDao.markAsDeleted(obj)
             val json = getJsonCreator().toJson(obj)
             return Response.ok(json).build()
         }

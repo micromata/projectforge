@@ -95,9 +95,9 @@ open class SimpleLoginRest {
         }
         log.info("User successfully logged in: " + user.displayUsername)
         if (loginData.stayLoggedIn == true) {
-            val loggedInUser = userService!!.getById(user.id)
-            val cookie = Cookie(Const.COOKIE_NAME_FOR_STAY_LOGGED_IN, "${loggedInUser.getId()}:${loggedInUser.getUsername()}:${userService!!.getStayLoggedInKey(user.id)}")
-            cookieService!!.addStayLoggedInCookie(request, response, cookie)
+            val loggedInUser = userService.getById(user.id)
+            val cookie = Cookie(Const.COOKIE_NAME_FOR_STAY_LOGGED_IN, "${loggedInUser.getId()}:${loggedInUser.getUsername()}:${userService.getStayLoggedInKey(user.id)}")
+            cookieService.addStayLoggedInCookie(request, response, cookie)
         }
         // Execute login:
         val userContext = UserContext(PFUserDO.createCopyWithoutSecretFields(user), getUserGroupCache())
@@ -120,7 +120,7 @@ open class SimpleLoginRest {
             return LoginResult().setLoginResultStatus(LoginResultStatus.LOGIN_TIME_OFFSET).setMsgParams(seconds,
                     numberOfFailedAttempts.toString())
         }
-        val loginHandler = applicationContext!!.getBean(LoginDefaultHandler::class.java)
+        val loginHandler = applicationContext.getBean(LoginDefaultHandler::class.java)
 
         val result = loginHandler.checkLogin(loginData.username, loginData.password)
         if (result.getLoginResultStatus() == LoginResultStatus.SUCCESS) {
