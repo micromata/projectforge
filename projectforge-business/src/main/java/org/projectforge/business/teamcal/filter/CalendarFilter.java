@@ -21,12 +21,11 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
-package org.projectforge.web.calendar;
+package org.projectforge.business.teamcal.filter;
 
 import java.util.Date;
 
 import org.projectforge.Const;
-import org.projectforge.business.teamcal.filter.AbstractCalendarFilter;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 
 import com.thoughtworks.xstream.annotations.XStreamAlias;
