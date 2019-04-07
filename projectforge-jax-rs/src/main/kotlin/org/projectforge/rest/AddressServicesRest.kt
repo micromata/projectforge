@@ -142,7 +142,7 @@ class AddressServicesRest() {
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
     fun exportVCard(@PathParam("id") id: Int): Response {
         val address = addressDao.getById(id)
-        val filename = ("ProjectForge-" + ReplaceUtils.encodeFilename(address.getFullName()) + "_"
+        val filename = ("ProjectForge-" + ReplaceUtils.encodeFilename(address.fullName) + "_"
                 + DateHelper.getDateAsFilenameSuffix(Date()) + ".vcf")
         val writer = StringWriter()
         addressDao.exportVCard(PrintWriter(writer), address)
