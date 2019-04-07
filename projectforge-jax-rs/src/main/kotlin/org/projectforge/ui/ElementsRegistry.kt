@@ -7,6 +7,8 @@ import org.projectforge.common.props.PropUtils
 import org.projectforge.framework.persistence.jpa.PfEmgrFactory
 import org.springframework.beans.BeanUtils
 import java.util.*
+import javax.persistence.Basic
+import javax.persistence.Column
 import javax.persistence.JoinColumn
 
 /**
@@ -158,10 +160,18 @@ object ElementsRegistry {
         if (columnMetaData == null)
             return null
         if (!columnMetaData.isNullable) {
-            val annotation = columnMetaData.findAnnoation(JoinColumn::class.java)
-            if (annotation != null) {
+            var joinColumnAnn = columnMetaData.findAnnoation(JoinColumn::class.java)
+            if (joinColumnAnn != null) {
                 // Fix for error in method findEntityMetadata: For @JoinColumn nullable is always false:
-                (columnMetaData as ColumnMetadataBean).isNullable = annotation.nullable
+                (columnMetaData as ColumnMetadataBean).isNullable = joinColumnAnn.nullable
+            }
+            val basicAnn = columnMetaData.findAnnoation(Basic::class.java)
+            if (basicAnn != null) {
+                val columnAnn = columnMetaData.findAnnoation(Column::class.java)
+                if (columnAnn == null) {
+                    // Fix for error in method findEntityMetadata: For @Basic without @Column nullable is always true:
+                    (columnMetaData as ColumnMetadataBean).isNullable = true // nullable is true, if @Column is not given.
+                }
             }
         }
         return columnMetaData
