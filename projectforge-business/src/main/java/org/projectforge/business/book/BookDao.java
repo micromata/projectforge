@@ -28,6 +28,8 @@ import org.apache.commons.lang3.Validate;
 import org.hibernate.criterion.Criterion;
 import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Restrictions;
+import org.projectforge.business.task.TaskDO;
+import org.projectforge.business.tasktree.TaskTreeHelper;
 import org.projectforge.business.user.UserDao;
 import org.projectforge.framework.access.OperationType;
 import org.projectforge.framework.persistence.api.BaseDao;
@@ -45,30 +47,29 @@ import java.util.List;
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 @Repository
-public class BookDao extends BaseDao<BookDO>
-{
+public class BookDao extends BaseDao<BookDO> {
   // private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(BookDao.class);
 
-  private static final String[] ADDITIONAL_SEARCH_FIELDS = new String[] { "lendOutBy.username", "lendOutBy.firstname",
-      "lendOutBy.lastname" };
+  private static final String[] ADDITIONAL_SEARCH_FIELDS = new String[]{"lendOutBy.username", "lendOutBy.firstname",
+          "lendOutBy.lastname"};
 
   @Autowired
   private UserDao userDao;
 
-  public BookDao()
-  {
+  // Deprecated (will be removed)
+  private TaskDO rootTask = TaskTreeHelper.getTaskTree().getRootTaskNode().getTask();
+
+  public BookDao() {
     super(BookDO.class);
   }
 
   @Override
-  protected String[] getAdditionalSearchFields()
-  {
+  protected String[] getAdditionalSearchFields() {
     return ADDITIONAL_SEARCH_FIELDS;
   }
 
   @Override
-  public List<BookDO> getList(final BaseSearchFilter filter)
-  {
+  public List<BookDO> getList(final BaseSearchFilter filter) {
     final BookFilter myFilter;
     if (filter instanceof BookFilter) {
       myFilter = (BookFilter) filter;
@@ -99,6 +100,13 @@ public class BookDao extends BaseDao<BookDO>
     return getList(queryFilter);
   }
 
+  @Override
+  protected void onSaveOrModify(BookDO obj) {
+    super.onSaveOrModify(obj);
+    if (obj.getTask() == null)
+      obj.setTask(rootTask);
+  }
+
   /**
    * Does the book's signature already exists? If signature is null, then return always false.
    *
@@ -106,8 +114,7 @@ public class BookDao extends BaseDao<BookDO>
    * @return
    */
   @SuppressWarnings("unchecked")
-  public boolean doesSignatureAlreadyExist(final BookDO book)
-  {
+  public boolean doesSignatureAlreadyExist(final BookDO book) {
     Validate.notNull(book);
     if (book.getSignature() == null) {
       return false;
@@ -119,7 +126,7 @@ public class BookDao extends BaseDao<BookDO>
     } else {
       // Book already exists. Check maybe changed signature:
       list = (List<BookDO>) getHibernateTemplate().find("from BookDO b where b.signature = ? and pk <> ?",
-          new Object[] { book.getSignature(), book.getId() });
+              new Object[]{book.getSignature(), book.getId()});
     }
     if (CollectionUtils.isNotEmpty(list) == true) {
       return true;
@@ -132,8 +139,7 @@ public class BookDao extends BaseDao<BookDO>
    * @param lendOutById
    * @see BaseDao#getOrLoad(Integer)
    */
-  public void setLendOutBy(final BookDO book, final Integer lendOutById)
-  {
+  public void setLendOutBy(final BookDO book, final Integer lendOutById) {
     final PFUserDO user = userDao.getOrLoad(lendOutById);
     book.setLendOutBy(user);
   }
@@ -142,8 +148,7 @@ public class BookDao extends BaseDao<BookDO>
    * @return Always true, no generic select access needed for book objects.
    */
   @Override
-  public boolean hasSelectAccess(final PFUserDO user, final boolean throwException)
-  {
+  public boolean hasSelectAccess(final PFUserDO user, final boolean throwException) {
     return true;
   }
 
@@ -152,15 +157,13 @@ public class BookDao extends BaseDao<BookDO>
    */
   @Override
   public boolean hasAccess(final PFUserDO user, final BookDO obj, final BookDO oldObj,
-      final OperationType operationType,
-      final boolean throwException)
-  {
+                           final OperationType operationType,
+                           final boolean throwException) {
     return true;
   }
 
   @Override
-  public BookDO newInstance()
-  {
+  public BookDO newInstance() {
     return new BookDO();
   }
 
@@ -168,8 +171,7 @@ public class BookDao extends BaseDao<BookDO>
    * @see org.projectforge.framework.persistence.api.BaseDao#useOwnCriteriaCacheRegion()
    */
   @Override
-  protected boolean useOwnCriteriaCacheRegion()
-  {
+  protected boolean useOwnCriteriaCacheRegion() {
     return true;
   }
 }

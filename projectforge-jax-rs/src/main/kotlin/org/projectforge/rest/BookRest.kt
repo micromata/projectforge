@@ -28,6 +28,12 @@ class BookRest() : AbstractStandardRest<BookDO, BookDao, BookFilter>(BookDao::cl
             validationErrors.add(ValidationError(translate("book.error.signatureAlreadyExists"), fieldId = "signature"))
     }
 
+    /** Needed only for deprecated task object. */
+    override fun processItemBeforeExport(item: Any) {
+        super.processItemBeforeExport(item)
+        (item as BookDO).task = null
+    }
+
     /**
      * LAYOUT List page
      */
