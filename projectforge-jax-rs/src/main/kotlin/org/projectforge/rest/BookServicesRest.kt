@@ -35,7 +35,7 @@ class BookServicesRest() {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     fun lendOut(@Context request: HttpServletRequest, book: BookDO): Response {
-        book.setLendOutDate(Date())
+        book.lendOutDate = Date()
         bookDao.setLendOutBy(book, getUserId())
         return restHelper.saveOrUpdate(request, bookDao, book, bookRest, bookRest.validate(book))
     }
