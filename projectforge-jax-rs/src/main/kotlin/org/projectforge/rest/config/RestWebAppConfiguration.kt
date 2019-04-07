@@ -22,5 +22,6 @@ class RestWebAppConfiguration : ResourceConfig() {
         register(AddressServicesRest::class.java)
         register(BookRest::class.java)
         register(BookServicesRest::class.java)
+        register(CalendarServicesRest::class.java)
     }
 }
