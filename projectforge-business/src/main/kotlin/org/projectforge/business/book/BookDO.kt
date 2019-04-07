@@ -49,12 +49,12 @@ import javax.persistence.*
 class BookDO : DefaultBaseDO() {
 
     @PropertyInfo(i18nKey = "book.title", required = true)
-    @Field(index = Index.YES, store = Store.NO)
+    @Field
     @get:Column(length = 255)
     var title: String? = null
 
     @PropertyInfo(i18nKey = "book.keywords")
-    @Field(index = Index.YES, store = Store.NO)
+    @Field
     @get:Column(length = 1024)
     var keywords: String? = null
 
@@ -72,27 +72,27 @@ class BookDO : DefaultBaseDO() {
     var lendOutDate: Date? = null
 
     @PropertyInfo(i18nKey = "book.lendOutNote")
-    @Field(index = Index.YES, store = Store.NO)
+    @Field
     @get:Column(name = "lend_out_comment", length = 1024)
     var lendOutComment: String? = null
 
     @PropertyInfo(i18nKey = "book.isbn")
-    @Field(index = Index.YES, store = Store.NO)
+    @Field
     @get:Column(length = 255)
     var isbn: String? = null
 
     @PropertyInfo(i18nKey = "book.signature")
-    @Field(index = Index.YES, store = Store.NO)
+    @Field
     @get:Column(length = 255)
     var signature: String? = null
 
     @PropertyInfo(i18nKey = "book.publisher")
-    @Field(index = Index.YES, store = Store.NO)
+    @Field
     @get:Column(length = 255)
     var publisher: String? = null
 
     @PropertyInfo(i18nKey = "book.editor")
-    @Field(index = Index.YES, store = Store.NO)
+    @Field
     @get:Column(length = 255)
     var editor: String? = null
 
@@ -102,7 +102,7 @@ class BookDO : DefaultBaseDO() {
     var yearOfPublishing: String? = null
 
     @PropertyInfo(i18nKey = "book.authors")
-    @Field(index = Index.YES, store = Store.NO)
+    @Field
     @get:Column(length = 1000)
     var authors: String? = null
 
@@ -112,7 +112,7 @@ class BookDO : DefaultBaseDO() {
     var abstractText: String? = null
 
     @PropertyInfo(i18nKey = "comment")
-    @Field(index = Index.YES, store = Store.NO)
+    @Field
     @get:Column(length = 1000)
     var comment: String? = null
 
