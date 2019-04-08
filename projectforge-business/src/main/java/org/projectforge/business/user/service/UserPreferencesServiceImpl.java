@@ -105,13 +105,13 @@ public class UserPreferencesServiceImpl implements UserPreferencesService {
    * @see UserXmlPreferencesCache#getEntry(Integer, String)
    */
   @Override
-  public Object getEntry(final Class<?> expectedType, final String key) {
+  public <T> T getEntry(Class<T> expectedType, String key) {
     final Object entry = getEntry(key);
     if (entry == null) {
       return null;
     }
     if (expectedType.isAssignableFrom(entry.getClass()) == true) {
-      return entry;
+      return (T)entry;
     }
     // Probably a new software release results in an incompability of old and new object format.
     log.info("Could not get user preference entry: (old) type "
