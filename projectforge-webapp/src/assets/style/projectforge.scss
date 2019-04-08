@@ -89,13 +89,15 @@ fieldset {
   box-shadow: 0 1px 1px 0 rgba(60,64,67,.08),
   0 1px 3px 1px rgba(60,64,67,.16);
   padding: 25px;
+  margin-bottom: 20px;
 
   legend {
     font-weight: bold;
     margin-top: 0.5rem;
-    margin-bottom: 2.3rem;
+    margin-bottom: 0;
     width: auto;
     padding: 0 10px;
+    background: #fff;
   }
 }
 
