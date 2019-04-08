@@ -1,7 +1,6 @@
 package org.projectforge.controller;
 
 
-import lombok.extern.slf4j.Slf4j;
 import org.projectforge.menu.Menu;
 import org.projectforge.menu.builder.FavoritesMenuCreator;
 import org.projectforge.menu.builder.FavoritesMenuReaderWriter;
@@ -16,7 +15,6 @@ import org.springframework.web.bind.annotation.ResponseBody;
 // to much dependencies on wicket to do so. This could be solved by reimplementing the UserPreference stuff
 @Controller
 @RequestMapping("/secure/menucustomization")
-@Slf4j
 public class MenuCustomizationController
 {
 
@@ -26,7 +24,6 @@ public class MenuCustomizationController
   @PostMapping("/customize")
   @ResponseBody
   public String customize(@RequestParam("configuration") String configuration) {
-    log.debug(configuration);
     Menu menu = favoritesMenuCreator.read(configuration);
     FavoritesMenuReaderWriter.Companion.storeAsUserPref(menu);
     return "success";

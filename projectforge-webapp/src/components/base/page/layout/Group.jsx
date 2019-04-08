@@ -1,8 +1,6 @@
-import classNames from 'classnames';
 import PropTypes from 'prop-types';
 import React from 'react';
 import { Col, FormGroup, Row } from '../../../design';
-import style from '../Page.module.scss';
 import CustomizedLayout from './customized';
 import LayoutInput from './Input';
 import LayoutLabel from './Label';
@@ -20,8 +18,61 @@ function LayoutGroup(
     },
 ) {
     let GroupTag;
-    let SubGroupTag = React.Fragment;
     const groupProperties = {};
+
+    const children = (
+        <React.Fragment>
+            {title
+                ? <legend>{title}</legend>
+                : undefined}
+            {content.map((component) => {
+                let Tag;
+                const properties = {};
+
+                switch (component.type) {
+                    case 'LABEL':
+                        Tag = LayoutLabel;
+                        break;
+                    case 'INPUT':
+                    case 'CHECKBOX':
+                    case 'TEXTAREA':
+                        Tag = LayoutInput;
+                        break;
+                    case 'SELECT':
+                        Tag = LayoutSelect;
+                        break;
+                    case 'GROUP':
+                    case 'ROW':
+                    case 'COL':
+                    case 'FIELDSET':
+                        Tag = LayoutGroup;
+                        break;
+                    case 'TABLE':
+                        Tag = LayoutTable;
+                        break;
+                    case 'CUSTOMIZED':
+                        Tag = CustomizedLayout;
+                        break;
+                    default:
+                        return (
+                            <p key={`layout-group-unknown-component-${component.key}-${data.id}`}>
+                                {`${component.type} NOT IMPLEMENTED YET.`}
+                            </p>
+                        );
+                }
+
+                return (
+                    <Tag
+                        data={data}
+                        {...props}
+                        {...component}
+                        {...properties}
+                        key={`layout-group-component-${component.key}-${data.id}`}
+                    />
+                );
+            })}
+        </React.Fragment>
+    );
 
     switch (type) {
         case 'GROUP':
@@ -36,64 +87,20 @@ function LayoutGroup(
             groupProperties.sm = length;
             break;
         case 'FIELDSET':
-            GroupTag = Col;
-            groupProperties.sm = length;
-            SubGroupTag = 'fieldset';
-            break;
+            return (
+                <Col sm={length}>
+                    <fieldset>
+                        {children}
+                    </fieldset>
+                </Col>
+            );
         default:
             GroupTag = 'div';
     }
 
     return (
-        <GroupTag
-            {...groupProperties}
-            className={classNames(style.group, groupProperties.className)}
-        >
-            <SubGroupTag>
-                {title
-                    ? <legend>{title}</legend>
-                    : undefined}
-                {content.map((component) => {
-                    let Tag;
-
-                    switch (component.type) {
-                        case 'LABEL':
-                            Tag = LayoutLabel;
-                            break;
-                        case 'INPUT':
-                        case 'CHECKBOX':
-                        case 'TEXTAREA':
-                            Tag = LayoutInput;
-                            break;
-                        case 'SELECT':
-                            Tag = LayoutSelect;
-                            break;
-                        case 'GROUP':
-                        case 'ROW':
-                        case 'COL':
-                        case 'FIELDSET':
-                            Tag = LayoutGroup;
-                            break;
-                        case 'TABLE':
-                            Tag = LayoutTable;
-                            break;
-                        case 'CUSTOMIZED':
-                            Tag = CustomizedLayout;
-                            break;
-                        default:
-                            Tag = LayoutGroup;
-                    }
-
-                    return (
-                        <Tag
-                            data={data}
-                            {...props}
-                            {...component}
-                            key={`layout-group-component-${component.key}-${data.id}`}
-                        />
-                    );
-                })}
-            </SubGroupTag>
+        <GroupTag {...groupProperties}>
+            {children}
         </GroupTag>
     );
 }

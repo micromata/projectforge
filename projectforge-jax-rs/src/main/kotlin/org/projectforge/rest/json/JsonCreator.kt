@@ -3,6 +3,7 @@ package org.projectforge.rest.json
 import com.google.gson.GsonBuilder
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.persistence.user.entities.TenantDO
+import org.projectforge.rest.converter.DateTimeFormat
 import org.projectforge.rest.converter.DateTimeTypeAdapter
 import org.projectforge.rest.converter.DateTypeAdapter
 import java.util.*
@@ -12,7 +13,7 @@ class JsonCreator {
 
     constructor(timeZone : TimeZone = TimeZone.getTimeZone("UTC")) {
         add(java.sql.Date::class.java, DateTypeAdapter())
-        add(java.util.Date::class.java, DateTimeTypeAdapter(timeZone))
+        add(java.util.Date::class.java, DateTimeTypeAdapter(timeZone, DateTimeFormat.JS_DATE_TIME_MILLIS))
         add(PFUserDO::class.java, PFUserDOSerializer())
         add(TenantDO::class.java, TenantDOSerializer())
     }
