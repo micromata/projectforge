@@ -30,7 +30,12 @@ package org.projectforge.rest.converter;
 public enum DateTimeFormat
 {
   /** This is the default date-time format. */
-  ISO_DATE_TIME_MILLIS("yyyy-MM-dd HH:mm:ss.SSS"), MILLIS_SINCE_1970(null);
+  ISO_DATE_TIME_MILLIS("yyyy-MM-dd HH:mm:ss.SSS"),
+
+  MILLIS_SINCE_1970(null),
+
+  /** This is the date-time format for interoptability with JavaScript. */
+  JS_DATE_TIME_MILLIS("yyyy-MM-dd'T'HH:mm:ss");
 
   private final String pattern;
 
@@ -42,7 +47,8 @@ public enum DateTimeFormat
     return pattern;
   }
 
-  private DateTimeFormat(final String pattern)
+  private
+  DateTimeFormat(final String pattern)
   {
     this.pattern = pattern;
   }

@@ -24,7 +24,7 @@ import javax.ws.rs.core.Response
 @Path("userStatus")
 open class UserStatusRest {
     companion object {
-        internal val WEEKDAYS = arrayOf("-", "SUNDAY", "MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY")
+        internal val WEEKDAYS = arrayOf("-", "MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY")
     }
 
     data class UserData(var username: String? = null,
@@ -60,7 +60,8 @@ open class UserStatusRest {
         if (user == null) {
             return Response.status(Response.Status.UNAUTHORIZED).build()
         }
-        val firstDayOfWeekNo = ThreadLocalUserContext.getCalendarFirstDayOfWeek()
+        val _fdow = ThreadLocalUserContext.getCalendarFirstDayOfWeek() // Sun - 1, Mon - 2, ..., Sat - 7
+        var firstDayOfWeekNo = if (_fdow > 1) _fdow - 1 else 7         // Mon - 1, Tue - 2, ..., Sun - 7
         val userData = UserData(username = user.username,
                 organization = user.organization,
                 fullname = user.fullname,
