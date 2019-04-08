@@ -57,20 +57,6 @@ class SearchFilter extends Component {
                         />
                         <Row>
                             <Col sm={8}>
-                                <Input
-                                    label="[Änderungszeitraum]"
-                                    id="changePeriod"
-                                />
-                            </Col>
-                            <Col sm={4}>
-                                <Input
-                                    label="[geändert durch]"
-                                    id="user"
-                                />
-                            </Col>
-                        </Row>
-                        <Row>
-                            <Col sm={8}>
                                 <FormGroup row>
                                     <Label sm={2}>[Optionen]</Label>
                                     <Col sm={10}>
