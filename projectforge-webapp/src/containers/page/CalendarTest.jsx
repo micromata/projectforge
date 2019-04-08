@@ -1,19 +1,13 @@
+import moment from 'moment';
+import PropTypes from 'prop-types';
 import React from 'react';
 import BigCalendar from 'react-big-calendar';
-import moment from 'moment';
-import withDragAndDrop from 'react-big-calendar/lib/addons/dragAndDrop'
+import withDragAndDrop from 'react-big-calendar/lib/addons/dragAndDrop';
 
 import 'react-big-calendar/lib/addons/dragAndDrop/styles.css';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
-import {getServiceURL} from "../../utilities/rest";
-
-moment.locale('de',
-    {
-        week: {
-            dow: 1, // First day of week (got from UserStatus.
-            doy: 1, // First day of year (not yet supported).
-        }
-    })
+import { connect } from 'react-redux';
+import { getServiceURL } from '../../utilities/rest';
 
 const localizer = BigCalendar.momentLocalizer(moment) // or globalizeLocalizer
 
@@ -136,6 +130,17 @@ class CalendarTestPage extends React.Component {
 
     constructor(props) {
         super(props);
+
+        const { firstDayOfWeek } = this.props;
+
+        moment.locale('de',
+            {
+                week: {
+                    dow: firstDayOfWeek, // First day of week (got from UserStatus).
+                    doy: 1, // First day of year (not yet supported).
+                }
+            });
+
         this.convertJsonDates = this.convertJsonDates.bind(this);
         //this.fetchEvents = this.fetchEvents.bind(this);
         this.fetchInitial = this.fetchInitial.bind(this);
@@ -147,4 +152,12 @@ class CalendarTestPage extends React.Component {
     }
 }
 
-export default CalendarTestPage;
+CalendarTestPage.defaultProps = {
+    firstDayOfWeek: PropTypes.number.isRequired,
+};
+
+const mapStateToProps = ({ authentication }) => ({
+    firstDayOfWeek: authentication.user.firstDayOfWeekNo,
+});
+
+export default connect(mapStateToProps)(CalendarTestPage);
