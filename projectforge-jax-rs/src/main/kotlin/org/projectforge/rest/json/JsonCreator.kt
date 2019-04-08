@@ -1,11 +1,14 @@
 package org.projectforge.rest.json
 
+import com.google.gson.Gson
 import com.google.gson.GsonBuilder
+import com.google.gson.JsonSyntaxException
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.persistence.user.entities.TenantDO
 import org.projectforge.rest.converter.DateTimeFormat
 import org.projectforge.rest.converter.DateTimeTypeAdapter
 import org.projectforge.rest.converter.DateTypeAdapter
+import java.lang.reflect.Type
 import java.util.*
 
 class JsonCreator {
@@ -23,11 +26,20 @@ class JsonCreator {
     }
 
     fun toJson(obj: Any): String {
+        return createGson().toJson(obj)
+    }
+
+    fun <T> fromJson(json: String?, cls: Class<T>): T? {
+        if (json == null)
+            return null
+        return createGson().fromJson(json, cls)
+    }
+
+    private fun createGson() : Gson {
         val builder = GsonBuilder()
         for ((key, value) in typeAdapterMap) {
             builder.registerTypeHierarchyAdapter(key, value)
         }
-        val gson = builder.create()
-        return gson.toJson(obj)
+        return builder.create()
     }
 }

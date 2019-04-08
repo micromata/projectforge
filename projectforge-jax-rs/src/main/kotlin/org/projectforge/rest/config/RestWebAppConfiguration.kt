@@ -3,6 +3,7 @@ package org.projectforge.rest.config
 import org.glassfish.jersey.media.multipart.MultiPartFeature
 import org.glassfish.jersey.server.ResourceConfig
 import org.projectforge.rest.*
+import org.projectforge.rest.calendar.CalendarServicesRest
 import org.projectforge.web.rest.MyExceptionMapper
 
 /**

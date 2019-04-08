@@ -6,12 +6,12 @@ import withDragAndDrop from 'react-big-calendar/lib/addons/dragAndDrop';
 
 import 'react-big-calendar/lib/addons/dragAndDrop/styles.css';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
-import { connect } from 'react-redux';
-import { getServiceURL } from '../../utilities/rest';
+import {connect} from 'react-redux';
+import {getServiceURL} from '../../utilities/rest';
 
-const localizer = BigCalendar.momentLocalizer(moment) // or globalizeLocalizer
+const localizer = BigCalendar.momentLocalizer(moment); // or globalizeLocalizer
 
-const DragAndDropCalendar = withDragAndDrop(BigCalendar)
+const DragAndDropCalendar = withDragAndDrop(BigCalendar);
 
 class CalendarTestPage extends React.Component {
     state = {
@@ -22,7 +22,7 @@ class CalendarTestPage extends React.Component {
     convertJsonDates = e => Object.assign({}, e, {
         start: new Date(e.start),
         end: new Date(e.end)
-    })
+    });
 
     fetchInitial = () => {
         this.setState({
@@ -37,9 +37,9 @@ class CalendarTestPage extends React.Component {
         })
             .then(response => response.json())
             .then(json => {
-                const date = json.date
-                const viewType = json.viewType
-                const events = json.events
+                const date = json.date;
+                const viewType = json.viewType;
+                const events = json.events;
                 this.setState({
                     date: new Date(date),
                     viewType: viewType,
@@ -50,11 +50,15 @@ class CalendarTestPage extends React.Component {
             .catch(() => this.setState({initialized: false, failed: true}));
     };
 
-    fetchEvents = () => {
+    fetchEvents = (start, end, view) => {
         this.setState({
             failed: false
         });
-        fetch(getServiceURL('calendar/initial'), {
+        fetch(getServiceURL('calendar/events', {
+            start: start ? start.toJSON() : '',
+            end: end ? end.toJSON() : '',
+            view: view ? view : "month"
+        }), {
             method: 'GET',
             credentials: 'include',
             headers: {
@@ -63,14 +67,9 @@ class CalendarTestPage extends React.Component {
         })
             .then(response => response.json())
             .then(json => {
-                const date = json.date
-                const viewType = json.viewType
-                const events = json.events
+                const events = json.events;
                 this.setState({
-                    date: new Date(date),
-                    viewType: viewType,
                     events: events.map(this.convertJsonDates),
-                    initialized: true
                 })
             })
             .catch(() => this.setState({failed: true}));
@@ -78,36 +77,47 @@ class CalendarTestPage extends React.Component {
 
     // Callback fired when the visible date range changes. Returns an Array of dates or an object with start and end dates for BUILTIN views.
     onRangeChange = (event, view) => {
-        //const start = event.start;
-        //const end = event.end;
-        console.log("onRangeChange")
-        console.log(event, view)
-    }
+        let viewType = view;
+        if (view) {
+            this.setState({viewType: view});
+        } else
+            viewType = this.state.viewType;
+        let start;
+        let end;
+        if (viewType === 'month' || viewType === 'agenda') {
+            start = event.start;
+            end = event.end;
+        } else {
+            start = event[0];
+        }
+        console.log("start:", start, "end", end, viewType)
+        this.fetchEvents(start, end, viewType);
+    };
 
     // A callback fired when a date selection is made. Only fires when selectable is true.
     onSelectSlot = () => {
 
-    }
+    };
 
     // Callback fired when a calendar event is selected.
     onSelectEvent = () => {
 
-    }
+    };
 
     // Callback fired when a calendar event is clicked twice.
     onDoubleClickEvent = () => {
 
-    }
+    };
 
     // Callback fired when dragging a selection in the Time views.
     // Returning false from the handler will prevent a selection.
     onSelecting = () => {
 
-    }
+    };
 
     componentDidMount() {
         this.fetchInitial()
-    }
+    };
 
     render() {
         if (!this.state.initialized)
@@ -134,7 +144,7 @@ class CalendarTestPage extends React.Component {
     constructor(props) {
         super(props);
 
-        const { firstDayOfWeek } = this.props;
+        const {firstDayOfWeek} = this.props;
 
         moment.locale('de',
             {
@@ -145,7 +155,7 @@ class CalendarTestPage extends React.Component {
             });
 
         this.convertJsonDates = this.convertJsonDates.bind(this);
-        //this.fetchEvents = this.fetchEvents.bind(this);
+        this.fetchEvents = this.fetchEvents.bind(this);
         this.fetchInitial = this.fetchInitial.bind(this);
         this.onRangeChange = this.onRangeChange.bind(this);
         this.onSelectSlot = this.onSelectSlot.bind(this);
@@ -159,7 +169,7 @@ CalendarTestPage.defaultProps = {
     firstDayOfWeek: PropTypes.number.isRequired,
 };
 
-const mapStateToProps = ({ authentication }) => ({
+const mapStateToProps = ({authentication}) => ({
     firstDayOfWeek: authentication.user.firstDayOfWeekNo,
 });
 

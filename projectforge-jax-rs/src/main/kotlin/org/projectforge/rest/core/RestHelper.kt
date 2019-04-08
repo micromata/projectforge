@@ -5,9 +5,14 @@ import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.rest.JsonUtils
+import org.projectforge.rest.converter.DateTimeFormat
 import org.projectforge.rest.json.JsonCreator
 import org.projectforge.ui.ValidationError
 import java.net.URI
+import java.text.ParseException
+import java.text.SimpleDateFormat
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatterBuilder
 import java.util.*
 import javax.servlet.http.HttpServletRequest
 import javax.ws.rs.core.Response
@@ -18,6 +23,9 @@ class RestHelper(
          * If not set, the user's time zone will be used (from [ThreadLocalUserContext]).
          */
         var timeZone: TimeZone? = null) {
+
+    private val log = org.slf4j.LoggerFactory.getLogger(RestHelper::class.java)
+
     private var _jsonCreator: JsonCreator? = null
 
     private val adapterMap = mutableMapOf<Class<*>, Any>()
@@ -50,7 +58,7 @@ class RestHelper(
         return resultSet
     }
 
-    fun buildResponseItemNotFound() : Response {
+    fun buildResponseItemNotFound(): Response {
         return Response.status(Response.Status.NOT_FOUND).entity("Requested item not found.").build()
     }
 
@@ -108,13 +116,25 @@ class RestHelper(
         return Response.status(Response.Status.NOT_ACCEPTABLE).entity(json).build()
     }
 
-    fun buildUri(request : HttpServletRequest , path : String):URI {
+    fun buildUri(request: HttpServletRequest, path: String): URI {
         return URI("${getRootUrl(request)}/$path")
     }
 
-    fun getRootUrl(request : HttpServletRequest) :String {
+    fun getRootUrl(request: HttpServletRequest): String {
         val serverName = request.serverName
         val portNumber = request.serverPort
         return if (portNumber != 80 && portNumber != 443) "$serverName:$portNumber" else serverName
+    }
+
+    fun parseDate(json: String?): Date? {
+        if (json.isNullOrBlank())
+            return null
+        val formatter = SimpleDateFormat(DateTimeFormat.JS_DATE_TIME_MILLIS.pattern)
+        try {
+            return formatter.parse(json)
+        } catch (ex:ParseException) {
+            log.error("Error while parsing date '$json': ${ex.message}.")
+            return null
+        }
     }
 }
