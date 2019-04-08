@@ -35,7 +35,7 @@ public enum DateTimeFormat
   MILLIS_SINCE_1970(null),
 
   /** This is the date-time format for interoptability with JavaScript. */
-  JS_DATE_TIME_MILLIS("yyyy-MM-dd'T'HH:mm:ss"),
+  JS_DATE_TIME_MILLIS("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"),
 
   /** This is the date format. */
   ISO_DATE("yyyy-MM-dd");
