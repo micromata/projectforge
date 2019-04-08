@@ -2,10 +2,13 @@ package org.projectforge.rest
 
 import org.apache.commons.collections.CollectionUtils
 import org.apache.commons.io.IOUtils
-import org.projectforge.business.address.*
+import org.projectforge.business.address.AddressDao
+import org.projectforge.business.address.AddressExport
+import org.projectforge.business.address.AddressFilter
+import org.projectforge.business.address.PersonalAddressDao
 import org.projectforge.framework.time.DateHelper
 import org.projectforge.rest.core.*
-import org.projectforge.ui.*
+import org.projectforge.ui.UIStyle
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import java.io.IOException
@@ -13,7 +16,10 @@ import java.io.PrintWriter
 import java.io.StringWriter
 import java.util.*
 import javax.servlet.http.HttpServletRequest
-import javax.ws.rs.*
+import javax.ws.rs.GET
+import javax.ws.rs.Path
+import javax.ws.rs.PathParam
+import javax.ws.rs.Produces
 import javax.ws.rs.core.Context
 import javax.ws.rs.core.MediaType
 import javax.ws.rs.core.Response
@@ -37,13 +43,13 @@ class AddressServicesRest() {
     private lateinit var addressDao: AddressDao
 
     @Autowired
-    private lateinit var listFilterService : ListFilterService
+    private lateinit var listFilterService: ListFilterService
 
     @Autowired
-    private lateinit var addressRest : AddressRest
+    private lateinit var addressRest: AddressRest
 
     @Autowired
-    private lateinit var addressExport : AddressExport
+    private lateinit var addressExport: AddressExport
 
     @Autowired
     private lateinit var personalAddressDao: PersonalAddressDao
@@ -140,8 +146,10 @@ class AddressServicesRest() {
     @GET
     @Path("exportVCard/{id}")
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
-    fun exportVCard(@PathParam("id") id: Int): Response {
+    fun exportVCard(@PathParam("id") id: Int?): Response {
         val address = addressDao.getById(id)
+        if (address == null)
+            return restHelper.buildResponseItemNotFound()
         val filename = ("ProjectForge-" + ReplaceUtils.encodeFilename(address.fullName) + "_"
                 + DateHelper.getDateAsFilenameSuffix(Date()) + ".vcf")
         val writer = StringWriter()
