@@ -1,9 +1,9 @@
 package org.projectforge.rest
 
 import org.glassfish.jersey.media.multipart.FormDataMultiPart
-import org.projectforge.business.address.*
-import org.projectforge.business.image.ImageService
+import org.projectforge.business.address.AddressDao
 import org.projectforge.rest.core.ExpiringSessionAttributes
+import org.projectforge.rest.core.RestHelper
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import java.io.InputStream
@@ -29,8 +29,7 @@ class AddressImageServicesRest() {
     @Autowired
     private lateinit var addressDao: AddressDao
 
-    @Autowired
-    private lateinit var imageService: ImageService
+    private val restHelper = RestHelper()
 
     /**
      * If given and greater 0, the image will be added to the address with the given id (pk), otherwise the image is
@@ -78,11 +77,10 @@ class AddressImageServicesRest() {
     @GET
     @Path("imagePreview/{id}")
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
-    fun getImagePreview(@PathParam("id") id: Int): Response {
+    fun getImagePreview(@PathParam("id") id: Int?): Response {
         val address = addressDao.getById(id)
         if (address?.imageData == null)
-            return Response.status(Response.Status.NOT_FOUND).build()
-
+            return restHelper.buildResponseItemNotFound()
         val builder = Response.ok(address.imageDataPreview)
         builder.header("Content-Disposition", "attachment; filename=ProjectForge-addressImagePreview_$id.png")
         return builder.build()
@@ -95,7 +93,7 @@ class AddressImageServicesRest() {
 
     @DELETE
     @Path("deleteImage/{id}")
-    fun deleteImage(@Context request: HttpServletRequest, @PathParam("id") id: Int): Response {
+    fun deleteImage(@Context request: HttpServletRequest, @PathParam("id") id: Int?): Response {
         if (id == null || id < 0) {
             val session = request.session
             ExpiringSessionAttributes.removeAttribute(session, SESSION_IMAGE_ATTR)

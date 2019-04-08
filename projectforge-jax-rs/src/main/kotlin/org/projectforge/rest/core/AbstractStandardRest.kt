@@ -253,13 +253,17 @@ abstract class AbstractStandardRest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F :
     @GET
     @Path("{id}")
     @Produces(MediaType.APPLICATION_JSON)
-    fun getItem(@PathParam("id") id: Int): Response {
+    fun getItem(@PathParam("id") id: Int?): Response {
         val item = getById(id)
+        if (item == null)
+            return restHelper.buildResponseItemNotFound()
         return restHelper.buildResponse(item)
     }
 
-    private fun getById(id: Int): O {
+    private fun getById(id: Int?): O? {
         val item = baseDao.getById(id)
+        if (item == null)
+            return null
         processItemBeforeExport(item)
         return item
     }
@@ -275,10 +279,12 @@ abstract class AbstractStandardRest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F :
     @Produces(MediaType.APPLICATION_JSON)
     fun getItemAndLayout(@Context request: HttpServletRequest, @QueryParam("id") id: Int?): Response {
         onGetItemAndLayout(request)
-        val item: O
+        val item: O?
         if (id != null) {
             item = getById(id)
         } else item = newBaseDO()
+        if (item == null)
+            return restHelper.buildResponseItemNotFound()
         val layout = createEditLayout(item)
         layout.addTranslations("changes")
         layout.postProcessPageMenu()

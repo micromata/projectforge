@@ -21,7 +21,7 @@ class ResponseData(
         vararg messageParams: String) {
     init {
         if (message == null && i18nKey != null) {
-            if (messageParams != null)
+            if (messageParams.isNotEmpty())
                 message = translateMsg(i18nKey, messageParams)
             else
                 message = translate(i18nKey)

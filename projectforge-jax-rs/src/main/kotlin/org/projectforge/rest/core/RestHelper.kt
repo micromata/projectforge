@@ -50,12 +50,13 @@ class RestHelper(
         return resultSet
     }
 
-    fun buildResponse(obj: Any): Response {
-        val json = getJsonCreator().toJson(obj)
-        return Response.ok(json).build()
+    fun buildResponseItemNotFound() : Response {
+        return Response.status(Response.Status.NOT_FOUND).entity("Requested item not found.").build()
     }
 
-    fun buildResponse(obj: ExtendedBaseDO<Int>): Response {
+    fun buildResponse(obj: Any?): Response {
+        if (obj == null)
+            return buildResponseItemNotFound()
         val json = getJsonCreator().toJson(obj)
         return Response.ok(json).build()
     }
