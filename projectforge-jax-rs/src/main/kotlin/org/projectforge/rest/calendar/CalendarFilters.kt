@@ -24,7 +24,7 @@
 package org.projectforge.rest.calendar
 
 import com.thoughtworks.xstream.annotations.XStreamAsAttribute
-import org.joda.time.DateMidnight
+import java.time.LocalDate
 
 class CalendarFilters {
 
@@ -33,7 +33,7 @@ class CalendarFilters {
     var activeFilterIndex = 0
 
     @XStreamAsAttribute
-    var startDate: DateMidnight? = null
+    var startDate: LocalDate? = null
 
     @XStreamAsAttribute
     var firstHour: Int? = 8

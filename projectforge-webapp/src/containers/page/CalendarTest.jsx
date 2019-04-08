@@ -57,7 +57,7 @@ class CalendarTestPage extends React.Component {
         fetch(getServiceURL('calendar/events', {
             start: start ? start.toJSON() : '',
             end: end ? end.toJSON() : '',
-            view: view ? view : "month"
+            view: view ? view : 'month'
         }), {
             method: 'GET',
             credentials: 'include',
