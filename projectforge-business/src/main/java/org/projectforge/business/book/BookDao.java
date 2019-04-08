@@ -57,7 +57,18 @@ public class BookDao extends BaseDao<BookDO> {
   private UserDao userDao;
 
   // Deprecated (will be removed)
-  private TaskDO rootTask = TaskTreeHelper.getTaskTree().getRootTaskNode().getTask();
+  @Deprecated
+  private TaskDO rootTask;
+
+  /**
+   * Need lazy init due to TenantRegistryHelper.
+   */
+  @Deprecated
+  private TaskDO getRootTask() {
+    if (rootTask == null)
+      rootTask = TaskTreeHelper.getTaskTree().getRootTaskNode().getTask();
+    return rootTask;
+  }
 
   public BookDao() {
     super(BookDO.class);
@@ -104,7 +115,7 @@ public class BookDao extends BaseDao<BookDO> {
   protected void onSaveOrModify(BookDO obj) {
     super.onSaveOrModify(obj);
     if (obj.getTask() == null)
-      obj.setTask(rootTask);
+      obj.setTask(getRootTask());
   }
 
   /**
