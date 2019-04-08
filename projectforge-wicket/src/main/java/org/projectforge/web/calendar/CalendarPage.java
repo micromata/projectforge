@@ -27,6 +27,7 @@ import java.util.Date;
 
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.joda.time.DateMidnight;
+import org.projectforge.business.teamcal.filter.CalendarFilter;
 import org.projectforge.business.teamcal.filter.ICalendarFilter;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.web.fibu.ISelectCallerPage;

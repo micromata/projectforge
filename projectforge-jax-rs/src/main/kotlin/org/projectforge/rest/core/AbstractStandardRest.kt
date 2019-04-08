@@ -8,17 +8,18 @@ import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
 import org.projectforge.menu.MenuItem
+import org.projectforge.menu.MenuItemTargetType
 import org.projectforge.model.rest.RestPaths
 import org.projectforge.rest.JsonUtils
-import org.projectforge.ui.ElementsRegistry
-import org.projectforge.ui.LayoutContext
-import org.projectforge.ui.UILayout
-import org.projectforge.ui.ValidationError
+import org.projectforge.rest.MessageType
+import org.projectforge.rest.ResponseData
+import org.projectforge.ui.*
 import org.projectforge.ui.filter.LayoutListFilterUtils
 import org.springframework.beans.BeanUtils
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationContext
 import org.springframework.stereotype.Component
+import javax.annotation.PostConstruct
 import javax.servlet.http.HttpServletRequest
 import javax.ws.rs.*
 import javax.ws.rs.core.Context
@@ -29,19 +30,23 @@ import javax.ws.rs.core.Response
  * This is the base class for all fronted functionality regarding query, editing etc. It also serves layout
  * data for the frontend.
  * <br>
- * For each entity type such as users, addresses, timesheets etc. an own class is inherited for doing customizations.
+ * For each entity type such as users, addresses, time sheets etc. an own class is inherited for doing customizations.
  * It's recommended for the frontend to develop generic list and edit pages by using the layout information served
  * by these rest services.
  */
 @Component
-abstract class AbstractDORest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F : BaseSearchFilter> {
+abstract class AbstractStandardRest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F : BaseSearchFilter> {
     constructor(baseDaoClazz: Class<B>,
                 filterClazz: Class<F>,
                 i18nKeyPrefix: String) {
         this.baseDaoClazz = baseDaoClazz
         this.filterClazz = filterClazz
         this.i18nKeyPrefix = i18nKeyPrefix
-        this.lc = LayoutContext(newBaseDO()::class.java)
+    }
+
+    @PostConstruct
+    private fun postConstruct() {
+        this.lc = LayoutContext(baseDao.doClass)
     }
 
     companion object {
@@ -62,10 +67,12 @@ abstract class AbstractDORest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F : BaseS
 
     private var _baseDao: B? = null
 
+    private var restPath: String? = null
+
     /**
      * The layout context is needed to examine the data objects for maxLength, nullable, dataType etc.
      */
-    protected val lc: LayoutContext
+    protected lateinit var lc: LayoutContext
 
     protected val i18nKeyPrefix: String
 
@@ -98,26 +105,36 @@ abstract class AbstractDORest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F : BaseS
     @Autowired
     private lateinit var listFilterService: ListFilterService
 
-    abstract fun newBaseDO(): O
+    open fun newBaseDO(): O {
+        return baseDao.doClass.newInstance()
+    }
 
     open fun createListLayout(): UILayout {
         val layout = UILayout("$i18nKeyPrefix.list")
-        val path = this::class.annotations.find{it is Path} as? Path
-        val p = path?.value
         val gearMenu = MenuItem(GEAR_MENU, title = "*")
         gearMenu.add(MenuItem("reindexNewestDatabaseEntries",
                 i18nKey = "menu.reindexNewestDatabaseEntries",
                 tooltip = "menu.reindexNewestDatabaseEntries.tooltip.content",
                 tooltipTitle = "menu.reindexNewestDatabaseEntries.tooltip.title",
-                url = "$p/reindexNewest"))
+                url = "${getRestPath()}/reindexNewest",
+                type = MenuItemTargetType.RESTCALL))
         if (accessChecker.isLoggedInUserMemberOfAdminGroup)
             gearMenu.add(MenuItem("reindexAllDatabaseEntries",
                     i18nKey = "menu.reindexAllDatabaseEntries",
                     tooltip = "menu.reindexAllDatabaseEntries.tooltip.content",
                     tooltipTitle = "menu.reindexAllDatabaseEntries.tooltip.title",
-                    url = "$p/reindex"))
+                    url = "${getRestPath()}/reindexFull",
+                    type = MenuItemTargetType.RESTCALL))
         layout.add(gearMenu)
         return layout
+    }
+
+    protected fun getRestPath(): String {
+        if (restPath == null) {
+            val path = this::class.annotations.find { it is Path } as? Path
+            restPath = path?.value
+        }
+        return restPath!!
     }
 
     open fun createEditLayout(dataObject: O?): UILayout {
@@ -128,7 +145,7 @@ abstract class AbstractDORest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F : BaseS
     open fun validate(validationErrors: MutableList<ValidationError>, obj: O) {
     }
 
-    protected fun validate(obj: O): List<ValidationError>? {
+    fun validate(obj: O): List<ValidationError>? {
         val validationErrors = mutableListOf<ValidationError>()
         val propertiesMap = ElementsRegistry.getProperties(obj::class.java)!!
         propertiesMap.forEach {
@@ -171,7 +188,7 @@ abstract class AbstractDORest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F : BaseS
      * Get the current filter from the server, all matching items and the layout of the list page.
      */
     @GET
-    @Path("initial-list")
+    @Path("initialList")
     @Produces(MediaType.APPLICATION_JSON)
     fun getInitialList(@Context request: HttpServletRequest): Response {
         val filter: F = listFilterService.getSearchFilter(request.session, filterClazz) as F
@@ -193,9 +210,9 @@ abstract class AbstractDORest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F : BaseS
      */
     @GET
     @Path("reindexNewest")
-    fun reindexNewest(@Context request: HttpServletRequest): Response {
+    fun reindexNewest(): Response {
         baseDao.rebuildDatabaseIndex4NewestEntries()
-        return Response.ok().build()
+        return restHelper.buildResponse(ResponseData("administration.reindexNewest.successful", messageType = MessageType.TOAST, style = UIStyle.SUCCESS))
     }
 
     /**
@@ -203,10 +220,10 @@ abstract class AbstractDORest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F : BaseS
      * @see [BaseDao.rebuildDatabaseIndex]
      */
     @GET
-    @Path("reindex")
-    fun reindex(@Context request: HttpServletRequest): Response {
+    @Path("reindexFull")
+    fun reindexFull(): Response {
         baseDao.rebuildDatabaseIndex()
-        return Response.ok().build()
+        return restHelper.buildResponse(ResponseData("administration.reindexFull.successful", messageType = MessageType.TOAST, style = UIStyle.SUCCESS))
     }
 
     /**
@@ -224,7 +241,7 @@ abstract class AbstractDORest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F : BaseS
         return restHelper.buildResponse(resultSet)
     }
 
-    protected open fun processResultSetBeforeExport(resultSet: ResultSet<Any>) {
+    open fun processResultSetBeforeExport(resultSet: ResultSet<Any>) {
         resultSet.resultSet.forEach { processItemBeforeExport(it) }
     }
 
@@ -236,13 +253,17 @@ abstract class AbstractDORest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F : BaseS
     @GET
     @Path("{id}")
     @Produces(MediaType.APPLICATION_JSON)
-    fun getItem(@PathParam("id") id: Int): Response {
+    fun getItem(@PathParam("id") id: Int?): Response {
         val item = getById(id)
+        if (item == null)
+            return restHelper.buildResponseItemNotFound()
         return restHelper.buildResponse(item)
     }
 
-    private fun getById(id: Int): O {
+    private fun getById(id: Int?): O? {
         val item = baseDao.getById(id)
+        if (item == null)
+            return null
         processItemBeforeExport(item)
         return item
     }
@@ -258,10 +279,12 @@ abstract class AbstractDORest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F : BaseS
     @Produces(MediaType.APPLICATION_JSON)
     fun getItemAndLayout(@Context request: HttpServletRequest, @QueryParam("id") id: Int?): Response {
         onGetItemAndLayout(request)
-        val item: O
+        val item: O?
         if (id != null) {
             item = getById(id)
         } else item = newBaseDO()
+        if (item == null)
+            return restHelper.buildResponseItemNotFound()
         val layout = createEditLayout(item)
         layout.addTranslations("changes")
         layout.postProcessPageMenu()
@@ -292,7 +315,7 @@ abstract class AbstractDORest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F : BaseS
     }
 
 
-    open protected fun processItemBeforeExport(item: Any) {
+    open fun processItemBeforeExport(item: Any) {
     }
 
     /**

@@ -1,8 +1,11 @@
 package org.projectforge.rest
 
+import aQute.bnd.osgi.Constants.headers
 import org.projectforge.business.user.UserXmlPreferencesCache
 import org.projectforge.business.user.filter.CookieService
 import org.projectforge.business.user.filter.UserFilter
+import org.projectforge.rest.core.RestHelper
+import org.projectforge.ui.UIStyle
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import javax.servlet.http.HttpServletRequest
@@ -28,6 +31,8 @@ open class LogoutRest {
     @Autowired
     private lateinit  var userXmlPreferencesCache : UserXmlPreferencesCache
 
+    private val restHelper = RestHelper()
+
     @GET
     @Produces(MediaType.TEXT_PLAIN)
     fun logout(@Context request: HttpServletRequest,
@@ -48,6 +53,6 @@ open class LogoutRest {
         if (stayLoggedInCookie != null) {
             response.addCookie(stayLoggedInCookie)
         }
-        return Response.ok("logged-out").build()
+        return restHelper.buildResponse(ResponseData("logout.successful", messageType = MessageType.TOAST, style = UIStyle.SUCCESS)) //Response.temporaryRedirect(restHelper.buildUri(request, "login")).build()
     }
 }

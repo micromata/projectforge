@@ -1,22 +1,12 @@
 package org.projectforge.rest
 
-import com.google.gson.*
-import org.apache.commons.lang3.StringUtils
 import org.glassfish.jersey.media.multipart.FormDataMultiPart
-import org.projectforge.business.address.*
-import org.projectforge.business.image.ImageService
-import org.projectforge.framework.i18n.translate
-import org.projectforge.menu.MenuItem
-import org.projectforge.rest.core.AbstractDORest
-import org.projectforge.rest.core.AbstractDORest.Companion.GEAR_MENU
+import org.projectforge.business.address.AddressDao
 import org.projectforge.rest.core.ExpiringSessionAttributes
-import org.projectforge.rest.core.ResultSet
-import org.projectforge.sms.SmsSenderConfig
-import org.projectforge.ui.*
+import org.projectforge.rest.core.RestHelper
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import java.io.InputStream
-import java.lang.reflect.Type
 import javax.servlet.http.HttpServletRequest
 import javax.ws.rs.*
 import javax.ws.rs.core.Context
@@ -28,19 +18,18 @@ import javax.ws.rs.core.Response
  */
 @Component
 @Path("address")
-class AddressImageRest() {
+class AddressImageServicesRest() {
 
     companion object {
         internal val SESSION_IMAGE_ATTR = "uploadedAddressImage"
     }
 
-    private val log = org.slf4j.LoggerFactory.getLogger(AddressImageRest::class.java)
+    private val log = org.slf4j.LoggerFactory.getLogger(AddressImageServicesRest::class.java)
 
     @Autowired
     private lateinit var addressDao: AddressDao
 
-    @Autowired
-    private lateinit var imageService: ImageService
+    private val restHelper = RestHelper()
 
     /**
      * If given and greater 0, the image will be added to the address with the given id (pk), otherwise the image is
@@ -88,11 +77,10 @@ class AddressImageRest() {
     @GET
     @Path("imagePreview/{id}")
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
-    fun getImagePreview(@PathParam("id") id: Int): Response {
+    fun getImagePreview(@PathParam("id") id: Int?): Response {
         val address = addressDao.getById(id)
         if (address?.imageData == null)
-            return Response.status(Response.Status.NOT_FOUND).build()
-
+            return restHelper.buildResponseItemNotFound()
         val builder = Response.ok(address.imageDataPreview)
         builder.header("Content-Disposition", "attachment; filename=ProjectForge-addressImagePreview_$id.png")
         return builder.build()
@@ -105,7 +93,7 @@ class AddressImageRest() {
 
     @DELETE
     @Path("deleteImage/{id}")
-    fun deleteImage(@Context request: HttpServletRequest, @PathParam("id") id: Int): Response {
+    fun deleteImage(@Context request: HttpServletRequest, @PathParam("id") id: Int?): Response {
         if (id == null || id < 0) {
             val session = request.session
             ExpiringSessionAttributes.removeAttribute(session, SESSION_IMAGE_ATTR)
