@@ -31,7 +31,7 @@ public interface UserPreferencesService {
    * existing, otherwise null;
    * @see org.projectforge.business.user.UserXmlPreferencesCache#getEntry(Integer, String)
    */
-  public Object getEntry(final Class<?> expectedType, final String key);
+  public <T> T getEntry(final Class<T> expectedType, final String key);
 
   /**
    * Removes the entry under the given key.
