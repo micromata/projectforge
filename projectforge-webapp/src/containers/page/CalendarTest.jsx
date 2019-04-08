@@ -114,7 +114,10 @@ class CalendarTestPage extends React.Component {
             return <React.Fragment>Loading...</React.Fragment>
         return (
             <DragAndDropCalendar
-                style={{height: 1000}}
+                style={{
+                    minHeight: 800,
+                    height: 'calc(100vh - 164px)',
+                }}
                 localizer={localizer}
                 events={this.state.events}
                 step={30}
