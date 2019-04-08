@@ -113,3 +113,26 @@ label.label {
     @include color(#17a2b8);
   }
 }
+
+div[class^='Input_additionalLabel'] > span {
+  margin-left: 5px;
+  color: #cccacc;
+}
+
+input[class^='Input_select'] {
+  border-color: #fff !important;
+  padding-left: 3px !important;
+}
+
+
+label[class^='Input_select'] {
+  margin-bottom: 10px;
+
+  > span {
+    color: #a5a2a5 !important;
+    margin-left: 0 !important;
+    font-size: 0.95rem !important;
+    top: -3px !important;
+    left: -3px;
+  }
+}
