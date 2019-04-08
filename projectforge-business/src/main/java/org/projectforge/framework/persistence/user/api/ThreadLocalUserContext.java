@@ -178,6 +178,7 @@ public class ThreadLocalUserContext
   /**
    * The first day of the week, configured at the given user, if not configured {@link ConfigXml#getFirstDayOfWeek()} is
    * used.
+   * Please note: 1 - sunday, 2 - monday, 3 - tuesday etc. (java.util.Calendar)!
    *
    * @return
    * @see ConfigXml#getFirstDayOfWeek()
