@@ -219,8 +219,10 @@ class AddressRest()
                                                 .add(UIInput("privateState", lc)))))
                         .add(UIFieldset(6,"address.image")
                                 .add(UICustomized("addressImage"))))
-                .add(UIFieldset(title = "address.image")
-                        .add(lc, "comment"))
+                .add(UIRow()
+                        .add(UIFieldset()
+                                .add(lc, "comment")))
+
         layout.getInputById("name").focus = true
         layout.addTranslations("delete", "file.upload.dropArea", "address.image.upload.error")
         if (dataObject?.id != null) {
