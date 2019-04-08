@@ -7,7 +7,13 @@ import 'react-big-calendar/lib/addons/dragAndDrop/styles.css';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
 import {getServiceURL} from "../../utilities/rest";
 
-moment.locale('de')
+moment.locale('de',
+    {
+        week: {
+            dow: 1, // First day of week (got from UserStatus.
+            doy: 1, // First day of year (not yet supported).
+        }
+    })
 
 const localizer = BigCalendar.momentLocalizer(moment) // or globalizeLocalizer
 
@@ -16,16 +22,17 @@ const DragAndDropCalendar = withDragAndDrop(BigCalendar)
 class CalendarTestPage extends React.Component {
     state = {
         isFetching: false,
+        initalized: false,
         events: []
     };
 
     constructor(props) {
         super(props);
-        this.mapToRBCFormat = this.mapToRBCFormat.bind(this);
+        this.convertJsonDates = this.convertJsonDates.bind(this);
         this.fetchEvents = this.fetchEvents.bind(this);
     }
 
-    mapToRBCFormat = e => Object.assign({}, e, {
+    convertJsonDates = e => Object.assign({}, e, {
         start: new Date(e.start),
         end: new Date(e.end)
     })
@@ -49,26 +56,65 @@ class CalendarTestPage extends React.Component {
                 const events = json.events
                 this.setState({
                     isFetching: false,
-                    date: date,
+                    date: new Date(date),
                     viewType: viewType,
-                    events: events.map(this.mapToRBCFormat)
+                    events: events.map(this.convertJsonDates),
+                    initialized: true
                 })
             })
             .catch(() => this.setState({isFetching: false, failed: true}));
     };
+
+    // Callback fired when the date value changes.
+    onNavigate = () => {
+
+    }
+
+    // Callback fired when the view value changes.
+    onView = () => {
+
+    }
+
+    // Callback fired when the visible date range changes. Returns an Array of dates or an object with start and end dates for BUILTIN views.
+    onRangeChange = () => {
+
+    }
+
+    // A callback fired when a date selection is made. Only fires when selectable is true.
+    onSelectSlot = () => {
+
+    }
+
+    // Callback fired when a calendar event is selected.
+    onSelectEvent = () => {
+
+    }
+
+    // Callback fired when a calendar event is clicked twice.
+    onDoubleClickEvent = () => {
+
+    }
+
+    // Callback fired when dragging a selection in the Time views.
+    // Returning false from the handler will prevent a selection.
+    onSelecting = () => {
+
+    }
 
     componentDidMount() {
         this.fetchEvents()
     }
 
     render() {
-        console.log(this.state.events)
+        if (!this.state.initialized)
+            return <React.Fragment>Loading...</React.Fragment>
         return (
             <DragAndDropCalendar
+                style={{height: 1000}}
                 localizer={localizer}
                 events={this.state.events}
                 step={30}
-                defaultView={this.state.viewTyoe}
+                defaultView={this.state.viewType}
                 views={['month', 'week', 'day', 'agenda']}
                 startAccessor="start"
                 defaultDate={this.state.date}
