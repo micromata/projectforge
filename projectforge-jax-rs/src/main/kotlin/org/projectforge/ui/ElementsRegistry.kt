@@ -162,15 +162,15 @@ object ElementsRegistry {
         if (!columnMetaData.isNullable) {
             var joinColumnAnn = columnMetaData.findAnnoation(JoinColumn::class.java)
             if (joinColumnAnn != null) {
-                // Fix for error in method findEntityMetadata: For @JoinColumn nullable is always false:
+                // Fix for error in method findEntityMetadata: For @JoinColumn nullable is always returned as false:
                 (columnMetaData as ColumnMetadataBean).isNullable = joinColumnAnn.nullable
             }
             val basicAnn = columnMetaData.findAnnoation(Basic::class.java)
             if (basicAnn != null) {
                 val columnAnn = columnMetaData.findAnnoation(Column::class.java)
                 if (columnAnn == null) {
-                    // Fix for error in method findEntityMetadata: For @Basic without @Column nullable is always true:
-                    (columnMetaData as ColumnMetadataBean).isNullable = true // nullable is true, if @Column is not given.
+                    // Fix for error in method findEntityMetadata: For @Basic without @Column nullable is always returned as false:
+                    (columnMetaData as ColumnMetadataBean).isNullable = true // nullable is true, if @Column is not given (JPA).
                 }
             }
         }
