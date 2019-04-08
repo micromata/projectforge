@@ -48,7 +48,6 @@ public interface ICorePersistenceService<PK extends Serializable, ENT extends Ma
 
   ENT selectByPkDetached(PK pk) throws AccessException;
 
-  @Deprecated
   default ENT getById(final Serializable id) throws AccessException
   {
     return selectByPkDetached((PK) id);
