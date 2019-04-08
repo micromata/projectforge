@@ -76,3 +76,18 @@ body {
 .form-group {
   margin-bottom: 2.3rem;
 }
+
+// Forms
+
+fieldset {
+  border: 1px solid #dedede;
+  padding: 25px;
+
+  legend {
+    font-weight: bold;
+    margin-top: 0.5rem;
+    margin-bottom: 2.3rem;
+    width: auto;
+    padding: 0 10px;
+  }
+}
