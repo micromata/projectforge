@@ -408,7 +408,7 @@ class AddressDO : DefaultBaseWithAttrDO<AddressDO>() {
                 if (idx < line.length) {
                     label = line.substring(idx)
                 }
-                var type: InstantMessagingType? = null
+                var type: InstantMessagingType?
                 try {
                     type = InstantMessagingType.get(label)
                 } catch (ex: Exception) {
