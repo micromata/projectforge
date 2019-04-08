@@ -5,7 +5,7 @@ import org.junit.jupiter.api.Test
 import org.projectforge.test.AbstractTestBase
 import org.projectforge.ui.ValidationError
 
-class RestUserFilterTest : AbstractTestBase() {
+class ValidationTest : AbstractTestBase() {
 
     @Test
     fun validationTest() {
