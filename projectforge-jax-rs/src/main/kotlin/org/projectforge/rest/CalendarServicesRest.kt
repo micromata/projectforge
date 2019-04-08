@@ -26,7 +26,8 @@ import javax.ws.rs.core.Response
 @Path("calendar")
 class CalendarServicesRest() {
 
-    internal class CalendarData(val date: Date, val viewType: ViewType = ViewType.MONTH, val events: List<BigCalendarEvent>)
+    internal class CalendarData(val date: Date, val viewType: String = "month", val events: List<BigCalendarEvent>)
+
     internal class BigCalendarEvent(val id: Int, val title: String, val start: Date, val end: Date, val allDay: Boolean = false, val desc: String? = null)
 
     private val log = org.slf4j.LoggerFactory.getLogger(CalendarServicesRest::class.java)
@@ -83,7 +84,14 @@ class CalendarServicesRest() {
                 events.add(BigCalendarEvent(it.id, it.shortDescription, it.startTime, it.stopTime))
             }
         }
-        val result = CalendarData(filter.startDate.toDate(), filter.viewType, events)
+        val viewType =
+                when(filter.viewType) {
+                    ViewType.BASIC_WEEK -> "week"
+                    ViewType.BASIC_DAY -> "day"
+                    ViewType.AGENDA_DAY, ViewType.AGENDA_WEEK -> "agenda"
+                    else -> "month"
+                }
+        val result = CalendarData(filter.startDate.toDate(), viewType, events)
         return restHelper.buildResponse(result)
     }
 
