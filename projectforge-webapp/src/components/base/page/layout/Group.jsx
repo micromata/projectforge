@@ -1,8 +1,6 @@
-import classNames from 'classnames';
 import PropTypes from 'prop-types';
 import React from 'react';
 import { Col, FormGroup, Row } from '../../../design';
-import style from '../Page.module.scss';
 import CustomizedLayout from './customized';
 import LayoutInput from './Input';
 import LayoutLabel from './Label';
@@ -45,10 +43,7 @@ function LayoutGroup(
     }
 
     return (
-        <GroupTag
-            {...groupProperties}
-            className={classNames(style.group, groupProperties.className)}
-        >
+        <GroupTag {...groupProperties}>
             <SubGroupTag>
                 {title
                     ? <legend>{title}</legend>
