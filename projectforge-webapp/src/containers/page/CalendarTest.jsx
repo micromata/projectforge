@@ -26,18 +26,12 @@ class CalendarTestPage extends React.Component {
         events: []
     };
 
-    constructor(props) {
-        super(props);
-        this.convertJsonDates = this.convertJsonDates.bind(this);
-        this.fetchEvents = this.fetchEvents.bind(this);
-    }
-
     convertJsonDates = e => Object.assign({}, e, {
         start: new Date(e.start),
         end: new Date(e.end)
     })
 
-    fetchEvents = () => {
+    fetchInitial = () => {
         this.setState({
             isFetching: true,
             failed: false
@@ -76,8 +70,10 @@ class CalendarTestPage extends React.Component {
     }
 
     // Callback fired when the visible date range changes. Returns an Array of dates or an object with start and end dates for BUILTIN views.
-    onRangeChange = () => {
-
+    onRangeChange = event => {
+        const start = event.start;
+        const end = event.end;
+        console.log(event)
     }
 
     // A callback fired when a date selection is made. Only fires when selectable is true.
@@ -102,7 +98,7 @@ class CalendarTestPage extends React.Component {
     }
 
     componentDidMount() {
-        this.fetchEvents()
+        this.fetchInitial()
     }
 
     render() {
@@ -119,8 +115,23 @@ class CalendarTestPage extends React.Component {
                 startAccessor="start"
                 defaultDate={this.state.date}
                 endAccessor="end"
+                onRangeChange={this.onRangeChange}
             />
         );
+    }
+
+    constructor(props) {
+        super(props);
+        this.convertJsonDates = this.convertJsonDates.bind(this);
+        //this.fetchEvents = this.fetchEvents.bind(this);
+        this.fetchInitial = this.fetchInitial.bind(this);
+        this.onNavigate = this.onNavigate.bind(this);
+        this.onView = this.onView.bind(this);
+        this.onRangeChange = this.onRangeChange.bind(this);
+        this.onSelectSlot = this.onSelectSlot.bind(this);
+        this.onSelectEvent = this.onSelectEvent.bind(this);
+        this.onDoubleClickEvent = this.onDoubleClickEvent.bind(this);
+        this.onSelecting = this.onSelecting.bind(this);
     }
 }
 
