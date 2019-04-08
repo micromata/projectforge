@@ -9,10 +9,9 @@ import org.projectforge.rest.converter.DateTimeFormat
 import org.projectforge.rest.json.JsonCreator
 import org.projectforge.ui.ValidationError
 import java.net.URI
-import java.text.ParseException
-import java.text.SimpleDateFormat
-import java.time.LocalDateTime
-import java.time.format.DateTimeFormatterBuilder
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+import java.time.format.DateTimeParseException
 import java.util.*
 import javax.servlet.http.HttpServletRequest
 import javax.ws.rs.core.Response
@@ -126,15 +125,18 @@ class RestHelper(
         return if (portNumber != 80 && portNumber != 443) "$serverName:$portNumber" else serverName
     }
 
-    fun parseDate(json: String?): Date? {
+    fun parseDate(json: String?): LocalDate? {
         if (json.isNullOrBlank())
             return null
-        val formatter = SimpleDateFormat(DateTimeFormat.JS_DATE_TIME_MILLIS.pattern)
         try {
-            return formatter.parse(json)
-        } catch (ex:ParseException) {
+            return LocalDate.parse(json, jsonDateTimeFormatter)
+        } catch (ex: DateTimeParseException) {
             log.error("Error while parsing date '$json': ${ex.message}.")
             return null
         }
+    }
+
+    companion object {
+        private val jsonDateTimeFormatter = DateTimeFormatter.ofPattern(DateTimeFormat.JS_DATE_TIME_MILLIS.pattern)
     }
 }

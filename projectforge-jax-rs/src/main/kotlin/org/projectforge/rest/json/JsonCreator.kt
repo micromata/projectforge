@@ -17,6 +17,7 @@ class JsonCreator {
     constructor(timeZone : TimeZone = TimeZone.getTimeZone("UTC")) {
         add(java.sql.Date::class.java, DateTypeAdapter())
         add(java.util.Date::class.java, DateTimeTypeAdapter(timeZone, DateTimeFormat.JS_DATE_TIME_MILLIS))
+        add(java.time.LocalDate::class.java, LocalDateTypeAdapter())
         add(PFUserDO::class.java, PFUserDOSerializer())
         add(TenantDO::class.java, TenantDOSerializer())
     }

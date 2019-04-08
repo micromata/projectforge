@@ -2,6 +2,7 @@ package org.projectforge.rest.calendar
 
 import com.google.gson.annotations.SerializedName
 import org.joda.time.DateMidnight
+import org.joda.time.DateTimeFieldType.dayOfMonth
 import org.projectforge.business.teamcal.filter.TeamCalCalendarFilter
 import org.projectforge.business.teamcal.filter.ViewType
 import org.projectforge.business.timesheet.TimesheetDao
@@ -11,6 +12,11 @@ import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.rest.core.RestHelper
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
+import java.time.DayOfWeek
+import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.LocalTime
+import java.time.temporal.WeekFields
 import java.util.*
 import javax.ws.rs.GET
 import javax.ws.rs.Path
@@ -26,7 +32,7 @@ import javax.ws.rs.core.Response
 @Path("calendar")
 class CalendarServicesRest() {
 
-    internal class CalendarData(val date: Date, val viewType: CalendarViewType = CalendarViewType.MONTH, val events: List<BigCalendarEvent>)
+    internal class CalendarData(val date: LocalDate, val viewType: CalendarViewType = CalendarViewType.MONTH, val events: List<BigCalendarEvent>)
 
     internal class BigCalendarEvent(val id: Int, val title: String, val start: Date, val end: Date, val allDay: Boolean = false, val desc: String? = null)
 
@@ -79,64 +85,69 @@ class CalendarServicesRest() {
         return buildEvents(start, end, view)
     }
 
-    private fun buildEvents(startParam: Date? = null, endParam: Date? = null, viewParam: CalendarViewType? = null): Response {
+    private fun buildEvents(startParam: LocalDate? = null, endParam: LocalDate? = null, viewParam: CalendarViewType? = null): Response {
         var filter = userPreferenceService.getEntry(CalendarFilters::class.java, USERPREF_KEY)
         if (filter == null) {
             // No current user pref entry available. Try the old one (from release 6.* / Wicket Calendarpage):
             val oldFilter = userPreferenceService.getEntry(TeamCalCalendarFilter::class.java, OLD_USERPREF_KEY)
             oldFilter.viewType
             filter = createFrom(oldFilter)
-            //userPreferenceService.putEntry(USERPREF_KEY, filter, true)
+
+            userPreferenceService.putEntry(USERPREF_KEY, filter, true)
         }
         val events = mutableListOf<BigCalendarEvent>()
         val initialCall = (startParam == null && viewParam == null) // endParam may-be null
         var view: CalendarViewType?
-        var start: Date?
-        var end: Date?
+        var start: LocalDate?
+        var end: LocalDate?
         var startDate = filter.startDate
         if (startDate == null)
-            startDate = DateMidnight()
+            startDate = LocalDate.now()!!
         if (initialCall) {
             view = filter.viewType
             when (view) {
                 CalendarViewType.WEEK -> {
-                    start = startDate.withDayOfWeek(1).toDate()
-                    end = startDate.dayOfWeek().withMaximumValue().toDate()
+                    start = CalDateUtils.getFirstDayOfWeek(startDate)
+                    end = startDate.plusDays(7)
                 }
                 CalendarViewType.DAY -> {
-                    start = startDate.toDate()
-                    end = startDate.plusDays(1).toDate()
+                    start = startDate
+                    end = startDate
                 }
                 else -> {
                     // Assuming month at default
-                    start = startDate.withDayOfMonth(1).toDate()
-                    end = startDate.dayOfMonth().withMaximumValue().toDate()
+                    start = startDate!!.withDayOfMonth(1)
+                    end = startDate.withDayOfMonth(start.lengthOfMonth())
                 }
             }
         } else {
             view = viewParam
             start = startParam
+            if (start == null)
+                start = LocalDate.now()!!
             end = endParam
             if (end == null) {
                 end =
                         when (view) {
-                            CalendarViewType.DAY -> DateMidnight(start).plusDays(1).toDate()
-                            CalendarViewType.WEEK -> DateMidnight(start).dayOfWeek().withMaximumValue().toDate()
-                            else -> DateMidnight(start).dayOfMonth().withMaximumValue().toDate()
+                            CalendarViewType.DAY -> start
+                            CalendarViewType.WEEK -> start.plusDays(7)
+                            else -> start.withDayOfMonth(start.lengthOfMonth())
                         }
             }
         }
+        val startTimestamp = LocalDateTime.of(start, LocalTime.MIDNIGHT)
+        val endTimestamp = LocalDateTime.of(end!!.plusDays(1), LocalTime.MIDNIGHT)
         //if (filter.isShowTimesheets) {
         val tsFilter = TimesheetFilter()
         tsFilter.userId = ThreadLocalUserContext.getUserId()
-        tsFilter.startTime = start
-        tsFilter.stopTime = end
+        tsFilter.startTime = CalDateUtils.getUtilDate(startTimestamp)
+        tsFilter.stopTime = CalDateUtils.getUtilDate(endTimestamp)
         val timesheets = timesheetDao.getList(tsFilter)
         timesheets.forEach {
             events.add(BigCalendarEvent(it.id, it.shortDescription, it.startTime, it.stopTime))
         }
         // }
-        val result = CalendarData(startDate.toDate(), view!!, events)
+        val result = CalendarData(startDate, view!!, events)
         return restHelper.buildResponse(result)
     }
 
@@ -157,7 +168,7 @@ class CalendarServicesRest() {
             calendarFilters.activeFilterIndex = oldFilter.activeTemplateEntryIndex
             calendarFilters.firstHour = oldFilter.firstHour
             calendarFilters.slot30 = oldFilter.isSlot30
-            calendarFilters.startDate = oldFilter.startDate
+            calendarFilters.startDate = CalDateUtils.convertToLocalDate(oldFilter.startDate)
             calendarFilters.viewType = convert(oldFilter.viewType)
             oldFilter.templateEntries?.forEach { templateEntry ->
                 val displayFilter = CalendarsDisplayFilter()
