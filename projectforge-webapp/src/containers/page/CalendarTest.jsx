@@ -21,7 +21,6 @@ const DragAndDropCalendar = withDragAndDrop(BigCalendar)
 
 class CalendarTestPage extends React.Component {
     state = {
-        isFetching: false,
         initalized: false,
         events: []
     };
@@ -33,7 +32,6 @@ class CalendarTestPage extends React.Component {
 
     fetchInitial = () => {
         this.setState({
-            isFetching: true,
             failed: false
         });
         fetch(getServiceURL('calendar/initial'), {
@@ -49,30 +47,58 @@ class CalendarTestPage extends React.Component {
                 const viewType = json.viewType
                 const events = json.events
                 this.setState({
-                    isFetching: false,
                     date: new Date(date),
                     viewType: viewType,
                     events: events.map(this.convertJsonDates),
                     initialized: true
                 })
             })
-            .catch(() => this.setState({isFetching: false, failed: true}));
+            .catch(() => this.setState({initialized: false, failed: true}));
+    };
+
+    fetchEvents = () => {
+        this.setState({
+            failed: false
+        });
+        fetch(getServiceURL('calendar/initial'), {
+            method: 'GET',
+            credentials: 'include',
+            headers: {
+                'Accept': 'application/json'
+            }
+        })
+            .then(response => response.json())
+            .then(json => {
+                const date = json.date
+                const viewType = json.viewType
+                const events = json.events
+                this.setState({
+                    date: new Date(date),
+                    viewType: viewType,
+                    events: events.map(this.convertJsonDates),
+                    initialized: true
+                })
+            })
+            .catch(() => this.setState({failed: true}));
     };
 
     // Callback fired when the date value changes.
-    onNavigate = () => {
-
+    onNavigate = event => {
+        console.log("onNavigate")
+        console.log(event)
     }
 
     // Callback fired when the view value changes.
-    onView = () => {
-
+    onView = event => {
+        console.log("onView")
+        console.log(event)
     }
 
     // Callback fired when the visible date range changes. Returns an Array of dates or an object with start and end dates for BUILTIN views.
     onRangeChange = event => {
         const start = event.start;
         const end = event.end;
+        console.log("onRangeChange")
         console.log(event)
     }
 
@@ -115,6 +141,8 @@ class CalendarTestPage extends React.Component {
                 startAccessor="start"
                 defaultDate={this.state.date}
                 endAccessor="end"
+                onNavigate={this.onNavigate}
+                onView={this.onView}
                 onRangeChange={this.onRangeChange}
             />
         );
