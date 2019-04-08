@@ -39,15 +39,15 @@ object ReplaceUtils {
      */
 
     fun encodeFilename(filename: String?, reducedCharsOnly: Boolean = true): String {
-        var filename = filename
-        if (StringUtils.isEmpty(filename)) {
+        if (filename.isNullOrEmpty()) {
             return "file"
         }
-        if (reducedCharsOnly) {
-            filename = replaceGermanUmlauteAndAccents(filename)
-        }
+        var result = if (reducedCharsOnly)
+            replaceGermanUmlauteAndAccents(filename)
+        else
+            filename
         val sb = StringBuilder()
-        val charArray = filename!!.toCharArray()
+        val charArray = result.toCharArray()
         for (i in charArray.indices) {
             val ch = charArray[i]
             if (reducedCharsOnly) {
@@ -68,7 +68,7 @@ object ReplaceUtils {
                 }
             }
         }
-        val result = sb.toString()
+        result = sb.toString()
         return if (result.length > 255) {
             result.substring(0, 255)
         } else result
