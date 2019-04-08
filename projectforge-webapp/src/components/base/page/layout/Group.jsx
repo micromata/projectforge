@@ -27,6 +27,7 @@ function LayoutGroup(
                 : undefined}
             {content.map((component) => {
                 let Tag;
+                const properties = {};
 
                 switch (component.type) {
                     case 'LABEL':
@@ -53,7 +54,11 @@ function LayoutGroup(
                         Tag = CustomizedLayout;
                         break;
                     default:
-                        Tag = LayoutGroup;
+                        return (
+                            <p key={`layout-group-unknown-component-${component.key}-${data.id}`}>
+                                {`${component.type} NOT IMPLEMENTED YET.`}
+                            </p>
+                        );
                 }
 
                 return (
@@ -61,6 +66,7 @@ function LayoutGroup(
                         data={data}
                         {...props}
                         {...component}
+                        {...properties}
                         key={`layout-group-component-${component.key}-${data.id}`}
                     />
                 );
