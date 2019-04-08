@@ -57,7 +57,7 @@ export const loadList = category => (dispatch) => {
     dispatch(loadBegin(category));
 
     return fetch(
-        getServiceURL(`${category}/initial-list`),
+        getServiceURL(`${category}/initialList`),
         {
             method: 'GET',
             credentials: 'include',

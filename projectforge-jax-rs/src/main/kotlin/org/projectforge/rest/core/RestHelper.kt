@@ -7,9 +7,11 @@ import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.rest.JsonUtils
 import org.projectforge.rest.json.JsonCreator
 import org.projectforge.ui.ValidationError
+import java.net.URI
 import java.util.*
 import javax.servlet.http.HttpServletRequest
 import javax.ws.rs.core.Response
+
 
 class RestHelper(
         /**
@@ -41,33 +43,34 @@ class RestHelper(
     }
 
     fun <O : ExtendedBaseDO<Int>, B : BaseDao<O>, F : BaseSearchFilter>
-            getList(dataObjectRest: AbstractDORest<O, B, F>, baseDao: BaseDao<O>?, filter: F)
+            getList(dataObjectRest: AbstractStandardRest<O, B, F>, baseDao: BaseDao<O>, filter: F)
             : ResultSet<Any> {
-        val list = baseDao!!.getList(filter)
+        val list = baseDao.getList(filter)
         val resultSet = ResultSet<Any>(dataObjectRest.filterList(list, filter), list.size)
         return resultSet
     }
 
-    fun buildResponse(obj: Any): Response {
-        val json = getJsonCreator().toJson(obj)
-        return Response.ok(json).build()
+    fun buildResponseItemNotFound() : Response {
+        return Response.status(Response.Status.NOT_FOUND).entity("Requested item not found.").build()
     }
 
-    fun buildResponse(obj: ExtendedBaseDO<Int>): Response {
+    fun buildResponse(obj: Any?): Response {
+        if (obj == null)
+            return buildResponseItemNotFound()
         val json = getJsonCreator().toJson(obj)
         return Response.ok(json).build()
     }
 
     fun <O : ExtendedBaseDO<Int>, B : BaseDao<O>, F : BaseSearchFilter>
             saveOrUpdate(request: HttpServletRequest,
-                         baseDao: BaseDao<O>?, obj: O,
-                         dataObjectRest: AbstractDORest<O, B, F>,
+                         baseDao: BaseDao<O>, obj: O,
+                         dataObjectRest: AbstractStandardRest<O, B, F>,
                          validationErrorsList: List<ValidationError>?)
             : Response {
         if (validationErrorsList.isNullOrEmpty()) {
             val isNew = obj.id != null
             dataObjectRest.beforeSaveOrUpdate(request, obj)
-            var id = baseDao!!.saveOrUpdate(obj) ?: obj.id
+            var id = baseDao.saveOrUpdate(obj) ?: obj.id
             dataObjectRest.afterSaveOrUpdate(obj)
             if (isNew)
                 dataObjectRest.afterSave(obj)
@@ -82,10 +85,10 @@ class RestHelper(
     }
 
     fun <O : ExtendedBaseDO<Int>>
-            undelete(baseDao: BaseDao<O>?, obj: O, validationErrorsList: List<ValidationError>?)
+            undelete(baseDao: BaseDao<O>, obj: O, validationErrorsList: List<ValidationError>?)
             : Response {
         if (validationErrorsList.isNullOrEmpty()) {
-            var id = baseDao!!.undelete(obj)
+            var id = baseDao.undelete(obj)
             val json = getJsonCreator().toJson(id)
             return Response.ok(json).build()
         }
@@ -94,14 +97,24 @@ class RestHelper(
         return Response.status(Response.Status.NOT_ACCEPTABLE).entity(json).build()
     }
 
-    fun <O : ExtendedBaseDO<Int>> markAsDeleted(baseDao: BaseDao<O>?, obj: O, validationErrorsList: List<ValidationError>?): Response {
+    fun <O : ExtendedBaseDO<Int>> markAsDeleted(baseDao: BaseDao<O>, obj: O, validationErrorsList: List<ValidationError>?): Response {
         if (validationErrorsList.isNullOrEmpty()) {
-            baseDao!!.markAsDeleted(obj)
+            baseDao.markAsDeleted(obj)
             val json = getJsonCreator().toJson(obj)
             return Response.ok(json).build()
         }
         // Validation error occurred:
         val json = getJsonCreator().toJson(validationErrorsList)
         return Response.status(Response.Status.NOT_ACCEPTABLE).entity(json).build()
+    }
+
+    fun buildUri(request : HttpServletRequest , path : String):URI {
+        return URI("${getRootUrl(request)}/$path")
+    }
+
+    fun getRootUrl(request : HttpServletRequest) :String {
+        val serverName = request.serverName
+        val portNumber = request.serverPort
+        return if (portNumber != 80 && portNumber != 443) "$serverName:$portNumber" else serverName
     }
 }

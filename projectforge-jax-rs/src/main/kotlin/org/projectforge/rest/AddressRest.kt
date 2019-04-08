@@ -2,33 +2,32 @@ package org.projectforge.rest
 
 import com.google.gson.*
 import org.apache.commons.lang3.StringUtils
-import org.glassfish.jersey.media.multipart.FormDataMultiPart
 import org.projectforge.business.address.*
 import org.projectforge.business.image.ImageService
 import org.projectforge.framework.i18n.translate
 import org.projectforge.menu.MenuItem
-import org.projectforge.rest.AddressImageRest.Companion.SESSION_IMAGE_ATTR
-import org.projectforge.rest.core.AbstractDORest
+import org.projectforge.menu.MenuItemTargetType
+import org.projectforge.rest.AddressImageServicesRest.Companion.SESSION_IMAGE_ATTR
+import org.projectforge.rest.core.AbstractStandardRest
 import org.projectforge.rest.core.ExpiringSessionAttributes
 import org.projectforge.rest.core.ResultSet
 import org.projectforge.sms.SmsSenderConfig
 import org.projectforge.ui.*
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
-import java.io.InputStream
 import java.lang.reflect.Type
 import javax.servlet.http.HttpServletRequest
-import javax.ws.rs.*
-import javax.ws.rs.core.Context
-import javax.ws.rs.core.MediaType
-import javax.ws.rs.core.Response
+import javax.ws.rs.Path
 
 
 @Component
 @Path("address")
 class AddressRest()
-    : AbstractDORest<AddressDO, AddressDao, AddressFilter>(AddressDao::class.java, AddressFilter::class.java, "address.title") {
+    : AbstractStandardRest<AddressDO, AddressDao, AddressFilter>(AddressDao::class.java, AddressFilter::class.java, "address.title") {
 
+    /**
+     * For exporting list of addresses.
+     */
     private class Address(val address: AddressDO,
                           val id: Int,
                           var imageUrl: String? = null,
@@ -37,8 +36,6 @@ class AddressRest()
     init {
         restHelper.add(AddressbookDO::class.java, AddressbookDOSerializer())
     }
-
-    private val log = org.slf4j.LoggerFactory.getLogger(AddressRest::class.java)
 
     @Autowired
     private lateinit var addressbookDao: AddressbookDao
@@ -51,10 +48,6 @@ class AddressRest()
 
     override fun onGetItemAndLayout(request: HttpServletRequest) {
         ExpiringSessionAttributes.removeAttribute(request.session, SESSION_IMAGE_ATTR)
-    }
-
-    override fun newBaseDO(): AddressDO {
-        return AddressDO()
     }
 
     // TODO Menus: print view, ical export, direct call: see AddressEditPage
@@ -127,25 +120,29 @@ class AddressRest()
         val exportMenu = MenuItem("address.export", i18nKey = "export")
         exportMenu.add(MenuItem("address.vCardExport",
                 i18nKey = "address.book.vCardExport",
-                url="???",
+                url="${getRestPath()}/exportFavoritesVCards",
                 tooltip = "address.book.vCardExport.tooltip.content",
-                tooltipTitle = "address.book.vCardExport.tooltip.title"))
+                tooltipTitle = "address.book.vCardExport.tooltip.title",
+                type = MenuItemTargetType.DOWNLOAD))
         exportMenu.add(MenuItem("address.export",
                 i18nKey = "address.book.export",
-                url="???",
+                url="${getRestPath()}/exportAsExcel",
                 tooltipTitle = "address.book.export",
-                tooltip = "address.book.export.tooltip"))
+                tooltip = "address.book.export.tooltip",
+                type = MenuItemTargetType.DOWNLOAD))
         exportMenu.add(MenuItem("address.exportFavoritePhoneList",
                 i18nKey = "address.book.exportFavoritePhoneList",
-                url="???",
+                url="${getRestPath()}/exportFavoritePhoneList",
                 tooltipTitle = "address.book.exportFavoritePhoneList.tooltip.title",
-                tooltip = "address.book.exportFavoritePhoneList.tooltip.content"))
+                tooltip = "address.book.exportFavoritePhoneList.tooltip.content",
+                type = MenuItemTargetType.DOWNLOAD))
         layout.add(exportMenu, menuIndex++)
         layout.getMenuById(GEAR_MENU)?.add(MenuItem("address.exportAppleScript4Notes",
                 i18nKey = "address.book.export.appleScript4Notes",
-                url="???",
+                url="${getRestPath()}/downloadAppleScript",
                 tooltipTitle = "address.book.export.appleScript4Notes",
-                tooltip = "address.book.export.appleScript4Notes.tooltip"))
+                tooltip = "address.book.export.appleScript4Notes.tooltip",
+                type = MenuItemTargetType.DOWNLOAD))
         return LayoutUtils.processListPage(layout)
     }
 
@@ -226,16 +223,20 @@ class AddressRest()
                         .add(lc, "comment"))
         layout.getInputById("name").focus = true
         layout.addTranslations("delete", "file.upload.dropArea", "address.image.upload.error")
-        layout.add(MenuItem("address.printView",
-                i18nKey = "printView",
-                url="???"))
-        layout.add(MenuItem("address.vCardSingleExport",
-                i18nKey = "address.book.vCardSingleExport",
-                url="???"))
-        layout.add(MenuItem("address.directCall",
-                i18nKey = "address.directCall.call",
-                url="???"))
-
+        if (dataObject?.id != null) {
+            layout.add(MenuItem("address.printView",
+                    i18nKey = "printView",
+                    url = "wa/addressView?id=${dataObject.id}",
+                    type = MenuItemTargetType.REDIRECT))
+            layout.add(MenuItem("address.vCardSingleExport",
+                    i18nKey = "address.book.vCardSingleExport",
+                    url = "${getRestPath()}/exportVCard/${dataObject.id}",
+                    type = MenuItemTargetType.DOWNLOAD))
+            layout.add(MenuItem("address.directCall",
+                    i18nKey = "address.directCall.call",
+                    url = "wa/phoneCall?addressId=${dataObject.id}",
+                    type = MenuItemTargetType.REDIRECT))
+        }
         return LayoutUtils.processEditPage(layout, dataObject)
     }
 

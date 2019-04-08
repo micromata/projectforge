@@ -16,7 +16,7 @@ class Validation {
         internal val MSG_INT_TO_HIGH = "validation.error.range.integerOutOfRange"
         fun validateInteger(validationErrors: MutableList<ValidationError>,
                             fieldId: String,
-                            value: String,
+                            value: String?,
                             minValue: Int? = null,
                             maxValue: Int? = null,
                             formatNumber: Boolean = true) {

@@ -14,7 +14,11 @@ class MenuItem(var id: String? = null,
                 * Unique key usable by React. It's also unique for multiple menu items (in different main categories).
                 */
                var key: String? = null,
-               var badge: MenuBadge? = null) {
+               var badge: MenuBadge? = null,
+               /**
+                * If not given, the client should assume [MenuItemTargetType.REDIRECT]
+                */
+               var type: MenuItemTargetType? = null) {
     constructor(menuItemDef: MenuItemDef?) : this() {
         if (menuItemDef == null)
             return
