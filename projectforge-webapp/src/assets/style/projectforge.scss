@@ -28,6 +28,10 @@ a {
 // -------------
 
 
+.tab-content {
+  margin-bottom: 20px;
+}
+
 // NavBar
 
 ul {
@@ -80,7 +84,10 @@ body {
 // Forms
 
 fieldset {
-  border: 1px solid #dedede;
+  //border: 1px solid #dedede;
+  //box-shadow: 0 0 3px 2px rgba(0,0,0,0.15);
+  box-shadow: 0 1px 1px 0 rgba(60,64,67,.08),
+  0 1px 3px 1px rgba(60,64,67,.16);
   padding: 25px;
 
   legend {
@@ -91,3 +98,5 @@ fieldset {
     padding: 0 10px;
   }
 }
+
+
