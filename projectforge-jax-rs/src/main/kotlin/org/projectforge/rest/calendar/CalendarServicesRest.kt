@@ -2,7 +2,6 @@ package org.projectforge.rest.calendar
 
 import com.google.gson.annotations.SerializedName
 import org.projectforge.business.teamcal.filter.TeamCalCalendarFilter
-import org.projectforge.business.teamcal.filter.ViewType
 import org.projectforge.business.user.service.UserPreferencesService
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.rest.core.RestHelper
@@ -24,8 +23,8 @@ class CalendarServicesRest() {
                                 val events: List<BigCalendarEvent>,
                                 val specialDays: List<SpecialCalendarDay>)
 
-    private class DateTimeRange(var start: LocalDateTimeHolder,
-                                var end: LocalDateTimeHolder? = null)
+    private class DateTimeRange(var start: ZonedDateTimeHolder,
+                                var end: ZonedDateTimeHolder? = null)
 
     enum class CalendarViewType {
         @SerializedName("month")
@@ -71,7 +70,7 @@ class CalendarServicesRest() {
             filter.startDate = LocalDate.now()
         if (filter.viewType == null)
             filter.viewType = CalendarViewType.MONTH
-        return buildEvents(startParam = LocalDateTimeHolder.from(filter.startDate), view = filter.viewType);
+        return buildEvents(startParam = ZonedDateTimeHolder.from(filter.startDate), view = filter.viewType);
     }
 
     @GET
@@ -82,10 +81,10 @@ class CalendarServicesRest() {
             val msg = "Rest service 'events' must be called with at least one start date."
             return restHelper.buildResponseBadRequest(msg)
         }
-        val start = LocalDateTimeHolder.from(restHelper.parseDateTime(startParam))
+        val start = ZonedDateTimeHolder.from(restHelper.parseDateTime(startParam))
         val parsedEndDate = restHelper.parseDateTime(endParam)
         val end = if (parsedEndDate != null)
-            LocalDateTimeHolder.from(parsedEndDate)
+            ZonedDateTimeHolder.from(parsedEndDate)
         else null
         val view = when (viewParam) {
             "week" -> CalendarViewType.WEEK
@@ -96,7 +95,7 @@ class CalendarServicesRest() {
         return buildEvents(start, end, view)
     }
 
-    private fun buildEvents(startParam: LocalDateTimeHolder, endParam: LocalDateTimeHolder? = null, view: CalendarViewType? = null): Response {
+    private fun buildEvents(startParam: ZonedDateTimeHolder, endParam: ZonedDateTimeHolder? = null, view: CalendarViewType? = null): Response {
         val events = mutableListOf<BigCalendarEvent>()
         val range = DateTimeRange(startParam, endParam)
         adjustRange(range, view)
@@ -123,7 +122,7 @@ class CalendarServicesRest() {
         val start = range.start
         when (view) {
             CalendarViewType.WEEK -> {
-                range.start = start.getStartOfWeek()
+                range.start = start.getBeginOfWeek()
                 range.end = range.start.plusDays(7)
             }
             CalendarViewType.DAY -> {
@@ -132,7 +131,7 @@ class CalendarServicesRest() {
             }
             else -> {
                 // Assuming month at default
-                range.start = start.getStartOfMonth()
+                range.start = start.getBeginOfMonth()
                 range.end = start.getEndOfMonth()
             }
         }
