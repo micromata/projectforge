@@ -12,7 +12,7 @@ import history from '../utilities/history';
 import EditPage from './page/edit';
 import InputTestPage from './page/InputTest';
 import ListPage from './page/list';
-import CalendarTestPage from './page/CalendarTest';
+import CalendarPage from './page/CalendarPage';
 
 class ProjectForge extends React.Component {
     componentDidMount() {
@@ -56,7 +56,7 @@ class ProjectForge extends React.Component {
                             <Switch>
                                 <Route
                                     path="/calendar"
-                                    component={CalendarTestPage}
+                                    component={CalendarPage}
                                 />
                                 <Route
                                     path="/inputTest"
