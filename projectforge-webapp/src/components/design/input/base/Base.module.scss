@@ -12,7 +12,7 @@ label.label {
     z-index: 1;
     top: 0;
     left: 3px;
-    color: #7c7c7d;
+    color: #7a7a7a;
     transform-origin: top left;
     @include transition-transform-extra(.3s, translate(2px, 1em) scale(1, 1), color .3s);
   }
@@ -122,6 +122,8 @@ div[class^='Input_additionalLabel'] > span {
 input[class^='Input_select'] {
   border-color: #fff !important;
   padding-left: 3px !important;
+  font-weight: 400 !important;
+  color: #7a7a7a !important;
 }
 
 
@@ -136,3 +138,4 @@ label[class^='Input_select'] {
     left: -3px;
   }
 }
+
