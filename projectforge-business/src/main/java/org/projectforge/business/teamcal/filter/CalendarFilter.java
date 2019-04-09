@@ -33,7 +33,9 @@ import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
 
 /**
  * Some settings for the SelectDateAction stored in the flow scope (configurable by the caller).
+ * Will be removed when Wicket filter is replaced by React filter in ProjectForge version 7.
  */
+@Deprecated
 @XStreamAlias("dateFilter")
 public class CalendarFilter extends AbstractCalendarFilter
 {
