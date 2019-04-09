@@ -13,7 +13,7 @@ const localizer = BigCalendar.momentLocalizer(moment); // or globalizeLocalizer
 
 const DragAndDropCalendar = withDragAndDrop(BigCalendar);
 
-class CalendarTestPage extends React.Component {
+class CalendarPage extends React.Component {
     state = {
         initalized: false,
         events: []
@@ -165,7 +165,7 @@ class CalendarTestPage extends React.Component {
     }
 }
 
-CalendarTestPage.defaultProps = {
+CalendarPage.defaultProps = {
     firstDayOfWeek: PropTypes.number.isRequired,
 };
 
@@ -173,4 +173,4 @@ const mapStateToProps = ({authentication}) => ({
     firstDayOfWeek: authentication.user.firstDayOfWeekNo,
 });
 
-export default connect(mapStateToProps)(CalendarTestPage);
+export default connect(mapStateToProps)(CalendarPage);

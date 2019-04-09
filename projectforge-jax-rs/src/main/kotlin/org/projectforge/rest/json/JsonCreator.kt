@@ -30,12 +30,6 @@ class JsonCreator {
         return createGson().toJson(obj)
     }
 
-    fun <T> fromJson(json: String?, cls: Class<T>): T? {
-        if (json == null)
-            return null
-        return createGson().fromJson(json, cls)
-    }
-
     private fun createGson() : Gson {
         val builder = GsonBuilder()
         for ((key, value) in typeAdapterMap) {

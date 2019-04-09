@@ -24,7 +24,6 @@
 package org.projectforge.rest.calendar
 
 import com.thoughtworks.xstream.annotations.XStreamAsAttribute
-import java.util.*
 
 /**
  * Persist the settings of one named filter entry.
@@ -34,7 +33,10 @@ import java.util.*
  */
 class CalendarsDisplayFilter {
 
-    val calendarDisplayProperties = mutableListOf<DisplayedCalendarProperties>()
+    /**
+     * Mapping of colors (String as HTML hexcode) to calendars ([TeamCalDO.id]).
+     */
+    val calendarColorMapping = mutableMapOf<Int, String>()
 
     @XStreamAsAttribute
     var name: String? = null
@@ -69,4 +71,8 @@ class CalendarsDisplayFilter {
 
     @XStreamAsAttribute
     var showPlanning: Boolean? = null
+
+    fun setColorMapping(calId: Int, colorCode: String) {
+        calendarColorMapping.put(calId, colorCode)
+    }
 }

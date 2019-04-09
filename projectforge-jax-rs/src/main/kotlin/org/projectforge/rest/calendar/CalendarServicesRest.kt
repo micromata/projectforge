@@ -1,8 +1,6 @@
 package org.projectforge.rest.calendar
 
 import com.google.gson.annotations.SerializedName
-import org.joda.time.DateMidnight
-import org.joda.time.DateTimeFieldType.dayOfMonth
 import org.projectforge.business.teamcal.filter.TeamCalCalendarFilter
 import org.projectforge.business.teamcal.filter.ViewType
 import org.projectforge.business.timesheet.TimesheetDao
@@ -12,11 +10,9 @@ import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.rest.core.RestHelper
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
-import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
-import java.time.temporal.WeekFields
 import java.util.*
 import javax.ws.rs.GET
 import javax.ws.rs.Path
@@ -51,7 +47,7 @@ class CalendarServicesRest() {
 
     companion object {
         val OLD_USERPREF_KEY = "TeamCalendarPage.userPrefs";
-        val USERPREF_KEY = "CalendarServices.userPrefs";
+        val USERPREF_KEY = "calendar.displaySettings";
     }
 
     @Autowired
@@ -86,14 +82,15 @@ class CalendarServicesRest() {
     }
 
     private fun buildEvents(startParam: LocalDate? = null, endParam: LocalDate? = null, viewParam: CalendarViewType? = null): Response {
-        var filter = userPreferenceService.getEntry(CalendarFilters::class.java, USERPREF_KEY)
+        var filter = userPreferenceService.getEntry(CalendarDisplaySettings::class.java, USERPREF_KEY)
         if (filter == null) {
             // No current user pref entry available. Try the old one (from release 6.* / Wicket Calendarpage):
             val oldFilter = userPreferenceService.getEntry(TeamCalCalendarFilter::class.java, OLD_USERPREF_KEY)
             oldFilter.viewType
-            filter = createFrom(oldFilter)
-
+            filter = CalendarDisplaySettings()
+            filter.copyFrom(oldFilter)
             userPreferenceService.putEntry(USERPREF_KEY, filter, true)
+            filter.saveDisplayFilters(userPreferenceService)
         }
         val events = mutableListOf<BigCalendarEvent>()
         val initialCall = (startParam == null && viewParam == null) // endParam may-be null
@@ -149,47 +146,5 @@ class CalendarServicesRest() {
         // }
         val result = CalendarData(startDate, view!!, events)
         return restHelper.buildResponse(result)
-    }
-
-    private fun convert(oldViewType: ViewType?): CalendarServicesRest.CalendarViewType? {
-        return when (oldViewType) {
-            ViewType.BASIC_WEEK -> CalendarViewType.WEEK
-            ViewType.BASIC_DAY -> CalendarViewType.DAY
-            else -> CalendarViewType.MONTH
-        }
-    }
-
-    /**
-     * For re-using legacy filters (from ProjetForge version up to 6, Wicket-Calendar).
-     */
-    private fun createFrom(oldFilter: TeamCalCalendarFilter?): CalendarFilters {
-        val calendarFilters = CalendarFilters()
-        if (oldFilter != null) {
-            calendarFilters.activeFilterIndex = oldFilter.activeTemplateEntryIndex
-            calendarFilters.firstHour = oldFilter.firstHour
-            calendarFilters.slot30 = oldFilter.isSlot30
-            calendarFilters.startDate = CalDateUtils.convertToLocalDate(oldFilter.startDate)
-            calendarFilters.viewType = convert(oldFilter.viewType)
-            oldFilter.templateEntries?.forEach { templateEntry ->
-                val displayFilter = CalendarsDisplayFilter()
-                displayFilter.defaultCalendarId = templateEntry.defaultCalendarId
-                displayFilter.name = templateEntry.name
-                displayFilter.showBirthdays = templateEntry.isShowBirthdays
-                displayFilter.showBreaks = templateEntry.isShowBreaks
-                displayFilter.showPlanning = templateEntry.isShowPlanning
-                displayFilter.showStatistics = templateEntry.isShowStatistics
-                displayFilter.timesheetUserId = templateEntry.timesheetUserId
-                displayFilter.showTimesheets = templateEntry.isShowTimesheets
-                templateEntry.calendarProperties?.forEach {
-                    val calendarProperties = DisplayedCalendarProperties()
-                    calendarProperties.calId = it.calId
-                    calendarProperties.colorCode = it.colorCode
-                    calendarProperties.visible = it.isVisible
-                    displayFilter.calendarDisplayProperties.add(calendarProperties)
-                }
-                calendarFilters.filters.add(displayFilter)
-            }
-        }
-        return calendarFilters
     }
 }
