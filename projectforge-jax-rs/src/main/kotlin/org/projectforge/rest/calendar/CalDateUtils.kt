@@ -3,8 +3,10 @@ package org.projectforge.rest.calendar
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import java.time.DayOfWeek
 import java.time.LocalDate
-import java.time.LocalDateTime
-import java.time.LocalTime
+import java.time.ZoneId
+import java.time.ZonedDateTime
+import java.time.temporal.ChronoField
+import java.time.temporal.ChronoUnit
 import java.time.temporal.WeekFields
 
 
@@ -16,18 +18,18 @@ class CalDateUtils {
             return java.time.LocalDate.of(dateMidnight.year, dateMidnight.monthOfYear, dateMidnight.dayOfMonth)
         }
 
-        fun convertToLocalDateTime(date: java.util.Date): java.time.LocalDateTime? {
+        fun convertToZonedDateTime(date: java.util.Date): java.time.ZonedDateTime? {
             if (date == null)
                 return null
-            val zoneId = ThreadLocalUserContext.getTimeZone().toZoneId()
-            return date.toInstant().atZone(zoneId).toLocalDateTime();
+            val zoneId = getUsersZoneId()
+            return date.toInstant().atZone(zoneId);
         }
 
-        fun getUtilDate(dateTime: LocalDateTime): java.util.Date {
+        fun getUtilDate(dateTime: ZonedDateTime): java.util.Date {
             if (dateTime == null)
                 return java.util.Date()
             val zoneId = ThreadLocalUserContext.getTimeZone().toZoneId()
-            return java.util.Date.from(dateTime.atZone(zoneId).toInstant());
+            return java.util.Date.from(dateTime.toInstant());
         }
 
         fun getFirstDayOfWeek(date: LocalDate): LocalDate {
@@ -35,7 +37,7 @@ class CalDateUtils {
             return date.with(field, 1)
         }
 
-        fun getBeginOfWeek(date: LocalDateTime): LocalDateTime {
+        fun getBeginOfWeek(date: ZonedDateTime): ZonedDateTime {
             val field = WeekFields.of(CalDateUtils.getFirstDayOfWeek(), 1).dayOfWeek()
             return getBeginOfDay(date.with(field, 1))
         }
@@ -45,12 +47,12 @@ class CalDateUtils {
             return getDayOfWeek(firstDayOfWeek)!!
         }
 
-        fun getBeginOfDay(dateTime: LocalDateTime): LocalDateTime {
-            return dateTime.with(LocalTime.MIDNIGHT)
+        fun getBeginOfDay(dateTime: ZonedDateTime): ZonedDateTime {
+            return dateTime.truncatedTo(ChronoUnit.DAYS)
         }
 
-        fun getEndOfDay(dateTime: LocalDateTime): LocalDateTime {
-            return dateTime.with(LocalTime.MAX)
+        fun getEndOfDay(dateTime: ZonedDateTime): ZonedDateTime {
+            return dateTime.truncatedTo(ChronoUnit.DAYS).plusDays(1)
         }
 
         /**
@@ -67,6 +69,10 @@ class CalDateUtils {
                 7 -> DayOfWeek.SUNDAY
                 else -> null
             }
+        }
+
+        fun getUsersZoneId() : ZoneId {
+            return ThreadLocalUserContext.getTimeZone().toZoneId()
         }
     }
 }
