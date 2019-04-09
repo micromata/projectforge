@@ -27,6 +27,10 @@ import org.joda.time.DateMidnight;
 
 import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
 
+/**
+ * Will be removed when Wicket filter is replaced by React filter in ProjectForge version 7.
+ */
+@Deprecated
 public abstract class AbstractCalendarFilter implements ICalendarFilter
 {
   private static final long serialVersionUID = -2054541010143924205L;
