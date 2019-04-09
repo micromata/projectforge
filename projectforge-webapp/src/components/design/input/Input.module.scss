@@ -2,7 +2,7 @@
 
 .formGroup {
   position: relative;
-  font-size: 13px;
+  font-size: 1.5rem;
   letter-spacing: .02em;
 
   .label {
@@ -20,7 +20,7 @@
       color: #555;
       @include transition-transform-extra(.3s, translate(2px, 1em) scale(1, 1), color .3s);
       transform-origin: top left;
-      color: #7c7c7d;
+      color: #7a7a7a;
     }
 
     .input {
