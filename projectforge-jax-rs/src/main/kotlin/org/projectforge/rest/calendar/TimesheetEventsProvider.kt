@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import java.time.LocalDateTime
 import java.time.Month
+import java.time.ZonedDateTime
 
 @Component
 class TimesheetEventsProvider() {
@@ -20,8 +21,8 @@ class TimesheetEventsProvider() {
     @Autowired
     private lateinit var timesheetDao: TimesheetDao
 
-    fun addTimesheetEvents(start: LocalDateTimeHolder,
-                           end: LocalDateTimeHolder,
+    fun addTimesheetEvents(start: ZonedDateTimeHolder,
+                           end: ZonedDateTimeHolder,
                            userId: Int,
                            events: MutableList<BigCalendarEvent>,
                            showBreaks: Boolean = false,
@@ -47,8 +48,8 @@ class TimesheetEventsProvider() {
 
         var lastStopTime: LocalDateTime? = null
         for (timesheet in timesheets) {
-            val startTime = LocalDateTimeHolder.from(timesheet.startTime)
-            val stopTime = LocalDateTimeHolder.from(timesheet.stopTime)
+            val startTime = ZonedDateTimeHolder.from(timesheet.startTime)
+            val stopTime = ZonedDateTimeHolder.from(timesheet.stopTime)
             if (stopTime.isBefore(start) || startTime.isAfter(end) == true) {
                 // Time sheet doesn't match time period start - end.
                 continue
@@ -137,7 +138,7 @@ class TimesheetEventsProvider() {
 
 
     private class Context() {
-        var firstDayOfMonth: LocalDateTime? = null
+        var firstDayOfMonth: ZonedDateTime? = null
         var longFormat = false
         var totalDuration: Long = 0
         var month: Month? = null
