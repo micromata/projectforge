@@ -4,7 +4,7 @@ import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.LocalDateTime
-import java.time.ZoneId
+import java.time.LocalTime
 import java.time.temporal.WeekFields
 
 
@@ -14,6 +14,13 @@ class CalDateUtils {
             if (dateMidnight == null)
                 return null
             return java.time.LocalDate.of(dateMidnight.year, dateMidnight.monthOfYear, dateMidnight.dayOfMonth)
+        }
+
+        fun convertToLocalDateTime(date: java.util.Date): java.time.LocalDateTime? {
+            if (date == null)
+                return null
+            val zoneId = ThreadLocalUserContext.getTimeZone().toZoneId()
+            return date.toInstant().atZone(zoneId).toLocalDateTime();
         }
 
         fun getUtilDate(dateTime: LocalDateTime): java.util.Date {
@@ -28,9 +35,22 @@ class CalDateUtils {
             return date.with(field, 1)
         }
 
+        fun getBeginOfWeek(date: LocalDateTime): LocalDateTime {
+            val field = WeekFields.of(CalDateUtils.getFirstDayOfWeek(), 1).dayOfWeek()
+            return getBeginOfDay(date.with(field, 1))
+        }
+
         fun getFirstDayOfWeek(): DayOfWeek {
             val firstDayOfWeek = ThreadLocalUserContext.getJodaFirstDayOfWeek()
             return getDayOfWeek(firstDayOfWeek)!!
+        }
+
+        fun getBeginOfDay(dateTime: LocalDateTime): LocalDateTime {
+            return dateTime.with(LocalTime.MIDNIGHT)
+        }
+
+        fun getEndOfDay(dateTime: LocalDateTime): LocalDateTime {
+            return dateTime.with(LocalTime.MAX)
         }
 
         /**

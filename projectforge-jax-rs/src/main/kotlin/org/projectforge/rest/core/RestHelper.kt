@@ -10,6 +10,7 @@ import org.projectforge.rest.json.JsonCreator
 import org.projectforge.ui.ValidationError
 import java.net.URI
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeParseException
 import java.util.*
@@ -59,6 +60,10 @@ class RestHelper(
 
     fun buildResponseItemNotFound(): Response {
         return Response.status(Response.Status.NOT_FOUND).entity("Requested item not found.").build()
+    }
+
+    fun buildResponseBadRequest(msg : String): Response {
+        return Response.status(Response.Status.BAD_REQUEST).entity(msg).build()
     }
 
     fun buildResponse(obj: Any?): Response {
@@ -125,11 +130,11 @@ class RestHelper(
         return if (portNumber != 80 && portNumber != 443) "$serverName:$portNumber" else serverName
     }
 
-    fun parseDate(json: String?): LocalDate? {
+    fun parseDateTime(json: String?): LocalDateTime? {
         if (json.isNullOrBlank())
             return null
         try {
-            return LocalDate.parse(json, jsonDateTimeFormatter)
+            return LocalDateTime.parse(json, jsonDateTimeFormatter)
         } catch (ex: DateTimeParseException) {
             log.error("Error while parsing date '$json': ${ex.message}.")
             return null

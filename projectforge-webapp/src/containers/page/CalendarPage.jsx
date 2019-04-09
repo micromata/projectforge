@@ -19,6 +19,68 @@ class CalendarPage extends React.Component {
         events: []
     };
 
+    // ToDo
+    // DateHeader for statistics.
+
+    renderEvent = ({event}) => {
+        let location = undefined
+        let desc = undefined
+        let formattedDuration = undefined
+        if (event.location) location = <React.Fragment>{event.location}<br/></React.Fragment>
+        if (event.desc) desc = <React.Fragment>{event.description}<br/></React.Fragment>
+        if (event.formattedDuration) formattedDuration = <React.Fragment>{event.formattedDuration}<br/></React.Fragment>
+        return (
+            <React.Fragment>
+                <p><strong>{event.title}</strong></p>
+                {location}{desc}{formattedDuration}
+            </React.Fragment>
+        )
+    }
+
+    renderMonthEvent = ({event}) => {
+        return (
+            <React.Fragment>
+                {event.title}
+            </React.Fragment>
+        )
+    }
+
+    renderAgendaEvent = ({event}) => {
+        return (
+            <React.Fragment>
+                {event.title}
+            </React.Fragment>
+        )
+    }
+
+    eventStyle = (event) => {
+        if (this.state.viewType === 'agenda')
+            return { // Don't change style for agenda:
+                className: ''
+            }
+        // Event is always undefined!!!
+        const backgroundColor = (event && event.bgColor) ? event.bgColor : '#3174ad';
+        const textColor = (event && event.fgColor) ? event.fgColor : 'black';
+        const style = {
+            backgroundColor: backgroundColor,
+            color: textColor,
+            borderRadius: '3px',
+            opacity: 0.8,
+            border: '0px',
+            display: 'block'
+        };
+        return {
+            className: '',
+            style: style
+        };
+    }
+
+    dayStyle = (date) => {
+        return {
+            className: ''
+        }
+    }
+
     convertJsonDates = e => Object.assign({}, e, {
         start: new Date(e.start),
         end: new Date(e.end)
@@ -90,7 +152,7 @@ class CalendarPage extends React.Component {
         } else {
             start = event[0];
         }
-        console.log("start:", start, "end", end, viewType)
+        // console.log("start:", start, "end", end, viewType)
         this.fetchEvents(start, end, viewType);
     };
 
@@ -137,6 +199,17 @@ class CalendarPage extends React.Component {
                 defaultDate={this.state.date}
                 endAccessor="end"
                 onRangeChange={this.onRangeChange}
+                eventPropGetter={this.eventStyle}
+                dayPropGetter={this.dayStyle}
+                components={{
+                    event: this.renderEvent,
+                    month: {
+                        event: this.renderMonthEvent,
+                    },
+                    agenda: {
+                        event: this.renderAgendaEvent,
+                    },
+                }}
             />
         );
     }
@@ -155,6 +228,11 @@ class CalendarPage extends React.Component {
             });
 
         this.convertJsonDates = this.convertJsonDates.bind(this);
+        this.renderEvent = this.renderEvent.bind(this);
+        this.renderMonthEvent = this.renderMonthEvent.bind(this);
+        this.renderAgendaEvent = this.renderAgendaEvent.bind(this);
+        this.eventStyle = this.eventStyle.bind(this);
+        this.dayStyle = this.dayStyle.bind(this);
         this.fetchEvents = this.fetchEvents.bind(this);
         this.fetchInitial = this.fetchInitial.bind(this);
         this.onRangeChange = this.onRangeChange.bind(this);
