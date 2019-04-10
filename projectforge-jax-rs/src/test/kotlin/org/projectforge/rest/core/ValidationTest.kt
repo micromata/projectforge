@@ -1,11 +1,17 @@
 package org.projectforge.rest.core
 
 import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
+import org.projectforge.framework.configuration.ConfigXml
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
+import org.projectforge.framework.persistence.user.api.UserContext
+import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.test.AbstractTestBase
 import org.projectforge.ui.ValidationError
+import java.util.*
 
-class ValidationTest : AbstractTestBase() {
+class ValidationTest {
 
     @Test
     fun validationTest() {
@@ -29,5 +35,16 @@ class ValidationTest : AbstractTestBase() {
         if (validationErrors.size > 0)
             return validationErrors[0]
         return null
+    }
+
+    companion object {
+        @BeforeAll
+        @JvmStatic
+        fun setup() {
+            ConfigXml(".")
+            val user = PFUserDO()
+            user.setLocale(Locale.GERMAN)
+            ThreadLocalUserContext.setUserContext(UserContext(user, null))
+        }
     }
 }
