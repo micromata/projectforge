@@ -1,4 +1,4 @@
-import moment from 'moment';
+import moment_timezone from 'moment-timezone';
 import PropTypes from 'prop-types';
 import React from 'react';
 import BigCalendar from 'react-big-calendar';
@@ -9,7 +9,7 @@ import 'react-big-calendar/lib/css/react-big-calendar.css';
 import {connect} from 'react-redux';
 import {getServiceURL} from '../../utilities/rest';
 
-const localizer = BigCalendar.momentLocalizer(moment); // or globalizeLocalizer
+const localizer = BigCalendar.momentLocalizer(moment_timezone); // or globalizeLocalizer
 
 const DragAndDropCalendar = withDragAndDrop(BigCalendar);
 
@@ -23,19 +23,19 @@ class CalendarPage extends React.Component {
     // DateHeader for statistics.
 
     renderEvent = ({event}) => {
-        let location = undefined
-        let desc = undefined
-        let formattedDuration = undefined
-        if (event.location) location = <React.Fragment>{event.location}<br/></React.Fragment>
-        if (event.desc) desc = <React.Fragment>{event.description}<br/></React.Fragment>
-        if (event.formattedDuration) formattedDuration = <React.Fragment>{event.formattedDuration}<br/></React.Fragment>
+        let location = undefined;
+        let desc = undefined;
+        let formattedDuration = undefined;
+        if (event.location) location = <React.Fragment>{event.location}<br/></React.Fragment>;
+        if (event.desc) desc = <React.Fragment>{event.description}<br/></React.Fragment>;
+        if (event.formattedDuration) formattedDuration = <React.Fragment>{event.formattedDuration}<br/></React.Fragment>;
         return (
             <React.Fragment>
                 <p><strong>{event.title}</strong></p>
                 {location}{desc}{formattedDuration}
             </React.Fragment>
         )
-    }
+    };
 
     renderMonthEvent = ({event}) => {
         return (
@@ -43,7 +43,7 @@ class CalendarPage extends React.Component {
                 {event.title}
             </React.Fragment>
         )
-    }
+    };
 
     renderAgendaEvent = ({event}) => {
         return (
@@ -51,13 +51,13 @@ class CalendarPage extends React.Component {
                 {event.title}
             </React.Fragment>
         )
-    }
+    };
 
     eventStyle = (event) => {
         if (this.state.viewType === 'agenda')
             return { // Don't change style for agenda:
                 className: ''
-            }
+            };
         // Event is always undefined!!!
         const backgroundColor = (event && event.bgColor) ? event.bgColor : '#3174ad';
         const textColor = (event && event.fgColor) ? event.fgColor : 'black';
@@ -73,13 +73,13 @@ class CalendarPage extends React.Component {
             className: '',
             style: style
         };
-    }
+    };
 
     dayStyle = (date) => {
         return {
             className: ''
         }
-    }
+    };
 
     convertJsonDates = e => Object.assign({}, e, {
         start: new Date(e.start),
@@ -183,7 +183,7 @@ class CalendarPage extends React.Component {
 
     render() {
         if (!this.state.initialized)
-            return <React.Fragment>Loading...</React.Fragment>
+            return <React.Fragment>Loading...</React.Fragment>;
         return (
             <DragAndDropCalendar
                 style={{
@@ -217,9 +217,10 @@ class CalendarPage extends React.Component {
     constructor(props) {
         super(props);
 
-        const {firstDayOfWeek} = this.props;
-
-        moment.locale('de',
+        const {firstDayOfWeek, timeZone} = this.props;
+console.log(timeZone)
+        moment_timezone.tz.setDefault(timeZone);
+        moment_timezone.locale('de',
             {
                 week: {
                     dow: firstDayOfWeek, // First day of week (got from UserStatus).
@@ -245,10 +246,12 @@ class CalendarPage extends React.Component {
 
 CalendarPage.defaultProps = {
     firstDayOfWeek: PropTypes.number.isRequired,
+    timeZone: PropTypes.number.isRequired
 };
 
 const mapStateToProps = ({authentication}) => ({
     firstDayOfWeek: authentication.user.firstDayOfWeekNo,
+    timeZone: authentication.user.timeZone
 });
 
 export default connect(mapStateToProps)(CalendarPage);

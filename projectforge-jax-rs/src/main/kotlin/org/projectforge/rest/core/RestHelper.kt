@@ -38,9 +38,7 @@ class RestHelper(
      */
     private fun getJsonCreator(): JsonCreator {
         if (_jsonCreator == null) {
-            if (timeZone == null)
-                timeZone = ThreadLocalUserContext.getTimeZone()
-            _jsonCreator = JsonCreator(timeZone!!)
+            _jsonCreator = JsonCreator()
             adapterMap.forEach {
                 _jsonCreator!!.add(it.key, it.value)
             }
