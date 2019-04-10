@@ -43,10 +43,12 @@ class UILayoutTest : AbstractTestBase() {
     @Test
     fun testEditBookLayout() {
         val gson = GsonBuilder().create()
-        var jsonString = gson.toJson(bookRest.createEditLayout(BookDO()))
+        val book = BookDO()
+        book.id = 42 // So lend-out component will be visible (only in edit mode)
+        var jsonString = gson.toJson(bookRest.createEditLayout(book))
         var jsonValidator = JsonValidator(jsonString)
 
-        assertEquals("???book.title.add???", jsonValidator.get("title")) // translations not available in test.
+        assertEquals("???book.title.edit??", jsonValidator.get("title")) // translations not available in test.
         assertField(jsonValidator.getMap("layout[0]"), "title", 255.0, "STRING", "???book.title???", type = "INPUT", key = "el-1")
         assertEquals(true, jsonValidator.getBoolean("layout[0].focus"))
         assertField(jsonValidator.getMap("layout[1]"), "authors", 1000.0, null, "???book.authors???", type = "TEXTAREA", key = "el-2")
@@ -59,20 +61,21 @@ class UILayoutTest : AbstractTestBase() {
         assertEquals("COL", jsonValidator.get("layout[2].content[0].type"))
         assertEquals("el-4", jsonValidator.get("layout[2].content[0].key"))
 
-        assertEquals("type", jsonValidator.get("layout[2].content[0].content[0].id"))
-        assertEquals("???book.type???", jsonValidator.get("layout[2].content[0].content[0].label"))
-        assertEquals("SELECT", jsonValidator.get("layout[2].content[0].content[0].type"))
-        assertEquals("el-5", jsonValidator.get("layout[2].content[0].content[0].key"))
+        // layout -> content (ROW) -> content (COL) -> content (ROW) -> content (COL) -> id
+        var path = "layout[2].content[0].content[0].content[0].content[0]"
+        assertEquals("type", jsonValidator.get("$path.id"))
+        assertEquals("???book.type???", jsonValidator.get("$path.label"))
+        assertEquals("SELECT", jsonValidator.get("$path.type"))
+        assertEquals("el-7", jsonValidator.get("$path.key"))
+        assertEquals(8, jsonValidator.getList("$path.values")?.size)
+        assertEquals("BOOK", jsonValidator.get("$path.values[0].value"))
+        assertEquals("???book.type.book???", jsonValidator.get("$path.values[0].title"))
 
-        assertEquals(8, jsonValidator.getList("layout[2].content[0].content[0].values")?.size)
-        assertEquals("BOOK", jsonValidator.get("layout[2].content[0].content[0].values[0].value"))
-        assertEquals("???book.type.book???", jsonValidator.get("layout[2].content[0].content[0].values[0].title"))
-
-        assertEquals("GROUP", jsonValidator.get("layout[3].type"))
-        assertEquals("lendOutComponent", jsonValidator.get("layout[3].content[1].id"))
-        assertEquals("CUSTOMIZED", jsonValidator.get("layout[3].content[1].type"))
-        assertEquals("el-15", jsonValidator.get("layout[3].content[0].key"))
-        assertEquals("???book.lending???", jsonValidator.get("layout[3].content[0].label"))
+        assertEquals("FIELDSET", jsonValidator.get("layout[4].type"))
+        assertEquals("???book.lending???", jsonValidator.get("layout[4].title"))
+        assertEquals("lendOutComponent", jsonValidator.get("layout[4].content[0].id"))
+        assertEquals("CUSTOMIZED", jsonValidator.get("layout[4].content[0].type"))
+        assertEquals("el-18", jsonValidator.get("layout[4].content[0].key"))
 
     }
 
@@ -100,7 +103,7 @@ class UILayoutTest : AbstractTestBase() {
         assertEquals("???book.yearOfPublishing???", jsonValidator.get("layout[0].columns[1].title"))
         assertEquals("STRING", jsonValidator.get("layout[0].columns[1].dataType"))
         assertEquals(true, jsonValidator.getBoolean("layout[0].columns[1].sortable"))
-        assertNull( jsonValidator.get("layout[0].columns[1].formatter"))
+        assertNull(jsonValidator.get("layout[0].columns[1].formatter"))
         assertEquals("TABLE_COLUMN", jsonValidator.get("layout[0].columns[1].type"))
         assertEquals("el-3", jsonValidator.get("layout[0].columns[1].key"))
 
@@ -117,7 +120,7 @@ class UILayoutTest : AbstractTestBase() {
         assertEquals("CHECKBOX", jsonValidator.get("namedContainers[0].content[0].content[0].type"))
         assertEquals("el-10", jsonValidator.get("namedContainers[0].content[0].content[0].key"))
 
-        assertEquals("onlyDeleted", jsonValidator.get("namedContainers[0].content[0].content[3].id"))
+        assertEquals("deleted", jsonValidator.get("namedContainers[0].content[0].content[3].id"))
         assertEquals("???onlyDeleted.tooltip???", jsonValidator.get("namedContainers[0].content[0].content[3].tooltip"))
 
         assertEquals(2, jsonValidator.getList("actions")?.size)
