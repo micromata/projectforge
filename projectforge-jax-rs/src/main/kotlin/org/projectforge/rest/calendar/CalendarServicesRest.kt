@@ -18,12 +18,10 @@ import javax.ws.rs.core.Response
 @Path("calendar")
 class CalendarServicesRest() {
 
-    internal class SpecialCalendarDay(val title: String? = null, val bgColor: String?)
-
     internal class CalendarData(val date: LocalDate,
                                 val viewType: CalendarViewType = CalendarViewType.MONTH,
                                 val events: List<BigCalendarEvent>,
-                                val specialDays: List<SpecialCalendarDay>)
+                                val specialDays: List<HolidayAndWeekendProvider.SpecialDayInfo>)
 
     private class DateTimeRange(var start: PFDateTime,
                                 var end: PFDateTime? = null)
@@ -103,8 +101,7 @@ class CalendarServicesRest() {
                 ThreadLocalUserContext.getUserId(),
                 events)
         // }
-        val specialDays = mutableListOf<SpecialCalendarDay>()
-        //Holidays.getInstance().isWorkingDay()
+        val specialDays = HolidayAndWeekendProvider.getSpecialDayInfos(range.start, range.end!!)
         val result = CalendarData(range.start.dateTime.toLocalDate(), view!!, events, specialDays)
         return restHelper.buildResponse(result)
     }

@@ -24,6 +24,8 @@
 package org.projectforge.framework.calendar;
 
 import java.math.BigDecimal;
+import java.time.DayOfWeek;
+import java.time.ZonedDateTime;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map;
@@ -206,6 +208,19 @@ public class Holidays
       return false;
     }
     final Holiday day = getHolidays(date.getYear()).get(date.getDayOfYear());
+    if (day != null && day.isWorkingDay() == false) {
+      return false;
+    }
+    return true;
+  }
+
+  public boolean isWorkingDay(final ZonedDateTime dateTime)
+  {
+    if (dateTime.getDayOfWeek() == DayOfWeek.SATURDAY || dateTime.getDayOfWeek() == DayOfWeek.SUNDAY) {
+      // Weeekend
+      return false;
+    }
+    final Holiday day = getHolidays(dateTime.getYear()).get(dateTime.getDayOfYear());
     if (day != null && day.isWorkingDay() == false) {
       return false;
     }
