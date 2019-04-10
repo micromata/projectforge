@@ -8,6 +8,7 @@ import 'react-big-calendar/lib/addons/dragAndDrop/styles.css';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
 import {connect} from 'react-redux';
 import {getServiceURL} from '../../utilities/rest';
+import CalendarToolBar from './CalendarToolBar';
 
 const localizer = BigCalendar.momentLocalizer(moment_timezone); // or globalizeLocalizer
 
@@ -172,7 +173,6 @@ class CalendarPage extends React.Component {
     };
 
     onView = (obj) => {
-        console.log(obj)
     };
 
     // Callback fired when the visible date range changes. Returns an Array of dates or an object with start and end dates for BUILTIN views.
@@ -238,7 +238,7 @@ class CalendarPage extends React.Component {
                 defaultView={this.state.viewType}
                 view={this.state.viewType}
                 onView={this.onView}
-                views={['month', 'week', 'day', 'agenda']}
+                views={['month', 'work_week', 'week', 'day', 'agenda']}
                 startAccessor="start"
                 date={this.state.date}
                 onNavigate={this.onNavigate}
@@ -262,6 +262,7 @@ class CalendarPage extends React.Component {
                     agenda: {
                         event: this.renderAgendaEvent,
                     },
+                    toolbar : CalendarToolBar
                 }}
             />
         );
