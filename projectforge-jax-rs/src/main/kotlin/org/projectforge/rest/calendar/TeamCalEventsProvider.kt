@@ -30,16 +30,19 @@ class TeamCalEventsProvider() {
         val teamEvents = teamEventDao.getEventList(eventFilter, true)
         teamEvents?.forEach {
             val eventDO: TeamEventDO
+            val recurrentEvent : Boolean
             if (it is TeamEventDO) {
                 eventDO = it
+                recurrentEvent = false
             } else {
                 eventDO = (it as TeamRecurrenceEvent).master
+                recurrentEvent = true
             }
 
             val bgColor = displayFilter.calendarColorMapping.get(eventDO.getCalendarId())
-            val link = "wa/editEvent?id=${eventDO.id}"
+            val link = if (recurrentEvent) "wa/editEvent?id=${eventDO.id}&recurrent=true" else "wa/editEvent?id=${eventDO.id}"
             val allDay = eventDO.isAllDay()
-            events.add(BigCalendarEvent(eventDO.id, it.subject, it.startDate, it.endDate, allDay,
+            events.add(BigCalendarEvent(it.subject, it.startDate, it.endDate, allDay,
                     location = it.location, desc = it.note, link = link, bgColor = bgColor))
         }
     }

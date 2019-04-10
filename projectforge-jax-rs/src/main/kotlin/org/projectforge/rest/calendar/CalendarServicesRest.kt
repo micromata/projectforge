@@ -109,6 +109,10 @@ class CalendarServicesRest() {
         if (active != null)
             teamCalEventsProvider.addEvents(range.start, range.end!!, events, active)
         val specialDays = HolidayAndWeekendProvider.getSpecialDayInfos(range.start, range.end!!)
+        var counter = 0
+        events.forEach {
+            it.id = "e-${counter++}"
+        }
         val result = CalendarData(range.start.dateTime.toLocalDate(), view!!, events, specialDays)
         return restHelper.buildResponse(result)
     }
@@ -141,7 +145,7 @@ class CalendarServicesRest() {
     }
 
     private fun getUsersSettings(): CalendarDisplaySettings {
-        var settings = userPreferenceService.getEntry(CalendarDisplaySettings::class.java, USERPREF_KEY)
+        var settings = userPreferenceService.getEntry(CalendarDisplaySettings::class.java, "ignore")//USERPREF_KEY)
         if (settings == null) {
             // No current user pref entry available. Try the old one (from release 6.* / Wicket Calendarpage):
             val oldFilter = userPreferenceService.getEntry(TeamCalCalendarFilter::class.java, OLD_USERPREF_KEY)
