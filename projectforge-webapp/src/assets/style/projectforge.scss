@@ -7,8 +7,7 @@ html {
 }
 
 body {
-  //background: #eee url(../images/fabric_plaid.png) repeat;
-  background: #eee;
+  background: #F8F9FA;
   font-size: 12px;
   font-style: normal;
   font-variant: normal;
@@ -28,6 +27,30 @@ a {
 // Custom Styles
 // -------------
 
+div[class*="TopBar_"] {
+  border: none;
+}
+
+nav.bg-light {
+  background: #F8F9FA !important;background: #F8F9FA;
+  box-shadow: 0 2px 4px 0 rgba(0,0,0,0.50);
+
+  ul li a {
+    color: #4D4D4D !important;
+    font-size: 14px;
+    margin-left: 20px;
+  }
+}
+
+.container-fluid nav.navbar.navbar-light {
+  background: #007480 !important;
+  box-shadow: none;
+
+  ul li {
+    color: #fff !important;
+    font-weight: 600;
+  }
+}
 
 .tab-content {
   margin-bottom: 20px;
