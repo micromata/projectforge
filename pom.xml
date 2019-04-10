@@ -235,7 +235,8 @@
 
     <downloadSources>true</downloadSources>
 
-    <maven-compile-plugin-version>3.3</maven-compile-plugin-version>
+    <maven-compile-plugin-version>3.8.0</maven-compile-plugin-version>
+    <maven-surefire-plugin-version>2.22.1</maven-surefire-plugin-version>
     <java.version>1.8</java.version>
 
     <kotlin.compiler.incremental>true</kotlin.compiler.incremental>
@@ -272,6 +273,7 @@
     <jfreechart.version>1.0.19</jfreechart.version>
     <!-- Version 5.4.2 doesn't work with Intellij. Tested 03/28/2019. -->
     <junit.jupiter.version>5.3.2</junit.jupiter.version>
+    <junit-platform.version>1.4.1</junit-platform.version>
     <junit.version>4.12</junit.version>
     <rhino.version>1.7.7</rhino.version>
     <quartz.version>1.8.6</quartz.version>
@@ -375,7 +377,7 @@
     <dependency>
       <groupId>org.junit.platform</groupId>
       <artifactId>junit-platform-launcher</artifactId> <!-- Needed by Intellij: https://junit.org/junit5/docs/current/user-guide/#running-tests-ide-intellij-idea -->
-      <version>1.4.1</version>
+      <version>${junit-platform.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -440,7 +442,6 @@
       </exclusions>
       <scope>test</scope>
     </dependency>
-
     <!-- Java 11+ -->
     <!--dependency>
       <groupId>javax.xml.bind</groupId>
@@ -465,19 +466,6 @@
         <groupId>org.sonarsource.scanner.maven</groupId>
         <artifactId>sonar-maven-plugin</artifactId>
         <version>3.3.0.603</version>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-surefire-plugin</artifactId>
-        <configuration>
-          <argLine>-Xms1024m -Xmx4096m</argLine>
-          <systemProperties>
-            <property>
-              <name>configfailurepolicy</name>
-              <value>continue</value> 
-            </property>
-          </systemProperties>
-        </configuration>
       </plugin>
       <plugin>
         <groupId>org.jacoco</groupId>
@@ -592,11 +580,6 @@
             </reports>
           </reportSet>
         </reportSets>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-surefire-report-plugin</artifactId>
-        <version>2.19.1</version>
       </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
