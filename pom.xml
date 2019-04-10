@@ -173,11 +173,11 @@
   </developers>
   <contributors>
     <contributor>
-      <name>Oisin Lavery</name>
-      <organization>Tricycle Interactive</organization>
-      <organizationUrl>http://www.tricycle.ie/</organizationUrl>
+      <name>Fin Reinhard</name>
+      <organization>Micromata GmbH</organization>
+      <organizationUrl>http://www.micromata.de</organizationUrl>
       <roles>
-        <role>Contributor of Adminica, the web site template used by ProjectForge.</role>
+        <role>React and Java expert.</role>
       </roles>
       <timezone>-1</timezone>
     </contributor>
