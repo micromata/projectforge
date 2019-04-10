@@ -130,6 +130,16 @@ class PFDateTime {
             return PFDateTime(dateTime)
         }
 
+        /**
+         * Creates mindnight [ZonedDateTime] from given [LocalDate].
+         */
+        @JvmStatic
+        fun from(date: java.sql.Date?): PFDateTime {
+            if (date == null)
+                return now()
+            val dateTime = date.toInstant().atZone(getUsersZoneId());
+            return PFDateTime(dateTime)
+        }
 
         @JvmStatic
         fun now(): PFDateTime {

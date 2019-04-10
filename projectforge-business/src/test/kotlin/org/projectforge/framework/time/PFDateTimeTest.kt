@@ -67,6 +67,7 @@ class PFDateTimeTest {
         sqlDate = date.asSqlDate()
         assertEquals("2019-03-31 22:00:00 +0000", formatter.format(sqlDate))
         assertEquals(1554069600000, sqlDate.time)
+        assertEquals("2019-04-01", sqlDate.toString())
     }
 
     private fun checkDate(date: ZonedDateTime, year: Int, month: Month, dayOfMonth: Int, checkMidnight: Boolean = true) {
