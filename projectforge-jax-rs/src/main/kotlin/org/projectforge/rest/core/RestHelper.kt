@@ -4,6 +4,7 @@ import org.projectforge.framework.persistence.api.BaseDao
 import org.projectforge.framework.persistence.api.BaseSearchFilter
 import org.projectforge.framework.persistence.api.ExtendedBaseDO
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
+import org.projectforge.framework.time.PFDateTime
 import org.projectforge.rest.JsonUtils
 import org.projectforge.rest.converter.DateTimeFormat
 import org.projectforge.rest.json.JsonCreator
@@ -131,13 +132,13 @@ class RestHelper(
         return if (portNumber != 80 && portNumber != 443) "$serverName:$portNumber" else serverName
     }
 
-    fun parseDateTime(json: String?): LocalDateTime? {
-        if (json.isNullOrBlank())
+    fun parseJSDateTime(jsString: String?): PFDateTime? {
+        if (jsString.isNullOrBlank())
             return null
         try {
-            return LocalDateTime.parse(json, jsonDateTimeFormatter)
+            return PFDateTime.parseUTCDate(jsString, jsonDateTimeFormatter)
         } catch (ex: DateTimeParseException) {
-            log.error("Error while parsing date '$json': ${ex.message}.")
+            log.error("Error while parsing date '$jsString': ${ex.message}.")
             return null
         }
     }

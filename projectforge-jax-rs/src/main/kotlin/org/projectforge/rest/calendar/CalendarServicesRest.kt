@@ -4,6 +4,8 @@ import com.google.gson.annotations.SerializedName
 import org.projectforge.business.teamcal.filter.TeamCalCalendarFilter
 import org.projectforge.business.user.service.UserPreferencesService
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
+import org.projectforge.framework.time.PFDateTime
+import org.projectforge.rest.converter.DateTimeFormat
 import org.projectforge.rest.core.RestHelper
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
@@ -23,8 +25,8 @@ class CalendarServicesRest() {
                                 val events: List<BigCalendarEvent>,
                                 val specialDays: List<SpecialCalendarDay>)
 
-    private class DateTimeRange(var start: ZonedDateTimeHolder,
-                                var end: ZonedDateTimeHolder? = null)
+    private class DateTimeRange(var start: PFDateTime,
+                                var end: PFDateTime? = null)
 
     enum class CalendarViewType {
         @SerializedName("month")
@@ -70,22 +72,19 @@ class CalendarServicesRest() {
             filter.startDate = LocalDate.now()
         if (filter.viewType == null)
             filter.viewType = CalendarViewType.MONTH
-        return buildEvents(startParam = ZonedDateTimeHolder.from(filter.startDate), view = filter.viewType);
+        return buildEvents(startParam = PFDateTime.from(filter.startDate), view = filter.viewType);
     }
 
     @GET
     @Path("events")
     @Produces(MediaType.APPLICATION_JSON)
     fun getEvents(@QueryParam("start") startParam: String?, @QueryParam("end") endParam: String?, @QueryParam("view") viewParam: String?): Response {
-        if (startParam == null) {
-            val msg = "Rest service 'events' must be called with at least one start date."
+        val start = restHelper.parseJSDateTime(startParam)
+        if (start == null) {
+            val msg = "Rest service 'events' must be called with at least one valid start date (of pattern '${DateTimeFormat.JS_DATE_TIME_MILLIS.pattern}')."
             return restHelper.buildResponseBadRequest(msg)
         }
-        val start = ZonedDateTimeHolder.from(restHelper.parseDateTime(startParam))
-        val parsedEndDate = restHelper.parseDateTime(endParam)
-        val end = if (parsedEndDate != null)
-            ZonedDateTimeHolder.from(parsedEndDate)
-        else null
+        val end = restHelper.parseJSDateTime(endParam)
         val view = when (viewParam) {
             "week" -> CalendarViewType.WEEK
             "day" -> CalendarViewType.DAY
@@ -95,7 +94,7 @@ class CalendarServicesRest() {
         return buildEvents(start, end, view)
     }
 
-    private fun buildEvents(startParam: ZonedDateTimeHolder, endParam: ZonedDateTimeHolder? = null, view: CalendarViewType? = null): Response {
+    private fun buildEvents(startParam: PFDateTime, endParam: PFDateTime? = null, view: CalendarViewType? = null): Response {
         val events = mutableListOf<BigCalendarEvent>()
         val range = DateTimeRange(startParam, endParam)
         adjustRange(range, view)

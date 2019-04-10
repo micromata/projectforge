@@ -1,4 +1,4 @@
-package org.projectforge.rest.calendar
+package org.projectforge.framework.time
 
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeAll
@@ -7,33 +7,32 @@ import org.projectforge.framework.configuration.ConfigXml
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.api.UserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
-import org.projectforge.rest.core.RestHelper
 import java.time.Month
 import java.time.ZonedDateTime
+import java.time.format.DateTimeFormatter
 import java.util.*
 
-class ZonedDateTimeHolderTest {
-    private val restHelper = RestHelper()
+class PFDateTimeTest {
 
     @Test
-    fun beginOfWeek() {
-        val date = parseDate("2019-03-31T23:00:00.000Z")
-        checkDate(date.dateTime, 2019, Month.MARCH, 31, false)
+    fun beginAndEndOfIntervals() {
+        val date = PFDateTime.parseUTCDate("2019-03-31T22:00:00.000Z", DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"))!!
+        checkDate(date.dateTime, 2019, Month.APRIL, 1, false)
 
         val beginOfDay = date.getBeginOfDay().dateTime
-        checkDate(beginOfDay, 2019, Month.MARCH, 31, true)
+        checkDate(beginOfDay, 2019, Month.APRIL, 1, true)
         val endOfDay = date.getEndOfDay().dateTime
         checkDate(endOfDay, 2019, Month.APRIL, 2, true)
 
         val beginOfWeek = date.getBeginOfWeek().dateTime
-        checkDate(beginOfWeek, 2019, Month.APRIL, 8, true)
+        checkDate(beginOfWeek, 2019, Month.APRIL, 1, true)
         val endOfWeek = date.getEndOfWeek().dateTime
-        checkDate(endOfWeek, 2019, Month.APRIL, 15, true)
+        checkDate(endOfWeek, 2019, Month.APRIL, 8, true) // Midnight of first day of next week
 
         val beginOfMonth = date.getBeginOfMonth().dateTime
         checkDate(beginOfMonth, 2019, Month.APRIL, 1, true)
         val endOfMonth = date.getEndOfMonth().dateTime
-        checkDate(endOfMonth, 2019, Month.MAY, 1, true)
+        checkDate(endOfMonth, 2019, Month.MAY, 1, true) // Midnight of first day of next month
     }
 
     private fun checkDate(date: ZonedDateTime, year: Int, month: Month, dayOfMonth: Int, checkMidnight: Boolean = true) {
@@ -53,11 +52,6 @@ class ZonedDateTimeHolderTest {
         assertEquals(minute, date.minute)
         assertEquals(second, date.second)
         assertEquals(0, date.nano)
-    }
-
-    private fun parseDate(str: String): ZonedDateTimeHolder {
-        val dateTime = restHelper.parseDateTime(str)
-        return ZonedDateTimeHolder.from(dateTime)
     }
 
     companion object {

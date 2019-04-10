@@ -27,6 +27,8 @@ import com.thoughtworks.xstream.annotations.XStreamAsAttribute
 import org.projectforge.business.teamcal.filter.TeamCalCalendarFilter
 import org.projectforge.business.teamcal.filter.ViewType
 import org.projectforge.business.user.service.UserPreferencesService
+import org.projectforge.framework.time.PFDateTime
+import org.projectforge.framework.time.PFDateTimeUtils
 import java.time.LocalDate
 
 /**
@@ -88,7 +90,7 @@ class CalendarDisplaySettings {
             activeDisplayFilterIndex = oldFilter.activeTemplateEntryIndex
             //firstHour = oldFilter.firstHour
             //slot30 = oldFilter.isSlot30
-            startDate = CalDateUtils.convertToLocalDate(oldFilter.startDate)
+            startDate = PFDateTimeUtils.convertToLocalDate(oldFilter.startDate)
             viewType = convert(oldFilter.viewType)
             oldFilter.templateEntries?.forEach { templateEntry ->
                 val displayFilter = CalendarsDisplayFilter()

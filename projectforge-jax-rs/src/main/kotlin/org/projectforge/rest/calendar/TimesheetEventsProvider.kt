@@ -8,6 +8,7 @@ import org.projectforge.business.timesheet.TimesheetDao
 import org.projectforge.business.timesheet.TimesheetFilter
 import org.projectforge.common.StringHelper
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
+import org.projectforge.framework.time.PFDateTime
 import org.projectforge.framework.time.TimePeriod
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
@@ -21,8 +22,8 @@ class TimesheetEventsProvider() {
     @Autowired
     private lateinit var timesheetDao: TimesheetDao
 
-    fun addTimesheetEvents(start: ZonedDateTimeHolder,
-                           end: ZonedDateTimeHolder,
+    fun addTimesheetEvents(start: PFDateTime,
+                           end: PFDateTime,
                            userId: Int,
                            events: MutableList<BigCalendarEvent>,
                            showBreaks: Boolean = false,
@@ -48,8 +49,8 @@ class TimesheetEventsProvider() {
 
         var lastStopTime: LocalDateTime? = null
         for (timesheet in timesheets) {
-            val startTime = ZonedDateTimeHolder.from(timesheet.startTime)
-            val stopTime = ZonedDateTimeHolder.from(timesheet.stopTime)
+            val startTime = PFDateTime.from(timesheet.startTime)
+            val stopTime = PFDateTime.from(timesheet.stopTime)
             if (stopTime.isBefore(start) || startTime.isAfter(end) == true) {
                 // Time sheet doesn't match time period start - end.
                 continue
