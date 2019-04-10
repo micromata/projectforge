@@ -6,7 +6,6 @@ import withDragAndDrop from 'react-big-calendar/lib/addons/dragAndDrop';
 
 import 'react-big-calendar/lib/addons/dragAndDrop/styles.css';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
-import style from './Calendar.module.scss';
 import {connect} from 'react-redux';
 import {getServiceURL} from '../../utilities/rest';
 
@@ -18,7 +17,9 @@ class CalendarPage extends React.Component {
     state = {
         initalized: false,
         events: [],
-        specialDays: []
+        specialDays: [],
+        date: undefined,
+        viewType: undefined
     };
 
     // ToDo
@@ -41,16 +42,10 @@ class CalendarPage extends React.Component {
     };
 
     renderMonthEvent = ({event}) => {
-        return (
-            <React.Fragment>
-                {event.title}
-            </React.Fragment>
-        )
+        return (<React.Fragment>{event.title}</React.Fragment>);
     };
 
     renderAgendaEvent = ({event}) => {
-        let test = style.timesheet;
-        test = style.rbcEvent;
         return (
             <React.Fragment>
                 {event.title}
@@ -82,7 +77,7 @@ class CalendarPage extends React.Component {
         if (specialDay && specialDay.holidayTitle) {
             dayInfo = `${specialDay.holidayTitle} `;
         }
-        return <React.Fragment>{dayInfo}{obj.label}</React.Fragment>; // Drilldown!?
+        return <React.Fragment><a href={'#'} onClick={() => this.navigateToDay(obj.date)}>{dayInfo}{obj.label}</a></React.Fragment>; // Drilldown!?
         // Drilldown: <a href="#">...</a> function onClick(e) {
         //   return _this2.handleHeaderClick(date, drilldownView, e);
         // }
@@ -107,6 +102,13 @@ class CalendarPage extends React.Component {
             className: className
         }
     };
+
+    navigateToDay = (e) => {
+        this.setState({
+            date: e,
+            viewType: 'day'
+        })
+    }
 
     convertJsonDates = e => Object.assign({}, e, {
         start: new Date(e.start),
@@ -168,6 +170,14 @@ class CalendarPage extends React.Component {
             .catch(() => this.setState({failed: true}));
     };
 
+    onNavigate = (date) => {
+        this.setState({date: date})
+    };
+
+    onView = (obj) => {
+        console.log(obj)
+    };
+
     // Callback fired when the visible date range changes. Returns an Array of dates or an object with start and end dates for BUILTIN views.
     onRangeChange = (event, view) => {
         let viewType = view;
@@ -226,14 +236,18 @@ class CalendarPage extends React.Component {
                 events={this.state.events}
                 step={30}
                 defaultView={this.state.viewType}
+                view={this.state.viewType}
+                onView={this.onView}
                 views={['month', 'week', 'day', 'agenda']}
                 startAccessor="start"
-                defaultDate={this.state.date}
+                date={this.state.date}
+                onNavigate={this.onNavigate}
                 endAccessor="end"
                 onRangeChange={this.onRangeChange}
                 onSelectEvent={this.onSelectEvent}
                 eventPropGetter={this.eventStyle}
                 dayPropGetter={this.dayStyle}
+                showMultiDayTimes={true}
                 components={{
                     event: this.renderEvent,
                     month: {
@@ -271,6 +285,7 @@ class CalendarPage extends React.Component {
         this.renderDateHeader = this.renderDateHeader.bind(this);
         this.eventStyle = this.eventStyle.bind(this);
         this.dayStyle = this.dayStyle.bind(this);
+        this.navigateToDay = this.navigateToDay.bind(this);
         this.fetchEvents = this.fetchEvents.bind(this);
         this.fetchInitial = this.fetchInitial.bind(this);
         this.onRangeChange = this.onRangeChange.bind(this);
@@ -278,6 +293,8 @@ class CalendarPage extends React.Component {
         this.onSelectEvent = this.onSelectEvent.bind(this);
         this.onDoubleClickEvent = this.onDoubleClickEvent.bind(this);
         this.onSelecting = this.onSelecting.bind(this);
+        this.onNavigate = this.onNavigate.bind(this);
+        this.onView = this.onView.bind(this);
     }
 }
 
