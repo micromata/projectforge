@@ -77,10 +77,7 @@ class CalendarPage extends React.Component {
         if (specialDay && specialDay.holidayTitle) {
             dayInfo = `${specialDay.holidayTitle} `;
         }
-        return <React.Fragment><a href={'#'} onClick={() => this.navigateToDay(obj.date)}>{dayInfo}{obj.label}</a></React.Fragment>; // Drilldown!?
-        // Drilldown: <a href="#">...</a> function onClick(e) {
-        //   return _this2.handleHeaderClick(date, drilldownView, e);
-        // }
+        return <React.Fragment><a href={'#'} onClick={() => this.navigateToDay(obj.date)}>{dayInfo}{obj.label}</a></React.Fragment>;
     }
 
     dayStyle = (date) => {
@@ -226,6 +223,9 @@ class CalendarPage extends React.Component {
     render() {
         if (!this.state.initialized)
             return <React.Fragment>Loading...</React.Fragment>;
+        let initTime = new Date(this.state.date.getDate());
+        initTime.setHours( 9);
+        initTime.setMinutes(0);
         return (
             <DragAndDropCalendar
                 style={{
@@ -248,6 +248,8 @@ class CalendarPage extends React.Component {
                 eventPropGetter={this.eventStyle}
                 dayPropGetter={this.dayStyle}
                 showMultiDayTimes={true}
+                timeslots={1}
+                scrollToTime={initTime}
                 components={{
                     event: this.renderEvent,
                     month: {
