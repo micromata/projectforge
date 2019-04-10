@@ -18,12 +18,20 @@ class PFDateTime {
 
     val dateTime: ZonedDateTime
     private var date: java.util.Date? = null
+    private var sqlDate: java.sql.Date? = null
     private var localDate: LocalDate? = null
 
     fun asUtilDate(): java.util.Date {
         if (date == null)
             date = java.util.Date.from(dateTime.toInstant());
         return date!!
+    }
+
+    fun asSqlDate(): java.sql.Date {
+        if (sqlDate == null) {
+            sqlDate = java.sql.Date.valueOf(asLocalDate())
+        }
+        return sqlDate!!
     }
 
     fun asLocalDate(): LocalDate {
