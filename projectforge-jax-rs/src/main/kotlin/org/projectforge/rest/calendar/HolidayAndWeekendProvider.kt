@@ -4,6 +4,7 @@ import org.projectforge.framework.calendar.Holidays
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.time.PFDateTime
 import java.time.DayOfWeek
+import java.time.LocalDate
 
 object HolidayAndWeekendProvider {
     private val log = org.slf4j.LoggerFactory.getLogger(HolidayAndWeekendProvider::class.java)
@@ -11,8 +12,8 @@ object HolidayAndWeekendProvider {
 
     class SpecialDayInfo(val weekend: Boolean = false, val holiday: Boolean = false, val holidayTitle: String? = null, val workingDay: Boolean = false)
 
-    fun getSpecialDayInfos(start: PFDateTime, end: PFDateTime): List<SpecialDayInfo> {
-        val result = mutableListOf<SpecialDayInfo>()
+    fun getSpecialDayInfos(start: PFDateTime, end: PFDateTime): Map<String, SpecialDayInfo> {
+        val result = mutableMapOf<String, SpecialDayInfo>()
         var day = start.getBeginOfDay()
         do {
             var idCounter = 0
@@ -27,11 +28,14 @@ object HolidayAndWeekendProvider {
             if (holiday || weekend) {
                 val workingDay = holidays.isWorkingDay(dateTime)
                 var holidayInfo = holidays.getHolidayInfo(dateTime.year, dateTime.dayOfYear)
-                if (holidayInfo != null && holidayInfo.startsWith("calendar.holiday.") == true) {
-                    holidayInfo = translate(holidayInfo)
-                }
+                if (holidayInfo.isNullOrBlank()) {
+                    holidayInfo = null
+                } else
+                    if (holidayInfo != null && holidayInfo.startsWith("calendar.holiday.") == true) {
+                        holidayInfo = translate(holidayInfo)
+                    }
                 val dayInfo = SpecialDayInfo(weekend, holiday, holidayInfo, workingDay)
-                result.add(dayInfo)
+                result.put(day.dateAsIsoString(), dayInfo)
             }
             day = day.plusDays(1)
         } while (!day.isAfter(end))

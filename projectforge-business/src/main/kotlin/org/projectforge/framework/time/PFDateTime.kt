@@ -40,6 +40,13 @@ class PFDateTime {
         return localDate!!
     }
 
+    /**
+     * Date part as ISO string: "yyyy-MM-dd".
+     */
+    fun dateAsIsoString() :String {
+        return isoDateFormatter.format(dateTime)
+    }
+
     fun getZone(): ZoneId {
         return dateTime.zone
     }
@@ -155,16 +162,16 @@ class PFDateTime {
          * Parses the given date as UTC and converts it to the user's zoned date time.
          */
         @JvmStatic
-        fun parseUTCDate(json: String?, dateTimeFormatter : DateTimeFormatter): PFDateTime? {
-            if (json.isNullOrBlank())
+        fun parseUTCDate(str: String?, dateTimeFormatter : DateTimeFormatter): PFDateTime? {
+            if (str.isNullOrBlank())
                 return null
             try {
-                val local =  LocalDateTime.parse(json, dateTimeFormatter) // Parses UTC as local date.
+                val local =  LocalDateTime.parse(str, dateTimeFormatter) // Parses UTC as local date.
                 val utcZoned = ZonedDateTime.of(local, ZoneId.of("UTC"))
                 val userZoned = utcZoned.withZoneSameInstant(getUsersZoneId())
                 return PFDateTime(userZoned)
             } catch (ex: DateTimeParseException) {
-                log.error("Error while parsing date '$json': ${ex.message}.")
+                log.error("Error while parsing date '$str': ${ex.message}.")
                 return null
             }
 
@@ -172,6 +179,7 @@ class PFDateTime {
 
         private val log = org.slf4j.LoggerFactory.getLogger(PFDateTime::class.java)
 
+        private val isoDateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
        // private val jsonDateTimeFormatter = DateTimeFormatter.ofPattern(DateTimeFormat.JS_DATE_TIME_MILLIS.pattern)
     }
 }

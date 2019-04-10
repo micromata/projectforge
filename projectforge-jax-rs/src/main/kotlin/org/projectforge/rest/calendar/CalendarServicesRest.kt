@@ -21,7 +21,7 @@ class CalendarServicesRest() {
     internal class CalendarData(val date: LocalDate,
                                 val viewType: CalendarViewType = CalendarViewType.MONTH,
                                 val events: List<BigCalendarEvent>,
-                                val specialDays: List<HolidayAndWeekendProvider.SpecialDayInfo>)
+                                val specialDays: Map<String, HolidayAndWeekendProvider.SpecialDayInfo>)
 
     private class DateTimeRange(var start: PFDateTime,
                                 var end: PFDateTime? = null)
@@ -37,8 +37,6 @@ class CalendarServicesRest() {
         AGENDA
     }
 
-    private val log = org.slf4j.LoggerFactory.getLogger(CalendarServicesRest::class.java)
-
     companion object {
         val OLD_USERPREF_KEY = "TeamCalendarPage.userPrefs";
         val USERPREF_KEY = "calendar.displaySettings";
@@ -46,6 +44,9 @@ class CalendarServicesRest() {
 
     @Autowired
     private lateinit var timesheetsProvider: TimesheetEventsProvider
+
+    @Autowired
+    private lateinit var teamCalEventsProvider: TeamCalEventsProvider
 
     @Autowired
     private lateinit var userPreferenceService: UserPreferencesService
@@ -56,21 +57,7 @@ class CalendarServicesRest() {
     @Path("initial")
     @Produces(MediaType.APPLICATION_JSON)
     fun getInitialCalendar(): Response {
-        var filter = userPreferenceService.getEntry(CalendarDisplaySettings::class.java, USERPREF_KEY)
-        if (filter == null) {
-            // No current user pref entry available. Try the old one (from release 6.* / Wicket Calendarpage):
-            val oldFilter = userPreferenceService.getEntry(TeamCalCalendarFilter::class.java, OLD_USERPREF_KEY)
-            oldFilter.viewType
-            filter = CalendarDisplaySettings()
-            filter.copyFrom(oldFilter)
-            userPreferenceService.putEntry(USERPREF_KEY, filter, true)
-            filter.saveDisplayFilters(userPreferenceService)
-        }
-        if (filter.startDate == null)
-            filter.startDate = LocalDate.now()
-        if (filter.viewType == null)
-            filter.viewType = CalendarViewType.MONTH
-        return buildEvents(startParam = PFDateTime.from(filter.startDate), view = filter.viewType);
+        return buildEvents();
     }
 
     @GET
@@ -92,15 +79,35 @@ class CalendarServicesRest() {
         return buildEvents(start, end, view)
     }
 
-    private fun buildEvents(startParam: PFDateTime, endParam: PFDateTime? = null, view: CalendarViewType? = null): Response {
+    private fun buildEvents(startParam: PFDateTime? = null, endParam: PFDateTime? = null, viewParam: CalendarViewType? = null): Response {
         val events = mutableListOf<BigCalendarEvent>()
-        val range = DateTimeRange(startParam, endParam)
+        val settings = getUsersSettings()
+        val view =
+                if (viewParam != null)
+                    viewParam
+                else if (settings.viewType != null)
+                    settings.viewType
+                else
+                    CalendarViewType.MONTH
+        val range: DateTimeRange
+        if (startParam == null)
+            range = DateTimeRange(PFDateTime.from(settings.startDate), endParam)
+        else
+            range = DateTimeRange(startParam, endParam)
         adjustRange(range, view)
         //if (filter.isShowTimesheets) {
         timesheetsProvider.addTimesheetEvents(range.start, range.end!!,
                 ThreadLocalUserContext.getUserId(),
                 events)
         // }
+        val idx = settings.activeDisplayFilterIndex
+        val active: CalendarsDisplayFilter?
+        if (idx < settings.displayFilters?.list.size)
+            active = settings.displayFilters.list[idx]
+        else
+            active = null
+        if (active != null)
+            teamCalEventsProvider.addEvents(range.start, range.end!!, events, active)
         val specialDays = HolidayAndWeekendProvider.getSpecialDayInfos(range.start, range.end!!)
         val result = CalendarData(range.start.dateTime.toLocalDate(), view!!, events, specialDays)
         return restHelper.buildResponse(result)
@@ -131,7 +138,24 @@ class CalendarServicesRest() {
                 range.end = start.getEndOfMonth()
             }
         }
+    }
 
+    private fun getUsersSettings(): CalendarDisplaySettings {
+        var settings = userPreferenceService.getEntry(CalendarDisplaySettings::class.java, USERPREF_KEY)
+        if (settings == null) {
+            // No current user pref entry available. Try the old one (from release 6.* / Wicket Calendarpage):
+            val oldFilter = userPreferenceService.getEntry(TeamCalCalendarFilter::class.java, OLD_USERPREF_KEY)
+            oldFilter.viewType
+            settings = CalendarDisplaySettings()
+            settings.copyFrom(oldFilter)
+            userPreferenceService.putEntry(USERPREF_KEY, settings, true)
+            settings.saveDisplayFilters(userPreferenceService)
+        }
+        if (settings.startDate == null)
+            settings.startDate = LocalDate.now()
+        if (settings.viewType == null)
+            settings.viewType = CalendarViewType.MONTH
+        return settings
     }
 }
 
