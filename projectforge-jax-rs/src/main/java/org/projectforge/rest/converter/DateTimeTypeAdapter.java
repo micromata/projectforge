@@ -40,19 +40,16 @@ import java.util.TimeZone;
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
 public class DateTimeTypeAdapter implements JsonSerializer<Date>, JsonDeserializer<Date> {
+  private static final TimeZone utcTimeZone = TimeZone.getTimeZone("UTC");
   private final DateFormat dateTimeFormatter;
 
   private final DateTimeFormat dateTimeFormat;
 
   public DateTimeTypeAdapter() {
-    this(TimeZone.getTimeZone("UTC"));
+    this(null);
   }
 
-  public DateTimeTypeAdapter(TimeZone timeZone) {
-    this(timeZone, null);
-  }
-
-  public DateTimeTypeAdapter(TimeZone timeZone, DateTimeFormat dateTimeFormat) {
+  public DateTimeTypeAdapter(DateTimeFormat dateTimeFormat) {
     final ConnectionSettings settings = ConnectionSettings.get();
     if (dateTimeFormat != null) {
       this.dateTimeFormat = dateTimeFormat;
@@ -61,7 +58,7 @@ public class DateTimeTypeAdapter implements JsonSerializer<Date>, JsonDeserializ
     }
     if (this.dateTimeFormat != null && this.dateTimeFormat.getPattern() != null) {
       dateTimeFormatter = new SimpleDateFormat(this.dateTimeFormat.getPattern(), settings.getLocale());
-      dateTimeFormatter.setTimeZone(timeZone);
+      dateTimeFormatter.setTimeZone(utcTimeZone);
     } else {
       dateTimeFormatter = null;
     }
