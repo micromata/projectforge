@@ -84,9 +84,10 @@ class TimesheetEventsProvider() {
             if (ctx.month != null && startTime.month() != ctx.month && stopTime.month() != ctx.month) {
                 outOfRange = true
             }
+            val link = "wa/editTimesheet?id=${timesheet.id}"
             events.add(BigCalendarEvent(timesheet.id, title, timesheet.startTime, timesheet .stopTime, null,
                     location =  timesheet.location, desc = description, tooltip=tooltip, formattedDuration = formattedDuration, outOfRange = outOfRange,
-                    fgColor = "#fff", bgColor = "#36c"))
+                    cssClass = "timesheet", link = link))
 
             /*  if (ctx.month == startTime.month()) {
                   ctx.totalDuration += timesheet.duration
