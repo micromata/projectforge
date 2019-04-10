@@ -7,6 +7,7 @@ import org.projectforge.framework.configuration.ConfigXml
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.api.UserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
+import java.text.SimpleDateFormat
 import java.time.Month
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
@@ -15,8 +16,9 @@ import java.util.*
 class PFDateTimeTest {
 
     @Test
-    fun beginAndEndOfIntervals() {
-        val date = PFDateTime.parseUTCDate("2019-03-31T22:00:00.000Z", DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"))!!
+    fun beginAndEndOfIntervalsTest() {
+        // User's time zone is "Europe/Berlin": "UTC+2". Therefore local date should be 2019-04-01 00:00:00
+        val date = PFDateTime.parseUTCDate("2019-03-31 22:00:00", DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))!!
         checkDate(date.dateTime, 2019, Month.APRIL, 1, false)
 
         val beginOfDay = date.getBeginOfDay().dateTime
@@ -33,6 +35,38 @@ class PFDateTimeTest {
         checkDate(beginOfMonth, 2019, Month.APRIL, 1, true)
         val endOfMonth = date.getEndOfMonth().dateTime
         checkDate(endOfMonth, 2019, Month.MAY, 1, true) // Midnight of first day of next month
+    }
+
+    @Test
+    fun convertTest() {
+        // User's time zone is "Europe/Berlin": "UTC+2". Therefore local date should be 2019-04-01 00:00:00
+        var date = PFDateTime.parseUTCDate("2019-03-31 22:00:00", DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))!!
+
+        var localDate = date.asLocalDate()
+        assertEquals(2019, localDate.year)
+        assertEquals(Month.APRIL, localDate.month)
+        assertEquals(1, localDate.dayOfMonth)
+
+        val utilDate = date.asUtilDate()
+        val formatter = SimpleDateFormat("yyyy-MM-dd HH:mm:ss Z")
+        formatter.timeZone = TimeZone.getTimeZone("UTC")
+        assertEquals("2019-03-31 22:00:00 +0000", formatter.format(utilDate))
+        assertEquals(1554069600000, utilDate.time)
+
+        var sqlDate = date.asSqlDate()
+        assertEquals("2019-03-31 22:00:00 +0000", formatter.format(sqlDate))
+        assertEquals(1554069600000, sqlDate.time)
+
+        date = PFDateTime.parseUTCDate("2019-04-01 15:00:00", DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))!!
+
+        localDate = date.asLocalDate()
+        assertEquals(2019, localDate.year)
+        assertEquals(Month.APRIL, localDate.month)
+        assertEquals(1, localDate.dayOfMonth)
+
+        sqlDate = date.asSqlDate()
+        assertEquals("2019-03-31 22:00:00 +0000", formatter.format(sqlDate))
+        assertEquals(1554069600000, sqlDate.time)
     }
 
     private fun checkDate(date: ZonedDateTime, year: Int, month: Month, dayOfMonth: Int, checkMidnight: Boolean = true) {
