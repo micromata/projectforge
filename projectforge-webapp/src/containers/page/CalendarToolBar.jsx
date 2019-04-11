@@ -2,7 +2,6 @@ import React from 'react';
 import moment_timezone from 'moment-timezone';
 
 const CalendarToolBar = (toolbar) => {
-
     const goToBack = () => {
         toolbar.onNavigate('PREV');
     };
@@ -34,6 +33,8 @@ const CalendarToolBar = (toolbar) => {
 
     const label = () => {
         const date = moment_timezone(toolbar.date);
+        if (view === 'day')
+            return <span><b>{date.format('dddd')}</b><span> {date.format('DD.MM.YYYY')}</span></span>
         return (
             <span><b>{date.format('MMMM')}</b><span> {date.format('YYYY')}</span></span>
         );
@@ -44,12 +45,13 @@ const CalendarToolBar = (toolbar) => {
     const classNameWorkWeek = (view === 'work_week') ? 'rbc-active' : '';
     const classNameDay = (view === 'day') ? 'rbc-active' : '';
     const classNameAgenda = (view === 'agenda') ? 'rbc-active' : '';
+    const messages = toolbar.localizer.messages;
     return (
         <div className="rbc-toolbar">
             <span className="rbc-btn-group">
-                <button type="button" onClick={goToBack}>Back</button>
-                <button type="button" onClick={goToToday}>Today</button>
-                <button type="button" onClick={goToNext}>Next</button></span>
+                <button type="button" onClick={goToBack}>{messages.previous}</button>
+                <button type="button" onClick={goToToday}>{messages.today}</button>
+                <button type="button" onClick={goToNext}>{messages.next}</button></span>
             <span className="rbc-toolbar-label">{label()}</span>
             <span className="rbc-btn-group">
                 <button type="button" className={classNameMonth} onClick={goToMonthView}>Month</button>
