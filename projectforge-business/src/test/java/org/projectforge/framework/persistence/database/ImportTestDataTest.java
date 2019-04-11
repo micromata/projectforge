@@ -2,15 +2,15 @@ package org.projectforge.framework.persistence.database;
 
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.test.AbstractTestBase;
-import org.projectforge.test.AbstractTestNGBase;
+import org.projectforge.test.AbstractTestBase;
 import org.projectforge.test.InitTestDB;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Roger Rene Kommer (r.kommer.extern@micromata.de)
  */
-public class ImportTestDataTest extends AbstractTestNGBase
+public class ImportTestDataTest extends AbstractTestBase
 {
   @Autowired
   private DatabaseService initDatabaseDao;

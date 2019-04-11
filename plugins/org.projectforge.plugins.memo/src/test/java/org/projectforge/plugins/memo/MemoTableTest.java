@@ -23,11 +23,11 @@
 
 package org.projectforge.plugins.memo;
 
-import static org.testng.AssertJUnit.assertEquals;
-
+import org.junit.jupiter.api.Test;
 import org.projectforge.continuousdb.Table;
 import org.projectforge.continuousdb.TableAttribute;
-import org.testng.annotations.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class MemoTableTest
 {

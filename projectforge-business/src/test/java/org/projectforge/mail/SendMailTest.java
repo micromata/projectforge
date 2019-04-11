@@ -1,33 +1,33 @@
 package org.projectforge.mail;
 
-import static org.mockito.Mockito.when;
-import static org.powermock.api.mockito.PowerMockito.mockStatic;
-import static org.testng.Assert.assertFalse;
-import static org.testng.Assert.assertTrue;
-
-import java.util.ArrayList;
-import java.util.Collection;
-
-import javax.mail.Transport;
-
+import de.micromata.genome.util.runtime.config.MailSessionLocalSettingsConfigModel;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.testng.PowerMockTestCase;
+import org.powermock.modules.junit4.PowerMockRunner;
 import org.projectforge.business.configuration.ConfigurationService;
 import org.projectforge.framework.i18n.InternalErrorException;
 import org.projectforge.framework.i18n.UserException;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
 
-import de.micromata.genome.util.runtime.config.MailSessionLocalSettingsConfigModel;
+import javax.mail.Transport;
+import java.util.ArrayList;
+import java.util.Collection;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.when;
+import static org.powermock.api.mockito.PowerMockito.mockStatic;
+
+@RunWith(PowerMockRunner.class)
 @PrepareForTest({ Transport.class })
 @PowerMockIgnore({ "javax.management.*", "javax.xml.parsers.*", "com.sun.org.apache.xerces.internal.jaxp.*", "ch.qos.logback.*", "org.slf4j.*" })
-public class SendMailTest extends PowerMockTestCase
+public class SendMailTest
 {
   @Mock
   private MailSessionLocalSettingsConfigModel mailSessionLocalSettingsConfigModel;
@@ -44,7 +44,7 @@ public class SendMailTest extends PowerMockTestCase
   @InjectMocks
   private SendMail sendMail = new SendMail();
 
-  @BeforeMethod
+  @Before
   public void setUp()
   {
     MockitoAnnotations.initMocks(this);

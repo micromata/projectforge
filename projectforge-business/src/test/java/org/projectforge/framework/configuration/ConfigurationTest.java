@@ -24,21 +24,21 @@
 package org.projectforge.framework.configuration;
 
 import org.projectforge.framework.configuration.Configuration;
-import org.testng.Assert;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 public class ConfigurationTest
 {
   @Test
   public void testCalendarDomainValid()
   {
-    Assert.assertFalse(Configuration.isDomainValid(null));
-    Assert.assertFalse(Configuration.isDomainValid(""));
-    Assert.assertFalse(Configuration.isDomainValid(" "));
-    Assert.assertFalse(Configuration.isDomainValid(" a"));
-    Assert.assertTrue(Configuration.isDomainValid("www.projectforge.org"));
-    Assert.assertTrue(Configuration.isDomainValid("pf-acme.priv"));
-    Assert.assertFalse(Configuration.isDomainValid("pf-acme.priv-"));
-    Assert.assertFalse(Configuration.isDomainValid("-pf-acme.priv"));
+    Assertions.assertFalse(Configuration.isDomainValid(null));
+    Assertions.assertFalse(Configuration.isDomainValid(""));
+    Assertions.assertFalse(Configuration.isDomainValid(" "));
+    Assertions.assertFalse(Configuration.isDomainValid(" a"));
+    Assertions.assertTrue(Configuration.isDomainValid("www.projectforge.org"));
+    Assertions.assertTrue(Configuration.isDomainValid("pf-acme.priv"));
+    Assertions.assertFalse(Configuration.isDomainValid("pf-acme.priv-"));
+    Assertions.assertFalse(Configuration.isDomainValid("-pf-acme.priv"));
   }
 }

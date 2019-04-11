@@ -23,27 +23,30 @@
 
 package org.projectforge.framework.xstream;
 
-import static org.testng.AssertJUnit.assertEquals;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
+import org.projectforge.framework.time.DateHelper;
+import org.projectforge.framework.time.DateHolder;
+import org.projectforge.framework.xstream.converter.ISODateConverter;
 
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
 
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.testng.PowerMockTestCase;
-import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
-import org.projectforge.framework.time.DateHelper;
-import org.projectforge.framework.time.DateHolder;
-import org.projectforge.framework.xstream.converter.ISODateConverter;
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
+
+@RunWith(PowerMockRunner.class)
 @PrepareForTest({ ThreadLocalUserContext.class })
-public class XmlRegistryTest extends PowerMockTestCase
+public class XmlRegistryTest
 {
 
-  @BeforeClass
+  @Before
   public void setUp()
   {
     Calendar c = Calendar.getInstance();

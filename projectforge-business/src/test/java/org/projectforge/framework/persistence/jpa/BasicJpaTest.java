@@ -3,11 +3,11 @@ package org.projectforge.framework.persistence.jpa;
 import java.util.List;
 
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
-import org.projectforge.test.AbstractTestNGBase;
+import org.projectforge.test.AbstractTestBase;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.Test;
 
-public class BasicJpaTest extends AbstractTestNGBase
+public class BasicJpaTest extends AbstractTestBase
 {
   @Autowired
   private PfEmgrFactory emf;

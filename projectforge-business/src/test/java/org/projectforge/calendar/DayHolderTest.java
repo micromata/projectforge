@@ -24,31 +24,32 @@
 
 package org.projectforge.calendar;
 
-import static org.powermock.api.mockito.PowerMockito.mockStatic;
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertTrue;
+import org.junit.Before;
+import org.junit.Ignore;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
+import org.projectforge.framework.configuration.ConfigXml;
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
+import org.projectforge.framework.time.DateHolder;
+import org.projectforge.framework.time.DayHolder;
 
 import java.math.BigDecimal;
 import java.util.Calendar;
 import java.util.Locale;
 import java.util.TimeZone;
 
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.testng.PowerMockTestCase;
-import org.projectforge.framework.configuration.ConfigXml;
-import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
-import org.projectforge.framework.time.DateHolder;
-import org.projectforge.framework.time.DayHolder;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.powermock.api.mockito.PowerMockito.mockStatic;
 
-@PrepareForTest({ ThreadLocalUserContext.class, ConfigXml.class })
-public class DayHolderTest extends PowerMockTestCase
-{
-  @BeforeMethod
-  public void setUp()
-  {
+@RunWith(PowerMockRunner.class)
+@PrepareForTest({ThreadLocalUserContext.class, ConfigXml.class})
+public class DayHolderTest {
+  @Before
+  public void setUp() {
     mockStatic(ThreadLocalUserContext.class);
     mockStatic(ConfigXml.class);
     Locale locale = Locale.getDefault();
@@ -60,8 +61,7 @@ public class DayHolderTest extends PowerMockTestCase
   }
 
   @Test
-  public void testDayHolder()
-  {
+  public void testDayHolder() {
     final DayHolder day = new DayHolder();
     assertFields(day);
     final DateHolder dh = day.clone();
@@ -69,15 +69,13 @@ public class DayHolderTest extends PowerMockTestCase
   }
 
   @Test
-  public void isToday()
-  {
+  public void isToday() {
     final DayHolder day = new DayHolder();
     assertTrue(day.isToday());
   }
 
   @Test
-  public void testGetNumberOfWorkingDays()
-  {
+  public void testGetNumberOfWorkingDays() {
     final DayHolder fromDay = new DayHolder();
     fromDay.setDate(2009, Calendar.JANUARY, 1, 0, 0, 0);
     final DayHolder toDay = new DayHolder();
@@ -88,8 +86,7 @@ public class DayHolderTest extends PowerMockTestCase
   }
 
   @Test
-  public void testGetNumberOfWorkingDaysOneDay()
-  {
+  public void testGetNumberOfWorkingDaysOneDay() {
     final DayHolder fromDay = new DayHolder();
     fromDay.setDate(2009, Calendar.JANUARY, 5, 0, 0, 0);
     final DayHolder toDay = new DayHolder();
@@ -98,9 +95,9 @@ public class DayHolderTest extends PowerMockTestCase
   }
 
   //Test fertigstellen für Weihnachten/Silvester (config.xml)
-  @Test(enabled = false)
-  public void testGetNumberOfWorkingDaysChristmas()
-  {
+  @Test
+  @Ignore
+  public void testGetNumberOfWorkingDaysChristmas() {
     final DayHolder fromDay = new DayHolder();
     fromDay.setDate(2009, Calendar.DECEMBER, 24, 0, 0, 0);
     final DayHolder toDay = new DayHolder();
@@ -109,8 +106,7 @@ public class DayHolderTest extends PowerMockTestCase
   }
 
   @Test
-  public void testAdd()
-  {
+  public void testAdd() {
     final DayHolder day = new DayHolder();
     day.setDate(2008, Calendar.JANUARY, 1, 0, 0, 0);
     day.add(Calendar.DAY_OF_YEAR, -1);
@@ -119,16 +115,14 @@ public class DayHolderTest extends PowerMockTestCase
     assertEquals(day.getDayOfMonth(), 31);
   }
 
-  private void assertFields(final DateHolder day)
-  {
-    assertEquals("Hours of day should be 0", 0, day.getHourOfDay());
-    assertEquals("Minutes should be 0", 0, day.getMinute());
-    assertEquals("Seconds should be 0", 0, day.getSecond());
-    assertEquals("Millis should be 0", 0, day.getMilliSecond());
+  private void assertFields(final DateHolder day) {
+    assertEquals(0, day.getHourOfDay(), "Hours of day should be 0");
+    assertEquals(0, day.getMinute(), "Minutes should be 0");
+    assertEquals(0, day.getSecond(), "Seconds should be 0");
+    assertEquals(0, day.getMilliSecond(), "Millis should be 0");
   }
 
-  private void assertBigDecimal(final double expected, final BigDecimal value)
-  {
+  private void assertBigDecimal(final double expected, final BigDecimal value) {
     assertEquals(expected, value.doubleValue(), 0.00001);
   }
 }

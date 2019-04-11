@@ -23,17 +23,17 @@
 
 package org.projectforge.business.ldap;
 
-import static org.testng.AssertJUnit.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.Date;
 
+import org.junit.jupiter.api.BeforeAll;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
-import org.projectforge.test.AbstractTestNGBase;
+import org.projectforge.test.AbstractTestBase;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.Test;
 
-public class PFUserDOConverterTest extends AbstractTestNGBase
+public class PFUserDOConverterTest extends AbstractTestBase
 {
   @Autowired
   LdapServiceImpl ldapService;
@@ -41,7 +41,7 @@ public class PFUserDOConverterTest extends AbstractTestNGBase
   @Autowired
   PFUserDOConverter pfUserDOConverter;
 
-  @BeforeClass
+  @BeforeAll
   public void setup()
   {
     final LdapConfig ldapConfig = new LdapConfig();

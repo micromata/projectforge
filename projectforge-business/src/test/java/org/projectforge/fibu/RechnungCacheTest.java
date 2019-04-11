@@ -23,29 +23,21 @@
 
 package org.projectforge.fibu;
 
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertTrue;
+import org.junit.jupiter.api.Test;
+import org.projectforge.business.fibu.*;
+import org.projectforge.framework.time.DayHolder;
+import org.projectforge.test.AbstractTestBase;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.math.BigDecimal;
 import java.sql.Date;
 import java.util.Iterator;
 import java.util.Set;
 
-import org.projectforge.business.fibu.AuftragDO;
-import org.projectforge.business.fibu.AuftragDao;
-import org.projectforge.business.fibu.AuftragsPositionDO;
-import org.projectforge.business.fibu.RechnungDO;
-import org.projectforge.business.fibu.RechnungDao;
-import org.projectforge.business.fibu.RechnungsPositionDO;
-import org.projectforge.business.fibu.RechnungsPositionVO;
-import org.projectforge.framework.time.DayHolder;
-import org.projectforge.test.AbstractTestBase;
-import org.projectforge.test.AbstractTestNGBase;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.testng.annotations.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-public class RechnungCacheTest extends AbstractTestNGBase
-{
+public class RechnungCacheTest extends AbstractTestBase {
   @Autowired
   private AuftragDao auftragDao;
 
@@ -53,8 +45,7 @@ public class RechnungCacheTest extends AbstractTestNGBase
   private RechnungDao rechnungDao;
 
   @Test
-  public void baseTest()
-  {
+  public void baseTest() {
     final DayHolder today = new DayHolder();
     logon(getUser(AbstractTestBase.TEST_FINANCE_USER));
     final AuftragDO auftrag = new AuftragDO();
@@ -89,7 +80,7 @@ public class RechnungCacheTest extends AbstractTestNGBase
     rechnungDao.save(rechnung2);
 
     Set<RechnungsPositionVO> set = rechnungDao.getRechnungCache().getRechnungsPositionVOSetByAuftragId(auftrag.getId());
-    assertEquals("3 invoice positions expected.", 3, set.size());
+    assertEquals(3, set.size(), "3 invoice positions expected.");
     final Iterator<RechnungsPositionVO> it = set.iterator();
     RechnungsPositionVO posVO = it.next(); // Positions are ordered.
     assertEquals("1.1", posVO.getText());
@@ -100,20 +91,20 @@ public class RechnungCacheTest extends AbstractTestNGBase
     assertTrue(new BigDecimal("700").compareTo(RechnungDao.getNettoSumme(set)) == 0);
 
     set = rechnungDao.getRechnungCache()
-        .getRechnungsPositionVOSetByAuftragsPositionId(auftrag.getPosition((short) 1).getId());
-    assertEquals("2 invoice positions expected.", 2, set.size());
+            .getRechnungsPositionVOSetByAuftragsPositionId(auftrag.getPosition((short) 1).getId());
+    assertEquals( 2, set.size(),"2 invoice positions expected.");
     assertTrue(new BigDecimal("500").compareTo(RechnungDao.getNettoSumme(set)) == 0);
 
     set = rechnungDao.getRechnungCache()
-        .getRechnungsPositionVOSetByAuftragsPositionId(auftrag.getPosition((short) 2).getId());
-    assertEquals("1 invoice positions expected.", 1, set.size());
+            .getRechnungsPositionVOSetByAuftragsPositionId(auftrag.getPosition((short) 2).getId());
+    assertEquals( 1, set.size(),"1 invoice positions expected.");
     assertTrue(new BigDecimal("200").compareTo(RechnungDao.getNettoSumme(set)) == 0);
 
     final RechnungDO rechnung = rechnungDao.getById(rechnung2.getId());
     rechnung.getPosition(0).setAuftragsPosition(null);
     rechnungDao.update(rechnung);
     set = rechnungDao.getRechnungCache().getRechnungsPositionVOSetByAuftragId(auftrag.getId());
-    assertEquals("2 invoice positions expected.", 2, set.size());
+    assertEquals( 2, set.size(),"2 invoice positions expected.");
     assertTrue(new BigDecimal("300").compareTo(RechnungDao.getNettoSumme(set)) == 0);
   }
 

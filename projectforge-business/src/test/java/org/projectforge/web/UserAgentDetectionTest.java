@@ -23,13 +23,13 @@
 
 package org.projectforge.web;
 
-import static org.testng.AssertJUnit.assertEquals;
-
+import org.junit.jupiter.api.Test;
 import org.projectforge.web.session.UserAgentBrowser;
 import org.projectforge.web.session.UserAgentDetection;
 import org.projectforge.web.session.UserAgentDevice;
 import org.projectforge.web.session.UserAgentOS;
-import org.testng.annotations.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class UserAgentDetectionTest
 {
@@ -96,7 +96,7 @@ public class UserAgentDetectionTest
   }
 
   private void detectAndAssert(final String userAgentString, final UserAgentBrowser expectedBrowser,
-      final String expectedVersion)
+                               final String expectedVersion)
   {
     final UserAgentDetection detection = UserAgentDetection.browserDetect(userAgentString);
     assertEquals(expectedBrowser, detection.getUserAgentBrowser());

@@ -23,14 +23,8 @@
 
 package org.projectforge.export;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.math.BigDecimal;
-import java.sql.Timestamp;
-import java.util.Date;
-import java.util.Locale;
-
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import org.projectforge.business.excel.ContentProvider;
 import org.projectforge.business.excel.ExportConfig;
 import org.projectforge.business.excel.ExportSheet;
@@ -42,20 +36,24 @@ import org.projectforge.framework.time.DateHelper;
 import org.projectforge.framework.time.DateHolder;
 import org.projectforge.framework.time.DatePrecision;
 import org.projectforge.framework.time.DayHolder;
-import org.projectforge.test.AbstractTestNGBase;
+import org.projectforge.test.AbstractTestBase;
 import org.projectforge.test.WorkFileHelper;
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.Test;
 
-public class ExportWorkbookTest extends AbstractTestNGBase
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.math.BigDecimal;
+import java.sql.Timestamp;
+import java.util.Date;
+import java.util.Locale;
+
+public class ExportWorkbookTest extends AbstractTestBase
 {
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ExportWorkbookTest.class);
 
-  @Override
-  @BeforeClass
+  @BeforeAll
   public void setUp()
   {
-    super.setUp();
     ConfigXmlTest.createTestConfiguration();
   }
 

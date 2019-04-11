@@ -23,14 +23,15 @@
 
 package org.projectforge.framework.persistence.database;
 
-import static org.testng.AssertJUnit.*;
-
+import org.junit.jupiter.api.Test;
 import org.projectforge.business.task.TaskDO;
 import org.projectforge.framework.persistence.api.HibernateUtils;
-import org.projectforge.test.AbstractTestNGBase;
-import org.testng.annotations.Test;
+import org.projectforge.test.AbstractTestBase;
 
-public class HibernateUtilsTest extends AbstractTestNGBase
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+
+public class HibernateUtilsTest extends AbstractTestBase
 {
   @Test
   public void propertyLengthTest()

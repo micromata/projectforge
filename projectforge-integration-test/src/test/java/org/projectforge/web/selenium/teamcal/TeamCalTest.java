@@ -8,8 +8,8 @@ import org.projectforge.web.selenium.administration.SeleniumUserEditPage;
 import org.projectforge.web.selenium.common.SeleniumCalendarEditPage;
 import org.projectforge.web.selenium.common.SeleniumCalendarListPage;
 import org.projectforge.web.selenium.login.SeleniumLoginPage;
-import org.testng.Assert;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 public class TeamCalTest extends SeleniumSuiteTestBase
 {
@@ -66,14 +66,14 @@ public class TeamCalTest extends SeleniumSuiteTestBase
 
       SeleniumCalendarListPage seleniumCalendarListPage = new SeleniumCalendarListPage();
       try {
-        Assert.assertEquals(seleniumCalendarListPage
+        Assertions.assertEquals(seleniumCalendarListPage
             .callPage()
             .setOptionPanel(true)
             .clickRowWhereColumnLike(calendarName)
             .getTitle(), calendarName);
       } catch (Exception e) {
         if (accessAllowed) {
-          Assert.fail();
+          Assertions.fail();
         }
       }
     }
@@ -114,7 +114,7 @@ public class TeamCalTest extends SeleniumSuiteTestBase
 
       } catch (Exception e) {
         if (accessAllowed) {
-          Assert.fail();
+          Assertions.fail();
         }
       }
     }

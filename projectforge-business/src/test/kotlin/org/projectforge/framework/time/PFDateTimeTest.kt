@@ -53,21 +53,12 @@ class PFDateTimeTest {
         assertEquals("2019-03-31 22:00:00 +0000", formatter.format(utilDate))
         assertEquals(1554069600000, utilDate.time)
 
-        var sqlDate = date.asSqlDate()
-        assertEquals("2019-03-31 22:00:00 +0000", formatter.format(sqlDate))
-        assertEquals(1554069600000, sqlDate.time)
-
         date = PFDateTime.parseUTCDate("2019-04-01 15:00:00", DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))!!
 
         localDate = date.asLocalDate()
         assertEquals(2019, localDate.year)
         assertEquals(Month.APRIL, localDate.month)
         assertEquals(1, localDate.dayOfMonth)
-
-        sqlDate = date.asSqlDate()
-        assertEquals("2019-03-31 22:00:00 +0000", formatter.format(sqlDate))
-        assertEquals(1554069600000, sqlDate.time)
-        assertEquals("2019-04-01", sqlDate.toString())
     }
 
     private fun checkDate(date: ZonedDateTime, year: Int, month: Month, dayOfMonth: Int, checkMidnight: Boolean = true) {

@@ -23,9 +23,14 @@
 
 package org.projectforge.business.gantt;
 
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertNull;
-import static org.testng.AssertJUnit.assertTrue;
+import org.junit.jupiter.api.Test;
+import org.projectforge.business.task.TaskDO;
+import org.projectforge.business.task.TaskDao;
+import org.projectforge.business.task.TaskTree;
+import org.projectforge.framework.time.DateHolder;
+import org.projectforge.framework.utils.NumberHelper;
+import org.projectforge.test.AbstractTestBase;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
@@ -33,17 +38,9 @@ import java.util.Calendar;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.projectforge.business.task.TaskDO;
-import org.projectforge.business.task.TaskDao;
-import org.projectforge.business.task.TaskTree;
-import org.projectforge.framework.time.DateHolder;
-import org.projectforge.framework.utils.NumberHelper;
-import org.projectforge.test.AbstractTestBase;
-import org.projectforge.test.AbstractTestNGBase;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.testng.annotations.Test;
+import static org.junit.jupiter.api.Assertions.*;
 
-public class GanttChartTest extends AbstractTestNGBase
+public class GanttChartTest extends AbstractTestBase
 {
   @Autowired
   private GanttChartDao ganttChartDao;
@@ -89,8 +86,8 @@ public class GanttChartTest extends AbstractTestNGBase
     GanttTask ganttObject = ganttChartDao.readGanttObjects(ganttChartDO).getRootObject();
     ganttChartDao.writeGanttObjects(ganttChartDO, ganttObject);
     assertEquals(xml, ganttChartDO.getGanttObjectsAsXml());
-    assertEquals("duration", BigDecimal.TEN, findById(ganttObject, getTask(prefix + "1").getId()).getDuration());
-    assertEquals("startDate", dh.getDate(), findById(ganttObject, getTask(prefix + "1").getId()).getStartDate());
+    assertEquals( BigDecimal.TEN, findById(ganttObject, getTask(prefix + "1").getId()).getDuration(), "duration");
+    assertEquals( dh.getDate(), findById(ganttObject, getTask(prefix + "1").getId()).getStartDate(),  "startDate");
 
     initTestDB.addTask(prefix + "II", "root");
     taskDao.update(getTask(prefix + "1.1").setParentTask(getTask(prefix))); // One level higher
@@ -107,9 +104,9 @@ public class GanttChartTest extends AbstractTestNGBase
     findById(ganttObject, getTask(prefix + "1").getId()).setStartDate(null);
     ganttChartDao.writeGanttObjects(ganttChartDO, ganttObject);
     ganttObject = ganttChartDao.readGanttObjects(ganttChartDO).getRootObject();
-    assertNull("Start date should be stored as null (start date of task is set).",
-        findById(ganttObject, getTask(prefix + "1").getId())
-            .getStartDate());
+    assertNull(findById(ganttObject, getTask(prefix + "1").getId())
+            .getStartDate(),
+            "Start date should be stored as null (start date of task is set).");
     findById(ganttObject, getTask(prefix + "1").getId()).addChild(new GanttTaskImpl(-1).setTitle("Child of 1"));
     findById(ganttObject, getTask(prefix + "1.1").getId()).addChild(
         new GanttTaskImpl(-2).setTitle("Child of 1.1").addChild(new GanttTaskImpl(-3).setTitle("Grand child of 1.1")));

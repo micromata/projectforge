@@ -3,17 +3,16 @@ package org.projectforge.web.fibu;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.util.tester.WicketTester;
 import org.hibernate.Session;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import org.projectforge.business.fibu.EmployeeDO;
 import org.projectforge.business.fibu.EmployeeDao;
 import org.projectforge.business.fibu.EmployeeSalaryDO;
 import org.projectforge.business.user.UserDao;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.test.AbstractTestBase;
-import org.projectforge.test.AbstractTestNGBase;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.testng.Assert;
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.Test;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -22,7 +21,7 @@ import java.time.Duration;
 import java.util.Date;
 import java.util.List;
 
-public class EmployeeSelectFilterTest extends AbstractTestNGBase
+public class EmployeeSelectFilterTest extends AbstractTestBase
 {
 
   @Autowired
@@ -31,7 +30,7 @@ public class EmployeeSelectFilterTest extends AbstractTestNGBase
   @Autowired
   UserDao userDao;
 
-  @BeforeClass
+  @BeforeAll
   public void init()
   {
     logon(AbstractTestBase.TEST_FULL_ACCESS_USER);
@@ -88,12 +87,12 @@ public class EmployeeSelectFilterTest extends AbstractTestNGBase
     getChoices.setAccessible(true);
     List<EmployeeDO> employeeDOList = (List<EmployeeDO>) getChoices
         .invoke(selectPanel, "user1");
-    Assert.assertTrue(employeeDOList.get(0).getUser().getUsername().equals(pfUserDO.getUsername()));
+    Assertions.assertTrue(employeeDOList.get(0).getUser().getUsername().equals(pfUserDO.getUsername()));
 
     employeeDOList = (List<EmployeeDO>) getChoices.invoke(selectPanel, "user2");
-    Assert.assertTrue(employeeDOList.isEmpty());
+    Assertions.assertTrue(employeeDOList.isEmpty());
 
     employeeDOList = (List<EmployeeDO>) getChoices.invoke(selectPanel, "user3");
-    Assert.assertTrue(employeeDOList.get(0).getUser().getUsername().equals(pfUserDO2.getUsername()));
+    Assertions.assertTrue(employeeDOList.get(0).getUser().getUsername().equals(pfUserDO2.getUsername()));
   }
 }

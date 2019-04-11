@@ -28,8 +28,8 @@ import org.apache.commons.httpclient.HttpMethod;
 import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.commons.httpclient.methods.PostMethod;
 import org.projectforge.sms.SmsSenderConfig;
-import org.testng.Assert;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import org.yaml.snakeyaml.Yaml;
 
 import java.io.File;
@@ -46,13 +46,13 @@ public class SmsSenderTest {
 
   @Test
   public void testSmsService() throws Exception {
-    Assert.assertEquals(SmsSender.HttpResponseCode.SUCCESS,
+    Assertions.assertEquals(SmsSender.HttpResponseCode.SUCCESS,
             testGetCall("hurzel", "0123456", "Hello_world", 200, "OK. Perfect."));
-    Assert.assertEquals(SmsSender.HttpResponseCode.UNKNOWN_ERROR,
+    Assertions.assertEquals(SmsSender.HttpResponseCode.UNKNOWN_ERROR,
             testGetCall("hurzel", "0123456", "Hello_world", 200, "ERROR"));
-    Assert.assertEquals(SmsSender.HttpResponseCode.MESSAGE_TO_LARGE,
+    Assertions.assertEquals(SmsSender.HttpResponseCode.MESSAGE_TO_LARGE,
             testGetCall("hurzel", "0123456", "Hello_world", 200, "MESSAGE TO LARGE"));
-    Assert.assertEquals(SmsSender.HttpResponseCode.UNKNOWN_ERROR,
+    Assertions.assertEquals(SmsSender.HttpResponseCode.UNKNOWN_ERROR,
             testPostCall("hurzel", "0123456", "Hello_world", 100, "Ingore this message."));
   }
 
@@ -124,10 +124,10 @@ public class SmsSenderTest {
     PostMethod httpMethod = spy(new PostMethod(url));
     SmsSender sender = createSender(url, httpMethod, fakedReturnCode, fakedResponseString);
     SmsSender.HttpResponseCode responseCode = sender.send(phoneNumber, message);
-    Assert.assertEquals("smsUser", httpMethod.getParameter("user").getValue());
-    Assert.assertEquals("smsPassword", httpMethod.getParameter("password").getValue());
-    Assert.assertEquals(message, httpMethod.getParameter("message").getValue());
-    Assert.assertEquals(phoneNumber, httpMethod.getParameter("to").getValue());
+    Assertions.assertEquals("smsUser", httpMethod.getParameter("user").getValue());
+    Assertions.assertEquals("smsPassword", httpMethod.getParameter("password").getValue());
+    Assertions.assertEquals(message, httpMethod.getParameter("message").getValue());
+    Assertions.assertEquals(phoneNumber, httpMethod.getParameter("to").getValue());
     verify(sender).createHttpMethod(url);
     return responseCode;
   }
@@ -170,11 +170,11 @@ public class SmsSenderTest {
   }
 
   private void assertContains(String str, String part) {
-    Assert.assertTrue(str.contains(part), "String '" + str + "' must contain '" + part + "'.");
+    Assertions.assertTrue(str.contains(part), "String '" + str + "' must contain '" + part + "'.");
   }
 
   private Map<String, String> createParams(String... params) {
-    Assert.assertTrue(params.length % 2 == 0); // even number.
+    Assertions.assertTrue(params.length % 2 == 0); // even number.
     Map<String, String> map = new HashMap<>();
     for (int i = 0; i < params.length; i += 2) {
       map.put(params[i], params[i + 1]);

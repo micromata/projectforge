@@ -1,24 +1,23 @@
 package org.projectforge.business.employee;
 
-import static org.testng.Assert.*;
-
-import java.util.Calendar;
-import java.util.GregorianCalendar;
-import java.util.List;
-
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import org.projectforge.business.fibu.EmployeeDO;
 import org.projectforge.business.fibu.EmployeeDao;
 import org.projectforge.business.fibu.Gender;
 import org.projectforge.business.fibu.GenderConverter;
 import org.projectforge.framework.persistence.history.DisplayHistoryEntry;
 import org.projectforge.test.AbstractTestBase;
-import org.projectforge.test.AbstractTestNGBase;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.testng.annotations.AfterMethod;
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.Test;
 
-public class EmployeeTest extends AbstractTestNGBase
+import java.util.Calendar;
+import java.util.GregorianCalendar;
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+public class EmployeeTest extends AbstractTestBase
 {
 
   @Autowired
@@ -26,7 +25,7 @@ public class EmployeeTest extends AbstractTestNGBase
 
   private List<EmployeeDO> employeeList;
 
-  @BeforeClass
+  @BeforeAll
   public void init()
   {
     logon(AbstractTestBase.TEST_FULL_ACCESS_USER);
@@ -34,7 +33,7 @@ public class EmployeeTest extends AbstractTestNGBase
     assertTrue(employeeList.size() > 0, "Keine Mitarbeiter in der Test DB!");
   }
 
-  @AfterMethod
+  @AfterEach
   public void clean()
   {
     //Get initial infos

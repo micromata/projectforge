@@ -1,30 +1,14 @@
 package org.projectforge.business.vacation.service;
 
-import static org.mockito.Matchers.*;
-import static org.mockito.Mockito.when;
-import static org.powermock.api.mockito.PowerMockito.mockStatic;
-import static org.testng.Assert.assertEquals;
-
-import java.math.BigDecimal;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.List;
-import java.util.Locale;
-import java.util.TimeZone;
-
-import org.mockito.ArgumentCaptor;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.runner.RunWith;
+import org.mockito.*;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.testng.PowerMockTestCase;
+import org.powermock.modules.junit4.PowerMockRunner;
 import org.projectforge.business.configuration.ConfigurationService;
 import org.projectforge.business.fibu.EmployeeDO;
 import org.projectforge.business.fibu.EmployeeDao;
@@ -35,17 +19,25 @@ import org.projectforge.business.vacation.repository.VacationDao;
 import org.projectforge.framework.configuration.ConfigXml;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
-import org.testng.Assert;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
+
+import java.math.BigDecimal;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.*;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Matchers.*;
+import static org.mockito.Mockito.when;
+import static org.powermock.api.mockito.PowerMockito.mockStatic;
 
 /**
  * Created by blumenstein on 27.10.16.
  */
+@RunWith(PowerMockRunner.class)
 @PrepareForTest({ ThreadLocalUserContext.class, ConfigXml.class })
 //Needed for: java.lang.ClassCastException: com.sun.org.apache.xerces.internal.jaxp.SAXParserFactoryImpl cannot be cast to javax.xml.parsers.SAXParserFactory
 @PowerMockIgnore({ "javax.management.*", "javax.xml.parsers.*", "com.sun.org.apache.xerces.internal.jaxp.*", "ch.qos.logback.*", "org.slf4j.*" })
-public class VacationServiceTest extends PowerMockTestCase
+public class VacationServiceTest
 {
   private final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
 
@@ -68,7 +60,7 @@ public class VacationServiceTest extends PowerMockTestCase
   @Mock
   private EmployeeDO employee;
 
-  @BeforeMethod
+  @Before
   public void setUp()
   {
     MockitoAnnotations.initMocks(this);
@@ -449,8 +441,8 @@ public class VacationServiceTest extends PowerMockTestCase
     Mockito.verify(employee).putAttribute(same(VacationAttrProperty.PREVIOUSYEARLEAVE.getPropertyName()), prevYearLeave.capture());
     Mockito.verify(employee).putAttribute(same(VacationAttrProperty.PREVIOUSYEARLEAVEUSED.getPropertyName()), prevYearLeaveUsed.capture());
 
-    Assert.assertEquals(prevYearLeave.getValue(), BigDecimal.valueOf(30));
-    Assert.assertEquals(prevYearLeaveUsed.getValue(), BigDecimal.valueOf(0));
+    Assertions.assertEquals(prevYearLeave.getValue(), BigDecimal.valueOf(30));
+    Assertions.assertEquals(prevYearLeaveUsed.getValue(), BigDecimal.valueOf(0));
   }
 
   @Test
@@ -476,8 +468,8 @@ public class VacationServiceTest extends PowerMockTestCase
     Mockito.verify(employee).putAttribute(same(VacationAttrProperty.PREVIOUSYEARLEAVE.getPropertyName()), prevYearLeave.capture());
     Mockito.verify(employee).putAttribute(same(VacationAttrProperty.PREVIOUSYEARLEAVEUSED.getPropertyName()), prevYearLeaveUsed.capture());
 
-    Assert.assertEquals(prevYearLeave.getValue(), BigDecimal.valueOf(30));
-    Assert.assertEquals(prevYearLeaveUsed.getValue(), BigDecimal.valueOf(16.5));
+    Assertions.assertEquals(prevYearLeave.getValue(), BigDecimal.valueOf(30));
+    Assertions.assertEquals(prevYearLeaveUsed.getValue(), BigDecimal.valueOf(16.5));
   }
 
   @Test
@@ -503,8 +495,8 @@ public class VacationServiceTest extends PowerMockTestCase
     Mockito.verify(employee).putAttribute(same(VacationAttrProperty.PREVIOUSYEARLEAVE.getPropertyName()), prevYearLeave.capture());
     Mockito.verify(employee).putAttribute(same(VacationAttrProperty.PREVIOUSYEARLEAVEUSED.getPropertyName()), prevYearLeaveUsed.capture());
 
-    Assert.assertEquals(prevYearLeave.getValue(), BigDecimal.valueOf(20));
-    Assert.assertEquals(prevYearLeaveUsed.getValue(), BigDecimal.valueOf(16.5));
+    Assertions.assertEquals(prevYearLeave.getValue(), BigDecimal.valueOf(20));
+    Assertions.assertEquals(prevYearLeaveUsed.getValue(), BigDecimal.valueOf(16.5));
   }
 
   @Test
@@ -530,8 +522,8 @@ public class VacationServiceTest extends PowerMockTestCase
     Mockito.verify(employee).putAttribute(same(VacationAttrProperty.PREVIOUSYEARLEAVE.getPropertyName()), prevYearLeave.capture());
     Mockito.verify(employee).putAttribute(same(VacationAttrProperty.PREVIOUSYEARLEAVEUSED.getPropertyName()), prevYearLeaveUsed.capture());
 
-    Assert.assertEquals(prevYearLeave.getValue(), BigDecimal.valueOf(15));
-    Assert.assertEquals(prevYearLeaveUsed.getValue(), BigDecimal.valueOf(15));
+    Assertions.assertEquals(prevYearLeave.getValue(), BigDecimal.valueOf(15));
+    Assertions.assertEquals(prevYearLeaveUsed.getValue(), BigDecimal.valueOf(15));
   }
 
   @Test
@@ -555,8 +547,8 @@ public class VacationServiceTest extends PowerMockTestCase
     Mockito.verify(employee).putAttribute(same(VacationAttrProperty.PREVIOUSYEARLEAVE.getPropertyName()), prevYearLeave.capture());
     Mockito.verify(employee).putAttribute(same(VacationAttrProperty.PREVIOUSYEARLEAVEUSED.getPropertyName()), prevYearLeaveUsed.capture());
 
-    Assert.assertEquals(prevYearLeave.getValue(), BigDecimal.valueOf(30));
-    Assert.assertEquals(prevYearLeaveUsed.getValue(), BigDecimal.valueOf(30));
+    Assertions.assertEquals(prevYearLeave.getValue(), BigDecimal.valueOf(30));
+    Assertions.assertEquals(prevYearLeaveUsed.getValue(), BigDecimal.valueOf(30));
   }
 
 }

@@ -23,12 +23,7 @@
 
 package org.projectforge.access;
 
-import static org.testng.AssertJUnit.*;
-
-import java.io.Serializable;
-import java.sql.Timestamp;
-import java.util.List;
-
+import org.junit.jupiter.api.Test;
 import org.projectforge.business.multitenancy.TenantRegistryMap;
 import org.projectforge.business.task.TaskDO;
 import org.projectforge.business.task.TaskDao;
@@ -41,13 +36,17 @@ import org.projectforge.framework.access.AccessType;
 import org.projectforge.framework.access.GroupTaskAccessDO;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.test.AbstractTestBase;
-import org.projectforge.test.AbstractTestNGBase;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.testng.annotations.Test;
 
-public class AccessTestFork extends AbstractTestNGBase
+import java.io.Serializable;
+import java.sql.Timestamp;
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+public class AccessTestFork extends AbstractTestBase
 {
   private static final Logger log = LoggerFactory.getLogger(AccessTestFork.class);
 
@@ -97,10 +96,10 @@ public class AccessTestFork extends AbstractTestNGBase
     final UserGroupCache userGroupCache = TenantRegistryMap.getInstance().getTenantRegistry().getUserGroupCache();
     // First check initialization:
     final PFUserDO user1 = getUser("user1");
-    assertTrue("user1 should be member of group1",
-        userGroupCache.isUserMemberOfGroup(user1.getId(), getGroup("group1").getId()));
-    assertFalse("user1 should not be member of group3",
-        userGroupCache.isUserMemberOfGroup(user1.getId(), getGroup("group3").getId()));
+    assertTrue(userGroupCache.isUserMemberOfGroup(user1.getId(), getGroup("group1").getId()),
+            "user1 should be member of group1");
+    assertFalse(userGroupCache.isUserMemberOfGroup(user1.getId(), getGroup("group3").getId()),
+            "user1 should not be member of group3");
     initTestDB.addTask("checkTaskMoves", "root");
     initTestDB.addTask("cTm.1", "checkTaskMoves");
     initTestDB.addTask("cTm.child", "cTm.1");

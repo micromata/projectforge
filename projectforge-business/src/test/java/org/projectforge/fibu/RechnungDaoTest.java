@@ -23,35 +23,28 @@
 
 package org.projectforge.fibu;
 
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.fail;
+import org.junit.jupiter.api.Test;
+import org.projectforge.business.fibu.*;
+import org.projectforge.framework.access.AccessException;
+import org.projectforge.framework.i18n.UserException;
+import org.projectforge.test.AbstractTestBase;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.sql.Date;
 
-import org.projectforge.business.fibu.RechnungDO;
-import org.projectforge.business.fibu.RechnungDao;
-import org.projectforge.business.fibu.RechnungFilter;
-import org.projectforge.business.fibu.RechnungTyp;
-import org.projectforge.business.fibu.RechnungsPositionDO;
-import org.projectforge.framework.access.AccessException;
-import org.projectforge.framework.i18n.UserException;
-import org.projectforge.test.AbstractTestBase;
-import org.projectforge.test.AbstractTestNGBase;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.testng.annotations.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
 
-public class RechnungDaoTest extends AbstractTestNGBase
-{
+public class RechnungDaoTest extends AbstractTestBase {
   @Autowired
   private RechnungDao rechnungDao;
 
   private static int dbNumber = RechnungDao.START_NUMBER;
 
   @Test
-  public void getNextNumber()
-  {
+  public void getNextNumber() {
     logon(AbstractTestBase.TEST_FINANCE_USER);
     final RechnungDO rechnung1 = new RechnungDO();
     int number = rechnungDao.getNextNumber(rechnung1);
@@ -105,8 +98,7 @@ public class RechnungDaoTest extends AbstractTestNGBase
   }
 
   @Test
-  public void checkAccess()
-  {
+  public void checkAccess() {
     logon(AbstractTestBase.TEST_FINANCE_USER);
     RechnungDO rechnung = new RechnungDO();
     int number = rechnungDao.getNextNumber(rechnung);
@@ -136,8 +128,7 @@ public class RechnungDaoTest extends AbstractTestNGBase
     checkNoAccess(id, rechnung, "Admin ");
   }
 
-  private void checkNoAccess(Serializable id, RechnungDO rechnung, String who)
-  {
+  private void checkNoAccess(Serializable id, RechnungDO rechnung, String who) {
     try {
       RechnungFilter filter = new RechnungFilter();
       rechnungDao.getList(filter);
@@ -155,18 +146,17 @@ public class RechnungDaoTest extends AbstractTestNGBase
     checkNoWriteAccess(id, rechnung, who);
   }
 
-  private void checkNoHistoryAccess(Serializable id, RechnungDO rechnung, String who)
-  {
-    assertEquals(who + " users should not have select access to history of invoices.",
-        rechnungDao.hasLoggedInUserHistoryAccess(false), false);
+  private void checkNoHistoryAccess(Serializable id, RechnungDO rechnung, String who) {
+    assertEquals(rechnungDao.hasLoggedInUserHistoryAccess(false), false,
+            who + " users should not have select access to history of invoices.");
     try {
       rechnungDao.hasLoggedInUserHistoryAccess(true);
       fail("AccessException expected: " + who + " users should not have select access to history of invoices.");
     } catch (AccessException ex) {
       // OK
     }
-    assertEquals(who + " users should not have select access to history of invoices.",
-        rechnungDao.hasLoggedInUserHistoryAccess(rechnung, false), false);
+    assertEquals(rechnungDao.hasLoggedInUserHistoryAccess(rechnung, false), false,
+            who + " users should not have select access to history of invoices.");
     try {
       rechnungDao.hasLoggedInUserHistoryAccess(rechnung, true);
       fail("AccessException expected: " + who + " users should not have select access to history of invoices.");
@@ -175,8 +165,7 @@ public class RechnungDaoTest extends AbstractTestNGBase
     }
   }
 
-  private void checkNoWriteAccess(Serializable id, RechnungDO rechnung, String who)
-  {
+  private void checkNoWriteAccess(Serializable id, RechnungDO rechnung, String who) {
     try {
       RechnungDO re = new RechnungDO();
       int number = rechnungDao.getNextNumber(re);
@@ -197,8 +186,7 @@ public class RechnungDaoTest extends AbstractTestNGBase
   }
 
   private RechnungsPositionDO createPosition(final int menge, final String einzelNetto, final String vat,
-      final String text)
-  {
+                                             final String text) {
     final RechnungsPositionDO pos = new RechnungsPositionDO();
     pos.setMenge(new BigDecimal(menge));
     pos.setEinzelNetto(new BigDecimal(einzelNetto));

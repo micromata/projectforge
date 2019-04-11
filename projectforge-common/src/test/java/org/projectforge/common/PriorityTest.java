@@ -1,8 +1,8 @@
 package org.projectforge.common;
 
 import org.projectforge.common.i18n.Priority;
-import org.testng.Assert;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 import static org.projectforge.common.i18n.Priority.*;
 
@@ -13,39 +13,39 @@ public class PriorityTest
   {
 
     String highest = "highest";
-    Assert.assertEquals(HIGHEST.getKey(), highest);
-    Assert.assertEquals(HIGHEST.getI18nKey(), "priority." + highest);
+    Assertions.assertEquals(HIGHEST.getKey(), highest);
+    Assertions.assertEquals(HIGHEST.getI18nKey(), "priority." + highest);
 
     String high = "high";
-    Assert.assertEquals(HIGH.getKey(), high);
-    Assert.assertEquals(HIGH.getI18nKey(), "priority." + high);
+    Assertions.assertEquals(HIGH.getKey(), high);
+    Assertions.assertEquals(HIGH.getI18nKey(), "priority." + high);
 
     String middle = "middle";
-    Assert.assertEquals(MIDDLE.getKey(), middle);
-    Assert.assertEquals(MIDDLE.getI18nKey(), "priority." + middle);
+    Assertions.assertEquals(MIDDLE.getKey(), middle);
+    Assertions.assertEquals(MIDDLE.getI18nKey(), "priority." + middle);
 
     String low = "low";
-    Assert.assertEquals(LOW.getKey(), low);
-    Assert.assertEquals(LOW.getI18nKey(), "priority." + low);
+    Assertions.assertEquals(LOW.getKey(), low);
+    Assertions.assertEquals(LOW.getI18nKey(), "priority." + low);
 
     String least = "least";
-    Assert.assertEquals(LEAST.getKey(), least);
-    Assert.assertEquals(LEAST.getI18nKey(), "priority." + least);
+    Assertions.assertEquals(LEAST.getKey(), least);
+    Assertions.assertEquals(LEAST.getI18nKey(), "priority." + least);
   }
 
   @Test
   public void testGetPriority()
   {
-    Assert.assertNull(Priority.getPriority(""));
-    Assert.assertEquals(Priority.getPriority("LEAST"), LEAST);
-    Assert.assertEquals(Priority.getPriority("LOW"), LOW);
-    Assert.assertEquals(Priority.getPriority("MIDDLE"), MIDDLE);
-    Assert.assertEquals(Priority.getPriority("HIGH"), HIGH);
-    Assert.assertEquals(Priority.getPriority("HIGHEST"), HIGHEST);
+    Assertions.assertNull(Priority.getPriority(""));
+    Assertions.assertEquals(Priority.getPriority("LEAST"), LEAST);
+    Assertions.assertEquals(Priority.getPriority("LOW"), LOW);
+    Assertions.assertEquals(Priority.getPriority("MIDDLE"), MIDDLE);
+    Assertions.assertEquals(Priority.getPriority("HIGH"), HIGH);
+    Assertions.assertEquals(Priority.getPriority("HIGHEST"), HIGHEST);
     try {
       Priority.getPriority("Extrordinary High");
     } catch (UnsupportedOperationException e) {
-      Assert.assertNotNull(e);
+      Assertions.assertNotNull(e);
     }
   }
 

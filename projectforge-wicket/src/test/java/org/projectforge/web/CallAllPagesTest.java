@@ -23,14 +23,13 @@
 
 package org.projectforge.web;
 
-import java.util.Map;
-
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.Test;
 import org.projectforge.business.systeminfo.SystemInfoCache;
 import org.projectforge.menu.builder.MenuCreator;
 import org.projectforge.test.AbstractTestBase;
-import org.projectforge.web.address.AddressViewPage;
 import org.projectforge.web.admin.SetupPage;
 import org.projectforge.web.doc.TutorialPage;
 import org.projectforge.web.registry.WebRegistry;
@@ -38,8 +37,8 @@ import org.projectforge.web.scripting.ScriptExecutePage;
 import org.projectforge.web.wicket.MessagePage;
 import org.projectforge.web.wicket.WicketPageTestBase;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.testng.annotations.AfterClass;
-import org.testng.annotations.Test;
+
+import java.util.Map;
 
 public class CallAllPagesTest extends WicketPageTestBase
 {
@@ -58,7 +57,7 @@ public class CallAllPagesTest extends WicketPageTestBase
       // Not yet checked:
       ScriptExecutePage.class };
 
-  @AfterClass
+  @AfterAll
   public static void logNumberOfTestesPages()
   {
     log.info("Number of tested Wicket pages: " + counter);

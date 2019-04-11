@@ -23,11 +23,9 @@
 
 package org.projectforge.export;
 
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.fail;
-import static org.testng.internal.junit.ArrayAsserts.assertArrayEquals;
+import org.junit.jupiter.api.Test;
 
-import org.testng.annotations.Test;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class SVGHelperTest
 {

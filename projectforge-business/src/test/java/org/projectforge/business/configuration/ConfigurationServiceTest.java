@@ -1,15 +1,15 @@
 package org.projectforge.business.configuration;
 
-import static org.testng.AssertJUnit.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
 
 import org.projectforge.framework.configuration.ConfigurationDao;
 import org.projectforge.framework.configuration.ConfigurationParam;
 import org.projectforge.framework.configuration.entities.ConfigurationDO;
-import org.projectforge.test.AbstractTestNGBase;
+import org.projectforge.test.AbstractTestBase;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.Test;
 
-public class ConfigurationServiceTest extends AbstractTestNGBase
+public class ConfigurationServiceTest extends AbstractTestBase
 {
   @Autowired
   private ConfigurationService configurationService;

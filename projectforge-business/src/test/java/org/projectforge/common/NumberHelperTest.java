@@ -23,18 +23,18 @@
 
 package org.projectforge.common;
 
-import static org.testng.AssertJUnit.*;
+import org.junit.jupiter.api.Test;
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
+import org.projectforge.framework.persistence.user.entities.PFUserDO;
+import org.projectforge.framework.utils.NumberHelper;
+import org.projectforge.test.AbstractTestBase;
 
 import java.math.BigDecimal;
 import java.util.Locale;
 
-import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
-import org.projectforge.framework.persistence.user.entities.PFUserDO;
-import org.projectforge.framework.utils.NumberHelper;
-import org.projectforge.test.AbstractTestNGBase;
-import org.testng.annotations.Test;
+import static org.junit.jupiter.api.Assertions.*;
 
-public class NumberHelperTest extends AbstractTestNGBase
+public class NumberHelperTest extends AbstractTestBase
 {
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(NumberHelperTest.class);
 

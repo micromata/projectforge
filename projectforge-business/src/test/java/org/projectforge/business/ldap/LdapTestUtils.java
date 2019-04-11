@@ -23,10 +23,7 @@
 
 package org.projectforge.business.ldap;
 
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertNull;
-import static org.testng.internal.junit.ArrayAsserts.assertArrayEquals;
-
+import static org.junit.jupiter.api.Assertions.*;
 import org.projectforge.business.ldap.LdapPerson;
 import org.projectforge.business.ldap.LdapUser;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;

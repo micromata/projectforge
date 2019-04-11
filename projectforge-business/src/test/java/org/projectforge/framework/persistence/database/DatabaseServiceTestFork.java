@@ -23,20 +23,20 @@
 
 package org.projectforge.framework.persistence.database;
 
-import static org.testng.AssertJUnit.*;
-
-import java.util.Collection;
-
+import org.junit.jupiter.api.Test;
 import org.projectforge.business.multitenancy.TenantRegistryMap;
 import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.framework.access.AccessException;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
-import org.projectforge.test.AbstractTestNGBase;
+import org.projectforge.test.AbstractTestBase;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.testng.annotations.Test;
 
-public class DatabaseServiceTestFork extends AbstractTestNGBase
+import java.util.Collection;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+public class DatabaseServiceTestFork extends AbstractTestBase
 {
   static final String DEFAULT_ADMIN_PASSWORD = "manage";
 

@@ -23,12 +23,7 @@
 
 package org.projectforge.business.task;
 
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertNull;
-import static org.testng.internal.junit.ArrayAsserts.assertArrayEquals;
-
-import java.util.List;
-
+import org.junit.jupiter.api.Test;
 import org.projectforge.business.fibu.ProjektDO;
 import org.projectforge.business.fibu.ProjektDao;
 import org.projectforge.business.fibu.kost.Kost2ArtDO;
@@ -37,11 +32,13 @@ import org.projectforge.business.fibu.kost.Kost2DO;
 import org.projectforge.business.fibu.kost.Kost2Dao;
 import org.projectforge.framework.access.AccessDao;
 import org.projectforge.test.AbstractTestBase;
-import org.projectforge.test.AbstractTestNGBase;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.testng.annotations.Test;
 
-public class TaskKostTest extends AbstractTestNGBase
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+public class TaskKostTest extends AbstractTestBase
 {
   // private static final Logger log = Logger.getLogger(TaskTest.class);
 
@@ -158,9 +155,10 @@ public class TaskKostTest extends AbstractTestNGBase
 
   private void assertKost2(final Kost2DO expected, final Kost2DO actual)
   {
-    assertArrayEquals("Kost2DO not expected.", new Integer[] { expected.getNummernkreis(), expected.getBereich(),
+    assertArrayEquals( new Integer[] { expected.getNummernkreis(), expected.getBereich(),
         expected.getTeilbereich(), expected.getKost2ArtId() },
         new Integer[] { actual.getNummernkreis(), actual.getBereich(),
-            actual.getTeilbereich(), actual.getKost2ArtId() });
+            actual.getTeilbereich(), actual.getKost2ArtId() },
+            "Kost2DO not expected.");
   }
 }

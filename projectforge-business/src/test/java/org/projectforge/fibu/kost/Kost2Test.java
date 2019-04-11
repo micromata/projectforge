@@ -23,14 +23,14 @@
 
 package org.projectforge.fibu.kost;
 
-import static org.testng.AssertJUnit.assertEquals;
+import org.junit.jupiter.api.Test;
+import org.projectforge.business.fibu.kost.Kost2ArtDO;
+import org.projectforge.business.fibu.kost.Kost2DO;
 
 import java.util.HashMap;
 import java.util.Map;
 
-import org.projectforge.business.fibu.kost.Kost2ArtDO;
-import org.projectforge.business.fibu.kost.Kost2DO;
-import org.testng.annotations.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class Kost2Test
 {

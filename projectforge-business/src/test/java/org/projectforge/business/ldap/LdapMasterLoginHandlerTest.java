@@ -23,20 +23,12 @@
 
 package org.projectforge.business.ldap;
 
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.testng.Assert.assertTrue;
-
-import java.io.File;
-import java.util.Set;
-
-import javax.naming.directory.SearchControls;
-
 import org.apache.directory.server.core.partition.impl.btree.jdbm.JdbmPartition;
 import org.apache.directory.server.ldap.LdapServer;
 import org.apache.directory.shared.ldap.exception.LdapInvalidDnException;
 import org.apache.directory.shared.ldap.name.DN;
 import org.apache.directory.shared.ldap.schema.SchemaManager;
+import org.junit.jupiter.api.Assertions;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 import org.projectforge.business.login.Login;
@@ -47,11 +39,17 @@ import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.framework.persistence.user.entities.GroupDO;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.test.AbstractTestBase;
-import org.projectforge.test.AbstractTestNGBase;
 import org.projectforge.test.JUnitLDAPTestWrapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.CollectionUtils;
-import org.testng.Assert;
+
+import javax.naming.directory.SearchControls;
+import java.io.File;
+import java.util.Set;
+
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 
 // Create
 // ~/ProjectForge/testldapConfig.xml
@@ -67,7 +65,7 @@ import org.testng.Assert;
 //    <managerPassword>test</managerPassword>
 //    <sslCertificateFile>/Users/kai/ProjectForge/testldap.cert</sslCertificateFile>
 //</ldapConfig>
-public class LdapMasterLoginHandlerTest extends AbstractTestNGBase
+public class LdapMasterLoginHandlerTest extends AbstractTestBase
 {
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory
       .getLogger(LdapMasterLoginHandlerTest.class);
@@ -97,10 +95,8 @@ public class LdapMasterLoginHandlerTest extends AbstractTestNGBase
   }
 
   //@BeforeClass
-  @Override
   public void setUp()
   {
-    super.setUp();
     //    try {
     //      Field developmentMode = GlobalConfiguration.class.getDeclaredField("developmentMode");
     //      developmentMode.setAccessible(true);
@@ -113,7 +109,7 @@ public class LdapMasterLoginHandlerTest extends AbstractTestNGBase
     //    Thread thread = new Thread(() -> {
     //      Result result = JUnitCore.runClasses(JUnitLDAPTestWrapper.class);
     //      if (result.wasSuccessful() == false) {
-    //        Assert.fail();
+    //        Assertions.fail();
     //      }
     //    });
 
@@ -222,15 +218,15 @@ public class LdapMasterLoginHandlerTest extends AbstractTestNGBase
     final PFUserDO user = new PFUserDO().setUsername("kai").setFirstname("Kai").setLastname("Reinhard");
     userService.createEncryptedPassword(user, "successful");
     userService.save(user);
-    Assert.assertEquals(LoginResultStatus.SUCCESS, loginHandler.checkLogin("kai", "successful").getLoginResultStatus());
+    Assertions.assertEquals(LoginResultStatus.SUCCESS, loginHandler.checkLogin("kai", "successful").getLoginResultStatus());
 
     final ArgumentCaptor<LdapUser> argumentCaptor = ArgumentCaptor.forClass(LdapUser.class);
     verify(ldapUserDao).createOrUpdate(Mockito.anyString(), argumentCaptor.capture());
     final LdapUser createdLdapUser = argumentCaptor.getValue();
-    Assert.assertEquals("kai", createdLdapUser.getUid());
-    Assert.assertEquals("Kai", createdLdapUser.getGivenName());
-    Assert.assertEquals("Reinhard", createdLdapUser.getSurname());
-    // Assert.assertEquals("successful", createdLdapUser.get());
+    Assertions.assertEquals("kai", createdLdapUser.getUid());
+    Assertions.assertEquals("Kai", createdLdapUser.getGivenName());
+    Assertions.assertEquals("Reinhard", createdLdapUser.getSurname());
+    // Assertions.assertEquals("successful", createdLdapUser.get());
     logoff();
   }
 
@@ -264,8 +260,8 @@ public class LdapMasterLoginHandlerTest extends AbstractTestNGBase
        * group.addUser(userGroupCache.getUser(userId1)); group.addUser(userGroupCache.getUser(userId2));
        * group.addUser(userGroupCache.getUser(userId3)); groupDao.internalUpdate(group);
        * synchronizeLdapUsers(loginHandler); ldapGroup = ldapGroupDao.findById(groupId1); assertMembers(ldapGroup,
-       * "ldapMaster1", "ldapMaster2", "ldapMaster3"); Assert.assertFalse(isMembersEmpty(ldapGroup)); LdapUser ldapUser
-       * = ldapUserDao.findById(userId1, getPath()); Assert.assertEquals("ldapMaster1", ldapUser.getUid());
+       * "ldapMaster1", "ldapMaster2", "ldapMaster3"); Assertions.assertFalse(isMembersEmpty(ldapGroup)); LdapUser ldapUser
+       * = ldapUserDao.findById(userId1, getPath()); Assertions.assertEquals("ldapMaster1", ldapUser.getUid());
        * 
        * // Renaming one user, deleting one user and assigning third user
        * userDao.internalMarkAsDeleted(userDao.getById(userId2)); PFUserDO user3 = userDao.getById(userId3);
@@ -277,7 +273,7 @@ public class LdapMasterLoginHandlerTest extends AbstractTestNGBase
        * // Renaming one user and mark him as restricted user3 = userDao.getById(userId3);
        * user3.setUsername("ldapMaster3"); user3.setRestrictedUser(true); userDao.internalUpdate(user3);
        * synchronizeLdapUsers(loginHandler); ldapUser = ldapUserDao.findById(userId3, getPath());
-       * Assert.assertEquals("ldapMaster3", ldapUser.getUid());
+       * Assertions.assertEquals("ldapMaster3", ldapUser.getUid());
        * assertTrue(ldapUser.getOrganizationalUnit().contains("ou=restricted")); ldapGroup =
        * ldapGroupDao.findById(groupId1); assertMembers(ldapGroup, "ldapMaster1", "ldapMaster3,ou=restricted",
        * "ldapMaster4");
@@ -285,23 +281,23 @@ public class LdapMasterLoginHandlerTest extends AbstractTestNGBase
        * // Renaming group group = groupDao.getById(groupId1); group.setName("ldapMasterGroupRenamed1");
        * groupDao.internalUpdate(group); synchronizeLdapUsers(loginHandler); ldapGroup =
        * ldapGroupDao.findById(groupId1); assertMembers(ldapGroup, "ldapMaster1", "ldapMaster3,ou=restricted",
-       * "ldapMaster4"); Assert.assertEquals("ldapMasterGroupRenamed1", ldapGroup.getCommonName());
+       * "ldapMaster4"); Assertions.assertEquals("ldapMasterGroupRenamed1", ldapGroup.getCommonName());
        * 
        * // Change password // /* final PFUserDO user1 = userDao.getById(userId1); final LoginResult loginResult =
-       * loginService.checkLogin(user1.getUsername(), "test123"); // Assert.assertEquals(LoginResultStatus.SUCCESS,
-       * loginResult.getLoginResultStatus()); // Assert.assertNotNull(ldapUserDao.authenticate(user1.getUsername(),
+       * loginService.checkLogin(user1.getUsername(), "test123"); // Assertions.assertEquals(LoginResultStatus.SUCCESS,
+       * loginResult.getLoginResultStatus()); // Assertions.assertNotNull(ldapUserDao.authenticate(user1.getUsername(),
        * "test123")); Login.getInstance().passwordChanged(user1, "newpassword"); //
-       * Assert.assertNotNull(ldapUserDao.authenticate(user1.getUsername(), "newpassword"));
+       * Assertions.assertNotNull(ldapUserDao.authenticate(user1.getUsername(), "newpassword"));
        *//*
          * // Delete all groups final Collection<GroupDO> groups = userGroupCache.getAllGroups(); for (final GroupDO g :
          * groups) { groupDao.internalMarkAsDeleted(g); } synchronizeLdapUsers(loginHandler);
-         * Assert.assertEquals(0,ldapGroupDao.findAll(ldapRealTestHelper.ldapConfig.getGroupBase()).size(),
+         * Assertions.assertEquals(0,ldapGroupDao.findAll(ldapRealTestHelper.ldapConfig.getGroupBase()).size(),
          * "LDAP groups must be empty (all groups are deleted in the PF data-base)."); final Collection<PFUserDO> users
          * = userGroupCache.getAllUsers(); for (final PFUserDO user : users) { userDao.internalMarkAsDeleted(user); }
-         * synchronizeLdapUsers(loginHandler); Assert.assertEquals(
+         * synchronizeLdapUsers(loginHandler); Assertions.assertEquals(
          * 0,ldapUserDao.findAll(ldapRealTestHelper.ldapConfig.getGroupBase()).size(),
          * "LDAP users must be empty (all user are deleted in the PF data-base)."); ldapUser =
-         * ldapUserDao.findById(userId1, getPath()); Assert.assertNull(ldapUser);
+         * ldapUserDao.findById(userId1, getPath()); Assertions.assertNull(ldapUser);
          */
   }
 
@@ -321,8 +317,8 @@ public class LdapMasterLoginHandlerTest extends AbstractTestNGBase
   private void assertMembers(final LdapGroup ldapGroup, final String... usernames)
   {
     final Set<String> members = ldapGroup.getMembers();
-    Assert.assertFalse(CollectionUtils.isEmpty(members));
-    Assert.assertEquals(usernames.length, members.size());
+    Assertions.assertFalse(CollectionUtils.isEmpty(members));
+    Assertions.assertEquals(usernames.length, members.size());
     final LdapConfig ldapConfig = ldapRealTestHelper.ldapConfig;
     for (final String username : usernames) {
       final String user = "uid=" + username + "," + ldapConfig.getUserBase() + "," + ldapConfig.getBaseDN();

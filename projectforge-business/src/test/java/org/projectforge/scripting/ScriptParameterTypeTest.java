@@ -23,11 +23,11 @@
 
 package org.projectforge.scripting;
 
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.fail;
-
+import org.junit.jupiter.api.Test;
 import org.projectforge.business.scripting.ScriptParameterType;
-import org.testng.annotations.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
 
 public class ScriptParameterTypeTest
 {

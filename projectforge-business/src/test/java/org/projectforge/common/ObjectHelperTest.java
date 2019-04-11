@@ -23,13 +23,13 @@
 
 package org.projectforge.common;
 
-import static org.testng.AssertJUnit.assertFalse;
-import static org.testng.AssertJUnit.assertTrue;
+import org.junit.jupiter.api.Test;
+import org.projectforge.framework.utils.ObjectHelper;
 
 import java.math.BigDecimal;
 
-import org.projectforge.framework.utils.ObjectHelper;
-import org.testng.annotations.Test;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class ObjectHelperTest
 {

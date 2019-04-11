@@ -23,21 +23,21 @@
 
 package org.projectforge.business.group.service;
 
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertTrue;
-
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.TreeSet;
-
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.projectforge.business.user.GroupDao;
 import org.projectforge.business.user.GroupsComparator;
 import org.projectforge.business.user.UserGroupCache;
 import org.projectforge.framework.persistence.user.entities.GroupDO;
 import org.springframework.util.CollectionUtils;
-import org.testng.annotations.Test;
+
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.TreeSet;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class GroupsProviderTest
 {

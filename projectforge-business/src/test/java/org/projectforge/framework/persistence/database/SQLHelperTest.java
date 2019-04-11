@@ -23,15 +23,15 @@
 
 package org.projectforge.framework.persistence.database;
 
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.fail;
+import org.junit.jupiter.api.Test;
+import org.projectforge.framework.persistence.utils.SQLHelper;
 
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 
-import org.projectforge.framework.persistence.utils.SQLHelper;
-import org.testng.annotations.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
 
 public class SQLHelperTest
 {

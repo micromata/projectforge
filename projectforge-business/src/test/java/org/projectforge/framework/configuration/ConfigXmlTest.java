@@ -23,18 +23,22 @@
 
 package org.projectforge.framework.configuration;
 
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertTrue;
-
-import java.util.Calendar;
-
 import org.apache.commons.lang3.StringUtils;
+import org.junit.jupiter.api.Test;
 import org.projectforge.common.JiraUtilsTest;
 import org.projectforge.framework.calendar.ConfigureHoliday;
 import org.projectforge.framework.calendar.HolidayDefinition;
 import org.projectforge.framework.calendar.Holidays;
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
+import org.projectforge.framework.persistence.user.api.UserContext;
+import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.xstream.XmlHelper;
-import org.testng.annotations.Test;
+
+import java.util.Calendar;
+import java.util.TimeZone;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class ConfigXmlTest
 {
@@ -120,6 +124,9 @@ public class ConfigXmlTest
       return ConfigXml.getInstance();
     }
     ConfigXml.internalSetInstance(xml);
+    PFUserDO user = new PFUserDO();
+    user.setTimeZone(TimeZone.getTimeZone("Europe/Berlin"));
+    ThreadLocalUserContext.setUserContext(new UserContext(user, null));
     return ConfigXml.getInstance();
   }
 
@@ -142,12 +149,12 @@ public class ConfigXmlTest
     cal.set(Calendar.YEAR, 2009);
     cal.set(Calendar.MONTH, Calendar.MAY);
     cal.set(Calendar.DAY_OF_MONTH, 1);
-    assertEquals("Should be there.", true, holidays.isHoliday(2009, cal.get(Calendar.DAY_OF_YEAR)));
+    assertEquals( true, holidays.isHoliday(2009, cal.get(Calendar.DAY_OF_YEAR)),"Should be there.");
     cal.set(Calendar.MONTH, Calendar.FEBRUARY);
     cal.set(Calendar.DAY_OF_MONTH, 23);
-    assertEquals("Should be there.", true, holidays.isHoliday(2009, cal.get(Calendar.DAY_OF_YEAR)));
+    assertEquals( true, holidays.isHoliday(2009, cal.get(Calendar.DAY_OF_YEAR)),"Should be there.");
     cal.set(Calendar.DAY_OF_MONTH, 24);
-    assertEquals("Should be ignored.", false, holidays.isHoliday(2009, cal.get(Calendar.DAY_OF_YEAR)));
+    assertEquals( false, holidays.isHoliday(2009, cal.get(Calendar.DAY_OF_YEAR)),"Should be ignored.");
   }
 
   @Test
@@ -164,7 +171,7 @@ public class ConfigXmlTest
     boolean equalsWithoutPosix = expected_config_without_posix.equals(exported_config);
     boolean equalsWithPosix = expected_config_with_posix.equals(exported_config);
     boolean equals = equalsWithoutPosix | equalsWithPosix;
-    assertTrue("Exported config is not as expected.", equals);
+    assertTrue( equals,"Exported config is not as expected.");
   }
 
   @Test

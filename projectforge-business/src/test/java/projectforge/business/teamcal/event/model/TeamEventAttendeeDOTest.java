@@ -1,14 +1,14 @@
 package projectforge.business.teamcal.event.model;
 
-import static org.testng.Assert.assertFalse;
-import static org.testng.Assert.assertTrue;
+import org.junit.jupiter.api.Test;
+import org.projectforge.business.address.AddressDO;
+import org.projectforge.business.teamcal.event.model.TeamEventAttendeeDO;
 
 import java.util.HashSet;
 import java.util.Set;
 
-import org.projectforge.business.address.AddressDO;
-import org.projectforge.business.teamcal.event.model.TeamEventAttendeeDO;
-import org.testng.annotations.Test;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Created by blumenstein on 19.12.16.

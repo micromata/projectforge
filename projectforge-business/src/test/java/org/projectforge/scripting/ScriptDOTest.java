@@ -23,10 +23,10 @@
 
 package org.projectforge.scripting;
 
-import static org.testng.AssertJUnit.assertEquals;
-
+import org.junit.jupiter.api.Test;
 import org.projectforge.business.scripting.ScriptDO;
-import org.testng.annotations.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class ScriptDOTest
 {

@@ -23,10 +23,10 @@
 
 package org.projectforge.core;
 
-import static org.testng.AssertJUnit.*;
-
+import org.junit.jupiter.api.Test;
 import org.projectforge.framework.persistence.jpa.impl.HibernateSearchFilterUtils;
-import org.testng.annotations.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class BaseDaoTest
 {

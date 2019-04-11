@@ -23,14 +23,14 @@
 
 package org.projectforge.common;
 
-import static org.testng.AssertJUnit.assertEquals;
-
+import org.junit.jupiter.api.Test;
 import org.projectforge.framework.time.DateHolder;
 import org.projectforge.framework.utils.FileHelper;
-import org.projectforge.test.AbstractTestNGBase;
-import org.testng.annotations.Test;
+import org.projectforge.test.AbstractTestBase;
 
-public class FileHelperTest extends AbstractTestNGBase
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+public class FileHelperTest extends AbstractTestBase
 {
   @Test
   public void createSafeFilename()

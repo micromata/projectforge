@@ -23,10 +23,8 @@
 
 package org.projectforge.framework.persistence.database;
 
-import static org.testng.AssertJUnit.*;
-
-import javax.sql.DataSource;
-
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import org.projectforge.business.address.AddressDO;
 import org.projectforge.common.DatabaseDialect;
 import org.projectforge.continuousdb.DatabaseSupport;
@@ -35,13 +33,14 @@ import org.projectforge.continuousdb.TableAttribute;
 import org.projectforge.continuousdb.TableAttributeType;
 import org.projectforge.framework.persistence.api.HibernateUtils;
 import org.projectforge.test.AbstractTestBase;
-import org.projectforge.test.AbstractTestNGBase;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.testng.Assert;
-import org.testng.annotations.Test;
 
-public class DatabaseUpdateDaoTest extends AbstractTestNGBase
+import javax.sql.DataSource;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+public class DatabaseUpdateDaoTest extends AbstractTestBase
 {
   @Autowired
   private DatabaseService myDatabaseUpdater;
@@ -75,7 +74,7 @@ public class DatabaseUpdateDaoTest extends AbstractTestNGBase
     }
     try {
       databaseUpdateDao.createUniqueConstraintName("t_mytable", new String[] { "tenant_id", "username" }, paranoia);
-      Assert.fail("UnsupportedOperation excepted!");
+      Assertions.fail("UnsupportedOperation excepted!");
     } catch (final UnsupportedOperationException ex) {
       // Expected.
     }
@@ -141,7 +140,7 @@ public class DatabaseUpdateDaoTest extends AbstractTestNGBase
     assertTrue(myDatabaseUpdater.createTable(table));
     final JdbcTemplate jdbc = new JdbcTemplate(dataSource);
     jdbc.execute("INSERT INTO t_test (name, counter, money) VALUES('test', 5, 5.12);");
-    assertFalse("Data base is not empty!", myDatabaseUpdater.dropTable("t_test"));
+    assertFalse( myDatabaseUpdater.dropTable("t_test"),"Data base is not empty!");
     jdbc.execute("DELETE FROM t_test;");
   }
 

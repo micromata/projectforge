@@ -23,14 +23,8 @@
 
 package org.projectforge.web.wicket;
 
-import java.util.MissingResourceException;
-
 import org.apache.commons.lang3.ClassUtils;
-import org.apache.wicket.AttributeModifier;
-import org.apache.wicket.Component;
-import org.apache.wicket.MarkupContainer;
-import org.apache.wicket.Page;
-import org.apache.wicket.Session;
+import org.apache.wicket.*;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.form.LabeledWebMarkupContainer;
 import org.apache.wicket.markup.html.link.AbstractLink;
@@ -46,19 +40,20 @@ import org.apache.wicket.util.tester.FormTester;
 import org.apache.wicket.util.tester.WicketTester;
 import org.apache.wicket.util.visit.IVisit;
 import org.apache.wicket.util.visit.IVisitor;
+import org.junit.BeforeClass;
 import org.projectforge.ProjectForgeApp;
 import org.projectforge.business.user.UserXmlPreferencesCache;
 import org.projectforge.framework.i18n.I18nHelper;
 import org.projectforge.plugins.core.AbstractPlugin;
 import org.projectforge.plugins.core.PluginAdminService;
 import org.projectforge.test.AbstractTestBase;
-import org.projectforge.test.AbstractTestNGBase;
 import org.projectforge.web.LoginPage;
 import org.projectforge.web.LoginService;
 import org.projectforge.web.session.MySession;
 import org.projectforge.web.wicket.components.ContentMenuEntryPanel;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.testng.annotations.BeforeClass;
+
+import java.util.MissingResourceException;
 
 /**
  * Your wicket tester class must extends this or any derived class from AbstractTestBase for correct initialization of
@@ -66,7 +61,7 @@ import org.testng.annotations.BeforeClass;
  *
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-public class WicketPageTestBase extends AbstractTestNGBase
+public class WicketPageTestBase extends AbstractTestBase
 {
   protected static final String KEY_LOGINPAGE_BUTTON_LOGIN = "loginButton:button";
 

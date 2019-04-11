@@ -23,15 +23,15 @@
 
 package org.projectforge.business.teamcal.service;
 
-import static org.testng.AssertJUnit.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.Map;
 
-import org.projectforge.test.AbstractTestNGBase;
+import org.projectforge.test.AbstractTestBase;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.Test;
 
-public class CryptServiceTest extends AbstractTestNGBase
+public class CryptServiceTest extends AbstractTestBase
 {
   @Autowired
   private CryptService cryptService;

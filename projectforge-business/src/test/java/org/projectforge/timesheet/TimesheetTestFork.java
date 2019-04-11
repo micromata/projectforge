@@ -23,6 +23,8 @@
 
 package org.projectforge.timesheet;
 
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.projectforge.business.task.TaskDO;
 import org.projectforge.business.task.TaskDao;
 import org.projectforge.business.timesheet.TimesheetDO;
@@ -33,13 +35,12 @@ import org.projectforge.framework.i18n.UserException;
 import org.projectforge.framework.time.DateHolder;
 import org.projectforge.framework.time.DatePrecision;
 import org.projectforge.test.AbstractTestBase;
-import org.projectforge.test.AbstractTestNGBase;
+import org.projectforge.test.AbstractTestBase;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionCallback;
 import org.springframework.transaction.support.TransactionTemplate;
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.Test;
 
 import java.io.Serializable;
 import java.sql.Timestamp;
@@ -47,10 +48,8 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
 
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.fail;
-
-public class TimesheetTestFork extends AbstractTestNGBase {
+import static org.junit.jupiter.api.Assertions.*;
+public class TimesheetTestFork extends AbstractTestBase {
   // private static final Logger log = Logger.getLogger(TaskTest.class);
   @Autowired
   TimesheetDao timesheetDao;
@@ -63,9 +62,8 @@ public class TimesheetTestFork extends AbstractTestNGBase {
 
   DateHolder date;
 
-  @BeforeClass
+  @BeforeEach
   public void setUp() {
-    super.setUp();
     date = new DateHolder(new Date(), DatePrecision.MINUTE_15, Locale.GERMAN);
   }
 

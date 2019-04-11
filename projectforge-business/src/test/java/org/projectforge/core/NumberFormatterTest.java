@@ -23,17 +23,17 @@
 
 package org.projectforge.core;
 
-import static org.testng.AssertJUnit.assertEquals;
+import org.junit.jupiter.api.Test;
+import org.projectforge.common.TestHelper;
+import org.projectforge.framework.utils.NumberFormatter;
+import org.projectforge.test.AbstractTestBase;
 
 import java.math.BigDecimal;
 import java.util.Locale;
 
-import org.projectforge.common.TestHelper;
-import org.projectforge.framework.utils.NumberFormatter;
-import org.projectforge.test.AbstractTestNGBase;
-import org.testng.annotations.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class NumberFormatterTest extends AbstractTestNGBase
+public class NumberFormatterTest extends AbstractTestBase
 {
   @Test
   public void formatPercentage()

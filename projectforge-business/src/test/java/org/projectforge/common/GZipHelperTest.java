@@ -24,18 +24,18 @@
 package org.projectforge.common;
 
 import org.projectforge.framework.utils.GZIPHelper;
-import org.testng.Assert;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 public class GZipHelperTest
 {
   @Test
   public void testCompressUncompress()
   {
-    Assert.assertNull(GZIPHelper.compress(null));
-    Assert.assertEquals("", GZIPHelper.compress(""));
-    Assert.assertNull(GZIPHelper.uncompress(null));
-    Assert.assertEquals("", GZIPHelper.uncompress(""));
+    Assertions.assertNull(GZIPHelper.compress(null));
+    Assertions.assertEquals("", GZIPHelper.compress(""));
+    Assertions.assertNull(GZIPHelper.uncompress(null));
+    Assertions.assertEquals("", GZIPHelper.uncompress(""));
     test("<tag>Hurzel Hurzel</tag>");
     test(
         "<tag>Hurzel Hurzel</tag><tag>Hurzel Hurzel</tag><tag>Hurzel Hurzel</tag><tag>Hurzel Hurzel</tag><tag>Hurzel Hurzel</tag><tag>Hurzel Hurzel</tag><tag>Hurzel Hurzel</tag><tag>Hurzel Hurzel</tag><tag>Hurzel Hurzel</tag><tag>Hurzel Hurzel</tag><tag>Hurzel Hurzel</tag><tag>Hurzel Hurzel</tag><tag>Hurzel Hurzel</tag><tag>Hurzel Hurzel</tag><tag>Hurzel Hurzel</tag><tag>Hurzel Hurzel</tag><tag>Hurzel Hurzel</tag><tag>Hurzel Hurzel</tag><tag>Hurzel Hurzel</tag><tag>Hurzel Hurzel</tag><tag>Hurzel Hurzel</tag><tag>Hurzel Hurzel</tag><tag>Hurzel Hurzel</tag><tag>Hurzel Hurzel</tag><tag>Hurzel Hurzel</tag><tag>Hurzel Hurzel</tag><tag>Hurzel Hurzel</tag><tag>Hurzel Hurzel</tag><tag>Hurzel Hurzel</tag><tag>Hurzel Hurzel</tag><tag>Hurzel Hurzel</tag><tag>Hurzel Hurzel</tag><tag>Hurzel Hurzel</tag><tag>Hurzel Hurzel</tag><tag>Hurzel Hurzel</tag><tag>Hurzel Hurzel</tag><tag>Hurzel Hurzel</tag><tag>Hurzel Hurzel</tag><tag>Hurzel Hurzel</tag><tag>Hurzel Hurzel</tag><tag>Hurzel Hurzel</tag><tag>Hurzel Hurzel</tag><tag>Hurzel Hurzel</tag><tag>Hurzel Hurzel</tag><tag>Hurzel Hurzel</tag><tag>Hurzel Hurzel</tag><tag>Hurzel Hurzel</tag><tag>Hurzel Hurzel</tag><tag>Hurzel Hurzel</tag><tag>Hurzel Hurzel</tag><tag>Hurzel Hurzel</tag><tag>Hurzel Hurzel</tag><tag>Hurzel Hurzel</tag><tag>Hurzel Hurzel</tag><tag>Hurzel Hurzel</tag><tag>Hurzel Hurzel</tag><tag>Hurzel Hurzel</tag><tag>Hurzel Hurzel</tag><tag>Hurzel Hurzel</tag><tag>Hurzel Hurzel</tag>");
@@ -45,6 +45,6 @@ public class GZipHelperTest
   {
     final String compressed = GZIPHelper.compress(str);
     final String uncompressed = GZIPHelper.uncompress(compressed);
-    Assert.assertEquals(str, uncompressed);
+    Assertions.assertEquals(str, uncompressed);
   }
 }

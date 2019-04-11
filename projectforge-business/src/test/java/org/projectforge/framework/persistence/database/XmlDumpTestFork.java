@@ -23,10 +23,10 @@
 
 package org.projectforge.framework.persistence.database;
 
-import org.projectforge.test.AbstractTestNGBase;
+import org.projectforge.test.AbstractTestBase;
 import org.springframework.beans.factory.annotation.Autowired;
 
-public class XmlDumpTestFork extends AbstractTestNGBase
+public class XmlDumpTestFork extends AbstractTestBase
 {
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(XmlDumpTestFork.class);
 
