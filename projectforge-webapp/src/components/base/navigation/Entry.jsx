@@ -1,3 +1,5 @@
+import { faChevronDown } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { menuItemPropType } from '../../../utilities/propTypes';
@@ -17,8 +19,9 @@ function Entry({ entry }) {
     if (entry.subMenu) {
         content = (
             <UncontrolledDropdown nav inNavbar>
-                <DropdownToggle nav caret>
+                <DropdownToggle nav>
                     {entry.title}
+                    <FontAwesomeIcon icon={faChevronDown} />
                 </DropdownToggle>
                 <DropdownMenu>
                     {entry.subMenu.map(item => (

@@ -1,3 +1,5 @@
+import { faChevronDown } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import PropTypes from 'prop-types';
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
@@ -73,8 +75,9 @@ class Navigation extends Component {
                     </Nav>
                     <Nav className="ml-auto" navbar>
                         <UncontrolledDropdown nav inNavbar>
-                            <DropdownToggle nav caret>
+                            <DropdownToggle nav>
                                 {username}
+                                <FontAwesomeIcon icon={faChevronDown} />
                             </DropdownToggle>
                             <DropdownMenu right>
                                 <DropdownItem className={style.entryItem}>
