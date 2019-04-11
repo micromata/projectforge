@@ -25,7 +25,6 @@ package org.projectforge.web.admin;
 
 import de.micromata.genome.db.jpa.xmldump.api.JpaXmlDumpService;
 import de.micromata.genome.util.runtime.RuntimeIOException;
-import javafx.scene.control.MenuBuilder;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.wicket.markup.html.link.Link;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
@@ -94,9 +93,6 @@ public class AdminPage extends AbstractStandardFormPage implements ISelectCaller
 
   @SpringBean
   private PfEmgrFactory emf;
-
-  @SpringBean
-  MenuBuilder menuBuilder;
 
   @SpringBean
   MenuCreator menuCreator;
