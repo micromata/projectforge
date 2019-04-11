@@ -48,7 +48,7 @@ class UILayoutTest : AbstractTestBase() {
         var jsonString = gson.toJson(bookRest.createEditLayout(book))
         var jsonValidator = JsonValidator(jsonString)
 
-        assertEquals("???book.title.edit??", jsonValidator.get("title")) // translations not available in test.
+        assertEquals("???book.title.edit???", jsonValidator.get("title")) // translations not available in test.
         assertField(jsonValidator.getMap("layout[0]"), "title", 255.0, "STRING", "???book.title???", type = "INPUT", key = "el-1")
         assertEquals(true, jsonValidator.getBoolean("layout[0].focus"))
         assertField(jsonValidator.getMap("layout[1]"), "authors", 1000.0, null, "???book.authors???", type = "TEXTAREA", key = "el-2")
