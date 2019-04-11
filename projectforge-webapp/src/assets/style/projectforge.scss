@@ -40,6 +40,11 @@ nav.bg-light {
     font-size: 14px;
     margin-left: 20px;
   }
+
+  ul li a.btn {
+    color: #fff !important;
+    background: #009BA3;
+  }
 }
 
 .container-fluid nav.navbar.navbar-light {
@@ -134,7 +139,39 @@ fieldset {
 // NavTabs
 
 a[class*="_navTab_"] {
-
   background: #5e6c7c;
   color: #fff;
+}
+
+// SVG
+
+svg.fa-chevron-down {
+  color: #009BA3;
+}
+
+// Calendar
+
+.rbc-event {
+  color: #222222;
+  borderRadius: 3px;
+  //opacity: 0.8;
+  border: 0px;
+  display: block;
+}
+
+.rbc-event.timesheet {
+  color: #fff;
+  background: #7994d7;
+}
+
+.weekend {
+  background: #f5e0df;
+}
+
+.weekend-holiday {
+  background: #f5e0df;
+}
+
+.holiday {
+  background: #f5e0df;
 }
