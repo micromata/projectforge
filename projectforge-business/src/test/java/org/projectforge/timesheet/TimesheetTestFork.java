@@ -23,15 +23,6 @@
 
 package org.projectforge.timesheet;
 
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.fail;
-
-import java.io.Serializable;
-import java.sql.Timestamp;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.Locale;
-
 import org.projectforge.business.task.TaskDO;
 import org.projectforge.business.task.TaskDao;
 import org.projectforge.business.timesheet.TimesheetDO;
@@ -50,8 +41,16 @@ import org.springframework.transaction.support.TransactionTemplate;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
-public class TimesheetTestFork extends AbstractTestNGBase
-{
+import java.io.Serializable;
+import java.sql.Timestamp;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.Locale;
+
+import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.fail;
+
+public class TimesheetTestFork extends AbstractTestNGBase {
   // private static final Logger log = Logger.getLogger(TaskTest.class);
   @Autowired
   TimesheetDao timesheetDao;
@@ -65,37 +64,34 @@ public class TimesheetTestFork extends AbstractTestNGBase
   DateHolder date;
 
   @BeforeClass
-  public void setUp()
-  {
+  public void setUp() {
     super.setUp();
     date = new DateHolder(new Date(), DatePrecision.MINUTE_15, Locale.GERMAN);
   }
 
   @Test
-  public void hasSelectAccess()
-  {
+  public void hasSelectAccess() {
     final Serializable[] id = new Serializable[1];
-    txTemplate.execute(new TransactionCallback()
-    {
-      public Object doInTransaction(final TransactionStatus status)
-      {
+    txTemplate.execute(new TransactionCallback() {
+      public Object doInTransaction(final TransactionStatus status) {
         initTestDB.addTask("ts-hasSelectAccess-task", "root");
         initTestDB.addUser("ts-hasSelectAccess-user");
         final TimesheetDO ts = new TimesheetDO();
         final long current = System.currentTimeMillis();
-        ts.setTask(initTestDB.getTask("ts-hasSelectAccess-task")).setUser(getUser("ts-hasSelectAccess-user"))
-            .setLocation("Office")
-            .setDescription("A lot of stuff done and more.").setStartTime(new Timestamp(current)).setStopTime(
-                new Timestamp(current + 2 * 60 * 60 * 1000));
+
+        ts.setTask(initTestDB.getTask("ts-hasSelectAccess-task"));
+        ts.setUser(getUser("ts-hasSelectAccess-user"));
+        ts.setLocation("Office");
+        ts.setDescription("A lot of stuff done and more.");
+        ts.setStartTime(new Timestamp(current));
+        ts.setStopTime(new Timestamp(current + 2 * 60 * 60 * 1000));
         id[0] = timesheetDao.internalSave(ts);
         timesheetDao.internalSave(ts);
         return null;
       }
     });
-    txTemplate.execute(new TransactionCallback()
-    {
-      public Object doInTransaction(final TransactionStatus status)
-      {
+    txTemplate.execute(new TransactionCallback() {
+      public Object doInTransaction(final TransactionStatus status) {
         logon(getUser("ts-hasSelectAccess-user"));
         final TimesheetDO ts = timesheetDao.getById(id[0]); // Has no access, but is owner of this timesheet
         assertEquals("Field should be hidden", TimesheetDao.HIDDEN_FIELD_MARKER, ts.getShortDescription());
@@ -104,10 +100,8 @@ public class TimesheetTestFork extends AbstractTestNGBase
         return null;
       }
     });
-    txTemplate.execute(new TransactionCallback()
-    {
-      public Object doInTransaction(final TransactionStatus status)
-      {
+    txTemplate.execute(new TransactionCallback() {
+      public Object doInTransaction(final TransactionStatus status) {
         final TimesheetDO ts = timesheetDao.internalGetById(id[0]);
         assertEquals("Field should not be overwritten", "A lot of stuff done and more.", ts.getShortDescription());
         assertEquals("Field should not be overwritten", "A lot of stuff done and more.", ts.getDescription());
@@ -118,13 +112,13 @@ public class TimesheetTestFork extends AbstractTestNGBase
   }
 
   @Test
-  public void saveAndModify()
-  {
+  public void saveAndModify() {
     initTestDB.addTask("saveAndModify-task", "root");
     initTestDB.addUser("saveAndModify-user");
     final TimesheetDO ts1 = new TimesheetDO();
     final long current = System.currentTimeMillis();
-    ts1.setStartTime(new Timestamp(current)).setStopTime(new Timestamp(current + 2 * 60 * 60 * 1000));
+    ts1.setStartTime(new Timestamp(current));
+    ts1.setStopTime(new Timestamp(current + 2 * 60 * 60 * 1000));
     try {
       timesheetDao.internalSave(ts1);
       fail("timesheet without task and/or user should not be possible.");
@@ -136,30 +130,35 @@ public class TimesheetTestFork extends AbstractTestNGBase
       fail("timesheet without user should not be possible.");
     } catch (final Exception ex) {
     }
-    ts1.setTask(null).setUser(getUser("saveAndModify-user"));
+    ts1.setTask(null);
+    ts1.setUser(getUser("saveAndModify-user"));
     try {
       timesheetDao.internalSave(ts1);
       fail("timesheet without task and/or user should not be possible.");
     } catch (final Exception ex) {
     }
-    ts1.setTask(getTask("saveAndModify-task")).setStartTime(new Timestamp(current))
-        .setStopTime(new Timestamp(current + 2 * 60 * 60 * 1000));
+    ts1.setTask(getTask("saveAndModify-task"));
+    ts1.setStartTime(new Timestamp(current));
+    ts1.setStopTime(new Timestamp(current + 2 * 60 * 60 * 1000));
     timesheetDao.internalSave(ts1);
     // ToDo: Check onSaveOrUpdate: kost2Id vs. task!
   }
 
   @Test
-  public void testOverlap()
-  {
+  public void testOverlap() {
     logon(AbstractTestBase.ADMIN);
     initTestDB.addTask("timesheet", "root");
     initTestDB.addUser("timesheet-user");
-    TimesheetDO ts1 = new TimesheetDO().setTask(getTask("timesheet")).setUser(getUser("timesheet-user"));
+    TimesheetDO ts1 = new TimesheetDO();
+    ts1.setTask(getTask("timesheet"));
+    ts1.setUser(getUser("timesheet-user"));
     setTimeperiod(ts1, 21, 8, 0, 21, 16, 0); // 11/21 from 8:00 to 16:00
     Serializable id = timesheetDao.save(ts1);
     ts1 = timesheetDao.internalGetById(id);
 
-    final TimesheetDO ts2 = new TimesheetDO().setTask(getTask("timesheet")).setUser(getUser("timesheet-user"));
+    final TimesheetDO ts2 = new TimesheetDO();
+    ts2.setTask(getTask("timesheet"));
+    ts2.setUser(getUser("timesheet-user"));
     setTimeperiod(ts2, 21, 15, 52, 21, 18, 0); // 11/21 from 15:45 to 18:00
     try {
       timesheetDao.save(ts2); // Overlap with ts1!
@@ -177,7 +176,9 @@ public class TimesheetTestFork extends AbstractTestNGBase
     setTimeperiod(ts2, 21, 16, 0, 21, 18, 0); // 11/21 from 16:00 to 18:00
     final Serializable id2 = timesheetDao.save(ts2); // No overlap, OK.
 
-    TimesheetDO ts3 = new TimesheetDO().setTask(getTask("timesheet")).setUser(getUser("timesheet-user"));
+    TimesheetDO ts3 = new TimesheetDO();
+    ts3.setTask(getTask("timesheet"));
+    ts3.setUser(getUser("timesheet-user"));
     setTimeperiod(ts3, 21, 16, 0, 21, 18, 0); // 11/21 from 16:00 to 18:00
     try {
       timesheetDao.save(ts3); // Overlap with ts1!
@@ -185,10 +186,8 @@ public class TimesheetTestFork extends AbstractTestNGBase
     } catch (final UserException ex) {
       assertEquals("timesheet.error.timeperiodOverlapDetection", ex.getI18nKey());
     }
-    txTemplate.execute(new TransactionCallback()
-    {
-      public Object doInTransaction(final TransactionStatus status)
-      {
+    txTemplate.execute(new TransactionCallback() {
+      public Object doInTransaction(final TransactionStatus status) {
         final TimesheetDO t = timesheetDao.internalGetById(id2);
         timesheetDao.markAsDeleted(t); // Delete conflicting time sheet
         return null;
@@ -205,8 +204,7 @@ public class TimesheetTestFork extends AbstractTestNGBase
   }
 
   @Test
-  public void testTimesheetProtection()
-  {
+  public void testTimesheetProtection() {
     logon(AbstractTestBase.ADMIN);
     // Create test tasks:
     initTestDB.addUser("tpt-user");
@@ -253,10 +251,12 @@ public class TimesheetTestFork extends AbstractTestNGBase
     date.setDate(2008, Calendar.NOVEMBER, 30, 0, 0, 0); // Change protection date, so time sheet is now protected.
     task.setProtectTimesheetsUntil(date.getDate());
     taskDao.internalUpdate(task); // Without check access.
-    sheet = timesheetDao.getById(id).setDescription("Hurzel"); // Should work, because start and stop time is not modified.
+    sheet = timesheetDao.getById(id);
+    sheet.setDescription("Hurzel"); // Should work, because start and stop time is not modified.
     timesheetDao.update(sheet);
     date.setDate(2008, Calendar.NOVEMBER, 1, 2, 0, 0);
-    sheet = timesheetDao.getById(id).setStopTime(date.getTimestamp());
+    sheet = timesheetDao.getById(id);
+    sheet.setStopTime(date.getTimestamp());
     try {
       timesheetDao.update(sheet);
       fail("AccessException caused by time sheet violation expected.");
@@ -273,21 +273,24 @@ public class TimesheetTestFork extends AbstractTestNGBase
   }
 
   @Test
-  public void testTaskBookable()
-  {
+  public void testTaskBookable() {
     initTestDB.addTask("taskBookable", "root");
     final TaskDO task1 = initTestDB.addTask("dB.1", "taskBookable");
     final TaskDO task2 = initTestDB.addTask("dB.2", "taskBookable");
     initTestDB.addTask("dB.1.1", "dB.1");
     initTestDB.addUser("ttb-user");
-    TimesheetDO sheet = new TimesheetDO().setUser(getUser("ttb-user")).setTask(getTask("dB.1.1"));
+    TimesheetDO sheet = new TimesheetDO();
+    sheet.setUser(getUser("ttb-user"));
+    sheet.setTask(getTask("dB.1.1"));
     setTimeperiod(sheet, 2009, Calendar.OCTOBER, 01, 7, 0, 01, 8, 15); // 10/01 from 07:00 to 08:15
     timesheetDao.save(sheet);
     task1.setStatus(TaskStatus.C);
     taskDao.internalUpdate(task1);
     task2.setStatus(TaskStatus.C);
     taskDao.internalUpdate(task2);
-    sheet = new TimesheetDO().setUser(getUser("ttb-user")).setTask(getTask("dB.1.1"));
+    sheet = new TimesheetDO();
+    sheet.setUser(getUser("ttb-user"));
+    sheet.setTask(getTask("dB.1.1"));
     setTimeperiod(sheet, 2009, Calendar.OCTOBER, 02, 7, 0, 02, 8, 15); // 10/02 from 07:00 to 08:15
     try {
       timesheetDao.save(sheet);
@@ -305,15 +308,13 @@ public class TimesheetTestFork extends AbstractTestNGBase
   }
 
   private void setTimeperiod(final TimesheetDO timesheet, final int fromDay, final int fromHour, final int fromMinute,
-      final int toDay, final int toHour, final int toMinute)
-  {
+                             final int toDay, final int toHour, final int toMinute) {
     setTimeperiod(timesheet, 1970, Calendar.NOVEMBER, fromDay, fromHour, fromMinute, toDay, toHour, toMinute);
   }
 
   private void setTimeperiod(final TimesheetDO timesheet, final int year, final int month, final int fromDay,
-      final int fromHour, final int fromMinute, final int toDay, final int toHour,
-      final int toMinute)
-  {
+                             final int fromHour, final int fromMinute, final int toDay, final int toHour,
+                             final int toMinute) {
     date.setDate(year, month, fromDay, fromHour, fromMinute, 0);
     timesheet.setStartTime(date.getTimestamp());
     date.setDate(year, month, toDay, toHour, toMinute, 0);

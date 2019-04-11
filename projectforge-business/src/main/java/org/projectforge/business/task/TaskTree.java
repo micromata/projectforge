@@ -157,7 +157,8 @@ public class TaskTree extends AbstractCache implements Serializable
       node.setParent(root);
     }
     taskMap.put(node.getId(), node);
-    final TimesheetDO timesheet = new TimesheetDO().setTask(task);
+    final TimesheetDO timesheet = new TimesheetDO();
+    timesheet.setTask(task);
     final boolean bookable = timesheetDao.checkTaskBookable(timesheet, null, OperationType.INSERT, false);
     node.bookableForTimesheets = bookable;
     return addTaskNode(node, parent);
