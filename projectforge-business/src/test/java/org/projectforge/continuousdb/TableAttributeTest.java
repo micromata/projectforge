@@ -66,7 +66,7 @@ public class TableAttributeTest {
                                          final TableAttributeType type,
                                          final boolean primaryKey, final boolean nullable) {
     final TableAttribute attr = new TableAttribute(cls, property);
-    assertEquals("Different column name expected.", name, attr.getName());
+    assertEquals(name, attr.getName(), "Different column name expected.");
     assertEquals(nullable, attr.isNullable(), "Different nullable value expected.");
     if (primaryKey == true) {
       assertTrue(attr.isPrimaryKey());

@@ -221,9 +221,9 @@ public class TaskTest extends AbstractTestBase {
     initTestDB.addGroup("taskTest1", new String[]{"taskTest1"});
     initTestDB.createGroupTaskAccess(getGroup("taskTest1"), getTask("a.1"), AccessType.TASKS, true, true, true, true);
     TaskDO task = taskDao.getById(getTask("a.1").getId());
-    assertEquals("Now readable.", "a.1", task.getTitle());
+    assertEquals("a.1", task.getTitle(), "Now readable.");
     task = taskDao.getById(getTask("a.1.1").getId());
-    assertEquals("Also child tasks are now readable.", "a.1.1", task.getTitle());
+    assertEquals( "a.1.1", task.getTitle(), "Also child tasks are now readable.");
     taskDao.setParentTask(task, getTask("a.2").getId());
     try {
       taskDao.update(task);

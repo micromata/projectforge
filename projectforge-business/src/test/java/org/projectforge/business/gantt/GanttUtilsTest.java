@@ -23,7 +23,7 @@
 
 package org.projectforge.business.gantt;
 
-import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.projectforge.framework.configuration.ConfigXmlTest;
 import org.projectforge.framework.time.DateHelper;
@@ -43,8 +43,8 @@ public class GanttUtilsTest extends AbstractTestBase {
 
   private static BigDecimal TWO = new BigDecimal("2");
 
-  @BeforeAll
-  public static void setUpThisTest() {
+  @BeforeEach
+  public void setUpThisTest() {
     // Needed if this tests runs before the ConfigurationTest.
     ConfigXmlTest.createTestConfiguration();
   }
@@ -210,8 +210,7 @@ public class GanttUtilsTest extends AbstractTestBase {
   private void assertDates(final String msg, final String expectedCalculatedStartDate,
                            final String expectedCalculatedEndDate,
                            final GanttTask task) {
-    assertEquals(msg, expectedCalculatedStartDate,
-            DateHelper.formatIsoDate(task.recalculate().getCalculatedStartDate()));
-    assertEquals(msg, expectedCalculatedEndDate, DateHelper.formatIsoDate(task.getCalculatedEndDate()));
+    assertEquals(expectedCalculatedStartDate, DateHelper.formatIsoDate(task.recalculate().getCalculatedStartDate()), msg);
+    assertEquals(expectedCalculatedEndDate, DateHelper.formatIsoDate(task.getCalculatedEndDate()), msg);
   }
 }

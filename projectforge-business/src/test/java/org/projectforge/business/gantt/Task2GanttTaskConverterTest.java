@@ -77,13 +77,12 @@ public class Task2GanttTaskConverterTest extends AbstractTestBase {
 
     final GanttChartData ganttChartData = Task2GanttTaskConverter.convertToGanttObjectTree(taskDao.getTaskTree(),
             getTask(prefix + "1"));
-    assertEquals( 2, ganttChartData.getExternalObjects().size(),
+    assertEquals(2, ganttChartData.getExternalObjects().size(),
             "Two external objects (2.1 and 2.2) exptected.");
     assertExternalTasks(ganttChartData, prefix);
     final GanttChartDO ganttChartDO = new GanttChartDO().setTask(getTask(prefix + "1"));
     ganttChartDao.writeGanttObjects(ganttChartDO, ganttChartData.getRootObject());
-    assertEquals("No output because there is no further information in the GanttObject tree.", "",
-            ganttChartDO.getGanttObjectsAsXml());
+    assertEquals("", ganttChartDO.getGanttObjectsAsXml(), "No output because there is no further information in the GanttObject tree.");
     GanttChartData data = ganttChartDao.readGanttObjects(ganttChartDO);
     assertExternalTasks(data, prefix);
     final GanttTask external2_1 = ganttChartData.getExternalObject(getTask(prefix + "2.1").getId());
@@ -112,13 +111,13 @@ public class Task2GanttTaskConverterTest extends AbstractTestBase {
             + "</ganttObject>"
             + "</children>"
             + "</ganttObject>");
-    assertEquals("Gantt objects as xml.", xml, ganttChartDO.getGanttObjectsAsXml());
+    assertEquals(xml, ganttChartDO.getGanttObjectsAsXml(), "Gantt objects as xml.");
     data = ganttChartDao.readGanttObjects(ganttChartDO);
     ganttChartDao.writeGanttObjects(ganttChartDO, data.getRootObject());
-    assertEquals("Gantt objects as xml.", xml, ganttChartDO.getGanttObjectsAsXml());
+    assertEquals(xml, ganttChartDO.getGanttObjectsAsXml(), "Gantt objects as xml.");
     assertNull(findById(data, prefix, "1.2.2").getPredecessor(), "Predecessor was set to null.");
-    assertEquals("External predecessor expected.", prefix + "2.3",
-            findById(data, prefix, "1.2").getPredecessor().getTitle());
+    assertEquals(prefix + "2.3", findById(data, prefix, "1.2").getPredecessor().getTitle(),
+            "External predecessor expected.");
   }
 
   private GanttTask findById(final GanttChartData ganttChartData, final String prefix, final String id) {

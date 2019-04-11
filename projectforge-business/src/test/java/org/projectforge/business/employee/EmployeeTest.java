@@ -1,7 +1,7 @@
 package org.projectforge.business.employee;
 
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.projectforge.business.fibu.EmployeeDO;
 import org.projectforge.business.fibu.EmployeeDao;
@@ -25,7 +25,7 @@ public class EmployeeTest extends AbstractTestBase
 
   private List<EmployeeDO> employeeList;
 
-  @BeforeAll
+  @BeforeEach
   public void init()
   {
     logon(AbstractTestBase.TEST_FULL_ACCESS_USER);
