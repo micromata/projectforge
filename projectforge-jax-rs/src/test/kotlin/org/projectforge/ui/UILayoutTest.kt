@@ -2,7 +2,7 @@ package org.projectforge.ui
 
 import com.google.gson.GsonBuilder
 import org.junit.jupiter.api.Assertions.*
-import org.junit.jupiter.api.Test
+import org.junit.Test
 import org.projectforge.business.book.BookDO
 import org.projectforge.rest.BookRest
 import org.projectforge.rest.json.JsonValidator
