@@ -1,23 +1,13 @@
 package org.projectforge.web.vacation;
 
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.powermock.api.mockito.PowerMockito.*;
-
-import java.math.BigDecimal;
-import java.util.Calendar;
-import java.util.Collection;
-import java.util.Date;
-import java.util.GregorianCalendar;
-import java.util.Locale;
-import java.util.TimeZone;
-
 import org.apache.wicket.markup.html.form.CheckBox;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.Form;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.runner.RunWith;
 import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.testng.PowerMockTestCase;
+import org.powermock.modules.junit4.PowerMockRunner;
 import org.projectforge.business.configuration.ConfigurationService;
 import org.projectforge.business.configuration.ConfigurationServiceImpl;
 import org.projectforge.business.fibu.EmployeeDO;
@@ -30,13 +20,20 @@ import org.projectforge.business.vacation.service.VacationServiceImpl;
 import org.projectforge.framework.configuration.ConfigXml;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.web.wicket.components.DatePanel;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
 import org.wicketstuff.select2.Select2Choice;
 import org.wicketstuff.select2.Select2MultiChoice;
 
+import java.math.BigDecimal;
+import java.util.*;
+
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.powermock.api.mockito.PowerMockito.*;
+
+@RunWith(PowerMockRunner.class)
 @PrepareForTest({ DatePanel.class, Form.class, ThreadLocalUserContext.class, ConfigXml.class })
-public class VacationFormValidatorTest extends PowerMockTestCase
+public class VacationFormValidatorTest
 {
   private EmployeeDO employee;
 
@@ -68,7 +65,7 @@ public class VacationFormValidatorTest extends PowerMockTestCase
 
   private Collection<TeamCalDO> teamCalDO;
 
-  @BeforeMethod
+  @BeforeEach
   public void setUp()
   {
     this.employee = mock(EmployeeDO.class);

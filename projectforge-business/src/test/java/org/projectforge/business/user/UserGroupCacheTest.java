@@ -23,22 +23,21 @@
 
 package org.projectforge.business.user;
 
-import static org.testng.AssertJUnit.assertFalse;
-import static org.testng.AssertJUnit.assertTrue;
+import org.junit.jupiter.api.Test;
+import org.projectforge.business.multitenancy.TenantRegistryMap;
+import org.projectforge.framework.persistence.user.entities.GroupDO;
+import org.projectforge.framework.persistence.user.entities.PFUserDO;
+import org.projectforge.test.AbstractTestBase;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.projectforge.business.multitenancy.TenantRegistryMap;
-import org.projectforge.framework.persistence.user.entities.GroupDO;
-import org.projectforge.framework.persistence.user.entities.PFUserDO;
-import org.projectforge.test.AbstractTestBase;
-import org.projectforge.test.AbstractTestNGBase;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.testng.annotations.Test;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-public class UserGroupCacheTest extends AbstractTestNGBase
+public class UserGroupCacheTest extends AbstractTestBase
 {
   @Autowired
   private GroupDao groupDao;

@@ -2,19 +2,15 @@ package org.projectforge.test;
 
 import org.apache.directory.server.annotations.CreateLdapServer;
 import org.apache.directory.server.annotations.CreateTransport;
-import org.apache.directory.server.core.annotations.ApplyLdifFiles;
-import org.apache.directory.server.core.annotations.ContextEntry;
-import org.apache.directory.server.core.annotations.CreateDS;
-import org.apache.directory.server.core.annotations.CreateIndex;
-import org.apache.directory.server.core.annotations.CreatePartition;
+import org.apache.directory.server.core.annotations.*;
 import org.apache.directory.server.core.integ.AbstractLdapTestUnit;
-import org.apache.directory.server.core.integ.FrameworkRunner;
 import org.apache.directory.server.core.partition.Partition;
 import org.apache.directory.server.ldap.LdapServer;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 
-@RunWith(FrameworkRunner.class)
+
+//@RunWith(FrameworkRunner.class)
+//@ExtendWith(FrameworkRunner.class)
 @CreateDS(
     partitions = {
         @CreatePartition(

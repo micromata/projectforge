@@ -23,14 +23,9 @@
 
 package org.projectforge.timesheet;
 
-import static org.testng.AssertJUnit.*;
-
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Locale;
-
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.projectforge.business.fibu.KundeDO;
 import org.projectforge.business.fibu.KundeDao;
 import org.projectforge.business.fibu.ProjektDO;
@@ -46,12 +41,17 @@ import org.projectforge.framework.persistence.api.BaseDao;
 import org.projectforge.framework.time.DateHolder;
 import org.projectforge.framework.time.DatePrecision;
 import org.projectforge.test.AbstractTestBase;
-import org.projectforge.test.AbstractTestNGBase;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.Test;
 
-public class TimesheetMassUpdateTest extends AbstractTestNGBase
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Locale;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+public class TimesheetMassUpdateTest extends AbstractTestBase
 {
   // private static final Logger log = Logger.getLogger(TaskTest.class);
 
@@ -72,11 +72,9 @@ public class TimesheetMassUpdateTest extends AbstractTestNGBase
 
   private DateHolder date;
 
-  @Override
-  @BeforeClass
+  @BeforeEach
   public void setUp()
   {
-    super.setUp();
     date = new DateHolder(new Date(), DatePrecision.MINUTE_15, Locale.GERMAN);
   }
 

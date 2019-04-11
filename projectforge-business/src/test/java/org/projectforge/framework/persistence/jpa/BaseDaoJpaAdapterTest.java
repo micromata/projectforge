@@ -8,7 +8,7 @@ import java.util.Map;
 
 import org.projectforge.business.fibu.EmployeeDO;
 import org.projectforge.framework.persistence.api.IdObject;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.Test;
 
 import de.micromata.genome.jpa.DbRecord;
 import de.micromata.genome.util.bean.FieldMatchers;

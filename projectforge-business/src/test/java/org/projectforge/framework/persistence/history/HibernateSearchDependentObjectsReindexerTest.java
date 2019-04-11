@@ -23,7 +23,7 @@
 
 package org.projectforge.framework.persistence.history;
 
-import static org.testng.AssertJUnit.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.List;
 
@@ -32,7 +32,7 @@ import org.projectforge.framework.persistence.history.HibernateSearchDependentOb
 import org.projectforge.framework.persistence.user.entities.GroupDO;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.persistence.user.entities.UserPrefDO;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.Test;
 
 public class HibernateSearchDependentObjectsReindexerTest
 {

@@ -23,20 +23,18 @@
 
 package org.projectforge.continuousdb;
 
-import static org.testng.AssertJUnit.assertEquals;
-
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import org.projectforge.business.task.TaskDO;
 import org.projectforge.framework.access.GroupTaskAccessDO;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.persistence.user.entities.UserRightDO;
-import org.testng.Assert;
-import org.testng.annotations.Test;
 
-public class TableTest
-{
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+public class TableTest {
   @Test
-  public void createTables()
-  {
+  public void createTables() {
     assertEquals("T_PF_USER", new Table(PFUserDO.class).getName());
     assertEquals("T_TASK", new Table(TaskDO.class).getName());
     assertEquals("T_GROUP_TASK_ACCESS", new Table(GroupTaskAccessDO.class).getName());
@@ -51,8 +49,7 @@ public class TableTest
   }
 
   @Test
-  public void autoAddAttributes()
-  {
+  public void autoAddAttributes() {
     Table table = new Table(PFUserDO.class);
     table.autoAddAttributes();
     assertAttribute(table, "username");
@@ -63,18 +60,16 @@ public class TableTest
     assertAttribute(table, "right_id");
   }
 
-  private void assertAttribute(final Table table, final String name)
-  {
+  private void assertAttribute(final Table table, final String name) {
     for (final TableAttribute attr : table.getAttributes()) {
       if (attr.getName().equals(name) == true) {
         return;
       }
     }
-    Assert.fail("Attribute '" + name + "' not found.");
+    Assertions.fail("Attribute '" + name + "' not found.");
   }
 
-  private void assertAttribute(final TableAttribute attribute, final String name)
-  {
+  private void assertAttribute(final TableAttribute attribute, final String name) {
     assertEquals(name, attribute.getName());
   }
 }

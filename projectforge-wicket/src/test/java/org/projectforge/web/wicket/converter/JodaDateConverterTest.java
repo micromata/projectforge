@@ -23,24 +23,22 @@
 
 package org.projectforge.web.wicket.converter;
 
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertNull;
-import static org.testng.AssertJUnit.fail;
-
-import java.util.Calendar;
-import java.util.Locale;
-
 import org.apache.wicket.util.convert.ConversionException;
 import org.joda.time.DateMidnight;
 import org.joda.time.DateTimeConstants;
 import org.joda.time.DateTimeZone;
+import org.junit.jupiter.api.Test;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.time.DateHelper;
-import org.projectforge.test.AbstractTestNGBase;
-import org.testng.annotations.Test;
+import org.projectforge.test.AbstractTestBase;
 
-public class JodaDateConverterTest extends AbstractTestNGBase
+import java.util.Calendar;
+import java.util.Locale;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+public class JodaDateConverterTest extends AbstractTestBase
 {
   private final static DateTimeZone EUROPE_BERLIN = DateTimeZone.forID("Europe/Berlin");
 

@@ -23,9 +23,7 @@
 
 package org.projectforge.meb;
 
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.fail;
-
+import static org.junit.jupiter.api.Assertions.*;
 import java.io.Serializable;
 import java.util.Date;
 
@@ -34,11 +32,11 @@ import org.projectforge.business.meb.MebEntryDO;
 import org.projectforge.business.meb.MebEntryStatus;
 import org.projectforge.framework.access.AccessException;
 import org.projectforge.test.AbstractTestBase;
-import org.projectforge.test.AbstractTestNGBase;
+import org.projectforge.test.AbstractTestBase;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.Test;
 
-public class MebDaoTest extends AbstractTestNGBase
+public class MebDaoTest extends AbstractTestBase
 {
   @Autowired
   private MebDao mebDao;

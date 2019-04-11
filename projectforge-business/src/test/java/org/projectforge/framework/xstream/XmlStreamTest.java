@@ -23,37 +23,31 @@
 
 package org.projectforge.framework.xstream;
 
-import static org.testng.AssertJUnit.*;
-
-import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.Iterator;
-
 import org.dom4j.Document;
 import org.dom4j.DocumentHelper;
 import org.dom4j.Element;
+import org.junit.jupiter.api.Test;
 import org.projectforge.common.BeanHelper;
 import org.projectforge.framework.time.DateHelper;
 import org.projectforge.framework.time.DateHolder;
 import org.projectforge.framework.xstream.converter.ISODateConverter;
-import org.projectforge.test.AbstractTestNGBase;
-import org.testng.annotations.Test;
+import org.projectforge.test.AbstractTestBase;
 
-public class XmlStreamTest extends AbstractTestNGBase
-{
+import java.lang.reflect.Field;
+import java.util.*;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+public class XmlStreamTest extends AbstractTestBase {
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(XmlStreamTest.class);
 
   @Test
-  public void testWrite()
-  {
+  public void testWrite() {
     final XmlObjectWriter writer = new XmlObjectWriter();
     final Document document = DocumentHelper.createDocument();
     final Element root = document.addElement("root");
     TestObject obj = create(null, "", null, null, null, "", Double.NaN, 0.0, XmlConstants.MAGIC_INT_NUMBER,
-        XmlConstants.MAGIC_INT_NUMBER);
+            XmlConstants.MAGIC_INT_NUMBER);
     Element el = writer.write(root, obj);
     assertEquals("test", el.getName());
     containsAttrs(el, "string2", "d1", "d2", "i1", "i2");
@@ -70,8 +64,7 @@ public class XmlStreamTest extends AbstractTestNGBase
   }
 
   @Test
-  public void testOmitFields()
-  {
+  public void testOmitFields() {
     final XmlObjectWriter writer = new XmlObjectWriter();
     final Document document = DocumentHelper.createDocument();
     final Element root = document.addElement("root");
@@ -91,30 +84,29 @@ public class XmlStreamTest extends AbstractTestNGBase
   }
 
   @Test
-  public void testDefaultBooleanValue()
-  {
+  public void testDefaultBooleanValue() {
     final XmlObjectReader reader = new XmlObjectReader();
     reader.initialize(TestObject.class);
     TestObject obj = new TestObject();
     obj.b1 = obj.b2 = obj.b3 = false;
     String xml = XmlObjectWriter.writeAsXml(obj);
-    assertTrue("b1 shouldn't be present.", xml.indexOf("b1") < 0);
-    assertTrue("b2 should be present.", xml.indexOf("b2=\"false\"") >= 0);
-    assertTrue("b3 shouldn't be present.", xml.indexOf("b3") < 0);
+    assertTrue(xml.indexOf("b1") < 0, "b1 shouldn't be present.");
+    assertTrue(xml.indexOf("b2=\"false\"") >= 0, "b1 shouldn't be present.");
+    assertTrue(xml.indexOf("b3") < 0, "b3 shouldn't be present.");
     obj = (TestObject) reader.read(xml);
-    assertEquals("b1", false, obj.b1);
-    assertEquals("b2", false, obj.b2);
-    assertEquals("b3", false, obj.b3);
+    assertEquals(false, obj.b1, "b1");
+    assertEquals(false, obj.b2, "b2");
+    assertEquals(false, obj.b3, "b3");
 
     obj.b1 = obj.b2 = obj.b3 = true;
     xml = XmlObjectWriter.writeAsXml(obj);
-    assertTrue("b1 should be present.", xml.indexOf("b1=\"true\"") >= 0);
-    assertTrue("b2 shouldn't be present.", xml.indexOf("b2") < 0);
-    assertTrue("b3 should be present.", xml.indexOf("b3=\"true\"") >= 0);
+    assertTrue(xml.indexOf("b1=\"true\"") >= 0, "b1 should be present.");
+    assertTrue(xml.indexOf("b2") < 0, "b2 shouldn't be present.");
+    assertTrue(xml.indexOf("b3=\"true\"") >= 0, "b3 should be present.");
     obj = (TestObject) reader.read(xml);
-    assertEquals("b1", true, obj.b1);
-    assertEquals("b2", true, obj.b2);
-    assertEquals("b3", true, obj.b3);
+    assertEquals(true, obj.b1, "b1");
+    assertEquals(true, obj.b2, "b2");
+    assertEquals(true, obj.b3, "b3");
 
     obj = (TestObject) reader.read("<test />");
     assertFalse(obj.b1);
@@ -123,25 +115,23 @@ public class XmlStreamTest extends AbstractTestNGBase
   }
 
   @Test
-  public void testDateValue()
-  {
+  public void testDateValue() {
     final XmlObjectReader reader = new XmlObjectReader();
     reader.initialize(TestObject.class);
     TestObject obj = new TestObject();
     String xml = XmlObjectWriter.writeAsXml(obj);
     obj = (TestObject) reader.read(xml);
-    assertNull("date should be null.", obj.date);
+    assertNull(obj.date, "date should be null.");
     final DateHolder dh = new DateHolder();
     dh.setDate(2010, Calendar.AUGUST, 3, 0, 0, 0, 0);
     obj.date = dh.getDate();
     xml = XmlObjectWriter.writeAsXml(obj);
     obj = (TestObject) reader.read(xml);
-    assertEquals("date", dh.getTimeInMillis(), obj.date.getTime());
+    assertEquals(dh.getTimeInMillis(), obj.date.getTime(), "date");
   }
 
   @Test
-  public void testWriteComplexTypes()
-  {
+  public void testWriteComplexTypes() {
     final XmlObjectWriter writer = new XmlObjectWriter();
     final Document document = DocumentHelper.createDocument();
     final Element root = document.addElement("root");
@@ -155,7 +145,7 @@ public class XmlStreamTest extends AbstractTestNGBase
     containsElements(el, "testObject");
     containsNotElements(el, "list");
     Element el2 = el.element("testObject");
-    assertEquals("s1", "ds", el2.attribute("s1").getText());
+    assertEquals("ds", el2.attribute("s1").getText(), "s1");
 
     testObject2.list = new ArrayList<TestObject>();
     el = writer.write(root, testObject2);
@@ -169,32 +159,31 @@ public class XmlStreamTest extends AbstractTestNGBase
     el2 = el.element("list");
     containsElements(el2, "test");
     final Iterator<?> it = el2.elementIterator("test");
-    assertEquals("s1", "1", ((Element) it.next()).attribute("s1").getText());
-    assertEquals("s1", "2", ((Element) it.next()).attribute("s1").getText());
-    assertEquals("s1", "3", ((Element) it.next()).attribute("s1").getText());
-    assertFalse("list should have only 3 elements", it.hasNext());
+    assertEquals("1", ((Element) it.next()).attribute("s1").getText(), "s1");
+    assertEquals("2", ((Element) it.next()).attribute("s1").getText(), "s1");
+    assertEquals("3", ((Element) it.next()).attribute("s1").getText(), "s1");
+    assertFalse(it.hasNext(), "list should have only 3 elements");
     // log.info(XmlHelper.toString(el, true));
   }
 
   @Test
-  public void testWriteReadProperties()
-  {
+  public void testWriteReadProperties() {
     final XmlObjectReader reader = new XmlObjectReader();
     reader.initialize(TestObject2.class);
     final XmlObjectWriter writer = new XmlObjectWriter();
     final Document document = DocumentHelper.createDocument();
     final Element root = document.addElement("root");
     TestObject obj = create(null, "", null, null, null, "", Double.NaN, 0.0, XmlConstants.MAGIC_INT_NUMBER,
-        XmlConstants.MAGIC_INT_NUMBER);
+            XmlConstants.MAGIC_INT_NUMBER);
     obj.color2 = TestEnum.RED;
     obj.s0 = "s0";
     Element el = writer.write(root, obj);
     obj = (TestObject) reader.read(el);
     assertValues(obj, null, "", "Hurzel", "", null, "", Double.NaN, 0.0, XmlConstants.MAGIC_INT_NUMBER,
-        XmlConstants.MAGIC_INT_NUMBER);
+            XmlConstants.MAGIC_INT_NUMBER);
     assertEquals("s0", "s0", obj.s0);
-    assertNull("color1", obj.color1);
-    assertEquals("color2", TestEnum.RED, obj.color2);
+    assertNull(obj.color1, "color1");
+    assertEquals(TestEnum.RED, obj.color2, "color2");
     obj = create("ds", XmlConstants.MAGIC_STRING, "Hurzel", "", "Hurzel", "Hurzel", 5.0, 5.0, 0, 42);
     obj.s0 = "s0";
     obj.color1 = obj.color2 = TestEnum.BLUE;
@@ -202,13 +191,12 @@ public class XmlStreamTest extends AbstractTestNGBase
     obj = (TestObject) reader.read(el);
     assertValues(obj, "ds", XmlConstants.MAGIC_STRING, "Hurzel", "", "Hurzel", "Hurzel", 5.0, 5.0, 0, 42);
     assertEquals("s0", "s0", obj.s0);
-    assertEquals("color1", TestEnum.BLUE, obj.color1);
-    assertEquals("color2", TestEnum.BLUE, obj.color2);
+    assertEquals(TestEnum.BLUE, obj.color1, "color1");
+    assertEquals(TestEnum.BLUE, obj.color2, "color2");
   }
 
   @Test
-  public void testReadWriteComplexTypes()
-  {
+  public void testReadWriteComplexTypes() {
     final XmlObjectReader reader = new XmlObjectReader();
     reader.initialize(TestObject2.class);
     final XmlObjectWriter writer = new XmlObjectWriter();
@@ -243,8 +231,7 @@ public class XmlStreamTest extends AbstractTestNGBase
   }
 
   @Test
-  public void testTypeSet()
-  {
+  public void testTypeSet() {
     final XmlObjectReader reader = new XmlObjectReader();
     reader.initialize(TestObject2.class);
     TestObject2 obj2 = new TestObject2();
@@ -256,8 +243,8 @@ public class XmlStreamTest extends AbstractTestNGBase
     obj2.intSet = new HashSet<Integer>();
     xml = XmlObjectWriter.writeAsXml(obj2);
     obj2 = (TestObject2) reader.read(xml);
-    assertEquals("Set should be empty.", 0, obj2.set.size());
-    assertEquals("intSet should be empty.", 0, obj2.intSet.size());
+    assertEquals(0, obj2.set.size(), "Set should be empty.");
+    assertEquals(0, obj2.intSet.size(), "intSet should be empty.");
     TestObject obj = new TestObject();
     obj.s1 = "1";
     obj2.set.add(obj);
@@ -272,18 +259,17 @@ public class XmlStreamTest extends AbstractTestNGBase
     obj2.intSet.add(4);
     xml = XmlObjectWriter.writeAsXml(obj2);
     obj2 = (TestObject2) reader.read(xml);
-    assertEquals("Set should have 3 entries.", 3, obj2.set.size());
-    assertEquals("intSet should have 3 entries.", 3, obj2.intSet.size());
+    assertEquals(3, obj2.set.size(), "Set should have 3 entries.");
+    assertEquals(3, obj2.intSet.size(), "intSet should have 3 entries.");
     int sum = 0;
     for (final Integer value : obj2.intSet) {
       sum += value;
     }
-    assertEquals("intSet: sum of all entries should wrong.", 7, sum);
+    assertEquals(7, sum, "intSet: sum of all entries should wrong.");
   }
 
   @Test
-  public void testIgnoreEmptyCollections()
-  {
+  public void testIgnoreEmptyCollections() {
     final XmlObjectReader reader = new XmlObjectReader();
     reader.initialize(TestObject2.class);
     TestObject2 obj2 = new TestObject2();
@@ -295,18 +281,17 @@ public class XmlStreamTest extends AbstractTestNGBase
     obj2.intSet = new HashSet<Integer>();
     xml = XmlObjectWriter.writeAsXml(obj2);
     obj2 = (TestObject2) reader.read(xml);
-    assertEquals("Set should be empty.", 0, obj2.set.size());
-    assertEquals("intSet should be empty.", 0, obj2.intSet.size());
+    assertEquals(0, obj2.set.size(), "Set should be empty.");
+    assertEquals(0, obj2.intSet.size(), "intSet should be empty.");
 
     reader.setIgnoreEmptyCollections(true);
     obj2 = (TestObject2) reader.read(xml);
-    assertNull("Set should be null.", obj2.set);
-    assertNull("intSet should be null.", obj2.intSet);
+    assertNull(obj2.set, "Set should be null.");
+    assertNull(obj2.intSet, "intSet should be null.");
   }
 
   @Test
-  public void testReadWriteXmlString()
-  {
+  public void testReadWriteXmlString() {
     TestObject obj = new TestObject();
     final String xml = XmlObjectWriter.writeAsXml(obj);
     final XmlObjectReader reader = new XmlObjectReader();
@@ -315,15 +300,14 @@ public class XmlStreamTest extends AbstractTestNGBase
   }
 
   @Test
-  public void testAlias()
-  {
+  public void testAlias() {
     final AliasMap aliasMap = new AliasMap();
     aliasMap.put(TestObject.class, "testAlias1");
     TestObject obj = new TestObject();
     obj.s0 = "s0";
     final String xml = XmlObjectWriter.writeAsXml(obj, aliasMap);
-    assertTrue("Should start with '<testAlias1 ': " + xml, xml.startsWith("<testAlias1 "));
-    assertTrue("Should end with '</testAlias1>': " + xml, xml.endsWith("</testAlias1>"));
+    assertTrue(xml.startsWith("<testAlias1 "), "Should start with '<testAlias1 ': " + xml);
+    assertTrue(xml.endsWith("</testAlias1>"), "Should end with '</testAlias1>': " + xml);
     final XmlObjectReader reader = new XmlObjectReader();
     reader.setAliasMap(aliasMap);
     reader.initialize(TestObject.class);
@@ -332,13 +316,10 @@ public class XmlStreamTest extends AbstractTestNGBase
   }
 
   @Test
-  public void ignoreFields()
-  {
-    final XmlObjectWriter writer = new XmlObjectWriter()
-    {
+  public void ignoreFields() {
+    final XmlObjectWriter writer = new XmlObjectWriter() {
       @Override
-      protected boolean ignoreField(final Object obj, final Field field)
-      {
+      protected boolean ignoreField(final Object obj, final Field field) {
         if (obj instanceof TestObject && field.getName().equals("s1") == true) {
           return true;
         }
@@ -352,13 +333,12 @@ public class XmlStreamTest extends AbstractTestNGBase
     final XmlObjectReader reader = new XmlObjectReader();
     reader.initialize(TestObject.class);
     obj = (TestObject) reader.read(xml);
-    assertNull("s1 should be ignored.", obj.s1);
-    assertEquals("s2 shouldn't be ignored.", "s2", obj.s2);
+    assertNull(obj.s1, "s1 should be ignored.");
+    assertEquals("s2", obj.s2, "s2 shouldn't be ignored.");
   }
 
   @Test
-  public void implementationMapping()
-  {
+  public void implementationMapping() {
     TestObject2 obj = new TestObject2();
     obj.testObjectIFace = new TestObject();
     ((TestObject) obj.testObjectIFace).s1 = "iface";
@@ -377,8 +357,7 @@ public class XmlStreamTest extends AbstractTestNGBase
   }
 
   @Test
-  public void testRefIds()
-  {
+  public void testRefIds() {
     TestObject obj = new TestObject();
     obj.testObject = obj; // Self reference.
     final String testString = "testRefIds";
@@ -399,7 +378,7 @@ public class XmlStreamTest extends AbstractTestNGBase
     assertEquals(testString, obj2.testObject.s1);
     assertEquals(obj2.testObject, obj2.testObjectIFace);
     assertEquals(obj2.testObject, obj2.testObject.testObject);
-    assertEquals("list should contain 3 elements", 3, obj2.list.size());
+    assertEquals(3, obj2.list.size(), "list should contain 3 elements");
     final ArrayList<TestObject> list = (ArrayList<TestObject>) obj2.list;
     assertEquals(obj2.testObject, list.get(0));
     obj = list.get(1);
@@ -408,14 +387,12 @@ public class XmlStreamTest extends AbstractTestNGBase
   }
 
   @XmlObject(alias = "ProjectForge")
-  public class MyRootElement extends ProjectForgeRootElement
-  {
+  public class MyRootElement extends ProjectForgeRootElement {
     private TestObject testObject;
   }
 
   @Test
-  public void testProjectForgeRoot()
-  {
+  public void testProjectForgeRoot() {
     final TestObject obj = new TestObject();
     obj.s1 = "hurzel";
     MyRootElement root = new MyRootElement();
@@ -430,14 +407,12 @@ public class XmlStreamTest extends AbstractTestNGBase
     root.setTimeZone(DateHelper.EUROPE_BERLIN);
     final String xml = writer.writeToXml(root);
     assertEquals(
-        "<ProjectForge timeZone=\"Europe/Berlin\" created=\"2010-08-30 09:18:57\"><testObject s1=\"hurzel\" d1=\"0.0\" i1=\"0\"/></ProjectForge>",
-        xml);
-    final XmlObjectReader reader = new XmlObjectReader()
-    {
+            "<ProjectForge timeZone=\"Europe/Berlin\" created=\"2010-08-30 09:18:57\"><testObject s1=\"hurzel\" d1=\"0.0\" i1=\"0\"/></ProjectForge>",
+            xml);
+    final XmlObjectReader reader = new XmlObjectReader() {
       @Override
       protected Object newInstance(final Class<?> clazz, final Element el, final String attrName,
-          final String attrValue)
-      {
+                                   final String attrValue) {
         if (MyRootElement.class.isAssignableFrom(clazz) == true) {
           return new MyRootElement();
         }
@@ -452,8 +427,7 @@ public class XmlStreamTest extends AbstractTestNGBase
   }
 
   @Test
-  public void testCDATA()
-  {
+  public void testCDATA() {
     final XmlObjectWriter writer = new XmlObjectWriter();
     final TestObject3 obj = new TestObject3();
     obj.s0 = "Hallo\n  Test";
@@ -462,22 +436,20 @@ public class XmlStreamTest extends AbstractTestNGBase
   }
 
   @Test
-  public void testEnums()
-  {
+  public void testEnums() {
     final XmlObjectReader reader = new XmlObjectReader();
     reader.initialize(TestObject.class);
     TestObject obj = (TestObject) reader.read("<test color1=\"RED\" />");
     assertEquals(TestEnum.RED, obj.color1);
     obj = (TestObject) reader.read("<test color1=\"BLUE\" />");
-    assertEquals("Default color is BLUE.", TestEnum.BLUE, obj.color1);
+    assertEquals(TestEnum.BLUE, obj.color1, "Default color is BLUE.");
     obj = (TestObject) reader.read("<test color1=\"blue\" />");
-    assertEquals("Default color is BLUE.", TestEnum.BLUE, obj.color1);
+    assertEquals(TestEnum.BLUE, obj.color1, "Default color is BLUE.");
   }
 
   private TestObject create(final String s1, final String s2, final String s3, final String s4, final String t1,
-      final String t2,
-      final double d1, final double d2, final int i1, final int i2)
-  {
+                            final String t2,
+                            final double d1, final double d2, final int i1, final int i2) {
     final TestObject obj = new TestObject();
     obj.s1 = s1;
     obj.s2 = s2;
@@ -493,48 +465,43 @@ public class XmlStreamTest extends AbstractTestNGBase
   }
 
   private void assertValues(final TestObject obj, final String s1, final String s2, final String s3, final String s4,
-      final String t1,
-      final String t2, final double d1, final Double d2, final int i1, final int i2)
-  {
-    assertEquals("s1", s1, obj.s1);
-    assertEquals("s2", s2, obj.s2);
-    assertEquals("s3", s3, obj.s3);
-    assertEquals("s4", s4, obj.s4);
-    assertEquals("t1", t1, obj.t1);
-    assertEquals("t2", t2, obj.t2);
-    assertEquals("d1", d1, obj.d1);
-    assertEquals("d2", d2, obj.d2);
+                            final String t1,
+                            final String t2, final double d1, final Double d2, final int i1, final int i2) {
+    assertEquals(s1, obj.s1, "s1");
+    assertEquals(s2, obj.s2, "s2");
+    assertEquals(s3, obj.s3, "s3");
+    assertEquals(s4, obj.s4, "s4");
+    assertEquals(t1, obj.t1, "t1");
+    assertEquals(t2, obj.t2, "t2");
+    assertEquals(d1, obj.d1, "d1");
+    assertEquals((double) d2, obj.d2, "d2");
     //    assertEquals("d1", d1, obj.d1, 0.00001);
     //    assertEquals("d2", d2, obj.d2, 0.00001);
-    assertEquals("i1", i1, obj.i1);
-    assertEquals("i2", i2, obj.i2);
+    assertEquals(i1, obj.i1, "i1");
+    assertEquals(i2, obj.i2, "i2");
   }
 
-  private void containsAttrs(final Element el, final String... attrNames)
-  {
+  private void containsAttrs(final Element el, final String... attrNames) {
     for (final String attr : attrNames) {
-      assertTrue("Element should contain attribute '" + attr + "': " + el, el.attribute(attr) != null);
+      assertTrue(el.attribute(attr) != null, "Element should contain attribute '" + attr + "': " + el);
     }
   }
 
-  private void containsNotAttrs(final Element el, final String... attrNames)
-  {
+  private void containsNotAttrs(final Element el, final String... attrNames) {
     for (final String attr : attrNames) {
-      assertTrue("Element shouldn't contain attribute '" + attr + "': " + el, el.attribute(attr) == null);
+      assertTrue(el.attribute(attr) == null, "Element shouldn't contain attribute '" + attr + "': " + el);
     }
   }
 
-  private void containsElements(final Element el, final String... elementNames)
-  {
+  private void containsElements(final Element el, final String... elementNames) {
     for (final String name : elementNames) {
-      assertTrue("Element should contain element '" + name + "': " + el, el.element(name) != null);
+      assertTrue(el.element(name) != null, "Element should contain element '" + name + "': " + el);
     }
   }
 
-  private void containsNotElements(final Element el, final String... elementNames)
-  {
+  private void containsNotElements(final Element el, final String... elementNames) {
     for (final String name : elementNames) {
-      assertTrue("Element shouldn't contain element '" + name + "': " + el, el.element(name) == null);
+      assertTrue(el.element(name) == null, "Element shouldn't contain element '" + name + "': " + el);
     }
   }
 }

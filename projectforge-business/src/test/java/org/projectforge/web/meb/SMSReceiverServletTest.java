@@ -23,32 +23,30 @@
 
 package org.projectforge.web.meb;
 
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.*;
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertNull;
-
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.StringWriter;
-import java.util.List;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
+import org.junit.jupiter.api.Test;
 import org.projectforge.business.configuration.ConfigurationService;
 import org.projectforge.business.meb.MebDao;
 import org.projectforge.business.meb.MebEntryDO;
 import org.projectforge.common.TestHelper;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.test.AbstractTestBase;
-import org.projectforge.test.AbstractTestNGBase;
 import org.projectforge.web.servlet.SMSReceiverServlet;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.testng.annotations.Test;
 
-public class SMSReceiverServletTest extends AbstractTestNGBase
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.*;
+
+public class SMSReceiverServletTest extends AbstractTestBase
 {
   private static Logger loggerSpy;
 

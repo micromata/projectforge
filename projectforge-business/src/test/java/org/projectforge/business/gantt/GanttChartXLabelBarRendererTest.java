@@ -34,13 +34,13 @@ import org.projectforge.export.SVGHelper;
 import org.projectforge.framework.renderer.BatikImageRenderer;
 import org.projectforge.framework.renderer.ImageFormat;
 import org.projectforge.framework.time.DayHolder;
-import org.projectforge.test.AbstractTestNGBase;
+import org.projectforge.test.AbstractTestBase;
 import org.projectforge.test.WorkFileHelper;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.Test;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
-public class GanttChartXLabelBarRendererTest extends AbstractTestNGBase
+public class GanttChartXLabelBarRendererTest extends AbstractTestBase
 {
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory
       .getLogger(GanttChartXLabelBarRendererTest.class);

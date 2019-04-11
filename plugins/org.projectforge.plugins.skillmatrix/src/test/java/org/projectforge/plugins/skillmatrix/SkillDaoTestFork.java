@@ -23,22 +23,21 @@
 
 package org.projectforge.plugins.skillmatrix;
 
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.fail;
-
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import org.projectforge.framework.access.AccessException;
 import org.projectforge.framework.i18n.I18nHelper;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.plugins.core.PluginAdminService;
-import org.projectforge.test.AbstractTestNGBase;
+import org.projectforge.test.AbstractTestBase;
 import org.projectforge.web.registry.WebRegistry;
 import org.projectforge.web.wicket.WicketApplication;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.Test;
 
-public class SkillDaoTestFork extends AbstractTestNGBase
-{
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
+
+public class SkillDaoTestFork extends AbstractTestBase {
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(SkillDaoTestFork.class);
 
   @Autowired
@@ -50,9 +49,8 @@ public class SkillDaoTestFork extends AbstractTestNGBase
   private Integer skillId;
 
   @Override
-  @BeforeClass
-  public void setUp()
-  {
+  @BeforeAll
+  public void setUp() {
     super.setUp();
     I18nHelper.addBundleName(WicketApplication.RESOURCE_BUNDLE_NAME);
     WebRegistry.getInstance().init();
@@ -60,8 +58,7 @@ public class SkillDaoTestFork extends AbstractTestNGBase
   }
 
   @Test
-  public void accessTest()
-  {
+  public void accessTest() {
     final SkillTestHelper testHelper = new SkillTestHelper(initTestDB);
     final SkillDO skill = testHelper.prepareUsersAndGroups("skill", this, skillDao);
     skillId = skill.getId();
@@ -71,8 +68,7 @@ public class SkillDaoTestFork extends AbstractTestNGBase
     checkSelectAccess(false, testHelper.getNoAccessUser(), testHelper.getFullUser2(), testHelper.getReadonlyUser2());
   }
 
-  private void checkSelectAccess(final boolean access, final PFUserDO... users)
-  {
+  private void checkSelectAccess(final boolean access, final PFUserDO... users) {
     for (final PFUserDO user : users) {
       logon(user);
       try {

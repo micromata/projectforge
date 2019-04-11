@@ -27,13 +27,6 @@ class PFDateTime {
         return date!!
     }
 
-    fun asSqlDate(): java.sql.Date {
-        if (sqlDate == null) {
-            sqlDate = java.sql.Date.valueOf(asLocalDate())
-        }
-        return sqlDate!!
-    }
-
     fun asLocalDate(): LocalDate {
         if (localDate == null)
             localDate = dateTime.toLocalDate()

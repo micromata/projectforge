@@ -1,16 +1,8 @@
 package org.projectforge.fibu;
 
-import static org.mockito.Mockito.when;
-import static org.testng.Assert.*;
-
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.GregorianCalendar;
-import java.util.List;
-
-import javax.persistence.NoResultException;
-
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.MockitoAnnotations;
 import org.projectforge.business.fibu.EmployeeDO;
@@ -21,12 +13,15 @@ import org.projectforge.business.vacation.service.VacationServiceImpl;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.test.AbstractTestBase;
-import org.projectforge.test.AbstractTestNGBase;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.testng.Assert;
-import org.testng.annotations.Test;
 
-public class EmployeeServiceTest extends AbstractTestNGBase
+import javax.persistence.NoResultException;
+import java.util.*;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.when;
+
+public class EmployeeServiceTest extends AbstractTestBase
 {
   @Autowired
   private EmployeeService employeeService;
@@ -41,9 +36,7 @@ public class EmployeeServiceTest extends AbstractTestNGBase
   public void testInsertDelete()
   {
     logon(AbstractTestBase.TEST_FULL_ACCESS_USER);
-
-    PFUserDO pfUserDO = getPfUserDO();
-
+    PFUserDO pfUserDO = getUser(TEST_EMPLOYEE_USER);
     EmployeeDO employeeDO = new EmployeeDO();
     employeeDO.setUser(pfUserDO);
     employeeDO.setAccountHolder("Vorname Name");
@@ -62,16 +55,11 @@ public class EmployeeServiceTest extends AbstractTestNGBase
     assertEquals(employeeDO1, null);
   }
 
-  private PFUserDO getPfUserDO()
-  {
-    return userService.getUserDao().getUserGroupCache().getAllUsers().iterator().next();
-  }
-
   @Test
   public void testUpdateAttribute()
   {
     logon(AbstractTestBase.TEST_FULL_ACCESS_USER);
-    PFUserDO pfUserDO = getPfUserDO();
+    PFUserDO pfUserDO = getUser(TEST_PROJECT_ASSISTANT_USER);
     EmployeeDO employeeDO = new EmployeeDO();
     employeeDO.setAccountHolder("Vorname Name");
     String abteilung = "Test";
@@ -125,7 +113,8 @@ public class EmployeeServiceTest extends AbstractTestNGBase
     assertFalse(result);
   }
 
-  @Test(enabled = false)
+  @Test
+  @Disabled
   public void testGetStudentVacationCountPerDay()
   {
     MockitoAnnotations.initMocks(this);
@@ -137,7 +126,7 @@ public class EmployeeServiceTest extends AbstractTestNGBase
     testCase1.set(Calendar.YEAR, 2017);
     testCase1.set(Calendar.MONTH, Calendar.OCTOBER);
     when(new GregorianCalendar(ThreadLocalUserContext.getTimeZone())).thenReturn((GregorianCalendar) testCase1);
-    Assert.assertEquals("TestCase 1", employeeService.getStudentVacationCountPerDay(new EmployeeDO()));
+    Assertions.assertEquals("TestCase 1", employeeService.getStudentVacationCountPerDay(new EmployeeDO()));
 
     Calendar testCase2 = new GregorianCalendar(ThreadLocalUserContext.getTimeZone());
     testCase2.set(Calendar.YEAR, 2017);

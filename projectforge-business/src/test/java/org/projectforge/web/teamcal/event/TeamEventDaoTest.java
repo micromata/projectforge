@@ -23,17 +23,12 @@
 
 package org.projectforge.web.teamcal.event;
 
-import static org.testng.AssertJUnit.*;
-
-import java.sql.Timestamp;
-import java.text.DateFormat;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.Collection;
-import java.util.Date;
-import java.util.Iterator;
-import java.util.TimeZone;
-
+import net.fortuna.ical4j.model.Recur;
+import net.fortuna.ical4j.model.property.RRule;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 import org.projectforge.business.teamcal.event.TeamEventDao;
 import org.projectforge.business.teamcal.event.TeamEventRecurrenceData;
 import org.projectforge.business.teamcal.event.TeamRecurrenceEvent;
@@ -45,24 +40,28 @@ import org.projectforge.framework.configuration.ConfigurationParam;
 import org.projectforge.framework.time.DateFormats;
 import org.projectforge.framework.time.DateHelper;
 import org.projectforge.framework.time.RecurrenceFrequency;
-import org.projectforge.test.AbstractTestNGBase;
+import org.projectforge.test.AbstractTestBase;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.Test;
 
-import net.fortuna.ical4j.model.Recur;
-import net.fortuna.ical4j.model.property.RRule;
+import java.sql.Timestamp;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Collection;
+import java.util.Date;
+import java.util.Iterator;
+import java.util.TimeZone;
 
-public class TeamEventDaoTest extends AbstractTestNGBase
+import static org.junit.jupiter.api.Assertions.*;
+
+public class TeamEventDaoTest extends AbstractTestBase
 {
   @Autowired
   private TeamEventDao teamEventDao;
 
-  @Override
-  @BeforeClass
+  @BeforeEach
   public void setUp()
   {
-    super.setUp();
     final String domain = "projectforge.org";
     final Configuration config = Configuration.getInstance();
     config.forceReload();
@@ -108,7 +107,8 @@ public class TeamEventDaoTest extends AbstractTestNGBase
     }
   }
 
-  @Test(enabled = false)
+  @Test
+  @Disabled
   public void exDates()
   {
     testExDates(DateHelper.EUROPE_BERLIN);

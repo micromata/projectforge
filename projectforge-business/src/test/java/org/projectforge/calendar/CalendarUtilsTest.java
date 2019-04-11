@@ -28,8 +28,8 @@ import java.util.TimeZone;
 
 import org.projectforge.framework.calendar.CalendarUtils;
 import org.projectforge.framework.time.DateHelper;
-import org.testng.Assert;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 public class CalendarUtilsTest
 {
@@ -39,9 +39,9 @@ public class CalendarUtilsTest
     final TimeZone timeZone = DateHelper.EUROPE_BERLIN;
     final Calendar utcCal = CalendarUtils
         .getUTCMidnightCalendar(CalendarTestUtils.createDate("2012-12-23 08:33:24.123", timeZone), timeZone);
-    Assert.assertEquals("2012-12-23 00:00:00.000", CalendarTestUtils.formatUTCIsoDate(utcCal.getTime()));
+    Assertions.assertEquals("2012-12-23 00:00:00.000", CalendarTestUtils.formatUTCIsoDate(utcCal.getTime()));
     final Calendar userCal = CalendarUtils.getMidnightCalendarFromUTC(utcCal.getTime(), timeZone);
-    Assert.assertEquals("2012-12-22 23:00:00.000", CalendarTestUtils.formatUTCIsoDate(userCal.getTime()));
+    Assertions.assertEquals("2012-12-22 23:00:00.000", CalendarTestUtils.formatUTCIsoDate(userCal.getTime()));
   }
 
   @Test
@@ -70,7 +70,7 @@ public class CalendarUtilsTest
     cal2.set(Calendar.YEAR, year2);
     cal2.set(Calendar.MONTH, month2);
     cal2.set(Calendar.DAY_OF_MONTH, dayOfMonth2);
-    Assert.assertEquals(expected, CalendarUtils.daysBetween(cal1, cal2));
-    Assert.assertEquals(-expected, CalendarUtils.daysBetween(cal2, cal1));
+    Assertions.assertEquals(expected, CalendarUtils.daysBetween(cal1, cal2));
+    Assertions.assertEquals(-expected, CalendarUtils.daysBetween(cal2, cal1));
   }
 }

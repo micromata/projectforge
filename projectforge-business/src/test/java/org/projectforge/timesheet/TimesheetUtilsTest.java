@@ -23,26 +23,20 @@
 
 package org.projectforge.timesheet;
 
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertNotNull;
-import static org.testng.AssertJUnit.assertNull;
-
-import java.util.Date;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Locale;
-import java.util.TimeZone;
-
+import org.junit.jupiter.api.Test;
 import org.projectforge.business.timesheet.TimesheetDO;
 import org.projectforge.business.timesheet.TimesheetStats;
 import org.projectforge.business.timesheet.TimesheetUtils;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.time.DateHelper;
-import org.projectforge.test.AbstractTestNGBase;
-import org.testng.annotations.Test;
+import org.projectforge.test.AbstractTestBase;
 
-public class TimesheetUtilsTest extends AbstractTestNGBase
+import java.util.*;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+public class TimesheetUtilsTest extends AbstractTestBase
 {
   private TimeZone timeZone;
 
@@ -102,8 +96,8 @@ public class TimesheetUtilsTest extends AbstractTestNGBase
   {
     assertTimestamp("earliest start date", expectedEarliestStartDate, stats.getEarliestStartDate());
     assertTimestamp("latest stop date", expectedEarliestStopDate, stats.getLatestStopDate());
-    assertEquals("total millis", expectedTotalMinutes, stats.getTotalMillis() / 60000);
-    assertEquals("total break millis", expectedBreakMinutes, stats.getTotalBreakMillis() / 60000);
+    assertEquals( expectedTotalMinutes, stats.getTotalMillis() / 60000,"total millis");
+    assertEquals( expectedBreakMinutes, stats.getTotalBreakMillis() / 60000,"total break millis");
   }
 
   private void assertTimestamp(final String title, final String expected, final Date date)

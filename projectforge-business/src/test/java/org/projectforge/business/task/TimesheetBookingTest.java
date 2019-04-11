@@ -23,6 +23,7 @@
 
 package org.projectforge.business.task;
 
+import org.junit.jupiter.api.Test;
 import org.projectforge.business.fibu.AuftragDO;
 import org.projectforge.business.fibu.AuftragDao;
 import org.projectforge.business.fibu.AuftragsPositionDO;
@@ -35,16 +36,14 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.time.DateHolder;
 import org.projectforge.framework.time.DatePrecision;
 import org.projectforge.test.AbstractTestBase;
-import org.projectforge.test.AbstractTestNGBase;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.testng.annotations.Test;
 
 import java.util.Calendar;
 
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
 
-public class TimesheetBookingTest extends AbstractTestNGBase {
+public class TimesheetBookingTest extends AbstractTestBase {
   @Autowired
   private TaskDao taskDao;
 
@@ -60,22 +59,6 @@ public class TimesheetBookingTest extends AbstractTestNGBase {
   DateHolder date;
 
   boolean initialized = false;
-
-  public void setAccessDao(final AccessDao accessDao) {
-    this.accessDao = accessDao;
-  }
-
-  public void setTaskDao(final TaskDao taskDao) {
-    this.taskDao = taskDao;
-  }
-
-  public void setTimesheetDao(final TimesheetDao timesheetDao) {
-    this.timesheetDao = timesheetDao;
-  }
-
-  public void setAuftragDao(final AuftragDao auftragDao) {
-    this.auftragDao = auftragDao;
-  }
 
   private synchronized void initialize() // @BeforeClass not possible because DAOs are needed.
   {
@@ -199,7 +182,7 @@ public class TimesheetBookingTest extends AbstractTestNGBase {
     TimesheetDO sheet = new TimesheetDO();
     sheet.setUser(getUser(AbstractTestBase.TEST_USER));
     sheet.setStartDate(date.getDate());
-    sheet.setStartDate(date.getDate());
+    sheet.setStopDate(date.add(Calendar.HOUR, 1).getDate());
     return sheet;
   }
 

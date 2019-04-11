@@ -23,29 +23,14 @@
 
 package org.projectforge.humanresources;
 
-import static org.testng.AssertJUnit.*;
-
-import java.io.Serializable;
-import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Locale;
-import java.util.TimeZone;
-
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import org.projectforge.business.fibu.KundeDO;
 import org.projectforge.business.fibu.KundeDao;
 import org.projectforge.business.fibu.ProjektDO;
-import org.projectforge.business.humanresources.HRPlanningDO;
-import org.projectforge.business.humanresources.HRPlanningDao;
-import org.projectforge.business.humanresources.HRPlanningEntryDO;
-import org.projectforge.business.humanresources.HRPlanningEntryStatus;
-import org.projectforge.business.humanresources.HRPlanningRight;
+import org.projectforge.business.humanresources.*;
 import org.projectforge.business.multitenancy.TenantRegistryMap;
-import org.projectforge.business.user.GroupDao;
-import org.projectforge.business.user.UserGroupCache;
-import org.projectforge.business.user.UserRightDao;
-import org.projectforge.business.user.UserRightId;
-import org.projectforge.business.user.UserRightValue;
+import org.projectforge.business.user.*;
 import org.projectforge.framework.access.AccessException;
 import org.projectforge.framework.access.OperationType;
 import org.projectforge.framework.persistence.api.UserRightService;
@@ -55,13 +40,18 @@ import org.projectforge.framework.persistence.user.entities.UserRightDO;
 import org.projectforge.framework.time.DateHelper;
 import org.projectforge.framework.time.DateHolder;
 import org.projectforge.test.AbstractTestBase;
-import org.projectforge.test.AbstractTestNGBase;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.Test;
 
-public class HRPlanningTest extends AbstractTestNGBase
-{
+import java.io.Serializable;
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Locale;
+import java.util.TimeZone;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+public class HRPlanningTest extends AbstractTestBase {
   private static ProjektDO projekt1, projekt2;
 
   @Autowired
@@ -79,10 +69,13 @@ public class HRPlanningTest extends AbstractTestNGBase
   @Autowired
   UserRightService userRights;
 
-  @BeforeClass
-  public void createProjects()
-  {
-    super.setUp();
+  private static boolean initialized;
+
+  @BeforeAll
+  public void createProjects() {
+    if (initialized)
+      return;
+    initialized = true;
     logon(AbstractTestBase.TEST_FINANCE_USER);
     final KundeDO kunde = new KundeDO();
     kunde.setName("ACME ltd.");
@@ -93,8 +86,7 @@ public class HRPlanningTest extends AbstractTestNGBase
   }
 
   @Test
-  public void testUserRights()
-  {
+  public void testUserRights() {
     final UserGroupCache userGroupCache = TenantRegistryMap.getInstance().getTenantRegistry().getUserGroupCache();
     PFUserDO user1 = initTestDB.addUser("HRPlanningTestUser1");
     final HRPlanningRight right = (HRPlanningRight) userRights.getRight(UserRightId.PM_HR_PLANNING);
@@ -141,15 +133,13 @@ public class HRPlanningTest extends AbstractTestNGBase
   }
 
   @Test
-  public void getFirstDayOfWeek()
-  {
+  public void getFirstDayOfWeek() {
     final java.sql.Date date = createDate(2010, Calendar.JANUARY, 9, 1, 10, 57, 456);
     assertEquals("2010-01-04 00:00:00.000 +0000", DateHelper.formatAsUTC(HRPlanningDO.getFirstDayOfWeek(date)));
   }
 
   @Test
-  public void testBeginOfWeek()
-  {
+  public void testBeginOfWeek() {
     logon(AbstractTestBase.TEST_FINANCE_USER);
     HRPlanningDO planning = new HRPlanningDO();
     final java.sql.Date date = createDate(2010, Calendar.JANUARY, 9, 1, 10, 57, 456);
@@ -168,8 +158,7 @@ public class HRPlanningTest extends AbstractTestNGBase
   }
 
   @Test
-  public void overwriteDeletedEntries()
-  {
+  public void overwriteDeletedEntries() {
     logon(AbstractTestBase.TEST_FINANCE_USER);
     // Create planning:
     HRPlanningDO planning = new HRPlanningDO();
@@ -210,9 +199,8 @@ public class HRPlanningTest extends AbstractTestNGBase
   }
 
   private void setHours(final HRPlanningEntryDO entry, final int monday, final int tuesday, final int wednesday,
-      final int thursday,
-      final int friday, final int weekend)
-  {
+                        final int thursday,
+                        final int friday, final int weekend) {
     entry.setMondayHours(new BigDecimal(monday));
     entry.setTuesdayHours(new BigDecimal(tuesday));
     entry.setWednesdayHours(new BigDecimal(wednesday));
@@ -222,9 +210,8 @@ public class HRPlanningTest extends AbstractTestNGBase
   }
 
   private void assertHours(final HRPlanningEntryDO entry, final int monday, final int tuesday, final int wednesday,
-      final int thursday,
-      final int friday, final int weekend)
-  {
+                           final int thursday,
+                           final int friday, final int weekend) {
     assertBigDecimal(monday, entry.getMondayHours());
     assertBigDecimal(tuesday, entry.getTuesdayHours());
     assertBigDecimal(wednesday, entry.getWednesdayHours());
@@ -234,8 +221,7 @@ public class HRPlanningTest extends AbstractTestNGBase
   }
 
   private java.sql.Date createDate(final int year, final int month, final int day, final int hour, final int minute,
-      final int second, final int millisecond)
-  {
+                                   final int second, final int millisecond) {
     final Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("UTC"), Locale.GERMAN);
     cal.set(Calendar.YEAR, year);
     cal.set(Calendar.MONTH, month);

@@ -23,17 +23,16 @@
 
 package org.projectforge.business.user;
 
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.fail;
-
+import org.junit.jupiter.api.Test;
 import org.projectforge.framework.access.AccessException;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.test.AbstractTestBase;
-import org.projectforge.test.AbstractTestNGBase;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.testng.annotations.Test;
 
-public class UserXmlPreferencesTestFork extends AbstractTestNGBase
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
+
+public class UserXmlPreferencesTestFork extends AbstractTestBase
 {
   @Autowired
   UserXmlPreferencesCache userXmlPreferencesCache;

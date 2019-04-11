@@ -23,16 +23,7 @@
 
 package org.projectforge.business.fibu;
 
-import static org.testng.AssertJUnit.*;
-
-import java.io.Serializable;
-import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.List;
-import java.util.Random;
-
+import org.junit.jupiter.api.Test;
 import org.projectforge.business.user.GroupDao;
 import org.projectforge.business.user.UserRightDao;
 import org.projectforge.business.user.UserRightId;
@@ -45,11 +36,19 @@ import org.projectforge.framework.persistence.user.entities.UserRightDO;
 import org.projectforge.framework.time.DateHelper;
 import org.projectforge.framework.time.DateHolder;
 import org.projectforge.test.AbstractTestBase;
-import org.projectforge.test.AbstractTestNGBase;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.testng.annotations.Test;
 
-public class AuftragDaoTest extends AbstractTestNGBase
+import java.io.Serializable;
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.List;
+import java.util.Random;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+public class AuftragDaoTest extends AbstractTestBase
 {
   private int dbNumber = AuftragDao.START_NUMBER;
 

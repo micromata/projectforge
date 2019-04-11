@@ -23,14 +23,14 @@
 
 package org.projectforge.meb;
 
-import static org.testng.AssertJUnit.assertEquals;
-
+import org.junit.jupiter.api.Test;
 import org.projectforge.business.meb.MebMailClient;
-import org.projectforge.test.AbstractTestNGBase;
+import org.projectforge.test.AbstractTestBase;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.testng.annotations.Test;
 
-public class MebMailClientTest extends AbstractTestNGBase
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+public class MebMailClientTest extends AbstractTestBase
 {
   @Autowired
   private MebMailClient mebMailClient;

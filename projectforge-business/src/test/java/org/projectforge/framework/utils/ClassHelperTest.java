@@ -23,13 +23,10 @@
 
 package org.projectforge.framework.utils;
 
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertFalse;
-import static org.testng.AssertJUnit.assertNull;
-import static org.testng.AssertJUnit.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 import org.projectforge.framework.utils.ClassHelper;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.Test;
 
 public class ClassHelperTest
 {

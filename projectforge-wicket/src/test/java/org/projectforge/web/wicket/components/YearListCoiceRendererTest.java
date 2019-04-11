@@ -23,18 +23,16 @@
 
 package org.projectforge.web.wicket.components;
 
-import static org.testng.AssertJUnit.assertEquals;
+import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
 import java.util.List;
 
-import org.testng.annotations.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class YearListCoiceRendererTest
-{
+public class YearListCoiceRendererTest {
   @Test
-  public void listToString()
-  {
+  public void listToString() {
     List<Integer> years = Arrays.asList();
     YearListCoiceRenderer renderer = new YearListCoiceRenderer(years);
     assertEquals(String.valueOf(YearListCoiceRenderer.CURRENT_YEAR), renderer.getDisplayValue(-1));

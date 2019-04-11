@@ -23,21 +23,18 @@
 
 package org.projectforge.common;
 
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertFalse;
-import static org.testng.AssertJUnit.assertNull;
-import static org.testng.AssertJUnit.assertTrue;
-
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import org.projectforge.framework.configuration.ConfigXmlTest;
 import org.projectforge.jira.JiraUtils;
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.Test;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 public class JiraUtilsTest
 {
   public static final String JIRA_BASE_URL = "https://jira.acme.com/jira/browse/";
 
-  @BeforeClass
+  @BeforeAll
   public static void setUp()
   {
     ConfigXmlTest.createTestConfiguration();

@@ -3,13 +3,13 @@ package org.projectforge.framework.persistence.database;
 import java.io.File;
 
 import org.projectforge.framework.persistence.jpa.PfEmgrFactory;
-import org.projectforge.test.AbstractTestNGBase;
+import org.projectforge.test.AbstractTestBase;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.Test;
 
 import de.micromata.genome.db.jpa.xmldump.api.JpaXmlDumpService;
 
-public class ConvertOldDumpToNew extends AbstractTestNGBase
+public class ConvertOldDumpToNew extends AbstractTestBase
 {
   @Autowired
   private JpaXmlDumpService jpaXmlDumpService;

@@ -1,16 +1,16 @@
 package org.projectforge.business.fibu;
 
-import org.projectforge.test.AbstractTestNGBase;
+import org.junit.jupiter.api.Test;
+import org.projectforge.test.AbstractTestBase;
 import org.projectforge.web.session.UserAgentBrowser;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.testng.annotations.Test;
 
 import java.time.LocalDate;
 import java.time.Month;
 
-import static org.testng.AssertJUnit.*;
+import static org.junit.jupiter.api.Assertions.*;
 
-public class InvoiceServiceTest extends AbstractTestNGBase {
+public class InvoiceServiceTest extends AbstractTestBase {
   @Autowired
   private InvoiceService invoiceService;
 
@@ -80,9 +80,8 @@ public class InvoiceServiceTest extends AbstractTestNGBase {
     String filename = invoiceService.getInvoiceFilename(data, UserAgentBrowser.UNKNOWN);
     assertNotNull(filename);
     assertTrue(filename.length() < 256);
-    assertEquals("Assert equals is dependent from property projectforge.domain!",
-            "12345_Kunde_Projekt_abcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabca[more].docx",
-            filename);
+    assertEquals("12345_Kunde_Projekt_abcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabcabca[more].docx",
+            filename, "Assertions.equals is dependent from property projectforge.domain!");
   }
 
 }

@@ -23,10 +23,10 @@
 
 package org.projectforge.plugins.marketing;
 
-import static org.testng.AssertJUnit.assertNull;
-import static org.testng.internal.junit.ArrayAsserts.assertArrayEquals;
+import org.junit.jupiter.api.Test;
 
-import org.testng.annotations.Test;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 public class CampaignDOTest
 {

@@ -23,13 +23,9 @@
 
 package org.projectforge.business.user;
 
-import static org.testng.AssertJUnit.*;
-
-import java.io.Serializable;
-import java.util.List;
-
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.junit.jupiter.api.Test;
 import org.projectforge.business.group.service.GroupService;
 import org.projectforge.business.multitenancy.TenantRegistryMap;
 import org.projectforge.business.password.PasswordQualityService;
@@ -37,15 +33,17 @@ import org.projectforge.framework.i18n.I18nKeyAndParams;
 import org.projectforge.framework.persistence.user.entities.GroupDO;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.test.AbstractTestBase;
-import org.projectforge.test.AbstractTestNGBase;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionCallback;
 import org.springframework.transaction.support.TransactionTemplate;
-import org.testng.annotations.Test;
 
-public class UserTest extends AbstractTestNGBase
-{
+import java.io.Serializable;
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+public class UserTest extends AbstractTestBase {
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(UserTest.class);
   private static final String STRONGOLDPW = "ja6gieyai8quie0Eey!ooS8eMonah:";
 
@@ -69,41 +67,38 @@ public class UserTest extends AbstractTestNGBase
   private PasswordQualityService passwordQualityService;
 
   @Test
-  public void testUserDO()
-  {
+  public void testUserDO() {
     logon(AbstractTestBase.TEST_ADMIN_USER);
     final PFUserDO user = userService.getByUsername(AbstractTestBase.TEST_ADMIN_USER);
     assertEquals(user.getUsername(), AbstractTestBase.TEST_ADMIN_USER);
     final UserGroupCache userGroupCache = TenantRegistryMap.getInstance().getTenantRegistry().getUserGroupCache();
     final PFUserDO user1 = getUser("user1");
     final String groupnames = groupService.getGroupnames(user1.getId());
-    assertEquals("Groupnames", "group1; group2", groupnames);
+    assertEquals("group1; group2", groupnames, "Groupnames");
     assertEquals(true, userGroupCache.isUserMemberOfGroup(user1.getId(), getGroupId("group1")));
     assertEquals(false, userGroupCache.isUserMemberOfGroup(user1.getId(), getGroupId("group3")));
     final GroupDO group = groupService.getGroup(getGroupId("group1"));
     assertEquals("group1", group.getName());
     final PFUserDO admin = getUser(AbstractTestBase.ADMIN);
-    assertEquals("Administrator", true, userGroupCache.isUserMemberOfAdminGroup(admin.getId()));
-    assertEquals("Not administrator", false, userGroupCache.isUserMemberOfAdminGroup(user1.getId()));
+    assertEquals(true, userGroupCache.isUserMemberOfAdminGroup(admin.getId()), "Administrator");
+    assertEquals(false, userGroupCache.isUserMemberOfAdminGroup(user1.getId()), "Not administrator");
   }
 
   @Test
-  public void testGetUserDisplayname()
-  {
+  public void testGetUserDisplayname() {
     final PFUserDO user = new PFUserDO();
     user.setUsername("hurzel");
-    assertEquals("getUserDisplayname", "hurzel", user.getUserDisplayname());
+    assertEquals("hurzel", user.getUserDisplayname(), "getUserDisplayname");
     user.setLastname("Reinhard");
-    assertEquals("getFullname", "Reinhard", user.getFullname());
-    assertEquals("getUserDisplayname", "Reinhard (hurzel)", user.getUserDisplayname());
+    assertEquals("Reinhard", user.getFullname(), "getFullname");
+    assertEquals("Reinhard (hurzel)", user.getUserDisplayname(), "getUserDisplayname");
     user.setFirstname("Kai");
-    assertEquals("getFullname", "Kai Reinhard", user.getFullname());
-    assertEquals("getUserDisplayname", "Kai Reinhard (hurzel)", user.getUserDisplayname());
+    assertEquals("Kai Reinhard", user.getFullname(), "getFullname");
+    assertEquals("Kai Reinhard (hurzel)", user.getUserDisplayname(), "getUserDisplayname");
   }
 
   @Test
-  public void testSaveAndUpdate()
-  {
+  public void testSaveAndUpdate() {
     logon(AbstractTestBase.TEST_ADMIN_USER);
     PFUserDO user = new PFUserDO();
     user.setUsername("UserTest");
@@ -130,8 +125,7 @@ public class UserTest extends AbstractTestNGBase
   }
 
   @Test
-  public void testCopyValues()
-  {
+  public void testCopyValues() {
     final PFUserDO src = new PFUserDO();
     src.setPassword("test");
     src.setUsername("usertest");
@@ -149,42 +143,44 @@ public class UserTest extends AbstractTestNGBase
    * Test password quality.
    */
   @Test
-  public void testPasswordQuality()
-  {
+  public void testPasswordQuality() {
     List<I18nKeyAndParams> passwordQualityMessages = passwordQualityService.checkPasswordQuality(STRONGOLDPW, null);
-    assertTrue("Empty password not allowed.",
-        passwordQualityMessages.contains(new I18nKeyAndParams(MESSAGE_KEY_PASSWORD_MIN_LENGTH_ERROR, 10)));
+    assertTrue(passwordQualityMessages.contains(new I18nKeyAndParams(MESSAGE_KEY_PASSWORD_MIN_LENGTH_ERROR, 10)),
+            "Empty password not allowed.");
 
     passwordQualityMessages = passwordQualityService.checkPasswordQuality(STRONGOLDPW, "");
-    assertTrue("Empty password not allowed.",
-        passwordQualityMessages.contains(new I18nKeyAndParams(MESSAGE_KEY_PASSWORD_MIN_LENGTH_ERROR, 10)));
+    assertTrue(passwordQualityMessages.contains(new I18nKeyAndParams(MESSAGE_KEY_PASSWORD_MIN_LENGTH_ERROR, 10)),
+            "Empty password not allowed.");
 
     passwordQualityMessages = passwordQualityService.checkPasswordQuality(STRONGOLDPW, "abcd12345");
-    assertTrue("Password with less than " + "10" + " characters not allowed.",
-        passwordQualityMessages.contains(new
-            I18nKeyAndParams(MESSAGE_KEY_PASSWORD_MIN_LENGTH_ERROR, 10)));
+    assertTrue(passwordQualityMessages.contains(new
+                    I18nKeyAndParams(MESSAGE_KEY_PASSWORD_MIN_LENGTH_ERROR, 10)),
+            "Password with less than " + "10" + " characters not allowed.");
 
     passwordQualityMessages = passwordQualityService.checkPasswordQuality(STRONGOLDPW, "ProjectForge");
-    assertTrue("Password must have one non letter at minimum.",
-        passwordQualityMessages.contains(new I18nKeyAndParams(MESSAGE_KEY_PASSWORD_NONCHAR_ERROR)));
+    assertTrue(passwordQualityMessages.contains(new I18nKeyAndParams(MESSAGE_KEY_PASSWORD_NONCHAR_ERROR)),
+            "Password must have one non letter at minimum.");
 
     passwordQualityMessages = passwordQualityService.checkPasswordQuality(STRONGOLDPW, "1234567890");
-    assertTrue("Password must have one non letter at minimum.",
-        passwordQualityMessages.contains(new I18nKeyAndParams(MESSAGE_KEY_PASSWORD_CHARACTER_ERROR)));
+    assertTrue(passwordQualityMessages.contains(new I18nKeyAndParams(MESSAGE_KEY_PASSWORD_CHARACTER_ERROR)),
+            "Password must have one non letter at minimum.");
 
     passwordQualityMessages = passwordQualityService.checkPasswordQuality(STRONGOLDPW, "12345678901");
-    assertTrue("Password must have one non letter at minimum.",
-        passwordQualityMessages.contains(new I18nKeyAndParams(MESSAGE_KEY_PASSWORD_CHARACTER_ERROR)));
+    assertTrue(passwordQualityMessages.contains(new I18nKeyAndParams(MESSAGE_KEY_PASSWORD_CHARACTER_ERROR)),
+            "Password must have one non letter at minimum.");
 
     passwordQualityMessages = passwordQualityService.checkPasswordQuality(STRONGOLDPW, STRONGOLDPW);
-    assertTrue("Password must New password should not be the same as the old one.",
-        passwordQualityMessages.contains(new I18nKeyAndParams(MESSAGE_KEY_PASSWORD_OLD_EQ_NEW_ERROR)));
+    assertTrue(passwordQualityMessages.contains(new I18nKeyAndParams(MESSAGE_KEY_PASSWORD_OLD_EQ_NEW_ERROR)),
+            "Password must New password should not be the same as the old one.");
 
-    assertTrue("Password OK.", passwordQualityService.checkPasswordQuality(STRONGOLDPW, "kabcdjh!id").isEmpty());
+    assertTrue(passwordQualityService.checkPasswordQuality(STRONGOLDPW, "kabcdjh!id").isEmpty(),
+            "Password OK.");
 
-    assertTrue("Password OK.", passwordQualityService.checkPasswordQuality(STRONGOLDPW, "kjh8iabcddsf").isEmpty());
+    assertTrue(passwordQualityService.checkPasswordQuality(STRONGOLDPW, "kjh8iabcddsf").isEmpty(),
+            "Password OK.");
 
-    assertTrue("Password OK.", passwordQualityService.checkPasswordQuality(STRONGOLDPW, "  5     g ").isEmpty());
+    assertTrue(passwordQualityService.checkPasswordQuality(STRONGOLDPW, "  5     g ").isEmpty(),
+            "Password OK.");
   }
 
   // TODO HISTORY
@@ -267,17 +263,14 @@ public class UserTest extends AbstractTestNGBase
   //    });
   //  }
 
-  @SuppressWarnings({ "unchecked", "rawtypes" })
+  @SuppressWarnings({"unchecked", "rawtypes"})
   @Test
-  public void testUniqueUsernameDO()
-  {
+  public void testUniqueUsernameDO() {
     final Serializable[] ids = new Integer[2];
     txTemplate.setPropagationBehavior(TransactionTemplate.PROPAGATION_REQUIRES_NEW);
-    txTemplate.execute(new TransactionCallback()
-    {
+    txTemplate.execute(new TransactionCallback() {
       @Override
-      public Object doInTransaction(final TransactionStatus status)
-      {
+      public Object doInTransaction(final TransactionStatus status) {
         PFUserDO user = createTestUser("42");
         ids[0] = userService.save(user);
         user = createTestUser("100");
@@ -286,52 +279,45 @@ public class UserTest extends AbstractTestNGBase
       }
     });
     txTemplate.setPropagationBehavior(TransactionTemplate.PROPAGATION_REQUIRES_NEW);
-    txTemplate.execute(new TransactionCallback()
-    {
+    txTemplate.execute(new TransactionCallback() {
       @Override
-      public Object doInTransaction(final TransactionStatus status)
-      {
+      public Object doInTransaction(final TransactionStatus status) {
         final PFUserDO user = createTestUser("42");
-        assertTrue("Username should already exist.", userService.doesUsernameAlreadyExist(user));
+        assertTrue(userService.doesUsernameAlreadyExist(user), "Username should already exist.");
         user.setUsername("5");
-        assertFalse("Signature should not exist.", userService.doesUsernameAlreadyExist(user));
+        assertFalse(userService.doesUsernameAlreadyExist(user), "Signature should not exist.");
         userService.save(user);
         return null;
       }
     });
     txTemplate.setPropagationBehavior(TransactionTemplate.PROPAGATION_REQUIRES_NEW);
-    txTemplate.execute(new TransactionCallback()
-    {
+    txTemplate.execute(new TransactionCallback() {
       @Override
-      public Object doInTransaction(final TransactionStatus status)
-      {
-        final PFUserDO dbBook = userService.getById(ids[1]);
+      public Object doInTransaction(final TransactionStatus status) {
+        final PFUserDO dbUser = userService.getById(ids[1]);
         final PFUserDO user = new PFUserDO();
-        user.copyValuesFrom(dbBook);
-        assertFalse("Signature does not exist.", userService.doesUsernameAlreadyExist(user));
+        user.copyValuesFrom(dbUser);
+        assertFalse(userService.doesUsernameAlreadyExist(user), "Username does not exist.");
         user.setUsername("42");
-        assertTrue("Signature does already exist.", userService.doesUsernameAlreadyExist(user));
+        assertTrue(userService.doesUsernameAlreadyExist(user), "Username does already exist.");
         user.setUsername("4711");
-        assertFalse("Signature does not exist.", userService.doesUsernameAlreadyExist(user));
+        assertFalse(userService.doesUsernameAlreadyExist(user), "Username does not exist.");
         userService.update(user);
         return null;
       }
     });
     txTemplate.setPropagationBehavior(TransactionTemplate.PROPAGATION_REQUIRES_NEW);
-    txTemplate.execute(new TransactionCallback()
-    {
+    txTemplate.execute(new TransactionCallback() {
       @Override
-      public Object doInTransaction(final TransactionStatus status)
-      {
+      public Object doInTransaction(final TransactionStatus status) {
         final PFUserDO user = userService.getById(ids[1]);
-        assertFalse("Signature does not exist.", userService.doesUsernameAlreadyExist(user));
+        assertFalse(userService.doesUsernameAlreadyExist(user), "Signature does not exist.");
         return null;
       }
     });
   }
 
-  private PFUserDO createTestUser(final String username)
-  {
+  private PFUserDO createTestUser(final String username) {
     final PFUserDO user = new PFUserDO();
     user.setUsername(username);
     return user;
@@ -373,14 +359,13 @@ public class UserTest extends AbstractTestNGBase
   //  }
 
   /**
-   * Convert expectedGroupNames in list of expected group ids: {2,4,7} Asserts that all group ids in groupssString are
+   * Convert expectedGroupNames in list of expected group ids: {2,4,7} Assertions. that all group ids in groupssString are
    * expected and vice versa.
    *
    * @param expectedGroupNames
    * @param groupsString       csv of groups, e. g. {2,4,7}
    */
-  void assertGroupIds(final String[] expectedGroupNames, final String groupsString)
-  {
+  void assertGroupIds(final String[] expectedGroupNames, final String groupsString) {
     if (expectedGroupNames == null) {
       assertTrue(StringUtils.isEmpty(groupsString));
     }
@@ -392,14 +377,13 @@ public class UserTest extends AbstractTestNGBase
   }
 
   /**
-   * Convert expectedUserNames in list of expected users ids: {2,4,7} Asserts that all user ids in usersString are
+   * Convert expectedUserNames in list of expected users ids: {2,4,7} Assertions. that all user ids in usersString are
    * expected and vice versa.
    *
    * @param expectedUserNames
-   * @param groupsString      csv of groups, e. g. {2,4,7}
+   * @param usersString       csv of groups, e. g. {2,4,7}
    */
-  void assertUserIds(final String[] expectedUserNames, final String usersString)
-  {
+  void assertUserIds(final String[] expectedUserNames, final String usersString) {
     if (expectedUserNames == null) {
       assertTrue(StringUtils.isEmpty(usersString));
       return;
@@ -411,16 +395,15 @@ public class UserTest extends AbstractTestNGBase
     assertIds(expectedUsers, usersString);
   }
 
-  private void assertIds(final String[] expectedEntries, final String csvString)
-  {
+  private void assertIds(final String[] expectedEntries, final String csvString) {
     final String[] entries = StringUtils.split(csvString, ',');
     for (final String expected : expectedEntries) {
-      assertTrue("'" + expected + "' expected in: " + ArrayUtils.toString(entries),
-          ArrayUtils.contains(entries, expected));
+      assertTrue(ArrayUtils.contains(entries, expected),
+              "'" + expected + "' expected in: " + ArrayUtils.toString(entries));
     }
     for (final String entry : entries) {
-      assertTrue("'" + entry + "' doesn't expected in: " + ArrayUtils.toString(expectedEntries), ArrayUtils
-          .contains(expectedEntries, entry));
+      assertTrue(ArrayUtils.contains(expectedEntries, entry),
+              "'" + entry + "' doesn't expected in: " + ArrayUtils.toString(expectedEntries));
     }
   }
 }

@@ -26,7 +26,7 @@ package org.projectforge.test;
 import de.micromata.genome.db.jpa.history.api.HistoryEntry;
 import de.micromata.genome.db.jpa.history.entities.EntityOpType;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.projectforge.business.configuration.ConfigurationService;
 import org.projectforge.business.login.Login;
 import org.projectforge.business.login.LoginDefaultHandler;
@@ -54,8 +54,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.orm.hibernate5.HibernateTemplate;
-import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import javax.sql.DataSource;
 import java.math.BigDecimal;
@@ -69,8 +69,9 @@ import static org.junit.jupiter.api.Assertions.*;
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)
  */
-@RunWith(SpringRunner.class)
-@SpringJUnitConfig(TestConfiguration.class)
+@ExtendWith(SpringExtension.class)
+@ContextConfiguration(classes = {TestConfiguration.class})
+//@SpringJUnitConfig(TestConfiguration.class)
 public abstract class AbstractTestBase {
   protected static final org.slf4j.Logger log = org.slf4j.LoggerFactory
           .getLogger(AbstractTestBase.class);
@@ -158,15 +159,10 @@ public abstract class AbstractTestBase {
   @Autowired
   private DatabaseService initDatabaseDao;
 
-  private static boolean initialized;
-
   protected int mCount = 0;
 
   @BeforeEach
-  public void setUp() {
-    if (initialized)
-      return;
-    initialized = true;
+  public void dataBaseSetUp() {
     System.setProperty("user.timezone", "UTC");
     TimeZone.setDefault(DateHelper.UTC);
     log.info("user.timezone is: " + System.getProperty("user.timezone"));
@@ -192,6 +188,7 @@ public abstract class AbstractTestBase {
     } catch (BeansException e) {
       log.error("Something in setUp go wrong: " + e.getMessage(), e);
     }
+    return;
   }
 
   protected void initDb() {
@@ -219,7 +216,6 @@ public abstract class AbstractTestBase {
   }
 
   protected void clearDatabase() {
-    log.info("clearDatabase...");
     emf.getJpaSchemaService().clearDatabase();
     TenantRegistryMap.getInstance().setAllUserGroupCachesAsExpired();
     getUserGroupCache().setExpired();

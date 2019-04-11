@@ -1,17 +1,15 @@
 package org.projectforge.web.fibu;
 
-import static org.testng.Assert.assertEquals;
-
 import org.apache.wicket.validation.Validatable;
+import org.junit.jupiter.api.Test;
 import org.projectforge.web.common.BicValidator;
 import org.projectforge.web.common.IbanValidator;
-import org.testng.annotations.Test;
 
-public class EmployeeDataTest
-{
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+public class EmployeeDataTest {
   @Test
-  public void testBicValidator()
-  {
+  public void testBicValidator() {
     BicValidator bicValidator = new BicValidator();
 
     Validatable<String> validatable = new Validatable<>("12345678");
@@ -41,8 +39,7 @@ public class EmployeeDataTest
   }
 
   @Test
-  public void testIbanValidator()
-  {
+  public void testIbanValidator() {
     IbanValidator ibanValidator = new IbanValidator();
 
     Validatable<String> myiban = new Validatable<>("MYIBAN");

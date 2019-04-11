@@ -23,10 +23,9 @@
 
 package org.projectforge.common;
 
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertNull;
+import static org.junit.jupiter.api.Assertions.*;
 
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Kai Reinhard (k.reinhard@micromata.de)

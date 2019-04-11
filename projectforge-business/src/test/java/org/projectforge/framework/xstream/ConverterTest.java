@@ -23,13 +23,7 @@
 
 package org.projectforge.framework.xstream;
 
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertNull;
-
-import java.util.Calendar;
-import java.util.Locale;
-import java.util.TimeZone;
-
+import org.junit.jupiter.api.Test;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.time.DateHelper;
@@ -38,10 +32,16 @@ import org.projectforge.framework.xstream.converter.DateConverter;
 import org.projectforge.framework.xstream.converter.ISODateConverter;
 import org.projectforge.framework.xstream.converter.LocaleConverter;
 import org.projectforge.framework.xstream.converter.TimeZoneConverter;
-import org.projectforge.test.AbstractTestNGBase;
-import org.testng.annotations.Test;
+import org.projectforge.test.AbstractTestBase;
 
-public class ConverterTest extends AbstractTestNGBase
+import java.util.Calendar;
+import java.util.Locale;
+import java.util.TimeZone;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+
+public class ConverterTest extends AbstractTestBase
 {
 
   @Test

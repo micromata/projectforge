@@ -23,21 +23,20 @@
 
 package org.projectforge.address;
 
-import static org.testng.AssertJUnit.*;
-
+import org.junit.jupiter.api.Test;
 import org.projectforge.business.address.AddressDO;
 import org.projectforge.business.address.AddressDao;
 import org.projectforge.business.address.PersonalAddressDO;
 import org.projectforge.business.address.PersonalAddressDao;
 import org.projectforge.test.AbstractTestBase;
-import org.projectforge.test.AbstractTestNGBase;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionCallback;
 import org.springframework.transaction.support.TransactionTemplate;
-import org.testng.annotations.Test;
 
-public class PersonalAddressTest extends AbstractTestNGBase
+import static org.junit.jupiter.api.Assertions.*;
+
+public class PersonalAddressTest extends AbstractTestBase
 {
   @Autowired
   private PersonalAddressDao personalAddressDao;

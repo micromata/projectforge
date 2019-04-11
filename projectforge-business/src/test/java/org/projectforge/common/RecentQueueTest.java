@@ -23,19 +23,17 @@
 
 package org.projectforge.common;
 
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertNull;
-
+import org.junit.jupiter.api.Test;
 import org.projectforge.framework.utils.RecentQueue;
-import org.testng.annotations.Test;
 
-public class RecentQueueTest
-{
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+
+public class RecentQueueTest {
   @Test
-  public void test()
-  {
+  public void test() {
     RecentQueue<Integer> queue = new RecentQueue<Integer>(4);
-    assertEquals("Length of queue", 0, queue.size());
+    assertEquals(0, queue.size(), "Length of queue");
     assertNull(queue.get(null));
     assertNull(queue.get(5));
     assertNull(queue.get(-1));
@@ -61,12 +59,11 @@ public class RecentQueueTest
     assertNull(queue.get(-1));
   }
 
-  private void checkQueue(RecentQueue<Integer> queue, Integer... values)
-  {
+  private void checkQueue(RecentQueue<Integer> queue, Integer... values) {
     int pos = 0;
-    assertEquals("Length of queue", values.length, queue.size());
+    assertEquals(values.length, queue.size(), "Length of queue");
     for (Integer val : values) {
-      assertEquals("Value at pos " + pos, val, queue.get(pos++));
+      assertEquals(val, queue.get(pos++), "Value at pos " + pos);
     }
   }
 
