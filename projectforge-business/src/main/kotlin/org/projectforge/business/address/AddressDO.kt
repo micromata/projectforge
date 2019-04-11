@@ -267,8 +267,12 @@ class AddressDO : DefaultBaseWithAttrDO<AddressDO>() {
      */
     @PropertyInfo(i18nKey = "address.addressbooks")
     @get:ManyToMany
-    @get:JoinTable(name = "t_addressbook_address", joinColumns = [JoinColumn(name = "address_id", referencedColumnName = "PK")], inverseJoinColumns = [JoinColumn(name = "addressbook_id", referencedColumnName = "PK")], indexes = [javax.persistence.Index(name = "idx_fk_t_addressbook_address_address_id", columnList = "address_id"), javax.persistence.Index(name = "idx_fk_t_addressbook_address_addressbook_id", columnList = "addressbook_id")])
-    var addressbookList: Set<AddressbookDO> = HashSet()
+    @get:JoinTable(name = "t_addressbook_address",
+            joinColumns = [JoinColumn(name = "address_id", referencedColumnName = "PK")],
+            inverseJoinColumns = [JoinColumn(name = "addressbook_id", referencedColumnName = "PK")],
+            indexes = [javax.persistence.Index(name = "idx_fk_t_addressbook_address_address_id", columnList = "address_id"),
+                javax.persistence.Index(name = "idx_fk_t_addressbook_address_addressbook_id", columnList = "addressbook_id")])
+    var addressbookList: Set<AddressbookDO>? = HashSet()
 
     @PropertyInfo(i18nKey = "address.image")
     @NoHistory
