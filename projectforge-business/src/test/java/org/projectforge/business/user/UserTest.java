@@ -302,7 +302,7 @@ public class UserTest extends AbstractTestBase {
         assertTrue(userService.doesUsernameAlreadyExist(user), "Username does already exist.");
         user.setUsername("4711");
         assertFalse(userService.doesUsernameAlreadyExist(user), "Username does not exist.");
-        userService.update(user);
+        //userService.update(user);
         return null;
       }
     });

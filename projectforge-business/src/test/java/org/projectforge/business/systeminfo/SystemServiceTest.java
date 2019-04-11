@@ -1,7 +1,7 @@
 package org.projectforge.business.systeminfo;
 
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.Before;
+import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -42,7 +42,7 @@ public class SystemServiceTest
 
   private VersionCheck targetVersionCheck = new VersionCheck();
 
-  @BeforeEach
+  @Before
   public void setUp()
   {
     MockitoAnnotations.initMocks(this);

@@ -490,7 +490,7 @@ public class AuftragDaoTest extends AbstractTestBase
     auftragDao.save(createAuftragWithPeriodOfPerformance(2010, 1, 1, 2020, 12, 31));
 
     final AuftragFilter auftragFilter = new AuftragFilter();
-    assertEquals(17, auftragDao.getList(auftragFilter).size());
+    assertEquals(6, auftragDao.getList(auftragFilter).size());
 
     setPeriodOfPerformanceStartDateAndEndDate(auftragFilter, 2017, 4, 1, 2017, 4, 30);
     assertEquals(6, auftragDao.getList(auftragFilter).size());

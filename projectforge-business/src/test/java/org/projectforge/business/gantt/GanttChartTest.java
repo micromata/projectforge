@@ -40,8 +40,7 @@ import java.util.regex.Pattern;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class GanttChartTest extends AbstractTestBase
-{
+public class GanttChartTest extends AbstractTestBase {
   @Autowired
   private GanttChartDao ganttChartDao;
 
@@ -49,8 +48,7 @@ public class GanttChartTest extends AbstractTestBase
   private TaskDao taskDao;
 
   @Test
-  public void testReadWriteGanttObjects()
-  {
+  public void testReadWriteGanttObjects() {
     logon(AbstractTestBase.TEST_ADMIN_USER);
     final String prefix = "GantChartTest";
     final TaskTree taskTree = taskDao.getTaskTree();
@@ -60,34 +58,33 @@ public class GanttChartTest extends AbstractTestBase
     taskDao.update(initTestDB.addTask(prefix + "1", prefix).setStartDate(dh.getDate()).setDuration(BigDecimal.TEN));
     initTestDB.addTask(prefix + "1.1", prefix + "1");
     taskDao.update(initTestDB.addTask(prefix + "2", prefix).setGanttPredecessor(getTask(prefix + "1"))
-        .setDuration(BigDecimal.ONE));
+            .setDuration(BigDecimal.ONE));
     taskDao.update(initTestDB.addTask(prefix + "3", prefix).setGanttPredecessor(getTask(prefix + "2"))
-        .setGanttPredecessorOffset(10)
-        .setDuration(BigDecimal.TEN));
+            .setGanttPredecessorOffset(10)
+            .setDuration(BigDecimal.TEN));
     final GanttChartData data = Task2GanttTaskConverter.convertToGanttObjectTree(taskTree, rootTask);
     final GanttTask rootObject = data.getRootObject();
     final GanttChartDO ganttChartDO = new GanttChartDO().setTask(rootTask);
     ganttChartDao.writeGanttObjects(ganttChartDO, rootObject);
-    assertEquals("No output because there is no further information in the GanttObject tree.", "",
-        ganttChartDO.getGanttObjectsAsXml());
+    assertEquals("", ganttChartDO.getGanttObjectsAsXml(), "No output because there is no further information in the GanttObject tree.");
     findById(rootObject, getTask(prefix + "2").getId()).setPredecessorOffset(5).setDuration(new BigDecimal("12"));
     findById(rootObject, getTask(prefix + "1.1").getId()).setDuration(new BigDecimal("2"));
     ganttChartDao.writeGanttObjects(ganttChartDO, rootObject);
     String xml = transform(prefix, "<ganttObject id='{}'>"
-        + "<children>"
-        + "<ganttObject id='{1}'>"
-        + "<children>"
-        + "<ganttObject id='{1.1}' duration='2'/>"
-        + "</children>"
-        + "</ganttObject>"
-        + "<ganttObject id='{2}' predecessorOffset='5' duration='12'/></children></ganttObject>");
-    assertEquals("3 has no further information.", xml, ganttChartDO.getGanttObjectsAsXml());
+            + "<children>"
+            + "<ganttObject id='{1}'>"
+            + "<children>"
+            + "<ganttObject id='{1.1}' duration='2'/>"
+            + "</children>"
+            + "</ganttObject>"
+            + "<ganttObject id='{2}' predecessorOffset='5' duration='12'/></children></ganttObject>");
+    assertEquals(xml, ganttChartDO.getGanttObjectsAsXml(), "3 has no further information.");
 
     GanttTask ganttObject = ganttChartDao.readGanttObjects(ganttChartDO).getRootObject();
     ganttChartDao.writeGanttObjects(ganttChartDO, ganttObject);
     assertEquals(xml, ganttChartDO.getGanttObjectsAsXml());
-    assertEquals( BigDecimal.TEN, findById(ganttObject, getTask(prefix + "1").getId()).getDuration(), "duration");
-    assertEquals( dh.getDate(), findById(ganttObject, getTask(prefix + "1").getId()).getStartDate(),  "startDate");
+    assertEquals(BigDecimal.TEN, findById(ganttObject, getTask(prefix + "1").getId()).getDuration(), "duration");
+    assertEquals(dh.getDate(), findById(ganttObject, getTask(prefix + "1").getId()).getStartDate(), "startDate");
 
     initTestDB.addTask(prefix + "II", "root");
     taskDao.update(getTask(prefix + "1.1").setParentTask(getTask(prefix))); // One level higher
@@ -96,48 +93,48 @@ public class GanttChartTest extends AbstractTestBase
 
     ganttObject = ganttChartDao.readGanttObjects(ganttChartDO).getRootObject();
     ganttChartDao.writeGanttObjects(ganttChartDO, ganttObject);
-    assertEquals("1 has no further information, 2 and 3 are moved anywhere.", transform(prefix, "<ganttObject id='{}'>"
-        + "<children>"
-        + "<ganttObject id='{1.1}' duration='2'/>"
-        + "</children>"
-        + "</ganttObject>"), ganttChartDO.getGanttObjectsAsXml());
+    assertEquals(transform(prefix, "<ganttObject id='{}'>"
+                    + "<children>"
+                    + "<ganttObject id='{1.1}' duration='2'/>"
+                    + "</children>"
+                    + "</ganttObject>"), ganttChartDO.getGanttObjectsAsXml(),
+            "1 has no further information, 2 and 3 are moved anywhere.");
     findById(ganttObject, getTask(prefix + "1").getId()).setStartDate(null);
     ganttChartDao.writeGanttObjects(ganttChartDO, ganttObject);
     ganttObject = ganttChartDao.readGanttObjects(ganttChartDO).getRootObject();
     assertNull(findById(ganttObject, getTask(prefix + "1").getId())
-            .getStartDate(),
+                    .getStartDate(),
             "Start date should be stored as null (start date of task is set).");
     findById(ganttObject, getTask(prefix + "1").getId()).addChild(new GanttTaskImpl(-1).setTitle("Child of 1"));
     findById(ganttObject, getTask(prefix + "1.1").getId()).addChild(
-        new GanttTaskImpl(-2).setTitle("Child of 1.1").addChild(new GanttTaskImpl(-3).setTitle("Grand child of 1.1")));
+            new GanttTaskImpl(-2).setTitle("Child of 1.1").addChild(new GanttTaskImpl(-3).setTitle("Grand child of 1.1")));
     ganttChartDao.writeGanttObjects(ganttChartDO, ganttObject);
     xml = transform(prefix, "<ganttObject id='{}'>"
-        + "<children>"
-        + "<ganttObject id='{1}' startDate='null'>"
-        + "<children>"
-        + "<ganttObject id='-1'><title>Child of 1</title></ganttObject>"
-        + "</children>"
-        + "</ganttObject>"
-        + "<ganttObject id='{1.1}' duration='2'>"
-        + "<children>"
-        + "<ganttObject id='-2'><title>Child of 1.1</title>"
-        + "<children>"
-        + "<ganttObject id='-3'><title>Grand child of 1.1</title></ganttObject>"
-        + "</children>"
-        + "</ganttObject>"
-        + "</children>"
-        + "</ganttObject>"
-        + "</children>"
-        + "</ganttObject>");
-    assertEquals("Test with activities not related to tasks.", xml, ganttChartDO.getGanttObjectsAsXml());
+            + "<children>"
+            + "<ganttObject id='{1}' startDate='null'>"
+            + "<children>"
+            + "<ganttObject id='-1'><title>Child of 1</title></ganttObject>"
+            + "</children>"
+            + "</ganttObject>"
+            + "<ganttObject id='{1.1}' duration='2'>"
+            + "<children>"
+            + "<ganttObject id='-2'><title>Child of 1.1</title>"
+            + "<children>"
+            + "<ganttObject id='-3'><title>Grand child of 1.1</title></ganttObject>"
+            + "</children>"
+            + "</ganttObject>"
+            + "</children>"
+            + "</ganttObject>"
+            + "</children>"
+            + "</ganttObject>");
+    assertEquals(xml, ganttChartDO.getGanttObjectsAsXml(), "Test with activities not related to tasks.");
     ganttObject = ganttChartDao.readGanttObjects(ganttChartDO).getRootObject();
     ganttChartDao.writeGanttObjects(ganttChartDO, ganttObject);
-    assertEquals("Read-write-cycle (identity check).", xml, ganttChartDO.getGanttObjectsAsXml());
+    assertEquals(xml, ganttChartDO.getGanttObjectsAsXml(), "Read-write-cycle (identity check).");
   }
 
   @Test
-  public void testIgnoringOfNumberFields()
-  {
+  public void testIgnoringOfNumberFields() {
     logon(AbstractTestBase.TEST_ADMIN_USER);
     final String prefix = "GanttTest3";
     final TaskTree taskTree = taskDao.getTaskTree();
@@ -157,13 +154,13 @@ public class GanttChartTest extends AbstractTestBase
     findById(rootObject, id5).setDuration(null).setProgress(null); // Modified
     ganttChartDao.writeGanttObjects(ganttChartDO, rootObject);
     final String xml = transform(prefix, "<ganttObject id='{}'>"
-        + "<children>"
-        + "<ganttObject id='{1}' duration='10.000' progress='10'/>"
-        + "<ganttObject id='{3}' duration='2' progress='2'/>"
-        + "<ganttObject id='{5}' duration='null' progress='null'/>"
-        + "</children>"
-        + "</ganttObject>");
-    assertEquals("check xml output.", xml, ganttChartDO.getGanttObjectsAsXml());
+            + "<children>"
+            + "<ganttObject id='{1}' duration='10.000' progress='10'/>"
+            + "<ganttObject id='{3}' duration='2' progress='2'/>"
+            + "<ganttObject id='{5}' duration='null' progress='null'/>"
+            + "</children>"
+            + "</ganttObject>");
+    assertEquals(xml, ganttChartDO.getGanttObjectsAsXml(), "check xml output.");
     GanttTask ganttObject = ganttChartDao.readGanttObjects(ganttChartDO).getRootObject();
     assertDurationAndProgress(ganttObject, id1, BigDecimal.TEN, 10);
     assertDurationAndProgress(ganttObject, id2, null, null);
@@ -173,8 +170,7 @@ public class GanttChartTest extends AbstractTestBase
   }
 
   private void assertDurationAndProgress(final GanttTask root, final Integer id, final BigDecimal expectedDuration,
-      final Integer expectedProgress)
-  {
+                                         final Integer expectedProgress) {
     final GanttTask task = root.findById(id);
     assertTrue(NumberHelper.isEqual(expectedDuration, task.getDuration()));
     if (expectedProgress == null) {
@@ -184,21 +180,18 @@ public class GanttChartTest extends AbstractTestBase
     }
   }
 
-  private Integer addTask(final String name, final BigDecimal duration, final Integer progress)
-  {
+  private Integer addTask(final String name, final BigDecimal duration, final Integer progress) {
     final TaskDO task = initTestDB.addTask(name, "GanttTest3");
     task.setDuration(duration).setProgress(progress);
     taskDao.update(task);
     return task.getId();
   }
 
-  private GanttTaskImpl findById(final GanttTask ganttObject, final Serializable id)
-  {
+  private GanttTaskImpl findById(final GanttTask ganttObject, final Serializable id) {
     return (GanttTaskImpl) ((GanttTaskImpl) ganttObject).findById(id);
   }
 
-  private String transform(final String prefix, final String str)
-  {
+  private String transform(final String prefix, final String str) {
     final String text = str.replace('\'', '"');
     final Pattern p = Pattern.compile("\\{([0-9\\.]*)\\}", Pattern.MULTILINE);
     final StringBuffer buf = new StringBuffer();
