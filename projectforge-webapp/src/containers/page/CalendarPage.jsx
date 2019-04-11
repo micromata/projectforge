@@ -8,6 +8,9 @@ import 'react-big-calendar/lib/addons/dragAndDrop/styles.css';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
 import {connect} from 'react-redux';
 import {getServiceURL} from '../../utilities/rest';
+import CalendarToolBar from './CalendarToolBar';
+
+import 'moment/locale/de';
 
 const localizer = BigCalendar.momentLocalizer(moment_timezone); // or globalizeLocalizer
 
@@ -16,7 +19,10 @@ const DragAndDropCalendar = withDragAndDrop(BigCalendar);
 class CalendarPage extends React.Component {
     state = {
         initalized: false,
-        events: []
+        events: [],
+        specialDays: [],
+        date: undefined,
+        viewType: undefined
     };
 
     // ToDo
@@ -28,7 +34,8 @@ class CalendarPage extends React.Component {
         let formattedDuration = undefined;
         if (event.location) location = <React.Fragment>{event.location}<br/></React.Fragment>;
         if (event.desc) desc = <React.Fragment>{event.description}<br/></React.Fragment>;
-        if (event.formattedDuration) formattedDuration = <React.Fragment>{event.formattedDuration}<br/></React.Fragment>;
+        if (event.formattedDuration) formattedDuration =
+            <React.Fragment>{event.formattedDuration}<br/></React.Fragment>;
         return (
             <React.Fragment>
                 <p><strong>{event.title}</strong></p>
@@ -38,11 +45,7 @@ class CalendarPage extends React.Component {
     };
 
     renderMonthEvent = ({event}) => {
-        return (
-            <React.Fragment>
-                {event.title}
-            </React.Fragment>
-        )
+        return (<React.Fragment>{event.title}</React.Fragment>);
     };
 
     renderAgendaEvent = ({event}) => {
@@ -59,27 +62,53 @@ class CalendarPage extends React.Component {
                 className: ''
             };
         // Event is always undefined!!!
-        const backgroundColor = (event && event.bgColor) ? event.bgColor : '#3174ad';
-        const textColor = (event && event.fgColor) ? event.fgColor : 'black';
-        const style = {
-            backgroundColor: backgroundColor,
-            color: textColor,
-            borderRadius: '3px',
-            opacity: 0.8,
-            border: '0px',
-            display: 'block'
-        };
+        const backgroundColor = (event && event.bgColor) ? event.bgColor : undefined;
+        const textColor = (event && event.fgColor) ? event.fgColor : undefined;
+        const cssClass = (event && event.cssClass) ? event.cssClass : undefined;
         return {
-            className: '',
-            style: style
+            style: {
+                backgroundColor: backgroundColor,
+                color: textColor
+            },
+            className: cssClass
         };
     };
+    renderDateHeader = (obj) => {
+        const isoDate = moment_timezone(obj.date).format('YYYY-MM-DD');
+        const specialDay = this.state.specialDays[isoDate];
+        let dayInfo = '';
+        if (specialDay && specialDay.holidayTitle) {
+            dayInfo = `${specialDay.holidayTitle} `;
+        }
+        return <React.Fragment><a href={'#'} onClick={() => this.navigateToDay(obj.date)}>{dayInfo}{obj.label}</a></React.Fragment>;
+    }
 
     dayStyle = (date) => {
+        const isoDate = moment_timezone(date).format('YYYY-MM-DD');
+        const specialDay = this.state.specialDays[isoDate];
+        if (!specialDay)
+            return;
+        let className = 'holiday';
+        if (specialDay.workingDay)
+            className = 'holiday-workday';
+        else if (specialDay.weekend) {
+            if (specialDay.holiday)
+                className = 'weekend-holiday';
+            else
+                className = 'weekend';
+        } else
+            className = 'holiday';
         return {
-            className: ''
+            className: className
         }
     };
+
+    navigateToDay = (e) => {
+        this.setState({
+            date: e,
+            viewType: 'day'
+        })
+    }
 
     convertJsonDates = e => Object.assign({}, e, {
         start: new Date(e.start),
@@ -102,10 +131,12 @@ class CalendarPage extends React.Component {
                 const date = json.date;
                 const viewType = json.viewType;
                 const events = json.events;
+                const specialDays = json.specialDays;
                 this.setState({
                     date: new Date(date),
                     viewType: viewType,
                     events: events.map(this.convertJsonDates),
+                    specialDays: specialDays,
                     initialized: true
                 })
             })
@@ -130,11 +161,20 @@ class CalendarPage extends React.Component {
             .then(response => response.json())
             .then(json => {
                 const events = json.events;
+                const specialDays = json.specialDays;
                 this.setState({
                     events: events.map(this.convertJsonDates),
+                    specialDays: specialDays,
                 })
             })
             .catch(() => this.setState({failed: true}));
+    };
+
+    onNavigate = (date) => {
+        this.setState({date: date})
+    };
+
+    onView = (obj) => {
     };
 
     // Callback fired when the visible date range changes. Returns an Array of dates or an object with start and end dates for BUILTIN views.
@@ -162,8 +202,9 @@ class CalendarPage extends React.Component {
     };
 
     // Callback fired when a calendar event is selected.
-    onSelectEvent = () => {
-
+    onSelectEvent = (event) => {
+        // redirect to event.link
+        console.log("ToDo: redirect to " + event.link);
     };
 
     // Callback fired when a calendar event is clicked twice.
@@ -184,6 +225,9 @@ class CalendarPage extends React.Component {
     render() {
         if (!this.state.initialized)
             return <React.Fragment>Loading...</React.Fragment>;
+        let initTime = new Date(this.state.date.getDate());
+        initTime.setHours( 8);
+        initTime.setMinutes(0);
         return (
             <DragAndDropCalendar
                 style={{
@@ -194,21 +238,33 @@ class CalendarPage extends React.Component {
                 events={this.state.events}
                 step={30}
                 defaultView={this.state.viewType}
-                views={['month', 'week', 'day', 'agenda']}
+                view={this.state.viewType}
+                onView={this.onView}
+                views={['month', 'work_week', 'week', 'day', 'agenda']}
                 startAccessor="start"
-                defaultDate={this.state.date}
+                date={this.state.date}
+                onNavigate={this.onNavigate}
                 endAccessor="end"
                 onRangeChange={this.onRangeChange}
+                onSelectEvent={this.onSelectEvent}
                 eventPropGetter={this.eventStyle}
                 dayPropGetter={this.dayStyle}
+                showMultiDayTimes={true}
+                timeslots={1}
+                scrollToTime={initTime}
                 components={{
                     event: this.renderEvent,
                     month: {
                         event: this.renderMonthEvent,
+                        dateHeader: this.renderDateHeader
+                    },
+                    week: {
+                        //header: this.renderDateHeader
                     },
                     agenda: {
                         event: this.renderAgendaEvent,
                     },
+                    toolbar : CalendarToolBar
                 }}
             />
         );
@@ -217,10 +273,10 @@ class CalendarPage extends React.Component {
     constructor(props) {
         super(props);
 
-        const {firstDayOfWeek, timeZone} = this.props;
-console.log(timeZone)
+        const {firstDayOfWeek, timeZone, locale} = this.props;
+        const useLocale = (locale) ? locale : 'en'
         moment_timezone.tz.setDefault(timeZone);
-        moment_timezone.locale('de',
+        moment_timezone.locale(useLocale,
             {
                 week: {
                     dow: firstDayOfWeek, // First day of week (got from UserStatus).
@@ -232,8 +288,10 @@ console.log(timeZone)
         this.renderEvent = this.renderEvent.bind(this);
         this.renderMonthEvent = this.renderMonthEvent.bind(this);
         this.renderAgendaEvent = this.renderAgendaEvent.bind(this);
+        this.renderDateHeader = this.renderDateHeader.bind(this);
         this.eventStyle = this.eventStyle.bind(this);
         this.dayStyle = this.dayStyle.bind(this);
+        this.navigateToDay = this.navigateToDay.bind(this);
         this.fetchEvents = this.fetchEvents.bind(this);
         this.fetchInitial = this.fetchInitial.bind(this);
         this.onRangeChange = this.onRangeChange.bind(this);
@@ -241,17 +299,21 @@ console.log(timeZone)
         this.onSelectEvent = this.onSelectEvent.bind(this);
         this.onDoubleClickEvent = this.onDoubleClickEvent.bind(this);
         this.onSelecting = this.onSelecting.bind(this);
+        this.onNavigate = this.onNavigate.bind(this);
+        this.onView = this.onView.bind(this);
     }
 }
 
 CalendarPage.defaultProps = {
     firstDayOfWeek: PropTypes.number.isRequired,
-    timeZone: PropTypes.number.isRequired
+    timeZone: PropTypes.number.isRequired,
+    locale: PropTypes.String
 };
 
 const mapStateToProps = ({authentication}) => ({
     firstDayOfWeek: authentication.user.firstDayOfWeekNo,
-    timeZone: authentication.user.timeZone
+    timeZone: authentication.user.timeZone,
+    locale: authentication.user.locale,
 });
 
 export default connect(mapStateToProps)(CalendarPage);

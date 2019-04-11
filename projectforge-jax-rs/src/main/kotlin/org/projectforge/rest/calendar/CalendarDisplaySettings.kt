@@ -105,6 +105,7 @@ class CalendarDisplaySettings {
                 templateEntry.calendarProperties?.forEach {
                     displayFilter.setColorMapping(it.calId, it.colorCode)
                 }
+                displayFilters.list.add(displayFilter)
             }
         }
     }
