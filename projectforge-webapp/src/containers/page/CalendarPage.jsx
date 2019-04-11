@@ -10,6 +10,8 @@ import {connect} from 'react-redux';
 import {getServiceURL} from '../../utilities/rest';
 import CalendarToolBar from './CalendarToolBar';
 
+import 'moment/locale/de';
+
 const localizer = BigCalendar.momentLocalizer(moment_timezone); // or globalizeLocalizer
 
 const DragAndDropCalendar = withDragAndDrop(BigCalendar);
@@ -224,7 +226,7 @@ class CalendarPage extends React.Component {
         if (!this.state.initialized)
             return <React.Fragment>Loading...</React.Fragment>;
         let initTime = new Date(this.state.date.getDate());
-        initTime.setHours( 9);
+        initTime.setHours( 8);
         initTime.setMinutes(0);
         return (
             <DragAndDropCalendar
@@ -271,9 +273,10 @@ class CalendarPage extends React.Component {
     constructor(props) {
         super(props);
 
-        const {firstDayOfWeek, timeZone} = this.props;
+        const {firstDayOfWeek, timeZone, locale} = this.props;
+        const useLocale = (locale) ? locale : 'en'
         moment_timezone.tz.setDefault(timeZone);
-        moment_timezone.locale('de',
+        moment_timezone.locale(useLocale,
             {
                 week: {
                     dow: firstDayOfWeek, // First day of week (got from UserStatus).
@@ -303,12 +306,14 @@ class CalendarPage extends React.Component {
 
 CalendarPage.defaultProps = {
     firstDayOfWeek: PropTypes.number.isRequired,
-    timeZone: PropTypes.number.isRequired
+    timeZone: PropTypes.number.isRequired,
+    locale: PropTypes.String
 };
 
 const mapStateToProps = ({authentication}) => ({
     firstDayOfWeek: authentication.user.firstDayOfWeekNo,
-    timeZone: authentication.user.timeZone
+    timeZone: authentication.user.timeZone,
+    locale: authentication.user.locale,
 });
 
 export default connect(mapStateToProps)(CalendarPage);
