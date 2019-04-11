@@ -134,7 +134,18 @@ class RestHelper(
         if (jsString.isNullOrBlank())
             return null
         try {
-            return PFDateTime.parseUTCDate(jsString, jsonDateTimeFormatter)
+            val length = jsString.length
+            val formatter =
+            when {
+                length > 19 -> jsonDateTimeFormatter
+                length > 16 -> jsonDateTimeSecondsFormatter
+                length > 10 -> jsonDateTimeMinutesFormatter
+                else -> jsonDateFormatter
+            }
+            if (formatter != jsonDateFormatter)
+            return PFDateTime.parseUTCDate(jsString, formatter)
+            val local =  LocalDate.parse(jsString, jsonDateFormatter) // Parses UTC as local date.
+            return PFDateTime.from(local)
         } catch (ex: DateTimeParseException) {
             log.error("Error while parsing date '$jsString': ${ex.message}.")
             return null
@@ -143,5 +154,8 @@ class RestHelper(
 
     companion object {
         private val jsonDateTimeFormatter = DateTimeFormatter.ofPattern(DateTimeFormat.JS_DATE_TIME_MILLIS.pattern)
+        private val jsonDateTimeSecondsFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss")
+        private val jsonDateTimeMinutesFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm")
+        private val jsonDateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
     }
 }
