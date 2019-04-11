@@ -3,7 +3,6 @@ package org.projectforge.web
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.projectforge.framework.access.AccessChecker
-import org.projectforge.framework.utils.GZIPHelper
 import org.projectforge.menu.builder.FavoritesMenuCreator
 import org.projectforge.menu.builder.MenuCreator
 import org.projectforge.test.AbstractTestBase
