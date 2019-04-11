@@ -8,7 +8,7 @@ html {
 
 body {
   background: #F8F9FA;
-  font-size: 12px;
+  font-size: 14px;
   font-style: normal;
   font-variant: normal;
   font-weight: normal;
@@ -39,6 +39,11 @@ nav.bg-light {
     color: #4D4D4D !important;
     font-size: 14px;
     margin-left: 20px;
+  }
+
+  ul li a.btn {
+    color: #fff !important;
+    background: #009BA3;
   }
 }
 
@@ -134,7 +139,12 @@ fieldset {
 // NavTabs
 
 a[class*="_navTab_"] {
-
   background: #5e6c7c;
   color: #fff;
+}
+
+// SVG
+
+svg.fa-chevron-down {
+  color: #009BA3;
 }
