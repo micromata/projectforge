@@ -76,7 +76,7 @@ class TimesheetEventsProvider() {
             }
             var title: String = CalendarHelper.getTitle(timesheet)
             var tooltip: String? = null
-            var formattedDuration: String? = formatDuration(timesheet.duration, false)
+            var formattedDuration: String? = formatDuration(timesheet.getDuration(), false)
             var description: String? = null//getToolTip(timesheet)
             var outOfRange: Boolean? = null
             //if (ctx.longFormat) {
@@ -85,7 +85,7 @@ class TimesheetEventsProvider() {
                 outOfRange = true
             }
             val link = "wa/editTimesheet?id=${timesheet.id}"
-            events.add(BigCalendarEvent(title, timesheet.startTime, timesheet .stopTime, null,
+            events.add(BigCalendarEvent(title, timesheet.startTime!!, timesheet .stopTime!!, null,
                     location =  timesheet.location, desc = description, tooltip=tooltip, formattedDuration = formattedDuration, outOfRange = outOfRange,
                     cssClass = "timesheet", link = link))
 
@@ -104,7 +104,7 @@ class TimesheetEventsProvider() {
 
     fun getToolTip(timesheet: TimesheetDO): String {
         val location = timesheet.location
-        val description = timesheet.shortDescription
+        val description = timesheet.getShortDescription()
         val task = timesheet.task
         val buf = StringBuffer()
         if (StringUtils.isNotBlank(location) == true) {
@@ -115,7 +115,7 @@ class TimesheetEventsProvider() {
         }
         buf.append(description)
         if (timesheet.kost2 == null) {
-            buf.append("; \n").append(task.title)
+            buf.append("; \n").append(task?.title)
         }
         return buf.toString()
     }

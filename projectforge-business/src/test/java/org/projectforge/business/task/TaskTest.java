@@ -462,18 +462,27 @@ public class TaskTest extends AbstractTestNGBase
     assertEquals(0, taskDao.readTotalDuration(task.getId()));
     final DateHolder dh = new DateHolder();
     dh.setDate(2010, Calendar.APRIL, 20, 8, 0);
-    TimesheetDO ts = new TimesheetDO().setUser(getUser(AbstractTestBase.TEST_USER)).setStartDate(dh.getDate())
-        .setStopTime(dh.add(Calendar.HOUR_OF_DAY, 4).getTimestamp()).setTask(task);
+    TimesheetDO ts = new TimesheetDO();
+    ts.setUser(getUser(AbstractTestBase.TEST_USER));
+    ts.setStartDate(dh.getDate())
+        .setStopTime(dh.add(Calendar.HOUR_OF_DAY, 4).getTimestamp());
+    ts.setTask(task);
     timesheetDao.save(ts);
     assertEquals(4 * 3600, taskDao.readTotalDuration(task.getId()));
     assertEquals(4 * 3600, getTotalDuration(taskTree, task.getId()));
-    ts = new TimesheetDO().setUser(getUser(AbstractTestBase.TEST_USER)).setStartDate(dh.add(Calendar.HOUR_OF_DAY, 1).getDate())
-        .setStopTime(dh.add(Calendar.HOUR_OF_DAY, 4).getTimestamp()).setTask(task);
+    ts = new TimesheetDO();
+    ts.setUser(getUser(AbstractTestBase.TEST_USER));
+    ts.setStartDate(dh.add(Calendar.HOUR_OF_DAY, 1).getDate())
+        .setStopTime(dh.add(Calendar.HOUR_OF_DAY, 4).getTimestamp());
+    ts.setTask(task);
     timesheetDao.save(ts);
     assertEquals(8 * 3600, taskDao.readTotalDuration(task.getId()));
     assertEquals(8 * 3600, getTotalDuration(taskTree, task.getId()));
-    ts = new TimesheetDO().setUser(getUser(AbstractTestBase.TEST_USER)).setStartDate(dh.add(Calendar.HOUR_OF_DAY, 1).getDate())
-        .setStopTime(dh.add(Calendar.HOUR_OF_DAY, 4).getTimestamp()).setTask(subTask1);
+    ts = new TimesheetDO();
+    ts.setUser(getUser(AbstractTestBase.TEST_USER));
+    ts.setStartDate(dh.add(Calendar.HOUR_OF_DAY, 1).getDate())
+        .setStopTime(dh.add(Calendar.HOUR_OF_DAY, 4).getTimestamp());
+    ts.setTask(subTask1);
     timesheetDao.save(ts);
     final List<Object[]> list = taskDao.readTotalDurations();
     boolean taskFound = false;

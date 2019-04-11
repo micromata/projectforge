@@ -262,7 +262,7 @@ public class TimesheetDao extends BaseDao<TimesheetDO>
     // Check time period overlaps:
     for (final TimesheetDO entry : result) {
       Validate.notNull(entry.getUserId());
-      if (entry.isMarked() == true) {
+      if (entry.getMarked() == true) {
         continue; // Is already marked.
       }
       final Set<Integer> overlapSet = getTimesheetsWithTimeoverlap(entry.getUserId());
@@ -276,7 +276,7 @@ public class TimesheetDao extends BaseDao<TimesheetDO>
       final List<TimesheetDO> list = result;
       result = new ArrayList<TimesheetDO>();
       for (final TimesheetDO entry : list) {
-        if (entry.isMarked() == true) {
+        if (entry.getMarked() == true) {
           result.add(entry);
         }
       }

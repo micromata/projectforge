@@ -414,7 +414,8 @@ public class TimesheetEditForm extends AbstractEditForm<TimesheetDO, TimesheetEd
             // Fill fields with selected template values:
             final UserPrefDO userPref = userPrefDao.getUserPref(UserPrefArea.TIMESHEET_TEMPLATE, newSelection);
             if (userPref != null) {
-              data.setKost2(null).setTask(null);
+              data.setKost2(null);
+              data.setTask(null);
               locationTextField.processInput(); // Update model.
               descriptionArea.processInput(); // Update model.
               if (recentUserPref != null) {

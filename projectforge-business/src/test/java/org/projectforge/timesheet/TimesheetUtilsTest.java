@@ -89,7 +89,10 @@ public class TimesheetUtilsTest extends AbstractTestNGBase
   {
     final Date startDate = parseTimestamp(start);
     final Date stopDate = parseTimestamp(stop);
-    final TimesheetDO ts = new TimesheetDO().setStartDate(startDate).setStopDate(stopDate).setUser(user);
+    final TimesheetDO ts = new TimesheetDO();
+    ts.setStartDate(startDate);
+    ts.setStopDate(stopDate);
+    ts.setUser(user);
     list.add(ts);
   }
 

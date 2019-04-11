@@ -23,11 +23,6 @@
 
 package org.projectforge.business.task;
 
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.fail;
-
-import java.util.Calendar;
-
 import org.projectforge.business.fibu.AuftragDO;
 import org.projectforge.business.fibu.AuftragDao;
 import org.projectforge.business.fibu.AuftragsPositionDO;
@@ -35,11 +30,7 @@ import org.projectforge.business.timesheet.TimesheetDO;
 import org.projectforge.business.timesheet.TimesheetDao;
 import org.projectforge.common.task.TaskStatus;
 import org.projectforge.common.task.TimesheetBookingStatus;
-import org.projectforge.framework.access.AccessDao;
-import org.projectforge.framework.access.AccessEntryDO;
-import org.projectforge.framework.access.AccessException;
-import org.projectforge.framework.access.AccessType;
-import org.projectforge.framework.access.GroupTaskAccessDO;
+import org.projectforge.framework.access.*;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.time.DateHolder;
 import org.projectforge.framework.time.DatePrecision;
@@ -48,8 +39,12 @@ import org.projectforge.test.AbstractTestNGBase;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.testng.annotations.Test;
 
-public class TimesheetBookingTest extends AbstractTestNGBase
-{
+import java.util.Calendar;
+
+import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.fail;
+
+public class TimesheetBookingTest extends AbstractTestNGBase {
   @Autowired
   private TaskDao taskDao;
 
@@ -66,23 +61,19 @@ public class TimesheetBookingTest extends AbstractTestNGBase
 
   boolean initialized = false;
 
-  public void setAccessDao(final AccessDao accessDao)
-  {
+  public void setAccessDao(final AccessDao accessDao) {
     this.accessDao = accessDao;
   }
 
-  public void setTaskDao(final TaskDao taskDao)
-  {
+  public void setTaskDao(final TaskDao taskDao) {
     this.taskDao = taskDao;
   }
 
-  public void setTimesheetDao(final TimesheetDao timesheetDao)
-  {
+  public void setTimesheetDao(final TimesheetDao timesheetDao) {
     this.timesheetDao = timesheetDao;
   }
 
-  public void setAuftragDao(final AuftragDao auftragDao)
-  {
+  public void setAuftragDao(final AuftragDao auftragDao) {
     this.auftragDao = auftragDao;
   }
 
@@ -97,9 +88,9 @@ public class TimesheetBookingTest extends AbstractTestNGBase
     TaskDO task;
     task = initTestDB.addTask("TimesheetBookingTest", "root");
     final GroupTaskAccessDO access = new GroupTaskAccessDO().setGroup(initTestDB.addGroup("TBT", AbstractTestBase.TEST_USER))
-        .addAccessEntry(
-            new AccessEntryDO(AccessType.OWN_TIMESHEETS, true, true, true, true))
-        .setTask(task);
+            .addAccessEntry(
+                    new AccessEntryDO(AccessType.OWN_TIMESHEETS, true, true, true, true))
+            .setTask(task);
     accessDao.save(access);
     logon(getUser(AbstractTestBase.TEST_FINANCE_USER));
     taskDao.update(initTestDB.addTask("TBT-1", "TimesheetBookingTest"));
@@ -107,16 +98,16 @@ public class TimesheetBookingTest extends AbstractTestNGBase
     taskDao.markAsDeleted(initTestDB.addTask("TBT-1.2", "TBT-1"));
     taskDao.update(initTestDB.addTask("TBT-1.2.1", "TBT-1.2"));
     taskDao.update(initTestDB.addTask("TBT-2", "TimesheetBookingTest")
-        .setTimesheetBookingStatus(TimesheetBookingStatus.TREE_CLOSED));
+            .setTimesheetBookingStatus(TimesheetBookingStatus.TREE_CLOSED));
     taskDao.update(initTestDB.addTask("TBT-2.1", "TBT-2").setTimesheetBookingStatus(TimesheetBookingStatus.OPENED));
     taskDao.update(initTestDB.addTask("TBT-3", "TimesheetBookingTest")
-        .setTimesheetBookingStatus(TimesheetBookingStatus.ONLY_LEAFS));
+            .setTimesheetBookingStatus(TimesheetBookingStatus.ONLY_LEAFS));
     initTestDB.addTask("TBT-3.1", "TBT-3");
     initTestDB.addTask("TBT-3.1.1", "TBT-3.1");
     initTestDB.addTask("TBT-3.1.2", "TBT-3.1");
     initTestDB.addTask("TBT-3.2", "TBT-3");
     taskDao.update(initTestDB.addTask("TBT-4", "TimesheetBookingTest")
-        .setTimesheetBookingStatus(TimesheetBookingStatus.NO_BOOKING));
+            .setTimesheetBookingStatus(TimesheetBookingStatus.NO_BOOKING));
     taskDao.update(initTestDB.addTask("TBT-4.1", "TBT-4").setTimesheetBookingStatus(TimesheetBookingStatus.INHERIT));
     taskDao.update(initTestDB.addTask("TBT-4.1.1", "TBT-4.1").setTimesheetBookingStatus(TimesheetBookingStatus.OPENED));
     initTestDB.addTask("TBT-5", "TimesheetBookingTest");
@@ -129,67 +120,90 @@ public class TimesheetBookingTest extends AbstractTestNGBase
   }
 
   @Test
-  public void testTimesheetBookingStatus()
-  {
+  public void testTimesheetBookingStatus() {
     initialize();
     logon(getUser(AbstractTestBase.TEST_USER));
-    TimesheetDO sheet = createNewSheet().setTask(getTask("TBT-2"));
+    TimesheetDO sheet = createNewSheet();
+    sheet.setTask(getTask("TBT-2"));
     save(sheet, "timesheet.error.taskNotBookable.treeClosedForBooking");
-    save(sheet.setTask(getTask("TBT-2.1")), "timesheet.error.taskNotBookable.treeClosedForBooking");
-    save(sheet.setTask(getTask("TBT-3")), "timesheet.error.taskNotBookable.onlyLeafsAllowedForBooking");
-    save(sheet.setTask(getTask("TBT-3.1")), "timesheet.error.taskNotBookable.onlyLeafsAllowedForBooking");
-    timesheetDao.save(sheet.setTask(getTask("TBT-3.2"))); // Leaf task node.
-    timesheetDao.save(createNewSheet().setTask(getTask("TBT-3.1.1"))); // Leaf task node.
-    timesheetDao.save(createNewSheet().setTask(getTask("TBT-3.1.2"))); // Leaf task node.
+    sheet.setTask(getTask("TBT-2.1"));
+    save(sheet, "timesheet.error.taskNotBookable.treeClosedForBooking");
+    sheet.setTask(getTask("TBT-3"));
+    save(sheet, "timesheet.error.taskNotBookable.onlyLeafsAllowedForBooking");
+    sheet.setTask(getTask("TBT-3.1"));
+    save(sheet, "timesheet.error.taskNotBookable.onlyLeafsAllowedForBooking");
+    sheet.setTask(getTask("TBT-3.2"));
+    timesheetDao.save(sheet); // Leaf task node.
     sheet = createNewSheet();
-    save(sheet.setTask(getTask("TBT-4")), "timesheet.error.taskNotBookable.taskClosedForBooking");
-    save(sheet.setTask(getTask("TBT-4.1")), "timesheet.error.taskNotBookable.taskClosedForBooking"); // Inherited (not opened)
-    timesheetDao.save(sheet.setTask(getTask("TBT-4.1.1"))); // Opened for booking.
+    sheet.setTask(getTask("TBT-3.1.1"));
+    timesheetDao.save(sheet); // Leaf task node.
+    sheet = createNewSheet();
+    sheet.setTask(getTask("TBT-3.1.2"));
+  timesheetDao.save(sheet); // Leaf task node.
+    sheet = createNewSheet();
+    sheet.setTask(getTask("TBT-4"));
+    save(sheet, "timesheet.error.taskNotBookable.taskClosedForBooking");
+    sheet.setTask(getTask("TBT-4.1"));
+    save(sheet, "timesheet.error.taskNotBookable.taskClosedForBooking"); // Inherited (not opened)
+    sheet.setTask(getTask("TBT-4.1.1"));
+    timesheetDao.save(sheet); // Opened for booking.
   }
 
   @Test
-  public void testOrderPositions()
-  {
+  public void testOrderPositions() {
     initialize();
     logon(getUser(AbstractTestBase.TEST_FINANCE_USER));
     final AuftragDO auftrag = new AuftragDO()
-        .addPosition(new AuftragsPositionDO().setTask(getTask("TBT-5.1")).setTitel("Pos 1"))
-        .addPosition(new AuftragsPositionDO().setTask(getTask("TBT-5.2.1.1")).setTitel("Pos 2"));
+            .addPosition(new AuftragsPositionDO().setTask(getTask("TBT-5.1")).setTitel("Pos 1"))
+            .addPosition(new AuftragsPositionDO().setTask(getTask("TBT-5.2.1.1")).setTitel("Pos 2"));
     auftragDao.save(auftrag.setNummer(auftragDao.getNextNumber(auftrag)));
     logon(getUser(AbstractTestBase.TEST_USER));
     TimesheetDO sheet = createNewSheet();
-    save(sheet.setTask(getTask("TBT-5")), "timesheet.error.taskNotBookable.orderPositionsFoundInSubTasks");
-    timesheetDao.save(sheet.setTask(getTask("TBT-5.1")));
-    timesheetDao.save(createNewSheet().setTask(getTask("TBT-5.1.1")));
-    timesheetDao.save(createNewSheet().setTask(getTask("TBT-5.1.2")));
+    sheet.setTask(getTask("TBT-5"));
+    save(sheet, "timesheet.error.taskNotBookable.orderPositionsFoundInSubTasks");
+    sheet.setTask(getTask("TBT-5.1"));
+    timesheetDao.save(sheet);
     sheet = createNewSheet();
-    save(sheet.setTask(getTask("TBT-5.2")), "timesheet.error.taskNotBookable.orderPositionsFoundInSubTasks");
-    save(sheet.setTask(getTask("TBT-5.2.1")), "timesheet.error.taskNotBookable.orderPositionsFoundInSubTasks");
-    timesheetDao.save(sheet.setTask(getTask("TBT-5.2.1.1")));
+    sheet.setTask(getTask("TBT-5.1.1"));
+    timesheetDao.save(sheet);
+    sheet = createNewSheet();
+    sheet.setTask(getTask("TBT-5.1.2"));
+    timesheetDao.save(sheet);
+    sheet = createNewSheet();
+    sheet.setTask(getTask("TBT-5.2"));
+    save(sheet, "timesheet.error.taskNotBookable.orderPositionsFoundInSubTasks");
+    sheet.setTask(getTask("TBT-5.2.1"));
+    save(sheet, "timesheet.error.taskNotBookable.orderPositionsFoundInSubTasks");
+    sheet.setTask(getTask("TBT-5.2.1.1"));
+    timesheetDao.save(sheet);
   }
 
   @Test
-  public void testTaskStatus()
-  {
+  public void testTaskStatus() {
     initialize();
     final PFUserDO user = getUser(AbstractTestBase.TEST_USER);
     logon(user);
-    TimesheetDO sheet = createNewSheet().setTask(getTask("TBT-1"));
+    TimesheetDO sheet = createNewSheet();
+    sheet.setTask(getTask("TBT-1"));
     timesheetDao.save(sheet);
-    sheet = createNewSheet().setTask(getTask("TBT-1.1"));
+    sheet = createNewSheet();
+    sheet.setTask(getTask("TBT-1.1"));
     save(sheet, "timesheet.error.taskNotBookable.taskNotOpened");
-    save(sheet.setTask(getTask("TBT-1.2")), "timesheet.error.taskNotBookable.taskDeleted");
-    save(sheet.setTask(getTask("TBT-1.2.1")), "timesheet.error.taskNotBookable.taskDeleted");
+    sheet.setTask(getTask("TBT-1.2"));
+    save(sheet, "timesheet.error.taskNotBookable.taskDeleted");
+    sheet.setTask(getTask("TBT-1.2.1"));
+    save(sheet, "timesheet.error.taskNotBookable.taskDeleted");
   }
 
-  private TimesheetDO createNewSheet()
-  {
-    return new TimesheetDO().setUser(getUser(AbstractTestBase.TEST_USER)).setStartDate(date.getDate()).setStopTime(
-        date.add(Calendar.MINUTE, 15).getTimestamp());
+  private TimesheetDO createNewSheet() {
+    TimesheetDO sheet = new TimesheetDO();
+    sheet.setUser(getUser(AbstractTestBase.TEST_USER));
+    sheet.setStartDate(date.getDate());
+    sheet.setStartDate(date.getDate());
+    return sheet;
   }
 
-  private void save(final TimesheetDO sheet, final String expectedErrorMsgKey)
-  {
+  private void save(final TimesheetDO sheet, final String expectedErrorMsgKey) {
     try {
       timesheetDao.save(sheet);
       fail("AccessException expected: " + expectedErrorMsgKey);
