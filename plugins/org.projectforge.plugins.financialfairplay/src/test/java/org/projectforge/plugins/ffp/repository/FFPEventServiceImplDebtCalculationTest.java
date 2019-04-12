@@ -1,12 +1,12 @@
 package org.projectforge.plugins.ffp.repository;
 
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.plugins.ffp.model.FFPAccountingDO;
 import org.projectforge.plugins.ffp.model.FFPDebtDO;
 import org.projectforge.plugins.ffp.model.FFPEventDO;
-import org.testng.annotations.BeforeMethod;
 
 import java.math.BigDecimal;
 import java.util.HashSet;
@@ -20,7 +20,7 @@ import static org.junit.jupiter.api.Assertions.*;
 public class FFPEventServiceImplDebtCalculationTest {
   private FFPEventServiceImpl ffpEventServiceImpl;
 
-  @BeforeMethod
+  @BeforeEach
   public void setup() {
     ffpEventServiceImpl = new FFPEventServiceImpl();
   }

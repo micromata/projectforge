@@ -29,11 +29,9 @@ import org.projectforge.continuousdb.TableAttribute;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class MemoTableTest
-{
+public class MemoTableTest {
   @Test
-  public void createTable()
-  {
+  public void createTable() {
     assertEquals("T_PLUGIN_MEMO", new Table(MemoDO.class).getName());
 
     final Table table = new Table(MemoDO.class);
@@ -41,6 +39,6 @@ public class MemoTableTest
     table.addAttributes("id");
     final TableAttribute attr = table.getAttributes().get(0);
     assertEquals("id", attr.getProperty());
-    assertEquals("If id is returned then BeanHelper has returned bridged method of interface.", "pk", attr.getName());
+    assertEquals("pk", attr.getName(), "If id is returned then BeanHelper has returned bridged method of interface.");
   }
 }

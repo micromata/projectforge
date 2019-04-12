@@ -4,7 +4,6 @@ import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.util.tester.WicketTester;
 import org.hibernate.Session;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.projectforge.business.fibu.EmployeeDO;
 import org.projectforge.business.fibu.EmployeeDao;
@@ -21,8 +20,7 @@ import java.time.Duration;
 import java.util.Date;
 import java.util.List;
 
-public class EmployeeSelectFilterTest extends AbstractTestBase
-{
+public class EmployeeSelectFilterTest extends AbstractTestBase {
 
   @Autowired
   EmployeeDao employeeDao;
@@ -30,22 +28,20 @@ public class EmployeeSelectFilterTest extends AbstractTestBase
   @Autowired
   UserDao userDao;
 
-  @BeforeAll
-  public void init()
-  {
+  @Override
+  protected void beforeAll() {
     logon(AbstractTestBase.TEST_FULL_ACCESS_USER);
   }
 
   @Test
   public void test()
-      throws NoSuchMethodException, InvocationTargetException, IllegalAccessException, NoSuchFieldException
-  {
+          throws NoSuchMethodException, InvocationTargetException, IllegalAccessException, NoSuchFieldException {
     WicketTester wicketTester = new WicketTester();
 
     Session session = userDao.getSession();
     EmployeeSalaryDO data = new EmployeeSalaryDO();
     EmployeeSelectPanel selectPanel = new EmployeeSelectPanel("1", new PropertyModel<EmployeeDO>(data,
-        "employee"), null, "employee");
+            "employee"), null, "employee");
     Field panelDao = selectPanel.getClass().getDeclaredField("employeeDao");
     panelDao.setAccessible(true);
     panelDao.set(selectPanel, employeeDao);
@@ -86,7 +82,7 @@ public class EmployeeSelectFilterTest extends AbstractTestBase
 
     getChoices.setAccessible(true);
     List<EmployeeDO> employeeDOList = (List<EmployeeDO>) getChoices
-        .invoke(selectPanel, "user1");
+            .invoke(selectPanel, "user1");
     Assertions.assertTrue(employeeDOList.get(0).getUser().getUsername().equals(pfUserDO.getUsername()));
 
     employeeDOList = (List<EmployeeDO>) getChoices.invoke(selectPanel, "user2");

@@ -1,9 +1,9 @@
 package org.projectforge.plugins.ffp.repository;
 
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.projectforge.plugins.ffp.model.FFPAccountingDO;
-import org.testng.annotations.BeforeMethod;
 
 import java.math.BigDecimal;
 import java.util.HashSet;
@@ -16,11 +16,10 @@ public class FFPEventServiceImplAverageCalculationTest
 
   private static FFPEventServiceImpl ffpEventServiceImpl;
 
-  @BeforeMethod
+  @BeforeAll
   public static void setup()
   {
     ffpEventServiceImpl = new FFPEventServiceImpl();
-
   }
 
   @Test
