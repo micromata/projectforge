@@ -65,8 +65,6 @@ class PostausgangRest() : AbstractStandardRest<PostausgangDO, PostausgangDao, Po
                 .add(person)
                 .add(inhalt)
                 .add(lc, "bemerkung")
-        layout.getInputById("person").enableAutoCompletion(this)
-        layout.getInputById("inhalt").enableAutoCompletion(this)
         return LayoutUtils.processEditPage(layout, dataObject)
     }
 }
