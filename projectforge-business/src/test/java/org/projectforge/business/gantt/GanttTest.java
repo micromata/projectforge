@@ -26,10 +26,10 @@ package org.projectforge.business.gantt;
 import org.apache.commons.io.FileUtils;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.projectforge.framework.configuration.ConfigXmlTest;
 import org.projectforge.framework.renderer.BatikImageRenderer;
 import org.projectforge.framework.renderer.ImageFormat;
 import org.projectforge.framework.time.DayHolder;
+import org.projectforge.test.TestSetup;
 import org.projectforge.test.WorkFileHelper;
 
 import java.io.File;
@@ -48,7 +48,7 @@ public class GanttTest
   public static void setUp()
   {
     // Needed if this tests runs before the ConfigurationTest.
-    ConfigXmlTest.createTestConfiguration();
+    TestSetup.init();
   }
 
   @Test

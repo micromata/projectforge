@@ -29,12 +29,12 @@ import org.projectforge.business.excel.ContentProvider;
 import org.projectforge.business.excel.ExportConfig;
 import org.projectforge.business.excel.ExportSheet;
 import org.projectforge.business.excel.ExportWorkbook;
-import org.projectforge.framework.configuration.ConfigXmlTest;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.time.DateHelper;
 import org.projectforge.framework.time.DateHolder;
 import org.projectforge.framework.time.DatePrecision;
 import org.projectforge.framework.time.DayHolder;
+import org.projectforge.test.TestSetup;
 import org.projectforge.test.WorkFileHelper;
 
 import java.io.File;
@@ -50,7 +50,7 @@ public class ExportWorkbookTest {
 
   @BeforeEach
   public void setUp() {
-    ConfigXmlTest.createTestConfiguration();
+    TestSetup.init();
   }
 
   @Test

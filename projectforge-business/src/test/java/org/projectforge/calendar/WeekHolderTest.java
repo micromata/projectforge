@@ -26,9 +26,9 @@ package org.projectforge.calendar;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.projectforge.framework.calendar.WeekHolder;
-import org.projectforge.framework.configuration.ConfigXmlTest;
 import org.projectforge.framework.time.DateHolder;
 import org.projectforge.framework.time.DatePrecision;
+import org.projectforge.test.TestSetup;
 
 import java.util.Calendar;
 import java.util.Locale;
@@ -41,7 +41,7 @@ public class WeekHolderTest {
   @BeforeAll
   public static void setUp() {
     // Needed if this tests runs before the ConfigurationTest.
-    ConfigXmlTest.createTestConfiguration();
+    TestSetup.init();
   }
 
   @Test

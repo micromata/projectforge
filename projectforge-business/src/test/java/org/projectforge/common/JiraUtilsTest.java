@@ -25,8 +25,8 @@ package org.projectforge.common;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.projectforge.framework.configuration.ConfigXmlTest;
 import org.projectforge.jira.JiraUtils;
+import org.projectforge.test.TestSetup;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -37,7 +37,7 @@ public class JiraUtilsTest
   @BeforeAll
   public static void setUp()
   {
-    ConfigXmlTest.createTestConfiguration();
+    TestSetup.init();
   }
 
   @Test
