@@ -24,40 +24,23 @@
 
 package org.projectforge.calendar;
 
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
-import org.projectforge.framework.configuration.ConfigXml;
-import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
+import org.projectforge.framework.configuration.ConfigXmlTest;
 import org.projectforge.framework.time.DateHolder;
 import org.projectforge.framework.time.DayHolder;
 
 import java.math.BigDecimal;
 import java.util.Calendar;
-import java.util.Locale;
-import java.util.TimeZone;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.powermock.api.mockito.PowerMockito.mockStatic;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest({ThreadLocalUserContext.class, ConfigXml.class})
 public class DayHolderTest {
-  @Before
-  public void setUp() {
-    mockStatic(ThreadLocalUserContext.class);
-    mockStatic(ConfigXml.class);
-    Locale locale = Locale.getDefault();
-    TimeZone timeZone = TimeZone.getDefault();
-    ConfigXml configXml = new ConfigXml("./target/Projectforge");
-    PowerMockito.when(ThreadLocalUserContext.getLocale()).thenReturn(locale);
-    PowerMockito.when(ThreadLocalUserContext.getTimeZone()).thenReturn(timeZone);
-    PowerMockito.when(ConfigXml.getInstance()).thenReturn(configXml);
+  @BeforeAll
+  static void beforeAll() {
+    ConfigXmlTest.createTestConfiguration();
   }
 
   @Test
@@ -96,7 +79,7 @@ public class DayHolderTest {
 
   //Test fertigstellen für Weihnachten/Silvester (config.xml)
   @Test
-  @Ignore
+  @Disabled
   public void testGetNumberOfWorkingDaysChristmas() {
     final DayHolder fromDay = new DayHolder();
     fromDay.setDate(2009, Calendar.DECEMBER, 24, 0, 0, 0);

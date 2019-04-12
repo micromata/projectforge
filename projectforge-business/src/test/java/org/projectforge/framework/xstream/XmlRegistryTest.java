@@ -23,37 +23,25 @@
 
 package org.projectforge.framework.xstream;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
-import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
-import org.projectforge.framework.time.DateHelper;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+import org.projectforge.framework.configuration.ConfigXmlTest;
 import org.projectforge.framework.time.DateHolder;
 import org.projectforge.framework.xstream.converter.ISODateConverter;
 
 import java.util.Calendar;
 import java.util.Date;
-import java.util.Locale;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest({ ThreadLocalUserContext.class })
 public class XmlRegistryTest
 {
 
-  @Before
-  public void setUp()
+  @BeforeAll
+  static void beforeAll()
   {
-    Calendar c = Calendar.getInstance();
-    c.setTimeZone(DateHelper.EUROPE_BERLIN);
-    PowerMockito.mockStatic(ThreadLocalUserContext.class);
-    PowerMockito.when(ThreadLocalUserContext.getTimeZone()).thenReturn(c.getTimeZone());
-    PowerMockito.when(ThreadLocalUserContext.getLocale()).thenReturn(Locale.ENGLISH);
+    ConfigXmlTest.createTestConfiguration();
   }
 
   @Test

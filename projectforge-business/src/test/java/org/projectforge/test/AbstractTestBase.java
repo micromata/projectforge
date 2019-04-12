@@ -25,6 +25,7 @@ package org.projectforge.test;
 
 import de.micromata.genome.db.jpa.history.api.HistoryEntry;
 import de.micromata.genome.db.jpa.history.entities.EntityOpType;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.projectforge.business.configuration.ConfigurationService;
@@ -161,8 +162,41 @@ public abstract class AbstractTestBase {
 
   protected int mCount = 0;
 
+  private static boolean recreateDatabase = true;
+
+  private static boolean initialized = false;
+
+
+  @BeforeAll
+  public static void _beforeAll() {
+    recreateDatabase = true;
+    initialized = false;
+  }
+
+  /**
+   * Override this as beforeAll, but non static.
+   */
+  protected void beforeAll() {
+
+  }
+
   @BeforeEach
-  public void dataBaseSetUp() {
+  void beforeEach() {
+    if (recreateDatabase) {
+      recreateDatabase = false;
+      recreateDataBase();
+    }
+    if (!initialized) {
+      initialized = true;
+      beforeAll();
+    }
+  }
+
+  /**
+   * Will be called once (BeforeClass). You may it call in your test to get a fresh database in your test class for your
+   * method.
+   */
+  public void recreateDataBase() {
     System.setProperty("user.timezone", "UTC");
     TimeZone.setDefault(DateHelper.UTC);
     log.info("user.timezone is: " + System.getProperty("user.timezone"));
@@ -327,11 +361,11 @@ public abstract class AbstractTestBase {
     }
   }
 
-  protected void assertBigDecimal(final int v1, final BigDecimal v2) {
+  public static void assertBigDecimal(final int v1, final BigDecimal v2) {
     assertBigDecimal(new BigDecimal(v1), v2);
   }
 
-  protected void assertBigDecimal(final BigDecimal v1, final BigDecimal v2) {
+  public static void assertBigDecimal(final BigDecimal v1, final BigDecimal v2) {
     assertTrue(v1.compareTo(v2) == 0, "BigDecimal values are not equal.");
   }
 

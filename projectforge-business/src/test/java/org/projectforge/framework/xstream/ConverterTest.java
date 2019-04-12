@@ -23,7 +23,9 @@
 
 package org.projectforge.framework.xstream;
 
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.projectforge.framework.configuration.ConfigXmlTest;
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.time.DateHelper;
@@ -32,7 +34,6 @@ import org.projectforge.framework.xstream.converter.DateConverter;
 import org.projectforge.framework.xstream.converter.ISODateConverter;
 import org.projectforge.framework.xstream.converter.LocaleConverter;
 import org.projectforge.framework.xstream.converter.TimeZoneConverter;
-import org.projectforge.test.AbstractTestBase;
 
 import java.util.Calendar;
 import java.util.Locale;
@@ -41,8 +42,13 @@ import java.util.TimeZone;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
-public class ConverterTest extends AbstractTestBase
+public class ConverterTest
 {
+
+  @BeforeAll
+  static void setup() {
+    ConfigXmlTest.createTestConfiguration();
+  }
 
   @Test
   public void testIsoDateConverter()
@@ -51,7 +57,7 @@ public class ConverterTest extends AbstractTestBase
     final ISODateConverter isoDateConverter = new ISODateConverter();
     final PFUserDO cetUser = new PFUserDO();
     cetUser.setTimeZone(DateHelper.EUROPE_BERLIN);
-    ThreadLocalUserContext.setUser(getUserGroupCache(), cetUser); // login CET user.
+    ThreadLocalUserContext.setUser(null, cetUser); // login CET user.
     DateHolder dh = new DateHolder();
     dh.setDate(2010, Calendar.AUGUST, 29, 23, 8, 17, 123);
     assertEquals("1283116097123", dateConverter.toString(dh.getDate()));
@@ -62,7 +68,7 @@ public class ConverterTest extends AbstractTestBase
     assertEquals("2010-08-29", isoDateConverter.toString(dh.setHourOfDay(0).getDate()));
     final PFUserDO utcUser = new PFUserDO();
     utcUser.setTimeZone(DateHelper.UTC);
-    ThreadLocalUserContext.setUser(getUserGroupCache(), utcUser); // login UTC user.
+    ThreadLocalUserContext.setUser(null, utcUser); // login UTC user.
     dh = new DateHolder(DateHelper.UTC);
     dh.setDate(2010, Calendar.AUGUST, 29, 23, 8, 17, 123);
     assertEquals("2010-08-29 23:08:17.123", isoDateConverter.toString(dh.getDate()));

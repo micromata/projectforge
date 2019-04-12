@@ -69,13 +69,8 @@ public class HRPlanningTest extends AbstractTestBase {
   @Autowired
   UserRightService userRights;
 
-  private static boolean initialized;
-
-  @BeforeAll
-  public void createProjects() {
-    if (initialized)
-      return;
-    initialized = true;
+  @Override
+  protected void beforeAll() {
     logon(AbstractTestBase.TEST_FINANCE_USER);
     final KundeDO kunde = new KundeDO();
     kunde.setName("ACME ltd.");
