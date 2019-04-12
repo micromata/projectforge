@@ -108,7 +108,7 @@ object ElementsRegistry {
         elementInfo = ElementInfo(propertyType)
         val propertyInfo = PropUtils.get(clazz, property)
         if (propertyInfo == null) {
-            log.warn("Property '${clazz}:${property}' not found.")
+            log.warn("@PropertyInfo '${clazz}:${property}' not found.")
             return elementInfo
         }
         val colinfo = getColumnMetadata(clazz, property)

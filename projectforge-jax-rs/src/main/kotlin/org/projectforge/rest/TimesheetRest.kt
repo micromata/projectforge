@@ -10,9 +10,9 @@ import javax.ws.rs.Path
 
 @Component
 @Path("timesheet")
-class TimesheetRest() : AbstractStandardRest<TimesheetDO, TimesheetDao, TimesheetFilter>(TimesheetDao::class.java, TimesheetFilter::class.java, "book.title") {
+class TimesheetRest() : AbstractStandardRest<TimesheetDO, TimesheetDao, TimesheetFilter>(TimesheetDao::class.java, TimesheetFilter::class.java, "timesheet.title") {
     /**
-     * Initializes new books for adding.
+     * Initializes new timesheets for adding.
      */
     override fun newBaseDO(): TimesheetDO {
         val sheet = super.newBaseDO()
