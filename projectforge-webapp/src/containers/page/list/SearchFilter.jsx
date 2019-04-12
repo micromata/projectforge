@@ -14,6 +14,7 @@ import {
     Row,
     Select,
 } from '../../../components/design';
+import MultiSelect from '../../../components/design/input/MultiSelect';
 import { getNamedContainer } from '../../../utilities/layout';
 import { buttonPropType } from '../../../utilities/propTypes';
 
@@ -21,8 +22,26 @@ class SearchFilter extends Component {
     constructor(props) {
         super(props);
 
+        this.state = {
+            filter: {
+                name: 'Mustermann',
+                modifiedByUser: 112,
+                searchString: 'Hallo welt',
+            },
+        };
+
         this.handleInputChange = this.handleInputChange.bind(this);
         this.handleSelectChange = this.handleSelectChange.bind(this);
+        this.setFilterValue = this.setFilterValue.bind(this);
+    }
+
+    setFilterValue(id, value) {
+        this.setState(({ filter }) => ({
+            filter: {
+                ...filter,
+                [id]: value,
+            },
+        }));
     }
 
     handleInputChange(event) {
@@ -44,10 +63,21 @@ class SearchFilter extends Component {
             namedContainers,
             setFilter,
         } = this.props;
+
+        const { filter: newFilter } = this.state;
         // TODO: REPLACE DATE AND TIME WITH PICKERS
         return (
             <Card>
                 <CardBody>
+                    <MultiSelect
+                        additionalLabel="WIP: New Search Filter"
+                        id="complexSearchFilter"
+                        label="Suchfilter"
+                        pills
+                        setValue={this.setFilterValue}
+                        value={newFilter}
+                        {...getNamedContainer('searchFilter', namedContainers)}
+                    />
                     <form>
                         <Input
                             label="[Suchfilter]"
