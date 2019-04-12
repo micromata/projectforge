@@ -4,6 +4,7 @@ import org.glassfish.jersey.media.multipart.MultiPartFeature
 import org.glassfish.jersey.server.ResourceConfig
 import org.projectforge.rest.*
 import org.projectforge.rest.calendar.CalendarServicesRest
+import org.projectforge.rest.orga.PostausgangRest
 import org.projectforge.web.rest.MyExceptionMapper
 
 /**
@@ -25,5 +26,8 @@ class RestWebAppConfiguration : ResourceConfig() {
         register(BookServicesRest::class.java)
         register(CalendarServicesRest::class.java)
         register(TimesheetRest::class.java)
+
+        // Organization
+        register(PostausgangRest::class.java)
     }
 }
