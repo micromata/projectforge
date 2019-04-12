@@ -22,6 +22,27 @@ class PFDate (val date : LocalDate){
         }
         return sqlDate!!
     }
+
+    fun isBefore(other: PFDate): Boolean {
+        return date.isBefore(other.date)
+    }
+
+    fun isAfter(other: PFDate): Boolean {
+        return date.isAfter(other.date)
+    }
+
+    fun month(): Month {
+        return date.month
+    }
+
+    fun daysBetween(other: PFDate): Long {
+        return ChronoUnit.DAYS.between(date, other.date)
+    }
+
+    fun plusDays(days: Long): PFDate {
+        return PFDate(date.plusDays(days))
+    }
+
     companion object {
         /**
          * Creates mindnight [ZonedDateTime] from given [LocalDate].
