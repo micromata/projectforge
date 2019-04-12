@@ -3,7 +3,7 @@
 // Project ProjectForge Community Edition
 //         www.projectforge.org
 //
-// Copyright (C) 2001-2014 Kai Reinhard (k.reinhard@micromata.de)
+// Copyright (C) 2001-2019 Kai Reinhard (k.reinhard@micromata.de)
 //
 // ProjectForge is dual-licensed.
 //
@@ -46,7 +46,7 @@ class PostausgangDO : DefaultBaseDO() {
     @get:Column(nullable = false)
     var datum: Date? = null
 
-    @PropertyInfo(i18nKey = "orga.postausgang.receiver")
+    @PropertyInfo(i18nKey = "orga.postausgang.empfaenger")
     @Field
     @get:Column(length = 1000, nullable = false)
     var empfaenger: String? = null
@@ -56,7 +56,7 @@ class PostausgangDO : DefaultBaseDO() {
     @get:Column(length = 1000)
     var person: String? = null
 
-    @PropertyInfo(i18nKey = "orga.post.content", required = true)
+    @PropertyInfo(i18nKey = "orga.post.inhalt", required = true)
     @Field
     @get:Column(length = 1000)
     var inhalt: String? = null

@@ -11,5 +11,6 @@ data class UITableColumn(var id: String,
 
 enum class Formatter {
     TIMESTAMP_MINUTES,
+    DATE,
     USER
 }
