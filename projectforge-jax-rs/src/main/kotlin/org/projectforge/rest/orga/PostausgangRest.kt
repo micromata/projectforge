@@ -2,8 +2,11 @@ package org.projectforge.rest.orga
 
 import org.projectforge.business.book.BookFilter
 import org.projectforge.business.orga.PostFilter
+import org.projectforge.business.orga.PostType
 import org.projectforge.business.orga.PostausgangDO
 import org.projectforge.business.orga.PostausgangDao
+import org.projectforge.framework.i18n.translate
+import org.projectforge.framework.time.PFDate
 import org.projectforge.rest.core.AbstractStandardRest
 import org.projectforge.ui.*
 import org.springframework.stereotype.Component
@@ -17,10 +20,17 @@ class PostausgangRest() : AbstractStandardRest<PostausgangDO, PostausgangDao, Po
      */
     override fun newBaseDO(): PostausgangDO {
         val outbox = super.newBaseDO()
+        outbox.datum = PFDate.now().asSqlDate()
+        outbox.type = PostType.BRIEF
         return outbox
     }
 
     override fun validate(validationErrors: MutableList<ValidationError>, obj: PostausgangDO) {
+        val date = PFDate.from(obj.datum)
+        val today = PFDate.now()
+        if (today.isBefore(date)) { // No dates in the future accepted.
+            validationErrors.add(ValidationError(translate("error.dateInFuture"), fieldId = "datum"))
+        }
     }
 
     /**
@@ -31,7 +41,7 @@ class PostausgangRest() : AbstractStandardRest<PostausgangDO, PostausgangDao, Po
                 .add(UITable.UIResultSetTable()
                         .add(lc, "datum", "empfaenger", "person", "inhalt", "bemerkung", "type"))
         layout.getTableColumnById("datum").formatter = Formatter.DATE
-        LayoutUtils.addListFilterContainer(layout, "present", "missed", "disposed",
+        LayoutUtils.addListFilterContainer(layout, UILabel("'TODO: date range"),
                 filterClass = BookFilter::class.java)
         return LayoutUtils.processListPage(layout)
     }
@@ -44,11 +54,11 @@ class PostausgangRest() : AbstractStandardRest<PostausgangDO, PostausgangDao, Po
                 .add(UIRow()
                         .add(UICol(length = 2)
                                 .add(lc, "datum"))
-                        .add(UICol(length=10)
+                        .add(UICol(length = 10)
                                 .add(lc, "type")))
                 .add(UIInput("empfaenger", lc)) // Input-field instead of text-area (length > 255)
                 .add(lc, "person", "inhalt", "bemerkung")
-
+                .add(UILabel("'TODO: Edit: Auto-completion empfaenger, person and inhalt."))
         layout.getInputById("empfaenger").focus = true
         return LayoutUtils.processEditPage(layout, dataObject)
     }
