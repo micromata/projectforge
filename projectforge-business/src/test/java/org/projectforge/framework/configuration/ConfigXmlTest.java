@@ -35,6 +35,7 @@ import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.xstream.XmlHelper;
 
 import java.util.Calendar;
+import java.util.Locale;
 import java.util.TimeZone;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -116,7 +117,8 @@ public class ConfigXmlTest
   }
 
   /**
-   * Creates a test configuration if no configuration does already exists.
+   * Creates a test configuration if no configuration does already exists. Puts also a context user in ThreadLocal
+   * with common used properties, such as time zone, locale etc.
    */
   public static ConfigXml createTestConfiguration()
   {
@@ -126,6 +128,9 @@ public class ConfigXmlTest
     ConfigXml.internalSetInstance(xml);
     PFUserDO user = new PFUserDO();
     user.setTimeZone(TimeZone.getTimeZone("Europe/Berlin"));
+    user.setExcelDateFormat("YYYY-MM-DD");
+    user.setLocale(Locale.GERMAN);
+    user.setFirstDayOfWeek(Calendar.MONDAY);
     ThreadLocalUserContext.setUserContext(new UserContext(user, null));
     return ConfigXml.getInstance();
   }

@@ -24,32 +24,37 @@
 package org.projectforge.business.fibu.kost;
 
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.projectforge.business.fibu.EingangsrechnungDO;
 import org.projectforge.business.fibu.EingangsrechnungsPositionDO;
 import org.projectforge.business.fibu.PaymentType;
 import org.projectforge.business.fibu.kost.reporting.SEPATransferGenerator;
 import org.projectforge.business.fibu.kost.reporting.SEPATransferResult;
+import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
+import org.projectforge.framework.persistence.user.entities.PFUserDO;
 import org.projectforge.framework.persistence.user.entities.TenantDO;
+import org.projectforge.framework.time.DateHelper;
 import org.projectforge.generated.CreditTransferTransactionInformationSCT;
 import org.projectforge.generated.Document;
 import org.projectforge.generated.PaymentInstructionInformationSCT;
-import org.projectforge.test.AbstractTestBase;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.UnsupportedEncodingException;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 
-public class SEPATransferGeneratorTest extends AbstractTestBase
-{
+public class SEPATransferGeneratorTest {
+  private SEPATransferGenerator SEPATransferGenerator = new SEPATransferGenerator();
 
-  @Autowired
-  private SEPATransferGenerator SEPATransferGenerator;
+  @BeforeAll
+  static void beforeAll() {
+    PFUserDO user = new PFUserDO();
+    user.setTimeZone(DateHelper.EUROPE_BERLIN);
+    ThreadLocalUserContext.setUser(null, user);
+  }
 
   @Test
-  public void generateTransfer() throws UnsupportedEncodingException
-  {
+  public void generateTransfer() throws UnsupportedEncodingException {
     // Test error cases
     this.testInvoice("Test debitor", null, "DE12341234123412341234", "abcdefg1234", "Do stuff", new BigDecimal(100.0), false);
     this.testInvoice("Test debitor", "Test creditor", null, "abcdefg1234", "Do stuff", new BigDecimal(100.0), false);
@@ -66,9 +71,8 @@ public class SEPATransferGeneratorTest extends AbstractTestBase
   }
 
   private void testInvoice(final String debitor, final String creditor, final String iban, final String bic, final String purpose, final BigDecimal amount,
-      boolean ok)
-      throws UnsupportedEncodingException
-  {
+                           boolean ok)
+          throws UnsupportedEncodingException {
     EingangsrechnungDO invoice = new EingangsrechnungDO();
 
     // set values
@@ -114,7 +118,7 @@ public class SEPATransferGeneratorTest extends AbstractTestBase
     // check creditor
     Assertions.assertEquals(creditor, cdtTrfTxInf.getCdtr().getNm());
     Assertions.assertEquals(iban, cdtTrfTxInf.getCdtrAcct().getId().getIBAN());
-    if(iban.toUpperCase().startsWith("DE") == false) {
+    if (iban.toUpperCase().startsWith("DE") == false) {
       Assertions.assertEquals(bic.toUpperCase(), cdtTrfTxInf.getCdtrAgt().getFinInstnId().getBIC());
     }
     Assertions.assertEquals(purpose, cdtTrfTxInf.getRmtInf().getUstrd());

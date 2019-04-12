@@ -36,15 +36,13 @@ import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class TimesheetUtilsTest extends AbstractTestBase
-{
+public class TimesheetUtilsTest extends AbstractTestBase {
   private TimeZone timeZone;
 
   private Locale locale;
 
   @Test
-  public void testBeginOfTimesheets()
-  {
+  public void testBeginOfTimesheets() {
     timeZone = DateHelper.EUROPE_BERLIN;
     locale = new Locale("DE_de");
     ThreadLocalUserContext.setUser(getUserGroupCache(), new PFUserDO().setTimeZone(timeZone).setLocale(locale));
@@ -66,21 +64,20 @@ public class TimesheetUtilsTest extends AbstractTestBase
     add(list, user1, "2013-07-25 23:00", "2013-07-26 06:00");
 
     assertStats("2013-07-20 12:15", "2013-07-20 13:00", 45, 0,
-        TimesheetUtils.getStats(list, parseDate("2013-07-20"), user1.getId()));
+            TimesheetUtils.getStats(list, parseDate("2013-07-20"), user1.getId()));
     assertStats("2013-07-20 08:00", "2013-07-20 19:00", 9 * 60, 120,
-        TimesheetUtils.getStats(list, parseDate("2013-07-20"), user2.getId()));
+            TimesheetUtils.getStats(list, parseDate("2013-07-20"), user2.getId()));
 
     assertStats("2013-07-22 00:00", "2013-07-22 13:00", 7 * 60, 6 * 60,
-        TimesheetUtils.getStats(list, parseDate("2013-07-22"), user1.getId()));
+            TimesheetUtils.getStats(list, parseDate("2013-07-22"), user1.getId()));
 
     assertStats("2013-07-25 00:00", "2013-07-26 00:00", 8 * 60, 16 * 60,
-        TimesheetUtils.getStats(list, parseDate("2013-07-25"), user1.getId()));
+            TimesheetUtils.getStats(list, parseDate("2013-07-25"), user1.getId()));
 
     assertNull(TimesheetUtils.getStats(list, parseDate("2013-07-19"), user1.getId()).getEarliestStartDate());
   }
 
-  private void add(final List<TimesheetDO> list, final PFUserDO user, final String start, final String stop)
-  {
+  private void add(final List<TimesheetDO> list, final PFUserDO user, final String start, final String stop) {
     final Date startDate = parseTimestamp(start);
     final Date stopDate = parseTimestamp(stop);
     final TimesheetDO ts = new TimesheetDO();
@@ -91,31 +88,27 @@ public class TimesheetUtilsTest extends AbstractTestBase
   }
 
   private void assertStats(final String expectedEarliestStartDate, final String expectedEarliestStopDate,
-      final long expectedTotalMinutes,
-      final long expectedBreakMinutes, final TimesheetStats stats)
-  {
+                           final long expectedTotalMinutes,
+                           final long expectedBreakMinutes, final TimesheetStats stats) {
     assertTimestamp("earliest start date", expectedEarliestStartDate, stats.getEarliestStartDate());
     assertTimestamp("latest stop date", expectedEarliestStopDate, stats.getLatestStopDate());
-    assertEquals( expectedTotalMinutes, stats.getTotalMillis() / 60000,"total millis");
-    assertEquals( expectedBreakMinutes, stats.getTotalBreakMillis() / 60000,"total break millis");
+    assertEquals(expectedTotalMinutes, stats.getTotalMillis() / 60000, "total millis");
+    assertEquals(expectedBreakMinutes, stats.getTotalBreakMillis() / 60000, "total break millis");
   }
 
-  private void assertTimestamp(final String title, final String expected, final Date date)
-  {
+  private void assertTimestamp(final String title, final String expected, final Date date) {
     assertNotNull(date);
     final String suffix = ":00.000"; //expected.endsWith(":59") == true ? ":59.999" : ":00.000";
-    assertEquals(title, expected + suffix, DateHelper.formatIsoTimestamp(date, timeZone));
+    assertEquals(expected + suffix, DateHelper.formatIsoTimestamp(date, timeZone), title);
   }
 
-  private Date parseTimestamp(final String dateString)
-  {
+  private Date parseTimestamp(final String dateString) {
     final Date result = DateHelper.parseIsoTimestamp(dateString + ":00.000", timeZone);
     assertNotNull(result);
     return result;
   }
 
-  private Date parseDate(final String dateString)
-  {
+  private Date parseDate(final String dateString) {
     final Date result = DateHelper.parseIsoTimestamp(dateString + " 08:00:00.000", timeZone);
     assertNotNull(result);
     return result;

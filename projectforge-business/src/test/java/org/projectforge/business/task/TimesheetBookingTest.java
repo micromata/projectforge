@@ -56,16 +56,10 @@ public class TimesheetBookingTest extends AbstractTestBase {
   @Autowired
   private AuftragDao auftragDao;
 
-  DateHolder date;
+  private static DateHolder date;
 
-  boolean initialized = false;
-
-  private synchronized void initialize() // @BeforeClass not possible because DAOs are needed.
-  {
-    if (initialized == true) {
-      return;
-    }
-    initialized = true;
+  @Override
+  protected void beforeAll() {
     date = new DateHolder(DatePrecision.MINUTE_15);
     logon(getUser(AbstractTestBase.TEST_ADMIN_USER));
     TaskDO task;
@@ -104,7 +98,6 @@ public class TimesheetBookingTest extends AbstractTestBase {
 
   @Test
   public void testTimesheetBookingStatus() {
-    initialize();
     logon(getUser(AbstractTestBase.TEST_USER));
     TimesheetDO sheet = createNewSheet();
     sheet.setTask(getTask("TBT-2"));
@@ -122,7 +115,7 @@ public class TimesheetBookingTest extends AbstractTestBase {
     timesheetDao.save(sheet); // Leaf task node.
     sheet = createNewSheet();
     sheet.setTask(getTask("TBT-3.1.2"));
-  timesheetDao.save(sheet); // Leaf task node.
+    timesheetDao.save(sheet); // Leaf task node.
     sheet = createNewSheet();
     sheet.setTask(getTask("TBT-4"));
     save(sheet, "timesheet.error.taskNotBookable.taskClosedForBooking");
@@ -134,7 +127,6 @@ public class TimesheetBookingTest extends AbstractTestBase {
 
   @Test
   public void testOrderPositions() {
-    initialize();
     logon(getUser(AbstractTestBase.TEST_FINANCE_USER));
     final AuftragDO auftrag = new AuftragDO()
             .addPosition(new AuftragsPositionDO().setTask(getTask("TBT-5.1")).setTitel("Pos 1"))
@@ -163,7 +155,6 @@ public class TimesheetBookingTest extends AbstractTestBase {
 
   @Test
   public void testTaskStatus() {
-    initialize();
     final PFUserDO user = getUser(AbstractTestBase.TEST_USER);
     logon(user);
     TimesheetDO sheet = createNewSheet();

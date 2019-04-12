@@ -24,7 +24,6 @@
 package org.projectforge.common;
 
 import org.junit.jupiter.api.Test;
-import org.projectforge.test.AbstractTestBase;
 
 import java.io.StringWriter;
 import java.util.Calendar;
@@ -32,7 +31,7 @@ import java.util.Date;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class CSVWriterTest extends AbstractTestBase
+public class CSVWriterTest
 {
   @Test
   public void testWriteCSV() throws Exception

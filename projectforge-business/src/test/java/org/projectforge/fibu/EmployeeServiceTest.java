@@ -36,10 +36,11 @@ public class EmployeeServiceTest extends AbstractTestBase
   public void testInsertDelete()
   {
     logon(AbstractTestBase.TEST_FULL_ACCESS_USER);
-    PFUserDO pfUserDO = getUser(TEST_EMPLOYEE_USER);
+    PFUserDO pfUserDO = getUser(TEST_FINANCE_USER);
     EmployeeDO employeeDO = new EmployeeDO();
+    employeeDO.setAccountHolder("Horst Mustermann");
+    employeeDO.setAbteilung("Finance");
     employeeDO.setUser(pfUserDO);
-    employeeDO.setAccountHolder("Vorname Name");
     Integer id = employeeService.save(employeeDO);
     assertTrue(id != null && id > 0);
     employeeService.delete(employeeDO);

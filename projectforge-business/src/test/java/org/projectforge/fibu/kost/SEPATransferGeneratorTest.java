@@ -49,7 +49,7 @@ public class SEPATransferGeneratorTest extends AbstractTestBase {
     assertTrue(xml.contains("<Nm>Kai Reinhard</Nm>"), "xml: " + xml);
     assertTrue(xml.contains("<IBAN>DE87200500001234567890</IBAN>"), "xml: " + xml);
     xml = testIban("IT12 3456 7890 1234 5678 90", null);
-    assertNull("xml: " + xml, xml);
+    assertNull(xml, "xml: " + xml);
     iban = "IT12 3456 7890 1234 5678 90";
     bic = "UNCRITM1J27";
     xml = testIban(iban, bic);
