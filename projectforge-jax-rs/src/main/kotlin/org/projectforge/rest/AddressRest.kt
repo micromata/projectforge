@@ -226,6 +226,7 @@ class AddressRest()
                         .add(lc, "comment"))
 
         layout.getInputById("name").focus = true
+        layout.getTextAreaById("comment").cssClass = CssClassnames.MT_2
         layout.addTranslations("delete", "file.upload.dropArea", "address.image.upload.error")
         if (dataObject?.id != null) {
             layout.add(MenuItem("address.printView",
