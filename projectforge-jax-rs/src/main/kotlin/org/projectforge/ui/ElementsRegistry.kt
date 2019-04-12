@@ -17,7 +17,7 @@ import javax.persistence.JoinColumn
  * of an [UIInput].
  */
 object ElementsRegistry {
-    private val log = org.slf4j.LoggerFactory.getLogger(LayoutUtils::class.java)
+    private val log = org.slf4j.LoggerFactory.getLogger(ElementsRegistry::class.java)
 
     class ElementInfo(val propertyType: Class<*>,
                       var maxLength: Int? = null,

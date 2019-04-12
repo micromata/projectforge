@@ -25,9 +25,9 @@ package org.projectforge.business.timesheet
 
 import org.apache.commons.lang3.StringUtils
 import org.hibernate.search.annotations.*
-import org.hibernate.search.annotations.Index
 import org.projectforge.business.fibu.kost.Kost2DO
 import org.projectforge.business.task.TaskDO
+import org.projectforge.common.anots.PropertyInfo
 import org.projectforge.framework.persistence.entities.DefaultBaseDO
 import org.projectforge.framework.persistence.user.api.UserPrefParameter
 import org.projectforge.framework.persistence.user.entities.PFUserDO
@@ -53,12 +53,14 @@ import javax.persistence.*
             javax.persistence.Index(name = "idx_timesheet_user_time", columnList = "user_id, start_time")])
 class TimesheetDO : DefaultBaseDO(), Comparable<TimesheetDO> {
 
+    @PropertyInfo(i18nKey = "task")
     @UserPrefParameter(i18nKey = "task", orderString = "2")
     @IndexedEmbedded(depth = 1)
     @get:ManyToOne(fetch = FetchType.LAZY)
     @get:JoinColumn(name = "task_id", nullable = false)
     var task: TaskDO? = null
 
+    @PropertyInfo(i18nKey = "user")
     @UserPrefParameter(i18nKey = "user", orderString = "1")
     @IndexedEmbedded(depth = 1)
     @get:ManyToOne(fetch = FetchType.LAZY)
@@ -68,26 +70,31 @@ class TimesheetDO : DefaultBaseDO(), Comparable<TimesheetDO> {
     @get:Column(name = "time_zone", length = 100)
     var timeZone: String? = null
 
-    @Field(index = Index.YES, analyze = Analyze.NO)
+    @PropertyInfo(i18nKey = "timesheet.startTime")
+    @Field(analyze = Analyze.NO)
     @DateBridge(resolution = Resolution.MINUTE, encoding = EncodingType.STRING)
     @get:Column(name = "start_time", nullable = false)
     var startTime: Timestamp? = null
 
-    @Field(index = Index.YES, analyze = Analyze.NO)
+    @PropertyInfo(i18nKey = "timesheet.stopTime")
+    @Field(analyze = Analyze.NO)
     @DateBridge(resolution = Resolution.MINUTE, encoding = EncodingType.STRING)
     @get:Column(name = "stop_time", nullable = false)
     var stopTime: Timestamp? = null
 
+    @PropertyInfo(i18nKey = "timesheet.location")
     @UserPrefParameter(i18nKey = "timesheet.location")
-    @Field(index = Index.YES, store = Store.NO)
+    @Field
     @get:Column(length = 100)
     var location: String? = null
 
+    @PropertyInfo(i18nKey = "description")
     @UserPrefParameter(i18nKey = "description", multiline = true)
-    @Field(index = Index.YES, store = Store.NO)
+    @Field
     @get:Column(length = 4000)
     var description: String? = null
 
+    @PropertyInfo(i18nKey = "fibu.kost2")
     @UserPrefParameter(i18nKey = "fibu.kost2", orderString = "3", dependsOn = "task")
     @IndexedEmbedded(depth = 2)
     @get:ManyToOne(fetch = FetchType.EAGER)

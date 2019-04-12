@@ -1,6 +1,7 @@
 package org.projectforge.rest.core
 
 import org.apache.commons.beanutils.PropertyUtils
+import org.bouncycastle.asn1.x509.X509ObjectIdentifiers.id
 import org.projectforge.framework.access.AccessChecker
 import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.i18n.translateMsg
@@ -13,6 +14,7 @@ import org.projectforge.model.rest.RestPaths
 import org.projectforge.rest.JsonUtils
 import org.projectforge.rest.MessageType
 import org.projectforge.rest.ResponseData
+import org.projectforge.rest.config.ProjectForgeRestConfiguration
 import org.projectforge.ui.*
 import org.projectforge.ui.filter.LayoutListFilterUtils
 import org.springframework.beans.BeanUtils
@@ -129,12 +131,16 @@ abstract class AbstractStandardRest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F :
         return layout
     }
 
-    protected fun getRestPath(): String {
+    fun getRestPath(): String {
         if (restPath == null) {
             val path = this::class.annotations.find { it is Path } as? Path
             restPath = path?.value
         }
         return restPath!!
+    }
+
+    fun getFullRestPath(): String {
+        return "${ProjectForgeRestConfiguration.REST_WEB_APP_URL}${getRestPath()}"
     }
 
     open fun createEditLayout(dataObject: O?): UILayout {
@@ -289,6 +295,20 @@ abstract class AbstractStandardRest<O : ExtendedBaseDO<Int>, B : BaseDao<O>, F :
         layout.addTranslations("changes")
         layout.postProcessPageMenu()
         val result = EditLayoutData(item, layout)
+        return restHelper.buildResponse(result)
+    }
+
+    /**
+     * Gets the autocomletion list for the given property and search string.
+     * @param property The property (field of the data) used to search.
+     * @param searchString
+     * @return list of strings as json.
+     */
+    @GET
+    @Path("autoCompletion")
+    @Produces(MediaType.APPLICATION_JSON)
+    fun getAutoCompletion(@QueryParam("property") property: String?, @QueryParam("search") searchString: String?): Response {
+        val result = baseDao.getAutocompletion(property, searchString)
         return restHelper.buildResponse(result)
     }
 
