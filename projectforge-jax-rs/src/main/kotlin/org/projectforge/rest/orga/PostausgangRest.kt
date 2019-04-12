@@ -50,16 +50,23 @@ class PostausgangRest() : AbstractStandardRest<PostausgangDO, PostausgangDao, Po
      * LAYOUT Edit page
      */
     override fun createEditLayout(dataObject: PostausgangDO?): UILayout {
+        val receiver = UIInput("empfaenger", lc) // Input-field instead of text-area (length > 255)
+        receiver.focus = true
+        receiver.enableAutoCompletion(this)
+        val person = UIInput("person", lc).enableAutoCompletion(this)
+        val inhalt = UIInput("inhalt", lc).enableAutoCompletion(this)
         val layout = super.createEditLayout(dataObject)
                 .add(UIRow()
                         .add(UICol(length = 2)
                                 .add(lc, "datum"))
                         .add(UICol(length = 10)
                                 .add(lc, "type")))
-                .add(UIInput("empfaenger", lc)) // Input-field instead of text-area (length > 255)
-                .add(lc, "person", "inhalt", "bemerkung")
-                .add(UILabel("'TODO: Edit: Auto-completion empfaenger, person and inhalt."))
-        layout.getInputById("empfaenger").focus = true
+                .add(receiver)
+                .add(person)
+                .add(inhalt)
+                .add(lc, "bemerkung")
+        layout.getInputById("person").enableAutoCompletion(this)
+        layout.getInputById("inhalt").enableAutoCompletion(this)
         return LayoutUtils.processEditPage(layout, dataObject)
     }
 }
