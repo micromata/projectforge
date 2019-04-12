@@ -23,7 +23,7 @@
 
 package org.projectforge.plugins.skillmatrix;
 
-import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.projectforge.framework.access.AccessException;
 import org.projectforge.framework.i18n.I18nHelper;
@@ -37,8 +37,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
 
-public class SkillDaoTestFork extends AbstractTestBase {
-  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(SkillDaoTestFork.class);
+public class SkillDaoTest extends AbstractTestBase {
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(SkillDaoTest.class);
 
   @Autowired
   private SkillDao skillDao;
@@ -49,15 +49,14 @@ public class SkillDaoTestFork extends AbstractTestBase {
   private Integer skillId;
 
   @Override
-  @BeforeAll
-  public void setUp() {
-    super.setUp();
+  protected void beforeAll() {
     I18nHelper.addBundleName(WicketApplication.RESOURCE_BUNDLE_NAME);
     WebRegistry.getInstance().init();
     pluginAdminService.initializeAllPluginsForUnittest();
   }
 
   @Test
+  @Disabled
   public void accessTest() {
     final SkillTestHelper testHelper = new SkillTestHelper(initTestDB);
     final SkillDO skill = testHelper.prepareUsersAndGroups("skill", this, skillDao);
@@ -85,5 +84,4 @@ public class SkillDaoTestFork extends AbstractTestBase {
       }
     }
   }
-
 }
