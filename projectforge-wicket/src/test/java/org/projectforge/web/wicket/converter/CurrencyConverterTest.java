@@ -25,7 +25,9 @@ package org.projectforge.web.wicket.converter;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.projectforge.framework.configuration.ConfigXml;
 import org.projectforge.framework.configuration.ConfigXmlTest;
+import org.projectforge.test.TestSetup;
 
 import java.math.BigDecimal;
 import java.util.Locale;
@@ -37,11 +39,12 @@ public class CurrencyConverterTest {
 
   private Locale locale = Locale.GERMAN;
 
-  private CurrencyConverter con;
+  private static CurrencyConverter con;
 
   @BeforeAll
-  public void setUp() {
-    CURRENCY = ConfigXmlTest.createTestConfiguration().getCurrencySymbol();
+  public static void setUp() {
+    TestSetup.init();
+    CURRENCY = ConfigXml.getInstance().getCurrencySymbol();
     con = new CurrencyConverter();
   }
 

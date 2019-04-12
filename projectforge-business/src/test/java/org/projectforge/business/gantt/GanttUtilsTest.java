@@ -25,10 +25,10 @@ package org.projectforge.business.gantt;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.projectforge.framework.configuration.ConfigXmlTest;
 import org.projectforge.framework.time.DateHelper;
 import org.projectforge.framework.time.DayHolder;
 import org.projectforge.test.AbstractTestBase;
+import org.projectforge.test.TestSetup;
 
 import java.math.BigDecimal;
 import java.util.Calendar;
@@ -46,7 +46,7 @@ public class GanttUtilsTest extends AbstractTestBase {
   @BeforeEach
   public void setUpThisTest() {
     // Needed if this tests runs before the ConfigurationTest.
-    ConfigXmlTest.createTestConfiguration();
+    TestSetup.init();
   }
 
   @Test

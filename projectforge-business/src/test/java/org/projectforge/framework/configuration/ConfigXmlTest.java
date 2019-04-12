@@ -126,12 +126,6 @@ public class ConfigXmlTest
       return ConfigXml.getInstance();
     }
     ConfigXml.internalSetInstance(xml);
-    PFUserDO user = new PFUserDO();
-    user.setTimeZone(TimeZone.getTimeZone("Europe/Berlin"));
-    user.setExcelDateFormat("YYYY-MM-DD");
-    user.setLocale(Locale.GERMAN);
-    user.setFirstDayOfWeek(Calendar.MONDAY);
-    ThreadLocalUserContext.setUserContext(new UserContext(user, null));
     return ConfigXml.getInstance();
   }
 

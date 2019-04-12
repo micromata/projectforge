@@ -28,15 +28,11 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.projectforge.framework.calendar.MonthHolder;
 import org.projectforge.framework.calendar.WeekHolder;
-import org.projectforge.framework.configuration.ConfigXml;
-import org.projectforge.framework.configuration.ConfigXmlTest;
-import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext;
-import org.projectforge.framework.persistence.user.entities.PFUserDO;
-import org.projectforge.framework.time.DateHelper;
 import org.projectforge.framework.time.DateHolder;
 import org.projectforge.framework.time.DatePrecision;
 import org.projectforge.framework.time.DayHolder;
 import org.projectforge.test.AbstractTestBase;
+import org.projectforge.test.TestSetup;
 
 import java.util.Calendar;
 import java.util.Date;
@@ -49,7 +45,7 @@ public class MonthHolderTest {
 
   @BeforeAll
   static void beforeAll() {
-    ConfigXmlTest.createTestConfiguration();
+    TestSetup.init();
   }
 
   @Test

@@ -27,9 +27,9 @@ package org.projectforge.calendar;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
-import org.projectforge.framework.configuration.ConfigXmlTest;
 import org.projectforge.framework.time.DateHolder;
 import org.projectforge.framework.time.DayHolder;
+import org.projectforge.test.TestSetup;
 
 import java.math.BigDecimal;
 import java.util.Calendar;
@@ -40,7 +40,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 public class DayHolderTest {
   @BeforeAll
   static void beforeAll() {
-    ConfigXmlTest.createTestConfiguration();
+    TestSetup.init();
   }
 
   @Test
