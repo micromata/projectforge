@@ -29,8 +29,8 @@ class TimesheetRest() : AbstractStandardRest<TimesheetDO, TimesheetDao, Timeshee
         val layout = super.createListLayout()
                 .add(UITable.UIResultSetTable() // Todo customer, project, KW, WT, Range, Duration
                         .add(lc, "user", "task")
-                        .add(UITableColumn("kost2.kunde", "fibu.kunde", formatter = Formatter.CUSTOMER))
-                        .add(UITableColumn("kost2.projekt", "fibu.projekt", formatter = Formatter.PROJECT))
+                        .add(UITableColumn("kost2.project.customer", "fibu.kunde", formatter = Formatter.CUSTOMER))
+                        .add(UITableColumn("kost2.project", "fibu.projekt", formatter = Formatter.PROJECT))
                         .add(UITableColumn("kost2", "fibu.kost2", formatter = Formatter.COST2))
                         .add(lc,  "location", "description"))
         layout.getTableColumnById("user").formatter = Formatter.USER
