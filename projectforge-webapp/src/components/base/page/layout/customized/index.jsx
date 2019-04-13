@@ -2,19 +2,19 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import CustomizedAddressImage from './components/AddressImage';
 import CustomizedImageDataPreview from './components/ImageDataPreview';
-import CustomizedLendOutComponent from './components/LendOut';
+import CustomizedBookLendOutComponent from './components/BookLendOut';
 
 function CustomizedLayout({ id, ...props }) {
     let Tag;
 
     switch (id) {
-        case 'lendOutComponent':
-            Tag = CustomizedLendOutComponent;
+        case 'book.lendOutComponent':
+            Tag = CustomizedBookLendOutComponent;
             break;
-        case 'addressImage':
+        case 'address.edit.image':
             Tag = CustomizedAddressImage;
             break;
-        case 'imageDataPreview':
+        case 'address.imagePreview':
             Tag = CustomizedImageDataPreview;
             break;
         default:
