@@ -35,8 +35,6 @@ class TableRow extends React.Component {
                         value = format(formatter, value);
                     } else if (dataType === 'CUSTOMIZED') {
                         value = <CustomizedLayout id={id} data={data} />;
-                    } else if (dataType === 'CUSTOMER') {
-                        value ='[customer]';
                     }
 
                     return (
