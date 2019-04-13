@@ -28,7 +28,13 @@ class TimesheetRest() : AbstractStandardRest<TimesheetDO, TimesheetDao, Timeshee
     override fun createListLayout(): UILayout {
         val layout = super.createListLayout()
                 .add(UITable.UIResultSetTable() // Todo customer, project, KW, WT, Range, Duration
-                        .add(lc, "user", "task", "kost2", "location", "description"))
+                        .add(lc, "user", "task")
+                        .add(UITableColumn("kost2.kunde", "fibu.kunde", formatter = Formatter.CUSTOMER))
+                        .add(UITableColumn("kost2.projekt", "fibu.projekt", formatter = Formatter.PROJECT))
+                        .add(UITableColumn("kost2", "fibu.kost2", formatter = Formatter.COST2))
+                        .add(lc,  "location", "description"))
+        layout.getTableColumnById("user").formatter = Formatter.USER
+        layout.getTableColumnById("task").formatter = Formatter.TASK_PATH
         LayoutUtils.addListFilterContainer(layout, "longFormat", "recursive",
                 filterClass = TimesheetFilter::class.java)
         return LayoutUtils.processListPage(layout)
