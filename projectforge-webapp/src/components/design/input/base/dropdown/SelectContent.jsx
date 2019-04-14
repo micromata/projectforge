@@ -21,7 +21,7 @@ function DropdownSelectContent({ select, selectIndex, values }) {
                         role="button"
                         tabIndex={-1}
                     >
-                        {option.title}
+                        {option.id}
                     </span>
                 </li>
             ))}
@@ -33,8 +33,7 @@ DropdownSelectContent.propTypes = {
     select: PropTypes.func.isRequired,
     selectIndex: PropTypes.number,
     values: PropTypes.arrayOf(PropTypes.shape({
-        id: PropTypes.number,
-        title: PropTypes.string,
+        id: PropTypes.string,
     })),
 };
 

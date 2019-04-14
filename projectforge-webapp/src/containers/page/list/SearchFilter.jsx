@@ -64,18 +64,14 @@ class SearchFilter extends Component {
 
         const { filter: newFilter } = this.state;
         // TODO: REPLACE DATE AND TIME WITH PICKERS
+        const searchFilter = getNamedContainer('searchFilter', namedContainers) || { content: [] };
+
         return (
             <Card>
                 <CardBody>
                     <MultiSelect
                         additionalLabel="WIP: New Search Filter"
-                        autoComplete={[{
-                            id: 1,
-                            title: 'name',
-                        }, {
-                            id: 2,
-                            title: 'modifiedBy',
-                        }]}
+                        autoComplete={searchFilter.content}
                         id="complexSearchFilter"
                         label="Suchfilter"
                         pills

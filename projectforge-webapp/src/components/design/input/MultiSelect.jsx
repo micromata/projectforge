@@ -29,7 +29,7 @@ class MultiSelect extends Component {
     getDropdownValues() {
         const { value, autoComplete } = this.props;
 
-        return autoComplete.filter(({ title }) => title.includes(value.searchString));
+        return autoComplete.filter(({ id }) => id.includes(value.searchString));
     }
 
     getFilteredValueKeys() {
@@ -70,7 +70,7 @@ class MultiSelect extends Component {
 
         const { setValue } = this.props;
 
-        setValue('searchString', `${values[index].title}:`);
+        setValue('searchString', `${values[index].id}:`);
     }
 
     handleInputKey(event) {
@@ -228,8 +228,7 @@ MultiSelect.propTypes = {
     }).isRequired,
     additionalLabel: PropTypes.string,
     autoComplete: PropTypes.arrayOf(PropTypes.shape({
-        id: PropTypes.number,
-        title: PropTypes.title,
+        id: PropTypes.string,
     })),
     pills: PropTypes.bool,
 };
