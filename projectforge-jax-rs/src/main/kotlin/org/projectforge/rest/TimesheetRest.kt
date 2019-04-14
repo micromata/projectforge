@@ -1,14 +1,21 @@
 package org.projectforge.rest
 
+import org.projectforge.business.tasktree.TaskTreeHelper
 import org.projectforge.business.timesheet.TimesheetDO
 import org.projectforge.business.timesheet.TimesheetDao
 import org.projectforge.business.timesheet.TimesheetFilter
+import org.projectforge.business.timesheet.TimesheetPrefData
+import org.projectforge.business.user.service.UserPreferencesService
 import org.projectforge.common.DateFormatType
+import org.projectforge.framework.configuration.Configuration
+import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.time.DateFormats
 import org.projectforge.framework.time.DateTimeFormatter
+import org.projectforge.framework.time.PFDateTime
 import org.projectforge.rest.core.AbstractStandardRest
 import org.projectforge.rest.core.ResultSet
 import org.projectforge.ui.*
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import javax.ws.rs.Path
 
@@ -18,31 +25,91 @@ class TimesheetRest() : AbstractStandardRest<TimesheetDO, TimesheetDao, Timeshee
 
     private val dateTimeFormatter = DateTimeFormatter.instance();
 
+    @Autowired
+    private lateinit var userPreferencesService: UserPreferencesService
+
+    private val taskTree = TaskTreeHelper.getTaskTree()
+
     /**
      * For exporting list of addresses.
      */
     private class Timesheet(val timesheet: TimesheetDO,
-                            val weekOfYearShortLabel: String,
-                            val dayOfWeekLabel: String)
+                            val id: Int, // Needed for history Service
+                            val weekOfYear: String,
+                            val dayName: String,
+                            val timePeriod: String,
+                            val duration: String)
 
     /**
      * Initializes new timesheets for adding.
      */
     override fun newBaseDO(): TimesheetDO {
         val sheet = super.newBaseDO()
+        //val startTimeInMillis = WicketUtils.getAsLong(parameters, PARAMETER_KEY_START_DATE_IN_MILLIS)
+        //val stopTimeInMillis = WicketUtils.getAsLong(parameters, PARAMETER_KEY_STOP_DATE_IN_MILLIS)
+        val startTimeMillis: Long? = null // Optional parameter given to edit page.
+        val stopTimeMillis: Long? = null // Optional parameter given to edit page.
+        val startDate = PFDateTime.from(startTimeMillis) // If startTime == null, now is set.
+        var stopDate: PFDateTime? = null
+        if (startTimeMillis != null) {
+            //sheet.setStartDate(startTimeInMillis!!)
+            //if (stopTimeInMillis == null) {
+            //    getData().stopTime = Timestamp(startTimeInMillis!!) // Default is time sheet with zero duration.
+            //}
+        }
+        if (stopTimeMillis != null)
+            stopDate = PFDateTime.from(stopTimeMillis)
+        else
+            stopDate = startDate
+        sheet.startTime = startDate.asSqlTimestamp()
+        sheet.stopTime = stopDate.asSqlTimestamp()
+        val userId: Int? = null // Optional parameter given to edit page
+        if (userId != null) {
+            baseDao.setUser(sheet, userId)
+        }
+        val pref = getTimesheetPrefData()
+        val entry = pref.getNewesRecentEntry()
+        if (sheet.taskId == null && entry != null) {
+            baseDao.setTask(sheet, entry.taskId)
+        }
         return sheet
     }
 
     override fun validate(validationErrors: MutableList<ValidationError>, obj: TimesheetDO) {
+        if (obj.getDuration() < 60000) {// Duration is less than 60 seconds.
+            validationErrors.add(ValidationError(translate("timesheet.error.zeroDuration"), fieldId = "stopTime"))
+        } else if (obj.getDuration() > TimesheetDao.MAXIMUM_DURATION) {
+            validationErrors.add(ValidationError(translate("timesheet.error.maximumDurationExceeded"), fieldId = "stopTime"))
+        }
+        if (Configuration.getInstance().isCostConfigured) {
+            if (obj.kost2 == null) {
+                val taskNode = taskTree.getTaskNodeById(obj.taskId)
+                if (taskNode != null) {
+                    val descendents = taskNode.getDescendantIds()
+                    for (taskId in descendents) {
+                        if (!taskTree.getKost2List(taskId).isNullOrEmpty()) {
+                            // But Kost2 is available for sub task, so user should book his time sheet
+                            // on a sub task with kost2s.
+                            validationErrors.add(ValidationError(translate("timesheet.error.kost2NeededChooseSubTask"), fieldId = "cost2"))
+                            break
+                        }
+                    }
+                }
+
+            }
+        }
     }
 
 
     override fun processResultSetBeforeExport(resultSet: ResultSet<Any>) {
         val list: List<TimesheetRest.Timesheet> = resultSet.resultSet.map { it ->
             TimesheetRest.Timesheet(it as TimesheetDO,
-                    weekOfYearShortLabel = DateTimeFormatter.formatWeekOfYear(it.startTime),
-                    dayOfWeekLabel = dateTimeFormatter.getFormattedDate(it.startTime,
-                            DateFormats.getFormatString(DateFormatType.DAY_OF_WEEK_SHORT)))
+                    id = it.id,
+                    weekOfYear = DateTimeFormatter.formatWeekOfYear(it.startTime),
+                    dayName = dateTimeFormatter.getFormattedDate(it.startTime,
+                            DateFormats.getFormatString(DateFormatType.DAY_OF_WEEK_SHORT)),
+                    timePeriod = dateTimeFormatter.getFormattedTimePeriodOfDay(it.timePeriod),
+                    duration = dateTimeFormatter.getFormattedDuration(it.timePeriod))
         }
         resultSet.resultSet = list
     }
@@ -53,15 +120,16 @@ class TimesheetRest() : AbstractStandardRest<TimesheetDO, TimesheetDao, Timeshee
     override fun createListLayout(): UILayout {
         lc.idPrefix = "timesheet."
         val layout = super.createListLayout()
-                .add(UITable.UIResultSetTable() // Todo KW, WT, Range, Duration
+                .add(UITable.UIResultSetTable()
                         .add(lc, "user")
                         .add(UITableColumn("timesheet.kost2.project.customer", "fibu.kunde", formatter = Formatter.CUSTOMER))
                         .add(UITableColumn("timesheet.kost2.project", "fibu.projekt", formatter = Formatter.PROJECT))
                         .add(lc, "task")
                         .add(UITableColumn("timesheet.kost2", "fibu.kost2", formatter = Formatter.COST2))
-                        .add(UITableColumn("weekOfYearShortLabel", "calendar.weekOfYearShortLabel"))
-                        .add(UITableColumn("dayName", "calendar.dayOfWeekShortLabel", dataType = UIDataType.CUSTOMIZED))
-                        .add(UITableColumn("timePeriod", "timePeriod", dataType = UIDataType.CUSTOMIZED))
+                        .add(UITableColumn("weekOfYear", "calendar.weekOfYearShortLabel"))
+                        .add(UITableColumn("dayName", "calendar.dayOfWeekShortLabel"))
+                        .add(UITableColumn("timePeriod", "timePeriod"))
+                        .add(UITableColumn("duration", "timesheet.duration"))
                         .add(lc, "location", "description"))
         layout.getTableColumnById("timesheet.user").formatter = Formatter.USER
         layout.getTableColumnById("timesheet.task").formatter = Formatter.TASK_PATH
@@ -80,4 +148,16 @@ class TimesheetRest() : AbstractStandardRest<TimesheetDO, TimesheetDao, Timeshee
                 .add(lc, "location", "description")
         return LayoutUtils.processEditPage(layout, dataObject)
     }
+
+
+    private fun getTimesheetPrefData(): TimesheetPrefData {
+        val prefKey = "timesheetEditPref";
+        var pref: TimesheetPrefData? = userPreferencesService.getEntry(TimesheetPrefData::class.java, prefKey)
+        if (pref == null) {
+            pref = TimesheetPrefData()
+            userPreferencesService.putEntry(prefKey, pref, true)
+        }
+        return pref
+    }
+
 }
