@@ -13,6 +13,7 @@ import EditPage from './page/edit';
 import InputTestPage from './page/InputTest';
 import ListPage from './page/list';
 import CalendarPage from './page/CalendarPage';
+import TaskTreePage from "./page/TaskTreePage";
 
 class ProjectForge extends React.Component {
     componentDidMount() {
@@ -57,6 +58,10 @@ class ProjectForge extends React.Component {
                                 <Route
                                     path="/calendar"
                                     component={CalendarPage}
+                                />
+                                <Route
+                                    path="/taskTree"
+                                    component={TaskTreePage}
                                 />
                                 <Route
                                     path="/inputTest"

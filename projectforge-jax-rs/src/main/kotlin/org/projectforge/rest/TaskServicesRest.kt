@@ -109,7 +109,9 @@ class TaskServicesRest() {
             // TaskNode has childs and is opened:
             if (task.childs == null)
                 task.childs = mutableListOf()
-            taskNode.childs.forEach {
+            val childs = taskNode.childs.toMutableList()
+            childs.sortBy({ it.task.title })
+            childs.forEach {
                 if (ctx.taskFilter.match(it, taskDao, ctx.user)) {
                     val child = Task(it)
                     task.childs!!.add(child)
