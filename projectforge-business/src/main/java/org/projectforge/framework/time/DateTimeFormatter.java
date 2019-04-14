@@ -301,4 +301,19 @@ public class DateTimeFormatter extends AbstractFormatter
   {
     return durationOfWorkingDay;
   }
+
+  /**
+   * Formats a time period of a time sheet (with a time period of max. 24h).
+   * @param timePeriod
+   * @return {fromDate} {fromTime}-{toTime}
+   */
+  public String getFormattedTimePeriodOfDay(final TimePeriod timePeriod) {
+    StringBuilder sb = new StringBuilder();
+    sb.append(getFormattedDate(timePeriod.getFromDate()))
+            .append(" ")
+            .append(getFormattedTime(timePeriod.getFromDate()))
+            .append("-")
+            .append(getFormattedTime(timePeriod.getToDate()));
+    return sb.toString();
+  }
 }
