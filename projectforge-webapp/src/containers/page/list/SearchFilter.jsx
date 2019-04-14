@@ -24,9 +24,7 @@ class SearchFilter extends Component {
 
         this.state = {
             filter: {
-                name: 'Mustermann',
-                modifiedByUser: 112,
-                searchString: 'Hallo welt',
+                searchString: '',
             },
         };
 
@@ -71,6 +69,13 @@ class SearchFilter extends Component {
                 <CardBody>
                     <MultiSelect
                         additionalLabel="WIP: New Search Filter"
+                        autoComplete={[{
+                            id: 1,
+                            title: 'name',
+                        }, {
+                            id: 2,
+                            title: 'modifiedBy',
+                        }]}
                         id="complexSearchFilter"
                         label="Suchfilter"
                         pills

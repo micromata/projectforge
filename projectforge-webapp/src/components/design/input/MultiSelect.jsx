@@ -11,14 +11,25 @@ class MultiSelect extends Component {
 
         const { value } = this.props;
 
-        this.state = { cursorPos: value.searchString.length };
+        this.state = {
+            cursorPos: value.searchString.length,
+            selectIndex: -1,
+        };
 
+        this.getDropdownValues = this.getDropdownValues.bind(this);
         this.handleBadgeClick = this.handleBadgeClick.bind(this);
         this.handleBadgeDelete = this.handleBadgeDelete.bind(this);
         this.handleInputChange = this.handleInputChange.bind(this);
+        this.selectFromDropdown = this.selectFromDropdown.bind(this);
         this.handleInputKey = this.handleInputKey.bind(this);
         this.getFilteredValueKeys = this.getFilteredValueKeys.bind(this);
         this.editValue = this.editValue.bind(this);
+    }
+
+    getDropdownValues() {
+        const { value, autoComplete } = this.props;
+
+        return autoComplete.filter(({ title }) => title.includes(value.searchString));
     }
 
     getFilteredValueKeys() {
@@ -50,16 +61,29 @@ class MultiSelect extends Component {
         setValue('searchString', event.target.value);
     }
 
-    handleInputKey(event) {
-        const { setValue, pills, value } = this.props;
+    selectFromDropdown(index) {
+        const values = this.getDropdownValues();
 
-        if (!pills) {
+        if (values.length <= index) {
             return;
         }
+
+        const { setValue } = this.props;
+
+        setValue('searchString', `${values[index].title}:`);
+    }
+
+    handleInputKey(event) {
+        const { setValue, pills, value } = this.props;
+        const { selectIndex } = this.state;
 
         switch (event.key) {
             case 'ArrowLeft':
             case 'Backspace':
+                if (!pills) {
+                    return;
+                }
+
                 if (event.target.selectionStart === 0 && event.target.selectionEnd === 0) {
                     // prevent deleting the last character of new searchString
                     event.preventDefault();
@@ -75,6 +99,16 @@ class MultiSelect extends Component {
                 break;
             case ' ':
             case 'Enter': {
+                // handling dropdown selection
+                if (selectIndex > -1 && selectIndex < this.getDropdownValues().length) {
+                    this.selectFromDropdown(selectIndex);
+                    return;
+                }
+
+                if (!pills) {
+                    return;
+                }
+
                 // matches [name]:[value] in the searchString
                 const matches = value.searchString.match(/[^ ]+:[^ ]+/g);
                 if (matches) {
@@ -94,6 +128,23 @@ class MultiSelect extends Component {
                                 .replace(currentValue, ''), value.searchString),
                     );
                 }
+                break;
+            }
+            case 'ArrowUp':
+            case 'ArrowDown': {
+                let newValue = selectIndex + (event.key === 'ArrowUp' ? -1 : 1);
+                const dropdownLength = this.getDropdownValues().length;
+
+                if (newValue < -1) {
+                    newValue = -1;
+                } else if (newValue >= dropdownLength) {
+                    newValue = dropdownLength - 1;
+                }
+
+                this.setState({
+                    selectIndex: newValue,
+                });
+
                 break;
             }
             default:
@@ -119,13 +170,17 @@ class MultiSelect extends Component {
             pills,
             value,
         } = this.props;
-        const { cursorPos } = this.state;
+        const { cursorPos, selectIndex } = this.state;
 
         let dropdownContent;
 
         if (autoComplete) {
             dropdownContent = (
-                <DropdownSelectContent value={value.searchString} values={autoComplete} />
+                <DropdownSelectContent
+                    select={this.selectFromDropdown}
+                    values={this.getDropdownValues()}
+                    selectIndex={selectIndex}
+                />
             );
         }
 
@@ -156,6 +211,8 @@ class MultiSelect extends Component {
                     onChange={this.handleInputChange}
                     onKeyDown={this.handleInputKey}
                     selectionStart={cursorPos}
+                    // disable browser autocomplete when using custom
+                    autoComplete={autoComplete ? 'off' : 'on'}
                 />
             </InputBase>
         );
