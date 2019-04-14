@@ -9,6 +9,7 @@ import org.projectforge.business.tasktree.TaskTreeHelper
 import org.projectforge.business.user.service.UserPreferencesService
 import org.projectforge.common.i18n.Priority
 import org.projectforge.common.task.TaskStatus
+import org.projectforge.framework.i18n.translate
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
 import org.projectforge.framework.persistence.user.entities.PFUserDO
 import org.projectforge.framework.time.PFDate
@@ -34,17 +35,36 @@ class TaskServicesRest() {
                 val text: String,
                 val orderPositions: MutableList<OrderPosition>? = null) // Positions
 
-    class JSNode(val id: Int,
-                 val leaf: Boolean = true,
-                 val title: String? = null,
-                 val shortDescription: String? = null,
-                 val protectTimesheetsUntil: PFDate? = null,
-                 val reference: String?,
-                 val priority: Priority? = null,
-                 val status: TaskStatus? = null,
-                 val responsibleUser: PFUserDO? = null,
-                 val cost2List: MutableList<Cost2>? = null,
-                 var childs: MutableList<JSNode>? = null)
+    class Task(val id: Int,
+               /**
+                * Indent is only given for table view.
+                */
+               var indent: Int? = null,
+               /**
+                * All (opened) sub notes for table view or direct child notes for tree view
+                */
+               var childs: MutableList<Task>? = null,
+               val leaf: Boolean = true,
+               val title: String? = null,
+               val shortDescription: String? = null,
+               val protectTimesheetsUntil: PFDate? = null,
+               val reference: String?,
+               val priority: Priority? = null,
+               val status: TaskStatus? = null,
+               val responsibleUser: PFUserDO? = null,
+               val cost2List: MutableList<Cost2>? = null) {
+        constructor(node: TaskNode) : this(id = node.task.id, leaf = !node.hasChilds(), title = node.task.title, shortDescription = node.task.shortDescription,
+                protectTimesheetsUntil = PFDate.from(node.task.protectTimesheetsUntil), reference = node.task.reference, priority = node.task.priority,
+                status = node.task.status, responsibleUser = node.task.responsibleUser) {
+        }
+    }
+
+    class Result(val root: Task,
+                 val translations: MutableMap<String, String>? = null)
+
+    private class BuildContext(val user: PFUserDO,
+                               val taskFilter: TaskFilter,
+                               val openedNodes: Set<Int>)
 
     private val log = org.slf4j.LoggerFactory.getLogger(TaskServicesRest::class.java)
 
@@ -58,41 +78,48 @@ class TaskServicesRest() {
 
     private val restHelper = RestHelper()
 
+    /**
+     * Gets the user's task tree as tree matching the filter. The open task nodes will be restored from the user's prefs.
+     */
     @GET
     @Path("tree")
     @Produces(MediaType.APPLICATION_JSON)
     fun getTree(): Response {
         val openNodes = userPreferencesService.getEntry(TaskTree.USER_PREFS_KEY_OPEN_TASKS) as Set<Int>
+        val context = BuildContext(ThreadLocalUserContext.getUser(), TaskFilter(), openNodes)
+        val rootNode = taskTree.rootTaskNode
+        val root = Task(rootNode)
         //UserPreferencesHelper.putEntry(TaskTree.USER_PREFS_KEY_OPEN_TASKS, expansion.getIds(), true)
-        val taskFilter = TaskFilter()
-        val user = ThreadLocalUserContext.getUser()
-        val rootJsNode = buildTree(taskFilter, user, taskTree.rootTaskNode, openNodes)
-        return restHelper.buildResponse(rootJsNode)
+        buildTree(context, root, rootNode, 0)
+        val result = Result(root, mutableMapOf())
+        result.translations!!.put("task", translate("task"))
+        result.translations.put("task.consumption", translate("task.consumption"))
+
+        return restHelper.buildResponse(result)
     }
 
-    private fun buildTree(taskFilter: TaskFilter, user: PFUserDO, taskNode: TaskNode, openedNodes : Set<Int>): JSNode? {
-        if (!taskFilter.match(taskNode, taskDao, user)) {
-            return null
+    /**
+     * @param indent null for tree view, int for table view.
+     */
+    private fun buildTree(ctx: BuildContext, task: Task, taskNode: TaskNode, indent: Int? = null) {
+        if (!taskNode.hasChilds()) {
+            return
         }
-        val task = taskNode.task
-        val jsNode = JSNode(id = task.id,
-                leaf = !taskNode.hasChilds(),
-                title = task.title,
-                shortDescription = task.shortDescription,
-                protectTimesheetsUntil = PFDate.from(task.protectTimesheetsUntil),
-                reference = task.reference,
-                priority = task.priority,
-                status = task.status,
-                responsibleUser = task.responsibleUser)
-        if (taskNode.hasChilds() && openedNodes.contains(taskNode.taskId)) {
+        if (ctx.openedNodes.contains(taskNode.taskId)) {
             // TaskNode has childs and is opened:
-            jsNode.childs = mutableListOf()
+            if (task.childs == null)
+                task.childs = mutableListOf()
             taskNode.childs.forEach {
-                val childJsNode = buildTree(taskFilter, user, it, openedNodes)
-                if (childJsNode != null)
-                    jsNode.childs!!.add(childJsNode)
+                if (ctx.taskFilter.match(it, taskDao, ctx.user)) {
+                    val child = Task(it)
+                    task.childs!!.add(child)
+                    if (indent != null) {
+                        child.indent = indent
+                        buildTree(ctx, task, it, indent + 1) // Build as table (all childs are direct childs of root node.
+                    } else
+                        buildTree(ctx, child, it, null) // Build as tree
+                }
             }
         }
-        return jsNode
     }
 }
