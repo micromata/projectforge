@@ -50,12 +50,40 @@ label.label {
     @include transition(.5s max-height);
 
     &::before {
+      z-index: 2;
       position: absolute;
       content: '';
       width: 100%;
       height: 100%;
       border: 1px solid #cccacc;
       border-top: none;
+    }
+
+    ul.selectContent {
+      margin: 1px;
+      z-index: 10;
+      position: relative;
+      list-style: none;
+      padding-inline-start: 0;
+      background-color: #fff;
+
+      li.selectOption {
+
+        span {
+          display: block;
+          width: 100%;
+          padding: 5px;
+          cursor: pointer;
+
+          &:hover {
+            background-color: #ddd;
+          }
+        }
+
+        &.keySelected {
+          background-color: #eee;
+        }
+      }
     }
   }
 
