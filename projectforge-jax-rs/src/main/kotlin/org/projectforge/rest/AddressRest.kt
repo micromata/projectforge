@@ -29,7 +29,7 @@ class AddressRest()
      * For exporting list of addresses.
      */
     private class Address(val address: AddressDO,
-                          val id: Int,
+                          val id: Int, // Needed for history Service
                           var imageUrl: String? = null,
                           var previewImageUrl: String? = null)
 
