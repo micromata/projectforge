@@ -4,7 +4,9 @@ import org.projectforge.business.fibu.AuftragsPositionsStatus
 import org.projectforge.business.task.TaskDao
 import org.projectforge.business.task.TaskFilter
 import org.projectforge.business.task.TaskNode
+import org.projectforge.business.task.TaskTree
 import org.projectforge.business.tasktree.TaskTreeHelper
+import org.projectforge.business.user.service.UserPreferencesService
 import org.projectforge.common.i18n.Priority
 import org.projectforge.common.task.TaskStatus
 import org.projectforge.framework.persistence.user.api.ThreadLocalUserContext
@@ -47,7 +49,10 @@ class TaskServicesRest() {
     private val log = org.slf4j.LoggerFactory.getLogger(TaskServicesRest::class.java)
 
     @Autowired
-    private lateinit var taskDao: TaskDao;
+    private lateinit var taskDao: TaskDao
+
+    @Autowired
+    private lateinit var userPreferencesService: UserPreferencesService
 
     private val taskTree = TaskTreeHelper.getTaskTree()
 
@@ -57,13 +62,15 @@ class TaskServicesRest() {
     @Path("tree")
     @Produces(MediaType.APPLICATION_JSON)
     fun getTree(): Response {
+        val openNodes = userPreferencesService.getEntry(TaskTree.USER_PREFS_KEY_OPEN_TASKS) as Set<Int>
+        //UserPreferencesHelper.putEntry(TaskTree.USER_PREFS_KEY_OPEN_TASKS, expansion.getIds(), true)
         val taskFilter = TaskFilter()
         val user = ThreadLocalUserContext.getUser()
-        val rootJsNode = buildTree(taskFilter, user, taskTree.rootTaskNode)
+        val rootJsNode = buildTree(taskFilter, user, taskTree.rootTaskNode, openNodes)
         return restHelper.buildResponse(rootJsNode)
     }
 
-    private fun buildTree(taskFilter: TaskFilter, user: PFUserDO, taskNode: TaskNode): JSNode? {
+    private fun buildTree(taskFilter: TaskFilter, user: PFUserDO, taskNode: TaskNode, openedNodes : Set<Int>): JSNode? {
         if (!taskFilter.match(taskNode, taskDao, user)) {
             return null
         }
@@ -77,10 +84,11 @@ class TaskServicesRest() {
                 priority = task.priority,
                 status = task.status,
                 responsibleUser = task.responsibleUser)
-        if (taskNode.hasChilds()) {
+        if (taskNode.hasChilds() && openedNodes.contains(taskNode.taskId)) {
+            // TaskNode has childs and is opened:
             jsNode.childs = mutableListOf()
             taskNode.childs.forEach {
-                val childJsNode = buildTree(taskFilter, user, it)
+                val childJsNode = buildTree(taskFilter, user, it, openedNodes)
                 if (childJsNode != null)
                     jsNode.childs!!.add(childJsNode)
             }
