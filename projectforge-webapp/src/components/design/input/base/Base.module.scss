@@ -43,7 +43,8 @@ label.label {
     display: block;
     position: absolute;
     max-height: 0;
-    overflow: hidden;
+    overflow-x: hidden;
+    overflow-y: scroll;
     width: 100%;
     background-color: #fff;
     z-index: 999;
