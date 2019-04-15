@@ -71,20 +71,38 @@ class TaskTreePage extends React.Component {
                     {this.state.nodes.map(task => {
                         let indent = [];
                         for (let i = 0; i < task.indent; i++) {
-                            indent.push('....');
+                            indent.push(<div className={'tree-nav-space'}>&nbsp;</div>);
                         }
                         let link = indent;
                         if (task.treeStatus === 'OPENED') {
-                            link = <span onClick={() => this.fetch(null, null, task.id)}>-{indent}</span>
+                            link = <div className={'tree-nav'} onClick={() => this.fetch(null, null, task.id)}>
+                                {indent}<div className={'tree-link-close'}>- {task.title}</div>
+                            </div>;
                         } else if (task.treeStatus === 'CLOSED') {
-                            link = <span onClick={() => this.fetch(null, task.id, null)}>+{indent}</span>
+                            link = <div className={'tree-nav'} onClick={() => this.fetch(null,  task.id, null)}>
+                                {indent}<div className={'tree-link-close'}>+ {task.title}</div>
+                            </div>;
+                        } else {
+                            link = <div className={'tree-nav'}>
+                                {indent}<div className={'tree-leaf'}>. {task.title}</div>
+                            </div>;
                         }
+                        let responsibleUser = task.responsibleUser ? task.responsibleUser.fullname : '';
                         return (
                             <tr key={`table-body-row-${task.id}`}
                                 onClick={this.handleRowClick}
                                 className={style.clickable}
                             >
-                                <td>{link}{task.title}</td>
+                                <td>{link}</td>
+                                <td>...</td>
+                                <td>...</td>
+                                <td>...</td>
+                                <td>{task.shortDescription}</td>
+                                <td>...</td>
+                                <td>{task.reference}</td>
+                                <td>{task.priority}</td>
+                                <td>{task.status}</td>
+                                <td>{responsibleUser}</td>
                             </tr>
                         );
                     })}
