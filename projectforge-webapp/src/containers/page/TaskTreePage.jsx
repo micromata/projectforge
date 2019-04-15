@@ -1,5 +1,7 @@
 import React from 'react';
 import {Card, CardBody, Table} from '../../components/design';
+import {faFile, faFolder, faFolderOpen} from '@fortawesome/free-regular-svg-icons';
+import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 
 import {getServiceURL} from '../../utilities/rest';
 import style from "../../components/base/page/Page.module.scss";
@@ -76,15 +78,24 @@ class TaskTreePage extends React.Component {
                         let link = indent;
                         if (task.treeStatus === 'OPENED') {
                             link = <div className={'tree-nav'} onClick={() => this.fetch(null, null, task.id)}>
-                                {indent}<div className={'tree-link-close'}>- {task.title}</div>
+                                {indent}
+                                <div className={'tree-link-close'}>
+                                    <div className={'tree-icon'}><FontAwesomeIcon icon={faFolderOpen}/></div>
+                                    {task.title}</div>
                             </div>;
                         } else if (task.treeStatus === 'CLOSED') {
-                            link = <div className={'tree-nav'} onClick={() => this.fetch(null,  task.id, null)}>
-                                {indent}<div className={'tree-link-close'}>+ {task.title}</div>
+                            link = <div className={'tree-nav'} onClick={() => this.fetch(null, task.id, null)}>
+                                {indent}
+                                <div className={'tree-link-close'}>
+                                    <div className={'tree-icon'}><FontAwesomeIcon icon={faFolder}/></div>
+                                    {task.title}</div>
                             </div>;
                         } else {
                             link = <div className={'tree-nav'}>
-                                {indent}<div className={'tree-leaf'}>. {task.title}</div>
+                                {indent}
+                                <div className={'tree-leaf'}>
+                                    <div className={'tree-icon'}><FontAwesomeIcon icon={faFile}/></div>
+                                    {task.title}</div>
                             </div>;
                         }
                         let responsibleUser = task.responsibleUser ? task.responsibleUser.fullname : '';
