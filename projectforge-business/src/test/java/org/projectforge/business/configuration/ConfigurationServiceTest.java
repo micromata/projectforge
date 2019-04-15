@@ -17,6 +17,11 @@ public class ConfigurationServiceTest extends AbstractTestBase
   @Autowired
   private ConfigurationDao configurationDao;
 
+  @Override
+  protected void afterAll() {
+    recreateDataBase();
+  }
+
   @Test
   public void testGetMinPasswordLength()
   {

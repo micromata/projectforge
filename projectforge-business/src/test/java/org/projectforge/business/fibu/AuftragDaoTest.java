@@ -52,6 +52,11 @@ public class AuftragDaoTest extends AbstractTestBase
 {
   private int dbNumber = AuftragDao.START_NUMBER;
 
+  @Override
+  protected void beforeAll() {
+    recreateDataBase();
+  }
+
   @Autowired
   private AuftragDao auftragDao;
 
