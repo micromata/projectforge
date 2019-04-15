@@ -108,6 +108,7 @@ class AddressRest()
                         .add(addressLC, "name", "firstName", "organization", "email")
                         .add(UITableColumn("phoneNumbers", "address.phoneNumbers", dataType = UIDataType.CUSTOMIZED))
                         .add(lc, "addressbookList"))
+        layout.getTableColumnById("address.lastUpdate").formatter = Formatter.DATE
         LayoutUtils.addListFilterContainer(layout,
                 UICheckbox("filter", label = "filter"),
                 UICheckbox("newest", label = "filter.newest"),
