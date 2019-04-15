@@ -287,11 +287,11 @@ open class MenuCreator() {
         //
         menuItemDefHolder.add(MenuItemDef(MenuItemDefId.ORGA,
                 requiredGroups = *FIBU_ORGA_HR_GROUPS))
-                .add(MenuItemDef(MenuItemDefId.OUTBOX_LIST, "wa/outgoingMailList",
+                .add(MenuItemDef(MenuItemDefId.OUTBOX_LIST, "outgoingMail",
                         requiredUserRightId = PostausgangDao.USER_RIGHT_ID, requiredUserRightValues = READONLY_READWRITE))
-                .add(MenuItemDef(MenuItemDefId.INBOX_LIST, "wa/incomingMailList",
+                .add(MenuItemDef(MenuItemDefId.INBOX_LIST, "incomingMail",
                         requiredUserRightId = PosteingangDao.USER_RIGHT_ID, requiredUserRightValues = READONLY_READWRITE))
-                .add(MenuItemDef(MenuItemDefId.CONTRACTS, "wa/contractList",
+                .add(MenuItemDef(MenuItemDefId.CONTRACTS, "contract",
                         requiredUserRightId = ContractDao.USER_RIGHT_ID, requiredUserRightValues = READONLY_READWRITE))
                 .add(MenuItemDef(MenuItemDefId.VISITORBOOK, "wa/wa/wicket/bookmarkable/org.projectforge.web.orga.VisitorbookListPage",
                         requiredUserRightId = VisitorbookDao.USER_RIGHT_ID, requiredUserRightValues = READONLY_READWRITE))
