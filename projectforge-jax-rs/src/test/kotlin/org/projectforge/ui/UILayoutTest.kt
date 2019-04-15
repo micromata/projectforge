@@ -73,7 +73,7 @@ class UILayoutTest : AbstractTestBase() {
 
         assertEquals("FIELDSET", jsonValidator.get("layout[4].type"))
         assertEquals("???book.lending???", jsonValidator.get("layout[4].title"))
-        assertEquals("lendOutComponent", jsonValidator.get("layout[4].content[0].id"))
+        assertEquals("book.lendOutComponent", jsonValidator.get("layout[4].content[0].id"))
         assertEquals("CUSTOMIZED", jsonValidator.get("layout[4].content[0].type"))
         assertEquals("el-18", jsonValidator.get("layout[4].content[0].key"))
 
