@@ -77,7 +77,6 @@ class SearchFilter extends Component {
                         pills
                         setValue={this.setFilterValue}
                         value={newFilter}
-                        {...getNamedContainer('searchFilter', namedContainers)}
                     />
                     <form>
                         <Input
