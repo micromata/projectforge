@@ -19,6 +19,7 @@ class TaskTreePage extends React.Component {
         });
         fetch(getServiceURL('task/tree', {
             initial: initial,
+            table: 'true', // Result expected as table not as tree.
             open:  open ? open : '',
             close: close ? close : ''
         }), {
@@ -72,12 +73,18 @@ class TaskTreePage extends React.Component {
                         for (let i = 0; i < task.indent; i++) {
                             indent.push('....');
                         }
+                        let link = indent;
+                        if (task.treeStatus === 'OPENED') {
+                            link = '-' + indent
+                        } else if (task.treeStatus === 'CLOSED') {
+                            link = '+' + indent
+                        }
                         return (
                             <tr key={`table-body-row-${task.id}`}
                                 onClick={this.handleRowClick}
                                 className={style.clickable}
                             >
-                                <td>{indent}{task.title}</td>
+                                <td>{link}{task.title}</td>
                             </tr>
                         );
                     })}
