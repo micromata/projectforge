@@ -36,6 +36,7 @@ class TaskServicesRest() {
                 val text: String,
                 val orderPositions: MutableList<OrderPosition>? = null) // Positions
 
+    enum class TreeStatus() { LEAF, OPENED, CLOSED }
     class Task(val id: Int,
                /**
                 * Indent is only given for table view.
@@ -45,7 +46,7 @@ class TaskServicesRest() {
                 * All (opened) sub notes for table view or direct child notes for tree view
                 */
                var childs: MutableList<Task>? = null,
-               val leaf: Boolean = true,
+               var treeStatus: TreeStatus? = null,
                val title: String? = null,
                val shortDescription: String? = null,
                val protectTimesheetsUntil: PFDate? = null,
@@ -54,7 +55,7 @@ class TaskServicesRest() {
                val status: TaskStatus? = null,
                val responsibleUser: PFUserDO? = null,
                val cost2List: MutableList<Cost2>? = null) {
-        constructor(node: TaskNode) : this(id = node.task.id, leaf = !node.hasChilds(), title = node.task.title, shortDescription = node.task.shortDescription,
+        constructor(node: TaskNode) : this(id = node.task.id, title = node.task.title, shortDescription = node.task.shortDescription,
                 protectTimesheetsUntil = PFDate.from(node.task.protectTimesheetsUntil), reference = node.task.reference, priority = node.task.priority,
                 status = node.task.status, responsibleUser = node.task.responsibleUser) {
         }
@@ -65,6 +66,7 @@ class TaskServicesRest() {
 
     private class BuildContext(val user: PFUserDO,
                                val taskFilter: TaskFilter,
+                               val rootTask: Task, // Only for table view.
                                val openedNodes: MutableSet<Int>)
 
     private val log = org.slf4j.LoggerFactory.getLogger(TaskServicesRest::class.java)
@@ -84,6 +86,7 @@ class TaskServicesRest() {
      * @param initial If true, the layout info and translations are also returned. Default is to return only the tree data.
      * @param open Optional task to open in the tree (if a descendent child of closed tasks, all ancestor tasks will be opened as well).
      * @param close Optional task to close.
+     * @param table If true, the result will be returned flat with indent counter of each task node, otherwise a tree object is returned.
      * @return json
      */
     @GET
@@ -91,16 +94,18 @@ class TaskServicesRest() {
     @Produces(MediaType.APPLICATION_JSON)
     fun getTree(@QueryParam("initial") initial: Boolean?,
                 @QueryParam("open") open: Int?,
-                @QueryParam("close") close: Int?)
+                @QueryParam("close") close: Int?,
+                @QueryParam("table") table: Boolean?)
             : Response {
         val openNodes = userPreferencesService.getEntry(TaskTree.USER_PREFS_KEY_OPEN_TASKS) as MutableSet<Int>
-        val ctx = BuildContext(ThreadLocalUserContext.getUser(), TaskFilter(), openNodes)
-        openTask(ctx, open)
-        closeTask(ctx, close)
         val rootNode = taskTree.rootTaskNode
         val root = Task(rootNode)
+        root.childs = mutableListOf()
+        val ctx = BuildContext(ThreadLocalUserContext.getUser(), TaskFilter(), root, openNodes)
+        openTask(ctx, open)
+        closeTask(ctx, close)
         //UserPreferencesHelper.putEntry(TaskTree.USER_PREFS_KEY_OPEN_TASKS, expansion.getIds(), true)
-        val indent = if (initial == true) 0 else null
+        val indent = if (table == true) 0 else null
         buildTree(ctx, root, rootNode, indent)
         val result = Result(root)
         if (initial == true) {
@@ -113,29 +118,36 @@ class TaskServicesRest() {
     }
 
     /**
+     * @param targetTask Task to put the childs in. For table view, this is always the root task, for tree view targetTask and task are the same.
      * @param indent null for tree view, int for table view.
      */
     private fun buildTree(ctx: BuildContext, task: Task, taskNode: TaskNode, indent: Int? = null) {
         if (!taskNode.hasChilds()) {
+            task.treeStatus = TreeStatus.LEAF
             return
         }
         if (ctx.openedNodes.contains(taskNode.taskId)) {
-            // TaskNode has childs and is opened:
-            if (task.childs == null)
-                task.childs = mutableListOf()
+            task.treeStatus = TreeStatus.OPENED
             val childs = taskNode.childs.toMutableList()
             childs.sortBy({ it.task.title })
             childs.forEach {
                 if (ctx.taskFilter.match(it, taskDao, ctx.user)) {
                     val child = Task(it)
-                    task.childs!!.add(child)
                     if (indent != null) {
+                        ctx.rootTask.childs!!.add(child) // All childs are added to root task (table view!)
                         child.indent = indent
-                        buildTree(ctx, task, it, indent + 1) // Build as table (all childs are direct childs of root node.
-                    } else
+                        buildTree(ctx, child, it, indent + 1) // Build as table (all childs are direct childs of root node.
+                    } else {
+                        // TaskNode has childs and is opened:
+                        if (task.childs == null)
+                            task.childs = mutableListOf()
+                        task.childs!!.add(child)
                         buildTree(ctx, child, it, null) // Build as tree
+                    }
                 }
             }
+        } else {
+            task.treeStatus = TreeStatus.CLOSED
         }
     }
 
