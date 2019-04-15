@@ -102,6 +102,7 @@ public class BaseSearchFilter implements Serializable
     ignoreDeleted = false;
     searchString = "";
     searchHistory = false;
+    maxRows = 50;
     return this;
   }
 

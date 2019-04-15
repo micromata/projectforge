@@ -1,18 +1,10 @@
 package org.projectforge.web;
 
-import javax.annotation.PostConstruct;
-import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.request.http.WebRequest;
 import org.apache.wicket.request.http.WebResponse;
 import org.projectforge.Const;
-import org.projectforge.business.ldap.LdapMasterLoginHandler;
-import org.projectforge.business.ldap.LdapSlaveLoginHandler;
-import org.projectforge.business.login.LoginDefaultHandler;
 import org.projectforge.business.login.LoginHandler;
 import org.projectforge.business.login.LoginProtection;
 import org.projectforge.business.login.LoginResult;
@@ -26,18 +18,21 @@ import org.projectforge.business.user.filter.UserFilter;
 import org.projectforge.business.user.service.UserService;
 import org.projectforge.framework.persistence.user.api.UserContext;
 import org.projectforge.framework.persistence.user.entities.PFUserDO;
+import org.projectforge.login.LoginHandlerService;
 import org.projectforge.web.admin.SystemUpdatePage;
 import org.projectforge.web.session.MySession;
 import org.projectforge.web.wicket.ClientIpResolver;
 import org.projectforge.web.wicket.WicketUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
 
+import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
 @Service
-public class LoginService
-{
+public class LoginService {
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(LoginService.class);
 
   @Autowired
@@ -49,41 +44,23 @@ public class LoginService
   @Autowired
   private CookieService cookieService;
 
-  @Value("${projectforge.login.handlerClass}")
-  private String loginHandlerClass;
+  @Autowired
+  private LoginHandlerService loginHandlerService;
 
   private LoginHandler loginHandler;
 
-  @PostConstruct
-  public void init()
-  {
-    switch (getLoginHandlerClass()) {
-      case "LdapMasterLoginHandler":
-        this.loginHandler = applicationContext.getBean(LdapMasterLoginHandler.class);
-        break;
-      case "LdapSlaveLoginHandler":
-        this.loginHandler = applicationContext.getBean(LdapSlaveLoginHandler.class);
-        break;
-      default:
-        this.loginHandler = applicationContext.getBean(LoginDefaultHandler.class);
-    }
-  }
-
-  private void internalLogin(final WebPage page, final PFUserDO user)
-  {
+  private void internalLogin(final WebPage page, final PFUserDO user) {
     final UserContext userContext = new UserContext(PFUserDO.createCopyWithoutSecretFields(user),
-        getUserGroupCache());
+            getUserGroupCache());
     ((MySession) page.getSession()).login(userContext, page.getRequest());
     UserFilter.login(WicketUtils.getHttpServletRequest(page.getRequest()), userContext);
   }
 
-  public TenantRegistry getTenantRegistry()
-  {
+  public TenantRegistry getTenantRegistry() {
     return TenantRegistryMap.getInstance().getTenantRegistry();
   }
 
-  public UserGroupCache getUserGroupCache()
-  {
+  public UserGroupCache getUserGroupCache() {
     return getTenantRegistry().getUserGroupCache();
   }
 
@@ -96,8 +73,7 @@ public class LoginService
    * @return i18n key of the validation error message if not successfully logged in, otherwise null.
    */
   public LoginResultStatus internalCheckLogin(final WebPage page, final String username,
-      final String password, final boolean userWantsToStayLoggedIn, final Class<? extends WebPage> defaultPage)
-  {
+                                              final String password, final boolean userWantsToStayLoggedIn, final Class<? extends WebPage> defaultPage) {
     final LoginResult loginResult = checkLogin(username, password);
     final PFUserDO user = loginResult.getUser();
     if (user == null || loginResult.getLoginResultStatus() != LoginResultStatus.SUCCESS) {
@@ -112,10 +88,10 @@ public class LoginService
     if (userWantsToStayLoggedIn == true) {
       final PFUserDO loggedInUser = userService.getById(user.getId());
       final Cookie cookie = new Cookie(Const.COOKIE_NAME_FOR_STAY_LOGGED_IN, loggedInUser.getId()
-          + ":"
-          + loggedInUser.getUsername()
-          + ":"
-          + userService.getStayLoggedInKey(user.getId()));
+              + ":"
+              + loggedInUser.getUsername()
+              + ":"
+              + userService.getStayLoggedInKey(user.getId()));
       cookieService.addStayLoggedInCookie(WicketUtils.getHttpServletRequest(page.getRequest()), WicketUtils.getHttpServletResponse(page.getResponse()), cookie);
     }
     internalLogin(page, user);
@@ -131,9 +107,8 @@ public class LoginService
   /**
    * @see LoginHandler#checkLogin(String, String)
    */
-  private LoginResult checkLogin(final String username, final String password)
-  {
-    if (loginHandler == null) {
+  private LoginResult checkLogin(final String username, final String password) {
+    if (getLoginHandler() == null) {
       log.warn("No login possible because no login handler is defined yet.");
       return new LoginResult().setLoginResultStatus(LoginResultStatus.FAILED);
     }
@@ -146,15 +121,15 @@ public class LoginService
     if (offset > 0) {
       final String seconds = String.valueOf(offset / 1000);
       log.warn("The account for '"
-          + username
-          + "' is locked for "
-          + seconds
-          + " seconds due to failed login attempts. Please try again later.");
+              + username
+              + "' is locked for "
+              + seconds
+              + " seconds due to failed login attempts. Please try again later.");
       final int numberOfFailedAttempts = loginProtection.getNumberOfFailedLoginAttempts(username, clientIpAddress);
       return new LoginResult().setLoginResultStatus(LoginResultStatus.LOGIN_TIME_OFFSET).setMsgParams(seconds,
-          String.valueOf(numberOfFailedAttempts));
+              String.valueOf(numberOfFailedAttempts));
     }
-    final LoginResult result = loginHandler.checkLogin(username, password);
+    final LoginResult result = getLoginHandler().checkLogin(username, password);
     if (result.getLoginResultStatus() == LoginResultStatus.SUCCESS) {
       loginProtection.clearLoginTimeOffset(username, clientIpAddress);
     } else if (result.getLoginResultStatus() == LoginResultStatus.FAILED) {
@@ -163,23 +138,15 @@ public class LoginService
     return result;
   }
 
-  /**
-   * If given then this login handler will be used instead of {@link LoginDefaultHandler}. For ldap please use e. g.
-   * org.projectforge.ldap.LdapLoginHandler.
-   *
-   * @return the loginHandlerClass or "" if not given
-   */
-  public String getLoginHandlerClass()
-  {
-    if (loginHandlerClass != null) {
-      return loginHandlerClass;
+  private LoginHandler getLoginHandler() {
+    if (loginHandler == null) {
+      loginHandler = loginHandlerService.getLoginHandler();
     }
-    return "";
+    return loginHandler;
   }
 
   public void logout(final MySession mySession, final WebRequest request, final WebResponse response,
-      final UserXmlPreferencesCache userXmlPreferencesCache)
-  {
+                     final UserXmlPreferencesCache userXmlPreferencesCache) {
     final Cookie stayLoggedInCookie = cookieService.getStayLoggedInCookie(WicketUtils.getHttpServletRequest(request));
     logout(mySession, stayLoggedInCookie, userXmlPreferencesCache);
     if (stayLoggedInCookie != null) {
@@ -188,9 +155,8 @@ public class LoginService
   }
 
   public void logout(final MySession mySession, final HttpServletRequest request,
-      final HttpServletResponse response,
-      final UserXmlPreferencesCache userXmlPreferencesCache)
-  {
+                     final HttpServletResponse response,
+                     final UserXmlPreferencesCache userXmlPreferencesCache) {
     final Cookie stayLoggedInCookie = cookieService.getStayLoggedInCookie(request);
     logout(mySession, stayLoggedInCookie, userXmlPreferencesCache);
     if (stayLoggedInCookie != null) {
@@ -199,8 +165,7 @@ public class LoginService
   }
 
   private void logout(final MySession mySession, final Cookie stayLoggedInCookie,
-      final UserXmlPreferencesCache userXmlPreferencesCache)
-  {
+                      final UserXmlPreferencesCache userXmlPreferencesCache) {
     final PFUserDO user = mySession.getUser();
     if (user != null) {
       userXmlPreferencesCache.flushToDB(user.getId());
@@ -213,5 +178,4 @@ public class LoginService
       stayLoggedInCookie.setPath("/");
     }
   }
-
 }

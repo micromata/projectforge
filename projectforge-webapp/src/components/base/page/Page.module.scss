@@ -1,0 +1,39 @@
+@import "../../../assets/style/mixins";
+
+.title {
+  color: #000;
+  font-weight: bold;
+}
+
+.navigation {
+  margin-bottom: 15px;
+}
+
+.navTab {
+  padding: 1rem;
+  @include linear-gradient-background(to bottom, #e6ecef, #d0d6da);
+
+  &.active {
+    background-image: none;
+    background-color: #fff;
+    color: #495057;
+    border-color: #dee2e6 #dee2e6 #fff;
+    font-weight: 600;
+  }
+}
+
+.select {
+  width: auto;
+  margin: 0 15px;
+}
+
+.inputLabel {
+  width: 140px;
+  font-weight: 600;
+}
+
+.group {
+  margin-top: 10px;
+  margin-bottom: 10px;
+  font-size: 13px
+}

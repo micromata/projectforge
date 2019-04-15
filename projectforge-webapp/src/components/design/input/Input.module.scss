@@ -1,0 +1,325 @@
+@import '../../../assets/style/mixins';
+
+.formGroup {
+  position: relative;
+  font-size: 13px;
+  letter-spacing: .02em;
+
+  .label {
+    display: block;
+    margin: 0 0 0 0;
+    height: 2.8em;
+    width: 100%;
+    cursor: text;
+
+    .text {
+      position: absolute;
+      top: 0;
+      left: 3px;
+      color: #555;
+      @include transition-transform-extra(.3s, translate(2px, 1em) scale(1, 1), color .3s);
+      transform-origin: top left;
+    }
+
+    .input {
+      padding-left: 5px;
+      width: 100%;
+      position: absolute;
+      top: 1.1em;
+      background-color: transparent;
+      border: none;
+      border-bottom: 1px solid #bbb;
+      outline: none;
+
+      @include transition(border-bottom .3s);
+
+    }
+
+    &.active {
+
+      .text {
+        color: #000;
+        @include transform(translate(0, 0) scale(.9,.9));
+      }
+
+      .input {
+        border-bottom: 1px solid #000;
+      }
+    }
+
+    @mixin color($color) {
+      .text {
+        color: $color;
+      }
+
+      .input {
+        border-color: $color;
+      }
+    }
+
+    &.primary {
+      @include color(#007bff);
+    }
+
+    &.secondary {
+      @include color(#6c757d);
+    }
+
+    &.success {
+      @include color(#28a745);
+    }
+
+    &.danger {
+      @include color(#dc3545);
+    }
+
+    &.warning {
+      @include color(#ffc107);
+    }
+
+    &.info {
+      @include color(#17a2b8);
+    }
+
+  }
+
+  .checkboxLabel {
+    position: relative;
+    margin-left: 5px;
+
+    .checkbox {
+      position: absolute;
+      opacity: 0;
+      pointer-events: none;
+
+      & + .text {
+        &::before {
+          content: '';
+          position: absolute;
+          top: 0;
+          left: 0;
+          border: 2px solid #333;
+          width: 1.2em;
+          height: 1.2em;
+
+          @include transition(.3s);
+        }
+
+        padding-left: 2em;
+      }
+
+      &:checked + .text {
+        &::before {
+          @include transform(rotate(40deg));
+          top: -3px;
+          left: 5px;
+          border-top-color: transparent;
+          border-left-color: transparent;
+          width: .6em;
+        }
+
+        @mixin color($color) {
+          &::before {
+            border-right-color: $color;
+            border-bottom-color: $color;
+          }
+        }
+
+        &.primary {
+          @include color(#007bff);
+        }
+
+        &.secondary {
+          @include color(#6c757d);
+        }
+
+        &.success {
+          @include color(#28a745);
+        }
+
+        &.danger {
+          @include color(#dc3545);
+        }
+
+        &.warning {
+          @include color(#ffc107);
+        }
+
+        &.info {
+          @include color(#17a2b8);
+        }
+      }
+    }
+  }
+
+  .selectLabel {
+    position: relative;
+
+    .text {
+      position: relative;
+      background-color: #fff;
+      font-size: .9em;
+      margin-left: .6em;
+      padding: 0 .5em;
+      z-index: 1;
+      letter-spacing: .06em;
+      color: #666;
+    }
+
+    .select {
+      margin-top: -.8em;
+      z-index: 0;
+      position: relative;
+      padding: .8em .5em .5em;
+      box-sizing: border-box;
+      width: 100%;
+      outline: none;
+      font-weight: 600;
+      color: #333;
+      border: 1px solid #ddd;
+      border-bottom: none;
+      border-radius: 3px 3px 0 0;
+    }
+
+    .icon {
+      position: absolute;
+      top: 1.6em;
+      right: .5em;
+      cursor: pointer;
+
+      @include transition-transform(.5s, rotate(0))
+    }
+
+    .options {
+      z-index: 99;
+      background-color: #fff;
+      position: absolute;
+      list-style: none;
+      margin-block-start: 0;
+      margin-block-end: 0;
+      padding-inline-start: 0;
+      width: 100%;
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height .5s;
+      border: 1px solid #ddd;
+      border-top: none;
+
+      .option {
+        position: relative;
+        cursor: pointer;
+
+        &.selected {
+          background-color: #eee;
+        }
+
+        span {
+          display: block;
+          padding: .5em;
+          width: 100%;
+
+          *:nth-child(1) {
+            position: absolute;
+            right: .5em;
+          }
+        }
+      }
+    }
+
+    &.active {
+      .icon {
+        @include transform(rotate(180deg));
+      }
+
+      .options {
+        max-height: 500px;
+        z-index: 100;
+
+        .option {
+          span:hover {
+            background-color: #ddd;
+          }
+        }
+      }
+    }
+  }
+
+  .textAreaLabel {
+    width: 100%;
+
+    .text {
+      position: absolute;
+      top: 0;
+      left: .6em;
+      background-color: #fff;
+      font-size: .9em;
+      padding: 0 .5em;
+      letter-spacing: .05em;
+      color: #666;
+
+      @include transition(color $defaultTransitionTime);
+    }
+
+    .textArea {
+      position: relative;
+      margin-top: .55em;
+      outline: none;
+      border: 1px solid #ddd;
+      border-radius: 3px;
+      width: 100%;
+      line-height: 1em;
+      padding: .6em .5em .5em .5em;
+      @include transition(border-color $defaultTransitionTime);
+    }
+
+    &.active {
+      .text {
+        color: #000;
+      }
+
+      .textArea {
+        border-color: #000;
+      }
+    }
+
+    @mixin color($color) {
+      .text {
+        color: $color;
+      }
+
+      .textArea {
+        border-color: $color;
+      }
+    }
+
+    &.primary {
+      @include color(#007bff);
+    }
+
+    &.secondary {
+      @include color(#6c757d);
+    }
+
+    &.success {
+      @include color(#28a745);
+    }
+
+    &.danger {
+      @include color(#dc3545);
+    }
+
+    &.warning {
+      @include color(#ffc107);
+    }
+
+    &.info {
+      @include color(#17a2b8);
+    }
+  }
+
+  .subLine {
+    display: block;
+    margin: .5em 0;
+    font-size: .85em;
+  }
+}

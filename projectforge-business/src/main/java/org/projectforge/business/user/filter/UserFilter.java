@@ -119,6 +119,15 @@ public class UserFilter implements Filter
     session.setAttribute(SESSION_KEY_USER, userContext);
   }
 
+  /**
+   * @param request
+   */
+  public static void logout(final HttpServletRequest request)
+  {
+    final HttpSession session = request.getSession();
+    session.removeAttribute(SESSION_KEY_USER);
+  }
+
   public static void refreshUser(final HttpServletRequest request)
   {
     final UserContext userContext = getUserContext(request);

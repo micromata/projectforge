@@ -23,18 +23,9 @@
 
 package org.projectforge.web.wicket;
 
-import java.sql.SQLException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.apache.wicket.Application;
-import org.apache.wicket.ConverterLocator;
-import org.apache.wicket.DefaultPageManagerProvider;
-import org.apache.wicket.IConverterLocator;
-import org.apache.wicket.Page;
-import org.apache.wicket.RuntimeConfigurationType;
-import org.apache.wicket.Session;
+import de.micromata.less.LessWicketApplicationInstantiator;
+import de.micromata.wicket.request.mapper.PageParameterAwareMountedMapper;
+import org.apache.wicket.*;
 import org.apache.wicket.core.request.handler.PageProvider;
 import org.apache.wicket.core.request.handler.RenderPageRequestHandler;
 import org.apache.wicket.core.request.mapper.StalePageException;
@@ -56,11 +47,7 @@ import org.apache.wicket.util.time.Duration;
 import org.projectforge.Const;
 import org.projectforge.ProjectForgeApp;
 import org.projectforge.business.configuration.ConfigurationService;
-import org.projectforge.business.ldap.LdapMasterLoginHandler;
-import org.projectforge.business.ldap.LdapSlaveLoginHandler;
 import org.projectforge.business.login.Login;
-import org.projectforge.business.login.LoginDefaultHandler;
-import org.projectforge.business.login.LoginHandler;
 import org.projectforge.business.multitenancy.TenantRegistry;
 import org.projectforge.business.multitenancy.TenantRegistryMap;
 import org.projectforge.business.multitenancy.TenantsCache;
@@ -73,7 +60,6 @@ import org.projectforge.framework.persistence.user.api.UserContext;
 import org.projectforge.framework.utils.ExceptionHelper;
 import org.projectforge.plugins.core.AbstractPlugin;
 import org.projectforge.plugins.core.PluginAdminService;
-import org.projectforge.web.LoginService;
 import org.projectforge.web.WebConfiguration;
 import org.projectforge.web.calendar.CalendarPage;
 import org.projectforge.web.registry.WebRegistry;
@@ -85,8 +71,10 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Controller;
 
-import de.micromata.less.LessWicketApplicationInstantiator;
-import de.micromata.wicket.request.mapper.PageParameterAwareMountedMapper;
+import java.sql.SQLException;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Application object for your web application. If you want to run this application without deploying, run the Start
@@ -125,12 +113,7 @@ public class WicketApplication extends WebApplication implements WicketApplicati
   private PluginAdminService pluginAdminService;
 
   @Autowired
-  private LoginService loginService;
-
-  @Autowired
   private ConfigurationService configurationService;
-
-  private LoginHandler loginHandler;
 
   @Value("${projectforge.base.dir}")
   private String baseDir;
@@ -408,17 +391,6 @@ public class WicketApplication extends WebApplication implements WicketApplicati
       ThreadLocalUserContext.clear();
     }
 
-    switch (loginService.getLoginHandlerClass()) {
-      case "LdapMasterLoginHandler":
-        loginHandler = applicationContext.getBean(LdapMasterLoginHandler.class);
-        break;
-      case "LdapSlaveLoginHandler":
-        loginHandler = applicationContext.getBean(LdapSlaveLoginHandler.class);
-        break;
-      default:
-        loginHandler = applicationContext.getBean(LoginDefaultHandler.class);
-    }
-
     // initialize styles compiler
     try {
       final LessWicketApplicationInstantiator lessInstantiator = new LessWicketApplicationInstantiator(this, "styles",
@@ -428,8 +400,6 @@ public class WicketApplication extends WebApplication implements WicketApplicati
       log.error("Unable to instantiate wicket less compiler", e);
     }
 
-    loginHandler.initialize();
-    Login.getInstance().setLoginHandler(loginHandler);
     if (UserFilter.isUpdateRequiredFirst() == false) {
       projectForgeApp.finalizeInitialization();
     }

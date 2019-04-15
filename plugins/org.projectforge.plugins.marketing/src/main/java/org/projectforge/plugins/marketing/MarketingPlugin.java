@@ -23,16 +23,16 @@
 
 package org.projectforge.plugins.marketing;
 
-import java.util.List;
-
 import org.projectforge.business.address.AddressDao;
 import org.projectforge.continuousdb.UpdateEntry;
+import org.projectforge.menu.builder.MenuItemDefId;
 import org.projectforge.plugins.core.AbstractPlugin;
 import org.projectforge.web.MenuItemDef;
-import org.projectforge.web.MenuItemDefId;
 import org.projectforge.web.plugin.PluginWicketRegistrationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import java.util.List;
 
 /**
  * Your plugin initialization. Register all your components such as i18n files, data-access object etc.
