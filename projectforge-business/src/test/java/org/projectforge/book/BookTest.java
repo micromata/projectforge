@@ -130,7 +130,6 @@ public class BookTest extends AbstractTestNGBase
   private BookDO createTestBook(String signature)
   {
     BookDO book = new BookDO();
-    book.setTask(getTask("root"));
     book.setSignature(signature);
     book.setStatus(BookStatus.PRESENT);
     return book;

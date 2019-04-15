@@ -57,12 +57,12 @@ public abstract class DefaultBaseWithAttrDO<M extends DefaultBaseWithAttrDO<?>>e
 {
   private static final long serialVersionUID = 1L;
 
-  private StringConverter stringConverter = StandardStringConverter.get();
+  private transient StringConverter stringConverter = StandardStringConverter.get();
 
   /**
    * holds the attributes
    */
-  private Map<String, JpaTabAttrBaseDO<M, Integer>> attributes = new TreeMap<String, JpaTabAttrBaseDO<M, Integer>>();
+  private transient Map<String, JpaTabAttrBaseDO<M, Integer>> attributes = new TreeMap<String, JpaTabAttrBaseDO<M, Integer>>();
 
   public DefaultBaseWithAttrDO()
   {

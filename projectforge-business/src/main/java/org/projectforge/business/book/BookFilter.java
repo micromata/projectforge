@@ -25,6 +25,7 @@ package org.projectforge.business.book;
 
 import java.io.Serializable;
 
+import org.projectforge.common.anots.PropertyInfo;
 import org.projectforge.framework.persistence.api.BaseSearchFilter;
 
 
@@ -37,10 +38,13 @@ public class BookFilter extends BaseSearchFilter implements Serializable
 {
   private static final long serialVersionUID = -4397408137924906520L;
 
+  @PropertyInfo(i18nKey = "book.status.present")
   private boolean present = true;
-  
+
+  @PropertyInfo(i18nKey = "book.status.missed")
   private boolean missed = false;
 
+  @PropertyInfo(i18nKey = "book.status.disposed")
   private boolean disposed = false;
 
   public BookFilter()
@@ -51,6 +55,16 @@ public class BookFilter extends BaseSearchFilter implements Serializable
   {
     super(filter);
     missed = disposed = true;
+  }
+
+  @Override
+  public BookFilter reset()
+  {
+    super.reset();
+    setPresent(true);
+    setMissed(false);
+    setDisposed(false);
+    return this;
   }
 
   public boolean isPresent()

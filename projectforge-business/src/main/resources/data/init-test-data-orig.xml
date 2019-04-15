@@ -2767,15 +2767,6 @@
     <intValue>17</intValue>
     <configurationType>TASK</configurationType>
   </org.projectforge.framework.configuration.entities.ConfigurationDO>
-  <org.projectforge.framework.configuration.entities.ConfigurationDO id="591">
-    <created class="sql-timestamp" id="592">2010-04-21 00:12:07.605</created>
-    <lastUpdate class="sql-timestamp" id="593">2013-04-27 15:03:50.135</lastUpdate>
-    <deleted>false</deleted>
-    <id>6</id>
-    <parameter>defaultTask4Books</parameter>
-    <intValue>17</intValue>
-    <configurationType>TASK</configurationType>
-  </org.projectforge.framework.configuration.entities.ConfigurationDO>
   <org.projectforge.framework.configuration.entities.ConfigurationDO id="594">
     <created class="sql-timestamp" id="595">2010-04-21 00:12:07.607</created>
     <lastUpdate class="sql-timestamp" id="596">2010-04-21 22:07:40.197</lastUpdate>

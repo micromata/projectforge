@@ -55,6 +55,8 @@ public class RestPaths
 
   public static final String PUBLIC_REST = "publicRest";
 
+  public static final String REST_WEB_APP = "rs";
+
   public static final String ADDRESS = "address";
 
   public static final String AUTHENTICATE = "authenticate";
@@ -83,6 +85,10 @@ public class RestPaths
 
   public static final String DELETE = "delete";
 
+  public static final String MARK_AS_DELETED = "markAsDeleted";
+
+  public static final String UNDELETE = "undelete";
+
   public static final String TREE = "tree";
 
   public static final String TEAMCAL = "teamcal";
@@ -91,4 +97,5 @@ public class RestPaths
 
   public static final String VERSION_CHECK = "versionCheck";
 
+  public static final String FILTER_RESET = "filterReset";
 }

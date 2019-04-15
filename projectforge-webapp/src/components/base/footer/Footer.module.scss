@@ -1,0 +1,51 @@
+@import '../../../assets/style/mixins';
+
+.footer {
+  height: 1.3em;
+  text-shadow: 0 1px 0 #000;
+  @include linear-gradient-background(to bottom, #4c5766, #313841);
+  border: 1px solid rgba(0, 0, 0, 0.5);
+  position: fixed;
+  bottom: 0;
+  color: #aaaaaa;
+  width: 100%;
+  z-index: 10;
+  background-color: #4c5766;
+
+  a {
+    color: #aaa;
+    font-size: 0.8em;
+
+    &:hover {
+      color: #fff;
+    }
+  }
+
+  ul.list {
+    display: inline-block;
+    list-style: none;
+    padding-left: 5px;
+    margin: 0;
+
+    &.copyHint {
+      float: left;
+    }
+
+    &.version {
+      float: right;
+    }
+
+    li {
+      display: inline-block;
+
+      &::after {
+        padding: 0 3px;
+        content: '|';
+      }
+
+      &:last-child::after {
+        content: '';
+      }
+    }
+  }
+}

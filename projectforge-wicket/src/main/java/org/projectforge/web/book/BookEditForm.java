@@ -76,9 +76,6 @@ public class BookEditForm extends AbstractEditForm<BookDO, BookEditPage>
       data.setStatus(BookStatus.PRESENT);
       data.setType(BookType.BOOK);
     }
-    if (getData().getTaskId() == null) {
-      bookDao.setTask(getData(), bookDao.getDefaultTaskId());
-    }
   }
 
   @SuppressWarnings("serial")

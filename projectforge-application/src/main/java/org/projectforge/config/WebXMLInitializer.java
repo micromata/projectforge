@@ -3,6 +3,7 @@ package org.projectforge.config;
 import org.apache.wicket.protocol.http.WicketFilter;
 import org.apache.wicket.spring.SpringWebApplicationFactory;
 import org.projectforge.business.user.filter.UserFilter;
+import org.projectforge.model.rest.RestPaths;
 import org.projectforge.rest.config.CORSFilter;
 import org.projectforge.security.SecurityHeaderFilter;
 import org.projectforge.web.debug.SessionSerializableChecker;
@@ -72,11 +73,17 @@ public class WebXMLInitializer implements ServletContextInitializer {
       log.warn("***********            **********");
       log.warn("*********************************");
       log.warn("Don't deliver this app in dev mode due to security reasons (cross origin allowed)!");
-      sc.addFilter("cors", new CORSFilter()).addMappingForUrlPatterns(null, false, "/rest/*");
+      sc.addFilter("cors", new CORSFilter()).addMappingForUrlPatterns(null, false,
+              "/" + RestPaths.REST + "/*",
+              "/" + RestPaths.REST_WEB_APP + "/*",
+              "/" + RestPaths.PUBLIC_REST + "/*"); // Needed for login service.
     }
 
     final FilterRegistration restUserFilter = sc.addFilter("restUserFilter", RestUserFilter.class);
-    restUserFilter.addMappingForUrlPatterns(null, false, "/rest/*");
+    restUserFilter.addMappingForUrlPatterns(null, false,
+            "/" + RestPaths.REST + "/*",
+            "/" + RestPaths.REST_WEB_APP + "/*");
+
 
     final FilterRegistration expire = sc.addFilter("expire", ResponseHeaderFilter.class);
     expire.setInitParameter("Cache-Control", "public, max-age=7200");

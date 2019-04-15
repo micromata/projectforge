@@ -74,7 +74,7 @@ public abstract class AbstractBaseDO<I extends Serializable> implements Extended
   @PropertyInfo(i18nKey = "deleted")
   private boolean deleted;
 
-  private boolean minorChange = false;
+  private transient boolean minorChange = false;
 
   private transient Map<String, Object> attributeMap;
 

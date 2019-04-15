@@ -23,14 +23,13 @@
 
 package org.projectforge.web;
 
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertFalse;
-import static org.testng.AssertJUnit.assertTrue;
-
 import org.projectforge.framework.xstream.XmlHelper;
 import org.projectforge.framework.xstream.XmlObjectReader;
+import org.projectforge.menu.builder.MenuItemDefId;
 import org.projectforge.test.AbstractTestNGBase;
 import org.testng.annotations.Test;
+
+import static org.testng.AssertJUnit.*;
 
 public class MenuBuilderTest extends AbstractTestNGBase
 {

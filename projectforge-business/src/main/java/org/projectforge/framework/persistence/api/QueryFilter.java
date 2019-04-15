@@ -90,6 +90,7 @@ public class QueryFilter
       this.filter = new BaseSearchFilter();
     } else {
       this.filter = filter;
+      this.maxResults = filter.getMaxRows();
     }
     TenantService tenantService = ApplicationContextProvider.getApplicationContext().getBean(TenantService.class);
     if (ignoreTenant == false && tenantService.isMultiTenancyAvailable() == true) {

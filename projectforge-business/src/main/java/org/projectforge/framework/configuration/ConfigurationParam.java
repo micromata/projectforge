@@ -80,10 +80,6 @@ public enum ConfigurationParam implements IConfigurationParam
    */
   COST_CONFIGURED("fibu.costConfigured", ConfigurationType.BOOLEAN, false), //
   /**
-   * Default task id 4 books configuration param.
-   */
-  DEFAULT_TASK_ID_4_BOOKS("defaultTask4Books", ConfigurationType.TASK, false), //
-  /**
    * Default country phone prefix configuration param.
    */
   DEFAULT_COUNTRY_PHONE_PREFIX("countryPhonePrefix", ConfigurationType.STRING, false, "+49"), //

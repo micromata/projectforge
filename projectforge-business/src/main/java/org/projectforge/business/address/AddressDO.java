@@ -88,128 +88,167 @@ public class AddressDO extends DefaultBaseWithAttrDO<AddressDO>
 
   private static final long serialVersionUID = 974064367925158463L;
 
+  @PropertyInfo(i18nKey = "address.contactStatus")
   private ContactStatus contactStatus = ContactStatus.ACTIVE;
 
+  @PropertyInfo(i18nKey = "address.addressStatus")
   private AddressStatus addressStatus = AddressStatus.UPTODATE;
 
   private String uid;
 
+  @PropertyInfo(i18nKey = "name", required = true)
   @Field()
   private String name; // 255 not null
 
+  @PropertyInfo(i18nKey = "firstName")
   @Field(index = Index.YES /* TOKENIZED */, store = Store.NO)
   private String firstName; // 255
 
+  @PropertyInfo(i18nKey = "gender")
   @Field(index = Index.YES /* TOKENIZED */, store = Store.NO)
   private FormOfAddress form;
 
+  @PropertyInfo(i18nKey = "address.title")
   @Field(index = Index.YES /* TOKENIZED */, store = Store.NO)
   private String title; // 255
 
+  @PropertyInfo(i18nKey = "address.positionText")
   @Field(index = Index.YES /* TOKENIZED */, store = Store.NO)
   private String positionText; // 255
 
+  @PropertyInfo(i18nKey = "organization")
   @Field(index = Index.YES /* TOKENIZED */, store = Store.NO)
   private String organization; // 255
 
+  @PropertyInfo(i18nKey = "address.division")
   @Field(index = Index.YES /* TOKENIZED */, store = Store.NO)
   private String division; // 255
 
+  @PropertyInfo(i18nKey = "address.phone", additionalI18nKey = "address.business")
   @FieldBridge(impl = HibernateSearchPhoneNumberBridge.class)
   @Field(index = Index.YES /* TOKENIZED */, store = Store.NO)
   private String businessPhone; // 255
 
+  @PropertyInfo(i18nKey = "address.phoneType.mobile", additionalI18nKey = "address.business")
   @FieldBridge(impl = HibernateSearchPhoneNumberBridge.class)
   @Field(index = Index.YES /* TOKENIZED */, store = Store.NO)
   private String mobilePhone; // 255
 
+  @PropertyInfo(i18nKey = "address.phoneType.fax", additionalI18nKey = "address.business")
   @FieldBridge(impl = HibernateSearchPhoneNumberBridge.class)
   @Field(index = Index.YES /* TOKENIZED */, store = Store.NO)
   private String fax; // 255
 
+  @PropertyInfo(i18nKey = "address.addressText")
   @Field(index = Index.YES /* TOKENIZED */, store = Store.NO)
   private String addressText; // 255
 
+  @PropertyInfo(i18nKey = "address.zipCode")
   @Field(index = Index.YES /* TOKENIZED */, store = Store.NO)
   private String zipCode; // 255
 
+  @PropertyInfo(i18nKey = "address.city")
   @Field(index = Index.YES /* TOKENIZED */, store = Store.NO)
   private String city; // 255
 
+  @PropertyInfo(i18nKey = "address.country")
   @Field(index = Index.YES /* TOKENIZED */, store = Store.NO)
   private String country; // 255
 
+  @PropertyInfo(i18nKey = "address.state")
   @Field(index = Index.YES /* TOKENIZED */, store = Store.NO)
   private String state; // 255
 
+  @PropertyInfo(i18nKey = "address.addressText")
   @Field(index = Index.YES /* TOKENIZED */, store = Store.NO)
   private String postalAddressText; // 255
 
+  @PropertyInfo(i18nKey = "address.zipCode")
   @Field(index = Index.YES /* TOKENIZED */, store = Store.NO)
   private String postalZipCode; // 255
 
+  @PropertyInfo(i18nKey = "address.city")
   @Field(index = Index.YES /* TOKENIZED */, store = Store.NO)
   private String postalCity; // 255
 
+  @PropertyInfo(i18nKey = "address.country")
   @Field(index = Index.YES /* TOKENIZED */, store = Store.NO)
   private String postalCountry; // 255
 
+  @PropertyInfo(i18nKey = "address.state")
   @Field(index = Index.YES /* TOKENIZED */, store = Store.NO)
   private String postalState; // 255
 
+  @PropertyInfo(i18nKey = "email", additionalI18nKey = "address.business")
   @Field(index = Index.YES /* TOKENIZED */, store = Store.NO)
   private String email; // 255
 
+  @PropertyInfo(i18nKey = "address.website")
   @Field(index = Index.YES /* TOKENIZED */, store = Store.NO)
   private String website; // 255
 
+  @PropertyInfo(i18nKey = "address.communicationLanguage")
   private Locale communicationLanguage;
 
+  @PropertyInfo(i18nKey = "address.phone", additionalI18nKey = "address.private")
   @FieldBridge(impl = HibernateSearchPhoneNumberBridge.class)
   @Field(index = Index.YES /* TOKENIZED */, store = Store.NO)
   private String privatePhone; // 255
 
+  @PropertyInfo(i18nKey = "address.phoneType.mobile", additionalI18nKey = "address.private")
   @FieldBridge(impl = HibernateSearchPhoneNumberBridge.class)
   @Field(index = Index.YES /* TOKENIZED */, store = Store.NO)
   private String privateMobilePhone; // 255
 
+  @PropertyInfo(i18nKey = "address.addressText")
   @Field(index = Index.YES /* TOKENIZED */, store = Store.NO)
   private String privateAddressText; // 255
 
+  @PropertyInfo(i18nKey = "address.zipCode")
   @Field(index = Index.YES /* TOKENIZED */, store = Store.NO)
   private String privateZipCode; // 255
 
+  @PropertyInfo(i18nKey = "address.city")
   @Field(index = Index.YES /* TOKENIZED */, store = Store.NO)
   private String privateCity; // 255
 
+  @PropertyInfo(i18nKey = "address.country")
   @Field(index = Index.YES /* TOKENIZED */, store = Store.NO)
   private String privateCountry; // 255
 
+  @PropertyInfo(i18nKey = "address.state")
   @Field(index = Index.YES /* TOKENIZED */, store = Store.NO)
   private String privateState; // 255
 
+  @PropertyInfo(i18nKey = "email", additionalI18nKey = "address.private")
   @Field(index = Index.YES /* TOKENIZED */, store = Store.NO)
   private String privateEmail; // 255
 
+  @PropertyInfo(i18nKey = "address.publicKey")
   @Field(index = Index.YES /* TOKENIZED */, store = Store.NO)
   private String publicKey; // 7000
 
+  @PropertyInfo(i18nKey = "address.fingerprint")
   @Field(index = Index.YES /* TOKENIZED */, store = Store.NO)
   private String fingerprint; // 255
 
+  @PropertyInfo(i18nKey = "comment")
   @Field(index = Index.YES /* TOKENIZED */, store = Store.NO)
   private String comment; // 5000;
 
+  @PropertyInfo(i18nKey = "address.birthday")
   @Field(index = Index.YES, analyze = Analyze.NO /* UN_TOKENIZED */)
   @DateBridge(resolution = Resolution.DAY, encoding = EncodingType.STRING)
   private Date birthday;
 
+  @PropertyInfo(i18nKey = "address.image")
   @NoHistory
   private byte[] imageData;
 
-  @PropertyInfo(i18nKey = "vacation.substitution")
+  @PropertyInfo(i18nKey = "address.addressbooks")
   private Set<AddressbookDO> addressbookList = new HashSet<>();
 
+  @PropertyInfo(i18nKey = "address.image")
   @NoHistory
   private byte[] imageDataPreview;
 

@@ -23,8 +23,8 @@
 
 package org.projectforge.plugins.plugintemplate;
 
-import java.util.List;
 import org.projectforge.continuousdb.UpdateEntry;
+import org.projectforge.menu.builder.MenuItemDefId;
 import org.projectforge.plugins.core.AbstractPlugin;
 import org.projectforge.plugins.plugintemplate.repository.PluginTemplateDao;
 import org.projectforge.plugins.plugintemplate.rest.PluginTemplateRest;
@@ -32,10 +32,11 @@ import org.projectforge.plugins.plugintemplate.service.PluginTemplateService;
 import org.projectforge.plugins.plugintemplate.wicket.PluginTemplateListPage;
 import org.projectforge.rest.config.RestPrivateConfiguration;
 import org.projectforge.web.MenuItemDef;
-import org.projectforge.web.MenuItemDefId;
 import org.projectforge.web.MenuItemRegistry;
 import org.projectforge.web.plugin.PluginWicketRegistrationService;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import java.util.List;
 
 /**
  * @author Florian Blumenstein
