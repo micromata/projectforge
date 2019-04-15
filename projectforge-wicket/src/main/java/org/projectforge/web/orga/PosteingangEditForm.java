@@ -62,6 +62,9 @@ public class PosteingangEditForm extends AbstractEditForm<PosteingangDO, Postein
   protected void init()
   {
     super.init();
+
+
+
     gridBuilder.newSplitPanel(GridSize.COL50);
     {
       // Date
@@ -80,6 +83,10 @@ public class PosteingangEditForm extends AbstractEditForm<PosteingangDO, Postein
       });
       fs.add(datumPanel);
     }
+
+
+
+
     gridBuilder.newSplitPanel(GridSize.COL50);
     {
       // Status drop down box:
@@ -91,6 +98,13 @@ public class PosteingangEditForm extends AbstractEditForm<PosteingangDO, Postein
       typeChoice.setRequired(true);
       fs.add(typeChoice);
     }
+
+
+
+
+
+
+
     gridBuilder.newGridPanel();
     {
       // Sender
