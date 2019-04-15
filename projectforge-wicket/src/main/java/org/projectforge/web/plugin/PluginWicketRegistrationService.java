@@ -1,5 +1,6 @@
 package org.projectforge.web.plugin;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Page;
 import org.apache.wicket.markup.html.WebPage;
 import org.projectforge.menu.builder.MenuCreator;
@@ -14,44 +15,43 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
-public class PluginWicketRegistrationService
-{
+public class PluginWicketRegistrationService {
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(PluginWicketRegistrationService.class);
+
   @Autowired
   public MenuCreator menuCreator;
 
   @Autowired
   public MenuItemRegistry menuItemRegistry;
 
-  public MenuItemDef getMenuItemDef(final MenuItemDefId menuItemDefId)
-  {
+  public MenuItemDef getMenuItemDef(final MenuItemDefId menuItemDefId) {
     return menuCreator.findById(menuItemDefId);
   }
 
-  public void registerMenuItem(final MenuItemDefId parentId, final MenuItemDef menuItemDef)
-  {
+  public void registerMenuItem(final MenuItemDefId parentId, final MenuItemDef menuItemDef) {
     registerMenuItem(parentId, menuItemDef, null);
   }
 
-  public void registerMenuItem(final MenuItemDefId parentId, final MenuItemDef menuItemDef, Class<? extends Page> pageClass)
-  {
+  public void registerMenuItem(final MenuItemDefId parentId, final MenuItemDef menuItemDef, Class<? extends Page> pageClass) {
     registerMenuItem(parentId.getId(), menuItemDef, pageClass);
   }
 
 
-  public void registerMenuItem(final String parentId, final MenuItemDef menuItemDef)
-  {
+  public void registerMenuItem(final String parentId, final MenuItemDef menuItemDef) {
     registerMenuItem(parentId, menuItemDef, null);
   }
 
-  public void registerMenuItem(final String parentId, final MenuItemDef menuItemDef, Class<? extends Page> pageClass)
-  {
+  public void registerMenuItem(final String parentId, final MenuItemDef menuItemDef, Class<? extends Page> pageClass) {
+    if (StringUtils.isEmpty(menuItemDef.getUrl())) {
+      String url = WebRegistry.getInstance().getMountPoint(pageClass);
+      menuItemDef.setUrl(url);
+    }
     menuCreator.add(parentId, menuItemDef);
     if (pageClass != null)
       menuItemRegistry.register(menuItemDef.getId(), pageClass);
   }
 
-  public void registerTopLevelMenuItem(final MenuItemDef menuItemDef, Class<? extends Page> pageClass)
-  {
+  public void registerTopLevelMenuItem(final MenuItemDef menuItemDef, Class<? extends Page> pageClass) {
     menuCreator.addTopLevelMenu(menuItemDef);
     if (pageClass != null)
       menuItemRegistry.register(menuItemDef.getId(), pageClass);
@@ -60,26 +60,23 @@ public class PluginWicketRegistrationService
   /**
    * Use this method if your entities don't support the general search page (e. g. if you have no data-base entities
    * which implements {@link Historizable}).
-   * 
+   *
    * @param id
    * @return this for chaining.
    * @see WebRegistry#register(String)
    */
-  public void registerWeb(final String id)
-  {
+  public void registerWeb(final String id) {
     WebRegistry.getInstance().register(id);
   }
 
   /**
-   * 
    * @param id
    * @param existingEntryId
    * @param insertBefore
    * @return this for chaining.
    * @see WebRegistry#register(WebRegistryEntry, boolean, WebRegistryEntry)
    */
-  public void registerWeb(final String id, final String existingEntryId, final boolean insertBefore)
-  {
+  public void registerWeb(final String id, final String existingEntryId, final boolean insertBefore) {
     final WebRegistryEntry existingEntry = WebRegistry.getInstance().getEntry(id);
     WebRegistry.getInstance().register(existingEntry, insertBefore, new WebRegistryEntry(Registry.getInstance(), id));
   }
@@ -87,22 +84,21 @@ public class PluginWicketRegistrationService
   /**
    * @param id
    * @param pageListClass list page to mount. Needed for displaying the result-sets by the general search page if the
-   *          list page implements {@link IListPageColumnsCreator}.
+   *                      list page implements {@link IListPageColumnsCreator}.
    * @param pageEditClass edit page to mount.
    * @return this for chaining.
    * @see WebRegistry#register(String, Class)
    * @see WebRegistry#addMountPages(String, Class, Class)
    */
   public void registerWeb(final String id, final Class<? extends WebPage> pageListClass,
-      final Class<? extends WebPage> pageEditClass)
-  {
+                          final Class<? extends WebPage> pageEditClass) {
     registerWeb(id, pageListClass, pageEditClass, null, false);
   }
 
   /**
    * @param id
    * @param pageListClass list page to mount. Needed for displaying the result-sets by the general search page if the
-   *          list page implements {@link IListPageColumnsCreator}.
+   *                      list page implements {@link IListPageColumnsCreator}.
    * @param pageEditClass edit page to mount.
    * @return this for chaining.
    * @see WebRegistry#register(String, Class)
@@ -110,12 +106,11 @@ public class PluginWicketRegistrationService
    */
   @SuppressWarnings("unchecked")
   public void registerWeb(final String id, final Class<? extends WebPage> pageListClass,
-      final Class<? extends WebPage> pageEditClass, final String existingEntryId, final boolean insertBefore)
-  {
+                          final Class<? extends WebPage> pageEditClass, final String existingEntryId, final boolean insertBefore) {
     WebRegistryEntry entry;
     if (IListPageColumnsCreator.class.isAssignableFrom(pageListClass) == true) {
       entry = new WebRegistryEntry(Registry.getInstance(), id,
-          (Class<? extends IListPageColumnsCreator<?>>) pageListClass);
+              (Class<? extends IListPageColumnsCreator<?>>) pageListClass);
     } else {
       entry = new WebRegistryEntry(Registry.getInstance(), id);
     }
@@ -134,8 +129,7 @@ public class PluginWicketRegistrationService
    * @return this for chaining.
    * @see WebRegistry#addMountPages(String, Class)
    */
-  public void addMountPage(final String mountPage, final Class<? extends WebPage> pageClass)
-  {
+  public void addMountPage(final String mountPage, final Class<? extends WebPage> pageClass) {
     WebRegistry.getInstance().addMountPage(mountPage, pageClass);
   }
 
@@ -147,8 +141,7 @@ public class PluginWicketRegistrationService
    * @see WebRegistry#addMountPages(String, Class, Class)
    */
   public void addMountPages(final String mountPageBasename, final Class<? extends WebPage> pageListClass,
-      final Class<? extends WebPage> pageEditClass)
-  {
+                            final Class<? extends WebPage> pageEditClass) {
     WebRegistry.getInstance().addMountPages(mountPageBasename, pageListClass, pageEditClass);
   }
 
