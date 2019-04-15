@@ -34,15 +34,13 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class ConfigurationDOTest extends AbstractTestBase
-{
+public class ConfigurationDOTest extends AbstractTestBase {
 
   @Autowired
   private ConfigurationDao configurationDao;
 
   @Test
-  public void testSingleEntry()
-  {
+  public void testSingleEntry() {
     final ConfigurationDO conf = new ConfigurationDO().setType(ConfigurationType.STRING);
     conf.setStringValue("Hurzel");
     assertEquals("Hurzel", conf.getStringValue());
@@ -52,8 +50,7 @@ public class ConfigurationDOTest extends AbstractTestBase
 
   @SuppressWarnings("unchecked")
   @Test
-  public void testConfiguration()
-  {
+  public void testConfiguration() {
     ConfigurationDO config = configurationDao.getEntry(ConfigurationParam.MESSAGE_OF_THE_DAY);
     config = configurationDao.getEntry(ConfigurationParam.MESSAGE_OF_THE_DAY);
     assertNotNull(config);
@@ -63,24 +60,23 @@ public class ConfigurationDOTest extends AbstractTestBase
     assertNotNull(config);
     configurationDao.internalSave(config);
     List<ConfigurationDO> list = (List<ConfigurationDO>) hibernateTemplate
-        .find("from ConfigurationDO c where c.parameter = 'unknown'");
+            .find("from ConfigurationDO c where c.parameter = 'unknown'");
     config = list.get(0);
     assertEquals("Hurzel", config.getStringValue());
     configurationDao.checkAndUpdateDatabaseEntries();
     list = (List<ConfigurationDO>) hibernateTemplate.find("from ConfigurationDO c where c.parameter = 'unknown'");
     config = list.get(0);
-    assertEquals( true, config.isDeleted(),"Entry should be deleted.");
+    assertEquals(true, config.isDeleted(), "Entry should be deleted.");
 
     config = configurationDao.getEntry(ConfigurationParam.MESSAGE_OF_THE_DAY);
     configurationDao.internalMarkAsDeleted(config);
     configurationDao.checkAndUpdateDatabaseEntries();
     config = configurationDao.getEntry(ConfigurationParam.MESSAGE_OF_THE_DAY);
-    assertEquals( false, config.isDeleted(),"Object should be restored.");
+    assertEquals(false, config.isDeleted(), "Object should be restored.");
   }
 
   @Test
-  public void checkTypes()
-  {
+  public void checkTypes() {
     final ConfigurationDO config = new ConfigurationDO().setType(ConfigurationType.STRING);
     config.setStringValue("Hurzel");
     config.setType(ConfigurationType.STRING);
