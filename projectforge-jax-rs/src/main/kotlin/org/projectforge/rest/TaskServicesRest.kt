@@ -19,6 +19,7 @@ import org.springframework.stereotype.Component
 import javax.ws.rs.GET
 import javax.ws.rs.Path
 import javax.ws.rs.Produces
+import javax.ws.rs.QueryParam
 import javax.ws.rs.core.MediaType
 import javax.ws.rs.core.Response
 
@@ -60,11 +61,11 @@ class TaskServicesRest() {
     }
 
     class Result(val root: Task,
-                 val translations: MutableMap<String, String>? = null)
+                 var translations: MutableMap<String, String>? = null)
 
     private class BuildContext(val user: PFUserDO,
                                val taskFilter: TaskFilter,
-                               val openedNodes: Set<Int>)
+                               val openedNodes: MutableSet<Int>)
 
     private val log = org.slf4j.LoggerFactory.getLogger(TaskServicesRest::class.java)
 
@@ -80,21 +81,34 @@ class TaskServicesRest() {
 
     /**
      * Gets the user's task tree as tree matching the filter. The open task nodes will be restored from the user's prefs.
+     * @param initial If true, the layout info and translations are also returned. Default is to return only the tree data.
+     * @param open Optional task to open in the tree (if a descendent child of closed tasks, all ancestor tasks will be opened as well).
+     * @param close Optional task to close.
+     * @return json
      */
     @GET
     @Path("tree")
     @Produces(MediaType.APPLICATION_JSON)
-    fun getTree(): Response {
-        val openNodes = userPreferencesService.getEntry(TaskTree.USER_PREFS_KEY_OPEN_TASKS) as Set<Int>
-        val context = BuildContext(ThreadLocalUserContext.getUser(), TaskFilter(), openNodes)
+    fun getTree(@QueryParam("initial") initial: Boolean?,
+                @QueryParam("open") open: Int?,
+                @QueryParam("close") close: Int?)
+            : Response {
+        val openNodes = userPreferencesService.getEntry(TaskTree.USER_PREFS_KEY_OPEN_TASKS) as MutableSet<Int>
+        val ctx = BuildContext(ThreadLocalUserContext.getUser(), TaskFilter(), openNodes)
+        openTask(ctx, open)
+        closeTask(ctx, close)
         val rootNode = taskTree.rootTaskNode
         val root = Task(rootNode)
         //UserPreferencesHelper.putEntry(TaskTree.USER_PREFS_KEY_OPEN_TASKS, expansion.getIds(), true)
-        buildTree(context, root, rootNode, 0)
-        val result = Result(root, mutableMapOf())
-        result.translations!!.put("task", translate("task"))
-        result.translations.put("task.consumption", translate("task.consumption"))
-
+        val indent = if (initial == true) 0 else null
+        buildTree(ctx, root, rootNode, indent)
+        val result = Result(root)
+        if (initial == true) {
+            result.translations = mutableMapOf()
+            val translations = result.translations!!
+            translations.put("task", translate("task"))
+            translations.put("task.consumption", translate("task.consumption"))
+        }
         return restHelper.buildResponse(result)
     }
 
@@ -123,5 +137,32 @@ class TaskServicesRest() {
                 }
             }
         }
+    }
+
+    private fun openTask(ctx: BuildContext, taskId: Int?) {
+        if (taskId == null)
+            return
+        val taskNode = taskTree.getTaskNodeById(taskId)
+        if (taskNode == null) {
+            log.warn("Task with id ${taskId} not found to open.")
+            return
+        }
+        ctx.openedNodes.add(taskId)
+        var parent = taskNode.parent
+        while (parent != null) {
+            ctx.openedNodes.add(parent.taskId)
+            parent = parent.parent
+        }
+    }
+
+    private fun closeTask(ctx: BuildContext, taskId: Int?) {
+        if (taskId == null)
+            return
+        val taskNode = taskTree.getTaskNodeById(taskId)
+        if (taskNode == null) {
+            log.warn("Task with id ${taskId} not found to close.")
+            return
+        }
+        ctx.openedNodes.remove(taskId)
     }
 }

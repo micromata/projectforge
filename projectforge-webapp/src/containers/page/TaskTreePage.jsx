@@ -13,11 +13,13 @@ class TaskTreePage extends React.Component {
     };
 
 
-    fetchInitial = () => {
+    fetch = () => {
         this.setState({
             failed: false
         });
-        fetch(getServiceURL('task/tree'), {
+        fetch(getServiceURL('task/tree', {
+            intial: !this.state.initalized
+        }), {
             method: 'GET',
             credentials: 'include',
             headers: {
@@ -84,13 +86,13 @@ class TaskTreePage extends React.Component {
     };
 
     componentDidMount() {
-        this.fetchInitial()
+        this.fetch()
     };
 
 
     constructor(props) {
         super(props);
-        this.fetchInitial = this.fetchInitial.bind(this);
+        this.fetch = this.fetch.bind(this);
 
     }
 }
