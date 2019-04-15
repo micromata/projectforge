@@ -13,12 +13,14 @@ class TaskTreePage extends React.Component {
     };
 
 
-    fetch = () => {
+    fetch = (initial, open, close) => {
         this.setState({
             failed: false
         });
         fetch(getServiceURL('task/tree', {
-            intial: !this.state.initalized
+            initial: initial,
+            open:  open ? open : '',
+            close: close ? close : ''
         }), {
             method: 'GET',
             credentials: 'include',
@@ -86,7 +88,7 @@ class TaskTreePage extends React.Component {
     };
 
     componentDidMount() {
-        this.fetch()
+        this.fetch('true')
     };
 
 
