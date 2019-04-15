@@ -18,9 +18,9 @@ class TaskTreePage extends React.Component {
             failed: false
         });
         fetch(getServiceURL('task/tree', {
-            initial: initial,
+            initial: initial ? initial : '',
             table: 'true', // Result expected as table not as tree.
-            open:  open ? open : '',
+            open: open ? open : '',
             close: close ? close : ''
         }), {
             method: 'GET',
@@ -39,9 +39,9 @@ class TaskTreePage extends React.Component {
                     nodes: root.childs,
                     protectTimesheetsUntil: rootProtectTimesheetsUntil,
                     rootTitle: rootTitle,
-                    translations: translations,
                     initialized: true
                 })
+                if (translations) this.setState({translations: translations}) // Only returned on initial call.
             })
             .catch(() => this.setState({initialized: false, failed: true}));
     };
@@ -75,9 +75,9 @@ class TaskTreePage extends React.Component {
                         }
                         let link = indent;
                         if (task.treeStatus === 'OPENED') {
-                            link = '-' + indent
+                            link = <span onClick={() => this.fetch(null, null, task.id)}>-{indent}</span>
                         } else if (task.treeStatus === 'CLOSED') {
-                            link = '+' + indent
+                            link = <span onClick={() => this.fetch(null, task.id, null)}>+{indent}</span>
                         }
                         return (
                             <tr key={`table-body-row-${task.id}`}
