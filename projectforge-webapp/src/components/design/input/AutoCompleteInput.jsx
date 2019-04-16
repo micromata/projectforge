@@ -46,7 +46,6 @@ class AutoComplete extends Component {
         onChange(id, newValue);
 
         if (value.length < minChars && newValue.length >= minChars) {
-            console.log('auto completion');
             this.fetchAutoCompletion();
         }
     }
