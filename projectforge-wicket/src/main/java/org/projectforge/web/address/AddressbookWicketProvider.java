@@ -23,13 +23,7 @@
 
 package org.projectforge.web.address;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.TreeSet;
-
 import org.apache.commons.lang3.StringUtils;
-import org.projectforge.business.address.AddressbookComparator;
 import org.projectforge.business.address.AddressbookDO;
 import org.projectforge.business.address.AddressbookDao;
 import org.projectforge.common.StringHelper;
@@ -37,8 +31,27 @@ import org.projectforge.framework.utils.NumberHelper;
 import org.wicketstuff.select2.ChoiceProvider;
 import org.wicketstuff.select2.Response;
 
+import java.io.Serializable;
+import java.util.*;
+
 public class AddressbookWicketProvider extends ChoiceProvider<AddressbookDO>
 {
+  public class AddressbookComparator implements Comparator<AddressbookDO>, Serializable
+  {
+    private static final long serialVersionUID = -1458885789659898564L;
+
+    /**
+     * @see Comparator#compare(Object, Object)
+     */
+    @Override
+    public int compare(final AddressbookDO g1, final AddressbookDO g2)
+    {
+      final String n1 = g1 != null && g1.getTitle() != null ? g1.getTitle().toLowerCase() : "";
+      final String n2 = g2 != null && g2.getTitle() != null ? g2.getTitle().toLowerCase() : "";
+      return n1.compareTo(n2);
+    }
+  }
+
   private static final long serialVersionUID = -7219524032951522997L;
 
   private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(AddressbookWicketProvider.class);
